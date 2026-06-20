@@ -1,12 +1,12 @@
 # Regions Counting Using Ultralytics YOLO11 (Inference on Video)
 
-> **Note:** Region Counter is now part of **[Ultralytics Solutions](https://docs.ultralytics.com/solutions/)**, offering enhanced features and ongoing updates.
+> **Note:** Region Counter is now part of **[Ultralytics Solutions](https://docs.ultralytics.com/solutions)**, offering enhanced features and ongoing updates.
 >
-> 🔗 **Explore the official [Region Counting Guide](https://docs.ultralytics.com/guides/region-counting/) for the latest implementation.**
+> 🔗 **Explore the official [Region Counting Guide](https://docs.ultralytics.com/guides/region-counting) for the latest implementation.**
 
 > 🔔 **Notice:**
 >
-> This GitHub example (`ultralytics/examples/YOLOv8-Region-Counter/`) will remain available but **is no longer actively maintained**. For the most current features, updates, and support, please refer to the official [Region Counting guide](https://docs.ultralytics.com/guides/region-counting/) within the Ultralytics documentation. Thank you!
+> This GitHub example (`ultralytics/examples/YOLOv8-Region-Counter/`) will remain available but **is no longer actively maintained**. For the most current features, updates, and support, please refer to the official [Region Counting guide](https://docs.ultralytics.com/guides/region-counting) within the Ultralytics documentation. Thank you!
 
 Region counting is a technique used to count objects within predefined areas or zones in a video feed. This allows for more detailed analysis, especially when monitoring multiple distinct areas simultaneously. Users can interactively adjust these regions by clicking and dragging with the left mouse button, enabling real-time counting tailored to specific needs and layouts. This method is valuable in various [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) applications, from traffic analysis to retail analytics.
 
@@ -65,7 +65,7 @@ python yolov8_region_counter.py --source "path/to/video.mp4" --classes 0 2 --wei
 python yolov8_region_counter.py --source "path/to/video.mp4" --view-img
 ```
 
-Learn more about inference arguments in the Ultralytics [Predict Mode documentation](https://docs.ultralytics.com/modes/predict/).
+Learn more about inference arguments in the Ultralytics [Predict Mode documentation](https://docs.ultralytics.com/modes/predict).
 
 ## 🛠️ Usage Options
 
@@ -75,7 +75,7 @@ The script accepts several command-line arguments for customization:
 - `--device`: Computation device (`cpu` or GPU ID like `0`).
 - `--save-img`: Boolean flag to save output frames with detections.
 - `--view-img`: Boolean flag to display the output video stream in real-time.
-- `--weights`: Path to the [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11/) model file (`.pt`). Defaults typically use a standard model like `yolo11n.pt`.
+- `--weights`: Path to the [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11) model file (`.pt`). Defaults typically use a standard model like `yolo11n.pt`.
 - `--classes`: Filter detections by specific class IDs (e.g., `--classes 0 2 3` to detect classes 0, 2, and 3).
 - `--line-thickness`: Thickness of the [bounding box](https://www.ultralytics.com/glossary/bounding-box) lines.
 - `--region-thickness`: Thickness of the lines defining the counting regions.
@@ -119,16 +119,16 @@ counting_regions = [
 
 ### Why Combine Region Counting with YOLO11?
 
-[Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11/) excels at [object detection](https://www.ultralytics.com/glossary/object-detection) and [tracking](https://www.ultralytics.com/glossary/object-tracking) in video streams. Integrating region counting enhances its capabilities by enabling object quantification within specific zones, making it useful for applications like crowd monitoring, traffic flow analysis, and retail footfall counting. Check out our blog post on [Object Detection and Tracking with Ultralytics YOLOv8](https://www.ultralytics.com/blog/object-detection-and-tracking-with-ultralytics-yolov8).
+[Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11) excels at [object detection](https://www.ultralytics.com/glossary/object-detection) and [tracking](https://www.ultralytics.com/glossary/object-tracking) in video streams. Integrating region counting enhances its capabilities by enabling object quantification within specific zones, making it useful for applications like crowd monitoring, traffic flow analysis, and retail footfall counting. Check out our blog post on [Object Detection and Tracking with Ultralytics YOLOv8](https://www.ultralytics.com/blog/object-detection-and-tracking-with-ultralytics-yolov8).
 
 ### How Can I Troubleshoot Issues?
 
-For debugging, you can enable more verbose output. While this specific script doesn't have a dedicated `--debug` flag, you can add print statements within the code to inspect variables or use standard Python debugging tools. Ensure your video path and model weights path are correct. For common issues, refer to the [Ultralytics FAQ](https://docs.ultralytics.com/help/FAQ/).
+For debugging, you can enable more verbose output. While this specific script doesn't have a dedicated `--debug` flag, you can add print statements within the code to inspect variables or use standard Python debugging tools. Ensure your video path and model weights path are correct. For common issues, refer to the [Ultralytics FAQ](https://docs.ultralytics.com/help/FAQ).
 
 ### Can I Use Other YOLO Versions or Custom Models?
 
-Yes, you can use different Ultralytics YOLO model versions (like YOLOv5, YOLOv9, YOLOv10, YOLO11) or your own custom-trained models by specifying the path to the `.pt` file using the `--weights` argument. Ensure the model is compatible with the Ultralytics framework. Find more about training custom models in the [Model Training guide](https://docs.ultralytics.com/modes/train/).
+Yes, you can use different Ultralytics YOLO model versions (like YOLOv5, YOLOv9, YOLOv10, YOLO11) or your own custom-trained models by specifying the path to the `.pt` file using the `--weights` argument. Ensure the model is compatible with the Ultralytics framework. Find more about training custom models in the [Model Training guide](https://docs.ultralytics.com/modes/train).
 
 ## 🤝 Contributing
 
-Contributions to improve this example or add new features are welcome! Please feel free to submit Pull Requests or open Issues on the main [Ultralytics repository](https://github.com/ultralytics/ultralytics). Remember to check the official [Region Counting guide](https://docs.ultralytics.com/guides/region-counting/) for the latest maintained version.
+Contributions to improve this example or add new features are welcome! Please feel free to submit Pull Requests or open Issues on the main [Ultralytics repository](https://github.com/ultralytics/ultralytics). Remember to check the official [Region Counting guide](https://docs.ultralytics.com/guides/region-counting) for the latest maintained version.

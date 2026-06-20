@@ -83,7 +83,7 @@ To train a CNN model on the Fashion-MNIST dataset for 100 [epochs](https://www.u
 
 The Fashion-MNIST dataset contains grayscale images of Zalando's article images, providing a well-structured dataset for image classification tasks. Here are some examples of images from the dataset:
 
-![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/fashion-mnist-sample.avif)
+![Fashion-MNIST clothing classification dataset samples](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/fashion-mnist-sample.avif)
 
 The example showcases the variety and complexity of the images in the Fashion-MNIST dataset, highlighting the importance of a diverse dataset for training robust image classification models.
 
@@ -130,7 +130,7 @@ The [Fashion-MNIST](https://github.com/zalandoresearch/fashion-mnist) dataset is
 
 ### Can I use Ultralytics YOLO for image classification tasks like Fashion-MNIST?
 
-Yes, Ultralytics YOLO models can be used for image classification tasks, including those involving the Fashion-MNIST dataset. YOLO26, for example, supports various vision tasks such as detection, segmentation, and classification. To get started with image classification tasks, refer to the [Classification page](https://docs.ultralytics.com/tasks/classify/).
+Yes, Ultralytics YOLO models can be used for image classification tasks, including those involving the Fashion-MNIST dataset. YOLO26, for example, supports various vision tasks such as detection, instance segmentation, [semantic segmentation](https://docs.ultralytics.com/tasks/semantic), classification, pose estimation, and oriented object detection. To get started with image classification tasks, refer to the [Classification page](https://docs.ultralytics.com/tasks/classify).
 
 ### What are the key features and structure of the Fashion-MNIST dataset?
 

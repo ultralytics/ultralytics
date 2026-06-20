@@ -33,10 +33,10 @@ keywords: Ultralytics YOLO26, speed estimation, object tracking, computer vision
 
 ## Real World Applications
 
-|                                                                            Transportation                                                                            |                                                                              Transportation                                                                              |
-| :------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-| ![Speed Estimation on Road using Ultralytics YOLO26](https://github.com/ultralytics/docs/releases/download/0/speed-estimation-on-road-using-ultralytics-yolov8.avif) | ![Speed Estimation on Bridge using Ultralytics YOLO26](https://github.com/ultralytics/docs/releases/download/0/speed-estimation-on-bridge-using-ultralytics-yolov8.avif) |
-|                                                          Speed Estimation on Road using Ultralytics YOLO26                                                           |                                                           Speed Estimation on Bridge using Ultralytics YOLO26                                                            |
+|                                                                            Transportation                                                                             |                                                                              Transportation                                                                               |
+| :-------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+| ![Speed Estimation on Road using Ultralytics YOLO26](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/speed-estimation-on-road-using-ultralytics-yolov8.avif) | ![Speed Estimation on Bridge using Ultralytics YOLO26](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/speed-estimation-on-bridge-using-ultralytics-yolov8.avif) |
+|                                                           Speed Estimation on Road using Ultralytics YOLO26                                                           |                                                            Speed Estimation on Bridge using Ultralytics YOLO26                                                            |
 
 ???+ warning "Speed is an Estimate"
 
@@ -162,7 +162,7 @@ Using Ultralytics YOLO26 for speed estimation offers significant advantages in t
 
 - **Enhanced Safety**: Accurately estimate vehicle speeds to detect over-speeding and improve road safety.
 - **Real-Time Monitoring**: Benefit from YOLO26's real-time object detection capability to monitor traffic flow and congestion effectively.
-- **Scalability**: Deploy the model on various hardware setups, from [edge devices](https://docs.ultralytics.com/guides/nvidia-jetson/) to servers, ensuring flexible and scalable solutions for large-scale implementations.
+- **Scalability**: Deploy the model on various hardware setups, from [edge devices](https://docs.ultralytics.com/guides/nvidia-jetson) to servers, ensuring flexible and scalable solutions for large-scale implementations.
 
 For more applications, see [advantages of speed estimation](#advantages-of-speed-estimation).
 

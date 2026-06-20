@@ -12,23 +12,23 @@ Streamlit makes it simple to build and deploy interactive web applications. Comb
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/1H9ktpHUUB8"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/Fm72tfuQG70"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Use Streamlit with Ultralytics for Real-Time <a href="https://www.ultralytics.com/glossary/computer-vision-cv">Computer Vision</a> in Your Browser
+  <strong>Watch:</strong> How to Build a Live Inference App with Ultralytics YOLO26 & Streamlit | Detection & Segmentation 🚀
 </p>
 
-|                                                                Aquaculture                                                                 |                                                           Animal Husbandry                                                           |
-| :----------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------: |
-| ![Fish Detection using Ultralytics YOLO26](https://github.com/ultralytics/docs/releases/download/0/fish-detection-ultralytics-yolov8.avif) | ![Animals Detection using Ultralytics YOLO26](https://github.com/ultralytics/docs/releases/download/0/animals-detection-yolov8.avif) |
-|                                                  Fish Detection using Ultralytics YOLO26                                                   |                                              Animals Detection using Ultralytics YOLO26                                              |
+|                                                                 Aquaculture                                                                 |                                                           Animal Husbandry                                                            |
+| :-----------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------: |
+| ![Fish Detection using Ultralytics YOLO26](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/fish-detection-ultralytics-yolov8.avif) | ![Animals Detection using Ultralytics YOLO26](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/animals-detection-yolov8.avif) |
+|                                                   Fish Detection using Ultralytics YOLO26                                                   |                                              Animals Detection using Ultralytics YOLO26                                               |
 
 ## Advantages of Live Inference
 
-- **Seamless Real-Time Object Detection**: Streamlit combined with YOLO26 enables real-time object detection directly from your webcam feed. This allows for immediate analysis and insights, making it ideal for [applications requiring instant feedback](https://docs.ultralytics.com/modes/predict/).
+- **Seamless Real-Time Object Detection**: Streamlit combined with YOLO26 enables real-time object detection directly from your webcam feed. This allows for immediate analysis and insights, making it ideal for [applications requiring instant feedback](https://docs.ultralytics.com/modes/predict).
 - **User-Friendly Deployment**: Streamlit's interactive interface makes it easy to deploy and use the application without extensive technical knowledge. Users can start live inference with a simple click, enhancing accessibility and usability.
 - **Efficient Resource Utilization**: YOLO26's optimized algorithms ensure high-speed processing with minimal computational resources. This efficiency allows for smooth and reliable webcam inference even on standard hardware, making advanced [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) accessible to a wider audience.
 
@@ -52,7 +52,7 @@ Streamlit makes it simple to build and deploy interactive web applications. Comb
         yolo solutions inference model="path/to/model.pt"
         ```
 
-        These commands launch the default Streamlit interface that ships with Ultralytics. Use `yolo solutions inference --help` to view additional flags such as `source`, `conf`, or `persist` if you want to customize the experience without editing Python code.
+        These commands launch the default Streamlit interface that ships with Ultralytics. Use `yolo solutions help` to view the available solution commands and arguments.
 
     === "Python"
 
@@ -72,7 +72,7 @@ This will launch the Streamlit application in your default web browser. You will
 
 ## How It Works
 
-Under the hood, the Streamlit application uses the [Ultralytics solutions module](https://docs.ultralytics.com/reference/solutions/streamlit_inference/) to create an interactive interface. When you start the inference, the application:
+Under the hood, the Streamlit application uses the [Ultralytics solutions module](https://docs.ultralytics.com/reference/solutions/streamlit_inference) to create an interactive interface. When you start the inference, the application:
 
 1. Captures video from your webcam or uploaded video file
 2. Processes each frame through the YOLO26 model
@@ -161,11 +161,11 @@ This command will launch the application in your default web browser, enabling y
 
 Real-time object detection using Streamlit and Ultralytics YOLO26 can be applied in various sectors:
 
-- **Security**: Real-time monitoring for unauthorized access and [security alarm systems](https://docs.ultralytics.com/guides/security-alarm-system/).
+- **Security**: Real-time monitoring for unauthorized access and [security alarm systems](https://docs.ultralytics.com/guides/security-alarm-system).
 - **Retail**: Customer counting, shelf management, and [inventory tracking](https://www.ultralytics.com/blog/from-shelves-to-sales-exploring-yolov8s-impact-on-inventory-management).
 - **Wildlife and Agriculture**: Monitoring animals and crop conditions for [conservation efforts](https://www.ultralytics.com/blog/ai-in-wildlife-conservation).
 
-For more in-depth use cases and examples, explore [Ultralytics Solutions](https://docs.ultralytics.com/solutions/).
+For more in-depth use cases and examples, explore [Ultralytics Solutions](https://docs.ultralytics.com/solutions).
 
 ### How does Ultralytics YOLO26 compare to other object detection models like YOLOv5 and RCNNs?
 
@@ -175,4 +175,4 @@ Ultralytics YOLO26 provides several enhancements over prior models like YOLOv5 a
 - **Ease of Use**: Simplified interfaces and deployment.
 - **Resource Efficiency**: Optimized for better speed with minimal computational requirements.
 
-For a comprehensive comparison, check [Ultralytics YOLO26 Documentation](https://docs.ultralytics.com/models/yolo26/) and related blog posts discussing model performance.
+For a comprehensive comparison, check [Ultralytics YOLO26 Documentation](https://docs.ultralytics.com/models/yolo26) and related blog posts discussing model performance.

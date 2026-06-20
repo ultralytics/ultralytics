@@ -13,7 +13,7 @@ This guide outlines how to export Ultralytics YOLO models to ExecuTorch format, 
 ## Why export to ExecuTorch?
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/assets/releases/download/v0.0.0/executorch-pipeline.avif" alt="PyTorch ExecuTorch overview">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/executorch-pipeline.avif" alt="PyTorch ExecuTorch mobile inference framework">
 </p>
 
 [ExecuTorch](https://docs.pytorch.org/executorch/) is PyTorch's end-to-end solution for enabling on-device inference capabilities across mobile and edge devices. Built with the goal of being portable and efficient, ExecuTorch can be used to run PyTorch programs on a wide variety of computing platforms.
@@ -26,7 +26,7 @@ ExecuTorch provides several powerful features for deploying Ultralytics YOLO mod
 
 - **XNNPACK Backend**: Default integration with XNNPACK provides highly optimized inference on mobile CPUs, delivering excellent performance without requiring specialized hardware.
 
-- **Quantization Support**: Built-in support for quantization techniques to reduce model size and improve inference speed while maintaining accuracy.
+- **Quantization Ready**: The ExecuTorch ecosystem supports quantization techniques to reduce model size and improve inference speed; Ultralytics currently exports FP32 models via the XNNPACK backend.
 
 - **Memory Efficiency**: Optimized memory management reduces runtime memory footprint, making it suitable for devices with limited RAM.
 
@@ -50,7 +50,7 @@ Converting Ultralytics YOLO26 models to ExecuTorch format enables efficient depl
 
 ### Installation
 
-ExecuTorch export requires Python 3.10 or higher and specific dependencies:
+ExecuTorch export requires Python 3.10-3.13 and PyTorch >= 2.9.0 along with the `executorch` package:
 
 !!! tip "Installation"
 
@@ -67,32 +67,69 @@ For detailed instructions and best practices related to the installation process
 
 Exporting YOLO26 models to ExecuTorch is straightforward:
 
-!!! example "Usage"
+The ExecuTorch format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Export your model, then load the exported model to run inference or validate its accuracy.
+
+!!! example "Export"
 
     === "Python"
 
         ```python
         from ultralytics import YOLO
 
-        # Load the YOLO26 model
+        # Load a YOLO26 model
         model = YOLO("yolo26n.pt")
 
         # Export the model to ExecuTorch format
-        model.export(format="executorch")  # creates 'yolo26n_executorch_model' directory
-
-        executorch_model = YOLO("yolo26n_executorch_model")
-
-        results = executorch_model.predict("https://ultralytics.com/images/bus.jpg")
+        model.export(format="executorch")  # creates 'yolo26n_executorch_model'
         ```
 
     === "CLI"
 
         ```bash
         # Export a YOLO26n PyTorch model to ExecuTorch format
-        yolo export model=yolo26n.pt format=executorch # creates 'yolo26n_executorch_model' directory
+        yolo export model=yolo26n.pt format=executorch # creates 'yolo26n_executorch_model'
+        ```
 
-        # Run inference with the exported model
-        yolo predict model=yolo26n_executorch_model source=https://ultralytics.com/images/bus.jpg
+!!! example "Predict"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the exported ExecuTorch model
+        model = YOLO("yolo26n_executorch_model")
+
+        # Run inference
+        results = model("https://ultralytics.com/images/bus.jpg")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Run inference with the exported ExecuTorch model
+        yolo predict model=yolo26n_executorch_model source='https://ultralytics.com/images/bus.jpg'
+        ```
+
+!!! example "Validate"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the exported ExecuTorch model
+        model = YOLO("yolo26n_executorch_model")
+
+        # Validate accuracy on the COCO8 dataset
+        metrics = model.val(data="coco8.yaml")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Validate the exported ExecuTorch model
+        yolo val model=yolo26n_executorch_model data=coco8.yaml
         ```
 
     ExecuTorch exports generate a directory that includes a `.pte` file and metadata. Use the ExecuTorch runtime in your mobile or embedded application to load the `.pte` model and perform inference.
@@ -101,19 +138,21 @@ Exporting YOLO26 models to ExecuTorch is straightforward:
 
 When exporting to ExecuTorch format, you can specify the following arguments:
 
-| Argument | Type            | Default | Description                                |
-| -------- | --------------- | ------- | ------------------------------------------ |
-| `imgsz`  | `int` or `list` | `640`   | Image size for model input (height, width) |
-| `device` | `str`           | `'cpu'` | Device to use for export (`'cpu'`)         |
+| Argument | Type             | Default        | Description                                                                                                                             |
+| -------- | ---------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `format` | `str`            | `'executorch'` | Target format for the exported model, defining compatibility with various deployment environments.                                      |
+| `imgsz`  | `int` or `tuple` | `640`          | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.       |
+| `batch`  | `int`            | `1`            | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
+| `device` | `str`            | `None`         | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                         |
 
 ### Output Structure
 
 The ExecuTorch export creates a directory containing the model and metadata:
 
-```text
+```
 yolo26n_executorch_model/
-├── yolo26n.pte              # ExecuTorch model file
-└── metadata.yaml            # Model metadata (classes, image size, etc.)
+├── model.pte               # ExecuTorch model file
+└── metadata.yaml           # Model metadata (classes, image size, etc.)
 ```
 
 ## Using Exported ExecuTorch Models
@@ -139,7 +178,7 @@ Example iOS integration (Objective-C/C++):
 using namespace ::executorch::extension;
 
 // Load the model
-Module module("/path/to/yolo26n.pte");
+Module module("/path/to/model.pte");
 
 // Create input tensor
 float input[1 * 3 * 640 * 640];
@@ -157,7 +196,7 @@ import org.pytorch.executorch.Module
 import org.pytorch.executorch.Tensor
 
 // Load the model
-val module = Module.load("/path/to/yolo26n.pte")
+val module = Module.load("/path/to/model.pte")
 
 // Prepare input tensor
 val inputTensor = Tensor.fromBlob(floatData, longArrayOf(1, 3, 640, 640))
@@ -174,16 +213,19 @@ For embedded Linux systems, use the ExecuTorch C++ API:
 
 ```cpp
 #include <executorch/extension/module/module.h>
+#include <executorch/extension/tensor/tensor.h>
+
+using namespace ::executorch::extension;
 
 // Load model
-auto module = torch::executor::Module("yolo26n.pte");
+Module module("model.pte");
 
 // Prepare input
 std::vector<float> input_data = preprocessImage(image);
-auto input_tensor = torch::executor::Tensor(input_data, {1, 3, 640, 640});
+auto input_tensor = from_blob(input_data.data(), {1, 3, 640, 640});
 
 // Run inference
-auto outputs = module.forward({input_tensor});
+const auto outputs = module.forward(input_tensor);
 ```
 
 For more details on integrating ExecuTorch into your applications, visit the [ExecuTorch Documentation](https://docs.pytorch.org/executorch/).
@@ -216,12 +258,14 @@ The Ultralytics team benchmarked YOLO26 models, comparing speed and accuracy bet
 
         | Model   | Format      | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
         | ------- | ----------- | ------ | --------- | ------------------- | ---------------------- |
-        | YOLO11n | PyTorch     | ✅     | 5.4       | 0.5060              | 337.67                 |
-        | YOLO11n | ExecuTorch  | ✅     | 11        | 0.5080              | 167.28                 |
-        | YOLO11s | PyTorch     | ✅     | 19        | 0.5770              |  928.80                |
-        | YOLO11s | ExecuTorch  | ✅     | 37        | 0.5780              | 388.31                 |
+        | YOLO26n | PyTorch     | ✅     | 5.3       | 0.4790              | 314.80                  |
+        | YOLO26n | ExecuTorch  | ✅     | 9.4        | 0.4800              | 142                    |
+        | YOLO26s | PyTorch     | ✅     | 19.5       | 0.5730             | 930.90                 |
+        | YOLO26s | ExecuTorch  | ✅     | 36.5        | 0.5780              | 376.1                 |
 
     === "More devices coming soon!"
+
+    Benchmarked with Ultralytics 8.4.9
 
     !!! note
 
@@ -243,7 +287,7 @@ conda activate executorch
 
 **Issue**: `Export fails during first run`
 
-**Solution**: ExecuTorch may need to download and compile components on first use. Ensure you have:
+**Solution**: Ensure you have the latest prebuilt `executorch` wheel installed:
 
 ```bash
 pip install --upgrade executorch
@@ -269,7 +313,7 @@ Key takeaways:
 - Export is simple with `format='executorch'` parameter
 - Models are optimized for mobile CPUs via XNNPACK backend
 - Supports iOS, Android, and embedded Linux platforms
-- Requires Python 3.10+ and FlatBuffers compiler
+- Requires Python 3.10-3.13 and PyTorch >= 2.9.0
 
 ## FAQ
 
@@ -298,11 +342,11 @@ ExecuTorch export requires:
 - `executorch` package (install via `pip install executorch`)
 - PyTorch (installed automatically with ultralytics)
 
-Note: During the first export, ExecuTorch will download and compile necessary components including the FlatBuffers compiler automatically.
+Note: The `executorch` package ships prebuilt wheels (with the XNNPACK backend), so no extra compilation step is required during export.
 
 ### Can I run inference with ExecuTorch models directly in Python?
 
-ExecuTorch models (`.pte` files) are designed for deployment on mobile and edge devices using the ExecuTorch runtime. They cannot be directly loaded with `YOLO()` for inference in Python. You need to integrate them into your target application using the ExecuTorch runtime libraries.
+ExecuTorch models can be loaded directly with `YOLO()` for inference and validation in Python (see the Predict/Validate examples above), and they can also be deployed on mobile and edge devices using the ExecuTorch runtime libraries.
 
 ### What platforms are supported by ExecuTorch?
 

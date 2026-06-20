@@ -84,7 +84,7 @@ To train a model on the xView dataset for 100 [epochs](https://www.ultralytics.c
 
 The xView dataset contains high-resolution satellite images with a diverse set of objects annotated using bounding boxes. Here are some examples of data from the dataset, along with their corresponding annotations:
 
-![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/overhead-imagery-object-detection.avif)
+![xView dataset overhead satellite imagery with object detection](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/overhead-imagery-object-detection.avif)
 
 - **Overhead Imagery**: This image demonstrates an example of [object detection](https://www.ultralytics.com/glossary/object-detection) in overhead imagery, where objects are annotated with bounding boxes. The dataset provides high-resolution satellite images to facilitate the development of models for this task.
 
@@ -127,7 +127,7 @@ The [xView](http://xviewdataset.org/) dataset is one of the largest publicly ava
 
 ### How can I use Ultralytics YOLO to train a model on the xView dataset?
 
-To train a model on the xView dataset using [Ultralytics YOLO](https://docs.ultralytics.com/models/yolo26/), follow these steps:
+To train a model on the xView dataset using [Ultralytics YOLO](https://docs.ultralytics.com/models/yolo26), follow these steps:
 
 !!! example "Train Example"
 

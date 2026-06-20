@@ -28,13 +28,13 @@ The HomeObjects-3K dataset is organized into the following subsets:
 - **Training Set**: Comprises 2,285 annotated images featuring objects such as sofas, chairs, tables, lamps, and more.
 - **Validation Set**: Includes 404 annotated images designated for evaluating model performance.
 
-Each image is labeled using bounding boxes aligned with the [Ultralytics YOLO](../detect/index.md/#what-is-the-ultralytics-yolo-dataset-format-and-how-to-structure-it) format. The diversity of indoor lighting, object scale, and orientations makes it robust for real-world deployment scenarios.
+Each image is labeled using bounding boxes aligned with the [Ultralytics YOLO](../detect/index.md#what-is-the-ultralytics-yolo-dataset-format-and-how-to-structure-it) format. The diversity of indoor lighting, object scale, and orientations makes it robust for real-world deployment scenarios.
 
 ## Object Classes
 
 The dataset supports 12 everyday object categories, covering furniture, electronics, and decorative items. These classes are chosen to reflect common items encountered in indoor domestic environments and support vision tasks like [object detection](../../tasks/detect.md) and [object tracking](../../modes/track.md).
 
-!!! Tip "HomeObjects-3K classes"
+!!! tip "HomeObjects-3K classes"
 
     0. bed
     1. sofa
@@ -102,7 +102,7 @@ You can train a YOLO26n model on the HomeObjects-3K dataset for 100 epochs using
 
 The dataset features a rich collection of indoor scene images that capture a wide range of household objects in natural home environments. Below are sample visuals from the dataset, each paired with its corresponding annotations to illustrate object positions, scales, and spatial relationships.
 
-![HomeObjects-3K dataset sample image, highlighting different objects i.e, beds, chair, door, sofas, and plants](https://github.com/ultralytics/docs/releases/download/0/homeobjects-3k-dataset-sample.avif)
+![HomeObjects-3K dataset sample with household objects](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/homeobjects-3k-dataset-sample.avif)
 
 ## License and Attribution
 

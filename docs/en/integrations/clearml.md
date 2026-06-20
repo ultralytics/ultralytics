@@ -13,7 +13,7 @@ MLOps bridges the gap between creating and deploying [machine learning](https://
 ## ClearML
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/clearml-overview.avif" alt="ClearML Overview">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/clearml-overview.avif" alt="ClearML MLOps platform dashboard">
 </p>
 
 [ClearML](https://clear.ml/) is an innovative open-source MLOps platform that is skillfully designed to automate, monitor, and orchestrate machine learning workflows. Its key features include automated logging of all training and inference data for full experiment reproducibility, an intuitive web UI for easy [data visualization](https://www.ultralytics.com/glossary/data-visualization) and analysis, advanced hyperparameter [optimization algorithms](https://www.ultralytics.com/glossary/optimization-algorithm), and robust model management for efficient deployment across various platforms.
@@ -155,7 +155,7 @@ ClearML offers several advanced features to enhance your MLOps experience.
 
 #### Remote Execution
 
-ClearML's remote execution feature facilitates the reproduction and manipulation of experiments on different machines. It logs essential details like installed packages and uncommitted changes. When a task is enqueued, the [ClearML Agent](https://clear.ml/docs/latest/docs/clearml_agent/) pulls it, recreates the environment, and runs the experiment, reporting back with detailed results.
+ClearML's remote execution feature facilitates the reproduction and manipulation of experiments on different machines. It logs essential details like installed packages and uncommitted changes. When a task is enqueued, the [ClearML Agent](https://docs.clear.ml/docs/latest/docs/clearml_agent/) pulls it, recreates the environment, and runs the experiment, reporting back with detailed results.
 
 Deploying a ClearML Agent is straightforward and can be done on various machines using the following command:
 
@@ -163,19 +163,19 @@ Deploying a ClearML Agent is straightforward and can be done on various machines
 clearml-agent daemon --queue QUEUES_TO_LISTEN_TO [--docker]
 ```
 
-This setup is applicable to cloud VMs, local GPUs, or laptops. [ClearML Autoscalers](https://clear.ml/docs/latest/docs/cloud_autoscaling/autoscaling_overview/) help manage cloud workloads on platforms like AWS, GCP, and Azure, automating the deployment of agents and adjusting resources based on your resource budget.
+This setup is applicable to cloud VMs, local GPUs, or laptops. [ClearML Autoscalers](https://docs.clear.ml/docs/latest/docs/cloud_autoscaling/autoscaling_overview/) help manage cloud workloads on platforms like AWS, GCP, and Azure, automating the deployment of agents and adjusting resources based on your resource budget.
 
 ### Cloning, Editing, and Enqueuing
 
 ClearML's user-friendly interface allows easy cloning, editing, and enqueuing of tasks. Users can clone an existing experiment, adjust parameters or other details through the UI, and enqueue the task for execution. This streamlined process ensures that the ClearML Agent executing the task uses updated configurations, making it ideal for iterative experimentation and model fine-tuning.
 
 <p align="center"><br>
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/cloning-editing-enqueuing-clearml.avif" alt="Cloning, Editing, and Enqueuing with ClearML">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/cloning-editing-enqueuing-clearml.avif" alt="Cloning, Editing, and Enqueuing with ClearML">
 </p>
 
 ## Dataset Version Management
 
-ClearML also offers powerful [dataset version management](https://clear.ml/docs/latest/docs/hyperdatasets/dataset/) capabilities that integrate seamlessly with YOLO26 training workflows. This feature allows you to:
+ClearML also offers powerful [dataset version management](https://docs.clear.ml/docs/latest/docs/hyperdatasets/dataset/) capabilities that integrate seamlessly with YOLO26 training workflows. This feature allows you to:
 
 - Version your datasets separately from your code
 - Track which dataset version was used for each experiment
@@ -198,7 +198,7 @@ This command will create a versioned dataset in ClearML that can be referenced i
 
 This guide has led you through the process of integrating ClearML with Ultralytics' YOLO26. Covering everything from initial setup to advanced model management, you've discovered how to leverage ClearML for efficient training, experiment tracking, and workflow optimization in your machine learning projects.
 
-For further details on usage, visit [ClearML's official YOLOv8 integration guide](https://clear.ml/docs/latest/docs/integrations/yolov8/), which also applies to YOLO26 workflows.
+For further details on usage, visit [ClearML's official YOLOv8 integration guide](https://docs.clear.ml/docs/latest/docs/integrations/yolov8/), which also applies to YOLO26 workflows.
 
 Additionally, explore more integrations and capabilities of Ultralytics by visiting the [Ultralytics integration guide page](../integrations/index.md), which is a treasure trove of resources and insights.
 

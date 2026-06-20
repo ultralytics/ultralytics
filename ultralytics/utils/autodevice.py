@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
+import random
 from typing import Any
 
 from ultralytics.utils import LOGGER
-from ultralytics.utils.checks import check_requirements
 
 
 class GPUInfo:
@@ -20,8 +20,7 @@ class GPUInfo:
 
     Attributes:
         pynvml (module | None): The `pynvml` module if successfully imported and initialized, otherwise `None`.
-        nvml_available (bool): Indicates if `pynvml` is ready for use. True if import and `nvmlInit()` succeeded, False
-            otherwise.
+        nvml_available (bool): Indicates if `pynvml` is ready for use. True if `nvmlInit()` succeeded, False otherwise.
         gpu_stats (list[dict[str, Any]]): A list of dictionaries, each holding stats for one GPU, populated on
         initialization and by `refresh_stats()`. Keys include: 'index', 'name', 'utilization' (%), 'memory_used' (MiB),
             'memory_total' (MiB), 'memory_free' (MiB), 'temperature' (C), 'power_draw' (W), 'power_limit' (W or 'N/A').
@@ -50,9 +49,10 @@ class GPUInfo:
         self.gpu_stats: list[dict[str, Any]] = []
 
         try:
-            check_requirements("nvidia-ml-py>=12.0.0")
-            self.pynvml = __import__("pynvml")
-            self.pynvml.nvmlInit()
+            import pynvml  # scoped as slow import
+
+            self.pynvml = pynvml
+            pynvml.nvmlInit()
             self.nvml_available = True
             self.refresh_stats()
         except Exception as e:
@@ -148,7 +148,7 @@ class GPUInfo:
 
         Notes:
              Returns fewer than 'count' if not enough qualify or exist.
-             Returns basic CUDA indices if NVML fails. Empty list if no GPUs found.
+             Returns empty list if NVML stats are unavailable or no GPUs meet the criteria.
         """
         assert min_memory_fraction <= 1.0, f"min_memory_fraction must be <= 1.0, got {min_memory_fraction}"
         assert min_util_fraction <= 1.0, f"min_util_fraction must be <= 1.0, got {min_util_fraction}"
@@ -172,7 +172,9 @@ class GPUInfo:
             if gpu.get("memory_free", 0) / gpu.get("memory_total", 1) >= min_memory_fraction
             and (100 - gpu.get("utilization", 100)) >= min_util_fraction * 100
         ]
-        eligible_gpus.sort(key=lambda x: (x.get("utilization", 101), -x.get("memory_free", 0)))
+        # Random tiebreaker prevents race conditions when multiple processes start simultaneously
+        # and all GPUs appear equally idle (same utilization and free memory)
+        eligible_gpus.sort(key=lambda x: (x.get("utilization", 101), -x.get("memory_free", 0), random.random()))
 
         # Select top 'count' indices
         selected = [gpu["index"] for gpu in eligible_gpus[:count]]

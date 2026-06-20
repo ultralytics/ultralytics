@@ -24,14 +24,14 @@ Running YOLO models in a multi-threaded environment requires careful considerati
 Python threads are a form of parallelism that allow your program to run multiple operations at once. However, Python's Global Interpreter Lock (GIL) means that only one thread can execute Python bytecode at a time.
 
 <p align="center">
-  <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/single-vs-multi-thread-examples.avif" alt="Single vs Multi-Thread Examples">
+  <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/single-vs-multi-thread-examples.avif" alt="Single-thread vs multi-thread inference">
 </p>
 
 While this sounds like a limitation, threads can still provide concurrency, especially for I/O-bound operations or when using operations that release the GIL, like those performed by YOLO's underlying C libraries.
 
 ## The Danger of Shared Model Instances
 
-Instantiating a YOLO model outside your threads and sharing this instance across multiple threads can lead to [race conditions](https://www.ultralytics.com/glossary/algorithmic-bias), where the internal state of the model is inconsistently modified due to concurrent accesses. This is particularly problematic when the model or its components hold state that is not designed to be thread-safe.
+Instantiating a YOLO model outside your threads and sharing this instance across multiple threads can lead to race conditions, where the internal state of the model is inconsistently modified due to concurrent accesses. This is particularly problematic when the model or its components hold state that is not designed to be thread-safe.
 
 ### Non-Thread-Safe Example: Single Model Instance
 

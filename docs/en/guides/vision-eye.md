@@ -11,7 +11,7 @@ keywords: VisionEye, YOLO26, Ultralytics, object mapping, object tracking, dista
 [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics/) VisionEye offers the capability for computers to identify and pinpoint objects, simulating the observational [precision](https://www.ultralytics.com/glossary/precision) of the human eye. This functionality enables computers to discern and focus on specific objects, much like the way the human eye observes details from a particular viewpoint.
 
 <p align="center">
-  <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/visioneye-object-mapping-with-tracking.avif" alt="VisionEye View Object Mapping with Object Tracking using Ultralytics YOLO26">
+  <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/visioneye-object-mapping-with-tracking.avif" alt="VisionEye object mapping with YOLO tracking">
 </p>
 
 !!! example "VisionEye Mapping using Ultralytics YOLO"
@@ -91,7 +91,7 @@ Furthermore, some visualization arguments are supported, as listed below:
 
 ## How VisionEye Works
 
-VisionEye works by establishing a fixed vision point in the frame and drawing lines from this point to detected objects. This simulates how human vision focuses on multiple objects from a single viewpoint. The solution uses [object tracking](https://docs.ultralytics.com/modes/track/) to maintain consistent identification of objects across frames, creating a visual representation of the spatial relationship between the observer (vision point) and the objects in the scene.
+VisionEye works by establishing a fixed vision point in the frame and drawing lines from this point to detected objects. This simulates how human vision focuses on multiple objects from a single viewpoint. The solution uses [object tracking](https://docs.ultralytics.com/modes/track) to maintain consistent identification of objects across frames, creating a visual representation of the spatial relationship between the observer (vision point) and the objects in the scene.
 
 The `process` method in the VisionEye class performs several key operations:
 
@@ -112,7 +112,7 @@ VisionEye object mapping has numerous practical applications across various indu
 - **Autonomous Vehicles**: Visualize how a vehicle "sees" and prioritizes objects in its environment
 - **Human-Computer Interaction**: Create more intuitive interfaces that respond to spatial relationships
 
-By combining VisionEye with other Ultralytics solutions like [distance calculation](https://docs.ultralytics.com/guides/distance-calculation/) or [speed estimation](https://docs.ultralytics.com/guides/speed-estimation/), you can build comprehensive systems that not only track objects but also understand their spatial relationships and behaviors.
+By combining VisionEye with other Ultralytics solutions like [distance calculation](https://docs.ultralytics.com/guides/distance-calculation) or [speed estimation](https://docs.ultralytics.com/guides/speed-estimation), you can build comprehensive systems that not only track objects but also understand their spatial relationships and behaviors.
 
 ## Note
 
@@ -171,10 +171,10 @@ Ultralytics YOLO26 is renowned for its speed, [accuracy](https://www.ultralytics
 3. **Community and Support**: Extensive documentation and active GitHub community for troubleshooting and enhancements.
 4. **Ease of Use**: Intuitive API simplifies complex tasks, allowing for rapid deployment and iteration.
 
-For more information on applications and benefits, check out the [Ultralytics YOLO26 documentation](https://docs.ultralytics.com/models/yolov8/).
+For more information on applications and benefits, check out the [Ultralytics YOLO26 documentation](https://docs.ultralytics.com/models/yolo26).
 
 ### How can I integrate VisionEye with other [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) tools like Comet or ClearML?
 
-Ultralytics YOLO26 can integrate seamlessly with various machine learning tools like Comet and ClearML, enhancing experiment tracking, collaboration, and reproducibility. Follow the detailed guides on [how to use YOLOv5 with Comet](https://www.ultralytics.com/blog/how-to-use-yolov5-with-comet) and [integrate YOLO26 with ClearML](https://docs.ultralytics.com/integrations/clearml/) to get started.
+Ultralytics YOLO26 can integrate seamlessly with various machine learning tools like Comet and ClearML, enhancing experiment tracking, collaboration, and reproducibility. Follow the detailed guides on [how to use YOLOv5 with Comet](https://www.ultralytics.com/blog/how-to-use-yolov5-with-comet) and [integrate YOLO26 with ClearML](https://docs.ultralytics.com/integrations/clearml) to get started.
 
-For further exploration and integration examples, check our [Ultralytics Integrations Guide](https://docs.ultralytics.com/integrations/).
+For further exploration and integration examples, check our [Ultralytics Integrations Guide](https://docs.ultralytics.com/integrations).

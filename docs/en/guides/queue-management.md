@@ -14,13 +14,13 @@ Queue management using [Ultralytics YOLO26](https://github.com/ultralytics/ultra
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/Gxr9SpYPLh0"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/TEVPiGCxB0o"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Build a Queue Management System with Ultralytics YOLO | Retail, Bank & Crowd Use Cases 🚀
+  <strong>Watch:</strong> How to Build a Queue Management System with Ultralytics YOLO26 | Real-Time Queue Analytics 🚀
 </p>
 
 ## Advantages of Queue Management
@@ -32,10 +32,10 @@ Queue management using [Ultralytics YOLO26](https://github.com/ultralytics/ultra
 
 ## Real World Applications
 
-|                                                                                            Logistics                                                                                            |                                                                            Retail                                                                             |
-| :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------------------------: |
-| ![Queue management at airport ticket counter using Ultralytics YOLO26](https://github.com/ultralytics/docs/releases/download/0/queue-management-airport-ticket-counter-ultralytics-yolov8.avif) | ![Queue monitoring in crowd using Ultralytics YOLO26](https://github.com/ultralytics/docs/releases/download/0/queue-monitoring-crowd-ultralytics-yolov8.avif) |
-|                                                               Queue management at airport ticket counter Using Ultralytics YOLO26                                                               |                                                         Queue monitoring in crowd Ultralytics YOLO26                                                          |
+|                                                                                            Logistics                                                                                             |                                                                             Retail                                                                             |
+| :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+| ![Queue management at airport ticket counter using Ultralytics YOLO26](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/queue-management-airport-ticket-counter-ultralytics-yolov8.avif) | ![Queue monitoring in crowd using Ultralytics YOLO26](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/queue-monitoring-crowd-ultralytics-yolov8.avif) |
+|                                                               Queue management at airport ticket counter Using Ultralytics YOLO26                                                                |                                                          Queue monitoring in crowd Ultralytics YOLO26                                                          |
 
 !!! example "Queue Management using Ultralytics YOLO"
 
@@ -157,7 +157,7 @@ cap.release()
 cv2.destroyAllWindows()
 ```
 
-Leveraging [Ultralytics Platform](https://docs.ultralytics.com/platform/) can streamline this process by providing a user-friendly platform for deploying and managing your queue management solution.
+Leveraging [Ultralytics Platform](https://docs.ultralytics.com/platform) can streamline this process by providing a user-friendly platform for deploying and managing your queue management solution.
 
 ### What are the key advantages of using Ultralytics YOLO26 for queue management?
 
@@ -168,18 +168,18 @@ Using Ultralytics YOLO26 for queue management offers several benefits:
 - **Real-time Alerts:** Provides real-time notifications for long queues, enabling quick intervention.
 - **Scalability:** Easily scalable across different environments like retail, airports, and healthcare.
 
-For more details, explore our [Queue Management](https://docs.ultralytics.com/reference/solutions/queue_management/) solutions.
+For more details, explore our [Queue Management](https://docs.ultralytics.com/reference/solutions/queue_management) solutions.
 
 ### Why should I choose Ultralytics YOLO26 over competitors like [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) or Detectron2 for queue management?
 
 Ultralytics YOLO26 has several advantages over TensorFlow and Detectron2 for queue management:
 
 - **Real-time Performance:** YOLO26 is known for its real-time detection capabilities, offering faster processing speeds.
-- **Ease of Use:** Ultralytics provides a user-friendly experience, from training to deployment, via [Ultralytics Platform](https://docs.ultralytics.com/platform/).
+- **Ease of Use:** Ultralytics provides a user-friendly experience, from training to deployment, via [Ultralytics Platform](https://docs.ultralytics.com/platform).
 - **Pretrained Models:** Access to a range of pretrained models, minimizing the time needed for setup.
 - **Community Support:** Extensive documentation and active community support make problem-solving easier.
 
-Learn how to get started with [Ultralytics YOLO](https://docs.ultralytics.com/quickstart/).
+Learn how to get started with [Ultralytics YOLO](https://docs.ultralytics.com/quickstart).
 
 ### Can Ultralytics YOLO26 handle multiple types of queues, such as in airports and retail?
 

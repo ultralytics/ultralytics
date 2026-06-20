@@ -16,6 +16,7 @@ from ultralytics.nn.tasks import (
     OBBModel,
     PoseModel,
     SegmentationModel,
+    SemanticSegmentationModel,
     WorldModel,
     YOLOEModel,
     YOLOESegModel,
@@ -28,11 +29,12 @@ class YOLO(Model):
 
     This class provides a unified interface for YOLO models, automatically switching to specialized model types
     (YOLOWorld or YOLOE) based on the model filename. It supports various computer vision tasks including object
-    detection, segmentation, classification, pose estimation, and oriented bounding box detection.
+    detection, instance segmentation, semantic segmentation, classification, pose estimation, and oriented bounding box
+    detection.
 
     Attributes:
         model: The loaded YOLO model instance.
-        task: The task type (detect, segment, classify, pose, obb).
+        task: The task type (detect, segment, semantic, classify, pose, obb).
         overrides: Configuration overrides for the model.
 
     Methods:
@@ -115,6 +117,12 @@ class YOLO(Model):
                 "validator": yolo.obb.OBBValidator,
                 "predictor": yolo.obb.OBBPredictor,
             },
+            "semantic": {
+                "model": SemanticSegmentationModel,
+                "trainer": yolo.semantic.SemanticSegmentationTrainer,
+                "validator": yolo.semantic.SemanticSegmentationValidator,
+                "predictor": yolo.semantic.SemanticSegmentationPredictor,
+            },
         }
 
 
@@ -161,7 +169,7 @@ class YOLOWorld(Model):
 
     @property
     def task_map(self) -> dict[str, dict[str, Any]]:
-        """Map head to model, validator, and predictor classes."""
+        """Map head to model, trainer, validator, and predictor classes."""
         return {
             "detect": {
                 "model": WorldModel,
@@ -212,7 +220,7 @@ class YOLOE(Model):
         predict: Run prediction on images, videos, directories, streams, etc.
 
     Examples:
-        Load a YOLOE detection model
+        Load a YOLOE segmentation model
         >>> model = YOLOE("yoloe-11s-seg.pt")
 
         Set vocabulary and class names
@@ -235,7 +243,7 @@ class YOLOE(Model):
 
     @property
     def task_map(self) -> dict[str, dict[str, Any]]:
-        """Map head to model, validator, and predictor classes."""
+        """Map head to model, trainer, validator, and predictor classes."""
         return {
             "detect": {
                 "model": YOLOEModel,
@@ -308,19 +316,19 @@ class YOLOE(Model):
 
         Args:
             classes (list[str]): A list of categories i.e. ["person"].
-            embeddings (torch.Tensor): Embeddings corresponding to the classes.
+            embeddings (torch.Tensor, optional): Embeddings corresponding to the classes.
         """
-        assert isinstance(self.model, YOLOEModel)
-        if embeddings is None:
-            embeddings = self.get_text_pe(classes)  # generate text embeddings if not provided
-        self.model.set_classes(classes, embeddings)
         # Verify no background class is present
         assert " " not in classes
-        self.model.names = classes
+        assert isinstance(self.model, YOLOEModel)
+        if sorted(list(self.model.names.values())) != sorted(classes):
+            if embeddings is None:
+                embeddings = self.get_text_pe(classes)  # generate text embeddings if not provided
+            self.model.set_classes(classes, embeddings)
 
         # Reset method class names
         if self.predictor:
-            self.predictor.model.names = classes
+            self.predictor.model.names = self.model.names
 
     def val(
         self,
@@ -367,8 +375,8 @@ class YOLOE(Model):
             visual_prompts (dict[str, list]): Dictionary containing visual prompts for the model. Must include 'bboxes'
                 and 'cls' keys when non-empty.
             refer_image (str | PIL.Image | np.ndarray, optional): Reference image for visual prompts.
-            predictor (callable, optional): Custom predictor function. If None, a predictor is automatically loaded
-                based on the task.
+            predictor (callable): Custom predictor class for visual prompt predictions. Defaults to
+                YOLOEVPDetectPredictor.
             **kwargs (Any): Additional keyword arguments passed to the predictor.
 
         Returns:
@@ -426,5 +434,6 @@ class YOLOE(Model):
                 self.predictor = None  # reset predictor
         elif isinstance(self.predictor, yolo.yoloe.YOLOEVPDetectPredictor):
             self.predictor = None  # reset predictor if no visual prompts
+        self.overrides["agnostic_nms"] = True  # use agnostic nms for YOLOE default
 
         return super().predict(source, stream, **kwargs)

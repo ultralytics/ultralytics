@@ -1,8 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import numpy as np
-import scipy
-from scipy.spatial.distance import cdist
 
 from ultralytics.utils.metrics import batch_probiou, bbox_ioa
 
@@ -28,8 +26,8 @@ def linear_assignment(cost_matrix: np.ndarray, thresh: float, use_lap: bool = Tr
     Returns:
         matched_indices (list[list[int]] | np.ndarray): Matched indices of shape (K, 2), where K is the number of
             matches.
-        unmatched_a (np.ndarray): Unmatched indices from the first set, with shape (L,).
-        unmatched_b (np.ndarray): Unmatched indices from the second set, with shape (M,).
+        unmatched_a (tuple | list | np.ndarray): Unmatched indices from the first set.
+        unmatched_b (tuple | list | np.ndarray): Unmatched indices from the second set.
 
     Examples:
         >>> cost_matrix = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
@@ -49,7 +47,9 @@ def linear_assignment(cost_matrix: np.ndarray, thresh: float, use_lap: bool = Tr
     else:
         # Use scipy.optimize.linear_sum_assignment
         # https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linear_sum_assignment.html
-        x, y = scipy.optimize.linear_sum_assignment(cost_matrix)  # row x, col y
+        from scipy.optimize import linear_sum_assignment
+
+        x, y = linear_sum_assignment(cost_matrix)  # row x, col y
         matches = np.asarray([[x[i], y[i]] for i in range(len(x)) if cost_matrix[x[i], y[i]] <= thresh])
         if len(matches) == 0:
             unmatched_a = list(np.arange(cost_matrix.shape[0]))
@@ -104,8 +104,8 @@ def embedding_distance(tracks: list, detections: list, metric: str = "cosine") -
     """Compute distance between tracks and detections based on embeddings.
 
     Args:
-        tracks (list[STrack]): List of tracks, where each track contains embedding features.
-        detections (list[BaseTrack]): List of detections, where each detection contains embedding features.
+        tracks (list[BOTrack]): List of tracks, where each track contains embedding features.
+        detections (list[BOTrack]): List of detections, where each detection contains embedding features.
         metric (str): Metric for distance computation. Supported metrics include 'cosine', 'euclidean', etc.
 
     Returns:
@@ -114,30 +114,49 @@ def embedding_distance(tracks: list, detections: list, metric: str = "cosine") -
 
     Examples:
         Compute the embedding distance between tracks and detections using cosine metric
-        >>> tracks = [STrack(...), STrack(...)]  # List of track objects with embedding features
-        >>> detections = [BaseTrack(...), BaseTrack(...)]  # List of detection objects with embedding features
+        >>> tracks = [BOTrack(...), BOTrack(...)]  # List of track objects with embedding features
+        >>> detections = [BOTrack(...), BOTrack(...)]  # List of detection objects with embedding features
         >>> cost_matrix = embedding_distance(tracks, detections, metric="cosine")
     """
     cost_matrix = np.zeros((len(tracks), len(detections)), dtype=np.float32)
     if cost_matrix.size == 0:
         return cost_matrix
-    det_features = np.asarray([track.curr_feat for track in detections], dtype=np.float32)
-    # for i, track in enumerate(tracks):
-    # cost_matrix[i, :] = np.maximum(0.0, cdist(track.smooth_feat.reshape(1,-1), det_features, metric))
-    track_features = np.asarray([track.smooth_feat for track in tracks], dtype=np.float32)
-    cost_matrix = np.maximum(0.0, cdist(track_features, det_features, metric))  # Normalized features
+    # A zero-norm embedding is skipped upstream, leaving curr_feat/smooth_feat None. Stack a zero placeholder so the
+    # array isn't ragged, then (below) force any missing-feature pair to the maximum distance so callers ignore
+    # appearance and fall back to motion/IoU rather than crashing or treating it as a partial match.
+    track_feats = [t.smooth_feat for t in tracks]
+    det_feats = [d.curr_feat for d in detections]
+    feat_dim = next((len(f) for f in (*track_feats, *det_feats) if f is not None), 0)
+    zeros = np.zeros(feat_dim, dtype=np.float32)
+    track_features = np.asarray([f if f is not None else zeros for f in track_feats], dtype=np.float32)
+    det_features = np.asarray([f if f is not None else zeros for f in det_feats], dtype=np.float32)
+    if metric == "cosine":
+        track_norm = np.linalg.norm(track_features, axis=1, keepdims=True)
+        det_norm = np.linalg.norm(det_features, axis=1, keepdims=True).T
+        cost_matrix = 1 - track_features @ det_features.T / np.maximum(track_norm * det_norm, np.finfo(float).eps)
+    else:
+        from scipy.spatial.distance import cdist
+
+        cost_matrix = cdist(track_features, det_features, metric)
+    cost_matrix = np.maximum(0.0, cost_matrix)  # Normalized features
+    missing_t = [i for i, f in enumerate(track_feats) if f is None]
+    missing_d = [j for j, f in enumerate(det_feats) if f is None]
+    if missing_t:
+        cost_matrix[missing_t] = 2.0  # max cosine distance -> caller's /2 then appearance gate ignores the pair
+    if missing_d:
+        cost_matrix[:, missing_d] = 2.0
     return cost_matrix
 
 
 def fuse_score(cost_matrix: np.ndarray, detections: list) -> np.ndarray:
-    """Fuse cost matrix with detection scores to produce a single similarity matrix.
+    """Fuse cost matrix with detection scores to produce a single cost matrix.
 
     Args:
         cost_matrix (np.ndarray): The matrix containing cost values for assignments, with shape (N, M).
         detections (list[BaseTrack]): List of detections, each containing a score attribute.
 
     Returns:
-        (np.ndarray): Fused similarity matrix with shape (N, M).
+        (np.ndarray): Fused cost matrix with shape (N, M).
 
     Examples:
         Fuse a cost matrix with detection scores

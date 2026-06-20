@@ -17,11 +17,11 @@ class GMC:
     SIFT, ECC, and Sparse Optical Flow. It also supports downscaling of frames for computational efficiency.
 
     Attributes:
-        method (str): The tracking method to use. Options include 'orb', 'sift', 'ecc', 'sparseOptFlow', 'none'.
+        method (str | None): The tracking method to use. Options include 'orb', 'sift', 'ecc', 'sparseOptFlow', None.
         downscale (int): Factor by which to downscale the frames for processing.
-        prevFrame (np.ndarray): Previous frame for tracking.
-        prevKeyPoints (list): Keypoints from the previous frame.
-        prevDescriptors (np.ndarray): Descriptors from the previous frame.
+        prevFrame (np.ndarray | None): Previous frame for tracking.
+        prevKeyPoints (tuple | np.ndarray | None): Keypoints from the previous frame.
+        prevDescriptors (np.ndarray | None): Descriptors from the previous frame.
         initializedFirstFrame (bool): Flag indicating if the first frame has been processed.
 
     Methods:

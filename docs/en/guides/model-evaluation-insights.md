@@ -38,7 +38,7 @@ _Quick Tip:_ When running inferences, if you aren't seeing any predictions, and 
 [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (IoU) is a metric in [object detection](https://www.ultralytics.com/glossary/object-detection) that measures how well the predicted [bounding box](https://www.ultralytics.com/glossary/bounding-box) overlaps with the ground truth bounding box. IoU values range from 0 to 1, where one stands for a perfect match. IoU is essential because it measures how closely the predicted boundaries match the actual object boundaries.
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/intersection-over-union-overview.avif" alt="Intersection over Union Overview">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/intersection-over-union-overview.avif" alt="Intersection over Union Overview">
 </p>
 
 ### Mean Average Precision
@@ -53,7 +53,7 @@ Let's focus on two specific mAP metrics:
 Other mAP metrics include mAP@0.75, which uses a stricter IoU threshold of 0.75, and mAP@small, medium, and large, which evaluate precision across objects of different sizes.
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/mean-average-precision-overview.avif" alt="Mean Average Precision Overview">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/mean-average-precision-overview.avif" alt="Mean average precision mAP metric">
 </p>
 
 ## Evaluating YOLO26 Model Performance
@@ -104,6 +104,7 @@ If you want to get a deeper understanding of your YOLO26 model's performance, yo
         print("Mean results for different metrics:", results.box.mean_results)
         print("Mean precision:", results.box.mp)
         print("Mean recall:", results.box.mr)
+        print("Per-image metrics:", results.box.image_metrics)
         print("Precision:", results.box.p)
         print("Precision curve:", results.box.p_curve)
         print("Precision values:", results.box.prec_values)
@@ -112,7 +113,10 @@ If you want to get a deeper understanding of your YOLO26 model's performance, yo
         print("Recall curve:", results.box.r_curve)
         ```
 
-The results object also includes speed metrics like preprocess time, inference time, loss, and postprocess time. By analyzing these metrics, you can fine-tune and optimize your YOLO26 model for better performance, making it more effective for your specific use case.
+The results object also includes `image_metrics`, a per-image dictionary keyed by image filename with `precision`,
+`recall`, `f1`, `tp`, `fp`, and `fn`, as well as speed metrics like preprocess time, inference time, loss, and
+postprocess time. By analyzing these metrics, you can fine-tune and optimize your YOLO26 model for better performance,
+making it more effective for your specific use case.
 
 ## How Does Fine-Tuning Work?
 

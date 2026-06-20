@@ -17,7 +17,13 @@ from PIL import Image
 from torch.utils.data import Dataset, dataloader, distributed
 
 from ultralytics.cfg import IterableSimpleNamespace
-from ultralytics.data.dataset import GroundingDataset, YOLODataset, YOLOMultiModalDataset
+from ultralytics.data.dataset import (
+    GroundingDataset,
+    PolygonSemanticDataset,
+    SemanticDataset,
+    YOLODataset,
+    YOLOMultiModalDataset,
+)
 from ultralytics.data.loaders import (
     LOADERS,
     LoadImagesAndVideos,
@@ -46,7 +52,7 @@ class InfiniteDataLoader(dataloader.DataLoader):
 
     Methods:
         __len__: Return the length of the batch sampler's sampler.
-        __iter__: Create a sampler that repeats indefinitely.
+        __iter__: Yield batches from the underlying iterator.
         __del__: Ensure workers are properly terminated.
         reset: Reset the iterator, useful when modifying dataset settings during training.
 
@@ -99,7 +105,7 @@ class _RepeatSampler:
     dataset without recreating the sampler.
 
     Attributes:
-        sampler (Dataset.sampler): The sampler to repeat.
+        sampler (torch.utils.data.Sampler): The sampler to repeat.
     """
 
     def __init__(self, sampler: Any):
@@ -127,7 +133,7 @@ class ContiguousDistributedSampler(torch.utils.data.Sampler):
     Args:
         dataset (Dataset): Dataset to sample from. Must implement __len__.
         num_replicas (int, optional): Number of distributed processes. Defaults to world size.
-        batch_size (int, optional): Batch size used by dataloader. Defaults to dataset batch size.
+        batch_size (int, optional): Batch size used by dataloader. Defaults to dataset.batch_size or 1.
         rank (int, optional): Rank of current process. Defaults to current rank.
         shuffle (bool, optional): Whether to shuffle indices within each rank's chunk. Defaults to False. When True,
             shuffling is deterministic and controlled by set_epoch() for reproducibility.
@@ -230,25 +236,42 @@ def build_yolo_dataset(
     rect: bool = False,
     stride: int = 32,
     multi_modal: bool = False,
+    fraction: float | None = None,
 ) -> Dataset:
     """Build and return a YOLO dataset based on configuration parameters."""
-    dataset = YOLOMultiModalDataset if multi_modal else YOLODataset
+    pad = 0.0 if mode == "train" else 0.5
+    if cfg.task == "semantic":
+        data_path = Path(data.get("path", ""))
+        if "masks_dir" in data:
+            dataset = SemanticDataset
+        elif (data_path / "masks").exists():
+            dataset = SemanticDataset
+        else:
+            dataset = PolygonSemanticDataset
+        pad = 0.0  # no pad for semantic
+    elif multi_modal:
+        dataset = YOLOMultiModalDataset
+    else:
+        dataset = YOLODataset
+
+    if fraction is None:
+        fraction = cfg.fraction if mode == "train" else 1.0
     return dataset(
         img_path=img_path,
         imgsz=cfg.imgsz,
         batch_size=batch,
-        augment=mode == "train",  # augmentation
-        hyp=cfg,  # TODO: probably add a get_hyps_from_cfg function
-        rect=cfg.rect or rect,  # rectangular batches
+        augment=mode == "train",
+        hyp=cfg,
+        rect=cfg.rect or rect,
         cache=cfg.cache or None,
         single_cls=cfg.single_cls or False,
         stride=stride,
-        pad=0.0 if mode == "train" else 0.5,
+        pad=pad,
         prefix=colorstr(f"{mode}: "),
         task=cfg.task,
         classes=cfg.classes,
         data=data,
-        fraction=cfg.fraction if mode == "train" else 1.0,
+        fraction=fraction,
     )
 
 
@@ -292,12 +315,12 @@ def build_dataloader(
     drop_last: bool = False,
     pin_memory: bool = True,
 ) -> InfiniteDataLoader:
-    """Create and return an InfiniteDataLoader or DataLoader for training or validation.
+    """Create and return an InfiniteDataLoader for training or validation.
 
     Args:
         dataset (Dataset): Dataset to load data from.
         batch (int): Batch size for the dataloader.
-        workers (int): Number of worker threads for loading data.
+        workers (int): Number of worker processes for data loading.
         shuffle (bool, optional): Whether to shuffle the dataset.
         rank (int, optional): Process rank in distributed training. -1 for single-GPU training.
         drop_last (bool, optional): Whether to drop the last incomplete batch.
@@ -398,7 +421,8 @@ def load_inference_source(
     """Load an inference source for object detection and apply necessary transformations.
 
     Args:
-        source (str | Path | list | tuple | torch.Tensor | PIL.Image | np.ndarray): The input source for inference.
+        source (str | int | Path | list | tuple | np.ndarray | PIL.Image | torch.Tensor): The input source for
+            inference.
         batch (int, optional): Batch size for dataloaders.
         vid_stride (int, optional): The frame interval for video sources.
         buffer (bool, optional): Whether stream frames will be buffered.

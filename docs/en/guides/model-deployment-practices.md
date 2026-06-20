@@ -35,7 +35,7 @@ Choosing where to deploy your [computer vision](https://www.ultralytics.com/glos
 
 #### Cloud Deployment
 
-Cloud deployment is great for applications that need to scale up quickly and handle large amounts of data. Platforms like AWS, [Google Cloud](../yolov5/environments/google_cloud_quickstart_tutorial.md), and Azure make it easy to manage your models from training to deployment. They offer services like [AWS SageMaker](../integrations/amazon-sagemaker.md), Google AI Platform, and [Azure Machine Learning](./azureml-quickstart.md) to help you throughout the process.
+Cloud deployment is great for applications that need to scale up quickly and handle large amounts of data. Platforms like AWS, [Google Cloud](../yolov5/environments/google-cloud-quickstart-tutorial.md), and Azure make it easy to manage your models from training to deployment. They offer services like [AWS SageMaker](../integrations/amazon-sagemaker.md), Google AI Platform, and [Azure Machine Learning](./azureml-quickstart.md) to help you throughout the process.
 
 However, using the cloud can be expensive, especially with high data usage, and you might face latency issues if your users are far from the data centers. To manage costs and performance, it's important to optimize resource use and ensure compliance with [data privacy](https://www.ultralytics.com/glossary/data-privacy) rules.
 
@@ -96,7 +96,7 @@ Optimizing your computer vision model helps it runs efficiently, especially when
 Pruning reduces the size of the model by removing weights that contribute little to the final output. It makes the model smaller and faster without significantly affecting accuracy. Pruning involves identifying and eliminating unnecessary parameters, resulting in a lighter model that requires less computational power. It is particularly useful for deploying models on devices with limited resources.
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/model-pruning-overview.avif" alt="Model Pruning Overview">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/model-pruning-overview.avif" alt="Neural network pruning workflow">
 </p>
 
 ### Model Quantization
@@ -104,7 +104,7 @@ Pruning reduces the size of the model by removing weights that contribute little
 Quantization converts the model's weights and activations from high [precision](https://www.ultralytics.com/glossary/precision) (like 32-bit floats) to lower precision (like 8-bit integers). By reducing the model size, it speeds up inference. Quantization-aware training (QAT) is a method where the model is trained with quantization in mind, preserving accuracy better than post-training quantization. By handling quantization during the training phase, the model learns to adjust to lower precision, maintaining performance while reducing computational demands.
 
 <p align="center">
-  <img width="100%" src="https://miro.medium.com/v2/resize:fit:1032/format:webp/1*Jlq_cyLvRdmp_K5jCd3LkA.png" alt="Model Quantization Overview">
+  <img width="100%" src="https://raw.githubusercontent.com/ultralytics/assets/main/docs/optimized-model-efficiency.avif" alt="Optimized model efficiency for deployment">
 </p>
 
 ### Knowledge Distillation
@@ -112,7 +112,7 @@ Quantization converts the model's weights and activations from high [precision](
 Knowledge distillation involves training a smaller, simpler model (the student) to mimic the outputs of a larger, more complex model (the teacher). The student model learns to approximate the teacher's predictions, resulting in a compact model that retains much of the teacher's [accuracy](https://www.ultralytics.com/glossary/accuracy). This technique is beneficial for creating efficient models suitable for deployment on edge devices with constrained resources.
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/knowledge-distillation-overview.avif" alt="Knowledge Distillation Overview">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/knowledge-distillation-overview.avif" alt="Knowledge distillation training process">
 </p>
 
 ## Troubleshooting Deployment Issues

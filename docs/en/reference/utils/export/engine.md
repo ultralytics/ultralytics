@@ -7,11 +7,19 @@ keywords: Ultralytics, TensorRT export, ONNX export, PyTorch to ONNX, quantizati
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/export/engine.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/export/engine.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/export/engine.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/export/engine.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
 <br>
 
+## ::: ultralytics.utils.export.engine.best_onnx_opset
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.export.engine.torch2onnx
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.export.engine.modelopt_quantize_onnx
 
 <br><br><hr><br>
 

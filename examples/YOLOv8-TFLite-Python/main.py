@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from pathlib import Path
 
 import cv2
 import numpy as np
@@ -68,8 +69,10 @@ class YOLOv8TFLite:
         if metadata is None:
             self.classes = {i: i for i in range(1000)}
         else:
-            with open(metadata) as f:
-                self.classes = yaml.safe_load(f)["names"]
+            metadata = Path(metadata).resolve()
+            if metadata.suffix not in {".yaml", ".yml"} or not metadata.is_file():
+                raise FileNotFoundError(f"Metadata YAML not found: {metadata}")
+            self.classes = yaml.safe_load(metadata.read_text(encoding="utf-8"))["names"]
         np.random.seed(42)  # Set seed for reproducible colors
         self.color_palette = np.random.uniform(128, 255, size=(len(self.classes), 3))
 
@@ -202,7 +205,8 @@ class YOLOv8TFLite:
             class_ids = out[keep, 4:].argmax(-1)
 
             # Apply non-maximum suppression
-            indices = cv2.dnn.NMSBoxes(boxes, scores, self.conf, self.iou).flatten()
+            indices = cv2.dnn.NMSBoxes(boxes, scores, self.conf, self.iou)
+            indices = np.array(indices).flatten() if indices is not None and len(indices) else []
 
             # Draw detections that survived NMS
             [self.draw_detections(img, boxes[i], scores[i], class_ids[i]) for i in indices]

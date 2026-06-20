@@ -7,7 +7,7 @@ keywords: platform callbacks, training callbacks, console logging, YOLO11 traini
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/platform.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/platform.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/platform.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/platform.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
 <br>
 
@@ -23,11 +23,19 @@ keywords: platform callbacks, training callbacks, console logging, YOLO11 traini
 
 <br><br><hr><br>
 
+## ::: ultralytics.utils.callbacks.platform._sanitize_json_value
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.callbacks.platform._send
 
 <br><br><hr><br>
 
 ## ::: ultralytics.utils.callbacks.platform._send_async
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.callbacks.platform._handle_control_response
 
 <br><br><hr><br>
 
@@ -48,6 +56,10 @@ keywords: platform callbacks, training callbacks, console logging, YOLO11 traini
 <br><br><hr><br>
 
 ## ::: ultralytics.utils.callbacks.platform.on_pretrain_routine_start
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.callbacks.platform.on_pretrain_routine_end
 
 <br><br><hr><br>
 

@@ -86,7 +86,7 @@ Request an Enterprise License for commercial use at [Ultralytics Licensing](http
 
     ***
 
-    [:octicons-arrow-right-24: Learn more](modes/predict.md)
+    [:octicons-arrow-right-24: Explore Predict mode](modes/predict.md)
 
 - :fontawesome-solid-brain:{ .lg .middle } &nbsp; **Train a Model**
 
@@ -96,7 +96,7 @@ Request an Enterprise License for commercial use at [Ultralytics Licensing](http
 
     ***
 
-    [:octicons-arrow-right-24: Learn more](modes/train.md)
+    [:octicons-arrow-right-24: Explore Train mode](modes/train.md)
 
 - :material-magnify-expand:{ .lg .middle } &nbsp; **Explore Computer Vision Tasks**
 

@@ -166,7 +166,7 @@ However, for in-depth instructions on deploying your PaddlePaddle models in vari
 
 - **[Paddle Lite](https://github.com/PaddlePaddle/Paddle-Lite/blob/develop/README_en.md)**: Explore how to optimize and deploy models on mobile and embedded devices using Paddle Lite.
 
-- **[Paddle.js](https://github.com/PaddlePaddle/Paddle.js)**: Discover how to run PaddlePaddle models in web browsers for client-side AI using Paddle.js.
+- **[Paddle.js](https://paddlejs.baidu.com)**: Discover how to run PaddlePaddle models in web browsers for client-side AI using Paddle.js.
 
 ## Summary
 

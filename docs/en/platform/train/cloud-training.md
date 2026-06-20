@@ -301,8 +301,8 @@ Before training starts, the platform estimates total cost by:
 | Scenario                         | GPU          | Estimated Cost |
 | -------------------------------- | ------------ | -------------- |
 | 500 images, YOLO26n, 50 epochs   | RTX 4090     | ~$0.03         |
-| 1000 images, YOLO26n, 100 epochs | RTX PRO 6000 | ~$0.27         |
-| 5000 images, YOLO26s, 100 epochs | H100 SXM     | ~$1.75         |
+| 1000 images, YOLO26n, 100 epochs | RTX PRO 6000 | ~$0.30         |
+| 5000 images, YOLO26s, 100 epochs | H100 SXM     | ~$1.93         |
 
 ### Billing Flow
 

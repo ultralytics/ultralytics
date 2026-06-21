@@ -573,11 +573,16 @@ jobs:
           source env/bin/activate
           echo PATH=$PATH >> $GITHUB_ENV
       - name: Install requirements
-        run: |
-          uv pip install -e ".[export]" pytest \
-          "${{ matrix.torch_whl }}" "${{ matrix.torchvision_whl }}" "${{ matrix.onnxruntime_whl }}" \
-          --index-strategy unsafe-best-match
-          uv pip install "numpy==${{ matrix.numpy }}"
+        uses: ultralytics/actions/retry@main
+        with:
+          retries: 3
+          retry_delay_seconds: 60
+          timeout_minutes: 60
+          run: |
+            uv pip install -e ".[export]" pytest \
+            "${{ matrix.torch_whl }}" "${{ matrix.torchvision_whl }}" "${{ matrix.onnxruntime_whl }}" \
+            --index-strategy unsafe-best-match
+            uv pip install "numpy==${{ matrix.numpy }}"
       - name: Check environment
         run: |
           yolo checks

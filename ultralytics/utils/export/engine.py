@@ -139,17 +139,18 @@ def modelopt_quantize_onnx(
         calib = torch.cat(images).to(torch.float32) / 255.0
         LOGGER.info(f"{prefix} quantizing ONNX to INT8 with ModelOpt using {calib.shape[0]} calibration images...")
         kwargs = {"calibration_shapes": f"{input_name}:{'x'.join(str(d) for d in shape)}"} if dynamic else {}
+        # RTX cards register the NvTensorRTRTX EP and abort if both TensorRT EPs are enabled; their CUDA EP can also
+        # segfault on a cuDNN ABI mismatch from ModelOpt's onnxruntime pin. Calibrate them on CPU (scales are
+        # EP-independent), others on CUDA. ONNX Runtime's casing for the EP varies by release, so match insensitively.
+        import onnxruntime
+
+        on_rtx = any("nvtensorrtrtx" in ep.lower() for ep in onnxruntime.get_available_providers())
         quantize(
             onnx_file,
             quantize_mode="int8",
             calibration_data={input_name: calib.cpu().numpy()},
             calibration_method="max",
-            # Calibrate on CUDA (CPU fallback), not ModelOpt's default that also includes the TensorRT EP: some RTX
-            # cards (e.g. RTX 2000 Ada) additionally register NvTensorRTRTXExecutionProvider, and enabling both TRT
-            # EPs in one session aborts calibration ("Cannot enable both 'TensorrtExecutionProvider' and
-            # 'NvTensorRTRTXExecutionProvider'"). Calibration scales are effectively EP-independent, so CUDA matches.
-            # `cuda:0` is the user-selected GPU: select_device() masks it via CUDA_VISIBLE_DEVICES to logical index 0.
-            calibration_eps=["cuda:0", "cpu"],
+            calibration_eps=["cpu"] if on_rtx else ["cuda:0", "cpu"],
             output_path=out_file,
             **kwargs,
         )

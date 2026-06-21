@@ -1,5 +1,5 @@
 ---
-title: YOLO Experiment Tracking with DVCLive
+title: YOLO26 Experiment Tracking with DVCLive
 comments: true
 description: Unlock seamless YOLO26 tracking with DVCLive. Discover how to log, visualize, and analyze experiments for optimized ML model performance.
 keywords: YOLO26, DVCLive, experiment tracking, machine learning, model training, data visualization, Git integration

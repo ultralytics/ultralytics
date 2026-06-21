@@ -1,5 +1,5 @@
 ---
-title: Train YOLO Models with JupyterLab
+title: Train YOLO26 Models with JupyterLab
 comments: true
 description: Learn how to use JupyterLab to train and experiment with Ultralytics YOLO26 models. Discover key features, setup instructions, and solutions to common issues.
 keywords: JupyterLab, YOLO26, Ultralytics, Model Training, Deep Learning, Interactive Coding, Data Science, Machine Learning, Jupyter Notebook, Model Development

@@ -1,5 +1,5 @@
 ---
-title: Export YOLO to TFLite Edge TPU
+title: Export YOLO26 to TFLite Edge TPU
 comments: true
 description: Learn how to export YOLO26 models to TFLite Edge TPU format for high-speed, low-power inferencing on mobile and embedded devices.
 keywords: YOLO26, TFLite Edge TPU, TensorFlow Lite, model export, machine learning, edge computing, neural networks, Ultralytics

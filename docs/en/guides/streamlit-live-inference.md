@@ -1,5 +1,5 @@
 ---
-title: YOLO Live Inference with Streamlit
+title: YOLO26 Live Inference with Streamlit
 comments: true
 description: Learn how to set up a real-time object detection application using Streamlit and Ultralytics YOLO26. Follow this step-by-step guide to implement webcam-based object detection.
 keywords: Streamlit, YOLO26, Real-time Object Detection, Streamlit Application, YOLO26 Streamlit Tutorial, Webcam Object Detection

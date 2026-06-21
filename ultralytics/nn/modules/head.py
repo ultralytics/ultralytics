@@ -175,7 +175,11 @@ class Detect(nn.Module):
     def _get_decode_boxes(self, x: dict[str, torch.Tensor]) -> torch.Tensor:
         """Get decoded boxes based on anchors and strides."""
         shape = x["feats"][0].shape  # BCHW
-        if self.dynamic or self.shape != shape:
+        # Recompute on grid-shape change OR when the cached anchors sit on a different device than
+        # the features. The latter guards an AutoBackend reload (torch.load -> CPU, then .to(device))
+        # that moves params/buffers to GPU but leaves the plain-attribute anchor cache on CPU; with a
+        # matching self.shape the stale CPU anchors would otherwise hit a dist2bbox device mismatch.
+        if self.dynamic or self.shape != shape or self.anchors.device != x["feats"][0].device:
             self.anchors, self.strides = (a.transpose(0, 1) for a in make_anchors(x["feats"], self.stride, 0.5))
             self.shape = shape
 

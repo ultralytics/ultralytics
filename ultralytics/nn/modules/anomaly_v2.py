@@ -420,19 +420,40 @@ class SegBranch(nn.Module):
     Consumes the P3 and P4 PAN features and emits per-pixel logits at P3 resolution
     (e.g. 80x80 for 640 input). A P4 auxiliary head provides deep supervision during
     training.
+
+    When ``prior_cond`` is set, a 1-channel prior heatmap is concatenated onto each scale's
+    feature (resized to its H×W) before the conv, turning the branch into a prior-conditioned
+    denoiser/refiner: it cleans a noisy input prior toward the GT mask. ``forward(x, prior=None)``
+    with ``prior=None`` reproduces the prior-free behavior (and a ``prior_cond`` head fed
+    ``None`` falls back to a zero prior, i.e. segment-from-features). Concat + interpolate keep
+    the deployable forward ONNX-clean.
     """
 
-    def __init__(self, ch: tuple, nc: int = 1, c_mid: int | None = None):
+    def __init__(self, ch: tuple, nc: int = 1, c_mid: int | None = None, prior_cond: bool = False):
         super().__init__()
         self.nc = nc
+        self.prior_cond = bool(prior_cond)
+        extra = 1 if self.prior_cond else 0  # +1 input channel for the concatenated prior
         c_mid = ch[0] if c_mid is None else c_mid
-        self.classifier = nn.Sequential(Conv(ch[0], c_mid, 3), nn.Conv2d(c_mid, nc, 1))
-        self.aux_head = nn.Sequential(Conv(ch[1], c_mid, 3), nn.Conv2d(c_mid, nc, 1)) if len(ch) > 1 else None
+        self.classifier = nn.Sequential(Conv(ch[0] + extra, c_mid, 3), nn.Conv2d(c_mid, nc, 1))
+        self.aux_head = (
+            nn.Sequential(Conv(ch[1] + extra, c_mid, 3), nn.Conv2d(c_mid, nc, 1)) if len(ch) > 1 else None
+        )
 
-    def forward(self, x: list[torch.Tensor]):
-        logits = self.classifier(x[0])
+    def _cat_prior(self, feat: torch.Tensor, prior: torch.Tensor | None) -> torch.Tensor:
+        """Concat the 1-channel prior (resized to ``feat``'s H×W) onto ``feat`` when prior_cond."""
+        if not self.prior_cond:
+            return feat
+        if prior is None:  # prior_cond head with no prior -> zero prior (segment from features)
+            prior = feat.new_zeros(feat.shape[0], 1, feat.shape[2], feat.shape[3])
+        elif prior.shape[2:] != feat.shape[2:]:
+            prior = F.interpolate(prior, size=feat.shape[2:], mode="bilinear", align_corners=False)
+        return torch.cat([feat, prior], dim=1)
+
+    def forward(self, x: list[torch.Tensor], prior: torch.Tensor | None = None):
+        logits = self.classifier(self._cat_prior(x[0], prior))
         if self.training and self.aux_head is not None:
-            return logits, self.aux_head(x[1])
+            return logits, self.aux_head(self._cat_prior(x[1], prior))
         return logits
 
 

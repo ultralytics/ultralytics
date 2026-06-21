@@ -24,6 +24,7 @@ from pathlib import Path
 
 import torch
 
+from ultralytics.data import build_yolo_dataset
 from ultralytics.models import yolo
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import YOLOAnomalyV2Model
@@ -71,9 +72,24 @@ class AnomalyV2Trainer(DetectionTrainer):
         """True when the model trains with the precomputed-heatmap (4th channel) prior."""
         return bool(getattr(unwrap_model(self.model), "mb_cached_prior", False))
 
+    def _seg_polygon_active(self) -> bool:
+        """True when the SegBranch refiner is supervised against v6 polygon masks (seg_target_polygon)."""
+        return bool(getattr(unwrap_model(self.model), "seg_target_polygon", False))
+
     def build_dataset(self, img_path: str, mode: str = "train", batch: int | None = None):
-        """Use CachedPriorDataset (image + heatmap sidecar as 4th channel) when enabled."""
+        """Dataset selection: CachedPriorDataset (4th-ch heatmap) > segment (polygon masks for the
+        SegBranch refiner target) > default detection."""
         if not self._cached_active():
+            if self._seg_polygon_active():
+                # task="segment" flips YOLODataset.use_segments -> Format(return_mask=True) ->
+                # batch["masks"] (overlap-union instance map). Detection head/loss unaffected
+                # (bboxes still present). copy() so the persistent self.args stays task="anomaly_v2".
+                args = copy(self.args)
+                args.task = "segment"
+                gs = max(int(unwrap_model(self.model).stride.max()), 32)
+                return build_yolo_dataset(
+                    args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs
+                )
             return super().build_dataset(img_path, mode=mode, batch=batch)
         from ultralytics.utils.torch_utils import unwrap_model as _um
 

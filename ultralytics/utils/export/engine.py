@@ -139,18 +139,15 @@ def modelopt_quantize_onnx(
         calib = torch.cat(images).to(torch.float32) / 255.0
         LOGGER.info(f"{prefix} quantizing ONNX to INT8 with ModelOpt using {calib.shape[0]} calibration images...")
         kwargs = {"calibration_shapes": f"{input_name}:{'x'.join(str(d) for d in shape)}"} if dynamic else {}
-        # RTX cards register the NvTensorRTRTX EP and abort if both TensorRT EPs are enabled; their CUDA EP can also
-        # segfault on a cuDNN ABI mismatch from ModelOpt's onnxruntime pin. Calibrate them on CPU (scales are
-        # EP-independent), others on CUDA. ONNX Runtime's casing for the EP varies by release, so match insensitively.
-        import onnxruntime
-
-        on_rtx = any("nvtensorrtrtx" in ep.lower() for ep in onnxruntime.get_available_providers())
         quantize(
             onnx_file,
             quantize_mode="int8",
             calibration_data={input_name: calib.cpu().numpy()},
             calibration_method="max",
-            calibration_eps=["cpu"] if on_rtx else ["cuda:0", "cpu"],
+            # Calibrate on CPU. ModelOpt's CUDA EP session can hit an uncatchable cuDNN-ABI segfault (its pinned
+            # onnxruntime-gpu's cuDNN vs the installed torch's) and the TensorRT EP aborts on RTX cards (NvTensorRTRTX);
+            # scales are EP-independent, so the INT8 engine is equivalent and only this one-time step is slower.
+            calibration_eps=["cpu"],
             output_path=out_file,
             **kwargs,
         )

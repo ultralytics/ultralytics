@@ -18,10 +18,12 @@ class FeatureHook:
     """Picklable forward hook that stores layer output into a shared dict."""
 
     def __init__(self, feat_dict, idx):
+        """Initialize the hook with the shared feature dict and the layer index to store outputs under."""
         self.feat_dict = feat_dict
         self.idx = idx
 
     def __call__(self, module, input, output):
+        """Store the layer's forward output into the shared feature dict under its index."""
         self.feat_dict[self.idx] = output
 
 

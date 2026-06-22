@@ -1,4 +1,5 @@
 ---
+title: YOLO How-To Guides
 comments: true
 description: Master YOLO with Ultralytics tutorials covering training, deployment and optimization. Find solutions, improve metrics, and deploy with ease.
 keywords: Ultralytics, YOLO, tutorials, guides, object detection, deep learning, PyTorch, training, deployment, optimization, computer vision
@@ -51,7 +52,7 @@ Here's a compilation of in-depth guides to help you master different aspects of 
 - [NVIDIA DGX Spark](nvidia-dgx-spark.md): Quickstart guide for deploying YOLO models on NVIDIA DGX Spark devices.
 - [NVIDIA Jetson](nvidia-jetson.md): Quickstart guide for deploying YOLO models on NVIDIA Jetson devices.
 - [OpenVINO Latency vs Throughput Modes](optimizing-openvino-latency-vs-throughput-modes.md): Learn latency and throughput optimization techniques for peak YOLO inference performance.
-- [Preprocessing Annotated Data](preprocessing_annotated_data.md): Learn about preprocessing and augmenting image data in computer vision projects using YOLO26, including normalization, dataset augmentation, splitting, and exploratory data analysis (EDA).
+- [Preprocessing Annotated Data](preprocessing-annotated-data.md): Learn about preprocessing and augmenting image data in computer vision projects using YOLO26, including normalization, dataset augmentation, splitting, and exploratory data analysis (EDA).
 - [Raspberry Pi](raspberry-pi.md): Quickstart tutorial to run YOLO models on the latest Raspberry Pi hardware.
 - [ROS Quickstart](ros-quickstart.md): Learn how to integrate YOLO with the Robot Operating System (ROS) for real-time object detection in robotics applications, including Point Cloud and Depth images.
 - [SAHI Tiled Inference](sahi-tiled-inference.md): Comprehensive guide on leveraging SAHI's sliced inference capabilities with YOLO26 for object detection in high-resolution images.

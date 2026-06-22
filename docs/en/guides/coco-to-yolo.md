@@ -1,4 +1,5 @@
 ---
+title: Convert COCO JSON Annotations to YOLO
 comments: true
 description: Learn how to convert COCO JSON annotations to YOLO format for object detection, instance segmentation, and pose estimation training. Complete guide with step-by-step examples, common pitfalls, and class ID mapping for custom datasets.
 keywords: COCO to YOLO, convert COCO JSON to YOLO, COCO JSON format, YOLO annotation format, convert_coco, COCO dataset training, train YOLO on COCO, object detection dataset, instance segmentation dataset, pose estimation dataset, dataset conversion, annotation format, cls91to80, category_id, bounding box format, YOLO training data

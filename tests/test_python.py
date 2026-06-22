@@ -93,6 +93,18 @@ def test_predict_txt(tmp_path):
     assert len(results) == 7, f"Expected 7 results from source list, got {len(results)}"
 
 
+def test_predict_list_of_paths():
+    """Test that a list of local file paths loads lazily, respecting `batch` and input order (no OOM)."""
+    from ultralytics.data.build import load_inference_source
+    from ultralytics.data.loaders import LoadImagesAndVideos
+
+    imgs = [ASSETS / "zidane.jpg", ASSETS / "bus.jpg"]  # intentionally not in sorted order
+    dataset = load_inference_source(imgs, batch=1)
+    assert isinstance(dataset, LoadImagesAndVideos), "Path list must load lazily, not as one in-memory batch"
+    assert dataset.bs == 1, f"Batch size must respect `batch`, got {dataset.bs}"  # not len(imgs)
+    assert [Path(f).name for f in dataset.files] == ["zidane.jpg", "bus.jpg"], "Input order must be preserved"
+
+
 @pytest.mark.skipif(True, reason="disabled for testing")
 def test_predict_csv_multi_row(tmp_path):
     """Test YOLO predictions with sources listed in multiple rows of a CSV file."""
@@ -360,10 +372,22 @@ def test_results(model: str, tmp_path):
         print(r, len(r), r.path)  # print after methods
 
 
+def test_results_plot_without_boxes():
+    """Test that plotting a masks-only Results (boxes=None) does not raise an AttributeError."""
+    from ultralytics.engine.results import Results
+
+    orig_img = np.zeros((640, 640, 3), dtype=np.uint8)
+    masks = torch.zeros((2, 640, 640), dtype=torch.float32)
+    r = Results(orig_img, path="image.jpg", names={0: "a", 1: "b"}, masks=masks)
+    assert r.boxes is None
+    for color_mode in ("class", "instance"):
+        assert r.plot(color_mode=color_mode).shape == orig_img.shape
+
+
 def test_labels_and_crops():
     """Test output from prediction args for saving YOLO detection labels and crops."""
     imgs = [SOURCE, ASSETS / "zidane.jpg"]
-    results = YOLO(WEIGHTS_DIR / "yolo26n.pt")(imgs, imgsz=160, save_txt=True, save_crop=True)
+    results = YOLO(WEIGHTS_DIR / "yolo26n.pt")(imgs, imgsz=320, save_txt=True, save_crop=True)
     save_path = Path(results[0].save_dir)
     for r in results:
         im_name = Path(r.path).stem

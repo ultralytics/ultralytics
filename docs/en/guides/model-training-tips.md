@@ -1,4 +1,5 @@
 ---
+title: Model Training Tips & Best Practices
 comments: true
 description: Learn best practices for training computer vision models, including batch size optimization, mixed precision training, early stopping, and optimizer selection for improved efficiency and accuracy.
 keywords: Model Training Machine Learning, AI Model Training, Number of Epochs, How to Train a Model in Machine Learning, Machine Learning Best Practices, What is Model Training
@@ -8,7 +9,7 @@ keywords: Model Training Machine Learning, AI Model Training, Number of Epochs, 
 
 ## Introduction
 
-One of the most important steps when working on a [computer vision project](./steps-of-a-cv-project.md) is model training. Before reaching this step, you need to [define your goals](./defining-project-goals.md) and [collect and annotate your data](./data-collection-and-annotation.md). After [preprocessing the data](./preprocessing_annotated_data.md) to make sure it is clean and consistent, you can move on to training your model.
+One of the most important steps when working on a [computer vision project](./steps-of-a-cv-project.md) is model training. Before reaching this step, you need to [define your goals](./defining-project-goals.md) and [collect and annotate your data](./data-collection-and-annotation.md). After [preprocessing the data](./preprocessing-annotated-data.md) to make sure it is clean and consistent, you can move on to training your model.
 
 <p align="center">
   <br>

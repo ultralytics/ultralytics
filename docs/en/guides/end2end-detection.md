@@ -1,4 +1,5 @@
 ---
+title: YOLO26 End-to-End NMS-Free Detection
 comments: true
 description: Learn how YOLO26 end-to-end NMS-free detection works, what changes for your deployment pipeline, which export formats support it, and how to migrate from YOLOv8 or YOLO11.
 keywords: YOLO26, end-to-end detection, NMS-free inference, model export, deployment guide, object detection, Ultralytics, YOLOv8 migration, YOLO11 migration, ONNX, TensorRT, CoreML, post-processing, computer vision

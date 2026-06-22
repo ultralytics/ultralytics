@@ -952,7 +952,7 @@ POST /api/models/{modelId}/predict/warmup
 
 ## Training API
 
-Launch YOLO training on cloud GPUs (24 GPU types from RTX 2000 Ada to B300) and monitor progress in real time. See [Cloud Training documentation](../train/cloud-training.md).
+Launch YOLO training on cloud GPUs (26 GPU types from RTX 2000 Ada to B300) and monitor progress in real time. See [Cloud Training documentation](../train/cloud-training.md).
 
 ```mermaid
 graph LR

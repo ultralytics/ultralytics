@@ -1,4 +1,5 @@
 ---
+title: YOLO26 on Seeed Studio reCamera
 comments: true
 description: Discover how to get started with Seeed Studio reCamera for edge AI applications using Ultralytics YOLO26. Learn about its powerful features, real-world applications, and how to export YOLO26 models to ONNX format for seamless integration.
 keywords: Seeed Studio reCamera, YOLO26, ONNX export, edge AI, computer vision, real-time detection, personal protective equipment detection, fire detection, waste detection, fall detection, modular AI devices, Ultralytics

@@ -1828,6 +1828,7 @@ class SemanticSegment(nn.Module):
 
     export = False  # export mode
     format = None  # export format
+    bake_argmax = False  # export: emit a baked [B, H, W] class map (set by the exporter for TensorRT>=10)
 
     def __init__(self, nc=19, ch=()):
         """Initialize the semantic segmentation head.
@@ -1855,9 +1856,9 @@ class SemanticSegment(nn.Module):
 
         Returns:
             (torch.Tensor | tuple): Logits of shape [B, nc, H/8, W/8] during training (or a (main, aux) tuple when
-                aux_head is present), inference, and CoreML export. ONNX and TFLite export bake in the argmax and return
-                a compact class map of shape [B, H, W] (uint8 when nc <= 256, else int32). Other export formats return
-                upsampled logits [B, nc, H, W].
+                aux_head is present), inference, and CoreML export. ONNX, TFLite, MNN, and TensorRT>=10 export bake in
+                the argmax and return a compact class map of shape [B, H, W] (uint8 when nc <= 256, else int32). Other
+                export formats return upsampled logits [B, nc, H, W].
         """
         # Classify
         logits = self.classifier(x[0])  # [B, nc, H/8, W/8]
@@ -1867,7 +1868,9 @@ class SemanticSegment(nn.Module):
             return logits
         if self.export and self.format != "coreml":  # coreml does not support interpolate
             y = F.interpolate(logits, scale_factor=8, mode="bilinear", align_corners=False)  # [B, nc, H, W]
-            if self.format in {"onnx", "tflite"}:  # bake argmax: emit [B, H, W] class map, shrinking the D2H copy ~80x
+            # Bake argmax: emit [B, H, W] class map, shrinking the D2H copy ~80x. ONNX/TFLite/MNN always preserve the
+            # integer output; TensorRT only supports uint8 graph outputs on TRT>=10, so engine is gated by the exporter.
+            if self.format in {"onnx", "tflite", "mnn"} or (self.format == "engine" and self.bake_argmax):
                 cls = y.argmax(1) if self.nc > 1 else y.squeeze(1) > 0
                 return cls.to(torch.uint8 if self.nc <= 256 else torch.int32)
             return y

@@ -396,7 +396,7 @@ def run_mvtec_ood_eval(
                 sd = Path(save_dir) / "mvtec_ood_runs" if save_dir is not None else None
                 validator = AnomalyV2Validator(args=overrides, save_dir=sd)
                 validator._ood_bank_size = bank_size
-                validator(model=m)  # builds bank (heatmap) + restores prior state internally
+                validator(trainer=None, model=m)
                 box = validator.metrics.box
                 rows.append({
                     "epoch": epoch, "category": cat, "mode": mode,

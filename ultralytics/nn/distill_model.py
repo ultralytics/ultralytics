@@ -169,7 +169,7 @@ class DistillationModel(nn.Module):
         self._teacher_feats.clear()
         self._student_feats.clear()
 
-        with smart_inference_mode():
+        with torch.no_grad():
             self.teacher_model(batch["img"])  # hooks capture teacher features
         preds = self.student_model(batch["img"])  # hooks capture student features
 

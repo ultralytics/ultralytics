@@ -124,7 +124,7 @@ class DistillationModel(nn.Module):
         E.g. YOLO26 -> [16, 19, 22, 23], YOLOv8 -> [15, 18, 21, 22].
         """
         for m in model.model:
-            if isinstance(m, Detect):  # covers Detect, Segment, Pose, OBB, etc.
+            if isinstance(m, Detect):
                 return list(m.f) + [m.i]
         raise ValueError("No Detect head found in model")
 

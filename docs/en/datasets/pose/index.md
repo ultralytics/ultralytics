@@ -28,7 +28,7 @@ Format with 2D keypoints
 <class-index> <x> <y> <width> <height> <px1> <py1> <px2> <py2> ... <pxn> <pyn>
 ```
 
-Format with 3D keypoints (includes visibility per point)
+Format with keypoint visibility (includes visibility per point)
 
 ```
 <class-index> <x> <y> <width> <height> <px1> <py1> <p1-visibility> <px2> <py2> <p2-visibility> <pxn> <pyn> <pn-visibility>
@@ -119,7 +119,7 @@ This section outlines the datasets that are compatible with Ultralytics YOLO for
 
 ### Tiger-Pose
 
-- **Description**: The [Ultralytics](https://www.ultralytics.com/) Tiger Pose dataset comprises 263 images sourced from a [YouTube video](https://www.youtube.com/watch?v=MIBAT6BGE6U&pp=ygUbVGlnZXIgd2Fsa2luZyByZWZlcmVuY2UubXA0), with 210 images allocated for training and 53 for validation.
+- **Description**: The [Ultralytics](https://www.ultralytics.com/) Tiger Pose dataset comprises 263 images sourced from a [YouTube video](https://www.youtube.com/watch?v=MIBAT6BGE6U), with 210 images allocated for training and 53 for validation.
 - **Label Format**: Same as Ultralytics YOLO format as described above, with 12 keypoints for animal pose and no visible dimension.
 - **Number of Classes**: 1 (Tiger).
 - **Keypoints**: 12 keypoints.
@@ -157,7 +157,7 @@ The Ultralytics YOLO format for pose estimation datasets involves labeling each 
 - Object width and height (normalized)
 - Object keypoint coordinates (normalized pxn and pyn)
 
-For 2D poses, keypoints include pixel coordinates. For 3D, each keypoint also has a visibility flag. For more details, see [Ultralytics YOLO format](#ultralytics-yolo-format).
+For 2D poses, keypoints include normalized x and y coordinates. With a visibility dimension, each keypoint also has a visibility flag. For more details, see [Ultralytics YOLO format](#ultralytics-yolo-format).
 
 ### How do I use the COCO-Pose dataset with Ultralytics YOLO?
 
@@ -213,4 +213,4 @@ from ultralytics.data.converter import convert_coco
 convert_coco(labels_dir="path/to/coco/annotations/", use_keypoints=True)
 ```
 
-This tool helps seamlessly integrate COCO datasets into YOLO projects. For details, refer to the [Conversion Tool](#conversion-tool) section and the [data preprocessing guide](https://docs.ultralytics.com/guides/preprocessing_annotated_data).
+This tool helps seamlessly integrate COCO datasets into YOLO projects. For details, refer to the [Conversion Tool](#conversion-tool) section and the [data preprocessing guide](https://docs.ultralytics.com/guides/preprocessing-annotated-data).

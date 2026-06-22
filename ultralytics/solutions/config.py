@@ -75,11 +75,11 @@ class SolutionConfig:
     down_angle: int = 90
     kpts: list[int] = field(default_factory=lambda: [6, 8, 10])
     analytics_type: str = "line"
-    figsize: tuple[int, int] | None = (12.8, 7.2)
+    figsize: tuple[float, float] | None = (12.8, 7.2)
     blur_ratio: float = 0.5
     vision_point: tuple[int, int] = (20, 20)
     crop_dir: str = "cropped-detections"
-    json_file: str = None
+    json_file: str | None = None
     line_width: int = 2
     records: int = 5
     fps: float = 30.0

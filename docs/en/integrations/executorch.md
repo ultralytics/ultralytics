@@ -346,7 +346,7 @@ Note: The `executorch` package ships prebuilt wheels (with the XNNPACK backend),
 
 ### Can I run inference with ExecuTorch models directly in Python?
 
-ExecuTorch models (`.pte` files) are designed for deployment on mobile and edge devices using the ExecuTorch runtime. They cannot be directly loaded with `YOLO()` for inference in Python. You need to integrate them into your target application using the ExecuTorch runtime libraries.
+ExecuTorch models can be loaded directly with `YOLO()` for inference and validation in Python (see the Predict/Validate examples above), and they can also be deployed on mobile and edge devices using the ExecuTorch runtime libraries.
 
 ### What platforms are supported by ExecuTorch?
 

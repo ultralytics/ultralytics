@@ -164,7 +164,7 @@ Ultralytics YOLO26 is highly accurate in detecting and tracking exercises due to
 
 ### Can I use Ultralytics YOLO26 for custom workout routines?
 
-Yes, Ultralytics YOLO26 can be adapted for custom workout routines. The `AIGym` class supports different pose types such as `pushup`, `pullup`, and `abworkout`. You can specify keypoints and angles to detect specific exercises. Here is an example setup:
+Yes, Ultralytics YOLO26 can be adapted for custom workout routines. The `AIGym` class detects exercise repetitions using the `up_angle`, `down_angle`, and `kpts` arguments. You can specify keypoints and angles to detect specific exercises. Here is an example setup:
 
 ```python
 from ultralytics import solutions

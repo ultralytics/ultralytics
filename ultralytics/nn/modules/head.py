@@ -98,7 +98,7 @@ class Detect(nn.Module):
         super().__init__()
         self.nc = nc  # number of classes
         self.nl = len(ch)  # number of detection layers
-        self.reg_max = reg_max  # DFL channels (ch[0] // 16 to scale 4/8/12/16/20 for n/s/m/l/x)
+        self.reg_max = reg_max  # DFL channels
         self.no = nc + self.reg_max * 4  # number of outputs per anchor
         self.stride = torch.zeros(self.nl)  # strides computed during build
         c2, c3 = max((16, ch[0] // 4, self.reg_max * 4)), max(ch[0], min(self.nc, 100))  # channels
@@ -242,7 +242,7 @@ class Detect(nn.Module):
         Returns:
             (torch.Tensor, torch.Tensor, torch.Tensor): Top scores, class indices, and filtered indices.
         """
-        batch_size, anchors, nc = scores.shape  # i.e. shape(16,8400,84)
+        batch_size, anchors, nc = scores.shape  # i.e. shape(16,8400,80)
         # Use max_det directly during export for TensorRT compatibility (requires k to be constant),
         # otherwise use min(max_det, anchors) for safety with small inputs during Python inference
         k = max_det if self.export else min(max_det, anchors)
@@ -997,7 +997,7 @@ class YOLOEDetect(Detect):
         >>> yoloe_detect = YOLOEDetect(nc=80, embed=512, with_bn=True, ch=(256, 512, 1024))
         >>> x = [torch.randn(1, 256, 80, 80), torch.randn(1, 512, 40, 40), torch.randn(1, 1024, 20, 20)]
         >>> cls_pe = torch.randn(1, 80, 512)
-        >>> outputs = yoloe_detect(x, cls_pe)
+        >>> outputs = yoloe_detect([*x, cls_pe])
     """
 
     is_fused = False
@@ -1207,7 +1207,7 @@ class YOLOESegment(YOLOEDetect):
         >>> yoloe_segment = YOLOESegment(nc=80, nm=32, npr=256, embed=512, with_bn=True, ch=(256, 512, 1024))
         >>> x = [torch.randn(1, 256, 80, 80), torch.randn(1, 512, 40, 40), torch.randn(1, 1024, 20, 20)]
         >>> text = torch.randn(1, 80, 512)
-        >>> outputs = yoloe_segment(x, text)
+        >>> outputs = yoloe_segment([*x, text])
     """
 
     def __init__(
@@ -1854,9 +1854,10 @@ class SemanticSegment(nn.Module):
             x (list[torch.Tensor]): List of feature maps [P3, P4].
 
         Returns:
-            (torch.Tensor): Logits of shape [B, nc, H/8, W/8] during training, inference, and CoreML export. ONNX and
-                TFLite export bake in the argmax and return a compact class map of shape [B, H, W] (uint8 when nc <=
-                256, else int32). Other export formats return upsampled logits [B, nc, H, W].
+            (torch.Tensor | tuple): Logits of shape [B, nc, H/8, W/8] during training (or a (main, aux) tuple when
+                aux_head is present), inference, and CoreML export. ONNX and TFLite export bake in the argmax and
+                return a compact class map of shape [B, H, W] (uint8 when nc <= 256, else int32). Other export
+                formats return upsampled logits [B, nc, H, W].
         """
         # Classify
         logits = self.classifier(x[0])  # [B, nc, H/8, W/8]

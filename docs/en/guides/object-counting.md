@@ -214,7 +214,7 @@ In this example, `classes_to_count=[0, 2]` means it counts objects of class `0` 
 
 ### Why should I use YOLO26 over other [object detection](https://www.ultralytics.com/glossary/object-detection) models for real-time applications?
 
-Ultralytics YOLO26 provides several advantages over other object detection models like [Faster R-CNN](https://docs.ultralytics.com/compare/yolo26-vs-efficientdet), SSD, and previous YOLO versions:
+Ultralytics YOLO26 provides several advantages over other object detection models like Faster R-CNN, SSD, and previous YOLO versions:
 
 1. **Speed and Efficiency:** YOLO26 offers real-time processing capabilities, making it ideal for applications requiring high-speed inference, such as surveillance and [autonomous driving](https://www.ultralytics.com/blog/ai-in-self-driving-cars).
 2. **[Accuracy](https://www.ultralytics.com/glossary/accuracy):** It provides state-of-the-art accuracy for object detection and tracking tasks, reducing the number of false positives and improving overall system reliability.

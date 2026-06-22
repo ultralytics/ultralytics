@@ -14,6 +14,7 @@ import pytest
 import torch
 
 from tests import SOURCE
+from tests.conftest import isolated_model_path
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.engine.exporter import EXPORT_ENVS, export_formats
@@ -28,7 +29,7 @@ from ultralytics.utils import (
     WINDOWS,
     checks,
 )
-from ultralytics.utils.export.engine import torch2onnx
+from ultralytics.utils.export.engine import modelopt_quantize_onnx, torch2onnx
 from ultralytics.utils.torch_utils import (
     TORCH_1_10,
     TORCH_1_11,
@@ -47,20 +48,6 @@ def skip_rpi_semantic(task):
         pytest.skip("Semantic segmentation export tests are skipped on Raspberry Pi due to memory constraints.")
 
 
-def isolated_task_model(task, tmp_path):
-    """Copy a task model to a per-test path so exported artifacts cannot collide under xdist."""
-    source = WEIGHTS_DIR / TASK2MODEL[task]
-    if not source.exists():
-        from ultralytics.utils.downloads import attempt_download_asset
-
-        source.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy(attempt_download_asset(source.name), source)
-
-    dst = tmp_path / source.name
-    shutil.copy(source, dst)
-    return dst
-
-
 @pytest.mark.parametrize("end2end", [False, True])
 def test_export_torchscript(end2end, isolated_model):
     """Test YOLO model export to TorchScript format for compatibility and correctness."""
@@ -73,6 +60,21 @@ def test_export_onnx(end2end, isolated_model):
     """Test YOLO model export to ONNX format with dynamic axes."""
     file = YOLO(isolated_model).export(format="onnx", dynamic=True, imgsz=32, end2end=end2end)
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
+
+
+@pytest.mark.slow
+def test_export_onnx_int8(isolated_model):
+    """Test YOLO model export to INT8 ONNX format with calibration data."""
+    file = YOLO(isolated_model).export(format="onnx", int8=True, data="coco8.yaml", fraction=0.25, imgsz=32)
+    assert Path(file).name.endswith("_int8.onnx")
+    YOLO(file)(SOURCE, imgsz=32)  # exported model inference
+    Path(file).unlink()  # cleanup
+
+
+def test_modelopt_quantize_onnx_requires_int8_dataset():
+    """Check INT8 ModelOpt quantization fails early without calibration data."""
+    with pytest.raises(ValueError, match="requires a calibration dataset"):
+        modelopt_quantize_onnx("model.onnx", int8=True)
 
 
 def test_torch2onnx_serializes_concurrent_exports(monkeypatch, tmp_path):
@@ -202,7 +204,7 @@ def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms, end
 def test_export_torchscript_matrix(task, dynamic, int8, half, batch, nms, end2end, tmp_path):
     """Test YOLO model export to TorchScript format under varied configurations."""
     skip_rpi_semantic(task)
-    file = YOLO(isolated_task_model(task, tmp_path)).export(
+    file = YOLO(isolated_model_path(tmp_path, WEIGHTS_DIR / TASK2MODEL[task])).export(
         format="torchscript", imgsz=32, dynamic=dynamic, int8=int8, half=half, batch=batch, nms=nms, end2end=end2end
     )
     YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32)  # exported model inference
@@ -403,7 +405,7 @@ def test_export_ncnn_matrix(task, half, batch):
 @pytest.mark.skipif(
     IS_RASPBERRYPI, reason="Test disabled as IMX export suffers from OOM (Out of Memory) on Raspberry Pi 5 16GB"
 )
-def test_export_imx(isolated_model):
+def test_export_imx():
     """Test YOLO export to IMX format."""
     model = YOLO("yolo11n.pt")  # IMX export only supports YOLO11
     file = model.export(format="imx", imgsz=32)
@@ -412,9 +414,10 @@ def test_export_imx(isolated_model):
 
 @pytest.mark.slow
 @pytest.mark.skipif(not LINUX or ARM64, reason="RKNN export only supported on non-aarch64 Linux")
-def test_export_rknn(isolated_model):
+@pytest.mark.parametrize("int8", [True, False])
+def test_export_rknn(isolated_model, int8):
     """Test YOLO export to RKNN format."""
-    file = YOLO(isolated_model).export(format="rknn", imgsz=32)
+    file = YOLO(isolated_model).export(format="rknn", imgsz=32, int8=int8)
     assert next(Path(file).rglob("*.rknn"), None), f"RKNN export failed, no RKNN model found in: {file}"
     shutil.rmtree(file, ignore_errors=True)
 
@@ -506,9 +509,9 @@ def test_export_qnn(isolated_model):
     if not has_qnn:
         pytest.skip("onnxruntime-qnn / QNN Execution Provider not available")
     file = YOLO(isolated_model).export(format="qnn", imgsz=32)
-    assert next(Path(file).rglob("*_qnn.onnx"), None), f"QNN export failed, no context binary found in: {file}"
+    assert Path(file).is_file() and file.endswith("_qnn.onnx"), f"QNN export failed, no context binary found: {file}"
     # Note: on-device inference is not exercised here as it requires Qualcomm Snapdragon hardware
-    shutil.rmtree(file, ignore_errors=True)  # cleanup
+    Path(file).unlink(missing_ok=True)  # cleanup
 
 
 @pytest.mark.parametrize("env", [k for k, v in EXPORT_ENVS.items() if k != "base" or v["smoke"]])

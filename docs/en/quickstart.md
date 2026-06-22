@@ -57,7 +57,7 @@ Ultralytics offers a variety of installation methods, including pip, conda, and 
             If you are installing in a CUDA environment, it is best practice to install `ultralytics`, `pytorch`, and `pytorch-cuda` in the same command. This allows the conda package manager to resolve any conflicts. Alternatively, install `pytorch-cuda` last to override the CPU-specific `pytorch` package if necessary.
             ```bash
             # Install all packages together using conda
-            conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cuda=11.8 ultralytics
+            conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cuda=12.1 ultralytics
             ```
 
         ### Conda Docker Image
@@ -95,7 +95,7 @@ Ultralytics offers a variety of installation methods, including pip, conda, and 
 
     === "Docker"
 
-        Use Docker to execute the `ultralytics` package in an isolated container, ensuring consistent performance across various environments. By selecting one of the official `ultralytics` images from [Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics), you avoid the complexity of local installation and gain access to a verified working environment. Ultralytics offers five main supported Docker images, each designed for high compatibility and efficiency:
+        Use Docker to execute the `ultralytics` package in an isolated container, ensuring consistent performance across various environments. By selecting one of the official `ultralytics` images from [Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics), you avoid the complexity of local installation and gain access to a verified working environment. Ultralytics offers six main supported Docker images, each designed for high compatibility and efficiency:
 
         [![Docker Image Version](https://img.shields.io/docker/v/ultralytics/ultralytics?sort=semver&logo=docker)](https://hub.docker.com/r/ultralytics/ultralytics) [![Docker Pulls](https://img.shields.io/docker/pulls/ultralytics/ultralytics)](https://hub.docker.com/r/ultralytics/ultralytics)
 
@@ -438,7 +438,7 @@ The table below overviews the adjustable settings within Ultralytics, including 
 
 | Name               | Example Value         | Data Type | Description                                                                                                      |
 | ------------------ | --------------------- | --------- | ---------------------------------------------------------------------------------------------------------------- |
-| `settings_version` | `'0.0.4'`             | `str`     | Ultralytics _settings_ version (distinct from the Ultralytics [pip] version)                                     |
+| `settings_version` | `'0.0.6'`             | `str`     | Ultralytics _settings_ version (distinct from the Ultralytics [pip] version)                                     |
 | `datasets_dir`     | `'/path/to/datasets'` | `str`     | Directory where datasets are stored                                                                              |
 | `weights_dir`      | `'/path/to/weights'`  | `str`     | Directory where model weights are stored                                                                         |
 | `runs_dir`         | `'/path/to/runs'`     | `str`     | Directory where experiment runs are stored                                                                       |
@@ -452,8 +452,8 @@ The table below overviews the adjustable settings within Ultralytics, including 
 | `mlflow`           | `True`                | `bool`    | Option to use [MLFlow] for experiment tracking                                                                   |
 | `neptune`          | `True`                | `bool`    | Option to use [Neptune] for experiment tracking                                                                  |
 | `raytune`          | `True`                | `bool`    | Option to use [Ray Tune] for [hyperparameter tuning](https://www.ultralytics.com/glossary/hyperparameter-tuning) |
-| `tensorboard`      | `True`                | `bool`    | Option to use [TensorBoard] for visualization                                                                    |
-| `wandb`            | `True`                | `bool`    | Option to use [Weights & Biases] logging                                                                         |
+| `tensorboard`      | `False`               | `bool`    | Option to use [TensorBoard] for visualization                                                                    |
+| `wandb`            | `False`               | `bool`    | Option to use [Weights & Biases] logging                                                                         |
 | `vscode_msg`       | `True`                | `bool`    | When a VS Code terminal is detected, enables a prompt to download the [Ultralytics-Snippets] extension.          |
 
 Revisit these settings as you progress through projects or experiments to ensure optimal configuration.
@@ -487,7 +487,7 @@ conda install -c conda-forge ultralytics
 This method is a great alternative to pip, ensuring compatibility with other packages. For CUDA environments, install `ultralytics`, `pytorch`, and `pytorch-cuda` together to resolve conflicts:
 
 ```bash
-conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cuda=11.8 ultralytics
+conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cuda=12.1 ultralytics
 ```
 
 For more instructions, see the [Conda quickstart guide](guides/conda-quickstart.md).

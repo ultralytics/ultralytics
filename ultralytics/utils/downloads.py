@@ -336,13 +336,13 @@ def safe_download(
             desc = f"Downloading {uri} to '{f}'"
             f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing
             curl_installed = shutil.which("curl")
+            expected_size = None  # set by urllib from Content-Length; reused to validate curl retries
             for i in range(retry + 1):
                 try:
                     if (curl or i > 0) and curl_installed:  # curl download with retry, continue
                         s = "sS" * (not progress)  # silent
                         r = subprocess.run(["curl", "-#", f"-{s}L", url, "-o", f, "--retry", "3", "-C", "-"]).returncode
                         assert r == 0, f"Curl return value {r}"
-                        expected_size = None  # Can't get size with curl
                     else:  # urllib download
                         with request.urlopen(url) as response:
                             expected_size = int(response.getheader("Content-Length", 0))
@@ -539,7 +539,7 @@ def download(
         exist_ok (bool, optional): Whether to overwrite existing contents during unzipping.
 
     Examples:
-        >>> download("https://ultralytics.com/assets/example.zip", dir="path/to/dir", unzip=True)
+        >>> download("https://github.com/ultralytics/assets/releases/download/v0.0.0/bus.jpg", dir="path/to/dir")
     """
     dir = Path(dir)
     dir.mkdir(parents=True, exist_ok=True)  # make directory

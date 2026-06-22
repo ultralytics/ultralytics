@@ -1,14 +1,16 @@
 ---
 comments: true
-description: YOLO26 from Ultralytics delivers faster, simpler, end-to-end NMS-free object detection optimized for edge and low-power devices.
-keywords: YOLO26, Ultralytics YOLO, object detection, end-to-end NMS-free, simplified architecture, computer vision, AI, machine learning, edge AI, low power devices, quantization, real-time inference
+description: YOLO26 from Ultralytics delivers unified, real-time, end-to-end vision models optimized for accurate and efficient deployment.
+keywords: YOLO26, Ultralytics YOLO, object detection, end-to-end NMS-free, YOLOE-26, open-vocabulary detection, computer vision, AI, machine learning, edge AI, real-time inference
 ---
 
 # Ultralytics YOLO26
 
 ## Overview
 
-[Ultralytics](https://www.ultralytics.com/) YOLO26 is the latest evolution in the YOLO series of real-time object detectors, engineered from the ground up for **edge and low-power devices**. It introduces a streamlined design that removes unnecessary complexity while integrating targeted innovations to deliver faster, lighter, and more accessible deployment.
+[Ultralytics](https://www.ultralytics.com/) YOLO26 is a unified family of real-time vision models described in the [Ultralytics YOLO26 paper](https://arxiv.org/abs/2606.03748). It introduces native end-to-end inference, a lighter detection head, an updated training recipe, and task-specific heads for detection, segmentation, pose estimation, classification, and oriented detection.
+
+Across its five detection scales, YOLO26 reaches **40.9-57.5 mAP on COCO** at **1.7-11.8 ms T4 TensorRT latency**. The paper also reports **up to 43% faster CPU ONNX inference** for YOLO26n compared with YOLO11n on an Intel Xeon CPU @ 2.00 GHz.
 
 ![Ultralytics YOLO26 Comparison Plots](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/Ultralytics-YOLO26-Benchmark.jpg)
 
@@ -16,40 +18,40 @@ keywords: YOLO26, Ultralytics YOLO, object detection, end-to-end NMS-free, simpl
 
     Explore and run YOLO26 models directly on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolo26).
 
-The architecture of YOLO26 is guided by three core principles:
+The YOLO26 model family is built around four design areas:
 
-- **Simplicity:** YOLO26 is a **native end-to-end model**, producing predictions directly without the need for non-maximum suppression (NMS). By eliminating this post-processing step, inference becomes faster, lighter, and easier to deploy in real-world systems. This breakthrough approach was first pioneered in [YOLOv10](../models/yolov10.md) by Ao Wang at Tsinghua University and has been further advanced in YOLO26.
-- **Deployment Efficiency:** The end-to-end design cuts out an entire stage of the pipeline, dramatically simplifying integration, reducing latency, and making deployment more robust across diverse environments.
-- **Training Innovation:** YOLO26 introduces the **MuSGD optimizer**, a hybrid of [SGD](https://docs.pytorch.org/docs/stable/generated/torch.optim.SGD.html) and [Muon](https://arxiv.org/abs/2502.16982) — inspired by Moonshot AI's [Kimi K2](https://www.kimi.com/) breakthroughs in LLM training. This optimizer brings enhanced stability and faster convergence, transferring optimization advances from language models into computer vision.
-- **Task-Specific Optimizations:** YOLO26 introduces targeted improvements for specialized tasks, including semantic segmentation loss and multi-scale proto modules for **Segmentation**, Residual Log-Likelihood Estimation (RLE) for high-precision **Pose** estimation, and optimized decoding with angle loss to resolve boundary issues in **OBB**.
+- **Native end-to-end inference:** The default one-to-one detection head produces predictions without non-maximum suppression (NMS), simplifying deployment and reducing post-processing.
+- **Lighter box regression:** YOLO26 removes Distribution Focal Loss (DFL), reducing detection-head complexity while preserving an unconstrained regression range.
+- **Training recipe updates:** The training pipeline combines **MuSGD**, **Progressive Loss**, and **STAL** to improve optimization, shift supervision toward the inference-time head, and maintain positive label coverage for small objects. The full hyperparameters behind the released checkpoints are documented in the [YOLO26 Training Recipe guide](../guides/yolo26-training-recipe.md).
+- **Task-specific heads and losses:** YOLO26 adds targeted designs for instance segmentation, semantic segmentation variants, pose estimation, and oriented detection while keeping a single model pipeline across tasks.
 
-Together, these innovations deliver a model family that achieves higher accuracy on small objects, provides seamless deployment, and runs **up to 43% faster on CPUs** — making YOLO26 one of the most practical and deployable YOLO models to date for resource-constrained environments.
+Together, these updates improve the accuracy-latency tradeoff across model scales and deployment targets.
 
 ## Key Features
 
-- **DFL Removal**  
-  The Distribution Focal Loss (DFL) module, while effective, often complicated export and limited hardware compatibility. YOLO26 removes DFL entirely, simplifying inference and broadening support for **edge and low-power devices**.
+- **DFL-Free Regression**
+  YOLO26 removes Distribution Focal Loss (DFL), reducing detection-head complexity and simplifying export.
 
-- **End-to-End NMS-Free Inference**  
-  Unlike traditional detectors that rely on NMS as a separate post-processing step, YOLO26 is **natively end-to-end**. Predictions are generated directly, reducing latency and making integration into production systems faster, lighter, and more reliable.
+- **End-to-End NMS-Free Inference**
+  Unlike traditional detectors that rely on NMS as a separate post-processing step, YOLO26 is **natively end-to-end** by default. Predictions are generated directly, reducing latency and making production integration simpler.
 
-- **ProgLoss + STAL**  
-  Improved loss functions increase detection accuracy, with notable improvements in **small-object recognition**, a critical requirement for IoT, robotics, aerial imagery, and other edge applications.
+- **Progressive Loss + STAL**
+  Progressive Loss shifts training emphasis toward the inference-time head, while STAL improves positive label coverage for small objects.
 
-- **MuSGD Optimizer**  
-  A new hybrid optimizer that combines [SGD](https://docs.pytorch.org/docs/stable/generated/torch.optim.SGD.html) with [Muon](https://arxiv.org/abs/2502.16982). Inspired by Moonshot AI's [Kimi K2](https://www.kimi.com/), MuSGD introduces advanced optimization methods from LLM training into computer vision, enabling more stable training and faster convergence.
+- **MuSGD Optimizer**
+  A hybrid optimizer that combines [SGD](https://docs.pytorch.org/docs/stable/generated/torch.optim.SGD.html) with [Muon](https://arxiv.org/abs/2502.16982), adapting optimization ideas from large language model training to computer vision.
 
-- **Up to 43% Faster CPU Inference**  
-  Specifically optimized for edge computing, YOLO26 delivers significantly faster CPU inference, ensuring real-time performance on devices without GPUs.
+- **Efficient Deployment**
+  The simplified head and NMS-free default path reduce inference overhead across export targets and hardware profiles, including the paper's reported CPU ONNX speedup for YOLO26n versus YOLO11n.
 
-- **Instance Segmentation Enhancements**  
-  Introduces semantic segmentation loss to improve model convergence and an upgraded proto module that leverages multi-scale information for superior mask quality.
+- **Instance Segmentation Enhancements**
+  Introduces semantic segmentation loss to improve model convergence and an upgraded proto module that leverages multi-scale information for superior mask quality. The paper reports gains over YOLO11 of up to +2.5 box AP and +3.7 mask AP on COCO instance segmentation.
 
-- **Precision Pose Estimation**  
-  Integrates [Residual Log-Likelihood Estimation](https://arxiv.org/abs/2107.11291) (RLE) for more accurate keypoint localization and optimizes the decoding process for increased inference speed.
+- **Precision Pose Estimation**
+  Integrates [Residual Log-Likelihood Estimation](https://arxiv.org/abs/2107.11291) (RLE) for more accurate keypoint localization and optimizes the decoding process for increased inference speed. The paper reports up to +7.2 AP over YOLO11 on COCO pose estimation.
 
-- **Refined OBB Decoding**  
-  Introduces a specialized angle loss to improve detection accuracy for square-shaped objects and optimizes OBB decoding to resolve boundary discontinuity issues.
+- **Refined OBB Decoding**
+  Introduces a specialized angle loss to improve detection accuracy for square-shaped objects and optimizes OBB decoding to resolve boundary discontinuity issues. The paper reports up to +3.4 mAP over YOLO11 on DOTA-v1.0 oriented detection.
 
 ![Ultralytics YOLO26 End-to-End Comparison Plots](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/Ultralytics-YOLO26-Benchmark-E2E.jpg)
 
@@ -57,7 +59,7 @@ Together, these innovations deliver a model family that achieves higher accuracy
 
 ## Supported Tasks and Modes
 
-YOLO26 builds upon the versatile model range established by earlier Ultralytics YOLO releases, offering enhanced support across various computer vision tasks:
+YOLO26 supports the standard Ultralytics task set across five model scales:
 
 | Model       | Filenames                                                                                 | Task                                          | Inference | Validation | Training | Export |
 | ----------- | ----------------------------------------------------------------------------------------- | --------------------------------------------- | --------- | ---------- | -------- | ------ |
@@ -68,7 +70,7 @@ YOLO26 builds upon the versatile model range established by earlier Ultralytics 
 | YOLO26-obb  | `yolo26n-obb.pt` `yolo26s-obb.pt` `yolo26m-obb.pt` `yolo26l-obb.pt` `yolo26x-obb.pt`      | [Oriented Detection](../tasks/obb.md)         | ✅        | ✅         | ✅       | ✅     |
 | YOLO26-cls  | `yolo26n-cls.pt` `yolo26s-cls.pt` `yolo26m-cls.pt` `yolo26l-cls.pt` `yolo26x-cls.pt`      | [Classification](../tasks/classify.md)        | ✅        | ✅         | ✅       | ✅     |
 
-This unified framework ensures YOLO26 is applicable across real-time detection, instance segmentation, semantic segmentation, classification, pose estimation, and oriented object detection — all with training, validation, inference, and export support.
+This unified framework covers real-time detection, instance segmentation, semantic segmentation, classification, pose estimation, and oriented object detection with training, validation, inference, and export support.
 
 !!! note "Architecture-only variants"
 
@@ -159,7 +161,7 @@ Note that the example below is for YOLO26 [Detect](../tasks/detect.md) models fo
 
 !!! note "Dual-Head Architecture"
 
-    YOLO26 features a **dual-head architecture** that provides flexibility for different deployment scenarios:
+    YOLO26 detection models use a **dual-head architecture** that provides flexibility for different deployment scenarios:
 
     - **One-to-One Head (Default)**: Produces end-to-end predictions without NMS, outputting `(N, 300, 6)` with a maximum of 300 detections per image. This head is optimized for fast inference and simplified deployment.
     - **One-to-Many Head**: Generates traditional YOLO outputs requiring NMS post-processing, outputting `(N, nc + 4, 8400)` where `nc` is the number of classes. This head typically achieves slightly higher accuracy at the cost of additional processing.
@@ -200,11 +202,11 @@ Note that the example below is for YOLO26 [Detect](../tasks/detect.md) models fo
 
     The choice depends on your deployment requirements: use the one-to-one head for maximum speed and simplicity, or the one-to-many head when accuracy is the top priority.
 
-## YOLOE-26: Open-Vocabulary Instance Segmentation
+## YOLOE-26: Open-Vocabulary Detection and Segmentation
 
-YOLOE-26 integrates the high-performance YOLO26 architecture with the open-vocabulary capabilities of the [YOLOE](yoloe.md) series. It enables real-time detection and segmentation of any object class using **text prompts**, **visual prompts**, or a **prompt-free mode** for zero-shot inference, effectively removing the constraints of fixed-category training.
+YOLOE-26 extends YOLO26 with the open-vocabulary capabilities of the [YOLOE](yoloe.md) series. It enables real-time detection and segmentation of open-set object categories using **text prompts**, **visual prompts**, or a **prompt-free mode**.
 
-By leveraging YOLO26's **NMS-free, end-to-end design**, YOLOE-26 delivers fast open-world inference. This makes it a powerful solution for edge applications in dynamic environments where the objects of interest represent a broad and evolving vocabulary.
+By leveraging YOLO26's **NMS-free, end-to-end design**, YOLOE-26 keeps open-vocabulary inference fast enough for dynamic environments where target categories can change over time. YOLOE-26x reaches **40.6 AP** on LVIS minival under text prompting, **38.5 AP** under visual prompting, and **31.1 AP** in the prompt-free Non-E2E setting.
 
 !!! tip "Performance"
 
@@ -261,7 +263,7 @@ YOLOE-26 supports both text-based and visual prompting. Using prompts is straigh
 
     === "Visual Prompt"
 
-        Visual prompts allow you to guide the model by showing it visual examples of the target classes, rather than describing them in text.
+        Visual prompts allow you to guide the model by showing it visual examples of the target classes, rather than describing them in text. Bounding boxes must use absolute pixel coordinates in `[x_min, y_min, x_max, y_max]` format for the image used as the visual prompt.
 
         ```python
         import numpy as np
@@ -277,8 +279,8 @@ YOLOE-26 supports both text-based and visual prompting. Using prompts is straigh
         visual_prompts = dict(
             bboxes=np.array(
                 [
-                    [221.52, 405.8, 344.98, 857.54],  # Box enclosing person
-                    [120, 425, 160, 445],  # Box enclosing glasses
+                    [221.5, 405.8, 345.0, 857.5],  # Person box: [x_min, y_min, x_max, y_max] pixels
+                    [120, 425, 160, 445],  # Glasses box: [x_min, y_min, x_max, y_max] pixels
                 ],
             ),
             cls=np.array(
@@ -317,45 +319,42 @@ YOLOE-26 supports both text-based and visual prompting. Using prompts is straigh
         results[0].show()
         ```
 
-For a deep dive into prompting techniques, training from scratch, and full usage examples, visit the **[YOLOE Documentation](yoloe.md)**.
+For prompting techniques and full usage examples, visit the **[YOLOE Documentation](yoloe.md)**.
 
 ## Citations and Acknowledgments
 
-!!! tip "Ultralytics YOLO26 Publication"
-
-    Ultralytics has not published a formal research paper for YOLO26 due to the rapidly evolving nature of the models. Instead, we focus on delivering cutting-edge models and making them easy to use. For the latest updates on YOLO features, architectures, and usage, visit our [GitHub repository](https://github.com/ultralytics/ultralytics) and [documentation](https://docs.ultralytics.com/).
-
-If you use YOLO26 or other Ultralytics software in your work, please cite it as:
+For a complete technical description of the YOLO26 architecture, training recipe, task heads, and YOLOE-26 open-vocabulary extension, read [Ultralytics YOLO26: Unified Real-Time End-to-End Vision Models](https://arxiv.org/abs/2606.03748). If you use YOLO26 in your research, please cite:
 
 !!! quote ""
 
     === "BibTeX"
 
         ```bibtex
-        @software{yolo26_ultralytics,
-          author = {Glenn Jocher and Jing Qiu},
-          title = {Ultralytics YOLO26},
-          version = {26.0.0},
+        @misc{jocher2026ultralyticsyolo26unifiedrealtime,
+          title = {Ultralytics YOLO26: Unified Real-Time End-to-End Vision Models},
+          author = {Glenn Jocher and Jing Qiu and Mengyu Liu and Shuai Lyu and Fatih Cagatay Akyon and Muhammet Esat Kalfaoglu},
           year = {2026},
-          url = {https://github.com/ultralytics/ultralytics},
-          orcid = {0000-0001-5950-6979, 0000-0003-3783-7069},
-          license = {AGPL-3.0}
+          eprint = {2606.03748},
+          archivePrefix = {arXiv},
+          primaryClass = {cs.CV},
+          doi = {10.48550/arXiv.2606.03748},
+          url = {https://arxiv.org/abs/2606.03748},
         }
         ```
 
-DOI pending. YOLO26 is available under [AGPL-3.0](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) and [Enterprise](https://www.ultralytics.com/license) licenses.
+YOLO26 code, models, and documentation are available in the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics) and [Ultralytics Docs](https://docs.ultralytics.com/) under [AGPL-3.0](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) and [Enterprise](https://www.ultralytics.com/license) licenses.
 
 ---
 
 ## FAQ
 
-### What are the key improvements in YOLO26 compared to YOLO11?
+### What are the key improvements in YOLO26?
 
-- **DFL Removal**: Simplifies export and expands edge compatibility
-- **End-to-End NMS-Free Inference**: Eliminates NMS for faster, simpler deployment
-- **ProgLoss + STAL**: Boosts accuracy, especially on small objects
-- **MuSGD Optimizer**: Combines SGD and Muon (inspired by Moonshot's Kimi K2) for more stable, efficient training
-- **Up to 43% Faster CPU Inference**: Major performance gains for CPU-only devices
+- **DFL-free regression**: Simplifies the detection head and export path
+- **End-to-end NMS-free inference**: Removes NMS from the default inference path
+- **Progressive Loss + STAL**: Improves training alignment and small-object label coverage
+- **MuSGD optimizer**: Combines SGD with Muon-inspired optimization for stable training
+- **Task-specific heads and losses**: Improves segmentation, pose, and oriented detection support
 
 ### What tasks does YOLO26 support?
 
@@ -368,20 +367,21 @@ YOLO26 is a **unified model family**, providing end-to-end support for multiple 
 - [Pose Estimation](../tasks/pose.md)
 - [Oriented Object Detection (OBB)](../tasks/obb.md)
 
-Each size variant (n, s, m, l, x) supports all tasks, plus open-vocabulary versions via [YOLOE-26](#yoloe-26-open-vocabulary-instance-segmentation).
+Each size variant (n, s, m, l, x) supports all tasks, plus open-vocabulary versions via [YOLOE-26](#yoloe-26-open-vocabulary-detection-and-segmentation).
 
-### Why is YOLO26 optimized for edge deployment?
+### Why is YOLO26 efficient for deployment?
 
-YOLO26 delivers **state-of-the-art edge performance** with:
+YOLO26 improves deployment efficiency with:
 
-- Up to 43% faster CPU inference
-- Reduced model size and memory footprint
-- Architecture simplified for compatibility (no DFL, no NMS)
+- Native end-to-end inference without NMS by default
+- DFL-free regression and a lighter detection head
+- Fused-model export that removes training-only auxiliary components
+- Up to 43% faster CPU ONNX inference for YOLO26n versus YOLO11n on an Intel Xeon CPU @ 2.00 GHz
 - Flexible export formats including TensorRT, ONNX, CoreML, TFLite, and OpenVINO
 
 ### How do I get started with YOLO26?
 
-YOLO26 models were released on January 14, 2026, and are available for download. Install or update the `ultralytics` package and load a model:
+YOLO26 models are available for download through the `ultralytics` package. Install or update the package and load a model:
 
 ```python
 from ultralytics import YOLO

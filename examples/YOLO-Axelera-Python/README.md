@@ -111,6 +111,7 @@ class ConfidenceFilter(op.Operator):
     threshold: float = 0.25
 
     def __call__(self, x):
+        """Filter detections by confidence score."""
         # Each operator receives the output of the previous one in op.seq().
         # Here x is the output of the pose detection model — an array of
         # shape (batch, num_detections, num_values) where each row holds

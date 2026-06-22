@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import sys
+from collections import OrderedDict
 from types import SimpleNamespace
 from unittest import mock
 
@@ -156,6 +157,22 @@ def test_resume_incomplete(task, weight, data, tmp_path):
     assert resume_model.trainer.start_epoch == resume_model.trainer.epoch == 1, "resume test failed"
 
 
+@pytest.mark.parametrize(
+    "ckpt",
+    [
+        {"model": OrderedDict([("a", torch.zeros(1))])},  # state_dict saved under the "model" key
+        {"model": {"a": torch.zeros(1)}},  # plain-dict "model" value
+        OrderedDict([("a", torch.zeros(1))]),  # bare state_dict, no "model" key
+    ],
+)
+def test_load_checkpoint_state_dict_rejected(ckpt, tmp_path):
+    """Test a state_dict checkpoint raises a clear TypeError instead of a cryptic AttributeError/KeyError."""
+    weight = tmp_path / "bad.pt"
+    torch.save(ckpt, weight)
+    with pytest.raises(TypeError, match="supported Ultralytics checkpoint format"):
+        load_checkpoint(weight)
+
+
 def test_nan_recovery():
     """Test NaN loss detection and recovery during training."""
     nan_injected = [False]
@@ -171,6 +188,30 @@ def test_nan_recovery():
     trainer.add_callback("on_train_batch_end", inject_nan)
     trainer.train()
     assert nan_injected[0], "NaN injection failed"
+
+
+def test_checkpoint_fp16_overflow():
+    """Test a finite model whose weights overflow fp16 is still checkpointed (clamped) instead of skipped."""
+
+    def inflate_ema(trainer):
+        """Push an EMA weight above the fp16 max (65504) so its fp16 snapshot would otherwise become Inf."""
+        if trainer.ema is not None:
+            next(iter(trainer.ema.ema.parameters())).data.flatten()[0] = 1.0e5
+
+    overrides = {"data": "coco8.yaml", "model": "yolo26n.yaml", "imgsz": 32, "epochs": 2}
+    trainer = detect.DetectionTrainer(overrides=overrides)
+    trainer.add_callback("on_train_epoch_end", inflate_ema)
+    trainer.train()
+    assert trainer.last.exists(), "checkpoint not saved for a finite model with fp16-overflowing weights"
+    model, _ = load_checkpoint(trainer.last)
+    assert all(torch.isfinite(v).all() for v in model.state_dict().values() if isinstance(v, torch.Tensor)), (
+        "saved checkpoint contains NaN/Inf"
+    )
+    # Validation must leave the live EMA fp32 and unchanged; checkpoint serialization may clamp its fp16 copy.
+    ema_param = next(iter(trainer.ema.ema.parameters()))
+    assert ema_param.dtype == torch.float32 and torch.isfinite(ema_param).all() and ema_param.flatten()[0] == 1.0e5, (
+        "validation corrupted the live EMA"
+    )
 
 
 @pytest.mark.parametrize(

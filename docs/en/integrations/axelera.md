@@ -268,7 +268,7 @@ Verify your Axelera device is functioning properly:
 axdevice
 ```
 
-For detailed diagnostics, see the [AxDevice documentation](https://github.com/axelera-ai-hub/voyager-sdk/blob/latest/docs/reference/axdevice.md).
+For detailed diagnostics, see the [AxDevice documentation](https://github.com/axelera-ai-hub/voyager-sdk/blob/latest/docs/reference/tools/axdevice.md).
 
 ## Maximum Performance
 
@@ -278,7 +278,7 @@ This integration uses single-core configuration for compatibility. For productio
 - Streaming inference pipelines
 - Tiled inferencing for higher-resolution cameras
 
-See the [model-zoo](https://github.com/axelera-ai-hub/voyager-sdk/blob/latest/docs/reference/model_zoo.md) for FPS benchmarks or [contact Axelera](https://axelera.ai/contact-us) for production support.
+See the [model-zoo](https://github.com/axelera-ai-hub/voyager-sdk/blob/latest/docs/reference/models/model-zoo.md) for FPS benchmarks or [contact Axelera](https://axelera.ai/contact-us) for production support.
 
 ## Known Issues
 

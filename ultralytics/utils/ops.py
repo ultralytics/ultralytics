@@ -28,9 +28,10 @@ class Profile(contextlib.ContextDecorator):
 
     Examples:
         Use as a context manager to time code execution
-        >>> with Profile(device=device) as dt:
+        >>> with Profile() as dt:
         ...     pass  # slow operation here
-        >>> print(dt)  # prints "Elapsed time is 9.5367431640625e-07 s"
+        >>> str(dt).startswith("Elapsed time is ")
+        True
 
         Use as a decorator to time function execution
         >>> @Profile()
@@ -89,7 +90,7 @@ def segment2box(segment: np.ndarray, width: int = 640, height: int = 640) -> np.
     if np.array([x.min() < 0, y.min() < 0, x.max() > width, y.max() > height]).sum() >= 3:
         x = x.clip(0, width)
         y = y.clip(0, height)
-    inside = (x > 0) & (y > 0) & (x < width) & (y < height)
+    inside = (x >= 0) & (y >= 0) & (x <= width) & (y <= height)
     x = x[inside]
     y = y[inside]
     return (
@@ -142,14 +143,14 @@ def scale_boxes(
 
 
 def make_divisible(x: int, divisor):
-    """Return the nearest number that is divisible by the given divisor.
+    """Return the smallest number >= x that is divisible by the given divisor.
 
     Args:
         x (int): The number to make divisible.
         divisor (int | torch.Tensor): The divisor.
 
     Returns:
-        (int): The nearest number divisible by the divisor.
+        (int): The smallest number >= x divisible by the divisor.
     """
     if isinstance(divisor, torch.Tensor):
         divisor = int(divisor.max())  # to int
@@ -495,8 +496,8 @@ def process_mask(protos, masks_in, bboxes, shape, upsample: bool = False):
         upsample (bool): Whether to upsample masks to original image size.
 
     Returns:
-        (torch.Tensor): A binary mask tensor of shape [n, h, w], where n is the number of masks after NMS, and h and w
-            are the height and width of the input image. The mask is applied to the bounding boxes.
+        (torch.Tensor): A binary mask tensor of shape [n, h, w], where n is the number of masks after NMS. When
+            upsample=True h and w match the input image size; otherwise they are the prototype mask resolution.
     """
     c, mh, mw = protos.shape  # CHW
     masks = (masks_in @ protos.float().view(c, -1)).view(-1, mh, mw)  # NHW

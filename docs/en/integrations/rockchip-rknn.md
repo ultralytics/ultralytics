@@ -52,7 +52,7 @@ Export an Ultralytics YOLO26 model to RKNN format and run inference with the exp
 
 To install the required packages, run:
 
-!!! Tip "Installation"
+!!! tip "Installation"
 
     === "CLI"
 
@@ -69,7 +69,7 @@ For detailed instructions and best practices related to the installation process
 
     Export is currently only supported for detection models. More model support will be coming in the future.
 
-The RKNN format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Inference and validation run on Rockchip NPU hardware. Export your model, then load the exported model to run inference or validate its accuracy. By default, RKNN export uses the existing floating-point build path for FP16-capable Rockchip targets. Use `int8=True` to build an INT8-quantized RKNN model with calibration data. RKNN export does not expose a separate FP32 mode; leaving `int8=False` does not request FP32.
+The RKNN format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Inference and validation run on Rockchip NPU hardware. Export your model, then load the exported model to run inference or validate its accuracy. By default, RKNN export uses the existing floating-point build path with `half=True` for FP16-capable Rockchip targets. Use `int8=True` to build an INT8-quantized RKNN model with calibration data. RKNN export does not expose a separate FP32 mode; leaving `int8=False` does not request FP32.
 
 !!! example "Export"
 
@@ -148,6 +148,7 @@ The RKNN format supports the [Export](../modes/export.md), [Predict](../modes/pr
 | `imgsz`    | `int` or `tuple` | `640`      | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                 |
 | `batch`    | `int`            | `1`        | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                           |
 | `name`     | `str`            | `'rk3588'` | Specifies the Rockchip target, such as rk3588, rk3576, rk3566, rk3568, rk3562, rk2118, rv1126b, rv1103, rv1106, rv1103b or rv1106b.                                               |
+| `half`     | `bool`           | `True`     | Enables the default floating-point RKNN export path for FP16-capable targets. Mutually exclusive with `int8=True`.                                                                |
 | `int8`     | `bool`           | `False`    | Enables INT8 quantization. Required for INT8-only targets such as RV1103 and RV1106. When `False`, RKNN Toolkit builds a floating-point model for FP16-capable targets, not FP32. |
 | `data`     | `str`            | `None`     | Dataset YAML used for INT8 calibration. If omitted with `int8=True`, Ultralytics selects the default calibration dataset for the model task.                                      |
 | `fraction` | `float`          | `1.0`      | Fraction of calibration images to use for INT8 quantization.                                                                                                                      |
@@ -167,7 +168,7 @@ Once you've successfully exported your Ultralytics YOLO26 models to RKNN format,
 
 To install the required packages, run:
 
-!!! Tip "Installation"
+!!! tip "Installation"
 
     === "CLI"
 

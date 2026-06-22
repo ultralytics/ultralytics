@@ -40,7 +40,7 @@ Object cropping with [Ultralytics YOLO26](https://github.com/ultralytics/ultraly
 
         ```bash
         # Crop the objects
-        yolo solutions crop show=True
+        yolo solutions crop
 
         # Pass a source video
         yolo solutions crop source="path/to/video.mp4"
@@ -61,7 +61,6 @@ Object cropping with [Ultralytics YOLO26](https://github.com/ultralytics/ultraly
 
         # Initialize object cropper
         cropper = solutions.ObjectCropper(
-            show=True,  # display the output
             model="yolo26n.pt",  # model for object cropping, e.g., yolo26x.pt.
             classes=[0, 2],  # crop specific classes such as person and car with the COCO pretrained model.
             # conf=0.5,  # adjust confidence threshold for the objects.
@@ -84,7 +83,7 @@ Object cropping with [Ultralytics YOLO26](https://github.com/ultralytics/ultraly
         cv2.destroyAllWindows()  # destroy all opened windows
         ```
 
-        When you provide the optional `crop_dir` argument, every cropped object is written to that folder with filenames that include the source image name and class. This makes it easy to inspect detections or build downstream datasets without writing extra code.
+        When you provide the optional `crop_dir` argument, every cropped object is written to that folder with sequentially numbered filenames (e.g. `crop_1.jpg`, `crop_2.jpg`). This makes it easy to inspect detections or build downstream datasets without writing extra code.
 
 ### `ObjectCropper` Arguments
 

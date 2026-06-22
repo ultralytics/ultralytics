@@ -784,9 +784,9 @@ class SolutionResults:
         out_count (int): The total number of "out" counts in a video stream.
         classwise_count (dict[str, int]): A dictionary containing counts of objects categorized by class.
         queue_count (int): The count of objects in a queue or waiting area.
-        workout_count (int): The count of workout repetitions.
-        workout_angle (float): The angle calculated during a workout exercise.
-        workout_stage (str): The current stage of the workout.
+        workout_count (int | list[int]): The count of workout repetitions, or per-person counts from AI Gym.
+        workout_angle (float | list[float]): The angle calculated during a workout exercise, or per-person angles.
+        workout_stage (str | list[str]): The current stage of the workout, or per-person stages from AI Gym.
         pixels_distance (float): The calculated distance in pixels between two points or objects.
         available_slots (int): The number of available slots in a monitored area.
         filled_slots (int): The number of filled slots in a monitored area.

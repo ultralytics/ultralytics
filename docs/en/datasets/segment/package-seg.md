@@ -28,8 +28,8 @@ Containing a diverse set of images showcasing various packages in different cont
 The distribution of data in the Package Segmentation Dataset is structured as follows:
 
 - **Training set**: Encompasses 1920 images accompanied by their corresponding annotations.
-- **Testing set**: Consists of 89 images, each paired with its respective annotations.
-- **Validation set**: Comprises 188 images, each with corresponding annotations.
+- **Testing set**: Consists of 188 images, each paired with its respective annotations.
+- **Validation set**: Comprises 89 images, each with corresponding annotations.
 
 ## Applications
 
@@ -150,8 +150,8 @@ We express our gratitude to the creators of the Package Segmentation dataset for
 
 - The dataset is structured into three main components:
     - **Training set**: Contains 1920 images with annotations.
-    - **Testing set**: Comprises 89 images with corresponding annotations.
-    - **Validation set**: Includes 188 images with annotations.
+    - **Testing set**: Comprises 188 images with corresponding annotations.
+    - **Validation set**: Includes 89 images with annotations.
 - This structure ensures a balanced dataset for thorough model training, validation, and testing, following best practices outlined in [model evaluation guides](https://docs.ultralytics.com/guides/model-evaluation-insights).
 
 ### Why should I use Ultralytics YOLO26 with the Package Segmentation Dataset?

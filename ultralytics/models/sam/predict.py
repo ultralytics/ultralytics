@@ -228,7 +228,7 @@ class Predictor(BasePredictor):
             >>> predictor = Predictor()
             >>> im = torch.rand(1, 3, 1024, 1024)
             >>> bboxes = [[100, 100, 200, 200]]
-            >>> masks, scores, logits = predictor.prompt_inference(im, bboxes=bboxes)
+            >>> masks, scores = predictor.prompt_inference(im, bboxes=bboxes)
         """
         features = self.get_im_features(im) if self.features is None else self.features
 
@@ -629,7 +629,8 @@ class Predictor(BasePredictor):
 
         # Recalculate boxes and remove any new duplicates
         new_masks = torch.cat(new_masks, dim=0)
-        boxes = batched_mask_to_box(new_masks)
+        # batched_mask_to_box requires bool masks; on uint8 it returns all-zero boxes and the NMS dedup below is a no-op
+        boxes = batched_mask_to_box(new_masks.bool())
         keep = torchvision.ops.nms(boxes.float(), torch.as_tensor(scores), nms_thresh)
 
         return new_masks[keep].to(device=masks.device, dtype=masks.dtype), keep
@@ -1972,8 +1973,8 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             raise RuntimeError("No objects have been added to the state. Please add objects before inference.")
         idx = list(self.obj_idx_set)  # cls id
         pred_masks, pred_scores = pred_masks[idx], pred_scores[idx]
-        # the original score are in [-32,32], and a object score larger than 0 means the object is present, we map it to [-1,1] range,
-        # and use a activate function to make sure the object score logits are non-negative, so that we can use it as a mask
+        # The original scores are in [-32, 32]. An object score larger than 0 means the object is present.
+        # Map scores to [0, 1] so that the object score logits are non-negative and can be used as a mask.
         pred_scores = torch.clamp_(pred_scores / 32, min=0)
         return pred_masks.flatten(0, 1), pred_scores.flatten(0, 1)
 
@@ -3005,7 +3006,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             for state_idx, inference_state in enumerate(tracker_states_local):
                 if (
                     trk_obj_id in inference_state["obj_ids"]
-                    # NOTE: Goal of this condition is to avoid reconditioning masks that are occluded/low qualiy.
+                    # NOTE: Goal of this condition is to avoid reconditioning masks that are occluded/low quality.
                     # Unfortunately, these can get reconditioned anyway due to batching. We should consider removing these heuristics.
                     and obj_score > HIGH_CONF_THRESH
                 ):

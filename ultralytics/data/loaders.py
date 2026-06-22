@@ -33,7 +33,7 @@ class SourceTypes:
     Attributes:
         stream (bool): Flag indicating if the input source is a video stream.
         screenshot (bool): Flag indicating if the input source is a screenshot.
-        from_img (bool): Flag indicating if the input source is an image file.
+        from_img (bool): Flag indicating if the input source is an in-memory image (PIL/numpy) or list of images.
         tensor (bool): Flag indicating if the input source is a tensor.
 
     Examples:
@@ -117,43 +117,47 @@ class LoadStreams:
         self.imgs = [[] for _ in range(n)]  # images
         self.shape = [[] for _ in range(n)]  # image shapes
         self.sources = [ops.clean_str(x).replace(os.sep, "_") for x in sources]  # clean source names for later
-        for i, s in enumerate(sources):  # index, source
-            # Start thread to read frames from video stream
-            st = f"{i + 1}/{n}: {s}... "
-            if urllib.parse.urlparse(s).hostname in {"www.youtube.com", "youtube.com", "youtu.be"}:  # YouTube video
-                # YouTube format i.e. 'https://www.youtube.com/watch?v=Jsn8D3aC840' or 'https://youtu.be/Jsn8D3aC840'
-                s = get_best_youtube_url(s)
-            s = int(s) if s.isnumeric() else s  # i.e. s = '0' local webcam
-            if s == 0 and (IS_COLAB or IS_KAGGLE):
-                raise NotImplementedError(
-                    "'source=0' webcam not supported in Colab and Kaggle notebooks. "
-                    "Try running 'source=0' in a local environment."
-                )
-            self.caps[i] = cv2.VideoCapture(s)  # store video capture object
-            if not self.caps[i].isOpened():
-                raise ConnectionError(f"{st}Failed to open {s}")
-            w = int(self.caps[i].get(cv2.CAP_PROP_FRAME_WIDTH))
-            h = int(self.caps[i].get(cv2.CAP_PROP_FRAME_HEIGHT))
-            fps = self.caps[i].get(cv2.CAP_PROP_FPS)  # warning: may return 0 or nan
-            self.frames[i] = max(int(self.caps[i].get(cv2.CAP_PROP_FRAME_COUNT)), 0) or float(
-                "inf"
-            )  # infinite stream fallback
-            self.fps[i] = max((fps if math.isfinite(fps) else 0) % 100, 0) or 30  # 30 FPS fallback
+        try:
+            for i, s in enumerate(sources):  # index, source
+                # Start thread to read frames from video stream
+                st = f"{i + 1}/{n}: {s}... "
+                if urllib.parse.urlparse(s).hostname in {"www.youtube.com", "youtube.com", "youtu.be"}:  # YouTube video
+                    # YouTube format i.e. 'https://www.youtube.com/watch?v=Jsn8D3aC840' or 'https://youtu.be/Jsn8D3aC840'
+                    s = get_best_youtube_url(s)
+                s = int(s) if s.isnumeric() else s  # i.e. s = '0' local webcam
+                if s == 0 and (IS_COLAB or IS_KAGGLE):
+                    raise NotImplementedError(
+                        "'source=0' webcam not supported in Colab and Kaggle notebooks. "
+                        "Try running 'source=0' in a local environment."
+                    )
+                self.caps[i] = cv2.VideoCapture(s)  # store video capture object
+                if not self.caps[i].isOpened():
+                    raise ConnectionError(f"{st}Failed to open {s}")
+                w = int(self.caps[i].get(cv2.CAP_PROP_FRAME_WIDTH))
+                h = int(self.caps[i].get(cv2.CAP_PROP_FRAME_HEIGHT))
+                fps = self.caps[i].get(cv2.CAP_PROP_FPS)  # warning: may return 0 or nan
+                self.frames[i] = max(int(self.caps[i].get(cv2.CAP_PROP_FRAME_COUNT)), 0) or float(
+                    "inf"
+                )  # infinite stream fallback
+                self.fps[i] = max((fps if math.isfinite(fps) else 0) % 100, 0) or 30  # 30 FPS fallback
 
-            success, im = self.caps[i].read()  # guarantee first frame
-            im = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)[..., None] if self.cv2_flag == cv2.IMREAD_GRAYSCALE else im
-            if not success or im is None:
-                raise ConnectionError(f"{st}Failed to read images from {s}")
-            self.imgs[i].append(im)
-            self.shape[i] = im.shape
-            self.threads[i] = Thread(target=self.update, args=([i, self.caps[i], s]), daemon=True)
-            LOGGER.info(f"{st}Success ✅ ({self.frames[i]} frames of shape {w}x{h} at {self.fps[i]:.2f} FPS)")
-            self.threads[i].start()
+                success, im = self.caps[i].read()  # guarantee first frame
+                if not success or im is None:
+                    raise ConnectionError(f"{st}Failed to read images from {s}")
+                im = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)[..., None] if self.cv2_flag == cv2.IMREAD_GRAYSCALE else im
+                self.imgs[i].append(im)
+                self.shape[i] = im.shape
+                self.threads[i] = Thread(target=self.update, args=([i, self.caps[i], s]), daemon=True)
+                LOGGER.info(f"{st}Success ✅ ({self.frames[i]} frames of shape {w}x{h} at {self.fps[i]:.2f} FPS)")
+                self.threads[i].start()
+        except Exception:
+            self.close()  # release opened captures and stop started threads before re-raising
+            raise
         LOGGER.info("")  # newline
 
     def update(self, i: int, cap: cv2.VideoCapture, stream: str):
         """Read stream frames in daemon thread and update image buffer."""
-        n, f = 0, self.frames[i]  # frame number, frame array
+        n, f = 0, self.frames[i]  # frame number, total frames
         while self.running and cap.isOpened() and n < (f - 1):
             if len(self.imgs[i]) < 30:  # keep a <=30-image buffer
                 n += 1
@@ -178,9 +182,11 @@ class LoadStreams:
         """Terminate stream loader, stop threads, and release video capture resources."""
         self.running = False  # stop flag for Thread
         for thread in self.threads:
-            if thread.is_alive():
+            if thread is not None and thread.is_alive():
                 thread.join(timeout=5)  # Add timeout
         for cap in self.caps:  # Iterate through the stored VideoCapture objects
+            if cap is None:
+                continue
             try:
                 cap.release()  # release video capture
             except Exception as e:
@@ -220,7 +226,7 @@ class LoadStreams:
 
     def __len__(self) -> int:
         """Return the number of video streams in the LoadStreams object."""
-        return self.bs  # 1E12 frames = 32 streams at 30 FPS for 30 years
+        return self.bs
 
 
 class LoadScreenshots:
@@ -354,7 +360,7 @@ class LoadImagesAndVideos:
             path = content.splitlines() if Path(path).suffix == ".txt" else content.split(",")  # list of sources
             path = [p.strip() for p in path]
         files = []
-        for p in sorted(path) if isinstance(path, (list, tuple)) else [path]:
+        for p in path if isinstance(path, (list, tuple)) else [path]:  # preserve given order; glob/dir expand sorted
             a = str(Path(p).absolute())  # do not use .resolve() https://github.com/ultralytics/ultralytics/issues/2912
             if "*" in a:
                 files.extend(sorted(glob.glob(a, recursive=True)))  # glob
@@ -452,7 +458,7 @@ class LoadImagesAndVideos:
                     imgs.append(im0)
                     info.append(f"image {self.count + 1}/{self.nf} {path}: ")
                 self.count += 1  # move to the next file
-                if self.count >= self.ni:  # end of image list
+                if self.count >= self.ni and imgs:  # end of image list, flush only a non-empty batch
                     break
 
         return paths, imgs, info

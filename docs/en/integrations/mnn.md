@@ -1,4 +1,5 @@
 ---
+title: YOLO26 MNN Export for Mobile Deployment
 comments: true
 description: Optimize YOLO26 models for mobile and embedded devices by exporting to MNN format. Learn how to convert, deploy, and run inference with MNN.
 keywords: Ultralytics, YOLO26, MNN, model export, machine learning, deployment, mobile, embedded systems, deep learning, AI models, inference, quantization

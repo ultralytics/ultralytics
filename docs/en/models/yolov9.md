@@ -1,4 +1,5 @@
 ---
+title: YOLOv9 Object Detection with PGI and GELAN
 comments: true
 description: Explore YOLOv9, a leap in real-time object detection, featuring innovations like PGI and GELAN, and achieving new benchmarks in efficiency and accuracy.
 keywords: YOLOv9, object detection, real-time, PGI, GELAN, deep learning, MS COCO, AI, neural networks, model efficiency, accuracy, Ultralytics

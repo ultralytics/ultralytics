@@ -1,4 +1,5 @@
 ---
+title: CV Data Collection and Annotation Guide
 comments: true
 description: Data collection and annotation are vital steps in any computer vision project. Explore the tools, techniques, and best practices for collecting and annotating data.
 keywords: What is Data Annotation, Data Annotation Tools, Annotating Data, Avoiding Bias in Data Collection, Ethical Data Collection, Annotation Strategies

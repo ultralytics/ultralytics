@@ -1,4 +1,5 @@
 ---
+title: YOLO26 with NVIDIA Triton Inference Server
 comments: true
 description: Learn how to integrate Ultralytics YOLO26 with NVIDIA Triton Inference Server for scalable, high-performance AI model deployment.
 keywords: Triton Inference Server, YOLO26, Ultralytics, NVIDIA, deep learning, AI model deployment, ONNX, scalable inference

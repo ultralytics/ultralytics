@@ -211,18 +211,18 @@ nav:
       - YOLO26 🚀: models/yolo26.md
       - Languages:
           - 🇬🇧&nbsp English: https://ultralytics.com/docs/
-          - 🇨🇳&nbsp 简体中文: https://docs.ultralytics.com/zh/
-          - 🇰🇷&nbsp 한국어: https://docs.ultralytics.com/ko/
-          - 🇯🇵&nbsp 日本語: https://docs.ultralytics.com/ja/
-          - 🇷🇺&nbsp Русский: https://docs.ultralytics.com/ru/
-          - 🇩🇪&nbsp Deutsch: https://docs.ultralytics.com/de/
-          - 🇫🇷&nbsp Français: https://docs.ultralytics.com/fr/
-          - 🇪🇸&nbsp Español: https://docs.ultralytics.com/es/
-          - 🇵🇹&nbsp Português: https://docs.ultralytics.com/pt/
-          - 🇮🇹&nbsp Italiano: https://docs.ultralytics.com/it/
-          - 🇹🇷&nbsp Türkçe: https://docs.ultralytics.com/tr/
-          - 🇻🇳&nbsp Tiếng Việt: https://docs.ultralytics.com/vi/
-          - 🇸🇦&nbsp العربية: https://docs.ultralytics.com/ar/
+          - 🇨🇳&nbsp 简体中文: https://docs.ultralytics.com/zh
+          - 🇰🇷&nbsp 한국어: https://docs.ultralytics.com/ko
+          - 🇯🇵&nbsp 日本語: https://docs.ultralytics.com/ja
+          - 🇷🇺&nbsp Русский: https://docs.ultralytics.com/ru
+          - 🇩🇪&nbsp Deutsch: https://docs.ultralytics.com/de
+          - 🇫🇷&nbsp Français: https://docs.ultralytics.com/fr
+          - 🇪🇸&nbsp Español: https://docs.ultralytics.com/es
+          - 🇵🇹&nbsp Português: https://docs.ultralytics.com/pt
+          - 🇮🇹&nbsp Italiano: https://docs.ultralytics.com/it
+          - 🇹🇷&nbsp Türkçe: https://docs.ultralytics.com/tr
+          - 🇻🇳&nbsp Tiếng Việt: https://docs.ultralytics.com/vi
+          - 🇸🇦&nbsp العربية: https://docs.ultralytics.com/ar
   - Modes:
       - modes/index.md
       - Train: modes/train.md
@@ -232,7 +232,7 @@ nav:
       - Track: modes/track.md
       - Benchmark: modes/benchmark.md
   - Tasks:
-      - tasks/index.md
+      - Tasks: tasks/index.md
       - Detect: tasks/detect.md
       - Segment: tasks/segment.md
       - Semantic: tasks/semantic.md
@@ -259,7 +259,7 @@ nav:
       - FastSAM (Fast Segment Anything Model): models/fast-sam.md
       - YOLO-NAS (Neural Architecture Search): models/yolo-nas.md
       - RT-DETR (Realtime Detection Transformer): models/rtdetr.md
-      - YOLO-World (Real-Time Open-Vocabulary Object Detection): models/yolo-world.md
+      - YOLO-World: models/yolo-world.md
       - YOLOE (Real-Time Seeing Anything): models/yoloe.md
   - Compare:
       - compare/index.md
@@ -493,7 +493,7 @@ nav:
           - Imagewoof: datasets/classify/imagewoof.md
           - MNIST: datasets/classify/mnist.md
       - Oriented Bounding Boxes (OBB):
-          - datasets/obb/index.md
+          - OBB Datasets: datasets/obb/index.md
           - DOTA8: datasets/obb/dota8.md
           - DOTA128: datasets/obb/dota128.md
           - DOTAv2: datasets/obb/dota-v2.md
@@ -504,7 +504,7 @@ nav:
       - Analytics: guides/analytics.md
       - Distance Calculation: guides/distance-calculation.md
       - Heatmaps: guides/heatmaps.md
-      - Instance Segmentation with Object Tracking: guides/instance-segmentation-and-tracking.md
+      - Instance Segmentation Tracking: guides/instance-segmentation-and-tracking.md
       - Live Inference: guides/streamlit-live-inference.md
       - Object Blurring: guides/object-blurring.md
       - Object Counting: guides/object-counting.md
@@ -520,7 +520,6 @@ nav:
       - Workouts Monitoring: guides/workouts-monitoring.md
   - Guides:
       - Guides: guides/index.md
-      - A Guide on Model Testing: guides/model-testing.md
       - AzureML Quickstart: guides/azureml-quickstart.md
       - Best Practices for Model Deployment: guides/model-deployment-practices.md
       - COCO to YOLO Conversion: guides/coco-to-yolo.md
@@ -529,27 +528,28 @@ nav:
       - Customizing Trainer: guides/custom-trainer.md
       - Data Collection and Annotation: guides/data-collection-and-annotation.md
       - DeepStream on NVIDIA Jetson: guides/deepstream-nvidia-jetson.md
-      - Defining A Computer Vision Project's Goals: guides/defining-project-goals.md
-      - Deploying YOLO on Vertex AI in Docker container: guides/vertex-ai-deployment-with-docker.md
+      - Define CV Project Goals: guides/defining-project-goals.md
+      - YOLO on Vertex AI: guides/vertex-ai-deployment-with-docker.md
       - Docker Quickstart: guides/docker-quickstart.md
       - Edge TPU on Raspberry Pi: guides/coral-edge-tpu-on-raspberry-pi.md
       - End-to-End Detection: guides/end2end-detection.md
       - Export Non-YOLO Models: guides/export-non-yolo-models.md
       - Fine-Tuning YOLO on Custom Data: guides/finetuning-guide.md
       - Hyperparameter Tuning: guides/hyperparameter-tuning.md
-      - Insights on Model Evaluation and Fine-Tuning: guides/model-evaluation-insights.md
+      - Model Evaluation and Fine-Tuning: guides/model-evaluation-insights.md
       - Isolating Segmentation Objects: guides/isolating-segmentation-objects.md
       - K-Fold Cross Validation: guides/kfold-cross-validation.md
       - Knowledge Distillation: guides/knowledge-distillation.md
       - Maintaining Your Computer Vision Model: guides/model-monitoring-and-maintenance.md
       - Modal Quickstart: guides/modal-quickstart.md
       - Model Deployment Options: guides/model-deployment-options.md
+      - Model Testing: guides/model-testing.md
       - Model YAML Configuration Guide: guides/model-yaml-config.md
       - NVIDIA DALI GPU Preprocessing: guides/nvidia-dali.md
       - NVIDIA DGX Spark: guides/nvidia-dgx-spark.md
       - NVIDIA Jetson: guides/nvidia-jetson.md
       - OpenVINO Latency vs Throughput modes: guides/optimizing-openvino-latency-vs-throughput-modes.md
-      - Preprocessing Annotated Data: guides/preprocessing_annotated_data.md
+      - Preprocessing Annotated Data: guides/preprocessing-annotated-data.md
       - Raspberry Pi: guides/raspberry-pi.md
       - ROS Quickstart: guides/ros-quickstart.md
       - SAHI Tiled Inference: guides/sahi-tiled-inference.md
@@ -569,27 +569,27 @@ nav:
           - VOC Exploration Example: datasets/explorer/explorer.md
       - YOLOv5:
           - yolov5/index.md
-          - Quickstart: yolov5/quickstart_tutorial.md
+          - Quickstart: yolov5/quickstart-tutorial.md
           - Environments:
-              - Amazon Web Services (AWS): yolov5/environments/aws_quickstart_tutorial.md
-              - Google Cloud (GCP): yolov5/environments/google_cloud_quickstart_tutorial.md
-              - AzureML: yolov5/environments/azureml_quickstart_tutorial.md
-              - Docker Image: yolov5/environments/docker_image_quickstart_tutorial.md
+              - Amazon Web Services (AWS): yolov5/environments/aws-quickstart-tutorial.md
+              - Google Cloud (GCP): yolov5/environments/google-cloud-quickstart-tutorial.md
+              - AzureML: yolov5/environments/azureml-quickstart-tutorial.md
+              - Docker Image: yolov5/environments/docker-image-quickstart-tutorial.md
           - Tutorials:
-              - Train Custom Data: yolov5/tutorials/train_custom_data.md
-              - Tips for Best Training Results: yolov5/tutorials/tips_for_best_training_results.md
-              - Multi-GPU Training: yolov5/tutorials/multi_gpu_training.md
-              - PyTorch Hub: yolov5/tutorials/pytorch_hub_model_loading.md
-              - TFLite, ONNX, CoreML, TensorRT Export: yolov5/tutorials/model_export.md
-              - Test-Time Augmentation (TTA): yolov5/tutorials/test_time_augmentation.md
-              - Model Ensembling: yolov5/tutorials/model_ensembling.md
-              - Pruning/Sparsity Tutorial: yolov5/tutorials/model_pruning_and_sparsity.md
-              - Hyperparameter evolution: yolov5/tutorials/hyperparameter_evolution.md
-              - Transfer learning with frozen layers: yolov5/tutorials/transfer_learning_with_frozen_layers.md
-              - Architecture Summary: yolov5/tutorials/architecture_description.md
-              - Neural Magic's DeepSparse: yolov5/tutorials/neural_magic_pruning_quantization.md
-              - Comet Logging: yolov5/tutorials/comet_logging_integration.md
-              - Clearml Logging: yolov5/tutorials/clearml_logging_integration.md
+              - Train Custom Data: yolov5/tutorials/train-custom-data.md
+              - Tips for Best Training Results: yolov5/tutorials/tips-for-best-training-results.md
+              - Multi-GPU Training: yolov5/tutorials/multi-gpu-training.md
+              - PyTorch Hub: yolov5/tutorials/pytorch-hub-model-loading.md
+              - TFLite, ONNX, CoreML, TensorRT Export: yolov5/tutorials/model-export.md
+              - Test-Time Augmentation (TTA): yolov5/tutorials/test-time-augmentation.md
+              - Model Ensembling: yolov5/tutorials/model-ensembling.md
+              - Pruning/Sparsity Tutorial: yolov5/tutorials/model-pruning-and-sparsity.md
+              - Hyperparameter evolution: yolov5/tutorials/hyperparameter-evolution.md
+              - Transfer learning with frozen layers: yolov5/tutorials/transfer-learning-with-frozen-layers.md
+              - Architecture Summary: yolov5/tutorials/architecture-description.md
+              - Neural Magic's DeepSparse: yolov5/tutorials/neural-magic-pruning-quantization.md
+              - Comet Logging: yolov5/tutorials/comet-logging-integration.md
+              - Clearml Logging: yolov5/tutorials/clearml-logging-integration.md
   - Integrations:
       - Integrations: integrations/index.md
       - Albumentations: integrations/albumentations.md
@@ -663,6 +663,8 @@ nav:
           - Settings: platform/account/settings.md
       - Explore: platform/explore.md
       - REST API: platform/api/index.md
+
+  - Rust Inference: inference/index.md
 
   - Reference:
       - reference/index.md
@@ -827,11 +829,17 @@ nav:
           - basetrack: reference/trackers/basetrack.md
           - bot_sort: reference/trackers/bot_sort.md
           - byte_tracker: reference/trackers/byte_tracker.md
+          - deep_oc_sort: reference/trackers/deep_oc_sort.md
+          - fast_tracker: reference/trackers/fast_tracker.md
+          - oc_sort: reference/trackers/oc_sort.md
           - track: reference/trackers/track.md
+          - track_tracker: reference/trackers/track_tracker.md
           - utils:
               - gmc: reference/trackers/utils/gmc.md
               - kalman_filter: reference/trackers/utils/kalman_filter.md
               - matching: reference/trackers/utils/matching.md
+              - reid: reference/trackers/utils/reid.md
+              - stracks: reference/trackers/utils/stracks.md
       - utils:
           - __init__: reference/utils/__init__.md
           - autobatch: reference/utils/autobatch.md
@@ -896,7 +904,7 @@ nav:
       - Contributor License Agreement (CLA): help/CLA.md
       - Minimum Reproducible Example (MRE) Guide: help/minimum-reproducible-example.md
       - Code of Conduct: help/code-of-conduct.md
-      - Environmental, Health and Safety (EHS) Policy: help/environmental-health-safety.md
+      - EHS Policy: help/environmental-health-safety.md
       - Security Policy: help/security.md
       - Privacy Policy: help/privacy.md
 

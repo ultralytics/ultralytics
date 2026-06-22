@@ -42,7 +42,12 @@ def torch2openvino(
     LOGGER.info(f"\n{prefix} starting export with openvino {ov.__version__}...")
 
     input_shape = [i.shape for i in im] if isinstance(im, (list, tuple)) else im.shape
-    ov_model = ov.convert_model(model, input=None if dynamic else input_shape, example_input=im)
+    # Hand OpenVINO an already-traced ScriptModule (torchscript/coreml exports trace the same way), not a raw
+    # nn.Module, so it doesn't re-trace internally with check_trace=True - that re-trace-and-diff sanity check is
+    # non-deterministic on NMS models and fails with "Graphs differed across invocations!". check_trace=False skips
+    # the same check on our own trace.
+    ts = torch.jit.trace(model, im, strict=False, check_trace=False)
+    ov_model = ov.convert_model(ts, input=None if dynamic else input_shape, example_input=im)
     if int8:
         import nncf
 

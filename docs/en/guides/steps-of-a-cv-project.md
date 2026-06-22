@@ -1,4 +1,5 @@
 ---
+title: Computer Vision Project Steps
 comments: true
 description: Discover essential steps for launching a successful computer vision project, from defining goals to model deployment and maintenance.
 keywords: Computer Vision, AI, Object Detection, Image Classification, Instance Segmentation, Data Annotation, Model Training, Model Evaluation, Model Deployment
@@ -116,7 +117,7 @@ Libraries like [OpenCV](https://www.ultralytics.com/glossary/opencv), [Albumenta
 
 To understand your data better, you can use tools like [Matplotlib](https://matplotlib.org/) or [Seaborn](https://seaborn.pydata.org/) to visualize the images and analyze their distribution and characteristics. Visualizing your data helps identify patterns, anomalies, and the effectiveness of your augmentation techniques. The [Ultralytics Platform](https://platform.ultralytics.com/) `Charts` tab can surface many of these insights without any code by automatically generating split distribution, class counts, image-dimension histograms, and annotation-position heatmaps for every uploaded dataset.
 
-By properly [understanding, splitting, and augmenting your data](./preprocessing_annotated_data.md), you can develop a well-trained, validated, and tested model that performs well in real-world applications.
+By properly [understanding, splitting, and augmenting your data](./preprocessing-annotated-data.md), you can develop a well-trained, validated, and tested model that performs well in real-world applications.
 
 ## Step 4: Model Training
 

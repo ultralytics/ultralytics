@@ -1,4 +1,5 @@
 ---
+title: trackers.basetrack API Reference
 description: Discover the BaseTrack classes and methods for object tracking in YOLO by Ultralytics. Learn about TrackState, BaseTrack attributes, and methods.
 keywords: Ultralytics, YOLO, object tracking, BaseTrack, TrackState, tracking methods, TrackState enumeration, object detection
 ---

@@ -1,4 +1,5 @@
 ---
+title: YOLO Hyperparameter Tuning
 comments: true
 description: Master hyperparameter tuning for Ultralytics YOLO to optimize model performance with our comprehensive guide. Elevate your machine learning models today!
 keywords: Ultralytics YOLO, hyperparameter tuning, machine learning, model optimization, genetic algorithms, learning rate, batch size, epochs

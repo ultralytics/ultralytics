@@ -1,4 +1,5 @@
 ---
+title: YOLOv5 Transfer Learning Frozen Layers
 comments: true
 description: Learn to freeze YOLOv5 layers for efficient transfer learning, reducing resources and speeding up training while maintaining accuracy.
 keywords: YOLOv5, transfer learning, freeze layers, machine learning, deep learning, model training, PyTorch, Ultralytics

@@ -1,4 +1,5 @@
 ---
+title: YOLO12 Attention-Centric Object Detection
 comments: true
 description: Discover YOLO12, featuring groundbreaking attention-centric architecture for state-of-the-art object detection with unmatched accuracy and efficiency.
 keywords: YOLO12, attention-centric object detection, YOLO series, Ultralytics, computer vision, AI, machine learning, deep learning

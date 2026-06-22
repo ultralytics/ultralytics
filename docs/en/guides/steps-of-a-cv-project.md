@@ -1,4 +1,5 @@
 ---
+title: Computer Vision Project Steps
 comments: true
 description: Discover essential steps for launching a successful computer vision project, from defining goals to model deployment and maintenance.
 keywords: Computer Vision, AI, Object Detection, Image Classification, Instance Segmentation, Data Annotation, Model Training, Model Evaluation, Model Deployment

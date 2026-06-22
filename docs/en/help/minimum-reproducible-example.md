@@ -1,4 +1,5 @@
 ---
+title: Minimum Reproducible Example (MRE)
 comments: true
 description: Learn how to create effective Minimum Reproducible Examples (MRE) for bug reports in Ultralytics YOLO repositories. Follow our guide for efficient issue resolution.
 keywords: Ultralytics, YOLO, Minimum Reproducible Example, MRE, bug report, issue resolution, machine learning, deep learning

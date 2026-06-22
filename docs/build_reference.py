@@ -133,9 +133,9 @@ def extract_classes_and_functions(filepath: Path) -> tuple[list[str], list[str]]
 def _with_reference_title(header_content: str, module_path: str) -> str:
     """Inject a concise, front-loaded `title:` into reference frontmatter (idempotent).
 
-    The H1 keeps the full module path; the `<title>` uses `{module} API Reference` (with the
-    redundant package prefix dropped) so it stays under the 60-char SEO limit once the docs renderer
-    appends its ` | Ultralytics` brand suffix. Curated description/keywords are preserved as-is.
+    The H1 keeps the full module path; the `<title>` uses `{module} API Reference` (with the redundant package prefix
+    dropped) so it stays under the 60-char SEO limit once the docs renderer appends its ` | Ultralytics` brand suffix.
+    Curated description/keywords are preserved as-is.
     """
     if "title:" in header_content:
         return header_content

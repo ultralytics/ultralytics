@@ -134,10 +134,10 @@ def _with_reference_title(header_content: str, module_path: str) -> str:
     """Inject a concise, front-loaded `title:` into reference frontmatter (idempotent).
 
     The H1 keeps the full module path; the `<title>` uses `{module} API Reference` (with the redundant package prefix
-    dropped) so it stays under the 60-char SEO limit once the docs renderer appends its ` | Ultralytics` brand suffix.
-    Curated description/keywords are preserved as-is.
+    dropped) to fit the 60-char SEO target once the docs renderer appends its ` | Ultralytics` brand suffix — a few of
+    the deepest module paths still rely on the renderer's truncation backstop. Curated description/keywords are kept.
     """
-    if "title:" in header_content:
+    if re.search(r"(?m)^title\s*:", header_content):  # line-anchored: ignore `title:` inside a description
         return header_content
     title = f"{module_path.removeprefix(f'{PACKAGE_DIR.name}.')} API Reference"
     return header_content.replace("---\n", f"---\ntitle: {title}\n", 1)

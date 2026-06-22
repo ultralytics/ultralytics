@@ -54,7 +54,10 @@ class AnomalyV2Validator(DetectionValidator):
         # operating points. Training 2-pass val (prior_mode=None) keeps the default iouv so the
         # trainer-facing box.map50/box.map stay standard.
         if prior_mode is not None:
-            self.iouv = torch.cat([torch.tensor([0.10, 0.25]), torch.linspace(0.5, 0.95, 10)])
+            # Standard 0.5:0.95 grid FIRST (so box.map50/map75 + P/R stay at their standard IoU
+            # operating points), low-IoU thresholds appended. ood_map_metrics indexes by IoU value,
+            # so column order doesn't affect the reported mAP10/25/50/50-95.
+            self.iouv = torch.cat([torch.linspace(0.5, 0.95, 10), torch.tensor([0.10, 0.25])])
             self.niou = self.iouv.numel()
 
         # Heatmap-prior memory-bank lifecycle (single-pass OOD eval). When prior_mode
@@ -368,19 +371,30 @@ class AnomalyV2Validator(DetectionValidator):
         out["mAP50_95"] = float(std.mean()) if std.size else float(box.map)
         return out
 
-    def print_results(self) -> None:
-        """OOD/standalone path: print a correctly-labeled mAP line from ``ood_map_metrics``.
+    def get_desc(self) -> str:
+        """OOD path: header with low-IoU mAP10/25 + im/px AUROC columns; standard header otherwise."""
+        if self.prior_mode is None:
+            return super().get_desc()
+        return ("%22s" + "%11s" * 10) % ("Class", "Images", "Instances", "Box(P", "R",
+                                         "mAP10", "mAP25", "mAP50", "mAP50-95)", "im_auroc", "px_auroc")
 
-        The extended iouv (0.10/0.25 + 0.50:0.95) shifts the columns ``box.map50``/``box.map`` read,
-        so the standard "all" summary would mislabel mAP@0.10 as "mAP50". For the OOD path
-        (``prior_mode`` set) print the right values; training 2-pass val (standard iouv) is unchanged.
+    def print_results(self) -> None:
+        """OOD/standalone path: print the "all" row in DetectionValidator's aligned column format,
+        with correctly-labeled mAP10/25/50/50-95 from ``ood_map_metrics``.
+
+        The extended iouv shifts the columns ``box.map50``/``box.map`` read, so the standard summary
+        would mislabel mAP@0.10 as "mAP50". Print the right values in the same style; training 2-pass
+        val (``prior_mode=None``, standard iouv) is unchanged.
         """
         if self.prior_mode is None:
             return super().print_results()
         mm = self.ood_map_metrics()
-        LOGGER.info(f"  OOD[{self.prior_mode}] P={mm['P']:.4f} R={mm['R']:.4f} "
-                    f"mAP10={mm['mAP10']:.4f} mAP25={mm['mAP25']:.4f} "
-                    f"mAP50={mm['mAP50']:.4f} mAP50-95={mm['mAP50_95']:.4f}")
+        nt = int(self.metrics.nt_per_class.sum()) if len(self.metrics.nt_per_class) else 0
+        ia = float(getattr(self.metrics, "image_auroc", math.nan))
+        pa = float(getattr(self.metrics, "pixel_auroc", math.nan))
+        pf = "%22s" + "%11i" * 2 + "%11.3g" * 8  # DetectionValidator widths + im/px AUROC columns
+        LOGGER.info(pf % ("all", self.seen, nt, mm["P"], mm["R"],
+                          mm["mAP10"], mm["mAP25"], mm["mAP50"], mm["mAP50_95"], ia, pa))
 
 
 # ----------------------------------------------------------------------

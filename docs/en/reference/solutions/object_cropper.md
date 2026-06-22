@@ -1,4 +1,5 @@
 ---
+title: solutions.object_cropper API Reference
 description: Detailed documentation for the ObjectCropper class, part of the Ultralytics solutions package, enabling real-time cropping of detected objects from images and video streams.
 keywords: Ultralytics, ObjectCropper, object detection, cropping, real-time processing, Python, computer vision
 ---

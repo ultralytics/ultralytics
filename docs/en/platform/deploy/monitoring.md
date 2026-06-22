@@ -1,4 +1,5 @@
 ---
+title: Deployment Monitoring
 comments: true
 description: Monitor deployed YOLO models on Ultralytics Platform with real-time metrics, request logs, and performance dashboards.
 keywords: Ultralytics Platform, monitoring, metrics, logs, deployment, performance, YOLO, observability
@@ -275,7 +276,8 @@ Returns health check status with response latency.
 {
     "healthy": true,
     "status": 200,
-    "latencyMs": 142
+    "latencyMs": 142,
+    "serverTiming": { "db": 8, "ping": 142, "total": 150 }
 }
 ```
 

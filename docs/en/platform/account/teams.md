@@ -1,4 +1,5 @@
 ---
+title: Team Management & Roles
 comments: true
 description: Create and manage teams on Ultralytics Platform with role-based access control, shared resources, and enterprise features for collaborative computer vision workflows.
 keywords: Ultralytics Platform, teams, collaboration, enterprise, roles, permissions, RBAC, workspace, team management
@@ -17,7 +18,7 @@ Teams allow multiple users to work together under a shared workspace:
 - **Shared Resources**: Datasets, projects, models, and deployments are accessible to all team members
 - **Role-Based Access**: Four roles (Owner, Admin, Editor, Viewer) control what each member can do
 - **Shared Billing**: Team members share the workspace credit balance and resource limits
-- **Seat Management**: Pro teams support up to 5 members, Enterprise teams up to 50
+- **Seat Management**: Pro teams support up to 5 members, Enterprise teams support custom team sizes
 
 !!! note "Plan Requirement"
 
@@ -33,6 +34,10 @@ Create a new team workspace:
 4. Enter your team name and username, then complete checkout
 
 Alternatively, [upgrade your personal account to Pro](billing.md#upgrade-to-pro) first, then create a team from the Teams tab. Once your team is created, you can [invite members](#inviting-members).
+
+!!! note "Team Creation Limit"
+
+    You can create up to 5 teams. To create another, you must first delete or transfer ownership of an existing team.
 
 ![Ultralytics Platform Teams Create Team Landing](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-teams-create-team-landing.avif)
 

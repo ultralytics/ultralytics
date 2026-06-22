@@ -241,7 +241,7 @@ def test_export_coreml_matrix(task, dynamic, int8, half, nms, batch, end2end):
         nms=nms,
         end2end=end2end,
     )
-    YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference
+    YOLO(file)([SOURCE] * batch, imgsz=32, batch=batch)  # exported model inference
     shutil.rmtree(file)  # cleanup
 
 
@@ -275,7 +275,7 @@ def test_export_tflite_matrix(task, dynamic, int8, half, batch, nms, end2end):
     file = YOLO(TASK2MODEL[task]).export(
         format="tflite", imgsz=32, dynamic=dynamic, int8=int8, half=half, batch=batch, nms=nms, end2end=end2end
     )
-    YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference
+    YOLO(file)([SOURCE] * batch, imgsz=32, batch=batch)  # exported model inference
     Path(file).unlink()  # cleanup
 
 
@@ -374,7 +374,7 @@ def test_export_mnn_matrix(task, int8, half, batch, end2end):
     """Test YOLO export to MNN format considering various export configurations."""
     skip_rpi_semantic(task)
     file = YOLO(TASK2MODEL[task]).export(format="mnn", imgsz=32, int8=int8, half=half, batch=batch, end2end=end2end)
-    YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference
+    YOLO(file)([SOURCE] * batch, imgsz=32, batch=batch)  # exported model inference
     Path(file).unlink()  # cleanup
 
 
@@ -392,7 +392,7 @@ def test_export_ncnn_matrix(task, half, batch):
     """Test YOLO export to NCNN format considering various export configurations."""
     skip_rpi_semantic(task)
     file = YOLO(TASK2MODEL[task]).export(format="ncnn", imgsz=32, half=half, batch=batch)
-    YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference
+    YOLO(file)([SOURCE] * batch, imgsz=32, batch=batch)  # exported model inference
     shutil.rmtree(file, ignore_errors=True)  # retry in case of potential lingering multi-threaded file usage errors
 
 

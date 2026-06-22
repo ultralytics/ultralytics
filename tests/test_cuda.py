@@ -73,7 +73,7 @@ def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms):
         device=DEVICES[0],
         # opset=20 if nms else None,  # fix ONNX Runtime errors with NMS
     )
-    YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32, device=DEVICES[0])  # exported model inference
+    YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32, batch=batch, device=DEVICES[0])  # exported model inference
     Path(file).unlink()  # cleanup
 
 
@@ -111,7 +111,7 @@ def test_export_engine_matrix(task, dynamic, int8, half, batch):
         simplify=True,
         device=DEVICES[0],
     )
-    YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32, device=DEVICES[0])  # exported model inference
+    YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32, batch=batch, device=DEVICES[0])  # exported model inference
     Path(file).unlink()  # cleanup
     if int8:
         Path(file).with_suffix(".cache").unlink(missing_ok=True)  # cleanup TensorRT 7-10 INT8 calibration cache

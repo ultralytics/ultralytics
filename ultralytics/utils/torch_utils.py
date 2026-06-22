@@ -735,6 +735,8 @@ def strip_optimizer(f: str | Path = "best.pt", s: str = "", updates: dict[str, A
     # Update model
     if x.get("ema"):
         x["model"] = x["ema"]  # replace model with EMA
+    if hasattr(x["model"], "for_save"):
+        x["model"] = x["model"].for_save()  # let wrapper modules drop training-only state (e.g., DistillationModel teacher)
     if hasattr(x["model"], "args"):
         x["model"].args = dict(x["model"].args)  # convert from IterableSimpleNamespace to dict
     if hasattr(x["model"], "criterion"):

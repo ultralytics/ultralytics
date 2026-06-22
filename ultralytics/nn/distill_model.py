@@ -119,6 +119,19 @@ class DistillationModel(nn.Module):
         self._register_saliency_hooks()
         self._register_decoder_hooks()
 
+    def for_save(self) -> nn.Module:
+        """Return the submodule to serialize when finalizing a training checkpoint.
+
+        Only the student is needed at inference, so the frozen teacher is dropped to roughly halve
+        checkpoint size. Invoked by `strip_optimizer` via duck typing at the end of training when
+        producing the final `last.pt` / `best.pt` artifacts; intermediate `save_model` writes keep
+        the full DistillationModel so resume-from-checkpoint can rebuild the KD wrapper.
+
+        Returns:
+            (nn.Module): Student model, ready to be pickled as a standalone checkpoint.
+        """
+        return self.student_model
+
     @staticmethod
     def get_distill_layers(model):
         """Return the FPN/PAN layer indices feeding the transformer decoder.

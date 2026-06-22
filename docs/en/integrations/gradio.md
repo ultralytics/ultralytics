@@ -1,4 +1,5 @@
 ---
+title: YOLO26 Object Detection with Gradio
 comments: true
 description: Discover an interactive way to perform object detection with Ultralytics YOLO26 using Gradio. Upload images and adjust settings for real-time results.
 keywords: Ultralytics, YOLO26, Gradio, object detection, interactive, real-time, image processing, AI

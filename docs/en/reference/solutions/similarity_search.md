@@ -1,4 +1,5 @@
 ---
+title: solutions.similarity_search API Reference
 description: Explore the Ultralytics semantic image search solution. Learn how to retrieve images using natural language with CLIP, FAISS, and a simple web app powered by Flask.
 keywords: Ultralytics, semantic search, CLIP, FAISS, image retrieval, natural language, Flask, computer vision, YOLO, AI
 ---

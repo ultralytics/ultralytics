@@ -183,7 +183,7 @@ def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms, end
         nms=nms,
         end2end=end2end,
     )
-    YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32)  # exported model inference
+    YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32, batch=batch)  # exported model inference
     Path(file).unlink()  # cleanup
 
 
@@ -204,7 +204,7 @@ def test_export_torchscript_matrix(task, dynamic, int8, half, batch, nms, end2en
     file = YOLO(isolated_model_path(tmp_path, WEIGHTS_DIR / TASK2MODEL[task])).export(
         format="torchscript", imgsz=32, dynamic=dynamic, int8=int8, half=half, batch=batch, nms=nms, end2end=end2end
     )
-    YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32)  # exported model inference
+    YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32, batch=batch)  # exported model inference
     Path(file).unlink()  # cleanup
 
 

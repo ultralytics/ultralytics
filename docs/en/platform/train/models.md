@@ -1,4 +1,5 @@
 ---
+title: Trained Model Management
 comments: true
 description: Learn how to manage, analyze, and export trained models in Ultralytics Platform with support for 19+ deployment formats.
 keywords: Ultralytics Platform, models, model management, export, ONNX, TensorRT, CoreML, YOLO

@@ -1,4 +1,5 @@
 ---
+title: YOLO Multi-Object Tracking in Video
 comments: true
 description: Discover efficient, flexible, and customizable multi-object tracking with Ultralytics YOLO. Learn to track real-time video streams with ease.
 keywords: multi-object tracking, Ultralytics YOLO, video analytics, real-time tracking, object detection, AI, machine learning

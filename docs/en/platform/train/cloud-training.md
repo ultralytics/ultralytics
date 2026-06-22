@@ -1,4 +1,5 @@
 ---
+title: Cloud GPU Training
 comments: true
 description: Learn how to train YOLO models on cloud GPUs with Ultralytics Platform, including remote training and real-time metrics streaming.
 keywords: Ultralytics Platform, cloud training, GPU training, remote training, YOLO, model training, machine learning

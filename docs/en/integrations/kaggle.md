@@ -1,4 +1,5 @@
 ---
+title: Train YOLO26 Models on Kaggle
 comments: true
 description: Learn how to use Kaggle to train Ultralytics YOLO26 models with free GPU/TPU resources. Discover Kaggle's features, benefits, and best practices for efficient model development.
 keywords: Kaggle, YOLO26, Ultralytics, machine learning, model training, GPU, TPU, cloud computing, data science, computer vision

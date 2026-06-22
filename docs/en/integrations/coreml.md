@@ -36,7 +36,7 @@ CoreML integrates directly with Apple's [Vision framework](https://developer.app
 ## Why Export YOLO26 to CoreML?
 
 - **Neural Engine speed**: YOLO26n detection runs end-to-end in **3.8 ms** on an iPhone 17 Pro for single images, and ~16 ms/frame in sustained real-time camera use (see the table and notes below) — comfortably real-time with headroom for the rest of your app.
-- **NMS-free by design**: YOLO26 is [end-to-end](https://www.ultralytics.com/glossary/nms-non-maximum-suppression), so the exported graph needs no NMS pipeline and decode is sub-millisecond. Older models like YOLO11 can embed a CoreML NMS pipeline with `nms=True`.
+- **NMS-free by design**: YOLO26 is [end-to-end](https://www.ultralytics.com/glossary/non-maximum-suppression-nms), so the exported graph needs no NMS pipeline and decode is sub-millisecond. Older models like YOLO11 can embed a CoreML NMS pipeline with `nms=True`.
 - **Private and offline**: All computation stays on the device — no cloud round-trips, no API keys, full [data privacy](https://www.ultralytics.com/glossary/data-privacy).
 - **One export, the whole ecosystem**: The same `.mlpackage` runs on iOS, iPadOS, macOS, watchOS, tvOS, and visionOS, and powers the official Ultralytics [iOS SDK](https://github.com/ultralytics/yolo-ios-app) and [Flutter plugin](https://github.com/ultralytics/yolo-flutter-app).
 
@@ -54,7 +54,7 @@ End-to-end single-image inference for the official YOLO26n INT8 CoreML models on
 | YOLO26n-obb  | OBB      | 1024                        | 21.7<br><sup>0.0 / 21.7 / 0.0</sup>  | **7.2**<br><sup>0.0 / 7.2 / 0.0</sup>                     |
 
 - <sup>1</sup> Semantic CoreML exports embed the ArgMax in the graph and return a compact full-resolution class map (`[1, 1024, 1024]`) instead of float logits, so the postprocess is a sub-millisecond color sweep and masks render pixel-sharp.
-- **Speed** values are **single-image burst latencies** — the mean of 15 runs after 3 warmup runs on [bus.jpg](https://ultralytics.com/images/bus.jpg), measured through the [iOS SDK's](https://github.com/ultralytics/yolo-ios-app) per-stage timing via the [Flutter plugin's](https://github.com/ultralytics/yolo-flutter-app) benchmark harness in profile mode (optimized native code). Sustained real-time camera operation runs higher (full-sensor letterboxing every frame plus thermal settling): YOLO26n detect measures ~16 ms/frame in the live camera app on the same device — see the [iOS SDK performance doc](https://github.com/ultralytics/yolo-ios-app/blob/main/docs/performance.md) for steady-state profiling.
+- **Speed** values are **single-image burst latencies** — the mean of 15 runs after 3 warmup runs on `bus.jpg`, measured through the [iOS SDK's](https://github.com/ultralytics/yolo-ios-app) per-stage timing via the [Flutter plugin's](https://github.com/ultralytics/yolo-flutter-app) benchmark harness in profile mode (optimized native code). Sustained real-time camera operation runs higher (full-sensor letterboxing every frame plus thermal settling): YOLO26n detect measures ~16 ms/frame in the live camera app on the same device — see the [iOS SDK performance doc](https://github.com/ultralytics/yolo-ios-app/blob/main/docs/performance.md) for steady-state profiling.
 - The matching Snapdragon CPU/GPU/NPU table is in the [Qualcomm QNN integration](qnn.md).
 
 ## Exporting YOLO26 Models to CoreML
@@ -159,6 +159,8 @@ For more details about the export process, visit the [Ultralytics documentation 
 ### Targeting the Neural Engine
 
 CoreML chooses hardware via `MLModelConfiguration.computeUnits`. The Ultralytics iOS SDK defaults to `.cpuAndNeuralEngine` on iOS 16+ rather than `.all`: in a real-time camera app the GPU is already busy compositing the preview and overlays, so excluding it avoids contention and frame-time jitter while the ANE does the heavy lifting. Pin `.cpuOnly` only for compatibility testing — the table above shows what it costs.
+
+Running a CoreML model from Python on a **Mac host** (via Ultralytics or `coremltools`) follows the same rule: Ultralytics loads with `ComputeUnit.CPU_AND_NE` (macOS 13+, falling back to `CPU_ONLY` on older macOS), keeping inference on the Neural Engine (~3× faster than CPU). This also avoids a current macOS host limitation where the default `ComputeUnit.ALL` / `CPU_AND_GPU` — which add the GPU/MPSGraph compile path — **abort the process** with an `Error: MLIR pass manager failed` assertion on `coremltools` 9.x.
 
 ## Deploying Exported YOLO26 CoreML Models
 

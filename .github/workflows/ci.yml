@@ -61,7 +61,7 @@ jobs:
         python: ["3.13"]
         model: [yolo26n]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v6
         if: matrix.os != 'cpu-latest'
         with:
@@ -147,7 +147,7 @@ jobs:
             torch: "1.8.0"
             torchvision: "0.9.0"
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v6
         if: matrix.os != 'cpu-latest'
         with:
@@ -299,7 +299,7 @@ jobs:
             torch: "2.11.0"
             torchvision: "0.26.0"
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v6
         if: matrix.os != 'cpu-latest'
         with:
@@ -370,7 +370,7 @@ jobs:
     timeout-minutes: 360
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v6
         with:
           python-version: "3.13"
@@ -428,7 +428,7 @@ jobs:
     env:
       YOLO_AUTOINSTALL: "false"
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v7
         with:
           activate-environment: true
@@ -466,7 +466,7 @@ jobs:
     steps:
       - name: Clean up runner
         uses: eviden-actions/clean-self-hosted-runner@v1
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Activate Virtual Environment for Tests
         run: |
           python3.11 -m venv env-tests
@@ -565,7 +565,7 @@ jobs:
     steps:
       - name: Clean up runner
         uses: eviden-actions/clean-self-hosted-runner@v1
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v7
       - name: Activate virtual environment
         run: |
@@ -573,11 +573,16 @@ jobs:
           source env/bin/activate
           echo PATH=$PATH >> $GITHUB_ENV
       - name: Install requirements
-        run: |
-          uv pip install -e ".[export]" pytest \
-          "${{ matrix.torch_whl }}" "${{ matrix.torchvision_whl }}" "${{ matrix.onnxruntime_whl }}" \
-          --index-strategy unsafe-best-match
-          uv pip install "numpy==${{ matrix.numpy }}"
+        uses: ultralytics/actions/retry@main
+        with:
+          retries: 3
+          retry_delay_seconds: 60
+          timeout_minutes: 60
+          run: |
+            uv pip install -e ".[export]" pytest \
+            "${{ matrix.torch_whl }}" "${{ matrix.torchvision_whl }}" "${{ matrix.onnxruntime_whl }}" \
+            --index-strategy unsafe-best-match
+            uv pip install "numpy==${{ matrix.numpy }}"
       - name: Check environment
         run: |
           yolo checks

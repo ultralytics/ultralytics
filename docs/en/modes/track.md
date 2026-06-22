@@ -469,6 +469,12 @@ There is no appearance model and no camera-motion compensation.
 
 Here is a Python script using [OpenCV](https://www.ultralytics.com/glossary/opencv) (`cv2`) and YOLO26 to run object tracking on video frames. This script assumes the necessary packages (`opencv-python` and `ultralytics`) are already installed. The `persist=True` argument tells the tracker that the current image or frame is the next in a sequence and to expect tracks from the previous image in the current image.
 
+!!! tip "Persisting tracks and selecting a tracker"
+
+    Use `persist=True` when passing consecutive frames from the same video stream to `model.track()`. This lets the tracker reuse state from earlier frames and maintain consistent track IDs over time. When processing unrelated images or starting a new video stream, omit `persist=True` or reinitialize the tracker so previous track state is not reused.
+
+    You can also choose a tracker backend by passing a tracker configuration file, such as `tracker="botsort.yaml"`, `tracker="bytetrack.yaml"`, or `tracker="tracktrack.yaml"`.
+
 !!! example "Streaming for-loop with tracking"
 
     ```python
@@ -490,7 +496,8 @@ Here is a Python script using [OpenCV](https://www.ultralytics.com/glossary/open
 
         if success:
             # Run YOLO26 tracking on the frame, persisting tracks between frames
-            results = model.track(frame, persist=True)
+            # and using the BoT-SORT tracker backend
+            results = model.track(frame, persist=True, tracker="botsort.yaml")
 
             # Visualize the results on the frame
             annotated_frame = results[0].plot()

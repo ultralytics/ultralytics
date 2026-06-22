@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import torch
 import torch.nn.functional as F
 from torch import nn
@@ -51,15 +53,15 @@ class DistillationModel(nn.Module):
         >>> model = DistillationModel(teacher_model="yolo26s.pt", student_model="yolo26n.pt")
     """
 
-    def __init__(self, teacher_model: str | nn.Module, student_model: nn.Module):
+    def __init__(self, teacher_model: str | Path | nn.Module, student_model: nn.Module):
         """Initialize the distillation model with teacher, student, and feature extraction hooks.
 
         Args:
-            teacher_model (str | nn.Module): Teacher model checkpoint path or module.
+            teacher_model (str | Path | nn.Module): Teacher model checkpoint path or module.
             student_model (nn.Module): Student model module to be trained.
         """
         super().__init__()
-        if isinstance(teacher_model, str):
+        if isinstance(teacher_model, (str, Path)):
             teacher_model = load_checkpoint(teacher_model)[0]
         device = next(student_model.parameters()).device
         self.teacher_model = teacher_model.to(device)
@@ -70,15 +72,15 @@ class DistillationModel(nn.Module):
         # Hook-based feature capture: identical for teacher and student
         self._teacher_feats = {}
         self._student_feats = {}
-        for idx in self.feats_idx:
-            self.teacher_model.model[idx].register_forward_hook(FeatureHook(self._teacher_feats, idx))
-            self.student_model.model[idx].register_forward_hook(FeatureHook(self._student_feats, idx))
+        self._register_feature_hooks()
 
         # Get feature dimensions via dummy forward pass (hooks capture outputs)
         imgsz = student_model.args.imgsz
+        student_model.eval()
         with smart_inference_mode():
             teacher_model(torch.zeros(2, 3, imgsz, imgsz).to(device))
             student_model(torch.zeros(2, 3, imgsz, imgsz).to(device))
+        student_model.train()
         teacher_output = [self._teacher_feats[idx] for idx in self.feats_idx]
         student_output = [self._student_feats[idx] for idx in self.feats_idx]
         assert len(teacher_output) == len(student_output), "Feature dimensions must match in length."
@@ -115,8 +117,11 @@ class DistillationModel(nn.Module):
         self.__dict__.update(state)
         self._teacher_feats = {}
         self._student_feats = {}
+        self._register_feature_hooks()
+
+    def _register_feature_hooks(self):
+        """Register feature-capture hooks, clearing any stale hooks on the target layers first."""
         for idx in self.feats_idx:
-            # Clear stale hooks that were pickled with the submodels
             self.teacher_model.model[idx]._forward_hooks.clear()
             self.student_model.model[idx]._forward_hooks.clear()
             self.teacher_model.model[idx].register_forward_hook(FeatureHook(self._teacher_feats, idx))

@@ -42,8 +42,7 @@ class AFSSScheduler:
             num_images (int): Total number of images in the dataset.
             seed (int): Random seed for deterministic sampling.
             easy_thr (float): Threshold above which an image is classified as easy (min(P, R) > easy_thr).
-            easy_ratio (float): Target fraction of easy images sampled each epoch. Easy images unused for >=10
-                epochs are always force-reviewed, even when they exceed this target.
+            easy_ratio (float): Fraction of easy images reviewed each epoch (continuous-review budget).
             moderate_thr (float): Threshold above which an image is classified as moderate (min(P, R) >= moderate_thr).
             moderate_ratio (float): Fraction of moderate images sampled each epoch.
             obj_counts (list[int], optional): Per-image GT object counts, indexed like the dataset. Used together
@@ -104,24 +103,25 @@ class AFSSScheduler:
         # Hard set: include all hard images
         selected.extend(hard_set)
 
-        # Easy set: force-review ALL long-unseen easy images (mirroring the moderate bucket), then fill any
-        # remaining budget randomly. Capping forced reviews at half the budget (paper Eq. 6 as written) lets the
-        # review backlog grow without bound once the easy set is large, leaving images untrained for hundreds of
-        # epochs — the paper's own interval ablation (Table 5b) shows that regime costs 1.3-2.4 AP.
+        # Easy set
         if easy_set:
             forced_easy = [i for i in easy_set if (epoch - 1 - self.state[i]["last_seen_epoch"]) >= 10]
             easy_budget = round(self.easy_ratio * len(easy_set))
-            selected.extend(forced_easy)
-            n_easy_sampled += len(forced_easy)
+            forced_easy_quota = min(len(forced_easy), math.floor(0.5 * easy_budget))
+            random_easy_quota = easy_budget - forced_easy_quota
 
-            random_easy_quota = easy_budget - len(forced_easy)
-            remaining_easy = [i for i in easy_set if i not in set(forced_easy)]
-            if random_easy_quota > 0 and remaining_easy:
-                random_easy_sample = rng.choice(
-                    remaining_easy, size=min(random_easy_quota, len(remaining_easy)), replace=False
-                ).tolist()
-                selected.extend(random_easy_sample)
-                n_easy_sampled += len(random_easy_sample)
+            if easy_budget > 0:
+                forced_easy_sample = []
+                if forced_easy_quota > 0 and forced_easy:
+                    forced_easy_sample = rng.choice(forced_easy, size=forced_easy_quota, replace=False).tolist()
+                selected.extend(forced_easy_sample)
+                n_easy_sampled += len(forced_easy_sample)
+
+                remaining_easy = [i for i in easy_set if i not in set(forced_easy_sample)]
+                if random_easy_quota > 0 and remaining_easy:
+                    random_easy_sample = rng.choice(remaining_easy, size=random_easy_quota, replace=False).tolist()
+                    selected.extend(random_easy_sample)
+                    n_easy_sampled += len(random_easy_sample)
 
         # Moderate set
         if moderate_set:

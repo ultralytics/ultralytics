@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import sys
+from collections import OrderedDict
 from types import SimpleNamespace
 from unittest import mock
 
@@ -154,6 +155,22 @@ def test_resume_incomplete(task, weight, data, tmp_path):
     resume_model = YOLO(last_path)
     resume_model.train(resume=True, **train_args)
     assert resume_model.trainer.start_epoch == resume_model.trainer.epoch == 1, "resume test failed"
+
+
+@pytest.mark.parametrize(
+    "ckpt",
+    [
+        {"model": OrderedDict([("a", torch.zeros(1))])},  # state_dict saved under the "model" key
+        {"model": {"a": torch.zeros(1)}},  # plain-dict "model" value
+        OrderedDict([("a", torch.zeros(1))]),  # bare state_dict, no "model" key
+    ],
+)
+def test_load_checkpoint_state_dict_rejected(ckpt, tmp_path):
+    """Test a state_dict checkpoint raises a clear TypeError instead of a cryptic AttributeError/KeyError."""
+    weight = tmp_path / "bad.pt"
+    torch.save(ckpt, weight)
+    with pytest.raises(TypeError, match="supported Ultralytics checkpoint format"):
+        load_checkpoint(weight)
 
 
 def test_nan_recovery():

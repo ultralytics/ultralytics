@@ -368,6 +368,20 @@ class AnomalyV2Validator(DetectionValidator):
         out["mAP50_95"] = float(std.mean()) if std.size else float(box.map)
         return out
 
+    def print_results(self) -> None:
+        """OOD/standalone path: print a correctly-labeled mAP line from ``ood_map_metrics``.
+
+        The extended iouv (0.10/0.25 + 0.50:0.95) shifts the columns ``box.map50``/``box.map`` read,
+        so the standard "all" summary would mislabel mAP@0.10 as "mAP50". For the OOD path
+        (``prior_mode`` set) print the right values; training 2-pass val (standard iouv) is unchanged.
+        """
+        if self.prior_mode is None:
+            return super().print_results()
+        mm = self.ood_map_metrics()
+        LOGGER.info(f"  OOD[{self.prior_mode}] P={mm['P']:.4f} R={mm['R']:.4f} "
+                    f"mAP10={mm['mAP10']:.4f} mAP25={mm['mAP25']:.4f} "
+                    f"mAP50={mm['mAP50']:.4f} mAP50-95={mm['mAP50_95']:.4f}")
+
 
 # ----------------------------------------------------------------------
 # MVTec cross-dataset OOD evaluation (3-mode sweep)

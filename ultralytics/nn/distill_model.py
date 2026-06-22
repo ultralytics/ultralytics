@@ -1,3 +1,5 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 from __future__ import annotations
 
 import torch
@@ -24,8 +26,8 @@ class FeatureHook:
 class DistillationModel(nn.Module):
     """YOLO knowledge distillation model.
 
-    This class wraps a teacher-student pair for knowledge distillation training. Features are extracted
-    from both models via forward hooks for distillation.
+    This class wraps a teacher-student pair for knowledge distillation training. Features are extracted from both models
+    via forward hooks for distillation.
 
     Attributes:
         teacher_model (nn.Module): Frozen teacher model providing features.
@@ -261,8 +263,8 @@ class DistillationModel(nn.Module):
 
         Args:
             preds (torch.Tensor | tuple | dict): Model predictions in various formats.
-            shape_check (bool): If True, extract the "boxes" field from dict outputs.
-                Used when checking feature dimensions for projector initialization.
+            shape_check (bool): If True, extract the "boxes" field from dict outputs. Used when checking feature
+                dimensions for projector initialization.
             branch (str): Which branch to extract from dict outputs ("one2one" or "one2many").
 
         Returns:

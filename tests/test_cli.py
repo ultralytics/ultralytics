@@ -59,7 +59,9 @@ def test_export(model: str, tmp_path: Path) -> None:
         run(f"yolo export model={isolated} format=torchscript imgsz=32 end2end={end2end} max_det=100")
 
 
-def test_distill_detect(task: str = "detect", teacher: Path = WEIGHTS_DIR / "yolo26n.pt", data: str = "coco8.yaml") -> None:
+def test_distill_detect(
+    task: str = "detect", teacher: Path = WEIGHTS_DIR / "yolo26n.pt", data: str = "coco8.yaml"
+) -> None:
     """Test YOLO knowledge distillation training via CLI with yolo26n student and yolo26s teacher."""
     run(f"yolo train {task} model=yolo26n.yaml distill_model={teacher} data={data} imgsz=32 epochs=1 cache=disk")
 

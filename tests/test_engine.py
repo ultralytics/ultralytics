@@ -198,16 +198,18 @@ def test_distill_detect():
 
 def test_distill_resume(name: str = "distill", tmp_path: str = "distill"):
     """Test knowledge distillation resumes from an incomplete checkpoint."""
-    overrides = {"data": "coco8.yaml", 
-                 "model": "yolo26n.yaml", 
-                 "imgsz": 32, 
-                 "epochs": 2, 
-                 "save": True,
-                 "plots": False,
-                 "workers": 0,
-                 "project": tmp_path,
-                 "name": name,
-                 "exist_ok": True}
+    overrides = {
+        "data": "coco8.yaml",
+        "model": "yolo26n.yaml",
+        "imgsz": 32,
+        "epochs": 2,
+        "save": True,
+        "plots": False,
+        "workers": 0,
+        "project": tmp_path,
+        "name": name,
+        "exist_ok": True,
+    }
 
     # Build student and teacher models
     student = DetectionModel("yolo26n.yaml", nc=80)

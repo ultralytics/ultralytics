@@ -38,7 +38,7 @@ Train a smaller student model with guidance from a larger teacher model by addin
 - You want better accuracy than standard training provides
 
 !!! note
-    Knowledge distillation currently supports **detect** tasks only.
+Knowledge distillation currently supports **detect** tasks only.
 
 ## Performance
 
@@ -65,21 +65,21 @@ Before starting, ensure you have:
 
 ### Recommended Model Pairs
 
-| Student | Recommended Teacher |
-|---------|---------------------|
-| `yolo26n.pt` | `yolo26s.pt` |
-| `yolo26s.pt` | `yolo26m.pt` |
-| `yolo26m.pt` | `yolo26x.pt` |
-| `yolo26l.pt` | `yolo26x.pt` |
+| Student      | Recommended Teacher |
+| ------------ | ------------------- |
+| `yolo26n.pt` | `yolo26s.pt`        |
+| `yolo26s.pt` | `yolo26m.pt`        |
+| `yolo26m.pt` | `yolo26x.pt`        |
+| `yolo26l.pt` | `yolo26x.pt`        |
 
 Cross-generation distillation (e.g., YOLO11 teacher with YOLO26 student) is **not supported**.
 
 ## Key Parameters
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `distill_model` | `str` | `None` | Path to the teacher model file (e.g., `yolo26x.pt`). Setting this enables knowledge distillation. |
-| `dis` | `float` | `6.0` | Distillation loss weight. Controls how much the distillation loss contributes to the total training loss.
+| Parameter       | Type    | Default | Description                                                                                               |
+| --------------- | ------- | ------- | --------------------------------------------------------------------------------------------------------- |
+| `distill_model` | `str`   | `None`  | Path to the teacher model file (e.g., `yolo26x.pt`). Setting this enables knowledge distillation.         |
+| `dis`           | `float` | `6.0`   | Distillation loss weight. Controls how much the distillation loss contributes to the total training loss. |
 
 ## How It Works
 

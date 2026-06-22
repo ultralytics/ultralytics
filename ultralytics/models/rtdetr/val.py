@@ -171,7 +171,8 @@ class RTDETRValidator(DetectionValidator):
         if requested is None:
             return
         requested = int(requested)
-        decoders = [m for m in model.modules() if hasattr(m, "eval_idx") and hasattr(m, "num_layers")]
+        target = getattr(model, "model", model)  # unwrap AutoBackend; its .model is the actual nn.Module
+        decoders = [m for m in target.modules() if hasattr(m, "eval_idx") and hasattr(m, "num_layers")]
         if not decoders:
             return
         for decoder in decoders:

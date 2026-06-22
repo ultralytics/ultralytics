@@ -27,8 +27,8 @@ from torch import nn, optim
 from ultralytics import __version__
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset, convert_ndjson_to_yolo_if_needed
-from ultralytics.nn.tasks import load_checkpoint
 from ultralytics.nn.distill_model import DistillationModel
+from ultralytics.nn.tasks import load_checkpoint
 from ultralytics.optim import MuSGD
 from ultralytics.utils import (
     DEFAULT_CFG,

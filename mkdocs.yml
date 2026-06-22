@@ -794,6 +794,7 @@ nav:
               - tensorflow: reference/nn/backends/tensorflow.md
               - tensorrt: reference/nn/backends/tensorrt.md
               - triton: reference/nn/backends/triton.md
+          - distill_model: reference/nn/distill_model.md
           - modules:
               - activation: reference/nn/modules/activation.md
               - block: reference/nn/modules/block.md

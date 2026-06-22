@@ -1,9 +1,13 @@
-from ultralytics.nn.modules.head import Detect
-from ultralytics.utils.torch_utils import copy_attr, smart_inference_mode
-from .tasks import load_checkpoint
+from __future__ import annotations
+
+import torch
 import torch.nn.functional as F
 from torch import nn
-import torch
+
+from ultralytics.nn.modules.head import Detect
+from ultralytics.utils.torch_utils import copy_attr, smart_inference_mode
+
+from .tasks import load_checkpoint
 
 
 class FeatureHook:
@@ -125,7 +129,7 @@ class DistillationModel(nn.Module):
         """
         for m in model.model:
             if isinstance(m, Detect):
-                return list(m.f) + [m.i]
+                return [*list(m.f), m.i]
         raise ValueError("No Detect head found in model")
 
     def _freeze_teacher(self):

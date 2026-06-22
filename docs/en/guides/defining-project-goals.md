@@ -1,4 +1,5 @@
 ---
+title: Defining Computer Vision Project Goals
 comments: true
 description: Learn how to define clear goals and objectives for your computer vision project with our practical guide. Includes tips on problem statements, measurable objectives, and key decisions.
 keywords: computer vision, project planning, problem statement, measurable objectives, dataset preparation, model selection, YOLO26, Ultralytics

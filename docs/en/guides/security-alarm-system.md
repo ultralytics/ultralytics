@@ -1,4 +1,5 @@
 ---
+title: Security Alarm System with YOLO26
 comments: true
 description: Enhance your security with real-time object detection using Ultralytics YOLO26. Reduce false positives and integrate seamlessly with existing systems.
 keywords: YOLO26, Security Alarm System, real-time object detection, Ultralytics, computer vision, integration, false positives

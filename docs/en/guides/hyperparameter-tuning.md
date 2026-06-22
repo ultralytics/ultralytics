@@ -1,4 +1,5 @@
 ---
+title: YOLO Hyperparameter Tuning
 comments: true
 description: Master hyperparameter tuning for Ultralytics YOLO to optimize model performance with our comprehensive guide. Elevate your machine learning models today!
 keywords: Ultralytics YOLO, hyperparameter tuning, machine learning, model optimization, genetic algorithms, learning rate, batch size, epochs
@@ -339,7 +340,7 @@ The hyperparameter tuning process in Ultralytics YOLO is simplified yet powerful
 ### Further Reading
 
 1. [Hyperparameter Optimization in Wikipedia](https://en.wikipedia.org/wiki/Hyperparameter_optimization)
-2. [YOLOv5 Hyperparameter Evolution Guide](../yolov5/tutorials/hyperparameter_evolution.md)
+2. [YOLOv5 Hyperparameter Evolution Guide](../yolov5/tutorials/hyperparameter-evolution.md)
 3. [Efficient Hyperparameter Tuning with Ray Tune and YOLO26](../integrations/ray-tune.md)
 
 For deeper insights, you can explore the [`Tuner` class](https://docs.ultralytics.com/reference/engine/tuner) source code and accompanying documentation. Should you have any questions, feature requests, or need further assistance, feel free to reach out to us on [GitHub](https://github.com/ultralytics/ultralytics/issues/new/choose) or [Discord](https://discord.com/invite/ultralytics).
@@ -374,7 +375,7 @@ Genetic algorithms in Ultralytics YOLO26 provide a robust method for exploring t
 - **Avoiding Local Minima**: By introducing randomness, they help in avoiding local minima, ensuring better global optimization.
 - **Performance Metrics**: They adapt based on a task-specific fitness score (mAP50-95 for detection).
 
-To see how genetic algorithms can optimize hyperparameters, check out the [hyperparameter evolution guide](../yolov5/tutorials/hyperparameter_evolution.md).
+To see how genetic algorithms can optimize hyperparameters, check out the [hyperparameter evolution guide](../yolov5/tutorials/hyperparameter-evolution.md).
 
 ### How long does the hyperparameter tuning process take for Ultralytics YOLO?
 

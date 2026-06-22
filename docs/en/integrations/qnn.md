@@ -1,4 +1,5 @@
 ---
+title: YOLO Export to Qualcomm QNN (Snapdragon)
 comments: true
 description: Export Ultralytics YOLO models to Qualcomm QNN for fast on-device inference on Snapdragon Hexagon NPU, Adreno GPU, and CPU. Step-by-step Qualcomm Snapdragon export guide.
 keywords: Qualcomm QNN, Qualcomm export, Snapdragon export, export YOLO to Qualcomm, QNN export, YOLO Snapdragon, YOLO on Snapdragon, Qualcomm AI Hub, Hexagon NPU, Hexagon HTP, Qualcomm AI Engine Direct, QAIRT, SNPE, onnxruntime-qnn, ONNX Runtime QNN, Snapdragon NPU, on-device inference, edge AI deployment, Ultralytics YOLO, model export
@@ -49,6 +50,8 @@ The exported `*_qnn.onnx` file is self-contained: it embeds the QNN context bina
 
 ## Measured Performance
 
+### Android Phone
+
 End-to-end single-image inference for the official YOLO26n models on a Xiaomi 17 phone powered by the Qualcomm Snapdragon 8 Elite Gen 5 (SM8850) — Qualcomm Oryon CPU, Adreno GPU, and Hexagon NPU (HTP v81). Each cell shows the **total time** (preprocessing + inference + postprocessing, excluding annotation) with the per-stage split beneath it. CPU and GPU run INT8 TFLite via LiteRT; the NPU runs QNN context binaries (INT8 weights, 16-bit activations).
 
 | Model        | Task     | size<br><sup>(pixels)</sup> | CPU<br><sup>INT8 TFLite<br>(ms)</sup> | GPU Adreno<br><sup>INT8 TFLite<br>(ms)</sup> | NPU Hexagon<br><sup>QNN A16W8<br>(ms)</sup>      |
@@ -60,8 +63,24 @@ End-to-end single-image inference for the official YOLO26n models on a Xiaomi 17
 | YOLO26n-pose | Pose     | 640                         | 57.7<br><sup>3.5 / 52.4 / 1.8</sup>   | 15.2<br><sup>3.6 / 9.7 / 1.9</sup>           | **10.8**<br><sup>3.5 / 5.6 / 1.8</sup>           |
 | YOLO26n-obb  | OBB      | 1024                        | 50.3<br><sup>3.6 / 45.4 / 1.3</sup>   | **13.9**<br><sup>3.8 / 8.2 / 1.8</sup>       | 21.0<br><sup>8.8 / 10.9 / 1.3</sup>              |
 
-- **Speed** values are **single-image burst latencies** — the mean of 15 runs after 3 warmup runs on [bus.jpg](https://ultralytics.com/images/bus.jpg), measured with the [Flutter plugin's](https://github.com/ultralytics/yolo-flutter-app) on-device benchmark harness on a thermally rested device. Sustained real-time camera frame times run higher (per-frame capture letterboxing plus thermal settling); use the app's on-screen pre/inference/post breakdown for steady-state numbers on your device.
+- **Speed** values are **single-image burst latencies** — the mean of 15 runs after 3 warmup runs on `bus.jpg`, measured with the [Flutter plugin's](https://github.com/ultralytics/yolo-flutter-app) on-device benchmark harness on a thermally rested device. Sustained real-time camera frame times run higher (per-frame capture letterboxing plus thermal settling); use the app's on-screen pre/inference/post breakdown for steady-state numbers on your device.
 - <sup>1</sup> Semantic QNN uses the in-graph ArgMax class-map output from this release, which replaced erratic 123-1065 ms logits decoding with a stable ~49 ms; the GPU remains slightly faster for semantic at 1024px.
+
+### Windows on Snapdragon Laptop
+
+End-to-end single-image inference for the official YOLO26n models on a Lenovo laptop powered by the Qualcomm Snapdragon X Elite (X1E78100) — Qualcomm Oryon CPU and Hexagon NPU (HTP v73), 32 GB RAM, Windows 11. This Windows-on-Snapdragon comparison runs the native PyTorch FP32 CPU baseline that most desktop developers start from against the QNN Hexagon NPU path. Each cell shows the **full `model.predict()` wall time** with the reported preprocessing / inference / postprocessing timings beneath it; the total can include framework overhead outside those three stages. CPU numbers are PyTorch FP32 (`torch==2.10.0+cpu`) and NPU numbers are ONNX Runtime QNN (`onnxruntime-qnn==2.2.0`, INT8 weights / 16-bit activations).
+
+| Model        | Task     | size<br><sup>(pixels)</sup> | CPU<br><sup>PT FP32<br>(ms)</sup>      | NPU Hexagon<br><sup>QNN A16W8<br>(ms)</sup> |
+| ------------ | -------- | --------------------------- | -------------------------------------- | ------------------------------------------- |
+| YOLO26n      | Detect   | 640                         | 91.4<br><sup>4.3 / 75.2 / 0.1</sup>    | **27.2**<br><sup>4.9 / 19.4 / 0.9</sup>     |
+| YOLO26n-seg  | Segment  | 640                         | 138.8<br><sup>4.5 / 127.1 / 2.8</sup>  | **34.3**<br><sup>5.0 / 24.0 / 5.1</sup>     |
+| YOLO26n-sem  | Semantic | 1024                        | 295.8<br><sup>9.1 / 189.2 / 94.8</sup> | **133.0**<br><sup>8.8 / 37.4 / 83.9</sup>   |
+| YOLO26n-cls  | Classify | 224                         | 15.4<br><sup>3.0 / 9.8 / 0.0</sup>     | **11.7**<br><sup>2.7 / 5.5 / 0.0</sup>      |
+| YOLO26n-pose | Pose     | 640                         | 109.6<br><sup>4.6 / 102.9 / 0.2</sup>  | **28.9**<br><sup>5.3 / 23.3 / 0.6</sup>     |
+| YOLO26n-obb  | OBB      | 1024                        | 267.8<br><sup>8.1 / 254.6 / 0.1</sup>  | **64.8**<br><sup>8.9 / 54.7 / 0.6</sup>     |
+
+- **Speed** values are **single-image burst latencies** — the mean of 100 runs after 10 warmup runs on `bus.jpg`, measured with `time.perf_counter()` around the full `model.predict()` call on a thermally rested device (`ultralytics==8.4.67`, Python 3.12.10).
+- The Hexagon NPU runs roughly **2-4x faster** than the PyTorch CPU baseline across the 640-1024 px tasks (detection ~3.4x), narrowing to ~1.3x on the 224 px classifier where fixed preprocessing overhead dominates the tiny workload.
 
 ## Supported Tasks
 

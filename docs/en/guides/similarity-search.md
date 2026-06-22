@@ -1,4 +1,5 @@
 ---
+title: Semantic Image Search with CLIP and FAISS
 comments: true
 description: Build a semantic image search engine with OpenAI CLIP, Meta FAISS, and Flask. Embed images, run natural-language queries, and serve results from a web app with the Ultralytics Python package.
 keywords: CLIP, FAISS, Flask, semantic search, semantic image search, image retrieval, natural language image search, zero-shot search, vector search, embeddings, OpenAI, Meta, Ultralytics, VisualAISearch, computer vision, web app

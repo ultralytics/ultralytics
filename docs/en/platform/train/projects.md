@@ -1,4 +1,5 @@
 ---
+title: Project Management
 comments: true
 description: Learn how to organize and manage projects in Ultralytics Platform for efficient model development.
 keywords: Ultralytics Platform, projects, model management, experiment tracking, YOLO

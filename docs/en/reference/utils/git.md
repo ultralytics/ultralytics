@@ -1,4 +1,5 @@
 ---
+title: utils.git API Reference
 description: Utilities for retrieving Git repository metadata such as branch, commit, and origin URL, used in Ultralytics projects.
 keywords: Ultralytics, Git, GitRepo, branch, commit, origin, repository, utils, metadata, version control
 ---

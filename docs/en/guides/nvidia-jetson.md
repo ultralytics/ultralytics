@@ -1,4 +1,5 @@
 ---
+title: YOLO26 on NVIDIA Jetson Setup & Benchmarks
 comments: true
 description: Learn to deploy Ultralytics YOLO26 on NVIDIA Jetson devices with our detailed guide. Explore performance benchmarks and maximize AI capabilities.
 keywords: Ultralytics, YOLO26, NVIDIA Jetson, JetPack, AI deployment, performance benchmarks, embedded systems, deep learning, TensorRT, computer vision

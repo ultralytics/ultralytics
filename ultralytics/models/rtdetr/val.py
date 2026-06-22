@@ -10,7 +10,7 @@ import torch
 from ultralytics.data import YOLODataset
 from ultralytics.data.augment import Compose, Format, v8_transforms
 from ultralytics.models.yolo.detect import DetectionValidator
-from ultralytics.utils import colorstr, ops
+from ultralytics.utils import LOGGER, colorstr, ops
 
 from .detr_augment import rtdetr_transforms
 
@@ -154,6 +154,37 @@ class RTDETRValidator(DetectionValidator):
         std_t = img.new_tensor(std).view(1, 3, 1, 1)
         return (img - mean_t) / std_t
 
+    def init_metrics(self, model: torch.nn.Module) -> None:
+        """Initialize metrics and apply optional decoder eval_idx override.
+
+        Walks the model for transformer-decoder submodules that expose both `eval_idx` and `num_layers`
+        (covers RT-DETR's DeformableTransformerDecoder and D-FINE/DEIM's DFineTransformerDecoder/
+        DeimTransformerDecoder) and rewrites their `eval_idx` to the value requested via `self.args.eval_idx`.
+        Negative indices follow the same `num_layers + eval_idx` convention used at construction
+        (-1 selects the last layer). No-op when `self.args.eval_idx` is unset or no matching decoder is found.
+
+        Args:
+            model (torch.nn.Module): Model being validated.
+        """
+        super().init_metrics(model)
+        requested = getattr(self.args, "eval_idx", None)
+        if requested is None:
+            return
+        requested = int(requested)
+        decoders = [m for m in model.modules() if hasattr(m, "eval_idx") and hasattr(m, "num_layers")]
+        if not decoders:
+            return
+        for decoder in decoders:
+            idx = requested if requested >= 0 else decoder.num_layers + requested
+            n_available = len(decoder.layers) if hasattr(decoder, "layers") else decoder.num_layers
+            if not 0 <= idx < n_available:
+                raise ValueError(
+                    f"eval_idx={requested} resolves to layer {idx}, outside [0, {n_available - 1}]; "
+                    f"checkpoint may have been truncated via convert_to_deploy()."
+                )
+            decoder.eval_idx = idx
+        LOGGER.info(f"Decoder eval_idx override applied: layer {decoders[0].eval_idx} (requested={requested}).")
+
     def preprocess(self, batch: dict[str, Any]) -> dict[str, Any]:
         """Preprocess validation batch."""
         already_scaled = self._pop_batch_flag(batch, "img_scaled")
@@ -204,8 +235,8 @@ class RTDETRValidator(DetectionValidator):
         coordinates from normalized xywh to pixel xyxy format.
 
         Args:
-            preds (torch.Tensor | list | tuple): Predictions from the model with shape
-                (batch_size, num_queries, 6) where last dimension is [cx, cy, w, h, score, class].
+            preds (torch.Tensor | list | tuple): Predictions from the model with shape (batch_size, num_queries, 6)
+                where last dimension is [cx, cy, w, h, score, class].
 
         Returns:
             (list[dict[str, torch.Tensor]]): List of dictionaries for each image, each containing:

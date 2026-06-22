@@ -49,6 +49,14 @@ class AnomalyV2Validator(DetectionValidator):
         self._mask_mode = "on"
         self._model_ref = None
 
+        # OOD/standalone single-pass eval adds coarse low-IoU thresholds (0.10, 0.25) on top of the
+        # standard 0.5:0.95 grid — defect localization is coarse, so mAP@0.10/0.25 are the informative
+        # operating points. Training 2-pass val (prior_mode=None) keeps the default iouv so the
+        # trainer-facing box.map50/box.map stay standard.
+        if prior_mode is not None:
+            self.iouv = torch.cat([torch.tensor([0.10, 0.25]), torch.linspace(0.5, 0.95, 10)])
+            self.niou = self.iouv.numel()
+
         # Heatmap-prior memory-bank lifecycle (single-pass OOD eval). When prior_mode
         # is "heatmap", build the BackboneMemoryBank from the dataset's train (normal)
         # split inside this validator, then restore prior_mode + drop the bank after —
@@ -291,13 +299,37 @@ class AnomalyV2Validator(DetectionValidator):
 
     @staticmethod
     def _compute_auroc(scores: list[float], labels: list[int]) -> float:
-        try:
-            from sklearn.metrics import roc_auc_score
-        except ImportError:
+        """Binary ROC-AUC via the tie-aware rank statistic (Mann-Whitney U) — no sklearn dependency.
+
+        Matches ``sklearn.metrics.roc_auc_score`` for the binary case. Returns NaN when there are no
+        finite scores or only one label class is present. Self-contained on purpose: the ``ultra``
+        training env has no sklearn, so the old ``import sklearn`` made every OOD AUROC silently NaN.
+        """
+        import numpy as np
+
+        if not scores or len(set(labels)) < 2:
             return float("nan")
-        if len(scores) == 0 or len(set(labels)) < 2:
+        s = np.asarray(scores, dtype=np.float64)
+        y = np.asarray(labels, dtype=np.float64)
+        finite = np.isfinite(s)
+        if not finite.all():
+            s, y = s[finite], y[finite]
+        n_pos, n_neg = float((y == 1).sum()), float((y == 0).sum())
+        if n_pos == 0 or n_neg == 0:
             return float("nan")
-        return float(roc_auc_score(labels, scores))
+        order = np.argsort(s, kind="mergesort")
+        s_sorted = s[order]
+        ranks_sorted = np.empty(s.shape[0], dtype=np.float64)
+        i, n = 0, s.shape[0]
+        while i < n:  # average rank within each tie group (1-based)
+            j = i + 1
+            while j < n and s_sorted[j] == s_sorted[i]:
+                j += 1
+            ranks_sorted[i:j] = 0.5 * (i + j - 1) + 1.0
+            i = j
+        ranks = np.empty(n, dtype=np.float64)
+        ranks[order] = ranks_sorted
+        return float((ranks[y == 1].sum() - n_pos * (n_pos + 1.0) / 2.0) / (n_pos * n_neg))
 
     def finalize_metrics(self):
         image_auroc = self._compute_auroc(self._auroc_image_scores, self._auroc_image_labels)
@@ -315,6 +347,27 @@ class AnomalyV2Validator(DetectionValidator):
             stats["pixel_auroc"] = float("nan")
         return stats
 
+    def ood_map_metrics(self) -> dict[str, float]:
+        """mAP at IoU {0.10, 0.25, 0.50} and the {0.50:0.95} mean, from the extended-iouv ``all_ap``.
+
+        Only meaningful on the OOD/standalone path (``prior_mode`` set), where ``iouv`` carries the
+        low-IoU thresholds. Falls back to the standard box accessors when ``all_ap`` is unavailable.
+        """
+        import numpy as np
+
+        box = self.metrics.box
+        all_ap = getattr(box, "all_ap", [])
+        out = {"mAP10": 0.0, "mAP25": 0.0, "mAP50": float(box.map50), "mAP50_95": float(box.map),
+               "P": float(box.mp), "R": float(box.mr)}
+        if not len(all_ap):
+            return out
+        iouv = self.iouv.cpu().numpy()
+        _at = lambda thr: float(all_ap[:, int(np.argmin(np.abs(iouv - thr)))].mean())
+        std = all_ap[:, iouv >= 0.5 - 1e-6]
+        out["mAP10"], out["mAP25"], out["mAP50"] = _at(0.10), _at(0.25), _at(0.50)
+        out["mAP50_95"] = float(std.mean()) if std.size else float(box.map)
+        return out
+
 
 # ----------------------------------------------------------------------
 # MVTec cross-dataset OOD evaluation (3-mode sweep)
@@ -331,7 +384,8 @@ MVTEC_CATEGORIES = [
     "metal_nut", "pill", "screw", "tile", "toothbrush", "transistor", "wood", "zipper",
 ]
 _MODE_TO_PRIOR = {"mask_off": "none", "heatmap": "heatmap", "mask_on": "mask"}
-_OOD_CSV_FIELDS = ["epoch", "category", "mode", "mAP50", "mAP50_95", "P", "R", "image_auroc", "pixel_auroc"]
+_OOD_CSV_FIELDS = ["epoch", "category", "mode", "mAP10", "mAP25", "mAP50", "mAP50_95",
+                   "P", "R", "image_auroc", "pixel_auroc"]
 
 # Candidate dataset roots in priority order (env var wins, then ultra6, then laptop).
 _MVTEC_ROOT_CANDIDATES = (
@@ -397,17 +451,19 @@ def run_mvtec_ood_eval(
                 validator = AnomalyV2Validator(args=overrides, save_dir=sd)
                 validator._ood_bank_size = bank_size
                 validator(trainer=None, model=m)
-                box = validator.metrics.box
+                mm = validator.ood_map_metrics()
                 rows.append({
                     "epoch": epoch, "category": cat, "mode": mode,
-                    "mAP50": float(box.map50), "mAP50_95": float(box.map),
-                    "P": float(box.mp), "R": float(box.mr),
+                    "mAP10": mm["mAP10"], "mAP25": mm["mAP25"],
+                    "mAP50": mm["mAP50"], "mAP50_95": mm["mAP50_95"],
+                    "P": mm["P"], "R": mm["R"],
                     "image_auroc": float(getattr(validator.metrics, "image_auroc", math.nan)),
                     "pixel_auroc": float(getattr(validator.metrics, "pixel_auroc", math.nan)),
                 })
             except Exception as e:
                 LOGGER.warning(f"MVTec OOD: {cat}/{mode} failed ({type(e).__name__}: {e}); recording NaN.")
-                rows.append({"epoch": epoch, "category": cat, "mode": mode, "mAP50": math.nan,
+                rows.append({"epoch": epoch, "category": cat, "mode": mode,
+                             "mAP10": math.nan, "mAP25": math.nan, "mAP50": math.nan,
                              "mAP50_95": math.nan, "P": math.nan, "R": math.nan,
                              "image_auroc": math.nan, "pixel_auroc": math.nan})
 
@@ -429,12 +485,13 @@ def _ood_macro_average(rows: list[dict], epoch: int | None) -> list[dict]:
             vals = [r[key] for r in rs if not math.isnan(r[key])]
             return sum(vals) / len(vals) if vals else math.nan
         avg = {"epoch": epoch, "category": "AVERAGE", "mode": mode,
+               "mAP10": _avg("mAP10"), "mAP25": _avg("mAP25"),
                "mAP50": _avg("mAP50"), "mAP50_95": _avg("mAP50_95"), "P": _avg("P"), "R": _avg("R"),
                "image_auroc": _avg("image_auroc"), "pixel_auroc": _avg("pixel_auroc")}
         out.append(avg)
-        LOGGER.info(f"MVTec OOD @ep{epoch} [{mode:8s}] mAP50={avg['mAP50']:.4f} "
-                    f"mAP50-95={avg['mAP50_95']:.4f} image_auroc={avg['image_auroc']:.4f} "
-                    f"pixel_auroc={avg['pixel_auroc']:.4f} (n={len(rs)})")
+        LOGGER.info(f"MVTec OOD @ep{epoch} [{mode:8s}] mAP10={avg['mAP10']:.4f} mAP25={avg['mAP25']:.4f} "
+                    f"mAP50={avg['mAP50']:.4f} mAP50-95={avg['mAP50_95']:.4f} "
+                    f"img_auroc={avg['image_auroc']:.4f} pix_auroc={avg['pixel_auroc']:.4f} (n={len(rs)})")
     return out
 
 

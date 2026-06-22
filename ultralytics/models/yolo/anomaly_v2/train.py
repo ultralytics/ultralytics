@@ -195,7 +195,7 @@ class AnomalyV2Trainer(DetectionTrainer):
         ema_eval = deepcopy(trainer.ema.ema).eval()
         try:
             with torch.no_grad():
-                run_mvtec_ood_eval(
+                rows = run_mvtec_ood_eval(
                     ema_eval, root,
                     categories=v2_cfg.get("mvtec_ood_categories"),
                     imgsz=int(v2_cfg.get("mvtec_ood_imgsz", 320)),
@@ -203,10 +203,37 @@ class AnomalyV2Trainer(DetectionTrainer):
                     bank_size=int(v2_cfg.get("mvtec_ood_bank_size", 10000)),
                     device=trainer.device, save_dir=trainer.save_dir, epoch=trainer.epoch + 1,
                 )
+            AnomalyV2Trainer._log_ood_wandb(trainer, rows)
         except Exception as e:  # never let OOD eval take down a training run
             LOGGER.warning(f"MVTec OOD eval failed at epoch {trainer.epoch + 1}: {type(e).__name__}: {e}")
         finally:
             del ema_eval
+
+    @staticmethod
+    def _log_ood_wandb(trainer: "AnomalyV2Trainer", rows: list) -> None:
+        """Push per-category + AVERAGE OOD metrics to wandb at the current epoch step (no-op if wandb off).
+
+        Keys are ``ood/<category|AVERAGE>/<mode>/<metric>`` for metric in {mAP10, mAP25, mAP50,
+        mAP50_95, image_auroc, pixel_auroc}; NaN values are skipped. Logged at ``step=epoch+1`` so it
+        merges into the same wandb history row the loss/lr already populate this epoch.
+        """
+        if not rows:
+            return
+        try:
+            from ultralytics.utils.callbacks.wb import wb
+        except Exception:
+            wb = None
+        if wb is None or getattr(wb, "run", None) is None:
+            return
+        keys = ("mAP10", "mAP25", "mAP50", "mAP50_95", "image_auroc", "pixel_auroc")
+        log = {f"ood/{r['category']}/{r['mode']}/{k}": r[k]
+               for r in rows for k in keys
+               if r.get(k) is not None and not (isinstance(r.get(k), float) and math.isnan(r[k]))}
+        if log:
+            try:
+                wb.run.log(log, step=trainer.epoch + 1)
+            except Exception as e:
+                LOGGER.warning(f"MVTec OOD: wandb log failed: {type(e).__name__}: {e}")
 
     # ------------------------------------------------------------------
     # MoCo-style FIFO-queue prior (mb_queue_capacity > 0)

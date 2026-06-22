@@ -69,6 +69,11 @@ class RegionCounter(BaseSolution):
         Returns:
             (dict[str, Any]): Region information including name, polygon, and display colors.
         """
+        if len(polygon_points) < 3:
+            raise ValueError(
+                f"RegionCounter requires regions with at least 3 points to form a polygon, "
+                f"but got {len(polygon_points)} for '{name}'."
+            )
         region = self.region_template.copy()
         region.update(
             {

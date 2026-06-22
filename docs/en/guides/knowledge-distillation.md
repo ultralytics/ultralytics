@@ -40,6 +40,21 @@ Train a smaller student model with guidance from a larger teacher model by addin
 !!! note
     Knowledge distillation currently supports **detect** tasks only.
 
+## Performance
+
+Knowledge distillation improves student [mAP](yolo-performance-metrics.md) across the entire YOLO26 family on [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml), with no added inference cost. The table below compares the standard YOLO26 models (baseline) against the same models trained with distillation from their recommended teacher.
+
+| Model                                                                                                | size<br><sup>(pixels)</sup> | mAP<sup>val<br>50-95</sup><br>baseline | mAP<sup>val<br>50-95</sup><br>distilled | mAP<sup>val<br>50-95 (e2e)</sup><br>baseline | mAP<sup>val<br>50-95 (e2e)</sup><br>distilled |
+| ---------------------------------------------------------------------------------------------------- | --------------------------- | -------------------------------------- | --------------------------------------- | -------------------------------------------- | --------------------------------------------- |
+| [YOLO26n-distill](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n-distill.pt) | 640                         | 40.9                                   | **41.5**                                | 40.1                                         | **40.9**                                      |
+| [YOLO26s-distill](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26s-distill.pt) | 640                         | 48.6                                   | **49.2**                                | 47.8                                         | **48.6**                                      |
+| [YOLO26m-distill](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26m-distill.pt) | 640                         | 53.1                                   | **53.9**                                | 52.5                                         | **53.3**                                      |
+| [YOLO26l-distill](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26l-distill.pt) | 640                         | 55.0                                   | **56.0**                                | 54.4                                         | **55.5**                                      |
+| [YOLO26x-distill](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26x-distill.pt) | 640                         | 57.5                                   | **57.9**                                | 56.9                                         | **57.4**                                      |
+
+- **mAP<sup>val</sup>** values are for single-model single-scale on the [COCO val2017](https://cocodataset.org/) dataset. <br>Reproduce by `yolo val detect data=coco.yaml device=0`
+- **e2e** values use the default NMS-free inference path; non-e2e values use traditional NMS post-processing (`end2end=False`). See [End-to-End Detection](end2end-detection.md) for details.
+
 ## Prerequisites
 
 Before starting, ensure you have:
@@ -180,3 +195,7 @@ Add the `distill_model` parameter—everything else works identically. An extra 
 ### Does knowledge distillation slow down training?
 
 Yes. Expect 1.2-1.5x slower training and ~1.1x more GPU memory because the teacher model runs inference on each batch. The teacher runs in `eval` mode without gradients, keeping overhead manageable. Use `amp=True` to reduce impact.
+
+### Which tasks and models are supported?
+
+Knowledge distillation currently supports **detect** tasks across the YOLOv8, YOLO11, and YOLO26 model families. The teacher and student must belong to the **same family**—cross-family distillation (e.g., a YOLO11 teacher with a YOLO26 student) is not supported.

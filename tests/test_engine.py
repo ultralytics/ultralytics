@@ -17,6 +17,7 @@ from ultralytics.models.yolo import classify, detect, obb, pose, segment, semant
 from ultralytics.nn.distill_model import DistillationModel
 from ultralytics.nn.tasks import DetectionModel, load_checkpoint
 from ultralytics.utils import ASSETS, DEFAULT_CFG, IS_RASPBERRYPI, WEIGHTS_DIR
+from ultralytics.utils.torch_utils import unwrap_model
 
 
 def test_func(*args, **kwargs):
@@ -201,6 +202,7 @@ def test_distill_resume(name: str = "distill", tmp_path: str = "distill"):
     overrides = {
         "data": "coco8.yaml",
         "model": "yolo26n.yaml",
+        "distill_model": WEIGHTS_DIR / "yolo26n.pt",
         "imgsz": 32,
         "epochs": 2,
         "save": True,
@@ -211,17 +213,8 @@ def test_distill_resume(name: str = "distill", tmp_path: str = "distill"):
         "exist_ok": True,
     }
 
-    # Build student and teacher models
-    student = DetectionModel("yolo26n.yaml", nc=80)
-    teacher = DetectionModel("yolo26s.yaml", nc=80)
-    student.args = get_cfg(DEFAULT_CFG, overrides)
-
-    # Create DistillationModel
-    model = DistillationModel(teacher_model=teacher, student_model=student)
-
-    # Train using the created DistillationModel
+    # Train for one epoch then interrupt to produce a resumable checkpoint
     trainer = detect.DetectionTrainer(overrides=overrides)
-    trainer.model = model  # inject pre-built DistillationModel
 
     def stop_after_first_epoch(trainer):
         if trainer.epoch == 0:
@@ -232,11 +225,17 @@ def test_distill_resume(name: str = "distill", tmp_path: str = "distill"):
     trainer.train()
     _, ckpt = load_checkpoint(trainer.last)
     assert ckpt["epoch"] == 0, "checkpoint should be resumable"
+    assert isinstance(ckpt["ema"], DistillationModel), "distillation EMA wraps the student model"
+    assert ckpt["ema"].teacher_model is None, "teacher should be stripped from the EMA/checkpoint"
+    assert ckpt["ema"].projector is not None, "the distillation projector should be persisted in the EMA checkpoint"
 
     overrides["resume"] = trainer.last
     trainer = detect.DetectionTrainer(overrides=overrides)
     trainer.final_eval = lambda: None
     trainer.train()
+    model = unwrap_model(trainer.model)
+    assert isinstance(model, DistillationModel), "resume should rebuild the DistillationModel"
+    assert model.teacher_model is not None, "resume should rebuild the teacher from the distill_model path"
     assert trainer.start_epoch == trainer.epoch == 1, "resume test failed"
 
 

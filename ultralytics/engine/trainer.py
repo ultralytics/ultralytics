@@ -763,7 +763,11 @@ class BaseTrainer:
                 LOGGER.info("Resuming training DistillationModel from checkpoint weights")
             student_model = self.get_model(cfg=cfg, weights=weights.student_model, verbose=RANK in {-1, 0})
             student_model.args = self.args
-            model = DistillationModel(student_model=student_model, teacher_model=weights.teacher_model)
+            # teacher is stripped from the checkpoint to save memory/disk; rebuild it from the distill_model path
+            teacher_model = weights.teacher_model if weights.teacher_model is not None else self.args.distill_model
+            model = DistillationModel(student_model=student_model, teacher_model=teacher_model)
+            if getattr(weights, "projector", None) is not None:
+                model.projector.load_state_dict(weights.projector.state_dict())  # restore the trained projector
             model.criterion = None
             self.model = model
         else:
@@ -976,12 +980,20 @@ class BaseTrainer:
         LOGGER.warning(f"{reason} detected (attempt {self.nan_recovery_attempts}/3), recovering from last.pt...")
         self._model_train()  # set model to train mode before loading checkpoint to avoid inference tensor errors
         _, ckpt = load_checkpoint(self.last)
-        ema_state = ckpt["ema"].float().state_dict()
+        ema = ckpt["ema"].float()
+        ema_state = ema.state_dict()
         if not all(torch.isfinite(v).all() for v in ema_state.values() if isinstance(v, torch.Tensor)):
             raise RuntimeError(f"Checkpoint {self.last} is corrupted with NaN/Inf weights")
-        unwrap_model(self.model).load_state_dict(ema_state)  # Load EMA weights into model
+        model = unwrap_model(self.model)
+        if hasattr(model, "student_model"):
+            # Distillation: the EMA is stripped of the teacher (rebuilt from the distill_model path), so only the
+            # student and projector are restored; loading them separately keeps a strict key match.
+            model.student_model.load_state_dict(ema.student_model.state_dict())
+            model.projector.load_state_dict(ema.projector.state_dict())
+        else:
+            model.load_state_dict(ema_state)  # Load EMA weights into model
         self._load_checkpoint_state(ckpt)  # Load optimizer/scaler/EMA/best_fitness
-        del ckpt, ema_state
+        del ckpt, ema, ema_state
         self.scheduler.last_epoch = epoch - 1
         return True
 

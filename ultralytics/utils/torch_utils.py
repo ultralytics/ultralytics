@@ -675,6 +675,9 @@ class ModelEMA:
             updates (int, optional): Initial number of updates.
         """
         self.ema = deepcopy(unwrap_model(model)).eval()  # FP32 EMA
+        if hasattr(self.ema, "teacher_model"):
+            # DistillationModel: strip the teacher so the EMA does not carry a full duplicate copy.
+            self.ema.teacher_model = None
         self.updates = updates  # number of EMA updates
         self.decay = lambda x: decay * (1 - math.exp(-x / tau))  # decay exponential ramp (to help early epochs)
         for p in self.ema.parameters():
@@ -693,9 +696,6 @@ class ModelEMA:
 
             msd = unwrap_model(model).state_dict()  # model state_dict
             for k, v in self.ema.state_dict().items():
-                if "teacher" in k:
-                    # DistillationModel teacher is frozen and should not update EMA.
-                    continue
                 if v.dtype.is_floating_point:  # true for FP16 and FP32
                     v *= d
                     v += (1 - d) * msd[k].detach()

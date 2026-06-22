@@ -122,10 +122,11 @@ class DistillationModel(nn.Module):
     def _register_feature_hooks(self):
         """Register feature-capture hooks, clearing any stale hooks on the target layers first."""
         for idx in self.feats_idx:
-            self.teacher_model.model[idx]._forward_hooks.clear()
             self.student_model.model[idx]._forward_hooks.clear()
-            self.teacher_model.model[idx].register_forward_hook(FeatureHook(self._teacher_feats, idx))
             self.student_model.model[idx].register_forward_hook(FeatureHook(self._student_feats, idx))
+            if self.teacher_model is not None:
+                self.teacher_model.model[idx]._forward_hooks.clear()
+                self.teacher_model.model[idx].register_forward_hook(FeatureHook(self._teacher_feats, idx))
 
     @staticmethod
     def get_distill_layers(model):
@@ -141,6 +142,8 @@ class DistillationModel(nn.Module):
 
     def _freeze_teacher(self):
         """Keep teacher fixed for distillation."""
+        if self.teacher_model is None:
+            return
         self.teacher_model.eval()
         for v in self.teacher_model.parameters():
             if v.requires_grad:

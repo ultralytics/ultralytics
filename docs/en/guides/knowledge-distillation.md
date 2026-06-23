@@ -90,6 +90,30 @@ Cross-generation distillation (e.g., YOLO11 teacher with YOLO26 student) is **no
 5. A **score-weighted L2 loss** compares projected student features with teacher features, weighted by the teacher's classification confidence
 6. The distillation loss combines with standard losses using the `dis` weight
 
+```mermaid
+flowchart TD
+    A[Input Image Batch] --> T[Teacher Model<br/>frozen, eval mode]
+    A --> S[Student Model<br/>trainable]
+
+    T --> |Detect head inputs| TF[Teacher Features]
+    S --> |Detect head inputs| SF[Student Features]
+
+    SF --> P[1×1 Conv Projector<br/>with ReLU]
+    P --> AF[Aligned Student Features]
+
+    TF --> SW[Score-weighted L2 Loss]
+    AF --> SW
+
+    S --> D[Detection Head]
+    D --> DL[box_loss + cls_loss + dfl_loss]
+
+    SW --> |× dis| DIS[distillation loss]
+    DL --> TOTAL[Total Loss]
+    DIS --> TOTAL
+
+    TOTAL --> BP[Backpropagate<br/>Student + Projector only]
+```
+
 ## Training
 
 ### Basic Training

@@ -38,7 +38,7 @@ Train a smaller student model with guidance from a larger teacher model by addin
 - You want better accuracy than standard training provides
 
 !!! note
-Knowledge distillation currently supports **detect** tasks only.
+    Knowledge distillation currently supports **detect** tasks only.
 
 ## Performance
 

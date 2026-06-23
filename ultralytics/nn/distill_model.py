@@ -90,14 +90,13 @@ class DistillationModel(nn.Module):
         self.split_sizes = []
         for tf in teacher_output[:-1]:
             f = self.decouple_outputs(tf)
-            if not isinstance(f, dict):
-                self.split_sizes.append(f.shape[-2] * f.shape[-1])
+            self.split_sizes.append(f.shape[-2] * f.shape[-1])
         copy_attr(self, student_model)
         self.dis = self.student_model.args.dis
         projectors = []
         for student_out, teacher_out in zip(student_output[:-1], teacher_output[:-1]):
-            student_dim = self.decouple_outputs(student_out, shape_check=True).shape[1]
-            teacher_dim = self.decouple_outputs(teacher_out, shape_check=True).shape[1]
+            student_dim = self.decouple_outputs(student_out).shape[1]
+            teacher_dim = self.decouple_outputs(teacher_out).shape[1]
             projectors.append(
                 nn.Sequential(
                     nn.Conv2d(student_dim, teacher_dim, kernel_size=1, stride=1, padding=0),
@@ -196,8 +195,6 @@ class DistillationModel(nn.Module):
         for i, feat_idx in enumerate(self.feats_idx[:-1]):
             teacher_feat = self.decouple_outputs(self._teacher_feats[feat_idx])
             student_feat = self.decouple_outputs(self._student_feats[feat_idx])
-            if isinstance(teacher_feat, dict):
-                continue
             if student_feat.ndim == 4:
                 student_feat = self.projector[i](student_feat)
             loss_distill += (
@@ -264,7 +261,7 @@ class DistillationModel(nn.Module):
         self.student_model.fuse(verbose)
         return self
 
-    def decouple_outputs(self, preds, shape_check: bool = False, branch: str = "one2one"):
+    def decouple_outputs(self, preds, branch: str = "one2one"):
         """Decouple outputs for teacher/student models.
 
         This method handles different output formats from YOLO models, including
@@ -273,8 +270,6 @@ class DistillationModel(nn.Module):
 
         Args:
             preds (torch.Tensor | tuple | dict): Model predictions in various formats.
-            shape_check (bool): If True, extract the "boxes" field from dict outputs. Used when checking feature
-                dimensions for projector initialization.
             branch (str): Which branch to extract from dict outputs ("one2one" or "one2many").
 
         Returns:
@@ -285,6 +280,4 @@ class DistillationModel(nn.Module):
         if isinstance(preds, dict):
             if branch in preds:
                 preds = preds[branch]
-            if shape_check:
-                preds = preds["boxes"]
         return preds

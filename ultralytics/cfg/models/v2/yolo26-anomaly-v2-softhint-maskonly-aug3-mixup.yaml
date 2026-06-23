@@ -27,6 +27,7 @@ anomaly_v2:
   bb_auto_temperature: false
   bb_calibration_target_score: 0.5
   bb_calibrate: compactness
+  mvtec_ood_val_freq: 0
   mb_queue_capacity: 0
   mb_cached_prior: false
   mb_cached_mask_gate: false

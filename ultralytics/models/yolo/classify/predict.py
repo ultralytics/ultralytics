@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import cv2
 import torch
+import torchvision.transforms as T
 from PIL import Image
 
 from ultralytics.data.augment import classify_transforms
@@ -61,10 +62,14 @@ class ClassificationPredictor(BasePredictor):
         self.transforms = (
             classify_transforms(self.imgsz) if updated or self.model.format != "pt" else self.model.model.transforms
         )
+        self.tensor_transforms = T.Compose([t for t in self.transforms.transforms if not isinstance(t, T.ToTensor)])
 
     def preprocess(self, img):
         """Convert input images to model-compatible tensor format with appropriate normalization."""
-        if not isinstance(img, torch.Tensor):
+        if isinstance(img, torch.Tensor):
+            if not self.args.tensor_preprocessed:  # raw (B, C, H, W) tensor at original resolution
+                img = self.tensor_transforms(img)
+        else:
             img = torch.stack(
                 [self.transforms(Image.fromarray(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))) for im in img], dim=0
             )

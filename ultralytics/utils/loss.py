@@ -13,7 +13,7 @@ import torch.nn.functional as F
 from ultralytics.utils.metrics import CITYSCAPES_WEIGHT, OKS_SIGMA, RLE_WEIGHT
 from ultralytics.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh
 from ultralytics.utils.tal import RotatedTaskAlignedAssigner, TaskAlignedAssigner, dist2bbox, dist2rbox, make_anchors
-from ultralytics.utils.torch_utils import autocast
+from ultralytics.utils.torch_utils import TORCH_1_10, autocast
 
 from .metrics import bbox_iou, probiou
 from .tal import bbox2dist, rbox2dist
@@ -1042,13 +1042,15 @@ class ReIDLoss:
         cls_logits, bn_feat, raw_feat = preds
         labels = batch["cls"]
 
-        # Cross-entropy with label smoothing (optionally focal)
+        # Cross-entropy with label smoothing (optionally focal). label_smoothing requires torch>=1.10;
+        # drop it on older torch so the minimum-supported environment still trains (smoothing is a refinement).
+        ce_kwargs = {"label_smoothing": self.label_smooth} if TORCH_1_10 else {}
         if self.focal_gamma > 0:
-            ce_per_sample = F.cross_entropy(cls_logits, labels, label_smoothing=self.label_smooth, reduction="none")
+            ce_per_sample = F.cross_entropy(cls_logits, labels, reduction="none", **ce_kwargs)
             pt = torch.exp(-ce_per_sample)
             ce_loss = ((1 - pt) ** self.focal_gamma * ce_per_sample).mean()
         else:
-            ce_loss = F.cross_entropy(cls_logits, labels, label_smoothing=self.label_smooth)
+            ce_loss = F.cross_entropy(cls_logits, labels, **ce_kwargs)
 
         # Metric loss on raw features (before BNNeck)
         if self.supcon_temp > 0:

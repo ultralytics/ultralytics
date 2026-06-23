@@ -66,11 +66,14 @@ def build_gallery(
     """
     import torch
 
+    from ultralytics.utils.torch_utils import TORCH_1_13
+
     paths = scan_gallery(gallery)
     sig = _signature(paths, model_id, imgsz)
 
     if cache is not None and Path(cache).exists():
-        blob = torch.load(str(cache), weights_only=False)
+        # weights_only was added in torch 1.13; older torch defaults to a full unpickle (equivalent here).
+        blob = torch.load(str(cache), weights_only=False) if TORCH_1_13 else torch.load(str(cache))
         if blob.get("signature") == sig:
             return paths, np.asarray(blob["embs"], dtype=np.float32)
         LOGGER.warning(f"reid_cache '{cache}' is stale (model/imgsz/gallery changed); rebuilding.")

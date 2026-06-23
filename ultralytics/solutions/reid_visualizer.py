@@ -12,7 +12,7 @@ from ultralytics.models.yolo.reid import retrieval
 from ultralytics.utils.plotting import plot_reid_retrieval
 
 
-@dataclass(slots=True)
+@dataclass
 class RetrievalItem:
     """A single ranked gallery match for a query image."""
 

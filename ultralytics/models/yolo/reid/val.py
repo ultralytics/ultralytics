@@ -169,6 +169,12 @@ class ReidValidator(ClassificationValidator):
         Returns:
             (torch.Tensor): L2-normalized fused embedding (B, D).
         """
+        # Match the model's weight dtype so a fp16 batch (in-train AMP val) doesn't hit unimplemented
+        # fp16 CPU conv kernels against an fp32 EMA model; CUDA autocast still handles mixed precision.
+        param = next(self._model.parameters(), None)
+        if param is not None and img.dtype != param.dtype:
+            img = img.to(param.dtype)
+
         scales = getattr(self.args, "reid_scales", None)
         if isinstance(scales, str):
             scales = [int(s) for s in scales.replace(" ", "").split(",") if s]

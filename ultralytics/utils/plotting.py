@@ -1157,7 +1157,7 @@ def plot_reid_retrieval(rows, save_path, tile_size=(240, 320), gap=24):
         return save_path
     w, h = tile_size
     max_matches = max((len(r) - 1 for r in rows), default=0)
-    sheet_w = w + gap + max_matches * w
+    sheet_w = w + (gap + max_matches * w if max_matches else 0)  # no trailing gap for query-only grids
     sheet_h = max(len(rows), 1) * h
     sheet = Image.new("RGB", (sheet_w, sheet_h), (12, 12, 12))
     for ri, row in enumerate(rows):

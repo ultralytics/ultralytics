@@ -59,6 +59,7 @@ class ClassificationTrainer(BaseTrainer):
         """
         if overrides is None:
             overrides = {}
+        overrides.setdefault("task", "classify")  # default for direct use; subclasses (e.g. ReidTrainer) set their own
         if overrides.get("imgsz") is None:
             overrides["imgsz"] = 224
         super().__init__(cfg, overrides, _callbacks)

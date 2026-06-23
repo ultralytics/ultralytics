@@ -58,11 +58,11 @@ Knowledge distillation improves student [mAP](yolo-performance-metrics.md) acros
 
 ## Prerequisites
 
-Before starting, ensure you have:
+Before you begin, ensure you meet the following requirements:
 
-1. A **trained teacher model** from the same YOLO family as the student
-2. Both models trained on the **same dataset** and task
-3. Sufficient GPU memory to run both models simultaneously (see the [FAQ](#does-knowledge-distillation-slow-down-training) for typical overhead)
+- **Trained Teacher Model**: A pre-trained, high-accuracy teacher model from the same YOLO family as the student model (e.g., YOLO26).
+- **Matching Dataset and Task**: Both the teacher and student models must use the exact same dataset and task configuration.
+- **GPU Resources**: Sufficient GPU memory (VRAM) to load and run both models concurrently during training (refer to the [FAQ](#does-knowledge-distillation-slow-down-training) for typical VRAM overhead).
 
 ### Recommended Model Pairs
 
@@ -194,7 +194,6 @@ The `dis` parameter (default: `6.0`) controls distillation loss contribution:
         from ultralytics import YOLO
 
         student = YOLO("yolo26n.pt")
-
         results = student.train(data="coco8.yaml", epochs=100, distill_model="yolo26s.pt", dis=10)
         ```
 

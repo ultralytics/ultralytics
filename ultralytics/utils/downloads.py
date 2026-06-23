@@ -19,13 +19,11 @@ GITHUB_ASSETS_NAMES = frozenset(
     [f"yolov8{k}{suffix}.pt" for k in "nsmlx" for suffix in ("", "-cls", "-seg", "-pose", "-obb", "-oiv7")]
     + [f"yolo11{k}{suffix}.pt" for k in "nsmlx" for suffix in ("", "-cls", "-seg", "-pose", "-obb")]
     + [f"yolo12{k}{suffix}.pt" for k in "nsmlx" for suffix in ("",)]  # detect models only currently
-    + [f"yolov8{k}-reid.pt" for k in "nl"]  # ReID seeds (LUPerson-pretrained; n/l trained so far)
-    + [f"yolo11{k}-reid.pt" for k in "nl"]  # ReID seeds (LUPerson-pretrained; n/l trained so far)
     + [
         f"yolo26{k}{suffix}.pt"
         for k in "nsmlx"
         for suffix in ("", "-cls", "-seg", "-sem", "-pose", "-obb", "-reid", "-reid-market")
-    ]
+    ]  # ReID weights provided for the yolo26 family only
     + [f"yolov5{k}{resolution}u.pt" for k in "nsmlx" for resolution in ("", "6")]
     + [f"yolov3{k}u.pt" for k in ("", "-spp", "-tiny")]
     + [f"yolov8{k}-world.pt" for k in "smlx"]

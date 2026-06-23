@@ -164,7 +164,7 @@ def export_formats():
         ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"]],
         ["Axelera AI", "axelera", "_axelera_model", False, False, ["batch", "int8", "fraction", "data"]],
         ["DeepX", "deepx", "_deepx_model", False, False, ["data", "int8", "optimize"]],
-        ["LiteRT", "litert", "_litert_model", True, False, ["batch", "half", "int8", "data"]],
+        ["LiteRT", "litert", "_litert_model", True, False, ["batch", "int8", "data"]],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
 
@@ -771,7 +771,6 @@ class Exporter:
             self.model,
             self.im,
             self.file,
-            half=self.args.half,
             int8=self.args.int8,
             calibration_dataset=self.get_int8_calibration_dataloader(prefix) if self.args.int8 else None,
             metadata=self.metadata,

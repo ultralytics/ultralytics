@@ -17,7 +17,8 @@ class LiteRTBackend(BaseBackend):
     """Google LiteRT (formerly TensorFlow Lite) inference backend.
 
     Loads and runs inference with LiteRT models (.tflite files) exported via ai-edge-litert/litert-torch. Supports FP32
-    and INT8 (dynamic-range, int8 weights / fp32 activations) quantized models with automatic dequantization.
+    and static INT8 (int8 weights and activations) models, with automatic input/output dequantization and
+    denormalization of box/keypoint coordinates by image size.
     """
 
     def load_model(self, weight: str | Path) -> None:
@@ -52,6 +53,9 @@ class LiteRTBackend(BaseBackend):
     def forward(self, im: torch.Tensor) -> list[np.ndarray]:
         """Run inference using the LiteRT interpreter.
 
+        Box and pose keypoint coordinates are exported normalized to [0, 1] (so INT8 quantization preserves class
+        score resolution) and denormalized here by the input image size, mirroring the TensorFlow Lite backend.
+
         Args:
             im (torch.Tensor): Input image tensor in BCHW format, normalized to [0, 1].
 
@@ -59,6 +63,7 @@ class LiteRTBackend(BaseBackend):
             (list[np.ndarray]): Model predictions as a list of numpy arrays.
         """
         im = im.cpu().numpy()
+        h, w = im.shape[2:4]  # BCHW input (LiteRT keeps NCHW, unlike NHWC TFLite)
         details = self.input_details[0]
         is_int = details["dtype"] in {np.int8, np.int16}
 
@@ -75,6 +80,22 @@ class LiteRTBackend(BaseBackend):
             if output["dtype"] in {np.int8, np.int16}:
                 scale, zero_point = output["quantization"]
                 x = (x.astype(np.float32) - zero_point) * scale
+            if x.ndim == 3:  # denormalize xywh (and pose keypoints) by image size
+                if x.shape[-1] == 6 or self.end2end:  # (batch, max_det, 6) end-to-end output
+                    x[:, :, [0, 2]] *= w
+                    x[:, :, [1, 3]] *= h
+                    if self.task == "pose":
+                        x[:, :, 6::3] *= w
+                        x[:, :, 7::3] *= h
+                else:  # (batch, channels, anchors) raw output
+                    x[:, [0, 2]] *= w
+                    x[:, [1, 3]] *= h
+                    if self.task == "pose":
+                        x[:, 5::3] *= w
+                        x[:, 6::3] *= h
             y.append(x)
+
+        if self.task == "segment" and y[0].ndim == 4:  # order as (detections, protos); protos already NCHW
+            y = [y[1], y[0]]
 
         return y

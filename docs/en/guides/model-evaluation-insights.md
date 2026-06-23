@@ -99,8 +99,8 @@ To understand your model's performance in detail, you can access specific evalua
         # Per-image precision, recall, F1, TP, FP, and FN
         print("Per-image metrics:", results.box.image_metrics)
 
-        # Inference speed in milliseconds per image
-        print("Speed (ms/image):", results.speed)
+        # Per-stage timing breakdown in milliseconds per image
+        print("Timing breakdown (ms/image):", results.speed)
         ```
 
 Note that `fitness()` is a method and must be called with parentheses, while metrics like `map`, `map50`, and `mp` are properties accessed directly.
@@ -153,7 +153,7 @@ To evaluate YOLO26 model performance, important metrics include Confidence Score
 
 ### How can I fine-tune a pretrained YOLO26 model for my specific dataset?
 
-Fine-tuning a pretrained YOLO26 model involves adjusting its parameters to improve performance on a specific task or dataset. Start by evaluating your model with metrics, then set the `warmup_epochs` training argument to `0` in `model.train()` so the learning rate starts high immediately. During evaluation, parameters like `rect=true` help handle varied image sizes effectively. For more detailed guidance, refer to our section on [fine-tuning your model](#fine-tuning-your-model).
+Fine-tuning a pretrained YOLO26 model involves adjusting its parameters to improve performance on a specific task or dataset. Start by evaluating your model with metrics, then set the `warmup_epochs` training argument to `0` in `model.train()` so the learning rate starts at the configured base value immediately instead of ramping up. During evaluation, parameters like `rect=true` help handle varied image sizes effectively. For more detailed guidance, refer to our section on [fine-tuning your model](#fine-tuning-your-model).
 
 ### How can I handle variable image sizes when evaluating my YOLO26 model?
 

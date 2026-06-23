@@ -64,7 +64,7 @@ TASK2DATA = {
     "classify": "imagenet10",
     "pose": "coco8-pose.yaml",
     "obb": "dota8.yaml",
-    "reid": "Market-1501.yaml",
+    "reid": "reid8.yaml",
     "semantic": "cityscapes8.yaml",
 }
 TASK2CALIBRATIONDATA = {

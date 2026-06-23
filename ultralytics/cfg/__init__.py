@@ -969,8 +969,14 @@ def entrypoint(debug: str = "") -> None:
         else:
             check_dict_alignment(full_args_dict, {a: ""})
 
-    # Check keys (allow task-specific custom keys)
-    task_keys = TASK_CUSTOM_KEYS.get(overrides.get("task", ""), set())
+    # Check keys (allow task-specific custom keys). Prefer an explicit task=; otherwise infer the task
+    # from the model filename (e.g. 'yolo26n-reid.pt' -> 'reid') so task-specific args such as reid's
+    # 'triplet_margin' are accepted on the CLI without requiring an explicit task= argument.
+    task = overrides.get("task", "")
+    if not task:
+        stem = Path(str(overrides.get("model", ""))).stem.lower()
+        task = next((t for t in TASK_CUSTOM_KEYS if f"-{t}" in stem), "")
+    task_keys = TASK_CUSTOM_KEYS.get(task, set())
     check_dict_alignment(full_args_dict, overrides, allowed_custom_keys={"augmentations", "save_dir"} | task_keys)
 
     # Mode

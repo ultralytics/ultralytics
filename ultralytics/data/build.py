@@ -373,11 +373,8 @@ def build_reid_dataloader(
             num_replicas=dist.get_world_size() if rank != -1 and dist.is_initialized() else 1,
             rank=max(rank, 0),
         )
-        # TODO: trainer (ultralytics/engine/trainer.py:397-398) only calls sampler.set_epoch(epoch)
-        # when RANK != -1. For single-GPU runs the sampler stays at epoch=0 forever, which means
-        # the PID order/sample draws repeat every epoch. The `set_epoch` call should be made
-        # unconditionally (or at least whenever the sampler supports it) so single-GPU ReID
-        # training also gets fresh per-epoch shuffling.
+        # The trainer calls sampler.set_epoch(epoch) every epoch for both DDP and single-GPU runs
+        # (see engine/trainer.py), so PID order and per-identity image draws reshuffle each epoch.
         batch_size = p * k  # override batch_size to match PK
     else:
         sampler = None if rank == -1 else distributed.DistributedSampler(dataset, shuffle=False)

@@ -204,6 +204,7 @@ calibration_*.npy
 args.yaml
 results.csv
 reid-research/
+reid_test/
 docs/superpowers/
 tests/reid_audit/
 

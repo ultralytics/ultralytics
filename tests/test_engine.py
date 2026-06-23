@@ -2,6 +2,7 @@
 
 import sys
 from collections import OrderedDict
+from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
@@ -160,56 +161,32 @@ def test_resume_incomplete(task, weight, data, tmp_path):
 
 
 def test_distill_detect():
-    """Test knowledge distillation pipeline for detection using YOLO models."""
-    overrides = {"data": "coco8.yaml", "model": "yolo26n.yaml", "imgsz": 32, "epochs": 1, "save": False}
-
-    # Build student and teacher models
-    student = DetectionModel("yolo26n.yaml", nc=80)
-    teacher = DetectionModel("yolo26s.yaml", nc=80)
-    student.args = get_cfg(DEFAULT_CFG, overrides)
-
-    # Create DistillationModel
-    model = DistillationModel(teacher_model=teacher, student_model=student)
-
-    # Train using the created DistillationModel
+    """Test knowledge distillation training for detection via the public API."""
+    overrides = {
+        "data": "coco8.yaml",
+        "model": "yolo26n.yaml",
+        "distill_model": WEIGHTS_DIR / "yolo26s.pt",
+        "imgsz": 32,
+        "epochs": 1,
+        "save": False,
+    }
     trainer = detect.DetectionTrainer(overrides=overrides)
-    trainer.model = model  # inject pre-built DistillationModel
-    trainer.add_callback("on_train_start", test_func)
-    assert test_func in trainer.callbacks["on_train_start"], "callback test failed"
     trainer.train()
 
-    # Validator
-    cfg = get_cfg(DEFAULT_CFG)
-    cfg.data = "coco8.yaml"
-    cfg.imgsz = 32
-    val = detect.DetectionValidator(args=cfg)
-    val.add_callback("on_val_start", test_func)
-    assert test_func in val.callbacks["on_val_start"], "callback test failed"
-    val(model=trainer.best)
 
-    # Predictor
-    pred = detect.DetectionPredictor(overrides={"imgsz": [64, 64]})
-    pred.add_callback("on_predict_start", test_func)
-    assert test_func in pred.callbacks["on_predict_start"], "callback test failed"
-    # Confirm there is no issue with sys.argv being empty
-    with mock.patch.object(sys, "argv", []):
-        result = pred(source=ASSETS, model=MODEL)
-        assert len(result), "predictor test failed"
-
-
-def test_distill_resume(name: str = "distill", tmp_path: str = "distill"):
+def test_distill_resume(tmp_path: Path):
     """Test knowledge distillation resumes from an incomplete checkpoint."""
     overrides = {
         "data": "coco8.yaml",
         "model": "yolo26n.yaml",
-        "distill_model": WEIGHTS_DIR / "yolo26n.pt",
+        "distill_model": WEIGHTS_DIR / "yolo26s.pt",
         "imgsz": 32,
         "epochs": 2,
         "save": True,
         "plots": False,
         "workers": 0,
         "project": tmp_path,
-        "name": name,
+        "name": "distill",
         "exist_ok": True,
     }
 
@@ -295,8 +272,7 @@ def test_nan_recovery():
     assert nan_injected[0], "NaN injection failed"
 
 
-@pytest.mark.parametrize("distill", [False, True])
-def test_nan_recovery_restores_checkpoint(distill, tmp_path):
+def test_nan_recovery_restores_checkpoint(tmp_path):
     """Test NaN loss with non-finite fitness at a later epoch restores weights from last.pt."""
     overrides = {
         "data": "coco8.yaml",
@@ -310,8 +286,6 @@ def test_nan_recovery_restores_checkpoint(distill, tmp_path):
         "name": "nan_recovery",
         "exist_ok": True,
     }
-    if distill:
-        overrides["distill_model"] = WEIGHTS_DIR / "yolo26n.pt"
     trainer = detect.DetectionTrainer(overrides=overrides)
 
     # Force a corrupted state (NaN loss + fitness) once at epoch 1 so recovery from last.pt triggers

@@ -60,10 +60,10 @@ def test_export(model: str, tmp_path: Path) -> None:
 
 
 def test_distill_detect(
-    task: str = "detect", teacher: Path = WEIGHTS_DIR / "yolo26n.pt", data: str = "coco8.yaml"
+    task: str = "detect", teacher: Path = WEIGHTS_DIR / "yolo26s.pt", data: str = "coco8.yaml"
 ) -> None:
     """Test YOLO knowledge distillation training via CLI with yolo26n student and yolo26s teacher."""
-    run(f"yolo train {task} model=yolo26n.yaml distill_model={teacher} data={data} imgsz=32 epochs=1 cache=disk")
+    run(f"yolo train {task} model=yolo26n.yaml distill_model={teacher} data={data} imgsz=32 epochs=1")
 
 
 @pytest.mark.skipif(not TORCH_1_11, reason="RTDETR requires torch>=1.11")

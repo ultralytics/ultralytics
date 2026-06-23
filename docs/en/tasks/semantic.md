@@ -40,6 +40,16 @@ YOLO26 semantic segmentation models pretrained on the [Cityscapes](https://githu
 - **Speed** metrics are averaged over Cityscapes validation images using an RTX3090 instance. <br>Reproduce with `yolo semantic val data=cityscapes.yaml batch=1 device=0|cpu imgsz=2048`
 - **Params** and **FLOPs** values are for the fused model after `model.fuse()`, which merges Conv and BatchNorm layers. Pretrained checkpoints retain the full training architecture and may show higher counts.
 
+YOLO26 semantic segmentation models pretrained on the [ADE20K](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ade20k.yaml) dataset are shown below.
+
+[Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
+
+{% include "macros/yolo-semantic-ade20k-perf.md" %}
+
+- **mIoU<sup>val</sup>** values are for single-model single-scale on the [ADE20K](https://ade20k.csail.mit.edu/) validation set. <br>Reproduce with `yolo semantic val data=ade20k.yaml device=0 imgsz=640`
+- **Speed** metrics are averaged over ADE20k validation images using an RTX3090 instance. <br>Reproduce with `yolo semantic val data=ade20k.yaml batch=1 device=0|cpu imgsz=640`
+- **Params** and **FLOPs** values are for the fused model after `model.fuse()`, which merges Conv and BatchNorm layers. Pretrained checkpoints retain the full training architecture and may show higher counts.
+
 ## Train
 
 Train YOLO26n-sem on the Cityscapes8 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 1024. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.

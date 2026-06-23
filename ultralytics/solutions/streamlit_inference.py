@@ -163,7 +163,7 @@ class Inference:
             [
                 x.replace("yolo", "YOLO")
                 for x in GITHUB_ASSETS_STEMS
-                if any(x.startswith(b) for b in M_ORD) and "grayscale" not in x
+                if any(x.startswith(b) for b in M_ORD) and "grayscale" not in x and x[7:].lower() in T_ORD
             ],
             key=lambda x: (M_ORD.index(x[:7].lower()), T_ORD.index(x[7:].lower() or "")),
         )

@@ -17,12 +17,12 @@ from .tasks import load_checkpoint
 class FeatureHook:
     """Picklable forward hook that stores layer output into a shared dict."""
 
-    def __init__(self, feat_dict, idx):
+    def __init__(self, feat_dict: dict, idx: int) -> None:
         """Initialize the hook with the shared feature dict and the layer index to store outputs under."""
         self.feat_dict = feat_dict
         self.idx = idx
 
-    def __call__(self, module, input, output):
+    def __call__(self, module: nn.Module, input: tuple, output: torch.Tensor) -> None:
         """Store the layer's forward output into the shared feature dict under its index."""
         self.feat_dict[self.idx] = output
 
@@ -72,8 +72,10 @@ class DistillationModel(nn.Module):
         self.feats_idx = self.get_distill_layers(student_model)
 
         # Hook-based feature capture: identical for teacher and student
-        self._teacher_feats = {}
-        self._student_feats = {}
+        self._teacher_feats: dict[int, torch.Tensor] = {}
+        self._student_feats: dict[int, torch.Tensor] = {}
+        self._teacher_hooks: list = []
+        self._student_hooks: list = []
         self._register_feature_hooks()
 
         # Get feature dimensions via dummy forward pass (hooks capture outputs)
@@ -112,6 +114,8 @@ class DistillationModel(nn.Module):
         state = self.__dict__.copy()
         state["_teacher_feats"] = {}
         state["_student_feats"] = {}
+        state["_teacher_hooks"] = []
+        state["_student_hooks"] = []
         return state
 
     def __setstate__(self, state):
@@ -121,17 +125,39 @@ class DistillationModel(nn.Module):
         self._student_feats = {}
         self._register_feature_hooks()
 
-    def _register_feature_hooks(self):
-        """Register feature-capture hooks, clearing any stale hooks on the target layers first."""
-        for idx in self.feats_idx:
-            self.student_model.model[idx]._forward_hooks.clear()
-            self.student_model.model[idx].register_forward_hook(FeatureHook(self._student_feats, idx))
-            if self.teacher_model is not None:
-                self.teacher_model.model[idx]._forward_hooks.clear()
-                self.teacher_model.model[idx].register_forward_hook(FeatureHook(self._teacher_feats, idx))
+    def _remove_feature_hooks(self) -> None:
+        """Remove any previously registered feature-capture hooks."""
+        for handle in self._student_hooks:
+            handle.remove()
+        self._student_hooks.clear()
+        if self.teacher_model is not None:
+            for handle in self._teacher_hooks:
+                handle.remove()
+            self._teacher_hooks.clear()
 
     @staticmethod
-    def get_distill_layers(model):
+    def _clear_feature_hooks(module: nn.Module) -> None:
+        """Remove any FeatureHook instances from a module's forward hooks."""
+        for handle_id, hook in list(module._forward_hooks.items()):
+            if isinstance(hook, FeatureHook):
+                del module._forward_hooks[handle_id]
+
+    def _register_feature_hooks(self) -> None:
+        """Register feature-capture hooks, removing stale FeatureHook instances first."""
+        self._remove_feature_hooks()
+        for idx in self.feats_idx:
+            self._clear_feature_hooks(self.student_model.model[idx])
+            self._student_hooks.append(
+                self.student_model.model[idx].register_forward_hook(FeatureHook(self._student_feats, idx))
+            )
+            if self.teacher_model is not None:
+                self._clear_feature_hooks(self.teacher_model.model[idx])
+                self._teacher_hooks.append(
+                    self.teacher_model.model[idx].register_forward_hook(FeatureHook(self._teacher_feats, idx))
+                )
+
+    @staticmethod
+    def get_distill_layers(model: nn.Module) -> list[int]:
         """Auto-detect distillation feature layers from the model's Detect head.
 
         Returns the Detect head's input layer indices plus the head layer index itself.

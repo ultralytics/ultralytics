@@ -1,4 +1,5 @@
 ---
+title: YOLO26 on NVIDIA Jetson Setup & Benchmarks
 comments: true
 description: Learn to deploy Ultralytics YOLO26 on NVIDIA Jetson devices with our detailed guide. Explore performance benchmarks and maximize AI capabilities.
 keywords: Ultralytics, YOLO26, NVIDIA Jetson, JetPack, AI deployment, performance benchmarks, embedded systems, deep learning, TensorRT, computer vision
@@ -343,6 +344,10 @@ The YOLO26n model in PyTorch format is converted to TensorRT to run inference wi
 ### Use NVIDIA Deep Learning Accelerator (DLA)
 
 [NVIDIA Deep Learning Accelerator (DLA)](https://developer.nvidia.com/deep-learning-accelerator) is a specialized hardware component built into NVIDIA Jetson devices that optimizes deep learning inference for energy efficiency and performance. By offloading tasks from the GPU (freeing it up for more intensive processes), DLA enables models to run with lower power consumption while maintaining high throughput, ideal for embedded systems and real-time AI applications.
+
+!!! warning "TensorRT 11.0 and DLA"
+
+    DLA is not supported in TensorRT 11.0 and is planned to return in a later release, so DLA export requires TensorRT 10.x. On JetPack 6.x/7.x, export with a TensorRT 10.x build to use DLA, or use the GPU for TensorRT 11.0 engines.
 
 The following Jetson devices are equipped with DLA hardware:
 

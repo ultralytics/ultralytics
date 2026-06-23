@@ -29,7 +29,7 @@ from ultralytics.utils import (
     WINDOWS,
     checks,
 )
-from ultralytics.utils.export.engine import torch2onnx
+from ultralytics.utils.export.engine import modelopt_quantize_onnx, torch2onnx
 from ultralytics.utils.torch_utils import (
     TORCH_1_10,
     TORCH_1_11,
@@ -69,6 +69,12 @@ def test_export_onnx_int8(isolated_model):
     assert Path(file).name.endswith("_int8.onnx")
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
     Path(file).unlink()  # cleanup
+
+
+def test_modelopt_quantize_onnx_requires_int8_dataset():
+    """Check INT8 ModelOpt quantization fails early without calibration data."""
+    with pytest.raises(ValueError, match="requires a calibration dataset"):
+        modelopt_quantize_onnx("model.onnx", int8=True)
 
 
 def test_torch2onnx_serializes_concurrent_exports(monkeypatch, tmp_path):
@@ -396,7 +402,7 @@ def test_export_ncnn_matrix(task, half, batch):
 @pytest.mark.skipif(
     IS_RASPBERRYPI, reason="Test disabled as IMX export suffers from OOM (Out of Memory) on Raspberry Pi 5 16GB"
 )
-def test_export_imx(isolated_model):
+def test_export_imx():
     """Test YOLO export to IMX format."""
     model = YOLO("yolo11n.pt")  # IMX export only supports YOLO11
     file = model.export(format="imx", imgsz=32)
@@ -405,9 +411,10 @@ def test_export_imx(isolated_model):
 
 @pytest.mark.slow
 @pytest.mark.skipif(not LINUX or ARM64, reason="RKNN export only supported on non-aarch64 Linux")
-def test_export_rknn(isolated_model):
+@pytest.mark.parametrize("int8", [True, False])
+def test_export_rknn(isolated_model, int8):
     """Test YOLO export to RKNN format."""
-    file = YOLO(isolated_model).export(format="rknn", imgsz=32)
+    file = YOLO(isolated_model).export(format="rknn", imgsz=32, int8=int8)
     assert next(Path(file).rglob("*.rknn"), None), f"RKNN export failed, no RKNN model found in: {file}"
     shutil.rmtree(file, ignore_errors=True)
 
@@ -499,9 +506,9 @@ def test_export_qnn(isolated_model):
     if not has_qnn:
         pytest.skip("onnxruntime-qnn / QNN Execution Provider not available")
     file = YOLO(isolated_model).export(format="qnn", imgsz=32)
-    assert next(Path(file).rglob("*_qnn.onnx"), None), f"QNN export failed, no context binary found in: {file}"
+    assert Path(file).is_file() and file.endswith("_qnn.onnx"), f"QNN export failed, no context binary found: {file}"
     # Note: on-device inference is not exercised here as it requires Qualcomm Snapdragon hardware
-    shutil.rmtree(file, ignore_errors=True)  # cleanup
+    Path(file).unlink(missing_ok=True)  # cleanup
 
 
 @pytest.mark.parametrize("env", [k for k, v in EXPORT_ENVS.items() if k != "base" or v["smoke"]])

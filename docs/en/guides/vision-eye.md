@@ -1,4 +1,5 @@
 ---
+title: VisionEye Object Mapping with YOLO26
 comments: true
 description: Discover VisionEye's object mapping and tracking powered by Ultralytics YOLO26. Simulate human eye precision, track objects, and calculate distances effortlessly.
 keywords: VisionEye, YOLO26, Ultralytics, object mapping, object tracking, distance calculation, computer vision, AI, machine learning, Python, tutorial

@@ -548,7 +548,7 @@ class Results(SimpleClass, DataExportMixin):
                 )
             idx = (
                 pred_boxes.id
-                if pred_boxes.is_track and color_mode == "instance"
+                if pred_boxes and pred_boxes.is_track and color_mode == "instance"
                 else pred_boxes.cls
                 if pred_boxes and color_mode == "class"
                 else reversed(range(len(pred_masks)))

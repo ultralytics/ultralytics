@@ -207,7 +207,7 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
         # Provide bounding box examples to segment similar objects
         results = predictor(bboxes=[[480.0, 290.0, 590.0, 650.0]])
 
-        # Multiple bounding boxes for different concepts
+        # Multiple bounding boxes as exemplars of the same visual concept
         results = predictor(bboxes=[[539, 599, 589, 639], [343, 267, 499, 662]])
         ```
 
@@ -528,7 +528,7 @@ High-quality human annotations provide large gains over synthetic or external da
 SAM 3's concept segmentation capability enables new use cases:
 
 - **Content Moderation**: Find all instances of specific content types across media libraries
-- **E-commerce**: Segment all products of a certain type in catalog images, supporting [auto-annotation](../guides/preprocessing_annotated_data.md)
+- **E-commerce**: Segment all products of a certain type in catalog images, supporting [auto-annotation](../guides/preprocessing-annotated-data.md)
 - **Medical Imaging**: Identify all occurrences of specific tissue types or abnormalities
 - **Autonomous Systems**: Track all instances of traffic signs, pedestrians, or vehicles by category
 - **Video Analytics**: Count and track all people wearing specific clothing or performing actions

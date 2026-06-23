@@ -163,8 +163,6 @@ class DeepOCSORT(OCSORT):
     - ByteTrack-style low-confidence second pass disabled by default
     """
 
-    supports_native_reid = True  # can consume detector features when tracker YAML sets model: auto
-
     def __init__(self, args: Any):
         """Initialize Deep OC-SORT tracker.
 

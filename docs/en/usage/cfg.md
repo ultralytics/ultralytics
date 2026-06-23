@@ -2,6 +2,7 @@
 comments: true
 description: Optimize your Ultralytics YOLO model's performance with the right settings and hyperparameters. Learn about training, validation, and prediction configurations.
 keywords: YOLO, hyperparameters, configuration, training, validation, prediction, model settings, Ultralytics, performance optimization, machine learning
+title: YOLO Configuration
 ---
 
 # Configuration

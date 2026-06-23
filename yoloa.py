@@ -193,7 +193,8 @@ def main():
             samples = collect_test_images(root / cat / "test", args.n_per_cat)
             for img, label in samples:
                 r = m.predict(img, prior=args.prior, imgsz=imgsz, conf=args.conf,
-                              iou=args.iou, device=device, verbose=False, **infer)[0]
+                              iou=args.iou, device=device, end2end=args.e2e,
+                              verbose=False, **infer)[0]
                 stem = f"{label}__{Path(img).stem}"
                 cv2.imwrite(str(out / f"{stem}__pred.jpg"), r.plot())
                 save_heatmap(m.model, img, out / f"{stem}__heat.jpg")
@@ -208,7 +209,8 @@ def main():
                 original = cv2.cvtColor(cv2.imread(img), cv2.COLOR_BGR2RGB)
                 mask_path = CompareGrid.find_mask(img)
                 mask_tensor = load_mask_tensor(mask_path, imgsz)
-                pkw = dict(imgsz=imgsz, conf=args.conf, iou=args.iou, device=device)
+                pkw = dict(imgsz=imgsz, conf=args.conf, iou=args.iou, device=device,
+                           end2end=args.e2e)
                 none_pred, n_none, _ = run_prior_viz(m, img, "none", **pkw)
                 seg_pred, n_seg, seg_hmap = run_prior_viz(m, img, "segment", **pkw)
                 heat_pred, n_heat, heat_hmap = run_prior_viz(m, img, "heatmap", **pkw, **infer)

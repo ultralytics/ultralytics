@@ -77,7 +77,7 @@ Keep these points in mind when splitting:
   <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/overview-of-data-augmentations.avif" alt="Examples of data augmentation techniques including flips, rotations, scaling, and color adjustments applied to a sample image">
 </p>
 
-With YOLO26, augmentation is controlled through [training arguments](../usage/cfg.md#augmentation-settings) passed to `model.train()` or the equivalent CLI flags — **not** by editing the dataset YAML, which only defines paths and class names. The built-in augmentations include:
+With YOLO26, augmentation is controlled through [training arguments](../usage/cfg.md#augmentation-settings) passed to `model.train()` or the equivalent CLI flags — **not** by editing the dataset YAML, which defines dataset metadata such as paths, class names, and splits. The built-in augmentations include:
 
 - **Mosaic, MixUp, and CutMix** (`mosaic`, `mixup`, `cutmix`): Combine multiple images into one training sample.
 - **Flips** (`fliplr`, `flipud`): Mirror images horizontally or vertically.
@@ -104,7 +104,7 @@ With YOLO26, augmentation is controlled through [training arguments](../usage/cf
         yolo detect train model=yolo26n.pt data=coco8.yaml epochs=10 hsv_h=0.015 fliplr=0.5 mosaic=1.0 degrees=10.0
         ```
 
-For the full list of augmentation arguments and their default values, see the [augmentation settings](../usage/cfg.md#augmentation-settings) reference and the dedicated [YOLO data augmentation guide](./yolo-data-augmentation.md). [Albumentations](../integrations/albumentations.md) transforms are also applied automatically when the package is installed.
+For the full list of augmentation arguments and their default values, see the [augmentation settings](../usage/cfg.md#augmentation-settings) reference and the dedicated [YOLO data augmentation guide](./yolo-data-augmentation.md). If the [`albumentations`](../integrations/albumentations.md) package is installed, YOLO also enables its built-in Albumentations-based augmentations automatically.
 
 ## A Case Study: Preprocessing for Vehicle Detection
 

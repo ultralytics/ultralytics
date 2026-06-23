@@ -360,7 +360,7 @@ class LoadImagesAndVideos:
             path = content.splitlines() if Path(path).suffix == ".txt" else content.split(",")  # list of sources
             path = [p.strip() for p in path]
         files = []
-        for p in sorted(path) if isinstance(path, (list, tuple)) else [path]:
+        for p in path if isinstance(path, (list, tuple)) else [path]:  # preserve given order; globs/dirs expand sorted
             a = str(Path(p).absolute())  # do not use .resolve() https://github.com/ultralytics/ultralytics/issues/2912
             if "*" in a:
                 files.extend(sorted(glob.glob(a, recursive=True)))  # glob

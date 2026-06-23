@@ -36,7 +36,7 @@ from ultralytics.data.loaders import (
 )
 from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS
 from ultralytics.utils import RANK, colorstr
-from ultralytics.utils.checks import check_file
+from ultralytics.utils.checks import REMOTE_FILE_PREFIXES, check_file
 from ultralytics.utils.torch_utils import TORCH_2_0
 
 
@@ -399,8 +399,13 @@ def check_source(
     elif isinstance(source, LOADERS):
         in_memory = True
     elif isinstance(source, (list, tuple)):
-        source = autocast_list(source)  # convert all list elements to PIL or np arrays
-        from_img = True
+        # Keep local file-path lists lazy so LoadImagesAndVideos streams them at the model's batch size; only load
+        # URL/PIL/np/mixed (or empty) lists into memory, which otherwise OOMs large path lists as one giant batch.
+        if not source or any(
+            not isinstance(s, (str, Path)) or str(s).lower().startswith(REMOTE_FILE_PREFIXES) for s in source
+        ):
+            source = autocast_list(source)  # convert all list elements to PIL or np arrays
+            from_img = True
     elif isinstance(source, (Image.Image, np.ndarray)):
         from_img = True
     elif isinstance(source, torch.Tensor):

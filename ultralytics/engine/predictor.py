@@ -256,9 +256,13 @@ class BasePredictor:
             stride (int, optional): Model stride for image size checking.
         """
         self.imgsz = check_imgsz(self.args.imgsz, stride=stride or self.model.stride, min_dim=2)  # check image size
+        # Static-batch backends (e.g. ONNX/TensorRT exported with batch>1) require inputs at their fixed batch, so
+        # derive it from the model. This lets list/dir/video sources batch correctly without the caller passing batch=N.
+        model_batch = getattr(self.model, "batch", 1) or 1
+        batch = model_batch if model_batch > 1 and not getattr(self.model, "dynamic", False) else self.args.batch
         self.dataset = load_inference_source(
             source=source,
-            batch=self.args.batch,
+            batch=batch,
             vid_stride=self.args.vid_stride,
             buffer=self.args.stream_buffer,
             channels=getattr(self.model, "channels", 3),

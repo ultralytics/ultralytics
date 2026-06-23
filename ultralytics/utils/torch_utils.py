@@ -75,15 +75,17 @@ def torch_distributed_zero_first(local_rank: int):
 
 def smart_inference_mode():
     """Apply torch.inference_mode() decorator if torch>=1.10.0, else torch.no_grad() decorator."""
+    torch_ctx = torch.inference_mode if TORCH_1_10 else torch.no_grad
 
-    def decorate(fn):
-        """Apply appropriate torch decorator for inference mode based on torch version."""
-        if TORCH_1_9 and torch.is_inference_mode_enabled():
-            return fn  # already in inference_mode, act as a pass-through
-        else:
-            return (torch.inference_mode if TORCH_1_10 else torch.no_grad)()(fn)
+    class SmartInferenceMode(torch_ctx):
+        """Context manager/decorator that selects torch.inference_mode() or torch.no_grad() based on torch version."""
 
-    return decorate
+        def __call__(self, fn):
+            if TORCH_1_9 and torch.is_inference_mode_enabled():
+                return fn
+            return super().__call__(fn)
+
+    return SmartInferenceMode()
 
 
 def autocast(enabled: bool, device: str = "cuda"):
@@ -1019,7 +1021,7 @@ def attempt_compile(
         if use_autocast and device.type == "cuda":
             dummy = dummy.half()
         t1 = time.perf_counter()
-        with torch.inference_mode():
+        with smart_inference_mode():
             if use_autocast and device.type in {"cuda", "mps"}:
                 with torch.autocast(device.type):
                     _ = model(dummy)

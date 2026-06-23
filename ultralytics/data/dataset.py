@@ -1164,7 +1164,7 @@ class ReidDataset(ClassificationDataset):
 
         Args:
             root (str): Path to the image directory (flat or folder-per-identity).
-            args: Dataset and augmentation configuration.
+            args (Any): Dataset and augmentation configuration.
             augment (bool): Whether to apply training augmentations.
             prefix (str): Prefix for logging and cache filenames.
             data (dict | None): Dataset YAML config (filename_re, cam_0indexed, etc.).

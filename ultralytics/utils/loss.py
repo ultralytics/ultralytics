@@ -1026,7 +1026,7 @@ class ReIDLoss:
         """Compute the ReID loss between predictions and true labels.
 
         Args:
-            preds: Tuple of (cls_logits, bn_feat, raw_feat) from ReID head.
+            preds (tuple): Tuple of (cls_logits, bn_feat, raw_feat) from ReID head.
             batch (dict): Batch dict with 'cls' key containing identity labels.
 
         Returns:

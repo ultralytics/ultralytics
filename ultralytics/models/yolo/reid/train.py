@@ -59,8 +59,8 @@ class ReidTrainer(ClassificationTrainer):
         """Return a ReidModel configured for training.
 
         Args:
-            cfg: Model configuration.
-            weights: Pre-trained weights (path or dict).
+            cfg (str | dict | None): Model configuration.
+            weights (str | Path | dict | None): Pre-trained weights (path or dict).
             verbose (bool): Whether to display model info.
 
         Returns:
@@ -171,7 +171,7 @@ class ReidTrainer(ClassificationTrainer):
         loss items are omitted to keep results.csv and plots clean.
 
         Args:
-            loss_items: Loss tensor items.
+            loss_items (list | None): Loss tensor items.
             prefix (str): Prefix for loss names.
 
         Returns:

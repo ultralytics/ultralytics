@@ -89,7 +89,7 @@ class ReidValidator(ClassificationValidator):
         """Initialize ReidValidator.
 
         Args:
-            dataloader: DataLoader for validation.
+            dataloader (Any, optional): DataLoader for validation.
             save_dir (str | Path, optional): Directory to save results.
             args (dict, optional): Validation configuration.
             _callbacks (list, optional): Callback functions.
@@ -212,7 +212,7 @@ class ReidValidator(ClassificationValidator):
         is set, _embed re-runs the model at each augmented view.
 
         Args:
-            preds: Model output from the validator loop (Tensor or 2-tuple (emb, feat_bn)).
+            preds (Any): Model output from the validator loop (Tensor or 2-tuple (emb, feat_bn)).
             batch (dict): Batch with 'img', 'cls' and 'camid' keys.
         """
         if self._tta_active():

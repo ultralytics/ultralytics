@@ -235,7 +235,7 @@ class IdentityBalancedSampler(torch.utils.data.Sampler):
     coordination, mirroring `torch.utils.data.distributed.DistributedSampler`.
 
     Args:
-        dataset: A ReidDataset with pid_to_indices attribute.
+        dataset (ReidDataset): A ReidDataset with pid_to_indices attribute.
         p (int): Number of identities per batch.
         k (int): Number of images per identity per batch.
         num_replicas (int, optional): Number of distributed processes.
@@ -351,7 +351,7 @@ def build_reid_dataloader(
     """Build a dataloader for ReID with PK sampling for training or sequential for val.
 
     Args:
-        dataset: ReidDataset instance.
+        dataset (ReidDataset): ReidDataset instance.
         batch_size (int): Batch size (P*K for training, arbitrary for val).
         workers (int): Number of data loading workers.
         p (int): Number of identities per batch (training only).

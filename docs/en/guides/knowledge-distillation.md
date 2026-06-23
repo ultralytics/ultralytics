@@ -38,8 +38,7 @@ Train a smaller student model with guidance from a larger teacher model by addin
 - You want better accuracy than standard training provides
 
 !!! note
-
-    Knowledge distillation currently supports **detect** tasks only.
+    Knowledge distillation is implemented for **detect**, **segment**, **pose**, and **obb** tasks. Only **detect** has been experimentally verified for accuracy improvements.
 
 ## Performance
 
@@ -60,7 +59,7 @@ Knowledge distillation improves student [mAP](yolo-performance-metrics.md) acros
 
 Before starting, ensure you have:
 
-1. A **trained teacher model** from the same YOLO generation as the student
+1. A **trained teacher model** from the same YOLO family as the student
 2. Both models trained on the **same dataset** and task
 3. Sufficient GPU memory to run both models simultaneously (see the [FAQ](#does-knowledge-distillation-slow-down-training) for typical overhead)
 
@@ -73,7 +72,7 @@ Before starting, ensure you have:
 | `yolo26m.pt` | `yolo26x.pt`        |
 | `yolo26l.pt` | `yolo26x.pt`        |
 
-Cross-generation distillation (e.g., YOLO11 teacher with YOLO26 student) is **not supported**.
+Cross-family distillation (e.g., YOLO11 teacher with YOLO26 student) is **not supported**.
 
 ## Key Parameters
 
@@ -85,8 +84,8 @@ Cross-generation distillation (e.g., YOLO11 teacher with YOLO26 student) is **no
 ## How It Works
 
 1. The **teacher model** remains frozen in `eval` mode and runs inference on each batch
-2. The **student model** trains with standard detection losses plus distillation guidance
-3. Features are extracted from both models at automatically determined layers (the Detect head inputs)
+2. The **student model** trains with standard task losses plus distillation guidance
+3. Features are extracted from both models at the three neck layers that feed the Detect-family head
 4. A **projector network** (lightweight MLP) aligns student feature dimensions to match the teacher
 5. A **score-weighted L2 loss** compares projected student features with teacher features, weighted by the teacher's classification confidence
 6. The distillation loss combines with standard losses using the `dis` weight
@@ -114,6 +113,46 @@ flowchart TD
 
     TOTAL --> BP[Backpropagate<br/>Student + Projector only]
 ```
+
+## Task Support
+
+The distillation implementation extracts features from the three neck layers that feed the model's Detect-family head. Because the **segment**, **pose**, and **obb** heads inherit from the same `Detect` architecture, distillation is technically compatible with those tasks as well.
+
+!!! warning
+    Only **detect** has been experimentally benchmarked and verified. You can run distillation for **segment**, **pose**, or **obb**, but accuracy improvements for those tasks are not yet validated.
+
+!!! example "Knowledge Distillation for Other Tasks"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Segment
+        model = YOLO("yolo26n-seg.pt")
+        model.train(data="coco8-seg.yaml", epochs=100, distill_model="yolo26s-seg.pt")
+
+        # Pose
+        model = YOLO("yolo26n-pose.pt")
+        model.train(data="coco8-pose.yaml", epochs=100, distill_model="yolo26s-pose.pt")
+
+        # OBB
+        model = YOLO("yolo26n-obb.pt")
+        model.train(data="dota8.yaml", epochs=100, distill_model="yolo26s-obb.pt")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Segment
+        yolo segment train model=yolo26n-seg.pt data=coco8-seg.yaml epochs=100 distill_model=yolo26s-seg.pt
+
+        # Pose
+        yolo pose train model=yolo26n-pose.pt data=coco8-pose.yaml epochs=100 distill_model=yolo26s-pose.pt
+
+        # OBB
+        yolo obb train model=yolo26n-obb.pt data=dota8.yaml epochs=100 distill_model=yolo26s-obb.pt
+        ```
 
 ## Training
 
@@ -223,4 +262,8 @@ Yes. Expect 1.2-1.5x slower training and ~1.1x more GPU memory because the teach
 
 ### Which tasks and models are supported?
 
-Knowledge distillation currently supports **detect** tasks across the YOLOv8, YOLO11, and YOLO26 model families. The teacher and student must belong to the **same family**—cross-family distillation (e.g., a YOLO11 teacher with a YOLO26 student) is not supported.
+Knowledge distillation works with **detect**, **segment**, **pose**, and **obb** tasks because it distills features from the three neck layers that feed the Detect-family head. **Classify** and **semantic** tasks are not supported.
+
+Only **detect** has been experimentally verified for accuracy improvements. Segment, pose, and obb are technically compatible but not yet benchmarked.
+
+The teacher and student must belong to the **same YOLO family** (e.g., YOLOv8, YOLO11, or YOLO26). Cross-family distillation (e.g., a YOLO11 teacher with a YOLO26 student) is not supported.

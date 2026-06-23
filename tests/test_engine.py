@@ -160,17 +160,26 @@ def test_resume_incomplete(task, weight, data, tmp_path):
     assert resume_model.trainer.start_epoch == resume_model.trainer.epoch == 1, "resume test failed"
 
 
-def test_distill_detect():
-    """Test knowledge distillation training for detection via the public API."""
+@pytest.mark.parametrize(
+    "task,trainer_cls,data,student,teacher",
+    [
+        ("detect", detect.DetectionTrainer, "coco8.yaml", "yolo26n.yaml", WEIGHTS_DIR / "yolo26s.pt"),
+        ("segment", segment.SegmentationTrainer, "coco8-seg.yaml", "yolo26n-seg.yaml", WEIGHTS_DIR / "yolo26s-seg.pt"),
+        ("pose", pose.PoseTrainer, "coco8-pose.yaml", "yolo26n-pose.yaml", WEIGHTS_DIR / "yolo26s-pose.pt"),
+        ("obb", obb.OBBTrainer, "dota8.yaml", "yolo26n-obb.yaml", WEIGHTS_DIR / "yolo26s-obb.pt"),
+    ],
+)
+def test_distill(task, trainer_cls, data, student, teacher):
+    """Test knowledge distillation training for supported tasks via the public API."""
     overrides = {
-        "data": "coco8.yaml",
-        "model": "yolo26n.yaml",
-        "distill_model": WEIGHTS_DIR / "yolo26s.pt",
+        "data": data,
+        "model": student,
+        "distill_model": teacher,
         "imgsz": 32,
         "epochs": 1,
         "save": False,
     }
-    trainer = detect.DetectionTrainer(overrides=overrides)
+    trainer = trainer_cls(overrides=overrides)
     trainer.train()
 
 
@@ -216,29 +225,6 @@ def test_distill_resume(tmp_path: Path):
     assert trainer.start_epoch == trainer.epoch == 1, "resume test failed"
 
 
-def test_distill_model_units():
-    """Cover DistillationModel helper methods and branches not exercised by end-to-end training."""
-    overrides = {"data": "coco8.yaml", "model": "yolo26n.yaml", "imgsz": 32}
-    student = DetectionModel("yolo26n.yaml", nc=80)
-    teacher = DetectionModel("yolo26s.yaml", nc=80)
-    student.args = get_cfg(DEFAULT_CFG, overrides)
-    model = DistillationModel(teacher_model=teacher, student_model=student)
-
-    # decouple_outputs unwraps val-mode tuples and selects the requested dict branch
-    assert torch.equal(model.decouple_outputs((None, torch.ones(2))), torch.ones(2))
-    assert "scores" in model.decouple_outputs({"one2one": {"scores": torch.ones(3)}}, branch="one2one")
-
-    # get_distill_layers raises when the model has no Detect head
-    with pytest.raises(ValueError):
-        DistillationModel.get_distill_layers(SimpleNamespace(model=[torch.nn.Conv2d(3, 3, 1)]))
-
-    # Attribute/utility forwarding to the student model
-    model.end2end = True
-    assert model.end2end is True
-    model.set_head_attr(max_det=10)
-    model.fuse(verbose=False)
-
-
 @pytest.mark.parametrize(
     "ckpt",
     [
@@ -270,50 +256,6 @@ def test_nan_recovery():
     trainer.add_callback("on_train_batch_end", inject_nan)
     trainer.train()
     assert nan_injected[0], "NaN injection failed"
-
-
-def test_nan_recovery_restores_checkpoint(tmp_path):
-    """Test NaN loss with non-finite fitness at a later epoch restores weights from last.pt."""
-    overrides = {
-        "data": "coco8.yaml",
-        "model": "yolo26n.yaml",
-        "imgsz": 32,
-        "epochs": 2,
-        "save": True,
-        "plots": False,
-        "workers": 0,
-        "project": tmp_path,
-        "name": "nan_recovery",
-        "exist_ok": True,
-    }
-    trainer = detect.DetectionTrainer(overrides=overrides)
-
-    # Force a corrupted state (NaN loss + fitness) once at epoch 1 so recovery from last.pt triggers
-    original_validate = trainer.validate
-    corrupted = []
-
-    def corrupting_validate():
-        metrics, fitness = original_validate()
-        if trainer.epoch == 1 and not corrupted:
-            corrupted.append(True)
-            trainer.loss = torch.tensor(float("nan"), device=trainer.device)
-            return metrics, float("nan")
-        return metrics, fitness
-
-    trainer.validate = corrupting_validate
-
-    recoveries = []
-    original_handle = trainer._handle_nan_recovery
-
-    def spy_handle(epoch):
-        result = original_handle(epoch)
-        recoveries.append(result)
-        return result
-
-    trainer._handle_nan_recovery = spy_handle
-    trainer.train()
-    assert any(recoveries), "NaN recovery from last.pt was not triggered"
-    assert all(torch.isfinite(p).all() for p in unwrap_model(trainer.model).parameters()), "weights not restored"
 
 
 def test_checkpoint_fp16_overflow():

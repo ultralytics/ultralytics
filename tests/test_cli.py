@@ -68,7 +68,7 @@ def test_export(model: str, tmp_path: Path) -> None:
         ("obb", "dota8.yaml", "yolo26n-obb.yaml", WEIGHTS_DIR / "yolo26s-obb.pt"),
     ],
 )
-def test_distill_detect(task: str, data: str, student: str, teacher: Path) -> None:
+def test_distill(task: str, data: str, student: str, teacher: Path) -> None:
     """Test YOLO knowledge distillation training via CLI for supported tasks."""
     run(f"yolo train {task} model={student} distill_model={teacher} data={data} imgsz=32 epochs=1")
 

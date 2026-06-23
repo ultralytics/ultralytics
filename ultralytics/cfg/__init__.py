@@ -96,9 +96,18 @@ TASK2METRIC = {
 }
 TASK_CUSTOM_KEYS = {
     "reid": {
-        "reid_p", "reid_k", "triplet_margin", "triplet_weight", "ce_weight",
-        "center_weight", "center_momentum", "focal_gamma", "supcon_temp",
-        "reid_reranking", "reid_tta", "reid_scales",
+        "reid_p",
+        "reid_k",
+        "triplet_margin",
+        "triplet_weight",
+        "ce_weight",
+        "center_weight",
+        "center_momentum",
+        "focal_gamma",
+        "supcon_temp",
+        "reid_reranking",
+        "reid_tta",
+        "reid_scales",
     },
 }
 

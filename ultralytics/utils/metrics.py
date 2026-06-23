@@ -1687,7 +1687,7 @@ class ReidMetrics(SimpleClass, DataExportMixin):
         Args:
             feats (np.ndarray): Feature embeddings of gallery images.
             pids (np.ndarray): Person identity labels for each gallery image.
-            camid (np.ndarray): Camera IDs corresponding to each gallery image.
+            camids (np.ndarray): Camera IDs corresponding to each gallery image.
         """
         self.gallery_feats = feats
         self.gallery_pids = pids

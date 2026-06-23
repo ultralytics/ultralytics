@@ -852,7 +852,9 @@ class ReID(nn.Module):
 
     export = False  # export mode
 
-    def __init__(self, c1: int, c2: int, embed_dim: int = 512, k: int = 1, s: int = 1, p: int | None = None, g: int = 1):
+    def __init__(
+        self, c1: int, c2: int, embed_dim: int = 512, k: int = 1, s: int = 1, p: int | None = None, g: int = 1
+    ):
         """Initialize ReID head.
 
         Args:

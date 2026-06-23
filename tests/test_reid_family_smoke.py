@@ -1,5 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """Smoke test: every YOLO family x scale builds a working ReID model (build/forward/loss/step)."""
+
 from __future__ import annotations
 
 import pytest

@@ -39,6 +39,13 @@ class ReIDVisualizer:
     """
 
     def __init__(self, model: str | Path, imgsz: int = 448, device: str | None = None) -> None:
+        """Initialize the ReID visualizer.
+
+        Args:
+            model (str | Path): Path or name of a ReID model, e.g. ``best.pt`` or ``best.onnx``.
+            imgsz (int): Inference image size.
+            device (str | None): Optional inference device.
+        """
         from ultralytics import YOLO
 
         self.model = YOLO(model, task="reid")
@@ -63,22 +70,23 @@ class ReIDVisualizer:
         """Rank gallery images for a query image by cosine similarity (top-k)."""
         query = Path(query)
         gallery_paths, gallery_embs = retrieval.build_gallery(
-            self._embed_paths, gallery, cache=None, model_id=str(getattr(self.model, "model_name", "")), imgsz=self.imgsz
+            self._embed_paths,
+            gallery,
+            cache=None,
+            model_id=str(getattr(self.model, "model_name", "")),
+            imgsz=self.imgsz,
         )
         query_emb = retrieval.l2_normalize(self._embed_paths([query]))
         idx, scores = retrieval.cosine_topk(query_emb, gallery_embs, k)
         return [RetrievalItem(path=gallery_paths[j], score=float(s)) for j, s in zip(idx[0], scores[0])]
 
-    def visualize(
-        self, query: str | Path, gallery: str | Path, k: int = 5, out_path: str | Path | None = None
-    ) -> Path:
+    def visualize(self, query: str | Path, gallery: str | Path, k: int = 5, out_path: str | Path | None = None) -> Path:
         """Rank the gallery and save a comparison strip with the top-k matches."""
         query = Path(query)
         matches = self.rank(query, gallery, k=k)
         q_tile = (query, "QUERY", (80, 170, 255))
         match_tiles = [
-            (item.path, f"#{rank}  sim={item.score:.4f}", (200, 200, 200))
-            for rank, item in enumerate(matches, start=1)
+            (item.path, f"#{rank}  sim={item.score:.4f}", (200, 200, 200)) for rank, item in enumerate(matches, start=1)
         ]
         out_path = Path(out_path) if out_path is not None else query.with_name(f"{query.stem}_reid_top{k}.jpg")
         return plot_reid_retrieval([[q_tile, *match_tiles]], out_path)

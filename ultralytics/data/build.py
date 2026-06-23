@@ -369,7 +369,9 @@ def build_reid_dataloader(
 
     if shuffle:
         sampler = IdentityBalancedSampler(
-            dataset, p=p, k=k,
+            dataset,
+            p=p,
+            k=k,
             num_replicas=dist.get_world_size() if rank != -1 and dist.is_initialized() else 1,
             rank=max(rank, 0),
         )

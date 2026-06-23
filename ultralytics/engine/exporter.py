@@ -794,8 +794,6 @@ class Exporter:
         """Build and return a dataloader for calibration of INT8 models."""
         LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
         if self.model.task == "reid":
-            from ultralytics.data.build import build_yolo_dataset
-
             data = check_det_dataset(self.args.data)
             # ReID-specific default: prefer 'gallery' for INT8 calibration because the gallery split
             # is designed for distributional coverage (Market-1501: 19k images across 6 cameras),

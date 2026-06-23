@@ -263,9 +263,7 @@ def test_update_metrics_tta_handles_half_batch_fp32_model():
 
     v = ReidValidator.__new__(ReidValidator)
     v._model = (
-        torch.nn.Sequential(torch.nn.Conv2d(3, 4, 3), torch.nn.AdaptiveAvgPool2d(1), torch.nn.Flatten())
-        .float()
-        .eval()
+        torch.nn.Sequential(torch.nn.Conv2d(3, 4, 3), torch.nn.AdaptiveAvgPool2d(1), torch.nn.Flatten()).float().eval()
     )
     v.training = True
     v.device = torch.device("cpu")

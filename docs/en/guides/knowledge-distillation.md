@@ -38,7 +38,7 @@ Train a smaller student model with guidance from a larger teacher model by addin
 - You want better accuracy than standard training provides
 
 !!! note
-Knowledge distillation currently supports **detect** tasks only.
+    Knowledge distillation currently supports **detect** tasks only.
 
 ## Performance
 
@@ -61,7 +61,7 @@ Before starting, ensure you have:
 
 1. A **trained teacher model** from the same YOLO generation as the student
 2. Both models trained on the **same dataset** and task
-3. Sufficient GPU memory to run both models simultaneously
+3. Sufficient GPU memory to run both models simultaneously (see the [FAQ](#does-knowledge-distillation-slow-down-training) for typical overhead)
 
 ### Recommended Model Pairs
 
@@ -173,7 +173,7 @@ The `dis` parameter (default: `6.0`) controls distillation loss contribution:
 
 ### Resuming Distillation Training
 
-Distillation training supports resuming from checkpoints. The teacher model state restores automatically:
+Distillation training supports resuming from checkpoints. The teacher model is rebuilt automatically from the `distill_model` path:
 
 !!! example "Resume Distillation Training"
 

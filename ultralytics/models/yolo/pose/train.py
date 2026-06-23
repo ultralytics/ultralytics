@@ -97,7 +97,7 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
         """Return an instance of the PoseValidator class for validation."""
         self.loss_names = "box_loss", "pose_loss", "kobj_loss", "cls_loss", "dfl_loss"
         model = unwrap_model(self.model)
-        if getattr(model, "student_model"):
+        if hasattr(model, "student_model"):
             model = model.student_model
         if getattr(model.model[-1], "flow_model", None) is not None:
             self.loss_names += ("rle_loss",)

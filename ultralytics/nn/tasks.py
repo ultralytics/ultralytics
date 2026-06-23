@@ -55,6 +55,7 @@ from ultralytics.nn.modules import (
     HGBlock,
     HGStem,
     HeatmapBiasFusion,
+    HeatmapSoftFusion,
     HeatmapFiLMFusion,
     ImagePoolingAttn,
     Index,
@@ -628,13 +629,13 @@ class YOLOAnomalyV2Model(DetectionModel):
         seg_alpha_mode = str(v2_cfg.get("seg_alpha_mode", "curriculum")).lower()
         if seg_alpha_mode not in {"curriculum", "pinned_one", "pinned_zero"}:
             raise ValueError(f"seg_alpha_mode must be curriculum|pinned_one|pinned_zero, got {seg_alpha_mode!r}")
-        # Fusion mechanism: 'bias' (HeatmapBiasFusion, 1-channel additive), 'film'
+        # Fusion mechanism: 'bias' (HeatmapBiasFusion, 1-channel additive), 'soft'
+        # (HeatmapSoftFusion, temperature-softmax + BN → bias), 'film'
         # (HeatmapFiLMFusion, global residual grouped-FiLM), or 'queryfilm'
-        # (QueryFiLMFusion, K learned queries each emitting per-region grouped-FiLM on
-        # P3 only). Exactly one is instantiated to avoid DDP unused-parameter errors.
+        # (QueryFiLMFusion, K learned queries). Exactly one is instantiated.
         fusion_mode = str(v2_cfg.get("fusion_mode", "bias")).lower()
-        if fusion_mode not in {"bias", "film", "queryfilm"}:
-            raise ValueError(f"fusion_mode must be bias|film|queryfilm, got {fusion_mode!r}")
+        if fusion_mode not in {"bias", "soft", "film", "queryfilm"}:
+            raise ValueError(f"fusion_mode must be bias|soft|film|queryfilm, got {fusion_mode!r}")
         film_groups = int(v2_cfg.get("film_groups", 16))
         film_group_dim = int(v2_cfg.get("film_group_dim", 16))
         film_alpha_init = float(v2_cfg.get("film_alpha_init", 1e-4))
@@ -708,7 +709,10 @@ class YOLOAnomalyV2Model(DetectionModel):
                 softmax_attn=queryfilm_softmax, pos_enc=queryfilm_pos,
             )
         else:
-            self.heatmap_bias_fusion = HeatmapBiasFusion(num_scales=detect.nl)
+            if fusion_mode == "soft":
+                self.heatmap_bias_fusion = HeatmapSoftFusion(num_scales=detect.nl)
+            else:
+                self.heatmap_bias_fusion = HeatmapBiasFusion(num_scales=detect.nl)
             self.heatmap_film_fusion = None
             self.queryfilm_fusion = None
 

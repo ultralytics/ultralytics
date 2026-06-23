@@ -21,6 +21,7 @@ from .conv import Conv
 __all__ = (
     "BboxMaskRenderer",
     "HeatmapBiasFusion",
+    "HeatmapSoftFusion",
     "HeatmapFiLMFusion",
     "QueryFiLMFusion",
     "SegBranch",
@@ -199,6 +200,51 @@ class HeatmapBiasFusion(nn.Module):
             Bias tensor (B, 1, H, W) in ``[-beta_i, +beta_i]``.
         """
         return self.beta[scale_idx] * torch.tanh(self.conv(mask))
+
+
+class HeatmapSoftFusion(nn.Module):
+    """Soft-hint fusion: 1-ch mask → spatial softmax(x/t) → conv → BN → tanh → *beta.
+
+    A learned-temperature spatial softmax normalises the prior distribution before a
+    shared 2-layer conv stack, making the fusion robust to category-to-category
+    variation in raw heatmap value ranges. BatchNorm stabilises the conv output before
+    tanh clamping.
+
+    Output shape ``(B, 1, H, W)`` — the caller broadcasts (adds) it to a PAN feature.
+    ``beta[i]`` is zero-init so training starts as pure YOLO passthrough.
+    """
+
+    def __init__(self, num_scales: int = 3, c_mid: int = 8):
+        super().__init__()
+        self.log_t = nn.Parameter(torch.zeros(1))  # t = exp(log_t), init t=1
+        self.conv = nn.Sequential(
+            nn.Conv2d(1, c_mid, 3, padding=1),
+            nn.GELU(),
+            nn.Conv2d(c_mid, 1, 3, padding=1),
+        )
+        self.bn = nn.BatchNorm2d(1)
+        self.beta = nn.Parameter(torch.zeros(num_scales))
+
+    def forward(self, mask: torch.Tensor, scale_idx: int) -> torch.Tensor:
+        """Return bias (B, 1, H, W) for the given PAN scale.
+
+        Args:
+            mask: (B, 1, H, W) already resized to the target PAN scale.
+            scale_idx: index into ``self.beta``.
+
+        Returns:
+            Bias tensor (B, 1, H, W) in ``[-beta_i, +beta_i]``.
+        """
+        B, _, H, W = mask.shape
+        t = torch.exp(self.log_t).clamp(min=1e-3)
+        # spatial softmax normalises the distribution shape; rescale by H*W
+        # keeps pixel values in roughly [0,1] so conv gradients don't vanish
+        x = mask.view(B, -1)                   # (B, H*W)
+        x = F.softmax(x / t, dim=-1)           # (B, H*W), sums to 1
+        x = x.view(B, 1, H, W) * (H * W)       # (B, 1, H, W), ~[0,1] range
+        x = self.conv(x)
+        x = self.bn(x)
+        return self.beta[scale_idx] * torch.tanh(x)
 
 
 class HeatmapFiLMFusion(nn.Module):
@@ -1141,6 +1187,25 @@ if __name__ == "__main__":
     assert fusion(mask_p4, 1).shape == (B, 1, 40, 40)
     assert fusion(mask_p5, 2).shape == (B, 1, 20, 20)
     print("HeatmapBiasFusion multi-scale OK.")
+
+    print("\n--- HeatmapSoftFusion ---")
+    fusion_soft = HeatmapSoftFusion(num_scales=3)
+    # beta init=0 -> bias zero at init
+    for s in range(3):
+        bias = fusion_soft(mask, s)
+        assert bias.shape == (B, 1, H, H)
+        assert bias.abs().max().item() == 0.0, f"scale {s} soft bias not zero at init"
+    print("HeatmapSoftFusion init=0 passthrough OK.")
+
+    with torch.no_grad():
+        fusion_soft.beta.fill_(1.5)
+    bias = fusion_soft(mask, 0)
+    assert bias.abs().max().item() <= 1.5 + 1e-6, "soft bias exceeded beta after tanh"
+    print(f"HeatmapSoftFusion beta=1.5 bounded OK (max abs = {bias.abs().max().item():.4f}).")
+
+    assert fusion_soft(mask_p4, 1).shape == (B, 1, 40, 40)
+    assert fusion_soft(mask_p5, 2).shape == (B, 1, 20, 20)
+    print("HeatmapSoftFusion multi-scale OK.")
 
     print("\n--- HeatmapFiLMFusion ---")
     pan_ch = [256, 512, 512]  # yolo26m PAN channel counts (differ per scale)

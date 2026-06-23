@@ -68,10 +68,10 @@ def load_mask_tensor(mask_path: str | None, imgsz: int) -> torch.Tensor | None:
 
 def run_prior(y: YOLO, model: YOLOAnomalyV2Model, img_path: str, prior_mode: str,
               imgsz: int, conf: float = 0.1, iou: float = 0.1,
-              external_mask: torch.Tensor | None = None, device=None):
+              external_mask: torch.Tensor | None = None, device=None, e2e: bool = False):
     """Run predict with a prior mode, return (pred_rgb, n_det, heatmap_np)."""
     res = y.predict(img_path, imgsz=imgsz, prior_mode=prior_mode, conf=conf, iou=iou,
-                    external_mask=external_mask, device=device, verbose=False)
+                    external_mask=external_mask, device=device, end2end=e2e, verbose=False)
     r = res[0]
     n_det = r.boxes.shape[0] if r.boxes is not None else 0
     pred_rgb = cv2.cvtColor(r.plot(), cv2.COLOR_BGR2RGB)
@@ -155,6 +155,9 @@ def main():
                         help="Max test images per category (0 = all)")
     parser.add_argument("--conf", type=float, default=0.1)
     parser.add_argument("--iou", type=float, default=0.1, help="NMS IoU threshold (applied to all prior modes)")
+    parser.add_argument("--e2e", action="store_true",
+                        help="Use the end-to-end NMS-free head. Default OFF -> one2many head + regular "
+                             "NMS, so --iou actually merges/suppresses nearby boxes (the e2e head ignores --iou).")
     parser.add_argument("--imgsz", type=int, default=320)
     parser.add_argument("--batch", type=int, default=8)
     parser.add_argument("--max_bank", type=int, default=10000)
@@ -237,6 +240,12 @@ def main():
     model.to(device)
     model.eval()
     model.heatmap_norm = args.heat_norm
+    # Toggle the end2end head. OFF (default) -> one2many head outputs dense preds + regular NMS runs,
+    # so --iou merges/suppresses nearby boxes. The head property drives the output shape; model.end2end
+    # drives the NMS branch — set both. The e2e head ignores --iou (NMS-free one2one).
+    model.model[-1].end2end = args.e2e
+    model.end2end = args.e2e
+    LOGGER.info(f"end2end = {args.e2e} (--iou {'ignored' if args.e2e else 'active'})")
     LOGGER.info(f"heatmap_norm = {model.heatmap_norm}")
     has_bank = model.memory_bank is not None
     if not has_bank:
@@ -297,13 +306,13 @@ def main():
             mask_path = CompareGrid.find_mask(img_path)
             mask_tensor = load_mask_tensor(mask_path, args.imgsz)
 
-            none_pred, n_none, _ = run_prior(y, model, img_path, "none", args.imgsz, args.conf, iou=args.iou, device=device)
-            seg_pred, n_seg, seg_hmap = run_prior(y, model, img_path, "segment", args.imgsz, args.conf, iou=args.iou, device=device)
+            none_pred, n_none, _ = run_prior(y, model, img_path, "none", args.imgsz, args.conf, iou=args.iou, device=device, e2e=args.e2e)
+            seg_pred, n_seg, seg_hmap = run_prior(y, model, img_path, "segment", args.imgsz, args.conf, iou=args.iou, device=device, e2e=args.e2e)
             seg_heat = CompareGrid.heatmap_panel(original, seg_hmap)
-            heat_pred, n_heat, heat_hmap = run_prior(y, model, img_path, "heatmap", args.imgsz, args.conf, iou=args.iou, device=device)
+            heat_pred, n_heat, heat_hmap = run_prior(y, model, img_path, "heatmap", args.imgsz, args.conf, iou=args.iou, device=device, e2e=args.e2e)
             heat_heat = CompareGrid.heatmap_panel(original, heat_hmap)
             mask_pred, n_mask, _ = run_prior(y, model, img_path, "mask", args.imgsz, args.conf,
-                                             iou=args.iou, external_mask=mask_tensor, device=device)
+                                             iou=args.iou, external_mask=mask_tensor, device=device, e2e=args.e2e)
             mask_img = CompareGrid.mask_panel(original, mask_path)
 
             cg.save(

@@ -49,6 +49,11 @@ def main():
     ap.add_argument("--batch", type=int, default=8)
     ap.add_argument("--device", type=str, default=None, help="cpu / mps / 0 / cuda:0 (default: auto mps-else-cpu)")
     ap.add_argument("--bank-size", type=int, default=10000, help="memory-bank cap for the heatmap prior")
+    ap.add_argument("--e2e", action="store_true",
+                    help="Use the end-to-end NMS-free head. Default OFF -> one2many head + NMS, so --iou "
+                         "merges/suppresses nearby boxes (the e2e head ignores --iou).")
+    ap.add_argument("--iou", type=float, default=0.7,
+                    help="NMS IoU threshold (only active when --e2e is off). Lower = more box merging.")
     ap.add_argument("--modes", type=str, nargs="+", default=["mask_off", "heatmap", "mask_on"],
                     choices=["mask_off", "heatmap", "mask_on"])
     ap.add_argument("--mvtec-root", type=str, default=None, help="MVTec-YOLO root (default: auto-resolve)")
@@ -72,7 +77,9 @@ def main():
 
     root = resolve_mvtec_root(args.mvtec_root)
     assert root is not None, "MVTec root not found (pass --mvtec-root or set MVTEC_ROOT)"
-    print(f"MVTEC root: {root} | device: {device} | imgsz: {args.imgsz} | cats({len(cats)}): {', '.join(cats)}",
+    print(f"MVTEC root: {root} | device: {device} | imgsz: {args.imgsz} | "
+          f"e2e: {args.e2e} | iou: {args.iou if not args.e2e else 'n/a (e2e ignores iou)'} | "
+          f"cats({len(cats)}): {', '.join(cats)}",
           flush=True)
 
     results = {}
@@ -86,7 +93,7 @@ def main():
             rows = run_mvtec_ood_eval(
                 y.model, root, categories=cats, modes=tuple(args.modes),
                 imgsz=args.imgsz, batch=args.batch, device=device, bank_size=args.bank_size,
-                save_dir=f"{args.out}/{name}",
+                save_dir=f"{args.out}/{name}", e2e=args.e2e, iou=args.iou,
             )
             results[name] = {r["mode"]: r for r in rows if r["category"] == "AVERAGE"}
         except Exception as e:

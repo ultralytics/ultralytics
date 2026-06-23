@@ -450,6 +450,8 @@ def run_mvtec_ood_eval(
     bank_size: int = 10000,
     save_dir: str | Path | None = None,
     epoch: int | None = None,
+    e2e: bool | None = None,
+    iou: float | None = None,
 ) -> list[dict]:
     """Run the 3-mode MVTec OOD eval over ``categories``; ``model`` is a YOLOAnomalyV2Model.
 
@@ -460,6 +462,12 @@ def run_mvtec_ood_eval(
     """
     root = Path(mvtec_root)
     m = unwrap_model(model)
+    if e2e is not None:
+        # e2e=False -> one2many head emits dense preds so the validator's NMS (with `iou`) runs and
+        # merges/suppresses nearby boxes; e2e=True -> NMS-free one2one head (ignores iou). Mutates the
+        # model in place (fine for a standalone eval; training OOD passes e2e=None and is untouched).
+        m.model[-1].end2end = e2e
+        m.end2end = e2e
     rows: list[dict] = []
 
     for cat in (categories or MVTEC_CATEGORIES):
@@ -475,6 +483,10 @@ def run_mvtec_ood_eval(
                     "rect": False, "plots": False, "verbose": False, "save_json": False,
                     "prior_mode": _MODE_TO_PRIOR[mode],  # popped by AnomalyV2Validator.__init__
                 }
+                if e2e is not None:
+                    overrides["end2end"] = e2e
+                if iou is not None:
+                    overrides["iou"] = iou
                 sd = Path(save_dir) / "mvtec_ood_runs" if save_dir is not None else None
                 validator = AnomalyV2Validator(args=overrides, save_dir=sd)
                 validator._ood_bank_size = bank_size

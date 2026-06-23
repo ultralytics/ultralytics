@@ -126,6 +126,18 @@ YOLO26 ReID results (imgsz=448, standard query–gallery protocol). Market-1501 
 
 [K-reciprocal re-ranking](../../tasks/reid.md) (`reid_reranking=True`) adds a further +12–20 mAP. The bare `yolo26{size}-reid.pt` weights are general fine-tuning seeds — to adapt them to your own data see the [ReID Fine-Tuning guide](../../guides/reid-finetuning.md).
 
+## Beyond Person ReID
+
+YOLO ReID is not person-specific — the same embedding head works on any domain with multiple images per identity. The following datasets ship with built-in configs and cover non-person identities, large-scale pre-training, and instance retrieval. See the [ReID Beyond Persons guide](../../guides/reid-custom-dataset.md) for cross-domain benchmarks.
+
+| Dataset | Domain | Config |
+|---------|--------|--------|
+| [VeRi-776](veri776.md) | Vehicles (cross-camera) | `VeRi-776.yaml` |
+| [ATRW](atrw.md) | Animals (individual tigers) | `ATRW.yaml` |
+| [RP2K](rp2k.md) | Retail products (SKUs) | `rp2k-full-openset.yaml`, `rp2k-full-closedset.yaml` |
+| [rOxford5k](roxford5k.md) | Landmarks (eval-only diagnostic) | `rOxford5k.yaml` |
+| [LUPerson-NL](luperson-nl.md) | Person pre-training (10.68M images) | `LUPerson-NL.yaml` |
+
 ## FAQ
 
 ### What is the evaluation protocol for ReID datasets?

@@ -53,7 +53,7 @@ A ReID dataset is described by a YAML file with `path`, split directories, the t
 
 ```yaml
 # my_reid.yaml
-path: /datasets/my_reid    # dataset root dir
+path: my_reid              # dataset root dir (relative to your Ultralytics datasets directory)
 train: bounding_box_train  # training images (relative to 'path')
 val: query                 # query images for evaluation
 gallery: bounding_box_test # gallery images compared against each query

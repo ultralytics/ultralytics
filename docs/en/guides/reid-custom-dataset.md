@@ -12,10 +12,10 @@ To quantify how well this works, we benchmarked the released `yolo26l-reid.pt` c
 
 | Domain | Dataset | Zero-shot mAP / Rank-1 | Fine-tune from `yolo26l-reid.pt` | Fine-tune from `yolo26l-cls.pt` (ImageNet) |
 | ------ | ------- | ---------------------- | -------------------------------- | ------------------------------------------ |
-| **Vehicles** | [VeRi-776](https://github.com/JDAI-CV/VeRidataset) — real cross-camera traffic surveillance | 0.0859 / 0.3045 | **0.4656 / 0.8695** | 0.2150 / 0.5209 |
-| **Animals** | [ATRW](https://lila.science/datasets/atrw) — Amur tiger individual re-identification | 0.6313 / 0.9524 | **0.6855 / 1.0000** | 0.6214 / 1.0000 |
+| **Vehicles** | [VeRi-776](../datasets/reid/veri776.md) — real cross-camera traffic surveillance | 0.0859 / 0.3045 | **0.4656 / 0.8695** | 0.2150 / 0.5209 |
+| **Animals** | [ATRW](../datasets/reid/atrw.md) — Amur tiger individual re-identification | 0.6313 / 0.9524 | **0.6855 / 1.0000** | 0.6214 / 1.0000 |
 | **Products** | [DeepFashion In-Shop](https://mmlab.ie.cuhk.edu.hk/projects/DeepFashion.html) — clothes retrieval by item ID | 0.2486 / 0.4129 | **0.7317 / 0.9145** | 0.5946 / 0.8125 |
-| **Landmarks** | [rOxford5k](https://www.robots.ox.ac.uk/~vgg/data/oxbuildings/) — whole-scene building retrieval (eval-only) | 0.1463 / 0.2571 | — | — |
+| **Landmarks** | [rOxford5k](../datasets/reid/roxford5k.md) — whole-scene building retrieval (eval-only) | 0.1463 / 0.2571 | — | — |
 
 Three takeaways drive the rest of this guide:
 

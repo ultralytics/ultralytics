@@ -161,6 +161,8 @@ def main():
     parser.add_argument("--max_images", type=int, default=1000,
                         help="Cap on normal images for bank (0=all)")
     parser.add_argument("--device", type=str, default=None)
+    parser.add_argument("--mvtec-root", type=str, default=None,
+                        help="MVTec-YOLO root (default: the MVTEC_ROOT constant near the top of this file)")
     parser.add_argument("--nc", type=int, default=None,
                         help="Number of classes (default: auto-detect from ckpt; multiclass-safe)")
     parser.add_argument("--heat-norm", type=str, default="none", choices=["none", "minmax"],
@@ -177,6 +179,7 @@ def main():
 
     random.seed(args.seed)
     device = select_device(args.device or "cpu")  # handles cpu / mps / "0" / cuda:0
+    mvtec_root = Path(args.mvtec_root) if args.mvtec_root else MVTEC_ROOT
 
     # run_id from ckpt path: <run>/weights/best.pt -> <run>
     ckpt_path = Path(args.ckpt).resolve()
@@ -256,12 +259,12 @@ def main():
     if args.category and args.category.lower() != "all":
         cats = [args.category]
     else:
-        cats = sorted(d.name for d in MVTEC_ROOT.iterdir() if d.is_dir())
+        cats = sorted(d.name for d in mvtec_root.iterdir() if d.is_dir())
     LOGGER.info(f"Categories ({len(cats)}): {cats}")
 
     total = 0
     for ci, cat in enumerate(cats, 1):
-        test_root = MVTEC_ROOT / cat / "test"
+        test_root = mvtec_root / cat / "test"
         if not test_root.is_dir():
             LOGGER.warning(f"[{ci}/{len(cats)}] {cat}: no test/ dir, skipping")
             continue
@@ -275,9 +278,9 @@ def main():
                 restore_bank(mb, bank_path)
                 LOGGER.info(f"[{ci}/{len(cats)}] {cat}: loaded cached bank ({mb.memory_bank.shape[0]} vecs)")
             else:
-                train_dir = MVTEC_ROOT / cat / "train" / "good"
+                train_dir = mvtec_root / cat / "train" / "good"
                 if not train_dir.is_dir():
-                    train_dir = MVTEC_ROOT / cat / "train"
+                    train_dir = mvtec_root / cat / "train"
                 LOGGER.info(f"[{ci}/{len(cats)}] {cat}: building bank from {train_dir} ...")
                 mb.reset_memory_bank()
                 model.load_support_set(str(train_dir), imgsz=args.imgsz, device=device,

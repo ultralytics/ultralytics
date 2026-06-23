@@ -21,7 +21,4 @@ nc: 8 # overridden by data=*.yaml -> nc when training on another dataset
 filename_re: market1501
 
 # Download
-# No auto-download yet: reid8.zip is not published to the ultralytics/assets releases.
-# Until it is, curate the mini locally — extract an 8-identity reid8/ directory (train/query/gallery,
-# using the Market-1501 pids listed above) into your datasets root. Once the asset is uploaded,
-# restore a download: block pointing at the published release URL.
+download: https://github.com/ultralytics/assets/releases/download/v0.0.0/reid8.zip

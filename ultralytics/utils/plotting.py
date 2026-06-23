@@ -1127,8 +1127,14 @@ def _reid_tile(path, label, tile_size=(240, 320), border_color=(90, 90, 90)):
     draw = ImageDraw.Draw(canvas)
     font = ImageFont.load_default()
     draw.rectangle((0, 0, w - 1, h - 1), outline=border_color, width=4)
-    draw.text((10, 10), label, fill=(255, 255, 255), font=font)
-    draw.text((10, h - 22), sub, fill=(200, 200, 200), font=font)
+    # The default PIL bitmap font is latin-1 only; non-latin captions/filenames
+    # (e.g. CJK SKU ids) raise UnicodeEncodeError and would crash final_eval. Map
+    # any un-renderable character to '?' so plotting never aborts training.
+    def _latin1(s: str) -> str:
+        return s.encode("latin-1", "replace").decode("latin-1")
+
+    draw.text((10, 10), _latin1(label), fill=(255, 255, 255), font=font)
+    draw.text((10, h - 22), _latin1(sub), fill=(200, 200, 200), font=font)
     return canvas
 
 

@@ -65,7 +65,7 @@ You can evaluate a trained YOLO26 model with the [validation mode](../modes/val.
 
 Evaluating your model on images of different sizes helps you understand its performance on diverse datasets. The `rect=true` validation parameter groups images by aspect ratio and pads each batch to the smallest shape that fits, so rectangular images are evaluated without being forced into a square.
 
-The `imgsz` parameter sets the image size used during validation (640 by default, applied as a square). With `rect=true`, YOLO26 constrains the longer side to `imgsz` and pads the shorter side to a stride multiple, preserving the aspect ratio. Adjust `imgsz` based on your dataset's dimensions and the GPU memory available.
+The `imgsz` parameter sets the image size used during validation, applied as a square. If you don't set it explicitly, YOLO26 reuses the value saved in the model's settings (640 for the official pretrained models, or whatever size a custom checkpoint was trained at). With `rect=true`, YOLO26 constrains the longer side to `imgsz` and pads the shorter side to a stride multiple, preserving the aspect ratio. Adjust `imgsz` based on your dataset's dimensions and the GPU memory available.
 
 ### Accessing YOLO26 Metrics
 
@@ -105,7 +105,7 @@ To understand your model's performance in detail, you can access specific evalua
 
 Note that `fitness()` is a method and must be called with parentheses, while metrics like `map`, `map50`, and `mp` are properties accessed directly.
 
-The `results.box.image_metrics` attribute is a per-image dictionary keyed by image filename, holding `precision`, `recall`, `f1`, `tp`, `fp`, and `fn` for each image. Preprocessing, inference, and postprocessing times are reported separately in the `results.speed` dictionary. Together, these let you pinpoint which images the model struggles with and fine-tune accordingly.
+The `results.box.image_metrics` attribute is a per-image dictionary keyed by image filename, holding `precision`, `recall`, `f1`, `tp`, `fp`, and `fn` at IoU 0.5 for each image. Preprocessing, inference, loss, and postprocessing timings are reported separately in the `results.speed` dictionary. Together, these let you pinpoint which images the model struggles with and fine-tune accordingly.
 
 ## Fine-Tuning Your Model
 
@@ -157,7 +157,7 @@ Fine-tuning a pretrained YOLO26 model involves adjusting its parameters to impro
 
 ### How can I handle variable image sizes when evaluating my YOLO26 model?
 
-To handle variable image sizes during evaluation, use the `rect=true` parameter in YOLO26, which groups images by aspect ratio and pads each batch instead of forcing every image to a square. The `imgsz` parameter sets the image size for validation, defaulting to 640. Adjust `imgsz` to suit your dataset and GPU memory. For more details, visit our [section on handling variable image sizes](#handling-variable-image-sizes).
+To handle variable image sizes during evaluation, use the `rect=true` parameter in YOLO26, which groups images by aspect ratio and pads each batch instead of forcing every image to a square. The `imgsz` parameter sets the image size for validation; if you don't override it, YOLO26 reuses the model's saved value (640 for the official pretrained models). Adjust `imgsz` to suit your dataset and GPU memory. For more details, visit our [section on handling variable image sizes](#handling-variable-image-sizes).
 
 ### What practical steps can I take to improve mean average precision for my YOLO26 model?
 

@@ -22,8 +22,8 @@ from ultralytics.utils.torch_utils import autocast, smart_inference_mode
 def select_diagnostic_queries(hits, n: int = 8) -> list[int]:
     """Pick a diagnostic mix of correct and incorrect rank-1 queries to visualize.
 
-    Splits query indices by whether their rank-1 retrieval was a true match (``hits[i]``),
-    then takes an evenly-strided sample of each half so the plot surfaces both successes and
+    Splits query indices by whether their rank-1 retrieval was a true match (``hits[i]``), then takes an evenly-strided
+    sample of each half so the plot surfaces both successes and
     failures. Falls back to the other class when one is short. Fully deterministic (no RNG)
     so the same eval reproduces the same panel across epochs.
 
@@ -66,8 +66,8 @@ def select_diagnostic_queries(hits, n: int = 8) -> list[int]:
 class ReidValidator(ClassificationValidator):
     """Validator for person re-identification models.
 
-    Accumulates embeddings, person IDs, and camera IDs during validation, then computes
-    mAP and CMC metrics using the standard Market-1501 protocol.
+    Accumulates embeddings, person IDs, and camera IDs during validation, then computes mAP and CMC metrics using the
+    standard Market-1501 protocol.
 
     Attributes:
         query_feats (list): Accumulated query feature embeddings.
@@ -371,7 +371,7 @@ class ReidValidator(ClassificationValidator):
             dist.gather_object(self._paths, None, dst=0)
 
     def build_dataset(self, img_path: str):
-        """Create a ReidDataset instance for the query split via centralised build_yolo_dataset()."""
+        """Create a ReidDataset instance for the query split via centralized build_yolo_dataset()."""
         return build_yolo_dataset(self.args, img_path, self.args.batch, self.data, mode="query")
 
     def print_results(self) -> None:

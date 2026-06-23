@@ -43,10 +43,10 @@ For example, `0001_c1_f0046182.jpg` means person `0001` captured by camera `1` a
 
 DukeMTMC-reID results from fine-tuning the `yolo26{size}-reid.pt` seed on DukeMTMC-reID (imgsz=448, standard query–gallery protocol):
 
-| Model | mAP | Rank-1 | Rank-5 | Rank-10 |
-|-------|-----|--------|--------|---------|
-| YOLO26n-reid (fine-tuned) | 48.0 | 69.8 | 82.5 | 86.4 |
-| YOLO26l-reid (fine-tuned) | 57.0 | 75.8 | 86.3 | 89.5 |
+| Model                     | mAP  | Rank-1 | Rank-5 | Rank-10 |
+| ------------------------- | ---- | ------ | ------ | ------- |
+| YOLO26n-reid (fine-tuned) | 48.0 | 69.8   | 82.5   | 86.4    |
+| YOLO26l-reid (fine-tuned) | 57.0 | 75.8   | 86.3   | 89.5    |
 
 With [k-reciprocal re-ranking](../../tasks/reid.md) (`reid_reranking=True`), mAP rises to 67.8 (n) and 74.3 (l). Larger seeds transfer better to this domain; see the [ReID Fine-Tuning guide](../../guides/reid-finetuning.md).
 

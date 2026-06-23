@@ -1143,8 +1143,8 @@ def plot_reid_retrieval(rows, save_path, tile_size=(240, 320), gap=24):
     """Render a query->top-k retrieval grid and save it.
 
     Args:
-        rows (list): One entry per query. Each entry is a list of ``(path, label, border_color)``
-            tuples; the FIRST tuple is the query tile, the rest are ranked gallery matches.
+        rows (list): One entry per query. Each entry is a list of ``(path, label, border_color)`` tuples; the FIRST
+            tuple is the query tile, the rest are ranked gallery matches.
         save_path (str | Path): Output image path.
         tile_size (tuple[int, int]): (width, height) of each tile in pixels.
         gap (int): Horizontal gap (px) between the query column and the match columns.

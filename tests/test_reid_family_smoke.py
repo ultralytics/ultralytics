@@ -69,7 +69,7 @@ def test_family_scale_eval_embedding_is_unit_norm(family, scale):
 
 @pytest.mark.parametrize("family", list(CFGS))
 def test_v_family_imgsz448_forward(family):
-    """imgsz=448 square forward works for the l scale (v12 A2C2f stride/area-attention sanity)."""
+    """Imgsz=448 square forward works for the l scale (v12 A2C2f stride/area-attention sanity)."""
     model = _build(family, "l").eval()
     imgs = torch.randn(2, 3, 448, 448)
     with torch.no_grad():

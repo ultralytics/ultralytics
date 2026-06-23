@@ -23,9 +23,9 @@ class RetrievalItem:
 class ReIDVisualizer:
     """Rank gallery images for a query person and render the top matches.
 
-    Uses any Ultralytics ReID model (PyTorch or exported ONNX) to extract embeddings, ranks gallery
-    images by cosine similarity via the shared retrieval engine, and writes a comparison montage.
-    Generic: it does not parse Market-1501 filenames — tiles are labeled by rank and similarity.
+    Uses any Ultralytics ReID model (PyTorch or exported ONNX) to extract embeddings, ranks gallery images by cosine
+    similarity via the shared retrieval engine, and writes a comparison montage. Generic: it does not parse Market-1501
+    filenames — tiles are labeled by rank and similarity.
 
     Args:
         model: Path or name of a ReID model, e.g. ``best.pt`` or ``best.onnx``.

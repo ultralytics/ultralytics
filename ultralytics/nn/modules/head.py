@@ -836,8 +836,8 @@ class Classify(nn.Module):
 class ReID(nn.Module):
     """Head for person re-identification using BNNeck architecture.
 
-    Produces identity classification logits during training and normalized embeddings during inference,
-    following the "Bag of Tricks" paper (Luo et al., 2019).
+    Produces identity classification logits during training and normalized embeddings during inference, following the
+    "Bag of Tricks" paper (Luo et al., 2019).
 
     Attributes:
         conv (Conv): Convolutional layer for feature transformation.

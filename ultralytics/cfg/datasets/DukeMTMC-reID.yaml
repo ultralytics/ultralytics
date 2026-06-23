@@ -16,7 +16,6 @@ nc: 702
 
 # Filename: 0001_c1_f0046182.jpg -> pid=1, camid=1 (1-indexed)
 filename_re: dukemtmc
-
 # No download script: Duke University withdrew DukeMTMC-reID from public distribution in 2019
 # (https://exposing.ai/duke_mtmc/). Source from a research-only mirror you trust and place the
 # extracted DukeMTMC-reID/ directory in your datasets root.

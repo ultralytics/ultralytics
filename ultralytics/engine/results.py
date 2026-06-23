@@ -1427,9 +1427,9 @@ class Probs(BaseTensor):
 class Embeddings(BaseTensor):
     """A class for storing person Re-Identification (ReID) embedding vectors.
 
-    Wraps a 1D (D,) or 2D (B, D) L2-normalized embedding tensor produced by a ReID model.
-    Embeddings are designed for similarity comparison via cosine or Euclidean distance — they
-    carry no per-class probability semantics, which is why ReID does not reuse the Probs slot.
+    Wraps a 1D (D,) or 2D (B, D) L2-normalized embedding tensor produced by a ReID model. Embeddings are designed for
+    similarity comparison via cosine or Euclidean distance — they carry no per-class probability semantics, which is why
+    ReID does not reuse the Probs slot.
 
     Attributes:
         data (torch.Tensor | np.ndarray): The L2-normalized embedding tensor.

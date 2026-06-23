@@ -10,8 +10,8 @@ from ultralytics.utils import DEFAULT_CFG, ops
 class ReidPredictor(ClassificationPredictor):
     """Predictor for person re-identification models.
 
-    Wraps each image's L2-normalized embedding in ``Results.embeddings``. Gallery retrieval and
-    visualization are intentionally out of scope here — use ``ultralytics.solutions.ReIDVisualizer``.
+    Wraps each image's L2-normalized embedding in ``Results.embeddings``. Gallery retrieval and visualization are
+    intentionally out of scope here — use ``ultralytics.solutions.ReIDVisualizer``.
 
     Examples:
         >>> from ultralytics.models.yolo.reid import ReidPredictor

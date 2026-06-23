@@ -10,12 +10,12 @@ YOLO26 ReID is **not person-specific**. The model learns to map each cropped ima
 
 To quantify how well this works, we benchmarked the released `yolo26l-reid.pt` checkpoint across four very different domains, comparing zero-shot evaluation (no training) against fine-tuning from the ReID checkpoint and fine-tuning the same architecture from a generic ImageNet classification backbone. All fine-tune cells share one fixed 120-epoch recipe at `imgsz=448`:
 
-| Domain | Dataset | Zero-shot mAP / Rank-1 | Fine-tune from `yolo26l-reid.pt` | Fine-tune from `yolo26l-cls.pt` (ImageNet) |
-| ------ | ------- | ---------------------- | -------------------------------- | ------------------------------------------ |
-| **Vehicles** | [VeRi-776](../datasets/reid/veri776.md) — real cross-camera traffic surveillance | 0.0859 / 0.3045 | **0.4656 / 0.8695** | 0.2150 / 0.5209 |
-| **Animals** | [ATRW](../datasets/reid/atrw.md) — Amur tiger individual re-identification | 0.6313 / 0.9524 | **0.6855 / 1.0000** | 0.6214 / 1.0000 |
-| **Products** | [DeepFashion In-Shop](https://mmlab.ie.cuhk.edu.hk/projects/DeepFashion.html) — clothes retrieval by item ID | 0.2486 / 0.4129 | **0.7317 / 0.9145** | 0.5946 / 0.8125 |
-| **Landmarks** | [rOxford5k](../datasets/reid/roxford5k.md) — whole-scene building retrieval (eval-only) | 0.1463 / 0.2571 | — | — |
+| Domain        | Dataset                                                                                                      | Zero-shot mAP / Rank-1 | Fine-tune from `yolo26l-reid.pt` | Fine-tune from `yolo26l-cls.pt` (ImageNet) |
+| ------------- | ------------------------------------------------------------------------------------------------------------ | ---------------------- | -------------------------------- | ------------------------------------------ |
+| **Vehicles**  | [VeRi-776](../datasets/reid/veri776.md) — real cross-camera traffic surveillance                             | 0.0859 / 0.3045        | **0.4656 / 0.8695**              | 0.2150 / 0.5209                            |
+| **Animals**   | [ATRW](../datasets/reid/atrw.md) — Amur tiger individual re-identification                                   | 0.6313 / 0.9524        | **0.6855 / 1.0000**              | 0.6214 / 1.0000                            |
+| **Products**  | [DeepFashion In-Shop](https://mmlab.ie.cuhk.edu.hk/projects/DeepFashion.html) — clothes retrieval by item ID | 0.2486 / 0.4129        | **0.7317 / 0.9145**              | 0.5946 / 0.8125                            |
+| **Landmarks** | [rOxford5k](../datasets/reid/roxford5k.md) — whole-scene building retrieval (eval-only)                      | 0.1463 / 0.2571        | —                                | —                                          |
 
 Three takeaways drive the rest of this guide:
 
@@ -106,11 +106,11 @@ Interpret the result against the benchmark table:
 
 When fine-tuning, initialize from `yolo26l-reid.pt` rather than a generic classification backbone. In the benchmark, fine-tuning from the ReID checkpoint beat fine-tuning the identical architecture from ImageNet weights **in every domain**, with identical recipes:
 
-| Domain | From `yolo26l-reid.pt` (mAP) | From `yolo26l-cls.pt` (mAP) | Advantage |
-| ------ | ---------------------------- | --------------------------- | --------- |
-| Vehicles | **0.4656** | 0.2150 | 2.2× |
-| Products | **0.7317** | 0.5946 | 1.2× |
-| Animals | **0.6855** | 0.6214 | 1.1× |
+| Domain   | From `yolo26l-reid.pt` (mAP) | From `yolo26l-cls.pt` (mAP) | Advantage |
+| -------- | ---------------------------- | --------------------------- | --------- |
+| Vehicles | **0.4656**                   | 0.2150                      | 2.2×      |
+| Products | **0.7317**                   | 0.5946                      | 1.2×      |
+| Animals  | **0.6855**                   | 0.6214                      | 1.1×      |
 
 The metric-learning structure the checkpoint learned on person data — embedding geometry shaped by triplet loss and identity supervision — transfers across domains even when the visual content does not. The gap is largest exactly where zero-shot transfer is weakest (vehicles), so "my domain looks nothing like people" is a reason to fine-tune, not a reason to discard the ReID initialization.
 
@@ -156,11 +156,11 @@ After training, `predict()` returns one L2-normalized embedding per image on `re
 
 A data-efficiency probe on the vehicle domain trained the same recipe on 25%, 50%, and 100% of the training **identities**:
 
-| Train identities | Fraction | mAP |
+| Train identities | Fraction | mAP    |
 | ---------------- | -------- | ------ |
-| 144 | 25% | 0.2859 |
-| 288 | 50% | 0.3709 |
-| 576 | 100% | 0.4656 |
+| 144              | 25%      | 0.2859 |
+| 288              | 50%      | 0.3709 |
+| 576              | 100%     | 0.4656 |
 
 Accuracy scales smoothly with identity count and was **not saturating at 576 identities** — more identities would likely keep helping. The practical guidance: when collecting data, **prioritize more identities over more images per identity**. Identity diversity is what teaches the embedding to separate fine-grained instances; a handful of images per identity (enough for PK sampling, i.e. ~4+) is sufficient per individual.
 

@@ -1,5 +1,4 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-
 """Unit tests for the ReID task: Embeddings results, dataset routing, validator caching, and retrieval engine."""
 
 from __future__ import annotations
@@ -104,7 +103,7 @@ def test_results_update_probs_wraps(fake_image):
 
 
 def test_results_verbose_emits_embedding_line(fake_image):
-    """verbose() must produce a ReID-shaped log line, not classify top-5."""
+    """Verbose() must produce a ReID-shaped log line, not classify top-5."""
     r = Results(fake_image, path="/tmp/x.jpg", names={0: "a"}, embeddings=torch.randn(512))
     msg = r.verbose()
     assert "embedding" in msg and "512" in msg
@@ -121,7 +120,7 @@ def test_results_verbose_keeps_box_log_when_both_set(fake_image):
 
 
 def test_results_save_crop_warns_reid_not_classify(fake_image, monkeypatch):
-    """save_crop must warn with 'ReID', not the misleading 'Classify task' wording."""
+    """Save_crop must warn with 'ReID', not the misleading 'Classify task' wording."""
     from ultralytics.engine import results as results_mod
 
     messages: list[str] = []
@@ -135,13 +134,13 @@ def test_results_save_crop_warns_reid_not_classify(fake_image, monkeypatch):
 
 
 def test_results_summary_returns_embedding_dict(fake_image):
-    """summary() for a ReID result must return [{'embedding': [...]}], not classify top-5."""
+    """Summary() for a ReID result must return [{'embedding': [...]}], not classify top-5."""
     out = Results(fake_image, path="/tmp/x.jpg", names={0: "a"}, embeddings=torch.randn(16)).summary()
     assert len(out) == 1 and len(out[0]["embedding"]) == 16
 
 
 def test_results_save_txt_opt_in_for_embeddings(fake_image):
-    """save_txt persists the embedding only with save_conf=True (dumps are ~5 KB per frame)."""
+    """Save_txt persists the embedding only with save_conf=True (dumps are ~5 KB per frame)."""
     r = Results(fake_image, path="/tmp/x.jpg", names={0: "a"}, embeddings=torch.randn(128))
     with tempfile.TemporaryDirectory() as tmp:
         out_path = Path(tmp) / "no_conf.txt"
@@ -172,7 +171,7 @@ def test_reid_predictor_postprocess_uses_embeddings_slot():
 
 
 def test_reid_trainer_plot_training_samples_is_noop():
-    """plot_training_samples must not render pid integers as class names."""
+    """Plot_training_samples must not render pid integers as class names."""
     from ultralytics.models.yolo.reid.train import ReidTrainer
 
     t = ReidTrainer.__new__(ReidTrainer)
@@ -241,8 +240,8 @@ def test_gallery_cache_hits_on_same_model():
 def test_gallery_cache_bypassed_during_training_val():
     """In-train val passes the SAME EMA module with mutated weights — the cache must be bypassed.
 
-    id(model) can never detect in-place weight updates, so serving cached gallery features would
-    score epoch-N queries against epoch-1 gallery embeddings, corrupting in-train mAP/fitness.
+    id(model) can never detect in-place weight updates, so serving cached gallery features would score epoch-N queries
+    against epoch-1 gallery embeddings, corrupting in-train mAP/fitness.
     """
     calls = [0]
     v = _stub_validator(calls)
@@ -283,7 +282,7 @@ def test_update_metrics_tta_handles_half_batch_fp32_model():
 
 
 def test_l2_normalize_unit_norm_and_zero_safe():
-    """l2_normalize produces unit rows and never divides by zero."""
+    """L2_normalize produces unit rows and never divides by zero."""
     from ultralytics.models.yolo.reid.retrieval import l2_normalize
 
     out = l2_normalize(np.array([[3.0, 4.0], [0.0, 2.0]], dtype=np.float32))
@@ -292,7 +291,7 @@ def test_l2_normalize_unit_norm_and_zero_safe():
 
 
 def test_cosine_topk_orders_and_clamps():
-    """cosine_topk ranks by similarity and clamps topk to the gallery size."""
+    """Cosine_topk ranks by similarity and clamps topk to the gallery size."""
     from ultralytics.models.yolo.reid.retrieval import cosine_topk, l2_normalize
 
     gallery = l2_normalize(np.array([[1.0, 0.0], [0.9, 0.1], [0.0, 1.0]], dtype=np.float32))
@@ -305,7 +304,7 @@ def test_cosine_topk_orders_and_clamps():
 
 
 def test_scan_gallery_recursive_and_empty(tmp_path):
-    """scan_gallery finds images recursively, excludes non-images, raises on an empty dir."""
+    """Scan_gallery finds images recursively, excludes non-images, raises on an empty dir."""
     from ultralytics.models.yolo.reid.retrieval import scan_gallery
 
     (tmp_path / "sub").mkdir()
@@ -327,7 +326,7 @@ def _const_embedder(dim=4):
 
 
 def test_build_gallery_cache_roundtrip(tmp_path):
-    """build_gallery writes a cache, reuses it, and rebuilds when imgsz changes."""
+    """Build_gallery writes a cache, reuses it, and rebuilds when imgsz changes."""
     from ultralytics.models.yolo.reid import retrieval
 
     gdir = tmp_path / "g"

@@ -37,8 +37,8 @@ def l2_normalize(x: np.ndarray) -> np.ndarray:
 def cosine_topk(query_embs: np.ndarray, gallery_embs: np.ndarray, topk: int) -> tuple[np.ndarray, np.ndarray]:
     """Return (indices, scores) of the top-k gallery rows per query by cosine similarity.
 
-    Inputs are assumed L2-normalized, so cosine == dot product. ``topk`` is clamped to
-    the gallery size. Shapes: query (Q, D), gallery (N, D) -> indices (Q, k), scores (Q, k).
+    Inputs are assumed L2-normalized, so cosine == dot product. ``topk`` is clamped to the gallery size. Shapes: query
+    (Q, D), gallery (N, D) -> indices (Q, k), scores (Q, k).
     """
     k = min(topk, gallery_embs.shape[0])
     sims = query_embs @ gallery_embs.T  # (Q, N)
@@ -61,8 +61,8 @@ def build_gallery(
 ) -> tuple[list[Path], np.ndarray]:
     """Scan the gallery, embed (or load from cache), and return (paths, L2-normalized embeddings).
 
-    The cache (a ``.pt`` file) is reused only when its recorded gallery file list, model id, and
-    imgsz match the current request; otherwise it is rebuilt and rewritten.
+    The cache (a ``.pt`` file) is reused only when its recorded gallery file list, model id, and imgsz match the current
+    request; otherwise it is rebuilt and rewritten.
     """
     import torch
 

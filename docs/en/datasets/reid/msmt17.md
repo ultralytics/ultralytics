@@ -97,11 +97,11 @@ We acknowledge Longhui Wei and collaborators for creating and maintaining the MS
 
 ### How does MSMT17 compare to other ReID datasets?
 
-| Dataset | Identities | Images | Cameras | Train IDs | Challenge Level |
-|---------|-----------|--------|---------|-----------|----------------|
-| [Market-1501](market1501.md) | 1,501 | 32,668 | 6 | 751 | Moderate |
-| [DukeMTMC-reID](dukemtmc.md) | 1,404 | 36,411 | 8 | 702 | Moderate-Hard |
-| **MSMT17** | **4,101** | **126,441** | **15** | **1,041** | **Hard** |
+| Dataset                      | Identities | Images      | Cameras | Train IDs | Challenge Level |
+| ---------------------------- | ---------- | ----------- | ------- | --------- | --------------- |
+| [Market-1501](market1501.md) | 1,501      | 32,668      | 6       | 751       | Moderate        |
+| [DukeMTMC-reID](dukemtmc.md) | 1,404      | 36,411      | 8       | 702       | Moderate-Hard   |
+| **MSMT17**                   | **4,101**  | **126,441** | **15**  | **1,041** | **Hard**        |
 
 MSMT17 is approximately 4x larger than Market-1501 in terms of images and has nearly 3x more identities, with the added challenge of multi-scene and multi-time variation.
 

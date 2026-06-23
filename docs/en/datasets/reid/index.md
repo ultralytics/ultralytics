@@ -14,11 +14,11 @@ For [Ultralytics](https://www.ultralytics.com/) YOLO re-identification tasks, th
 
 ReID datasets encode person identity (PID) and camera ID (CamID) in filenames. Different datasets use different naming conventions:
 
-| Dataset | Pattern | Example |
-|---------|---------|---------|
-| [Market-1501](market1501.md) | `PPPP_cCsS_XXXXXX_XX.jpg` | `0001_c1s1_001051_00.jpg` |
-| [DukeMTMC-reID](dukemtmc.md) | `PPPP_cC_fXXXXXX.jpg` | `0001_c1_f0046182.jpg` |
-| [MSMT17](msmt17.md) | `PPPP_CCC_II_XXXX.jpg` | `0001_015_01_0201130904.jpg` |
+| Dataset                      | Pattern                   | Example                      |
+| ---------------------------- | ------------------------- | ---------------------------- |
+| [Market-1501](market1501.md) | `PPPP_cCsS_XXXXXX_XX.jpg` | `0001_c1s1_001051_00.jpg`    |
+| [DukeMTMC-reID](dukemtmc.md) | `PPPP_cC_fXXXXXX.jpg`     | `0001_c1_f0046182.jpg`       |
+| [MSMT17](msmt17.md)          | `PPPP_CCC_II_XXXX.jpg`    | `0001_015_01_0201130904.jpg` |
 
 Each format encodes person ID and camera ID differently, but the YOLO ReID pipeline handles them automatically via the `filename_re` setting in the dataset YAML config.
 
@@ -52,18 +52,18 @@ Market-1501-v15.09.15/
 A ReID dataset YAML config specifies the root path, split directories, number of training identities, and filename parsing:
 
 ```yaml
-path: Market-1501-v15.09.15  # dataset root dir
-train: bounding_box_train     # training images
-val: query                    # query images for evaluation
-gallery: bounding_box_test    # gallery images for evaluation
+path: Market-1501-v15.09.15 # dataset root dir
+train: bounding_box_train # training images
+val: query # query images for evaluation
+gallery: bounding_box_test # gallery images for evaluation
 
-nc: 751  # number of training identities
+nc: 751 # number of training identities
 
 # Optional: filename parsing (defaults to 'market1501')
 # Built-in presets: 'market1501', 'dukemtmc', 'msmt17'
 # Or provide a custom regex with group(1)=pid, group(2)=camid
 filename_re: market1501
-cam_0indexed: false  # set true if camera IDs start at 0
+cam_0indexed: false # set true if camera IDs start at 0
 ```
 
 !!! note
@@ -106,23 +106,23 @@ To train a YOLO ReID model on a dataset, you can use the following code snippets
 
 ## Supported Datasets
 
-| Dataset | Images | IDs | Cameras | Difficulty |
-|---------|--------|-----|---------|------------|
-| [Market-1501](market1501.md) | 32,668 | 1,501 | 6 | Moderate |
-| [DukeMTMC-reID](dukemtmc.md) | 36,411 | 1,404 | 8 | Moderate-Hard |
-| [MSMT17](msmt17.md) | 126,441 | 4,101 | 15 | Hard |
+| Dataset                      | Images  | IDs   | Cameras | Difficulty    |
+| ---------------------------- | ------- | ----- | ------- | ------------- |
+| [Market-1501](market1501.md) | 32,668  | 1,501 | 6       | Moderate      |
+| [DukeMTMC-reID](dukemtmc.md) | 36,411  | 1,404 | 8       | Moderate-Hard |
+| [MSMT17](msmt17.md)          | 126,441 | 4,101 | 15      | Hard          |
 
 ### Benchmark Results
 
 YOLO26 ReID results (imgsz=448, standard query–gallery protocol). Market-1501 numbers are the published `yolo26{size}-reid-market.pt` champions; DukeMTMC-reID numbers are the `yolo26{size}-reid.pt` seed fine-tuned on Duke:
 
 | Model size | Market-1501 (`-reid-market.pt`)<br>mAP / R-1 | DukeMTMC-reID (`-reid.pt` + Duke FT)<br>mAP / R-1 |
-|------------|----------------------------------------------|----------------------------------------------------|
-| YOLO26n | 67.3 / 86.6 | 48.0 / 69.8 |
-| YOLO26s | 72.9 / 89.4 | — |
-| YOLO26m | 73.6 / 88.5 | — |
-| YOLO26l | 76.8 / 90.6 | 57.0 / 75.8 |
-| YOLO26x | 75.5 / 90.5 | — |
+| ---------- | -------------------------------------------- | ------------------------------------------------- |
+| YOLO26n    | 67.3 / 86.6                                  | 48.0 / 69.8                                       |
+| YOLO26s    | 72.9 / 89.4                                  | —                                                 |
+| YOLO26m    | 73.6 / 88.5                                  | —                                                 |
+| YOLO26l    | 76.8 / 90.6                                  | 57.0 / 75.8                                       |
+| YOLO26x    | 75.5 / 90.5                                  | —                                                 |
 
 [K-reciprocal re-ranking](../../tasks/reid.md) (`reid_reranking=True`) adds a further +12–20 mAP. The bare `yolo26{size}-reid.pt` weights are general fine-tuning seeds — to adapt them to your own data see the [ReID Fine-Tuning guide](../../guides/reid-finetuning.md).
 
@@ -130,13 +130,13 @@ YOLO26 ReID results (imgsz=448, standard query–gallery protocol). Market-1501 
 
 YOLO ReID is not person-specific — the same embedding head works on any domain with multiple images per identity. The following datasets ship with built-in configs and cover non-person identities, large-scale pre-training, and instance retrieval. See the [ReID Beyond Persons guide](../../guides/reid-custom-dataset.md) for cross-domain benchmarks.
 
-| Dataset | Domain | Config |
-|---------|--------|--------|
-| [VeRi-776](veri776.md) | Vehicles (cross-camera) | `VeRi-776.yaml` |
-| [ATRW](atrw.md) | Animals (individual tigers) | `ATRW.yaml` |
-| [RP2K](rp2k.md) | Retail products (SKUs) | `rp2k-full-openset.yaml`, `rp2k-full-closedset.yaml` |
-| [rOxford5k](roxford5k.md) | Landmarks (eval-only diagnostic) | `rOxford5k.yaml` |
-| [LUPerson-NL](luperson-nl.md) | Person pre-training (10.68M images) | `LUPerson-NL.yaml` |
+| Dataset                       | Domain                              | Config                                               |
+| ----------------------------- | ----------------------------------- | ---------------------------------------------------- |
+| [VeRi-776](veri776.md)        | Vehicles (cross-camera)             | `VeRi-776.yaml`                                      |
+| [ATRW](atrw.md)               | Animals (individual tigers)         | `ATRW.yaml`                                          |
+| [RP2K](rp2k.md)               | Retail products (SKUs)              | `rp2k-full-openset.yaml`, `rp2k-full-closedset.yaml` |
+| [rOxford5k](roxford5k.md)     | Landmarks (eval-only diagnostic)    | `rOxford5k.yaml`                                     |
+| [LUPerson-NL](luperson-nl.md) | Person pre-training (10.68M images) | `LUPerson-NL.yaml`                                   |
 
 ## FAQ
 

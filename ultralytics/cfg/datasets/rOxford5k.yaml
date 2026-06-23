@@ -1,4 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 # Revisited Oxford5k landmark retrieval (EVAL-ONLY). Identity = landmark group.
 # Protocol note: standard same-identity mAP over landmark groups (not the official
 # easy/medium/hard split). Zero-shot only — there is no training split.

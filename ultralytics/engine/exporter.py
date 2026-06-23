@@ -798,7 +798,7 @@ class Exporter:
             # ReID-specific default: prefer 'gallery' for INT8 calibration because the gallery split
             # is designed for distributional coverage (Market-1501: 19k images across 6 cameras),
             # whereas 'val' resolves to the query split (3k images, mostly single-view per identity)
-            # — a poor distribution to derive quantization scales from. Only honour an EXPLICIT
+            # — a poor distribution to derive quantization scales from. Only honor an EXPLICIT
             # user override; DEFAULT_CFG sets args.split='val' which we treat as unset for reid.
             split = "gallery" if self.args.split in {None, "", "val"} else self.args.split
             split_path = data.get(split)
@@ -1426,7 +1426,7 @@ class Exporter:
 
         Accepts both uint8 (YOLODataset / detect-style) and already-normalised float32
         (ClassificationDataset / ReidDataset, which emit mean-subtracted/std-divided tensors
-        because their torch_transforms include Normalize). For uint8 inputs we normalise
+        because their torch_transforms include Normalize). For uint8 inputs we normalize
         here; for float32 we pass through unchanged.
         """
         data_item: torch.Tensor = data_item["img"] if isinstance(data_item, dict) else data_item

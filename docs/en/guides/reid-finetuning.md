@@ -31,9 +31,9 @@ The result is a **domain-general person-ReID seed**: it already understands clot
 
 There are two families of `-reid` checkpoints, with different purposes. Choose by what you want to do:
 
-| Weight                     | Purpose                                                                 | Use as finetune seed? |
-| -------------------------- | ----------------------------------------------------------------------- | --------------------- |
-| `yolo26{size}-reid.pt`     | **General finetune seed** — auto-downloaded by `train()`. Domain-general; transfers well to new datasets. | **Yes** — this is the default. |
+| Weight                        | Purpose                                                                                                                      | Use as finetune seed?                                                           |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| `yolo26{size}-reid.pt`        | **General finetune seed** — auto-downloaded by `train()`. Domain-general; transfers well to new datasets.                    | **Yes** — this is the default.                                                  |
 | `yolo26{size}-reid-market.pt` | **Market-1501 evaluation champion** — for out-of-the-box inference and reproducing published Market-1501 mAP/Rank-1 numbers. | **No** — it is tuned to Market and transfers poorly zero-shot to other domains. |
 
 In short: fine-tune from `yolo26{size}-reid.pt`. Reach for `yolo26{size}-reid-market.pt` only when you want ready-made Market-1501 inference or to reproduce that benchmark, not as a transfer-learning starting point.
@@ -53,17 +53,17 @@ A ReID dataset is described by a YAML file with `path`, split directories, the t
 
 ```yaml
 # my_reid.yaml
-path: my_reid              # dataset root dir (relative to your Ultralytics datasets directory)
-train: bounding_box_train  # training images (relative to 'path')
-val: query                 # query images for evaluation
+path: my_reid # dataset root dir (relative to your Ultralytics datasets directory)
+train: bounding_box_train # training images (relative to 'path')
+val: query # query images for evaluation
 gallery: bounding_box_test # gallery images compared against each query
 
-nc: 751                    # number of training identities
+nc: 751 # number of training identities
 
 # Filename parsing. Built-in presets: 'market1501', 'dukemtmc', 'msmt17'.
 # Or a custom regex where group(1)=person ID and (optional) group(2)=camera ID.
 filename_re: market1501
-cam_0indexed: false        # set true if your camera IDs start at 0
+cam_0indexed: false # set true if your camera IDs start at 0
 ```
 
 Key points specific to ReID datasets:
@@ -94,16 +94,16 @@ Use the **Python API** for ReID training and validation. ReID introduces task-sp
 
 These keys exist **only for the `reid` task** and are not part of the general YOLO configuration (they are not in `default.yaml`). The most common are below; most users should keep the defaults. See the [ReID task page](../tasks/reid.md#reid-specific-training-arguments) for the full table and descriptions.
 
-| Argument         | Default | What it controls                                                                 |
-| ---------------- | ------- | -------------------------------------------------------------------------------- |
-| `reid_p`         | `16`    | **P** — identities per batch (effective batch size = `reid_p × reid_k`).         |
+| Argument         | Default | What it controls                                                                    |
+| ---------------- | ------- | ----------------------------------------------------------------------------------- |
+| `reid_p`         | `16`    | **P** — identities per batch (effective batch size = `reid_p × reid_k`).            |
 | `reid_k`         | `4`     | **K** — images per identity per batch (needed for triplet positive/negative pairs). |
-| `triplet_weight` | `1.0`   | Weight of the triplet metric-learning loss.                                      |
-| `triplet_margin` | `0.3`   | Triplet margin (typical 0.2–0.5).                                                |
-| `ce_weight`      | `1.0`   | Weight of the identity cross-entropy loss.                                       |
-| `center_weight`  | `0.0`   | Center loss (disabled by default; try `~0.0005` to enable).                      |
-| `focal_gamma`    | `0.0`   | Focal-CE gamma (disabled by default).                                            |
-| `supcon_temp`    | `0.0`   | Supervised-contrastive temperature; when `>0` it replaces triplet (try `~0.07`). |
+| `triplet_weight` | `1.0`   | Weight of the triplet metric-learning loss.                                         |
+| `triplet_margin` | `0.3`   | Triplet margin (typical 0.2–0.5).                                                   |
+| `ce_weight`      | `1.0`   | Weight of the identity cross-entropy loss.                                          |
+| `center_weight`  | `0.0`   | Center loss (disabled by default; try `~0.0005` to enable).                         |
+| `focal_gamma`    | `0.0`   | Focal-CE gamma (disabled by default).                                               |
+| `supcon_temp`    | `0.0`   | Supervised-contrastive temperature; when `>0` it replaces triplet (try `~0.07`).    |
 
 !!! example "Override a ReID training argument"
 

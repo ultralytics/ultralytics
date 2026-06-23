@@ -231,10 +231,10 @@ Check the [OBB Docs](https://docs.ultralytics.com/tasks/obb) for usage examples.
 
 Check the [ReID Docs](https://docs.ultralytics.com/tasks/reid/) for usage examples. These models are trained on [Market-1501](https://docs.ultralytics.com/datasets/reid/market1501/) and produce L2-normalized embedding vectors for matching the same person across cameras.
 
-| Model                                                                                            | size<br><sup>(pixels)</sup> | mAP<sup>Market-1501</sup> | Rank-1<sup>Market-1501</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
-| ------------------------------------------------------------------------------------------------ | --------------------------- | ------------------------- | ---------------------------- | ------------------------ | ----------------------- |
-| [YOLO26n-reid](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo26n-reid.pt)   | 256                         | 23.7                      | 42.5                         | 2.0                      | 3.3                     |
-| [YOLO26s-reid](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo26s-reid.pt)   | 256                         | 29.4                      | 50.4                         | 6.5                      | 12.7                    |
+| Model                                                                                          | size<br><sup>(pixels)</sup> | mAP<sup>Market-1501</sup> | Rank-1<sup>Market-1501</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+| ---------------------------------------------------------------------------------------------- | --------------------------- | ------------------------- | ---------------------------- | ------------------------ | ----------------------- |
+| [YOLO26n-reid](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo26n-reid.pt) | 256                         | 23.7                      | 42.5                         | 2.0                      | 3.3                     |
+| [YOLO26s-reid](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo26s-reid.pt) | 256                         | 29.4                      | 50.4                         | 6.5                      | 12.7                    |
 
 - **mAP** and **Rank-1** values are for single-model single-scale evaluation on the [Market-1501 val/gallery splits](https://docs.ultralytics.com/datasets/reid/market1501/). <br>Reproduce by `yolo reid val data=Market-1501.yaml device=0`
 

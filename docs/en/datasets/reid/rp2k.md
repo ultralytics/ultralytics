@@ -11,17 +11,17 @@ keywords: RP2K, retail product dataset, product ReID, SKU retrieval, open-set, c
 ## Key Features
 
 - **~384K images / 2,388 SKUs** of real retail products.
-- **Two protocols**: closed-set (query/gallery are held-out images of *seen* SKUs) and open-set (query/gallery SKUs are *disjoint* from training).
+- **Two protocols**: closed-set (query/gallery are held-out images of _seen_ SKUs) and open-set (query/gallery SKUs are _disjoint_ from training).
 - **Folder-per-identity** layout — SKU names (often CJK text) are hashed to stable IDs; no `filename_re` needed.
 - **Camera-less** — each image is treated as its own camera, so standard retrieval mAP applies.
 - Deterministic build: filtered to ≥4 images per SKU, short side ≥32 px, content-deduplicated, capped at 250 images per SKU.
 
 ## Protocols
 
-| Config | Protocol | Train identities (`nc`) | Description |
-| ------ | -------- | ----------------------- | ----------- |
-| `rp2k-full-closedset.yaml` | Closed-set | 2,351 | Every SKU appears in train + query + gallery; evaluates retrieval on *seen* identities. |
-| `rp2k-full-openset.yaml` | Open-set | 1,881 | 80/20 identity split; query/gallery SKUs are held out and never seen in training. |
+| Config                     | Protocol   | Train identities (`nc`) | Description                                                                             |
+| -------------------------- | ---------- | ----------------------- | --------------------------------------------------------------------------------------- |
+| `rp2k-full-closedset.yaml` | Closed-set | 2,351                   | Every SKU appears in train + query + gallery; evaluates retrieval on _seen_ identities. |
+| `rp2k-full-openset.yaml`   | Open-set   | 1,881                   | 80/20 identity split; query/gallery SKUs are held out and never seen in training.       |
 
 Open-set is the more realistic and challenging setting — it measures whether the embedding generalizes to **new products** it was never trained on.
 

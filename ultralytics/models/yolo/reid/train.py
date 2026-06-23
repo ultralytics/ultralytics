@@ -20,8 +20,8 @@ from ..classify.train import ClassificationTrainer
 class ReidTrainer(ClassificationTrainer):
     """Trainer for person re-identification models.
 
-    Extends BaseTrainer with ReID-specific dataset handling (Market-1501), PK batch sampling,
-    and multi-loss training (cross-entropy + triplet).
+    Extends BaseTrainer with ReID-specific dataset handling (Market-1501), PK batch sampling, and multi-loss training
+    (cross-entropy + triplet).
 
     Attributes:
         model (ReidModel): The ReID model to be trained.
@@ -107,7 +107,7 @@ class ReidTrainer(ClassificationTrainer):
         return ckpt
 
     def build_dataset(self, img_path: str, mode: str = "train", batch=None):
-        """Create a ReidDataset instance via the centralised build_yolo_dataset() entry point.
+        """Create a ReidDataset instance via the centralized build_yolo_dataset() entry point.
 
         Args:
             img_path (str): Path to dataset split.
@@ -158,10 +158,9 @@ class ReidTrainer(ClassificationTrainer):
         return yolo.reid.ReidValidator(self.test_loader, self.save_dir, args=copy(self.args), _callbacks=self.callbacks)
 
     def plot_training_samples(self, batch, ni):
-        """Plotting training samples is a no-op for ReID — pid integers (often hundreds in
-        Market-1501) are not human-meaningful class names, so a mosaic of pid-labelled crops
-        adds visual noise without conveying anything useful. ``ReidValidator.plot_predictions``
-        is similarly a no-op.
+        """Plotting training samples is a no-op for ReID — pid integers (often hundreds in Market-1501) are not
+        human-meaningful class names, so a mosaic of pid-labelled crops adds visual noise without conveying
+        anything useful. ``ReidValidator.plot_predictions`` is similarly a no-op.
         """
         pass
 

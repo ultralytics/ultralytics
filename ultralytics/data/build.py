@@ -226,13 +226,13 @@ class IdentityBalancedSampler(torch.utils.data.Sampler):
 
     Each iteration: shuffle pids, pick P, sample K images per pid (with replacement if fewer than K available).
 
-    In DDP the full PID list is shuffled deterministically from (epoch, base_seed) so all ranks agree on the
-    ordering, then each rank takes a disjoint shard via `pids[rank::world_size]`. Every epoch a new seed is
-    derived from `epoch * LARGE_PRIME + rank` so ranks and epochs are uncorrelated. All randomness is driven
-    by a local `random.Random` instance — no reliance on the global `random` state or `torch`'s global RNG.
+    In DDP the full PID list is shuffled deterministically from (epoch, base_seed) so all ranks agree on the ordering,
+    then each rank takes a disjoint shard via `pids[rank::world_size]`. Every epoch a new seed is derived from `epoch *
+    LARGE_PRIME + rank` so ranks and epochs are uncorrelated. All randomness is driven by a local `random.Random`
+    instance — no reliance on the global `random` state or `torch`'s global RNG.
 
-    The trainer must call `set_epoch(epoch)` at the start of each epoch for proper per-epoch shuffling and
-    cross-rank coordination, mirroring `torch.utils.data.distributed.DistributedSampler`.
+    The trainer must call `set_epoch(epoch)` at the start of each epoch for proper per-epoch shuffling and cross-rank
+    coordination, mirroring `torch.utils.data.distributed.DistributedSampler`.
 
     Args:
         dataset: A ReidDataset with pid_to_indices attribute.
@@ -416,9 +416,9 @@ def build_yolo_dataset(
 ) -> Dataset:
     """Build and return a YOLO dataset based on configuration parameters.
 
-    For ``task == 'reid'`` returns a ``ReidDataset`` configured for the requested mode; ReID
-    intentionally does not use the YOLO detection-style transform stack, but routing through
-    this single entry point keeps dataset selection centralised.
+    For ``task == 'reid'`` returns a ``ReidDataset`` configured for the requested mode; ReID intentionally does not use
+    the YOLO detection-style transform stack, but routing through this single entry point keeps dataset selection
+    centralized.
     """
     if cfg.task == "reid":
         return ReidDataset(root=img_path, args=cfg, augment=mode == "train", prefix=mode, data=data)

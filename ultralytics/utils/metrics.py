@@ -1645,8 +1645,8 @@ class ClassifyMetrics(SimpleClass, DataExportMixin):
 class ReidMetrics(SimpleClass, DataExportMixin):
     """Class for computing person re-identification metrics (mAP, CMC Rank-1/5/10).
 
-    Implements the standard Market-1501 evaluation protocol: for each query, rank gallery images
-    by distance, excluding same-pid-same-camid matches.
+    Implements the standard Market-1501 evaluation protocol: for each query, rank gallery images by distance, excluding
+    same-pid-same-camid matches.
 
     Attributes:
         mAP (float): Mean Average Precision.

@@ -1138,9 +1138,8 @@ class ReidDataset(ClassificationDataset):
              0002/
                img_c.jpg
 
-       Identity labels come from folder names (like ImageFolder). Camera IDs
-       are either parsed from filenames if ``filename_re`` is set, or assigned
-       as a unique index per image (safe default for evaluation).
+    Identity labels come from folder names (like ImageFolder). Camera IDs are either parsed from filenames if
+    ``filename_re`` is set, or assigned as a unique index per image (safe default for evaluation).
 
     2. **Flat directory** (standard benchmarks: Market-1501, DukeMTMC, MSMT17)::
 
@@ -1148,10 +1147,9 @@ class ReidDataset(ClassificationDataset):
              0001_c1s1_001051_00.jpg
              0002_c2s1_000801_00.jpg
 
-       Identity and camera IDs are extracted from filenames via regex.
+    Identity and camera IDs are extracted from filenames via regex.
 
-    Subclasses ``ClassificationDataset`` to reuse verified-image caching,
-    transform construction, and image loading.
+    Subclasses ``ClassificationDataset`` to reuse verified-image caching, transform construction, and image loading.
     """
 
     # Default filename patterns for common ReID datasets (group1=pid, group2=camid)

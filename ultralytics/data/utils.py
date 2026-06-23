@@ -200,8 +200,8 @@ def check_image(im_file: str) -> tuple[str, tuple[int, int]]:
 def verify_image(args: tuple) -> tuple:
     """Verify one image sample.
 
-    The sample tuple may contain additional metadata after the image path. The original sample is returned unchanged
-    so callers can preserve task-specific annotations (e.g. ReID camera IDs) through verification and cache loading.
+    The sample tuple may contain additional metadata after the image path. The original sample is returned unchanged so
+    callers can preserve task-specific annotations (e.g. ReID camera IDs) through verification and cache loading.
     """
     sample, prefix = args
     im_file = sample[0]

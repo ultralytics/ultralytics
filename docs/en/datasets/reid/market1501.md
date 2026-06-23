@@ -42,13 +42,13 @@ PPPP_cCsS_XXXXXX_XX.jpg
 
 Market-1501 results for the published `yolo26{n,s,m,l,x}-reid-market.pt` champions (standard query–gallery protocol, imgsz=448):
 
-| Model | mAP | Rank-1 | Rank-5 | Rank-10 |
-|-------|-----|--------|--------|---------|
-| YOLO26n-reid-market | 67.3 | 86.6 | 94.8 | 96.9 |
-| YOLO26s-reid-market | 72.9 | 89.4 | 96.3 | 97.9 |
-| YOLO26m-reid-market | 73.6 | 88.5 | 96.3 | 97.7 |
-| YOLO26l-reid-market | 76.8 | 90.6 | 96.6 | 98.0 |
-| YOLO26x-reid-market | 75.5 | 90.5 | 96.4 | 97.6 |
+| Model               | mAP  | Rank-1 | Rank-5 | Rank-10 |
+| ------------------- | ---- | ------ | ------ | ------- |
+| YOLO26n-reid-market | 67.3 | 86.6   | 94.8   | 96.9    |
+| YOLO26s-reid-market | 72.9 | 89.4   | 96.3   | 97.9    |
+| YOLO26m-reid-market | 73.6 | 88.5   | 96.3   | 97.7    |
+| YOLO26l-reid-market | 76.8 | 90.6   | 96.6   | 98.0    |
+| YOLO26x-reid-market | 75.5 | 90.5   | 96.4   | 97.6    |
 
 [K-reciprocal re-ranking](../../tasks/reid.md) (`reid_reranking=True`) raises mAP to 84.2 / 87.3 / 87.5 / 88.8 / 88.3 respectively. The bare `yolo26{size}-reid.pt` weights are general fine-tuning seeds (not Market-tuned) — see the [ReID Fine-Tuning guide](../../guides/reid-finetuning.md).
 

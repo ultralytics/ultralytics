@@ -168,8 +168,11 @@ def main():
                         help="MVTec-YOLO root (default: the MVTEC_ROOT constant near the top of this file)")
     parser.add_argument("--nc", type=int, default=None,
                         help="Number of classes (default: auto-detect from ckpt; multiclass-safe)")
-    parser.add_argument("--heat-norm", type=str, default="none", choices=["none", "minmax"],
-                        help="Per-image prior normalization before fusion (minmax stretches to [0,1])")
+    parser.add_argument("--heat-norm", type=str, default="mean", choices=["none", "minmax", "gaussian", "mean"],
+                        help="Prior processing before fusion: minmax (stretch to [0,1]) | "
+                             "gaussian / mean (blur the heatmap, keeps scale+structure)")
+    parser.add_argument("--heat-smooth-kernel", type=int, default=5,
+                        help="Kernel size for --heat-norm gaussian/mean blur (odd; default 5)")
     parser.add_argument("--out", type=str, default=None,
                         help="Output dir (default: runs/temp/predict_visual/<run_id>)")
     parser.add_argument("--seed", type=int, default=0,
@@ -240,6 +243,7 @@ def main():
     model.to(device)
     model.eval()
     model.heatmap_norm = args.heat_norm
+    model.heatmap_smooth_kernel = args.heat_smooth_kernel
     # Toggle the end2end head. OFF (default) -> one2many head outputs dense preds + regular NMS runs,
     # so --iou merges/suppresses nearby boxes. The head property drives the output shape; model.end2end
     # drives the NMS branch — set both. The e2e head ignores --iou (NMS-free one2one).

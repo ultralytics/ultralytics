@@ -54,6 +54,11 @@ def main():
                          "merges/suppresses nearby boxes (the e2e head ignores --iou).")
     ap.add_argument("--iou", type=float, default=0.7,
                     help="NMS IoU threshold (only active when --e2e is off). Lower = more box merging.")
+    ap.add_argument("--heat-norm", type=str, default=None, choices=["none", "minmax", "gaussian", "mean"],
+                    help="Prior processing before fusion: minmax (stretch to [0,1]) | gaussian/mean (blur). "
+                         "Affects the fused prior -> mAP; AUROC uses the raw heatmap so it is unchanged.")
+    ap.add_argument("--heat-smooth-kernel", type=int, default=5,
+                    help="Kernel size for --heat-norm gaussian/mean blur (odd; default 5)")
     ap.add_argument("--modes", type=str, nargs="+", default=["mask_off", "heatmap", "mask_on"],
                     choices=["mask_off", "heatmap", "mask_on"])
     ap.add_argument("--mvtec-root", type=str, default=None, help="MVTec-YOLO root (default: auto-resolve)")
@@ -77,9 +82,11 @@ def main():
 
     root = resolve_mvtec_root(args.mvtec_root)
     assert root is not None, "MVTec root not found (pass --mvtec-root or set MVTEC_ROOT)"
+    hn = args.heat_norm or "none"
+    hn_str = f"{hn}(k={args.heat_smooth_kernel})" if hn in ("gaussian", "mean") else hn
     print(f"MVTEC root: {root} | device: {device} | imgsz: {args.imgsz} | "
           f"e2e: {args.e2e} | iou: {args.iou if not args.e2e else 'n/a (e2e ignores iou)'} | "
-          f"cats({len(cats)}): {', '.join(cats)}",
+          f"heat-norm: {hn_str} | cats({len(cats)}): {', '.join(cats)}",
           flush=True)
 
     results = {}
@@ -94,6 +101,7 @@ def main():
                 y.model, root, categories=cats, modes=tuple(args.modes),
                 imgsz=args.imgsz, batch=args.batch, device=device, bank_size=args.bank_size,
                 save_dir=f"{args.out}/{name}", e2e=args.e2e, iou=args.iou,
+                heatmap_norm=args.heat_norm, heatmap_smooth_kernel=args.heat_smooth_kernel,
             )
             results[name] = {r["mode"]: r for r in rows if r["category"] == "AVERAGE"}
         except Exception as e:

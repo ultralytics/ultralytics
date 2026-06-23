@@ -452,6 +452,8 @@ def run_mvtec_ood_eval(
     epoch: int | None = None,
     e2e: bool | None = None,
     iou: float | None = None,
+    heatmap_norm: str | None = None,
+    heatmap_smooth_kernel: int | None = None,
 ) -> list[dict]:
     """Run the 3-mode MVTec OOD eval over ``categories``; ``model`` is a YOLOAnomalyV2Model.
 
@@ -468,6 +470,13 @@ def run_mvtec_ood_eval(
         # model in place (fine for a standalone eval; training OOD passes e2e=None and is untouched).
         m.model[-1].end2end = e2e
         m.end2end = e2e
+    if heatmap_norm is not None:
+        # Prior processing inside the model forward (minmax / gaussian / mean blur). Affects the FUSED
+        # prior -> the box/mAP metrics; AUROC uses the RAW heatmap (stashed before this step) so it is
+        # unchanged. Standalone-eval mutation only (training OOD passes None).
+        m.heatmap_norm = str(heatmap_norm).lower()
+        if heatmap_smooth_kernel is not None:
+            m.heatmap_smooth_kernel = int(heatmap_smooth_kernel)
     rows: list[dict] = []
 
     for cat in (categories or MVTEC_CATEGORIES):

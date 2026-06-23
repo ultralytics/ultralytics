@@ -762,10 +762,14 @@ class YOLOAnomalyV2Model(DetectionModel):
         self.mask_remap_kwargs = mask_remap_kwargs
         self.spatial_softmax = bool(v2_cfg.get("spatial_softmax", False))
         self.softmax_temperature = float(v2_cfg.get("softmax_temperature", 1.0))
-        # Per-image prior normalization before fusion: 'none' or 'minmax' (stretch the
-        # heatmap to [0, 1] per sample). Counters the soft-prior (e.g. memory bank, peak
-        # ~0.8) vs binary-GT-training magnitude gap. Inference toggle (default off).
+        # Prior processing before fusion (inference toggle, default 'none'):
+        #   'minmax'   per-sample stretch to [0, 1] -- counters the soft-prior (memory bank peak
+        #              ~0.8) vs binary-GT-training magnitude gap.
+        #   'gaussian' / 'mean'  blur the prior with a `heatmap_smooth_kernel`x`...` kernel --
+        #              keeps the [0, 1] scale + spatial blob structure (unlike softmax), smoothing
+        #              the noisy MB heatmap toward the gauss-like masks the fusion trained on.
         self.heatmap_norm = str(v2_cfg.get("heatmap_norm", "none")).lower()
+        self.heatmap_smooth_kernel = int(v2_cfg.get("heatmap_smooth_kernel", 5))
 
         # Transient bbox input for the next forward pass. Reset after each forward.
         self._mask_bboxes_buf = None  # (N, 4) normalized [cx, cy, w, h]
@@ -1357,6 +1361,27 @@ class YOLOAnomalyV2Model(DetectionModel):
         prob = torch.nn.functional.softmax(flat / T, dim=-1)
         return prob.view(b, c, h, w)
 
+    def _smooth_prior(self, mask, mode, kernel):
+        """Blur the prior heatmap, preserving its [0, 1] scale and spatial blob structure.
+
+        ``mode='gaussian'`` uses a Gaussian kernel (sigma = kernel/6); ``'mean'`` uses a uniform box
+        average. Both denoise a noisy memory-bank prior toward the smooth gauss masks the fusion
+        conv trained on — unlike spatial softmax, which collapses scale + spatial extent.
+        """
+        import torch.nn.functional as F
+
+        k = max(1, int(kernel)) | 1  # force odd so padding keeps H, W
+        if k < 3:
+            return mask
+        if mode == "mean":
+            ker = torch.ones(1, 1, k, k, device=mask.device, dtype=mask.dtype) / float(k * k)
+        else:  # gaussian
+            ax = torch.arange(k, device=mask.device, dtype=mask.dtype) - (k - 1) / 2.0
+            g = torch.exp(-(ax ** 2) / (2.0 * (k / 6.0) ** 2))
+            g = g / g.sum()
+            ker = (g[:, None] * g[None, :])[None, None]
+        return F.conv2d(mask, ker, padding=k // 2)
+
     def _remap_mask_values(self, mask):
         """Apply configurable value remapping to bridge binary-GT vs soft-SegBranch gap.
 
@@ -1593,12 +1618,17 @@ class YOLOAnomalyV2Model(DetectionModel):
                     # Boosts a soft, low-peak prior (memory bank ~0.8) so the fusion conv responds
                     # like it did to binary GT masks. NOTE: on clean images with a flat prior this
                     # amplifies noise to full range -> may induce false positives.
-                    if mask is not None and getattr(self, "heatmap_norm", "none") == "minmax":
+                    _hn = getattr(self, "heatmap_norm", "none")
+                    if mask is not None and _hn == "minmax":
                         b = mask.shape[0]
                         flat = mask.reshape(b, -1)
                         lo = flat.min(dim=1, keepdim=True).values
                         hi = flat.max(dim=1, keepdim=True).values
                         mask = ((flat - lo) / (hi - lo).clamp_min(1e-6)).reshape_as(mask)
+                    elif mask is not None and _hn in ("gaussian", "mean"):
+                        # Blur the prior: keeps [0,1] scale + blob structure (unlike softmax),
+                        # denoising the MB heatmap toward the gauss masks the fusion trained on.
+                        mask = self._smooth_prior(mask, _hn, getattr(self, "heatmap_smooth_kernel", 5))
                     # Spatial softmax: normalize to probability distribution (reduces
                     # distribution gap between GT binary masks and soft predictions).
                     if mask is not None and getattr(self, "spatial_softmax", False):

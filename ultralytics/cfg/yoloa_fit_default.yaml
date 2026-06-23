@@ -1,0 +1,12 @@
+# YOLOA fit config — all bank-build knobs (imgsz + bb_* + max_images).
+# Precedence at fit(): CLI overrides > this yaml > model yaml v2_cfg defaults.
+# To customize: copy this file, edit it, pass --fit-cfg <your_copy>.yaml
+imgsz: 320
+max_images: 0           # 0 = all normal images
+bb_layers: [6]          # backbone tap indices (P3/P4/P5 for yolo26m)
+bb_max_bank_size: 10000  # coreset cap (unset/None = no cap, use full bank)
+bb_K: 5                 # top-K for Noisy-OR scoring
+bb_temperature: 5.0     # initial beta (overridden when bb_auto_temperature=true)
+bb_calibrate: compactness
+bb_auto_temperature: true
+bb_calibration_target_score: 0.5

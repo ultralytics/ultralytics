@@ -1,0 +1,11 @@
+# YOLOA fit config — texture categories (carpet, grid, leather, tile, wood).
+# Precedence at fit(): CLI overrides > this yaml > model yaml v2_cfg defaults.
+imgsz: 640
+max_images: 0
+bb_layers: [6]
+bb_max_bank_size: 10000
+bb_K: 5
+bb_temperature: 5.0
+bb_calibrate: compactness
+bb_auto_temperature: true
+bb_calibration_target_score: 0.5

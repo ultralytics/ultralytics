@@ -1095,7 +1095,8 @@ class YOLOAnomalyV2Model(DetectionModel):
                               ("mb_cached_mask_gate", False),
                               ("heatmap_edge_weight", False), ("heatmap_edge_p", 4.0),
                               ("heatmap_edge_m", 4.4), ("heatmap_edge_sigma", 1.0),
-                              ("_edge_weight_cache", None)]:
+                              ("_edge_weight_cache", None),
+                              ("fit_args", None), ("fit_data", None)]:
             if not hasattr(self, attr):
                 setattr(self, attr, default)
 

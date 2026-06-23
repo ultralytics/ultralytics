@@ -9,11 +9,11 @@ Both modes fit through ``YOLOA.fit``, so they share one bank cache (``--bank-cac
 for predict is reused by val and vice versa.
 
 Usage:
-  python yoloa.py --mode predict --cat bottle --prior heatmap
-  python yoloa.py --mode predict --cat object --prior heatmap   # 10 object categories
-  python yoloa.py --mode val --cat texture --prior none         # 5 texture categories
-  python yoloa.py --mode val --cat all --prior heatmap
-  python yoloa.py --mode val --cat bottle --prior none          # honest floor (no prior)
+  python run_yoloa.py --mode predict --cat bottle --prior heatmap
+  python run_yoloa.py --mode predict --cat object --prior heatmap   # 10 object categories
+  python run_yoloa.py --mode val --cat texture --prior none         # 5 texture categories
+  python run_yoloa.py --mode val --cat all --prior heatmap
+  python run_yoloa.py --mode val --cat bottle --prior none          # honest floor (no prior)
 """
 
 import argparse

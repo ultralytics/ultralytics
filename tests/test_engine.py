@@ -160,6 +160,29 @@ def test_resume_incomplete(task, weight, data, tmp_path):
     assert resume_model.trainer.start_epoch == resume_model.trainer.epoch == 1, "resume test failed"
 
 
+@pytest.mark.parametrize(
+    "task,trainer_cls,data,student,teacher",
+    [
+        ("detect", detect.DetectionTrainer, "coco8.yaml", "yolo26n.yaml", WEIGHTS_DIR / "yolo26s.pt"),
+        ("segment", segment.SegmentationTrainer, "coco8-seg.yaml", "yolo26n-seg.yaml", WEIGHTS_DIR / "yolo26s-seg.pt"),
+        ("pose", pose.PoseTrainer, "coco8-pose.yaml", "yolo26n-pose.yaml", WEIGHTS_DIR / "yolo26s-pose.pt"),
+        ("obb", obb.OBBTrainer, "dota8.yaml", "yolo26n-obb.yaml", WEIGHTS_DIR / "yolo26s-obb.pt"),
+    ],
+)
+def test_distill(task, trainer_cls, data, student, teacher):
+    """Test knowledge distillation training via the Python API for supported tasks."""
+    overrides = {
+        "data": data,
+        "model": student,
+        "distill_model": teacher,
+        "imgsz": 32,
+        "epochs": 1,
+        "save": False,
+    }
+    trainer = trainer_cls(overrides=overrides)
+    trainer.train()
+
+
 def test_distill_resume(tmp_path: Path):
     """Test knowledge distillation resumes from an incomplete checkpoint."""
     overrides = {

@@ -173,6 +173,11 @@ class BasePredictor:
         im = im.half() if self.model.fp16 else im.float()  # uint8 to fp16/32
         if not_tensor:
             im /= 255  # 0 - 255 to 0.0 - 1.0
+        # Pad a partial final batch up to a static backend's fixed batch size (e.g. ONNX/TensorRT exported with
+        # batch>1) so the last, smaller batch does not fail the fixed input dim; padded rows are dropped in postprocess.
+        mb = getattr(self.model, "batch", 1) or 1
+        if mb > 1 and not getattr(self.model, "dynamic", False) and 0 < im.shape[0] < mb:
+            im = torch.cat((im, im[-1:].repeat(mb - im.shape[0], 1, 1, 1)), 0)
         return im
 
     def inference(self, im: torch.Tensor, *args, **kwargs):

@@ -14,6 +14,11 @@ Usage:
   python mvtec_deploy_eval.py --ckpt A/best.pt B/best.pt --categories bottle carpet --imgsz 640
   python mvtec_deploy_eval.py --ckpt <best.pt> --categories all          # all 15 MVTec categories
   python mvtec_deploy_eval.py --ckpt A/best.pt B/best.pt --name refiner norefiner
+  python mvtec_deploy_eval.py --ckpt <best.pt> --heat-edge                 # edge-suppression weight on
+  python mvtec_deploy_eval.py --ckpt <best.pt> --heat-edge --heat-edge-sigma 1.2   # gentler edges
+
+To A/B the edge weight on one checkpoint, run twice (with and without --heat-edge) and compare the
+heatmap(DEPLOY) rows; the weight only touches that prior, so mask_off / mask_on are unchanged.
 """
 import argparse
 import json
@@ -59,9 +64,22 @@ def main():
                          "Affects the fused prior -> mAP; AUROC uses the raw heatmap so it is unchanged.")
     ap.add_argument("--heat-smooth-kernel", type=int, default=5,
                     help="Kernel size for --heat-norm gaussian/mean blur (odd; default 5)")
+    ap.add_argument("--heat-edge", action="store_true",
+                    help="Multiply the memory-bank heatmap by a fixed squircle-Gaussian center window "
+                         "(1 at center, decaying to borders) to suppress peripheral noise. Applies to the "
+                         "'heatmap' prior only; unlike --heat-norm it is applied BEFORE the AUROC stash, "
+                         "so it moves AUROC too.")
+    ap.add_argument("--heat-edge-sigma", type=float, default=1.0,
+                    help="--heat-edge: edge value / transition (bigger = gentler; default 1.0 -> edge-mid ~0.61)")
+    ap.add_argument("--heat-edge-m", type=float, default=4.4, help="--heat-edge: center plateau steepness")
+    ap.add_argument("--heat-edge-p", type=float, default=4.0, help="--heat-edge: shape (2=circle, 4=squircle, >=8 square)")
     ap.add_argument("--modes", type=str, nargs="+", default=["mask_off", "heatmap", "mask_on"],
                     choices=["mask_off", "heatmap", "mask_on"])
     ap.add_argument("--mvtec-root", type=str, default=None, help="MVTec-YOLO root (default: auto-resolve)")
+    ap.add_argument("--bank-cache", type=str, default=None,
+                    help="Dir to cache+reuse per-category memory banks (disk), so re-runs and the "
+                         "edge OFF/ON A/B skip the slow rebuild. Off by default (rebuild per run). "
+                         "Keyed by imgsz+bank-size, so changing those is safe.")
     ap.add_argument("--out", type=str, default="runs/temp/mvtec_deploy_eval",
                     help="output dir for per-model CSV + summary.json")
     args = ap.parse_args()
@@ -84,9 +102,10 @@ def main():
     assert root is not None, "MVTec root not found (pass --mvtec-root or set MVTEC_ROOT)"
     hn = args.heat_norm or "none"
     hn_str = f"{hn}(k={args.heat_smooth_kernel})" if hn in ("gaussian", "mean") else hn
+    edge_str = f"on(sigma={args.heat_edge_sigma},m={args.heat_edge_m},p={args.heat_edge_p})" if args.heat_edge else "off"
     print(f"MVTEC root: {root} | device: {device} | imgsz: {args.imgsz} | "
           f"e2e: {args.e2e} | iou: {args.iou if not args.e2e else 'n/a (e2e ignores iou)'} | "
-          f"heat-norm: {hn_str} | cats({len(cats)}): {', '.join(cats)}",
+          f"heat-norm: {hn_str} | heat-edge: {edge_str} | cats({len(cats)}): {', '.join(cats)}",
           flush=True)
 
     results = {}
@@ -102,6 +121,10 @@ def main():
                 imgsz=args.imgsz, batch=args.batch, device=device, bank_size=args.bank_size,
                 save_dir=f"{args.out}/{name}", e2e=args.e2e, iou=args.iou,
                 heatmap_norm=args.heat_norm, heatmap_smooth_kernel=args.heat_smooth_kernel,
+                heatmap_edge_weight=args.heat_edge or None,
+                heatmap_edge_sigma=args.heat_edge_sigma,
+                heatmap_edge_m=args.heat_edge_m, heatmap_edge_p=args.heat_edge_p,
+                bank_cache_dir=args.bank_cache,
             )
             results[name] = {r["mode"]: r for r in rows if r["category"] == "AVERAGE"}
         except Exception as e:

@@ -173,6 +173,17 @@ def main():
                              "gaussian / mean (blur the heatmap, keeps scale+structure)")
     parser.add_argument("--heat-smooth-kernel", type=int, default=5,
                         help="Kernel size for --heat-norm gaussian/mean blur (odd; default 5)")
+    parser.add_argument("--heat-edge", action="store_true",
+                        help="Multiply the memory-bank heatmap by a fixed squircle-Gaussian center "
+                             "window (1 at center, decaying to the borders) to suppress peripheral "
+                             "noise. Applies to the 'heatmap' prior mode only.")
+    parser.add_argument("--heat-edge-sigma", type=float, default=1.0,
+                        help="--heat-edge: edge value / transition width (smaller -> darker edges; "
+                             "default 1.0 -> edge-mid ~0.61, corner ~0.34)")
+    parser.add_argument("--heat-edge-m", type=float, default=4.4,
+                        help="--heat-edge: center plateau steepness (larger -> flatter center, sharper shoulder)")
+    parser.add_argument("--heat-edge-p", type=float, default=4.0,
+                        help="--heat-edge: shape (2=circle, 4=squircle, >=8 square)")
     parser.add_argument("--out", type=str, default=None,
                         help="Output dir (default: runs/temp/predict_visual/<run_id>)")
     parser.add_argument("--seed", type=int, default=0,
@@ -244,6 +255,10 @@ def main():
     model.eval()
     model.heatmap_norm = args.heat_norm
     model.heatmap_smooth_kernel = args.heat_smooth_kernel
+    model.heatmap_edge_weight = args.heat_edge
+    model.heatmap_edge_p = args.heat_edge_p
+    model.heatmap_edge_m = args.heat_edge_m
+    model.heatmap_edge_sigma = args.heat_edge_sigma
     # Toggle the end2end head. OFF (default) -> one2many head outputs dense preds + regular NMS runs,
     # so --iou merges/suppresses nearby boxes. The head property drives the output shape; model.end2end
     # drives the NMS branch — set both. The e2e head ignores --iou (NMS-free one2one).
@@ -251,6 +266,9 @@ def main():
     model.end2end = args.e2e
     LOGGER.info(f"end2end = {args.e2e} (--iou {'ignored' if args.e2e else 'active'})")
     LOGGER.info(f"heatmap_norm = {model.heatmap_norm}")
+    LOGGER.info(f"heatmap_edge_weight = {model.heatmap_edge_weight}"
+                + (f" (p={args.heat_edge_p}, m={args.heat_edge_m}, sigma={args.heat_edge_sigma})"
+                   if args.heat_edge else ""))
     has_bank = model.memory_bank is not None
     if not has_bank:
         LOGGER.warning("Model has no memory bank (no bb_layers) — 'heatmap' prior falls back to no-prior; "

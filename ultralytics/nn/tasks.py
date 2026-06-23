@@ -770,6 +770,17 @@ class YOLOAnomalyV2Model(DetectionModel):
         #              the noisy MB heatmap toward the gauss-like masks the fusion trained on.
         self.heatmap_norm = str(v2_cfg.get("heatmap_norm", "none")).lower()
         self.heatmap_smooth_kernel = int(v2_cfg.get("heatmap_smooth_kernel", 5))
+        # Edge-suppression weight (deploy-time, default off): a fixed squircle (Lp-norm) Gaussian
+        # window -- 1.0 at the center, decaying toward the borders -- multiplied into the memory-bank
+        # heatmap. Memory-bank priors flag the image periphery (boundary patches have few
+        # in-distribution neighbors -> high score) even on normal samples; this down-weights that
+        # ring. A constant buffer from three shape params (no learned weights). Applied to the
+        # 'heatmap' prior mode only, before the AUROC stash, so it cleans both the score and fusion.
+        self.heatmap_edge_weight = bool(v2_cfg.get("heatmap_edge_weight", False))
+        self.heatmap_edge_p = float(v2_cfg.get("heatmap_edge_p", 4.0))  # 2=circle, 4=squircle, >=8 square
+        self.heatmap_edge_m = float(v2_cfg.get("heatmap_edge_m", 4.4))  # center plateau steepness
+        self.heatmap_edge_sigma = float(v2_cfg.get("heatmap_edge_sigma", 1.0))  # edge value / transition
+        self._edge_weight_cache = None  # (key, (1,1,H,W) tensor); regenerated on shape/param/device change
 
         # Transient bbox input for the next forward pass. Reset after each forward.
         self._mask_bboxes_buf = None  # (N, 4) normalized [cx, cy, w, h]
@@ -1060,7 +1071,7 @@ class YOLOAnomalyV2Model(DetectionModel):
         state["_bb_hook_handles"] = []
         state["_bb_feats"] = {}
         for k in ("_cached_prior_buf", "_last_heatmap", "_qf_aux_buf", "_seg_logits_buf",
-                  "_mask_bboxes_buf", "_mask_batch_idx_buf", "_external_mask_buf"):
+                  "_mask_bboxes_buf", "_mask_batch_idx_buf", "_external_mask_buf", "_edge_weight_cache"):
             if k in state:
                 state[k] = None
         return state
@@ -1081,7 +1092,10 @@ class YOLOAnomalyV2Model(DetectionModel):
                               ("mask_blur_sigma_max", 0.0),
                               ("mb_queue_capacity", 0), ("mb_blend_p", 0.5),
                               ("mb_cached_prior", False), ("_cached_prior_buf", None),
-                              ("mb_cached_mask_gate", False)]:
+                              ("mb_cached_mask_gate", False),
+                              ("heatmap_edge_weight", False), ("heatmap_edge_p", 4.0),
+                              ("heatmap_edge_m", 4.4), ("heatmap_edge_sigma", 1.0),
+                              ("_edge_weight_cache", None)]:
             if not hasattr(self, attr):
                 setattr(self, attr, default)
 
@@ -1382,6 +1396,29 @@ class YOLOAnomalyV2Model(DetectionModel):
             ker = (g[:, None] * g[None, :])[None, None]
         return F.conv2d(mask, ker, padding=k // 2)
 
+    def _edge_weight(self, mask):
+        """Fixed squircle-Gaussian center-weight window matching ``mask``'s HxW (cached).
+
+        ``weight = exp(-dist**m / (2*sigma**m))`` with ``dist = (|x|**p + |y|**p)**(1/p)`` over
+        per-axis coords normalized to [0, 1] at the border: 1.0 at the center, decaying toward the
+        edges. Defaults (p=4, m=4.4, sigma=1.0) give edge-mid ~0.61, corner ~0.34 (raise sigma -> gentler).
+        Multiply into the heatmap to suppress memory-bank border noise. Returns (1, 1, H, W).
+        """
+        h, w = mask.shape[-2], mask.shape[-1]
+        p = float(getattr(self, "heatmap_edge_p", 4.0))
+        m = float(getattr(self, "heatmap_edge_m", 4.4))
+        sigma = float(getattr(self, "heatmap_edge_sigma", 1.0))
+        key = (h, w, p, m, sigma, mask.device, mask.dtype)
+        cache = getattr(self, "_edge_weight_cache", None)
+        if cache is None or cache[0] != key:
+            yc = (torch.arange(h, device=mask.device, dtype=torch.float32) - (h - 1) / 2.0).abs() / max((h - 1) / 2.0, 1e-6)
+            xc = (torch.arange(w, device=mask.device, dtype=torch.float32) - (w - 1) / 2.0).abs() / max((w - 1) / 2.0, 1e-6)
+            dist = (xc[None, :] ** p + yc[:, None] ** p) ** (1.0 / p)
+            wmap = torch.exp(-(dist ** m) / (2.0 * sigma ** m)).to(mask.dtype)
+            cache = (key, wmap[None, None])
+            self._edge_weight_cache = cache
+        return cache[1]
+
     def _remap_mask_values(self, mask):
         """Apply configurable value remapping to bridge binary-GT vs soft-SegBranch gap.
 
@@ -1612,6 +1649,15 @@ class YOLOAnomalyV2Model(DetectionModel):
                         mask = self._resolve_prior(prior_mode, external_mask, bboxes, batch_idx,
                                                    seg_logits_buf, batch_size, device)
                     # --- end prior_mode routing ---
+                    # Edge-suppression weight: down-weight the memory-bank heatmap toward the image
+                    # borders (peripheral patches score high from boundary effects, not real defects).
+                    # Applied before the stash so it cleans both the AUROC heatmap and the fused prior.
+                    if (
+                        mask is not None
+                        and prior_mode == "heatmap"
+                        and getattr(self, "heatmap_edge_weight", False)
+                    ):
+                        mask = mask * self._edge_weight(mask)
                     # Stash RAW heatmap for validator AUROC (before softmax/remapping/augmentation).
                     self._last_heatmap = mask.detach() if mask is not None else None
                     # Per-image min-max normalization: stretch each sample's prior to [0, 1].

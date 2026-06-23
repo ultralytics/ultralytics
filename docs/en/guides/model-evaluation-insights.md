@@ -115,7 +115,7 @@ Fine-tuning takes a pretrained model and adjusts its parameters to improve perfo
 
 During normal training, the [learning rate](https://www.ultralytics.com/glossary/learning-rate) starts low and gradually increases over the first few epochs to stabilize early updates. When fine-tuning, the model already carries useful features from pretraining, so you can skip this warmup and start adapting to your new data right away.
 
-Set the `warmup_epochs` training argument to `0` in `model.train()` to disable the warmup phase. Training then continues from the pretrained weights at the full learning rate, adjusting to the nuances of your new data.
+Set the `warmup_epochs` training argument to `0` in `model.train()` to disable the warmup phase. Training then continues from the pretrained weights at the configured base learning rate (`lr0`) instead of ramping up to it, adjusting to the nuances of your new data.
 
 !!! example "Fine-tune without learning-rate warmup"
 

@@ -38,7 +38,7 @@ Train a smaller student model with guidance from a larger teacher model by addin
 - You want better accuracy than standard training provides
 
 !!! note
-    Knowledge distillation is implemented for **detect**, **segment**, **pose**, and **obb** tasks. Only **detect** has been experimentally verified for accuracy improvements.
+    Knowledge distillation is implemented for **detect**, **segment**, **pose**, and **obb** tasks. Only **detect** has been experimentally verified for accuracy improvements for now.
 
 ## Performance
 
@@ -171,11 +171,7 @@ Training with distillation is identical to standard training. Provide the `disti
         student = YOLO("yolo26m.pt")
 
         # Train with knowledge distillation from a larger teacher model
-        results = student.train(
-            data="coco8.yaml",
-            epochs=100,
-            distill_model="yolo26x.pt",  # path to teacher model
-        )
+        results = student.train(data="coco8.yaml", epochs=100, distill_model="yolo26x.pt")
         ```
 
     === "CLI"
@@ -197,12 +193,7 @@ The `dis` parameter (default: `6.0`) controls distillation loss contribution:
 
         student = YOLO("yolo26n.pt")
 
-        results = student.train(
-            data="coco8.yaml",
-            epochs=100,
-            distill_model="yolo26s.pt",
-            dis=10,
-        )
+        results = student.train(data="coco8.yaml", epochs=100, distill_model="yolo26s.pt", dis=10)
         ```
 
     === "CLI"

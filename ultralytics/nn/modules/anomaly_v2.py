@@ -623,6 +623,7 @@ class BackboneMemoryBank(nn.Module):
         self.feature_dim: int | None = None
         self.update = True
         self._bb_layer_indices: list[int] = []
+        self._bank_chunks: list[torch.Tensor] = []
         self.score_chunk_elems = 1 << 27  # max elements per similarity slice in _anomaly_scores
 
     @property
@@ -662,6 +663,9 @@ class BackboneMemoryBank(nn.Module):
           neighbour density on the coreset to calibrate β.  Because the coreset
           represents the normal manifold compactness, scores naturally map to [0, 1].
         """
+        if self._bank_chunks:
+            self.memory_bank = torch.cat(self._bank_chunks, dim=0)
+            self._bank_chunks.clear()
         mem = self._effective_bank()
         if self.calibrate == "compactness":
             # Coreset first, then calibrate from its spatial compactness.
@@ -683,6 +687,7 @@ class BackboneMemoryBank(nn.Module):
         self.feature_dim = None
         self._calibrated = False
         self.update = True
+        self._bank_chunks: list[torch.Tensor] = []  # defer cat until freeze
 
     # ------------------------------------------------------------------
     # MoCo-style FIFO queue (training-time prior)
@@ -770,8 +775,9 @@ class BackboneMemoryBank(nn.Module):
     def accumulate_features(self, feat_dict: dict[int, torch.Tensor]) -> None:
         """Extract and accumulate backbone features into the memory bank (build phase).
 
-        Fused backbone features are L2-normalised per spatial position and concatenated
-        onto the existing bank. Call ``freeze_memory_bank()`` to compress and freeze.
+        Fused backbone features are L2-normalised per spatial position and appended
+        to a chunk list; the full bank is materialised once in ``freeze_memory_bank``
+        to avoid O(N²) reallocation from repeated ``torch.cat``.
         """
         if not feat_dict:
             return
@@ -781,11 +787,7 @@ class BackboneMemoryBank(nn.Module):
             self.feature_dim = C
         flat = fused.permute(0, 2, 3, 1).reshape(-1, C)  # [B*H*W, C]
         normed = F.normalize(flat, p=2, dim=1)
-        cur = self._effective_bank()
-        if cur.shape[0] > 0:
-            self.memory_bank = torch.cat([cur, normed.to(cur.device)], dim=0)
-        else:
-            self.memory_bank = normed
+        self._bank_chunks.append(normed)
 
     def forward(self, feat_dict: dict[int, torch.Tensor]) -> torch.Tensor:
         """Produce (B, 1, H, W) anomaly heatmap from backbone features.
@@ -819,6 +821,8 @@ class BackboneMemoryBank(nn.Module):
 
     def _effective_bank(self) -> torch.Tensor:
         """Return real memory-bank entries excluding zero-padding placeholders."""
+        if self.update and self._bank_chunks:
+            return torch.cat(self._bank_chunks, dim=0)
         mem = self.memory_bank
         if self.feature_dim is None or mem.numel() == 0 or mem.shape[0] == 0:
             return mem[:0]
@@ -957,6 +961,12 @@ class BackboneMemoryBank(nn.Module):
         """Greedy k-center coreset on L2-normalised features using cosine distance.
 
         Complexity: O(max_size × M). Features must be L2-normalised.
+
+        Batched greedy: selects ``batch_size`` farthest points per iteration and
+        computes distances against all of them in one GEMM call, amortizing the
+        large bank read over multiple centres and trading a small amount of
+        greediness for a large wall-clock speedup on memory-bandwidth-limited
+        devices (MPS / CPU).
         """
         from ultralytics.utils import TQDM
 
@@ -964,18 +974,30 @@ class BackboneMemoryBank(nn.Module):
         if M <= max_size:
             return mem
         device = mem.device
+        BATCH = 64  # centres per GEMM call — amortizes bank reads
         dist = torch.full((M,), float("inf"), device=device, dtype=torch.float32)
         selected: list[int] = []
         mean = mem.mean(dim=0)
         mean = mean / mean.norm().clamp(min=1e-8)
         seed = int((mem @ mean).argmax().item())
         selected.append(seed)
-        for _ in TQDM(range(max_size - 1), desc="Coreset subsample", leave=False):
-            centre = mem[selected[-1]].unsqueeze(0)
-            cos_sim = (mem @ centre.t()).squeeze(1)
-            new_dist = (1.0 - cos_sim).clamp(min=0.0)
+        # seed distance so the first topk isn't random (all-inf)
+        centre = mem[seed].unsqueeze(0)
+        seed_cos = (mem @ centre.t()).squeeze(1)
+        dist = (1.0 - seed_cos).clamp(min=0.0)
+        n_needed = max_size - len(selected)
+        pbar = TQDM(total=n_needed, desc="Coreset subsample", leave=False)
+        while n_needed > 0:
+            k = min(BATCH, max_size - len(selected))
+            _, top_idx = dist.topk(k)
+            selected.extend(top_idx.tolist())
+            centres = mem[top_idx]                                      # [k, C]
+            cos_sim = mem @ centres.t()                                 # [M, k]
+            new_dist = (1.0 - cos_sim).clamp(min=0.0).min(dim=1).values  # [M]
             dist = torch.minimum(dist, new_dist)
-            selected.append(int(dist.argmax().item()))
+            n_needed = max_size - len(selected)
+            pbar.update(k)
+        pbar.close()
         return mem[torch.tensor(selected, device=device)]
 
 

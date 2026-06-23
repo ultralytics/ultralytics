@@ -9,7 +9,7 @@ import torch.nn.functional as F
 from torch import nn
 
 from ultralytics.nn.modules.head import Detect
-from ultralytics.utils.torch_utils import copy_attr, smart_inference_mode
+from ultralytics.utils.torch_utils import copy_attr
 
 from .tasks import load_checkpoint
 
@@ -79,7 +79,7 @@ class DistillationModel(nn.Module):
         # Get feature dimensions via dummy forward pass (hooks capture outputs)
         imgsz = student_model.args.imgsz
         student_model.eval()
-        with smart_inference_mode():
+        with torch.inference_mode():
             teacher_model(torch.zeros(2, 3, imgsz, imgsz).to(device))
             student_model(torch.zeros(2, 3, imgsz, imgsz).to(device))
         student_model.train()

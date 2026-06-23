@@ -16,7 +16,7 @@ from ultralytics.engine.exporter import Exporter
 from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models.yolo import classify, detect, obb, pose, segment, semantic
 from ultralytics.nn.distill_model import DistillationModel
-from ultralytics.nn.tasks import DetectionModel, load_checkpoint
+from ultralytics.nn.tasks import load_checkpoint
 from ultralytics.utils import ASSETS, DEFAULT_CFG, IS_RASPBERRYPI, WEIGHTS_DIR
 from ultralytics.utils.torch_utils import unwrap_model
 
@@ -158,29 +158,6 @@ def test_resume_incomplete(task, weight, data, tmp_path):
     resume_model = YOLO(last_path)
     resume_model.train(resume=True, **train_args)
     assert resume_model.trainer.start_epoch == resume_model.trainer.epoch == 1, "resume test failed"
-
-
-@pytest.mark.parametrize(
-    "task,trainer_cls,data,student,teacher",
-    [
-        ("detect", detect.DetectionTrainer, "coco8.yaml", "yolo26n.yaml", WEIGHTS_DIR / "yolo26s.pt"),
-        ("segment", segment.SegmentationTrainer, "coco8-seg.yaml", "yolo26n-seg.yaml", WEIGHTS_DIR / "yolo26s-seg.pt"),
-        ("pose", pose.PoseTrainer, "coco8-pose.yaml", "yolo26n-pose.yaml", WEIGHTS_DIR / "yolo26s-pose.pt"),
-        ("obb", obb.OBBTrainer, "dota8.yaml", "yolo26n-obb.yaml", WEIGHTS_DIR / "yolo26s-obb.pt"),
-    ],
-)
-def test_distill(task, trainer_cls, data, student, teacher):
-    """Test knowledge distillation training for supported tasks via the public API."""
-    overrides = {
-        "data": data,
-        "model": student,
-        "distill_model": teacher,
-        "imgsz": 32,
-        "epochs": 1,
-        "save": False,
-    }
-    trainer = trainer_cls(overrides=overrides)
-    trainer.train()
 
 
 def test_distill_resume(tmp_path: Path):

@@ -22,7 +22,7 @@ class FeatureHook:
         self.feat_dict = feat_dict
         self.idx = idx
 
-    def __call__(self, module: nn.Module, input: tuple, output: torch.Tensor) -> None:
+    def __call__(self, module: nn.Module, inputs: tuple, output: torch.Tensor) -> None:
         """Store the layer's forward output into the shared feature dict under its index."""
         self.feat_dict[self.idx] = output
 

@@ -80,19 +80,12 @@ class LiteRTBackend(BaseBackend):
             if output["dtype"] in {np.int8, np.int16}:
                 scale, zero_point = output["quantization"]
                 x = (x.astype(np.float32) - zero_point) * scale
-            if x.ndim == 3:  # denormalize xywh (and pose keypoints) by image size
-                if x.shape[-1] == 6 or self.end2end:  # (batch, max_det, 6) end-to-end output
-                    x[:, :, [0, 2]] *= w
-                    x[:, :, [1, 3]] *= h
-                    if self.task == "pose":
-                        x[:, :, 6::3] *= w
-                        x[:, :, 7::3] *= h
-                else:  # (batch, channels, anchors) raw output
-                    x[:, [0, 2]] *= w
-                    x[:, [1, 3]] *= h
-                    if self.task == "pose":
-                        x[:, 5::3] *= w
-                        x[:, 6::3] *= h
+            if x.ndim == 3:  # denormalize xywh (and pose keypoints) by image size on raw (batch, channels, anchors)
+                x[:, [0, 2]] *= w
+                x[:, [1, 3]] *= h
+                if self.task == "pose":
+                    x[:, 5::3] *= w
+                    x[:, 6::3] *= h
             y.append(x)
 
         if self.task == "segment" and y[0].ndim == 4:  # order as (detections, protos); protos already NCHW

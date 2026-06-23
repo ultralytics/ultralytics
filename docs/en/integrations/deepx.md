@@ -14,7 +14,7 @@ Deploying computer vision models on specialized NPU hardware requires a compatib
   <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/deepx_cover.avif" alt="DEEPX NPU Inference">
 </p>
 
-[DEEPX](https://www.deepx.ai/) is an AI semiconductor company specializing in Neural Processing Units (NPUs) designed for power-efficient [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) inference at the edge. DEEPX NPUs are engineered for demanding embedded and industrial AI applications, delivering high throughput with minimal power consumption. Their hardware is well suited for deployment scenarios where cloud connectivity is unreliable or undesirable, such as robotics, smart cameras, and industrial automation systems.
+[DEEPX](https://deepx.ai/) is an AI semiconductor company specializing in Neural Processing Units (NPUs) designed for power-efficient [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) inference at the edge. DEEPX NPUs are engineered for demanding embedded and industrial AI applications, delivering high throughput with minimal power consumption. Their hardware is well suited for deployment scenarios where cloud connectivity is unreliable or undesirable, such as robotics, smart cameras, and industrial automation systems.
 
 ## DEEPX Export Format
 
@@ -34,14 +34,14 @@ DEEPX models offer several advantages for edge deployment:
 
 All standard Ultralytics tasks are supported for DEEPX export across YOLO26, YOLO11, and YOLOv8 model families.
 
-| Task                                                                  | Supported |
-| :-------------------------------------------------------------------- | :-------- |
-| [Object Detection](https://docs.ultralytics.com/tasks/detect/)        | ✅        |
-| [Instance Segmentation](https://docs.ultralytics.com/tasks/segment/)  | ✅        |
-| [Semantic Segmentation](https://docs.ultralytics.com/tasks/semantic/) | ✅        |
-| [Pose Estimation](https://docs.ultralytics.com/tasks/pose/)           | ✅        |
-| [OBB Detection](https://docs.ultralytics.com/tasks/obb/)              | ✅        |
-| [Classification](https://docs.ultralytics.com/tasks/classify/)        | ✅        |
+| Task                                                                 | Supported |
+| :------------------------------------------------------------------- | :-------- |
+| [Object Detection](https://docs.ultralytics.com/tasks/detect)        | ✅        |
+| [Instance Segmentation](https://docs.ultralytics.com/tasks/segment)  | ✅        |
+| [Semantic Segmentation](https://docs.ultralytics.com/tasks/semantic) | ✅        |
+| [Pose Estimation](https://docs.ultralytics.com/tasks/pose)           | ✅        |
+| [OBB Detection](https://docs.ultralytics.com/tasks/obb)              | ✅        |
+| [Classification](https://docs.ultralytics.com/tasks/classify)        | ✅        |
 
 ## Export to DEEPX: Converting Your YOLO Model
 
@@ -311,7 +311,7 @@ In this guide, you've learned how to export Ultralytics YOLO models to DEEPX for
 
 The combination of [Ultralytics YOLO](https://www.ultralytics.com/yolo) and DEEPX's NPU technology provides an effective solution for running advanced [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) workloads on embedded and edge devices — delivering high throughput with low power consumption for real-time applications.
 
-For further details on usage, visit the [DEEPX official website](https://www.deepx.ai/).
+For further details on usage, visit the [DEEPX official website](https://deepx.ai/).
 
 Also, if you'd like to know more about other Ultralytics YOLO integrations, visit our [integration guide page](../integrations/index.md). You'll find plenty of useful resources and insights there.
 

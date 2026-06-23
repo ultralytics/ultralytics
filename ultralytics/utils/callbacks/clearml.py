@@ -66,7 +66,7 @@ def on_pretrain_routine_start(trainer) -> None:
             PatchedMatplotlib.update_current_task(None)
         else:
             task = Task.init(
-                project_name=trainer.args.project or "Ultralytics",
+                project_name=str(trainer.args.project or "Ultralytics").lstrip("/") or "Ultralytics",
                 task_name=trainer.args.name,
                 tags=["Ultralytics"],
                 output_uri=True,

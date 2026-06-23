@@ -1,4 +1,5 @@
 ---
+title: YOLO Object Detection & Segmentation
 comments: true
 description: Discover Ultralytics YOLO - the latest in real-time object detection and image segmentation. Learn about its features and maximize its potential in your projects.
 keywords: Ultralytics, YOLO, YOLO26, YOLO11, object detection, image segmentation, deep learning, computer vision, AI, machine learning, documentation, tutorial
@@ -86,7 +87,7 @@ Request an Enterprise License for commercial use at [Ultralytics Licensing](http
 
     ***
 
-    [:octicons-arrow-right-24: Learn more](modes/predict.md)
+    [:octicons-arrow-right-24: Explore Predict mode](modes/predict.md)
 
 - :fontawesome-solid-brain:{ .lg .middle } &nbsp; **Train a Model**
 
@@ -96,7 +97,7 @@ Request an Enterprise License for commercial use at [Ultralytics Licensing](http
 
     ***
 
-    [:octicons-arrow-right-24: Learn more](modes/train.md)
+    [:octicons-arrow-right-24: Explore Train mode](modes/train.md)
 
 - :material-magnify-expand:{ .lg .middle } &nbsp; **Explore Computer Vision Tasks**
 

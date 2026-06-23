@@ -1,4 +1,5 @@
 ---
+title: YOLO26 RKNN Export for Rockchip NPU
 comments: true
 description: Learn how to export YOLO26 models to RKNN format, including floating-point and INT8 quantized models, for efficient deployment on Rockchip platforms.
 keywords: YOLO26, RKNN, model export, Ultralytics, Rockchip, INT8 quantization, FP16, machine learning, model deployment, computer vision, deep learning, edge AI, NPU, embedded devices

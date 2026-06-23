@@ -335,7 +335,8 @@ class BaseTrainer:
             self.amp = torch.tensor(check_amp(self.model), device=self.device)
             callbacks.default_callbacks = callbacks_backup  # restore callbacks
         if RANK > -1 and self.world_size > 1:  # DDP
-            dist.broadcast(self.amp.int(), src=0)  # broadcast from rank 0 to all other ranks; gloo errors with boolean
+            self.amp = self.amp.int()  # gloo errors with boolean
+            dist.broadcast(self.amp, src=0)  # broadcast from rank 0 to all other ranks
         self.amp = bool(self.amp)  # as boolean
         self.scaler = (
             torch.amp.GradScaler("cuda", enabled=self.amp) if TORCH_2_4 else torch.cuda.amp.GradScaler(enabled=self.amp)
@@ -352,6 +353,7 @@ class BaseTrainer:
                 self.model,
                 device_ids=[RANK],
                 static_graph=bool(self.args.compile),
+                find_unused_parameters=not bool(self.args.compile),
             )
 
         # Batch size
@@ -505,7 +507,7 @@ class BaseTrainer:
                             f"{epoch + 1}/{self.epochs}",
                             f"{self._get_memory():.3g}G",  # (GB) GPU memory util
                             *(self.tloss if loss_length > 1 else torch.unsqueeze(self.tloss, 0)),  # losses
-                            batch["img"].shape[0],  # batch size, i.e. 8
+                            batch.get("cls", batch["img"]).shape[0],  # no. of instances
                             batch["img"].shape[-1],  # imgsz, i.e 640
                         )
                     )

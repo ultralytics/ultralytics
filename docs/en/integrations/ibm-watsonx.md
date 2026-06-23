@@ -1,4 +1,5 @@
 ---
+title: Train YOLO26 Models with IBM Watsonx
 comments: true
 description: Dive into our detailed integration guide on using IBM Watson to train a YOLO26 model. Uncover key features and step-by-step instructions on model training.
 keywords: IBM Watsonx, IBM Watsonx AI, What is Watson?, IBM Watson Integration, IBM Watson Features, YOLO26, Ultralytics, Model Training, GPU, TPU, cloud computing
@@ -396,7 +397,7 @@ if __name__ == "__main__":
     organize_files(directory)
 ```
 
-For more details, refer to our [data preprocessing guide](../guides/preprocessing_annotated_data.md).
+For more details, refer to our [data preprocessing guide](../guides/preprocessing-annotated-data.md).
 
 ### What are the prerequisites for training a YOLO26 model on IBM Watsonx?
 

@@ -13,6 +13,7 @@ from ultralytics.models import yolo
 from ultralytics.nn.tasks import ReidModel
 from ultralytics.utils import DEFAULT_CFG, RANK
 from ultralytics.utils.torch_utils import is_parallel, torch_distributed_zero_first
+
 from ..classify.train import ClassificationTrainer
 
 
@@ -160,7 +161,8 @@ class ReidTrainer(ClassificationTrainer):
         """Plotting training samples is a no-op for ReID — pid integers (often hundreds in
         Market-1501) are not human-meaningful class names, so a mosaic of pid-labelled crops
         adds visual noise without conveying anything useful. ``ReidValidator.plot_predictions``
-        is similarly a no-op."""
+        is similarly a no-op.
+        """
         pass
 
     def label_loss_items(self, loss_items=None, prefix: str = "train"):

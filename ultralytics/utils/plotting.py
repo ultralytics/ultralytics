@@ -1121,7 +1121,7 @@ def _reid_tile(path, label, tile_size=(240, 320), border_color=(90, 90, 90)):
         y = 36 + (h - 64 - image.height) // 2
         canvas.paste(image, (x, y))
         ok = True
-    except Exception:  # noqa: BLE001 - never let a bad image crash plotting
+    except Exception:
         ok = False
     sub = Path(path).name[:38] if ok else "missing"
     draw = ImageDraw.Draw(canvas)

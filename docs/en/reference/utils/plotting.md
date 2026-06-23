@@ -46,4 +46,12 @@ keywords: ultralytics, plotting, utilities, documentation, data visualization, a
 
 ## ::: ultralytics.utils.plotting.feature_visualization
 
+<br><br><hr><br>
+
+## ::: ultralytics.utils.plotting._reid_tile
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.plotting.plot_reid_retrieval
+
 <br><br>

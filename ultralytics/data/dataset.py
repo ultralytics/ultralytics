@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import re
 import json
+import re
 from collections import defaultdict
 from itertools import repeat
 from multiprocessing.pool import ThreadPool

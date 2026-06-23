@@ -39,13 +39,13 @@ def test_family_scale_train_forward_loss_step(family, scale):
     labels = torch.tensor([0, 0, 1, 1, 2, 2, 3, 3])  # P=4, K=2 so triplet has positives
     preds = model(imgs)
     assert isinstance(preds, (list, tuple)) and len(preds) == 3, "train-mode head must return triple"
-    logits, bn_feat, raw_feat = preds
+    logits, _bn_feat, _raw_feat = preds
     assert logits.shape == (8, NC)
 
     crit = model.init_criterion()
     opt = torch.optim.SGD(model.parameters(), lr=0.01)
     opt.zero_grad()
-    loss, items = crit(preds, {"cls": labels})
+    loss, _items = crit(preds, {"cls": labels})
     assert torch.isfinite(loss), "loss must be finite"
     loss.backward()
     opt.step()

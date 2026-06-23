@@ -773,6 +773,7 @@ nav:
                   - val: reference/models/yolo/pose/val.md
               - reid:
                   - predict: reference/models/yolo/reid/predict.md
+                  - retrieval: reference/models/yolo/reid/retrieval.md
                   - train: reference/models/yolo/reid/train.md
                   - val: reference/models/yolo/reid/val.md
               - segment:
@@ -834,6 +835,7 @@ nav:
           - parking_management: reference/solutions/parking_management.md
           - queue_management: reference/solutions/queue_management.md
           - region_counter: reference/solutions/region_counter.md
+          - reid_visualizer: reference/solutions/reid_visualizer.md
           - security_alarm: reference/solutions/security_alarm.md
           - similarity_search: reference/solutions/similarity_search.md
           - solutions: reference/solutions/solutions.md

@@ -23,7 +23,7 @@ def test_embeddings_is_basetensor_subclass():
 
 
 def test_embeddings_dim_1d_and_2d():
-    """dim returns the LAST axis (the feature dim) for both unbatched and batched inputs."""
+    """Dim returns the LAST axis (the feature dim) for both unbatched and batched inputs."""
     assert Embeddings(torch.randn(512)).dim == 512
     assert Embeddings(torch.randn(8, 256)).dim == 256
 

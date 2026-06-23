@@ -98,7 +98,7 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
         self.loss_names = "box_loss", "pose_loss", "kobj_loss", "cls_loss", "dfl_loss"
         model = unwrap_model(self.model)
         if hasattr(model, "student_model"):
-            model = model.student_model
+            model = model.student_model  # copy_attr does not copy nn.Module attributes like .model
         if getattr(model.model[-1], "flow_model", None) is not None:
             self.loss_names += ("rle_loss",)
         return yolo.pose.PoseValidator(

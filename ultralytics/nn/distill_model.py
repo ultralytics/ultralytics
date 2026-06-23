@@ -107,11 +107,15 @@ class DistillationModel(nn.Module):
         self.projector = nn.ModuleList(projectors).to(device)
 
     def __getstate__(self):
-        """Return a clean copy of state for pickling without hooks and extracted features."""
-        state = self.__dict__.copy()
-        state["_teacher_feats"] = {}
-        state["_student_feats"] = {}
-        return state
+        """Return a copy of state for pickling without captured features.
+
+        Clears the feature dicts in place (rather than replacing the attributes) because the registered
+        FeatureHooks share these exact dict objects; otherwise a deepcopy/pickle of a mid-training model would
+        still reach the hook-held tensors (which carry grad_fn and cannot be deep-copied).
+        """
+        self._teacher_feats.clear()
+        self._student_feats.clear()
+        return self.__dict__.copy()
 
     def __setstate__(self, state):
         """Clear stale features and hooks, and re-register forward hooks after unpickling."""

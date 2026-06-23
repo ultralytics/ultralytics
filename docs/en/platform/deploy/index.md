@@ -1,4 +1,5 @@
 ---
+title: Model Deployment Options
 comments: true
 description: Learn about model deployment options in Ultralytics Platform including inference testing, dedicated endpoints, and monitoring dashboards.
 keywords: Ultralytics Platform, deployment, inference, endpoints, monitoring, YOLO, production, cloud deployment

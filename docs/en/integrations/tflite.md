@@ -1,4 +1,5 @@
 ---
+title: Export YOLO to TFLite for Edge Devices
 comments: true
 description: Learn how to convert YOLO26 models to TFLite for edge device deployment. Optimize performance and ensure seamless execution on various platforms.
 keywords: YOLO26, TFLite, model export, TensorFlow Lite, edge devices, deployment, Ultralytics, machine learning, on-device inference, model optimization

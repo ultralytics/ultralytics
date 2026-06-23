@@ -1,4 +1,5 @@
 ---
+title: YOLO26 Instance Segmentation & Tracking
 comments: true
 description: Master instance segmentation and tracking with Ultralytics YOLO26. Learn techniques for precise object identification and tracking.
 keywords: instance segmentation, tracking, YOLO26, Ultralytics, object detection, machine learning, computer vision, python
@@ -106,7 +107,7 @@ You can also take advantage of `track` arguments within the `InstanceSegmentatio
 Moreover, the following visualization arguments are available:
 
 {% from "macros/visualization-args.md" import param_table %}
-{{ param_table(["show", "line_width", "show_conf", "show_labels"]) }}
+{{ param_table(["show", "line_width", "show_conf", "show_labels", "show_boxes"]) }}
 
 ## Applications of Instance Segmentation
 

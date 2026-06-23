@@ -1,4 +1,5 @@
 ---
+title: COCO8 Detection Dataset
 comments: true
 description: Explore the Ultralytics COCO8 dataset, a versatile and manageable set of 8 images perfect for testing object detection models and training pipelines.
 keywords: COCO8, Ultralytics, dataset, object detection, YOLO26, training, validation, machine learning, computer vision

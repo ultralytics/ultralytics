@@ -1,4 +1,5 @@
 ---
+title: utils.ops API Reference
 description: Explore detailed documentation on utility operations in Ultralytics including non-max suppression, bounding box transformations, and more.
 keywords: Ultralytics, utility operations, non-max suppression, bounding box transformations, YOLOv8, machine learning
 ---

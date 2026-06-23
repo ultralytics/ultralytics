@@ -1,4 +1,5 @@
 ---
+title: Dataset Management
 comments: true
 description: Learn how to upload, manage, and organize datasets in Ultralytics Platform for YOLO model training with automatic processing and statistics.
 keywords: Ultralytics Platform, datasets, dataset management, dataset versioning, YOLO, data upload, training data, computer vision, machine learning

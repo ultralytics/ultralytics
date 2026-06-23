@@ -1,4 +1,5 @@
 ---
+title: Albumentations Augmentation for YOLO26
 comments: true
 description: Learn how to use Albumentations with YOLO26 to enhance data augmentation, improve model performance, and streamline your computer vision projects.
 keywords: Albumentations, YOLO26, data augmentation, Ultralytics, computer vision, object detection, model training, image transformations, machine learning

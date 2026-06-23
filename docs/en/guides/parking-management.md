@@ -160,7 +160,7 @@ Defining parking spaces is straightforward with Ultralytics YOLO26:
 
 ### How do I customize the ParkingManagement solution for my parking lot?
 
-You can tailor the `ParkingManagement` solution through its [arguments](#parkingmanagement-arguments). Point `model` at a custom-trained detector, restrict detections to specific vehicle `classes`, adjust the `conf` and `iou` thresholds, switch the `tracker`, use `line_width` to scale the on-frame labels and occupancy readout, or select the inference `device`. For related zone-based monitoring, see the [object counting](object-counting.md) guide.
+The most lot-specific setting is `json_file`: point it at the parking-region JSON you create with the [points annotator](#parking-management-system-code-workflow) to adapt the solution to a new layout. You can further tailor it through the other [arguments](#parkingmanagement-arguments) — set `model` to a custom-trained detector, restrict detections to specific vehicle `classes`, adjust the `conf` and `iou` thresholds, switch the `tracker`, use `line_width` to scale the on-frame labels and occupancy readout, or select the inference `device`. For related zone-based monitoring, see the [object counting](object-counting.md) guide.
 
 ### What are some real-world applications of Ultralytics YOLO26 in parking lot management?
 

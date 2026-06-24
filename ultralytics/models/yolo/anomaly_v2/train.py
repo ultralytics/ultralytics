@@ -265,6 +265,7 @@ class AnomalyV2Trainer(DetectionTrainer):
                     modes=modes,
                     imgsz=imgsz, batch=batch, bank_size=bank_size,
                     device=trainer.device, save_dir=trainer.save_dir, epoch=trainer.epoch + 1,
+                    e2e=False, iou=0.1,
                     heatmap_norm=heat_norm,
                     heatmap_edge_weight=(True if heat_edge else None),
                     heatmap_edge_sigma=heat_edge_sigma,

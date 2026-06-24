@@ -47,7 +47,7 @@ def main():
     ap = argparse.ArgumentParser(
         description="YOLOA driver — per-category fit, then predict or val. "
                     "All fit params come from --fit-cfg YAML.")
-    ap.add_argument("--mode", choices=["predict", "val", "visualize"], default="predict")
+    ap.add_argument("--mode", choices=["predict", "val", "visualize", "vis"], default="predict")
     ap.add_argument("--ckpt", default=DEFAULT_CKPT)
     ap.add_argument("--cat", default="bottle",
                     help="MVTec category name, 'all' (14), 'object' (10), or 'texture' (5)")
@@ -147,7 +147,7 @@ def main():
                 cv2.imwrite(str(out / f"{stem}__pred.jpg"), r.plot())
                 save_heatmap(m.model, img, out / f"{stem}__heat.jpg")
             print(f"[{ci}/{len(cats)}] {cat}: {len(samples)} predictions -> {out}", flush=True)
-        elif args.mode == "visualize":
+        elif args.mode in ("visualize", "vis"):
             out = out_root / "visualize" / cat
             out.mkdir(parents=True, exist_ok=True)
             samples = collect_test_images(root / cat / "test", args.n_per_cat)

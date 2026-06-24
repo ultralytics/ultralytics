@@ -1134,8 +1134,6 @@ class MultiTrainer:
         """Fine-tune the base model on each dataset in series and return a {dataset: metrics} mapping."""
         from types import SimpleNamespace
 
-        from ultralytics.utils.patches import torch_load
-
         datasets = self.args["data"]
         # Group every per-dataset run and the summary plot under one sweep directory, e.g. runs/detect/multitrain
         sweep = SimpleNamespace(
@@ -1160,10 +1158,17 @@ class MultiTrainer:
                 trainer.model = trainer.get_model(weights=self.model, cfg=self.model.yaml)  # seed each run from base
                 trainer.train()
                 self.trainers.append(trainer)
-                # Key by the unique run name (e.g. coco8, coco8-2) and read metrics from the saved checkpoint so
-                # results survive the DDP training subprocess (multi-GPU) and repeated datasets do not collapse
-                ckpt = trainer.best if trainer.best.exists() else trainer.last
-                self.metrics[trainer.save_dir.name] = torch_load(ckpt)["train_metrics"] if ckpt.exists() else None
+                # Key by the unique run name (e.g. coco8, coco8-2) so repeated datasets do not collapse. Use the
+                # in-memory metrics; only under DDP (validator ran in a subprocess) reload them from the checkpoint.
+                metrics = getattr(trainer.validator, "metrics", None)
+                if metrics is not None:
+                    metrics = metrics.results_dict
+                else:
+                    from ultralytics.utils.patches import torch_load
+
+                    ckpt = trainer.best if trainer.best.exists() else trainer.last
+                    metrics = torch_load(ckpt)["train_metrics"] if ckpt.exists() else None
+                self.metrics[trainer.save_dir.name] = metrics
             except Exception as e:  # one bad dataset should not abort the whole sweep
                 LOGGER.error(f"MultiTrainer: fine-tuning on {data} failed, skipping: {e}")
                 self.metrics[Path(str(data)).stem] = None

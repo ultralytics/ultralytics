@@ -1169,6 +1169,12 @@ class v8DepthLoss:
         self.silog_lambda = float(os.environ.get("DEPTH_SILOG_LAMBDA", 0.5))
         # Optional scale-anchored L1 term on the log-depth residual (penalizes absolute offset).
         self.l1_weight = float(os.environ.get("DEPTH_L1_WEIGHT", 0.0))
+        # Depth-distance weighting: weight each valid pixel by gt**dist_power (normalized to
+        # mean 1) in the SILog/L1 terms. 0.0 = uniform (default, unchanged). >0 upweights far
+        # pixels, which are a small minority on indoor data (e.g. NYU ~4% beyond 6 m), so plain
+        # pixel-mean losses sacrifice far accuracy. The normalization keeps the loss magnitude
+        # comparable across powers.
+        self.dist_power = float(os.environ.get("DEPTH_DIST_POWER", 0.0))
         # GT beyond the head's representable range (sigmoid × max_depth) is masked out of the
         # loss: supervising unreachable targets saturates the sigmoid and, through SILog's
         # per-image mean coupling, corrupts gradients on in-range pixels too.
@@ -1220,12 +1226,18 @@ class v8DepthLoss:
         # Clamp predictions to avoid log(0)
         pred_valid = pred_valid.clamp(min=0.001)
 
-        # SILog loss (scale-invariant log error)
+        # SILog loss (scale-invariant log error), optionally depth-distance weighted.
         log_diff = torch.log(pred_valid) - torch.log(gt_valid)
-        silog = torch.sqrt(torch.mean(log_diff**2) - self.silog_lambda * torch.mean(log_diff) ** 2 + 1e-6)
+        if self.dist_power > 0:
+            w = gt_valid.clamp(min=0.001) ** self.dist_power
+            w = w / w.mean()  # mean 1 → weighted-mean is just mean(w * x), magnitude preserved
+        else:
+            w = 1.0  # scalar broadcasts; mean(w * x) == mean(x), i.e. uniform (unchanged)
+        wmean = lambda x: (w * x).mean()
+        silog = torch.sqrt(wmean(log_diff**2) - self.silog_lambda * wmean(log_diff) ** 2 + 1e-6)
         loss[0] = silog * self.silog_weight
         if self.l1_weight > 0:
-            loss[0] = loss[0] + self.l1_weight * log_diff.abs().mean()  # scale-anchored term
+            loss[0] = loss[0] + self.l1_weight * wmean(log_diff.abs())  # scale-anchored term
 
         # Gradient-matching loss (edge-aware): penalize differences in spatial gradients
         pred_log = torch.log(pred_depth.clamp(min=0.001))

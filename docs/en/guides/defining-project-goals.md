@@ -1,4 +1,5 @@
 ---
+title: Define Computer Vision Project Goals
 comments: true
 description: Define your computer vision project with a 4-step problem statement, SMART measurable objectives, and the right task, model, and deployment choices.
 keywords: computer vision project planning, problem statement, measurable objectives, SMART objectives, computer vision tasks, model selection, dataset preparation, deployment options, YOLO26, Ultralytics

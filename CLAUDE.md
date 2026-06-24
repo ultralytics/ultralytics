@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+**Skills:** Always invoke `/yoloa` and `/expman` at session start (before any other work).
+
 Branch `yolo_anomaly`: training-free anomaly detection on top of YOLO/YOLOE checkpoints via a memory bank of normal features. No gradient training.
 
 ## Principles

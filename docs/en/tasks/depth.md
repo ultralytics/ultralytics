@@ -117,6 +117,42 @@ Train YOLO26n-depth on the NYU Depth V2 dataset for 100 [epochs](https://www.ult
 
 See full `train` mode details in the [Train](../modes/train.md) page.
 
+### Fine-tuning on your own data
+
+When adapting a pretrained depth model to a custom dataset, **lower the learning rate and use the AdamW optimizer**. The default optimizer settings are tuned for training from scratch (SGD with `lr0=0.01`); applied to an already-converged depth model they can overwrite the pretrained knowledge and degrade results — especially when fine-tuning on a single domain.
+
+!!! example "Recommended fine-tuning recipe"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("yolo26s-depth.pt")  # start from pretrained weights
+
+        model.train(
+            data="path/to/your_dataset.yaml",
+            epochs=20,
+            imgsz=640,
+            optimizer="AdamW",
+            lr0=1e-4,            # ~100x below the from-scratch default
+            warmup_bias_lr=1e-4, # keep warmup gentle too
+        )
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo depth train data=path/to/your_dataset.yaml model=yolo26s-depth.pt \
+             epochs=20 imgsz=640 optimizer=AdamW lr0=1e-4 warmup_bias_lr=1e-4
+        ```
+
+Additional tips:
+
+- **Any depth range works out of the box.** The default `log`-head models predict unbounded depth, so they adapt to short-range (macro) or long-range (outdoor/driving) data without changes. If you use the bounded `yolo26-depth-sigmoid.yaml` variant instead, set `max_depth:` in your dataset YAML to your scene's maximum depth (in meters).
+- **Retain general performance.** If you need the model to stay accurate on scenes beyond your training set, mix a small fraction (~5–10%) of diverse general-purpose images into your training data; this substantially reduces forgetting during fine-tuning.
+- **Train from scratch** (`model=yolo26s-depth.yaml`) only if your domain is very different and you have a large dataset — there the default SGD `lr0=0.01` is appropriate, since there are no pretrained weights to preserve.
+
 ### Dataset format
 
 Depth estimation datasets pair each RGB image with a corresponding depth file. Depth targets are stored as `.npy` arrays containing float32 values in meters. The dataset YAML points to an `images/` directory; the loader derives the depth file path by replacing the `images` component with `depth` and replacing the image extension with `.npy`.
@@ -246,6 +282,8 @@ See full `export` details in the [Export](../modes/export.md) page.
 
 Prepare paired RGB images and `.npy` depth files, then create a dataset YAML pointing to your `images/` directory. The loader finds depth files automatically by replacing `images` with `depth` in the path and swapping the image extension for `.npy`.
 
+Start from pretrained weights and use a low learning rate with AdamW so the fine-tune retains what the model already knows (see [Fine-tuning on your own data](#fine-tuning-on-your-own-data) for why):
+
 !!! example
 
     === "Python"
@@ -254,16 +292,24 @@ Prepare paired RGB images and `.npy` depth files, then create a dataset YAML poi
         from ultralytics import YOLO
 
         # Load a pretrained YOLO26 depth model
-        model = YOLO("yolo26n-depth.pt")
+        model = YOLO("yolo26s-depth.pt")
 
-        # Train on a custom depth dataset
-        results = model.train(data="path/to/your_dataset.yaml", epochs=100, imgsz=640)
+        # Fine-tune on a custom depth dataset
+        results = model.train(
+            data="path/to/your_dataset.yaml",
+            epochs=20,
+            imgsz=640,
+            optimizer="AdamW",
+            lr0=1e-4,
+            warmup_bias_lr=1e-4,
+        )
         ```
 
     === "CLI"
 
         ```bash
-        yolo depth train data=path/to/your_dataset.yaml model=yolo26n-depth.pt epochs=100 imgsz=640
+        yolo depth train data=path/to/your_dataset.yaml model=yolo26s-depth.pt \
+             epochs=20 imgsz=640 optimizer=AdamW lr0=1e-4 warmup_bias_lr=1e-4
         ```
 
 Check the [Configuration](../usage/cfg.md) page for more available arguments.

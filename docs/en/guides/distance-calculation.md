@@ -1,5 +1,5 @@
 ---
-title: Measure Distance Between Objects with YOLO26
+title: Distance Calculation with YOLO26
 comments: true
 description: Learn how to calculate distances between objects using Ultralytics YOLO26 for accurate spatial positioning and scene understanding.
 keywords: Ultralytics, YOLO26, distance calculation, computer vision, object tracking, spatial positioning

@@ -52,7 +52,7 @@ Streamlit makes it simple to build and deploy interactive web applications. Comb
 
         yolo solutions inference model="path/to/model.pt"
 
-        yolo solutions help  # list the available solution commands and arguments
+        yolo solutions help # list the available solution commands and arguments
         ```
 
         These commands launch the default Streamlit interface that ships with Ultralytics.

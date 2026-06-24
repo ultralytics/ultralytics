@@ -1,4 +1,5 @@
 ---
+title: Count Objects in Zones with YOLO26
 comments: true
 description: Count objects in multiple user-defined polygonal zones of a video with the Ultralytics YOLO26 RegionCounter solution and read the counts in your code.
 keywords: region counting, zone counting, object counting in regions, RegionCounter, Ultralytics YOLO26, count objects in a zone, polygon region, video analytics, people counting, vehicle counting

@@ -1,4 +1,5 @@
 ---
+title: Extract Segmented Objects with YOLO and OpenCV
 comments: true
 description: Learn how to isolate and extract segmented objects from Ultralytics YOLO inference results with OpenCV. Remove backgrounds, crop to objects, and save transparent PNGs step by step.
 keywords: Ultralytics YOLO, segmentation, object isolation, background removal, binary mask, instance segmentation, OpenCV, Predict Mode, transparent PNG, crop object, YOLO26, image processing

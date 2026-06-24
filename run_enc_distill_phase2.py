@@ -336,6 +336,7 @@ def _run_multi_det(
     lr_override: str,
     nbs_override: str,
     datasets_arg: str,
+    freeze_override: str = "",
     teacher_spec: str | None = None,
 ) -> None:
     """Sequentially train + val on a list of YOLO-format detection datasets.
@@ -358,6 +359,9 @@ def _run_multi_det(
         lr_override (str): CLI --lr override.
         nbs_override (str): CLI --nbs override.
         datasets_arg (str): Path to dataset list (file or directory). See _resolve_dataset_list.
+        freeze_override (str): Distilled-student freeze depth. When set (and no teacher_spec), freezes det layers 0..N-1
+            via the trainer freeze arg (e.g. 10 for yolo26l = transferred backbone 0-8 + SPPF 9), so only C2PSA + neck +
+            Detect head train. Mirrors the frozen-teacher ceiling probe for the distilled backbone.
         teacher_spec (str, optional): Frozen-teacher registry key (e.g. "eupe:vitb16"). When set, runs the
             teacher_frozen_det mode: build yolo26-teacherdet.yaml with this teacher, freeze=1, no phase1 weights or
             parent push. When None, the standard distilled-student multi_det_finetune mode.
@@ -456,6 +460,10 @@ def _run_multi_det(
             # non-frozen-listed param (trainer.py:319), so freezing only in __init__ is undone. imgsz is per-teacher.
             det_args["freeze"] = 1
             det_args["imgsz"] = _TEACHER_DET_IMGSZ.get(teacher_spec, 640)
+        elif freeze_override:
+            # Frozen distilled-student backbone: freeze the transferred det layers (same trainer re-enable caveat as
+            # above), so only the fresh C2PSA + PAN neck + Detect head train on top of frozen distilled features.
+            det_args["freeze"] = int(freeze_override)
         train_args = dict(
             pretrained=False if teacher_spec else phase1_weights,
             device=int(gpu),
@@ -511,6 +519,7 @@ def main(argv: list[str]) -> None:
     argv, lr_override = _pop_flag(argv, "--lr")
     argv, batch_override = _pop_flag(argv, "--batch")
     argv, nbs_override = _pop_flag(argv, "--nbs")
+    argv, freeze_override = _pop_flag(argv, "--freeze")
     argv, scratch = _pop_flag(argv, "--scratch", is_bool=True)
     argv, datasets_arg = _pop_flag(argv, "--datasets")
     argv, teacher_spec = _pop_flag(argv, "--teacher")
@@ -586,6 +595,7 @@ def main(argv: list[str]) -> None:
             lr_override=lr_override,
             nbs_override=nbs_override,
             datasets_arg=datasets_arg,
+            freeze_override=freeze_override,
         )
         return
 

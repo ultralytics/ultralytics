@@ -340,9 +340,9 @@ class RTDETRTrainer(DetectionTrainer):
         """Return an RTDETRValidator suitable for RT-DETR model validation."""
         loss_names = ["giou_loss", "cls_loss", "l1_loss"]
         loss_gain = self.model_yaml.get("loss", {}).get("loss_gain", {})
-        if "fgl" in loss_gain:
+        if loss_gain.get("fgl", 0) > 0:
             loss_names.append("fgl_loss")
-        if "ddf" in loss_gain:
+        if loss_gain.get("ddf", 0) > 0:
             loss_names.append("ddf_loss")
         # Add o2m loss names if one_to_many_groups > 0
         model = unwrap_model(self.model)

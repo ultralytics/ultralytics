@@ -3,8 +3,9 @@
 # YOLO26 frozen-teacher detection: a frozen foundation teacher backbone + a trainable ViTDet-style simple feature
 # pyramid + YOLO26 Detect head. Measures the frozen-feature detection ceiling (run_enc_distill_phase2.py
 # teacher_frozen_det mode). The teacher (layer 0) emits one feature map at its patch stride; P3/P4/P5 are built from
-# that single map by up/down sampling (ViTDet SimpleFeaturePyramid, Li et al. 2022), not a multi-scale backbone PAN.
-# The teacher is frozen via the trainer freeze=1 arg, so only the pyramid + Detect head (layers 1-5) train.
+# that single map by a proper ViTDet SimpleFeaturePyramid (Li et al. 2022): P3 via a learned 2x ConvTranspose, P4 the
+# identity grid, P5 a stride-2 conv, each with a lateral 1x1 + output 3x3. Not a multi-scale backbone PAN.
+# The teacher is frozen via the trainer freeze=1 arg, so only the pyramid + Detect head (layers 1-9) train.
 #
 # Layer-0 arg is the safe_key teacher spec (e.g. eupe_vitb16, NOT eupe:vitb16: a colon crashes the parse_model
 # ast.literal_eval arg handler). The teacher_frozen_det runner overwrites this placeholder with the chosen teacher.
@@ -21,13 +22,18 @@ backbone:
   # [from, repeats, module, args]
   - [-1, 1, TeacherDetBackbone, [eupe_vitb16]] # 0 (B, embed_dim, g, g)
 
-# Trainable ViTDet simple feature pyramid + Detect head
+# Trainable ViTDet Simple Feature Pyramid + Detect head. Each scale independently resamples the single stride-16 teacher
+# grid (layer 0) then applies a lateral 1x1 + output 3x3 conv (BN via ultralytics Conv substitutes for the reference LN).
 head:
-  - [0, 1, nn.Upsample, [None, 2, "nearest"]] # 1 2x up -> finer grid
-  - [-1, 1, Conv, [128, 3, 1]] # 2 P3 (stride/2)
-
-  - [0, 1, Conv, [256, 3, 1]] # 3 P4 (stride)
-
-  - [0, 1, Conv, [512, 3, 2]] # 4 P5 (stride*2)
-
-  - [[2, 3, 4], 1, Detect, [nc]] # 5 Detect(P3, P4, P5)
+  # P3 (stride 8): learned 2x deconv -> lateral 1x1 -> output 3x3
+  - [0, 1, ConvTranspose, [768, 2, 2, 0, False, False]] # 1 raw stride-2 deconv (no BN/act), c2=768 fixed pyramid width (not the injected teacher dim), 40x40 -> 80x80
+  - [-1, 1, Conv, [128, 1, 1]] # 2 P3 lateral 1x1
+  - [-1, 1, Conv, [128, 3, 1]] # 3 P3 output 3x3
+  # P4 (stride 16): identity grid -> lateral 1x1 -> output 3x3
+  - [0, 1, Conv, [256, 1, 1]] # 4 P4 lateral 1x1
+  - [-1, 1, Conv, [256, 3, 1]] # 5 P4 output 3x3
+  # P5 (stride 32): stride-2 downsample -> lateral 1x1 -> output 3x3
+  - [0, 1, Conv, [512, 3, 2]] # 6 P5 stride-2 downsample 40x40 -> 20x20
+  - [-1, 1, Conv, [512, 1, 1]] # 7 P5 lateral 1x1
+  - [-1, 1, Conv, [512, 3, 1]] # 8 P5 output 3x3
+  - [[3, 5, 8], 1, Detect, [nc]] # 9 Detect(P3, P4, P5)

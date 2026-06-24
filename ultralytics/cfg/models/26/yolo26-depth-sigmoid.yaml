@@ -47,4 +47,4 @@ head:
   - [[-1, 10], 1, Concat, [1]] # cat head P5
   - [-1, 1, C3k2, [1024, True, 0.5, True]] # 22 (P5/32-large)
 
-  - [[16, 19, 22], 1, Depth, [256]] # Depth(P3, P4, P5) c_mid=256; default mode=log (unbounded). For bounded sigmoid×max_depth use yolo26-depth-sigmoid.yaml
+  - [[16, 19, 22], 1, Depth, [256, sigmoid]] # bounded output: sigmoid × max_depth (default max_depth=10m, set via dataset YAML)

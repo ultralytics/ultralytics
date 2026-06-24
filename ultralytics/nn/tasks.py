@@ -1823,7 +1823,7 @@ def parse_model(d, ch, verbose=True):
                 m.legacy = legacy
         elif m is Depth:
             if len(args) == 1:
-                args.append("sigmoid")  # default output mode when YAML omits it
+                args.append("log")  # default output mode when YAML omits it (log = unbounded, scale-decoupled)
             args.append([ch[x] for x in f])  # ch tuple
         elif m is DINOv2DPTHead:
             c2 = 1  # single-channel depth output

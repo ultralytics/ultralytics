@@ -803,7 +803,7 @@ class Depth(nn.Module):
     input_hw = None  # (H, W) of model input, set by exporter for full-res upsample
     mode = "sigmoid"  # class default so pre-`mode` pickled checkpoints keep working
 
-    def __init__(self, c_mid: int = 256, mode: str = "sigmoid", ch: tuple = ()):
+    def __init__(self, c_mid: int = 256, mode: str = "log", ch: tuple = ()):
         """Initialize Depth head.
 
         Args:

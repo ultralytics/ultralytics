@@ -8,7 +8,7 @@
 #   sunrgbd        9,245
 #   total       ~772,227
 
-path: /data/depth_anything/mega_v11_quick_indoor
+path: mega_v11_quick_indoor  # dataset root dir (relative to Ultralytics settings 'datasets_dir')
 train: images/train
 val: images/val
 nc: 1

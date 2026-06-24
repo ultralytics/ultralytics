@@ -2,7 +2,7 @@
 # Val: standard 654-image Eigen test split (symlinked from mega_dataset)
 # Purpose: NYU-domain fine-tuning after broad pretraining
 
-path: /data/depth_anything/nyu_full_hf
+path: nyu_full_hf  # dataset root dir (relative to Ultralytics settings 'datasets_dir')
 train: images/train
 val: images/val
 

@@ -3,7 +3,7 @@
 # ~405K train: 80K NYU-HF + 60K Hypersim + 118K COCO + 5K SUNRGBD + 142K ARKitScenes
 # ARKitScenes: Apple LiDAR indoor depth at 640x480, mm precision
 
-path: /data/depth_anything/mega_v4
+path: mega_v4  # dataset root dir (relative to Ultralytics settings 'datasets_dir')
 train: images/train
 val: images/val
 

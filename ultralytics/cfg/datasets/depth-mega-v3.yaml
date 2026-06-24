@@ -3,7 +3,7 @@
 # ~230K train images: 47K NYU-HF + 60K Hypersim + 118K COCO pseudo + 5K SUN RGB-D
 # Key upgrade: 47K unique NYU indoor images (vs 795 repeated 30x in v2)
 
-path: /data/depth_anything/mega_v3
+path: mega_v3  # dataset root dir (relative to Ultralytics settings 'datasets_dir')
 train: images/train
 val: images/val
 

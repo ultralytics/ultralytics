@@ -2,7 +2,7 @@
 # Mixed depth dataset (flat): NYU real + COCO pseudo-depth from DA V2 teacher
 # ~65K train images (795 NYU + ~65K COCO), 654 NYU val
 
-path: /data/depth_anything/mixed_flat
+path: mixed_flat  # dataset root dir (relative to Ultralytics settings 'datasets_dir')
 train: images/train
 val: images/val
 

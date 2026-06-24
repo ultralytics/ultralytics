@@ -2,7 +2,7 @@
 # Mixed depth dataset: NYU real + COCO pseudo-labels from DA V2 teacher
 # Used for knowledge distillation training of YOLO depth models
 
-path: /data/depth_anything
+path: depth_anything  # dataset root dir (relative to Ultralytics settings 'datasets_dir')
 train:
   - nyu_yolo/images/train        # 795 real NYU indoor images
   - coco_pseudo/images/train2017  # ~118K COCO images with DA V2 pseudo-depth

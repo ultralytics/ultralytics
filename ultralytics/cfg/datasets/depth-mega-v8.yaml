@@ -1,7 +1,7 @@
 # mega_v8: mega_v7 (686K) + MDM RobbyReal batch 2 (92K new) = ~779K train
 # mega_v7: mega_v6 (645K) + TartanAir 7 scenes (41K)
 # mega_v6: COCO(118K) + NYU-HF(80K) + Hypersim(60K) + ARKit(142K) + SUNRGBD(5K) + DIODE(26K) + vKITTI2(21K) + MDM-RobbyReal batch 1 (192K)
-path: /data/depth_anything/mega_v8
+path: mega_v8  # dataset root dir (relative to Ultralytics settings 'datasets_dir')
 train: images/train
 val: images/val
 nc: 1

@@ -1,5 +1,5 @@
 # TartanAir only (55,660 train / 5,810 val)
-path: /data/depth_anything/raw/tartanair
+path: tartanair  # dataset root dir (relative to Ultralytics settings 'datasets_dir')
 train: images/train
 val: images/val
 nc: 1

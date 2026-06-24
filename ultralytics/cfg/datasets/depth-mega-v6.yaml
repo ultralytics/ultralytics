@@ -2,7 +2,7 @@
 # 645,023 train: 118K COCO + 80K NYU-HF + 60K Hypersim + 142K ARKit + 5K SUNRGBD + 26K DIODE + 21K vKITTI2 + 192K MDM-Real
 # 192K real indoor RGB-D from MDM dataset (RealSense + Orbbec cameras)
 
-path: /data/depth_anything/mega_v6
+path: mega_v6  # dataset root dir (relative to Ultralytics settings 'datasets_dir')
 train: images/train
 val: images/val
 

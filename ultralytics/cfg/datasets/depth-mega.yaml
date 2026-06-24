@@ -3,7 +3,7 @@
 # ~224K train images: 24K NYU + 60K Hypersim + 118K COCO pseudo + 21K vKITTI2 + 771 DIODE
 # Adds outdoor coverage via vKITTI2 (synthetic) and DIODE (real LiDAR)
 
-path: /data/depth_anything/mega_dataset
+path: mega_dataset  # dataset root dir (relative to Ultralytics settings 'datasets_dir')
 train: images/train
 val: images/val
 

@@ -3,7 +3,7 @@
 # ~182K train images (63K NYU + 118K COCO), 654 NYU val
 # NYU oversampled 80x to balance with COCO volume
 
-path: /data/depth_anything/mixed_balanced
+path: mixed_balanced  # dataset root dir (relative to Ultralytics settings 'datasets_dir')
 train: images/train
 val: images/val
 

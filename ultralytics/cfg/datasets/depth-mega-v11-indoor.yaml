@@ -11,7 +11,7 @@
 #   imagenet_v3  1,281,167
 #   total       ~2,053,394
 
-path: /data/depth_anything/mega_v11_indoor
+path: mega_v11_indoor  # dataset root dir (relative to Ultralytics settings 'datasets_dir')
 train: images/train
 val: images/val
 nc: 1

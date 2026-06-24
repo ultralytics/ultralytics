@@ -1,7 +1,7 @@
 # mega_v10: 6 raw real-GT datasets (~880K) + ImageNet pseudo-depth from DA3 MONO-L
 # + DA3METRIC-LARGE per-image robust affine refinement (1.28M) = ~2.16M train
 #
-# Pseudo-depth pipeline (see /data/depth_anything/scratch/scripts/gen_pseudo_da3.py):
+# Pseudo-depth pipeline (see <internal>
 #   d_mono   = DA3MONO-LARGE(image)           # relative
 #   d_metric = DA3METRIC-LARGE(image)         # meters, scale anchor
 #   a, b     = robust affine fit on valid pixels
@@ -28,7 +28,7 @@
 #   vkitti2      16,740
 #   total       ~52,347
 
-path: /data/depth_anything/mega_v10
+path: mega_v10  # dataset root dir (relative to Ultralytics settings 'datasets_dir')
 train: images/train
 val: images/val
 nc: 1

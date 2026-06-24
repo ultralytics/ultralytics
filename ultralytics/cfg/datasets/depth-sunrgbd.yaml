@@ -1,5 +1,5 @@
 # SUN RGB-D only (10,335 scenes; 9,245 train / 1,090 val)
-path: /data/depth_anything/raw/sunrgbd
+path: sunrgbd  # dataset root dir (relative to Ultralytics settings 'datasets_dir')
 train: images/train
 val: images/val
 nc: 1

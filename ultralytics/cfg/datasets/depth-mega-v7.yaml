@@ -1,7 +1,7 @@
 # mega_v7: mega_v6 (645K) + TartanAir 7 scenes (41K) = ~686K train
 # TartanAir: hospital, office, office2, abandonedfactory, amusement, carwelding, japanesealley
 # from ZhengGuangze/TartanAir_preprocessed (metric depth, float32 .npy)
-path: /data/depth_anything/mega_v7
+path: mega_v7  # dataset root dir (relative to Ultralytics settings 'datasets_dir')
 train: images/train
 val: images/val
 nc: 1

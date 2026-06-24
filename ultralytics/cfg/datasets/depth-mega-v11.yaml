@@ -15,8 +15,8 @@
 #   2011_10_03: 0034, 0042, 0047
 #
 # Conversion: uint16 PNG (meters * 256) -> float32 .npy meters, 0 = invalid.
-# Prep script: /data/depth_anything/scratch/scripts/kitti_prep.py
-# Eval mirror: /data/depth_anything/kitti_yolo/{images,depth} for eval_kitti_aligned.py
+# Prep script: <internal>
+# Eval mirror: <internal> for eval_kitti_aligned.py
 #
 # Train composition:
 #   arkitscenes    676,080
@@ -39,7 +39,7 @@
 #   vkitti2        16,740
 #   total          ~84,725
 
-path: /data/depth_anything/mega_v11
+path: mega_v11  # dataset root dir (relative to Ultralytics settings 'datasets_dir')
 train: images/train
 val: images/val
 nc: 1

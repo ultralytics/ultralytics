@@ -3,7 +3,7 @@
 # 452,899 train images: 118K COCO + 80K NYU-HF + 60K Hypersim + 142K ARKit + 5K SUNRGBD + 26K DIODE + 21K vKITTI2
 # Better outdoor + real LiDAR depth coverage vs v4
 
-path: /data/depth_anything/mega_v5
+path: mega_v5  # dataset root dir (relative to Ultralytics settings 'datasets_dir')
 train: images/train
 val: images/val
 

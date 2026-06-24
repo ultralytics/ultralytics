@@ -12,7 +12,7 @@
 #   vkitti2       25,780
 #   total       ~913,707
 
-path: /data/depth_anything/mega_v11_quick
+path: mega_v11_quick  # dataset root dir (relative to Ultralytics settings 'datasets_dir')
 train: images/train
 val: images/val
 nc: 1

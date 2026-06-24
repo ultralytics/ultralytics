@@ -1,5 +1,5 @@
 # ARKitScenes only (676,080 train / 21,559 val)
-path: /data/depth_anything/raw/arkitscenes
+path: arkitscenes  # dataset root dir (relative to Ultralytics settings 'datasets_dir')
 train: images/train
 val: images/val
 nc: 1

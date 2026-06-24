@@ -616,6 +616,52 @@ class Model(torch.nn.Module):
         self.metrics = validator.metrics
         return validator.metrics
 
+    def calibrate(self, data=None, **kwargs: Any):
+        """Fit scale-only depth calibration on a small labeled set (depth task only).
+
+        Runs a validation pass to fit the global log-affine ``d' = exp(a·log d + b)`` against
+        ground-truth depth, then writes ``(a, b)`` into the head's ``cal_a``/``cal_b`` buffers.
+        No gradient training and the decoder weights are untouched, so it cannot degrade the
+        relative depth structure. Call ``model.save(...)`` afterwards to persist the calibration.
+
+        Args:
+            data (str, optional): Dataset YAML providing a labeled split to calibrate against.
+            **kwargs (Any): Extra validation arguments (e.g. ``imgsz``, ``batch``, ``device``, ``split``).
+
+        Returns:
+            (tuple | None): The fitted ``(a, b)``, or ``None`` if no valid depth pixels were found.
+
+        Examples:
+            >>> model = YOLO("yolo26s-depth.pt")
+            >>> model.calibrate(data="my_depth_dataset.yaml")
+            >>> model.save("yolo26s-depth-calibrated.pt")
+        """
+        self._check_is_pytorch_model()
+        if self.task != "depth":
+            raise ValueError(f"calibrate() is only supported for depth models (task='depth'), got task={self.task!r}.")
+        from ultralytics.models.yolo.depth.calibrate import _depth_head
+
+        head = _depth_head(self.model)
+        if head is None:
+            raise ValueError("Model has no Depth head with calibration buffers (cal_a/cal_b).")
+        head.cal_a.fill_(1.0)  # fit on the raw, un-calibrated output
+        head.cal_b.fill_(0.0)
+
+        args = {**self.overrides, **kwargs, "mode": "val", "task": "depth", "rect": False}
+        if data is not None:
+            args["data"] = data
+        validator = self._smart_load("validator")(args=args, _callbacks=self.callbacks)
+        validator.calibrating = True
+        validator(model=self.model)
+        if validator.calib is None:
+            LOGGER.warning("calibrate(): no valid depth pixels found; model left uncalibrated.")
+            return None
+        a, b = validator.calib
+        head.cal_a.fill_(a)
+        head.cal_b.fill_(b)
+        LOGGER.info(f"Calibrated depth scale: a={a:.4f} b={b:.4f}. Call model.save(...) to persist it.")
+        return a, b
+
     def benchmark(self, data=None, format="", verbose=False, **kwargs: Any):
         """Benchmark the model across various export formats to evaluate performance.
 

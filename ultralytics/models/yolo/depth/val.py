@@ -24,6 +24,11 @@ class DepthValidator(DetectionValidator):
         """Initialize DepthValidator."""
         super().__init__(dataloader, save_dir, args, _callbacks)
         self.args.task = "depth"
+        # Scale-only calibration: when enabled (by Model.calibrate), collect (log pred, log gt)
+        # pairs during the val pass and fit the global log-affine in get_stats().
+        self.calibrating = False
+        self.calib = None
+        self._cal_logp, self._cal_logg, self._cal_pts = [], [], 0
 
     def init_metrics(self, model):
         """Initialize the DepthMetrics accumulator."""
@@ -68,10 +73,30 @@ class DepthValidator(DetectionValidator):
             pred_depth = F.interpolate(pred_depth.float(), size=gt_depth.shape[-2:], mode="bilinear", align_corners=True)
         self.metrics.update_stats(pred_depth, gt_depth)
 
+        if self.calibrating and self._cal_pts < 500_000:
+            valid = (gt_depth > 1e-3) & (pred_depth > 1e-3) & torch.isfinite(pred_depth)
+            if valid.any():
+                lp = torch.log(pred_depth[valid]).flatten().cpu().numpy()
+                lg = torch.log(gt_depth[valid]).flatten().cpu().numpy()
+                if lp.size > 50_000:  # subsample per batch — calibration is only a 2-parameter fit
+                    idx = np.random.default_rng(self._cal_pts).choice(lp.size, 50_000, replace=False)
+                    lp, lg = lp[idx], lg[idx]
+                self._cal_logp.append(lp)
+                self._cal_logg.append(lg)
+                self._cal_pts += lp.size
+
     def get_stats(self):
-        """Reduce across ranks, finalize, and return the metrics dict."""
+        """Reduce across ranks, finalize, and return the metrics dict.
+
+        If calibration was enabled, fit the global log-affine ``(a, b)`` from the collected pairs.
+        """
         self.metrics.reduce_ddp()
         self.metrics.process()
+        if self.calibrating and self._cal_logp:
+            from .calibrate import lstsq_affine
+
+            self.calib = lstsq_affine(np.concatenate(self._cal_logp), np.concatenate(self._cal_logg))
+            LOGGER.info(f"Depth calibration fit on {self._cal_pts} pixels: a={self.calib[0]:.4f} b={self.calib[1]:.4f}")
         return self.metrics.results_dict
 
     def gather_stats(self) -> None:

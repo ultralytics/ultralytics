@@ -602,6 +602,7 @@ def run_mvtec_ood_eval(
                     "task": "anomaly_v2", "mode": "val", "data": str(yaml), "split": "val",
                     "imgsz": imgsz, "batch": batch, "device": str(device) if device is not None else None,
                     "rect": False, "plots": False, "verbose": False, "save_json": False,
+                    "single_cls": True,  # model is binary-trained; map all GT class IDs → 0
                     "prior_mode": _MODE_TO_PRIOR[mode],  # popped by AnomalyV2Validator.__init__
                     "scorer_kwargs": scorer_kwargs,  # learned-scorer fit kwargs (popped too)
                     "scorer_fuse": scorer_fuse,  # heatmap_fused combine op (popped too)

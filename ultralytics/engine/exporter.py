@@ -345,10 +345,14 @@ class Exporter:
         if hasattr(model, "end2end"):
             if self.args.end2end is not None:
                 model.end2end = self.args.end2end
-            if fmt in {"rknn", "ncnn", "executorch", "paddle", "imx", "edgetpu", "litert"}:
+            if fmt in {"rknn", "ncnn", "executorch", "paddle", "imx", "edgetpu"}:
                 # Disable end2end branch for certain export formats as they does not support topk
                 model.end2end = False
                 LOGGER.warning(f"{fmt.upper()} export does not support end2end models, disabling end2end branch.")
+            if fmt == "litert" and self.args.int8:
+                # Static INT8 collapses the end2end class-index output; export raw and run NMS at inference
+                model.end2end = False
+                LOGGER.warning("LiteRT INT8 export does not support end2end models, disabling end2end branch.")
             if fmt == "engine" and self.args.int8:
                 # TensorRT 10.3.0 on JetPack 6 with int8 has known end2end build issues
                 # https://github.com/ultralytics/ultralytics/issues/23841

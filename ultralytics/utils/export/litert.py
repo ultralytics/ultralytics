@@ -86,10 +86,11 @@ def torch2litert(
     f = Path(str(file).replace(file.suffix, f"{quant_tag}_litert_model"))
     f.mkdir(parents=True, exist_ok=True)
 
-    # Normalize coordinate channels to [0, 1] so INT8 quantization preserves scores (denormalized in LiteRTBackend)
+    # Normalize coordinate channels to [0, 1] so INT8 quantization preserves scores (denormalized in LiteRTBackend).
+    # End-to-end models output post-NMS pixel coordinates in FP32 (no scale collapse), so they are left as-is.
     meta = metadata or {}
     task = meta.get("task")
-    if task in {"detect", "segment", "pose", "obb"}:
+    if task in {"detect", "segment", "pose", "obb"} and not meta.get("end2end", False):
         model = _NormalizeCoords(model, int(im.shape[3]), task, len(meta.get("names", {})), meta.get("kpt_shape"))
 
     edge_model = litert_torch.convert(model, (im,))

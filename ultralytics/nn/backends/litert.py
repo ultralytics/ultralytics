@@ -80,7 +80,9 @@ class LiteRTBackend(BaseBackend):
             if output["dtype"] in {np.int8, np.int16}:
                 scale, zero_point = output["quantization"]
                 x = (x.astype(np.float32) - zero_point) * scale
-            if x.ndim == 3:  # denormalize xywh (and pose keypoints) by image size on raw (batch, channels, anchors)
+            # Denormalize xywh (and pose keypoints) by image size on raw (batch, channels, anchors) output.
+            # End-to-end output is already post-NMS pixel coordinates (batch, max_det, 6+), so it is left as-is.
+            if x.ndim == 3 and not self.end2end:
                 x[:, [0, 2]] *= w
                 x[:, [1, 3]] *= h
                 if self.task == "pose":

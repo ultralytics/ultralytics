@@ -142,10 +142,9 @@ QUANTIZE_ALIASES = {"fp32": "w32a32", "fp16": "w16a16", "half": "w16a16", "int8"
 def normalize_quantize(args):
     """Reconcile the unified string `quantize` arg with the legacy `half`/`int8` booleans.
 
-    `quantize` is the forward-looking knob for export precision; `half`/`int8` are kept for
-    backwards compatibility and forward into it. After this runs `args.half`/`args.int8` hold the
-    canonical booleans consumed by every per-format export function, and `args.quantize` holds the
-    canonical scheme name (or None for FP32).
+    `quantize` is the forward-looking knob for export precision; `half`/`int8` are kept for backwards compatibility and
+    forward into it. After this runs `args.half`/`args.int8` hold the canonical booleans consumed by every per-format
+    export function, and `args.quantize` holds the canonical scheme name (or None for FP32).
 
     Args:
         args (SimpleNamespace): Exporter arguments, modified in place.
@@ -548,7 +547,9 @@ class Exporter:
         validate_args(fmt, self.args, fmt_keys)
         if fmt in {"deepx", "axelera", "imx", "edgetpu", "qnn"} and self.args.quantize != "w8a8":
             if self.args.quantize is not None:
-                raise ValueError(f"{fmt} export only supports INT8, i.e. quantize='w8a8', but got quantize='{self.args.quantize}'.")
+                raise ValueError(
+                    f"{fmt} export only supports INT8, i.e. quantize='w8a8', but got quantize='{self.args.quantize}'."
+                )
             LOGGER.warning(f"{fmt} export requires INT8, setting quantize='w8a8'.")
             self.args.quantize = "w8a8"
         if fmt == "axelera":
@@ -586,7 +587,11 @@ class Exporter:
                             "Please upgrade TensorRT to 8.5.0 or later to enable end2end export."
                         )
 
-                    if self.args.quantize == "w8a8" and check_version(trt.__version__, "==10.3.0") and is_jetson(jetpack=6):
+                    if (
+                        self.args.quantize == "w8a8"
+                        and check_version(trt.__version__, "==10.3.0")
+                        and is_jetson(jetpack=6)
+                    ):
                         # https://github.com/ultralytics/ultralytics/issues/23841
                         model.end2end = False
                         LOGGER.warning(
@@ -1589,7 +1594,9 @@ class NMSModel(torch.nn.Module):
                     use_triu=not (
                         self.is_tf
                         or (self.args.opset or 14) < 14
-                        or (self.args.format == "openvino" and self.args.quantize == "w8a8")  # OpenVINO int8 error with triu
+                        or (
+                            self.args.format == "openvino" and self.args.quantize == "w8a8"
+                        )  # OpenVINO int8 error with triu
                     ),
                     iou_func=batch_probiou,
                     exit_early=False,

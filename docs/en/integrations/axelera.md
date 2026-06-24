@@ -40,7 +40,7 @@ graph TD
 
 ## Hardware Portfolio
 
-The Axelera hardware lineup is optimized to run [Ultralytics YOLO26](https://docs.ultralytics.com/models/yolo26) and legacy versions with high FPS-per-watt efficiency.
+The Axelera hardware lineup is optimized to run [Ultralytics YOLO26](../models/yolo26.md) and legacy versions with high FPS-per-watt efficiency.
 
 ### Accelerator Cards
 
@@ -48,8 +48,8 @@ These cards enable AI acceleration in existing host devices, facilitating [brown
 
 | Product           | Form Factor    | Compute            | Performance (INT8) | Target Application                                                                                                                         |
 | :---------------- | :------------- | :----------------- | :----------------- | :----------------------------------------------------------------------------------------------------------------------------------------- |
-| **Metis PCIe x4** | PCIe Gen3 x16  | **4x** Metis AIPUs | **856 TOPS**       | High-density [video analytics](https://docs.ultralytics.com/guides/analytics), smart cities                                                |
-| **Metis PCIe x1** | PCIe Gen3 x1   | **1x** Metis AIPU  | **214 TOPS**       | Industrial PCs, retail [queue management](https://docs.ultralytics.com/guides/queue-management)                                            |
+| **Metis PCIe x4** | PCIe Gen3 x16  | **4x** Metis AIPUs | **856 TOPS**       | High-density [video analytics](../guides/analytics.md), smart cities                                                |
+| **Metis PCIe x1** | PCIe Gen3 x1   | **1x** Metis AIPU  | **214 TOPS**       | Industrial PCs, retail [queue management](../guides/queue-management.md)                                            |
 | **Metis M.2**     | M.2 2280 M-Key | **1x** Metis AIPU  | **214 TOPS**       | [Drones](https://www.ultralytics.com/blog/build-ai-powered-drone-applications-with-ultralytics-yolo11), robotics, portable medical devices |
 | **Metis M.2 MAX** | M.2 2280       | **1x** Metis AIPU  | **214 TOPS**       | Environments requiring advanced thermal management                                                                                         |
 
@@ -67,12 +67,12 @@ The following tasks are supported across YOLOv8, YOLO11, and YOLO26 models.
 
 | Task                                                                 | YOLOv8 | YOLO11 | YOLO26              |
 | :------------------------------------------------------------------- | :----- | :----- | :------------------ |
-| [Object Detection](https://docs.ultralytics.com/tasks/detect)        | ✅     | ✅     | ✅                  |
-| [Pose Estimation](https://docs.ultralytics.com/tasks/pose)           | ✅     | ✅     | ✅                  |
-| [Instance Segmentation](https://docs.ultralytics.com/tasks/segment)  | ✅     | ✅     | ⚠️ Voyager SDK only |
-| [Semantic Segmentation](https://docs.ultralytics.com/tasks/semantic) | ❌     | ❌     | ✅                  |
-| [Oriented Bounding Boxes](https://docs.ultralytics.com/tasks/obb)    | ✅     | ✅     | ✅                  |
-| [Classification](https://docs.ultralytics.com/tasks/classify)        | ✅     | ✅     | ✅                  |
+| [Object Detection](../tasks/detect.md)        | ✅     | ✅     | ✅                  |
+| [Pose Estimation](../tasks/pose.md)           | ✅     | ✅     | ✅                  |
+| [Instance Segmentation](../tasks/segment.md)  | ✅     | ✅     | ⚠️ Voyager SDK only |
+| [Semantic Segmentation](../tasks/semantic.md) | ❌     | ❌     | ✅                  |
+| [Oriented Bounding Boxes](../tasks/obb.md)    | ✅     | ✅     | ✅                  |
+| [Classification](../tasks/classify.md)        | ✅     | ✅     | ✅                  |
 
 !!! note
 
@@ -215,11 +215,11 @@ The Axelera format supports the [Export](../modes/export.md), [Predict](../modes
 | `imgsz`    | `int` or `tuple` | `640`            | Image size for model input.                                                                                                             |
 | `batch`    | `int`            | `1`              | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
 | `int8`     | `bool`           | `True`           | Enable [INT8 quantization](https://www.ultralytics.com/glossary/model-quantization) for AIPU.                                           |
-| `data`     | `str`            | `'coco128.yaml'` | [Dataset](https://docs.ultralytics.com/datasets) config for quantization calibration.                                                   |
+| `data`     | `str`            | `'coco128.yaml'` | [Dataset](../datasets/index.md) config for quantization calibration.                                                   |
 | `fraction` | `float`          | `1.0`            | Fraction of dataset for calibration (100-400 images recommended).                                                                       |
 | `device`   | `str`            | `None`           | Export device: GPU (`device=0`) or CPU (`device=cpu`).                                                                                  |
 
-For all export options, see the [Export Mode documentation](https://docs.ultralytics.com/modes/export).
+For all export options, see the [Export Mode documentation](../modes/export.md).
 
 ### Output Structure
 
@@ -246,14 +246,14 @@ _Benchmarks based on Axelera AI data. Actual FPS depends on model size, batching
 
 Ultralytics YOLO on Axelera hardware enables advanced edge computing solutions:
 
-- **Smart Retail**: Real-time [object counting](https://docs.ultralytics.com/guides/object-counting) and [heatmap analytics](https://docs.ultralytics.com/guides/heatmaps) for store optimization.
-- **Industrial Safety**: Low-latency [PPE detection](https://docs.ultralytics.com/datasets/detect/construction-ppe) in manufacturing environments.
-- **Drone Analytics**: High-speed [object detection](https://docs.ultralytics.com/tasks/detect) on UAVs for [agriculture](https://www.ultralytics.com/solutions/ai-in-agriculture) and search-and-rescue.
-- **Traffic Systems**: Edge-based [license plate recognition](https://www.ultralytics.com/blog/using-ultralytics-yolo11-for-automatic-number-plate-recognition) and [speed estimation](https://docs.ultralytics.com/guides/speed-estimation).
+- **Smart Retail**: Real-time [object counting](../guides/object-counting.md) and [heatmap analytics](../guides/heatmaps.md) for store optimization.
+- **Industrial Safety**: Low-latency [PPE detection](../datasets/detect/construction-ppe.md) in manufacturing environments.
+- **Drone Analytics**: High-speed [object detection](../tasks/detect.md) on UAVs for [agriculture](https://www.ultralytics.com/solutions/ai-in-agriculture) and search-and-rescue.
+- **Traffic Systems**: Edge-based [license plate recognition](https://www.ultralytics.com/blog/using-ultralytics-yolo11-for-automatic-number-plate-recognition) and [speed estimation](../guides/speed-estimation.md).
 
 ## Recommended Workflow
 
-1. **Train** your model using Ultralytics [Train Mode](https://docs.ultralytics.com/modes/train)
+1. **Train** your model using Ultralytics [Train Mode](../modes/train.md)
 2. **Export** to Axelera format using `model.export(format="axelera")`
 3. **Validate** accuracy with `yolo val` to verify minimal quantization loss
 4. **Predict** using `yolo predict` for qualitative validation
@@ -292,15 +292,15 @@ For support, visit the [Axelera Community](https://community.axelera.ai/).
 
 ### What YOLO versions are supported on Axelera?
 
-The Voyager SDK supports export of [YOLOv8](https://docs.ultralytics.com/models/yolov8), [YOLO11](https://docs.ultralytics.com/models/yolo11), and [YOLO26](https://docs.ultralytics.com/models/yolo26) models. See [Supported Tasks](#supported-tasks) for per-model task availability.
+The Voyager SDK supports export of [YOLOv8](../models/yolov8.md), [YOLO11](../models/yolo11.md), and [YOLO26](../models/yolo26.md) models. See [Supported Tasks](#supported-tasks) for per-model task availability.
 
 ### Can I deploy custom-trained models?
 
-Yes. Any model trained using [Ultralytics Train Mode](https://docs.ultralytics.com/modes/train) can be exported to the Axelera format, provided it uses supported layers and operations.
+Yes. Any model trained using [Ultralytics Train Mode](../modes/train.md) can be exported to the Axelera format, provided it uses supported layers and operations.
 
 ### How does INT8 quantization affect accuracy?
 
-Axelera's Voyager SDK automatically quantizes models for the mixed-precision AIPU architecture. For most [object detection](https://www.ultralytics.com/glossary/object-detection) tasks, the performance gains (higher FPS, lower power) significantly outweigh the minimal impact on [mAP](https://docs.ultralytics.com/guides/yolo-performance-metrics). Quantization takes seconds to several hours depending on model size. Run `yolo val` after export to verify accuracy.
+Axelera's Voyager SDK automatically quantizes models for the mixed-precision AIPU architecture. For most [object detection](https://www.ultralytics.com/glossary/object-detection) tasks, the performance gains (higher FPS, lower power) significantly outweigh the minimal impact on [mAP](../guides/yolo-performance-metrics.md). Quantization takes seconds to several hours depending on model size. Run `yolo val` after export to verify accuracy.
 
 ### How many calibration images should I use?
 

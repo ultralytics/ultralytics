@@ -937,7 +937,7 @@ Quickly set up YOLOE with Ultralytics by following these steps:
     - **NMS behavior**: YOLOE automatically uses `agnostic_nms=True` during prediction, merging overlapping boxes across classes. This prevents duplicate detections when the same object matches multiple categories in YOLOE's large vocabulary (1200+ LVIS classes). You can override this by passing `agnostic_nms=False` explicitly.
     - **Batch inference**: Supported directly (`model.predict([img1, img2])`). For image-specific prompts, run images individually.
 
-The [Ultralytics documentation](https://docs.ultralytics.com/) provides further resources. YOLOE lets you easily explore powerful open-world capabilities within the familiar YOLO ecosystem.
+The [Ultralytics documentation](../index.md) provides further resources. YOLOE lets you easily explore powerful open-world capabilities within the familiar YOLO ecosystem.
 
 !!! tip
 

@@ -53,7 +53,7 @@ def normalize_platform_uri(uri):
         (str | Path): "ul://user/datasets/slug" for Platform web URLs, otherwise the input unchanged.
     """
     s = str(uri)
-    return f"ul://{s[len(PLATFORM_URL) + 1:].strip('/')}" if s.startswith(f"{PLATFORM_URL}/") else uri
+    return f"ul://{s[len(PLATFORM_URL) + 1 :].strip('/')}" if s.startswith(f"{PLATFORM_URL}/") else uri
 
 
 def resolve_platform_uri(uri, hard=True):

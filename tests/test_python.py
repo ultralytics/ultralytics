@@ -262,6 +262,17 @@ def test_val(task: str, weight: str, data: str) -> None:
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
+def test_train_multi():
+    """Test fine-tuning a base model across a dataset collection, which triggers MultiTrainer for list/tuple data."""
+    model = YOLO(MODEL)
+    results = model.train(data=["coco8.yaml", "coco8.yaml"], epochs=1, imgsz=32)
+    assert isinstance(results, dict) and "fitness" in results["coco8.yaml"]  # checkpoint train metrics per dataset
+    assert len(model.trainer.trainers) == 2  # both list entries fine-tuned in series
+    assert (model.trainer.save_dir / "multitrain_results.png").exists()  # cross-dataset results plot saved
+
+
+@pytest.mark.skipif(not ONLINE, reason="environment is offline")
+@pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_train_scratch():
     """Test training the YOLO model from scratch on 12 different image types in the COCO12-Formats dataset."""
     model = YOLO(CFG)

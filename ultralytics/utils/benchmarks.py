@@ -32,9 +32,7 @@ Axelera AI              | `axelera`                 | yolo26n_axelera_model/
 from __future__ import annotations
 
 import glob
-import os
 import platform
-import re
 import shutil
 import time
 from copy import deepcopy
@@ -50,7 +48,6 @@ from ultralytics.nn.modules import Segment26
 from ultralytics.utils import (
     ARM64,
     ASSETS,
-    ASSETS_URL,
     IS_DOCKER,
     IS_JETSON,
     LINUX,
@@ -58,10 +55,8 @@ from ultralytics.utils import (
     MACOS,
     TQDM,
     WEIGHTS_DIR,
-    YAML,
 )
 from ultralytics.utils.checks import IS_PYTHON_MINIMUM_3_13, check_imgsz, check_requirements, check_yolo, is_rockchip
-from ultralytics.utils.downloads import safe_download
 from ultralytics.utils.files import file_size
 from ultralytics.utils.torch_utils import get_cpu_info, select_device
 
@@ -267,147 +262,6 @@ def benchmark(
         assert all(x > floor for x in metrics if not np.isnan(x)), f"Benchmark failure: metric(s) < floor {floor}"
 
     return df_display
-
-
-class RF100Benchmark:
-    """Benchmark YOLO model performance on the RF100 dataset collection.
-
-    This class provides functionality to download, process, and evaluate YOLO models on the RF100 datasets.
-
-    Attributes:
-        ds_names (list[str]): Names of datasets used for benchmarking.
-        ds_cfg_list (list[Path]): List of paths to dataset configuration files.
-        rf (Roboflow | None): Roboflow instance for accessing datasets.
-        val_metrics (list[str]): Metrics used for validation.
-
-    Methods:
-        set_key: Set Roboflow API key for accessing datasets.
-        parse_dataset: Parse dataset links and download datasets.
-        fix_yaml: Fix train and validation paths in YAML files.
-        evaluate: Evaluate model performance on validation results.
-    """
-
-    def __init__(self):
-        """Initialize the RF100Benchmark class for benchmarking YOLO model performance on RF100 datasets."""
-        self.ds_names = []
-        self.ds_cfg_list = []
-        self.rf = None
-        self.val_metrics = ["class", "images", "targets", "precision", "recall", "map50", "map95"]
-
-    def set_key(self, api_key: str):
-        """Set Roboflow API key for processing.
-
-        Args:
-            api_key (str): The API key.
-
-        Examples:
-            Set the Roboflow API key for accessing datasets:
-            >>> benchmark = RF100Benchmark()
-            >>> benchmark.set_key("your_roboflow_api_key")
-        """
-        check_requirements("roboflow")
-        from roboflow import Roboflow
-
-        self.rf = Roboflow(api_key=api_key)
-
-    def parse_dataset(self, ds_link_txt: str = "datasets_links.txt"):
-        """Parse dataset links and download datasets.
-
-        Args:
-            ds_link_txt (str): Path to the file containing dataset links.
-
-        Returns:
-            (tuple[list[str], list[Path]]): List of dataset names and list of paths to dataset configuration files.
-
-        Examples:
-            >>> benchmark = RF100Benchmark()
-            >>> benchmark.set_key("api_key")
-            >>> benchmark.parse_dataset("datasets_links.txt")
-        """
-        (shutil.rmtree("rf-100"), os.mkdir("rf-100")) if os.path.exists("rf-100") else os.mkdir("rf-100")
-        os.chdir("rf-100")
-        os.mkdir("ultralytics-benchmarks")
-        safe_download(f"{ASSETS_URL}/datasets_links.txt")
-
-        with open(ds_link_txt, encoding="utf-8") as file:
-            for line in file:
-                try:
-                    _, _url, workspace, project, version = re.split("/+", line.strip())
-                    self.ds_names.append(project)
-                    proj_version = f"{project}-{version}"
-                    if not Path(proj_version).exists():
-                        self.rf.workspace(workspace).project(project).version(version).download("yolov8")
-                    else:
-                        LOGGER.info("Dataset already downloaded.")
-                    self.ds_cfg_list.append(Path.cwd() / proj_version / "data.yaml")
-                except Exception:
-                    continue
-
-        return self.ds_names, self.ds_cfg_list
-
-    @staticmethod
-    def fix_yaml(path: Path):
-        """Fix the train and validation paths in a given YAML file."""
-        yaml_data = YAML.load(path)
-        yaml_data["train"] = "train/images"
-        yaml_data["val"] = "valid/images"
-        YAML.save(path, yaml_data)
-
-    def evaluate(self, yaml_path: str, val_log_file: str, eval_log_file: str, list_ind: int):
-        """Evaluate model performance on validation results.
-
-        Args:
-            yaml_path (str): Path to the YAML configuration file.
-            val_log_file (str): Path to the validation log file.
-            eval_log_file (str): Path to the evaluation log file.
-            list_ind (int): Index of the current dataset in the list.
-
-        Returns:
-            (float): The mean average precision (mAP) value for the evaluated model.
-
-        Examples:
-            Evaluate a model on a specific dataset
-            >>> benchmark = RF100Benchmark()
-            >>> benchmark.evaluate("path/to/data.yaml", "path/to/val_log.txt", "path/to/eval_log.txt", 0)
-        """
-        skip_symbols = ["🚀", "⚠️", "💡", "❌"]
-        class_names = YAML.load(yaml_path)["names"]
-        with open(val_log_file, encoding="utf-8") as f:
-            lines = f.readlines()
-            eval_lines = []
-            for line in lines:
-                if any(symbol in line for symbol in skip_symbols):
-                    continue
-                entries = line.split(" ")
-                entries = list(filter(lambda val: val != "", entries))
-                entries = [e.strip("\n") for e in entries]
-                eval_lines.extend(
-                    {
-                        "class": entries[0],
-                        "images": entries[1],
-                        "targets": entries[2],
-                        "precision": entries[3],
-                        "recall": entries[4],
-                        "map50": entries[5],
-                        "map95": entries[6],
-                    }
-                    for e in entries
-                    if e in class_names or (e == "all" and "(AP)" not in entries and "(AR)" not in entries)
-                )
-        map_val = 0.0
-        if len(eval_lines) > 1:
-            LOGGER.info("Multiple dicts found")
-            for lst in eval_lines:
-                if lst["class"] == "all":
-                    map_val = lst["map50"]
-        else:
-            LOGGER.info("Single dict found")
-            map_val = next(res["map50"] for res in eval_lines)
-
-        with open(eval_log_file, "a", encoding="utf-8") as f:
-            f.write(f"{self.ds_names[list_ind]}: {map_val}\n")
-
-        return float(map_val)
 
 
 class ProfileModels:

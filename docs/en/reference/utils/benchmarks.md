@@ -12,10 +12,6 @@ keywords: YOLO, model benchmarking, ONNX, TensorRT, PyTorch, TensorFlow, CoreML,
 
 <br>
 
-## ::: ultralytics.utils.benchmarks.RF100Benchmark
-
-<br><br><hr><br>
-
 ## ::: ultralytics.utils.benchmarks.ProfileModels
 
 <br><br><hr><br>

@@ -1084,3 +1084,85 @@ class BaseTrainer:
             f"{num_params[1]} weight(decay=0.0), {num_params[0]} weight(decay={decay}), {num_params[2]} bias(decay=0.0)"
         )
         return optimizer
+
+
+class MultiTrainer:
+    """Fine-tune a single base model across a collection of datasets and aggregate per-dataset results.
+
+    Used automatically by Model.train() when `data` is a list or tuple, allowing one base model to be benchmarked
+    across many datasets (such as the RF100 collection) in a single call. The datasets are fine-tuned in series and
+    the same base weights seed each run, so every run starts from an identical model. Each run saves its own
+    results.csv and results.png; after all runs a cross-dataset bar chart of the per-dataset metric is saved. The base
+    model object is left unchanged; each dataset's fine-tuned weights live in its own run directory.
+
+    Attributes:
+        trainer (type[BaseTrainer]): Task trainer class instantiated once per dataset.
+        args (dict): Training arguments shared across datasets; its `data` key holds the dataset collection.
+        model (torch.nn.Module): Base model whose weights seed each per-dataset fine-tune.
+        callbacks (dict | None): Callbacks forwarded to each per-dataset trainer.
+        trainers (list[BaseTrainer]): Completed per-dataset trainers (hold results.csv, save_dir, and metrics).
+        metrics (dict): Mapping of each dataset to its final training-metrics dict from the saved checkpoint.
+        save_dir (Path | None): Directory holding the cross-dataset results plot.
+
+    Examples:
+        Fine-tune one base model across several (unique) datasets and read back per-dataset metrics:
+        >>> from ultralytics import YOLO
+        >>> model = YOLO("yolo26n.pt")
+        >>> results = model.train(data=["coco8.yaml", "african-wildlife.yaml"], epochs=10)
+        >>> results["coco8.yaml"]["fitness"]  # final fitness on coco8
+    """
+
+    def __init__(self, trainer, args, model, _callbacks: dict | None = None):
+        """Initialize MultiTrainer with a task trainer class, shared training arguments, and the base model.
+
+        Args:
+            trainer (type[BaseTrainer]): Task trainer class to run once per dataset.
+            args (dict): Training arguments; the `data` key holds the list/tuple of datasets to fine-tune on.
+            model (torch.nn.Module): Base model whose weights seed each per-dataset fine-tune.
+            _callbacks (dict, optional): Callback functions forwarded to each per-dataset trainer.
+        """
+        self.trainer = trainer
+        self.args = args
+        self.model = model
+        self.callbacks = _callbacks
+        self.trainers = []
+        self.metrics = {}
+        self.save_dir = None
+
+    def train(self):
+        """Fine-tune the base model on each dataset in series and return a {dataset: metrics} mapping."""
+        from ultralytics.utils.patches import torch_load
+
+        datasets = self.args["data"]
+        for i, data in enumerate(datasets):
+            LOGGER.info(f"\n{colorstr('blue', 'bold', f'MultiTrainer {i + 1}/{len(datasets)}:')} fine-tuning on {data}")
+            try:
+                overrides = {**self.args, "data": data, "name": Path(str(data)).stem, "resume": False, "session": None}
+                trainer = self.trainer(overrides=overrides, _callbacks=self.callbacks)
+                trainer.model = trainer.get_model(weights=deepcopy(self.model), cfg=self.model.yaml)
+                trainer.train()
+                self.trainers.append(trainer)
+                # Read metrics from the saved checkpoint so results survive the DDP training subprocess (multi-GPU)
+                ckpt = trainer.best if trainer.best.exists() else trainer.last
+                self.metrics[data] = torch_load(ckpt)["train_metrics"] if ckpt.exists() else None
+            except Exception as e:  # one bad dataset should not abort the whole sweep
+                LOGGER.error(f"MultiTrainer: fine-tuning on {data} failed, skipping: {e}")
+                self.metrics[data] = None
+        if RANK in {-1, 0} and self.trainers:
+            self.save_dir = self.trainers[0].save_dir.parent
+            if self.args.get("plots", True):
+                self.plot_results()
+        return self.metrics
+
+    def plot_results(self):
+        """Save a cross-dataset bar chart of the per-dataset metric with the mean across all datasets."""
+        from ultralytics.cfg import TASK2METRIC
+        from ultralytics.utils.plotting import plot_multitrain_results
+
+        key = TASK2METRIC.get(self.args.get("task"))
+        scores = {Path(str(d)).stem: float(m.get(key, m.get("fitness", 0.0))) for d, m in self.metrics.items() if m}
+        if not scores:
+            return None
+        fname = plot_multitrain_results(scores, key=key or "fitness", save_dir=self.save_dir)
+        LOGGER.info(f"MultiTrainer results saved to {colorstr('bold', fname)}")
+        return fname

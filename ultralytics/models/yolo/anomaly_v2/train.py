@@ -42,17 +42,20 @@ _SCORER_YAML_KEYS = {
 
 
 def _resolve_fit_yaml(cfg_path: str, model_yaml_path: str | None = None) -> dict:
-    """Load a fit YAML; tries absolute, relative-to-model-YAML, then ``ultralytics/cfg/``."""
+    """Load a fit YAML; tries absolute, relative-to-model-YAML, then ``cfg/models/v2/`` as anchor."""
     p = Path(cfg_path)
     if p.is_file():
         return dict(YAML.load(str(p)))
+    # Relative to model YAML's directory (when model_yaml_path is a real path)
     if model_yaml_path:
-        alt = Path(model_yaml_path).parent / cfg_path
-        if alt.is_file():
-            return dict(YAML.load(str(alt)))
-    # Resolve from <repo_root>/ultralytics/cfg/
-    cfg_dir = Path(__file__).resolve().parents[3] / "cfg"
-    alt = cfg_dir / cfg_path
+        m = Path(model_yaml_path)
+        if m.parent != Path("."):  # skip basename-only; use the cfg/models/v2 anchor instead
+            alt = (m.parent / cfg_path).resolve()
+            if alt.is_file():
+                return dict(YAML.load(str(alt)))
+    # Resolve from <repo_root>/ultralytics/cfg/models/v2/ — the canonical model-YAML location
+    cfg_dir = Path(__file__).resolve().parents[3] / "cfg" / "models" / "v2"
+    alt = (cfg_dir / cfg_path).resolve()
     if alt.is_file():
         return dict(YAML.load(str(alt)))
     LOGGER.warning(f"MVTec OOD: fit YAML not found at {cfg_path}; using defaults.")

@@ -69,26 +69,39 @@ Train a YOLO26 depth estimation model with Python or CLI:
         model = YOLO("yolo26n-depth.pt")
 
         # Train on the NYU Depth V2 dataset
-        results = model.train(data="nyu-depth.yaml", epochs=100, imgsz=518)
+        results = model.train(data="nyu-depth.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"
 
         ```bash
-        yolo depth train data=nyu-depth.yaml model=yolo26n-depth.pt epochs=100 imgsz=518
+        yolo depth train data=nyu-depth.yaml model=yolo26n-depth.pt epochs=100 imgsz=640
         ```
 
 ## Supported Datasets
 
-Ultralytics provides depth estimation dataset YAML files for these datasets:
+The YOLO26 depth models are pretrained on a broad multi-dataset mix (~2.2M images) spanning indoor (≤10 m) to outdoor (~80 m) ranges, then evaluated zero-shot across five benchmarks. Each dataset has a dedicated page:
 
-- **NYU Depth V2** (`nyu-depth.yaml`): Indoor RGBD dataset with 795 train and 654 val images at 480×640 resolution. The standard benchmark for monocular depth estimation. Depth values are in meters, max depth ~10 m.
-- **KITTI** (`depth-kitti.yaml`): Outdoor driving dataset with Velodyne LiDAR depth annotations. Sparse ground-truth densified using the Uhrig et al. 2017 method.
-- **Hypersim** (`depth-hypersim.yaml`): Photorealistic synthetic indoor scenes with dense depth ground truth.
-- **SUN RGB-D** (`depth-sunrgbd.yaml`): Indoor RGBD dataset captured with multiple sensors (Kinect, RealSense, Structure).
-- **ARKitScenes** (`depth-arkitscenes.yaml`): Indoor scenes captured with the Apple ARKit sensor.
+**Pretraining sources**
 
-Additional mixed-training YAMLs (e.g., `depth-mega-v11.yaml`) combine multiple sources for large-scale distillation experiments.
+- [ARKitScenes](arkitscenes.md) — real indoor, Apple ARKit LiDAR (largest real source)
+- [SUN RGB-D](sunrgbd.md) — real indoor, multi-sensor RGB-D
+- [DIODE](diode.md) — real indoor + outdoor, dense laser-scanner ground truth
+- [Hypersim](hypersim.md) — synthetic photorealistic indoor
+- [TartanAir](tartanair.md) — synthetic, diverse environments
+- [Virtual KITTI 2](vkitti2.md) — synthetic outdoor driving
+- [KITTI](kitti.md) — real outdoor driving, Velodyne LiDAR (also an evaluation benchmark)
+- [ImageNet (pseudo-labeled)](imagenet-pseudo.md) — pseudo-labeled distillation set, the largest single source
+
+**Evaluation benchmarks**
+
+- [NYU Depth V2](nyu-depth-v2.md) — primary indoor benchmark
+- [KITTI Eigen](kitti.md) — outdoor driving benchmark
+- [ETH3D](eth3d.md) — high-precision indoor + outdoor
+- [Make3D](make3d.md) — outdoor, out-of-distribution
+- [iBims-1](ibims-1.md) — high-quality indoor (edges and planar surfaces)
+
+Per-model accuracy on these benchmarks and the downloadable pretrained weights are listed on the [Depth Estimation task page](../../tasks/depth.md#models). Mixed-training YAMLs (e.g., `depth-mega-v11.yaml`) combine these sources for large-scale training.
 
 ## Adding Your Own Dataset
 

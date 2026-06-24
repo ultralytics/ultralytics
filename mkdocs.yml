@@ -476,6 +476,18 @@ nav:
           - ADE20K: datasets/semantic/ade20k.md
       - Depth Estimation:
           - datasets/depth/index.md
+          - ARKitScenes: datasets/depth/arkitscenes.md
+          - DIODE: datasets/depth/diode.md
+          - ETH3D: datasets/depth/eth3d.md
+          - Hypersim: datasets/depth/hypersim.md
+          - iBims-1: datasets/depth/ibims-1.md
+          - ImageNet (pseudo): datasets/depth/imagenet-pseudo.md
+          - KITTI: datasets/depth/kitti.md
+          - Make3D: datasets/depth/make3d.md
+          - NYU Depth V2: datasets/depth/nyu-depth-v2.md
+          - SUN RGB-D: datasets/depth/sunrgbd.md
+          - TartanAir: datasets/depth/tartanair.md
+          - Virtual KITTI 2: datasets/depth/vkitti2.md
       - Pose:
           - datasets/pose/index.md
           - COCO: datasets/pose/coco.md

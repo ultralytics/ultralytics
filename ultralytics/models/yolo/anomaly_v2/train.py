@@ -88,6 +88,17 @@ class AnomalyV2Trainer(DetectionTrainer):
             self._mb_batch = {"img": batch["img"], "bboxes": batch["bboxes"], "batch_idx": batch["batch_idx"]}
         return batch
 
+    def validate(self):
+        """Run validation, overriding fitness with OOD heatmap mAP50 when available."""
+        metrics, fitness = super().validate()
+        ood_map50 = getattr(self, "_ood_heatmap_map50", None)
+        if ood_map50 is not None and ood_map50 > 0 and metrics is not None:
+            fitness = ood_map50
+            metrics["fitness"] = ood_map50
+            if not self.best_fitness or self.best_fitness < ood_map50:
+                self.best_fitness = ood_map50
+        return metrics, fitness
+
     def _mb_active(self) -> bool:
         """True when the model trains with the MoCo-style FIFO-queue prior."""
         model = unwrap_model(self.model)
@@ -257,6 +268,7 @@ class AnomalyV2Trainer(DetectionTrainer):
         heat_norm = fit_yaml.get("heat_norm") or None
 
         ema_eval = deepcopy(trainer.ema.ema).eval()
+        trainer._ood_heatmap_map50 = None  # clear stale; only set on success
         try:
             with torch.no_grad():
                 rows = run_mvtec_ood_eval(
@@ -273,6 +285,14 @@ class AnomalyV2Trainer(DetectionTrainer):
                     scorer_fuse=scorer_fuse,
                 )
             AnomalyV2Trainer._log_ood_wandb(trainer, rows)
+            # Store OOD heatmap mAP50 for best.pt selection (fitness override)
+            heatmap_mode = modes[1]
+            for r in rows:
+                if r["category"] == "AVERAGE" and r["mode"] == heatmap_mode:
+                    map50 = r.get("mAP50", math.nan)
+                    if not math.isnan(map50):
+                        trainer._ood_heatmap_map50 = float(map50)
+                    break
         except Exception as e:  # never let OOD eval take down a training run
             LOGGER.warning(f"MVTec OOD eval failed at epoch {trainer.epoch + 1}: {type(e).__name__}: {e}")
         finally:

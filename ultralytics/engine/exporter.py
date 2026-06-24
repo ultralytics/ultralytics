@@ -130,6 +130,50 @@ from ultralytics.utils.torch_utils import (
     select_device,
 )
 
+# Quantization schemes -> (half, int8). Single source of truth; extend as new backends land.
+QUANTIZE_SCHEMES = {
+    "w32a32": (False, False),  # FP32 (default)
+    "w16a16": (True, False),  # FP16 (== half)
+    "w8a8": (False, True),  # INT8 (== int8)
+}
+QUANTIZE_ALIASES = {"fp32": "w32a32", "fp16": "w16a16", "half": "w16a16", "int8": "w8a8"}
+
+
+def normalize_quantize(args):
+    """Reconcile the unified string `quantize` arg with the legacy `half`/`int8` booleans.
+
+    `quantize` is the forward-looking knob for export precision; `half`/`int8` are kept for
+    backwards compatibility and forward into it. After this runs `args.half`/`args.int8` hold the
+    canonical booleans consumed by every per-format export function, and `args.quantize` holds the
+    canonical scheme name (or None for FP32).
+
+    Args:
+        args (SimpleNamespace): Exporter arguments, modified in place.
+
+    Raises:
+        ValueError: If `quantize` names a scheme that is not supported.
+    """
+    q = getattr(args, "quantize", None)
+    if q is not None:
+        scheme = QUANTIZE_ALIASES.get(str(q).lower(), str(q).lower())
+        if scheme not in QUANTIZE_SCHEMES:
+            raise ValueError(
+                f"Unsupported quantize='{q}'. Supported schemes are {list(QUANTIZE_SCHEMES)} "
+                f"(aliases: {QUANTIZE_ALIASES})."
+            )
+        half, int8 = QUANTIZE_SCHEMES[scheme]
+        if (args.half and args.half != half) or (args.int8 and args.int8 != int8):
+            LOGGER.warning(f"quantize='{scheme}' overrides half/int8 settings.")
+        args.half, args.int8, args.quantize = half, int8, scheme
+    elif args.half or args.int8:
+        if args.half and args.int8:
+            LOGGER.warning("half=True and int8=True are mutually exclusive, setting half=False.")
+            args.half = False
+        args.quantize = "w8a8" if args.int8 else "w16a16"
+        LOGGER.warning(
+            f"half/int8 are still supported but consider the unified quantize='{args.quantize}' arg instead."
+        )
+
 
 def export_formats():
     """Return a dictionary of Ultralytics YOLO export formats."""
@@ -496,6 +540,9 @@ class Exporter:
             self.args.device = "0"  # update device to "0"
         self.device = select_device("cpu" if self.args.device is None else self.args.device)
 
+        # Reconcile unified quantize arg with legacy half/int8 booleans
+        normalize_quantize(self.args)
+
         # Argument compatibility checks
         fmt_keys = dict(zip(fmts_dict["Argument"], fmts_dict["Arguments"]))[fmt]
         validate_args(fmt, self.args, fmt_keys)
@@ -547,9 +594,6 @@ class Exporter:
                         )
                 except ImportError:
                     pass
-        if self.args.half and self.args.int8:
-            LOGGER.warning("half=True and int8=True are mutually exclusive, setting half=False.")
-            self.args.half = False
         if self.args.half and fmt == "torchscript" and self.device.type == "cpu":
             LOGGER.warning(
                 "half=True only compatible with GPU export for TorchScript, i.e. use device=0, setting half=False."
@@ -622,6 +666,8 @@ class Exporter:
             LOGGER.warning(
                 f"INT8 export requires a missing 'data' arg for calibration. Using default 'data={self.args.data}'."
             )
+        # Keep quantize in sync after any format-forced half/int8 changes above
+        self.args.quantize = self.args.quantize or ("w8a8" if self.args.int8 else "w16a16" if self.args.half else None)
         if fmt == "tfjs" and ARM64 and LINUX:
             raise SystemError("TF.js exports are not currently supported on ARM64 Linux")
         # Recommend OpenVINO if export and Intel CPU
@@ -760,7 +806,7 @@ class Exporter:
                 f"work. Use export 'imgsz={max(self.imgsz)}' if val is required."
             )
             imgsz = self.imgsz[0] if square else str(self.imgsz)[1:-1].replace(" ", "")
-            q = "int8" if self.args.int8 else "half" if self.args.half else ""  # quantization
+            q = self.args.quantize or ("int8" if self.args.int8 else "half" if self.args.half else "")  # quantization
             # Export-only formats deploy in-browser and are not loadable by AutoBackend
             predict_validate = (
                 ""

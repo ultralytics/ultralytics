@@ -77,6 +77,45 @@ def test_modelopt_quantize_onnx_requires_int8_dataset():
         modelopt_quantize_onnx("model.onnx", int8=True)
 
 
+def test_normalize_quantize():
+    """Check the unified quantize arg reconciles with legacy half/int8 booleans."""
+    from types import SimpleNamespace
+
+    from ultralytics.engine.exporter import normalize_quantize
+
+    def norm(**kw):
+        args = SimpleNamespace(**{"quantize": None, "half": False, "int8": False, **kw})
+        normalize_quantize(args)
+        return args
+
+    # quantize string -> canonical half/int8
+    a = norm(quantize="w8a8")
+    assert a.int8 is True and a.half is False
+    a = norm(quantize="w16a16")
+    assert a.half is True and a.int8 is False
+    # friendly aliases resolve to canonical scheme names
+    assert norm(quantize="int8").quantize == "w8a8"
+    assert norm(quantize="fp16").quantize == "w16a16"
+    # legacy booleans forward into quantize
+    assert norm(int8=True).quantize == "w8a8"
+    assert norm(half=True).quantize == "w16a16"
+    # legacy half+int8 stays mutually exclusive (int8 wins)
+    a = norm(half=True, int8=True)
+    assert a.int8 is True and a.half is False and a.quantize == "w8a8"
+    # unsupported scheme raises
+    with pytest.raises(ValueError, match="Unsupported quantize"):
+        norm(quantize="w8a32")
+
+
+@pytest.mark.slow
+def test_export_onnx_quantize_int8(isolated_model):
+    """Test that quantize='w8a8' matches the legacy int8=True ONNX export."""
+    file = YOLO(isolated_model).export(format="onnx", quantize="w8a8", data="coco8.yaml", fraction=0.25, imgsz=32)
+    assert Path(file).name.endswith("_int8.onnx")
+    YOLO(file)(SOURCE, imgsz=32)  # exported model inference
+    Path(file).unlink()  # cleanup
+
+
 def test_torch2onnx_serializes_concurrent_exports(monkeypatch, tmp_path):
     """Ensure ONNX exports do not overlap across worker threads."""
     active = 0

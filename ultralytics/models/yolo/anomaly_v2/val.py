@@ -133,6 +133,12 @@ class AnomalyV2Validator(DetectionValidator):
             model.disable_mask_once()
         return batch
 
+    def postprocess(self, preds):
+        """Post-process predictions, unwrapping Segment head ``((y, proto), preds)`` if needed."""
+        if isinstance(preds, tuple) and len(preds) == 2 and isinstance(preds[0], tuple):
+            preds = preds[0]  # (y, proto) — NMS extracts y via prediction[0]
+        return super().postprocess(preds)
+
     # ------------------------------------------------------------------
     # 2-pass __call__ (training val) or single-pass (prior_mode)
     # ------------------------------------------------------------------

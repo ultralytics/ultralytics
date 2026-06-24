@@ -585,6 +585,8 @@ Reference Platform datasets using the `ul://` URI format (see [Using Platform Da
 ul://username/datasets/dataset-slug
 ```
 
+You can also paste a dataset or model web URL directly (e.g. `https://platform.ultralytics.com/username/datasets/dataset-slug`); it is automatically rewritten to the `ul://` URI. Passing a list of datasets fine-tunes one base model across each in series, for example `model.train(data=["ul://username/datasets/a", "ul://username/datasets/b"])`.
+
 Use this URI to train models from anywhere:
 
 === "CLI"

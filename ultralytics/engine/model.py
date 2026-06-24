@@ -744,12 +744,15 @@ class Model(torch.nn.Module):
                 - augmentations (list[Callable]): List of augmentation functions to apply during training.
 
         Returns:
-            (ultralytics.utils.metrics.DetMetrics | None): Training metrics if available and training is successful;
-                otherwise, None. The specific metrics type depends on the task.
+            (ultralytics.utils.metrics.DetMetrics | dict | None): Training metrics if available and training is
+                successful; otherwise, None. The specific metrics type depends on the task. When `data` is a list or
+                tuple of datasets, the base model is fine-tuned on each in series and a {dataset: metrics} dict is
+                returned.
 
         Examples:
             >>> model = YOLO("yolo26n.pt")
             >>> results = model.train(data="coco8.yaml", epochs=3)
+            >>> multi = model.train(data=["coco8.yaml", "african-wildlife.yaml"], epochs=3)  # fine-tune across datasets
         """
         self._check_is_pytorch_model()
         if hasattr(self.session, "model") and self.session.model.id:  # Ultralytics HUB session with loaded model
@@ -769,6 +772,14 @@ class Model(torch.nn.Module):
             "task": self.task,
         }  # method defaults
         args = {**overrides, **custom, **kwargs, "mode": "train", "session": self.session}  # prioritizes rightmost args
+        if isinstance(args.get("data"), (list, tuple)):  # fine-tune a single base model across multiple datasets
+            from ultralytics.engine.trainer import MultiTrainer
+
+            self.trainer = MultiTrainer(
+                trainer or self._smart_load("trainer"), args, self.model, _callbacks=self.callbacks
+            )
+            self.metrics = self.trainer.train()
+            return self.metrics
         pretrained = kwargs.get("pretrained", overrides.get("pretrained", True) if kwargs.get("cfg") else True)
         if args.get("resume"):
             if args["resume"] is True:  # resume=True (boolean) uses current model as checkpoint
@@ -801,7 +812,9 @@ class Model(torch.nn.Module):
                 )
             self.model, self.ckpt = load_checkpoint(ckpt)
             self.overrides = self._reset_ckpt_args(self.model.args)
-            self.metrics = getattr(self.trainer.validator, "metrics", None)  # TODO: no metrics returned by DDP
+            self.metrics = getattr(self.trainer.validator, "metrics", None)
+            if self.metrics is None and self.ckpt:  # recover from checkpoint under DDP (validator runs in subprocess)
+                self.metrics = self.ckpt.get("train_metrics")
         return self.metrics
 
     def tune(

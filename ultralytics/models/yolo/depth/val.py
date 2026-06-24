@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+import cv2
+import numpy as np
 import torch
 import torch.nn.functional as F
 
@@ -110,10 +112,52 @@ class DepthValidator(DetectionValidator):
         """Return description for progress bar."""
         return f"{'Class':>22}{'Images':>11}{'delta1':>11}{'abs_rel':>11}{'rmse':>11}{'silog':>11}"
 
-    def plot_predictions(self, batch, preds, ni):
-        """Skip detection-style prediction plotting for depth."""
-        pass
+    @staticmethod
+    def _colorize_depth(depth, vmin: float, vmax: float):
+        """Map a (H,W) metric-depth map to a BGR uint8 image (INFERNO), invalid pixels black."""
+        d = depth.detach().float().cpu().numpy() if isinstance(depth, torch.Tensor) else np.asarray(depth, np.float32)
+        valid = d > 0
+        if vmax <= vmin:
+            vmax = vmin + 1e-6
+        dn = np.clip((d - vmin) / (vmax - vmin), 0.0, 1.0)
+        color = cv2.applyColorMap((dn * 255).astype(np.uint8), cv2.COLORMAP_INFERNO)  # BGR
+        color[~valid] = 0
+        return color
+
+    def plot_predictions(self, batch, preds, ni, max_images: int = 4):
+        """Save a RGB | GT depth | predicted depth panel for the batch to val_batch{ni}.jpg.
+
+        Depth has no boxes/classes, so the detection-style plotters are replaced with a
+        side-by-side depth visualization. GT and prediction share GT's valid depth range
+        so the colors are directly comparable. Called by BaseValidator for the first few
+        batches when args.plots is set.
+        """
+        if "depth" not in batch:
+            return
+        try:
+            imgs = batch["img"]
+            gt = batch["depth"]
+            pred = self._extract_pred(preds)
+            if gt.ndim == 3:
+                gt = gt.unsqueeze(1)
+            if pred.ndim == 3:
+                pred = pred.unsqueeze(1)
+            h, w = imgs.shape[-2:]
+            rows = []
+            for i in range(min(imgs.shape[0], max_images)):
+                rgb = (imgs[i].detach().float().cpu().clamp(0, 1).numpy() * 255).astype(np.uint8).transpose(1, 2, 0)
+                rgb = cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
+                g, p = gt[i, 0], pred[i, 0]
+                gv = g[g > 0]
+                vmin = float(gv.min()) if gv.numel() else 0.0
+                vmax = float(gv.max()) if gv.numel() else 1.0
+                gc = cv2.resize(self._colorize_depth(g, vmin, vmax), (w, h), interpolation=cv2.INTER_NEAREST)
+                pc = cv2.resize(self._colorize_depth(p, vmin, vmax), (w, h), interpolation=cv2.INTER_NEAREST)
+                rows.append(np.hstack([rgb, gc, pc]))
+            cv2.imwrite(str(self.save_dir / f"val_batch{ni}.jpg"), np.vstack(rows))
+        except Exception as e:
+            LOGGER.warning(f"DepthValidator: failed to plot val_batch{ni}: {e}")
 
     def plot_val_samples(self, batch, ni):
-        """Skip detection-style sample plotting for depth."""
+        """No-op: GT depth is shown alongside predictions in plot_predictions()."""
         pass

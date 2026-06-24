@@ -1,7 +1,7 @@
 ---
 title: YOLO Hyperparameter Tuning
 comments: true
-description: Tune Ultralytics YOLO hyperparameters with model.tune() and a genetic algorithm. Define a search space, run iterations, and find settings that maximize mAP.
+description: Tune Ultralytics YOLO hyperparameters with model.tune() and a genetic algorithm. Define a search space, run iterations, and find settings that maximize fitness.
 keywords: Ultralytics YOLO, hyperparameter tuning, machine learning, model optimization, genetic algorithms, learning rate, batch size, epochs
 ---
 

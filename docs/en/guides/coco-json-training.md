@@ -1,7 +1,7 @@
 ---
 title: Train YOLO on COCO JSON Without Conversion
 comments: true
-description: Train Ultralytics YOLO directly on COCO JSON annotations without converting to YOLO format. Custom dataset and trainer example with complete working code.
+description: Train Ultralytics YOLO directly on COCO JSON annotations without converting to YOLO format. Custom dataset and trainer example with complete working code for detection training.
 keywords: COCO JSON training, train YOLO on COCO JSON, COCO JSON without conversion, custom YOLO dataset, custom YOLO trainer, COCO annotations YOLO, direct COCO training, Ultralytics YOLO, object detection training, YOLODataset subclass, COCO format training, skip annotation conversion
 ---
 

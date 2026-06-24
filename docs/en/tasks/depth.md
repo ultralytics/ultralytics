@@ -35,6 +35,52 @@ YOLO26 depth models pretrained on the [NYU Depth V2](https://cs.nyu.edu/~silberm
 - **abs_rel** is the mean absolute relative error between predicted and ground-truth depth values.
 - **rmse** is the root mean squared error in meters.
 
+## Depth range and the log-depth head
+
+The depth head supports two output parameterizations, selected by the model YAML:
+
+| Mode | Output | YAML | Use when |
+| ---- | ------ | ---- | -------- |
+| **`log`** (default) | `exp(logit)` — **unbounded** (~0.02–150 m) | `yolo26-depth.yaml` | General use, mixed or unknown depth range |
+| `sigmoid` | `sigmoid(logit) × max_depth` — **bounded** `[0, max_depth]` | `yolo26-depth-sigmoid.yaml` | Fixed-range / safety-constrained rigs |
+
+The default `log` head **decouples scene shape from absolute scale**: the network predicts a relative log-depth field, and absolute meters are set by a separate two-parameter transform (`exp(a·log d + b)`) recovered at evaluation, by lightweight calibration, or by fine-tuning. A bounded `sigmoid × max_depth` head instead bakes a fixed ceiling into the architecture, so any depth beyond `max_depth` is clipped — which prevents training on, and predicting, longer-range scenes.
+
+### Why the default is `log`: evidence across depth ranges
+
+**Controlled A/B — same data, same schedule, only the head differs.** Training both heads from scratch on an identical mix of indoor (≤10 m) and outdoor (≤80 m) data:
+
+| Head | Output range | Mixed-range val δ1 | Training behavior |
+| ---- | ------------ | -----------------: | ----------------- |
+| `sigmoid × max_depth` (10 m) | bounded 0–10 m | 0.221 | **plateaus at epoch 1** |
+| `log` (unbounded) | 0–~150 m | **0.367** (+66%) | improves throughout |
+
+The bounded head cannot represent the >10 m majority of outdoor pixels, so it stops improving almost immediately; the `log` head learns from the full range.
+
+**The failure mode it fixes — single-dataset fine-tuning, stratified by range.** Fine-tuning a bounded (10 m) head on individual datasets works when the data fits the cap and collapses when it exceeds it:
+
+| Dataset | Depth range | Bounded-head δ1 |
+| ------- | ----------- | --------------: |
+| SUN RGB-D | ≤10 m | 0.78 ✅ |
+| Hypersim | mostly ≤10 m | 0.74 ✅ |
+| KITTI | ~80 m | 0.08 ❌ (abs_rel ≈ 7.0 — the 80/10 scale mismatch) |
+| vKITTI2 | 80 m | 0.04 ❌ |
+
+The collapse lands exactly at the cap boundary. The `log` head has no such boundary.
+
+**Released models — cross-range performance.** The shipped `log`-head family, evaluated across benchmarks spanning 10 m (NYU, iBims-1) to 80 m (KITTI), with scale-aligned δ1:
+
+| Benchmark | Range | YOLO26x-depth (`log`) | prior bounded release |
+| --------- | ----- | --------------------: | --------------------: |
+| NYU Eigen | 10 m | 0.923 | 0.934 |
+| iBims-1 | 10 m | 0.961 | 0.945 |
+| ETH3D | ~60 m | 0.953 | 0.931 |
+| Make3D | ~70 m | 0.299 | 0.296 |
+| KITTI Eigen | 80 m | **0.939** | 0.891 |
+| **Mean** | — | **0.815** | 0.799 |
+
+The largest gains are on the longer-range outdoor benchmarks (KITTI, ETH3D) — exactly where a fixed 10 m ceiling hurts most — while indoor performance is retained.
+
 ## Train
 
 Train YOLO26n-depth on the NYU Depth V2 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 518. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.

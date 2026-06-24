@@ -547,6 +547,8 @@ class Exporter:
         fmt_keys = dict(zip(fmts_dict["Argument"], fmts_dict["Arguments"]))[fmt]
         validate_args(fmt, self.args, fmt_keys)
         if fmt in {"deepx", "axelera", "imx", "edgetpu", "qnn"} and self.args.quantize != "w8a8":
+            if self.args.quantize is not None:
+                raise ValueError(f"{fmt} export only supports INT8, i.e. quantize='w8a8', but got quantize='{self.args.quantize}'.")
             LOGGER.warning(f"{fmt} export requires INT8, setting quantize='w8a8'.")
             self.args.quantize = "w8a8"
         if fmt == "axelera":
@@ -615,6 +617,11 @@ class Exporter:
                 f"Invalid processor name '{self.args.name}' for Rockchip RKNN export. Valid names are {RKNN_CHIPS}."
             )
             if self.args.name in {"rv1103", "rv1106", "rv1103b", "rv1106b"} and self.args.quantize != "w8a8":
+                if self.args.quantize is not None:
+                    raise ValueError(
+                        f"Rockchip target '{self.args.name}' only supports INT8, i.e. quantize='w8a8', "
+                        f"but got quantize='{self.args.quantize}'."
+                    )
                 LOGGER.warning(f"Rockchip target '{self.args.name}' requires INT8, setting quantize='w8a8'.")
                 self.args.quantize = "w8a8"
         if fmt == "qnn":
@@ -806,7 +813,7 @@ class Exporter:
                 f"work. Use export 'imgsz={max(self.imgsz)}' if val is required."
             )
             imgsz = self.imgsz[0] if square else str(self.imgsz)[1:-1].replace(" ", "")
-            q = self.args.quantize or ""  # quantization scheme
+            q = f"quantize={self.args.quantize}" if self.args.quantize else ""  # quantization scheme
             # Export-only formats deploy in-browser and are not loadable by AutoBackend
             predict_validate = (
                 ""

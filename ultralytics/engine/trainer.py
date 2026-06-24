@@ -1089,11 +1089,11 @@ class BaseTrainer:
 class MultiTrainer:
     """Fine-tune a single base model across a collection of datasets and aggregate per-dataset results.
 
-    Used automatically by Model.train() when `data` is a list or tuple, allowing one base model to be benchmarked
-    across many datasets (such as the RF100 collection) in a single call. The datasets are fine-tuned in series and
-    the same base weights seed each run, so every run starts from an identical model. All output is grouped under one
-    sweep directory (e.g. runs/detect/multitrain): each dataset gets its own run subdirectory, and the per-dataset and
-    mean metrics are written to multitrain_results.json (for post-processing) alongside a multitrain_results.png bar
+    Used automatically by Model.train() when `data` is a list or tuple, allowing one base model to be benchmarked across
+    many datasets (such as the RF100 collection) in a single call. The datasets are fine-tuned in series and the same
+    base weights seed each run, so every run starts from an identical model. All output is grouped under one sweep
+    directory (e.g. runs/detect/multitrain): each dataset gets its own run subdirectory, and the per-dataset and mean
+    metrics are written to multitrain_results.json (for post-processing) alongside a multitrain_results.png bar
     chart. The base model object is left unchanged; each dataset's fine-tuned weights live in its own run directory.
 
     Attributes:

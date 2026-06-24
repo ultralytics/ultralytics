@@ -266,7 +266,8 @@ def test_train_multi():
     """Test fine-tuning a base model across a dataset collection, which triggers MultiTrainer for list/tuple data."""
     model = YOLO(MODEL)
     results = model.train(data=["coco8.yaml", "coco8.yaml"], epochs=1, imgsz=32)
-    assert isinstance(results, dict) and "fitness" in results["coco8.yaml"]  # checkpoint train metrics per dataset
+    assert isinstance(results, dict) and len(results) == 2  # one entry per run (coco8, coco8-2), no duplicate collapse
+    assert all(m and "fitness" in m for m in results.values())  # checkpoint train metrics per run
     assert len(model.trainer.trainers) == 2  # both list entries fine-tuned in series
     sweep_dir = model.trainer.save_dir
     assert sweep_dir.name.startswith("multitrain")  # all runs grouped under one sweep directory

@@ -1102,15 +1102,15 @@ class MultiTrainer:
         model (torch.nn.Module): Base model whose weights seed each per-dataset fine-tune.
         callbacks (dict | None): Callbacks forwarded to each per-dataset trainer.
         trainers (list[BaseTrainer]): Completed per-dataset trainers (hold results.csv, save_dir, and metrics).
-        metrics (dict): Mapping of each dataset to its final training-metrics dict from the saved checkpoint.
+        metrics (dict): Mapping of each run name (e.g. coco8, coco8-2) to its training-metrics dict from the checkpoint.
         save_dir (Path | None): Sweep directory holding the per-dataset runs and the results JSON/plot.
 
     Examples:
-        Fine-tune one base model across several (unique) datasets and read back per-dataset metrics:
+        Fine-tune one base model across several datasets and read back per-run metrics:
         >>> from ultralytics import YOLO
         >>> model = YOLO("yolo26n.pt")
         >>> results = model.train(data=["coco8.yaml", "african-wildlife.yaml"], epochs=10)
-        >>> results["coco8.yaml"]["fitness"]  # final fitness on coco8
+        >>> results["coco8"]["fitness"]  # final fitness on the coco8 run
     """
 
     def __init__(self, trainer, args, model, _callbacks: dict | None = None):
@@ -1160,12 +1160,13 @@ class MultiTrainer:
                 trainer.model = trainer.get_model(weights=deepcopy(self.model), cfg=self.model.yaml)
                 trainer.train()
                 self.trainers.append(trainer)
-                # Read metrics from the saved checkpoint so results survive the DDP training subprocess (multi-GPU)
+                # Key by the unique run name (e.g. coco8, coco8-2) and read metrics from the saved checkpoint so
+                # results survive the DDP training subprocess (multi-GPU) and repeated datasets do not collapse
                 ckpt = trainer.best if trainer.best.exists() else trainer.last
-                self.metrics[data] = torch_load(ckpt)["train_metrics"] if ckpt.exists() else None
+                self.metrics[trainer.save_dir.name] = torch_load(ckpt)["train_metrics"] if ckpt.exists() else None
             except Exception as e:  # one bad dataset should not abort the whole sweep
                 LOGGER.error(f"MultiTrainer: fine-tuning on {data} failed, skipping: {e}")
-                self.metrics[data] = None
+                self.metrics[Path(str(data)).stem] = None
         if RANK in {-1, 0} and self.trainers:
             self.save_dir.mkdir(parents=True, exist_ok=True)
             self.save_results()  # JSON of per-dataset + mean metrics for programmatic post-processing
@@ -1177,7 +1178,7 @@ class MultiTrainer:
         """Write per-dataset and mean metrics to multitrain_results.json for programmatic post-processing."""
         import json
 
-        results = {data: ({k: float(v) for k, v in m.items()} if m else None) for data, m in self.metrics.items()}
+        results = {run: ({k: float(v) for k, v in m.items()} if m else None) for run, m in self.metrics.items()}
         valid = [m for m in results.values() if m]
         keys = {k for m in valid for k in m}
         mean = {k: sum(m[k] for m in valid if k in m) / sum(k in m for m in valid) for k in keys}
@@ -1193,7 +1194,7 @@ class MultiTrainer:
         from ultralytics.utils.plotting import plot_multitrain_results
 
         key = TASK2METRIC.get(self.args.get("task"))
-        scores = {Path(str(d)).stem: float(m.get(key, m.get("fitness", 0.0))) for d, m in self.metrics.items() if m}
+        scores = {run: float(m.get(key, m.get("fitness", 0.0))) for run, m in self.metrics.items() if m}
         if not scores:
             return None
         fname = plot_multitrain_results(scores, key=key or "fitness", save_dir=self.save_dir)

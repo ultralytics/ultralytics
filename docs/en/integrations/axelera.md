@@ -48,8 +48,8 @@ These cards enable AI acceleration in existing host devices, facilitating [brown
 
 | Product           | Form Factor    | Compute            | Performance (INT8) | Target Application                                                                                                                         |
 | :---------------- | :------------- | :----------------- | :----------------- | :----------------------------------------------------------------------------------------------------------------------------------------- |
-| **Metis PCIe x4** | PCIe Gen3 x16  | **4x** Metis AIPUs | **856 TOPS**       | High-density [video analytics](../guides/analytics.md), smart cities                                                |
-| **Metis PCIe x1** | PCIe Gen3 x1   | **1x** Metis AIPU  | **214 TOPS**       | Industrial PCs, retail [queue management](../guides/queue-management.md)                                            |
+| **Metis PCIe x4** | PCIe Gen3 x16  | **4x** Metis AIPUs | **856 TOPS**       | High-density [video analytics](../guides/analytics.md), smart cities                                                                       |
+| **Metis PCIe x1** | PCIe Gen3 x1   | **1x** Metis AIPU  | **214 TOPS**       | Industrial PCs, retail [queue management](../guides/queue-management.md)                                                                   |
 | **Metis M.2**     | M.2 2280 M-Key | **1x** Metis AIPU  | **214 TOPS**       | [Drones](https://www.ultralytics.com/blog/build-ai-powered-drone-applications-with-ultralytics-yolo11), robotics, portable medical devices |
 | **Metis M.2 MAX** | M.2 2280       | **1x** Metis AIPU  | **214 TOPS**       | Environments requiring advanced thermal management                                                                                         |
 
@@ -65,8 +65,8 @@ For turnkey solutions, Axelera partners with manufacturers to provide systems pr
 
 The following tasks are supported across YOLOv8, YOLO11, and YOLO26 models.
 
-| Task                                                                 | YOLOv8 | YOLO11 | YOLO26              |
-| :------------------------------------------------------------------- | :----- | :----- | :------------------ |
+| Task                                          | YOLOv8 | YOLO11 | YOLO26              |
+| :-------------------------------------------- | :----- | :----- | :------------------ |
 | [Object Detection](../tasks/detect.md)        | ✅     | ✅     | ✅                  |
 | [Pose Estimation](../tasks/pose.md)           | ✅     | ✅     | ✅                  |
 | [Instance Segmentation](../tasks/segment.md)  | ✅     | ✅     | ⚠️ Voyager SDK only |
@@ -215,7 +215,7 @@ The Axelera format supports the [Export](../modes/export.md), [Predict](../modes
 | `imgsz`    | `int` or `tuple` | `640`            | Image size for model input.                                                                                                             |
 | `batch`    | `int`            | `1`              | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
 | `int8`     | `bool`           | `True`           | Enable [INT8 quantization](https://www.ultralytics.com/glossary/model-quantization) for AIPU.                                           |
-| `data`     | `str`            | `'coco128.yaml'` | [Dataset](../datasets/index.md) config for quantization calibration.                                                   |
+| `data`     | `str`            | `'coco128.yaml'` | [Dataset](../datasets/index.md) config for quantization calibration.                                                                    |
 | `fraction` | `float`          | `1.0`            | Fraction of dataset for calibration (100-400 images recommended).                                                                       |
 | `device`   | `str`            | `None`           | Export device: GPU (`device=0`) or CPU (`device=cpu`).                                                                                  |
 

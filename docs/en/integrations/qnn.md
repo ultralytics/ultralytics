@@ -86,8 +86,8 @@ End-to-end single-image inference for the official YOLO26n models on a Lenovo la
 
 QNN export supports the standard task set available in each model family, including YOLO26 semantic segmentation.
 
-| Task                                                                 | Supported |
-| :------------------------------------------------------------------- | :-------- |
+| Task                                          | Supported |
+| :-------------------------------------------- | :-------- |
 | [Object Detection](../tasks/detect.md)        | ✅        |
 | [Instance Segmentation](../tasks/segment.md)  | ✅        |
 | [Semantic Segmentation](../tasks/semantic.md) | ✅        |

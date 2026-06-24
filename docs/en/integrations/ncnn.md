@@ -90,8 +90,8 @@ You can expand model compatibility and deployment flexibility by converting YOLO
 
 NCNN export supports the standard Ultralytics YOLO26 task set.
 
-| Task                                                                 | Supported |
-| :------------------------------------------------------------------- | :-------- |
+| Task                                          | Supported |
+| :-------------------------------------------- | :-------- |
 | [Object Detection](../tasks/detect.md)        | ✅        |
 | [Instance Segmentation](../tasks/segment.md)  | ✅        |
 | [Semantic Segmentation](../tasks/semantic.md) | ✅        |

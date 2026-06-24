@@ -168,7 +168,7 @@ path: /path/to/my_dataset/images # root with train/ and val/ image subfolders
 train: train
 val: val
 
-# COCO JSON annotation files (absolute, or relative to your run directory)
+# COCO JSON annotation files (use absolute paths; these custom keys are not resolved against `path`)
 train_json: /path/to/my_dataset/annotations/instances_train.json
 val_json: /path/to/my_dataset/annotations/instances_val.json
 

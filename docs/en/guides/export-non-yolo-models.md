@@ -175,15 +175,13 @@ Requirements:
 
 ### Export to TensorFlow Frozen Graph
 
-The frozen `.pb` graph is produced from the Keras model returned by `onnx2saved_model`, so generate that model first, then convert it:
+Continuing from the SavedModel export above, convert the returned `keras_model` to a frozen `.pb` graph:
 
 ```python
 from pathlib import Path
 
-from ultralytics.utils.export import keras2pb, onnx2saved_model, torch2onnx
+from ultralytics.utils.export import keras2pb
 
-torch2onnx(model, im, output_file="resnet18.onnx")
-keras_model = onnx2saved_model("resnet18.onnx", output_dir="resnet18_saved_model")
 keras2pb(keras_model, output_file=Path("resnet18_saved_model/resnet18.pb"))
 ```
 

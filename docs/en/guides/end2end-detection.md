@@ -175,7 +175,7 @@ If you're upgrading an existing project to YOLO26, here's a quick checklist to e
 
 ## Conclusion
 
-End-to-end detection is the default in YOLO26 and needs no code changes if you use the [Ultralytics Python API](../usage/python.md) or [CLI](../usage/cli.md) — only custom post-processing pipelines need updating to read the new `(N, 300, 6)` output and drop the NMS step. For detailed speed and accuracy benchmarks across all model sizes, see the [YOLO26 model page](../models/yolo26.md), and for the full set of export options and formats, see the [Export mode](../modes/export.md) documentation.
+End-to-end detection is the default in YOLO26 and needs no code changes if you use the [Ultralytics Python API](../usage/python.md) or [CLI](../usage/cli.md). Only custom post-processing pipelines need updating to read the new `(N, 300, 6)` output and drop the NMS step — except for export formats that fall back to one-to-many output (such as NCNN and RKNN), which still require NMS on-device. For detailed speed and accuracy benchmarks across all model sizes, see the [YOLO26 model page](../models/yolo26.md), and for the full set of export options and formats, see the [Export mode](../modes/export.md) documentation.
 
 ## FAQ
 

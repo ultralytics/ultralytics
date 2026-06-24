@@ -67,6 +67,37 @@ class DepthTrainer(yolo.detect.DetectionTrainer):
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
 
+    def plot_training_samples(self, batch, ni):
+        """Plot training samples as RGB | GT-depth panels (consistent with val_batch plots).
+
+        The inherited DetectionTrainer version routes the batch through ``plot_images``, which
+        blends the depth colormap over the RGB at alpha=0.6 — a confusing "RGB+depth" tint.
+        Render side-by-side instead. Batch is already preprocessed here (img in [0,1]).
+        """
+        try:
+            import cv2
+            import numpy as np
+
+            from .val import DepthValidator
+
+            imgs, gt = batch["img"], batch["depth"]
+            if gt.ndim == 3:
+                gt = gt.unsqueeze(1)
+            h, w = imgs.shape[-2:]
+            rows = []
+            for i in range(min(imgs.shape[0], 8)):
+                rgb = (imgs[i].detach().float().cpu().clamp(0, 1).numpy() * 255).astype(np.uint8).transpose(1, 2, 0)
+                rgb = cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
+                g = gt[i, 0]
+                gv = g[g > 0]
+                vmin = float(gv.min()) if gv.numel() else 0.0
+                vmax = float(gv.max()) if gv.numel() else 1.0
+                gc = cv2.resize(DepthValidator._colorize_depth(g, vmin, vmax), (w, h), interpolation=cv2.INTER_NEAREST)
+                rows.append(np.hstack([rgb, gc]))
+            cv2.imwrite(str(self.save_dir / f"train_batch{ni}.jpg"), np.vstack(rows))
+        except Exception as e:
+            LOGGER.warning(f"DepthTrainer: failed to plot train_batch{ni}: {e}")
+
     def final_eval(self):
         """Run the standard final evaluation, then auto-calibrate the saved checkpoints.
 

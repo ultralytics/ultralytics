@@ -82,11 +82,24 @@ class DepthValidator(DetectionValidator):
         pass
 
     def print_results(self):
-        """Log the headline depth metrics."""
+        """Log the headline depth metrics in the detection-style aligned table format.
+
+        Columns line up with get_desc(): Class, Images, delta1, abs_rel, rmse, silog.
+        Uses "depth_val" as the row label (depth has no classes, where detection prints "all").
+        """
         r = self.metrics.results_dict
+        n_images = len(self.dataloader.dataset) if self.dataloader is not None else (self.seen or 0)
+        pf = "%22s" + "%11i" + "%11.4g" * 4  # label, Images, delta1, abs_rel, rmse, silog
         LOGGER.info(
-            f"Depth val: delta1={r.get('metrics/delta1', 0.0):.4f}  abs_rel={r.get('metrics/abs_rel', 0.0):.4f}  "
-            f"rmse={r.get('metrics/rmse', 0.0):.4f}  silog={r.get('metrics/silog', 0.0):.2f}"
+            pf
+            % (
+                "depth_val",
+                n_images,
+                r.get("metrics/delta1", 0.0),
+                r.get("metrics/abs_rel", 0.0),
+                r.get("metrics/rmse", 0.0),
+                r.get("metrics/silog", 0.0),
+            )
         )
 
     def finalize_metrics(self, *args, **kwargs):

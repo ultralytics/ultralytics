@@ -12,6 +12,10 @@ keywords: Ultralytics, YOLO, utility functions, version checks, requirements, im
 
 <br>
 
+## ::: ultralytics.utils.checks.normalize_platform_uri
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.checks.parse_requirements
 
 <br><br><hr><br>

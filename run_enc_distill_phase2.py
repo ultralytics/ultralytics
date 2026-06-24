@@ -45,7 +45,23 @@ import torch
 from callbacks import grad_clip, muon_w, nfs_sync, paths, wandb_config
 from ultralytics import YOLO
 from ultralytics.data.utils import IMG_FORMATS
+from ultralytics.nn.teacher_model import TEACHER_REGISTRY, safe_key
 from ultralytics.utils import YAML
+
+# teacher_frozen_det: frozen foundation teacher (yolo26-teacherdet.yaml layer 0) + trainable ViTDet pyramid + Detect,
+# the frozen-feature detection ceiling. Supported = ImageNet-stat ViT/ConvNeXt teachers audited (2026-06-24) to run at
+# det imgsz 640 with row-major square token grids and stats matching their phase-1 distillation. Other teachers each
+# need per-teacher work first: siglip2:g learned pos-embed (needs interpolate_pos_encoding=True or a 384 lock),
+# moonvit:so400m needs imgsz % 224, sam3:l needs set_imgsz + a 1008 registry fix + its missing asset, tips:* is unbuilt.
+# dinov3:vit7b is correctness-valid but excluded until checkpoints strip the frozen teacher: at 6.7B its best.pt is
+# ~13GB and nfs_sync would mirror that x16 datasets. The 86M-300M teachers below stay at 170-600MB, mirrored fine.
+_TEACHERDET_YAML = str(Path(_REPO_ROOT) / "ultralytics" / "cfg" / "models" / "26" / "yolo26-teacherdet.yaml")
+_TEACHER_FROZEN_DET_SUPPORTED = frozenset(
+    {"eupe:vitb16", "eupe:vits16", "eupe:convnextb", "dinov3:vitb16", "dinov3:vitl16", "dinov3:convnextb"}
+)
+# det imgsz per teacher (default 640 for patch-16 ViT + ConvNeXt). siglip2/moonvit values are pre-staged for when
+# those teachers join _TEACHER_FROZEN_DET_SUPPORTED; until then the .get() default 640 is what runs.
+_TEACHER_DET_IMGSZ = {"siglip2:g": 384, "moonvit:so400m": 448}
 
 
 def _pop_flag(argv: list[str], flag: str, is_bool: bool = False) -> tuple[list[str], str]:
@@ -69,9 +85,20 @@ def _load_train_args(resume: str) -> dict:
     return torch.load(Path(resume), map_location="cpu", weights_only=False)["train_args"]
 
 
+def _export_hf_token() -> None:
+    """Export HF_TOKEN from .env so HF-gated teachers (dinov3 L/convnextb/7b) load. No-op if already set or no .env."""
+    env = Path(".env")
+    if os.environ.get("HF_TOKEN") or not env.exists():
+        return
+    for line in env.read_text().splitlines():
+        if line.startswith("HF_TOKEN="):
+            os.environ["HF_TOKEN"] = line.split("=", 1)[1].strip().strip("\"'")
+            return
+
+
 _COCO_DET_MODES = ("coco_det_finetune", "coco_det_finetune_frozen")
 _SCALED_MODES = _COCO_DET_MODES + ("dota_obb_finetune",)
-_SINGLE_GPU_DET_MODES = _COCO_DET_MODES + ("dota_obb_finetune", "multi_det_finetune")
+_SINGLE_GPU_DET_MODES = _COCO_DET_MODES + ("dota_obb_finetune", "multi_det_finetune", "teacher_frozen_det")
 
 _AUG_ARGS = dict(
     hsv_h=0.015,
@@ -309,6 +336,7 @@ def _run_multi_det(
     lr_override: str,
     nbs_override: str,
     datasets_arg: str,
+    teacher_spec: str | None = None,
 ) -> None:
     """Sequentially train + val on a list of YOLO-format detection datasets.
 
@@ -330,6 +358,9 @@ def _run_multi_det(
         lr_override (str): CLI --lr override.
         nbs_override (str): CLI --nbs override.
         datasets_arg (str): Path to dataset list (file or directory). See _resolve_dataset_list.
+        teacher_spec (str, optional): Frozen-teacher registry key (e.g. "eupe:vitb16"). When set, runs the
+            teacher_frozen_det mode: build yolo26-teacherdet.yaml with this teacher, freeze=1, no phase1 weights or
+            parent push. When None, the standard distilled-student multi_det_finetune mode.
     """
     if "," in gpu:
         raise SystemExit(
@@ -337,13 +368,21 @@ def _run_multi_det(
             f"add_callback registrations under DDP. Got gpu={gpu!r}; pass a single id like '0'."
         )
     dataset_yamls = _resolve_dataset_list(datasets_arg)
-    model_yaml = _infer_model_yaml(phase1_weights)
-    # Fail fast on a wrong parent id (e.g. a dir basename) before training 13 datasets, since
-    # push_summary_to_parent would otherwise drop the downstream link silently at the final step.
-    wandb_config.assert_parent_resolvable(phase1_wandb_id)
-
     parent_save_dir = paths.LOCAL_ROOT / parent_name
     parent_save_dir.mkdir(parents=True, exist_ok=True)
+    if teacher_spec:
+        # Inject the chosen teacher into a resolved copy of the teacherdet yaml (safe_key form; a colon would crash the
+        # parse_model ast.literal_eval arg handler). Written to the parent dir as run provenance.
+        cfg = YAML.load(_TEACHERDET_YAML)
+        cfg["backbone"][0][3] = [safe_key(teacher_spec)]
+        model_yaml = str(parent_save_dir / "teacherdet.yaml")
+        YAML.save(model_yaml, cfg)
+    else:
+        model_yaml = _infer_model_yaml(phase1_weights)
+        # Fail fast on a wrong parent id (e.g. a dir basename) before training 13 datasets, since
+        # push_summary_to_parent would otherwise drop the downstream link silently at the final step.
+        wandb_config.assert_parent_resolvable(phase1_wandb_id)
+
     csv_path = paths.multi_results_csv(parent_name, paths.LOCAL_ROOT)
     nfs_csv = paths.multi_results_csv(parent_name)
     if not csv_path.exists():
@@ -397,10 +436,11 @@ def _run_multi_det(
             "on_pretrain_routine_start",
             wandb_config.log_config(
                 model=model_yaml,
-                pretrained_from=phase1_weights,
+                pretrained_from=teacher_spec or phase1_weights,
                 phase1_wandb_id=phase1_wandb_id,
-                mode="multi_det_finetune",
-                cls_to_det_remap=True,
+                mode="teacher_frozen_det" if teacher_spec else "multi_det_finetune",
+                teacher=teacher_spec,
+                cls_to_det_remap=teacher_spec is None,
                 wandb_group=parent_name,
                 parent_run=parent_name,
                 dataset=basename,
@@ -411,8 +451,13 @@ def _run_multi_det(
             ),
         )
         det_args = _build_det_train_args(ep_d, pat_d, batch_override, lr_override, nbs_override)
+        if teacher_spec:
+            # Freeze layer 0 (the teacher) via the trainer freeze arg: BaseTrainer re-enables requires_grad for any
+            # non-frozen-listed param (trainer.py:319), so freezing only in __init__ is undone. imgsz is per-teacher.
+            det_args["freeze"] = 1
+            det_args["imgsz"] = _TEACHER_DET_IMGSZ.get(teacher_spec, 640)
         train_args = dict(
-            pretrained=phase1_weights,
+            pretrained=False if teacher_spec else phase1_weights,
             device=int(gpu),
             project=paths.WANDB_PROJECT,
             name=basename,
@@ -448,13 +493,14 @@ def _run_multi_det(
         f"\n[multi_det_finetune] MACRO over {len(results)} datasets: "
         f"mAP50={macro['map50']:.4f} mAP50-95={macro['map50_95']:.4f} fitness={macro['fitness']:.4f}"
     )
-    wandb_config.push_summary_to_parent(
-        phase1_wandb_id,
-        {
-            "downstream_multi_macro_map50_95": float(macro["map50_95"]),
-            "downstream_multi_n_datasets": len(results),
-        },
-    )
+    if not teacher_spec:  # frozen-teacher runs have no phase1 distillation parent to push the downstream link to
+        wandb_config.push_summary_to_parent(
+            phase1_wandb_id,
+            {
+                "downstream_multi_macro_map50_95": float(macro["map50_95"]),
+                "downstream_multi_n_datasets": len(results),
+            },
+        )
 
 
 def main(argv: list[str]) -> None:
@@ -467,6 +513,42 @@ def main(argv: list[str]) -> None:
     argv, nbs_override = _pop_flag(argv, "--nbs")
     argv, scratch = _pop_flag(argv, "--scratch", is_bool=True)
     argv, datasets_arg = _pop_flag(argv, "--datasets")
+    argv, teacher_spec = _pop_flag(argv, "--teacher")
+    if teacher_spec:
+        # Layout: <gpu> teacher_frozen_det <name> --teacher <spec> --datasets <file>. The frozen-teacher backbone
+        # builds itself from --teacher, so there is no phase1_weights slot; the mode keyword is optional padding.
+        if teacher_spec not in TEACHER_REGISTRY:
+            raise SystemExit(f"--teacher {teacher_spec!r} not in TEACHER_REGISTRY: {sorted(TEACHER_REGISTRY)}")
+        if teacher_spec not in _TEACHER_FROZEN_DET_SUPPORTED:
+            raise SystemExit(
+                f"teacher_frozen_det does not yet support {teacher_spec!r}. Supported (audited to run at det imgsz 640 "
+                f"with correct stats + row-major grids): {sorted(_TEACHER_FROZEN_DET_SUPPORTED)}. siglip2/moonvit/sam3/"
+                f"tips each need per-teacher work first (see the _TEACHER_FROZEN_DET_SUPPORTED note)."
+            )
+        if not datasets_arg:
+            raise SystemExit("ERROR: teacher_frozen_det requires --datasets <file|dir>.")
+        if resume or fork_from:
+            raise SystemExit("ERROR: --resume and --fork_from are not supported for teacher_frozen_det.")
+        gpu = argv[0] if argv else "0"
+        if "," in gpu:
+            raise SystemExit(f"ERROR: teacher_frozen_det requires a single GPU (DDP drops add_callback). Got gpu={gpu!r}.")
+        positionals = [a for a in argv[1:] if a != "teacher_frozen_det"]
+        name = positionals[0] if positionals else f"phase2-teacherfrozen-{safe_key(teacher_spec)}"
+        _export_hf_token()
+        _run_multi_det(
+            gpu=gpu,
+            phase1_weights="",
+            parent_name=name,
+            phase1_wandb_id="",
+            epochs=None,
+            patience=None,
+            batch_override=batch_override,
+            lr_override=lr_override,
+            nbs_override=nbs_override,
+            datasets_arg=datasets_arg,
+            teacher_spec=teacher_spec,
+        )
+        return
     if resume:
         resume = paths.patch_resume(resume)
     resume_args = _load_train_args(resume) if resume else {}

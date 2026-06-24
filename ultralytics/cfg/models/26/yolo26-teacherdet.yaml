@@ -1,0 +1,33 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# YOLO26 frozen-teacher detection: a frozen foundation teacher backbone + a trainable ViTDet-style simple feature
+# pyramid + YOLO26 Detect head. Measures the frozen-feature detection ceiling (run_enc_distill_phase2.py
+# teacher_frozen_det mode). The teacher (layer 0) emits one feature map at its patch stride; P3/P4/P5 are built from
+# that single map by up/down sampling (ViTDet SimpleFeaturePyramid, Li et al. 2022), not a multi-scale backbone PAN.
+# The teacher is frozen via the trainer freeze=1 arg, so only the pyramid + Detect head (layers 1-5) train.
+#
+# Layer-0 arg is the safe_key teacher spec (e.g. eupe_vitb16, NOT eupe:vitb16: a colon crashes the parse_model
+# ast.literal_eval arg handler). The teacher_frozen_det runner overwrites this placeholder with the chosen teacher.
+# No scales block: width_multiple defaults to 1.0 so the teacher embed_dim and the pyramid channels are literal.
+# Strides are inferred per teacher patch stride: 16-stride ViTs -> P3/P4/P5 = 8/16/32; 32-stride ConvNeXt -> 16/32/64.
+
+# Parameters
+nc: 80 # number of classes
+end2end: True # whether to use end-to-end mode
+reg_max: 1 # DFL bins
+
+# Frozen foundation teacher backbone (single feature map at the teacher patch stride)
+backbone:
+  # [from, repeats, module, args]
+  - [-1, 1, TeacherDetBackbone, [eupe_vitb16]] # 0 (B, embed_dim, g, g)
+
+# Trainable ViTDet simple feature pyramid + Detect head
+head:
+  - [0, 1, nn.Upsample, [None, 2, "nearest"]] # 1 2x up -> finer grid
+  - [-1, 1, Conv, [128, 3, 1]] # 2 P3 (stride/2)
+
+  - [0, 1, Conv, [256, 3, 1]] # 3 P4 (stride)
+
+  - [0, 1, Conv, [512, 3, 2]] # 4 P5 (stride*2)
+
+  - [[2, 3, 4], 1, Detect, [nc]] # 5 Detect(P3, P4, P5)

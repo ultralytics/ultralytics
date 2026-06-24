@@ -75,6 +75,7 @@ from ultralytics.nn.modules import (
     YOLOESegment26,
     v10Detect,
 )
+from ultralytics.nn.teacher_model import TEACHER_REGISTRY, TeacherDetBackbone, resolve_teacher_key
 from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, WINDOWS, YAML, colorstr, emojis
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (
@@ -1789,6 +1790,10 @@ def parse_model(d, ch, verbose=True):
                 legacy = False
         elif m in frozenset({AIFI, FastViTBlock, MHSABlock}):
             args = [ch[f], *args]
+        elif m is TeacherDetBackbone:
+            # Frozen-teacher detection backbone: layer-0 module that maps a 3-channel image to embed_dim feature channels.
+            # args[0] is the safe_key teacher spec (colon form would crash the ast.literal_eval arg handler above).
+            c2 = TEACHER_REGISTRY[resolve_teacher_key(args[0])]["embed_dim"]
         elif m in frozenset({HGStem, HGBlock}):
             c1, cm, c2 = ch[f], args[0], args[1]
             args = [c1, cm, c2, *args[2:]]

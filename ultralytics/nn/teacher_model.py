@@ -11,6 +11,7 @@ Teacher abstraction inspired by:
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 
 import torch
@@ -651,6 +652,20 @@ TEACHER_REGISTRY["sam3:l"] = {
 }
 
 
+def resolve_teacher_key(spec: str) -> str:
+    """Resolve a TEACHER_REGISTRY key from its colon ("eupe:vitb16") or safe_key ("eupe_vitb16") form.
+
+    Returns spec unchanged when nothing matches so the caller's own lookup raises a clear error.
+
+    Args:
+        spec (str): Teacher key in registry or safe_key form.
+
+    Returns:
+        (str): The matching registry key, or spec unchanged when none matches.
+    """
+    return next((k for k in TEACHER_REGISTRY if k == spec or safe_key(k) == spec), spec)
+
+
 def build_teacher_model(
     variant: str, device: torch.device = None, normalize_input: bool = False
 ) -> TeacherModel:
@@ -673,3 +688,70 @@ def build_teacher_model(
     teacher = TEACHER_REGISTRY[variant]["cls"](size, device)
     teacher._normalize_input = normalize_input
     return teacher
+
+
+class TeacherDetBackbone(nn.Module):
+    """Frozen foundation teacher as a single-scale detection backbone.
+
+    Wraps build_teacher_model() and reshapes its patch tokens (B, N, D) into a (B, D, gh, gw) feature map so a detection
+    neck and head can train on top while the teacher stays frozen, measuring the frozen-feature detection ceiling
+    (run_enc_distill_phase2.py teacher_frozen_det mode). The embedding dimension equals the output channel count and is
+    set as the layer-0 output channels by parse_model.
+
+    The teacher MUST also be frozen via the trainer freeze=1 arg: BaseTrainer._setup_train re-enables requires_grad for
+    any floating param not in the freeze list (engine/trainer.py:319), so freezing in __init__ alone is undone.
+
+    The spec is passed in safe_key form ("eupe_vitb16"), not registry form ("eupe:vitb16"): parse_model runs string args
+    through ast.literal_eval, which raises an unsuppressed SyntaxError on a colon but a suppressed ValueError on the
+    underscore form, so only the underscore form survives as a string arg.
+
+    Detection feeds [0, 1] RGB (cv2 BGR is flipped to RGB by Format when hyp.bgr=0). EUPE/DINOv3 use ImageNet stats,
+    equal to the phase-1 distillation normalization, so (x - IMAGE_MEAN) / IMAGE_STD reproduces the exact distribution
+    the teacher was distilled on. The teacher runs at the detection resolution (ViTDet convention: pos-embeds / RoPE
+    interpolate to the det grid), not its native pretraining resolution.
+
+    Attributes:
+        teacher (TeacherModel): The wrapped frozen foundation teacher.
+        embed_dim (int): Teacher embedding dimension, equal to the output channel count.
+        patch_stride (int): Teacher downsample factor, used to recover the (gh, gw) token grid from the input size.
+    """
+
+    def __init__(self, spec: str):
+        """Initialize the frozen teacher detection backbone.
+
+        Args:
+            spec (str): Teacher key in registry ("eupe:vitb16") or safe_key ("eupe_vitb16") form.
+        """
+        super().__init__()
+        spec = resolve_teacher_key(spec)
+        reg = TEACHER_REGISTRY[spec]
+        self.teacher = build_teacher_model(spec)
+        self.teacher._normalize_input = False  # forward normalizes the [0,1] detection input directly
+        self.embed_dim = self.teacher.embed_dim
+        self.patch_stride = reg["imgsz"] // math.isqrt(reg["num_patches"])
+        self.register_buffer("mean", torch.tensor(self.teacher.IMAGE_MEAN).view(1, 3, 1, 1), persistent=False)
+        self.register_buffer("std", torch.tensor(self.teacher.IMAGE_STD).view(1, 3, 1, 1), persistent=False)
+
+    def train(self, mode: bool = True) -> TeacherDetBackbone:
+        """Set training mode but keep the frozen teacher in eval (no BatchNorm/dropout updates)."""
+        super().train(mode)
+        self.teacher.eval()
+        return self
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Encode [0, 1] RGB detection images into a single (B, embed_dim, gh, gw) feature map.
+
+        Args:
+            x (torch.Tensor): Detection-pipeline images (B, 3, H, W) in [0, 1], RGB.
+
+        Returns:
+            (torch.Tensor): Spatial feature map (B, embed_dim, gh, gw), gh=H/patch_stride, gw=W/patch_stride.
+        """
+        h, w = x.shape[-2:]
+        patches = self.teacher.encode((x - self.mean) / self.std).patches  # (B, N, D)
+        b, n, d = patches.shape
+        gh, gw = h // self.patch_stride, w // self.patch_stride
+        # Recover the real (gh, gw) grid instead of assuming a square sqrt(N): detection val uses rect=True (H!=W), so a
+        # square-grid assumption would raise on reshape or silently scramble the spatial map and invalidate the run.
+        assert gh * gw == n, f"teacher grid {gh}x{gw}={gh * gw} != {n} tokens at input {h}x{w}, stride {self.patch_stride}"
+        return patches.transpose(1, 2).reshape(b, d, gh, gw)

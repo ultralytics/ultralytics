@@ -41,8 +41,11 @@ class AnomalyV2Validator(DetectionValidator):
 
     def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None,
                  prior_mode: str | None = None) -> None:
+        scorer_kwargs, scorer_fuse = None, "mean"
         if isinstance(args, dict):
             prior_mode = args.pop("prior_mode", prior_mode)
+            scorer_kwargs = args.pop("scorer_kwargs", None)  # FeatureDiscriminatorScorer fit kwargs
+            scorer_fuse = args.pop("scorer_fuse", "mean")  # heatmap_fused combine op
         super().__init__(dataloader, save_dir, args, _callbacks)
         self.args.task = "anomaly_v2"
         self.prior_mode = prior_mode
@@ -67,6 +70,12 @@ class AnomalyV2Validator(DetectionValidator):
         self._ood_bank_size = 10000
         self._saved_prior_mode = _SENTINEL
         self._built_bank = False
+        # FeatureDiscriminatorScorer (heatmap_learned / heatmap_fused): fit from the bank's normal
+        # features inside this validator, then drop after — like the bank, so the shared/EMA model
+        # stays clean (no scorer params in a checkpoint).
+        self._scorer_kwargs = dict(scorer_kwargs) if scorer_kwargs else {}
+        self._scorer_fuse = scorer_fuse
+        self._fit_disc = False
 
         # AUROC accumulators
         self._auroc_image_scores: list[float] = []
@@ -87,12 +96,18 @@ class AnomalyV2Validator(DetectionValidator):
         if m is not None and self.prior_mode is not None and hasattr(m, "set_prior_mode"):
             self._saved_prior_mode = getattr(m, "_prior_mode", None)  # snapshot for restore
             effective = self.prior_mode
-            if self.prior_mode == "heatmap" and not self._ensure_memory_bank(m):
+            needs_bank = self.prior_mode in ("heatmap", "heatmap_learned", "heatmap_fused")
+            if needs_bank and not self._ensure_memory_bank(m):
                 # No usable bank (no bb_layers / no normal images / build failed): never run the
                 # heatmap forward against a missing-or-empty bank — fall back to bare detection so
                 # the run is honest (AUROC nan) instead of crashing or scoring against 0 vectors.
                 LOGGER.warning("AnomalyV2Validator: heatmap prior unavailable -> running prior_mode='none'.")
                 effective = "none"
+            elif self.prior_mode in ("heatmap_learned", "heatmap_fused") and not self._ensure_feat_disc(m):
+                # Scorer fit failed: heatmap_fused degrades to the bank alone, heatmap_learned to none.
+                fallback = "heatmap" if self.prior_mode == "heatmap_fused" else "none"
+                LOGGER.warning(f"AnomalyV2Validator: learned scorer unavailable -> prior_mode='{fallback}'.")
+                effective = fallback
             m.set_prior_mode(effective)
 
     def preprocess(self, batch):
@@ -133,7 +148,7 @@ class AnomalyV2Validator(DetectionValidator):
 
     def _single_pass(self, trainer, model):
         self._reset_auroc()
-        if self.prior_mode == "heatmap":
+        if self.prior_mode in ("heatmap", "heatmap_learned", "heatmap_fused"):
             self.args.rect = False
         return super().__call__(trainer=trainer, model=model)
 
@@ -227,9 +242,29 @@ class AnomalyV2Validator(DetectionValidator):
         self._built_bank = True
         return True
 
+    def _ensure_feat_disc(self, m) -> bool:
+        """Fit the FeatureDiscriminatorScorer from the (already-built) bank's normal features.
+
+        Reuses a scorer already fitted on ``m`` (e.g. supplied by the caller); otherwise fits one
+        with ``self._scorer_kwargs`` and marks it for drop in :meth:`_restore_prior_state`. Returns
+        True iff a usable scorer is ready.
+        """
+        if not hasattr(m, "fit_feat_disc"):
+            return False
+        sc = getattr(m, "_feat_disc_scorer", None)
+        if sc is not None and getattr(sc, "fitted", False):
+            return True  # supplied/reused — don't refit
+        try:
+            ok = m.fit_feat_disc(fuse=self._scorer_fuse, **self._scorer_kwargs)
+        except Exception as e:  # never crash the val run on a scorer fit failure
+            LOGGER.warning(f"AnomalyV2Validator: feature-discriminator fit failed ({type(e).__name__}: {e}).")
+            return False
+        self._fit_disc = bool(ok)
+        return ok
+
     def _restore_prior_state(self) -> None:
-        """Undo prior_mode + any bank we built so a shared/EMA model is left clean."""
-        if self._saved_prior_mode is _SENTINEL and not self._built_bank:
+        """Undo prior_mode + any bank/scorer we built so a shared/EMA model is left clean."""
+        if self._saved_prior_mode is _SENTINEL and not self._built_bank and not self._fit_disc:
             return
         m = resolve_v2_model(self._model_ref)
         if m is None:
@@ -242,6 +277,10 @@ class AnomalyV2Validator(DetectionValidator):
             if mb is not None and hasattr(mb, "reset_memory_bank"):
                 mb.reset_memory_bank()  # free the bank; prevents EMA/ckpt bloat mid-training
             self._built_bank = False
+        if self._fit_disc:
+            if hasattr(m, "_feat_disc_scorer"):
+                m._feat_disc_scorer = None  # drop scorer params before any checkpoint save
+            self._fit_disc = False
 
     def plot_val_samples(self, batch, ni):
         """Slice the cached-prior channel off before plotting (plot_images expects 3-channel)."""
@@ -411,7 +450,8 @@ MVTEC_CATEGORIES = [
     "bottle", "cable", "capsule", "carpet", "grid", "hazelnut", "leather",
     "metal_nut", "pill", "screw", "tile", "toothbrush", "transistor", "wood", "zipper",
 ]
-_MODE_TO_PRIOR = {"mask_off": "none", "heatmap": "heatmap", "mask_on": "mask"}
+_MODE_TO_PRIOR = {"mask_off": "none", "heatmap": "heatmap", "heatmap_learned": "heatmap_learned",
+                  "heatmap_fused": "heatmap_fused", "mask_on": "mask"}
 _OOD_CSV_FIELDS = ["epoch", "category", "mode", "mAP10", "mAP25", "mAP50", "mAP50_95",
                    "P", "R", "image_auroc", "pixel_auroc"]
 
@@ -502,6 +542,8 @@ def run_mvtec_ood_eval(
     heatmap_edge_m: float | None = None,
     heatmap_edge_sigma: float | None = None,
     bank_cache_dir: str | Path | None = None,
+    scorer_kwargs: dict | None = None,
+    scorer_fuse: str = "mean",
 ) -> list[dict]:
     """Run the 3-mode MVTec OOD eval over ``categories``; ``model`` is a YOLOAnomalyV2Model.
 
@@ -561,6 +603,8 @@ def run_mvtec_ood_eval(
                     "imgsz": imgsz, "batch": batch, "device": str(device) if device is not None else None,
                     "rect": False, "plots": False, "verbose": False, "save_json": False,
                     "prior_mode": _MODE_TO_PRIOR[mode],  # popped by AnomalyV2Validator.__init__
+                    "scorer_kwargs": scorer_kwargs,  # learned-scorer fit kwargs (popped too)
+                    "scorer_fuse": scorer_fuse,  # heatmap_fused combine op (popped too)
                 }
                 if e2e is not None:
                     overrides["end2end"] = e2e

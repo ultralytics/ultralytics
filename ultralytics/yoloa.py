@@ -37,7 +37,7 @@ from ultralytics.utils import LOGGER, YAML
 # "anomaly_model", which runs an external model to produce a heatmap and injects it through the
 # existing external-mask seam (prior_mode="mask"). "segment"/"seg_heatmap"/"cached" remain usable
 # as advanced pass-through values.
-PRIOR_MODES = ("none", "heatmap", "mask", "anomaly_model")
+PRIOR_MODES = ("none", "heatmap", "heatmap_learned", "heatmap_fused", "mask", "anomaly_model")
 _ADVANCED_PRIORS = ("segment", "seg_heatmap", "cached")
 
 # Bank-build knobs that live in the fit config. bb_* override the model yaml's v2_cfg defaults;
@@ -103,6 +103,7 @@ class YOLOA(Model):
         refit: bool = False,
         device: Any = None,
         batch: int = 8,
+        fit_disc: bool | dict = False,
         **kw: Any,
     ) -> "YOLOA":
         """Build (or load from cache) the memory bank from normal images.
@@ -116,6 +117,9 @@ class YOLOA(Model):
             refit: Force a rebuild even if a cache file exists.
             device: Build device (defaults to the model device); not part of the fit identity.
             batch: Mini-batch size for feature extraction; not part of the fit identity.
+            fit_disc: If True or a dict, also fit a FeatureDiscriminatorScorer on the bank's
+                normal features (for prior="heatmap_learned" / "heatmap_fused"). A dict forwards
+                as kwargs (noise_std, steps, hidden, ...).
             **kw: bb_* / imgsz / max_images overrides (highest priority).
 
         Returns:
@@ -144,6 +148,7 @@ class YOLOA(Model):
                 data, imgsz=int(fit_args["imgsz"]), device=device, batch=batch,
                 max_bank_size=fit_args.get("bb_max_bank_size"),
                 max_images=int(fit_args["max_images"] or 0), verbose=True,
+                fit_disc=fit_disc,
             )
             if cache_path is not None and n:
                 cache_path.parent.mkdir(parents=True, exist_ok=True)

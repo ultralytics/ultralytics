@@ -1,15 +1,15 @@
 ---
 title: Export Any PyTorch Model to ONNX & More
 comments: true
-description: Export any PyTorch model (timm, torchvision, or custom) to ONNX, OpenVINO, CoreML, TensorFlow SavedModel, TorchScript, NCNN, MNN, PaddlePaddle, and ExecuTorch with Ultralytics export utilities.
+description: Export any PyTorch model (timm, torchvision, or custom) to ONNX, OpenVINO, CoreML, TensorFlow, and more through one Ultralytics API, with no per-backend code.
 keywords: export PyTorch model, convert PyTorch to ONNX, PyTorch to CoreML, PyTorch to OpenVINO, PyTorch to TensorFlow, non-YOLO export, timm export, torchvision export, TorchScript export, NCNN export, MNN export, PaddlePaddle export, ExecuTorch export, TFLite export, Ultralytics export utilities, torch.nn.Module export, model conversion, model deployment, PyTorch deployment
 ---
 
 # How to Export Non-YOLO PyTorch Models with Ultralytics
 
-Deploying PyTorch models to production usually means juggling a different exporter for every target: `torch.onnx.export` for ONNX, `coremltools` for Apple devices, `onnx2tf` for TensorFlow, `pnnx` for NCNN, and so on. Each tool has its own API, dependency quirks, and output conventions.
+Ultralytics ships standalone export utilities under [`ultralytics.utils.export`](../reference/utils/export/onnx.md) that wrap multiple backends behind one consistent interface. You can export any `torch.nn.Module`, including [timm](https://github.com/huggingface/pytorch-image-models) image models, [torchvision](https://docs.pytorch.org/vision/) classifiers and detectors, or your own custom architectures, to [ONNX](../integrations/onnx.md), [TorchScript](../integrations/torchscript.md), [OpenVINO](../integrations/openvino.md), [CoreML](../integrations/coreml.md), [NCNN](../integrations/ncnn.md), [PaddlePaddle](../integrations/paddlepaddle.md), [MNN](../integrations/mnn.md), [ExecuTorch](../integrations/executorch.md), and [TensorFlow SavedModel](../integrations/tf-savedmodel.md) without learning each backend separately.
 
-Ultralytics ships standalone export utilities that wrap multiple backends behind one consistent interface. You can export any `torch.nn.Module`, including [timm](https://github.com/huggingface/pytorch-image-models) image models, [torchvision](https://docs.pytorch.org/vision/) classifiers and detectors, or your own custom architectures, to [ONNX](../integrations/onnx.md), [TorchScript](../integrations/torchscript.md), [OpenVINO](../integrations/openvino.md), [CoreML](../integrations/coreml.md), [NCNN](../integrations/ncnn.md), [PaddlePaddle](../integrations/paddlepaddle.md), [MNN](../integrations/mnn.md), [ExecuTorch](../integrations/executorch.md), and [TensorFlow SavedModel](../integrations/tf-savedmodel.md) without learning each backend separately.
+Deploying PyTorch models to production usually means juggling a different exporter for every target: `torch.onnx.export` for ONNX, `coremltools` for Apple devices, `onnx2tf` for TensorFlow, `pnnx` for NCNN, and so on. Each tool has its own API, dependency quirks, and output conventions. These utilities collapse that into a single calling pattern.
 
 ## Why Use Ultralytics for Non-YOLO Export?
 
@@ -37,18 +37,18 @@ torch2onnx(model, torch.randn(1, 3, 224, 224), output_file="resnet18.onnx")
 
 The `torch2*` functions take a standard `torch.nn.Module` and an example input tensor. MNN, TF SavedModel, and TF Frozen Graph go through an intermediate ONNX or Keras artifact. No YOLO-specific attributes are required in either case.
 
-| Format          | Function              | Install                                                             | Output                         |
-| --------------- | --------------------- | ------------------------------------------------------------------- | ------------------------------ |
-| ONNX            | `torch2onnx()`        | `pip install onnx`                                                  | `.onnx` file                   |
-| TorchScript     | `torch2torchscript()` | included with PyTorch                                               | `.torchscript` file            |
-| OpenVINO        | `torch2openvino()`    | `pip install openvino`                                              | `_openvino_model/` directory   |
-| CoreML          | `torch2coreml()`      | `pip install coremltools`                                           | `.mlpackage`                   |
-| TF SavedModel   | `onnx2saved_model()`  | [see detailed requirements below](#export-to-tensorflow-savedmodel) | `_saved_model/` directory      |
-| TF Frozen Graph | `keras2pb()`          | [see detailed requirements below](#export-to-tensorflow-savedmodel) | `.pb` file                     |
-| NCNN            | `torch2ncnn()`        | `pip install ncnn pnnx`                                             | `_ncnn_model/` directory       |
-| MNN             | `onnx2mnn()`          | `pip install MNN`                                                   | `.mnn` file                    |
-| PaddlePaddle    | `torch2paddle()`      | `pip install paddlepaddle x2paddle`                                 | `_paddle_model/` directory     |
-| ExecuTorch      | `torch2executorch()`  | `pip install executorch`                                            | `_executorch_model/` directory |
+| Format          | Function                                                          | Install                                                             | Output                         |
+| --------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------ |
+| ONNX            | [`torch2onnx()`](../reference/utils/export/onnx.md)               | `pip install onnx`                                                  | `.onnx` file                   |
+| TorchScript     | [`torch2torchscript()`](../reference/utils/export/torchscript.md) | included with PyTorch                                               | `.torchscript` file            |
+| OpenVINO        | [`torch2openvino()`](../reference/utils/export/openvino.md)       | `pip install openvino`                                              | `_openvino_model/` directory   |
+| CoreML          | [`torch2coreml()`](../reference/utils/export/coreml.md)           | `pip install coremltools`                                           | `.mlpackage`                   |
+| TF SavedModel   | [`onnx2saved_model()`](../reference/utils/export/tensorflow.md)   | [see detailed requirements below](#export-to-tensorflow-savedmodel) | `_saved_model/` directory      |
+| TF Frozen Graph | [`keras2pb()`](../reference/utils/export/tensorflow.md)           | [see detailed requirements below](#export-to-tensorflow-savedmodel) | `.pb` file                     |
+| NCNN            | [`torch2ncnn()`](../reference/utils/export/ncnn.md)               | `pip install ncnn pnnx`                                             | `_ncnn_model/` directory       |
+| MNN             | [`onnx2mnn()`](../reference/utils/export/mnn.md)                  | `pip install MNN`                                                   | `.mnn` file                    |
+| PaddlePaddle    | [`torch2paddle()`](../reference/utils/export/paddle.md)           | `pip install paddlepaddle x2paddle`                                 | `_paddle_model/` directory     |
+| ExecuTorch      | [`torch2executorch()`](../reference/utils/export/executorch.md)   | `pip install executorch`                                            | `_executorch_model/` directory |
 
 !!! note "ONNX as an intermediate format"
 
@@ -169,19 +169,21 @@ Requirements:
 - `sng4onnx>=1.0.1`
 - `onnx_graphsurgeon>=0.3.26` (install with `--extra-index-url https://pypi.ngc.nvidia.com`)
 - `ai-edge-litert>=1.2.0,<1.4.0` on macOS (`ai-edge-litert>=1.2.0` on other platforms)
-- `onnxslim>=0.1.71`
+- `onnxslim>=0.1.82`
 - `onnx>=1.12.0,<2.0.0`
 - `protobuf>=5`
 
 ### Export to TensorFlow Frozen Graph
 
-Continuing from the SavedModel export above, convert the returned Keras model to a frozen `.pb` graph:
+The frozen `.pb` graph is produced from the Keras model returned by `onnx2saved_model`, so generate that model first, then convert it:
 
 ```python
 from pathlib import Path
 
-from ultralytics.utils.export import keras2pb
+from ultralytics.utils.export import keras2pb, onnx2saved_model, torch2onnx
 
+torch2onnx(model, im, output_file="resnet18.onnx")
+keras_model = onnx2saved_model("resnet18.onnx", output_dir="resnet18_saved_model")
 keras2pb(keras_model, output_file=Path("resnet18_saved_model/resnet18.pb"))
 ```
 
@@ -260,7 +262,7 @@ Requires `torch>=2.9.0` and a matching ExecuTorch runtime (`pip install executor
 
 ## Verify Your Exported Model
 
-After exporting, verify numerical parity with the original PyTorch model before shipping. A quick smoke test with `ONNXBackend` from `ultralytics.nn.backends` compares outputs and flags tracing or quantization errors early:
+After exporting, verify numerical parity with the original PyTorch model before shipping. A quick smoke test with [`ONNXBackend`](../reference/nn/backends/onnx.md) from `ultralytics.nn.backends` compares outputs and flags tracing or quantization errors early:
 
 ```python
 import numpy as np
@@ -278,12 +280,12 @@ onnx_model = ONNXBackend("resnet18.onnx", device=torch.device("cpu"))
 onnx_output = onnx_model(im)[0]
 
 diff = np.abs(pytorch_output - onnx_output).max()
-print(f"Max difference: {diff:.6f}")  # should be < 1e-5
+print(f"Max difference: {diff:.6f}")  # typically ~1e-5, well under 1e-4 for FP32
 ```
 
 !!! tip "Expected difference"
 
-    For FP32 exports, the max absolute difference should be under `1e-5`. Larger differences point to unsupported ops, incorrect input shape, or a model not in eval mode. FP16 and INT8 exports have looser tolerances. Validate on real data instead of random tensors.
+    For FP32 exports, the max absolute difference is typically around `1e-5` and should stay well under `1e-4`. Larger differences point to unsupported ops, incorrect input shape, or a model not in eval mode. FP16 and INT8 exports have looser tolerances. Validate on real data instead of random tensors.
 
 For other runtimes, the input tensor name may differ. OpenVINO, for example, uses the model's forward-argument name (typically `x` for generic models), while `torch2onnx` defaults to `"images"`.
 
@@ -294,6 +296,10 @@ For other runtimes, the input tensor name may differ. OpenVINO, for example, use
 - **No inference via Ultralytics**: Exported non-YOLO models cannot be loaded back through `YOLO()` for inference. Use the native runtime for each format ([ONNX Runtime](../integrations/onnx.md), [OpenVINO Runtime](../integrations/openvino.md), etc.).
 - **YOLO-only formats**: [Axelera](../integrations/axelera.md) and [Sony IMX500](../integrations/sony-imx500.md) exports require YOLO-specific model attributes and are not available for generic models.
 - **Platform-specific formats**: [TensorRT](../integrations/tensorrt.md) requires an NVIDIA GPU. [RKNN](../integrations/rockchip-rknn.md) requires the `rknn-toolkit2` SDK (Linux only). [Edge TPU](../integrations/edge-tpu.md) requires the `edgetpu_compiler` binary (Linux only).
+
+## Conclusion
+
+These utilities take any PyTorch model from a plain `torch.nn.Module` to a deployment-ready ONNX, OpenVINO, CoreML, TensorFlow, or mobile-runtime artifact through one consistent API. Pick the format that matches your target hardware, [verify numerical parity](#verify-your-exported-model) against the original model, then follow the matching [integration guide](../integrations/index.md) for runtime-specific deployment steps.
 
 ## FAQ
 
@@ -316,3 +322,7 @@ Yes. torchvision classifiers, detectors, and segmentation models export to `.mlp
 ### Can I quantize my exported model to INT8 or FP16?
 
 Yes, for several formats. Pass `half=True` for FP16 or `int8=True` for INT8 when exporting to OpenVINO, CoreML, MNN, or NCNN. INT8 in OpenVINO additionally requires a `calibration_dataset` argument for [post-training quantization](https://www.ultralytics.com/glossary/model-quantization). See each format's integration page for quantization trade-offs.
+
+### How do I verify an exported model matches the original?
+
+Run the original PyTorch model and the exported model on the same input, then compare outputs. Load the exported file with the matching backend (for example, [`ONNXBackend`](../reference/nn/backends/onnx.md) for ONNX) and check the maximum absolute difference. For FP32 exports it is typically around `1e-5` and should stay well under `1e-4`; larger gaps point to unsupported ops, a wrong input shape, or a model not in eval mode. See [Verify Your Exported Model](#verify-your-exported-model) for a runnable example.

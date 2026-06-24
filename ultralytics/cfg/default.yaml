@@ -1,13 +1,13 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # Global configuration YAML with settings and hyperparameters for YOLO training, validation, prediction and export
-# For documentation see https://docs.ultralytics.com/usage/cfg/
+# For documentation see https://docs.ultralytics.com/usage/cfg
 
 task: detect # (str) YOLO task, i.e. detect, segment, semantic, classify, pose, obb
 mode: train # (str) YOLO mode, i.e. train, val, predict, export, track, benchmark
 
 # Train settings -------------------------------------------------------------------------------------------------------
-model: # (str, optional) path to model file, i.e. yolov8n.pt or yolov8n.yaml
+model: # (str, optional) path to model file, i.e. yolo26n.pt or yolo26n.yaml
 data: # (str, optional) path to data file, i.e. coco8.yaml
 epochs: 100 # (int) number of epochs to train for
 time: # (float, optional) max hours to train; overrides epochs if set
@@ -132,4 +132,4 @@ erasing: 0.4 # (float) random erasing probability for classification (0.0–1.0)
 cfg: # (str, optional) path to a config.yaml that overrides defaults
 
 # Tracker settings ------------------------------------------------------------------------------------------------------
-tracker: botsort.yaml # (str) tracker config file: botsort.yaml or bytetrack.yaml
+tracker: tracktrack.yaml # (str) tracker config: botsort.yaml, bytetrack.yaml, ocsort.yaml, deepocsort.yaml, fasttrack.yaml, tracktrack.yaml

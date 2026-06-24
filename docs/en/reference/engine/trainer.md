@@ -1,4 +1,5 @@
 ---
+title: engine.trainer API Reference
 description: Learn how to use BaseTrainer in Ultralytics YOLO for efficient model training. Comprehensive guide for configurations, datasets, and optimization.
 keywords: Ultralytics, YOLO, BaseTrainer, model training, configuration, datasets, optimization, machine learning
 ---

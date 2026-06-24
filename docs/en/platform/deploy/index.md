@@ -1,4 +1,5 @@
 ---
+title: Model Deployment Options
 comments: true
 description: Learn about model deployment options in Ultralytics Platform including inference testing, dedicated endpoints, and monitoring dashboards.
 keywords: Ultralytics Platform, deployment, inference, endpoints, monitoring, YOLO, production, cloud deployment
@@ -185,14 +186,14 @@ Deploy a model in under 2 minutes:
 
 ### What's the difference between shared and dedicated inference?
 
-| Feature     | Shared          | Dedicated                            |
-| ----------- | --------------- | ------------------------------------ |
-| **Latency** | Variable        | Consistent                           |
-| **Cost**    | Free (included) | Free (basic), usage-based (advanced) |
-| **Scale**   | Limited         | Scale-to-zero, single instance       |
-| **Regions** | 3               | 43                                   |
-| **URL**     | Generic         | Custom                               |
-| **Rate**    | 20 req/min      | Unlimited                            |
+| Feature     | Shared          | Dedicated                                                 |
+| ----------- | --------------- | --------------------------------------------------------- |
+| **Latency** | Variable        | Consistent                                                |
+| **Cost**    | Free (included) | Free (basic), usage-based (advanced)                      |
+| **Scale**   | Limited         | Scale-to-zero, single instance                            |
+| **Regions** | 3               | 43                                                        |
+| **URL**     | Generic         | Custom                                                    |
+| **Rate**    | 20 req/min      | 20 req/min via Platform; unlimited on direct endpoint URL |
 
 ### How long does deployment take?
 

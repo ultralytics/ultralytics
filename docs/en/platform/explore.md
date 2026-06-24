@@ -1,4 +1,5 @@
 ---
+title: Explore Datasets & Projects
 comments: true
 description: Discover public datasets and projects on the Ultralytics Platform Explore page. Browse, search, and clone community content for computer vision and YOLO.
 keywords: Ultralytics Platform, explore, public datasets, public projects, computer vision, YOLO, community
@@ -54,15 +55,12 @@ Each tab provides a search bar and sort options:
 
 ![Ultralytics Platform Explore Datasets Tab With Search](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-explore-datasets-tab-with-search.avif)
 
-| Sort Option       | Description                                   |
-| ----------------- | --------------------------------------------- |
-| **Most Starred**  | Content with most community stars             |
-| **Newest**        | Most recently created (default)               |
-| **Oldest**        | Oldest first                                  |
-| **Name A-Z**      | Alphabetical ascending                        |
-| **Name Z-A**      | Alphabetical descending                       |
-| **Most images**   | Most images (datasets) or models (projects)   |
-| **Fewest images** | Fewest images (datasets) or models (projects) |
+| Sort Option             | Description                                                      |
+| ----------------------- | ---------------------------------------------------------------- |
+| **Stars**               | Community star count (descending)                                |
+| **Created**             | Creation date, newest (default) or oldest first                  |
+| **Name**                | Alphabetical, ascending or descending                            |
+| **Images** / **Models** | Image count (datasets) or model count (projects), most or fewest |
 
 ### View Modes
 
@@ -92,7 +90,6 @@ Each item displays:
     | **Description**      | Short project description                                     |
     | **Model Count**      | Number of models in the project                               |
     | **Model Tags**       | Names of models in the project                                |
-    | **Visibility Badge** | Public or private indicator (shows lock icon for private)     |
     | **Star Count**       | Number of community stars                                     |
 
 === "Dataset Cards"
@@ -104,7 +101,6 @@ Each item displays:
     | **Creator**          | Author avatar and username                                    |
     | **Task Badge**       | YOLO task type (detect, segment, etc.)                        |
     | **Image Count**      | Number of images in the dataset                               |
-    | **Visibility Badge** | Public or private indicator (shows lock icon for private)     |
     | **Star Count**       | Number of community stars                                     |
 
 ## Use Public Content

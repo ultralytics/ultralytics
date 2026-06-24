@@ -1,4 +1,5 @@
 ---
+title: Export YOLO26 to TorchScript
 comments: true
 description: Learn how to export Ultralytics YOLO26 models to TorchScript for flexible, cross-platform deployment. Boost performance and utilize in various environments.
 keywords: YOLO26, TorchScript, model export, Ultralytics, PyTorch, deep learning, AI deployment, cross-platform, performance optimization

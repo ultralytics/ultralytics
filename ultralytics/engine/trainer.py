@@ -1089,11 +1089,11 @@ class BaseTrainer:
 class MultiTrainer:
     """Fine-tune a single base model across a collection of datasets and aggregate per-dataset results.
 
-    Used automatically by Model.train() when `data` is a list or tuple, allowing one base model to be benchmarked
-    across many datasets (such as the RF100 collection) in a single call. The datasets are fine-tuned in series and
-    the same base weights seed each run, so every run starts from an identical model. Each run saves its own
-    results.csv and results.png; after all runs a cross-dataset bar chart of the per-dataset metric is saved. The base
-    model object is left unchanged; each dataset's fine-tuned weights live in its own run directory.
+    Used automatically by Model.train() when `data` is a list or tuple, allowing one base model to be benchmarked across
+    many datasets (such as the RF100 collection) in a single call. The datasets are fine-tuned in series and the same
+    base weights seed each run, so every run starts from an identical model. Each run saves its own results.csv and
+    results.png; after all runs a cross-dataset bar chart of the per-dataset metric is saved. The base model object is
+    left unchanged; each dataset's fine-tuned weights live in its own run directory.
 
     Attributes:
         trainer (type[BaseTrainer]): Task trainer class instantiated once per dataset.

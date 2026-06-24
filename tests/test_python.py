@@ -269,6 +269,24 @@ def test_train_scratch():
     model(SOURCE)
 
 
+def test_drift_metrics(tmp_path):
+    """Test prediction drift metrics are computed during training and validation."""
+    drift_keys = ["metrics/conf_drift", "metrics/conf_mean", "metrics/count_drift", "metrics/class_div", "metrics/drift_score"]
+
+    # Training: drift columns should be written to results.csv
+    model = YOLO(MODEL)
+    model.train(data="coco8.yaml", epochs=2, imgsz=32, drift=True, name="drift")
+    header = Path(model.trainer.save_dir, "results.csv").read_text(encoding="utf-8").splitlines()[0]
+    assert all(k in header for k in drift_keys), f"missing drift columns in {header}"
+
+    # Validation with an external baseline: conf_drift should be present and finite
+    baseline = tmp_path / "baseline.npy"
+    np.save(baseline, np.random.rand(1000))
+    results = YOLO(MODEL).val(data="coco8.yaml", imgsz=32, drift=True, drift_baseline=str(baseline))
+    assert "metrics/conf_drift" in results.results_dict
+    assert np.isfinite(results.results_dict["metrics/conf_drift"])
+
+
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_train_ndjson():

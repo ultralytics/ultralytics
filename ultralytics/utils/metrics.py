@@ -881,6 +881,110 @@ def ap_per_class(
     return tp, fp, p, r, f1, ap, unique_classes.astype(int), p_curve, r_curve, f1_curve, x, prec_values
 
 
+def compute_drift(
+    conf: np.ndarray,
+    pred_cls: np.ndarray,
+    target_cls: np.ndarray,
+    n_images: int,
+    nc: int,
+    ref: dict[str, Any] | None = None,
+    eps: float = 1e-7,
+) -> tuple[dict[str, float], dict[str, Any]]:
+    """Compute prediction drift/stability metrics for a single validation pass.
+
+    Drift here means how much the model's predictions shift relative to a reference distribution
+    (either an external baseline or the first validation pass). All signals reuse data the
+    validator already accumulates, so the cost is negligible.
+
+    Args:
+        conf (np.ndarray): Predicted confidence scores for all detections, shape (N,).
+        pred_cls (np.ndarray): Predicted class indices, shape (N,).
+        target_cls (np.ndarray): Ground-truth class indices, shape (M,).
+        n_images (int): Number of images evaluated in this pass.
+        nc (int): Number of classes.
+        ref (dict[str, Any], optional): Reference distribution with keys "conf" (np.ndarray) and
+            "det_per_img" (float). When None, drift-vs-reference signals are 0.0.
+        eps (float): Small value to avoid division by zero.
+
+    Returns:
+        metrics (dict[str, float]): Drift metrics keyed for logging:
+            - "metrics/conf_drift": Wasserstein distance between current and reference confidence.
+            - "metrics/conf_mean": mean predicted confidence this pass (calibration tracking).
+            - "metrics/count_drift": absolute change in mean detections-per-image vs reference.
+            - "metrics/class_div": Jensen-Shannon distance (0-1) between predicted and ground-truth
+              class distributions (model bias / class collapse).
+            - "metrics/drift_score": single 0-1 summary combining the signals above.
+        current_ref (dict[str, Any]): {"conf": ..., "det_per_img": ...} to reuse as next reference.
+
+    Examples:
+        >>> m, ref = compute_drift(conf, pred_cls, target_cls, n_images=8, nc=80)
+        >>> m2, _ = compute_drift(conf2, pred_cls2, target_cls2, n_images=8, nc=80, ref=ref)
+    """
+    conf = np.asarray(conf, dtype=float).ravel()
+    det_per_img = float(len(conf) / max(n_images, 1))
+    conf_mean = float(conf.mean()) if conf.size else 0.0
+
+    # Predicted vs ground-truth class distribution divergence (self-contained, no reference needed)
+    p_hist = np.bincount(np.asarray(pred_cls, dtype=int).ravel(), minlength=nc).astype(float)
+    g_hist = np.bincount(np.asarray(target_cls, dtype=int).ravel(), minlength=nc).astype(float)
+    p_hist /= p_hist.sum() + eps
+    g_hist /= g_hist.sum() + eps
+    if p_hist.sum() > eps and g_hist.sum() > eps:
+        from scipy.spatial.distance import jensenshannon
+
+        class_div = float(jensenshannon(p_hist, g_hist, base=2))  # 0 (identical) .. 1 (disjoint)
+        class_div = 0.0 if np.isnan(class_div) else class_div
+    else:
+        class_div = 0.0
+
+    # Drift-vs-reference signals
+    conf_drift, count_drift = 0.0, 0.0
+    if ref is not None:
+        ref_conf = np.asarray(ref.get("conf", []), dtype=float).ravel()
+        if conf.size and ref_conf.size:
+            from scipy.stats import wasserstein_distance
+
+            conf_drift = float(wasserstein_distance(ref_conf, conf))
+        if "det_per_img" in ref:
+            count_drift = abs(det_per_img - float(ref["det_per_img"]))
+
+    # Single human-readable 0-1 summary. conf_drift/count_drift are unbounded, so squash them.
+    drift_score = float(
+        np.clip(0.5 * (1 - np.exp(-conf_drift / 0.1)) + 0.3 * class_div + 0.2 * (1 - np.exp(-count_drift / 1.0)), 0, 1)
+    )
+
+    metrics = {
+        "metrics/conf_drift": conf_drift,
+        "metrics/conf_mean": conf_mean,
+        "metrics/count_drift": count_drift,
+        "metrics/class_div": class_div,
+        "metrics/drift_score": drift_score,
+    }
+    current_ref = {"conf": conf, "det_per_img": det_per_img}
+    return metrics, current_ref
+
+
+def drift_summary(metrics: dict[str, float]) -> str:
+    """Return a short human-readable description of drift metrics for console logging.
+
+    Args:
+        metrics (dict[str, float]): Output of compute_drift.
+
+    Returns:
+        (str): A plain-language one-line summary, e.g. "Drift STABLE (score 0.04): confidence
+            shift low, detections/img steady, class balance ok".
+    """
+    score = metrics.get("metrics/drift_score", 0.0)
+    level = "STABLE" if score < 0.2 else "MINOR" if score < 0.4 else "MODERATE" if score < 0.6 else "SEVERE"
+    conf_word = "low" if metrics.get("metrics/conf_drift", 0.0) < 0.05 else "elevated"
+    count_word = "steady" if metrics.get("metrics/count_drift", 0.0) < 0.5 else "shifting"
+    class_word = "ok" if metrics.get("metrics/class_div", 0.0) < 0.2 else "skewed"
+    return (
+        f"Drift {level} (score {score:.2f}): confidence shift {conf_word}, "
+        f"detections/img {count_word}, class balance {class_word}"
+    )
+
+
 class Metric(SimpleClass):
     """Class for computing evaluation metrics for Ultralytics YOLO models.
 
@@ -1211,7 +1315,9 @@ class DetMetrics(SimpleClass, DataExportMixin):
         """Return dictionary of computed performance metrics and statistics."""
         keys = [*self.keys, "fitness"]
         values = ((float(x) if hasattr(x, "item") else x) for x in ([*self.mean_results(), self.fitness]))
-        return dict(zip(keys, values))
+        results = dict(zip(keys, values))
+        results.update(getattr(self, "extra_metrics", {}) or {})  # optional extras e.g. drift metrics
+        return results
 
     @property
     def curves(self) -> list[str]:

@@ -58,6 +58,8 @@ class DetectionValidator(BaseValidator):
         self.iouv = torch.linspace(0.5, 0.95, 10)  # IoU vector for mAP@0.5:0.95
         self.niou = self.iouv.numel()
         self.metrics = DetMetrics()
+        self._drift_ref = None  # reference distribution captured on the first validation pass
+        self._drift_baseline_loaded = False  # whether the external drift_baseline file was loaded
 
     def preprocess(self, batch: dict[str, Any]) -> dict[str, Any]:
         """Preprocess batch of images for YOLO validation.
@@ -270,9 +272,46 @@ class DetectionValidator(BaseValidator):
         Returns:
             (dict[str, Any]): Dictionary containing metrics results.
         """
-        self.metrics.process(save_dir=self.save_dir, plot=self.args.plots, on_plot=self.on_plot)
+        stats = self.metrics.process(save_dir=self.save_dir, plot=self.args.plots, on_plot=self.on_plot)
         self.metrics.clear_stats()
+        if getattr(self.args, "drift", False):
+            self.metrics.extra_metrics = self._compute_drift(stats)
         return self.metrics.results_dict
+
+    def _compute_drift(self, stats: dict[str, np.ndarray]) -> dict[str, float]:
+        """Compute prediction drift metrics and update the rolling reference distribution.
+
+        Args:
+            stats (dict[str, np.ndarray]): Concatenated stats returned by DetMetrics.process,
+                containing "conf", "pred_cls" and "target_cls" arrays.
+
+        Returns:
+            (dict[str, float]): Drift metrics keyed for logging (see metrics.compute_drift).
+        """
+        from ultralytics.utils.metrics import compute_drift, drift_summary
+
+        # Build the reference: external baseline file (if any) overrides the confidence reference.
+        ref = self._drift_ref
+        if not self._drift_baseline_loaded and getattr(self.args, "drift_baseline", None):
+            self._drift_baseline_loaded = True
+            try:
+                baseline_conf = np.load(self.args.drift_baseline).ravel().astype(float)
+                ref = {**(ref or {}), "conf": baseline_conf}
+            except Exception as e:
+                LOGGER.warning(f"drift_baseline '{self.args.drift_baseline}' could not be loaded ({e}); using auto reference")
+
+        metrics, current_ref = compute_drift(
+            stats.get("conf", np.zeros(0)),
+            stats.get("pred_cls", np.zeros(0)),
+            stats.get("target_cls", np.zeros(0)),
+            self.seen,
+            self.nc,
+            ref=ref,
+        )
+        if self._drift_ref is None:
+            self._drift_ref = current_ref  # capture first pass for subsequent epochs
+        LOGGER.info(drift_summary(metrics))
+        return metrics
 
     def print_results(self) -> None:
         """Print training/validation set metrics per class."""

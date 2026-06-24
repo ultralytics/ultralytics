@@ -39,7 +39,7 @@ Object counting with [Ultralytics YOLO26](https://github.com/ultralytics/ultraly
 
 ## Count Objects with YOLO26
 
-Define a counting `region` — two points for a line or three or more for a polygon — and pass it to the `ObjectCounter` solution. The counter tracks each object across frames and tallies entries and exits as they cross the region, returning an annotated frame you can write to an output video.
+Define a counting `region` — two points for a line or three or more for a polygon — and pass it to the `ObjectCounter` solution. The counter tracks each object across frames and tallies IN/OUT counts when tracked centroids cross the line or move inside the region, returning an annotated frame you can write to an output video.
 
 !!! example "Object Counting using Ultralytics YOLO"
 

@@ -7,7 +7,7 @@ keywords: Ultralytics, YOLO26, data visualization, line graphs, bar plots, pie c
 
 # Analytics using Ultralytics YOLO26
 
-Analytics with [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics/) turns [object detection](https://www.ultralytics.com/glossary/object-detection) and tracking results into real-time charts, so you can watch how object counts change across a video frame by frame. This guide covers four [data visualization](https://www.ultralytics.com/glossary/data-visualization) types — line graphs, bar plots, pie charts, and area plots — each with a copy-paste Python and CLI example.
+Analytics with [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics/) turns [object detection](https://www.ultralytics.com/glossary/object-detection) and tracking results into real-time charts, so you can watch how object counts change across a video frame by frame. This guide covers four [data visualization](https://www.ultralytics.com/glossary/data-visualization) types — line graphs, bar plots, pie charts, and area plots — and shows how to switch between them with shared Python and CLI examples.
 
 <p align="center">
   <br>

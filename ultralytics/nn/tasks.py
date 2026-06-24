@@ -549,6 +549,16 @@ class YOLOAnomalyV2Model(DetectionModel):
     Spec: docs_yoloa_v2/specs/2026-06-02-softhint-fusion-design.md.
     """
 
+    def init_criterion(self):
+        """Initialize the loss criterion.
+
+        Returns ``E2ELoss(v8SegmentationLoss)`` when the head is a ``Segment``
+        (per-instance mask prediction), otherwise the standard detection criterion.
+        """
+        if isinstance(self.model[-1], Segment):
+            return E2ELoss(self, v8SegmentationLoss) if getattr(self, "end2end", False) else v8SegmentationLoss(self)
+        return E2ELoss(self) if getattr(self, "end2end", False) else v8DetectionLoss(self)
+
     def __init__(
         self,
         cfg="yolo26-anomaly-v2.yaml",
@@ -665,8 +675,10 @@ class YOLOAnomalyV2Model(DetectionModel):
         head_b_gain = float(v2_cfg.get("head_b_gain", 1.0))
 
         detect = self.model[-1]
-        if not isinstance(detect, Detect):
-            raise TypeError(f"YOLOAnomalyV2Model expects last layer to be Detect, got {type(detect).__name__}")
+        if not isinstance(detect, (Detect, Segment)):
+            raise TypeError(
+                f"YOLOAnomalyV2Model expects last layer to be Detect or Segment, got {type(detect).__name__}"
+            )
 
         # Resolve PAN output channel count per scale from Detect.cv2 (first Conv's in_channels).
         # cv2[i] is a Sequential whose first sub-module is a Conv on the PAN scale's tensor.
@@ -1949,6 +1961,23 @@ class YOLOAnomalyV2Model(DetectionModel):
                 if m.i == max_idx:
                     return torch.unbind(torch.cat(embeddings, 1), dim=0)
         return x
+
+
+class YOLOAnomalyV2SegModel(YOLOAnomalyV2Model):
+    """YOLO Anomaly v2 + per-instance segmentation head.
+
+    Extends ``YOLOAnomalyV2Model`` with a ``Segment`` detection head that predicts
+    32 mask coefficients per anchor alongside boxes and class scores. The loss
+    criterion is ``v8SegmentationLoss`` (BCE + Dice per instance, cropped to box),
+    matching the standard Ultralytics segmentation pipeline.
+
+    The anomaly fusion prior, SegBranch, and two-head mode all carry over unchanged.
+    The YAML config must specify a ``Segment`` head instead of ``Detect``.
+    """
+
+    def init_criterion(self):
+        """Initialize the loss criterion for instance segmentation."""
+        return E2ELoss(self, v8SegmentationLoss) if getattr(self, "end2end", False) else v8SegmentationLoss(self)
 
 
 class OBBModel(DetectionModel):

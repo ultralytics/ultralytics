@@ -27,7 +27,7 @@ import torch
 from ultralytics.data import build_yolo_dataset
 from ultralytics.models import yolo
 from ultralytics.models.yolo.detect import DetectionTrainer
-from ultralytics.nn.tasks import YOLOAnomalyV2Model
+from ultralytics.nn.tasks import YOLOAnomalyV2Model, YOLOAnomalyV2SegModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK, TQDM, YAML
 from ultralytics.utils.torch_utils import unwrap_model
 
@@ -115,11 +115,19 @@ class AnomalyV2Trainer(DetectionTrainer):
         """True when the SegBranch refiner is supervised against v6 polygon masks (seg_target_polygon)."""
         return bool(getattr(unwrap_model(self.model), "seg_target_polygon", False))
 
+    def _instance_seg_active(self) -> bool:
+        """True when the detection head is a ``Segment`` (per-instance mask prediction)."""
+        if self.model is None:
+            return False
+        from ultralytics.nn.modules.head import Segment
+
+        return isinstance(unwrap_model(self.model).model[-1], Segment)
+
     def build_dataset(self, img_path: str, mode: str = "train", batch: int | None = None):
         """Dataset selection: CachedPriorDataset (4th-ch heatmap) > segment (polygon masks for the
-        SegBranch refiner target) > default detection."""
+        SegBranch refiner target / per-instance seg) > default detection."""
         if not self._cached_active():
-            if self._seg_polygon_active():
+            if self._seg_polygon_active() or self._instance_seg_active():
                 # task="segment" flips YOLODataset.use_segments -> Format(return_mask=True) ->
                 # batch["masks"] (overlap-union instance map). Detection head/loss unaffected
                 # (bboxes still present). copy() so the persistent self.args stays task="anomaly_v2".
@@ -178,14 +186,25 @@ class AnomalyV2Trainer(DetectionTrainer):
         model.set_prior_mode(mode)
 
     def get_model(self, cfg=None, weights=None, verbose: bool = True):
-        """Return a YOLOAnomalyV2Model.
+        """Return a YOLOAnomalyV2Model or YOLOAnomalyV2SegModel.
+
+        Auto-detects the head type from the YAML: ``Segment`` head → ``YOLOAnomalyV2SegModel``
+        (per-instance mask prediction); ``Detect`` head → ``YOLOAnomalyV2Model`` (standard).
 
         Args:
             cfg (str, optional): Path to model YAML.
             weights (str, optional): Path to pretrained weights (yolo26m.pt etc.).
             verbose (bool): Verbose info.
         """
-        model = YOLOAnomalyV2Model(
+        # Read the YAML head section to detect Segment vs Detect head.
+        model_cls = YOLOAnomalyV2Model
+        if cfg and Path(cfg).is_file():
+            yaml_dict = YAML.load(cfg)
+            for entry in yaml_dict.get("head", []):
+                if len(entry) >= 3 and entry[2] == "Segment":
+                    model_cls = YOLOAnomalyV2SegModel
+                    break
+        model = model_cls(
             cfg,
             nc=self.data["nc"],
             ch=self.data["channels"],
@@ -198,9 +217,16 @@ class AnomalyV2Trainer(DetectionTrainer):
     def get_validator(self):
         """Return an AnomalyV2Validator (single-pass, legacy GT mask rendering for training)."""
         model = unwrap_model(self.model)
-        loss_names = ["box_loss", "cls_loss", "dfl_loss"]
+        if self._instance_seg_active():
+            # v8SegmentationLoss returns [box, seg, cls, dfl, sem] (5 components).
+            loss_names = ["box_loss", "seg_loss", "cls_loss", "dfl_loss", "sem_loss"]
+        else:
+            loss_names = ["box_loss", "cls_loss", "dfl_loss"]
         if getattr(model, "seg_branch", None) is not None:
-            loss_names.append("seg_loss")
+            # Rename to seg_prior_loss when instance seg is active to avoid collision
+            # with the per-instance seg_loss above.
+            label = "seg_prior_loss" if self._instance_seg_active() else "seg_loss"
+            loss_names.append(label)
         # QueryFiLM appends 4 aux components in this exact order (see YOLOAnomalyV2Model.loss).
         if getattr(model, "fusion_mode", None) == "queryfilm":
             loss_names += ["qmask_loss", "qobj_loss", "qovl_loss", "qfg_loss"]

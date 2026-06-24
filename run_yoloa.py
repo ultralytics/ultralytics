@@ -34,7 +34,7 @@ from yoloa_utils import (
     CAT_GROUPS, VAL_METRICS,
     collect_test_images, good_dir, model_id_from_ckpt, save_heatmap,
     load_fit_yaml, resolve_prior, resolve_scorer_kwargs, resolve_infer,
-    find_mask, load_mask_tensor, run_prior_viz, save_compare_grid,
+    txt_to_mask, load_mask_tensor, run_prior_viz, save_compare_grid,
 )
 
 DEFAULT_CKPT = ("/Users/louis/workspace/ultra_louis_work/expman/data/pulled/yoloa_v2/"
@@ -154,8 +154,9 @@ def main():
             pkw = dict(imgsz=imgsz, conf=args.conf, iou=args.iou, device=device, end2end=args.e2e)
             for img, label in samples:
                 original = cv2.imread(img)
-                mask_path = find_mask(img)
-                mask_tensor = load_mask_tensor(mask_path, imgsz)
+                h, w = original.shape[:2]
+                gt_mask = txt_to_mask(str(Path(img).with_suffix(".txt")), h, w)
+                mask_tensor = load_mask_tensor(gt_mask, imgsz)
                 none_pred, n_none, _ = run_prior_viz(m, img, "none", **pkw)
                 seg_pred, n_seg, seg_hmap = run_prior_viz(m, img, "segment", **pkw)
                 heat_pred, n_heat, heat_hmap = run_prior_viz(m, img, "heatmap", **pkw, **infer)
@@ -164,7 +165,7 @@ def main():
                     original=original, none_pred=none_pred,
                     seg_heat=seg_hmap, seg_pred=seg_pred,
                     heat_heat=heat_hmap, heat_pred=heat_pred,
-                    mask_img=mask_path, mask_pred=mask_pred,
+                    mask_img=gt_mask, mask_pred=mask_pred,
                     out_path=out / f"{label}__{Path(img).stem}.jpg",
                     n_none=n_none, n_seg=n_seg, n_heat=n_heat, n_mask=n_mask,
                 )

@@ -108,13 +108,16 @@ def save_heatmap(model, img_path: str, out_path: Path) -> None:
     cv2.imwrite(str(out_path), cv2.addWeighted(orig, 0.55, color, 0.45, 0))
 
 
-def load_mask_tensor(mask_path, imgsz: int):
-    """Load a GT mask as a (1, 1, imgsz, imgsz) float tensor, or None."""
-    if mask_path is None:
+def load_mask_tensor(mask, imgsz: int):
+    """Load a GT mask as a (1, 1, imgsz, imgsz) float tensor, or None. Accepts path or numpy array."""
+    if mask is None:
         return None
-    m = cv2.imread(str(mask_path), cv2.IMREAD_GRAYSCALE)
-    if m is None:
-        return None
+    if isinstance(mask, (str, Path)):
+        m = cv2.imread(str(mask), cv2.IMREAD_GRAYSCALE)
+        if m is None:
+            return None
+    else:
+        m = mask
     m = cv2.resize(m, (imgsz, imgsz), interpolation=cv2.INTER_NEAREST).astype(np.float32) / 255.0
     return torch.from_numpy(m).unsqueeze(0).unsqueeze(0)
 
@@ -131,27 +134,30 @@ def run_prior_viz(m, img, prior, imgsz, conf, iou, device, external_mask=None, *
 
 # -- Compare-grid (visualize mode) ---------------------------------------------
 
-def find_mask(img_path: str) -> str | None:
-    """Find GT mask for a MVTec test image (YOLO + original layouts)."""
-    ip = Path(img_path)
-    defect_type = ip.parent.name
-    cat_root = ip.parent.parent.parent
-    for mask_dir in ["ground_truth", "mask"]:
-        for suffix in ["_mask.png", ".png"]:
-            mp = cat_root / mask_dir / defect_type / f"{ip.stem}{suffix}"
-            if mp.is_file():
-                return str(mp)
-    category = cat_root.name
-    parts = ip.stem.split("_", 1)
-    orig_stem = parts[1] if len(parts) > 1 else ip.stem
-    mvtec_root = cat_root.parent.parent
-    for orig_dir in ["mvtec_anomaly_detection", "MVTec-FS"]:
-        orig_masks = mvtec_root / orig_dir / category / "ground_truth" / defect_type
-        for stem in (orig_stem, ip.stem):
-            mp = orig_masks / f"{stem}_mask.png"
-            if mp.is_file():
-                return str(mp)
-    return None
+def txt_to_mask(txt_path: str, h: int, w: int) -> np.ndarray | None:
+    """Render YOLO-seg txt polygon labels into a binary mask (h, w) uint8 0/255.
+
+    Returns None if the txt file is missing or contains no valid polygons (e.g. good images).
+    """
+    try:
+        with open(txt_path, "r") as f:
+            lines = f.read().strip().splitlines()
+    except (FileNotFoundError, OSError):
+        return None
+    if not lines:
+        return None
+    mask = np.zeros((h, w), dtype=np.uint8)
+    for line in lines:
+        parts = line.strip().split()
+        if len(parts) < 7:
+            continue
+        coords = list(map(float, parts[1:]))
+        if len(coords) % 2 != 0:
+            continue
+        pts = [(int(coords[i] * w), int(coords[i + 1] * h)) for i in range(0, len(coords), 2)]
+        pts_array = np.array(pts, dtype=np.int32).reshape((-1, 1, 2))
+        cv2.fillPoly(mask, [pts_array], 255)
+    return mask
 
 
 def _add_title(img: np.ndarray, text: str, bar_h: int = 48) -> np.ndarray:
@@ -175,11 +181,14 @@ def _heatmap_panel(img: np.ndarray, hmap: np.ndarray | None) -> np.ndarray:
     return panel
 
 
-def _mask_panel(img: np.ndarray, mask_path: str | None) -> np.ndarray:
-    """Red-tint overlay with defect-pixel percentage (BGR in/out)."""
-    if mask_path is None:
+def _mask_panel(img: np.ndarray, gt_mask: np.ndarray | str | None) -> np.ndarray:
+    """Red-tint overlay with defect-pixel percentage (BGR in/out). Accepts array or file path."""
+    if gt_mask is None:
         return img
-    m = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
+    if isinstance(gt_mask, (str, Path)):
+        m = cv2.imread(str(gt_mask), cv2.IMREAD_GRAYSCALE)
+    else:
+        m = gt_mask
     if m is None:
         return img
     m = cv2.resize(m, (img.shape[1], img.shape[0]), interpolation=cv2.INTER_NEAREST)

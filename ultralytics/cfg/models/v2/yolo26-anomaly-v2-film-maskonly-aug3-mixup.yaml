@@ -39,11 +39,27 @@ anomaly_v2:
   mask_box_drop_p: 0.05
   mask_distractor_p: 0.0         # still OFF
   mask_distractor_n: 1
-  mask_erase_p: 0.08
+  mask_erase_p: 0.0
   mask_warp_p: 0.08
   mask_mixup_p: 0.08              # RE-ENABLED: additive other-sample blend
   mask_mixup_alpha: 0.4
   mask_mag_range: [0.7, 1]
+  # Memory-bank-style prior augmentations: add scattered false-positive blobs,
+  # fragmented GT response, coherent noise, and a small global floor so the
+  # synthetic GT prior better matches real MB heatmaps (which are never zero).
+  mask_fragment_p: 0.5
+  mask_fragment_n: 4
+  mask_bg_blobs_p: 0.5
+  mask_bg_blobs_n: 8
+  mask_bg_blobs_sigma: [0.03, 0.08]
+  mask_coherent_noise_p: 0.5
+  mask_coherent_noise_sigma: [0.05, 0.15]
+  # mask_bg_blobs_amp: [0.05, 0.15]
+  # mask_coherent_noise_amp: [0.02, 0.06]
+  # mask_floor: [0.01, 0.03]
+  mask_bg_blobs_amp: [0.08, 0.20]                                                                                                                                                      
+  mask_coherent_noise_amp: [0.03, 0.08]                                                                                                                                                
+  mask_floor: [0.02, 0.05]  
 
 backbone:
   - [-1, 1, Conv, [64, 3, 2]]

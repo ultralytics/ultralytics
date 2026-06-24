@@ -2,6 +2,7 @@
 comments: true
 description: Explore the supported dataset formats for Ultralytics YOLO and learn how to prepare and use datasets for training object segmentation models.
 keywords: Ultralytics, YOLO, instance segmentation, dataset formats, auto-annotation, COCO, segmentation models, training data
+title: Instance Segmentation Datasets
 ---
 
 # Instance Segmentation Datasets Overview

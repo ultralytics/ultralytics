@@ -1089,11 +1089,12 @@ class BaseTrainer:
 class MultiTrainer:
     """Fine-tune a single base model across a collection of datasets and aggregate per-dataset results.
 
-    Used automatically by Model.train() when `data` is a list or tuple, allowing one base model to be benchmarked across
-    many datasets (such as the RF100 collection) in a single call. The datasets are fine-tuned in series and the same
-    base weights seed each run, so every run starts from an identical model. Each run saves its own results.csv and
-    results.png; after all runs a cross-dataset bar chart of the per-dataset metric is saved. The base model object is
-    left unchanged; each dataset's fine-tuned weights live in its own run directory.
+    Used automatically by Model.train() when `data` is a list or tuple, allowing one base model to be benchmarked
+    across many datasets (such as the RF100 collection) in a single call. The datasets are fine-tuned in series and
+    the same base weights seed each run, so every run starts from an identical model. All output is grouped under one
+    sweep directory (e.g. runs/detect/multitrain): each dataset gets its own run subdirectory, and the per-dataset and
+    mean metrics are written to multitrain_results.json (for post-processing) alongside a multitrain_results.png bar
+    chart. The base model object is left unchanged; each dataset's fine-tuned weights live in its own run directory.
 
     Attributes:
         trainer (type[BaseTrainer]): Task trainer class instantiated once per dataset.
@@ -1102,7 +1103,7 @@ class MultiTrainer:
         callbacks (dict | None): Callbacks forwarded to each per-dataset trainer.
         trainers (list[BaseTrainer]): Completed per-dataset trainers (hold results.csv, save_dir, and metrics).
         metrics (dict): Mapping of each dataset to its final training-metrics dict from the saved checkpoint.
-        save_dir (Path | None): Directory holding the cross-dataset results plot.
+        save_dir (Path | None): Sweep directory holding the per-dataset runs and the results JSON/plot.
 
     Examples:
         Fine-tune one base model across several (unique) datasets and read back per-dataset metrics:
@@ -1131,13 +1132,30 @@ class MultiTrainer:
 
     def train(self):
         """Fine-tune the base model on each dataset in series and return a {dataset: metrics} mapping."""
+        from types import SimpleNamespace
+
         from ultralytics.utils.patches import torch_load
 
         datasets = self.args["data"]
+        # Group every per-dataset run and the summary plot under one sweep directory, e.g. runs/detect/multitrain
+        sweep = SimpleNamespace(
+            project=self.args.get("project"),
+            task=self.args.get("task"),
+            mode="train",
+            exist_ok=self.args.get("exist_ok", False),
+        )
+        self.save_dir = get_save_dir(sweep, name="multitrain")
         for i, data in enumerate(datasets):
             LOGGER.info(f"\n{colorstr('blue', 'bold', f'MultiTrainer {i + 1}/{len(datasets)}:')} fine-tuning on {data}")
             try:
-                overrides = {**self.args, "data": data, "name": Path(str(data)).stem, "resume": False, "session": None}
+                overrides = {
+                    **self.args,
+                    "data": data,
+                    "project": str(self.save_dir),  # nest per-dataset runs inside the sweep directory
+                    "name": Path(str(data)).stem,
+                    "resume": False,
+                    "session": None,
+                }
                 trainer = self.trainer(overrides=overrides, _callbacks=self.callbacks)
                 trainer.model = trainer.get_model(weights=deepcopy(self.model), cfg=self.model.yaml)
                 trainer.train()
@@ -1149,10 +1167,25 @@ class MultiTrainer:
                 LOGGER.error(f"MultiTrainer: fine-tuning on {data} failed, skipping: {e}")
                 self.metrics[data] = None
         if RANK in {-1, 0} and self.trainers:
-            self.save_dir = self.trainers[0].save_dir.parent
+            self.save_dir.mkdir(parents=True, exist_ok=True)
+            self.save_results()  # JSON of per-dataset + mean metrics for programmatic post-processing
             if self.args.get("plots", True):
                 self.plot_results()
         return self.metrics
+
+    def save_results(self):
+        """Write per-dataset and mean metrics to multitrain_results.json for programmatic post-processing."""
+        import json
+
+        results = {data: ({k: float(v) for k, v in m.items()} if m else None) for data, m in self.metrics.items()}
+        valid = [m for m in results.values() if m]
+        keys = {k for m in valid for k in m}
+        mean = {k: sum(m[k] for m in valid if k in m) / sum(k in m for m in valid) for k in keys}
+        file = self.save_dir / "multitrain_results.json"
+        with open(file, "w", encoding="utf-8") as f:
+            json.dump({"results": results, "mean": mean}, f, indent=2)
+        LOGGER.info(f"MultiTrainer results saved to {colorstr('bold', file)}")
+        return file
 
     def plot_results(self):
         """Save a cross-dataset bar chart of the per-dataset metric with the mean across all datasets."""

@@ -268,7 +268,10 @@ def test_train_multi():
     results = model.train(data=["coco8.yaml", "coco8.yaml"], epochs=1, imgsz=32)
     assert isinstance(results, dict) and "fitness" in results["coco8.yaml"]  # checkpoint train metrics per dataset
     assert len(model.trainer.trainers) == 2  # both list entries fine-tuned in series
-    assert (model.trainer.save_dir / "multitrain_results.png").exists()  # cross-dataset results plot saved
+    sweep_dir = model.trainer.save_dir
+    assert sweep_dir.name.startswith("multitrain")  # all runs grouped under one sweep directory
+    assert (sweep_dir / "multitrain_results.json").exists()  # results JSON for post-processing
+    assert (sweep_dir / "multitrain_results.png").exists()  # cross-dataset results plot
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")

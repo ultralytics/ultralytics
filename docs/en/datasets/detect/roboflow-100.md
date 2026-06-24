@@ -47,7 +47,7 @@ Dataset [benchmarking](../../modes/benchmark.md) involves evaluating the perform
 
 !!! tip "Benchmarking Results"
 
-    Each dataset is fine-tuned in its own folder under `runs/` (with its own `results.png`), and a cross-dataset bar chart of the per-dataset metric is saved as `multitrain_results.png`. The `model.train()` call also returns a `{dataset: metrics}` dictionary for programmatic access.
+    Every output is grouped under a single `runs/<task>/multitrain/` directory: each dataset is fine-tuned in its own subdirectory (with its own `results.png`), and the per-dataset and mean metrics are written to `multitrain_results.json` alongside a `multitrain_results.png` bar chart. The `model.train()` call also returns a `{dataset: metrics}` dictionary for programmatic access.
 
 !!! example "Benchmarking Example"
 
@@ -87,12 +87,13 @@ Dataset [benchmarking](../../modes/benchmark.md) involves evaluating the perform
 
         # Fine-tune one base model across all RF100 datasets and visualize the cross-dataset results
         model = YOLO("yolo26n.pt")
-        results = model.train(data=datasets, epochs=100, imgsz=640)  # {run: metrics}; saves multitrain_results.png
+        results = model.train(data=datasets, epochs=100, imgsz=640)  # {dataset: metrics}
 
-        # Inspect the per-dataset results
-        for run, metrics in results.items():
+        # Per-dataset runs, multitrain_results.json (per-dataset + mean), and multitrain_results.png are saved
+        # together under runs/detect/multitrain. Read results in-memory or from the JSON for custom post-processing.
+        for dataset, metrics in results.items():
             if metrics:  # None if that dataset failed to train
-                print(f"{run}: mAP50-95 = {metrics['metrics/mAP50-95(B)']:.4f}")
+                print(f"{dataset}: mAP50-95 = {metrics['metrics/mAP50-95(B)']:.4f}")
         ```
 
 ## Applications

@@ -45,6 +45,7 @@ anomaly_v2:
   # OOD eval
   mvtec_ood_val_freq: 1
   mvtec_ood_categories: ["bottle", "cable", "capsule", "carpet", "grid"]
+  mvtec_ood_fit_cfg: ../../yoloa_fit_default.yaml
 
 backbone:
   - [-1, 1, Conv, [64, 3, 2]]

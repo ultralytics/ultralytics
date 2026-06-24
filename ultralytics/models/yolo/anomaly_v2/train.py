@@ -28,10 +28,35 @@ from ultralytics.data import build_yolo_dataset
 from ultralytics.models import yolo
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import YOLOAnomalyV2Model
-from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK, TQDM
+from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK, TQDM, YAML
 from ultralytics.utils.torch_utils import unwrap_model
 
 from .val import resolve_mvtec_root, run_mvtec_ood_eval
+
+# Fit YAML keys -> FeatureDiscriminatorScorer kwargs
+_SCORER_YAML_KEYS = {
+    "scorer_noise_std": "noise_std", "scorer_steps": "steps", "scorer_hidden": "hidden",
+    "scorer_n_noise": "n_noise", "scorer_batch": "batch", "scorer_lr": "lr",
+    "scorer_noise_mode": "noise_mode",
+}
+
+
+def _resolve_fit_yaml(cfg_path: str, model_yaml_path: str | None = None) -> dict:
+    """Load a fit YAML; tries absolute, relative-to-model-YAML, then ``ultralytics/cfg/``."""
+    p = Path(cfg_path)
+    if p.is_file():
+        return dict(YAML.load(str(p)))
+    if model_yaml_path:
+        alt = Path(model_yaml_path).parent / cfg_path
+        if alt.is_file():
+            return dict(YAML.load(str(alt)))
+    # Resolve from <repo_root>/ultralytics/cfg/
+    cfg_dir = Path(__file__).resolve().parents[3] / "cfg"
+    alt = cfg_dir / cfg_path
+    if alt.is_file():
+        return dict(YAML.load(str(alt)))
+    LOGGER.warning(f"MVTec OOD: fit YAML not found at {cfg_path}; using defaults.")
+    return {}
 
 
 class AnomalyV2Trainer(DetectionTrainer):
@@ -173,13 +198,15 @@ class AnomalyV2Trainer(DetectionTrainer):
 
     @staticmethod
     def _mvtec_ood_eval(trainer: "AnomalyV2Trainer") -> None:
-        """on_fit_epoch_end: periodic MVTec cross-dataset OOD eval (3-mode), rank 0 only.
+        """on_fit_epoch_end: periodic MVTec cross-dataset OOD eval, rank 0 only.
 
         Configured via the model YAML ``anomaly_v2`` block: ``mvtec_ood_val_freq`` (every N epochs;
-        default 3, set 0 to disable), plus optional ``mvtec_ood_root`` / ``mvtec_ood_categories`` /
-        ``mvtec_ood_imgsz`` / ``mvtec_ood_batch`` / ``mvtec_ood_bank_size``. Runs on a deepcopy of the
-        EMA so val-time fuse()/bank-build never corrupt the live EMA (which would break the next
-        ``ema.update()`` and bloat the checkpoint). No-op if the MVTec dataset root is not found.
+        default 3, set 0 to disable). When ``mvtec_ood_fit_cfg`` is set, ``imgsz``, ``heatmap_mode``,
+        scorer settings, ``heat_edge`` / ``heat_norm`` are read from that fit YAML (the single source of
+        truth for all fit params). Without it, ``mvtec_ood_imgsz`` (default 320) and a plain 3-mode
+        (mask_off / heatmap / mask_on) sweep with no scorer / no post-processing are used.
+
+        Runs on a deepcopy of the EMA so val-time fuse()/bank-build never corrupt the live EMA.
         """
         if RANK not in (-1, 0) or trainer.ema is None:
             return
@@ -192,16 +219,54 @@ class AnomalyV2Trainer(DetectionTrainer):
             LOGGER.warning("MVTec OOD: dataset root not found (set MVTEC_ROOT or anomaly_v2."
                            "mvtec_ood_root); skipping OOD eval.")
             return
+
+        # -- Fit YAML (optional; single source of truth for imgsz / heatmap_mode / scorer / post) --
+        fit_cfg_path = v2_cfg.get("mvtec_ood_fit_cfg")
+        fit_yaml = {}
+        if fit_cfg_path:
+            model_yaml = getattr(unwrap_model(trainer.model), "yaml", {}) or {}
+            model_yaml_path = model_yaml.get("yaml_file")
+            fit_yaml = _resolve_fit_yaml(str(fit_cfg_path), model_yaml_path)
+
+        imgsz = int(fit_yaml.get("imgsz", v2_cfg.get("mvtec_ood_imgsz", 320)))
+        batch = int(v2_cfg.get("mvtec_ood_batch", 8))
+        bank_size = int(fit_yaml.get("bb_max_bank_size", v2_cfg.get("mvtec_ood_bank_size", 10000)))
+
+        # Modes: fit YAML heatmap_mode -> prior variant; without it = plain 3-mode sweep
+        heatmap_mode = fit_yaml.get("heatmap_mode")
+        _MODE_MAP = {"memory_bank": "heatmap", "learned": "heatmap_learned", "fused": "heatmap_fused"}
+        if heatmap_mode in _MODE_MAP:
+            modes = ("mask_off", _MODE_MAP[heatmap_mode], "mask_on")
+        else:
+            modes = ("mask_off", "heatmap", "mask_on")
+
+        # Scorer kwargs (learned / fused only)
+        scorer_kwargs, scorer_fuse = None, "mean"
+        if heatmap_mode in ("learned", "fused"):
+            scorer_kwargs = {kwk: fit_yaml[yk] for yk, kwk in _SCORER_YAML_KEYS.items() if yk in fit_yaml}
+            scorer_kwargs.setdefault("adaptor", fit_yaml.get("scorer_adaptor", True))
+            scorer_kwargs["scorer_weight"] = fit_yaml.get("scorer_weight", 0.5)
+            scorer_fuse = fit_yaml.get("scorer_fuse", "mean")
+
+        # Heatmap post-processing (inference-only; from fit YAML)
+        heat_edge = bool(fit_yaml.get("heat_edge")) if fit_yaml else None
+        heat_edge_sigma = fit_yaml.get("heat_edge_sigma", 1.0)
+        heat_norm = fit_yaml.get("heat_norm") or None
+
         ema_eval = deepcopy(trainer.ema.ema).eval()
         try:
             with torch.no_grad():
                 rows = run_mvtec_ood_eval(
                     ema_eval, root,
                     categories=v2_cfg.get("mvtec_ood_categories"),
-                    imgsz=int(v2_cfg.get("mvtec_ood_imgsz", 320)),
-                    batch=int(v2_cfg.get("mvtec_ood_batch", 8)),
-                    bank_size=int(v2_cfg.get("mvtec_ood_bank_size", 10000)),
+                    modes=modes,
+                    imgsz=imgsz, batch=batch, bank_size=bank_size,
                     device=trainer.device, save_dir=trainer.save_dir, epoch=trainer.epoch + 1,
+                    heatmap_norm=heat_norm,
+                    heatmap_edge_weight=(True if heat_edge else None),
+                    heatmap_edge_sigma=heat_edge_sigma,
+                    scorer_kwargs=scorer_kwargs,
+                    scorer_fuse=scorer_fuse,
                 )
             AnomalyV2Trainer._log_ood_wandb(trainer, rows)
         except Exception as e:  # never let OOD eval take down a training run

@@ -546,9 +546,9 @@ class Exporter:
         # Argument compatibility checks
         fmt_keys = dict(zip(fmts_dict["Argument"], fmts_dict["Arguments"]))[fmt]
         validate_args(fmt, self.args, fmt_keys)
-        if fmt in {"deepx", "axelera", "imx", "edgetpu", "qnn"} and not self.args.int8:
-            LOGGER.warning(f"{fmt} export requires int8=True, setting int8=True.")
-            self.args.int8 = True
+        if fmt in {"deepx", "axelera", "imx", "edgetpu", "qnn"} and self.args.quantize != "w8a8":
+            LOGGER.warning(f"{fmt} export requires INT8, setting quantize='w8a8'.")
+            self.args.quantize = "w8a8"
         if fmt == "axelera":
             if model.task == "segment" and any(isinstance(m, Segment26) for m in model.modules()):
                 raise ValueError("Axelera export does not currently support YOLO26 segmentation models.")
@@ -584,7 +584,7 @@ class Exporter:
                             "Please upgrade TensorRT to 8.5.0 or later to enable end2end export."
                         )
 
-                    if self.args.int8 and check_version(trt.__version__, "==10.3.0") and is_jetson(jetpack=6):
+                    if self.args.quantize == "w8a8" and check_version(trt.__version__, "==10.3.0") and is_jetson(jetpack=6):
                         # https://github.com/ultralytics/ultralytics/issues/23841
                         model.end2end = False
                         LOGGER.warning(
@@ -594,11 +594,11 @@ class Exporter:
                         )
                 except ImportError:
                     pass
-        if self.args.half and fmt == "torchscript" and self.device.type == "cpu":
+        if self.args.quantize == "w16a16" and fmt == "torchscript" and self.device.type == "cpu":
             LOGGER.warning(
-                "half=True only compatible with GPU export for TorchScript, i.e. use device=0, setting half=False."
+                "FP16 only compatible with GPU export for TorchScript, i.e. use device=0, setting quantize='w32a32'."
             )
-            self.args.half = False
+            self.args.quantize = "w32a32"
         self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size
         if self.args.optimize:
             assert fmt != "ncnn", "optimize=True not compatible with format='ncnn', i.e. use optimize=False"
@@ -614,9 +614,9 @@ class Exporter:
             assert self.args.name in RKNN_CHIPS, (
                 f"Invalid processor name '{self.args.name}' for Rockchip RKNN export. Valid names are {RKNN_CHIPS}."
             )
-            if self.args.name in {"rv1103", "rv1106", "rv1103b", "rv1106b"} and not self.args.int8:
-                LOGGER.warning(f"Rockchip target '{self.args.name}' requires int8=True, setting int8=True.")
-                self.args.int8 = True
+            if self.args.name in {"rv1103", "rv1106", "rv1103b", "rv1106b"} and self.args.quantize != "w8a8":
+                LOGGER.warning(f"Rockchip target '{self.args.name}' requires INT8, setting quantize='w8a8'.")
+                self.args.quantize = "w8a8"
         if fmt == "qnn":
             if not self.args.name:
                 LOGGER.warning(
@@ -661,13 +661,13 @@ class Exporter:
                 "See https://docs.ultralytics.com/models/yolo-world for details."
             )
             model.clip_model = None  # openvino int8 export error: https://github.com/ultralytics/ultralytics/pull/18445
-        if self.args.int8 and not self.args.data:
+        if self.args.quantize == "w8a8" and not self.args.data:
             self.args.data = DEFAULT_CFG.data or TASK2DATA[getattr(model, "task", "detect")]  # assign default data
             LOGGER.warning(
                 f"INT8 export requires a missing 'data' arg for calibration. Using default 'data={self.args.data}'."
             )
-        # Keep quantize in sync after any format-forced half/int8 changes above
-        self.args.quantize = self.args.quantize or ("w8a8" if self.args.int8 else "w16a16" if self.args.half else None)
+        # quantize is the single source of truth; sync legacy half/int8 booleans for the backend boundary below
+        self.args.half, self.args.int8 = QUANTIZE_SCHEMES.get(self.args.quantize or "w32a32", (False, False))
         if fmt == "tfjs" and ARM64 and LINUX:
             raise SystemError("TF.js exports are not currently supported on ARM64 Linux")
         # Recommend OpenVINO if export and Intel CPU
@@ -738,7 +738,7 @@ class Exporter:
         y = None
         for _ in range(2):  # dry runs
             y = NMSModel(model, self.args)(im) if self.args.nms and fmt not in {"coreml", "imx"} else model(im)
-        if self.args.half and fmt in {"onnx", "torchscript"} and self.device.type != "cpu":
+        if self.args.quantize == "w16a16" and fmt in {"onnx", "torchscript"} and self.device.type != "cpu":
             im, model = im.half(), model.half()  # to FP16
 
         # Assign
@@ -806,7 +806,7 @@ class Exporter:
                 f"work. Use export 'imgsz={max(self.imgsz)}' if val is required."
             )
             imgsz = self.imgsz[0] if square else str(self.imgsz)[1:-1].replace(" ", "")
-            q = self.args.quantize or ("int8" if self.args.int8 else "half" if self.args.half else "")  # quantization
+            q = self.args.quantize or ""  # quantization scheme
             # Export-only formats deploy in-browser and are not loadable by AutoBackend
             predict_validate = (
                 ""
@@ -883,7 +883,7 @@ class Exporter:
     def export_onnx(self, prefix=colorstr("ONNX:")):
         """Export YOLO model to ONNX format."""
         requirements = ["onnx>=1.12.0,<2.0.0"]
-        if self.args.simplify or (self.args.format == "onnx" and self.args.int8):
+        if self.args.simplify or (self.args.format == "onnx" and self.args.quantize == "w8a8"):
             # Pass onnxruntime variants as interchangeable candidates so AutoUpdate keeps an installed build
             # (e.g. onnxruntime-qnn for QNN export) instead of reinstalling stable onnxruntime and breaking its ABI.
             ort = "onnxruntime-gpu" if "cuda" in self.device.type else "onnxruntime"
@@ -952,7 +952,7 @@ class Exporter:
             model_onnx.ir_version = 10
 
         # FP16 conversion for CPU export (GPU exports are already FP16 from model.half() during tracing)
-        if self.args.half and self.args.format == "onnx" and self.device.type == "cpu":
+        if self.args.quantize == "w16a16" and self.args.format == "onnx" and self.device.type == "cpu":
             try:
                 from onnxruntime.transformers import float16
 
@@ -962,7 +962,7 @@ class Exporter:
                 LOGGER.warning(f"{prefix} FP16 conversion failure: {e}")
 
         onnx.save(model_onnx, f)
-        if self.args.int8 and self.args.format == "onnx":
+        if self.args.quantize == "w8a8" and self.args.format == "onnx":
             from ultralytics.utils.export.onnx import onnx_int8_quantize
 
             source = Path(f)
@@ -1004,7 +1004,7 @@ class Exporter:
             YAML.save(Path(file).parent / "metadata.yaml", self.metadata)  # add metadata.yaml
 
         calibration_dataset, ignored_scope = None, None
-        if self.args.int8:
+        if self.args.quantize == "w8a8":
             check_requirements("packaging>=23.2")  # must be installed first to build nncf wheel
             check_requirements("nncf>=2.14.0,<3.0.0" if not TORCH_2_3 else "nncf>=2.14.0")
             import nncf
@@ -1034,7 +1034,7 @@ class Exporter:
             prefix=prefix,
         )
 
-        suffix = f"_{'int8_' if self.args.int8 else ''}openvino_model{os.sep}"
+        suffix = f"_{'int8_' if self.args.quantize == 'w8a8' else ''}openvino_model{os.sep}"
         f = str(self.file).replace(self.file.suffix, suffix)
         f_ov = str(Path(f) / self.file.with_suffix(".xml").name)
 
@@ -1209,7 +1209,7 @@ class Exporter:
 
         # Export to TF
         images = None
-        if self.args.int8 and self.args.data:
+        if self.args.quantize == "w8a8" and self.args.data:
             images = [batch["img"] for batch in self.get_int8_calibration_dataloader(prefix)]
             images = (
                 torch.nn.functional.interpolate(torch.cat(images, 0).float(), size=self.imgsz)
@@ -1254,9 +1254,9 @@ class Exporter:
 
         LOGGER.info(f"\n{prefix} starting export with tensorflow {tf.__version__}...")
         saved_model = Path(str(self.file).replace(self.file.suffix, "_saved_model"))
-        if self.args.int8:
+        if self.args.quantize == "w8a8":
             f = saved_model / f"{self.file.stem}_int8.tflite"  # fp32 in/out
-        elif self.args.half:
+        elif self.args.quantize == "w16a16":
             f = saved_model / f"{self.file.stem}_float16.tflite"  # fp32 in/out
         else:
             f = saved_model / f"{self.file.stem}_float32.tflite"
@@ -1334,7 +1334,7 @@ class Exporter:
         f_onnx = self.export_onnx()
         output_dir = Path(str(self.file).replace(self.file.suffix, f"_rknn_model{os.sep}"))
         rknn_dataset = None
-        if self.args.int8:
+        if self.args.quantize == "w8a8":
             dataloader = self.get_int8_calibration_dataloader(prefix)
             image_paths = getattr(dataloader.dataset, "im_files", None)
             if image_paths is None and hasattr(dataloader.dataset, "samples"):
@@ -1582,7 +1582,7 @@ class NMSModel(torch.nn.Module):
                     use_triu=not (
                         self.is_tf
                         or (self.args.opset or 14) < 14
-                        or (self.args.format == "openvino" and self.args.int8)  # OpenVINO int8 error with triu
+                        or (self.args.format == "openvino" and self.args.quantize == "w8a8")  # OpenVINO int8 error with triu
                     ),
                     iou_func=batch_probiou,
                     exit_early=False,

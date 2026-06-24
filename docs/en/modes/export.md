@@ -147,6 +147,8 @@ INT8 quantization is an excellent way to compress the model and speed up inferen
 
 INT8 quantization can be applied to various formats, such as [ONNX](../integrations/onnx.md), [TensorRT](../integrations/tensorrt.md), [OpenVINO](../integrations/openvino.md), [CoreML](../integrations/coreml.md), and [Rockchip RKNN](../integrations/rockchip-rknn.md). For optimal quantization results, provide a representative [dataset](https://docs.ultralytics.com/datasets) using the `data` parameter.
 
+You can also request the same quantization with the unified `quantize` argument, which is the preferred way going forward and is designed to express additional schemes over time: `model.export(format="onnx", quantize="w8a8", data="coco8.yaml")` (equivalent to `int8=True`), or `quantize="w16a16"` for FP16 (equivalent to `half=True`).
+
 ### Why is dynamic input size important when exporting models?
 
 Dynamic input size allows the exported model to handle varying image dimensions, providing flexibility and optimizing processing efficiency for different use cases. When exporting to formats like [ONNX](../integrations/onnx.md) or [TensorRT](../integrations/tensorrt.md), enabling dynamic input size ensures that the model can adapt to different input shapes seamlessly.
@@ -178,9 +180,10 @@ Understanding and configuring export arguments is crucial for optimizing model p
 
 - **`format:`** The target format for the exported model (e.g., `onnx`, `torchscript`, `tensorflow`).
 - **`imgsz:`** Desired image size for the model input (e.g., `640` or `(height, width)`).
-- **`half:`** Enables FP16 quantization, reducing model size and potentially speeding up inference.
+- **`quantize:`** Unified quantization scheme string, e.g. `'w16a16'` (FP16) or `'w8a8'` (INT8). Preferred over the `half`/`int8` booleans and designed to express more schemes in the future.
+- **`half:`** Enables FP16 quantization, reducing model size and potentially speeding up inference. Equivalent to `quantize='w16a16'`.
 - **`optimize:`** Applies specific optimizations for mobile or constrained environments.
-- **`int8:`** Enables INT8 quantization, highly beneficial for [edge AI](https://www.ultralytics.com/blog/deploying-computer-vision-applications-on-edge-ai-devices) deployments.
+- **`int8:`** Enables INT8 quantization, highly beneficial for [edge AI](https://www.ultralytics.com/blog/deploying-computer-vision-applications-on-edge-ai-devices) deployments. Equivalent to `quantize='w8a8'`.
 
 For deployment on specific hardware platforms, consider using specialized export formats like [TensorRT](../integrations/tensorrt.md) for NVIDIA GPUs, [CoreML](../integrations/coreml.md) for Apple devices, or [Edge TPU](../integrations/edge-tpu.md) for Google Coral devices.
 

@@ -34,12 +34,21 @@ def _extract(preds):
     return preds
 
 
-def lstsq_affine(log_pred, log_gt):
-    """Closed-form least-squares fit of (a, b) minimizing ||a·log_pred + b − log_gt||."""
+def lstsq_affine(log_pred, log_gt, dist_power: float = 0.0):
+    """Closed-form least-squares fit of (a, b) minimizing ||a·log_pred + b − log_gt||.
+
+    With ``dist_power > 0`` the fit is weighted by ``gt**dist_power`` per pixel (gt = exp(log_gt)),
+    so far pixels count more. This counters the near-pixel domination of an unweighted fit, which
+    on near-heavy data over-compresses the scale and harms the far range. 0.0 = unweighted (default).
+    """
     log_pred = np.asarray(log_pred, dtype=np.float64)
     log_gt = np.asarray(log_gt, dtype=np.float64)
     A = np.stack([log_pred, np.ones_like(log_pred)], axis=1)
-    (a, b), *_ = np.linalg.lstsq(A, log_gt, rcond=None)
+    if dist_power > 0:
+        sw = np.exp(0.5 * dist_power * log_gt)  # sqrt of gt**dist_power; row-scaling = weighted LSQ
+        (a, b), *_ = np.linalg.lstsq(A * sw[:, None], log_gt * sw, rcond=None)
+    else:
+        (a, b), *_ = np.linalg.lstsq(A, log_gt, rcond=None)
     return float(a), float(b)
 
 
@@ -101,7 +110,11 @@ def fit_calibration(model, dataloader, device, max_images: int = 200, set_buffer
         LOGGER.warning("calibrate: no valid depth pixels found; calibration skipped.")
         return None
 
-    a, b = lstsq_affine(np.concatenate(logp_all), np.concatenate(logg_all))
+    import os
+    a, b = lstsq_affine(
+        np.concatenate(logp_all), np.concatenate(logg_all),
+        dist_power=float(os.environ.get("DEPTH_CAL_DIST_POWER", 0.0)),
+    )
 
     if set_buffers:
         head.cal_a.fill_(a)

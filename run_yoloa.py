@@ -20,139 +20,33 @@ Usage:
 import argparse
 import csv
 import math
-import random
 from pathlib import Path
 
-import cv2
 import numpy as np
 import torch
 
+import cv2
+
 from ultralytics.models.yolo.anomaly_v2.val import MVTEC_CATEGORIES, resolve_mvtec_root, run_mvtec_ood_eval
-from ultralytics.utils import LOGGER, YAML
+from ultralytics.utils import LOGGER
 from ultralytics.yoloa import YOLOA
-
-MVTEC_OBJECT = ["bottle", "cable", "capsule", "hazelnut", "metal_nut", "pill", "screw",
-                "toothbrush", "transistor", "zipper"]
-MVTEC_TEXTURE = ["carpet", "grid", "leather", "tile", "wood"]
-
-_CAT_GROUPS = {"object": MVTEC_OBJECT, "texture": MVTEC_TEXTURE}
+from yoloa_utils import (
+    CAT_GROUPS, VAL_METRICS,
+    collect_test_images, good_dir, model_id_from_ckpt, save_heatmap,
+    load_fit_yaml, resolve_prior, resolve_scorer_kwargs, resolve_infer,
+    find_mask, load_mask_tensor, run_prior_viz, save_compare_grid,
+)
 
 DEFAULT_CKPT = ("/Users/louis/workspace/ultra_louis_work/expman/data/pulled/yoloa_v2/"
                 "26m_yoloav2_softhint_maskonly_aug3_mixup_binary_v1/weights/best.pt")
-VAL_METRICS = ("image_auroc", "pixel_auroc", "mAP10", "mAP25", "mAP50", "mAP50_95")
 
-# YAML heatmap_mode -> prior_mode (used by predict/val/run_mvtec_ood_eval)
-_MODE_MAP = {"memory_bank": "heatmap", "learned": "heatmap_learned", "fused": "heatmap_fused"}
-
-# YAML keys -> FeatureDiscriminatorScorer kwargs
-_SCORER_YAML_KEYS = {
-    "scorer_noise_std": "noise_std", "scorer_steps": "steps", "scorer_hidden": "hidden",
-    "scorer_n_noise": "n_noise", "scorer_batch": "batch", "scorer_lr": "lr",
-    "scorer_noise_mode": "noise_mode",
-}
-
-
-def collect_test_images(test_root: Path, n: int, seed: int = 0) -> list[tuple[str, str]]:
-    """Return up to ``n`` (path, defect_type) pairs sampled across a category's test subdirs."""
-    pairs = [(str(p), sub.name) for sub in sorted(test_root.iterdir()) if sub.is_dir()
-             for p in sorted(sub.glob("*.png"))]
-    random.Random(seed).shuffle(pairs)
-    return pairs[:n] if n and n > 0 else pairs
-
-
-def good_dir(root: Path, cat: str) -> Path:
-    """Resolve a category's normal-images dir for fitting (train/good, else train)."""
-    d = root / cat / "train" / "good"
-    return d if d.is_dir() else root / cat / "train"
-
-
-def model_id_from_ckpt(ckpt: str) -> str:
-    """Short model id from a ckpt path: <run>/weights/best.pt -> <run>, else the file stem."""
-    p = Path(ckpt).resolve()
-    return p.parents[1].name if p.parent.name == "weights" else p.stem
-
-
-def save_heatmap(model, img_path: str, out_path: Path) -> None:
-    """Save the model's last prior heatmap as a JET overlay on the original image."""
-    hm = getattr(model, "_last_heatmap", None)
-    if hm is None:
-        return
-    h = hm.detach().cpu().numpy().squeeze()
-    h = (h - h.min()) / (np.ptp(h) + 1e-9)
-    orig = cv2.imread(img_path)
-    color = cv2.resize(cv2.applyColorMap((h * 255).astype(np.uint8), cv2.COLORMAP_JET),
-                       (orig.shape[1], orig.shape[0]))
-    cv2.imwrite(str(out_path), cv2.addWeighted(orig, 0.55, color, 0.45, 0))
-
-
-def load_mask_tensor(mask_path, imgsz: int):
-    """Load a GT mask as a (1, 1, imgsz, imgsz) float tensor, or None."""
-    if mask_path is None:
-        return None
-    m = cv2.imread(str(mask_path), cv2.IMREAD_GRAYSCALE)
-    if m is None:
-        return None
-    m = cv2.resize(m, (imgsz, imgsz), interpolation=cv2.INTER_NEAREST).astype(np.float32) / 255.0
-    return torch.from_numpy(m).unsqueeze(0).unsqueeze(0)
-
-
-def run_prior_viz(m, img, prior, imgsz, conf, iou, device, external_mask=None, **kw):
-    """Predict with one prior; return (pred_rgb, n_det, heatmap_np) for the 8-panel grid."""
-    res = m.predict(img, prior=prior, imgsz=imgsz, conf=conf, iou=iou, device=device,
-                    external_mask=external_mask, verbose=False, **kw)[0]
-    n = 0 if res.boxes is None else res.boxes.shape[0]
-    pred_rgb = cv2.cvtColor(res.plot(), cv2.COLOR_BGR2RGB)
-    hm = getattr(m.model, "_last_heatmap", None)
-    hm_np = hm.detach().cpu().numpy().squeeze() if hm is not None else None
-    return pred_rgb, n, hm_np
-
-
-def load_fit_yaml(cfg_path: str | None) -> tuple[dict, str | None]:
-    """Load and resolve the fit YAML; returns (dict, resolved_path)."""
-    if not cfg_path:
-        return {}, None
-    p = Path(cfg_path)
-    if not p.is_file() and not p.is_absolute():
-        alt = Path(__file__).resolve().parent / "ultralytics" / "cfg" / p.name
-        if alt.is_file():
-            p = alt
-    if p.is_file():
-        return dict(YAML.load(str(p))), str(p)
-    return {}, str(p)
-
-
-def resolve_prior(yaml: dict) -> str:
-    """Map YAML heatmap_mode to prior_mode string."""
-    mode = yaml.get("heatmap_mode", "memory_bank")
-    return _MODE_MAP.get(mode, "heatmap")
-
-
-def resolve_scorer_kwargs(yaml: dict) -> dict:
-    """Extract FeatureDiscriminatorScorer kwargs from YAML keys."""
-    kw = {}
-    for yk, kwk in _SCORER_YAML_KEYS.items():
-        if yk in yaml:
-            kw[kwk] = yaml[yk]
-    kw.setdefault("adaptor", yaml.get("scorer_adaptor", True))
-    return kw
-
-
-def resolve_infer(yaml: dict) -> dict:
-    """Extract prior-shaping inference knobs from YAML."""
-    infer = {}
-    if yaml.get("heat_edge"):
-        infer["heat_edge"] = True
-        infer["heat_edge_sigma"] = yaml.get("heat_edge_sigma", 1.0)
-    if yaml.get("heat_norm"):
-        infer["heat_norm"] = yaml["heat_norm"]
-    return infer
+DEFAULT_CKPT="/Users/louis/workspace/ultra_louis_work/expman/data/pulled/yoloa_v2/26m_yoloav2_softhint_maskonly_aug3_mixup_binary_v2/weights/best.pt"
 
 
 def main():
     ap = argparse.ArgumentParser(
         description="YOLOA driver — per-category fit, then predict or val. "
                     "All fit params come from --fit-cfg YAML.")
-    # -- Operational args only -------------------------------------------------
     ap.add_argument("--mode", choices=["predict", "val", "visualize"], default="predict")
     ap.add_argument("--ckpt", default=DEFAULT_CKPT)
     ap.add_argument("--cat", default="bottle",
@@ -180,14 +74,14 @@ def main():
 
     # Resolve prior: --prior selects none vs heatmap; YAML heatmap_mode picks the variant
     if args.prior == "none":
-        prior_mode = "none"        # predict prior
-        val_mode = "mask_off"       # run_mvtec_ood_eval mode
+        prior_mode = "none"
+        val_mode = "mask_off"
         needs_disc = False
         scorer_kwargs = {}
         scorer_fuse = "mean"
     else:
         prior_mode = resolve_prior(yaml)
-        val_mode = prior_mode       # same string: heatmap / heatmap_learned / heatmap_fused
+        val_mode = prior_mode
         needs_disc = prior_mode in ("heatmap_learned", "heatmap_fused")
         scorer_kwargs = resolve_scorer_kwargs(yaml)
         scorer_fuse = yaml.get("scorer_fuse", "mean")
@@ -200,8 +94,8 @@ def main():
     root = resolve_mvtec_root(args.mvtec_root)
     assert root is not None, "MVTec root not found (pass --mvtec-root or set MVTEC_ROOT)"
     cat_arg = args.cat.lower()
-    if cat_arg in _CAT_GROUPS:
-        cats = _CAT_GROUPS[cat_arg]
+    if cat_arg in CAT_GROUPS:
+        cats = CAT_GROUPS[cat_arg]
     elif cat_arg == "all":
         cats = MVTEC_CATEGORIES
     else:
@@ -209,7 +103,6 @@ def main():
 
     m = YOLOA(args.ckpt)
 
-    # fit_over: imgsz + max_images from YAML (no CLI overrides anymore)
     fit_over = {}
     if "imgsz" in yaml:
         fit_over["imgsz"] = yaml["imgsz"]
@@ -255,26 +148,23 @@ def main():
                 save_heatmap(m.model, img, out / f"{stem}__heat.jpg")
             print(f"[{ci}/{len(cats)}] {cat}: {len(samples)} predictions -> {out}", flush=True)
         elif args.mode == "visualize":
-            from compare_grid import CompareGrid
-            cg = CompareGrid()
             out = out_root / "visualize" / cat
             out.mkdir(parents=True, exist_ok=True)
             samples = collect_test_images(root / cat / "test", args.n_per_cat)
+            pkw = dict(imgsz=imgsz, conf=args.conf, iou=args.iou, device=device, end2end=args.e2e)
             for img, label in samples:
-                original = cv2.cvtColor(cv2.imread(img), cv2.COLOR_BGR2RGB)
-                mask_path = CompareGrid.find_mask(img)
+                original = cv2.imread(img)
+                mask_path = find_mask(img)
                 mask_tensor = load_mask_tensor(mask_path, imgsz)
-                pkw = dict(imgsz=imgsz, conf=args.conf, iou=args.iou, device=device,
-                           end2end=args.e2e)
                 none_pred, n_none, _ = run_prior_viz(m, img, "none", **pkw)
                 seg_pred, n_seg, seg_hmap = run_prior_viz(m, img, "segment", **pkw)
                 heat_pred, n_heat, heat_hmap = run_prior_viz(m, img, "heatmap", **pkw, **infer)
                 mask_pred, n_mask, _ = run_prior_viz(m, img, "mask", external_mask=mask_tensor, **pkw)
-                cg.save(
+                save_compare_grid(
                     original=original, none_pred=none_pred,
-                    seg_heat=CompareGrid.heatmap_panel(original, seg_hmap), seg_pred=seg_pred,
-                    heat_heat=CompareGrid.heatmap_panel(original, heat_hmap), heat_pred=heat_pred,
-                    mask_img=CompareGrid.mask_panel(original, mask_path), mask_pred=mask_pred,
+                    seg_heat=seg_hmap, seg_pred=seg_pred,
+                    heat_heat=heat_hmap, heat_pred=heat_pred,
+                    mask_img=mask_path, mask_pred=mask_pred,
                     out_path=out / f"{label}__{Path(img).stem}.jpg",
                     n_none=n_none, n_seg=n_seg, n_heat=n_heat, n_mask=n_mask,
                 )
@@ -305,7 +195,7 @@ def main():
         print("-" * len(hdr))
         for r in rows:
             print(f"{r['category']:12s} " + "".join(f"{r[k]:11.4f}" for k in VAL_METRICS), flush=True)
-        out_csv = out_root / f"val_{prior_mode}.csv"
+        out_csv = out_root / f"val_{prior_mode}_{args.cat}.csv"
         out_csv.parent.mkdir(parents=True, exist_ok=True)
         with open(out_csv, "w", newline="") as f:
             w = csv.DictWriter(f, fieldnames=["category", *VAL_METRICS])

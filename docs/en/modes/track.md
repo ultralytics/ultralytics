@@ -11,6 +11,10 @@ keywords: multi-object tracking, Ultralytics YOLO, video analytics, real-time tr
 
 Object tracking in the realm of video analytics is a critical task that not only identifies the location and class of objects within the frame but also maintains a unique ID for each detected object as the video progresses. The applications are limitless—ranging from surveillance and security to real-time sports analytics.
 
+!!! tip "🚀 New Trackers: OC-SORT, Deep OC-SORT, FastTracker, TrackTrack"
+
+    Starting with Ultralytics YOLO v8.4.63, new tracking algorithms are available: [OC-SORT](#oc-sort), [Deep OC-SORT](#deep-oc-sort), [FastTracker](#fasttracker), and [TrackTrack](#tracktrack). These trackers improve multi-object tracking performance and ID consistency.
+
 ## Why Choose Ultralytics YOLO for Object Tracking?
 
 The output from Ultralytics trackers is consistent with standard [object detection](https://www.ultralytics.com/glossary/object-detection) but has the added value of object IDs. This makes it easy to track objects in video streams and perform subsequent analytics. Here's why you should consider using Ultralytics YOLO for your object tracking needs:

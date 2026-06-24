@@ -1245,6 +1245,17 @@ class YOLOAnomalyV2Model(DetectionModel):
             ("_edge_weight_cache", None),
             ("fit_args", None),
             ("fit_data", None),
+            # MB-style mask augmentations (v2.4)
+            ("mask_fragment_p", 0.0),
+            ("mask_fragment_n", 4),
+            ("mask_bg_blobs_p", 0.0),
+            ("mask_bg_blobs_n", 8),
+            ("mask_bg_blobs_amp", (0.05, 0.15)),
+            ("mask_bg_blobs_sigma", (0.03, 0.08)),
+            ("mask_coherent_noise_p", 0.0),
+            ("mask_coherent_noise_amp", (0.02, 0.06)),
+            ("mask_coherent_noise_sigma", (0.05, 0.15)),
+            ("mask_floor", (0.0, 0.0)),
         ]:
             if not hasattr(self, attr):
                 setattr(self, attr, default)
@@ -1374,7 +1385,42 @@ class YOLOAnomalyV2Model(DetectionModel):
         if self.training and self.mask_jitter > 0.0:
             prior = self._translate_prior(prior)
 
+        # Mask-level fragment (polygon equiv of _fragment_prior_bboxes).
+        if self.training and self.mask_fragment_p > 0.0 and torch.rand(1).item() < self.mask_fragment_p:
+            prior = self._fragment_mask(prior)
+
         return prior
+
+    def _fragment_mask(self, mask):
+        """Randomly break connected mask regions into scattered sub-blobs.
+
+        Polygon/segment-equivalent of ``_fragment_prior_bboxes``. Operates on a
+        ``(B, 1, H, W)`` binary mask by eroding with random kernels and keeping
+        only a few random rectangular windows, producing a fragmented, scattered
+        prior that mimics memory-bank heatmap patterns.
+        """
+        b, _, H, W = mask.shape
+        out = mask.clone()
+        for i in range(b):
+            mi = mask[i, 0]
+            if mi.max() == 0:
+                continue
+            # Random erosion: shrink with a random 3 or 5 px kernel to break thin connections.
+            k = int(torch.randint(1, 3, (1,)).item()) * 2 + 1  # 3 or 5 (odd -> same spatial size)
+            kernel = torch.ones(1, 1, k, k, device=mask.device)
+            eroded = F.conv2d(mask[i : i + 1], kernel, padding=k // 2)
+            keep_ratio = 0.6 + 0.3 * torch.rand(1).item()
+            eroded = (eroded >= keep_ratio * k * k).float()
+            # Keep only the intersection of a few random rectangular windows with the eroded mask.
+            windows = torch.zeros(1, 1, H, W, device=mask.device)
+            for _ in range(self.mask_fragment_n):
+                fh = int(H * (0.15 + 0.40 * torch.rand(1).item()))
+                fw = int(W * (0.15 + 0.40 * torch.rand(1).item()))
+                fy = int(torch.randint(0, max(1, H - fh), (1,)).item())
+                fx = int(torch.randint(0, max(1, W - fw), (1,)).item())
+                windows[0, 0, fy : fy + fh, fx : fx + fw] = 1.0
+            out[i, 0] = eroded[0, 0] * windows[0, 0]
+        return out
 
     def _drop_polygon_instances(self, masks):
         """Drop random instances from an instance-index map ``(B, H/r, W/r)``.

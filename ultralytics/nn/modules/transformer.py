@@ -740,9 +740,9 @@ class DeformableTransformerDecoder(nn.Module):
             decoder_layer (nn.Module): Decoder layer module.
             num_layers (int): Number of decoder layers.
             eval_idx (int): Index of the layer to use during evaluation.
-            efficient_ms (bool): If True, each decoder layer attends to a single feature level chosen by round-robin
-                (small to large, last layer pinned to the largest level). The decoder layer's cross-attention must be
-                configured with `n_levels=1` to match this scheduling.
+            efficient_ms (bool): If True, layer `i` attends only to level `order[i % n_levels]` (smallest first,
+                round-robin). The per-layer scale is fixed by index, so `num_layers` can change at inference without
+                shifting assignments. Cross-attention must use `n_levels=1`.
         """
         super().__init__()
         self.layers = _get_clones(decoder_layer, num_layers)
@@ -792,8 +792,8 @@ class DeformableTransformerDecoder(nn.Module):
         last_refined_bbox = None
         refer_bbox = refer_bbox.sigmoid()
 
-        # Pre-compute the round-robin level schedule when efficient multi-scale is enabled. Iterate
-        # small-to-large; `shift` ensures the last decoder layer always lands on the largest level.
+        # Pre-compute round-robin schedule. Layer i -> order[i % n_levels], smallest first.
+        # Per-layer scale stays fixed across num_layers changes (e.g. early-exit at inference).
         if self.efficient_ms:
             n_levels = len(shapes)
             level_sizes = [h * w for h, w in shapes]
@@ -801,11 +801,10 @@ class DeformableTransformerDecoder(nn.Module):
             for s in level_sizes[:-1]:
                 level_starts.append(level_starts[-1] + s)
             order = sorted(range(n_levels), key=lambda j: level_sizes[j])
-            shift = (n_levels - 1 - (self.num_layers - 1) % n_levels) % n_levels
 
         for i, layer in enumerate(self.layers):
             if self.efficient_ms:
-                lv = order[(i + shift) % n_levels]
+                lv = order[i % n_levels]
                 start = level_starts[lv]
                 end = start + level_sizes[lv]
                 feats_i = feats[:, start:end]

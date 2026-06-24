@@ -14,7 +14,9 @@ class YOLODETR(Model):
     Reuses the RT-DETR predict/val pipeline because the decoder output contract is identical (bs, num_queries, [x, y, w,
     h, conf, cls]). Training is routed through YOLODETRTrainer for augment decay, flat-cosine LR, and the head/backbone
     LR split. The underlying detection model is YOLODETRDetectionModel which dispatches DfineLoss for D-Fine/DEIM heads
-    while RTDETRDecoder/RTDETRDecoderV2 heads keep the standard RTDETRDetectionLoss.
+    with the full FGL/DDF terms and for RTDETRDecoderV2 with FGL/DDF gains zeroed and union-set matching off
+    (RTDETRDecoderV2 emits no pred_corners / pre-stage tensors). The parent RTDETRDecoder head still uses
+    RTDETRDetectionLoss.
 
     Examples:
         Run inference from a YAML

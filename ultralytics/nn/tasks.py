@@ -933,11 +933,12 @@ class RTDETRDetectionModel(DetectionModel):
 
 
 class YOLODETRDetectionModel(RTDETRDetectionModel):
-    """YOLO-DETR detection model with DfineLoss dispatch for D-Fine/DEIM heads.
+    """YOLO-DETR detection model with DfineLoss dispatch for D-Fine/DEIM and RTDETRDecoderV2 heads.
 
-    Inherits from RTDETRDetectionModel and overrides ``init_criterion`` and ``loss`` to route D-Fine/DEIM heads through
-    ``DfineLoss`` (with FGL + DDF terms). ``RTDETRDecoder`` and ``RTDETRDecoderV2`` heads continue to use
-    ``RTDETRDetectionLoss``.
+    Inherits from RTDETRDetectionModel and overrides ``init_criterion`` and ``loss`` to route DETR heads through
+    ``DfineLoss``. D-Fine/DEIM heads use the full FGL + DDF terms; ``RTDETRDecoderV2`` reuses the same constants but
+    with FGL/DDF gains zeroed and union-set matching off, since V2 emits no ``pred_corners`` / pre-stage tensors. The
+    parent ``RTDETRDecoder`` head still falls through to ``RTDETRDetectionLoss`` via super.
     """
 
     # Hardcoded DfineLoss constants.
@@ -954,12 +955,21 @@ class YOLODETRDetectionModel(RTDETRDetectionModel):
     }
 
     def init_criterion(self):
-        """Initialize the loss criterion, dispatching to DfineLoss for D-Fine/DEIM heads."""
+        """Initialize the loss criterion, dispatching to DfineLoss for D-Fine/DEIM and RTDETRDecoderV2 heads."""
         head_name = type(self.model[-1]).__name__
         if head_name in {"DFineDecoder", "DeimDecoder"}:
             from ultralytics.models.utils.loss_dfine import DfineLoss
 
             return DfineLoss(nc=self.nc, **self._DFINE_LOSS_CONSTANTS)
+        if head_name == "RTDETRDecoderV2":
+            from ultralytics.models.utils.loss_dfine import DfineLoss
+
+            v2_kwargs = {
+                **self._DFINE_LOSS_CONSTANTS,
+                "use_union_set": False,
+                "loss_gain": {**self._DFINE_LOSS_CONSTANTS["loss_gain"], "fgl": 0.0, "ddf": 0.0},
+            }
+            return DfineLoss(nc=self.nc, **v2_kwargs)
         return super().init_criterion()
 
     @staticmethod
@@ -1048,7 +1058,7 @@ class YOLODETRDetectionModel(RTDETRDetectionModel):
         loss = self.criterion((dec_bboxes, dec_scores), targets, **loss_kwargs)
 
         log_keys = ["loss_giou", "loss_class", "loss_bbox"]
-        if supports_dfine:
+        if supports_dfine and dfine_meta is not None:
             log_keys += ["loss_fgl", "loss_ddf"]
         return sum(loss.values()), torch.as_tensor(
             [loss[k].detach() for k in log_keys], device=img.device

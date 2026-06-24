@@ -50,9 +50,11 @@ class DistillationModel(nn.Module):
         fuse: Fuse model layers for inference speedup.
 
     Examples:
-        Initialize a distillation model
-        >>> from ultralytics.nn.distill_model import DistillationModel
-        >>> model = DistillationModel(teacher_model="yolo26s.pt", student_model="yolo26n.pt")
+        Train a student model with knowledge distillation from a larger teacher (the trainer builds the
+        DistillationModel internally when the ``distill_model`` argument is set)
+        >>> from ultralytics import YOLO
+        >>> model = YOLO("yolo26n.pt")
+        >>> model.train(data="coco8.yaml", distill_model="yolo26s.pt")
     """
 
     def __init__(self, teacher_model: str | Path | nn.Module, student_model: nn.Module):
@@ -109,15 +111,15 @@ class DistillationModel(nn.Module):
         self.projector = nn.ModuleList(projectors).to(device)
 
     def __getstate__(self):
-        """Return a copy of state for pickling without captured features or hook handles.
+        """Return picklable state with captured features and hook handles dropped.
 
-        Clears the feature dicts in place (rather than replacing the attributes) because the registered
-        FeatureHooks share these exact dict objects; otherwise a deepcopy/pickle of a mid-training model would
-        still reach the hook-held tensors (which carry grad_fn and cannot be deep-copied).
+        Replaces the feature dicts and hook lists on the returned copy (without mutating the live object) so a
+        deepcopy/pickle of a mid-training model never reaches the hook-held tensors, which carry grad_fn and
+        cannot be deep-copied.
         """
-        self._teacher_feats.clear()
-        self._student_feats.clear()
         state = self.__dict__.copy()
+        state["_teacher_feats"] = {}
+        state["_student_feats"] = {}
         state["_teacher_hooks"] = []
         state["_student_hooks"] = []
         return state
@@ -202,10 +204,10 @@ class DistillationModel(nn.Module):
         """
         loss_distill = torch.zeros(1, device=batch["img"].device)
         if not self.training:  # for loss calculation during validation while training
-            preds = self.student_model(batch["img"])
+            if preds is None:
+                preds = self.student_model(batch["img"])
             regular_loss, regular_loss_detach = self.student_model.loss(batch, preds)
-            distill_loss_detach = torch.zeros(1, device=batch["img"].device)
-            return torch.cat([regular_loss, loss_distill]), torch.cat([regular_loss_detach, distill_loss_detach])
+            return torch.cat([regular_loss, loss_distill]), torch.cat([regular_loss_detach, loss_distill])
 
         # Clear feature dicts before forward passes
         self._teacher_feats.clear()

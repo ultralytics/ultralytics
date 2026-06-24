@@ -73,16 +73,10 @@ def torch_distributed_zero_first(local_rank: int):
         dist.barrier(device_ids=[local_rank]) if use_ids else dist.barrier()
 
 
-def smart_inference_mode(fn=None):
-    """Apply torch.inference_mode() decorator/context manager if torch>=1.10.0, else torch.no_grad().
-
-    Works as a decorator (with or without parentheses) or as a context manager.
+def smart_inference_mode():
+    """Apply torch.inference_mode() if torch>=1.10.0, else torch.no_grad(), as a decorator or context manager.
 
     Examples:
-        >>> @smart_inference_mode
-        ... def predict(im):
-        ...     return model(im)
-
         >>> @smart_inference_mode()
         ... def predict(im):
         ...     return model(im)
@@ -97,11 +91,9 @@ def smart_inference_mode(fn=None):
 
         def __call__(self, fn):
             if TORCH_1_9 and torch.is_inference_mode_enabled():
-                return fn
+                return fn  # already in inference_mode, act as a pass-through
             return super().__call__(fn)
 
-    if fn is not None:
-        return SmartInferenceMode()(fn)
     return SmartInferenceMode()
 
 

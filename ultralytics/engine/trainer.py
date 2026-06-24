@@ -759,7 +759,7 @@ class BaseTrainer:
 
         # rebuild DistillationModel from resuming checkpoint
         if isinstance(weights, DistillationModel):
-            if RANK == -1:
+            if RANK in {-1, 0}:
                 LOGGER.info("Resuming training DistillationModel from checkpoint weights")
             student_model = self.get_model(cfg=cfg, weights=weights.student_model, verbose=RANK in {-1, 0})
             student_model.args = self.args

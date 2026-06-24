@@ -194,13 +194,13 @@ The `dis` parameter (default: `6.0`) controls distillation loss contribution:
         from ultralytics import YOLO
 
         student = YOLO("yolo26n.pt")
-        results = student.train(data="coco8.yaml", epochs=100, distill_model="yolo26s.pt", dis=10)
+        results = student.train(data="coco8.yaml", epochs=100, distill_model="yolo26s.pt", dis=10.0)
         ```
 
     === "CLI"
 
         ```bash
-        yolo detect train model=yolo26n.pt data=coco8.yaml epochs=100 distill_model=yolo26s.pt dis=10
+        yolo detect train model=yolo26n.pt data=coco8.yaml epochs=100 distill_model=yolo26s.pt dis=10.0
         ```
 
 ### Resuming Distillation Training

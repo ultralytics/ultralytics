@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import re
 import shutil
 import subprocess
@@ -492,7 +493,13 @@ def attempt_download_asset(
     else:
         # URL specified
         name = Path(parse.unquote(str(file))).name  # decode '%2F' to '/' etc.
-        download_url = f"https://github.com/{repo}/releases/download"
+        # Allow overriding the default GitHub assets host via environment variable (e.g., for GitCode mirror)
+        assets_base_url = os.getenv("ULTRALYTICS_ASSETS_URL")
+        download_url = (
+            assets_base_url
+            if assets_base_url and repo == GITHUB_ASSETS_REPO
+            else f"https://github.com/{repo}/releases/download"
+        )
         if str(file).startswith(("http:/", "https:/")):  # download
             url = str(file).replace(":/", "://")  # Pathlib turns :// -> :/
             file = url2file(name)  # parse authentication query strings

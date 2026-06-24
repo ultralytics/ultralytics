@@ -1,7 +1,8 @@
 ---
+title: Real-Time Object Counting with YOLO26
 comments: true
-description: Learn to accurately identify and count objects in real-time using Ultralytics YOLO26 for applications like crowd analysis and surveillance.
-keywords: object counting, YOLO26, Ultralytics, real-time object detection, AI, deep learning, object tracking, crowd analysis, surveillance, resource optimization
+description: Count objects crossing a line or inside a region in real time with Ultralytics YOLO26. Track and tally specific classes for crowd analysis, retail, and traffic.
+keywords: object counting, YOLO26, Ultralytics, real-time object detection, object tracking, line counting, region counting, crowd analysis, surveillance, traffic management
 ---
 
 # Object Counting using Ultralytics YOLO26
@@ -35,6 +36,10 @@ Object counting with [Ultralytics YOLO26](https://github.com/ultralytics/ultraly
 | :------------------------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------------------------: |
 | ![Conveyor Belt Packets Counting Using Ultralytics YOLO26](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/conveyor-belt-packets-counting.avif) | ![Fish Counting in Sea using Ultralytics YOLO26](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/fish-counting-in-sea-using-ultralytics-yolov8.avif) |
 |                                                 Conveyor Belt Packets Counting Using Ultralytics YOLO26                                                  |                                                         Fish Counting in Sea using Ultralytics YOLO26                                                         |
+
+## Count Objects with YOLO26
+
+Define a counting `region` — two points for a line or three or more for a polygon — and pass it to the `ObjectCounter` solution. The counter tracks each object across frames and tallies entries and exits as they cross the region, returning an annotated frame you can write to an output video.
 
 !!! example "Object Counting using Ultralytics YOLO"
 

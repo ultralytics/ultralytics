@@ -15,6 +15,10 @@ keywords: VisionEye, YOLO26, Ultralytics, object mapping, object tracking, dista
   <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/visioneye-object-mapping-with-tracking.avif" alt="VisionEye object mapping with YOLO tracking">
 </p>
 
+## Map Objects with YOLO26
+
+VisionEye fixes a single observation point in the frame and draws a ray from it to every tracked object, so you can visualize how a scene looks from one viewpoint. Set `vision_point` to the observer's pixel coordinates, then run the solution over your video with the Python API or the CLI.
+
 !!! example "VisionEye Mapping using Ultralytics YOLO"
 
     === "CLI"
@@ -114,10 +118,6 @@ VisionEye object mapping has numerous practical applications across various indu
 - **Human-Computer Interaction**: Create more intuitive interfaces that respond to spatial relationships
 
 By combining VisionEye with other Ultralytics solutions like [distance calculation](https://docs.ultralytics.com/guides/distance-calculation) or [speed estimation](https://docs.ultralytics.com/guides/speed-estimation), you can build comprehensive systems that not only track objects but also understand their spatial relationships and behaviors.
-
-## Note
-
-For any inquiries, feel free to post your questions in the [Ultralytics Issue Section](https://github.com/ultralytics/ultralytics/issues/new/choose) or the discussion section mentioned below.
 
 ## FAQ
 

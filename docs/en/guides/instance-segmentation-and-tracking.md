@@ -37,6 +37,10 @@ There are two types of instance segmentation tracking available in the Ultralyti
 | ![Ultralytics Instance Segmentation](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-instance-segmentation.avif) | ![Ultralytics Instance Segmentation with Object Tracking](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-instance-segmentation-object-tracking.avif) |
 |                                                 Ultralytics Instance Segmentation 😍                                                  |                                                         Ultralytics Instance Segmentation with Object Tracking 🔥                                                          |
 
+## Segment and Track with YOLO26
+
+The `InstanceSegmentation` solution runs a YOLO26 segmentation model on each frame, draws per-object masks, and colors every instance separately so you can follow individual objects across a video. Load a `-seg` model, then run it over your source with the Python API or the CLI.
+
 !!! example "Instance segmentation using Ultralytics YOLO"
 
     === "CLI"
@@ -128,10 +132,6 @@ Instance segmentation can identify and outline tumors, organs, or cellular struc
 ### Construction Site Monitoring
 
 At construction sites, instance segmentation can track heavy machinery, workers, and materials. This helps ensure safety by monitoring equipment positions and detecting when workers enter hazardous areas, while also optimizing workflow and resource allocation.
-
-## Note
-
-For any inquiries, feel free to post your questions in the [Ultralytics Issue Section](https://github.com/ultralytics/ultralytics/issues/new/choose) or the discussion section mentioned below.
 
 ## FAQ
 

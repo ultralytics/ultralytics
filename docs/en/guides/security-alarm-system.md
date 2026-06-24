@@ -26,6 +26,10 @@ The Security Alarm System Project utilizing Ultralytics YOLO26 integrates advanc
   <strong>Watch:</strong> Security Alarm System with Ultralytics YOLO26 + Solutions <a href="https://www.ultralytics.com/glossary/object-detection">Object Detection</a>
 </p>
 
+## Send Security Alerts with YOLO26
+
+The `SecurityAlarm` solution tracks objects in your video feed and sends a single email alert with an annotated image attached as soon as the number of detections meets the `records` threshold. Authenticate a Gmail account with an app password, then run the solution over your source.
+
 ???+ note
 
     App Password Generation is necessary
@@ -91,7 +95,7 @@ The Security Alarm System Project utilizing Ultralytics YOLO26 integrates advanc
 
 When you run the code, you will receive a single email notification if any object is detected. The notification is sent immediately, not repeatedly. You can customize the code to suit your project requirements.
 
-#### Email Received Sample
+### Email Received Sample
 
 <img width="256" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/email-received-sample.avif" alt="Security alert email notification example">
 

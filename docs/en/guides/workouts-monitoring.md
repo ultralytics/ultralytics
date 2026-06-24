@@ -37,6 +37,10 @@ Monitoring workouts through pose estimation with [Ultralytics YOLO26](https://gi
 | ![YOLO push-ups counting with pose estimation](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/pushups-counting.avif) | ![YOLO pull-ups counting with pose estimation](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/pullups-counting.avif) |
 |                                                        PushUps Counting                                                        |                                                        PullUps Counting                                                        |
 
+## Monitor Workouts with YOLO26
+
+The `AIGym` solution runs [pose estimation](https://docs.ultralytics.com/tasks/pose) and counts repetitions by measuring the angle formed by three keypoints as a limb moves between the `up_angle` and `down_angle` thresholds. Pick the keypoints for the exercise you want to track with `kpts`, then run the solution over your video with the Python API or the CLI.
+
 !!! example "Workouts Monitoring using Ultralytics YOLO"
 
     === "CLI"

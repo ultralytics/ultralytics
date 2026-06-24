@@ -1,4 +1,5 @@
 ---
+title: Real-Time Queue Management with YOLO26
 comments: true
 description: Learn how to manage and optimize queues using Ultralytics YOLO26 to reduce wait times and increase efficiency in various real-world applications.
 keywords: queue management, YOLO26, Ultralytics, reduce wait times, efficiency, customer satisfaction, retail, airports, healthcare, banks
@@ -36,6 +37,10 @@ Queue management using [Ultralytics YOLO26](https://github.com/ultralytics/ultra
 | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------: |
 | ![Queue management at airport ticket counter using Ultralytics YOLO26](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/queue-management-airport-ticket-counter-ultralytics-yolov8.avif) | ![Queue monitoring in crowd using Ultralytics YOLO26](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/queue-monitoring-crowd-ultralytics-yolov8.avif) |
 |                                                               Queue management at airport ticket counter Using Ultralytics YOLO26                                                                |                                                          Queue monitoring in crowd Ultralytics YOLO26                                                          |
+
+## Manage Queues with YOLO26
+
+The `QueueManager` solution counts the objects that remain inside a defined region each frame, giving you a live queue length you can write to an output video. Pass a polygon region covering the waiting area, then run it over your video source with either the Python API or the CLI.
 
 !!! example "Queue Management using Ultralytics YOLO"
 

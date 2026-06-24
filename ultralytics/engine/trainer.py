@@ -1157,7 +1157,7 @@ class MultiTrainer:
                     "session": None,
                 }
                 trainer = self.trainer(overrides=overrides, _callbacks=self.callbacks)
-                trainer.model = trainer.get_model(weights=deepcopy(self.model), cfg=self.model.yaml)
+                trainer.model = trainer.get_model(weights=self.model, cfg=self.model.yaml)  # seed each run from base
                 trainer.train()
                 self.trainers.append(trainer)
                 # Key by the unique run name (e.g. coco8, coco8-2) and read metrics from the saved checkpoint so

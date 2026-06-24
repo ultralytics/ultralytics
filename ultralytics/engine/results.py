@@ -599,11 +599,11 @@ class Results(SimpleClass, DataExportMixin):
                 sem_mask = sem_mask.cpu().numpy()
             annotator.semantic_mask(sem_mask, alpha=0.5)
 
-        # Plot Depth results
+        # Plot Depth results — show RGB and colorized depth side-by-side (not blended)
         if self.depth is not None and show_masks:
             d = self.depth.data
             d = d.cpu().numpy() if hasattr(d, "cpu") else np.asarray(d)
-            annotator.depth_map(d)
+            annotator.depth_map(d, side_by_side=True)
 
         # Plot Pose results
         if self.keypoints is not None:

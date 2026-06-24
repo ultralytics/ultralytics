@@ -431,12 +431,14 @@ class Annotator:
             # Convert im back to PIL and update draw
             self.fromarray(self.im)
 
-    def depth_map(self, depth, alpha: float = 0.6):
-        """Overlay a colorized depth map (normalized inverse-free min-max) onto the image.
+    def depth_map(self, depth, alpha: float = 0.6, side_by_side: bool = False):
+        """Render a colorized depth map (normalized min-max) for the image.
 
         Args:
             depth (np.ndarray): (H, W) depth in meters.
-            alpha (float): Blend factor for the heatmap overlay.
+            alpha (float): Blend factor for the heatmap overlay (ignored when side_by_side).
+            side_by_side (bool): If True, place the colorized depth next to the image
+                (image | depth) instead of blending on top. Clearer for depth predictions.
         """
         if self.pil:
             self.im = np.asarray(self.im).copy()
@@ -450,7 +452,7 @@ class Annotator:
         heat = cv2.applyColorMap((norm * 255).astype(np.uint8), cv2.COLORMAP_INFERNO)
         if heat.shape[:2] != self.im.shape[:2]:
             heat = cv2.resize(heat, (self.im.shape[1], self.im.shape[0]))
-        self.im = cv2.addWeighted(self.im, 1 - alpha, heat, alpha, 0)
+        self.im = np.hstack([self.im, heat]) if side_by_side else cv2.addWeighted(self.im, 1 - alpha, heat, alpha, 0)
         if self.pil:
             self.fromarray(self.im)
 

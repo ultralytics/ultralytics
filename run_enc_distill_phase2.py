@@ -461,8 +461,7 @@ def _run_multi_det(
             det_args["freeze"] = 1
             det_args["imgsz"] = _TEACHER_DET_IMGSZ.get(teacher_spec, 640)
         elif freeze_override:
-            # Frozen distilled-student backbone: freeze the transferred det layers (same trainer re-enable caveat as
-            # above), so only the fresh C2PSA + PAN neck + Detect head train on top of frozen distilled features.
+            # Frozen distilled-student backbone; same trainer re-enable caveat as the teacher branch above.
             det_args["freeze"] = int(freeze_override)
         train_args = dict(
             pretrained=False if teacher_spec else phase1_weights,
@@ -538,6 +537,8 @@ def main(argv: list[str]) -> None:
             raise SystemExit("ERROR: teacher_frozen_det requires --datasets <file|dir>.")
         if resume or fork_from:
             raise SystemExit("ERROR: --resume and --fork_from are not supported for teacher_frozen_det.")
+        if freeze_override:
+            raise SystemExit("ERROR: --freeze is not supported with --teacher (teacher_frozen_det already freezes layer 0).")
         gpu = argv[0] if argv else "0"
         if "," in gpu:
             raise SystemExit(f"ERROR: teacher_frozen_det requires a single GPU (DDP drops add_callback). Got gpu={gpu!r}.")

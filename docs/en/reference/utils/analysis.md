@@ -1,4 +1,5 @@
 ---
+title: utils.analysis API Reference
 description: Per-image property correlation analysis. Joins validator F1 scores with brightness, blurriness, crowdedness, and ObjectLab label-quality scores to surface what drives bad performance.
 keywords: Ultralytics, image property analysis, label quality, ObjectLab, correlation, worst images, synthetic data
 ---

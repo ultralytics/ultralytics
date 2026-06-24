@@ -1,4 +1,5 @@
 ---
+title: utils.export.qnn API Reference
 description: Reference for the Ultralytics Qualcomm QNN export utility. Learn how to compile ONNX models to the QNN format locally with the ONNX Runtime QNN Execution Provider.
 keywords: onnx2qnn, QNN export, Qualcomm export, ONNX Runtime QNN, onnxruntime-qnn, Qualcomm AI Engine Direct, Qualcomm AI Hub, QAIRT, SNPE, ONNX, model conversion, Ultralytics, Snapdragon, Hexagon NPU, Hexagon HTP
 ---

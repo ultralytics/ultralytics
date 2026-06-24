@@ -175,7 +175,7 @@ jobs:
         shell: bash # for Windows compatibility
         run: yolo settings weights_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/weights" datasets_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/datasets"
       - name: Cache test assets
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ github.workspace }}/.ultralytics_cache
           key: ultralytics-test-assets-${{ runner.os }}-${{ hashFiles('tests/cache_test_assets.py', 'tests/__init__.py') }}
@@ -334,7 +334,7 @@ jobs:
         shell: bash # for Windows compatibility
         run: yolo settings weights_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/weights" datasets_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/datasets"
       - name: Cache test assets
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ github.workspace }}/.ultralytics_cache
           key: ultralytics-test-assets-${{ runner.os }}-${{ hashFiles('tests/cache_test_assets.py', 'tests/__init__.py') }}
@@ -380,7 +380,7 @@ jobs:
       - name: Install export system dependencies
         run: sudo apt-get update && sudo apt-get install -y openjdk-21-jre flatbuffers-compiler
       - name: Cache uv wheels
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.cache/uv
           key: isolated-exports-uv-${{ hashFiles('ultralytics/engine/exporter.py', 'pyproject.toml') }}
@@ -391,7 +391,7 @@ jobs:
       - name: Configure Ultralytics cache paths
         run: yolo settings weights_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/weights" datasets_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/datasets"
       - name: Cache test assets
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ github.workspace }}/.ultralytics_cache
           key: ultralytics-test-assets-${{ runner.os }}-${{ hashFiles('tests/cache_test_assets.py', 'tests/__init__.py') }}
@@ -488,7 +488,7 @@ jobs:
       - name: Configure Ultralytics cache paths
         run: yolo settings weights_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/weights" datasets_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/datasets"
       - name: Cache test assets
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ github.workspace }}/.ultralytics_cache
           key: ultralytics-test-assets-${{ runner.os }}-${{ hashFiles('tests/cache_test_assets.py', 'tests/__init__.py') }}
@@ -573,11 +573,16 @@ jobs:
           source env/bin/activate
           echo PATH=$PATH >> $GITHUB_ENV
       - name: Install requirements
-        run: |
-          uv pip install -e ".[export]" pytest \
-          "${{ matrix.torch_whl }}" "${{ matrix.torchvision_whl }}" "${{ matrix.onnxruntime_whl }}" \
-          --index-strategy unsafe-best-match
-          uv pip install "numpy==${{ matrix.numpy }}"
+        uses: ultralytics/actions/retry@main
+        with:
+          retries: 3
+          retry_delay_seconds: 60
+          timeout_minutes: 60
+          run: |
+            uv pip install -e ".[export]" pytest \
+            "${{ matrix.torch_whl }}" "${{ matrix.torchvision_whl }}" "${{ matrix.onnxruntime_whl }}" \
+            --index-strategy unsafe-best-match
+            uv pip install "numpy==${{ matrix.numpy }}"
       - name: Check environment
         run: |
           yolo checks

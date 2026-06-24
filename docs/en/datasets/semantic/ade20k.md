@@ -1,4 +1,5 @@
 ---
+title: ADE20K Segmentation Dataset
 comments: true
 description: Explore the ADE20K semantic segmentation dataset with Ultralytics YOLO. Learn about its structure, 150 scene-parsing classes, YAML configuration, and training examples.
 keywords: ADE20K dataset, semantic segmentation, scene parsing, Ultralytics YOLO, YOLO26, ADEChallengeData2016, computer vision, deep learning

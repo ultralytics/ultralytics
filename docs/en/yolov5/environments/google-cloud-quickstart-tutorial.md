@@ -1,4 +1,5 @@
 ---
+title: YOLOv5 on GCP Deep Learning VM
 comments: true
 description: Master Ultralytics YOLOv5 deployment on Google Cloud Platform Deep Learning VM. Perfect for AI beginners and experts to achieve high-performance object detection.
 keywords: YOLOv5, Google Cloud Platform, GCP, Deep Learning VM, object detection, AI, machine learning, tutorial, cloud computing, GPU acceleration, Ultralytics

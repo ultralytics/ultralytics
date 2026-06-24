@@ -144,12 +144,10 @@ def modelopt_quantize_onnx(
             quantize_mode="int8",
             calibration_data={input_name: calib.cpu().numpy()},
             calibration_method="max",
-            # Calibrate on CUDA (CPU fallback), not ModelOpt's default that also includes the TensorRT EP: some RTX
-            # cards (e.g. RTX 2000 Ada) additionally register NvTensorRTRTXExecutionProvider, and enabling both TRT
-            # EPs in one session aborts calibration ("Cannot enable both 'TensorrtExecutionProvider' and
-            # 'NvTensorRTRTXExecutionProvider'"). Calibration scales are effectively EP-independent, so CUDA matches.
-            # `cuda:0` is the user-selected GPU: select_device() masks it via CUDA_VISIBLE_DEVICES to logical index 0.
-            calibration_eps=["cuda:0", "cpu"],
+            # Calibrate on CPU. ModelOpt's CUDA EP session can hit an uncatchable cuDNN-ABI segfault (its pinned
+            # onnxruntime-gpu's cuDNN vs the installed torch's) and the TensorRT EP aborts on RTX cards (NvTensorRTRTX);
+            # scales are EP-independent, so the INT8 engine is equivalent and only this one-time step is slower.
+            calibration_eps=["cpu"],
             output_path=out_file,
             **kwargs,
         )

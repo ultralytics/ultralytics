@@ -1,4 +1,5 @@
 ---
+title: utils.export.ncnn API Reference
 description: NCNN export utilities for converting PyTorch YOLO models to NCNN format using PNNX. Optimized for mobile and embedded platforms with support for FP16 inference on ARM architectures.
 keywords: Ultralytics, NCNN, model export, PyTorch to NCNN, PNNX, mobile deployment, ARM, embedded systems, FP16, lightweight inference, Tencent NCNN, edge AI
 ---

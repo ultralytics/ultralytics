@@ -1,4 +1,5 @@
 ---
+title: Contributor License Agreement (CLA)
 description: Review the terms for contributing to Ultralytics projects. Learn about copyright, patent licenses, and moral rights for your contributions.
 keywords: Ultralytics, Contributor License Agreement, open source, contributions, copyright license, patent license, moral rights
 ---

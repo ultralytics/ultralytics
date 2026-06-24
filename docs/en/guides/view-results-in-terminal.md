@@ -1,4 +1,5 @@
 ---
+title: YOLO Results in Terminal via Sixel
 comments: true
 description: Display YOLO inference results directly in a VSCode terminal with the sixel protocol on Linux and macOS, ideal for remote SSH sessions and headless machines without a GUI.
 keywords: YOLO, inference results, VSCode terminal, sixel, display images in terminal, remote SSH, headless server, no GUI, Linux, macOS, iTerm2, image visualization, Ultralytics

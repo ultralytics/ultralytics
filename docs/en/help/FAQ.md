@@ -1,4 +1,5 @@
 ---
+title: YOLO FAQ: Common Questions & Solutions
 comments: true
 description: Explore common questions and solutions related to Ultralytics YOLO, from hardware requirements to model fine-tuning and real-time detection.
 keywords: Ultralytics, YOLO, FAQ, object detection, hardware requirements, fine-tuning, ONNX, TensorFlow, real-time detection, model accuracy

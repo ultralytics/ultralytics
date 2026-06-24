@@ -1,7 +1,7 @@
 ---
 title: Real-Time Object Blurring with YOLO26
 comments: true
-description: Automatically detect and blur objects in real time with Ultralytics YOLO26. Anonymize faces, license plates, and sensitive content with adjustable blur intensity.
+description: Automatically detect and blur objects in real time with Ultralytics YOLO26. Anonymize faces, license plates, and sensitive content with adjustable intensity.
 keywords: YOLO26, object blurring, real-time processing, privacy protection, face blurring, data anonymization, GDPR, image manipulation, video editing, Ultralytics
 ---
 
@@ -32,7 +32,7 @@ Object blurring with [Ultralytics YOLO26](https://github.com/ultralytics/ultraly
 
 ## Blur Objects with YOLO26
 
-Pass your video to the `ObjectBlurrer` solution and it detects objects each frame and applies a Gaussian blur to every detection. Control the strength with `blur_ratio` (0.1–1.0) and restrict blurring to specific `classes` — for example, only people and cars.
+Pass your video to the `ObjectBlurrer` solution and it detects objects each frame and applies an averaging (box) blur to every detection. Control the strength with `blur_ratio` (0.1–1.0) and restrict blurring to specific `classes` — for example, only people and cars.
 
 !!! example "Object Blurring using Ultralytics YOLO"
 

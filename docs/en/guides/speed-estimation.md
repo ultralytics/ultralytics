@@ -1,7 +1,7 @@
 ---
 title: Object Speed Estimation with YOLO26
 comments: true
-description: Estimate the speed of tracked objects in video with Ultralytics YOLO26 using object tracking, frame rate, and pixel-to-meter scaling for traffic and surveillance.
+description: Estimate the speed of tracked objects in video with Ultralytics YOLO26 using frame rate and pixel-to-meter scaling for traffic and surveillance use cases.
 keywords: Ultralytics YOLO26, speed estimation, object tracking, vehicle speed, traffic control, autonomous navigation, surveillance, computer vision
 ---
 

@@ -1,7 +1,7 @@
 ---
 title: Extract and Crop Objects with YOLO26
 comments: true
-description: Detect and crop objects from images and videos with Ultralytics YOLO26, saving each detection to disk for focused analysis, dataset building, and reduced data volume.
+description: Detect and crop objects from images and videos with Ultralytics YOLO26, saving each detection to disk for focused analysis and dataset building.
 keywords: Ultralytics, YOLO26, object cropping, object extraction, object detection, dataset creation, image processing, video analysis, AI, machine learning
 ---
 

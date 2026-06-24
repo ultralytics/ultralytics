@@ -31,11 +31,11 @@ Analytics with [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics/)
 - **Line graphs** are ideal for tracking changes over short and long periods and for comparing changes for multiple groups over the same period.
 - **Bar plots** are suitable for comparing quantities across different categories and showing relationships between a category and its numerical value.
 - **Pie charts** are effective for illustrating proportions among categories and showing parts of a whole.
-- **Area plots** build on line graphs to emphasize cumulative totals and the relative contribution of each class over time.
+- **Area plots** fill the line graph so per-class object counts over time are easier to read at a glance.
 
 ## Generate Analytics Graphs
 
-Pass your video to the `Analytics` solution and select a chart with `analytics_type`. The solution runs detection and tracking on every frame and renders a fixed 1280×720 chart you can write straight to an output video. Switch between `"line"`, `"bar"`, `"pie"`, and `"area"` with a single argument.
+Pass your video to the `Analytics` solution and select a chart with `analytics_type`. The solution runs detection and tracking on every frame and renders a 1280×720 chart (by default) you can write straight to an output video. Switch between `"line"`, `"bar"`, `"pie"`, and `"area"` with a single argument.
 
 !!! example "Analytics using Ultralytics YOLO"
 

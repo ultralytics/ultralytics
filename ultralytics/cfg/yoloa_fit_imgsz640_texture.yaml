@@ -1,11 +1,38 @@
-# YOLOA fit config — texture categories (carpet, grid, leather, tile, wood).
+# YOLOA fit config — texture-optimised (carpet/grid/leather/tile/wood).
 # Precedence at fit(): CLI overrides > this yaml > model yaml v2_cfg defaults.
+
 imgsz: 640
-max_images: 0
-bb_layers: [6]
-bb_max_bank_size: 10000
-bb_K: 5
-bb_temperature: 5.0
+max_images: 0              # 0 = all normal images
+
+# -- Bank-build knobs ---------------------------------------------------
+bb_layers: [6]             # backbone tap indices (P3/P4/P5 for yolo26m)
+bb_max_bank_size: 10000    # coreset cap (unset/None = no cap, use full bank)
+bb_K: 5                    # top-K for Noisy-OR scoring
+bb_temperature: 5.0        # initial beta (overridden when bb_auto_temperature=true)
 bb_calibrate: compactness
 bb_auto_temperature: true
 bb_calibration_target_score: 0.5
+
+# -- Prior selection ----------------------------------------------------
+# heatmap_mode: memory_bank | learned | fused
+# Overrides the model's default prior at fit time.
+heatmap_mode: fused
+
+# -- Heatmap post-processing (inference only) ---------------------------
+heat_edge: false             # edge-suppression on the heatmap
+heat_edge_sigma: 1.0         # edge sigma (bigger = gentler)
+heat_norm: none              # none | minmax | gaussian | mean — prior norm before fusion
+
+# -- Scorer (FeatureDiscriminatorScorer, used when heatmap_mode is learned or fused) --
+scorer_noise_std: 0.2      # feature-noise std for synthetic anomalies
+scorer_steps: 500           # discriminator training iterations
+scorer_hidden: 128          # MLP hidden dim
+scorer_n_noise: 1           # synthetic anomalies per normal patch
+scorer_batch: 16384         # features sampled per training step
+scorer_lr: 0.001            # Adam learning rate
+scorer_noise_mode: gaussian # gaussian | mixup
+scorer_adaptor: true        # identity-init feature adaptor
+
+# -- Fusion (heatmap_mode=fused only) -----------------------------------
+scorer_fuse: mean           # mean | max | gmean — how bank + scorer maps combine
+scorer_weight: 0.5          # 0.0 = all bank, 1.0 = all scorer (linear blend)

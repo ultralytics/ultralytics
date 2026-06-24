@@ -8,12 +8,13 @@ One model load, per-category fit (disk-cached via ``YOLOA.fit``), then:
 Both modes fit through ``YOLOA.fit``, so they share one bank cache (``--bank-cache``): a bank built
 for predict is reused by val and vice versa.
 
+All fit parameters (heatmap_mode, scorer settings, bank knobs, imgsz, etc.) are read exclusively
+from the fit YAML (``--fit-cfg``). The CLI only carries operational args (mode, device, batch, etc.).
+
 Usage:
-  python run_yoloa.py --mode predict --cat bottle --prior heatmap
-  python run_yoloa.py --mode predict --cat object --prior heatmap   # 10 object categories
-  python run_yoloa.py --mode val --cat texture --prior none         # 5 texture categories
-  python run_yoloa.py --mode val --cat all --prior heatmap
-  python run_yoloa.py --mode val --cat bottle --prior none          # honest floor (no prior)
+  python run_yoloa.py --mode predict --cat bottle --fit-cfg yoloa_fit_imgsz640_texture.yaml
+  python run_yoloa.py --mode val --cat texture --fit-cfg yoloa_fit_imgsz640_texture.yaml
+  python run_yoloa.py --mode val --cat all --fit-cfg yoloa_fit_imgsz640_texture.yaml
 """
 
 import argparse
@@ -27,7 +28,7 @@ import numpy as np
 import torch
 
 from ultralytics.models.yolo.anomaly_v2.val import MVTEC_CATEGORIES, resolve_mvtec_root, run_mvtec_ood_eval
-from ultralytics.utils import LOGGER
+from ultralytics.utils import LOGGER, YAML
 from ultralytics.yoloa import YOLOA
 
 MVTEC_OBJECT = ["bottle", "cable", "capsule", "hazelnut", "metal_nut", "pill", "screw",
@@ -38,9 +39,17 @@ _CAT_GROUPS = {"object": MVTEC_OBJECT, "texture": MVTEC_TEXTURE}
 
 DEFAULT_CKPT = ("/Users/louis/workspace/ultra_louis_work/expman/data/pulled/yoloa_v2/"
                 "26m_yoloav2_softhint_maskonly_aug3_mixup_binary_v1/weights/best.pt")
-# Anomaly localization is coarse, so the low-IoU mAP10/mAP25 are the informative operating points.
 VAL_METRICS = ("image_auroc", "pixel_auroc", "mAP10", "mAP25", "mAP50", "mAP50_95")
-_PRIOR_TO_MODE = {"none": "mask_off", "heatmap": "heatmap"}  # driver prior -> OOD-eval mode
+
+# YAML heatmap_mode -> prior_mode (used by predict/val/run_mvtec_ood_eval)
+_MODE_MAP = {"memory_bank": "heatmap", "learned": "heatmap_learned", "fused": "heatmap_fused"}
+
+# YAML keys -> FeatureDiscriminatorScorer kwargs
+_SCORER_YAML_KEYS = {
+    "scorer_noise_std": "noise_std", "scorer_steps": "steps", "scorer_hidden": "hidden",
+    "scorer_n_noise": "n_noise", "scorer_batch": "batch", "scorer_lr": "lr",
+    "scorer_noise_mode": "noise_mode",
+}
 
 
 def collect_test_images(test_root: Path, n: int, seed: int = 0) -> list[tuple[str, str]]:
@@ -98,47 +107,94 @@ def run_prior_viz(m, img, prior, imgsz, conf, iou, device, external_mask=None, *
     return pred_rgb, n, hm_np
 
 
+def load_fit_yaml(cfg_path: str | None) -> tuple[dict, str | None]:
+    """Load and resolve the fit YAML; returns (dict, resolved_path)."""
+    if not cfg_path:
+        return {}, None
+    p = Path(cfg_path)
+    if not p.is_file() and not p.is_absolute():
+        alt = Path(__file__).resolve().parent / "ultralytics" / "cfg" / p.name
+        if alt.is_file():
+            p = alt
+    if p.is_file():
+        return dict(YAML.load(str(p))), str(p)
+    return {}, str(p)
+
+
+def resolve_prior(yaml: dict) -> str:
+    """Map YAML heatmap_mode to prior_mode string."""
+    mode = yaml.get("heatmap_mode", "memory_bank")
+    return _MODE_MAP.get(mode, "heatmap")
+
+
+def resolve_scorer_kwargs(yaml: dict) -> dict:
+    """Extract FeatureDiscriminatorScorer kwargs from YAML keys."""
+    kw = {}
+    for yk, kwk in _SCORER_YAML_KEYS.items():
+        if yk in yaml:
+            kw[kwk] = yaml[yk]
+    kw.setdefault("adaptor", yaml.get("scorer_adaptor", True))
+    return kw
+
+
+def resolve_infer(yaml: dict) -> dict:
+    """Extract prior-shaping inference knobs from YAML."""
+    infer = {}
+    if yaml.get("heat_edge"):
+        infer["heat_edge"] = True
+        infer["heat_edge_sigma"] = yaml.get("heat_edge_sigma", 1.0)
+    if yaml.get("heat_norm"):
+        infer["heat_norm"] = yaml["heat_norm"]
+    return infer
+
+
 def main():
-    ap = argparse.ArgumentParser(description="YOLOA driver — per-category fit, then predict or val")
+    ap = argparse.ArgumentParser(
+        description="YOLOA driver — per-category fit, then predict or val. "
+                    "All fit params come from --fit-cfg YAML.")
+    # -- Operational args only -------------------------------------------------
     ap.add_argument("--mode", choices=["predict", "val", "visualize"], default="predict")
     ap.add_argument("--ckpt", default=DEFAULT_CKPT)
     ap.add_argument("--cat", default="bottle",
                     help="MVTec category name, 'all' (14), 'object' (10), or 'texture' (5)")
     ap.add_argument("--prior", default="heatmap", choices=["none", "heatmap"],
-                    help="inference prior: heatmap (memory bank) or none (honest floor)")
-    ap.add_argument("--imgsz", type=int, default=None,
-                    help="override the fit yaml's imgsz (else from --fit-cfg, else model yaml default 640). "
-                         "640 = native; 320 = fast preview.")
-    ap.add_argument("--max-images", type=int, default=None,
-                    help="override the fit yaml's max_images cap (else from --fit-cfg, else 0 = all normals)")
-    ap.add_argument("--n-per-cat", type=int, default=0, help="predict: test images per category (0=all)")
-    ap.add_argument("--conf", type=float, default=0.1)
-    ap.add_argument("--iou", type=float, default=0.1, help="NMS IoU (val: matches mvtec_deploy_eval default)")
-    ap.add_argument("--e2e", action="store_true", help="end-to-end NMS-free head (default off -> NMS + --iou)")
+                    help="none = honest floor (no prior); heatmap = use variant from fit YAML")
     ap.add_argument("--batch", type=int, default=8)
     ap.add_argument("--device", default=None, help="cpu / mps / 0 (default: auto mps-else-cpu)")
-    ap.add_argument("--heat-edge", action="store_true", help="edge-suppression weight on the heatmap")
-    ap.add_argument("--heat-edge-sigma", type=float, default=1.0, help="edge value (bigger = gentler)")
-    ap.add_argument("--heat-norm", default="mean", choices=["none", "minmax", "gaussian", "mean"],
-                    help="prior processing before fusion (affects fused prior -> mAP, not AUROC)")
+    ap.add_argument("--n-per-cat", type=int, default=0, help="predict: test images per category (0=all)")
+    ap.add_argument("--conf", type=float, default=0.1)
+    ap.add_argument("--iou", type=float, default=0.1, help="NMS IoU")
+    ap.add_argument("--e2e", action="store_true", help="end-to-end NMS-free head")
     ap.add_argument("--fit-cfg", default="yoloa_fit_default.yaml",
-                    help="fit-config yaml (imgsz + max_images + bb_layers/bb_K/bb_temperature/bb_calibrate/...). "
-                         "Its filename stem IS the fit_id (the <fit_id> output-path segment). imgsz should live here.")
+                    help="fit-config yaml (all fit params: heatmap_mode, scorer, bank, imgsz, etc.). "
+                         "Its filename stem IS the fit_id.")
     ap.add_argument("--bank-cache", default=None,
-                    help="bank cache dir (default: <out>/banks; per model+fit, so models never share a bank)")
+                    help="bank cache dir (default: <out>/banks)")
     ap.add_argument("--mvtec-root", default=None, help="MVTec-YOLO root (default: auto-resolve)")
     ap.add_argument("--out", default=None,
                     help="output root (default: runs/temp/yoloa/<model_id>/<fit_id>)")
     args = ap.parse_args()
 
-    # Resolve --fit-cfg: default looks inside the package; explicit paths are tried as-is first
-    # (e.g. "yoloa_fit_default.yaml" from CWD), then fall back to the package cfg dir.
-    if args.fit_cfg is not None:
-        p = Path(args.fit_cfg)
-        if not p.is_file() and not p.is_absolute():
-            cfg_path = Path(__file__).resolve().parent / "ultralytics" / "cfg" / p.name
-            if cfg_path.is_file():
-                args.fit_cfg = str(cfg_path)
+    # -- Load fit YAML (single source of truth for all fit params) -------------
+    yaml, fit_cfg_path = load_fit_yaml(args.fit_cfg)
+
+    # Resolve prior: --prior selects none vs heatmap; YAML heatmap_mode picks the variant
+    if args.prior == "none":
+        prior_mode = "none"        # predict prior
+        val_mode = "mask_off"       # run_mvtec_ood_eval mode
+        needs_disc = False
+        scorer_kwargs = {}
+        scorer_fuse = "mean"
+    else:
+        prior_mode = resolve_prior(yaml)
+        val_mode = prior_mode       # same string: heatmap / heatmap_learned / heatmap_fused
+        needs_disc = prior_mode in ("heatmap_learned", "heatmap_fused")
+        scorer_kwargs = resolve_scorer_kwargs(yaml)
+        scorer_fuse = yaml.get("scorer_fuse", "mean")
+        scorer_weight = yaml.get("scorer_weight", 0.5)
+        scorer_kwargs["scorer_weight"] = scorer_weight
+
+    infer = resolve_infer(yaml)
 
     device = args.device or ("mps" if torch.backends.mps.is_available() else "cpu")
     root = resolve_mvtec_root(args.mvtec_root)
@@ -151,32 +207,31 @@ def main():
     else:
         cats = [args.cat]
 
-    m = YOLOA(args.ckpt)  # load once; bank is re-fit per category
+    m = YOLOA(args.ckpt)
 
-    # The fit config (imgsz + bank knobs) lives in the fit yaml; --imgsz/--max-images are optional
-    # overrides only. fit_over holds the explicit overrides (None = take from yaml / model default).
-    fit_over = {k: v for k, v in (("imgsz", args.imgsz), ("max_images", args.max_images)) if v is not None}
-    fit_args = m.resolve_fit_args(cfg=args.fit_cfg, **fit_over)
-    imgsz = int(fit_args["imgsz"])  # effective imgsz for the whole run (fit + predict/val)
+    # fit_over: imgsz + max_images from YAML (no CLI overrides anymore)
+    fit_over = {}
+    if "imgsz" in yaml:
+        fit_over["imgsz"] = yaml["imgsz"]
+    if "max_images" in yaml:
+        fit_over["max_images"] = yaml["max_images"]
+    fit_args = m.resolve_fit_args(cfg=fit_cfg_path, **fit_over)
+    imgsz = int(fit_args["imgsz"])
 
-    # Output root = model identity (ckpt run name) + fit identity. fit_id = the fit yaml's stem (you
-    # name it), or the config hash when no fit yaml. A different model OR fit gets its own dir and bank.
     mid = model_id_from_ckpt(args.ckpt)
-    fid = Path(args.fit_cfg).stem if args.fit_cfg else m.fit_id(cfg=args.fit_cfg, **fit_over)
+    fid = Path(fit_cfg_path).stem if fit_cfg_path else m.fit_id(cfg=fit_cfg_path, **fit_over)
     out_root = Path(args.out) if args.out else Path("runs/temp/yoloa") / mid / fid
     bank_cache = args.bank_cache or str(out_root / "banks")
 
-    infer = {}  # sticky prior-shaping knobs forwarded to predict/val
-    if args.heat_edge:
-        infer.update(heat_edge=True, heat_edge_sigma=args.heat_edge_sigma)
-    if args.heat_norm:
-        infer.update(heat_norm=args.heat_norm)
+    fit_disc = scorer_kwargs if needs_disc else False
 
-    edge_str = f"on(sigma={args.heat_edge_sigma})" if args.heat_edge else "off"
     print(f"YOLOA {args.mode} | root: {root} | device: {device} | imgsz: {imgsz} | "
-          f"prior: {args.prior} | heat-edge: {edge_str} | cats({len(cats)}): {', '.join(cats)}", flush=True)
+          f"prior: {prior_mode} | heat_edge: {infer.get('heat_edge', False)} "
+          f"| cats({len(cats)}): {', '.join(cats)}", flush=True)
     print(f"  model: {type(m.model).__name__}, fusion_mode={getattr(m.model, 'fusion_mode', '?')}", flush=True)
     print(f"  out: {out_root}  |  bank-cache: {bank_cache}", flush=True)
+    if needs_disc:
+        print(f"  scorer: {scorer_kwargs}  fuse={scorer_fuse}", flush=True)
 
     rows = []
     for ci, cat in enumerate(cats, 1):
@@ -184,22 +239,22 @@ def main():
         if not gd.is_dir():
             LOGGER.warning(f"[{ci}/{len(cats)}] {cat}: no train dir at {gd}; skipping")
             continue
-        m.fit(str(gd), name=cat, cfg=args.fit_cfg, batch=args.batch, device=device,
-              cache=bank_cache, **fit_over)
+        m.fit(str(gd), name=cat, cfg=fit_cfg_path, batch=args.batch, device=device,
+              cache=bank_cache, fit_disc=fit_disc, **fit_over)
 
         if args.mode == "predict":
             out = out_root / "predict" / cat
             out.mkdir(parents=True, exist_ok=True)
             samples = collect_test_images(root / cat / "test", args.n_per_cat)
             for img, label in samples:
-                r = m.predict(img, prior=args.prior, imgsz=imgsz, conf=args.conf,
+                r = m.predict(img, prior=prior_mode, imgsz=imgsz, conf=args.conf,
                               iou=args.iou, device=device, end2end=args.e2e,
                               verbose=False, **infer)[0]
                 stem = f"{label}__{Path(img).stem}"
                 cv2.imwrite(str(out / f"{stem}__pred.jpg"), r.plot())
                 save_heatmap(m.model, img, out / f"{stem}__heat.jpg")
             print(f"[{ci}/{len(cats)}] {cat}: {len(samples)} predictions -> {out}", flush=True)
-        elif args.mode == "visualize":  # 8-panel CompareGrid (4 priors + heatmaps + GT mask)
+        elif args.mode == "visualize":
             from compare_grid import CompareGrid
             cg = CompareGrid()
             out = out_root / "visualize" / cat
@@ -224,13 +279,15 @@ def main():
                     n_none=n_none, n_seg=n_seg, n_heat=n_heat, n_mask=n_mask,
                 )
             print(f"[{ci}/{len(cats)}] {cat}: {len(samples)} grids -> {out}", flush=True)
-        else:  # val — delegate metrics to the tested OOD engine (reuses the fitted bank on the model)
+        else:  # val
             cat_rows = run_mvtec_ood_eval(
-                m.model, root, categories=[cat], modes=(_PRIOR_TO_MODE[args.prior],),
+                m.model, root, categories=[cat], modes=(val_mode,),
                 imgsz=imgsz, batch=args.batch, device=device, e2e=args.e2e, iou=args.iou,
-                heatmap_norm=args.heat_norm,
-                heatmap_edge_weight=(True if args.heat_edge else None),
-                heatmap_edge_sigma=args.heat_edge_sigma,
+                heatmap_norm=infer.get("heat_norm", "none"),
+                heatmap_edge_weight=(True if infer.get("heat_edge") else None),
+                heatmap_edge_sigma=infer.get("heat_edge_sigma", 1.0),
+                scorer_kwargs=scorer_kwargs if needs_disc else None,
+                scorer_fuse=scorer_fuse,
             )
             r = next((x for x in cat_rows if x["category"] == cat), None)
             if r is None:
@@ -248,7 +305,7 @@ def main():
         print("-" * len(hdr))
         for r in rows:
             print(f"{r['category']:12s} " + "".join(f"{r[k]:11.4f}" for k in VAL_METRICS), flush=True)
-        out_csv = out_root / f"val_{args.prior}.csv"
+        out_csv = out_root / f"val_{prior_mode}.csv"
         out_csv.parent.mkdir(parents=True, exist_ok=True)
         with open(out_csv, "w", newline="") as f:
             w = csv.DictWriter(f, fieldnames=["category", *VAL_METRICS])

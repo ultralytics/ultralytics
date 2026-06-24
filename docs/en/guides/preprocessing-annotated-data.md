@@ -136,7 +136,7 @@ Visualizations reveal patterns that summary statistics miss, such as class imbal
 
 ### Ultralytics Platform for EDA
 
-For a no-code approach to EDA, upload your dataset to [Ultralytics Platform](https://platform.ultralytics.com/). The dataset's `Charts` tab automatically generates the visualizations described above: split distribution, top class counts, image width/height histograms, and 2D heatmaps of annotation positions and image dimensions. The `Images` tab lets you browse your data in grid, compact, or table views with annotation overlays, making it easy to spot mislabeled examples or unbalanced classes without writing any code.
+For a no-code approach to EDA, upload your dataset to [Ultralytics Platform](https://platform.ultralytics.com/). The dataset's `Charts` tab automatically generates key EDA visualizations: split distribution, top class counts, image width/height histograms, and 2D heatmaps of annotation positions and image dimensions. The `Images` tab lets you browse your data in grid, compact, or table views with annotation overlays, making it easy to spot mislabeled examples or unbalanced classes without writing any code.
 
 ## Conclusion
 

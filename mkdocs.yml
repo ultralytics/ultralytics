@@ -539,7 +539,7 @@ nav:
       - Model Evaluation and Fine-Tuning: guides/model-evaluation-insights.md
       - Isolating Segmentation Objects: guides/isolating-segmentation-objects.md
       - K-Fold Cross Validation: guides/kfold-cross-validation.md
-      - Knowledge Distillation: guides/knowledge-distillation.md
+      - Knowledge Distillation 🚀: guides/knowledge-distillation.md
       - Maintaining Your Computer Vision Model: guides/model-monitoring-and-maintenance.md
       - Modal Quickstart: guides/modal-quickstart.md
       - Model Deployment Options: guides/model-deployment-options.md

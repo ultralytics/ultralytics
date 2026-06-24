@@ -134,8 +134,13 @@ class AnomalyV2Validator(DetectionValidator):
         return batch
 
     def postprocess(self, preds):
-        """Post-process predictions, unwrapping Segment head ``((y, proto), preds)`` if needed."""
-        if isinstance(preds, tuple) and len(preds) == 2 and isinstance(preds[0], tuple):
+        """Post-process predictions, unwrapping Segment head ``((y, proto), preds)`` if needed.
+
+        Segment.forward() returns ``((decoded_tensor, proto), preds_dict)`` during eval, but
+        it may arrive here wrapped in either a tuple or a list depending on the call path
+        (``_predict_once`` vs ``YOLOAnomalyV2Model.predict``).
+        """
+        if isinstance(preds, (list, tuple)) and len(preds) == 2 and isinstance(preds[0], (list, tuple)):
             preds = preds[0]  # (y, proto) — NMS extracts y via prediction[0]
         return super().postprocess(preds)
 

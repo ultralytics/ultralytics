@@ -813,11 +813,13 @@ class YOLOAnomalyV2Model(DetectionModel):
         bb_auto_temperature = bool(v2_cfg.get("bb_auto_temperature", True))
         bb_calibration_target = float(v2_cfg.get("bb_calibration_target_score", 0.2))
         bb_calibrate = str(v2_cfg.get("bb_calibrate", "auto"))
+        bb_proj_dim = int(v2_cfg.get("bb_proj_dim", 0))
         self.memory_bank = BackboneMemoryBank(
             temperature=bb_temperature, K=bb_K, max_bank_size=bb_max_bank_size,
             auto_temperature=bb_auto_temperature,
             calibration_target_score=bb_calibration_target,
             calibrate=bb_calibrate,
+            proj_dim=bb_proj_dim,
         ) if bb_layers else None
         self._bb_layers = bb_layers
         self._bb_hook_handles: list = []

@@ -43,7 +43,7 @@ _ADVANCED_PRIORS = ("segment", "seg_heatmap", "cached")
 # Bank-build knobs that live in the fit config. bb_* override the model yaml's v2_cfg defaults;
 # imgsz / max_images are build inputs (not part of the model yaml).
 FIT_KEYS = (
-    "imgsz", "max_images", "bb_layers", "bb_max_bank_size", "bb_K",
+    "imgsz", "max_images", "bb_layers", "bb_max_bank_size", "bb_K", "bb_proj_dim",
     "bb_calibrate", "bb_temperature", "bb_auto_temperature", "bb_calibration_target_score",
 )
 
@@ -52,6 +52,7 @@ _BB_TO_MB = {
     "bb_max_bank_size": "max_bank_size", "bb_K": "K", "bb_calibrate": "calibrate",
     "bb_temperature": "temperature", "bb_auto_temperature": "auto_temperature",
     "bb_calibration_target_score": "calibration_target_score",
+    "bb_proj_dim": "proj_dim",
 }
 
 # Prior-shaping knobs set on the model before forward. Accepts canonical names and short aliases.

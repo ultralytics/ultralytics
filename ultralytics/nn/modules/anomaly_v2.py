@@ -655,6 +655,7 @@ class BackboneMemoryBank(nn.Module):
         auto_temperature: bool = True,
         calibration_target_score: float = 0.2,
         calibrate: str = "auto",
+        proj_dim: int = 0,
     ):
         super().__init__()
         self.temperature = float(temperature)
@@ -666,7 +667,9 @@ class BackboneMemoryBank(nn.Module):
         self.calibration_target_score = float(calibration_target_score)
         self.calibrate = calibrate
         self._calibrated = False
+        self.proj_dim = int(proj_dim)
         self.register_buffer("memory_bank", torch.empty(0, 0), persistent=True)
+        self.register_buffer("_proj_weight", torch.empty(0, 0), persistent=True)  # lazy-init random projection
         self.feature_dim: int | None = None
         self.update = True
         self._bb_layer_indices: list[int] = []
@@ -676,6 +679,14 @@ class BackboneMemoryBank(nn.Module):
     @property
     def built(self) -> bool:
         return not self.update
+
+    def __setstate__(self, state):
+        """Backfill attributes added after the checkpoint was saved."""
+        super().__setstate__(state)
+        if not hasattr(self, "proj_dim"):
+            self.proj_dim = 0
+        if "_proj_weight" not in self._buffers:
+            self.register_buffer("_proj_weight", torch.empty(0, 0), persistent=True)
 
     def _apply(self, fn, recurse=True):
         """Keep the de-buffered FIFO queue in sync with ``.to()``/``.float()``/``.half()``.
@@ -877,7 +888,7 @@ class BackboneMemoryBank(nn.Module):
         return mem[valid]
 
     def _build_fused_feature(self, feat_dict: dict[int, torch.Tensor]) -> torch.Tensor:
-        """Gather backbone features at configured layer indices, upsample to P3 scale, concat."""
+        """Gather backbone features at configured layer indices, concat, optionally project down."""
         indices = self._bb_layer_indices
         if not indices:
             return feat_dict[list(feat_dict.keys())[0]]
@@ -889,7 +900,20 @@ class BackboneMemoryBank(nn.Module):
             F.interpolate(f, size=target_size, mode="nearest") if f.shape[-2:] != target_size else f
             for f in feats
         ]
-        return torch.cat(aligned, dim=1) if len(aligned) > 1 else aligned[0]
+        fused = torch.cat(aligned, dim=1) if len(aligned) > 1 else aligned[0]
+        # Random projection (Johnson-Lindenstrauss): fixed random matrix, ~preserves cosine structure.
+        if self.proj_dim > 0 and fused.shape[1] > self.proj_dim:
+            if self._proj_weight.numel() == 0:
+                in_dim = fused.shape[1]
+                # Random Gaussian projection: E[||Wx||^2] = ||x||^2 (Johnson-Lindenstrauss)
+                w = torch.randn(in_dim, self.proj_dim, device=fused.device, dtype=torch.float32)
+                self._proj_weight = w / (self.proj_dim ** 0.5)
+            B, C, H, W = fused.shape
+            orig_dtype = fused.dtype
+            fused = fused.permute(0, 2, 3, 1).reshape(-1, C)
+            fused = (fused.to(dtype=self._proj_weight.dtype) @ self._proj_weight).to(orig_dtype)
+            fused = fused.reshape(B, H, W, -1).permute(0, 3, 1, 2)
+        return fused
 
     def estimate_temperature(self) -> float:
         """Estimate current auto-calibrated β from the bank WITHOUT modifying state."""

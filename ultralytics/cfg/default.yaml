@@ -57,7 +57,6 @@ half: False # (bool) use half precision (FP16) if supported
 dnn: False # (bool) use OpenCV DNN for ONNX inference
 plots: True # (bool) save plots and images during train/val
 end2end: # (bool, optional) whether to use end2end head (YOLO26, YOLOv10) for predict/val/export
-drift: False # (bool) compute prediction drift metrics during validation
 drift_baseline: # (str, optional) path to .npy of baseline confidence scores used as the drift reference
 
 # Predict settings -----------------------------------------------------------------------------------------------------

@@ -274,8 +274,7 @@ class DetectionValidator(BaseValidator):
         """
         stats = self.metrics.process(save_dir=self.save_dir, plot=self.args.plots, on_plot=self.on_plot)
         self.metrics.clear_stats()
-        if getattr(self.args, "drift", False):
-            self.metrics.extra_metrics = self._compute_drift(stats)
+        self.metrics.extra_metrics = self._compute_drift(stats)
         return self.metrics.results_dict
 
     def _compute_drift(self, stats: dict[str, np.ndarray]) -> dict[str, float]:

@@ -10,12 +10,20 @@ from math import isfinite
 from pathlib import Path
 from time import sleep, time
 
-from ultralytics.utils import ENVIRONMENT, GIT, LOGGER, PYTHON_VERSION, RANK, SETTINGS, TESTS_RUNNING, Retry, colorstr
+from ultralytics.utils import (
+    ENVIRONMENT,
+    GIT,
+    LOGGER,
+    PLATFORM_URL,
+    PYTHON_VERSION,
+    RANK,
+    SETTINGS,
+    TESTS_RUNNING,
+    Retry,
+    colorstr,
+)
 
 PREFIX = colorstr("Platform: ")
-
-# Configurable platform URL for debugging (e.g. ULTRALYTICS_PLATFORM_URL=http://localhost:3000)
-PLATFORM_URL = os.getenv("ULTRALYTICS_PLATFORM_URL", "https://platform.ultralytics.com").rstrip("/")
 PLATFORM_API_URL = f"{PLATFORM_URL}/api/webhooks"
 
 
@@ -41,19 +49,6 @@ try:
 
 except (AssertionError, ImportError):
     _api_key = None
-
-
-def normalize_platform_uri(uri):
-    """Rewrite an Ultralytics Platform web URL to its ul:// URI so it can be loaded directly as data or model.
-
-    Args:
-        uri (str | Path): Resource identifier, e.g. "https://platform.ultralytics.com/user/datasets/slug".
-
-    Returns:
-        (str | Path): "ul://user/datasets/slug" for Platform web URLs, otherwise the input unchanged.
-    """
-    s = str(uri)
-    return f"ul://{s[len(PLATFORM_URL) + 1 :].strip('/')}" if s.startswith(f"{PLATFORM_URL}/") else uri
 
 
 def resolve_platform_uri(uri, hard=True):

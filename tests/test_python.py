@@ -277,7 +277,7 @@ def test_train_multi():
 
 def test_normalize_platform_uri():
     """Test Platform web URLs are rewritten to ul:// URIs so datasets/models load directly from a pasted URL."""
-    from ultralytics.utils.callbacks.platform import normalize_platform_uri
+    from ultralytics.utils.checks import normalize_platform_uri
 
     base = "https://platform.ultralytics.com/glenn-jocher"
     assert normalize_platform_uri(f"{base}/datasets/coco8") == "ul://glenn-jocher/datasets/coco8"

@@ -1,4 +1,5 @@
 ---
+title: Preprocessing Annotated CV Data
 comments: true
 description: Learn essential data preprocessing techniques for annotated computer vision data, including resizing, normalizing, augmenting, and splitting datasets for optimal model training.
 keywords: data preprocessing, computer vision, image resizing, normalization, data augmentation, training dataset, validation dataset, test dataset, YOLO26

@@ -160,6 +160,8 @@ For more details about the export process, visit the [Ultralytics documentation 
 
 CoreML chooses hardware via `MLModelConfiguration.computeUnits`. The Ultralytics iOS SDK defaults to `.cpuAndNeuralEngine` on iOS 16+ rather than `.all`: in a real-time camera app the GPU is already busy compositing the preview and overlays, so excluding it avoids contention and frame-time jitter while the ANE does the heavy lifting. Pin `.cpuOnly` only for compatibility testing — the table above shows what it costs.
 
+Running a CoreML model from Python on a **Mac host** (via Ultralytics or `coremltools`) follows the same rule: Ultralytics loads with `ComputeUnit.CPU_AND_NE` (macOS 13+, falling back to `CPU_ONLY` on older macOS), keeping inference on the Neural Engine (~3× faster than CPU). This also avoids a current macOS host limitation where the default `ComputeUnit.ALL` / `CPU_AND_GPU` — which add the GPU/MPSGraph compile path — **abort the process** with an `Error: MLIR pass manager failed` assertion on `coremltools` 9.x.
+
 ## Deploying Exported YOLO26 CoreML Models
 
 The fastest path is the official [Ultralytics YOLO iOS SDK](https://github.com/ultralytics/yolo-ios-app), the same Swift package that powers the Ultralytics iOS app and the [Flutter plugin](https://github.com/ultralytics/yolo-flutter-app). It resolves official model names automatically, downloads and caches the `.mlpackage`, and returns fully decoded results:

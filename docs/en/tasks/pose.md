@@ -1,4 +1,5 @@
 ---
+title: Pose Estimation with YOLO
 comments: true
 description: Discover how to use YOLO26 for pose estimation tasks. Learn about model training, validation, prediction, and exporting in various formats.
 keywords: pose estimation, YOLO26, Ultralytics, keypoints, model training, image recognition, deep learning, human pose detection, computer vision, real-time tracking

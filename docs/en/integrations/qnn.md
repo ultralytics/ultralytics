@@ -1,4 +1,5 @@
 ---
+title: YOLO Export to Qualcomm QNN (Snapdragon)
 comments: true
 description: Export Ultralytics YOLO models to Qualcomm QNN for fast on-device inference on Snapdragon Hexagon NPU, Adreno GPU, and CPU. Step-by-step Qualcomm Snapdragon export guide.
 keywords: Qualcomm QNN, Qualcomm export, Snapdragon export, export YOLO to Qualcomm, QNN export, YOLO Snapdragon, YOLO on Snapdragon, Qualcomm AI Hub, Hexagon NPU, Hexagon HTP, Qualcomm AI Engine Direct, QAIRT, SNPE, onnxruntime-qnn, ONNX Runtime QNN, Snapdragon NPU, on-device inference, edge AI deployment, Ultralytics YOLO, model export

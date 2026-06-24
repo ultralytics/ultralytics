@@ -1,4 +1,5 @@
 ---
+title: YOLOv5 DeepSparse CPU Deployment
 comments: true
 description: Learn how to deploy YOLOv5 using Neural Magic's DeepSparse for GPU-class performance on CPUs. Discover easy integration, flexible deployments, and more.
 keywords: YOLOv5, DeepSparse, Neural Magic, YOLO deployment, Sparse inference, Deep learning, Model sparsity, CPU optimization, No hardware accelerators, AI deployment

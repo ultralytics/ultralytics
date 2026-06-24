@@ -1,4 +1,5 @@
 ---
+title: YOLOv4 Real-Time Object Detection
 comments: true
 description: Explore YOLOv4, a state-of-the-art real-time object detection model by Alexey Bochkovskiy. Discover its architecture, features, and performance.
 keywords: YOLOv4, object detection, real-time detection, Alexey Bochkovskiy, neural networks, machine learning, computer vision

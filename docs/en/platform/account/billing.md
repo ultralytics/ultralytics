@@ -1,4 +1,5 @@
 ---
+title: Billing & Credits
 comments: true
 description: Manage credits, payments, and subscriptions on Ultralytics Platform with transparent pricing for cloud training and deployments.
 keywords: Ultralytics Platform, billing, credits, pricing, subscription, payments, training costs

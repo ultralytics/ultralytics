@@ -1,14 +1,13 @@
 ---
+title: YOLO Hyperparameter Tuning
 comments: true
-description: Master hyperparameter tuning for Ultralytics YOLO to optimize model performance with our comprehensive guide. Elevate your machine learning models today!
+description: Tune Ultralytics YOLO hyperparameters with model.tune() and a genetic algorithm. Define a search space, run iterations, and find settings that maximize fitness.
 keywords: Ultralytics YOLO, hyperparameter tuning, machine learning, model optimization, genetic algorithms, learning rate, batch size, epochs
 ---
 
 # Ultralytics YOLO [Hyperparameter Tuning](https://www.ultralytics.com/glossary/hyperparameter-tuning) Guide
 
-## Introduction
-
-Hyperparameter tuning is not just a one-time setup but an iterative process aimed at optimizing the [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) model's performance metrics, such as accuracy, precision, and recall. In the context of Ultralytics YOLO, these hyperparameters could range from learning rate to architectural details, such as the number of layers or types of activation functions used. [Ultralytics Platform](https://platform.ultralytics.com) also supports [cloud training](../platform/train/cloud-training.md) with configurable hyperparameters and real-time metrics tracking.
+Hyperparameter tuning in Ultralytics YOLO is an automated, iterative search that optimizes settings — such as learning rate, loss weights, and augmentation strength — to maximize a [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) model's performance metrics like accuracy, precision, and recall. Rather than testing these values by hand, Ultralytics YOLO explores the hyperparameter space with a genetic algorithm that mutates and evaluates candidate configurations across many short training runs.
 
 <p align="center">
   <br>
@@ -21,7 +20,7 @@ Hyperparameter tuning is not just a one-time setup but an iterative process aime
   <strong>Watch:</strong> How to Tune Hyperparameters for Better Model Performance 🚀
 </p>
 
-### What are Hyperparameters?
+## What are Hyperparameters?
 
 Hyperparameters are high-level, structural settings for the algorithm. They are set prior to the training phase and remain constant during it. Here are some commonly tuned hyperparameters in Ultralytics YOLO:
 
@@ -36,7 +35,7 @@ Hyperparameters are high-level, structural settings for the algorithm. They are 
 
 For a full list of augmentation hyperparameters used in YOLO26 please refer to the [configurations page](../usage/cfg.md#augmentation-settings).
 
-### Genetic Evolution and Mutation
+## Genetic Evolution and Mutation
 
 Ultralytics YOLO uses [genetic algorithms](https://en.wikipedia.org/wiki/Genetic_algorithm) to optimize hyperparameters. Genetic algorithms are inspired by the mechanism of natural selection and genetics.
 
@@ -50,31 +49,16 @@ Before you begin the tuning process, it's important to:
 1. **Identify the Metrics**: Determine the metrics you will use to evaluate the model's performance. This could be AP50, F1-score, or others.
 2. **Set the Tuning Budget**: Define how much computational resources you're willing to allocate. Hyperparameter tuning can be computationally intensive.
 
-## Steps Involved
+## How the Tuning Loop Works
 
-### Initialize Hyperparameters
+For each iteration, the built-in tuner repeats the following loop:
 
-Start with a reasonable set of initial hyperparameters. This could either be the default hyperparameters set by Ultralytics YOLO or something based on your domain knowledge or previous experiments.
-
-### Mutate Hyperparameters
-
-Use the `_mutate` method to produce a new set of hyperparameters based on the existing set. The [Tuner class](https://docs.ultralytics.com/reference/engine/tuner) handles this process automatically.
-
-### Train Model
-
-Training is performed using the mutated set of hyperparameters. The training performance is then assessed using your chosen metrics.
-
-### Evaluate Model
-
-Use metrics like AP50, F1-score, or custom metrics to evaluate the model's performance. The [evaluation process](https://docs.ultralytics.com/modes/val) helps determine if the current hyperparameters are better than previous ones.
-
-### Log Results
-
-It's crucial to log both the performance metrics and the corresponding hyperparameters for future reference. Ultralytics YOLO automatically saves these results in NDJSON format.
-
-### Repeat
-
-The process is repeated until either the set number of iterations is reached or the performance metric is satisfactory. Each iteration builds upon the knowledge gained from previous runs.
+1. **Initialize hyperparameters** — start from a reasonable baseline, either the default hyperparameters set by Ultralytics YOLO or values based on your domain knowledge or previous experiments.
+2. **Mutate hyperparameters** — the [`Tuner` class](https://docs.ultralytics.com/reference/engine/tuner) produces a new set of hyperparameters from the existing set with its `_mutate` method, automatically.
+3. **Train the model** — train using the mutated hyperparameters, then assess training performance with your chosen metrics.
+4. **Evaluate the model** — use metrics like AP50, F1-score, or custom metrics through the [evaluation process](https://docs.ultralytics.com/modes/val) to determine whether the current hyperparameters improve on previous ones.
+5. **Log results** — record both the performance metrics and the corresponding hyperparameters for future reference. Ultralytics YOLO automatically saves these results in NDJSON format.
+6. **Repeat** — continue until the set number of iterations is reached or the performance metric is satisfactory, with each iteration building on knowledge gained from previous runs.
 
 ### Iterations and Population Size
 
@@ -84,7 +68,7 @@ The built-in genetic algorithm has no explicit population size parameter. Once p
 
 For parallel trials or more advanced search strategies, set `use_ray=True` to use Ray Tune, which receives `iterations` as `num_samples`. See the [Ray Tune integration guide](../integrations/ray-tune.md) for details.
 
-## Default Search Space Description
+## Default Search Space
 
 The following table lists the default search space parameters for hyperparameter tuning in YOLO26. Each parameter has a specific value range defined by a tuple `(min, max)`.
 
@@ -269,7 +253,7 @@ An NDJSON file containing detailed results of each tuning iteration. Each line i
 - **Usage**: Per-iteration results tracking.
 - **Example**:
 
-A pretty-printed example is shown below for readability. In the actual `.ndjson` file, each object is stored on a single line.
+A pretty-printed example follows for readability; in the actual `.ndjson` file, each object is stored on a single line.
 
 ```json
 {
@@ -330,25 +314,19 @@ This directory contains the saved [PyTorch](https://www.ultralytics.com/glossary
 - **`last.pt`**: The last.pt are the weights from the last epoch of training.
 - **`best.pt`**: The best.pt weights for the iteration that achieved the best fitness score.
 
-Using these results, you can make more informed decisions for your future model trainings and analyses. Feel free to consult these artifacts to understand how well your model performed and how you might improve it further.
+Using these results, you can make more informed decisions for future model trainings and analyses.
 
 ## Conclusion
 
-The hyperparameter tuning process in Ultralytics YOLO is simplified yet powerful, thanks to its genetic algorithm-based approach combining BLX-α crossover with log-normal mutation. Following the steps outlined in this guide will assist you in systematically tuning your model to achieve better performance.
+Hyperparameter tuning in Ultralytics YOLO is both simple to launch and powerful under the hood, combining BLX-α crossover with log-normal mutation in a genetic algorithm. Following the loop outlined in this guide lets you systematically tune your model for better performance, then reuse the resulting `best_hyperparameters.yaml` to initialize future training runs. To scale tuning across parallel trials and more advanced search algorithms, continue with the [Ray Tune integration guide](../integrations/ray-tune.md), or run managed jobs with configurable hyperparameters and real-time metrics tracking on [Ultralytics Platform](https://platform.ultralytics.com) via [cloud training](../platform/train/cloud-training.md).
 
-### Further Reading
-
-1. [Hyperparameter Optimization in Wikipedia](https://en.wikipedia.org/wiki/Hyperparameter_optimization)
-2. [YOLOv5 Hyperparameter Evolution Guide](../yolov5/tutorials/hyperparameter-evolution.md)
-3. [Efficient Hyperparameter Tuning with Ray Tune and YOLO26](../integrations/ray-tune.md)
-
-For deeper insights, you can explore the [`Tuner` class](https://docs.ultralytics.com/reference/engine/tuner) source code and accompanying documentation. Should you have any questions, feature requests, or need further assistance, feel free to reach out to us on [GitHub](https://github.com/ultralytics/ultralytics/issues/new/choose) or [Discord](https://discord.com/invite/ultralytics).
+For deeper insights, explore the [`Tuner` class](https://docs.ultralytics.com/reference/engine/tuner) source code. If you have questions or feature requests, reach out on [GitHub](https://github.com/ultralytics/ultralytics/issues/new/choose) or [Discord](https://discord.com/invite/ultralytics).
 
 ## FAQ
 
 ### How do I optimize the [learning rate](https://www.ultralytics.com/glossary/learning-rate) for Ultralytics YOLO during hyperparameter tuning?
 
-To optimize the learning rate for Ultralytics YOLO, start by setting an initial learning rate using the `lr0` parameter. Common values range from `0.001` to `0.01`. During the hyperparameter tuning process, this value will be mutated to find the optimal setting. You can utilize the `model.tune()` method to automate this process. For example:
+Set an initial value with the `lr0` parameter — common values range from `0.001` to `0.01` — and let tuning mutate it from there to find the optimum. You can automate this with the `model.tune()` method. For example:
 
 !!! example
 
@@ -380,7 +358,7 @@ To see how genetic algorithms can optimize hyperparameters, check out the [hyper
 
 The time required for hyperparameter tuning with Ultralytics YOLO largely depends on several factors such as the size of the dataset, the complexity of the model architecture, the number of iterations, and the computational resources available. For instance, tuning YOLO26n on a dataset like COCO8 for 30 epochs might take several hours to days, depending on the hardware.
 
-To effectively manage tuning time, define a clear tuning budget beforehand ([internal section link](#preparing-for-hyperparameter-tuning)). This helps in balancing resource allocation and optimization goals.
+To effectively manage tuning time, define a clear tuning budget beforehand, as covered in [Preparing for Hyperparameter Tuning](#preparing-for-hyperparameter-tuning). This helps balance resource allocation and optimization goals.
 
 ### What metrics should I use to evaluate model performance during hyperparameter tuning in YOLO?
 

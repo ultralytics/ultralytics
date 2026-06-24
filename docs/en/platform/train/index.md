@@ -1,4 +1,5 @@
 ---
+title: Cloud Model Training
 comments: true
 description: Learn about model training in Ultralytics Platform including project organization, cloud training, and real-time metrics streaming.
 keywords: Ultralytics Platform, model training, cloud training, YOLO, GPU training, machine learning, deep learning

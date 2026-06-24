@@ -646,6 +646,9 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
     Returns:
         (str | list): Path to the file, or an empty list if not found.
     """
+    from ultralytics.utils.callbacks.platform import normalize_platform_uri
+
+    file = normalize_platform_uri(file)  # https://platform.ultralytics.com/user/project/model -> ul://...
     check_suffix(file, suffix)  # optional
     file = str(file).strip()  # convert to string and strip spaces
     file = check_yolov5u_filename(file)  # yolov5n -> yolov5nu

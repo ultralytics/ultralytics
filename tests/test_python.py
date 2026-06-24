@@ -275,6 +275,16 @@ def test_train_multi():
     assert (sweep_dir / "multitrain_results.png").exists()  # cross-dataset results plot
 
 
+def test_normalize_platform_uri():
+    """Test Platform web URLs are rewritten to ul:// URIs so datasets/models load directly from a pasted URL."""
+    from ultralytics.utils.callbacks.platform import normalize_platform_uri
+
+    base = "https://platform.ultralytics.com/glenn-jocher"
+    assert normalize_platform_uri(f"{base}/datasets/coco8") == "ul://glenn-jocher/datasets/coco8"
+    assert normalize_platform_uri(f"{base}/project/model/") == "ul://glenn-jocher/project/model"
+    assert normalize_platform_uri("coco8.yaml") == "coco8.yaml"  # non-Platform inputs unchanged
+
+
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_train_scratch():

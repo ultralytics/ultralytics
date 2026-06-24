@@ -43,6 +43,19 @@ except (AssertionError, ImportError):
     _api_key = None
 
 
+def normalize_platform_uri(uri):
+    """Rewrite an Ultralytics Platform web URL to its ul:// URI so it can be loaded directly as data or model.
+
+    Args:
+        uri (str | Path): Resource identifier, e.g. "https://platform.ultralytics.com/user/datasets/slug".
+
+    Returns:
+        (str | Path): "ul://user/datasets/slug" for Platform web URLs, otherwise the input unchanged.
+    """
+    s = str(uri)
+    return f"ul://{s[len(PLATFORM_URL) + 1:].strip('/')}" if s.startswith(f"{PLATFORM_URL}/") else uri
+
+
 def resolve_platform_uri(uri, hard=True):
     """Resolve ul:// URIs to signed URLs by authenticating with Ultralytics Platform.
 

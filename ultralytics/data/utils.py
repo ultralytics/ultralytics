@@ -440,6 +440,9 @@ def find_dataset_yaml(path: Path) -> Path:
 
 def convert_ndjson_to_yolo_if_needed(data: str | Path) -> str | Path:
     """Convert an NDJSON dataset or Platform dataset URI to YOLO format."""
+    from ultralytics.utils.callbacks.platform import normalize_platform_uri
+
+    data = normalize_platform_uri(data)  # accept Platform web URLs (https://platform.ultralytics.com/.../datasets/...)
     data_str = str(data)
     if data_str.endswith(".ndjson") or (data_str.startswith("ul://") and "/datasets/" in data_str):
         import asyncio

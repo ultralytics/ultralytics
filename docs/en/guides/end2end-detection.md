@@ -169,7 +169,7 @@ If you're upgrading an existing project to YOLO26, here's a quick checklist to e
 - **Custom post-processing code:** Update to handle the new output shapes — `(N, 300, 6)` for detection, plus task-specific data for [segmentation](../tasks/segment.md), [pose](../tasks/pose.md), and [OBB](../tasks/obb.md). Also note the box format change from `xywh` to `xyxy`
 - **Export pipelines:** Check the [format compatibility](#export-format-compatibility) section for your target format
 - **TensorRT + INT8:** On JetPack 6, TensorRT 10.3.0 auto-disables end-to-end with `quantize=8` — use a different TensorRT version to keep end-to-end
-- **FP16 exports:** If you need all outputs in FP16, export with `end2end=False` — see [why output0 stays FP32](../modes/export.md#why-is-output0-fp32-when-exporting-with-halftrue-and-end2endtrue)
+- **FP16 exports:** If you need all outputs in FP16, export with `end2end=False` — see [why output0 stays FP32](../modes/export.md#why-is-output0-fp32-when-exporting-quantized-models-with-end2endtrue)
 - **iOS / CoreML:** End-to-end is fully supported. If you need Xcode Preview support, use `end2end=False` with `nms=True`
 - **Edge devices (NCNN, RKNN):** These formats auto-fallback to one-to-many, so include NMS in your on-device pipeline
 

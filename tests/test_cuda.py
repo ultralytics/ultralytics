@@ -186,7 +186,7 @@ def test_utils_benchmarks(isolated_model):
     ProfileModels(
         [isolated_model],
         imgsz=32,
-        half=False,
+        quantize=32,
         min_time=1,
         num_timed_runs=3,
         num_warmup_runs=1,
@@ -222,7 +222,7 @@ def test_predict_sam():
             imgsz=1024,
             model=WEIGHTS_DIR / "mobile_sam.pt",
             device=DEVICES[0],
-            half=True,
+            quantize=16,
         )
     )
     predictor.set_image(ASSETS / "zidane.jpg")

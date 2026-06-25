@@ -114,7 +114,7 @@ The ONNX format supports the [Export](../modes/export.md), [Predict](../modes/pr
         model.export(format="onnx")  # creates 'yolo26n.onnx'
 
         # Export an INT8-quantized ONNX model with calibration data
-        model.export(format="onnx", int8=True, data="coco8.yaml")  # creates 'yolo26n_int8.onnx'
+        model.export(format="onnx", quantize=8, data="coco8.yaml")  # creates 'yolo26n_int8.onnx'
         ```
 
     === "CLI"
@@ -124,7 +124,7 @@ The ONNX format supports the [Export](../modes/export.md), [Predict](../modes/pr
         yolo export model=yolo26n.pt format=onnx # creates 'yolo26n.onnx'
 
         # Export an INT8-quantized ONNX model with calibration data
-        yolo export model=yolo26n.pt format=onnx int8=True data=coco8.yaml # creates 'yolo26n_int8.onnx'
+        yolo export model=yolo26n.pt format=onnx quantize=8 data=coco8.yaml # creates 'yolo26n_int8.onnx'
         ```
 
 !!! example "Predict"
@@ -177,9 +177,8 @@ When exporting your YOLO26 model to ONNX format, you can customize the process u
 | ---------- | ---------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | `format`   | `str`            | `'onnx'` | Target format for the exported model, defining compatibility with various deployment environments.                                           |
 | `imgsz`    | `int` or `tuple` | `640`    | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.            |
-| `half`     | `bool`           | `False`  | Enables FP16 (half-precision) quantization, reducing model size and potentially speeding up inference on supported hardware.                 |
-| `int8`     | `bool`           | `False`  | Enables INT8 static quantization with ONNX Runtime using calibration images from `data`, producing an `_int8.onnx` model.                    |
-| `data`     | `str`            | `None`   | Dataset YAML used for INT8 calibration. If omitted with `int8=True`, Ultralytics selects the default calibration dataset for the model task. |
+| `quantize` | `int` or `str`   | `None`   | Quantization precision: `16` (FP16) or `8` (INT8 static quantization with ONNX Runtime using calibration images from `data`, producing an `_int8.onnx` model); `32`/unset is FP32. Replaces the deprecated `half`/`int8` flags. |
+| `data`     | `str`            | `None`   | Dataset YAML used for INT8 calibration. If omitted with `quantize=8`, Ultralytics selects the default calibration dataset for the model task. |
 | `fraction` | `float`          | `1.0`    | Fraction of calibration images to use for INT8 quantization.                                                                                 |
 | `dynamic`  | `bool`           | `False`  | Allows dynamic input sizes, enhancing flexibility in handling varying image dimensions.                                                      |
 | `simplify` | `bool`           | `True`   | Simplifies the model graph with `onnxslim`, potentially improving performance and compatibility.                                             |

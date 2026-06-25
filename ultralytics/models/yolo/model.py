@@ -406,7 +406,7 @@ class YOLOE(Model):
                         "verbose": refer_image is None,
                         "batch": 1,
                         "device": kwargs.get("device", None),
-                        "half": kwargs.get("half", False),
+                        "quantize": kwargs.get("quantize", 16 if kwargs.get("half") else None),
                         "imgsz": kwargs.get("imgsz", self.overrides.get("imgsz", 640)),
                     },
                     _callbacks=self.callbacks,

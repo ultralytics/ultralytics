@@ -171,6 +171,11 @@ CLI_HELP_MSG = f"""
     GitHub: https://github.com/ultralytics/ultralytics
     """
 
+# Quantization aliases: maps any accepted `quantize` value to its canonical form. The common case is the integer
+# bit-width 8 (INT8) / 16 (FP16) / 32 (FP32); the verbose w<weights>a<activations> strings are accepted too and
+# collapse to the same ints, except 'w8a16' (INT8 weights + FP16 activations) which has no bit-width shorthand.
+QUANTIZE_ALIASES = {"8": 8, "16": 16, "32": 32, "w8a8": 8, "w16a16": 16, "w32a32": 32, "w8a16": "w8a16"}
+
 # Define keys for arg type checks
 CFG_FLOAT_KEYS = frozenset(
     {  # integer or float arguments, i.e. x=2 and x=2.0
@@ -241,7 +246,6 @@ CFG_BOOL_KEYS = frozenset(
         "overlap_mask",
         "val",
         "save_json",
-        "half",
         "dnn",
         "plots",
         "show",
@@ -258,7 +262,6 @@ CFG_BOOL_KEYS = frozenset(
         "show_boxes",
         "keras",
         "optimize",
-        "int8",
         "dynamic",
         "simplify",
         "nms",
@@ -427,6 +430,15 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                         f"'{k}' must be a bool (i.e. '{k}=True' or '{k}=False')"
                     )
                 cfg[k] = bool(v)
+            elif k == "quantize":  # canonicalize 8/16/32 or w-notation; 32 (FP32) -> None (the unset default)
+                scheme = QUANTIZE_ALIASES.get(str(v).lower())
+                if scheme is None:
+                    if hard:
+                        raise ValueError(
+                            f"'{k}={v}' is invalid. Valid '{k}' values are 8, 16, 32 or 'w8a8', 'w16a16', 'w8a16'."
+                        )
+                else:
+                    cfg[k] = None if scheme == 32 else scheme
 
 
 def get_save_dir(args: SimpleNamespace, name: str | None = None) -> Path:
@@ -492,6 +504,13 @@ def _handle_deprecation(custom: dict) -> dict:
         "line_thickness": ("line_width", lambda v: v),
     }
     removed_keys = {"label_smoothing", "save_hybrid", "crop_fraction"}
+
+    # Forward the deprecated precision flags onto the unified `quantize` scheme (int8 wins over half)
+    int8 = custom.pop("int8", None)
+    half = custom.pop("half", None)
+    if int8 or half:
+        custom.setdefault("quantize", 8 if int8 else 16)  # explicit quantize= wins over legacy flags
+        deprecation_warn("int8" if int8 else "half", "quantize")
 
     for old_key, (new_key, transform) in deprecated_mappings.items():
         if old_key not in custom:

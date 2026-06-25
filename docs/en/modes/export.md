@@ -136,18 +136,18 @@ INT8 quantization is an excellent way to compress the model and speed up inferen
         from ultralytics import YOLO
 
         model = YOLO("yolo26n.pt")  # Load a model
-        model.export(format="onnx", int8=True, data="coco8.yaml")
+        model.export(format="onnx", quantize=8, data="coco8.yaml")
         ```
 
     === "CLI"
 
         ```bash
-        yolo export model=yolo26n.pt format=onnx int8=True data=coco8.yaml # export ONNX model with INT8 quantization
+        yolo export model=yolo26n.pt format=onnx quantize=8 data=coco8.yaml # export ONNX model with INT8 quantization
         ```
 
 INT8 quantization can be applied to various formats, such as [ONNX](../integrations/onnx.md), [TensorRT](../integrations/tensorrt.md), [OpenVINO](../integrations/openvino.md), [CoreML](../integrations/coreml.md), and [Rockchip RKNN](../integrations/rockchip-rknn.md). For optimal quantization results, provide a representative [dataset](../datasets/index.md) using the `data` parameter.
 
-You can also request the same quantization with the unified `quantize` argument, which is the preferred way going forward and is designed to express additional schemes over time: `model.export(format="onnx", quantize="w8a8", data="coco8.yaml")` (equivalent to `int8=True`), or `quantize="w16a16"` for FP16 (equivalent to `half=True`).
+Precision is requested with the unified `quantize` argument across inference and export: `quantize=8` for INT8, `quantize=16` for FP16, `quantize=32` (or unset) for FP32, e.g. `model.export(format="onnx", quantize=8, data="coco8.yaml")`. Export formats that support mixed weight/activation precision also accept the `'w8a8'`/`'w16a16'`/`'w8a16'` notation. The legacy `half=True`/`int8=True` flags are deprecated and forward to `quantize=16`/`quantize=8` respectively.
 
 ### Why is dynamic input size important when exporting models?
 
@@ -180,10 +180,8 @@ Understanding and configuring export arguments is crucial for optimizing model p
 
 - **`format:`** The target format for the exported model (e.g., `onnx`, `torchscript`, `tensorflow`).
 - **`imgsz:`** Desired image size for the model input (e.g., `640` or `(height, width)`).
-- **`quantize:`** Unified quantization scheme string, e.g. `'w16a16'` (FP16) or `'w8a8'` (INT8). Preferred over the `half`/`int8` booleans and designed to express more schemes in the future.
-- **`half:`** Enables FP16 quantization, reducing model size and potentially speeding up inference. Equivalent to `quantize='w16a16'`.
+- **`quantize:`** Quantization precision: `16` (FP16) or `8` (INT8, highly beneficial for [edge AI](https://www.ultralytics.com/blog/deploying-computer-vision-applications-on-edge-ai-devices) deployments); `32`/unset is FP32. Export formats supporting mixed precision also accept `'w8a8'`/`'w16a16'`/`'w8a16'`. Replaces the deprecated `half`/`int8` flags.
 - **`optimize:`** Applies specific optimizations for mobile or constrained environments.
-- **`int8:`** Enables INT8 quantization, highly beneficial for [edge AI](https://www.ultralytics.com/blog/deploying-computer-vision-applications-on-edge-ai-devices) deployments. Equivalent to `quantize='w8a8'`.
 
 For deployment on specific hardware platforms, consider using specialized export formats like [TensorRT](../integrations/tensorrt.md) for NVIDIA GPUs, [CoreML](../integrations/coreml.md) for Apple devices, or [Edge TPU](../integrations/edge-tpu.md) for Google Coral devices.
 
@@ -201,9 +199,9 @@ For **pose models** (e.g., `yolo26n-pose.pt`), the output tensor is typically sh
 
 The examples in the [ONNX inference examples](https://github.com/ultralytics/ultralytics/tree/main/examples) demonstrate how to process these outputs for each model type.
 
-### Why is `output0` FP32 when exporting with `half=True` and `end2end=True`?
+### Why is `output0` FP32 when exporting quantized models with `end2end=True`?
 
-When exporting with `half=True` (or `int8=True`), most tensors are converted to lower precision to reduce model size and improve performance. However, when `end2end=True` is enabled, post-processing (including class indices) is embedded directly in the exported graph.
+When exporting with `quantize=16` (FP16) or `quantize=8` (INT8), most tensors are converted to lower precision to reduce model size and improve performance. However, when `end2end=True` is enabled, post-processing (including class indices) is embedded directly in the exported graph.
 
 The `output0` tensor contains class indices, which are internally represented as floating-point values. FP16 cannot reliably represent integer values above 2048 due to its limited mantissa precision. To avoid potential precision loss or incorrect class IDs, `output0` is intentionally kept in FP32.
 

@@ -16,7 +16,7 @@ import torch
 from tests import SOURCE
 from tests.conftest import isolated_model_path
 from ultralytics import YOLO
-from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
+from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS, _handle_deprecation, get_cfg
 from ultralytics.engine.exporter import EXPORT_ENVS, export_formats
 from ultralytics.utils import (
     ARM64,
@@ -63,12 +63,29 @@ def test_export_onnx(end2end, isolated_model):
 
 
 @pytest.mark.slow
-def test_export_onnx_int8(isolated_model):
-    """Test YOLO model export to INT8 ONNX format with calibration data."""
-    file = YOLO(isolated_model).export(format="onnx", int8=True, data="coco8.yaml", fraction=0.25, imgsz=32)
+@pytest.mark.parametrize("precision", [{"int8": True}, {"quantize": 8}])
+def test_export_onnx_int8(isolated_model, precision):
+    """Test INT8 ONNX export via both the legacy int8 flag and the unified quantize arg yield the same artifact."""
+    file = YOLO(isolated_model).export(format="onnx", data="coco8.yaml", fraction=0.25, imgsz=32, **precision)
     assert Path(file).name.endswith("_int8.onnx")
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
     Path(file).unlink()  # cleanup
+
+
+def test_quantize_canonicalization():
+    """Quantize accepts 8/16/32 (int or str) and w-notation, canonicalizing to the int form (32 -> None for FP32)."""
+    for value, expected in [(8, 8), (16, 16), (32, None), ("8", 8), ("w8a8", 8), ("w16a16", 16), ("w8a16", "w8a16")]:
+        assert get_cfg(overrides={"quantize": value}).quantize == expected
+    with pytest.raises(ValueError, match="quantize"):
+        get_cfg(overrides={"quantize": "x4"})
+
+
+def test_quantize_deprecation():
+    """Legacy half/int8 forward to the unified quantize arg in all modes; int8 wins on conflict."""
+    assert _handle_deprecation({"int8": True})["quantize"] == 8
+    assert _handle_deprecation({"half": True})["quantize"] == 16
+    assert _handle_deprecation({"half": True, "int8": True})["quantize"] == 8  # int8 wins
+    assert "half" not in _handle_deprecation({"half": True})  # legacy flag is removed after forwarding
 
 
 def test_modelopt_quantize_onnx_requires_int8_dataset():

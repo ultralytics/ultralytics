@@ -360,8 +360,8 @@ When using NVIDIA DGX Spark, there are a couple of best practices to follow in o
     For best performance, export models with FP16 or INT8 precision:
 
     ```bash
-    yolo export model=yolo26n.pt format=engine half=True # FP16
-    yolo export model=yolo26n.pt format=engine int8=True # INT8
+    yolo export model=yolo26n.pt format=engine quantize=16 # FP16
+    yolo export model=yolo26n.pt format=engine quantize=8 # INT8
     ```
 
 ## System Updates (Founders Edition)

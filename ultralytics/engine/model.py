@@ -10,7 +10,7 @@ import numpy as np
 import torch
 from PIL import Image
 
-from ultralytics.cfg import TASK2DATA, get_cfg, get_save_dir
+from ultralytics.cfg import TASK2DATA, _handle_deprecation, get_cfg, get_save_dir
 from ultralytics.engine.results import Results
 from ultralytics.nn.tasks import guess_model_task, load_checkpoint, yaml_model_load
 from ultralytics.utils import (
@@ -630,8 +630,7 @@ class Model(torch.nn.Module):
             verbose (bool): Whether to print detailed benchmark information.
             **kwargs (Any): Arbitrary keyword arguments to customize the benchmarking process. Common options include:
                 - imgsz (int | list[int]): Image size for benchmarking.
-                - half (bool): Whether to use half-precision (FP16) mode.
-                - int8 (bool): Whether to use int8 precision mode.
+                - quantize (int | str): Precision, e.g. 16 (FP16) or 8 (INT8); 32/None is FP32.
                 - device (str): Device to run the benchmark on (e.g., 'cpu', 'cuda').
 
         Returns:
@@ -643,7 +642,7 @@ class Model(torch.nn.Module):
 
         Examples:
             >>> model = YOLO("yolo26n.pt")
-            >>> results = model.benchmark(data="coco8.yaml", imgsz=640, half=True)
+            >>> results = model.benchmark(data="coco8.yaml", imgsz=640, quantize=16)
             >>> print(results)
         """
         self._check_is_pytorch_model()
@@ -652,6 +651,7 @@ class Model(torch.nn.Module):
         from .exporter import export_formats
 
         custom = {"verbose": False}  # method defaults
+        _handle_deprecation(kwargs)  # forward legacy half/int8 -> quantize
         args = {**DEFAULT_CFG_DICT, **self.model.args, **custom, **kwargs, "mode": "benchmark"}
         fmts = export_formats()
         export_args = set(dict(zip(fmts["Argument"], fmts["Arguments"])).get(format, [])) - {"batch", "data"}
@@ -663,6 +663,7 @@ class Model(torch.nn.Module):
             device=args["device"],
             verbose=verbose,
             format=format,
+            quantize=args.get("quantize"),
             **export_kwargs,
         )
 
@@ -679,8 +680,7 @@ class Model(torch.nn.Module):
         Args:
             **kwargs (Any): Arbitrary keyword arguments for export configuration. Common options include:
                 - format (str): Export format (e.g., 'onnx', 'engine', 'coreml').
-                - half (bool): Export model in half-precision.
-                - int8 (bool): Export model in int8 precision.
+                - quantize (int | str): Precision, e.g. 16 (FP16) or 8 (INT8); 32/None is FP32.
                 - device (str): Device to run the export on.
                 - workspace (int): Maximum memory workspace size for TensorRT engines.
                 - nms (bool): Add Non-Maximum Suppression (NMS) module to model.

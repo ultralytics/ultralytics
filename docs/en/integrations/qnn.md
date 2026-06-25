@@ -208,14 +208,14 @@ The QNN format supports the [Export](../modes/export.md), [Predict](../modes/pre
 | `imgsz`    | `int` or `tuple` | `640`          | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)`.                                                                                                  |
 | `batch`    | `int`            | `1`            | Specifies the export model batch size, which is baked into the generated QNN context binary.                                                                                                               |
 | `name`     | `str`            | `'73'`         | Target Hexagon HTP architecture version: `68`, `69`, `73`, `75`, `79`, or `81` (Snapdragon 888, 8 Gen 1, 8 Gen 2, 8 Gen 3, 8 Elite, 8 Elite Gen 5). The context binary is finalized for this architecture. |
-| `int8`     | `bool`           | `True`         | Enables INT8 quantization. Required for QNN HTP export — automatically set to `True` if not specified.                                                                                                     |
+| `quantize` | `int` or `str`   | `'w8a16'`/auto | Quantization precision. QNN HTP export is quantized to INT8 weights with 16-bit activations (`'w8a16'`) and is auto-enabled if not specified. Replaces the deprecated `half`/`int8` flags.                  |
 | `data`     | `str`            | `'coco8.yaml'` | Dataset configuration file used for INT8 calibration. Specifies the calibration image source.                                                                                                              |
 | `fraction` | `float`          | `1.0`          | Fraction of the calibration dataset to use for INT8 quantization.                                                                                                                                          |
 | `device`   | `str`            | `None`         | Specifies the device for the ONNX export step: GPU (`device=0`) or CPU (`device=cpu`).                                                                                                                     |
 
 !!! note "Precision"
 
-    QNN export quantizes the model to **16-bit activations and INT8 weights** — the recommended accuracy/performance balance for the Hexagon NPU — using the [ONNX Runtime QDQ quantization](https://onnxruntime.ai/docs/performance/model-optimizations/quantization.html) flow with calibration images from `data`. `int8=True` is enforced automatically.
+    QNN export quantizes the model to **16-bit activations and INT8 weights** — the recommended accuracy/performance balance for the Hexagon NPU — using the [ONNX Runtime QDQ quantization](https://onnxruntime.ai/docs/performance/model-optimizations/quantization.html) flow with calibration images from `data`. `quantize='w8a16'` is enforced automatically.
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 

@@ -2254,10 +2254,10 @@ for r in results:
 
 ```python
 # Export to ONNX
-model.export(format="onnx", imgsz=640, half=True)
+model.export(format="onnx", imgsz=640, quantize=16)
 
 # Export to TensorRT
-model.export(format="engine", imgsz=640, half=True)
+model.export(format="engine", imgsz=640, quantize=16)
 
 # Export to CoreML
 model.export(format="coreml", imgsz=640)

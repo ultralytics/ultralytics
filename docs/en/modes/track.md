@@ -284,7 +284,7 @@ For better performance with a separate classification model, export it to a fast
     model.model.model[-1] = pool
 
     # Export to TensorRT
-    model.export(format="engine", half=True, dynamic=True, batch=32)
+    model.export(format="engine", quantize=16, dynamic=True, batch=32)
     ```
 
 Once exported, point to the TensorRT model path in your tracker config.

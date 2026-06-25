@@ -65,8 +65,7 @@ def benchmark(
     model=WEIGHTS_DIR / "yolo26n.pt",
     data=None,
     imgsz=160,
-    half=False,
-    int8=False,
+    quantize=None,
     device="cpu",
     verbose=False,
     eps=1e-3,
@@ -79,8 +78,7 @@ def benchmark(
         model (str | Path): Path to the model file or directory.
         data (str | None): Dataset to evaluate on, inherited from TASK2DATA if not passed.
         imgsz (int): Image size for the benchmark.
-        half (bool): Use half-precision for the model if True.
-        int8 (bool): Use int8-precision for the model if True.
+        quantize (int | str | None): Precision for export and inference: 16 (FP16), 8 (INT8), or None/32 (FP32).
         device (str): Device to run the benchmark on, either 'cpu' or 'cuda'.
         verbose (bool | float): If True or a float, assert benchmarks pass with given metric.
         eps (float): Epsilon value for divide by zero prevention.
@@ -203,8 +201,7 @@ def benchmark(
                 filename = deepcopy(model).export(
                     imgsz=imgsz,
                     format=format,
-                    half=half,
-                    int8=int8,
+                    quantize=quantize,
                     data=export_data,
                     device=device,
                     verbose=False,
@@ -219,7 +216,7 @@ def benchmark(
             assert format not in {"edgetpu", "tfjs"}, "inference not supported"
             assert format != "coreml" or platform.system() == "Darwin", "inference only supported on macOS>=10.13"
             assert format != "axelera", "inference only supported on Axelera hardware"
-            exported_model.predict(ASSETS / "bus.jpg", imgsz=imgsz, device=device, half=half, verbose=False)
+            exported_model.predict(ASSETS / "bus.jpg", imgsz=imgsz, device=device, quantize=quantize, verbose=False)
 
             # Validate
             results = exported_model.val(
@@ -228,8 +225,7 @@ def benchmark(
                 imgsz=imgsz,
                 plots=False,
                 device=device,
-                half=half,
-                int8=int8,
+                quantize=quantize,
                 verbose=False,
                 conf=0.001,  # all the pre-set benchmark mAP values are based on conf=0.001
             )
@@ -304,7 +300,7 @@ class ProfileModels:
         num_warmup_runs: int = 10,
         min_time: float = 60,
         imgsz: int = 640,
-        half: bool = True,
+        quantize: int | str | None = 16,
         trt: bool = True,
         device: torch.device | str | None = None,
     ):
@@ -316,19 +312,19 @@ class ProfileModels:
             num_warmup_runs (int): Number of warmup runs before the actual profiling starts.
             min_time (float): Minimum time in seconds for profiling a model.
             imgsz (int): Size of the image used during profiling.
-            half (bool): Flag to indicate whether to use FP16 half-precision for TensorRT profiling.
+            quantize (int | str | None): Export precision for TensorRT profiling, e.g. 16 (FP16, default) or 8 (INT8).
             trt (bool): Flag to indicate whether to profile using TensorRT.
             device (torch.device | str | None): Device used for profiling. If None, it is determined automatically.
 
         Notes:
-            FP16 'half' argument option removed for ONNX as slower on CPU than FP32.
+            quantize applies only to the TensorRT profiling export; ONNX profiling stays FP32 (FP16 is slower on CPU).
         """
         self.paths = paths
         self.num_timed_runs = num_timed_runs
         self.num_warmup_runs = num_warmup_runs
         self.min_time = min_time
         self.imgsz = imgsz
-        self.half = half
+        self.quantize = quantize
         self.trt = trt  # run TensorRT profiling
         self.device = device if isinstance(device, torch.device) else select_device(device)
 
@@ -361,7 +357,7 @@ class ProfileModels:
                 if self.trt and self.device.type != "cpu" and not engine_file.is_file():
                     engine_file = model.export(
                         format="engine",
-                        half=self.half,
+                        quantize=self.quantize,
                         imgsz=self.imgsz,
                         device=self.device,
                         verbose=False,

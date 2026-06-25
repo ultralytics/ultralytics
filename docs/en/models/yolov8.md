@@ -250,13 +250,13 @@ Yes, YOLOv8 models can be benchmarked for performance in terms of speed and accu
         from ultralytics.utils.benchmarks import benchmark
 
         # Benchmark on GPU
-        benchmark(model="yolov8n.pt", data="coco8.yaml", imgsz=640, half=False, device=0)
+        benchmark(model="yolov8n.pt", data="coco8.yaml", imgsz=640, device=0)
         ```
 
     === "CLI"
 
         ```bash
-        yolo benchmark model=yolov8n.pt data='coco8.yaml' imgsz=640 half=False device=0
+        yolo benchmark model=yolov8n.pt data='coco8.yaml' imgsz=640 device=0
         ```
 
 For additional information, check the [Performance Metrics](#performance-metrics) section.

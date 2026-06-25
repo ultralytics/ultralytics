@@ -298,7 +298,11 @@ class BaseTrainer:
         self.model = self.model.to(self.device)
         self.set_model_attributes()
 
-        # Compile model
+        # Compile model (knowledge distillation runs the wrapped model eagerly and relies on
+        # find_unused_parameters under DDP for the frozen teacher, so disable compilation when distilling)
+        if self.args.distill_model is not None and self.args.compile:
+            LOGGER.warning("'compile' is not supported with knowledge distillation and will be disabled.")
+            self.args.compile = False
         self.model = attempt_compile(self.model, device=self.device, mode=self.args.compile)
 
         # Freeze layers
@@ -452,7 +456,7 @@ class BaseTrainer:
                 try:
                     with autocast(self.amp):
                         batch = self.preprocess_batch(batch)
-                        if self.args.compile and not isinstance(unwrap_model(self.model), DistillationModel):
+                        if self.args.compile:
                             # Decouple inference and loss calculations for improved compile performance
                             preds = self.model(batch["img"])
                             loss, self.loss_items = unwrap_model(self.model).loss(batch, preds)

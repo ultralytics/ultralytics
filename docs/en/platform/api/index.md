@@ -28,15 +28,18 @@ The API is organized around the core platform resources:
 
 ```mermaid
 graph LR
-    A[API Key] --> B[Datasets]
-    A --> C[Projects]
-    A --> D[Models]
-    A --> E[Deployments]
+    A[API Key]:::start --> B[Datasets]:::proc
+    A --> C[Projects]:::proc
+    A --> D[Models]:::proc
+    A --> E[Deployments]:::proc
     B -->|train on| D
     C -->|contains| D
     D -->|deploy to| E
-    D -->|export| F[Exports]
+    D -->|export| F[Exports]:::proc
     B -->|auto-annotate| B
+
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
 ```
 
 | Resource                                   | Description                   | Key Operations                                |
@@ -575,12 +578,16 @@ The request body takes exactly one of `sessionId` (an uploaded archive's upload 
 
 ```mermaid
 graph LR
-    A[Upload Archive] --> B[POST /api/datasets/ingest]
-    B --> C[Process Archive]
-    C --> D[Extract images]
-    C --> E[Parse labels]
-    C --> F[Generate thumbnails]
-    D & E & F --> G[Dataset ready]
+    A[Upload Archive]:::start --> B[POST /api/datasets/ingest]:::proc
+    B --> C[Process Archive]:::proc
+    C --> D[Extract images]:::proc
+    C --> E[Parse labels]:::proc
+    C --> F[Generate thumbnails]:::proc
+    D & E & F --> G[Dataset ready]:::out
+
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 ### Dataset Images
@@ -956,12 +963,18 @@ Launch YOLO training on cloud GPUs (26 GPU types from RTX 2000 Ada to B300) and 
 
 ```mermaid
 graph LR
-    A[POST /training/start] --> B[Job Created]
-    B --> C{Training}
-    C -->|progress| D[GET /models/id/training]
-    C -->|cancel| E[DELETE /models/id/training]
-    C -->|complete| F[Model Ready]
-    F --> G[Deploy or Export]
+    A[POST /training/start]:::start --> B[Job Created]:::proc
+    B --> C{Training}:::decide
+    C -->|progress| D[GET /models/id/training]:::proc
+    C -->|cancel| E[DELETE /models/id/training]:::error
+    C -->|complete| F[Model Ready]:::out
+    F --> G[Deploy or Export]:::proc
+
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef decide fill:#FF9800,color:#fff
+    classDef out fill:#9C27B0,color:#fff
+    classDef error fill:#F44336,color:#fff
 ```
 
 ### Start Training
@@ -1052,13 +1065,19 @@ Deploy models to dedicated inference endpoints with health checks and monitoring
 
 ```mermaid
 graph LR
-    A[Create] --> B[Deploying]
-    B --> C[Ready]
-    C -->|stop| D[Stopped]
+    A[Create]:::start --> B[Deploying]:::proc
+    B --> C[Ready]:::out
+    C -->|stop| D[Stopped]:::extern
     D -->|start| C
-    C -->|delete| E[Deleted]
+    C -->|delete| E[Deleted]:::error
     D -->|delete| E
-    C -->|predict| F[Inference Results]
+    C -->|predict| F[Inference Results]:::out
+
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
+    classDef error fill:#F44336,color:#fff
+    classDef extern fill:#607D8B,color:#fff
 ```
 
 ### List Deployments

@@ -93,26 +93,32 @@ Cross-family distillation (e.g., YOLO11 teacher with YOLO26 student) is **not su
 
 ```mermaid
 flowchart TD
-    A[Input Image Batch] --> T[Teacher Model<br/>frozen, eval mode]
-    A --> S[Student Model<br/>trainable]
+    A[Input Image Batch]:::start --> T[Teacher Model<br/>frozen, eval mode]:::extern
+    A --> S[Student Model<br/>trainable]:::proc
 
-    T --> |Detect head inputs| TF[Teacher Features]
-    S --> |Detect head inputs| SF[Student Features]
+    T --> |Detect head inputs| TF[Teacher Features]:::extern
+    S --> |Detect head inputs| SF[Student Features]:::proc
 
-    SF --> P[1×1 Conv Projector<br/>with ReLU]
-    P --> AF[Aligned Student Features]
+    SF --> P[1×1 Conv Projector<br/>with ReLU]:::decide
+    P --> AF[Aligned Student Features]:::proc
 
-    TF --> SW[Score-weighted L2 Loss]
+    TF --> SW[Score-weighted L2 Loss]:::proc
     AF --> SW
 
-    S --> D[Detection Head]
-    D --> DL[box_loss + cls_loss + dfl_loss]
+    S --> D[Detection Head]:::proc
+    D --> DL[box_loss + cls_loss + dfl_loss]:::proc
 
-    SW --> |× dis| DIS[distillation loss]
-    DL --> TOTAL[Total Loss]
+    SW --> |× dis| DIS[distillation loss]:::proc
+    DL --> TOTAL[Total Loss]:::out
     DIS --> TOTAL
 
-    TOTAL --> BP[Backpropagate<br/>Student + Projector only]
+    TOTAL --> BP[Backpropagate<br/>Student + Projector only]:::out
+
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef decide fill:#FF9800,color:#fff
+    classDef out fill:#9C27B0,color:#fff
+    classDef extern fill:#607D8B,color:#fff
 ```
 
 ## Task Support

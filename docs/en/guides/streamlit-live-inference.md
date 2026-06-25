@@ -51,9 +51,11 @@ Streamlit makes it simple to build and deploy interactive web applications. Comb
         yolo solutions inference
 
         yolo solutions inference model="path/to/model.pt"
+
+        yolo solutions help # list the available solution commands and arguments
         ```
 
-        These commands launch the default Streamlit interface that ships with Ultralytics. Use `yolo solutions help` to view the available solution commands and arguments.
+        These commands launch the default Streamlit interface that ships with Ultralytics.
 
     === "Python"
 
@@ -88,19 +90,6 @@ The application provides a clean, user-friendly interface with controls to adjus
 By following this guide, you have successfully created a real-time object detection application using Streamlit and Ultralytics YOLO26. This application allows you to experience the power of YOLO26 in detecting objects through your webcam, with a user-friendly interface and the ability to stop the video stream at any time.
 
 For further enhancements, you can explore adding more features such as recording the video stream, saving the annotated frames, or integrating with other [computer vision libraries](https://www.ultralytics.com/blog/exploring-vision-ai-frameworks-tensorflow-pytorch-and-opencv).
-
-## Share Your Thoughts with the Community
-
-Engage with the community to learn more, troubleshoot issues, and share your projects:
-
-### Where to Find Help and Support
-
-- **GitHub Issues:** Visit the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics/issues) to raise questions, report bugs, and suggest features.
-- **Ultralytics Discord Server:** Join the [Ultralytics Discord server](https://discord.com/invite/ultralytics) to connect with other users and developers, get support, share knowledge, and brainstorm ideas.
-
-### Official Documentation
-
-- **Ultralytics YOLO26 Documentation:** Refer to the [official YOLO26 documentation](../index.md) for comprehensive guides and insights on various computer vision tasks and projects.
 
 ## FAQ
 

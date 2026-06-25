@@ -470,6 +470,7 @@ _OOD_CSV_FIELDS = ["epoch", "category", "mode", "mAP10", "mAP25", "mAP50", "mAP5
 _MVTEC_ROOT_CANDIDATES = (
     "/data/shared-datasets/louis_data/MVTec-YOLO",
     "/Users/louis/workspace/ultra_louis_work/buffer/AnomalyData/MVTEC/MVTec-YOLO",
+    "/home/laughing/codes/datasets/MVTec-YOLO",
 )
 
 

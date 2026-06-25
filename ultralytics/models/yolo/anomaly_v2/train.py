@@ -391,8 +391,7 @@ class AnomalyV2Trainer(DetectionTrainer):
             trainer._mb_batch = None
             LOGGER.warning("MoCo bank: no features captured during initial fill; queue disabled.")
             return
-        if mb.auto_temperature:
-            mb.temperature = mb.estimate_temperature()
+        mb.temperature = mb.estimate_temperature()
         n_valid = int((mb.memory_bank.norm(dim=1) > 0).sum())
         LOGGER.info(f"MoCo bank ready: {n_valid}/{cap} slots filled, temperature={mb.temperature:.4f}")
         # Point the EMA model's bank at the live queue (shared tensor) so validation and

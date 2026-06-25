@@ -849,19 +849,20 @@ class YOLOAnomalyV2Model(DetectionModel):
         bb_temperature = float(v2_cfg.get("bb_temperature", 3.0))
         bb_K = int(v2_cfg.get("bb_K", 5))
         bb_max_bank_size = v2_cfg.get("bb_max_bank_size", None)
-        bb_auto_temperature = bool(v2_cfg.get("bb_auto_temperature", True))
         bb_calibration_target = float(v2_cfg.get("bb_calibration_target_score", 0.2))
-        bb_calibrate = str(v2_cfg.get("bb_calibrate", "auto"))
+        bb_calibration_quantile = float(v2_cfg.get("bb_calibration_target_quantile", 0.95))
         bb_proj_dim = int(v2_cfg.get("bb_proj_dim", 0))
+        bb_hmap_stretch = float(v2_cfg.get("bb_hmap_stretch_strength", 0.0))
         self.memory_bank = (
             BackboneMemoryBank(
                 temperature=bb_temperature,
                 K=bb_K,
                 max_bank_size=bb_max_bank_size,
-                auto_temperature=bb_auto_temperature,
                 calibration_target_score=bb_calibration_target,
-                calibrate=bb_calibrate,
+                calibration_target_quantile=bb_calibration_quantile,
                 proj_dim=bb_proj_dim,
+                hmap_stretch_strength=bb_hmap_stretch,
+                holdout_max=int(v2_cfg.get("bb_holdout_max", 5000)),
         )
             if bb_layers
             else None
@@ -1092,10 +1093,6 @@ class YOLOAnomalyV2Model(DetectionModel):
                 self._ingest_support_batch(chunk, device, mb)
                 n_ingested += len(chunk)
                 chunk.clear()
-                # Live temperature estimate (auto mode only; compactness calibrates after coreset)
-                if mb.calibrate != "compactness" and mb.auto_temperature and n_ingested >= 4:
-                    live_temp = mb.estimate_temperature()
-                    pbar.set_postfix(temp=f"{live_temp:.3f}")
         if chunk:
             self._ingest_support_batch(chunk, device, mb)
             n_ingested += len(chunk)
@@ -1103,12 +1100,10 @@ class YOLOAnomalyV2Model(DetectionModel):
         mb.freeze_memory_bank()
         final_size = mb.memory_bank.shape[0]
         if verbose:
-            temp = f"{mb.temperature:.4f}" if mb.auto_temperature else f"{mb.temperature}"
-            auto_tag = " (auto-calibrated)" if mb.auto_temperature else ""
             LOGGER.info(
                 f"Memory bank frozen: {final_size} features, dim={mb.feature_dim}\n"
-                f"  config: calibrate={mb.calibrate}, temp={temp}{auto_tag}, K={mb.K}, "
-                f"thresh={mb.accumulate_thresh}, max_bank={mb.max_bank_size or 'unlimited'}, "
+                f"  config: temp={mb.temperature:.4f}, K={mb.K}, "
+                f"max_bank={mb.max_bank_size or 'unlimited'}, holdout_max={mb.holdout_max}, "
                 f"bb_layers={self._bb_layers}"
             )
         if fit_disc:

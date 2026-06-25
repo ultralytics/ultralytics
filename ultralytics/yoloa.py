@@ -44,15 +44,21 @@ _ADVANCED_PRIORS = ("segment", "seg_heatmap", "cached")
 # imgsz / max_images are build inputs (not part of the model yaml).
 FIT_KEYS = (
     "imgsz", "max_images", "bb_layers", "bb_max_bank_size", "bb_K", "bb_proj_dim",
-    "bb_calibrate", "bb_temperature", "bb_auto_temperature", "bb_calibration_target_score",
+    "bb_temperature",
+    "bb_calibration_target_score", "bb_calibration_target_quantile",
+    "bb_hmap_stretch_strength",
+    "bb_holdout_max",
 )
 
 # fit-key -> BackboneMemoryBank attribute it sets (bb_layers handled separately: it re-taps).
 _BB_TO_MB = {
-    "bb_max_bank_size": "max_bank_size", "bb_K": "K", "bb_calibrate": "calibrate",
-    "bb_temperature": "temperature", "bb_auto_temperature": "auto_temperature",
+    "bb_max_bank_size": "max_bank_size", "bb_K": "K",
+    "bb_temperature": "temperature",
     "bb_calibration_target_score": "calibration_target_score",
+    "bb_calibration_target_quantile": "calibration_target_quantile",
     "bb_proj_dim": "proj_dim",
+    "bb_hmap_stretch_strength": "hmap_stretch_strength",
+    "bb_holdout_max": "holdout_max",
 }
 
 # Prior-shaping knobs set on the model before forward. Accepts canonical names and short aliases.

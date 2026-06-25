@@ -649,23 +649,21 @@ class BackboneMemoryBank(nn.Module):
         self,
         temperature: float = 3.0,
         K: int = 5,
-        accumulate_thresh: float = 0.4,
-        score_filter_kernel: int = 1,
         max_bank_size: int | None = None,
-        auto_temperature: bool = True,
         calibration_target_score: float = 0.2,
-        calibrate: str = "auto",
+        calibration_target_quantile: float = 0.95,
         proj_dim: int = 0,
+        hmap_stretch_strength: float = 0.0,
+        holdout_max: int = 5000,
     ):
         super().__init__()
         self.temperature = float(temperature)
         self.K = int(K)
-        self.accumulate_thresh = float(accumulate_thresh)
-        self.score_filter_kernel = int(score_filter_kernel)
         self.max_bank_size = max_bank_size
-        self.auto_temperature = bool(auto_temperature)
         self.calibration_target_score = float(calibration_target_score)
-        self.calibrate = calibrate
+        self.calibration_target_quantile = float(calibration_target_quantile)
+        self.hmap_stretch_strength = float(hmap_stretch_strength)
+        self.holdout_max = int(holdout_max)
         self._calibrated = False
         self.proj_dim = int(proj_dim)
         self.register_buffer("memory_bank", torch.empty(0, 0), persistent=True)
@@ -674,6 +672,8 @@ class BackboneMemoryBank(nn.Module):
         self.update = True
         self._bb_layer_indices: list[int] = []
         self._bank_chunks: list[torch.Tensor] = []
+        self._compactness: float | None = None  # normal-manifold tightness from coreset
+        self._threshold: float | None = None     # sigmoid threshold in d_norm space
         self.score_chunk_elems = 1 << 27  # max elements per similarity slice in _anomaly_scores
 
     @property
@@ -687,6 +687,16 @@ class BackboneMemoryBank(nn.Module):
             self.proj_dim = 0
         if "_proj_weight" not in self._buffers:
             self.register_buffer("_proj_weight", torch.empty(0, 0), persistent=True)
+        if not hasattr(self, "_compactness"):
+            self._compactness = None
+        if not hasattr(self, "_threshold"):
+            self._threshold = None
+        if not hasattr(self, "calibration_target_quantile"):
+            self.calibration_target_quantile = 0.95
+        if not hasattr(self, "hmap_stretch_strength"):
+            self.hmap_stretch_strength = 0.0
+        if not hasattr(self, "holdout_max"):
+            self.holdout_max = 5000
 
     def _apply(self, fn, recurse=True):
         """Keep the de-buffered FIFO queue in sync with ``.to()``/``.float()``/``.half()``.
@@ -712,31 +722,30 @@ class BackboneMemoryBank(nn.Module):
         self.memory_bank = F.normalize(features.to(self.memory_bank.device), p=2, dim=1)
 
     def freeze_memory_bank(self) -> None:
-        """Compress, optionally calibrate, and freeze the bank for inference.
-
-        Two calibration strategies (set via ``self.calibrate``):
-
-        * ``"auto"`` — sample from the full bank and calibrate β (skips coreset).
-        * ``"compactness"`` — greedy k-centre coreset first, then measure local
-          neighbour density on the coreset to calibrate β.  Because the coreset
-          represents the normal manifold compactness, scores naturally map to [0, 1].
-        """
+        """Coreset-compress, calibrate via compactness + holdout, then freeze the bank."""
         if self._bank_chunks:
             self.memory_bank = torch.cat(self._bank_chunks, dim=0)
             self._bank_chunks.clear()
         mem = self._effective_bank()
-        if self.calibrate == "compactness":
-            # Coreset first, then calibrate from its spatial compactness.
-            if self.max_bank_size is not None and mem.shape[0] > self.max_bank_size:
-                self.memory_bank = self._coreset_subsample(mem, self.max_bank_size)
-            mem = self._effective_bank()
-            if mem.shape[0] > 0:
-                self._calibrate_compactness(mem)
-        elif self.auto_temperature and mem.shape[0] > 0:
-            self._calibrate_temperature(mem)
+
+        # Coreset subsample, collect holdout (features not selected into coreset)
+        holdout = None
         if self.max_bank_size is not None and mem.shape[0] > self.max_bank_size:
-            if not self.auto_temperature and self.calibrate != "compactness":
-                self.memory_bank = self._coreset_subsample(mem, self.max_bank_size)
+            self.memory_bank, coreset_idx = self._coreset_subsample(
+                mem, self.max_bank_size, return_indices=True)
+            holdout_mask = torch.ones(mem.shape[0], dtype=torch.bool, device=mem.device)
+            holdout_mask[coreset_idx] = False
+            holdout = mem[holdout_mask]
+        mem = self._effective_bank()
+
+        if mem.shape[0] > 0:
+            self._calibrate_compactness(mem)
+            if holdout is not None and holdout.shape[0] > 0:
+                if holdout.shape[0] > self.holdout_max:
+                    idx = torch.randperm(holdout.shape[0], device=holdout.device)[:self.holdout_max]
+                    holdout = holdout[idx]
+                self._calibrate_threshold_from_holdout(holdout, mem)
+
         self.update = False
 
     def reset_memory_bank(self) -> None:
@@ -744,6 +753,8 @@ class BackboneMemoryBank(nn.Module):
         self.memory_bank = torch.empty(0, 0, device=self.memory_bank.device)
         self.feature_dim = None
         self._calibrated = False
+        self._compactness = None
+        self._threshold = None
         self.update = True
         self._bank_chunks: list[torch.Tensor] = []  # defer cat until freeze
 
@@ -866,7 +877,11 @@ class BackboneMemoryBank(nn.Module):
         bh, bw = fused.shape[2], fused.shape[3]
         flat = fused.permute(0, 2, 3, 1).reshape(-1, self.feature_dim)
         scores = self._anomaly_scores(flat, mem)  # [B*H*W]
-        return scores.view(b, 1, bh, bw)
+        hmap = scores.view(b, 1, bh, bw)
+        s = self.hmap_stretch_strength
+        if s:
+            hmap = (hmap + s * hmap * hmap).clamp(0, 1)
+        return hmap
 
     # ------------------------------------------------------------------
     # Internals
@@ -916,7 +931,7 @@ class BackboneMemoryBank(nn.Module):
         return fused
 
     def estimate_temperature(self) -> float:
-        """Estimate current auto-calibrated β from the bank WITHOUT modifying state."""
+        """Estimate β from the current bank WITHOUT modifying state (lightweight, for MoCo live estimate)."""
         import math
 
         mem = self._effective_bank()
@@ -935,62 +950,167 @@ class BackboneMemoryBank(nn.Module):
             beta = max(0.1, min(20.0, beta))
         return beta
 
-    def _calibrate_temperature(self, mem: torch.Tensor) -> None:
-        """Auto-calibrate β from the current memory bank.
+    def _measure_compactness(self, mem: torch.Tensor) -> float:
+        """Compute compactness from the bank without touching ``self.temperature``.
 
-        Solves for β such that the maximum mean top-K cosine similarity against
-        the bank scores ``calibration_target_score``.
-
-        Formula: β = −ln(1 − target) / (1 − s_max)
+        Used for lazy restore after state_dict load and by ``_calibrate_compactness``.
         """
-        old_temp = self.temperature
-        beta = self.estimate_temperature()
-        self.temperature = beta
-        self._calibrated = True
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.debug(
-            "BackboneMemoryBank: auto-calibrated temperature %.3f → %.3f  (target=%.2f)",
-            old_temp, beta, self.calibration_target_score,
-        )
-
-    def _calibrate_compactness(self, mem: torch.Tensor) -> None:
-        """Calibrate β from coreset spatial compactness.
-
-        Measures local neighbour density on the coreset: for each centre, compute
-        mean cosine similarity to its top-K neighbours within the coreset.
-        Global compactness = mean of these local densities.
-        β = −ln(1 − target) / (1 − compactness).
-
-        Because compactness reflects the true normal-manifold tightness (coreset
-        removes redundant features), the resulting β maps anomaly scores naturally
-        to [0, 1].
-        """
-        import math
-
         with torch.no_grad():
             k = min(self.K, mem.shape[0])
             n_sample = min(512, mem.shape[0])
             idx = torch.randperm(mem.shape[0], device=mem.device)[:n_sample]
             sample = mem[idx]
-            # cosine similarity of each sampled centre vs all coreset centres
             sim = sample @ mem.t()  # [n_sample, M]
-            # exclude self-match: sample i is mem[idx[i]], so its self-column is idx[i]
             sim[torch.arange(n_sample, device=mem.device), idx] = -1.0
-            topk_sim = sim.topk(k=k, dim=1).values  # [n_sample, k]
-            local_density = topk_sim.mean(dim=1)     # [n_sample] per-centre compactness
-            compactness = local_density.mean().clamp(0.0, 1.0 - 1e-4).item()
-        old_temp = self.temperature
-        beta = -math.log(1.0 - self.calibration_target_score) / max(1.0 - compactness, 1e-6)
-        beta = max(0.1, min(20.0, beta))
-        self.temperature = beta
+            topk_sim = sim.topk(k=k, dim=1).values
+            local_density = topk_sim.mean(dim=1)
+            return local_density.mean().clamp(0.0, 1.0 - 1e-4).item()
+
+    def _calibrate_compactness(self, mem: torch.Tensor) -> None:
+        """Measure compactness and calibrate sigmoid threshold in cosine space.
+
+        Compactness = mean local cosine density on the coreset.  The sigmoid
+        operates directly on cosine similarity so that the dynamic range is
+        never compressed by the bank spread:
+
+            psi = sigmoid(β × (cos − threshold_cos))
+
+        threshold_cos = compactness − logit(1−target)/β.
+
+        A normal query has cos ≈ compactness → psi ≈ 1−target → normal
+        anomaly score ≈ target.  β is the user-controlled ``temperature``.
+        """
+        import math
+
+        compactness = self._measure_compactness(mem)
+        self._compactness = compactness
+        beta = self.temperature
+        t = self.calibration_target_score
+        logit = math.log(max((1.0 - t) / max(t, 1e-6), 1e-6))
+        self._threshold = compactness - logit / max(beta, 0.1)
         self._calibrated = True
         import logging
         logger = logging.getLogger(__name__)
         logger.debug(
-            "BackboneMemoryBank: compactness-calibrated temp %.3f → %.3f  "
-            "(compactness=%.4f, target=%.2f)",
-            old_temp, beta, compactness, self.calibration_target_score,
+            "BackboneMemoryBank: compactness=%.4f  β=%.3f  threshold_cos=%.4f  target=%.2f",
+            compactness, beta, self._threshold, self.calibration_target_score,
+        )
+
+    def _score_with_threshold(self, features: torch.Tensor, mem: torch.Tensor,
+                              threshold_cos: float, beta: float | None = None) -> torch.Tensor:
+        """Compute anomaly scores with specific threshold & β (stateless, for calibration)."""
+        if beta is None:
+            beta = self.temperature
+        q = F.normalize(features.view(-1, self.feature_dim), p=2, dim=1)
+        k = min(self.K, mem.shape[0])
+        n, m = q.shape[0], mem.shape[0]
+        chunk = max(1, int(getattr(self, "score_chunk_elems", 1 << 27)) // max(m, 1))
+        out = []
+        for i in range(0, n, chunk):
+            cos = q[i: i + chunk] @ mem.t()
+            psi = torch.sigmoid(beta * (cos - threshold_cos))
+            topk = psi.topk(k=k, dim=1).values
+            log_prob = torch.log((1.0 - topk).clamp(min=1e-8)).mean(dim=1)
+            out.append(torch.exp(log_prob))
+        return torch.cat(out).clamp(0, 1)
+
+    def _calibrate_threshold_from_holdout(self, holdout: torch.Tensor,
+                                          mem: torch.Tensor) -> None:
+        """Calibrate β & threshold so p95 of hold-out normal scores ≈ target.
+
+        The user β is a sensitivity floor — it is never lowered.  For each
+        candidate β, binary-searches ``threshold_cos`` to put p95 at
+        ``calibration_target_score``, then picks the β that gives the tightest
+        normal-score distribution (smallest p95−p5).
+        """
+        import math
+        import logging
+        logger = logging.getLogger(__name__)
+
+        n_holdout = holdout.shape[0]
+        target = self.calibration_target_score
+        target_q = self.calibration_target_quantile  # e.g. 0.95 → 95% of normal scores ≤ target
+        c = self._compactness
+        beta0 = self.temperature
+
+        # β candidates: user β as floor, log-spaced upward
+        beta_candidates = [beta0]
+        n_extra = 8
+        for i in range(1, n_extra + 1):
+            b = beta0 * (10 ** (i / n_extra))
+            if b > 100:
+                break
+            beta_candidates.append(round(b, 4))
+
+        # Pre-compute cosine matrix and top-K once (sigmoid is monotonic,
+        # so the top-K indices of cos are identical to top-K of psi).
+        q_feats = F.normalize(holdout.view(-1, self.feature_dim), p=2, dim=1)
+        cos_mat = q_feats @ mem.t()  # [N_holdout, M]
+        k = min(self.K, mem.shape[0])
+        topk_cos = cos_mat.topk(k=k, dim=1).values  # [N_holdout, k] — only these matter
+
+        # z-score for the target quantile (√2 · erf⁻¹(2q−1))
+        z_q = math.sqrt(2) * torch.erfinv(
+            torch.tensor(2.0 * target_q - 1.0)).item()
+
+        def _scores_for(beta, thresh):
+            """Compute anomaly scores from pre-computed top-K cos values."""
+            psi = torch.sigmoid(beta * (topk_cos - thresh))
+            log_prob = torch.log((1.0 - psi).clamp(min=1e-8)).mean(dim=1)
+            return torch.exp(log_prob).clamp(0, 1)
+
+        def _tail_stat(scores):
+            """Gaussian tail: μ + z·σ."""
+            return scores.mean().item() + z_q * scores.std().item()
+
+        def _spread(scores):
+            """Score spread: standard deviation (smaller = tighter normal distribution)."""
+            return scores.std().item()
+
+        def _find_thresh(beta):
+            """Binary-search threshold so tail-stat ≈ target."""
+            half_range = 3.0 / max(beta, 0.1)
+            lo, hi = c - half_range, c + half_range
+            s_lo = _tail_stat(_scores_for(beta, lo))
+            s_hi = _tail_stat(_scores_for(beta, hi))
+            for _ in range(5):
+                if s_lo > target and lo > c - 5.0:
+                    lo -= half_range
+                    s_lo = _tail_stat(_scores_for(beta, lo))
+                if s_hi < target and hi < c + 5.0:
+                    hi += half_range
+                    s_hi = _tail_stat(_scores_for(beta, hi))
+            if not (s_lo <= target <= s_hi):
+                return None, float("inf"), float("inf")
+            for _ in range(20):
+                mid = (lo + hi) / 2
+                sm = _tail_stat(_scores_for(beta, mid))
+                if sm > target:
+                    hi = mid
+                else:
+                    lo = mid
+            thresh = (lo + hi) / 2
+            scores = _scores_for(beta, thresh)
+            achieved = _tail_stat(scores)
+            spread = _spread(scores)
+            return thresh, achieved, spread
+
+        best_beta, best_thresh, best_achieved, best_spread = beta0, c, float("inf"), float("inf")
+        for beta in beta_candidates:
+            thresh, achieved, spread = _find_thresh(beta)
+            if thresh is not None and spread < best_spread:
+                best_spread, best_achieved, best_beta, best_thresh = spread, achieved, beta, thresh
+
+        old_beta = self.temperature
+        self.temperature = best_beta
+        self._threshold = best_thresh
+        logger.debug(
+            "BackboneMemoryBank: gauss calibration  n=%d  q=%.2f  z=%.4f  "
+            "β %.3f→%.3f  thresh(formula)=%.4f→(holdout)=%.4f  "
+            "target=%.2f→achieved=%.4f  spread=%.4f",
+            n_holdout, target_q, z_q, old_beta, best_beta,
+            c - math.log(max((1.0 - target) / max(target, 1e-6), 1e-6)) / max(old_beta, 0.1),
+            best_thresh, target, best_achieved, best_spread,
         )
 
     def _anomaly_scores(self, features: torch.Tensor, mem: torch.Tensor | None = None) -> torch.Tensor:
@@ -1007,28 +1127,38 @@ class BackboneMemoryBank(nn.Module):
             mem = self._effective_bank()
         if mem.numel() == 0 or mem.shape[0] == 0:
             return torch.full((features.shape[0],), 0.5, device=features.device)
+        # Lazy recompute after state_dict load (compactness/threshold are not persisted)
+        if self._compactness is None and self._calibrated:
+            self._compactness = self._measure_compactness(mem)
+            self._threshold = None  # force recompute below
+        if self._threshold is None and self._compactness is not None:
+            import math
+            t = self.calibration_target_score
+            logit = math.log(max((1.0 - t) / max(t, 1e-6), 1e-6))
+            self._threshold = self._compactness - logit / max(self.temperature, 0.1)
         q = F.normalize(features.view(-1, self.feature_dim), p=2, dim=1)
         k = min(self.K, mem.shape[0])
         n, m = q.shape[0], mem.shape[0]
-        # Chunk over query rows so the [chunk, M] similarity slice stays bounded (~0.5 GB fp32).
-        # Row-wise ops only, so chunking is exact. A 1M-entry bank with a 51k-query batch would
-        # otherwise materialize a 100+ GB matrix.
         chunk = max(1, int(getattr(self, "score_chunk_elems", 1 << 27)) // max(m, 1))
+        use_sigmoid = self._threshold is not None and self._compactness is not None
+        beta = self.temperature
         out = []
         for i in range(0, n, chunk):
-            sim = q[i : i + chunk] @ mem.t()  # [chunk, M]
+            cos = q[i : i + chunk] @ mem.t()  # [chunk, M] cosine similarities
             if self.training:
-                # FIFO-queue training: a query patch finding its own enqueued copy scores ~0
-                # anomaly, leaking a too-clean prior. -inf -> psi=0 -> drops out of top-K.
-                sim = sim.masked_fill(sim > 0.999, float("-inf"))
-            sim = torch.exp(-self.temperature * (1 - sim))  # psi(x) = exp(-beta*(1-cos))
-            topk_sim = sim.topk(k=k, dim=1).values  # [chunk, k]
-            log_prob = torch.log((1 - topk_sim).clamp(min=1e-8)).mean(dim=1)
+                cos = cos.masked_fill(cos > 0.999, float("-inf"))
+            if use_sigmoid:
+                psi = torch.sigmoid(beta * (cos - self._threshold))  # cos-space sigmoid
+            else:
+                psi = torch.exp(-beta * (1.0 - cos))  # legacy exp, un-normalized
+            topk = psi.topk(k=k, dim=1).values  # [chunk, k]
+            log_prob = torch.log((1.0 - topk).clamp(min=1e-8)).mean(dim=1)
             out.append(torch.exp(log_prob))
         return torch.cat(out).clamp(0, 1)
 
     @staticmethod
-    def _coreset_subsample(mem: torch.Tensor, max_size: int) -> torch.Tensor:
+    def _coreset_subsample(mem: torch.Tensor, max_size: int,
+                           return_indices: bool = False):
         """Greedy k-center coreset on L2-normalised features using cosine distance.
 
         Complexity: O(max_size × M). Features must be L2-normalised.
@@ -1038,12 +1168,21 @@ class BackboneMemoryBank(nn.Module):
         large bank read over multiple centres and trading a small amount of
         greediness for a large wall-clock speedup on memory-bandwidth-limited
         devices (MPS / CPU).
+
+        Args:
+            mem: [M, C] L2-normalised feature bank.
+            max_size: Target coreset size.
+            return_indices: If True, also return the indices of selected rows.
+
+        Returns:
+            Coreset tensor, or (coreset, indices) if ``return_indices``.
         """
         from ultralytics.utils import TQDM
 
         M = mem.shape[0]
         if M <= max_size:
-            return mem
+            idx = torch.arange(M, device=mem.device)
+            return (mem, idx) if return_indices else mem
         device = mem.device
         BATCH = 64  # centres per GEMM call — amortizes bank reads
         dist = torch.full((M,), float("inf"), device=device, dtype=torch.float32)
@@ -1069,7 +1208,8 @@ class BackboneMemoryBank(nn.Module):
             n_needed = max_size - len(selected)
             pbar.update(k)
         pbar.close()
-        return mem[torch.tensor(selected, device=device)]
+        sel = torch.tensor(selected, device=device)
+        return (mem[sel], sel) if return_indices else mem[sel]
 
 
 class LearnedScorer(nn.Module):

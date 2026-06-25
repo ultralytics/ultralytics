@@ -29,18 +29,22 @@ The Platform provides an end-to-end workflow:
 ```mermaid
 graph LR
     subgraph Data["📁 Data"]
-        A[Upload] --> B[Annotate]
-        B --> C[Analyze]
+        A[Upload]:::start --> B[Annotate]:::proc
+        B --> C[Analyze]:::proc
     end
     subgraph Train["🚀 Train"]
-        D[Configure] --> E[Train on GPU]
-        E --> F[View Metrics]
+        D[Configure]:::proc --> E[Train on GPU]:::proc
+        E --> F[View Metrics]:::out
     end
     subgraph Deploy["🌐 Deploy"]
-        G[Export] --> H[Deploy Endpoint]
-        H --> I[Monitor]
+        G[Export]:::proc --> H[Deploy Endpoint]:::proc
+        H --> I[Monitor]:::out
     end
     Data --> Train --> Deploy
+
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 | Stage        | Features                                                                                                                                                                                                               |
@@ -90,15 +94,20 @@ You select your region during onboarding, and all your data, models, and deploym
 
 ```mermaid
 graph LR
-    A[Upload Dataset/Images/Video] --> B[Auto-Process]
-    B --> C[Browse & Filter]
-    C --> D{Annotate}
-    D --> E[Manual Tools]
-    D --> F[SAM Smart]
-    D --> G[YOLO Auto-Label]
-    E --> H[Train-Ready Dataset]
+    A[Upload Dataset/Images/Video]:::start --> B[Auto-Process]:::proc
+    B --> C[Browse & Filter]:::proc
+    C --> D{Annotate}:::decide
+    D --> E[Manual Tools]:::proc
+    D --> F[SAM Smart]:::proc
+    D --> G[YOLO Auto-Label]:::proc
+    E --> H[Train-Ready Dataset]:::out
     F --> H
     G --> H
+
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef decide fill:#FF9800,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 !!! tip "Supported Task Types"
@@ -163,14 +172,19 @@ You can train models either through the web UI (cloud training) or from your own
 
 ```mermaid
 graph LR
-    A[Trained Model] --> B{Action}
-    B --> C[Browser Predict]
-    B --> D[Export Format]
-    B --> E[Deploy Endpoint]
-    D --> F[ONNX / TensorRT / CoreML / LiteRT / ...]
-    E --> G[43 Global Regions]
-    G --> H[API Endpoint URL]
-    H --> I[Monitor & Scale]
+    A[Trained Model]:::start --> B{Action}:::decide
+    B --> C[Browser Predict]:::proc
+    B --> D[Export Format]:::proc
+    B --> E[Deploy Endpoint]:::proc
+    D --> F[ONNX / TensorRT / CoreML / LiteRT / ...]:::out
+    E --> G[43 Global Regions]:::proc
+    G --> H[API Endpoint URL]:::proc
+    H --> I[Monitor & Scale]:::out
+
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef decide fill:#FF9800,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 Once deployed, call your endpoint from any language:

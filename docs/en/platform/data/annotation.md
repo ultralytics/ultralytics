@@ -13,13 +13,16 @@ keywords: Ultralytics Platform, annotation, labeling, SAM, auto-annotation, boun
 ```mermaid
 graph TB
     subgraph Manual["Manual Tools"]
-        A[Box] & B[Polygon] & C[Keypoint] & D[OBB] & E[Classify]
+        A[Box]:::start & B[Polygon]:::start & C[Keypoint]:::start & D[OBB]:::start & E[Classify]:::start
     end
     subgraph AI["AI-Assisted"]
-        F[SAM Smart]
+        F[SAM Smart]:::start
     end
-    Manual --> H[Save Labels]
+    Manual --> H[Save Labels]:::out
     AI --> H
+
+    classDef start fill:#4CAF50,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 ## Supported Task Types
@@ -106,16 +109,16 @@ To annotate images:
 
 ```mermaid
 graph LR
-    A[Open Dataset] --> B[Click Image]
-    B --> C[Click Edit]
-    C --> D[Draw Annotations]
-    D --> E[Save]
-    E --> F[Next Image]
+    A[Open Dataset]:::start --> B[Click Image]:::proc
+    B --> C[Click Edit]:::proc
+    C --> D[Draw Annotations]:::proc
+    D --> E[Save]:::out
+    E --> F[Next Image]:::proc
     F --> B
 
-    style C fill:#2196F3,color:#fff
-    style D fill:#FF9800,color:#fff
-    style E fill:#4CAF50,color:#fff
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 ## Annotation Modes
@@ -252,19 +255,19 @@ With a SAM model selected:
 
 ```mermaid
 graph LR
-    A[Press S] --> B[Left-click Object]
-    B --> C[SAM Generates Mask]
-    C --> D{Auto-apply?}
-    D -->|Yes| E[Mask Applied Automatically]
-    D -->|No| F{Accurate?}
-    F -->|Yes| G[Enter to Save]
-    F -->|No| H[Add +/- Points]
+    A[Press S]:::start --> B[Left-click Object]:::proc
+    B --> C[SAM Generates Mask]:::proc
+    C --> D{Auto-apply?}:::decide
+    D -->|Yes| E[Mask Applied Automatically]:::out
+    D -->|No| F{Accurate?}:::decide
+    F -->|Yes| G[Enter to Save]:::out
+    F -->|No| H[Add +/- Points]:::proc
     H --> C
 
-    style A fill:#2196F3,color:#fff
-    style C fill:#FF9800,color:#fff
-    style E fill:#4CAF50,color:#fff
-    style G fill:#4CAF50,color:#fff
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef decide fill:#FF9800,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 !!! tip "SAM Tips"

@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import numpy as np
 
 
@@ -124,12 +126,14 @@ class KalmanFilterXYAH:
 
         return mean, covariance
 
-    def project(self, mean: np.ndarray, covariance: np.ndarray):
+    def project(self, mean: np.ndarray, covariance: np.ndarray, confidence: float | None = None):
         """Project state distribution to measurement space.
 
         Args:
             mean (np.ndarray): The state's mean vector (8 dimensional array).
             covariance (np.ndarray): The state's covariance matrix (8x8 dimensional).
+            confidence (float, optional): Detection confidence; when set, scales measurement noise by
+                max(1 - confidence, 0.05) (NSA-Kalman).
 
         Returns:
             mean (np.ndarray): Projected mean of the given state estimate.
@@ -148,6 +152,8 @@ class KalmanFilterXYAH:
             self._std_weight_position * mean[3],
         ]
         innovation_cov = np.diag(np.square(std))
+        if confidence is not None:  # NSA-Kalman: scale measurement noise by detection confidence (StrongSORT)
+            innovation_cov *= max(1.0 - float(confidence), 0.05)
 
         mean = np.dot(self._update_mat, mean)
         covariance = np.linalg.multi_dot((self._update_mat, covariance, self._update_mat.T))
@@ -193,7 +199,9 @@ class KalmanFilterXYAH:
 
         return mean, covariance
 
-    def update(self, mean: np.ndarray, covariance: np.ndarray, measurement: np.ndarray):
+    def update(
+        self, mean: np.ndarray, covariance: np.ndarray, measurement: np.ndarray, confidence: float | None = None
+    ):
         """Run Kalman filter correction step.
 
         Args:
@@ -201,6 +209,8 @@ class KalmanFilterXYAH:
             covariance (np.ndarray): The state's covariance matrix (8x8 dimensional).
             measurement (np.ndarray): The 4 dimensional measurement vector (x, y, a, h), where (x, y) is the center
                 position, a the aspect ratio, and h the height of the bounding box.
+            confidence (float, optional): Detection confidence; when set, scales measurement noise by
+                max(1 - confidence, 0.05) (NSA-Kalman).
 
         Returns:
             new_mean (np.ndarray): Measurement-corrected state mean.
@@ -213,7 +223,7 @@ class KalmanFilterXYAH:
             >>> measurement = np.array([1, 1, 1, 1])
             >>> new_mean, new_covariance = kf.update(mean, covariance, measurement)
         """
-        projected_mean, projected_cov = self.project(mean, covariance)
+        projected_mean, projected_cov = self.project(mean, covariance, confidence)
 
         kalman_gain = np.linalg.solve(projected_cov, np.dot(covariance, self._update_mat.T).T).T
         innovation = measurement - projected_mean
@@ -384,12 +394,14 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
 
         return mean, covariance
 
-    def project(self, mean: np.ndarray, covariance: np.ndarray):
+    def project(self, mean: np.ndarray, covariance: np.ndarray, confidence: float | None = None):
         """Project state distribution to measurement space.
 
         Args:
             mean (np.ndarray): The state's mean vector (8 dimensional array).
             covariance (np.ndarray): The state's covariance matrix (8x8 dimensional).
+            confidence (float, optional): Detection confidence; when set, scales measurement noise by
+                max(1 - confidence, 0.05) (NSA-Kalman).
 
         Returns:
             mean (np.ndarray): Projected mean of the given state estimate.
@@ -408,6 +420,8 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
             self._std_weight_position * mean[3],
         ]
         innovation_cov = np.diag(np.square(std))
+        if confidence is not None:  # NSA-Kalman: scale measurement noise by detection confidence (StrongSORT)
+            innovation_cov *= max(1.0 - float(confidence), 0.05)
 
         mean = np.dot(self._update_mat, mean)
         covariance = np.linalg.multi_dot((self._update_mat, covariance, self._update_mat.T))
@@ -453,7 +467,9 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
 
         return mean, covariance
 
-    def update(self, mean: np.ndarray, covariance: np.ndarray, measurement: np.ndarray):
+    def update(
+        self, mean: np.ndarray, covariance: np.ndarray, measurement: np.ndarray, confidence: float | None = None
+    ):
         """Run Kalman filter correction step.
 
         Args:
@@ -461,6 +477,8 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
             covariance (np.ndarray): The state's covariance matrix (8x8 dimensional).
             measurement (np.ndarray): The 4 dimensional measurement vector (x, y, w, h), where (x, y) is the center
                 position, w the width, and h the height of the bounding box.
+            confidence (float, optional): Detection confidence; when set, scales measurement noise by
+                max(1 - confidence, 0.05) (NSA-Kalman).
 
         Returns:
             new_mean (np.ndarray): Measurement-corrected state mean.
@@ -473,4 +491,4 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
             >>> measurement = np.array([0.5, 0.5, 1.2, 1.2])
             >>> new_mean, new_covariance = kf.update(mean, covariance, measurement)
         """
-        return super().update(mean, covariance, measurement)
+        return super().update(mean, covariance, measurement, confidence)

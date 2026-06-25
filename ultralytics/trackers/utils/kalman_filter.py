@@ -132,8 +132,8 @@ class KalmanFilterXYAH:
         Args:
             mean (np.ndarray): The state's mean vector (8 dimensional array).
             covariance (np.ndarray): The state's covariance matrix (8x8 dimensional).
-            confidence (float, optional): Detection confidence; when set, scales measurement noise by
-                max(1 - confidence, 0.05) (NSA-Kalman).
+            confidence (float, optional): Detection confidence; when set, scales measurement noise by max(1 -
+                confidence, 0.05) (NSA-Kalman).
 
         Returns:
             mean (np.ndarray): Projected mean of the given state estimate.
@@ -209,8 +209,8 @@ class KalmanFilterXYAH:
             covariance (np.ndarray): The state's covariance matrix (8x8 dimensional).
             measurement (np.ndarray): The 4 dimensional measurement vector (x, y, a, h), where (x, y) is the center
                 position, a the aspect ratio, and h the height of the bounding box.
-            confidence (float, optional): Detection confidence; when set, scales measurement noise by
-                max(1 - confidence, 0.05) (NSA-Kalman).
+            confidence (float, optional): Detection confidence; when set, scales measurement noise by max(1 -
+                confidence, 0.05) (NSA-Kalman).
 
         Returns:
             new_mean (np.ndarray): Measurement-corrected state mean.
@@ -400,8 +400,8 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
         Args:
             mean (np.ndarray): The state's mean vector (8 dimensional array).
             covariance (np.ndarray): The state's covariance matrix (8x8 dimensional).
-            confidence (float, optional): Detection confidence; when set, scales measurement noise by
-                max(1 - confidence, 0.05) (NSA-Kalman).
+            confidence (float, optional): Detection confidence; when set, scales measurement noise by max(1 -
+                confidence, 0.05) (NSA-Kalman).
 
         Returns:
             mean (np.ndarray): Projected mean of the given state estimate.
@@ -477,8 +477,8 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
             covariance (np.ndarray): The state's covariance matrix (8x8 dimensional).
             measurement (np.ndarray): The 4 dimensional measurement vector (x, y, w, h), where (x, y) is the center
                 position, w the width, and h the height of the bounding box.
-            confidence (float, optional): Detection confidence; when set, scales measurement noise by
-                max(1 - confidence, 0.05) (NSA-Kalman).
+            confidence (float, optional): Detection confidence; when set, scales measurement noise by max(1 -
+                confidence, 0.05) (NSA-Kalman).
 
         Returns:
             new_mean (np.ndarray): Measurement-corrected state mean.

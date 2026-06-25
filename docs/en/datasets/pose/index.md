@@ -2,6 +2,7 @@
 comments: true
 description: Learn about Ultralytics YOLO format for pose estimation datasets, supported formats, COCO-Pose, COCO8-Pose, Tiger-Pose, and how to add your own dataset.
 keywords: pose estimation, Ultralytics, YOLO format, COCO-Pose, COCO8-Pose, Tiger-Pose, dataset conversion, keypoints
+title: Pose Estimation Datasets
 ---
 
 # Pose Estimation Datasets Overview

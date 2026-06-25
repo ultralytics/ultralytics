@@ -457,7 +457,7 @@ def test_export_executorch_matrix(task):
 
 @pytest.mark.slow
 @pytest.mark.skipif(not TORCH_2_8 or TORCH_2_12, reason="Axelera export requires 2.8.0<=torch<2.12.0")
-@pytest.mark.skipif(checks.IS_PYTHON_MINIMUM_3_13, reason="Axelera devkit 1.6.0 does not support Python 3.13")
+@pytest.mark.skipif(checks.IS_PYTHON_MINIMUM_3_13, reason="Axelera devkit 1.7.0 does not support Python 3.13")
 @pytest.mark.skipif(
     not LINUX or (ARM64 and IS_DOCKER),
     reason="Axelera export is only supported on Linux and is not supported on ARM64 Docker",

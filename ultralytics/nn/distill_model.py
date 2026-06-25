@@ -9,7 +9,7 @@ import torch.nn.functional as F
 from torch import nn
 
 from ultralytics.nn.modules.head import Detect
-from ultralytics.utils.torch_utils import copy_attr, smart_inference_mode
+from ultralytics.utils.torch_utils import copy_attr
 
 from .tasks import load_checkpoint
 
@@ -83,13 +83,12 @@ class DistillationModel(nn.Module):
         # Get feature dimensions via dummy forward pass (hooks capture outputs)
         imgsz = student_model.args.imgsz
         student_model.eval()
-        with smart_inference_mode():
+        with torch.no_grad():
             teacher_model(torch.zeros(2, 3, imgsz, imgsz).to(device))
             student_model(torch.zeros(2, 3, imgsz, imgsz).to(device))
         student_model.train()
         teacher_output = [self._teacher_feats[idx] for idx in self.feats_idx]
         student_output = [self._student_feats[idx] for idx in self.feats_idx]
-        assert len(teacher_output) == len(student_output), "Feature dimensions must match in length."
 
         self.split_sizes = []
         for tf in teacher_output[:-1]:
@@ -227,9 +226,7 @@ class DistillationModel(nn.Module):
         teacher_scores = tuple(p.sigmoid().max(dim=1, keepdim=True).values for p in parts)
         for i, feat_idx in enumerate(self.feats_idx[:-1]):
             teacher_feat = self.decouple_outputs(self._teacher_feats[feat_idx])
-            student_feat = self.decouple_outputs(self._student_feats[feat_idx])
-            if student_feat.ndim == 4:
-                student_feat = self.projector[i](student_feat)
+            student_feat = self.projector[i](self.decouple_outputs(self._student_feats[feat_idx]))
             loss_distill += (
                 self.loss_sl2(student_feat, teacher_feat, feat_idx=i, teacher_scores=teacher_scores) * self.dis
             )

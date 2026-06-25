@@ -36,16 +36,14 @@ The Training section helps you:
 
 ```mermaid
 graph LR
-    A[📁 Project] --> B[⚙️ Configure]
-    B --> C[🚀 Train]
-    C --> D[📈 Monitor]
-    D --> E[📦 Export]
+    A[📁 Project]:::start --> B[⚙️ Configure]:::proc
+    B --> C[🚀 Train]:::proc
+    C --> D[📈 Monitor]:::proc
+    D --> E[📦 Export]:::out
 
-    style A fill:#4CAF50,color:#fff
-    style B fill:#2196F3,color:#fff
-    style C fill:#FF9800,color:#fff
-    style D fill:#9C27B0,color:#fff
-    style E fill:#00BCD4,color:#fff
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 | Stage         | Description                                                                |
@@ -86,16 +84,15 @@ During training, view live metrics across three subtabs:
 
 ```mermaid
 graph LR
-    A[Charts] --> B[Loss Curves]
-    A --> C[Performance Metrics]
-    D[Console] --> E[Live Logs]
-    D --> F[Error Detection]
-    G[System] --> H[GPU Utilization]
-    G --> I[Memory & Temp]
+    A[Charts]:::start --> B[Loss Curves]:::out
+    A --> C[Performance Metrics]:::out
+    D[Console]:::start --> E[Live Logs]:::out
+    D --> F[Error Detection]:::out
+    G[System]:::start --> H[GPU Utilization]:::out
+    G --> I[Memory & Temp]:::out
 
-    style A fill:#2196F3,color:#fff
-    style D fill:#FF9800,color:#fff
-    style G fill:#9C27B0,color:#fff
+    classDef start fill:#4CAF50,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 | Subtab      | Metrics                                                |

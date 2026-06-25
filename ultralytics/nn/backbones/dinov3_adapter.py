@@ -2,8 +2,12 @@
 
 from __future__ import annotations
 
+import importlib
+import inspect
 import os
+import sys
 from pathlib import Path
+from types import ModuleType
 from urllib.error import HTTPError
 from urllib.parse import urlparse
 
@@ -16,7 +20,7 @@ from ultralytics.utils import LOGGER
 from .dinov3 import DinoVisionTransformer, WindowedDinoVisionTransformer
 from .dinov3.vision_transformer import configs as dinov3_configs
 
-__all__ = ["DINOv3", "DINOv3STAs"]
+__all__ = ["DINOv3", "DINOv3ConvNeXt", "DINOv3STAs"]
 
 
 # Official DINOv3 checkpoint hash suffixes (from facebookresearch/dinov3 hub/backbones.py).
@@ -326,4 +330,152 @@ class DINOv3(DINOv3STAs):
 
     def forward(self, x: torch.Tensor) -> list[torch.Tensor]:
         """Return native DINOv3 intermediate patch features as B,C,H,W maps."""
+        return list(self.dinov3.get_intermediate_layers(x, n=self.out_indices, reshape=True))
+
+
+def _candidate_dinov3_repos(repo_dir: str | None = None) -> list[Path]:
+    """Return likely local DINOv3 repository locations."""
+    candidates = []
+    for value in (repo_dir, os.getenv("DINOV3_REPO_DIR")):
+        if value:
+            candidates.append(Path(value).expanduser())
+    repo_root = Path(__file__).resolve().parents[3]
+    candidates.append(repo_root.parent / "dinov3")
+    return candidates
+
+
+def _import_dinov3_backbones(repo_dir: str | None = None) -> ModuleType:
+    """Import DINOv3 hub backbones from the environment or a local checkout."""
+    try:
+        return importlib.import_module("dinov3.hub.backbones")
+    except ModuleNotFoundError as original_error:
+        for path in _candidate_dinov3_repos(repo_dir):
+            if (path / "dinov3" / "hub" / "backbones.py").is_file():
+                path_str = str(path)
+                if path_str not in sys.path:
+                    sys.path.insert(0, path_str)
+                try:
+                    return importlib.import_module("dinov3.hub.backbones")
+                except ModuleNotFoundError:
+                    continue
+        raise ModuleNotFoundError(
+            "DINOv3 package was not found. Install DINOv3 or set DINOV3_REPO_DIR to the local DINOv3 repository."
+        ) from original_error
+
+
+def _normalize_dinov3_weights(backbones: ModuleType, weights: str | None):
+    """Convert optional weight aliases to DINOv3 hub values."""
+    weights = weights or os.getenv("DEIMV2_DINOV3_CONVNEXT_WEIGHTS")
+    if weights in {"", "none", "None", "null", "NULL"}:
+        return None
+    if weights is None:
+        return None
+
+    weights_enum = getattr(backbones, "Weights", None)
+    if weights_enum is not None:
+        upper = str(weights).upper()
+        if hasattr(weights_enum, upper):
+            return getattr(weights_enum, upper)
+    return weights
+
+
+def _make_dinov3_convnext_model(
+    name: str,
+    pretrained: bool,
+    weights: str | None,
+    repo_dir: str | None,
+) -> nn.Module:
+    """Build a DINOv3 ConvNeXt backbone, falling back to random init if pretrained loading fails."""
+    backbones = _import_dinov3_backbones(repo_dir)
+    if not hasattr(backbones, name):
+        raise ValueError(f"Unknown DINOv3 backbone '{name}'.")
+
+    factory = getattr(backbones, name)
+    normalized_weights = _normalize_dinov3_weights(backbones, weights)
+    kwargs = {}
+    if normalized_weights is not None:
+        kwargs["weights"] = normalized_weights
+    if "check_hash" in inspect.signature(factory).parameters:
+        kwargs["check_hash"] = False
+
+    if not pretrained:
+        return factory(pretrained=False, **kwargs)
+
+    try:
+        model = factory(pretrained=True, **kwargs)
+        LOGGER.info(f"DINOv3 pretrained weights loaded for {name}.")
+        return model
+    except HTTPError as e:
+        LOGGER.warning(f"DINOv3 pretrained weights were not loaded for {name}: {e}. Backbone will train from scratch.")
+    except Exception as e:
+        LOGGER.warning(f"DINOv3 pretrained weights were not loaded for {name}: {e}. Backbone will train from scratch.")
+
+    return factory(pretrained=False, **kwargs)
+
+
+_FP16_LN_PATCH_FLAG = "_fp16_safe_layernorm_patched"
+
+
+def _fp16_safe_layernorm(self, x: torch.Tensor) -> torch.Tensor:
+    """FP16-safe replacement for DINOv3's ConvNeXt ``channels_first`` LayerNorm.
+
+    DINOv3's ConvNeXt copies the original Meta implementation, whose ``channels_first`` LayerNorm computes mean/variance
+    manually in the input dtype. ConvNeXt activations routinely exceed FP16's ~65504 ceiling once squared, so
+    ``model.half()`` silently corrupts the stem and downsample norms (inf/NaN, not a crash) and tanks accuracy.
+
+    ``F.layer_norm`` accumulates the reduction in FP32 internally even for FP16 input, so routing through it is
+    overflow-safe with no explicit upcast.
+    """
+    if self.data_format == "channels_last":
+        return F.layer_norm(x, self.normalized_shape, self.weight, self.bias, self.eps)
+    out = F.layer_norm(x.permute(0, 2, 3, 1), self.normalized_shape, self.weight, self.bias, self.eps)
+    return out.permute(0, 3, 1, 2)
+
+
+def _patch_dinov3_layernorms(module: nn.Module) -> int:
+    """Idempotently patch DINOv3 ConvNeXt LayerNorm classes in ``module`` for FP16-safe reduction.
+
+    Patches at the class level so the fix also applies to models loaded from a pickled ``.pt`` checkpoint, where
+    ``DINOv3ConvNeXt.__init__`` is never re-run.
+    """
+    patched = 0
+    for m in module.modules():
+        if hasattr(m, "data_format") and hasattr(m, "normalized_shape"):
+            cls = type(m)
+            if not getattr(cls, _FP16_LN_PATCH_FLAG, False):
+                cls.forward = _fp16_safe_layernorm
+                setattr(cls, _FP16_LN_PATCH_FLAG, True)
+                patched += 1
+    return patched
+
+
+class DINOv3ConvNeXt(nn.Module):
+    """DINOv3 ConvNeXt backbone returning native pyramid features."""
+
+    def __init__(
+        self,
+        name: str = "dinov3_convnext_tiny",
+        pretrained: bool = True,
+        out_indices: tuple[int, ...] | list[int] = (1, 2, 3),
+        finetune: bool = True,
+        weights: str | None = None,
+        repo_dir: str | None = None,
+    ):
+        super().__init__()
+        self.dinov3 = _make_dinov3_convnext_model(name, pretrained, weights, repo_dir)
+        _patch_dinov3_layernorms(self.dinov3)
+        self.out_indices = list(out_indices)
+
+        if not finetune:
+            self.dinov3.eval()
+            self.dinov3.requires_grad_(False)
+
+        embed_dims = getattr(self.dinov3, "embed_dims", None)
+        self.out_channels = [embed_dims[i] for i in self.out_indices] if embed_dims is not None else []
+
+    def forward(self, x: torch.Tensor) -> list[torch.Tensor]:
+        """Forward pass producing selected ConvNeXt feature maps."""
+        if not getattr(type(self), _FP16_LN_PATCH_FLAG, False):
+            if _patch_dinov3_layernorms(self.dinov3):
+                setattr(type(self), _FP16_LN_PATCH_FLAG, True)
         return list(self.dinov3.get_intermediate_layers(x, n=self.out_indices, reshape=True))

@@ -1,0 +1,76 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Ultralytics RT-DETR DEIM config based on `deim_eupe_convnextsmall_l6_xl.yaml`.
+# This variant uses DINOv3 ConvNeXt-S instead of the EUPE ConvNeXt-S backbone.
+# ConvNeXt provides native P3/P4/P5 features at strides 8/16/32, so no STA branch is used.
+# Model docs: https://docs.ultralytics.com/models/rtdetr
+# Task docs: https://docs.ultralytics.com/tasks/detect
+
+# Parameters
+nc: 80 # number of classes
+
+backbone:
+  # [from, repeats, module, args]
+  # Semantic path (DINOv3 ConvNeXt-S).
+  # Parser args: [out_ch, name, pretrained, out_indices, finetune, split]
+  # DINOv3 ConvNeXt-S uses native P3/P4/P5 stage widths: 192/384/768.
+  - [-1, 1, DEIMDINOv3ConvNeXt, [None, dinov3_convnext_small, True, [1, 2, 3], True, True]] # 0
+  - [0, 1, Index, [192, 1]] # 1 semantic P3
+  - [0, 1, Index, [384, 2]] # 2 semantic P4
+  - [0, 1, Index, [768, 3]] # 3 semantic P5
+
+  # Project native ConvNeXt pyramid features to the DEIM-XL hidden_dim=256.
+  - [1, 1, Conv, [256, 1, 1, None, 1, 1, False]] # 4 P3 proj
+  - [2, 1, Conv, [256, 1, 1, None, 1, 1, False]] # 5 P4 proj
+  - [3, 1, Conv, [256, 1, 1, None, 1, 1, False]] # 6 P5 proj
+
+head:
+  # DEIMv2-X HybridEncoder head: input_proj + AIFI + FPN/PAN.
+  # Input projections remain identity because the backbone outputs are already projected to hidden_dim=256 above.
+  - [6, 1, nn.Identity, []] # 7 input_proj.2
+  - [-1, 1, AIFI, [1024, 8]]
+  - [-1, 1, Conv, [256, 1, 1, None, 1, 1, False]] # 9 Y5, lateral_convs.0
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [5, 1, nn.Identity, []] # 11 input_proj.1
+  - [[-2, -1], 1, Add, []]
+  - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]] # 13 fpn_blocks.0
+  - [-1, 1, Conv, [256, 1, 1, None, 1, 1, False]] # 14 Y4, lateral_convs.1
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [4, 1, nn.Identity, []] # 16 input_proj.0
+  - [[-2, -1], 1, Add, []]
+  - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]] # 18 X3, fpn_blocks.1
+
+  - [-1, 1, SCDown, [256, 3, 2, False]] # 19 downsample_convs.0
+  - [[-1, 14], 1, Add, []]
+  - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]] # 21 F4, pan_blocks.0
+
+  - [-1, 1, SCDown, [256, 3, 2, False]] # 22 downsample_convs.1
+  - [[-1, 9], 1, Add, []]
+  - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]] # 24 F5, pan_blocks.1
+
+  # DeimDecoder (DEIMv2-X defaults explicitly set in YAML)
+  # Args: [nc, hd, nq, ndp, nh, ndl, d_ffn, dropout, act, eval_idx, nd, label_noise_ratio, box_noise_scale,
+  #        learnt_init_query, enable_cuda_acceleration, one_to_many_groups, dab_sine_embedding,
+  #        efficient_msdeformable_attn, query_select_method, reg_max, reg_scale, layer_scale, mlp_act,
+  #        o2m_topk_mode, use_gateway, share_bbox_head, share_score_head]
+  - [[18, 21, 24], 1, DeimDecoder, [nc, 256, 300, [3, 6, 3], 8, 6, 2048, 0.0, "silu", -1, 100, 0.5, 1.0, False, False, 0, False, False, "default", 32, 4.0, 1.0, "silu", "unshared", True, False, False]]
+
+loss:
+  gamma: 1.5
+  alpha: 0.75
+  use_fl: False
+  use_vfl: False
+  use_mal: True
+  use_union_set: True
+  reg_max: 32
+  loss_gain: {class: 1, bbox: 5, giou: 2, fgl: 0.15, ddf: 1.5}
+  matcher:
+    cost_gain: {class: 2, bbox: 5, giou: 2}
+    use_fl: True
+    alpha: 0.25
+    gamma: 2.0
+    change_matcher: True
+    iou_order_alpha: 4.0
+    matcher_change_epoch: 45

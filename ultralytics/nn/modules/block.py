@@ -56,6 +56,7 @@ __all__ = (
     "SpatialPriorModulev2",
     "DINOv3",
     "DEIMDINOv3STAs",
+    "DEIMDINOv3ConvNeXt",
     "DEIMEUPESTAs",
     "DEIMEUPEConvNeXt",
     "PResNet",
@@ -1733,7 +1734,8 @@ class SpatialPriorModulev2(nn.Module):
         """Initialize SpatialPriorModulev2.
 
         Args:
-            inplanes (int): Base channel width used to build output pyramid channels [2*inplanes, 4*inplanes, 4*inplanes].
+            inplanes (int): Base channel width used to build output pyramid channels [2*inplanes, 4*inplanes,
+                4*inplanes].
         """
         super().__init__()
         # 1/4
@@ -1773,8 +1775,8 @@ class SpatialPriorModulev2(nn.Module):
 class Timm(nn.Module):
     """Timm module to allow loading any timm model as a backbone.
 
-    This class provides a way to load a model from the timm library with built-in feature extraction,
-    returning feature maps at specified stages for use in detection/segmentation models.
+    This class provides a way to load a model from the timm library with built-in feature extraction, returning feature
+    maps at specified stages for use in detection/segmentation models.
 
     Args:
         model (str): Name of the timm model to load (e.g., "resnet50", "convnext_tiny", "efficientnet_b0").
@@ -2062,6 +2064,40 @@ class DEIMEUPEConvNeXt(nn.Module):
 
         super().__init__()
         self.m = _EUPEConvNeXt(
+            name=name,
+            pretrained=pretrained,
+            out_indices=list(out_indices),
+            finetune=finetune,
+            weights=weights,
+            repo_dir=repo_dir,
+        )
+        self.split = split
+        self.channels = self.m.out_channels
+
+    def forward(self, x: torch.Tensor) -> list[torch.Tensor]:
+        """Forward pass returning [input, P3, P4, P5] when split=True."""
+        y = self.m(x)
+        return [x, *y] if self.split else y
+
+
+class DEIMDINOv3ConvNeXt(nn.Module):
+    """Wrapper for DINOv3 ConvNeXt backbones."""
+
+    def __init__(
+        self,
+        name: str = "dinov3_convnext_tiny",
+        pretrained: bool = True,
+        out_indices: tuple[int, ...] = (1, 2, 3),
+        finetune: bool = True,
+        split: bool = True,
+        weights: str | None = None,
+        repo_dir: str | None = None,
+    ):
+        """Initialize DINOv3 ConvNeXt wrapper for Ultralytics model parser."""
+        from ultralytics.nn.backbones.dinov3_adapter import DINOv3ConvNeXt as _DINOv3ConvNeXt  # scope for faster import
+
+        super().__init__()
+        self.m = _DINOv3ConvNeXt(
             name=name,
             pretrained=pretrained,
             out_indices=list(out_indices),

@@ -14,7 +14,9 @@ from ultralytics.utils import YAML
 MVTEC_OBJECT = ["bottle", "cable", "capsule", "hazelnut", "metal_nut", "pill", "screw",
                 "toothbrush", "transistor", "zipper"]
 MVTEC_TEXTURE = ["carpet", "grid", "leather", "tile", "wood"]
-CAT_GROUPS = {"object": MVTEC_OBJECT, "texture": MVTEC_TEXTURE}
+MVTEC_RANDOM=["bottle", "cable", "capsule", "carpet", "grid"]
+
+CAT_GROUPS = {"object": MVTEC_OBJECT, "texture": MVTEC_TEXTURE, "random5": MVTEC_RANDOM}
 VAL_METRICS = ("image_auroc", "pixel_auroc", "mAP10", "mAP25", "mAP50", "mAP50_95")
 
 # YAML heatmap_mode -> prior_mode

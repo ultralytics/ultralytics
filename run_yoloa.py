@@ -40,8 +40,8 @@ from yoloa_utils import (
 DEFAULT_CKPT = ("/Users/louis/workspace/ultra_louis_work/expman/data/pulled/yoloa_v2/"
                 "26m_yoloav2_softhint_maskonly_aug3_mixup_binary_v1/weights/best.pt")
 
-DEFAULT_CKPT="/Users/louis/workspace/ultra_louis_work/expman/data/pulled/yoloa_v2/26m_yoloav2_softhint_maskonly_aug3_mixup_binary_v2/weights/best.pt"
-
+# DEFAULT_CKPT="/Users/louis/workspace/ultra_louis_work/expman/data/pulled/yoloa_v2/26m_yoloav2_softhint_maskonly_aug3_mixup_binary_v2/weights/best.pt"
+DEFAULT_CKPT="/Users/louis/workspace/ultra_louis_work/expman/data/pulled/yoloa_v2/26m_yoloav2_softhint_maskonly_aug3_mixup_ood_v3/weights/best.pt"
 
 def main():
     ap = argparse.ArgumentParser(

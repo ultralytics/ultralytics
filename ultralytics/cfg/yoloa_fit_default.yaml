@@ -16,7 +16,7 @@ bb_max_bank_size: 10000    # coreset cap (unset/None = no cap, use full bank)
 bb_holdout_max: 5000          # max holdout samples for calibration (speed cap)
 bb_K: 5                    # top-K for Noisy-OR scoring
 bb_temperature: 5.0        # β = sigmoid steepness (higher = more sensitive to small deviations)
-bb_calibration_target_score: 0.45    # tail target — Gaussian μ+z·σ ≈ this
+bb_calibration_target_score: 0.4    # tail target — Gaussian μ+z·σ ≈ this
 bb_calibration_target_quantile: 0.95  # quantile for the tail (0.95 → z≈1.645)
 
 

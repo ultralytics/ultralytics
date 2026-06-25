@@ -18,6 +18,16 @@ from ultralytics.utils.checks import check_font, check_version, is_ascii
 from ultralytics.utils.files import increment_path
 
 
+def _gaussian_filter1d(y, sigma: int = 3, truncate: float = 4.0) -> np.ndarray:
+    """Smooth a 1D array with a Gaussian kernel (NumPy replacement for scipy.ndimage.gaussian_filter1d)."""
+    y = np.asarray(y, dtype=float)
+    radius = int(truncate * sigma + 0.5)
+    kernel = np.exp(-0.5 * (np.arange(-radius, radius + 1) / sigma) ** 2)
+    kernel /= kernel.sum()
+    # scipy 'reflect' boundary mode is equivalent to NumPy 'symmetric'
+    return np.convolve(np.pad(y, radius, mode="symmetric"), kernel, mode="valid")
+
+
 class Colors:
     """Ultralytics color palette for visualization and plotting.
 
@@ -909,7 +919,6 @@ def plot_results(file: str = "path/to/results.csv", dir: str = "", on_plot: Call
     """
     import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
     import polars as pl
-    from scipy.ndimage import gaussian_filter1d
 
     save_dir = Path(file).parent if file else Path(dir)
     files = list(save_dir.glob("results*.csv"))
@@ -936,7 +945,7 @@ def plot_results(file: str = "path/to/results.csv", dir: str = "", on_plot: Call
             for i, j in enumerate(columns):
                 y = data.select(j).to_numpy().flatten().astype("float")
                 ax[i].plot(x, y, marker=".", label=f.stem, linewidth=2, markersize=8)  # actual results
-                ax[i].plot(x, gaussian_filter1d(y, sigma=3), ":", label="smooth", linewidth=2)  # smoothing line
+                ax[i].plot(x, _gaussian_filter1d(y, sigma=3), ":", label="smooth", linewidth=2)  # smoothing line
                 ax[i].set_title(j, fontsize=12)
         except Exception as e:
             LOGGER.error(f"Plotting error for {f}: {e}")
@@ -947,6 +956,39 @@ def plot_results(file: str = "path/to/results.csv", dir: str = "", on_plot: Call
         plt.close()
         if on_plot:
             on_plot(fname)
+
+
+@plt_settings()
+def plot_multitrain_results(scores: dict, key: str = "fitness", save_dir=Path()):
+    """Plot per-dataset metrics from a multi-dataset training run as a bar chart with the cross-dataset mean.
+
+    Args:
+        scores (dict): Mapping of dataset name to its scalar metric value.
+        key (str): Name of the plotted metric, used as the y-axis label.
+        save_dir (str | Path): Directory to save the 'multitrain_results.png' figure.
+
+    Returns:
+        (Path): Path to the saved figure.
+
+    Examples:
+        >>> from ultralytics.utils.plotting import plot_multitrain_results
+        >>> plot_multitrain_results({"coco8": 0.61, "dota8": 0.48}, key="metrics/mAP50-95(B)")
+    """
+    import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
+
+    mean = sum(scores.values()) / len(scores)
+    fig, ax = plt.subplots(figsize=(max(6.0, len(scores) * 0.45), 5), tight_layout=True)
+    ax.bar(range(len(scores)), list(scores.values()), color="#042AFF")
+    ax.axhline(mean, color="orange", linestyle="--", label=f"mean = {mean:.3f}")
+    ax.set_xticks(range(len(scores)))
+    ax.set_xticklabels(list(scores), rotation=90)
+    ax.set_ylabel(key)
+    ax.set_title(f"MultiTrainer results across {len(scores)} datasets")
+    ax.legend()
+    fname = Path(save_dir) / "multitrain_results.png"
+    fig.savefig(fname, dpi=200)
+    plt.close(fig)
+    return fname
 
 
 def plt_color_scatter(v, f, bins: int = 20, cmap: str = "viridis", alpha: float = 0.8, edgecolors: str = "none"):
@@ -995,7 +1037,6 @@ def plot_tune_results(results_file: str = "tune_results.ndjson", exclude_zero_fi
     import json
 
     import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
-    from scipy.ndimage import gaussian_filter1d
 
     def _save_one_file(file):
         """Save one matplotlib plot to 'file'."""
@@ -1055,7 +1096,7 @@ def plot_tune_results(results_file: str = "tune_results.ndjson", exclude_zero_fi
         if exclude_zero_fitness_points and not isinstance(zero_mask, slice):
             y = y[zero_mask]
         plt.plot(x, y, "o", markersize=5, alpha=0.8, label=dataset)
-    plt.plot(x, gaussian_filter1d(all_fitness, sigma=3), ":", color="0.35", label="smoothed mean", linewidth=2)
+    plt.plot(x, _gaussian_filter1d(all_fitness, sigma=3), ":", color="0.35", label="smoothed mean", linewidth=2)
     plt.title("Fitness vs Iteration")
     plt.xlabel("Iteration")
     plt.ylabel("Fitness")

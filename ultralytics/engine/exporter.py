@@ -192,7 +192,15 @@ def export_formats():
             ["batch", "data", "quantize", "nms", "fraction"],
             "tensorflow",
         ],
-        ["TensorFlow Edge TPU", "edgetpu", "_edgetpu.tflite", True, False, ["data", "fraction", "quantize"], "tensorflow"],
+        [
+            "TensorFlow Edge TPU",
+            "edgetpu",
+            "_edgetpu.tflite",
+            True,
+            False,
+            ["data", "fraction", "quantize"],
+            "tensorflow",
+        ],
         [
             "TensorFlow.js",
             "tfjs",
@@ -346,9 +354,26 @@ EXPORT_ENVS = {
 
 
 # Export precision support per format; FP32 (unset/32) is universal, these list FP16/INT8/W8A16 capability.
-FP16_FORMATS = frozenset({"torchscript", "onnx", "openvino", "engine", "coreml", "tflite", "tfjs", "mnn", "ncnn", "rknn"})
+FP16_FORMATS = frozenset(
+    {"torchscript", "onnx", "openvino", "engine", "coreml", "tflite", "tfjs", "mnn", "ncnn", "rknn"}
+)
 INT8_FORMATS = frozenset(
-    {"onnx", "openvino", "engine", "coreml", "saved_model", "tflite", "edgetpu", "tfjs", "mnn", "imx", "rknn", "axelera", "deepx", "qnn"}
+    {
+        "onnx",
+        "openvino",
+        "engine",
+        "coreml",
+        "saved_model",
+        "tflite",
+        "edgetpu",
+        "tfjs",
+        "mnn",
+        "imx",
+        "rknn",
+        "axelera",
+        "deepx",
+        "qnn",
+    }
 )
 W8A16_FORMATS = frozenset({"coreml", "imx", "qnn"})  # INT8 weights + FP16 activations
 
@@ -372,7 +397,9 @@ def validate_args(format, passed_args, valid_args):
     if passed_args.quantize == 16:  # FP16; 32/None (FP32) is universal
         assert format in FP16_FORMATS, f"ERROR ❌️ quantize=16 (FP16) is not supported for format='{format}'"
     elif passed_args.quantize in {8, "w8a16"}:  # INT8 (w8a16 keeps FP16 activations)
-        assert format in INT8_FORMATS, f"ERROR ❌️ quantize={passed_args.quantize} is not supported for format='{format}'"
+        assert format in INT8_FORMATS, (
+            f"ERROR ❌️ quantize={passed_args.quantize} is not supported for format='{format}'"
+        )
         assert passed_args.quantize != "w8a16" or format in W8A16_FORMATS, (
             f"ERROR ❌️ quantize='w8a16' (INT8 weights + FP16 activations) is not supported for format='{format}'"
         )

@@ -68,6 +68,7 @@ class AnomalyV2Trainer(DetectionTrainer):
         super().__init__(cfg, overrides, _callbacks)
         self.add_callback("on_train_epoch_start", AnomalyV2Trainer._update_seg_alpha)
         self.add_callback("on_fit_epoch_end", AnomalyV2Trainer._mvtec_ood_eval)
+        self.add_callback("on_train_batch_end", AnomalyV2Trainer._visualize_prior_mask)
 
     def validate(self):
         """Run validation, overriding fitness with OOD heatmap mAP50 when available."""
@@ -91,6 +92,16 @@ class AnomalyV2Trainer(DetectionTrainer):
         from ultralytics.nn.modules.head import Segment
 
         return isinstance(unwrap_model(self.model).model[-1], Segment)
+
+    def preprocess_batch(self, batch: dict) -> dict:
+        """Store a reference to the preprocessed batch so callbacks can access it.
+
+        The base detection preprocessor only moves tensors to the device and normalizes images;
+        we keep the returned batch dict for visualization callbacks without changing behavior.
+        """
+        batch = super().preprocess_batch(batch)
+        self._last_batch = batch
+        return batch
 
     def build_dataset(self, img_path: str, mode: str = "train", batch: int | None = None):
         """Dataset selection: segment (polygon masks for the SegBranch refiner target / per-instance
@@ -294,3 +305,56 @@ class AnomalyV2Trainer(DetectionTrainer):
         model.seg_alpha = alpha
         if trainer.ema is not None:
             unwrap_model(trainer.ema.ema).seg_alpha = alpha
+
+    @staticmethod
+    def _visualize_prior_mask(trainer: "AnomalyV2Trainer") -> None:
+        """on_train_batch_end: save GT vs augmented prior-mask grids for the first 3 iterations.
+
+        Visualization is rank 0 only and runs under ``torch.no_grad()``. Images are written to
+        ``<save_dir>/prior_vis/epoch{epoch}_iter{count}.png``. The torch (and CUDA) RNG state is
+        snapshotted around the visualization so the extra random draws do not change training.
+        """
+        if RANK not in (-1, 0):
+            return
+
+        count = getattr(trainer, "_prior_vis_count", 0)
+        if count >= 3:
+            return
+        trainer._prior_vis_count = count + 1
+
+        model = unwrap_model(trainer.model)
+        augmenter = getattr(model, "mask_augmenter", None)
+        renderer = getattr(model, "mask_renderer", None)
+        if augmenter is None or renderer is None:
+            return
+
+        batch = getattr(trainer, "_last_batch", None)
+        if batch is None:
+            return
+        bboxes = batch.get("bboxes")
+        batch_idx = batch.get("batch_idx")
+        if bboxes is None or batch_idx is None:
+            return
+
+        save_dir = Path(trainer.save_dir) / "prior_vis"
+        save_path = save_dir / f"epoch{trainer.epoch + 1}_iter{count}.png"
+
+        # Snapshot RNG state so the visualization's random draws do not alter training.
+        rng_states = [torch.get_rng_state()]
+        if torch.cuda.is_available():
+            rng_states.extend(torch.cuda.get_rng_state(d) for d in range(torch.cuda.device_count()))
+        try:
+            augmenter.visualize(
+                renderer=renderer,
+                bboxes=bboxes,
+                batch_idx=batch_idx,
+                batch_size=int(batch["img"].shape[0]),
+                save_path=save_path,
+            )
+        except Exception as e:
+            LOGGER.warning(f"Prior-mask visualization failed: {type(e).__name__}: {e}")
+        finally:
+            torch.set_rng_state(rng_states[0])
+            if torch.cuda.is_available():
+                for d, state in enumerate(rng_states[1:]):
+                    torch.cuda.set_rng_state(state, d)

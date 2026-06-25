@@ -9,8 +9,14 @@ model class stays focused on architecture and forward logic.
 
 from __future__ import annotations
 
+from pathlib import Path
+from typing import TYPE_CHECKING
+
 import torch
 import torch.nn.functional as F
+
+if TYPE_CHECKING:
+    from ultralytics.nn.modules.anomaly_v2 import BboxMaskRenderer
 
 
 class MaskPriorAugmenter:
@@ -113,6 +119,95 @@ class MaskPriorAugmenter:
         mask = self._augment_prior_extra(mask)
         mask = self._augment_mask_mb_style(mask)
         return mask.clamp(0.0, 1.0)
+
+    def visualize(
+        self,
+        renderer: "BboxMaskRenderer",
+        bboxes: torch.Tensor | None,
+        batch_idx: torch.Tensor | None,
+        batch_size: int,
+        save_path: str | Path | None = None,
+        images: list["np.ndarray"] | None = None,
+        alpha: float = 0.45,
+    ) -> dict[str, torch.Tensor]:
+        """Render GT and augmented prior masks, optionally saving a side-by-side grid.
+
+        This is a debug helper so users can inspect what the model sees as a training prior.
+        It runs the same bbox-level and mask-level augmentations used during training.
+
+        Args:
+            renderer: The model's ``BboxMaskRenderer`` (maps bboxes to heatmaps).
+            bboxes: Normalized GT bboxes ``(N, 4)`` or ``None``.
+            batch_idx: Batch index per bbox ``(N,)`` or ``None``.
+            batch_size: Number of samples in the batch.
+            save_path: Optional path to write a PNG grid (GT | augmented) per sample.
+            images: Optional list of BGR images ``(H, W, 3)`` to blend masks onto.
+            alpha: Blend weight for the mask when ``images`` is provided.
+
+        Returns:
+            Dictionary with ``"gt"`` and ``"aug"`` masks, each ``(B, 1, H, W)``.
+        """
+        with torch.no_grad():
+            bb_aug, bi_aug = self.augment_prior_bboxes(bboxes, batch_idx, training=True)
+            gt = renderer(bboxes, batch_idx, batch_size)
+            base = renderer(bb_aug, bi_aug, batch_size)
+            aug = self.augment_mask(base)
+
+        if save_path is not None:
+            self._save_prior_vis_grid(gt, aug, images, Path(save_path), alpha)
+        return {"gt": gt, "aug": aug}
+
+    @staticmethod
+    def _save_prior_vis_grid(
+        gt: torch.Tensor,
+        aug: torch.Tensor,
+        images: list | None,
+        save_path: Path,
+        alpha: float,
+    ) -> None:
+        """Save a grid image: each row shows [GT mask, augmented mask] for one sample."""
+        import cv2
+        import numpy as np
+
+        b, _, h, w = gt.shape
+        rows = []
+        labels = ["GT prior", "Augmented prior"]
+        for i in range(b):
+            gt_img = MaskPriorAugmenter._mask_to_bgr(gt[i], images[i] if images else None, alpha)
+            aug_img = MaskPriorAugmenter._mask_to_bgr(aug[i], images[i] if images else None, alpha)
+            rows.append(np.hstack([gt_img, aug_img]))
+        grid = np.vstack(rows)
+
+        # Add title bar with labels.
+        bar_h = max(24, grid.shape[1] // 40)
+        bar = np.full((bar_h, grid.shape[1], 3), (40, 40, 40), dtype=np.uint8)
+        half = grid.shape[1] // 2
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        scale = max(0.4, bar_h / 60)
+        thickness = max(1, int(bar_h / 20))
+        for j, text in enumerate(labels):
+            x = j * half + 8
+            y = bar_h - 6
+            cv2.putText(bar, text, (x, y), font, scale, (255, 255, 255), thickness, cv2.LINE_AA)
+        grid = np.vstack([bar, grid])
+
+        save_path.parent.mkdir(parents=True, exist_ok=True)
+        cv2.imwrite(str(save_path), grid)
+
+    @staticmethod
+    def _mask_to_bgr(mask: torch.Tensor, image: "np.ndarray | None" = None, alpha: float = 0.45) -> "np.ndarray":
+        """Convert a ``(1, H, W)`` mask in [0, 1] to a BGR color-mapped image."""
+        import cv2
+        import numpy as np
+
+        h, w = mask.shape[-2:]
+        m = mask.squeeze(0).detach().cpu().numpy()
+        m = (m * 255).clip(0, 255).astype(np.uint8)
+        m_color = cv2.applyColorMap(m, cv2.COLORMAP_JET)
+        if image is not None:
+            image = cv2.resize(image, (w, h))
+            m_color = cv2.addWeighted(image, 1.0 - alpha, m_color, alpha, 0)
+        return m_color
 
     def fragment_prior_bboxes(self, bboxes: torch.Tensor, batch_idx: torch.Tensor):
         """Split each GT box into several sub-boxes to mimic memory-bank's fragmented response.

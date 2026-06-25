@@ -70,9 +70,7 @@ class MaskPriorAugmenter:
         _floor = v2_cfg.get("mask_floor", [0.0, 0.0])
         self.mask_floor = (float(_floor[0]), float(_floor[1]))
 
-    def augment_prior_bboxes(
-        self, bboxes: torch.Tensor | None, batch_idx: torch.Tensor | None, training: bool = True
-    ):
+    def augment_prior_bboxes(self, bboxes: torch.Tensor | None, batch_idx: torch.Tensor | None, training: bool = True):
         """Train-only bbox-level prior augs: per-box drop + center jitter (on a local copy).
 
         Returns possibly-reduced/perturbed ``(bboxes, batch_idx)`` used ONLY to render the

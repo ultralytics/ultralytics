@@ -789,7 +789,7 @@ class YOLOAnomalyV2Model(DetectionModel):
                 calibration_target_score=bb_calibration_target,
                 calibrate=bb_calibrate,
                 proj_dim=bb_proj_dim,
-        )
+            )
             if bb_layers
             else None
         )
@@ -1154,7 +1154,9 @@ class YOLOAnomalyV2Model(DetectionModel):
                 setattr(self, attr, default)
         # Backward compat: mask augmentation hyper-parameters moved to a dedicated object.
         if not hasattr(self, "mask_augmenter"):
-            v2_cfg = getattr(self, "yaml", {}).get("anomaly_v2", {}) if isinstance(getattr(self, "yaml", {}), dict) else {}
+            v2_cfg = (
+                getattr(self, "yaml", {}).get("anomaly_v2", {}) if isinstance(getattr(self, "yaml", {}), dict) else {}
+            )
             self.mask_augmenter = MaskPriorAugmenter(v2_cfg)
 
     def _resolve_fusion_mask(
@@ -1199,7 +1201,11 @@ class YOLOAnomalyV2Model(DetectionModel):
                 gt = gt.to(device=device)
             else:
                 bb, bi = self.mask_augmenter.augment_prior_bboxes(bboxes, batch_idx, self.training)
-                if self.training and self.mask_augmenter.mask_fragment_p > 0.0 and torch.rand(1).item() < self.mask_augmenter.mask_fragment_p:
+                if (
+                    self.training
+                    and self.mask_augmenter.mask_fragment_p > 0.0
+                    and torch.rand(1).item() < self.mask_augmenter.mask_fragment_p
+                ):
                     bb, bi = self.mask_augmenter.fragment_prior_bboxes(bb, bi)
                 gt = self.mask_renderer(bb, bi, batch_size)
             if self.training:
@@ -1235,12 +1241,20 @@ class YOLOAnomalyV2Model(DetectionModel):
             cond = self._polygon_union_prior(batch_masks, batch_idx, batch_size)
             cond = cond.to(device=device)
         else:
-            bb, bi = self.mask_augmenter.augment_prior_bboxes(bboxes, batch_idx, self.training)  # train-only box drop + jitter
-            if self.training and self.mask_augmenter.mask_fragment_p > 0.0 and torch.rand(1).item() < self.mask_augmenter.mask_fragment_p:
+            bb, bi = self.mask_augmenter.augment_prior_bboxes(
+                bboxes, batch_idx, self.training
+            )  # train-only box drop + jitter
+            if (
+                self.training
+                and self.mask_augmenter.mask_fragment_p > 0.0
+                and torch.rand(1).item() < self.mask_augmenter.mask_fragment_p
+            ):
                 bb, bi = self.mask_augmenter.fragment_prior_bboxes(bb, bi)
             cond = self.mask_renderer(bb, bi, batch_size)
         if self.training:
-            cond = self.mask_augmenter.augment_mask(cond)  # blur / mag / noise / distractor / erase / warp / mixup / mb-style noise
+            cond = self.mask_augmenter.augment_mask(
+                cond
+            )  # blur / mag / noise / distractor / erase / warp / mixup / mb-style noise
         return cond
 
     def _polygon_union_prior(self, masks, batch_idx, batch_size):
@@ -1255,7 +1269,12 @@ class YOLOAnomalyV2Model(DetectionModel):
           - ``mask_jitter``: random per-sample translation (mis-localized prior)
         """
         # Instance-level drop (polygon equiv of box_drop): zero out random instance IDs.
-        if self.training and self.mask_augmenter.mask_box_drop_p > 0.0 and masks.dim() == 3 and masks.shape[0] == batch_size:
+        if (
+            self.training
+            and self.mask_augmenter.mask_box_drop_p > 0.0
+            and masks.dim() == 3
+            and masks.shape[0] == batch_size
+        ):
             masks = self._drop_polygon_instances(masks)
 
         if masks.dim() == 3 and masks.shape[0] == batch_size:
@@ -1283,7 +1302,11 @@ class YOLOAnomalyV2Model(DetectionModel):
             prior = self._translate_prior(prior)
 
         # Mask-level fragment (polygon equiv of _fragment_prior_bboxes).
-        if self.training and self.mask_augmenter.mask_fragment_p > 0.0 and torch.rand(1).item() < self.mask_augmenter.mask_fragment_p:
+        if (
+            self.training
+            and self.mask_augmenter.mask_fragment_p > 0.0
+            and torch.rand(1).item() < self.mask_augmenter.mask_fragment_p
+        ):
             prior = self._fragment_mask(prior)
 
         return prior

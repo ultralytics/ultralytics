@@ -129,10 +129,16 @@ export-deepx = [
     "dx_com",
     "numpy<2",
 ]
+export-litert = [  # LiteRT export, Linux x86 only (litert-torch trace + ai-edge-litert/quantizer)
+    "litert-torch>=0.9.0; platform_system == 'Linux' and platform_machine == 'x86_64'",
+    "ai-edge-litert>=2.1.4; platform_system == 'Linux' and platform_machine == 'x86_64'",
+    "ai-edge-quantizer>=0.6.0; platform_system == 'Linux' and platform_machine == 'x86_64'",
+]
 export = [
     "ultralytics[export-base]",
     "ultralytics[export-tensorflow]",
     "ultralytics[export-coreml]",
+    "ultralytics[export-litert]",
 ]
 solutions = [
     "shapely>=2.0.0",    # shapely for point and polygon data matching

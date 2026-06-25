@@ -320,9 +320,9 @@ EXPORT_ENVS = {
     },
     "litert": {
         "python": "3.12",
-        "extras": ["export-base"],
+        "extras": ["export-base", "export-litert"],
         "torch": None,
-        "requirements": ["litert-torch>=0.9.0", "ai-edge-litert>=2.1.4", "ai-edge-quantizer>=0.6.0"],
+        "requirements": [],
         "indexes": [],
         "env": {},
         "smoke": ["yolo export format=litert model=yolo11n.pt imgsz=32"],

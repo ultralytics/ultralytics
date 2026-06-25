@@ -340,17 +340,17 @@ To set up multiple streams under a single DeepStream application, make the follo
     columns=2
     ```
 
-2. Set `num-sources=4` and add the `uri` entries for all four streams.
+2. Add a `[source-list]` group with one URI per stream and a shared `[source-attr-all]` group for the common source attributes. Set `num-source-bins` to the number of streams.
 
     ```bash
-    [source0]
+    [source-list]
+    num-source-bins=4
+    list=file:///path/to/video1.mp4;file:///path/to/video2.mp4;file:///path/to/video3.mp4;file:///path/to/video4.mp4
+
+    [source-attr-all]
     enable=1
     type=3
-    uri=path/to/video1.mp4
-    uri=path/to/video2.mp4
-    uri=path/to/video3.mp4
-    uri=path/to/video4.mp4
-    num-sources=4
+    gpu-id=0
     ```
 
 ### Run Multi-Stream Inference
@@ -451,7 +451,7 @@ To run INT8 inference, calibrate the model on a representative image set and swi
 
 ### How do I run multiple camera streams with DeepStream on Jetson?
 
-To process multiple streams in a single DeepStream application, edit the `deepstream_app_config.txt` file to add a tiled-display grid and list each source URI. Set the `rows` and `columns` under `[tiled-display]` to build the grid, add one `uri` entry per stream under `[source0]`, and set `num-sources` to the number of streams. See the [MultiStream Setup](#multistream-setup) section for a complete example.
+To process multiple streams in a single DeepStream application, edit the `deepstream_app_config.txt` file to add a tiled-display grid and list each source URI. Set the `rows` and `columns` under `[tiled-display]` to build the grid, list each stream URI under `[source-list]`, and set `num-source-bins` to the number of streams. See the [MultiStream Setup](#multistream-setup) section for a complete example.
 
 ### What are the performance benchmarks for YOLO on NVIDIA Jetson Orin NX?
 

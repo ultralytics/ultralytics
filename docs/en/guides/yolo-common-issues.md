@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Comprehensive guide to troubleshoot common YOLO26 issues, from installation errors to model training challenges. Enhance your Ultralytics projects with our expert tips.
+description: Troubleshoot common YOLO26 issues — installation and CUDA errors, slow training, prediction problems, and model export failures — with tested fixes.
 keywords: YOLO, YOLO26, troubleshooting, installation errors, model training, GPU issues, Ultralytics, AI, computer vision, deep learning, Python, CUDA, PyTorch, debugging
 ---
 
@@ -10,9 +10,7 @@ keywords: YOLO, YOLO26, troubleshooting, installation errors, model training, GP
   <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolo-common-issues.avif" alt="YOLO common training and deployment issues">
 </p>
 
-## Introduction
-
-This guide serves as a comprehensive aid for troubleshooting common issues encountered while working with YOLO26 on your Ultralytics projects. Navigating through these issues can be a breeze with the right guidance, ensuring your projects remain on track without unnecessary delays.
+This guide covers the most common problems you'll hit when working with Ultralytics YOLO26, grouped by where they occur: [installation](#installation-errors), [model training](#model-training-issues), [prediction](#issues-related-to-model-predictions), and [deployment](#deployment-challenges). Jump to the category that matches your error, or scan the [FAQ](#faq) for quick answers. Each entry states the issue and a concrete fix you can apply directly.
 
 <p align="center">
   <br>
@@ -36,35 +34,47 @@ Installation errors can arise due to various reasons, such as incompatible versi
 - Consider using virtual environments to avoid conflicts.
 - Follow the [official installation guide](../quickstart.md) step by step.
 
-Additionally, here are some common installation issues users have encountered, along with their respective solutions:
+Additionally, here are solutions to common installation issues.
 
-- Import Errors or Dependency Issues - If you're getting errors during the import of YOLO26, or you're having issues related to dependencies, consider the following troubleshooting steps:
-    - **Fresh Installation**: Sometimes, starting with a fresh installation can resolve unexpected issues. Especially with libraries like Ultralytics, where updates might introduce changes to the file tree structure or functionalities.
+!!! tip "Keep Ultralytics and its dependencies current"
 
-    - **Update Regularly**: Ensure you're using the latest version of the library. Older versions might not be compatible with recent updates, leading to potential conflicts or issues.
+    Many import, GPU, and export errors are fixed simply by upgrading. Run `pip install -U ultralytics` and confirm your PyTorch and CUDA versions are compatible before deeper debugging.
 
-    - **Check Dependencies**: Verify that all required dependencies are correctly installed and are of the compatible versions.
+#### Import Errors or Dependency Issues
 
-    - **Review Changes**: If you initially cloned or installed an older version, be aware that significant updates might affect the library's structure or functionalities. Always refer to the official documentation or changelogs to understand any major changes.
+If you get errors importing YOLO26 or run into dependency conflicts, try these steps:
 
-    - Remember, keeping your libraries and dependencies up-to-date is crucial for a smooth and error-free experience.
+- **Fresh Installation**: Starting with a clean install can resolve unexpected issues, especially after updates that change the package structure or functionality.
+- **Update Regularly**: Use the latest version of the library, since older releases might not be compatible with recent updates.
+- **Check Dependencies**: Verify that all required dependencies are correctly installed and are of compatible versions.
+- **Review Changes**: If you installed an older version, refer to the official documentation or changelog to understand any major structural changes.
 
-- Running YOLO26 on GPU - If you're having trouble running YOLO26 on GPU, consider the following troubleshooting steps:
-    - **Verify CUDA Compatibility and Installation**: Ensure your GPU is CUDA compatible and that CUDA is correctly installed. Use the `nvidia-smi` command to check the status of your NVIDIA GPU and CUDA version.
+#### Running YOLO26 on GPU
 
-    - **Check PyTorch and CUDA Integration**: Ensure PyTorch can utilize CUDA by running `import torch; print(torch.cuda.is_available())` in a Python terminal. If it returns 'True', PyTorch is set up to use CUDA.
+If you're having trouble running YOLO26 on a GPU, consider the following troubleshooting steps:
 
-    - **Check GPU compatibility**: Support for GPU architectures earlier than Turing and compute capability (SM) < 7.5 was abandoned since cuDNN 9.11.0. So if you have an older GPU - like 1080Ti - you may have to use a version of PyTorch built against an older version of CUDA/cuDNN. You can check this by running `import torch; cap = torch.cuda.get_device_capability(0) if torch.cuda.is_available() else (0, 0); cudnn = torch.backends.cudnn.version() or 0; ok = "not compatible" if cudnn >= 91100 and (cap[0] < 7 or (cap[0] == 7 and cap[1] < 5)) else "should be ok"; print(f"Compute capability: SM {cap[0]}.{cap[1]}, cuDNN: {cudnn} => {ok}")`
+- **Verify CUDA Compatibility and Installation**: Ensure your GPU is CUDA compatible and that CUDA is correctly installed. Use the `nvidia-smi` command to check the status of your NVIDIA GPU and CUDA version.
+- **Check PyTorch and CUDA Integration**: Ensure PyTorch can utilize CUDA by running `import torch; print(torch.cuda.is_available())` in a Python terminal. If it returns 'True', PyTorch is set up to use CUDA.
+- **Environment Activation**: Ensure you're in the correct environment where all necessary packages are installed.
+- **Update Your Packages**: Outdated packages might not be compatible with your GPU. Keep them updated.
+- **Program Configuration**: Check whether your code requests GPU usage. You can set the [`device`](../modes/train.md) argument when running training or prediction (for example, `device=0`).
 
-    - **Environment Activation**: Ensure you're in the correct environment where all necessary packages are installed.
+!!! warning "Older GPUs and cuDNN 9.11.0+"
 
-    - **Update Your Packages**: Outdated packages might not be compatible with your GPU. Keep them updated.
+    Support for GPU architectures earlier than Turing — compute capability (SM) below 7.5, such as the 1080 Ti — was dropped in cuDNN 9.11.0. On an older GPU you may need a build of PyTorch compiled against an earlier CUDA/cuDNN version. Check your setup with:
 
-    - **Program Configuration**: Check if the program or code specifies GPU usage. In YOLO26, this might be in the settings or configuration.
+    ```python
+    import torch
+
+    cap = torch.cuda.get_device_capability(0) if torch.cuda.is_available() else (0, 0)
+    cudnn = torch.backends.cudnn.version() or 0
+    ok = "not compatible" if cudnn >= 91100 and (cap[0] < 7 or (cap[0] == 7 and cap[1] < 5)) else "should be ok"
+    print(f"Compute capability: SM {cap[0]}.{cap[1]}, cuDNN: {cudnn} => {ok}")
+    ```
 
 ### Model Training Issues
 
-This section will address common issues faced while training and their respective explanations and solutions.
+Common training problems and their fixes are covered below.
 
 #### Verification of Configuration Settings
 
@@ -83,7 +93,7 @@ This section will address common issues faced while training and their respectiv
 
 **Issue**: Training is slow on a single GPU, and you want to speed up the process using multiple GPUs.
 
-**Solution**: Increasing the [batch size](https://www.ultralytics.com/glossary/batch-size) can accelerate training, but it's essential to consider GPU memory capacity. To speed up training with multiple GPUs, follow these steps:
+**Solution**: Increasing the [batch size](https://www.ultralytics.com/glossary/batch-size) can accelerate training, but it's essential to consider GPU memory capacity. To speed up training with [multiple GPUs](../modes/train.md), follow these steps:
 
 - Ensure that you have multiple GPUs available.
 - Set the `device` argument to a list of GPU indices, e.g., `device=[0,1,2,3]`.
@@ -114,22 +124,27 @@ You can access these metrics from the training logs or by using tools like Tenso
 **Solution**: To track and visualize training progress, you can consider using the following tools:
 
 - [TensorBoard](https://www.tensorflow.org/tensorboard): TensorBoard is a popular choice for visualizing training metrics, including loss, [accuracy](https://www.ultralytics.com/glossary/accuracy), and more. You can integrate it with your YOLO26 training process.
-- [Comet](https://bit.ly/yolov8-readme-comet): Comet provides an extensive toolkit for experiment tracking and comparison. It allows you to track metrics, hyperparameters, and even model weights. Integration with YOLO models is also straightforward, providing you with a complete overview of your experiment cycle.
+- [Comet](../integrations/comet.md): Comet provides an extensive toolkit for experiment tracking and comparison. It allows you to track metrics, hyperparameters, and even model weights. Integration with YOLO models is also straightforward, providing you with a complete overview of your experiment cycle.
 - [Ultralytics Platform](https://platform.ultralytics.com/): Ultralytics Platform offers a specialized environment for tracking YOLO models, giving you a one-stop platform to manage metrics, datasets, and even collaborate with your team. Given its tailored focus on YOLO, it offers more customized tracking options.
-
-Each of these tools offers its own set of advantages, so you may want to consider the specific needs of your project when making a choice.
 
 #### How to Check if Training is Happening on the GPU
 
 **Issue**: The 'device' value in the training logs is 'null,' and you're unsure if training is happening on the GPU.
 
-**Solution**: The 'device' value being 'null' typically means that the training process is set to automatically use an available GPU, which is the default behavior. To ensure training occurs on a specific GPU, you can manually set the 'device' value to the GPU index (e.g., '0' for the first GPU) in your .yaml configuration file:
+**Solution**: The 'device' value being 'null' typically means that the training process is set to automatically select an available GPU, which is the default behavior. To train on a specific GPU, set the `device` argument when you start training. `device` is a training argument, so setting it in your dataset `.yaml` has no effect:
 
-```yaml
-device: 0
-```
+=== "Python"
 
-This will explicitly assign the training process to the specified GPU. If you wish to train on the CPU, set 'device' to 'cpu'.
+    ```python
+    # Use GPU 0; device=[0, 1] for multiple GPUs, device="cpu" for CPU
+    model.train(data="path/to/data.yaml", device=0)
+    ```
+
+=== "CLI"
+
+    ```bash
+    yolo train data=path/to/data.yaml device=0
+    ```
 
 Keep an eye on the 'runs' folder for logs and metrics to monitor training progress effectively.
 
@@ -164,7 +179,7 @@ Here are some things to keep in mind, if you are facing issues related to model 
 
 ### Issues Related to Model Predictions
 
-This section will address common issues faced during model prediction.
+Common problems encountered during model prediction and their fixes are covered below.
 
 #### Getting Bounding Box Predictions With Your YOLO26 Custom Model
 
@@ -204,7 +219,7 @@ yolo task=segment mode=predict model=yolo26n-seg.pt source='path/to/car.mp4' sho
 
 **Issue**: Difficulty in retrieving the length and height of detected objects in YOLO26, especially when multiple objects are detected in an image.
 
-**Solution**: To retrieve the bounding box dimensions, first use the Ultralytics YOLO26 model to predict objects in an image. Then, extract the width and height information of bounding boxes from the prediction results.
+**Solution**: To retrieve the bounding box dimensions, first use the Ultralytics YOLO26 model to [predict objects](../modes/predict.md) in an image. Then, extract the width and height information of bounding boxes from the prediction results.
 
 ```python
 from ultralytics import YOLO
@@ -237,7 +252,7 @@ for box in boxes:
 
 **Issue:** During the process of converting or exporting machine learning models to different formats or platforms, users might encounter errors or unexpected behaviors.
 
-**Solution:**
+**Solution:** Review the supported formats and per-format options in the [Export mode](../modes/export.md) documentation, then work through these checks:
 
 - Compatibility Check: Ensure that you are using versions of libraries and frameworks that are compatible with each other. Mismatched versions can lead to unexpected errors during conversion.
 - Environment Reset: If you're using an interactive environment like Jupyter or Colab, consider restarting your environment after making significant changes or installations. A fresh start can sometimes resolve underlying issues.
@@ -248,7 +263,7 @@ for box in boxes:
 
 ## Community and Support
 
-Engaging with a community of like-minded individuals can significantly enhance your experience and success in working with YOLO26. Below are some channels and resources you may find helpful.
+Get help and share solutions through these channels and resources.
 
 ### Forums and Channels for Getting Help
 
@@ -260,13 +275,9 @@ Engaging with a community of like-minded individuals can significantly enhance y
 
 **Ultralytics YOLO26 Docs**: The [official documentation](../index.md) provides a comprehensive overview of YOLO26, along with guides on installation, usage, and troubleshooting.
 
-These resources should provide a solid foundation for troubleshooting and improving your YOLO26 projects, as well as connecting with others in the YOLO26 community.
-
 ## Conclusion
 
-Troubleshooting is an integral part of any development process, and being equipped with the right knowledge can significantly reduce the time and effort spent in resolving issues. This guide aimed to address the most common challenges faced by users of the YOLO26 model within the Ultralytics ecosystem. By understanding and addressing these common issues, you can ensure smoother project progress and achieve better results with your [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks.
-
-Remember, the Ultralytics community is a valuable resource. Engaging with fellow developers and experts can provide additional insights and solutions that might not be covered in standard documentation. Always keep learning, experimenting, and sharing your experiences to contribute to the collective knowledge of the community.
+Most YOLO26 issues trace back to a handful of causes: version mismatches, dataset formatting, and GPU configuration. When an error isn't covered here, search the [GitHub Issues](https://github.com/ultralytics/ultralytics/issues) tab or ask on the [Discord server](https://discord.com/invite/ultralytics) — chances are someone has already solved it. For deeper [training](../modes/train.md) problems, see the [Model Training Tips](model-training-tips.md) guide for practical advice on getting better results with your [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) projects.
 
 ## FAQ
 
@@ -284,18 +295,12 @@ model.train(data="/path/to/your/data.yaml", batch=32, device=[0, 1, 2, 3])
 
 ### How can I ensure my YOLO26 model is training on the GPU?
 
-If the 'device' value shows 'null' in the training logs, it generally means the training process is set to automatically use an available GPU. To explicitly assign a specific GPU, set the 'device' value in your `.yaml` configuration file. For instance:
-
-```yaml
-device: 0
-```
-
-This sets the training process to the first GPU. Consult the `nvidia-smi` command to confirm your CUDA setup.
+If the 'device' value shows 'null' in the training logs, it generally means the training process is set to automatically select an available GPU. To explicitly assign a specific GPU, pass the `device` argument when you start training, for example `yolo train data=path/to/data.yaml device=0` for the first GPU. Consult the `nvidia-smi` command to confirm your CUDA setup.
 
 ### How can I monitor and track my YOLO26 model training progress?
 
-Tracking and visualizing training progress can be efficiently managed through tools like [TensorBoard](https://www.tensorflow.org/tensorboard), [Comet](https://bit.ly/yolov8-readme-comet), and [Ultralytics Platform](https://platform.ultralytics.com/). These tools allow you to log and visualize metrics such as loss, [precision](https://www.ultralytics.com/glossary/precision), [recall](https://www.ultralytics.com/glossary/recall), and mAP. Implementing [early stopping](#continuous-monitoring-parameters) based on these metrics can also help achieve better training outcomes.
+Tracking and visualizing training progress can be efficiently managed through tools like [TensorBoard](https://www.tensorflow.org/tensorboard), [Comet](../integrations/comet.md), and [Ultralytics Platform](https://platform.ultralytics.com/). These tools allow you to log and visualize metrics such as loss, [precision](https://www.ultralytics.com/glossary/precision), [recall](https://www.ultralytics.com/glossary/recall), and mAP. Implementing [early stopping](#continuous-monitoring-parameters) based on these metrics can also help achieve better training outcomes.
 
 ### What should I do if YOLO26 is not recognizing my dataset format?
 
-Ensure your dataset and labels conform to the expected format. Verify that annotations are accurate and of high quality. If you face any issues, refer to the [Data Collection and Annotation](https://docs.ultralytics.com/guides/data-collection-and-annotation) guide for best practices. For more dataset-specific guidance, check the [Datasets](https://docs.ultralytics.com/datasets) section in the documentation.
+Ensure your dataset and labels conform to the expected format. Verify that annotations are accurate and of high quality. If you face any issues, refer to the [Data Collection and Annotation](data-collection-and-annotation.md) guide for best practices. For more dataset-specific guidance, check the [Datasets](../datasets/index.md) section in the documentation.

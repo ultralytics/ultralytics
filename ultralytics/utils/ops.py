@@ -686,10 +686,10 @@ def linear_sum_assignment(cost_matrix):
     """Solve the rectangular linear sum assignment problem (minimum-cost one-to-one matching).
 
     Uses `scipy.optimize.linear_sum_assignment` when SciPy is installed (faster compiled C++ solver), and otherwise
-    falls back to an equivalent pure-NumPy implementation of the same modified Jonker-Volgenant shortest augmenting
-    path algorithm (Crouse 2016). This keeps SciPy out of Ultralytics' required dependencies while preserving its
-    speed when present. SciPy is imported lazily so it never slows `import ultralytics`. For a rectangular matrix only
-    min(rows, columns) entries are matched.
+    falls back to an equivalent pure-NumPy implementation of the same modified Jonker-Volgenant shortest augmenting path
+    algorithm (Crouse 2016). This keeps SciPy out of Ultralytics' required dependencies while preserving its speed when
+    present. SciPy is imported lazily so it never slows `import ultralytics`. For a rectangular matrix only min(rows,
+    columns) entries are matched.
 
     The NumPy fallback expects finite costs: an `inf` entry marks a forbidden assignment (matching SciPy), while `NaN`
     is not rejected (SciPy raises), so callers must sanitize NaN upstream (e.g. the RT-DETR matcher zeros NaN/inf

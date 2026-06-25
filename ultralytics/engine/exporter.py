@@ -588,7 +588,7 @@ class Exporter:
                     pass
         if self.args.quantize == "w16a16" and fmt == "torchscript" and self.device.type == "cpu":
             LOGGER.warning(
-                "FP16 only compatible with GPU export for TorchScript, i.e. use device=0, setting quantize='w32a32'."
+                "FP16 export requires GPU for TorchScript, i.e. use device=0; exporting FP32 instead..."
             )
             self.args.quantize = "w32a32"
         self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size

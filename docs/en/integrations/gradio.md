@@ -1,4 +1,5 @@
 ---
+title: YOLO26 Object Detection with Gradio
 comments: true
 description: Discover an interactive way to perform object detection with Ultralytics YOLO26 using Gradio. Upload images and adjust settings for real-time results.
 keywords: Ultralytics, YOLO26, Gradio, object detection, interactive, real-time, image processing, AI
@@ -52,7 +53,7 @@ pip install gradio
 
 ## Usage Example
 
-This section provides the Python code used to create the Gradio interface with the Ultralytics YOLO26 model. The code supports classification tasks, detection tasks, segmentation tasks, and keypoint tasks.
+This section provides the Python code used to create a Gradio interface for Ultralytics YOLO26 object detection. The sample can be adapted for classification, instance segmentation, pose, and other YOLO tasks by loading the corresponding model checkpoint.
 
 ```python
 import gradio as gr

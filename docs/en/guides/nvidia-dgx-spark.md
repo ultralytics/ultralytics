@@ -1,4 +1,5 @@
 ---
+title: YOLO26 on NVIDIA DGX Spark
 comments: true
 description: Learn to deploy Ultralytics YOLO26 on NVIDIA DGX Spark with our detailed guide. Explore performance benchmarks and maximize AI capabilities on this compact desktop AI supercomputer.
 keywords: Ultralytics, YOLO26, NVIDIA DGX Spark, AI deployment, performance benchmarks, deep learning, TensorRT, computer vision, GB10 Grace Blackwell
@@ -411,7 +412,7 @@ TensorRT is highly recommended for deploying YOLO26 models on DGX Spark due to i
 
 ### How does DGX Spark compare to Jetson devices for YOLO26?
 
-DGX Spark offers significantly more compute power than Jetson devices with up to 1 PFLOP of AI performance and 128GB unified memory, compared to Jetson AGX Thor's 2070 TFLOPS and 128GB memory. DGX Spark is designed as a desktop AI supercomputer, while Jetson devices are embedded systems optimized for edge deployment.
+DGX Spark offers up to 1 PFLOP of AI performance and 128GB unified memory, compared to Jetson AGX Thor's 2070 TFLOPS and 128GB memory. DGX Spark is designed as a desktop AI supercomputer, while Jetson devices are embedded systems optimized for edge deployment.
 
 ### Can I use the same Docker image for DGX Spark and Jetson AGX Thor?
 

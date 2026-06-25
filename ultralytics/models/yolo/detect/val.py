@@ -31,7 +31,6 @@ class DetectionValidator(BaseValidator):
         metrics (DetMetrics): Object detection metrics calculator.
         iouv (torch.Tensor): IoU thresholds for mAP calculation.
         niou (int): Number of IoU thresholds.
-        lb (list[Any]): List for storing ground truth labels for hybrid saving.
         jdict (list[dict[str, Any]]): List for storing JSON detection results.
         stats (dict[str, list[torch.Tensor]]): Dictionary for storing statistics during validation.
 
@@ -283,7 +282,7 @@ class DetectionValidator(BaseValidator):
             LOGGER.warning(f"no labels found in {self.args.task} set, cannot compute metrics without labels")
 
         # Print results per class
-        if self.args.verbose and not self.training and self.nc > 1 and len(self.metrics.stats):
+        if self.args.verbose and not self.training and self.nc > 1:
             for i, c in enumerate(self.metrics.ap_class_index):
                 LOGGER.info(
                     pf

@@ -1,4 +1,5 @@
 ---
+title: YOLO26 on Jetson: DeepStream & TensorRT
 comments: true
 description: Learn how to deploy Ultralytics YOLO26 on NVIDIA Jetson devices using TensorRT and DeepStream SDK. Explore performance benchmarks and maximize AI capabilities.
 keywords: Ultralytics, YOLO26, NVIDIA Jetson, JetPack, AI deployment, embedded systems, deep learning, TensorRT, DeepStream SDK, computer vision
@@ -343,7 +344,7 @@ deepstream-app -c deepstream_app_config.txt
 
 ## Benchmark Results
 
-The following benchmarks summarizes how YOLO26 models perform at different TensorRT precision levels with an input size of 640x640 on NVIDIA Jetson Orin NX 16GB.
+The following benchmarks summarize how YOLO26 models perform at different TensorRT precision levels with an input size of 640x640 on NVIDIA Jetson Orin NX 16GB.
 
 ### Comparison Chart
 

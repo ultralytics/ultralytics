@@ -24,7 +24,7 @@ jobs:
       current_tag: ${{ steps.check_pypi.outputs.current_tag }}
       previous_tag: ${{ steps.check_pypi.outputs.previous_tag }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v6
         with:
           python-version: "3.x"
@@ -63,7 +63,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v6
         with:
           python-version: "3.x"
@@ -79,6 +79,14 @@ jobs:
           path = Path("pyproject.toml")
           text = path.read_text()
           text = text.replace('name = "ultralytics"', 'name = "ultralytics-opencv-headless"', 1)
+          text = "\n".join(
+              (
+                  'description = "Ultralytics YOLO 🚀 for SOTA computer vision in server, container, and headless environments."'
+                  if line.startswith("description = ")
+                  else line
+              )
+              for line in text.splitlines()
+          ) + "\n"
           text = text.replace('"opencv-python>=', '"opencv-python-headless>=', 1)
           path.write_text(text)
           PY
@@ -113,7 +121,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v6
         with:
           python-version: "3.x"
@@ -139,7 +147,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Extract PR Details
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,14 +1,13 @@
 ---
+title: Data Analytics with Ultralytics YOLO26
 comments: true
-description: Learn to create line graphs, bar plots, and pie charts using Python with guided instructions and code snippets. Maximize your data visualization skills!
-keywords: Ultralytics, YOLO26, data visualization, line graphs, bar plots, pie charts, Python, analytics, tutorial, guide
+description: Build real-time line graphs, bar plots, pie charts, and area plots from YOLO26 object detection and tracking data in Python to visualize counts frame by frame.
+keywords: Ultralytics, YOLO26, data visualization, line graphs, bar plots, pie charts, area plots, object tracking analytics, real-time analytics, Python, computer vision
 ---
 
 # Analytics using Ultralytics YOLO26
 
-## Introduction
-
-This guide provides a comprehensive overview of three fundamental types of [data visualizations](https://www.ultralytics.com/glossary/data-visualization): line graphs, bar plots, and pie charts. Each section includes step-by-step instructions and code snippets on how to create these visualizations using Python.
+Analytics with [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics/) turns [object detection](https://www.ultralytics.com/glossary/object-detection) and tracking results into real-time charts, so you can watch how object counts change across a video frame by frame. This guide covers four [data visualization](https://www.ultralytics.com/glossary/data-visualization) types — line graphs, bar plots, pie charts, and area plots — and shows how to switch between them with shared Python and CLI examples.
 
 <p align="center">
   <br>
@@ -21,17 +20,22 @@ This guide provides a comprehensive overview of three fundamental types of [data
   <strong>Watch:</strong> How to generate Analytical Graphs using Ultralytics | Line Graphs, Bar Plots, Area and Pie Charts
 </p>
 
-### Visual Samples
+## Visual Samples
 
 |                                                              Line Graph                                                              |                                                             Bar Plot                                                              |                                                               Pie Chart                                                               |
 | :----------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------: |
 | ![YOLO analytics line graph for object tracking](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/analytics-line-graph.avif) | ![YOLO analytics bar plot for detection counts](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/analytics-bar-plot.avif) | ![YOLO analytics pie chart for class distribution](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/analytics-pie-chart.avif) |
 
-### Why Graphs are Important
+## Why Visualize Detection Data?
 
-- Line graphs are ideal for tracking changes over short and long periods and for comparing changes for multiple groups over the same period.
-- Bar plots, on the other hand, are suitable for comparing quantities across different categories and showing relationships between a category and its numerical value.
-- Lastly, pie charts are effective for illustrating proportions among categories and showing parts of a whole.
+- **Line graphs** are ideal for tracking changes over short and long periods and for comparing changes for multiple groups over the same period.
+- **Bar plots** are suitable for comparing quantities across different categories and showing relationships between a category and its numerical value.
+- **Pie charts** are effective for illustrating proportions among categories and showing parts of a whole.
+- **Area plots** fill the line graph so per-class object counts over time are easier to read at a glance.
+
+## Generate Analytics Graphs
+
+Pass your video to the `Analytics` solution and select a chart with `analytics_type`. The solution runs detection and tracking on every frame and renders a 1280×720 chart (by default) you can write straight to an output video. Switch between `"line"`, `"bar"`, `"pie"`, and `"area"` with a single argument.
 
 !!! example "Analytics using Ultralytics YOLO"
 
@@ -127,50 +131,11 @@ Understanding when and how to use different types of visualizations is crucial f
 To create a line graph using Ultralytics YOLO26 Analytics, follow these steps:
 
 1. Load a YOLO26 model and open your video file.
-2. Initialize the `Analytics` class with the type set to "line."
-3. Iterate through video frames, updating the line graph with relevant data, such as object counts per frame.
-4. Save the output video displaying the line graph.
+2. Initialize the `Analytics` class with `analytics_type="line"`.
+3. Iterate through video frames, calling the solution each frame to update the line graph with data such as object counts.
+4. Write `results.plot_im` to an output video to save the chart.
 
-Example:
-
-```python
-import cv2
-
-from ultralytics import solutions
-
-cap = cv2.VideoCapture("path/to/video.mp4")
-assert cap.isOpened(), "Error reading video file"
-
-w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-
-out = cv2.VideoWriter(
-    "ultralytics_analytics.avi",
-    cv2.VideoWriter_fourcc(*"MJPG"),
-    fps,
-    (1280, 720),  # this is fixed
-)
-
-analytics = solutions.Analytics(
-    analytics_type="line",
-    show=True,
-)
-
-frame_count = 0
-while cap.isOpened():
-    success, im0 = cap.read()
-    if success:
-        frame_count += 1
-        results = analytics(im0, frame_count)  # update analytics graph every frame
-        out.write(results.plot_im)  # write the video file
-    else:
-        break
-
-cap.release()
-out.release()
-cv2.destroyAllWindows()
-```
-
-For further details on configuring the `Analytics` class, visit the [Analytics using Ultralytics YOLO26](#analytics-using-ultralytics-yolo26) section.
+Use the [Python example above](#generate-analytics-graphs) as a starting point — it already runs the full frame loop, and a line graph is the default `analytics_type`.
 
 ### What are the benefits of using Ultralytics YOLO26 for creating bar plots?
 
@@ -181,46 +146,7 @@ Using Ultralytics YOLO26 for creating bar plots offers several benefits:
 3. **Customization**: Customize titles, labels, colors, and more to fit your specific requirements.
 4. **Efficiency**: Efficiently handle large amounts of data and update plots in real-time during video processing.
 
-Use the following example to generate a bar plot:
-
-```python
-import cv2
-
-from ultralytics import solutions
-
-cap = cv2.VideoCapture("path/to/video.mp4")
-assert cap.isOpened(), "Error reading video file"
-
-w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-
-out = cv2.VideoWriter(
-    "ultralytics_analytics.avi",
-    cv2.VideoWriter_fourcc(*"MJPG"),
-    fps,
-    (1280, 720),  # this is fixed
-)
-
-analytics = solutions.Analytics(
-    analytics_type="bar",
-    show=True,
-)
-
-frame_count = 0
-while cap.isOpened():
-    success, im0 = cap.read()
-    if success:
-        frame_count += 1
-        results = analytics(im0, frame_count)  # update analytics graph every frame
-        out.write(results.plot_im)  # write the video file
-    else:
-        break
-
-cap.release()
-out.release()
-cv2.destroyAllWindows()
-```
-
-To learn more, visit the [Bar Plot](#visual-samples) section in the guide.
+To generate a bar plot, set `analytics_type="bar"` in the [Python example above](#generate-analytics-graphs) — the rest of the frame loop is identical. See the [Visual Samples](#visual-samples) section for a preview.
 
 ### Why should I use Ultralytics YOLO26 for creating pie charts in my data visualization projects?
 
@@ -231,97 +157,17 @@ Ultralytics YOLO26 is an excellent choice for creating pie charts because:
 3. **Customizable**: Various customization options for colors, labels, and more.
 4. **Real-time Updates**: Handle and visualize data in real-time, which is ideal for video analytics projects.
 
-Here's a quick example:
-
-```python
-import cv2
-
-from ultralytics import solutions
-
-cap = cv2.VideoCapture("path/to/video.mp4")
-assert cap.isOpened(), "Error reading video file"
-
-w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-
-out = cv2.VideoWriter(
-    "ultralytics_analytics.avi",
-    cv2.VideoWriter_fourcc(*"MJPG"),
-    fps,
-    (1280, 720),  # this is fixed
-)
-
-analytics = solutions.Analytics(
-    analytics_type="pie",
-    show=True,
-)
-
-frame_count = 0
-while cap.isOpened():
-    success, im0 = cap.read()
-    if success:
-        frame_count += 1
-        results = analytics(im0, frame_count)  # update analytics graph every frame
-        out.write(results.plot_im)  # write the video file
-    else:
-        break
-
-cap.release()
-out.release()
-cv2.destroyAllWindows()
-```
-
-For more information, refer to the [Pie Chart](#visual-samples) section in the guide.
+To generate a pie chart, set `analytics_type="pie"` in the [Python example above](#generate-analytics-graphs). For more information, refer to the [Visual Samples](#visual-samples) section in the guide.
 
 ### Can Ultralytics YOLO26 be used to track objects and dynamically update visualizations?
 
-Yes, Ultralytics YOLO26 can be used to track objects and dynamically update visualizations. It supports tracking multiple objects in real-time and can update various visualizations like line graphs, bar plots, and pie charts based on the tracked objects' data.
-
-Example for tracking and updating a line graph:
-
-```python
-import cv2
-
-from ultralytics import solutions
-
-cap = cv2.VideoCapture("path/to/video.mp4")
-assert cap.isOpened(), "Error reading video file"
-
-w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-
-out = cv2.VideoWriter(
-    "ultralytics_analytics.avi",
-    cv2.VideoWriter_fourcc(*"MJPG"),
-    fps,
-    (1280, 720),  # this is fixed
-)
-
-analytics = solutions.Analytics(
-    analytics_type="line",
-    show=True,
-)
-
-frame_count = 0
-while cap.isOpened():
-    success, im0 = cap.read()
-    if success:
-        frame_count += 1
-        results = analytics(im0, frame_count)  # update analytics graph every frame
-        out.write(results.plot_im)  # write the video file
-    else:
-        break
-
-cap.release()
-out.release()
-cv2.destroyAllWindows()
-```
-
-To learn about the complete functionality, see the [Tracking](../modes/track.md) section.
+Yes. Tracking is built into the `Analytics` solution: it tracks multiple objects in real time and updates the chart from the tracked objects' data every frame, so line graphs, bar plots, pie charts, and area plots all reflect live counts. This is exactly what the frame loop in the [Python example above](#generate-analytics-graphs) does. To learn about the underlying tracking functionality, see the [Tracking](../modes/track.md) section.
 
 ### What makes Ultralytics YOLO26 different from other object detection solutions like [OpenCV](https://www.ultralytics.com/glossary/opencv) and [TensorFlow](https://www.ultralytics.com/glossary/tensorflow)?
 
 Ultralytics YOLO26 stands out from other object detection solutions like OpenCV and TensorFlow for multiple reasons:
 
-1. **State-of-the-art [Accuracy](https://www.ultralytics.com/glossary/accuracy)**: YOLO26 provides superior accuracy in object detection, segmentation, and classification tasks.
+1. **State-of-the-art [Accuracy](https://www.ultralytics.com/glossary/accuracy)**: YOLO26 provides superior accuracy in [object detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), and [classification](../tasks/classify.md) tasks.
 2. **Ease of Use**: User-friendly API allows for quick implementation and integration without extensive coding.
 3. **Real-time Performance**: Optimized for high-speed inference, suitable for real-time applications.
 4. **Diverse Applications**: Supports various tasks including multi-object tracking, custom model training, and exporting to different formats like ONNX, TensorRT, and CoreML.

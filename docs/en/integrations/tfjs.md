@@ -1,4 +1,5 @@
 ---
+title: Export YOLO26 to TensorFlow.js (TF.js)
 comments: true
 description: Convert your Ultralytics YOLO26 models to TensorFlow.js for high-speed, local object detection. Learn how to optimize ML models for browser and Node.js apps.
 keywords: YOLO26, TensorFlow.js, TF.js, model export, machine learning, object detection, browser ML, Node.js, Ultralytics, YOLO, export models
@@ -18,7 +19,7 @@ Exporting your machine learning models to TensorFlow.js, developed by the Tensor
   <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/tfjs-architecture.avif" alt="TensorFlow.js browser ML inference architecture">
 </p>
 
-Running models locally also reduces latency and provides a more responsive user experience. [TensorFlow.js](https://www.ultralytics.com/glossary/tensorflow) also comes with offline capabilities, allowing users to use your application even without an internet connection. TF.js is designed for efficient execution of complex models on devices with limited resources as it is engineered for scalability, with GPU acceleration support.
+Running models locally also reduces latency and provides a more responsive user experience. [TensorFlow.js](https://www.tensorflow.org/js) also comes with offline capabilities, allowing users to use your application even without an internet connection. TF.js is designed for efficient execution of complex models on devices with limited resources as it is engineered for scalability, with GPU acceleration support.
 
 ## Key Features of TF.js
 
@@ -65,24 +66,20 @@ For detailed instructions and best practices related to the installation process
 
 All [Ultralytics YOLO26 models](../models/index.md) are designed to support export out of the box, making it easy to integrate them into your preferred deployment workflow. You can [view the full list of supported export formats and configuration options](../modes/export.md) to choose the best setup for your application.
 
-!!! example "Usage"
+The TF.js format is **export-only** in Ultralytics — [Predict](../modes/predict.md) and [Validate](../modes/val.md) are not available locally. Deploy the exported model in the browser or a Node.js application with the [TensorFlow.js](https://www.tensorflow.org/js) runtime.
+
+!!! example "Export"
 
     === "Python"
 
         ```python
         from ultralytics import YOLO
 
-        # Load the YOLO26 model
+        # Load a YOLO26 model
         model = YOLO("yolo26n.pt")
 
         # Export the model to TF.js format
         model.export(format="tfjs")  # creates '/yolo26n_web_model'
-
-        # Load the exported TF.js model
-        tfjs_model = YOLO("./yolo26n_web_model")
-
-        # Run inference
-        results = tfjs_model("https://ultralytics.com/images/bus.jpg")
         ```
 
     === "CLI"
@@ -90,10 +87,11 @@ All [Ultralytics YOLO26 models](../models/index.md) are designed to support expo
         ```bash
         # Export a YOLO26n PyTorch model to TF.js format
         yolo export model=yolo26n.pt format=tfjs # creates '/yolo26n_web_model'
-
-        # Run inference with the exported model
-        yolo predict model='./yolo26n_web_model' source='https://ultralytics.com/images/bus.jpg'
         ```
+
+!!! note "Predict and Validate"
+
+    Ultralytics does not provide a local TF.js inference backend, so `yolo predict` and `yolo val` cannot load a `_web_model`. Run the exported model with the TensorFlow.js runtime in your web or Node.js application instead.
 
 ### Export Arguments
 
@@ -113,9 +111,9 @@ For more details about the export process, visit the [Ultralytics documentation 
 
 ## Deploying Exported YOLO26 TensorFlow.js Models
 
-Now that you have exported your YOLO26 model to the TF.js format, the next step is to deploy it. The primary and recommended first step for running a TF.js model is to use the `YOLO("./yolo26n_web_model")` method, as previously shown in the usage code snippet.
+Now that you have exported your YOLO26 model to the TF.js format, the next step is to deploy it. Ultralytics does not provide a local TF.js inference backend, so the exported `_web_model` is intended to run directly with the [TensorFlow.js](https://www.tensorflow.org/js) runtime in a browser or Node.js application.
 
-However, for in-depth instructions on deploying your TF.js models, take a look at the following resources:
+For in-depth instructions on deploying your TF.js models, take a look at the following resources:
 
 - **[Chrome Extension](https://www.tensorflow.org/js/tutorials/deployment/web_ml_in_chrome)**: Here's the developer documentation for how to deploy your TF.js models to a Chrome extension.
 
@@ -144,17 +142,14 @@ Exporting Ultralytics YOLO26 models to TensorFlow.js (TF.js) format is straightf
         ```python
         from ultralytics import YOLO
 
-        # Load the YOLO26 model
+        # Load a YOLO26 model
         model = YOLO("yolo26n.pt")
 
         # Export the model to TF.js format
         model.export(format="tfjs")  # creates '/yolo26n_web_model'
 
-        # Load the exported TF.js model
-        tfjs_model = YOLO("./yolo26n_web_model")
-
-        # Run inference
-        results = tfjs_model("https://ultralytics.com/images/bus.jpg")
+        # Deploy the exported '_web_model' with the TensorFlow.js runtime in a browser or Node.js app.
+        # Ultralytics does not provide a local TF.js inference backend.
         ```
 
     === "CLI"
@@ -163,8 +158,8 @@ Exporting Ultralytics YOLO26 models to TensorFlow.js (TF.js) format is straightf
         # Export a YOLO26n PyTorch model to TF.js format
         yolo export model=yolo26n.pt format=tfjs # creates '/yolo26n_web_model'
 
-        # Run inference with the exported model
-        yolo predict model='./yolo26n_web_model' source='https://ultralytics.com/images/bus.jpg'
+        # Deploy the exported '_web_model' with the TensorFlow.js runtime in a browser or Node.js app.
+        # Ultralytics does not provide a local TF.js inference backend.
         ```
 
 For more details about supported export options, visit the [Ultralytics documentation page on deployment options](../guides/model-deployment-options.md).
@@ -177,8 +172,6 @@ Exporting YOLO26 models to TensorFlow.js offers several advantages, including:
 2. **Cross-Platform Support:** TF.js supports multiple environments, allowing flexibility in deployment.
 3. **Offline Capabilities:** Enables applications to function without an internet connection, ensuring reliability and privacy.
 4. **GPU Acceleration:** Leverages WebGL for GPU acceleration, optimizing performance on devices with limited resources.
-
-For a comprehensive overview, see our [Integrations with TensorFlow.js](../integrations/tf-graphdef.md).
 
 ### How does TensorFlow.js benefit browser-based machine learning applications?
 

@@ -65,13 +65,14 @@ For turnkey solutions, Axelera partners with manufacturers to provide systems pr
 
 The following tasks are supported across YOLOv8, YOLO11, and YOLO26 models.
 
-| Task                                                              | YOLOv8 | YOLO11 | YOLO26              |
-| :---------------------------------------------------------------- | :----- | :----- | :------------------ |
-| [Object Detection](https://docs.ultralytics.com/tasks/detect)     | ✅     | ✅     | ✅                  |
-| [Pose Estimation](https://docs.ultralytics.com/tasks/pose)        | ✅     | ✅     | ✅                  |
-| [Segmentation](https://docs.ultralytics.com/tasks/segment)        | ✅     | ✅     | ⚠️ Voyager SDK only |
-| [Oriented Bounding Boxes](https://docs.ultralytics.com/tasks/obb) | ✅     | ✅     | ✅                  |
-| [Classification](https://docs.ultralytics.com/tasks/classify)     | ✅     | ✅     | ✅                  |
+| Task                                                                 | YOLOv8 | YOLO11 | YOLO26              |
+| :------------------------------------------------------------------- | :----- | :----- | :------------------ |
+| [Object Detection](https://docs.ultralytics.com/tasks/detect)        | ✅     | ✅     | ✅                  |
+| [Pose Estimation](https://docs.ultralytics.com/tasks/pose)           | ✅     | ✅     | ✅                  |
+| [Instance Segmentation](https://docs.ultralytics.com/tasks/segment)  | ✅     | ✅     | ⚠️ Voyager SDK only |
+| [Semantic Segmentation](https://docs.ultralytics.com/tasks/semantic) | ❌     | ❌     | ✅                  |
+| [Oriented Bounding Boxes](https://docs.ultralytics.com/tasks/obb)    | ✅     | ✅     | ✅                  |
+| [Classification](https://docs.ultralytics.com/tasks/classify)        | ✅     | ✅     | ✅                  |
 
 !!! note
 
@@ -85,7 +86,7 @@ The following tasks are supported across YOLOv8, YOLO11, and YOLO26 models.
 
     - **Operating System**: Linux only (Ubuntu 22.04/24.04 recommended)
     - **Hardware**: Axelera AI accelerator ([Metis devices](https://store.axelera.ai/))
-    - **Python**: Versions 3.10, 3.11, and 3.12
+    - **Python**: Versions 3.10, 3.11, 3.12, and 3.13
     - **System dependency**: `sudo apt install libgl1` (required by OpenCV, not included via `pip`)
 
 ### Ultralytics Installation
@@ -137,9 +138,9 @@ For detailed instructions, see our [Ultralytics Installation guide](../quickstar
 
 ## Exporting YOLO Models to Axelera
 
-Export your trained YOLO models using the standard Ultralytics export command.
+The Axelera format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Inference and validation run on Axelera Metis AIPU hardware. Export your model, then load the exported model to run inference or validate its accuracy.
 
-!!! example "Export to Axelera Format"
+!!! example "Export"
 
     === "Python"
 
@@ -149,14 +150,57 @@ Export your trained YOLO models using the standard Ultralytics export command.
         # Load a YOLO26 model
         model = YOLO("yolo26n.pt")
 
-        # Export to Axelera format
-        model.export(format="axelera")  # creates 'yolo26n_axelera_model' directory
+        # Export the model to Axelera format
+        model.export(format="axelera")  # creates 'yolo26n_axelera_model'
         ```
 
     === "CLI"
 
         ```bash
-        yolo export model=yolo26n.pt format=axelera
+        # Export a YOLO26n PyTorch model to Axelera format
+        yolo export model=yolo26n.pt format=axelera # creates 'yolo26n_axelera_model'
+        ```
+
+!!! example "Predict"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the exported Axelera model
+        model = YOLO("yolo26n_axelera_model")
+
+        # Run inference
+        results = model("https://ultralytics.com/images/bus.jpg")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Run inference with the exported Axelera model
+        yolo predict model=yolo26n_axelera_model source='https://ultralytics.com/images/bus.jpg'
+        ```
+
+!!! example "Validate"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the exported Axelera model
+        model = YOLO("yolo26n_axelera_model")
+
+        # Validate accuracy on the COCO8 dataset
+        metrics = model.val(data="coco8.yaml")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Validate the exported Axelera model
+        yolo val model=yolo26n_axelera_model data=coco8.yaml
         ```
 
 !!! warning "First export may fail after dependency update"
@@ -181,38 +225,10 @@ For all export options, see the [Export Mode documentation](https://docs.ultraly
 
 ```
 yolo26n_axelera_model/
-├── yolo26n.axm              # Axelera model file
-└── metadata.yaml            # Model metadata (classes, image size, etc.)
+├── yolo26n.axm                  # Axelera model file
+├── compiler_config_final.toml  # Compiler configuration used for the build
+└── metadata.yaml               # Model metadata (classes, image size, etc.)
 ```
-
-## Running Inference
-
-Load the exported model with the Ultralytics API and run inference, similar to loading [ONNX](https://docs.ultralytics.com/integrations/onnx) models.
-
-!!! example "Inference with Axelera Model"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load the exported Axelera model
-        model = YOLO("yolo26n_axelera_model")
-
-        # Run inference
-        results = model("https://ultralytics.com/images/bus.jpg")
-
-        # Process results
-        for r in results:
-            print(f"Detected {len(r.boxes)} objects")
-            r.show()  # Display results
-        ```
-
-    === "CLI"
-
-        ```bash
-        yolo predict model='yolo26n_axelera_model' source='https://ultralytics.com/images/bus.jpg'
-        ```
 
 ## Axelera AI Benchmarks
 
@@ -252,7 +268,7 @@ Verify your Axelera device is functioning properly:
 axdevice
 ```
 
-For detailed diagnostics, see the [AxDevice documentation](https://github.com/axelera-ai-hub/voyager-sdk/blob/latest/docs/reference/axdevice.md).
+For detailed diagnostics, see the [AxDevice documentation](https://github.com/axelera-ai-hub/voyager-sdk/blob/latest/docs/reference/tools/axdevice.md).
 
 ## Maximum Performance
 
@@ -262,7 +278,7 @@ This integration uses single-core configuration for compatibility. For productio
 - Streaming inference pipelines
 - Tiled inferencing for higher-resolution cameras
 
-See the [model-zoo](https://github.com/axelera-ai-hub/voyager-sdk/blob/latest/docs/reference/model_zoo.md) for FPS benchmarks or [contact Axelera](https://axelera.ai/contact-us) for production support.
+See the [model-zoo](https://github.com/axelera-ai-hub/voyager-sdk/blob/latest/docs/reference/models/model-zoo.md) for FPS benchmarks or [contact Axelera](https://axelera.ai/contact-us) for production support.
 
 ## Known Issues
 

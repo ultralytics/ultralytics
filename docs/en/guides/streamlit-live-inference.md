@@ -1,4 +1,5 @@
 ---
+title: YOLO26 Live Inference with Streamlit
 comments: true
 description: Learn how to set up a real-time object detection application using Streamlit and Ultralytics YOLO26. Follow this step-by-step guide to implement webcam-based object detection.
 keywords: Streamlit, YOLO26, Real-time Object Detection, Streamlit Application, YOLO26 Streamlit Tutorial, Webcam Object Detection
@@ -52,7 +53,7 @@ Streamlit makes it simple to build and deploy interactive web applications. Comb
         yolo solutions inference model="path/to/model.pt"
         ```
 
-        These commands launch the default Streamlit interface that ships with Ultralytics. Use `yolo solutions inference --help` to view additional flags such as `source`, `conf`, or `persist` if you want to customize the experience without editing Python code.
+        These commands launch the default Streamlit interface that ships with Ultralytics. Use `yolo solutions help` to view the available solution commands and arguments.
 
     === "Python"
 

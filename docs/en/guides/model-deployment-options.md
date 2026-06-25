@@ -1,4 +1,5 @@
 ---
+title: YOLO26 Deployment Options Compared
 comments: true
 description: Learn about YOLO26's diverse deployment options to maximize your model's performance. Explore PyTorch, TensorRT, OpenVINO, TF Lite, and more!
 keywords: YOLO26, deployment options, export formats, PyTorch, TensorRT, OpenVINO, TF Lite, machine learning, model deployment
@@ -159,6 +160,20 @@ TF Edge TPU is designed for high-speed, efficient computing on Google's Edge TPU
 - **Security Considerations**: Integrates with Google's robust security for IoT and edge devices.
 - **Hardware Acceleration**: Custom-designed to take full advantage of Google Coral devices.
 
+### Hailo HEF
+
+Hailo HEF is a compiled executable format for Hailo AI accelerators, including Hailo-8, Hailo-8L, and Hailo-15 devices. Ultralytics YOLO detection models are exported to ONNX first, then compiled to HEF with the external Hailo Dataflow Compiler. HEF is not a direct Ultralytics export target; for supported edge acceleration workflows, compare [Axelera AI](../integrations/axelera.md) and [DeepX](../integrations/deepx.md) first.
+
+- **Performance Benchmarks**: Depends on Hailo hardware, Hailo SDK version, model script, NMS configuration, and calibration data.
+- **Compatibility and Integration**: Only for Hailo-powered embedded systems, industrial gateways, and Raspberry Pi AI Kit deployments.
+- **Community Support and Ecosystem**: Supported through Hailo Developer Zone, HailoRT, TAPPAS, and the Hailo Model Zoo.
+- **Case Studies**: Useful for real-time object detection on cameras, robotics, access control, smart city, and industrial inspection devices.
+- **Maintenance and Updates**: Depends on Hailo SDK, firmware, and model-zoo updates for new accelerator targets.
+- **Security Considerations**: Supports local, on-device inference where data stays at the edge.
+- **Hardware Acceleration**: Uses Hailo NPU execution through compiled HEF artifacts.
+
+For a step-by-step workflow, see the [Hailo integration guide](../integrations/hailo.md).
+
 ### TF.js
 
 TensorFlow.js (TF.js) is a library that brings machine learning capabilities directly to the browser, offering a new realm of possibilities for web developers and users alike. It allows for the integration of machine learning models in web applications without the need for back-end infrastructure.
@@ -223,6 +238,7 @@ The following table provides a snapshot of the various deployment options availa
 | TF GraphDef       | Stable for static computation graphs            | Integrates well with TensorFlow infrastructure | Resources for optimizing static graphs        | Scenarios requiring static graphs          | Updates alongside TensorFlow core              | Established TensorFlow security practices         | TensorFlow acceleration options    |
 | TF Lite           | Speed and efficiency on mobile/embedded         | Wide range of device support                   | Robust community, Google backed               | Mobile applications with minimal footprint | Latest features for mobile                     | Secure environment on end-user devices            | GPU and DSP among others           |
 | TF Edge TPU       | Optimized for Google's Edge TPU hardware        | Exclusive to Edge TPU devices                  | Growing with Google and third-party resources | IoT devices requiring real-time processing | Improvements for new Edge TPU hardware         | Google's robust IoT security                      | Custom-designed for Google Coral   |
+| Hailo HEF         | Hardware-specific and externally compiled       | Hailo devices and Raspberry Pi AI Kit          | Hailo Developer Zone and Model Zoo            | Existing Hailo deployments                 | Hailo SDK and firmware updates                 | On-device inference keeps data local              | Hailo NPU via HEF artifacts        |
 | TF.js             | Reasonable in-browser performance               | High with web technologies                     | Web and Node.js developers support            | Interactive web applications               | TensorFlow team and community contributions    | Web platform security model                       | Enhanced with WebGL and other APIs |
 | PaddlePaddle      | Competitive, easy to use and scalable           | Baidu ecosystem, wide application support      | Rapidly growing, especially in China          | Chinese market and language processing     | Focus on Chinese AI applications               | Emphasizes data privacy and security              | Including Baidu's Kunlun chips     |
 | MNN               | High-performance for mobile devices.            | Mobile and embedded ARM systems and X86-64 CPU | Mobile/embedded ML community                  | Mobile systems efficiency                  | High performance maintenance on Mobile Devices | On-device security advantages                     | ARM CPUs and GPUs optimizations    |
@@ -291,7 +307,7 @@ Yes, YOLO26 models can be deployed on mobile devices using [TensorFlow](https://
 
         ```bash
         # CLI command for TFLite export
-        yolo export --format tflite
+        yolo export model=yolo26n.pt format=tflite
         ```
 
 For more details on deploying models to mobile, refer to our [TF Lite integration guide](../integrations/tflite.md).

@@ -92,7 +92,7 @@ class Colors:
     """
 
     def __init__(self):
-        """Initialize colors as hex = matplotlib.colors.TABLEAU_COLORS.values()."""
+        """Initialize the Ultralytics color palette from a fixed list of hex color codes."""
         hexs = (
             "042AFF",
             "0BDBEB",
@@ -410,6 +410,27 @@ class Annotator:
             # Convert im back to PIL and update draw
             self.fromarray(self.im)
 
+    def semantic_mask(self, mask, alpha: float = 0.5, ignore_index: int = 255):
+        """Plot a semantic segmentation mask on the image.
+
+        Args:
+            mask (np.ndarray): Semantic mask with shape [h, w] containing integer class indices.
+            alpha (float, optional): Mask transparency: 0.0 fully transparent, 1.0 opaque.
+            ignore_index (int, optional): Class index to ignore (e.g., 255 for void/ignore).
+        """
+        if self.pil:
+            # Convert to numpy first
+            self.im = np.asarray(self.im).copy()
+        overlay = np.zeros_like(self.im)
+        for cls_id in np.unique(mask):
+            if cls_id == ignore_index:
+                continue
+            overlay[mask == cls_id] = colors(int(cls_id), True)
+        self.im = cv2.addWeighted(self.im, 1 - alpha, overlay, alpha, 0)
+        if self.pil:
+            # Convert im back to PIL and update draw
+            self.fromarray(self.im)
+
     def kpts(
         self,
         kpts,
@@ -718,7 +739,7 @@ def plot_images(
         - 3 channels: Used as-is (standard RGB)
         - 4+ channels: Cropped to first 3 channels
     """
-    for k in {"cls", "bboxes", "conf", "masks", "keypoints", "batch_idx", "images"}:
+    for k in {"cls", "bboxes", "conf", "masks", "keypoints", "batch_idx", "images", "semantic_mask"}:
         if k not in labels:
             continue
         if k == "cls" and labels[k].ndim == 2:
@@ -732,6 +753,7 @@ def plot_images(
     confs = labels.get("conf", None)
     masks = labels.get("masks", np.zeros(0, dtype=np.uint8))
     kpts = labels.get("keypoints", np.zeros(0, dtype=np.float32))
+    semantic_masks = labels.get("semantic_mask", np.zeros(0, dtype=np.int64))
     images = labels.get("img", images)  # default to input images
 
     if len(images) and isinstance(images, torch.Tensor):
@@ -851,6 +873,18 @@ def plot_images(
                         except Exception:
                             pass
                 annotator.fromarray(im)
+
+        # Plot semantic masks
+        if len(semantic_masks) and i < len(semantic_masks):
+            mask = semantic_masks[i]
+            mh, mw = mask.shape
+            if mh != h or mw != w:
+                mask = cv2.resize(mask.astype(np.uint8), (w, h), interpolation=cv2.INTER_NEAREST)
+            im = np.asarray(annotator.im).copy()
+            sub_annotator = Annotator(np.ascontiguousarray(im[y : y + h, x : x + w]), line_width=1, pil=False)
+            sub_annotator.semantic_mask(mask, alpha=0.4)
+            im[y : y + h, x : x + w] = sub_annotator.im
+            annotator.fromarray(im)
     if not save:
         return np.asarray(annotator.im)
     annotator.im.save(fname)  # save
@@ -860,9 +894,9 @@ def plot_images(
 
 @plt_settings()
 def plot_results(file: str = "path/to/results.csv", dir: str = "", on_plot: Callable | None = None):
-    """Plot training results from a results CSV file. The function supports various types of data including
-    segmentation, pose estimation, and classification. Plots are saved as 'results.png' in the directory where the
-    CSV is located.
+    """Plot training results from a results CSV file. The function supports various types of data including instance
+    segmentation, semantic segmentation, pose estimation, and classification. Plots are saved as 'results.png' in
+    the directory where the CSV is located.
 
     Args:
         file (str, optional): Path to the CSV file containing the training results.
@@ -913,6 +947,39 @@ def plot_results(file: str = "path/to/results.csv", dir: str = "", on_plot: Call
         plt.close()
         if on_plot:
             on_plot(fname)
+
+
+@plt_settings()
+def plot_multitrain_results(scores: dict, key: str = "fitness", save_dir=Path()):
+    """Plot per-dataset metrics from a multi-dataset training run as a bar chart with the cross-dataset mean.
+
+    Args:
+        scores (dict): Mapping of dataset name to its scalar metric value.
+        key (str): Name of the plotted metric, used as the y-axis label.
+        save_dir (str | Path): Directory to save the 'multitrain_results.png' figure.
+
+    Returns:
+        (Path): Path to the saved figure.
+
+    Examples:
+        >>> from ultralytics.utils.plotting import plot_multitrain_results
+        >>> plot_multitrain_results({"coco8": 0.61, "dota8": 0.48}, key="metrics/mAP50-95(B)")
+    """
+    import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
+
+    mean = sum(scores.values()) / len(scores)
+    fig, ax = plt.subplots(figsize=(max(6.0, len(scores) * 0.45), 5), tight_layout=True)
+    ax.bar(range(len(scores)), list(scores.values()), color="#042AFF")
+    ax.axhline(mean, color="orange", linestyle="--", label=f"mean = {mean:.3f}")
+    ax.set_xticks(range(len(scores)))
+    ax.set_xticklabels(list(scores), rotation=90)
+    ax.set_ylabel(key)
+    ax.set_title(f"MultiTrainer results across {len(scores)} datasets")
+    ax.legend()
+    fname = Path(save_dir) / "multitrain_results.png"
+    fig.savefig(fname, dpi=200)
+    plt.close(fig)
+    return fname
 
 
 def plt_color_scatter(v, f, bins: int = 20, cmap: str = "viridis", alpha: float = 0.8, edgecolors: str = "none"):
@@ -1053,7 +1120,7 @@ def feature_visualization(x, module_type: str, stage: int, n: int = 32, save_dir
 
             blocks = torch.chunk(x[0].cpu(), channels, dim=0)  # select batch index 0, block by channels
             n = min(n, channels)  # number of plots
-            _, ax = plt.subplots(math.ceil(n / 8), 8, tight_layout=True)  # 8 rows x n/8 cols
+            _, ax = plt.subplots(math.ceil(n / 8), 8, tight_layout=True)  # n/8 rows x 8 cols
             ax = ax.ravel()
             plt.subplots_adjust(wspace=0.05, hspace=0.05)
             for i in range(n):

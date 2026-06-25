@@ -1,4 +1,5 @@
 ---
+title: Dataset Management
 comments: true
 description: Learn how to upload, manage, and organize datasets in Ultralytics Platform for YOLO model training with automatic processing and statistics.
 keywords: Ultralytics Platform, datasets, dataset management, dataset versioning, YOLO, data upload, training data, computer vision, machine learning
@@ -11,6 +12,10 @@ keywords: Ultralytics Platform, datasets, dataset management, dataset versioning
 ## Upload Dataset
 
 Ultralytics Platform accepts multiple upload formats for flexibility.
+
+!!! tip "Already have data elsewhere?"
+
+    If you already have datasets in [Ultralytics HUB](../integrations/ultralytics-hub.md) or [Roboflow](../integrations/roboflow.md), use [Integrations](../integrations/index.md) to import them directly — no manual export or re-upload needed.
 
 ### Supported Formats
 
@@ -172,7 +177,7 @@ For task-specific format details, see [supported tasks](index.md#supported-tasks
 3. Select the task type (see [supported tasks](index.md#supported-tasks))
 4. Add a name and optional description
 5. Set visibility (public or private) and optional license (see [available licenses](#available-licenses))
-6. Click `Create`
+6. Click `Create & Upload` (or `Create Dataset` if creating an empty dataset)
 
 ![Ultralytics Platform Datasets Upload Dialog Task Selector](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-upload-dialog-task-selector.avif)
 
@@ -251,16 +256,16 @@ Images can be sorted and filtered for efficient browsing:
 
 === "Filters"
 
-    | Filter           | Options                             |
-    | ---------------- | ----------------------------------- |
-    | **Split filter** | Train, Val, Test, or All            |
-    | **Label filter** | All, Labeled, or Unlabeled          |
-    | **Class filter** | Filter by class name                |
-    | **Search**       | Filter images by filename           |
+    | Filter           | Options                               |
+    | ---------------- | ------------------------------------- |
+    | **Split filter** | Train, Val, Test, or All              |
+    | **Annotations**  | All images, Annotated, or Unannotated |
+    | **Class filter** | Filter by class name                  |
+    | **Search**       | Filter images by filename             |
 
 !!! tip "Finding Unlabeled Images"
 
-    Use the label filter set to `Unlabeled` to quickly find images that still need annotation. This is especially useful for large datasets where you want to track labeling progress.
+    Use the `Annotations` filter set to `Unannotated` to quickly find images that still need annotation. This is especially useful for large datasets where you want to track labeling progress.
 
 ### Fullscreen Viewer
 
@@ -383,15 +388,18 @@ This tab appears when the dataset has images.
 
 Automatic statistics computed from your dataset:
 
-| Chart                    | Description                                                    |
-| ------------------------ | -------------------------------------------------------------- |
-| **Split Distribution**   | Donut chart of train/val/test image counts and labeled percent |
-| **Top Classes**          | Donut chart of the 10 most frequent annotation classes         |
-| **Image Widths**         | Histogram of image width distribution with mean                |
-| **Image Heights**        | Histogram of image height distribution with mean               |
-| **Points per Instance**  | Polygon vertex or keypoint count per annotation (segment/pose) |
-| **Annotation Locations** | 2D heatmap of bounding box center positions                    |
-| **Image Dimensions**     | 2D width vs height heatmap with aspect ratio guide lines       |
+| Chart                       | Description                                                           |
+| --------------------------- | --------------------------------------------------------------------- |
+| **Split Distribution**      | Donut chart of train/val/test image counts and labeled percent        |
+| **Top Classes**             | Donut chart of the 10 most frequent annotation classes                |
+| **Image Dimensions**        | Histogram of image width and height distribution (overlaid) with mean |
+| **Points per Instance**     | Polygon vertex or keypoint count per annotation (segment/pose)        |
+| **Annotation Locations**    | 2D heatmap of bounding box center positions                           |
+| **Image File Size**         | Histogram of image file size distribution                             |
+| **Image Formats**           | Distribution of source image formats (JPG, PNG, etc.)                 |
+| **Bounding Box Dimensions** | Histogram of bounding box width and height (overlaid)                 |
+| **Objects per Image**       | Histogram of annotation count per image                               |
+| **Image Dimensions 2D**     | 2D width vs height heatmap with aspect ratio guide lines              |
 
 ![Ultralytics Platform Datasets Charts Tab Statistics Grid](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-charts-tab-statistics-grid.avif)
 
@@ -483,7 +491,7 @@ Export your dataset for offline use with an NDJSON download from the dataset hea
 
 To export:
 
-1. Click the **Export** button in the dataset header
+1. Click the **Download** button (download icon) in the dataset header
 2. Download the current NDJSON snapshot directly
 3. Use the **Versions** tab when you want an immutable numbered snapshot you can re-download later
 
@@ -492,7 +500,7 @@ To export:
 The NDJSON format stores one JSON object per line. The first line contains dataset metadata, followed by one line per image:
 
 ```json
-{"type": "dataset", "task": "detect", "name": "my-dataset", "description": "...", "url": "https://platform.ultralytics.com/...", "class_names": {"0": "person", "1": "car"}, "version": 1, "created_at": "2026-01-15T10:00:00Z", "updated_at": "2026-02-20T14:30:00Z"}
+{"type": "dataset", "task": "detect", "name": "my-dataset", "description": "...", "bytes": 12345678, "url": "https://platform.ultralytics.com/...", "class_names": {"0": "person", "1": "car"}, "version": 1, "created_at": "2026-01-15T10:00:00Z", "updated_at": "2026-02-20T14:30:00Z"}
 {"type": "image", "file": "img001.jpg", "url": "https://...", "width": 640, "height": 480, "split": "train", "annotations": {"boxes": [[0, 0.5, 0.5, 0.2, 0.3]]}}
 {"type": "image", "file": "img002.jpg", "url": "https://...", "width": 1280, "height": 720, "split": "val"}
 ```
@@ -576,6 +584,8 @@ Reference Platform datasets using the `ul://` URI format (see [Using Platform Da
 ```
 ul://username/datasets/dataset-slug
 ```
+
+You can also paste a dataset or model web URL directly (e.g. `https://platform.ultralytics.com/username/datasets/dataset-slug`); it is automatically rewritten to the `ul://` URI. Passing a list of datasets fine-tunes one base model across each in series, for example `model.train(data=["ul://username/datasets/a", "ul://username/datasets/b"])`.
 
 Use this URI to train models from anywhere:
 
@@ -757,4 +767,4 @@ Ultralytics Platform supports YOLO labels, COCO JSON, Ultralytics NDJSON, and ra
 
 ### Can I annotate the same dataset for multiple task types?
 
-Yes. Each image stores annotations for all 5 task types (detect, segment, pose, OBB, classify) together. You can switch the dataset's active task type at any time without losing existing annotations. Only annotations matching the active task type are shown in the editor and included in exports and training — annotations for other tasks are preserved and reappear when you switch back.
+Yes. Each image stores annotations for all 6 task types (detect, segment, semantic, pose, OBB, classify) together. You can switch the dataset's active task type at any time without losing existing annotations. Only annotations matching the active task type are shown in the editor and included in exports and training — annotations for other tasks are preserved and reappear when you switch back.

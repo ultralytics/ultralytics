@@ -230,7 +230,7 @@ This saves all training outputs to `./runs` on your host machine.
 
     The following instructions are experimental. Sharing a X11 socket with a Docker container poses potential security risks. Therefore, it's recommended to test this solution only in a controlled environment. For more information, refer to these resources on how to use `xhost`<sup>[(1)](http://users.stat.umn.edu/~geyer/secure.html)[(2)](https://linux.die.net/man/1/xhost)</sup>.
 
-Docker is primarily used to containerize background applications and CLI programs, but it can also run graphical programs. In the Linux world, two main graphic servers handle graphical display: [X11](https://www.x.org/wiki/) (also known as the X Window System) and [Wayland](<https://en.wikipedia.org/wiki/Wayland_(protocol)>). Before starting, it's essential to determine which graphics server you are currently using. Run this command to find out:
+Docker is primarily used to containerize background applications and CLI programs, but it can also run graphical programs. In the Linux world, two main graphic servers handle graphical display: [X11](https://en.wikipedia.org/wiki/X_Window_System) (also known as the X Window System) and [Wayland](<https://en.wikipedia.org/wiki/Wayland_(protocol)>). Before starting, it's essential to determine which graphics server you are currently using. Run this command to find out:
 
 ```bash
 env | grep -E -i 'x11|xorg|wayland'
@@ -284,7 +284,7 @@ yolo predict model=yolo26n.pt show=True
 
 ??? info "Testing"
 
-    A simple way to validate that the Docker group has access to the X11 server is to run a container with a GUI program like [`xclock`](https://www.x.org/archive/X11R6.8.1/doc/xclock.1.html) or [`xeyes`](https://www.x.org/releases/X11R7.5/doc/man/man1/xeyes.1.html). Alternatively, you can also install these programs in the Ultralytics Docker container to test the access to the X11 server of your GNU-Linux display server. If you run into any problems, consider setting the environment variable `-e QT_DEBUG_PLUGINS=1`. Setting this environment variable enables the output of debugging information, aiding in the troubleshooting process.
+    A simple way to validate that the Docker group has access to the X11 server is to run a container with a GUI program like [`xclock`](https://xorg.freedesktop.org/archive/X11R6.8.1/doc/xclock.1.html) or [`xeyes`](https://xorg.freedesktop.org/archive/X11R7.5/doc/man/man1/xeyes.1.html). Alternatively, you can also install these programs in the Ultralytics Docker container to test the access to the X11 server of your GNU-Linux display server. If you run into any problems, consider setting the environment variable `-e QT_DEBUG_PLUGINS=1`. Setting this environment variable enables the output of debugging information, aiding in the troubleshooting process.
 
 ### When finished with Docker GUI
 

@@ -1,4 +1,5 @@
 ---
+title: CV Data Collection and Annotation Guide
 comments: true
 description: Data collection and annotation are vital steps in any computer vision project. Explore the tools, techniques, and best practices for collecting and annotating data.
 keywords: What is Data Annotation, Data Annotation Tools, Annotating Data, Avoiding Bias in Data Collection, Ethical Data Collection, Annotation Strategies
@@ -106,7 +107,7 @@ Let's say you are ready to annotate now. There are several open-source tools ava
   <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/labelme-instance-segmentation-annotation.avif" alt="LabelMe annotation tool for instance segmentation">
 </p>
 
-These open-source tools are budget-friendly and provide a range of features to meet different annotation needs. [Ultralytics Platform](https://platform.ultralytics.com) also provides a built-in [annotation editor](../platform/data/annotation.md) supporting all YOLO task types (detection, segmentation, pose, OBB, and classification) with [SAM-powered smart annotation](https://www.ultralytics.com/annotate) for spatial tasks.
+These open-source tools are budget-friendly and provide a range of features to meet different annotation needs. [Ultralytics Platform](https://platform.ultralytics.com) also provides a built-in [annotation editor](../platform/data/annotation.md) supporting detection, instance segmentation, pose, OBB, and classification annotations with [SAM-powered smart annotation](https://www.ultralytics.com/annotate) for spatial tasks.
 
 ### Some More Things to Consider Before Annotating Data
 

@@ -1,4 +1,5 @@
 ---
+title: Export YOLO26 to TF SavedModel Format
 comments: true
 description: Learn how to export Ultralytics YOLO26 models to TensorFlow SavedModel format for easy deployment across various platforms and environments.
 keywords: YOLO26, TF SavedModel, Ultralytics, TensorFlow, model export, model deployment, machine learning, AI
@@ -67,24 +68,20 @@ For detailed instructions and best practices related to the installation process
 
 All [Ultralytics YOLO26 models](../models/index.md) are designed to support export out of the box, making it easy to integrate them into your preferred deployment workflow. You can [view the full list of supported export formats and configuration options](../modes/export.md) to choose the best setup for your application.
 
-!!! example "Usage"
+The TF SavedModel format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Export your model, then load the exported model to run inference or validate its accuracy.
+
+!!! example "Export"
 
     === "Python"
 
         ```python
         from ultralytics import YOLO
 
-        # Load the YOLO26 model
+        # Load a YOLO26 model
         model = YOLO("yolo26n.pt")
 
         # Export the model to TF SavedModel format
         model.export(format="saved_model")  # creates '/yolo26n_saved_model'
-
-        # Load the exported TF SavedModel model
-        tf_savedmodel_model = YOLO("./yolo26n_saved_model")
-
-        # Run inference
-        results = tf_savedmodel_model("https://ultralytics.com/images/bus.jpg")
         ```
 
     === "CLI"
@@ -92,9 +89,48 @@ All [Ultralytics YOLO26 models](../models/index.md) are designed to support expo
         ```bash
         # Export a YOLO26n PyTorch model to TF SavedModel format
         yolo export model=yolo26n.pt format=saved_model # creates '/yolo26n_saved_model'
+        ```
 
-        # Run inference with the exported model
-        yolo predict model='./yolo26n_saved_model' source='https://ultralytics.com/images/bus.jpg'
+!!! example "Predict"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the exported TF SavedModel model
+        model = YOLO("./yolo26n_saved_model")
+
+        # Run inference
+        results = model("https://ultralytics.com/images/bus.jpg")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Run inference with the exported TF SavedModel model
+        yolo predict model=./yolo26n_saved_model source='https://ultralytics.com/images/bus.jpg'
+        ```
+
+!!! example "Validate"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the exported TF SavedModel model
+        model = YOLO("./yolo26n_saved_model")
+
+        # Validate accuracy on the COCO8 dataset
+        metrics = model.val(data="coco8.yaml")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Validate the exported TF SavedModel model
+        yolo val model=./yolo26n_saved_model data=coco8.yaml
         ```
 
 ### Export Arguments
@@ -146,7 +182,7 @@ Exporting an Ultralytics YOLO model to the TensorFlow SavedModel format is strai
         ```python
         from ultralytics import YOLO
 
-        # Load the YOLO26 model
+        # Load a YOLO26 model
         model = YOLO("yolo26n.pt")
 
         # Export the model to TF SavedModel format

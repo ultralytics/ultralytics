@@ -1,4 +1,5 @@
 ---
+title: PASCAL VOC Dataset
 comments: true
 description: Discover the PASCAL VOC dataset, essential for object detection, segmentation, and classification. Learn key features, applications, and usage tips.
 keywords: PASCAL VOC, VOC dataset, object detection, segmentation, classification, YOLO, Faster R-CNN, Mask R-CNN, image annotations, computer vision

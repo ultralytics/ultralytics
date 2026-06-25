@@ -1,4 +1,5 @@
 ---
+title: YOLO26 Sliced Inference with SAHI
 comments: true
 description: Learn how to implement YOLO26 with SAHI for sliced inference. Optimize memory usage and enhance detection accuracy for large-scale applications.
 keywords: YOLO26, SAHI, Sliced Inference, Object Detection, Ultralytics, High-resolution Images, Computational Efficiency, Integration Guide

@@ -1,4 +1,5 @@
 ---
+title: nn.modules.head API Reference
 description: Explore docs covering Ultralytics YOLO detection, pose & RTDETRDecoder. Comprehensive guides to help you understand Ultralytics nn modules.
 keywords: Ultralytics, YOLO, Detection, Pose, RTDETRDecoder, nn modules, guides
 ---
@@ -68,5 +69,9 @@ keywords: Ultralytics, YOLO, Detection, Pose, RTDETRDecoder, nn modules, guides
 <br><br><hr><br>
 
 ## ::: ultralytics.nn.modules.head.v10Detect
+
+<br><br><hr><br>
+
+## ::: ultralytics.nn.modules.head.SemanticSegment
 
 <br><br>

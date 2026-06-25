@@ -1,4 +1,5 @@
 ---
+title: Export YOLO26 to TFLite Edge TPU
 comments: true
 description: Learn how to export YOLO26 models to TFLite Edge TPU format for high-speed, low-power inferencing on mobile and embedded devices.
 keywords: YOLO26, TFLite Edge TPU, TensorFlow Lite, model export, machine learning, edge computing, neural networks, Ultralytics
@@ -6,7 +7,7 @@ keywords: YOLO26, TFLite Edge TPU, TensorFlow Lite, model export, machine learni
 
 # Learn to Export to TFLite Edge TPU Format From YOLO26 Model
 
-Deploying computer vision models on devices with limited computational power, such as mobile or embedded systems, can be tricky. Using a model format that is optimized for faster performance simplifies the process. The [TensorFlow Lite](https://ai.google.dev/edge/litert) [Edge TPU](https://gweb-coral-full.uc.r.appspot.com/docs/edgetpu/models-intro/) or TFLite Edge TPU model format is designed to use minimal power while delivering fast performance for neural networks.
+Deploying computer vision models on devices with limited computational power, such as mobile or embedded systems, can be tricky. Using a model format that is optimized for faster performance simplifies the process. The [TensorFlow Lite](https://developers.google.com/edge/litert) [Edge TPU](https://gweb-coral-full.uc.r.appspot.com/docs/edgetpu/models-intro/) or TFLite Edge TPU model format is designed to use minimal power while delivering fast performance for neural networks.
 
 The export to TFLite Edge TPU format feature allows you to optimize your [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) models for high-speed and low-power inferencing. In this guide, we'll walk you through converting your models to the TFLite Edge TPU format, making it easier for your models to perform well on various mobile and embedded devices.
 
@@ -65,24 +66,20 @@ For detailed instructions and best practices related to the installation process
 
 All [Ultralytics YOLO26 models](../models/index.md) are designed to support export out of the box, making it easy to integrate them into your preferred deployment workflow. You can [view the full list of supported export formats and configuration options](../modes/export.md) to choose the best setup for your application.
 
-!!! example "Usage"
+The TFLite Edge TPU format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Inference and validation run on Coral Edge TPU hardware. Export your model, then load the exported model to run inference or validate its accuracy.
+
+!!! example "Export"
 
     === "Python"
 
         ```python
         from ultralytics import YOLO
 
-        # Load the YOLO26 model
+        # Load a YOLO26 model
         model = YOLO("yolo26n.pt")
 
         # Export the model to TFLite Edge TPU format
         model.export(format="edgetpu")  # creates 'yolo26n_full_integer_quant_edgetpu.tflite'
-
-        # Load the exported TFLite Edge TPU model
-        edgetpu_model = YOLO("yolo26n_full_integer_quant_edgetpu.tflite")
-
-        # Run inference
-        results = edgetpu_model("https://ultralytics.com/images/bus.jpg")
         ```
 
     === "CLI"
@@ -90,9 +87,48 @@ All [Ultralytics YOLO26 models](../models/index.md) are designed to support expo
         ```bash
         # Export a YOLO26n PyTorch model to TFLite Edge TPU format
         yolo export model=yolo26n.pt format=edgetpu # creates 'yolo26n_full_integer_quant_edgetpu.tflite'
+        ```
 
-        # Run inference with the exported model
+!!! example "Predict"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the exported TFLite Edge TPU model
+        model = YOLO("yolo26n_full_integer_quant_edgetpu.tflite")
+
+        # Run inference
+        results = model("https://ultralytics.com/images/bus.jpg")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Run inference with the exported TFLite Edge TPU model
         yolo predict model=yolo26n_full_integer_quant_edgetpu.tflite source='https://ultralytics.com/images/bus.jpg'
+        ```
+
+!!! example "Validate"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the exported TFLite Edge TPU model
+        model = YOLO("yolo26n_full_integer_quant_edgetpu.tflite")
+
+        # Validate accuracy on the COCO8 dataset
+        metrics = model.val(data="coco8.yaml")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Validate the exported TFLite Edge TPU model
+        yolo val model=yolo26n_full_integer_quant_edgetpu.tflite data=coco8.yaml
         ```
 
 ### Export Arguments
@@ -145,7 +181,7 @@ To export a YOLO26 model to TFLite Edge TPU format, you can follow these steps:
         ```python
         from ultralytics import YOLO
 
-        # Load the YOLO26 model
+        # Load a YOLO26 model
         model = YOLO("yolo26n.pt")
 
         # Export the model to TFLite Edge TPU format

@@ -1,4 +1,5 @@
 ---
+title: data.augment API Reference
 description: Explore Ultralytics image augmentation techniques like MixUp, Mosaic, and Random Perspective for enhancing model training. Improve your deep learning models now.
 keywords: Ultralytics, image augmentation, MixUp, Mosaic, Random Perspective, deep learning, model training, YOLO
 ---
@@ -60,6 +61,10 @@ keywords: Ultralytics, image augmentation, MixUp, Mosaic, Random Perspective, de
 <br><br><hr><br>
 
 ## ::: ultralytics.data.augment.Format
+
+<br><br><hr><br>
+
+## ::: ultralytics.data.augment.SemanticFormat
 
 <br><br><hr><br>
 

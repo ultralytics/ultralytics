@@ -1,4 +1,5 @@
 ---
+title: utils.loss API Reference
 description: Explore detailed descriptions and implementations of various loss functions used in Ultralytics models, including Varifocal Loss, Focal Loss, Bbox Loss, and more.
 keywords: Ultralytics, loss functions, Varifocal Loss, Focal Loss, Bbox Loss, Rotated Bbox Loss, Keypoint Loss, YOLO, model training, documentation
 ---
@@ -84,5 +85,9 @@ keywords: Ultralytics, loss functions, Varifocal Loss, Focal Loss, Bbox Loss, Ro
 <br><br><hr><br>
 
 ## ::: ultralytics.utils.loss.TVPSegmentLoss
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.loss.SemanticSegmentationLoss
 
 <br><br>

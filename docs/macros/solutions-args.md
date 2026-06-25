@@ -3,7 +3,7 @@
 | -------- | ---- | ------- | ----------- |
 {% set default_params = {
     "model": ["str", "None", "Path to an Ultralytics YOLO model file."],
-    "region": ["list", "'[(20, 400), (1260, 400)]'", "List of points defining the counting region."],
+    "region": ["list` or `dict", "None", "Points defining the region of interest, either a list of `(x, y)` tuples or a dictionary mapping region names to point lists for multiple regions (`RegionCounter` only). When `None`, solutions that require a region fall back to a predefined default."],
     "show_in": ["bool", "True", "Flag to control whether to display the in counts on the video stream."],
     "show_out": ["bool", "True", "Flag to control whether to display the out counts on the video stream."],
     "analytics_type": ["str", "'line'", "Type of graph, i.e., `line`, `bar`, `area`, or `pie`."],
@@ -17,12 +17,13 @@
     "records": ["int", "5", "Total detections count to trigger an email with security alarm system."],
     "vision_point": ["tuple[int, int]", "(20, 20)", "The point where vision will track objects and draw paths using VisionEye Solution."],
     "source": ["str", "None", "Path to the input source (video, RTSP, etc.). Only usable with Solutions command line interface (CLI)."],
-    "figsize": ["tuple[int, int]", "(12.8, 7.2)", "Figure size for analytics charts such as heatmaps or graphs."],
+    "figsize": ["tuple[float, float]", "(12.8, 7.2)", "Figure size for analytics charts such as heatmaps or graphs."],
     "fps": ["float", "30.0", "Frames per second used for speed calculations."],
     "max_hist": ["int", "5", "Maximum historical points to track per object for speed/direction calculations."],
     "meter_per_pixel": ["float", "0.05", "Scaling factor used for converting pixel distance to real-world units."],
     "max_speed": ["int", "120", "Maximum speed limit in visual overlays (used in alerts)."],
     "data": ["str", "'images'", "Path to image directory used for similarity search."],
+    "imgsz": ["int", "640", "Input image size for model inference."],
 } %}
 {% if not params %}
 {% for param, details in default_params.items() %}

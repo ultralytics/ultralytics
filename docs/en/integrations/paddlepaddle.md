@@ -1,4 +1,5 @@
 ---
+title: Export YOLO26 to PaddlePaddle Format
 comments: true
 description: Learn how to export YOLO26 models to PaddlePaddle format for enhanced performance, flexibility, and deployment across various platforms and devices.
 keywords: YOLO26, PaddlePaddle, export models, computer vision, deep learning, model deployment, performance optimization
@@ -24,7 +25,7 @@ The ability to export to PaddlePaddle model format allows you to optimize your [
 ## Why should you export to PaddlePaddle?
 
 <p align="center">
-  <img width="75%" src="https://github.com/PaddlePaddle/Paddle/blob/develop/doc/imgs/logo.png" alt="PaddlePaddle deep learning framework logo">
+  <img width="75%" src="https://github.com/PaddlePaddle/Paddle/blob/develop/doc/imgs/logo.png?raw=true" alt="PaddlePaddle deep learning framework logo">
 </p>
 
 Developed by Baidu, [PaddlePaddle](https://www.paddlepaddle.org.cn/en) (**PA**rallel **D**istributed **D**eep **LE**arning) is China's first open-source [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) platform. Unlike some frameworks built mainly for research, PaddlePaddle prioritizes ease of use and smooth integration across industries.
@@ -80,24 +81,20 @@ For detailed instructions and best practices related to the installation process
 
 All [Ultralytics YOLO26 models](../models/yolo26.md) support export, and you can [browse the full list of export formats and options](../modes/export.md) to find the best fit for your deployment needs.
 
-!!! example "Usage"
+The PaddlePaddle format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Export your model, then load the exported model to run inference or validate its accuracy.
+
+!!! example "Export"
 
     === "Python"
 
         ```python
         from ultralytics import YOLO
 
-        # Load the YOLO26 model
+        # Load a YOLO26 model
         model = YOLO("yolo26n.pt")
 
         # Export the model to PaddlePaddle format
         model.export(format="paddle")  # creates '/yolo26n_paddle_model'
-
-        # Load the exported PaddlePaddle model
-        paddle_model = YOLO("./yolo26n_paddle_model")
-
-        # Run inference
-        results = paddle_model("https://ultralytics.com/images/bus.jpg")
         ```
 
     === "CLI"
@@ -105,9 +102,48 @@ All [Ultralytics YOLO26 models](../models/yolo26.md) support export, and you can
         ```bash
         # Export a YOLO26n PyTorch model to PaddlePaddle format
         yolo export model=yolo26n.pt format=paddle # creates '/yolo26n_paddle_model'
+        ```
 
-        # Run inference with the exported model
-        yolo predict model='./yolo26n_paddle_model' source='https://ultralytics.com/images/bus.jpg'
+!!! example "Predict"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the exported PaddlePaddle model
+        model = YOLO("./yolo26n_paddle_model")
+
+        # Run inference
+        results = model("https://ultralytics.com/images/bus.jpg")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Run inference with the exported PaddlePaddle model
+        yolo predict model=./yolo26n_paddle_model source='https://ultralytics.com/images/bus.jpg'
+        ```
+
+!!! example "Validate"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the exported PaddlePaddle model
+        model = YOLO("./yolo26n_paddle_model")
+
+        # Validate accuracy on the COCO8 dataset
+        metrics = model.val(data="coco8.yaml")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Validate the exported PaddlePaddle model
+        yolo val model=./yolo26n_paddle_model data=coco8.yaml
         ```
 
 ### Export Arguments
@@ -131,7 +167,7 @@ However, for in-depth instructions on deploying your PaddlePaddle models in vari
 
 - **[Paddle Lite](https://github.com/PaddlePaddle/Paddle-Lite/blob/develop/README_en.md)**: Explore how to optimize and deploy models on mobile and embedded devices using Paddle Lite.
 
-- **[Paddle.js](https://github.com/PaddlePaddle/Paddle.js)**: Discover how to run PaddlePaddle models in web browsers for client-side AI using Paddle.js.
+- **[Paddle.js](https://paddlejs.baidu.com)**: Discover how to run PaddlePaddle models in web browsers for client-side AI using Paddle.js.
 
 ## Summary
 
@@ -154,7 +190,7 @@ Exporting Ultralytics YOLO26 models to PaddlePaddle format is straightforward. Y
         ```python
         from ultralytics import YOLO
 
-        # Load the YOLO26 model
+        # Load a YOLO26 model
         model = YOLO("yolo26n.pt")
 
         # Export the model to PaddlePaddle format

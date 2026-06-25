@@ -1,4 +1,5 @@
 ---
+title: NVIDIA DALI GPU Preprocessing for YOLO
 comments: true
 description: Learn how to use NVIDIA DALI for GPU-accelerated preprocessing with Ultralytics YOLO models. Eliminate CPU bottlenecks by running letterbox resize, padding, and normalization on the GPU for faster TensorRT and Triton deployments.
 keywords: NVIDIA DALI, GPU preprocessing, Ultralytics, YOLO, YOLO26, TensorRT, Triton Inference Server, letterbox, inference optimization, deep learning, computer vision, deployment, video processing, batch inference, DALI pipeline, CV-CUDA
@@ -499,7 +500,7 @@ ensemble_scheduling {
 
 ### Step 4: Send Inference Requests
 
-!!! info "Why `tritonclient` instead of `YOLO(\"http://...\")`?"
+!!! info "Why `tritonclient` instead of `YOLO('http://...')`?"
 
     Ultralytics has [built-in Triton support](triton-inference-server.md#running-inference) that handles pre/postprocessing automatically. However, it won't work with the DALI ensemble because `YOLO()` sends a preprocessed float32 tensor while the ensemble expects raw JPEG bytes. Use `tritonclient` directly for DALI ensembles, and the [built-in integration](triton-inference-server.md) for standard deployments without DALI.
 
@@ -537,13 +538,14 @@ ensemble_scheduling {
 
 DALI preprocessing works with all YOLO tasks that use the standard `LetterBox` pipeline:
 
-| Task                                        | Supported | Notes                                                    |
-| ------------------------------------------- | --------- | -------------------------------------------------------- |
-| [Detection](../tasks/detect.md)             | ✅        | Standard letterbox preprocessing                         |
-| [Segmentation](../tasks/segment.md)         | ✅        | Same preprocessing as detection                          |
-| [Pose Estimation](../tasks/pose.md)         | ✅        | Same preprocessing as detection                          |
-| [Oriented Detection (OBB)](../tasks/obb.md) | ✅        | Same preprocessing as detection                          |
-| [Classification](../tasks/classify.md)      | ❌        | Uses torchvision transforms (center crop), not letterbox |
+| Task                                          | Supported | Notes                                                    |
+| --------------------------------------------- | --------- | -------------------------------------------------------- |
+| [Detection](../tasks/detect.md)               | ✅        | Standard letterbox preprocessing                         |
+| [Instance Segmentation](../tasks/segment.md)  | ✅        | Same preprocessing as detection                          |
+| [Semantic Segmentation](../tasks/semantic.md) | ✅        | Same image preprocessing as detection                    |
+| [Pose Estimation](../tasks/pose.md)           | ✅        | Same preprocessing as detection                          |
+| [Oriented Detection (OBB)](../tasks/obb.md)   | ✅        | Same preprocessing as detection                          |
+| [Classification](../tasks/classify.md)        | ❌        | Uses torchvision transforms (center crop), not letterbox |
 
 ## Limitations
 

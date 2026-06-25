@@ -131,8 +131,8 @@ def test_train():
     visible = tuple(int(x) for x in os.environ["CUDA_VISIBLE_DEVICES"].split(","))
     visible = visible[0] if len(visible) == 1 else visible
     assert visible == device, f"Passed GPUs '{device}', but used GPUs '{visible}'"
-    # Note DDP training returns None, single-GPU returns metrics
-    assert (results is None) if len(DEVICES) > 1 else (results is not None)
+    # Both single-GPU and DDP return metrics (recovered from the saved checkpoint under DDP)
+    assert results is not None
 
 
 @pytest.mark.slow

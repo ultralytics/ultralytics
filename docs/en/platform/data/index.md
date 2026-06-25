@@ -34,14 +34,13 @@ The Data section of Ultralytics Platform helps you:
 
 ```mermaid
 graph LR
-    A[Upload] --> B[Annotate]
-    B --> C[Analyze]
-    C --> D[Train]
+    A[Upload]:::start --> B[Annotate]:::proc
+    B --> C[Analyze]:::proc
+    C --> D[Train]:::out
 
-    style A fill:#4CAF50,color:#fff
-    style B fill:#2196F3,color:#fff
-    style C fill:#FF9800,color:#fff
-    style D fill:#9C27B0,color:#fff
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 | Stage        | Description                                                                                                     |

@@ -54,18 +54,17 @@ See [Cloud Training](cloud-training.md) for detailed instructions.
 
 ```mermaid
 graph LR
-    A[Upload .pt] --> B[Overview]
-    C[Train] --> B
-    B --> D[Predict]
-    B --> E[Export]
-    B --> F[Deploy]
-    E --> G[19+ Formats]
-    F --> H[Endpoint]
+    A[Upload .pt]:::start --> B[Overview]:::proc
+    C[Train]:::start --> B
+    B --> D[Predict]:::proc
+    B --> E[Export]:::proc
+    B --> F[Deploy]:::proc
+    E --> G[19+ Formats]:::out
+    F --> H[Endpoint]:::out
 
-    style A fill:#4CAF50,color:#fff
-    style C fill:#FF9800,color:#fff
-    style E fill:#2196F3,color:#fff
-    style F fill:#9C27B0,color:#fff
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 ## Model Page Tabs
@@ -184,17 +183,18 @@ Performance curves at different confidence thresholds:
 
 ```mermaid
 graph LR
-    A[Select Format] --> B[Configure Args]
-    B --> C[Export]
-    C --> D{GPU Required?}
-    D -->|Yes| E[Cloud GPU Export]
-    D -->|No| F[CPU Export]
-    E --> G[Download]
+    A[Select Format]:::start --> B[Configure Args]:::proc
+    B --> C[Export]:::proc
+    C --> D{GPU Required?}:::decide
+    D -->|Yes| E[Cloud GPU Export]:::proc
+    D -->|No| F[CPU Export]:::proc
+    E --> G[Download]:::out
     F --> G
 
-    style A fill:#2196F3,color:#fff
-    style C fill:#FF9800,color:#fff
-    style G fill:#4CAF50,color:#fff
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef decide fill:#FF9800,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 Export your model to 19+ deployment formats:

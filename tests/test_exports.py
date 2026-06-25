@@ -73,9 +73,10 @@ def test_export_onnx_int8(isolated_model, precision):
 
 
 def test_quantize_canonicalization():
-    """Quantize accepts 8/16/32 (int or str) and w-notation, canonicalizing to the int form (32 -> None for FP32)."""
-    for value, expected in [(8, 8), (16, 16), (32, None), ("8", 8), ("w8a8", 8), ("w16a16", 16), ("w8a16", "w8a16")]:
+    """Quantize accepts 8/16/32 (int or str) and w-notation, canonicalizing to the int form (unset stays None)."""
+    for value, expected in [(8, 8), (16, 16), (32, 32), ("8", 8), ("w8a8", 8), ("w16a16", 16), ("w8a16", "w8a16")]:
         assert get_cfg(overrides={"quantize": value}).quantize == expected
+    assert get_cfg().quantize is None  # unset default is FP32
     with pytest.raises(ValueError, match="quantize"):
         get_cfg(overrides={"quantize": "x4"})
 

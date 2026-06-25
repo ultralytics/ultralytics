@@ -361,9 +361,12 @@ def validate_args(format, passed_args, valid_args):
     assert valid_args is not None, f"ERROR ❌️ valid arguments for '{format}' not listed."
     custom = {"batch": 1, "data": None, "device": None}  # exporter defaults
     default_args = get_cfg(DEFAULT_CFG, custom)
-    if passed_args.quantize:  # 16 needs FP16 (half) support; 8/w8a16 need INT8 (int8) support
+    if passed_args.quantize in {16, 8, "w8a16"}:  # 32/None (FP32) is universal; 16 needs FP16, 8/w8a16 need INT8
         assert ("half" if passed_args.quantize == 16 else "int8") in valid_args, (
             f"ERROR ❌️ quantize={passed_args.quantize} is not supported for format='{format}'"
+        )
+        assert passed_args.quantize != "w8a16" or format in {"coreml", "imx", "qnn"}, (
+            f"ERROR ❌️ quantize='w8a16' (INT8 weights + FP16 activations) is not supported for format='{format}'"
         )
     for arg in export_args:
         not_default = getattr(passed_args, arg, None) != getattr(default_args, arg, None)
@@ -508,6 +511,8 @@ class Exporter:
         fmt_keys = dict(zip(fmts_dict["Argument"], fmts_dict["Arguments"]))[fmt]
         validate_args(fmt, self.args, fmt_keys)
         if fmt in {"deepx", "axelera", "imx", "edgetpu", "qnn"} and not self.args.int8:
+            if self.args.quantize == 32:
+                raise ValueError(f"{fmt} export only supports INT8, but got an explicit quantize=32 (FP32) request.")
             LOGGER.warning(f"{fmt} export requires INT8 quantization, enabling it.")
             self.args.int8 = True
         if fmt == "axelera":
@@ -574,6 +579,10 @@ class Exporter:
                 f"Invalid processor name '{self.args.name}' for Rockchip RKNN export. Valid names are {RKNN_CHIPS}."
             )
             if self.args.name in {"rv1103", "rv1106", "rv1103b", "rv1106b"} and not self.args.int8:
+                if self.args.quantize == 32:
+                    raise ValueError(
+                        f"Rockchip target '{self.args.name}' only supports INT8, but got an explicit quantize=32 (FP32)."
+                    )
                 LOGGER.warning(f"Rockchip target '{self.args.name}' requires INT8 quantization, enabling it.")
                 self.args.int8 = True
         if fmt == "qnn":

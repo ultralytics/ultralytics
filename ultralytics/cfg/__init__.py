@@ -430,7 +430,7 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                         f"'{k}' must be a bool (i.e. '{k}=True' or '{k}=False')"
                     )
                 cfg[k] = bool(v)
-            elif k == "quantize":  # canonicalize 8/16/32 or w-notation; 32 (FP32) -> None (the unset default)
+            elif k == "quantize":  # canonicalize 8/16/32 or w-notation to a scheme (unset stays None for FP32)
                 scheme = QUANTIZE_ALIASES.get(str(v).lower())
                 if scheme is None:
                     if hard:
@@ -438,7 +438,7 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                             f"'{k}={v}' is invalid. Valid '{k}' values are 8, 16, 32 or 'w8a8', 'w16a16', 'w8a16'."
                         )
                 else:
-                    cfg[k] = None if scheme == 32 else scheme
+                    cfg[k] = scheme
 
 
 def get_save_dir(args: SimpleNamespace, name: str | None = None) -> Path:
@@ -505,12 +505,15 @@ def _handle_deprecation(custom: dict) -> dict:
     }
     removed_keys = {"label_smoothing", "save_hybrid", "crop_fraction"}
 
-    # Forward the deprecated precision flags onto the unified `quantize` scheme (int8 wins over half)
+    # Forward the deprecated precision flags onto the unified `quantize` scheme (int8 wins over half). Treat the value
+    # as a bool so quoted/string 'False' disables it, while a bare CLI flag (empty string) enables it.
     int8 = custom.pop("int8", None)
     half = custom.pop("half", None)
-    if int8 or half:
-        custom.setdefault("quantize", 8 if int8 else 16)  # explicit quantize= wins over legacy flags
-        deprecation_warn("int8" if int8 else "half", "quantize")
+    int8_on = int8 is not None and str(int8).strip().lower() not in {"false", "0"}
+    half_on = half is not None and str(half).strip().lower() not in {"false", "0"}
+    if int8_on or half_on:
+        custom.setdefault("quantize", 8 if int8_on else 16)  # explicit quantize= wins over legacy flags
+        deprecation_warn("int8" if int8_on else "half", "quantize")
 
     for old_key, (new_key, transform) in deprecated_mappings.items():
         if old_key not in custom:

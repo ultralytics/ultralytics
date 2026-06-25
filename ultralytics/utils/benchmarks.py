@@ -55,6 +55,7 @@ from ultralytics.utils import (
     MACOS,
     TQDM,
     WEIGHTS_DIR,
+    deprecation_warn,
 )
 from ultralytics.utils.checks import IS_PYTHON_MINIMUM_3_13, check_imgsz, check_requirements, check_yolo, is_rockchip
 from ultralytics.utils.files import file_size
@@ -273,7 +274,7 @@ class ProfileModels:
         num_warmup_runs (int): Number of warmup runs before profiling.
         min_time (float): Minimum number of seconds to profile for.
         imgsz (int): Image size used in the models.
-        half (bool): Flag to indicate whether to use FP16 half-precision for TensorRT profiling.
+        quantize (int | str | None): Export precision for TensorRT profiling, e.g. 16 (FP16) or 8 (INT8).
         trt (bool): Flag to indicate whether to profile using TensorRT.
         device (torch.device): Device used for profiling.
 
@@ -305,6 +306,7 @@ class ProfileModels:
         quantize: int | str | None = 16,
         trt: bool = True,
         device: torch.device | str | None = None,
+        half: bool | None = None,
     ):
         """Initialize the ProfileModels class for profiling models.
 
@@ -317,10 +319,14 @@ class ProfileModels:
             quantize (int | str | None): Export precision for TensorRT profiling, e.g. 16 (FP16, default) or 8 (INT8).
             trt (bool): Flag to indicate whether to profile using TensorRT.
             device (torch.device | str | None): Device used for profiling. If None, it is determined automatically.
+            half (bool | None): Deprecated alias for quantize; if set, maps to quantize (16 if True else 32).
 
         Notes:
             quantize applies only to the TensorRT profiling export; ONNX profiling stays FP32 (FP16 is slower on CPU).
         """
+        if half is not None:  # deprecated alias, forwarded to quantize
+            deprecation_warn("half", "quantize")
+            quantize = 16 if half else 32
         self.paths = paths
         self.num_timed_runs = num_timed_runs
         self.num_warmup_runs = num_warmup_runs

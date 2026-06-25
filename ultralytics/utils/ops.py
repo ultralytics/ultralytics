@@ -683,8 +683,7 @@ def empty_like(x):
 
 
 def linear_sum_assignment(cost_matrix):
-    """
-    Solve the rectangular linear sum assignment problem, a NumPy-only replacement for scipy.
+    """Solve the rectangular linear sum assignment problem, a NumPy-only replacement for scipy.
 
     Find the one-to-one assignment of rows to columns that minimizes total cost via the Jonker-Volgenant shortest
     augmenting path algorithm. For a rectangular matrix only min(rows, columns) entries are matched.

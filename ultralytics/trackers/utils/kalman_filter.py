@@ -491,4 +491,4 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
             >>> measurement = np.array([0.5, 0.5, 1.2, 1.2])
             >>> new_mean, new_covariance = kf.update(mean, covariance, measurement)
         """
-        return super().update(mean, covariance, measurement, confidence)
+        return super().update(mean, covariance, measurement, confidence=confidence)

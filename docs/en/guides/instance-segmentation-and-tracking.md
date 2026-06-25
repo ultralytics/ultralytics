@@ -171,7 +171,7 @@ video_writer.release()
 cv2.destroyAllWindows()
 ```
 
-Learn more about instance segmentation in the [Ultralytics YOLO26 guide](https://docs.ultralytics.com/tasks/segment).
+Learn more about instance segmentation in the [Ultralytics YOLO26 guide](../tasks/segment.md).
 
 ### What is the difference between instance segmentation and object tracking in Ultralytics YOLO26?
 
@@ -183,4 +183,4 @@ Ultralytics YOLO26 offers real-time performance, superior [accuracy](https://www
 
 ### Are there any datasets provided by Ultralytics suitable for training YOLO26 models for instance segmentation and tracking?
 
-Yes, Ultralytics offers several datasets suitable for training YOLO26 models for instance segmentation, including [COCO-Seg](https://docs.ultralytics.com/datasets/segment/coco), [COCO8-Seg](https://docs.ultralytics.com/datasets/segment/coco8-seg) (a smaller subset for quick testing), [Package-Seg](https://docs.ultralytics.com/datasets/segment/package-seg), and [Crack-Seg](https://docs.ultralytics.com/datasets/segment/crack-seg). These datasets come with pixel-level annotations needed for instance segmentation tasks. For more specialized applications, you can also create custom datasets following the Ultralytics format. Complete dataset information and usage instructions can be found in the [Ultralytics Datasets documentation](https://docs.ultralytics.com/datasets).
+Yes, Ultralytics offers several datasets suitable for training YOLO26 models for instance segmentation, including [COCO-Seg](../datasets/segment/coco.md), [COCO8-Seg](../datasets/segment/coco8-seg.md) (a smaller subset for quick testing), [Package-Seg](../datasets/segment/package-seg.md), and [Crack-Seg](../datasets/segment/crack-seg.md). These datasets come with pixel-level annotations needed for instance segmentation tasks. For more specialized applications, you can also create custom datasets following the Ultralytics format. Complete dataset information and usage instructions can be found in the [Ultralytics Datasets documentation](../datasets/index.md).

@@ -1158,23 +1158,17 @@ class v8DepthLoss:
 
     def __init__(self, model):
         """Initialize v8DepthLoss."""
-        import os
         device = next(model.parameters()).device
         self.device = device
-        self.silog_weight = float(os.environ.get("DEPTH_SILOG_WEIGHT", 1.0))
-        self.grad_weight  = float(os.environ.get("DEPTH_GRAD_WEIGHT", 0.5))
+        h = model.args  # hyperparameters
+        self.silog_weight = h.silog
+        self.grad_weight = h.silog_grad
         # SILog variance-focus: 1.0 = fully scale-invariant, 0.0 = plain log-RMSE (scale-dependent).
-        # Lower values anchor absolute scale, removing the degenerate scale direction that lets
-        # from-scratch training drift away from accurate depth.
-        self.silog_lambda = float(os.environ.get("DEPTH_SILOG_LAMBDA", 0.5))
+        self.silog_lambda = h.silog_lambda
         # Optional scale-anchored L1 term on the log-depth residual (penalizes absolute offset).
-        self.l1_weight = float(os.environ.get("DEPTH_L1_WEIGHT", 0.0))
-        # Depth-distance weighting: weight each valid pixel by gt**dist_power (normalized to
-        # mean 1) in the SILog/L1 terms. 0.0 = uniform (default, unchanged). >0 upweights far
-        # pixels, which are a small minority on indoor data (e.g. NYU ~4% beyond 6 m), so plain
-        # pixel-mean losses sacrifice far accuracy. The normalization keeps the loss magnitude
-        # comparable across powers.
-        self.dist_power = float(os.environ.get("DEPTH_DIST_POWER", 0.0))
+        self.l1_weight = h.silog_l1
+        # Depth-distance weighting: weight each valid pixel by gt**dist_power (normalized to mean 1).
+        self.dist_power = h.dist_pw
         # GT beyond the head's representable range (sigmoid × max_depth) is masked out of the
         # loss: supervising unreachable targets saturates the sigmoid and, through SILog's
         # per-image mean coupling, corrupts gradients on in-range pixels too.

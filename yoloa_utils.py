@@ -161,24 +161,20 @@ def txt_to_mask(txt_path: str, h: int, w: int) -> np.ndarray | None:
 
 
 def _add_title(img: np.ndarray, text: str, bar_h: int = 48) -> np.ndarray:
-    """Stack a centred title bar above a BGR image."""
+    """Stack a left-aligned title bar above a BGR image."""
     bar = np.full((bar_h, img.shape[1], 3), 30, np.uint8)
     (tw, th), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 1.1, 2)
-    x, y = max(8, (bar.shape[1] - tw) // 2), (bar_h + th) // 2
-    cv2.putText(bar, text, (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1.1, (255, 255, 255), 2, cv2.LINE_AA)
+    cv2.putText(bar, text, (8, (bar_h + th) // 2), cv2.FONT_HERSHEY_SIMPLEX, 1.1, (255, 255, 255), 2, cv2.LINE_AA)
     return np.vstack([bar, img])
 
 
 def _heatmap_panel(img: np.ndarray, hmap: np.ndarray | None) -> np.ndarray:
-    """JET heatmap overlay with max/min annotation (BGR in/out)."""
+    """JET heatmap overlay (BGR in/out). Min/max are rendered in the title bar."""
     if hmap is None:
         return img
     h = cv2.resize(hmap.astype("float32"), (img.shape[1], img.shape[0]), interpolation=cv2.INTER_LINEAR)
     cmap = cv2.applyColorMap((np.clip(h, 0, 1) * 255).astype("uint8"), cv2.COLORMAP_JET)
-    panel = cv2.addWeighted(cmap, 0.45, img, 0.55, 0)
-    label = f"max={hmap.max():.3f}  min={hmap.min():.3f}"
-    cv2.putText(panel, label, (8, panel.shape[0] - 12), cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 255, 255), 2, cv2.LINE_AA)
-    return panel
+    return cv2.addWeighted(cmap, 0.45, img, 0.55, 0)
 
 
 def _mask_panel(img: np.ndarray, gt_mask: np.ndarray | str | None) -> np.ndarray:
@@ -216,16 +212,23 @@ def _hstack(images: list[np.ndarray], gap: int = 8) -> np.ndarray:
 
 def save_compare_grid(*, original, none_pred, seg_heat, seg_pred,
                        heat_heat, heat_pred, mask_img, mask_pred,
-                       out_path, n_none=0, n_seg=0, n_heat=0, n_mask=0):
+                       out_path, n_none=0, n_seg=0, n_heat=0, n_mask=0,
+                       original_title="original"):
     """Build and save the 4x2 comparison grid."""
+    seg_hmap_title = "seg heatmap"
+    if seg_heat is not None:
+        seg_hmap_title += f"  [max={seg_heat.max():.3f} min={seg_heat.min():.3f}]"
+    mb_hmap_title = "mb heatmap"
+    if heat_heat is not None:
+        mb_hmap_title += f"  [max={heat_heat.max():.3f} min={heat_heat.min():.3f}]"
     row1 = _hstack([
-        _add_title(original, "original"),
+        _add_title(original, original_title),
         _add_title(none_pred, f"None Prior ({n_none} det)"),
-        _add_title(_heatmap_panel(original, seg_heat), "seg heatmap"),
+        _add_title(_heatmap_panel(original, seg_heat), seg_hmap_title),
         _add_title(seg_pred, f"segment prior ({n_seg} det)"),
     ])
     row2 = _hstack([
-        _add_title(_heatmap_panel(original, heat_heat), "mb heatmap"),
+        _add_title(_heatmap_panel(original, heat_heat), mb_hmap_title),
         _add_title(heat_pred, f"heatmap prior ({n_heat} det)"),
         _add_title(_mask_panel(original, mask_img), "GT mask"),
         _add_title(mask_pred, f"mask prior ({n_mask} det)"),

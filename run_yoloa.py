@@ -56,6 +56,8 @@ def main():
     ap.add_argument("--batch", type=int, default=8)
     ap.add_argument("--device", default=None, help="cpu / mps / 0 (default: auto mps-else-cpu)")
     ap.add_argument("--n-per-cat", type=int, default=0, help="predict: test images per category (0=all)")
+    ap.add_argument("--n-train", type=int, default=0,
+                    help="vis mode: also sample N training images per category (default 0)")
     ap.add_argument("--conf", type=float, default=0.1)
     ap.add_argument("--iou", type=float, default=0.1, help="NMS IoU")
     ap.add_argument("--e2e", action="store_true", help="end-to-end NMS-free head")
@@ -150,10 +152,27 @@ def main():
         elif args.mode in ("visualize", "vis"):
             out = out_root / "visualize" / cat
             out.mkdir(parents=True, exist_ok=True)
-            samples = collect_test_images(root / cat / "test", args.n_per_cat)
+            # Collect test + train images
+            test_samples = [(p, sub, "TEST") for p, sub in
+                            collect_test_images(root / cat / "test", args.n_per_cat)]
+            train_samples = []
+            n_train = args.n_train or (20 if args.n_per_cat == 0 else 0)
+            if n_train:
+                train_dir = root / cat / "train" / "good"
+                if train_dir.is_dir():
+                    import random as _random
+                    train_imgs = sorted(p for ext in ("*.jpg", "*.png")
+                                        for p in train_dir.glob(ext))
+                    _random.Random(0).shuffle(train_imgs)
+                    train_samples = [(str(p), "good", "TRAIN") for p in train_imgs[:n_train]]
+            samples = test_samples + train_samples
             pkw = dict(imgsz=imgsz, conf=args.conf, iou=args.iou, device=device, end2end=args.e2e)
-            for img, label in samples:
+            for img, label, source in samples:
                 original = cv2.imread(img)
+                # Overlay source label top-left
+                color = (0, 165, 255) if source == "TRAIN" else (0, 255, 0)  # orange / green
+                cv2.putText(original, source, (8, 28), cv2.FONT_HERSHEY_SIMPLEX,
+                            0.8, color, 2, cv2.LINE_AA)
                 h, w = original.shape[:2]
                 gt_mask = txt_to_mask(str(Path(img).with_suffix(".txt")), h, w)
                 mask_tensor = load_mask_tensor(gt_mask, imgsz)
@@ -161,15 +180,18 @@ def main():
                 seg_pred, n_seg, seg_hmap = run_prior_viz(m, img, "segment", **pkw)
                 heat_pred, n_heat, heat_hmap = run_prior_viz(m, img, "heatmap", **pkw, **infer)
                 mask_pred, n_mask, _ = run_prior_viz(m, img, "mask", external_mask=mask_tensor, **pkw)
+                pre = f"{source}_{label}__{Path(img).stem}"
                 save_compare_grid(
                     original=original, none_pred=none_pred,
                     seg_heat=seg_hmap, seg_pred=seg_pred,
                     heat_heat=heat_hmap, heat_pred=heat_pred,
                     mask_img=gt_mask, mask_pred=mask_pred,
-                    out_path=out / f"{label}__{Path(img).stem}.jpg",
+                    out_path=out / f"{pre}.jpg",
                     n_none=n_none, n_seg=n_seg, n_heat=n_heat, n_mask=n_mask,
+                    original_title=f"original ({source})",
                 )
-            print(f"[{ci}/{len(cats)}] {cat}: {len(samples)} grids -> {out}", flush=True)
+            n_test, n_tr = len(test_samples), len(train_samples)
+            print(f"[{ci}/{len(cats)}] {cat}: {n_test} test + {n_tr} train grids -> {out}", flush=True)
         else:  # val
             cat_rows = run_mvtec_ood_eval(
                 m.model, root, categories=[cat], modes=(val_mode,),

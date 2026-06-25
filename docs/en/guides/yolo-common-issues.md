@@ -136,6 +136,11 @@ You can access these metrics from the training logs or by using tools like Tenso
 === "Python"
 
     ```python
+    from ultralytics import YOLO
+
+    # Load a model
+    model = YOLO("yolo26n.pt")
+
     # Use GPU 0; device=[0, 1] for multiple GPUs, device="cpu" for CPU
     model.train(data="path/to/data.yaml", device=0)
     ```

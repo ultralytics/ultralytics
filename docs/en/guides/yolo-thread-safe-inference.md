@@ -64,17 +64,17 @@ In the example above, the `shared_model` is used by multiple threads, which can 
 
 ### Non-Thread-Safe Example: Multiple Model Instances
 
-Using multiple separate YOLO model instances across threads is also unsafe. Even with one instance per thread, sharing instances that were created outside the threads can still cause concurrency issues:
+Using multiple separate YOLO model instances does not guarantee thread safety on its own. In the example below each thread uses its own instance, but the instances are created outside the threads, so they can still cause concurrency issues if they share any underlying resources or state that is not thread-local:
 
 ```python
-# Unsafe: Sharing multiple model instances across threads can still lead to issues
+# Unsafe: Models created outside the threads can still lead to issues
 from threading import Thread
 
 from ultralytics import YOLO
 
 # Instantiate multiple models outside the thread
-shared_model_1 = YOLO("yolo26n.pt")
-shared_model_2 = YOLO("yolo11n.pt")
+model_1 = YOLO("yolo26n.pt")
+model_2 = YOLO("yolo11n.pt")
 
 
 def predict(model, image_path):
@@ -83,9 +83,9 @@ def predict(model, image_path):
     # Process results
 
 
-# Starting threads with individual model instances
-Thread(target=predict, args=(shared_model_1, "image1.jpg")).start()
-Thread(target=predict, args=(shared_model_2, "image2.jpg")).start()
+# Starting threads, each using a model instance created outside the thread
+Thread(target=predict, args=(model_1, "image1.jpg")).start()
+Thread(target=predict, args=(model_2, "image2.jpg")).start()
 ```
 
 Even though there are two separate model instances, the risk of concurrency issues still exists. If the internal implementation of `YOLO` is not thread-safe, using separate instances might not prevent race conditions, especially if these instances share any underlying resources or states that are not thread-local.

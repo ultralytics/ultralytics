@@ -19,7 +19,7 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"  # Avoid OpenMP conflict on some sys
 
 class VisualAISearch:
     """A semantic image search system that leverages OpenAI's CLIP for generating high-quality image and text embeddings
-    and FAISS for fast similarity-based retrieval.
+    and NumPy cosine similarity for fast similarity-based retrieval.
 
     This class aligns image and text embeddings in a shared semantic space, enabling users to search large collections
     of images using natural language queries with high accuracy and speed.
@@ -31,13 +31,13 @@ class VisualAISearch:
         data_path_npy (str): Path to the numpy file storing image paths.
         data_dir (Path): Path object for the data directory.
         model: Loaded CLIP model.
-        index: FAISS index for similarity search.
+        index (np.ndarray): L2-normalized image embeddings used for cosine similarity search.
         image_paths (list[str]): List of image file paths.
 
     Methods:
         extract_image_feature: Extract CLIP embedding from an image.
         extract_text_feature: Extract CLIP embedding from text.
-        load_or_build_index: Load existing FAISS index or build new one.
+        load_or_build_index: Load existing embeddings or build them from images.
         search: Perform semantic search for similar images.
 
     Examples:

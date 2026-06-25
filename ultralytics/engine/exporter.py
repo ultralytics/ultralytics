@@ -526,10 +526,7 @@ class Exporter:
             LOGGER.warning("Exporting on CPU while CUDA is available, setting device=0 for faster export on GPU.")
             self.args.device = "0"  # update device to "0"
         self.device = select_device("cpu" if self.args.device is None else self.args.device)
-
-        # Reconcile unified quantize arg with legacy half/int8 booleans
         normalize_quantize(self.args)
-
         # Argument compatibility checks
         fmt_keys = dict(zip(fmts_dict["Argument"], fmts_dict["Arguments"]))[fmt]
         validate_args(fmt, self.args, fmt_keys)
@@ -666,7 +663,6 @@ class Exporter:
             LOGGER.warning(
                 f"INT8 export requires a missing 'data' arg for calibration. Using default 'data={self.args.data}'."
             )
-        # Re-derive half/int8 from quantize after the format-specific forcing above may have changed it
         normalize_quantize(self.args)
         if fmt == "tfjs" and ARM64 and LINUX:
             raise SystemError("TF.js exports are not currently supported on ARM64 Linux")

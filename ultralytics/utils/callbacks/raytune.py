@@ -35,6 +35,7 @@ def on_fit_epoch_end(trainer):
 
 callbacks = (
     {
+        "callback_name": "raytune",
         "on_fit_epoch_end": on_fit_epoch_end,
     }
     if tune

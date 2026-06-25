@@ -3,6 +3,9 @@
 
 from collections import defaultdict
 from copy import deepcopy
+from typing import Callable, Dict, List, Union
+
+from ultralytics.utils import colorstr, LOGGER
 
 # Trainer callbacks ----------------------------------------------------------------------------------------------------
 
@@ -228,8 +231,39 @@ def add_integration_callbacks(instance):
 
         callbacks_list.extend([clear_cb, comet_cb, dvc_cb, mlflow_cb, neptune_cb, tune_cb, tb_cb, wb_cb])
 
-    # Add the callbacks to the callbacks dictionary
+    # Log attached callbacks
+    _log_callbacks(callbacks_list, instance)
+
     for callbacks in callbacks_list:
         for k, v in callbacks.items():
-            if v not in instance.callbacks[k]:
+            if k != "callback_name" and v not in instance.callbacks[k]:
                 instance.callbacks[k].append(v)
+
+
+def _log_callbacks(callbacks_list: List[Dict[str, Union[str, Callable]]], instance: object) -> None:
+    """Log the names of the attached callbacks.
+
+    Args:
+        callbacks_list (list): A list of callback dictionaries, each containing a `callback_name` key.
+        instance (object): The instance to which the callbacks are attached.
+    """
+    if all("callback_name" in cb for cb in callbacks_list if cb):
+        _cb_names = ", ".join(str(cb["callback_name"]) for cb in callbacks_list if cb)
+        if not _cb_names:
+            # If no callbacks are added, log a debug message instead of an info/warning message.
+            LOGGER.debug(
+                f"{colorstr('bold', 'yellow', 'No integration callbacks attached to ')} "
+                f"`{colorstr('bold', 'blue', instance.__class__.__name__)}`. "
+                f"Please ensure that integration callback modules are properly defined and imported."
+            )
+            return
+        msg = (
+            f"""{colorstr("bold", "blue", f"{instance.__class__.__name__} attached callbacks: ")}"""
+            f"{colorstr('bold', 'green', _cb_names)}"
+        )
+        LOGGER.info(msg)
+    else:
+        LOGGER.warning(
+            f"{colorstr('bold', 'red', 'Some callbacks are missing a `callback_name` key.')} "
+            f"Please ensure all callback dictionaries have a `callback_name` key."
+        )

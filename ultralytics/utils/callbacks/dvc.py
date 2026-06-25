@@ -185,6 +185,7 @@ def on_train_end(trainer) -> None:
 
 callbacks = (
     {
+        "callback_name": "dvc",
         "on_pretrain_routine_start": on_pretrain_routine_start,
         "on_pretrain_routine_end": on_pretrain_routine_end,
         "on_train_start": on_train_start,

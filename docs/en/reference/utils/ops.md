@@ -122,4 +122,8 @@ keywords: Ultralytics, utility operations, non-max suppression, bounding box tra
 
 ## ::: ultralytics.utils.ops.empty_like
 
+<br><br><hr><br>
+
+## ::: ultralytics.utils.ops.linear_sum_assignment
+
 <br><br>

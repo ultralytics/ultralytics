@@ -74,7 +74,7 @@ from ultralytics import YOLO
 
 # Instantiate one model per thread
 model_1 = YOLO("yolo26n.pt")
-model_2 = YOLO("yolo11n.pt")
+model_2 = YOLO("yolo26n.pt")
 
 
 def predict(model, image_path):

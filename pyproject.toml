@@ -136,7 +136,7 @@ export = [
 solutions = [
     "shapely>=2.0.0",    # shapely for point and polygon data matching
     "lap>=0.5.12",  # for solution tracking linear assignment
-    # CLIP text/image embeddings for similarity search auto-install on first use via ultralytics.nn.text_model
+    # CLIP for similarity search auto-installs on first use via ultralytics.nn.text_model (https://github.com/ultralytics/CLIP)
     "streamlit>=1.51.0; python_version >= '3.10'",    # for live inference on web browser, i.e `yolo streamlit-predict`
     "streamlit>=1.29.0,<1.51.0; python_version < '3.10' and (platform_machine != 'aarch64' or platform_system != 'Linux')",
     "flask>=3.0.1",  # for similarity search solution

@@ -28,7 +28,6 @@ __all__ = (
     "binary_seg_loss",
     "query_film_loss",
     "BackboneMemoryBank",
-    "LearnedScorer",
     "FeatureDiscriminatorScorer",
 )
 
@@ -1070,86 +1069,6 @@ class BackboneMemoryBank(nn.Module):
             pbar.update(k)
         pbar.close()
         return mem[torch.tensor(selected, device=device)]
-
-
-class LearnedScorer(nn.Module):
-    """Learned drop-in replacement for ``BackboneMemoryBank._anomaly_scores``.
-
-    Maps each query patch's top-K cosine similarities against the normal-feature bank to an
-    anomaly score in [0, 1] via a small MLP, instead of the fixed Noisy-OR formula
-    ``exp(mean log(1 - exp(-beta(1-cos))))``. The bank enters only through top-K similarities,
-    so the score is invariant to bank size (any ``M >= 1`` works; ``M < K`` is padded). Trained
-    on GT defect masks with the backbone frozen/detached, so only this head learns to tell
-    "normal variation" from "real defect". Same call signature as ``_anomaly_scores``
-    (``features[N, C]``, ``mem[M, C]`` -> ``scores[N]``) so Phase B can swap it in directly.
-    """
-
-    def __init__(
-        self,
-        k: int = 9,
-        hidden: int = 32,
-        feature_dim: int | None = None,
-        proj_dim: int = 0,
-        train_self_match_mask: bool = True,
-        self_match_thresh: float = 0.999,
-        score_chunk_elems: int = 1 << 27,
-    ):
-        super().__init__()
-        self.k = int(k)
-        self.train_self_match_mask = bool(train_self_match_mask)
-        self.self_match_thresh = float(self_match_thresh)
-        self.score_chunk_elems = int(score_chunk_elems)
-        # v2: learned projection g reshapes the metric (similarities are computed in g-space).
-        # proj_dim=0 -> v1 (raw-feature cosine readout). proj_dim>0 needs feature_dim; when it equals
-        # feature_dim the projection is IDENTITY-INITIALISED so v2 starts == v1 (raw cosine) and learns
-        # a refinement (random init would scramble the geometry -> near-chance cosine).
-        self.proj = nn.Linear(int(feature_dim), int(proj_dim)) if proj_dim > 0 else None
-        if self.proj is not None and int(proj_dim) == int(feature_dim):
-            nn.init.eye_(self.proj.weight)
-            nn.init.zeros_(self.proj.bias)
-        self.mlp = nn.Sequential(nn.Linear(self.k, hidden), nn.GELU(), nn.Linear(hidden, 1))
-
-    def _embed(self, x: torch.Tensor) -> torch.Tensor:
-        """Optional learned projection (v2), then L2-normalise -> unit vectors for cosine."""
-        if self.proj is not None:
-            x = self.proj(x)
-        return F.normalize(x, p=2, dim=1)
-
-    def topk_sims(self, features: torch.Tensor, mem: torch.Tensor) -> torch.Tensor:
-        """Query patches -> sorted top-K cosine sims ``[N, k]`` in the (optionally projected) space.
-
-        Both query and bank are embedded (v2: projected) and L2-normalised here, so the bank may be
-        passed raw. For v1 (no projection) this is plain cosine; v1 may also cache the result.
-        """
-        q = self._embed(features)
-        m = self._embed(mem)
-        k = min(self.k, m.shape[0])
-        n, mm = q.shape[0], m.shape[0]
-        chunk = max(1, int(self.score_chunk_elems) // max(mm, 1))  # bound the [chunk, M] sim slice
-        out = []
-        for i in range(0, n, chunk):
-            sim = q[i : i + chunk] @ m.t()  # [chunk, M]
-            if self.training and self.train_self_match_mask:
-                # A query finding its own copy in the bank (cos ~ 1) would leak a too-clean score.
-                sim = sim.masked_fill(sim > self.self_match_thresh, float("-inf"))
-            out.append(sim.topk(k=k, dim=1).values)  # [chunk, k] sorted descending
-        return torch.cat(out)
-
-    def score_from_topk(self, topk: torch.Tensor) -> torch.Tensor:
-        """Sorted top-K sims ``[N, k']`` -> anomaly scores ``[N]`` in [0, 1] (pads/trims to k)."""
-        k = topk.shape[1]
-        if k < self.k:  # tiny bank: pad to fixed input width with the lowest available sim
-            topk = torch.cat([topk, topk[:, -1:].expand(-1, self.k - k)], dim=1)
-        elif k > self.k:
-            topk = topk[:, : self.k]
-        topk = topk.nan_to_num(neginf=-1.0).clamp(-1.0, 1.0)
-        return torch.sigmoid(self.mlp(topk).squeeze(1))
-
-    def forward(self, features: torch.Tensor, mem: torch.Tensor) -> torch.Tensor:
-        """Score query patches against the bank: ``features[N, C]``, ``mem[M, C]`` -> ``scores[N]``."""
-        if mem.numel() == 0 or mem.shape[0] == 0:
-            return torch.full((features.shape[0],), 0.5, device=features.device, dtype=features.dtype)
-        return self.score_from_topk(self.topk_sims(features, mem))
 
 
 class FeatureDiscriminatorScorer(nn.Module):

@@ -145,7 +145,7 @@ INT8 quantization is an excellent way to compress the model and speed up inferen
         yolo export model=yolo26n.pt format=onnx int8=True data=coco8.yaml # export ONNX model with INT8 quantization
         ```
 
-INT8 quantization can be applied to various formats, such as [ONNX](../integrations/onnx.md), [TensorRT](../integrations/tensorrt.md), [OpenVINO](../integrations/openvino.md), [CoreML](../integrations/coreml.md), and [Rockchip RKNN](../integrations/rockchip-rknn.md). For optimal quantization results, provide a representative [dataset](https://docs.ultralytics.com/datasets) using the `data` parameter.
+INT8 quantization can be applied to various formats, such as [ONNX](../integrations/onnx.md), [TensorRT](../integrations/tensorrt.md), [OpenVINO](../integrations/openvino.md), [CoreML](../integrations/coreml.md), and [Rockchip RKNN](../integrations/rockchip-rknn.md). For optimal quantization results, provide a representative [dataset](../datasets/index.md) using the `data` parameter.
 
 You can also request the same quantization with the unified `quantize` argument, which is the preferred way going forward and is designed to express additional schemes over time: `model.export(format="onnx", quantize="w8a8", data="coco8.yaml")` (equivalent to `int8=True`), or `quantize="w16a16"` for FP16 (equivalent to `half=True`).
 

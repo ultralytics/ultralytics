@@ -54,9 +54,9 @@ Before you begin the tuning process, it's important to:
 For each iteration, the built-in tuner repeats the following loop:
 
 1. **Initialize hyperparameters** — start from a reasonable baseline, either the default hyperparameters set by Ultralytics YOLO or values based on your domain knowledge or previous experiments.
-2. **Mutate hyperparameters** — the [`Tuner` class](https://docs.ultralytics.com/reference/engine/tuner) produces a new set of hyperparameters from the existing set with its `_mutate` method, automatically.
+2. **Mutate hyperparameters** — the [`Tuner` class](../reference/engine/tuner.md) produces a new set of hyperparameters from the existing set with its `_mutate` method, automatically.
 3. **Train the model** — train using the mutated hyperparameters, then assess training performance with your chosen metrics.
-4. **Evaluate the model** — use metrics like AP50, F1-score, or custom metrics through the [evaluation process](https://docs.ultralytics.com/modes/val) to determine whether the current hyperparameters improve on previous ones.
+4. **Evaluate the model** — use metrics like AP50, F1-score, or custom metrics through the [evaluation process](../modes/val.md) to determine whether the current hyperparameters improve on previous ones.
 5. **Log results** — record both the performance metrics and the corresponding hyperparameters for future reference. Ultralytics YOLO automatically saves these results in NDJSON format.
 6. **Repeat** — continue until the set number of iterations is reached or the performance metric is satisfactory, with each iteration building on knowledge gained from previous runs.
 
@@ -320,7 +320,7 @@ Using these results, you can make more informed decisions for future model train
 
 Hyperparameter tuning in Ultralytics YOLO is both simple to launch and powerful under the hood, combining BLX-α crossover with log-normal mutation in a genetic algorithm. Following the loop outlined in this guide lets you systematically tune your model for better performance, then reuse the resulting `best_hyperparameters.yaml` to initialize future training runs. To scale tuning across parallel trials and more advanced search algorithms, continue with the [Ray Tune integration guide](../integrations/ray-tune.md), or run managed jobs with configurable hyperparameters and real-time metrics tracking on [Ultralytics Platform](https://platform.ultralytics.com) via [cloud training](../platform/train/cloud-training.md).
 
-For deeper insights, explore the [`Tuner` class](https://docs.ultralytics.com/reference/engine/tuner) source code. If you have questions or feature requests, reach out on [GitHub](https://github.com/ultralytics/ultralytics/issues/new/choose) or [Discord](https://discord.com/invite/ultralytics).
+For deeper insights, explore the [`Tuner` class](../reference/engine/tuner.md) source code. If you have questions or feature requests, reach out on [GitHub](https://github.com/ultralytics/ultralytics/issues/new/choose) or [Discord](https://discord.com/invite/ultralytics).
 
 ## FAQ
 

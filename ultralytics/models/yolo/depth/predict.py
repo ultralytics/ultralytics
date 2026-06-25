@@ -8,6 +8,7 @@ import torch
 from ultralytics.engine.predictor import BasePredictor
 from ultralytics.engine.results import Results
 from ultralytics.utils import DEFAULT_CFG
+from ultralytics.utils import ops
 
 
 class DepthPredictor(BasePredictor):
@@ -37,21 +38,21 @@ class DepthPredictor(BasePredictor):
         if not isinstance(orig_imgs, list):
             orig_imgs = [orig_imgs]
 
+        if depth_maps.ndim == 3:
+            depth_maps = depth_maps.unsqueeze(1)  # (B, H, W) → (B, 1, H, W)
+
         results = []
         for i, orig_img in enumerate(orig_imgs):
             depth = depth_maps[i] if depth_maps.ndim == 4 else depth_maps
-            if depth.ndim == 3:
-                depth = depth.squeeze(0)  # Remove channel dim → (H, W)
+            if depth.ndim == 2:
+                depth = depth.unsqueeze(0)  # (H, W) → (1, H, W)
 
-            # Resize to original image size
-            import torch.nn.functional as F
-            oh, ow = orig_img.shape[:2]
-            depth = F.interpolate(
-                depth.unsqueeze(0).unsqueeze(0).float(),
-                size=(oh, ow),
-                mode="bilinear",
-                align_corners=True,
-            ).squeeze().cpu().numpy()
+            # Remove letterbox padding and rescale to the original image size. The model output is
+            # padded to a (square) inference shape, so the padding must be cropped before resizing
+            # or the depth map ends up stretched relative to the RGB image (e.g. on ONNX/TorchScript
+            # exports that run at a fixed square imgsz instead of rectangular inference).
+            depth = ops.scale_masks(depth.unsqueeze(0).float(), orig_img.shape[:2])
+            depth = depth.squeeze().cpu().numpy()
 
             results.append(
                 Results(

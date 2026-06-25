@@ -42,7 +42,7 @@ from ultralytics.data.utils import check_cls_dataset, check_det_dataset, convert
 from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.utils import LOCAL_RANK, LOGGER, RANK, TQDM, callbacks, colorstr, emojis
 from ultralytics.utils.checks import check_imgsz
-from ultralytics.utils.ops import Profile
+from ultralytics.utils.ops import Profile, linear_sum_assignment
 from ultralytics.utils.torch_utils import (
     attempt_compile,
     autocast,
@@ -293,7 +293,7 @@ class BaseValidator:
             pred_classes (torch.Tensor): Predicted class indices of shape (N,).
             true_classes (torch.Tensor): Target class indices of shape (M,).
             iou (torch.Tensor): An NxM tensor containing the pairwise IoU values for predictions and ground truth.
-            use_scipy (bool, optional): Whether to use scipy for matching (more precise).
+            use_scipy (bool, optional): Whether to use Hungarian one-to-one matching (more precise).
 
         Returns:
             (torch.Tensor): Correct tensor of shape (N, 10) for 10 IoU thresholds.
@@ -306,11 +306,9 @@ class BaseValidator:
         iou = iou.cpu().numpy()
         for i, threshold in enumerate(self.iouv.cpu().tolist()):
             if use_scipy:
-                import scipy  # scope import to avoid importing for all commands
-
                 cost_matrix = iou * (iou >= threshold)
                 if cost_matrix.any():
-                    labels_idx, detections_idx = scipy.optimize.linear_sum_assignment(cost_matrix, maximize=True)
+                    labels_idx, detections_idx = linear_sum_assignment(-cost_matrix)  # negate to maximize IoU
                     valid = cost_matrix[labels_idx, detections_idx] > 0
                     if valid.any():
                         correct[detections_idx[valid], i] = True

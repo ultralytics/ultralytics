@@ -33,7 +33,7 @@ The multispectral images in COCO8-Multispectral were created by interpolating th
 
 - **Wavelength Assignment**: Assigning nominal wavelengths to the RGB channels—Red: 650 nm, Green: 510 nm, Blue: 475 nm.
 - **Interpolation**: Using linear interpolation to estimate pixel values at intermediate wavelengths between 450 nm and 700 nm, resulting in 10 spectral channels.
-- **Extrapolation**: Applying extrapolation with SciPy's `interp1d` function to estimate values beyond the original RGB wavelengths, ensuring a complete spectral representation.
+- **Extrapolation**: Applying linear extrapolation to estimate values beyond the original RGB wavelengths, ensuring a complete spectral representation.
 
 This approach simulates a multispectral imaging process, providing a more diverse set of data for model training and evaluation. For further reading on multispectral imaging, see the [Multispectral Imaging Wikipedia article](https://en.wikipedia.org/wiki/Multispectral_imaging).
 

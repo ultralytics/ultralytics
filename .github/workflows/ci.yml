@@ -319,12 +319,8 @@ jobs:
           if [ "${{ matrix.torch }}" != "latest" ]; then
             torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
           fi
-          clip_package=()
-          if [ "${{ matrix.python }}" != "3.12" ]; then
-            clip_package=("git+https://github.com/ultralytics/CLIP.git")
-          fi
           uv pip install -e ".[export-base,solutions${legacy_extra}]" $torch \
-            aiohttp faster-coco-eval mlflow pytest-cov pytest-xdist "${clip_package[@]}" \
+            aiohttp faster-coco-eval mlflow pytest-cov pytest-xdist "git+https://github.com/ultralytics/CLIP.git" \
             --torch-backend cpu
       - name: Check environment
         run: |

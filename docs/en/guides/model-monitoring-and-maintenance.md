@@ -7,8 +7,6 @@ keywords: Computer Vision Models, AI Model Monitoring, Data Drift Detection, Ano
 
 # Maintaining Your Computer Vision Models After Deployment
 
-## Introduction
-
 Monitoring and maintaining a computer vision model means continuously tracking its predictions for [data drift](https://www.ultralytics.com/glossary/data-drift) and accuracy drops, retraining it on fresh data when performance degrades, and documenting every change so the work stays reproducible. This is the final stage of a [computer vision project](./steps-of-a-cv-project.md) — after you've [gathered requirements](./defining-project-goals.md), [annotated data](./data-collection-and-annotation.md), [trained the model](./model-training-tips.md), and [deployed](./model-deployment-practices.md) it — and it's what keeps the model fulfilling your [project's objectives](./defining-project-goals.md) once it's running in production.
 
 <p align="center">
@@ -120,19 +118,15 @@ These are some of the key elements that should be included in project documentat
 - **[Deployment Steps](./model-deployment-practices.md)**: Outline the steps taken to deploy the model, including the tools and platforms used, deployment configurations, and any specific challenges or considerations.
 - **Monitoring and Maintenance Procedure**: Provide a detailed plan for monitoring the model's performance post-deployment. Include methods for detecting and addressing data and model drift, and describe the process for regular updates and retraining.
 
-### Tools for Documentation
+## Conclusion
 
-There are many options when it comes to documenting AI projects, with open-source tools being particularly popular. Two of these are [Jupyter Notebooks](../integrations/jupyterlab.md) and MkDocs. Jupyter Notebooks allow you to create interactive documents with embedded code, visualizations, and text, making them ideal for sharing experiments and analyses. MkDocs is a static site generator that is easy to set up and deploy and is perfect for creating and hosting project documentation online.
-
-## Key Takeaways
-
-We covered key tips for monitoring, maintaining, and documenting your computer vision models. Regular updates and retraining help the model adapt to new data patterns. Detecting and fixing data drift helps your model stay accurate. Continuous monitoring catches issues early, and good documentation makes collaboration and future updates easier. Following these steps will help your computer vision project stay successful and effective over time.
+Monitoring, maintaining, and documenting your model is what keeps a computer vision project successful long after deployment: continuous monitoring catches issues early, regular retraining adapts the model to new data and drift, and clear documentation makes every future update easier. Treat it as an ongoing loop and revisit the [stages of your computer vision project](./steps-of-a-cv-project.md) as your data and requirements evolve.
 
 ## FAQ
 
 ### How do I monitor the performance of my deployed computer vision model?
 
-To monitor a deployed computer vision model, track its request volume, error rate, and latency in production while watching for anomalies and data drift that signal declining accuracy. The [Ultralytics Platform](../platform/deploy/monitoring.md) Deploy dashboard provides this out of the box with real-time metrics, automatic health checks, and severity-filtered logs. Regularly monitor inputs and outputs, set up alerts for unusual behavior, and use diverse data sources to get a comprehensive view of your model's performance. For more details, check out our section on [Model Monitoring](#model-monitoring).
+To monitor a deployed computer vision model, track its request volume, error rate, and latency in production while watching for anomalies and data drift that signal declining accuracy. The [Ultralytics Platform](../platform/deploy/monitoring.md) Deploy dashboard covers the production-metrics side out of the box with real-time metrics, automatic health checks, and severity-filtered logs. Regularly monitor inputs and outputs, set up alerts for unusual behavior, and use diverse data sources to get a comprehensive view of your model's performance. For more details, check out our section on [Model Monitoring](#model-monitoring).
 
 ### What are the best practices for maintaining computer vision models after deployment?
 

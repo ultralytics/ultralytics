@@ -1,4 +1,5 @@
 ---
+title: utils.export.litert API Reference
 description: LiteRT export utilities for converting PyTorch YOLO models to LiteRT format using litert_torch. Supports FP16 and INT8 quantization for optimized edge deployment.
 keywords: Ultralytics, LiteRT, model export, PyTorch to LiteRT, TFLite, edge deployment, quantization, FP16, INT8, litert_torch, Google AI Edge
 ---
@@ -10,6 +11,10 @@ keywords: Ultralytics, LiteRT, model export, PyTorch to LiteRT, TFLite, edge dep
     This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/export/litert.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/export/litert.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
 <br>
+
+## ::: ultralytics.utils.export.litert._NormalizeCoords
+
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.export.litert.torch2litert
 

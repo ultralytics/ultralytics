@@ -2,14 +2,12 @@
 title: YOLO26 Deployment Options Compared
 comments: true
 description: Learn about YOLO26's diverse deployment options to maximize your model's performance. Explore PyTorch, TensorRT, OpenVINO, LiteRT, and more!
-keywords: YOLO26, deployment options, export formats, PyTorch, TensorRT, OpenVINO, LiteRT, machine learning, model deployment
+keywords: YOLO26, deployment options, export formats, PyTorch, TensorRT, OpenVINO, LiteRT, ONNX, CoreML, edge AI, NPU, model deployment
 ---
 
 # Comparative Analysis of YOLO26 Deployment Options
 
-## Introduction
-
-You've come a long way on your journey with YOLO26. You've diligently collected data, meticulously annotated it, and put in the hours to train and rigorously evaluate your custom YOLO26 model. Now, it's time to put your model to work for your specific application, use case, or project. But there's a critical decision that stands before you: how to export and deploy your model effectively.
+YOLO26 supports more than 20 deployment options, each tuned for a different runtime, hardware target, or platform — from PyTorch and [ONNX](../integrations/onnx.md) to [TensorRT](../integrations/tensorrt.md), [OpenVINO](../integrations/openvino.md), [CoreML](../integrations/coreml.md), and dedicated edge-NPU formats. Picking the right one balances inference speed, hardware constraints, and ease of integration. This guide compares every option so you can choose the best fit for your application, then move on to [model deployment best practices](./model-deployment-practices.md) to deploy it reliably.
 
 <p align="center">
   <br>
@@ -22,239 +20,77 @@ You've come a long way on your journey with YOLO26. You've diligently collected 
   <strong>Watch:</strong> How to Choose the Best Ultralytics YOLO26 Deployment Format for Your Project | TensorRT | OpenVINO 🚀
 </p>
 
-This guide walks you through YOLO26's deployment options and the essential factors to consider to choose the right option for your project.
+Deployment is the stage in the [computer vision project workflow](./steps-of-a-cv-project.md) where a trained model starts doing real work, so the format you export to has a direct impact on speed, cost, and portability.
 
 ## How to Select the Right Deployment Option for Your YOLO26 Model
 
-When it's time to deploy your YOLO26 model, selecting a suitable export format is very important. As outlined in the [Ultralytics YOLO26 Modes documentation](../modes/export.md#usage-examples), the `model.export()` function allows you to convert your trained model into a variety of formats tailored to diverse environments and performance requirements.
+When it's time to deploy your YOLO26 model, selecting a suitable export format is very important. As outlined in the [Ultralytics YOLO26 export documentation](../modes/export.md#usage-examples), the `model.export()` function converts your trained model into a variety of formats tailored to diverse environments and performance requirements.
 
-The ideal format depends on your model's intended operational context, balancing speed, hardware constraints, and ease of integration. For managed deployment without manual export, [Ultralytics Platform](https://platform.ultralytics.com) provides ready-to-use [inference endpoints](../platform/deploy/endpoints.md) with auto-scaling across 43 global regions. In the following section, we'll take a closer look at each export option, understanding when to choose each one.
+The ideal format depends on your model's intended operational context and hardware.
+
+!!! tip "Skip the manual export"
+
+    For managed deployment without manual export, [Ultralytics Platform](https://platform.ultralytics.com) provides ready-to-use [inference endpoints](../platform/deploy/endpoints.md) with auto-scaling across 43 global regions.
 
 ## YOLO26's Deployment Options
 
-Let's walk through the different YOLO26 deployment options. For a detailed walkthrough of the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
+Here is a short description of each format and when to reach for it. For the full export walkthrough, see the [export documentation](../modes/export.md); for the side-by-side criteria, jump to the [comparison table](#deployment-options-compared).
 
-### PyTorch
+- **PyTorch** (`.pt`): The native training and inference format, offering maximum flexibility and CUDA GPU acceleration — ideal for research and prototyping with no export step required.
+- **[TorchScript](../integrations/torchscript.md)** (`torchscript`): Serializes the model for a Python-free C++ runtime, suited to production systems where Python is unavailable.
+- **[ONNX](../integrations/onnx.md)** (`onnx`): A framework-agnostic interchange format with broad cross-platform and hardware support through ONNX Runtime.
+- **[OpenVINO](../integrations/openvino.md)** (`openvino`): Intel's toolkit for optimized inference on Intel CPUs, integrated GPUs, and NPUs, common in IoT and [edge computing](https://www.ultralytics.com/glossary/edge-computing).
+- **[TensorRT](../integrations/tensorrt.md)** (`engine`): NVIDIA's high-performance runtime delivering top-tier GPU inference with FP16 and INT8 optimization.
+- **[CoreML](../integrations/coreml.md)** (`coreml`): Apple's on-device format for iOS, macOS, watchOS, and tvOS, using the Apple Neural Engine.
+- **[TF SavedModel](../integrations/tf-savedmodel.md)** (`saved_model`): TensorFlow's standard format for scalable server-side serving with TensorFlow Serving.
+- **[TF GraphDef](../integrations/tf-graphdef.md)** (`pb`): A frozen static-graph TensorFlow format for environments that need a fixed computation graph.
+- **[TF Lite](../integrations/tflite.md)** (`tflite`): A lightweight TensorFlow runtime for on-device inference on mobile and embedded hardware.
+- **[TF Edge TPU](../integrations/edge-tpu.md)** (`edgetpu`): Compiles TF Lite models for Google Coral Edge TPU accelerators.
+- **[TF.js](../integrations/tfjs.md)** (`tfjs`): Runs models directly in the browser with no backend, accelerated through WebGL.
+- **[PaddlePaddle](../integrations/paddlepaddle.md)** (`paddle`): Baidu's [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) framework, popular in China, with broad hardware support.
+- **[MNN](../integrations/mnn.md)** (`mnn`): A lightweight, high-performance inference engine optimized for mobile and embedded ARM and x86-64 systems.
+- **[NCNN](../integrations/ncnn.md)** (`ncnn`): A high-performance, lightweight inference framework tuned for mobile ARM devices.
+- **[Sony IMX500](../integrations/sony-imx500.md)** (`imx`): Exports for Sony's IMX500 intelligent vision sensor with on-chip processing, such as the Raspberry Pi AI Camera.
+- **[Rockchip RKNN](../integrations/rockchip-rknn.md)** (`rknn`): Targets Rockchip NPUs on embedded boards with FP16 and INT8 quantization.
+- **[ExecuTorch](../integrations/executorch.md)** (`executorch`): PyTorch's native on-device runtime for mobile (iOS and Android) and embedded systems via XNNPACK.
+- **[Axelera AI](../integrations/axelera.md)** (`axelera`): Compiles for Axelera's Metis AIPU (up to 856 TOPS) over PCIe or M.2 for high-throughput edge inference.
+- **[DEEPX](../integrations/deepx.md)** (`deepx`): Targets DEEPX NPU hardware with INT8 quantization for embedded edge inference.
+- **[Qualcomm QNN](../integrations/qnn.md)** (`qnn`): On-device inference on Snapdragon Hexagon NPU, Adreno GPU, and CPU through the Qualcomm AI stack.
 
-PyTorch is an open-source machine learning library widely used for applications in [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) and [artificial intelligence](https://www.ultralytics.com/glossary/artificial-intelligence-ai). It provides a high level of flexibility and speed, which has made it a favorite among researchers and developers.
+For an additional edge target, the [Hailo integration](../integrations/hailo.md) compiles YOLO detection models to Hailo HEF. It is not a direct `model.export()` target: detection models are exported to ONNX first, then compiled to HEF with the external Hailo Dataflow Compiler for Hailo-8, Hailo-8L, and Hailo-15 accelerators.
 
-- **Performance Benchmarks**: PyTorch is known for its ease of use and flexibility, which may result in a slight trade-off in raw performance when compared to other frameworks that are more specialized and optimized.
-- **Compatibility and Integration**: Offers excellent compatibility with various data science and machine learning libraries in Python.
-- **Community Support and Ecosystem**: One of the most vibrant communities, with extensive resources for learning and troubleshooting.
-- **Case Studies**: Commonly used in research prototypes, many academic papers reference models deployed in PyTorch.
-- **Maintenance and Updates**: Regular updates with active development and support for new features.
-- **Security Considerations**: Regular patches for security issues, but security is largely dependent on the overall environment it's deployed in.
-- **Hardware Acceleration**: Supports CUDA for GPU acceleration, essential for speeding up model training and inference.
+## Deployment Options Compared
 
-### TorchScript
+The following table summarizes the deployment options for YOLO26 models across the criteria that usually drive the choice. For an in-depth look at each format, see the [export formats documentation](../modes/export.md#export-formats).
 
-TorchScript extends PyTorch's capabilities by allowing the exportation of models to be run in a C++ runtime environment. This makes it suitable for production environments where Python is unavailable.
+| Deployment Option | Performance Benchmarks                          | Compatibility and Integration                  | Community Support and Ecosystem               | Case Studies                               | Maintenance and Updates                        | Security Considerations                           | Hardware Acceleration               |
+| ----------------- | ----------------------------------------------- | ---------------------------------------------- | --------------------------------------------- | ------------------------------------------ | ---------------------------------------------- | ------------------------------------------------- | ----------------------------------- |
+| PyTorch           | Good flexibility; may trade off raw performance | Excellent with Python libraries                | Extensive resources and community             | Research and prototypes                    | Regular, active development                    | Dependent on deployment environment               | CUDA support for GPU acceleration   |
+| TorchScript       | Better for production than PyTorch              | Smooth transition from PyTorch to C++          | Specialized but narrower than PyTorch         | Industry where Python is a bottleneck      | Consistent updates with PyTorch                | Improved security without full Python             | Inherits CUDA support from PyTorch  |
+| ONNX              | Variable depending on runtime                   | High across different frameworks               | Broad ecosystem, supported by many orgs       | Flexibility across ML frameworks           | Regular updates for new operations             | Ensure secure conversion and deployment practices | Various hardware optimizations      |
+| OpenVINO          | Optimized for Intel hardware                    | Best within Intel ecosystem                    | Solid in computer vision domain               | IoT and edge with Intel hardware           | Regular updates for Intel hardware             | Robust features for sensitive applications        | Tailored for Intel hardware         |
+| TensorRT          | Top-tier on NVIDIA GPUs                         | Best for NVIDIA hardware                       | Strong network through NVIDIA                 | Real-time video and image inference        | Frequent updates for new GPUs                  | Emphasis on security                              | Designed for NVIDIA GPUs            |
+| CoreML            | Optimized for on-device Apple hardware          | Exclusive to Apple ecosystem                   | Strong Apple and developer support            | On-device ML on Apple products             | Regular Apple updates                          | Focus on privacy and security                     | Apple neural engine and GPU         |
+| TF SavedModel     | Scalable in server environments                 | Wide compatibility in TensorFlow ecosystem     | Large support due to TensorFlow popularity    | Serving models at scale                    | Regular updates by Google and community        | Robust features for enterprise                    | Various hardware accelerations      |
+| TF GraphDef       | Stable for static computation graphs            | Integrates well with TensorFlow infrastructure | Resources for optimizing static graphs        | Scenarios requiring static graphs          | Updates alongside TensorFlow core              | Established TensorFlow security practices         | TensorFlow acceleration options     |
+| TF Lite           | Speed and efficiency on mobile/embedded         | Wide range of device support                   | Robust community, Google backed               | Mobile applications with minimal footprint | Latest features for mobile                     | Secure environment on end-user devices            | GPU and DSP among others            |
+| TF Edge TPU       | Optimized for Google's Edge TPU hardware        | Exclusive to Edge TPU devices                  | Growing with Google and third-party resources | IoT devices requiring real-time processing | Improvements for new Edge TPU hardware         | Google's robust IoT security                      | Custom-designed for Google Coral    |
+| TF.js             | Reasonable in-browser performance               | High with web technologies                     | Web and Node.js developers support            | Interactive web applications               | TensorFlow team and community contributions    | Web platform security model                       | Enhanced with WebGL and other APIs  |
+| PaddlePaddle      | Competitive, easy to use and scalable           | Baidu ecosystem, wide application support      | Rapidly growing, especially in China          | Chinese market and language processing     | Focus on Chinese AI applications               | Emphasizes data privacy and security              | Including Baidu's Kunlun chips      |
+| MNN               | High-performance for mobile devices             | Mobile and embedded ARM systems and X86-64 CPU | Mobile/embedded ML community                  | Mobile systems efficiency                  | High performance maintenance on mobile devices | On-device security advantages                     | ARM CPUs and GPUs optimizations     |
+| NCNN              | Optimized for mobile ARM-based devices          | Mobile and embedded ARM systems                | Niche but active mobile/embedded ML community | Android and ARM systems efficiency         | High performance maintenance on ARM            | On-device security advantages                     | ARM CPUs and GPUs optimizations     |
+| Sony IMX500       | On-sensor inference at very low power           | Sony IMX500 sensor, Raspberry Pi AI Camera     | Sony AITRIOS ecosystem                        | On-camera edge AI                          | Sony SDK and MCT toolchain updates             | Data stays on the sensor                          | Sony IMX500 on-chip accelerator     |
+| Rockchip RKNN     | Optimized for Rockchip NPUs                     | Rockchip SoC boards (e.g. RK3588)              | Rockchip developer community                  | Embedded SBC and edge devices              | Rockchip RKNN-Toolkit updates                  | On-device local inference                         | Rockchip NPU                        |
+| ExecuTorch        | Efficient on-device PyTorch runtime             | iOS, Android, embedded via XNNPACK             | Backed by the PyTorch project                 | Mobile and embedded apps                   | Maintained alongside PyTorch                   | On-device inference keeps data local              | XNNPACK and mobile CPU/GPU backends |
+| Axelera AI        | Very high throughput (up to 856 TOPS)           | Metis AIPU over PCIe or M.2                    | Axelera Voyager SDK                           | High-throughput edge inference             | Axelera SDK updates                            | On-premises edge inference                        | Axelera Metis AIPU                  |
+| DEEPX             | INT8-optimized NPU inference                    | DEEPX NPU hardware                             | DEEPX developer tools (dx_com, dx_engine)     | Embedded edge inference                    | DEEPX SDK and runtime updates                  | On-device local inference                         | DEEPX NPU                           |
+| Qualcomm QNN      | Fast on-device Snapdragon inference             | Snapdragon Hexagon NPU, Adreno GPU, CPU        | Qualcomm AI Hub ecosystem                     | Mobile and edge Snapdragon devices         | Qualcomm AI stack (QAIRT) updates              | On-device inference keeps data local              | Snapdragon Hexagon NPU              |
 
-- **Performance Benchmarks**: Can offer improved performance over native PyTorch, especially in production environments.
-- **Compatibility and Integration**: Designed for seamless transition from PyTorch to C++ production environments, though some advanced features might not translate perfectly.
-- **Community Support and Ecosystem**: Benefits from PyTorch's large community but has a narrower scope of specialized developers.
-- **Case Studies**: Widely used in industry settings where Python's performance overhead is a bottleneck.
-- **Maintenance and Updates**: Maintained alongside PyTorch with consistent updates.
-- **Security Considerations**: Offers improved security by enabling the running of models in environments without full Python installations.
-- **Hardware Acceleration**: Inherits PyTorch's CUDA support, ensuring efficient GPU utilization.
-
-### ONNX
-
-The Open [Neural Network](https://www.ultralytics.com/glossary/neural-network-nn) Exchange (ONNX) is a format that allows for model interoperability across different frameworks, which can be critical when deploying to various platforms.
-
-- **Performance Benchmarks**: ONNX models may experience a variable performance depending on the specific runtime they are deployed on.
-- **Compatibility and Integration**: High interoperability across multiple platforms and hardware due to its framework-agnostic nature.
-- **Community Support and Ecosystem**: Supported by many organizations, leading to a broad ecosystem and a variety of tools for optimization.
-- **Case Studies**: Frequently used to move models between different machine learning frameworks, demonstrating its flexibility.
-- **Maintenance and Updates**: As an open standard, ONNX is regularly updated to support new operations and models.
-- **Security Considerations**: As with any cross-platform tool, it's essential to ensure secure practices in the conversion and deployment pipeline.
-- **Hardware Acceleration**: With ONNX Runtime, models can leverage various hardware optimizations.
-
-### OpenVINO
-
-OpenVINO is an Intel toolkit designed to facilitate the deployment of deep learning models across Intel hardware, enhancing performance and speed.
-
-- **Performance Benchmarks**: Specifically optimized for Intel CPUs, GPUs, and VPUs, offering significant performance boosts on compatible hardware.
-- **Compatibility and Integration**: Works best within the Intel ecosystem but also supports a range of other platforms.
-- **Community Support and Ecosystem**: Backed by Intel, with a solid user base especially in the [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) domain.
-- **Case Studies**: Often utilized in IoT and [edge computing](https://www.ultralytics.com/glossary/edge-computing) scenarios where Intel hardware is prevalent.
-- **Maintenance and Updates**: Intel regularly updates OpenVINO to support the latest deep learning models and Intel hardware.
-- **Security Considerations**: Provides robust security features suitable for deployment in sensitive applications.
-- **Hardware Acceleration**: Tailored for acceleration on Intel hardware, leveraging dedicated instruction sets and hardware features.
-
-For more details on deployment using OpenVINO, refer to the Ultralytics Integration documentation: [Intel OpenVINO Export](../integrations/openvino.md).
-
-### TensorRT
-
-TensorRT is a high-performance deep learning inference optimizer and runtime from NVIDIA, ideal for applications needing speed and efficiency.
-
-- **Performance Benchmarks**: Delivers top-tier performance on NVIDIA GPUs with support for high-speed inference.
-- **Compatibility and Integration**: Best suited for NVIDIA hardware, with limited support outside this environment.
-- **Community Support and Ecosystem**: Strong support network through NVIDIA's developer forums and documentation.
-- **Case Studies**: Widely adopted in industries requiring real-time inference on video and image data.
-- **Maintenance and Updates**: NVIDIA maintains TensorRT with frequent updates to enhance performance and support new GPU architectures.
-- **Security Considerations**: Like many NVIDIA products, it has a strong emphasis on security, but specifics depend on the deployment environment.
-- **Hardware Acceleration**: Exclusively designed for NVIDIA GPUs, providing deep optimization and acceleration.
-
-For more information on TensorRT deployment, check out the [TensorRT integration guide](../integrations/tensorrt.md).
-
-### CoreML
-
-CoreML is Apple's machine learning framework, optimized for on-device performance in the Apple ecosystem, including iOS, macOS, watchOS, and tvOS.
-
-- **Performance Benchmarks**: Optimized for on-device performance on Apple hardware with minimal battery usage.
-- **Compatibility and Integration**: Exclusively for Apple's ecosystem, providing a streamlined workflow for iOS and macOS applications.
-- **Community Support and Ecosystem**: Strong support from Apple and a dedicated developer community, with extensive documentation and tools.
-- **Case Studies**: Commonly used in applications that require on-device machine learning capabilities on Apple products.
-- **Maintenance and Updates**: Regularly updated by Apple to support the latest machine learning advancements and Apple hardware.
-- **Security Considerations**: Benefits from Apple's focus on user privacy and [data security](https://www.ultralytics.com/glossary/data-security).
-- **Hardware Acceleration**: Takes full advantage of Apple's neural engine and GPU for accelerated machine learning tasks.
-
-### TF SavedModel
-
-TF SavedModel is TensorFlow's format for saving and serving machine learning models, particularly suited for scalable server environments.
-
-- **Performance Benchmarks**: Offers scalable performance in server environments, especially when used with TensorFlow Serving.
-- **Compatibility and Integration**: Wide compatibility across TensorFlow's ecosystem, including cloud and enterprise server deployments.
-- **Community Support and Ecosystem**: Large community support due to TensorFlow's popularity, with a vast array of tools for deployment and optimization.
-- **Case Studies**: Extensively used in production environments for serving deep learning models at scale.
-- **Maintenance and Updates**: Supported by Google and the TensorFlow community, ensuring regular updates and new features.
-- **Security Considerations**: Deployment using TensorFlow Serving includes robust security features for enterprise-grade applications.
-- **Hardware Acceleration**: Supports various hardware accelerations through TensorFlow's backends.
-
-### TF GraphDef
-
-TF GraphDef is a TensorFlow format that represents the model as a graph, which is beneficial for environments where a static computation graph is required.
-
-- **Performance Benchmarks**: Provides stable performance for static computation graphs, with a focus on consistency and reliability.
-- **Compatibility and Integration**: Easily integrates within TensorFlow's infrastructure but less flexible compared to SavedModel.
-- **Community Support and Ecosystem**: Good support from TensorFlow's ecosystem, with many resources available for optimizing static graphs.
-- **Case Studies**: Useful in scenarios where a static graph is necessary, such as in certain embedded systems.
-- **Maintenance and Updates**: Regular updates alongside TensorFlow's core updates.
-- **Security Considerations**: Ensures safe deployment with TensorFlow's established security practices.
-- **Hardware Acceleration**: Can utilize TensorFlow's hardware acceleration options, though not as flexible as SavedModel.
-
-Learn more about TF GraphDef in our [TF GraphDef integration guide](../integrations/tf-graphdef.md).
-
-### LiteRT
-
-LiteRT (formerly TensorFlow Lite) is Google's runtime for on-device machine learning, providing a lightweight library for fast inference on mobile, embedded, and edge devices. It also includes LiteRT.js for running models directly in the browser and Node.js.
-
-- **Performance Benchmarks**: Designed for speed and efficiency on mobile and embedded devices.
-- **Compatibility and Integration**: Can be used on a wide range of devices due to its lightweight nature, and runs in the browser through LiteRT.js.
-- **Community Support and Ecosystem**: Backed by Google, it has a robust community and a growing number of resources for developers.
-- **Case Studies**: Popular in mobile and web applications that require on-device inference with minimal footprint.
-- **Maintenance and Updates**: Regularly updated to include the latest features and optimizations for edge and web devices.
-- **Security Considerations**: Provides a secure environment for running models on end-user devices.
-- **Hardware Acceleration**: Supports a variety of hardware acceleration options, including GPU and DSP.
-
-Learn more in our [LiteRT integration guide](../integrations/litert.md).
-
-### TF Edge TPU
-
-TF Edge TPU is designed for high-speed, efficient computing on Google's Edge TPU hardware, perfect for IoT devices requiring real-time processing.
-
-- **Performance Benchmarks**: Specifically optimized for high-speed, efficient computing on Google's Edge TPU hardware.
-- **Compatibility and Integration**: Works exclusively with TensorFlow Lite models on Edge TPU devices.
-- **Community Support and Ecosystem**: Growing support with resources provided by Google and third-party developers.
-- **Case Studies**: Used in IoT devices and applications that require real-time processing with low latency.
-- **Maintenance and Updates**: Continually improved upon to leverage the capabilities of new Edge TPU hardware releases.
-- **Security Considerations**: Integrates with Google's robust security for IoT and edge devices.
-- **Hardware Acceleration**: Custom-designed to take full advantage of Google Coral devices.
-
-### Hailo HEF
-
-Hailo HEF is a compiled executable format for Hailo AI accelerators, including Hailo-8, Hailo-8L, and Hailo-15 devices. Ultralytics YOLO detection models are exported to ONNX first, then compiled to HEF with the external Hailo Dataflow Compiler. HEF is not a direct Ultralytics export target; for supported edge acceleration workflows, compare [Axelera AI](../integrations/axelera.md) and [DeepX](../integrations/deepx.md) first.
-
-- **Performance Benchmarks**: Depends on Hailo hardware, Hailo SDK version, model script, NMS configuration, and calibration data.
-- **Compatibility and Integration**: Only for Hailo-powered embedded systems, industrial gateways, and Raspberry Pi AI Kit deployments.
-- **Community Support and Ecosystem**: Supported through Hailo Developer Zone, HailoRT, TAPPAS, and the Hailo Model Zoo.
-- **Case Studies**: Useful for real-time object detection on cameras, robotics, access control, smart city, and industrial inspection devices.
-- **Maintenance and Updates**: Depends on Hailo SDK, firmware, and model-zoo updates for new accelerator targets.
-- **Security Considerations**: Supports local, on-device inference where data stays at the edge.
-- **Hardware Acceleration**: Uses Hailo NPU execution through compiled HEF artifacts.
-
-For a step-by-step workflow, see the [Hailo integration guide](../integrations/hailo.md).
-
-### PaddlePaddle
-
-PaddlePaddle is an open-source deep learning framework developed by Baidu. It is designed to be both efficient for researchers and easy to use for developers. It's particularly popular in China and offers specialized support for Chinese language processing.
-
-- **Performance Benchmarks**: Offers competitive performance with a focus on ease of use and scalability.
-- **Compatibility and Integration**: Well-integrated within Baidu's ecosystem and supports a wide range of applications.
-- **Community Support and Ecosystem**: While the community is smaller globally, it's rapidly growing, especially in China.
-- **Case Studies**: Commonly used in Chinese markets and by developers looking for alternatives to other major frameworks.
-- **Maintenance and Updates**: Regularly updated with a focus on serving Chinese language AI applications and services.
-- **Security Considerations**: Emphasizes [data privacy](https://www.ultralytics.com/glossary/data-privacy) and security, catering to Chinese data governance standards.
-- **Hardware Acceleration**: Supports various hardware accelerations, including Baidu's own Kunlun chips.
-
-### MNN
-
-MNN is a highly efficient and lightweight deep learning framework. It supports inference and training of deep learning models and has industry-leading performance for inference and training on-device. In addition, MNN is also used on embedded devices, such as IoT.
-
-- **Performance Benchmarks**: High-performance for mobile devices with excellent optimization for ARM systems.
-- **Compatibility and Integration**: Works well with mobile and embedded ARM systems and X86-64 CPU architectures.
-- **Community Support and Ecosystem**: Supported by the mobile and embedded machine learning community.
-- **Case Studies**: Ideal for applications requiring efficient performance on mobile systems.
-- **Maintenance and Updates**: Regularly maintained to ensure high performance on mobile devices.
-- **Security Considerations**: Provides on-device security advantages by keeping data local.
-- **Hardware Acceleration**: Optimized for ARM CPUs and GPUs for maximum efficiency.
-
-### NCNN
-
-NCNN is a high-performance neural network inference framework optimized for the mobile platform. It stands out for its lightweight nature and efficiency, making it particularly well-suited for mobile and embedded devices where resources are limited.
-
-- **Performance Benchmarks**: Highly optimized for mobile platforms, offering efficient inference on ARM-based devices.
-- **Compatibility and Integration**: Suitable for applications on mobile phones and embedded systems with ARM architecture.
-- **Community Support and Ecosystem**: Supported by a niche but active community focused on mobile and embedded ML applications.
-- **Case Studies**: Favored for mobile applications where efficiency and speed are critical on Android and other ARM-based systems.
-- **Maintenance and Updates**: Continuously improved to maintain high performance on a range of ARM devices.
-- **Security Considerations**: Focuses on running locally on the device, leveraging the inherent security of on-device processing.
-- **Hardware Acceleration**: Tailored for ARM CPUs and GPUs, with specific optimizations for these architectures.
-
-## Comparative Analysis of YOLO26 Deployment Options
-
-The following table provides a snapshot of the various deployment options available for YOLO26 models, helping you to assess which may best fit your project needs based on several critical criteria. For an in-depth look at each deployment option's format, please see the [Ultralytics documentation page on export formats](../modes/export.md#export-formats).
-
-| Deployment Option | Performance Benchmarks                          | Compatibility and Integration                  | Community Support and Ecosystem               | Case Studies                               | Maintenance and Updates                        | Security Considerations                           | Hardware Acceleration              |
-| ----------------- | ----------------------------------------------- | ---------------------------------------------- | --------------------------------------------- | ------------------------------------------ | ---------------------------------------------- | ------------------------------------------------- | ---------------------------------- |
-| PyTorch           | Good flexibility; may trade off raw performance | Excellent with Python libraries                | Extensive resources and community             | Research and prototypes                    | Regular, active development                    | Dependent on deployment environment               | CUDA support for GPU acceleration  |
-| TorchScript       | Better for production than PyTorch              | Smooth transition from PyTorch to C++          | Specialized but narrower than PyTorch         | Industry where Python is a bottleneck      | Consistent updates with PyTorch                | Improved security without full Python             | Inherits CUDA support from PyTorch |
-| ONNX              | Variable depending on runtime                   | High across different frameworks               | Broad ecosystem, supported by many orgs       | Flexibility across ML frameworks           | Regular updates for new operations             | Ensure secure conversion and deployment practices | Various hardware optimizations     |
-| OpenVINO          | Optimized for Intel hardware                    | Best within Intel ecosystem                    | Solid in computer vision domain               | IoT and edge with Intel hardware           | Regular updates for Intel hardware             | Robust features for sensitive applications        | Tailored for Intel hardware        |
-| TensorRT          | Top-tier on NVIDIA GPUs                         | Best for NVIDIA hardware                       | Strong network through NVIDIA                 | Real-time video and image inference        | Frequent updates for new GPUs                  | Emphasis on security                              | Designed for NVIDIA GPUs           |
-| CoreML            | Optimized for on-device Apple hardware          | Exclusive to Apple ecosystem                   | Strong Apple and developer support            | On-device ML on Apple products             | Regular Apple updates                          | Focus on privacy and security                     | Apple neural engine and GPU        |
-| TF SavedModel     | Scalable in server environments                 | Wide compatibility in TensorFlow ecosystem     | Large support due to TensorFlow popularity    | Serving models at scale                    | Regular updates by Google and community        | Robust features for enterprise                    | Various hardware accelerations     |
-| TF GraphDef       | Stable for static computation graphs            | Integrates well with TensorFlow infrastructure | Resources for optimizing static graphs        | Scenarios requiring static graphs          | Updates alongside TensorFlow core              | Established TensorFlow security practices         | TensorFlow acceleration options    |
-| LiteRT            | Fast and efficient on-device inference          | Wide range of mobile, embedded, and web        | Robust Google-backed community                | Mobile, embedded, and browser applications | Regular updates for edge and web devices       | Secure on-device and in-browser inference         | GPU, DSP, and WebGL acceleration   |
-| TF Edge TPU       | Optimized for Google's Edge TPU hardware        | Exclusive to Edge TPU devices                  | Growing with Google and third-party resources | IoT devices requiring real-time processing | Improvements for new Edge TPU hardware         | Google's robust IoT security                      | Custom-designed for Google Coral   |
-| Hailo HEF         | Hardware-specific and externally compiled       | Hailo devices and Raspberry Pi AI Kit          | Hailo Developer Zone and Model Zoo            | Existing Hailo deployments                 | Hailo SDK and firmware updates                 | On-device inference keeps data local              | Hailo NPU via HEF artifacts        |
-| PaddlePaddle      | Competitive, easy to use and scalable           | Baidu ecosystem, wide application support      | Rapidly growing, especially in China          | Chinese market and language processing     | Focus on Chinese AI applications               | Emphasizes data privacy and security              | Including Baidu's Kunlun chips     |
-| MNN               | High-performance for mobile devices.            | Mobile and embedded ARM systems and X86-64 CPU | Mobile/embedded ML community                  | Mobile systems efficiency                  | High performance maintenance on Mobile Devices | On-device security advantages                     | ARM CPUs and GPUs optimizations    |
-| NCNN              | Optimized for mobile ARM-based devices          | Mobile and embedded ARM systems                | Niche but active mobile/embedded ML community | Android and ARM systems efficiency         | High performance maintenance on ARM            | On-device security advantages                     | ARM CPUs and GPUs optimizations    |
-
-This comparative analysis gives you a high-level overview. For deployment, it's essential to consider the specific requirements and constraints of your project, and consult the detailed documentation and resources available for each option.
-
-## Community and Support
-
-When you're getting started with YOLO26, having a helpful community and support can make a significant impact. Here's how to connect with others who share your interests and get the assistance you need.
-
-### Engage with the Broader Community
-
-- **GitHub Discussions:** The [YOLO26 repository on GitHub](https://github.com/ultralytics/ultralytics) has a "Discussions" section where you can ask questions, report issues, and suggest improvements.
-- **Ultralytics Discord Server:** Ultralytics has a [Discord server](https://discord.com/invite/ultralytics) where you can interact with other users and developers.
-
-### Official Documentation and Resources
-
-- **Ultralytics YOLO26 Docs:** The [official documentation](../index.md) provides a comprehensive overview of YOLO26, along with guides on installation, usage, and troubleshooting.
-
-These resources will help you tackle challenges and stay updated on the latest trends and best practices in the YOLO26 community.
+This comparison gives you a high-level overview. For deployment, weigh the specific requirements and constraints of your project against each option, and consult the linked integration guide for the format you choose.
 
 ## Conclusion
 
-In this guide, we've explored the different deployment options for YOLO26. We've also discussed the important factors to consider when making your choice. These options allow you to customize your model for various environments and performance requirements, making it suitable for real-world applications.
-
-Don't forget that the YOLO26 and [Ultralytics community](https://github.com/orgs/ultralytics/discussions) is a valuable source of help. Connect with other developers and experts to learn unique tips and solutions you might not find in regular documentation. Keep seeking knowledge, exploring new ideas, and sharing your experiences.
+YOLO26's wide range of export formats lets you tailor a model to almost any environment, from a cloud GPU server to an on-sensor edge camera. Once you have picked a format, follow [model deployment best practices](./model-deployment-practices.md) for optimization, troubleshooting, and security, and lean on the [Ultralytics community](https://github.com/orgs/ultralytics/discussions) when you hit a snag.
 
 ## FAQ
 

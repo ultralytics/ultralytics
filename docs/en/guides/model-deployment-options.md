@@ -1,8 +1,8 @@
 ---
 title: YOLO26 Deployment Options Compared
 comments: true
-description: Learn about YOLO26's diverse deployment options to maximize your model's performance. Explore PyTorch, TensorRT, OpenVINO, TF Lite, and more!
-keywords: YOLO26, deployment options, export formats, PyTorch, TensorRT, OpenVINO, TF Lite, machine learning, model deployment
+description: Learn about YOLO26's diverse deployment options to maximize your model's performance. Explore PyTorch, TensorRT, OpenVINO, NCNN, and more!
+keywords: YOLO26, deployment options, export formats, PyTorch, TensorRT, OpenVINO, NCNN, machine learning, model deployment
 ---
 
 # Comparative Analysis of YOLO26 Deployment Options
@@ -136,17 +136,19 @@ TF GraphDef is a TensorFlow format that represents the model as a graph, which i
 
 Learn more about TF GraphDef in our [TF GraphDef integration guide](../integrations/tf-graphdef.md).
 
-### TF Lite
+### LiteRT
 
-TF Lite is TensorFlow's solution for mobile and embedded device machine learning, providing a lightweight library for on-device inference.
+LiteRT (formerly TensorFlow Lite) is Google's runtime for on-device machine learning, providing a lightweight library for fast inference on mobile, embedded, and edge devices. It also includes LiteRT.js for running models directly in the browser and Node.js.
 
 - **Performance Benchmarks**: Designed for speed and efficiency on mobile and embedded devices.
-- **Compatibility and Integration**: Can be used on a wide range of devices due to its lightweight nature.
+- **Compatibility and Integration**: Can be used on a wide range of devices due to its lightweight nature, and runs in the browser through LiteRT.js.
 - **Community Support and Ecosystem**: Backed by Google, it has a robust community and a growing number of resources for developers.
-- **Case Studies**: Popular in mobile applications that require on-device inference with minimal footprint.
-- **Maintenance and Updates**: Regularly updated to include the latest features and optimizations for mobile devices.
+- **Case Studies**: Popular in mobile and web applications that require on-device inference with minimal footprint.
+- **Maintenance and Updates**: Regularly updated to include the latest features and optimizations for edge and web devices.
 - **Security Considerations**: Provides a secure environment for running models on end-user devices.
 - **Hardware Acceleration**: Supports a variety of hardware acceleration options, including GPU and DSP.
+
+Learn more in our [LiteRT integration guide](../integrations/litert.md).
 
 ### TF Edge TPU
 
@@ -173,18 +175,6 @@ Hailo HEF is a compiled executable format for Hailo AI accelerators, including H
 - **Hardware Acceleration**: Uses Hailo NPU execution through compiled HEF artifacts.
 
 For a step-by-step workflow, see the [Hailo integration guide](../integrations/hailo.md).
-
-### TF.js
-
-TensorFlow.js (TF.js) is a library that brings machine learning capabilities directly to the browser, offering a new realm of possibilities for web developers and users alike. It allows for the integration of machine learning models in web applications without the need for back-end infrastructure.
-
-- **Performance Benchmarks**: Enables machine learning directly in the browser with reasonable performance, depending on the client device.
-- **Compatibility and Integration**: High compatibility with web technologies, allowing for easy integration into web applications.
-- **Community Support and Ecosystem**: Support from a community of web and Node.js developers, with a variety of tools for deploying ML models in browsers.
-- **Case Studies**: Ideal for interactive web applications that benefit from client-side machine learning without the need for server-side processing.
-- **Maintenance and Updates**: Maintained by the TensorFlow team with contributions from the open-source community.
-- **Security Considerations**: Runs within the browser's secure context, utilizing the security model of the web platform.
-- **Hardware Acceleration**: Performance can be enhanced with web-based APIs that access hardware acceleration like WebGL.
 
 ### PaddlePaddle
 
@@ -236,10 +226,9 @@ The following table provides a snapshot of the various deployment options availa
 | CoreML            | Optimized for on-device Apple hardware          | Exclusive to Apple ecosystem                   | Strong Apple and developer support            | On-device ML on Apple products             | Regular Apple updates                          | Focus on privacy and security                     | Apple neural engine and GPU        |
 | TF SavedModel     | Scalable in server environments                 | Wide compatibility in TensorFlow ecosystem     | Large support due to TensorFlow popularity    | Serving models at scale                    | Regular updates by Google and community        | Robust features for enterprise                    | Various hardware accelerations     |
 | TF GraphDef       | Stable for static computation graphs            | Integrates well with TensorFlow infrastructure | Resources for optimizing static graphs        | Scenarios requiring static graphs          | Updates alongside TensorFlow core              | Established TensorFlow security practices         | TensorFlow acceleration options    |
-| TF Lite           | Speed and efficiency on mobile/embedded         | Wide range of device support                   | Robust community, Google backed               | Mobile applications with minimal footprint | Latest features for mobile                     | Secure environment on end-user devices            | GPU and DSP among others           |
+| LiteRT            | Fast and efficient on-device inference          | Wide range of mobile, embedded, and web        | Robust Google-backed community                 | Mobile, embedded, and browser applications | Regular updates for edge and web devices       | Secure on-device and in-browser inference        | GPU, DSP, and WebGL acceleration   |
 | TF Edge TPU       | Optimized for Google's Edge TPU hardware        | Exclusive to Edge TPU devices                  | Growing with Google and third-party resources | IoT devices requiring real-time processing | Improvements for new Edge TPU hardware         | Google's robust IoT security                      | Custom-designed for Google Coral   |
 | Hailo HEF         | Hardware-specific and externally compiled       | Hailo devices and Raspberry Pi AI Kit          | Hailo Developer Zone and Model Zoo            | Existing Hailo deployments                 | Hailo SDK and firmware updates                 | On-device inference keeps data local              | Hailo NPU via HEF artifacts        |
-| TF.js             | Reasonable in-browser performance               | High with web technologies                     | Web and Node.js developers support            | Interactive web applications               | TensorFlow team and community contributions    | Web platform security model                       | Enhanced with WebGL and other APIs |
 | PaddlePaddle      | Competitive, easy to use and scalable           | Baidu ecosystem, wide application support      | Rapidly growing, especially in China          | Chinese market and language processing     | Focus on Chinese AI applications               | Emphasizes data privacy and security              | Including Baidu's Kunlun chips     |
 | MNN               | High-performance for mobile devices.            | Mobile and embedded ARM systems and X86-64 CPU | Mobile/embedded ML community                  | Mobile systems efficiency                  | High performance maintenance on Mobile Devices | On-device security advantages                     | ARM CPUs and GPUs optimizations    |
 | NCNN              | Optimized for mobile ARM-based devices          | Mobile and embedded ARM systems                | Niche but active mobile/embedded ML community | Android and ARM systems efficiency         | High performance maintenance on ARM            | On-device security advantages                     | ARM CPUs and GPUs optimizations    |
@@ -292,25 +281,25 @@ For more insights, check out our [blog post](https://www.ultralytics.com/blog/ac
 
 ### Can I deploy YOLO26 models on mobile devices?
 
-Yes, YOLO26 models can be deployed on mobile devices using [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) Lite (TF Lite) for both Android and iOS platforms. TF Lite is designed for mobile and embedded devices, providing efficient on-device inference.
+Yes, YOLO26 models can be deployed on mobile devices using [NCNN](../integrations/ncnn.md) for Android and [CoreML](../integrations/coreml.md) for iOS. Both are designed for mobile and embedded devices, providing efficient on-device inference.
 
 !!! example
 
     === "Python"
 
         ```python
-        # Export command for TFLite format
-        model.export(format="tflite")
+        # Export command for NCNN format
+        model.export(format="ncnn")
         ```
 
     === "CLI"
 
         ```bash
-        # CLI command for TFLite export
-        yolo export model=yolo26n.pt format=tflite
+        # CLI command for NCNN export
+        yolo export model=yolo26n.pt format=ncnn
         ```
 
-For more details on deploying models to mobile, refer to our [TF Lite integration guide](../integrations/tflite.md).
+For more details on deploying models to mobile, refer to our [NCNN integration guide](../integrations/ncnn.md).
 
 ### What factors should I consider when choosing a deployment format for my YOLO26 model?
 
@@ -318,16 +307,16 @@ When choosing a deployment format for YOLO26, consider the following factors:
 
 - **Performance**: Some formats like TensorRT provide exceptional speeds on NVIDIA GPUs, while OpenVINO is optimized for Intel hardware.
 - **Compatibility**: ONNX offers broad compatibility across different platforms.
-- **Ease of Integration**: Formats like CoreML or TF Lite are tailored for specific ecosystems like iOS and Android, respectively.
+- **Ease of Integration**: Formats like CoreML or NCNN are tailored for specific ecosystems like iOS and Android, respectively.
 - **Community Support**: Formats like [PyTorch](https://www.ultralytics.com/glossary/pytorch) and TensorFlow have extensive community resources and support.
 
 For a comparative analysis, refer to our [export formats documentation](../modes/export.md#export-formats).
 
 ### How can I deploy YOLO26 models in a web application?
 
-To deploy YOLO26 models in a web application, you can use TensorFlow.js (TF.js), which allows for running [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models directly in the browser. This approach eliminates the need for backend infrastructure and provides real-time performance.
+To deploy YOLO26 models in a web application, you can use [LiteRT.js](https://developers.google.com/edge/litert/web), LiteRT's web runtime, which allows for running [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models directly in the browser and Node.js. This approach eliminates the need for backend infrastructure and provides real-time performance.
 
-1. Export the YOLO26 model to the TF.js format.
-2. Integrate the exported model into your web application.
+1. Export the YOLO26 model to the LiteRT format.
+2. Integrate the exported model into your web application using LiteRT.js.
 
-For step-by-step instructions, refer to our guide on [TensorFlow.js integration](../integrations/tfjs.md).
+For step-by-step instructions, refer to our [LiteRT integration guide](../integrations/litert.md).

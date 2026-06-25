@@ -111,7 +111,7 @@ If you want to use the classes the model was pretrained on, a practical approach
 
 [Model deployment options](./model-deployment-options.md) critically impact the performance of your computer vision project. For instance, the deployment environment must handle the computational load of your model. Here are some practical examples:
 
-- **Edge Devices**: Deploying on edge devices like smartphones or IoT devices requires lightweight models due to their limited computational resources. Example technologies include [TensorFlow Lite](../integrations/tflite.md) and [ONNX Runtime](../integrations/onnx.md), which are optimized for such environments.
+- **Edge Devices**: Deploying on edge devices like smartphones or IoT devices requires lightweight models due to their limited computational resources. Example technologies include [LiteRT](../integrations/litert.md) and [ONNX Runtime](../integrations/onnx.md), which are optimized for such environments.
 - **Cloud Servers**: Cloud deployments can handle more complex models with larger computational demands. Cloud platforms like [AWS](../integrations/amazon-sagemaker.md), Google Cloud, and Azure offer robust hardware options that can scale based on the project's needs.
 - **On-Premise Servers**: For scenarios requiring high [data privacy](https://www.ultralytics.com/glossary/data-privacy) and security, deploying on-premise might be necessary. This involves significant upfront hardware investment but allows full control over the data and infrastructure.
 - **Hybrid Solutions**: Some projects might benefit from a hybrid approach, where some processing is done on the edge, while more complex analyses are offloaded to the cloud. This can balance performance needs with cost and latency considerations.

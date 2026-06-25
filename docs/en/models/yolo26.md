@@ -377,7 +377,7 @@ YOLO26 improves deployment efficiency with:
 - DFL-free regression and a lighter detection head
 - Fused-model export that removes training-only auxiliary components
 - Up to 43% faster CPU ONNX inference for YOLO26n versus YOLO11n on an Intel Xeon CPU @ 2.00 GHz
-- Flexible export formats including TensorRT, ONNX, CoreML, TFLite, and OpenVINO
+- Flexible export formats including TensorRT, ONNX, CoreML, LiteRT, and OpenVINO
 
 ### How do I get started with YOLO26?
 

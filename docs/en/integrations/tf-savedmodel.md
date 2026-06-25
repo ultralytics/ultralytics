@@ -41,7 +41,7 @@ TF SavedModel provides a range of options to deploy your machine learning models
 
 - **Cloud Platforms:** Major cloud providers like [Google Cloud Platform (GCP)](https://cloud.google.com/products/gemini-enterprise-agent-platform), [Amazon Web Services (AWS)](https://aws.amazon.com/sagemaker/), and [Microsoft Azure](https://azure.microsoft.com/en-us/services/machine-learning/) offer services for deploying and running TensorFlow models, including TF SavedModels. These services provide scalable and managed infrastructure, allowing you to deploy and scale your models easily.
 
-- **Mobile and Embedded Devices:** [TensorFlow Lite](https://docs.ultralytics.com/integrations/tflite), a lightweight solution for running machine learning models on mobile, embedded, and IoT devices, supports converting TF SavedModels to the TensorFlow Lite format. This allows you to deploy your models on a wide range of devices, from smartphones and tablets to microcontrollers and edge devices.
+- **Mobile and Embedded Devices:** [TensorFlow Lite](https://www.tensorflow.org/lite), a lightweight solution for running machine learning models on mobile, embedded, and IoT devices, supports converting TF SavedModels to the TensorFlow Lite format. This allows you to deploy your models on a wide range of devices, from smartphones and tablets to microcontrollers and edge devices.
 
 - **TensorFlow Runtime:** TensorFlow Runtime (`tfrt`) is a high-performance runtime for executing [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) graphs. It provides lower-level APIs for loading and running TF SavedModels in C++ environments. TensorFlow Runtime offers better performance compared to the standard TensorFlow runtime. It is suitable for deployment scenarios that require low-latency inference and tight integration with existing C++ codebases.
 
@@ -221,7 +221,7 @@ TF SavedModel can be deployed in various environments, including:
 
 - **TensorFlow Serving:** Ideal for production environments requiring scalable and high-performance model serving.
 - **Cloud Platforms:** Supports major cloud services like Google Cloud Platform (GCP), Amazon Web Services (AWS), and Microsoft Azure for scalable model deployment.
-- **Mobile and Embedded Devices:** Using [TensorFlow Lite](https://docs.ultralytics.com/integrations/tflite) to convert TF SavedModels allows for deployment on mobile devices, IoT devices, and microcontrollers.
+- **Mobile and Embedded Devices:** Using [TensorFlow Lite](https://www.tensorflow.org/lite) to convert TF SavedModels allows for deployment on mobile devices, IoT devices, and microcontrollers.
 - **TensorFlow Runtime:** For C++ environments needing low-latency inference with better performance.
 
 For detailed deployment options, visit the official guides on [deploying TensorFlow models](https://www.tensorflow.org/tfx/guide/serving).

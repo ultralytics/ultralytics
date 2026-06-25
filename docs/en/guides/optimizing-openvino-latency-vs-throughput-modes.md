@@ -153,6 +153,6 @@ Yes, Ultralytics YOLO models are highly versatile and can be integrated with var
 
 - **TensorRT:** For NVIDIA GPU optimization, follow the [TensorRT integration guide](https://docs.ultralytics.com/integrations/tensorrt).
 - **CoreML:** For Apple devices, refer to our [CoreML export instructions](https://docs.ultralytics.com/integrations/coreml).
-- **[TensorFlow](https://www.ultralytics.com/glossary/tensorflow).js:** For web and Node.js apps, see the [TF.js conversion guide](https://docs.ultralytics.com/integrations/tfjs).
+- **LiteRT.js:** For web and Node.js apps, see the [LiteRT integration guide](https://docs.ultralytics.com/integrations/litert) and the [LiteRT.js web runtime](https://developers.google.com/edge/litert/web).
 
 Explore more integrations on the [Ultralytics Integrations page](https://docs.ultralytics.com/integrations).

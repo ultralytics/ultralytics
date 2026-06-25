@@ -48,7 +48,7 @@ graph LR
 | **Upload**   | Images (50MB), videos (1GB), and dataset files (ZIP, TAR including `.tar.gz`/`.tgz`, NDJSON) with automatic processing                                                                                                 |
 | **Annotate** | Manual tools for all 6 task types, plus [Smart Annotation](data/annotation.md#smart-annotation) with SAM and YOLO models for detect, segment, semantic, and OBB (see [supported tasks](data/index.md#supported-tasks)) |
 | **Train**    | Cloud GPUs (24 on all plans + 2 Pro/Enterprise-only: B200, B300), real-time metrics, project organization                                                                                                              |
-| **Export**   | [19+ deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, TFLite, etc.; see [supported formats](train/models.md#supported-formats))                                                                        |
+| **Export**   | [19+ deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, LiteRT, etc.; see [supported formats](train/models.md#supported-formats))                                                                        |
 | **Deploy**   | 43 global regions with dedicated endpoints, scale-to-zero by default (single active instance), and monitoring                                                                                                          |
 
 **What you can do:**
@@ -56,7 +56,7 @@ graph LR
 - **Upload** images, videos, and dataset files to create training datasets
 - **Visualize** annotations with interactive overlays for all 6 YOLO task types (see [supported tasks](data/index.md#supported-tasks))
 - **Train** models on cloud GPUs (24 on all plans, 26 with Pro or Enterprise for B200 and B300) with real-time metrics
-- **Export** to [19+ deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, TFLite, etc.)
+- **Export** to [19+ deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, LiteRT, etc.)
 - **Deploy** to 43 global regions with one-click dedicated endpoints
 - **Monitor** training progress, deployment health, and usage metrics
 - **Collaborate** by making projects and datasets public for the community
@@ -110,7 +110,7 @@ graph LR
 - **Cloud Training**: Train on cloud GPUs (24 on all plans, 26 with [Pro or Enterprise](account/billing.md#plans) for B200 and B300) with real-time metrics
 - **Remote Training**: Train anywhere and stream metrics to the platform (W&B-style)
 - **Project Organization**: Group related models, compare experiments, track activity
-- **19+ Export Formats**: ONNX, TensorRT, CoreML, TFLite, and more (see [supported formats](train/models.md#supported-formats))
+- **19+ Export Formats**: ONNX, TensorRT, CoreML, LiteRT, and more (see [supported formats](train/models.md#supported-formats))
 
 ![Ultralytics Platform Project Screenshot](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/project-screenshot.avif)
 
@@ -167,7 +167,7 @@ graph LR
     B --> C[Browser Predict]
     B --> D[Export Format]
     B --> E[Deploy Endpoint]
-    D --> F[ONNX / TensorRT / CoreML / TFLite / ...]
+    D --> F[ONNX / TensorRT / CoreML / LiteRT / ...]
     E --> G[43 Global Regions]
     G --> H[API Endpoint URL]
     H --> I[Monitor & Scale]
@@ -374,13 +374,12 @@ The Platform supports 19+ deployment formats:
 | OpenVINO      | `_openvino_model`   | Intel hardware            |
 | TensorRT      | `.engine`           | NVIDIA GPU inference      |
 | CoreML        | `.mlpackage`        | Apple devices             |
-| TFLite        | `.tflite`           | Mobile/edge devices       |
 | TF SavedModel | `_saved_model`      | TensorFlow ecosystem      |
 | TF GraphDef   | `.pb`               | TensorFlow legacy         |
 | PaddlePaddle  | `_paddle_model`     | Baidu ecosystem           |
 | NCNN          | `_ncnn_model`       | Mobile (Android/ARM)      |
+| LiteRT        | `_litert_model`     | Mobile/edge and browser   |
 | Edge TPU      | `_edgetpu.tflite`   | Google Coral devices      |
-| TF.js         | `_web_model`        | Browser deployment        |
 | MNN           | `.mnn`              | Alibaba mobile            |
 | RKNN          | `_rknn_model`       | Rockchip NPU              |
 | Qualcomm      | `_qnn.onnx`         | Qualcomm Snapdragon NPU   |

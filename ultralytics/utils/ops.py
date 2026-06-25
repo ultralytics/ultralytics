@@ -683,23 +683,25 @@ def empty_like(x):
 
 
 def linear_sum_assignment(cost_matrix):
-    """Solve the rectangular linear sum assignment problem, a NumPy-only replacement for scipy.
+    """Solve the rectangular linear sum assignment problem (minimum-cost one-to-one matching).
 
-    Drop-in replacement for `scipy.optimize.linear_sum_assignment` that lets Ultralytics ship without the scipy
-    dependency. Finds the one-to-one assignment of rows to columns minimizing total cost using the same modified
-    Jonker-Volgenant shortest augmenting path algorithm scipy compiles in C++ (Crouse 2016), here in pure NumPy. For a
-    rectangular matrix only min(rows, columns) entries are matched; the matrix is transposed internally so the outer
-    loop runs min(rows, columns) iterations and cost scales with the smaller dimension.
+    Uses `scipy.optimize.linear_sum_assignment` when SciPy is installed (faster compiled C++ solver), and otherwise
+    falls back to an equivalent pure-NumPy implementation of the same modified Jonker-Volgenant shortest augmenting
+    path algorithm (Crouse 2016). This keeps SciPy out of Ultralytics' required dependencies while preserving its
+    speed when present. SciPy is imported lazily so it never slows `import ultralytics`. For a rectangular matrix only
+    min(rows, columns) entries are matched.
 
-    Costs are expected to be finite: an `inf` entry marks a forbidden assignment (matching scipy), while `NaN` is not
-    rejected (unlike scipy), so callers must sanitize it upstream (e.g. the RT-DETR matcher zeros NaN/inf beforehand).
+    The NumPy fallback expects finite costs: an `inf` entry marks a forbidden assignment (matching SciPy), while `NaN`
+    is not rejected (SciPy raises), so callers must sanitize NaN upstream (e.g. the RT-DETR matcher zeros NaN/inf
+    beforehand). The two backends may return a different equal-cost assignment under exact ties, but the total cost is
+    identical.
 
-    Validated against scipy with exact optimal-cost parity across ~6.9k randomized cases (every shape including
-    empty/tall/wide, ties, negatives, IoU- and RT-DETR-style matrices, `maximize` via negation, torch-tensor input) plus
-    ~2k independent brute-force global-optimum checks. scipy's compiled inner loop is faster, but at the actual
-    call-site sizes (smaller dimension = object count) this runs in well under a millisecond:
+    The NumPy fallback is validated against SciPy with exact optimal-cost parity across ~6.9k randomized cases (every
+    shape including empty/tall/wide, ties, negatives, IoU- and RT-DETR-style matrices, `maximize` via negation,
+    torch-tensor input) plus ~2k independent brute-force global-optimum checks. SciPy's compiled inner loop is faster,
+    but at the call-site sizes (smaller dimension = object count) the fallback runs in well under a millisecond:
 
-        cost matrix   this    scipy
+        cost matrix   NumPy   SciPy
         300 x 20      0.2ms   0.02ms
         300 x 80      0.6ms   0.1ms
         300 x 300     28ms    1.5ms
@@ -718,6 +720,12 @@ def linear_sum_assignment(cost_matrix):
         5.0
     """
     a = np.asarray(cost_matrix, dtype=np.float64)
+    try:  # SciPy's compiled solver is faster on large matrices; use it when installed
+        from scipy.optimize import linear_sum_assignment as scipy_lsa
+
+        return scipy_lsa(a)
+    except ImportError:
+        pass
     n, m = a.shape
     if n == 0 or m == 0:
         return np.empty(0, dtype=np.intp), np.empty(0, dtype=np.intp)

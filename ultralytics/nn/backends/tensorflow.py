@@ -19,25 +19,25 @@ from .base import BaseBackend
 class TensorFlowBackend(BaseBackend):
     """Google TensorFlow inference backend supporting multiple serialization formats.
 
-    Loads and runs inference with Google TensorFlow models in SavedModel, GraphDef (.pb), TFLite (.tflite), and Edge TPU
-    formats. Handles quantized model dequantization and task-specific output formatting.
+    Loads and runs inference with Google TensorFlow models in SavedModel, GraphDef (.pb), and Edge TPU formats.
+    Handles quantized model dequantization and task-specific output formatting.
     """
 
     def __init__(self, weight: str | Path, device: torch.device, fp16: bool = False, format: str = "saved_model"):
         """Initialize the Google TensorFlow backend.
 
         Args:
-            weight (str | Path): Path to the SavedModel directory, .pb file, or .tflite file.
+            weight (str | Path): Path to the SavedModel directory, .pb file, or Edge TPU .tflite file.
             device (torch.device): Device to run inference on.
             fp16 (bool): Whether to use FP16 half-precision inference.
-            format (str): Model format, one of "saved_model", "pb", "tflite", or "edgetpu".
+            format (str): Model format, one of "saved_model", "pb", or "edgetpu".
         """
-        assert format in {"saved_model", "pb", "tflite", "edgetpu"}, f"Unsupported TensorFlow format: {format}."
+        assert format in {"saved_model", "pb", "edgetpu"}, f"Unsupported TensorFlow format: {format}."
         self.format = format
         super().__init__(weight, device, fp16)
 
     def load_model(self, weight: str | Path) -> None:
-        """Load a Google TensorFlow model in SavedModel, GraphDef, TFLite, or Edge TPU format.
+        """Load a Google TensorFlow model in SavedModel, GraphDef, or Edge TPU format.
 
         Args:
             weight (str | Path): Path to the model file or directory.
@@ -79,7 +79,7 @@ class TensorFlowBackend(BaseBackend):
                 self.apply_metadata(YAML.load(metadata_file))
             except StopIteration:
                 pass
-        else:  # tflite and edgetpu
+        else:  # edgetpu
             try:
                 from tflite_runtime.interpreter import Interpreter, load_delegate
 
@@ -90,20 +90,16 @@ class TensorFlowBackend(BaseBackend):
                 self.tf = tf
                 Interpreter, load_delegate = tf.lite.Interpreter, tf.lite.experimental.load_delegate
 
-            if self.format == "edgetpu":
-                device = self.device[3:] if str(self.device).startswith("tpu") else ":0"
-                LOGGER.info(f"Loading {weight} on device {device[1:]} for TensorFlow Lite Edge TPU inference...")
-                delegate = {"Linux": "libedgetpu.so.1", "Darwin": "libedgetpu.1.dylib", "Windows": "edgetpu.dll"}[
-                    platform.system()
-                ]
-                self.interpreter = Interpreter(
-                    model_path=str(weight),
-                    experimental_delegates=[load_delegate(delegate, options={"device": device})],
-                )
-                self.device = torch.device("cpu")  # Edge TPU runs on CPU from PyTorch's perspective
-            else:
-                LOGGER.info(f"Loading {weight} for TensorFlow Lite inference...")
-                self.interpreter = Interpreter(model_path=weight)
+            device = self.device[3:] if str(self.device).startswith("tpu") else ":0"
+            LOGGER.info(f"Loading {weight} on device {device[1:]} for TensorFlow Lite Edge TPU inference...")
+            delegate = {"Linux": "libedgetpu.so.1", "Darwin": "libedgetpu.1.dylib", "Windows": "edgetpu.dll"}[
+                platform.system()
+            ]
+            self.interpreter = Interpreter(
+                model_path=str(weight),
+                experimental_delegates=[load_delegate(delegate, options={"device": device})],
+            )
+            self.device = torch.device("cpu")  # Edge TPU runs on CPU from PyTorch's perspective
 
             self.interpreter.allocate_tensors()
             self.input_details = self.interpreter.get_input_details()

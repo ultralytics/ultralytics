@@ -12,9 +12,7 @@ TensorRT                | `engine`                  | yolo26n.engine
 CoreML                  | `coreml`                  | yolo26n.mlpackage
 TensorFlow SavedModel   | `saved_model`             | yolo26n_saved_model/
 TensorFlow GraphDef     | `pb`                      | yolo26n.pb
-TensorFlow Lite         | `tflite`                  | yolo26n.tflite
 TensorFlow Edge TPU     | `edgetpu`                 | yolo26n_edgetpu.tflite
-TensorFlow.js           | `tfjs`                    | yolo26n_web_model/
 PaddlePaddle            | `paddle`                  | yolo26n_paddle_model/
 MNN                     | `mnn`                     | yolo26n.mnn
 NCNN                    | `ncnn`                    | yolo26n_ncnn_model/
@@ -48,7 +46,6 @@ Inference:
                          yolo26n.mlpackage          # CoreML (macOS-only)
                          yolo26n_saved_model        # TensorFlow SavedModel
                          yolo26n.pb                 # TensorFlow GraphDef
-                         yolo26n.tflite             # TensorFlow Lite
                          yolo26n_edgetpu.tflite     # TensorFlow Edge TPU
                          yolo26n_paddle_model       # PaddlePaddle
                          yolo26n.mnn                # MNN
@@ -60,12 +57,6 @@ Inference:
                          yolo26n_deepx_model        # DEEPX
                          yolo26n_qnn.onnx           # Qualcomm QNN
                          yolo26n_litert_model       # LiteRT
-
-TensorFlow.js:
-    $ cd .. && git clone https://github.com/zldrobit/tfjs-yolov5-example.git && cd tfjs-yolov5-example
-    $ npm install
-    $ ln -s ../../yolo26n_web_model public/yolo26n_web_model
-    $ npm start
 """
 
 from __future__ import annotations
@@ -185,25 +176,7 @@ def export_formats():
             "tensorflow",
         ],
         ["TensorFlow GraphDef", "pb", ".pb", True, True, ["batch"], "tensorflow"],
-        [
-            "TensorFlow Lite",
-            "tflite",
-            ".tflite",
-            True,
-            False,
-            ["batch", "data", "half", "int8", "nms", "fraction"],
-            "tensorflow",
-        ],
         ["TensorFlow Edge TPU", "edgetpu", "_edgetpu.tflite", True, False, ["data", "fraction", "int8"], "tensorflow"],
-        [
-            "TensorFlow.js",
-            "tfjs",
-            "_web_model",
-            True,
-            False,
-            ["batch", "data", "fraction", "half", "int8", "nms"],
-            "tensorflow",
-        ],
         ["PaddlePaddle", "paddle", "_paddle_model", True, True, ["batch"], "base"],
         ["MNN", "mnn", ".mnn", True, True, ["batch", "half", "int8"], "mnn"],
         ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "half"], "ncnn"],
@@ -261,7 +234,7 @@ EXPORT_ENVS = {
             ("--extra-index-url", "https://pypi.ngc.nvidia.com"),
         ],
         "env": {},
-        "smoke": ["yolo export format=tflite model=yolo11n.pt imgsz=32"],
+        "smoke": ["yolo export format=saved_model model=yolo11n.pt imgsz=32"],
     },
     "coreml": {
         "python": "3.13",
@@ -434,9 +407,7 @@ class Exporter:
         export_engine: Export model to TensorRT format.
         export_saved_model: Export model to TensorFlow SavedModel format.
         export_pb: Export model to TensorFlow GraphDef format.
-        export_tflite: Export model to TensorFlow Lite format.
         export_edgetpu: Export model to Edge TPU format.
-        export_tfjs: Export model to TensorFlow.js format.
         export_rknn: Export model to RKNN format.
         export_imx: Export model to IMX format.
         export_executorch: Export model to ExecuTorch format.
@@ -491,7 +462,7 @@ class Exporter:
                 raise ValueError(f"{msg} Valid formats are {fmts}")
             LOGGER.warning(f"Invalid export format='{fmt}', updating to format='{matches[0]}'")
             fmt = matches[0]
-        is_tf_format = fmt in {"saved_model", "pb", "tflite", "edgetpu", "tfjs"}
+        is_tf_format = fmt in {"saved_model", "pb", "edgetpu"}
 
         # Device
         self.dla = None
@@ -606,7 +577,6 @@ class Exporter:
             self.args.nms = False
         if self.args.nms:
             assert not isinstance(model, ClassificationModel), "'nms=True' is not valid for classification models."
-            assert fmt != "tflite" or not ARM64 or not LINUX, "TFLite export with NMS unsupported on ARM64 Linux"
             assert not is_tf_format or TORCH_1_13, "TensorFlow exports with NMS require torch>=1.13"
             assert fmt != "onnx" or TORCH_1_13, "ONNX export with NMS requires torch>=1.13"
             if getattr(model, "end2end", False) or isinstance(model.model[-1], RTDETRDecoder):
@@ -638,8 +608,6 @@ class Exporter:
             LOGGER.warning(
                 f"INT8 export requires a missing 'data' arg for calibration. Using default 'data={self.args.data}'."
             )
-        if fmt == "tfjs" and ARM64 and LINUX:
-            raise SystemError("TF.js exports are not currently supported on ARM64 Linux")
         # Recommend OpenVINO if export and Intel CPU
         if SETTINGS.get("openvino_msg"):
             if is_intel():
@@ -669,7 +637,7 @@ class Exporter:
             from ultralytics.utils.export.imx import FXModel
 
             model = FXModel(model, self.imgsz)
-        if fmt in {"tflite", "edgetpu"}:
+        if fmt == "edgetpu":
             from ultralytics.utils.export.tensorflow import tf_wrapper
 
             model = tf_wrapper(model)
@@ -755,14 +723,10 @@ class Exporter:
         # Export
         if is_tf_format:
             f, keras_model = self.export_saved_model()
-            if fmt in {"pb", "tfjs"}:  # pb prerequisite to tfjs
+            if fmt == "pb":
                 f = self.export_pb(keras_model=keras_model)
-            if fmt == "tflite":
-                f = self.export_tflite()
             if fmt == "edgetpu":
                 f = self.export_edgetpu(tflite_model=Path(f) / f"{self.file.stem}_full_integer_quant.tflite")
-            if fmt == "tfjs":
-                f = self.export_tfjs()
         else:
             f = getattr(self, f"export_{fmt}")()
 
@@ -777,17 +741,11 @@ class Exporter:
             )
             imgsz = self.imgsz[0] if square else str(self.imgsz)[1:-1].replace(" ", "")
             q = "int8" if self.args.int8 else "half" if self.args.half else ""  # quantization
-            # Export-only formats deploy in-browser and are not loadable by AutoBackend
-            predict_validate = (
-                ""
-                if fmt == "tfjs"
-                else f"\nPredict:         yolo predict task={model.task} model={f} imgsz={imgsz} {q}"
-                f"\nValidate:        yolo val task={model.task} model={f} imgsz={imgsz} data={data} {q} {s}"
-            )
             LOGGER.info(
                 f"\nExport complete ({time.time() - t:.1f}s)"
                 f"\nResults saved to {colorstr('bold', Path(f).resolve())}"
-                f"{predict_validate}"
+                f"\nPredict:         yolo predict task={model.task} model={f} imgsz={imgsz} {q}"
+                f"\nValidate:        yolo val task={model.task} model={f} imgsz={imgsz} data={data} {q} {s}"
                 f"\nVisualize:       https://netron.app"
             )
 
@@ -1215,7 +1173,7 @@ class Exporter:
             f,
             int8=self.args.int8,
             images=images,
-            disable_group_convolution=self.args.format in {"tfjs", "edgetpu"},
+            disable_group_convolution=self.args.format == "edgetpu",
             prefix=prefix,
         )
         YAML.save(f / "metadata.yaml", self.metadata)  # add metadata.yaml
@@ -1231,22 +1189,6 @@ class Exporter:
         from ultralytics.utils.export.tensorflow import keras2pb
 
         return keras2pb(keras_model, output_file=self.file.with_suffix(".pb"), prefix=prefix)
-
-    @try_export
-    def export_tflite(self, prefix=colorstr("TensorFlow Lite:")):
-        """Export YOLO model to TensorFlow Lite format."""
-        # BUG https://github.com/ultralytics/ultralytics/issues/13436
-        import tensorflow as tf
-
-        LOGGER.info(f"\n{prefix} starting export with tensorflow {tf.__version__}...")
-        saved_model = Path(str(self.file).replace(self.file.suffix, "_saved_model"))
-        if self.args.int8:
-            f = saved_model / f"{self.file.stem}_int8.tflite"  # fp32 in/out
-        elif self.args.half:
-            f = saved_model / f"{self.file.stem}_float16.tflite"  # fp32 in/out
-        else:
-            f = saved_model / f"{self.file.stem}_float32.tflite"
-        return str(f)
 
     @try_export
     def export_axelera(self, prefix=colorstr("Axelera:")):
@@ -1291,25 +1233,6 @@ class Exporter:
         output_file = tflite2edgetpu(tflite_file=tflite_model, output_dir=tflite_model.parent, prefix=prefix)
         self._add_tflite_metadata(output_file)
         return output_file
-
-    @try_export
-    def export_tfjs(self, prefix=colorstr("TensorFlow.js:")):
-        """Export YOLO model to TensorFlow.js format."""
-        assert not IS_PYTHON_MINIMUM_3_13, (
-            "TensorFlow.js export not supported on Python>=3.13: tensorflowjs requires the np.object alias removed "
-            "in NumPy 1.24, but Python 3.13 has no NumPy<2.1 wheels."
-        )
-        from ultralytics.utils.export.tensorflow import pb2tfjs
-
-        output_dir = pb2tfjs(
-            pb_file=str(self.file.with_suffix(".pb")),
-            output_dir=str(self.file).replace(self.file.suffix, "_web_model/"),
-            half=self.args.half,
-            int8=self.args.int8,
-            prefix=prefix,
-        )
-        YAML.save(Path(output_dir) / "metadata.yaml", self.metadata)
-        return output_dir
 
     @try_export
     def export_rknn(self, prefix=colorstr("RKNN:")):
@@ -1511,7 +1434,7 @@ class NMSModel(torch.nn.Module):
         self.model = model
         self.args = args
         self.obb = model.task == "obb"
-        self.is_tf = self.args.format in frozenset({"saved_model", "tflite", "tfjs"})
+        self.is_tf = self.args.format == "saved_model"
 
     def forward(self, x):
         """Perform inference with NMS post-processing. Supports Detect, Segment, OBB and Pose.
@@ -1552,10 +1475,7 @@ class NMSModel(torch.nn.Module):
             # `8` is the minimum value experimented to get correct NMS results for obb
             multiplier = 8 if self.obb else 1 / max(len(self.model.names), 1)
             # Normalize boxes for NMS since large values for class offset causes issue with int8 quantization
-            if self.args.format == "tflite":  # TFLite is already normalized
-                nmsbox *= multiplier
-            else:
-                nmsbox = multiplier * (nmsbox / torch.tensor(x.shape[2:], **kwargs).max())
+            nmsbox = multiplier * (nmsbox / torch.tensor(x.shape[2:], **kwargs).max())
             if not self.args.agnostic_nms:  # class-wise NMS
                 end = 2 if self.obb else 4
                 # fully explicit expansion otherwise reshape error

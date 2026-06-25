@@ -245,40 +245,6 @@ def test_export_coreml_matrix(task, dynamic, int8, half, nms, batch, end2end):
     shutil.rmtree(file)  # cleanup
 
 
-@pytest.mark.slow
-@pytest.mark.skipif(
-    not checks.IS_PYTHON_MINIMUM_3_10 or not TORCH_1_13, reason="TFLite export requires Python>=3.10 and torch>=1.13"
-)
-@pytest.mark.skipif(
-    not LINUX or IS_RASPBERRYPI,
-    reason="Test disabled as TF suffers from install conflicts on Windows, macOS and Raspberry Pi",
-)
-@pytest.mark.parametrize(
-    "task, dynamic, int8, half, batch, nms, end2end",
-    [  # generate all combinations except for exclusion cases
-        (task, dynamic, int8, half, batch, nms, end2end)
-        for task, dynamic, int8, half, batch, nms, end2end in product(
-            sorted(TASKS), [False], [True, False], [True, False], [1], [True, False], [True, False]
-        )
-        if not (
-            (int8 and half)
-            or (task == "classify" and nms)
-            or (ARM64 and nms)
-            or (nms and not TORCH_1_13)
-            or (end2end and nms)
-        )
-    ],
-)
-def test_export_tflite_matrix(task, dynamic, int8, half, batch, nms, end2end):
-    """Test YOLO export to TFLite format considering various export configurations."""
-    skip_rpi_semantic(task)
-    file = YOLO(TASK2MODEL[task]).export(
-        format="tflite", imgsz=32, dynamic=dynamic, int8=int8, half=half, batch=batch, nms=nms, end2end=end2end
-    )
-    YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference
-    Path(file).unlink()  # cleanup
-
-
 @pytest.mark.skipif(not TORCH_1_11, reason="CoreML export requires torch>=1.11")
 @pytest.mark.skipif(WINDOWS, reason="CoreML not supported on Windows")  # RuntimeError: BlobWriter not loaded
 @pytest.mark.skipif(LINUX and ARM64, reason="CoreML not supported on aarch64 Linux")
@@ -320,16 +286,6 @@ def test_export_coreml_rtdetr():
     output = stdout.getvalue() + stderr.getvalue()
     assert "Error" not in output, f"RTDETR CoreML export produced errors: {output}"
     assert "You will not be able to run predict()" not in output, "RTDETR CoreML export has predict() error"
-
-
-@pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10, reason="TFLite export requires Python>=3.10")
-@pytest.mark.skipif(not TORCH_1_13, reason="TFLite export requires torch>=1.13")
-@pytest.mark.skipif(not LINUX, reason="Test disabled as TF suffers from install conflicts on Windows and macOS")
-def test_export_tflite(isolated_model):
-    """Test YOLO export to TFLite format under specific OS and Python version conditions."""
-    model = YOLO(isolated_model)
-    file = model.export(format="tflite", imgsz=32)
-    YOLO(file)(SOURCE, imgsz=32)
 
 
 @pytest.mark.skipif(True, reason="Test disabled")
@@ -433,6 +389,20 @@ def test_export_executorch(isolated_model):
     metadata_file = Path(file) / "metadata.yaml"
     assert metadata_file.exists(), f"ExecuTorch metadata.yaml not found: {metadata_file}"
     # Note: Inference testing skipped as ExecuTorch requires special runtime setup
+    shutil.rmtree(file, ignore_errors=True)  # cleanup
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(not LINUX or ARM64, reason="LiteRT export only supported on Linux x86")
+@pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10, reason="litert-torch requires Python>=3.10")
+@pytest.mark.parametrize("task, int8", [(task, int8) for task in TASKS for int8 in (False, True)])
+def test_export_litert_matrix(task, int8):
+    """Test YOLO export to LiteRT format (FP32 and INT8) for various task types."""
+    file = YOLO(TASK2MODEL[task]).export(format="litert", imgsz=32, int8=int8)
+    assert Path(file).exists(), f"LiteRT export failed for task '{task}', directory not found: {file}"
+    assert next(Path(file).glob("*.tflite"), None), f"LiteRT .tflite file not found for task '{task}': {file}"
+    assert (Path(file) / "metadata.yaml").exists(), f"LiteRT metadata.yaml not found for task '{task}': {file}"
+    YOLO(file)(SOURCE, imgsz=32)  # exported model inference
     shutil.rmtree(file, ignore_errors=True)  # cleanup
 
 

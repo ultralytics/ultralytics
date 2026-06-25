@@ -18,7 +18,6 @@ from ultralytics.utils.checks import (
     is_sudo_available,
 )
 from ultralytics.utils.downloads import attempt_download_asset
-from ultralytics.utils.files import spaces_in_path
 from ultralytics.utils.tal import make_anchors
 
 
@@ -276,56 +275,6 @@ def tflite2edgetpu(tflite_file: str | Path, output_dir: str | Path, prefix: str 
     LOGGER.info(f"{prefix} running '{shlex.join(cmd)}'")
     subprocess.run(cmd)
     return str(Path(output_dir) / f"{Path(tflite_file).stem}_edgetpu.tflite")
-
-
-def pb2tfjs(pb_file: str, output_dir: str, half: bool = False, int8: bool = False, prefix: str = "") -> str:
-    """Convert a TensorFlow GraphDef (.pb) model to TensorFlow.js format.
-
-    Args:
-        pb_file (str): Path to the input TensorFlow GraphDef (.pb) model file.
-        output_dir (str): Output directory path for the converted TensorFlow.js model.
-        half (bool, optional): Enable FP16 quantization. Defaults to False.
-        int8 (bool, optional): Enable INT8 quantization. Defaults to False.
-        prefix (str, optional): Logging prefix. Defaults to "".
-
-    Returns:
-        (str): Path to the exported TensorFlow.js model directory.
-
-    Notes:
-        Auto-installs tensorflowjs if not present. Uses tensorflowjs_converter command-line tool for conversion.
-        Handles spaces in file paths and warns if output directory contains spaces.
-    """
-    import shlex
-    import subprocess
-
-    check_requirements("tensorflowjs")
-    import tensorflow as tf
-    import tensorflowjs as tfjs
-
-    LOGGER.info(f"\n{prefix} starting export with tensorflowjs {tfjs.__version__}...")
-
-    gd = tf.Graph().as_graph_def()  # TF GraphDef
-    with open(pb_file, "rb") as f:
-        gd.ParseFromString(f.read())
-    outputs = ",".join(gd_outputs(gd))
-    LOGGER.info(f"\n{prefix} output node names: {outputs}")
-
-    quantization = ["--quantize_float16"] if half else ["--quantize_uint8"] if int8 else []
-    with spaces_in_path(pb_file) as fpb_, spaces_in_path(output_dir) as f_:  # exporter cannot handle spaces in paths
-        cmd = [
-            "tensorflowjs_converter",
-            "--input_format=tf_frozen_model",
-            *quantization,
-            f"--output_node_names={outputs}",
-            str(fpb_),
-            str(f_),
-        ]  # argv list avoids shell metacharacter issues in interpolated paths
-        LOGGER.info(f"{prefix} running '{shlex.join(cmd)}'")
-        subprocess.run(cmd)
-
-    if " " in output_dir:
-        LOGGER.warning(f"{prefix} your model may not work correctly with spaces in path '{output_dir}'.")
-    return str(output_dir)
 
 
 def gd_outputs(gd):

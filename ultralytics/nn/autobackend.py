@@ -103,7 +103,6 @@ class AutoBackend(nn.Module):
             | TensorRT              | *.engine          |
             | TensorFlow SavedModel | *_saved_model/    |
             | TensorFlow GraphDef   | *.pb              |
-            | TensorFlow Lite       | *.tflite          |
             | TensorFlow Edge TPU   | *_edgetpu.tflite  |
             | PaddlePaddle          | *_paddle_model/   |
             | MNN                   | *.mnn             |
@@ -115,7 +114,7 @@ class AutoBackend(nn.Module):
             | Axelera AI            | *_axelera_model/  |
             | DEEPX                 | *_deepx_model/    |
             | Qualcomm QNN          | *_qnn.onnx        |
-            | LiteRT                | *_litert_model/   |
+            | LiteRT                | *_litert_model/, *.tflite |
 
     Attributes:
         backend (BaseBackend): The loaded inference backend instance.
@@ -149,7 +148,6 @@ class AutoBackend(nn.Module):
         "coreml": CoreMLBackend,
         "saved_model": TensorFlowBackend,
         "pb": TensorFlowBackend,
-        "tflite": TensorFlowBackend,
         "edgetpu": TensorFlowBackend,
         "paddle": PaddleBackend,
         "mnn": MNNBackend,
@@ -205,8 +203,6 @@ class AutoBackend(nn.Module):
         # Select and initialize the appropriate backend
         backend_kwargs = {"device": device, "fp16": fp16}
 
-        if format == "tfjs":
-            raise NotImplementedError("Ultralytics TF.js inference is not currently supported.")
         if format not in self._BACKEND_MAP:
             from ultralytics.engine.exporter import export_formats
 
@@ -218,11 +214,11 @@ class AutoBackend(nn.Module):
         if format == "pt":
             backend_kwargs["fuse"] = fuse
             backend_kwargs["verbose"] = verbose
-        elif format in {"saved_model", "pb", "tflite", "edgetpu", "dnn"}:
+        elif format in {"saved_model", "pb", "edgetpu", "dnn"}:
             backend_kwargs["format"] = format
         self.backend = self._BACKEND_MAP[format](model, **backend_kwargs)
 
-        self.nhwc = format in {"coreml", "saved_model", "pb", "tflite", "edgetpu", "rknn"}
+        self.nhwc = format in {"coreml", "saved_model", "pb", "edgetpu", "rknn"}
         self.format = format
 
         # Ensure backend has names (fallback to default if not set by metadata)
@@ -341,10 +337,11 @@ class AutoBackend(nn.Module):
         name = Path(p).name
         types = [s in name for s in sf]
         types[5] |= name.endswith(".mlmodel")
-        types[8] &= not types[9]
         format = next((f for i, f in enumerate(export_formats()["Argument"]) if types[i]), None)
         if name.endswith("_qnn.onnx"):  # QNN context-binary file otherwise matches the plain '.onnx' suffix
             format = "qnn"
+        elif name.endswith(".tflite") and not name.endswith("_edgetpu.tflite"):
+            format = "litert"  # bare .tflite files (incl. legacy TFLite exports) load via LiteRT
         elif format == "-":
             format = "pt"
         elif format == "onnx" and dnn:

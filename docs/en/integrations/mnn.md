@@ -115,13 +115,13 @@ The MNN format supports the [Export](../modes/export.md), [Predict](../modes/pre
 
 ### Export Arguments
 
-| Argument | Type             | Default | Description                                                                                                                                                                                   |
-| -------- | ---------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format` | `str`            | `'mnn'` | Target format for the exported model, defining compatibility with various deployment environments.                                                                                            |
-| `imgsz`  | `int` or `tuple` | `640`   | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                             |
-| `quantize` | `int` or `str`   | `None`  | Quantization precision: `16` (FP16) or `8` (INT8/PTQ; needs calibration `data`/`fraction`); `32`/unset is FP32. Replaces the deprecated `half`/`int8` flags.                                  |
-| `batch`  | `int`            | `1`     | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                       |
-| `device` | `str`            | `None`  | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                                                                               |
+| Argument   | Type             | Default | Description                                                                                                                                                  |
+| ---------- | ---------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `format`   | `str`            | `'mnn'` | Target format for the exported model, defining compatibility with various deployment environments.                                                           |
+| `imgsz`    | `int` or `tuple` | `640`   | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                            |
+| `quantize` | `int` or `str`   | `None`  | Quantization precision: `16` (FP16) or `8` (INT8/PTQ; needs calibration `data`/`fraction`); `32`/unset is FP32. Replaces the deprecated `half`/`int8` flags. |
+| `batch`    | `int`            | `1`     | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                      |
+| `device`   | `str`            | `None`  | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                                              |
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
@@ -391,8 +391,8 @@ To predict with an exported YOLO26 MNN model, use the `predict` function from th
     === "CLI"
 
         ```bash
-        yolo predict model='yolo26n.mnn' source='https://ultralytics.com/images/bus.jpg'                # predict with `fp32`
-        yolo predict model='yolo26n.mnn' source='https://ultralytics.com/images/bus.jpg' quantize=16    # predict with `fp16` if device support
+        yolo predict model='yolo26n.mnn' source='https://ultralytics.com/images/bus.jpg'             # predict with `fp32`
+        yolo predict model='yolo26n.mnn' source='https://ultralytics.com/images/bus.jpg' quantize=16 # predict with `fp16` if device support
         ```
 
 ### What platforms are supported for MNN?

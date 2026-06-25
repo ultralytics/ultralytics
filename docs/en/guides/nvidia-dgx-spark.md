@@ -361,7 +361,7 @@ When using NVIDIA DGX Spark, there are a couple of best practices to follow in o
 
     ```bash
     yolo export model=yolo26n.pt format=engine quantize=16 # FP16
-    yolo export model=yolo26n.pt format=engine quantize=8 # INT8
+    yolo export model=yolo26n.pt format=engine quantize=8  # INT8
     ```
 
 ## System Updates (Founders Edition)

@@ -98,15 +98,15 @@ Run YOLO26n benchmarks across all supported export formats (ONNX, TensorRT, etc.
 
 Arguments such as `model`, `data`, `imgsz`, `quantize`, `device`, `verbose` and `format` provide users with the flexibility to fine-tune the benchmarks to their specific needs and compare the performance of different export formats with ease.
 
-| Key       | Default Value | Description                                                                                                                                                                                             |
-| --------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `model`   | `None`        | Specifies the path to the model file. Accepts both `.pt` and `.yaml` formats, e.g., `"yolo26n.pt"` for pretrained models or configuration files.                                                        |
-| `data`    | `None`        | Path to a YAML file defining the dataset for benchmarking, typically including paths and settings for [validation data](https://www.ultralytics.com/glossary/validation-data). Example: `"coco8.yaml"`. |
-| `imgsz`   | `640`         | The input image size for the model. Must be a single integer for square images (e.g., `640`); `benchmark()` only supports square image sizes.                                                           |
-| `quantize` | `None`       | Quantization precision: `16` (FP16) or `8` (INT8/PTQ; needs calibration `data`/`fraction`); `32`/unset is FP32. Replaces the deprecated `half`/`int8` flags.                                            |
-| `device`  | `'cpu'`       | Defines the computation device(s) for benchmarking, such as `"cpu"` or `"cuda:0"`.                                                                                                                      |
-| `verbose` | `False`       | Controls the level of detail in logging output. Set `verbose=True` for detailed logs.                                                                                                                   |
-| `format`  | `''`          | Benchmarks only the specified export format (e.g., `format=onnx`). Leave it blank to test every supported format automatically.                                                                         |
+| Key        | Default Value | Description                                                                                                                                                                                             |
+| ---------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `model`    | `None`        | Specifies the path to the model file. Accepts both `.pt` and `.yaml` formats, e.g., `"yolo26n.pt"` for pretrained models or configuration files.                                                        |
+| `data`     | `None`        | Path to a YAML file defining the dataset for benchmarking, typically including paths and settings for [validation data](https://www.ultralytics.com/glossary/validation-data). Example: `"coco8.yaml"`. |
+| `imgsz`    | `640`         | The input image size for the model. Must be a single integer for square images (e.g., `640`); `benchmark()` only supports square image sizes.                                                           |
+| `quantize` | `None`        | Quantization precision: `16` (FP16) or `8` (INT8/PTQ; needs calibration `data`/`fraction`); `32`/unset is FP32. Replaces the deprecated `half`/`int8` flags.                                            |
+| `device`   | `'cpu'`       | Defines the computation device(s) for benchmarking, such as `"cpu"` or `"cuda:0"`.                                                                                                                      |
+| `verbose`  | `False`       | Controls the level of detail in logging output. Set `verbose=True` for detailed logs.                                                                                                                   |
+| `format`   | `''`          | Benchmarks only the specified export format (e.g., `format=onnx`). Leave it blank to test every supported format automatically.                                                                         |
 
 ## Export Formats
 

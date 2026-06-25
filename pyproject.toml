@@ -68,7 +68,6 @@ dependencies = [
     "pillow>=7.1.2",
     "pyyaml>=5.3.1",
     "requests>=2.23.0",
-    # "scipy>=1.4.1",  # optional, speeds up linear_sum_assignment when installed
     "torch>=1.8.0",
     "torch>=1.8.0,!=2.4.0; sys_platform == 'win32'", # Windows CPU errors w/ 2.4.0 https://github.com/ultralytics/ultralytics/issues/15049
     "torchvision>=0.9.0",
@@ -156,7 +155,6 @@ extra = [
     "faster-coco-eval>=1.6.7", # COCO mAP
 ]
 typing = [
-    # "scipy-stubs>=1.14.1.4; python_version >= '3.10'",  # optional, only needed when scipy is installed
     "types-pillow",
     "types-psutil",
     "types-pyyaml",

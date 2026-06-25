@@ -34,8 +34,12 @@ from .val import resolve_mvtec_root, run_mvtec_ood_eval
 
 # Fit YAML keys -> FeatureDiscriminatorScorer kwargs
 _SCORER_YAML_KEYS = {
-    "scorer_noise_std": "noise_std", "scorer_steps": "steps", "scorer_hidden": "hidden",
-    "scorer_n_noise": "n_noise", "scorer_batch": "batch", "scorer_lr": "lr",
+    "scorer_noise_std": "noise_std",
+    "scorer_steps": "steps",
+    "scorer_hidden": "hidden",
+    "scorer_n_noise": "n_noise",
+    "scorer_batch": "batch",
+    "scorer_lr": "lr",
     "scorer_noise_mode": "noise_mode",
 }
 
@@ -113,9 +117,7 @@ class AnomalyV2Trainer(DetectionTrainer):
             args = copy(self.args)
             args.task = "segment"
             gs = max(int(unwrap_model(self.model).stride.max()), 32)
-            return build_yolo_dataset(
-                args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs
-            )
+            return build_yolo_dataset(args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs)
         return super().build_dataset(img_path, mode=mode, batch=batch)
 
     def get_model(self, cfg=None, weights=None, verbose: bool = True):
@@ -165,8 +167,11 @@ class AnomalyV2Trainer(DetectionTrainer):
             loss_names += ["qmask_loss", "qobj_loss", "qovl_loss", "qfg_loss"]
         self.loss_names = tuple(loss_names)
         return yolo.anomaly_v2.AnomalyV2Validator(
-            self.test_loader, save_dir=self.save_dir, args=copy(self.args),
-            _callbacks=self.callbacks, prior_mode=None,  # legacy GT bboxes -> renderer
+            self.test_loader,
+            save_dir=self.save_dir,
+            args=copy(self.args),
+            _callbacks=self.callbacks,
+            prior_mode=None,  # legacy GT bboxes -> renderer
         )
 
     @staticmethod
@@ -189,8 +194,9 @@ class AnomalyV2Trainer(DetectionTrainer):
             return
         root = resolve_mvtec_root(v2_cfg.get("mvtec_ood_root"))
         if root is None:
-            LOGGER.warning("MVTec OOD: dataset root not found (set MVTEC_ROOT or anomaly_v2."
-                           "mvtec_ood_root); skipping OOD eval.")
+            LOGGER.warning(
+                "MVTec OOD: dataset root not found (set MVTEC_ROOT or anomaly_v2.mvtec_ood_root); skipping OOD eval."
+            )
             return
 
         # -- Fit YAML (optional; single source of truth for imgsz / heatmap_mode / scorer / post) --
@@ -231,12 +237,18 @@ class AnomalyV2Trainer(DetectionTrainer):
         try:
             with torch.no_grad():
                 rows = run_mvtec_ood_eval(
-                    ema_eval, root,
+                    ema_eval,
+                    root,
                     categories=v2_cfg.get("mvtec_ood_categories"),
                     modes=modes,
-                    imgsz=imgsz, batch=batch, bank_size=bank_size,
-                    device=trainer.device, save_dir=trainer.save_dir, epoch=trainer.epoch + 1,
-                    e2e=False, iou=0.1,
+                    imgsz=imgsz,
+                    batch=batch,
+                    bank_size=bank_size,
+                    device=trainer.device,
+                    save_dir=trainer.save_dir,
+                    epoch=trainer.epoch + 1,
+                    e2e=False,
+                    iou=0.1,
                     heatmap_norm=heat_norm,
                     heatmap_edge_weight=(True if heat_edge else None),
                     heatmap_edge_sigma=heat_edge_sigma,
@@ -274,9 +286,12 @@ class AnomalyV2Trainer(DetectionTrainer):
         if wb is None or getattr(wb, "run", None) is None:
             return
         keys = ("mAP10", "mAP25", "mAP50", "mAP50_95", "image_auroc", "pixel_auroc")
-        log = {f"ood/{r['category']}/{r['mode']}/{k}": r[k]
-               for r in rows for k in keys
-               if r.get(k) is not None and not (isinstance(r.get(k), float) and math.isnan(r[k]))}
+        log = {
+            f"ood/{r['category']}/{r['mode']}/{k}": r[k]
+            for r in rows
+            for k in keys
+            if r.get(k) is not None and not (isinstance(r.get(k), float) and math.isnan(r[k]))
+        }
         if log:
             try:
                 wb.run.log(log, step=trainer.epoch + 1)

@@ -1040,6 +1040,9 @@ class v8OBBLoss(v8DetectionLoss):
             targets = self.preprocess(targets.to(self.device), batch_size, scale_tensor=imgsz[[1, 0, 1, 0]])
             gt_labels, gt_bboxes = targets.split((1, 5), 2)  # cls, xywhr
             mask_gt = gt_bboxes.sum(2, keepdim=True).gt_(0.0)
+            gt_bboxes[..., 2:4] = torch.where(  # floor sub-stride sizes to keep ProbIoU targets well-conditioned
+                (gt_bboxes[..., 2:4] < self.stride[0]) & mask_gt.bool(), self.stride[1], gt_bboxes[..., 2:4]
+            )
         except RuntimeError as e:
             raise TypeError(
                 "ERROR ❌ OBB dataset incorrectly formatted or not a OBB dataset.\n"

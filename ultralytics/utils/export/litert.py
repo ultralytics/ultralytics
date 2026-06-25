@@ -13,13 +13,13 @@ class _NormalizeCoords(torch.nn.Module):
     """Wrap a model so box (and pose keypoint) coordinates are output normalized to [0, 1].
 
     LiteRT exports trace the raw PyTorch model, whose detection output concatenates pixel-space box coordinates
-    (0-imgsz) with [0, 1] class scores in a single tensor. A single per-tensor INT8 scale cannot represent both
-    ranges, so the scores collapse to zero. Normalizing coordinates to [0, 1] keeps the whole tensor in a unit
-    range so quantization preserves score resolution; ``LiteRTBackend`` denormalizes by image size at runtime.
+    (0-imgsz) with [0, 1] class scores in a single tensor. A single per-tensor INT8 scale cannot represent both ranges,
+    so the scores collapse to zero. Normalizing coordinates to [0, 1] keeps the whole tensor in a unit range so
+    quantization preserves score resolution; ``LiteRTBackend`` denormalizes by image size at runtime.
 
-    Coordinates are divided by a scalar image size (non-PyTorch exports require square images) rather than a
-    per-channel vector: a mixed-magnitude scale vector quantizes to a single per-tensor scale that rounds the
-    small coordinate factors to zero, destroying box accuracy.
+    Coordinates are divided by a scalar image size (non-PyTorch exports require square images) rather than a per-channel
+    vector: a mixed-magnitude scale vector quantizes to a single per-tensor scale that rounds the small coordinate
+    factors to zero, destroying box accuracy.
     """
 
     def __init__(self, model: torch.nn.Module, imgsz: int, task: str, nc: int, kpt_shape: tuple | None):
@@ -59,8 +59,8 @@ def torch2litert(
 ) -> Path:
     """Export a PyTorch model to LiteRT format using litert_torch, with optional INT8 quantization.
 
-    FP16 is not exported as a separate model: LiteRT runs an FP32 model in FP16 at runtime via the GPU delegate
-    (FP16 by default) or the XNNPACK ``FORCE_FP16`` flag on ARM, so a dedicated FP16 file is unnecessary.
+    FP16 is not exported as a separate model: LiteRT runs an FP32 model in FP16 at runtime via the GPU delegate (FP16 by
+    default) or the XNNPACK ``FORCE_FP16`` flag on ARM, so a dedicated FP16 file is unnecessary.
 
     Args:
         model (torch.nn.Module): The PyTorch model to export.

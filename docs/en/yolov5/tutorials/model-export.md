@@ -39,9 +39,9 @@ YOLOv5 inference is officially supported in 12 formats:
 | [CoreML](../../integrations/coreml.md)                       | `coreml`              | `yolov5s.mlmodel`         |
 | [TensorFlow SavedModel](../../integrations/tf-savedmodel.md) | `saved_model`         | `yolov5s_saved_model/`    |
 | [TensorFlow GraphDef](../../integrations/tf-graphdef.md)     | `pb`                  | `yolov5s.pb`              |
-| [TensorFlow Lite](../../integrations/litert.md)             | `tflite`              | `yolov5s.tflite`          |
+| [TensorFlow Lite](../../integrations/litert.md)              | `tflite`              | `yolov5s.tflite`          |
 | [TensorFlow Edge TPU](../../integrations/edge-tpu.md)        | `edgetpu`             | `yolov5s_edgetpu.tflite`  |
-| [TensorFlow.js](../../integrations/litert.md)               | `tfjs`                | `yolov5s_web_model/`      |
+| [TensorFlow.js](../../integrations/litert.md)                | `tfjs`                | `yolov5s_web_model/`      |
 | [PaddlePaddle](../../integrations/paddlepaddle.md)           | `paddle`              | `yolov5s_paddle_model/`   |
 
 ## Benchmarks

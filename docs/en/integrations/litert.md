@@ -11,7 +11,7 @@ keywords: YOLO26, LiteRT, TFLite, TensorFlow Lite, LiteRT.js, model export, edge
   <img width="75%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/tflite-logo.avif" alt="LiteRT edge deployment framework">
 </p>
 
-[LiteRT](https://developers.google.com/edge/litert/overview) (short for *Lite Runtime*) is Google's high-performance runtime for on-device AI. It is the next generation and the new name for TensorFlow Lite (TFLite), and it runs the same `.tflite` model format. With LiteRT, a single exported [Ultralytics YOLO](https://github.com/ultralytics/ultralytics) model deploys across **mobile, embedded, edge, and the browser** — covering everything that the older `tflite` and `tfjs` export formats handled separately, now under one umbrella.
+[LiteRT](https://developers.google.com/edge/litert/overview) (short for _Lite Runtime_) is Google's high-performance runtime for on-device AI. It is the next generation and the new name for TensorFlow Lite (TFLite), and it runs the same `.tflite` model format. With LiteRT, a single exported [Ultralytics YOLO](https://github.com/ultralytics/ultralytics) model deploys across **mobile, embedded, edge, and the browser** — covering everything that the older `tflite` and `tfjs` export formats handled separately, now under one umbrella.
 
 The LiteRT export format optimizes your models for tasks like [object detection](https://www.ultralytics.com/glossary/object-detection), [segmentation](https://www.ultralytics.com/glossary/image-segmentation), [pose estimation](../tasks/pose.md), and [classification](https://www.ultralytics.com/glossary/image-classification) so they run fast and offline on a wide range of devices.
 
@@ -125,14 +125,14 @@ All [Ultralytics YOLO models](../models/index.md) support export out of the box.
 
 ### Export Arguments
 
-| Argument | Type             | Default     | Description                                                                                                                                                                          |
-| -------- | ---------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format` | `str`            | `'litert'`  | Target format for the exported model, defining compatibility with various deployment environments.                                                                                  |
-| `imgsz`  | `int` or `tuple` | `640`       | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                   |
-| `int8`   | `bool`           | `False`     | Activates INT8 quantization, compressing the model and speeding up inference with minimal [accuracy](https://www.ultralytics.com/glossary/accuracy) loss, primarily for edge devices. |
-| `batch`  | `int`            | `1`         | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                             |
-| `data`   | `str`            | `'coco8.yaml'` | Path to the [dataset](https://docs.ultralytics.com/datasets) configuration file, essential for INT8 quantization calibration.                                                    |
-| `device` | `str`            | `None`      | Specifies the device for exporting. LiteRT export runs on CPU (`device=cpu`).                                                                                                       |
+| Argument | Type             | Default        | Description                                                                                                                                                                           |
+| -------- | ---------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format` | `str`            | `'litert'`     | Target format for the exported model, defining compatibility with various deployment environments.                                                                                    |
+| `imgsz`  | `int` or `tuple` | `640`          | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                     |
+| `int8`   | `bool`           | `False`        | Activates INT8 quantization, compressing the model and speeding up inference with minimal [accuracy](https://www.ultralytics.com/glossary/accuracy) loss, primarily for edge devices. |
+| `batch`  | `int`            | `1`            | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                               |
+| `data`   | `str`            | `'coco8.yaml'` | Path to the [dataset](https://docs.ultralytics.com/datasets) configuration file, essential for INT8 quantization calibration.                                                         |
+| `device` | `str`            | `None`         | Specifies the device for exporting. LiteRT export runs on CPU (`device=cpu`).                                                                                                         |
 
 !!! note "FP16 precision"
 

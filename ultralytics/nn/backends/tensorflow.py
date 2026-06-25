@@ -19,8 +19,8 @@ from .base import BaseBackend
 class TensorFlowBackend(BaseBackend):
     """Google TensorFlow inference backend supporting multiple serialization formats.
 
-    Loads and runs inference with Google TensorFlow models in SavedModel, GraphDef (.pb), and Edge TPU formats.
-    Handles quantized model dequantization and task-specific output formatting.
+    Loads and runs inference with Google TensorFlow models in SavedModel, GraphDef (.pb), and Edge TPU formats. Handles
+    quantized model dequantization and task-specific output formatting.
     """
 
     def __init__(self, weight: str | Path, device: torch.device, fp16: bool = False, format: str = "saved_model"):

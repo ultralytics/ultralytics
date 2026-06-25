@@ -219,8 +219,8 @@ The Platform supports export to [19+ deployment formats](../../modes/export.md#e
 | **NVIDIA GPUs**    | TensorRT            | Maximum inference speed                                        |
 | **Intel Hardware** | OpenVINO            | CPUs, GPUs, and VPUs                                           |
 | **Apple Devices**  | CoreML or LiteRT    | iOS, macOS, Apple Silicon                                      |
-| **Android**        | LiteRT or NCNN      | LiteRT (Google's on-device runtime) or NCNN for ARM           |
-| **Web Browsers**   | LiteRT.js or ONNX   | LiteRT.js or ONNX via ONNX Runtime Web                        |
+| **Android**        | LiteRT or NCNN      | LiteRT (Google's on-device runtime) or NCNN for ARM            |
+| **Web Browsers**   | LiteRT.js or ONNX   | LiteRT.js or ONNX via ONNX Runtime Web                         |
 | **Edge Devices**   | TF Edge TPU or RKNN | Coral and Rockchip (see [supported chips](#rknn-chip-support)) |
 | **General**        | ONNX                | Works with most runtimes                                       |
 

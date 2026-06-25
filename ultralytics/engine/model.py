@@ -654,7 +654,11 @@ class Model(torch.nn.Module):
         _handle_deprecation(kwargs)  # forward legacy half/int8 -> quantize
         args = {**DEFAULT_CFG_DICT, **self.model.args, **custom, **kwargs, "mode": "benchmark"}
         fmts = export_formats()
-        export_args = set(dict(zip(fmts["Argument"], fmts["Arguments"])).get(format, [])) - {"batch", "data", "quantize"}
+        export_args = set(dict(zip(fmts["Argument"], fmts["Arguments"])).get(format, [])) - {
+            "batch",
+            "data",
+            "quantize",
+        }
         export_kwargs = {k: v for k, v in args.items() if k in export_args}  # quantize is passed explicitly below
         return benchmark(
             model=self,

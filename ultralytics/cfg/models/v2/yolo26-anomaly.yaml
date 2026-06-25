@@ -56,7 +56,7 @@ anomaly_v2:
   mask_bg_blobs_amp: [0.08, 0.20]                                                                                                                                                      
   mask_coherent_noise_amp: [0.03, 0.08]                                                                                                                                                
   mask_floor: [0.02, 0.05]  
-  seg_target_polygon: true
+  seg_target_polygon: false
 
 backbone:
   - [-1, 1, Conv, [64, 3, 2]]

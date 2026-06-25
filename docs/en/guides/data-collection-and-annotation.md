@@ -85,7 +85,7 @@ After selecting a type of annotation, it's important to choose the appropriate f
 | [Pascal VOC](../datasets/detect/voc.md) | One XML file per image    | Object detection                                                                                                                                                                                               |
 | YOLO                                    | One `.txt` file per image | Object detection, segmentation, and pose                                                                                                                                                                       |
 
-The YOLO format stores one row per object as `class x_center y_center width height`, with the box coordinates normalized to a 0–1 range and class indices starting from 0.
+The YOLO format stores one row per object with all coordinates normalized to a 0–1 range and class indices starting from 0. For [object detection](https://www.ultralytics.com/glossary/object-detection) the row is `class x_center y_center width height`, while [segmentation](https://www.ultralytics.com/glossary/instance-segmentation) uses normalized polygon points and [pose](../tasks/pose.md) adds keypoint coordinates after the box.
 
 ### Setting Annotation Guidelines
 

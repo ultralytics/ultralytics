@@ -872,20 +872,6 @@ class YOLOAnomalyV2Model(DetectionModel):
         if self.memory_bank is not None and self._bb_layers:
             self.memory_bank._bb_layer_indices = self._bb_layers
             self._install_backbone_taps(self._bb_layers)
-        # MoCo-style FIFO-queue training prior (0 = disabled, classic frozen-bank behavior).
-        self.mb_queue_capacity = int(v2_cfg.get("mb_queue_capacity", 0))
-        self.mb_blend_p = float(v2_cfg.get("mb_blend_p", 0.5))
-        # Offline cached prior: train images carry a precomputed heatmap as a 4th channel
-        # (split off in _predict_once, consumed via prior_mode="cached").
-        self.mb_cached_prior = bool(v2_cfg.get("mb_cached_prior", False))
-        self._cached_prior_buf: torch.Tensor | None = None
-        # Gate the cached heatmap by the (augmented) GT mask during training: multiply the
-        # cached prior by the rendered+augmented mask so out-of-defect heatmap noise is
-        # suppressed while the in-box heatmap distribution is kept. The mask retains its
-        # augmentation noise (distractor/erase/warp/jitter) on purpose — the gated prior stays
-        # imperfect like the raw inference heatmap, not a clean GT answer key.
-        self.mb_cached_mask_gate = bool(v2_cfg.get("mb_cached_mask_gate", False))
-
         # Prior mode state (predictor/validator controlled)
         self._prior_mode: str | None = None  # None = legacy (GT bboxes -> renderer)
         self._last_heatmap: torch.Tensor | None = None
@@ -1148,10 +1134,9 @@ class YOLOAnomalyV2Model(DetectionModel):
 
         def _make_hook(idx: int):
             def _hook(_module, _inp, out):
-                # Detached capture on every forward: eval uses it for load_support_set /
-                # prior_mode="heatmap"; training uses it for the FIFO-queue prior
-                # (mb_queue_capacity > 0). Detach keeps the graph out; cost is one small
-                # held activation per tapped layer until the next forward clears the dict.
+                # Detached capture on every forward for load_support_set / prior_mode="heatmap".
+                # Detach keeps the graph out; cost is one small held activation per tapped layer
+                # until the next forward clears the dict.
                 self._bb_feats[idx] = out.detach()
 
             return _hook
@@ -1185,10 +1170,9 @@ class YOLOAnomalyV2Model(DetectionModel):
     def __getstate__(self):
         """Drop hooks + forward-time scratch buffers before pickle/deepcopy.
 
-        Hook closures aren't picklable; the scratch buffers (cached prior, captured backbone
-        feats, last heatmap, aux/seg/mask staging) are transient — repopulated on the next
-        forward — but if a forward ran just before ``torch.save`` they get pickled into the
-        checkpoint and bloat it (e.g. ``_cached_prior_buf`` is a full batch at imgsz², ~58 MB).
+        Hook closures aren't picklable; the scratch buffers (captured backbone feats, last
+        heatmap, aux/seg/mask staging) are transient — repopulated on the next forward — but if a
+        forward ran just before ``torch.save`` they get pickled into the checkpoint and bloat it.
         Null them in the returned state only (a shallow copy), so the live model is untouched.
         """
         state = super().__getstate__()
@@ -1197,7 +1181,6 @@ class YOLOAnomalyV2Model(DetectionModel):
         state["_bb_hook_handles"] = []
         state["_bb_feats"] = {}
         for k in (
-            "_cached_prior_buf",
             "_last_heatmap",
             "_qf_aux_buf",
             "_seg_logits_buf",
@@ -1234,11 +1217,6 @@ class YOLOAnomalyV2Model(DetectionModel):
             ("heatmap_norm", "none"),
             ("mask_mag_range", (1.0, 1.0)),
             ("mask_blur_sigma_max", 0.0),
-            ("mb_queue_capacity", 0),
-            ("mb_blend_p", 0.5),
-            ("mb_cached_prior", False),
-            ("_cached_prior_buf", None),
-            ("mb_cached_mask_gate", False),
             ("heatmap_edge_weight", False),
             ("heatmap_edge_p", 4.0),
             ("heatmap_edge_m", 4.4),
@@ -1517,24 +1495,6 @@ class YOLOAnomalyV2Model(DetectionModel):
                 hmap = torch.nn.functional.interpolate(
                     hmap, size=(mask_size, mask_size), mode="bilinear", align_corners=False
                 )
-            return hmap
-        if prior_mode == "cached":
-            # Precomputed heatmap carried as the input's 4th channel (split off in _predict_once).
-            hmap = getattr(self, "_cached_prior_buf", None)
-            if hmap is None:
-                return None
-            if hmap.shape[2] != mask_size or hmap.shape[3] != mask_size:
-                hmap = torch.nn.functional.interpolate(
-                    hmap, size=(mask_size, mask_size), mode="bilinear", align_corners=False
-                )
-            # Train-time mask gate: multiply by the augmented GT mask to suppress the cached
-            # heatmap's out-of-defect noise (keeps in-box heatmap distribution; mask keeps its
-            # augmentation noise so the prior stays imperfect). No-op at eval (no bboxes).
-            if self.training and getattr(self, "mb_cached_mask_gate", False) and bboxes is not None:
-                bb, bi = self._augment_prior_bboxes(bboxes, batch_idx)
-                m = self.mask_renderer(bb, bi, batch_size)
-                m = self._augment_mask(m)
-                hmap = hmap * m.to(device=hmap.device, dtype=hmap.dtype)
             return hmap
         if prior_mode == "seg_heatmap":
             # Average of segment heatmap and memory-bank heatmap.
@@ -1986,13 +1946,6 @@ class YOLOAnomalyV2Model(DetectionModel):
 
     def _predict_once(self, x, profile=False, visualize=False, embed=None):
         """Forward with heatmap-guided fusion inserted before the Detect head."""
-        # Cached-prior input: a 4th channel carries the precomputed heatmap (already
-        # geometrically augmented with the image). Split it off before the backbone.
-        if x.shape[1] == 4:
-            self._cached_prior_buf = x[:, 3:4]
-            x = x[:, :3]
-        else:
-            self._cached_prior_buf = None
         batch_size = x.shape[0]
         device = x.device
 

@@ -589,8 +589,6 @@ class Mosaic(BaseMixTransform):
             # Place img in img3
             if i == 0:  # center
                 img3 = np.full((s * 3, s * 3, img.shape[2]), 114, dtype=np.uint8)  # base image with 3 tiles
-                if img.shape[2] > 3:
-                    img3[..., 3:] = 0  # extra channels (e.g. cached anomaly prior) pad with 0, not gray
                 h0, w0 = h, w
                 c = s, s, s + w, s + h  # xmin, ymin, xmax, ymax (base) coordinates
             elif i == 1:  # right
@@ -648,8 +646,6 @@ class Mosaic(BaseMixTransform):
             # Place img in img4
             if i == 0:  # top left
                 img4 = np.full((s * 2, s * 2, img.shape[2]), 114, dtype=np.uint8)  # base image with 4 tiles
-                if img.shape[2] > 3:
-                    img4[..., 3:] = 0  # extra channels (e.g. cached anomaly prior) pad with 0, not gray
                 x1a, y1a, x2a, y2a = max(xc - w, 0), max(yc - h, 0), xc, yc  # xmin, ymin, xmax, ymax (large image)
                 x1b, y1b, x2b, y2b = w - (x2a - x1a), h - (y2a - y1a), w, h  # xmin, ymin, xmax, ymax (small image)
             elif i == 1:  # top right
@@ -708,8 +704,6 @@ class Mosaic(BaseMixTransform):
             # Place img in img9
             if i == 0:  # center
                 img9 = np.full((s * 3, s * 3, img.shape[2]), 114, dtype=np.uint8)  # base image with 4 tiles
-                if img.shape[2] > 3:
-                    img9[..., 3:] = 0  # extra channels (e.g. cached anomaly prior) pad with 0, not gray
                 h0, w0 = h, w
                 c = s, s, s + w, s + h  # xmin, ymin, xmax, ymax (base) coordinates
             elif i == 1:  # top
@@ -1708,8 +1702,6 @@ class LetterBox:
             )
         else:  # multispectral
             pad_img = np.full((h + top + bottom, w + left + right, c), fill_value=self.padding_value, dtype=img.dtype)
-            if c > 3:
-                pad_img[..., 3:] = 0  # extra channels (e.g. cached anomaly prior) pad with 0, not gray
             pad_img[top : top + h, left : left + w] = img
             img = pad_img
 

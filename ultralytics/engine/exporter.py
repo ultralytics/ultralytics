@@ -142,7 +142,7 @@ def export_formats():
             ".torchscript",
             True,
             True,
-            ["batch", "optimize", "half", "nms", "dynamic"],
+            ["batch", "optimize", "quantize", "nms", "dynamic"],
             "base",
         ],
         [
@@ -151,7 +151,7 @@ def export_formats():
             ".onnx",
             True,
             True,
-            ["batch", "data", "dynamic", "half", "int8", "opset", "simplify", "nms", "fraction"],
+            ["batch", "data", "dynamic", "quantize", "opset", "simplify", "nms", "fraction"],
             "base",
         ],
         [
@@ -160,7 +160,7 @@ def export_formats():
             "_openvino_model",
             True,
             False,
-            ["batch", "data", "dynamic", "half", "int8", "nms", "fraction"],
+            ["batch", "data", "dynamic", "quantize", "nms", "fraction"],
             "base",
         ],
         [
@@ -169,17 +169,17 @@ def export_formats():
             ".engine",
             False,
             True,
-            ["batch", "data", "dynamic", "half", "int8", "simplify", "nms", "fraction"],
+            ["batch", "data", "dynamic", "quantize", "simplify", "nms", "fraction"],
             "base",
         ],
-        ["CoreML", "coreml", ".mlpackage", True, False, ["batch", "dynamic", "half", "int8", "nms"], "coreml"],
+        ["CoreML", "coreml", ".mlpackage", True, False, ["batch", "dynamic", "quantize", "nms"], "coreml"],
         [
             "TensorFlow SavedModel",
             "saved_model",
             "_saved_model",
             True,
             True,
-            ["batch", "data", "fraction", "int8", "keras", "nms"],
+            ["batch", "data", "fraction", "quantize", "keras", "nms"],
             "tensorflow",
         ],
         ["TensorFlow GraphDef", "pb", ".pb", True, True, ["batch"], "tensorflow"],
@@ -189,30 +189,30 @@ def export_formats():
             ".tflite",
             True,
             False,
-            ["batch", "data", "half", "int8", "nms", "fraction"],
+            ["batch", "data", "quantize", "nms", "fraction"],
             "tensorflow",
         ],
-        ["TensorFlow Edge TPU", "edgetpu", "_edgetpu.tflite", True, False, ["data", "fraction", "int8"], "tensorflow"],
+        ["TensorFlow Edge TPU", "edgetpu", "_edgetpu.tflite", True, False, ["data", "fraction", "quantize"], "tensorflow"],
         [
             "TensorFlow.js",
             "tfjs",
             "_web_model",
             True,
             False,
-            ["batch", "data", "fraction", "half", "int8", "nms"],
+            ["batch", "data", "fraction", "quantize", "nms"],
             "tensorflow",
         ],
         ["PaddlePaddle", "paddle", "_paddle_model", True, True, ["batch"], "base"],
-        ["MNN", "mnn", ".mnn", True, True, ["batch", "half", "int8"], "mnn"],
-        ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "half"], "ncnn"],
-        ["IMX", "imx", "_imx_model", True, True, ["data", "int8", "fraction", "nms"], "isolated-imx"],
+        ["MNN", "mnn", ".mnn", True, True, ["batch", "quantize"], "mnn"],
+        ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "quantize"], "ncnn"],
+        ["IMX", "imx", "_imx_model", True, True, ["data", "quantize", "fraction", "nms"], "isolated-imx"],
         [
             "RKNN",
             "rknn",
             "_rknn_model",
             False,
             False,
-            ["batch", "name", "half", "int8", "data", "fraction"],
+            ["batch", "name", "quantize", "data", "fraction"],
             "isolated-rknn",
         ],
         ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"], "executorch"],
@@ -222,11 +222,11 @@ def export_formats():
             "_axelera_model",
             False,
             False,
-            ["batch", "int8", "fraction", "data"],
+            ["batch", "quantize", "fraction", "data"],
             "isolated-axelera",
         ],
-        ["DEEPX", "deepx", "_deepx_model", False, False, ["data", "int8", "optimize"], "isolated-deepx"],
-        ["Qualcomm QNN", "qnn", "_qnn.onnx", False, False, ["batch", "name", "int8", "fraction", "data"], "base"],
+        ["DEEPX", "deepx", "_deepx_model", False, False, ["data", "quantize", "optimize"], "isolated-deepx"],
+        ["Qualcomm QNN", "qnn", "_qnn.onnx", False, False, ["batch", "name", "quantize", "fraction", "data"], "base"],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments", "Env"], zip(*x)))
 
@@ -345,6 +345,14 @@ EXPORT_ENVS = {
 }
 
 
+# Export precision support per format; FP32 (unset/32) is universal, these list FP16/INT8/W8A16 capability.
+FP16_FORMATS = frozenset({"torchscript", "onnx", "openvino", "engine", "coreml", "tflite", "tfjs", "mnn", "ncnn", "rknn"})
+INT8_FORMATS = frozenset(
+    {"onnx", "openvino", "engine", "coreml", "saved_model", "tflite", "edgetpu", "tfjs", "mnn", "imx", "rknn", "axelera", "deepx", "qnn"}
+)
+W8A16_FORMATS = frozenset({"coreml", "imx", "qnn"})  # INT8 weights + FP16 activations
+
+
 def validate_args(format, passed_args, valid_args):
     """Validate arguments based on the export format.
 
@@ -361,11 +369,11 @@ def validate_args(format, passed_args, valid_args):
     assert valid_args is not None, f"ERROR ❌️ valid arguments for '{format}' not listed."
     custom = {"batch": 1, "data": None, "device": None}  # exporter defaults
     default_args = get_cfg(DEFAULT_CFG, custom)
-    if passed_args.quantize in {16, 8, "w8a16"}:  # 32/None (FP32) is universal; 16 needs FP16, 8/w8a16 need INT8
-        assert ("half" if passed_args.quantize == 16 else "int8") in valid_args, (
-            f"ERROR ❌️ quantize={passed_args.quantize} is not supported for format='{format}'"
-        )
-        assert passed_args.quantize != "w8a16" or format in {"coreml", "imx", "qnn"}, (
+    if passed_args.quantize == 16:  # FP16; 32/None (FP32) is universal
+        assert format in FP16_FORMATS, f"ERROR ❌️ quantize=16 (FP16) is not supported for format='{format}'"
+    elif passed_args.quantize in {8, "w8a16"}:  # INT8 (w8a16 keeps FP16 activations)
+        assert format in INT8_FORMATS, f"ERROR ❌️ quantize={passed_args.quantize} is not supported for format='{format}'"
+        assert passed_args.quantize != "w8a16" or format in W8A16_FORMATS, (
             f"ERROR ❌️ quantize='w8a16' (INT8 weights + FP16 activations) is not supported for format='{format}'"
         )
     for arg in export_args:

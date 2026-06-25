@@ -136,7 +136,6 @@ QUANTIZE_SCHEMES = {
     "w16a16": (True, False),  # FP16 (== half)
     "w8a8": (False, True),  # INT8 (== int8)
 }
-QUANTIZE_ALIASES = {"fp32": "w32a32", "fp16": "w16a16", "half": "w16a16", "int8": "w8a8"}
 
 
 def normalize_quantize(args):
@@ -154,12 +153,9 @@ def normalize_quantize(args):
     """
     q = getattr(args, "quantize", None)
     if q is not None:
-        scheme = QUANTIZE_ALIASES.get(str(q).lower(), str(q).lower())
+        scheme = str(q).lower()
         if scheme not in QUANTIZE_SCHEMES:
-            raise ValueError(
-                f"Unsupported quantize='{q}'. Supported schemes are {list(QUANTIZE_SCHEMES)} "
-                f"(aliases: {QUANTIZE_ALIASES})."
-            )
+            raise ValueError(f"Unsupported quantize='{q}'. Supported schemes are {list(QUANTIZE_SCHEMES)}.")
         half, int8 = QUANTIZE_SCHEMES[scheme]
         if (args.half and args.half != half) or (args.int8 and args.int8 != int8):
             LOGGER.warning(f"quantize='{scheme}' overrides half/int8 settings.")

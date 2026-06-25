@@ -185,18 +185,15 @@ After upload, the platform processes your data through a multi-stage pipeline:
 
 ```mermaid
 graph LR
-    A[Upload] --> B[Validate]
-    B --> C[Normalize]
-    C --> D[Thumbnail]
-    D --> E[Parse Labels]
-    E --> F[Statistics]
+    A[Upload]:::start --> B[Validate]:::proc
+    B --> C[Normalize]:::proc
+    C --> D[Thumbnail]:::proc
+    D --> E[Parse Labels]:::proc
+    E --> F[Statistics]:::out
 
-    style A fill:#4CAF50,color:#fff
-    style B fill:#2196F3,color:#fff
-    style C fill:#2196F3,color:#fff
-    style D fill:#2196F3,color:#fff
-    style E fill:#2196F3,color:#fff
-    style F fill:#9C27B0,color:#fff
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 1. **Validation**: Format and size checks
@@ -695,13 +692,14 @@ Start training directly from your dataset:
 
 ```mermaid
 graph LR
-    A[Dataset] --> B[New Model]
-    B --> C[Select Project]
-    C --> D[Configure]
-    D --> E[Start Training]
+    A[Dataset]:::start --> B[New Model]:::proc
+    B --> C[Select Project]:::proc
+    C --> D[Configure]:::proc
+    D --> E[Start Training]:::out
 
-    style A fill:#2196F3,color:#fff
-    style E fill:#4CAF50,color:#fff
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 See [Cloud Training](../train/cloud-training.md) for details.

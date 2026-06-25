@@ -50,7 +50,6 @@ class DistillationModel(nn.Module):
         loss_sl2: Compute score-weighted L2 distillation loss for a feature pair.
         decouple_outputs: Normalize teacher/student head outputs across train/val formats.
         train: Set training mode while keeping teacher frozen.
-        fuse: Fuse model layers for inference speedup.
 
     Examples:
         Train a student model with knowledge distillation from a larger teacher (the trainer builds the
@@ -284,13 +283,7 @@ class DistillationModel(nn.Module):
 
     def set_head_attr(self, **kwargs):
         """Forward head-attribute updates (e.g. max_det, agnostic_nms, end2end) to the student model."""
-        if hasattr(self.student_model, "set_head_attr"):
-            self.student_model.set_head_attr(**kwargs)
-
-    def fuse(self, verbose: bool = True):
-        """Fuse model layers for inference speedup."""
-        self.student_model.fuse(verbose)
-        return self
+        self.student_model.set_head_attr(**kwargs)
 
     def decouple_outputs(self, preds, branch: str = "one2one"):
         """Decouple outputs for teacher/student models.

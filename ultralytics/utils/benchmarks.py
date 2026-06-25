@@ -42,7 +42,7 @@ import numpy as np
 import torch.cuda
 
 from ultralytics import YOLO, YOLOWorld
-from ultralytics.cfg import TASK2DATA, TASK2METRIC
+from ultralytics.cfg import TASK2DATA, TASK2METRIC, _handle_deprecation
 from ultralytics.engine.exporter import export_formats
 from ultralytics.nn.modules import Segment26
 from ultralytics.utils import (
@@ -94,6 +94,8 @@ def benchmark(
         >>> from ultralytics.utils.benchmarks import benchmark
         >>> benchmark(model="yolo26n.pt", imgsz=640)
     """
+    _handle_deprecation(kwargs)  # forward deprecated half/int8 -> quantize for direct benchmark() callers
+    quantize = quantize if quantize is not None else kwargs.pop("quantize", None)
     imgsz = check_imgsz(imgsz)
     assert imgsz[0] == imgsz[1] if isinstance(imgsz, list) else True, "benchmark() only supports square imgsz."
 

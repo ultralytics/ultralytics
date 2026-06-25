@@ -71,7 +71,7 @@ def test_results_plot_with_depth_runs():
     depth = np.random.rand(24, 24).astype(np.float32)
     r = Results(orig_img=img, path="x.jpg", names={0: "depth"}, depth=depth)
     out = r.plot()                      # must not raise; returns an annotated image (masks=True by default)
-    assert out.shape[:2] == (24, 24)
+    assert out.shape[:2] == (24, 48)    # RGB + colorized depth placed side-by-side (width doubled)
 
 
 def test_annotator_depth_map_all_zero():

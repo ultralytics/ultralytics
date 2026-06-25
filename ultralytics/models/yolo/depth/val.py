@@ -31,9 +31,15 @@ class DepthValidator(DetectionValidator):
         self._cal_logp, self._cal_logg, self._cal_pts = [], [], 0
 
     def init_metrics(self, model):
-        """Initialize the DepthMetrics accumulator."""
+        """Initialize the DepthMetrics accumulator and reset per-pass calibration state."""
         self.metrics = DepthMetrics()
         self.metrics.clear_stats()
+        # Reset calibration accumulators for this val pass. These also live here (not only in
+        # __init__) so the validator works when constructed via __new__ (e.g. unit tests). The
+        # calibrating flag is set externally by Model.calibrate() before the pass, so preserve it.
+        self.calibrating = getattr(self, "calibrating", False)
+        self.calib = None
+        self._cal_logp, self._cal_logg, self._cal_pts = [], [], 0
 
     def preprocess(self, batch):
         """Preprocess batch — move to device, normalize images, handle precision."""

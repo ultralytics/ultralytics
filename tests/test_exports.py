@@ -395,7 +395,7 @@ def test_export_executorch(isolated_model):
 @pytest.mark.slow
 @pytest.mark.skipif(not LINUX or ARM64, reason="LiteRT export only supported on Linux x86")
 @pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10, reason="litert-torch requires Python>=3.10")
-@pytest.mark.parametrize("task, int8", [(task, int8) for task in TASKS for int8 in (False, True)])
+@pytest.mark.parametrize("task, int8", [(task, int8) for task in sorted(TASKS) for int8 in (False, True)])
 def test_export_litert_matrix(task, int8):
     """Test YOLO export to LiteRT format (FP32 and INT8) for various task types."""
     file = YOLO(TASK2MODEL[task]).export(format="litert", imgsz=32, int8=int8)

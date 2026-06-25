@@ -183,6 +183,12 @@ CFG_FLOAT_KEYS = frozenset(
         "cls",
         "cls_pw",
         "dfl",
+        "silog",
+        "silog_grad",
+        "silog_lambda",
+        "silog_l1",
+        "dist_pw",
+        "cal_dist_pw",
         "degrees",
         "shear",
         "time",
@@ -267,6 +273,7 @@ CFG_BOOL_KEYS = frozenset(
         "nms",
         "profile",
         "end2end",
+        "auto_calibrate",
     }
 )
 

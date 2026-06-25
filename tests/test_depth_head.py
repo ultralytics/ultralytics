@@ -1,4 +1,3 @@
-import pytest
 import torch
 
 from ultralytics.nn.modules.head import Depth
@@ -36,29 +35,3 @@ def test_depth_head_export_no_input_hw_no_upsample():
     head.export, head.format, head.input_hw = True, "onnx", None
     out = head(feats)
     assert out.shape[-2:] != (256, 256)   # no input_hw → native resolution
-
-
-@pytest.mark.skip(
-    reason=(
-        "DINOv2DPTHead requires torch.hub download of dinov2 weights and a full ViT encoder; "
-        "too heavy for CPU CI. The export-branch ordering fix (training check before export "
-        "interpolation) is structurally identical to the Depth head, which is covered by the "
-        "tests above."
-    )
-)
-def test_dinov2dpt_head_training_dict_and_export_upsample():
-    from ultralytics.nn.modules.head import DINOv2DPTHead
-
-    head = DINOv2DPTHead(encoder_name="vits", pretrained=False)
-
-    # (a) training mode returns a dict
-    head.train()
-    x = torch.randn(1, 3, 518, 518)
-    out = head(x)
-    assert isinstance(out, dict) and "depth" in out
-
-    # (b) eval + export + input_hw → output upsampled to input_hw
-    head.eval()
-    head.export, head.format, head.input_hw = True, "onnx", (518, 518)
-    out2 = head(x)
-    assert out2.shape[-2:] == (518, 518)

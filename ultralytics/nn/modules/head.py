@@ -22,7 +22,6 @@ from .utils import bias_init_with_prob, linear_init
 
 __all__ = (
     "Depth",
-    "DINOv2DPTHead",
     "OBB",
     "Classify",
     "Detect",
@@ -882,76 +881,6 @@ class Depth(nn.Module):
         if a is not None and (a.item() != 1.0 or b.item() != 0.0):
             depth = torch.exp(a * torch.log(depth.clamp(min=1e-3)) + b)
 
-        if self.training:
-            return {"depth": depth}
-        # align_corners=False matches SemanticSegment export convention
-        if self.export and self.format != "coreml" and self.input_hw is not None:
-            depth = F.interpolate(depth, size=self.input_hw, mode="bilinear", align_corners=False)
-        return depth
-
-
-class DINOv2DPTHead(nn.Module):
-    """Depth estimation head with DINOv2 ViT encoder + DPT decoder.
-
-    Replaces the YOLO conv backbone entirely. Reuses the DepthAnythingV2 architecture
-    from ultralytics.models.depth_anything.modules. Input images must be divisible by
-    14 (DINOv2 patch size). Encoder is initialized with DINOv2 self-supervised pretrained
-    weights; decoder is trained from scratch.
-
-    Attributes:
-        encoder_name (str): DINOv2 size ("vits", "vitb", or "vitl").
-        max_depth (float): Output scale for final depth prediction in meters.
-    """
-
-    export = False  # export mode
-    format = None  # export format
-    input_hw = None  # (H, W) of model input, set by exporter for full-res upsample
-
-    def __init__(self, encoder_name: str = "vits", max_depth: float = 10.0,
-                 freeze_encoder: bool = False, pretrained: bool = True):
-        super().__init__()
-        from ultralytics.models.depth_anything.modules import DepthAnythingV2
-
-        self.encoder_name = encoder_name
-        self.max_depth = max_depth
-
-        self.model = DepthAnythingV2(encoder_name=encoder_name, metric=True)
-        self.model.encoder.requires_grad_(True)
-
-        if pretrained:
-            encoder_ckpts = {
-                "vits": "dinov2_vits14",
-                "vitb": "dinov2_vitb14",
-                "vitl": "dinov2_vitl14",
-            }
-            hub_model = torch.hub.load("facebookresearch/dinov2", encoder_ckpts[encoder_name], pretrained=True)
-            self.model.encoder.load_state_dict(hub_model.state_dict(), strict=False)
-            del hub_model
-
-        if freeze_encoder:
-            for p in self.model.encoder.parameters():
-                p.requires_grad = False
-
-    def forward(self, x):
-        """RGB image → depth map in meters.
-
-        Args:
-            x: Input tensor (B, 3, H, W).
-
-        Returns:
-            Training: dict with "depth" key → (B, 1, H, W).
-            Inference: (B, 1, H, W).
-        """
-        # DINOv2 patch size is 14; resize to nearest multiple of 14 if needed
-        H, W = x.shape[2:]
-        h14 = (H // 14) * 14
-        w14 = (W // 14) * 14
-        if h14 != H or w14 != W:
-            x = F.interpolate(x, (h14, w14), mode="bilinear", align_corners=False)
-
-        depth = self.model(x)  # (B, H, W), unbounded logits (metric=True)
-        depth = depth.unsqueeze(1)  # (B, 1, H, W)
-        depth = torch.sigmoid(depth) * self.max_depth
         if self.training:
             return {"depth": depth}
         # align_corners=False matches SemanticSegment export convention

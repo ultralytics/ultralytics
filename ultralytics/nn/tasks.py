@@ -45,7 +45,6 @@ from ultralytics.nn.modules import (
     Conv2,
     ConvTranspose,
     Depth,
-    DINOv2DPTHead,
     Detect,
     DWConv,
     DWConvTranspose2d,
@@ -1825,8 +1824,6 @@ def parse_model(d, ch, verbose=True):
             if len(args) == 1:
                 args.append("log")  # default output mode when YAML omits it (log = unbounded, scale-decoupled)
             args.append([ch[x] for x in f])  # ch tuple
-        elif m is DINOv2DPTHead:
-            c2 = 1  # single-channel depth output
         elif m is SemanticSegment:
             args.append([ch[x] for x in f])  # nc, ch tuple
         elif m is v10Detect:
@@ -1951,7 +1948,7 @@ def guess_model_task(model):
                 return "pose"
             elif isinstance(m, OBB):
                 return "obb"
-            elif isinstance(m, (Depth, DINOv2DPTHead)):
+            elif isinstance(m, Depth):
                 return "depth"
             elif isinstance(m, (Detect, WorldDetect, YOLOEDetect, v10Detect)):
                 return "detect"

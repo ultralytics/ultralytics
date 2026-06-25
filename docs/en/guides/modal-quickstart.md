@@ -49,7 +49,7 @@ Create a new Python file called `modal_yolo.py` to run [inference](../modes/pred
 ```python
 """
 Modal + Ultralytics YOLO26 Quickstart
-Run: modal run modal_yolo.py
+Run: modal run modal_yolo.py.
 """
 
 import modal

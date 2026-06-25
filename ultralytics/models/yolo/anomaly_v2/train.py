@@ -215,7 +215,8 @@ class AnomalyV2Trainer(DetectionTrainer):
         heatmap_mode = fit_yaml.get("heatmap_mode")
         _MODE_MAP = {"memory_bank": "heatmap", "learned": "heatmap_learned", "fused": "heatmap_fused"}
         if heatmap_mode in _MODE_MAP:
-            modes = ("mask_off", _MODE_MAP[heatmap_mode], "mask_on")
+            # modes = ("mask_off", _MODE_MAP[heatmap_mode], "mask_on")
+            modes = (_MODE_MAP[heatmap_mode],)
         else:
             modes = ("mask_off", "heatmap", "mask_on")
 

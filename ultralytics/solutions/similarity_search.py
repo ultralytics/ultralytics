@@ -151,7 +151,7 @@ class VisualAISearch:
         """
         text_feat = self._normalize(self.extract_text_feature(query).astype("float32"))
         scores = self.index @ text_feat[0]  # cosine similarity (embeddings are L2-normalized)
-        top_k = np.argsort(scores)[::-1][:k]
+        top_k = np.argsort(scores)[::-1][: max(k, 0)]
         results = [(self.image_paths[i], float(scores[i])) for i in top_k if scores[i] >= similarity_thresh]
         results.sort(key=lambda x: x[1], reverse=True)
 

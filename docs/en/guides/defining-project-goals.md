@@ -92,12 +92,12 @@ If you start with data, the [Ultralytics Platform](https://platform.ultralytics.
 
 [Model deployment options](./model-deployment-options.md) critically impact the performance of your computer vision project, so factor them in from the start. The deployment environment must handle the computational load of your model:
 
-| Deployment option      | Best for                                                                                                                             | Example technologies                                                                  |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- |
+| Deployment option      | Best for                                                                                                                             | Example technologies                                                         |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
 | **Edge devices**       | Smartphones and IoT devices with limited computational resources; lightweight models                                                 | [LiteRT](../integrations/litert.md), [ONNX Runtime](../integrations/onnx.md) |
-| **Cloud servers**      | Complex models with larger computational demands; hardware that scales with the project                                              | [AWS](../integrations/amazon-sagemaker.md), Google Cloud, Azure                       |
-| **On-premise servers** | High [data privacy](https://www.ultralytics.com/glossary/data-privacy) and security needs; full control over data and infrastructure | Self-managed GPU servers                                                              |
-| **Hybrid solutions**   | Balancing performance with cost and latency; edge processing plus cloud analysis                                                     | Combination of edge runtimes and cloud platforms                                      |
+| **Cloud servers**      | Complex models with larger computational demands; hardware that scales with the project                                              | [AWS](../integrations/amazon-sagemaker.md), Google Cloud, Azure              |
+| **On-premise servers** | High [data privacy](https://www.ultralytics.com/glossary/data-privacy) and security needs; full control over data and infrastructure | Self-managed GPU servers                                                     |
+| **Hybrid solutions**   | Balancing performance with cost and latency; edge processing plus cloud analysis                                                     | Combination of edge runtimes and cloud platforms                             |
 
 Each option offers different benefits and challenges, and the choice depends on specific project requirements like performance, cost, and security.
 

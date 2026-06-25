@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Learn to set up Modal for running Ultralytics YOLO26 in the cloud. Follow our guide for easy serverless GPU inference and training.
+description: Run Ultralytics YOLO26 on Modal's serverless cloud. This quickstart covers authentication, GPU inference, and training jobs with persistent storage.
 keywords: Ultralytics, Modal, YOLO26, serverless, cloud computing, GPU, machine learning, inference, training
 ---
 
@@ -26,11 +26,13 @@ This guide provides a comprehensive introduction to running [Ultralytics YOLO26]
 
 ## Installation
 
-Install the Modal Python package and authenticate:
+Install the Modal Python package:
 
 ```bash
 pip install modal
 ```
+
+Then authenticate the CLI with your Modal account:
 
 ```bash
 modal token new
@@ -42,12 +44,12 @@ modal token new
 
 ## Running YOLO26 Inference
 
-Create a new Python file called `modal_yolo.py` with the following code:
+Create a new Python file called `modal_yolo.py` to run [inference](../modes/predict.md) with the following code:
 
 ```python
 """
 Modal + Ultralytics YOLO26 Quickstart
-Run: modal run modal_yolo.py.
+Run: modal run modal_yolo.py
 """
 
 import modal
@@ -168,12 +170,13 @@ modal run train_yolo.py
 
 !!! tip "Volume Persistence"
 
-    Modal Volumes persist data between function runs. Trained weights are saved to `/data/runs/detect/train/weights/`.
+    Modal Volumes persist data between function runs. Trained weights are saved to `/data/runs/train/weights/`.
 
 Congratulations! You have successfully set up Ultralytics YOLO26 on Modal. For further learning:
 
 - Explore the [Ultralytics YOLO26 documentation](../models/yolo26.md) for advanced features
 - Learn about [training custom models](../modes/train.md) with your own datasets
+- Try the [Docker Quickstart](docker-quickstart.md) for containerized deployment
 - Visit the [Modal documentation](https://modal.com/docs) for advanced platform features
 
 ## FAQ
@@ -188,7 +191,7 @@ Modal uses pay-per-second pricing. Approximate rates: CPU ~$0.05/hr, T4 ~$0.59/h
 
 ### Can I use my own custom-trained YOLO model?
 
-Yes! Load custom models from a Modal Volume:
+Yes, you can run your own custom-trained YOLO model on Modal by loading the weights file from a Modal Volume:
 
 ```python
 model = YOLO("/data/my_custom_model.pt")

@@ -12,11 +12,11 @@ keywords: YOLO26, AzureML, machine learning, cloud computing, quickstart, termin
 
 ## What is Azure Machine Learning (AzureML)?
 
-Azure Machine Learning, commonly referred to as AzureML, is a fully managed cloud service that enables data scientists and developers to efficiently embed predictive analytics into their applications, helping organizations use massive data sets and bring all the benefits of the cloud to machine learning. AzureML offers a variety of services and capabilities aimed at making machine learning accessible, easy to use, and scalable. It provides capabilities like automated machine learning, drag-and-drop model training, as well as a robust Python SDK so that developers can make the most out of their machine learning models.
+Azure Machine Learning (AzureML) is a fully managed cloud service for building, training, and deploying machine learning models at scale. It provides automated machine learning, drag-and-drop model training, and a Python SDK for full programmatic control over your models.
 
 ## How Does AzureML Benefit YOLO Users?
 
-For users of YOLO (You Only Look Once), AzureML provides a robust, scalable, and efficient platform to both train and deploy machine learning models. Whether you are looking to run quick prototypes or scale up to handle more extensive data, AzureML's flexible and user-friendly environment offers various tools and services to fit your needs. You can leverage AzureML to:
+AzureML lets you train and deploy [Ultralytics YOLO26](../models/yolo26.md) models in the cloud, from quick prototypes to large-scale runs. With it you can:
 
 - Easily manage large datasets and computational resources for training.
 - Utilize built-in tools for data preprocessing, feature selection, and model training.
@@ -28,7 +28,7 @@ In the subsequent sections, you will find a quickstart guide detailing how to ru
 
 Before you can get started, make sure you have access to an AzureML workspace. If you don't have one, you can create a new [AzureML workspace](https://learn.microsoft.com/azure/machine-learning/concept-workspace?view=azureml-api-2) by following Azure's official documentation. This workspace acts as a centralized place to manage all AzureML resources.
 
-## Create a compute instance
+## Create a Compute Instance
 
 From your AzureML workspace, select Compute > Compute instances > New, select the instance with the resources you need.
 
@@ -44,9 +44,9 @@ Start your compute and open a Terminal:
   <img width="480" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/open-terminal.avif" alt="Open Terminal">
 </p>
 
-### Create virtualenv
+### Create a Virtual Environment
 
-Create a conda virtual environment with your preferred Python version and install pip in it. Python 3.13.1 currently has dependency issues in AzureML, so use Python 3.12 instead.
+Create a conda virtual environment and install pip in it:
 
 ```bash
 conda create --name yolo26env -y python=3.12
@@ -54,24 +54,25 @@ conda activate yolo26env
 conda install pip -y
 ```
 
+!!! warning "Python version"
+
+    Python 3.13 currently has dependency issues on AzureML, so use Python 3.12 instead.
+
 Install the required dependencies:
 
 ```bash
-cd ultralytics
-pip install -r requirements.txt
-pip install ultralytics
-pip install onnx
+pip install ultralytics onnx
 ```
 
-### Perform YOLO26 tasks
+### Perform YOLO26 Tasks
 
-Predict:
+[Predict](../modes/predict.md):
 
 ```bash
 yolo predict model=yolo26n.pt source='https://ultralytics.com/images/bus.jpg'
 ```
 
-Train a detection model for 10 [epochs](https://www.ultralytics.com/glossary/epoch) with an initial learning_rate of 0.01:
+[Train](../modes/train.md) a detection model for 10 [epochs](https://www.ultralytics.com/glossary/epoch) with an initial learning_rate of 0.01:
 
 ```bash
 yolo train data=coco8.yaml model=yolo26n.pt epochs=10 lr0=0.01
@@ -81,7 +82,7 @@ You can find more [instructions to use the Ultralytics CLI here](../quickstart.m
 
 ## Quickstart from a Notebook
 
-### Create a new IPython kernel
+### Create a New IPython Kernel
 
 Open the compute Terminal.
 
@@ -106,13 +107,12 @@ Then open a notebook cell and install the required dependencies:
 ```bash
 %%bash
 source activate yolo26env
-cd ultralytics
-pip install -r requirements.txt
-pip install ultralytics
-pip install onnx
+pip install ultralytics onnx
 ```
 
-Note that you need to run `source activate yolo26env` in every `%%bash` cell to ensure the cell uses the intended environment.
+!!! note "Activate the environment in every cell"
+
+    Run `source activate yolo26env` at the top of every `%%bash` cell so the cell uses the intended environment.
 
 Run some predictions using the [Ultralytics CLI](../quickstart.md#use-ultralytics-with-cli):
 
@@ -137,29 +137,28 @@ results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
 path = model.export(format="onnx")  # export the model to ONNX format
 ```
 
-You can use either the Ultralytics CLI or Python interface for running YOLO26 tasks, as described in the terminal section above.
+You can use either the Ultralytics CLI or Python interface to run YOLO26 tasks. The Python example above also exports the trained model to [ONNX](../integrations/onnx.md) for deployment.
 
-By following these steps, you should be able to get YOLO26 running quickly on AzureML for quick trials. For more advanced uses, you may refer to the full AzureML documentation linked at the beginning of this guide.
+By following these steps, you can get YOLO26 running quickly on AzureML. For more advanced workflows, see the [AzureML documentation](https://learn.microsoft.com/azure/machine-learning/).
 
 ## Explore More with AzureML
 
-This guide serves as an introduction to get you up and running with YOLO26 on AzureML. However, it only scratches the surface of what AzureML can offer. To delve deeper and unlock the full potential of AzureML for your machine learning projects, consider exploring the following resources:
+This guide covers the basics of running YOLO26 on AzureML. To go further, explore these resources:
 
-- [Create a Data Asset](https://learn.microsoft.com/azure/machine-learning/how-to-create-data-assets): Learn how to set up and manage your data assets effectively within the AzureML environment.
-- [Initiate an AzureML Job](https://learn.microsoft.com/azure/machine-learning/how-to-train-model): Get a comprehensive understanding of how to kickstart your machine learning training jobs on AzureML.
-- [Register a Model](https://learn.microsoft.com/azure/machine-learning/how-to-manage-models): Familiarize yourself with model management practices including registration, versioning, and deployment.
-- [Train YOLO26 with AzureML Python SDK](https://medium.com/@ouphi/how-to-train-the-yolov8-model-with-azure-machine-learning-python-sdk-8268696be8ba): Explore a step-by-step guide on using the AzureML Python SDK to train your YOLO26 models.
-- [Train YOLO26 with AzureML CLI](https://medium.com/@ouphi/how-to-train-the-yolov8-model-with-azureml-and-the-az-cli-73d3c870ba8e): Discover how to utilize the command-line interface for streamlined training and management of YOLO26 models on AzureML.
+- [Create a Data Asset](https://learn.microsoft.com/azure/machine-learning/how-to-create-data-assets): Set up and manage your data assets within the AzureML environment.
+- [Initiate an AzureML Job](https://learn.microsoft.com/azure/machine-learning/how-to-train-model): Kickstart your machine learning training jobs on AzureML.
+- [Register a Model](https://learn.microsoft.com/azure/machine-learning/how-to-manage-models): Manage model registration, versioning, and deployment.
+- [Modal Quickstart](modal-quickstart.md): Run YOLO26 on Modal's serverless GPU cloud as an alternative to AzureML.
 
 ## FAQ
 
 ### How do I run YOLO26 on AzureML for model training?
 
-Running YOLO26 on AzureML for model training involves several steps:
+To run YOLO26 on AzureML for training, create a compute instance, set up a Conda environment, install Ultralytics, and run the training command:
 
 1. **Create a Compute Instance**: From your AzureML workspace, navigate to Compute > Compute instances > New, and select the required instance.
 
-2. **Set Up the Environment**: Start your compute instance, open a terminal, and create a Conda environment. Set your Python version (Python 3.13.1 is not supported yet):
+2. **Set Up the Environment**: Start your compute instance, open a terminal, and create a Conda environment with Python 3.12 (Python 3.13 currently has dependency issues on AzureML):
 
     ```bash
     conda create --name yolo26env -y python=3.12
@@ -187,9 +186,9 @@ These advantages make AzureML an ideal platform for projects ranging from quick 
 
 ### How do I troubleshoot common issues when running YOLO26 on AzureML?
 
-Troubleshooting common issues with YOLO26 on AzureML can involve the following steps:
+To troubleshoot YOLO26 on AzureML, verify your dependencies are installed, confirm your Conda environment is activated, and ensure your compute instance has enough resources:
 
-- **Dependency Issues**: Ensure all required packages are installed. Refer to the `requirements.txt` file for dependencies.
+- **Dependency Issues**: Ensure all required packages are installed with `pip install ultralytics onnx`.
 - **Environment Setup**: Verify that your conda environment is correctly activated before running commands.
 - **Resource Allocation**: Make sure your compute instances have sufficient resources to handle the training workload.
 

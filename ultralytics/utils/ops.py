@@ -695,8 +695,8 @@ def linear_sum_assignment(cost_matrix):
     rejected (unlike scipy), so callers must sanitize it upstream (e.g. the RT-DETR matcher zeros NaN/inf beforehand).
 
     Validated against scipy with exact optimal-cost parity across ~6.9k randomized cases (every shape including
-    empty/tall/wide, ties, negatives, IoU- and RT-DETR-style matrices, `maximize` via negation, torch-tensor input)
-    plus ~2k independent brute-force global-optimum checks. scipy's compiled inner loop is faster, but at the actual
+    empty/tall/wide, ties, negatives, IoU- and RT-DETR-style matrices, `maximize` via negation, torch-tensor input) plus
+    ~2k independent brute-force global-optimum checks. scipy's compiled inner loop is faster, but at the actual
     call-site sizes (smaller dimension = object count) this runs in well under a millisecond:
 
         cost matrix   this    scipy

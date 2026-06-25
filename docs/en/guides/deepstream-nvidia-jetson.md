@@ -345,7 +345,10 @@ To set up multiple streams under a single DeepStream application, make the follo
     ```bash
     [source-list]
     num-source-bins=4
-    list=file:///path/to/video1.mp4;file:///path/to/video2.mp4;file:///path/to/video3.mp4;file:///path/to/video4.mp4
+    list=file:///path/to/video1.mp4
+    file:///path/to/video2.mp4
+    file:///path/to/video3.mp4
+    file:///path/to/video4.mp4
 
     [source-attr-all]
     enable=1

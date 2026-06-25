@@ -71,7 +71,8 @@ class AnomalyV2Trainer(DetectionTrainer):
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         super().__init__(cfg, overrides, _callbacks)
         self.add_callback("on_train_epoch_start", AnomalyV2Trainer._update_seg_alpha)
-        self.add_callback("on_fit_epoch_end", AnomalyV2Trainer._mvtec_ood_eval)
+        # insert this so wandb can work correctly
+        self.callbacks["on_fit_epoch_end"].insert(0, AnomalyV2Trainer._mvtec_ood_eval)
         self.add_callback("on_train_batch_end", AnomalyV2Trainer._visualize_prior_mask)
 
     def validate(self):
@@ -258,7 +259,7 @@ class AnomalyV2Trainer(DetectionTrainer):
                 )
             AnomalyV2Trainer._log_ood_wandb(trainer, rows)
             # Store OOD heatmap mAP50 for best.pt selection (fitness override)
-            heatmap_mode = modes[1]
+            heatmap_mode = modes[1] if len(modes) > 1 else modes[0]
             for r in rows:
                 if r["category"] == "AVERAGE" and r["mode"] == heatmap_mode:
                     map50 = r.get("mAP50", math.nan)

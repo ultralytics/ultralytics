@@ -7,7 +7,6 @@ from functools import wraps
 from typing import Any
 
 import numpy as np
-import scipy.linalg
 import torch
 
 from ultralytics.utils.metrics import bbox_ioa
@@ -39,8 +38,7 @@ def _nsa_kalman_update(
     projected_mean = H @ mean
     projected_cov = np.linalg.multi_dot((H, covariance, H.T)) + R
 
-    chol, low = scipy.linalg.cho_factor(projected_cov, lower=True, check_finite=False)
-    gain = scipy.linalg.cho_solve((chol, low), np.dot(covariance, H.T).T, check_finite=False).T
+    gain = np.linalg.solve(projected_cov, np.dot(covariance, H.T).T).T
     innovation = measurement - projected_mean
     new_mean = mean + innovation @ gain.T
     new_cov = covariance - np.linalg.multi_dot((gain, projected_cov, gain.T))

@@ -340,20 +340,32 @@ To set up multiple streams under a single DeepStream application, make the follo
     columns=2
     ```
 
-2. Add a `[source-list]` group with one URI per stream and a shared `[source-attr-all]` group for the common source attributes. Set `num-source-bins` to the number of streams.
+2. Add a separate `[sourceN]` group for each stream, each with its own `uri` and `num-sources=1`.
 
     ```bash
-    [source-list]
-    num-source-bins=4
-    list=file:///path/to/video1.mp4
-    file:///path/to/video2.mp4
-    file:///path/to/video3.mp4
-    file:///path/to/video4.mp4
-
-    [source-attr-all]
+    [source0]
     enable=1
     type=3
-    gpu-id=0
+    uri=file:///path/to/video1.mp4
+    num-sources=1
+
+    [source1]
+    enable=1
+    type=3
+    uri=file:///path/to/video2.mp4
+    num-sources=1
+
+    [source2]
+    enable=1
+    type=3
+    uri=file:///path/to/video3.mp4
+    num-sources=1
+
+    [source3]
+    enable=1
+    type=3
+    uri=file:///path/to/video4.mp4
+    num-sources=1
     ```
 
 ### Run Multi-Stream Inference
@@ -454,7 +466,7 @@ To run INT8 inference, calibrate the model on a representative image set and swi
 
 ### How do I run multiple camera streams with DeepStream on Jetson?
 
-To process multiple streams in a single DeepStream application, edit the `deepstream_app_config.txt` file to add a tiled-display grid and list each source URI. Set the `rows` and `columns` under `[tiled-display]` to build the grid, list each stream URI under `[source-list]`, and set `num-source-bins` to the number of streams. See the [MultiStream Setup](#multistream-setup) section for a complete example.
+To process multiple streams in a single DeepStream application, edit the `deepstream_app_config.txt` file to add a tiled-display grid and list each source URI. Set the `rows` and `columns` under `[tiled-display]` to build the grid, add a separate `[sourceN]` group per stream with its own `uri` and `num-sources=1`, and adjust the grid to fit the number of streams. See the [MultiStream Setup](#multistream-setup) section for a complete example.
 
 ### What are the performance benchmarks for YOLO on NVIDIA Jetson Orin NX?
 

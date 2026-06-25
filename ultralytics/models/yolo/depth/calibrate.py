@@ -61,6 +61,7 @@ def fit_calibration(model, dataloader, device, max_images: int = 200, set_buffer
         device: Torch device to run inference on.
         max_images: Stop after roughly this many images (calibration needs only a small set).
         set_buffers: If True, write the fitted values into the head's ``cal_a``/``cal_b``.
+        dist_power (float): Weight each pixel by gt**dist_power in the calibration fit (0.0 = uniform).
 
     Returns:
         (a, b) as Python floats, or None if no Depth head / no valid pixels were found.
@@ -127,6 +128,12 @@ def calibrate_checkpoint(ckpt_path, dataloader, device, dist_power: float = 0.0)
 
     Loads the checkpoint, fits ``(a, b)`` on ``dataloader`` using a float copy on ``device``, writes
     the buffers into the stored model, and re-saves — preserving the rest of the checkpoint.
+
+    Args:
+        ckpt_path: Path to the ``.pt`` checkpoint file to calibrate in place.
+        dataloader: Yields batches with ``img`` (uint8, B×3×H×W) and ``depth`` (B×H×W meters).
+        device: Torch device to run inference on.
+        dist_power (float): Weight each pixel by gt**dist_power in the calibration fit (0.0 = uniform).
     """
     from copy import deepcopy
 

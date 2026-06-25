@@ -505,15 +505,16 @@ def _handle_deprecation(custom: dict) -> dict:
     }
     removed_keys = {"label_smoothing", "save_hybrid", "crop_fraction"}
 
-    # Forward the deprecated precision flags onto the unified `quantize` scheme (int8 wins over half). Treat the value
-    # as a bool so quoted/string 'False' disables it, while a bare CLI flag (empty string) enables it.
+    # Forward the deprecated precision flags onto the unified `quantize` scheme (int8 wins over half). The value is read
+    # as a bool so quoted/string 'False' disables it while a bare CLI flag (empty string) enables it; an explicit false
+    # flag maps to None to clear any inherited quantize. An explicit `quantize=` always wins over the legacy flags.
     int8 = custom.pop("int8", None)
     half = custom.pop("half", None)
-    int8_on = int8 is not None and str(int8).strip().lower() not in {"false", "0"}
-    half_on = half is not None and str(half).strip().lower() not in {"false", "0"}
-    if int8_on or half_on:
-        custom.setdefault("quantize", 8 if int8_on else 16)  # explicit quantize= wins over legacy flags
-        deprecation_warn("int8" if int8_on else "half", "quantize")
+    if (int8 is not None or half is not None) and "quantize" not in custom:
+        int8_on = int8 is not None and str(int8).strip().lower() not in {"none", "false", "0"}
+        half_on = half is not None and str(half).strip().lower() not in {"none", "false", "0"}
+        custom["quantize"] = 8 if int8_on else 16 if half_on else None  # False/0 clears precision back to FP32
+        deprecation_warn("int8" if int8 is not None else "half", "quantize")
 
     for old_key, (new_key, transform) in deprecated_mappings.items():
         if old_key not in custom:

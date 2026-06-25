@@ -37,7 +37,7 @@ KITTI Eigen `delta1` accuracy by model size (higher is better):
 
 | Model         | KITTI Eigen δ1 |
 | ------------- | -------------- |
-| YOLO26n-Depth | pending (in training) |
+| YOLO26n-Depth | 0.888 |
 | YOLO26s-Depth | 0.882          |
 | YOLO26m-Depth | 0.924          |
 | YOLO26l-Depth | 0.927          |

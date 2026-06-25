@@ -25,7 +25,7 @@ YOLO26 depth models pretrained on a broad multi-dataset mix (indoor + outdoor, ~
 
 | Model                                                                                            | size<br><sup>(pixels)</sup> | delta1<sup>NYU</sup> | abs_rel<sup>NYU</sup> | rmse<sup>NYU</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
 | ------------------------------------------------------------------------------------------------ | --------------------------- | -------------------- | --------------------- | ------------------ | ------------------------ | ----------------------- |
-| [YOLO26n-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n-depth.pt) | 640                         | -                    | -                     | -                  | 6.4                      | 32.6                    |
+| [YOLO26n-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n-depth.pt) | 640                         | 0.882                | 0.110                 | 0.419              | 6.4                      | 32.6                    |
 | [YOLO26s-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26s-depth.pt) | 640                         | 0.855                | 0.122                 | 0.445              | 13.2                     | 47.1                    |
 | [YOLO26m-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26m-depth.pt) | 640                         | 0.919                | 0.090                 | 0.370              | 23.3                     | 90.8                    |
 | [YOLO26l-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26l-depth.pt) | 640                         | 0.927                | 0.086                 | 0.354              | 27.7                     | 109.2                   |
@@ -34,7 +34,7 @@ YOLO26 depth models pretrained on a broad multi-dataset mix (indoor + outdoor, ~
 - **delta1<sup>NYU</sup>** is the percentage of pixels where the predicted depth is within a factor of 1.25 of the ground truth, on the NYU Depth V2 Eigen test split (654 images) with multi-scale + horizontal-flip TTA and log-least-squares alignment.
 - **abs_rel** is the mean absolute relative error between predicted and ground-truth depth values.
 - **rmse** is the root mean squared error in meters.
-- **params** and **FLOPs** are measured at 640×640; YOLO26n-depth metrics are pending (model in training).
+- **params** and **FLOPs** are measured at 640×640.
 
 ## Depth range and the log-depth head
 

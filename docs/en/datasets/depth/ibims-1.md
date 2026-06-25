@@ -28,7 +28,7 @@ The table below reports the `delta1` accuracy (percentage of pixels within a 1.2
 
 | Model        | delta1 |
 | ------------ | ------ |
-| YOLO26n-depth | pending (in training) |
+| YOLO26n-depth | 0.923 |
 | YOLO26s-depth | 0.899 |
 | YOLO26m-depth | 0.953 |
 | YOLO26l-depth | 0.952 |

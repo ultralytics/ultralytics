@@ -62,17 +62,17 @@ Thread(target=predict, args=("image2.jpg",)).start()
 
 In the example above, the `shared_model` is used by multiple threads, which can lead to unpredictable results because `predict` could be executed simultaneously by multiple threads.
 
-### Non-Thread-Safe Example: Multiple Model Instances
+### Safe Example: A Dedicated Instance per Thread
 
-Using multiple separate YOLO model instances does not guarantee thread safety on its own. In the example below each thread uses its own instance, but the instances are created outside the threads, so they can still cause concurrency issues if they share any underlying resources or state that is not thread-local:
+Multiple separate model instances are fine as long as each thread owns its instance and never shares it with another thread. It does not matter that the instances below are created before the threads start — the only unsafe pattern is sharing one instance across threads:
 
 ```python
-# Unsafe: Models created outside the threads can still lead to issues
+# Safe: each thread uses its own dedicated model instance
 from threading import Thread
 
 from ultralytics import YOLO
 
-# Instantiate multiple models outside the thread
+# Instantiate one model per thread
 model_1 = YOLO("yolo26n.pt")
 model_2 = YOLO("yolo11n.pt")
 
@@ -83,12 +83,12 @@ def predict(model, image_path):
     # Process results
 
 
-# Starting threads, each using a model instance created outside the thread
+# Each thread uses a separate, dedicated model instance
 Thread(target=predict, args=(model_1, "image1.jpg")).start()
 Thread(target=predict, args=(model_2, "image2.jpg")).start()
 ```
 
-Even though there are two separate model instances, the risk of concurrency issues still exists. If the internal implementation of `YOLO` is not thread-safe, using separate instances might not prevent race conditions, especially if these instances share any underlying resources or states that are not thread-local.
+Because each thread works with its own dedicated instance, there is no shared model state for the threads to corrupt. Instantiating the model inside each thread, as shown next, is simply the easiest way to guarantee that an instance is never accidentally shared.
 
 ## Thread-Safe Inference
 
@@ -150,7 +150,7 @@ The `ThreadingLocked` decorator is particularly useful when you need to share a 
 
 ## Conclusion
 
-When using YOLO models with Python's `threading`, always instantiate your models within the thread that will use them to ensure thread safety. This practice avoids race conditions and makes sure that your inference tasks run reliably.
+When using YOLO models with Python's `threading`, give each thread its own dedicated model instance and never share one instance across threads. Instantiating the model inside the thread that uses it is the simplest way to guarantee this, avoiding race conditions and keeping your inference tasks reliable.
 
 For more advanced scenarios and to further optimize your multi-threaded inference performance, consider using process-based parallelism with [multiprocessing](https://docs.python.org/3/library/multiprocessing.html) or leveraging a task queue with dedicated worker processes.
 

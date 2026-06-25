@@ -1,3 +1,194 @@
+以下是 `ultralytics/ultralytics` 仓库的完整目录结构说明：
+
+---
+
+## 顶层目录
+
+```
+ultralytics/ultralytics/
+├── ultralytics/        # 核心 Python 包（主要代码）
+├── tests/              # 测试套件
+├── docker/             # 各平台 Dockerfile
+├── docs/               # 文档源文件（MkDocs）
+├── .github/            # CI/CD 工作流配置
+├── pyproject.toml      # 包配置、依赖声明
+├── mkdocs.yml          # 文档站点配置
+├── README.md           # 英文说明
+└── README.zh-CN.md     # 中文说明
+```
+
+---
+
+## 核心包 `ultralytics/`
+
+
+
+```
+ultralytics/
+├── cfg/            # 配置管理
+├── data/           # 数据处理流水线
+├── engine/         # 核心执行引擎
+├── hub/            # Ultralytics HUB 集成
+├── models/         # 各模型族实现
+├── nn/             # 神经网络模块
+├── optim/          # 优化器
+├── solutions/      # 高层 CV 解决方案
+├── trackers/       # 目标跟踪算法
+├── utils/          # 通用工具库
+└── __init__.py     # 包入口，懒加载 YOLO/SAM 等类
+```
+
+---
+
+### `cfg/` — 配置管理
+
+
+
+| 文件/目录 | 说明 |
+|---|---|
+| `default.yaml` | 所有训练/推理参数的默认值 |
+| `__init__.py` | CLI 入口 `entrypoint()`，解析 `yolo` 命令 |
+| `datasets/` | 各数据集的 YAML 配置（COCO、VOC 等） |
+| `models/` | 各模型架构的 YAML 定义（网络结构） |
+| `trackers/` | 跟踪器配置（BoT-SORT、ByteTrack） |
+
+---
+
+### `engine/` — 核心执行引擎
+
+
+
+| 文件 | 说明 |
+|---|---|
+| `model.py` | `Model` 基类，统一 Python API（train/val/predict/export） |
+| `trainer.py` | `BaseTrainer`，训练循环、DDP、优化器、checkpoint |
+| `validator.py` | `BaseValidator`，评估与指标计算 |
+| `predictor.py` | `BasePredictor`，推理流水线（预处理→推理→后处理） |
+| `exporter.py` | `Exporter`，导出到 18+ 格式（ONNX、TensorRT 等） |
+| `results.py` | `Results` 对象，封装推理输出（框、掩码、关键点等） |
+| `tuner.py` | 超参数自动调优 |
+
+---
+
+### `nn/` — 神经网络
+
+
+
+| 文件/目录 | 说明 |
+|---|---|
+| `tasks.py` | 各任务模型基类（`DetectionModel`、`SegmentationModel` 等） |
+| `autobackend.py` | `AutoBackend`，自动识别模型格式并选择推理后端 |
+| `modules/` | 网络基础模块（Conv、C2f、SPPF、Attention 等） |
+| `backends/` | 各推理后端适配器 |
+| `text_model.py` | 文本编码器（用于 YOLO-World 等开放词汇模型） |
+
+---
+
+### `models/` — 模型族实现
+
+
+
+| 子目录 | 说明 |
+|---|---|
+| `yolo/` | YOLO 系列（v8/v11/v12/v26），含 detect/segment/pose/classify/obb |
+| `sam/` | Segment Anything Model（SAM、SAM2、SAM3） |
+| `rtdetr/` | RT-DETR 实时检测 Transformer |
+| `fastsam/` | FastSAM 快速分割 |
+| `nas/` | YOLO-NAS 神经架构搜索模型 |
+| `utils/` | 模型共用工具函数 |
+
+---
+
+### `data/` — 数据处理
+
+
+
+| 文件 | 说明 |
+|---|---|
+| `dataset.py` | `YOLODataset` 等数据集类 |
+| `loaders.py` | 多源输入加载器（图片/视频/流/摄像头） |
+| `augment.py` | 数据增强流水线（Mosaic、MixUp、HSV 等） |
+| `build.py` | DataLoader 构建入口 |
+| `converter.py` | 数据集格式转换（COCO→YOLO 等） |
+| `annotator.py` | 标注工具 |
+| `split.py` / `split_dota.py` | 数据集切分工具 |
+| `scripts/` | 数据集下载脚本 |
+
+---
+
+### `solutions/` — 高层 CV 解决方案
+
+
+
+每个文件对应一个开箱即用的应用场景：
+
+| 文件 | 功能 |
+|---|---|
+| `solutions.py` | `BaseSolution` 基类 |
+| `config.py` | `SolutionConfig` 所有解决方案参数默认值 |
+| `speed_estimation.py` | 速度估计 |
+| `object_counter.py` | 目标计数 |
+| `heatmap.py` | 热力图 |
+| `distance_calculation.py` | 距离计算 |
+| `parking_management.py` | 停车管理 |
+| `queue_management.py` | 排队管理 |
+| `security_alarm.py` | 安全报警 |
+| `ai_gym.py` | 健身动作计数 |
+| `analytics.py` | 数据分析图表 |
+| `instance_segmentation.py` | 实例分割展示 |
+| `object_blurrer.py` | 目标模糊（隐私保护） |
+| `object_cropper.py` | 目标裁剪 |
+| `similarity_search.py` | 相似度搜索 |
+| `streamlit_inference.py` | Streamlit Web 推理界面 |
+| `trackzone.py` / `region_counter.py` | 区域跟踪/计数 |
+| `vision_eye.py` | 视角可视化 |
+
+---
+
+### `trackers/` — 目标跟踪
+
+
+
+| 文件 | 说明 |
+|---|---|
+| `byte_tracker.py` | ByteTrack 算法实现 |
+| `bot_sort.py` | BoT-SORT 算法实现 |
+| `basetrack.py` | 跟踪器基类 |
+| `track.py` | 跟踪流水线集成入口 |
+
+---
+
+### `utils/` — 通用工具
+
+
+
+| 文件 | 说明 |
+|---|---|
+| `metrics.py` | mAP、混淆矩阵等评估指标 |
+| `plotting.py` | 可视化、标注绘制 |
+| `loss.py` | 各类损失函数 |
+| `ops.py` | 框操作（NMS、xywh↔xyxy 等） |
+| `torch_utils.py` | PyTorch 工具（设备选择、模型信息等） |
+| `checks.py` | 环境检查、依赖验证 |
+| `downloads.py` | 模型/数据集下载 |
+| `benchmarks.py` | 多格式性能基准测试 |
+| `callbacks/` | 训练回调（TensorBoard、WandB、Comet 等） |
+| `export/` | 导出辅助工具 |
+
+---
+
+### 其他顶层目录
+
+| 目录 | 说明 |
+|---|---|
+| `tests/` | 测试文件，覆盖 CLI、引擎、导出、CUDA、解决方案等  |
+| `docker/` | 针对不同平台的 Dockerfile（CPU、GPU、ARM64、Jetson、Jupyter 等）  |
+| `docs/` | MkDocs 文档源文件，包含指南、模型说明、API 参考 |
+| `ultralytics/hub/` | Ultralytics HUB 云平台集成（认证、训练会话管理）  |
+| `ultralytics/optim/` | 自定义优化器，目前包含 `muon.py`（MuSGD 优化器）  |
+
+---
+
 <div align="center">
   <p>
     <a href="https://platform.ultralytics.com/?utm_source=github&utm_medium=referral&utm_campaign=platform_launch&utm_content=banner&utm_term=ultralytics_github" target="_blank">

@@ -682,6 +682,9 @@ def empty_like(x):
     return torch.empty_like(x, dtype=x.dtype) if isinstance(x, torch.Tensor) else np.empty_like(x, dtype=x.dtype)
 
 
+_assignment_solver = None  # resolved once on first call: SciPy's solver if installed, else the NumPy fallback
+
+
 def linear_sum_assignment(cost_matrix):
     """Solve the rectangular linear sum assignment problem (minimum-cost one-to-one matching).
 
@@ -719,13 +722,19 @@ def linear_sum_assignment(cost_matrix):
         >>> float(cost[row_ind, col_ind].sum())
         5.0
     """
-    a = np.asarray(cost_matrix, dtype=np.float64)
-    try:  # SciPy's compiled solver is faster on large matrices; use it when installed
-        from scipy.optimize import linear_sum_assignment as scipy_lsa
+    global _assignment_solver
+    if _assignment_solver is None:  # resolve the backend once, then reuse it on every later call
+        try:
+            from scipy.optimize import linear_sum_assignment as solver  # faster compiled C++ solver when installed
 
-        return scipy_lsa(a)
-    except ImportError:
-        pass
+            _assignment_solver = solver
+        except ImportError:
+            _assignment_solver = _linear_sum_assignment_numpy
+    return _assignment_solver(np.asarray(cost_matrix, dtype=np.float64))
+
+
+def _linear_sum_assignment_numpy(a):
+    """NumPy Jonker-Volgenant fallback for `linear_sum_assignment` when SciPy is not installed."""
     n, m = a.shape
     if n == 0 or m == 0:
         return np.empty(0, dtype=np.intp), np.empty(0, dtype=np.intp)

@@ -139,11 +139,10 @@ QUANTIZE_SCHEMES = {
 
 
 def normalize_quantize(args):
-    """Reconcile the unified string `quantize` arg with the legacy `half`/`int8` booleans.
+    """Resolve export precision to a canonical `quantize` scheme; legacy `half`/`int8` forward into it (quantize wins).
 
-    `quantize` is the forward-looking knob for export precision; `half`/`int8` are kept for backwards compatibility and
-    forward into it. After this runs `args.half`/`args.int8` hold the canonical booleans consumed by every per-format
-    export function, and `args.quantize` holds the canonical scheme name (or None for FP32).
+    After this runs `args.quantize` holds the canonical scheme (or None for FP32) and `args.half`/`args.int8` hold the
+    matching booleans consumed by every per-format export function.
 
     Args:
         args (SimpleNamespace): Exporter arguments, modified in place.
@@ -151,23 +150,16 @@ def normalize_quantize(args):
     Raises:
         ValueError: If `quantize` names a scheme that is not supported.
     """
-    q = getattr(args, "quantize", None)
-    if q is not None:
-        scheme = str(q).lower()
-        if scheme not in QUANTIZE_SCHEMES:
-            raise ValueError(f"Unsupported quantize='{q}'. Supported schemes are {list(QUANTIZE_SCHEMES)}.")
-        half, int8 = QUANTIZE_SCHEMES[scheme]
-        if (args.half and args.half != half) or (args.int8 and args.int8 != int8):
-            LOGGER.warning(f"quantize='{scheme}' overrides half/int8 settings.")
-        args.half, args.int8, args.quantize = half, int8, scheme
-    elif args.half or args.int8:
-        if args.half and args.int8:
+    if not args.quantize and (args.half or args.int8):  # forward deprecated half/int8 flags
+        if args.half and args.int8:  # legacy-only conflict; impossible once half/int8 are removed
             LOGGER.warning("half=True and int8=True are mutually exclusive, setting half=False.")
-            args.half = False
         args.quantize = "w8a8" if args.int8 else "w16a16"
-        LOGGER.warning(
-            f"half/int8 are still supported but consider the unified quantize='{args.quantize}' arg instead."
-        )
+        LOGGER.warning(f"half/int8 are deprecated for export; prefer the unified quantize='{args.quantize}' arg.")
+    scheme = str(args.quantize).lower() if args.quantize else "w32a32"
+    if scheme not in QUANTIZE_SCHEMES:
+        raise ValueError(f"Unsupported quantize='{args.quantize}'. Supported schemes are {list(QUANTIZE_SCHEMES)}.")
+    args.half, args.int8 = QUANTIZE_SCHEMES[scheme]
+    args.quantize = None if scheme == "w32a32" else scheme
 
 
 def export_formats():
@@ -674,8 +666,8 @@ class Exporter:
             LOGGER.warning(
                 f"INT8 export requires a missing 'data' arg for calibration. Using default 'data={self.args.data}'."
             )
-        # quantize is the single source of truth; sync legacy half/int8 booleans for the backend boundary below
-        self.args.half, self.args.int8 = QUANTIZE_SCHEMES.get(self.args.quantize or "w32a32", (False, False))
+        # Re-derive half/int8 from quantize after the format-specific forcing above may have changed it
+        normalize_quantize(self.args)
         if fmt == "tfjs" and ARM64 and LINUX:
             raise SystemError("TF.js exports are not currently supported on ARM64 Linux")
         # Recommend OpenVINO if export and Intel CPU

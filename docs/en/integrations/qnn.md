@@ -86,14 +86,14 @@ End-to-end single-image inference for the official YOLO26n models on a Lenovo la
 
 QNN export supports the standard task set available in each model family, including YOLO26 semantic segmentation.
 
-| Task                                                                 | Supported |
-| :------------------------------------------------------------------- | :-------- |
-| [Object Detection](https://docs.ultralytics.com/tasks/detect)        | ✅        |
-| [Instance Segmentation](https://docs.ultralytics.com/tasks/segment)  | ✅        |
-| [Semantic Segmentation](https://docs.ultralytics.com/tasks/semantic) | ✅        |
-| [Pose Estimation](https://docs.ultralytics.com/tasks/pose)           | ✅        |
-| [OBB Detection](https://docs.ultralytics.com/tasks/obb)              | ✅        |
-| [Classification](https://docs.ultralytics.com/tasks/classify)        | ✅        |
+| Task                                          | Supported |
+| :-------------------------------------------- | :-------- |
+| [Object Detection](../tasks/detect.md)        | ✅        |
+| [Instance Segmentation](../tasks/segment.md)  | ✅        |
+| [Semantic Segmentation](../tasks/semantic.md) | ✅        |
+| [Pose Estimation](../tasks/pose.md)           | ✅        |
+| [OBB Detection](../tasks/obb.md)              | ✅        |
+| [Classification](../tasks/classify.md)        | ✅        |
 
 ## Export to QNN: Converting Your YOLO Model
 

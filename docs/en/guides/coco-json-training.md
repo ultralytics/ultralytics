@@ -7,9 +7,9 @@ keywords: COCO JSON training, train YOLO on COCO JSON, COCO JSON without convers
 
 # How to Train YOLO on COCO JSON Without Converting
 
-## Why Train Directly on COCO JSON
+[Annotations](https://www.ultralytics.com/glossary/data-labeling) in [COCO JSON](https://cocodataset.org/#format-data) format can be used directly for [Ultralytics YOLO](https://www.ultralytics.com/) training without converting to `.txt` files first. This works by subclassing [`YOLODataset`](../reference/data/dataset.md#ultralytics.data.dataset.YOLODataset) to parse COCO JSON on the fly and wiring it into the training pipeline through a custom trainer.
 
-[Annotations](https://www.ultralytics.com/glossary/data-labeling) in [COCO JSON](https://cocodataset.org/#format-data) format can be used directly for [Ultralytics YOLO](https://www.ultralytics.com/) training without converting to `.txt` files first. This is done by subclassing `YOLODataset` to parse COCO JSON on the fly and wiring it into the training pipeline through a custom trainer.
+## Why Train Directly on COCO JSON
 
 This approach keeps the COCO JSON as the single source of truth — no `convert_coco()` call, no directory reorganization, no intermediate label files. [YOLO26](../models/yolo26.md) and all other Ultralytics YOLO detection models are supported. Segmentation and pose models require additional label fields (see [FAQ](#does-this-support-segmentation-and-pose-estimation)).
 
@@ -24,7 +24,7 @@ Two classes are needed:
 1. **`COCODataset`** — reads COCO JSON and converts [bounding boxes](https://www.ultralytics.com/glossary/bounding-box) to YOLO format in memory during training
 2. **`COCOTrainer`** — overrides `build_dataset()` to use `COCODataset` instead of the default `YOLODataset`
 
-The implementation follows the same pattern as the built-in `GroundingDataset`, which also reads JSON annotations directly. Three methods are overridden: `get_img_files()`, `cache_labels()`, and `get_labels()`.
+The implementation follows the same pattern as the built-in [`GroundingDataset`](../reference/data/dataset.md#ultralytics.data.dataset.GroundingDataset), which also reads JSON annotations directly. Three methods are overridden: `get_img_files()`, `cache_labels()`, and `get_labels()`.
 
 ## Building the COCO JSON Dataset Class
 
@@ -61,8 +61,6 @@ class COCODataset(YOLODataset):
         x = {"labels": []}
         with open(self.json_file) as f:
             coco = json.load(f)
-
-        images = {img["id"]: img for img in coco["images"]}
 
         # Sort categories by ID and map to 0-indexed classes
         categories = {cat["id"]: i for i, cat in enumerate(sorted(coco["categories"], key=lambda c: c["id"]))}
@@ -129,7 +127,7 @@ Parsed labels are saved to a `.cache` file next to the JSON (e.g. `instances_tra
 
 The only change needed in the trainer is overriding `build_dataset()`. The default `DetectionTrainer` builds a `YOLODataset` that scans for `.txt` label files. By replacing it with `COCODataset`, the trainer reads from the COCO JSON instead.
 
-The JSON file path is pulled from a custom `train_json` / `val_json` field in the data config (see Step 3). During training, `mode="train"` resolves to `train_json`; during validation, `mode="val"` resolves to `val_json`. If `val_json` is not set, it falls back to `train_json`.
+The JSON file path is pulled from a custom `train_json` / `val_json` field in the data config (see [Configuring dataset.yaml](#configuring-datasetyaml-for-coco-json)). During training, `mode="train"` resolves to `train_json`; during validation, `mode="val"` resolves to `val_json`. If `val_json` is not set, it falls back to `train_json`.
 
 ```python
 from ultralytics.models.yolo.detect import DetectionTrainer
@@ -166,13 +164,13 @@ class COCOTrainer(DetectionTrainer):
 The `dataset.yaml` uses the standard `path`, `train`, and `val` fields to locate image directories. Two additional fields, `train_json` and `val_json`, specify the COCO annotation files that `COCOTrainer` reads. The `nc` and `names` fields define the number of classes and their names, matching the sorted order of `categories` in the JSON.
 
 ```yaml
-path: /path/to/images # root directory with train/ and val/ subfolders
+path: /path/to/my_dataset/images # root with train/ and val/ image subfolders
 train: train
 val: val
 
-# COCO JSON annotation files
-train_json: /path/to/annotations/instances_train.json
-val_json: /path/to/annotations/instances_val.json
+# COCO JSON annotation files (use absolute paths; these custom keys are not resolved against `path`)
+train_json: /path/to/my_dataset/annotations/instances_train.json
+val_json: /path/to/my_dataset/annotations/instances_val.json
 
 nc: 80
 names:
@@ -242,12 +240,11 @@ class COCODataset(YOLODataset):
         return []
 
     def cache_labels(self, path=Path("./labels.cache")):
-        """Parse COCO JSON and convert annotations to YOLO format, saving results to a .cache file."""
+        """Parse COCO JSON and convert annotations to YOLO format. Results are saved to a .cache file."""
         x = {"labels": []}
         with open(self.json_file) as f:
             coco = json.load(f)
 
-        images = {img["id"]: img for img in coco["images"]}
         categories = {cat["id"]: i for i, cat in enumerate(sorted(coco["categories"], key=lambda c: c["id"]))}
 
         img_to_anns = defaultdict(list)
@@ -334,7 +331,7 @@ model = YOLO("yolo26n.pt")
 model.train(data="dataset.yaml", epochs=100, imgsz=640, trainer=COCOTrainer)
 ```
 
-For [hyperparameter](https://www.ultralytics.com/glossary/hyperparameter-tuning) recommendations, see the [Model Training Tips](model-training-tips.md) guide.
+You now have a minimal dataset and trainer that train Ultralytics YOLO directly on COCO JSON, with annotations staying the single source of truth and no intermediate `.txt` files. Extend the `cache_labels()` method with `segments` or `keypoints` to cover segmentation and pose, and see the [Model Training Tips](model-training-tips.md) guide for [hyperparameter](https://www.ultralytics.com/glossary/hyperparameter-tuning) tuning recommendations.
 
 ## FAQ
 
@@ -348,7 +345,7 @@ Not with the current Ultralytics pipeline, which expects YOLO `.txt` labels by d
 
 ### Does this support segmentation and pose estimation?
 
-This guide covers [object detection](https://www.ultralytics.com/glossary/object-detection). To add [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) support, include the `segmentation` polygon data from COCO annotations in the `segments` field of each label dictionary. For [pose estimation](https://www.ultralytics.com/glossary/pose-estimation), include `keypoints`. The `GroundingDataset` [source code](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/dataset.py) provides a reference implementation for handling segments.
+This guide covers [object detection](https://www.ultralytics.com/glossary/object-detection). To add [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) support, include the `segmentation` polygon data from COCO annotations in the `segments` field of each label dictionary. For [pose estimation](https://www.ultralytics.com/glossary/pose-estimation), include `keypoints`. The [`GroundingDataset`](../reference/data/dataset.md#ultralytics.data.dataset.GroundingDataset) [source code](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/dataset.py) provides a reference implementation for handling segments.
 
 ### Do augmentations work with this custom dataset?
 

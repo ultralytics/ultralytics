@@ -39,7 +39,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLO26](https://gi
 
 ## Monitor Workouts with YOLO26
 
-The `AIGym` solution runs [pose estimation](https://docs.ultralytics.com/tasks/pose) and counts repetitions by measuring the angle formed by three keypoints as a limb moves between the `up_angle` and `down_angle` thresholds. Pick the keypoints for the exercise you want to track with `kpts`, then run the solution over your video with the Python API or the CLI.
+The `AIGym` solution runs [pose estimation](../tasks/pose.md) and counts repetitions by measuring the angle formed by three keypoints as a limb moves between the `up_angle` and `down_angle` thresholds. Pick the keypoints for the exercise you want to track with `kpts`, then run the solution over your video with the Python API or the CLI.
 
 !!! example "Workouts Monitoring using Ultralytics YOLO"
 
@@ -122,7 +122,7 @@ Additionally, the following visualization settings can be applied:
 
 ### How do I monitor my workouts using Ultralytics YOLO26?
 
-To monitor your workouts using Ultralytics YOLO26, you can utilize the [pose estimation capabilities](https://docs.ultralytics.com/tasks/pose) to track and analyze key body landmarks and joints in real-time. This allows you to receive instant feedback on your exercise form, count repetitions, and measure performance metrics. You can start by using the provided example code for push-ups, pull-ups, or ab workouts as shown:
+To monitor your workouts using Ultralytics YOLO26, you can utilize the [pose estimation capabilities](../tasks/pose.md) to track and analyze key body landmarks and joints in real-time. This allows you to receive instant feedback on your exercise form, count repetitions, and measure performance metrics. You can start by using the provided example code for push-ups, pull-ups, or ab workouts as shown:
 
 ```python
 import cv2

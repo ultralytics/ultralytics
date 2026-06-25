@@ -103,6 +103,7 @@ export-base = [
 ]
 export-legacy-torch = [
     "numpy<2",
+    "setuptools<81.0.0; python_version >= '3.9'",  # legacy torch's torch_version imports pkg_resources, removed in setuptools>=81
 ]
 export-tensorflow = [
     "numpy<2.0.0; python_version < '3.13'", # TF 2.20 compatibility

@@ -22,8 +22,11 @@ class FeatureHook:
         self.feat_dict = feat_dict
         self.idx = idx
 
-    def __call__(self, module: nn.Module, inputs: tuple, output: torch.Tensor) -> None:
-        """Store the layer's forward output into the shared feature dict under its index."""
+    def __call__(self, module: nn.Module, inputs: tuple, output) -> None:
+        """Store the layer's forward output into the shared feature dict under its index.
+
+        The output is a tensor for neck layers but a tuple/dict for the Detect head, so it is left untyped.
+        """
         self.feat_dict[self.idx] = output
 
 
@@ -39,13 +42,13 @@ class DistillationModel(nn.Module):
         feats_idx (list): Layer indices for feature extraction.
         projector (nn.ModuleList): MLP projector aligning student features to teacher dimensions.
         dis (float): Distillation loss weight factor.
-        split_sizes (list): Spatial sizes for splitting teacher score maps per feature level.
 
     Methods:
-        __init__: Initialize the distillation model with teacher, student, and feature layers.
         get_distill_layers: Auto-detect distillation feature layers from the Detect head.
+        forward: Run the student model, or compute the combined loss when given a training batch.
         loss: Compute combined detection and distillation loss.
         loss_sl2: Compute score-weighted L2 distillation loss for a feature pair.
+        decouple_outputs: Normalize teacher/student head outputs across train/val formats.
         train: Set training mode while keeping teacher frozen.
         fuse: Fuse model layers for inference speedup.
 
@@ -90,10 +93,6 @@ class DistillationModel(nn.Module):
         teacher_output = [self._teacher_feats[idx] for idx in self.feats_idx]
         student_output = [self._student_feats[idx] for idx in self.feats_idx]
 
-        self.split_sizes = []
-        for tf in teacher_output[:-1]:
-            f = self.decouple_outputs(tf)
-            self.split_sizes.append(f.shape[-2] * f.shape[-1])
         copy_attr(self, student_model)
         self.dis = self.student_model.args.dis
         projectors = []
@@ -222,7 +221,9 @@ class DistillationModel(nn.Module):
             self.decouple_outputs(teacher_head_feat, branch="one2many")["scores"]
             + self.decouple_outputs(teacher_head_feat, branch="one2one")["scores"]
         ) / 2
-        parts = torch.split(teacher_scores, self.split_sizes, dim=-1)
+        # neck feature sizes vary per batch (e.g. multi_scale), so split scores by the live teacher feats
+        neck_feats = [self._teacher_feats[idx] for idx in self.feats_idx[:-1]]
+        parts = torch.split(teacher_scores, [f.shape[-2] * f.shape[-1] for f in neck_feats], dim=-1)
         teacher_scores = tuple(p.sigmoid().max(dim=1, keepdim=True).values for p in parts)
         for i, feat_idx in enumerate(self.feats_idx[:-1]):
             teacher_feat = self.decouple_outputs(self._teacher_feats[feat_idx])

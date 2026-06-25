@@ -167,6 +167,7 @@ def test_distill_resume(tmp_path: Path):
         "model": "yolo26n.yaml",
         "distill_model": WEIGHTS_DIR / "yolo26s.pt",
         "imgsz": 32,
+        "multi_scale": 0.5,  # vary per-batch image size to exercise dynamic distillation score splitting
         "epochs": 2,
         "save": True,
         "plots": False,

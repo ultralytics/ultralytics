@@ -357,14 +357,14 @@ ExecuTorch supports:
 - **Embedded Linux**: Raspberry Pi, NVIDIA Jetson, and other ARM devices
 - **Desktop**: Linux, macOS, and Windows (for development)
 
-### How does ExecuTorch compare to NCNN for mobile deployment?
+### How does ExecuTorch compare to LiteRT for mobile deployment?
 
-Both ExecuTorch and NCNN are excellent for mobile deployment:
+Both ExecuTorch and [LiteRT](litert.md) are excellent for mobile deployment:
 
 - **ExecuTorch**: Better PyTorch integration, native PyTorch workflow, growing ecosystem
-- **NCNN**: More mature, lightweight, optimized for ARM CPUs and GPUs
+- **LiteRT**: More mature, wider hardware support, more deployment examples, and runs the same model on Android, iOS, and the browser
 
-Choose ExecuTorch if you're already using PyTorch and want a native deployment path. Choose NCNN for a lightweight, mature option on mobile and embedded ARM devices.
+Choose ExecuTorch if you're already using PyTorch and want a native deployment path. Choose LiteRT for maximum compatibility and mature tooling.
 
 ### Can I use ExecuTorch models with GPU acceleration?
 

@@ -1,7 +1,7 @@
 ---
 title: nn.backends.litert API Reference
-description: TODO ADD DESCRIPTION
-keywords: TODO ADD KEYWORDS
+description: Explore LiteRTBackend for Google LiteRT (formerly TensorFlow Lite) inference with .tflite models, supporting FP32 and INT8 on mobile, edge, and browser targets.
+keywords: Ultralytics, LiteRTBackend, LiteRT, TFLite, TensorFlow Lite, .tflite, INT8, on-device inference, edge deployment, model inference
 ---
 
 # Reference for `ultralytics/nn/backends/litert.py`

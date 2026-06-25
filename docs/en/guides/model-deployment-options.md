@@ -1,8 +1,8 @@
 ---
 title: YOLO26 Deployment Options Compared
 comments: true
-description: Learn about YOLO26's diverse deployment options to maximize your model's performance. Explore PyTorch, TensorRT, OpenVINO, NCNN, and more!
-keywords: YOLO26, deployment options, export formats, PyTorch, TensorRT, OpenVINO, NCNN, machine learning, model deployment
+description: Learn about YOLO26's diverse deployment options to maximize your model's performance. Explore PyTorch, TensorRT, OpenVINO, LiteRT, and more!
+keywords: YOLO26, deployment options, export formats, PyTorch, TensorRT, OpenVINO, LiteRT, machine learning, model deployment
 ---
 
 # Comparative Analysis of YOLO26 Deployment Options
@@ -281,7 +281,7 @@ For more insights, check out our [blog post](https://www.ultralytics.com/blog/ac
 
 ### Can I deploy YOLO26 models on mobile devices?
 
-Yes, YOLO26 models can be deployed on mobile devices using [NCNN](../integrations/ncnn.md) for Android and [CoreML](../integrations/coreml.md) for iOS. Both are designed for mobile and embedded devices, providing efficient on-device inference.
+Yes, YOLO26 models can be deployed on mobile devices using [LiteRT](../integrations/litert.md) (formerly TensorFlow Lite) and [NCNN](../integrations/ncnn.md) for Android, and [CoreML](../integrations/coreml.md) or LiteRT for iOS. LiteRT is Google's on-device runtime for mobile and embedded devices and runs the same model across Android, iOS, and the browser, providing efficient on-device inference.
 
 !!! example
 
@@ -299,7 +299,7 @@ Yes, YOLO26 models can be deployed on mobile devices using [NCNN](../integration
         yolo export model=yolo26n.pt format=ncnn
         ```
 
-For more details on deploying models to mobile, refer to our [NCNN integration guide](../integrations/ncnn.md).
+For more details on deploying models to mobile, refer to our [LiteRT integration guide](../integrations/litert.md).
 
 ### What factors should I consider when choosing a deployment format for my YOLO26 model?
 
@@ -307,7 +307,7 @@ When choosing a deployment format for YOLO26, consider the following factors:
 
 - **Performance**: Some formats like TensorRT provide exceptional speeds on NVIDIA GPUs, while OpenVINO is optimized for Intel hardware.
 - **Compatibility**: ONNX offers broad compatibility across different platforms.
-- **Ease of Integration**: Formats like CoreML or NCNN are tailored for specific ecosystems like iOS and Android, respectively.
+- **Ease of Integration**: Formats like CoreML or LiteRT are tailored for specific ecosystems like iOS and Android, respectively.
 - **Community Support**: Formats like [PyTorch](https://www.ultralytics.com/glossary/pytorch) and TensorFlow have extensive community resources and support.
 
 For a comparative analysis, refer to our [export formats documentation](../modes/export.md#export-formats).

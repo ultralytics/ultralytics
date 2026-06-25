@@ -116,7 +116,7 @@ For advanced inference options, including batch processing and video inference, 
 Absolutely! Ultralytics models are designed for versatile deployment across various platforms:
 
 - Edge devices: Optimize inference on devices like NVIDIA Jetson or Intel Neural Compute Stick using TensorRT, ONNX, or OpenVINO.
-- Mobile: Deploy on Android or iOS devices by converting models to NCNN or Core ML.
+- Mobile: Deploy on Android or iOS devices by converting models to LiteRT or Core ML.
 - Cloud: Leverage frameworks like [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) Serving or PyTorch Serve for scalable cloud deployments.
 - Web: Implement in-browser inference using LiteRT.js or ONNX.js.
 
@@ -188,7 +188,7 @@ Enhancing your YOLO model's performance can be achieved through several techniqu
 
 Yes, Ultralytics YOLO models are designed for versatile deployment, including mobile and edge devices:
 
-- Mobile: Convert models to NCNN or CoreML for seamless integration into Android or iOS apps. Refer to the [NCNN Integration Guide](https://docs.ultralytics.com/integrations/ncnn) and [CoreML Integration Guide](https://docs.ultralytics.com/integrations/coreml) for platform-specific instructions.
+- Mobile: Convert models to LiteRT or CoreML for seamless integration into Android or iOS apps. Refer to the [LiteRT Integration Guide](https://docs.ultralytics.com/integrations/litert) and [CoreML Integration Guide](https://docs.ultralytics.com/integrations/coreml) for platform-specific instructions.
 - Edge Devices: Optimize inference on devices like NVIDIA Jetson or other edge hardware using TensorRT or ONNX. The [Edge TPU Integration Guide](https://docs.ultralytics.com/integrations/edge-tpu) provides detailed steps for edge deployment.
 
 For a comprehensive overview of deployment strategies across various platforms, consult the [deployment options guide](https://docs.ultralytics.com/guides/model-deployment-options).

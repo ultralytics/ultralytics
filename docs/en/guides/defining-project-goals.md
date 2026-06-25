@@ -168,7 +168,7 @@ For example, "Achieve 95% accuracy in speed detection within six months using a 
 
 Deployment options critically impact the performance of your Ultralytics YOLO models. Here are key options:
 
-- **Edge Devices:** Use lightweight models like [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) Lite or ONNX Runtime for deployment on devices with limited resources.
+- **Edge Devices:** Use lightweight runtimes like [LiteRT](../integrations/litert.md) or ONNX Runtime for deployment on devices with limited resources.
 - **Cloud Servers:** Utilize robust cloud platforms like AWS, Google Cloud, or Azure for handling complex models.
 - **On-Premise Servers:** High data privacy and security needs may require on-premise deployments.
 - **Hybrid Solutions:** Combine edge and cloud approaches for balanced performance and cost-efficiency.

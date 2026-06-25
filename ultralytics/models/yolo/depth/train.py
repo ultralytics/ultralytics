@@ -8,6 +8,7 @@ from copy import copy
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import DepthModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
+from ultralytics.utils.plotting import plt_settings
 
 
 class DepthTrainer(yolo.detect.DetectionTrainer):
@@ -96,6 +97,80 @@ class DepthTrainer(yolo.detect.DetectionTrainer):
             cv2.imwrite(str(self.save_dir / f"train_batch{ni}.jpg"), np.vstack(rows))
         except Exception as e:
             LOGGER.warning(f"DepthTrainer: failed to plot train_batch{ni}: {e}")
+
+    @plt_settings()
+    def plot_training_labels(self):
+        """Plot the training-set GT depth distribution to ``labels.jpg``.
+
+        The depth analog of the detection/semantic label plots. The inherited DetectionTrainer
+        version concatenates per-image ``bboxes``/``cls`` (all empty for depth) and hands them to
+        ``plot_labels``, whose reductions raise "zero-size array to reduction operation maximum
+        which has no identity". Instead, sample GT depth maps from the training set and plot a
+        histogram of valid (``> 0``) depth values, annotated with basic statistics.
+        """
+        from pathlib import Path
+
+        import matplotlib.pyplot as plt
+        import numpy as np
+
+        LOGGER.info(f"Plotting labels to {self.save_dir / 'labels.jpg'}...")
+        dataset = self.train_loader.dataset
+        n = len(dataset.im_files)
+        if n == 0:
+            LOGGER.warning("No depth maps found, skipping label plot.")
+            return
+
+        sample_size = min(1000, n)
+        indices = np.linspace(0, n - 1, sample_size).astype(int)
+        per_map_cap = max(1, 1_000_000 // sample_size)  # bound total memory to ~1M values
+        values = []
+        for idx in indices:
+            if dataset._depth_stack is not None:
+                d = np.asarray(dataset._depth_stack[idx], dtype=np.float32)
+            else:
+                df = dataset._depth_path_for(dataset.im_files[idx])
+                if not Path(df).exists():
+                    continue
+                try:
+                    d = np.load(df).astype(np.float32)
+                except Exception:
+                    continue
+            v = d[d > 0].ravel()
+            if v.size == 0:
+                continue
+            if v.size > per_map_cap:  # uniform stride keeps the spatial distribution unbiased
+                v = v[np.linspace(0, v.size - 1, per_map_cap).astype(int)]
+            values.append(v)
+
+        if not values:
+            LOGGER.warning("No valid depth values found, skipping label plot.")
+            return
+
+        values = np.concatenate(values)
+        vmin, vmax = float(values.min()), float(np.percentile(values, 99.5))
+        mean, median, std = float(values.mean()), float(np.median(values)), float(values.std())
+
+        _, ax = plt.subplots(1, 1, figsize=(8, 6), tight_layout=True)
+        ax.hist(values, bins=100, range=(vmin, max(vmax, vmin + 1e-6)), color="#3b7dd8")
+        ax.axvline(mean, color="#d8643b", linestyle="--", linewidth=1.5, label=f"mean {mean:.2f} m")
+        ax.axvline(median, color="#3bd86b", linestyle="--", linewidth=1.5, label=f"median {median:.2f} m")
+        ax.set_xlabel("Depth (m)")
+        ax.set_ylabel("Pixels")
+        ax.set_title("Training Labels Depth Distribution")
+        ax.legend(loc="upper right", frameon=False)
+        stats = f"images: {sample_size}\nmin: {vmin:.2f} m\nmax: {values.max():.2f} m\nstd: {std:.2f} m"
+        ax.text(
+            0.98, 0.7, stats, transform=ax.transAxes, ha="right", va="top", fontsize=9,
+            bbox=dict(boxstyle="round", facecolor="white", alpha=0.6, edgecolor="none"),
+        )
+        for spine in ax.spines.values():
+            spine.set_visible(False)
+
+        fname = self.save_dir / "labels.jpg"
+        plt.savefig(fname, dpi=200)
+        plt.close()
+        if self.on_plot:
+            self.on_plot(fname)
 
     def final_eval(self):
         """Run the standard final evaluation, then auto-calibrate the saved checkpoints.

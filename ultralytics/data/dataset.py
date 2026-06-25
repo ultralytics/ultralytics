@@ -82,6 +82,12 @@ class YOLODataset(BaseDataset):
         >>> dataset.get_labels()
     """
 
+    # Whether this task is driven by per-image bbox/cls label files under a ``labels/`` tree.
+    # Tasks whose GT lives elsewhere (e.g. depth estimation, GT is a paired ``depth/*.npy`` map)
+    # set this False to (a) skip the "no labels found" / "labels missing" warnings, which are
+    # expected, and (b) skip writing a label-scan cache into a ``labels/`` dir that need not exist.
+    uses_label_files = True
+
     def __init__(self, *args, data: dict | None = None, task: str = "detect", **kwargs):
         """Initialize the YOLODataset.
 
@@ -157,12 +163,13 @@ class YOLODataset(BaseDataset):
 
         if msgs:
             LOGGER.info("\n".join(msgs))
-        if nf == 0:
+        if nf == 0 and self.uses_label_files:
             LOGGER.warning(f"{self.prefix}No labels found in {path}. {HELP_URL}")
         x["hash"] = get_hash(self.label_files + self.im_files)
         x["results"] = nf, nm, ne, nc, len(self.im_files)
         x["msgs"] = msgs  # warnings
-        if x["labels"]:
+        x["version"] = DATASET_CACHE_VERSION  # set here, not only as a save_dataset_cache_file side effect
+        if x["labels"] and self.uses_label_files:
             save_dataset_cache_file(self.prefix, path, x, DATASET_CACHE_VERSION)
         return x
 
@@ -210,7 +217,7 @@ class YOLODataset(BaseDataset):
             )
             for lb in labels:
                 lb["segments"] = []
-        if len_cls == 0:
+        if len_cls == 0 and self.uses_label_files:
             LOGGER.warning(f"Labels are missing or empty in {cache_path}, training may not work correctly. {HELP_URL}")
         return labels
 
@@ -341,6 +348,11 @@ class DepthDataset(YOLODataset):
     Examples:
         >>> dataset = DepthDataset(img_path="/data/nyu/images/train", data={"nc": 1}, cache="disk")
     """
+
+    # Depth GT is the paired .npy depth map, not per-image bbox/cls labels under a labels/ tree.
+    # The detection label scan therefore finds every image a "background" (expected, don't warn)
+    # and there is no labels/ dir to write a label cache into (don't try, don't warn it's missing).
+    uses_label_files = False
 
     def __init__(self, *args, **kwargs):
         """Initialize and (optionally) build the stacked depth-map cache."""

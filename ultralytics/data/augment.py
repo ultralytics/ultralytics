@@ -1344,78 +1344,6 @@ class RandomPerspective:
         return (w2 > wh_thr) & (h2 > wh_thr) & (w2 * h2 / (w1 * h1 + eps) > area_thr) & (ar < ar_thr)  # candidates
 
 
-class RandomObjectCrop:
-    """Crop a random-area window anchored on an object box to zoom in on small targets.
-
-    For anomaly detection (and small-object detection in general) defects often shrink to a few pixels once the image
-    is letterboxed to the network size. This transform picks one ground-truth box at random and crops a window whose
-    side length is sampled uniformly between the box side and the full image side (i.e. a uniform zoom factor), always
-    keeping the box inside the window with jittered placement. The crop is left at native resolution; the downstream
-    ``LetterBox`` resizes it to the model input, so the existing resize path is reused. Box-free images (normal
-    samples) get an equivalent un-anchored random crop so the train-time scale distribution of normal and defective
-    images stays matched. Extra image channels (e.g. a cached heatmap prior in channel 4) ride along automatically
-    since the crop is a plain array slice.
-
-    Attributes:
-        p (float): Probability of applying the crop to a sample.
-        bg_scale (tuple[float, float]): Side-length fraction range for the un-anchored crop on box-free images.
-        area_thr (float): Minimum retained area fraction for a box to survive the crop.
-
-    Methods:
-        __call__: Apply the object-anchored crop to a labels dictionary.
-
-    Examples:
-        >>> transform = RandomObjectCrop(p=0.5)
-        >>> labels = {"img": img, "cls": cls, "instances": instances}
-        >>> labels = transform(labels)
-    """
-
-    def __init__(self, p: float = 0.0, bg_scale: tuple[float, float] = (0.3, 1.0), area_thr: float = 0.10) -> None:
-        """Initialize RandomObjectCrop with trigger probability, background scale range, and area threshold."""
-        self.p = p
-        self.bg_scale = bg_scale
-        self.area_thr = area_thr
-
-    def __call__(self, labels: dict[str, Any]) -> dict[str, Any]:
-        """Crop a box-anchored window from the image and update instances, dropping out-of-window boxes."""
-        if self.p < random.random():
-            return labels
-
-        img = labels["img"]
-        h, w = img.shape[:2]
-        instances = labels.pop("instances")
-        instances.convert_bbox(format="xyxy")
-        instances.denormalize(w, h)
-        cls = labels["cls"]
-
-        # Choose the crop window (x, y, cw, ch) in absolute pixels, preserving the image aspect ratio.
-        if len(instances):
-            bx1, by1, bx2, by2 = instances.bboxes[random.randrange(len(instances))]
-            # Clip the anchor to image bounds — post-mosaic boxes can extend past the canvas, which
-            # makes the containment window unsatisfiable (lo > hi -> empty randrange crash).
-            bx1, bx2 = min(max(float(bx1), 0.0), w), min(max(float(bx2), 0.0), w)
-            by1, by2 = min(max(float(by1), 0.0), h), min(max(float(by2), 0.0), h)
-            bw, bh = max(bx2 - bx1, 1.0), max(by2 - by1, 1.0)
-            r = random.uniform(max(bw / w, bh / h), 1.0)  # uniform side-length == uniform zoom factor
-            cw, ch = min(max(round(r * w), int(math.ceil(bw))), w), min(max(round(r * h), int(math.ceil(bh))), h)
-            x = random.randint(int(max(0, bx2 - cw)), int(min(bx1, w - cw)))  # window must contain the box, jittered
-            y = random.randint(int(max(0, by2 - ch)), int(min(by1, h - ch)))
-        else:  # box-free (normal) image: un-anchored crop with matched scale distribution
-            r = random.uniform(*self.bg_scale)
-            cw, ch = max(round(r * w), 1), max(round(r * h), 1)
-            x, y = random.randint(0, w - cw), random.randint(0, h - ch)
-
-        labels["img"] = img[y : y + ch, x : x + cw]  # crops all channels (RGB + any prior channel)
-        instances.add_padding(-x, -y)
-        box1 = instances.bboxes.T.copy()  # shifted boxes before clipping, to measure retained area
-        instances.clip(cw, ch)
-        i = RandomPerspective.box_candidates(box1=box1, box2=instances.bboxes.T, area_thr=self.area_thr)
-        labels["instances"] = instances[i]
-        labels["cls"] = cls[i]
-        labels.pop("mosaic_border", None)  # force the downstream LetterBox to resize the crop to imgsz
-        return labels
-
-
 class RandomHSV:
     """Randomly adjust the Hue, Saturation, and Value (HSV) channels of an image.
 
@@ -2493,8 +2421,7 @@ def v8_transforms(dataset, imgsz: int, hyp: IterableSimpleNamespace, stretch: bo
         pre_transform=None if stretch else LetterBox(new_shape=(imgsz, imgsz)),
     )
 
-    object_crop = RandomObjectCrop(p=getattr(hyp, "object_crop", 0.0))
-    pre_transform = Compose([mosaic, object_crop, affine])
+    pre_transform = Compose([mosaic, affine])
     if hyp.copy_paste_mode == "flip":
         pre_transform.insert(1, CopyPaste(p=hyp.copy_paste, mode=hyp.copy_paste_mode))
     else:

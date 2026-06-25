@@ -19,7 +19,16 @@ from ultralytics.utils.files import increment_path
 
 
 def _gaussian_filter1d(y, sigma: int = 3, truncate: float = 4.0) -> np.ndarray:
-    """Smooth a 1D array with a Gaussian kernel (NumPy replacement for scipy.ndimage.gaussian_filter1d)."""
+    """Smooth a 1D array with a Gaussian kernel (NumPy replacement for scipy.ndimage.gaussian_filter1d).
+
+    Args:
+        y (np.ndarray): Input 1D array to smooth.
+        sigma (int): Standard deviation of the Gaussian kernel.
+        truncate (float): Truncate the kernel at this many standard deviations.
+
+    Returns:
+        (np.ndarray): Smoothed 1D array with the same length as the input.
+    """
     y = np.asarray(y, dtype=float)
     radius = int(truncate * sigma + 0.5)
     kernel = np.exp(-0.5 * (np.arange(-radius, radius + 1) / sigma) ** 2)

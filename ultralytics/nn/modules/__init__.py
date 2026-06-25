@@ -116,6 +116,7 @@ from .anomaly_v2 import (
     binary_seg_loss,
     query_film_loss,
 )
+from .anomaly_v2_prior_augment import MaskPriorAugmenter
 
 __all__ = (
     "AIFI",
@@ -184,6 +185,7 @@ __all__ = (
     "LightConv",
     "MLPBlock",
     "MSDeformAttn",
+    "MaskPriorAugmenter",
     "MaxSigmoidAttnBlock",
     "Pose",
     "Pose26",

@@ -58,6 +58,7 @@ from ultralytics.nn.modules import (
     HeatmapBiasFusion,
     HeatmapSoftFusion,
     HeatmapFiLMFusion,
+    MaskPriorAugmenter,
     ImagePoolingAttn,
     Index,
     LRPCHead,
@@ -580,60 +581,8 @@ class YOLOAnomalyV2Model(DetectionModel):
         _sf = v2_cfg.get("sigma_factor", 0.25) if sigma_factor is None else sigma_factor
         sigma_factor = [float(_sf[0]), float(_sf[1])] if isinstance(_sf, (list, tuple)) else float(_sf)
         p_drop = float(v2_cfg.get("p_drop", 0.5) if p_drop is None else p_drop)
-        # Training-only mask augmentation for prior robustness (Phase 0):
-        #   mask_shuffle_p -- per-sample prob of swapping in another sample's mask (wrong-location
-        #                     prior; GT boxes unchanged) so the model treats the prior as a soft hint.
-        #   mask_noise_std -- std of additive Gaussian noise on the [0, 1] mask (imperfect heatmap).
-        #   mask_mag_range -- [lo, hi]; per-sample peak scaling of the [0, 1] prior so the GT mask
-        #                     looks like a weak-peak heatmap (memory bank peaks ~0.8). [1, 1] = off.
-        #   mask_blur_sigma_max -- max sigma of a random Gaussian blur softening the binary rect into
-        #                     smooth edges (mimics soft heatmaps). 0 = off.
-        mask_shuffle_p = float(v2_cfg.get("mask_shuffle_p", 0.0))
-        mask_noise_std = float(v2_cfg.get("mask_noise_std", 0.0))
-        mask_mag_range = list(v2_cfg.get("mask_mag_range", [1.0, 1.0]))
-        mask_blur_sigma_max = float(v2_cfg.get("mask_blur_sigma_max", 0.0))
-        # Prior-robustness augs (train-only). Applied to the GT-rendered prior; the p_drop'd
-        # samples are still zeroed afterwards, so the "no prior" fraction is preserved (these
-        # only perturb the kept-prior samples). All default off.
-        #   mask_jitter       -- per-box center offset ~U(-j,j) (frac of image): mis-localized prior
-        #   mask_box_drop_p   -- per-box drop prob: prior misses some defects (false negative)
-        #   mask_distractor_p -- prob a sample gets up to mask_distractor_n other samples' blobs
-        #                        max-merged in (false-positive hints at wrong locations)
-        #   mask_erase_p      -- prob of zeroing a random sub-region of the blob (partial coverage)
-        #   mask_warp_p       -- prob of an elastic deformation (irregular, non-elliptical blob)
-        #   mask_mixup_p      -- prob of additive blend own + mask_mixup_alpha*donor (soft distractor)
-        mask_jitter = float(v2_cfg.get("mask_jitter", 0.0))
-        mask_box_drop_p = float(v2_cfg.get("mask_box_drop_p", 0.0))
-        mask_distractor_p = float(v2_cfg.get("mask_distractor_p", 0.0))
-        mask_distractor_n = int(v2_cfg.get("mask_distractor_n", 4))
-        mask_erase_p = float(v2_cfg.get("mask_erase_p", 0.0))
-        mask_warp_p = float(v2_cfg.get("mask_warp_p", 0.0))
-        mask_mixup_p = float(v2_cfg.get("mask_mixup_p", 0.0))
-        mask_mixup_alpha = float(v2_cfg.get("mask_mixup_alpha", 0.5))
-        # Extra memory-bank-style prior augmentations (train-only). These close the
-        # distribution gap between clean GT-gauss priors and real memory-bank heatmaps,
-        # which have scattered false-positive blobs even on normal images.
-        #   mask_fragment_p      -- prob of splitting each GT box into several sub-boxes
-        #                           before rendering, mimicking MB's fragmented response.
-        #   mask_fragment_n      -- number of fragments per box.
-        #   mask_bg_blobs_p      -- prob of adding random background false-positive blobs.
-        #   mask_bg_blobs_n      -- number of random blobs to add.
-        #   mask_bg_blobs_amp    -- [lo, hi] peak amplitude of each background blob.
-        #   mask_bg_blobs_sigma  -- [lo, hi] blob sigma as fraction of mask spatial size.
-        #   mask_coherent_noise_p-- prob of adding low-frequency coherent blobby noise.
-        #   mask_coherent_noise_amp   -- [lo, hi] amplitude of coherent-noise blobs.
-        #   mask_coherent_noise_sigma -- [lo, hi] sigma of coherent-noise blobs.
-        #   mask_floor           -- [lo, hi] uniform noise floor added to the whole map.
-        mask_fragment_p = float(v2_cfg.get("mask_fragment_p", 0.0))
-        mask_fragment_n = int(v2_cfg.get("mask_fragment_n", 4))
-        mask_bg_blobs_p = float(v2_cfg.get("mask_bg_blobs_p", 0.0))
-        mask_bg_blobs_n = int(v2_cfg.get("mask_bg_blobs_n", 8))
-        mask_bg_blobs_amp = list(v2_cfg.get("mask_bg_blobs_amp", [0.05, 0.15]))
-        mask_bg_blobs_sigma = list(v2_cfg.get("mask_bg_blobs_sigma", [0.03, 0.08]))
-        mask_coherent_noise_p = float(v2_cfg.get("mask_coherent_noise_p", 0.0))
-        mask_coherent_noise_amp = list(v2_cfg.get("mask_coherent_noise_amp", [0.02, 0.06]))
-        mask_coherent_noise_sigma = list(v2_cfg.get("mask_coherent_noise_sigma", [0.05, 0.15]))
-        mask_floor = list(v2_cfg.get("mask_floor", [0.0, 0.0]))
+        # Training-only prior-mask augmentation (data-space regularization, not architecture).
+        self.mask_augmenter = MaskPriorAugmenter(v2_cfg)
         # Value remapping: bridges the distribution gap between binary GT masks and
         # soft SegBranch predictions. Applied before HeatmapBiasFusion at both train
         # and inference time. Modes: none (identity), tanh_contrast (smooth stretch),
@@ -791,28 +740,6 @@ class YOLOAnomalyV2Model(DetectionModel):
         self._qf_capture = False  # diagnostics: force aux capture in eval (scripts/queryfilm_diag.py)
 
         self.p_drop = float(p_drop)
-        self.mask_shuffle_p = float(mask_shuffle_p)
-        self.mask_noise_std = float(mask_noise_std)
-        self.mask_mag_range = (float(mask_mag_range[0]), float(mask_mag_range[1]))
-        self.mask_blur_sigma_max = float(mask_blur_sigma_max)
-        self.mask_jitter = float(mask_jitter)
-        self.mask_box_drop_p = float(mask_box_drop_p)
-        self.mask_distractor_p = float(mask_distractor_p)
-        self.mask_distractor_n = int(mask_distractor_n)
-        self.mask_erase_p = float(mask_erase_p)
-        self.mask_warp_p = float(mask_warp_p)
-        self.mask_mixup_p = float(mask_mixup_p)
-        self.mask_mixup_alpha = float(mask_mixup_alpha)
-        self.mask_fragment_p = float(mask_fragment_p)
-        self.mask_fragment_n = int(mask_fragment_n)
-        self.mask_bg_blobs_p = float(mask_bg_blobs_p)
-        self.mask_bg_blobs_n = int(mask_bg_blobs_n)
-        self.mask_bg_blobs_amp = (float(mask_bg_blobs_amp[0]), float(mask_bg_blobs_amp[1]))
-        self.mask_bg_blobs_sigma = (float(mask_bg_blobs_sigma[0]), float(mask_bg_blobs_sigma[1]))
-        self.mask_coherent_noise_p = float(mask_coherent_noise_p)
-        self.mask_coherent_noise_amp = (float(mask_coherent_noise_amp[0]), float(mask_coherent_noise_amp[1]))
-        self.mask_coherent_noise_sigma = (float(mask_coherent_noise_sigma[0]), float(mask_coherent_noise_sigma[1]))
-        self.mask_floor = (float(mask_floor[0]), float(mask_floor[1]))
         self.mask_remap_mode = mask_remap_mode
         self.mask_remap_kwargs = mask_remap_kwargs
         self.spatial_softmax = bool(v2_cfg.get("spatial_softmax", False))
@@ -1215,8 +1142,6 @@ class YOLOAnomalyV2Model(DetectionModel):
             ("fusion_mode", "bias"),
             ("heatmap_film_fusion", None),
             ("heatmap_norm", "none"),
-            ("mask_mag_range", (1.0, 1.0)),
-            ("mask_blur_sigma_max", 0.0),
             ("heatmap_edge_weight", False),
             ("heatmap_edge_p", 4.0),
             ("heatmap_edge_m", 4.4),
@@ -1224,20 +1149,13 @@ class YOLOAnomalyV2Model(DetectionModel):
             ("_edge_weight_cache", None),
             ("fit_args", None),
             ("fit_data", None),
-            # MB-style mask augmentations (v2.4)
-            ("mask_fragment_p", 0.0),
-            ("mask_fragment_n", 4),
-            ("mask_bg_blobs_p", 0.0),
-            ("mask_bg_blobs_n", 8),
-            ("mask_bg_blobs_amp", (0.05, 0.15)),
-            ("mask_bg_blobs_sigma", (0.03, 0.08)),
-            ("mask_coherent_noise_p", 0.0),
-            ("mask_coherent_noise_amp", (0.02, 0.06)),
-            ("mask_coherent_noise_sigma", (0.05, 0.15)),
-            ("mask_floor", (0.0, 0.0)),
         ]:
             if not hasattr(self, attr):
                 setattr(self, attr, default)
+        # Backward compat: mask augmentation hyper-parameters moved to a dedicated object.
+        if not hasattr(self, "mask_augmenter"):
+            v2_cfg = getattr(self, "yaml", {}).get("anomaly_v2", {}) if isinstance(getattr(self, "yaml", {}), dict) else {}
+            self.mask_augmenter = MaskPriorAugmenter(v2_cfg)
 
     def _resolve_fusion_mask(
         self, bboxes, batch_idx, external_mask, disabled, batch_masks, seg_logits, batch_size, device
@@ -1280,12 +1198,12 @@ class YOLOAnomalyV2Model(DetectionModel):
                 gt = self._polygon_union_prior(batch_masks, batch_idx, batch_size)
                 gt = gt.to(device=device)
             else:
-                bb, bi = self._augment_prior_bboxes(bboxes, batch_idx)
-                if self.training and self.mask_fragment_p > 0.0 and torch.rand(1).item() < self.mask_fragment_p:
-                    bb, bi = self._fragment_prior_bboxes(bb, bi)
+                bb, bi = self.mask_augmenter.augment_prior_bboxes(bboxes, batch_idx, self.training)
+                if self.training and self.mask_augmenter.mask_fragment_p > 0.0 and torch.rand(1).item() < self.mask_augmenter.mask_fragment_p:
+                    bb, bi = self.mask_augmenter.fragment_prior_bboxes(bb, bi)
                 gt = self.mask_renderer(bb, bi, batch_size)
             if self.training:
-                gt = self._augment_mask(gt)
+                gt = self.mask_augmenter.augment_mask(gt)
             if seg_pred is None:
                 return gt
             a = float(self.seg_alpha)
@@ -1317,12 +1235,12 @@ class YOLOAnomalyV2Model(DetectionModel):
             cond = self._polygon_union_prior(batch_masks, batch_idx, batch_size)
             cond = cond.to(device=device)
         else:
-            bb, bi = self._augment_prior_bboxes(bboxes, batch_idx)  # train-only box drop + jitter
-            if self.training and self.mask_fragment_p > 0.0 and torch.rand(1).item() < self.mask_fragment_p:
-                bb, bi = self._fragment_prior_bboxes(bb, bi)
+            bb, bi = self.mask_augmenter.augment_prior_bboxes(bboxes, batch_idx, self.training)  # train-only box drop + jitter
+            if self.training and self.mask_augmenter.mask_fragment_p > 0.0 and torch.rand(1).item() < self.mask_augmenter.mask_fragment_p:
+                bb, bi = self.mask_augmenter.fragment_prior_bboxes(bb, bi)
             cond = self.mask_renderer(bb, bi, batch_size)
         if self.training:
-            cond = self._augment_mask(cond)  # blur / mag / noise / distractor / erase / warp / mixup / mb-style noise
+            cond = self.mask_augmenter.augment_mask(cond)  # blur / mag / noise / distractor / erase / warp / mixup / mb-style noise
         return cond
 
     def _polygon_union_prior(self, masks, batch_idx, batch_size):
@@ -1337,7 +1255,7 @@ class YOLOAnomalyV2Model(DetectionModel):
           - ``mask_jitter``: random per-sample translation (mis-localized prior)
         """
         # Instance-level drop (polygon equiv of box_drop): zero out random instance IDs.
-        if self.training and self.mask_box_drop_p > 0.0 and masks.dim() == 3 and masks.shape[0] == batch_size:
+        if self.training and self.mask_augmenter.mask_box_drop_p > 0.0 and masks.dim() == 3 and masks.shape[0] == batch_size:
             masks = self._drop_polygon_instances(masks)
 
         if masks.dim() == 3 and masks.shape[0] == batch_size:
@@ -1346,8 +1264,8 @@ class YOLOAnomalyV2Model(DetectionModel):
         else:
             # overlap_mask=False: (N, H/r, W/r) per-instance → union per image.
             # Instance drop: randomly zero individual mask rows.
-            if self.training and self.mask_box_drop_p > 0.0 and masks.numel() > 0:
-                keep = torch.rand(masks.shape[0], device=masks.device) > self.mask_box_drop_p
+            if self.training and self.mask_augmenter.mask_box_drop_p > 0.0 and masks.numel() > 0:
+                keep = torch.rand(masks.shape[0], device=masks.device) > self.mask_augmenter.mask_box_drop_p
                 masks = masks[keep]
                 batch_idx = batch_idx[keep]
             prior = masks.new_zeros(batch_size, 1, masks.shape[-2], masks.shape[-1])
@@ -1361,11 +1279,11 @@ class YOLOAnomalyV2Model(DetectionModel):
             prior = torch.nn.functional.interpolate(prior, size=(self.mask_size, self.mask_size), mode="nearest")
 
         # Spatial translation (polygon equiv of bbox center jitter): random per-sample offset.
-        if self.training and self.mask_jitter > 0.0:
+        if self.training and self.mask_augmenter.mask_jitter > 0.0:
             prior = self._translate_prior(prior)
 
         # Mask-level fragment (polygon equiv of _fragment_prior_bboxes).
-        if self.training and self.mask_fragment_p > 0.0 and torch.rand(1).item() < self.mask_fragment_p:
+        if self.training and self.mask_augmenter.mask_fragment_p > 0.0 and torch.rand(1).item() < self.mask_augmenter.mask_fragment_p:
             prior = self._fragment_mask(prior)
 
         return prior
@@ -1392,7 +1310,7 @@ class YOLOAnomalyV2Model(DetectionModel):
             eroded = (eroded >= keep_ratio * k * k).float()
             # Keep only the intersection of a few random rectangular windows with the eroded mask.
             windows = torch.zeros(1, 1, H, W, device=mask.device)
-            for _ in range(self.mask_fragment_n):
+            for _ in range(self.mask_augmenter.mask_fragment_n):
                 fh = int(H * (0.15 + 0.40 * torch.rand(1).item()))
                 fw = int(W * (0.15 + 0.40 * torch.rand(1).item()))
                 fy = int(torch.randint(0, max(1, H - fh), (1,)).item())
@@ -1410,7 +1328,7 @@ class YOLOAnomalyV2Model(DetectionModel):
         ids = ids[ids > 0]  # exclude background
         if len(ids) == 0:
             return masks
-        keep = torch.rand(len(ids), device=masks.device) > self.mask_box_drop_p
+        keep = torch.rand(len(ids), device=masks.device) > self.mask_augmenter.mask_box_drop_p
         if keep.all():
             return masks
         drop_ids = ids[~keep]
@@ -1428,7 +1346,7 @@ class YOLOAnomalyV2Model(DetectionModel):
         """
         B, _, H, W = prior.shape
         dev = prior.device
-        off = (torch.rand(B, 2, device=dev) * 2 - 1) * (self.mask_jitter * self.mask_size)
+        off = (torch.rand(B, 2, device=dev) * 2 - 1) * (self.mask_augmenter.mask_jitter * self.mask_size)
         theta = torch.eye(2, 3, device=dev).unsqueeze(0).repeat(B, 1, 1)
         theta[:, 0, 2] = off[:, 0] / (W / 2)
         theta[:, 1, 2] = off[:, 1] / (H / 2)
@@ -1519,225 +1437,6 @@ class YOLOAnomalyV2Model(DetectionModel):
                 return (seg_part + heat_part) / 2.0
             return seg_part if seg_part is not None else heat_part
         return None
-
-    def _fragment_prior_bboxes(self, bboxes, batch_idx):
-        """Split each GT box into several sub-boxes to mimic memory-bank's fragmented response.
-
-        Returns updated ``(bboxes, batch_idx)`` with each original box replaced by
-        ``self.mask_fragment_n`` smaller boxes sampled inside it.
-        """
-        if bboxes.numel() == 0:
-            return bboxes, batch_idx
-        n_frag = self.mask_fragment_n
-        frags, frag_idx = [], []
-        for box, bi in zip(bboxes.unbind(0), batch_idx.unbind(0)):
-            cx, cy, w, h = box.tolist()
-            for _ in range(n_frag):
-                fcx = cx + (torch.rand(1).item() - 0.5) * w * 0.7
-                fcy = cy + (torch.rand(1).item() - 0.5) * h * 0.7
-                fw = w * (0.35 + 0.30 * torch.rand(1).item())
-                fh = h * (0.35 + 0.30 * torch.rand(1).item())
-                frags.append([fcx, fcy, fw, fh])
-                frag_idx.append(bi.item())
-        return (
-            torch.tensor(frags, dtype=bboxes.dtype, device=bboxes.device),
-            torch.tensor(frag_idx, dtype=batch_idx.dtype, device=batch_idx.device),
-        )
-
-    @staticmethod
-    def _make_background_blob_mask(b, H, W, n_blobs, amp_lo, amp_hi, sigma_lo, sigma_hi, device):
-        """Create a ``(B, 1, H, W)`` tensor of scattered low-amplitude Gaussian blobs."""
-        bg = torch.zeros(b, 1, H, W, device=device)
-        if n_blobs <= 0:
-            return bg
-        ys, xs = torch.meshgrid(
-            torch.linspace(-1, 1, H, device=device),
-            torch.linspace(-1, 1, W, device=device),
-            indexing="ij",
-        )
-        for _ in range(n_blobs):
-            cx = torch.rand(1).item() * 1.9 - 0.95
-            cy = torch.rand(1).item() * 1.9 - 0.95
-            sigma = sigma_lo + torch.rand(1).item() * (sigma_hi - sigma_lo)
-            amp = amp_lo + torch.rand(1).item() * (amp_hi - amp_lo)
-            blob = torch.exp(-((xs - cx) ** 2 + (ys - cy) ** 2) / (2.0 * sigma**2))
-            bg = torch.maximum(bg, amp * blob)
-        return bg
-
-    def _add_coherent_noise(self, mask):
-        """Add low-frequency coherent blobby noise (not i.i.d. pixel noise)."""
-        b, _, H, W = mask.shape
-        dev = mask.device
-        amp_lo, amp_hi = self.mask_coherent_noise_amp
-        sigma_lo, sigma_hi = self.mask_coherent_noise_sigma
-        ys, xs = torch.meshgrid(
-            torch.linspace(-1, 1, H, device=dev),
-            torch.linspace(-1, 1, W, device=dev),
-            indexing="ij",
-        )
-        out = mask.clone()
-        for _ in range(b):
-            n_centers = int(torch.randint(2, 6, (1,)).item())
-            for _ in range(n_centers):
-                cx = torch.rand(1).item() * 1.8 - 0.9
-                cy = torch.rand(1).item() * 1.8 - 0.9
-                sigma = sigma_lo + torch.rand(1).item() * (sigma_hi - sigma_lo)
-                amp = amp_lo + torch.rand(1).item() * (amp_hi - amp_lo)
-                blob = torch.exp(-((xs - cx) ** 2 + (ys - cy) ** 2) / (2.0 * sigma**2))
-                out = out + amp * blob
-        return out
-
-    def _apply_mask_floor(self, mask):
-        """Add a per-sample uniform noise floor to the whole heatmap."""
-        lo, hi = self.mask_floor
-        if lo <= 0.0 and hi <= 0.0:
-            return mask
-        b = mask.shape[0]
-        floor = torch.empty(b, 1, 1, 1, device=mask.device).uniform_(lo, hi)
-        return mask + floor
-
-    def _augment_mask_mb_style(self, mask):
-        """Memory-bank-style post-render augmentations.
-
-        Adds scattered false-positive background blobs, coherent low-frequency variation,
-        and a global noise floor so the synthetic GT prior better matches the noisy,
-        never-zero distribution of real memory-bank heatmaps.
-        """
-        b, _, H, W = mask.shape
-        if self.mask_bg_blobs_p > 0.0 and torch.rand(1).item() < self.mask_bg_blobs_p:
-            amp_lo, amp_hi = self.mask_bg_blobs_amp
-            sigma_lo, sigma_hi = self.mask_bg_blobs_sigma
-            bg = self._make_background_blob_mask(
-                b,
-                H,
-                W,
-                self.mask_bg_blobs_n,
-                amp_lo,
-                amp_hi,
-                sigma_lo * H,
-                sigma_hi * H,
-                mask.device,
-            )
-            mask = torch.maximum(mask, bg)
-        if self.mask_coherent_noise_p > 0.0 and torch.rand(1).item() < self.mask_coherent_noise_p:
-            mask = self._add_coherent_noise(mask)
-        if self.mask_floor[1] > 0.0:
-            mask = self._apply_mask_floor(mask)
-        return mask
-
-    def _augment_mask(self, mask):
-        """Training-only mask augmentation: make the binary GT prior look like an inference heatmap.
-
-        Closes the train(binary GT) vs inference(soft, weak-peak memory-bank / SegBranch heatmap)
-        distribution gap. Order: shuffle (wrong-location prior) -> Gaussian blur (soft edges) ->
-        per-sample magnitude scaling (peak < 1, mimics weak heatmaps) -> additive noise ->
-        memory-bank-style background/coherent noise. GT boxes are unchanged, so the model learns
-        "weak/soft signal here still means defect here" while tolerating background false positives
-        (real MB heatmaps are never fully zero).
-        """
-        b = mask.shape[0]
-        if self.mask_shuffle_p > 0.0 and b > 1:
-            swap = torch.rand(b, device=mask.device) < self.mask_shuffle_p
-            if swap.any():
-                # offset in [1, b-1] -> perm[i] != i, so every swapped sample gets a different mask
-                offset = torch.randint(1, b, (b,), device=mask.device)
-                perm = (torch.arange(b, device=mask.device) + offset) % b
-                mask = torch.where(swap.view(-1, 1, 1, 1), mask[perm], mask)
-        if self.mask_blur_sigma_max > 0.0:
-            sigma = torch.empty(1).uniform_(1e-2, self.mask_blur_sigma_max).item()
-            mask = self._gaussian_blur(mask, sigma)
-        lo, hi = self.mask_mag_range
-        if lo < 1.0 or hi < 1.0:
-            mask = mask * torch.empty(b, 1, 1, 1, device=mask.device).uniform_(lo, hi)
-        if self.mask_noise_std > 0.0:
-            mask = mask + torch.randn_like(mask) * self.mask_noise_std
-        mask = self._augment_prior_extra(mask)
-        mask = self._augment_mask_mb_style(mask)
-        return mask.clamp(0.0, 1.0)
-
-    def _augment_prior_bboxes(self, bboxes, batch_idx):
-        """Train-only bbox-level prior augs: per-box drop + center jitter (on a local copy).
-
-        Returns possibly-reduced/perturbed ``(bboxes, batch_idx)`` used ONLY to render the
-        fusion prior. The originals (used for query/seg GT in loss()) are untouched.
-        """
-        if not self.training or bboxes is None or bboxes.shape[0] == 0:
-            return bboxes, batch_idx
-        bb, bi = bboxes, batch_idx
-        if self.mask_box_drop_p > 0.0:
-            keep = torch.rand(bb.shape[0], device=bb.device) > self.mask_box_drop_p
-            bb, bi = bb[keep], bi[keep]
-        if self.mask_jitter > 0.0 and bb.shape[0] > 0:
-            bb = bb.clone()
-            off = (torch.rand(bb.shape[0], 2, device=bb.device) * 2 - 1) * self.mask_jitter
-            bb[:, 0] = (bb[:, 0] + off[:, 0]).clamp(0.0, 1.0)
-            bb[:, 1] = (bb[:, 1] + off[:, 1]).clamp(0.0, 1.0)
-        return bb, bi
-
-    def _augment_prior_extra(self, mask):
-        """Train-only mask-level prior augs: additive mixup, distractor, partial erase, warp.
-
-        Each is applied per-sample with its own probability, so the kept-prior samples span a
-        spectrum from near-clean to noisy. Operates on a ``(B, 1, H, W)`` mask in [0, 1].
-        """
-        b, _, H, W = mask.shape
-        dev = mask.device
-        # additive mixup: own + alpha * donor (soft distractor)
-        if self.mask_mixup_p > 0.0 and b > 1:
-            sel = torch.rand(b, device=dev) < self.mask_mixup_p
-            donor = mask[torch.randperm(b, device=dev)]
-            mixed = (mask + self.mask_mixup_alpha * donor).clamp(0.0, 1.0)
-            mask = torch.where(sel.view(-1, 1, 1, 1), mixed, mask)
-        # hard distractor: max-merge up to n random other-sample blobs (count varies per sample)
-        if self.mask_distractor_p > 0.0 and b > 1:
-            sel = torch.rand(b, device=dev) < self.mask_distractor_p
-            out = mask
-            for _ in range(self.mask_distractor_n):
-                donor = mask[torch.randperm(b, device=dev)]
-                add = sel & (torch.rand(b, device=dev) < 0.6)
-                out = torch.where(add.view(-1, 1, 1, 1), torch.maximum(out, donor), out)
-            mask = out
-        # partial erase: zero a random sub-region of selected samples (prior covers part only)
-        if self.mask_erase_p > 0.0:
-            for i in range(b):
-                if torch.rand(1, device=dev).item() < self.mask_erase_p:
-                    eh = int(H * (0.2 + 0.3 * torch.rand(1).item()))
-                    ew = int(W * (0.2 + 0.3 * torch.rand(1).item()))
-                    y = int(torch.randint(0, max(1, H - eh), (1,)).item())
-                    x = int(torch.randint(0, max(1, W - ew), (1,)).item())
-                    mask[i, :, y : y + eh, x : x + ew] = 0.0
-        # elastic warp: irregular, non-elliptical blob shape
-        if self.mask_warp_p > 0.0:
-            sel = torch.rand(b, device=dev) < self.mask_warp_p
-            if sel.any():
-                warped = self._elastic_warp(mask, alpha=0.06 * H, sigma=max(2.0, 0.03 * H))
-                mask = torch.where(sel.view(-1, 1, 1, 1), warped, mask)
-        return mask
-
-    @staticmethod
-    def _elastic_warp(mask, alpha, sigma):
-        """Random low-frequency elastic deformation of a ``(B, 1, H, W)`` mask (per-sample field)."""
-        b, _, H, W = mask.shape
-        dev = mask.device
-        disp = torch.randn(b * 2, 1, H, W, device=dev)
-        disp = YOLOAnomalyV2Model._gaussian_blur(disp, sigma).reshape(b, 2, H, W) * alpha
-        ys, xs = torch.meshgrid(
-            torch.linspace(-1, 1, H, device=dev), torch.linspace(-1, 1, W, device=dev), indexing="ij"
-        )
-        base = torch.stack((xs, ys), dim=-1).unsqueeze(0).expand(b, -1, -1, -1)
-        grid = base + torch.stack((disp[:, 0] / (W / 2), disp[:, 1] / (H / 2)), dim=-1)
-        return torch.nn.functional.grid_sample(mask, grid, mode="bilinear", padding_mode="border", align_corners=True)
-
-    @staticmethod
-    def _gaussian_blur(mask, sigma):
-        """Separable Gaussian blur of a ``(B, 1, H, W)`` mask with ``sigma`` in pixels."""
-        k = max(3, int(2 * round(3.0 * sigma) + 1))  # odd kernel spanning ~3 sigma
-        coords = torch.arange(k, device=mask.device, dtype=mask.dtype) - k // 2
-        g = torch.exp(-(coords**2) / (2.0 * sigma**2))
-        g = g / g.sum()
-        mask = torch.nn.functional.conv2d(mask, g.view(1, 1, 1, k), padding=(0, k // 2))
-        mask = torch.nn.functional.conv2d(mask, g.view(1, 1, k, 1), padding=(k // 2, 0))
-        return mask
 
     def _apply_spatial_softmax(self, mask):
         """Normalize heatmap into a spatial probability distribution.
@@ -2064,18 +1763,18 @@ class YOLOAnomalyV2Model(DetectionModel):
                         and external_mask is None
                         and prior_mode is None
                         and (
-                            self.mask_shuffle_p > 0.0
-                            or self.mask_noise_std > 0.0
-                            or self.mask_mag_range[0] < 1.0
-                            or self.mask_mag_range[1] < 1.0
-                            or self.mask_blur_sigma_max > 0.0
-                            or self.mask_distractor_p > 0.0
-                            or self.mask_erase_p > 0.0
-                            or self.mask_warp_p > 0.0
-                            or self.mask_mixup_p > 0.0
+                            self.mask_augmenter.mask_shuffle_p > 0.0
+                            or self.mask_augmenter.mask_noise_std > 0.0
+                            or self.mask_augmenter.mask_mag_range[0] < 1.0
+                            or self.mask_augmenter.mask_mag_range[1] < 1.0
+                            or self.mask_augmenter.mask_blur_sigma_max > 0.0
+                            or self.mask_augmenter.mask_distractor_p > 0.0
+                            or self.mask_augmenter.mask_erase_p > 0.0
+                            or self.mask_augmenter.mask_warp_p > 0.0
+                            or self.mask_augmenter.mask_mixup_p > 0.0
                         )
                     ):
-                        mask = self._augment_mask(mask)
+                        mask = self.mask_augmenter.augment_mask(mask)
                 fused = []
                 for i, p in enumerate(pan_inputs):
                     if mask is None:

@@ -949,6 +949,39 @@ def plot_results(file: str = "path/to/results.csv", dir: str = "", on_plot: Call
             on_plot(fname)
 
 
+@plt_settings()
+def plot_multitrain_results(scores: dict, key: str = "fitness", save_dir=Path()):
+    """Plot per-dataset metrics from a multi-dataset training run as a bar chart with the cross-dataset mean.
+
+    Args:
+        scores (dict): Mapping of dataset name to its scalar metric value.
+        key (str): Name of the plotted metric, used as the y-axis label.
+        save_dir (str | Path): Directory to save the 'multitrain_results.png' figure.
+
+    Returns:
+        (Path): Path to the saved figure.
+
+    Examples:
+        >>> from ultralytics.utils.plotting import plot_multitrain_results
+        >>> plot_multitrain_results({"coco8": 0.61, "dota8": 0.48}, key="metrics/mAP50-95(B)")
+    """
+    import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
+
+    mean = sum(scores.values()) / len(scores)
+    fig, ax = plt.subplots(figsize=(max(6.0, len(scores) * 0.45), 5), tight_layout=True)
+    ax.bar(range(len(scores)), list(scores.values()), color="#042AFF")
+    ax.axhline(mean, color="orange", linestyle="--", label=f"mean = {mean:.3f}")
+    ax.set_xticks(range(len(scores)))
+    ax.set_xticklabels(list(scores), rotation=90)
+    ax.set_ylabel(key)
+    ax.set_title(f"MultiTrainer results across {len(scores)} datasets")
+    ax.legend()
+    fname = Path(save_dir) / "multitrain_results.png"
+    fig.savefig(fname, dpi=200)
+    plt.close(fig)
+    return fname
+
+
 def plt_color_scatter(v, f, bins: int = 20, cmap: str = "viridis", alpha: float = 0.8, edgecolors: str = "none"):
     """Plot a scatter plot with points colored based on a 2D histogram.
 

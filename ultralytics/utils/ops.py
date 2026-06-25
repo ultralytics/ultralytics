@@ -734,7 +734,15 @@ def linear_sum_assignment(cost_matrix):
 
 
 def _linear_sum_assignment_numpy(a):
-    """NumPy Jonker-Volgenant fallback for `linear_sum_assignment` when SciPy is not installed."""
+    """Solve the rectangular linear sum assignment problem with NumPy (Jonker-Volgenant SciPy-free fallback).
+
+    Args:
+        a (np.ndarray): Cost matrix of shape (N, M) with dtype float64 and finite values.
+
+    Returns:
+        row_ind (np.ndarray): Row indices of the optimal assignment, sorted ascending, with length min(N, M).
+        col_ind (np.ndarray): Column indices matched to each row in row_ind.
+    """
     n, m = a.shape
     if n == 0 or m == 0:
         return np.empty(0, dtype=np.intp), np.empty(0, dtype=np.intp)

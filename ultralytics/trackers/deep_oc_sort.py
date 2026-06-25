@@ -139,7 +139,7 @@ class DeepOCSortTrack(OCSortTrack):
             if stracks[i].last_observation[0] >= 0:
                 obs = stracks[i].last_observation
                 # Transform xyxy observation centers
-                cx, cy = (obs[0] + obs[2]) / 2, (obs[1] + obs[3]) / 2
+                cx, cy = DeepOCSortTrack._xyxy_center(obs)
                 w, h = obs[2] - obs[0], obs[3] - obs[1]
                 new_c = R @ np.array([cx, cy]) + t
                 stracks[i].last_observation = np.array(

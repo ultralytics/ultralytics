@@ -27,6 +27,7 @@ from torch import nn, optim
 from ultralytics import __version__
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset, convert_ndjson_to_yolo_if_needed
+from ultralytics.nn.distill_model import DistillationModel
 from ultralytics.nn.tasks import load_checkpoint
 from ultralytics.optim import MuSGD
 from ultralytics.utils import (
@@ -297,7 +298,11 @@ class BaseTrainer:
         self.model = self.model.to(self.device)
         self.set_model_attributes()
 
-        # Compile model
+        # Compile model (knowledge distillation runs the wrapped model eagerly and relies on
+        # find_unused_parameters under DDP for the frozen teacher, so disable compilation when distilling)
+        if self.args.distill_model is not None and self.args.compile:
+            LOGGER.warning("'compile' is not supported with knowledge distillation and will be disabled.")
+            self.args.compile = False
         self.model = attempt_compile(self.model, device=self.device, mode=self.args.compile)
 
         # Freeze layers
@@ -310,6 +315,8 @@ class BaseTrainer:
         )
         always_freeze_names = [".dfl"]  # always freeze these layers
         freeze_layer_names = [f"model.{x}." for x in freeze_list] + always_freeze_names
+        if isinstance(unwrap_model(self.model), DistillationModel):
+            freeze_layer_names.append("teacher_model.")
         self.freeze_layer_names = freeze_layer_names
         for k, v in self.model.named_parameters():
             # v.register_hook(lambda x: torch.nan_to_num(x))  # NaN to 0 (commented for erratic training results)
@@ -346,6 +353,9 @@ class BaseTrainer:
         self.args.imgsz = check_imgsz(self.args.imgsz, stride=gs, floor=gs, max_dim=1)
         self.stride = gs  # for multiscale training
 
+        # resume training would directly load DistillationModel so check here
+        if self.args.distill_model is not None and not isinstance(unwrap_model(self.model), DistillationModel):
+            self.model = DistillationModel(student_model=self.model, teacher_model=self.args.distill_model)
         if self.world_size > 1:
             # static_graph=True permits params used >1 time per forward (e.g. flow_model in
             # o2m+o2o pose loss branches) under torch.compile.
@@ -362,6 +372,8 @@ class BaseTrainer:
 
         self._build_train_pipeline()
         self.validator = self.get_validator()
+        if self.args.distill_model is not None and "dis_loss" not in self.loss_names:
+            self.loss_names += ("dis_loss",)
         self.ema = ModelEMA(self.model)
         self.set_class_weights()  # compute class weights after dataloader is ready
         if RANK in {-1, 0}:
@@ -748,7 +760,22 @@ class BaseTrainer:
             weights, _ = load_checkpoint(self.args.pretrained)
         elif self.args.pretrained is False and not self.resume:
             weights = None
-        self.model = self.get_model(cfg=cfg, weights=weights, verbose=RANK in {-1, 0})  # calls Model(cfg, weights)
+
+        # rebuild DistillationModel from resuming checkpoint
+        if isinstance(weights, DistillationModel):
+            if RANK in {-1, 0}:
+                LOGGER.info("Resuming training DistillationModel from checkpoint weights")
+            student_model = self.get_model(cfg=cfg, weights=weights.student_model, verbose=RANK in {-1, 0})
+            student_model.args = self.args
+            # teacher is stripped from the checkpoint to save memory/disk; rebuild it from the distill_model path
+            teacher_model = weights.teacher_model if weights.teacher_model is not None else self.args.distill_model
+            model = DistillationModel(student_model=student_model, teacher_model=teacher_model)
+            if getattr(weights, "projector", None) is not None:
+                model.projector.load_state_dict(weights.projector.state_dict())  # restore the trained projector
+            model.criterion = None
+            self.model = model
+        else:
+            self.model = self.get_model(cfg=cfg, weights=weights, verbose=RANK in {-1, 0})  # calls Model(cfg, weights)
         return ckpt
 
     def optimizer_step(self):
@@ -900,6 +927,7 @@ class BaseTrainer:
                     "freeze",
                     "val",
                     "plots",
+                    "distill_model",
                 ):  # allow arg updates to reduce memory or update device on resume
                     if k in overrides:
                         setattr(self.args, k, overrides[k])
@@ -957,12 +985,20 @@ class BaseTrainer:
         LOGGER.warning(f"{reason} detected (attempt {self.nan_recovery_attempts}/3), recovering from last.pt...")
         self._model_train()  # set model to train mode before loading checkpoint to avoid inference tensor errors
         _, ckpt = load_checkpoint(self.last)
-        ema_state = ckpt["ema"].float().state_dict()
+        ema = ckpt["ema"].float()
+        ema_state = ema.state_dict()
         if not all(torch.isfinite(v).all() for v in ema_state.values() if isinstance(v, torch.Tensor)):
             raise RuntimeError(f"Checkpoint {self.last} is corrupted with NaN/Inf weights")
-        unwrap_model(self.model).load_state_dict(ema_state)  # Load EMA weights into model
+        model = unwrap_model(self.model)
+        if hasattr(model, "student_model"):
+            # Distillation: the EMA is stripped of the teacher (rebuilt from the distill_model path), so only the
+            # student and projector are restored; loading them separately keeps a strict key match.
+            model.student_model.load_state_dict(ema.student_model.state_dict())
+            model.projector.load_state_dict(ema.projector.state_dict())
+        else:
+            model.load_state_dict(ema_state)  # Load EMA weights into model
         self._load_checkpoint_state(ckpt)  # Load optimizer/scaler/EMA/best_fitness
-        del ckpt, ema_state
+        del ckpt, ema, ema_state
         self.scheduler.last_epoch = epoch - 1
         return True
 

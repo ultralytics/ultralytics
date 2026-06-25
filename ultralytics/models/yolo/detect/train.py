@@ -173,8 +173,11 @@ class DetectionTrainer(BaseTrainer):
             return
         weights = self.compute_class_weights(class_counts)
         weights = weights / weights.mean()  # normalize so mean equals 1.0
-        self.model.class_weights = torch.from_numpy(weights).to(self.device)
-        LOGGER.info(f"Class weights: {self.model.class_weights.cpu().numpy().round(3)}")
+        model = self.model
+        if hasattr(unwrap_model(model), "student_model"):
+            model = unwrap_model(model).student_model  # distillation: the student model builds the loss criterion
+        model.class_weights = torch.from_numpy(weights).to(self.device)
+        LOGGER.info(f"Class weights: {model.class_weights.cpu().numpy().round(3)}")
 
     def get_model(self, cfg: str | None = None, weights: str | None = None, verbose: bool = True):
         """Return a YOLO detection model.

@@ -52,7 +52,7 @@ def lstsq_affine(log_pred, log_gt, dist_power: float = 0.0):
     return float(a), float(b)
 
 
-def fit_calibration(model, dataloader, device, max_images: int = 200, set_buffers: bool = True):
+def fit_calibration(model, dataloader, device, max_images: int = 200, set_buffers: bool = True, dist_power: float = 0.0):
     """Fit the global log-affine ``(a, b)`` so ``exp(a·log(pred) + b) ≈ gt`` over valid pixels.
 
     Args:
@@ -110,11 +110,7 @@ def fit_calibration(model, dataloader, device, max_images: int = 200, set_buffer
         LOGGER.warning("calibrate: no valid depth pixels found; calibration skipped.")
         return None
 
-    import os
-    a, b = lstsq_affine(
-        np.concatenate(logp_all), np.concatenate(logg_all),
-        dist_power=float(os.environ.get("DEPTH_CAL_DIST_POWER", 0.0)),
-    )
+    a, b = lstsq_affine(np.concatenate(logp_all), np.concatenate(logg_all), dist_power=dist_power)
 
     if set_buffers:
         head.cal_a.fill_(a)
@@ -126,7 +122,7 @@ def fit_calibration(model, dataloader, device, max_images: int = 200, set_buffer
     return a, b
 
 
-def calibrate_checkpoint(ckpt_path, dataloader, device) -> None:
+def calibrate_checkpoint(ckpt_path, dataloader, device, dist_power: float = 0.0) -> None:
     """Fit calibration for a saved checkpoint in place (used by automatic post-training calibration).
 
     Loads the checkpoint, fits ``(a, b)`` on ``dataloader`` using a float copy on ``device``, writes
@@ -139,7 +135,7 @@ def calibrate_checkpoint(ckpt_path, dataloader, device) -> None:
     if saved is None or _depth_head(saved) is None:
         return
     work = deepcopy(saved).float()
-    res = fit_calibration(work, dataloader, device, set_buffers=True)
+    res = fit_calibration(work, dataloader, device, set_buffers=True, dist_power=dist_power)
     if res is None:
         return
     a, b = res

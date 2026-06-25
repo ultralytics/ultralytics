@@ -101,11 +101,9 @@ class DepthValidator(DetectionValidator):
         if self.calibrating and self._cal_logp:
             from .calibrate import lstsq_affine
 
-            import os
-
             self.calib = lstsq_affine(
                 np.concatenate(self._cal_logp), np.concatenate(self._cal_logg),
-                dist_power=float(os.environ.get("DEPTH_CAL_DIST_POWER", 0.0)),
+                dist_power=self.args.cal_dist_pw,
             )
             LOGGER.info(f"Depth calibration fit on {self._cal_pts} pixels: a={self.calib[0]:.4f} b={self.calib[1]:.4f}")
         return self.metrics.results_dict

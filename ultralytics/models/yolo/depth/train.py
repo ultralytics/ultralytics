@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import os
 from copy import copy
 
 from ultralytics.models import yolo
@@ -103,10 +102,10 @@ class DepthTrainer(yolo.detect.DetectionTrainer):
 
         After training, fits the scale-only log-affine (``cal_a``/``cal_b``) on the validation
         set and writes it into best.pt/last.pt, so the model outputs metric-scaled depth out of
-        the box. Disable with the environment variable ``DEPTH_AUTO_CALIBRATE=0``.
+        the box. Disable with ``auto_calibrate=False``.
         """
         super().final_eval()
-        if RANK not in {-1, 0} or os.environ.get("DEPTH_AUTO_CALIBRATE", "1") == "0":
+        if RANK not in {-1, 0} or not self.args.auto_calibrate:
             return
         try:
             from .calibrate import calibrate_checkpoint
@@ -114,6 +113,6 @@ class DepthTrainer(yolo.detect.DetectionTrainer):
             LOGGER.info("Auto-calibrating depth output scale on the validation set...")
             for ckpt in (self.best, self.last):
                 if ckpt.exists():
-                    calibrate_checkpoint(ckpt, self.test_loader, self.device)
+                    calibrate_checkpoint(ckpt, self.test_loader, self.device, dist_power=self.args.cal_dist_pw)
         except Exception as e:
             LOGGER.warning(f"Auto-calibration skipped ({type(e).__name__}: {e}); checkpoints left uncalibrated.")

@@ -1,12 +1,11 @@
 ---
+title: NVIDIA DALI GPU Preprocessing for YOLO
 comments: true
-description: Learn how to use NVIDIA DALI for GPU-accelerated preprocessing with Ultralytics YOLO models. Eliminate CPU bottlenecks by running letterbox resize, padding, and normalization on the GPU for faster TensorRT and Triton deployments.
+description: Use NVIDIA DALI to run YOLO letterbox resize, padding, and normalization on the GPU, removing CPU preprocessing bottlenecks in TensorRT and Triton deployments.
 keywords: NVIDIA DALI, GPU preprocessing, Ultralytics, YOLO, YOLO26, TensorRT, Triton Inference Server, letterbox, inference optimization, deep learning, computer vision, deployment, video processing, batch inference, DALI pipeline, CV-CUDA
 ---
 
 # GPU-Accelerated Preprocessing with NVIDIA DALI
-
-## Introduction
 
 When deploying [Ultralytics YOLO](../models/index.md) models in production, [preprocessing](https://www.ultralytics.com/glossary/data-preprocessing) often becomes the bottleneck. While [TensorRT](../integrations/tensorrt.md) can run model [inference](../modes/predict.md) in just a few milliseconds, the CPU-based preprocessing (resize, pad, normalize) can take 2-10ms per image, especially at high resolutions. [NVIDIA DALI](https://docs.nvidia.com/deeplearning/dali/user-guide/docs/index.html) (Data Loading Library) solves this by moving the entire preprocessing pipeline to the GPU.
 
@@ -79,7 +78,7 @@ Install the required packages:
 
 ## Understanding YOLO Preprocessing
 
-Before building a DALI pipeline, it helps to understand exactly what Ultralytics does during preprocessing. The key class is `LetterBox` in [`ultralytics/data/augment.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/augment.py):
+Before building a DALI pipeline, it's worth understanding exactly what Ultralytics does during preprocessing. The key class is `LetterBox` in [`ultralytics/data/augment.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/augment.py):
 
 ```python
 from ultralytics.data.augment import LetterBox
@@ -110,7 +109,7 @@ The letterbox operation preserves the aspect ratio by:
 
 ## DALI Pipeline for YOLO
 
-Use the centered pipeline below as the default reference. It matches Ultralytics `LetterBox(center=True)` behavior, which is what standard YOLO inference uses.
+The recommended DALI pipeline replicates Ultralytics' default `LetterBox(center=True)` behavior, which is what standard YOLO inference uses.
 
 ### Centered Pipeline (Recommended, matches Ultralytics LetterBox)
 
@@ -499,7 +498,7 @@ ensemble_scheduling {
 
 ### Step 4: Send Inference Requests
 
-!!! info "Why `tritonclient` instead of `YOLO(\"http://...\")`?"
+!!! info "Why `tritonclient` instead of `YOLO('http://...')`?"
 
     Ultralytics has [built-in Triton support](triton-inference-server.md#running-inference) that handles pre/postprocessing automatically. However, it won't work with the DALI ensemble because `YOLO()` sends a preprocessed float32 tensor while the ensemble expects raw JPEG bytes. Use `tritonclient` directly for DALI ensembles, and the [built-in integration](triton-inference-server.md) for standard deployments without DALI.
 

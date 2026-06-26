@@ -1,4 +1,5 @@
 ---
+title: hub.session API Reference
 description: Explore the HUBTrainingSession class for managing Ultralytics YOLO model training, heartbeats, and checkpointing.
 keywords: Ultralytics, YOLO, HUBTrainingSession, model training, heartbeats, checkpointing, Python
 ---

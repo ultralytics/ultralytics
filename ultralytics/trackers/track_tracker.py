@@ -7,7 +7,6 @@ from functools import wraps
 from typing import Any
 
 import numpy as np
-import scipy.linalg
 import torch
 
 from ultralytics.utils.metrics import bbox_ioa
@@ -26,25 +25,6 @@ _CORNER_DY_IDX = np.array([1, 3, 1, 3])
 
 _LOOSE_NMS_IOU = 0.95  # looser NMS IoU used to recover detections the tight NMS dropped
 _LOOSE_NMS_DEDUP_IOU = 0.97  # IoU threshold to consider duplicate detections as "new"
-
-
-def _nsa_kalman_update(
-    kf: KalmanFilterXYWH, mean: np.ndarray, covariance: np.ndarray, measurement: np.ndarray, confidence: float
-) -> tuple[np.ndarray, np.ndarray]:
-    """Run a NSA-Kalman update (StrongSORT) that scales the measurement noise by (1 - confidence)."""
-    w = max(1.0 - float(confidence), 0.05)
-    std = kf._std_weight_position * mean[2:4]
-    R = np.diag(np.square(np.r_[std, std])) * w
-    H = kf._update_mat
-    projected_mean = H @ mean
-    projected_cov = np.linalg.multi_dot((H, covariance, H.T)) + R
-
-    chol, low = scipy.linalg.cho_factor(projected_cov, lower=True, check_finite=False)
-    gain = scipy.linalg.cho_solve((chol, low), np.dot(covariance, H.T).T, check_finite=False).T
-    innovation = measurement - projected_mean
-    new_mean = mean + innovation @ gain.T
-    new_cov = covariance - np.linalg.multi_dot((gain, projected_cov, gain.T))
-    return new_mean, new_cov
 
 
 def _hmiou_distance(tracks_a: list[TTSTrack], tracks_b: list[TTSTrack]) -> tuple[np.ndarray, np.ndarray]:
@@ -298,8 +278,8 @@ class TTSTrack(BOTrack):
     def re_activate(self, new_track, frame_id: int, new_id: bool = False) -> None:
         """Rebind a lost track to a fresh detection via NSA-Kalman."""
         self.prev_score = self.score
-        self.mean, self.covariance = _nsa_kalman_update(
-            self.kalman_filter, self.mean, self.covariance, self.convert_coords(new_track.tlwh), new_track.score
+        self.mean, self.covariance = self.kalman_filter.update(
+            self.mean, self.covariance, self.convert_coords(new_track.tlwh), confidence=new_track.score
         )
         self._history.append((frame_id, self.xyxy.copy()))
         self.score = new_track.score  # set before update_features so the EMA weight uses the current confidence
@@ -318,8 +298,8 @@ class TTSTrack(BOTrack):
         self.frame_id = frame_id
         self.tracklet_len += 1
         self.prev_score = self.score
-        self.mean, self.covariance = _nsa_kalman_update(
-            self.kalman_filter, self.mean, self.covariance, self.convert_coords(new_track.tlwh), new_track.score
+        self.mean, self.covariance = self.kalman_filter.update(
+            self.mean, self.covariance, self.convert_coords(new_track.tlwh), confidence=new_track.score
         )
         self._history.append((frame_id, new_track.xyxy.copy()))
 

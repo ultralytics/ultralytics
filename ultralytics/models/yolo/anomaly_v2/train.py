@@ -350,7 +350,7 @@ class AnomalyV2Trainer(DetectionTrainer):
 
     @staticmethod
     def _log_ood_wandb(trainer: "AnomalyV2Trainer", rows: list) -> None:
-        """Push OOD metrics to wandb grouped by mode (ood_none, ood_heatmap, ood_mask).
+        """Push OOD metrics to wandb grouped by mode (test_none_prior, test_heatmap_prior, test_mask_prior).
 
         For each OOD mode, logs the AVERAGE row (mean across all 15 MVTec categories)
         with metrics {mAP10, mAP25, mAP50, mAP50_95, image_auroc, pixel_auroc}.
@@ -367,8 +367,15 @@ class AnomalyV2Trainer(DetectionTrainer):
             return
 
         keys = ("mAP10", "mAP25", "mAP50", "mAP50_95", "image_auroc", "pixel_auroc")
-        # Map val modes to OOD group names
-        mode_to_group = {"mask_off": "ood_none", "heatmap": "ood_heatmap", "mask_on": "ood_mask"}
+        # Map OOD val modes to wandb group names. heatmap_learned / heatmap_fused (scorer modes)
+        # also land under test_heatmap_prior so they are never silently dropped from wandb.
+        mode_to_group = {
+            "mask_off": "test_none_prior",
+            "heatmap": "test_heatmap_prior",
+            "heatmap_learned": "test_heatmap_prior",
+            "heatmap_fused": "test_heatmap_prior",
+            "mask_on": "test_mask_prior",
+        }
 
         log = {}
         for mode, group_name in mode_to_group.items():

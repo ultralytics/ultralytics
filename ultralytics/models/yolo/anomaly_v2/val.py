@@ -5,12 +5,15 @@
 Pass 1 (mask-on):  forward with GT bbox rendered mask.
 Pass 2 (mask-off): forward with mask disabled (passthrough ≈ vanilla YOLO).
 
-Metrics from pass 2 are prefixed ``mask_off/``. The canonical loss reported to
-the trainer comes from pass 1.
+wandb / results.csv key scheme:
+  - mask-off pass -> BARE standard keys (``metrics/...(B/M)``, ``val/..._loss``, ``fitness``) so
+    the run reads like a vanilla YOLO run; fitness/best.pt tracks mask-off mAP for non-OOD runs.
+  - mask-on pass  -> ``val_mask_prior/`` prefix.
+  - MVTec OOD modes -> ``test_none_prior/`` · ``test_heatmap_prior/`` · ``test_mask_prior/`` (train.py).
 
 In addition to standard detection metrics, accumulates image-AUROC and
 pixel-AUROC from the model's stashed heatmap (``model._last_heatmap``) during
-pass 1 only.
+pass 1 (logged under ``val_mask_prior/``).
 
 When ``prior_mode`` is set (standalone val), runs single-pass with that mode
 and still computes AUROC.
@@ -194,20 +197,23 @@ class YOLOAnomalyValidatorBase:
 
         self._mask_mode = "on"
 
-        # Restore mask-on metrics so results_dict shows mask-on by default
+        # Restore mask-on metrics so results_dict / curves reflect the prior-on pass.
         self.metrics = metrics_on
 
         if not isinstance(stats_on, dict):
             return stats_on
-        # Prefix all mask-on metrics for clarity in wandb (mask_on/..., mask_off/...)
-        merged = {f"mask_on/{k}": v for k, v in stats_on.items()}
-        merged[f"mask_on/image_auroc"] = image_auroc
-        merged[f"mask_on/pixel_auroc"] = pixel_auroc
+        # wandb / results.csv key scheme:
+        #   mask-OFF pass -> BARE standard keys (metrics/...(B/M), val/..._loss, fitness) so the run
+        #     reads like a vanilla YOLO run — mask-off IS passthrough ≈ vanilla YOLO. This also makes
+        #     fitness/best.pt track the honest mask-off mAP for non-OOD runs (OOD runs override it).
+        #   mask-ON pass  -> val_mask_prior/ (in-distribution val WITH the GT bbox prior).
+        merged = {f"val_mask_prior/{k}": v for k, v in stats_on.items()}
+        merged["val_mask_prior/image_auroc"] = image_auroc
+        merged["val_mask_prior/pixel_auroc"] = pixel_auroc
         if isinstance(stats_off, dict):
-            for k, v in stats_off.items():
-                merged[f"mask_off/{k}"] = v
-            # Stash mask-off stats for external access
             self._mask_off_stats = dict(stats_off)
+            # AUROC is meaningless without a prior heatmap; drop it from the bare (standard) namespace.
+            merged.update({k: v for k, v in stats_off.items() if k not in ("image_auroc", "pixel_auroc")})
         return merged
 
     # ------------------------------------------------------------------

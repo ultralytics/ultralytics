@@ -71,20 +71,32 @@ class AnomalyV2Trainer(DetectionTrainer):
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         super().__init__(cfg, overrides, _callbacks)
         self.add_callback("on_train_epoch_start", AnomalyV2Trainer._update_seg_alpha)
-        # insert this so wandb can work correctly
-        self.callbacks["on_fit_epoch_end"].insert(0, AnomalyV2Trainer._mvtec_ood_eval)
+        # Run OOD eval at the end of the training epoch *before* validation/save_model,
+        # so validate() can use the current epoch's OOD heatmap mAP50 for best.pt selection.
+        self.callbacks["on_train_epoch_end"].insert(0, AnomalyV2Trainer._mvtec_ood_eval)
         self.add_callback("on_train_batch_end", AnomalyV2Trainer._visualize_prior_mask)
 
     def validate(self):
-        """Run validation, overriding fitness with OOD heatmap mAP50 when available."""
-        metrics, fitness = super().validate()
+        """Run validation, overriding fitness with OOD heatmap mAP50 when available.
+
+        ``_mvtec_ood_eval`` is registered as an ``on_train_epoch_end`` callback, so it
+        runs *before* this method in the trainer loop. That makes ``_ood_heatmap_map50``
+        the current epoch's value rather than the previous epoch's stale value.
+        """
+        previous_best = self.best_fitness
+        metrics, _ = super().validate()  # super() may update best_fitness using val mAP
         ood_map50 = getattr(self, "_ood_heatmap_map50", None)
         if ood_map50 is not None and ood_map50 > 0 and metrics is not None:
-            fitness = ood_map50
-            metrics["fitness"] = ood_map50
-            if not self.best_fitness or self.best_fitness < ood_map50:
-                self.best_fitness = ood_map50
-        return metrics, fitness
+            fitness = float(ood_map50)
+            metrics["fitness"] = fitness
+            # best.pt must track the best OOD heatmap mAP50, not the val mAP that
+            # super().validate() may have written into best_fitness.
+            if previous_best is None or fitness > previous_best:
+                self.best_fitness = fitness
+            else:
+                self.best_fitness = previous_best
+            return metrics, fitness
+        return metrics, self.fitness
 
     def _seg_polygon_active(self) -> bool:
         """True when the SegBranch refiner is supervised against v6 polygon masks (seg_target_polygon)."""

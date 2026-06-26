@@ -1167,8 +1167,13 @@ class E2EDetectLoss:
 
     def __init__(self, model: torch.nn.Module):
         """Initialize E2EDetectLoss with one-to-many and one-to-one detection losses using the provided model."""
+        self.o2f = getattr(model.args, "o2f", False)
         self.one2many = v8DetectionLoss(model, tal_topk=10)
-        self.one2one = v8DetectionLoss(model, tal_topk=1)
+        self.one2one = v8DetectionLoss(model, tal_topk=7 if self.o2f else 1)
+        self.one2one.assigner.o2f = self.o2f
+        self.updates = 0
+        self.o2f_max_t = 0.6
+        self.o2f_min_t = 0.2
         if not getattr(model.args, "vfl_o2m", True):
             self.one2many.vfl = None  # restrict Varifocal Loss to the one2one branch
 
@@ -1181,14 +1186,26 @@ class E2EDetectLoss:
         loss_one2one = self.one2one(one2one, batch)
         return loss_one2many[0] + loss_one2one[0], loss_one2many[1] + loss_one2one[1]
 
+    def update(self) -> None:
+        """Update the O2F ambiguous-anchor positive degree based on the current epoch."""
+        self.updates += 1
+        if self.o2f:
+            self.one2one.assigner.o2f_t = self.o2f_decay(self.updates)
+
+    def o2f_decay(self, x) -> float:
+        """Linearly decay the O2F ambiguous-anchor positive degree from 0.6 to 0.2."""
+        return max(1 - x / max(self.one2one.hyp.epochs - 1, 1), 0) * (self.o2f_max_t - self.o2f_min_t) + self.o2f_min_t
+
 
 class E2ELoss:
     """Criterion class for computing training losses for end-to-end detection."""
 
     def __init__(self, model: torch.nn.Module, loss_fn=v8DetectionLoss):
         """Initialize E2ELoss with one-to-many and one-to-one detection losses using the provided model."""
+        self.o2f = getattr(model.args, "o2f", False)
         self.one2many = loss_fn(model, tal_topk=10)
         self.one2one = loss_fn(model, tal_topk=7, tal_topk2=1)
+        self.one2one.assigner.o2f = self.o2f
         if not getattr(model.args, "vfl_o2m", True):
             self.one2many.vfl = None  # restrict Varifocal Loss to the one2one branch
         self.updates = 0
@@ -1197,6 +1214,8 @@ class E2ELoss:
         self.o2m = 0.8
         self.o2o = self.total - self.o2m
         self.o2m_copy = self.o2m
+        self.o2f_max_t = 0.6
+        self.o2f_min_t = 0.2
         # final gain
         self.final_o2m = 0.1
 
@@ -1213,10 +1232,16 @@ class E2ELoss:
         self.updates += 1
         self.o2m = self.decay(self.updates)
         self.o2o = max(self.total - self.o2m, 0)
+        if self.o2f:
+            self.one2one.assigner.o2f_t = self.o2f_decay(self.updates)
 
     def decay(self, x) -> float:
         """Calculate the decayed weight for one-to-many loss based on the current update step."""
         return max(1 - x / max(self.one2one.hyp.epochs - 1, 1), 0) * (self.o2m_copy - self.final_o2m) + self.final_o2m
+
+    def o2f_decay(self, x) -> float:
+        """Linearly decay the O2F ambiguous-anchor positive degree from 0.6 to 0.2."""
+        return max(1 - x / max(self.one2one.hyp.epochs - 1, 1), 0) * (self.o2f_max_t - self.o2f_min_t) + self.o2f_min_t
 
 
 class TVPDetectLoss:

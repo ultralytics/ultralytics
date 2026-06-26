@@ -52,6 +52,8 @@ class TaskAlignedAssigner(nn.Module):
         super().__init__()
         self.topk = topk
         self.topk2 = topk2 or topk
+        self.o2f = False
+        self.o2f_t = 0.6
         self.num_classes = num_classes
         self.alpha = alpha
         self.beta = beta
@@ -139,6 +141,8 @@ class TaskAlignedAssigner(nn.Module):
         pos_align_metrics = align_metric.amax(dim=-1, keepdim=True)  # b, max_num_obj
         pos_overlaps = (overlaps * mask_pos).amax(dim=-1, keepdim=True)  # b, max_num_obj
         norm_align_metric = (align_metric * pos_overlaps / (pos_align_metrics + self.eps)).amax(-2).unsqueeze(-1)
+        if self.o2f and self.topk > 1:
+            norm_align_metric = norm_align_metric * self.get_o2f_degrees(pd_scores, gt_labels, mask_pos, align_metric)
         target_scores = target_scores * norm_align_metric
 
         return target_labels, target_bboxes, target_scores, fg_mask.bool(), target_gt_idx
@@ -201,6 +205,25 @@ class TaskAlignedAssigner(nn.Module):
 
         align_metric = bbox_scores.pow(self.alpha) * overlaps.pow(self.beta)
         return align_metric, overlaps
+
+    def get_o2f_degrees(self, pd_scores, gt_labels, mask_pos, align_metric):
+        """Return O2F positive degrees for assigned anchors, keeping each GT best anchor fully positive."""
+        mask_pos = mask_pos.bool()
+        gt_scores = torch.zeros_like(mask_pos, dtype=pd_scores.dtype)
+        ind = torch.zeros([2, self.bs, self.n_max_boxes], dtype=torch.long, device=gt_labels.device)
+        ind[0] = torch.arange(end=self.bs, device=gt_labels.device).view(-1, 1).expand(-1, self.n_max_boxes)
+        ind[1] = gt_labels.squeeze(-1).clamp(min=0)
+        gt_scores[mask_pos] = pd_scores[ind[0], :, ind[1]][mask_pos]
+
+        best_idx = (align_metric * mask_pos).argmax(-1, keepdim=True)
+        best_mask = torch.zeros_like(mask_pos, dtype=torch.bool).scatter_(-1, best_idx, True) & mask_pos
+        amb_mask = mask_pos & ~best_mask
+        max_amb_score = (gt_scores * amb_mask).amax(-1, keepdim=True)
+        amb_degree = gt_scores / (max_amb_score + self.eps) * self.o2f_t
+        degrees = torch.where(
+            best_mask, torch.ones_like(gt_scores), torch.where(amb_mask, amb_degree, torch.zeros_like(gt_scores))
+        )
+        return degrees.amax(-2).unsqueeze(-1)
 
     def iou_calculation(self, gt_bboxes, pd_bboxes):
         """Calculate IoU for horizontal bounding boxes.
@@ -343,7 +366,7 @@ class TaskAlignedAssigner(nn.Module):
 
             fg_mask = mask_pos.sum(-2)
 
-        if self.topk2 != self.topk:
+        if self.topk2 != self.topk and not self.o2f:
             align_metric = align_metric * mask_pos  # update overlaps
             # (b, n_max_boxes, topk2)
             max_overlaps_idx = torch.topk(align_metric, self.topk2, dim=-1, largest=True).indices

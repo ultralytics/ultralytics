@@ -1041,7 +1041,9 @@ class v8OBBLoss(v8DetectionLoss):
             gt_labels, gt_bboxes = targets.split((1, 5), 2)  # cls, xywhr
             mask_gt = gt_bboxes.sum(2, keepdim=True).gt_(0.0)
             gt_bboxes[..., 2:4] = torch.where(  # floor sub-stride sizes to keep ProbIoU targets well-conditioned
-                (gt_bboxes[..., 2:4] < self.stride[0]) & mask_gt.bool(), self.stride[1], gt_bboxes[..., 2:4]
+                (gt_bboxes[..., 2:4] < self.stride[0]) & mask_gt.bool(),
+                self.assigner.stride_val,
+                gt_bboxes[..., 2:4],
             )
         except RuntimeError as e:
             raise TypeError(

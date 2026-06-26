@@ -1779,17 +1779,6 @@ class YOLOAnomalyV2Model(DetectionModel):
                         and bboxes is not None
                         and external_mask is None
                         and prior_mode is None
-                        and (
-                            self.mask_augmenter.mask_shuffle_p > 0.0
-                            or self.mask_augmenter.mask_noise_std > 0.0
-                            or self.mask_augmenter.mask_mag_range[0] < 1.0
-                            or self.mask_augmenter.mask_mag_range[1] < 1.0
-                            or self.mask_augmenter.mask_blur_sigma_max > 0.0
-                            or self.mask_augmenter.mask_distractor_p > 0.0
-                            or self.mask_augmenter.mask_erase_p > 0.0
-                            or self.mask_augmenter.mask_warp_p > 0.0
-                            or self.mask_augmenter.mask_mixup_p > 0.0
-                        )
                     ):
                         mask = self.mask_augmenter.augment_mask(mask)
                 fused = []

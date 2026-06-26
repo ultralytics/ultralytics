@@ -720,6 +720,9 @@ class BackboneMemoryBank(nn.Module):
             return
         self.feature_dim = features.shape[1]
         self.memory_bank = F.normalize(features.to(self.memory_bank.device), p=2, dim=1)
+        self._calibrated = True  # trigger lazy compactness/threshold recompute on next score
+        self._compactness = None
+        self._threshold = None
 
     def freeze_memory_bank(self) -> None:
         """Coreset-compress, calibrate via compactness + holdout, then freeze the bank."""

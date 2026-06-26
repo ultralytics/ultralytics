@@ -149,6 +149,10 @@ class YOLOA(Model):
             mb.load_bank(d["memory_bank"])
             mb.temperature = d["temperature"]
             mb.update = False
+            if d.get("_calibrated"):
+                mb._threshold = d["_threshold"]
+                mb._compactness = d["_compactness"]
+                mb._calibrated = True
             LOGGER.info(f"YOLOA.fit: loaded cached bank ({mb.memory_bank.shape[0]} vecs) <- {cache_path}")
         else:
             n = m.load_support_set(
@@ -159,8 +163,13 @@ class YOLOA(Model):
             )
             if cache_path is not None and n:
                 cache_path.parent.mkdir(parents=True, exist_ok=True)
-                torch.save({"memory_bank": mb.memory_bank.detach().cpu(),
-                            "feature_dim": mb.feature_dim, "temperature": float(mb.temperature)}, cache_path)
+                entry = {"memory_bank": mb.memory_bank.detach().cpu(),
+                         "feature_dim": mb.feature_dim, "temperature": float(mb.temperature)}
+                if getattr(mb, "_calibrated", False):
+                    entry["_threshold"] = mb._threshold
+                    entry["_compactness"] = mb._compactness
+                    entry["_calibrated"] = True
+                torch.save(entry, cache_path)
                 LOGGER.info(f"YOLOA.fit: cached bank ({mb.memory_bank.shape[0]} vecs) -> {cache_path}")
 
         m.fit_args = dict(fit_args)  # provenance — plain attrs, ride along on save()

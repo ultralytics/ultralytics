@@ -513,6 +513,10 @@ def _inject_cat_bank(m, root: Path, cat: str, cache_dir: Path, imgsz, device, ba
         mb.load_bank(d["memory_bank"])  # re-normalizes + sets feature_dim onto the bank's device
         mb.temperature = d["temperature"]
         mb.update = False  # scoring mode (frozen)
+        if d.get("_calibrated"):
+            mb._threshold = d["_threshold"]
+            mb._compactness = d["_compactness"]
+            mb._calibrated = True
         LOGGER.info(f"MVTec OOD: {cat}: loaded cached bank ({mb.memory_bank.shape[0]} vecs) <- {path}")
         return True
     train_dir = root / cat / "train" / "good"
@@ -529,8 +533,13 @@ def _inject_cat_bank(m, root: Path, cat: str, cache_dir: Path, imgsz, device, ba
         return False
     if not n or mb.memory_bank is None or mb.memory_bank.shape[0] == 0:
         return False
-    torch.save({"memory_bank": mb.memory_bank.detach().cpu(), "feature_dim": mb.feature_dim,
-                "temperature": float(mb.temperature)}, path)
+    entry = {"memory_bank": mb.memory_bank.detach().cpu(), "feature_dim": mb.feature_dim,
+             "temperature": float(mb.temperature)}
+    if getattr(mb, "_calibrated", False):
+        entry["_threshold"] = mb._threshold
+        entry["_compactness"] = mb._compactness
+        entry["_calibrated"] = True
+    torch.save(entry, path)
     mb.update = False
     LOGGER.info(f"MVTec OOD: {cat}: built+cached bank ({mb.memory_bank.shape[0]} vecs) -> {path}")
     return True

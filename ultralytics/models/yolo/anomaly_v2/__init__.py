@@ -2,12 +2,14 @@
 
 from .predict import YOLOAnomalyPredictor, YOLOAnomalyPredictorBase, YOLOAnomalySegPredictor
 from .train import AnomalyV2Trainer
-from .val import AnomalyV2Validator
+from .val import YOLOAnomalyValidator, YOLOAnomalyValidatorBase, YOLOAnomalySegValidator
 
 __all__ = (
     "YOLOAnomalyPredictor",
     "YOLOAnomalyPredictorBase",
     "YOLOAnomalySegPredictor",
     "AnomalyV2Trainer",
-    "AnomalyV2Validator",
+    "YOLOAnomalyValidator",
+    "YOLOAnomalyValidatorBase",
+    "YOLOAnomalySegValidator",
 )

@@ -119,7 +119,7 @@ class YOLO(Model):
             "anomaly_v2": {
                 "model": YOLOAnomalyV2Model,
                 "trainer": yolo.anomaly_v2.AnomalyV2Trainer,
-                "validator": yolo.anomaly_v2.AnomalyV2Validator,
+                "validator": yolo.anomaly_v2.YOLOAnomalyValidator,
                 "predictor": yolo.anomaly_v2.YOLOAnomalyPredictor,
             },
         }

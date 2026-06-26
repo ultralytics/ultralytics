@@ -4,7 +4,7 @@
 
 Thin extension of ``DetectionTrainer``. The differences:
   * ``get_model`` returns a ``YOLOAnomalyV2Model`` instead of a plain ``DetectionModel``.
-  * ``get_validator`` returns an ``AnomalyV2Validator`` that runs val twice
+  * ``get_validator`` returns a ``YOLOAnomalyValidator`` / ``YOLOAnomalySegValidator`` that runs val twice
     (mask-on and mask-off) — see ``val.py``.
   * When the model has a SegBranch (v2.2), an alpha curriculum anneals the fusion
     prior from the GT mask to the predicted heatmap, and ``seg_loss`` is reported.
@@ -230,9 +230,15 @@ class AnomalyV2Trainer(DetectionTrainer):
         return model
 
     def get_validator(self):
-        """Return an AnomalyV2Validator (single-pass, legacy GT mask rendering for training)."""
+        """Return the anomaly validator (2-pass, legacy GT mask rendering for training).
+
+        A ``Segment`` head routes to ``YOLOAnomalySegValidator`` (box + per-instance mask metrics);
+        a ``Detect`` head to ``YOLOAnomalyValidator`` (box metrics). Mirrors ``get_model``'s
+        head-based model selection.
+        """
         model = unwrap_model(self.model)
-        if self._instance_seg_active():
+        seg_active = self._instance_seg_active()
+        if seg_active:
             # v8SegmentationLoss returns [box, seg, cls, dfl, sem] (5 components).
             loss_names = ["box_loss", "seg_loss", "cls_loss", "dfl_loss", "sem_loss"]
         else:
@@ -240,13 +246,16 @@ class AnomalyV2Trainer(DetectionTrainer):
         if getattr(model, "seg_branch", None) is not None:
             # Rename to seg_prior_loss when instance seg is active to avoid collision
             # with the per-instance seg_loss above.
-            label = "seg_prior_loss" if self._instance_seg_active() else "seg_loss"
+            label = "seg_prior_loss" if seg_active else "seg_loss"
             loss_names.append(label)
         # QueryFiLM appends 4 aux components in this exact order (see YOLOAnomalyV2Model.loss).
         if getattr(model, "fusion_mode", None) == "queryfilm":
             loss_names += ["qmask_loss", "qobj_loss", "qovl_loss", "qfg_loss"]
         self.loss_names = tuple(loss_names)
-        return yolo.anomaly_v2.AnomalyV2Validator(
+        validator_cls = (
+            yolo.anomaly_v2.YOLOAnomalySegValidator if seg_active else yolo.anomaly_v2.YOLOAnomalyValidator
+        )
+        return validator_cls(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args),
             _callbacks=self.callbacks, prior_mode=None,  # legacy GT bboxes -> renderer
         )

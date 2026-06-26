@@ -99,19 +99,19 @@ class YOLOA(Model):
     def task_map(self) -> dict[str, dict[str, Any]]:
         """Map the anomaly_v2 task to its model, trainer, validator and predictor.
 
-        The predictor is chosen from the loaded checkpoint's head: a ``Segment`` head routes to
-        ``YOLOAnomalySegPredictor`` (boxes + masks), otherwise ``YOLOAnomalyPredictor`` (boxes).
+        The predictor and validator are chosen from the loaded checkpoint's head: a ``Segment`` head
+        routes to ``YOLOAnomalySegPredictor`` / ``YOLOAnomalySegValidator`` (boxes + masks),
+        otherwise ``YOLOAnomalyPredictor`` / ``YOLOAnomalyValidator`` (boxes). MVTec OOD eval stays
+        box-only regardless of head (see ``run_mvtec_ood_eval``).
         """
-        predictor = (
-            yolo.anomaly_v2.YOLOAnomalySegPredictor
-            if self._head_is_segment()
-            else yolo.anomaly_v2.YOLOAnomalyPredictor
-        )
+        seg = self._head_is_segment()
+        predictor = yolo.anomaly_v2.YOLOAnomalySegPredictor if seg else yolo.anomaly_v2.YOLOAnomalyPredictor
+        validator = yolo.anomaly_v2.YOLOAnomalySegValidator if seg else yolo.anomaly_v2.YOLOAnomalyValidator
         return {
             "anomaly_v2": {
                 "model": YOLOAnomalyV2Model,
                 "trainer": yolo.anomaly_v2.AnomalyV2Trainer,
-                "validator": yolo.anomaly_v2.AnomalyV2Validator,
+                "validator": validator,
                 "predictor": predictor,
             }
         }
@@ -222,7 +222,7 @@ class YOLOA(Model):
                                external_mask=external_mask, **kwargs)
 
     def val(self, validator=None, prior: str | None = None, **kwargs: Any):
-        """Validate with an optional prior (AnomalyV2Validator adds image/pixel AUROC).
+        """Validate with an optional prior (YOLOAnomalyValidator adds image/pixel AUROC).
 
         Args:
             validator: Optional custom validator.

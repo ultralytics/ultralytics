@@ -29,6 +29,7 @@ import torch.nn.functional as F
 
 from ultralytics.data.build import build_dataloader
 from ultralytics.models.yolo.detect import DetectionValidator
+from ultralytics.models.yolo.segment import SegmentationValidator
 from ultralytics.utils import LOGGER
 from ultralytics.utils.torch_utils import unwrap_model
 
@@ -37,8 +38,16 @@ from ._util import resolve_v2_model
 _SENTINEL = object()  # "prior mode not snapshotted" marker (distinct from a real None)
 
 
-class AnomalyV2Validator(DetectionValidator):
-    """Detection validator: 2-pass during training (mask-on / mask-off), single-pass for prior modes."""
+class YOLOAnomalyValidatorBase:
+    """Shared anomaly-v2 validation logic, mixed into a detection or segmentation base validator.
+
+    Holds all anomaly behavior — prior-mode routing, 2-pass (mask-on / mask-off) training val,
+    image/pixel AUROC, the memory-bank / scorer lifecycle, and the OOD / standalone single-pass
+    path. Composed with ``DetectionValidator`` (box metrics) as :class:`YOLOAnomalyValidator`, or
+    with ``SegmentationValidator`` (box + per-instance mask metrics) as
+    :class:`YOLOAnomalySegValidator`; the concrete class only fixes which metrics base is used.
+    All ``super()`` calls resolve through the concrete class's MRO.
+    """
 
     def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None,
                  prior_mode: str | None = None) -> None:
@@ -102,12 +111,12 @@ class AnomalyV2Validator(DetectionValidator):
                 # No usable bank (no bb_layers / no normal images / build failed): never run the
                 # heatmap forward against a missing-or-empty bank — fall back to bare detection so
                 # the run is honest (AUROC nan) instead of crashing or scoring against 0 vectors.
-                LOGGER.warning("AnomalyV2Validator: heatmap prior unavailable -> running prior_mode='none'.")
+                LOGGER.warning("YOLOAnomalyValidator: heatmap prior unavailable -> running prior_mode='none'.")
                 effective = "none"
             elif self.prior_mode in ("heatmap_learned", "heatmap_fused") and not self._ensure_feat_disc(m):
                 # Scorer fit failed: heatmap_fused degrades to the bank alone, heatmap_learned to none.
                 fallback = "heatmap" if self.prior_mode == "heatmap_fused" else "none"
-                LOGGER.warning(f"AnomalyV2Validator: learned scorer unavailable -> prior_mode='{fallback}'.")
+                LOGGER.warning(f"YOLOAnomalyValidator: learned scorer unavailable -> prior_mode='{fallback}'.")
                 effective = fallback
             m.set_prior_mode(effective)
 
@@ -180,7 +189,7 @@ class AnomalyV2Validator(DetectionValidator):
         try:
             stats_off = super().__call__(trainer=trainer, model=model)
         except Exception as e:
-            LOGGER.warning(f"AnomalyV2Validator: mask-off pass failed: {e}")
+            LOGGER.warning(f"YOLOAnomalyValidator: mask-off pass failed: {e}")
             stats_off = {}
 
         self._mask_mode = "on"
@@ -231,7 +240,7 @@ class AnomalyV2Validator(DetectionValidator):
         mb = getattr(m, "memory_bank", None)
         if mb is None or getattr(m, "_bb_layers", None) is None:
             LOGGER.warning(
-                "AnomalyV2Validator: prior_mode='heatmap' but no BackboneMemoryBank is configured "
+                "YOLOAnomalyValidator: prior_mode='heatmap' but no BackboneMemoryBank is configured "
                 "(model YAML needs a bb_layers block)."
             )
             return False
@@ -239,19 +248,19 @@ class AnomalyV2Validator(DetectionValidator):
             return True  # caller already supplied a bank — use it, don't rebuild or clear it
         support = self._collect_support_paths()
         if not support:
-            LOGGER.warning("AnomalyV2Validator: no train (normal) images found; cannot build memory bank.")
+            LOGGER.warning("YOLOAnomalyValidator: no train (normal) images found; cannot build memory bank.")
             return False
         imgsz = self.args.imgsz if isinstance(self.args.imgsz, int) else 640
         try:
             n = m.load_support_set(support, imgsz=imgsz, device=self.device,
                                    max_bank_size=self._ood_bank_size, verbose=False)
         except Exception as e:  # missing/corrupt images, OOM, etc. — never crash the val run
-            LOGGER.warning(f"AnomalyV2Validator: memory bank build failed ({type(e).__name__}: {e}).")
+            LOGGER.warning(f"YOLOAnomalyValidator: memory bank build failed ({type(e).__name__}: {e}).")
             return False
         if not n:
-            LOGGER.warning("AnomalyV2Validator: memory bank is empty after build.")
+            LOGGER.warning("YOLOAnomalyValidator: memory bank is empty after build.")
             return False
-        LOGGER.info(f"AnomalyV2Validator: built memory bank ({n} features) from {len(support)} normal images.")
+        LOGGER.info(f"YOLOAnomalyValidator: built memory bank ({n} features) from {len(support)} normal images.")
         self._built_bank = True
         return True
 
@@ -270,7 +279,7 @@ class AnomalyV2Validator(DetectionValidator):
         try:
             ok = m.fit_feat_disc(fuse=self._scorer_fuse, **self._scorer_kwargs)
         except Exception as e:  # never crash the val run on a scorer fit failure
-            LOGGER.warning(f"AnomalyV2Validator: feature-discriminator fit failed ({type(e).__name__}: {e}).")
+            LOGGER.warning(f"YOLOAnomalyValidator: feature-discriminator fit failed ({type(e).__name__}: {e}).")
             return False
         self._fit_disc = bool(ok)
         return ok
@@ -449,6 +458,29 @@ class AnomalyV2Validator(DetectionValidator):
                           mm["mAP10"], mm["mAP25"], mm["mAP50"], mm["mAP50_95"], ia, pa))
 
 
+class YOLOAnomalyValidator(YOLOAnomalyValidatorBase, DetectionValidator):
+    """Anomaly-v2 validator with box metrics (Detect-head training val + OOD / standalone path)."""
+
+
+class YOLOAnomalySegValidator(YOLOAnomalyValidatorBase, SegmentationValidator):
+    """Anomaly-v2 validator with box + per-instance mask metrics (Segment-head training val).
+
+    Used for in-distribution training val (``prior_mode=None``); OOD eval stays box-only via
+    :class:`YOLOAnomalyValidator`. ``build_dataset`` forces polygon-mask loading so mask mAP is
+    actually measured (training val reuses the trainer's seg loader directly, so the override only
+    matters for standalone ``YOLOA.val`` on a Segment-head checkpoint).
+    """
+
+    def build_dataset(self, img_path, mode="val", batch=None):
+        """Build a val dataset with polygon masks (task='segment') so mask metrics are computed."""
+        prev_task = self.args.task
+        self.args.task = "segment"
+        try:
+            return super().build_dataset(img_path, mode=mode, batch=batch)
+        finally:
+            self.args.task = prev_task
+
+
 # ----------------------------------------------------------------------
 # MVTec cross-dataset OOD evaluation (3-mode sweep)
 #
@@ -498,7 +530,7 @@ def _inject_cat_bank(m, root: Path, cat: str, cache_dir: Path, imgsz, device, ba
 
     Mirrors the predict script's disk cache: the bank is saved to
     ``<cache_dir>/<cat>_sz<imgsz>_n<bank_size>.pt`` and reloaded on re-runs, skipping the slow
-    feature extraction. Once injected, :meth:`AnomalyV2Validator._ensure_memory_bank` reuses it
+    feature extraction. Once injected, :meth:`YOLOAnomalyValidator._ensure_memory_bank` reuses it
     (its ``_built_bank`` stays False, so the bank is not dropped between modes). Returns True iff a
     usable bank is now in place; the caller resets it before the next category.
     """
@@ -570,12 +602,13 @@ def run_mvtec_ood_eval(
     bank_cache_dir: str | Path | None = None,
     scorer_kwargs: dict | None = None,
     scorer_fuse: str = "mean",
+    validator_cls: type | None = None,
 ) -> list[dict]:
     """Run the 3-mode MVTec OOD eval over ``categories``; ``model`` is a YOLOAnomalyV2Model.
 
     Each (category, mode) is isolated in try/except so one failure never aborts the sweep.
     Returns per-(category, mode) rows plus per-mode ``AVERAGE`` rows; appends ``mvtec_ood.csv``
-    under ``save_dir`` when given. Reuses :class:`AnomalyV2Validator` via the ``model.val`` args
+    under ``save_dir`` when given. Reuses :class:`YOLOAnomalyValidator` via the ``model.val`` args
     path (the validator pops ``prior_mode`` from the dict and builds/drops the bank internally).
 
     ``bank_cache_dir`` (opt-in, standalone eval only): persist each category's memory bank to
@@ -585,6 +618,9 @@ def run_mvtec_ood_eval(
     default keeps the shared/EMA model clean (a stuck per-category bank would corrupt training).
     """
     root = Path(mvtec_root)
+    # OOD is box-only for now (detection validator) regardless of the model's head; pass a seg
+    # validator class here in the future to also score masks cross-dataset.
+    validator_cls = validator_cls or YOLOAnomalyValidator
     m = unwrap_model(model)
     if e2e is not None:
         # e2e=False -> one2many head emits dense preds so the validator's NMS (with `iou`) runs and
@@ -631,7 +667,7 @@ def run_mvtec_ood_eval(
                     "device": str(device) if device is not None else None,
                     "rect": False, "plots": False, "verbose": False, "save_json": False,
                     "single_cls": True,  # model is binary-trained; map all GT class IDs → 0
-                    "prior_mode": _MODE_TO_PRIOR[mode],  # popped by AnomalyV2Validator.__init__
+                    "prior_mode": _MODE_TO_PRIOR[mode],  # popped by YOLOAnomalyValidator.__init__
                     "scorer_kwargs": scorer_kwargs,  # learned-scorer fit kwargs (popped too)
                     "scorer_fuse": scorer_fuse,  # heatmap_fused combine op (popped too)
                     "cache": "ram",  # decode all test images to RAM on first mode
@@ -643,14 +679,14 @@ def run_mvtec_ood_eval(
                 sd = Path(save_dir) / "mvtec_ood_runs" if save_dir is not None else None
                 if mi == 0:
                     # First mode: build normally — triggers RAM cache in the dataset
-                    validator = AnomalyV2Validator(args=overrides, save_dir=sd)
+                    validator = validator_cls(args=overrides, save_dir=sd)
                     validator._ood_bank_size = bank_size
                     validator(trainer=None, model=m)
                     cat_dataset = validator.dataloader.dataset
                 else:
                     # Subsequent modes: reuse RAM-cached dataset in a fresh DataLoader
                     cat_dl = build_dataloader(cat_dataset, batch, workers, shuffle=False, rank=-1)
-                    validator = AnomalyV2Validator(dataloader=cat_dl, args=overrides, save_dir=sd)
+                    validator = validator_cls(dataloader=cat_dl, args=overrides, save_dir=sd)
                     validator._ood_bank_size = bank_size
                     validator(trainer=None, model=m)
                 mm = validator.ood_map_metrics()

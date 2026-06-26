@@ -181,7 +181,7 @@ def benchmark(
                     "Axelera export does not currently support YOLO26 segmentation models"
                 )
             if format == "litert":
-                assert LINUX and not ARM64, "LiteRT benchmark only supported on Linux x86"
+                assert MACOS or (LINUX and not ARM64), "LiteRT benchmark only supported on Linux x86 and macOS"
             if "cpu" in device.type:
                 assert cpu, "inference not supported on CPU"
             if "cuda" in device.type:

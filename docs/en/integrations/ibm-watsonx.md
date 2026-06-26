@@ -294,7 +294,7 @@ The code above displays ten images from the test set with their predicted boundi
 
 ### Step 7: Evaluate the Model
 
-We can produce visualizations of the model's [precision](https://www.ultralytics.com/glossary/precision) and recall for each class. These visualizations are saved in the home directory, under the train folder. The precision score is displayed in the BoxP_curve.png:
+We can produce visualizations of the model's [precision](https://www.ultralytics.com/glossary/precision) and recall for each class. These visualizations are saved in the training run directory (`{work_dir}/runs/detect/train/`). The precision score is displayed in the BoxP_curve.png:
 
 <p align="center">
   <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/precision-confidence-curve.avif" alt="Model precision-confidence evaluation curve">

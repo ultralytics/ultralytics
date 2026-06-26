@@ -155,7 +155,7 @@ Different optimizers have various strengths and weaknesses. Let's take a glimpse
     - Combines the benefits of both SGD with momentum and RMSProp.
     - Adjusts the learning rate for each parameter based on estimates of the first and second moments of the gradients.
     - Well-suited for noisy data and sparse gradients.
-    - Efficient and generally requires less tuning, which is why YOLO26's `optimizer=auto` defaults to the closely related AdamW for shorter training runs.
+    - Efficient and generally requires less tuning. For shorter training runs, YOLO26's `optimizer=auto` selects the closely related **AdamW** rather than Adam itself.
 
 - **RMSProp (Root Mean Square Propagation)**:
     - Adjusts the learning rate for each parameter by dividing the gradient by a running average of the magnitudes of recent gradients.

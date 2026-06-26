@@ -9,6 +9,7 @@ import uuid
 from contextlib import redirect_stderr, redirect_stdout
 from itertools import product
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 import torch
@@ -17,7 +18,7 @@ from tests import SOURCE
 from tests.conftest import isolated_model_path
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS, _handle_deprecation, get_cfg
-from ultralytics.engine.exporter import EXPORT_ENVS, export_formats
+from ultralytics.engine.exporter import EXPORT_ENVS, export_formats, validate_args
 from ultralytics.utils import (
     ARM64,
     IS_DOCKER,
@@ -105,6 +106,14 @@ def test_quantize_deprecation():
     assert _handle_deprecation({"half": True})["quantize"] == 16
     assert _handle_deprecation({"half": True, "int8": True})["quantize"] == 8  # int8 wins
     assert "half" not in _handle_deprecation({"half": True})  # legacy flag is removed after forwarding
+
+
+def test_qnn_quantize_requires_w8a16():
+    """QNN exports are W8A16; explicit INT8 activation quantization is not supported."""
+    valid_args = ["batch", "data", "dynamic", "fraction", "keras", "nms"]
+    validate_args("qnn", SimpleNamespace(quantize="w8a16"), valid_args)
+    with pytest.raises(AssertionError, match="quantize=8 is not supported"):
+        validate_args("qnn", SimpleNamespace(quantize=8), valid_args)
 
 
 def test_modelopt_quantize_onnx_requires_int8_dataset():

@@ -372,7 +372,6 @@ INT8_FORMATS = frozenset(
         "rknn",
         "axelera",
         "deepx",
-        "qnn",
     }
 )
 W8A16_FORMATS = frozenset({"coreml", "imx", "qnn"})  # INT8 weights + FP16 activations
@@ -398,11 +397,12 @@ def validate_args(format, passed_args, valid_args):
         assert format in FP16_FORMATS, (
             f"ERROR ❌️ quantize=16 (FP16) is not supported for format='{format}'. See {QUANTIZE_DOCS_URL}"
         )
-    elif passed_args.quantize in {8, "w8a16"}:  # INT8 (w8a16 keeps FP16 activations)
+    elif passed_args.quantize == 8:  # INT8
         assert format in INT8_FORMATS, (
             f"ERROR ❌️ quantize={passed_args.quantize} is not supported for format='{format}'. See {QUANTIZE_DOCS_URL}"
         )
-        assert passed_args.quantize != "w8a16" or format in W8A16_FORMATS, (
+    elif passed_args.quantize == "w8a16":  # INT8 weights + FP16 activations
+        assert format in W8A16_FORMATS, (
             f"ERROR ❌️ quantize='w8a16' (INT8 weights + FP16 activations) is not supported for format='{format}'. "
             f"See {QUANTIZE_DOCS_URL}"
         )

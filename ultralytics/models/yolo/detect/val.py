@@ -264,10 +264,10 @@ class DetectionValidator(BaseValidator):
             self.jdict = []
             self.metrics.clear_stats()
         if self.args.plots and RANK > -1:
-            gathered_cm = [None] * dist.get_world_size() if RANK == 0 else None
-            dist.gather_object(self.confusion_matrix.matrix, gathered_cm, dst=0)
+            matrix = torch.as_tensor(self.confusion_matrix.matrix, device=self.device)
+            dist.reduce(matrix, dst=0, op=dist.ReduceOp.SUM)
             if RANK == 0:
-                self.confusion_matrix.matrix = sum(gathered_cm)
+                self.confusion_matrix.matrix = matrix.cpu().numpy()
 
     def get_stats(self) -> dict[str, Any]:
         """Calculate and return metrics statistics.

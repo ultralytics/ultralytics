@@ -1,4 +1,5 @@
 ---
+title: YOLO Performance Metrics
 comments: true
 description: Explore essential YOLO26 performance metrics like mAP, IoU, F1 Score, Precision, and Recall. Learn how to calculate and interpret them for model evaluation.
 keywords: YOLO26 performance metrics, mAP, IoU, F1 Score, Precision, Recall, object detection, Ultralytics
@@ -76,13 +77,13 @@ For users validating on the COCO dataset, additional metrics are calculated usin
 
 The model.val() function, apart from producing numeric metrics, also yields visual outputs that can provide a more intuitive understanding of the model's performance. Here's a breakdown of the visual outputs you can expect:
 
-- **F1 Score Curve (`F1_curve.png`)**: This curve represents the [F1 score](https://www.ultralytics.com/glossary/f1-score) across various thresholds. Interpreting this curve can offer insights into the model's balance between false positives and false negatives over different thresholds.
+- **F1 Score Curve (`BoxF1_curve.png`)**: This curve represents the [F1 score](https://www.ultralytics.com/glossary/f1-score) across various thresholds. Interpreting this curve can offer insights into the model's balance between false positives and false negatives over different thresholds.
 
-- **Precision-Recall Curve (`PR_curve.png`)**: An integral visualization for any classification problem, this curve showcases the trade-offs between precision and [recall](https://www.ultralytics.com/glossary/recall) at varied thresholds. It becomes especially significant when dealing with imbalanced classes.
+- **Precision-Recall Curve (`BoxPR_curve.png`)**: An integral visualization for any classification problem, this curve showcases the trade-offs between precision and [recall](https://www.ultralytics.com/glossary/recall) at varied thresholds. It becomes especially significant when dealing with imbalanced classes.
 
-- **Precision Curve (`P_curve.png`)**: A graphical representation of precision values at different thresholds. This curve helps in understanding how precision varies as the threshold changes.
+- **Precision Curve (`BoxP_curve.png`)**: A graphical representation of precision values at different thresholds. This curve helps in understanding how precision varies as the threshold changes.
 
-- **Recall Curve (`R_curve.png`)**: Correspondingly, this graph illustrates how the recall values change across different thresholds.
+- **Recall Curve (`BoxR_curve.png`)**: Correspondingly, this graph illustrates how the recall values change across different thresholds.
 
 - **[Confusion Matrix](https://www.ultralytics.com/glossary/confusion-matrix) (`confusion_matrix.png`)**: The confusion matrix provides a detailed view of the outcomes, showcasing the counts of true positives, true negatives, false positives, and false negatives for each class.
 
@@ -91,6 +92,8 @@ The model.val() function, apart from producing numeric metrics, also yields visu
 - **Validation Batch Labels (`val_batchX_labels.jpg`)**: These images depict the ground truth labels for distinct batches from the validation dataset. They provide a clear picture of what the objects are and their respective locations as per the dataset.
 
 - **Validation Batch Predictions (`val_batchX_pred.jpg`)**: Contrasting the label images, these visuals display the predictions made by the YOLO26 model for the respective batches. By comparing these to the label images, you can easily assess how well the model detects and classifies objects visually.
+
+For the [detection](../tasks/detect.md), [segmentation](../tasks/segment.md), and [pose](../tasks/pose.md) tasks, the curve plots are prefixed by metric type: detection writes `Box*` curves, segmentation writes both `Box*` and `Mask*` curves, and pose writes both `Box*` and `Pose*` curves.
 
 #### Results Storage
 

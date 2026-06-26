@@ -291,6 +291,16 @@ POST /api/datasets
 
     Valid `task` values: `detect`, `segment`, `semantic`, `classify`, `pose`, `obb`.
 
+**Response:**
+
+```json
+{
+    "datasetId": "dataset_abc123",
+    "slug": "my-dataset",
+    "region": "us"
+}
+```
+
 ### Update Dataset
 
 ```http
@@ -572,18 +582,49 @@ Run YOLO inference on dataset images to auto-generate annotations. Uses a select
 POST /api/datasets/ingest
 ```
 
-Create a dataset ingest job to process uploaded ZIP or TAR files, including `.tar.gz` and `.tgz`, containing images and labels.
+Create a dataset ingest job for an existing dataset. The target dataset is always passed as `datasetId` in the JSON body, not in the URL path.
 
-The request body takes exactly one of `sessionId` (an uploaded archive's upload session) or `sourceUrl` (a remote ZIP, TAR, TAR.GZ, TGZ, or NDJSON URL), plus an optional `targetSplit` (`train`, `val`, or `test`) to override the archive's split structure.
+The request body requires `datasetId` plus exactly one of `sessionId` (an uploaded archive's upload session) or `sourceUrl` (a remote ZIP, TAR, TAR.GZ, TGZ, or NDJSON URL). Add optional `targetSplit` (`train`, `val`, or `test`) to override the archive's split structure.
+
+For uploaded archives, the upload session is already bound to the dataset by the `assetId` passed to `POST /api/upload/signed-url`; ingest validates that `assetId` matches the body `datasetId`. For remote `sourceUrl` imports, create the dataset first, then pass its `datasetId` to ingest.
+
+**Body (uploaded archive):**
+
+```json
+{
+    "datasetId": "dataset_abc123",
+    "sessionId": "session_abc123",
+    "targetSplit": "train"
+}
+```
+
+**Body (remote archive or NDJSON):**
+
+```json
+{
+    "datasetId": "dataset_abc123",
+    "sourceUrl": "https://example.com/my-dataset.zip"
+}
+```
+
+**Response:**
+
+```json
+{
+    "jobId": "job_abc123",
+    "datasetId": "dataset_abc123",
+    "status": "queued"
+}
+```
 
 ```mermaid
 graph LR
-    A[Upload Archive]:::start --> B[POST /api/datasets/ingest]:::proc
-    B --> C[Process Archive]:::proc
-    C --> D[Extract images]:::proc
-    C --> E[Parse labels]:::proc
-    C --> F[Generate thumbnails]:::proc
-    D & E & F --> G[Dataset ready]:::out
+    A[POST /api/datasets]:::start --> B[POST /api/upload/signed-url]:::proc
+    B --> C[Upload archive to signed URL]:::proc
+    C --> D[POST /api/upload/complete]:::proc
+    D --> E[POST /api/datasets/ingest]:::proc
+    E --> F[Process archive]:::proc
+    F --> G[Dataset ready]:::out
 
     classDef start fill:#4CAF50,color:#fff
     classDef proc fill:#2196F3,color:#fff
@@ -1740,7 +1781,7 @@ GET /api/storage
 
 ## Upload API
 
-Upload files directly to cloud storage using signed URLs for fast, reliable transfers. Uses a two-step flow: get a signed URL, then upload the file. See [Data documentation](../data/index.md).
+Upload files directly to cloud storage using signed URLs for fast, reliable transfers. For dataset archives, use the returned `sessionId` with `POST /api/upload/complete`, then `POST /api/datasets/ingest`. See [Data documentation](../data/index.md).
 
 ### Get Signed Upload URL
 
@@ -1754,11 +1795,11 @@ Request a signed URL for uploading a file directly to cloud storage. The signed 
 
 ```json
 {
-    "assetType": "images",
-    "assetId": "abc123",
-    "filename": "my-image.jpg",
-    "contentType": "image/jpeg",
-    "totalBytes": 5242880
+    "assetType": "datasets",
+    "assetId": "dataset_abc123",
+    "filename": "my-dataset.zip",
+    "contentType": "application/zip",
+    "totalBytes": 52428800
 }
 ```
 
@@ -1776,7 +1817,7 @@ Request a signed URL for uploading a file directly to cloud storage. The signed 
 {
     "sessionId": "session_abc123",
     "uploadUrl": "https://storage.example.com/...",
-    "gcsPath": "gs://bucket/users/user123/images/abc123/my-image.jpg",
+    "gcsPath": "gs://bucket/users/user123/datasets/dataset_abc123/my-dataset.zip",
     "downloadUrl": "https://cdn.example.com/...",
     "expiresAt": "2026-02-22T12:00:00Z"
 }
@@ -1788,7 +1829,7 @@ Request a signed URL for uploading a file directly to cloud storage. The signed 
 POST /api/upload/complete
 ```
 
-Notify the platform that a file upload is complete so it can begin processing.
+Notify the platform that a file upload is complete. For dataset archives, this verifies and records the upload session; call `POST /api/datasets/ingest` afterward to start dataset processing.
 
 **Body:**
 

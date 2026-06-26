@@ -174,7 +174,20 @@ CLI_HELP_MSG = f"""
 # Quantization aliases: maps any accepted `quantize` value to its canonical form. The common case is the integer
 # bit-width 8 (INT8) / 16 (FP16) / 32 (FP32); the verbose w<weights>a<activations> strings are accepted too and
 # collapse to the same ints, except 'w8a16' (INT8 weights + FP16 activations) which has no bit-width shorthand.
-QUANTIZE_ALIASES = {"8": 8, "16": 16, "32": 32, "w8a8": 8, "w16a16": 16, "w32a32": 32, "w8a16": "w8a16"}
+QUANTIZE_ALIASES = {
+    "8": 8,
+    "16": 16,
+    "32": 32,
+    "int8": 8,
+    "fp16": 16,
+    "fp32": 32,
+    "w8a8": 8,
+    "w16a16": 16,
+    "w32a32": 32,
+    "w8a16": "w8a16",
+}
+QUANTIZE_DOCS_URL = "https://docs.ultralytics.com/modes/export/#quantization-options"
+QUANTIZE_VALID_VALUES = "8, 16, 32, 'int8', 'fp16', 'fp32', 'w8a8', 'w16a16', or 'w8a16'"
 
 # Define keys for arg type checks
 CFG_FLOAT_KEYS = frozenset(
@@ -435,7 +448,8 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                 if scheme is None:
                     if hard:
                         raise ValueError(
-                            f"'{k}={v}' is invalid. Valid '{k}' values are 8, 16, 32 or 'w8a8', 'w16a16', 'w8a16'."
+                            f"'{k}={v}' is invalid. Valid '{k}' values are {QUANTIZE_VALID_VALUES}. "
+                            f"See {QUANTIZE_DOCS_URL}"
                         )
                 else:
                     cfg[k] = scheme

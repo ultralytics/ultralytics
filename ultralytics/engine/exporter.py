@@ -81,7 +81,7 @@ import numpy as np
 import torch
 
 from ultralytics import __version__
-from ultralytics.cfg import TASK2CALIBRATIONDATA, TASK2DATA, get_cfg
+from ultralytics.cfg import QUANTIZE_DOCS_URL, TASK2CALIBRATIONDATA, TASK2DATA, get_cfg
 from ultralytics.data import build_dataloader, build_yolo_dataset
 from ultralytics.data.dataset import YOLODataset
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
@@ -395,13 +395,16 @@ def validate_args(format, passed_args, valid_args):
     custom = {"batch": 1, "data": None, "device": None}  # exporter defaults
     default_args = get_cfg(DEFAULT_CFG, custom)
     if passed_args.quantize == 16:  # FP16; 32/None (FP32) is universal
-        assert format in FP16_FORMATS, f"ERROR ❌️ quantize=16 (FP16) is not supported for format='{format}'"
+        assert format in FP16_FORMATS, (
+            f"ERROR ❌️ quantize=16 (FP16) is not supported for format='{format}'. See {QUANTIZE_DOCS_URL}"
+        )
     elif passed_args.quantize in {8, "w8a16"}:  # INT8 (w8a16 keeps FP16 activations)
         assert format in INT8_FORMATS, (
-            f"ERROR ❌️ quantize={passed_args.quantize} is not supported for format='{format}'"
+            f"ERROR ❌️ quantize={passed_args.quantize} is not supported for format='{format}'. See {QUANTIZE_DOCS_URL}"
         )
         assert passed_args.quantize != "w8a16" or format in W8A16_FORMATS, (
-            f"ERROR ❌️ quantize='w8a16' (INT8 weights + FP16 activations) is not supported for format='{format}'"
+            f"ERROR ❌️ quantize='w8a16' (INT8 weights + FP16 activations) is not supported for format='{format}'. "
+            f"See {QUANTIZE_DOCS_URL}"
         )
     for arg in export_args:
         not_default = getattr(passed_args, arg, None) != getattr(default_args, arg, None)
@@ -547,7 +550,10 @@ class Exporter:
         validate_args(fmt, self.args, fmt_keys)
         if fmt in {"deepx", "axelera", "imx", "edgetpu", "qnn"} and not self.args.int8:
             if self.args.quantize == 32:
-                raise ValueError(f"{fmt} export only supports INT8, but got an explicit quantize=32 (FP32) request.")
+                raise ValueError(
+                    f"{fmt} export only supports INT8, but got an explicit quantize=32 (FP32) request. "
+                    f"See {QUANTIZE_DOCS_URL}"
+                )
             LOGGER.warning(f"{fmt} export requires INT8 quantization, enabling it.")
             self.args.int8 = True
         if fmt == "axelera":
@@ -616,7 +622,8 @@ class Exporter:
             if self.args.name in {"rv1103", "rv1106", "rv1103b", "rv1106b"} and not self.args.int8:
                 if self.args.quantize == 32:
                     raise ValueError(
-                        f"Rockchip target '{self.args.name}' only supports INT8, but got an explicit quantize=32 (FP32)."
+                        f"Rockchip target '{self.args.name}' only supports INT8, but got an explicit quantize=32 "
+                        f"(FP32). See {QUANTIZE_DOCS_URL}"
                     )
                 LOGGER.warning(f"Rockchip target '{self.args.name}' requires INT8 quantization, enabling it.")
                 self.args.int8 = True

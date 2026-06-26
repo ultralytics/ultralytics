@@ -84,6 +84,29 @@ Available YOLO26 export formats are in the table below. You can export to any fo
 
 {% include "macros/export-table.md" %}
 
+## Quantization Options
+
+Use the `quantize` argument to request the export precision. String values are case-insensitive, and Ultralytics canonicalizes accepted aliases before export:
+
+| Request values | Canonical value | Meaning |
+| --- | --- | --- |
+| `8`, `"8"`, `"int8"`, `"w8a8"` | `8` | INT8 weights and activations |
+| `16`, `"16"`, `"fp16"`, `"w16a16"` | `16` | FP16 weights and activations |
+| `32`, `"32"`, `"fp32"`, `"w32a32"` | `32` | FP32 export; same precision as leaving `quantize` unset |
+| `"w8a16"` | `"w8a16"` | INT8 weights with FP16 activations |
+
+The legacy `half=True` and `int8=True` flags are still accepted with deprecation warnings and forward to `quantize=16` and `quantize=8`.
+
+Not every export format supports every quantization scheme:
+
+| Scheme | Supported formats |
+| --- | --- |
+| FP16 (`quantize=16`) | TorchScript, ONNX, OpenVINO, TensorRT, CoreML, TFLite, TF.js, MNN, NCNN, RKNN |
+| INT8 (`quantize=8`) | ONNX, OpenVINO, TensorRT, CoreML, TF SavedModel, TFLite, Edge TPU, TF.js, MNN, IMX500, RKNN, Axelera, DEEPX, Qualcomm QNN |
+| W8A16 (`quantize="w8a16"`) | CoreML, IMX500, Qualcomm QNN |
+
+For INT8 and W8A16 exports, provide representative calibration data with `data`, such as `data="coco8.yaml"`, unless the target integration documents a default or auto-enabled behavior.
+
 ## FAQ
 
 ### How do I export a YOLO26 model to ONNX format?
@@ -145,9 +168,7 @@ INT8 quantization is an excellent way to compress the model and speed up inferen
         yolo export model=yolo26n.pt format=onnx quantize=8 data=coco8.yaml # export ONNX model with INT8 quantization
         ```
 
-INT8 quantization can be applied to various formats, such as [ONNX](../integrations/onnx.md), [TensorRT](../integrations/tensorrt.md), [OpenVINO](../integrations/openvino.md), [CoreML](../integrations/coreml.md), and [Rockchip RKNN](../integrations/rockchip-rknn.md). For optimal quantization results, provide a representative [dataset](../datasets/index.md) using the `data` parameter.
-
-Precision is requested with the unified `quantize` argument across inference and export: `quantize=8` for INT8, `quantize=16` for FP16, `quantize=32` (or unset) for FP32, e.g. `model.export(format="onnx", quantize=8, data="coco8.yaml")`. Export formats that support mixed weight/activation precision also accept the `'w8a8'`/`'w16a16'`/`'w8a16'` notation. The legacy `half=True`/`int8=True` flags are deprecated and forward to `quantize=16`/`quantize=8` respectively.
+INT8 quantization can be applied to formats such as [ONNX](../integrations/onnx.md), [TensorRT](../integrations/tensorrt.md), [OpenVINO](../integrations/openvino.md), [CoreML](../integrations/coreml.md), and [Rockchip RKNN](../integrations/rockchip-rknn.md). For optimal quantization results, provide a representative [dataset](../datasets/index.md) using the `data` parameter. See [Quantization Options](#quantization-options) for accepted `quantize` values and supported formats.
 
 ### Why is dynamic input size important when exporting models?
 
@@ -180,7 +201,7 @@ Understanding and configuring export arguments is crucial for optimizing model p
 
 - **`format:`** The target format for the exported model (e.g., `onnx`, `torchscript`, `tensorflow`).
 - **`imgsz:`** Desired image size for the model input (e.g., `640` or `(height, width)`).
-- **`quantize:`** Quantization precision: `16` (FP16) or `8` (INT8, highly beneficial for [edge AI](https://www.ultralytics.com/blog/deploying-computer-vision-applications-on-edge-ai-devices) deployments); `32`/unset is FP32. Export formats supporting mixed precision also accept `'w8a8'`/`'w16a16'`/`'w8a16'`. Replaces the deprecated `half`/`int8` flags.
+- **`quantize:`** Quantization precision, such as `8`/`"int8"`, `16`/`"fp16"`, `32`/`"fp32"`, or `"w8a16"` for supported mixed weight/activation precision exports. See [Quantization Options](#quantization-options).
 - **`optimize:`** Applies specific optimizations for mobile or constrained environments.
 
 For deployment on specific hardware platforms, consider using specialized export formats like [TensorRT](../integrations/tensorrt.md) for NVIDIA GPUs, [CoreML](../integrations/coreml.md) for Apple devices, or [Edge TPU](../integrations/edge-tpu.md) for Google Coral devices.

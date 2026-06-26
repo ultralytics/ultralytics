@@ -1208,8 +1208,6 @@ class YOLOAnomalyV2Model(DetectionModel):
                 ):
                     bb, bi = self.mask_augmenter.fragment_prior_bboxes(bb, bi)
                 gt = self.mask_renderer(bb, bi, batch_size)
-            if self.training:
-                gt = self.mask_augmenter.augment_mask(gt)
             if seg_pred is None:
                 return gt
             a = float(self.seg_alpha)
@@ -1251,10 +1249,6 @@ class YOLOAnomalyV2Model(DetectionModel):
             ):
                 bb, bi = self.mask_augmenter.fragment_prior_bboxes(bb, bi)
             cond = self.mask_renderer(bb, bi, batch_size)
-        if self.training:
-            cond = self.mask_augmenter.augment_mask(
-                cond
-            )  # blur / mag / noise / distractor / erase / warp / mixup / mb-style noise
         return cond
 
     def _polygon_union_prior(self, masks, batch_idx, batch_size):

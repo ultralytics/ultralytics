@@ -88,22 +88,22 @@ Available YOLO26 export formats are in the table below. You can export to any fo
 
 Use the `quantize` argument to request the export precision. String values are case-insensitive, and Ultralytics canonicalizes accepted aliases before export:
 
-| Request values | Canonical value | Meaning |
-| --- | --- | --- |
-| `8`, `"8"`, `"int8"`, `"w8a8"` | `8` | INT8 weights and activations |
-| `16`, `"16"`, `"fp16"`, `"w16a16"` | `16` | FP16 weights and activations |
-| `32`, `"32"`, `"fp32"`, `"w32a32"` | `32` | FP32 export; same precision as leaving `quantize` unset |
-| `"w8a16"` | `"w8a16"` | INT8 weights with FP16 activations |
+| Request values                     | Canonical value | Meaning                                                 |
+| ---------------------------------- | --------------- | ------------------------------------------------------- |
+| `8`, `"8"`, `"int8"`, `"w8a8"`     | `8`             | INT8 weights and activations                            |
+| `16`, `"16"`, `"fp16"`, `"w16a16"` | `16`            | FP16 weights and activations                            |
+| `32`, `"32"`, `"fp32"`, `"w32a32"` | `32`            | FP32 export; same precision as leaving `quantize` unset |
+| `"w8a16"`                          | `"w8a16"`       | INT8 weights with FP16 activations                      |
 
 The legacy `half=True` and `int8=True` flags are still accepted with deprecation warnings and forward to `quantize=16` and `quantize=8`.
 
 Not every export format supports every quantization scheme:
 
-| Scheme | Supported formats |
-| --- | --- |
-| FP16 (`quantize=16`) | TorchScript, ONNX, OpenVINO, TensorRT, CoreML, TFLite, TF.js, MNN, NCNN, RKNN |
-| INT8 (`quantize=8`) | ONNX, OpenVINO, TensorRT, CoreML, TF SavedModel, TFLite, Edge TPU, TF.js, MNN, IMX500, RKNN, Axelera, DEEPX, Qualcomm QNN |
-| W8A16 (`quantize="w8a16"`) | CoreML, IMX500, Qualcomm QNN |
+| Scheme                     | Supported formats                                                                                                         |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| FP16 (`quantize=16`)       | TorchScript, ONNX, OpenVINO, TensorRT, CoreML, TFLite, TF.js, MNN, NCNN, RKNN                                             |
+| INT8 (`quantize=8`)        | ONNX, OpenVINO, TensorRT, CoreML, TF SavedModel, TFLite, Edge TPU, TF.js, MNN, IMX500, RKNN, Axelera, DEEPX, Qualcomm QNN |
+| W8A16 (`quantize="w8a16"`) | CoreML, IMX500, Qualcomm QNN                                                                                              |
 
 For INT8 and W8A16 exports, provide representative calibration data with `data`, such as `data="coco8.yaml"`, unless the target integration documents a default or auto-enabled behavior.
 

@@ -72,9 +72,11 @@ class AnomalyV2Trainer(DetectionTrainer):
         self.add_callback("on_train_batch_end", AnomalyV2Trainer._mb_step)
         self.add_callback("on_train_start", AnomalyV2Trainer._cached_draw_prior)
         self.add_callback("on_train_batch_end", AnomalyV2Trainer._cached_draw_prior)
-        self.add_callback("on_fit_epoch_end", AnomalyV2Trainer._mvtec_ood_eval)
+        # NOTE: _mvtec_ood_eval is NOT a callback — it runs inside validate() so best.pt
+        # selection sees the current epoch's OOD score (no one-epoch lag).
         self._mb_batch = None  # stashed preprocessed batch for the batch-end enqueue
         self._mb_patches_per_step = 0
+        self._ood_best_fitness = None  # running max of the OOD-scale fitness (best.pt selection)
 
     def preprocess_batch(self, batch):
         """Stash tensor refs so the batch-end callback can enqueue this batch's features.
@@ -89,14 +91,27 @@ class AnomalyV2Trainer(DetectionTrainer):
         return batch
 
     def validate(self):
-        """Run validation, overriding fitness with OOD heatmap mAP50 when available."""
+        """Run validation; when OOD eval is enabled, use OOD heatmap mAP50 as the fitness.
+
+        The OOD eval runs here (not as an ``on_fit_epoch_end`` callback) on the current epoch's
+        EMA, so best.pt selection sees this epoch's score with no one-epoch lag. Fitness stays on
+        the OOD scale every epoch (``0.0`` when the eval can't run) — it never falls back to the
+        in-domain metric, which is a different scale and would freeze best.pt at epoch 0. The base
+        ``validate`` bumps ``best_fitness`` on the in-domain scale, so we recompute it on the OOD
+        scale (``_ood_best_fitness``) and overwrite — ``save_model`` saves best.pt when
+        ``best_fitness == fitness``, i.e. on each new OOD max.
+        """
         metrics, fitness = super().validate()
-        ood_map50 = getattr(self, "_ood_heatmap_map50", None)
-        if ood_map50 is not None and ood_map50 > 0 and metrics is not None:
-            fitness = ood_map50
-            metrics["fitness"] = ood_map50
-            if not self.best_fitness or self.best_fitness < ood_map50:
-                self.best_fitness = ood_map50
+        v2_cfg = getattr(unwrap_model(self.model), "yaml", {}).get("anomaly_v2", {})
+        if int(v2_cfg.get("mvtec_ood_val_freq", 3)) > 0 and metrics is not None:
+            self._ood_heatmap_map50 = None  # skipped (freq) epochs -> 0.0, not a best.pt candidate
+            AnomalyV2Trainer._mvtec_ood_eval(self)  # sets self._ood_heatmap_map50 (+ wandb log)
+            fitness = float(self._ood_heatmap_map50 or 0.0)
+            metrics["fitness"] = fitness
+            self._ood_best_fitness = (
+                fitness if self._ood_best_fitness is None else max(self._ood_best_fitness, fitness)
+            )
+            self.best_fitness = self._ood_best_fitness
         return metrics, fitness
 
     def _mb_active(self) -> bool:
@@ -238,7 +253,7 @@ class AnomalyV2Trainer(DetectionTrainer):
 
     @staticmethod
     def _mvtec_ood_eval(trainer: "AnomalyV2Trainer") -> None:
-        """on_fit_epoch_end: periodic MVTec cross-dataset OOD eval, rank 0 only.
+        """Periodic MVTec cross-dataset OOD eval, rank 0 only; called from validate().
 
         Configured via the model YAML ``anomaly_v2`` block: ``mvtec_ood_val_freq`` (every N epochs;
         default 3, set 0 to disable). When ``mvtec_ood_fit_cfg`` is set, ``imgsz``, ``heatmap_mode``,

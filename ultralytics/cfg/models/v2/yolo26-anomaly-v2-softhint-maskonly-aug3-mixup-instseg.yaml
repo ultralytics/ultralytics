@@ -44,7 +44,7 @@ anomaly_v2:
   mask_mag_range: [0.7, 1]
   # OOD eval
   mvtec_ood_val_freq: 1
-  mvtec_ood_categories: ["bottle", "cable", "capsule", "carpet", "grid"]
+  mvtec_ood_categories: null   # null = all 15 MVTec categories
   mvtec_ood_fit_cfg: ../../yoloa_fit_default.yaml
 
 backbone:

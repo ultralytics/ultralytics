@@ -85,14 +85,21 @@ class LiteRTBackend(BaseBackend):
             if output["dtype"] in {np.int8, np.int16}:
                 scale, zero_point = output["quantization"]
                 x = (x.astype(np.float32) - zero_point) * scale
-            # Denormalize xywh (and pose keypoints) by image size on raw (batch, channels, anchors) output.
-            # End-to-end output is already post-NMS pixel coordinates (batch, max_det, 6+), so it is left as-is.
+            # Denormalize xywh (and pose keypoints) by image size. litert-torch end2end output is already post-NMS
+            # pixel coordinates (batch, max_det, 6+), so it is left as-is; legacy onnx2tf TFLite normalizes even the
+            # end2end output, so it is denormalized on the last axis.
             if x.ndim == 3 and not self.end2end:
                 x[:, [0, 2]] *= w
                 x[:, [1, 3]] *= h
                 if self.task == "pose":
                     x[:, 5::3] *= w
                     x[:, 6::3] *= h
+            elif x.ndim == 3 and self.end2end and self.nhwc:
+                x[:, :, [0, 2]] *= w
+                x[:, :, [1, 3]] *= h
+                if self.task == "pose":
+                    x[:, :, 6::3] *= w
+                    x[:, :, 7::3] *= h
             y.append(x)
 
         if self.task == "segment" and y[0].ndim == 4:  # order as (detections, protos); protos already NCHW

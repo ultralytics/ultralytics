@@ -35,10 +35,11 @@ from ultralytics.utils import LOGGER, YAML
 
 # Public prior selection. Internal model uses ``prior_mode``; these map 1:1 except
 # "anomaly_model", which runs an external model to produce a heatmap and injects it through the
-# existing external-mask seam (prior_mode="mask"). "segment"/"seg_heatmap"/"cached" remain usable
-# as advanced pass-through values.
+# existing external-mask seam (prior_mode="mask"). "segment"/"cached" remain usable as advanced
+# pass-through values. (Legacy "heatmap_learned"/"heatmap_fused"/"cached" are translated to the
+# "heatmap" source + a heatmap producer by AnomalyDetection.set_prior_mode.)
 PRIOR_MODES = ("none", "heatmap", "heatmap_learned", "heatmap_fused", "mask", "anomaly_model")
-_ADVANCED_PRIORS = ("segment", "seg_heatmap", "cached")
+_ADVANCED_PRIORS = ("segment", "cached")
 
 # Bank-build knobs that live in the fit config. bb_* override the model yaml's v2_cfg defaults;
 # imgsz / max_images are build inputs (not part of the model yaml).

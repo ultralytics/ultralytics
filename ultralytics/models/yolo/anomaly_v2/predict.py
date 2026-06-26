@@ -2,13 +2,14 @@
 
 """YOLO Anomaly v2 predictor with unified prior-mode routing.
 
-Four prior modes selectable via ``predictor.prior_mode``:
+Prior modes selectable via ``predictor.prior_mode``:
 
-  - ``"none"``        — passthrough (vanilla YOLO, no fusion bias).
-  - ``"segment"``     — SegBranch sigmoid output as prior.
-  - ``"heatmap"``     — BackboneMemoryBank output as prior.
-  - ``"seg_heatmap"`` — average of segment + memory-bank heatmaps.
-  - ``"mask"``        — external_mask provided by caller.
+  - ``"none"``     — passthrough (vanilla YOLO, no fusion bias).
+  - ``"segment"``  — SegBranch sigmoid output as prior.
+  - ``"heatmap"``  — feature-side anomaly map (producer set by ``_heatmap_producer``:
+                     bank / learned / both / cached). Legacy ``"heatmap_learned"`` /
+                     ``"heatmap_fused"`` / ``"cached"`` are translated by ``set_prior_mode``.
+  - ``"mask"``     — external_mask provided by caller.
 
 Legacy ``external_mask`` / ``bbox_prompt`` attributes still work when
 ``prior_mode`` is ``None`` (backward compat).

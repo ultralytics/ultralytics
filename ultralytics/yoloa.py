@@ -146,6 +146,8 @@ class YOLOA(Model):
         cache_path = (Path(cache) / f"{self._cache_key(fit_args, data_name)}.pt") if cache is not None else None
         if cache_path is not None and cache_path.exists() and not refit:
             d = torch.load(cache_path, map_location="cpu")
+            if not d.get("_calibrated"):
+                LOGGER.warning(f"bank cache is old format (no calibration state); delete {cache_path} to rebuild")
             mb.load_bank(d["memory_bank"])
             mb.temperature = d["temperature"]
             mb.update = False

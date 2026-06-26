@@ -718,6 +718,8 @@ class BackboneMemoryBank(nn.Module):
         """Direct-set the memory bank from pre-extracted L2-normalised features [M, C]."""
         if features.numel() == 0:
             return
+        if not torch.isfinite(features).all():
+            raise ValueError(f"BackboneMemoryBank.load_bank: features contain NaN/Inf ({features.shape})")
         self.feature_dim = features.shape[1]
         self.memory_bank = F.normalize(features.to(self.memory_bank.device), p=2, dim=1)
         self._calibrated = True  # trigger lazy compactness/threshold recompute on next score

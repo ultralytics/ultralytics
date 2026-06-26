@@ -510,6 +510,8 @@ def _inject_cat_bank(m, root: Path, cat: str, cache_dir: Path, imgsz, device, ba
     path = cache_dir / f"{cat}_sz{isz}_n{bank_size}.pt"
     if path.exists():
         d = torch.load(path, map_location="cpu")
+        if not d.get("_calibrated"):
+            LOGGER.warning(f"bank cache is old format (no calibration state); delete {path} to rebuild")
         mb.load_bank(d["memory_bank"])  # re-normalizes + sets feature_dim onto the bank's device
         mb.temperature = d["temperature"]
         mb.update = False  # scoring mode (frozen)

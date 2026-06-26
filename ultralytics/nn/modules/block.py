@@ -47,6 +47,7 @@ __all__ = (
     "ImagePoolingAttn",
     "Proto",
     "RepC3",
+    "RepMixerStage",
     "RepNCSPELAN4",
     "RepVGGDW",
     "ResNetLayer",
@@ -2071,3 +2072,263 @@ class RealNVP(nn.Module):
             self.float()
         z, log_det = self.backward_p(x)
         return self.prior.log_prob(z) + log_det
+
+
+class MobileOneBlock(nn.Module):
+    """MobileOne reparameterizable block.
+
+    Multi-branched (skip-BN + scale + conv branches) at train time, fused into a single plain convolution after
+    `reparameterize()` for inference. Adapted from `MobileOne <https://arxiv.org/abs/2206.04040>`_ and
+    `FastViT <https://arxiv.org/abs/2303.14189>`_.
+    """
+
+    def __init__(
+        self,
+        c1: int,
+        c2: int,
+        k: int,
+        s: int = 1,
+        p: int = 0,
+        g: int = 1,
+        num_conv_branches: int = 1,
+        use_act: bool = True,
+        use_scale_branch: bool = True,
+        act: nn.Module = nn.GELU(),
+    ):
+        """Initialize MobileOneBlock.
+
+        Args:
+            c1 (int): Input channels.
+            c2 (int): Output channels.
+            k (int): Convolution kernel size.
+            s (int): Stride.
+            p (int): Padding.
+            g (int): Groups.
+            num_conv_branches (int): Number of parallel conv-bn branches.
+            use_act (bool): Whether to apply the activation.
+            use_scale_branch (bool): Whether to add the 1x1 scale branch (only used when k > 1).
+            act (nn.Module): Activation module.
+        """
+        super().__init__()
+        self.c1, self.c2, self.k, self.s, self.p, self.g = c1, c2, k, s, p, g
+        self.num_conv_branches = num_conv_branches
+        self.act = act if use_act else nn.Identity()
+        self.rbr_skip = nn.BatchNorm2d(c1) if c2 == c1 and s == 1 else None
+        self.rbr_conv = (
+            nn.ModuleList(self._conv_bn(k, p) for _ in range(num_conv_branches)) if num_conv_branches > 0 else None
+        )
+        self.rbr_scale = self._conv_bn(1, 0) if k > 1 and use_scale_branch else None
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Apply forward pass."""
+        if hasattr(self, "reparam_conv"):
+            return self.act(self.reparam_conv(x))
+        out = self.rbr_skip(x) if self.rbr_skip is not None else 0
+        if self.rbr_scale is not None:
+            out = out + self.rbr_scale(x)
+        if self.rbr_conv is not None:
+            for branch in self.rbr_conv:
+                out = out + branch(x)
+        return self.act(out)
+
+    def _conv_bn(self, k: int, p: int) -> nn.Sequential:
+        """Build a conv-bn branch."""
+        m = nn.Sequential()
+        m.add_module("conv", nn.Conv2d(self.c1, self.c2, k, self.s, p, groups=self.g, bias=False))
+        m.add_module("bn", nn.BatchNorm2d(self.c2))
+        return m
+
+    @torch.no_grad()
+    def reparameterize(self) -> None:
+        """Fuse the multi-branch block into a single convolution for inference."""
+        if hasattr(self, "reparam_conv"):
+            return
+        kernel, bias = self._get_kernel_bias()
+        self.reparam_conv = nn.Conv2d(self.c1, self.c2, self.k, self.s, self.p, groups=self.g, bias=True)
+        self.reparam_conv.weight.data = kernel
+        self.reparam_conv.bias.data = bias
+        for param in self.parameters():
+            param.detach_()
+        for attr in ("rbr_conv", "rbr_scale", "rbr_skip"):
+            if hasattr(self, attr):
+                self.__delattr__(attr)
+
+    def _get_kernel_bias(self) -> tuple[torch.Tensor, torch.Tensor]:
+        """Sum the fused kernel and bias over the scale, skip and conv branches."""
+        kernel_scale, bias_scale = 0, 0
+        if self.rbr_scale is not None:
+            kernel_scale, bias_scale = self._fuse_bn(self.rbr_scale)
+            pad = self.k // 2
+            kernel_scale = F.pad(kernel_scale, [pad, pad, pad, pad])  # pad 1x1 kernel up to k x k
+        kernel_identity, bias_identity = 0, 0
+        if self.rbr_skip is not None:
+            kernel_identity, bias_identity = self._fuse_bn(self.rbr_skip)
+        kernel_conv, bias_conv = 0, 0
+        if self.rbr_conv is not None:
+            for branch in self.rbr_conv:
+                k, b = self._fuse_bn(branch)
+                kernel_conv, bias_conv = kernel_conv + k, bias_conv + b
+        return kernel_conv + kernel_scale + kernel_identity, bias_conv + bias_scale + bias_identity
+
+    def _fuse_bn(self, branch) -> tuple[torch.Tensor, torch.Tensor]:
+        """Fuse a conv-bn branch (or a lone BatchNorm skip branch) into an equivalent (kernel, bias)."""
+        if isinstance(branch, nn.Sequential):
+            kernel = branch.conv.weight
+            mean, var, gamma, beta, eps = (
+                branch.bn.running_mean,
+                branch.bn.running_var,
+                branch.bn.weight,
+                branch.bn.bias,
+                branch.bn.eps,
+            )
+        else:  # BatchNorm2d identity branch -> identity kernel
+            if not hasattr(self, "id_tensor"):
+                dim = self.c1 // self.g
+                kernel_value = torch.zeros(
+                    (self.c1, dim, self.k, self.k), dtype=branch.weight.dtype, device=branch.weight.device
+                )
+                for i in range(self.c1):
+                    kernel_value[i, i % dim, self.k // 2, self.k // 2] = 1
+                self.id_tensor = kernel_value
+            kernel = self.id_tensor
+            mean, var, gamma, beta, eps = (
+                branch.running_mean,
+                branch.running_var,
+                branch.weight,
+                branch.bias,
+                branch.eps,
+            )
+        std = (var + eps).sqrt()
+        t = (gamma / std).reshape(-1, 1, 1, 1)
+        return kernel * t, beta - mean * gamma / std
+
+
+class ConvFFN(nn.Module):
+    """Convolutional feed-forward network used by FastViT blocks (7x7 depthwise conv + 1x1 expand/project)."""
+
+    def __init__(self, dim: int, hidden_dim: int, act: nn.Module = nn.GELU):
+        """Initialize ConvFFN.
+
+        Args:
+            dim (int): Input and output channels.
+            hidden_dim (int): Hidden channels after the 1x1 expansion.
+            act (nn.Module): Activation layer class.
+        """
+        super().__init__()
+        self.conv = nn.Sequential()
+        self.conv.add_module("conv", nn.Conv2d(dim, dim, 7, padding=3, groups=dim, bias=False))
+        self.conv.add_module("bn", nn.BatchNorm2d(dim))
+        self.fc1 = nn.Conv2d(dim, hidden_dim, 1)
+        self.act = act()
+        self.fc2 = nn.Conv2d(hidden_dim, dim, 1)
+        self.apply(self._init_weights)
+
+    @staticmethod
+    def _init_weights(m: nn.Module) -> None:
+        """Truncated-normal init for the 1x1 convolutions."""
+        if isinstance(m, nn.Conv2d):
+            nn.init.trunc_normal_(m.weight, std=0.02)
+            if m.bias is not None:
+                nn.init.constant_(m.bias, 0)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Apply forward pass."""
+        return self.fc2(self.act(self.fc1(self.conv(x))))
+
+
+class RepMixer(nn.Module):
+    """Reparameterizable token mixer from `FastViT <https://arxiv.org/abs/2303.14189>`_.
+
+    Trains as ``x + layer_scale * (mixer(x) - norm(x))`` and collapses into a single depthwise convolution
+    (skip connection included) after `reparameterize()`.
+    """
+
+    def __init__(self, dim: int, k: int = 3, layer_scale_init: float = 1e-5):
+        """Initialize RepMixer.
+
+        Args:
+            dim (int): Input and output channels.
+            k (int): Depthwise mixing kernel size.
+            layer_scale_init (float): Initial value of the learnable layer scale.
+        """
+        super().__init__()
+        self.dim, self.k = dim, k
+        self.norm = MobileOneBlock(
+            dim, dim, k, p=k // 2, g=dim, use_act=False, use_scale_branch=False, num_conv_branches=0
+        )
+        self.mixer = MobileOneBlock(dim, dim, k, p=k // 2, g=dim, use_act=False)
+        self.layer_scale = nn.Parameter(layer_scale_init * torch.ones((dim, 1, 1)))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Apply forward pass."""
+        if hasattr(self, "reparam_conv"):
+            return self.reparam_conv(x)
+        return x + self.layer_scale * (self.mixer(x) - self.norm(x))
+
+    @torch.no_grad()
+    def reparameterize(self) -> None:
+        """Fuse mixer, norm and the skip connection into a single depthwise convolution."""
+        if hasattr(self, "reparam_conv"):
+            return
+        self.mixer.reparameterize()
+        self.norm.reparameterize()
+        w = self.mixer.id_tensor + self.layer_scale.unsqueeze(-1) * (
+            self.mixer.reparam_conv.weight - self.norm.reparam_conv.weight
+        )
+        b = self.layer_scale.squeeze() * (self.mixer.reparam_conv.bias - self.norm.reparam_conv.bias)
+        self.reparam_conv = nn.Conv2d(self.dim, self.dim, self.k, 1, self.k // 2, groups=self.dim, bias=True)
+        self.reparam_conv.weight.data = w
+        self.reparam_conv.bias.data = b
+        for param in self.parameters():
+            param.detach_()
+        for attr in ("mixer", "norm", "layer_scale"):
+            self.__delattr__(attr)
+
+
+class RepMixerBlock(nn.Module):
+    """FastViT MetaFormer block: RepMixer token mixer followed by a ConvFFN."""
+
+    def __init__(self, dim: int, k: int = 3, mlp_ratio: float = 2.5, layer_scale_init: float = 1e-5):
+        """Initialize RepMixerBlock.
+
+        Args:
+            dim (int): Input and output channels.
+            k (int): Depthwise mixing kernel size.
+            mlp_ratio (float): ConvFFN expansion ratio.
+            layer_scale_init (float): Initial value of the learnable layer scales.
+        """
+        super().__init__()
+        self.token_mixer = RepMixer(dim, k=k, layer_scale_init=layer_scale_init)
+        self.convffn = ConvFFN(dim, hidden_dim=int(dim * mlp_ratio))
+        self.layer_scale = nn.Parameter(layer_scale_init * torch.ones((dim, 1, 1)))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Apply forward pass."""
+        x = self.token_mixer(x)
+        return x + self.layer_scale * self.convffn(x)
+
+
+class RepMixerStage(nn.Module):
+    """Stack of FastViT RepMixer blocks, a drop-in replacement for C3k2 as a stage token mixer.
+
+    A 1x1 projection is inserted only when ``c1 != c2``; in the common case (e.g. YOLO backbone P4/P5 stages)
+    the channels are unchanged and the stage is pure RepMixer blocks.
+    """
+
+    def __init__(self, c1: int, c2: int, n: int = 1, mlp_ratio: float = 2.5, k: int = 3):
+        """Initialize RepMixerStage.
+
+        Args:
+            c1 (int): Input channels.
+            c2 (int): Output channels.
+            n (int): Number of stacked RepMixer blocks.
+            mlp_ratio (float): ConvFFN expansion ratio of each block.
+            k (int): Depthwise mixing kernel size.
+        """
+        super().__init__()
+        self.proj = Conv(c1, c2, 1, 1) if c1 != c2 else nn.Identity()
+        self.m = nn.Sequential(*(RepMixerBlock(c2, k=k, mlp_ratio=mlp_ratio) for _ in range(n)))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Apply forward pass."""
+        return self.m(self.proj(x))

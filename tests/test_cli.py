@@ -59,6 +59,20 @@ def test_export(model: str, tmp_path: Path) -> None:
         run(f"yolo export model={isolated} format=torchscript imgsz=32 end2end={end2end} max_det=100")
 
 
+@pytest.mark.parametrize(
+    "task,data,student,teacher",
+    [
+        ("detect", "coco8.yaml", "yolo26n.yaml", WEIGHTS_DIR / "yolo26s.pt"),
+        ("segment", "coco8-seg.yaml", "yolo26n-seg.yaml", WEIGHTS_DIR / "yolo26s-seg.pt"),
+        ("pose", "coco8-pose.yaml", "yolo26n-pose.yaml", WEIGHTS_DIR / "yolo26s-pose.pt"),
+        ("obb", "dota8.yaml", "yolo26n-obb.yaml", WEIGHTS_DIR / "yolo26s-obb.pt"),
+    ],
+)
+def test_distill(task: str, data: str, student: str, teacher: Path) -> None:
+    """Test YOLO knowledge distillation training via CLI for supported tasks."""
+    run(f"yolo train {task} model={student} distill_model={teacher} data={data} imgsz=32 epochs=1")
+
+
 @pytest.mark.skipif(not TORCH_1_11, reason="RTDETR requires torch>=1.11")
 def test_rtdetr(task: str = "detect", model: Path = WEIGHTS_DIR / "rtdetr-l.pt", data: str = "coco8.yaml") -> None:
     """Test the RTDETR functionality within Ultralytics for detection tasks using specified model and data."""

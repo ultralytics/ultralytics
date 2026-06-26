@@ -14,4 +14,8 @@ keywords: Ultralytics, YOLO, BaseTrainer, model training, configuration, dataset
 
 ## ::: ultralytics.engine.trainer.BaseTrainer
 
+<br><br><hr><br>
+
+## ::: ultralytics.engine.trainer.MultiTrainer
+
 <br><br>

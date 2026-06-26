@@ -471,7 +471,7 @@ Here is a Python script using [OpenCV](https://www.ultralytics.com/glossary/open
 
 !!! tip "Persisting tracks and selecting a tracker"
 
-    Use `persist=True` when passing consecutive frames from the same video stream to `model.track()`. This lets the tracker reuse state from earlier frames and maintain consistent track IDs over time. When processing unrelated images or starting a new video stream, omit `persist=True` or reinitialize the tracker so previous track state is not reused.
+    Use `persist=True` only when passing consecutive frames from the same video stream to `model.track()`. This lets the tracker reuse state from earlier frames and maintain consistent track IDs over time. Do not use `persist=True` across unrelated images or a different stream, since previous track state can carry over.
 
     You can also choose a tracker backend by passing a tracker configuration file, such as `tracker="botsort.yaml"`, `tracker="bytetrack.yaml"`, or `tracker="tracktrack.yaml"`.
 

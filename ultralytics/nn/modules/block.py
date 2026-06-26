@@ -35,8 +35,10 @@ __all__ = (
     "C2fAttn",
     "C2fCIB",
     "C2fPSA",
+    "C2fSlim",
     "C3Ghost",
     "C3k2",
+    "C3k2Slim",
     "C3x",
     "CBFuse",
     "CBLinear",
@@ -1092,6 +1094,87 @@ class C3k2(C2f):
             attn (bool): Whether to use attention blocks.
             g (int): Groups for convolutions.
             shortcut (bool): Whether to use shortcut connections.
+        """
+        super().__init__(c1, c2, n, shortcut, g, e)
+        self.m = nn.ModuleList(
+            nn.Sequential(
+                Bottleneck(self.c, self.c, shortcut, g),
+                PSABlock(self.c, attn_ratio=0.5, num_heads=max(self.c // 64, 1)),
+            )
+            if attn
+            else C3k(self.c, self.c, 2, shortcut, g)
+            if c3k
+            else Bottleneck(self.c, self.c, shortcut, g)
+            for _ in range(n)
+        )
+
+
+class C2fSlim(C2f):
+    """C2f variant that drops the second split half from the final concat when ``shortcut=True``.
+
+    In C2f both halves of the ``cv1`` split are kept in the final concat. Here, when ``shortcut=True`` the second
+    half only seeds the bottleneck chain and is excluded from the concat, so ``cv2`` takes ``(1 + n) * c`` channels
+    instead of ``(2 + n) * c``. With ``shortcut=False`` it is identical to C2f.
+    """
+
+    def __init__(self, c1: int, c2: int, n: int = 1, shortcut: bool = False, g: int = 1, e: float = 0.5):
+        """Initialize C2fSlim.
+
+        Args:
+            c1 (int): Input channels.
+            c2 (int): Output channels.
+            n (int): Number of Bottleneck blocks.
+            shortcut (bool): When True, exclude the second split half from the concat and shrink ``cv2``.
+            g (int): Groups for convolutions.
+            e (float): Expansion ratio.
+        """
+        super().__init__(c1, c2, n, shortcut, g, e)
+        self.shortcut = shortcut
+        if shortcut:
+            self.cv2 = Conv((1 + n) * self.c, c2, 1)  # second split half is not concatenated
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Forward pass; drops the second split half from the concat when shortcut is enabled."""
+        y = list(self.cv1(x).chunk(2, 1))
+        y.extend(m(y[-1]) for m in self.m)
+        if self.shortcut:
+            y = y[:1] + y[2:]  # keep first half + bottleneck outputs, drop the second half itself
+        return self.cv2(torch.cat(y, 1))
+
+    def forward_split(self, x: torch.Tensor) -> torch.Tensor:
+        """Forward pass using split() instead of chunk()."""
+        y = list(self.cv1(x).split((self.c, self.c), 1))
+        y.extend(m(y[-1]) for m in self.m)
+        if self.shortcut:
+            y = y[:1] + y[2:]
+        return self.cv2(torch.cat(y, 1))
+
+
+class C3k2Slim(C2fSlim):
+    """C3k2 built on C2fSlim: with ``shortcut=True`` the second split half is excluded from the concat."""
+
+    def __init__(
+        self,
+        c1: int,
+        c2: int,
+        n: int = 1,
+        c3k: bool = False,
+        e: float = 0.5,
+        attn: bool = False,
+        g: int = 1,
+        shortcut: bool = True,
+    ):
+        """Initialize C3k2Slim.
+
+        Args:
+            c1 (int): Input channels.
+            c2 (int): Output channels.
+            n (int): Number of blocks.
+            c3k (bool): Whether to use C3k blocks.
+            e (float): Expansion ratio.
+            attn (bool): Whether to use attention blocks.
+            g (int): Groups for convolutions.
+            shortcut (bool): When True, exclude the second split half from the concat and shrink ``cv2``.
         """
         super().__init__(c1, c2, n, shortcut, g, e)
         self.m = nn.ModuleList(

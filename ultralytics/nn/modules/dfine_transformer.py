@@ -138,7 +138,10 @@ class Integral(nn.Module):
     def forward(self, x, project):
         shape = x.shape
         x = F.softmax(x.reshape(-1, self.reg_max + 1), dim=1)
-        x = F.linear(x, project.to(x.device).reshape(1, -1)).reshape(-1, 4)
+        # Match both device AND dtype of activations: `project` is a precomputed (deploy-mode) fp32 plain attribute
+        # that model.half() does not convert, so under FP16 export a `.to(x.device)`-only cast leaves it fp32 and
+        # F.linear hits "mat1 and mat2 must have the same dtype" (Half != float).
+        x = F.linear(x, project.to(device=x.device, dtype=x.dtype).reshape(1, -1)).reshape(-1, 4)
         return x.reshape(list(shape[:-1]) + [-1])
 
 

@@ -2242,13 +2242,17 @@ def guess_model_family(model):
 
     if isinstance(model, (str, Path)):
         path = Path(model)
+        stem = re.sub(r"[^a-z0-9]+", "", path.stem.lower())
+        # Route any YOLO-DETR checkpoint/export to the YOLO-DETR family by name, across all scales and formats
+        # (incl. .engine), e.g. yolo27n-detr / yolo27x-detr / yolo27xxl-detr -> yolo27<scale>detr. This takes priority
+        # over embedded metadata so engines route here too (the exporter stamps model_type="rtdetr" for every
+        # RTDETRDecoder subclass, which would otherwise send RTDETRDecoderV2 engines to the RT-DETR family).
+        if "yolodetr" in stem or re.search(r"yolo\d+[a-z]*detr", stem):
+            return "yolodetr"
+
         family = metadata2family(_load_export_metadata(path))
         if family:
             return family
-
-        stem = re.sub(r"[^a-z0-9]+", "", path.stem.lower())
-        if "yolodetr" in stem or "yolo27detr" in stem:
-            return "yolodetr"
         if "rtdetr" in stem:
             return "rtdetr"
 

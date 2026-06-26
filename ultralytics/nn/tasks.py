@@ -634,12 +634,6 @@ class YOLOAnomalyV2Model(DetectionModel):
         mask_coherent_noise_amp = list(v2_cfg.get("mask_coherent_noise_amp", [0.02, 0.06]))
         mask_coherent_noise_sigma = list(v2_cfg.get("mask_coherent_noise_sigma", [0.05, 0.15]))
         mask_floor = list(v2_cfg.get("mask_floor", [0.0, 0.0]))
-        # Value remapping: bridges the distribution gap between binary GT masks and
-        # soft SegBranch predictions. Applied before HeatmapBiasFusion at both train
-        # and inference time. Modes: none (identity), tanh_contrast (smooth stretch),
-        # power (x^gamma), threshold (hard step).
-        mask_remap_mode = str(v2_cfg.get("mask_remap_mode", "none")).lower()
-        mask_remap_kwargs = dict(v2_cfg.get("mask_remap_kwargs", {}))
         # v2.2 SegBranch: when enabled, a seg head predicts the heatmap so inference
         # needs no external prior. ``seg_alpha`` blends GT vs predicted mask (curriculum).
         use_seg = bool(v2_cfg.get("seg_branch", False))
@@ -813,8 +807,6 @@ class YOLOAnomalyV2Model(DetectionModel):
         self.mask_coherent_noise_amp = (float(mask_coherent_noise_amp[0]), float(mask_coherent_noise_amp[1]))
         self.mask_coherent_noise_sigma = (float(mask_coherent_noise_sigma[0]), float(mask_coherent_noise_sigma[1]))
         self.mask_floor = (float(mask_floor[0]), float(mask_floor[1]))
-        self.mask_remap_mode = mask_remap_mode
-        self.mask_remap_kwargs = mask_remap_kwargs
         self.spatial_softmax = bool(v2_cfg.get("spatial_softmax", False))
         self.softmax_temperature = float(v2_cfg.get("softmax_temperature", 1.0))
         # Prior processing before fusion (inference toggle, default 'none'):
@@ -1230,8 +1222,6 @@ class YOLOAnomalyV2Model(DetectionModel):
             ("_feat_disc_fuse", "mean"),
             ("_feat_disc_weight", 0.5),
             ("_heatmap_producer", "bank"),
-            ("mask_remap_mode", "none"),
-            ("mask_remap_kwargs", {}),
             ("spatial_softmax", False),
             ("softmax_temperature", 1.0),
             ("fusion_mode", "bias"),
@@ -1834,37 +1824,6 @@ class YOLOAnomalyV2Model(DetectionModel):
             self._edge_weight_cache = cache
         return cache[1]
 
-    def _remap_mask_values(self, mask):
-        """Apply configurable value remapping to bridge binary-GT vs soft-SegBranch gap.
-
-        Called AFTER ``_augment_mask`` so remapping cleans up imprecision from both
-        the SegBranch prediction and noise injection, giving ``HeatmapBiasFusion``
-        a consistent value distribution at both train and inference time.
-
-        Modes:
-            none           identity (passthrough)
-            tanh_contrast  0.5*tanh(steepness*(x-center))+0.5  (smooth stretch)
-            power          x**gamma  (push toward 0 or 1)
-            threshold      hard step at ``threshold`` -> low/high
-        """
-        mode = getattr(self, "mask_remap_mode", "none")
-        if mode == "none":
-            return mask
-        kwargs = getattr(self, "mask_remap_kwargs", {})
-        if mode == "threshold":
-            t = float(kwargs.get("threshold", 0.5))
-            low = float(kwargs.get("low", 0.0))
-            high = float(kwargs.get("high", 1.0))
-            return torch.where(mask > t, torch.full_like(mask, high), torch.full_like(mask, low))
-        if mode == "power":
-            gamma = float(kwargs.get("gamma", 2.0))
-            return mask**gamma
-        if mode == "tanh_contrast":
-            s = float(kwargs.get("steepness", 5.0))
-            c = float(kwargs.get("center", 0.5))
-            return 0.5 * torch.tanh(s * (mask - c)) + 0.5
-        raise ValueError(f"Unknown mask_remap_mode: {mode!r}")
-
     # ------------------------------------------------------------------
     # Forward
     # ------------------------------------------------------------------
@@ -2086,7 +2045,7 @@ class YOLOAnomalyV2Model(DetectionModel):
                         and getattr(self, "heatmap_edge_weight", False)
                     ):
                         prior = prior * self._edge_weight(prior)
-                    # Stash RAW heatmap for validator AUROC (before softmax/remapping/augmentation).
+                    # Stash RAW heatmap for validator AUROC (before softmax/augmentation).
                     self._last_heatmap = prior.detach() if prior is not None else None
                     # Per-image min-max normalization: stretch each sample's prior to [0, 1].
                     # Boosts a soft, low-peak prior (memory bank ~0.8) so the fusion conv responds
@@ -2107,9 +2066,6 @@ class YOLOAnomalyV2Model(DetectionModel):
                     # distribution gap between GT binary masks and soft predictions).
                     if prior is not None and getattr(self, "spatial_softmax", False):
                         prior = self._apply_spatial_softmax(prior)
-                    # Value remapping (bridges binary-GT training vs soft-SegBranch inference).
-                    if prior is not None:
-                        prior = self._remap_mask_values(prior)
                     # NOTE: training-time prior augmentation (_augment_mask) is applied once inside
                     # _resolve_prior (augment=self.training); do not re-apply it here.
                 fused = []

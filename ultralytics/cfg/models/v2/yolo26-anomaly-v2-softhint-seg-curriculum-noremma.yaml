@@ -25,7 +25,6 @@ anomaly_v2:
   seg_detach: true
   mask_shuffle_p: 0.2
   mask_noise_std: 0.05
-  mask_remap_mode: none
 
 backbone:
   - [-1, 1, Conv, [64, 3, 2]]

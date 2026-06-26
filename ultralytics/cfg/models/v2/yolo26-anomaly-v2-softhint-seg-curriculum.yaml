@@ -1,9 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# YOLO Anomaly v2 SOFT-HINT + SegBranch curriculum (GT→SegBranch, noise, remap).
+# YOLO Anomaly v2 SOFT-HINT + SegBranch curriculum (GT→SegBranch, noise).
 # Compared to softhint-seg-a1 (pinned alpha=1): this config anneals alpha from 1→0
-# over the first half of training, applies tanh_contrast value remapping to bridge the
-# binary-GT vs soft-SegBranch distribution gap, and adds mask noise for robustness.
+# over the first half of training and adds mask noise for robustness.
 # Branch: yoloa_v2_softhint_clean.
 
 nc: 80
@@ -27,10 +26,6 @@ anomaly_v2:
   seg_detach: true
   mask_shuffle_p: 0.2
   mask_noise_std: 0.05
-  mask_remap_mode: tanh_contrast
-  mask_remap_kwargs:
-    steepness: 5.0
-    center: 0.5
 
 backbone:
   - [-1, 1, Conv, [64, 3, 2]]

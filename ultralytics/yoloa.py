@@ -68,7 +68,6 @@ _INFER_SET = {
     "heatmap_edge_weight": "heatmap_edge_weight", "heatmap_edge_p": "heatmap_edge_p",
     "heatmap_edge_m": "heatmap_edge_m", "heatmap_edge_sigma": "heatmap_edge_sigma",
     "spatial_softmax": "spatial_softmax", "softmax_temperature": "softmax_temperature",
-    "mask_remap_mode": "mask_remap_mode", "mask_remap_kwargs": "mask_remap_kwargs",
     # short aliases
     "heat_norm": "heatmap_norm", "heat_smooth_kernel": "heatmap_smooth_kernel",
     "heat_edge": "heatmap_edge_weight", "heat_edge_p": "heatmap_edge_p",

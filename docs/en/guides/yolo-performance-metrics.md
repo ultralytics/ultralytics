@@ -93,7 +93,7 @@ The model.val() function, apart from producing numeric metrics, also yields visu
 
 - **Validation Batch Predictions (`val_batchX_pred.jpg`)**: Contrasting the label images, these visuals display the predictions made by the YOLO26 model for the respective batches. By comparing these to the label images, you can easily assess how well the model detects and classifies objects visually.
 
-The curve plots are prefixed with the task name — `Box` for [detection](../tasks/detect.md), with the matching prefix for other tasks (`Mask` for [segmentation](../tasks/segment.md), `Pose` for [pose](../tasks/pose.md)).
+The curve plots are prefixed by metric type: [detection](../tasks/detect.md) writes `Box*` curves, [segmentation](../tasks/segment.md) writes both `Box*` and `Mask*` curves, and [pose](../tasks/pose.md) writes both `Box*` and `Pose*` curves.
 
 #### Results Storage
 

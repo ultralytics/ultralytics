@@ -2,6 +2,7 @@
 
 import sys
 from collections import OrderedDict
+from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
@@ -14,8 +15,10 @@ from ultralytics.cfg import get_cfg
 from ultralytics.engine.exporter import Exporter
 from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models.yolo import classify, detect, obb, pose, segment, semantic
+from ultralytics.nn.distill_model import DistillationModel
 from ultralytics.nn.tasks import load_checkpoint
 from ultralytics.utils import ASSETS, DEFAULT_CFG, IS_RASPBERRYPI, WEIGHTS_DIR
+from ultralytics.utils.torch_utils import unwrap_model
 
 
 def test_func(*args, **kwargs):
@@ -155,6 +158,49 @@ def test_resume_incomplete(task, weight, data, tmp_path):
     resume_model = YOLO(last_path)
     resume_model.train(resume=True, **train_args)
     assert resume_model.trainer.start_epoch == resume_model.trainer.epoch == 1, "resume test failed"
+
+
+def test_distill_resume(tmp_path: Path):
+    """Test knowledge distillation resumes from an incomplete checkpoint."""
+    overrides = {
+        "data": "coco8.yaml",
+        "model": "yolo26n.yaml",
+        "distill_model": WEIGHTS_DIR / "yolo26s.pt",
+        "imgsz": 32,
+        "multi_scale": 0.5,  # vary per-batch image size to exercise dynamic distillation score splitting
+        "epochs": 2,
+        "save": True,
+        "plots": False,
+        "workers": 0,
+        "project": tmp_path,
+        "name": "distill",
+        "exist_ok": True,
+    }
+
+    # Train for one epoch then interrupt to produce a resumable checkpoint
+    trainer = detect.DetectionTrainer(overrides=overrides)
+
+    def stop_after_first_epoch(trainer):
+        if trainer.epoch == 0:
+            trainer.stop = True
+
+    trainer.final_eval = lambda: None
+    trainer.add_callback("on_train_epoch_end", stop_after_first_epoch)
+    trainer.train()
+    _, ckpt = load_checkpoint(trainer.last)
+    assert ckpt["epoch"] == 0, "checkpoint should be resumable"
+    assert isinstance(ckpt["ema"], DistillationModel), "distillation EMA wraps the student model"
+    assert ckpt["ema"].teacher_model is None, "teacher should be stripped from the EMA/checkpoint"
+    assert ckpt["ema"].projector is not None, "the distillation projector should be persisted in the EMA checkpoint"
+
+    overrides["resume"] = trainer.last
+    trainer = detect.DetectionTrainer(overrides=overrides)
+    trainer.final_eval = lambda: None
+    trainer.train()
+    model = unwrap_model(trainer.model)
+    assert isinstance(model, DistillationModel), "resume should rebuild the DistillationModel"
+    assert model.teacher_model is not None, "resume should rebuild the teacher from the distill_model path"
+    assert trainer.start_epoch == trainer.epoch == 1, "resume test failed"
 
 
 @pytest.mark.parametrize(

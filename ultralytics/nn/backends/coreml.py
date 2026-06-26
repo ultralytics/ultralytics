@@ -31,13 +31,15 @@ class CoreMLBackend(BaseBackend):
         import coremltools as ct
 
         LOGGER.info(f"Loading {weight} for CoreML inference...")
-        # Run on the Neural Engine (CPU_AND_NE): ~3x faster than CPU, and the default ComputeUnit.ALL / CPU_AND_GPU
-        # abort the process via an MPSGraph compiler bug on macOS hosts (coremltools 9.x). CPU_AND_NE needs macOS >= 13,
-        # so fall back to CPU_ONLY below that. CoreML inference is macOS-only, so this applies wherever the backend runs.
-        try:
-            self.model = ct.models.MLModel(weight, compute_units=ct.ComputeUnit.CPU_AND_NE)
-        except Exception:
-            self.model = ct.models.MLModel(weight, compute_units=ct.ComputeUnit.CPU_ONLY)
+        # Default ComputeUnit.ALL: tied with CPU_AND_NE on CNNs and the only correct choice on RT-DETR heads
+        # (ANE-only fusion silently corrupts attention outputs). Fall back to CPU_AND_NE if a host hits the
+        # MPSGraph "MLIR pass manager failed" assertion under ALL, then CPU_ONLY on macOS < 13 where ANE is unavailable.
+        for unit in (ct.ComputeUnit.ALL, ct.ComputeUnit.CPU_AND_NE, ct.ComputeUnit.CPU_ONLY):
+            try:
+                self.model = ct.models.MLModel(weight, compute_units=unit)
+                break
+            except Exception:
+                continue
         spec = self.model.get_spec()
         self.input_name = spec.description.input[0].name
         self.dynamic = spec.description.input[0].type.HasField("multiArrayType")

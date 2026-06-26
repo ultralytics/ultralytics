@@ -202,7 +202,7 @@ def export_formats():
         ],
         ["DEEPX", "deepx", "_deepx_model", False, False, ["data", "int8", "optimize"], "isolated-deepx"],
         ["Qualcomm QNN", "qnn", "_qnn.onnx", False, False, ["batch", "name", "int8", "fraction", "data"], "base"],
-        ["LiteRT", "litert", "_litert_model", True, False, ["batch", "int8", "data"], "litert"],
+        ["LiteRT", "litert", "_litert_model", True, False, ["batch", "int8", "data", "fraction"], "litert"],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments", "Env"], zip(*x)))
 
@@ -985,7 +985,7 @@ class Exporter:
     @try_export
     def export_litert(self, prefix=colorstr("LiteRT:")):
         """Export YOLO model to LiteRT format using litert_torch with optional FP16/INT8 quantization."""
-        assert LINUX and not MACOS and not WINDOWS and not ARM64, "LiteRT export only supported on Linux x86"
+        assert LINUX and not ARM64, "LiteRT export only supported on Linux x86"
         from ultralytics.utils.export.litert import torch2litert
 
         return torch2litert(

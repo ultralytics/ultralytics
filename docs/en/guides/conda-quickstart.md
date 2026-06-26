@@ -1,4 +1,5 @@
 ---
+title: Install YOLO with Conda
 comments: true
 description: Install Ultralytics YOLO with Conda. Set up an isolated conda-forge environment, add CUDA GPU support, run the Conda Docker image, and speed up installs with the libmamba solver.
 keywords: Ultralytics, YOLO, Conda, conda-forge, install Ultralytics, conda environment, CUDA, GPU, pytorch-cuda, Miniconda, Anaconda, libmamba solver, Conda Docker image, machine learning, environment management

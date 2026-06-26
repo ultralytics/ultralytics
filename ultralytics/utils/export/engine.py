@@ -144,6 +144,10 @@ def modelopt_quantize_onnx(
             quantize_mode="int8",
             calibration_data={input_name: calib.cpu().numpy()},
             calibration_method="max",
+            # Calibrate on CPU. ModelOpt's CUDA EP session can hit an uncatchable cuDNN-ABI segfault (its pinned
+            # onnxruntime-gpu's cuDNN vs the installed torch's) and the TensorRT EP aborts on RTX cards (NvTensorRTRTX);
+            # scales are EP-independent, so the INT8 engine is equivalent and only this one-time step is slower.
+            calibration_eps=["cpu"],
             output_path=out_file,
             **kwargs,
         )

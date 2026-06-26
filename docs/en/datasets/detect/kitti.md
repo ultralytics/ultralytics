@@ -1,4 +1,5 @@
 ---
+title: KITTI Detection Dataset
 comments: true
 description: Explore the Ultralytics kitti dataset, a benchmark dataset for computer vision tasks such as 3D object detection, depth estimation, and autonomous driving perception.
 keywords: kitti, Ultralytics, dataset, object detection, 3D vision, YOLO26, training, validation, self-driving cars, computer vision

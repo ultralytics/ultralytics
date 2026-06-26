@@ -392,7 +392,11 @@ class v8DetectionLoss:
         return dist2bbox(pred_dist, anchor_points, xywh=False)
 
     def cls_loss(
-        self, pred_scores: torch.Tensor, target_scores: torch.Tensor, target_scores_sum: torch.Tensor
+        self,
+        pred_scores: torch.Tensor,
+        target_scores: torch.Tensor,
+        target_scores_sum: torch.Tensor,
+        target_scores_weight: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """Compute classification loss (Varifocal or BCE) normalized by the task-aligned score sum.
 
@@ -400,6 +404,7 @@ class v8DetectionLoss:
             pred_scores (torch.Tensor): Predicted class logits with shape (bs, num_anchors, nc).
             target_scores (torch.Tensor): Task-aligned soft targets with shape (bs, num_anchors, nc).
             target_scores_sum (torch.Tensor): Sum of target scores used for normalization.
+            target_scores_weight (torch.Tensor, optional): Per-anchor classification loss weights.
 
         Returns:
             (torch.Tensor): Scalar classification loss.
@@ -409,6 +414,8 @@ class v8DetectionLoss:
             cls = self.vfl(pred_scores, target_scores.to(pred_scores.dtype), label)
         else:
             cls = self.bce(pred_scores, target_scores.to(pred_scores.dtype))  # (bs, num_anchors, nc)
+        if target_scores_weight is not None:
+            cls *= target_scores_weight
         if self.class_weights is not None:
             cls *= self.class_weights
         return cls.sum() / target_scores_sum
@@ -447,9 +454,10 @@ class v8DetectionLoss:
         )
 
         target_scores_sum = max(target_scores.sum(), 1)
+        target_scores_weight = self.assigner.o2f_cls_weight
 
         # Cls loss (Varifocal or BCE) with optional class weighting
-        loss[1] = self.cls_loss(pred_scores, target_scores, target_scores_sum)
+        loss[1] = self.cls_loss(pred_scores, target_scores, target_scores_sum, target_scores_weight)
 
         # Bbox loss
         if fg_mask.sum():

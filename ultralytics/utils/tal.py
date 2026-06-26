@@ -54,6 +54,7 @@ class TaskAlignedAssigner(nn.Module):
         self.topk2 = topk2 or topk
         self.o2f = False
         self.o2f_t = 0.6
+        self.o2f_cls_weight = None
         self.num_classes = num_classes
         self.alpha = alpha
         self.beta = beta
@@ -84,6 +85,7 @@ class TaskAlignedAssigner(nn.Module):
             https://github.com/Nioolek/PPYOLOE_pytorch/blob/master/ppyoloe/assigner/tal_assigner.py
         """
         self.bs = pd_scores.shape[0]
+        self.o2f_cls_weight = None
         self.n_max_boxes = gt_bboxes.shape[1]
         device = gt_bboxes.device
 
@@ -104,6 +106,8 @@ class TaskAlignedAssigner(nn.Module):
                 LOGGER.warning("CUDA OutOfMemoryError in TaskAlignedAssigner, using CPU")
                 cpu_tensors = [t.cpu() for t in (pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt)]
                 result = self._forward(*cpu_tensors)
+                if self.o2f_cls_weight is not None:
+                    self.o2f_cls_weight = self.o2f_cls_weight.to(device)
                 return tuple(t.to(device) for t in result)
             raise
 
@@ -141,8 +145,10 @@ class TaskAlignedAssigner(nn.Module):
         pos_align_metrics = align_metric.amax(dim=-1, keepdim=True)  # b, max_num_obj
         pos_overlaps = (overlaps * mask_pos).amax(dim=-1, keepdim=True)  # b, max_num_obj
         norm_align_metric = (align_metric * pos_overlaps / (pos_align_metrics + self.eps)).amax(-2).unsqueeze(-1)
+        self.o2f_cls_weight = None
         if self.o2f and self.topk > 1:
-            norm_align_metric = norm_align_metric * self.get_o2f_degrees(pd_scores, gt_labels, mask_pos, align_metric)
+            o2f_degrees, self.o2f_cls_weight = self.get_o2f_degrees(pd_scores, gt_labels, mask_pos, align_metric)
+            norm_align_metric = norm_align_metric * o2f_degrees
         target_scores = target_scores * norm_align_metric
 
         return target_labels, target_bboxes, target_scores, fg_mask.bool(), target_gt_idx
@@ -207,7 +213,7 @@ class TaskAlignedAssigner(nn.Module):
         return align_metric, overlaps
 
     def get_o2f_degrees(self, pd_scores, gt_labels, mask_pos, align_metric):
-        """Return O2F positive degrees for assigned anchors, keeping each GT best anchor fully positive."""
+        """Return O2F positive degrees and cls weights, keeping each GT best anchor fully positive."""
         mask_pos = mask_pos.bool()
         gt_scores = torch.zeros_like(mask_pos, dtype=pd_scores.dtype)
         ind = torch.zeros([2, self.bs, self.n_max_boxes], dtype=torch.long, device=gt_labels.device)
@@ -223,7 +229,8 @@ class TaskAlignedAssigner(nn.Module):
         degrees = torch.where(
             best_mask, torch.ones_like(gt_scores), torch.where(amb_mask, amb_degree, torch.zeros_like(gt_scores))
         )
-        return degrees.amax(-2).unsqueeze(-1)
+        cls_weights = torch.where(amb_mask, gt_scores.new_full(gt_scores.shape, 0.4), torch.ones_like(gt_scores))
+        return degrees.amax(-2).unsqueeze(-1), cls_weights.amin(-2).unsqueeze(-1)
 
     def iou_calculation(self, gt_bboxes, pd_bboxes):
         """Calculate IoU for horizontal bounding boxes.

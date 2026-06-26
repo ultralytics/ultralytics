@@ -72,6 +72,3 @@ loss:
     use_fl: True
     alpha: 0.25
     gamma: 2.0
-    change_matcher: True
-    iou_order_alpha: 4.0
-    matcher_change_epoch: 50

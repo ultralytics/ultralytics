@@ -318,6 +318,12 @@ class AnomalyV2Trainer(DetectionTrainer):
         heat_norm = fit_yaml.get("heat_norm") or None
 
         ema_eval = deepcopy(trainer.ema.ema).eval()
+        # Apply the fit YAML's bank-build knobs (bb_K / bb_temperature / calibration / bb_layers) onto the
+        # eval copy so the OOD bank is built exactly as YOLOA.fit would post-training — the fit YAML is the
+        # single source of truth, overriding the model-baked v2_cfg defaults. No-op without a fit YAML.
+        if fit_yaml:
+            from ultralytics.yoloa import apply_bb_overrides
+            apply_bb_overrides(ema_eval, fit_yaml)
         trainer._ood_heatmap_map10 = None  # clear stale; only set on success
         try:
             with torch.no_grad():

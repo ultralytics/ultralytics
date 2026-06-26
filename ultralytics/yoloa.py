@@ -62,6 +62,31 @@ _BB_TO_MB = {
     "bb_holdout_max": "holdout_max",
 }
 
+def apply_bb_overrides(model, fit_args: dict) -> None:
+    """Apply bb_* fit overrides onto a YOLOAnomalyV2Model + its memory bank before the bank is built.
+
+    Shared by :meth:`YOLOA.fit` and the trainer's MVTec OOD eval so both build the bank with the
+    same fit-config knobs (bb_K / bb_temperature / calibration / bb_max_bank_size / bb_layers re-tap),
+    keeping in-training and post-training evaluation identical. Only keys present (non-None) in
+    ``fit_args`` override the model-baked v2_cfg defaults.
+    """
+    mb = model.memory_bank
+    new_layers = fit_args.get("bb_layers")
+    if new_layers is not None and list(new_layers) != list(model._bb_layers or []):
+        new_layers = list(new_layers)
+        LOGGER.warning(f"apply_bb_overrides: bb_layers {model._bb_layers} -> {new_layers} (rebuilds bank; "
+                       f"deviating from the training layer set may shift fusion behavior)")
+        for h in getattr(model, "_bb_hook_handles", []):
+            h.remove()
+        model._bb_hook_handles = []
+        model._bb_layers = new_layers
+        mb._bb_layer_indices = new_layers
+        model._install_backbone_taps(new_layers)
+    for fk, mbk in _BB_TO_MB.items():
+        if fit_args.get(fk) is not None:
+            setattr(mb, mbk, fit_args[fk])
+
+
 # Prior-shaping knobs set on the model before forward. Accepts canonical names and short aliases.
 _INFER_SET = {
     "heatmap_norm": "heatmap_norm", "heatmap_smooth_kernel": "heatmap_smooth_kernel",
@@ -273,21 +298,7 @@ class YOLOA(Model):
 
     def _apply_bb_overrides(self, fit_args: dict) -> None:
         """Apply bb_* overrides onto the model/bank before building."""
-        m, mb = self.model, self.model.memory_bank
-        new_layers = fit_args.get("bb_layers")
-        if new_layers is not None and list(new_layers) != list(m._bb_layers or []):
-            new_layers = list(new_layers)
-            LOGGER.warning(f"YOLOA.fit: bb_layers {m._bb_layers} -> {new_layers} (rebuilds bank; "
-                           f"deviating from the training layer set may shift fusion behavior)")
-            for h in getattr(m, "_bb_hook_handles", []):
-                h.remove()
-            m._bb_hook_handles = []
-            m._bb_layers = new_layers
-            mb._bb_layer_indices = new_layers
-            m._install_backbone_taps(new_layers)
-        for fk, mbk in _BB_TO_MB.items():
-            if fit_args.get(fk) is not None:
-                setattr(mb, mbk, fit_args[fk])
+        apply_bb_overrides(self.model, fit_args)
 
     def resolve_fit_args(self, cfg: str | Path | dict | None = None, **kw) -> dict:
         """Public: the fully resolved fit config (model yaml <- fit cfg <- kwargs)."""

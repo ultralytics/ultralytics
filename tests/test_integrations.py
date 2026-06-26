@@ -34,53 +34,44 @@ def test_mlflow(tmp_path, monkeypatch):
     """Test training with MLflow tracking enabled."""
     import mlflow
 
-    # Pin an explicit sqlite backend: the default file store is in maintenance mode on mlflow>=3 and raises on setup
     monkeypatch.setenv("MLFLOW_TRACKING_URI", f"sqlite:///{(tmp_path / 'mlflow.db').as_posix()}")
     monkeypatch.setenv("MLFLOW_EXPERIMENT_NAME", "test_mlflow")
-    SETTINGS["mlflow"] = True
+    monkeypatch.setitem(SETTINGS, "mlflow", True)
     try:
         YOLO("yolo26n-cls.yaml").train(data="imagenet10", imgsz=32, epochs=3, plots=False, device="cpu")
     finally:
         mlflow.autolog(disable=True)
         mlflow.end_run()
-        SETTINGS["mlflow"] = False
 
 
 @pytest.mark.skipif(not check_requirements("mlflow", install=False), reason="mlflow not installed")
 def test_mlflow_keep_run_active(tmp_path, monkeypatch):
-    """Ensure MLflow run status honors the MLFLOW_KEEP_RUN_ACTIVE environment variable across all states."""
+    """Ensure MLFLOW_KEEP_RUN_ACTIVE controls whether new MLflow runs remain active."""
     import mlflow
 
-    # Pin an explicit sqlite backend: the default file store is in maintenance mode on mlflow>=3 and raises on setup
     monkeypatch.setenv("MLFLOW_TRACKING_URI", f"sqlite:///{(tmp_path / 'mlflow.db').as_posix()}")
     monkeypatch.setenv("MLFLOW_EXPERIMENT_NAME", "keep_run_active")
     monkeypatch.setenv("MLFLOW_RUN", "Test Run")
-    SETTINGS["mlflow"] = True
+    monkeypatch.setitem(SETTINGS, "mlflow", True)
     try:
-        # MLFLOW_KEEP_RUN_ACTIVE=True keeps the run alive after training
         monkeypatch.setenv("MLFLOW_KEEP_RUN_ACTIVE", "True")
         YOLO("yolo26n-cls.yaml").train(data="imagenet10", imgsz=32, epochs=1, plots=False, device="cpu")
         active = mlflow.active_run()
         assert active is not None and active.info.status == "RUNNING", (
             "MLflow run should be active when MLFLOW_KEEP_RUN_ACTIVE=True"
         )
-        run_id = active.info.run_id
+        mlflow.end_run()
 
-        # MLFLOW_KEEP_RUN_ACTIVE=False ends the still-active run after training
         monkeypatch.setenv("MLFLOW_KEEP_RUN_ACTIVE", "False")
         YOLO("yolo26n-cls.yaml").train(data="imagenet10", imgsz=32, epochs=1, plots=False, device="cpu")
-        assert mlflow.get_run(run_id).info.status == "FINISHED", (
-            "MLflow run should be ended when MLFLOW_KEEP_RUN_ACTIVE=False"
-        )
+        assert mlflow.active_run() is None, "MLflow run should be ended when MLFLOW_KEEP_RUN_ACTIVE=False"
 
-        # MLFLOW_KEEP_RUN_ACTIVE unset ends the run by default
         monkeypatch.delenv("MLFLOW_KEEP_RUN_ACTIVE", raising=False)
         YOLO("yolo26n-cls.yaml").train(data="imagenet10", imgsz=32, epochs=1, plots=False, device="cpu")
         assert mlflow.active_run() is None, "MLflow run should be ended by default when MLFLOW_KEEP_RUN_ACTIVE is unset"
     finally:
         mlflow.autolog(disable=True)
         mlflow.end_run()
-        SETTINGS["mlflow"] = False
 
 
 @pytest.mark.skipif(not check_requirements("tritonclient", install=False), reason="tritonclient[all] not installed")

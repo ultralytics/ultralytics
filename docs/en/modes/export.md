@@ -84,6 +84,29 @@ Available YOLO26 export formats are in the table below. You can export to any fo
 
 {% include "macros/export-table.md" %}
 
+## Quantization Options
+
+Use the `quantize` argument to request the export precision. String values are case-insensitive, and Ultralytics canonicalizes accepted aliases before export:
+
+| Request values                     | Canonical value | Meaning                                                 |
+| ---------------------------------- | --------------- | ------------------------------------------------------- |
+| `8`, `"8"`, `"int8"`, `"w8a8"`     | `8`             | INT8 weights and activations                            |
+| `16`, `"16"`, `"fp16"`, `"w16a16"` | `16`            | FP16 weights and activations                            |
+| `32`, `"32"`, `"fp32"`, `"w32a32"` | `32`            | FP32 export; same precision as leaving `quantize` unset |
+| `"w8a16"`                          | `"w8a16"`       | INT8 weights with FP16 activations                      |
+
+The legacy `half=True` and `int8=True` flags are still accepted with deprecation warnings and forward to `quantize=16` and `quantize=8`.
+
+Not every export format supports every quantization scheme:
+
+| Scheme                     | Supported formats                                                                                           |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| FP16 (`quantize=16`)       | TorchScript, ONNX, OpenVINO, TensorRT, CoreML, TFLite, TF.js, MNN, NCNN, RKNN                               |
+| INT8 (`quantize=8`)        | ONNX, OpenVINO, TensorRT, CoreML, TF SavedModel, TFLite, Edge TPU, TF.js, MNN, IMX500, RKNN, Axelera, DEEPX |
+| W8A16 (`quantize="w8a16"`) | CoreML, IMX500, Qualcomm QNN                                                                                |
+
+For INT8 and W8A16 exports, provide representative calibration data with `data`, such as `data="coco8.yaml"`, unless the target integration documents a default or auto-enabled behavior.
+
 ## FAQ
 
 ### How do I export a YOLO26 model to ONNX format?
@@ -136,16 +159,16 @@ INT8 quantization is an excellent way to compress the model and speed up inferen
         from ultralytics import YOLO
 
         model = YOLO("yolo26n.pt")  # Load a model
-        model.export(format="onnx", int8=True, data="coco8.yaml")
+        model.export(format="onnx", quantize=8, data="coco8.yaml")
         ```
 
     === "CLI"
 
         ```bash
-        yolo export model=yolo26n.pt format=onnx int8=True data=coco8.yaml # export ONNX model with INT8 quantization
+        yolo export model=yolo26n.pt format=onnx quantize=8 data=coco8.yaml # export ONNX model with INT8 quantization
         ```
 
-INT8 quantization can be applied to various formats, such as [ONNX](../integrations/onnx.md), [TensorRT](../integrations/tensorrt.md), [OpenVINO](../integrations/openvino.md), [CoreML](../integrations/coreml.md), and [Rockchip RKNN](../integrations/rockchip-rknn.md). For optimal quantization results, provide a representative [dataset](../datasets/index.md) using the `data` parameter.
+INT8 quantization can be applied to formats such as [ONNX](../integrations/onnx.md), [TensorRT](../integrations/tensorrt.md), [OpenVINO](../integrations/openvino.md), [CoreML](../integrations/coreml.md), and [Rockchip RKNN](../integrations/rockchip-rknn.md). For optimal quantization results, provide a representative [dataset](../datasets/index.md) using the `data` parameter. See [Quantization Options](#quantization-options) for accepted `quantize` values and supported formats.
 
 ### Why is dynamic input size important when exporting models?
 
@@ -178,9 +201,8 @@ Understanding and configuring export arguments is crucial for optimizing model p
 
 - **`format:`** The target format for the exported model (e.g., `onnx`, `torchscript`, `tensorflow`).
 - **`imgsz:`** Desired image size for the model input (e.g., `640` or `(height, width)`).
-- **`half:`** Enables FP16 quantization, reducing model size and potentially speeding up inference.
+- **`quantize:`** Quantization precision, such as `8`/`"int8"`, `16`/`"fp16"`, `32`/`"fp32"`, or `"w8a16"` for supported mixed weight/activation precision exports. See [Quantization Options](#quantization-options).
 - **`optimize:`** Applies specific optimizations for mobile or constrained environments.
-- **`int8:`** Enables INT8 quantization, highly beneficial for [edge AI](https://www.ultralytics.com/blog/deploying-computer-vision-applications-on-edge-ai-devices) deployments.
 
 For deployment on specific hardware platforms, consider using specialized export formats like [TensorRT](../integrations/tensorrt.md) for NVIDIA GPUs, [CoreML](../integrations/coreml.md) for Apple devices, or [Edge TPU](../integrations/edge-tpu.md) for Google Coral devices.
 
@@ -198,9 +220,9 @@ For **pose models** (e.g., `yolo26n-pose.pt`), the output tensor is typically sh
 
 The examples in the [ONNX inference examples](https://github.com/ultralytics/ultralytics/tree/main/examples) demonstrate how to process these outputs for each model type.
 
-### Why is `output0` FP32 when exporting with `half=True` and `end2end=True`?
+### Why is `output0` FP32 when exporting quantized models with `end2end=True`?
 
-When exporting with `half=True` (or `int8=True`), most tensors are converted to lower precision to reduce model size and improve performance. However, when `end2end=True` is enabled, post-processing (including class indices) is embedded directly in the exported graph.
+When exporting with `quantize=16` (FP16) or `quantize=8` (INT8), most tensors are converted to lower precision to reduce model size and improve performance. However, when `end2end=True` is enabled, post-processing (including class indices) is embedded directly in the exported graph.
 
 The `output0` tensor contains class indices, which are internally represented as floating-point values. FP16 cannot reliably represent integer values above 2048 due to its limited mantissa precision. To avoid potential precision loss or incorrect class IDs, `output0` is intentionally kept in FP32.
 

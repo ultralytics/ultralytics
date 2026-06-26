@@ -88,15 +88,15 @@ The CoreML format supports the [Export](../modes/export.md), [Predict](../modes/
         # Load a YOLO26 model
         model = YOLO("yolo26n.pt")
 
-        # Export to CoreML (FP16 by default); int8=True matches the official app models
-        model.export(format="coreml", int8=True)  # creates 'yolo26n.mlpackage'
+        # Export to CoreML (FP16 by default); quantize=8 matches the official app models
+        model.export(format="coreml", quantize=8)  # creates 'yolo26n.mlpackage'
         ```
 
     === "CLI"
 
         ```bash
         # Export a YOLO26n PyTorch model to CoreML format with INT8 weight quantization
-        yolo export model=yolo26n.pt format=coreml int8=True # creates 'yolo26n.mlpackage'
+        yolo export model=yolo26n.pt format=coreml quantize=8 # creates 'yolo26n.mlpackage'
         ```
 
 !!! example "Predict"
@@ -143,16 +143,15 @@ The CoreML format supports the [Export](../modes/export.md), [Predict](../modes/
 
 ### Export Arguments
 
-| Argument  | Type             | Default    | Description                                                                                                                             |
-| --------- | ---------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`  | `str`            | `'coreml'` | Target format for the exported model, defining compatibility with various deployment environments.                                      |
-| `imgsz`   | `int` or `tuple` | `640`      | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.       |
-| `half`    | `bool`           | `False`    | Enables FP16 weight quantization, halving model size with negligible accuracy impact — a good default for the Neural Engine.            |
-| `int8`    | `bool`           | `False`    | Enables INT8 weight quantization for the smallest models; the official Ultralytics app models ship as INT8.                             |
-| `nms`     | `bool`           | `False`    | Embeds a CoreML NMS pipeline. Not needed for NMS-free YOLO26; use for earlier models like YOLO11.                                       |
-| `dynamic` | `bool`           | `False`    | Allows dynamic input sizes, enhancing flexibility in handling varying image dimensions.                                                 |
-| `batch`   | `int`            | `1`        | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
-| `device`  | `str`            | `None`     | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                         |
+| Argument   | Type             | Default    | Description                                                                                                                                                                                                                                                                                               |
+| ---------- | ---------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`            | `'coreml'` | Target format for the exported model, defining compatibility with various deployment environments.                                                                                                                                                                                                        |
+| `imgsz`    | `int` or `tuple` | `640`      | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                                                                                                         |
+| `quantize` | `int` or `str`   | `None`     | Quantization precision (weight-only for CoreML): `16` (FP16, halves model size with negligible accuracy impact — a good default for the Neural Engine) or `8` (INT8, smallest models; the official Ultralytics app models ship as INT8); `32`/unset is FP32. Replaces the deprecated `half`/`int8` flags. |
+| `nms`      | `bool`           | `False`    | Embeds a CoreML NMS pipeline. Not needed for NMS-free YOLO26; use for earlier models like YOLO11.                                                                                                                                                                                                         |
+| `dynamic`  | `bool`           | `False`    | Allows dynamic input sizes, enhancing flexibility in handling varying image dimensions.                                                                                                                                                                                                                   |
+| `batch`    | `int`            | `1`        | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                                                                                                   |
+| `device`   | `str`            | `None`     | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                                                                                                                                                                                           |
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
@@ -190,7 +189,7 @@ Ship the model either embedded in the app bundle (instant availability, ideal fo
 ## Recommended Workflow
 
 1. **Train** your model with Ultralytics [Train mode](../modes/train.md), or start from the official YOLO26 weights
-2. **Export** with `model.export(format="coreml", int8=True)` on macOS or x86 Linux
+2. **Export** with `model.export(format="coreml", quantize=8)` on macOS or x86 Linux
 3. **Verify** accuracy with `model.val()` on a Mac, and profile with an Xcode Core ML Performance Report on your target device
 4. **Deploy** with the iOS SDK, the Flutter plugin, or your own Vision integration, targeting `.cpuAndNeuralEngine`
 
@@ -202,7 +201,7 @@ In this guide, you learned how to export Ultralytics YOLO26 models to CoreML's `
 
 ### How do I export YOLO26 models to CoreML format?
 
-Run `model.export(format="coreml")` in Python or `yolo export model=yolo26n.pt format=coreml` from the CLI on macOS or x86 Linux. Add `int8=True` to match the official app models. The export produces a `yolo26n.mlpackage` ML Program ready for Xcode, the iOS SDK, or the Flutter plugin.
+Run `model.export(format="coreml")` in Python or `yolo export model=yolo26n.pt format=coreml` from the CLI on macOS or x86 Linux. Add `quantize=8` to match the official app models. The export produces a `yolo26n.mlpackage` ML Program ready for Xcode, the iOS SDK, or the Flutter plugin.
 
 ### Do I need `nms=True` when exporting YOLO26?
 
@@ -210,7 +209,7 @@ No. YOLO26 is NMS-free end-to-end, so the exported graph already emits final det
 
 ### Which precision should I use — FP16 or INT8?
 
-The official Ultralytics app models ship as INT8, which minimizes download size and runs at the speeds in the table above. `half=True` (FP16) is a conservative alternative with essentially no accuracy loss. Validate your exact export with `model.val()` on a Mac before shipping.
+The official Ultralytics app models ship as INT8, which minimizes download size and runs at the speeds in the table above. `quantize=16` (FP16) is a conservative alternative with essentially no accuracy loss. Validate your exact export with `model.val()` on a Mac before shipping.
 
 ### How do I make sure inference runs on the Neural Engine?
 

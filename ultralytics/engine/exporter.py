@@ -32,11 +32,11 @@ Python:
     from ultralytics import YOLO
     model = YOLO('yolo26n.pt')
     results = model.export(format='onnx')
-    results = model.export(format='onnx', int8=True, data='coco8.yaml')  # INT8 ONNX
+    results = model.export(format='onnx', quantize=8, data='coco8.yaml')  # INT8 ONNX
 
 CLI:
     $ yolo mode=export model=yolo26n.pt format=onnx
-    $ yolo mode=export model=yolo26n.pt format=onnx int8=True data=coco8.yaml
+    $ yolo mode=export model=yolo26n.pt format=onnx quantize=8 data=coco8.yaml
 
 Inference:
     $ yolo predict model=yolo26n.pt                 # PyTorch
@@ -81,7 +81,7 @@ import numpy as np
 import torch
 
 from ultralytics import __version__
-from ultralytics.cfg import TASK2CALIBRATIONDATA, TASK2DATA, get_cfg
+from ultralytics.cfg import QUANTIZE_DOCS_URL, TASK2CALIBRATIONDATA, TASK2DATA, get_cfg
 from ultralytics.data import build_dataloader, build_yolo_dataset
 from ultralytics.data.dataset import YOLODataset
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
@@ -142,7 +142,7 @@ def export_formats():
             ".torchscript",
             True,
             True,
-            ["batch", "optimize", "half", "nms", "dynamic"],
+            ["batch", "optimize", "quantize", "nms", "dynamic"],
             "base",
         ],
         [
@@ -151,7 +151,7 @@ def export_formats():
             ".onnx",
             True,
             True,
-            ["batch", "data", "dynamic", "half", "int8", "opset", "simplify", "nms", "fraction"],
+            ["batch", "data", "dynamic", "quantize", "opset", "simplify", "nms", "fraction"],
             "base",
         ],
         [
@@ -160,7 +160,7 @@ def export_formats():
             "_openvino_model",
             True,
             False,
-            ["batch", "data", "dynamic", "half", "int8", "nms", "fraction"],
+            ["batch", "data", "dynamic", "quantize", "nms", "fraction"],
             "base",
         ],
         [
@@ -169,17 +169,17 @@ def export_formats():
             ".engine",
             False,
             True,
-            ["batch", "data", "dynamic", "half", "int8", "simplify", "nms", "fraction"],
+            ["batch", "data", "dynamic", "quantize", "simplify", "nms", "fraction"],
             "base",
         ],
-        ["CoreML", "coreml", ".mlpackage", True, False, ["batch", "dynamic", "half", "int8", "nms"], "coreml"],
+        ["CoreML", "coreml", ".mlpackage", True, False, ["batch", "dynamic", "quantize", "nms"], "coreml"],
         [
             "TensorFlow SavedModel",
             "saved_model",
             "_saved_model",
             True,
             True,
-            ["batch", "data", "fraction", "int8", "keras", "nms"],
+            ["batch", "data", "fraction", "quantize", "keras", "nms"],
             "tensorflow",
         ],
         ["TensorFlow GraphDef", "pb", ".pb", True, True, ["batch"], "tensorflow"],
@@ -189,30 +189,38 @@ def export_formats():
             ".tflite",
             True,
             False,
-            ["batch", "data", "half", "int8", "nms", "fraction"],
+            ["batch", "data", "quantize", "nms", "fraction"],
             "tensorflow",
         ],
-        ["TensorFlow Edge TPU", "edgetpu", "_edgetpu.tflite", True, False, ["data", "fraction", "int8"], "tensorflow"],
+        [
+            "TensorFlow Edge TPU",
+            "edgetpu",
+            "_edgetpu.tflite",
+            True,
+            False,
+            ["data", "fraction", "quantize"],
+            "tensorflow",
+        ],
         [
             "TensorFlow.js",
             "tfjs",
             "_web_model",
             True,
             False,
-            ["batch", "data", "fraction", "half", "int8", "nms"],
+            ["batch", "data", "fraction", "quantize", "nms"],
             "tensorflow",
         ],
         ["PaddlePaddle", "paddle", "_paddle_model", True, True, ["batch"], "base"],
-        ["MNN", "mnn", ".mnn", True, True, ["batch", "half", "int8"], "mnn"],
-        ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "half"], "ncnn"],
-        ["IMX", "imx", "_imx_model", True, True, ["data", "int8", "fraction", "nms"], "isolated-imx"],
+        ["MNN", "mnn", ".mnn", True, True, ["batch", "quantize"], "mnn"],
+        ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "quantize"], "ncnn"],
+        ["IMX", "imx", "_imx_model", True, True, ["data", "quantize", "fraction", "nms"], "isolated-imx"],
         [
             "RKNN",
             "rknn",
             "_rknn_model",
             False,
             False,
-            ["batch", "name", "half", "int8", "data", "fraction"],
+            ["batch", "name", "quantize", "data", "fraction"],
             "isolated-rknn",
         ],
         ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"], "executorch"],
@@ -222,11 +230,11 @@ def export_formats():
             "_axelera_model",
             False,
             False,
-            ["batch", "int8", "fraction", "data"],
+            ["batch", "quantize", "fraction", "data"],
             "isolated-axelera",
         ],
-        ["DEEPX", "deepx", "_deepx_model", False, False, ["data", "int8", "optimize"], "isolated-deepx"],
-        ["Qualcomm QNN", "qnn", "_qnn.onnx", False, False, ["batch", "name", "int8", "fraction", "data"], "base"],
+        ["DEEPX", "deepx", "_deepx_model", False, False, ["data", "quantize", "optimize"], "isolated-deepx"],
+        ["Qualcomm QNN", "qnn", "_qnn.onnx", False, False, ["batch", "name", "quantize", "fraction", "data"], "base"],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments", "Env"], zip(*x)))
 
@@ -318,7 +326,7 @@ EXPORT_ENVS = {
         "requirements": ["rknn-toolkit2>=2.3.2", "onnx>=1.16.1,<1.19.0", "setuptools<82"],
         "indexes": [],
         "env": {},
-        "smoke": ["yolo export format=rknn model=yolo26n.pt imgsz=32 half=True"],
+        "smoke": ["yolo export format=rknn model=yolo26n.pt imgsz=32 quantize=16"],
     },
     "isolated-axelera": {
         "python": "3.12",
@@ -345,6 +353,30 @@ EXPORT_ENVS = {
 }
 
 
+# Export precision support per format; FP32 (unset/32) is universal, these list FP16/INT8/W8A16 capability.
+FP16_FORMATS = frozenset(
+    {"torchscript", "onnx", "openvino", "engine", "coreml", "tflite", "tfjs", "mnn", "ncnn", "rknn"}
+)
+INT8_FORMATS = frozenset(
+    {
+        "onnx",
+        "openvino",
+        "engine",
+        "coreml",
+        "saved_model",
+        "tflite",
+        "edgetpu",
+        "tfjs",
+        "mnn",
+        "imx",
+        "rknn",
+        "axelera",
+        "deepx",
+    }
+)
+W8A16_FORMATS = frozenset({"coreml", "imx", "qnn"})  # INT8 weights + FP16 activations
+
+
 def validate_args(format, passed_args, valid_args):
     """Validate arguments based on the export format.
 
@@ -356,11 +388,24 @@ def validate_args(format, passed_args, valid_args):
     Raises:
         AssertionError: If an unsupported argument is used, or if the format lacks supported argument listings.
     """
-    export_args = ["half", "int8", "dynamic", "keras", "nms", "batch", "fraction", "data"]
+    export_args = ["dynamic", "keras", "nms", "batch", "fraction", "data"]
 
     assert valid_args is not None, f"ERROR ❌️ valid arguments for '{format}' not listed."
     custom = {"batch": 1, "data": None, "device": None}  # exporter defaults
     default_args = get_cfg(DEFAULT_CFG, custom)
+    if passed_args.quantize == 16:  # FP16; 32/None (FP32) is universal
+        assert format in FP16_FORMATS, (
+            f"ERROR ❌️ quantize=16 (FP16) is not supported for format='{format}'. See {QUANTIZE_DOCS_URL}"
+        )
+    elif passed_args.quantize == 8:  # INT8
+        assert format in INT8_FORMATS, (
+            f"ERROR ❌️ quantize={passed_args.quantize} is not supported for format='{format}'. See {QUANTIZE_DOCS_URL}"
+        )
+    elif passed_args.quantize == "w8a16":  # INT8 weights + FP16 activations
+        assert format in W8A16_FORMATS, (
+            f"ERROR ❌️ quantize='w8a16' (INT8 weights + FP16 activations) is not supported for format='{format}'. "
+            f"See {QUANTIZE_DOCS_URL}"
+        )
     for arg in export_args:
         not_default = getattr(passed_args, arg, None) != getattr(default_args, arg, None)
         if not_default:
@@ -438,7 +483,7 @@ class Exporter:
         >>> exporter(model="yolo26n.pt")  # exports to yolo26n.torchscript
 
         Export with specific arguments
-        >>> args = {"format": "onnx", "dynamic": True, "int8": True, "data": "coco8.yaml"}
+        >>> args = {"format": "onnx", "dynamic": True, "quantize": 8, "data": "coco8.yaml"}
         >>> exporter = Exporter(overrides=args)
         >>> exporter(model="yolo26n.pt")
     """
@@ -496,11 +541,20 @@ class Exporter:
             self.args.device = "0"  # update device to "0"
         self.device = select_device("cpu" if self.args.device is None else self.args.device)
 
+        # Derive the FP16/INT8 booleans the per-format export backends use from the unified `quantize` scheme
+        self.args.half = self.args.quantize == 16
+        self.args.int8 = self.args.quantize in {8, "w8a16"}
+
         # Argument compatibility checks
         fmt_keys = dict(zip(fmts_dict["Argument"], fmts_dict["Arguments"]))[fmt]
         validate_args(fmt, self.args, fmt_keys)
         if fmt in {"deepx", "axelera", "imx", "edgetpu", "qnn"} and not self.args.int8:
-            LOGGER.warning(f"{fmt} export requires int8=True, setting int8=True.")
+            if self.args.quantize == 32:
+                raise ValueError(
+                    f"{fmt} export only supports INT8, but got an explicit quantize=32 (FP32) request. "
+                    f"See {QUANTIZE_DOCS_URL}"
+                )
+            LOGGER.warning(f"{fmt} export requires INT8 quantization, enabling it.")
             self.args.int8 = True
         if fmt == "axelera":
             if model.task == "segment" and any(isinstance(m, Segment26) for m in model.modules()):
@@ -547,13 +601,8 @@ class Exporter:
                         )
                 except ImportError:
                     pass
-        if self.args.half and self.args.int8:
-            LOGGER.warning("half=True and int8=True are mutually exclusive, setting half=False.")
-            self.args.half = False
         if self.args.half and fmt == "torchscript" and self.device.type == "cpu":
-            LOGGER.warning(
-                "half=True only compatible with GPU export for TorchScript, i.e. use device=0, setting half=False."
-            )
+            LOGGER.warning("FP16 TorchScript export is only supported on GPU, i.e. use device=0; disabling FP16.")
             self.args.half = False
         self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size
         if self.args.optimize:
@@ -571,7 +620,12 @@ class Exporter:
                 f"Invalid processor name '{self.args.name}' for Rockchip RKNN export. Valid names are {RKNN_CHIPS}."
             )
             if self.args.name in {"rv1103", "rv1106", "rv1103b", "rv1106b"} and not self.args.int8:
-                LOGGER.warning(f"Rockchip target '{self.args.name}' requires int8=True, setting int8=True.")
+                if self.args.quantize == 32:
+                    raise ValueError(
+                        f"Rockchip target '{self.args.name}' only supports INT8, but got an explicit quantize=32 "
+                        f"(FP32). See {QUANTIZE_DOCS_URL}"
+                    )
+                LOGGER.warning(f"Rockchip target '{self.args.name}' requires INT8 quantization, enabling it.")
                 self.args.int8 = True
         if fmt == "qnn":
             if not self.args.name:
@@ -767,7 +821,7 @@ class Exporter:
                 f"work. Use export 'imgsz={max(self.imgsz)}' if val is required."
             )
             imgsz = self.imgsz[0] if square else str(self.imgsz)[1:-1].replace(" ", "")
-            q = "int8" if self.args.int8 else "half" if self.args.half else ""  # quantization
+            q = "quantize=16" if self.args.half else ""  # FP16 inference flag for the val/predict hint
             # Export-only formats deploy in-browser and are not loadable by AutoBackend
             predict_validate = (
                 ""

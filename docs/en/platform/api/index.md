@@ -1301,12 +1301,12 @@ POST /api/exports
 
 **Body:**
 
-| Field     | Type   | Required    | Description                                         |
-| --------- | ------ | ----------- | --------------------------------------------------- |
-| `modelId` | string | Yes         | Source model ID                                     |
-| `format`  | string | Yes         | Export format (see table below)                     |
-| `gpuType` | string | Conditional | Required when `format` is `engine` (TensorRT)       |
-| `args`    | object | No          | Export arguments (`imgsz`, `half`, `dynamic`, etc.) |
+| Field     | Type   | Required    | Description                                             |
+| --------- | ------ | ----------- | ------------------------------------------------------- |
+| `modelId` | string | Yes         | Source model ID                                         |
+| `format`  | string | Yes         | Export format (see table below)                         |
+| `gpuType` | string | Conditional | Required when `format` is `engine` (TensorRT)           |
+| `args`    | object | No          | Export arguments (`imgsz`, `quantize`, `dynamic`, etc.) |
 
 === "cURL"
 
@@ -2314,10 +2314,10 @@ for r in results:
 
 ```python
 # Export to ONNX
-model.export(format="onnx", imgsz=640, half=True)
+model.export(format="onnx", imgsz=640, quantize=16)
 
 # Export to TensorRT
-model.export(format="engine", imgsz=640, half=True)
+model.export(format="engine", imgsz=640, quantize=16)
 
 # Export to CoreML
 model.export(format="coreml", imgsz=640)

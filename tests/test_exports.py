@@ -9,6 +9,7 @@ import uuid
 from contextlib import redirect_stderr, redirect_stdout
 from itertools import product
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 import torch
@@ -16,8 +17,8 @@ import torch
 from tests import SOURCE
 from tests.conftest import isolated_model_path
 from ultralytics import YOLO
-from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
-from ultralytics.engine.exporter import EXPORT_ENVS, export_formats
+from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS, _handle_deprecation, get_cfg
+from ultralytics.engine.exporter import EXPORT_ENVS, export_formats, validate_args
 from ultralytics.utils import (
     ARM64,
     IS_DOCKER,
@@ -63,12 +64,56 @@ def test_export_onnx(end2end, isolated_model):
 
 
 @pytest.mark.slow
-def test_export_onnx_int8(isolated_model):
-    """Test YOLO model export to INT8 ONNX format with calibration data."""
-    file = YOLO(isolated_model).export(format="onnx", int8=True, data="coco8.yaml", fraction=0.25, imgsz=32)
+@pytest.mark.parametrize("precision", [{"int8": True}, {"quantize": 8}])
+def test_export_onnx_int8(isolated_model, precision):
+    """Test INT8 ONNX export via both the legacy int8 flag and the unified quantize arg yield the same artifact."""
+    file = YOLO(isolated_model).export(format="onnx", data="coco8.yaml", fraction=0.25, imgsz=32, **precision)
     assert Path(file).name.endswith("_int8.onnx")
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
     Path(file).unlink()  # cleanup
+
+
+def test_quantize_canonicalization():
+    """Quantize accepts 8/16/32 (int or str) and w-notation, canonicalizing to the int form (unset stays None)."""
+    for value, expected in [
+        (8, 8),
+        (16, 16),
+        (32, 32),
+        ("8", 8),
+        ("int8", 8),
+        ("INT8", 8),
+        ("w8a8", 8),
+        ("W8A8", 8),
+        ("fp16", 16),
+        ("Fp16", 16),
+        ("w16a16", 16),
+        ("fp32", 32),
+        ("fP32", 32),
+        ("w8a16", "w8a16"),
+        ("W8a16", "w8a16"),
+    ]:
+        assert get_cfg(overrides={"quantize": value}).quantize == expected
+    assert get_cfg().quantize is None  # unset default is FP32
+    with pytest.raises(ValueError, match="quantize"):
+        get_cfg(overrides={"quantize": "x4"})
+    with pytest.raises(ValueError, match="quantize"):
+        get_cfg(overrides={"quantize": "a8w8"})
+
+
+def test_quantize_deprecation():
+    """Legacy half/int8 forward to the unified quantize arg in all modes; int8 wins on conflict."""
+    assert _handle_deprecation({"int8": True})["quantize"] == 8
+    assert _handle_deprecation({"half": True})["quantize"] == 16
+    assert _handle_deprecation({"half": True, "int8": True})["quantize"] == 8  # int8 wins
+    assert "half" not in _handle_deprecation({"half": True})  # legacy flag is removed after forwarding
+
+
+def test_qnn_quantize_requires_w8a16():
+    """QNN exports are W8A16; explicit INT8 activation quantization is not supported."""
+    valid_args = ["batch", "data", "dynamic", "fraction", "keras", "nms"]
+    validate_args("qnn", SimpleNamespace(quantize="w8a16"), valid_args)
+    with pytest.raises(AssertionError, match="quantize=8 is not supported"):
+        validate_args("qnn", SimpleNamespace(quantize=8), valid_args)
 
 
 def test_modelopt_quantize_onnx_requires_int8_dataset():

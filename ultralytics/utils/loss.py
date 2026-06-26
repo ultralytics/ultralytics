@@ -40,15 +40,10 @@ class VarifocalLoss(nn.Module):
         self.alpha = alpha
 
     def forward(self, pred_score: torch.Tensor, gt_score: torch.Tensor, label: torch.Tensor) -> torch.Tensor:
-        """Compute varifocal loss between predictions and ground truth."""
+        """Compute element-wise varifocal loss between predictions and ground truth; the caller applies reduction."""
         weight = self.alpha * pred_score.sigmoid().pow(self.gamma) * (1 - label) + gt_score * label
         with autocast(enabled=False):
-            loss = (
-                (F.binary_cross_entropy_with_logits(pred_score.float(), gt_score.float(), reduction="none") * weight)
-                .mean(1)
-                .sum()
-            )
-        return loss
+            return F.binary_cross_entropy_with_logits(pred_score.float(), gt_score.float(), reduction="none") * weight
 
 
 class FocalLoss(nn.Module):
@@ -343,6 +338,7 @@ class v8DetectionLoss:
 
         m = model.model[-1]  # Detect() module
         self.bce = nn.BCEWithLogitsLoss(reduction="none")
+        self.vfl = VarifocalLoss() if getattr(h, "vfl", False) else None
         self.hyp = h
         self.stride = m.stride  # model strides
         self.nc = m.nc  # number of classes
@@ -395,6 +391,28 @@ class v8DetectionLoss:
             # pred_dist = (pred_dist.view(b, a, c // 4, 4).softmax(2) * self.proj.type(pred_dist.dtype).view(1, 1, -1, 1)).sum(2)
         return dist2bbox(pred_dist, anchor_points, xywh=False)
 
+    def cls_loss(
+        self, pred_scores: torch.Tensor, target_scores: torch.Tensor, target_scores_sum: torch.Tensor
+    ) -> torch.Tensor:
+        """Compute classification loss (Varifocal or BCE) normalized by the task-aligned score sum.
+
+        Args:
+            pred_scores (torch.Tensor): Predicted class logits with shape (bs, num_anchors, nc).
+            target_scores (torch.Tensor): Task-aligned soft targets with shape (bs, num_anchors, nc).
+            target_scores_sum (torch.Tensor): Sum of target scores used for normalization.
+
+        Returns:
+            (torch.Tensor): Scalar classification loss.
+        """
+        if self.vfl is not None:
+            label = (target_scores > 0).to(pred_scores.dtype)  # positive-class one-hot from soft targets
+            cls = self.vfl(pred_scores, target_scores.to(pred_scores.dtype), label)
+        else:
+            cls = self.bce(pred_scores, target_scores.to(pred_scores.dtype))  # (bs, num_anchors, nc)
+        if self.class_weights is not None:
+            cls *= self.class_weights
+        return cls.sum() / target_scores_sum
+
     def get_assigned_targets_and_loss(self, preds: dict[str, torch.Tensor], batch: dict[str, Any]) -> tuple:
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size and return foreground mask and
         target indices.
@@ -430,11 +448,8 @@ class v8DetectionLoss:
 
         target_scores_sum = max(target_scores.sum(), 1)
 
-        # Cls loss with optional class weighting
-        bce_loss = self.bce(pred_scores, target_scores.to(dtype))  # (bs, num_anchors, nc)
-        if self.class_weights is not None:
-            bce_loss *= self.class_weights
-        loss[1] = bce_loss.sum() / target_scores_sum  # BCE
+        # Cls loss (Varifocal or BCE) with optional class weighting
+        loss[1] = self.cls_loss(pred_scores, target_scores, target_scores_sum)
 
         # Bbox loss
         if fg_mask.sum():
@@ -1066,9 +1081,8 @@ class v8OBBLoss(v8DetectionLoss):
 
         target_scores_sum = max(target_scores.sum(), 1)
 
-        # Cls loss
-        # loss[1] = self.varifocal_loss(pred_scores, target_scores, target_labels) / target_scores_sum  # VFL way
-        loss[1] = self.bce(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE
+        # Cls loss (Varifocal or BCE)
+        loss[1] = self.cls_loss(pred_scores, target_scores, target_scores_sum)
 
         # Bbox loss
         if fg_mask.sum():
@@ -1155,6 +1169,8 @@ class E2EDetectLoss:
         """Initialize E2EDetectLoss with one-to-many and one-to-one detection losses using the provided model."""
         self.one2many = v8DetectionLoss(model, tal_topk=10)
         self.one2one = v8DetectionLoss(model, tal_topk=1)
+        if not getattr(model.args, "vfl_o2m", True):
+            self.one2many.vfl = None  # restrict Varifocal Loss to the one2one branch
 
     def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""
@@ -1173,6 +1189,8 @@ class E2ELoss:
         """Initialize E2ELoss with one-to-many and one-to-one detection losses using the provided model."""
         self.one2many = loss_fn(model, tal_topk=10)
         self.one2one = loss_fn(model, tal_topk=7, tal_topk2=1)
+        if not getattr(model.args, "vfl_o2m", True):
+            self.one2many.vfl = None  # restrict Varifocal Loss to the one2one branch
         self.updates = 0
         self.total = 1.0
         # init gain

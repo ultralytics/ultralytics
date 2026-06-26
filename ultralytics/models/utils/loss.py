@@ -109,7 +109,7 @@ class DETRLoss(nn.Module):
 
         if self.fl:
             if num_gts and self.vfl:
-                loss_cls = self.vfl(pred_scores, gt_scores, one_hot)
+                loss_cls = self.vfl(pred_scores, gt_scores, one_hot).mean(1).sum()
             else:
                 loss_cls = self.fl(pred_scores, one_hot.float())
             loss_cls /= max(num_gts, 1) / nq

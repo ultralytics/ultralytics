@@ -485,6 +485,19 @@ def test_export_deepx(isolated_model):
     shutil.rmtree(file, ignore_errors=True)  # cleanup
 
 
+# @pytest.mark.skipif(not TORCH_2_9 or TORCH_2_12, reason="Ethos export requires 2.9.0<=torch<2.12.0")
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Test disabled due to OOM (Out of Memory) issues on Raspberry Pi 5 16GB")
+def test_export_ethos(isolated_model):
+    """Test YOLO model export to Arm Ethos-U NPU ExecuTorch format."""
+    file = YOLO(isolated_model).export(format="ethos", imgsz=32)
+    assert Path(file).exists(), f"Ethos export failed, directory not found: {file}"
+    pte_file = Path(file) / f"{Path(isolated_model).stem}.pte"
+    assert pte_file.exists(), f"Ethos .pte file not found: {pte_file}"
+    metadata_file = Path(file) / "metadata.yaml"
+    assert metadata_file.exists(), f"Ethos metadata.yaml not found: {metadata_file}"
+    # Note: Inference testing skipped as it requires Ethos-U hardware
+
+
 @pytest.mark.skipif(
     not (WINDOWS or (LINUX and ARM64)) or sys.version_info < (3, 11),
     reason="onnxruntime-qnn ships prebuilt wheels only for Windows (x64/ARM64) and Linux ARM64 on Python>=3.11",

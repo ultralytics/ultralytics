@@ -226,7 +226,12 @@ def export_formats():
             "isolated-axelera",
         ],
         ["DEEPX", "deepx", "_deepx_model", False, False, ["data", "int8", "optimize"], "isolated-deepx"],
+<<<<<<< ethos-export
+        ["Qualcomm QNN", "qnn", "_qnn_model", False, False, ["batch", "name", "int8", "fraction", "data"], "base"],
+        ["Ethos", "ethos", "_ethos_model", False, False, ["data", "int8", "target"]],
+=======
         ["Qualcomm QNN", "qnn", "_qnn.onnx", False, False, ["batch", "name", "int8", "fraction", "data"], "base"],
+>>>>>>> main
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments", "Env"], zip(*x)))
 
@@ -356,7 +361,7 @@ def validate_args(format, passed_args, valid_args):
     Raises:
         AssertionError: If an unsupported argument is used, or if the format lacks supported argument listings.
     """
-    export_args = ["half", "int8", "dynamic", "keras", "nms", "batch", "fraction", "data"]
+    export_args = ["half", "int8", "dynamic", "keras", "nms", "batch", "fraction", "data", "target"]
 
     assert valid_args is not None, f"ERROR ❌️ valid arguments for '{format}' not listed."
     custom = {"batch": 1, "data": None, "device": None}  # exporter defaults
@@ -499,7 +504,7 @@ class Exporter:
         # Argument compatibility checks
         fmt_keys = dict(zip(fmts_dict["Argument"], fmts_dict["Arguments"]))[fmt]
         validate_args(fmt, self.args, fmt_keys)
-        if fmt in {"deepx", "axelera", "imx", "edgetpu", "qnn"} and not self.args.int8:
+        if fmt in {"deepx", "axelera", "imx", "edgetpu", "qnn", "ethos"} and not self.args.int8:
             LOGGER.warning(f"{fmt} export requires int8=True, setting int8=True.")
             self.args.int8 = True
         if fmt == "axelera":
@@ -507,6 +512,8 @@ class Exporter:
                 raise ValueError("Axelera export does not currently support YOLO26 segmentation models.")
             if not self.args.data:
                 self.args.data = TASK2CALIBRATIONDATA.get(model.task)
+        if fmt == "ethos":
+            self.args.target = self.args.target or "ethos-u85-256"
         if fmt == "imx":
             if not self.args.nms and model.task in {"detect", "pose", "segment"}:
                 LOGGER.warning("IMX export requires nms=True, setting nms=True.")
@@ -521,7 +528,7 @@ class Exporter:
         if hasattr(model, "end2end"):
             if self.args.end2end is not None:
                 model.end2end = self.args.end2end
-            if fmt in {"rknn", "ncnn", "executorch", "paddle", "imx", "edgetpu", "qnn"}:
+            if fmt in {"rknn", "ncnn", "executorch", "ethos", "paddle", "imx", "edgetpu", "qnn"}:
                 # Disable end2end branch for certain export formats as they does not support topk
                 model.end2end = False
                 LOGGER.warning(f"{fmt.upper()} export does not support end2end models, disabling end2end branch.")
@@ -657,7 +664,7 @@ class Exporter:
             from ultralytics.utils.export.tensorflow import tf_wrapper
 
             model = tf_wrapper(model)
-        if fmt == "executorch":
+        if fmt in {"executorch", "ethos"}:
             from ultralytics.utils.export.executorch import executorch_wrapper
 
             model = executorch_wrapper(model)
@@ -1247,6 +1254,22 @@ class Exporter:
             model=self.model,
             im=self.im,
             output_dir=str(self.file).replace(self.file.suffix, "_executorch_model/"),
+            metadata=self.metadata,
+            prefix=prefix,
+        )
+
+    @try_export
+    def export_ethos(self, prefix=colorstr("Ethos:")):
+        """Export YOLO model to Arm Ethos-U NPU ExecuTorch *.pte format."""
+        assert TORCH_2_9, f"ExecuTorch requires torch>=2.9.0 but torch=={TORCH_VERSION} is installed"
+        from ultralytics.utils.export.ethos import torch2ethos
+
+        return torch2ethos(
+            self.model,
+            self.file,
+            self.im,
+            dataset=self.get_int8_calibration_dataloader(prefix),
+            target=self.args.target,
             metadata=self.metadata,
             prefix=prefix,
         )

@@ -56,6 +56,7 @@ def main():
                     help="comma-separated prior modes: none, heatmap, mask (e.g. 'none,heatmap,mask'). "
                          "none = honest floor; heatmap = variant from fit YAML; mask = GT-bbox upper bound")
     ap.add_argument("--batch", type=int, default=8)
+    ap.add_argument("--workers", type=int, default=0, help="dataloader workers (val mode: speedup OOD eval)")
     ap.add_argument("--device", default=None, help="cpu / mps / 0 (default: auto mps-else-cpu)")
     ap.add_argument("--n-per-cat", type=int, default=0, help="predict: test images per category (0=all)")
     ap.add_argument("--n-train", type=int, default=0,
@@ -219,7 +220,7 @@ def main():
         else:  # val
             cat_rows = run_mvtec_ood_eval(
                 m.model, root, categories=[cat], modes=val_modes,
-                imgsz=imgsz, batch=args.batch, device=device, e2e=args.e2e, iou=args.iou,
+                imgsz=imgsz, batch=args.batch, workers=args.workers, device=device, e2e=args.e2e, iou=args.iou,
                 heatmap_norm=infer.get("heat_norm", "none"),
                 heatmap_edge_weight=(True if infer.get("heat_edge") else None),
                 heatmap_edge_sigma=infer.get("heat_edge_sigma", 1.0),

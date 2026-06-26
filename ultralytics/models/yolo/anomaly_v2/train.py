@@ -316,7 +316,7 @@ class AnomalyV2Trainer(DetectionTrainer):
                     ema_eval, root,
                     categories=v2_cfg.get("mvtec_ood_categories"),
                     modes=modes,
-                    imgsz=imgsz, batch=batch, bank_size=bank_size,
+                    imgsz=imgsz, batch=batch, workers=trainer.args.workers, bank_size=bank_size,
                     device=trainer.device, save_dir=trainer.save_dir, epoch=trainer.epoch + 1,
                     e2e=False, iou=0.1,
                     heatmap_norm=heat_norm,

@@ -542,6 +542,7 @@ def run_mvtec_ood_eval(
     modes: tuple[str, ...] = ("mask_off", "heatmap", "mask_on"),
     imgsz: int = 320,
     batch: int = 8,
+    workers: int = 0,
     device=None,
     bank_size: int = 10000,
     save_dir: str | Path | None = None,
@@ -613,7 +614,8 @@ def run_mvtec_ood_eval(
             try:
                 overrides = {
                     "task": "anomaly_v2", "mode": "val", "data": str(yaml), "split": "val",
-                    "imgsz": imgsz, "batch": batch, "device": str(device) if device is not None else None,
+                    "imgsz": imgsz, "batch": batch, "workers": workers,
+                    "device": str(device) if device is not None else None,
                     "rect": False, "plots": False, "verbose": False, "save_json": False,
                     "single_cls": True,  # model is binary-trained; map all GT class IDs → 0
                     "prior_mode": _MODE_TO_PRIOR[mode],  # popped by AnomalyV2Validator.__init__

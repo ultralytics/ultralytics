@@ -1,5 +1,6 @@
 """YOLOA utilities — categories, YAML loading, visualization helpers."""
 
+import hashlib
 import random
 from pathlib import Path
 
@@ -47,9 +48,16 @@ def good_dir(root: Path, cat: str) -> Path:
 
 
 def model_id_from_ckpt(ckpt: str) -> str:
-    """Short model id from a ckpt path: <run>/weights/best.pt -> <run>, else the file stem."""
+    """Model id from a ckpt path: readable label + short hash of the full resolved path.
+
+    The label is `<run>__best` for `<run>/weights/best.pt`, else the file stem. The 6-char
+    path hash makes the id globally unique so different checkpoints that share a run name and
+    weight stem (e.g. the same run under ultra6 `runs/` and the pulled mirror) never collide on
+    the shared bank cache dir, while the label keeps output dirs browsable.
+    """
     p = Path(ckpt).resolve()
-    return p.parents[1].name if p.parent.name == "weights" else p.stem
+    label = f"{p.parents[1].name}__{p.stem}" if p.parent.name == "weights" else p.stem
+    return f"{label}__{hashlib.md5(str(p).encode()).hexdigest()[:6]}"
 
 
 # -- Fit YAML resolution ------------------------------------------------------

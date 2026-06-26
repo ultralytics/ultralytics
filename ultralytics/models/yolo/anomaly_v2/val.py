@@ -27,6 +27,7 @@ from pathlib import Path
 import torch
 import torch.nn.functional as F
 
+from ultralytics.data.build import build_dataloader
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER
 from ultralytics.utils.torch_utils import unwrap_model
@@ -610,7 +611,8 @@ def run_mvtec_ood_eval(
             _inject_cat_bank(m, root, cat, Path(bank_cache_dir), imgsz, device, bank_size)
             if bank_cache_dir is not None else False
         )
-        for mode in modes:
+        cat_dataset = None  # RAM-cached dataset built by first mode, reused by rest
+        for mi, mode in enumerate(modes):
             try:
                 overrides = {
                     "task": "anomaly_v2", "mode": "val", "data": str(yaml), "split": "val",
@@ -621,15 +623,25 @@ def run_mvtec_ood_eval(
                     "prior_mode": _MODE_TO_PRIOR[mode],  # popped by AnomalyV2Validator.__init__
                     "scorer_kwargs": scorer_kwargs,  # learned-scorer fit kwargs (popped too)
                     "scorer_fuse": scorer_fuse,  # heatmap_fused combine op (popped too)
+                    "cache": "ram",  # decode all test images to RAM on first mode
                 }
                 if e2e is not None:
                     overrides["end2end"] = e2e
                 if iou is not None:
                     overrides["iou"] = iou
                 sd = Path(save_dir) / "mvtec_ood_runs" if save_dir is not None else None
-                validator = AnomalyV2Validator(args=overrides, save_dir=sd)
-                validator._ood_bank_size = bank_size
-                validator(trainer=None, model=m)
+                if mi == 0:
+                    # First mode: build normally — triggers RAM cache in the dataset
+                    validator = AnomalyV2Validator(args=overrides, save_dir=sd)
+                    validator._ood_bank_size = bank_size
+                    validator(trainer=None, model=m)
+                    cat_dataset = validator.dataloader.dataset
+                else:
+                    # Subsequent modes: reuse RAM-cached dataset in a fresh DataLoader
+                    cat_dl = build_dataloader(cat_dataset, batch, workers, shuffle=False, rank=-1)
+                    validator = AnomalyV2Validator(dataloader=cat_dl, args=overrides, save_dir=sd)
+                    validator._ood_bank_size = bank_size
+                    validator(trainer=None, model=m)
                 mm = validator.ood_map_metrics()
                 rows.append({
                     "epoch": epoch, "category": cat, "mode": mode,

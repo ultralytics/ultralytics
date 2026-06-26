@@ -82,15 +82,37 @@ class YOLOA(Model):
         """Load a YOLOA model. A v2 ckpt routes by its baked ``task``; a yaml is forced to anomaly_v2."""
         super().__init__(model=model, task="anomaly_v2", verbose=verbose)
 
+    def _head_is_segment(self) -> bool:
+        """True when the loaded model's detection head is a ``Segment`` (per-instance masks)."""
+        from ultralytics.nn.modules.head import Segment
+        from ultralytics.utils.torch_utils import unwrap_model
+
+        m = getattr(self, "model", None)
+        if m is None:
+            return False
+        try:
+            return isinstance(unwrap_model(m).model[-1], Segment)
+        except (AttributeError, IndexError, TypeError):
+            return False
+
     @property
     def task_map(self) -> dict[str, dict[str, Any]]:
-        """Map the anomaly_v2 task to its model, trainer, validator and predictor."""
+        """Map the anomaly_v2 task to its model, trainer, validator and predictor.
+
+        The predictor is chosen from the loaded checkpoint's head: a ``Segment`` head routes to
+        ``YOLOAnomalySegPredictor`` (boxes + masks), otherwise ``YOLOAnomalyPredictor`` (boxes).
+        """
+        predictor = (
+            yolo.anomaly_v2.YOLOAnomalySegPredictor
+            if self._head_is_segment()
+            else yolo.anomaly_v2.YOLOAnomalyPredictor
+        )
         return {
             "anomaly_v2": {
                 "model": YOLOAnomalyV2Model,
                 "trainer": yolo.anomaly_v2.AnomalyV2Trainer,
                 "validator": yolo.anomaly_v2.AnomalyV2Validator,
-                "predictor": yolo.anomaly_v2.AnomalyV2Predictor,
+                "predictor": predictor,
             }
         }
 

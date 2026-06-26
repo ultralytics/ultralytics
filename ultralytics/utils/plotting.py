@@ -889,8 +889,13 @@ def plot_results(file: str = "path/to/results.csv", dir: str = "", on_plot: Call
                 columns = (
                     loss_keys[:loss_mid] + metric_keys[:metric_mid] + loss_keys[loss_mid:] + metric_keys[metric_mid:]
                 )
-                fig, ax = plt.subplots(2, len(columns) // 2, figsize=(len(columns) + 2, 6), tight_layout=True)
+                # ncols holds all columns even when the count is odd (e.g. anomaly_v2's 2-pass
+                # mask_on/mask_off wide schema) — a plain len//2 grid would index past the axes.
+                ncols = max(1, (len(columns) + 1) // 2)
+                fig, ax = plt.subplots(2, ncols, figsize=(2 * ncols + 2, 6), tight_layout=True)
                 ax = ax.ravel()
+                for k in range(len(columns), len(ax)):
+                    ax[k].set_visible(False)  # hide trailing unused axes (odd column count)
             x = data.select(data.columns[0]).to_numpy().flatten()
             for i, j in enumerate(columns):
                 y = data.select(j).to_numpy().flatten().astype("float")

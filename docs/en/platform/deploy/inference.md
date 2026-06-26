@@ -34,13 +34,14 @@ The predict panel supports multiple input methods:
 
 ```mermaid
 graph LR
-    A[Upload Image] --> D[Auto-Inference]
-    B[Example Image] --> D
-    C[Webcam Capture] --> D
-    D --> E[Results + Overlays]
+    A[Upload Image]:::start --> D[Auto-Inference]:::proc
+    B[Example Image]:::start --> D
+    C[Webcam Capture]:::start --> D
+    D --> E[Results + Overlays]:::out
 
-    style D fill:#2196F3,color:#fff
-    style E fill:#4CAF50,color:#fff
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 ### Upload Image

@@ -2,6 +2,7 @@
 comments: true
 description: Learn how to use Multi-Object Tracking with YOLO. Explore dataset formats, tracking algorithms, and implementation examples using Python or CLI for real-time object tracking.
 keywords: YOLO, Multi-Object Tracking, Tracking Datasets, Python Tracking Example, CLI Tracking Example, Object Detection, Ultralytics, AI, Machine Learning, BoT-SORT, ByteTrack, OC-SORT, Deep OC-SORT, FastTracker, TrackTrack
+title: Multi-Object Tracking Datasets
 ---
 
 # Multi-object Tracking Datasets Overview

@@ -54,7 +54,7 @@ The exported `*_qnn.onnx` file is self-contained: it embeds the QNN context bina
 
 End-to-end single-image inference for the official YOLO26n models on a Xiaomi 17 phone powered by the Qualcomm Snapdragon 8 Elite Gen 5 (SM8850) — Qualcomm Oryon CPU, Adreno GPU, and Hexagon NPU (HTP v81). Each cell shows the **total time** (preprocessing + inference + postprocessing, excluding annotation) with the per-stage split beneath it. CPU and GPU run INT8 TFLite via LiteRT; the NPU runs QNN context binaries (INT8 weights, 16-bit activations).
 
-| Model        | Task     | size<br><sup>(pixels)</sup> | CPU<br><sup>INT8 TFLite<br>(ms)</sup> | GPU Adreno<br><sup>INT8 TFLite<br>(ms)</sup> | NPU Hexagon<br><sup>QNN A16W8<br>(ms)</sup>      |
+| Model        | Task     | size<br><sup>(pixels)</sup> | CPU<br><sup>INT8 TFLite<br>(ms)</sup> | GPU Adreno<br><sup>INT8 TFLite<br>(ms)</sup> | NPU Hexagon<br><sup>QNN W8A16<br>(ms)</sup>      |
 | ------------ | -------- | --------------------------- | ------------------------------------- | -------------------------------------------- | ------------------------------------------------ |
 | YOLO26n      | Detect   | 640                         | 53.3<br><sup>3.6 / 47.4 / 2.4</sup>   | 17.2<br><sup>3.6 / 9.1 / 4.5</sup>           | **11.3**<br><sup>3.5 / 5.6 / 2.2</sup>           |
 | YOLO26n-seg  | Segment  | 640                         | 76.0<br><sup>3.6 / 64.7 / 7.7</sup>   | 23.9<br><sup>3.6 / 11.8 / 8.6</sup>          | **21.3**<br><sup>3.5 / 7.9 / 10.0</sup>          |
@@ -70,7 +70,7 @@ End-to-end single-image inference for the official YOLO26n models on a Xiaomi 17
 
 End-to-end single-image inference for the official YOLO26n models on a Lenovo laptop powered by the Qualcomm Snapdragon X Elite (X1E78100) — Qualcomm Oryon CPU and Hexagon NPU (HTP v73), 32 GB RAM, Windows 11. This Windows-on-Snapdragon comparison runs the native PyTorch FP32 CPU baseline that most desktop developers start from against the QNN Hexagon NPU path. Each cell shows the **full `model.predict()` wall time** with the reported preprocessing / inference / postprocessing timings beneath it; the total can include framework overhead outside those three stages. CPU numbers are PyTorch FP32 (`torch==2.10.0+cpu`) and NPU numbers are ONNX Runtime QNN (`onnxruntime-qnn==2.2.0`, INT8 weights / 16-bit activations).
 
-| Model        | Task     | size<br><sup>(pixels)</sup> | CPU<br><sup>PT FP32<br>(ms)</sup>      | NPU Hexagon<br><sup>QNN A16W8<br>(ms)</sup> |
+| Model        | Task     | size<br><sup>(pixels)</sup> | CPU<br><sup>PT FP32<br>(ms)</sup>      | NPU Hexagon<br><sup>QNN W8A16<br>(ms)</sup> |
 | ------------ | -------- | --------------------------- | -------------------------------------- | ------------------------------------------- |
 | YOLO26n      | Detect   | 640                         | 91.4<br><sup>4.3 / 75.2 / 0.1</sup>    | **27.2**<br><sup>4.9 / 19.4 / 0.9</sup>     |
 | YOLO26n-seg  | Segment  | 640                         | 138.8<br><sup>4.5 / 127.1 / 2.8</sup>  | **34.3**<br><sup>5.0 / 24.0 / 5.1</sup>     |

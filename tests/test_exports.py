@@ -79,6 +79,8 @@ def test_quantize_canonicalization():
     assert get_cfg().quantize is None  # unset default is FP32
     with pytest.raises(ValueError, match="quantize"):
         get_cfg(overrides={"quantize": "x4"})
+    with pytest.raises(ValueError, match="quantize"):
+        get_cfg(overrides={"quantize": "a8w8"})
 
 
 def test_quantize_deprecation():

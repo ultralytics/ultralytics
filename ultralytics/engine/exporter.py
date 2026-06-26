@@ -719,6 +719,13 @@ class Exporter:
             if isinstance(m, (Classify, SemanticSegment)):
                 m.export = True
                 m.format = self.args.format
+                # Semantic argmax bake needs an integer graph output; TensorRT supports uint8 outputs only on TRT>=10
+                # (Jetson TRT 8.x rejects them). Read the version from the package name to avoid importing tensorrt here.
+                if isinstance(m, SemanticSegment) and fmt == "engine":
+                    cuda_major = (torch.version.cuda or "12").split(".")[0]
+                    m.bake_argmax = check_version(f"tensorrt-cu{cuda_major}", ">=10.0.0") or check_version(
+                        "tensorrt", ">=10.0.0"
+                    )
             if isinstance(m, (Detect, RTDETRDecoder)):  # includes all Detect subclasses like Segment, Pose, OBB
                 m.dynamic = self.args.dynamic
                 m.export = True

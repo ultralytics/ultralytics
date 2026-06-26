@@ -324,7 +324,7 @@ EXPORT_ENVS = {
         "python": "3.12",
         "extras": ["export-base"],
         "torch": ">=2.8,<2.12",
-        "requirements": ["axelera-devkit==1.6.0", "onnx>=1.12.0,<2.0.0", "onnxslim>=0.1.71"],
+        "requirements": ["axelera-devkit==1.7.0", "onnx>=1.12.0,<2.0.0", "onnxslim>=0.1.71"],
         "indexes": [
             ("--extra-index-url", "https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple"),
         ],

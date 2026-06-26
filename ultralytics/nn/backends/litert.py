@@ -43,6 +43,9 @@ class LiteRTBackend(BaseBackend):
         self.interpreter.allocate_tensors()
         self.input_details = self.interpreter.get_input_details()
         self.output_details = self.interpreter.get_output_details()
+        # Legacy onnx2tf TFLite exports are NHWC; litert-torch exports are NCHW. Detect from the input tensor so both
+        # load through this backend (the detection/proto outputs share the same layout for either export path).
+        self.nhwc = self.input_details[0]["shape"][-1] == 3
 
         # Load metadata
         if metadata_file.exists():
@@ -62,8 +65,10 @@ class LiteRTBackend(BaseBackend):
         Returns:
             (list[np.ndarray]): Model predictions as a list of numpy arrays.
         """
-        im = im.cpu().numpy()
-        h, w = im.shape[2:4]  # BCHW input (LiteRT keeps NCHW, unlike NHWC TFLite)
+        im = im.cpu().numpy()  # BCHW
+        if self.nhwc:
+            im = im.transpose(0, 2, 3, 1)  # BCHW to BHWC for legacy onnx2tf TFLite
+        h, w = im.shape[1:3] if self.nhwc else im.shape[2:4]
         details = self.input_details[0]
         is_int = details["dtype"] in {np.int8, np.int16}
 

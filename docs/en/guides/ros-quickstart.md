@@ -1,11 +1,15 @@
 ---
 title: YOLO with ROS Quickstart
 comments: true
-description: Learn to integrate Ultralytics YOLO with your robot running ROS Noetic, utilizing RGB images, depth images, and point clouds for efficient object detection, segmentation, and enhanced robotic perception.
+description: Integrate Ultralytics YOLO with ROS Noetic to run object detection and segmentation on RGB images, depth images, and point clouds for robotic perception.
 keywords: Ultralytics, YOLO, object detection, deep learning, machine learning, guide, ROS, Robot Operating System, robotics, ROS Noetic, Python, Ubuntu, simulation, visualization, communication, middleware, hardware abstraction, tools, utilities, ecosystem, Noetic Ninjemys, autonomous vehicle, AMV
 ---
 
 # ROS (Robot Operating System) quickstart guide
+
+This guide shows you how to integrate [Ultralytics YOLO](../models/yolo26.md) with a robot running [ROS](https://www.ros.org/) Noetic to run real-time [object detection](../tasks/detect.md) and [segmentation](../tasks/segment.md) on RGB images, depth images, and point clouds.
+
+Jump to [setting up YOLO with ROS](#setting-up-ultralytics-yolo-with-ros), then work with [RGB images](#use-ultralytics-with-ros-sensor_msgsimage), [depth images](#use-ultralytics-with-ros-depth-images), or [point clouds](#use-ultralytics-with-ros-sensor_msgspointcloud2).
 
 <p align="center"> <iframe src="https://player.vimeo.com/video/639236696?h=740f412ce5" width="640" height="360" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></p>
 <p align="center"><a href="https://vimeo.com/639236696">ROS Introduction (captioned)</a> from <a href="https://vimeo.com/osrfoundation">Open Robotics</a> on <a href="https://vimeo.com/">Vimeo</a>.</p>
@@ -517,6 +521,10 @@ for index, class_id in enumerate(classes):
   <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/point-cloud-segmentation-ultralytics.avif" alt="Point Cloud Segmentation with Ultralytics ">
 </p>
 
+## Conclusion
+
+With Ultralytics YOLO integrated into ROS, your robot can run [object detection](../tasks/detect.md) and [segmentation](../tasks/segment.md) across RGB images, depth images, and point clouds, turning raw sensor streams into actionable perception. From here, explore the [Predict mode](../modes/predict.md) for more inference options, or follow the [steps of a computer vision project](steps-of-a-cv-project.md) to take your robotics application from prototype to production.
+
 ## FAQ
 
 ### What is the Robot Operating System (ROS)?
@@ -531,7 +539,7 @@ Integrating Ultralytics YOLO with ROS involves setting up a ROS environment and 
 pip install ros_numpy ultralytics
 ```
 
-Next, create a ROS node and subscribe to an [image topic](../tasks/detect.md) to process the incoming data. Here is a minimal example:
+Next, create a ROS node and subscribe to an image topic to process the incoming data for [object detection](../tasks/detect.md). Here is a minimal example:
 
 ```python
 import ros_numpy
@@ -585,6 +593,7 @@ Here's an example using [Open3D](https://www.open3d.org/) for visualization:
 ```python
 import sys
 
+import numpy as np
 import open3d as o3d
 import ros_numpy
 import rospy

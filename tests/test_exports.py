@@ -190,6 +190,15 @@ def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms, end
     Path(file).unlink()  # cleanup
 
 
+def test_export_onnx_semantic_dnn():
+    """Test semantic ONNX class-map output with OpenCV DNN."""
+    skip_rpi_semantic("semantic")
+    file = YOLO(TASK2MODEL["semantic"]).export(format="onnx", imgsz=32)
+    r = YOLO(file).predict(SOURCE, imgsz=32, dnn=True)
+    assert r[0].semantic_mask is not None
+    Path(file).unlink()
+
+
 @pytest.mark.slow
 @pytest.mark.parametrize(
     "task, dynamic, int8, half, batch, nms, end2end",

@@ -64,8 +64,15 @@ class SemanticSegmentationPredictor(BasePredictor):
         results = []
         for i, (pred, orig_img) in enumerate(zip(preds, orig_imgs)):
             img_path = self.batch[0][i] if isinstance(self.batch[0], list) else self.batch[0]
-            pred = pred.unsqueeze(0)
-            if pred.is_floating_point():
+            class_map_input = pred.ndim == 2  # exports with in-graph ArgMax emit a [H, W] class map directly
+            pred = (pred[None, None] if class_map_input else pred[None]).float()
+            if class_map_input:
+                # Class maps may arrive as float from OpenCV DNN, but they are still discrete IDs. Nearest-resize only.
+                if pred.shape[2:] != img.shape[2:]:
+                    pred = F.interpolate(pred, img.shape[2:], mode="nearest")
+                class_map = ops.scale_masks(pred, orig_img.shape[:2], mode="nearest")[0, 0]
+                class_map = class_map.to(self._class_map_dtype(int(class_map.max().item()) + 1))
+            else:
                 # pred: [1, nc, H, W] logits. Upsample to the input resolution first so LetterBox padding is integer.
                 if pred.shape[2:] != img.shape[2:]:
                     pred = F.interpolate(pred, img.shape[2:], mode="bilinear")
@@ -73,9 +80,6 @@ class SemanticSegmentationPredictor(BasePredictor):
                 pred = ops.scale_masks(pred, orig_img.shape[:2])[0]
                 dtype = self._class_map_dtype(max(pred.shape[0], 2))
                 class_map = pred.argmax(0).to(dtype) if pred.shape[0] > 1 else pred.gt(0).squeeze(0).to(dtype)
-            else:
-                # pred: [1, H, W] class map with argmax already baked into the graph (ONNX export). Nearest-resize only.
-                class_map = ops.scale_masks(pred[None], orig_img.shape[:2], mode="nearest")[0, 0].to(pred.dtype)
             if classes is not None:  # keep only selected classes, mark the rest as ignore
                 class_map[~(class_map.unsqueeze(-1) == classes).any(-1)] = 255
             results.append(Results(orig_img, path=img_path, names=self.model.names, semantic_mask=class_map))

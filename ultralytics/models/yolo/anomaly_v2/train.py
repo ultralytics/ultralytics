@@ -375,3 +375,7 @@ class AnomalyV2Trainer(DetectionTrainer):
             if torch.cuda.is_available():
                 for d, state in enumerate(rng_states[1:]):
                     torch.cuda.set_rng_state(state, d)
+
+    def plot_metrics(self):
+        """Plot metrics from a CSV file."""
+        pass  # skip results plotting for now

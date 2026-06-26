@@ -17,32 +17,9 @@ from ultralytics.utils.torch_utils import unwrap_model
 
 def on_pretrain_routine_end(trainer) -> None:
     """Set up model classes and text encoder at the end of the pretrain routine."""
-    ema_model = unwrap_model(trainer.ema.ema)
-
-    if RANK in {-1, 0}:
-        # Set class names for evaluation
-        names = [name.split("/", 1)[0] for name in list(trainer.test_loader.dataset.data["names"].values())]
-        ema_model.set_classes(names, cache_clip_model=False)
-
-    # In DDP, synchronize nc and txt_feats from RANK 0 to all ranks
-    if trainer.world_size > 1:
-        import torch.distributed as dist
-
-        # RANK 0 packs data, other ranks prepare empty lists
-        device = next(ema_model.model.parameters()).device
-        if RANK in {-1, 0}:
-            obj_list = [ema_model.model[-1].nc, ema_model.txt_feats.cpu()]
-        else:
-            obj_list = [None, None]
-
-        # Broadcast Python objects (uses Gloo under the hood, no extra CUDA alloc)
-        dist.broadcast_object_list(obj_list, src=0)
-
-        # Non-rank-0 processes apply the received data
-        if RANK not in {-1, 0}:
-            nc = int(obj_list[0])
-            ema_model.model[-1].nc = nc
-            ema_model.txt_feats = obj_list[1].to(device)
+    # Set class names for evaluation
+    names = [name.split("/", 1)[0] for name in list(trainer.test_loader.dataset.data["names"].values())]
+    unwrap_model(trainer.ema.ema).set_classes(names, cache_clip_model=False)
 
 
 class WorldTrainer(DetectionTrainer):

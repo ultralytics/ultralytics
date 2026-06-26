@@ -129,8 +129,8 @@ class YOLOAnomalyValidatorBase:
         if model is None or not hasattr(model, "set_mask_input"):
             return batch
         if self.prior_mode is not None:
-            # Single-pass prior_mode: "mask" mode injects GT bboxes
-            if self.prior_mode == "mask":
+            # Single-pass prior_mode: "mask"/"box" inject GT bboxes or polygon masks
+            if self.prior_mode in ("mask", "box"):
                 bb = batch.get("bboxes")
                 bi = batch.get("batch_idx")
                 if bb is not None and bi is not None:
@@ -494,7 +494,7 @@ class YOLOAnomalySegValidator(YOLOAnomalyValidatorBase, SegmentationValidator):
 # Per category, runs this validator in three single-pass modes on the test split:
 #   mask_off (prior_mode="none")    -> OOD bare-detection lower bound
 #   heatmap  (prior_mode="heatmap") -> core: can fusion use a memory-bank prior?
-#   mask_on  (prior_mode="mask")    -> GT-bbox upper bound (perfect prior)
+#   mask_on  (prior_mode="box")      -> GT-bbox upper bound (perfect prior)
 # Shared by the standalone post-hoc path and the AnomalyV2Trainer callback.
 # ----------------------------------------------------------------------
 MVTEC_CATEGORIES = [
@@ -502,7 +502,7 @@ MVTEC_CATEGORIES = [
     "metal_nut", "pill", "screw", "tile", "toothbrush", "transistor", "wood", "zipper",
 ]
 _MODE_TO_PRIOR = {"mask_off": "none", "heatmap": "heatmap", "heatmap_learned": "heatmap_learned",
-                  "heatmap_fused": "heatmap_fused", "mask_on": "mask"}
+                  "heatmap_fused": "heatmap_fused", "mask_on": "box"}
 _OOD_CSV_FIELDS = ["epoch", "category", "mode", "mAP10", "mAP25", "mAP50", "mAP50_95",
                    "P", "R", "image_auroc", "pixel_auroc"]
 

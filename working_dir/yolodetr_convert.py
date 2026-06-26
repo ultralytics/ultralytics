@@ -82,7 +82,7 @@ def load_dataset_meta(data_yaml: Path) -> tuple[int, dict]:
     return nc, names
 
 
-def build_clean_model(yaml_path: Path, source_model, nc: int | None, dtype: torch.dtype):
+def build_clean_model(yaml_path: Path, source_model, nc: int | None, dtype: torch.dtype, allow_truncation: bool = False):
     """Construct a clean-branch ``YOLODETRDetectionModel``, load source state_dict, and propagate metadata.
 
     Args:
@@ -90,6 +90,8 @@ def build_clean_model(yaml_path: Path, source_model, nc: int | None, dtype: torc
         source_model (nn.Module): Pickled source model carrying state_dict + class metadata.
         nc (int, optional): Class count to override the YAML default. None preserves YAML default.
         dtype (torch.dtype): Target parameter dtype.
+        allow_truncation (bool): If True, source keys absent from the target model are dropped silently (e.g. ndl=6
+            source loaded into an ndl=4 YAML). Missing target keys still abort.
 
     Returns:
         (YOLODETRDetectionModel): Loaded, eval-mode model in target dtype.
@@ -97,8 +99,15 @@ def build_clean_model(yaml_path: Path, source_model, nc: int | None, dtype: torc
     from ultralytics.nn.tasks import YOLODETRDetectionModel
 
     m = YOLODETRDetectionModel(str(yaml_path), ch=3, nc=nc, verbose=False)
-    missing, unexpected = m.load_state_dict(source_model.state_dict(), strict=True)
-    assert not missing and not unexpected, f"key mismatch missing={missing[:5]} unexpected={unexpected[:5]}"
+    src_sd = source_model.state_dict()
+    tgt_keys = set(m.state_dict())
+    extra = sorted(set(src_sd) - tgt_keys)
+    if extra:
+        if not allow_truncation:
+            raise AssertionError(f"unexpected source keys (pass --allow-truncation to drop): {extra[:5]}")
+        print(f"  dropping {len(extra)} source key(s) not present in target (truncation); sample: {extra[:3]}")
+        src_sd = {k: v for k, v in src_sd.items() if k in tgt_keys}
+    m.load_state_dict(src_sd, strict=True)
     m.to(dtype).eval()
     m.task = "detect"
     m.yaml_file = Path(yaml_path).name
@@ -164,7 +173,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--data", type=Path, default=None, help="dataset YAML for non-COCO nc/names (e.g. Objects365v2.yaml)")
     p.add_argument("--out", type=Path, default=None, help="output path (default: <src_stem>_clean.pt)")
     p.add_argument("--yaml", type=Path, default=DEFAULT_YAML, help=f"model YAML (default: {DEFAULT_YAML})")
-    p.add_argument("--dtype", choices=["fp16", "fp32"], default="fp32", help="saved model dtype")
+    p.add_argument("--dtype", choices=["fp16", "fp32"], default="fp16", help="saved model dtype (fp16 matches Ultralytics' trained best.pt/last.pt convention)")
     p.add_argument("--copy-to", type=Path, default=None, help="extra destination path to copy the result to")
     p.add_argument(
         "--coco-eval",
@@ -173,6 +182,11 @@ def parse_args() -> argparse.Namespace:
         help='JSON dict of pycocotools metrics, e.g. \'{"mAP50_95":0.599,"mAP50":0.776}\'',
     )
     p.add_argument("--verify", action="store_true", help="reload saved ckpt and run bus.jpg sanity inference")
+    p.add_argument(
+        "--allow-truncation",
+        action="store_true",
+        help="drop source state_dict keys absent from the target YAML model (e.g. ndl=6 src into ndl=4 YAML)",
+    )
     return p.parse_args()
 
 
@@ -203,7 +217,7 @@ def main() -> None:
         )
 
     print(f"rebuilding under clean graph from: {args.yaml} (nc={nc if nc is not None else 'YAML default'})")
-    model = build_clean_model(args.yaml, src_model, nc, dtype)
+    model = build_clean_model(args.yaml, src_model, nc, dtype, allow_truncation=args.allow_truncation)
 
     if not src_names and names:
         model.names = names

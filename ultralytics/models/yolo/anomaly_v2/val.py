@@ -189,9 +189,10 @@ class AnomalyV2Validator(DetectionValidator):
 
         if not isinstance(stats_on, dict):
             return stats_on
-        merged = dict(stats_on)
-        merged["image_auroc"] = image_auroc
-        merged["pixel_auroc"] = pixel_auroc
+        # Prefix all mask-on metrics for clarity in wandb (mask_on/..., mask_off/...)
+        merged = {f"mask_on/{k}": v for k, v in stats_on.items()}
+        merged[f"mask_on/image_auroc"] = image_auroc
+        merged[f"mask_on/pixel_auroc"] = pixel_auroc
         if isinstance(stats_off, dict):
             for k, v in stats_off.items():
                 merged[f"mask_off/{k}"] = v

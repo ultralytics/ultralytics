@@ -341,11 +341,12 @@ class AnomalyV2Trainer(DetectionTrainer):
 
     @staticmethod
     def _log_ood_wandb(trainer: "AnomalyV2Trainer", rows: list) -> None:
-        """Push per-category + AVERAGE OOD metrics to wandb at the current epoch step (no-op if wandb off).
+        """Push OOD metrics to wandb grouped by mode (ood_none, ood_heatmap, ood_mask).
 
-        Keys are ``ood/<category|AVERAGE>/<mode>/<metric>`` for metric in {mAP10, mAP25, mAP50,
-        mAP50_95, image_auroc, pixel_auroc}; NaN values are skipped. Logged at ``step=epoch+1`` so it
-        merges into the same wandb history row the loss/lr already populate this epoch.
+        For each OOD mode, logs the AVERAGE row (mean across all 15 MVTec categories)
+        with metrics {mAP10, mAP25, mAP50, mAP50_95, image_auroc, pixel_auroc}.
+        NaN values are skipped. Logged at ``step=epoch+1`` so it merges into the
+        same wandb history row the loss/lr already populate this epoch.
         """
         if not rows:
             return
@@ -355,10 +356,20 @@ class AnomalyV2Trainer(DetectionTrainer):
             wb = None
         if wb is None or getattr(wb, "run", None) is None:
             return
+
         keys = ("mAP10", "mAP25", "mAP50", "mAP50_95", "image_auroc", "pixel_auroc")
-        log = {f"ood/{r['category']}/{r['mode']}/{k}": r[k]
-               for r in rows for k in keys
-               if r.get(k) is not None and not (isinstance(r.get(k), float) and math.isnan(r[k]))}
+        # Map val modes to OOD group names
+        mode_to_group = {"mask_off": "ood_none", "heatmap": "ood_heatmap", "mask_on": "ood_mask"}
+
+        log = {}
+        for mode, group_name in mode_to_group.items():
+            # Find AVERAGE row for this mode
+            avg_row = next((r for r in rows if r["category"] == "AVERAGE" and r["mode"] == mode), None)
+            if avg_row is not None:
+                for k in keys:
+                    if avg_row.get(k) is not None and not (isinstance(avg_row.get(k), float) and math.isnan(avg_row[k])):
+                        log[f"{group_name}/{k}"] = avg_row[k]
+
         if log:
             try:
                 wb.run.log(log, step=trainer.epoch + 1)

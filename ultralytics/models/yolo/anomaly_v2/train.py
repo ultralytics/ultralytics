@@ -91,7 +91,7 @@ class AnomalyV2Trainer(DetectionTrainer):
         return batch
 
     def validate(self):
-        """Run validation; when OOD eval is enabled, use OOD heatmap mAP50 as the fitness.
+        """Run validation; when OOD eval is enabled, use OOD heatmap mAP10 (test_heatmap_prior) as fitness.
 
         The OOD eval runs here (not as an ``on_fit_epoch_end`` callback) on the current epoch's
         EMA, so best.pt selection sees this epoch's score with no one-epoch lag. Fitness stays on
@@ -104,9 +104,9 @@ class AnomalyV2Trainer(DetectionTrainer):
         metrics, fitness = super().validate()
         v2_cfg = getattr(unwrap_model(self.model), "yaml", {}).get("anomaly_v2", {})
         if int(v2_cfg.get("mvtec_ood_val_freq", 3)) > 0 and metrics is not None:
-            self._ood_heatmap_map50 = None  # skipped (freq) epochs -> 0.0, not a best.pt candidate
-            AnomalyV2Trainer._mvtec_ood_eval(self)  # sets self._ood_heatmap_map50 (+ wandb log)
-            fitness = float(self._ood_heatmap_map50 or 0.0)
+            self._ood_heatmap_map10 = None  # skipped (freq) epochs -> 0.0, not a best.pt candidate
+            AnomalyV2Trainer._mvtec_ood_eval(self)  # sets self._ood_heatmap_map10 (+ wandb log)
+            fitness = float(self._ood_heatmap_map10 or 0.0)
             metrics["fitness"] = fitness
             self._ood_best_fitness = (
                 fitness if self._ood_best_fitness is None else max(self._ood_best_fitness, fitness)
@@ -318,7 +318,7 @@ class AnomalyV2Trainer(DetectionTrainer):
         heat_norm = fit_yaml.get("heat_norm") or None
 
         ema_eval = deepcopy(trainer.ema.ema).eval()
-        trainer._ood_heatmap_map50 = None  # clear stale; only set on success
+        trainer._ood_heatmap_map10 = None  # clear stale; only set on success
         try:
             with torch.no_grad():
                 rows = run_mvtec_ood_eval(
@@ -335,13 +335,13 @@ class AnomalyV2Trainer(DetectionTrainer):
                     scorer_fuse=scorer_fuse,
                 )
             AnomalyV2Trainer._log_ood_wandb(trainer, rows)
-            # Store OOD heatmap mAP50 for best.pt selection (fitness override)
+            # Store OOD heatmap mAP10 (test_heatmap_prior) for best.pt selection (fitness override)
             heatmap_mode = modes[1]
             for r in rows:
                 if r["category"] == "AVERAGE" and r["mode"] == heatmap_mode:
-                    map50 = r.get("mAP50", math.nan)
-                    if not math.isnan(map50):
-                        trainer._ood_heatmap_map50 = float(map50)
+                    map10 = r.get("mAP10", math.nan)
+                    if not math.isnan(map10):
+                        trainer._ood_heatmap_map10 = float(map10)
                     break
         except Exception as e:  # never let OOD eval take down a training run
             LOGGER.warning(f"MVTec OOD eval failed at epoch {trainer.epoch + 1}: {type(e).__name__}: {e}")

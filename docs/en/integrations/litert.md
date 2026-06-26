@@ -54,7 +54,7 @@ For detailed instructions and best practices, check our [Ultralytics Installatio
 
 !!! note "Platform support"
 
-    LiteRT **export** is currently supported on **Linux x86_64**. The exported `.tflite` model itself runs on all LiteRT-supported platforms (mobile, embedded, edge, and the browser).
+    LiteRT **export** is currently supported on **Linux x86_64** and **macOS**. The exported `.tflite` model itself runs on all LiteRT-supported platforms (mobile, embedded, edge, and the browser).
 
 ### Usage
 
@@ -219,7 +219,7 @@ Yes — at runtime. An FP32 LiteRT model automatically runs in FP16 when execute
 
 If you encounter errors while exporting YOLO models to LiteRT, common solutions include:
 
-- **Check platform**: LiteRT export is supported on Linux x86_64. Verify your environment matches.
+- **Check platform**: LiteRT export is supported on Linux x86_64 and macOS. Verify your environment matches.
 - **Check package compatibility**: Ensure you're using a compatible version of Ultralytics. Refer to our [installation guide](../quickstart.md).
 - **Quantization issues**: When using INT8 quantization, make sure your dataset path is correctly specified in the `data` parameter.
 

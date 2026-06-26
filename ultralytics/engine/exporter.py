@@ -985,7 +985,7 @@ class Exporter:
     @try_export
     def export_litert(self, prefix=colorstr("LiteRT:")):
         """Export YOLO model to LiteRT format using litert_torch with optional FP16/INT8 quantization."""
-        assert LINUX and not ARM64, "LiteRT export only supported on Linux x86"
+        assert MACOS or (LINUX and not ARM64), "LiteRT export only supported on Linux x86 and macOS"
         from ultralytics.utils.export.litert import torch2litert
 
         return torch2litert(

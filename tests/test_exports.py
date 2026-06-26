@@ -393,7 +393,7 @@ def test_export_executorch(isolated_model):
 
 
 @pytest.mark.slow
-@pytest.mark.skipif(not LINUX or ARM64, reason="LiteRT export only supported on Linux x86")
+@pytest.mark.skipif(not (MACOS or (LINUX and not ARM64)), reason="LiteRT export only supported on Linux x86 and macOS")
 @pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10, reason="litert-torch requires Python>=3.10")
 @pytest.mark.parametrize("task, int8", [(task, int8) for task in sorted(TASKS) for int8 in (False, True)])
 def test_export_litert_matrix(task, int8):

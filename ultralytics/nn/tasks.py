@@ -50,7 +50,6 @@ from ultralytics.nn.modules import (
     DWConvTranspose2d,
     Add,
     DEIMDINOv3STAs,
-    DFineDecoder,
     DeimDecoder,
     Focus,
     GhostBottleneck,
@@ -933,12 +932,12 @@ class RTDETRDetectionModel(DetectionModel):
 
 
 class YOLODETRDetectionModel(RTDETRDetectionModel):
-    """YOLO-DETR detection model with DfineLoss dispatch for D-Fine/DEIM and RTDETRDecoderV2 heads.
+    """YOLO-DETR detection model with DfineLoss dispatch for DEIM and RTDETRDecoderV2 heads.
 
     Inherits from RTDETRDetectionModel and overrides ``init_criterion`` and ``loss`` to route DETR heads through
-    ``DfineLoss``. D-Fine/DEIM heads use the full FGL + DDF terms; ``RTDETRDecoderV2`` reuses the same constants but
-    with FGL/DDF gains zeroed and union-set matching off, since V2 emits no ``pred_corners`` / pre-stage tensors. The
-    parent ``RTDETRDecoder`` head still falls through to ``RTDETRDetectionLoss`` via super.
+    ``DfineLoss``. The DEIM head uses the full FGL + DDF terms; ``RTDETRDecoderV2`` reuses the same constants but with
+    FGL/DDF gains zeroed and union-set matching off, since V2 emits no ``pred_corners`` / pre-stage tensors. The parent
+    ``RTDETRDecoder`` head still falls through to ``RTDETRDetectionLoss`` via super.
     """
 
     # Hardcoded DfineLoss constants.
@@ -955,9 +954,9 @@ class YOLODETRDetectionModel(RTDETRDetectionModel):
     }
 
     def init_criterion(self):
-        """Initialize the loss criterion, dispatching to DfineLoss for D-Fine/DEIM and RTDETRDecoderV2 heads."""
+        """Initialize the loss criterion, dispatching to DfineLoss for DEIM and RTDETRDecoderV2 heads."""
         head_name = type(self.model[-1]).__name__
-        if head_name in {"DFineDecoder", "DeimDecoder"}:
+        if head_name == "DeimDecoder":
             from ultralytics.models.utils.loss_dfine import DfineLoss
 
             return DfineLoss(nc=self.nc, **self._DFINE_LOSS_CONSTANTS)
@@ -2075,7 +2074,7 @@ def parse_model(d, ch, verbose=True):
             args.append([ch[x] for x in f])
         elif m is ImagePoolingAttn:
             args.insert(1, [ch[x] for x in f])  # channels as second arg
-        elif m in {RTDETRDecoder, RTDETRDecoderV2, DFineDecoder, DeimDecoder}:  # channels arg must be passed in index 1
+        elif m in {RTDETRDecoder, RTDETRDecoderV2, DeimDecoder}:  # channels arg must be passed in index 1
             args.insert(1, [ch[x] for x in f])
         elif m is CBLinear:
             c2 = args[0]

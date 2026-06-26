@@ -1,9 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-"""Standalone DFine/DEIM-style loss with FGL (Fine-Grained Localization) and DDF (Decoupled Distillation Focal) terms.
+"""Standalone DEIM-style loss with FGL (Fine-Grained Localization) and DDF (Decoupled Distillation Focal) terms.
 
-This loss is used by ``DFineDecoder`` and ``DeimDecoder`` heads. ``RTDETRDecoder`` and ``RTDETRDecoderV2`` continue
-to use ``RTDETRDetectionLoss``. Dispatch is performed in ``RTDETRDetectionModel.init_criterion``.
+This loss is used by the ``DeimDecoder`` head and by ``RTDETRDecoderV2`` (with FGL/DDF gains zeroed). ``RTDETRDecoder``
+continues to use ``RTDETRDetectionLoss``. Dispatch is performed in ``YOLODETRDetectionModel.init_criterion``.
 """
 
 from __future__ import annotations

@@ -321,10 +321,10 @@ class YOLODETRTrainer(RTDETRTrainer):
         return super().train(*args, **kwargs)
 
     def get_validator(self):
-        """Return an RTDETRValidator with loss_names extended for D-Fine/DEIM heads."""
+        """Return an RTDETRValidator with loss_names extended for the DEIM head."""
         loss_names = ["giou_loss", "cls_loss", "l1_loss"]
         head_name = type(unwrap_model(self.model).model[-1]).__name__
-        if head_name in {"DFineDecoder", "DeimDecoder"}:
+        if head_name == "DeimDecoder":
             loss_names += ["fgl_loss", "ddf_loss"]
         self.loss_names = tuple(loss_names)
         return YOLODETRValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))

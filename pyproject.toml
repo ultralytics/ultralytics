@@ -103,6 +103,7 @@ export-base = [
 ]
 export-legacy-torch = [
     "numpy<2",
+    "setuptools<81.0.0; python_version >= '3.9'",  # legacy torch's torch_version imports pkg_resources, removed in setuptools>=81
 ]
 export-tensorflow = [
     "numpy<2.0.0; python_version < '3.13'", # TF 2.20 compatibility
@@ -142,10 +143,7 @@ export = [
 solutions = [
     "shapely>=2.0.0",    # shapely for point and polygon data matching
     "lap>=0.5.12",  # for solution tracking linear assignment
-    "faiss-cpu",  # for similarity search
-    "openai-clip>=1.0.1",  # for similarity search text/image embeddings
-    "setuptools>=80.0.0,<81.0.0; python_version >= '3.9'",  # openai-clip imports pkg_resources.packaging, removed in setuptools>=81
-    "setuptools<76.0.0; python_version < '3.9'",  # provide pkg_resources for openai-clip on Python 3.8 (setuptools>=76 drops 3.8, >=81 drops pkg_resources)
+    # CLIP for similarity search auto-installs on first use via ultralytics.nn.text_model (https://github.com/ultralytics/CLIP)
     "streamlit>=1.51.0; python_version >= '3.10'",    # for live inference on web browser, i.e `yolo streamlit-predict`
     "streamlit>=1.29.0,<1.51.0; python_version < '3.10' and (platform_machine != 'aarch64' or platform_system != 'Linux')",
     "flask>=3.0.1",  # for similarity search solution

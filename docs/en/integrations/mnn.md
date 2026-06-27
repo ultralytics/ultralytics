@@ -119,7 +119,7 @@ The MNN format supports the [Export](../modes/export.md), [Predict](../modes/pre
 | ---------- | ---------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `format`   | `str`            | `'mnn'` | Target format for the exported model, defining compatibility with various deployment environments.                                                           |
 | `imgsz`    | `int` or `tuple` | `640`   | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                            |
-| `quantize` | `int` or `str`   | `None`  | Quantization precision: `16` (FP16) or `8` (INT8/PTQ; needs calibration `data`/`fraction`); `32`/unset is FP32. Replaces the deprecated `half`/`int8` flags. |
+| `quantize` | `int` or `str`   | `None`  | Quantization precision: `16` (FP16), `8` (INT8 weight quantization), or `32`/unset (FP32). Replaces the deprecated `half`/`int8` flags. |
 | `batch`    | `int`            | `1`     | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                      |
 | `device`   | `str`            | `None`  | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                                              |
 

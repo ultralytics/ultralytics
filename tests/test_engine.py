@@ -16,8 +16,8 @@ from ultralytics.engine.exporter import Exporter
 from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models.yolo import classify, detect, obb, pose, segment, semantic
 from ultralytics.nn.distill_model import DistillationModel
-from ultralytics.nn.tasks import load_checkpoint
-from ultralytics.utils import ASSETS, DEFAULT_CFG, IS_RASPBERRYPI, WEIGHTS_DIR
+from ultralytics.nn.tasks import load_checkpoint, torch_safe_load
+from ultralytics.utils import ASSETS, DEFAULT_CFG, IS_RASPBERRYPI, WEIGHTS_DIR, IterableSimpleNamespace
 from ultralytics.utils.torch_utils import unwrap_model
 
 
@@ -217,6 +217,16 @@ def test_load_checkpoint_state_dict_rejected(ckpt, tmp_path):
     torch.save(ckpt, weight)
     with pytest.raises(TypeError, match="supported Ultralytics checkpoint format"):
         load_checkpoint(weight)
+
+
+def test_safe_load_allows_iterable_simple_namespace(tmp_path):
+    """Test restricted checkpoint loading accepts Ultralytics config namespaces saved in checkpoints."""
+    weight = tmp_path / "namespace.pt"
+    torch.save({"train_args": IterableSimpleNamespace(imgsz=640)}, weight)
+
+    ckpt, _ = torch_safe_load(weight, safe_only=True)
+
+    assert ckpt["train_args"].imgsz == 640
 
 
 def test_nan_recovery():

@@ -54,6 +54,7 @@ class TaskAlignedAssigner(nn.Module):
         self.topk2 = topk2 or topk
         self.o2f = False
         self.o2f_t = 0.6
+        self.o2f_degree = None
         self.o2f_cls_weight = None
         self.num_classes = num_classes
         self.alpha = alpha
@@ -85,7 +86,7 @@ class TaskAlignedAssigner(nn.Module):
             https://github.com/Nioolek/PPYOLOE_pytorch/blob/master/ppyoloe/assigner/tal_assigner.py
         """
         self.bs = pd_scores.shape[0]
-        self.o2f_cls_weight = None
+        self.o2f_degree = self.o2f_cls_weight = None
         self.n_max_boxes = gt_bboxes.shape[1]
         device = gt_bboxes.device
 
@@ -106,7 +107,8 @@ class TaskAlignedAssigner(nn.Module):
                 LOGGER.warning("CUDA OutOfMemoryError in TaskAlignedAssigner, using CPU")
                 cpu_tensors = [t.cpu() for t in (pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt)]
                 result = self._forward(*cpu_tensors)
-                if self.o2f_cls_weight is not None:
+                if self.o2f_degree is not None:
+                    self.o2f_degree = self.o2f_degree.to(device)
                     self.o2f_cls_weight = self.o2f_cls_weight.to(device)
                 return tuple(t.to(device) for t in result)
             raise
@@ -145,11 +147,11 @@ class TaskAlignedAssigner(nn.Module):
         pos_align_metrics = align_metric.amax(dim=-1, keepdim=True)  # b, max_num_obj
         pos_overlaps = (overlaps * mask_pos).amax(dim=-1, keepdim=True)  # b, max_num_obj
         norm_align_metric = (align_metric * pos_overlaps / (pos_align_metrics + self.eps)).amax(-2).unsqueeze(-1)
-        self.o2f_cls_weight = None
-        if self.o2f and self.topk > 1:
-            o2f_degrees, self.o2f_cls_weight = self.get_o2f_degrees(pd_scores, gt_labels, mask_pos, align_metric)
-            norm_align_metric = norm_align_metric * o2f_degrees
         target_scores = target_scores * norm_align_metric
+        # O2F modulates only the classification target (applied in the loss); box/dfl keep the full target_scores
+        self.o2f_degree = self.o2f_cls_weight = None
+        if self.o2f and self.topk > 1:
+            self.o2f_degree, self.o2f_cls_weight = self.get_o2f_degrees(overlaps, mask_pos, align_metric)
 
         return target_labels, target_bboxes, target_scores, fg_mask.bool(), target_gt_idx
 
@@ -212,24 +214,21 @@ class TaskAlignedAssigner(nn.Module):
         align_metric = bbox_scores.pow(self.alpha) * overlaps.pow(self.beta)
         return align_metric, overlaps
 
-    def get_o2f_degrees(self, pd_scores, gt_labels, mask_pos, align_metric):
+    def get_o2f_degrees(self, overlaps, mask_pos, align_metric):
         """Return O2F positive degrees and cls weights, keeping each GT best anchor fully positive."""
         mask_pos = mask_pos.bool()
-        gt_scores = torch.zeros_like(mask_pos, dtype=pd_scores.dtype)
-        ind = torch.zeros([2, self.bs, self.n_max_boxes], dtype=torch.long, device=gt_labels.device)
-        ind[0] = torch.arange(end=self.bs, device=gt_labels.device).view(-1, 1).expand(-1, self.n_max_boxes)
-        ind[1] = gt_labels.squeeze(-1).clamp(min=0)
-        gt_scores[mask_pos] = pd_scores[ind[0], :, ind[1]][mask_pos]
-
         best_idx = (align_metric * mask_pos).argmax(-1, keepdim=True)
         best_mask = torch.zeros_like(mask_pos, dtype=torch.bool).scatter_(-1, best_idx, True) & mask_pos
         amb_mask = mask_pos & ~best_mask
-        max_amb_score = (gt_scores * amb_mask).amax(-1, keepdim=True)
-        amb_degree = gt_scores / (max_amb_score + self.eps) * self.o2f_t
+        # Grade ambiguous anchors by their CIoU (the metric behind the best anchor's soft label), normalized within
+        # the ambiguous set so the strongest one reaches o2f_t. self.eps guards 0 / 0 when every ambiguous CIoU is 0
+        # (CIoU is float32, so unlike the fp16 class scores self.eps does not underflow under AMP).
+        amb_ciou = overlaps * amb_mask
+        amb_degree = amb_ciou / (amb_ciou.amax(-1, keepdim=True) + self.eps) * self.o2f_t
         degrees = torch.where(
-            best_mask, torch.ones_like(gt_scores), torch.where(amb_mask, amb_degree, torch.zeros_like(gt_scores))
+            best_mask, torch.ones_like(overlaps), torch.where(amb_mask, amb_degree, torch.zeros_like(overlaps))
         )
-        cls_weights = torch.where(amb_mask, gt_scores.new_full(gt_scores.shape, 0.4), torch.ones_like(gt_scores))
+        cls_weights = torch.where(amb_mask, overlaps.new_full(overlaps.shape, 0.4), torch.ones_like(overlaps))
         return degrees.amax(-2).unsqueeze(-1), cls_weights.amin(-2).unsqueeze(-1)
 
     def iou_calculation(self, gt_bboxes, pd_bboxes):

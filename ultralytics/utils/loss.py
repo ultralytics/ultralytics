@@ -454,10 +454,15 @@ class v8DetectionLoss:
         )
 
         target_scores_sum = max(target_scores.sum(), 1)
-        target_scores_weight = self.assigner.o2f_cls_weight
+
+        # O2F: classification uses degree-scaled soft targets; box/dfl below keep the full target_scores
+        cls_target, cls_target_sum = target_scores, target_scores_sum
+        if self.assigner.o2f_degree is not None:
+            cls_target = target_scores * self.assigner.o2f_degree
+            cls_target_sum = max(cls_target.sum(), 1)
 
         # Cls loss (Varifocal or BCE) with optional class weighting
-        loss[1] = self.cls_loss(pred_scores, target_scores, target_scores_sum, target_scores_weight)
+        loss[1] = self.cls_loss(pred_scores, cls_target, cls_target_sum, self.assigner.o2f_cls_weight)
 
         # Bbox loss
         if fg_mask.sum():

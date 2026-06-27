@@ -343,6 +343,7 @@ EXPORT_ENVS = {
         "smoke": ["yolo export format=axelera model=yolo11n.pt imgsz=64 data=coco8.yaml"],
     },
     "isolated-deepx": {
+        # dx-com 2.3.0 does not provide Python 3.13 wheels.
         "python": "3.12",
         "extras": ["export-base", "export-deepx"],
         "torch": ">=2.8,<2.12",
@@ -350,6 +351,7 @@ EXPORT_ENVS = {
         "indexes": [
             ("--find-links", "https://sdk.deepx.ai/release/dxcom/v2.3.0/index.html"),
         ],
+        # DeepX export is only supported on non-aarch64 Linux.
         "env": {},
         "smoke": ["yolo export format=deepx model=yolo11n.pt imgsz=32 data=coco8.yaml"],
     },

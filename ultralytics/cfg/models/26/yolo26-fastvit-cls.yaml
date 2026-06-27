@@ -17,6 +17,7 @@ scales:
   # [depth, width, max_channels]
   s: [1.0, 0.50, 1024] # 5.05 M params; TRT fp16 bs=1 1.948 ms
   l: [5.0, 0.75, 1024] # 14.77 M params; TRT fp16 bs=1 2.652 ms
+  x: [5.0, 1.125, 1024] # 30.98 M params, 17.0 GFLOPs@224; l width x1.5 (conv l->x convention), scale-matched to conv-x 29.64M / attn-x 32.61M
 
 # FastViT backbone: 4 stages @ strides 4/8/16/32 with downsample conv between stages
 backbone:

@@ -2,6 +2,7 @@
 
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -36,7 +37,7 @@ def test_cli_imports_defer_torchvision() -> None:
         "assert 'torchvision' not in sys.modules; "
         "assert 'ultralytics.models.sam.sam3.geometry_encoders' not in sys.modules"
     )
-    subprocess.run(["python", "-c", code], check=True)
+    subprocess.run([sys.executable, "-c", code], check=True)
 
 
 @pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)

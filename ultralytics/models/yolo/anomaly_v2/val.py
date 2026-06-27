@@ -705,7 +705,9 @@ def run_mvtec_ood_eval(
                     "prior_mode": _MODE_TO_PRIOR[mode],  # popped by YOLOAnomalyValidator.__init__
                     "scorer_kwargs": scorer_kwargs,  # learned-scorer fit kwargs (popped too)
                     "scorer_fuse": scorer_fuse,  # heatmap_fused combine op (popped too)
-                    "cache": "ram",  # decode all test images to RAM on first mode
+                    # RAM-cache only pays off across multiple modes (decode once, reuse). For a
+                    # single-mode sweep there's no reuse, so skip it (and the non-determinism warning).
+                    "cache": "ram" if len(modes) > 1 else False,
                 }
                 if e2e is not None:
                     overrides["end2end"] = e2e

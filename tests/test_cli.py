@@ -27,6 +27,18 @@ def test_special_modes() -> None:
     run("yolo cfg")
 
 
+def test_cli_imports_defer_torchvision() -> None:
+    """Verify startup imports do not load torchvision or SAM3 geometry."""
+    code = (
+        "import sys; "
+        "from ultralytics import YOLO; "
+        "from ultralytics.models.sam import Predictor; "
+        "assert 'torchvision' not in sys.modules; "
+        "assert 'ultralytics.models.sam.sam3.geometry_encoders' not in sys.modules"
+    )
+    subprocess.run(["python", "-c", code], check=True)
+
+
 @pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_train(task: str, model: str, data: str) -> None:

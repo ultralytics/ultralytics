@@ -190,7 +190,7 @@ def test_export_openvino_matrix(task, dynamic, quantize, batch, nms, end2end):
         dynamic=dynamic,
         quantize=quantize,
         batch=batch,
-        data=TASK2DATA[task],
+        data=TASK2DATA[task],  # use the smallest task datasets for fast INT8 calibration
         nms=nms,
         end2end=end2end,
     )
@@ -326,7 +326,7 @@ def test_export_tflite_matrix(task, dynamic, quantize, batch, nms, end2end):
         batch=batch,
         nms=nms,
         end2end=end2end,
-        data=TASK2DATA[task],
+        data=TASK2DATA[task],  # use the smallest task datasets for fast INT8 calibration
     )
     r = YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference
     if task == "semantic":

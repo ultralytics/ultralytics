@@ -244,23 +244,24 @@ def _resolve_dataset_list(datasets_arg: str) -> list[Path]:
     return yamls
 
 
-_MULTI_DET_TARGET_ITERS = 1500
-_MULTI_DET_EPOCH_CAP = 200
-# Canonical base recipe for multi_det 13det. The 2026-05-27+ chain runs and the decisive CE-vs-distill
-# comparison (attn-CE 0.1999, lr2x 0.1959) all use 70/100. A different base (e.g. 30/10) is a separate,
-# non-comparable recipe, so _run_multi_det warns loudly on any override to keep the 13det table on one recipe.
-_MULTI_DET_BASE_EPOCHS = 70
+# Default flat recipe for multi_det. Epochs/patience apply literally to every dataset (no dataset-size scaling).
+# Pass positional epochs/patience to override. Macros at different budgets are not directly comparable, so
+# _run_multi_det warns on any override. The flat default is 100 for the multi_det per-dataset suite. The
+# single-dataset coco/dota modes keep _build_det_train_args' own default of 70.
+_MULTI_DET_BASE_EPOCHS = 100
 _MULTI_DET_BASE_PATIENCE = 100
 
 
-def _scale_epochs_patience_for_dataset(
-    data_yaml: Path, batch: int, base_epochs: int, base_patience: int
-) -> tuple[int, int, int, int]:
-    """Scale epochs/patience per dataset so each sees >=`_MULTI_DET_TARGET_ITERS` total training iterations.
+def _dataset_train_stats(data_yaml: Path, batch: int) -> tuple[int, int]:
+    """Count train images and iterations per epoch for one dataset (logging only).
 
-    Tiny RF13-style datasets (87-1000 train) at batch=128 get only 1-8 iters/epoch. A flat base_epochs=30 gives 30-240
-    total iters, half consumed by LR warmup, leaving essentially no training. Scale epochs up to meet the iteration
-    floor; cap at `_MULTI_DET_EPOCH_CAP` to bound wall time. Returns extras for logging.
+    Args:
+        data_yaml (Path): Dataset config whose `train:` entry resolves to an image dir or a `.txt` list.
+        batch (int): Effective batch size for the iters-per-epoch estimate.
+
+    Returns:
+        (int): Number of training images.
+        (int): Iterations per epoch at the given batch.
     """
     d = YAML.load(data_yaml)
     root = Path(d.get("path", data_yaml.parent))
@@ -271,11 +272,7 @@ def _scale_epochs_patience_for_dataset(
             n_imgs = sum(1 for line in f if line.strip() and not line.startswith("#"))
     else:
         n_imgs = sum(1 for p in train_path.rglob("*") if p.suffix[1:].lower() in IMG_FORMATS)
-    iters_per_ep = max(1, (n_imgs + batch - 1) // batch)
-    needed_eps = (_MULTI_DET_TARGET_ITERS + iters_per_ep - 1) // iters_per_ep
-    epochs = max(base_epochs, min(_MULTI_DET_EPOCH_CAP, needed_eps))
-    patience = max(base_patience, epochs // 10)
-    return epochs, patience, n_imgs, iters_per_ep
+    return n_imgs, max(1, (n_imgs + batch - 1) // batch)
 
 
 def load_multi_results(parent_name: str, expected: list[str] | None = None) -> tuple[dict, dict]:
@@ -353,7 +350,7 @@ def _run_multi_det(
         phase1_weights (str): Path to backbone checkpoint for `pretrained=`.
         parent_name (str): Run name prefix; sub-runs append "-{basename}".
         phase1_wandb_id (str): Optional W&B parent ID forwarded to wandb_config.
-        epochs (int, optional): Per-dataset epochs (default 70).
+        epochs (int, optional): Per-dataset epochs (default 100).
         patience (int, optional): Per-dataset patience (default 100).
         batch_override (str): CLI --batch override (scales lr/nbs/warmup).
         lr_override (str): CLI --lr override.
@@ -383,7 +380,7 @@ def _run_multi_det(
         YAML.save(model_yaml, cfg)
     else:
         model_yaml = _infer_model_yaml(phase1_weights)
-        # Fail fast on a wrong parent id (e.g. a dir basename) before training 13 datasets, since
+        # Fail fast on a wrong parent id (e.g. a dir basename) before training the full dataset suite, since
         # push_summary_to_parent would otherwise drop the downstream link silently at the final step.
         wandb_config.assert_parent_resolvable(phase1_wandb_id)
 
@@ -405,26 +402,24 @@ def _run_multi_det(
     base_patience = patience or _MULTI_DET_BASE_PATIENCE
     if base_epochs != _MULTI_DET_BASE_EPOCHS or base_patience != _MULTI_DET_BASE_PATIENCE:
         print(
-            f"[multi_det_finetune] WARNING non-canonical recipe base_epochs={base_epochs} base_patience={base_patience}, "
-            f"canonical is {_MULTI_DET_BASE_EPOCHS}/{_MULTI_DET_BASE_PATIENCE}. Results will NOT be comparable to the "
-            f"canonical 13det references (2026-05 30/10-vs-70/100 split). Omit the positional epochs/patience to use canonical."
+            f"[multi_det_finetune] NOTE non-default recipe epochs={base_epochs} patience={base_patience}, "
+            f"default flat is {_MULTI_DET_BASE_EPOCHS}/{_MULTI_DET_BASE_PATIENCE}. Macros at different epoch budgets "
+            f"are not directly comparable. Omit the positional epochs/patience to use the default."
         )
     batch_actual = int(batch_override) if batch_override else 128
     print(f"[multi_det_finetune] parent={parent_name} datasets={len(dataset_yamls)} model={model_yaml}")
     print(f"[multi_det_finetune] aggregate csv -> {csv_path}")
-    print(
-        f"[multi_det_finetune] per-dataset epoch scaling: target_iters={_MULTI_DET_TARGET_ITERS}, "
-        f"cap={_MULTI_DET_EPOCH_CAP}, base_epochs={base_epochs}, base_patience={base_patience}, batch={batch_actual}"
-    )
+    print(f"[multi_det_finetune] flat recipe epochs={base_epochs} patience={base_patience} batch={batch_actual}")
 
     results = []
     for i, ds_yaml in enumerate(dataset_yamls, start=1):
         basename = ds_yaml.parent.name
-        ep_d, pat_d, n_imgs, iters_per_ep = _scale_epochs_patience_for_dataset(
-            ds_yaml, batch_actual, base_epochs, base_patience
-        )
+        n_imgs, iters_per_ep = _dataset_train_stats(ds_yaml, batch_actual)
         print(f"\n=== [{i}/{len(dataset_yamls)}] {basename} ===")
-        print(f"[multi_det_finetune] {basename}: n_train={n_imgs} iters/ep={iters_per_ep} epochs={ep_d} patience={pat_d}")
+        print(
+            f"[multi_det_finetune] {basename}: n_train={n_imgs} iters/ep={iters_per_ep} "
+            f"epochs={base_epochs} patience={base_patience}"
+        )
 
         model = YOLO(model_yaml)
         model.add_callback("on_train_start", grad_clip.override(1.0))
@@ -450,11 +445,9 @@ def _run_multi_det(
                 dataset=basename,
                 n_train_images=n_imgs,
                 iters_per_epoch=iters_per_ep,
-                scaled_epochs=ep_d,
-                scaled_patience=pat_d,
             ),
         )
-        det_args = _build_det_train_args(ep_d, pat_d, batch_override, lr_override, nbs_override)
+        det_args = _build_det_train_args(base_epochs, base_patience, batch_override, lr_override, nbs_override)
         if teacher_spec:
             # Freeze layer 0 (the teacher) via the trainer freeze arg: BaseTrainer re-enables requires_grad for any
             # non-frozen-listed param (trainer.py:319), so freezing only in __init__ is undone. imgsz is per-teacher.

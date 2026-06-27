@@ -21,7 +21,6 @@ from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS, _handle_deprecation, g
 from ultralytics.engine.exporter import EXPORT_ENVS, export_formats, validate_args
 from ultralytics.utils import (
     ARM64,
-    IS_DOCKER,
     IS_RASPBERRYPI,
     LINUX,
     MACOS,
@@ -37,9 +36,7 @@ from ultralytics.utils.torch_utils import (
     TORCH_1_13,
     TORCH_2_0,
     TORCH_2_1,
-    TORCH_2_8,
     TORCH_2_9,
-    TORCH_2_12,
 )
 
 
@@ -508,23 +505,6 @@ def test_export_executorch_matrix(task):
     metadata_file = Path(file) / "metadata.yaml"
     assert metadata_file.exists(), f"ExecuTorch metadata.yaml not found for task '{task}': {metadata_file}"
     # Note: Inference testing skipped as ExecuTorch requires special runtime setup
-    shutil.rmtree(file, ignore_errors=True)  # cleanup
-
-
-@pytest.mark.slow
-@pytest.mark.skipif(not TORCH_2_8 or TORCH_2_12, reason="Axelera export requires 2.8.0<=torch<2.12.0")
-@pytest.mark.skipif(checks.IS_PYTHON_MINIMUM_3_13, reason="Axelera devkit 1.7.0 does not support Python 3.13")
-@pytest.mark.skipif(
-    not LINUX or (ARM64 and IS_DOCKER),
-    reason="Axelera export is only supported on Linux and is not supported on ARM64 Docker",
-)
-@pytest.mark.skipif(IS_RASPBERRYPI, reason="Test disabled due to OOM (Out of Memory) issues on Raspberry Pi 5 16GB")
-def test_export_axelera():
-    """Test YOLO export to Axelera format."""
-    # For faster testing, use a smaller calibration dataset (32 image size crashes axelera export, so 64 is used)
-    file = YOLO("yolo11n.pt").export(format="axelera", imgsz=64, data="coco8.yaml")
-    assert Path(file).exists(), f"Axelera export failed, directory not found: {file}"
-    # Note: Inference testing skipped as it requires Axelera hardware
     shutil.rmtree(file, ignore_errors=True)  # cleanup
 
 

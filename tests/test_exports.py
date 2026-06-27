@@ -519,10 +519,10 @@ def test_export_executorch_matrix(task):
     reason="Axelera export is only supported on Linux and is not supported on ARM64 Docker",
 )
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Test disabled due to OOM (Out of Memory) issues on Raspberry Pi 5 16GB")
-def test_export_axelera(isolated_model):
+def test_export_axelera():
     """Test YOLO export to Axelera format."""
     # For faster testing, use a smaller calibration dataset (32 image size crashes axelera export, so 64 is used)
-    file = YOLO(isolated_model).export(format="axelera", imgsz=64, data="coco8.yaml")
+    file = YOLO("yolo11n.pt").export(format="axelera", imgsz=64, data="coco8.yaml")
     assert Path(file).exists(), f"Axelera export failed, directory not found: {file}"
     # Note: Inference testing skipped as it requires Axelera hardware
     shutil.rmtree(file, ignore_errors=True)  # cleanup

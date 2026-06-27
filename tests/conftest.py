@@ -1,6 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-import os
 import shutil
 from pathlib import Path
 
@@ -114,10 +113,9 @@ def isolated_model(tmp_path):
     intermediate/export files. This fixture copies the shared model to a per-test temporary directory so each test
     exports to a unique path.
     """
-    from tests import MODEL, WEIGHTS_DIR
+    from tests import MODEL
 
-    model = os.getenv("ULTRALYTICS_TEST_MODEL")
-    return isolated_model_path(tmp_path, WEIGHTS_DIR / model if model else MODEL)
+    return isolated_model_path(tmp_path, MODEL)
 
 
 def pytest_sessionfinish(session, exitstatus):

@@ -312,12 +312,7 @@ def test_export_coreml_matrix(task, dynamic, quantize, nms, batch, end2end):
         for task, dynamic, quantize, batch, nms, end2end in product(
             sorted(TASKS), [False], [8, 16], [1], [True, False], [True, False]
         )
-        if not (
-            (task == "classify" and nms)
-            or (ARM64 and nms)
-            or (nms and not TORCH_1_13)
-            or (end2end and nms)
-        )
+        if not ((task == "classify" and nms) or (ARM64 and nms) or (nms and not TORCH_1_13) or (end2end and nms))
     ],
 )
 def test_export_tflite_matrix(task, dynamic, quantize, batch, nms, end2end):
@@ -427,9 +422,7 @@ def test_export_mnn(isolated_model):
 def test_export_mnn_matrix(task, quantize, batch, end2end):
     """Test YOLO export to MNN format considering various export configurations."""
     skip_rpi_semantic(task)
-    file = YOLO(TASK2MODEL[task]).export(
-        format="mnn", imgsz=32, quantize=quantize, batch=batch, end2end=end2end
-    )
+    file = YOLO(TASK2MODEL[task]).export(format="mnn", imgsz=32, quantize=quantize, batch=batch, end2end=end2end)
     YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference
     Path(file).unlink()  # cleanup
 

@@ -1,0 +1,34 @@
+name: axelera-probe
+on:
+  push:
+    branches: [axelera-probe]
+jobs:
+  np:
+    if: github.repository == 'ultralytics/ultralytics'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [np-2.3.5, np-latest, np-default]
+        run: [1, 2, 3]
+    steps:
+      - uses: astral-sh/setup-uv@v7
+      - name: Axelera export with numpy=${{ matrix.variant }} (run ${{ matrix.run }})
+        env: { PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION: "python", YOLO_AUTOINSTALL: "false" }
+        run: |
+          NP=""
+          [ "${{ matrix.variant }}" = "np-2.3.5" ] && NP="numpy==2.3.5"
+          [ "${{ matrix.variant }}" = "np-latest" ] && NP="numpy==2.5.0"
+          uv venv /tmp/v --python 3.12 --seed
+          uv pip install --python /tmp/v/bin/python "ultralytics[export-base]==8.4.80" \
+            "torch>=2.8,<2.12" "axelera-devkit==1.7.0" "onnx>=1.12.0,<2.0.0" "onnxslim>=0.1.71" $NP \
+            --extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple \
+            --index-strategy unsafe-best-match --prerelease allow --torch-backend cpu > /tmp/i.log 2>&1
+          IEXIT=$?
+          NUMPY=$(/tmp/v/bin/python -c "import numpy;print(numpy.__version__)" 2>/dev/null || echo "INSTALL_FAILED")
+          if [ "$NUMPY" = "INSTALL_FAILED" ]; then echo "NP_RESULT variant=${{ matrix.variant }} run=${{ matrix.run }} numpy=CONFLICT install_exit=$IEXIT"; tail -3 /tmp/i.log; exit 0; fi
+          export PATH=/tmp/v/bin:$PATH
+          /tmp/v/bin/yolo export format=axelera model=yolo26n.pt imgsz=64 data=coco8.yaml > /tmp/o.log 2>&1; EXIT=$?
+          RES=$(grep -oE 'export (success|failure)[^"]*MB\)|output model too small' /tmp/o.log | tail -1)
+          echo "NP_RESULT variant=${{ matrix.variant }} run=${{ matrix.run }} numpy=$NUMPY exit=$EXIT | ${RES:-<none>}"

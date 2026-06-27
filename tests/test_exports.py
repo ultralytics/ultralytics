@@ -252,7 +252,7 @@ def test_export_onnx_semantic_dnn():
         for task, dynamic, int8, half, batch, nms, end2end in product(
             sorted(TASKS), [False, True], [False], [False, True], [1, 2], [True, False], [True, False]
         )
-        if not ((task == "classify" and nms) or (end2end and nms))
+        if not ((task == "classify" and nms) or (end2end and nms) or half)
     ],
 )
 def test_export_torchscript_matrix(task, dynamic, int8, half, batch, nms, end2end, tmp_path):

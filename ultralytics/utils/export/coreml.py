@@ -209,11 +209,13 @@ def torch2coreml(
         skip_model_load=True,
     )
     if not mlmodel:
-        # RT-DETR decoder class logits and deformable-sampling indices drift in fp16; pin those op types to fp32
-        # only when an RTDETRDecoder is present. YOLO detect/segment/pose/OBB keep mlprogram's fp16 default.
+        # ML Program conversion defaults to FP16. Pin FP32 unless FP16/INT8 was requested.
         from ultralytics.nn.modules.head import RTDETRDecoder
 
-        if any(isinstance(m, RTDETRDecoder) for m in model.modules()):
+        if not (half or int8):
+            convert_kwargs["compute_precision"] = ct.precision.FLOAT32
+        elif any(isinstance(m, RTDETRDecoder) for m in model.modules()):
+            # RT-DETR decoder class logits and deformable-sampling indices drift in fp16; pin those op types to fp32.
             fp32_ops = {"linear", "gather", "gather_nd", "gather_along_axis"}
             convert_kwargs["compute_precision"] = ct.transform.FP16ComputePrecision(
                 op_selector=lambda op: op.op_type not in fp32_ops

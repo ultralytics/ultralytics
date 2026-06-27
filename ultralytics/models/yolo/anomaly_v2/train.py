@@ -103,7 +103,7 @@ class AnomalyV2Trainer(DetectionTrainer):
         """
         metrics, fitness = super().validate()
         v2_cfg = getattr(unwrap_model(self.model), "yaml", {}).get("anomaly_v2", {})
-        if int(v2_cfg.get("mvtec_ood_val_freq", 3)) > 0 and metrics is not None:
+        if int(v2_cfg.get("test_val_freq", 3)) > 0 and metrics is not None:
             self._ood_heatmap_map10 = None  # skipped (freq) epochs -> 0.0, not a best.pt candidate
             AnomalyV2Trainer._mvtec_ood_eval(self)  # sets self._ood_heatmap_map10 (+ wandb log)
             fitness = float(self._ood_heatmap_map10 or 0.0)
@@ -263,49 +263,55 @@ class AnomalyV2Trainer(DetectionTrainer):
     def _mvtec_ood_eval(trainer: "AnomalyV2Trainer") -> None:
         """Periodic MVTec cross-dataset OOD eval, rank 0 only; called from validate().
 
-        Configured via the model YAML ``anomaly_v2`` block: ``mvtec_ood_val_freq`` (every N epochs;
-        default 3, set 0 to disable). When ``mvtec_ood_fit_cfg`` is set, ``imgsz``, ``heatmap_mode``,
+        Configured via the model YAML ``anomaly_v2`` block: ``test_val_freq`` (every N epochs;
+        default 3, set 0 to disable). When ``test_fit_cfg`` is set, ``imgsz``, ``heatmap_mode``,
         scorer settings, ``heat_edge`` / ``heat_norm`` are read from that fit YAML (the single source of
-        truth for all fit params). Without it, ``mvtec_ood_imgsz`` (default 320) and a plain 3-mode
-        (mask_off / heatmap / mask_on) sweep with no scorer / no post-processing are used.
-        ``mvtec_ood_heatmap_only`` restricts the sweep to the heatmap prior alone (~3x faster).
+        truth for all fit params). Without it, ``test_imgsz`` (default 320) and the default heatmap
+        prior with no scorer / no post-processing are used. Per-prior switches ``test_none_prior`` /
+        ``test_heatmap_prior`` / ``test_mask_prior`` pick which modes run; ``test_heatmap_prior`` is
+        forced on (best.pt fitness is ``test_metrics(heatmap_prior)/mAP10``).
 
         Runs on a deepcopy of the EMA so val-time fuse()/bank-build never corrupt the live EMA.
         """
         if RANK not in (-1, 0) or trainer.ema is None:
             return
         v2_cfg = getattr(unwrap_model(trainer.model), "yaml", {}).get("anomaly_v2", {})
-        freq = int(v2_cfg.get("mvtec_ood_val_freq", 3))
+        freq = int(v2_cfg.get("test_val_freq", 3))
         if freq <= 0 or (trainer.epoch + 1) % freq != 0:
             return
-        root = resolve_mvtec_root(v2_cfg.get("mvtec_ood_root"))
+        root = resolve_mvtec_root(v2_cfg.get("test_root"))
         if root is None:
-            LOGGER.warning("MVTec OOD: dataset root not found (set MVTEC_ROOT or anomaly_v2."
-                           "mvtec_ood_root); skipping OOD eval.")
+            LOGGER.warning("MVTec test: dataset root not found (set MVTEC_ROOT or anomaly_v2."
+                           "test_root); skipping test eval.")
             return
 
         # -- Fit YAML (optional; single source of truth for imgsz / heatmap_mode / scorer / post) --
-        fit_cfg_path = v2_cfg.get("mvtec_ood_fit_cfg")
+        fit_cfg_path = v2_cfg.get("test_fit_cfg")
         fit_yaml = {}
         if fit_cfg_path:
             model_yaml = getattr(unwrap_model(trainer.model), "yaml", {}) or {}
             model_yaml_path = model_yaml.get("yaml_file")
             fit_yaml = _resolve_fit_yaml(str(fit_cfg_path), model_yaml_path)
 
-        imgsz = int(fit_yaml.get("imgsz", v2_cfg.get("mvtec_ood_imgsz", 320)))
-        batch = int(v2_cfg.get("mvtec_ood_batch", 8))
-        bank_size = int(fit_yaml.get("bb_max_bank_size", v2_cfg.get("mvtec_ood_bank_size", 10000)))
+        imgsz = int(fit_yaml.get("imgsz", v2_cfg.get("test_imgsz", 320)))
+        batch = int(v2_cfg.get("test_batch", 8))
+        bank_size = int(fit_yaml.get("bb_max_bank_size", v2_cfg.get("test_bank_size", 10000)))
 
-        # Modes: fit YAML heatmap_mode -> prior variant; without it the default heatmap. The full
-        # sweep also runs mask_off/mask_on for reference; ``mvtec_ood_heatmap_only`` drops those
-        # (~3x faster) since only the heatmap prior feeds fitness.
+        # Per-prior test switches pick which OOD modes run. test_heatmap_prior is forced on because
+        # best.pt fitness is test_metrics(heatmap_prior)/mAP10; test_none_prior (mask_off) and
+        # test_mask_prior (mask_on) default off (heatmap-only = ~3x faster).
         heatmap_mode = fit_yaml.get("heatmap_mode")
         _MODE_MAP = {"memory_bank": "heatmap", "learned": "heatmap_learned", "fused": "heatmap_fused"}
         heatmap_variant = _MODE_MAP.get(heatmap_mode, "heatmap")
-        if bool(v2_cfg.get("mvtec_ood_heatmap_only", False)):
-            modes = (heatmap_variant,)
-        else:
-            modes = ("mask_off", heatmap_variant, "mask_on")
+        if not bool(v2_cfg.get("test_heatmap_prior", True)):
+            LOGGER.warning("anomaly_v2: test_heatmap_prior feeds fitness and cannot be disabled; forcing on.")
+        modes = []
+        if bool(v2_cfg.get("test_none_prior", False)):
+            modes.append("mask_off")
+        modes.append(heatmap_variant)  # test_heatmap_prior — always on (fitness source)
+        if bool(v2_cfg.get("test_mask_prior", False)):
+            modes.append("mask_on")
+        modes = tuple(modes)
 
         # Scorer kwargs (learned / fused only)
         scorer_kwargs, scorer_fuse = None, "mean"
@@ -332,7 +338,7 @@ class AnomalyV2Trainer(DetectionTrainer):
             with torch.no_grad():
                 rows = run_mvtec_ood_eval(
                     ema_eval, root,
-                    categories=v2_cfg.get("mvtec_ood_categories"),
+                    categories=v2_cfg.get("test_categories"),
                     modes=modes,
                     imgsz=imgsz, batch=batch, workers=trainer.args.workers, bank_size=bank_size,
                     device=trainer.device, save_dir=trainer.save_dir, epoch=trainer.epoch + 1,

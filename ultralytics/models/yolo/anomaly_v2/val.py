@@ -12,8 +12,8 @@ wandb / results.csv key scheme:
   - MVTec OOD modes -> ``test_metrics(none_prior)/`` · ``test_metrics(heatmap_prior)/`` ·
     ``test_metrics(mask_prior)/`` (train.py).
 
-Either in-dist pass can be switched off via the ``anomaly_v2`` cfg for speed:
-``val_mask_prior`` (mask-on pass) and ``val_mask_off`` (mask-off pass), both default true.
+The mask-off (vanilla floor) pass always runs; the mask-on prior pass is optional via
+``anomaly_v2.val_mask_prior`` (default true) — set false to ~halve in-dist val time.
 
 In addition to standard detection metrics, accumulates image-AUROC and
 pixel-AUROC from the model's stashed heatmap (``model._last_heatmap``) during
@@ -181,9 +181,10 @@ class YOLOAnomalyValidatorBase:
         return super().__call__(trainer=trainer, model=model)
 
     def _two_pass(self, trainer, model):
-        # Which in-dist passes run (both default on). Skipping the mask-on pass ~halves in-dist val
-        # time; OOD runs take fitness from the OOD heatmap eval, so the prior pass is pure monitoring.
-        run_on, run_off = self._resolve_val_passes(trainer, model)
+        # Mask-off (vanilla floor) always runs; the mask-on (prior) pass is optional. Skipping it
+        # ~halves in-dist val time; OOD runs take fitness from the OOD heatmap eval, so the prior
+        # pass is pure monitoring there.
+        run_on = self._resolve_mask_on_pass(trainer, model)
 
         # wandb / results.csv key scheme:
         #   mask-OFF pass -> BARE standard keys (metrics/...(B/M), val/..._loss, fitness) so the run
@@ -215,18 +216,17 @@ class YOLOAnomalyValidatorBase:
             merged["metrics(mask_prior)/image_auroc"] = image_auroc
             merged["metrics(mask_prior)/pixel_auroc"] = pixel_auroc
 
-        # Pass 2: mask-off (bare vanilla floor + fitness for non-OOD runs).
-        if run_off:
-            self._mask_mode = "off"
-            try:
-                stats_off = super().__call__(trainer=trainer, model=model)
-            except Exception as e:
-                LOGGER.warning(f"YOLOAnomalyValidator: mask-off pass failed: {e}")
-                stats_off = {}
-            if isinstance(stats_off, dict):
-                self._mask_off_stats = dict(stats_off)
-                # AUROC is meaningless without a prior heatmap; drop it from the bare namespace.
-                merged.update({k: v for k, v in stats_off.items() if k not in ("image_auroc", "pixel_auroc")})
+        # Pass 2: mask-off (bare vanilla floor + fitness) — always runs; this is the standard val.
+        self._mask_mode = "off"
+        try:
+            stats_off = super().__call__(trainer=trainer, model=model)
+        except Exception as e:
+            LOGGER.warning(f"YOLOAnomalyValidator: mask-off pass failed: {e}")
+            stats_off = {}
+        if isinstance(stats_off, dict):
+            self._mask_off_stats = dict(stats_off)
+            # AUROC is meaningless without a prior heatmap; drop it from the bare namespace.
+            merged.update({k: v for k, v in stats_off.items() if k not in ("image_auroc", "pixel_auroc")})
 
         # Restore mask-on metrics so results_dict / curves reflect the prior-on pass (when it ran).
         self._mask_mode = "on"
@@ -234,22 +234,16 @@ class YOLOAnomalyValidatorBase:
             self.metrics = metrics_on
         return merged
 
-    def _resolve_val_passes(self, trainer, model) -> tuple[bool, bool]:
-        """Read which in-dist val passes to run from the ``anomaly_v2`` cfg (both default on).
+    def _resolve_mask_on_pass(self, trainer, model) -> bool:
+        """Whether to run the in-dist mask-ON (prior) pass. ``anomaly_v2.val_mask_prior``, default True.
 
-        ``val_mask_prior``: run the mask-ON (prior) pass -> ``metrics(mask_prior)/`` + AUROC.
-        ``val_mask_off``:   run the mask-OFF (bare vanilla floor) pass -> standard keys + fitness.
-        At least one must run; if both are disabled, mask-off is forced on (it carries fitness).
+        The mask-OFF (bare vanilla floor) pass always runs — it carries the standard metrics and
+        fitness. Skipping mask-on (no ``metrics(mask_prior)/`` or AUROC) ~halves in-dist val time.
         """
         mdl = model if model is not None else getattr(trainer, "model", None)
         m = resolve_v2_model(mdl if mdl is not None else self._model_ref)
         v2 = (getattr(m, "yaml", {}) or {}).get("anomaly_v2", {}) if m is not None else {}
-        run_on = bool(v2.get("val_mask_prior", True))
-        run_off = bool(v2.get("val_mask_off", True))
-        if not run_on and not run_off:
-            LOGGER.warning("anomaly_v2: val_mask_prior and val_mask_off both off -> forcing mask-off on.")
-            run_off = True
-        return run_on, run_off
+        return bool(v2.get("val_mask_prior", True))
 
     # ------------------------------------------------------------------
     # Heatmap-prior memory-bank lifecycle (single-pass OOD eval)

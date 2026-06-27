@@ -42,10 +42,13 @@ anomaly_v2:
   mask_mixup_p: 0.08
   mask_mixup_alpha: 0.4
   mask_mag_range: [0.7, 1]
-  # OOD eval
-  mvtec_ood_val_freq: 1
-  mvtec_ood_categories: null   # null = all 15 MVTec categories
-  mvtec_ood_fit_cfg: ../../yoloa_fit_default.yaml
+  # test (cross-dataset MVTec) eval
+  test_val_freq: 1
+  test_categories: null        # null = all 15 MVTec categories
+  test_none_prior: false       # test prior=none (mask_off)
+  test_heatmap_prior: true     # test prior=heatmap — required (fitness = test_metrics(heatmap_prior)/mAP10)
+  test_mask_prior: false       # test prior=mask (mask_on)
+  test_fit_cfg: ../../yoloa_fit_default.yaml
 
 backbone:
   - [-1, 1, Conv, [64, 3, 2]]

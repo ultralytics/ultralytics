@@ -22,7 +22,7 @@ anomaly_v2:
   mask_erase_p: 0.0
   mask_warp_p: 0.0
   mask_mixup_p: 0.0
-  mvtec_ood_val_freq: 0
+  test_val_freq: 0
 
 backbone:
   - [-1, 1, Conv, [64, 3, 2]]

@@ -317,7 +317,7 @@ EXPORT_ENVS = {
         ],
         "indexes": [],
         "env": {},
-        "smoke": ["yolo export format=imx model=yolo11n.pt imgsz=32"],
+        "smoke": ["yolo export format=imx model=yolo11n.pt imgsz=32 data=coco8.yaml"],
     },
     "isolated-rknn": {
         "python": "3.11",
@@ -332,12 +332,12 @@ EXPORT_ENVS = {
         "python": "3.12",
         "extras": ["export-base"],
         "torch": ">=2.8,<2.12",
-        "requirements": ["axelera-devkit==1.7.0", "onnx>=1.12.0,<2.0.0", "onnxslim>=0.1.71"],
+        "requirements": ["axelera-devkit==1.7.0", "numpy<=2.3.5", "onnx>=1.12.0,<2.0.0", "onnxslim>=0.1.71"],
         "indexes": [
             ("--extra-index-url", "https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple"),
         ],
         "env": {"PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION": "python"},
-        "smoke": ["yolo export format=axelera model=yolo11n.pt imgsz=64 data=coco8.yaml"],
+        "smoke": ["yolo export format=axelera model=yolo26n.pt imgsz=64 data=coco8.yaml"],
     },
     "isolated-deepx": {
         "python": "3.12",
@@ -348,7 +348,7 @@ EXPORT_ENVS = {
             ("--find-links", "https://sdk.deepx.ai/release/dxcom/v2.3.0/index.html"),
         ],
         "env": {},
-        "smoke": ["yolo export format=deepx model=yolo11n.pt imgsz=32"],
+        "smoke": ["yolo export format=deepx model=yolo11n.pt imgsz=32 data=coco8.yaml"],
     },
 }
 

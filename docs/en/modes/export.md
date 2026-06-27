@@ -99,28 +99,28 @@ The legacy `half=True` and `int8=True` flags are still accepted with deprecation
 
 Not every export format supports every precision. Explicit `quantize` requests either produce that precision or fail before export:
 
-| Format                    | FP32 (`32`/unset) | FP16 (`16`) | INT8 (`8`) | W8A16 (`"w8a16"`) | Notes                                                                                                  |
-| ------------------------- | ----------------- | ----------- | ---------- | ----------------- | ------------------------------------------------------------------------------------------------------ |
-| PyTorch                   | ✅                | N/A         | N/A        | N/A               | Native training/checkpoint format.                                                                     |
-| TorchScript               | ✅                | ✅ GPU only | ❌         | ❌                | FP16 TorchScript export requires `device=0`; CPU export is FP32.                                       |
-| ONNX                      | ✅                | ✅          | ✅         | ❌                | INT8 uses ONNX Runtime static quantization and calibration data.                                        |
-| OpenVINO                  | ✅                | ✅          | ✅         | ❌                | INT8 uses NNCF post-training quantization.                                                             |
-| TensorRT                  | ✅                | ✅          | ✅         | ❌                | INT8 needs representative calibration data.                                                            |
-| CoreML                    | ✅                | ✅          | ✅         | ✅                | CoreML INT8 is weight quantization; W8A16 uses INT8 weights with FP16 activations.                     |
-| TF SavedModel             | ✅                | ❌          | ✅         | ❌                | INT8 export uses TensorFlow calibration.                                                               |
-| TF GraphDef               | ✅                | ❌          | ❌         | ❌                | No export-time precision conversion.                                                                   |
-| TFLite                    | ✅                | ✅          | ✅         | ❌                | INT8 export uses TensorFlow calibration.                                                               |
-| Edge TPU                  | ❌                | ❌          | ✅ auto    | ❌                | Edge TPU requires INT8; it is auto-enabled when unset.                                                 |
-| TF.js                     | ✅                | ✅          | ✅         | ❌                | INT8/FP16 are applied during TensorFlow.js conversion.                                                  |
-| PaddlePaddle              | ✅                | ❌          | ❌         | ❌                | No export-time precision conversion.                                                                   |
-| MNN                       | ✅                | ✅          | ✅         | ❌                | INT8 is weight quantization through MNN conversion.                                                     |
-| NCNN                      | ✅                | ✅          | ❌         | ❌                | Mobile/embedded runtime format.                                                                        |
-| IMX500                    | ❌                | ❌          | ✅ auto    | ✅                | IMX500 requires quantization; INT8 is auto-enabled when unset.                                         |
-| RKNN                      | ❌                | ✅ chip-dependent | ✅   | ❌                | RK3588/RK3576/RK3566/RK3568/RK3562/RK2118/RV1126B support FP16 or INT8; RV1103/RV1106 variants are INT8-only. |
-| ExecuTorch                | ✅                | ❌          | ❌         | ❌                | No export-time precision conversion.                                                                   |
-| Axelera                   | ❌                | ❌          | ✅ auto    | ❌                | Axelera export requires INT8; it is auto-enabled when unset.                                           |
-| DEEPX                     | ❌                | ❌          | ✅ auto    | ❌                | DEEPX export requires INT8; it is auto-enabled when unset.                                             |
-| Qualcomm QNN              | ❌                | ❌          | ❌         | ✅ auto           | QNN HTP export is fixed to INT8 weights with 16-bit activations.                                      |
+| Format        | FP32 (`32`/unset) | FP16 (`16`)       | INT8 (`8`) | W8A16 (`"w8a16"`) | Notes                                                                                                         |
+| ------------- | ----------------- | ----------------- | ---------- | ----------------- | ------------------------------------------------------------------------------------------------------------- |
+| PyTorch       | ✅                | N/A               | N/A        | N/A               | Native training/checkpoint format.                                                                            |
+| TorchScript   | ✅                | ✅ GPU only       | ❌         | ❌                | FP16 TorchScript export requires `device=0`; CPU export is FP32.                                              |
+| ONNX          | ✅                | ✅                | ✅         | ❌                | INT8 uses ONNX Runtime static quantization and calibration data.                                              |
+| OpenVINO      | ✅                | ✅                | ✅         | ❌                | INT8 uses NNCF post-training quantization.                                                                    |
+| TensorRT      | ✅                | ✅                | ✅         | ❌                | INT8 needs representative calibration data.                                                                   |
+| CoreML        | ✅                | ✅                | ✅         | ✅                | CoreML INT8 is weight quantization; W8A16 uses INT8 weights with FP16 activations.                            |
+| TF SavedModel | ✅                | ❌                | ✅         | ❌                | INT8 export uses TensorFlow calibration.                                                                      |
+| TF GraphDef   | ✅                | ❌                | ❌         | ❌                | No export-time precision conversion.                                                                          |
+| TFLite        | ✅                | ✅                | ✅         | ❌                | INT8 export uses TensorFlow calibration.                                                                      |
+| Edge TPU      | ❌                | ❌                | ✅ auto    | ❌                | Edge TPU requires INT8; it is auto-enabled when unset.                                                        |
+| TF.js         | ✅                | ✅                | ✅         | ❌                | INT8/FP16 are applied during TensorFlow.js conversion.                                                        |
+| PaddlePaddle  | ✅                | ❌                | ❌         | ❌                | No export-time precision conversion.                                                                          |
+| MNN           | ✅                | ✅                | ✅         | ❌                | INT8 is weight quantization through MNN conversion.                                                           |
+| NCNN          | ✅                | ✅                | ❌         | ❌                | Mobile/embedded runtime format.                                                                               |
+| IMX500        | ❌                | ❌                | ✅ auto    | ✅                | IMX500 requires quantization; INT8 is auto-enabled when unset.                                                |
+| RKNN          | ❌                | ✅ chip-dependent | ✅         | ❌                | RK3588/RK3576/RK3566/RK3568/RK3562/RK2118/RV1126B support FP16 or INT8; RV1103/RV1106 variants are INT8-only. |
+| ExecuTorch    | ✅                | ❌                | ❌         | ❌                | No export-time precision conversion.                                                                          |
+| Axelera       | ❌                | ❌                | ✅ auto    | ❌                | Axelera export requires INT8; it is auto-enabled when unset.                                                  |
+| DEEPX         | ❌                | ❌                | ✅ auto    | ❌                | DEEPX export requires INT8; it is auto-enabled when unset.                                                    |
+| Qualcomm QNN  | ❌                | ❌                | ❌         | ✅ auto           | QNN HTP export is fixed to INT8 weights with 16-bit activations.                                              |
 
 For INT8 and W8A16 exports, provide representative calibration data with `data`, such as `data="coco8.yaml"`, unless the target integration documents a default or auto-enabled behavior.
 

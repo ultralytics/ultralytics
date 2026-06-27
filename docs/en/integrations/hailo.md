@@ -66,7 +66,7 @@ Hailo export compatibility depends on the model head, input image size, class co
 
 | Scope                                   | Expected Support | Notes                                                                                                                                      |
 | :-------------------------------------- | :--------------- | :----------------------------------------------------------------------------------------------------------------------------------------- |
-| YOLOv8 / YOLO11 detection, stock models | ✅ Good          | Shared decoupled detection head; `.alls` directives, end nodes, and NMS config still need to match the exported graph and fixed `imgsz`.              |
+| YOLOv8 / YOLO11 detection, stock models | ✅ Good          | Shared decoupled detection head; `.alls` directives, end nodes, and NMS config still need to match the exported graph and fixed `imgsz`.   |
 | Custom YOLOv8 / YOLO11 detection        | ✅ Possible      | Requires per-model NMS configuration generated from class count, strides, and detection-head layout; static Model Zoo JSON will not match. |
 | YOLOv9 detection                        | ⚠️ Validate      | Similar detection-head pattern, but compile and output parsing should be tested before treating it as supported.                           |
 | YOLOv10 / YOLO26 end-to-end detection   | ❌ Not supported | End-to-end/NMS-free exports do not match the Hailo NMS post-processing path; use a traditional detection head if testing manually.         |

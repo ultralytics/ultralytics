@@ -43,6 +43,9 @@ anomaly_v2:
   mask_mixup_alpha: 0.4
   mask_mag_range: [0.7, 1]
   mask_aug_passes: 2             # reproduce v5 double-augment (v7 default is 1)
+  # in-dist val passes (both default true; switches for speed)
+  val_mask_prior: false        # skip the mask-ON (prior) in-dist pass -> ~halves in-dist val time
+  # val_mask_off: true         # keep the bare vanilla-floor pass (carries fitness for non-OOD)
   # OOD eval
   mvtec_ood_val_freq: 1
   mvtec_ood_categories: null   # null = all 15 MVTec categories

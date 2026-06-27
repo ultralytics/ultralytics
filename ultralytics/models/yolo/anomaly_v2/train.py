@@ -91,7 +91,7 @@ class AnomalyV2Trainer(DetectionTrainer):
         return batch
 
     def validate(self):
-        """Run validation; when OOD eval is enabled, use OOD heatmap mAP10 (test_heatmap_prior) as fitness.
+        """Run validation; when OOD eval is enabled, use OOD heatmap mAP10 (test_metrics(heatmap_prior)) as fitness.
 
         The OOD eval runs here (not as an ``on_fit_epoch_end`` callback) on the current epoch's
         EMA, so best.pt selection sees this epoch's score with no one-epoch lag. Fitness stays on
@@ -345,7 +345,7 @@ class AnomalyV2Trainer(DetectionTrainer):
                     scorer_fuse=scorer_fuse,
                 )
             AnomalyV2Trainer._log_ood_wandb(trainer, rows)
-            # Store OOD heatmap mAP10 (test_heatmap_prior) for best.pt selection (fitness override)
+            # Store OOD heatmap mAP10 (test_metrics(heatmap_prior)) for best.pt selection (fitness override)
             for r in rows:
                 if r["category"] == "AVERAGE" and r["mode"] == heatmap_variant:
                     map10 = r.get("mAP10", math.nan)
@@ -359,7 +359,7 @@ class AnomalyV2Trainer(DetectionTrainer):
 
     @staticmethod
     def _log_ood_wandb(trainer: "AnomalyV2Trainer", rows: list) -> None:
-        """Push OOD metrics to wandb grouped by mode (test_none_prior, test_heatmap_prior, test_mask_prior).
+        """Push OOD metrics to wandb grouped by mode (test_metrics(none_prior/heatmap_prior/mask_prior)).
 
         For each OOD mode, logs the AVERAGE row (mean across all 15 MVTec categories)
         with metrics {mAP10, mAP25, mAP50, mAP50_95, image_auroc, pixel_auroc}.
@@ -377,13 +377,13 @@ class AnomalyV2Trainer(DetectionTrainer):
 
         keys = ("mAP10", "mAP25", "mAP50", "mAP50_95", "image_auroc", "pixel_auroc")
         # Map OOD val modes to wandb group names. heatmap_learned / heatmap_fused (scorer modes)
-        # also land under test_heatmap_prior so they are never silently dropped from wandb.
+        # also land under test_metrics(heatmap_prior) so they are never silently dropped from wandb.
         mode_to_group = {
-            "mask_off": "test_none_prior",
-            "heatmap": "test_heatmap_prior",
-            "heatmap_learned": "test_heatmap_prior",
-            "heatmap_fused": "test_heatmap_prior",
-            "mask_on": "test_mask_prior",
+            "mask_off": "test_metrics(none_prior)",
+            "heatmap": "test_metrics(heatmap_prior)",
+            "heatmap_learned": "test_metrics(heatmap_prior)",
+            "heatmap_fused": "test_metrics(heatmap_prior)",
+            "mask_on": "test_metrics(mask_prior)",
         }
 
         log = {}

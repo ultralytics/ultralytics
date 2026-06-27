@@ -3,18 +3,18 @@ on:
   push:
     branches: [axelera-probe]
 jobs:
-  decisive:
+  trace:
     if: github.repository == 'ultralytics/ultralytics'
     runs-on: ubuntu-latest
-    timeout-minutes: 50
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
         run: [1, 2, 3, 4]
     steps:
       - uses: astral-sh/setup-uv@v7
-      - run: sudo apt-get update && sudo apt-get install -y strace iptables
-      - name: install + hash axelera wheels
+      - run: sudo apt-get update && sudo apt-get install -y strace
+      - name: install + wheel hashes
         run: |
           uv venv /tmp/v --python 3.12 --seed
           uv pip install --python /tmp/v/bin/python "ultralytics[export-base]==8.4.80" \
@@ -22,24 +22,21 @@ jobs:
             --extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple \
             --index-strategy unsafe-best-match --prerelease allow --torch-backend cpu
           SP=$(/tmp/v/bin/python -c "import site;print(site.getsitepackages()[0])")
-          echo "=== WHEEL HASHES run ${{ matrix.run }} ==="
-          find "$SP" -maxdepth 1 -name 'axelera*dist-info' -exec sh -c 'echo "WHEELHASH run=${{ matrix.run }} $(sha256sum "$1/RECORD" | cut -c1-16) $(basename "$1")"' sh {} \;
-      - name: online (strace) + offline compile
+          find "$SP" -maxdepth 1 -name 'axelera*dist-info' | while read d; do echo "WHEELHASH run=${{ matrix.run }} $(sha256sum "$d/RECORD" | cut -c1-12) $(basename "$d")"; done
+      - name: warm caches
         env: { PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION: "python", YOLO_AUTOINSTALL: "false" }
         run: |
           export PATH=/tmp/v/bin:$PATH
-          yolo export format=axelera model=yolo26n.pt imgsz=64 data=coco8.yaml >/tmp/warm.log 2>&1 || true
+          yolo export format=axelera model=yolo26n.pt imgsz=64 data=coco8.yaml >/tmp/w.log 2>&1 || true
           rm -rf yolo26n_axelera_model runs
-          echo "=== ONLINE: strace connect() ==="
-          strace -f -e trace=connect -o /tmp/s.log yolo export format=axelera model=yolo26n.pt imgsz=64 data=coco8.yaml >/tmp/on.log 2>&1 || true
-          ONSZ=$(find . -name '*.axm' 2>/dev/null -exec stat -c%s {} \; | head -1); rm -rf yolo26n_axelera_model runs
-          echo "ONLINE_RESULT run=${{ matrix.run }} axm_bytes=${ONSZ:-0}"
-          grep 'connect(' /tmp/s.log | grep -vE 'AF_UNIX|AF_LOCAL|AF_NETLINK|127\.0\.0\.1|::1' | grep -oE 'inet_addr\("[0-9.]+"\)' | sort | uniq -c | sed "s/^/CONNECT run=${{ matrix.run }} /"
-          echo "=== OFFLINE: block external egress, recompile ==="
-          sudo iptables -I OUTPUT 1 -o lo -j ACCEPT
-          sudo iptables -A OUTPUT -p tcp -j REJECT
-          sudo iptables -A OUTPUT -p udp -j REJECT
-          yolo export format=axelera model=yolo26n.pt imgsz=64 data=coco8.yaml >/tmp/off.log 2>&1 || echo "offline export exit=$?"
-          OFFSZ=$(find . -name '*.axm' 2>/dev/null -exec stat -c%s {} \; | head -1)
-          echo "OFFLINE_RESULT run=${{ matrix.run }} axm_bytes=${OFFSZ:-0}"
-          grep -iE 'error|fail|timeout|connection|license|unreachable' /tmp/off.log | sed "s/^/OFFLOG run=${{ matrix.run }} /" | head -5
+      - name: ONLINE strace the compile
+        env: { PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION: "python", YOLO_AUTOINSTALL: "false" }
+        run: |
+          export PATH=/tmp/v/bin:$PATH
+          strace -f -e trace=connect -o /tmp/s.log yolo export format=axelera model=yolo26n.pt imgsz=64 data=coco8.yaml >/tmp/o.log 2>&1 || true
+          SZ=$(find . -name '*.axm' 2>/dev/null -exec stat -c%s {} \; | head -1)
+          echo "TRACE_RESULT run=${{ matrix.run }} axm_bytes=${SZ:-0}"
+          echo "--- outbound (non-local) connect IPs during compile ---"
+          grep 'connect(' /tmp/s.log | grep -vaE 'AF_UNIX|AF_LOCAL|AF_NETLINK|127\.0\.0\.1|::1' | grep -oaE 'inet_addr\("[0-9.]+"\).*sin_port=htons\([0-9]+\)' | sort | uniq -c | sed "s/^/  CONNECT run=${{ matrix.run }} /" | head -20
+          echo "--- reverse DNS of contacted IPs ---"
+          grep -oaE 'inet_addr\("[0-9.]+"\)' /tmp/s.log | grep -oE '[0-9.]+' | grep -vE '^127\.' | sort -u | while read ip; do echo "  HOST run=${{ matrix.run }} $ip -> $(timeout 3 getent hosts $ip 2>/dev/null | awk '{print $2}'; nslookup $ip 2>/dev/null | grep -oE 'name = .*' | head -1)"; done | head -20

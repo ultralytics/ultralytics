@@ -326,7 +326,7 @@ def test_export_tflite_matrix(task, dynamic, quantize, batch, nms, end2end):
         batch=batch,
         nms=nms,
         end2end=end2end,
-        data="coco8.yaml",
+        data=TASK2DATA[task],
     )
     r = YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference
     if task == "semantic":

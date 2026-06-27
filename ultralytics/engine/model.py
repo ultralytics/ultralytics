@@ -503,8 +503,8 @@ class Model(torch.nn.Module):
                 for returning feature embeddings from specified layers.
 
         Returns:
-            (list[ultralytics.engine.results.Results] | list[torch.Tensor]): Prediction results as `Results` objects,
-                or embedding tensors when `embed` is set.
+            (list[ultralytics.engine.results.Results] | list[torch.Tensor]): Prediction results as `Results` objects, or
+                embedding tensors when `embed` is set.
 
         Examples:
             >>> model = YOLO("yolo26n.pt")

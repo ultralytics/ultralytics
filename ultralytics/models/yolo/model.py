@@ -408,6 +408,7 @@ class YOLOE(Model):
                         "device": kwargs.get("device", None),
                         "quantize": kwargs.get("quantize", 16 if kwargs.get("half") else None),
                         "imgsz": kwargs.get("imgsz", self.overrides.get("imgsz", 640)),
+                        "end2end": kwargs.get("end2end", False),
                     },
                     _callbacks=self.callbacks,
                 )

@@ -375,7 +375,7 @@ INT8_FORMATS = frozenset(
     }
 )
 W8A16_FORMATS = frozenset({"coreml", "imx", "qnn"})  # INT8 weights + FP16 activations
-FP32_UNSUPPORTED_FORMATS = frozenset({"rknn"})
+FP32_UNSUPPORTED_FORMATS = frozenset({"edgetpu", "imx", "rknn", "axelera", "deepx", "qnn"})
 
 
 def validate_args(format, passed_args, valid_args):
@@ -624,7 +624,7 @@ class Exporter:
                 f"Invalid processor name '{self.args.name}' for Rockchip RKNN export. Valid names are {RKNN_CHIPS}."
             )
             if self.args.name in {"rv1103", "rv1106", "rv1103b", "rv1106b"} and not self.args.int8:
-                if self.args.quantize is not None:
+                if self.args.quantize not in {None, 8}:
                     raise ValueError(
                         f"Rockchip target '{self.args.name}' only supports INT8, but got quantize={self.args.quantize}. "
                         f"See {QUANTIZE_DOCS_URL}"

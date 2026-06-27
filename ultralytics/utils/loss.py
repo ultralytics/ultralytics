@@ -1216,6 +1216,7 @@ class E2ELoss:
     def __init__(self, model: torch.nn.Module, loss_fn=v8DetectionLoss):
         """Initialize E2ELoss with one-to-many and one-to-one detection losses using the provided model."""
         self.o2f = getattr(model.args, "o2f", False)
+        self.train_o2m = getattr(model.args, "o2m", True)  # train the auxiliary one2many head
         self.one2many = loss_fn(model, tal_topk=10)
         self.one2one = loss_fn(model, tal_topk=7, tal_topk2=1)
         self.one2one.assigner.o2f = self.o2f
@@ -1235,16 +1236,18 @@ class E2ELoss:
     def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""
         preds = self.one2many.parse_output(preds)
-        one2many, one2one = preds["one2many"], preds["one2one"]
-        loss_one2many = self.one2many.loss(one2many, batch)
-        loss_one2one = self.one2one.loss(one2one, batch)
+        loss_one2one = self.one2one.loss(preds["one2one"], batch)
+        if not self.train_o2m:  # train the one2one branch only, at full weight
+            return loss_one2one
+        loss_one2many = self.one2many.loss(preds["one2many"], batch)
         return loss_one2many[0] * self.o2m + loss_one2one[0] * self.o2o, loss_one2one[1]
 
     def update(self) -> None:
         """Update the weights for one-to-many and one-to-one losses based on the decay schedule."""
         self.updates += 1
-        self.o2m = self.decay(self.updates)
-        self.o2o = max(self.total - self.o2m, 0)
+        if self.train_o2m:
+            self.o2m = self.decay(self.updates)
+            self.o2o = max(self.total - self.o2m, 0)
         if self.o2f:
             self.one2one.assigner.o2f_t = self.o2f_decay(self.updates)
 

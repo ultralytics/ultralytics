@@ -85,6 +85,7 @@ class Detect(nn.Module):
     strides = torch.empty(0)  # init
     legacy = False  # backward compatibility for v3/v5/v8/v9 models
     xyxy = False  # xyxy or xywh output
+    detach_one2one = True  # stop one2one grad into backbone (one2many trains it); False to train o2o alone
 
     def __init__(self, nc: int = 80, reg_max=16, end2end=False, ch: tuple = ()):
         """Initialize the YOLO detection layer with specified number of classes and channels.
@@ -160,8 +161,8 @@ class Detect(nn.Module):
         """Concatenates and returns predicted bounding boxes and class probabilities."""
         preds = self.forward_head(x, **self.one2many)
         if self.end2end:
-            x_detach = [xi.detach() for xi in x]
-            one2one = self.forward_head(x_detach, **self.one2one)
+            feats = [xi.detach() for xi in x] if self.detach_one2one else x
+            one2one = self.forward_head(feats, **self.one2one)
             preds = {"one2many": preds, "one2one": one2one}
         if self.training:
             return preds
@@ -322,7 +323,7 @@ class Segment(Detect):
         if isinstance(preds, dict):  # training and validating during training
             if self.end2end:
                 preds["one2many"]["proto"] = proto
-                preds["one2one"]["proto"] = proto.detach()
+                preds["one2one"]["proto"] = proto.detach() if self.detach_one2one else proto
             else:
                 preds["proto"] = proto
         if self.training:
@@ -410,7 +411,9 @@ class Segment26(Segment):
             if self.end2end:
                 preds["one2many"]["proto"] = proto
                 preds["one2one"]["proto"] = (
-                    tuple(p.detach() for p in proto) if isinstance(proto, tuple) else proto.detach()
+                    (tuple(p.detach() for p in proto) if isinstance(proto, tuple) else proto.detach())
+                    if self.detach_one2one
+                    else proto
                 )
             else:
                 preds["proto"] = proto
@@ -1299,7 +1302,7 @@ class YOLOESegment(YOLOEDetect):
         if isinstance(preds, dict):  # training and validating during training
             if self.end2end:
                 preds["one2many"]["proto"] = proto
-                preds["one2one"]["proto"] = proto.detach()
+                preds["one2one"]["proto"] = proto.detach() if self.detach_one2one else proto
             else:
                 preds["proto"] = proto
         if self.training:
@@ -1408,7 +1411,7 @@ class YOLOESegment26(YOLOESegment):
         if isinstance(preds, dict):  # training and validating during training
             if self.end2end and not hasattr(self, "lrpc"):  # not prompt-free
                 preds["one2many"]["proto"] = proto
-                preds["one2one"]["proto"] = proto.detach()
+                preds["one2one"]["proto"] = proto.detach() if self.detach_one2one else proto
             else:
                 preds["proto"] = proto
         if self.training:

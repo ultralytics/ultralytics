@@ -269,6 +269,7 @@ class AnomalyV2Trainer(DetectionTrainer):
         scorer settings, ``heat_edge`` / ``heat_norm`` are read from that fit YAML (the single source of
         truth for all fit params). Without it, ``mvtec_ood_imgsz`` (default 320) and a plain 3-mode
         (mask_off / heatmap / mask_on) sweep with no scorer / no post-processing are used.
+        ``mvtec_ood_heatmap_only`` restricts the sweep to the heatmap prior alone (~3x faster).
 
         Runs on a deepcopy of the EMA so val-time fuse()/bank-build never corrupt the live EMA.
         """
@@ -296,13 +297,16 @@ class AnomalyV2Trainer(DetectionTrainer):
         batch = int(v2_cfg.get("mvtec_ood_batch", 8))
         bank_size = int(fit_yaml.get("bb_max_bank_size", v2_cfg.get("mvtec_ood_bank_size", 10000)))
 
-        # Modes: fit YAML heatmap_mode -> prior variant; without it = plain 3-mode sweep
+        # Modes: fit YAML heatmap_mode -> prior variant; without it the default heatmap. The full
+        # sweep also runs mask_off/mask_on for reference; ``mvtec_ood_heatmap_only`` drops those
+        # (~3x faster) since only the heatmap prior feeds fitness.
         heatmap_mode = fit_yaml.get("heatmap_mode")
         _MODE_MAP = {"memory_bank": "heatmap", "learned": "heatmap_learned", "fused": "heatmap_fused"}
-        if heatmap_mode in _MODE_MAP:
-            modes = ("mask_off", _MODE_MAP[heatmap_mode], "mask_on")
+        heatmap_variant = _MODE_MAP.get(heatmap_mode, "heatmap")
+        if bool(v2_cfg.get("mvtec_ood_heatmap_only", False)):
+            modes = (heatmap_variant,)
         else:
-            modes = ("mask_off", "heatmap", "mask_on")
+            modes = ("mask_off", heatmap_variant, "mask_on")
 
         # Scorer kwargs (learned / fused only)
         scorer_kwargs, scorer_fuse = None, "mean"
@@ -342,9 +346,8 @@ class AnomalyV2Trainer(DetectionTrainer):
                 )
             AnomalyV2Trainer._log_ood_wandb(trainer, rows)
             # Store OOD heatmap mAP10 (test_heatmap_prior) for best.pt selection (fitness override)
-            heatmap_mode = modes[1]
             for r in rows:
-                if r["category"] == "AVERAGE" and r["mode"] == heatmap_mode:
+                if r["category"] == "AVERAGE" and r["mode"] == heatmap_variant:
                     map10 = r.get("mAP10", math.nan)
                     if not math.isnan(map10):
                         trainer._ood_heatmap_map10 = float(map10)

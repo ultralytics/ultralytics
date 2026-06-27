@@ -46,6 +46,7 @@ anomaly_v2:
   # OOD eval
   mvtec_ood_val_freq: 1
   mvtec_ood_categories: null   # null = all 15 MVTec categories
+  mvtec_ood_heatmap_only: true # eval only prior=heatmap (~3x faster; only heatmap feeds fitness)
   mvtec_ood_fit_cfg: ../../yoloa_fit_default.yaml
 
 backbone:

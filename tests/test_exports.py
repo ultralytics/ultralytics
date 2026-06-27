@@ -319,7 +319,14 @@ def test_export_tflite_matrix(task, dynamic, quantize, batch, nms, end2end):
     """Test YOLO export to TFLite format considering various export configurations."""
     skip_rpi_semantic(task)
     file = YOLO(TASK2MODEL[task]).export(
-        format="tflite", imgsz=32, dynamic=dynamic, quantize=quantize, batch=batch, nms=nms, end2end=end2end
+        format="tflite",
+        imgsz=32,
+        dynamic=dynamic,
+        quantize=quantize,
+        batch=batch,
+        nms=nms,
+        end2end=end2end,
+        data="coco8.yaml",
     )
     r = YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference
     if task == "semantic":
@@ -454,7 +461,7 @@ def test_export_ncnn_matrix(task, quantize, batch):
 def test_export_imx():
     """Test YOLO export to IMX format."""
     model = YOLO("yolo11n.pt")  # IMX export only supports YOLO11
-    file = model.export(format="imx", imgsz=32)
+    file = model.export(format="imx", imgsz=32, data="coco8.yaml")
     YOLO(file)(SOURCE, imgsz=32)
 
 
@@ -463,7 +470,7 @@ def test_export_imx():
 @pytest.mark.parametrize("quantize", [8, 16])
 def test_export_rknn(isolated_model, quantize):
     """Test YOLO export to RKNN format."""
-    file = YOLO(isolated_model).export(format="rknn", imgsz=32, quantize=quantize)
+    file = YOLO(isolated_model).export(format="rknn", imgsz=32, quantize=quantize, data="coco8.yaml")
     assert next(Path(file).rglob("*.rknn"), None), f"RKNN export failed, no RKNN model found in: {file}"
     shutil.rmtree(file, ignore_errors=True)
 
@@ -528,7 +535,7 @@ def test_export_axelera(isolated_model):
 )
 def test_export_deepx(isolated_model):
     """Test YOLO export to DEEPX format."""
-    file = YOLO(isolated_model).export(format="deepx", imgsz=32)
+    file = YOLO(isolated_model).export(format="deepx", imgsz=32, data="coco8.yaml")
     assert Path(file).exists(), f"DEEPX export failed, directory not found: {file}"
     # Note: Inference testing skipped as it requires DEEPX hardware
     shutil.rmtree(file, ignore_errors=True)  # cleanup

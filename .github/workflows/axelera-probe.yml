@@ -3,32 +3,30 @@ on:
   push:
     branches: [axelera-probe]
 jobs:
-  np:
+  reliability:
     if: github.repository == 'ultralytics/ultralytics'
     runs-on: ubuntu-latest
     timeout-minutes: 40
     strategy:
       fail-fast: false
       matrix:
-        variant: [np-2.3.5, np-latest, np-default]
-        run: [1, 2, 3]
+        run: [1, 2, 3, 4, 5, 6]
     steps:
+      - uses: actions/checkout@v4
+        with: { ref: axelera-rollback-smoke }
+      - uses: actions/setup-python@v6
+        with: { python-version: "3.13" }
       - uses: astral-sh/setup-uv@v7
-      - name: Axelera export with numpy=${{ matrix.variant }} (run ${{ matrix.run }})
-        env: { PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION: "python", YOLO_AUTOINSTALL: "false" }
+        with: { python-version: "3.13" }
+      - run: sudo apt-get update && sudo apt-get install -y openjdk-21-jre flatbuffers-compiler
+      - run: uv pip install --system -e ".[export-base]" pytest "git+https://github.com/ultralytics/CLIP.git" --torch-backend cpu
+      - name: cache_weights (full CI context)
+        env: { YOLO_AUTOINSTALL: "false" }
+        run: python -c "from tests.cache_test_assets import cache_weights; cache_weights(slow=True)"
+      - name: isolated-axelera smoke via create-export-env (run ${{ matrix.run }})
+        env: { ULTRALYTICS_ISOLATED_VENVS: "${{ runner.temp }}/venvs", YOLO_AUTOINSTALL: "false" }
         run: |
-          NP=""
-          [ "${{ matrix.variant }}" = "np-2.3.5" ] && NP="numpy==2.3.5"
-          [ "${{ matrix.variant }}" = "np-latest" ] && NP="numpy==2.5.0"
-          uv venv /tmp/v --python 3.12 --seed
-          uv pip install --python /tmp/v/bin/python "ultralytics[export-base]==8.4.80" \
-            "torch>=2.8,<2.12" "axelera-devkit==1.7.0" "onnx>=1.12.0,<2.0.0" "onnxslim>=0.1.71" $NP \
-            --extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple \
-            --index-strategy unsafe-best-match --prerelease allow --torch-backend cpu > /tmp/i.log 2>&1
-          IEXIT=$?
-          NUMPY=$(/tmp/v/bin/python -c "import numpy;print(numpy.__version__)" 2>/dev/null || echo "INSTALL_FAILED")
-          if [ "$NUMPY" = "INSTALL_FAILED" ]; then echo "NP_RESULT variant=${{ matrix.variant }} run=${{ matrix.run }} numpy=CONFLICT install_exit=$IEXIT"; tail -3 /tmp/i.log; exit 0; fi
-          export PATH=/tmp/v/bin:$PATH
-          /tmp/v/bin/yolo export format=axelera model=yolo26n.pt imgsz=64 data=coco8.yaml > /tmp/o.log 2>&1; EXIT=$?
+          python .github/scripts/create-export-env.py --env isolated-axelera > /tmp/o.log 2>&1; EXIT=$?
+          NP=$(grep -oE '[+] numpy==[0-9.]+|numpy==[0-9.]+' /tmp/o.log | head -1 | tr -d '+ ')
           RES=$(grep -oE 'export (success|failure)[^"]*MB\)|output model too small' /tmp/o.log | tail -1)
-          echo "NP_RESULT variant=${{ matrix.variant }} run=${{ matrix.run }} numpy=$NUMPY exit=$EXIT | ${RES:-<none>}"
+          echo "REL_RESULT run=${{ matrix.run }} exit=$EXIT $NP | ${RES:-<none>}"

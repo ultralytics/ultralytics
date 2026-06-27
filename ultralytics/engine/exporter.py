@@ -337,7 +337,7 @@ EXPORT_ENVS = {
             ("--extra-index-url", "https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple"),
         ],
         "env": {"PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION": "python"},
-        "smoke": ["yolo export format=axelera model=yolo26n.pt imgsz=64 data=coco8.yaml"],
+        "smoke": ["yolo export format=axelera model=yolo11n.pt imgsz=64 data=coco8.yaml"],
     },
     "isolated-deepx": {
         "python": "3.12",

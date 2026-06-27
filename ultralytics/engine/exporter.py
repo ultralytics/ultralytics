@@ -353,7 +353,7 @@ EXPORT_ENVS = {
 }
 
 
-# Export precision support per format; FP32 (unset/32) is universal, these list FP16/INT8/W8A16 capability.
+# Export precision support per format. Unset/32 requests are FP32 except for formats listed in FP32_UNSUPPORTED_FORMATS.
 FP16_FORMATS = frozenset(
     {"torchscript", "onnx", "openvino", "engine", "coreml", "tflite", "tfjs", "mnn", "ncnn", "rknn"}
 )
@@ -375,6 +375,7 @@ INT8_FORMATS = frozenset(
     }
 )
 W8A16_FORMATS = frozenset({"coreml", "imx", "qnn"})  # INT8 weights + FP16 activations
+FP32_UNSUPPORTED_FORMATS = frozenset({"edgetpu", "imx", "rknn", "axelera", "deepx", "qnn"})
 
 
 def validate_args(format, passed_args, valid_args):
@@ -405,6 +406,10 @@ def validate_args(format, passed_args, valid_args):
         assert format in W8A16_FORMATS, (
             f"ERROR ❌️ quantize='w8a16' (INT8 weights + FP16 activations) is not supported for format='{format}'. "
             f"See {QUANTIZE_DOCS_URL}"
+        )
+    elif passed_args.quantize == 32:
+        assert format not in FP32_UNSUPPORTED_FORMATS, (
+            f"ERROR ❌️ quantize=32 (FP32) is not supported for format='{format}'. See {QUANTIZE_DOCS_URL}"
         )
     for arg in export_args:
         not_default = getattr(passed_args, arg, None) != getattr(default_args, arg, None)
@@ -602,8 +607,7 @@ class Exporter:
                 except ImportError:
                     pass
         if self.args.half and fmt == "torchscript" and self.device.type == "cpu":
-            LOGGER.warning("FP16 TorchScript export is only supported on GPU, i.e. use device=0; disabling FP16.")
-            self.args.half = False
+            raise ValueError("FP16 TorchScript export is only supported on GPU, i.e. use device=0.")
         self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size
         if self.args.optimize:
             assert fmt != "ncnn", "optimize=True not compatible with format='ncnn', i.e. use optimize=False"
@@ -620,13 +624,18 @@ class Exporter:
                 f"Invalid processor name '{self.args.name}' for Rockchip RKNN export. Valid names are {RKNN_CHIPS}."
             )
             if self.args.name in {"rv1103", "rv1106", "rv1103b", "rv1106b"} and not self.args.int8:
-                if self.args.quantize == 32:
+                if self.args.quantize not in {None, 8}:
                     raise ValueError(
-                        f"Rockchip target '{self.args.name}' only supports INT8, but got an explicit quantize=32 "
-                        f"(FP32). See {QUANTIZE_DOCS_URL}"
+                        f"Rockchip target '{self.args.name}' only supports INT8, but got quantize={self.args.quantize}. "
+                        f"See {QUANTIZE_DOCS_URL}"
                     )
                 LOGGER.warning(f"Rockchip target '{self.args.name}' requires INT8 quantization, enabling it.")
+                self.args.quantize = 8
+                self.args.half = False
                 self.args.int8 = True
+            elif self.args.quantize is None:
+                self.args.quantize = 16
+                self.args.half = True
         if fmt == "qnn":
             if not self.args.name:
                 LOGGER.warning(

@@ -100,7 +100,7 @@ def test_export_engine_matrix(task, dynamic, quantize, batch):
         dynamic=dynamic,
         quantize=quantize,
         batch=batch,
-        data=TASK2DATA[task],
+        data=TASK2DATA[task],  # use the smallest task datasets for fast INT8 calibration
         workspace=1,  # reduce workspace GB for less resource utilization during testing
         simplify=True,
         device=DEVICES[0],

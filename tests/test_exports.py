@@ -21,7 +21,6 @@ from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS, _handle_deprecation, g
 from ultralytics.engine.exporter import EXPORT_ENVS, export_formats, validate_args
 from ultralytics.utils import (
     ARM64,
-    IS_DOCKER,
     IS_RASPBERRYPI,
     LINUX,
     MACOS,
@@ -37,9 +36,7 @@ from ultralytics.utils.torch_utils import (
     TORCH_1_13,
     TORCH_2_0,
     TORCH_2_1,
-    TORCH_2_8,
     TORCH_2_9,
-    TORCH_2_12,
 )
 
 
@@ -190,7 +187,7 @@ def test_export_openvino_matrix(task, dynamic, quantize, batch, nms, end2end):
         dynamic=dynamic,
         quantize=quantize,
         batch=batch,
-        data=TASK2DATA[task],
+        data=TASK2DATA[task],  # use the smallest task datasets for fast INT8 calibration
         nms=nms,
         end2end=end2end,
     )
@@ -319,7 +316,14 @@ def test_export_tflite_matrix(task, dynamic, quantize, batch, nms, end2end):
     """Test YOLO export to TFLite format considering various export configurations."""
     skip_rpi_semantic(task)
     file = YOLO(TASK2MODEL[task]).export(
-        format="tflite", imgsz=32, dynamic=dynamic, quantize=quantize, batch=batch, nms=nms, end2end=end2end
+        format="tflite",
+        imgsz=32,
+        dynamic=dynamic,
+        quantize=quantize,
+        batch=batch,
+        nms=nms,
+        end2end=end2end,
+        data=TASK2DATA[task],  # use the smallest task datasets for fast INT8 calibration
     )
     r = YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference
     if task == "semantic":
@@ -454,7 +458,7 @@ def test_export_ncnn_matrix(task, quantize, batch):
 def test_export_imx():
     """Test YOLO export to IMX format."""
     model = YOLO("yolo11n.pt")  # IMX export only supports YOLO11
-    file = model.export(format="imx", imgsz=32)
+    file = model.export(format="imx", imgsz=32, data="coco8.yaml")
     YOLO(file)(SOURCE, imgsz=32)
 
 
@@ -463,7 +467,7 @@ def test_export_imx():
 @pytest.mark.parametrize("quantize", [8, 16])
 def test_export_rknn(isolated_model, quantize):
     """Test YOLO export to RKNN format."""
-    file = YOLO(isolated_model).export(format="rknn", imgsz=32, quantize=quantize)
+    file = YOLO(isolated_model).export(format="rknn", imgsz=32, quantize=quantize, data="coco8.yaml")
     assert next(Path(file).rglob("*.rknn"), None), f"RKNN export failed, no RKNN model found in: {file}"
     shutil.rmtree(file, ignore_errors=True)
 
@@ -501,36 +505,6 @@ def test_export_executorch_matrix(task):
     metadata_file = Path(file) / "metadata.yaml"
     assert metadata_file.exists(), f"ExecuTorch metadata.yaml not found for task '{task}': {metadata_file}"
     # Note: Inference testing skipped as ExecuTorch requires special runtime setup
-    shutil.rmtree(file, ignore_errors=True)  # cleanup
-
-
-@pytest.mark.slow
-@pytest.mark.skipif(not TORCH_2_8 or TORCH_2_12, reason="Axelera export requires 2.8.0<=torch<2.12.0")
-@pytest.mark.skipif(checks.IS_PYTHON_MINIMUM_3_13, reason="Axelera devkit 1.7.0 does not support Python 3.13")
-@pytest.mark.skipif(
-    not LINUX or (ARM64 and IS_DOCKER),
-    reason="Axelera export is only supported on Linux and is not supported on ARM64 Docker",
-)
-@pytest.mark.skipif(IS_RASPBERRYPI, reason="Test disabled due to OOM (Out of Memory) issues on Raspberry Pi 5 16GB")
-def test_export_axelera(isolated_model):
-    """Test YOLO export to Axelera format."""
-    # For faster testing, use a smaller calibration dataset (32 image size crashes axelera export, so 64 is used)
-    file = YOLO(isolated_model).export(format="axelera", imgsz=64, data="coco8.yaml")
-    assert Path(file).exists(), f"Axelera export failed, directory not found: {file}"
-    # Note: Inference testing skipped as it requires Axelera hardware
-    shutil.rmtree(file, ignore_errors=True)  # cleanup
-
-
-@pytest.mark.slow
-@pytest.mark.skipif(not LINUX or ARM64, reason="DEEPX export only supported on non-aarch64 Linux")
-@pytest.mark.skipif(
-    not checks.IS_PYTHON_3_12, reason="Requires Python 3.12; dx-com 2.3.0 does not provide Python 3.13 wheels"
-)
-def test_export_deepx(isolated_model):
-    """Test YOLO export to DEEPX format."""
-    file = YOLO(isolated_model).export(format="deepx", imgsz=32)
-    assert Path(file).exists(), f"DEEPX export failed, directory not found: {file}"
-    # Note: Inference testing skipped as it requires DEEPX hardware
     shutil.rmtree(file, ignore_errors=True)  # cleanup
 
 

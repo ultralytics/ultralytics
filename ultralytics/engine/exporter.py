@@ -266,7 +266,7 @@ EXPORT_ENVS = {
             ("--extra-index-url", "https://pypi.ngc.nvidia.com"),
         ],
         "env": {},
-        "smoke": ["yolo export format=tflite model=yolo11n.pt imgsz=32"],
+        "smoke": ["yolo export format=tflite model=yolo26n.pt imgsz=32"],
     },
     "coreml": {
         "python": "3.13",
@@ -275,7 +275,7 @@ EXPORT_ENVS = {
         "requirements": [],
         "indexes": [],
         "env": {},
-        "smoke": ["yolo export format=coreml model=yolo11n.pt imgsz=32"],
+        "smoke": ["yolo export format=coreml model=yolo26n.pt imgsz=32"],
     },
     "mnn": {
         "python": "3.13",
@@ -284,7 +284,7 @@ EXPORT_ENVS = {
         "requirements": ["MNN>=2.9.6", "aliyun-log-python-sdk", "protobuf<6.0.0,>=3.20.3"],
         "indexes": [],
         "env": {},
-        "smoke": ["yolo export format=mnn model=yolo11n.pt imgsz=32"],
+        "smoke": ["yolo export format=mnn model=yolo26n.pt imgsz=32"],
     },
     "ncnn": {
         "python": "3.13",
@@ -293,7 +293,7 @@ EXPORT_ENVS = {
         "requirements": ["ncnn", "pnnx"],
         "indexes": [],
         "env": {},
-        "smoke": ["yolo export format=ncnn model=yolo11n.pt imgsz=32"],
+        "smoke": ["yolo export format=ncnn model=yolo26n.pt imgsz=32"],
     },
     "executorch": {
         "python": "3.13",
@@ -302,7 +302,7 @@ EXPORT_ENVS = {
         "requirements": [],
         "indexes": [],
         "env": {},
-        "smoke": ["yolo export format=executorch model=yolo11n.pt imgsz=32"],
+        "smoke": ["yolo export format=executorch model=yolo26n.pt imgsz=32"],
     },
     "isolated-imx": {
         "python": "3.11",
@@ -353,7 +353,7 @@ EXPORT_ENVS = {
         ],
         # DeepX export is only supported on non-aarch64 Linux.
         "env": {},
-        "smoke": ["yolo export format=deepx model=yolo11n.pt imgsz=32 data=coco8.yaml"],
+        "smoke": ["yolo export format=deepx model=yolo26n.pt imgsz=32 data=coco8.yaml"],
     },
 }
 

@@ -3,36 +3,43 @@ on:
   push:
     branches: [axelera-probe]
 jobs:
-  nettrace:
+  decisive:
     if: github.repository == 'ultralytics/ultralytics'
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 50
     strategy:
       fail-fast: false
       matrix:
-        run: [1, 2, 3]
+        run: [1, 2, 3, 4]
     steps:
       - uses: astral-sh/setup-uv@v7
-      - run: sudo apt-get update && sudo apt-get install -y strace
-      - name: install axelera env
+      - run: sudo apt-get update && sudo apt-get install -y strace iptables
+      - name: install + hash axelera wheels
         run: |
           uv venv /tmp/v --python 3.12 --seed
           uv pip install --python /tmp/v/bin/python "ultralytics[export-base]==8.4.80" \
             "torch>=2.8,<2.12" "axelera-devkit==1.7.0" "onnx>=1.12.0,<2.0.0" "onnxslim>=0.1.71" \
             --extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple \
             --index-strategy unsafe-best-match --prerelease allow --torch-backend cpu
-      - name: warm caches then strace the compile
+          SP=$(/tmp/v/bin/python -c "import site;print(site.getsitepackages()[0])")
+          echo "=== WHEEL HASHES run ${{ matrix.run }} ==="
+          find "$SP" -maxdepth 1 -name 'axelera*dist-info' -exec sh -c 'echo "WHEELHASH run=${{ matrix.run }} $(sha256sum "$1/RECORD" | cut -c1-16) $(basename "$1")"' sh {} \;
+      - name: online (strace) + offline compile
         env: { PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION: "python", YOLO_AUTOINSTALL: "false" }
         run: |
           export PATH=/tmp/v/bin:$PATH
-          # warm-up: cache yolo26n.pt + coco8 so the traced run's connects are the compiler's only
-          /tmp/v/bin/yolo export format=axelera model=yolo26n.pt imgsz=64 data=coco8.yaml >/tmp/warm.log 2>&1 || echo "warm exit=$?"
+          yolo export format=axelera model=yolo26n.pt imgsz=64 data=coco8.yaml >/tmp/warm.log 2>&1 || true
           rm -rf yolo26n_axelera_model runs
-          echo "=== strace the axelera compile (model+coco8 pre-cached) ==="
-          strace -f -e trace=connect -o /tmp/s.log /tmp/v/bin/yolo export format=axelera model=yolo26n.pt imgsz=64 data=coco8.yaml >/tmp/o.log 2>&1 || echo "export exit=$?"
-          M=$(find . -name '*.axm' 2>/dev/null | head -1); SZ=$([ -n "$M" ] && stat -c%s "$M" || echo 0)
-          echo "NETRESULT run=${{ matrix.run }} axm_bytes=$SZ"
-          echo "=== outbound (non-local) connect() syscalls during compile ==="
-          grep 'connect(' /tmp/s.log | grep -vE 'AF_UNIX|AF_LOCAL|AF_NETLINK|127\.0\.0\.1|::1' | grep -oE 'inet_addr\("[0-9.]+"\).*htons\([0-9]+\)' | sort | uniq -c | head -30
-          echo "=== unique remote IPs contacted during compile ==="
-          grep -oE 'inet_addr\("[0-9.]+"\)' /tmp/s.log | grep -vE '127\.0\.0\.1' | sort -u | while read x; do ip=$(echo "$x"|grep -oE '[0-9.]+'); echo "$ip -> $(getent hosts $ip 2>/dev/null | awk '{print $2}' || echo '?')"; done
+          echo "=== ONLINE: strace connect() ==="
+          strace -f -e trace=connect -o /tmp/s.log yolo export format=axelera model=yolo26n.pt imgsz=64 data=coco8.yaml >/tmp/on.log 2>&1 || true
+          ONSZ=$(find . -name '*.axm' 2>/dev/null -exec stat -c%s {} \; | head -1); rm -rf yolo26n_axelera_model runs
+          echo "ONLINE_RESULT run=${{ matrix.run }} axm_bytes=${ONSZ:-0}"
+          grep 'connect(' /tmp/s.log | grep -vE 'AF_UNIX|AF_LOCAL|AF_NETLINK|127\.0\.0\.1|::1' | grep -oE 'inet_addr\("[0-9.]+"\)' | sort | uniq -c | sed "s/^/CONNECT run=${{ matrix.run }} /"
+          echo "=== OFFLINE: block external egress, recompile ==="
+          sudo iptables -I OUTPUT 1 -o lo -j ACCEPT
+          sudo iptables -A OUTPUT -p tcp -j REJECT
+          sudo iptables -A OUTPUT -p udp -j REJECT
+          yolo export format=axelera model=yolo26n.pt imgsz=64 data=coco8.yaml >/tmp/off.log 2>&1 || echo "offline export exit=$?"
+          OFFSZ=$(find . -name '*.axm' 2>/dev/null -exec stat -c%s {} \; | head -1)
+          echo "OFFLINE_RESULT run=${{ matrix.run }} axm_bytes=${OFFSZ:-0}"
+          grep -iE 'error|fail|timeout|connection|license|unreachable' /tmp/off.log | sed "s/^/OFFLOG run=${{ matrix.run }} /" | head -5

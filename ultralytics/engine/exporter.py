@@ -336,7 +336,7 @@ EXPORT_ENVS = {
         "indexes": [
             ("--extra-index-url", "https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple"),
         ],
-        "env": {"PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION": "python"},
+        "env": {"PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION": "python", "ULTRALYTICS_TEST_MODEL": "yolo11n.pt"},
         "smoke": ["yolo export format=axelera model=yolo11n.pt imgsz=64 data=coco8.yaml"],
     },
     "isolated-deepx": {

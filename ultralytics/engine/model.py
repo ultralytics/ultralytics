@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import inspect
 from pathlib import Path
-from typing import Any
+from collections.abc import Iterator
+from typing import Any, Literal, overload
 
 import numpy as np
 import torch
@@ -146,26 +147,53 @@ class Model(torch.nn.Module):
         # Delete super().training for accessing self.model.training
         del self.training
 
+    @overload
     def __call__(
         self,
-        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor = None,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None,
+        stream: Literal[True],
+        **kwargs: Any,
+    ) -> Iterator[Results]:
+        ...
+
+    @overload
+    def __call__(
+        self,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
+        stream: Literal[False] = False,
+        **kwargs: Any,
+    ) -> list[Results]:
+        ...
+
+    @overload
+    def __call__(
+        self,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
         stream: bool = False,
         **kwargs: Any,
-    ) -> list:
+    ) -> Iterator[Results] | list[Results]:
+        ...
+
+    def __call__(
+        self,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
+        stream: bool = False,
+        **kwargs,
+    ) -> Iterator[Results] | list[Results]:
         """Alias for the predict method, enabling the model instance to be callable for predictions.
 
         This method simplifies the process of making predictions by allowing the model instance to be called directly
         with the required arguments.
 
         Args:
-            source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | list | tuple): The source of the image(s)
+            source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | list | tuple | None): The source of the image(s)
                 to make predictions on. Can be a file path, URL, PIL image, numpy array, PyTorch tensor, or a list/tuple
-                of these.
+                of these. If you don't provide a source, it defaults to a sample image with a warning.
             stream (bool): If True, treat the input source as a continuous stream for predictions.
             **kwargs (Any): Additional keyword arguments to configure the prediction process.
 
         Returns:
-            (list[ultralytics.engine.results.Results]): A list of prediction results, each encapsulated in a Results
+            (Iterator[ultralytics.engine.results.Results] | list[ultralytics.engine.results.Results]): A list of prediction results, each encapsulated in a Results
                 object.
 
         Examples:
@@ -476,13 +504,43 @@ class Model(torch.nn.Module):
             kwargs["embed"] = [len(self.model.model) - 2]  # embed second-to-last layer if no indices passed
         return self.predict(source, stream, **kwargs)
 
+    @overload
     def predict(
         self,
-        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor = None,
-        stream: bool = False,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None,
+        stream: Literal[True],
+        predictor=None,
+        **kwargs: Any,
+    ) -> Iterator[Results]:
+        ...
+
+    @overload
+    def predict(
+        self,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
+        stream: Literal[False] = False,
         predictor=None,
         **kwargs: Any,
     ) -> list[Results]:
+        ...
+
+    @overload
+    def predict(
+        self,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
+        stream: bool = False,
+        predictor=None,
+        **kwargs: Any,
+    ) -> Iterator[Results] | list[Results]:
+        ...
+
+    def predict(
+        self,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
+        stream: bool = False,
+        predictor=None,
+        **kwargs,
+    ) -> Iterator[Results] | list[Results]:
         """Perform predictions on the given image source using the YOLO model.
 
         This method facilitates the prediction process, allowing various configurations through keyword arguments. It
@@ -492,14 +550,14 @@ class Model(torch.nn.Module):
         Args:
             source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | list | tuple): The source of the image(s)
                 to make predictions on. Accepts various types including file paths, URLs, PIL images, numpy arrays, and
-                torch tensors.
+                torch tensors. If no source is provided, it defaults to a sample image with a warning.
             stream (bool): If True, treats the input source as a continuous stream for predictions.
             predictor (BasePredictor, optional): An instance of a custom predictor class for making predictions. If
                 None, the method uses a default predictor.
             **kwargs (Any): Additional keyword arguments for configuring the prediction process.
 
         Returns:
-            (list[ultralytics.engine.results.Results]): A list of prediction results, each encapsulated in a Results
+            (Iterator[ultralytics.engine.results.Results] | list[ultralytics.engine.results.Results]): A list of prediction results, each encapsulated in a Results
                 object.
 
         Examples:

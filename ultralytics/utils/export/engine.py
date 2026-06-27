@@ -236,14 +236,14 @@ def onnx2engine(
     config = builder.create_builder_config()
     workspace_bytes = int((workspace or 0) * (1 << 30))
     trt_major = int(trt.__version__.split(".", 1)[0])
-    # TensorRT >= 10 builds via build_serialized_network and uses the tensor (non-binding) API
     is_trt10 = trt_major >= 10
     # TensorRT >= 11 is strongly-typed only: precision builder flags and IInt8Calibrator removed
     is_trt11 = trt_major >= 11
-    if is_trt10 and workspace_bytes > 0:
-        config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, workspace_bytes)
-    elif workspace_bytes > 0:  # TensorRT versions 7, 8
-        config.max_workspace_size = workspace_bytes
+    if workspace_bytes > 0:
+        if hasattr(config, "set_memory_pool_limit"):
+            config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, workspace_bytes)
+        else:  # TensorRT 7 fallback
+            config.max_workspace_size = workspace_bytes
     # EXPLICIT_BATCH flag is removed in TensorRT 10 (explicit batch is the only/default mode); keep it for TRT 7/8
     flag = 0 if is_trt10 else (1 << int(trt.NetworkDefinitionCreationFlag.EXPLICIT_BATCH))
     network = builder.create_network(flag)
@@ -380,22 +380,17 @@ def onnx2engine(
         config.set_flag(trt.BuilderFlag.FP16)
 
     # Write file
-    if is_trt10:
-        # TensorRT 10+ returns bytes directly, not a context manager
+    if hasattr(builder, "build_serialized_network"):
         engine = builder.build_serialized_network(network, config)
-        if engine is None:
-            raise RuntimeError("TensorRT engine build failed, check logs for errors")
-        with open(output_file, "wb") as t:
-            if metadata is not None:
-                meta = json.dumps(metadata)
-                t.write(len(meta).to_bytes(4, byteorder="little", signed=True))
-                t.write(meta.encode())
-            t.write(engine)
     else:
-        with builder.build_engine(network, config) as engine, open(output_file, "wb") as t:
-            if metadata is not None:
-                meta = json.dumps(metadata)
-                t.write(len(meta).to_bytes(4, byteorder="little", signed=True))
-                t.write(meta.encode())
-            t.write(engine.serialize())
+        engine = builder.build_engine(network, config)
+        engine = None if engine is None else engine.serialize()
+    if engine is None:
+        raise RuntimeError("TensorRT engine build failed, check logs for errors")
+    with open(output_file, "wb") as t:
+        if metadata is not None:
+            meta = json.dumps(metadata)
+            t.write(len(meta).to_bytes(4, byteorder="little", signed=True))
+            t.write(meta.encode())
+        t.write(engine)
     return str(output_file)

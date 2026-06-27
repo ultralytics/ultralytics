@@ -244,10 +244,9 @@ class AnomalyV2Trainer(DetectionTrainer):
         else:
             loss_names = ["box_loss", "cls_loss", "dfl_loss"]
         if getattr(model, "seg_branch", None) is not None:
-            # Rename to seg_prior_loss when instance seg is active to avoid collision
-            # with the per-instance seg_loss above.
-            label = "seg_prior_loss" if seg_active else "seg_loss"
-            loss_names.append(label)
+            # SegBranch heatmap-predictor BCE+Dice term. Stacking it on a per-instance Segment
+            # head is not a supported combo (no config does it), so no name-collision handling.
+            loss_names.append("seg_loss")
         # QueryFiLM appends 4 aux components in this exact order (see YOLOAnomalyV2Model.loss).
         if getattr(model, "fusion_mode", None) == "queryfilm":
             loss_names += ["qmask_loss", "qobj_loss", "qovl_loss", "qfg_loss"]

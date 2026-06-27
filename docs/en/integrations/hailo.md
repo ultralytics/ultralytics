@@ -49,14 +49,14 @@ YOLO (.pt) -> ONNX -> HAR (parse) -> HAR (optimize/quantize) -> HEF (compile)
 
 The current manual example focuses on YOLO11 object detection because the Hailo model script and post-processing configuration are detection-head specific. A future direct `model.export(format="hailo")` implementation should make Hailo export feel like every other Ultralytics export format, with task support gated by the model head and Hailo compiler compatibility rather than by external workflow steps.
 
-| Task                                          | Direct Hailo Export Target | Notes                                                                                              |
-| :-------------------------------------------- | :------------------------- | :------------------------------------------------------------------------------------------------- |
-| [Object Detection](../tasks/detect.md)        | ✅ Primary target          | YOLOv8, YOLO11, and YOLO26 detection should be the first direct-export path.                       |
-| [Instance Segmentation](../tasks/segment.md)  | ✅ Target                  | YOLOv8, YOLO11, and YOLO26 segmentation require task-specific mask output handling and validation. |
-| [Semantic Segmentation](../tasks/semantic.md) | ⚠️ Validate                | YOLO26 semantic segmentation needs a dedicated compiler and output validation path.                |
-| [Pose Estimation](../tasks/pose.md)           | ⚠️ Validate                | Pose requires keypoint output handling beyond the detection NMS path.                              |
-| [OBB Detection](../tasks/obb.md)              | ⚠️ Validate                | OBB requires rotated-box output handling beyond the standard detection NMS path.                   |
-| [Classification](../tasks/classify.md)        | ⚠️ Validate                | Classification has a simpler output head, but still needs Hailo compile and runtime validation.    |
+| Task                                          | Direct Hailo Export Target | Device / SDK Scope             | Notes                                                                                              |
+| :-------------------------------------------- | :------------------------- | :----------------------------- | :------------------------------------------------------------------------------------------------- |
+| [Object Detection](../tasks/detect.md)        | ✅ Primary target          | Validate per Hailo DFC version | YOLOv8, YOLO11, and YOLO26 detection should be the first direct-export path.                       |
+| [Instance Segmentation](../tasks/segment.md)  | ✅ Target                  | Validate per Hailo DFC version | YOLOv8, YOLO11, and YOLO26 segmentation require task-specific mask output handling and validation. |
+| [Semantic Segmentation](../tasks/semantic.md) | ⚠️ Validate                | Validate per Hailo DFC version | YOLO26 semantic segmentation needs a dedicated compiler and output validation path.                |
+| [Pose Estimation](../tasks/pose.md)           | ⚠️ Validate                | Validate per Hailo DFC version | Pose requires keypoint output handling beyond the detection NMS path.                              |
+| [OBB Detection](../tasks/obb.md)              | ⚠️ Validate                | Validate per Hailo DFC version | OBB requires rotated-box output handling beyond the standard detection NMS path.                   |
+| [Classification](../tasks/classify.md)        | ⚠️ Validate                | Validate per Hailo DFC version | Classification has a simpler output head, but still needs Hailo compile and runtime validation.    |
 
 Until direct Hailo export is implemented in Ultralytics, only the manual ONNX-to-HEF workflow below is documented.
 
@@ -68,19 +68,20 @@ Direct Hailo export must account for Hailo's hardware and SDK generation split:
 - **Hailo-10 and Hailo-15**: use Hailo Dataflow Compiler v5.x.
 
 This version split affects compiler APIs, supported architectures, generated HEF compatibility, and which `hw_arch` values a direct exporter should expose.
+Do not treat task support on one Hailo hardware generation as support on another; each model family and task must be validated against the target DFC version and `hw_arch`.
 
 ### Compatibility Notes
 
 Hailo export compatibility depends on the model head, input image size, class count, Hailo architecture, generated model script (`.alls`), and post-processing configuration. Static configs are not universal templates. For example, an NMS JSON created for a COCO 80-class YOLO11n model is not correct for a custom 3-class model or for a different fixed `imgsz`.
 
-| Scope                                      | Expected Support | Notes                                                                                                                                    |
-| :----------------------------------------- | :--------------- | :--------------------------------------------------------------------------------------------------------------------------------------- |
-| YOLOv8 / YOLO11 detection                  | ✅ Good          | Shared decoupled detection head; `.alls` directives, end nodes, and NMS config still need to match the exported graph and fixed `imgsz`. |
-| Custom YOLOv8 / YOLO11 detection           | ✅ Possible      | Requires per-model NMS configuration generated from class count, strides, and detection-head layout; static JSON will not match.         |
-| YOLO26 detection                           | ✅ Target        | NMS-free architecture needs a separate compiler/post-processing path; do not reuse the YOLO11/YOLOv8 NMS workflow below for YOLO26.      |
-| YOLO26 instance segmentation               | ✅ Target        | Needs YOLO26 segmentation-specific mask output handling and accuracy validation.                                                         |
-| YOLO26 semantic, pose, OBB, classification | ⚠️ Research      | These tasks need dedicated compiler and runtime validation before they can be advertised as directly supported.                          |
-| Dynamic or arbitrary image sizes           | ❌ Not supported | Hailo compilation uses a fixed input shape; `.alls` and post-processing settings must match the exported `imgsz`.                        |
+| Scope                                      | Expected Support | Device / SDK Scope             | Notes                                                                                                                                    |
+| :----------------------------------------- | :--------------- | :----------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------- |
+| YOLOv8 / YOLO11 detection                  | ✅ Good          | Validate per Hailo DFC version | Shared decoupled detection head; `.alls` directives, end nodes, and NMS config still need to match the exported graph and fixed `imgsz`. |
+| Custom YOLOv8 / YOLO11 detection           | ✅ Possible      | Validate per Hailo DFC version | Requires per-model NMS configuration generated from class count, strides, and detection-head layout; static JSON will not match.         |
+| YOLO26 detection                           | ✅ Target        | Validate per Hailo DFC version | NMS-free architecture needs a separate compiler/post-processing path; do not reuse the YOLO11/YOLOv8 NMS workflow below for YOLO26.      |
+| YOLO26 instance segmentation               | ✅ Target        | Validate per Hailo DFC version | Needs YOLO26 segmentation-specific mask output handling and accuracy validation.                                                         |
+| YOLO26 semantic, pose, OBB, classification | ⚠️ Research      | Validate per Hailo DFC version | These tasks need dedicated compiler and runtime validation before they can be advertised as directly supported.                          |
+| Dynamic or arbitrary image sizes           | ❌ Not supported | All Hailo DFC versions         | Hailo compilation uses a fixed input shape; `.alls` and post-processing settings must match the exported `imgsz`.                        |
 
 ## Installation
 

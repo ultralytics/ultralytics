@@ -425,7 +425,7 @@ def try_export(inner_func):
                 f = inner_func(*args, **kwargs)  # exported file/dir or tuple of (file/dir, *)
             path = f if isinstance(f, (str, Path)) else f[0]
             mb = file_size(path)
-            assert mb > 0.0, "0.0 MB output model size"
+            assert mb > 0.1, f"{mb:.3f} MB output model too small (likely corrupt or unsupported ops)"
             LOGGER.info(f"{prefix} export success ✅ {dt.t:.1f}s, saved as '{path}' ({mb:.1f} MB)")
             return f
         except Exception as e:

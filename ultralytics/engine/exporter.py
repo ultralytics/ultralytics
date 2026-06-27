@@ -1,6 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-"""
-Export a YOLO PyTorch model to other formats. TensorFlow exports authored by https://github.com/zldrobit.
+"""Export a YOLO PyTorch model to other formats. TensorFlow exports authored by https://github.com/zldrobit.
 
 Format                  | `format=argument`         | Model
 ---                     | ---                       | ---
@@ -482,10 +481,10 @@ class Exporter:
         export_deepx: Export model to DEEPX format.
 
     Examples:
-        Export a YOLO26 model to TorchScript format
+        Export a YOLO26 model to ONNX format
         >>> from ultralytics.engine.exporter import Exporter
         >>> exporter = Exporter()
-        >>> exporter(model="yolo26n.pt")  # exports to yolo26n.torchscript
+        >>> exporter(model="yolo26n.pt")  # exports to yolo26n.onnx
 
         Export with specific arguments
         >>> args = {"format": "onnx", "dynamic": True, "quantize": 8, "data": "coco8.yaml"}
@@ -574,9 +573,22 @@ class Exporter:
                 raise ValueError(
                     "IMX export only supported for detection, pose estimation, classification, and segmentation models."
                 )
-        if not hasattr(model, "names"):
-            model.names = default_class_names()
-        model.names = check_class_names(model.names)
+        if not hasattr(model, "names") or model.names is None:  # 'names' is absent or None type
+            LOGGER.warning(
+                "Model 'names' attribute is missing or None. "
+                "Attempting to resolve via model.yaml before falling back to default class names."
+            )
+            # try to get the number of classes
+            nc = model.yaml.get("nc") if hasattr(model, "yaml") and model.yaml else None
+            model.names = {i: f"class{i}" for i in range(nc)} if nc else default_class_names()
+
+        try:  # handles case where 'names' is present but might be malformed
+            model.names = check_class_names(model.names)  # check if 'names' is dict(int: str)
+        except Exception as e:
+            LOGGER.warning(f"Model class names are malformed ({e}); falling back to default class names.")
+            nc = model.yaml.get("nc") if hasattr(model, "yaml") and model.yaml else None
+            model.names = {i: f"class{i}" for i in range(nc)} if nc else default_class_names()
+
         if hasattr(model, "end2end"):
             if self.args.end2end is not None:
                 model.end2end = self.args.end2end
@@ -584,20 +596,13 @@ class Exporter:
                 # Disable end2end branch for certain export formats as they does not support topk
                 model.end2end = False
                 LOGGER.warning(f"{fmt.upper()} export does not support end2end models, disabling end2end branch.")
-            if fmt == "engine":
+            if fmt == "engine" and self.args.int8:
+                # TensorRT 10.3.0 on JetPack 6 with int8 has known end2end build issues
+                # https://github.com/ultralytics/ultralytics/issues/23841
                 try:
                     import tensorrt as trt
 
-                    if check_version(trt.__version__, "<8.5.0"):
-                        # https://github.com/ultralytics/ultralytics/issues/24607
-                        model.end2end = False
-                        LOGGER.warning(
-                            "TensorRT versions earlier than 8.5.0 do not support the Mod operator in end-to-end models, disabling the end2end branch. "
-                            "Please upgrade TensorRT to 8.5.0 or later to enable end2end export."
-                        )
-
-                    if self.args.int8 and check_version(trt.__version__, "==10.3.0") and is_jetson(jetpack=6):
-                        # https://github.com/ultralytics/ultralytics/issues/23841
+                    if check_version(trt.__version__, "==10.3.0") and is_jetson(jetpack=6):
                         model.end2end = False
                         LOGGER.warning(
                             "TensorRT 10.3.0 on JetPack 6 with int8 has known end2end build issues, disabling end2end branch. "

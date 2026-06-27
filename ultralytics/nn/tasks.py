@@ -610,6 +610,9 @@ class YOLOAnomalyV2Model(DetectionModel):
         mask_warp_p = float(v2_cfg.get("mask_warp_p", 0.0))
         mask_mixup_p = float(v2_cfg.get("mask_mixup_p", 0.0))
         mask_mixup_alpha = float(v2_cfg.get("mask_mixup_alpha", 0.5))
+        # Number of stacked _augment_mask passes (train-only). 2 reproduces the pre-refactor
+        # double-augment that gave the OOD heatmap deploy path extra robustness.
+        mask_aug_passes = int(v2_cfg.get("mask_aug_passes", 1))
         # Extra memory-bank-style prior augmentations (train-only). These close the
         # distribution gap between clean GT-gauss priors and real memory-bank heatmaps,
         # which have scattered false-positive blobs even on normal images.
@@ -797,6 +800,7 @@ class YOLOAnomalyV2Model(DetectionModel):
         self.mask_warp_p = float(mask_warp_p)
         self.mask_mixup_p = float(mask_mixup_p)
         self.mask_mixup_alpha = float(mask_mixup_alpha)
+        self.mask_aug_passes = int(mask_aug_passes)
         self.mask_fragment_p = float(mask_fragment_p)
         self.mask_fragment_n = int(mask_fragment_n)
         self.mask_bg_blobs_p = float(mask_bg_blobs_p)
@@ -1646,7 +1650,18 @@ class YOLOAnomalyV2Model(DetectionModel):
         return mask
 
     def _augment_mask(self, mask):
-        """Training-only mask augmentation: make the binary GT prior look like an inference heatmap.
+        """Training-only mask augmentation, applied ``mask_aug_passes`` times (stacked).
+
+        Each pass runs the full corruption pipeline in ``_augment_mask_once``; stacking N passes
+        compounds the degradation (N=2 reproduces the pre-refactor double-augment that the OOD
+        heatmap deploy path relied on for robustness). N=1 (default) is a single pass.
+        """
+        for _ in range(getattr(self, "mask_aug_passes", 1)):
+            mask = self._augment_mask_once(mask)
+        return mask
+
+    def _augment_mask_once(self, mask):
+        """One pass of training-only mask augmentation: make the binary GT prior look like an inference heatmap.
 
         Closes the train(binary GT) vs inference(soft, weak-peak memory-bank / SegBranch heatmap)
         distribution gap. Order: shuffle (wrong-location prior) -> Gaussian blur (soft edges) ->

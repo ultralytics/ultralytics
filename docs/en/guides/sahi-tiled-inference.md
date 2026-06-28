@@ -165,12 +165,14 @@ SAHI provides a `PredictionResult` object, which can be converted into various a
 # Access the object prediction list
 object_prediction_list = result.object_prediction_list
 
-# Convert to COCO annotation, COCO prediction, imantics, and fiftyone formats
+# Convert to COCO annotation and COCO prediction formats
 result.to_coco_annotations()[:3]
 result.to_coco_predictions(image_id=1)[:3]
-result.to_imantics_annotations()[:3]
-result.to_fiftyone_detections()[:3]
 ```
+
+!!! tip "Additional export formats"
+
+    `PredictionResult` can also convert detections to [imantics](https://github.com/jsbroks/imantics) and [FiftyOne](https://github.com/voxel51/fiftyone) objects with `result.to_imantics_annotations()` and `result.to_fiftyone_detections()`. These methods require the respective packages, so install them first with `pip install imantics fiftyone`.
 
 ## Batch Prediction
 

@@ -1,4 +1,5 @@
 ---
+title: utils.nms API Reference
 description: Custom NMS implementation for Ultralytics YOLO with TorchNMS class for torchvision-free inference and fast-nms for oriented bounding boxes. Optimized for speed and accuracy.
 keywords: NMS, non-maximum suppression, TorchNMS, YOLO, torchvision-free, rotated NMS, object detection, bounding boxes, IoU threshold, custom implementation
 ---

@@ -1,4 +1,5 @@
 ---
+title: YOLOv9 Object Detection with PGI and GELAN
 comments: true
 description: Explore YOLOv9, a leap in real-time object detection, featuring innovations like PGI and GELAN, and achieving new benchmarks in efficiency and accuracy.
 keywords: YOLOv9, object detection, real-time, PGI, GELAN, deep learning, MS COCO, AI, neural networks, model efficiency, accuracy, Ultralytics
@@ -65,7 +66,7 @@ GELAN represents a strategic architectural advancement, enabling YOLOv9 to achie
 
 ## YOLOv9 Benchmarks
 
-Benchmarking in YOLOv9 using [Ultralytics](https://docs.ultralytics.com/modes/benchmark) involves evaluating the performance of your trained and validated model in real-world scenarios. This process includes:
+Benchmarking in YOLOv9 using [Ultralytics](../modes/benchmark.md) involves evaluating the performance of your trained and validated model in real-world scenarios. This process includes:
 
 - **Performance Evaluation:** Assessing the model's speed and accuracy.
 - **Export Formats:** Testing the model across different export formats to ensure it meets the necessary standards and performs well in various environments.

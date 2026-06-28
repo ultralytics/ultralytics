@@ -3,22 +3,18 @@ on:
   push:
     branches: [axelera-probe]
 jobs:
-  compare-refs:
+  compare-cache-paths:
     if: github.repository == 'ultralytics/ultralytics'
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - label: old-good-5de90f9
-            ref: 5de90f9eb4b2058ebb3419204d481efa0cc7e729
-          - label: current-pr-247b48b
-            ref: 247b48b5052478bac507354740294e59c8ef757c
+        mode: [direct, ci-cache]
     steps:
       - uses: actions/checkout@v7
         with:
-          ref: ${{ matrix.ref }}
+          ref: 247b48b5052478bac507354740294e59c8ef757c
       - uses: actions/setup-python@v6
         with:
           python-version: "3.13"
@@ -27,7 +23,13 @@ jobs:
           python-version: "3.13"
       - run: sudo apt-get update && sudo apt-get install -y openjdk-21-jre flatbuffers-compiler
       - run: uv pip install --system -e ".[export-base]" pytest "git+https://github.com/ultralytics/CLIP.git" --torch-backend cpu
-      - name: Run isolated Axelera export for ${{ matrix.label }}
+      - name: Configure CI cache paths
+        if: matrix.mode == 'ci-cache'
+        run: |
+          yolo settings weights_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/weights" datasets_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/datasets"
+          python tests/cache_test_assets.py --slow
+          find "${GITHUB_WORKSPACE}/.ultralytics_cache/weights" -maxdepth 2 -type f -o -type d | sort | sed 's/^/CACHE_ENTRY /' | head -120
+      - name: Run isolated Axelera export (${{ matrix.mode }})
         env:
           ULTRALYTICS_ISOLATED_VENVS: ${{ runner.temp }}/venvs
           YOLO_AUTOINSTALL: "false"
@@ -35,8 +37,9 @@ jobs:
           set -x
           python .github/scripts/create-export-env.py --env isolated-axelera || export CREATE_EXIT=$?
           AX_VENV=$(find "${{ runner.temp }}/venvs" -maxdepth 1 -name 'isolated-axelera' | head -1)
-          if [ -n "$AX_VENV" ]; then "$AX_VENV/bin/python" -m pip list | grep -iE 'axelera|onnx|^torch |^numpy ' | sed "s/^/PROBE_SUBPKG label=${{ matrix.label }} /"; fi
+          if [ -n "$AX_VENV" ]; then "$AX_VENV/bin/python" -m pip list | grep -iE 'axelera|onnx|^torch |^numpy ' | sed "s/^/PROBE_SUBPKG mode=${{ matrix.mode }} /"; fi
+          find "${{ runner.temp }}/venvs" -name '*.axm' -exec stat -c 'PROBE_AXM mode=${{ matrix.mode }} %n %s' {} \; 2>/dev/null || true
           M=$(find "${{ runner.temp }}/venvs" -name '*.axm' 2>/dev/null | head -1)
           BYTES=${M:+$(stat -c%s "$M")}
-          echo "PROBE_RESULT label=${{ matrix.label }} ref=${{ matrix.ref }} axm_bytes=${BYTES:-0} create_exit=${CREATE_EXIT:-0}"
+          echo "PROBE_RESULT mode=${{ matrix.mode }} axm_bytes=${BYTES:-0} create_exit=${CREATE_EXIT:-0}"
           test "${BYTES:-0}" -gt 100000

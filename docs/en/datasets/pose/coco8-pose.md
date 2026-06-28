@@ -134,4 +134,4 @@ Mosaicing, demonstrated in the sample images of the COCO8-Pose dataset, combines
 
 The COCO8-Pose dataset YAML file can be found at <https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8-pose.yaml>. This file defines the dataset configuration, including paths, classes, and other relevant information. Use this file with the YOLO26 training scripts as mentioned in the [Train Example](#how-do-i-train-a-yolo26-model-using-the-coco8-pose-dataset-in-ultralytics) section.
 
-For more FAQs and detailed documentation, visit the [Ultralytics Documentation](https://docs.ultralytics.com/).
+For more FAQs and detailed documentation, visit the [Ultralytics Documentation](../../index.md).

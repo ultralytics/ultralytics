@@ -1,4 +1,5 @@
 ---
+title: utils.events API Reference
 description: Reference for utilities supporting telemetry, analytics, and event handling with lightweight background requests.
 keywords: Ultralytics, YOLO, utils, telemetry, analytics, events, anonymization, background, JSON, POST, Python
 ---

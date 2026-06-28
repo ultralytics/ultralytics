@@ -1,4 +1,5 @@
 ---
+title: solutions.object_blurrer API Reference
 description: This page provides a detailed reference for the ObjectBlurrer class in the Ultralytics solutions package, which enables real-time blurring of detected objects in images and videos.
 keywords: Ultralytics, ObjectBlurrer, object detection, blurring, real-time processing, Python, computer vision
 ---

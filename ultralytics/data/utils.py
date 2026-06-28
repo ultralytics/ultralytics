@@ -45,7 +45,6 @@ IMG_FORMATS = {
     "heif",
     "jp2",
     "jpeg",
-    "jpeg2000",
     "jpg",
     "mpo",
     "png",

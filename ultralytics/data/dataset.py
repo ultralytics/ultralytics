@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import random
 from collections import defaultdict
 from itertools import repeat
 from multiprocessing.pool import ThreadPool
@@ -980,16 +979,15 @@ class ClassificationDataset:
         torch_transforms (callable): PyTorch transforms to be applied to the images.
         root (str): Root directory of the dataset.
         prefix (str): Prefix for logging and cache filenames.
-        img_cache (torch.Tensor): Shared-memory uint8 buffer holding all cached images when caching in RAM.
-        img_offsets (list): Byte offset of each image within img_cache.
+        img_cache (np.ndarray): Contiguous uint8 buffer holding all cached images when caching in RAM.
+        img_offsets (np.ndarray): Flat offset of each image within img_cache.
         img_shapes (list): (h, w, c) shape of each cached image.
 
     Methods:
         __getitem__: Return transformed image and class index for the given sample index.
         __len__: Return the total number of samples in the dataset.
         verify_images: Verify all images in dataset.
-        check_cache_ram: Check if available RAM is sufficient to cache the dataset.
-        cache_images: Cache all images into a shared-memory buffer.
+        cache_images: Decode all images once into a single contiguous RAM buffer.
     """
 
     def __init__(self, root: str, args, augment: bool = False, prefix: str = ""):
@@ -1020,14 +1018,6 @@ class ClassificationDataset:
         self.cache_disk = str(args.cache).lower() == "disk"  # cache images on hard drive as uncompressed *.npy files
         self.samples = self.verify_images()  # filter out bad images
         self.samples = [[*list(x), Path(x[0]).with_suffix(".npy"), None] for x in self.samples]  # file, index, npy, im
-        self.img_cache = None
-        self.img_offsets = None
-        self.img_shapes = None
-        # safety_margin=0.5 budgets 1.5x the cache estimate: the shared buffer is allocated directly in shared
-        # memory (no populate-then-copy spike), so the build's only transient is the bounded decode-ahead of the
-        # two-pass stream (cache holds originals; measured ~1.0-1.4x, approaching 1.0x as the dataset grows).
-        if self.cache_ram and not self.check_cache_ram(safety_margin=0.5):
-            self.cache_ram = False
         if self.cache_ram:
             self.cache_images()
         scale = (1.0 - args.scale, 1.0)  # (0.08, 1.0)
@@ -1058,9 +1048,9 @@ class ClassificationDataset:
         """
         f, j, fn, im = self.samples[i]  # filename, index, filename.with_suffix('.npy'), image
         if self.cache_ram:
-            pos = self.img_offsets[i]
             h, w, c = self.img_shapes[i]
-            im = self.img_cache[pos : pos + h * w * c].numpy().reshape(h, w, c)  # zero-copy view
+            pos = self.img_offsets[i]
+            im = self.img_cache[pos : pos + h * w * c].reshape(h, w, c)  # zero-copy view
         elif self.cache_disk:
             if not fn.exists():  # load npy
                 np.save(fn.as_posix(), cv2.imread(f), allow_pickle=False)
@@ -1076,107 +1066,25 @@ class ClassificationDataset:
         """Return the total number of samples in the dataset."""
         return len(self.samples)
 
-    def check_cache_ram(self, safety_margin: float = 0.5) -> bool:
-        """Check if there's enough RAM for caching images.
-
-        Args:
-            safety_margin (float): Safety margin factor for RAM calculation.
-
-        Returns:
-            (bool): True if there's enough RAM, False otherwise.
-        """
-        if not self.samples:
-            return False
-        b, gb = 0, 1 << 30  # bytes of cached images, bytes per gigabytes
-        n = min(len(self.samples), 30)  # extrapolate from 30 random images
-        for _ in range(n):
-            im = cv2.imread(random.choice(self.samples)[0])
-            if im is None:
-                continue
-            b += im.nbytes
-        mem_required = b * len(self.samples) / n * (1 + safety_margin)  # bytes required to cache dataset into RAM
-        mem = __import__("psutil").virtual_memory()
-        if mem_required > mem.available:
-            LOGGER.warning(
-                f"{self.prefix}{mem_required / gb:.1f}GB RAM required to cache images "
-                f"with {int(safety_margin * 100)}% safety margin but only "
-                f"{mem.available / gb:.1f}/{mem.total / gb:.1f}GB available, not caching images"
-            )
-            return False
-        return True
-
     def cache_images(self) -> None:
-        """Preload all images into a single shared-memory uint8 buffer with per-image offsets.
+        """Decode all images once into a single contiguous uint8 buffer before DataLoader workers fork.
 
-        Original sizes are preserved so torch_transforms (RandomResizedCrop, validation Resize+CenterCrop)
-        receive the same input as the uncached path. A two-pass design records sizes first, then streams each
-        decoded image directly into the destination buffer to avoid holding the full set of decoded arrays in
-        memory simultaneously. Both passes decode with ``cv2.imread`` so probe and load can never disagree on
-        shape: ``cv2.imread`` applies EXIF orientation while ``PIL.Image.size`` does not, which would otherwise
-        silently transpose rotated images (orientations 5-8) into a corrupted buffer view.
+        A Python list of per-image arrays is duplicated into every forked worker by copy-on-write refcounting
+        (https://github.com/ultralytics/ultralytics/issues/9824); one shared numpy buffer is read-only across
+        workers instead, so RAM stays flat. Original image sizes are preserved for the transforms.
         """
-        n = len(self.samples)
-        gb = 1 << 30
-
-        def probe(i: int):
-            im = cv2.imread(self.samples[i][0])  # decode with the same decoder as load() so shapes agree
-            if im is None:
-                raise FileNotFoundError(f"Image Not Found {self.samples[i][0]}")
-            return i, im.shape  # (h, w, c) from the actual decoder (cv2.imread returns 3-channel BGR)
-
-        def load(i: int):
-            im = cv2.imread(self.samples[i][0])
-            if im is None:
-                raise FileNotFoundError(f"Image Not Found {self.samples[i][0]}")
-            return i, im
-
-        try:
-            # Pass 1: decode to record true (h, w, c) and total bytes (EXIF-aware, matches load()).
-            shapes = [None] * n
-            with ThreadPool(NUM_THREADS) as pool:
-                pbar = TQDM(pool.imap(probe, range(n)), total=n, disable=LOCAL_RANK > 0)
-                for i, shape in pbar:
-                    shapes[i] = shape
-                    pbar.desc = f"{self.prefix}Probing image sizes"
-                pbar.close()
-
-            offsets = [0] * n
-            pos = 0
-            for i, (h, w, c) in enumerate(shapes):
-                offsets[i] = pos
-                pos += h * w * c
-            total = pos
-
-            # Pass 2: allocate the buffer directly in shared memory, then stream each image into its slice.
-            # Populating a private buffer and calling share_memory_() afterwards would memcpy the whole cache
-            # into a second shared allocation, transiently doubling peak RAM during the build. UntypedStorage is
-            # torch>=1.13; on the older supported floor (1.8) fall back to share_memory_() (correct, ~2x peak).
-            if hasattr(torch, "UntypedStorage"):
-                cache = torch.empty(0, dtype=torch.uint8)
-                cache.set_(torch.UntypedStorage._new_shared(total, device="cpu"))
-            else:
-                cache = torch.empty(total, dtype=torch.uint8).share_memory_()
-            with ThreadPool(NUM_THREADS) as pool:
-                pbar = TQDM(pool.imap(load, range(n)), total=n, disable=LOCAL_RANK > 0)
-                for i, im in pbar:
-                    sz = im.nbytes
-                    cache[offsets[i] : offsets[i] + sz] = torch.from_numpy(im.reshape(-1))
-                    pbar.desc = f"{self.prefix}Caching images ({(offsets[i] + sz) / gb:.1f}GB RAM)"
-                pbar.close()
-        except FileNotFoundError:
-            raise  # surface a corrupt/missing image clearly instead of swallowing it as a cache fallback
-        except (MemoryError, OSError, RuntimeError) as e:
-            LOGGER.warning(
-                f"{self.prefix}cache_ram failed ({type(e).__name__}: {e}); falling back to disk reads. "
-                f"On Linux/Docker this is typically /dev/shm being smaller than RAM — run with "
-                f"`--shm-size=<size>` or set `cache=False`."
+        with ThreadPool(NUM_THREADS) as pool:
+            ims = list(
+                TQDM(
+                    pool.imap(lambda s: cv2.imread(s[0]), self.samples),
+                    total=len(self.samples),
+                    desc=f"{self.prefix}Caching images",
+                    disable=LOCAL_RANK > 0,
+                )
             )
-            self.cache_ram = False
-            return
-
-        self.img_cache = cache
-        self.img_offsets = offsets
-        self.img_shapes = shapes
+        self.img_shapes = [im.shape for im in ims]
+        self.img_offsets = np.cumsum([0] + [im.size for im in ims[:-1]])
+        self.img_cache = np.concatenate([im.reshape(-1) for im in ims])
 
     def verify_images(self) -> list[tuple]:
         """Verify all images in dataset.

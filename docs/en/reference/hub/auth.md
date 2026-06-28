@@ -1,4 +1,5 @@
 ---
+title: hub.auth API Reference
 description: Learn how to manage API key and cookie-based authentication in Ultralytics with the Auth class. Step-by-step guide for effective authentication.
 keywords: Ultralytics, authentication, API key, cookies, Auth class, YOLO, API, guide
 ---

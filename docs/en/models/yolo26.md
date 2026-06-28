@@ -22,7 +22,7 @@ The YOLO26 model family is built around four design areas:
 
 - **Native end-to-end inference:** The default one-to-one detection head produces predictions without non-maximum suppression (NMS), simplifying deployment and reducing post-processing.
 - **Lighter box regression:** YOLO26 removes Distribution Focal Loss (DFL), reducing detection-head complexity while preserving an unconstrained regression range.
-- **Training recipe updates:** The training pipeline combines **MuSGD**, **Progressive Loss**, and **STAL** to improve optimization, shift supervision toward the inference-time head, and maintain positive label coverage for small objects.
+- **Training recipe updates:** The training pipeline combines **MuSGD**, **Progressive Loss**, and **STAL** to improve optimization, shift supervision toward the inference-time head, and maintain positive label coverage for small objects. The full hyperparameters behind the released checkpoints are documented in the [YOLO26 Training Recipe guide](../guides/yolo26-training-recipe.md).
 - **Task-specific heads and losses:** YOLO26 adds targeted designs for instance segmentation, semantic segmentation variants, pose estimation, and oriented detection while keeping a single model pipeline across tasks.
 
 Together, these updates improve the accuracy-latency tradeoff across model scales and deployment targets.
@@ -212,7 +212,7 @@ By leveraging YOLO26's **NMS-free, end-to-end design**, YOLOE-26 keeps open-voca
 
     === "Text/Visual Prompts"
 
-        See [YOLOE Docs](./yoloe.md) for usage examples with these models trained on [Objects365v1](https://opendatalab.com/OpenDataLab/Objects365_v1), [GQA](https://cs.stanford.edu/people/dorarad/gqa/about.html) and [Flickr30k](https://shannon.cs.illinois.edu/DenotationGraph/data/index.html) datasets.
+        See [YOLOE Docs](./yoloe.md) for usage examples with these models trained on [Objects365v1](https://opendatalab.com/OpenDataLab/Objects365_v1), [GQA](https://cs.stanford.edu/people/dorarad/gqa/about.html) and [Flickr30k](https://shannon.cs.illinois.edu/DenotationGraph/) datasets.
 
         | Model         | size<br><sup>(pixels)</sup> | Prompt Type | mAP<sup>minival<br>50-95(e2e)</sup> | mAP<sup>minival<br>50-95</sup> | mAP<sub>r</sub> | mAP<sub>c</sub> | mAP<sub>f</sub> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
         |---------------|-----------------------------|-------------|-------------------------------------|----------------------------|-----------------|-----------------|-----------------|--------------------------|-------------------------|
@@ -225,7 +225,7 @@ By leveraging YOLO26's **NMS-free, end-to-end design**, YOLOE-26 keeps open-voca
 
     === "Prompt-free"
 
-        See [YOLOE Docs](./yoloe.md) for usage examples with these models trained on [Objects365v1](https://opendatalab.com/OpenDataLab/Objects365_v1), [GQA](https://cs.stanford.edu/people/dorarad/gqa/about.html) and [Flickr30k](https://shannon.cs.illinois.edu/DenotationGraph/data/index.html) datasets.
+        See [YOLOE Docs](./yoloe.md) for usage examples with these models trained on [Objects365v1](https://opendatalab.com/OpenDataLab/Objects365_v1), [GQA](https://cs.stanford.edu/people/dorarad/gqa/about.html) and [Flickr30k](https://shannon.cs.illinois.edu/DenotationGraph/) datasets.
 
         | Model            | size<br><sup>(pixels)</sup> | mAP<sup>minival<br>50-95(e2e)</sup> | mAP<sup>minival<br>50(e2e)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
         |------------------|-----------------------------|-------------------------------------|------------------------------|--------------------------|-------------------------|
@@ -342,7 +342,7 @@ For a complete technical description of the YOLO26 architecture, training recipe
         }
         ```
 
-YOLO26 code, models, and documentation are available in the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics) and [Ultralytics Docs](https://docs.ultralytics.com/) under [AGPL-3.0](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) and [Enterprise](https://www.ultralytics.com/license) licenses.
+YOLO26 code, models, and documentation are available in the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics) and [Ultralytics Docs](../index.md) under [AGPL-3.0](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) and [Enterprise](https://www.ultralytics.com/license) licenses.
 
 ---
 

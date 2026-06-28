@@ -3,40 +3,40 @@ on:
   push:
     branches: [axelera-probe]
 jobs:
-  trace:
+  compare-refs:
     if: github.repository == 'ultralytics/ultralytics'
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 40
     strategy:
       fail-fast: false
       matrix:
-        run: [1, 2, 3, 4]
+        include:
+          - label: old-good-5de90f9
+            ref: 5de90f9eb4b2058ebb3419204d481efa0cc7e729
+          - label: current-pr-247b48b
+            ref: 247b48b5052478bac507354740294e59c8ef757c
     steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ matrix.ref }}
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
       - uses: astral-sh/setup-uv@v7
-      - run: sudo apt-get update && sudo apt-get install -y strace
-      - name: install + wheel hashes
+        with:
+          python-version: "3.13"
+      - run: sudo apt-get update && sudo apt-get install -y openjdk-21-jre flatbuffers-compiler
+      - run: uv pip install --system -e ".[export-base]" pytest "git+https://github.com/ultralytics/CLIP.git" --torch-backend cpu
+      - name: Run isolated Axelera export for ${{ matrix.label }}
+        env:
+          ULTRALYTICS_ISOLATED_VENVS: ${{ runner.temp }}/venvs
+          YOLO_AUTOINSTALL: "false"
         run: |
-          uv venv /tmp/v --python 3.12 --seed
-          uv pip install --python /tmp/v/bin/python "ultralytics[export-base]==8.4.80" \
-            "torch>=2.8,<2.12" "axelera-devkit==1.7.0" "onnx>=1.12.0,<2.0.0" "onnxslim>=0.1.71" \
-            --extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple \
-            --index-strategy unsafe-best-match --prerelease allow --torch-backend cpu
-          SP=$(/tmp/v/bin/python -c "import site;print(site.getsitepackages()[0])")
-          find "$SP" -maxdepth 1 -name 'axelera*dist-info' | while read d; do echo "WHEELHASH run=${{ matrix.run }} $(sha256sum "$d/RECORD" | cut -c1-12) $(basename "$d")"; done
-      - name: warm caches
-        env: { PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION: "python", YOLO_AUTOINSTALL: "false" }
-        run: |
-          export PATH=/tmp/v/bin:$PATH
-          yolo export format=axelera model=yolo26n.pt imgsz=64 data=coco8.yaml >/tmp/w.log 2>&1 || true
-          rm -rf yolo26n_axelera_model runs
-      - name: ONLINE strace the compile
-        env: { PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION: "python", YOLO_AUTOINSTALL: "false" }
-        run: |
-          export PATH=/tmp/v/bin:$PATH
-          strace -f -e trace=connect -o /tmp/s.log yolo export format=axelera model=yolo26n.pt imgsz=64 data=coco8.yaml >/tmp/o.log 2>&1 || true
-          SZ=$(find . -name '*.axm' 2>/dev/null -exec stat -c%s {} \; | head -1)
-          echo "TRACE_RESULT run=${{ matrix.run }} axm_bytes=${SZ:-0}"
-          echo "--- outbound (non-local) connect IPs during compile ---"
-          grep 'connect(' /tmp/s.log | grep -vaE 'AF_UNIX|AF_LOCAL|AF_NETLINK|127\.0\.0\.1|::1' | grep -oaE 'inet_addr\("[0-9.]+"\).*sin_port=htons\([0-9]+\)' | sort | uniq -c | sed "s/^/  CONNECT run=${{ matrix.run }} /" | head -20
-          echo "--- reverse DNS of contacted IPs ---"
-          grep -oaE 'inet_addr\("[0-9.]+"\)' /tmp/s.log | grep -oE '[0-9.]+' | grep -vE '^127\.' | sort -u | while read ip; do echo "  HOST run=${{ matrix.run }} $ip -> $(timeout 3 getent hosts $ip 2>/dev/null | awk '{print $2}'; nslookup $ip 2>/dev/null | grep -oE 'name = .*' | head -1)"; done | head -20
+          set -x
+          python .github/scripts/create-export-env.py --env isolated-axelera || export CREATE_EXIT=$?
+          AX_VENV=$(find "${{ runner.temp }}/venvs" -maxdepth 1 -name 'isolated-axelera' | head -1)
+          if [ -n "$AX_VENV" ]; then "$AX_VENV/bin/python" -m pip list | grep -iE 'axelera|onnx|^torch |^numpy ' | sed "s/^/PROBE_SUBPKG label=${{ matrix.label }} /"; fi
+          M=$(find "${{ runner.temp }}/venvs" -name '*.axm' 2>/dev/null | head -1)
+          BYTES=${M:+$(stat -c%s "$M")}
+          echo "PROBE_RESULT label=${{ matrix.label }} ref=${{ matrix.ref }} axm_bytes=${BYTES:-0} create_exit=${CREATE_EXIT:-0}"
+          test "${BYTES:-0}" -gt 100000

@@ -1,4 +1,5 @@
 ---
+title: YOLO26 ExecuTorch for Mobile & Edge
 comments: true
 description: Export YOLO26 models to ExecuTorch format for efficient on-device inference on mobile and edge devices. Optimize your AI models for iOS, Android, and embedded systems.
 keywords: Ultralytics, YOLO26, ExecuTorch, model export, PyTorch, edge AI, mobile deployment, on-device inference, XNNPACK, embedded systems
@@ -138,12 +139,13 @@ The ExecuTorch format supports the [Export](../modes/export.md), [Predict](../mo
 
 When exporting to ExecuTorch format, you can specify the following arguments:
 
-| Argument | Type             | Default        | Description                                                                                                                             |
-| -------- | ---------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `format` | `str`            | `'executorch'` | Target format for the exported model, defining compatibility with various deployment environments.                                      |
-| `imgsz`  | `int` or `tuple` | `640`          | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.       |
-| `batch`  | `int`            | `1`            | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
-| `device` | `str`            | `None`         | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                         |
+| Argument   | Type             | Default        | Description                                                                                                                             |
+| ---------- | ---------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`            | `'executorch'` | Target format for the exported model, defining compatibility with various deployment environments.                                      |
+| `imgsz`    | `int` or `tuple` | `640`          | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.       |
+| `quantize` | `int` or `str`   | `None`         | Fixed FP32 export. ExecuTorch export does not support export-time FP16, INT8, or W8A16 precision conversion.                            |
+| `batch`    | `int`            | `1`            | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
+| `device`   | `str`            | `None`         | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                         |
 
 ### Output Structure
 

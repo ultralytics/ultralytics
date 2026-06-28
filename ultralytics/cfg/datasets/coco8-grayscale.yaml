@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # COCO8-Grayscale dataset (first 8 images from COCO train2017) by Ultralytics
-# Documentation: https://docs.ultralytics.com/datasets/detect/coco8-grayscale/
+# Documentation: https://docs.ultralytics.com/datasets/detect/coco8-grayscale
 # Example usage: yolo train data=coco8-grayscale.yaml
 # parent
 # ├── ultralytics

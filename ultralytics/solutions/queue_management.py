@@ -28,7 +28,7 @@ class QueueManager(BaseSolution):
 
     Examples:
         >>> cap = cv2.VideoCapture("path/to/video.mp4")
-        >>> queue_manager = QueueManager(region=[100, 100, 200, 200, 300, 300])
+        >>> queue_manager = QueueManager(region=[(20, 400), (1080, 400), (1080, 360), (20, 360)])
         >>> while cap.isOpened():
         ...     success, im0 = cap.read()
         ...     if not success:

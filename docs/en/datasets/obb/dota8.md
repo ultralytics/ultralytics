@@ -1,4 +1,5 @@
 ---
+title: DOTA8 OBB Dataset
 comments: true
 description: Explore the DOTA8 dataset - a small, versatile oriented object detection dataset ideal for testing and debugging object detection models using Ultralytics YOLO26.
 keywords: DOTA8 dataset, Ultralytics, YOLO26, object detection, debugging, training models, oriented object detection, dataset YAML

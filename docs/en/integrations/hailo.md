@@ -541,7 +541,7 @@ The scripts below run object detection with the compiled HEF file. Both tabs acc
 
 === "picamera2"
 
-    The [picamera2](https://github.com/raspberrypi/picamera2) path is the Raspberry Pi option that uses its lightweight `Hailo` device class (a HailoRT wrapper) for inference. It accepts the same `--source` inputs as the Hailo SDK tab: an image path, a video path, a webcam index, or `csi` for the **Camera Module**. CSI capture works here because modern Raspberry Pi OS routes the camera through libcamera rather than a plain V4L2 device.
+    The [picamera2](https://github.com/raspberrypi/picamera2) path is the Raspberry Pi option that uses its lightweight `Hailo` device class (a HailoRT wrapper) for inference. It accepts the same `--source` inputs as the Hailo SDK tab: an image path, a video path, a webcam index, or `csi` for the **Camera Module**. CSI capture works here because modern Raspberry Pi OS routes the camera through libcamera rather than a plain V4L2 device. It reuses the `IMAGE_EXTS`, `parse_and_draw`, `csi_frames`, `cv2_frames`, and `open_source` helpers from the Hailo SDK tab above; only the imports and the inference loop differ.
 
     ```python
     import argparse
@@ -552,75 +552,7 @@ The scripts below run object detection with the compiled HEF file. Both tabs acc
     from picamera2.devices import Hailo
     from tqdm import tqdm
 
-    IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".bmp", ".webp", ".tif", ".tiff"}
-
-
-    def parse_and_draw(per_class, frame, conf, names):
-        """Draw HailoRT NMS detections (grouped by class, normalized [0, 1] coords) onto a BGR frame."""
-        h, w = frame.shape[:2]
-        for cls_idx, cls_dets in enumerate(per_class):
-            for det in cls_dets:
-                score = float(det[4])
-                if score < conf:
-                    continue
-                # HailoRT NMS returns normalized [0, 1] coords as (y1, x1, y2, x2)
-                y1, x1, y2, x2 = det[:4]
-                x1, y1, x2, y2 = int(x1 * w), int(y1 * h), int(x2 * w), int(y2 * h)
-                label = f"{names[cls_idx]} {score:.2f}"
-                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
-                cv2.putText(frame, label, (x1 + 2, y1 + 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1, cv2.LINE_AA)
-
-
-    def csi_frames(width=1280, height=720):
-        """Yield BGR frames from the Pi CSI Camera Module via picamera2."""
-        from picamera2 import Picamera2
-
-        picam2 = Picamera2()
-        # picamera2 "RGB888" is BGR-ordered in memory, so it drops straight into OpenCV
-        picam2.configure(picam2.create_preview_configuration(main={"size": (width, height), "format": "RGB888"}))
-        picam2.start()
-        try:
-            while True:
-                yield picam2.capture_array("main")  # BGR
-        finally:
-            picam2.stop()
-            picam2.close()
-
-
-    def cv2_frames(src):
-        """Yield BGR frames from a video file or USB/V4L2 webcam via OpenCV."""
-        cap = cv2.VideoCapture(src)
-        if not cap.isOpened():
-            raise RuntimeError(f"Could not open source {src}")
-        total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))  # 0 for live webcams
-        pbar = tqdm(total=total, desc="Processing video", unit="frame") if total > 0 else None
-        try:
-            while True:
-                ok, frame = cap.read()  # BGR
-                if not ok:
-                    break
-                yield frame
-                if pbar is not None:
-                    pbar.update(1)
-        finally:
-            if pbar is not None:
-                pbar.close()
-            cap.release()
-
-
-    def open_source(source):
-        """Yield (frame, kind) pairs where kind is 'image', 'video', or 'stream'."""
-        if source == "csi":
-            yield from ((f, "stream") for f in csi_frames())
-        elif source.isdigit():
-            yield from ((f, "stream") for f in cv2_frames(int(source)))
-        elif Path(source).suffix.lower() in IMAGE_EXTS:
-            frame = cv2.imread(source)
-            if frame is None:
-                raise FileNotFoundError(f"Could not read image {source}")
-            yield frame, "image"
-        else:
-            yield from ((f, "video") for f in cv2_frames(source))
+    # Reuse IMAGE_EXTS, parse_and_draw, csi_frames, cv2_frames, and open_source from the Hailo SDK tab above.
 
 
     if __name__ == "__main__":

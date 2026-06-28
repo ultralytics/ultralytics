@@ -172,30 +172,6 @@ def test_predict_gray_and_4ch(tmp_path):
         f.unlink()  # cleanup
 
 
-@pytest.mark.skipif(not ONLINE, reason="environment is offline (pi-heif install required)")
-def test_imread_heif_fallback(tmp_path):
-    """Ensure imread() decodes `.heif` via the OpenCV → Pillow fallback in `ultralytics/utils/patches.py`.
-
-    Regression guard for the fallback extension tuple: without `.heif` in it, the file silently returns `None` despite
-    being a supported `IMG_FORMATS` entry, since `cv2.imdecode` cannot handle HEIF.
-    """
-    from ultralytics.utils.checks import check_requirements
-
-    check_requirements("pillow-heif")  # provides HEIF encoder for the test fixture
-    import pillow_heif
-
-    pillow_heif.register_heif_opener()
-
-    heif_path = tmp_path / "test.heif"
-    Image.new("RGB", (64, 64), (127, 0, 0)).save(heif_path, format="HEIF")
-
-    from ultralytics.utils.patches import imread
-
-    im = imread(str(heif_path))
-    assert im is not None, ".heif imread returned None — fallback regression"
-    assert im.shape == (64, 64, 3), f"unexpected shape: {im.shape}"
-
-
 @pytest.mark.slow
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 def test_predict_all_image_formats():

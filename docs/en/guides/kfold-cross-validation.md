@@ -20,7 +20,7 @@ Let's get started.
 
 ## Task-Specific Split Guidance
 
-K-Fold Cross Validation can be useful across YOLO tasks when data is limited, noisy, or high-variance, but it is often unnecessary for large, diverse datasets with a reliable train/val/test split. The task type usually changes how you design the folds more than whether cross-validation is useful. The example code below remains focused on object detection datasets in YOLO detection format.
+K-Fold Cross Validation can be useful across YOLO tasks when data is limited, noisy, or high-variance, but it is often unnecessary for large, diverse datasets with a reliable train/val/test split. The task type mainly affects how you design the folds rather than whether cross-validation helps. The example code below focuses on object detection datasets in the YOLO detection format.
 
 | Task | Split Guidance |
 | :--- | :------------- |
@@ -30,7 +30,7 @@ K-Fold Cross Validation can be useful across YOLO tasks when data is limited, no
 | `obb` | Split at the image level and preserve object/class coverage across folds, especially for aerial or tiled imagery from the same scene. |
 | `classify` | Use stratified folds when possible so class frequencies remain balanced across train and validation splits. |
 
-For all tasks, avoid placing near-duplicate or related samples in both training and validation folds, as leakage can make validation metrics look better than real-world performance.
+For all tasks, avoid placing near-duplicate or related samples in both the training and validation folds, since such leakage can make validation metrics look better than real-world performance.
 
 ## Setup
 

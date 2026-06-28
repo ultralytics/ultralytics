@@ -27,6 +27,7 @@ from torch import nn, optim
 from ultralytics import __version__
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset, convert_ndjson_to_yolo_if_needed
+from ultralytics.nn.distill_model import DistillationModel
 from ultralytics.nn.tasks import load_checkpoint
 from ultralytics.optim import MuSGD
 from ultralytics.utils import (
@@ -297,7 +298,11 @@ class BaseTrainer:
         self.model = self.model.to(self.device)
         self.set_model_attributes()
 
-        # Compile model
+        # Compile model (knowledge distillation runs the wrapped model eagerly and relies on
+        # find_unused_parameters under DDP for the frozen teacher, so disable compilation when distilling)
+        if self.args.distill_model is not None and self.args.compile:
+            LOGGER.warning("'compile' is not supported with knowledge distillation and will be disabled.")
+            self.args.compile = False
         self.model = attempt_compile(self.model, device=self.device, mode=self.args.compile)
 
         # Freeze layers
@@ -310,6 +315,8 @@ class BaseTrainer:
         )
         always_freeze_names = [".dfl"]  # always freeze these layers
         freeze_layer_names = [f"model.{x}." for x in freeze_list] + always_freeze_names
+        if isinstance(unwrap_model(self.model), DistillationModel):
+            freeze_layer_names.append("teacher_model.")
         self.freeze_layer_names = freeze_layer_names
         for k, v in self.model.named_parameters():
             # v.register_hook(lambda x: torch.nan_to_num(x))  # NaN to 0 (commented for erratic training results)
@@ -335,7 +342,8 @@ class BaseTrainer:
             self.amp = torch.tensor(check_amp(self.model), device=self.device)
             callbacks.default_callbacks = callbacks_backup  # restore callbacks
         if RANK > -1 and self.world_size > 1:  # DDP
-            dist.broadcast(self.amp.int(), src=0)  # broadcast from rank 0 to all other ranks; gloo errors with boolean
+            self.amp = self.amp.int()  # gloo errors with boolean
+            dist.broadcast(self.amp, src=0)  # broadcast from rank 0 to all other ranks
         self.amp = bool(self.amp)  # as boolean
         self.scaler = (
             torch.amp.GradScaler("cuda", enabled=self.amp) if TORCH_2_4 else torch.cuda.amp.GradScaler(enabled=self.amp)
@@ -345,6 +353,9 @@ class BaseTrainer:
         self.args.imgsz = check_imgsz(self.args.imgsz, stride=gs, floor=gs, max_dim=1)
         self.stride = gs  # for multiscale training
 
+        # resume training would directly load DistillationModel so check here
+        if self.args.distill_model is not None and not isinstance(unwrap_model(self.model), DistillationModel):
+            self.model = DistillationModel(student_model=self.model, teacher_model=self.args.distill_model)
         if self.world_size > 1:
             # static_graph=True permits params used >1 time per forward (e.g. flow_model in
             # o2m+o2o pose loss branches) under torch.compile.
@@ -352,6 +363,7 @@ class BaseTrainer:
                 self.model,
                 device_ids=[RANK],
                 static_graph=bool(self.args.compile),
+                find_unused_parameters=not bool(self.args.compile),
             )
 
         # Batch size
@@ -360,6 +372,8 @@ class BaseTrainer:
 
         self._build_train_pipeline()
         self.validator = self.get_validator()
+        if self.args.distill_model is not None and "dis_loss" not in self.loss_names:
+            self.loss_names += ("dis_loss",)
         self.ema = ModelEMA(self.model)
         self.set_class_weights()  # compute class weights after dataloader is ready
         if RANK in {-1, 0}:
@@ -505,7 +519,7 @@ class BaseTrainer:
                             f"{epoch + 1}/{self.epochs}",
                             f"{self._get_memory():.3g}G",  # (GB) GPU memory util
                             *(self.tloss if loss_length > 1 else torch.unsqueeze(self.tloss, 0)),  # losses
-                            batch["img"].shape[0],  # batch size, i.e. 8
+                            batch.get("cls", batch["img"]).shape[0],  # no. of instances
                             batch["img"].shape[-1],  # imgsz, i.e 640
                         )
                     )
@@ -648,10 +662,16 @@ class BaseTrainer:
         """Save model training checkpoints with additional metadata."""
         import io
 
-        ema = deepcopy(unwrap_model(self.ema.ema)).half()
+        # Skip only genuinely non-finite fp32 EMA weights; fp16 overflow is handled on the saved copy below.
+        ema = unwrap_model(self.ema.ema)
         if not all(torch.isfinite(v).all() for v in ema.state_dict().values() if isinstance(v, torch.Tensor)):
             LOGGER.warning(f"Skipping checkpoint save at epoch {self.epoch}: EMA contains NaN/Inf")
             return False
+        ema = deepcopy(ema).half()
+        # Clamp fp16 serialization overflow without mutating the live EMA.
+        for v in ema.state_dict().values():
+            if isinstance(v, torch.Tensor) and v.is_floating_point():
+                torch.nan_to_num_(v)
 
         # Serialize ckpt to a byte buffer once (faster than repeated torch.save() calls)
         buffer = io.BytesIO()
@@ -740,7 +760,22 @@ class BaseTrainer:
             weights, _ = load_checkpoint(self.args.pretrained)
         elif self.args.pretrained is False and not self.resume:
             weights = None
-        self.model = self.get_model(cfg=cfg, weights=weights, verbose=RANK in {-1, 0})  # calls Model(cfg, weights)
+
+        # rebuild DistillationModel from resuming checkpoint
+        if isinstance(weights, DistillationModel):
+            if RANK in {-1, 0}:
+                LOGGER.info("Resuming training DistillationModel from checkpoint weights")
+            student_model = self.get_model(cfg=cfg, weights=weights.student_model, verbose=RANK in {-1, 0})
+            student_model.args = self.args
+            # teacher is stripped from the checkpoint to save memory/disk; rebuild it from the distill_model path
+            teacher_model = weights.teacher_model if weights.teacher_model is not None else self.args.distill_model
+            model = DistillationModel(student_model=student_model, teacher_model=teacher_model)
+            if getattr(weights, "projector", None) is not None:
+                model.projector.load_state_dict(weights.projector.state_dict())  # restore the trained projector
+            model.criterion = None
+            self.model = model
+        else:
+            self.model = self.get_model(cfg=cfg, weights=weights, verbose=RANK in {-1, 0})  # calls Model(cfg, weights)
         return ckpt
 
     def optimizer_step(self):
@@ -892,6 +927,7 @@ class BaseTrainer:
                     "freeze",
                     "val",
                     "plots",
+                    "distill_model",
                 ):  # allow arg updates to reduce memory or update device on resume
                     if k in overrides:
                         setattr(self.args, k, overrides[k])
@@ -949,12 +985,20 @@ class BaseTrainer:
         LOGGER.warning(f"{reason} detected (attempt {self.nan_recovery_attempts}/3), recovering from last.pt...")
         self._model_train()  # set model to train mode before loading checkpoint to avoid inference tensor errors
         _, ckpt = load_checkpoint(self.last)
-        ema_state = ckpt["ema"].float().state_dict()
+        ema = ckpt["ema"].float()
+        ema_state = ema.state_dict()
         if not all(torch.isfinite(v).all() for v in ema_state.values() if isinstance(v, torch.Tensor)):
             raise RuntimeError(f"Checkpoint {self.last} is corrupted with NaN/Inf weights")
-        unwrap_model(self.model).load_state_dict(ema_state)  # Load EMA weights into model
+        model = unwrap_model(self.model)
+        if hasattr(model, "student_model"):
+            # Distillation: the EMA is stripped of the teacher (rebuilt from the distill_model path), so only the
+            # student and projector are restored; loading them separately keeps a strict key match.
+            model.student_model.load_state_dict(ema.student_model.state_dict())
+            model.projector.load_state_dict(ema.projector.state_dict())
+        else:
+            model.load_state_dict(ema_state)  # Load EMA weights into model
         self._load_checkpoint_state(ckpt)  # Load optimizer/scaler/EMA/best_fitness
-        del ckpt, ema_state
+        del ckpt, ema, ema_state
         self.scheduler.last_epoch = epoch - 1
         return True
 
@@ -1087,3 +1131,124 @@ class BaseTrainer:
             f"{num_params[1]} weight(decay=0.0), {num_params[0]} weight(decay={decay}), {num_params[2]} bias(decay=0.0)"
         )
         return optimizer
+
+
+class MultiTrainer:
+    """Fine-tune a single base model across a collection of datasets and aggregate per-dataset results.
+
+    Used automatically by Model.train() when `data` is a list or tuple, allowing one base model to be benchmarked across
+    many datasets (such as the RF100 collection) in a single call. The datasets are fine-tuned in series and the same
+    base weights seed each run, so every run starts from an identical model. All output is grouped under one sweep
+    directory (e.g. runs/detect/multitrain): each dataset gets its own run subdirectory, and the per-dataset and mean
+    metrics are written to multitrain_results.json (for post-processing) alongside a multitrain_results.png bar
+    chart. The base model object is left unchanged; each dataset's fine-tuned weights live in its own run directory.
+
+    Attributes:
+        trainer (type[BaseTrainer]): Task trainer class instantiated once per dataset.
+        args (dict): Training arguments shared across datasets; its `data` key holds the dataset collection.
+        model (torch.nn.Module): Base model whose weights seed each per-dataset fine-tune.
+        callbacks (dict | None): Callbacks forwarded to each per-dataset trainer.
+        trainers (list[BaseTrainer]): Completed per-dataset trainers (hold results.csv, save_dir, and metrics).
+        metrics (dict): Mapping of each run name (e.g. coco8, coco8-2) to its training-metrics dict from the checkpoint.
+        save_dir (Path | None): Sweep directory holding the per-dataset runs and the results JSON/plot.
+
+    Examples:
+        Fine-tune one base model across several datasets and read back per-run metrics:
+        >>> from ultralytics import YOLO
+        >>> model = YOLO("yolo26n.pt")
+        >>> results = model.train(data=["coco8.yaml", "african-wildlife.yaml"], epochs=10)
+        >>> results["coco8"]["fitness"]  # final fitness on the coco8 run
+    """
+
+    def __init__(self, trainer, args, model, _callbacks: dict | None = None):
+        """Initialize MultiTrainer with a task trainer class, shared training arguments, and the base model.
+
+        Args:
+            trainer (type[BaseTrainer]): Task trainer class to run once per dataset.
+            args (dict): Training arguments; the `data` key holds the list/tuple of datasets to fine-tune on.
+            model (torch.nn.Module): Base model whose weights seed each per-dataset fine-tune.
+            _callbacks (dict, optional): Callback functions forwarded to each per-dataset trainer.
+        """
+        self.trainer = trainer
+        self.args = args
+        self.model = model
+        self.callbacks = _callbacks
+        self.trainers = []
+        self.metrics = {}
+        self.save_dir = None
+
+    def train(self):
+        """Fine-tune the base model on each dataset in series and return a {dataset: metrics} mapping."""
+        from types import SimpleNamespace
+
+        datasets = self.args["data"]
+        # Group every per-dataset run and the summary plot under one sweep directory, e.g. runs/detect/multitrain
+        sweep = SimpleNamespace(
+            project=self.args.get("project"),
+            task=self.args.get("task"),
+            mode="train",
+            exist_ok=self.args.get("exist_ok", False),
+        )
+        self.save_dir = get_save_dir(sweep, name="multitrain")
+        for i, data in enumerate(datasets):
+            LOGGER.info(f"\n{colorstr('blue', 'bold', f'MultiTrainer {i + 1}/{len(datasets)}:')} fine-tuning on {data}")
+            try:
+                overrides = {
+                    **self.args,
+                    "data": data,
+                    "project": str(self.save_dir),  # nest per-dataset runs inside the sweep directory
+                    "name": Path(str(data)).stem,
+                    "resume": False,
+                    "session": None,
+                }
+                trainer = self.trainer(overrides=overrides, _callbacks=self.callbacks)
+                trainer.model = trainer.get_model(weights=self.model, cfg=self.model.yaml)  # seed each run from base
+                trainer.train()
+                self.trainers.append(trainer)
+                # Key by the unique run name (e.g. coco8, coco8-2) so repeated datasets do not collapse. Use the
+                # in-memory metrics; only under DDP (validator ran in a subprocess) reload them from the checkpoint.
+                metrics = getattr(trainer.validator, "metrics", None)
+                if metrics is not None:
+                    metrics = metrics.results_dict
+                else:
+                    from ultralytics.utils.patches import torch_load
+
+                    ckpt = trainer.best if trainer.best.exists() else trainer.last
+                    metrics = torch_load(ckpt)["train_metrics"] if ckpt.exists() else None
+                self.metrics[trainer.save_dir.name] = metrics
+            except Exception as e:  # one bad dataset should not abort the whole sweep
+                LOGGER.error(f"MultiTrainer: fine-tuning on {data} failed, skipping: {e}")
+                self.metrics[Path(str(data)).stem] = None
+        if RANK in {-1, 0} and self.trainers:
+            self.save_dir.mkdir(parents=True, exist_ok=True)
+            self.save_results()  # JSON of per-dataset + mean metrics for programmatic post-processing
+            if self.args.get("plots", True):
+                self.plot_results()
+        return self.metrics
+
+    def save_results(self):
+        """Write per-dataset and mean metrics to multitrain_results.json for programmatic post-processing."""
+        import json
+
+        results = {run: ({k: float(v) for k, v in m.items()} if m else None) for run, m in self.metrics.items()}
+        valid = [m for m in results.values() if m]
+        keys = {k for m in valid for k in m}
+        mean = {k: sum(m[k] for m in valid if k in m) / sum(k in m for m in valid) for k in keys}
+        file = self.save_dir / "multitrain_results.json"
+        with open(file, "w", encoding="utf-8") as f:
+            json.dump({"results": results, "mean": mean}, f, indent=2)
+        LOGGER.info(f"MultiTrainer results saved to {colorstr('bold', file)}")
+        return file
+
+    def plot_results(self):
+        """Save a cross-dataset bar chart of the per-dataset metric with the mean across all datasets."""
+        from ultralytics.cfg import TASK2METRIC
+        from ultralytics.utils.plotting import plot_multitrain_results
+
+        key = TASK2METRIC.get(self.args.get("task"))
+        scores = {run: float(m.get(key, m.get("fitness", 0.0))) for run, m in self.metrics.items() if m}
+        if not scores:
+            return None
+        fname = plot_multitrain_results(scores, key=key or "fitness", save_dir=self.save_dir)
+        LOGGER.info(f"MultiTrainer results saved to {colorstr('bold', fname)}")
+        return fname

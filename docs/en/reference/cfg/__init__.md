@@ -1,4 +1,5 @@
 ---
+title: cfg.__init__ API Reference
 description: Explore the methods for managing and validating YOLO configurations in the Ultralytics configuration module. Enhance your YOLO experience.
 keywords: Ultralytics, YOLO, configuration, cfg2dict, get_cfg, check_cfg, save_dir, deprecation, merge_args, yolo, settings, explorer
 ---

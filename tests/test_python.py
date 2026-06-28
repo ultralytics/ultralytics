@@ -262,6 +262,31 @@ def test_val(task: str, weight: str, data: str) -> None:
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
+def test_train_multi():
+    """Test fine-tuning a base model across a dataset collection, which triggers MultiTrainer for list/tuple data."""
+    model = YOLO(MODEL)
+    results = model.train(data=["coco8.yaml", "coco8.yaml"], epochs=1, imgsz=32)
+    assert isinstance(results, dict) and len(results) == 2  # one entry per run (coco8, coco8-2), no duplicate collapse
+    assert all(m and "fitness" in m for m in results.values())  # checkpoint train metrics per run
+    assert len(model.trainer.trainers) == 2  # both list entries fine-tuned in series
+    sweep_dir = model.trainer.save_dir
+    assert sweep_dir.name.startswith("multitrain")  # all runs grouped under one sweep directory
+    assert (sweep_dir / "multitrain_results.json").exists()  # results JSON for post-processing
+    assert (sweep_dir / "multitrain_results.png").exists()  # cross-dataset results plot
+
+
+def test_normalize_platform_uri():
+    """Test Platform web URLs are rewritten to ul:// URIs so datasets/models load directly from a pasted URL."""
+    from ultralytics.utils.checks import normalize_platform_uri
+
+    base = "https://platform.ultralytics.com/glenn-jocher"
+    assert normalize_platform_uri(f"{base}/datasets/coco8") == "ul://glenn-jocher/datasets/coco8"
+    assert normalize_platform_uri(f"{base}/project/model/") == "ul://glenn-jocher/project/model"
+    assert normalize_platform_uri("coco8.yaml") == "coco8.yaml"  # non-Platform inputs unchanged
+
+
+@pytest.mark.skipif(not ONLINE, reason="environment is offline")
+@pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_train_scratch():
     """Test training the YOLO model from scratch on 12 different image types in the COCO12-Formats dataset."""
     model = YOLO(CFG)
@@ -358,6 +383,18 @@ def test_results(model: str, tmp_path):
         r.plot(pil=True, save=True, filename=tmp_path / "results_plot_save.jpg")
         r.plot(conf=True, boxes=True)
         print(r, len(r), r.path)  # print after methods
+
+
+def test_results_plot_without_boxes():
+    """Test that plotting a masks-only Results (boxes=None) does not raise an AttributeError."""
+    from ultralytics.engine.results import Results
+
+    orig_img = np.zeros((640, 640, 3), dtype=np.uint8)
+    masks = torch.zeros((2, 640, 640), dtype=torch.float32)
+    r = Results(orig_img, path="image.jpg", names={0: "a", 1: "b"}, masks=masks)
+    assert r.boxes is None
+    for color_mode in ("class", "instance"):
+        assert r.plot(color_mode=color_mode).shape == orig_img.shape
 
 
 def test_labels_and_crops():
@@ -792,6 +829,13 @@ def test_model_embeddings():
     for batch in [SOURCE], [SOURCE, SOURCE]:  # test batch size 1 and 2
         assert len(model_detect.embed(source=batch, imgsz=32)) == len(batch)
         assert len(model_segment.embed(source=batch, imgsz=32)) == len(batch)
+
+    model_classify = YOLO(WEIGHTS_DIR / "yolo26n-cls.pt")
+    assert model_classify.predict(SOURCE, imgsz=32)[0].probs is not None
+    assert isinstance(model_classify.embed(SOURCE, imgsz=32)[0], torch.Tensor)
+    assert model_classify.predict(SOURCE, imgsz=32)[0].probs is not None
+    assert isinstance(model_classify.predict(SOURCE, imgsz=32, embed=[-2])[0], torch.Tensor)
+    assert model_classify.predict(SOURCE, imgsz=32)[0].probs is not None
 
 
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for CLIP-based models")

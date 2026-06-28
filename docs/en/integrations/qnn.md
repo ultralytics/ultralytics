@@ -1,4 +1,5 @@
 ---
+title: YOLO Export to Qualcomm QNN (Snapdragon)
 comments: true
 description: Export Ultralytics YOLO models to Qualcomm QNN for fast on-device inference on Snapdragon Hexagon NPU, Adreno GPU, and CPU. Step-by-step Qualcomm Snapdragon export guide.
 keywords: Qualcomm QNN, Qualcomm export, Snapdragon export, export YOLO to Qualcomm, QNN export, YOLO Snapdragon, YOLO on Snapdragon, Qualcomm AI Hub, Hexagon NPU, Hexagon HTP, Qualcomm AI Engine Direct, QAIRT, SNPE, onnxruntime-qnn, ONNX Runtime QNN, Snapdragon NPU, on-device inference, edge AI deployment, Ultralytics YOLO, model export
@@ -18,7 +19,7 @@ Deploying computer vision models on Qualcomm Snapdragon devices requires a model
   <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/qnn_cover.avif" alt="Qualcomm QNN on-device inference">
 </p>
 
-[Qualcomm AI Engine Direct](https://www.qualcomm.com/developer/software/qualcomm-ai-engine-direct-sdk) — commonly referred to as **QNN** and distributed as part of the Qualcomm AI Runtime (QAIRT) SDK — is Qualcomm's low-level inference stack for [Snapdragon](https://www.qualcomm.com/products/mobile/snapdragon) processors. It provides a unified API with backend-specific libraries that target the Snapdragon CPU, the Adreno GPU, and the Hexagon Tensor Processor (HTP), the dedicated [neural network](https://www.ultralytics.com/glossary/neural-network-nn) processing unit (NPU) inside modern Snapdragon SoCs. QNN gives developers full-stack access to these Snapdragon AI accelerators and is the modern successor to the older [Snapdragon Neural Processing Engine (SNPE)](https://www.qualcomm.com/developer/software/neural-processing-sdk-for-ai) SDK. It powers on-device AI across the Snapdragon 8 Gen 2, 8 Gen 3, and 8 Elite mobile platforms, Snapdragon X laptops, and automotive and XR products.
+[Qualcomm AI Engine Direct](https://www.qualcomm.com/developer/software/qualcomm-ai-engine-direct-sdk) — commonly referred to as **QNN** and distributed as part of the Qualcomm AI Runtime (QAIRT) SDK — is Qualcomm's low-level inference stack for [Snapdragon](https://www.qualcomm.com/products) processors. It provides a unified API with backend-specific libraries that target the Snapdragon CPU, the Adreno GPU, and the Hexagon Tensor Processor (HTP), the dedicated [neural network](https://www.ultralytics.com/glossary/neural-network-nn) processing unit (NPU) inside modern Snapdragon SoCs. QNN gives developers full-stack access to these Snapdragon AI accelerators and is the modern successor to the older [Snapdragon Neural Processing Engine (SNPE)](https://www.qualcomm.com/developer/software/neural-processing-sdk-for-ai) SDK. It powers on-device AI across the Snapdragon 8 Gen 2, 8 Gen 3, and 8 Elite mobile platforms, Snapdragon X laptops, and automotive and XR products.
 
 ## Why Export to Qualcomm QNN?
 
@@ -49,9 +50,11 @@ The exported `*_qnn.onnx` file is self-contained: it embeds the QNN context bina
 
 ## Measured Performance
 
+### Android Phone
+
 End-to-end single-image inference for the official YOLO26n models on a Xiaomi 17 phone powered by the Qualcomm Snapdragon 8 Elite Gen 5 (SM8850) — Qualcomm Oryon CPU, Adreno GPU, and Hexagon NPU (HTP v81). Each cell shows the **total time** (preprocessing + inference + postprocessing, excluding annotation) with the per-stage split beneath it. CPU and GPU run INT8 TFLite via LiteRT; the NPU runs QNN context binaries (INT8 weights, 16-bit activations).
 
-| Model        | Task     | size<br><sup>(pixels)</sup> | CPU<br><sup>INT8 TFLite<br>(ms)</sup> | GPU Adreno<br><sup>INT8 TFLite<br>(ms)</sup> | NPU Hexagon<br><sup>QNN A16W8<br>(ms)</sup>      |
+| Model        | Task     | size<br><sup>(pixels)</sup> | CPU<br><sup>INT8 TFLite<br>(ms)</sup> | GPU Adreno<br><sup>INT8 TFLite<br>(ms)</sup> | NPU Hexagon<br><sup>QNN W8A16<br>(ms)</sup>      |
 | ------------ | -------- | --------------------------- | ------------------------------------- | -------------------------------------------- | ------------------------------------------------ |
 | YOLO26n      | Detect   | 640                         | 53.3<br><sup>3.6 / 47.4 / 2.4</sup>   | 17.2<br><sup>3.6 / 9.1 / 4.5</sup>           | **11.3**<br><sup>3.5 / 5.6 / 2.2</sup>           |
 | YOLO26n-seg  | Segment  | 640                         | 76.0<br><sup>3.6 / 64.7 / 7.7</sup>   | 23.9<br><sup>3.6 / 11.8 / 8.6</sup>          | **21.3**<br><sup>3.5 / 7.9 / 10.0</sup>          |
@@ -60,21 +63,37 @@ End-to-end single-image inference for the official YOLO26n models on a Xiaomi 17
 | YOLO26n-pose | Pose     | 640                         | 57.7<br><sup>3.5 / 52.4 / 1.8</sup>   | 15.2<br><sup>3.6 / 9.7 / 1.9</sup>           | **10.8**<br><sup>3.5 / 5.6 / 1.8</sup>           |
 | YOLO26n-obb  | OBB      | 1024                        | 50.3<br><sup>3.6 / 45.4 / 1.3</sup>   | **13.9**<br><sup>3.8 / 8.2 / 1.8</sup>       | 21.0<br><sup>8.8 / 10.9 / 1.3</sup>              |
 
-- **Speed** values are **single-image burst latencies** — the mean of 15 runs after 3 warmup runs on [bus.jpg](https://ultralytics.com/images/bus.jpg), measured with the [Flutter plugin's](https://github.com/ultralytics/yolo-flutter-app) on-device benchmark harness on a thermally rested device. Sustained real-time camera frame times run higher (per-frame capture letterboxing plus thermal settling); use the app's on-screen pre/inference/post breakdown for steady-state numbers on your device.
+- **Speed** values are **single-image burst latencies** — the mean of 15 runs after 3 warmup runs on `bus.jpg`, measured with the [Flutter plugin's](https://github.com/ultralytics/yolo-flutter-app) on-device benchmark harness on a thermally rested device. Sustained real-time camera frame times run higher (per-frame capture letterboxing plus thermal settling); use the app's on-screen pre/inference/post breakdown for steady-state numbers on your device.
 - <sup>1</sup> Semantic QNN uses the in-graph ArgMax class-map output from this release, which replaced erratic 123-1065 ms logits decoding with a stable ~49 ms; the GPU remains slightly faster for semantic at 1024px.
+
+### Windows on Snapdragon Laptop
+
+End-to-end single-image inference for the official YOLO26n models on a Lenovo laptop powered by the Qualcomm Snapdragon X Elite (X1E78100) — Qualcomm Oryon CPU and Hexagon NPU (HTP v73), 32 GB RAM, Windows 11. This Windows-on-Snapdragon comparison runs the native PyTorch FP32 CPU baseline that most desktop developers start from against the QNN Hexagon NPU path. Each cell shows the **full `model.predict()` wall time** with the reported preprocessing / inference / postprocessing timings beneath it; the total can include framework overhead outside those three stages. CPU numbers are PyTorch FP32 (`torch==2.10.0+cpu`) and NPU numbers are ONNX Runtime QNN (`onnxruntime-qnn==2.2.0`, INT8 weights / 16-bit activations).
+
+| Model        | Task     | size<br><sup>(pixels)</sup> | CPU<br><sup>PT FP32<br>(ms)</sup>      | NPU Hexagon<br><sup>QNN W8A16<br>(ms)</sup> |
+| ------------ | -------- | --------------------------- | -------------------------------------- | ------------------------------------------- |
+| YOLO26n      | Detect   | 640                         | 91.4<br><sup>4.3 / 75.2 / 0.1</sup>    | **27.2**<br><sup>4.9 / 19.4 / 0.9</sup>     |
+| YOLO26n-seg  | Segment  | 640                         | 138.8<br><sup>4.5 / 127.1 / 2.8</sup>  | **34.3**<br><sup>5.0 / 24.0 / 5.1</sup>     |
+| YOLO26n-sem  | Semantic | 1024                        | 295.8<br><sup>9.1 / 189.2 / 94.8</sup> | **133.0**<br><sup>8.8 / 37.4 / 83.9</sup>   |
+| YOLO26n-cls  | Classify | 224                         | 15.4<br><sup>3.0 / 9.8 / 0.0</sup>     | **11.7**<br><sup>2.7 / 5.5 / 0.0</sup>      |
+| YOLO26n-pose | Pose     | 640                         | 109.6<br><sup>4.6 / 102.9 / 0.2</sup>  | **28.9**<br><sup>5.3 / 23.3 / 0.6</sup>     |
+| YOLO26n-obb  | OBB      | 1024                        | 267.8<br><sup>8.1 / 254.6 / 0.1</sup>  | **64.8**<br><sup>8.9 / 54.7 / 0.6</sup>     |
+
+- **Speed** values are **single-image burst latencies** — the mean of 100 runs after 10 warmup runs on `bus.jpg`, measured with `time.perf_counter()` around the full `model.predict()` call on a thermally rested device (`ultralytics==8.4.67`, Python 3.12.10).
+- The Hexagon NPU runs roughly **2-4x faster** than the PyTorch CPU baseline across the 640-1024 px tasks (detection ~3.4x), narrowing to ~1.3x on the 224 px classifier where fixed preprocessing overhead dominates the tiny workload.
 
 ## Supported Tasks
 
 QNN export supports the standard task set available in each model family, including YOLO26 semantic segmentation.
 
-| Task                                                                  | Supported |
-| :-------------------------------------------------------------------- | :-------- |
-| [Object Detection](https://docs.ultralytics.com/tasks/detect/)        | ✅        |
-| [Instance Segmentation](https://docs.ultralytics.com/tasks/segment/)  | ✅        |
-| [Semantic Segmentation](https://docs.ultralytics.com/tasks/semantic/) | ✅        |
-| [Pose Estimation](https://docs.ultralytics.com/tasks/pose/)           | ✅        |
-| [OBB Detection](https://docs.ultralytics.com/tasks/obb/)              | ✅        |
-| [Classification](https://docs.ultralytics.com/tasks/classify/)        | ✅        |
+| Task                                          | Supported |
+| :-------------------------------------------- | :-------- |
+| [Object Detection](../tasks/detect.md)        | ✅        |
+| [Instance Segmentation](../tasks/segment.md)  | ✅        |
+| [Semantic Segmentation](../tasks/semantic.md) | ✅        |
+| [Pose Estimation](../tasks/pose.md)           | ✅        |
+| [OBB Detection](../tasks/obb.md)              | ✅        |
+| [Classification](../tasks/classify.md)        | ✅        |
 
 ## Export to QNN: Converting Your YOLO Model
 
@@ -189,14 +208,14 @@ The QNN format supports the [Export](../modes/export.md), [Predict](../modes/pre
 | `imgsz`    | `int` or `tuple` | `640`          | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)`.                                                                                                  |
 | `batch`    | `int`            | `1`            | Specifies the export model batch size, which is baked into the generated QNN context binary.                                                                                                               |
 | `name`     | `str`            | `'73'`         | Target Hexagon HTP architecture version: `68`, `69`, `73`, `75`, `79`, or `81` (Snapdragon 888, 8 Gen 1, 8 Gen 2, 8 Gen 3, 8 Elite, 8 Elite Gen 5). The context binary is finalized for this architecture. |
-| `int8`     | `bool`           | `True`         | Enables INT8 quantization. Required for QNN HTP export — automatically set to `True` if not specified.                                                                                                     |
+| `quantize` | `int` or `str`   | `'w8a16'`/auto | Quantization precision. QNN HTP export is quantized to INT8 weights with 16-bit activations (`'w8a16'`) and is auto-enabled if not specified. Replaces the deprecated `half`/`int8` flags.                 |
 | `data`     | `str`            | `'coco8.yaml'` | Dataset configuration file used for INT8 calibration. Specifies the calibration image source.                                                                                                              |
 | `fraction` | `float`          | `1.0`          | Fraction of the calibration dataset to use for INT8 quantization.                                                                                                                                          |
 | `device`   | `str`            | `None`         | Specifies the device for the ONNX export step: GPU (`device=0`) or CPU (`device=cpu`).                                                                                                                     |
 
 !!! note "Precision"
 
-    QNN export quantizes the model to **16-bit activations and INT8 weights** — the recommended accuracy/performance balance for the Hexagon NPU — using the [ONNX Runtime QDQ quantization](https://onnxruntime.ai/docs/performance/model-optimizations/quantization.html) flow with calibration images from `data`. `int8=True` is enforced automatically.
+    QNN export quantizes the model to **16-bit activations and INT8 weights** — the recommended accuracy/performance balance for the Hexagon NPU — using the [ONNX Runtime QDQ quantization](https://onnxruntime.ai/docs/performance/model-optimizations/quantization.html) flow with calibration images from `data`. `quantize='w8a16'` is enforced automatically.
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 

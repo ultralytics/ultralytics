@@ -91,7 +91,7 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [Seeed Studio reCamera](seeedstudio-recamera.md): Developed by [Seeed Studio](https://www.seeedstudio.com/), the reCamera is an advanced edge AI device designed for real-time computer vision applications. Powered by the RISC-V-based SG200X processor, it delivers high-performance AI inference with energy efficiency. Its modular design, advanced video processing capabilities, and support for flexible deployment make it an ideal choice for various use cases, including safety monitoring, environmental applications, and manufacturing.
 
-- [SONY IMX500](sony-imx500.md): Optimize and deploy [Ultralytics YOLO26](https://docs.ultralytics.com/models/yolo26) models on Raspberry Pi AI Cameras with the IMX500 sensor for fast, low-power performance.
+- [SONY IMX500](sony-imx500.md): Optimize and deploy [Ultralytics YOLO26](../models/yolo26.md) models on Raspberry Pi AI Cameras with the IMX500 sensor for fast, low-power performance.
 
 - [TensorRT](tensorrt.md): Developed by [NVIDIA](https://www.nvidia.com/ja-jp/), this high-performance [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) inference framework and model format optimizes AI models for accelerated speed and efficiency on NVIDIA GPUs, ensuring streamlined deployment.
 
@@ -133,7 +133,7 @@ Let's collaborate to make the Ultralytics YOLO ecosystem more expansive and feat
 
 ### What is Ultralytics Platform, and how does it streamline the ML workflow?
 
-[Ultralytics Platform](https://platform.ultralytics.com) is a cloud-based platform designed to make machine learning workflows for Ultralytics models seamless and efficient. By using this tool, you can easily upload datasets, train models, perform real-time tracking, and deploy YOLO models without needing extensive coding skills. The platform serves as a centralized workspace where you can manage your entire ML pipeline from data preparation to deployment. You can explore the key features on the [Ultralytics Platform](https://platform.ultralytics.com/) page and get started quickly with our [Quickstart](https://docs.ultralytics.com/platform/quickstart) guide.
+[Ultralytics Platform](https://platform.ultralytics.com) is a cloud-based platform designed to make machine learning workflows for Ultralytics models seamless and efficient. By using this tool, you can easily upload datasets, train models, perform real-time tracking, and deploy YOLO models without needing extensive coding skills. The platform serves as a centralized workspace where you can manage your entire ML pipeline from data preparation to deployment. You can explore the key features on the [Ultralytics Platform](https://platform.ultralytics.com/) page and get started quickly with our [Quickstart](../platform/quickstart.md) guide.
 
 ### Can I track the performance of my Ultralytics models using MLFlow?
 
@@ -145,4 +145,4 @@ Yes, you can. Integrating [MLFlow](https://mlflow.org/) with Ultralytics models 
 
 ### How do I deploy Ultralytics YOLO models with Gradio for interactive demos?
 
-To deploy Ultralytics YOLO models with [Gradio](https://www.gradio.app/) for interactive [object detection](https://www.ultralytics.com/glossary/object-detection) demos, you can follow the steps outlined on the [Gradio](gradio.md) integration page. Gradio allows you to create easy-to-use web interfaces for real-time model inference, making it an excellent tool for showcasing your YOLO model's capabilities in a user-friendly format suitable for both developers and end-users. With just a few lines of code, you can build interactive applications that demonstrate your model's performance on custom inputs, facilitating better understanding and evaluation of your computer vision solutions.
+To deploy Ultralytics YOLO models with [Gradio](https://gradio.app/) for interactive [object detection](https://www.ultralytics.com/glossary/object-detection) demos, you can follow the steps outlined on the [Gradio](gradio.md) integration page. Gradio allows you to create easy-to-use web interfaces for real-time model inference, making it an excellent tool for showcasing your YOLO model's capabilities in a user-friendly format suitable for both developers and end-users. With just a few lines of code, you can build interactive applications that demonstrate your model's performance on custom inputs, facilitating better understanding and evaluation of your computer vision solutions.

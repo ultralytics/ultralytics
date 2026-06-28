@@ -33,16 +33,16 @@ The IMX500 works with quantized models. Quantization makes models smaller and fa
 - **Addresses Privacy Concerns:** By processing data on the device, the IMX500 addresses privacy concerns, ideal for human-centric applications like person counting and occupancy tracking.
 - **Real-time Processing:** Fast, on-sensor processing supports real-time decisions, perfect for edge AI applications such as autonomous systems.
 
-**Before You Begin:** For best results, ensure your YOLO11 model is well-prepared for export by following our [Model Training Guide](https://docs.ultralytics.com/modes/train), [Data Preparation Guide](https://docs.ultralytics.com/datasets), and [Hyperparameter Tuning Guide](https://docs.ultralytics.com/guides/hyperparameter-tuning).
+**Before You Begin:** For best results, ensure your YOLO11 model is well-prepared for export by following our [Model Training Guide](../modes/train.md), [Data Preparation Guide](../datasets/index.md), and [Hyperparameter Tuning Guide](../guides/hyperparameter-tuning.md).
 
 ## Supported Tasks
 
 Currently, you can only export models that include the following tasks to IMX500 format.
 
-- [Object Detection](https://docs.ultralytics.com/tasks/detect)
-- [Pose Estimation](https://docs.ultralytics.com/tasks/pose)
-- [Classification](https://docs.ultralytics.com/tasks/classify)
-- [Instance segmentation](https://docs.ultralytics.com/tasks/segment)
+- [Object Detection](../tasks/detect.md)
+- [Pose Estimation](../tasks/pose.md)
+- [Classification](../tasks/classify.md)
+- [Instance segmentation](../tasks/segment.md)
 
 !!! note "Supported model variants"
 
@@ -209,8 +209,8 @@ The IMX500 format supports the [Export](../modes/export.md), [Predict](../modes/
 | ---------- | ---------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `format`   | `str`            | `'imx'`        | Target format for the exported model, defining compatibility with various deployment environments.                                                                                                                                                               |
 | `imgsz`    | `int` or `tuple` | `640`          | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                                                                |
-| `int8`     | `bool`           | `True`         | Activates INT8 quantization, further compressing the model and speeding up inference with minimal [accuracy](https://www.ultralytics.com/glossary/accuracy) loss, primarily for edge devices.                                                                    |
-| `data`     | `str`            | `'coco8.yaml'` | Path to the [dataset](https://docs.ultralytics.com/datasets) configuration file (default: `coco8.yaml`), essential for quantization.                                                                                                                             |
+| `quantize` | `int` or `str`   | `8`/auto       | Quantization precision. `8` (INT8/PTQ) is auto-enabled for IMX500; `"w8a16"` exports INT8 weights with FP16 activations. FP32 and FP16-only export are not supported. Replaces the deprecated `half`/`int8` flags.                                               |
+| `data`     | `str`            | `'coco8.yaml'` | Path to the [dataset](../datasets/index.md) configuration file (default: `coco8.yaml`), essential for quantization.                                                                                                                                              |
 | `fraction` | `float`          | `1.0`          | Specifies the fraction of the dataset to use for INT8 quantization calibration. Allows for calibrating on a subset of the full dataset, useful for experiments or when resources are limited. If not specified with INT8 enabled, the full dataset will be used. |
 | `nms`      | `bool`           | `False`        | Adds Non-Maximum Suppression (NMS) to the exported model. When `True`, `conf`, `iou`, and `agnostic_nms` are also accepted.                                                                                                                                      |
 | `device`   | `str`            | `None`         | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`).                                                                                                                                                                                        |

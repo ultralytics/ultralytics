@@ -254,7 +254,9 @@ class Detect(nn.Module):
         ori_index = scores.max(dim=-1)[0].topk(k)[1].unsqueeze(-1)
         scores = scores.gather(dim=1, index=ori_index.repeat(1, 1, nc))
         scores, index = scores.flatten(1).topk(k)
-        idx = ori_index[torch.arange(batch_size)[..., None], torch.div(index, nc, rounding_mode="trunc")]  # original index
+        idx = ori_index[
+            torch.arange(batch_size)[..., None], torch.div(index, nc, rounding_mode="trunc")
+        ]  # original index
         return scores[..., None], (index % nc)[..., None].float(), idx
 
     def fuse(self) -> None:

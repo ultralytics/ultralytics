@@ -48,25 +48,21 @@ def test_amp():
 @pytest.mark.slow
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 @pytest.mark.parametrize(
-    "task, dynamic, int8, half, batch, simplify, nms",
+    "task, dynamic, batch, simplify, nms",
     [  # generate all combinations except for exclusion cases
-        (task, dynamic, int8, half, batch, simplify, nms)
-        for task, dynamic, int8, half, batch, simplify, nms in product(
-            sorted(TASKS), [True, False], [False], [False], [1, 2], [True, False], [True, False]
+        (task, dynamic, batch, simplify, nms)
+        for task, dynamic, batch, simplify, nms in product(
+            sorted(TASKS), [True, False], [1, 2], [True, False], [True, False]
         )
-        if not (
-            (int8 and half) or (task == "classify" and nms) or (task == "obb" and nms and (not TORCH_1_13 or IS_JETSON))
-        )
+        if not ((task == "classify" and nms) or (task == "obb" and nms and (not TORCH_1_13 or IS_JETSON)))
     ],
 )
-def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms):
+def test_export_onnx_matrix(task, dynamic, batch, simplify, nms):
     """Test YOLO exports to ONNX format with various configurations and parameters."""
     file = YOLO(TASK2MODEL[task]).export(
         format="onnx",
         imgsz=32,
         dynamic=dynamic,
-        int8=int8,
-        half=half,
         batch=batch,
         simplify=simplify,
         nms=nms,
@@ -80,22 +76,21 @@ def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms):
 @pytest.mark.slow
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 @pytest.mark.parametrize(
-    "task, dynamic, int8, half, batch",
-    [  # generate all combinations but exclude those where both int8 and half are True
-        (task, dynamic, int8, half, batch)
+    "task, dynamic, quantize, batch",
+    [
+        (task, dynamic, quantize, batch)
         # Note: tests reduced below pending compute availability expansion as GPU CI runner utilization is high
-        # for task, dynamic, int8, half, batch in product(TASKS, [True, False], [True, False], [True, False], [1, 2])
-        for task, dynamic, int8, half, batch in product(sorted(TASKS), [True], [True], [False], [2])
-        if not (int8 and half)  # exclude cases where both int8 and half are True
+        # for task, dynamic, quantize, batch in product(TASKS, [True, False], [8, 16], [1, 2])
+        for task, dynamic, quantize, batch in product(sorted(TASKS), [True], [8, 16], [2])
     ],
 )
-def test_export_engine_matrix(task, dynamic, int8, half, batch):
+def test_export_engine_matrix(task, dynamic, quantize, batch):
     """Test YOLO model export to TensorRT format for various configurations and run inference."""
     check_tensorrt()
     import tensorrt as trt
 
     is_trt11 = int(trt.__version__.split(".", 1)[0]) >= 11
-    if not is_trt11 and int8 and dynamic:
+    if not is_trt11 and quantize == 8 and dynamic:
         # TensorRT 7-10 calibrator path cannot quantize dynamic-shape models; TensorRT 11 uses ModelOpt explicit Q/DQ
         pytest.skip("INT8 + dynamic export requires explicit quantization, available on TensorRT 11+")
 
@@ -103,20 +98,19 @@ def test_export_engine_matrix(task, dynamic, int8, half, batch):
         format="engine",
         imgsz=32,
         dynamic=dynamic,
-        int8=int8,
-        half=half,
+        quantize=quantize,
         batch=batch,
-        data=TASK2DATA[task],
+        data=TASK2DATA[task],  # use the smallest task datasets for fast INT8 calibration
         workspace=1,  # reduce workspace GB for less resource utilization during testing
         simplify=True,
         device=DEVICES[0],
     )
     YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32, device=DEVICES[0])  # exported model inference
     Path(file).unlink()  # cleanup
-    if int8:
+    if quantize == 8:
         Path(file).with_suffix(".cache").unlink(missing_ok=True)  # cleanup TensorRT 7-10 INT8 calibration cache
         Path(file).with_suffix(".int8.onnx").unlink(missing_ok=True)  # cleanup TensorRT 11 ModelOpt INT8 ONNX
-    if half:
+    if quantize == 16:
         Path(file).with_suffix(".fp16.onnx").unlink(missing_ok=True)  # cleanup TensorRT 11 ModelOpt FP16 ONNX
 
 
@@ -186,7 +180,7 @@ def test_utils_benchmarks(isolated_model):
     ProfileModels(
         [isolated_model],
         imgsz=32,
-        half=False,
+        quantize=32,
         min_time=1,
         num_timed_runs=3,
         num_warmup_runs=1,
@@ -222,7 +216,7 @@ def test_predict_sam():
             imgsz=1024,
             model=WEIGHTS_DIR / "mobile_sam.pt",
             device=DEVICES[0],
-            half=True,
+            quantize=16,
         )
     )
     predictor.set_image(ASSETS / "zidane.jpg")

@@ -171,8 +171,7 @@ def torch2coreml(
     classifier_names: list[str] | None,
     output_file: Path | str | None = None,
     mlmodel: bool = False,
-    half: bool = False,
-    int8: bool = False,
+    quantize: int | str | None = None,
     metadata: dict | None = None,
     prefix: str = "",
 ) -> Any:
@@ -185,8 +184,7 @@ def torch2coreml(
         classifier_names (list[str] | None): Class names for classifier config, or None if not a classifier.
         output_file (Path | str | None): Output file path, or None to skip saving.
         mlmodel (bool): Whether to export as ``.mlmodel`` (neural network) instead of ``.mlpackage`` (ML program).
-        half (bool): Whether to quantize to FP16.
-        int8 (bool): Whether to quantize to INT8.
+        quantize (int | str | None): Precision scheme, e.g. 16 for FP16 or 8/``"w8a16"`` for INT8 weights.
         metadata (dict | None): Metadata to embed in the CoreML model.
         prefix (str): Prefix for log messages.
 
@@ -197,6 +195,8 @@ def torch2coreml(
 
     LOGGER.info(f"\n{prefix} starting export with coremltools {ct.__version__}...")
     ts = torch.jit.trace(model.eval(), im, strict=False)  # TorchScript model
+    fp16 = quantize == 16
+    weight_int8 = quantize in {8, "w8a16"}
 
     # Based on apple's documentation it is better to leave out the minimum_deployment target and let that get set
     # Internally based on the model conversion and output type.
@@ -209,21 +209,19 @@ def torch2coreml(
         skip_model_load=True,
     )
     if not mlmodel:
-        # RT-DETR / DEIM decoder class logits and deformable-sampling indices drift in fp16; pin those op types to fp32.
-        from ultralytics.nn.modules.head import DeimDecoder, RTDETRDecoder
+        # ML Program conversion defaults to FP16. Pin FP32 unless FP16/INT8 was requested.
+        from ultralytics.nn.modules.head import RTDETRDecoder
 
-        if any(isinstance(m, DeimDecoder) for m in model.modules()):
-            fp32_ops = {"linear", "gather", "gather_nd", "gather_along_axis"}
-            convert_kwargs["compute_precision"] = ct.transform.FP16ComputePrecision(
-                op_selector=lambda op: op.op_type not in fp32_ops
-            )
+        if not (fp16 or weight_int8):
+            convert_kwargs["compute_precision"] = ct.precision.FLOAT32
         elif any(isinstance(m, RTDETRDecoder) for m in model.modules()):
+            # RT-DETR / DEIM / RTDETRv2 decoder class logits and deformable-sampling indices drift in fp16; pin those op types to fp32.
             fp32_ops = {"linear", "gather", "gather_nd", "gather_along_axis"}
             convert_kwargs["compute_precision"] = ct.transform.FP16ComputePrecision(
                 op_selector=lambda op: op.op_type not in fp32_ops
             )
     ct_model = ct.convert(ts, **convert_kwargs)
-    bits, mode = (8, "kmeans") if int8 else (16, "linear") if half else (32, None)
+    bits, mode = (8, "kmeans") if weight_int8 else (16, "linear") if fp16 else (32, None)
     if bits < 32:
         if "kmeans" in mode:
             check_requirements("scikit-learn")  # scikit-learn package required for k-means quantization

@@ -7,6 +7,7 @@ from typing import Any
 
 import torch
 
+from ultralytics.cfg import get_cfg
 from ultralytics.data.build import load_inference_source
 from ultralytics.engine.model import Model
 from ultralytics.models import yolo
@@ -422,6 +423,7 @@ class YOLOE(Model):
                 f"{len(visual_prompts['cls'])} respectively"
             )
             if type(self.predictor) is not predictor:
+                args = get_cfg(overrides={**self.overrides, **kwargs})
                 self.predictor = predictor(
                     overrides={
                         "task": self.model.task,
@@ -429,9 +431,9 @@ class YOLOE(Model):
                         "save": False,
                         "verbose": refer_image is None,
                         "batch": 1,
-                        "device": kwargs.get("device", None),
-                        "half": kwargs.get("half", False),
-                        "imgsz": kwargs.get("imgsz", self.overrides.get("imgsz", 640)),
+                        "device": args.device,
+                        "quantize": args.quantize,
+                        "imgsz": args.imgsz,
                     },
                     _callbacks=self.callbacks,
                 )

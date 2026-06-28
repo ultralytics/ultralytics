@@ -404,13 +404,13 @@ class BasePredictor:
             device=select_device(self.args.device, verbose=verbose),
             dnn=self.args.dnn,
             data=self.args.data,
-            fp16=self.args.half,
+            fp16=self.args.quantize == 16,
             fuse=True,
             verbose=verbose,
         )
 
         self.device = self.model.device  # update device
-        self.args.half = self.model.fp16  # update half
+        self.args.quantize = 16 if self.model.fp16 else None  # record actual inference precision
         if hasattr(self.model, "imgsz") and not getattr(self.model, "dynamic", False):
             self.args.imgsz = self.model.imgsz  # reuse imgsz from export metadata
         self.model.eval()

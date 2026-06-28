@@ -36,14 +36,13 @@ Ultralytics Platform accepts multiple upload formats for flexibility.
 
 === "Videos"
 
-    Videos are automatically extracted to frames on the client side at 1 FPS (max 100 frames per video).
+    Videos are extracted to frames in your browser at 1 FPS (max 100 frames per video). The container/codec combination must be browser-decodable — see [Browser Codec Support](#browser-codec-support).
 
     | Format | Extensions | Extraction            | Max Size |
     | ------ | ---------- | --------------------- | -------- |
     | MP4    | `.mp4`     | 1 FPS, max 100 frames | 1 GB     |
     | WebM   | `.webm`    | 1 FPS, max 100 frames | 1 GB     |
     | MOV    | `.mov`     | 1 FPS, max 100 frames | 1 GB     |
-    | AVI    | `.avi`     | 1 FPS, max 100 frames | 1 GB     |
     | MKV    | `.mkv`     | 1 FPS, max 100 frames | 1 GB     |
     | M4V    | `.m4v`     | 1 FPS, max 100 frames | 1 GB     |
 
@@ -60,6 +59,29 @@ Ultralytics Platform accepts multiple upload formats for flexibility.
     | ZIP    | `.zip`                  | Most common       | 10 GB  | 20 GB  | 50 GB      |
     | TAR    | `.tar` `.tar.gz` `.tgz` | Compressed or raw | 10 GB  | 20 GB  | 50 GB      |
     | NDJSON | `.ndjson`               | Dataset export    | 10 GB  | 20 GB  | 50 GB      |
+
+### Browser Codec Support
+
+The file extension alone isn't enough: a video can still fail if its container or codec isn't supported by your browser.
+
+!!! tip "Use H.264 MP4"
+
+    H.264 video in an MP4 container has the broadest support across major browsers and is the safest choice. If a video won't upload, re-encode it with [FFmpeg](https://ffmpeg.org/):
+
+    ```bash
+    ffmpeg -i input.mov -c:v libx264 -pix_fmt yuv420p -c:a aac -movflags +faststart output.mp4
+    ```
+
+??? info "Which video codecs work"
+
+    These are the codecs **Chromium-based browsers** typically decode. Safari and Firefox may differ, so don't treat the Yes/No values below as universal browser support:
+
+    | Codec                               | Decodes in Chrome | Notes                                |
+    | ----------------------------------- | ----------------- | ------------------------------------ |
+    | H.264 (AVC)                         | Yes               | Recommended — widest browser support |
+    | VP8, VP9, AV1                       | Yes               | Royalty-free; common in WebM and MKV |
+    | HEVC (H.265)                        | Hardware only     | Only on devices with an HEVC decoder |
+    | ProRes, MPEG-2, DivX/Xvid, MJPEG, … | No                | Re-encode to H.264                   |
 
 ### Preparing Your Dataset
 

@@ -1,4 +1,5 @@
 ---
+title: YOLO26 on NVIDIA DGX Spark
 comments: true
 description: Learn to deploy Ultralytics YOLO26 on NVIDIA DGX Spark with our detailed guide. Explore performance benchmarks and maximize AI capabilities on this compact desktop AI supercomputer.
 keywords: Ultralytics, YOLO26, NVIDIA DGX Spark, AI deployment, performance benchmarks, deep learning, TensorRT, computer vision, GB10 Grace Blackwell
@@ -359,8 +360,8 @@ When using NVIDIA DGX Spark, there are a couple of best practices to follow in o
     For best performance, export models with FP16 or INT8 precision:
 
     ```bash
-    yolo export model=yolo26n.pt format=engine half=True # FP16
-    yolo export model=yolo26n.pt format=engine int8=True # INT8
+    yolo export model=yolo26n.pt format=engine quantize=16 # FP16
+    yolo export model=yolo26n.pt format=engine quantize=8  # INT8
     ```
 
 ## System Updates (Founders Edition)

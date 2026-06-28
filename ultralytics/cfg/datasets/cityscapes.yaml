@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # Cityscapes semantic segmentation dataset (19 classes)
-# Documentation: https://docs.ultralytics.com/datasets/semantic/cityscapes/
+# Documentation: https://docs.ultralytics.com/datasets/semantic/cityscapes
 # Example usage: yolo semantic train data=cityscapes.yaml model=yolo26n-sem.pt
 # parent
 # ├── ultralytics

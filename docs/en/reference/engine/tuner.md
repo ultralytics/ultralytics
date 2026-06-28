@@ -1,4 +1,5 @@
 ---
+title: engine.tuner API Reference
 description: Optimize YOLO model performance using Ultralytics Tuner. Learn about systematic hyperparameter tuning for object detection, segmentation, classification, and tracking.
 keywords: Ultralytics, YOLO, hyperparameter tuning, machine learning, deep learning, object detection, instance segmentation, image classification, pose estimation, multi-object tracking
 ---

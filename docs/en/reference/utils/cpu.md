@@ -1,4 +1,5 @@
 ---
+title: utils.cpu API Reference
 description: Reference documentation for CPUInfo, a lightweight utility to get system CPU details in Ultralytics.
 keywords: Ultralytics, CPUInfo, CPU, system info, hardware, utils
 ---

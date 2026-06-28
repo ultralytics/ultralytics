@@ -1,4 +1,5 @@
 ---
+title: nn.backends.openvino API Reference
 description: Explore OpenVINOBackend for optimized inference on Intel hardware, supporting OpenVINO IR models for efficient deployment on CPUs, GPUs, and VPUs.
 keywords: Ultralytics, OpenVINOBackend, OpenVINO inference, Intel OpenVINO, CPU inference, VPU, edge AI, deep learning optimization
 ---

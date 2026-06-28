@@ -40,7 +40,7 @@ This guide serves as a comprehensive introduction to setting up a Docker environ
 
 - Make sure Docker is installed on your system. If not, you can download and install it from [Docker's website](https://www.docker.com/products/docker-desktop/).
 - Ensure that your system has an NVIDIA GPU and NVIDIA drivers are installed.
-- If you are using NVIDIA Jetson devices, ensure that you have the appropriate JetPack version installed. Refer to the [NVIDIA Jetson guide](https://docs.ultralytics.com/guides/nvidia-jetson) for more details.
+- If you are using NVIDIA Jetson devices, ensure that you have the appropriate JetPack version installed. Refer to the [NVIDIA Jetson guide](nvidia-jetson.md) for more details.
 
 ---
 
@@ -154,9 +154,9 @@ Ultralytics offers several Docker images optimized for various platforms and use
 - **Dockerfile:** GPU image, ideal for training.
 - **Dockerfile-arm64:** For ARM64 architecture, suitable for devices like [Raspberry Pi](raspberry-pi.md).
 - **Dockerfile-cpu:** CPU-only version for inference and non-GPU environments.
-- **Dockerfile-jetson-jetpack4:** Optimized for [NVIDIA Jetson](https://docs.ultralytics.com/guides/nvidia-jetson) devices running [NVIDIA JetPack 4](https://developer.nvidia.com/embedded/jetpack-sdk-461).
-- **Dockerfile-jetson-jetpack5:** Optimized for [NVIDIA Jetson](https://docs.ultralytics.com/guides/nvidia-jetson) devices running [NVIDIA JetPack 5](https://developer.nvidia.com/embedded/jetpack-sdk-512).
-- **Dockerfile-jetson-jetpack6:** Optimized for [NVIDIA Jetson](https://docs.ultralytics.com/guides/nvidia-jetson) devices running [NVIDIA JetPack 6](https://developer.nvidia.com/embedded/jetpack-sdk-61).
+- **Dockerfile-jetson-jetpack4:** Optimized for [NVIDIA Jetson](nvidia-jetson.md) devices running [NVIDIA JetPack 4](https://developer.nvidia.com/embedded/jetpack-sdk-461).
+- **Dockerfile-jetson-jetpack5:** Optimized for [NVIDIA Jetson](nvidia-jetson.md) devices running [NVIDIA JetPack 5](https://developer.nvidia.com/embedded/jetpack-sdk-512).
+- **Dockerfile-jetson-jetpack6:** Optimized for [NVIDIA Jetson](nvidia-jetson.md) devices running [NVIDIA JetPack 6](https://developer.nvidia.com/embedded/jetpack-sdk-61).
 - **Dockerfile-jupyter:** For interactive development using JupyterLab in the browser.
 - **Dockerfile-nvidia-arm64:** For NVIDIA ARM64 devices such as Jetson AGX Thor and DGX Spark, supporting JetPack 7.0 and DGX OS.
 - **Dockerfile-python:** Minimal Python environment for lightweight applications.
@@ -284,7 +284,7 @@ yolo predict model=yolo26n.pt show=True
 
 ??? info "Testing"
 
-    A simple way to validate that the Docker group has access to the X11 server is to run a container with a GUI program like [`xclock`](https://www.x.org/archive/X11R6.8.1/doc/xclock.1.html) or [`xeyes`](https://www.x.org/releases/X11R7.5/doc/man/man1/xeyes.1.html). Alternatively, you can also install these programs in the Ultralytics Docker container to test the access to the X11 server of your GNU-Linux display server. If you run into any problems, consider setting the environment variable `-e QT_DEBUG_PLUGINS=1`. Setting this environment variable enables the output of debugging information, aiding in the troubleshooting process.
+    A simple way to validate that the Docker group has access to the X11 server is to run a container with a GUI program like [`xclock`](https://xorg.freedesktop.org/archive/X11R6.8.1/doc/xclock.1.html) or [`xeyes`](https://xorg.freedesktop.org/archive/X11R7.5/doc/man/man1/xeyes.1.html). Alternatively, you can also install these programs in the Ultralytics Docker container to test the access to the X11 server of your GNU-Linux display server. If you run into any problems, consider setting the environment variable `-e QT_DEBUG_PLUGINS=1`. Setting this environment variable enables the output of debugging information, aiding in the troubleshooting process.
 
 ### When finished with Docker GUI
 

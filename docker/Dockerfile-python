@@ -3,7 +3,7 @@
 # Builds ultralytics/ultralytics:latest-python image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
 # Lightweight CPU image optimized for YOLO inference
 
-# Use official Python base image for reproducibility (3.11.10 for export and 3.12.10 for inference)
+# Use official Python 3.11.10 base image for reproducibility
 FROM python:3.11.10-slim-bookworm
 
 # Set environment variables (suppress PyTorch NNPACK warnings)
@@ -37,8 +37,9 @@ ADD https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n.pt .
 
 # Install pip packages
 RUN pip install uv && \
-    uv pip install --system -e . --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match && \
-    # Remove extra build files
+    uv pip install --system --no-cache -e . \
+    --extra-index-url https://download.pytorch.org/whl/cpu \
+    --index-strategy unsafe-best-match && \
     rm -rf tmp ~/.cache /root/.config/Ultralytics/persistent_cache.json
 
 # Usage --------------------------------------------------------------------------------------------------------------

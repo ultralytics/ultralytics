@@ -774,7 +774,7 @@ class RepConv(nn.Module):
 
     default_act = nn.SiLU()  # default activation
 
-    def __init__(self, c1, c2, k=3, s=1, p=1, g=1, d=1, act=True, bn=False, deploy=False):
+    def __init__(self, c1, c2, k=3, s=1, p=1, g=1, d=1, act=True, bn=False, deploy=False, identity=True):
         """Initialize RepConv module with given parameters.
 
         Args:
@@ -788,6 +788,8 @@ class RepConv(nn.Module):
             act (bool | nn.Module): Activation function.
             bn (bool): Use batch normalization for identity branch.
             deploy (bool): Deploy mode for inference.
+            identity (bool): Use identity connection branch. Set to False for RepConvN (RepConv without identity),
+                which avoids destroying the residual/concatenation gradient diversity per the YOLOv7 paper.
         """
         super().__init__()
         assert k == 3 and p == 1
@@ -796,7 +798,7 @@ class RepConv(nn.Module):
         self.c2 = c2
         self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
 
-        self.bn = nn.BatchNorm2d(num_features=c1) if bn and c2 == c1 and s == 1 else None
+        self.bn = nn.BatchNorm2d(num_features=c1) if bn and identity and c2 == c1 and s == 1 else None
         self.conv1 = Conv(c1, c2, k, s, p=p, g=g, act=False)
         self.conv2 = Conv(c1, c2, 1, s, p=(p - k // 2), g=g, act=False)
 

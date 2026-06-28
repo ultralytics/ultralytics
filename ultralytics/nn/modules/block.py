@@ -2177,12 +2177,14 @@ class RepBlock(nn.Module):
 class C2fRep(nn.Module):
     """C2f with RepConv blocks instead of Bottleneck."""
 
-    def __init__(self, c1: int, c2: int, n: int = 1, shortcut: bool = False, g: int = 1, e: float = 0.5):
+    def __init__(
+        self, c1: int, c2: int, n: int = 1, shortcut: bool = False, g: int = 1, e: float = 0.5, identity: bool = True
+    ):
         super().__init__()
         self.c = int(c2 * e)
         self.cv1 = Conv(c1, 2 * self.c, 1, 1)
         self.cv2 = Conv((2 + n) * self.c, c2, 1)
-        self.m = nn.ModuleList(RepConv(self.c, self.c, bn=shortcut) for _ in range(n))
+        self.m = nn.ModuleList(RepConv(self.c, self.c, bn=shortcut, identity=identity) for _ in range(n))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         y = list(self.cv1(x).chunk(2, 1))
@@ -2203,12 +2205,13 @@ class C3k2Rep(C2fRep):
         attn: bool = False,
         g: int = 1,
         shortcut: bool = True,
+        identity: bool = True,
     ):
-        super().__init__(c1, c2, n, shortcut, g, e)
+        super().__init__(c1, c2, n, shortcut, g, e, identity)
         if attn:
             self.m = nn.ModuleList(
                 nn.Sequential(
-                    RepConv(self.c, self.c, bn=shortcut),
+                    RepConv(self.c, self.c, bn=shortcut, identity=identity),
                     PSABlock(self.c, attn_ratio=0.5, num_heads=max(self.c // 64, 1)),
                 )
                 for _ in range(n)
@@ -2216,8 +2219,8 @@ class C3k2Rep(C2fRep):
         elif c3k:
             self.m = nn.ModuleList(
                 nn.Sequential(
-                    RepConv(self.c, self.c, bn=shortcut),
-                    RepConv(self.c, self.c, bn=shortcut),
+                    RepConv(self.c, self.c, bn=shortcut, identity=identity),
+                    RepConv(self.c, self.c, bn=shortcut, identity=identity),
                 )
                 for _ in range(n)
             )
@@ -2226,8 +2229,8 @@ class C3k2Rep(C2fRep):
 class C3k2RepLK(C2fRep):
     """C3k2Rep with additional large-kernel context branch."""
 
-    def __init__(self, c1, c2, n=1, c3k=False, e=0.5, g=1, shortcut=True, lk=7):
-        super().__init__(c1, c2, n, shortcut, g, e)
+    def __init__(self, c1, c2, n=1, c3k=False, e=0.5, g=1, shortcut=True, lk=7, identity=True):
+        super().__init__(c1, c2, n, shortcut, g, e, identity)
         # Cheap context branch: depthwise large kernel on the concat output
         self.context = nn.Sequential(
             nn.Conv2d((2 + n) * self.c, (2 + n) * self.c, lk, 1, lk // 2, groups=(2 + n) * self.c, bias=False),

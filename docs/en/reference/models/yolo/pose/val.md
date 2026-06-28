@@ -1,4 +1,5 @@
 ---
+title: models.yolo.pose.val API Reference
 description: Explore the PoseValidator class for YOLO models. Learn how to extend DetectionValidator for pose validation with example code and detailed methods.
 keywords: Ultralytics, YOLO, PoseValidator, pose validation, machine learning, object detection, keypoints, python code, AI, deep learning
 ---

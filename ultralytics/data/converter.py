@@ -789,8 +789,6 @@ def convert_to_multispectral(path: str | Path, n_channels: int = 10, replace: bo
         Convert a dataset
         >>> convert_to_multispectral("coco8", n_channels=10)
     """
-    from scipy.interpolate import interp1d
-
     from ultralytics.data.utils import IMG_FORMATS
 
     path = Path(path)
@@ -812,11 +810,15 @@ def convert_to_multispectral(path: str | Path, n_channels: int = 10, replace: bo
         output_path = path.with_suffix(".tiff")
         img = cv2.cvtColor(cv2.imread(str(path)), cv2.COLOR_BGR2RGB)
 
-        # Interpolate all pixels at once
+        # Interpolate all pixels at once with linear interpolation and extrapolation across RGB wavelengths
         rgb_wavelengths = np.array([650, 510, 475])  # R, G, B wavelengths (nm)
         target_wavelengths = np.linspace(450, 700, n_channels)
-        f = interp1d(rgb_wavelengths.T, img, kind="linear", bounds_error=False, fill_value="extrapolate")
-        multispectral = f(target_wavelengths)
+        order = np.argsort(rgb_wavelengths)  # ascending wavelengths for segment lookup
+        xp = rgb_wavelengths[order]
+        seg = np.clip(np.searchsorted(xp, target_wavelengths) - 1, 0, len(xp) - 2)  # segment per target
+        w = (target_wavelengths - xp[seg]) / (xp[seg + 1] - xp[seg])  # weights (<0 or >1 -> extrapolation)
+        img = img[..., order]
+        multispectral = img[..., seg] * (1 - w) + img[..., seg + 1] * w
         cv2.imwritemulti(str(output_path), np.clip(multispectral, 0, 255).astype(np.uint8).transpose(2, 0, 1))
         LOGGER.info(f"Converted {output_path}")
 

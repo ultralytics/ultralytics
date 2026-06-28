@@ -1,4 +1,5 @@
 ---
+title: YOLO26 Training on Paperspace Gradient
 comments: true
 description: Simplify YOLO26 training with Paperspace Gradient's all-in-one MLOps platform. Access GPUs, automate workflows, and deploy with ease.
 keywords: YOLO26, Paperspace Gradient, MLOps, machine learning, training, GPUs, Jupyter notebooks, model deployment, AI, cloud platform

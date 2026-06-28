@@ -1,4 +1,5 @@
 ---
+title: Dataset Explorer GUI
 comments: true
 description: Unlock advanced data exploration with Ultralytics Explorer GUI. Utilize semantic search, run SQL queries, and ask AI for natural language data insights.
 keywords: Ultralytics Explorer GUI, semantic search, vector similarity, SQL queries, AI, natural language search, data exploration, machine learning, OpenAI, LLMs

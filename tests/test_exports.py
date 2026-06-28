@@ -544,3 +544,110 @@ def test_every_format_env_is_registered():
     """Ensure every export format points at a registered export environment."""
     for fmt, env in zip(export_formats()["Argument"], export_formats()["Env"]):
         assert env in EXPORT_ENVS, f"format '{fmt}' references unknown env '{env}'"
+
+
+def _stub_axelera_sdk(monkeypatch, on_compile):
+    """Register a fake Axelera SDK in sys.modules so torch2axelera runs in base CI without the real compiler."""
+    from types import ModuleType
+
+    compiler = ModuleType("axelera.compiler")
+
+    class CompilerConfig:
+        def __init__(self, model_name="model", **kwargs):
+            self.model_name = model_name
+
+    compiler.CompilerConfig = CompilerConfig
+    compiler.quantize = lambda model, calibration_dataset, config, transform_fn: model
+    compiler.compile = on_compile
+    model_specific = ModuleType("axelera.compiler.config.model_specific")
+    model_specific.extract_ultralytics_metadata = lambda model: {}
+    axelera_pkg = ModuleType("axelera")
+    axelera_pkg.compiler = compiler
+    monkeypatch.setitem(sys.modules, "axelera", axelera_pkg)
+    monkeypatch.setitem(sys.modules, "axelera.compiler", compiler)
+    monkeypatch.setitem(sys.modules, "axelera.compiler.config", ModuleType("axelera.compiler.config"))
+    monkeypatch.setitem(sys.modules, "axelera.compiler.config.model_specific", model_specific)
+
+
+def _axelera_writes_axm(model, config, output_dir):
+    """Stub compiler that writes a realistically sized .axm into the (relative) compile directory."""
+    out = Path(output_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    (out / f"{config.model_name}.axm").write_bytes(b"\x00" * 1_000_000)  # 1 MB compiled model
+
+
+def test_torch2axelera_preserves_output_when_cwd_is_model_dir(tmp_path, monkeypatch):
+    """Axelera export must keep its .axm when the working directory is the model directory.
+
+    Reproduces the Platform worker condition (cwd == output_dir.parent with an absolute output path), where a
+    relative compile directory named after output_dir aliased output_dir and the cleanup deleted the result,
+    yielding the '0.000 MB output model too small' failure.
+    """
+    from ultralytics.utils.export import axelera
+
+    _stub_axelera_sdk(monkeypatch, _axelera_writes_axm)
+    monkeypatch.chdir(tmp_path)
+    result = Path(
+        axelera.torch2axelera(
+            model=torch.nn.Module(),
+            output_dir=tmp_path / "best_axelera_model",  # absolute output path, parent == cwd
+            calibration_dataset=None,
+            transform_fn=lambda x: x,
+            model_name="best",
+        )
+    )
+
+    axm = result / "best.axm"
+    assert axm.is_file() and axm.stat().st_size > 100_000, "Axelera .axm missing or empty (cwd-aliased cleanup deleted it)"
+    assert not list(tmp_path.glob("axelera_compile_*")), "intermediate compile directory leaked into the working dir"
+
+
+def test_torch2axelera_cleans_up_compile_dir_on_failure(tmp_path, monkeypatch):
+    """A failed compile must not leak the intermediate compile directory."""
+    from ultralytics.utils.export import axelera
+
+    def _boom(model, config, output_dir):
+        Path(output_dir).mkdir(parents=True, exist_ok=True)  # compiler created its dir before erroring
+        raise RuntimeError("compiler failure")
+
+    _stub_axelera_sdk(monkeypatch, _boom)
+    monkeypatch.chdir(tmp_path)
+    with pytest.raises(RuntimeError):
+        axelera.torch2axelera(
+            model=torch.nn.Module(),
+            output_dir=tmp_path / "best_axelera_model",
+            calibration_dataset=None,
+            transform_fn=lambda x: x,
+            model_name="best",
+        )
+    assert not list(tmp_path.glob("axelera_compile_*")), "compile directory leaked after a failed export"
+
+
+def test_torch2axelera_isolates_same_named_exports(tmp_path, monkeypatch):
+    """Multiple models with the same stem exported from one working dir must use unique compile dirs (no conflicts)."""
+    from ultralytics.utils.export import axelera
+
+    compile_dirs = []
+
+    def _record(model, config, output_dir):
+        compile_dirs.append(Path(output_dir).name)
+        _axelera_writes_axm(model, config, output_dir)
+
+    _stub_axelera_sdk(monkeypatch, _record)
+    monkeypatch.chdir(tmp_path)
+    outputs = [
+        Path(
+            axelera.torch2axelera(
+                model=torch.nn.Module(),
+                output_dir=tmp_path / f"run{i}" / "best_axelera_model",  # same stem "best", different runs
+                calibration_dataset=None,
+                transform_fn=lambda x: x,
+                model_name="best",
+            )
+        )
+        for i in range(2)
+    ]
+
+    assert all((out / "best.axm").stat().st_size > 100_000 for out in outputs), "an export lost its .axm"
+    assert len(set(compile_dirs)) == 2, "same-named exports reused one compile directory"
+    assert not list(tmp_path.glob("axelera_compile_*")), "intermediate compile directory leaked into the working dir"

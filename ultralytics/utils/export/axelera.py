@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import shutil
+import tempfile
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -54,51 +55,51 @@ def torch2axelera(
 
     LOGGER.info(f"\n{prefix} starting export with Axelera compiler...")
 
-    output_dir = Path(output_dir)
-    compile_dir = Path(output_dir.name)
-    if compile_dir.exists():
-        shutil.rmtree(compile_dir)
-    if output_dir != compile_dir and output_dir.exists():
+    # Resolve to an absolute path so the relative compile dir below can never alias it.
+    output_dir = Path(output_dir).resolve()
+    if output_dir.exists():
         shutil.rmtree(output_dir)
-    compile_dir.mkdir(parents=True, exist_ok=True)
 
-    axelera_model_metadata = extract_ultralytics_metadata(model)
-    config = CompilerConfig(
-        model_metadata=axelera_model_metadata,
-        model_name=model_name,
-        resources_used=0.25,
-        aipu_cores_used=1,
-        multicore_mode="batch",
-        output_axm_format=True,
-    )
-    qmodel = compiler.quantize(
-        model=model,
-        calibration_dataset=calibration_dataset,
-        config=config,
-        transform_fn=transform_fn,
-    )
-    # Compile locally because the Axelera compiler can emit invalid artifacts for absolute output paths.
-    compiler.compile(model=qmodel, config=config, output_dir=compile_dir)
+    # The Axelera compiler emits invalid artifacts for absolute output paths, so compile into a local
+    # relative directory. TemporaryDirectory gives a unique name (so parallel exports of identically named
+    # models never collide) and removes it on exit even if compilation raises; its relative basename is passed
+    # to the compiler so it can never alias the absolute output_dir and have the move/cleanup delete the result.
+    with tempfile.TemporaryDirectory(prefix="axelera_compile_", dir=".") as compile_dir_abs:
+        compile_dir = Path(Path(compile_dir_abs).name)
 
-    output_dir.mkdir(parents=True, exist_ok=True)
-    for artifact in [f"{model_name}.axm", "compiler_config_final.toml"]:
-        for artifact_path in [Path(artifact), compile_dir / artifact]:
-            if artifact_path.exists():
-                artifact_path.replace(output_dir / artifact_path.name)
-                break
+        axelera_model_metadata = extract_ultralytics_metadata(model)
+        config = CompilerConfig(
+            model_metadata=axelera_model_metadata,
+            model_name=model_name,
+            resources_used=0.25,
+            aipu_cores_used=1,
+            multicore_mode="batch",
+            output_axm_format=True,
+        )
+        qmodel = compiler.quantize(
+            model=model,
+            calibration_dataset=calibration_dataset,
+            config=config,
+            transform_fn=transform_fn,
+        )
+        compiler.compile(model=qmodel, config=config, output_dir=compile_dir)
 
-    # Remove intermediate compiler artifacts, keeping only the compiled model and config.
-    keep_suffixes = {".axm"}
-    keep_names = {"compiler_config_final.toml", "metadata.yaml"}
-    for f in output_dir.iterdir():
-        if f.is_file() and f.suffix not in keep_suffixes and f.name not in keep_names:
-            f.unlink()
+        output_dir.mkdir(parents=True, exist_ok=True)
+        for artifact in [f"{model_name}.axm", "compiler_config_final.toml"]:
+            for artifact_path in [compile_dir / artifact, Path(artifact)]:
+                if artifact_path.exists():
+                    artifact_path.replace(output_dir / artifact_path.name)
+                    break
 
-    if metadata is not None:
-        YAML.save(output_dir / "metadata.yaml", metadata)
+        # Remove intermediate compiler artifacts, keeping only the compiled model and config.
+        keep_suffixes = {".axm"}
+        keep_names = {"compiler_config_final.toml", "metadata.yaml"}
+        for f in output_dir.iterdir():
+            if f.is_file() and f.suffix not in keep_suffixes and f.name not in keep_names:
+                f.unlink()
 
-    if compile_dir != output_dir and compile_dir.exists():
-        shutil.rmtree(compile_dir)
+        if metadata is not None:
+            YAML.save(output_dir / "metadata.yaml", metadata)
 
     # Restore original PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION value
     if prev_protobuf is None:

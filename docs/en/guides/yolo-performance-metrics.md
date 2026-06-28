@@ -1,4 +1,5 @@
 ---
+title: YOLO Performance Metrics
 comments: true
 description: Explore essential YOLO26 performance metrics like mAP, IoU, F1 Score, Precision, and Recall. Learn how to calculate and interpret them for model evaluation.
 keywords: YOLO26 performance metrics, mAP, IoU, F1 Score, Precision, Recall, object detection, Ultralytics
@@ -76,13 +77,13 @@ For users validating on the COCO dataset, additional metrics are calculated usin
 
 The model.val() function, apart from producing numeric metrics, also yields visual outputs that can provide a more intuitive understanding of the model's performance. Here's a breakdown of the visual outputs you can expect:
 
-- **F1 Score Curve (`F1_curve.png`)**: This curve represents the [F1 score](https://www.ultralytics.com/glossary/f1-score) across various thresholds. Interpreting this curve can offer insights into the model's balance between false positives and false negatives over different thresholds.
+- **F1 Score Curve (`BoxF1_curve.png`)**: This curve represents the [F1 score](https://www.ultralytics.com/glossary/f1-score) across various thresholds. Interpreting this curve can offer insights into the model's balance between false positives and false negatives over different thresholds.
 
-- **Precision-Recall Curve (`PR_curve.png`)**: An integral visualization for any classification problem, this curve showcases the trade-offs between precision and [recall](https://www.ultralytics.com/glossary/recall) at varied thresholds. It becomes especially significant when dealing with imbalanced classes.
+- **Precision-Recall Curve (`BoxPR_curve.png`)**: An integral visualization for any classification problem, this curve showcases the trade-offs between precision and [recall](https://www.ultralytics.com/glossary/recall) at varied thresholds. It becomes especially significant when dealing with imbalanced classes.
 
-- **Precision Curve (`P_curve.png`)**: A graphical representation of precision values at different thresholds. This curve helps in understanding how precision varies as the threshold changes.
+- **Precision Curve (`BoxP_curve.png`)**: A graphical representation of precision values at different thresholds. This curve helps in understanding how precision varies as the threshold changes.
 
-- **Recall Curve (`R_curve.png`)**: Correspondingly, this graph illustrates how the recall values change across different thresholds.
+- **Recall Curve (`BoxR_curve.png`)**: Correspondingly, this graph illustrates how the recall values change across different thresholds.
 
 - **[Confusion Matrix](https://www.ultralytics.com/glossary/confusion-matrix) (`confusion_matrix.png`)**: The confusion matrix provides a detailed view of the outcomes, showcasing the counts of true positives, true negatives, false positives, and false negatives for each class.
 
@@ -91,6 +92,8 @@ The model.val() function, apart from producing numeric metrics, also yields visu
 - **Validation Batch Labels (`val_batchX_labels.jpg`)**: These images depict the ground truth labels for distinct batches from the validation dataset. They provide a clear picture of what the objects are and their respective locations as per the dataset.
 
 - **Validation Batch Predictions (`val_batchX_pred.jpg`)**: Contrasting the label images, these visuals display the predictions made by the YOLO26 model for the respective batches. By comparing these to the label images, you can easily assess how well the model detects and classifies objects visually.
+
+For the [detection](../tasks/detect.md), [segmentation](../tasks/segment.md), and [pose](../tasks/pose.md) tasks, the curve plots are prefixed by metric type: detection writes `Box*` curves, segmentation writes both `Box*` and `Mask*` curves, and pose writes both `Box*` and `Pose*` curves.
 
 #### Results Storage
 
@@ -180,11 +183,11 @@ Mean Average Precision (mAP) is crucial for evaluating YOLO26 models as it provi
 
 ### How do I interpret the Intersection over Union (IoU) value for YOLO26 object detection?
 
-Intersection over Union (IoU) measures the overlap between the predicted and ground truth bounding boxes. IoU values range from 0 to 1, where higher values indicate better localization accuracy. An IoU of 1.0 means perfect alignment. Typically, an IoU threshold of 0.50 is used to define true positives in metrics like mAP. Lower IoU values suggest that the model struggles with precise object localization, which can be improved by refining bounding box regression or increasing annotation accuracy in your [training dataset](https://docs.ultralytics.com/datasets).
+Intersection over Union (IoU) measures the overlap between the predicted and ground truth bounding boxes. IoU values range from 0 to 1, where higher values indicate better localization accuracy. An IoU of 1.0 means perfect alignment. Typically, an IoU threshold of 0.50 is used to define true positives in metrics like mAP. Lower IoU values suggest that the model struggles with precise object localization, which can be improved by refining bounding box regression or increasing annotation accuracy in your [training dataset](../datasets/index.md).
 
 ### Why is the F1 Score important for evaluating YOLO26 models in object detection?
 
-The F1 Score is important for evaluating YOLO26 models because it provides a harmonic mean of precision and recall, balancing both false positives and false negatives. It is particularly valuable when dealing with imbalanced datasets or applications where either precision or recall alone is insufficient. A high F1 Score indicates that the model effectively detects objects while minimizing both missed detections and false alarms, making it suitable for critical applications like [security systems](https://docs.ultralytics.com/guides/security-alarm-system) and [medical imaging](https://www.ultralytics.com/solutions/ai-in-healthcare).
+The F1 Score is important for evaluating YOLO26 models because it provides a harmonic mean of precision and recall, balancing both false positives and false negatives. It is particularly valuable when dealing with imbalanced datasets or applications where either precision or recall alone is insufficient. A high F1 Score indicates that the model effectively detects objects while minimizing both missed detections and false alarms, making it suitable for critical applications like [security systems](security-alarm-system.md) and [medical imaging](https://www.ultralytics.com/solutions/ai-in-healthcare).
 
 ### What are the key advantages of using Ultralytics YOLO26 for real-time object detection?
 
@@ -195,7 +198,7 @@ Ultralytics YOLO26 offers multiple advantages for real-time object detection:
 - **Flexibility**: Supports various tasks including [object detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), and [classification](../tasks/classify.md).
 - **Ease of Use**: User-friendly interfaces, extensive documentation, and seamless integration with tools like Ultralytics Platform ([Platform Quickstart](../platform/quickstart.md)).
 
-This makes YOLO26 ideal for diverse applications from autonomous vehicles to [smart city solutions](https://docs.ultralytics.com/guides/queue-management).
+This makes YOLO26 ideal for diverse applications from autonomous vehicles to [smart city solutions](queue-management.md).
 
 ### How can validation metrics from YOLO26 help improve model performance?
 
@@ -206,4 +209,4 @@ Validation metrics from YOLO26 like precision, recall, mAP, and IoU help diagnos
 - **mAP**: Offers an overall performance snapshot, guiding general improvements.
 - **IoU**: Helps fine-tune object localization accuracy.
 
-By analyzing these metrics, specific weaknesses can be targeted, such as adjusting confidence thresholds to improve precision or gathering more diverse data to enhance recall. For detailed explanations of these metrics and how to interpret them, check [Object Detection Metrics](#object-detection-metrics) and consider implementing [hyperparameter tuning](https://docs.ultralytics.com/guides/hyperparameter-tuning) to optimize your model.
+By analyzing these metrics, specific weaknesses can be targeted, such as adjusting confidence thresholds to improve precision or gathering more diverse data to enhance recall. For detailed explanations of these metrics and how to interpret them, check [Object Detection Metrics](#object-detection-metrics) and consider implementing [hyperparameter tuning](hyperparameter-tuning.md) to optimize your model.

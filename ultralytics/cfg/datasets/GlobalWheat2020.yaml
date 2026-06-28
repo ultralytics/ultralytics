@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # Global Wheat 2020 dataset https://www.global-wheat.com/ by University of Saskatchewan
-# Documentation: https://docs.ultralytics.com/datasets/detect/globalwheat2020/
+# Documentation: https://docs.ultralytics.com/datasets/detect/globalwheat2020
 # Example usage: yolo train data=GlobalWheat2020.yaml
 # parent
 # ├── ultralytics

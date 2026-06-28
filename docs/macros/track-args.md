@@ -5,7 +5,7 @@
     "source": ["str", "None", "Specifies the source directory for images or videos. Supports file paths, URLs, and video streams."],
     "persist": ["bool", "False", "Enables persistent tracking of objects between frames, maintaining IDs across video sequences."],
     "stream": ["bool", "False", "Treats the input source as a continuous video stream for real-time processing."],
-    "tracker": ["str", "'botsort.yaml'", "Specifies the tracking algorithm to use, e.g., `bytetrack.yaml` or `botsort.yaml`."],
+    "tracker": ["str", "'botsort.yaml'", "Specifies the tracking algorithm to use. Built-in options: `botsort.yaml`, `bytetrack.yaml`, `ocsort.yaml`, `deepocsort.yaml`, `fasttrack.yaml`, `tracktrack.yaml`."],
     "conf": ["float", "0.1", "Sets the confidence threshold for detections; lower values allow more objects to be tracked but may include false positives."],
     "iou": ["float", "0.7", "Sets the [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (IoU) threshold for filtering overlapping detections."],
     "classes": ["list", "None", "Filters results by class index. For example, `classes=[0, 2, 3]` only tracks the specified classes."],

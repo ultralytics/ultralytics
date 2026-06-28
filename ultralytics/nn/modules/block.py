@@ -58,7 +58,7 @@ __all__ = (
 class DFL(nn.Module):
     """Integral module of Distribution Focal Loss (DFL).
 
-    Proposed in Generalized Focal Loss https://ieeexplore.ieee.org/document/9792391
+    Proposed in Generalized Focal Loss https://arxiv.org/abs/2006.04388
     """
 
     def __init__(self, c1: int = 16):

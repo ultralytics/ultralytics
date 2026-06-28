@@ -21,20 +21,17 @@ Commands:
         ps aux | grep 'mlflow' | grep -v 'grep' | awk '{print $2}' | xargs kill -9
 """
 
+import os
+from pathlib import Path
+
 from ultralytics.utils import LOGGER, RUNS_DIR, SETTINGS, TESTS_RUNNING, colorstr
 
-try:
-    import os
+PREFIX = colorstr("MLflow: ")
 
-    assert not TESTS_RUNNING or "test_mlflow" in os.environ.get("PYTEST_CURRENT_TEST", "")  # do not log pytest
-    assert SETTINGS["mlflow"] is True  # verify integration is enabled
+try:
     import mlflow
 
-    assert hasattr(mlflow, "__version__")  # verify package is not directory
-    from pathlib import Path
-
-    PREFIX = colorstr("MLflow: ")
-
+    assert hasattr(mlflow, "__version__")  # verify package is not a local directory
 except (ImportError, AssertionError):
     mlflow = None
 
@@ -60,7 +57,12 @@ def on_pretrain_routine_end(trainer):
         MLFLOW_RUN: The name of the MLflow run. If not set, defaults to trainer.args.name.
         MLFLOW_KEEP_RUN_ACTIVE: Boolean indicating whether to keep the MLflow run active after training ends.
     """
-    global mlflow
+    # Resolve enablement at call time (not import time) so test/training order can never permanently disable MLflow:
+    # `add_integration_callbacks` imports this module on the first training, which may run with mlflow off.
+    if not mlflow or SETTINGS["mlflow"] is not True:
+        return
+    if TESTS_RUNNING and "test_mlflow" not in os.environ.get("PYTEST_CURRENT_TEST", ""):
+        return  # do not log during unrelated pytest tests
 
     uri = os.environ.get("MLFLOW_TRACKING_URI") or str(RUNS_DIR / "mlflow")
     LOGGER.debug(f"{PREFIX} tracking uri: {uri}")

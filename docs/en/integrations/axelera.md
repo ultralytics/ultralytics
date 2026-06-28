@@ -128,17 +128,21 @@ For detailed instructions, see our [Ultralytics Installation guide](../quickstar
 
     ```bash
     sudo apt update
-    sudo apt install -y metis-dkms=1.4.16
+    sudo apt install -y metis-dkms=1.5.5
     sudo modprobe metis
     ```
+
+!!! note "Keep the driver in sync with the SDK"
+
+    The kernel driver installed above is separate from the Python SDK packages. When you upgrade the SDK (for example 1.6 to 1.7), install the matching driver version too — a driver out of sync with the runtime shows up as a runtime error. Run `axdevice` (see [Device Health Check](#device-health-check)) to check the installed driver and device status.
 
 !!! tip "First run downloads the SDK automatically"
 
     The first `yolo export format=axelera` or `yolo predict` with an Axelera model will automatically download and install the Axelera SDK packages. This may take several minutes depending on your connection speed, and no progress is shown during the download. To install manually beforehand:
 
     ```bash
-    pip install axelera-devkit==1.6.0 --extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple
-    pip install axelera-rt==1.6.0 --extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple
+    pip install axelera-devkit==1.7.0 --extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple
+    pip install axelera-rt==1.7.0 --extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple
     ```
 
 ## Exporting YOLO Models to Axelera
@@ -214,15 +218,15 @@ The Axelera format supports the [Export](../modes/export.md), [Predict](../modes
 
 ### Export Arguments
 
-| Argument   | Type             | Default          | Description                                                                                                                             |
-| :--------- | :--------------- | :--------------- | :-------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`   | `str`            | `'axelera'`      | Target format for Axelera Metis AIPU hardware.                                                                                          |
-| `imgsz`    | `int` or `tuple` | `640`            | Image size for model input.                                                                                                             |
-| `batch`    | `int`            | `1`              | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
-| `int8`     | `bool`           | `True`           | Enable [INT8 quantization](https://www.ultralytics.com/glossary/model-quantization) for AIPU.                                           |
-| `data`     | `str`            | `'coco128.yaml'` | [Dataset](../datasets/index.md) config for quantization calibration.                                                                    |
-| `fraction` | `float`          | `1.0`            | Fraction of dataset for calibration (100-400 images recommended).                                                                       |
-| `device`   | `str`            | `None`           | Export device: GPU (`device=0`) or CPU (`device=cpu`).                                                                                  |
+| Argument   | Type             | Default          | Description                                                                                                                                                                                                          |
+| :--------- | :--------------- | :--------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`            | `'axelera'`      | Target format for Axelera Metis AIPU hardware.                                                                                                                                                                       |
+| `imgsz`    | `int` or `tuple` | `640`            | Image size for model input.                                                                                                                                                                                          |
+| `batch`    | `int`            | `1`              | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                              |
+| `quantize` | `int` or `str`   | `8`/auto         | Quantization precision. `8` (INT8) is required and auto-enabled for the Axelera AIPU. Replaces the deprecated `half`/`int8` flags. See [INT8 quantization](https://www.ultralytics.com/glossary/model-quantization). |
+| `data`     | `str`            | `'coco128.yaml'` | [Dataset](../datasets/index.md) config for quantization calibration.                                                                                                                                                 |
+| `fraction` | `float`          | `1.0`            | Fraction of dataset for calibration (100-400 images recommended).                                                                                                                                                    |
+| `device`   | `str`            | `None`           | Export device: GPU (`device=0`) or CPU (`device=cpu`).                                                                                                                                                               |
 
 For all export options, see the [Export Mode documentation](../modes/export.md).
 
@@ -273,7 +277,7 @@ Verify your Axelera device is functioning properly:
 axdevice
 ```
 
-For detailed diagnostics, see the [AxDevice documentation](https://github.com/axelera-ai-hub/voyager-sdk/blob/latest/docs/reference/tools/axdevice.md).
+For detailed diagnostics, see the [AxDevice documentation](https://docs.axelera.ai/sdk/reference/tools/axdevice/).
 
 ## Maximum Performance
 
@@ -283,7 +287,7 @@ This integration uses single-core configuration for compatibility. For productio
 - Streaming inference pipelines
 - Tiled inferencing for higher-resolution cameras
 
-See the [model-zoo](https://github.com/axelera-ai-hub/voyager-sdk/blob/latest/docs/reference/models/model-zoo.md) for FPS benchmarks or [contact Axelera](https://axelera.ai/contact-us) for production support.
+See the [model-zoo](https://docs.axelera.ai/sdk/reference/models/model-zoo) for FPS benchmarks or [contact Axelera](https://axelera.ai/contact-us) for production support.
 
 ## Known Issues
 

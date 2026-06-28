@@ -27,6 +27,7 @@ import torch
 from ultralytics.data import build_yolo_dataset
 from ultralytics.models import yolo
 from ultralytics.models.yolo.detect import DetectionTrainer
+from ultralytics.nn.modules.head import AnomalyMCDetect
 from ultralytics.nn.tasks import YOLOAnomalyV2Model, YOLOAnomalyV2SegModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK, TQDM, YAML
 from ultralytics.utils.torch_utils import unwrap_model
@@ -241,6 +242,9 @@ class AnomalyV2Trainer(DetectionTrainer):
         if seg_active:
             # v8SegmentationLoss returns [box, seg, cls, dfl, sem] (5 components).
             loss_names = ["box_loss", "seg_loss", "cls_loss", "dfl_loss", "sem_loss"]
+        elif isinstance(model.model[-1], AnomalyMCDetect):
+            # AnomalyMCLoss returns [box, anom, dfl, type] (decoupled detection + type).
+            loss_names = ["box_loss", "anom_loss", "dfl_loss", "type_loss"]
         else:
             loss_names = ["box_loss", "cls_loss", "dfl_loss"]
         if getattr(model, "seg_branch", None) is not None:

@@ -42,6 +42,7 @@ from ultralytics.nn.modules import (
     C3x,
     CBFuse,
     CBLinear,
+    AnomalyMCDetect,
     Classify,
     Concat,
     Conv,
@@ -86,6 +87,7 @@ from ultralytics.nn.modules import (
 from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, WINDOWS, YAML, colorstr, emojis
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (
+    AnomalyMCLoss,
     E2ELoss,
     PoseLoss26,
     v8ClassificationLoss,
@@ -556,6 +558,8 @@ class YOLOAnomalyV2Model(DetectionModel):
         Returns ``E2ELoss(v8SegmentationLoss)`` when the head is a ``Segment``
         (per-instance mask prediction), otherwise the standard detection criterion.
         """
+        if isinstance(self.model[-1], AnomalyMCDetect):
+            return E2ELoss(self, AnomalyMCLoss) if getattr(self, "end2end", False) else AnomalyMCLoss(self)
         if isinstance(self.model[-1], Segment):
             return E2ELoss(self, v8SegmentationLoss) if getattr(self, "end2end", False) else v8SegmentationLoss(self)
         return E2ELoss(self) if getattr(self, "end2end", False) else v8DetectionLoss(self)
@@ -696,7 +700,15 @@ class YOLOAnomalyV2Model(DetectionModel):
         two_head = bool(v2_cfg.get("two_head", False))
         head_b_gain = float(v2_cfg.get("head_b_gain", 1.0))
 
+        # AnomalyMCDetect (decoupled binary detection + multi-class type head):
+        #   type_gain -- weight of the type cross-entropy in the loss (read by AnomalyMCLoss).
+        #   type_tau  -- softmax temperature for the inference-time type distribution (set on head).
+        self.type_gain = float(v2_cfg.get("type_gain", 0.5))
+        type_tau = float(v2_cfg.get("type_tau", 1.0))
+
         detect = self.model[-1]
+        if isinstance(detect, AnomalyMCDetect):
+            detect.type_tau = type_tau
         if not isinstance(detect, (Detect, Segment)):
             raise TypeError(
                 f"YOLOAnomalyV2Model expects last layer to be Detect or Segment, got {type(detect).__name__}"
@@ -3372,6 +3384,7 @@ def parse_model(d, ch, verbose=True):
         elif m in frozenset(
             {
                 Detect,
+                AnomalyMCDetect,
                 WorldDetect,
                 YOLOEDetect,
                 Segment,
@@ -3387,7 +3400,7 @@ def parse_model(d, ch, verbose=True):
             args.extend([reg_max, end2end, [ch[x] for x in f]])
             if m is Segment or m is YOLOESegment or m is Segment26 or m is YOLOESegment26:
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
-            if m in {Detect, YOLOEDetect, Segment, Segment26, YOLOESegment, YOLOESegment26, Pose, Pose26, OBB, OBB26}:
+            if m in {Detect, AnomalyMCDetect, YOLOEDetect, Segment, Segment26, YOLOESegment, YOLOESegment26, Pose, Pose26, OBB, OBB26}:
                 m.legacy = legacy
         elif m is v10Detect:
             args.append([ch[x] for x in f])

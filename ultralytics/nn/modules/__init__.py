@@ -79,6 +79,7 @@ from .conv import (
 from .head import (
     OBB,
     OBB26,
+    AnomalyMCDetect,
     Classify,
     Detect,
     LRPCHead,
@@ -165,6 +166,7 @@ __all__ = (
     "DeformableTransformerDecoder",
     "DeformableTransformerDecoderLayer",
     "Detect",
+    "AnomalyMCDetect",
     "Focus",
     "GhostBottleneck",
     "GhostConv",

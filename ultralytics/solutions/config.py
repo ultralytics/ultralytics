@@ -48,7 +48,7 @@ class SolutionConfig:
         conf (float): Confidence threshold for keeping predictions.
         device (str, optional): Device to run inference on (e.g., 'cpu', '0' for CUDA GPU).
         max_det (int): Maximum number of detections allowed per video frame.
-        half (bool): Whether to use FP16 precision (requires a supported CUDA device).
+        quantize (int | str | None): Inference precision, e.g. 16 (FP16); replaces the deprecated half flag.
         tracker (str): Path to tracking configuration YAML file (e.g., 'botsort.yaml').
         verbose (bool): Enable verbose logging output for debugging or diagnostics.
         data (str): Path to image directory used for similarity search.
@@ -93,7 +93,7 @@ class SolutionConfig:
     conf: float = 0.25
     device: str | None = None
     max_det: int = 300
-    half: bool = False
+    quantize: int | str | None = None
     imgsz: int = 640
     tracker: str = "botsort.yaml"
     verbose: bool = True
@@ -101,6 +101,11 @@ class SolutionConfig:
 
     def update(self, **kwargs: Any):
         """Update configuration parameters with new values provided as keyword arguments."""
+        if "half" in kwargs:  # deprecated alias, forwarded to quantize
+            from ultralytics.utils import deprecation_warn
+
+            deprecation_warn("half", "quantize")
+            kwargs["quantize"] = 16 if kwargs.pop("half") else None
         for key, value in kwargs.items():
             if hasattr(self, key):
                 setattr(self, key, value)

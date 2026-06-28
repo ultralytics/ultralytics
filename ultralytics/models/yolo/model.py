@@ -7,6 +7,7 @@ from typing import Any
 
 import torch
 
+from ultralytics.cfg import get_cfg
 from ultralytics.data.build import load_inference_source
 from ultralytics.engine.model import Model
 from ultralytics.models import yolo
@@ -360,7 +361,7 @@ class YOLOE(Model):
         self,
         source=None,
         stream: bool = False,
-        visual_prompts: dict[str, list] = {},
+        visual_prompts: dict[str, list] | None = None,
         refer_image=None,
         predictor=yolo.yoloe.YOLOEVPDetectPredictor,
         **kwargs,
@@ -389,6 +390,7 @@ class YOLOE(Model):
             >>> prompts = {"bboxes": [[10, 20, 100, 200]], "cls": ["person"]}
             >>> results = model.predict("path/to/image.jpg", visual_prompts=prompts)
         """
+        visual_prompts = visual_prompts if visual_prompts is not None else {}
         if len(visual_prompts):
             assert "bboxes" in visual_prompts and "cls" in visual_prompts, (
                 f"Expected 'bboxes' and 'cls' in visual prompts, but got {visual_prompts.keys()}"
@@ -398,6 +400,7 @@ class YOLOE(Model):
                 f"{len(visual_prompts['cls'])} respectively"
             )
             if type(self.predictor) is not predictor:
+                args = get_cfg(overrides={**self.overrides, **kwargs})
                 self.predictor = predictor(
                     overrides={
                         "task": self.model.task,
@@ -405,9 +408,9 @@ class YOLOE(Model):
                         "save": False,
                         "verbose": refer_image is None,
                         "batch": 1,
-                        "device": kwargs.get("device", None),
-                        "half": kwargs.get("half", False),
-                        "imgsz": kwargs.get("imgsz", self.overrides.get("imgsz", 640)),
+                        "device": args.device,
+                        "quantize": args.quantize,
+                        "imgsz": args.imgsz,
                     },
                     _callbacks=self.callbacks,
                 )

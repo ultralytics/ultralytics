@@ -110,7 +110,7 @@ jobs:
         uses: ultralytics/actions/cleanup-disk@main
 
       - name: Checkout repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0 # copy full .git directory to access full git history in Docker images
 
@@ -247,7 +247,7 @@ jobs:
 
       - name: Run Tests
         if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && (matrix.platforms == 'linux/amd64' || matrix.platforms == 'linux/arm64') && matrix.dockerfile != 'Dockerfile-conda'
-        run: docker run ultralytics/ultralytics:${{ (matrix.tags == 'latest-python' && 'latest-python-export') || (matrix.tags == 'latest' && 'latest-export') || matrix.tags }} /bin/bash -c "uv pip install --system --break-system-packages -e '.[solutions]' aiohttp pytest && YOLO_AUTOINSTALL=false pytest tests --export-env base"
+        run: docker run ultralytics/ultralytics:${{ (matrix.tags == 'latest-python' && 'latest-python-export') || (matrix.tags == 'latest' && 'latest-export') || matrix.tags }} /bin/bash -c "uv pip install --system --break-system-packages -e '.[solutions]' aiohttp pytest 'git+https://github.com/ultralytics/CLIP.git' && YOLO_AUTOINSTALL=false pytest tests --export-env base"
 
       - name: Run Benchmarks
         if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && (matrix.platforms == 'linux/amd64' || matrix.dockerfile == 'Dockerfile-arm64') && matrix.dockerfile != 'Dockerfile' && matrix.dockerfile != 'Dockerfile-conda'

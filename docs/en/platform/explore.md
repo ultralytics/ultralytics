@@ -1,4 +1,5 @@
 ---
+title: Explore Datasets & Projects
 comments: true
 description: Discover public datasets and projects on the Ultralytics Platform Explore page. Browse, search, and clone community content for computer vision and YOLO.
 keywords: Ultralytics Platform, explore, public datasets, public projects, computer vision, YOLO, community
@@ -12,16 +13,14 @@ keywords: Ultralytics Platform, explore, public datasets, public projects, compu
 
 ```mermaid
 graph LR
-    A[🔍 Browse Explore] --> B[📥 Clone to Account]
-    B --> C[✏️ Customize & Annotate]
-    C --> D[🚀 Train Model]
-    D --> E[🌐 Deploy Endpoint]
+    A[🔍 Browse Explore]:::start --> B[📥 Clone to Account]:::proc
+    B --> C[✏️ Customize & Annotate]:::proc
+    C --> D[🚀 Train Model]:::proc
+    D --> E[🌐 Deploy Endpoint]:::out
 
-    style A fill:#4CAF50,color:#fff
-    style B fill:#2196F3,color:#fff
-    style C fill:#FF9800,color:#fff
-    style D fill:#9C27B0,color:#fff
-    style E fill:#E91E63,color:#fff
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 !!! info "Anonymous Access"
@@ -106,21 +105,26 @@ Each item displays:
 
 ```mermaid
 graph TD
-    A[Find Content on Explore] --> B{Content Type}
-    B --> C[Dataset]
-    B --> D[Project]
-    B --> E[Model]
-    C --> F[Clone Dataset]
-    D --> G[Clone Project]
-    E --> H[Download Model]
-    E --> I[Clone Model]
-    F --> J[Private Copy in Your Account]
-    G --> K[Private Copy with All Models]
-    H --> L[.pt / ONNX / Other Formats]
-    I --> M[Copy to Your Project]
-    J --> N[Edit, Annotate, Train]
+    A[Find Content on Explore]:::start --> B{Content Type}:::decide
+    B --> C[Dataset]:::proc
+    B --> D[Project]:::proc
+    B --> E[Model]:::proc
+    C --> F[Clone Dataset]:::proc
+    D --> G[Clone Project]:::proc
+    E --> H[Download Model]:::proc
+    E --> I[Clone Model]:::proc
+    F --> J[Private Copy in Your Account]:::out
+    G --> K[Private Copy with All Models]:::out
+    H --> L[.pt / ONNX / Other Formats]:::out
+    I --> M[Copy to Your Project]:::proc
+    J --> N[Edit, Annotate, Train]:::out
     K --> N
     M --> N
+
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef decide fill:#FF9800,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 ### Clone Dataset
@@ -234,10 +238,14 @@ Make your work available to the community. Public content appears on the Explore
 
 ```mermaid
 graph LR
-    A[Your Private Content] --> B[Edit Settings]
-    B --> C[Set Visibility: Public]
-    C --> D[Appears on Explore Page]
-    D --> E[Community Can Clone/Download]
+    A[Your Private Content]:::start --> B[Edit Settings]:::proc
+    B --> C[Set Visibility: Public]:::proc
+    C --> D[Appears on Explore Page]:::proc
+    D --> E[Community Can Clone/Download]:::out
+
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 ### Make Dataset Public

@@ -1,4 +1,5 @@
 ---
+title: Model Deployment Options
 comments: true
 description: Learn about model deployment options in Ultralytics Platform including inference testing, dedicated endpoints, and monitoring dashboards.
 keywords: Ultralytics Platform, deployment, inference, endpoints, monitoring, YOLO, production, cloud deployment
@@ -44,14 +45,13 @@ Ultralytics Platform offers multiple deployment paths:
 
 ```mermaid
 graph LR
-    A[✅ Test] --> B[⚙️ Configure]
-    B --> C[🌐 Deploy]
-    C --> D[📊 Monitor]
+    A[✅ Test]:::start --> B[⚙️ Configure]:::proc
+    B --> C[🌐 Deploy]:::proc
+    C --> D[📊 Monitor]:::out
 
-    style A fill:#4CAF50,color:#fff
-    style B fill:#2196F3,color:#fff
-    style C fill:#FF9800,color:#fff
-    style D fill:#9C27B0,color:#fff
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 | Stage         | Description                                                                 |
@@ -69,18 +69,16 @@ The shared inference service runs in 3 key regions, automatically routing reques
 
 ```mermaid
 graph TB
-    User[User Request] --> API[Platform API]
-    API --> Router{Region Router}
-    Router -->|US users| US["US Predict Service<br/>Iowa"]
-    Router -->|EU users| EU["EU Predict Service<br/>Belgium"]
-    Router -->|AP users| AP["AP Predict Service<br/>Taiwan"]
+    User[User Request]:::start --> API[Platform API]:::proc
+    API --> Router{Region Router}:::decide
+    Router -->|US users| US["US Predict Service<br/>Iowa"]:::out
+    Router -->|EU users| EU["EU Predict Service<br/>Belgium"]:::out
+    Router -->|AP users| AP["AP Predict Service<br/>Taiwan"]:::out
 
-    style User fill:#f5f5f5,color:#333
-    style API fill:#2196F3,color:#fff
-    style Router fill:#FF9800,color:#fff
-    style US fill:#4CAF50,color:#fff
-    style EU fill:#4CAF50,color:#fff
-    style AP fill:#4CAF50,color:#fff
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef decide fill:#FF9800,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 | Region | Location             |

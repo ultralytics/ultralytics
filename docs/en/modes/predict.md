@@ -980,6 +980,20 @@ To optimize inference speed and manage memory efficiently, you can use the strea
 
 The `model.predict()` method in YOLO supports various arguments such as `conf`, `iou`, `imgsz`, `device`, and more. These arguments allow you to customize the inference process, setting parameters like confidence thresholds, image size, and the device used for computation. Detailed descriptions of these arguments can be found in the [inference arguments](#inference-arguments) section.
 
+### How do I extract embeddings from a YOLO model?
+
+Use `model.embed(source)` to extract feature embeddings from the second-to-last layer, or pass `embed=[layer_index]` to `model.predict()` to choose specific layers.
+
+```python
+from ultralytics import YOLO
+
+model = YOLO("yolo26n.pt")
+source = "https://ultralytics.com/images/bus.jpg"
+
+results = model.predict(source)  # Results objects
+embeddings = model.embed(source)  # list of torch.Tensor embeddings
+```
+
 ### How can I visualize and save the results of YOLO predictions?
 
 After running inference with YOLO, the `Results` objects contain methods for displaying and saving annotated images. You can use methods like `result.show()` and `result.save(filename="result.jpg")` to visualize and save the results. Any missing parent directories in the filename path are created automatically (e.g., `result.save("path/to/result.jpg")`). For a comprehensive list of these methods, refer to the [working with results](#working-with-results) section.

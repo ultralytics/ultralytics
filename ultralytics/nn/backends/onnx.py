@@ -12,6 +12,17 @@ from ultralytics.utils.checks import check_requirements
 
 from .base import BaseBackend
 
+# ONNX Runtime output type string -> (torch dtype, numpy dtype) for IO binding.
+_ORT_DTYPES = {
+    "tensor(float16)": (torch.float16, np.float16),
+    "tensor(float)": (torch.float32, np.float32),
+    "tensor(double)": (torch.float64, np.float64),
+    "tensor(uint8)": (torch.uint8, np.uint8),
+    "tensor(int8)": (torch.int8, np.int8),
+    "tensor(int32)": (torch.int32, np.int32),
+    "tensor(int64)": (torch.int64, np.int64),
+}
+
 
 class ONNXBackend(BaseBackend):
     """Microsoft ONNX Runtime inference backend with optional OpenCV DNN support.
@@ -100,15 +111,13 @@ class ONNXBackend(BaseBackend):
                 self.io = self.session.io_binding()
                 self.bindings = []
                 for output in self.session.get_outputs():
-                    out_fp16 = "float16" in output.type
-                    y_tensor = torch.empty(output.shape, dtype=torch.float16 if out_fp16 else torch.float32).to(
-                        self.device
-                    )
+                    torch_dtype, np_dtype = _ORT_DTYPES.get(output.type, (torch.float32, np.float32))
+                    y_tensor = torch.empty(output.shape, dtype=torch_dtype).to(self.device)
                     self.io.bind_output(
                         name=output.name,
                         device_type=self.device.type,
                         device_id=self.device.index if cuda else 0,
-                        element_type=np.float16 if out_fp16 else np.float32,
+                        element_type=np_dtype,
                         shape=tuple(y_tensor.shape),
                         buffer_ptr=y_tensor.data_ptr(),
                     )

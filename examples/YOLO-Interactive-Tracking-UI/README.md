@@ -11,7 +11,7 @@ https://github.com/user-attachments/assets/723e919e-555b-4cca-8e60-18e711d4f3b2
 - Scope lines and bold [bounding boxes](https://docs.ultralytics.com/usage/simple-utilities#bounding-boxes) for active tracking
 - Dashed boxes for passive (non-tracked) objects
 - [Live terminal output](https://docs.ultralytics.com/guides/view-results-in-terminal): object ID, label, [confidence](https://www.ultralytics.com/glossary/confidence), and center coordinates
-- Adjustable object tracking algorithms ([ByteTrack](https://docs.ultralytics.com/reference/trackers/byte_tracker), [BoT-SORT](https://docs.ultralytics.com/reference/trackers/bot_sort))
+- Adjustable object tracking algorithms ([ByteTrack](https://docs.ultralytics.com/reference/trackers/byte_tracker), [BoT-SORT](https://docs.ultralytics.com/reference/trackers/bot_sort), [OC-SORT](https://docs.ultralytics.com/reference/trackers/oc_sort), [Deep OC-SORT](https://docs.ultralytics.com/reference/trackers/deep_oc_sort), [FastTracker](https://docs.ultralytics.com/reference/trackers/fast_tracker), [TrackTrack](https://docs.ultralytics.com/reference/trackers/track_tracker))
 - Supports:
   - [PyTorch](https://pytorch.org/) `.pt` models (for GPU devices like [NVIDIA Jetson](https://docs.ultralytics.com/guides/nvidia-jetson) or [CUDA](https://developer.nvidia.com/cuda)-enabled desktops)
   - [NCNN](https://docs.ultralytics.com/integrations/ncnn) `.param + .bin` models (for CPU-only devices like [Raspberry Pi](https://www.raspberrypi.org/) or ARM boards)
@@ -79,7 +79,7 @@ conf = 0.3  # Minimum confidence threshold for object detection
 iou = 0.3  # IoU threshold for Non-Maximum Suppression (NMS)
 max_det = 20  # Maximum number of objects to detect per frame
 
-tracker = "bytetrack.yaml"  # Tracker configuration: 'bytetrack.yaml' or 'botsort.yaml'
+tracker = "bytetrack.yaml"  # Tracker config: 'bytetrack.yaml', 'botsort.yaml', 'ocsort.yaml', 'deepocsort.yaml', 'fasttrack.yaml', 'tracktrack.yaml'
 track_args = {
     "persist": True,  # Keep track history across frames
     "verbose": False,  # Suppress detailed tracker debug output
@@ -93,7 +93,7 @@ window_name = "Ultralytics YOLO Interactive Tracking"  # Name for the OpenCV dis
 - **`model_file`**: Ensure this points to the correct model file or directory based on `enable_gpu`.
 - **`conf`**: Adjust the [confidence](https://www.ultralytics.com/glossary/confidence) threshold. Lower values detect more objects but may increase false positives.
 - **`iou`**: Set the [Intersection over Union (IoU)](https://www.ultralytics.com/glossary/intersection-over-union-iou) threshold for [Non-Maximum Suppression (NMS)](https://www.ultralytics.com/glossary/non-maximum-suppression-nms). Higher values allow more overlapping boxes.
-- **`tracker`**: Choose between available tracker configuration files ([ByteTrack](https://docs.ultralytics.com/reference/trackers/byte_tracker), [BoT-SORT](https://docs.ultralytics.com/reference/trackers/bot_sort)).
+- **`tracker`**: Choose between available tracker configuration files ([ByteTrack](https://docs.ultralytics.com/reference/trackers/byte_tracker), [BoT-SORT](https://docs.ultralytics.com/reference/trackers/bot_sort), [OC-SORT](https://docs.ultralytics.com/reference/trackers/oc_sort), [Deep OC-SORT](https://docs.ultralytics.com/reference/trackers/deep_oc_sort), [FastTracker](https://docs.ultralytics.com/reference/trackers/fast_tracker), [TrackTrack](https://docs.ultralytics.com/reference/trackers/track_tracker)).
 
 ### Step 3: Run the Object Tracking
 

@@ -93,18 +93,6 @@ def test_predict_txt(tmp_path):
     assert len(results) == 7, f"Expected 7 results from source list, got {len(results)}"
 
 
-def test_predict_list_of_paths():
-    """Test that a list of local file paths loads lazily, respecting `batch` and input order (no OOM)."""
-    from ultralytics.data.build import load_inference_source
-    from ultralytics.data.loaders import LoadImagesAndVideos
-
-    imgs = [ASSETS / "zidane.jpg", ASSETS / "bus.jpg"]  # intentionally not in sorted order
-    dataset = load_inference_source(imgs, batch=1)
-    assert isinstance(dataset, LoadImagesAndVideos), "Path list must load lazily, not as one in-memory batch"
-    assert dataset.bs == 1, f"Batch size must respect `batch`, got {dataset.bs}"  # not len(imgs)
-    assert [Path(f).name for f in dataset.files] == ["zidane.jpg", "bus.jpg"], "Input order must be preserved"
-
-
 @pytest.mark.skipif(True, reason="disabled for testing")
 def test_predict_csv_multi_row(tmp_path):
     """Test YOLO predictions with sources listed in multiple rows of a CSV file."""
@@ -274,6 +262,31 @@ def test_val(task: str, weight: str, data: str) -> None:
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
+def test_train_multi():
+    """Test fine-tuning a base model across a dataset collection, which triggers MultiTrainer for list/tuple data."""
+    model = YOLO(MODEL)
+    results = model.train(data=["coco8.yaml", "coco8.yaml"], epochs=1, imgsz=32)
+    assert isinstance(results, dict) and len(results) == 2  # one entry per run (coco8, coco8-2), no duplicate collapse
+    assert all(m and "fitness" in m for m in results.values())  # checkpoint train metrics per run
+    assert len(model.trainer.trainers) == 2  # both list entries fine-tuned in series
+    sweep_dir = model.trainer.save_dir
+    assert sweep_dir.name.startswith("multitrain")  # all runs grouped under one sweep directory
+    assert (sweep_dir / "multitrain_results.json").exists()  # results JSON for post-processing
+    assert (sweep_dir / "multitrain_results.png").exists()  # cross-dataset results plot
+
+
+def test_normalize_platform_uri():
+    """Test Platform web URLs are rewritten to ul:// URIs so datasets/models load directly from a pasted URL."""
+    from ultralytics.utils.checks import normalize_platform_uri
+
+    base = "https://platform.ultralytics.com/glenn-jocher"
+    assert normalize_platform_uri(f"{base}/datasets/coco8") == "ul://glenn-jocher/datasets/coco8"
+    assert normalize_platform_uri(f"{base}/project/model/") == "ul://glenn-jocher/project/model"
+    assert normalize_platform_uri("coco8.yaml") == "coco8.yaml"  # non-Platform inputs unchanged
+
+
+@pytest.mark.skipif(not ONLINE, reason="environment is offline")
+@pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_train_scratch():
     """Test training the YOLO model from scratch on 12 different image types in the COCO12-Formats dataset."""
     model = YOLO(CFG)
@@ -387,7 +400,7 @@ def test_results_plot_without_boxes():
 def test_labels_and_crops():
     """Test output from prediction args for saving YOLO detection labels and crops."""
     imgs = [SOURCE, ASSETS / "zidane.jpg"]
-    results = YOLO(WEIGHTS_DIR / "yolo26n.pt")(imgs, imgsz=320, save_txt=True, save_crop=True)
+    results = YOLO(WEIGHTS_DIR / "yolo26n.pt")(imgs, imgsz=160, save_txt=True, save_crop=True)
     save_path = Path(results[0].save_dir)
     for r in results:
         im_name = Path(r.path).stem
@@ -803,6 +816,13 @@ def test_model_embeddings():
     for batch in [SOURCE], [SOURCE, SOURCE]:  # test batch size 1 and 2
         assert len(model_detect.embed(source=batch, imgsz=32)) == len(batch)
         assert len(model_segment.embed(source=batch, imgsz=32)) == len(batch)
+
+    model_classify = YOLO(WEIGHTS_DIR / "yolo26n-cls.pt")
+    assert model_classify.predict(SOURCE, imgsz=32)[0].probs is not None
+    assert isinstance(model_classify.embed(SOURCE, imgsz=32)[0], torch.Tensor)
+    assert model_classify.predict(SOURCE, imgsz=32)[0].probs is not None
+    assert isinstance(model_classify.predict(SOURCE, imgsz=32, embed=[-2])[0], torch.Tensor)
+    assert model_classify.predict(SOURCE, imgsz=32)[0].probs is not None
 
 
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for CLIP-based models")

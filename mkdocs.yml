@@ -508,8 +508,8 @@ nav:
       - Live Inference: guides/streamlit-live-inference.md
       - Object Blurring: guides/object-blurring.md
       - Object Counting: guides/object-counting.md
+      - Object Counting in Regions: guides/region-counting.md
       - Object Cropping: guides/object-cropping.md
-      - Objects Counting in Regions: guides/region-counting.md
       - Parking Management: guides/parking-management.md
       - Queue Management: guides/queue-management.md
       - Security Alarm System: guides/security-alarm-system.md
@@ -539,6 +539,7 @@ nav:
       - Model Evaluation and Fine-Tuning: guides/model-evaluation-insights.md
       - Isolating Segmentation Objects: guides/isolating-segmentation-objects.md
       - K-Fold Cross Validation: guides/kfold-cross-validation.md
+      - Knowledge Distillation 🚀: guides/knowledge-distillation.md
       - Maintaining Your Computer Vision Model: guides/model-monitoring-and-maintenance.md
       - Modal Quickstart: guides/modal-quickstart.md
       - Model Deployment Options: guides/model-deployment-options.md
@@ -697,6 +698,7 @@ nav:
           - session: reference/hub/session.md
           - utils: reference/hub/utils.md
       - models:
+          - __init__: reference/models/__init__.md
           - fastsam:
               - model: reference/models/fastsam/model.md
               - predict: reference/models/fastsam/predict.md
@@ -793,6 +795,7 @@ nav:
               - tensorflow: reference/nn/backends/tensorflow.md
               - tensorrt: reference/nn/backends/tensorrt.md
               - triton: reference/nn/backends/triton.md
+          - distill_model: reference/nn/distill_model.md
           - modules:
               - activation: reference/nn/modules/activation.md
               - block: reference/nn/modules/block.md

@@ -252,7 +252,7 @@ For example, users can load a model, train it, evaluate its performance on a val
         from ultralytics.utils.benchmarks import benchmark
 
         # Benchmark
-        benchmark(model="yolo26n.pt", data="coco8.yaml", imgsz=640, half=False, device=0)
+        benchmark(model="yolo26n.pt", data="coco8.yaml", imgsz=640, device=0)
         ```
 
 [Benchmark Examples](../modes/benchmark.md){ .md-button }

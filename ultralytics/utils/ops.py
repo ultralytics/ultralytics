@@ -545,7 +545,7 @@ def scale_masks(
         shape (tuple[int, int]): Target height and width as (height, width).
         ratio_pad (tuple, optional): Ratio and padding values as ((ratio_h, ratio_w), (pad_w, pad_h)).
         padding (bool): Whether masks are based on YOLO-style augmented images with padding.
-        mode (str): Interpolation mode; use "nearest" for integer class maps so labels are never blended.
+        mode (str): Interpolation mode, e.g. 'bilinear' for logits or 'nearest' for integer class maps.
 
     Returns:
         (torch.Tensor): Rescaled masks.

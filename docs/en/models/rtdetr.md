@@ -102,7 +102,7 @@ This example provides simple RT-DETR training and inference examples. For full d
     results = rtdetr("path/to/image.jpg")
 
     # Export uses the same decoder and query settings, including TensorRT exports.
-    rtdetr.export(format="engine", device=0, half=True)
+    rtdetr.export(format="engine", device=0, quantize=16)
     ```
 
 ## Supported Tasks and Modes

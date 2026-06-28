@@ -1114,11 +1114,13 @@ class DetMetrics(SimpleClass, DataExportMixin):
         summary: Generate a summarized representation of per-class detection metrics as a list of dictionaries.
     """
 
-    def __init__(self, names: dict[int, str] = {}) -> None:
+    def __init__(self, names: dict[int, str] = {}, iou_metrics: list[float] | None = None) -> None:
         """Initialize a DetMetrics instance with class names.
 
         Args:
             names (dict[int, str], optional): Dictionary of class names.
+            iou_metrics (list[float], optional): Extra IoU thresholds to report mAP at, e.g. [0.75, 0.90, 0.95].
+                Valid range is 0.50–0.95 in steps of 0.05. Thresholds outside this range are clamped.
         """
         self.names = names
         self.box = Metric()
@@ -1126,6 +1128,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
         self.stats = dict(tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
         self.nt_per_class = None
         self.nt_per_image = None
+        self.iou_metrics = list(iou_metrics) if iou_metrics else []  # normalized via property setter
 
     def update_stats(self, stat: dict[str, Any]) -> None:
         """Update statistics by appending new values to existing stat collections.
@@ -1179,17 +1182,56 @@ class DetMetrics(SimpleClass, DataExportMixin):
         self.box.clear_image_metrics()
 
     @property
+    def iou_metrics(self) -> list[float]:
+        """Extra IoU thresholds for mAP reporting, normalized to the 0.50–0.95 grid."""
+        return self._iou_metrics
+
+    @iou_metrics.setter
+    def iou_metrics(self, value: list[float] | None) -> None:
+        """Normalize and store extra IoU thresholds: clamp to [0.50, 0.95], snap to 0.05 grid, de-duplicate, sort."""
+        if not value:
+            self._iou_metrics: list[float] = []
+            return
+        seen, normalized = set(), []
+        for t in value:
+            idx = min(9, max(0, int((min(0.95, max(0.5, t)) - 0.5) / 0.05 + 0.5)))
+            snapped = round(idx * 0.05 + 0.5, 2)
+            if snapped not in seen:
+                seen.add(snapped)
+                normalized.append(snapped)
+        self._iou_metrics = sorted(normalized)
+
+    def _iou_idx(self, t: float) -> int:
+        """Convert a normalized IoU threshold to its index in the 0.50–0.95 evaluation grid (step 0.05)."""
+        return int(round((t - 0.5) / 0.05))
+
+    def _extra_maps(self) -> list[float]:
+        """Return mean AP at each threshold in self.iou_metrics, or zeros when no data is available."""
+        if not self.iou_metrics:
+            return []
+        if not len(self.box.all_ap):
+            return [0.0] * len(self.iou_metrics)
+        return [float(self.box.all_ap[:, self._iou_idx(t)].mean()) for t in self.iou_metrics]
+
+    @property
     def keys(self) -> list[str]:
         """Return a list of keys for accessing specific metrics."""
-        return ["metrics/precision(B)", "metrics/recall(B)", "metrics/mAP50(B)", "metrics/mAP50-95(B)"]
+        base = ["metrics/precision(B)", "metrics/recall(B)", "metrics/mAP50(B)", "metrics/mAP50-95(B)"]
+        return base + [f"metrics/mAP{round(t * 100)}(B)" for t in self.iou_metrics]
 
     def mean_results(self) -> list[float]:
-        """Calculate mean of detected objects & return precision, recall, mAP50, and mAP50-95."""
-        return self.box.mean_results()
+        """Calculate mean of detected objects & return precision, recall, mAP50, mAP50-95, and any extra IoU metrics."""
+        return self.box.mean_results() + self._extra_maps()
 
-    def class_result(self, i: int) -> tuple[float, float, float, float]:
+    def class_result(self, i: int) -> tuple:
         """Return the result of evaluating the performance of an object detection model on a specific class."""
-        return self.box.class_result(i)
+        base = self.box.class_result(i)
+        if not self.iou_metrics:
+            return base
+        if not len(self.box.all_ap):
+            return base + (0.0,) * len(self.iou_metrics)
+        extra = tuple(float(self.box.all_ap[i, self._iou_idx(t)]) for t in self.iou_metrics)
+        return base + extra
 
     @property
     def maps(self) -> np.ndarray:
@@ -1245,17 +1287,22 @@ class DetMetrics(SimpleClass, DataExportMixin):
             "Box-R": self.box.r,
             "Box-F1": self.box.f1,
         }
-        return [
-            {
+        extra_keys = [f"mAP{round(t * 100)}" for t in self.iou_metrics]
+        rows = []
+        for i in range(len(per_class["Box-P"])):
+            result = self.class_result(i)
+            row = {
                 "Class": self.names[self.ap_class_index[i]],
                 "Images": self.nt_per_image[self.ap_class_index[i]],
                 "Instances": self.nt_per_class[self.ap_class_index[i]],
                 **{k: round(v[i], decimals) for k, v in per_class.items()},
-                "mAP50": round(self.class_result(i)[2], decimals),
-                "mAP50-95": round(self.class_result(i)[3], decimals),
+                "mAP50": round(result[2], decimals),
+                "mAP50-95": round(result[3], decimals),
             }
-            for i in range(len(per_class["Box-P"]))
-        ]
+            for j, k in enumerate(extra_keys):
+                row[k] = round(result[4 + j], decimals)
+            rows.append(row)
+        return rows
 
 
 class SegmentMetrics(DetMetrics):

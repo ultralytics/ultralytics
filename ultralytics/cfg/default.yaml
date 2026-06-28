@@ -50,6 +50,8 @@ dropout: 0.0 # (float) dropout for classification head (classify only)
 val: True # (bool) run validation/testing during training
 split: val # (str) dataset split to evaluate: 'val', 'test' or 'train'
 save_json: False # (bool) save results to COCO JSON (detect/segment/pose) or PNG masks (semantic) for external evaluation
+save_csv: False # (bool) save per-class metrics to per_class_metrics.csv after val (requires nc > 1)
+iou_metrics: # (list[float], optional) extra IoU thresholds to report mAP at, e.g. [0.75, 0.90, 0.95]
 conf: # (float, optional) confidence threshold; defaults: predict=0.25, val=0.001
 iou: 0.7 # (float) IoU threshold used for NMS
 max_det: 300 # (int) maximum number of detections per image

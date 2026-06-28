@@ -95,13 +95,15 @@ class DetectionValidator(BaseValidator):
         self.seen = 0
         self.jdict = []
         self.metrics.names = model.names
+        self.metrics.iou_metrics = list(getattr(self.args, "iou_metrics", None) or [])
         self.metrics.clear_stats()
         self.metrics.clear_image_metrics()
         self.confusion_matrix = ConfusionMatrix(names=model.names, save_matches=self.args.plots and self.args.visualize)
 
     def get_desc(self) -> str:
         """Return a formatted string summarizing class metrics of YOLO model."""
-        return ("%22s" + "%11s" * 6) % ("Class", "Images", "Instances", "Box(P", "R", "mAP50", "mAP50-95)")
+        extra = "".join(f"{'mAP' + str(round(t * 100)):>11}" for t in self.metrics.iou_metrics)
+        return ("%22s" + "%11s" * 6) % ("Class", "Images", "Instances", "Box(P", "R", "mAP50", "mAP50-95)") + extra
 
     def postprocess(self, preds: torch.Tensor) -> list[dict[str, torch.Tensor]]:
         """Apply Non-maximum suppression to prediction outputs.
@@ -298,6 +300,12 @@ class DetectionValidator(BaseValidator):
                         *self.metrics.class_result(i),
                     )
                 )
+
+        # Save per-class metrics CSV when requested
+        if not self.training and getattr(self.args, "save_csv", False) and self.nc > 1 and len(self.metrics.ap_class_index):
+            csv_path = self.save_dir / "per_class_metrics.csv"
+            csv_path.write_text(self.metrics.to_csv())
+            LOGGER.info(f"Per-class metrics saved to {csv_path}")
 
     def _process_batch(self, preds: dict[str, torch.Tensor], batch: dict[str, Any]) -> dict[str, np.ndarray]:
         """Return correct prediction matrix.

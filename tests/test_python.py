@@ -260,6 +260,28 @@ def test_val(task: str, weight: str, data: str) -> None:
         metrics.confusion_matrix.to_json()
 
 
+def test_val_iou_metrics() -> None:
+    """Test that iou_metrics adds extra mAP thresholds to validation results."""
+    model = YOLO(WEIGHTS_DIR / "yolo11n.pt")
+    metrics = model.val(data="coco8.yaml", imgsz=32, iou_metrics=[0.75, 0.90, 0.95])
+    assert "metrics/mAP75(B)" in metrics.results_dict, "mAP75 key missing from results_dict"
+    assert "metrics/mAP90(B)" in metrics.results_dict, "mAP90 key missing from results_dict"
+    assert "metrics/mAP95(B)" in metrics.results_dict, "mAP95 key missing from results_dict"
+    # Standard keys must still be present
+    assert "metrics/mAP50(B)" in metrics.results_dict
+    assert "metrics/mAP50-95(B)" in metrics.results_dict
+
+
+def test_val_save_csv(tmp_path) -> None:
+    """Test that save_csv=True writes per_class_metrics.csv after validation."""
+    model = YOLO(WEIGHTS_DIR / "yolo11n.pt")
+    metrics = model.val(data="coco8.yaml", imgsz=32, save_csv=True, project=str(tmp_path), name="csv_test")
+    csv_file = tmp_path / "csv_test" / "per_class_metrics.csv"
+    assert csv_file.exists(), f"per_class_metrics.csv not found at {csv_file}"
+    content = csv_file.read_text()
+    assert "mAP50" in content, "CSV missing mAP50 column"
+
+
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_train_multi():

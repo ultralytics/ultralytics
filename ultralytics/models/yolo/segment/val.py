@@ -75,18 +75,11 @@ class SegmentationValidator(DetectionValidator):
 
     def get_desc(self) -> str:
         """Return a formatted description of evaluation metrics."""
-        return ("%22s" + "%11s" * 10) % (
-            "Class",
-            "Images",
-            "Instances",
-            "Box(P",
-            "R",
-            "mAP50",
-            "mAP50-95)",
-            "Mask(P",
-            "R",
-            "mAP50",
-            "mAP50-95)",
+        extra = "".join(f"{'mAP' + str(round(t * 100)):>11}" for t in self.metrics.iou_metrics)
+        return (
+            ("%22s" + "%11s" * 6) % ("Class", "Images", "Instances", "Box(P", "R", "mAP50", "mAP50-95)")
+            + extra
+            + ("%11s" * 4) % ("Mask(P", "R", "mAP50", "mAP50-95)")
         )
 
     def postprocess(self, preds: list[torch.Tensor]) -> list[dict[str, torch.Tensor]]:

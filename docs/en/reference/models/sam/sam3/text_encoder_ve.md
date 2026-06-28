@@ -1,4 +1,5 @@
 ---
+title: models.sam.sam3.text_encoder_ve API Reference
 description: Explore the ultralytics.models.sam.sam3.text_encoder_ve module for SAM3 text-encoder components used in vision-language pipelines.
 keywords: Ultralytics, SAM3, SAM, text encoder, vision-language, transformer, tokenizer, Python
 ---

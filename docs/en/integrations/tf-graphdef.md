@@ -1,4 +1,5 @@
 ---
+title: Export YOLO26 to TF GraphDef
 comments: true
 description: Learn how to export YOLO26 models to the TF GraphDef format for seamless deployment on various platforms, including mobile and web.
 keywords: YOLO26, export, TensorFlow, GraphDef, model deployment, TensorFlow Serving, TensorFlow Lite, TensorFlow.js, machine learning, AI, computer vision
@@ -140,12 +141,13 @@ The TF GraphDef format supports the [Export](../modes/export.md), [Predict](../m
 
 ### Export Arguments
 
-| Argument | Type             | Default | Description                                                                                                                             |
-| -------- | ---------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `format` | `str`            | `'pb'`  | Target format for the exported model, defining compatibility with various deployment environments.                                      |
-| `imgsz`  | `int` or `tuple` | `640`   | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.       |
-| `batch`  | `int`            | `1`     | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
-| `device` | `str`            | `None`  | Specifies the device for exporting: CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                                           |
+| Argument   | Type             | Default | Description                                                                                                                             |
+| ---------- | ---------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`            | `'pb'`  | Target format for the exported model, defining compatibility with various deployment environments.                                      |
+| `imgsz`    | `int` or `tuple` | `640`   | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.       |
+| `quantize` | `int` or `str`   | `None`  | Fixed FP32 export. GraphDef does not support export-time FP16, INT8, or W8A16 precision conversion.                                     |
+| `batch`    | `int`            | `1`     | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
+| `device`   | `str`            | `None`  | Specifies the device for exporting: CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                                           |
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 

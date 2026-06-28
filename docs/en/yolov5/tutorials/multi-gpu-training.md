@@ -197,6 +197,6 @@ We would like to thank @MagicFrogSJTU, who did all the heavy lifting, and @glenn
 
 ## See Also
 
-- [Train Mode](https://docs.ultralytics.com/modes/train) - Learn about training YOLO models with Ultralytics
-- [Hyperparameter Tuning](https://docs.ultralytics.com/guides/hyperparameter-tuning) - Optimize your model's performance
-- [Docker Quickstart Guide](https://docs.ultralytics.com/guides/docker-quickstart) - Set up your Docker environment for training
+- [Train Mode](../../modes/train.md) - Learn about training YOLO models with Ultralytics
+- [Hyperparameter Tuning](../../guides/hyperparameter-tuning.md) - Optimize your model's performance
+- [Docker Quickstart Guide](../../guides/docker-quickstart.md) - Set up your Docker environment for training

@@ -31,6 +31,10 @@ COMMON_WEIGHTS = [
     "yolov8s-worldv2.pt",
     "yoloe-11s-seg.pt",
     "yoloe-11s-seg-pf.pt",
+    "yolo26s.pt",
+    "yolo26s-seg.pt",
+    "yolo26s-pose.pt",
+    "yolo26s-obb.pt",
 ]
 
 SLOW_WEIGHTS = [

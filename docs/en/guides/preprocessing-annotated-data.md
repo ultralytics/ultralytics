@@ -1,14 +1,13 @@
 ---
+title: Preprocessing Annotated CV Data
 comments: true
-description: Learn essential data preprocessing techniques for annotated computer vision data, including resizing, normalizing, augmenting, and splitting datasets for optimal model training.
-keywords: data preprocessing, computer vision, image resizing, normalization, data augmentation, training dataset, validation dataset, test dataset, YOLO26
+description: Preprocess annotated computer vision data with YOLO26: resize, normalize, augment, and split datasets to boost training accuracy and reduce overfitting.
+keywords: data preprocessing, computer vision, image resizing, image normalization, data augmentation, train validation test split, data leakage, exploratory data analysis, YOLO26, Ultralytics
 ---
 
-# Data Preprocessing Techniques for Annotated [Computer Vision](https://www.ultralytics.com/glossary/computer-vision-cv) Data
+# Data Preprocessing Techniques for Annotated Computer Vision Data
 
-## Introduction
-
-After you've defined your computer vision [project's goals](./defining-project-goals.md) and [collected and annotated data](./data-collection-and-annotation.md), the next step is to preprocess annotated data and prepare it for model training. Clean and consistent data are vital to creating a model that performs well.
+Data preprocessing turns raw, annotated images into the clean and consistent inputs a [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) model needs to train well. With [Ultralytics YOLO26](../models/yolo26.md), the core pixel operations — RGB conversion, scaling to `[0, 1]`, and resizing — run automatically inside the training pipeline, so the work that remains is splitting your dataset correctly, balancing classes, and choosing augmentations. This guide covers those essential techniques: resizing, normalization, dataset splitting, data augmentation, and exploratory data analysis (EDA).
 
 <p align="center">
   <br>
@@ -21,159 +20,146 @@ After you've defined your computer vision [project's goals](./defining-project-g
   <strong>Watch:</strong> How to Use Data Preprocessing and Augmentation to Improve Model Accuracy in Real-World Scenarios 🚀
 </p>
 
-Preprocessing is a step in the [computer vision project workflow](./steps-of-a-cv-project.md) that includes resizing images, normalizing pixel values, augmenting the dataset, and splitting the data into training, validation, and test sets. Let's explore the essential techniques and best practices for cleaning your data!
+This step comes after you've [defined your project's goals](./defining-project-goals.md) and [collected and annotated your data](./data-collection-and-annotation.md), and it sits early in the [computer vision project workflow](./steps-of-a-cv-project.md).
 
-## Importance of Data Preprocessing
+## Why Preprocessing Matters
 
-We are already collecting and annotating our data carefully with multiple considerations in mind. Then, what makes data preprocessing so important to a computer vision project? Well, data preprocessing is all about getting your data into a suitable format for training that reduces the computational load and helps improve model performance. Here are some common issues in raw data that preprocessing addresses:
+Preprocessing gets your data into a format that reduces computational load and improves model performance. It addresses three common issues in raw data:
 
-- **Noise**: Irrelevant or random variations in data.
+- **Noise**: Irrelevant or random variations in the data.
 - **Inconsistency**: Variations in image sizes, formats, and quality.
-- **Imbalance**: Unequal distribution of classes or categories in the dataset.
+- **Imbalance**: Unequal distribution of classes or categories across the dataset.
 
-## Data Preprocessing Techniques
+## Preprocessing Techniques
 
-One of the first and foremost steps in data preprocessing is resizing. Some models are designed to handle variable input sizes, but many models require a consistent input size. Resizing images makes them uniform and reduces computational complexity.
+The main techniques are resizing, normalization, dataset splitting, and augmentation. With YOLO26 the first two are automatic, while splitting and augmentation are where your choices matter most.
 
 ### Resizing Images
 
-You can resize your images using the following methods:
+Many models require a consistent input size, so resizing makes images uniform and reduces computational complexity. Two common interpolation methods are:
 
-- **Bilinear Interpolation**: Smooths pixel values by taking a weighted average of the four nearest pixel values.
-- **Nearest Neighbor**: Assigns the nearest pixel value without averaging, leading to a blocky image but faster computation.
+- **Bilinear Interpolation**: Smooths pixel values by taking a weighted average of the four nearest pixels.
+- **Nearest Neighbor**: Copies the nearest pixel value without averaging — faster, but produces a blockier image.
 
-To make resizing a simpler task, you can use the following tools:
-
-- **[OpenCV](https://www.ultralytics.com/glossary/opencv)**: A popular computer vision library with extensive functions for image processing.
-- **PIL (Pillow)**: A Python Imaging Library for opening, manipulating, and saving image files.
-
-With respect to YOLO26, the 'imgsz' parameter during [model training](../modes/train.md) allows for flexible input sizes. When set to a specific size, such as 640, the model will resize input images so their largest dimension is 640 pixels while maintaining the original aspect ratio.
-
-By evaluating your model's and dataset's specific needs, you can determine whether resizing is a necessary preprocessing step or if your model can efficiently handle images of varying sizes.
+Libraries like [OpenCV](https://www.ultralytics.com/glossary/opencv) and PIL (Pillow) provide these functions, but with YOLO26 you usually don't resize manually. The `imgsz` argument during [model training](../modes/train.md) handles it: when set to a value such as `640`, YOLO scales each image so its largest dimension is 640 pixels while preserving the aspect ratio, then pads the shorter side (default gray, value 114) to reach a square `640 × 640` input.
 
 ### Normalizing Pixel Values
 
-Another preprocessing technique is normalization. Normalization scales the pixel values to a standard range, which helps in faster convergence during training and improves model performance. Here are some common normalization techniques:
+Normalization scales pixel values to a standard range, which helps the model converge faster during training. Two common techniques are:
 
 - **Min-Max Scaling**: Scales pixel values to a range of 0 to 1.
 - **Z-Score Normalization**: Scales pixel values based on their mean and standard deviation.
 
-With respect to YOLO26, normalization is seamlessly handled as part of its preprocessing pipeline during model training. YOLO26 automatically performs several preprocessing steps, including conversion to RGB, scaling pixel values to the range [0, 1], and normalization using predefined mean and standard deviation values.
+YOLO26 handles normalization automatically as part of its preprocessing pipeline: it converts images to RGB and scales pixel values to the range `[0, 1]` by dividing by 255 (min-max scaling). YOLO does **not** apply ImageNet-style mean/standard-deviation (z-score) normalization by default, so no manual normalization step is required.
 
 ### Splitting the Dataset
 
-Once you've cleaned the data, you are ready to split the dataset. Splitting the data into training, validation, and test sets is done to ensure that the model can be evaluated on unseen data to assess its generalization performance. A common split is 70% for training, 20% for validation, and 10% for testing. There are various tools and libraries that you can use to split your data like [scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html) or [TensorFlow](https://www.ultralytics.com/glossary/tensorflow).
+Splitting the data into training, validation, and test sets lets you evaluate the model on unseen data and measure its generalization. A common split is 70% for training, 20% for validation, and 10% for testing. Tools like [scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html) or [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) make this straightforward.
 
-Consider the following when splitting your dataset:
+Keep these points in mind when splitting:
 
-- **Maintaining Data Distribution**: Ensure that the data distribution of classes is maintained across training, validation, and test sets.
-- **Avoiding Data Leakage**: Typically, data augmentation is done after the dataset is split. Data augmentation and any other preprocessing should only be applied to the training set to prevent information from the validation or test sets from influencing the model training.
-- **Balancing Classes**: For imbalanced datasets, consider techniques such as oversampling the minority class or under-sampling the majority class within the training set.
+- **Maintain class distribution**: Ensure each class is represented proportionally across the training, validation, and test sets.
+- **Balance classes**: For imbalanced datasets, consider oversampling the minority class or under-sampling the majority class — within the training set only.
 
-### What is Data Augmentation?
+!!! warning "Avoid data leakage"
 
-The most commonly discussed data preprocessing step is data augmentation. Data augmentation artificially increases the size of the dataset by creating modified versions of images. By augmenting your data, you can reduce [overfitting](https://www.ultralytics.com/glossary/overfitting) and improve model generalization.
+    Split the dataset **before** applying any augmentation or other preprocessing, and apply those transforms only to the training set. Augmenting before the split lets information from the validation or test images influence training, producing misleadingly high scores that collapse on real-world data.
 
-Here are some other benefits of data augmentation:
+### Augmenting the Dataset
 
-- **Creates a More Robust Dataset**: Data augmentation can make the model more robust to variations and distortions in the input data. This includes changes in lighting, orientation, and scale.
-- **Cost-Effective**: Data augmentation is a cost-effective way to increase the amount of [training data](https://www.ultralytics.com/glossary/training-data) without collecting and labeling new data.
-- **Better Use of Data**: Every available data point is used to its maximum potential by creating new variations.
+[Data augmentation](https://www.ultralytics.com/glossary/data-augmentation) artificially increases the size of a dataset by creating modified versions of existing images. It helps reduce [overfitting](https://www.ultralytics.com/glossary/overfitting) and improves generalization, with several benefits:
 
-#### Data Augmentation Methods
-
-Common augmentation techniques include flipping, rotation, scaling, and color adjustments. Several libraries, such as [Albumentations](../integrations/albumentations.md), Imgaug, and TensorFlow's ImageDataGenerator, can generate these augmentations.
+- **More robust models**: Variations in lighting, orientation, and scale make the model resilient to real-world distortions.
+- **Cost-effective**: You expand the training set without collecting and labeling new data.
+- **Better use of data**: Every annotated image yields multiple training variations.
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/overview-of-data-augmentations.avif" alt="Overview of Data Augmentations">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/overview-of-data-augmentations.avif" alt="Examples of data augmentation techniques including flips, rotations, scaling, and color adjustments applied to a sample image">
 </p>
 
-With respect to YOLO26, you can [augment your custom dataset](../modes/train.md) by modifying the dataset configuration file, a .yaml file. In this file, you can add an augmentation section with parameters that specify how you want to augment your data.
+With YOLO26, augmentation is controlled through [training arguments](../usage/cfg.md#augmentation-settings) passed to `model.train()` or the equivalent CLI flags — **not** by editing the dataset YAML, which defines dataset metadata such as paths, class names, and splits. The built-in augmentations include:
 
-The [Ultralytics YOLO26 repository](https://github.com/ultralytics/ultralytics/tree/main) supports a wide range of data augmentations. You can apply various transformations such as:
+- **Mosaic, MixUp, and CutMix** (`mosaic`, `mixup`, `cutmix`): Combine multiple images into one training sample.
+- **Flips** (`fliplr`, `flipud`): Mirror images horizontally or vertically.
+- **Geometric transforms** (`degrees`, `translate`, `scale`, `shear`, `perspective`): Rotate, shift, zoom, and warp images.
+- **HSV color jitter** (`hsv_h`, `hsv_s`, `hsv_v`): Vary hue, saturation, and brightness.
+- **Copy-paste** (`copy_paste`): Paste objects between images for segmentation.
 
-- Random Crops
-- Flipping: Images can be flipped horizontally or vertically.
-- Rotation: Images can be rotated by specific angles.
-- Distortion
+!!! example "Set augmentation strength when training"
 
-Also, you can adjust the intensity of these augmentation techniques through specific parameters to generate more data variety.
+    === "Python"
 
-## A Case Study of Preprocessing
+        ```python
+        from ultralytics import YOLO
 
-Consider a project aimed at developing a model to detect and classify different types of vehicles in traffic images using YOLO26. We've collected traffic images and annotated them with bounding boxes and labels.
+        model = YOLO("yolo26n.pt")
 
-Here's what each step of preprocessing would look like for this project:
+        # Augmentation is configured with training arguments, not the dataset YAML
+        model.train(data="coco8.yaml", epochs=10, hsv_h=0.015, fliplr=0.5, mosaic=1.0, degrees=10.0)
+        ```
 
-- **Resizing Images**: Since YOLO26 handles flexible input sizes and performs resizing automatically, manual resizing is not required. The model will adjust the image size according to the specified 'imgsz' parameter during training.
-- **Normalizing Pixel Values**: YOLO26 automatically normalizes pixel values to a range of 0 to 1 during preprocessing, so it's not required.
-- **Splitting the Dataset**: Divide the dataset into training (70%), validation (20%), and test (10%) sets using tools like scikit-learn.
-- **[Data Augmentation](https://www.ultralytics.com/glossary/data-augmentation)**: Modify the dataset configuration file (.yaml) to include data augmentation techniques such as random crops, horizontal flips, and brightness adjustments.
+    === "CLI"
 
-These steps make sure the dataset is prepared without any potential issues and is ready for Exploratory Data Analysis (EDA).
+        ```bash
+        yolo detect train model=yolo26n.pt data=coco8.yaml epochs=10 hsv_h=0.015 fliplr=0.5 mosaic=1.0 degrees=10.0
+        ```
 
-## Exploratory Data Analysis Techniques
+For the full list of augmentation arguments and their default values, see the [augmentation settings](../usage/cfg.md#augmentation-settings) reference and the dedicated [YOLO data augmentation guide](./yolo-data-augmentation.md). If the [`albumentations`](../integrations/albumentations.md) package is installed, YOLO also enables its built-in Albumentations-based augmentations automatically.
 
-After preprocessing and augmenting your dataset, the next step is to gain insights through Exploratory Data Analysis. EDA uses statistical techniques and visualization tools to understand the patterns and distributions in your data. You can identify issues like class imbalances or outliers and make informed decisions about further data preprocessing or model training adjustments.
+## A Case Study: Preprocessing for Vehicle Detection
+
+Consider a project to detect and classify vehicles in traffic images with YOLO26, starting from images annotated with [bounding boxes](https://www.ultralytics.com/glossary/bounding-box) and labels. Here is what each preprocessing decision looks like:
+
+- **Resizing**: No manual work — YOLO26 resizes to `imgsz` during training.
+- **Normalization**: No manual work — YOLO26 scales pixel values to `[0, 1]` automatically.
+- **Splitting**: Divide the dataset into 70% training, 20% validation, and 10% testing, keeping the class distribution consistent across splits.
+- **Augmentation**: Set training arguments suited to traffic scenes — for example `fliplr` for direction invariance, `hsv_v` for day/night lighting, and `mosaic` for varied object density.
+
+With these decisions made, the dataset is ready for Exploratory Data Analysis (EDA).
+
+## Exploratory Data Analysis (EDA)
+
+EDA uses statistics and visualizations to reveal patterns and distributions in your data, helping you catch issues like class imbalance or outliers before training.
 
 ### Statistical EDA Techniques
 
-Statistical techniques often begin with calculating basic metrics such as mean, median, standard deviation, and range. These metrics provide a quick overview of your image dataset's properties, such as pixel intensity distributions. Understanding these basic statistics helps you grasp the overall quality and characteristics of your data, allowing you to spot any irregularities early on.
+Statistical EDA starts with basic metrics — mean, median, standard deviation, and range — computed over properties such as pixel-intensity distributions. These give a quick overview of your dataset's quality and surface irregularities early.
 
 ### Visual EDA Techniques
 
-Visualizations are key in EDA for image datasets. For example, class imbalance analysis is another vital aspect of EDA. It helps determine if certain classes are underrepresented in your dataset. Visualizing the distribution of different image classes or categories using bar charts can quickly reveal any imbalances. Similarly, outliers can be identified using visualization tools like box plots, which highlight anomalies in pixel intensity or feature distributions. Outlier detection prevents unusual data points from skewing your results.
+Visualizations reveal patterns that summary statistics miss, such as class imbalance and outliers. Common tools include:
 
-Common tools for visualizations include:
+- **Histograms and box plots**: Show the distribution of pixel values and flag outliers in intensity or feature distributions.
+- **Bar charts**: Reveal class imbalance by comparing how many examples each class has.
+- **Scatter plots**: Explore relationships between image features or annotations.
+- **Heatmaps**: Visualize pixel-intensity distributions or the spatial distribution of annotations across images.
 
-- **Histograms and Box Plots**: Useful for understanding the distribution of pixel values and identifying outliers.
-- **Scatter Plots**: Helpful for exploring relationships between image features or annotations.
-- **Heatmaps**: Effective for visualizing the distribution of pixel intensities or the spatial distribution of annotated features within images.
+### Ultralytics Platform for EDA
 
-### Using Ultralytics Platform for EDA
+For a no-code approach to EDA, upload your dataset to [Ultralytics Platform](https://platform.ultralytics.com/). The dataset's `Charts` tab automatically generates key EDA visualizations: split distribution, top class counts, image width/height histograms, and 2D heatmaps of annotation positions and image dimensions. The `Images` tab lets you browse your data in grid, compact, or table views with annotation overlays, making it easy to spot mislabeled examples or unbalanced classes without writing any code.
 
-For a no-code approach to EDA, upload your dataset to [Ultralytics Platform](https://platform.ultralytics.com/). The dataset's `Charts` tab automatically generates the visualizations described above: split distribution, top class counts, image width/height histograms, and 2D heatmaps of annotation positions and image dimensions. The `Images` tab lets you browse your data in grid, compact, or table views with annotation overlays, making it easy to spot mislabeled examples or unbalanced classes without writing a single line of code.
+## Conclusion
 
-## Reach Out and Connect
-
-Having discussions about your project with other computer vision enthusiasts can give you new ideas from different perspectives. Here are some great ways to learn, troubleshoot, and network:
-
-### Channels to Connect with the Community
-
-- **GitHub Issues:** Visit the YOLO26 GitHub repository and use the [Issues tab](https://github.com/ultralytics/ultralytics/issues) to raise questions, report bugs, and suggest features. The community and maintainers are there to help with any issues you face.
-- **Ultralytics Discord Server:** Join the [Ultralytics Discord server](https://discord.com/invite/ultralytics) to connect with other users and developers, get support, share knowledge, and brainstorm ideas.
-
-### Official Documentation
-
-- **Ultralytics YOLO26 Documentation:** Refer to the [official YOLO26 documentation](./index.md) for thorough guides and valuable insights on numerous computer vision tasks and projects.
-
-## Your Dataset Is Ready!
-
-Properly resized, normalized, and augmented data improves model performance by reducing noise and improving generalization. By following the preprocessing techniques and best practices outlined in this guide, you can create a solid dataset. With your preprocessed dataset ready, you can confidently proceed to the next steps in your project.
+Properly split, normalized, and augmented data reduces noise and improves generalization, turning a raw collection of images into a dependable training set. With your dataset preprocessed, the next step is to [train your model](../modes/train.md). If questions come up along the way, ask the community on the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics/issues) or the [Ultralytics Discord server](https://discord.com/invite/ultralytics).
 
 ## FAQ
 
-### What is the importance of data preprocessing in computer vision projects?
+### Why is data preprocessing important in computer vision projects?
 
-Data preprocessing is essential in computer vision projects because it ensures that the data is clean, consistent, and in a format that is optimal for model training. By addressing issues such as noise, inconsistency, and imbalance in raw data, preprocessing steps like resizing, normalization, augmentation, and dataset splitting help reduce computational load and improve model performance. For more details, visit the [steps of a computer vision project](../guides/steps-of-a-cv-project.md).
+Preprocessing ensures your data is clean, consistent, and in a format optimized for training. By addressing noise, inconsistency, and class imbalance in raw data, steps like resizing, normalization, augmentation, and dataset splitting reduce computational load and improve model performance. See the [steps of a computer vision project](./steps-of-a-cv-project.md) for how it fits into the broader workflow.
 
-### How can I use Ultralytics YOLO for data augmentation?
+### How do I use Ultralytics YOLO for data augmentation?
 
-For data augmentation with Ultralytics YOLO26, you need to modify the dataset configuration file (.yaml). In this file, you can specify various augmentation techniques such as random crops, horizontal flips, and brightness adjustments. This can be effectively done using the training configurations [explained here](../modes/train.md). Data augmentation helps create a more robust dataset, reduce [overfitting](https://www.ultralytics.com/glossary/overfitting), and improve model generalization.
+Configure augmentation through training arguments, not the dataset YAML. Pass arguments such as `fliplr`, `mosaic`, `hsv_h`, and `degrees` to `model.train()` (or the equivalent CLI flags) to set the probability and strength of each transform. These are defined in the [augmentation settings](../usage/cfg.md#augmentation-settings) and explained in the [YOLO data augmentation guide](./yolo-data-augmentation.md).
 
-### What are the best data normalization techniques for computer vision data?
+### What are the best normalization techniques for computer vision data?
 
-Normalization scales pixel values to a standard range for faster convergence and improved performance during training. Common techniques include:
-
-- **Min-Max Scaling**: Scales pixel values to a range of 0 to 1.
-- **Z-Score Normalization**: Scales pixel values based on their mean and standard deviation.
-
-For YOLO26, normalization is handled automatically, including conversion to RGB and pixel value scaling. Learn more about it in the [model training section](../modes/train.md).
+The two most common techniques are min-max scaling (rescaling pixels to a range of 0 to 1) and z-score normalization (rescaling based on mean and standard deviation). YOLO26 applies min-max scaling automatically — converting images to RGB and dividing pixel values by 255 — so you don't need a manual normalization step. It does not apply z-score normalization by default.
 
 ### How should I split my annotated dataset for training?
 
-To split your dataset, a common practice is to divide it into 70% for training, 20% for validation, and 10% for testing. It is important to maintain the data distribution of classes across these splits and avoid data leakage by performing augmentation only on the training set. Use tools like scikit-learn or [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) for efficient dataset splitting. See the detailed guide on [dataset preparation](../guides/data-collection-and-annotation.md).
+A common practice is 70% for training, 20% for validation, and 10% for testing. Maintain the class distribution across all three splits, and avoid [data leakage](https://www.ultralytics.com/glossary/data-leakage) by applying augmentation only to the training set after the split. Tools like scikit-learn or [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) handle the split efficiently. See the [data collection and annotation guide](./data-collection-and-annotation.md) for upstream dataset preparation.
 
-### Can I handle varying image sizes in YOLO26 without manual resizing?
+### Can YOLO26 handle varying image sizes without manual resizing?
 
-Yes, Ultralytics YOLO26 can handle varying image sizes through the 'imgsz' parameter during model training. This parameter ensures that images are resized so their largest dimension matches the specified size (e.g., 640 pixels), while maintaining the aspect ratio. For more flexible input handling and automatic adjustments, check the [model training section](../modes/train.md).
+Yes. The `imgsz` argument resizes images during training and inference so their largest dimension matches the specified size (e.g., 640 pixels) while preserving the aspect ratio, then pads the shorter side. You don't need to resize images yourself — see the [model training](../modes/train.md) documentation for details.

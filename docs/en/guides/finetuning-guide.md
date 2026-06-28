@@ -1,6 +1,7 @@
 ---
+title: Fine-Tune YOLO26 on a Custom Dataset
 comments: true
-description: Learn how to fine-tune YOLO26 on a custom dataset with pretrained weights. Complete guide covering transfer learning, layer freezing, optimizer selection, two-stage training, and troubleshooting common issues like low mAP and catastrophic forgetting.
+description: Fine-tune YOLO26 on a custom dataset using pretrained weights. Covers transfer learning, layer freezing, optimizers, two-stage training, and fixing low mAP.
 keywords: fine-tune YOLO, finetune YOLO custom dataset, YOLO transfer learning, YOLO26 fine-tuning, freeze layers YOLO, pretrained YOLO custom data, YOLO training from scratch vs fine-tuning, catastrophic forgetting YOLO, two-stage fine-tuning, YOLO optimizer selection, fine-tune object detection model, custom object detection training, YOLO freeze backbone, how to finetune YOLO26
 ---
 
@@ -32,7 +33,7 @@ When a pretrained model is fine-tuned on a dataset with a different number of cl
 
 1. **Backbone and neck transfer fully** - these layers extract general visual features and their shapes are independent of the number of classes.
 2. **Detection head is partially reinitialized** - the classification output layers (`cv3`, `one2one_cv3`) have shapes tied to the class count (80 vs 5), so they cannot transfer and are randomly initialized. Box regression layers (`cv2`, `one2one_cv2`) in the head have fixed shapes regardless of class count, so they transfer normally.
-3. **The vast majority of weights transfer** when changing class count. Only the classification-specific layers in the detection head are reinitialized - the backbone, neck, and box regression branches remain intact.
+3. **The vast majority of weights transfer** when changing class count. For example, fine-tuning YOLO26n from COCO (80 classes) onto a 5-class dataset transfers 606 of 708 weight tensors: only the class-count-dependent classification layers are reinitialized, while the backbone, neck, and box regression branches remain intact.
 
 For datasets with the same number of classes as the pretrained model (for example, fine-tuning COCO-pretrained weights on another 80-class dataset), 100% of weights transfer including the detection head.
 
@@ -46,13 +47,13 @@ For datasets with the same number of classes as the pretrained model (for exampl
         from ultralytics import YOLO
 
         model = YOLO("yolo26n.pt")  # load pretrained model
-        model.train(data="path/to/data.yaml", epochs=50, imgsz=640)
+        model.train(data="custom.yaml", epochs=50, imgsz=640)
         ```
 
     === "CLI"
 
         ```bash
-        yolo detect train model=yolo26n.pt data=path/to/data.yaml epochs=50 imgsz=640
+        yolo detect train model=yolo26n.pt data=custom.yaml epochs=50 imgsz=640
         ```
 
 ### Choosing a Model Size
@@ -79,7 +80,7 @@ For most fine-tuning tasks, the default setting works well without any manual tu
 
 Freezing prevents specific layers from updating during training. This speeds up training and reduces [overfitting](https://www.ultralytics.com/glossary/overfitting) when the dataset is small relative to the model capacity.
 
-The `freeze` parameter accepts either an integer or a list. An integer `freeze=10` freezes the first 10 layers (0 through 9, which corresponds to the backbone in YOLO26). A list can contain layer indices like `freeze=[0, 3, 5]` for partial backbone freezing, or module name strings like `freeze=["23.cv2"]` for fine-grained control over specific branches within a layer.
+The `freeze` parameter accepts either an integer or a list. An integer `freeze=10` freezes the first 10 layers (indices 0-9), which covers most of the YOLO26 backbone. The backbone spans layers 0-10, so `freeze=10` leaves the final C2PSA block (layer 10) trainable; use `freeze=11` to freeze the entire backbone. A list can contain layer indices like `freeze=[0, 3, 5]` for partial backbone freezing, or module name strings like `freeze=["23.cv2", "23.one2one_cv2"]` for fine-grained control over specific branches within a layer (here, both box regression branches of the detection head).
 
 !!! example
 
@@ -98,8 +99,8 @@ The `freeze` parameter accepts either an integer or a list. An integer `freeze=1
     === "Freeze by module name"
 
         ```python
-        # Freeze the box regression branch of the detection head
-        model.train(data="custom.yaml", epochs=50, freeze=["23.cv2"])
+        # Freeze both box regression branches (one-to-many and end-to-end) of the detection head
+        model.train(data="custom.yaml", epochs=50, freeze=["23.cv2", "23.one2one_cv2"])
         ```
 
 The right freeze depth depends on how similar the target domain is to the pretrained data and how much training data is available:
@@ -148,7 +149,7 @@ This approach is particularly useful when the target domain differs significantl
 ### Model produces no predictions
 
 - **Insufficient training data**: training with very few samples is the most common cause - the model cannot learn or generalize from too little data. Ensure enough diverse examples per class before investigating other causes.
-- **Check dataset paths**: incorrect paths in `data.yaml` silently produce zero labels. Run `yolo detect val model=yolo26n.pt data=your_data.yaml` before training to confirm labels load correctly.
+- **Check dataset paths**: incorrect paths in `data.yaml` silently produce zero labels. Run `yolo detect val model=yolo26n.pt data=custom.yaml` before training to confirm labels load correctly.
 - **Lower confidence threshold**: if predictions exist but are filtered out, try `conf=0.1` during inference.
 - **Verify class count**: ensure `nc` in `data.yaml` matches the actual number of classes in the label files.
 

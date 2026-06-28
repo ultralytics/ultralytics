@@ -694,6 +694,7 @@ class SemanticDataset(YOLODataset):
     Attributes:
         data (dict): Dataset configuration from YAML.
         mask_files (list[str]): List of mask file paths corresponding to images.
+        include_class (np.ndarray | None): Class ids to keep per pixel (None keeps all).
     """
 
     def __init__(self, *args, data: dict | None = None, **kwargs):
@@ -707,7 +708,28 @@ class SemanticDataset(YOLODataset):
         self.data = data or {}
         self.label_mapping = self._parse_label_mapping(self.data.get("label_mapping"))
         self.mask_files = []
+        self.include_class = None
         super().__init__(*args, data=data, **kwargs)
+
+    def update_labels(self, include_class: list[int] | None) -> None:
+        """Update labels to include only specified classes.
+
+        Args:
+            include_class (list[int], optional): List of classes to include. If None, all classes are included.
+        """
+        if self.single_cls:
+            raise NotImplementedError(
+                "'single_cls=True' is not supported for semantic segmentation: it forces a single-channel "
+                "model but cannot collapse multi-class masks. Use a dataset with 'nc: 1' for binary "
+                "(foreground/background) segmentation instead."
+            )
+        self.include_class = None if include_class is None else np.asarray(include_class, dtype=np.int32).reshape(-1)
+        if self.include_class is not None and int(self.data.get("nc", 0)) == 1:
+            LOGGER.warning(
+                "'classes' filtering is ignored for single-class (binary) semantic segmentation: keeping only "
+                "the sole class would discard all background supervision."
+            )
+            self.include_class = None
 
     def _parse_label_mapping(self, mapping):
         """Normalize label_mapping entries from dataset YAML into integer-to-integer ids."""
@@ -880,6 +902,8 @@ class SemanticDataset(YOLODataset):
         label = super().get_image_and_label(index)
         h, w = label["img"].shape[:2]
         mask = self.load_mask(index, image_shape=(h, w))
+        if self.include_class is not None:  # keep only selected classes; remap the rest to the ignore label
+            mask[~np.isin(mask, self.include_class)] = 255
         # Resize mask to match the resized image dimensions
         if mask.shape[:2] != (h, w):
             mask = cv2.resize(mask, (w, h), interpolation=cv2.INTER_NEAREST)
@@ -1055,7 +1079,7 @@ class ClassificationDataset:
             cache = load_dataset_cache_file(path)  # attempt to load a *.cache file
             assert cache["version"] == DATASET_CACHE_VERSION  # matches current version
             assert cache["hash"] == get_hash([x[0] for x in self.samples])  # identical hash
-            nf, nc, n, samples = cache.pop("results")  # found, missing, empty, corrupt, total
+            nf, nc, n, samples = cache.pop("results")  # found, corrupt, total, samples
             if LOCAL_RANK in {-1, 0}:
                 d = f"{desc} {nf} images, {nc} corrupt"
                 TQDM(None, desc=d, total=n, initial=n)

@@ -1,4 +1,5 @@
 ---
+title: Computer Vision Project Steps
 comments: true
 description: Discover essential steps for launching a successful computer vision project, from defining goals to model deployment and maintenance.
 keywords: Computer Vision, AI, Object Detection, Image Classification, Instance Segmentation, Data Annotation, Model Training, Model Evaluation, Model Deployment
@@ -6,9 +7,9 @@ keywords: Computer Vision, AI, Object Detection, Image Classification, Instance 
 
 # Understanding the Key Steps in a Computer Vision Project
 
-## Introduction
+Building a computer vision project means moving through a clear sequence of stages: defining your goals, collecting and annotating data, training and evaluating a model, and deploying and maintaining it in production. This guide walks through each step in order and explains why it matters, so you can plan and run your own project with confidence.
 
-Computer vision is a subfield of [artificial intelligence](https://www.ultralytics.com/glossary/artificial-intelligence-ai) (AI) that helps computers see and understand the world like humans do. It processes and analyzes images or videos to extract information, recognize patterns, and make decisions based on that data.
+[Computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) is a subfield of [artificial intelligence](https://www.ultralytics.com/glossary/artificial-intelligence-ai) (AI) that helps computers see and understand the world like humans do. It processes and analyzes images or videos to extract information, recognize patterns, and make decisions based on that data.
 
 <p align="center">
   <br>
@@ -23,17 +24,15 @@ Computer vision is a subfield of [artificial intelligence](https://www.ultralyti
 
 Computer vision techniques like [object detection](../tasks/detect.md), [image classification](../tasks/classify.md), and [instance segmentation](../tasks/segment.md) can be applied across various industries, from [autonomous driving](https://www.ultralytics.com/solutions/ai-in-automotive) to [medical imaging](https://www.ultralytics.com/solutions/ai-in-healthcare) to gain valuable insights.
 
-Working on your own computer vision projects is a great way to understand and learn more about computer vision. However, a computer vision project can consist of many steps, and it might seem confusing at first. By the end of this guide, you'll be familiar with the steps involved in a computer vision project. We'll walk through everything from the beginning to the end of a project, explaining why each part is important.
-
 ## An Overview of a Computer Vision Project
 
 Before discussing the details of each step involved in a computer vision project, let's look at the overall process. If you started a computer vision project today, you'd take the following steps:
 
-- Your first priority would be to understand your project's requirements.
-- Then, you'd collect and accurately label the images that will help train your model.
-- Next, you'd clean your data and apply augmentation techniques to prepare it for model training.
-- After model training, you'd thoroughly test and evaluate your model to make sure it performs consistently under different conditions.
-- Finally, you'd deploy your model into the real world and update it based on new insights and feedback.
+- Your first priority is to [understand your project's requirements](#step-1-defining-your-projects-goals).
+- Then, you [collect and accurately label](#step-2-data-collection-and-data-annotation) the images that will help train your model.
+- Next, you [clean and augment your data](#step-3-data-augmentation-and-splitting-your-dataset) to prepare it for model training.
+- After [training](#step-4-model-training), you thoroughly [evaluate](#step-5-model-evaluation-and-fine-tuning) and [test](#step-6-model-testing) your model to make sure it performs consistently under different conditions.
+- Finally, you [deploy](#step-7-model-deployment) your model into the real world and [monitor and maintain](#step-8-monitoring-maintenance-and-documentation) it based on new insights and feedback.
 
 <p align="center">
   <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/five-stages-of-ml-development-lifecycle.avif" alt="Computer Vision Project Steps Overview">
@@ -56,7 +55,7 @@ Here are some examples of project objectives and the computer vision tasks that 
 - **Objective:** To create a digital system that categorizes various documents (e.g., invoices, receipts, legal paperwork) to improve organizational efficiency and document retrieval.
     - **Computer Vision Task:** [Image classification](https://www.ultralytics.com/glossary/image-classification) is ideal here as it handles one document at a time, without needing to consider the document's position in the image. This approach simplifies and accelerates the sorting process.
 
-### Step 1.5: Selecting the Right Model and Training Approach
+### Selecting the Right Model and Training Approach
 
 After understanding the project objective and suitable computer vision tasks, an essential part of defining the project goal is [selecting the right model](../models/index.md) and training approach.
 
@@ -68,7 +67,11 @@ Choosing between training from scratch or using [transfer learning](https://www.
   <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/training-from-scratch-vs-transfer-learning.avif" alt="Training From Scratch Vs. Using Transfer Learning">
 </p>
 
-Note: When choosing a model, consider its [deployment](./model-deployment-options.md) to ensure compatibility and performance. For example, lightweight models are ideal for [edge computing](https://www.ultralytics.com/glossary/edge-computing) due to their efficiency on resource-constrained devices. To learn more about the key points related to defining your project, read [our guide](./defining-project-goals.md) on defining your project's goals and selecting the right model.
+!!! note "Consider deployment when choosing a model"
+
+    Consider a model's [deployment target](./model-deployment-options.md) to ensure compatibility and performance. For example, lightweight models are ideal for [edge computing](https://www.ultralytics.com/glossary/edge-computing) thanks to their efficiency on resource-constrained devices.
+
+To learn more, read our guide on [defining your project's goals and selecting the right model](./defining-project-goals.md).
 
 Before getting into the hands-on work of a computer vision project, it's important to have a clear understanding of these details. Double-check that you've considered the following before moving on to Step 2:
 
@@ -94,7 +97,7 @@ However, if you choose to collect images or take your own pictures, you'll need 
   <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/different-types-of-image-annotation.avif" alt="Bounding box, polygon, and keypoint annotations">
 </p>
 
-[Data collection and annotation](./data-collection-and-annotation.md) can be a time-consuming manual effort. Annotation tools can help make this process easier. Here are some useful open annotation tools: [LabeI Studio](https://github.com/HumanSignal/label-studio), [CVAT](https://github.com/cvat-ai/cvat), and [Labelme](https://github.com/wkentaro/labelme).
+[Data collection and annotation](./data-collection-and-annotation.md) can be a time-consuming manual effort. A dedicated annotation tool makes it faster: [Ultralytics Platform](https://platform.ultralytics.com) provides a built-in [annotation editor](../platform/data/annotation.md) with [SAM-powered smart annotation](https://www.ultralytics.com/annotate) for detection, segmentation, and OBB data, saving labels directly in YOLO format.
 
 ## Step 3: Data Augmentation and Splitting Your Dataset
 
@@ -116,7 +119,7 @@ Libraries like [OpenCV](https://www.ultralytics.com/glossary/opencv), [Albumenta
 
 To understand your data better, you can use tools like [Matplotlib](https://matplotlib.org/) or [Seaborn](https://seaborn.pydata.org/) to visualize the images and analyze their distribution and characteristics. Visualizing your data helps identify patterns, anomalies, and the effectiveness of your augmentation techniques. The [Ultralytics Platform](https://platform.ultralytics.com/) `Charts` tab can surface many of these insights without any code by automatically generating split distribution, class counts, image-dimension histograms, and annotation-position heatmaps for every uploaded dataset.
 
-By properly [understanding, splitting, and augmenting your data](./preprocessing_annotated_data.md), you can develop a well-trained, validated, and tested model that performs well in real-world applications.
+By properly [understanding, splitting, and augmenting your data](./preprocessing-annotated-data.md), you can develop a well-trained, validated, and tested model that performs well in real-world applications.
 
 ## Step 4: Model Training
 
@@ -133,7 +136,7 @@ Libraries like Ultralytics simplify the training process. You can [start trainin
 
 It's important to keep in mind that proper dataset management is vital for efficient training. Use version control for datasets to track changes and ensure reproducibility. Tools like [DVC (Data Version Control)](../integrations/dvc.md) can help manage large datasets.
 
-## Step 5: Model Evaluation and Model Finetuning
+## Step 5: Model Evaluation and Fine-Tuning
 
 It's important to assess your model's performance using various metrics and refine it to improve [accuracy](https://www.ultralytics.com/glossary/accuracy). [Evaluating](../modes/val.md) helps identify areas where the model excels and where it may need improvement. [Fine-tuning](https://www.ultralytics.com/glossary/fine-tuning) ensures the model is optimized for the best possible performance.
 
@@ -145,7 +148,7 @@ For a deeper understanding of model evaluation and fine-tuning techniques, check
 
 ## Step 6: Model Testing
 
-In this step, you can make sure that your model performs well on completely unseen data, confirming its readiness for deployment. The difference between model testing and model evaluation is that it focuses on verifying the final model's performance rather than iteratively improving it.
+Model testing confirms your model performs well on completely unseen data, verifying its readiness for deployment. The difference between model testing and model evaluation is that testing focuses on verifying the final model's performance rather than iteratively improving it.
 
 It's important to thoroughly test and debug any common issues that may arise. Test your model on a separate test dataset that was not used during training or validation. This dataset should represent real-world scenarios to ensure the model's performance is consistent and reliable.
 
@@ -191,7 +194,7 @@ Using these resources will help you overcome challenges and stay updated with th
 
 ## Next Steps
 
-Taking on a computer vision project can be exciting and rewarding. By following the steps in this guide, you can build a solid foundation for success. Each step is crucial for developing a solution that meets your objectives and works well in real-world scenarios. As you gain experience, you'll discover advanced techniques and tools to improve your projects.
+You now have a roadmap for every stage of a computer vision project, from defining goals to monitoring a deployed model. Put it into practice by [training your first YOLO model](../modes/train.md), or dive deeper into any single stage through the guides linked above. To run the full pipeline without writing code, explore the [Ultralytics Platform](https://platform.ultralytics.com).
 
 ## FAQ
 
@@ -207,7 +210,7 @@ Data annotation is vital for teaching your model to recognize patterns. The type
 - **Object Detection**: Bounding boxes drawn around objects.
 - **Image Segmentation**: Each pixel labeled according to the object it belongs to.
 
-Tools like [Label Studio](https://github.com/HumanSignal/label-studio), [CVAT](https://github.com/cvat-ai/cvat), and [Labelme](https://github.com/wkentaro/labelme) can assist in this process. For more details, refer to our [data collection and annotation guide](./data-collection-and-annotation.md).
+The built-in [annotation editor](../platform/data/annotation.md) in [Ultralytics Platform](https://platform.ultralytics.com) can assist in this process. For more details, refer to our [data collection and annotation guide](./data-collection-and-annotation.md).
 
 ### What steps should I follow to augment and split my dataset effectively?
 
@@ -221,9 +224,9 @@ After splitting, apply data augmentation techniques like rotation, scaling, and 
 
 ### How can I export my trained computer vision model for deployment?
 
-Exporting your model ensures compatibility with different deployment platforms. Ultralytics provides multiple formats, including [ONNX](../integrations/onnx.md), [TensorRT](../integrations/tensorrt.md), and [CoreML](../integrations/coreml.md). To export your YOLO26 model, follow this guide:
+Export your trained model with the `export` method, choosing a format that matches your deployment target. Ultralytics supports multiple formats, including [ONNX](../integrations/onnx.md), [TensorRT](../integrations/tensorrt.md), and [CoreML](../integrations/coreml.md). To export your YOLO26 model, follow these steps:
 
-- Use the `export` function with the desired format parameter.
+- Use the `export` method with the desired format parameter.
 - Ensure the exported model fits the specifications of your deployment environment (e.g., edge devices, cloud).
 
 For more information, check out the [model export guide](../modes/export.md).

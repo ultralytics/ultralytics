@@ -2,6 +2,7 @@
 comments: true
 description: Optimize your Ultralytics YOLO model's performance with the right settings and hyperparameters. Learn about training, validation, and prediction configurations.
 keywords: YOLO, hyperparameters, configuration, training, validation, prediction, model settings, Ultralytics, performance optimization, machine learning
+title: YOLO Configuration
 ---
 
 # Configuration
@@ -55,12 +56,12 @@ Default `ARG` values are defined on this page and come from the `cfg/default.yam
 
 Ultralytics YOLO models can perform a variety of computer vision tasks, including:
 
-- **Detect**: [Object detection](https://docs.ultralytics.com/tasks/detect) identifies and localizes objects within an image or video.
-- **Segment**: [Instance segmentation](https://docs.ultralytics.com/tasks/segment) divides an image or video into regions corresponding to different objects or classes.
-- **Semantic segmentation (`semantic`)**: [Semantic segmentation](https://docs.ultralytics.com/tasks/semantic) assigns a class label to every pixel in an image for dense scene understanding.
-- **Classify**: [Image classification](https://docs.ultralytics.com/tasks/classify) predicts the class label of an input image.
-- **Pose**: [Pose estimation](https://docs.ultralytics.com/tasks/pose) identifies objects and estimates their keypoints in an image or video.
-- **OBB**: [Oriented Bounding Boxes](https://docs.ultralytics.com/tasks/obb) uses rotated bounding boxes, suitable for satellite or medical imagery.
+- **Detect**: [Object detection](../tasks/detect.md) identifies and localizes objects within an image or video.
+- **Segment**: [Instance segmentation](../tasks/segment.md) divides an image or video into regions corresponding to different objects or classes.
+- **Semantic segmentation (`semantic`)**: [Semantic segmentation](../tasks/semantic.md) assigns a class label to every pixel in an image for dense scene understanding.
+- **Classify**: [Image classification](../tasks/classify.md) predicts the class label of an input image.
+- **Pose**: [Pose estimation](../tasks/pose.md) identifies objects and estimates their keypoints in an image or video.
+- **OBB**: [Oriented Bounding Boxes](../tasks/obb.md) uses rotated bounding boxes, suitable for satellite or medical imagery.
 
 | Argument | Default    | Description                                                                                                                                                                                                                                                                                                                                                                       |
 | -------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -157,20 +158,20 @@ Adjust these settings to meet dataset and task requirements. Experimenting with 
 
 Logging, checkpoints, plotting, and file management are important when training a YOLO model:
 
-- **Logging**: Track the model's progress and diagnose issues using libraries like [TensorBoard](https://docs.ultralytics.com/integrations/tensorboard) or by writing to a file.
+- **Logging**: Track the model's progress and diagnose issues using libraries like [TensorBoard](../integrations/tensorboard.md) or by writing to a file.
 - **Checkpoints**: Save the model at regular intervals to resume training or experiment with different configurations.
 - **Plotting**: Visualize performance and training progress using libraries like Matplotlib or TensorBoard.
 - **File management**: Organize files generated during training, such as checkpoints, log files, and plots, for easy access and analysis.
 
 Effective management of these aspects helps track progress and makes debugging and optimization easier.
 
-| Argument   | Default  | Description                                                                                                                                                                                                                                                                                               |
-| ---------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `project`  | `'runs'` | Specifies the root directory for saving training runs. Each run is saved in a separate subdirectory.                                                                                                                                                                                                      |
-| `name`     | `'exp'`  | Defines the experiment name. If unspecified, YOLO increments this name for each run (e.g., `exp`, `exp-2`) to avoid overwriting.                                                                                                                                                                          |
-| `exist_ok` | `False`  | Determines whether to overwrite an existing experiment directory. `True` allows overwriting; `False` prevents it.                                                                                                                                                                                         |
-| `plots`    | `True`   | Controls the generation and saving of training and validation plots. Set to `True` to create plots like loss curves, [precision](https://www.ultralytics.com/glossary/precision)-[recall](https://www.ultralytics.com/glossary/recall) curves, and sample predictions for visual tracking of performance. |
-| `save`     | `True`   | Enables saving training checkpoints and final model weights. Set to `True` to save model states periodically, allowing training resumption or model deployment.                                                                                                                                           |
+| Argument   | Default | Description                                                                                                                                                                                                                                                                                               |
+| ---------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `project`  | `None`  | Specifies the root directory for saving training runs. If unspecified, runs are saved under `runs/<task>`. Each run is saved in a separate subdirectory.                                                                                                                                                  |
+| `name`     | `None`  | Defines the experiment name. If unspecified, YOLO uses the mode name and increments it for each run (e.g., `train`, `train-2`) to avoid overwriting.                                                                                                                                                      |
+| `exist_ok` | `False` | Determines whether to overwrite an existing experiment directory. `True` allows overwriting; `False` prevents it.                                                                                                                                                                                         |
+| `plots`    | `True`  | Controls the generation and saving of training and validation plots. Set to `True` to create plots like loss curves, [precision](https://www.ultralytics.com/glossary/precision)-[recall](https://www.ultralytics.com/glossary/recall) curves, and sample predictions for visual tracking of performance. |
+| `save`     | `True`  | Enables saving training checkpoints and final model weights. Set to `True` to save model states periodically, allowing training resumption or model deployment.                                                                                                                                           |
 
 ## Custom Configuration File
 

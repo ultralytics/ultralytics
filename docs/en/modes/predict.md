@@ -604,7 +604,7 @@ IDs: `torch.uint8`, `torch.int16`, or `torch.int32`, depending on class count.
 | `cuda()`      | `Results`              | Returns a copy of the Results object with all tensors moved to GPU memory.                               |
 | `to()`        | `Results`              | Returns a copy of the Results object with tensors moved to specified device and dtype.                   |
 | `new()`       | `Results`              | Creates a new Results object with the same image, path, names, and speed attributes.                     |
-| `plot()`      | `np.ndarray`           | Plots detection results on an input RGB image and returns the annotated image.                           |
+| `plot()`      | `np.ndarray`           | Plots detection results on an input BGR image and returns the annotated image.                           |
 | `show()`      | `None`                 | Displays the image with annotated inference results.                                                     |
 | `save()`      | `str`                  | Saves annotated inference results image to file and returns the filename.                                |
 | `verbose()`   | `str`                  | Returns a log string for each task, detailing detection and classification outcomes.                     |
@@ -879,7 +879,7 @@ The `plot()` method supports various arguments to customize the output:
 | `save`       | `bool`                 | Save the annotated image to a file specified by `filename`.                | `False`           |
 | `filename`   | `str`                  | Path and name of the file to save the annotated image if `save` is `True`. | `None`            |
 | `color_mode` | `str`                  | Specify the color mode, e.g., 'instance' or 'class'.                       | `'class'`         |
-| `txt_color`  | `tuple[int, int, int]` | RGB text color for bounding box and image classification label.            | `(255, 255, 255)` |
+| `txt_color`  | `tuple[int, int, int]` | BGR text color for bounding box and image classification label.            | `(255, 255, 255)` |
 
 ## Thread-Safe Inference
 
@@ -978,6 +978,20 @@ To optimize inference speed and manage memory efficiently, you can use the strea
 ### What inference arguments does Ultralytics YOLO support?
 
 The `model.predict()` method in YOLO supports various arguments such as `conf`, `iou`, `imgsz`, `device`, and more. These arguments allow you to customize the inference process, setting parameters like confidence thresholds, image size, and the device used for computation. Detailed descriptions of these arguments can be found in the [inference arguments](#inference-arguments) section.
+
+### How do I extract embeddings from a YOLO model?
+
+Use `model.embed(source)` to extract feature embeddings from the second-to-last layer, or pass `embed=[layer_index]` to `model.predict()` to choose specific layers.
+
+```python
+from ultralytics import YOLO
+
+model = YOLO("yolo26n.pt")
+source = "https://ultralytics.com/images/bus.jpg"
+
+results = model.predict(source)  # Results objects
+embeddings = model.embed(source)  # list of torch.Tensor embeddings
+```
 
 ### How can I visualize and save the results of YOLO predictions?
 

@@ -1,4 +1,5 @@
 ---
+title: Help Center & FAQs
 comments: true
 description: Explore the Ultralytics Help Center with guides, FAQs, CI processes, and policies to support your YOLO model experience and contributions.
 keywords: Ultralytics, YOLO, help center, documentation, guides, FAQ, contributing, CI, MRE, CLA, code of conduct, security policy, privacy policy

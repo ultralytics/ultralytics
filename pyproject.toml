@@ -50,6 +50,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Software Development",
     "Topic :: Scientific/Engineering",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
@@ -67,12 +68,12 @@ dependencies = [
     "pillow>=7.1.2",
     "pyyaml>=5.3.1",
     "requests>=2.23.0",
-    "scipy>=1.4.1",
     "torch>=1.8.0",
     "torch>=1.8.0,!=2.4.0; sys_platform == 'win32'", # Windows CPU errors w/ 2.4.0 https://github.com/ultralytics/ultralytics/issues/15049
     "torchvision>=0.9.0",
     "psutil>=5.8.0", # system utilization
     "polars>=0.20.0",
+    "nvidia-ml-py>=12.0.0", # NVIDIA GPU monitoring https://pypi.org/project/nvidia-ml-py
     "ultralytics-thop>=2.0.18", # FLOPs computation https://github.com/ultralytics/thop
 ]
 
@@ -88,27 +89,57 @@ dev = [
     "mkdocs-ultralytics-plugin>=0.2.4", # for meta descriptions and images, dates and authors
     "minijinja>=2.0.0", # render docs macros without mkdocs-macros-plugin
 ]
-export = [
-    "numpy<2.0.0", # TF 2.20 compatibility
+export-base = [
     "onnx>=1.12.0; platform_system != 'Darwin'", # ONNX export
-    "onnx>=1.12.0,<1.18.0; platform_system == 'Darwin'",  # TF inference hanging on MacOS (tested up to onnx==1.20.0)
+    "onnx>=1.12.0,<1.18.0; platform_system == 'Darwin' and python_version < '3.13'",  # TF inference hanging on MacOS (tested up to onnx==1.20.0)
+    "onnx>=1.20.0; platform_system == 'Darwin' and python_version >= '3.13'",
     "onnxslim>=0.1.82",
-    "coremltools>=9.0; platform_system != 'Windows' and python_version <= '3.13'", # CoreML supported on macOS and Linux
-    "scikit-learn>=1.3.2; platform_system != 'Windows' and python_version <= '3.13'", # CoreML k-means quantization
+    # ONNX export validation and inference. Jetson jobs provide custom aarch64 onnxruntime-gpu wheels.
+    "onnxruntime<1.20.0; python_version < '3.11' and (platform_machine != 'aarch64' or platform_system != 'Linux')",
+    "onnxruntime>=1.20.0; python_version >= '3.11'",
+    "nncf>=2.14.0,<3.0.0; python_version >= '3.9'",  # OpenVINO INT8 export
     "openvino>=2024.0.0",  # OpenVINO export
-    "tensorflow>=2.0.0,<=2.19.0", # TF bug https://github.com/ultralytics/ultralytics/issues/5161
+    "packaging>=26.0; platform_machine == 'aarch64' and platform_system == 'Linux' and python_version >= '3.9'", # IMX export bug
+]
+export-legacy-torch = [
+    "numpy<2",
+    "setuptools<81.0.0; python_version >= '3.9'",  # legacy torch's torch_version imports pkg_resources, removed in setuptools>=81
+]
+export-tensorflow = [
+    "numpy<2.0.0; python_version < '3.13'", # TF 2.20 compatibility
+    "tensorflow>=2.0.0,<=2.19.0; python_version < '3.13'", # TF bug https://github.com/ultralytics/ultralytics/issues/5161
+    "tensorflow>2.19.0; python_version >= '3.13'",
     "tensorflowjs>=2.0.0", # TF.js export, automatically installs tensorflow
-    "ydf<0.13.0; platform_machine != 'aarch64'", # ydf>=0.13 has protobuf gencode 6.x but tensorflow<=2.19 requires protobuf<6
-    "googleapis-common-protos<1.74.0", # >=1.74.0 uses protobuf gencode 7.34.1, incompatible with tensorflow<=2.19 (protobuf<6) and breaks ray[tune] import
+    "ydf<0.13.0; platform_machine != 'aarch64' and python_version <= '3.12'", # ydf>=0.13 has protobuf gencode 6.x but tensorflow<=2.19 requires protobuf<6
+    "googleapis-common-protos<1.74.0; python_version <= '3.12'", # >=1.74.0 uses protobuf gencode 7.34.1, incompatible with tensorflow<=2.19 (protobuf<6) and breaks ray[tune] import
     "tensorstore>=0.1.63; platform_machine == 'aarch64' and python_version >= '3.9'", # for TF Raspberry Pi exports
     "h5py!=3.11.0; platform_machine == 'aarch64'", # fix h5py build issues due to missing aarch64 wheels in 3.11 release
     "setuptools<=81.0.0",  # pin due to >=82.0.0 breaking tensorflow.js package
-    "packaging>=26.0; platform_machine == 'aarch64' and platform_system == 'Linux' and python_version >= '3.9'", # IMX export bug
+]
+export-coreml = [
+    "numpy<=2.3.5; python_version >= '3.13'",  # pin until CoreML>9.0 new release
+    "coremltools>=9.0; platform_system != 'Windows' and python_version <= '3.13'", # CoreML supported on macOS and Linux
+    "scikit-learn>=1.3.2; platform_system != 'Windows' and python_version <= '3.13'", # CoreML k-means quantization
+]
+export-executorch = [
+    "executorch",
+    "numpy<=2.3.5",
+]
+export-deepx = [
+    "dx_com",
+    "numpy<2",
+]
+export = [
+    "ultralytics[export-base]",
+    "ultralytics[export-tensorflow]",
+    "ultralytics[export-coreml]",
 ]
 solutions = [
     "shapely>=2.0.0",    # shapely for point and polygon data matching
+    "lap>=0.5.12",  # for solution tracking linear assignment
+    # CLIP for similarity search auto-installs on first use via ultralytics.nn.text_model (https://github.com/ultralytics/CLIP)
     "streamlit>=1.51.0; python_version >= '3.10'",    # for live inference on web browser, i.e `yolo streamlit-predict`
-    "streamlit>=1.29.0,<1.51.0; python_version < '3.10' and (python_version < '3.9' or platform_machine != 'aarch64' or platform_system != 'Linux')",
+    "streamlit>=1.29.0,<1.51.0; python_version < '3.10' and (platform_machine != 'aarch64' or platform_system != 'Linux')",
     "flask>=3.0.1",  # for similarity search solution
 ]
 logging = [
@@ -122,7 +153,6 @@ extra = [
     "faster-coco-eval>=1.6.7", # COCO mAP
 ]
 typing = [
-    "scipy-stubs>=1.14.1.4; python_version >= '3.10'",
     "types-pillow",
     "types-psutil",
     "types-pyyaml",
@@ -193,5 +223,5 @@ close-quotes-on-newline = true
 in-place = true
 
 [tool.codespell]
-ignore-words-list = "grey,writeable,finalY,RepResNet,Idenfy,WIT,Smoot,EHR,ROUGE,ALS,iTerm,Carmel,FPR,Hach,Calle,ore,COO,MOT,crate,nd,ned,strack,dota,ane,segway,fo,gool,winn,commend,bloc,nam,afterall,skelton,goin"
+ignore-words-list = "grey,writeable,finalY,RepResNet,Idenfy,WIT,Smoot,EHR,ROUGE,ALS,iTerm,Carmel,FPR,Hach,Calle,ore,COO,MOT,crate,nd,ned,strack,dota,ane,segway,fo,gool,winn,commend,bloc,nam,afterall,skelton,goin,alls"
 skip = "*.pt,*.pth,*.torchscript,*.onnx,*.tflite,*.pb,*.bin,*.param,*.mlmodel,*.engine,*.npy,*.data*,*.csv,*pnnx*,*venv*,*translat*,*lock*,__pycache__*,*.ico,*.jpg,*.png,*.webp,*.avif,*.mp4,*.mov,/runs,/.git,./docs/??/*.md,./docs/mkdocs_??.yml"

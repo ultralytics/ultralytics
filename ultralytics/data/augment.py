@@ -1455,7 +1455,7 @@ class RandomHSV(BaseTransform):
             >>> augmented_img = labels["img"]
         """
         img = labels["img"]
-        if img.shape[-1] != 3:  # only apply to RGB images
+        if img.shape[-1] != 3:  # only apply to 3-channel (BGR) images
             return labels
         if self.hgain or self.sgain or self.vgain:
             dtype = img.dtype  # uint8
@@ -2095,7 +2095,7 @@ class Albumentations(BaseTransform):
                 "Transpose",
                 "VerticalFlip",
                 "XYMasking",
-            }  # from https://albumentations.ai/docs/getting_started/transforms_and_targets/#spatial-level-transforms
+            }  # from https://albumentations.ai/docs/2-core-concepts/targets/
 
             # Transforms, use custom transforms if provided, otherwise use defaults
             T = (
@@ -2706,10 +2706,20 @@ def v8_transforms(dataset, imgsz: int, hyp: IterableSimpleNamespace, stretch: bo
         (Compose): A composition of image transformations to be applied to the dataset.
 
     Examples:
+        >>> from ultralytics.cfg import DEFAULT_CFG
         >>> from ultralytics.data.dataset import YOLODataset
         >>> from ultralytics.utils import IterableSimpleNamespace
-        >>> dataset = YOLODataset(img_path="path/to/images", imgsz=640)
-        >>> hyp = IterableSimpleNamespace(mosaic=1.0, copy_paste=0.5, degrees=10.0, translate=0.2, scale=0.9)
+        >>> dataset = YOLODataset(img_path="path/to/images", data={"names": {0: "person"}}, imgsz=640)
+        >>> hyp = IterableSimpleNamespace(
+        ...     **{
+        ...         **vars(DEFAULT_CFG),
+        ...         "mosaic": 1.0,
+        ...         "copy_paste": 0.5,
+        ...         "degrees": 10.0,
+        ...         "translate": 0.2,
+        ...         "scale": 0.9,
+        ...     }
+        ... )
         >>> transforms = v8_transforms(dataset, imgsz=640, hyp=hyp)
         >>> augmented_data = transforms(dataset[0])
 

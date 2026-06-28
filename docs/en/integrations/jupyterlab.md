@@ -1,4 +1,5 @@
 ---
+title: Train YOLO26 Models with JupyterLab
 comments: true
 description: Learn how to use JupyterLab to train and experiment with Ultralytics YOLO26 models. Discover key features, setup instructions, and solutions to common issues.
 keywords: JupyterLab, YOLO26, Ultralytics, Model Training, Deep Learning, Interactive Coding, Data Science, Machine Learning, Jupyter Notebook, Model Development
@@ -104,7 +105,7 @@ If you want to learn more about JupyterLab, here are resources to get you starte
 
 ## Summary
 
-We've explored how JupyterLab can be a powerful tool for experimenting with Ultralytics YOLO26 models. Using its flexible and interactive environment, you can easily set up JupyterLab on your local machine and start working with YOLO26. JupyterLab makes it simple to [train](../guides/model-training-tips.md) and [evaluate](../guides/model-testing.md) your models, visualize outputs, and [document your findings](../guides/model-monitoring-and-maintenance.md) all in one place.
+We've explored how JupyterLab can be a powerful tool for experimenting with Ultralytics YOLO26 models. Using its flexible and interactive environment, you can easily set up JupyterLab on your local machine and start working with YOLO26. JupyterLab makes it simple to [train](../guides/model-training-tips.md) and [evaluate](../guides/model-evaluation-insights.md) your models, visualize outputs, and [document your findings](../guides/model-monitoring-and-maintenance.md) all in one place.
 
 Unlike other platforms such as [Google Colab](../integrations/google-colab.md), JupyterLab runs locally on your machine, giving you more control over your computing environment while still providing an interactive notebook experience. This makes it particularly valuable for developers who need consistent access to their development environment without relying on cloud resources.
 
@@ -148,7 +149,7 @@ To train a YOLO26 model using JupyterLab:
     from ultralytics.utils.plotting import plot_results
 
     matplotlib.use("inline")  # or 'notebook' for interactive
-    plot_results(results)
+    plot_results("runs/detect/train/results.csv")
     ```
 
 JupyterLab's interactive environment allows you to easily modify parameters, visualize results, and iterate on your model training process.
@@ -191,7 +192,7 @@ To optimize YOLO26 model performance in JupyterLab:
     ```python
     from ultralytics.utils.plotting import plot_results
 
-    plot_results(results.results_dict)
+    plot_results("runs/detect/train/results.csv")
     ```
 
 4. Experiment with different model architectures and [export formats](../modes/export.md) to find the best balance of speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) for your specific use case.

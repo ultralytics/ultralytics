@@ -28,6 +28,11 @@ anomaly_v2:
   mask_mode: rect
   p_drop: 1.0
   seg_branch: false
+  # No heatmap prior here, so the validator's mask-on pass == mask-off: run single-pass val
+  # (val_mask_prior=false) and skip the MVTec memory-bank OOD eval (test_val_freq=0) so best.pt
+  # is selected by in-domain detection mAP. Both cut a large amount of per-epoch val time.
+  val_mask_prior: false
+  test_val_freq: 0
   # Decoupled type head:
   type_gain: 0.5 # weight of the type cross-entropy (raise toward better type acc, 0.0 = binary-only)
   type_tau: 1.0 # softmax temperature at fusion (small -> sharper / closer to one-hot)

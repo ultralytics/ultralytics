@@ -458,7 +458,7 @@ class LoadImagesAndVideos:
                     imgs.append(im0)
                     info.append(f"image {self.count + 1}/{self.nf} {path}: ")
                 self.count += 1  # move to the next file
-                if self.count >= self.ni:  # end of image list
+                if self.count >= self.ni and imgs:  # end of image list, flush only a non-empty batch
                     break
 
         return paths, imgs, info

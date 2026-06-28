@@ -204,6 +204,7 @@ model.train(data="coco8.yaml", epochs=10, trainer=WeightedTrainer)
 
     ```python
     # inference script
+    from weighted_model import WeightedDetectionModel  # noqa: F401 - must be importable at checkpoint load time
 
     from ultralytics import YOLO
 
@@ -284,11 +285,11 @@ model = YOLO("yolo26n.pt")
 model.train(data="coco8.yaml", epochs=20, freeze=10, trainer=FreezingTrainer)
 ```
 
-The `freeze=10` parameter freezes the first 10 layers (the backbone) at training start. The `on_train_epoch_start` callback fires at the beginning of each epoch and unfreezes all parameters once the freeze period is complete.
+The `freeze=10` parameter freezes the first 10 layers (indices 0-9) at training start, which covers most of the YOLO26 backbone. The backbone spans layers 0-10, so `freeze=10` leaves the final C2PSA block (layer 10) trainable; use `freeze=11` to freeze the entire backbone. The `on_train_epoch_start` callback fires at the beginning of each epoch and unfreezes all parameters once the freeze period is complete.
 
 !!! tip "Choosing What to Freeze"
 
-    - `freeze=10` freezes the first 10 layers (typically the backbone in YOLO architectures)
+    - `freeze=10` freezes the first 10 layers, indices 0-9 (most of the YOLO26 backbone; use `freeze=11` to include the final C2PSA block at layer 10)
     - `freeze=[0, 1, 2, 3]` freezes specific layers by index
     - Higher `FREEZE_EPOCHS` values give the head more time to adapt before the backbone changes
 
@@ -313,10 +314,13 @@ class PerLayerLRTrainer(DetectionTrainer):
         backbone_params = []
         head_params = []
 
-        for k, v in unwrap_model(model).named_parameters():
+        unwrapped = unwrap_model(model)
+        backbone_len = len(unwrapped.yaml["backbone"])  # YOLO26 backbone spans layers 0-10 (C2PSA at layer 10)
+
+        for k, v in unwrapped.named_parameters():
             if not v.requires_grad:
                 continue
-            is_backbone = any(k.startswith(f"model.{i}.") for i in range(10))
+            is_backbone = any(k.startswith(f"model.{i}.") for i in range(backbone_len))
             if is_backbone:
                 backbone_params.append(v)
             else:

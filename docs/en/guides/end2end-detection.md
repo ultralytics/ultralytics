@@ -101,7 +101,7 @@ detections = detections[detections[:, 4] > conf_threshold]  # confidence filter 
 
 ### Switching to the One-to-Many Head
 
-If you need the traditional YOLO output format (for example, to reuse existing NMS-based post-processing code), you can switch to the one-to-many head in supported formats by setting `end2end=False`:
+If you need the traditional YOLO output format (for example, to reuse existing NMS-based post-processing code), you can switch to the one-to-many head when it is available by setting `end2end=False`:
 
 !!! example "Using the one-to-many head for traditional NMS-based output"
 
@@ -133,8 +133,6 @@ If you need the traditional YOLO output format (for example, to reuse existing N
 ## Export Format Compatibility
 
 Most [export formats](../modes/export.md#export-formats) support end-to-end inference out of the box, including [ONNX](../integrations/onnx.md), [TensorRT](../integrations/tensorrt.md), [CoreML](../integrations/coreml.md), [OpenVINO](../integrations/openvino.md), [TFLite](../integrations/tflite.md), [TF.js](../integrations/tfjs.md), and [MNN](../integrations/mnn.md).
-
-[Axelera](../integrations/axelera.md) supports YOLO26 detection exports with the default end-to-end head. Do not set `end2end=False` for Axelera exports.
 
 The following formats **do not** support end-to-end and automatically fall back to the one-to-many head: [NCNN](../integrations/ncnn.md), [RKNN](../integrations/rockchip-rknn.md), [PaddlePaddle](../integrations/paddlepaddle.md), [ExecuTorch](../integrations/executorch.md), [IMX](../integrations/sony-imx500.md), [Edge TPU](../integrations/edge-tpu.md), and [Qualcomm QNN](../integrations/qnn.md).
 

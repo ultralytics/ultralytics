@@ -228,8 +228,6 @@ The Axelera format supports the [Export](../modes/export.md), [Predict](../modes
 | `fraction` | `float`          | `1.0`            | Fraction of dataset for calibration (100-400 images recommended).                                                                                                                                                    |
 | `device`   | `str`            | `None`           | Export device: GPU (`device=0`) or CPU (`device=cpu`).                                                                                                                                                               |
 
-For YOLO26 models, keep the default end-to-end head enabled. `end2end=False` is not supported for Axelera exports.
-
 For all export options, see the [Export Mode documentation](../modes/export.md).
 
 ### Output Structure

@@ -175,7 +175,9 @@ def test_predict_gray_and_4ch(tmp_path):
 @pytest.mark.slow
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 def test_predict_all_image_formats():
-    """Predict on all 12 image formats (AVIF, BMP, DNG, HEIC, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WebP)."""
+    """Predict on the 12 image format extensions in COCO12-Formats (AVIF, BMP, DNG, HEIC, JP2, JPEG, JPG, MPO, PNG, TIF,
+    TIFF, WebP).
+    """
     # Download dataset if needed
     data = check_det_dataset("coco12-formats.yaml")
     dataset_path = Path(data["path"])

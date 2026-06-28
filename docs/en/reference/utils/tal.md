@@ -1,4 +1,5 @@
 ---
+title: utils.tal API Reference
 description: Explore the TaskAlignedAssigner in Ultralytics YOLO. Learn about the TaskAlignedMetric and its applications in object detection.
 keywords: Ultralytics, YOLO, TaskAlignedAssigner, object detection, machine learning, AI, Tal.py, PyTorch
 ---

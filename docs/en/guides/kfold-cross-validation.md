@@ -270,7 +270,7 @@ fold_lbl_distrb.to_csv(save_path / "kfold_label_distribution.csv")
         )  # include any additional train arguments
     ```
 
-3. You can also use [Ultralytics data.split.autosplit](https://docs.ultralytics.com/reference/data/split) function for automatic dataset splitting:
+3. You can also use [Ultralytics data.split.autosplit](../reference/data/split.md) function for automatic dataset splitting:
 
     ```python
     from ultralytics.data.split import autosplit
@@ -313,7 +313,7 @@ For a comprehensive guide, see the [K-Fold Dataset Split](#k-fold-dataset-split)
 
 ### Why should I use Ultralytics YOLO for object detection?
 
-Ultralytics YOLO offers state-of-the-art, real-time object detection with high [accuracy](https://www.ultralytics.com/glossary/accuracy) and efficiency. It's versatile, supporting multiple [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks such as [detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), and [classification](../tasks/classify.md). Additionally, it integrates seamlessly with tools like [Ultralytics Platform](https://docs.ultralytics.com/platform) for no-code model training and deployment. For more details, explore the benefits and features on our [Ultralytics YOLO page](https://www.ultralytics.com/yolo).
+Ultralytics YOLO offers state-of-the-art, real-time object detection with high [accuracy](https://www.ultralytics.com/glossary/accuracy) and efficiency. It's versatile, supporting multiple [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks such as [detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), and [classification](../tasks/classify.md). Additionally, it integrates seamlessly with tools like [Ultralytics Platform](../platform/index.md) for no-code model training and deployment. For more details, explore the benefits and features on our [Ultralytics YOLO page](https://www.ultralytics.com/yolo).
 
 ### How can I ensure my annotations are in the correct format for Ultralytics YOLO?
 

@@ -113,7 +113,7 @@ class AutoBackend(nn.Module):
             | ExecuTorch            | *.pte             |
             | Axelera AI            | *_axelera_model/  |
             | DEEPX                 | *_deepx_model/    |
-            | Qualcomm QNN          | *_qnn_model/      |
+            | Qualcomm QNN          | *_qnn.onnx        |
 
     Attributes:
         backend (BaseBackend): The loaded inference backend instance.

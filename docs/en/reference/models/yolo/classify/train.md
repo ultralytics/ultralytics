@@ -1,4 +1,5 @@
 ---
+title: models.yolo.classify.train API Reference
 description: Explore the train.py module in Ultralytics YOLO for efficient classification model training. Learn more with examples and detailed code documentation.
 keywords: YOLO, Ultralytics, classification, training, machine learning, deep learning, PyTorch, train.py
 ---

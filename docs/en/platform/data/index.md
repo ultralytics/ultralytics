@@ -34,14 +34,13 @@ The Data section of Ultralytics Platform helps you:
 
 ```mermaid
 graph LR
-    A[Upload] --> B[Annotate]
-    B --> C[Analyze]
-    C --> D[Train]
+    A[Upload]:::start --> B[Annotate]:::proc
+    B --> C[Analyze]:::proc
+    C --> D[Train]:::out
 
-    style A fill:#4CAF50,color:#fff
-    style B fill:#2196F3,color:#fff
-    style C fill:#FF9800,color:#fff
-    style D fill:#9C27B0,color:#fff
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 | Stage        | Description                                                                                                     |
@@ -146,7 +145,7 @@ Ultralytics Platform supports:
 
 **Images:** JPEG, PNG, WebP, BMP, TIFF, HEIC, AVIF, JP2, DNG, MPO (max 50MB each)
 
-**Videos:** MP4, WebM, MOV, AVI, MKV, M4V (max 1GB, frames extracted at 1 FPS, max 100 frames)
+**Videos:** MP4, WebM, MOV, MKV, M4V (max 1GB, frames extracted at 1 FPS, max 100 frames)
 
 **Dataset files:** ZIP or TAR archives including `.tar.gz` and `.tgz` (max 10GB on Free, 20GB on Pro, 50GB on Enterprise) containing images with optional [YOLO-format labels](../../datasets/detect/index.md#ultralytics-yolo-format), plus NDJSON exports
 

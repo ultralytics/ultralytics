@@ -550,7 +550,6 @@ The scripts below run object detection with the compiled HEF file. Both tabs acc
     import cv2
     import yaml
     from picamera2.devices import Hailo
-    from tqdm import tqdm
 
     # Reuse IMAGE_EXTS, parse_and_draw, csi_frames, cv2_frames, and open_source from the Hailo SDK tab above.
 

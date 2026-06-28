@@ -579,9 +579,9 @@ def _axelera_writes_axm(model, config, output_dir):
 def test_torch2axelera_preserves_output_when_cwd_is_model_dir(tmp_path, monkeypatch):
     """Axelera export must keep its .axm when the working directory is the model directory.
 
-    Reproduces the Platform worker condition (cwd == output_dir.parent with an absolute output path), where a
-    relative compile directory named after output_dir aliased output_dir and the cleanup deleted the result,
-    yielding the '0.000 MB output model too small' failure.
+    Reproduces the Platform worker condition (cwd == output_dir.parent with an absolute output path), where a relative
+    compile directory named after output_dir aliased output_dir and the cleanup deleted the result, yielding the '0.000
+    MB output model too small' failure.
     """
     from ultralytics.utils.export import axelera
 
@@ -598,7 +598,9 @@ def test_torch2axelera_preserves_output_when_cwd_is_model_dir(tmp_path, monkeypa
     )
 
     axm = result / "best.axm"
-    assert axm.is_file() and axm.stat().st_size > 100_000, "Axelera .axm missing or empty (cwd-aliased cleanup deleted it)"
+    assert axm.is_file() and axm.stat().st_size > 100_000, (
+        "Axelera .axm missing or empty (cwd-aliased cleanup deleted it)"
+    )
     assert not list(tmp_path.glob("axelera_compile_*")), "intermediate compile directory leaked into the working dir"
 
 

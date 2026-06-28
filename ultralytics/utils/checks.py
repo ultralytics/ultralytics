@@ -37,6 +37,7 @@ from ultralytics.utils import (
     LOGGER,
     MACOS,
     ONLINE,
+    PLATFORM_URL,
     PYTHON_VERSION,
     RKNN_CHIPS,
     ROOT,
@@ -55,6 +56,19 @@ from ultralytics.utils import (
 )
 
 REMOTE_FILE_PREFIXES = ("https://", "http://", "rtsp://", "rtmp://", "tcp://", "ul://", "gs://")
+
+
+def normalize_platform_uri(uri):
+    """Rewrite an Ultralytics Platform web URL to its ul:// URI so it can be loaded directly as data or model.
+
+    Args:
+        uri (str | Path): Resource identifier, e.g. "https://platform.ultralytics.com/user/datasets/slug".
+
+    Returns:
+        (str | Path): "ul://user/datasets/slug" for Platform web URLs, otherwise the input unchanged.
+    """
+    s = str(uri)
+    return f"ul://{s[len(PLATFORM_URL) + 1 :].strip('/')}" if s.startswith(f"{PLATFORM_URL}/") else uri
 
 
 def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
@@ -646,6 +660,7 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
     Returns:
         (str | list): Path to the file, or an empty list if not found.
     """
+    file = normalize_platform_uri(file)  # accept Platform web URLs (rewritten to ul://)
     check_suffix(file, suffix)  # optional
     file = str(file).strip()  # convert to string and strip spaces
     file = check_yolov5u_filename(file)  # yolov5n -> yolov5nu

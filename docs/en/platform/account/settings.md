@@ -2,6 +2,7 @@
 comments: true
 description: Configure your Ultralytics Platform profile, preferences, and data settings with GDPR-compliant data export and deletion options.
 keywords: Ultralytics Platform, settings, profile, preferences, GDPR, data export, privacy
+title: Account Settings
 ---
 
 # Settings

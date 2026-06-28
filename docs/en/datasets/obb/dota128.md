@@ -1,4 +1,5 @@
 ---
+title: DOTA128 OBB Dataset
 comments: true
 description: Explore the DOTA128 dataset - a versatile oriented object detection dataset ideal for testing and debugging OBB models using Ultralytics YOLO26.
 keywords: DOTA128 dataset, Ultralytics, YOLO26, object detection, debugging, training models, oriented object detection, dataset YAML

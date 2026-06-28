@@ -340,7 +340,7 @@ EXPORT_ENVS = {
         ],
         # Use the Python protobuf runtime for Axelera compiler compatibility.
         "env": {"PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION": "python"},
-        "smoke": ["yolo export format=axelera model=yolo11n.pt imgsz=64 data=coco8.yaml"],
+        "smoke": ["yolo export format=axelera model=yolo26n.pt imgsz=64 data=coco8.yaml"],
     },
     "isolated-deepx": {
         # dx-com 2.3.0 does not provide Python 3.13 wheels.

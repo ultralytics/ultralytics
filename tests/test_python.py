@@ -883,6 +883,13 @@ def test_model_embeddings():
         assert len(model_detect.embed(source=batch, imgsz=32)) == len(batch)
         assert len(model_segment.embed(source=batch, imgsz=32)) == len(batch)
 
+    model_classify = YOLO(WEIGHTS_DIR / "yolo26n-cls.pt")
+    assert model_classify.predict(SOURCE, imgsz=32)[0].probs is not None
+    assert isinstance(model_classify.embed(SOURCE, imgsz=32)[0], torch.Tensor)
+    assert model_classify.predict(SOURCE, imgsz=32)[0].probs is not None
+    assert isinstance(model_classify.predict(SOURCE, imgsz=32, embed=[-2])[0], torch.Tensor)
+    assert model_classify.predict(SOURCE, imgsz=32)[0].probs is not None
+
 
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for CLIP-based models")
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="YOLOWorld with CLIP is not supported in Python 3.12")

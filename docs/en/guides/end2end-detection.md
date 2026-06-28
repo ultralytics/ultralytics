@@ -101,7 +101,7 @@ detections = detections[detections[:, 4] > conf_threshold]  # confidence filter 
 
 ### Switching to the One-to-Many Head
 
-If you need the traditional YOLO output format (for example, to reuse existing NMS-based post-processing code), you can switch to the one-to-many head at any time by setting `end2end=False`:
+If you need the traditional YOLO output format (for example, to reuse existing NMS-based post-processing code), you can switch to the one-to-many head when it is available by setting `end2end=False`:
 
 !!! example "Using the one-to-many head for traditional NMS-based output"
 

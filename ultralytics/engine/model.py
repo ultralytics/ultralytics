@@ -454,8 +454,9 @@ class Model(torch.nn.Module):
     ) -> list:
         """Generate image embeddings based on the provided source.
 
-        This method is a wrapper around the 'predict()' method, focusing on generating embeddings from an image
-        source. It allows customization of the embedding process through various keyword arguments.
+        This method is a wrapper around the 'predict()' method, returning feature embeddings from image sources. By
+        default, embeddings are extracted from the second-to-last model layer. Pass `embed=[layer_index]` in `kwargs` to
+        select specific layers.
 
         Args:
             source (str | Path | int | list | tuple | np.ndarray | torch.Tensor): The source of the image for generating
@@ -470,7 +471,9 @@ class Model(torch.nn.Module):
             >>> model = YOLO("yolo26n.pt")
             >>> image = "https://ultralytics.com/images/bus.jpg"
             >>> embeddings = model.embed(image)
+            >>> results = model.predict(image)
             >>> print(embeddings[0].shape)
+            >>> print(results[0].boxes.shape)
         """
         if not kwargs.get("embed"):
             kwargs["embed"] = [len(self.model.model) - 2]  # embed second-to-last layer if no indices passed
@@ -496,11 +499,12 @@ class Model(torch.nn.Module):
             stream (bool): If True, treats the input source as a continuous stream for predictions.
             predictor (BasePredictor, optional): An instance of a custom predictor class for making predictions. If
                 None, the method uses a default predictor.
-            **kwargs (Any): Additional keyword arguments for configuring the prediction process.
+            **kwargs (Any): Additional keyword arguments for configuring the prediction process. These include `embed`
+                for returning feature embeddings from specified layers.
 
         Returns:
-            (list[ultralytics.engine.results.Results]): A list of prediction results, each encapsulated in a Results
-                object.
+            (list[ultralytics.engine.results.Results] | list[torch.Tensor]): Prediction results as `Results` objects, or
+                embedding tensors when `embed` is set.
 
         Examples:
             >>> model = YOLO("yolo26n.pt")
@@ -521,7 +525,7 @@ class Model(torch.nn.Module):
             x in ARGV for x in ("predict", "track", "mode=predict", "mode=track")
         )
 
-        custom = {"conf": 0.25, "batch": 1, "save": is_cli, "mode": "predict", "rect": True}  # method defaults
+        custom = {"conf": 0.25, "batch": 1, "save": is_cli, "mode": "predict", "rect": True, "embed": None}
         args = {**self.overrides, **custom, **kwargs}  # highest priority args on the right
         prompts = args.pop("prompts", None)  # for SAM-type models
 

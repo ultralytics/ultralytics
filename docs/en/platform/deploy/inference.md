@@ -1,4 +1,5 @@
 ---
+title: Inference API Testing
 comments: true
 description: Learn how to test YOLO models with the Ultralytics Platform inference API including browser testing and programmatic access.
 keywords: Ultralytics Platform, inference, API, YOLO, object detection, prediction, testing
@@ -33,13 +34,14 @@ The predict panel supports multiple input methods:
 
 ```mermaid
 graph LR
-    A[Upload Image] --> D[Auto-Inference]
-    B[Example Image] --> D
-    C[Webcam Capture] --> D
-    D --> E[Results + Overlays]
+    A[Upload Image]:::start --> D[Auto-Inference]:::proc
+    B[Example Image]:::start --> D
+    C[Webcam Capture]:::start --> D
+    D --> E[Results + Overlays]:::out
 
-    style D fill:#2196F3,color:#fff
-    style E fill:#4CAF50,color:#fff
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 ### Upload Image
@@ -207,6 +209,18 @@ POST https://platform.ultralytics.com/api/models/{modelId}/predict
 
 ![Ultralytics Platform Predict Tab Code Examples Python Tab](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/predict-tab-code-examples-python-tab.avif)
 
+### Request Parameters
+
+| Parameter   | Type   | Default | Range      | Description                                        |
+| ----------- | ------ | ------- | ---------- | -------------------------------------------------- |
+| `file`      | file   | -       | -          | Image or video file (required unless `source` set) |
+| `conf`      | float  | 0.25    | 0.01 – 1.0 | Minimum confidence threshold                       |
+| `iou`       | float  | 0.7     | 0.0 – 0.95 | NMS IoU threshold                                  |
+| `imgsz`     | int    | 640     | 32 – 1280  | Input image size in pixels                         |
+| `normalize` | bool   | false   | -          | Return bounding box coordinates as 0 – 1           |
+| `decimals`  | int    | 5       | 0 – 10     | Decimal precision for coordinate values            |
+| `source`    | string | -       | -          | Image URL or base64 string (alternative to `file`) |
+
 ### Response
 
 ```json
@@ -258,6 +272,7 @@ POST https://platform.ultralytics.com/api/models/{modelId}/predict
 | `images`                        | array  | List of processed images          |
 | `images[].shape`                | array  | Image dimensions [height, width]  |
 | `images[].results`              | array  | List of detections                |
+| `images[].results[].class`      | int    | Class index (integer ID)          |
 | `images[].results[].name`       | string | Class name                        |
 | `images[].results[].confidence` | float  | Detection confidence (0-1)        |
 | `images[].results[].box`        | object | Bounding box coordinates          |
@@ -362,13 +377,14 @@ Shared inference is rate-limited to **20 requests/min per API key**. When thrott
 
 Common error responses:
 
-| Code | Message         | Solution                                                                             |
-| ---- | --------------- | ------------------------------------------------------------------------------------ |
-| 400  | Invalid image   | Check file format                                                                    |
-| 401  | Unauthorized    | Verify API key                                                                       |
-| 404  | Model not found | Check model ID                                                                       |
-| 429  | Rate limited    | Wait and retry, or use a [dedicated endpoint](endpoints.md) for unlimited throughput |
-| 500  | Server error    | Retry request                                                                        |
+| Code | Message             | Solution                                                                             |
+| ---- | ------------------- | ------------------------------------------------------------------------------------ |
+| 400  | Invalid image       | Check file format                                                                    |
+| 401  | Unauthorized        | Verify API key                                                                       |
+| 404  | Model not found     | Check model ID                                                                       |
+| 429  | Rate limited        | Wait and retry, or use a [dedicated endpoint](endpoints.md) for unlimited throughput |
+| 500  | Server error        | Retry request                                                                        |
+| 503  | Service unavailable | Predict service starting up or unreachable; wait briefly and retry                   |
 
 ## FAQ
 

@@ -79,7 +79,7 @@ Run YOLO26n benchmarks across all supported export formats (ONNX, TensorRT, etc.
         from ultralytics.utils.benchmarks import benchmark
 
         # Benchmark on GPU
-        benchmark(model="yolo26n.pt", data="coco8.yaml", imgsz=640, half=False, device=0)
+        benchmark(model="yolo26n.pt", data="coco8.yaml", imgsz=640, device=0)
 
         # Benchmark specific export format
         benchmark(model="yolo26n.pt", data="coco8.yaml", imgsz=640, format="onnx")
@@ -88,7 +88,7 @@ Run YOLO26n benchmarks across all supported export formats (ONNX, TensorRT, etc.
     === "CLI"
 
         ```bash
-        yolo benchmark model=yolo26n.pt data='coco8.yaml' imgsz=640 half=False device=0
+        yolo benchmark model=yolo26n.pt data='coco8.yaml' imgsz=640 device=0
 
         # Benchmark specific export format
         yolo benchmark model=yolo26n.pt data='coco8.yaml' imgsz=640 format=onnx
@@ -96,23 +96,22 @@ Run YOLO26n benchmarks across all supported export formats (ONNX, TensorRT, etc.
 
 ## Arguments
 
-Arguments such as `model`, `data`, `imgsz`, `half`, `device`, `verbose` and `format` provide users with the flexibility to fine-tune the benchmarks to their specific needs and compare the performance of different export formats with ease.
+Arguments such as `model`, `data`, `imgsz`, `quantize`, `device`, `verbose` and `format` provide users with the flexibility to fine-tune the benchmarks to their specific needs and compare the performance of different export formats with ease.
 
-| Key       | Default Value | Description                                                                                                                                                                                             |
-| --------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `model`   | `None`        | Specifies the path to the model file. Accepts both `.pt` and `.yaml` formats, e.g., `"yolo26n.pt"` for pretrained models or configuration files.                                                        |
-| `data`    | `None`        | Path to a YAML file defining the dataset for benchmarking, typically including paths and settings for [validation data](https://www.ultralytics.com/glossary/validation-data). Example: `"coco8.yaml"`. |
-| `imgsz`   | `640`         | The input image size for the model. Must be a single integer for square images (e.g., `640`); `benchmark()` only supports square image sizes.                                                           |
-| `half`    | `False`       | Enables FP16 (half-precision) inference, reducing memory usage and possibly increasing speed on compatible hardware. Use `half=True` to enable.                                                         |
-| `int8`    | `False`       | Activates INT8 quantization for further optimized performance on supported devices, especially useful for edge devices. Set `int8=True` to use.                                                         |
-| `device`  | `'cpu'`       | Defines the computation device(s) for benchmarking, such as `"cpu"` or `"cuda:0"`.                                                                                                                      |
-| `verbose` | `False`       | Controls the level of detail in logging output. Set `verbose=True` for detailed logs.                                                                                                                   |
-| `eps`     | `0.001`       | Small epsilon (milliseconds) added to the per-image inference time before converting it to FPS, preventing division by zero. Rarely changed.                                                            |
-| `format`  | `''`          | Benchmarks only the specified export format (e.g., `format=onnx`). Leave it blank to test every supported format automatically.                                                                         |
+| Key        | Default Value | Description                                                                                                                                                                                             |
+| ---------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `model`    | `None`        | Specifies the path to the model file. Accepts both `.pt` and `.yaml` formats, e.g., `"yolo26n.pt"` for pretrained models or configuration files.                                                        |
+| `data`     | `None`        | Path to a YAML file defining the dataset for benchmarking, typically including paths and settings for [validation data](https://www.ultralytics.com/glossary/validation-data). Example: `"coco8.yaml"`. |
+| `imgsz`    | `640`         | The input image size for the model. Must be a single integer for square images (e.g., `640`); `benchmark()` only supports square image sizes.                                                           |
+| `quantize` | `None`        | Quantization precision: `16` (FP16) or `8` (INT8/PTQ; needs calibration `data`/`fraction`); `32`/unset is FP32. Replaces the deprecated `half`/`int8` flags.                                            |
+| `device`   | `'cpu'`       | Defines the computation device(s) for benchmarking, such as `"cpu"` or `"cuda:0"`.                                                                                                                      |
+| `verbose`  | `False`       | Controls the level of detail in logging output. Set `verbose=True` for detailed logs.                                                                                                                   |
+| `eps`      | `0.001`       | Small epsilon (milliseconds) added to the per-image inference time before converting it to FPS, preventing division by zero. Rarely changed.                                                            |
+| `format`   | `''`          | Benchmarks only the specified export format (e.g., `format=onnx`). Leave it blank to test every supported format automatically.                                                                         |
 
 !!! note "Standalone `benchmark()` function defaults"
 
-    The `imgsz` and `device` defaults above are the `yolo benchmark` CLI and `model.benchmark()` values (resolved from `DEFAULT_CFG`). The standalone `benchmark()` function instead falls back to its own signature for omitted arguments: a default `yolo26n.pt` model path, `imgsz=160`, and `device='cpu'`. Note that `model.benchmark()` runs on the already-loaded model instance, so `model` is an argument only for the CLI and the standalone function. Pass `imgsz`/`device` explicitly to make the standalone function match the CLI.
+    The standalone `benchmark()` function (`from ultralytics.utils.benchmarks import benchmark`) uses its own signature defaults instead of the table values above, notably `model="yolo26n.pt"` and `imgsz=160`; pass `imgsz` explicitly to match the `yolo benchmark` CLI.
 
 ## Export Formats
 
@@ -136,20 +135,20 @@ Ultralytics YOLO26 offers a Benchmark mode to assess your model's performance ac
         from ultralytics.utils.benchmarks import benchmark
 
         # Benchmark on GPU
-        benchmark(model="yolo26n.pt", data="coco8.yaml", imgsz=640, half=False, device=0)
+        benchmark(model="yolo26n.pt", data="coco8.yaml", imgsz=640, device=0)
         ```
 
     === "CLI"
 
         ```bash
-        yolo benchmark model=yolo26n.pt data='coco8.yaml' imgsz=640 half=False device=0
+        yolo benchmark model=yolo26n.pt data='coco8.yaml' imgsz=640 device=0
         ```
 
 For more details on benchmark arguments, visit the [Arguments](#arguments) section.
 
 ### What are the benefits of exporting YOLO26 models to different formats?
 
-Exporting YOLO26 models to different formats such as [ONNX](https://docs.ultralytics.com/integrations/onnx), [TensorRT](https://docs.ultralytics.com/integrations/tensorrt), and [OpenVINO](https://docs.ultralytics.com/integrations/openvino) allows you to optimize performance based on your deployment environment. For instance:
+Exporting YOLO26 models to different formats such as [ONNX](../integrations/onnx.md), [TensorRT](../integrations/tensorrt.md), and [OpenVINO](../integrations/openvino.md) allows you to optimize performance based on your deployment environment. For instance:
 
 - **ONNX:** Provides up to 3x CPU speedup.
 - **TensorRT:** Offers up to 5x GPU speedup.
@@ -186,8 +185,7 @@ When running benchmarks, several arguments can be customized to suit specific ne
 - **model:** Path to the model file (e.g., "yolo26n.pt").
 - **data:** Path to a YAML file defining the dataset (e.g., "coco8.yaml").
 - **imgsz:** The input image size, either as a single integer or a tuple.
-- **half:** Enable FP16 inference for better performance.
-- **int8:** Activate INT8 quantization for edge devices.
+- **quantize:** Quantization precision: `16` for FP16, `8` for INT8 (useful for edge devices); `32`/unset is FP32.
 - **device:** Specify the computation device (e.g., "cpu", "cuda:0").
 - **verbose:** Control the level of logging detail.
 

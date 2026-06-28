@@ -1,4 +1,5 @@
 ---
+title: models.sam.amg API Reference
 description: Explore the detailed API reference for Ultralytics SAM/AMG models, including functions for mask stability scores, crop box generation, and more.
 keywords: Ultralytics, SAM, AMG, API Reference, models, mask stability, crop boxes, data processing, YOLO
 ---

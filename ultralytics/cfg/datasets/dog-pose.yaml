@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # Dogs dataset http://vision.stanford.edu/aditya86/ImageNetDogs/ by Stanford
-# Documentation: https://docs.ultralytics.com/datasets/pose/dog-pose/
+# Documentation: https://docs.ultralytics.com/datasets/pose/dog-pose
 # Example usage: yolo train data=dog-pose.yaml
 # parent
 # ├── ultralytics

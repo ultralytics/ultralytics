@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import shutil
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -54,7 +55,12 @@ def torch2axelera(
     LOGGER.info(f"\n{prefix} starting export with Axelera compiler...")
 
     output_dir = Path(output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
+    compile_dir = Path(output_dir.name)
+    if compile_dir.exists():
+        shutil.rmtree(compile_dir)
+    if output_dir != compile_dir and output_dir.exists():
+        shutil.rmtree(output_dir)
+    compile_dir.mkdir(parents=True, exist_ok=True)
 
     axelera_model_metadata = extract_ultralytics_metadata(model)
     config = CompilerConfig(
@@ -71,12 +77,15 @@ def torch2axelera(
         config=config,
         transform_fn=transform_fn,
     )
-    compiler.compile(model=qmodel, config=config, output_dir=output_dir)
+    # Compile locally because the Axelera compiler can emit invalid artifacts for absolute output paths.
+    compiler.compile(model=qmodel, config=config, output_dir=compile_dir)
 
+    output_dir.mkdir(parents=True, exist_ok=True)
     for artifact in [f"{model_name}.axm", "compiler_config_final.toml"]:
-        artifact_path = Path(artifact)
-        if artifact_path.exists():
-            artifact_path.replace(output_dir / artifact_path.name)
+        for artifact_path in [Path(artifact), compile_dir / artifact]:
+            if artifact_path.exists():
+                artifact_path.replace(output_dir / artifact_path.name)
+                break
 
     # Remove intermediate compiler artifacts, keeping only the compiled model and config.
     keep_suffixes = {".axm"}
@@ -87,6 +96,9 @@ def torch2axelera(
 
     if metadata is not None:
         YAML.save(output_dir / "metadata.yaml", metadata)
+
+    if compile_dir != output_dir and compile_dir.exists():
+        shutil.rmtree(compile_dir)
 
     # Restore original PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION value
     if prev_protobuf is None:

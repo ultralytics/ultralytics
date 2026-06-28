@@ -216,7 +216,7 @@ See the [Pose Estimation Docs](https://docs.ultralytics.com/tasks/pose) for usag
 
 <details><summary>Oriented Bounding Boxes (DOTAv1)</summary>
 
-Check the [OBB Docs](https://docs.ultralytics.com/tasks/obb) for usage examples. These models are trained on [DOTAv1](https://docs.ultralytics.com/datasets/obb/dota-v2#dota-v10/), including 15 classes.
+Check the [OBB Docs](https://docs.ultralytics.com/tasks/obb) for usage examples. These models are trained on [DOTAv1](https://docs.ultralytics.com/datasets/obb/dota-v2#dota-v10), including 15 classes.
 
 | Model                                                                                        | size<br><sup>(pixels)</sup> | mAP<sup>test<br>50-95(e2e)</sup> | mAP<sup>test<br>50(e2e)</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>T4 TensorRT10<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
 | -------------------------------------------------------------------------------------------- | --------------------------- | -------------------------------- | ----------------------------- | ------------------------------------ | ----------------------------------------- | ------------------------ | ----------------------- |

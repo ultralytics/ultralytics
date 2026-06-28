@@ -42,30 +42,24 @@ def torch2axelera(
     prev_protobuf = os.environ.get("PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION")
     os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
     try:
-        from axelera import compiler
-    except ImportError:
-        check_requirements(
-            ["axelera-devkit==1.7.0", "numpy<=2.3.5"],
-            cmds="--extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple",
-        )
-        from axelera import compiler
+        try:
+            from axelera import compiler
+        except ImportError:
+            check_requirements(
+                ["axelera-devkit==1.7.0", "numpy<=2.3.5"],
+                cmds="--extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple",
+            )
+            from axelera import compiler
 
-    from axelera.compiler import CompilerConfig
-    from axelera.compiler.config.model_specific import extract_ultralytics_metadata
+        from axelera.compiler import CompilerConfig
+        from axelera.compiler.config.model_specific import extract_ultralytics_metadata
 
-    LOGGER.info(f"\n{prefix} starting export with Axelera compiler...")
+        LOGGER.info(f"\n{prefix} starting export with Axelera compiler...")
 
-    # Resolve to an absolute path so the relative compile dir below can never alias it.
-    output_dir = Path(output_dir).resolve()
-    if output_dir.exists():
-        shutil.rmtree(output_dir)
-
-    # The Axelera compiler emits invalid artifacts for absolute output paths, so compile into a local
-    # relative directory. TemporaryDirectory gives a unique name (so parallel exports of identically named
-    # models never collide) and removes it on exit even if compilation raises; its relative basename is passed
-    # to the compiler so it can never alias the absolute output_dir and have the move/cleanup delete the result.
-    with tempfile.TemporaryDirectory(prefix="axelera_compile_", dir=".") as compile_dir_abs:
-        compile_dir = Path(Path(compile_dir_abs).name)
+        # Resolve to an absolute path so the relative compile dir below can never alias it.
+        output_dir = Path(output_dir).resolve()
+        if output_dir.exists():
+            shutil.rmtree(output_dir)
 
         axelera_model_metadata = extract_ultralytics_metadata(model)
         config = CompilerConfig(
@@ -82,14 +76,27 @@ def torch2axelera(
             config=config,
             transform_fn=transform_fn,
         )
-        compiler.compile(model=qmodel, config=config, output_dir=compile_dir)
 
-        output_dir.mkdir(parents=True, exist_ok=True)
-        for artifact in [f"{model_name}.axm", "compiler_config_final.toml"]:
-            for artifact_path in [compile_dir / artifact, Path(artifact)]:
-                if artifact_path.exists():
-                    artifact_path.replace(output_dir / artifact_path.name)
-                    break
+        # Compile from inside a unique temporary directory so every file the compiler writes — whether to the
+        # relative output path or to the current directory — stays isolated to this export. Parallel exports of
+        # identically named models therefore never collide, and the directory (with any intermediate files) is
+        # removed on exit even if compilation raises. A relative output path is required: the compiler emits
+        # invalid artifacts for absolute output paths.
+        prev_cwd = Path.cwd()
+        with tempfile.TemporaryDirectory(prefix="axelera_compile_", dir=".") as compile_root:
+            try:
+                os.chdir(compile_root)
+                compile_dir = Path(output_dir.name)
+                compiler.compile(model=qmodel, config=config, output_dir=compile_dir)
+
+                output_dir.mkdir(parents=True, exist_ok=True)
+                for artifact in [f"{model_name}.axm", "compiler_config_final.toml"]:
+                    for artifact_path in [compile_dir / artifact, Path(artifact)]:
+                        if artifact_path.exists():
+                            artifact_path.replace(output_dir / artifact_path.name)
+                            break
+            finally:
+                os.chdir(prev_cwd)
 
         # Remove intermediate compiler artifacts, keeping only the compiled model and config.
         keep_suffixes = {".axm"}
@@ -101,10 +108,10 @@ def torch2axelera(
         if metadata is not None:
             YAML.save(output_dir / "metadata.yaml", metadata)
 
-    # Restore original PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION value
-    if prev_protobuf is None:
-        os.environ.pop("PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION", None)
-    else:
-        os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = prev_protobuf
-
-    return str(output_dir)
+        return str(output_dir)
+    finally:
+        # Restore original PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION value
+        if prev_protobuf is None:
+            os.environ.pop("PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION", None)
+        else:
+            os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = prev_protobuf

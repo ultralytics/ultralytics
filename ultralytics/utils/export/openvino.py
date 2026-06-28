@@ -15,8 +15,7 @@ def torch2openvino(
     im: torch.Tensor | list[torch.Tensor] | tuple[torch.Tensor, ...],
     output_dir: Path | str | None = None,
     dynamic: bool = False,
-    half: bool = False,
-    int8: bool = False,
+    quantize: int | str | None = None,
     calibration_dataset: Any | None = None,
     ignored_scope: dict | None = None,
     prefix: str = "",
@@ -28,9 +27,8 @@ def torch2openvino(
         im (torch.Tensor | list[torch.Tensor] | tuple[torch.Tensor, ...]): Example input tensor(s) for tracing.
         output_dir (Path | str | None): Directory to save the exported OpenVINO model.
         dynamic (bool): Whether to use dynamic input shapes.
-        half (bool): Whether to compress to FP16.
-        int8 (bool): Whether to apply INT8 quantization.
-        calibration_dataset (nncf.Dataset | None): Dataset for INT8 calibration (required when ``int8=True``).
+        quantize (int | str | None): Precision scheme, e.g. 16 for FP16 or 8 for INT8.
+        calibration_dataset (nncf.Dataset | None): Dataset for INT8 calibration (required when ``quantize=8``).
         ignored_scope (dict | None): Kwargs passed to ``nncf.IgnoredScope`` for head patterns.
         prefix (str): Prefix for log messages.
 
@@ -48,7 +46,7 @@ def torch2openvino(
     # the same check on our own trace.
     ts = torch.jit.trace(model, im, strict=False, check_trace=False)
     ov_model = ov.convert_model(ts, input=None if dynamic else input_shape, example_input=im)
-    if int8:
+    if quantize == 8:
         import nncf
 
         ov_model = nncf.quantize(
@@ -62,5 +60,5 @@ def torch2openvino(
         output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
         output_file = output_dir / "model.xml"
-        ov.save_model(ov_model, output_file, compress_to_fp16=half)
+        ov.save_model(ov_model, output_file, compress_to_fp16=quantize == 16)
     return ov_model

@@ -92,21 +92,20 @@ class SemanticSegmentationValidator(DetectionValidator):
         return batch
 
     def postprocess(self, preds):
-        """Convert logits to class predictions.
+        """Convert logits or baked class maps to class predictions.
 
         Args:
-            preds (torch.Tensor): Raw model output logits [B, nc, H, W].
+            preds (torch.Tensor): Raw model output logits [B, nc, H, W] or baked class map [B, H, W].
 
         Returns:
             (torch.Tensor): Predicted class IDs [B, H, W].
         """
         if isinstance(preds, (tuple, list)):
             preds = preds[0]
-        if preds.ndim == 3:  # exports with in-graph ArgMax emit [B, H, W] class maps directly
-            if preds.shape[1:] != tuple(self._semantic_target_shape):
-                preds = F.interpolate(
-                    preds.unsqueeze(1).float(), size=self._semantic_target_shape, mode="nearest"
-                ).squeeze(1)
+        if preds.ndim == 3:
+            # [B, H, W] class map with argmax already baked into the graph. Nearest-resize only.
+            if tuple(preds.shape[-2:]) != self._semantic_target_shape:
+                preds = F.interpolate(preds[:, None].float(), size=self._semantic_target_shape, mode="nearest")[:, 0]
             return preds.to(torch.int32)
         pred_hw = preds.shape[2:]
         if pred_hw[0] != self._semantic_target_shape[0] or pred_hw[1] != self._semantic_target_shape[1]:

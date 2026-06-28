@@ -294,7 +294,7 @@ The code above displays ten images from the test set with their predicted boundi
 
 ### Step 7: Evaluate the Model
 
-We can produce visualizations of the model's [precision](https://www.ultralytics.com/glossary/precision) and recall for each class. These visualizations are saved in the home directory, under the train folder. The precision score is displayed in the P_curve.png:
+We can produce visualizations of the model's [precision](https://www.ultralytics.com/glossary/precision) and recall for each class. These visualizations are saved in the training run directory (`{work_dir}/runs/detect/train/`). The precision score is displayed in the BoxP_curve.png:
 
 <p align="center">
   <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/precision-confidence-curve.avif" alt="Model precision-confidence evaluation curve">
@@ -302,7 +302,7 @@ We can produce visualizations of the model's [precision](https://www.ultralytics
 
 The graph shows an exponential increase in precision as the model's confidence level for predictions increases. However, the model precision has not yet leveled out at a certain confidence level after two [epochs](https://www.ultralytics.com/glossary/epoch).
 
-The [recall](https://www.ultralytics.com/glossary/recall) graph (R_curve.png) displays an inverse trend:
+The [recall](https://www.ultralytics.com/glossary/recall) graph (BoxR_curve.png) displays an inverse trend:
 
 <p align="center">
   <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/recall-confidence-curve.avif" alt="Model recall-confidence evaluation curve">

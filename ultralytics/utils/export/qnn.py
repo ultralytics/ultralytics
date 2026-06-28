@@ -90,7 +90,7 @@ def onnx2qnn(
     pre_file = ctx_file.with_name(f"{onnx_file.stem}_qnn_preprocessed.onnx")
     qdq_file = ctx_file.with_name(f"{onnx_file.stem}_qnn_qdq.onnx")
 
-    LOGGER.info(f"\n{prefix} starting A16W8 quantization and export with ONNX Runtime QNN (HTP arch {name})...")
+    LOGGER.info(f"\n{prefix} starting W8A16 quantization and export with ONNX Runtime QNN (HTP arch {name})...")
     import onnx
 
     dims = [d.dim_value for d in onnx.load(str(onnx_file)).graph.input[0].type.tensor_type.shape.dim]

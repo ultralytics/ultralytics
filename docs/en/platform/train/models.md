@@ -1,4 +1,5 @@
 ---
+title: Trained Model Management
 comments: true
 description: Learn how to manage, analyze, and export trained models in Ultralytics Platform with support for 19+ deployment formats.
 keywords: Ultralytics Platform, models, model management, export, ONNX, TensorRT, CoreML, YOLO
@@ -53,18 +54,17 @@ See [Cloud Training](cloud-training.md) for detailed instructions.
 
 ```mermaid
 graph LR
-    A[Upload .pt] --> B[Overview]
-    C[Train] --> B
-    B --> D[Predict]
-    B --> E[Export]
-    B --> F[Deploy]
-    E --> G[19+ Formats]
-    F --> H[Endpoint]
+    A[Upload .pt]:::start --> B[Overview]:::proc
+    C[Train]:::start --> B
+    B --> D[Predict]:::proc
+    B --> E[Export]:::proc
+    B --> F[Deploy]:::proc
+    E --> G[19+ Formats]:::out
+    F --> H[Endpoint]:::out
 
-    style A fill:#4CAF50,color:#fff
-    style C fill:#FF9800,color:#fff
-    style E fill:#2196F3,color:#fff
-    style F fill:#9C27B0,color:#fff
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 ## Model Page Tabs
@@ -100,12 +100,12 @@ The Train tab has three subtabs:
 
 Interactive training metric charts showing loss curves and performance metrics over epochs:
 
-| Chart Group       | Metrics                                        |
-| ----------------- | ---------------------------------------------- |
-| **Metrics**       | mAP50, mAP50-95, precision, recall             |
-| **Train Loss**    | train/box_loss, train/cls_loss, train/dfl_loss |
-| **Val Loss**      | val/box_loss, val/cls_loss, val/dfl_loss       |
-| **Learning Rate** | lr/pg0, lr/pg1, lr/pg2                         |
+| Chart Group         | Metrics                                        |
+| ------------------- | ---------------------------------------------- |
+| **Metrics**         | mAP50, mAP50-95, precision, recall             |
+| **Training Loss**   | train/box_loss, train/cls_loss, train/dfl_loss |
+| **Validation Loss** | val/box_loss, val/cls_loss, val/dfl_loss       |
+| **Learning Rate**   | lr/pg0, lr/pg1, lr/pg2                         |
 
 ![Ultralytics Platform Model Train Charts Subtab](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-train-charts-subtab.avif)
 
@@ -183,17 +183,18 @@ Performance curves at different confidence thresholds:
 
 ```mermaid
 graph LR
-    A[Select Format] --> B[Configure Args]
-    B --> C[Export]
-    C --> D{GPU Required?}
-    D -->|Yes| E[Cloud GPU Export]
-    D -->|No| F[CPU Export]
-    E --> G[Download]
+    A[Select Format]:::start --> B[Configure Args]:::proc
+    B --> C[Export]:::proc
+    C --> D{GPU Required?}:::decide
+    D -->|Yes| E[Cloud GPU Export]:::proc
+    D -->|No| F[CPU Export]:::proc
+    E --> G[Download]:::out
     F --> G
 
-    style A fill:#2196F3,color:#fff
-    style C fill:#FF9800,color:#fff
-    style G fill:#4CAF50,color:#fff
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef decide fill:#FF9800,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 Export your model to 19+ deployment formats:
@@ -329,7 +330,7 @@ Control who can see your model:
 | **Private** | Only you can access             |
 | **Public**  | Anyone can view on Explore page |
 
-To change visibility, click the visibility badge (e.g., `private` or `public`) on the model page. Switching to private takes effect immediately. Switching to public shows a confirmation dialog before applying.
+To change visibility, click the visibility badge (e.g., `private` or `public`) in the page header. Visibility is set at the project level, so this controls all models in the project. Switching to private takes effect immediately. Switching to public shows a confirmation dialog before applying.
 
 ## Delete Model
 

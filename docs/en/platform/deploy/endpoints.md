@@ -18,7 +18,7 @@ Deploy a model from its `Deploy` tab:
 
 1. Navigate to your model
 2. Click the **Deploy** tab
-3. Select a region from the interactive world map — regions are color-coded by latency from your location (green < 100ms, yellow < 200ms, red > 200ms)
+3. Select a region from the interactive world map — regions are color-coded by latency from your location on a green-to-red gradient (faster regions are greener, slower regions are redder)
 4. Click **Deploy** on the region row
 
 The deployment name is auto-generated from the model name and region city (e.g., `yolo26n-iowa`).
@@ -50,13 +50,22 @@ stateDiagram-v2
     Creating --> Failed: Error
     Deploying --> Failed: Error
     Failed --> [*]: Delete
+
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
+    classDef error fill:#F44336,color:#fff
+    classDef extern fill:#607D8B,color:#fff
+    class Creating,Deploying,Stopping proc
+    class Ready out
+    class Failed error
+    class Stopped extern
 ```
 
 ### Region Selection
 
 Choose from 43 regions worldwide. The interactive region map and table show:
 
-- **Region pins**: Color-coded by latency (green < 100ms, yellow < 200ms, red > 200ms)
+- **Region pins**: Color-coded by latency on a green-to-red gradient (faster regions are greener, slower regions are redder)
 - **Deployed regions**: Highlighted with a "Deployed" badge
 - **Deploying regions**: Animated pulse indicator
 - **Bidirectional highlighting**: Hover on the map highlights the table row, and vice versa
@@ -227,14 +236,14 @@ Control your endpoint state:
 
 ```mermaid
 graph LR
-    R[Ready] -->|Stop| S[Stopped]
+    R[Ready]:::out -->|Stop| S[Stopped]:::extern
     S -->|Start| R
-    R -->|Delete| D[Deleted]
+    R -->|Delete| D[Deleted]:::error
     S -->|Delete| D
 
-    style R fill:#4CAF50,color:#fff
-    style S fill:#9E9E9E,color:#fff
-    style D fill:#F44336,color:#fff
+    classDef out fill:#9C27B0,color:#fff
+    classDef error fill:#F44336,color:#fff
+    classDef extern fill:#607D8B,color:#fff
 ```
 
 | Action     | Description                     |
@@ -281,7 +290,7 @@ The API key prefix is displayed on the deployment card footer for identification
 
 ### No Rate Limits
 
-Dedicated endpoints are **not subject to the Platform API rate limits**. Requests go directly to your dedicated service, so throughput is limited only by your endpoint's CPU, memory, and scaling configuration. This is a key advantage over [shared inference](inference.md), which is rate-limited to 20 requests/min per API key.
+Requests sent **directly to your dedicated endpoint's URL** are **not subject to the Platform API rate limits** — throughput is limited only by your endpoint's CPU, memory, and scaling configuration. (Requests proxied through the Platform API, such as the in-browser tester, still use the standard 20 requests/min predict limit.) This is a key advantage over [shared inference](inference.md), which is rate-limited to 20 requests/min per API key.
 
 ### Request Example
 
@@ -358,7 +367,7 @@ Dedicated endpoints are **not subject to the Platform API rate limits**. Request
 
     Dedicated endpoints accept both images and videos via the `file` parameter.
 
-    - **Image formats** (up to 50 MB): AVIF, BMP, DNG, HEIC, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WEBP
+    - **Image formats** (up to 100 MB): AVIF, BMP, DNG, HEIC, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WEBP
     - **Video formats** (up to 100 MB): ASF, AVI, GIF, M4V, MKV, MOV, MP4, MPEG, MPG, TS, WEBM, WMV
 
     Each video frame is processed individually and results are returned per frame. You can also pass a public image URL or a base64-encoded image via the `source` parameter instead of `file`.

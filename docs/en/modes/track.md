@@ -1,4 +1,5 @@
 ---
+title: YOLO Multi-Object Tracking in Video
 comments: true
 description: Discover efficient, flexible, and customizable multi-object tracking with Ultralytics YOLO. Learn to track real-time video streams with ease.
 keywords: multi-object tracking, Ultralytics YOLO, video analytics, real-time tracking, object detection, AI, machine learning
@@ -9,6 +10,10 @@ keywords: multi-object tracking, Ultralytics YOLO, video analytics, real-time tr
 <img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/multi-object-tracking-examples.avif" alt="YOLO multi-object tracking with trajectory paths">
 
 Object tracking in the realm of video analytics is a critical task that not only identifies the location and class of objects within the frame but also maintains a unique ID for each detected object as the video progresses. The applications are limitless—ranging from surveillance and security to real-time sports analytics.
+
+!!! tip "🚀 New Trackers: OC-SORT, Deep OC-SORT, FastTracker, TrackTrack"
+
+    Starting with Ultralytics YOLO v8.4.63, new tracking algorithms are available: [OC-SORT](#oc-sort), [Deep OC-SORT](#deep-oc-sort), [FastTracker](#fasttracker), and [TrackTrack](#tracktrack). These trackers improve multi-object tracking performance and ID consistency.
 
 ## Why Choose Ultralytics YOLO for Object Tracking?
 
@@ -67,7 +72,7 @@ Run tracking on a video with the default BoT-SORT tracker. Swap to another track
         yolo track model=yolo26n.pt source="https://youtu.be/LNwODJXcvt4" tracker="bytetrack.yaml"
         ```
 
-To run the tracker on video streams, use a trained Detect, Segment, or Pose model such as YOLO26n, YOLO26n-seg, or YOLO26n-pose. You can train custom models locally or on cloud GPUs through [Ultralytics Platform](https://platform.ultralytics.com).
+To run the tracker on video streams, use a trained Detect, Segment, Pose, or OBB model such as YOLO26n, YOLO26n-seg, YOLO26n-pose, or YOLO26n-obb. You can train custom models locally or on cloud GPUs through [Ultralytics Platform](https://platform.ultralytics.com).
 
 !!! example
 
@@ -240,6 +245,26 @@ ReID is disabled by default to minimize overhead. Enable it by setting `with_rei
 - **`model: auto`** — Uses native YOLO detector features, adding minimal overhead. Ideal when you need some ReID without a large performance hit. Falls back to `yolo26n-cls.pt` if the detector does not expose compatible features.
 - **Exported ReID model** — Point `model:` at an exported file (`.torchscript`, `.onnx`, `.engine`, `.openvino`, etc.) for more discriminative embeddings at the cost of an extra forward pass per crop. The encoder is loaded via `AutoBackend`, so any export format Ultralytics supports works without code changes.
 
+Ready-to-use ONNX encoders are published for every model size. Set `model:` to one of these names and the file is downloaded automatically the first time the tracker runs (the same way YOLO weights are fetched) — no manual export or download step required:
+
+```yaml
+# In your tracker config (e.g. tracktrack.yaml)
+with_reid: True
+model: yolo26n-reid.onnx # downloaded on first use; swap n→s/m/l/x for a larger encoder
+```
+
+| Model                                                                                                 | size<br><sup>(pixels) | params<br><sup>(M) | FLOPs<br><sup>(B) |
+| ----------------------------------------------------------------------------------------------------- | --------------------- | ------------------ | ----------------- |
+| [YOLO26n-reid.onnx](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n-reid.onnx) | 448                   | 2.8                | 2.0               |
+| [YOLO26s-reid.onnx](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26s-reid.onnx) | 448                   | 7.5                | 6.6               |
+| [YOLO26m-reid.onnx](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26m-reid.onnx) | 448                   | 12.4               | 20.1              |
+| [YOLO26l-reid.onnx](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26l-reid.onnx) | 448                   | 15.3               | 25.2              |
+| [YOLO26x-reid.onnx](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26x-reid.onnx) | 448                   | 32.7               | 55.9              |
+
+!!! note "ReID is tracking-only"
+
+    Only ONNX ReID encoders for the tracker appearance branch are currently available. ReID `train`, `val`, and `predict` modes, as well as dedicated ReID export recipes, are still under development.
+
 For better performance with a separate classification model, export it to a faster backend like TensorRT:
 
 !!! example "Exporting a ReID model to TensorRT"
@@ -259,7 +284,7 @@ For better performance with a separate classification model, export it to a fast
     model.model.model[-1] = pool
 
     # Export to TensorRT
-    model.export(format="engine", half=True, dynamic=True, batch=32)
+    model.export(format="engine", quantize=16, dynamic=True, batch=32)
     ```
 
 Once exported, point to the TensorRT model path in your tracker config.
@@ -448,6 +473,12 @@ There is no appearance model and no camera-motion compensation.
 
 Here is a Python script using [OpenCV](https://www.ultralytics.com/glossary/opencv) (`cv2`) and YOLO26 to run object tracking on video frames. This script assumes the necessary packages (`opencv-python` and `ultralytics`) are already installed. The `persist=True` argument tells the tracker that the current image or frame is the next in a sequence and to expect tracks from the previous image in the current image.
 
+!!! tip "Persisting tracks and selecting a tracker"
+
+    Use `persist=True` only when passing consecutive frames from the same video stream to `model.track()`. This lets the tracker reuse state from earlier frames and maintain consistent track IDs over time. Do not use `persist=True` across unrelated images or a different stream, since previous track state can carry over.
+
+    You can also choose a tracker backend by passing a tracker configuration file, such as `tracker="botsort.yaml"`, `tracker="bytetrack.yaml"`, or `tracker="tracktrack.yaml"`.
+
 !!! example "Streaming for-loop with tracking"
 
     ```python
@@ -469,7 +500,8 @@ Here is a Python script using [OpenCV](https://www.ultralytics.com/glossary/open
 
         if success:
             # Run YOLO26 tracking on the frame, persisting tracks between frames
-            results = model.track(frame, persist=True)
+            # and using the BoT-SORT tracker backend
+            results = model.track(frame, persist=True, tracker="botsort.yaml")
 
             # Visualize the results on the frame
             annotated_frame = results[0].plot()
@@ -714,7 +746,7 @@ Multi-object tracking with Ultralytics YOLO has numerous applications, including
 - **Retail:** People tracking for in-store analytics and security.
 - **Aquaculture:** Fish tracking for monitoring aquatic environments.
 - **Sports Analytics:** Tracking players and equipment for performance analysis.
-- **Security Systems:** [Monitoring suspicious activities](https://www.ultralytics.com/blog/security-alarm-system-projects-with-ultralytics-yolov8) and creating [security alarms](https://docs.ultralytics.com/guides/security-alarm-system).
+- **Security Systems:** [Monitoring suspicious activities](https://www.ultralytics.com/blog/security-alarm-system-projects-with-ultralytics-yolov8) and creating [security alarms](../guides/security-alarm-system.md).
 
 These applications benefit from Ultralytics YOLO's ability to process high-frame-rate videos in real time with exceptional accuracy.
 

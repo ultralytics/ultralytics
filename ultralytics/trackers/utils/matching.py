@@ -16,12 +16,12 @@ except (ImportError, AssertionError, AttributeError):
 
 
 def linear_assignment(cost_matrix: np.ndarray, thresh: float, use_lap: bool = True):
-    """Perform linear assignment using either the scipy or lap.lapjv method.
+    """Perform linear assignment using either lap.lapjv or the built-in NumPy solver.
 
     Args:
         cost_matrix (np.ndarray): The matrix containing cost values for assignments, with shape (N, M).
         thresh (float): Threshold for considering an assignment valid.
-        use_lap (bool): Use lap.lapjv for the assignment. If False, scipy.optimize.linear_sum_assignment is used.
+        use_lap (bool): Use lap.lapjv for the assignment. If False, ops.linear_sum_assignment is used.
 
     Returns:
         matched_indices (list[list[int]] | np.ndarray): Matched indices of shape (K, 2), where K is the number of
@@ -45,9 +45,7 @@ def linear_assignment(cost_matrix: np.ndarray, thresh: float, use_lap: bool = Tr
         unmatched_a = np.where(x < 0)[0]
         unmatched_b = np.where(y < 0)[0]
     else:
-        # Use scipy.optimize.linear_sum_assignment
-        # https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linear_sum_assignment.html
-        from scipy.optimize import linear_sum_assignment
+        from ultralytics.utils.ops import linear_sum_assignment
 
         x, y = linear_sum_assignment(cost_matrix)  # row x, col y
         matches = np.asarray([[x[i], y[i]] for i in range(len(x)) if cost_matrix[x[i], y[i]] <= thresh])
@@ -100,13 +98,12 @@ def iou_distance(atracks: list, btracks: list) -> np.ndarray:
     return 1 - ious  # cost matrix
 
 
-def embedding_distance(tracks: list, detections: list, metric: str = "cosine") -> np.ndarray:
-    """Compute distance between tracks and detections based on embeddings.
+def embedding_distance(tracks: list, detections: list) -> np.ndarray:
+    """Compute cosine distance between tracks and detections based on embeddings.
 
     Args:
         tracks (list[BOTrack]): List of tracks, where each track contains embedding features.
         detections (list[BOTrack]): List of detections, where each detection contains embedding features.
-        metric (str): Metric for distance computation. Supported metrics include 'cosine', 'euclidean', etc.
 
     Returns:
         (np.ndarray): Cost matrix computed based on embeddings with shape (N, M), where N is the number of tracks and M
@@ -116,7 +113,7 @@ def embedding_distance(tracks: list, detections: list, metric: str = "cosine") -
         Compute the embedding distance between tracks and detections using cosine metric
         >>> tracks = [BOTrack(...), BOTrack(...)]  # List of track objects with embedding features
         >>> detections = [BOTrack(...), BOTrack(...)]  # List of detection objects with embedding features
-        >>> cost_matrix = embedding_distance(tracks, detections, metric="cosine")
+        >>> cost_matrix = embedding_distance(tracks, detections)
     """
     cost_matrix = np.zeros((len(tracks), len(detections)), dtype=np.float32)
     if cost_matrix.size == 0:
@@ -130,14 +127,9 @@ def embedding_distance(tracks: list, detections: list, metric: str = "cosine") -
     zeros = np.zeros(feat_dim, dtype=np.float32)
     track_features = np.asarray([f if f is not None else zeros for f in track_feats], dtype=np.float32)
     det_features = np.asarray([f if f is not None else zeros for f in det_feats], dtype=np.float32)
-    if metric == "cosine":
-        track_norm = np.linalg.norm(track_features, axis=1, keepdims=True)
-        det_norm = np.linalg.norm(det_features, axis=1, keepdims=True).T
-        cost_matrix = 1 - track_features @ det_features.T / np.maximum(track_norm * det_norm, np.finfo(float).eps)
-    else:
-        from scipy.spatial.distance import cdist
-
-        cost_matrix = cdist(track_features, det_features, metric)
+    track_norm = np.linalg.norm(track_features, axis=1, keepdims=True)
+    det_norm = np.linalg.norm(det_features, axis=1, keepdims=True).T
+    cost_matrix = 1 - track_features @ det_features.T / np.maximum(track_norm * det_norm, np.finfo(float).eps)
     cost_matrix = np.maximum(0.0, cost_matrix)  # Normalized features
     missing_t = [i for i, f in enumerate(track_feats) if f is None]
     missing_d = [j for j, f in enumerate(det_feats) if f is None]

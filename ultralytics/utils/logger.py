@@ -12,7 +12,6 @@ from datetime import datetime
 from pathlib import Path
 
 from ultralytics.utils import LINUX, LOGGER, MACOS, RANK, WINDOWS
-from ultralytics.utils.checks import check_requirements
 
 
 class ConsoleLogger:
@@ -485,9 +484,10 @@ class SystemLogger:
             return False
 
         try:
-            check_requirements("nvidia-ml-py>=12.0.0")
-            self.pynvml = __import__("pynvml")
-            self.pynvml.nvmlInit()
+            import pynvml  # scoped as slow import
+
+            self.pynvml = pynvml
+            pynvml.nvmlInit()
             return True
         except Exception as e:
             import torch

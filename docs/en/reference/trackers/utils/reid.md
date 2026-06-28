@@ -1,4 +1,5 @@
 ---
+title: trackers.utils.reid API Reference
 description: Reference for the shared ReID encoder and build_encoder utility used by BoT-SORT, Deep OC-SORT, and TrackTrack.
 keywords: Ultralytics, ReID, Re-identification, build_encoder, object tracking, appearance model, YOLO
 ---

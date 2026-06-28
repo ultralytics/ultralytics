@@ -1,4 +1,5 @@
 ---
+title: YOLO26 on Raspberry Pi with Coral Edge TPU
 comments: true
 description: Accelerate Ultralytics YOLO26 inference on a Raspberry Pi with the Coral Edge TPU. Step-by-step guide to install the runtime, export to Edge TPU format, and run fast low-power inference.
 keywords: Coral Edge TPU, Raspberry Pi, YOLO26, Ultralytics, TensorFlow Lite, tflite-runtime, edge AI, low-power inference, edgetpu export, USB Accelerator, embedded AI, ML inference

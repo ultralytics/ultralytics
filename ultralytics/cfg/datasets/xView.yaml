@@ -2,7 +2,7 @@
 
 # DIUx xView 2018 Challenge dataset https://challenge.xviewdataset.org by U.S. National Geospatial-Intelligence Agency (NGA)
 # --------  Download and extract data manually to `datasets/xView` before running the train command.  --------
-# Documentation: https://docs.ultralytics.com/datasets/detect/xview/
+# Documentation: https://docs.ultralytics.com/datasets/detect/xview
 # Example usage: yolo train data=xView.yaml
 # parent
 # ├── ultralytics

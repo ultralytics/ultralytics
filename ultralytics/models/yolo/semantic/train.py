@@ -7,7 +7,6 @@ from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
-from PIL import Image
 
 from ultralytics.data.utils import add_polygon_background
 from ultralytics.models import yolo
@@ -74,13 +73,40 @@ class SemanticSegmentationTrainer(DetectionTrainer):
         )
 
     def set_class_weights(self):
-        """Skip detection-style class weight computation for semantic segmentation.
+        """Compute pixel-frequency class weights; skipped for binary (nc==1, unweighted BCE in the loss)."""
+        if self.data["nc"] > 1:
+            super().set_class_weights()
 
-        Semantic segmentation requires pixel-level class frequency counting from masks,
-        which is not performed here. The loss function applies Cityscapes weights when
-        the dataset YAML stem is 'cityscapes' or 'cityscapes8'.
-        """
-        pass
+    def get_class_counts(self, max_masks=None):
+        """Return per-class pixel counts from training masks, optionally sampled to max_masks."""
+        nc = self.data["nc"]
+        pixel_counts = np.zeros(nc, dtype=np.float32)
+        dataset = self.train_loader.dataset
+        labels = getattr(dataset, "labels", [])
+        if not labels:
+            return pixel_counts
+        indices = np.arange(len(labels))
+        if max_masks and len(indices) > max_masks:
+            indices = np.linspace(0, len(labels) - 1, max_masks).astype(int)
+        include_class = getattr(dataset, "include_class", None)
+        for idx in indices:
+            shape = labels[idx].get("shape")
+            try:
+                mask = dataset.load_mask(idx, image_shape=tuple(shape) if shape is not None else None)
+            except Exception:
+                continue
+            if include_class is not None:
+                mask[~np.isin(mask, include_class)] = 255
+            valid = (mask >= 0) & (mask < nc) & (mask != 255)
+            if valid.any():
+                classes, counts = np.unique(mask[valid], return_counts=True)
+                pixel_counts[classes.astype(int)] += counts
+        return pixel_counts
+
+    def compute_class_weights(self, class_counts):
+        """Compute ENet inverse-log `(1/ln(1.02 + p))**cls_pw` weights (Paszke et al., 2016, arXiv:1606.02147)."""
+        p = class_counts / max(class_counts.sum(), 1.0)  # pixel frequency, bounded for rare classes unlike detection
+        return (1.0 / np.log(1.02 + p)) ** self.args.cls_pw
 
     @plt_settings()
     def plot_training_labels(self):
@@ -92,30 +118,10 @@ class SemanticSegmentationTrainer(DetectionTrainer):
         LOGGER.info(f"Plotting labels to {self.save_dir / 'labels.jpg'}...")
         nc = self.data["nc"]
         names = self.data["names"]
-        pixel_counts = np.zeros(nc, dtype=np.int32)
-
-        dataset = self.train_loader.dataset
-        mask_files = getattr(dataset, "mask_files", [])
-        if not mask_files:
+        pixel_counts = self.get_class_counts(max_masks=1000)
+        if not pixel_counts.any():
             LOGGER.warning("No semantic mask files found, skipping label plot.")
             return
-
-        sample_size = min(1000, len(mask_files))
-        indices = np.linspace(0, len(mask_files) - 1, sample_size).astype(int)
-
-        for idx in indices:
-            try:
-                mask = np.array(Image.open(mask_files[idx]))
-            except Exception:
-                continue
-            if hasattr(dataset, "label_mapping") and dataset.label_mapping:
-                for old, new in dataset.label_mapping.items():
-                    mask[mask == old] = new
-            valid = (mask >= 0) & (mask < nc) & (mask != 255)
-            if valid.any():
-                classes, counts = np.unique(mask[valid], return_counts=True)
-                for c, count in zip(classes, counts):
-                    pixel_counts[int(c)] += int(count)
 
         _, ax = plt.subplots(1, 1, figsize=(8, 6), tight_layout=True)
         bars = ax.bar(range(nc), pixel_counts, color=[list(c / 255.0 for c in colors(i, False)) for i in range(nc)])

@@ -1429,6 +1429,70 @@ class FeatureDiscriminatorScorer(nn.Module):
         return score.view(b, 1, h, w)
 
 
+def heatmap_local_contrast(h: torch.Tensor, k: int = 9, eps: float = 1e-3) -> torch.Tensor:
+    """Local z-score of a [B,1,H,W] map in [0,1]: (h - local_mean) / (local_std + eps), ~[-1,1]."""
+    mean = F.avg_pool2d(h, k, stride=1, padding=k // 2)
+    sq = F.avg_pool2d(h * h, k, stride=1, padding=k // 2)
+    std = (sq - mean * mean).clamp(min=0).sqrt()
+    z = (h - mean) / (std + eps)
+    return (z / 3.0).clamp(-1, 1)
+
+
+class _RefinerDoubleConv(nn.Module):
+    """(Conv -> BN -> ReLU) x 2."""
+
+    def __init__(self, c_in: int, c_out: int):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Conv2d(c_in, c_out, 3, padding=1, bias=False), nn.BatchNorm2d(c_out), nn.ReLU(inplace=True),
+            nn.Conv2d(c_out, c_out, 3, padding=1, bias=False), nn.BatchNorm2d(c_out), nn.ReLU(inplace=True),
+        )
+
+    def forward(self, x):
+        return self.net(x)
+
+
+class HeatmapRefiner(nn.Module):
+    """Standalone, offline-trained heatmap->mask refiner (tiny 3-level U-Net, ~117k params).
+
+    External interface: 1-channel heatmap in -> 1-channel logits out. Internally appends a
+    local-contrast channel -> 2ch. Fully-convolutional (trains at 80x80, runs at any res).
+    Trained decoupled from detection (see tools/yoloa_refiner/); grafted into the YOLOA prior
+    path via ``YOLOAnomalyV2Model.set_heatmap_refiner``. Deploy = gate (``raw*sigmoid(R)``,
+    suppress-only; never injects signal where the bank heatmap is zero).
+    """
+
+    def __init__(self, base: int = 16, contrast_k: int = 9):
+        super().__init__()
+        self.contrast_k = contrast_k
+        self.pool = nn.MaxPool2d(2)
+        self.e1 = _RefinerDoubleConv(2, base)
+        self.e2 = _RefinerDoubleConv(base, base * 2)
+        self.e3 = _RefinerDoubleConv(base * 2, base * 4)
+        self.up2 = nn.ConvTranspose2d(base * 4, base * 2, 2, stride=2)
+        self.d2 = _RefinerDoubleConv(base * 4, base * 2)
+        self.up1 = nn.ConvTranspose2d(base * 2, base, 2, stride=2)
+        self.d1 = _RefinerDoubleConv(base * 2, base)
+        self.outc = nn.Conv2d(base, 1, 1)
+        nn.init.zeros_(self.outc.weight)  # identity-at-init: sigmoid(R)~=0
+        nn.init.constant_(self.outc.bias, -4.0)
+
+    def forward(self, h: torch.Tensor) -> torch.Tensor:
+        """h: [B,1,H,W] heatmap in [0,1] (H,W divisible by 4). Returns [B,1,H,W] logits."""
+        x = torch.cat([h, heatmap_local_contrast(h, self.contrast_k)], dim=1)
+        x1 = self.e1(x)
+        x2 = self.e2(self.pool(x1))
+        x3 = self.e3(self.pool(x2))
+        y = self.d2(torch.cat([self.up2(x3), x2], dim=1))
+        y = self.d1(torch.cat([self.up1(y), x1], dim=1))
+        return self.outc(y)
+
+    @torch.no_grad()
+    def refine_gated(self, h: torch.Tensor) -> torch.Tensor:
+        """Gate: refined = raw * sigmoid(R) (suppress-only; never injects signal where raw=0)."""
+        return h * self.forward(h).sigmoid()
+
+
 if __name__ == "__main__":
     # Smoke test: render, fusion init=0 passthrough, fusion with learned beta bounded,
     # broadcast onto a C-channel PAN feature.

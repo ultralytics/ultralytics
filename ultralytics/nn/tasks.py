@@ -1525,6 +1525,37 @@ class YOLOAnomalyV2Model(DetectionModel):
         hmap = parts[0] if len(parts) == 1 else self._fuse_heatmaps(parts)
         return self._resize_to_mask(hmap, mask_size)
 
+    def set_heatmap_refiner(self, weights, blend=1.0):
+        """Attach a frozen offline-trained HeatmapRefiner (R) to clean the deploy heatmap prior.
+
+        Deploy-only, applied in the ``heatmap`` prior path (``_apply_heatmap_refiner``), so it
+        cleans both the AUROC stash and the fusion prior. ``blend`` mixes refined into raw:
+        ``0`` = raw only (no refine), ``1`` = fully refined, else ``(1-blend)*raw + blend*refined``.
+        Refine = gate (``raw*sigmoid(R)``, suppress-only). Stored OUTSIDE nn.Module registration
+        (no ckpt bloat, not moved by ``.to``); device handled at apply.
+        """
+        from ultralytics.nn.modules.anomaly_v2 import HeatmapRefiner
+
+        r = HeatmapRefiner()
+        sd = torch.load(weights, map_location="cpu", weights_only=False)
+        r.load_state_dict(sd["model"] if isinstance(sd, dict) and "model" in sd else sd)
+        r.eval()
+        for p in r.parameters():
+            p.requires_grad_(False)
+        self.__dict__["_heatmap_refiner"] = r  # bypass nn.Module submodule registration
+        self.__dict__["_heatmap_refiner_blend"] = float(blend)
+        LOGGER.info(f"YOLOAnomalyV2Model: heatmap refiner attached (blend={blend}) from {weights}")
+        return self
+
+    def _apply_heatmap_refiner(self, prior):
+        """Run the attached refiner on a [B,1,H,W] heatmap in [0,1]; blend with raw -> [0,1]."""
+        r = self.__dict__.get("_heatmap_refiner")
+        if r is None:
+            return prior
+        refined = r.to(prior.device).refine_gated(prior)  # raw * sigmoid(R)
+        blend = self.__dict__.get("_heatmap_refiner_blend", 1.0)
+        return (1.0 - blend) * prior + blend * refined
+
     def _select_prior_source(self, external_mask, disabled, bboxes, batch_masks):
         """Pick the prior source for this forward.
 
@@ -2050,6 +2081,16 @@ class YOLOAnomalyV2Model(DetectionModel):
                         if seg is not None:
                             a = float(self.seg_alpha)
                             prior = a * prior + (1.0 - a) * seg
+                    # Learned heatmap refiner R (deploy-only): denoise/clean the bank heatmap
+                    # before it drives both the AUROC stash and the fusion prior. gate mode can
+                    # only suppress (no FP injection); see set_heatmap_refiner.
+                    if (
+                        prior is not None
+                        and source == "heatmap"
+                        and not self.training
+                        and self.__dict__.get("_heatmap_refiner") is not None
+                    ):
+                        prior = self._apply_heatmap_refiner(prior)
                     # Edge-suppression weight: down-weight the memory-bank heatmap toward the image
                     # borders (peripheral patches score high from boundary effects, not real defects).
                     # Bank producer only, matching the legacy prior_mode=="heatmap" behavior.

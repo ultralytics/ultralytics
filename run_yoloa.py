@@ -44,6 +44,12 @@ DEFAULT_CKPT = ("/Users/louis/workspace/ultra_louis_work/expman/data/pulled/yolo
 DEFAULT_CKPT="/Users/louis/workspace/ultra_louis_work/expman/data/pulled/yoloa_v2/26m_yoloav2_softhint_maskonly_aug3_mixup_ood_v3/weights/best.pt"
 DEFAULT_CKPT="/Users/louis/workspace/ultra_louis_work/expman/data/pulled/yoloa_v2/26m_yoloav2_softhint_maskonly_aug3_mixup_instseg_v7_v1/weights/last.pt"
 
+DEFAULT_CKPT="/Users/louis/workspace/ultra_louis_work/expman/data/pulled/yoloa_clean/26m_yoloav2_softhint_maskonly_aug3_mixup_ood_aug2x_v1/weights/best.pt"
+DEFAULT_CKPT="/Users/louis/workspace/ultra_louis_work/expman/data/pulled/yoloa_clean/26m_yoloav2_softhint_maskonly_aug3_mixup_ood_aug2x_ep15_lr2x_v1/weights/best.pt"
+"""
+python3 run_yoloa.py --mode val --cat all  --device mps --cat all 
+"""
+
 def main():
     ap = argparse.ArgumentParser(
         description="YOLOA driver — per-category fit, then predict or val. "
@@ -72,6 +78,11 @@ def main():
     ap.add_argument("--mvtec-root", default=None, help="MVTec-YOLO root (default: auto-resolve)")
     ap.add_argument("--out", default=None,
                     help="output root (default: runs/temp/yoloa/<model_id>/<fit_id>)")
+    ap.add_argument("--refiner", default="runs/temp/heatmap_refiner_out_v2_640_oodaug2x_dimgamma/best.pt",
+                    help="path to a trained HeatmapRefiner (.pt); cleans the deploy heatmap prior")
+    ap.add_argument("--refine-blend", type=float, default=0.5,
+                    help="0 = no refine (raw heatmap), 1 = fully refined (raw*sigmoid(R)), "
+                         "in between = (1-b)*raw + b*refined. Requires --refiner.")
     args = ap.parse_args()
 
     # -- Load fit YAML (single source of truth for all fit params) -------------
@@ -129,6 +140,11 @@ def main():
         cats = [args.cat]
 
     m = YOLOA(args.ckpt)
+
+    if args.refine_blend > 0.0:
+        assert args.refiner, "--refine-blend > 0 requires --refiner <weights.pt>"
+        m.model.set_heatmap_refiner(args.refiner, blend=args.refine_blend)
+        print(f"  heatmap refiner: {args.refiner} (blend={args.refine_blend})", flush=True)
 
     fit_over = {}
     if "imgsz" in yaml:

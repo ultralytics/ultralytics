@@ -79,9 +79,9 @@ def test_export_onnx_matrix(task, dynamic, batch, simplify, nms):
     "task, dynamic, quantize, batch",
     [
         (task, dynamic, quantize, batch)
-        # Note: tests reduced below pending compute availability expansion as GPU CI runner utilization is high
+        # Limit Jetson task coverage for slow CI speed; full task coverage remains on GPU CI.
         # for task, dynamic, quantize, batch in product(TASKS, [True, False], [8, 16], [1, 2])
-        for task, dynamic, quantize, batch in product(sorted(TASKS), [True], [8, 16], [2])
+        for task, dynamic, quantize, batch in product(["detect"] if IS_JETSON else sorted(TASKS), [True], [8, 16], [2])
     ],
 )
 def test_export_engine_matrix(task, dynamic, quantize, batch):

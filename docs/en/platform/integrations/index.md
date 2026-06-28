@@ -1,4 +1,5 @@
 ---
+title: Platform Integrations
 comments: true
 description: Connect Ultralytics Platform to the tools you already use and bring your data across with a single API key. Import from Ultralytics HUB and Roboflow — no manual export or re-upload.
 keywords: Ultralytics Platform, integrations, data import, Roboflow, Ultralytics HUB, dataset migration, YOLO, computer vision
@@ -28,3 +29,5 @@ Each import starts with a preview so you can review exactly what will be transfe
 | [**Roboflow**](roboflow.md)               | Your datasets                                        |
 
 Connect once with an API key and the matching content lands in your workspace.
+
+A **Weights & Biases** integration is coming soon to sync training runs, metrics, and artifacts with your W&B workspace.

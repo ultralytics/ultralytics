@@ -2,6 +2,7 @@
 comments: true
 description: Learn how to prepare semantic segmentation datasets for Ultralytics YOLO, including PNG mask labels, dataset YAML fields, ignore labels, and supported datasets.
 keywords: Ultralytics, YOLO, semantic segmentation, semantic, dataset format, pixel masks, Cityscapes, ADE20K, Pascal VOC
+title: Semantic Segmentation Datasets
 ---
 
 # Semantic Segmentation Datasets Overview

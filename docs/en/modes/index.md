@@ -68,7 +68,7 @@ Track mode extends YOLO26's object detection capabilities to track objects acros
 
 ## [Benchmark](benchmark.md)
 
-Benchmark mode profiles the speed and accuracy of various export formats for YOLO26. This mode provides comprehensive metrics on model size, accuracy (mAP50-95 for detection tasks or accuracy_top1 for classification), and inference time across different formats like ONNX, [OpenVINO](https://docs.ultralytics.com/integrations/openvino), and TensorRT. Benchmarking helps you select the optimal export format based on your specific requirements for speed and accuracy in your deployment environment.
+Benchmark mode profiles the speed and accuracy of various export formats for YOLO26. This mode provides comprehensive metrics on model size, accuracy (mAP50-95 for detection tasks or accuracy_top1 for classification), and inference time across different formats like ONNX, [OpenVINO](../integrations/openvino.md), and TensorRT. Benchmarking helps you select the optimal export format based on your specific requirements for speed and accuracy in your deployment environment.
 
 [Benchmark Examples](benchmark.md){ .md-button }
 
@@ -174,7 +174,7 @@ Benchmark mode in Ultralytics YOLO26 is used to analyze the speed and [accuracy]
 
         # Run benchmark on GPU (device 0)
         # You can adjust parameters like model, dataset, image size, and precision as needed
-        benchmark(model="yolo26n.pt", data="coco8.yaml", imgsz=640, half=False, device=0)
+        benchmark(model="yolo26n.pt", data="coco8.yaml", imgsz=640, device=0)
         ```
 
     === "CLI"
@@ -182,7 +182,7 @@ Benchmark mode in Ultralytics YOLO26 is used to analyze the speed and [accuracy]
         ```bash
         # Benchmark a YOLO model from the command line
         # Adjust parameters as needed for your specific use case
-        yolo benchmark model=yolo26n.pt data='coco8.yaml' imgsz=640 half=False device=0
+        yolo benchmark model=yolo26n.pt data='coco8.yaml' imgsz=640 device=0
         ```
 
 For more details, refer to the [Benchmark Guide](../modes/benchmark.md).

@@ -31,7 +31,13 @@ class CoreMLBackend(BaseBackend):
         import coremltools as ct
 
         LOGGER.info(f"Loading {weight} for CoreML inference...")
-        self.model = ct.models.MLModel(weight)
+        # Run on the Neural Engine (CPU_AND_NE): ~3x faster than CPU, and the default ComputeUnit.ALL / CPU_AND_GPU
+        # abort the process via an MPSGraph compiler bug on macOS hosts (coremltools 9.x). CPU_AND_NE needs macOS >= 13,
+        # so fall back to CPU_ONLY below that. CoreML inference is macOS-only, so this applies wherever the backend runs.
+        try:
+            self.model = ct.models.MLModel(weight, compute_units=ct.ComputeUnit.CPU_AND_NE)
+        except Exception:
+            self.model = ct.models.MLModel(weight, compute_units=ct.ComputeUnit.CPU_ONLY)
         spec = self.model.get_spec()
         self.input_name = spec.description.input[0].name
         self.dynamic = spec.description.input[0].type.HasField("multiArrayType")

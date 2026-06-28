@@ -92,7 +92,7 @@ def torch2onnx(
 
 def modelopt_quantize_onnx(
     onnx_file: str,
-    int8: bool = False,
+    quantize: int | str | None = None,
     dataset=None,
     shape: tuple[int, int, int, int] = (1, 3, 640, 640),
     dynamic: bool = False,
@@ -106,9 +106,9 @@ def modelopt_quantize_onnx(
 
     Args:
         onnx_file (str): Path to the FP32 ONNX file to convert.
-        int8 (bool): Quantize the ONNX model to INT8 with Q/DQ nodes. If False, outputs an FP16 precision ONNX file.
+        quantize (int | str | None): Precision scheme, 8 for INT8 Q/DQ nodes or 16 for FP16 precision.
         dataset (ultralytics.data.build.InfiniteDataLoader | None): Dataloader providing INT8 calibration images.
-            Required when ``int8=True``.
+            Required when ``quantize=8``.
         shape (tuple[int, int, int, int]): Input shape (batch, channels, height, width) used for dynamic calibration.
         dynamic (bool): Whether the ONNX model uses dynamic input shapes.
         prefix (str): Prefix for log messages.
@@ -116,7 +116,7 @@ def modelopt_quantize_onnx(
     Returns:
         (str): Path to the precision-converted ONNX file.
     """
-    if int8 and dataset is None:
+    if quantize == 8 and dataset is None:
         raise ValueError("INT8 ModelOpt quantization requires a calibration dataset.")
 
     # Require modelopt >= 0.44: older releases import onnx.mapping which was removed in onnx >= 1.18 and crash
@@ -124,8 +124,8 @@ def modelopt_quantize_onnx(
     import onnx
 
     input_name = onnx.load(onnx_file, load_external_data=False).graph.input[0].name
-    if int8:
-        from modelopt.onnx.quantization import quantize
+    if quantize == 8:
+        from modelopt.onnx.quantization import quantize as modelopt_quantize
 
         out_file = str(Path(onnx_file).with_suffix(".int8.onnx"))
         # Collect up to ~500 calibration images (TensorRT recommendation); ModelOpt holds them in memory at once,
@@ -139,11 +139,15 @@ def modelopt_quantize_onnx(
         calib = torch.cat(images).to(torch.float32) / 255.0
         LOGGER.info(f"{prefix} quantizing ONNX to INT8 with ModelOpt using {calib.shape[0]} calibration images...")
         kwargs = {"calibration_shapes": f"{input_name}:{'x'.join(str(d) for d in shape)}"} if dynamic else {}
-        quantize(
+        modelopt_quantize(
             onnx_file,
             quantize_mode="int8",
             calibration_data={input_name: calib.cpu().numpy()},
             calibration_method="max",
+            # Calibrate on CPU. ModelOpt's CUDA EP session can hit an uncatchable cuDNN-ABI segfault (its pinned
+            # onnxruntime-gpu's cuDNN vs the installed torch's) and the TensorRT EP aborts on RTX cards (NvTensorRTRTX);
+            # scales are EP-independent, so the INT8 engine is equivalent and only this one-time step is slower.
+            calibration_eps=["cpu"],
             output_path=out_file,
             **kwargs,
         )
@@ -169,8 +173,7 @@ def onnx2engine(
     onnx_file: str,
     output_file: Path | str | None = None,
     workspace: int | None = None,
-    half: bool = False,
-    int8: bool = False,
+    quantize: int | str | None = None,
     dynamic: bool = False,
     shape: tuple[int, int, int, int] = (1, 3, 640, 640),
     dla: int | None = None,
@@ -185,8 +188,7 @@ def onnx2engine(
         onnx_file (str): Path to the ONNX file to be converted.
         output_file (Path | str | None): Path to save the generated TensorRT engine file.
         workspace (int | None): Workspace size in GB for TensorRT.
-        half (bool, optional): Enable FP16 precision.
-        int8 (bool, optional): Enable INT8 precision.
+        quantize (int | str | None): Precision scheme, 16 for FP16 or 8 for INT8.
         dynamic (bool, optional): Enable dynamic input shapes.
         shape (tuple[int, int, int, int], optional): Input shape (batch, channels, height, width).
         dla (int | None): DLA core to use (Jetson devices only).
@@ -234,21 +236,21 @@ def onnx2engine(
     config = builder.create_builder_config()
     workspace_bytes = int((workspace or 0) * (1 << 30))
     trt_major = int(trt.__version__.split(".", 1)[0])
-    # TensorRT >= 10 builds via build_serialized_network and uses the tensor (non-binding) API
     is_trt10 = trt_major >= 10
     # TensorRT >= 11 is strongly-typed only: precision builder flags and IInt8Calibrator removed
     is_trt11 = trt_major >= 11
-    if is_trt10 and workspace_bytes > 0:
-        config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, workspace_bytes)
-    elif workspace_bytes > 0:  # TensorRT versions 7, 8
-        config.max_workspace_size = workspace_bytes
+    if workspace_bytes > 0:
+        if hasattr(config, "set_memory_pool_limit"):
+            config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, workspace_bytes)
+        else:  # TensorRT 7 fallback
+            config.max_workspace_size = workspace_bytes
     # EXPLICIT_BATCH flag is removed in TensorRT 10 (explicit batch is the only/default mode); keep it for TRT 7/8
     flag = 0 if is_trt10 else (1 << int(trt.NetworkDefinitionCreationFlag.EXPLICIT_BATCH))
     network = builder.create_network(flag)
     # platform_has_fast_fp16/int8 were removed from the Builder in TensorRT 10; default to True when absent
-    half = getattr(builder, "platform_has_fast_fp16", True) and half
-    int8 = getattr(builder, "platform_has_fast_int8", True) and int8
-    if int8 and dataset is None:
+    use_fp16 = getattr(builder, "platform_has_fast_fp16", True) and quantize == 16
+    use_int8 = getattr(builder, "platform_has_fast_int8", True) and quantize == 8
+    if use_int8 and dataset is None:
         raise ValueError("INT8 TensorRT export requires a calibration dataset.")
 
     # Optionally switch to DLA if enabled
@@ -260,9 +262,9 @@ def onnx2engine(
             # https://docs.nvidia.com/deeplearning/tensorrt/latest/api/migration/tensorrt-10x-to-11x-jetson.html
             raise ValueError("DLA is not supported in TensorRT 11.0; export with TensorRT 10.x to use DLA.")
         LOGGER.info(f"{prefix} enabling DLA on core {dla}...")
-        if not half and not int8:
+        if not use_fp16 and not use_int8:
             raise ValueError(
-                "DLA requires either 'half=True' (FP16) or 'int8=True' (INT8) to be enabled. Please enable one of them and try again."
+                "DLA requires either quantize=16 (FP16) or quantize=8 (INT8). Please enable one of them and try again."
             )
         config.default_device_type = trt.DeviceType.DLA
         config.DLA_core = int(dla)
@@ -270,8 +272,8 @@ def onnx2engine(
 
     # TensorRT 11 is strongly-typed and removed the FP16/INT8 builder flags and INT8 calibrator, so reduced
     # precision must be baked into the ONNX graph with NVIDIA ModelOpt before parsing (FP16 AutoCast, INT8 Q/DQ)
-    if is_trt11 and (half or int8):
-        onnx_file = modelopt_quantize_onnx(onnx_file, int8, dataset, shape, dynamic, prefix)
+    if is_trt11 and (use_fp16 or use_int8):
+        onnx_file = modelopt_quantize_onnx(onnx_file, quantize, dataset, shape, dynamic, prefix)
 
     # Read ONNX file
     parser = trt.OnnxParser(network, logger)
@@ -293,11 +295,13 @@ def onnx2engine(
         for inp in inputs:
             profile.set_shape(inp.name, min=min_shape, opt=shape, max=max_shape)
         config.add_optimization_profile(profile)
-        if int8 and not is_trt10:  # deprecated in TensorRT 10, causes internal errors
+        if use_int8 and not is_trt10:  # deprecated in TensorRT 10, causes internal errors
             config.set_calibration_profile(profile)
 
-    LOGGER.info(f"{prefix} building {'INT8' if int8 else 'FP' + ('16' if half else '32')} engine as {output_file}")
-    if int8 and not is_trt11:
+    LOGGER.info(
+        f"{prefix} building {'INT8' if use_int8 else 'FP' + ('16' if use_fp16 else '32')} engine as {output_file}"
+    )
+    if use_int8 and not is_trt11:
         config.set_flag(trt.BuilderFlag.INT8)
         config.profiling_verbosity = trt.ProfilingVerbosity.DETAILED
 
@@ -372,26 +376,21 @@ def onnx2engine(
             cache=str(Path(onnx_file).with_suffix(".cache")),
         )
 
-    elif half and not is_trt11:
+    elif use_fp16 and not is_trt11:
         config.set_flag(trt.BuilderFlag.FP16)
 
     # Write file
-    if is_trt10:
-        # TensorRT 10+ returns bytes directly, not a context manager
+    if hasattr(builder, "build_serialized_network"):
         engine = builder.build_serialized_network(network, config)
-        if engine is None:
-            raise RuntimeError("TensorRT engine build failed, check logs for errors")
-        with open(output_file, "wb") as t:
-            if metadata is not None:
-                meta = json.dumps(metadata)
-                t.write(len(meta).to_bytes(4, byteorder="little", signed=True))
-                t.write(meta.encode())
-            t.write(engine)
     else:
-        with builder.build_engine(network, config) as engine, open(output_file, "wb") as t:
-            if metadata is not None:
-                meta = json.dumps(metadata)
-                t.write(len(meta).to_bytes(4, byteorder="little", signed=True))
-                t.write(meta.encode())
-            t.write(engine.serialize())
+        engine = builder.build_engine(network, config)
+        engine = None if engine is None else engine.serialize()
+    if engine is None:
+        raise RuntimeError("TensorRT engine build failed, check logs for errors")
+    with open(output_file, "wb") as t:
+        if metadata is not None:
+            meta = json.dumps(metadata)
+            t.write(len(meta).to_bytes(4, byteorder="little", signed=True))
+            t.write(meta.encode())
+        t.write(engine)
     return str(output_file)

@@ -1,22 +1,22 @@
 ---
 comments: true
-description: Convert Ultralytics YOLO detection models from ONNX to Hailo HEF for Hailo-8, Hailo-8L, Raspberry Pi AI Kit, AI HAT+, and Hailo-15 devices.
-keywords: Hailo export, Hailo HEF, export YOLO to Hailo, YOLO Hailo, Hailo-8, Hailo-8L, Hailo-15, Raspberry Pi AI Kit, Raspberry Pi AI HAT+, Hailo Dataflow Compiler, Hailo DFC, HailoRT, Hailo Model Zoo, Hailo AI accelerator, edge AI deployment, embedded AI, model quantization, INT8 quantization, ONNX to HEF, Ultralytics YOLO, YOLO11, YOLOv8, object detection
+description: Convert selected Ultralytics YOLO models from ONNX to Hailo HEF for Hailo-8, Hailo-8L, Raspberry Pi AI Kit, AI HAT+, Hailo-10, and Hailo-15 devices.
+keywords: Hailo export, Hailo HEF, export YOLO to Hailo, YOLO Hailo, Hailo-8, Hailo-8L, Hailo-10, Hailo-15, Raspberry Pi AI Kit, Raspberry Pi AI HAT+, Hailo Dataflow Compiler, Hailo DFC, HailoRT, Hailo AI accelerator, edge AI deployment, embedded AI, model quantization, INT8 quantization, ONNX to HEF, Ultralytics YOLO, YOLO26, YOLO11, YOLOv8, object detection, instance segmentation, OBB
 ---
 
 # Hailo Export for Ultralytics YOLO Models
 
 !!! warning "Not a direct Ultralytics export format"
 
-    Hailo HEF is **not officially supported** as a direct Ultralytics `model.export(format="hailo")` target. The workflow below exports to ONNX first, then uses Hailo's external Dataflow Compiler toolchain to produce a `.hef` file. For better performance per watt than older Hailo HEF deployments, use newer direct Ultralytics export formats such as [Axelera AI](axelera.md) or [DeepX](deepx.md) instead.
+    Hailo HEF is **not currently supported** as a direct Ultralytics `model.export(format="hailo")` target. The workflow below is a manual fallback that exports to ONNX first, then uses Hailo's external Dataflow Compiler toolchain to produce a `.hef` file. A seamless Ultralytics workflow should expose Hailo through the same Python and CLI export API as other hardware formats.
 
 The [Hailo](https://hailo.ai/) toolchain uses HEF files for embedded platforms including the [Raspberry Pi AI Kit](https://www.raspberrypi.com/products/ai-kit/) and [AI HAT+](https://www.raspberrypi.com/documentation/accessories/ai-hat-plus.html), industrial cameras, edge gateways, and AI PCs.
 
-This guide walks through exporting [Ultralytics YOLO](https://github.com/ultralytics/ultralytics) detection models to Hailo's **HEF (Hailo Executable Format)** using the **Hailo Dataflow Compiler (DFC)** SDK. The workflow starts from a YOLO `.pt` model, exports to [ONNX](onnx.md), compiles with Hailo tools, and produces a `.hef` file ready for Hailo-8, Hailo-8L, and Hailo-15 accelerators.
+This guide walks through exporting selected [Ultralytics YOLO](https://github.com/ultralytics/ultralytics) models to Hailo's **HEF (Hailo Executable Format)** using the **Hailo Dataflow Compiler (DFC)** SDK. The workflow starts from a YOLO `.pt` model, exports to [ONNX](onnx.md), compiles with Hailo tools, and produces a `.hef` file ready for supported Hailo accelerators.
 
 ## When to Use Hailo HEF
 
-HEF is the compiled artifact consumed by HailoRT on Hailo target devices. Use this guide only when your deployment hardware specifically requires Hailo HEF. If you are still choosing edge hardware or export targets, start with newer direct Ultralytics export formats such as [Axelera AI](axelera.md) or [DeepX](deepx.md), which provide a supported `model.export(...)` workflow and better performance-per-watt options than older Hailo deployments.
+HEF is the compiled artifact consumed by HailoRT on Hailo target devices. Use this manual guide only when your deployment hardware specifically requires Hailo HEF before direct Ultralytics Hailo export support is available.
 
 HEF is similar in deployment role to hardware-specific formats such as [RKNN](rockchip-rknn.md) for Rockchip NPUs, [IMX500](sony-imx500.md) for Raspberry Pi AI Cameras, and [Qualcomm QNN](qnn.md) for Snapdragon NPUs, but it is not currently generated directly by Ultralytics.
 
@@ -47,30 +47,40 @@ YOLO (.pt) -> ONNX -> HAR (parse) -> HAR (optimize/quantize) -> HEF (compile)
 
 ## Supported Tasks
 
-This guide focuses on Ultralytics YOLO **object detection** models, because the Hailo model script and NMS configuration are detection-head specific.
+The current manual example focuses on YOLO11 object detection because the Hailo model script and post-processing configuration are detection-head specific. A future direct `model.export(format="hailo")` implementation should make Hailo export feel like every other Ultralytics export format, with task support gated by the model head and Hailo compiler compatibility rather than by external workflow steps.
 
-| Task                                          | Supported |
-| :-------------------------------------------- | :-------- |
-| [Object Detection](../tasks/detect.md)        | ✅ Yes    |
-| [Instance Segmentation](../tasks/segment.md)  | ❌ No     |
-| [Semantic Segmentation](../tasks/semantic.md) | ❌ No     |
-| [Pose Estimation](../tasks/pose.md)           | ❌ No     |
-| [OBB Detection](../tasks/obb.md)              | ❌ No     |
-| [Classification](../tasks/classify.md)        | ❌ No     |
+| Task                                          | Direct Hailo Export Target | Notes                                                                                              |
+| :-------------------------------------------- | :------------------------- | :------------------------------------------------------------------------------------------------- |
+| [Object Detection](../tasks/detect.md)        | ✅ Primary target          | YOLOv8, YOLO11, and YOLO26 detection should be the first direct-export path.                       |
+| [Instance Segmentation](../tasks/segment.md)  | ✅ Target                  | YOLOv8, YOLO11, and YOLO26 segmentation require task-specific mask output handling and validation. |
+| [Semantic Segmentation](../tasks/semantic.md) | ⚠️ Validate                | YOLO26 semantic segmentation needs a dedicated compiler and output validation path.                |
+| [Pose Estimation](../tasks/pose.md)           | ⚠️ Validate                | Pose requires keypoint output handling beyond the detection NMS path.                              |
+| [OBB Detection](../tasks/obb.md)              | ⚠️ Validate                | OBB requires rotated-box output handling beyond the standard detection NMS path.                   |
+| [Classification](../tasks/classify.md)        | ⚠️ Validate                | Classification has a simpler output head, but still needs Hailo compile and runtime validation.    |
 
-For instance segmentation, semantic segmentation, pose, OBB, and classification deployments, compare other edge formats in the [Export mode](../modes/export.md) table or use a generic ONNX pipeline where your target runtime supports the task.
+Until direct Hailo export is implemented in Ultralytics, only the manual ONNX-to-HEF workflow below is documented.
+
+### Hailo SDK Versions
+
+Direct Hailo export must account for Hailo's hardware and SDK generation split:
+
+- **Hailo-8 and Hailo-8L**: use Hailo Dataflow Compiler v3.x. This is the relevant path for Raspberry Pi AI Kit and 13 TOPS AI HAT+ deployments.
+- **Hailo-10 and Hailo-15**: use Hailo Dataflow Compiler v5.x.
+
+This version split affects compiler APIs, supported architectures, generated HEF compatibility, and which `hw_arch` values a direct exporter should expose. Task support on one Hailo hardware generation should not be treated as support on another without validating the target DFC version and `hw_arch`.
 
 ### Compatibility Notes
 
-Hailo export compatibility depends on the model head, input image size, class count, Hailo architecture, model script (`.alls`), and NMS configuration. Static files from the [Hailo Model Zoo](https://github.com/hailo-ai/hailo_model_zoo) are useful references, but they are not universal templates. For example, an NMS JSON created for a COCO 80-class YOLO11n model is not correct for a custom 3-class model or for a different fixed `imgsz`.
+Hailo export compatibility depends on the model head, input image size, class count, Hailo architecture, generated model script (`.alls`), and post-processing configuration. Static configs are not universal templates. For example, an NMS JSON created for a COCO 80-class YOLO11n model is not correct for a custom 3-class model or for a different fixed `imgsz`.
 
-| Scope                                   | Expected Support | Notes                                                                                                                                      |
-| :-------------------------------------- | :--------------- | :----------------------------------------------------------------------------------------------------------------------------------------- |
-| YOLOv8 / YOLO11 detection, stock models | ✅ Good          | Shared decoupled detection head; `.alls`, end nodes, and NMS config still need to match the exported graph and fixed `imgsz`.              |
-| Custom YOLOv8 / YOLO11 detection        | ✅ Possible      | Requires per-model NMS configuration generated from class count, strides, and detection-head layout; static Model Zoo JSON will not match. |
-| YOLOv9 detection                        | ⚠️ Validate      | Similar detection-head pattern, but compile and output parsing should be tested before treating it as supported.                           |
-| YOLOv10 / YOLO26 end-to-end detection   | ❌ Not supported | End-to-end/NMS-free exports do not match the Hailo NMS post-processing path; use a traditional detection head if testing manually.         |
-| Dynamic or arbitrary image sizes        | ❌ Not supported | Hailo compilation uses a fixed input shape; `.alls` and NMS settings must match the exported `imgsz`.                                      |
+| Scope                                      | Expected Support | Notes                                                                                                                                    |
+| :----------------------------------------- | :--------------- | :--------------------------------------------------------------------------------------------------------------------------------------- |
+| YOLOv8 / YOLO11 detection                  | ✅ Good          | Shared decoupled detection head; `.alls` directives, end nodes, and NMS config still need to match the exported graph and fixed `imgsz`. |
+| Custom YOLOv8 / YOLO11 detection           | ✅ Possible      | Requires per-model NMS configuration generated from class count, strides, and detection-head layout; static JSON will not match.         |
+| YOLO26 detection                           | ✅ Target        | NMS-free architecture needs a separate compiler/post-processing path; do not reuse the YOLO11/YOLOv8 NMS workflow below for YOLO26.      |
+| YOLO26 instance segmentation               | ✅ Target        | Needs YOLO26 segmentation-specific mask output handling and accuracy validation.                                                         |
+| YOLO26 semantic, pose, OBB, classification | ⚠️ Research      | These tasks need dedicated compiler and runtime validation before they can be advertised as directly supported.                          |
+| Dynamic or arbitrary image sizes           | ❌ Not supported | Hailo compilation uses a fixed input shape; `.alls` and post-processing settings must match the exported `imgsz`.                        |
 
 ## Installation
 
@@ -96,7 +106,11 @@ pip install /path/to/hailo_sdk_client-*.whl
 
 The script below compiles a YOLO11n detection model from `.pt` to `.hef` at a fixed 640-pixel input size. It exports to ONNX using Ultralytics, then compiles with Hailo DFC using COCO128 as a small calibration dataset.
 
-Before running the script, download the matching YOLO11n NMS config file from the [Hailo Model Zoo](https://github.com/hailo-ai/hailo_model_zoo) or create your own Hailo NMS JSON for the model. Reuse this script as a known YOLO11n starting point; custom models need matching end nodes, `.alls` directives, and NMS settings.
+Before running the script, provide a Hailo NMS JSON that matches the exact YOLO11n export graph, class count, strides, and fixed input size. Reuse this script as a known YOLO11n starting point; custom models need matching end nodes, `.alls` directives, and NMS settings.
+
+!!! note "YOLO26 uses a different Hailo path"
+
+    YOLO26 models are NMS-free. A direct Ultralytics Hailo exporter needs a dedicated YOLO26 compile and post-processing path for detection or instance segmentation instead of the YOLO11 NMS example below.
 
 !!! example "Full Pipeline"
 
@@ -139,7 +153,7 @@ Before running the script, download the matching YOLO11n NMS config file from th
 
     # Step 3: Load model script (normalization + HailoRT NMS)
     # The conv layer names are generated by DFC and can change for other model sizes/families.
-    alls = (
+    model_script = (
         "normalization1 = normalization([0.0, 0.0, 0.0], [255.0, 255.0, 255.0])\n"
         "change_output_activation(conv54, sigmoid)\n"
         "change_output_activation(conv65, sigmoid)\n"
@@ -147,7 +161,7 @@ Before running the script, download the matching YOLO11n NMS config file from th
         f'nms_postprocess("{NMS_CONFIG}", meta_arch=yolov8, engine=cpu)\n'
         "allocator_param(width_splitter_defuse=disabled)"
     )
-    runner.load_model_script(alls)
+    runner.load_model_script(model_script)
 
     # Step 4: Build calibration dataset (auto-downloads COCO128)
     check_det_dataset("coco128.yaml")
@@ -217,7 +231,7 @@ The model script (`.alls`) configures input normalization, output activation, an
 ```python
 MODEL = "yolo11n"
 NMS_CONFIG = "yolo11n_nms_config.json"
-alls = (
+model_script = (
     "normalization1 = normalization([0.0, 0.0, 0.0], [255.0, 255.0, 255.0])\n"
     "change_output_activation(conv54, sigmoid)\n"
     "change_output_activation(conv65, sigmoid)\n"
@@ -225,14 +239,14 @@ alls = (
     f'nms_postprocess("{NMS_CONFIG}", meta_arch=yolov8, engine=cpu)\n'
     "allocator_param(width_splitter_defuse=disabled)"
 )
-runner.load_model_script(alls)
+runner.load_model_script(model_script)
 ```
 
 !!! note
 
-    The `change_output_activation` layer names (`conv54`, `conv65`, `conv80`) are assigned by the DFC during parsing and are **model-specific**. If you are compiling a different model size or architecture, check the DFC output for the correct names, or use a predefined `.alls` file from the [Hailo Model Zoo](https://github.com/hailo-ai/hailo_model_zoo).
+    The `change_output_activation` layer names (`conv54`, `conv65`, `conv80`) are assigned by the DFC during parsing and are **model-specific**. If you are compiling a different model size or architecture, check the DFC output for the correct names or generate the `.alls` directives from the exported graph.
 
-    The `NMS_CONFIG` file is also model-specific. Use the config that matches your exported model, or start from the [Hailo Model Zoo](https://github.com/hailo-ai/hailo_model_zoo) configuration for the closest YOLO variant.
+    The `NMS_CONFIG` file is also model-specific. Use a config that matches your exported model exactly.
 
     `engine=cpu` runs NMS through HailoRT on the host CPU. Use `engine=nn_core` only for model/script combinations that Hailo documents as supported by the target hardware and SDK version.
 
@@ -274,6 +288,8 @@ with open(f"{MODEL}.hef", "wb") as f:
 ## Supported Models and End Nodes
 
 For detection models, `end_node_names` identifies the ONNX detection-head outputs that Hailo should compile before attaching its NMS post-processing. These names vary by architecture and can change when the exported graph changes.
+
+The end-node examples below apply to YOLOv8 and YOLO11 detection models that use Hailo's YOLOv8-style NMS post-processing. YOLO26 is NMS-free and does not use this YOLO11 NMS configuration.
 
 ### YOLO11 and YOLOv8
 
@@ -321,7 +337,7 @@ runner.translate_onnx_model(f"{MODEL}.onnx")
 # Check the printed log for: "[info] In order to use HailoRT post-processing..."
 ```
 
-Predefined `.alls` scripts and NMS config files for many YOLO variants are available in the [Hailo Model Zoo](https://github.com/hailo-ai/hailo_model_zoo).
+For direct Ultralytics support, these `.alls` directives and post-processing settings should be generated or selected by the exporter instead of requiring users to assemble them manually.
 
 ## Supported Hardware Architectures
 
@@ -566,7 +582,7 @@ This guide covered the complete workflow to export Ultralytics YOLO detection mo
 4. Quantize with a calibration dataset (COCO128 via Ultralytics).
 5. Compile to a `.hef` file ready for Hailo-8, Hailo-8L, or Hailo-15.
 
-For further details, see the [Hailo Developer Zone](https://hailo.ai/developer-zone/), [Hailo documentation](https://hailo.ai/developer-zone/documentation/), and the [Hailo Model Zoo](https://github.com/hailo-ai/hailo_model_zoo). For other Ultralytics export targets, see the related [ONNX](onnx.md), [OpenVINO](openvino.md), [TensorRT](tensorrt.md), [NCNN](ncnn.md), [TFLite Edge TPU](edge-tpu.md), [RKNN](rockchip-rknn.md), [Sony IMX500](sony-imx500.md), and [Qualcomm QNN](qnn.md) guides. To compare exported model speed and accuracy across formats, use [Benchmark mode](../modes/benchmark.md). For the full list of formats and options, visit the [Export mode](../modes/export.md) documentation and the [integrations guide page](index.md).
+For further details, see the [Hailo Developer Zone](https://hailo.ai/developer-zone/) and [Hailo documentation](https://hailo.ai/developer-zone/documentation/). For other Ultralytics export targets, see the related [ONNX](onnx.md), [OpenVINO](openvino.md), [TensorRT](tensorrt.md), [NCNN](ncnn.md), [TFLite Edge TPU](edge-tpu.md), [RKNN](rockchip-rknn.md), [Sony IMX500](sony-imx500.md), and [Qualcomm QNN](qnn.md) guides. To compare exported model speed and accuracy across formats, use [Benchmark mode](../modes/benchmark.md). For the full list of formats and options, visit the [Export mode](../modes/export.md) documentation and the [integrations guide page](index.md).
 
 ## FAQ
 
@@ -590,6 +606,6 @@ A GPU is strongly recommended for the quantization-aware fine-tuning in `runner.
 
 Run `runner.translate_onnx_model(...)` without specifying `end_node_names`, then use the suggested detection-head nodes printed by the DFC. See [Other Architectures](#other-architectures) for the example command.
 
-### Where can I get the Hailo DFC SDK and NMS config files?
+### Where can I get the Hailo DFC SDK?
 
-The Hailo DFC SDK Python wheel is available from the [Hailo Developer Zone](https://hailo.ai/developer-zone/), while predefined `.alls` scripts and NMS config files are available from the [Hailo Model Zoo](https://github.com/hailo-ai/hailo_model_zoo).
+The Hailo DFC SDK Python wheel is available from the [Hailo Developer Zone](https://hailo.ai/developer-zone/). For a direct Ultralytics Hailo exporter, the model script and post-processing configuration should be generated or selected inside the export workflow.

@@ -74,7 +74,17 @@ from ultralytics.nn.modules import (
     YOLOESegment26,
     v10Detect,
 )
-from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, SAFE_LOAD, SETTINGS, WINDOWS, YAML, colorstr, emojis
+from ultralytics.utils import (
+    DEFAULT_CFG_DICT,
+    LOGGER,
+    SAFE_LOAD,
+    SETTINGS,
+    WINDOWS,
+    YAML,
+    IterableSimpleNamespace,
+    colorstr,
+    emojis,
+)
 from ultralytics.utils.checks import REMOTE_FILE_PREFIXES, check_file, check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (
     E2ELoss,
@@ -1523,6 +1533,7 @@ class _SafeLoad:
         Returns:
             (list): Items for `torch.serialization.safe_globals` — classes and `(obj, "module.Name")` aliases.
         """
+        import enum
         import importlib
         import inspect
         import pathlib
@@ -1553,7 +1564,10 @@ class _SafeLoad:
         _scan(ul_nn)  # ultralytics block/conv/head/transformer
         _scan(ul_tasks)  # ultralytics task models
 
-        # Non-nn.Module data globals in official checkpoints (classification preprocessing transforms).
+        # Non-nn.Module data globals in official checkpoints.
+        allow.append(IterableSimpleNamespace)
+
+        # Classification preprocessing transforms.
         try:
             import torchvision.transforms.transforms as tvt
             from torchvision.transforms.functional import InterpolationMode
@@ -1565,10 +1579,16 @@ class _SafeLoad:
         # Legacy/cross-platform aliases (pickled paths with no current class namespace), mirroring temporary_modules().
         from ultralytics.utils.loss import E2EDetectLoss
 
+        def _getattr(obj, name):  # ckpts pickle `Detect.forward` and `InterpolationMode.BILINEAR` via getattr
+            if isinstance(obj, type) and not name.startswith("__") and issubclass(obj, (nn.Module, enum.Enum)):
+                return getattr(obj, name)
+            raise pickle.UnpicklingError(f"unsafe getattr({obj!r}, {name!r}) blocked during restricted model load")
+
         allow += [
             (nn.Identity, "ultralytics.nn.modules.block.Silence"),  # YOLOv9e
             (DetectionModel, "ultralytics.nn.tasks.YOLOv10DetectionModel"),  # YOLOv10
             (E2EDetectLoss, "ultralytics.utils.loss.v10DetectLoss"),  # YOLOv10
+            (_getattr, "builtins.getattr"),  # non-det YOLOv8, YOLO11 ckpts (restrict to nn.Module attrs)
         ]
         if WINDOWS:
             allow += [pathlib.WindowsPath, (pathlib.WindowsPath, "pathlib.PosixPath")]
@@ -1596,7 +1616,7 @@ def torch_safe_load(weight, safe_only=None):
         >>> from ultralytics.nn.tasks import torch_safe_load
         >>> ckpt, file = torch_safe_load("path/to/best.pt", safe_only=True)
     """
-    from ultralytics.utils.downloads import attempt_download_asset
+    from ultralytics.utils.downloads import GITHUB_ASSETS_NAMES, attempt_download_asset
 
     if safe_only is None:
         safe_only = SAFE_LOAD
@@ -1634,8 +1654,9 @@ def torch_safe_load(weight, safe_only=None):
         ckpt = _load()
 
     except RuntimeError as e:
-        # Corrupt downloaded weight (e.g. truncated); skip user-supplied local paths to avoid destructive unlink.
-        if "PytorchStreamReader" not in str(e) or Path(str(weight)).exists():
+        # Recover only a corrupt cached official asset requested by bare name; never touch user-supplied paths.
+        name = Path(str(weight)).name
+        if "PytorchStreamReader" not in str(e) or str(weight) != name or name not in GITHUB_ASSETS_NAMES:
             raise
         LOGGER.warning(f"Corrupt cache {file}, re-downloading {weight}...")
         Path(file).unlink(missing_ok=True)
@@ -1643,7 +1664,7 @@ def torch_safe_load(weight, safe_only=None):
         ckpt = _load()
 
     except ModuleNotFoundError as e:  # e.name is missing module name
-        if e.name == "models":
+        if e.name in {"models", "models.yolo", "models.common", "models.experimental"}:
             raise TypeError(
                 emojis(
                     f"ERROR ❌️ {weight} appears to be an Ultralytics YOLOv5 model originally trained "
@@ -1720,7 +1741,15 @@ def load_checkpoint(weight, device=None, inplace=True, fuse=False):
         weight = check_file(weight, download_dir=SETTINGS["weights_dir"])
     ckpt, weight = torch_safe_load(weight)  # load ckpt
     args = {**DEFAULT_CFG_DICT, **(ckpt.get("train_args", {}))}  # combine model and default args, preferring model args
-    model = (ckpt.get("ema") or ckpt["model"]).float()  # FP32 model
+    candidate = ckpt.get("ema") or ckpt.get("model")
+    if not isinstance(candidate, torch.nn.Module):
+        raise TypeError(
+            emojis(
+                f"ERROR ❌️ {weight} references types outside the supported Ultralytics checkpoint format. "
+                f"Use an official Ultralytics model, i.e. 'yolo predict model=yolo26n.pt'"
+            )
+        )
+    model = candidate.float()  # FP32 model
 
     # Model compatibility updates
     model.args = args  # attach args to model

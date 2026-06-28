@@ -18,7 +18,7 @@ from tests import SOURCE
 from tests.conftest import isolated_model_path
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS, _handle_deprecation, get_cfg
-from ultralytics.engine.exporter import EXPORT_ENVS, export_formats, validate_args
+from ultralytics.engine.exporter import EXPORT_ENVS, Exporter, export_formats, validate_args
 from ultralytics.utils import (
     ARM64,
     IS_RASPBERRYPI,
@@ -111,6 +111,20 @@ def test_qnn_quantize_requires_w8a16():
     validate_args("qnn", SimpleNamespace(quantize="w8a16"), valid_args)
     with pytest.raises(AssertionError, match="quantize=8 is not supported"):
         validate_args("qnn", SimpleNamespace(quantize=8), valid_args)
+
+
+def test_export_axelera_rejects_end2end_false():
+    """Axelera YOLO26 exports require the default end-to-end head."""
+
+    class Model:
+        task = "detect"
+        end2end = True
+
+        def modules(self):
+            return []
+
+    with pytest.raises(ValueError, match="end2end=False"):
+        Exporter(overrides={"format": "axelera", "end2end": False})(model=Model())
 
 
 def test_modelopt_quantize_onnx_requires_int8_dataset():

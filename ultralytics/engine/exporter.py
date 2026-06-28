@@ -565,6 +565,8 @@ class Exporter:
         if fmt == "axelera":
             if model.task == "segment" and any(isinstance(m, Segment26) for m in model.modules()):
                 raise ValueError("Axelera export does not currently support YOLO26 segmentation models.")
+            if self.args.end2end is False and getattr(model, "end2end", False):
+                raise ValueError("Axelera export requires the YOLO26 end-to-end head; end2end=False is not supported.")
             if not self.args.data:
                 self.args.data = TASK2CALIBRATIONDATA.get(model.task)
         if fmt == "imx":

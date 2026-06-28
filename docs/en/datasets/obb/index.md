@@ -1,4 +1,5 @@
 ---
+title: OBB Dataset Formats for YOLO
 comments: true
 description: Discover OBB dataset formats for Ultralytics YOLO models. Learn about their structure, application, and format conversions to enhance your object detection training.
 keywords: Oriented Bounding Box, OBB Datasets, YOLO, Ultralytics, Object Detection, Dataset Formats

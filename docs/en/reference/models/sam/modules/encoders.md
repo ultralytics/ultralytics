@@ -1,4 +1,5 @@
 ---
+title: models.sam.modules.encoders API Reference
 description: Explore detailed documentation of various SAM encoder modules such as ImageEncoderViT, PromptEncoder, and more, available in Ultralytics' repository.
 keywords: Ultralytics, SAM encoder, ImageEncoderViT, PromptEncoder, PositionEmbeddingRandom, Block, Attention, PatchEmbed
 ---

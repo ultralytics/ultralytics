@@ -22,7 +22,7 @@ class BaseBackend(ABC):
         nhwc (bool): Whether the model expects NHWC input format instead of NCHW.
         stride (int): Model stride, typically 32 for YOLO models.
         names (dict): Dictionary mapping class indices to class names.
-        task (str | None): The task type (detect, segment, classify, pose, obb).
+        task (str | None): The task type (detect, segment, semantic, classify, pose, obb).
         batch (int): Batch size for inference.
         imgsz (tuple): Input image size as (height, width).
         channels (int): Number of input channels, typically 3 for RGB.

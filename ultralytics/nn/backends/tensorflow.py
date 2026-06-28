@@ -155,6 +155,11 @@ class TensorFlowBackend(BaseBackend):
             y = []
             for output in self.output_details:
                 x = self.interpreter.get_tensor(output["index"])
+                if self.task == "semantic" and x.ndim == 3:
+                    # Baked argmax class map [B, H, W] of integer class IDs, not boxes or quantized logits:
+                    # skip dequantization and xywh denormalization, which would corrupt and overflow the indices.
+                    y.append(x)
+                    continue
                 if is_int:
                     scale, zero_point = output["quantization"]
                     x = (x.astype(np.float32) - zero_point) * scale
@@ -181,4 +186,6 @@ class TensorFlowBackend(BaseBackend):
                 y = [y[1]]
             else:
                 y[1] = np.transpose(y[1], (0, 3, 1, 2))  # should be y = (1, 116, 8400), (1, 32, 160, 160)
+        elif self.task == "semantic" and len(y) == 1 and y[0].ndim == 4:
+            y[0] = np.transpose(y[0], (0, 3, 1, 2))  # NHWC → NCHW for semantic segmentation logits
         return [x if isinstance(x, np.ndarray) else x.numpy() for x in y]

@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# Builds ultralytics/ultralytics:latest images on DockerHub https://hub.docker.com/r/ultralytics
+# Builds Ultralytics Docker images for Docker Hub and GitHub Container Registry.
 
 name: Publish Docker Images
 
@@ -65,7 +65,7 @@ jobs:
             tags: "latest"
             platforms: "linux/amd64"
             runs_on: "ubuntu-latest"
-            derivatives: "Dockerfile-runner,Dockerfile-export"
+            derivatives: "Dockerfile-export,Dockerfile-runner"
           - dockerfile: "Dockerfile-python"
             tags: "latest-python"
             platforms: "linux/amd64"
@@ -110,7 +110,7 @@ jobs:
         uses: ultralytics/actions/cleanup-disk@main
 
       - name: Checkout repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0 # copy full .git directory to access full git history in Docker images
 
@@ -160,25 +160,25 @@ jobs:
         run: |
           VERSION=$(grep "^__version__ =" ultralytics/__init__.py | awk -F'"' '{print $2}')
           echo "Retrieved Ultralytics version: $VERSION"
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           VERSION_TAG=$(echo "${{ matrix.tags }}" | sed "s/latest/${VERSION}/")
           echo "Intended version tag: $VERSION_TAG"
-          echo "version_tag=$VERSION_TAG" >> $GITHUB_OUTPUT
+          echo "version_tag=$VERSION_TAG" >> "$GITHUB_OUTPUT"
 
       - name: Check if version tag exists on DockerHub
         id: check_tag
         run: |
-          RESPONSE=$(curl -s https://hub.docker.com/v2/repositories/ultralytics/ultralytics/tags/$VERSION_TAG)
-          MESSAGE=$(echo $RESPONSE | jq -r '.message')
+          RESPONSE=$(curl -s "https://hub.docker.com/v2/repositories/ultralytics/ultralytics/tags/$VERSION_TAG")
+          MESSAGE=$(echo "$RESPONSE" | jq -r '.message')
           if [[ "$MESSAGE" == "null" ]]; then
               echo "Tag $VERSION_TAG already exists on DockerHub."
-              echo "new_release=false" >> $GITHUB_OUTPUT
+              echo "new_release=false" >> "$GITHUB_OUTPUT"
           elif [[ "$MESSAGE" == *"404"* ]]; then
               echo "Tag $VERSION_TAG does not exist on DockerHub."
-              echo "new_release=true" >> $GITHUB_OUTPUT
+              echo "new_release=true" >> "$GITHUB_OUTPUT"
           else
               echo "Unexpected response from DockerHub. Please check manually."
-              echo "new_release=false" >> $GITHUB_OUTPUT
+              echo "new_release=false" >> "$GITHUB_OUTPUT"
           fi
         env:
           VERSION_TAG: ${{ steps.get_version.outputs.version_tag }}
@@ -211,7 +211,8 @@ jobs:
           retry_delay_seconds: 60
           retries: 2
           run: |
-            # Build each derivative image using local base image
+            docker builder prune -af
+
             derivatives='${{ matrix.derivatives }}'
             if [[ -n "$derivatives" ]]; then
               IFS=',' read -ra derivative_array <<< "$derivatives"
@@ -232,20 +233,25 @@ jobs:
                   -t "ghcr.io/ultralytics/ultralytics:$derivative_tag" \
                   -t "ghcr.io/ultralytics/ultralytics:$derivative_version_tag" \
                   .
+                docker builder prune -af
               done
             fi
 
       - name: Check Environment
         if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && (matrix.platforms == 'linux/amd64' || matrix.platforms == 'linux/arm64') && matrix.dockerfile != 'Dockerfile-conda'
-        run: docker run ultralytics/ultralytics:${{ (matrix.tags == 'latest-python' && 'latest-python-export') || (matrix.tags == 'latest' && 'latest-export') || matrix.tags }} /bin/bash -c "yolo checks && uv pip list"
+        run: docker run ultralytics/ultralytics:${{ (matrix.tags == 'latest-python' && 'latest-python-export') || (matrix.tags == 'latest' && 'latest-export') || matrix.tags }} /bin/bash -c "YOLO_AUTOINSTALL=false yolo checks && uv pip list"
+
+      - name: Prune Docker Build Cache
+        if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && (matrix.platforms == 'linux/amd64' || matrix.platforms == 'linux/arm64') && matrix.dockerfile != 'Dockerfile-conda'
+        run: docker builder prune -af
 
       - name: Run Tests
         if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && (matrix.platforms == 'linux/amd64' || matrix.platforms == 'linux/arm64') && matrix.dockerfile != 'Dockerfile-conda'
-        run: docker run ultralytics/ultralytics:${{ (matrix.tags == 'latest-python' && 'latest-python-export') || (matrix.tags == 'latest' && 'latest-export') || matrix.tags }} /bin/bash -c "uv pip install --system --break-system-packages pytest && pytest tests"
+        run: docker run ultralytics/ultralytics:${{ (matrix.tags == 'latest-python' && 'latest-python-export') || (matrix.tags == 'latest' && 'latest-export') || matrix.tags }} /bin/bash -c "uv pip install --system --break-system-packages -e '.[solutions]' aiohttp pytest 'git+https://github.com/ultralytics/CLIP.git' && YOLO_AUTOINSTALL=false pytest tests --export-env base"
 
       - name: Run Benchmarks
         if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && (matrix.platforms == 'linux/amd64' || matrix.dockerfile == 'Dockerfile-arm64') && matrix.dockerfile != 'Dockerfile' && matrix.dockerfile != 'Dockerfile-conda'
-        run: docker run ultralytics/ultralytics:${{ (matrix.tags == 'latest-python' && 'latest-python-export') || (matrix.tags == 'latest' && 'latest-export') || matrix.tags }} yolo benchmark model=yolo26n.pt imgsz=160 verbose=0.216
+        run: docker run ultralytics/ultralytics:${{ (matrix.tags == 'latest-python' && 'latest-python-export') || (matrix.tags == 'latest' && 'latest-export') || matrix.tags }} /bin/bash -c "YOLO_AUTOINSTALL=false yolo benchmark model=yolo26n.pt imgsz=160 format=onnx verbose=0.216"
 
       - name: Push All Images
         if: github.event_name == 'push' || (github.event.inputs[matrix.dockerfile] == 'true' && github.event.inputs.push == 'true')
@@ -281,24 +287,9 @@ jobs:
               fi
             done
 
-  trigger-actions:
-    runs-on: ubuntu-latest
-    needs: docker
-    # Only trigger actions on new Ultralytics releases
-    if: success() && github.repository == 'ultralytics/ultralytics' && github.event_name == 'push' && needs.docker.outputs.new_release == 'true'
-    steps:
-      - name: Trigger Additional GitHub Actions
-        env:
-          GH_TOKEN: ${{ secrets._GITHUB_TOKEN }}
-        run: |
-          sleep 60
-          gh workflow run deploy_cloud_run.yml \
-            --repo ultralytics/assistant \
-            --ref main
-
   notify:
     runs-on: ubuntu-latest
-    needs: [docker, trigger-actions]
+    needs: docker
     if: always()
     steps:
       - name: Check for failure and notify

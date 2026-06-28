@@ -1,4 +1,5 @@
 ---
+title: Project Management
 comments: true
 description: Learn how to organize and manage projects in Ultralytics Platform for efficient model development.
 keywords: Ultralytics Platform, projects, model management, experiment tracking, YOLO
@@ -10,24 +11,24 @@ keywords: Ultralytics Platform, projects, model management, experiment tracking,
 
 ```mermaid
 graph TB
-    P[Project] --> M1[Model 1]
-    P --> M2[Model 2]
-    P --> M3[Model 3]
-    M1 --> C[Charts Dashboard]
+    P[Project]:::start --> M1[Model 1]:::proc
+    P --> M2[Model 2]:::proc
+    P --> M3[Model 3]:::proc
+    M1 --> C[Charts Dashboard]:::out
     M2 --> C
     M3 --> C
-    M1 --> T[Comparison Table]
+    M1 --> T[Comparison Table]:::out
     M2 --> T
     M3 --> T
 
-    style P fill:#4CAF50,color:#fff
-    style C fill:#2196F3,color:#fff
-    style T fill:#FF9800,color:#fff
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 ## Create Project
 
-Navigate to **Projects** in the sidebar and click **Create Project**.
+Navigate to **Projects** in the sidebar and click **New Project**.
 
 ![Ultralytics Platform Projects List](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-projects-list.avif)
 
@@ -39,12 +40,12 @@ Enter your project details:
 
 - **Name**: A descriptive name for your project (a random name is auto-generated)
 - **Description**: Optional notes about the project purpose
-- **Visibility**: Public (anyone can view) or Private (only you can access)
+- **Visibility**: Public (anyone can view) or Private (only you and your team members can access). New projects default to Public; Enterprise workspaces default new projects to Private with the Ultralytics-Enterprise license.
 - **License**: Optional license for your project (AGPL-3.0, Apache-2.0, MIT, GPL-3.0, BSD-3-Clause, LGPL-3.0, MPL-2.0, EUPL-1.1, Unlicense, Ultralytics-Enterprise, and more). The **Ultralytics-Enterprise** license is for commercial use without AGPL requirements and is available with an Enterprise plan — see [Ultralytics Licensing](https://www.ultralytics.com/license).
 
 ![Ultralytics Platform New Project Dialog Name Visibility License](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-new-project-dialog-name-visibility-license.avif)
 
-Click **Create** to finalize. Your new project appears in the Projects list and sidebar.
+Click **Create Project** to finalize. Your new project appears in the Projects list and sidebar.
 
 ## Project Page
 
@@ -95,7 +96,7 @@ The resizable sidebar lists all models in the project:
 
 - **Checkboxes** to select which models appear in charts/table
 - **Search** to filter models by name
-- **View options** for status filter (All, Completed, Running, Starting, Pending, Failed, Cancelled), grouping by task, and sort order
+- **View options** for status filter (All, Completed, Untrained, Running, Starting, Failed), grouping by task, and sort order
 - **Drag and drop** `.pt` files directly onto the sidebar to upload models ([model upload details](models.md#upload-model))
 - **Training progress** shown for running models (epoch count and progress bar)
 
@@ -116,22 +117,14 @@ Control who can see your project:
 | Setting     | Description                                      |
 | ----------- | ------------------------------------------------ |
 | **Public**  | Anyone can view on [Explore](../explore.md) page |
-| **Private** | Only you and collaborators                       |
+| **Private** | Only you and your team members                   |
 
-## Share with Collaborators
+## Share a Project
 
-Share private projects with specific users without creating a full team workspace:
+There is no per-project collaborator invite. To share a project with others, use either of these mechanisms:
 
-1. Click the **Share** button on the project page
-2. Enter the collaborator's username or email
-3. Set their role
-4. Click **Invite**
-
-Collaborators with editor access can upload models and start training within your project.
-
-!!! tip "Sharing vs Teams"
-
-    **Sharing** grants per-project access to individual users — ideal for one-off collaborations. **[Teams](../account/teams.md)** create a shared workspace where all resources (projects, datasets, models, deployments) are accessible to team members with role-based permissions. Use Teams for ongoing collaboration with multiple people.
+- **Public** visibility lets anyone view a project on [Explore](../explore.md).
+- **[Teams](../account/teams.md)** create a shared workspace where all resources (projects, datasets, models, deployments) are accessible to team members with role-based permissions. Use Teams for ongoing collaboration.
 
 ## Clone Project
 
@@ -139,11 +132,11 @@ Clone a public project to your own account:
 
 1. Visit the public project page
 2. Click **Clone Project**
-3. The project and all its models are copied to your account as a private project
+3. The project and its completed models are copied to your workspace; you choose the clone's visibility in the clone dialog
 
 !!! info "Clone Behavior"
 
-    Cloned projects are always created as **private** in your account. The clone count is displayed on the original project. If the original has a copyleft license (e.g., AGPL-3.0), the clone inherits and locks that license.
+    Cloned projects inherit the source project's visibility by default (so cloning a public project creates a public clone), and you can choose Public or Private in the clone dialog before confirming. Enterprise workspaces default new clones to private. The clone count is displayed on the original project. If the original has a copyleft license (e.g., AGPL-3.0), the clone inherits and locks that license.
 
 ## Compare Models
 
@@ -158,12 +151,11 @@ Compare model performance using the charts dashboard:
 
 Available chart groups:
 
-| Group             | Charts                                         |
-| ----------------- | ---------------------------------------------- |
-| **Metrics**       | mAP50, mAP50-95, precision, recall             |
-| **Train Loss**    | train/box_loss, train/cls_loss, train/dfl_loss |
-| **Val Loss**      | val/box_loss, val/cls_loss, val/dfl_loss       |
-| **Learning Rate** | lr/pg0, lr/pg1, lr/pg2                         |
+| Group             | Charts                                                                                   |
+| ----------------- | ---------------------------------------------------------------------------------------- |
+| **Metrics**       | mAP50, mAP50-95, precision, recall                                                       |
+| **Loss**          | train/box_loss, train/cls_loss, train/dfl_loss, val/box_loss, val/cls_loss, val/dfl_loss |
+| **Learning Rate** | lr/pg0, lr/pg1, lr/pg2                                                                   |
 
 !!! tip "Interactive Charts"
 

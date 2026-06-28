@@ -192,7 +192,7 @@ Validation of the model on a dataset can be done as follows:
 
         ```bash
         # Load a FastSAM model and validate it on the COCO8 example dataset at image size 640
-        yolo segment val model=FastSAM-s.pt data=coco8.yaml imgsz=640
+        yolo segment val model=FastSAM-s.pt data=coco8-seg.yaml imgsz=640
         ```
 
 Please note that FastSAM only supports detection and segmentation of a single class of object. This means it will recognize and segment all objects as the same class. Therefore, when preparing the dataset, you need to convert all object category IDs to 0.

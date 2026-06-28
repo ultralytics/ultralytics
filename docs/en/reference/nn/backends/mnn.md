@@ -1,4 +1,5 @@
 ---
+title: nn.backends.mnn API Reference
 description: Explore MNNBackend for Alibaba MNN inference, enabling lightweight and efficient model deployment on mobile and edge devices.
 keywords: Ultralytics, MNNBackend, MNN inference, Alibaba MNN, mobile inference, edge AI, .mnn models, deep learning
 ---

@@ -31,7 +31,6 @@ class DetectionValidator(BaseValidator):
         metrics (DetMetrics): Object detection metrics calculator.
         iouv (torch.Tensor): IoU thresholds for mAP calculation.
         niou (int): Number of IoU thresholds.
-        lb (list[Any]): List for storing ground truth labels for hybrid saving.
         jdict (list[dict[str, Any]]): List for storing JSON detection results.
         stats (dict[str, list[torch.Tensor]]): Dictionary for storing statistics during validation.
 
@@ -72,7 +71,7 @@ class DetectionValidator(BaseValidator):
         for k, v in batch.items():
             if isinstance(v, torch.Tensor):
                 batch[k] = v.to(self.device, non_blocking=self.device.type == "cuda")
-        batch["img"] = (batch["img"].half() if self.args.half else batch["img"].float()) / 255
+        batch["img"] = (batch["img"].half() if self.args.quantize == 16 else batch["img"].float()) / 255
         return batch
 
     def init_metrics(self, model: torch.nn.Module) -> None:
@@ -197,7 +196,13 @@ class DetectionValidator(BaseValidator):
             if self.args.plots:
                 self.confusion_matrix.process_batch(predn, pbatch, conf=self.args.conf)
                 if self.args.visualize:
-                    self.confusion_matrix.plot_matches(batch["img"][si], pbatch["im_file"], self.save_dir)
+                    self.confusion_matrix.plot_matches(
+                        batch["img"][si],
+                        pbatch["im_file"],
+                        self.save_dir,
+                        self.args.show_labels,
+                        self.args.show_conf,
+                    )
 
             if no_pred:
                 continue
@@ -260,6 +265,11 @@ class DetectionValidator(BaseValidator):
             self._gather_image_metrics(self.metrics.box)
             self.jdict = []
             self.metrics.clear_stats()
+        if self.args.plots and RANK > -1:
+            matrix = torch.as_tensor(self.confusion_matrix.matrix, device=self.device)
+            dist.reduce(matrix, dst=0, op=dist.ReduceOp.SUM)
+            if RANK == 0:
+                self.confusion_matrix.matrix = matrix.cpu().numpy()
 
     def get_stats(self) -> dict[str, Any]:
         """Calculate and return metrics statistics.
@@ -279,7 +289,7 @@ class DetectionValidator(BaseValidator):
             LOGGER.warning(f"no labels found in {self.args.task} set, cannot compute metrics without labels")
 
         # Print results per class
-        if self.args.verbose and not self.training and self.nc > 1 and len(self.metrics.stats):
+        if self.args.verbose and not self.training and self.nc > 1:
             for i, c in enumerate(self.metrics.ap_class_index):
                 LOGGER.info(
                     pf

@@ -53,7 +53,7 @@ from ultralytics.models.yolo.detect import DetectionTrainer
 
 
 class CustomTrainer(DetectionTrainer):
-    def get_model(self, cfg, weights):
+    def get_model(self, cfg=None, weights=None, verbose=True):
         """Loads a custom detection model given configuration and weight files."""
         ...
 
@@ -76,7 +76,7 @@ class MyCustomModel(DetectionModel):
 
 
 class CustomTrainer(DetectionTrainer):
-    def get_model(self, cfg, weights):
+    def get_model(self, cfg=None, weights=None, verbose=True):
         """Returns a customized detection model instance configured with specified config and weights."""
         return MyCustomModel(...)
 
@@ -110,7 +110,7 @@ from ultralytics.models.yolo.detect import DetectionTrainer
 
 # Create a custom trainer
 class MyCustomTrainer(DetectionTrainer):
-    def get_model(self, cfg, weights):
+    def get_model(self, cfg=None, weights=None, verbose=True):
         """Custom code implementation."""
         ...
 
@@ -135,7 +135,7 @@ from ultralytics.models.yolo.detect import DetectionTrainer
 
 
 class CustomTrainer(DetectionTrainer):
-    def get_model(self, cfg, weights):
+    def get_model(self, cfg=None, weights=None, verbose=True):
         """Loads a custom detection model given configuration and weight files."""
         ...
 
@@ -202,7 +202,7 @@ from ultralytics.models.yolo.detect import DetectionTrainer
 
 
 class CustomDetectionTrainer(DetectionTrainer):
-    def get_model(self, cfg, weights):
+    def get_model(self, cfg=None, weights=None, verbose=True):
         """Loads a custom detection model."""
         ...
 

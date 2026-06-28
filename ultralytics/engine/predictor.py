@@ -32,7 +32,8 @@ Usage - formats:
                               yolo26n_rknn_model         # Rockchip RKNN
                               yolo26n_executorch_model   # PyTorch Executorch
                               yolo26n_axelera_model      # Axelera AI
-                              yolo26n_deepx_model        # DeepX
+                              yolo26n_deepx_model        # DEEPX
+                              yolo26n_qnn.onnx           # Qualcomm QNN
 """
 
 from __future__ import annotations
@@ -403,13 +404,13 @@ class BasePredictor:
             device=select_device(self.args.device, verbose=verbose),
             dnn=self.args.dnn,
             data=self.args.data,
-            fp16=self.args.half,
+            fp16=self.args.quantize == 16,
             fuse=True,
             verbose=verbose,
         )
 
         self.device = self.model.device  # update device
-        self.args.half = self.model.fp16  # update half
+        self.args.quantize = 16 if self.model.fp16 else None  # record actual inference precision
         if hasattr(self.model, "imgsz") and not getattr(self.model, "dynamic", False):
             self.args.imgsz = self.model.imgsz  # reuse imgsz from export metadata
         self.model.eval()
@@ -435,7 +436,7 @@ class BasePredictor:
             frame = self.dataset.count
         else:
             match = re.search(r"frame (\d+)/", s[i])
-            frame = int(match[1]) if match else None  # 0 if frame undetermined
+            frame = int(match[1]) if match else None  # None if frame undetermined
 
         self.txt_path = self.save_dir / "labels" / (p.stem + ("" if self.dataset.mode == "image" else f"_{frame}"))
         string += "{:g}x{:g} ".format(*im.shape[2:])

@@ -15,7 +15,7 @@ Ultralytics YOLO trackers provide output consistent with standard [object detect
 - **Ease of Use:** Offers straightforward [Python API](https://docs.ultralytics.com/usage/python) and [CLI](https://docs.ultralytics.com/usage/cli) options for rapid integration and deployment.
 - **Customizability:** Easily integrates with [custom-trained YOLO models](https://docs.ultralytics.com/modes/train), enabling deployment in specialized, domain-specific applications.
 
-**Watch:** Object Detection and Tracking with Ultralytics YOLOv8.
+**Watch:** Object Detection and Tracking with Ultralytics YOLO26.
 
 [![Watch the video](https://user-images.githubusercontent.com/26833433/244171528-66a4a68d-cb85-466a-984a-34301616b7a3.png)](https://www.youtube.com/watch?v=hHyHmOtmEgs)
 
@@ -29,16 +29,20 @@ Ultralytics YOLO extends its powerful object detection features to deliver robus
 
 ## 🛠️ Available Trackers
 
-Ultralytics YOLO supports the following tracking algorithms. Enable them by passing the relevant YAML configuration file, such as `tracker=tracker_type.yaml`:
+Ultralytics YOLO supports the following tracking algorithms. Enable them by passing the relevant YAML configuration file, such as `tracker=bytetrack.yaml`:
 
 - **BoT-SORT:** Use [`botsort.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/botsort.yaml) to enable this tracker. Based on the [BoT-SORT paper](https://arxiv.org/abs/2206.14651) and its official [code implementation](https://github.com/NirAharon/BoT-SORT).
 - **ByteTrack:** Use [`bytetrack.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/bytetrack.yaml) to enable this tracker. Based on the [ByteTrack paper](https://arxiv.org/abs/2110.06864) and its official [code implementation](https://github.com/FoundationVision/ByteTrack).
+- **OC-SORT:** Use [`ocsort.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/ocsort.yaml) to enable this tracker. Based on the [OC-SORT paper](https://arxiv.org/abs/2203.14360) (observation-centric SORT with ORU/OCM/OCR).
+- **Deep OC-SORT:** Use [`deepocsort.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/deepocsort.yaml) to enable this tracker. Based on the [Deep OC-SORT paper](https://arxiv.org/abs/2302.11813), adding adaptive ReID appearance fusion and camera motion compensation on top of OC-SORT.
+- **FastTracker:** Use [`fasttrack.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/fasttrack.yaml) to enable this tracker. Based on the [FastTracker paper](https://arxiv.org/abs/2508.14370): occlusion-aware ByteTrack variant with Kalman rollback and init-IoU suppression.
+- **TrackTrack:** Use [`tracktrack.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/tracktrack.yaml) to enable this tracker. Based on the [TrackTrack paper](https://openaccess.thecvf.com/content/CVPR2025/papers/Shim_Focusing_on_Tracks_for_Online_Multi-Object_Tracking_CVPR_2025_paper.pdf) (CVPR 2025) — multi-cue iterative association with Track-Aware Initialization.
 
 The default tracker is **BoT-SORT**.
 
 ## ⚙️ Usage
 
-To run the tracker on video streams, use a trained Detect, Segment, or Pose model like [Ultralytics YOLO26n](https://docs.ultralytics.com/models/yolo26), YOLO26n-seg, or YOLO26n-pose.
+To run the tracker on video streams, use a trained Detect, Segment, Pose, or OBB model like [Ultralytics YOLO26n](https://docs.ultralytics.com/models/yolo26), YOLO26n-seg, YOLO26n-pose, or YOLO26n-obb.
 
 ```python
 # Python
@@ -234,9 +238,9 @@ Multithreaded tracking allows running object tracking on multiple video streams 
 
 This Python script utilizes Python's [`threading`](https://docs.python.org/3/library/threading.html) module for concurrent tracker execution. Each thread manages tracking for a single video file.
 
-The `run_tracker_in_thread` function accepts parameters like the video file path, model, and a unique window index. It contains the main tracking loop, reading frames, running the tracker, and displaying results in a dedicated window.
+The `run_tracker_in_thread` function accepts a model name and a video source. It loads the model and runs the tracker in streaming mode, consuming results as they are produced.
 
-This example uses two models, `yolo26n.pt` and `yolo26n-seg.pt`, tracking objects in `video_file1` and `video_file2`, respectively.
+This example uses two models, `yolo26n.pt` and `yolo26n-seg.pt`, each tracking objects from a different source in the `SOURCES` list.
 
 Setting `daemon=True` in `threading.Thread` ensures threads exit when the main program finishes. Threads are started with `start()` and the main thread waits for their completion using `join()`.
 

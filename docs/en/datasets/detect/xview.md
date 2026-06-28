@@ -1,4 +1,5 @@
 ---
+title: xView Satellite Dataset
 comments: true
 description: Explore the xView dataset, a rich resource of 1M+ object instances in high-resolution satellite imagery. Enhance detection, learning efficiency, and more.
 keywords: xView dataset, overhead imagery, satellite images, object detection, high resolution, bounding boxes, computer vision, TensorFlow, PyTorch, dataset structure
@@ -127,7 +128,7 @@ The [xView](http://xviewdataset.org/) dataset is one of the largest publicly ava
 
 ### How can I use Ultralytics YOLO to train a model on the xView dataset?
 
-To train a model on the xView dataset using [Ultralytics YOLO](https://docs.ultralytics.com/models/yolo26), follow these steps:
+To train a model on the xView dataset using [Ultralytics YOLO](../../models/yolo26.md), follow these steps:
 
 !!! example "Train Example"
 

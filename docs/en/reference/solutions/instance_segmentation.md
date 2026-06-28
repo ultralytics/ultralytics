@@ -1,4 +1,5 @@
 ---
+title: solutions.instance_segmentation API Reference
 description: This page provides a detailed reference for the InstanceSegmentation class in the Ultralytics solutions package, enabling instance segmentation in images and videos.
 keywords: Ultralytics, InstanceSegmentation, instance segmentation, masks, Python, computer vision
 ---

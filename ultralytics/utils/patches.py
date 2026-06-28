@@ -224,12 +224,12 @@ def torch_save(*args, **kwargs):
 
 
 @contextmanager
-def arange_patch(dynamic: bool = False, half: bool = False, fmt: str = ""):
+def arange_patch(dynamic: bool = False, quantize: int | str | None = None, fmt: str = ""):
     """Workaround for ONNX torch.arange incompatibility with FP16.
 
     https://github.com/pytorch/pytorch/issues/148041.
     """
-    if dynamic and half and fmt == "onnx":
+    if dynamic and quantize == 16 and fmt == "onnx":
         func = torch.arange
 
         def arange(*args, dtype=None, **kwargs):

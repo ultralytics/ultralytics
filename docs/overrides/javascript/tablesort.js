@@ -13,9 +13,9 @@
     const value = Number.parseFloat(t[1].replace(/[^\-?0-9.]/g, ""));
     const unit = t[3].toLowerCase();
     const base = unit[1] === "i" ? 1024 : 1e3;
-    const powers = { k: 2, m: 3, g: 4, t: 5, p: 6, e: 7, z: 8, y: 9 };
+    const powers = { b: 0, k: 1, m: 2, g: 3, t: 4, p: 5, e: 6, z: 7, y: 8 };
 
-    return value * (powers[unit[0]] ? base ** powers[unit[0]] : base);
+    return value * base ** (powers[unit[0]] ?? 0);
   }
 
   Tablesort.extend(

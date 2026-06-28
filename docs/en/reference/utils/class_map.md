@@ -1,4 +1,5 @@
 ---
+title: utils.class_map API Reference
 description: TODO ADD DESCRIPTION
 keywords: TODO ADD KEYWORDS
 ---

@@ -1750,7 +1750,10 @@ class SemanticMetrics(SimpleClass, DataExportMixin):
             self._per_class_pixel_acc = pa[1:].cpu().numpy()
             self.nt_per_class = np.array([row_sum[1].item()], dtype=np.int32)
         else:
-            self._miou = float(iou.mean().item())
+            # Average IoU only over classes present in the ground truth; classes with no GT pixels (absent
+            # from the val set or removed by the `classes` filter) are excluded.
+            present = row_sum > 0
+            self._miou = float(iou[present].mean().item()) if present.any() else 0.0
             self._per_class_iou = iou.cpu().numpy()
             self._per_class_pixel_acc = pa.cpu().numpy()
             self.nt_per_class = row_sum[: self.nc].cpu().numpy().astype(np.int32)
@@ -1830,22 +1833,16 @@ class SemanticMetrics(SimpleClass, DataExportMixin):
         return [self.miou, self.pixel_accuracy]
 
     def class_result(self, i: int) -> list[float]:
-        """Return the result of evaluating the performance on a specific class.
-
-        Args:
-            i (int): Class index.
-
-        Returns:
-            (list): [IoU, pixel_accuracy] for the specified class.
-        """
+        """Return the result of evaluating the performance on a specific class."""
         if self._per_class_iou is None or len(self._per_class_iou) == 0:
             return [0.0, 0.0]
-        return [float(self._per_class_iou[i]), float(self._per_class_pixel_acc[i])]
+        c = self.ap_class_index[i]
+        return [float(self._per_class_iou[c]), float(self._per_class_pixel_acc[c])]
 
     @property
     def ap_class_index(self):
-        """Return the class index list for per-class results."""
-        return list(range(self.nc))
+        """Return the indices of classes present in the ground truth for per-class reporting."""
+        return [i for i in range(self.nc) if self.nt_per_class[i] > 0]
 
     @property
     def results_dict(self):
@@ -1879,12 +1876,12 @@ class SemanticMetrics(SimpleClass, DataExportMixin):
         names = self.names or {i: str(i) for i in range(len(per_class))}
         return [
             {
-                "Class": names.get(i, str(i)),
-                "Images": int(self.nt_per_image[i]),
-                "Pixels": int(self.nt_per_class[i]),
-                "IoU": round(float(per_class[i]), decimals),
+                "Class": names.get(c, str(c)),
+                "Images": int(self.nt_per_image[c]),
+                "Pixels": int(self.nt_per_class[c]),
+                "IoU": round(float(per_class[c]), decimals),
                 "mIoU": miou,
                 "pixel_acc": pixel_acc,
             }
-            for i in range(len(per_class))
+            for c in self.ap_class_index
         ]

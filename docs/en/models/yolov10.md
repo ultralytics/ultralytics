@@ -1,4 +1,5 @@
 ---
+title: YOLOv10: NMS-Free Object Detection
 comments: true
 description: Discover YOLOv10 for real-time object detection, eliminating NMS and boosting efficiency. Achieve top performance with a low computational cost.
 keywords: YOLOv10, real-time object detection, NMS-free, deep learning, Tsinghua University, Ultralytics, machine learning, neural networks, performance optimization

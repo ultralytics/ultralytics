@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # Construction-PPE dataset by Ultralytics
-# Documentation: https://docs.ultralytics.com/datasets/detect/construction-ppe/
+# Documentation: https://docs.ultralytics.com/datasets/detect/construction-ppe
 # Example usage: yolo train data=construction-ppe.yaml
 # parent
 # ├── ultralytics

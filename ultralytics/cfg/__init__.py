@@ -179,6 +179,24 @@ CLI_HELP_MSG = f"""
     GitHub: https://github.com/ultralytics/ultralytics
     """
 
+# Quantization aliases: maps any accepted `quantize` value to its canonical form. The common case is the integer
+# bit-width 8 (INT8) / 16 (FP16) / 32 (FP32); the verbose w<weights>a<activations> strings are accepted too and
+# collapse to the same ints, except 'w8a16' (INT8 weights + FP16 activations) which has no bit-width shorthand.
+QUANTIZE_ALIASES = {
+    "8": 8,
+    "16": 16,
+    "32": 32,
+    "int8": 8,
+    "fp16": 16,
+    "fp32": 32,
+    "w8a8": 8,
+    "w16a16": 16,
+    "w32a32": 32,
+    "w8a16": "w8a16",
+}
+QUANTIZE_DOCS_URL = "https://docs.ultralytics.com/modes/export/#quantization-options"
+QUANTIZE_VALID_VALUES = "8, 16, 32, 'int8', 'fp16', 'fp32', 'w8a8', 'w16a16', or 'w8a16'"
+
 # Define keys for arg type checks
 CFG_FLOAT_KEYS = frozenset(
     {  # integer or float arguments, i.e. x=2 and x=2.0
@@ -187,6 +205,7 @@ CFG_FLOAT_KEYS = frozenset(
         "cls",
         "cls_pw",
         "dfl",
+        "dis",
         "degrees",
         "shear",
         "time",
@@ -248,7 +267,6 @@ CFG_BOOL_KEYS = frozenset(
         "overlap_mask",
         "val",
         "save_json",
-        "half",
         "dnn",
         "plots",
         "show",
@@ -265,7 +283,6 @@ CFG_BOOL_KEYS = frozenset(
         "show_boxes",
         "keras",
         "optimize",
-        "int8",
         "dynamic",
         "simplify",
         "nms",
@@ -325,7 +342,7 @@ def get_cfg(
     Examples:
         >>> from ultralytics.cfg import get_cfg
         >>> config = get_cfg()  # Load default configuration
-        >>> config_with_overrides = get_cfg("path/to/config.yaml", overrides={"epochs": 50, "batch_size": 16})
+        >>> config_with_overrides = get_cfg("path/to/config.yaml", overrides={"epochs": 50, "batch": 16})
 
     Notes:
         - If both `cfg` and `overrides` are provided, the values in `overrides` will take precedence.
@@ -376,7 +393,7 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
         ... }
         >>> check_cfg(config, hard=False)
         >>> print(config)
-        {'epochs': 50, 'lr0': 0.01, 'momentum': 0.937, 'save': True}  # corrected 'save' key
+        {'epochs': 50, 'lr0': 0.01, 'momentum': 0.937, 'save': True}
 
     Notes:
         - The function modifies the input dictionary in-place.
@@ -434,6 +451,16 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                         f"'{k}' must be a bool (i.e. '{k}=True' or '{k}=False')"
                     )
                 cfg[k] = bool(v)
+            elif k == "quantize":  # canonicalize 8/16/32 or w-notation to a scheme (unset stays None for FP32)
+                scheme = QUANTIZE_ALIASES.get(str(v).lower())
+                if scheme is None:
+                    if hard:
+                        raise ValueError(
+                            f"'{k}={v}' is invalid. Valid '{k}' values are {QUANTIZE_VALID_VALUES}. "
+                            f"See {QUANTIZE_DOCS_URL}"
+                        )
+                else:
+                    cfg[k] = scheme
 
 
 def get_save_dir(args: SimpleNamespace, name: str | None = None) -> Path:
@@ -500,6 +527,17 @@ def _handle_deprecation(custom: dict) -> dict:
     }
     removed_keys = {"label_smoothing", "save_hybrid", "crop_fraction"}
 
+    # Forward the deprecated precision flags onto the unified `quantize` scheme (int8 wins over half). The value is read
+    # as a bool so quoted/string 'False' disables it while a bare CLI flag (empty string) enables it; an explicit false
+    # flag maps to None to clear any inherited quantize. An explicit `quantize=` always wins over the legacy flags.
+    int8 = custom.pop("int8", None)
+    half = custom.pop("half", None)
+    if (int8 is not None or half is not None) and "quantize" not in custom:
+        int8_on = int8 is not None and str(int8).strip().lower() not in {"none", "false", "0"}
+        half_on = half is not None and str(half).strip().lower() not in {"none", "false", "0"}
+        custom["quantize"] = 8 if int8_on else 16 if half_on else None  # False/0 clears precision back to FP32
+        deprecation_warn("int8" if int8 is not None else "half", "quantize")
+
     for old_key, (new_key, transform) in deprecated_mappings.items():
         if old_key not in custom:
             continue
@@ -528,14 +566,14 @@ def check_dict_alignment(
         allowed_custom_keys (set | None): Optional set of additional keys that are allowed in the custom dictionary.
 
     Raises:
-        SystemExit: If mismatched keys are found between the custom and base dictionaries.
+        SyntaxError: If mismatched keys are found between the custom and base dictionaries.
 
     Examples:
-        >>> base_cfg = {"epochs": 50, "lr0": 0.01, "batch_size": 16}
-        >>> custom_cfg = {"epoch": 100, "lr": 0.02, "batch_size": 32}
+        >>> base_cfg = {"epochs": 50, "lr0": 0.01, "batch": 16}
+        >>> custom_cfg = {"epoch": 100, "lr": 0.02, "batch": 32}
         >>> try:
         ...     check_dict_alignment(base_cfg, custom_cfg)
-        ... except SystemExit:
+        ... except SyntaxError:
         ...     print("Mismatched keys found")
 
     Notes:
@@ -1015,6 +1053,8 @@ def entrypoint(debug: str = "") -> None:
             return
         elif a in DEFAULT_CFG_DICT and isinstance(DEFAULT_CFG_DICT[a], bool):
             overrides[a] = True  # auto-True for default bool args, i.e. 'yolo show' sets show=True
+        elif a in {"half", "int8"}:
+            overrides[a] = True  # deprecated bare precision flags, forwarded to quantize by _handle_deprecation
         elif a in DEFAULT_CFG_DICT:
             raise SyntaxError(
                 f"'{colorstr('red', 'bold', a)}' is a valid YOLO argument but is missing an '=' sign "

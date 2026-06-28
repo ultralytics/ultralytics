@@ -334,9 +334,13 @@ class BaseModel(torch.nn.Module):
         """
         model = weights["model"] if isinstance(weights, dict) else weights  # torchvision models are not dicts
         csd = model.float().state_dict()  # checkpoint state_dict as FP32
+
+        # Remap classification head rows by class-name when nc differs (e.g. Obj365 -> COCO fine-tune)
+        cls_remapped = self._remap_cls_by_names(csd, model, verbose=verbose)
+
         updated_csd = intersect_dicts(csd, self.state_dict())  # intersect
         self.load_state_dict(updated_csd, strict=False)  # load
-        len_updated_csd = len(updated_csd)
+        len_updated_csd = len(updated_csd) + cls_remapped
         first_conv = "model.0.conv.weight"  # hard-coded to yolo models for now
         # mostly used to boost multi-channel training
         state_dict = self.state_dict()
@@ -349,6 +353,75 @@ class BaseModel(torch.nn.Module):
                 len_updated_csd += 1
         if verbose:
             LOGGER.info(f"Transferred {len_updated_csd}/{len(self.model.state_dict())} items from pretrained weights")
+
+    def _remap_cls_by_names(self, csd, src_model, verbose=True):
+        """Remap pretrained classification head rows to current class order by name.
+
+        Copies rows from pretrained cls layers into the current model's state_dict where the destination class name
+        matches a source class name (case-insensitive, whitespace-stripped). Useful when fine-tuning across datasets
+        with overlapping classes (e.g. Objects365 -> COCO). Mutates the destination tensors in-place via state_dict
+        references; matched cls tensors are removed from `csd` so the subsequent intersect_dicts skips them.
+
+        Args:
+            csd (dict): Pretrained checkpoint state_dict (will be mutated).
+            src_model (torch.nn.Module): Pretrained module, used to read `.names` and `.nc`.
+            verbose (bool): Log mapping summary.
+
+        Returns:
+            (int): Number of cls tensors remapped (counted toward "Transferred" log line).
+        """
+        src_names = getattr(src_model, "names", None)
+        tgt_names = getattr(self, "names", None)
+        src_nc = getattr(src_model, "nc", None) or (len(src_names) if isinstance(src_names, dict) else None)
+        tgt_nc = getattr(self, "nc", None) or (len(tgt_names) if isinstance(tgt_names, dict) else None)
+        if not (isinstance(src_names, dict) and isinstance(tgt_names, dict) and src_nc and tgt_nc):
+            return 0
+        if src_nc == tgt_nc:  # standard intersect_dicts already handles same-nc
+            return 0
+
+        def _looks_default(names):  # default placeholder names {0:"0",1:"1",...}
+            return all(str(k) == str(v) for k, v in names.items())
+
+        if _looks_default(src_names) or _looks_default(tgt_names):
+            return 0
+
+        def _norm(s):
+            return str(s).strip().lower()
+
+        src_lookup = {_norm(v): k for k, v in src_names.items()}
+        # COCO target classes with no direct name in Obj365 → use a close semantic equivalent
+        aliases = {"bird": "wild bird", "sports ball": "baseball"}
+        for tgt_name, src_name in aliases.items():
+            if tgt_name not in src_lookup and _norm(src_name) in src_lookup:
+                src_lookup[tgt_name] = src_lookup[_norm(src_name)]
+        idx = torch.tensor([src_lookup.get(_norm(tgt_names.get(k)), -1) for k in range(tgt_nc)], dtype=torch.long)
+        n_match = int((idx >= 0).sum())
+        if n_match == 0:
+            return 0
+
+        valid = idx >= 0
+        src_rows = idx.clamp(min=0)
+        state_dict = self.state_dict()
+        remapped = 0
+        for k in list(csd.keys()):
+            if k not in state_dict:
+                continue
+            v_src, v_tgt = csd[k], state_dict[k]
+            if v_src.shape == v_tgt.shape:
+                continue
+            # Only treat tensors whose dim 0 corresponds to class count (cls conv weight/bias)
+            if v_src.dim() < 1 or v_src.shape[0] != src_nc or v_tgt.shape[0] != tgt_nc:
+                continue
+            if v_src.shape[1:] != v_tgt.shape[1:]:
+                continue
+            v_tgt[valid] = v_src[src_rows[valid]].to(v_tgt.dtype)
+            csd.pop(k)  # prevent intersect_dicts from re-considering (shape mismatch would skip anyway)
+            remapped += 1
+        if verbose and remapped:
+            LOGGER.info(
+                f"Cls head remap: matched {n_match}/{tgt_nc} class names, copied rows into {remapped} cls tensors"
+            )
+        return remapped
 
     def loss(self, batch, preds=None):
         """Compute loss.

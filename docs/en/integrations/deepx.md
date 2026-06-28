@@ -14,7 +14,7 @@ Deploying computer vision models on specialized NPU hardware requires a compatib
   <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/deepx_cover.avif" alt="DEEPX NPU Inference">
 </p>
 
-[DEEPX](https://www.deepx.ai/) is an AI semiconductor company specializing in Neural Processing Units (NPUs) designed for power-efficient [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) inference at the edge. DEEPX NPUs are engineered for demanding embedded and industrial AI applications, delivering high throughput with minimal power consumption. Their hardware is well suited for deployment scenarios where cloud connectivity is unreliable or undesirable, such as robotics, smart cameras, and industrial automation systems.
+[DEEPX](https://deepx.ai/) is an AI semiconductor company specializing in Neural Processing Units (NPUs) designed for power-efficient [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) inference at the edge. DEEPX NPUs are engineered for demanding embedded and industrial AI applications, delivering high throughput with minimal power consumption. Their hardware is well suited for deployment scenarios where cloud connectivity is unreliable or undesirable, such as robotics, smart cameras, and industrial automation systems.
 
 ## DEEPX Export Format
 
@@ -34,14 +34,14 @@ DEEPX models offer several advantages for edge deployment:
 
 All standard Ultralytics tasks are supported for DEEPX export across YOLO26, YOLO11, and YOLOv8 model families.
 
-| Task                                                                  | Supported |
-| :-------------------------------------------------------------------- | :-------- |
-| [Object Detection](https://docs.ultralytics.com/tasks/detect/)        | ✅        |
-| [Instance Segmentation](https://docs.ultralytics.com/tasks/segment/)  | ✅        |
-| [Semantic Segmentation](https://docs.ultralytics.com/tasks/semantic/) | ✅        |
-| [Pose Estimation](https://docs.ultralytics.com/tasks/pose/)           | ✅        |
-| [OBB Detection](https://docs.ultralytics.com/tasks/obb/)              | ✅        |
-| [Classification](https://docs.ultralytics.com/tasks/classify/)        | ✅        |
+| Task                                          | Supported |
+| :-------------------------------------------- | :-------- |
+| [Object Detection](../tasks/detect.md)        | ✅        |
+| [Instance Segmentation](../tasks/segment.md)  | ✅        |
+| [Semantic Segmentation](../tasks/semantic.md) | ✅        |
+| [Pose Estimation](../tasks/pose.md)           | ✅        |
+| [OBB Detection](../tasks/obb.md)              | ✅        |
+| [Classification](../tasks/classify.md)        | ✅        |
 
 ## Export to DEEPX: Converting Your YOLO Model
 
@@ -80,7 +80,7 @@ The DEEPX format supports the [Export](../modes/export.md), [Predict](../modes/p
         # Load a YOLO26 model
         model = YOLO("yolo26n.pt")
 
-        # Export the model to DEEPX format (int8=True is enforced automatically)
+        # Export the model to DEEPX format (quantize=8 is enforced automatically)
         model.export(format="deepx")  # creates 'yolo26n_deepx_model/'
         ```
 
@@ -139,7 +139,7 @@ The DEEPX format supports the [Export](../modes/export.md), [Predict](../modes/p
 | :--------- | :--------------- | :------------- | :------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `format`   | `str`            | `'deepx'`      | Target format for the exported model, defining compatibility with DEEPX NPU hardware.                                                              |
 | `imgsz`    | `int` or `tuple` | `640`          | Desired image size for the model input. DEEPX export requires a square input — pass an integer (e.g., `640`) or a tuple where height equals width. |
-| `int8`     | `bool`           | `True`         | Enables INT8 quantization. Required for DEEPX export — automatically set to `True` if not specified.                                               |
+| `quantize` | `int` or `str`   | `8`/auto       | Quantization precision. `8` (INT8) is required for DEEPX export and auto-enabled if not specified. Replaces the deprecated `half`/`int8` flags.    |
 | `data`     | `str`            | `'coco8.yaml'` | Dataset configuration file used for INT8 calibration. Specifies the calibration image source.                                                      |
 | `device`   | `str`            | `None`         | Specifies the device for exporting: GPU (`device=0`) or CPU (`device=cpu`).                                                                        |
 | `optimize` | `bool`           | `False`        | Enables higher compiler optimization which reduces inference latency and increases compilation time.                                               |
@@ -311,7 +311,7 @@ In this guide, you've learned how to export Ultralytics YOLO models to DEEPX for
 
 The combination of [Ultralytics YOLO](https://www.ultralytics.com/yolo) and DEEPX's NPU technology provides an effective solution for running advanced [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) workloads on embedded and edge devices — delivering high throughput with low power consumption for real-time applications.
 
-For further details on usage, visit the [DEEPX official website](https://www.deepx.ai/).
+For further details on usage, visit the [DEEPX official website](https://deepx.ai/).
 
 Also, if you'd like to know more about other Ultralytics YOLO integrations, visit our [integration guide page](../integrations/index.md). You'll find plenty of useful resources and insights there.
 
@@ -340,7 +340,7 @@ You can export your model using the `export()` method in Python or via the CLI. 
 
 ### Why does DEEPX export require INT8 quantization?
 
-DEEPX NPUs are designed to execute INT8 computations at maximum efficiency. The `dx_com` compiler quantizes the model during export using EMA-based calibration with real dataset images, enabling the NPU to deliver its full performance. INT8 is always enforced for DEEPX exports — if you pass `int8=False`, it will be overridden with a warning.
+DEEPX NPUs are designed to execute INT8 computations at maximum efficiency. The `dx_com` compiler quantizes the model during export using EMA-based calibration with real dataset images, enabling the NPU to deliver its full performance. INT8 is always enforced for DEEPX exports — if you request a different precision, it will be overridden with a warning.
 
 ### What platforms are supported for DEEPX export?
 

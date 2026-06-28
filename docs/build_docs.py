@@ -624,7 +624,7 @@ def main():
         # Update docs HTML pages
         update_docs_html()
 
-        # Post-process site for meta tags, authors, social cards, and mkdocstrings polish
+        # Post-process site for meta tags, authors, social cards, and reference-page polish
         if postprocess_site:
             postprocess_site(
                 site_dir=SITE,
@@ -641,7 +641,7 @@ def main():
                 verbose=True,
             )
         else:
-            LOGGER.warning("postprocess_site not available; skipping mkdocstrings postprocessing")
+            LOGGER.warning("postprocess_site not available; skipping docs postprocessing")
 
         # Minify files
         minify_files(html=False, css=False, js=False)

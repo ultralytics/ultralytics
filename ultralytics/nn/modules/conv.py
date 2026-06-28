@@ -28,6 +28,9 @@ __all__ = (
     "Index",
     "LightConv",
     "MobileOneConv",
+    "MobileOneBlock",
+    "ReparamLargeKernelConv",
+    "FastViTDownsample",
     "RepConv",
     "RepGhostConv",
     "SpatialAttention",
@@ -754,6 +757,254 @@ class MobileOneConv(nn.Module):
             self.__delattr__("bn")
         if hasattr(self, "id_tensor"):
             self.__delattr__("id_tensor")
+
+
+class MobileOneBlock(nn.Module):
+    """General MobileOne block with reparameterizable branches (kernel size and stride configurable).
+
+    Unlike MobileOneConv (3x3 only), this supports arbitrary kernel size (e.g. 1x1 pointwise), stride-2
+    downsampling, grouped/depthwise convs, an optional 1x1 scale branch (when k > 1) and an identity BN
+    branch (when c1 == c2 and s == 1). Used by FastViTDownsample for the pointwise projection.
+
+    References:
+        https://github.com/apple/ml-fastvit (MobileOneBlock)
+    """
+
+    default_act = nn.SiLU()
+
+    def __init__(self, c1, c2, k=1, s=1, p=None, g=1, act=True, num_conv_branches=1, use_scale_branch=True):
+        """Initialize MobileOneBlock.
+
+        Args:
+            c1 (int): Input channels.
+            c2 (int): Output channels.
+            k (int): Kernel size of the main conv branches.
+            s (int): Stride.
+            p (int, optional): Padding. Autopadded when None.
+            g (int): Groups.
+            act (bool | nn.Module): Activation function.
+            num_conv_branches (int): Number of parallel k x k conv branches.
+            use_scale_branch (bool): Add a parallel 1x1 scale branch when k > 1.
+        """
+        super().__init__()
+        self.g = g
+        self.s = s
+        self.c1 = c1
+        self.c2 = c2
+        self.k = k
+        self.num_conv_branches = num_conv_branches
+        p = autopad(k, p)
+        self.p = p
+        self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
+
+        self.bn = nn.BatchNorm2d(num_features=c1) if c2 == c1 and s == 1 else None
+        self.convs = nn.ModuleList(Conv(c1, c2, k, s, p=p, g=g, act=False) for _ in range(num_conv_branches))
+        self.scale = Conv(c1, c2, 1, s, p=0, g=g, act=False) if use_scale_branch and k > 1 else None
+
+    def forward_fuse(self, x):
+        """Forward pass for deploy mode."""
+        return self.act(self.conv(x))
+
+    def forward(self, x):
+        """Forward pass for training mode."""
+        out = sum(c(x) for c in self.convs)
+        if self.scale is not None:
+            out = out + self.scale(x)
+        if self.bn is not None:
+            out = out + self.bn(x)
+        return self.act(out)
+
+    def get_equivalent_kernel_bias(self):
+        """Fuse all branches into an equivalent k x k kernel and bias."""
+        kernel, bias = 0, 0
+        for conv in self.convs:
+            kk, bb = self._fuse_bn_tensor(conv)
+            kernel = kernel + kk
+            bias = bias + bb
+        if self.scale is not None:
+            sk, sb = self._fuse_bn_tensor(self.scale)
+            pad = self.k // 2
+            kernel = kernel + nn.functional.pad(sk, [pad, pad, pad, pad])
+            bias = bias + sb
+        kid, bid = self._fuse_bn_tensor(self.bn)
+        return kernel + kid, bias + bid
+
+    def _fuse_bn_tensor(self, branch):
+        """Fuse batch normalization with convolution weights."""
+        if branch is None:
+            return 0, 0
+        if isinstance(branch, Conv):
+            kernel = branch.conv.weight
+            running_mean = branch.bn.running_mean
+            running_var = branch.bn.running_var
+            gamma = branch.bn.weight
+            beta = branch.bn.bias
+            eps = branch.bn.eps
+        elif isinstance(branch, nn.BatchNorm2d):
+            if not hasattr(self, "id_tensor"):
+                input_dim = self.c1 // self.g
+                kernel_value = np.zeros((self.c1, input_dim, self.k, self.k), dtype=np.float32)
+                for i in range(self.c1):
+                    kernel_value[i, i % input_dim, self.k // 2, self.k // 2] = 1
+                self.id_tensor = torch.from_numpy(kernel_value).to(branch.weight.device)
+            kernel = self.id_tensor
+            running_mean = branch.running_mean
+            running_var = branch.running_var
+            gamma = branch.weight
+            beta = branch.bias
+            eps = branch.eps
+        std = (running_var + eps).sqrt()
+        t = (gamma / std).reshape(-1, 1, 1, 1)
+        return kernel * t, beta - running_mean * gamma / std
+
+    def fuse_convs(self):
+        """Fuse all branches into a single k x k conv for inference."""
+        if hasattr(self, "conv"):
+            return
+        kernel, bias = self.get_equivalent_kernel_bias()
+        self.conv = nn.Conv2d(
+            in_channels=self.c1,
+            out_channels=self.c2,
+            kernel_size=self.k,
+            stride=self.s,
+            padding=self.p,
+            groups=self.g,
+            bias=True,
+        ).requires_grad_(False)
+        self.conv.weight.data = kernel
+        self.conv.bias.data = bias
+        for para in self.parameters():
+            para.detach_()
+        self.__delattr__("convs")
+        if hasattr(self, "scale"):
+            self.__delattr__("scale")
+        if hasattr(self, "bn"):
+            self.__delattr__("bn")
+        if hasattr(self, "id_tensor"):
+            self.__delattr__("id_tensor")
+
+
+class ReparamLargeKernelConv(nn.Module):
+    """Reparameterizable large-kernel conv: large k x k branch + small kernel branch fused at inference.
+
+    The downsampling conv of FastViT's PatchEmbed: a (grouped/depthwise) large kernel conv with stride,
+    overparameterized with a parallel small-kernel branch during training, fused to a single large-kernel
+    conv at deploy time.
+
+    References:
+        https://github.com/apple/ml-fastvit (ReparamLargeKernelConv) / https://arxiv.org/abs/2203.06717
+    """
+
+    default_act = nn.SiLU()
+
+    def __init__(self, c1, c2, k=7, s=2, g=None, small_kernel=3, act=True):
+        """Initialize ReparamLargeKernelConv.
+
+        Args:
+            c1 (int): Input channels.
+            c2 (int): Output channels.
+            k (int): Large kernel size.
+            s (int): Stride.
+            g (int, optional): Groups. Defaults to gcd(c1, c2) for a depthwise-style conv.
+            small_kernel (int | None): Small kernel size for the reparam branch. None disables it.
+            act (bool | nn.Module): Activation function.
+        """
+        super().__init__()
+        assert small_kernel is None or small_kernel <= k, "small_kernel must be <= k"
+        self.c1 = c1
+        self.c2 = c2
+        self.k = k
+        self.s = s
+        self.g = g if g is not None else math.gcd(c1, c2)
+        self.small_kernel = small_kernel
+        self.p = k // 2
+        self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
+
+        self.lkb_origin = Conv(c1, c2, k, s, p=self.p, g=self.g, act=False)
+        self.small_conv = Conv(c1, c2, small_kernel, s, p=small_kernel // 2, g=self.g, act=False) if small_kernel else None
+
+    def forward_fuse(self, x):
+        """Forward pass for deploy mode."""
+        return self.act(self.conv(x))
+
+    def forward(self, x):
+        """Forward pass for training mode."""
+        out = self.lkb_origin(x)
+        if self.small_conv is not None:
+            out = out + self.small_conv(x)
+        return self.act(out)
+
+    @staticmethod
+    def _fuse_bn_tensor(branch):
+        """Fuse batch normalization with convolution weights for a Conv branch."""
+        kernel = branch.conv.weight
+        bn = branch.bn
+        std = (bn.running_var + bn.eps).sqrt()
+        t = (bn.weight / std).reshape(-1, 1, 1, 1)
+        return kernel * t, bn.bias - bn.running_mean * bn.weight / std
+
+    def get_equivalent_kernel_bias(self):
+        """Fuse the large and small kernel branches into one large kernel and bias."""
+        kernel, bias = self._fuse_bn_tensor(self.lkb_origin)
+        if self.small_conv is not None:
+            sk, sb = self._fuse_bn_tensor(self.small_conv)
+            pad = (self.k - self.small_kernel) // 2
+            kernel = kernel + nn.functional.pad(sk, [pad, pad, pad, pad])
+            bias = bias + sb
+        return kernel, bias
+
+    def fuse_convs(self):
+        """Fuse branches into a single large-kernel conv for inference."""
+        if hasattr(self, "conv"):
+            return
+        kernel, bias = self.get_equivalent_kernel_bias()
+        self.conv = nn.Conv2d(
+            in_channels=self.c1,
+            out_channels=self.c2,
+            kernel_size=self.k,
+            stride=self.s,
+            padding=self.p,
+            groups=self.g,
+            bias=True,
+        ).requires_grad_(False)
+        self.conv.weight.data = kernel
+        self.conv.bias.data = bias
+        for para in self.parameters():
+            para.detach_()
+        self.__delattr__("lkb_origin")
+        if hasattr(self, "small_conv"):
+            self.__delattr__("small_conv")
+
+
+class FastViTDownsample(nn.Module):
+    """FastViT PatchEmbed downsampling block.
+
+    Replaces a stride-2 Conv with FastViT's patch embedding: a reparameterizable large-kernel depthwise
+    conv (stride 2) followed by a reparameterizable 1x1 pointwise MobileOne block. Both branches collapse
+    to plain convs at inference via model.fuse().
+
+    References:
+        https://github.com/apple/ml-fastvit (PatchEmbed)
+    """
+
+    def __init__(self, c1, c2, k=7, small_kernel=3):
+        """Initialize FastViTDownsample.
+
+        Args:
+            c1 (int): Input channels.
+            c2 (int): Output channels.
+            k (int): Large kernel (patch) size for the downsampling conv.
+            small_kernel (int): Small reparam kernel size.
+        """
+        super().__init__()
+        self.proj = nn.Sequential(
+            ReparamLargeKernelConv(c1, c2, k=k, s=2, g=math.gcd(c1, c2), small_kernel=small_kernel),
+            MobileOneBlock(c2, c2, k=1, s=1, g=1),
+        )
+
+    def forward(self, x):
+        """Forward pass."""
+        return self.proj(x)
 
 
 class RepConv(nn.Module):

@@ -85,6 +85,9 @@ from ultralytics.nn.modules import (
     ACConv,
     DBBConv,
     MobileOneConv,
+    MobileOneBlock,
+    ReparamLargeKernelConv,
+    FastViTDownsample,
     RepGhostConv,
     RepC3,
     RepConv,
@@ -272,7 +275,7 @@ class BaseModel(torch.nn.Module):
                     m.conv_transpose = fuse_deconv_and_bn(m.conv_transpose, m.bn)
                     delattr(m, "bn")  # remove batchnorm
                     m.forward = m.forward_fuse  # update forward
-                if isinstance(m, (RepConv, ACConv, DBBConv, MobileOneConv, RepGhostConv)):
+                if isinstance(m, (RepConv, ACConv, DBBConv, MobileOneConv, MobileOneBlock, ReparamLargeKernelConv, RepGhostConv)):
                     m.fuse_convs()
                     m.forward = m.forward_fuse  # update forward
                 if isinstance(m, RepVGGDW):
@@ -1672,6 +1675,7 @@ def parse_model(d, ch, verbose=True):
             ConvTranspose,
             GhostConv,
             MobileOneConv,
+            FastViTDownsample,
             RepGhostConv,
             DBBConv,
             ACConv,

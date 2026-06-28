@@ -34,7 +34,7 @@ Once the setup is complete, you can run inference on your video file. The provid
 Execute the script using the command line, specifying the path to your video file. You can also choose different YOLO11 model weights.
 
 ```bash
-# Run inference and save the output video with bounding boxes
+# Run inference and save annotated output frames with bounding boxes
 python yolov8_sahi.py --source "path/to/your/video.mp4" --save-img
 
 # Run inference using a specific YOLO11 model (e.g., yolo11n.pt) and save results

@@ -1,4 +1,5 @@
 ---
+title: Deployment Monitoring
 comments: true
 description: Monitor deployed YOLO models on Ultralytics Platform with real-time metrics, request logs, and performance dashboards.
 keywords: Ultralytics Platform, monitoring, metrics, logs, deployment, performance, YOLO, observability
@@ -17,15 +18,15 @@ The `Deploy` page in the sidebar serves as the monitoring dashboard for all your
 ```mermaid
 graph TB
     subgraph Dashboard
-        Map[World Map] --- Cards[Overview Cards]
-        Cards --- List[Deployments List]
+        Map[World Map]:::proc --- Cards[Overview Cards]:::proc
+        Cards --- List[Deployments List]:::decide
     end
     subgraph "Per Deployment"
-        Metrics[Metrics Row]
-        Health[Health Check]
-        Logs[Logs Tab]
-        Code[Code Tab]
-        Predict[Predict Tab]
+        Metrics[Metrics Row]:::out
+        Health[Health Check]:::out
+        Logs[Logs Tab]:::out
+        Code[Code Tab]:::out
+        Predict[Predict Tab]:::out
     end
     List --> Metrics
     List --> Health
@@ -33,10 +34,9 @@ graph TB
     List --> Code
     List --> Predict
 
-    style Dashboard fill:#f5f5f5,color:#333
-    style Map fill:#2196F3,color:#fff
-    style Cards fill:#FF9800,color:#fff
-    style List fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef decide fill:#FF9800,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 ### Overview Cards

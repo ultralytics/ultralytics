@@ -1,4 +1,5 @@
 ---
+title: Dataset Management
 comments: true
 description: Learn how to upload, manage, and organize datasets in Ultralytics Platform for YOLO model training with automatic processing and statistics.
 keywords: Ultralytics Platform, datasets, dataset management, dataset versioning, YOLO, data upload, training data, computer vision, machine learning
@@ -35,14 +36,13 @@ Ultralytics Platform accepts multiple upload formats for flexibility.
 
 === "Videos"
 
-    Videos are automatically extracted to frames on the client side at 1 FPS (max 100 frames per video).
+    Videos are extracted to frames in your browser at 1 FPS (max 100 frames per video). The container/codec combination must be browser-decodable — see [Browser Codec Support](#browser-codec-support).
 
     | Format | Extensions | Extraction            | Max Size |
     | ------ | ---------- | --------------------- | -------- |
     | MP4    | `.mp4`     | 1 FPS, max 100 frames | 1 GB     |
     | WebM   | `.webm`    | 1 FPS, max 100 frames | 1 GB     |
     | MOV    | `.mov`     | 1 FPS, max 100 frames | 1 GB     |
-    | AVI    | `.avi`     | 1 FPS, max 100 frames | 1 GB     |
     | MKV    | `.mkv`     | 1 FPS, max 100 frames | 1 GB     |
     | M4V    | `.m4v`     | 1 FPS, max 100 frames | 1 GB     |
 
@@ -59,6 +59,29 @@ Ultralytics Platform accepts multiple upload formats for flexibility.
     | ZIP    | `.zip`                  | Most common       | 10 GB  | 20 GB  | 50 GB      |
     | TAR    | `.tar` `.tar.gz` `.tgz` | Compressed or raw | 10 GB  | 20 GB  | 50 GB      |
     | NDJSON | `.ndjson`               | Dataset export    | 10 GB  | 20 GB  | 50 GB      |
+
+### Browser Codec Support
+
+The file extension alone isn't enough: a video can still fail if its container or codec isn't supported by your browser.
+
+!!! tip "Use H.264 MP4"
+
+    H.264 video in an MP4 container has the broadest support across major browsers and is the safest choice. If a video won't upload, re-encode it with [FFmpeg](https://ffmpeg.org/):
+
+    ```bash
+    ffmpeg -i input.mov -c:v libx264 -pix_fmt yuv420p -c:a aac -movflags +faststart output.mp4
+    ```
+
+??? info "Which video codecs work"
+
+    These are the codecs **Chromium-based browsers** typically decode. Safari and Firefox may differ, so don't treat the Yes/No values below as universal browser support:
+
+    | Codec                               | Decodes in Chrome | Notes                                |
+    | ----------------------------------- | ----------------- | ------------------------------------ |
+    | H.264 (AVC)                         | Yes               | Recommended — widest browser support |
+    | VP8, VP9, AV1                       | Yes               | Royalty-free; common in WebM and MKV |
+    | HEVC (H.265)                        | Hardware only     | Only on devices with an HEVC decoder |
+    | ProRes, MPEG-2, DivX/Xvid, MJPEG, … | No                | Re-encode to H.264                   |
 
 ### Preparing Your Dataset
 
@@ -184,18 +207,15 @@ After upload, the platform processes your data through a multi-stage pipeline:
 
 ```mermaid
 graph LR
-    A[Upload] --> B[Validate]
-    B --> C[Normalize]
-    C --> D[Thumbnail]
-    D --> E[Parse Labels]
-    E --> F[Statistics]
+    A[Upload]:::start --> B[Validate]:::proc
+    B --> C[Normalize]:::proc
+    C --> D[Thumbnail]:::proc
+    D --> E[Parse Labels]:::proc
+    E --> F[Statistics]:::out
 
-    style A fill:#4CAF50,color:#fff
-    style B fill:#2196F3,color:#fff
-    style C fill:#2196F3,color:#fff
-    style D fill:#2196F3,color:#fff
-    style E fill:#2196F3,color:#fff
-    style F fill:#9C27B0,color:#fff
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 1. **Validation**: Format and size checks
@@ -584,6 +604,8 @@ Reference Platform datasets using the `ul://` URI format (see [Using Platform Da
 ul://username/datasets/dataset-slug
 ```
 
+You can also paste a dataset or model web URL directly (e.g. `https://platform.ultralytics.com/username/datasets/dataset-slug`); it is automatically rewritten to the `ul://` URI. Passing a list of datasets fine-tunes one base model across each in series, for example `model.train(data=["ul://username/datasets/a", "ul://username/datasets/b"])`.
+
 Use this URI to train models from anywhere:
 
 === "CLI"
@@ -692,13 +714,14 @@ Start training directly from your dataset:
 
 ```mermaid
 graph LR
-    A[Dataset] --> B[New Model]
-    B --> C[Select Project]
-    C --> D[Configure]
-    D --> E[Start Training]
+    A[Dataset]:::start --> B[New Model]:::proc
+    B --> C[Select Project]:::proc
+    C --> D[Configure]:::proc
+    D --> E[Start Training]:::out
 
-    style A fill:#2196F3,color:#fff
-    style E fill:#4CAF50,color:#fff
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 See [Cloud Training](../train/cloud-training.md) for details.

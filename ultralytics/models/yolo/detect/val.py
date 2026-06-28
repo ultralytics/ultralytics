@@ -71,7 +71,7 @@ class DetectionValidator(BaseValidator):
         for k, v in batch.items():
             if isinstance(v, torch.Tensor):
                 batch[k] = v.to(self.device, non_blocking=self.device.type == "cuda")
-        batch["img"] = (batch["img"].half() if self.args.half else batch["img"].float()) / 255
+        batch["img"] = (batch["img"].half() if self.args.quantize == 16 else batch["img"].float()) / 255
         return batch
 
     def init_metrics(self, model: torch.nn.Module) -> None:
@@ -268,6 +268,11 @@ class DetectionValidator(BaseValidator):
             self._gather_image_metrics(self.metrics.box)
             self.jdict = []
             self.metrics.clear_stats()
+        if self.args.plots and RANK > -1:
+            matrix = torch.as_tensor(self.confusion_matrix.matrix, device=self.device)
+            dist.reduce(matrix, dst=0, op=dist.ReduceOp.SUM)
+            if RANK == 0:
+                self.confusion_matrix.matrix = matrix.cpu().numpy()
 
     def get_stats(self) -> dict[str, Any]:
         """Calculate and return metrics statistics.

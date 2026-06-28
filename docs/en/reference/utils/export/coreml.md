@@ -1,4 +1,5 @@
 ---
+title: utils.export.coreml API Reference
 description: CoreML export utilities for converting PyTorch YOLO models to CoreML format for Apple devices. Supports iOS deployment with FP16/INT8 quantization, NMS pipeline integration, and optimized inference on Apple Silicon and mobile devices.
 keywords: Ultralytics, CoreML, model export, PyTorch to CoreML, Apple iOS, macOS, Apple Silicon, INT8 quantization, FP16, NMS pipeline, mobile deployment, on-device inference, MLProgram, neural network
 ---

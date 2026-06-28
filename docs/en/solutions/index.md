@@ -1,4 +1,5 @@
 ---
+title: YOLO26 Computer Vision Solutions
 comments: true
 description: Explore Ultralytics Solutions using YOLO26 for object counting, blurring, security, and more. Enhance efficiency and solve real-world problems with cutting-edge AI.
 keywords: Ultralytics, YOLO26, object counting, object blurring, security systems, AI solutions, real-time analysis, computer vision applications
@@ -37,7 +38,7 @@ Here's our curated list of Ultralytics solutions that can be used to create awes
 - [Parking Management](../guides/parking-management.md): Organize and direct vehicle flow in parking areas with YOLO26, optimizing space utilization and user experience.
 - [Queue Management](../guides/queue-management.md): Implement efficient queue management systems to minimize wait times and improve productivity using YOLO26.
 - [Security Alarm System](../guides/security-alarm-system.md): Create a security alarm system with YOLO26 that triggers alerts upon detecting new objects. Customize the system to fit your specific needs.
-- [Similarity Search](../guides/similarity-search.md): Enable intelligent image retrieval by combining [OpenAI CLIP](https://cookbook.openai.com/examples/custom_image_embedding_search) embeddings with [Meta FAISS](https://ai.meta.com/tools/faiss/), allowing natural language queries like "person holding a bag" or "vehicles in motion."
+- [Similarity Search](../guides/similarity-search.md): Enable intelligent image retrieval by combining [OpenAI CLIP](https://cookbook.openai.com/examples/custom_image_embedding_search) embeddings with cosine-similarity search, allowing natural language queries like "person holding a bag" or "vehicles in motion."
 - [Speed Estimation](../guides/speed-estimation.md): Estimate object speed using YOLO26 and object tracking techniques, crucial for applications like autonomous vehicles and traffic monitoring.
 - [Track Objects in Zone](../guides/trackzone.md): Learn how to track objects within specific zones of video frames using YOLO26 for precise and efficient monitoring.
 - [VisionEye View Objects Mapping](../guides/vision-eye.md): Develop systems that mimic human eye focus on specific objects, enhancing the computer's ability to discern and prioritize details.
@@ -64,7 +65,7 @@ Here's our curated list of Ultralytics solutions that can be used to create awes
 
 ### Usage of SolutionAnnotator
 
-All Ultralytics Solutions use the separate class [`SolutionAnnotator`](https://docs.ultralytics.com/reference/solutions/solutions#ultralytics.solutions.solutions.SolutionAnnotator), that extends the main [`Annotator`](https://docs.ultralytics.com/reference/utils/plotting#ultralytics.utils.plotting.Annotator) class, and have the following methods:
+All Ultralytics Solutions use the separate class [`SolutionAnnotator`](../reference/solutions/solutions.md#ultralytics.solutions.solutions.SolutionAnnotator), that extends the main [`Annotator`](../reference/utils/plotting.md#ultralytics.utils.plotting.Annotator) class, and have the following methods:
 
 | Method                             | Return Type  | Description                                                                       |
 | ---------------------------------- | ------------ | --------------------------------------------------------------------------------- |
@@ -83,7 +84,7 @@ All Ultralytics Solutions use the separate class [`SolutionAnnotator`](https://d
 
 ### Working with SolutionResults
 
-Except [`Similarity Search`](../guides/similarity-search.md), each Solution call returns a list of `SolutionResults` objects.
+Except [`Similarity Search`](../guides/similarity-search.md), each Solution call returns a `SolutionResults` object.
 
 - For object counting, the results include `in_count`, `out_count`, and `classwise_count`.
 
@@ -113,27 +114,27 @@ Except [`Similarity Search`](../guides/similarity-search.md), each Solution call
 
 `SolutionResults` object have the following attributes:
 
-| Attribute            | Type               | Description                                                                                                   |
-| -------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------- |
-| `plot_im`            | `np.ndarray`       | Image with visual overlays such as counts, blur effects, or solution-specific enhancements.                   |
-| `in_count`           | `int`              | Total number of objects detected entering the defined zone in the video stream.                               |
-| `out_count`          | `int`              | Total number of objects detected exiting the defined zone in the video stream.                                |
-| `classwise_count`    | `Dict[str, int]`   | Dictionary recording class-wise in/out object counts for advanced analytics.                                  |
-| `queue_count`        | `int`              | Number of objects currently within a predefined queue or waiting area (suitable for queue management).        |
-| `workout_count`      | `int`              | Total number of workout repetitions completed during exercise tracking.                                       |
-| `workout_angle`      | `float`            | Calculated joint or pose angle during workout for form assessment.                                            |
-| `workout_stage`      | `str`              | Current workout stage or movement phase (e.g., 'up', 'down').                                                 |
-| `pixels_distance`    | `float`            | Pixel-based distance between two objects or points e.g., bounding boxes. (Suitable for distance calculation). |
-| `available_slots`    | `int`              | Number of unoccupied slots in a monitored area (suitable for parking management).                             |
-| `filled_slots`       | `int`              | Number of occupied slots in a monitored area. (suitable for parking management)                               |
-| `email_sent`         | `bool`             | Indicates whether a notification or alert email has been successfully sent (suitable for security alarm).     |
-| `total_tracks`       | `int`              | Total number of unique object tracks observed during video analysis.                                          |
-| `region_counts`      | `Dict[str, int]`   | Object counts within user-defined regions or zones.                                                           |
-| `speed_dict`         | `Dict[str, float]` | Track-wise dictionary of calculated object speeds, useful for velocity analysis.                              |
-| `total_crop_objects` | `int`              | Total number of cropped object images generated by the ObjectCropper solution.                                |
-| `speed`              | `Dict[str, float]` | Dictionary containing performance metrics for tracking and solution processing.                               |
+| Attribute            | Type                   | Description                                                                                                   |
+| -------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `plot_im`            | `np.ndarray`           | Image with visual overlays such as counts, blur effects, or solution-specific enhancements.                   |
+| `in_count`           | `int`                  | Total number of objects detected entering the defined zone in the video stream.                               |
+| `out_count`          | `int`                  | Total number of objects detected exiting the defined zone in the video stream.                                |
+| `classwise_count`    | `Dict[str, int]`       | Dictionary recording class-wise in/out object counts for advanced analytics.                                  |
+| `queue_count`        | `int`                  | Number of objects currently within a predefined queue or waiting area (suitable for queue management).        |
+| `workout_count`      | `int \| list[int]`     | Total workout repetitions, or per-person counts from AI Gym.                                                  |
+| `workout_angle`      | `float \| list[float]` | Calculated joint or pose angle, or per-person angles from AI Gym.                                             |
+| `workout_stage`      | `str \| list[str]`     | Current workout stage, or per-person stages from AI Gym.                                                      |
+| `pixels_distance`    | `float`                | Pixel-based distance between two objects or points e.g., bounding boxes. (Suitable for distance calculation). |
+| `available_slots`    | `int`                  | Number of unoccupied slots in a monitored area (suitable for parking management).                             |
+| `filled_slots`       | `int`                  | Number of occupied slots in a monitored area. (suitable for parking management)                               |
+| `email_sent`         | `bool`                 | Indicates whether a notification or alert email has been successfully sent (suitable for security alarm).     |
+| `total_tracks`       | `int`                  | Total number of unique object tracks observed during video analysis.                                          |
+| `region_counts`      | `Dict[str, int]`       | Object counts within user-defined regions or zones.                                                           |
+| `speed_dict`         | `Dict[str, float]`     | Track-wise dictionary of calculated object speeds, useful for velocity analysis.                              |
+| `total_crop_objects` | `int`                  | Total number of cropped object images generated by the ObjectCropper solution.                                |
+| `speed`              | `Dict[str, float]`     | Dictionary containing performance metrics for tracking and solution processing.                               |
 
-For more details, refer to the [`SolutionResults` class documentation](https://docs.ultralytics.com/reference/solutions/solutions#ultralytics.solutions.solutions.SolutionResults).
+For more details, refer to the [`SolutionResults` class documentation](../reference/solutions/solutions.md#ultralytics.solutions.solutions.SolutionResults).
 
 ### Solutions Usage via CLI
 

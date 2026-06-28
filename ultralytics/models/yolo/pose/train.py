@@ -96,7 +96,10 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
     def get_validator(self):
         """Return an instance of the PoseValidator class for validation."""
         self.loss_names = "box_loss", "pose_loss", "kobj_loss", "cls_loss", "dfl_loss"
-        if getattr(unwrap_model(self.model).model[-1], "flow_model", None) is not None:
+        model = unwrap_model(self.model)
+        if hasattr(model, "student_model"):
+            model = model.student_model  # copy_attr does not copy nn.Module attributes like .model
+        if getattr(model.model[-1], "flow_model", None) is not None:
             self.loss_names += ("rle_loss",)
         return yolo.pose.PoseValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks

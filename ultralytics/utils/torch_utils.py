@@ -407,12 +407,12 @@ def model_info_for_loggers(trainer):
     Examples:
         YOLOv8n info for loggers
         >>> results = {
-        ...    "model/parameters": 3151904,
-        ...    "model/GFLOPs": 8.746,
-        ...    "model/speed_ONNX(ms)": 41.244,
-        ...    "model/speed_TensorRT(ms)": 3.211,
-        ...    "model/speed_PyTorch(ms)": 18.755,
-        ...}
+        ...     "model/parameters": 3151904,
+        ...     "model/GFLOPs": 8.746,
+        ...     "model/speed_ONNX(ms)": 41.244,
+        ...     "model/speed_TensorRT(ms)": 3.211,
+        ...     "model/speed_PyTorch(ms)": 18.755,
+        ... }
     """
     if trainer.args.profile:  # profile ONNX and TensorRT times
         from ultralytics.utils.benchmarks import ProfileModels
@@ -673,6 +673,9 @@ class ModelEMA:
             updates (int, optional): Initial number of updates.
         """
         self.ema = deepcopy(unwrap_model(model)).eval()  # FP32 EMA
+        if hasattr(self.ema, "teacher_model"):
+            # DistillationModel: strip the teacher so the EMA does not carry a full duplicate copy.
+            self.ema.teacher_model = None
         self.updates = updates  # number of EMA updates
         self.decay = lambda x: decay * (1 - math.exp(-x / tau))  # decay exponential ramp (to help early epochs)
         for p in self.ema.parameters():
@@ -744,6 +747,14 @@ def strip_optimizer(f: str | Path = "best.pt", s: str = "", updates: dict[str, A
     # Update model
     if x.get("ema"):
         x["model"] = x["ema"]  # replace model with EMA
+
+    # Unwrap DistillationModel to save only the student model
+    from ultralytics.nn.distill_model import DistillationModel
+
+    if isinstance(x["model"], DistillationModel):
+        x["model"]._remove_feature_hooks()
+        x["model"] = x["model"].student_model
+
     if hasattr(x["model"], "args"):
         x["model"].args = dict(x["model"].args)  # convert from IterableSimpleNamespace to dict
     if hasattr(x["model"], "criterion"):

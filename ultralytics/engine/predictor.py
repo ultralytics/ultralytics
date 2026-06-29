@@ -503,19 +503,18 @@ class BasePredictor:
     def show(self, p: str = ""):
         """Display an image in a window."""
         im = self.plotted_img
-        if platform.system() in {"Linux", "Windows"}:  # macOS scales natively via window drag
-            h, w = im.shape[:2]
+        if platform.system() in {"Linux", "Windows"} and p not in self.windows:  # macOS scales natively
+            self.windows.append(p)
             name = p.encode("unicode_escape").decode()  # match patched cv2.imshow window name
-            if p not in self.windows:
-                self.windows.append(p)
-                cv2.namedWindow(name, cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)  # allow window resize and scaling
-            try:  # scale window down to fit screen if image larger than screen resolution
+            cv2.namedWindow(name, cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)  # allow window resize and scaling
+            h, w = im.shape[:2]
+            try:  # size window to fit screen once on creation if image larger than screen resolution
                 if self.screen is None:
                     root = __import__("tkinter").Tk()
                     root.withdraw()  # hide the empty Tk window
                     self.screen = root.winfo_screenwidth(), root.winfo_screenheight()
                     root.destroy()
-                r = min(self.screen[0] / w, self.screen[1] / h, 1.0)
+                r = min(0.9 * self.screen[0] / w, 0.9 * self.screen[1] / h, 1.0)  # 0.9 margin for taskbar/titlebar
                 cv2.resizeWindow(name, max(1, int(w * r)), max(1, int(h * r)))  # (width, height)
             except Exception:
                 pass

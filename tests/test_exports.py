@@ -111,7 +111,7 @@ def test_qnn_quantize_requires_w8a16():
     """QNN exports are W8A16; explicit INT8 activation quantization is not supported."""
     valid_args = ["batch", "data", "dynamic", "fraction", "keras", "nms"]
     validate_args("qnn", SimpleNamespace(quantize="w8a16"), valid_args)
-    with pytest.raises(AssertionError, match="quantize=8 is not supported"):
+    with pytest.raises(AssertionError, match=r"quantize=8 \(INT8\) is not supported"):
         validate_args("qnn", SimpleNamespace(quantize=8), valid_args)
 
 

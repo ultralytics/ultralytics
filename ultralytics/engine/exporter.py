@@ -383,6 +383,15 @@ W8A16_FORMATS = frozenset({"coreml", "imx", "qnn"})  # INT8 weights + FP16 activ
 FP32_UNSUPPORTED_FORMATS = frozenset({"edgetpu", "imx", "rknn", "axelera", "deepx", "qnn"})
 
 
+def get_onnx_requirement():
+    """Return the platform-specific ONNX requirement used by export AutoUpdate."""
+    if MACOS:
+        # ONNX>=1.18 can stall the TensorFlow/onnx2tf conversion path on macOS Python<3.13. Python>=3.13
+        # requires newer ONNX wheels, while TensorFlow exports are blocked separately on macOS Python>=3.13.
+        return "onnx>=1.20.0,<2.0.0" if IS_PYTHON_MINIMUM_3_13 else "onnx>=1.12.0,<1.18.0"
+    return "onnx>=1.12.0,<2.0.0"
+
+
 def validate_args(format, passed_args, valid_args):
     """Validate arguments based on the export format.
 
@@ -900,7 +909,7 @@ class Exporter:
     @try_export
     def export_onnx(self, prefix=colorstr("ONNX:")):
         """Export YOLO model to ONNX format."""
-        requirements = ["onnx>=1.12.0,<2.0.0"]
+        requirements = [get_onnx_requirement()]
         if self.args.simplify or (self.args.format == "onnx" and self.args.quantize == 8):
             # Pass onnxruntime variants as interchangeable candidates so AutoUpdate keeps an installed build
             # (e.g. onnxruntime-qnn for QNN export) instead of reinstalling stable onnxruntime and breaking its ABI.

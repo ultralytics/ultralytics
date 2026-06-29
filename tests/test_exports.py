@@ -18,6 +18,7 @@ from tests import SOURCE
 from tests.conftest import isolated_model_path
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS, _handle_deprecation, get_cfg
+from ultralytics.engine import exporter as exporter_module
 from ultralytics.engine.exporter import EXPORT_ENVS, export_formats, validate_args
 from ultralytics.utils import (
     ARM64,
@@ -68,6 +69,19 @@ def test_export_onnx_int8(isolated_model, precision):
     assert Path(file).name.endswith("_int8.onnx")
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
     Path(file).unlink()  # cleanup
+
+
+def test_get_onnx_requirement_matches_platform_pins(monkeypatch):
+    """ONNX AutoUpdate requirements should match platform pins used by export extras."""
+    monkeypatch.setattr(exporter_module, "MACOS", False)
+    monkeypatch.setattr(exporter_module, "IS_PYTHON_MINIMUM_3_13", False)
+    assert exporter_module.get_onnx_requirement() == "onnx>=1.12.0,<2.0.0"
+
+    monkeypatch.setattr(exporter_module, "MACOS", True)
+    assert exporter_module.get_onnx_requirement() == "onnx>=1.12.0,<1.18.0"
+
+    monkeypatch.setattr(exporter_module, "IS_PYTHON_MINIMUM_3_13", True)
+    assert exporter_module.get_onnx_requirement() == "onnx>=1.20.0,<2.0.0"
 
 
 def test_quantize_canonicalization():

@@ -780,6 +780,30 @@ def test_classify_transforms_train(image, auto_augment, erasing, force_color_jit
     assert transformed_image.dtype == torch.float32
 
 
+def test_segment_format_empty_segments_batch_idx():
+    """Test segmentation formatting keeps batch indexes aligned when labels have boxes but no segments."""
+    from ultralytics.data.augment import Format
+    from ultralytics.utils.instance import Instances
+
+    labels = {
+        "img": np.zeros((32, 32, 3), dtype=np.uint8),
+        "cls": np.array([[0], [1]], dtype=np.float32),
+        "instances": Instances(
+            bboxes=np.array([[0.5, 0.5, 0.25, 0.25], [0.4, 0.4, 0.2, 0.2]], dtype=np.float32),
+            segments=np.zeros((0, 1000, 2), dtype=np.float32),
+            bbox_format="xywh",
+            normalized=True,
+        ),
+    }
+    formatter = Format(bbox_format="xywh", normalize=True, return_mask=True)
+    formatted = formatter.apply_instances(labels, formatter.get_params(labels))
+    idx = formatted["batch_idx"] == 0
+
+    assert formatted["cls"].shape == formatted["bboxes"].shape[:1] + (1,)
+    assert formatted["batch_idx"].shape[0] == formatted["cls"].shape[0]
+    assert formatted["cls"][idx].shape[0] == 0
+
+
 @pytest.mark.slow
 @pytest.mark.skipif(IS_RASPBERRYPI or IS_JETSON, reason="Edge devices not intended for tuning")
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")

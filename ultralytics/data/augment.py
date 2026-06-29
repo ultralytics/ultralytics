@@ -2310,6 +2310,7 @@ class Format(BaseTransform):
         if self.return_mask:
             if nl:
                 masks, instances, cls = self._format_segments(instances, cls, w, h)
+                nl = len(instances)
                 masks = torch.from_numpy(masks)
                 cls_tensor = torch.from_numpy(cls.squeeze(1))
                 if not masks.shape[0] or not cls_tensor.numel():

@@ -43,7 +43,7 @@ Follow these steps to run inference with your exported YOLOv8 TFLite model.
     First, export your trained Ultralytics YOLOv8 model (e.g., `yolov8n.pt`) to the TFLite format using the `yolo export` command. This example exports an INT8 quantized model for optimal performance on edge devices. You can also export FP32 or FP16 models by adjusting the `format` and quantization arguments. Refer to the Ultralytics [Export mode documentation](https://docs.ultralytics.com/modes/export) for more options.
 
     ```bash
-    yolo export model=yolov8n.pt imgsz=640 format=tflite int8=True # Exports yolov8n_saved_model/yolov8n_full_integer_quant.tflite
+    yolo export model=yolov8n.pt imgsz=640 format=tflite quantize=8 # Exports yolov8n_saved_model/yolov8n_full_integer_quant.tflite
     ```
 
     The export process will create a directory (e.g., `yolov8n_saved_model`) containing the `.tflite` model file and potentially a `metadata.yaml` file with class names and other model details.

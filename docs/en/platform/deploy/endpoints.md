@@ -50,6 +50,15 @@ stateDiagram-v2
     Creating --> Failed: Error
     Deploying --> Failed: Error
     Failed --> [*]: Delete
+
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
+    classDef error fill:#F44336,color:#fff
+    classDef extern fill:#607D8B,color:#fff
+    class Creating,Deploying,Stopping proc
+    class Ready out
+    class Failed error
+    class Stopped extern
 ```
 
 ### Region Selection
@@ -227,14 +236,14 @@ Control your endpoint state:
 
 ```mermaid
 graph LR
-    R[Ready] -->|Stop| S[Stopped]
+    R[Ready]:::out -->|Stop| S[Stopped]:::extern
     S -->|Start| R
-    R -->|Delete| D[Deleted]
+    R -->|Delete| D[Deleted]:::error
     S -->|Delete| D
 
-    style R fill:#4CAF50,color:#fff
-    style S fill:#9E9E9E,color:#fff
-    style D fill:#F44336,color:#fff
+    classDef out fill:#9C27B0,color:#fff
+    classDef error fill:#F44336,color:#fff
+    classDef extern fill:#607D8B,color:#fff
 ```
 
 | Action     | Description                     |

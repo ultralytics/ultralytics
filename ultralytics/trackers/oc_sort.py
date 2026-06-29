@@ -6,6 +6,7 @@ from typing import Any
 
 import numpy as np
 
+from ..utils.ops import xyxy2ltwh
 from .basetrack import TrackState
 from .byte_tracker import BYTETracker, STrack
 from .utils import matching
@@ -155,15 +156,7 @@ class OCSortTrack(STrack):
             alpha = t / gap
             virtual_xyxy = (1 - alpha) * last_obs + alpha * new_observation_xyxy
             # Convert xyxy to tlwh then to xyah for Kalman measurement
-            virtual_tlwh = np.array(
-                [
-                    virtual_xyxy[0],
-                    virtual_xyxy[1],
-                    virtual_xyxy[2] - virtual_xyxy[0],
-                    virtual_xyxy[3] - virtual_xyxy[1],
-                ]
-            )
-            virtual_xyah = self.tlwh_to_xyah(virtual_tlwh)
+            virtual_xyah = self.tlwh_to_xyah(xyxy2ltwh(virtual_xyxy))
             self.mean, self.covariance = self.kalman_filter.predict(self.mean, self.covariance)
             self.mean, self.covariance = self.kalman_filter.update(self.mean, self.covariance, virtual_xyah)
 

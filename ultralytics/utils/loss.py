@@ -105,10 +105,11 @@ class DFLoss(nn.Module):
 class BboxLoss(nn.Module):
     """Criterion class for computing training losses for bounding boxes."""
 
-    def __init__(self, reg_max: int = 16):
+    def __init__(self, reg_max: int = 16, l1_feat: bool = False):
         """Initialize the BboxLoss module with regularization maximum and DFL settings."""
         super().__init__()
         self.dfl_loss = DFLoss(reg_max) if reg_max > 1 else None
+        self.l1_feat = l1_feat  # when reg_max==1, compute box L1 in feature-map (grid) scale instead of normalized
 
     def forward(
         self,
@@ -134,13 +135,13 @@ class BboxLoss(nn.Module):
             loss_dfl = loss_dfl.sum() / target_scores_sum
         else:
             target_ltrb = bbox2dist(anchor_points, target_bboxes)
-            # normalize ltrb by image size
-            target_ltrb = target_ltrb * stride
-            target_ltrb[..., 0::2] /= imgsz[1]
-            target_ltrb[..., 1::2] /= imgsz[0]
-            pred_dist = pred_dist * stride
-            pred_dist[..., 0::2] /= imgsz[1]
-            pred_dist[..., 1::2] /= imgsz[0]
+            if not self.l1_feat:  # default: normalize ltrb by image size; else keep feature-map (grid) scale
+                target_ltrb = target_ltrb * stride
+                target_ltrb[..., 0::2] /= imgsz[1]
+                target_ltrb[..., 1::2] /= imgsz[0]
+                pred_dist = pred_dist * stride
+                pred_dist[..., 0::2] /= imgsz[1]
+                pred_dist[..., 1::2] /= imgsz[0]
             loss_dfl = (
                 F.l1_loss(pred_dist[fg_mask], target_ltrb[fg_mask], reduction="none").mean(-1, keepdim=True) * weight
             )
@@ -363,7 +364,7 @@ class v8DetectionLoss:
             stride=self.stride.tolist(),
             topk2=tal_topk2,
         )
-        self.bbox_loss = BboxLoss(m.reg_max).to(device)
+        self.bbox_loss = BboxLoss(m.reg_max, l1_feat=getattr(h, "l1_feat", False)).to(device)
         self.proj = torch.arange(m.reg_max, dtype=torch.float, device=device)
 
     def preprocess(self, targets: torch.Tensor, batch_size: int, scale_tensor: torch.Tensor) -> torch.Tensor:

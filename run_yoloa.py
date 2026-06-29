@@ -80,7 +80,7 @@ def main():
                     help="output root (default: runs/temp/yoloa/<model_id>/<fit_id>)")
     ap.add_argument("--refiner", default="runs/temp/heatmap_refiner_out_v2_640_oodaug2x_dimgamma/best.pt",
                     help="path to a trained HeatmapRefiner (.pt); cleans the deploy heatmap prior")
-    ap.add_argument("--refine-blend", type=float, default=0.5,
+    ap.add_argument("--refine-blend", type=float, default=0.,
                     help="0 = no refine (raw heatmap), 1 = fully refined (raw*sigmoid(R)), "
                          "in between = (1-b)*raw + b*refined. Requires --refiner.")
     args = ap.parse_args()

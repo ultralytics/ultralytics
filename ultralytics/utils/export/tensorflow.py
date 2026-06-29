@@ -66,7 +66,7 @@ def _tf_kpts_decode(self, kpts: torch.Tensor, is_pose26: bool = False) -> torch.
 def onnx2saved_model(
     onnx_file: str,
     output_dir: Path | str,
-    int8: bool = False,
+    quantize: int | str | None = None,
     images: np.ndarray | None = None,
     disable_group_convolution: bool = False,
     prefix: str = "",
@@ -76,7 +76,7 @@ def onnx2saved_model(
     Args:
         onnx_file (str): ONNX file path.
         output_dir (Path | str): Output directory path for the SavedModel.
-        int8 (bool, optional): Enable INT8 quantization. Defaults to False.
+        quantize (int | str | None): Precision scheme, 8 for INT8.
         images (np.ndarray | None, optional): Calibration images for INT8 quantization in BHWC format.
         disable_group_convolution (bool, optional): Disable group convolution optimization. Defaults to False.
         prefix (str, optional): Logging prefix. Defaults to "".
@@ -126,12 +126,13 @@ def onnx2saved_model(
     )
 
     output_dir = Path(output_dir)
+    use_int8 = quantize == 8
     # Pre-download calibration file to fix https://github.com/PINTO0309/onnx2tf/issues/545
     onnx2tf_file = Path("calibration_image_sample_data_20x128x128x3_float32.npy")
     if not onnx2tf_file.exists():
         attempt_download_asset(f"{onnx2tf_file}.zip", unzip=True, delete=True)
     np_data = None
-    if int8:
+    if use_int8:
         tmp_file = output_dir / "tmp_tflite_int8_calibration_images.npy"  # int8 calibration images file
         if images is not None:
             output_dir.mkdir(parents=True, exist_ok=True)
@@ -178,15 +179,15 @@ def onnx2saved_model(
         output_folder_path=str(output_dir),
         not_use_onnxsim=True,
         verbosity="error",  # note INT8-FP16 activation bug https://github.com/ultralytics/ultralytics/issues/15873
-        output_integer_quantized_tflite=int8,
+        output_integer_quantized_tflite=use_int8,
         custom_input_op_name_np_data_path=np_data,
-        enable_batchmatmul_unfold=not int8,  # fix lower no. of detected objects on GPU delegate
+        enable_batchmatmul_unfold=not use_int8,  # fix lower no. of detected objects on GPU delegate
         output_signaturedefs=True,  # fix error with Attention block group convolution
         disable_group_convolution=disable_group_convolution,  # fix error with group convolution
     )
 
     # Remove/rename TFLite models
-    if int8:
+    if use_int8:
         tmp_file.unlink(missing_ok=True)
         for file in output_dir.rglob("*_dynamic_range_quant.tflite"):
             file.rename(file.with_name(file.stem.replace("_dynamic_range_quant", "_int8") + file.suffix))

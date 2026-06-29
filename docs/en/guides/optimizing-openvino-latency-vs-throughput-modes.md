@@ -75,7 +75,7 @@ from ultralytics import YOLO
 model = YOLO("yolo26n.pt")
 
 # Export the model to OpenVINO format
-model.export(format="openvino", half=True)  # Export with FP16 precision
+model.export(format="openvino", quantize=16)  # Export with FP16 precision
 ```
 
 After exporting, you can run inference with the optimized model:

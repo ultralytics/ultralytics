@@ -151,6 +151,11 @@ class TensorFlowBackend(BaseBackend):
             y = []
             for output in self.output_details:
                 x = self.interpreter.get_tensor(output["index"])
+                if self.task == "semantic" and x.ndim == 3:
+                    # Baked argmax class map [B, H, W] of integer class IDs, not boxes or quantized logits:
+                    # skip dequantization and xywh denormalization, which would corrupt and overflow the indices.
+                    y.append(x)
+                    continue
                 if is_int:
                     scale, zero_point = output["quantization"]
                     x = (x.astype(np.float32) - zero_point) * scale

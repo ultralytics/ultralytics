@@ -697,6 +697,7 @@ nav:
           - session: reference/hub/session.md
           - utils: reference/hub/utils.md
       - models:
+          - __init__: reference/models/__init__.md
           - fastsam:
               - model: reference/models/fastsam/model.md
               - predict: reference/models/fastsam/predict.md

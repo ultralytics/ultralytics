@@ -144,9 +144,11 @@ JPEG 2000 is a wavelet-based image compression standard offering better compress
 
 MPO files are used for stereoscopic (3D) images. The dataset stores standard JPEG data with the `.mpo` extension for format testing.
 
-### HEIC (High Efficiency Image Coding)
+### HEIC / HEIF (High Efficiency Image File Format)
 
-HEIC requires the `pillow-heif` package for proper encoding:
+Both `.heic` and `.heif` extensions reference the same ISO/IEC 23008-12 container. By convention, `.heic` denotes HEVC-encoded HEIF files (the variant produced by Apple devices), while `.heif` is the broader umbrella extension.
+
+Ultralytics decodes both via the OpenCV → Pillow fallback in `ultralytics/utils/patches.py`, which auto-installs `pi-heif` (lightweight, decode-only) on first use — no manual setup required for reading. To produce HEIC/HEIF files yourself (e.g., re-encoding sample images), install the full `pillow-heif` package, which includes encoders:
 
 ```bash
 pip install pillow-heif

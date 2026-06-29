@@ -32,7 +32,7 @@ The fundamental unit is the **`Conv`** block (defined in [`conv.py`](../referenc
 
 ## Architecture Diagrams
 
-Each version keeps the same **backbone → neck → head** skeleton and changes specific stages. The tabs below show the per-version structure built from the configs in `ultralytics/cfg/models/`; stepping through them shows what each generation added. In short, the progression is: YOLOv3 is an FPN-only, anchor-based detector; YOLOv5 adds the bottom-up PAN path and `SPPF`; YOLOv8 switches to the `C2f` block with an anchor-free, [DFL](#distribution-focal-loss-dfl) head; YOLO11 inserts `C2PSA` attention and the `C3k2` block; and YOLO26 adds an `SPPF` residual and makes the head NMS-free and DFL-free. Node colors follow the documentation diagram convention: green input, blue backbone, slate spatial pooling and attention, orange neck, purple head and output.
+Each version keeps the same **backbone → neck → head** skeleton and changes specific stages. The tabs below show the per-version structure built from the configs in `ultralytics/cfg/models/`, with the YOLOv3 and YOLOv5 heads drawn in their original anchor-based form (the package configs are the anchor-free `u` variants, noted below the diagrams); stepping through them shows what each generation added. In short, the progression is: YOLOv3 is an FPN-only, anchor-based detector; YOLOv5 adds the bottom-up PAN path and `SPPF`; YOLOv8 switches to the `C2f` block with an anchor-free, [DFL](#distribution-focal-loss-dfl) head; YOLO11 inserts `C2PSA` attention and the `C3k2` block; and YOLO26 adds an `SPPF` residual and makes the head NMS-free and DFL-free. Node colors follow the documentation diagram convention: green input, blue backbone, slate spatial pooling and attention, orange neck, purple head and output.
 
 === "YOLOv3"
 
@@ -123,7 +123,7 @@ The YOLOv3 and YOLOv5 diagrams show the original anchor-based head. The `ultraly
 
 ## Backbone Blocks: Bottleneck → C3 → C2f → C3k2
 
-The backbone stacks a repeating CSP ([Cross-Stage Partial](https://www.ultralytics.com/glossary/backbone)) block between stride-2 `Conv` downsampling layers. That repeating block is what changed most across versions. All blocks below live in [`block.py`](../reference/nn/modules/block.md); `c1`/`c2` are input/output channels and `c = 0.5 * c2` is the hidden width.
+The backbone stacks a repeating CSP (Cross-Stage Partial) block between stride-2 `Conv` downsampling layers. That repeating block is what changed most across versions. All blocks below live in [`block.py`](../reference/nn/modules/block.md); `c1`/`c2` are input/output channels and `c = 0.5 * c2` is the hidden width.
 
 ### Bottleneck (YOLOv3)
 
@@ -173,7 +173,7 @@ At the end of the backbone, a spatial-pyramid-pooling block widens the receptive
 
 ## Neck: FPN + PAN
 
-The neck fuses the backbone's P3/P4/P5 feature maps with a top-down [Feature Pyramid Network (FPN)](https://www.ultralytics.com/glossary/backbone) followed by a bottom-up Path Aggregation Network (PAN). In the YAML head section, FPN is `nn.Upsample` + `Concat` (carrying semantic information down to higher resolutions) and PAN is stride-2 `Conv` + `Concat` (carrying localization information back up):
+The neck fuses the backbone's P3/P4/P5 feature maps with a top-down Feature Pyramid Network (FPN) followed by a bottom-up Path Aggregation Network (PAN). In the YAML head section, FPN is `nn.Upsample` + `Concat` (carrying semantic information down to higher resolutions) and PAN is stride-2 `Conv` + `Concat` (carrying localization information back up):
 
 ```yaml
 # YOLO11 head (FPN top-down, then PAN bottom-up)
@@ -205,13 +205,7 @@ Each anchor point therefore emits `no = nc + 4 * reg_max` outputs. Removing pred
 
 ### Distribution Focal Loss (DFL)
 
-YOLOv8 and YOLO11 regress each of the 4 box coordinates as a **distribution** over `reg_max = 16` bins rather than a single scalar (the integral form from [Generalized Focal Loss](https://arxiv.org/abs/2006.04388)). The `DFL` module reshapes the `4 * reg_max` box channels to `(4, reg_max)`, applies a softmax over the bins, and takes the expected bin index as the predicted coordinate:
-
-```text
-coord = sum_{k=0..reg_max-1} k * softmax(logits)[k]
-```
-
-This is implemented as a fixed `1x1` convolution whose weights are `arange(reg_max)`.
+YOLOv8 and YOLO11 regress each of the 4 box coordinates as a **distribution** over `reg_max = 16` bins rather than a single scalar (the integral form from [Generalized Focal Loss](https://arxiv.org/abs/2006.04388)). The `DFL` module reshapes the `4 * reg_max` box channels to `(4, reg_max)`, applies a softmax over the `reg_max` bins, and takes the expected bin index — each bin index weighted by its softmax probability, then summed — as the predicted coordinate. This is implemented as a fixed `1x1` convolution whose weights are the bin indices `arange(reg_max)`, so the weighted sum is a single dot product.
 
 ### YOLO26: NMS-free, DFL-free
 
@@ -220,7 +214,7 @@ This is implemented as a fixed `1x1` convolution whose weights are `arange(reg_m
 - **`end2end: True`** — `Detect` deep-copies its branches into a one-to-one head (`one2one_cv2`/`one2one_cv3`) that produces a single prediction per object, removing the [Non-Maximum Suppression](https://www.ultralytics.com/glossary/non-maximum-suppression-nms) (NMS) post-processing step. See the [End-to-End Detection guide](end2end-detection.md) for export and migration details.
 - **`reg_max: 1`** — with one bin, `self.dfl` becomes `nn.Identity()` and `no = nc + 4`; the head regresses coordinates directly and no DFL operation appears in the exported [ONNX](https://www.ultralytics.com/glossary/onnx-open-neural-network-exchange) graph.
 
-Across its five detection scales, YOLO26 reaches 40.9-57.5 mAP on COCO at 1.7-11.8 ms T4 [TensorRT](https://www.ultralytics.com/glossary/tensorrt) latency, as reported in the [YOLO26 paper](https://arxiv.org/abs/2606.03748).
+Across its five model sizes (n/s/m/l/x), YOLO26 reaches 40.9-57.5 mAP on COCO at 1.7-11.8 ms T4 [TensorRT](https://www.ultralytics.com/glossary/tensorrt) latency, as reported in the [YOLO26 paper](https://arxiv.org/abs/2606.03748).
 
 ## Version-by-Version Summary
 

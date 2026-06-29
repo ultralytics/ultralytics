@@ -45,7 +45,7 @@ Here's why you should consider YOLO26's predict mode for your various inference 
 YOLO26's predict mode is designed to be robust and versatile, featuring:
 
 - **Multiple Data Source Compatibility:** Whether your data is in the form of individual images, a collection of images, video files, or real-time video streams, predict mode has you covered.
-- **Streaming Mode:** Use the streaming feature to generate a memory-efficient generator of `Results` objects. Enable this by setting `stream=True` in the predictor's call method.
+- **Streaming Mode:** Use the streaming feature to generate a memory-efficient generator of `Results` objects. Enable this by setting `stream=True` in the predictor's call method. Unlike the default behavior (`stream=False`), which returns a list containing all results, `stream=True` yields results one at a time, making it especially useful for long videos and live streams.
 - **Batch Processing:** Process multiple images or video frames in a single batch, further reducing total inference time.
 - **Integration Friendly:** Easily integrate with existing data pipelines and other software components, thanks to its flexible API.
 
@@ -453,22 +453,21 @@ The below table contains valid Ultralytics image formats.
 
     HEIC/HEIF formats require `pi-heif`, which is installed automatically on first use. AVIF is supported natively by Pillow.
 
-| Image Suffixes | Example Predict Command              | Reference                                                                  |
-| -------------- | ------------------------------------ | -------------------------------------------------------------------------- |
-| `.avif`        | `yolo predict source=image.avif`     | [AV1 Image File Format](https://en.wikipedia.org/wiki/AVIF)                |
-| `.bmp`         | `yolo predict source=image.bmp`      | [Microsoft BMP File Format](https://en.wikipedia.org/wiki/BMP_file_format) |
-| `.dng`         | `yolo predict source=image.dng`      | [Adobe DNG](https://en.wikipedia.org/wiki/Digital_Negative)                |
-| `.heic`        | `yolo predict source=image.heic`     | [High Efficiency Image Format](https://en.wikipedia.org/wiki/HEIF)         |
-| `.heif`        | `yolo predict source=image.heif`     | [High Efficiency Image Format](https://en.wikipedia.org/wiki/HEIF)         |
-| `.jp2`         | `yolo predict source=image.jp2`      | [JPEG 2000](https://en.wikipedia.org/wiki/JPEG_2000)                       |
-| `.jpeg`        | `yolo predict source=image.jpeg`     | [JPEG](https://en.wikipedia.org/wiki/JPEG)                                 |
-| `.jpeg2000`    | `yolo predict source=image.jpeg2000` | [JPEG 2000](https://en.wikipedia.org/wiki/JPEG_2000)                       |
-| `.jpg`         | `yolo predict source=image.jpg`      | [JPEG](https://en.wikipedia.org/wiki/JPEG)                                 |
-| `.mpo`         | `yolo predict source=image.mpo`      | [Multi Picture Object](https://fileinfo.com/extension/mpo)                 |
-| `.png`         | `yolo predict source=image.png`      | [Portable Network Graphics](https://en.wikipedia.org/wiki/PNG)             |
-| `.tif`         | `yolo predict source=image.tif`      | [Tag Image File Format](https://en.wikipedia.org/wiki/TIFF)                |
-| `.tiff`        | `yolo predict source=image.tiff`     | [Tag Image File Format](https://en.wikipedia.org/wiki/TIFF)                |
-| `.webp`        | `yolo predict source=image.webp`     | [WebP](https://en.wikipedia.org/wiki/WebP)                                 |
+| Image Suffixes | Example Predict Command          | Reference                                                                  |
+| -------------- | -------------------------------- | -------------------------------------------------------------------------- |
+| `.avif`        | `yolo predict source=image.avif` | [AV1 Image File Format](https://en.wikipedia.org/wiki/AVIF)                |
+| `.bmp`         | `yolo predict source=image.bmp`  | [Microsoft BMP File Format](https://en.wikipedia.org/wiki/BMP_file_format) |
+| `.dng`         | `yolo predict source=image.dng`  | [Adobe DNG](https://en.wikipedia.org/wiki/Digital_Negative)                |
+| `.heic`        | `yolo predict source=image.heic` | [High Efficiency Image Format](https://en.wikipedia.org/wiki/HEIF)         |
+| `.heif`        | `yolo predict source=image.heif` | [High Efficiency Image Format](https://en.wikipedia.org/wiki/HEIF)         |
+| `.jp2`         | `yolo predict source=image.jp2`  | [JPEG 2000](https://en.wikipedia.org/wiki/JPEG_2000)                       |
+| `.jpeg`        | `yolo predict source=image.jpeg` | [JPEG](https://en.wikipedia.org/wiki/JPEG)                                 |
+| `.jpg`         | `yolo predict source=image.jpg`  | [JPEG](https://en.wikipedia.org/wiki/JPEG)                                 |
+| `.mpo`         | `yolo predict source=image.mpo`  | [Multi Picture Object](https://fileinfo.com/extension/mpo)                 |
+| `.png`         | `yolo predict source=image.png`  | [Portable Network Graphics](https://en.wikipedia.org/wiki/PNG)             |
+| `.tif`         | `yolo predict source=image.tif`  | [Tag Image File Format](https://en.wikipedia.org/wiki/TIFF)                |
+| `.tiff`        | `yolo predict source=image.tiff` | [Tag Image File Format](https://en.wikipedia.org/wiki/TIFF)                |
+| `.webp`        | `yolo predict source=image.webp` | [WebP](https://en.wikipedia.org/wiki/WebP)                                 |
 
 ### Videos
 

@@ -266,7 +266,7 @@ def test_update_metrics_tta_handles_half_batch_fp32_model():
     )
     v.training = True
     v.device = torch.device("cpu")
-    v.args = SimpleNamespace(half=True, reid_scales=None, reid_tta=True)  # TTA active -> _embed path
+    v.args = SimpleNamespace(quantize=16, reid_scales=None, reid_tta=True)  # TTA active -> _embed path
     v._feats, v._pids, v._camids, v._paths = [], [], [], []
     batch = {
         "img": torch.randn(2, 3, 16, 16).half(),

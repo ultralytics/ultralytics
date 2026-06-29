@@ -21,7 +21,12 @@
 </div>
 <br>
 
-[Ultralytics](https://www.ultralytics.com/) creates cutting-edge, state-of-the-art (SOTA) [YOLO models](https://www.ultralytics.com/yolo) built on years of foundational research in computer vision and AI. Constantly updated for performance and flexibility, our models are **fast**, **accurate**, and **easy to use**. They excel at [object detection](https://docs.ultralytics.com/tasks/detect/), [tracking](https://docs.ultralytics.com/modes/track/), [instance segmentation](https://docs.ultralytics.com/tasks/segment/), [semantic segmentation](https://docs.ultralytics.com/tasks/semantic/), [image classification](https://docs.ultralytics.com/tasks/classify/), [pose estimation](https://docs.ultralytics.com/tasks/pose/), and [person re-identification](https://docs.ultralytics.com/tasks/reid/) tasks.
+<div align="center">
+  <a href="https://trendshift.io/repositories/1556?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-1556" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/1556" alt="ultralytics%2Fultralytics | Trendshift" width="250" height="55"/></a>
+</div>
+<br>
+
+[Ultralytics](https://www.ultralytics.com/) creates cutting-edge, state-of-the-art (SOTA) [YOLO models](https://www.ultralytics.com/yolo) built on years of foundational research in computer vision and AI. Constantly updated for performance and flexibility, our models are **fast**, **accurate**, and **easy to use**. They excel at [object detection](https://docs.ultralytics.com/tasks/detect), [tracking](https://docs.ultralytics.com/modes/track), [instance segmentation](https://docs.ultralytics.com/tasks/segment), [semantic segmentation](https://docs.ultralytics.com/tasks/semantic), [image classification](https://docs.ultralytics.com/tasks/classify), [pose estimation](https://docs.ultralytics.com/tasks/pose), and [person re-identification](https://docs.ultralytics.com/tasks/reid) tasks.
 
 Find detailed documentation in the [Ultralytics Docs](https://docs.ultralytics.com/). Get support via [GitHub Issues](https://github.com/ultralytics/ultralytics/issues/new/choose). Join discussions on [Discord](https://discord.com/invite/ultralytics), [Reddit](https://www.reddit.com/r/ultralytics/), and the [Ultralytics Community Forums](https://community.ultralytics.com/)!
 

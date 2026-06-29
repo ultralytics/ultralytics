@@ -205,7 +205,7 @@ class YOLODataset(BaseDataset):
             for lb in labels:
                 lb["segments"] = []
         if len_cls == 0:
-            raise ValueError(f"All labels empty in {cache_path}, can not start training without labels. {HELP_URL}")
+            LOGGER.warning(f"Labels are missing or empty in {cache_path}, training may not work correctly. {HELP_URL}")
         return labels
 
     def build_transforms(self, hyp: dict | None = None) -> Compose:

@@ -88,6 +88,8 @@ def test_quantize_canonicalization():
         ("fP32", 32),
         ("w8a16", "w8a16"),
         ("W8a16", "w8a16"),
+        ("w8a32", "w8a32"),
+        ("W8A32", "w8a32"),
     ]:
         assert get_cfg(overrides={"quantize": value}).quantize == expected
     assert get_cfg().quantize is None  # unset default is FP32
@@ -109,7 +111,7 @@ def test_qnn_quantize_requires_w8a16():
     """QNN exports are W8A16; explicit INT8 activation quantization is not supported."""
     valid_args = ["batch", "data", "dynamic", "fraction", "keras", "nms"]
     validate_args("qnn", SimpleNamespace(quantize="w8a16"), valid_args)
-    with pytest.raises(AssertionError, match="quantize=8 is not supported"):
+    with pytest.raises(AssertionError, match=r"quantize=8 \(INT8\) is not supported"):
         validate_args("qnn", SimpleNamespace(quantize=8), valid_args)
 
 
@@ -294,47 +296,6 @@ def test_export_coreml_matrix(task, dynamic, quantize, nms, batch, end2end):
     shutil.rmtree(file)  # cleanup
 
 
-@pytest.mark.slow
-@pytest.mark.skipif(
-    not checks.IS_PYTHON_MINIMUM_3_10 or not TORCH_1_13, reason="TFLite export requires Python>=3.10 and torch>=1.13"
-)
-@pytest.mark.skipif(
-    not LINUX or IS_RASPBERRYPI,
-    reason="Test disabled as TF suffers from install conflicts on Windows, macOS and Raspberry Pi",
-)
-@pytest.mark.parametrize(
-    "task, dynamic, quantize, batch, nms, end2end",
-    [  # generate all combinations except for exclusion cases
-        (task, dynamic, quantize, batch, nms, end2end)
-        for task, dynamic, quantize, batch, nms, end2end in product(
-            sorted(TASKS), [False], [8, 16], [1], [True, False], [True, False]
-        )
-        if not ((task == "classify" and nms) or (ARM64 and nms) or (nms and not TORCH_1_13) or (end2end and nms))
-    ],
-)
-def test_export_tflite_matrix(task, dynamic, quantize, batch, nms, end2end):
-    """Test YOLO export to TFLite format considering various export configurations."""
-    skip_rpi_semantic(task)
-    file = YOLO(TASK2MODEL[task]).export(
-        format="tflite",
-        imgsz=32,
-        dynamic=dynamic,
-        quantize=quantize,
-        batch=batch,
-        nms=nms,
-        end2end=end2end,
-        data=TASK2DATA[task],  # use the smallest task datasets for fast INT8 calibration
-    )
-    r = YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference
-    if task == "semantic":
-        mask = r[0].semantic_mask
-        assert mask is not None
-        assert mask.data.dtype in {torch.uint8, torch.int32}
-        # Class IDs must stay within [0, nc): catches the uint8 overflow when boxes denorm is wrongly applied
-        assert int(mask.data.max()) < len(r[0].names)
-    Path(file).unlink()  # cleanup
-
-
 @pytest.mark.skipif(not TORCH_1_11, reason="CoreML export requires torch>=1.11")
 @pytest.mark.skipif(WINDOWS, reason="CoreML not supported on Windows")  # RuntimeError: BlobWriter not loaded
 @pytest.mark.skipif(LINUX and ARM64, reason="CoreML not supported on aarch64 Linux")
@@ -376,16 +337,6 @@ def test_export_coreml_rtdetr():
     output = stdout.getvalue() + stderr.getvalue()
     assert "Error" not in output, f"RTDETR CoreML export produced errors: {output}"
     assert "You will not be able to run predict()" not in output, "RTDETR CoreML export has predict() error"
-
-
-@pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10, reason="TFLite export requires Python>=3.10")
-@pytest.mark.skipif(not TORCH_1_13, reason="TFLite export requires torch>=1.13")
-@pytest.mark.skipif(not LINUX, reason="Test disabled as TF suffers from install conflicts on Windows and macOS")
-def test_export_tflite(isolated_model):
-    """Test YOLO export to TFLite format under specific OS and Python version conditions."""
-    model = YOLO(isolated_model)
-    file = model.export(format="tflite", imgsz=32)
-    YOLO(file)(SOURCE, imgsz=32)
 
 
 @pytest.mark.skipif(True, reason="Test disabled")
@@ -487,6 +438,32 @@ def test_export_executorch(isolated_model):
     assert metadata_file.exists(), f"ExecuTorch metadata.yaml not found: {metadata_file}"
     # Note: Inference testing skipped as ExecuTorch requires special runtime setup
     shutil.rmtree(file, ignore_errors=True)  # cleanup
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(not (MACOS or (LINUX and not ARM64)), reason="LiteRT export only supported on Linux x86 and macOS")
+@pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10, reason="litert-torch requires Python>=3.10")
+@pytest.mark.parametrize(
+    "task, quantize",
+    [(task, quantize) for task in sorted(TASKS) for quantize in (None, 8, "w8a16", "w8a32")],
+)
+def test_export_litert_matrix(task, quantize):
+    """Test YOLO export to LiteRT format (FP32, static INT8, static w8a16, and dynamic w8a32) for various tasks."""
+    file = Path(YOLO(TASK2MODEL[task]).export(format="litert", imgsz=32, quantize=quantize))
+    assert file.is_file() and file.suffix == ".tflite", f"LiteRT export is not a single .tflite for '{task}': {file}"
+    # Contract: exports keep float32 graph I/O (int8/int16 stays internal) so downstream runtimes feed/read floats
+    # without boundary (de)quantization; an int8/int16 I/O regression would silently break on-device consumers.
+    import numpy as np
+    from ai_edge_litert.interpreter import Interpreter
+
+    interpreter = Interpreter(model_path=str(file))
+    interpreter.allocate_tensors()
+    io_details = interpreter.get_input_details() + interpreter.get_output_details()
+    assert all(d["dtype"] == np.float32 for d in io_details), (
+        f"LiteRT '{task}' quantize={quantize} must keep float32 I/O, got {[d['dtype'] for d in io_details]}"
+    )
+    YOLO(file)(SOURCE, imgsz=32)  # exported model inference (also exercises the embedded metadata)
+    file.unlink()  # cleanup
 
 
 @pytest.mark.slow

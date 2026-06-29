@@ -99,7 +99,7 @@ jobs:
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/yolov8s-worldv2.pt' imgsz=160 verbose=0.335
       - name: Benchmark SegmentationModel
         shell: bash
-        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-seg.pt' imgsz=160 verbose=0.229
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-seg.pt' imgsz=160 verbose=0.21
       - name: Benchmark PoseModel
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-pose.pt' imgsz=160 verbose=0.185
@@ -175,7 +175,7 @@ jobs:
         shell: bash # for Windows compatibility
         run: yolo settings weights_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/weights" datasets_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/datasets"
       - name: Cache test assets
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ github.workspace }}/.ultralytics_cache
           key: ultralytics-test-assets-${{ runner.os }}-${{ hashFiles('tests/cache_test_assets.py', 'tests/__init__.py') }}
@@ -319,12 +319,8 @@ jobs:
           if [ "${{ matrix.torch }}" != "latest" ]; then
             torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
           fi
-          clip_package=()
-          if [ "${{ matrix.python }}" != "3.12" ]; then
-            clip_package=("git+https://github.com/ultralytics/CLIP.git")
-          fi
           uv pip install -e ".[export-base,solutions${legacy_extra}]" $torch \
-            aiohttp faster-coco-eval mlflow pytest-cov pytest-xdist "${clip_package[@]}" \
+            aiohttp faster-coco-eval mlflow pytest-cov pytest-xdist "git+https://github.com/ultralytics/CLIP.git" \
             --torch-backend cpu
       - name: Check environment
         run: |
@@ -334,7 +330,7 @@ jobs:
         shell: bash # for Windows compatibility
         run: yolo settings weights_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/weights" datasets_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/datasets"
       - name: Cache test assets
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ github.workspace }}/.ultralytics_cache
           key: ultralytics-test-assets-${{ runner.os }}-${{ hashFiles('tests/cache_test_assets.py', 'tests/__init__.py') }}
@@ -380,7 +376,7 @@ jobs:
       - name: Install export system dependencies
         run: sudo apt-get update && sudo apt-get install -y openjdk-21-jre flatbuffers-compiler
       - name: Cache uv wheels
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.cache/uv
           key: isolated-exports-uv-${{ hashFiles('ultralytics/engine/exporter.py', 'pyproject.toml') }}
@@ -391,7 +387,7 @@ jobs:
       - name: Configure Ultralytics cache paths
         run: yolo settings weights_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/weights" datasets_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/datasets"
       - name: Cache test assets
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ github.workspace }}/.ultralytics_cache
           key: ultralytics-test-assets-${{ runner.os }}-${{ hashFiles('tests/cache_test_assets.py', 'tests/__init__.py') }}
@@ -488,7 +484,7 @@ jobs:
       - name: Configure Ultralytics cache paths
         run: yolo settings weights_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/weights" datasets_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/datasets"
       - name: Cache test assets
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ github.workspace }}/.ultralytics_cache
           key: ultralytics-test-assets-${{ runner.os }}-${{ hashFiles('tests/cache_test_assets.py', 'tests/__init__.py') }}
@@ -522,7 +518,7 @@ jobs:
       - name: Benchmark YOLOWorld DetectionModel
         run: python -m ultralytics.cfg.__init__ benchmark model='yolov8s-worldv2.pt' imgsz=160 verbose=0.335
       - name: Benchmark SegmentationModel
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n-seg.pt' imgsz=160 verbose=0.229
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n-seg.pt' imgsz=160 verbose=0.21
       - name: Benchmark PoseModel
         run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n-pose.pt' imgsz=160 verbose=0.185
       - name: Benchmark OBBModel
@@ -619,7 +615,7 @@ jobs:
       - name: Install pip packages
         run: |
           VERSION=$(python -c "from importlib.metadata import version; print(version('ultralytics'))")
-          uv pip install pytest "ultralytics[export-base,solutions]==${VERSION}"
+          uv pip install pytest "ultralytics[export-base,solutions]==${VERSION}" "git+https://github.com/ultralytics/CLIP.git"
       - name: Check environment
         run: conda list
       - name: Test benchmark CLI
@@ -667,4 +663,4 @@ jobs:
           webhook-type: incoming-webhook
           webhook: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}
           payload: |
-            text: "<!channel> GitHub Actions error for ${{ github.workflow }} ❌\n\n\n*Repository:* https://github.com/${{ github.repository }}\n*Action:* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\n*Author:* ${{ github.actor }}\n*Event:* ${{ github.event_name }}\n"
+            text: "<!subteam^S082BPCRAJ3> *${{ github.workflow }}* ❌ `${{ github.repository }}`  <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|*Run*>"

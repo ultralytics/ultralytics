@@ -1,4 +1,5 @@
 ---
+title: YOLO12 Attention-Centric Object Detection
 comments: true
 description: Discover YOLO12, featuring groundbreaking attention-centric architecture for state-of-the-art object detection with unmatched accuracy and efficiency.
 keywords: YOLO12, attention-centric object detection, YOLO series, Ultralytics, computer vision, AI, machine learning, deep learning
@@ -155,11 +156,14 @@ If you use YOLO12 in your research, please cite the original work by [University
     === "BibTeX"
 
         ```bibtex
-        @article{tian2025yolo12,
-          title={YOLO12: Attention-Centric Real-Time Object Detectors},
+        @inproceedings{tian2025yolov12,
+          title={YOLOv12: Attention-Centric Real-Time Object Detectors},
           author={Tian, Yunjie and Ye, Qixiang and Doermann, David},
-          journal={arXiv preprint arXiv:2502.12524},
-          year={2025}
+          booktitle={Advances in Neural Information Processing Systems},
+          volume={38},
+          pages={78433--78457},
+          year={2025},
+          url={https://proceedings.neurips.cc/paper_files/paper/2025/file/7103444259031cc58051f8c9a4868533-Paper-Conference.pdf}
         }
 
         @software{yolo12,
@@ -170,6 +174,8 @@ If you use YOLO12 in your research, please cite the original work by [University
           license = {AGPL-3.0}
         }
         ```
+
+The YOLO12 paper was published in the [NeurIPS 2025 proceedings](https://proceedings.neurips.cc/paper_files/paper/2025/hash/7103444259031cc58051f8c9a4868533-Abstract-Conference.html), with a preprint on [arXiv](https://arxiv.org/abs/2502.12524).
 
 ## FAQ
 
@@ -183,7 +189,7 @@ YOLO12 is a versatile model that supports a wide range of core computer vision t
 
 ### How does YOLO12 compare to other YOLO models and competitors like RT-DETR?
 
-YOLO12 demonstrates significant accuracy improvements across all model scales compared to prior YOLO models like YOLOv10 and YOLO11, with some trade-offs in speed compared to the _fastest_ prior models. For example, YOLO12n achieves a +2.1% mAP improvement over YOLOv10n and +1.2% over YOLO11n on the COCO val2017 dataset. Compared to models like [RT-DETR](https://docs.ultralytics.com/models/rtdetr), YOLO12s offers a +1.5% mAP improvement and a substantial +42% speed increase. These metrics highlight YOLO12's strong balance between accuracy and efficiency. See the [performance metrics section](#performance-metrics) for detailed comparisons.
+YOLO12 demonstrates significant accuracy improvements across all model scales compared to prior YOLO models like YOLOv10 and YOLO11, with some trade-offs in speed compared to the _fastest_ prior models. For example, YOLO12n achieves a +2.1% mAP improvement over YOLOv10n and +1.2% over YOLO11n on the COCO val2017 dataset. Compared to models like [RT-DETR](rtdetr.md), YOLO12s offers a +1.5% mAP improvement and a substantial +42% speed increase. These metrics highlight YOLO12's strong balance between accuracy and efficiency. See the [performance metrics section](#performance-metrics) for detailed comparisons.
 
 ### What are the hardware requirements for running YOLO12, especially for using FlashAttention?
 

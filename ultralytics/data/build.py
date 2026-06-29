@@ -36,7 +36,7 @@ from ultralytics.data.loaders import (
 )
 from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS
 from ultralytics.utils import RANK, colorstr
-from ultralytics.utils.checks import REMOTE_FILE_PREFIXES, check_file
+from ultralytics.utils.checks import check_file
 from ultralytics.utils.torch_utils import TORCH_2_0
 
 
@@ -95,6 +95,8 @@ class InfiniteDataLoader(dataloader.DataLoader):
 
     def reset(self):
         """Reset the iterator to allow modifications to the dataset during training."""
+        if hasattr(self.iterator, "_workers"):
+            self.iterator._shutdown_workers()  # free old worker pipes before creating new iterator
         self.iterator = self._get_iterator()
 
 
@@ -399,13 +401,8 @@ def check_source(
     elif isinstance(source, LOADERS):
         in_memory = True
     elif isinstance(source, (list, tuple)):
-        # Keep local file-path lists lazy (LoadImagesAndVideos respects `batch`); only load URL/PIL/np/mixed
-        # lists into memory, which otherwise OOMs on large path lists by forcing the whole list into one batch
-        if not source or any(
-            not isinstance(s, (str, Path)) or str(s).lower().startswith(REMOTE_FILE_PREFIXES) for s in source
-        ):
-            source = autocast_list(source)  # convert list elements to PIL or np arrays
-            from_img = True
+        source = autocast_list(source)  # convert all list elements to PIL or np arrays
+        from_img = True
     elif isinstance(source, (Image.Image, np.ndarray)):
         from_img = True
     elif isinstance(source, torch.Tensor):

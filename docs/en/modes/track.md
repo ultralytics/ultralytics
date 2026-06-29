@@ -1,4 +1,5 @@
 ---
+title: YOLO Multi-Object Tracking in Video
 comments: true
 description: Discover efficient, flexible, and customizable multi-object tracking with Ultralytics YOLO. Learn to track real-time video streams with ease.
 keywords: multi-object tracking, Ultralytics YOLO, video analytics, real-time tracking, object detection, AI, machine learning
@@ -9,6 +10,10 @@ keywords: multi-object tracking, Ultralytics YOLO, video analytics, real-time tr
 <img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/multi-object-tracking-examples.avif" alt="YOLO multi-object tracking with trajectory paths">
 
 Object tracking in the realm of video analytics is a critical task that not only identifies the location and class of objects within the frame but also maintains a unique ID for each detected object as the video progresses. The applications are limitless—ranging from surveillance and security to real-time sports analytics.
+
+!!! tip "🚀 New Trackers: OC-SORT, Deep OC-SORT, FastTracker, TrackTrack"
+
+    Starting with Ultralytics YOLO v8.4.63, new tracking algorithms are available: [OC-SORT](#oc-sort), [Deep OC-SORT](#deep-oc-sort), [FastTracker](#fasttracker), and [TrackTrack](#tracktrack). These trackers improve multi-object tracking performance and ID consistency.
 
 ## Why Choose Ultralytics YOLO for Object Tracking?
 
@@ -279,7 +284,7 @@ For better performance with a separate classification model, export it to a fast
     model.model.model[-1] = pool
 
     # Export to TensorRT
-    model.export(format="engine", half=True, dynamic=True, batch=32)
+    model.export(format="engine", quantize=16, dynamic=True, batch=32)
     ```
 
 Once exported, point to the TensorRT model path in your tracker config.
@@ -468,6 +473,12 @@ There is no appearance model and no camera-motion compensation.
 
 Here is a Python script using [OpenCV](https://www.ultralytics.com/glossary/opencv) (`cv2`) and YOLO26 to run object tracking on video frames. This script assumes the necessary packages (`opencv-python` and `ultralytics`) are already installed. The `persist=True` argument tells the tracker that the current image or frame is the next in a sequence and to expect tracks from the previous image in the current image.
 
+!!! tip "Persisting tracks and selecting a tracker"
+
+    Use `persist=True` only when passing consecutive frames from the same video stream to `model.track()`. This lets the tracker reuse state from earlier frames and maintain consistent track IDs over time. Do not use `persist=True` across unrelated images or a different stream, since previous track state can carry over.
+
+    You can also choose a tracker backend by passing a tracker configuration file, such as `tracker="botsort.yaml"`, `tracker="bytetrack.yaml"`, or `tracker="tracktrack.yaml"`.
+
 !!! example "Streaming for-loop with tracking"
 
     ```python
@@ -489,7 +500,8 @@ Here is a Python script using [OpenCV](https://www.ultralytics.com/glossary/open
 
         if success:
             # Run YOLO26 tracking on the frame, persisting tracks between frames
-            results = model.track(frame, persist=True)
+            # and using the BoT-SORT tracker backend
+            results = model.track(frame, persist=True, tracker="botsort.yaml")
 
             # Visualize the results on the frame
             annotated_frame = results[0].plot()
@@ -659,6 +671,12 @@ Together, let's enhance the tracking capabilities of the Ultralytics YOLO ecosys
 
 Multi-object tracking in video analytics involves both identifying objects and maintaining a unique ID for each detected object across video frames. Ultralytics YOLO supports this by providing real-time tracking along with object IDs, facilitating tasks such as security surveillance and sports analytics. The system uses trackers such as [BoT-SORT](https://github.com/NirAharon/BoT-SORT), [ByteTrack](https://github.com/FoundationVision/ByteTrack), OC-SORT, Deep OC-SORT, FastTracker, and TrackTrack, which can be configured via YAML files.
 
+### Can I store the tracker inside a YOLO model file?
+
+No. Standard Ultralytics `.pt` files store the YOLO model weights, while the tracker is created at inference time by [`model.track()`](../reference/engine/model.md#ultralytics.engine.model.Model.track). Track IDs depend on tracker state across consecutive frames, so a single standalone image can return detections such as boxes, classes, and confidences, but it cannot produce meaningful persistent tracking IDs by itself.
+
+For deployment, package the detector and tracker together in your application and call `model.track()` frame by frame with `persist=True` when frames come from the same video stream. Use separate model or tracker instances for unrelated streams so state does not carry over between videos.
+
 ### How do I configure a custom tracker for Ultralytics YOLO?
 
 You can configure a custom tracker by copying an existing tracker configuration file (e.g., `custom_tracker.yaml`) from the [Ultralytics tracker configuration directory](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers) and modifying parameters as needed, except for the `tracker_type`. Use this file in your tracking model like so:
@@ -734,7 +752,7 @@ Multi-object tracking with Ultralytics YOLO has numerous applications, including
 - **Retail:** People tracking for in-store analytics and security.
 - **Aquaculture:** Fish tracking for monitoring aquatic environments.
 - **Sports Analytics:** Tracking players and equipment for performance analysis.
-- **Security Systems:** [Monitoring suspicious activities](https://www.ultralytics.com/blog/security-alarm-system-projects-with-ultralytics-yolov8) and creating [security alarms](https://docs.ultralytics.com/guides/security-alarm-system).
+- **Security Systems:** [Monitoring suspicious activities](https://www.ultralytics.com/blog/security-alarm-system-projects-with-ultralytics-yolov8) and creating [security alarms](../guides/security-alarm-system.md).
 
 These applications benefit from Ultralytics YOLO's ability to process high-frame-rate videos in real time with exceptional accuracy.
 

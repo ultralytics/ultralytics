@@ -1,4 +1,5 @@
 ---
+title: Billing & Credits
 comments: true
 description: Manage credits, payments, and subscriptions on Ultralytics Platform with transparent pricing for cloud training and deployments.
 keywords: Ultralytics Platform, billing, credits, pricing, subscription, payments, training costs
@@ -169,9 +170,13 @@ Cloud training estimates cost before start and charges for actual GPU time used.
 
 ```mermaid
 flowchart LR
-    A[Start Training] --> B[Estimate Cost]
-    B --> C[Run Training]
-    C --> D[Charge Actual Usage]
+    A[Start Training]:::start --> B[Estimate Cost]:::proc
+    B --> C[Run Training]:::proc
+    C --> D[Charge Actual Usage]:::out
+
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 ### How It Works

@@ -827,6 +827,18 @@ def test_model_embeddings():
     assert model_classify.predict(SOURCE, imgsz=32)[0].probs is not None
 
 
+def test_process_mask_native_chunked():
+    """Native mask upsampling is chunked to bound the float intermediate and handles zero detections."""
+    from ultralytics.utils import ops
+
+    protos = torch.randn(32, 160, 160)
+    boxes = lambda n, h, w: torch.tensor([[5.0, 5.0, w - 5.0, h - 5.0]]).repeat(n, 1)  # noqa: E731
+    masks = ops.process_mask_native(protos, torch.randn(30, 32), boxes(30, 1500, 1500), (1500, 1500))
+    assert masks.shape == (30, 1500, 1500) and masks.dtype == torch.uint8  # full-resolution output via multiple chunks
+    empty = ops.process_mask_native(protos, torch.randn(0, 32), boxes(0, 512, 512), (512, 512))
+    assert empty.shape == (0, 512, 512) and empty.dtype == torch.uint8  # zero detections
+
+
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for CLIP-based models")
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="YOLOWorld with CLIP is not supported in Python 3.12")
 @pytest.mark.skipif(

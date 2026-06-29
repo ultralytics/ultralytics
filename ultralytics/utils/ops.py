@@ -525,10 +525,18 @@ def process_mask_native(protos, masks_in, bboxes, shape):
         (torch.Tensor): Binary mask tensor with shape (N, H, W).
     """
     c, mh, mw = protos.shape  # CHW
-    masks = (masks_in @ protos.float().view(c, -1)).view(-1, mh, mw)
-    masks = scale_masks(masks[None], shape)[0]  # NHW
-    masks = crop_mask(masks, bboxes)  # NHW
-    return masks.gt_(0.0).byte()
+    coeffs = masks_in @ protos.float().view(c, -1)  # (N, mh*mw) prototype-resolution mask logits
+    h, w = shape
+    # Upsampling all N masks at once allocates an N*H*W float intermediate (~9 GB on a large image with many
+    # detections), which OOMs the worker. Upsample in chunks bounded by a pixel budget and threshold each chunk to
+    # uint8 immediately so the float intermediate stays small; the concatenated result is identical (bilinear
+    # interpolation and cropping are per-mask).
+    step = max(1, 32_000_000 // (h * w)) if h and w else coeffs.shape[0] or 1
+    masks = []
+    for i in range(0, coeffs.shape[0], step):
+        m = scale_masks(coeffs[i : i + step].view(-1, mh, mw)[None], shape)[0]  # (step, H, W) float
+        masks.append(crop_mask(m, bboxes[i : i + step]).gt_(0.0).byte())
+    return torch.cat(masks) if masks else coeffs.new_zeros((0, h, w), dtype=torch.uint8)
 
 
 def scale_masks(

@@ -23,14 +23,6 @@ anomaly_v2:
   p_drop: 0.5
   seg_branch: false
   bb_layers: [6]
-  bb_temperature: 5.0
-  bb_K: 9
-  bb_auto_temperature: false
-  bb_calibration_target_score: 0.5
-  bb_calibrate: compactness
-  mb_queue_capacity: 0
-  mb_cached_prior: false
-  mb_cached_mask_gate: false
   fusion_mode: bias
   # aug3 base + mixup re-enabled (aug2 strength) — only diff vs aug3
   mask_jitter: 0.01

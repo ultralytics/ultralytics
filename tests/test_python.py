@@ -799,7 +799,7 @@ def test_segment_format_empty_segments_batch_idx():
     formatted = formatter.apply_instances(labels, formatter.get_params(labels))
     idx = formatted["batch_idx"] == 0
 
-    assert formatted["cls"].shape == formatted["bboxes"].shape[:1] + (1,)
+    assert formatted["cls"].shape == (*formatted["bboxes"].shape[:1], 1)
     assert formatted["batch_idx"].shape[0] == formatted["cls"].shape[0]
     assert formatted["cls"][idx].shape[0] == 0
 

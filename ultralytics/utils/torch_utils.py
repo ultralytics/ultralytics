@@ -226,10 +226,10 @@ def select_device(device="", newline=False, verbose=True):
         devices = device.split(",")
         cuda_initialized = torch.cuda.is_initialized()
         numeric_devices = [int(x) for x in devices if x.isdigit()]
-        if not (
+        invalid_cuda_request = cuda_initialized and len(numeric_devices) != len(devices)
+        if invalid_cuda_request or not (
             torch.cuda.is_available()
-            and torch.cuda.device_count()
-            >= (max(numeric_devices) + 1 if cuda_initialized and numeric_devices and len(numeric_devices) == len(devices) else len(devices))
+            and torch.cuda.device_count() >= (max(numeric_devices) + 1 if cuda_initialized else len(devices))
         ):
             LOGGER.info(s)
             install = (

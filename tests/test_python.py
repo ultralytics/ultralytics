@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import contextlib
+import os
 import csv
 import shutil
 import tarfile
@@ -57,7 +58,14 @@ def test_select_device_initialized_cuda_keeps_requested_index(monkeypatch):
     monkeypatch.setattr(torch_utils.torch.cuda, "device_count", lambda: 2)
     monkeypatch.setattr(torch_utils, "get_gpu_info", lambda index: f"Mock GPU {index}, 1MiB")
 
-    device = torch_utils.select_device("1", verbose=False)
+    visible = os.environ.get("CUDA_VISIBLE_DEVICES")
+    try:
+        device = torch_utils.select_device("1", verbose=False)
+    finally:
+        if visible is None:
+            os.environ.pop("CUDA_VISIBLE_DEVICES", None)
+        else:
+            os.environ["CUDA_VISIBLE_DEVICES"] = visible
 
     assert str(device) == "cuda:1"
 
@@ -71,9 +79,35 @@ def test_select_device_uninitialized_cuda_uses_visible_remap(monkeypatch):
     monkeypatch.setattr(torch_utils.torch.cuda, "device_count", lambda: 1)
     monkeypatch.setattr(torch_utils, "get_gpu_info", lambda index: f"Mock GPU {index}, 1MiB")
 
-    device = torch_utils.select_device("1", verbose=False)
+    visible = os.environ.get("CUDA_VISIBLE_DEVICES")
+    try:
+        device = torch_utils.select_device("1", verbose=False)
+    finally:
+        if visible is None:
+            os.environ.pop("CUDA_VISIBLE_DEVICES", None)
+        else:
+            os.environ["CUDA_VISIBLE_DEVICES"] = visible
 
     assert str(device) == "cuda:0"
+
+
+def test_select_device_initialized_cuda_rejects_mixed_tokens(monkeypatch):
+    """select_device should reject invalid CUDA tokens once CUDA is already initialized."""
+    from ultralytics.utils import torch_utils
+
+    monkeypatch.setattr(torch_utils.torch.cuda, "is_available", lambda: True)
+    monkeypatch.setattr(torch_utils.torch.cuda, "is_initialized", lambda: True)
+    monkeypatch.setattr(torch_utils.torch.cuda, "device_count", lambda: 2)
+
+    visible = os.environ.get("CUDA_VISIBLE_DEVICES")
+    try:
+        with pytest.raises(ValueError, match="Invalid CUDA"):
+            torch_utils.select_device("0,foo", verbose=False)
+    finally:
+        if visible is None:
+            os.environ.pop("CUDA_VISIBLE_DEVICES", None)
+        else:
+            os.environ["CUDA_VISIBLE_DEVICES"] = visible
 
 
 def test_model_forward():

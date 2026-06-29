@@ -445,13 +445,7 @@ def test_export_executorch(isolated_model):
 @pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10, reason="litert-torch requires Python>=3.10")
 @pytest.mark.parametrize(
     "task, quantize",
-    [
-        (task, quantize)
-        for task in sorted(TASKS)
-        for quantize in (None, 8, "w8a16", "w8a32")
-        # classify static-calibration schemes need detection labels (upstream calibration-loader limitation)
-        if not (task == "classify" and quantize in (8, "w8a16"))
-    ],
+    [(task, quantize) for task in sorted(TASKS) for quantize in (None, 8, "w8a16", "w8a32")],
 )
 def test_export_litert_matrix(task, quantize):
     """Test YOLO export to LiteRT format (FP32, static INT8, static w8a16, and dynamic w8a32) for various tasks."""

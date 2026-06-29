@@ -210,7 +210,7 @@ Export your model to 19+ deployment formats:
 
 ### Supported Formats
 
-The Platform supports export to [19+ deployment formats](../../modes/export.md#export-formats): ONNX, TorchScript, OpenVINO, TensorRT, CoreML, TF SavedModel, TF GraphDef, TF Lite, TF Edge TPU, TF.js, PaddlePaddle, NCNN, MNN, RKNN, Qualcomm (QNN), IMX500, Axelera, ExecuTorch, and DeepX.
+The Platform supports export to [19+ deployment formats](../../modes/export.md#export-formats): ONNX, TorchScript, OpenVINO, TensorRT, CoreML, TF SavedModel, TF GraphDef, LiteRT, TF Edge TPU, PaddlePaddle, NCNN, MNN, RKNN, Qualcomm (QNN), IMX500, Axelera, ExecuTorch, and DeepX.
 
 ### Format Selection Guide
 
@@ -218,9 +218,9 @@ The Platform supports export to [19+ deployment formats](../../modes/export.md#e
 | ------------------ | ------------------- | -------------------------------------------------------------- |
 | **NVIDIA GPUs**    | TensorRT            | Maximum inference speed                                        |
 | **Intel Hardware** | OpenVINO            | CPUs, GPUs, and VPUs                                           |
-| **Apple Devices**  | CoreML              | iOS, macOS, Apple Silicon                                      |
-| **Android**        | TF Lite or NCNN     | Best mobile performance                                        |
-| **Web Browsers**   | TF.js or ONNX       | ONNX via ONNX Runtime Web                                      |
+| **Apple Devices**  | CoreML or LiteRT    | iOS, macOS, Apple Silicon                                      |
+| **Android**        | LiteRT or NCNN      | LiteRT (Google's on-device runtime) or NCNN for ARM            |
+| **Web Browsers**   | LiteRT.js or ONNX   | LiteRT.js or ONNX via ONNX Runtime Web                         |
 | **Edge Devices**   | TF Edge TPU or RKNN | Coral and Rockchip (see [supported chips](#rknn-chip-support)) |
 | **General**        | ONNX                | Works with most runtimes                                       |
 

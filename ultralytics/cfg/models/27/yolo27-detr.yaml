@@ -1,15 +1,32 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# YOLO27n-DETR object detection model with P3/8 - P5/32 outputs.
-# YOLO26-style CSP trunk (N scale) + RTDETRDecoderV2 head with efficient_ms=True (3 decoder layers).
-# Source weights: yolo26N_eff_rtdetr_coco.pt (COCO 80-class, imgsz=480, 300 epochs).
+# YOLO27-DETR object detection model with P3/8 - P5/32 outputs.
+# YOLO26-style CSP trunk + RTDETRDecoderV2 head, unified across n/s/m/l scales.
+# Per-scale decoder differences (ndl, efficient_ms) are resolved at parse time via `scale_args`.
+#
+# Scale summary (source weights / deployment intent):
+#   n: ndl=3, efficient_ms=True   - source yolo26N_eff_rtdetr_coco.pt    (COCO, imgsz=480)
+#   s: ndl=3, efficient_ms=False  - source yolo26S_rtdetr_obj365.pt      (truncated 6 -> 3, imgsz=512)
+#   m: ndl=2, efficient_ms=False  - source yolo26L_rtdetr_obj365_KD.pt   (truncated 6 -> 2, imgsz=512, L-scale backbone reused as a deployment label)
+#   l: ndl=4, efficient_ms=False  - source yolo26L_rtdetr_obj365.pt      (truncated 6 -> 4)
 # Task: detect. RTDETRDecoderV2 is named so the dispatch routes this model to YOLODETR.
 
 # Parameters
 nc: 80 # number of classes
+
 scales:
   # [depth, width, max_channels]
   n: [0.50, 0.25, 1024]
+  s: [0.50, 0.50, 1024]
+  m: [1.00, 1.00, 512]
+  l: [1.00, 1.00, 512]
+
+# Per-scale variables resolved into module args as string tokens (see parse_model in tasks.py).
+scale_args:
+  n: {ndl: 3, efficient_ms: True}
+  s: {ndl: 3, efficient_ms: False}
+  m: {ndl: 2, efficient_ms: False}
+  l: {ndl: 4, efficient_ms: False}
 
 # YOLO26 CSP backbone
 backbone:
@@ -46,6 +63,5 @@ head:
 
   # RTDETRDecoderV2. Args (ch is auto-filled from `from` refs). Positional order:
   # [nc, hd, nq, ndp, nh, ndl, d_ffn, dropout, act, eval_idx, nd, label_noise_ratio, box_noise_scale,
-  #  learnt_init_query, efficient_ms]. ndl=3 + efficient_ms=True matches the source training config.
-  # eval_idx=-1 (default) means inference reads from the last decoder layer (index 2 here).
-  - [[16, 19, 22], 1, RTDETRDecoderV2, [nc, 256, 300, 4, 8, 3, 1024, 0.0, "relu", -1, 100, 0.5, 1.0, False, True]]
+  #  learnt_init_query, efficient_ms]. `ndl` and `efficient_ms` are resolved per scale via `scale_args`.
+  - [[16, 19, 22], 1, RTDETRDecoderV2, [nc, 256, 300, 4, 8, ndl, 1024, 0.0, "relu", -1, 100, 0.5, 1.0, False, efficient_ms]]

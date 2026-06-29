@@ -1936,6 +1936,10 @@ def parse_model(d, ch, verbose=True):
             scale = next(iter(scales.keys()))
             LOGGER.warning(f"no model scale passed. Assuming scale='{scale}'.")
         depth, width, max_channels = scales[scale]
+    # Per-scale variables resolvable as string tokens in module args (e.g. `ndl`, `efficient_ms`).
+    # Empty dict for any yaml that does not opt in via a top-level `scale_args:` block, so this is a
+    # no-op for every existing yaml. See yolo27-detr.yaml for canonical usage.
+    scale_args = (d.get("scale_args") or {}).get(scale, {}) if scale else {}
 
     restricted = _SafeLoad.restricted()
     if act:
@@ -2021,7 +2025,10 @@ def parse_model(d, ch, verbose=True):
         for j, a in enumerate(args):
             if isinstance(a, str):
                 with contextlib.suppress(ValueError):
-                    args[j] = locals()[a] if a in locals() else ast.literal_eval(a)
+                    if a in scale_args:
+                        args[j] = scale_args[a]
+                    else:
+                        args[j] = locals()[a] if a in locals() else ast.literal_eval(a)
         n = n_ = max(round(n * depth), 1) if n > 1 else n  # depth gain
         if m in base_modules:
             c1, c2 = ch[f], args[0]

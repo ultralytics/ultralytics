@@ -237,6 +237,19 @@ For **pose models** (e.g., `yolo26n-pose.pt`), the output tensor is typically sh
 
 The examples in the [ONNX inference examples](https://github.com/ultralytics/ultralytics/tree/main/examples) demonstrate how to process these outputs for each model type.
 
+### Is there an official Ultralytics C++ inference API?
+
+Ultralytics does not currently provide a dedicated C++ inference API for YOLO models. For C++ deployments, export the
+model to a runtime format such as [ONNX](../integrations/onnx.md), [TensorRT](../integrations/tensorrt.md),
+[TorchScript](../integrations/torchscript.md), or [MNN](../integrations/mnn.md), then load the exported artifact with
+that runtime's native C++ API.
+
+For example, export a detection model with `yolo export model=yolo26n.pt format=onnx` and run the `.onnx` file with
+ONNX Runtime C++, or export with `format=engine` and run the TensorRT engine from a TensorRT C++ application. When you
+use custom C++ post-processing, match the output tensor layout for your task and export settings; YOLO26 end-to-end
+detection exports usually return `(batch, max_det, 6)`, while non-end-to-end exports return raw prediction tensors that
+require external post-processing.
+
 ### Why is `output0` FP32 when exporting quantized models with `end2end=True`?
 
 When exporting with `quantize=16` (FP16) or `quantize=8` (INT8), most tensors are converted to lower precision to reduce model size and improve performance. However, when `end2end=True` is enabled, post-processing (including class indices) is embedded directly in the exported graph.

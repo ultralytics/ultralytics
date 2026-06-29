@@ -92,6 +92,7 @@ TASK2METRIC = {
 }
 
 ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []
+_YOLO_CLI_COMMAND = [sys.executable, "-m", "ultralytics.cfg.__init__"]
 SOLUTIONS_HELP_MSG = f"""
     Arguments received: {["yolo", *ARGV[1:]]!s}. Ultralytics 'yolo solutions' usage overview:
 

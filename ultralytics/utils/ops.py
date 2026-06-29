@@ -470,19 +470,15 @@ def crop_mask(masks: torch.Tensor, boxes: torch.Tensor) -> torch.Tensor:
     """
     if boxes.device != masks.device:
         boxes = boxes.to(masks.device)
-    n, h, w = masks.shape
-    if n < 50 and not masks.is_cuda:  # faster for fewer masks (predict)
-        for i, (x1, y1, x2, y2) in enumerate(boxes.clamp(min=0).round().int()):
-            masks[i, :y1] = 0
-            masks[i, y2:] = 0
-            masks[i, :, :x1] = 0
-            masks[i, :, x2:] = 0
-        return masks
-    else:  # faster for more masks (val)
-        x1, y1, x2, y2 = torch.chunk(boxes[:, :, None], 4, 1)  # x1 shape(n,1,1)
-        r = torch.arange(w, device=masks.device, dtype=x1.dtype)[None, None, :]  # rows shape(1,1,w)
-        c = torch.arange(h, device=masks.device, dtype=x1.dtype)[None, :, None]  # cols shape(1,h,1)
-        return masks * ((r >= x1) * (r < x2) * (c >= y1) * (c < y2))
+    _, h, w = masks.shape
+    x1, y1, x2, y2 = torch.chunk(boxes[:, :, None], 4, 1)  # each shape (n,1,1)
+    r = torch.arange(w, device=masks.device, dtype=x1.dtype)[None, None, :]  # columns (1,1,w)
+    c = torch.arange(h, device=masks.device, dtype=x1.dtype)[None, :, None]  # rows (1,h,1)
+    # Apply the column and row masks separately and in place: the box region is separable, so this avoids ever
+    # materializing the full (n, h, w) boolean grid the combined product would build, and has no per-mask Python loop.
+    masks *= (r >= x1) * (r < x2)  # zero columns outside the box
+    masks *= (c >= y1) * (c < y2)  # zero rows outside the box
+    return masks
 
 
 def process_mask(protos, masks_in, bboxes, shape, upsample: bool = False):

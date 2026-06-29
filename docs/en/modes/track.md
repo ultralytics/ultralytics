@@ -671,6 +671,12 @@ Together, let's enhance the tracking capabilities of the Ultralytics YOLO ecosys
 
 Multi-object tracking in video analytics involves both identifying objects and maintaining a unique ID for each detected object across video frames. Ultralytics YOLO supports this by providing real-time tracking along with object IDs, facilitating tasks such as security surveillance and sports analytics. The system uses trackers such as [BoT-SORT](https://github.com/NirAharon/BoT-SORT), [ByteTrack](https://github.com/FoundationVision/ByteTrack), OC-SORT, Deep OC-SORT, FastTracker, and TrackTrack, which can be configured via YAML files.
 
+### Can I store the tracker inside a YOLO model file?
+
+No. Standard Ultralytics `.pt` files store the YOLO model weights, while the tracker is created at inference time by [`model.track()`](../reference/engine/model.md#ultralytics.engine.model.Model.track). Track IDs depend on tracker state across consecutive frames, so a single standalone image can return detections such as boxes, classes, and confidences, but it cannot produce meaningful persistent tracking IDs by itself.
+
+For deployment, package the detector and tracker together in your application and call `model.track()` frame by frame with `persist=True` when frames come from the same video stream. Use separate model or tracker instances for unrelated streams so state does not carry over between videos.
+
 ### How do I configure a custom tracker for Ultralytics YOLO?
 
 You can configure a custom tracker by copying an existing tracker configuration file (e.g., `custom_tracker.yaml`) from the [Ultralytics tracker configuration directory](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers) and modifying parameters as needed, except for the `tracker_type`. Use this file in your tracking model like so:

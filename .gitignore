@@ -207,3 +207,4 @@ results.csv
 # Personal workspace (Louis fork — not for upstream)
 .claude/
 scripts/
+/CLAUDE.md

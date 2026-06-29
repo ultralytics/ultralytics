@@ -332,7 +332,7 @@ EXPORT_ENVS = {
         "smoke": ["yolo export format=deepx model=yolo26n.pt imgsz=32 data=coco8.yaml"],
     },
     "litert": {
-        "python": "3.12",
+        "python": "3.13",
         "extras": ["export-base", "export-litert"],
         "torch": None,
         "requirements": [],

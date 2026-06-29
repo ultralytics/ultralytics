@@ -173,7 +173,8 @@ CLI_HELP_MSG = f"""
 
 # Quantization aliases: maps any accepted `quantize` value to its canonical form. The common case is the integer
 # bit-width 8 (INT8) / 16 (FP16) / 32 (FP32); the verbose w<weights>a<activations> strings are accepted too and
-# collapse to the same ints, except 'w8a16' (INT8 weights + FP16 activations) which has no bit-width shorthand.
+# collapse to the same ints, except the mixed-precision schemes that have no bit-width shorthand: 'w8a16' (INT8
+# weights + FP16 activations) and 'w8a32' (INT8 weights + FP32 activations, i.e. LiteRT dynamic/weight-only INT8).
 QUANTIZE_ALIASES = {
     "8": 8,
     "16": 16,
@@ -185,9 +186,10 @@ QUANTIZE_ALIASES = {
     "w16a16": 16,
     "w32a32": 32,
     "w8a16": "w8a16",
+    "w8a32": "w8a32",
 }
 QUANTIZE_DOCS_URL = "https://docs.ultralytics.com/modes/export/#quantization-options"
-QUANTIZE_VALID_VALUES = "8, 16, 32, 'int8', 'fp16', 'fp32', 'w8a8', 'w16a16', or 'w8a16'"
+QUANTIZE_VALID_VALUES = "8, 16, 32, 'int8', 'fp16', 'fp32', 'w8a8', 'w16a16', 'w8a16', or 'w8a32'"
 
 # Define keys for arg type checks
 CFG_FLOAT_KEYS = frozenset(

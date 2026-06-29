@@ -362,6 +362,7 @@ INT8_FORMATS = frozenset(
     }
 )
 W8A16_FORMATS = frozenset({"coreml", "imx", "qnn"})  # INT8 weights + FP16 activations
+W8A32_FORMATS = frozenset({"litert"})  # INT8 weights + FP32 activations (dynamic/weight-only INT8, no calibration)
 FP32_UNSUPPORTED_FORMATS = frozenset({"edgetpu", "imx", "rknn", "axelera", "deepx", "qnn"})
 
 
@@ -393,6 +394,10 @@ def validate_args(format, passed_args, valid_args):
         assert format in W8A16_FORMATS, (
             f"ERROR ❌️ quantize='w8a16' (INT8 weights + FP16 activations) is not supported for format='{format}'. "
             f"See {QUANTIZE_DOCS_URL}"
+        )
+    elif passed_args.quantize == "w8a32":  # INT8 weights + FP32 activations (dynamic/weight-only INT8)
+        assert format in W8A32_FORMATS, (
+            f"ERROR ❌️ quantize='w8a32' (dynamic INT8) is not supported for format='{format}'. See {QUANTIZE_DOCS_URL}"
         )
     elif passed_args.quantize == 32:
         assert format not in FP32_UNSUPPORTED_FORMATS, (
@@ -1044,7 +1049,11 @@ class Exporter:
 
     @try_export
     def export_litert(self, prefix=colorstr("LiteRT:")):
-        """Export YOLO model to LiteRT format using litert_torch with optional FP16/INT8 quantization."""
+        """Export YOLO model to LiteRT format using litert_torch with optional INT8 quantization.
+
+        Supports ``quantize=8`` (static INT8, int8 weights + int8 activations, requires calibration ``data``) and
+        ``quantize='w8a32'`` (dynamic/weight-only INT8, int8 weights + FP32 activations, no calibration needed).
+        """
         assert MACOS or (LINUX and not ARM64), "LiteRT export only supported on Linux x86 and macOS"
         from ultralytics.utils.export.litert import torch2litert
 
@@ -1052,7 +1061,7 @@ class Exporter:
             self.model,
             self.im,
             self.file,
-            int8=self.args.quantize == 8,
+            quantize=self.args.quantize,
             calibration_dataset=self.get_int8_calibration_dataloader(prefix) if self.args.quantize == 8 else None,
             metadata=self.metadata,
             prefix=prefix,

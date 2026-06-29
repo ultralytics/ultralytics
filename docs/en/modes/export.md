@@ -94,6 +94,7 @@ Use the `quantize` argument to request the export precision. String values are c
 | `16`, `"16"`, `"fp16"`, `"w16a16"` | `16`            | FP16 weights and activations                            |
 | `32`, `"32"`, `"fp32"`, `"w32a32"` | `32`            | FP32 export; same precision as leaving `quantize` unset |
 | `"w8a16"`                          | `"w8a16"`       | INT8 weights with FP16 activations                      |
+| `"w8a32"`                          | `"w8a32"`       | INT8 weights with FP32 activations (LiteRT dynamic INT8, no calibration needed) |
 
 The legacy `half=True` and `int8=True` flags are still accepted with deprecation warnings and forward to `quantize=16` and `quantize=8`.
 
@@ -109,9 +110,7 @@ Not every export format supports every precision. Explicit `quantize` requests e
 | CoreML        | ✅                | ✅                | ✅         | ✅                | CoreML INT8 is weight quantization; W8A16 uses INT8 weights with FP16 activations.                            |
 | TF SavedModel | ✅                | ❌                | ✅         | ❌                | INT8 export uses TensorFlow calibration.                                                                      |
 | TF GraphDef   | ✅                | ❌                | ❌         | ❌                | No export-time precision conversion.                                                                          |
-| TFLite        | ✅                | ✅                | ✅         | ❌                | INT8 export uses TensorFlow calibration.                                                                      |
 | Edge TPU      | ❌                | ❌                | ✅ auto    | ❌                | Edge TPU requires INT8; it is auto-enabled when unset.                                                        |
-| TF.js         | ✅                | ✅                | ✅         | ❌                | INT8/FP16 are applied during TensorFlow.js conversion.                                                        |
 | PaddlePaddle  | ✅                | ❌                | ❌         | ❌                | No export-time precision conversion.                                                                          |
 | MNN           | ✅                | ✅                | ✅         | ❌                | INT8 is weight quantization through MNN conversion.                                                           |
 | NCNN          | ✅                | ✅                | ❌         | ❌                | Mobile/embedded runtime format.                                                                               |
@@ -121,8 +120,9 @@ Not every export format supports every precision. Explicit `quantize` requests e
 | Axelera       | ❌                | ❌                | ✅ auto    | ❌                | Axelera export requires INT8; it is auto-enabled when unset.                                                  |
 | DEEPX         | ❌                | ❌                | ✅ auto    | ❌                | DEEPX export requires INT8; it is auto-enabled when unset.                                                    |
 | Qualcomm QNN  | ❌                | ❌                | ❌         | ✅ auto           | QNN HTP export is fixed to INT8 weights with 16-bit activations.                                              |
+| LiteRT        | ✅                | ✅ runtime        | ✅         | ❌                | Static INT8 (`8`) uses calibration data; also supports `"w8a32"` dynamic INT8 (no calibration). FP16 runs at runtime via the GPU delegate, not a separate export. |
 
-For INT8 and W8A16 exports, provide representative calibration data with `data`, such as `data="coco8.yaml"`, unless the target integration documents a default or auto-enabled behavior.
+For INT8 and W8A16 exports, provide representative calibration data with `data`, such as `data="coco8.yaml"`, unless the target integration documents a default or auto-enabled behavior. The LiteRT `"w8a32"` (dynamic INT8) scheme needs no calibration data.
 
 ## FAQ
 
@@ -218,7 +218,7 @@ Understanding and configuring export arguments is crucial for optimizing model p
 
 - **`format:`** The target format for the exported model (e.g., `onnx`, `torchscript`, `tensorflow`).
 - **`imgsz:`** Desired image size for the model input (e.g., `640` or `(height, width)`).
-- **`quantize:`** Quantization precision, such as `8`/`"int8"`, `16`/`"fp16"`, `32`/`"fp32"`, or `"w8a16"` for supported mixed weight/activation precision exports. See [Quantization Options](#quantization-options).
+- **`quantize:`** Quantization precision, such as `8`/`"int8"`, `16`/`"fp16"`, `32`/`"fp32"`, or the mixed weight/activation schemes `"w8a16"` and `"w8a32"` (LiteRT dynamic INT8) on supported formats. See [Quantization Options](#quantization-options).
 - **`optimize:`** Applies specific optimizations for mobile or constrained environments.
 
 For deployment on specific hardware platforms, consider using specialized export formats like [TensorRT](../integrations/tensorrt.md) for NVIDIA GPUs, [CoreML](../integrations/coreml.md) for Apple devices, or [Edge TPU](../integrations/edge-tpu.md) for Google Coral devices.

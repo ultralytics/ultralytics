@@ -30,7 +30,7 @@ One model format, every target:
 - **On-device Optimization**: Reduces latency by processing data locally, enhances privacy by not transmitting personal data, and minimizes model size to save space.
 - **Multiple Platform Support**: Runs on Android, iOS, embedded Linux, microcontrollers, and modern web browsers.
 - **Hardware Acceleration**: Leverages XNNPACK on CPU, and GPU acceleration via OpenCL, Metal, and WebGPU. The GPU delegate runs in FP16 by default for additional speed.
-- **Quantization**: Supports FP32 and INT8 quantization to compress models and speed up inference with minimal [accuracy](https://www.ultralytics.com/glossary/accuracy) loss.
+- **Quantization**: Supports FP32, static INT8 (`quantize=8`, int8 weights + int8 activations), and dynamic INT8 (`quantize="w8a32"`, int8 weights + FP32 activations, no calibration data needed) to compress models and speed up inference with minimal [accuracy](https://www.ultralytics.com/glossary/accuracy) loss.
 - **Diverse Language Support**: Compatible with Java/Kotlin, Swift, Objective-C, C++, Python, and JavaScript.
 
 ## Export to LiteRT: Converting Your YOLO Model
@@ -81,6 +81,32 @@ All [Ultralytics YOLO models](../models/index.md) support export out of the box.
         yolo export model=yolo26n.pt format=litert # creates 'yolo26n_litert_model/'
         ```
 
+!!! example "Quantized export"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("yolo26n.pt")
+
+        # Dynamic INT8: int8 weights, FP32 activations - no calibration data needed
+        model.export(format="litert", quantize="w8a32")  # creates 'yolo26n_dynamic_litert_model/'
+
+        # Static INT8: int8 weights + int8 activations - needs calibration data
+        model.export(format="litert", quantize=8, data="coco8.yaml")  # creates 'yolo26n_int8_litert_model/'
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Dynamic INT8 (no calibration data needed)
+        yolo export model=yolo26n.pt format=litert quantize=w8a32
+
+        # Static INT8 (needs calibration data)
+        yolo export model=yolo26n.pt format=litert quantize=8 data=coco8.yaml
+        ```
+
 !!! example "Predict"
 
     === "Python"
@@ -129,9 +155,9 @@ All [Ultralytics YOLO models](../models/index.md) support export out of the box.
 | -------- | ---------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `format` | `str`            | `'litert'`     | Target format for the exported model, defining compatibility with various deployment environments.                                                                                    |
 | `imgsz`  | `int` or `tuple` | `640`          | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                     |
-| `int8`   | `bool`           | `False`        | Activates INT8 quantization, compressing the model and speeding up inference with minimal [accuracy](https://www.ultralytics.com/glossary/accuracy) loss, primarily for edge devices. |
+| `quantize` | `int` or `str` | `None`         | Quantization precision: `8` (static INT8, int8 weights + int8 activations; needs calibration `data`/`fraction`), `'w8a32'` (dynamic INT8, int8 weights + FP32 activations; no calibration needed), or `32`/unset (FP32). FP16 is not exported separately (see note below). Replaces the deprecated `half`/`int8` flags. |
 | `batch`  | `int`            | `1`            | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                               |
-| `data`   | `str`            | `'coco8.yaml'` | Path to the [dataset](https://docs.ultralytics.com/datasets) configuration file, essential for INT8 quantization calibration.                                                         |
+| `data`   | `str`            | `'coco8.yaml'` | Dataset YAML used for INT8 calibration. If omitted with `quantize=8`, Ultralytics selects the default calibration dataset for the model task.                                          |
 | `device` | `str`            | `None`         | Specifies the device for exporting. LiteRT export runs on CPU (`device=cpu`).                                                                                                         |
 
 !!! note "FP16 precision"
@@ -213,7 +239,7 @@ Yes. [LiteRT.js](https://developers.google.com/edge/litert/web) runs the same ex
 
 ### Does LiteRT support FP16 (half-precision) inference?
 
-Yes — at runtime. An FP32 LiteRT model automatically runs in FP16 when executed on a GPU delegate (WebGPU, OpenCL, or Metal), which is the official LiteRT approach. You therefore don't need a dedicated FP16 export; for further compression, use INT8 quantization with `int8=True`.
+Yes — at runtime. An FP32 LiteRT model automatically runs in FP16 when executed on a GPU delegate (WebGPU, OpenCL, or Metal), which is the official LiteRT approach. You therefore don't need a dedicated FP16 export; for further compression, use INT8 quantization with `quantize=8`.
 
 ### How do I troubleshoot common issues during LiteRT export?
 

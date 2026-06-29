@@ -782,8 +782,12 @@ class Model(torch.nn.Module):
         if isinstance(args.get("data"), (list, tuple)):  # fine-tune a single base model across multiple datasets
             from ultralytics.engine.trainer import MultiTrainer
 
+            use_python_trainer = trainer is not None or self.callbacks != callbacks.get_default_callbacks()
             self.trainer = MultiTrainer(
-                trainer or self._smart_load("trainer"), args, self.model, _callbacks=self.callbacks
+                (trainer or self._smart_load("trainer")) if use_python_trainer else None,
+                args,
+                self.model,
+                _callbacks=self.callbacks,
             )
             self.metrics = self.trainer.train()
             return self.metrics

@@ -83,7 +83,7 @@ import torch
 from ultralytics import __version__
 from ultralytics.cfg import QUANTIZE_DOCS_URL, TASK2CALIBRATIONDATA, TASK2DATA, get_cfg
 from ultralytics.data import build_dataloader, build_yolo_dataset
-from ultralytics.data.dataset import YOLODataset
+from ultralytics.data.dataset import ClassificationDataset
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.autobackend import check_class_names, default_class_names
 from ultralytics.nn.modules import C2f, Classify, Detect, RTDETRDecoder, Segment26, SemanticSegment
@@ -850,19 +850,15 @@ class Exporter:
         """Build and return a dataloader for calibration of INT8 models."""
         LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
         data = (check_cls_dataset if self.model.task == "classify" else check_det_dataset)(self.args.data)
+        cfg = deepcopy(self.args)
+        cfg.imgsz = max(self.imgsz)
         if self.model.task == "classify":
-            dataset = YOLODataset(
-                data[self.args.split or "val"],
-                data=data,
-                fraction=self.args.fraction,
-                task=self.model.task,
-                imgsz=max(self.imgsz),
-                augment=False,
-                batch_size=self.args.batch,
-            )
+            import torchvision.transforms as T  # scope for faster 'import ultralytics'
+
+            dataset = ClassificationDataset(data[self.args.split or "val"], args=cfg, augment=False)
+            # INT8 backends divide images by 255, so emit uint8 [0, 255] center-cropped like classify inference
+            dataset.torch_transforms = T.Compose([T.Resize(cfg.imgsz), T.CenterCrop(cfg.imgsz), T.PILToTensor()])
         else:
-            cfg = deepcopy(self.args)
-            cfg.imgsz = max(self.imgsz)
             dataset = build_yolo_dataset(
                 cfg,
                 data[self.args.split or "val"],
@@ -871,7 +867,7 @@ class Exporter:
                 mode="val",
                 fraction=self.args.fraction,
             )
-        if hasattr(dataset.transforms.transforms[0], "new_shape"):
+        if hasattr(dataset, "transforms") and hasattr(dataset.transforms.transforms[0], "new_shape"):
             dataset.transforms.transforms[0].new_shape = self.imgsz  # LetterBox with non-square imgsz
         n = len(dataset)
         if n < 1:

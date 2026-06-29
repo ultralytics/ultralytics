@@ -512,9 +512,9 @@ class BasePredictor:
                 if self.screen is None:
                     root = __import__("tkinter").Tk()
                     root.withdraw()  # hide the empty Tk window
-                    self.screen = root.winfo_screenwidth(), root.winfo_screenheight()
+                    self.screen = 0.9 * root.winfo_screenwidth(), 0.9 * root.winfo_screenheight()  # 0.9 taskbar margin
                     root.destroy()
-                r = min(0.9 * self.screen[0] / w, 0.9 * self.screen[1] / h, 1.0)  # 0.9 margin for taskbar/titlebar
+                r = min(self.screen[0] / w, self.screen[1] / h, 1.0)
                 cv2.resizeWindow(name, max(1, int(w * r)), max(1, int(h * r)))  # (width, height)
             except Exception:
                 pass

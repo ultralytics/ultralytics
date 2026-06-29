@@ -6,7 +6,7 @@ keywords: Ultralytics YOLO, K-Fold Cross-Validation, object detection, cross val
 
 # K-Fold Cross-Validation with Ultralytics YOLO
 
-K-Fold Cross-Validation splits your dataset into `k` folds and trains `k` models, each validated on a different fold so that every image is used for validation exactly once. This produces a more reliable estimate of object detection performance, along with its variance, than a single train/val split can provide. This guide walks through preparing the splits, training Ultralytics YOLO on each fold, and aggregating the results.
+K-Fold Cross-Validation splits your dataset into `k` folds and trains `k` models, each validated on a different fold so that every labeled image is used for validation exactly once. This produces a more reliable estimate of object detection performance, along with its variance, than a single train/val split can provide. This guide walks through preparing the splits, training Ultralytics YOLO on each fold, and aggregating the results.
 
 <p align="center">
   <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/k-fold-cross-validation-overview.avif" alt="K-fold cross validation data splitting">
@@ -18,7 +18,7 @@ The workflow uses the YOLO detection format with scikit-learn, pandas, and PyYAM
 
 A single train/val split measures performance on just one slice of your data, which can mislead you if that slice happens to be unusually easy, hard, or unbalanced. K-Fold Cross-Validation addresses this by:
 
-- **Using all data for both training and validation** — every image is validated exactly once, so none is locked away in a fixed holdout.
+- **Using all labeled data for both training and validation** — every labeled image is validated exactly once, so none is locked away in a fixed holdout.
 - **Reporting variance, not just a single number** — the spread of metrics across folds shows how stable the model is between data splits.
 - **Reducing the risk of [overfitting](https://www.ultralytics.com/glossary/overfitting) to a lucky split** — averaging across folds gives a more generalizable estimate of real-world accuracy.
 
@@ -281,7 +281,7 @@ for k, dataset_yaml in enumerate(ds_yamls):
 The goal of K-Fold Cross-Validation is a single, more reliable performance estimate together with its variance. Aggregate the per-fold results stored in the `results` dictionary above in two complementary ways:
 
 - **Scalar metrics (mAP, precision, recall) are not additive** across folds, so report their mean and standard deviation. The spread across folds tells you how stable the model is between splits.
-- **Confusion matrices hold raw counts**, and because the fold validation sets are disjoint and together cover the dataset exactly once, summing the per-fold matrices yields a single cross-validated confusion matrix over every image.
+- **Confusion matrices hold raw counts**, and because the fold validation sets are disjoint and together cover the labeled set exactly once, summing the per-fold matrices yields a single cross-validated confusion matrix over every labeled image.
 
 ```python
 import os
@@ -312,7 +312,7 @@ composite.plot(normalize=True, save_dir="kfold_composite")
 
 ## Conclusion
 
-K-Fold Cross-Validation turns a single train/val split into a robust, variance-aware estimate of model performance: stratify a detection dataset into balanced folds, train on each, and aggregate the results. Use the mean and standard deviation across folds to judge how reliably your model generalizes, especially when working from a limited dataset. The same steps apply to any [YOLO task](../tasks/index.md) and transfer cleanly to other machine learning workflows.
+K-Fold Cross-Validation turns a single train/val split into a robust, variance-aware estimate of model performance: randomly split a detection dataset into folds, inspect their class distributions, train on each, and aggregate the results. Use the mean and standard deviation across folds to judge how reliably your model generalizes, especially when working from a limited dataset. The same steps apply to any [YOLO task](../tasks/index.md) and transfer cleanly to other machine learning workflows.
 
 ## FAQ
 

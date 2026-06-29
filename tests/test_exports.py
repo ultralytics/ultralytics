@@ -448,12 +448,13 @@ def test_export_executorch(isolated_model):
     [
         (task, quantize)
         for task in sorted(TASKS)
-        for quantize in (None, 8, "w8a32")
-        if not (task == "classify" and quantize == 8)  # classify static INT8 calibration needs detection labels
+        for quantize in (None, 8, "w8a16", "w8a32")
+        # classify static-calibration schemes need detection labels (upstream calibration-loader limitation)
+        if not (task == "classify" and quantize in (8, "w8a16"))
     ],
 )
 def test_export_litert_matrix(task, quantize):
-    """Test YOLO export to LiteRT format (FP32, static INT8, and dynamic w8a32 INT8) for various task types."""
+    """Test YOLO export to LiteRT format (FP32, static INT8, static w8a16, and dynamic w8a32) for various tasks."""
     file = YOLO(TASK2MODEL[task]).export(format="litert", imgsz=32, quantize=quantize)
     assert Path(file).exists(), f"LiteRT export failed for task '{task}', directory not found: {file}"
     assert next(Path(file).glob("*.tflite"), None), f"LiteRT .tflite file not found for task '{task}': {file}"

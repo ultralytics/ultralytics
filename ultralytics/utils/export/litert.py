@@ -59,19 +59,20 @@ def torch2litert(
 ) -> Path:
     """Export a PyTorch model to LiteRT format using litert_torch, with optional INT8 quantization.
 
-    Two INT8 schemes are supported via ``quantize``: ``8`` applies static INT8 (int8 weights + int8 activations) and
-    requires a ``calibration_dataset``; ``'w8a32'`` applies dynamic/weight-only INT8 (int8 weights + FP32 activations)
-    and needs no calibration. ``None``/``32`` exports FP32. FP16 is not exported as a separate model: LiteRT runs an
-    FP32 model in FP16 at runtime via the GPU delegate (FP16 by default) or the XNNPACK ``FORCE_FP16`` flag on ARM.
+    Three INT8 schemes are supported via ``quantize``: ``8`` applies static INT8 (int8 weights + int8 activations) and
+    ``'w8a16'`` applies static INT8 weights with int16 activations, both requiring a ``calibration_dataset``;
+    ``'w8a32'`` applies dynamic/weight-only INT8 (int8 weights + FP32 activations) and needs no calibration.
+    ``None``/``32`` exports FP32. FP16 is not exported as a separate model: LiteRT runs an FP32 model in FP16 at
+    runtime via the GPU delegate (FP16 by default) or the XNNPACK ``FORCE_FP16`` flag on ARM.
 
     Args:
         model (torch.nn.Module): The PyTorch model to export.
         im (torch.Tensor): Example input tensor for tracing.
         file (Path | str): Source model file path used to derive output directory.
-        quantize (int | str | None): Quantization scheme: ``8`` (static INT8), ``'w8a32'`` (dynamic INT8), or
-            ``None``/``32`` (FP32).
-        calibration_dataset (DataLoader | None): Calibration dataloader for static INT8 quantization, as returned by
-            ``get_int8_calibration_dataloader``. Required when ``quantize=8``.
+        quantize (int | str | None): Quantization scheme: ``8`` (static INT8), ``'w8a16'`` (static int8 weights +
+            int16 activations), ``'w8a32'`` (dynamic INT8), or ``None``/``32`` (FP32).
+        calibration_dataset (DataLoader | None): Calibration dataloader for static quantization, as returned by
+            ``get_int8_calibration_dataloader``. Required when ``quantize`` is ``8`` or ``'w8a16'``.
         metadata (dict | None): Optional metadata saved as ``metadata.yaml``.
         prefix (str): Prefix for log messages.
 
@@ -84,10 +85,11 @@ def torch2litert(
     import litert_torch
 
     static_int8 = quantize == 8
+    static_int16 = quantize == "w8a16"
     dynamic_int8 = quantize == "w8a32"
     LOGGER.info(f"\n{prefix} starting export with litert_torch {litert_torch.__version__}...")
     file = Path(file)
-    quant_tag = "_int8" if static_int8 else "_dynamic" if dynamic_int8 else ""
+    quant_tag = "_int8" if static_int8 else "_w8a16" if static_int16 else "_dynamic" if dynamic_int8 else ""
     f = Path(str(file).replace(file.suffix, f"{quant_tag}_litert_model"))
     f.mkdir(parents=True, exist_ok=True)
 
@@ -99,23 +101,24 @@ def torch2litert(
         model = _NormalizeCoords(model, int(im.shape[3]), task, len(meta.get("names", {})), meta.get("kpt_shape"))
 
     edge_model = litert_torch.convert(model, (im,))
-    suffix = "int8" if static_int8 else "dynamic_int8" if dynamic_int8 else "float32"
+    suffix = "int8" if static_int8 else "w8a16" if static_int16 else "dynamic_int8" if dynamic_int8 else "float32"
     tflite_file = f / f"{file.stem}_{suffix}.tflite"
     edge_model.export(tflite_file)
 
-    if static_int8 or dynamic_int8:
+    if static_int8 or static_int16 or dynamic_int8:
         check_requirements("ai-edge-quantizer>=0.6.0")
         from ai_edge_quantizer import quantizer, recipe
 
         qt = quantizer.Quantizer(str(tflite_file))
-        if static_int8:
-            LOGGER.info(f"{prefix} applying static INT8 quantization (int8 weights + int8 activations)...")
+        if static_int8 or static_int16:  # static schemes calibrate over representative images
+            act = "int8" if static_int8 else "int16"
+            LOGGER.info(f"{prefix} applying static quantization (int8 weights + {act} activations)...")
             calib_samples = []
             for batch in calibration_dataset:
                 imgs = batch["img"].cpu().float() / 255.0
                 for i in range(imgs.shape[0]):
                     calib_samples.append({"args_0": imgs[i : i + 1].numpy()})
-            qt.load_quantization_recipe(recipe.static_wi8_ai8())
+            qt.load_quantization_recipe(recipe.static_wi8_ai8() if static_int8 else recipe.static_wi8_ai16())
             result = qt.calibrate({"serving_default": calib_samples})
             qt.quantize(calibration_result=result).export_model(str(tflite_file), overwrite=True)
         else:  # dynamic / weight-only INT8: int8 weights, FP32 activations, no calibration needed

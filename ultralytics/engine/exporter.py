@@ -361,7 +361,7 @@ INT8_FORMATS = frozenset(
         "litert",
     }
 )
-W8A16_FORMATS = frozenset({"coreml", "imx", "qnn"})  # INT8 weights + FP16 activations
+W8A16_FORMATS = frozenset({"coreml", "imx", "qnn", "litert"})  # INT8 weights + 16-bit activations (FP16; INT16 on LiteRT)
 W8A32_FORMATS = frozenset({"litert"})  # INT8 weights + FP32 activations (dynamic/weight-only INT8, no calibration)
 FP32_UNSUPPORTED_FORMATS = frozenset({"edgetpu", "imx", "rknn", "axelera", "deepx", "qnn"})
 
@@ -390,9 +390,9 @@ def validate_args(format, passed_args, valid_args):
         assert format in INT8_FORMATS, (
             f"ERROR ❌️ quantize={passed_args.quantize} is not supported for format='{format}'. See {QUANTIZE_DOCS_URL}"
         )
-    elif passed_args.quantize == "w8a16":  # INT8 weights + FP16 activations
+    elif passed_args.quantize == "w8a16":  # INT8 weights + 16-bit activations (FP16; INT16 on LiteRT)
         assert format in W8A16_FORMATS, (
-            f"ERROR ❌️ quantize='w8a16' (INT8 weights + FP16 activations) is not supported for format='{format}'. "
+            f"ERROR ❌️ quantize='w8a16' (INT8 weights + 16-bit activations) is not supported for format='{format}'. "
             f"See {QUANTIZE_DOCS_URL}"
         )
     elif passed_args.quantize == "w8a32":  # INT8 weights + FP32 activations (dynamic/weight-only INT8)
@@ -570,8 +570,8 @@ class Exporter:
                 # Disable end2end branch for certain export formats as they does not support topk
                 model.end2end = False
                 LOGGER.warning(f"{fmt.upper()} export does not support end2end models, disabling end2end branch.")
-            if fmt == "litert" and self.args.quantize == 8:
-                # Static INT8 collapses the end2end class-index output; export raw and run NMS at inference
+            if fmt == "litert" and self.args.quantize in {8, "w8a16"}:
+                # Static activation quantization collapses the end2end class-index output; export raw and run NMS later
                 model.end2end = False
                 LOGGER.warning("LiteRT INT8 export does not support end2end models, disabling end2end branch.")
             if fmt == "engine":
@@ -1051,7 +1051,8 @@ class Exporter:
     def export_litert(self, prefix=colorstr("LiteRT:")):
         """Export YOLO model to LiteRT format using litert_torch with optional INT8 quantization.
 
-        Supports ``quantize=8`` (static INT8, int8 weights + int8 activations, requires calibration ``data``) and
+        Supports ``quantize=8`` (static INT8, int8 weights + int8 activations, requires calibration ``data``),
+        ``quantize='w8a16'`` (static, int8 weights + int16 activations, requires calibration ``data``) and
         ``quantize='w8a32'`` (dynamic/weight-only INT8, int8 weights + FP32 activations, no calibration needed).
         """
         assert MACOS or (LINUX and not ARM64), "LiteRT export only supported on Linux x86 and macOS"
@@ -1062,7 +1063,9 @@ class Exporter:
             self.im,
             self.file,
             quantize=self.args.quantize,
-            calibration_dataset=self.get_int8_calibration_dataloader(prefix) if self.args.quantize == 8 else None,
+            calibration_dataset=self.get_int8_calibration_dataloader(prefix)
+            if self.args.quantize in {8, "w8a16"}
+            else None,
             metadata=self.metadata,
             prefix=prefix,
         )

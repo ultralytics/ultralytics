@@ -366,6 +366,13 @@ W8A16_FORMATS = frozenset(
 )  # INT8 weights + 16-bit activations (FP16; INT16 on LiteRT)
 W8A32_FORMATS = frozenset({"litert"})  # INT8 weights + FP32 activations (dynamic/weight-only INT8, no calibration)
 FP32_UNSUPPORTED_FORMATS = frozenset({"edgetpu", "imx", "rknn", "axelera", "deepx", "qnn"})
+# (label, supporting formats) per quantize precision, used to list valid options in errors. 32/None (FP32) is universal except FP32_UNSUPPORTED_FORMATS.
+QUANTIZE_PRECISIONS = (
+    ("16 (FP16)", FP16_FORMATS),
+    ("8 (INT8)", INT8_FORMATS),
+    ("'w8a16' (INT8 weights + INT16 activations)", W8A16_FORMATS),
+    ("'w8a32' (dynamic INT8)", W8A32_FORMATS),
+)
 
 
 def validate_args(format, passed_args, valid_args):
@@ -384,27 +391,21 @@ def validate_args(format, passed_args, valid_args):
     assert valid_args is not None, f"ERROR ❌️ valid arguments for '{format}' not listed."
     custom = {"batch": 1, "data": None, "device": None}  # exporter defaults
     default_args = get_cfg(DEFAULT_CFG, custom)
-    if passed_args.quantize == 16:  # FP16; 32/None (FP32) is universal
-        assert format in FP16_FORMATS, (
-            f"ERROR ❌️ quantize=16 (FP16) is not supported for format='{format}'. See {QUANTIZE_DOCS_URL}"
-        )
-    elif passed_args.quantize == 8:  # INT8
-        assert format in INT8_FORMATS, (
-            f"ERROR ❌️ quantize={passed_args.quantize} is not supported for format='{format}'. See {QUANTIZE_DOCS_URL}"
-        )
-    elif passed_args.quantize == "w8a16":  # INT8 weights + 16-bit activations (FP16; INT16 on LiteRT)
-        assert format in W8A16_FORMATS, (
-            f"ERROR ❌️ quantize='w8a16' (INT8 weights + 16-bit activations) is not supported for format='{format}'. "
-            f"See {QUANTIZE_DOCS_URL}"
-        )
-    elif passed_args.quantize == "w8a32":  # INT8 weights + FP32 activations (dynamic/weight-only INT8)
-        assert format in W8A32_FORMATS, (
-            f"ERROR ❌️ quantize='w8a32' (dynamic INT8) is not supported for format='{format}'. See {QUANTIZE_DOCS_URL}"
-        )
-    elif passed_args.quantize == 32:
-        assert format not in FP32_UNSUPPORTED_FORMATS, (
-            f"ERROR ❌️ quantize=32 (FP32) is not supported for format='{format}'. See {QUANTIZE_DOCS_URL}"
-        )
+    if passed_args.quantize is not None:  # 32/None (FP32) is universal except FP32_UNSUPPORTED_FORMATS
+        options = [label for label, formats in QUANTIZE_PRECISIONS if format in formats]
+        if format not in FP32_UNSUPPORTED_FORMATS:
+            options.append("32 (FP32)")
+        hint = f"format='{format}' supports quantize={', '.join(options) or 'none'} (or None for FP32). See {QUANTIZE_DOCS_URL}"
+        if passed_args.quantize == 16:  # FP16
+            assert format in FP16_FORMATS, f"ERROR ❌️ quantize=16 (FP16) is not supported; {hint}"
+        elif passed_args.quantize == 8:  # INT8
+            assert format in INT8_FORMATS, f"ERROR ❌️ quantize=8 (INT8) is not supported; {hint}"
+        elif passed_args.quantize == "w8a16":  # INT8 weights + 16-bit activations (FP16; INT16 on LiteRT)
+            assert format in W8A16_FORMATS, f"ERROR ❌️ quantize='w8a16' is not supported; {hint}"
+        elif passed_args.quantize == "w8a32":  # INT8 weights + FP32 activations (dynamic/weight-only INT8)
+            assert format in W8A32_FORMATS, f"ERROR ❌️ quantize='w8a32' is not supported; {hint}"
+        elif passed_args.quantize == 32:  # FP32
+            assert format not in FP32_UNSUPPORTED_FORMATS, f"ERROR ❌️ quantize=32 (FP32) is not supported; {hint}"
     for arg in export_args:
         not_default = getattr(passed_args, arg, None) != getattr(default_args, arg, None)
         if not_default:

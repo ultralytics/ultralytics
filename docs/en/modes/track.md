@@ -673,7 +673,7 @@ Multi-object tracking in video analytics involves both identifying objects and m
 
 ### Can I store the tracker inside a YOLO model file?
 
-No. Standard Ultralytics `.pt` and `.pth` files store the YOLO model weights, while the tracker is created at inference time by [`model.track()`](../reference/engine/model.md#ultralytics.engine.model.Model.track). Track IDs depend on tracker state across consecutive frames, so a single standalone image can return detections such as boxes, classes, and confidences, but it cannot produce meaningful persistent tracking IDs by itself.
+No. Standard Ultralytics `.pt` files store the YOLO model weights, while the tracker is created at inference time by [`model.track()`](../reference/engine/model.md#ultralytics.engine.model.Model.track). Track IDs depend on tracker state across consecutive frames, so a single standalone image can return detections such as boxes, classes, and confidences, but it cannot produce meaningful persistent tracking IDs by itself.
 
 For deployment, package the detector and tracker together in your application and call `model.track()` frame by frame with `persist=True` when frames come from the same video stream. Use separate model or tracker instances for unrelated streams so state does not carry over between videos.
 

@@ -318,6 +318,8 @@ def fuse_deconv_and_bn(deconv, bn):
         >>> bn = nn.BatchNorm2d(3)
         >>> fused_deconv = fuse_deconv_and_bn(deconv, bn)
     """
+    if isinstance(bn, nn.Identity):  # ConvTranspose(bn=False) leaves bn as nn.Identity, nothing to fuse
+        return deconv.requires_grad_(False)
     # Compute fused weights
     w_deconv = deconv.weight.view(deconv.out_channels, -1)
     w_bn = torch.diag(bn.weight.div(torch.sqrt(bn.eps + bn.running_var)))

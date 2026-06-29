@@ -114,4 +114,4 @@ Common issues during YOLO model training include data formatting errors, model a
 
 ### How can I deploy my YOLO model for real-time object detection on edge devices?
 
-Deploying YOLO models on edge devices like NVIDIA Jetson and Raspberry Pi requires converting the model to a compatible format such as TensorRT or TFLite. Follow our step-by-step guides for [NVIDIA Jetson](nvidia-jetson.md) and [Raspberry Pi](raspberry-pi.md) deployments to get started with real-time object detection on edge hardware. These guides will walk you through installation, configuration, and performance optimization.
+Deploying YOLO models on edge devices like NVIDIA Jetson and Raspberry Pi requires converting the model to a compatible format such as TensorRT or LiteRT. Follow our step-by-step guides for [NVIDIA Jetson](nvidia-jetson.md) and [Raspberry Pi](raspberry-pi.md) deployments to get started with real-time object detection on edge hardware. These guides will walk you through installation, configuration, and performance optimization.

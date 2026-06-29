@@ -19,16 +19,18 @@ class _NormalizeCoords(torch.nn.Module):
     so the scores collapse to zero. Normalizing coordinates to [0, 1] keeps the whole tensor in a unit range so
     quantization preserves score resolution; ``LiteRTBackend`` denormalizes by image size at runtime.
 
-    Coordinates are divided by a scalar image size (non-PyTorch exports require square images) rather than a per-channel
-    vector: a mixed-magnitude scale vector quantizes to a single per-tensor scale that rounds the small coordinate
-    factors to zero, destroying box accuracy.
+    Only the coordinate channels are divided — x/width and y/height — so the divisor is uniform-magnitude and quantizes
+    cleanly to a single per-tensor scale. (Multiplying the whole tensor by a mixed-magnitude per-channel vector instead
+    would round the small coordinate factors to zero and destroy box accuracy.) Per-axis division also supports
+    non-square ``imgsz``; ``LiteRTBackend`` denormalizes by width/height to match.
     """
 
-    def __init__(self, model: torch.nn.Module, imgsz: int, task: str, nc: int, kpt_shape: tuple | None):
-        """Initialize with the wrapped model, square image size, task, class count and optional keypoint shape."""
+    def __init__(self, model: torch.nn.Module, h: int, w: int, task: str, nc: int, kpt_shape: tuple | None):
+        """Initialize with the wrapped model, input height/width, task, class count and optional keypoint shape."""
         super().__init__()
         self.model = model
-        self.imgsz = imgsz
+        self.h = h
+        self.w = w
         self.task = task
         self.nc = nc
         self.kpt_shape = kpt_shape
@@ -37,12 +39,14 @@ class _NormalizeCoords(torch.nn.Module):
         """Run the wrapped model and normalize coordinate channels of the detection output to [0, 1]."""
         y = self.model(x)
         det = y[0] if isinstance(y, (tuple, list)) else y  # segment returns (detections, protos)
-        parts = [det[:, :4] / self.imgsz]  # box xywh
+        box_wh = torch.tensor([self.w, self.h, self.w, self.h], dtype=det.dtype, device=det.device).view(1, 4, 1)
+        parts = [det[:, :4] / box_wh]  # box xywh: x,w by width; y,h by height
         if self.task == "pose" and self.kpt_shape:
             parts.append(det[:, 4 : 4 + self.nc])  # class scores
             b, _, a = det.shape
             kpts = det[:, 4 + self.nc :].view(b, self.kpt_shape[0], self.kpt_shape[1], a)
-            kpts = torch.cat([kpts[:, :, :2] / self.imgsz, kpts[:, :, 2:]], dim=2)  # normalize x, y; keep conf
+            kpt_wh = torch.tensor([self.w, self.h], dtype=det.dtype, device=det.device).view(1, 1, 2, 1)
+            kpts = torch.cat([kpts[:, :, :2] / kpt_wh, kpts[:, :, 2:]], dim=2)  # normalize x, y; keep conf
             parts.append(kpts.reshape(b, -1, a))
         else:
             parts.append(det[:, 4:])  # class scores (+ mask coefficients / angle)
@@ -98,7 +102,9 @@ def torch2litert(
     meta = metadata or {}
     task = meta.get("task")
     if task in {"detect", "segment", "pose", "obb"} and not meta.get("end2end", False):
-        model = _NormalizeCoords(model, int(im.shape[3]), task, len(meta.get("names", {})), meta.get("kpt_shape"))
+        model = _NormalizeCoords(
+            model, int(im.shape[2]), int(im.shape[3]), task, len(meta.get("names", {})), meta.get("kpt_shape")
+        )
 
     edge_model = litert_torch.convert(model, (im,))
     tflite_file = file.with_name(f"{file.stem}{quant_tag}.tflite")

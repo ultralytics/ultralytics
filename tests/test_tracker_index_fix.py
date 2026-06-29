@@ -40,6 +40,7 @@ class MockResults:
     """Minimal mock of ultralytics Results for tracker unit testing."""
 
     def __init__(self, xywh, conf, cls):
+        """Initialize mock results with bounding boxes, confidence scores, and classes."""
         self.xywh = np.array(xywh, dtype=np.float32)
         self.conf = np.array(conf, dtype=np.float32)
         self.cls = np.array(cls, dtype=np.float32)

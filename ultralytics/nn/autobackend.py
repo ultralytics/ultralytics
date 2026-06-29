@@ -114,7 +114,7 @@ class AutoBackend(nn.Module):
             | Axelera AI            | *_axelera_model/  |
             | DEEPX                 | *_deepx_model/    |
             | Qualcomm QNN          | *_qnn.onnx        |
-            | LiteRT                | *.tflite (incl. legacy *_litert_model/) |
+            | LiteRT                | *.tflite          |
 
     Attributes:
         backend (BaseBackend): The loaded inference backend instance.

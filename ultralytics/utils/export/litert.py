@@ -126,7 +126,7 @@ def torch2litert(
             qt.quantize().export_model(str(tflite_file), overwrite=True)
 
     # Embed metadata as a JSON entry appended to the .tflite (zip-tolerant flatbuffer), so the model is a single
-    # self-contained file; LiteRTBackend reads it back, no separate metadata.yaml needed.
+    # self-contained file that LiteRTBackend reads back at load time.
     with zipfile.ZipFile(tflite_file, "a", zipfile.ZIP_DEFLATED) as zf:
         zf.writestr("metadata.json", json.dumps(metadata or {}))
     return tflite_file

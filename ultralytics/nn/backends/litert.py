@@ -42,15 +42,8 @@ class LiteRTBackend(BaseBackend):
         # load through this backend (the detection/proto outputs share the same layout for either export path).
         self.nhwc = self.input_details[0]["shape"][-1] == 3
 
-        # Load metadata: prefer the metadata.json embedded in the .tflite (single-file export); fall back to a
-        # sibling/directory metadata.yaml for older directory-style exports.
+        # Load the metadata.json embedded in the .tflite (single self-contained file)
         metadata = read_tflite_metadata(tflite_file)
-        if metadata is None:
-            from ultralytics.utils import YAML
-
-            metadata_file = (w / "metadata.yaml") if w.is_dir() else w.parent / "metadata.yaml"
-            if metadata_file.exists():
-                metadata = YAML.load(metadata_file)
         if metadata:
             self.apply_metadata(metadata)
 

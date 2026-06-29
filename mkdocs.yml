@@ -844,6 +844,7 @@ nav:
               - stracks: reference/trackers/utils/stracks.md
       - utils:
           - __init__: reference/utils/__init__.md
+          - analysis: reference/utils/analysis.md
           - autobatch: reference/utils/autobatch.md
           - autodevice: reference/utils/autodevice.md
           - benchmarks: reference/utils/benchmarks.md

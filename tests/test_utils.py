@@ -5,9 +5,10 @@ import cv2
 import numpy as np
 import pytest
 
+from ultralytics import YOLO
 from ultralytics.data.build import build_yolo_dataset
 from ultralytics.data.utils import check_det_dataset
-from ultralytics.utils.analysis import ImagePropertyExtractor
+from ultralytics.utils.analysis import CorrelationAnalysis, ImagePropertyExtractor
 from ultralytics.utils.ops import xywhn2xyxy
 
 
@@ -104,3 +105,34 @@ def test_extractor_augments_labels():
     for key in ("brightness", "blurriness", "num_small", "num_medium", "num_large", "max_pairwise_iou"):
         assert key in lbl, f"missing property key {key!r} after extraction"
     assert 0.0 <= lbl["brightness"] <= 1.0
+
+
+def test_run_correlation_analysis_path(tmp_path):
+    """CorrelationAnalysis joins extractor labels with validator metrics and writes the full report."""
+    model = YOLO("yolo11n.pt")
+    metrics = model.val(
+        data="coco128.yaml",
+        batch=8,
+        plots=False,
+        save_json=False,
+        imgsz=320,
+        verbose=False,
+        device="cpu",
+    )
+    labels = ImagePropertyExtractor(model.validator.dataloader.dataset).labels
+    out_dir = tmp_path / "corr"
+    report = CorrelationAnalysis(labels, metrics).run(save_dir=out_dir)
+    sample = next(iter(report.per_image.values()))
+    assert sample.get("f1") is not None
+    for fname in ("per_image_analysis.csv", "correlations.json", "summary.md", "correlation_scatter.png"):
+        p = out_dir / fname
+        assert p.exists() and p.stat().st_size > 0
+
+
+def test_lazy_matplotlib_import():
+    """Importing the analysis module must not pull matplotlib (lazy-loaded inside plot)."""
+    import subprocess
+    import sys
+
+    code = "import sys, ultralytics.utils.analysis\nsys.exit('matplotlib' in sys.modules)"
+    assert subprocess.run([sys.executable, "-c", code]).returncode == 0

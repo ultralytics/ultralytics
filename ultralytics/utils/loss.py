@@ -340,6 +340,7 @@ class v8DetectionLoss:
         self.bce = nn.BCEWithLogitsLoss(reduction="none")
         self.vfl = VarifocalLoss() if getattr(h, "vfl", False) else None
         self.vfl_norm = getattr(h, "vfl_norm", False)  # normalize VFL by positive count instead of target score sum
+        self.vfl_hard = getattr(h, "vfl_hard", False)  # regress VFL positives toward hard 1.0 instead of IoU target
         self.hyp = h
         self.stride = m.stride  # model strides
         self.nc = m.nc  # number of classes
@@ -405,6 +406,9 @@ class v8DetectionLoss:
         VarifocalNet normalization). Since each soft target q <= 1, this denominator is larger than sum(q), so it
         yields a smaller cls loss than the default and typically needs a higher ``cls`` gain to compensate.
 
+        With ``vfl_hard=True`` positives regress toward a hard 1.0 target with unit weight instead of the IoU-aware
+        soft target q, leaving only the background focal weighting from Varifocal Loss.
+
         Args:
             pred_scores (torch.Tensor): Predicted class logits with shape (bs, num_anchors, nc).
             target_scores (torch.Tensor): Task-aligned soft targets with shape (bs, num_anchors, nc).
@@ -416,7 +420,8 @@ class v8DetectionLoss:
         """
         if self.vfl is not None:
             label = (target_scores > 0).to(pred_scores.dtype)  # positive-class one-hot from soft targets
-            cls = self.vfl(pred_scores, target_scores.to(pred_scores.dtype), label)
+            gt_score = label if self.vfl_hard else target_scores.to(pred_scores.dtype)  # hard 1.0 vs IoU soft target
+            cls = self.vfl(pred_scores, gt_score, label)
             if self.vfl_norm:  # canonical VFL normalization by positive count; yields a smaller loss than sum(q)
                 target_scores_sum = max(label.sum(), 1)
         else:

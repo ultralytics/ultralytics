@@ -1037,6 +1037,7 @@ class ClassificationDataset:
                 hsv_h=args.hsv_h,
                 hsv_s=args.hsv_s,
                 hsv_v=args.hsv_v,
+                augmentations=getattr(args, "augmentations", None),
             )
             if augment
             else classify_transforms(size=args.imgsz)

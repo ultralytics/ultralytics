@@ -470,19 +470,15 @@ def crop_mask(masks: torch.Tensor, boxes: torch.Tensor) -> torch.Tensor:
     """
     if boxes.device != masks.device:
         boxes = boxes.to(masks.device)
-    n, h, w = masks.shape
-    if n < 50 and not masks.is_cuda:  # faster for fewer masks (predict)
-        for i, (x1, y1, x2, y2) in enumerate(boxes.clamp(min=0).round().int()):
-            masks[i, :y1] = 0
-            masks[i, y2:] = 0
-            masks[i, :, :x1] = 0
-            masks[i, :, x2:] = 0
-        return masks
-    else:  # faster for more masks (val)
-        x1, y1, x2, y2 = torch.chunk(boxes[:, :, None], 4, 1)  # x1 shape(n,1,1)
-        r = torch.arange(w, device=masks.device, dtype=x1.dtype)[None, None, :]  # rows shape(1,1,w)
-        c = torch.arange(h, device=masks.device, dtype=x1.dtype)[None, :, None]  # cols shape(1,h,1)
-        return masks * ((r >= x1) * (r < x2) * (c >= y1) * (c < y2))
+    _, h, w = masks.shape
+    x1, y1, x2, y2 = torch.chunk(boxes[:, :, None], 4, 1)  # each shape (n,1,1)
+    r = torch.arange(w, device=masks.device, dtype=x1.dtype)[None, None, :]  # columns (1,1,w)
+    c = torch.arange(h, device=masks.device, dtype=x1.dtype)[None, :, None]  # rows (1,h,1)
+    # Apply the column and row masks separately and in place: the box region is separable, so this avoids ever
+    # materializing the full (n, h, w) boolean grid the combined product would build, and has no per-mask Python loop.
+    masks *= (r >= x1) * (r < x2)  # zero columns outside the box
+    masks *= (c >= y1) * (c < y2)  # zero rows outside the box
+    return masks
 
 
 def process_mask(protos, masks_in, bboxes, shape, upsample: bool = False):
@@ -525,10 +521,17 @@ def process_mask_native(protos, masks_in, bboxes, shape):
         (torch.Tensor): Binary mask tensor with shape (N, H, W).
     """
     c, mh, mw = protos.shape  # CHW
-    masks = (masks_in @ protos.float().view(c, -1)).view(-1, mh, mw)
-    masks = scale_masks(masks[None], shape)[0]  # NHW
-    masks = crop_mask(masks, bboxes)  # NHW
-    return masks.gt_(0.0).byte()
+    coeffs = masks_in @ protos.float().view(c, -1)  # (N, mh*mw) prototype-resolution mask logits
+    h, w = shape
+    # Upsampling all N masks at once allocates an N*H*W float intermediate (~9 GB on a large image with many
+    # detections), which OOMs the worker. Upsample in chunks bounded by a pixel budget, thresholding each chunk to
+    # uint8 immediately so the float intermediate stays small, then crop the assembled uint8 stack.
+    step = max(1, 32_000_000 // (h * w))
+    masks = [
+        scale_masks(coeffs[i : i + step].view(-1, mh, mw)[None], shape)[0].gt_(0.0).byte()
+        for i in range(0, coeffs.shape[0], step)
+    ]
+    return crop_mask(torch.cat(masks), bboxes)
 
 
 def scale_masks(

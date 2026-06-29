@@ -267,7 +267,7 @@ for k, dataset_yaml in enumerate(ds_yamls):
 
 !!! tip "Need a simple split instead of K-Fold?"
 
-    If you only need a one-off random train/val/test split rather than cross-validation, use [`autosplit`](https://docs.ultralytics.com/reference/data/split):
+    If you only need a one-off random train/val/test split rather than cross-validation, use [`autosplit`](../reference/data/split.md):
 
     ```python
     from ultralytics.data.split import autosplit

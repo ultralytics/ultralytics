@@ -2597,7 +2597,7 @@ class RandomLoadText(BaseTransform):
         neg_samples: tuple[int, int] = (80, 80),
         max_samples: int = 80,
         padding: bool = False,
-        padding_value: list[str] = [""],
+        padding_value: list[str] | None = None,
     ) -> None:
         """Initialize the RandomLoadText class for randomly sampling positive and negative texts.
 
@@ -2618,7 +2618,7 @@ class RandomLoadText(BaseTransform):
         self.neg_samples = neg_samples
         self.max_samples = max_samples
         self.padding = padding
-        self.padding_value = padding_value
+        self.padding_value = padding_value if padding_value is not None else [""]
 
     def get_params(self, labels: dict[str, Any]) -> dict[str, Any]:
         """Compute text sampling parameters.
@@ -2706,10 +2706,20 @@ def v8_transforms(dataset, imgsz: int, hyp: IterableSimpleNamespace, stretch: bo
         (Compose): A composition of image transformations to be applied to the dataset.
 
     Examples:
+        >>> from ultralytics.cfg import DEFAULT_CFG
         >>> from ultralytics.data.dataset import YOLODataset
         >>> from ultralytics.utils import IterableSimpleNamespace
-        >>> dataset = YOLODataset(img_path="path/to/images", imgsz=640)
-        >>> hyp = IterableSimpleNamespace(mosaic=1.0, copy_paste=0.5, degrees=10.0, translate=0.2, scale=0.9)
+        >>> dataset = YOLODataset(img_path="path/to/images", data={"names": {0: "person"}}, imgsz=640)
+        >>> hyp = IterableSimpleNamespace(
+        ...     **{
+        ...         **vars(DEFAULT_CFG),
+        ...         "mosaic": 1.0,
+        ...         "copy_paste": 0.5,
+        ...         "degrees": 10.0,
+        ...         "translate": 0.2,
+        ...         "scale": 0.9,
+        ...     }
+        ... )
         >>> transforms = v8_transforms(dataset, imgsz=640, hyp=hyp)
         >>> augmented_data = transforms(dataset[0])
 

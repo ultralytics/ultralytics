@@ -848,9 +848,12 @@ class SemanticDataset(YOLODataset):
         if mask.ndim == 3 and mask.shape[2] == 1:
             mask = np.squeeze(mask, axis=2)
         if int(self.data.get("nc", 0)) == 1:
-            with Image.open(mask_file) as im:
-                if im.mode == "1":  # cv2 expands 1-bit PNGs to {0, 255}; map only true 1-bit foreground to 1.
-                    mask[mask == 255] = 1
+            is_1bit = self.labels[index].get("is_1bit")
+            if is_1bit is None:  # detect bit depth once per image, then memoize to avoid reopening every epoch
+                with Image.open(mask_file) as im:
+                    is_1bit = self.labels[index]["is_1bit"] = im.mode == "1"
+            if is_1bit:  # cv2 expands 1-bit PNGs to {0, 255}; map only true 1-bit foreground to 1.
+                mask[mask == 255] = 1
         if self.label_mapping:
             mask = self.convert_label(mask, inverse=False)
         return mask.astype(np.uint8, copy=False)

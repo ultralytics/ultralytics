@@ -98,7 +98,7 @@ def main(argv: list[str]) -> None:
 
     stem = Path(model_yaml).stem
     arch = next(
-        (a for a in ("fastvit", "simplevit", "cls-attn") if a in stem),
+        (a for a in ("fastvit", "cls-attn") if a in stem),
         "vit" if "-vit-" in stem else "conv",
     )
     scale_match = re.match(r"yolo26([nslmx])", stem)

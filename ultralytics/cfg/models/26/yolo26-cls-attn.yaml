@@ -2,7 +2,7 @@
 # Same backbone topology as yolo26-cls.yaml; only difference: C3k2 layers 6 and 8 set attn=True,
 # which adds a PSABlock (Attention + FFN) after each Bottleneck inside C3k2 (block.py:1097).
 # Goal: more attention surface area in the conv student for distillation, without inventing a new
-# arch (vs fastvit/simplevit). C2PSA at layer 9 unchanged.
+# arch (vs fastvit). C2PSA at layer 9 unchanged.
 
 nc: 1000
 scales:

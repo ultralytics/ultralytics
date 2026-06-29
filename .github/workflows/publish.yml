@@ -155,6 +155,7 @@ jobs:
           TAG: ${{ needs.check.outputs.current_tag }}
         run: |
           TITLE=$(gh release view "$TAG" --json name -q .name 2>/dev/null | tr -d '\n\r"\\') || TITLE=""
+          TITLE=$(printf '%s' "$TITLE" | sed -E "s@#([0-9]+)@<https://github.com/$GH_REPO/pull/\1|#\1>@g")
           echo "title=$TITLE" >> "$GITHUB_OUTPUT"
       - name: Notify Success
         if: needs.publish.result == 'success' && github.event_name == 'push'

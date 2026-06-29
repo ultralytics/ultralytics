@@ -4,9 +4,38 @@ from __future__ import annotations
 
 import ast
 from abc import ABC, abstractmethod
+from pathlib import Path
 from typing import Any
 
 import torch
+
+
+def read_tflite_metadata(file: str | Path) -> dict | None:
+    """Read Ultralytics metadata embedded in a ``.tflite`` file.
+
+    Ultralytics appends metadata to the end of ``.tflite`` flatbuffers as a zip entry (``metadata.json`` for
+    litert-torch/single-file exports, or a single literal-dict entry for legacy onnx2tf exports). Returns the parsed
+    metadata dict, or ``None`` if the file has no readable embedded metadata.
+
+    Args:
+        file (str | Path): Path to the ``.tflite`` model file.
+
+    Returns:
+        (dict | None): Parsed metadata dictionary, or ``None`` if absent or unreadable.
+    """
+    import json
+    import zipfile
+
+    try:
+        with zipfile.ZipFile(file, "r") as zf:
+            names = zf.namelist()
+            if "metadata.json" in names:
+                return json.loads(zf.read("metadata.json"))
+            if names:  # legacy onnx2tf exports store a single Python-literal dict entry
+                return ast.literal_eval(zf.read(names[0]).decode("utf-8"))
+    except (zipfile.BadZipFile, SyntaxError, ValueError, KeyError, json.JSONDecodeError):
+        return None
+    return None
 
 
 class BaseBackend(ABC):

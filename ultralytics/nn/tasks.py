@@ -581,63 +581,12 @@ class YOLOAnomalyV2Model(DetectionModel):
         _sf = v2_cfg.get("sigma_factor", 0.25) if sigma_factor is None else sigma_factor
         sigma_factor = [float(_sf[0]), float(_sf[1])] if isinstance(_sf, (list, tuple)) else float(_sf)
         p_drop = float(v2_cfg.get("p_drop", 0.5) if p_drop is None else p_drop)
-        # Training-only mask augmentation for prior robustness (Phase 0):
-        #   mask_shuffle_p -- per-sample prob of swapping in another sample's mask (wrong-location
-        #                     prior; GT boxes unchanged) so the model treats the prior as a soft hint.
-        #   mask_noise_std -- std of additive Gaussian noise on the [0, 1] mask (imperfect heatmap).
-        #   mask_mag_range -- [lo, hi]; per-sample peak scaling of the [0, 1] prior so the GT mask
-        #                     looks like a weak-peak heatmap (memory bank peaks ~0.8). [1, 1] = off.
-        #   mask_blur_sigma_max -- max sigma of a random Gaussian blur softening the binary rect into
-        #                     smooth edges (mimics soft heatmaps). 0 = off.
-        mask_shuffle_p = float(v2_cfg.get("mask_shuffle_p", 0.0))
-        mask_noise_std = float(v2_cfg.get("mask_noise_std", 0.0))
-        mask_mag_range = list(v2_cfg.get("mask_mag_range", [1.0, 1.0]))
-        mask_blur_sigma_max = float(v2_cfg.get("mask_blur_sigma_max", 0.0))
-        # Prior-robustness augs (train-only). Applied to the GT-rendered prior; the p_drop'd
-        # samples are still zeroed afterwards, so the "no prior" fraction is preserved (these
-        # only perturb the kept-prior samples). All default off.
-        #   mask_jitter       -- per-box center offset ~U(-j,j) (frac of image): mis-localized prior
-        #   mask_box_drop_p   -- per-box drop prob: prior misses some defects (false negative)
-        #   mask_distractor_p -- prob a sample gets up to mask_distractor_n other samples' blobs
-        #                        max-merged in (false-positive hints at wrong locations)
-        #   mask_erase_p      -- prob of zeroing a random sub-region of the blob (partial coverage)
-        #   mask_warp_p       -- prob of an elastic deformation (irregular, non-elliptical blob)
-        #   mask_mixup_p      -- prob of additive blend own + mask_mixup_alpha*donor (soft distractor)
+        # Mask-prior augmentation knobs. Most are consumed directly by MaskPriorAugmenter from
+        # v2_cfg; only the ones tasks.py needs for prior-resolution guards are parsed here.
         mask_jitter = float(v2_cfg.get("mask_jitter", 0.0))
         mask_box_drop_p = float(v2_cfg.get("mask_box_drop_p", 0.0))
-        mask_distractor_p = float(v2_cfg.get("mask_distractor_p", 0.0))
-        mask_distractor_n = int(v2_cfg.get("mask_distractor_n", 4))
-        mask_erase_p = float(v2_cfg.get("mask_erase_p", 0.0))
-        mask_warp_p = float(v2_cfg.get("mask_warp_p", 0.0))
-        mask_mixup_p = float(v2_cfg.get("mask_mixup_p", 0.0))
-        mask_mixup_alpha = float(v2_cfg.get("mask_mixup_alpha", 0.5))
-        # Number of stacked _augment_mask passes (train-only). 2 reproduces the pre-refactor
-        # double-augment that gave the OOD heatmap deploy path extra robustness.
-        mask_aug_passes = int(v2_cfg.get("mask_aug_passes", 1))
-        # Extra memory-bank-style prior augmentations (train-only). These close the
-        # distribution gap between clean GT-gauss priors and real memory-bank heatmaps,
-        # which have scattered false-positive blobs even on normal images.
-        #   mask_fragment_p      -- prob of splitting each GT box into several sub-boxes
-        #                           before rendering, mimicking MB's fragmented response.
-        #   mask_fragment_n      -- number of fragments per box.
-        #   mask_bg_blobs_p      -- prob of adding random background false-positive blobs.
-        #   mask_bg_blobs_n      -- number of random blobs to add.
-        #   mask_bg_blobs_amp    -- [lo, hi] peak amplitude of each background blob.
-        #   mask_bg_blobs_sigma  -- [lo, hi] blob sigma as fraction of mask spatial size.
-        #   mask_coherent_noise_p-- prob of adding low-frequency coherent blobby noise.
-        #   mask_coherent_noise_amp   -- [lo, hi] amplitude of coherent-noise blobs.
-        #   mask_coherent_noise_sigma -- [lo, hi] sigma of coherent-noise blobs.
-        #   mask_floor           -- [lo, hi] uniform noise floor added to the whole map.
         mask_fragment_p = float(v2_cfg.get("mask_fragment_p", 0.0))
         mask_fragment_n = int(v2_cfg.get("mask_fragment_n", 4))
-        mask_bg_blobs_p = float(v2_cfg.get("mask_bg_blobs_p", 0.0))
-        mask_bg_blobs_n = int(v2_cfg.get("mask_bg_blobs_n", 8))
-        mask_bg_blobs_amp = list(v2_cfg.get("mask_bg_blobs_amp", [0.05, 0.15]))
-        mask_bg_blobs_sigma = list(v2_cfg.get("mask_bg_blobs_sigma", [0.03, 0.08]))
-        mask_coherent_noise_p = float(v2_cfg.get("mask_coherent_noise_p", 0.0))
-        mask_coherent_noise_amp = list(v2_cfg.get("mask_coherent_noise_amp", [0.02, 0.06]))
-        mask_coherent_noise_sigma = list(v2_cfg.get("mask_coherent_noise_sigma", [0.05, 0.15]))
-        mask_floor = list(v2_cfg.get("mask_floor", [0.0, 0.0]))
         # Polygon-mask prior: when True, the fusion prior is built from the v6 polygon
         # union (batch["masks"]) instead of the coarse bbox-gauss render.
         self.seg_target_polygon = bool(v2_cfg.get("seg_target_polygon", False))
@@ -765,53 +714,24 @@ class YOLOAnomalyV2Model(DetectionModel):
         self._qf_capture = False  # diagnostics: force aux capture in eval (scripts/queryfilm_diag.py)
 
         self.p_drop = float(p_drop)
-        self.mask_shuffle_p = float(mask_shuffle_p)
-        self.mask_noise_std = float(mask_noise_std)
-        self.mask_mag_range = (float(mask_mag_range[0]), float(mask_mag_range[1]))
-        self.mask_blur_sigma_max = float(mask_blur_sigma_max)
+        # Prior-resolution guards (tasks.py needs these directly); all other mask_* knobs live in
+        # MaskPriorAugmenter and are read from the raw v2_cfg there.
         self.mask_jitter = float(mask_jitter)
         self.mask_box_drop_p = float(mask_box_drop_p)
-        self.mask_distractor_p = float(mask_distractor_p)
-        self.mask_distractor_n = int(mask_distractor_n)
-        self.mask_erase_p = float(mask_erase_p)
-        self.mask_warp_p = float(mask_warp_p)
-        self.mask_mixup_p = float(mask_mixup_p)
-        self.mask_mixup_alpha = float(mask_mixup_alpha)
-        self.mask_aug_passes = int(mask_aug_passes)
         self.mask_fragment_p = float(mask_fragment_p)
         self.mask_fragment_n = int(mask_fragment_n)
-        self.mask_bg_blobs_p = float(mask_bg_blobs_p)
-        self.mask_bg_blobs_n = int(mask_bg_blobs_n)
-        self.mask_bg_blobs_amp = (float(mask_bg_blobs_amp[0]), float(mask_bg_blobs_amp[1]))
-        self.mask_bg_blobs_sigma = (float(mask_bg_blobs_sigma[0]), float(mask_bg_blobs_sigma[1]))
-        self.mask_coherent_noise_p = float(mask_coherent_noise_p)
-        self.mask_coherent_noise_amp = (float(mask_coherent_noise_amp[0]), float(mask_coherent_noise_amp[1]))
-        self.mask_coherent_noise_sigma = (float(mask_coherent_noise_sigma[0]), float(mask_coherent_noise_sigma[1]))
-        self.mask_floor = (float(mask_floor[0]), float(mask_floor[1]))
-        # Prior-mask augmentation ops live in a dedicated module; the model keeps the mask_*
-        # attrs above for prior-resolution guards and delegates the actual augmentation here.
         self.mask_augmenter = MaskPriorAugmenter(v2_cfg)
         self.spatial_softmax = bool(v2_cfg.get("spatial_softmax", False))
         self.softmax_temperature = float(v2_cfg.get("softmax_temperature", 1.0))
-        # Prior processing before fusion (inference toggle, default 'none'):
-        #   'minmax'   per-sample stretch to [0, 1] -- counters the soft-prior (memory bank peak
-        #              ~0.8) vs binary-GT-training magnitude gap.
-        #   'gaussian' / 'mean'  blur the prior with a `heatmap_smooth_kernel`x`...` kernel --
-        #              keeps the [0, 1] scale + spatial blob structure (unlike softmax), smoothing
-        #              the noisy MB heatmap toward the gauss-like masks the fusion trained on.
+        # Inference-time prior processing: minmax stretch, gaussian/mean blur, spatial softmax,
+        # and an edge-suppression window for memory-bank heatmaps.
         self.heatmap_norm = str(v2_cfg.get("heatmap_norm", "none")).lower()
         self.heatmap_smooth_kernel = int(v2_cfg.get("heatmap_smooth_kernel", 5))
-        # Edge-suppression weight (deploy-time, default off): a fixed squircle (Lp-norm) Gaussian
-        # window -- 1.0 at the center, decaying toward the borders -- multiplied into the memory-bank
-        # heatmap. Memory-bank priors flag the image periphery (boundary patches have few
-        # in-distribution neighbors -> high score) even on normal samples; this down-weights that
-        # ring. A constant buffer from three shape params (no learned weights). Applied to the
-        # 'heatmap' prior mode only, before the AUROC stash, so it cleans both the score and fusion.
         self.heatmap_edge_weight = bool(v2_cfg.get("heatmap_edge_weight", False))
-        self.heatmap_edge_p = float(v2_cfg.get("heatmap_edge_p", 4.0))  # 2=circle, 4=squircle, >=8 square
-        self.heatmap_edge_m = float(v2_cfg.get("heatmap_edge_m", 4.4))  # center plateau steepness
-        self.heatmap_edge_sigma = float(v2_cfg.get("heatmap_edge_sigma", 1.0))  # edge value / transition
-        self._edge_weight_cache = None  # (key, (1,1,H,W) tensor); regenerated on shape/param/device change
+        self.heatmap_edge_p = float(v2_cfg.get("heatmap_edge_p", 4.0))
+        self.heatmap_edge_m = float(v2_cfg.get("heatmap_edge_m", 4.4))
+        self.heatmap_edge_sigma = float(v2_cfg.get("heatmap_edge_sigma", 1.0))
+        self._edge_weight_cache = None
 
         # Transient bbox input for the next forward pass. Reset after each forward.
         self._mask_bboxes_buf = None  # (N, 4) normalized [cx, cy, w, h]

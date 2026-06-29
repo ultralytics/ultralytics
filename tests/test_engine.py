@@ -260,6 +260,25 @@ def test_checkpoint_fp16_overflow():
     )
 
 
+def test_checkpoint_nonfinite_ema_resync():
+    """Test a non-finite EMA on a finite model is resynced (not skipped) so the run still produces a checkpoint."""
+
+    def poison_ema(trainer):
+        """Make the live fp32 EMA genuinely non-finite while the model stays finite (sticky-NaN on a finite-loss run)."""
+        if trainer.ema is not None:
+            next(iter(trainer.ema.ema.parameters())).data.flatten()[0] = float("inf")
+
+    overrides = {"data": "coco8.yaml", "model": "yolo26n.yaml", "imgsz": 32, "epochs": 2}
+    trainer = detect.DetectionTrainer(overrides=overrides)
+    trainer.add_callback("on_train_epoch_end", poison_ema)
+    trainer.train()
+    assert trainer.last.exists(), "no checkpoint saved when the EMA went non-finite on a finite model"
+    model, _ = load_checkpoint(trainer.last)
+    assert all(torch.isfinite(v).all() for v in model.state_dict().values() if isinstance(v, torch.Tensor)), (
+        "saved checkpoint contains NaN/Inf"
+    )
+
+
 @pytest.mark.parametrize(
     "kwargs,uses_weights",
     [({}, True), ({"pretrained": True}, True), ({"pretrained": False}, False), ({"pretrained": MODEL}, True)],

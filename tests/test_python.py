@@ -889,6 +889,20 @@ def test_model_embeddings():
     assert model_classify.predict(SOURCE, imgsz=32)[0].probs is not None
 
 
+def test_process_mask_native_chunked():
+    """Chunked native upsampling is identical to upsampling all masks at once."""
+    from ultralytics.utils import ops
+
+    torch.manual_seed(0)
+    protos, masks_in = torch.randn(32, 160, 160), torch.randn(70, 32)
+    bboxes = torch.rand(70, 4) * 900 + 5  # fractional boxes exercise the crop edge handling
+    bboxes[:, 2:] += bboxes[:, :2]
+    out = ops.process_mask_native(protos, masks_in, bboxes, (1000, 1000))  # large shape forces multiple chunks
+    ref = ops.scale_masks((masks_in @ protos.float().view(32, -1)).view(-1, 160, 160)[None], (1000, 1000))[0]
+    ref = ops.crop_mask(ref, bboxes).gt_(0.0).byte()  # single-shot upsample-crop-threshold
+    assert torch.equal(out, ref)
+
+
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for CLIP-based models")
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="YOLOWorld with CLIP is not supported in Python 3.12")
 @pytest.mark.skipif(

@@ -17,9 +17,7 @@ TensorRT                | `engine`                  | yolo26n.engine
 CoreML                  | `coreml`                  | yolo26n.mlpackage
 TensorFlow SavedModel   | `saved_model`             | yolo26n_saved_model/
 TensorFlow GraphDef     | `pb`                      | yolo26n.pb
-TensorFlow Lite         | `tflite`                  | yolo26n.tflite
 TensorFlow Edge TPU     | `edgetpu`                 | yolo26n_edgetpu.tflite
-TensorFlow.js           | `tfjs`                    | yolo26n_web_model/
 PaddlePaddle            | `paddle`                  | yolo26n_paddle_model/
 MNN                     | `mnn`                     | yolo26n.mnn
 NCNN                    | `ncnn`                    | yolo26n_ncnn_model/
@@ -55,6 +53,7 @@ from ultralytics.utils import (
     MACOS,
     TQDM,
     WEIGHTS_DIR,
+    is_github_action_running,
 )
 from ultralytics.utils.checks import IS_PYTHON_MINIMUM_3_13, check_imgsz, check_requirements, check_yolo, is_rockchip
 from ultralytics.utils.files import file_size
@@ -124,11 +123,7 @@ def benchmark(
         try:
             if format_arg and format_arg != format:
                 continue
-            if (
-                IS_PYTHON_MINIMUM_3_13
-                and not format_arg
-                and format in {"saved_model", "pb", "tflite", "edgetpu", "tfjs"}
-            ):
+            if IS_PYTHON_MINIMUM_3_13 and not format_arg and format in {"saved_model", "pb", "edgetpu"}:
                 continue
 
             # Checks
@@ -137,8 +132,6 @@ def benchmark(
             elif format == "edgetpu":
                 assert LINUX and not ARM64, "Edge TPU export only supported on non-aarch64 Linux"
                 assert shutil.which("edgetpu_compiler"), "Edge TPU benchmark requires edgetpu_compiler"
-            elif format == "tfjs":
-                assert not (LINUX and ARM64), "TF.js export not supported on ARM64 Linux"
             elif format == "coreml":
                 assert MACOS or (LINUX and not ARM64), "CoreML export only supported on macOS and non-aarch64 Linux"
                 # coremltools deadlocks after OpenVINO on macOS Python 3.13 (conflicting OpenMP runtimes); CoreML
@@ -146,9 +139,8 @@ def benchmark(
                 assert not (MACOS and IS_PYTHON_MINIMUM_3_13), (
                     "CoreML not benchmarked on macOS Python>=3.13 (coremltools/OpenVINO OpenMP deadlock)"
                 )
-            if format in {"saved_model", "pb", "tflite", "edgetpu", "tfjs"}:
+            if format in {"saved_model", "pb", "edgetpu"}:
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 TensorFlow exports not supported by onnx2tf yet"
-                # assert not IS_PYTHON_MINIMUM_3_12, "TFLite exports not supported on Python>=3.12 yet"
             if format == "paddle":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 Paddle exports not supported yet"
                 assert model.task != "obb", "Paddle OBB bug https://github.com/PaddlePaddle/Paddle/issues/72024"
@@ -187,6 +179,13 @@ def benchmark(
                 assert not (model.task == "segment" and any(isinstance(m, Segment26) for m in model.model.modules())), (
                     "Axelera export does not currently support YOLO26 segmentation models"
                 )
+            if format == "litert":
+                assert MACOS or (LINUX and not ARM64), "LiteRT benchmark only supported on Linux x86 and macOS"
+                # benchmark() deadlocks on the ai-edge-litert/TensorFlow abseil mutex (RAW: Lock blocking) on macOS CI
+                # when litert runs after other TF-based formats in the shared process; still benchmarked locally.
+                assert not (MACOS and is_github_action_running()), (
+                    "LiteRT not benchmarked on macOS CI (ai-edge-litert/TF abseil mutex deadlock)"
+                )
             if "cpu" in device.type:
                 assert cpu, "inference not supported on CPU"
             if "cuda" in device.type:
@@ -213,7 +212,7 @@ def benchmark(
 
             # Predict
             assert model.task != "pose" or format != "pb", "GraphDef Pose inference is not supported"
-            assert format not in {"edgetpu", "tfjs"}, "inference not supported"
+            assert format != "edgetpu", "inference not supported"
             assert format != "coreml" or platform.system() == "Darwin", "inference only supported on macOS>=10.13"
             assert format != "axelera", "inference only supported on Axelera hardware"
             exported_model.predict(ASSETS / "bus.jpg", imgsz=imgsz, device=device, quantize=quantize, verbose=False)

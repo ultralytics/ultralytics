@@ -86,6 +86,7 @@ from ultralytics.utils import (
     emojis,
 )
 from ultralytics.utils.checks import REMOTE_FILE_PREFIXES, check_file, check_requirements, check_suffix, check_yaml
+from ultralytics.utils.class_map import is_default_numeric_names, names_to_list, remap_class_row_state_dict
 from ultralytics.utils.loss import (
     E2ELoss,
     PoseLoss26,
@@ -832,6 +833,48 @@ class RTDETRDetectionModel(DetectionModel):
             verbose (bool): Print additional information during initialization.
         """
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
+
+    def load(self, weights, verbose=True, src_names=None, dst_names=None):
+        """Load weights with optional RT-DETR class-row remapping for cross-dataset transfer."""
+        model = weights["model"] if isinstance(weights, dict) else weights
+        csd = model.float().state_dict()
+        state_dict = self.state_dict()
+
+        if src_names is None:
+            src_names = getattr(model, "names", None)
+        if dst_names is None:
+            dst_names = getattr(self, "names", None)
+
+        dn_discard = [
+            k for k in csd if "denoising_class_embed" in k and k in state_dict and csd[k].shape != state_dict[k].shape
+        ]
+        for k in dn_discard:
+            del csd[k]
+            if verbose:
+                LOGGER.info(f"Discarded '{k}' due to class-count mismatch (will be randomly initialized)")
+
+        src_name_list = names_to_list(src_names)
+        dst_name_list = names_to_list(dst_names)
+        names_match = bool(src_name_list) and src_name_list == dst_name_list
+        if (
+            src_names is not None
+            and dst_names is not None
+            and not is_default_numeric_names(src_names)
+            and not is_default_numeric_names(dst_names)
+            and not names_match
+        ):
+            csd, remapped, missing = remap_class_row_state_dict(
+                csd, state_dict, src_names=src_names, dst_names=dst_names
+            )
+            if verbose and remapped:
+                LOGGER.info(f"Remapped {len(remapped)} class tensors using source->target class-name map")
+            if verbose and missing:
+                LOGGER.info(f"{len(missing)} target classes were not mapped and kept target initialization")
+
+        updated_csd = intersect_dicts(csd, state_dict)
+        self.load_state_dict(updated_csd, strict=False)
+        if verbose:
+            LOGGER.info(f"Transferred {len(updated_csd)}/{len(self.model.state_dict())} items from pretrained weights")
 
     def _apply(self, fn):
         """Apply a function to all tensors in the model, including decoder anchors and valid mask.

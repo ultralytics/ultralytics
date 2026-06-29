@@ -47,7 +47,7 @@ DEFAULT_CKPT="/Users/louis/workspace/ultra_louis_work/expman/data/pulled/yoloa_v
 DEFAULT_CKPT="/Users/louis/workspace/ultra_louis_work/expman/data/pulled/yoloa_clean/26m_yoloav2_softhint_maskonly_aug3_mixup_ood_aug2x_v1/weights/best.pt"
 DEFAULT_CKPT="/Users/louis/workspace/ultra_louis_work/expman/data/pulled/yoloa_clean/26m_yoloav2_softhint_maskonly_aug3_mixup_ood_aug2x_ep15_lr2x_v1/weights/best.pt"
 """
-python3 run_yoloa.py --mode val --cat all  --device mps --cat all 
+python run_yoloa.py --mode val --cat all  --device mps --cat all 
 """
 
 def main():
@@ -83,6 +83,9 @@ def main():
     ap.add_argument("--refine-blend", type=float, default=0.,
                     help="0 = no refine (raw heatmap), 1 = fully refined (raw*sigmoid(R)), "
                          "in between = (1-b)*raw + b*refined. Requires --refiner.")
+    ap.add_argument("--hm-gate-blend", type=float, default=.0,
+                    help="Heatmap gating blend: 1.0=off, 0.0=full suppress at low-heatmap cells. "
+                         "p_anom = p_anom * (blend + (1-blend) * hm).")
     args = ap.parse_args()
 
     # -- Load fit YAML (single source of truth for all fit params) -------------
@@ -145,6 +148,14 @@ def main():
         assert args.refiner, "--refine-blend > 0 requires --refiner <weights.pt>"
         m.model.set_heatmap_refiner(args.refiner, blend=args.refine_blend)
         print(f"  heatmap refiner: {args.refiner} (blend={args.refine_blend})", flush=True)
+
+    # Per-anchor heatmap confidence gate: p_anom *= blend + (1-blend)*heatmap_at_anchor.
+    # blend=1 is off (identity); blend<1 suppresses low-heatmap grid cells.
+    # The heatmap is passed as head(..., heatmap=prior) — clean graph input, ONNX-friendly.
+    if args.hm_gate_blend < 1.0:
+        for _h in [m.model.model[-1]] + ([m.model.head_b] if getattr(m.model, "two_head", False) else []):
+            _h.hm_gate_blend = args.hm_gate_blend
+        print(f"  hm_gate_blend: {args.hm_gate_blend} (heatmap conf gate ON)", flush=True)
 
     fit_over = {}
     if "imgsz" in yaml:

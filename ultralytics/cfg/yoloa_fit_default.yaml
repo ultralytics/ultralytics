@@ -4,8 +4,6 @@
 
 
 
-
-
 # -- Feature extraction (backbone tap) ----------------------------------
 imgsz: 640
 bb_layers: [6]             # backbone tap indices (P3/P4/P5 for yolo26m)

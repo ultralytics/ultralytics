@@ -1866,15 +1866,17 @@ class YOLOAnomalyV2Model(DetectionModel):
                 # dual det loss; eval routes by prior presence (mask-on pass / external prior ->
                 # head_b, mask-off pass / deploy -> head_a). getattr guards the stride probe in
                 # super().__init__() (runs before two_head is set).
+                _supports_hm = hasattr(m, "_build_heatmap_gate")
                 if getattr(self, "two_head", False):
                     if self.training:
-                        x = (m(pan_inputs), self.head_b(fused))
+                        x = (m(pan_inputs, heatmap=prior) if _supports_hm else m(pan_inputs),
+                             self.head_b(fused, heatmap=prior) if _supports_hm else self.head_b(fused))
                     elif prior is not None:
-                        x = self.head_b(fused)
+                        x = self.head_b(fused, heatmap=prior) if _supports_hm else self.head_b(fused)
                     else:
                         x = m(pan_inputs)
                 else:
-                    x = m(fused)
+                    x = m(fused, heatmap=prior) if _supports_hm else m(fused)
             else:
                 if m.f != -1:
                     x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]

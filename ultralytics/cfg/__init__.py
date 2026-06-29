@@ -267,6 +267,7 @@ CFG_BOOL_KEYS = frozenset(
         "vfl_o2m",
         "o2f",
         "o2m",
+        "o24",
     }
 )
 

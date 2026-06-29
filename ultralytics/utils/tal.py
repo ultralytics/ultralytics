@@ -56,6 +56,7 @@ class TaskAlignedAssigner(nn.Module):
         self.o2f_t = 0.6
         self.o2f_degree = None
         self.o2f_cls_weight = None
+        self.full_pos = False  # score every 1:1-matched anchor by its own CIoU (o24 aux head)
         self.num_classes = num_classes
         self.alpha = alpha
         self.beta = beta
@@ -144,9 +145,12 @@ class TaskAlignedAssigner(nn.Module):
 
         # Normalize
         align_metric *= mask_pos
-        pos_align_metrics = align_metric.amax(dim=-1, keepdim=True)  # b, max_num_obj
-        pos_overlaps = (overlaps * mask_pos).amax(dim=-1, keepdim=True)  # b, max_num_obj
-        norm_align_metric = (align_metric * pos_overlaps / (pos_align_metrics + self.eps)).amax(-2).unsqueeze(-1)
+        if self.full_pos:  # o24 aux head: each 1:1-matched anchor is a full positive scored by its own CIoU
+            norm_align_metric = (overlaps * mask_pos).amax(-2).unsqueeze(-1)
+        else:
+            pos_align_metrics = align_metric.amax(dim=-1, keepdim=True)  # b, max_num_obj
+            pos_overlaps = (overlaps * mask_pos).amax(dim=-1, keepdim=True)  # b, max_num_obj
+            norm_align_metric = (align_metric * pos_overlaps / (pos_align_metrics + self.eps)).amax(-2).unsqueeze(-1)
         target_scores = target_scores * norm_align_metric
         # O2F modulates only the classification target (applied in the loss); box/dfl keep the full target_scores
         self.o2f_degree = self.o2f_cls_weight = None

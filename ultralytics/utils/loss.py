@@ -339,6 +339,7 @@ class v8DetectionLoss:
         m = model.model[-1]  # Detect() module
         self.bce = nn.BCEWithLogitsLoss(reduction="none")
         self.vfl = VarifocalLoss() if getattr(h, "vfl", False) else None
+        self.vfl_norm = getattr(h, "vfl_norm", False)  # normalize VFL by positive count instead of target score sum
         self.hyp = h
         self.stride = m.stride  # model strides
         self.nc = m.nc  # number of classes
@@ -400,6 +401,10 @@ class v8DetectionLoss:
     ) -> torch.Tensor:
         """Compute classification loss (Varifocal or BCE) normalized by the task-aligned score sum.
 
+        With ``vfl_norm=True`` the Varifocal path is instead normalized by the positive-anchor count (the canonical
+        VarifocalNet normalization). Since each soft target q <= 1, this denominator is larger than sum(q), so it
+        yields a smaller cls loss than the default and typically needs a higher ``cls`` gain to compensate.
+
         Args:
             pred_scores (torch.Tensor): Predicted class logits with shape (bs, num_anchors, nc).
             target_scores (torch.Tensor): Task-aligned soft targets with shape (bs, num_anchors, nc).
@@ -412,6 +417,8 @@ class v8DetectionLoss:
         if self.vfl is not None:
             label = (target_scores > 0).to(pred_scores.dtype)  # positive-class one-hot from soft targets
             cls = self.vfl(pred_scores, target_scores.to(pred_scores.dtype), label)
+            if self.vfl_norm:  # canonical VFL normalization by positive count; yields a smaller loss than sum(q)
+                target_scores_sum = max(label.sum(), 1)
         else:
             cls = self.bce(pred_scores, target_scores.to(pred_scores.dtype))  # (bs, num_anchors, nc)
         if target_scores_weight is not None:
@@ -1217,7 +1224,12 @@ class E2ELoss:
         """Initialize E2ELoss with one-to-many and one-to-one detection losses using the provided model."""
         self.o2f = getattr(model.args, "o2f", False)
         self.train_o2m = getattr(model.args, "o2m", True)  # train the auxiliary one2many head
-        self.one2many = loss_fn(model, tal_topk=10)
+        self.o24 = getattr(model.args, "o24", False)  # aux head: o2o-style 1:1 on 4x-duplicated GTs vs one2many
+        if self.o24:
+            self.one2many = loss_fn(model, tal_topk=7, tal_topk2=4)  # 4 full-positive 1:1 matches per GT
+            self.one2many.assigner.full_pos = True
+        else:
+            self.one2many = loss_fn(model, tal_topk=10)
         self.one2one = loss_fn(model, tal_topk=7, tal_topk2=1)
         self.one2one.assigner.o2f = self.o2f
         if not getattr(model.args, "vfl_o2m", True):

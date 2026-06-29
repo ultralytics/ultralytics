@@ -83,6 +83,7 @@ class YOLODataset(BaseDataset):
             *args (Any): Additional positional arguments for the parent class.
             **kwargs (Any): Additional keyword arguments for the parent class.
         """
+        self.task = task
         self.use_segments = task == "segment"
         self.use_keypoints = task == "pose"
         self.use_obb = task == "obb"
@@ -202,8 +203,8 @@ class YOLODataset(BaseDataset):
             )
             for lb in labels:
                 lb["segments"] = []
-        if len_cls == 0:
-            LOGGER.warning(f"Labels are missing or empty in {cache_path}, training may not work correctly. {HELP_URL}")
+        if len_cls == 0 and self.task != "classify":
+            raise ValueError(f"All labels empty in {cache_path}, can not start training without labels. {HELP_URL}")
         return labels
 
     def build_transforms(self, hyp: dict | None = None) -> Compose:

@@ -505,7 +505,15 @@ class BasePredictor:
         if platform.system() == "Linux" and p not in self.windows:
             self.windows.append(p)
             cv2.namedWindow(p, cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)  # allow window resize (Linux)
-            cv2.resizeWindow(p, im.shape[1], im.shape[0])  # (width, height)
+            h, w = im.shape[:2]
+            try:  # scale down to fit screen if image larger than screen resolution
+                root = __import__("tkinter").Tk()
+                r = min(root.winfo_screenwidth() / w, root.winfo_screenheight() / h, 1.0)
+                root.destroy()
+                h, w = int(h * r), int(w * r)
+            except Exception:
+                pass
+            cv2.resizeWindow(p, w, h)  # (width, height)
         cv2.imshow(p, im)
         if cv2.waitKey(300 if self.dataset.mode == "image" else 1) & 0xFF == ord("q"):  # 300ms if image; else 1ms
             raise StopIteration

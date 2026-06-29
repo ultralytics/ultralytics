@@ -117,9 +117,9 @@ def test_second_association_preserves_detection_set_index(tracker):
     # Three independent non-overlapping targets, all high-score.
     frame1 = MockResults(
         xywh=[
-            [100.0, 100.0, 50.0, 50.0],  # obj0 → original detection index 0
-            [200.0, 200.0, 50.0, 50.0],  # obj1 → original detection index 1
-            [300.0, 300.0, 50.0, 50.0],  # obj2 → original detection index 2
+            [100.0, 100.0, 50.0, 50.0],  # obj0 original detection index 0
+            [200.0, 200.0, 50.0, 50.0],  # obj1 original detection index 1
+            [300.0, 300.0, 50.0, 50.0],  # obj2 original detection index 2
         ],
         conf=[0.90, 0.88, 0.72],  # all > track_high_thresh (0.5)
         cls=[0, 0, 0],
@@ -132,9 +132,9 @@ def test_second_association_preserves_detection_set_index(tracker):
     # Bounding boxes stay almost the same (tiny shift so IoU is still high).
     frame2 = MockResults(
         xywh=[
-            [101.0, 101.0, 50.0, 50.0],  # obj0 – high score (0.91)
-            [201.0, 201.0, 50.0, 50.0],  # obj1 – high score (0.82)
-            [301.0, 301.0, 50.0, 50.0],  # obj2 – low score (0.56), enters second association
+            [101.0, 101.0, 50.0, 50.0],  # obj0 high score (0.91)
+            [201.0, 201.0, 50.0, 50.0],  # obj1 high score (0.82)
+            [301.0, 301.0, 50.0, 50.0],  # obj2 low score (0.56), enters second association
         ],
         conf=[0.91, 0.86, 0.56],  # obj2 in (track_low_thresh, track_high_thresh) = (0.1, 0.5)
         cls=[0, 0, 0],

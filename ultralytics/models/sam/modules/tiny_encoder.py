@@ -967,8 +967,9 @@ class TinyViT(nn.Module):
         """Perform the forward pass through the TinyViT model, extracting features from the input image."""
         return self.forward_features(x)
 
-    def set_imgsz(self, imgsz: list[int] = [1024, 1024]):
+    def set_imgsz(self, imgsz: list[int] | None = None):
         """Set image size to make model compatible with different image sizes."""
+        imgsz = imgsz if imgsz is not None else [1024, 1024]
         imgsz = [s // 4 for s in imgsz]
         self.patches_resolution = imgsz
         for i, layer in enumerate(self.layers):

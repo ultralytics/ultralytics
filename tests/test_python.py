@@ -175,7 +175,9 @@ def test_predict_gray_and_4ch(tmp_path):
 @pytest.mark.slow
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 def test_predict_all_image_formats():
-    """Predict on all 12 image formats (AVIF, BMP, DNG, HEIC, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WebP)."""
+    """Predict on the 12 image format extensions in COCO12-Formats (AVIF, BMP, DNG, HEIC, JP2, JPEG, JPG, MPO, PNG, TIF,
+    TIFF, WebP).
+    """
     # Download dataset if needed
     data = check_det_dataset("coco12-formats.yaml")
     dataset_path = Path(data["path"])
@@ -823,6 +825,20 @@ def test_model_embeddings():
     assert model_classify.predict(SOURCE, imgsz=32)[0].probs is not None
     assert isinstance(model_classify.predict(SOURCE, imgsz=32, embed=[-2])[0], torch.Tensor)
     assert model_classify.predict(SOURCE, imgsz=32)[0].probs is not None
+
+
+def test_process_mask_native_chunked():
+    """Chunked native upsampling is identical to upsampling all masks at once."""
+    from ultralytics.utils import ops
+
+    torch.manual_seed(0)
+    protos, masks_in = torch.randn(32, 160, 160), torch.randn(70, 32)
+    bboxes = torch.rand(70, 4) * 900 + 5  # fractional boxes exercise the crop edge handling
+    bboxes[:, 2:] += bboxes[:, :2]
+    out = ops.process_mask_native(protos, masks_in, bboxes, (1000, 1000))  # large shape forces multiple chunks
+    ref = ops.scale_masks((masks_in @ protos.float().view(32, -1)).view(-1, 160, 160)[None], (1000, 1000))[0]
+    ref = ops.crop_mask(ref, bboxes).gt_(0.0).byte()  # single-shot upsample-crop-threshold
+    assert torch.equal(out, ref)
 
 
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for CLIP-based models")

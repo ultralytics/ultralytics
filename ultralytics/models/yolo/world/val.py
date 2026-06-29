@@ -27,7 +27,7 @@ class WorldValidator(DetectionValidator):
                 model = load_checkpoint(model or self.args.model, device=self.device)[0]
             model.eval().to(self.device)
             names = [name.split("/", 1)[0] for name in check_det_dataset(self.args.data)["names"].values()]
-            if sorted(model.names.values()) != sorted(names):  # regenerate prompts only if they differ from dataset
+            if list(model.names.values()) != names:  # regenerate prompts only if class order differs from dataset
                 state = (model.names, model.txt_feats, model.model[-1].nc)  # restore after to avoid leak to caller
                 model.set_classes(names, cache_clip_model=False)
                 model.names = dict(enumerate(names))  # set_classes updates embeddings/nc but not names

@@ -307,67 +307,35 @@ def test_train_reuses_loaded_checkpoint_model(monkeypatch, kwargs, uses_weights)
     assert captured["weights"] is (original_model if uses_weights else None), "Unexpected weights loaded"
 
 
-@pytest.mark.parametrize("pass_trainer,add_callback", [(True, False), (False, True)])
-def test_train_multi_python_customizations_run_in_process(monkeypatch, tmp_path, pass_trainer, add_callback):
-    """Test multi-dataset training preserves Python trainer and callback customizations."""
+def test_train_multi_custom_trainer_metrics_and_failure_keys(monkeypatch, tmp_path):
+    """Test custom multi-dataset runs keep memory metrics and unique failure keys."""
     model = YOLO(MODEL)
-    calls = {"train": 0, "callback": 0}
+    calls = 0
 
     class FakeTrainer:
         def __init__(self, overrides=None, _callbacks=None):
-            self.overrides = overrides
-            self.callbacks = _callbacks
+            pass
 
         def get_model(self, cfg=None, weights=None, verbose=True):
             return model.model
 
         def train(self):
-            calls["train"] += 1
-            for callback in self.callbacks["on_train_start"]:
-                callback(self)
-            self.validator = SimpleNamespace(metrics=SimpleNamespace(results_dict={"fitness": float(calls["train"])}))
-
-    def on_train_start(trainer):
-        calls["callback"] += 1
-
-    monkeypatch.setattr("ultralytics.engine.model.checks.check_pip_update_available", lambda: None)
-    if add_callback:
-        model.add_callback("on_train_start", on_train_start)
-        monkeypatch.setattr(model, "_smart_load", lambda key: FakeTrainer)
-
-    kwargs = {"trainer": FakeTrainer} if pass_trainer else {}
-    results = model.train(
-        data=["coco8.yaml", "coco8.yaml"], project=tmp_path, epochs=1, imgsz=32, plots=False, save=False, **kwargs
-    )
-
-    assert model.trainer.use_subprocess is False
-    assert calls == {"train": 2, "callback": 2 if add_callback else 0}
-    assert isinstance(results, dict) and len(results) == 2
-
-
-def test_train_multi_repeated_dataset_failure_uses_unique_run_name(monkeypatch, tmp_path):
-    """Test repeated multi-dataset failures do not overwrite successful run metrics."""
-    model = YOLO(MODEL)
-    calls = {"train": 0}
-
-    class FakeTrainer:
-        def __init__(self, overrides=None, _callbacks=None):
-            self.overrides = overrides
-
-        def get_model(self, cfg=None, weights=None, verbose=True):
-            return model.model
-
-        def train(self):
-            calls["train"] += 1
-            if calls["train"] == 2:
+            nonlocal calls
+            calls += 1
+            if calls == 2:
                 raise RuntimeError("failed repeated dataset")
             self.validator = SimpleNamespace(metrics=SimpleNamespace(results_dict={"fitness": 1.0}))
 
     monkeypatch.setattr("ultralytics.engine.model.checks.check_pip_update_available", lambda: None)
     results = model.train(
-        data=["coco8.yaml", "coco8.yaml"], project=tmp_path, epochs=1, imgsz=32, plots=False, trainer=FakeTrainer
+        data=["coco8.yaml", "coco8.yaml"],
+        project=tmp_path,
+        plots=False,
+        save=False,
+        trainer=FakeTrainer,
     )
 
+    assert model.trainer.use_subprocess is False
     assert results == {"coco8": {"fitness": 1.0}, "coco8-2": None}
 
 

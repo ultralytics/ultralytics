@@ -338,7 +338,7 @@ EXPORT_ENVS = {
         "requirements": [],
         "indexes": [],
         "env": {},
-        "smoke": ["yolo export format=litert model=yolo11n.pt imgsz=32"],
+        "smoke": ["yolo export format=litert model=yolo26n.pt imgsz=32"],
     },
 }
 

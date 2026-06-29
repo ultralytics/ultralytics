@@ -229,7 +229,7 @@ def select_device(device="", newline=False, verbose=True):
         if not (
             torch.cuda.is_available()
             and torch.cuda.device_count()
-            >= (max(numeric_devices) + 1 if cuda_initialized and numeric_devices else len(devices))
+            >= (max(numeric_devices) + 1 if cuda_initialized and numeric_devices and len(numeric_devices) == len(devices) else len(devices))
         ):
             LOGGER.info(s)
             install = (

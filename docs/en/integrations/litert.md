@@ -91,7 +91,7 @@ All [Ultralytics YOLO models](../models/index.md) support export out of the box.
         model = YOLO("yolo26n.pt")
 
         # Dynamic INT8: int8 weights, FP32 activations - no calibration data needed
-        model.export(format="litert", quantize="w8a32")  # creates 'yolo26n_dynamic_int8.tflite'
+        model.export(format="litert", quantize="w8a32")  # creates 'yolo26n_w8a32.tflite'
 
         # Static INT8: int8 weights + int8 activations - needs calibration data
         model.export(format="litert", quantize=8, data="coco8.yaml")  # creates 'yolo26n_int8.tflite'

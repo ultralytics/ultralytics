@@ -95,7 +95,7 @@ def torch2litert(
     dynamic_int8 = quantize == "w8a32"
     LOGGER.info(f"\n{prefix} starting export with litert_torch {litert_torch.__version__}...")
     file = Path(file)
-    quant_tag = "_int8" if static_int8 else "_w8a16" if static_int16 else "_dynamic_int8" if dynamic_int8 else ""
+    quant_tag = "_int8" if static_int8 else "_w8a16" if static_int16 else "_w8a32" if dynamic_int8 else ""
 
     # Normalize coordinate channels to [0, 1] so INT8 quantization preserves scores (denormalized in LiteRTBackend).
     # End-to-end models output post-NMS pixel coordinates in FP32 (no scale collapse), so they are left as-is.

@@ -388,7 +388,7 @@ class YOLOE(Model):
         self,
         source=None,
         stream: bool = False,
-        visual_prompts: dict[str, list] = {},
+        visual_prompts: dict[str, list] | None = None,
         refer_image=None,
         predictor=yolo.yoloe.YOLOEVPDetectPredictor,
         **kwargs,
@@ -417,6 +417,7 @@ class YOLOE(Model):
             >>> prompts = {"bboxes": [[10, 20, 100, 200]], "cls": ["person"]}
             >>> results = model.predict("path/to/image.jpg", visual_prompts=prompts)
         """
+        visual_prompts = visual_prompts if visual_prompts is not None else {}
         if len(visual_prompts):
             assert "bboxes" in visual_prompts and "cls" in visual_prompts, (
                 f"Expected 'bboxes' and 'cls' in visual prompts, but got {visual_prompts.keys()}"

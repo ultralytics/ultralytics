@@ -44,7 +44,7 @@ However, using the cloud can be expensive, especially with high data usage, and 
 
 Edge deployment works well for applications needing real-time responses and low latency, particularly in places with limited or no internet access. Deploying models on edge devices like smartphones or IoT gadgets ensures fast processing and keeps data local, which enhances privacy. Deploying on edge also saves bandwidth due to reduced data sent to the cloud.
 
-However, edge devices often have limited processing power, so you'll need to optimize your models. Tools like [TensorFlow Lite](../integrations/tflite.md) and [NVIDIA Jetson](./nvidia-jetson.md) can help. Despite the benefits, maintaining and updating many devices can be challenging.
+However, edge devices often have limited processing power, so you'll need to optimize your models. Tools like [LiteRT](../integrations/litert.md) and [NVIDIA Jetson](./nvidia-jetson.md) can help. Despite the benefits, maintaining and updating many devices can be challenging.
 
 #### Local Deployment
 
@@ -181,7 +181,7 @@ Troubleshooting deployment issues can be broken down into a few key steps. If yo
 
 ### How does Ultralytics YOLO26 optimization enhance model performance on edge devices?
 
-Optimizing Ultralytics YOLO26 models for edge devices involves using techniques like pruning to reduce the model size, quantization to convert weights to lower precision, and knowledge distillation to train smaller models that mimic larger ones. These techniques ensure the model runs efficiently on devices with limited computational power. Tools like [TensorFlow Lite](../integrations/tflite.md) and [NVIDIA Jetson](./nvidia-jetson.md) are particularly useful for these optimizations. Learn more about these techniques in our section on [model optimization](#model-optimization-techniques).
+Optimizing Ultralytics YOLO26 models for edge devices involves using techniques like pruning to reduce the model size, quantization to convert weights to lower precision, and knowledge distillation to train smaller models that mimic larger ones. These techniques ensure the model runs efficiently on devices with limited computational power. Tools like [LiteRT](../integrations/litert.md) and [NVIDIA Jetson](./nvidia-jetson.md) are particularly useful for these optimizations. Learn more about these techniques in our section on [model optimization](#model-optimization-techniques).
 
 ### What are the security considerations for deploying machine learning models with Ultralytics YOLO26?
 
@@ -189,4 +189,4 @@ Security is paramount when deploying machine learning models. Ensure secure data
 
 ### How do I choose the right deployment environment for my Ultralytics YOLO26 model?
 
-Selecting the optimal deployment environment for your Ultralytics YOLO26 model depends on your application's specific needs. Cloud deployment offers scalability and ease of access, making it ideal for applications with high data volumes. Edge deployment is best for low-latency applications requiring real-time responses, using tools like [TensorFlow Lite](../integrations/tflite.md). Local deployment suits scenarios needing stringent data privacy and control. For a comprehensive overview of each environment, check out our section on [choosing a deployment environment](#choosing-a-deployment-environment).
+Selecting the optimal deployment environment for your Ultralytics YOLO26 model depends on your application's specific needs. Cloud deployment offers scalability and ease of access, making it ideal for applications with high data volumes. Edge deployment is best for low-latency applications requiring real-time responses, using tools like [LiteRT](../integrations/litert.md). Local deployment suits scenarios needing stringent data privacy and control. For a comprehensive overview of each environment, check out our section on [choosing a deployment environment](#choosing-a-deployment-environment).

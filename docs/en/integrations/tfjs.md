@@ -72,7 +72,7 @@ For detailed instructions and best practices related to the installation process
 
 All [Ultralytics YOLO26 models](../models/index.md) are designed to support export out of the box, making it easy to integrate them into your preferred deployment workflow. You can [view the full list of supported export formats and configuration options](../modes/export.md) to choose the best setup for your application.
 
-The TF.js format is **export-only** in Ultralytics — [Predict](../modes/predict.md) and [Validate](../modes/val.md) are not available locally. Deploy the exported model in the browser or a Node.js application with the [TensorFlow.js](https://www.tensorflow.org/js) runtime.
+The `tfjs` argument now exports a [LiteRT](litert.md) `.tflite` model, which supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes locally and runs in the browser via [LiteRT.js](https://github.com/google-ai-edge/LiteRT.js). See the [LiteRT export guide](litert.md) for the current browser and on-device deployment path.
 
 !!! example "Export"
 
@@ -97,7 +97,7 @@ The TF.js format is **export-only** in Ultralytics — [Predict](../modes/predic
 
 !!! note "Predict and Validate"
 
-    Ultralytics does not provide a local TF.js inference backend, so `yolo predict` and `yolo val` cannot load a `_web_model`. Run the exported model with the TensorFlow.js runtime in your web or Node.js application instead.
+    The exported LiteRT `.tflite` model loads directly with `yolo predict` and `yolo val`, and runs in the browser via [LiteRT.js](https://github.com/google-ai-edge/LiteRT.js). See the [LiteRT export guide](litert.md).
 
 ### Export Arguments
 
@@ -106,7 +106,6 @@ The TF.js format is **export-only** in Ultralytics — [Predict](../modes/predic
 | `format`   | `str`            | `'tfjs'`       | Target format for the exported model, defining compatibility with various deployment environments.                                                                                                                                                               |
 | `imgsz`    | `int` or `tuple` | `640`          | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                                                                |
 | `quantize` | `int` or `str`   | `None`         | Quantization precision: `16` (FP16) or `8` (INT8/PTQ; needs calibration `data`/`fraction`); `32`/unset is FP32. Replaces the deprecated `half`/`int8` flags.                                                                                                     |
-| `nms`      | `bool`           | `False`        | Adds Non-Maximum Suppression (NMS), essential for accurate and efficient detection post-processing.                                                                                                                                                              |
 | `batch`    | `int`            | `1`            | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                                                          |
 | `data`     | `str`            | `'coco8.yaml'` | Path to the [dataset](../datasets/index.md) configuration file (default: `coco8.yaml`), essential for quantization.                                                                                                                                              |
 | `fraction` | `float`          | `1.0`          | Specifies the fraction of the dataset to use for INT8 quantization calibration. Allows for calibrating on a subset of the full dataset, useful for experiments or when resources are limited. If not specified with INT8 enabled, the full dataset will be used. |
@@ -116,9 +115,9 @@ For more details about the export process, visit the [Ultralytics documentation 
 
 ## Deploying Exported YOLO26 TensorFlow.js Models
 
-Now that you have exported your YOLO26 model to the TF.js format, the next step is to deploy it. Ultralytics does not provide a local TF.js inference backend, so the exported `_web_model` is intended to run directly with the [TensorFlow.js](https://www.tensorflow.org/js) runtime in a browser or Node.js application.
+Now that you have exported your YOLO26 model, the next step is to deploy it. The export produces a [LiteRT](litert.md) `.tflite` model that runs on-device and in the browser via [LiteRT.js](https://github.com/google-ai-edge/LiteRT.js) — see the [LiteRT export guide](litert.md) for the current path.
 
-For in-depth instructions on deploying your TF.js models, take a look at the following resources:
+For reference, the legacy TensorFlow.js runtime resources are below:
 
 - **[Chrome Extension](https://www.tensorflow.org/js/tutorials/deployment/web_ml_in_chrome)**: Here's the developer documentation for how to deploy your TF.js models to a Chrome extension.
 
@@ -153,8 +152,7 @@ Exporting Ultralytics YOLO26 models to TensorFlow.js (TF.js) format is straightf
         # Export the model to TF.js format
         model.export(format="litert")  # creates 'yolo26n.tflite'
 
-        # Deploy the exported '_web_model' with the TensorFlow.js runtime in a browser or Node.js app.
-        # Ultralytics does not provide a local TF.js inference backend.
+        # The exported '.tflite' model runs in the browser via LiteRT.js or locally with yolo predict/val.
         ```
 
     === "CLI"
@@ -163,8 +161,7 @@ Exporting Ultralytics YOLO26 models to TensorFlow.js (TF.js) format is straightf
         # Export a YOLO26n PyTorch model to TF.js format
         yolo export model=yolo26n.pt format=litert # creates 'yolo26n.tflite'
 
-        # Deploy the exported '_web_model' with the TensorFlow.js runtime in a browser or Node.js app.
-        # Ultralytics does not provide a local TF.js inference backend.
+        # The exported '.tflite' model runs in the browser via LiteRT.js or locally with yolo predict/val.
         ```
 
 For more details about supported export options, visit the [Ultralytics documentation page on deployment options](../guides/model-deployment-options.md).

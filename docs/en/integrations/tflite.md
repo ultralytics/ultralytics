@@ -109,7 +109,7 @@ The TFLite format supports the [Export](../modes/export.md), [Predict](../modes/
         from ultralytics import YOLO
 
         # Load the exported TFLite model
-        model = YOLO("yolo26n_float32.tflite")
+        model = YOLO("yolo26n.tflite")
 
         # Run inference
         results = model("https://ultralytics.com/images/bus.jpg")
@@ -119,7 +119,7 @@ The TFLite format supports the [Export](../modes/export.md), [Predict](../modes/
 
         ```bash
         # Run inference with the exported TFLite model
-        yolo predict model=yolo26n_float32.tflite source='https://ultralytics.com/images/bus.jpg'
+        yolo predict model=yolo26n.tflite source='https://ultralytics.com/images/bus.jpg'
         ```
 
 !!! example "Validate"
@@ -130,7 +130,7 @@ The TFLite format supports the [Export](../modes/export.md), [Predict](../modes/
         from ultralytics import YOLO
 
         # Load the exported TFLite model
-        model = YOLO("yolo26n_float32.tflite")
+        model = YOLO("yolo26n.tflite")
 
         # Validate accuracy on the COCO8 dataset
         metrics = model.val(data="coco8.yaml")
@@ -140,7 +140,7 @@ The TFLite format supports the [Export](../modes/export.md), [Predict](../modes/
 
         ```bash
         # Validate the exported TFLite model
-        yolo val model=yolo26n_float32.tflite data=coco8.yaml
+        yolo val model=yolo26n.tflite data=coco8.yaml
         ```
 
 ### Export Arguments
@@ -150,7 +150,6 @@ The TFLite format supports the [Export](../modes/export.md), [Predict](../modes/
 | `format`   | `str`            | `'tflite'`     | Target format for the exported model, defining compatibility with various deployment environments.                                                                                                                                                               |
 | `imgsz`    | `int` or `tuple` | `640`          | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                                                                |
 | `quantize` | `int` or `str`   | `None`         | Quantization precision: `16` (FP16) or `8` (INT8/PTQ; needs calibration `data`/`fraction`); `32`/unset is FP32. Replaces the deprecated `half`/`int8` flags.                                                                                                     |
-| `nms`      | `bool`           | `False`        | Adds Non-Maximum Suppression (NMS), essential for accurate and efficient detection post-processing.                                                                                                                                                              |
 | `batch`    | `int`            | `1`            | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                                                          |
 | `data`     | `str`            | `'coco8.yaml'` | Path to the [dataset](../datasets/index.md) configuration file (default: `coco8.yaml`), essential for quantization.                                                                                                                                              |
 | `fraction` | `float`          | `1.0`          | Specifies the fraction of the dataset to use for INT8 quantization calibration. Allows for calibrating on a subset of the full dataset, useful for experiments or when resources are limited. If not specified with INT8 enabled, the full dataset will be used. |

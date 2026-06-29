@@ -1186,7 +1186,9 @@ class MultiTrainer:
         self.save_dir.mkdir(parents=True, exist_ok=True)
         base_model = self.save_dir / "multitrain_base.pt" if self.use_subprocess else None
         if base_model:
-            torch_save({"model": deepcopy(self.model).half(), "train_args": getattr(self.model, "args", {})}, base_model)
+            torch_save(
+                {"model": deepcopy(self.model).half(), "train_args": getattr(self.model, "args", {})}, base_model
+            )
         try:
             for i, data in enumerate(datasets):
                 LOGGER.info(
@@ -1219,7 +1221,11 @@ class MultiTrainer:
                         overrides["model"] = str(base_model)
                         overrides["pretrained"] = True
                         subprocess.run(
-                            [*_YOLO_CLI_COMMAND, "train", *(f"{k}={v}" for k, v in overrides.items() if k != "session")],
+                            [
+                                *_YOLO_CLI_COMMAND,
+                                "train",
+                                *(f"{k}={v}" for k, v in overrides.items() if k != "session"),
+                            ],
                             check=True,
                         )
                     else:

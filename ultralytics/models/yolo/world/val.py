@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from copy import deepcopy
-
 import torch
 
 from ultralytics.data.utils import check_det_dataset
@@ -11,7 +9,7 @@ from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils.torch_utils import select_device
 
 
-class WorldDetectValidator(DetectionValidator):
+class WorldValidator(DetectionValidator):
     """A validator for YOLO-World models that sets dataset class names before validation.
 
     Open-vocabulary YOLO-World models default to 80 COCO classes, so validating on a dataset with different classes
@@ -26,9 +24,15 @@ class WorldDetectValidator(DetectionValidator):
             if not isinstance(model, torch.nn.Module):
                 from ultralytics.nn.tasks import load_checkpoint
 
-                model, _ = load_checkpoint(model or self.args.model, device=self.device)
-            model = deepcopy(model).eval().to(self.device)  # copy to avoid leaking dataset classes back to caller
+                model = load_checkpoint(model or self.args.model, device=self.device)[0]
+            model.eval().to(self.device)
             names = [name.split("/", 1)[0] for name in check_det_dataset(self.args.data)["names"].values()]
-            model.set_classes(names, cache_clip_model=False)
-            model.names = dict(enumerate(names))  # set_classes updates embeddings/nc but not names
+            if sorted(model.names.values()) != sorted(names):  # regenerate prompts only if they differ from dataset
+                state = (model.names, model.txt_feats, model.model[-1].nc)  # restore after to avoid leak to caller
+                model.set_classes(names, cache_clip_model=False)
+                model.names = dict(enumerate(names))  # set_classes updates embeddings/nc but not names
+                try:
+                    return super().__call__(trainer, model)
+                finally:
+                    model.names, model.txt_feats, model.model[-1].nc = state
         return super().__call__(trainer, model)

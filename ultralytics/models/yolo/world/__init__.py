@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from .train import WorldTrainer
-from .val import WorldDetectValidator
+from .val import WorldValidator
 
-__all__ = ["WorldDetectValidator", "WorldTrainer"]
+__all__ = ["WorldTrainer", "WorldValidator"]

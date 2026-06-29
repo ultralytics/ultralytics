@@ -12,6 +12,6 @@ keywords: Ultralytics, ultralytics.models.yolo.world.val, API reference, YOLO, P
 
 <br>
 
-## ::: ultralytics.models.yolo.world.val.WorldDetectValidator
+## ::: ultralytics.models.yolo.world.val.WorldValidator
 
 <br><br>

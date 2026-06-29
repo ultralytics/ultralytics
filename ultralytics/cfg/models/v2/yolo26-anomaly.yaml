@@ -20,7 +20,7 @@ anomaly_v2:
   mask_size: 80
   mask_mode: gauss
   sigma_factor: [0.20, 0.40]
-  p_drop: 0.4
+  p_drop: 0.6
   seg_branch: false
   bb_layers: [6]
   fusion_mode: bias

@@ -828,15 +828,17 @@ def test_model_embeddings():
 
 
 def test_process_mask_native_chunked():
-    """Native mask upsampling is chunked to bound the float intermediate and handles zero detections."""
+    """Chunked native upsampling is identical to upsampling all masks at once."""
     from ultralytics.utils import ops
 
-    protos = torch.randn(32, 160, 160)
-    boxes = lambda n, h, w: torch.tensor([[5.0, 5.0, w - 5.0, h - 5.0]]).repeat(n, 1)  # noqa: E731
-    masks = ops.process_mask_native(protos, torch.randn(30, 32), boxes(30, 1500, 1500), (1500, 1500))
-    assert masks.shape == (30, 1500, 1500) and masks.dtype == torch.uint8  # full-resolution output via multiple chunks
-    empty = ops.process_mask_native(protos, torch.randn(0, 32), boxes(0, 512, 512), (512, 512))
-    assert empty.shape == (0, 512, 512) and empty.dtype == torch.uint8  # zero detections
+    torch.manual_seed(0)
+    protos, masks_in = torch.randn(32, 160, 160), torch.randn(70, 32)
+    bboxes = torch.rand(70, 4) * 900 + 5  # fractional boxes exercise the crop edge handling
+    bboxes[:, 2:] += bboxes[:, :2]
+    out = ops.process_mask_native(protos, masks_in, bboxes, (1000, 1000))  # large shape forces multiple chunks
+    ref = ops.scale_masks((masks_in @ protos.float().view(32, -1)).view(-1, 160, 160)[None], (1000, 1000))[0]
+    ref = ops.crop_mask(ref, bboxes).gt_(0.0).byte()  # single-shot upsample-crop-threshold
+    assert torch.equal(out, ref)
 
 
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for CLIP-based models")

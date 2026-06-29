@@ -16,9 +16,9 @@ from .base import BaseBackend, read_tflite_metadata
 class LiteRTBackend(BaseBackend):
     """Google LiteRT (formerly TensorFlow Lite) inference backend.
 
-    Loads and runs inference with LiteRT models (.tflite files) exported via ai-edge-litert/litert-torch. Supports FP32
-    and static INT8 (int8 weights and activations) models, with automatic input/output dequantization and
-    denormalization of box/keypoint coordinates by image size.
+    Loads and runs inference with LiteRT models (.tflite files) exported via ai-edge-litert/litert-torch. Ultralytics
+    exports keep float graph I/O (weights/activations may be int8/int16 internally), so this backend feeds float input
+    and reads float output, denormalizing box/keypoint coordinates by image size.
     """
 
     def load_model(self, weight: str | Path) -> None:
@@ -63,12 +63,6 @@ class LiteRTBackend(BaseBackend):
             im = im.transpose(0, 2, 3, 1)  # BCHW to BHWC for legacy onnx2tf TFLite
         h, w = im.shape[1:3] if self.nhwc else im.shape[2:4]
         details = self.input_details[0]
-        is_int = details["dtype"] in {np.int8, np.int16}
-
-        if is_int:
-            scale, zero_point = details["quantization"]
-            im = (im / scale + zero_point).astype(details["dtype"])
-
         self.interpreter.set_tensor(details["index"], im)
         self.interpreter.invoke()
 
@@ -77,13 +71,10 @@ class LiteRTBackend(BaseBackend):
         for output in self.output_details:
             x = self.interpreter.get_tensor(output["index"])
             if self.task == "semantic" and x.ndim == 3:
-                # Legacy onnx2tf baked argmax class map [B, H, W] of integer IDs: skip dequant and xywh denorm,
-                # which would corrupt and overflow the indices.
+                # Legacy onnx2tf baked argmax class map [B, H, W] of integer IDs: skip xywh denorm, which would
+                # corrupt and overflow the indices.
                 y.append(x)
                 continue
-            if output["dtype"] in {np.int8, np.int16}:
-                scale, zero_point = output["quantization"]
-                x = (x.astype(np.float32) - zero_point) * scale
             # Denormalize xywh (and pose keypoints) by image size. litert-torch end2end output is already post-NMS
             # pixel coordinates (batch, max_det, 6+), so it is left as-is; legacy onnx2tf TFLite normalizes even the
             # end2end output, so it is denormalized on the last axis.

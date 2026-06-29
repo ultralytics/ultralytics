@@ -106,7 +106,7 @@ def torch2litert(
 
     if static_int8 or static_int16 or dynamic_int8:
         check_requirements("ai-edge-quantizer>=0.6.0")
-        from ai_edge_quantizer import quantizer, recipe
+        from ai_edge_quantizer import qtyping, quantizer, recipe
 
         qt = quantizer.Quantizer(str(tflite_file))
         if static_int8 or static_int16:  # static schemes calibrate over representative images
@@ -118,6 +118,13 @@ def torch2litert(
                 for i in range(imgs.shape[0]):
                     calib_samples.append({"args_0": imgs[i : i + 1].numpy()})
             qt.load_quantization_recipe(recipe.static_wi8_ai8() if static_int8 else recipe.static_wi8_ai16())
+            # Keep FP32 graph input/output (weights/activations stay int8/int16 internally): matches the historical
+            # onnx2tf "fp32 in/out" contract that downstream consumers (LiteRT GPU delegate, on-device runtimes) expect,
+            # and avoids forcing every consumer to (de)quantize at the boundary. Must run after load_quantization_recipe.
+            for op in (qtyping.TFLOperationName.INPUT, qtyping.TFLOperationName.OUTPUT):
+                qt.update_quantization_recipe(
+                    regex=".*", operation_name=op, algorithm_key=recipe.AlgorithmName.NO_QUANTIZE
+                )
             result = qt.calibrate({"serving_default": calib_samples})
             qt.quantize(calibration_result=result).export_model(str(tflite_file), overwrite=True)
         else:  # dynamic / weight-only INT8: int8 weights, FP32 activations, no calibration needed

@@ -451,6 +451,17 @@ def test_export_litert_matrix(task, quantize):
     """Test YOLO export to LiteRT format (FP32, static INT8, static w8a16, and dynamic w8a32) for various tasks."""
     file = Path(YOLO(TASK2MODEL[task]).export(format="litert", imgsz=32, quantize=quantize))
     assert file.is_file() and file.suffix == ".tflite", f"LiteRT export is not a single .tflite for '{task}': {file}"
+    # Contract: exports keep float32 graph I/O (int8/int16 stays internal) so downstream runtimes feed/read floats
+    # without boundary (de)quantization; an int8/int16 I/O regression would silently break on-device consumers.
+    import numpy as np
+    from ai_edge_litert.interpreter import Interpreter
+
+    interpreter = Interpreter(model_path=str(file))
+    interpreter.allocate_tensors()
+    io_details = interpreter.get_input_details() + interpreter.get_output_details()
+    assert all(d["dtype"] == np.float32 for d in io_details), (
+        f"LiteRT '{task}' quantize={quantize} must keep float32 I/O, got {[d['dtype'] for d in io_details]}"
+    )
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference (also exercises the embedded metadata)
     file.unlink()  # cleanup
 

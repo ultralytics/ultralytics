@@ -259,6 +259,7 @@ CFG_BOOL_KEYS = frozenset(
         "single_cls",
         "rect",
         "cos_lr",
+        "aug_decay",
         "overlap_mask",
         "val",
         "save_json",

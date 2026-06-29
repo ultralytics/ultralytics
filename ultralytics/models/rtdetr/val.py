@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from copy import copy
 from pathlib import Path
 from typing import Any
 
@@ -13,6 +14,18 @@ from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import colorstr, ops
 
 __all__ = ("RTDETRValidator",)  # tuple or list
+
+RTDETR_AUG_DECAY_NO_AUG_EPOCHS = 4
+
+
+def _compute_scheduled_prob(base_prob: float, epoch: int, stop_epoch: int) -> float:
+    """Linearly decay an augmentation probability to zero before the no-augmentation tail."""
+    base_prob = float(base_prob)
+    if base_prob <= 0.0 or stop_epoch <= 0:
+        return 0.0
+    if epoch >= stop_epoch:
+        return 0.0
+    return base_prob * max(0.0, 1.0 - (float(epoch) / float(stop_epoch)))
 
 
 class RTDETRDataset(YOLODataset):
@@ -49,7 +62,39 @@ class RTDETRDataset(YOLODataset):
             data (dict | None): Dictionary containing dataset information. If None, default values will be used.
             **kwargs (Any): Additional keyword arguments passed to the parent YOLODataset class.
         """
+        hyp = kwargs.get("hyp")
+        self.epoch = 0
+        self.base_hyp = copy(hyp) if hyp is not None else None
+        self.aug_decay = bool(getattr(hyp, "aug_decay", False)) if hyp is not None else False
+        epochs = max(1, int(getattr(hyp, "epochs", 1))) if hyp is not None else 1
+        no_aug_epochs = min(RTDETR_AUG_DECAY_NO_AUG_EPOCHS, epochs)
+        self.aug_decay_stop_epoch = epochs - no_aug_epochs
         super().__init__(*args, data=data, **kwargs)
+
+    def _build_yolov8_aug_hyp(self, epoch: int):
+        """Clone base hparams and apply decay to the YOLOv8 augmentation probabilities."""
+        hyp = copy(self.base_hyp)
+        stop_epoch = self.aug_decay_stop_epoch
+        for key in "mosaic", "mixup", "cutmix", "copy_paste":
+            setattr(hyp, key, _compute_scheduled_prob(getattr(self.base_hyp, key), epoch, stop_epoch))
+        if epoch >= stop_epoch:
+            # Match the clean tail by neutralizing the remaining YOLOv8 train augmentations.
+            for key in (
+                "degrees",
+                "translate",
+                "scale",
+                "shear",
+                "perspective",
+                "hsv_h",
+                "hsv_s",
+                "hsv_v",
+                "flipud",
+                "fliplr",
+                "bgr",
+            ):
+                setattr(hyp, key, 0.0)
+            hyp.augmentations = []
+        return hyp
 
     def load_image(self, i, rect_mode=False):
         """Load one image from dataset index 'i'.
@@ -79,6 +124,8 @@ class RTDETRDataset(YOLODataset):
         Returns:
             (Compose): Composition of transformation functions.
         """
+        if self.augment and self.aug_decay:
+            hyp = self._build_yolov8_aug_hyp(self.epoch)
         if self.augment:
             hyp.mosaic = hyp.mosaic if self.augment and not self.rect else 0.0
             hyp.mixup = hyp.mixup if self.augment and not self.rect else 0.0
@@ -99,6 +146,12 @@ class RTDETRDataset(YOLODataset):
             )
         )
         return transforms
+
+    def set_epoch(self, epoch: int) -> None:
+        """Update YOLOv8 augmentation probabilities for the current epoch."""
+        self.epoch = int(epoch)
+        if self.augment and self.aug_decay:
+            self.transforms = self.build_transforms(hyp=self.base_hyp)
 
 
 class RTDETRValidator(DetectionValidator):

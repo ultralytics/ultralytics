@@ -62,15 +62,15 @@ def torch2litert(
     Three INT8 schemes are supported via ``quantize``: ``8`` applies static INT8 (int8 weights + int8 activations) and
     ``'w8a16'`` applies static INT8 weights with int16 activations, both requiring a ``calibration_dataset``;
     ``'w8a32'`` applies dynamic/weight-only INT8 (int8 weights + FP32 activations) and needs no calibration.
-    ``None``/``32`` exports FP32. FP16 is not exported as a separate model: LiteRT runs an FP32 model in FP16 at
-    runtime via the GPU delegate (FP16 by default) or the XNNPACK ``FORCE_FP16`` flag on ARM.
+    ``None``/``32`` exports FP32. FP16 is not exported as a separate model: LiteRT runs an FP32 model in FP16 at runtime
+    via the GPU delegate (FP16 by default) or the XNNPACK ``FORCE_FP16`` flag on ARM.
 
     Args:
         model (torch.nn.Module): The PyTorch model to export.
         im (torch.Tensor): Example input tensor for tracing.
         file (Path | str): Source model file path used to derive output directory.
-        quantize (int | str | None): Quantization scheme: ``8`` (static INT8), ``'w8a16'`` (static int8 weights +
-            int16 activations), ``'w8a32'`` (dynamic INT8), or ``None``/``32`` (FP32).
+        quantize (int | str | None): Quantization scheme: ``8`` (static INT8), ``'w8a16'`` (static int8 weights + int16
+            activations), ``'w8a32'`` (dynamic INT8), or ``None``/``32`` (FP32).
         calibration_dataset (DataLoader | None): Calibration dataloader for static quantization, as returned by
             ``get_int8_calibration_dataloader``. Required when ``quantize`` is ``8`` or ``'w8a16'``.
         metadata (dict | None): Optional metadata saved as ``metadata.yaml``.

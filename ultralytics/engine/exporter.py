@@ -361,7 +361,9 @@ INT8_FORMATS = frozenset(
         "litert",
     }
 )
-W8A16_FORMATS = frozenset({"coreml", "imx", "qnn", "litert"})  # INT8 weights + 16-bit activations (FP16; INT16 on LiteRT)
+W8A16_FORMATS = frozenset(
+    {"coreml", "imx", "qnn", "litert"}
+)  # INT8 weights + 16-bit activations (FP16; INT16 on LiteRT)
 W8A32_FORMATS = frozenset({"litert"})  # INT8 weights + FP32 activations (dynamic/weight-only INT8, no calibration)
 FP32_UNSUPPORTED_FORMATS = frozenset({"edgetpu", "imx", "rknn", "axelera", "deepx", "qnn"})
 

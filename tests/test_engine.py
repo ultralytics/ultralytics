@@ -307,6 +307,38 @@ def test_train_reuses_loaded_checkpoint_model(monkeypatch, kwargs, uses_weights)
     assert captured["weights"] is (original_model if uses_weights else None), "Unexpected weights loaded"
 
 
+def test_train_multi_custom_trainer_metrics_and_failure_keys(monkeypatch, tmp_path):
+    """Test custom multi-dataset runs keep memory metrics and unique failure keys."""
+    model = YOLO(MODEL)
+    calls = 0
+
+    class FakeTrainer:
+        def __init__(self, overrides=None, _callbacks=None):
+            pass
+
+        def get_model(self, cfg=None, weights=None, verbose=True):
+            return model.model
+
+        def train(self):
+            nonlocal calls
+            calls += 1
+            if calls == 2:
+                raise RuntimeError("failed repeated dataset")
+            self.validator = SimpleNamespace(metrics=SimpleNamespace(results_dict={"fitness": 1.0}))
+
+    monkeypatch.setattr("ultralytics.engine.model.checks.check_pip_update_available", lambda: None)
+    results = model.train(
+        data=["coco8.yaml", "coco8.yaml"],
+        project=tmp_path,
+        plots=False,
+        save=False,
+        trainer=FakeTrainer,
+    )
+
+    assert model.trainer.trainer is FakeTrainer
+    assert results == {"coco8": {"fitness": 1.0}, "coco8-2": None}
+
+
 @pytest.mark.parametrize("pretrained,uses_weights", [(True, True), (False, False), (MODEL, True)])
 def test_setup_model_respects_pretrained_arg_for_pt_models(monkeypatch, pretrained, uses_weights):
     """Test .pt models use checkpoint config while respecting the pretrained argument."""

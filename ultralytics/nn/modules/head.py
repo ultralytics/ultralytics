@@ -24,6 +24,7 @@ __all__ = (
     "OBB",
     "Classify",
     "Detect",
+    "DetectO2OStem",
     "Pose",
     "RTDETRDecoder",
     "Segment",
@@ -261,6 +262,54 @@ class Detect(nn.Module):
     def fuse(self) -> None:
         """Remove the one2many head for inference optimization."""
         self.cv2 = self.cv3 = None
+
+
+class DetectO2OStem(Detect):
+    """YOLO Detect head that adds an extra 3x3 Conv stem to the one2one branch.
+
+    Identical to Detect, but inserts a per-level 3x3 Conv before the one2one box and classification heads. The
+    stem refines the (optionally detached) features feeding the one2one branch only; the one2many branch is
+    unchanged. Has no effect unless end-to-end detection is enabled.
+
+    Attributes:
+        one2one_stem (nn.ModuleList): Per-level 3x3 Conv applied to the one2one features before the heads.
+
+    Examples:
+        Create an end-to-end detection head with a one2one stem
+        >>> detect = DetectO2OStem(nc=80, end2end=True, ch=(256, 512, 1024))
+        >>> x = [torch.randn(1, 256, 80, 80), torch.randn(1, 512, 40, 40), torch.randn(1, 1024, 20, 20)]
+        >>> outputs = detect(x)
+    """
+
+    def __init__(self, nc: int = 80, reg_max=16, end2end=False, ch: tuple = ()):
+        """Initialize the detection head and, when end-to-end, the per-level one2one 3x3 Conv stem.
+
+        Args:
+            nc (int): Number of classes.
+            reg_max (int): Maximum number of DFL channels.
+            end2end (bool): Whether to use end-to-end NMS-free detection.
+            ch (tuple): Tuple of channel sizes from backbone feature maps.
+        """
+        super().__init__(nc, reg_max, end2end, ch)
+        if end2end:
+            self.one2one_stem = nn.ModuleList(Conv(x, x, 3) for x in ch)
+
+    def forward(
+        self, x: list[torch.Tensor]
+    ) -> dict[str, torch.Tensor] | torch.Tensor | tuple[torch.Tensor, dict[str, torch.Tensor]]:
+        """Run the one2many head on raw features and the one2one head on stem-refined features."""
+        preds = self.forward_head(x, **self.one2many)
+        if self.end2end:
+            feats = [xi.detach() for xi in x] if self.detach_one2one else x
+            feats = [self.one2one_stem[i](feats[i]) for i in range(self.nl)]
+            one2one = self.forward_head(feats, **self.one2one)
+            preds = {"one2many": preds, "one2one": one2one}
+        if self.training:
+            return preds
+        y = self._inference(preds["one2one"] if self.end2end else preds)
+        if self.end2end:
+            y = self.postprocess(y.permute(0, 2, 1))
+        return y if self.export else (y, preds)
 
 
 class Segment(Detect):

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
+
 import torch
 
 from ultralytics.data.utils import check_det_dataset
@@ -25,7 +27,7 @@ class WorldDetectValidator(DetectionValidator):
                 from ultralytics.nn.tasks import load_checkpoint
 
                 model, _ = load_checkpoint(model or self.args.model, device=self.device)
-            model.eval().to(self.device)
+            model = deepcopy(model).eval().to(self.device)  # copy to avoid leaking dataset classes back to caller
             names = [name.split("/", 1)[0] for name in check_det_dataset(self.args.data)["names"].values()]
             model.set_classes(names, cache_clip_model=False)
             model.names = dict(enumerate(names))  # set_classes updates embeddings/nc but not names

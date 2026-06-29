@@ -3,7 +3,7 @@
 # YOLO Anomaly v2 — softhint (bias) fusion + pure GT-mask prior, aug3 + mixup, mask_aug_passes: 2.
 # Canonical anomaly-v2 detection config (best OOD result). The double mask-augment pass
 # (mask_aug_passes: 2) reproduces the v5 behavior the unify-resolver collapsed to a single pass,
-# which gives the OOD heatmap deploy path its mAP10 robustness. Segment-head variant: yolo26-anomaly-seg.yaml.
+# which gives the OOD heatmap deploy path its mAP10 robustness.
 # Branch: yoloa_clean.
 
 nc: 80

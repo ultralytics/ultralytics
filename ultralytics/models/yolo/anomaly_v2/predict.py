@@ -1,20 +1,13 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-"""YOLO Anomaly v2 predictors with unified prior-mode routing.
+"""YOLO Anomaly v2 predictor with unified prior-mode routing.
 
-Two predictors share the prior-injection ``preprocess`` via ``YOLOAnomalyPredictorBase``:
-
-  - ``YOLOAnomalyPredictor``    — Detect head (boxes).
-  - ``YOLOAnomalySegPredictor`` — Segment head (boxes + per-instance masks); reuses
-    ``SegmentationPredictor``'s proto/mask decoding.
-
-``YOLOA.task_map`` picks the right one from the loaded checkpoint's head type, mirroring
-how ``AnomalyV2Trainer.get_model`` selects ``YOLOAnomalyV2Model`` vs ``YOLOAnomalyV2SegModel``.
+``YOLOAnomalyPredictor`` extends ``DetectionPredictor`` with prior-injection in
+``preprocess`` via ``YOLOAnomalyPredictorBase``.
 
 Prior modes selectable via ``predictor.prior_mode``:
 
   - ``"none"``     — passthrough (vanilla YOLO, no fusion bias).
-  - ``"segment"``  — SegBranch sigmoid output as prior.
   - ``"heatmap"``  — feature-side anomaly map (producer set by ``_heatmap_producer``:
                      bank / learned / both). Legacy ``"heatmap_learned"`` /
                      ``"heatmap_fused"`` are translated by ``set_prior_mode``.
@@ -29,14 +22,13 @@ from __future__ import annotations
 import torch
 
 from ultralytics.models.yolo.detect import DetectionPredictor
-from ultralytics.models.yolo.segment import SegmentationPredictor
 from ultralytics.utils import DEFAULT_CFG
 
 from ._util import resolve_v2_model
 
 
 class YOLOAnomalyPredictorBase:
-    """Shared prior-mode injection for the Detect- and Segment-head anomaly predictors."""
+    """Shared prior-mode injection for the Detect-head anomaly predictor."""
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         # Pop custom keys from overrides before the base predictor validates all keys.
@@ -70,7 +62,3 @@ class YOLOAnomalyPredictorBase:
 
 class YOLOAnomalyPredictor(YOLOAnomalyPredictorBase, DetectionPredictor):
     """YOLO Anomaly v2 predictor (Detect head) with configurable prior mode."""
-
-
-class YOLOAnomalySegPredictor(YOLOAnomalyPredictorBase, SegmentationPredictor):
-    """YOLO Anomaly v2 predictor (Segment head): boxes + per-instance masks with prior mode."""

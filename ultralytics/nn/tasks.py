@@ -73,7 +73,6 @@ from ultralytics.nn.modules import (
     ResNetLayer,
     RTDETRDecoder,
     SCDown,
-    SegBranch,
     Segment,
     Segment26,
     TorchVision,
@@ -81,7 +80,6 @@ from ultralytics.nn.modules import (
     YOLOEDetect,
     YOLOESegment,
     YOLOESegment26,
-    binary_seg_loss,
     query_film_loss,
     v10Detect,
 )
@@ -548,7 +546,7 @@ class YOLOAnomalyV2Model(DetectionModel):
       - Validation B-on: caller sets bboxes via ``set_mask_input()``.
       - Validation B-off / pure inference: no bboxes -> bias is None -> PAN features
         flow through unchanged (vanilla YOLO).
-      - External (e.g. SegBranch, user prompt): ``set_external_mask_once``.
+      - External (e.g. user prompt): ``set_external_mask_once``.
 
     Spec: docs_yoloa_v2/specs/2026-06-02-softhint-fusion-design.md.
     """
@@ -556,13 +554,11 @@ class YOLOAnomalyV2Model(DetectionModel):
     def init_criterion(self):
         """Initialize the loss criterion.
 
-        Returns ``E2ELoss(v8SegmentationLoss)`` when the head is a ``Segment``
-        (per-instance mask prediction), otherwise the standard detection criterion.
+        Returns ``AnomalyMCLoss`` when the head is an ``AnomalyMCDetect``,
+        otherwise the standard detection criterion.
         """
         if isinstance(self.model[-1], AnomalyMCDetect):
             return E2ELoss(self, AnomalyMCLoss) if getattr(self, "end2end", False) else AnomalyMCLoss(self)
-        if isinstance(self.model[-1], Segment):
-            return E2ELoss(self, v8SegmentationLoss) if getattr(self, "end2end", False) else v8SegmentationLoss(self)
         return E2ELoss(self) if getattr(self, "end2end", False) else v8DetectionLoss(self)
 
     def __init__(
@@ -642,24 +638,9 @@ class YOLOAnomalyV2Model(DetectionModel):
         mask_coherent_noise_amp = list(v2_cfg.get("mask_coherent_noise_amp", [0.02, 0.06]))
         mask_coherent_noise_sigma = list(v2_cfg.get("mask_coherent_noise_sigma", [0.05, 0.15]))
         mask_floor = list(v2_cfg.get("mask_floor", [0.0, 0.0]))
-        # v2.2 SegBranch: when enabled, a seg head predicts the heatmap so inference
-        # needs no external prior. ``seg_alpha`` blends GT vs predicted mask (curriculum).
-        seg_gain = float(v2_cfg.get("seg_gain", 1.0))
-        # When True (default, original v2.2 behavior), the predicted heatmap is detached
-        # before feeding the fusion -> SegBranch is trained ONLY by its own seg loss.
-        # When False, det loss flows through fusion -> SegBranch -> PAN, so the seg head
-        # learns to produce heatmaps that help detection (not just match the rect target).
-        seg_detach = bool(v2_cfg.get("seg_detach", True))
-        # Prior-conditioned denoiser/refiner (v2.2 redesign): when True, the SegBranch takes a
-        # 1-channel prior (train: aug1-noised bbox-gauss; deploy: mb-heatmap via prior_mode=
-        # "heatmap") concatenated to its features and is supervised to reconstruct the clean GT
-        # mask -- so the fusion always consumes a refined seg, never the raw/augmented prior
-        # (closes the train/deploy distribution gap). ``seg_target_polygon`` makes the seg target
-        # the v6 polygon union (precise defect shape) instead of the coarse bbox rect.
-        # 'pinned_zero' (pred only). Used by AnomalyV2Trainer._update_seg_alpha.
-        seg_alpha_mode = str(v2_cfg.get("seg_alpha_mode", "curriculum")).lower()
-        if seg_alpha_mode not in {"curriculum", "pinned_one", "pinned_zero"}:
-            raise ValueError(f"seg_alpha_mode must be curriculum|pinned_one|pinned_zero, got {seg_alpha_mode!r}")
+        # Polygon-mask prior: when True, the fusion prior is built from the v6 polygon
+        # union (batch["masks"]) instead of the coarse bbox-gauss render.
+        self.seg_target_polygon = bool(v2_cfg.get("seg_target_polygon", False))
         # Fusion mechanism: 'bias' (HeatmapBiasFusion, 1-channel additive), 'soft'
         # (HeatmapSoftFusion, temperature-softmax + BN → bias), 'film'
         # (HeatmapFiLMFusion, global residual grouped-FiLM), or 'queryfilm'
@@ -704,9 +685,9 @@ class YOLOAnomalyV2Model(DetectionModel):
         detect = self.model[-1]
         if isinstance(detect, AnomalyMCDetect):
             detect.type_tau = type_tau
-        if not isinstance(detect, (Detect, Segment)):
+        if not isinstance(detect, Detect):
             raise TypeError(
-                f"YOLOAnomalyV2Model expects last layer to be Detect or Segment, got {type(detect).__name__}"
+                f"YOLOAnomalyV2Model expects last layer to be Detect, got {type(detect).__name__}"
             )
 
         # Resolve PAN output channel count per scale from Detect.cv2 (first Conv's in_channels).
@@ -770,7 +751,7 @@ class YOLOAnomalyV2Model(DetectionModel):
         self.head_b_gain = head_b_gain
         self.head_b = deepcopy(detect) if two_head else None
 
-        # SegBranch consumes the P3/P4 PAN outputs (first two of pan_from_indices).
+        # Spatial resolution of the rendered/mask prior.
         self.mask_size = mask_size
 
         # QueryFiLM: per-instance gauss GT renderer (its own sigma) for Hungarian matching,
@@ -954,16 +935,16 @@ class YOLOAnomalyV2Model(DetectionModel):
 
         Args:
             mode: ``"none"`` (passthrough), ``"box"`` (GT bbox render), ``"mask"`` (external/GT
-                mask), ``"segment"`` (SegBranch), ``"heatmap"`` (feature-side map, producer set by
-                ``_heatmap_producer``), or ``None`` (training default: pick by data). Legacy aliases
-                ``"heatmap_learned"`` / ``"heatmap_fused"`` are translated to ``"heatmap"`` + the
-                matching ``_heatmap_producer``.
+                mask), ``"heatmap"`` (feature-side map, producer set by ``_heatmap_producer``), or
+                ``None`` (training default: pick by data). Legacy aliases ``"heatmap_learned"`` /
+                ``"heatmap_fused"`` are translated to ``"heatmap"`` + the matching
+                ``_heatmap_producer``.
         """
         # --- back-compat shim (remove with _LEGACY_PRIOR_MODE_ALIASES) ---
         if mode in self._LEGACY_PRIOR_MODE_ALIASES:
             mode, self._heatmap_producer = self._LEGACY_PRIOR_MODE_ALIASES[mode]
         # --- end shim ---
-        if mode is not None and mode not in ("none", "box", "mask", "segment", "heatmap"):
+        if mode is not None and mode not in ("none", "box", "mask", "heatmap"):
             raise ValueError(f"Invalid prior_mode: {mode!r}")
         self._prior_mode = mode
 
@@ -1183,7 +1164,6 @@ class YOLOAnomalyV2Model(DetectionModel):
         for k in (
             "_last_heatmap",
             "_qf_aux_buf",
-            "_seg_logits_buf",
             "_mask_bboxes_buf",
             "_mask_batch_idx_buf",
             "_external_mask_buf",
@@ -1253,48 +1233,6 @@ class YOLOAnomalyV2Model(DetectionModel):
             bb, bi = self._fragment_prior_bboxes(bb, bi)
         prior = self.mask_renderer(bb, bi, batch_size)
         return self._augment_mask(prior) if augment else prior
-
-    def _resolve_cond_prior(self, bboxes, batch_idx, external_mask, disabled, batch_masks, batch_size, device):
-        """Build the (noisy) conditioning prior fed to a prior-conditioned SegBranch (seg_prior_cond).
-
-        This is the INPUT the SegBranch denoises/refines -- never the GT target. Routing:
-          - Inference (``_prior_mode`` set, e.g. ``"heatmap"``): the real deploy prior (mb-heatmap /
-            cached / external / segment) via ``_resolve_prior``.
-          - Explicit external mask (``_prior_mode`` None): used directly (interactive / demo prompt).
-          - Mask-off (``disabled``) or no bboxes: ``None`` -> SegBranch gets a zero prior, the fusion
-            is skipped -> head_a (the honest floor).
-          - Training (legacy ``_prior_mode`` None): polygon union prior when available, else
-            aug1-noised bbox-gauss prior -- the train-time surrogate for the deploy heatmap.
-        """
-        prior_mode = getattr(self, "_prior_mode", None)
-        if prior_mode is not None:
-            return self._resolve_prior(
-                prior_mode,
-                bboxes=bboxes,
-                batch_idx=batch_idx,
-                batch_masks=batch_masks,
-                external_mask=external_mask,
-                seg_logits=None,
-                batch_size=batch_size,
-                device=device,
-                augment=self.training,
-            )
-        if external_mask is not None:
-            return external_mask.to(device=device, dtype=torch.float32)
-        if disabled or bboxes is None:
-            return None
-        use_polygon = batch_masks is not None and batch_masks.numel() > 0 and getattr(self, "seg_target_polygon", False)
-        if use_polygon:
-            cond = self._mask_union_prior(batch_masks, batch_idx, batch_size)
-            cond = cond.to(device=device)
-        else:
-            bb, bi = self._augment_prior_bboxes(bboxes, batch_idx)  # train-only box drop + jitter
-            if self.training and self.mask_fragment_p > 0.0 and torch.rand(1).item() < self.mask_fragment_p:
-                bb, bi = self._fragment_prior_bboxes(bb, bi)
-            cond = self.mask_renderer(bb, bi, batch_size)
-        if self.training:
-            cond = self._augment_mask(cond)  # blur / mag / noise / distractor / erase / warp / mixup / mb-style noise
-        return cond
 
     def _mask_union_prior(self, masks, batch_idx, batch_size):
         """Convert ``batch["masks"]`` to a ``(B, 1, mask_size, mask_size)`` binary union prior.
@@ -1469,7 +1407,7 @@ class YOLOAnomalyV2Model(DetectionModel):
     def _select_prior_source(self, external_mask, disabled, bboxes, batch_masks):
         """Pick the prior source for this forward.
 
-        Precedence: disabled > ``_prior_mode`` (explicit deploy) > external > GT mask/box > segment.
+        Precedence: disabled > ``_prior_mode`` (explicit deploy) > external > GT mask/box > none.
         """
         if disabled:
             return "none"
@@ -1483,7 +1421,7 @@ class YOLOAnomalyV2Model(DetectionModel):
                 batch_masks is not None and batch_masks.numel() > 0 and getattr(self, "seg_target_polygon", False)
             )
             return "mask" if use_polygon else "box"
-        return "segment"
+        return "none"
 
     def _fragment_prior_bboxes(self, bboxes, batch_idx):
         """Delegate to ``MaskPriorAugmenter.fragment_prior_bboxes`` (bbox-level fragmentation)."""
@@ -1501,7 +1439,7 @@ class YOLOAnomalyV2Model(DetectionModel):
         """Normalize heatmap into a spatial probability distribution.
 
         Softmax over the H*W spatial grid, scaled by temperature. Turns any
-        heatmap (binary GT, soft SegBranch, noisy MB) into a distribution with
+        heatmap (binary GT, soft prediction, noisy MB) into a distribution with
         consistent statistics — sum=1 per sample, with T controlling peakiness.
 
         Benefits: high values compete across space, suppressing background noise;
@@ -1620,36 +1558,6 @@ class YOLOAnomalyV2Model(DetectionModel):
         items = torch.stack([(g * losses[k]).detach().to(dtype) for g, k in zip(gains, keys)])
         return terms, items
 
-    def _compute_seg_loss(self, seg_logits, batch):
-        """BCE + Dice between the predicted heatmap and the GT mask.
-
-        Target is the v6 polygon union ``(batch["masks"] > 0)`` when instance masks are present
-        (the precise defect shape -- lets the SegBranch *refine* a coarse prior toward the true
-        contour); else the rect-rendered bbox mask (back-compat / bbox-only datasets).
-        ``binary_seg_loss`` resizes the target to the logits (and aux) resolution internally.
-        """
-        if seg_logits is None:
-            return torch.zeros((), device=next(self.parameters()).device)
-        main, aux = seg_logits if isinstance(seg_logits, tuple) else (seg_logits, None)
-        masks = batch.get("masks")
-        if masks is not None and masks.numel():
-            masks = masks.to(main.device).float()
-            if masks.dim() == 3 and masks.shape[0] == main.shape[0]:
-                # overlap_mask=True: (B, H, W) instance-index map -> binary union over instances.
-                target = (masks > 0).float().unsqueeze(1)
-            else:
-                # overlap_mask=False: (N, H, W) per-instance binary -> union per image via batch_idx.
-                bi = batch["batch_idx"].to(main.device).long()
-                target = masks.new_zeros(main.shape[0], 1, masks.shape[-2], masks.shape[-1])
-                for b in range(main.shape[0]):
-                    sel = bi == b
-                    if sel.any():
-                        target[b, 0] = masks[sel].amax(0)
-                target = (target > 0).float()
-        else:
-            target = self.seg_target_renderer(batch["bboxes"], batch["batch_idx"], main.shape[0]).to(main.device)
-        return binary_seg_loss(main, target, aux_logits=aux)
-
     def _predict_once(self, x, profile=False, visualize=False, embed=None):
         """Forward with heatmap-guided fusion inserted before the Detect head."""
         batch_size = x.shape[0]
@@ -1682,8 +1590,7 @@ class YOLOAnomalyV2Model(DetectionModel):
         if bboxes is not None and external_mask is None and self.training and p_drop > 0.0:
             keep = (torch.rand(batch_size, device=device) > p_drop).to(keep.dtype)
 
-        # The fusion prior is resolved inside the loop once the PAN features (needed by the
-        # SegBranch) are available.
+        # The fusion prior is resolved inside the loop once the PAN features are available.
         prior = None
 
         y, dt, embeddings = [], [], []
@@ -1817,23 +1724,6 @@ class YOLOAnomalyV2Model(DetectionModel):
                 if m.i == max_idx:
                     return torch.unbind(torch.cat(embeddings, 1), dim=0)
         return x
-
-
-class YOLOAnomalyV2SegModel(YOLOAnomalyV2Model):
-    """YOLO Anomaly v2 + per-instance segmentation head.
-
-    Extends ``YOLOAnomalyV2Model`` with a ``Segment`` detection head that predicts
-    32 mask coefficients per anchor alongside boxes and class scores. The loss
-    criterion is ``v8SegmentationLoss`` (BCE + Dice per instance, cropped to box),
-    matching the standard Ultralytics segmentation pipeline.
-
-    The anomaly fusion prior, SegBranch, and two-head mode all carry over unchanged.
-    The YAML config must specify a ``Segment`` head instead of ``Detect``.
-    """
-
-    def init_criterion(self):
-        """Initialize the loss criterion for instance segmentation."""
-        return E2ELoss(self, v8SegmentationLoss) if getattr(self, "end2end", False) else v8SegmentationLoss(self)
 
 
 class OBBModel(DetectionModel):

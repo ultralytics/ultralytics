@@ -4,10 +4,8 @@
 
 Thin extension of ``DetectionTrainer``. The differences:
   * ``get_model`` returns a ``YOLOAnomalyV2Model`` instead of a plain ``DetectionModel``.
-  * ``get_validator`` returns a ``YOLOAnomalyValidator`` / ``YOLOAnomalySegValidator`` that runs val twice
+  * ``get_validator`` returns a ``YOLOAnomalyValidator`` that runs val twice
     (mask-on and mask-off) — see ``val.py``.
-  * When the model has a SegBranch (v2.2), an alpha curriculum anneals the fusion
-    prior from the GT mask to the predicted heatmap, and ``seg_loss`` is reported.
 
 Everything else (dataset, dataloader, augmentation, loss aggregation, plot,
 auto_batch, etc.) is inherited from ``DetectionTrainer`` unchanged. Mask
@@ -27,7 +25,7 @@ from ultralytics.data import build_yolo_dataset
 from ultralytics.models import yolo
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.modules.head import AnomalyMCDetect
-from ultralytics.nn.tasks import YOLOAnomalyV2Model, YOLOAnomalyV2SegModel
+from ultralytics.nn.tasks import YOLOAnomalyV2Model
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK, YAML
 from ultralytics.utils.torch_utils import unwrap_model
 
@@ -63,7 +61,7 @@ def _resolve_fit_yaml(cfg_path: str, model_yaml_path: str | None = None) -> dict
 
 
 class AnomalyV2Trainer(DetectionTrainer):
-    """Trainer for YOLOAnomalyV2 (Phase 0 + v2.2 SegBranch)."""
+    """Trainer for YOLOAnomalyV2."""
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         super().__init__(cfg, overrides, _callbacks)
@@ -95,22 +93,13 @@ class AnomalyV2Trainer(DetectionTrainer):
             self.best_fitness = self._ood_best_fitness
         return metrics, fitness
 
-    def _seg_polygon_active(self) -> bool:
-        """True when the SegBranch refiner is supervised against v6 polygon masks (seg_target_polygon)."""
+    def _polygon_prior_active(self) -> bool:
+        """True when the fusion prior uses v6 polygon masks (seg_target_polygon)."""
         return bool(getattr(unwrap_model(self.model), "seg_target_polygon", False))
 
-    def _instance_seg_active(self) -> bool:
-        """True when the detection head is a ``Segment`` (per-instance mask prediction)."""
-        if self.model is None:
-            return False
-        from ultralytics.nn.modules.head import Segment
-
-        return isinstance(unwrap_model(self.model).model[-1], Segment)
-
     def build_dataset(self, img_path: str, mode: str = "train", batch: int | None = None):
-        """Dataset selection: segment (polygon masks for the SegBranch refiner target /
-        per-instance seg) > default detection."""
-        if self._seg_polygon_active() or self._instance_seg_active():
+        """Build the dataset, forcing polygon-mask loading when polygon-prior mode is on."""
+        if self._polygon_prior_active():
             # task="segment" flips YOLODataset.use_segments -> Format(return_mask=True) ->
             # batch["masks"] (overlap-union instance map). Detection head/loss unaffected
             # (bboxes still present). copy() so the persistent self.args stays task="anomaly_v2".
@@ -123,25 +112,14 @@ class AnomalyV2Trainer(DetectionTrainer):
         return super().build_dataset(img_path, mode=mode, batch=batch)
 
     def get_model(self, cfg=None, weights=None, verbose: bool = True):
-        """Return a YOLOAnomalyV2Model or YOLOAnomalyV2SegModel.
-
-        Auto-detects the head type from the YAML: ``Segment`` head → ``YOLOAnomalyV2SegModel``
-        (per-instance mask prediction); ``Detect`` head → ``YOLOAnomalyV2Model`` (standard).
+        """Return a ``YOLOAnomalyV2Model``.
 
         Args:
             cfg (str, optional): Path to model YAML.
             weights (str, optional): Path to pretrained weights (yolo26m.pt etc.).
             verbose (bool): Verbose info.
         """
-        # Read the YAML head section to detect Segment vs Detect head.
-        model_cls = YOLOAnomalyV2Model
-        if cfg and Path(cfg).is_file():
-            yaml_dict = YAML.load(cfg)
-            for entry in yaml_dict.get("head", []):
-                if len(entry) >= 3 and entry[2] == "Segment":
-                    model_cls = YOLOAnomalyV2SegModel
-                    break
-        model = model_cls(
+        model = YOLOAnomalyV2Model(
             cfg,
             nc=self.data["nc"],
             ch=self.data["channels"],
@@ -152,18 +130,9 @@ class AnomalyV2Trainer(DetectionTrainer):
         return model
 
     def get_validator(self):
-        """Return the anomaly validator (2-pass, legacy GT mask rendering for training).
-
-        A ``Segment`` head routes to ``YOLOAnomalySegValidator`` (box + per-instance mask metrics);
-        a ``Detect`` head to ``YOLOAnomalyValidator`` (box metrics). Mirrors ``get_model``'s
-        head-based model selection.
-        """
+        """Return the anomaly validator (2-pass, legacy GT mask rendering for training)."""
         model = unwrap_model(self.model)
-        seg_active = self._instance_seg_active()
-        if seg_active:
-            # v8SegmentationLoss returns [box, seg, cls, dfl, sem] (5 components).
-            loss_names = ["box_loss", "seg_loss", "cls_loss", "dfl_loss", "sem_loss"]
-        elif isinstance(model.model[-1], AnomalyMCDetect):
+        if isinstance(model.model[-1], AnomalyMCDetect):
             # AnomalyMCLoss returns [box, anom, dfl, type] (decoupled detection + type).
             loss_names = ["box_loss", "anom_loss", "dfl_loss", "type_loss"]
         else:
@@ -172,10 +141,7 @@ class AnomalyV2Trainer(DetectionTrainer):
         if getattr(model, "fusion_mode", None) == "queryfilm":
             loss_names += ["qmask_loss", "qobj_loss", "qovl_loss", "qfg_loss"]
         self.loss_names = tuple(loss_names)
-        validator_cls = (
-            yolo.anomaly_v2.YOLOAnomalySegValidator if seg_active else yolo.anomaly_v2.YOLOAnomalyValidator
-        )
-        return validator_cls(
+        return yolo.anomaly_v2.YOLOAnomalyValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args),
             _callbacks=self.callbacks, prior_mode=None,  # legacy GT bboxes -> renderer
         )

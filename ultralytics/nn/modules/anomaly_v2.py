@@ -1,5 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-"""YOLOA v2 modules: bbox-mask renderer, heatmap bias fusion, optional SegBranch.
+"""YOLOA v2 modules: bbox-mask renderer, heatmap fusion, and memory-bank scorer.
 
 Soft-hint fusion: a 1-channel mask is turned into a bounded per-pixel bias added
 (broadcast over channels) to PAN features before the Detect head. PAN feature
@@ -24,8 +24,6 @@ __all__ = (
     "HeatmapSoftFusion",
     "HeatmapFiLMFusion",
     "QueryFiLMFusion",
-    "SegBranch",
-    "binary_seg_loss",
     "query_film_loss",
     "BackboneMemoryBank",
     "LearnedScorer",
@@ -459,70 +457,6 @@ class QueryFiLMFusion(nn.Module):
     def extra_repr(self) -> str:
         return (f"c={self.c}, k={self.k}, d={self.d}, g={self.g}, "
                 f"softmax_attn={self.softmax_attn}, pos_enc={self.pos_enc}")
-
-
-class SegBranch(nn.Module):
-    """Lightweight semantic-segmentation head that predicts a 1-channel anomaly heatmap.
-
-    Consumes the P3 and P4 PAN features and emits per-pixel logits at P3 resolution
-    (e.g. 80x80 for 640 input). A P4 auxiliary head provides deep supervision during
-    training.
-
-    When ``prior_cond`` is set, a 1-channel prior heatmap is concatenated onto each scale's
-    feature (resized to its H×W) before the conv, turning the branch into a prior-conditioned
-    denoiser/refiner: it cleans a noisy input prior toward the GT mask. ``forward(x, prior=None)``
-    with ``prior=None`` reproduces the prior-free behavior (and a ``prior_cond`` head fed
-    ``None`` falls back to a zero prior, i.e. segment-from-features). Concat + interpolate keep
-    the deployable forward ONNX-clean.
-    """
-
-    def __init__(self, ch: tuple, nc: int = 1, c_mid: int | None = None, prior_cond: bool = False):
-        super().__init__()
-        self.nc = nc
-        self.prior_cond = bool(prior_cond)
-        extra = 1 if self.prior_cond else 0  # +1 input channel for the concatenated prior
-        c_mid = ch[0] if c_mid is None else c_mid
-        self.classifier = nn.Sequential(Conv(ch[0] + extra, c_mid, 3), nn.Conv2d(c_mid, nc, 1))
-        self.aux_head = (
-            nn.Sequential(Conv(ch[1] + extra, c_mid, 3), nn.Conv2d(c_mid, nc, 1)) if len(ch) > 1 else None
-        )
-
-    def _cat_prior(self, feat: torch.Tensor, prior: torch.Tensor | None) -> torch.Tensor:
-        """Concat the 1-channel prior (resized to ``feat``'s H×W) onto ``feat`` when prior_cond."""
-        if not self.prior_cond:
-            return feat
-        if prior is None:  # prior_cond head with no prior -> zero prior (segment from features)
-            prior = feat.new_zeros(feat.shape[0], 1, feat.shape[2], feat.shape[3])
-        elif prior.shape[2:] != feat.shape[2:]:
-            prior = F.interpolate(prior, size=feat.shape[2:], mode="bilinear", align_corners=False)
-        return torch.cat([feat, prior], dim=1)
-
-    def forward(self, x: list[torch.Tensor], prior: torch.Tensor | None = None):
-        logits = self.classifier(self._cat_prior(x[0], prior))
-        if self.training and self.aux_head is not None:
-            return logits, self.aux_head(self._cat_prior(x[1], prior))
-        return logits
-
-
-def binary_seg_loss(
-    logits: torch.Tensor, target: torch.Tensor, aux_logits: torch.Tensor | None = None, aux_weight: float = 0.4
-) -> torch.Tensor:
-    """BCE + soft-Dice loss for a single-channel anomaly heatmap."""
-    if target.shape[2:] != logits.shape[2:]:
-        target = F.interpolate(target, size=logits.shape[2:], mode="nearest")
-    target = target.to(logits.dtype)
-    bce = F.binary_cross_entropy_with_logits(logits, target)
-    prob = logits.sigmoid()
-    inter = (prob * target).sum(dim=(1, 2, 3))
-    card = prob.sum(dim=(1, 2, 3)) + target.sum(dim=(1, 2, 3))
-    dice = (1.0 - (2.0 * inter + 1.0) / (card + 1.0)).mean()
-    loss = bce + dice
-    if aux_logits is not None:
-        aux_t = target
-        if aux_t.shape[2:] != aux_logits.shape[2:]:
-            aux_t = F.interpolate(target, size=aux_logits.shape[2:], mode="nearest")
-        loss = loss + aux_weight * F.binary_cross_entropy_with_logits(aux_logits, aux_t)
-    return loss
 
 
 def query_film_loss(

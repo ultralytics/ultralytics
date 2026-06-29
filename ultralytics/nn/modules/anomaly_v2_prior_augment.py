@@ -124,7 +124,7 @@ class MaskPriorAugmenter:
     def augment_mask_once(self, mask):
         """One pass of training-only mask augmentation: make the binary GT prior look like an inference heatmap.
 
-        Closes the train(binary GT) vs inference(soft, weak-peak memory-bank / SegBranch heatmap)
+        Closes the train(binary GT) vs inference(soft, weak-peak memory-bank heatmap)
         distribution gap. Order: shuffle (wrong-location prior) -> Gaussian blur (soft edges) ->
         per-sample magnitude scaling (peak < 1, mimics weak heatmaps) -> additive noise ->
         memory-bank-style background/coherent noise. GT boxes are unchanged, so the model learns

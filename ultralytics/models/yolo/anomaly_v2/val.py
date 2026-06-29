@@ -36,7 +36,6 @@ import torch.nn.functional as F
 
 from ultralytics.data.build import build_dataloader
 from ultralytics.models.yolo.detect import DetectionValidator
-from ultralytics.models.yolo.segment import SegmentationValidator
 from ultralytics.utils import LOGGER
 from ultralytics.utils.torch_utils import unwrap_model
 
@@ -46,14 +45,11 @@ _SENTINEL = object()  # "prior mode not snapshotted" marker (distinct from a rea
 
 
 class YOLOAnomalyValidatorBase:
-    """Shared anomaly-v2 validation logic, mixed into a detection or segmentation base validator.
+    """Shared anomaly-v2 validation logic, mixed into ``DetectionValidator``.
 
     Holds all anomaly behavior — prior-mode routing, 2-pass (mask-on / mask-off) training val,
     image/pixel AUROC, the memory-bank / scorer lifecycle, and the OOD / standalone single-pass
-    path. Composed with ``DetectionValidator`` (box metrics) as :class:`YOLOAnomalyValidator`, or
-    with ``SegmentationValidator`` (box + per-instance mask metrics) as
-    :class:`YOLOAnomalySegValidator`; the concrete class only fixes which metrics base is used.
-    All ``super()`` calls resolve through the concrete class's MRO.
+    path. Composed with ``DetectionValidator`` as :class:`YOLOAnomalyValidator`.
     """
 
     def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None,
@@ -151,14 +147,7 @@ class YOLOAnomalyValidatorBase:
         return batch
 
     def postprocess(self, preds):
-        """Post-process predictions, unwrapping Segment head ``((y, proto), preds)`` if needed.
-
-        Segment.forward() returns ``((decoded_tensor, proto), preds_dict)`` during eval, but
-        it may arrive here wrapped in either a tuple or a list depending on the call path
-        (``_predict_once`` vs ``YOLOAnomalyV2Model.predict``).
-        """
-        if isinstance(preds, (list, tuple)) and len(preds) == 2 and isinstance(preds[0], (list, tuple)):
-            preds = preds[0]  # (y, proto) — NMS extracts y via prediction[0]
+        """Post-process predictions."""
         return super().postprocess(preds)
 
     # ------------------------------------------------------------------
@@ -482,26 +471,7 @@ class YOLOAnomalyValidatorBase:
 
 
 class YOLOAnomalyValidator(YOLOAnomalyValidatorBase, DetectionValidator):
-    """Anomaly-v2 validator with box metrics (Detect-head training val + OOD / standalone path)."""
-
-
-class YOLOAnomalySegValidator(YOLOAnomalyValidatorBase, SegmentationValidator):
-    """Anomaly-v2 validator with box + per-instance mask metrics (Segment-head training val).
-
-    Used for in-distribution training val (``prior_mode=None``); OOD eval stays box-only via
-    :class:`YOLOAnomalyValidator`. ``build_dataset`` forces polygon-mask loading so mask mAP is
-    actually measured (training val reuses the trainer's seg loader directly, so the override only
-    matters for standalone ``YOLOA.val`` on a Segment-head checkpoint).
-    """
-
-    def build_dataset(self, img_path, mode="val", batch=None):
-        """Build a val dataset with polygon masks (task='segment') so mask metrics are computed."""
-        prev_task = self.args.task
-        self.args.task = "segment"
-        try:
-            return super().build_dataset(img_path, mode=mode, batch=batch)
-        finally:
-            self.args.task = prev_task
+    """Anomaly-v2 validator with box metrics (training val + OOD / standalone path)."""
 
 
 # ----------------------------------------------------------------------

@@ -35,11 +35,11 @@ from ultralytics.utils import LOGGER, YAML
 
 # Public prior selection. Internal model uses ``prior_mode``; these map 1:1 except
 # "anomaly_model", which runs an external model to produce a heatmap and injects it through the
-# existing external-mask seam (prior_mode="mask"). "segment"/"cached" remain usable as advanced
-# pass-through values. (Legacy "heatmap_learned"/"heatmap_fused"/"cached" are translated to the
+# existing external-mask seam (prior_mode="mask"). "cached" remains usable as an advanced
+# pass-through value. (Legacy "heatmap_learned"/"heatmap_fused"/"cached" are translated to the
 # "heatmap" source + a heatmap producer by AnomalyDetection.set_prior_mode.)
 PRIOR_MODES = ("none", "heatmap", "heatmap_learned", "heatmap_fused", "mask", "anomaly_model")
-_ADVANCED_PRIORS = ("segment", "cached")
+_ADVANCED_PRIORS = ("cached",)
 
 # Bank-build knobs that live in the fit config. bb_* override the model yaml's v2_cfg defaults;
 # imgsz / max_images are build inputs (not part of the model yaml).
@@ -107,37 +107,15 @@ class YOLOA(Model):
         """Load a YOLOA model. A v2 ckpt routes by its baked ``task``; a yaml is forced to anomaly_v2."""
         super().__init__(model=model, task="anomaly_v2", verbose=verbose)
 
-    def _head_is_segment(self) -> bool:
-        """True when the loaded model's detection head is a ``Segment`` (per-instance masks)."""
-        from ultralytics.nn.modules.head import Segment
-        from ultralytics.utils.torch_utils import unwrap_model
-
-        m = getattr(self, "model", None)
-        if m is None:
-            return False
-        try:
-            return isinstance(unwrap_model(m).model[-1], Segment)
-        except (AttributeError, IndexError, TypeError):
-            return False
-
     @property
     def task_map(self) -> dict[str, dict[str, Any]]:
-        """Map the anomaly_v2 task to its model, trainer, validator and predictor.
-
-        The predictor and validator are chosen from the loaded checkpoint's head: a ``Segment`` head
-        routes to ``YOLOAnomalySegPredictor`` / ``YOLOAnomalySegValidator`` (boxes + masks),
-        otherwise ``YOLOAnomalyPredictor`` / ``YOLOAnomalyValidator`` (boxes). MVTec OOD eval stays
-        box-only regardless of head (see ``run_mvtec_ood_eval``).
-        """
-        seg = self._head_is_segment()
-        predictor = yolo.anomaly_v2.YOLOAnomalySegPredictor if seg else yolo.anomaly_v2.YOLOAnomalyPredictor
-        validator = yolo.anomaly_v2.YOLOAnomalySegValidator if seg else yolo.anomaly_v2.YOLOAnomalyValidator
+        """Map the anomaly_v2 task to its model, trainer, validator and predictor."""
         return {
             "anomaly_v2": {
                 "model": YOLOAnomalyV2Model,
                 "trainer": yolo.anomaly_v2.AnomalyV2Trainer,
-                "validator": validator,
-                "predictor": predictor,
+                "validator": yolo.anomaly_v2.YOLOAnomalyValidator,
+                "predictor": yolo.anomaly_v2.YOLOAnomalyPredictor,
             }
         }
 
@@ -233,7 +211,7 @@ class YOLOA(Model):
             source: Image source (path / array / list), as in :meth:`Model.predict`.
             stream: Stream the source.
             prior: One of "none" / "heatmap" / "mask" / "anomaly_model" (advanced:
-                "segment" / "seg_heatmap" / "cached"). None keeps legacy behavior.
+                "cached"). None keeps legacy behavior.
             anomaly_model: Object exposing ``heatmap(img) -> Tensor[H, W] in [0, 1]``, required
                 when ``prior="anomaly_model"``; its heatmap is injected via the external-mask seam.
             **kwargs: Standard predict args plus prior-shaping knobs (heat_norm / heat_edge / ...).

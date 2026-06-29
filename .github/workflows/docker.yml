@@ -63,9 +63,16 @@ jobs:
           # Base images with their derivatives
           - dockerfile: "Dockerfile"
             tags: "latest"
+            aliases: "latest-cuda12"
             platforms: "linux/amd64"
             runs_on: "ubuntu-latest"
             derivatives: "Dockerfile-export,Dockerfile-runner"
+          - dockerfile: "Dockerfile" # CUDA 13 variant of the base image (same Dockerfile, newer PyTorch base)
+            tags: "latest-cuda13"
+            build_args: "--build-arg BASE_IMAGE=pytorch/pytorch:2.12.0-cuda13.2-cudnn9-runtime"
+            platforms: "linux/amd64"
+            runs_on: "ubuntu-latest"
+            derivatives: ""
           - dockerfile: "Dockerfile-python"
             tags: "latest-python"
             platforms: "linux/amd64"
@@ -181,7 +188,9 @@ jobs:
               echo "new_release=false" >> "$GITHUB_OUTPUT"
           fi
         env:
-          VERSION_TAG: ${{ steps.get_version.outputs.version_tag }}
+          # Gate the release on the base version (e.g. 8.4.68) so all variant/alias rows publish their
+          # version-pinned tags together on a version bump, not whenever a variant tag happens to be new
+          VERSION_TAG: ${{ steps.get_version.outputs.version }}
 
       - name: Build Base Image
         if: github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true'
@@ -191,7 +200,7 @@ jobs:
           retry_delay_seconds: 60
           retries: 2
           run: |
-            docker build \
+            docker build ${{ matrix.build_args }} \
               --platform ${{ matrix.platforms }} \
               --label "org.opencontainers.image.source=https://github.com/ultralytics/ultralytics" \
               --label "org.opencontainers.image.description=Ultralytics image" \
@@ -202,6 +211,15 @@ jobs:
               -t ghcr.io/ultralytics/ultralytics:${{ matrix.tags }} \
               -t ghcr.io/ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }} \
               .
+
+            # Retag the freshly built image under any aliases (e.g. latest-cuda12) — same image, no re-upload
+            for alias in ${{ matrix.aliases }}; do
+              alias_version=$(echo "$alias" | sed "s/latest/${{ steps.get_version.outputs.version }}/")
+              docker tag ultralytics/ultralytics:${{ matrix.tags }} ultralytics/ultralytics:$alias
+              docker tag ultralytics/ultralytics:${{ matrix.tags }} ultralytics/ultralytics:$alias_version
+              docker tag ghcr.io/ultralytics/ultralytics:${{ matrix.tags }} ghcr.io/ultralytics/ultralytics:$alias
+              docker tag ghcr.io/ultralytics/ultralytics:${{ matrix.tags }} ghcr.io/ultralytics/ultralytics:$alias_version
+            done
 
       - name: Build Derivative Images
         if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && matrix.derivatives != ''
@@ -273,6 +291,11 @@ jobs:
                 images_to_push+=("$derivative_tag")
               done
             fi
+
+            # Add alias tags (e.g. latest-cuda12) to the push list
+            for alias in ${{ matrix.aliases }}; do
+              images_to_push+=("$alias")
+            done
 
             # Push all images (base + derivatives)
             for tag in "${images_to_push[@]}"; do

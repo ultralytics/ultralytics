@@ -173,23 +173,58 @@ class DetectionValidator(BaseValidator):
             preds (list[dict[str, torch.Tensor]]): List of predictions from the model.
             batch (dict[str, Any]): Batch data containing ground truth.
         """
+        if self.args.score_labels:
+            from ultralytics.utils.analysis import compute_objectlab_scores
         for si, pred in enumerate(preds):
             self.seen += 1
             pbatch = self._prepare_batch(si, batch)
             predn = self._prepare_pred(pred)
+            im_name = Path(pbatch["im_file"]).name
 
             cls = pbatch["cls"].cpu().numpy()
             no_pred = predn["cls"].shape[0] == 0
+            pred_cls_np = np.zeros(0) if no_pred else predn["cls"].cpu().numpy()
+            pred_conf_np = np.zeros(0) if no_pred else predn["conf"].cpu().numpy()
+            process_out = self._process_batch(predn, pbatch)
+            iou_matrix = process_out.pop("iou_matrix", None)
             self.metrics.update_stats(
                 {
-                    **self._process_batch(predn, pbatch),
+                    **process_out,
                     "target_cls": cls,
                     "target_img": np.unique(cls),
-                    "conf": np.zeros(0) if no_pred else predn["conf"].cpu().numpy(),
-                    "pred_cls": np.zeros(0) if no_pred else predn["cls"].cpu().numpy(),
-                    "im_name": Path(pbatch["im_file"]).name,
+                    "conf": pred_conf_np,
+                    "pred_cls": pred_cls_np,
+                    "im_name": im_name,
                 }
             )
+            # ObjectLab scoring is detection-only; task gate excludes seg/pose (box-IoU is wrong there) and OBB (rotated boxes).
+            if self.args.score_labels and self.args.task == "detect" and not (no_pred and cls.shape[0] == 0):
+                pred_xyxy_np = (
+                    ops.scale_boxes(
+                        pbatch["imgsz"], predn["bboxes"].clone(), pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"]
+                    )
+                    .cpu()
+                    .numpy()
+                )
+                gt_xyxy_np = (
+                    ops.scale_boxes(
+                        pbatch["imgsz"], pbatch["bboxes"].clone(), pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"]
+                    )
+                    .cpu()
+                    .numpy()
+                )
+                extras = {
+                    "pred_bboxes": pred_xyxy_np,
+                    "pred_cls": pred_cls_np,
+                    "pred_conf": pred_conf_np,
+                    "gt_bboxes": gt_xyxy_np,
+                    "gt_cls": cls,
+                }
+                if iou_matrix is not None:
+                    extras.update(
+                        compute_objectlab_scores(iou_matrix, pred_xyxy_np, pred_cls_np, pred_conf_np, gt_xyxy_np, cls)
+                    )
+                self.metrics.box.image_metrics[im_name].update(extras)
             # Evaluate
             if self.args.plots:
                 self.confusion_matrix.process_batch(predn, pbatch, conf=self.args.conf)
@@ -307,13 +342,17 @@ class DetectionValidator(BaseValidator):
             batch (dict[str, Any]): Batch dictionary containing ground truth data with 'bboxes' and 'cls' keys.
 
         Returns:
-            (dict[str, np.ndarray]): Dictionary containing 'tp' key with correct prediction matrix of shape (N, 10) for
-                10 IoU levels.
+            (dict[str, np.ndarray]): ``tp`` key holds the (N, 10) correct-prediction matrix at 10 IoU levels. When
+                ``args.score_labels`` is set and both predictions and GT exist, ``iou_matrix`` is also returned for
+                ObjectLab label-quality scoring in ``update_metrics``.
         """
         if batch["cls"].shape[0] == 0 or preds["cls"].shape[0] == 0:
             return {"tp": np.zeros((preds["cls"].shape[0], self.niou), dtype=bool)}
         iou = box_iou(batch["bboxes"], preds["bboxes"])
-        return {"tp": self.match_predictions(preds["cls"], batch["cls"], iou).cpu().numpy()}
+        out = {"tp": self.match_predictions(preds["cls"], batch["cls"], iou).cpu().numpy()}
+        if self.args.score_labels:
+            out["iou_matrix"] = iou.cpu().numpy()
+        return out
 
     def build_dataset(self, img_path: str, mode: str = "val", batch: int | None = None) -> torch.utils.data.Dataset:
         """Build YOLO Dataset.

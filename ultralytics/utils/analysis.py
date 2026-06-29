@@ -5,9 +5,9 @@ Two single-purpose pieces:
     - ``ImagePropertyExtractor(yolo_dataset)``: augment ``dataset.labels`` in place with 31 per-image
       properties (brightness, blurriness, crowdedness, object-size counts, ...). No model, no metrics,
       no I/O. The augmented labels are platform-consumable as JSON for JS/TS plotting.
-    - ``CorrelationAnalysis(labels, metrics).run()``: join property-augmented labels with the per-image F1
-      from ``model.val()``, compute Pearson + Spearman correlations, rank worst-performing images, and
-      write CSV/JSON/plots/``summary.md``.
+    - ``CorrelationAnalysis(labels, metrics).run()``: join property-augmented labels with per-image F1
+      and ObjectLab scores from ``model.val(score_labels=True)``, compute Pearson + Spearman
+      correlations, rank worst-performing images, and write CSV/JSON/plots/``summary.md``.
 
 References:
     - Hendrycks & Dietterich, ICLR 2019 (brightness/contrast as detection corruptions).
@@ -18,6 +18,7 @@ References:
     - Lin et al., ECCV 2014 (COCO small/medium/large area thresholds).
     - Shao et al., CrowdHuman 2018 (per-image crowdedness via pairwise IoU).
     - Everingham et al., Pascal VOC IJCV 2010 (boundary-truncated objects).
+    - Tkachenko, Thyagarajan & Mueller, ObjectLab, ICML Workshop 2023 (label-quality scores).
     - Pearson, Proc. Royal Society 1895. Spearman, Am. J. Psychology 1904 (correlation coefficients).
 """
 
@@ -42,6 +43,13 @@ from ultralytics.utils.patches import imread
 COCO_AREA_SMALL = 32**2  # COCO small-object area threshold (px^2), Lin et al. 2014
 COCO_AREA_MEDIUM = 96**2  # COCO medium/large boundary, Lin et al. 2014
 EDGE_PROXIMITY_FRAC = 0.05  # near-edge tolerance as fraction of min(W,H), motivates num_near_edge
+
+# ObjectLab constants (Tkachenko, Thyagarajan & Mueller, ICML Workshop 2023, arXiv:2309.00832).
+_OBJECTLAB_TEMPERATURE = 0.1
+_OBJECTLAB_ALPHA = 0.9  # similarity = alpha*IoU + (1-alpha)*(1 - centroid_distance)
+_OBJECTLAB_HIGH_PROB = 0.95
+_OBJECTLAB_LOW_PROB = 0.5
+_OBJECTLAB_TINY = 1e-100  # log-clip floor in label_quality_score aggregation
 
 _PIXEL_PROPERTIES = (
     "brightness",
@@ -517,7 +525,7 @@ class CorrelationAnalysis:
     """Join property-augmented labels with per-image metrics, correlate, rank, and write reports.
 
     Consumes the labels returned by :class:`ImagePropertyExtractor` together with a metrics object from
-    ``model.val()``. Computes Pearson + Spearman correlations of every property against per-image F1,
+    ``model.val(score_labels=True)``. Computes Pearson + Spearman correlations of every property against per-image F1,
     ranks the worst-performing images by F1 with anomaly score as tiebreak, and writes ``per_image_analysis.csv``,
     ``correlations.json``, ``worst_images.json``, ``summary.md``, and three plots into ``save_dir``.
 
@@ -530,7 +538,7 @@ class CorrelationAnalysis:
         >>> from ultralytics import YOLO
         >>> from ultralytics.utils.analysis import ImagePropertyExtractor, CorrelationAnalysis
         >>> m = YOLO("yolo11n.pt")
-        >>> metrics = m.val(data="coco128.yaml")
+        >>> metrics = m.val(data="coco128.yaml", score_labels=True)
         >>> labels = ImagePropertyExtractor(m.validator.dataloader.dataset).labels
         >>> report = CorrelationAnalysis(labels, metrics).run()
     """
@@ -540,13 +548,13 @@ class CorrelationAnalysis:
 
         Args:
             labels (list[dict]): Property-augmented labels (output of ``ImagePropertyExtractor``).
-            metrics (Any): Metrics object from ``model.val()`` exposing ``.box.image_metrics``.
+            metrics (Any): Metrics object from ``model.val(score_labels=True)`` exposing ``.box.image_metrics``.
             names (dict[int, str], optional): Class id to name mapping. Auto-resolved from metrics if omitted.
         """
         if not labels:
             raise ValueError("CorrelationAnalysis requires non-empty labels from ImagePropertyExtractor.")
         if metrics is None:
-            raise ValueError("CorrelationAnalysis requires a metrics object from model.val().")
+            raise ValueError("CorrelationAnalysis requires a metrics object from model.val(score_labels=True).")
         self.labels = labels
         self.metrics = metrics
         self.names = names
@@ -756,6 +764,107 @@ def _worst_record_score(rec: dict) -> tuple[float, float]:
     """
     f1 = float("inf") if not rec.get("num_objects", 0) else float(rec.get("f1", 1.0))
     return (f1, -float(rec.get("anomaly_score", 0.0)))
+
+
+def compute_objectlab_scores(
+    iou: np.ndarray,
+    pred_bb: np.ndarray,
+    pred_cls: np.ndarray,
+    pred_conf: np.ndarray,
+    gt_bb: np.ndarray,
+    gt_cls: np.ndarray,
+) -> dict[str, float]:
+    """Compute the 4 ObjectLab subtype scores (Tkachenko et al., ICML Workshop 2023) from per-image predictions and GTs.
+
+    Args:
+        iou (np.ndarray): Pairwise (n_gt, n_pred) IoU matrix from the validator.
+        pred_bb (np.ndarray): Prediction xyxy boxes, shape (n_pred, 4).
+        pred_cls (np.ndarray): Prediction class IDs, shape (n_pred,).
+        pred_conf (np.ndarray): Prediction confidences, shape (n_pred,).
+        gt_bb (np.ndarray): Ground-truth xyxy boxes, shape (n_gt, 4).
+        gt_cls (np.ndarray): Ground-truth class IDs, shape (n_gt,).
+
+    Returns:
+        (dict): ``overlooked_score``, ``badloc_score``, ``swap_score``, ``label_quality_score`` in ``[0, 1]``, quality
+            convention (low = likely label issue, high = clean label).
+    """
+    pred_cls = pred_cls.astype(int)
+    gt_cls = gt_cls.astype(int)
+    n_gt, n_pred = gt_bb.shape[0], pred_bb.shape[0]
+    if n_pred == 0 or n_gt == 0:
+        return {k: float("nan") for k in _OBJECTLAB_PROPERTIES}
+
+    gt_cx, gt_cy = (gt_bb[:, 0] + gt_bb[:, 2]) / 2, (gt_bb[:, 1] + gt_bb[:, 3]) / 2
+    pr_cx, pr_cy = (pred_bb[:, 0] + pred_bb[:, 2]) / 2, (pred_bb[:, 1] + pred_bb[:, 3]) / 2
+    all_xy = np.concatenate([gt_bb, pred_bb], axis=0)
+    diag = max(
+        float(np.hypot(all_xy[:, 2].max() - all_xy[:, 0].min(), all_xy[:, 3].max() - all_xy[:, 1].min())),
+        1e-6,
+    )
+    cd = np.hypot(gt_cx[:, None] - pr_cx[None, :], gt_cy[:, None] - pr_cy[None, :]) / diag
+    sim = _OBJECTLAB_ALPHA * iou + (1 - _OBJECTLAB_ALPHA) * (1.0 - np.clip(cd, 0, 1))
+    same_class = gt_cls[:, None] == pred_cls[None, :]
+
+    # overlooked: high-conf preds with zero GT IoU. Score = best same-class similarity,
+    # fall back to TINY*(1-conf) when no GT shares the class.
+    keep_pred = (pred_conf >= _OBJECTLAB_HIGH_PROB) & (iou.max(axis=0) == 0)
+    sim_same = np.where(same_class, sim, -np.inf)
+    best_same_per_pred = sim_same.max(axis=0)
+    per_pred = np.where(same_class.any(axis=0), best_same_per_pred, _OBJECTLAB_TINY * (1.0 - pred_conf))
+    overlooked = _softmin1d(per_pred[keep_pred], _OBJECTLAB_TEMPERATURE) if keep_pred.any() else 1.0
+
+    # badloc: per-GT best same-class match with IoU>0 and conf>=LOW_PROB,
+    # fall back to 1.0 (clean) when no candidate exists.
+    cand_low = same_class & (pred_conf[None, :] >= _OBJECTLAB_LOW_PROB) & (iou > 0)
+    rowmax_low = np.where(cand_low, sim, -np.inf).max(axis=1)
+    badloc_per_box = np.where(cand_low.any(axis=1), rowmax_low, 1.0)
+    badloc = _softmin1d(badloc_per_box, _OBJECTLAB_TEMPERATURE)
+
+    # swap: per-GT max(TINY, 1 - best different-class similarity over high-conf preds),
+    # fall back to 1.0 when no candidate exists.
+    cand_high = ~same_class & (pred_conf[None, :] >= _OBJECTLAB_HIGH_PROB)
+    rowmax_high = np.where(cand_high, sim, -np.inf).max(axis=1)
+    swap_per_box = np.where(cand_high.any(axis=1), np.maximum(_OBJECTLAB_TINY, 1.0 - rowmax_high), 1.0)
+    swap = _softmin1d(swap_per_box, _OBJECTLAB_TEMPERATURE)
+
+    # label_quality_score: weighted geometric mean of the three subtype scores (1/3 each).
+    w = 1.0 / 3.0
+    lq = float(
+        np.exp(
+            w * np.log(_OBJECTLAB_TINY + overlooked)
+            + w * np.log(_OBJECTLAB_TINY + badloc)
+            + w * np.log(_OBJECTLAB_TINY + swap)
+        )
+    )
+    return {
+        "overlooked_score": float(np.clip(overlooked, 0.0, 1.0)),
+        "badloc_score": float(np.clip(badloc, 0.0, 1.0)),
+        "swap_score": float(np.clip(swap, 0.0, 1.0)),
+        "label_quality_score": float(np.clip(lq, 0.0, 1.0)),
+    }
+
+
+def _softmin1d(scores: np.ndarray, T: float) -> float:
+    """Softmin-pool a 1D score array as the softmax-weighted mean.
+
+    Weights are ``softmax(-scores / T)`` (lower scores get higher weight). Result is the dot product ``weights .
+    scores``. As ``T`` decreases, the result approaches ``min(scores)``. As ``T`` increases, it approaches the
+    arithmetic mean. The result stays inside ``[min, max]`` of the input.
+
+    Args:
+        scores (np.ndarray): 1D array of per-box scores, each in ``[0, 1]``.
+        T (float): Temperature parameter, must be > 0.
+
+    Returns:
+        (float): Pooled per-image score in ``[0, 1]``.
+    """
+    if scores.size == 0:
+        return 1.0
+    a = -scores / T
+    a = a - a.max()  # shift for numerical stability
+    w = np.exp(a)
+    w /= w.sum()
+    return float(np.dot(w, scores))
 
 
 def _rankdata(a: np.ndarray) -> np.ndarray:

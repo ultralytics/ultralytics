@@ -2406,6 +2406,12 @@ class Format(BaseTransform):
             - Masks are downsampled according to self.mask_ratio.
         """
         segments = instances.segments
+        if not len(segments):
+            masks = np.zeros(
+                (1 if self.mask_overlap else 0, h // self.mask_ratio, w // self.mask_ratio), dtype=np.uint8
+            )
+            return masks, instances[:0], cls[:0]
+
         if self.mask_overlap:
             masks, sorted_idx = polygons2masks_overlap((h, w), segments, downsample_ratio=self.mask_ratio)
             masks = masks[None]  # (640, 640) -> (1, 640, 640)

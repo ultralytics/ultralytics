@@ -780,7 +780,8 @@ def test_classify_transforms_train(image, auto_augment, erasing, force_color_jit
     assert transformed_image.dtype == torch.float32
 
 
-def test_segment_format_empty_segments_batch_idx():
+@pytest.mark.parametrize("mask_overlap", [True, False])
+def test_segment_format_empty_segments_batch_idx(mask_overlap):
     """Test segmentation formatting keeps batch indexes aligned when labels have boxes but no segments."""
     from ultralytics.data.augment import Format
     from ultralytics.utils.instance import Instances
@@ -795,12 +796,14 @@ def test_segment_format_empty_segments_batch_idx():
             normalized=True,
         ),
     }
-    formatter = Format(bbox_format="xywh", normalize=True, return_mask=True)
+    formatter = Format(bbox_format="xywh", normalize=True, return_mask=True, mask_overlap=mask_overlap)
     formatted = formatter.apply_instances(labels, formatter.get_params(labels))
     idx = formatted["batch_idx"] == 0
 
-    assert formatted["cls"].shape == (*formatted["bboxes"].shape[:1], 1)
-    assert formatted["batch_idx"].shape[0] == formatted["cls"].shape[0]
+    assert formatted["cls"].shape == (0, 1)
+    assert formatted["bboxes"].shape == (0, 4)
+    assert formatted["batch_idx"].shape == (0,)
+    assert formatted["masks"].shape == (1 if mask_overlap else 0, 8, 8)
     assert formatted["cls"][idx].shape[0] == 0
 
 

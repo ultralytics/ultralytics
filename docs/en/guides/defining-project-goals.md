@@ -92,12 +92,12 @@ If you start with data, the [Ultralytics Platform](https://platform.ultralytics.
 
 [Model deployment options](./model-deployment-options.md) critically impact the performance of your computer vision project, so factor them in from the start. The deployment environment must handle the computational load of your model:
 
-| Deployment option      | Best for                                                                                                                             | Example technologies                                                                  |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- |
-| **Edge devices**       | Smartphones and IoT devices with limited computational resources; lightweight models                                                 | [TensorFlow Lite](../integrations/tflite.md), [ONNX Runtime](../integrations/onnx.md) |
-| **Cloud servers**      | Complex models with larger computational demands; hardware that scales with the project                                              | [AWS](../integrations/amazon-sagemaker.md), Google Cloud, Azure                       |
-| **On-premise servers** | High [data privacy](https://www.ultralytics.com/glossary/data-privacy) and security needs; full control over data and infrastructure | Self-managed GPU servers                                                              |
-| **Hybrid solutions**   | Balancing performance with cost and latency; edge processing plus cloud analysis                                                     | Combination of edge runtimes and cloud platforms                                      |
+| Deployment option      | Best for                                                                                                                             | Example technologies                                                         |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
+| **Edge devices**       | Smartphones and IoT devices with limited computational resources; lightweight models                                                 | [LiteRT](../integrations/litert.md), [ONNX Runtime](../integrations/onnx.md) |
+| **Cloud servers**      | Complex models with larger computational demands; hardware that scales with the project                                              | [AWS](../integrations/amazon-sagemaker.md), Google Cloud, Azure              |
+| **On-premise servers** | High [data privacy](https://www.ultralytics.com/glossary/data-privacy) and security needs; full control over data and infrastructure | Self-managed GPU servers                                                     |
+| **Hybrid solutions**   | Balancing performance with cost and latency; edge processing plus cloud analysis                                                     | Combination of edge runtimes and cloud platforms                             |
 
 Each option offers different benefits and challenges, and the choice depends on specific project requirements like performance, cost, and security.
 
@@ -131,7 +131,7 @@ If you want to use the classes the model was pretrained on, a practical approach
 
 ### How do deployment options affect my computer vision project?
 
-Deployment options determine which model sizes and formats are viable, so they shape your project from the start. Edge devices need lightweight models served through formats and runtimes like [TensorFlow Lite](../integrations/tflite.md) or [ONNX Runtime](../integrations/onnx.md), cloud servers handle complex models on scalable hardware, on-premise servers give full data control for privacy-sensitive projects, and hybrid setups balance the two. Compare them in the [deployment options table](#how-deployment-options-affect-your-project), or see the [model deployment options guide](./model-deployment-options.md) for details.
+Deployment options determine which model sizes and formats are viable, so they shape your project from the start. Edge devices need lightweight models served through formats and runtimes like [LiteRT](../integrations/litert.md) or [ONNX Runtime](../integrations/onnx.md), cloud servers handle complex models on scalable hardware, on-premise servers give full data control for privacy-sensitive projects, and hybrid setups balance the two. Compare them in the [deployment options table](#how-deployment-options-affect-your-project), or see the [model deployment options guide](./model-deployment-options.md) for details.
 
 ### What are the most common challenges in defining a computer vision problem?
 

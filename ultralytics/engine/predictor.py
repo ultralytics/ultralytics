@@ -23,7 +23,6 @@ Usage - formats:
                               yolo26n.mlpackage          # CoreML (macOS-only)
                               yolo26n_saved_model        # TensorFlow SavedModel
                               yolo26n.pb                 # TensorFlow GraphDef
-                              yolo26n.tflite             # TensorFlow Lite
                               yolo26n_edgetpu.tflite     # TensorFlow Edge TPU
                               yolo26n_paddle_model       # PaddlePaddle
                               yolo26n.mnn                # MNN
@@ -34,6 +33,7 @@ Usage - formats:
                               yolo26n_axelera_model      # Axelera AI
                               yolo26n_deepx_model        # DEEPX
                               yolo26n_qnn.onnx           # Qualcomm QNN
+                              yolo26n.tflite             # LiteRT
 """
 
 from __future__ import annotations

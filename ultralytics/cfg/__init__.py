@@ -92,6 +92,7 @@ TASK2METRIC = {
 }
 
 ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []
+_YOLO_CLI_COMMAND = [sys.executable, "-m", "ultralytics.cfg.__init__"]
 SOLUTIONS_HELP_MSG = f"""
     Arguments received: {["yolo", *ARGV[1:]]!s}. Ultralytics 'yolo solutions' usage overview:
 
@@ -490,11 +491,6 @@ def get_save_dir(args: SimpleNamespace, name: str | None = None) -> Path:
         save_dir = increment_path(Path(project) / name, exist_ok=args.exist_ok if RANK in {-1, 0} else True)
 
     return Path(save_dir).resolve()  # resolve to display full path in console
-
-
-def _get_yolo_cli_command(mode: str, args: dict[str, Any]) -> list[str]:
-    """Return a Python module command for launching the Ultralytics CLI."""
-    return [sys.executable, "-m", "ultralytics.cfg.__init__", mode, *(f"{k}={v}" for k, v in args.items())]
 
 
 def _handle_deprecation(custom: dict) -> dict:

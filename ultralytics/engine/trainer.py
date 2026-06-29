@@ -25,7 +25,7 @@ from torch import distributed as dist
 from torch import nn, optim
 
 from ultralytics import __version__
-from ultralytics.cfg import _get_yolo_cli_command, get_cfg, get_save_dir
+from ultralytics.cfg import _YOLO_CLI_COMMAND, get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset, convert_ndjson_to_yolo_if_needed
 from ultralytics.nn.distill_model import DistillationModel
 from ultralytics.nn.tasks import load_checkpoint
@@ -1216,7 +1216,7 @@ class MultiTrainer:
                         overrides["model"] = str(base_model)
                         overrides["pretrained"] = True
                         subprocess.run(
-                            _get_yolo_cli_command("train", {k: v for k, v in overrides.items() if k != "session"}),
+                            [*_YOLO_CLI_COMMAND, "train", *(f"{k}={v}" for k, v in overrides.items() if k != "session")],
                             check=True,
                         )
                     else:

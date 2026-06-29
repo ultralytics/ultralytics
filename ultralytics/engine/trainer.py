@@ -1133,7 +1133,7 @@ class MultiTrainer:
     chart. The base model object is left unchanged; each dataset's fine-tuned weights live in its own run directory.
 
     Attributes:
-        trainer (type[BaseTrainer]): Task trainer class instantiated once per dataset.
+        trainer (type[BaseTrainer] | None): Task trainer class for Python runs, or None for CLI subprocess runs.
         args (dict): Training arguments shared across datasets; its `data` key holds the dataset collection.
         model (torch.nn.Module): Base model whose weights seed each per-dataset fine-tune.
         callbacks (dict | None): Callbacks forwarded to each per-dataset trainer.
@@ -1149,21 +1149,19 @@ class MultiTrainer:
         >>> results["coco8"]["fitness"]  # final fitness on the coco8 run
     """
 
-    def __init__(self, trainer, args, model, _callbacks: dict | None = None, use_subprocess: bool = True):
+    def __init__(self, trainer, args, model, _callbacks: dict | None = None):
         """Initialize MultiTrainer with a task trainer class, shared training arguments, and the base model.
 
         Args:
-            trainer (type[BaseTrainer]): Task trainer class to run once per dataset.
+            trainer (type[BaseTrainer] | None): Task trainer class to run once per dataset. None uses CLI subprocesses.
             args (dict): Training arguments; the `data` key holds the list/tuple of datasets to fine-tune on.
             model (torch.nn.Module): Base model whose weights seed each per-dataset fine-tune.
             _callbacks (dict, optional): Callback functions forwarded to each per-dataset trainer.
-            use_subprocess (bool): Whether to isolate per-dataset runs in CLI subprocesses.
         """
         self.trainer = trainer
         self.args = args
         self.model = model
         self.callbacks = _callbacks
-        self.use_subprocess = use_subprocess
         self.trainers = []
         self.metrics = {}
         self.save_dir = None
@@ -1184,7 +1182,7 @@ class MultiTrainer:
         )
         self.save_dir = get_save_dir(sweep, name="multitrain")
         self.save_dir.mkdir(parents=True, exist_ok=True)
-        base_model = self.save_dir / "multitrain_base.pt" if self.use_subprocess else None
+        base_model = self.save_dir / "multitrain_base.pt" if self.trainer is None else None
         if base_model:
             torch_save(
                 {"model": deepcopy(self.model).half(), "train_args": getattr(self.model, "args", {})}, base_model
@@ -1217,7 +1215,7 @@ class MultiTrainer:
                     save_dir.mkdir(parents=True, exist_ok=True)
                     run_name = save_dir.name
                     overrides["save_dir"] = str(save_dir)
-                    if self.use_subprocess:
+                    if self.trainer is None:
                         overrides["model"] = str(base_model)
                         overrides["pretrained"] = True
                         subprocess.run(
@@ -1235,7 +1233,7 @@ class MultiTrainer:
                     best, last = save_dir / "weights" / "best.pt", save_dir / "weights" / "last.pt"
                     ckpt = best if best.exists() else last
                     metrics = None
-                    if not self.use_subprocess:
+                    if self.trainer is not None:
                         metrics = getattr(getattr(trainer, "validator", None), "metrics", None)
                         if metrics is not None:
                             metrics = metrics.results_dict

@@ -335,7 +335,7 @@ def test_train_multi_custom_trainer_metrics_and_failure_keys(monkeypatch, tmp_pa
         trainer=FakeTrainer,
     )
 
-    assert model.trainer.use_subprocess is False
+    assert model.trainer.trainer is FakeTrainer
     assert results == {"coco8": {"fitness": 1.0}, "coco8-2": None}
 
 

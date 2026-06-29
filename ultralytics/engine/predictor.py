@@ -38,7 +38,6 @@ Usage - formats:
 
 from __future__ import annotations
 
-import platform
 import re
 import threading
 from pathlib import Path
@@ -503,21 +502,20 @@ class BasePredictor:
     def show(self, p: str = ""):
         """Display an image in a window."""
         im = self.plotted_img
-        if platform.system() == "Linux":
-            h, w = im.shape[:2]
-            if p not in self.windows:
-                self.windows.append(p)
-                cv2.namedWindow(p, cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)  # allow window resize (Linux)
-            try:  # scale window down to fit screen if image larger than screen resolution
-                if self.screen is None:
-                    root = __import__("tkinter").Tk()
-                    root.withdraw()  # hide the empty Tk window
-                    self.screen = root.winfo_screenwidth(), root.winfo_screenheight()
-                    root.destroy()
-                r = min(self.screen[0] / w, self.screen[1] / h, 1.0)
-                cv2.resizeWindow(p, max(1, int(w * r)), max(1, int(h * r)))  # (width, height)
-            except Exception:
-                pass
+        h, w = im.shape[:2]
+        if p not in self.windows:
+            self.windows.append(p)
+            cv2.namedWindow(p, cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)  # allow window resize and scaling
+        try:  # scale window down to fit screen if image larger than screen resolution
+            if self.screen is None:
+                root = __import__("tkinter").Tk()
+                root.withdraw()  # hide the empty Tk window
+                self.screen = root.winfo_screenwidth(), root.winfo_screenheight()
+                root.destroy()
+            r = min(self.screen[0] / w, self.screen[1] / h, 1.0)
+            cv2.resizeWindow(p, max(1, int(w * r)), max(1, int(h * r)))  # (width, height)
+        except Exception:
+            pass
         cv2.imshow(p, im)
         if cv2.waitKey(300 if self.dataset.mode == "image" else 1) & 0xFF == ord("q"):  # 300ms if image; else 1ms
             raise StopIteration

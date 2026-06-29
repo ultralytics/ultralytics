@@ -516,10 +516,10 @@ class ImagePropertyExtractor:
 class CorrelationAnalysis:
     """Join property-augmented labels with per-image metrics, correlate, rank, and write reports.
 
-    Consumes the labels returned by :class:`ImagePropertyExtractor` together with a metrics object from
-    ``model.val()``. Computes Pearson + Spearman correlations of every property against per-image F1,
-    ranks the worst-performing images by F1 with anomaly score as tiebreak, and writes ``per_image_analysis.csv``,
-    ``correlations.json``, ``worst_images.json``, ``summary.md``, and three plots into ``save_dir``.
+    Consumes the labels returned by :class:`ImagePropertyExtractor` together with a metrics object from ``model.val()``.
+    Computes Pearson + Spearman correlations of every property against per-image F1, ranks the worst-performing images
+    by F1 with anomaly score as tiebreak, and writes ``per_image_analysis.csv``, ``correlations.json``,
+    ``worst_images.json``, ``summary.md``, and three plots into ``save_dir``.
 
     Attributes:
         labels (list[dict]): Property-augmented label dicts from ``ImagePropertyExtractor.labels``.

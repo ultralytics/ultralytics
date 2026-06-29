@@ -509,6 +509,12 @@ class Exporter:
             fmt = "engine"
         if fmt in {"mlmodel", "mlpackage", "mlprogram", "apple", "ios", "coreml"}:  # 'coreml' aliases
             fmt = "coreml"
+        if fmt in {"tflite", "tfjs"}:  # deprecated formats, replaced by the unified Google LiteRT export
+            LOGGER.warning(
+                f"format='{fmt}' is deprecated as of 8.4.83 and has been replaced by the unified Google LiteRT "
+                f"format. Exporting format='litert' instead. See https://docs.ultralytics.com/integrations/litert/"
+            )
+            fmt = self.args.format = "litert"
         fmts_dict = export_formats()
         fmts = tuple(fmts_dict["Argument"][1:])  # available export formats
         if fmt not in fmts:

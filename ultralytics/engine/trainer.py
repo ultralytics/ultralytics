@@ -1193,6 +1193,7 @@ class MultiTrainer:
                     f"\n{colorstr('blue', 'bold', f'MultiTrainer {i + 1}/{len(datasets)}:')} fine-tuning on {data}"
                 )
                 name = Path(str(data)).stem
+                run_name = name
                 try:
                     overrides = {
                         **self.args,
@@ -1211,6 +1212,8 @@ class MultiTrainer:
                         save_dir=None,
                     )
                     save_dir = get_save_dir(run)
+                    save_dir.mkdir(parents=True, exist_ok=True)
+                    run_name = save_dir.name
                     overrides["save_dir"] = str(save_dir)
                     if self.use_subprocess:
                         overrides["model"] = str(base_model)
@@ -1225,11 +1228,16 @@ class MultiTrainer:
                         trainer.train()
                     best, last = save_dir / "weights" / "best.pt", save_dir / "weights" / "last.pt"
                     ckpt = best if best.exists() else last
-                    self.metrics[save_dir.name] = torch_load(ckpt)["train_metrics"] if ckpt.exists() else None
+                    metrics = None
+                    if not self.use_subprocess:
+                        metrics = getattr(getattr(trainer, "validator", None), "metrics", None)
+                        if metrics is not None:
+                            metrics = metrics.results_dict
+                    self.metrics[run_name] = metrics or (torch_load(ckpt)["train_metrics"] if ckpt.exists() else None)
                     self.trainers.append(SimpleNamespace(save_dir=save_dir, best=best, last=last))
                 except Exception as e:  # one bad dataset should not abort the whole sweep
                     LOGGER.error(f"MultiTrainer: fine-tuning on {data} failed, skipping: {e}")
-                    self.metrics[name] = None
+                    self.metrics[run_name] = None
         finally:
             if base_model:
                 base_model.unlink(missing_ok=True)

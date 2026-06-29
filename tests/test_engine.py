@@ -325,9 +325,7 @@ def test_train_multi_python_customizations_run_in_process(monkeypatch, tmp_path,
             calls["train"] += 1
             for callback in self.callbacks["on_train_start"]:
                 callback(self)
-            weights_dir = Path(self.overrides["save_dir"]) / "weights"
-            weights_dir.mkdir(parents=True)
-            torch.save({"train_metrics": {"fitness": float(calls["train"])}}, weights_dir / "last.pt")
+            self.validator = SimpleNamespace(metrics=SimpleNamespace(results_dict={"fitness": float(calls["train"])}))
 
     def on_train_start(trainer):
         calls["callback"] += 1
@@ -338,11 +336,39 @@ def test_train_multi_python_customizations_run_in_process(monkeypatch, tmp_path,
         monkeypatch.setattr(model, "_smart_load", lambda key: FakeTrainer)
 
     kwargs = {"trainer": FakeTrainer} if pass_trainer else {}
-    results = model.train(data=["coco8.yaml", "coco8.yaml"], project=tmp_path, epochs=1, imgsz=32, plots=False, **kwargs)
+    results = model.train(
+        data=["coco8.yaml", "coco8.yaml"], project=tmp_path, epochs=1, imgsz=32, plots=False, save=False, **kwargs
+    )
 
     assert model.trainer.use_subprocess is False
     assert calls == {"train": 2, "callback": 2 if add_callback else 0}
     assert isinstance(results, dict) and len(results) == 2
+
+
+def test_train_multi_repeated_dataset_failure_uses_unique_run_name(monkeypatch, tmp_path):
+    """Test repeated multi-dataset failures do not overwrite successful run metrics."""
+    model = YOLO(MODEL)
+    calls = {"train": 0}
+
+    class FakeTrainer:
+        def __init__(self, overrides=None, _callbacks=None):
+            self.overrides = overrides
+
+        def get_model(self, cfg=None, weights=None, verbose=True):
+            return model.model
+
+        def train(self):
+            calls["train"] += 1
+            if calls["train"] == 2:
+                raise RuntimeError("failed repeated dataset")
+            self.validator = SimpleNamespace(metrics=SimpleNamespace(results_dict={"fitness": 1.0}))
+
+    monkeypatch.setattr("ultralytics.engine.model.checks.check_pip_update_available", lambda: None)
+    results = model.train(
+        data=["coco8.yaml", "coco8.yaml"], project=tmp_path, epochs=1, imgsz=32, plots=False, trainer=FakeTrainer
+    )
+
+    assert results == {"coco8": {"fitness": 1.0}, "coco8-2": None}
 
 
 @pytest.mark.parametrize("pretrained,uses_weights", [(True, True), (False, False), (MODEL, True)])

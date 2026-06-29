@@ -67,7 +67,6 @@ class AnomalyV2Trainer(DetectionTrainer):
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         super().__init__(cfg, overrides, _callbacks)
-        self.add_callback("on_train_epoch_start", AnomalyV2Trainer._update_seg_alpha)
         # NOTE: _mvtec_ood_eval is NOT a callback — it runs inside validate() so best.pt
         # selection sees the current epoch's OOD score (no one-epoch lag).
         self._ood_best_fitness = None  # running max of the OOD-scale fitness (best.pt selection)
@@ -169,10 +168,6 @@ class AnomalyV2Trainer(DetectionTrainer):
             loss_names = ["box_loss", "anom_loss", "dfl_loss", "type_loss"]
         else:
             loss_names = ["box_loss", "cls_loss", "dfl_loss"]
-        if getattr(model, "seg_branch", None) is not None:
-            # SegBranch heatmap-predictor BCE+Dice term. Stacking it on a per-instance Segment
-            # head is not a supported combo (no config does it), so no name-collision handling.
-            loss_names.append("seg_loss")
         # QueryFiLM appends 4 aux components in this exact order (see YOLOAnomalyV2Model.loss).
         if getattr(model, "fusion_mode", None) == "queryfilm":
             loss_names += ["qmask_loss", "qobj_loss", "qovl_loss", "qfg_loss"]
@@ -331,26 +326,3 @@ class AnomalyV2Trainer(DetectionTrainer):
                 wb.run.log(log, step=trainer.epoch + 1)
             except Exception as e:
                 LOGGER.warning(f"MVTec OOD: wandb log failed: {type(e).__name__}: {e}")
-
-    @staticmethod
-    def _update_seg_alpha(trainer: "AnomalyV2Trainer") -> None:
-        """Set ``seg_alpha`` per ``model.seg_alpha_mode`` (curriculum|pinned_one|pinned_zero).
-
-        Curriculum: alpha = 1 at epoch 0, linear to 0 at ``epochs - close_mosaic``, then 0.
-        Pinned modes hold alpha at 1 or 0 throughout — for ablation runs.
-        The value is mirrored onto the EMA model, which validation actually runs on.
-        """
-        model = unwrap_model(trainer.model)
-        if getattr(model, "seg_branch", None) is None:
-            return
-        mode = getattr(model, "seg_alpha_mode", "curriculum")
-        if mode == "pinned_one":
-            alpha = 1.0
-        elif mode == "pinned_zero":
-            alpha = 0.0
-        else:
-            curriculum_end = max(trainer.epochs // 2, trainer.epochs - trainer.args.close_mosaic)
-            alpha = max(0.0, 1.0 - trainer.epoch / max(1, curriculum_end))
-        model.seg_alpha = alpha
-        if trainer.ema is not None:
-            unwrap_model(trainer.ema.ema).seg_alpha = alpha

@@ -21,7 +21,6 @@ anomaly_v2:
   mask_mode: gauss
   sigma_factor: [0.20, 0.40]
   p_drop: 0.5
-  seg_branch: false
   bb_layers: [6]
   fusion_mode: bias
   # aug3 base + mixup re-enabled (aug2 strength) — only diff vs aug3

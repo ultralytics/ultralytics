@@ -1058,6 +1058,9 @@ class Exporter:
         ``quantize='w8a32'`` (dynamic/weight-only INT8, int8 weights + FP32 activations, no calibration needed).
         """
         assert MACOS or (LINUX and not ARM64), "LiteRT export only supported on Linux x86 and macOS"
+        # Coordinates are normalized/denormalized by a single scalar image size, so non-square exports would
+        # mis-scale the y axis. Require square imgsz (the standard for litert-torch / non-PyTorch exports).
+        assert self.imgsz[0] == self.imgsz[1], f"LiteRT export requires a square imgsz, got {self.imgsz}"
         from ultralytics.utils.export.litert import torch2litert
 
         return torch2litert(

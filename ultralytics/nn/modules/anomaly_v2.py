@@ -699,12 +699,11 @@ class BackboneMemoryBank(nn.Module):
             self.holdout_max = 5000
 
     def _apply(self, fn, recurse=True):
-        """Keep the de-buffered FIFO queue in sync with ``.to()``/``.float()``/``.half()``.
+        """Keep a plain-attribute memory bank in sync with ``.to()``/``.float()``/``.half()``.
 
-        ``init_queue``/``adopt_queue`` replace the registered buffer with a plain attribute
-        (invisible to state_dict/ModelEMA/DDP); plain attributes are skipped by
-        ``nn.Module._apply``, so a carried queue would otherwise stay on the old
-        device/dtype after ``model.to(device)``.
+        If ``memory_bank`` is ever held as a plain attribute (not a registered buffer), it is
+        skipped by ``nn.Module._apply`` and would stay on the old device/dtype after
+        ``model.to(device)``; this defensively moves it. A no-op for the registered-buffer case.
         """
         module = super()._apply(fn, recurse)
         if "memory_bank" not in module._buffers and isinstance(module.memory_bank, torch.Tensor):
@@ -762,89 +761,6 @@ class BackboneMemoryBank(nn.Module):
         self._threshold = None
         self.update = True
         self._bank_chunks: list[torch.Tensor] = []  # defer cat until freeze
-
-    # ------------------------------------------------------------------
-    # MoCo-style FIFO queue (training-time prior)
-    # ------------------------------------------------------------------
-    def init_queue(self, capacity: int, feature_dim: int, device=None) -> None:
-        """Switch the bank to FIFO-queue mode for training-time priors.
-
-        Replaces the registered ``memory_bank`` buffer with a plain-attribute tensor so it is
-        invisible to ``state_dict``/``ModelEMA``/DDP buffer broadcast (which would otherwise
-        EMA-blend unit vectors into garbage, crash on the shape change, or broadcast ~100 MB
-        per step). Zero rows mark unfilled slots and are excluded by ``_effective_bank``.
-        """
-        dev = device if device is not None else self.memory_bank.device
-        self._buffers.pop("memory_bank", None)
-        self.memory_bank = torch.zeros(int(capacity), int(feature_dim), device=dev)
-        self.feature_dim = int(feature_dim)
-        self._queue_capacity = int(capacity)
-        self._queue_ptr = 0
-        self.update = False
-
-    def adopt_queue(self, src: "BackboneMemoryBank") -> None:
-        """Alias another bank's FIFO queue (shared storage, no copy).
-
-        Points the EMA model's bank at the live model's queue so validation and checkpoint
-        saves see the current contents. Safe because the queue is a plain attribute:
-        ``ModelEMA.update`` (state_dict-based) never touches it.
-        """
-        self._buffers.pop("memory_bank", None)
-        self.memory_bank = src.memory_bank
-        self.feature_dim = src.feature_dim
-        self.temperature = src.temperature
-        self.K = src.K
-        self._calibrated = True
-        self.update = False
-
-    @torch.no_grad()
-    def enqueue(
-        self,
-        feat_dict: dict[int, torch.Tensor],
-        exclude_mask: torch.Tensor | None = None,
-        max_patches: int | None = None,
-    ) -> int:
-        """Push a batch of backbone patches into the FIFO queue, evicting the oldest.
-
-        Args:
-            feat_dict: Backbone features captured by the taps, as in ``accumulate_features``.
-            exclude_mask: (B, 1, H, W) prior in [0, 1]; patches where it exceeds 0.05 (inside
-                or near a GT box) are skipped so defect pixels never enter the bank.
-            max_patches: Random subsample cap so the queue's refresh period spans
-                ~capacity/max_patches steps instead of wrapping every batch.
-
-        Returns:
-            Number of patches enqueued.
-        """
-        if not feat_dict or getattr(self, "_queue_capacity", 0) <= 0:
-            return 0
-        fused = self._build_fused_feature(feat_dict)  # (B, C, H, W)
-        c, h, w = fused.shape[1], fused.shape[2], fused.shape[3]
-        if c != self.feature_dim:
-            return 0
-        flat = fused.permute(0, 2, 3, 1).reshape(-1, c).float()
-        if exclude_mask is not None:
-            m = F.interpolate(exclude_mask.to(device=fused.device, dtype=torch.float32), size=(h, w), mode="nearest")
-            flat = flat[m.reshape(-1) < 0.05]
-        if flat.shape[0] == 0:
-            return 0
-        if max_patches is not None and flat.shape[0] > max_patches:
-            flat = flat[torch.randperm(flat.shape[0], device=flat.device)[:max_patches]]
-        normed = F.normalize(flat, p=2, dim=1).to(self.memory_bank.device)
-        n, cap, ptr = normed.shape[0], self._queue_capacity, self._queue_ptr
-        if n >= cap:
-            self.memory_bank.copy_(normed[:cap])
-            self._queue_ptr = 0
-            return cap
-        end = ptr + n
-        if end <= cap:
-            self.memory_bank[ptr:end] = normed
-        else:
-            k = cap - ptr
-            self.memory_bank[ptr:] = normed[:k]
-            self.memory_bank[: n - k] = normed[k:]
-        self._queue_ptr = end % cap
-        return n
 
     def accumulate_features(self, feat_dict: dict[int, torch.Tensor]) -> None:
         """Extract and accumulate backbone features into the memory bank (build phase).

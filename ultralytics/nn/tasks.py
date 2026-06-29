@@ -885,9 +885,6 @@ class YOLOAnomalyV2Model(DetectionModel):
         if self.memory_bank is not None and self._bb_layers:
             self.memory_bank._bb_layer_indices = self._bb_layers
             self._install_backbone_taps(self._bb_layers)
-        # MoCo-style FIFO-queue training prior (0 = disabled, classic frozen-bank behavior).
-        self.mb_queue_capacity = int(v2_cfg.get("mb_queue_capacity", 0))
-        self.mb_blend_p = float(v2_cfg.get("mb_blend_p", 0.5))
 
         # Prior mode state (predictor/validator controlled)
         self._prior_mode: str | None = None  # None = legacy (GT bboxes -> renderer)
@@ -1154,8 +1151,7 @@ class YOLOAnomalyV2Model(DetectionModel):
         def _make_hook(idx: int):
             def _hook(_module, _inp, out):
                 # Detached capture on every forward: eval uses it for load_support_set /
-                # prior_mode="heatmap"; training uses it for the FIFO-queue prior
-                # (mb_queue_capacity > 0). Detach keeps the graph out; cost is one small
+                # prior_mode="heatmap". Detach keeps the graph out; cost is one small
                 # held activation per tapped layer until the next forward clears the dict.
                 self._bb_feats[idx] = out.detach()
 
@@ -1237,8 +1233,6 @@ class YOLOAnomalyV2Model(DetectionModel):
             ("heatmap_norm", "none"),
             ("mask_mag_range", (1.0, 1.0)),
             ("mask_blur_sigma_max", 0.0),
-            ("mb_queue_capacity", 0),
-            ("mb_blend_p", 0.5),
             ("heatmap_edge_weight", False),
             ("heatmap_edge_p", 4.0),
             ("heatmap_edge_m", 4.4),

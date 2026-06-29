@@ -22,16 +22,15 @@ class LiteRTBackend(BaseBackend):
     """
 
     def load_model(self, weight: str | Path) -> None:
-        """Load a LiteRT model from a .tflite file or directory.
+        """Load a LiteRT model from a .tflite file.
 
         Args:
-            weight (str | Path): Path to the .tflite model file or directory containing the model.
+            weight (str | Path): Path to the .tflite model file (metadata embedded as a metadata.json entry).
         """
         check_requirements("ai-edge-litert>=2.1.4")
         from ai_edge_litert.interpreter import Interpreter
 
-        w = Path(weight)
-        tflite_file = next(w.glob("*.tflite")) if w.is_dir() else w
+        tflite_file = Path(weight)
 
         LOGGER.info(f"Loading {tflite_file} for LiteRT inference...")
         self.interpreter = Interpreter(str(tflite_file))

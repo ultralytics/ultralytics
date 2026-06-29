@@ -834,6 +834,9 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         lines = [json.loads(line.strip()) for line in f if line.strip()]
     dataset_record, image_records = lines[0], lines[1:]
 
+    # Local path override: caller owns image layout under {path}/images/{split}; we only write labels there.
+    local_mode = (user_path := dataset_record.get("path")) and dataset_record.get("task") != "classify"
+
     # Hash stable content plus source identity. Query strings are excluded because signed URLs change on every export.
     _h = hashlib.sha256()
     for r in lines:
@@ -845,8 +848,10 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
 
     # Hash-qualified dirs allow identical datasets to reuse downloads while preventing changed datasets from mutating
     # files that another training job may still be reading.
-    dataset_dir = output_path / f"{ndjson_path.stem}-{_hash}"
-    yaml_path = dataset_dir / "data.yaml"
+    dataset_dir = (
+        (ndjson_path.parent / user_path).resolve() if local_mode else output_path / f"{ndjson_path.stem}-{_hash}"
+    )
+    yaml_path = dataset_dir / (f"{ndjson_path.stem}.yaml" if local_mode else "data.yaml")
     if yaml_path.is_file():
         try:
             cached = YAML.load(yaml_path)
@@ -898,7 +903,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                 r["split"] = "val"
             splits.add("val")
             LOGGER.warning(
-                f"WARNING ⚠️ No 'val' split found in dataset. "
+                f"No 'val' split found in dataset. "
                 f"Auto-splitting {len(train_records)} images into {len(train_records) - val_count} train, {val_count} val. "
                 f"For best results, manually assign validation images in Platform dataset page."
             )
@@ -909,7 +914,8 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     _reuse = dataset_dir.exists()
     if _reuse:
         yaml_path.unlink(missing_ok=True)  # Invalidate hash before destructive ops (crash safety)
-        if not is_classification:
+        if not is_classification and not local_mode:
+            LOGGER.warning(f"Removing existing labels at {dataset_dir / 'labels'} to rewrite from NDJSON.")
             shutil.rmtree(dataset_dir / "labels", ignore_errors=True)
     dataset_dir.mkdir(parents=True, exist_ok=True)
     data_yaml = None
@@ -923,8 +929,13 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
             data_yaml["nc"] = inferred_nc
         data_yaml.pop("class_names", None)
         data_yaml.pop("type", None)  # Remove NDJSON-specific fields
+        if local_mode:
+            data_yaml["path"] = str(dataset_dir)  # normalize raw/relative input to resolved dataset_dir
+        else:
+            data_yaml.pop("path", None)  # YAML must resolve relative to dataset_dir, not user-supplied path
         for split in sorted(splits):
-            (dataset_dir / "images" / split).mkdir(parents=True, exist_ok=True)
+            if not local_mode:
+                (dataset_dir / "images" / split).mkdir(parents=True, exist_ok=True)
             (dataset_dir / "labels" / split).mkdir(parents=True, exist_ok=True)
             data_yaml[split] = f"images/{split}"
 
@@ -949,6 +960,8 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                     lines_to_write = [" ".join(map(str, item)) for item in annotations[key]]
                     break
                 label_path.write_text("\n".join(lines_to_write) + "\n" if lines_to_write else "")
+                if local_mode:
+                    return True
 
             # Reuse existing image from another split dir (avoids redownload on resplit) or download
             if not image_path.exists():
@@ -1015,8 +1028,16 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     if success_count < len(image_records):
         LOGGER.warning(f"Downloaded {success_count}/{len(image_records)} images from {ndjson_path}")
 
+    # Local mode: prune stale label .txt files only (caller owns image tree, untouched).
+    if _reuse and local_mode:
+        expected = {dataset_dir / "labels" / r["split"] / f"{Path(r['file']).stem}.txt" for r in image_records}
+        for split in splits:
+            for p in (dataset_dir / "labels" / split).glob("*.txt"):
+                if p not in expected:
+                    p.unlink()
+
     # Remove orphaned images no longer in the dataset (prevents stale background images in training)
-    if _reuse:
+    if _reuse and not local_mode:
         expected_paths = set()
         for r in image_records:
             s, name = r["split"], r["file"]

@@ -21,6 +21,11 @@
 </div>
 <br>
 
+<div align="center">
+  <a href="https://trendshift.io/repositories/1556?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-1556" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/1556" alt="ultralytics%2Fultralytics | Trendshift" width="250" height="55"/></a>
+</div>
+<br>
+
 [Ultralytics](https://www.ultralytics.com/) 基于多年在计算机视觉和人工智能领域的基础研究，创造了尖端的、最先进的 (SOTA) [YOLO 模型](https://www.ultralytics.com/yolo)。我们的模型不断更新以提高性能和灵活性，具有**速度快**、**精度高**和**易于使用**的特点。它们在[目标检测](https://docs.ultralytics.com/tasks/detect)、[跟踪](https://docs.ultralytics.com/modes/track)、[实例分割](https://docs.ultralytics.com/tasks/segment)、[语义分割](https://docs.ultralytics.com/tasks/semantic)、[图像分类](https://docs.ultralytics.com/tasks/classify)和[姿态估计](https://docs.ultralytics.com/tasks/pose)任务中表现出色。
 
 在 [Ultralytics 文档](https://docs.ultralytics.com/)中查找详细文档。通过 [GitHub Issues](https://github.com/ultralytics/ultralytics/issues/new/choose) 获取支持。加入 [Discord](https://discord.com/invite/ultralytics)、[Reddit](https://www.reddit.com/r/ultralytics/) 和 [Ultralytics 社区论坛](https://community.ultralytics.com/)参与讨论！

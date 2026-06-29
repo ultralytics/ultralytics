@@ -121,6 +121,8 @@ Explore the links to learn more about each integration and how to get the most o
 
 We're always excited to see how the community integrates Ultralytics YOLO with other technologies, tools, and platforms! If you have successfully integrated YOLO with a new system or have valuable insights to share, consider [contributing to our Integrations Docs](../help/contributing.md).
 
+For new **hardware export and runtime integrations** (compilation toolkits, accelerator runtimes, edge AI platforms), see the [Contribute a Hardware Integration](hardware-integration.md) guide. It walks through the `Exporter` and `AutoBackend` patterns, dependency standards, documentation expectations, and the QA checklist used to review new integration PRs.
+
 By writing a guide or tutorial, you can help expand our documentation and provide real-world examples that benefit the community. It's an excellent way to contribute to the growing ecosystem around Ultralytics YOLO.
 
 To contribute, please check out our [Contributing Guide](../help/contributing.md) for instructions on how to submit a Pull Request (PR) 🛠️. We eagerly await your contributions!

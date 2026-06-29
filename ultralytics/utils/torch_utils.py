@@ -318,9 +318,7 @@ def fuse_deconv_and_bn(deconv, bn):
         >>> bn = nn.BatchNorm2d(3)
         >>> fused_deconv = fuse_deconv_and_bn(deconv, bn)
     """
-    if not isinstance(
-        bn, nn.modules.batchnorm._BatchNorm
-    ):  # ConvTranspose(bn=False) leaves bn as nn.Identity, nothing to fuse
+    if isinstance(bn, nn.Identity):  # ConvTranspose(bn=False) leaves bn as nn.Identity, nothing to fuse
         return deconv.requires_grad_(False)
     # Compute fused weights
     w_deconv = deconv.weight.view(deconv.out_channels, -1)

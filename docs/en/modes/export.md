@@ -88,41 +88,41 @@ Available YOLO26 export formats are in the table below. You can export to any fo
 
 Use the `quantize` argument to request the export precision. String values are case-insensitive, and Ultralytics canonicalizes accepted aliases before export:
 
-| Request values                     | Canonical value | Meaning                                                 |
-| ---------------------------------- | --------------- | ------------------------------------------------------- |
-| `8`, `"8"`, `"int8"`, `"w8a8"`     | `8`             | INT8 weights and activations                            |
-| `16`, `"16"`, `"fp16"`, `"w16a16"` | `16`            | FP16 weights and activations                            |
-| `32`, `"32"`, `"fp32"`, `"w32a32"` | `32`            | FP32 export; same precision as leaving `quantize` unset |
-| `"w8a16"`                          | `"w8a16"`       | INT8 weights with FP16 activations                      |
+| Request values                     | Canonical value | Meaning                                                                         |
+| ---------------------------------- | --------------- | ------------------------------------------------------------------------------- |
+| `8`, `"8"`, `"int8"`, `"w8a8"`     | `8`             | INT8 weights and activations                                                    |
+| `16`, `"16"`, `"fp16"`, `"w16a16"` | `16`            | FP16 weights and activations                                                    |
+| `32`, `"32"`, `"fp32"`, `"w32a32"` | `32`            | FP32 export; same precision as leaving `quantize` unset                         |
+| `"w8a16"`                          | `"w8a16"`       | INT8 weights with 16-bit activations (FP16; INT16 on LiteRT)                    |
+| `"w8a32"`                          | `"w8a32"`       | INT8 weights with FP32 activations (LiteRT dynamic INT8, no calibration needed) |
 
 The legacy `half=True` and `int8=True` flags are still accepted with deprecation warnings and forward to `quantize=16` and `quantize=8`.
 
 Not every export format supports every precision. Explicit `quantize` requests either produce that precision or fail before export:
 
-| Format        | FP32 (`32`/unset) | FP16 (`16`)       | INT8 (`8`) | W8A16 (`"w8a16"`) | Notes                                                                                                         |
-| ------------- | ----------------- | ----------------- | ---------- | ----------------- | ------------------------------------------------------------------------------------------------------------- |
-| PyTorch       | ✅                | N/A               | N/A        | N/A               | Native training/checkpoint format.                                                                            |
-| TorchScript   | ✅                | ✅ GPU only       | ❌         | ❌                | FP16 TorchScript export requires `device=0`; CPU export is FP32.                                              |
-| ONNX          | ✅                | ✅                | ✅         | ❌                | INT8 uses ONNX Runtime static quantization and calibration data.                                              |
-| OpenVINO      | ✅                | ✅                | ✅         | ❌                | INT8 uses NNCF post-training quantization.                                                                    |
-| TensorRT      | ✅                | ✅                | ✅         | ❌                | INT8 needs representative calibration data.                                                                   |
-| CoreML        | ✅                | ✅                | ✅         | ✅                | CoreML INT8 is weight quantization; W8A16 uses INT8 weights with FP16 activations.                            |
-| TF SavedModel | ✅                | ❌                | ✅         | ❌                | INT8 export uses TensorFlow calibration.                                                                      |
-| TF GraphDef   | ✅                | ❌                | ❌         | ❌                | No export-time precision conversion.                                                                          |
-| TFLite        | ✅                | ✅                | ✅         | ❌                | INT8 export uses TensorFlow calibration.                                                                      |
-| Edge TPU      | ❌                | ❌                | ✅ auto    | ❌                | Edge TPU requires INT8; it is auto-enabled when unset.                                                        |
-| TF.js         | ✅                | ✅                | ✅         | ❌                | INT8/FP16 are applied during TensorFlow.js conversion.                                                        |
-| PaddlePaddle  | ✅                | ❌                | ❌         | ❌                | No export-time precision conversion.                                                                          |
-| MNN           | ✅                | ✅                | ✅         | ❌                | INT8 is weight quantization through MNN conversion.                                                           |
-| NCNN          | ✅                | ✅                | ❌         | ❌                | Mobile/embedded runtime format.                                                                               |
-| IMX500        | ❌                | ❌                | ✅ auto    | ✅                | IMX500 requires quantization; INT8 is auto-enabled when unset.                                                |
-| RKNN          | ❌                | ✅ chip-dependent | ✅         | ❌                | RK3588/RK3576/RK3566/RK3568/RK3562/RK2118/RV1126B support FP16 or INT8; RV1103/RV1106 variants are INT8-only. |
-| ExecuTorch    | ✅                | ❌                | ❌         | ❌                | No export-time precision conversion.                                                                          |
-| Axelera       | ❌                | ❌                | ✅ auto    | ❌                | Axelera export requires INT8; it is auto-enabled when unset.                                                  |
-| DEEPX         | ❌                | ❌                | ✅ auto    | ❌                | DEEPX export requires INT8; it is auto-enabled when unset.                                                    |
-| Qualcomm QNN  | ❌                | ❌                | ❌         | ✅ auto           | QNN HTP export is fixed to INT8 weights with 16-bit activations.                                              |
+| Format        | FP32 (`32`/unset) | FP16 (`16`)       | INT8 (`8`) | W8A16 (`"w8a16"`) | Notes                                                                                                                                                                                                                                                   |
+| ------------- | ----------------- | ----------------- | ---------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| PyTorch       | ✅                | N/A               | N/A        | N/A               | Native training/checkpoint format.                                                                                                                                                                                                                      |
+| TorchScript   | ✅                | ✅ GPU only       | ❌         | ❌                | FP16 TorchScript export requires `device=0`; CPU export is FP32.                                                                                                                                                                                        |
+| ONNX          | ✅                | ✅                | ✅         | ❌                | INT8 uses ONNX Runtime static quantization and calibration data.                                                                                                                                                                                        |
+| OpenVINO      | ✅                | ✅                | ✅         | ❌                | INT8 uses NNCF post-training quantization.                                                                                                                                                                                                              |
+| TensorRT      | ✅                | ✅                | ✅         | ❌                | INT8 needs representative calibration data.                                                                                                                                                                                                             |
+| CoreML        | ✅                | ✅                | ✅         | ✅                | CoreML INT8 is weight quantization; W8A16 uses INT8 weights with FP16 activations.                                                                                                                                                                      |
+| TF SavedModel | ✅                | ❌                | ✅         | ❌                | INT8 export uses TensorFlow calibration.                                                                                                                                                                                                                |
+| TF GraphDef   | ✅                | ❌                | ❌         | ❌                | No export-time precision conversion.                                                                                                                                                                                                                    |
+| Edge TPU      | ❌                | ❌                | ✅ auto    | ❌                | Edge TPU requires INT8; it is auto-enabled when unset.                                                                                                                                                                                                  |
+| PaddlePaddle  | ✅                | ❌                | ❌         | ❌                | No export-time precision conversion.                                                                                                                                                                                                                    |
+| MNN           | ✅                | ✅                | ✅         | ❌                | INT8 is weight quantization through MNN conversion.                                                                                                                                                                                                     |
+| NCNN          | ✅                | ✅                | ❌         | ❌                | Mobile/embedded runtime format.                                                                                                                                                                                                                         |
+| IMX500        | ❌                | ❌                | ✅ auto    | ✅                | IMX500 requires quantization; INT8 is auto-enabled when unset.                                                                                                                                                                                          |
+| RKNN          | ❌                | ✅ chip-dependent | ✅         | ❌                | RK3588/RK3576/RK3566/RK3568/RK3562/RK2118/RV1126B support FP16 or INT8; RV1103/RV1106 variants are INT8-only.                                                                                                                                           |
+| ExecuTorch    | ✅                | ❌                | ❌         | ❌                | No export-time precision conversion.                                                                                                                                                                                                                    |
+| Axelera       | ❌                | ❌                | ✅ auto    | ❌                | Axelera export requires INT8; it is auto-enabled when unset.                                                                                                                                                                                            |
+| DEEPX         | ❌                | ❌                | ✅ auto    | ❌                | DEEPX export requires INT8; it is auto-enabled when unset.                                                                                                                                                                                              |
+| Qualcomm QNN  | ❌                | ❌                | ❌         | ✅ auto           | QNN HTP export is fixed to INT8 weights with 16-bit activations.                                                                                                                                                                                        |
+| LiteRT        | ✅                | ❌                | ✅         | ✅                | Static INT8 (`8`) and `"w8a16"` (int8 weights + **int16** activations) use calibration data; also supports `"w8a32"` dynamic INT8 (no calibration). `quantize=16` is not a separate export; an FP32 model runs in FP16 at runtime via the GPU delegate. |
 
-For INT8 and W8A16 exports, provide representative calibration data with `data`, such as `data="coco8.yaml"`, unless the target integration documents a default or auto-enabled behavior.
+For INT8 and W8A16 exports, provide representative calibration data with `data`, such as `data="coco8.yaml"`, unless the target integration documents a default or auto-enabled behavior. The LiteRT `"w8a32"` (dynamic INT8) scheme needs no calibration data.
 
 ## FAQ
 
@@ -218,7 +218,7 @@ Understanding and configuring export arguments is crucial for optimizing model p
 
 - **`format:`** The target format for the exported model (e.g., `onnx`, `torchscript`, `tensorflow`).
 - **`imgsz:`** Desired image size for the model input (e.g., `640` or `(height, width)`).
-- **`quantize:`** Quantization precision, such as `8`/`"int8"`, `16`/`"fp16"`, `32`/`"fp32"`, or `"w8a16"` for supported mixed weight/activation precision exports. See [Quantization Options](#quantization-options).
+- **`quantize:`** Quantization precision, such as `8`/`"int8"`, `16`/`"fp16"`, `32`/`"fp32"`, or the mixed weight/activation schemes `"w8a16"` and `"w8a32"` (LiteRT dynamic INT8) on supported formats. See [Quantization Options](#quantization-options).
 - **`optimize:`** Applies specific optimizations for mobile or constrained environments.
 
 For deployment on specific hardware platforms, consider using specialized export formats like [TensorRT](../integrations/tensorrt.md) for NVIDIA GPUs, [CoreML](../integrations/coreml.md) for Apple devices, or [Edge TPU](../integrations/edge-tpu.md) for Google Coral devices.
@@ -236,6 +236,19 @@ For **segmentation models** (e.g., `yolo26n-seg.pt`), you'll typically get two o
 For **pose models** (e.g., `yolo26n-pose.pt`), the output tensor is typically shaped like `(batch_size, 4 + num_classes + keypoint_dims, num_predictions)`, where `keypoint_dims` depends on the pose specification (e.g., number of keypoints and whether confidence is included), and `num_predictions` depends on the export input resolution (and can be dynamic).
 
 The examples in the [ONNX inference examples](https://github.com/ultralytics/ultralytics/tree/main/examples) demonstrate how to process these outputs for each model type.
+
+### Is there an official Ultralytics C++ inference API?
+
+Ultralytics does not currently provide a dedicated C++ inference API for YOLO models. For C++ deployments, export the
+model to a runtime format such as [ONNX](../integrations/onnx.md), [TensorRT](../integrations/tensorrt.md),
+[TorchScript](../integrations/torchscript.md), or [MNN](../integrations/mnn.md), then load the exported artifact with
+that runtime's native C++ API.
+
+For example, export a detection model with `yolo export model=yolo26n.pt format=onnx` and run the `.onnx` file with
+ONNX Runtime C++, or export with `format=engine` and run the TensorRT engine from a TensorRT C++ application. When you
+use custom C++ post-processing, match the output tensor layout for your task and export settings; YOLO26 end-to-end
+detection exports usually return `(batch, max_det, 6)`, while non-end-to-end exports return raw prediction tensors that
+require external post-processing.
 
 ### Why is `output0` FP32 when exporting quantized models with `end2end=True`?
 

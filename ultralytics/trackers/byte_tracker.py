@@ -309,7 +309,15 @@ class BYTETracker:
         remain_inds = scores >= self.args.track_high_thresh
         inds_low = scores > self.args.track_low_thresh
         inds_below_high = scores < self.args.track_high_thresh
-        return results[remain_inds], results[inds_low & inds_below_high], remain_inds, inds_low & inds_below_high
+
+        high_results = results[remain_inds]
+        low_results = results[inds_low & inds_below_high]
+
+        idxs = np.arange(len(results)).reshape(-1, 1)
+        setattr(high_results, "idxs", idxs[remain_inds])
+        setattr(low_results, "idxs", idxs[inds_low & inds_below_high])
+
+        return high_results, low_results, remain_inds, inds_low & inds_below_high
 
     def _input_for(self, img: np.ndarray | None, feats: np.ndarray | None, mask: np.ndarray) -> Any:
         """Return the per-detection auxiliary input for ``init_track``.

@@ -647,6 +647,8 @@ jobs:
         run: pytest ultralytics/tests/test_integrations.py -v -s
       - name: test_solutions.py
         run: pytest ultralytics/tests/test_solutions.py -v -s
+      - name: test_tracker_index_fix.py
+        run: pytest ultralytics/tests/test_tracker_index_fix.py -v -s
       # WARNING: tests hang here for unknown reasons https://github.com/ultralytics/ultralytics/pull/21577
       # - name: test_python.py
       #   run: pytest ultralytics/tests/test_python.py -vv -s

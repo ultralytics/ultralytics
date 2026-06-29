@@ -16,8 +16,8 @@ Prior modes selectable via ``predictor.prior_mode``:
   - ``"none"``     — passthrough (vanilla YOLO, no fusion bias).
   - ``"segment"``  — SegBranch sigmoid output as prior.
   - ``"heatmap"``  — feature-side anomaly map (producer set by ``_heatmap_producer``:
-                     bank / learned / both / cached). Legacy ``"heatmap_learned"`` /
-                     ``"heatmap_fused"`` / ``"cached"`` are translated by ``set_prior_mode``.
+                     bank / learned / both). Legacy ``"heatmap_learned"`` /
+                     ``"heatmap_fused"`` are translated by ``set_prior_mode``.
   - ``"mask"``     — external_mask provided by caller.
 
 Legacy ``external_mask`` / ``bbox_prompt`` attributes still work when

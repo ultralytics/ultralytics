@@ -71,8 +71,6 @@ class AnomalyV2Trainer(DetectionTrainer):
         self.add_callback("on_train_epoch_start", AnomalyV2Trainer._update_seg_alpha)
         self.add_callback("on_train_start", AnomalyV2Trainer._mb_initial_fill)
         self.add_callback("on_train_batch_end", AnomalyV2Trainer._mb_step)
-        self.add_callback("on_train_start", AnomalyV2Trainer._cached_draw_prior)
-        self.add_callback("on_train_batch_end", AnomalyV2Trainer._cached_draw_prior)
         # NOTE: _mvtec_ood_eval is NOT a callback — it runs inside validate() so best.pt
         # selection sees the current epoch's OOD score (no one-epoch lag).
         self._mb_batch = None  # stashed preprocessed batch for the batch-end enqueue
@@ -120,13 +118,6 @@ class AnomalyV2Trainer(DetectionTrainer):
         model = unwrap_model(self.model)
         return getattr(model, "memory_bank", None) is not None and getattr(model, "mb_queue_capacity", 0) > 0
 
-    # ------------------------------------------------------------------
-    # Offline cached prior (mb_cached_prior: true)
-    # ------------------------------------------------------------------
-    def _cached_active(self) -> bool:
-        """True when the model trains with the precomputed-heatmap (4th channel) prior."""
-        return bool(getattr(unwrap_model(self.model), "mb_cached_prior", False))
-
     def _seg_polygon_active(self) -> bool:
         """True when the SegBranch refiner is supervised against v6 polygon masks (seg_target_polygon)."""
         return bool(getattr(unwrap_model(self.model), "seg_target_polygon", False))
@@ -140,66 +131,19 @@ class AnomalyV2Trainer(DetectionTrainer):
         return isinstance(unwrap_model(self.model).model[-1], Segment)
 
     def build_dataset(self, img_path: str, mode: str = "train", batch: int | None = None):
-        """Dataset selection: CachedPriorDataset (4th-ch heatmap) > segment (polygon masks for the
-        SegBranch refiner target / per-instance seg) > default detection."""
-        if not self._cached_active():
-            if self._seg_polygon_active() or self._instance_seg_active():
-                # task="segment" flips YOLODataset.use_segments -> Format(return_mask=True) ->
-                # batch["masks"] (overlap-union instance map). Detection head/loss unaffected
-                # (bboxes still present). copy() so the persistent self.args stays task="anomaly_v2".
-                args = copy(self.args)
-                args.task = "segment"
-                gs = max(int(unwrap_model(self.model).stride.max()), 32)
-                return build_yolo_dataset(
-                    args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs
-                )
-            return super().build_dataset(img_path, mode=mode, batch=batch)
-        from ultralytics.utils.torch_utils import unwrap_model as _um
-
-        from .dataset import CachedPriorDataset
-
-        p = Path(img_path)
-        if p.is_file():  # list-style dataset (<root>/train.txt) -> <root>/heatmaps_v1/train
-            prior_dir = p.parent / "heatmaps_v1" / p.stem
-        else:  # dir-style dataset (<root>/images/train) -> <root>/heatmaps_v1/train
-            prior_dir = p.parents[1] / "heatmaps_v1" / p.name
-        gs = max(int(_um(self.model).stride.max()), 32)
-        return CachedPriorDataset(
-            prior_dir=prior_dir,
-            img_path=img_path,
-            imgsz=self.args.imgsz,
-            batch_size=batch,
-            augment=mode == "train",
-            hyp=self.args,
-            rect=self.args.rect or mode == "val",
-            cache=self.args.cache or None,
-            single_cls=self.args.single_cls or False,
-            stride=gs,
-            pad=0.0 if mode == "train" else 0.5,
-            prefix=f"{mode}: ",
-            task=self.args.task,
-            classes=self.args.classes,
-            data=self.data,
-            fraction=self.args.fraction if mode == "train" else 1.0,
-        )
-
-    def plot_training_samples(self, batch, ni):
-        """Slice the prior channel off before plotting (plot_images expects 3-channel)."""
-        if batch["img"].shape[1] == 4:
-            batch = {**batch, "img": batch["img"][:, :3]}
-        super().plot_training_samples(batch, ni)
-
-    @staticmethod
-    def _cached_draw_prior(trainer: "AnomalyV2Trainer") -> None:
-        """Per-batch draw for the cached-prior arm: prior_mode='cached' with p=mb_blend_p, else GT.
-
-        Live model only — the validator drives the EMA model itself (prior_mode=None 2-pass).
-        """
-        if not trainer._cached_active():
-            return
-        model = unwrap_model(trainer.model)
-        mode = "cached" if random.random() < float(getattr(model, "mb_blend_p", 0.5)) else None
-        model.set_prior_mode(mode)
+        """Dataset selection: segment (polygon masks for the SegBranch refiner target /
+        per-instance seg) > default detection."""
+        if self._seg_polygon_active() or self._instance_seg_active():
+            # task="segment" flips YOLODataset.use_segments -> Format(return_mask=True) ->
+            # batch["masks"] (overlap-union instance map). Detection head/loss unaffected
+            # (bboxes still present). copy() so the persistent self.args stays task="anomaly_v2".
+            args = copy(self.args)
+            args.task = "segment"
+            gs = max(int(unwrap_model(self.model).stride.max()), 32)
+            return build_yolo_dataset(
+                args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs
+            )
+        return super().build_dataset(img_path, mode=mode, batch=batch)
 
     def get_model(self, cfg=None, weights=None, verbose: bool = True):
         """Return a YOLOAnomalyV2Model or YOLOAnomalyV2SegModel.

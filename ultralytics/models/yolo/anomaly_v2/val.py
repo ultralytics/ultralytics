@@ -339,18 +339,6 @@ class YOLOAnomalyValidatorBase:
                 m._feat_disc_scorer = None  # drop scorer params before any checkpoint save
             self._fit_disc = False
 
-    def plot_val_samples(self, batch, ni):
-        """Slice the cached-prior channel off before plotting (plot_images expects 3-channel)."""
-        if batch["img"].shape[1] == 4:
-            batch = {**batch, "img": batch["img"][:, :3]}
-        super().plot_val_samples(batch, ni)
-
-    def plot_predictions(self, batch, preds, ni):
-        """Slice the cached-prior channel off before plotting (plot_images expects 3-channel)."""
-        if batch["img"].shape[1] == 4:
-            batch = {**batch, "img": batch["img"][:, :3]}
-        super().plot_predictions(batch, preds, ni)
-
     # ------------------------------------------------------------------
     # AUROC
     # ------------------------------------------------------------------

@@ -72,9 +72,15 @@ class LiteRTBackend(BaseBackend):
         self.interpreter.set_tensor(details["index"], im)
         self.interpreter.invoke()
 
+        kpt_start = 4 + len(self.names)  # pose keypoints follow the box (4) and class-score (nc) channels
         y = []
         for output in self.output_details:
             x = self.interpreter.get_tensor(output["index"])
+            if self.task == "semantic" and x.ndim == 3:
+                # Legacy onnx2tf baked argmax class map [B, H, W] of integer IDs: skip dequant and xywh denorm,
+                # which would corrupt and overflow the indices.
+                y.append(x)
+                continue
             if output["dtype"] in {np.int8, np.int16}:
                 scale, zero_point = output["quantization"]
                 x = (x.astype(np.float32) - zero_point) * scale
@@ -85,17 +91,23 @@ class LiteRTBackend(BaseBackend):
                 x[:, [0, 2]] *= w
                 x[:, [1, 3]] *= h
                 if self.task == "pose":
-                    x[:, 5::3] *= w
-                    x[:, 6::3] *= h
+                    x[:, kpt_start::3] *= w
+                    x[:, kpt_start + 1 :: 3] *= h
             elif x.ndim == 3 and self.end2end and self.nhwc:
                 x[:, :, [0, 2]] *= w
                 x[:, :, [1, 3]] *= h
-                if self.task == "pose":
+                if self.task == "pose":  # post-NMS [B, N, box(4)+conf+cls+kpts], keypoints start at 6
                     x[:, :, 6::3] *= w
                     x[:, :, 7::3] *= h
             y.append(x)
 
-        if self.task == "segment" and y[0].ndim == 4:  # order as (detections, protos); protos already NCHW
+        if self.task == "segment" and y[0].ndim == 4:  # order as (detections, protos)
             y = [y[1], y[0]]
+        # litert-torch exports are NCHW; legacy onnx2tf masks/logits are NHWC and need a channels-last→first transpose.
+        if self.nhwc:
+            if self.task == "segment" and len(y) > 1 and y[1].ndim == 4:
+                y[1] = np.transpose(y[1], (0, 3, 1, 2))  # protos NHWC → NCHW
+            elif self.task == "semantic" and len(y) == 1 and y[0].ndim == 4:
+                y[0] = np.transpose(y[0], (0, 3, 1, 2))  # logits NHWC → NCHW
 
         return y

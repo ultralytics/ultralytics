@@ -740,7 +740,7 @@ class Exporter:
         if model.task == "semantic" and fmt in {"qnn", "coreml"}:
             # NPU-targeted semantic exports ship a compact uint8 class map instead of float logits: emitting logits
             # forces consumers to dequantize and argmax ~20M floats on the CPU every frame (measured erratic
-            # 123-1065 ms on Hexagon). Not applied to TFLite, where the GPU delegate cannot compile ArgMax (int64
+            # 123-1065 ms on Hexagon). Not applied to LiteRT, where the GPU delegate cannot compile ArgMax (int64
             # indices) and a whole-graph CPU fallback is slower than GPU logits + consumer-side argmax. Python
             # predict/val accept both forms.
             model = ClassMapModel(model)

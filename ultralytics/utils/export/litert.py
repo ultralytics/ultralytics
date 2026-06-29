@@ -55,8 +55,8 @@ def torch2litert(
     im: torch.Tensor,
     file: Path,
     quantize: int | str | None,
-    calibration_dataset: torch.utils.data.DataLoader,
-    metadata: dict,
+    calibration_dataset: torch.utils.data.DataLoader | None,
+    metadata: dict | None,
     prefix: str,
 ) -> Path:
     """Export a PyTorch model to LiteRT format using litert_torch, with optional INT8 quantization.

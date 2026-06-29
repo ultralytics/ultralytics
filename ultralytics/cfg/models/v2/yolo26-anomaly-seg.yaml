@@ -1,9 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# YOLO Anomaly v2 — softhint (bias) + pure GT-mask prior, aug3 + mixup isolation.
-# IDENTICAL to yolo26-anomaly-v2-softhint-maskonly-aug3-mixup-ood.yaml EXCEPT mask_aug_passes: 2.
-# Purpose: reproduce the pre-refactor double _augment_mask (v5) the unify-resolver collapsed to 1
-# (v7), to confirm the double pass is what gave the OOD heatmap deploy path its mAP10 robustness.
+# YOLO Anomaly v2 — segment-head variant of yolo26-anomaly.yaml (same softhint + aug, mask_aug_passes: 2).
+# Only difference vs yolo26-anomaly.yaml: head Detect -> Segment (32 mask coefficients per anchor
+# + Proto) for per-instance defect masks. Requires polygon (segment) data (e.g. merge_data_v7_binary).
 # Branch: yoloa_clean.
 
 nc: 80
@@ -83,4 +82,4 @@ head:
   - [[-1, 10], 1, Concat, [1]]
   - [-1, 1, C3k2, [1024, True, 0.5, True]]
 
-  - [[16, 19, 22], 1, Detect, [nc]]
+  - [[16, 19, 22], 1, Segment, [nc, 32, 256]]

@@ -1,12 +1,10 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# YOLO Anomaly v2 — softhint (additive-bias) fusion + cached prior + mask gate + aug2.
-# Identical to yolo26-anomaly-v2-film-gauss-cached-aug2-maskgate.yaml EXCEPT fusion_mode is
-# 'bias' (HeatmapBiasFusion: 1-channel bounded additive bias broadcast over channels, the
-# original softhint) instead of 'film' (grouped-FiLM residual). Clean A/B vs the aug2-maskgate
-# film run — only the fusion mechanism differs. Tests whether the simpler additive-bias hint
-# uses the cached prior better than residual FiLM (whose alpha collapsed to ~0.01).
-# Branch: yoloa_v2_queryfilm.
+# YOLO Anomaly v2 — softhint (bias) fusion + pure GT-mask prior, aug3 + mixup, mask_aug_passes: 2.
+# Canonical anomaly-v2 detection config (best OOD result). The double mask-augment pass
+# (mask_aug_passes: 2) reproduces the v5 behavior the unify-resolver collapsed to a single pass,
+# which gives the OOD heatmap deploy path its mAP10 robustness. Segment-head variant: yolo26-anomaly-seg.yaml.
+# Branch: yoloa_clean.
 
 nc: 80
 end2end: True
@@ -31,19 +29,29 @@ anomaly_v2:
   bb_calibration_target_score: 0.5
   bb_calibrate: compactness
   mb_queue_capacity: 0
-  mb_cached_prior: true
-  mb_cached_mask_gate: true
-  mb_blend_p: 0.5
-  fusion_mode: bias              # softhint additive bias (vs 'film' grouped-FiLM)
-  # aug2: weaker prior-robustness augments (same as the film aug2 run)
+  mb_cached_prior: false
+  mb_cached_mask_gate: false
+  fusion_mode: bias
+  # aug3 base + mixup re-enabled (aug2 strength) — only diff vs aug3
   mask_jitter: 0.01
   mask_box_drop_p: 0.05
-  mask_distractor_p: 0.12
+  mask_distractor_p: 0.0         # still OFF
   mask_distractor_n: 1
   mask_erase_p: 0.08
   mask_warp_p: 0.08
-  mask_mixup_p: 0.08
+  mask_mixup_p: 0.08              # RE-ENABLED: additive other-sample blend
   mask_mixup_alpha: 0.4
+  mask_mag_range: [0.7, 1]
+  mask_aug_passes: 2             # reproduce v5 double-augment (v7 default is 1)
+  # in-dist val: mask-off (vanilla floor) always runs; mask-on prior pass optional
+  val_mask_prior: false        # skip the mask-ON (prior) in-dist pass -> ~halves in-dist val time
+  # test (cross-dataset MVTec) eval
+  test_val_freq: 1
+  test_categories: null        # null = all 15 MVTec categories
+  test_none_prior: false       # test prior=none (mask_off)
+  test_heatmap_prior: true     # test prior=heatmap — required (fitness = test_metrics(heatmap_prior)/mAP10)
+  test_mask_prior: false       # test prior=mask (mask_on)
+  test_fit_cfg: ../../yoloa_fit_default.yaml
 
 backbone:
   - [-1, 1, Conv, [64, 3, 2]]

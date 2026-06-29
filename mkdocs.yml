@@ -499,6 +499,11 @@ nav:
           - DOTAv2: datasets/obb/dota-v2.md
       - Multi-Object Tracking:
           - datasets/track/index.md
+  - Computer Vision:
+      - computer-vision/index.md
+      - Applications: computer-vision/applications/index.md
+      - Projects: computer-vision/projects/index.md
+      - Techniques: computer-vision/techniques/index.md
   - Solutions:
       - Solutions: solutions/index.md
       - Analytics: guides/analytics.md

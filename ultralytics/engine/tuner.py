@@ -29,7 +29,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from ultralytics.cfg import CFG_INT_KEYS, _YOLO_CLI_COMMAND, get_cfg, get_save_dir
+from ultralytics.cfg import _YOLO_CLI_COMMAND, CFG_INT_KEYS, get_cfg, get_save_dir
 from ultralytics.utils import DEFAULT_CFG, LOGGER, YAML, callbacks, colorstr, remove_colorstr
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.patches import torch_load

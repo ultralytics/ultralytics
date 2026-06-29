@@ -72,6 +72,10 @@ def tracker(request):
     cfg.track_low_thresh = 0.1  # as specified in the deduction
     cfg.match_thresh = 0.8  # high enough that tiny bbox shifts still match
     cfg.new_track_thresh = 0.6  # activate tracks on first frame
+    # Disable GMC
+    if hasattr(cfg, "gmc_method"):
+        cfg.gmc_method = "none"
+    # Enable secondary matching
     if hasattr(cfg, "use_byte"):
         cfg.use_byte = True
 

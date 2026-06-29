@@ -29,7 +29,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from ultralytics.cfg import CFG_INT_KEYS, get_cfg, get_save_dir
+from ultralytics.cfg import CFG_INT_KEYS, _get_yolo_cli_command, get_cfg, get_save_dir
 from ultralytics.utils import DEFAULT_CFG, LOGGER, YAML, callbacks, colorstr, remove_colorstr
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.patches import torch_load
@@ -504,12 +504,7 @@ class Tuner:
                     train_args["data"] = d
                     train_args["save_dir"] = str(save_dir[j])  # pass save_dir to subprocess to ensure same path is used
                     # Train YOLO model with mutated hyperparameters (run in subprocess to avoid dataloader hang)
-                    launch = [
-                        __import__("sys").executable,
-                        "-m",
-                        "ultralytics.cfg.__init__",
-                    ]  # workaround yolo not found
-                    cmd = [*launch, "train", *(f"{k}={v}" for k, v in train_args.items())]
+                    cmd = _get_yolo_cli_command("train", train_args)
                     subprocess.run(cmd, check=True)
                     ckpt_file = weights_dir[j] / ("best.pt" if (weights_dir[j] / "best.pt").exists() else "last.pt")
                     metrics_i = torch_load(ckpt_file)["train_metrics"]

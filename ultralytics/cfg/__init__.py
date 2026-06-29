@@ -492,6 +492,11 @@ def get_save_dir(args: SimpleNamespace, name: str | None = None) -> Path:
     return Path(save_dir).resolve()  # resolve to display full path in console
 
 
+def _get_yolo_cli_command(mode: str, args: dict[str, Any]) -> list[str]:
+    """Return a Python module command for launching the Ultralytics CLI."""
+    return [sys.executable, "-m", "ultralytics.cfg.__init__", mode, *(f"{k}={v}" for k, v in args.items())]
+
+
 def _handle_deprecation(custom: dict) -> dict:
     """Handle deprecated configuration keys by mapping them to current equivalents with deprecation warnings.
 

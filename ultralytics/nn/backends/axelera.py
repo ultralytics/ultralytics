@@ -39,6 +39,7 @@ class AxeleraBackend(BaseBackend):
             raise FileNotFoundError(f"No .axm file found in: {w}")
 
         self.model = op.load(str(found)).optimized()
+        self.infer_device = "metis"
 
         # Load metadata
         metadata_file = found.parent / "metadata.yaml"

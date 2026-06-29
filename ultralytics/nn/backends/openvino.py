@@ -68,9 +68,11 @@ class OpenVINOBackend(BaseBackend):
             device_name=device_name,
             config=config,
         )
+        execution_devices = self.ov_compiled_model.get_property("EXECUTION_DEVICES")
+        self.infer_device = ",".join(execution_devices).lower()
         LOGGER.info(
             f"Using OpenVINO {self.inference_mode} mode for batch={self.batch} inference on "
-            f"{', '.join(self.ov_compiled_model.get_property('EXECUTION_DEVICES'))}..."
+            f"{', '.join(execution_devices)}..."
         )
         self.input_name = self.ov_compiled_model.input().get_any_name()
         self.ov = ov

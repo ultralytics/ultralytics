@@ -41,6 +41,9 @@ class CoreMLBackend(BaseBackend):
         spec = self.model.get_spec()
         self.input_name = spec.description.input[0].name
         self.dynamic = spec.description.input[0].type.HasField("multiArrayType")
+        _cu_map = {"ALL": "ane", "CPU_ONLY": "cpu", "CPU_AND_GPU": "gpu", "CPU_AND_NE": "ane"}
+        cu = getattr(self.model, "compute_unit", None)
+        self.infer_device = _cu_map.get(cu.name, "ane") if cu is not None else "ane"
 
         # Load metadata
         self.apply_metadata(dict(self.model.user_defined_metadata))

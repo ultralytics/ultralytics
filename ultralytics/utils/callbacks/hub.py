@@ -83,10 +83,44 @@ def on_val_start(validator):
         events(validator.args, validator.device)
 
 
-def on_predict_start(predictor):
-    """Run events on predict start."""
-    backend = getattr(getattr(predictor, "model", None), "backend", None)
-    events(predictor.args, predictor.device, backend=backend)
+def on_predict_batch_end(predictor):
+    """Queue/update a predict event with the latest batch metadata.
+
+    Events.__call__ upserts by mode name, so repeated calls from a long-running stream overwrite the queued entry rather
+    than appending, keeping memory bounded. The rate limiter inside Events.__call__ ensures at most one POST per
+    rate_limit seconds during the run, and on_predict_end flushes any remaining pending event after the final batch.
+    """
+    model = getattr(predictor, "model", None)
+    backend = getattr(model, "backend", None)
+
+    # Image size from args
+    imgsz = getattr(predictor.args, "imgsz", None)
+
+    # Model parameter count (PyTorch models only)
+    try:
+        model_params = sum(p.numel() for p in model.parameters()) if model and hasattr(model, "parameters") else None
+    except Exception:
+        model_params = None
+
+    # Per-image speed from the last processed batch
+    speed = None
+    results = getattr(predictor, "results", None)
+    if results:
+        try:
+            first = results[0]
+        except (TypeError, KeyError, IndexError):
+            first = next(iter(results), None)
+        speed = getattr(first, "speed", None) if first is not None else None
+
+    # Use the backend's actual inference device (e.g. "npu", "metis", "cpu", "cuda:0") rather than
+    # predictor.device, which may reflect the torch data-movement device instead of the real hardware.
+    infer_device = getattr(backend, "infer_device", None) or str(predictor.device)
+    events(predictor.args, infer_device, backend=backend, imgsz=imgsz, model_params=model_params, speed=speed)
+
+
+def on_predict_end(_predictor):
+    """Flush any pending predict event so it is delivered even if the rate limit never elapsed."""
+    events.flush()
 
 
 def on_export_start(exporter):
@@ -103,7 +137,8 @@ callbacks = (
         "on_train_end": on_train_end,
         "on_train_start": on_train_start,
         "on_val_start": on_val_start,
-        "on_predict_start": on_predict_start,
+        "on_predict_batch_end": on_predict_batch_end,
+        "on_predict_end": on_predict_end,
         "on_export_start": on_export_start,
     }
     if SETTINGS["hub"] is True

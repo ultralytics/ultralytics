@@ -264,7 +264,8 @@ def test_checkpoint_nonfinite_ema_resync():
     """Test a non-finite EMA on a finite model is resynced (not skipped) so the run still produces a checkpoint."""
 
     def poison_ema(trainer):
-        """Make the live fp32 EMA genuinely non-finite while the model stays finite (sticky-NaN on a finite-loss run)."""
+        """Make the live fp32 EMA genuinely non-finite while the model stays finite (sticky-NaN on a finite-loss run).
+        """
         if trainer.ema is not None:
             next(iter(trainer.ema.ema.parameters())).data.flatten()[0] = float("inf")
 

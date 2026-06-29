@@ -453,9 +453,17 @@ def get_github_assets(
     if version != "latest":
         version = f"tags/{version}"  # i.e. tags/v6.2
     url = f"https://api.github.com/repos/{repo}/releases/{version}"
-    r = requests.get(url)  # github api
-    if r.status_code != 200 and r.reason != "rate limit exceeded" and retry:  # failed and not 403 rate limit exceeded
-        r = requests.get(url)  # try again
+    attempts = 2 if retry else 1  # retry once on transient network errors or non-200 responses
+    for attempt in range(attempts):
+        try:
+            r = requests.get(url, timeout=30)  # github api
+        except requests.exceptions.RequestException as e:
+            if attempt < attempts - 1:
+                continue  # transient network error, try again
+            LOGGER.warning(f"GitHub assets check failure for {url}: {e}")
+            return "", []
+        if r.status_code == 200 or r.reason == "rate limit exceeded":  # do not retry 403 rate limits
+            break
     if r.status_code != 200:
         LOGGER.warning(f"GitHub assets check failure for {url}: {r.status_code} {r.reason}")
         return "", []

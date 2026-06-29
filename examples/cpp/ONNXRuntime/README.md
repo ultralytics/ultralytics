@@ -39,10 +39,10 @@ yolo export model=yolo26n-sem.pt format=onnx opset=12  # semantic
 
 See the [Export documentation](https://docs.ultralytics.com/modes/export) for more options.
 
-To run a half-precision model, export with `half=True` **on a GPU** (on CPU, `half=True` is ignored and the export stays FP32). The example detects the FP16 input type and runs it automatically:
+To run a half-precision model, export with `quantize=16` **on a GPU** (on CPU, `quantize=16` is ignored and the export stays FP32). The example detects the FP16 input type and runs it automatically:
 
 ```bash
-yolo export model=yolo26n.pt format=onnx half=True device=0
+yolo export model=yolo26n.pt format=onnx quantize=16 device=0
 ```
 
 If you only have a CPU, convert an exported FP32 ONNX to FP16 with ONNX Runtime's converter (it handles the `Resize` op correctly):

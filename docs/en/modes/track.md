@@ -11,6 +11,10 @@ keywords: multi-object tracking, Ultralytics YOLO, video analytics, real-time tr
 
 Object tracking in the realm of video analytics is a critical task that not only identifies the location and class of objects within the frame but also maintains a unique ID for each detected object as the video progresses. The applications are limitless—ranging from surveillance and security to real-time sports analytics.
 
+!!! tip "🚀 New Trackers: OC-SORT, Deep OC-SORT, FastTracker, TrackTrack"
+
+    Starting with Ultralytics YOLO v8.4.63, new tracking algorithms are available: [OC-SORT](#oc-sort), [Deep OC-SORT](#deep-oc-sort), [FastTracker](#fasttracker), and [TrackTrack](#tracktrack). These trackers improve multi-object tracking performance and ID consistency.
+
 ## Why Choose Ultralytics YOLO for Object Tracking?
 
 The output from Ultralytics trackers is consistent with standard [object detection](https://www.ultralytics.com/glossary/object-detection) but has the added value of object IDs. This makes it easy to track objects in video streams and perform subsequent analytics. Here's why you should consider using Ultralytics YOLO for your object tracking needs:
@@ -280,7 +284,7 @@ For better performance with a separate classification model, export it to a fast
     model.model.model[-1] = pool
 
     # Export to TensorRT
-    model.export(format="engine", half=True, dynamic=True, batch=32)
+    model.export(format="engine", quantize=16, dynamic=True, batch=32)
     ```
 
 Once exported, point to the TensorRT model path in your tracker config.
@@ -469,6 +473,12 @@ There is no appearance model and no camera-motion compensation.
 
 Here is a Python script using [OpenCV](https://www.ultralytics.com/glossary/opencv) (`cv2`) and YOLO26 to run object tracking on video frames. This script assumes the necessary packages (`opencv-python` and `ultralytics`) are already installed. The `persist=True` argument tells the tracker that the current image or frame is the next in a sequence and to expect tracks from the previous image in the current image.
 
+!!! tip "Persisting tracks and selecting a tracker"
+
+    Use `persist=True` only when passing consecutive frames from the same video stream to `model.track()`. This lets the tracker reuse state from earlier frames and maintain consistent track IDs over time. Do not use `persist=True` across unrelated images or a different stream, since previous track state can carry over.
+
+    You can also choose a tracker backend by passing a tracker configuration file, such as `tracker="botsort.yaml"`, `tracker="bytetrack.yaml"`, or `tracker="tracktrack.yaml"`.
+
 !!! example "Streaming for-loop with tracking"
 
     ```python
@@ -490,7 +500,8 @@ Here is a Python script using [OpenCV](https://www.ultralytics.com/glossary/open
 
         if success:
             # Run YOLO26 tracking on the frame, persisting tracks between frames
-            results = model.track(frame, persist=True)
+            # and using the BoT-SORT tracker backend
+            results = model.track(frame, persist=True, tracker="botsort.yaml")
 
             # Visualize the results on the frame
             annotated_frame = results[0].plot()
@@ -735,7 +746,7 @@ Multi-object tracking with Ultralytics YOLO has numerous applications, including
 - **Retail:** People tracking for in-store analytics and security.
 - **Aquaculture:** Fish tracking for monitoring aquatic environments.
 - **Sports Analytics:** Tracking players and equipment for performance analysis.
-- **Security Systems:** [Monitoring suspicious activities](https://www.ultralytics.com/blog/security-alarm-system-projects-with-ultralytics-yolov8) and creating [security alarms](https://docs.ultralytics.com/guides/security-alarm-system).
+- **Security Systems:** [Monitoring suspicious activities](https://www.ultralytics.com/blog/security-alarm-system-projects-with-ultralytics-yolov8) and creating [security alarms](../guides/security-alarm-system.md).
 
 These applications benefit from Ultralytics YOLO's ability to process high-frame-rate videos in real time with exceptional accuracy.
 

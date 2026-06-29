@@ -205,7 +205,7 @@ class YOLODataset(BaseDataset):
             for lb in labels:
                 lb["segments"] = []
         if len_cls == 0:
-            LOGGER.warning(f"Labels are missing or empty in {cache_path}, training may not work correctly. {HELP_URL}")
+            raise ValueError(f"All labels empty in {cache_path}, can not start training without labels. {HELP_URL}")
         return labels
 
     def build_transforms(self, hyp: dict | None = None) -> Compose:
@@ -970,7 +970,26 @@ class ClassificationDataset:
     """Dataset class for image classification tasks with reusable verification, caching, and transform hooks.
 
     This class wraps torchvision `ImageFolder` by default, but subclasses can override sample discovery and output
-    formatting to reuse the same verified-image and caching pipeline for classification-like tasks.
+    formatting to reuse the same verified-image and caching pipeline for classification-like tasks. It offers image
+    augmentation, caching, and verification to efficiently handle large datasets, with optional transforms and caching.
+
+    Attributes:
+        cache_ram (bool): Indicates if caching in RAM is enabled.
+        cache_disk (bool): Indicates if caching on disk is enabled.
+        samples (list): A list of lists, each containing the path to an image, its class index, path to its .npy cache
+            file (if caching on disk), and optionally the loaded image array (if caching in RAM).
+        torch_transforms (callable): PyTorch transforms to be applied to the images.
+        root (str): Root directory of the dataset.
+        prefix (str): Prefix for logging and cache filenames.
+        img_cache (np.ndarray): Contiguous uint8 buffer holding all cached images when caching in RAM.
+        img_offsets (np.ndarray): Flat offset of each image within img_cache.
+        img_shapes (list): (h, w, c) shape of each cached image.
+
+    Methods:
+        __getitem__: Return transformed image and class index for the given sample index.
+        __len__: Return the total number of samples in the dataset.
+        verify_images: Verify all images in dataset.
+        cache_images: Decode all images once into a single contiguous RAM buffer.
     """
 
     def __init__(self, root: str, args, augment: bool = False, prefix: str = ""):
@@ -992,15 +1011,11 @@ class ClassificationDataset:
             self.samples = self.samples[: round(len(self.samples) * args.fraction)]
 
         self.cache_ram = args.cache is True or str(args.cache).lower() == "ram"  # cache images into RAM
-        if self.cache_ram:
-            LOGGER.warning(
-                "Classification `cache_ram` training has known memory leak in "
-                "https://github.com/ultralytics/ultralytics/issues/9824, setting `cache_ram=False`."
-            )
-            self.cache_ram = False
         self.cache_disk = str(args.cache).lower() == "disk"  # cache images on disk as uncompressed *.npy files
         self.samples = self.verify_images()  # filter out bad images
         self.samples = [self.cache_sample(sample) for sample in self.samples]
+        if self.cache_ram:
+            self.cache_images()
         self.torch_transforms = self.build_torch_transforms(args, augment)
 
     def build_base_dataset(self, root: str):
@@ -1045,8 +1060,9 @@ class ClassificationDataset:
         sample = self.samples[i]
         f, fn, im = sample[0], sample[-2], sample[-1]
         if self.cache_ram:
-            if im is None:  # Warning: two separate if statements required here, do not combine this with previous line
-                im = self.samples[i][-1] = cv2.imread(f)
+            h, w, c = self.img_shapes[i]
+            pos = self.img_offsets[i]
+            im = self.img_cache[pos : pos + h * w * c].reshape(h, w, c)  # zero-copy view
         elif self.cache_disk:
             if not fn.exists():  # load npy
                 np.save(fn.as_posix(), cv2.imread(f), allow_pickle=False)
@@ -1067,6 +1083,26 @@ class ClassificationDataset:
     def __len__(self) -> int:
         """Return the total number of samples in the dataset."""
         return len(self.samples)
+
+    def cache_images(self) -> None:
+        """Decode all images once into a single contiguous uint8 buffer before DataLoader workers fork.
+
+        A Python list of per-image arrays is duplicated into every forked worker by copy-on-write refcounting
+        (https://github.com/ultralytics/ultralytics/issues/9824); one shared numpy buffer is read-only across
+        workers instead, so RAM stays flat. Original image sizes are preserved for the transforms.
+        """
+        with ThreadPool(NUM_THREADS) as pool:
+            ims = list(
+                TQDM(
+                    pool.imap(lambda s: cv2.imread(s[0]), self.samples),
+                    total=len(self.samples),
+                    desc=f"{self.prefix}Caching images",
+                    disable=LOCAL_RANK > 0,
+                )
+            )
+        self.img_shapes = [im.shape for im in ims]
+        self.img_offsets = np.cumsum([0] + [im.size for im in ims[:-1]])
+        self.img_cache = np.concatenate([im.reshape(-1) for im in ims])
 
     def verify_images(self) -> list[tuple]:
         """Verify all images in dataset.

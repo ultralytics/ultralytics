@@ -56,13 +56,13 @@ Default `ARG` values are defined on this page and come from the `cfg/default.yam
 
 Ultralytics YOLO models can perform a variety of computer vision tasks, including:
 
-- **Detect**: [Object detection](https://docs.ultralytics.com/tasks/detect/) identifies and localizes objects within an image or video.
-- **Segment**: [Instance segmentation](https://docs.ultralytics.com/tasks/segment/) divides an image or video into regions corresponding to different objects or classes.
-- **Semantic segmentation (`semantic`)**: [Semantic segmentation](https://docs.ultralytics.com/tasks/semantic/) assigns a class label to every pixel in an image for dense scene understanding.
-- **Classify**: [Image classification](https://docs.ultralytics.com/tasks/classify/) predicts the class label of an input image.
-- **Pose**: [Pose estimation](https://docs.ultralytics.com/tasks/pose/) identifies objects and estimates their keypoints in an image or video.
-- **OBB**: [Oriented Bounding Boxes](https://docs.ultralytics.com/tasks/obb/) uses rotated bounding boxes, suitable for satellite or medical imagery.
-- **ReID**: [Person Re-Identification](https://docs.ultralytics.com/tasks/reid/) produces embedding vectors for matching people across camera views.
+- **Detect**: [Object detection](../tasks/detect.md) identifies and localizes objects within an image or video.
+- **Segment**: [Instance segmentation](../tasks/segment.md) divides an image or video into regions corresponding to different objects or classes.
+- **Semantic segmentation (`semantic`)**: [Semantic segmentation](../tasks/semantic.md) assigns a class label to every pixel in an image for dense scene understanding.
+- **Classify**: [Image classification](../tasks/classify.md) predicts the class label of an input image.
+- **Pose**: [Pose estimation](../tasks/pose.md) identifies objects and estimates their keypoints in an image or video.
+- **OBB**: [Oriented Bounding Boxes](../tasks/obb.md) uses rotated bounding boxes, suitable for satellite or medical imagery.
+- **ReID**: [Person Re-Identification](../tasks/reid.md) produces embedding vectors for matching people across camera views.
 
 | Argument | Default    | Description                                                                                                                                                                                                                                                                                                                                                                                                            |
 | -------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -159,7 +159,7 @@ Adjust these settings to meet dataset and task requirements. Experimenting with 
 
 Logging, checkpoints, plotting, and file management are important when training a YOLO model:
 
-- **Logging**: Track the model's progress and diagnose issues using libraries like [TensorBoard](https://docs.ultralytics.com/integrations/tensorboard) or by writing to a file.
+- **Logging**: Track the model's progress and diagnose issues using libraries like [TensorBoard](../integrations/tensorboard.md) or by writing to a file.
 - **Checkpoints**: Save the model at regular intervals to resume training or experiment with different configurations.
 - **Plotting**: Visualize performance and training progress using libraries like Matplotlib or TensorBoard.
 - **File management**: Organize files generated during training, such as checkpoints, log files, and plots, for easy access and analysis.

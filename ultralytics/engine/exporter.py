@@ -750,8 +750,10 @@ class Exporter:
                 m.forward = m.forward_split
             if hasattr(m, "convert_to_deploy"):
                 m.convert_to_deploy()
-        self.deim_fp32_pinning = fmt == "engine" and self.args.half and any(
-            isinstance(m, DeimDecoder) for m in model.modules()
+        self.deim_fp32_pinning = (
+            fmt == "engine"
+            and self.args.quantize in {8, 16, "w8a16"}  # any reduced-precision export
+            and any(isinstance(m, DeimDecoder) for m in model.modules())
         )
 
         if model.task == "semantic" and fmt in {"qnn", "coreml"}:

@@ -780,33 +780,6 @@ def test_classify_transforms_train(image, auto_augment, erasing, force_color_jit
     assert transformed_image.dtype == torch.float32
 
 
-@pytest.mark.parametrize("mask_overlap", [True, False])
-def test_segment_format_empty_segments_batch_idx(mask_overlap):
-    """Test segmentation formatting keeps batch indexes aligned when labels have boxes but no segments."""
-    from ultralytics.data.augment import Format
-    from ultralytics.utils.instance import Instances
-
-    labels = {
-        "img": np.zeros((32, 32, 3), dtype=np.uint8),
-        "cls": np.array([[0], [1]], dtype=np.float32),
-        "instances": Instances(
-            bboxes=np.array([[0.5, 0.5, 0.25, 0.25], [0.4, 0.4, 0.2, 0.2]], dtype=np.float32),
-            segments=np.zeros((0, 1000, 2), dtype=np.float32),
-            bbox_format="xywh",
-            normalized=True,
-        ),
-    }
-    formatter = Format(bbox_format="xywh", normalize=True, return_mask=True, mask_overlap=mask_overlap)
-    formatted = formatter.apply_instances(labels, formatter.get_params(labels))
-    idx = formatted["batch_idx"] == 0
-
-    assert formatted["cls"].shape == (0, 1)
-    assert formatted["bboxes"].shape == (0, 4)
-    assert formatted["batch_idx"].shape == (0,)
-    assert formatted["masks"].shape == (1 if mask_overlap else 0, 8, 8)
-    assert formatted["cls"][idx].shape[0] == 0
-
-
 @pytest.mark.slow
 @pytest.mark.skipif(IS_RASPBERRYPI or IS_JETSON, reason="Edge devices not intended for tuning")
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")

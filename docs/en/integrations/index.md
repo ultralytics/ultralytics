@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Discover Ultralytics integrations for streamlined ML workflows, dataset management, optimized model training, and robust deployment solutions.
-keywords: Ultralytics, machine learning, ML workflows, dataset management, model training, model deployment, Roboflow, ClearML, Comet ML, DVC, MLFlow, Ultralytics Platform, Neptune, Ray Tune, TensorBoard, Weights & Biases, Amazon SageMaker, Paperspace Gradient, Google Colab, Neural Magic, Gradio, TorchScript, ONNX, OpenVINO, TensorRT, CoreML, TF SavedModel, TF GraphDef, TFLite, TFLite Edge TPU, TF.js, PaddlePaddle, NCNN, Hailo, Hailo HEF, Qualcomm QNN, RKNN, edge AI
+keywords: Ultralytics, machine learning, ML workflows, dataset management, model training, model deployment, Roboflow, ClearML, Comet ML, DVC, MLFlow, Ultralytics Platform, Neptune, Ray Tune, TensorBoard, Weights & Biases, Amazon SageMaker, Paperspace Gradient, Google Colab, Neural Magic, Gradio, TorchScript, ONNX, OpenVINO, TensorRT, CoreML, TF SavedModel, TF GraphDef, TFLite Edge TPU, LiteRT, PaddlePaddle, NCNN, Hailo, Hailo HEF, Qualcomm QNN, RKNN, edge AI
 ---
 
 # Ultralytics Integrations
@@ -99,11 +99,9 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [TF SavedModel](tf-savedmodel.md): Developed by [Google](https://www.google.com/), TF SavedModel is a universal serialization format for [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) models, enabling easy sharing and deployment across a wide range of platforms, from servers to edge devices.
 
-- [TF.js](tfjs.md): Developed by [Google](https://www.google.com/) to facilitate machine learning in browsers and Node.js, TF.js allows JavaScript-based deployment of ML models.
-
-- [TFLite](tflite.md): Developed by [Google](https://www.google.com/), TFLite is a lightweight framework for deploying machine learning models on mobile and edge devices, ensuring fast, efficient inference with minimal memory footprint.
-
 - [TFLite Edge TPU](edge-tpu.md): Developed by [Google](https://www.google.com/) for optimizing TensorFlow Lite models on Edge TPUs, this model format ensures high-speed, efficient [edge computing](https://www.ultralytics.com/glossary/edge-computing).
+
+- [LiteRT](litert.md): Developed by [Google](https://www.google.com/), LiteRT (formerly TensorFlow Lite) is the on-device runtime for the `.tflite` format, deploying a single model across mobile, embedded, edge, and the browser (via LiteRT.js).
 
 - [TorchScript](torchscript.md): Developed as part of the [PyTorch](https://pytorch.org/) framework, TorchScript enables efficient execution and deployment of machine learning models in various production environments without the need for Python dependencies.
 

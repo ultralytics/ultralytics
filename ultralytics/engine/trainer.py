@@ -25,7 +25,7 @@ from torch import distributed as dist
 from torch import nn, optim
 
 from ultralytics import __version__
-from ultralytics.cfg import get_cfg, get_save_dir
+from ultralytics.cfg import _YOLO_CLI_COMMAND, get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset, convert_ndjson_to_yolo_if_needed
 from ultralytics.nn.distill_model import DistillationModel
 from ultralytics.nn.tasks import load_checkpoint
@@ -663,11 +663,19 @@ class BaseTrainer:
         """Save model training checkpoints with additional metadata."""
         import io
 
-        # Skip only genuinely non-finite fp32 EMA weights; fp16 overflow is handled on the saved copy below.
+        # A transient NaN/Inf permanently poisons the EMA running average (ema = decay*ema + (1-decay)*model), so
+        # save_model would otherwise skip every epoch and the run would finish with no checkpoint. Resync each
+        # poisoned EMA tensor from the live model (keys are a subset of the model's); skip only if the model tensor
+        # is also non-finite. fp16 overflow on the saved copy is handled below.
         ema = unwrap_model(self.ema.ema)
         if not all(torch.isfinite(v).all() for v in ema.state_dict().values() if isinstance(v, torch.Tensor)):
-            LOGGER.warning(f"Skipping checkpoint save at epoch {self.epoch}: EMA contains NaN/Inf")
-            return False
+            model_sd = unwrap_model(self.model).state_dict()
+            for k, v in ema.state_dict().items():
+                if isinstance(v, torch.Tensor) and not torch.isfinite(v).all():
+                    if not torch.isfinite(model_sd[k]).all():
+                        LOGGER.warning(f"Skipping checkpoint save at epoch {self.epoch}: EMA and model contain NaN/Inf")
+                        return False
+                    v.copy_(model_sd[k])
         ema = deepcopy(ema).half()
         # Clamp fp16 serialization overflow without mutating the live EMA.
         for v in ema.state_dict().values():
@@ -1134,11 +1142,11 @@ class MultiTrainer:
     chart. The base model object is left unchanged; each dataset's fine-tuned weights live in its own run directory.
 
     Attributes:
-        trainer (type[BaseTrainer]): Task trainer class instantiated once per dataset.
+        trainer (type[BaseTrainer] | None): Task trainer class for Python runs, or None for CLI subprocess runs.
         args (dict): Training arguments shared across datasets; its `data` key holds the dataset collection.
         model (torch.nn.Module): Base model whose weights seed each per-dataset fine-tune.
         callbacks (dict | None): Callbacks forwarded to each per-dataset trainer.
-        trainers (list[BaseTrainer]): Completed per-dataset trainers (hold results.csv, save_dir, and metrics).
+        trainers (list[SimpleNamespace]): Completed per-dataset run records.
         metrics (dict): Mapping of each run name (e.g. coco8, coco8-2) to its training-metrics dict from the checkpoint.
         save_dir (Path | None): Sweep directory holding the per-dataset runs and the results JSON/plot.
 
@@ -1154,7 +1162,7 @@ class MultiTrainer:
         """Initialize MultiTrainer with a task trainer class, shared training arguments, and the base model.
 
         Args:
-            trainer (type[BaseTrainer]): Task trainer class to run once per dataset.
+            trainer (type[BaseTrainer] | None): Task trainer class to run once per dataset. None uses CLI subprocesses.
             args (dict): Training arguments; the `data` key holds the list/tuple of datasets to fine-tune on.
             model (torch.nn.Module): Base model whose weights seed each per-dataset fine-tune.
             _callbacks (dict, optional): Callback functions forwarded to each per-dataset trainer.
@@ -1171,6 +1179,8 @@ class MultiTrainer:
         """Fine-tune the base model on each dataset in series and return a {dataset: metrics} mapping."""
         from types import SimpleNamespace
 
+        from ultralytics.utils.patches import torch_load, torch_save
+
         datasets = self.args["data"]
         # Group every per-dataset run and the summary plot under one sweep directory, e.g. runs/detect/multitrain
         sweep = SimpleNamespace(
@@ -1180,35 +1190,70 @@ class MultiTrainer:
             exist_ok=self.args.get("exist_ok", False),
         )
         self.save_dir = get_save_dir(sweep, name="multitrain")
-        for i, data in enumerate(datasets):
-            LOGGER.info(f"\n{colorstr('blue', 'bold', f'MultiTrainer {i + 1}/{len(datasets)}:')} fine-tuning on {data}")
-            try:
-                overrides = {
-                    **self.args,
-                    "data": data,
-                    "project": str(self.save_dir),  # nest per-dataset runs inside the sweep directory
-                    "name": Path(str(data)).stem,
-                    "resume": False,
-                    "session": None,
-                }
-                trainer = self.trainer(overrides=overrides, _callbacks=self.callbacks)
-                trainer.model = trainer.get_model(weights=self.model, cfg=self.model.yaml)  # seed each run from base
-                trainer.train()
-                self.trainers.append(trainer)
-                # Key by the unique run name (e.g. coco8, coco8-2) so repeated datasets do not collapse. Use the
-                # in-memory metrics; only under DDP (validator ran in a subprocess) reload them from the checkpoint.
-                metrics = getattr(trainer.validator, "metrics", None)
-                if metrics is not None:
-                    metrics = metrics.results_dict
-                else:
-                    from ultralytics.utils.patches import torch_load
-
-                    ckpt = trainer.best if trainer.best.exists() else trainer.last
-                    metrics = torch_load(ckpt)["train_metrics"] if ckpt.exists() else None
-                self.metrics[trainer.save_dir.name] = metrics
-            except Exception as e:  # one bad dataset should not abort the whole sweep
-                LOGGER.error(f"MultiTrainer: fine-tuning on {data} failed, skipping: {e}")
-                self.metrics[Path(str(data)).stem] = None
+        self.save_dir.mkdir(parents=True, exist_ok=True)
+        base_model = self.save_dir / "multitrain_base.pt" if self.trainer is None else None
+        if base_model:
+            torch_save(
+                {"model": deepcopy(self.model).half(), "train_args": getattr(self.model, "args", {})}, base_model
+            )
+        try:
+            for i, data in enumerate(datasets):
+                LOGGER.info(
+                    f"\n{colorstr('blue', 'bold', f'MultiTrainer {i + 1}/{len(datasets)}:')} fine-tuning on {data}"
+                )
+                name = Path(str(data)).stem
+                run_name = name
+                try:
+                    overrides = {
+                        **self.args,
+                        "data": data,
+                        "project": str(self.save_dir),  # nest per-dataset runs inside the sweep directory
+                        "name": name,
+                        "resume": False,
+                        "session": None,
+                    }
+                    run = SimpleNamespace(
+                        project=overrides["project"],
+                        name=overrides["name"],
+                        task=overrides.get("task"),
+                        mode="train",
+                        exist_ok=overrides.get("exist_ok", False),
+                        save_dir=None,
+                    )
+                    save_dir = get_save_dir(run)
+                    save_dir.mkdir(parents=True, exist_ok=True)
+                    run_name = save_dir.name
+                    overrides["save_dir"] = str(save_dir)
+                    if self.trainer is None:
+                        overrides["model"] = str(base_model)
+                        overrides["pretrained"] = True
+                        subprocess.run(
+                            [
+                                *_YOLO_CLI_COMMAND,
+                                "train",
+                                *(f"{k}={v}" for k, v in overrides.items() if k != "session"),
+                            ],
+                            check=True,
+                        )
+                    else:
+                        trainer = self.trainer(overrides=overrides, _callbacks=self.callbacks)
+                        trainer.model = trainer.get_model(weights=self.model, cfg=self.model.yaml)
+                        trainer.train()
+                    best, last = save_dir / "weights" / "best.pt", save_dir / "weights" / "last.pt"
+                    ckpt = best if best.exists() else last
+                    metrics = None
+                    if self.trainer is not None:
+                        metrics = getattr(getattr(trainer, "validator", None), "metrics", None)
+                        if metrics is not None:
+                            metrics = metrics.results_dict
+                    self.metrics[run_name] = metrics or (torch_load(ckpt)["train_metrics"] if ckpt.exists() else None)
+                    self.trainers.append(SimpleNamespace(save_dir=save_dir, best=best, last=last))
+                except Exception as e:  # one bad dataset should not abort the whole sweep
+                    LOGGER.error(f"MultiTrainer: fine-tuning on {data} failed, skipping: {e}")
+                    self.metrics[run_name] = None
+        finally:
+            if base_model:
+                base_model.unlink(missing_ok=True)
         if RANK in {-1, 0} and self.trainers:
             self.save_dir.mkdir(parents=True, exist_ok=True)
             self.save_results()  # JSON of per-dataset + mean metrics for programmatic post-processing

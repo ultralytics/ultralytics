@@ -75,7 +75,7 @@ def torch2litert(
             activations), ``'w8a32'`` (dynamic INT8), or ``None``/``32`` (FP32).
         calibration_dataset (DataLoader | None): Calibration dataloader for static quantization, as returned by
             ``get_int8_calibration_dataloader``. Required when ``quantize`` is ``8`` or ``'w8a16'``.
-        metadata (dict | None): Optional metadata saved as ``metadata.yaml``.
+        metadata (dict | None): Optional metadata embedded in the ``.tflite`` as a ``metadata.json`` entry.
         prefix (str): Prefix for log messages.
 
     Returns:

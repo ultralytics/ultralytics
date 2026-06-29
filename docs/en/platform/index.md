@@ -392,7 +392,7 @@ The Platform supports 19+ deployment formats:
 | TF GraphDef   | `.pb`               | TensorFlow legacy         |
 | PaddlePaddle  | `_paddle_model`     | Baidu ecosystem           |
 | NCNN          | `_ncnn_model`       | Mobile (Android/ARM)      |
-| LiteRT        | `_litert_model`     | Mobile/edge and browser   |
+| LiteRT        | `.tflite`           | Mobile/edge and browser   |
 | Edge TPU      | `_edgetpu.tflite`   | Google Coral devices      |
 | MNN           | `.mnn`              | Alibaba mobile            |
 | RKNN          | `_rknn_model`       | Rockchip NPU              |

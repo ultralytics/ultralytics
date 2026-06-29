@@ -10,7 +10,7 @@ import torch
 from ultralytics.utils import LOGGER
 from ultralytics.utils.checks import check_requirements
 
-from .base import BaseBackend
+from .base import BaseBackend, read_tflite_metadata
 
 
 class LiteRTBackend(BaseBackend):
@@ -44,16 +44,7 @@ class LiteRTBackend(BaseBackend):
 
         # Load metadata: prefer the metadata.json embedded in the .tflite (single-file export); fall back to a
         # sibling/directory metadata.yaml for older directory-style exports.
-        import json
-        import zipfile
-
-        metadata = None
-        try:
-            with zipfile.ZipFile(tflite_file, "r") as zf:
-                if "metadata.json" in zf.namelist():
-                    metadata = json.loads(zf.read("metadata.json"))
-        except (zipfile.BadZipFile, KeyError, ValueError):
-            pass
+        metadata = read_tflite_metadata(tflite_file)
         if metadata is None:
             from ultralytics.utils import YAML
 

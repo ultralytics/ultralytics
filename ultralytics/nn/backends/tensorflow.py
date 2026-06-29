@@ -2,10 +2,7 @@
 
 from __future__ import annotations
 
-import ast
-import json
 import platform
-import zipfile
 from pathlib import Path
 
 import numpy as np
@@ -13,7 +10,7 @@ import torch
 
 from ultralytics.utils import LOGGER
 
-from .base import BaseBackend
+from .base import BaseBackend, read_tflite_metadata
 
 
 class TensorFlowBackend(BaseBackend):
@@ -105,17 +102,8 @@ class TensorFlowBackend(BaseBackend):
             self.input_details = self.interpreter.get_input_details()
             self.output_details = self.interpreter.get_output_details()
 
-            # Load metadata
-            try:
-                with zipfile.ZipFile(weight, "r") as zf:
-                    name = zf.namelist()[0]
-                    contents = zf.read(name).decode("utf-8")
-                    if name == "metadata.json":
-                        self.apply_metadata(json.loads(contents))
-                    else:
-                        self.apply_metadata(ast.literal_eval(contents))
-            except (zipfile.BadZipFile, SyntaxError, ValueError, json.JSONDecodeError):
-                pass
+            # Load metadata embedded in the .tflite (shared helper handles metadata.json and legacy entries)
+            self.apply_metadata(read_tflite_metadata(weight))
 
     def forward(self, im: torch.Tensor) -> list[np.ndarray]:
         """Run Google TensorFlow inference with format-specific execution and output post-processing.

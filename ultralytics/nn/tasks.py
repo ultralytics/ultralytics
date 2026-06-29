@@ -1607,8 +1607,9 @@ class _SafeLoad:
         _scan(ul_nn)  # ultralytics block/conv/head/transformer
         _scan(ul_tasks)  # ultralytics task models
 
-        # Non-nn.Module data globals in official checkpoints.
+        # Non-nn.Module data globals in official checkpoints, incl. the pre-8.0.44 `ultralytics.yolo.utils` path.
         allow.append(IterableSimpleNamespace)
+        allow.append((IterableSimpleNamespace, "ultralytics.yolo.utils.IterableSimpleNamespace"))
 
         # Classification preprocessing transforms.
         try:

@@ -108,6 +108,25 @@ def _imread_pil(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | No
         return None
 
 
+def imread_unicode(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | None:
+    """Read an image with multilanguage filename support, preserving native cv2.imread behavior.
+
+    This is intended as a Windows monkey-patch for cv2.imread. Unlike `imread`, it does not expand grayscale dimensions
+    or handle TIFF/AVIF/HEIC fallback.
+
+    Args:
+        filename (str): Path to the file to read.
+        flags (int, optional): Flag that can take values of cv2.IMREAD_*.
+
+    Returns:
+        (np.ndarray | None): The read image array, or None if reading fails.
+    """
+    try:
+        return cv2.imdecode(np.fromfile(filename, np.uint8), flags)
+    except (FileNotFoundError, OSError):
+        return None
+
+
 def imwrite(filename: str, img: np.ndarray, params: list[int] | None = None) -> bool:
     """Write an image to a file with multilanguage filename support.
 

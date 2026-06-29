@@ -1277,7 +1277,7 @@ Returns aggregated metrics across all user deployments: total requests, active d
 
 ## Export API
 
-Convert models to optimized formats like ONNX, TensorRT, CoreML, and TFLite for edge deployment. See [Deploy documentation](../deploy/index.md).
+Convert models to optimized formats like ONNX, TensorRT, CoreML, and LiteRT for edge deployment. See [Deploy documentation](../deploy/index.md).
 
 ### List Exports
 
@@ -1338,13 +1338,12 @@ POST /api/exports
 | OpenVINO      | `openvino`    | Intel hardware           |
 | TensorRT      | `engine`      | NVIDIA GPU optimization  |
 | CoreML        | `coreml`      | Apple devices            |
-| TFLite        | `tflite`      | Mobile and embedded      |
 | TF SavedModel | `saved_model` | TensorFlow Serving       |
 | TF GraphDef   | `pb`          | TensorFlow frozen graph  |
 | PaddlePaddle  | `paddle`      | Baidu PaddlePaddle       |
 | NCNN          | `ncnn`        | Mobile neural network    |
+| LiteRT        | `litert`      | Mobile/edge and browser  |
 | Edge TPU      | `edgetpu`     | Google Coral devices     |
-| TF.js         | `tfjs`        | Browser inference        |
 | MNN           | `mnn`         | Alibaba mobile inference |
 | RKNN          | `rknn`        | Rockchip NPU             |
 | Qualcomm      | `qnn`         | Qualcomm Snapdragon NPU  |

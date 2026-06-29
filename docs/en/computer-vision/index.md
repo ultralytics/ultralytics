@@ -81,7 +81,7 @@ keywords: computer vision, what is computer vision, computer vision applications
           "name": "What is the best computer vision model for real-time applications?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "YOLO (You Only Look Once) models are the industry standard for real-time object detection. YOLO11 by Ultralytics delivers state-of-the-art accuracy at speeds suitable for edge deployment on devices like NVIDIA Jetson and Raspberry Pi."
+            "text": "YOLO (You Only Look Once) models are the industry standard for real-time object detection. YOLO26 by Ultralytics delivers state-of-the-art accuracy at speeds suitable for edge deployment on devices like NVIDIA Jetson and Raspberry Pi."
           }
         },
         {
@@ -89,7 +89,7 @@ keywords: computer vision, what is computer vision, computer vision applications
           "name": "How much data do I need to train a computer vision model?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "It depends on the task and approach. Transfer learning from a pretrained model like YOLO11 can achieve strong results with as few as a few hundred labelled images per class. Training from scratch on complex tasks typically requires tens of thousands of examples. Data quality and diversity matter more than raw volume."
+            "text": "It depends on the task and approach. Transfer learning from a pretrained model like YOLO26 can achieve strong results with as few as a few hundred labelled images per class. Training from scratch on complex tasks typically requires tens of thousands of examples. Data quality and diversity matter more than raw volume."
           }
         },
         {
@@ -118,7 +118,7 @@ keywords: computer vision, what is computer vision, computer vision applications
 
 Computer vision is the field of [artificial intelligence](https://www.ultralytics.com/glossary/artificial-intelligence-ai) that gives machines the ability to see and interpret the visual world. From detecting defects on a production line to guiding a surgical robot, it is one of the most widely deployed forms of AI in production today.
 
-<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-yolov8-tasks-banner.avif" alt="Ultralytics YOLO11 computer vision tasks — detection, segmentation, classification, pose estimation" width="1280" height="640" loading="eager" style="width:100%;height:auto;border-radius:12px;">
+<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-yolov8-tasks-banner.avif" alt="Ultralytics YOLO26 computer vision tasks — detection, segmentation, classification, pose estimation" width="1280" height="640" loading="eager" style="width:100%;height:auto;border-radius:12px;">
 
 ## What is Computer Vision?
 
@@ -169,7 +169,7 @@ The publication of AlexNet in 2012, trained on the ImageNet dataset of over one 
     if (!canvas) return;
     var ctx = canvas.getContext('2d');
     var dpr = window.devicePixelRatio || 1;
-    var W = 740, H = 108;
+    var W = canvas.parentElement.clientWidth || 740, H = Math.round(W * 108 / 740);
     canvas.width = W * dpr; canvas.height = H * dpr;
     canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
     ctx.scale(dpr, dpr);
@@ -273,7 +273,7 @@ The publication of AlexNet in 2012, trained on the ImageNet dataset of over one 
     if (!canvas) return;
     var ctx = canvas.getContext('2d');
     var dpr = window.devicePixelRatio || 1;
-    var W = 740, H = 92;
+    var W = canvas.parentElement.clientWidth || 740, H = Math.round(W * 92 / 740);
     canvas.width = W * dpr; canvas.height = H * dpr;
     canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
     ctx.scale(dpr, dpr);
@@ -386,7 +386,7 @@ Computer vision systems are categorised by the specific tasks they perform on vi
     if (!canvas) return;
     var ctx = canvas.getContext('2d');
     var dpr = window.devicePixelRatio || 1;
-    var w = 700, h = 360;
+    var w = canvas.parentElement.clientWidth || 700, h = Math.round(w * 360 / 700);
     canvas.width = w * dpr; canvas.height = h * dpr;
     canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
     ctx.scale(dpr, dpr);
@@ -604,7 +604,7 @@ Depth-sensing cameras and LiDAR are enabling systems to perceive volume and dist
 
 ### Build Your First Model with YOLO
 
-For teams piloting a computer vision project, the [YOLO](https://www.ultralytics.com/yolo) (You Only Look Once) framework is the industry standard for real-time [object detection](../tasks/detect.md). Developed by Ultralytics, [YOLO11](../models/yolo11.md) delivers state-of-the-art [accuracy](https://www.ultralytics.com/glossary/accuracy) at inference speeds fast enough for [edge deployment](../guides/model-deployment-options.md). It is open-source, extensively documented, and supported by a large community, making it the most practical starting point for engineers moving from research to production. Transfer learning from a pretrained YOLO model can reach strong performance with far less data — see the [fine-tuning guide](../guides/finetuning-guide.md) to get started. The broader ecosystem includes OpenCV for classical image processing tasks, and [PyTorch](https://www.ultralytics.com/glossary/pytorch) and TensorFlow as the primary deep learning libraries for model training and experimentation.
+For teams piloting a computer vision project, the [YOLO](https://www.ultralytics.com/yolo) (You Only Look Once) framework is the industry standard for real-time [object detection](../tasks/detect.md). Developed by Ultralytics, [YOLO26](../models/yolo26.md) delivers state-of-the-art [accuracy](https://www.ultralytics.com/glossary/accuracy) at inference speeds fast enough for [edge deployment](../guides/model-deployment-options.md). It is open-source, extensively documented, and supported by a large community, making it the most practical starting point for engineers moving from research to production. Transfer learning from a pretrained YOLO model can reach strong performance with far less data — see the [fine-tuning guide](../guides/finetuning-guide.md) to get started. The broader ecosystem includes OpenCV for classical image processing tasks, and [PyTorch](https://www.ultralytics.com/glossary/pytorch) and TensorFlow as the primary deep learning libraries for model training and experimentation.
 
 !!! example "Get started in minutes"
 
@@ -613,8 +613,8 @@ For teams piloting a computer vision project, the [YOLO](https://www.ultralytics
         ```python
         from ultralytics import YOLO
 
-        # Load a pretrained YOLO11 model
-        model = YOLO("yolo11n.pt")
+        # Load a pretrained YOLO26 model
+        model = YOLO("yolo26n.pt")
 
         # Run inference on an image
         results = model("path/to/image.jpg")
@@ -626,8 +626,8 @@ For teams piloting a computer vision project, the [YOLO](https://www.ultralytics
     === "CLI"
 
         ```bash
-        # Run inference with YOLO11
-        yolo predict model=yolo11n.pt source=path/to/image.jpg
+        # Run inference with YOLO26
+        yolo predict model=yolo26n.pt source=path/to/image.jpg
         ```
 
 ### Choosing the Right Task for Your Use Case
@@ -700,11 +700,11 @@ Computer vision has matured from a specialised research discipline into a founda
 
 ??? question "What is the best computer vision model for real-time applications?"
 
-    YOLO (You Only Look Once) models are the industry standard for real-time object detection. [YOLO11](../models/yolo11.md) by Ultralytics delivers state-of-the-art accuracy at speeds suitable for edge deployment on devices like [NVIDIA Jetson](../guides/nvidia-jetson.md) and [Raspberry Pi](../guides/raspberry-pi.md). See the [model comparison](../models/index.md) page for full benchmarks.
+    YOLO (You Only Look Once) models are the industry standard for real-time object detection. [YOLO26](../models/yolo26.md) by Ultralytics delivers state-of-the-art accuracy at speeds suitable for edge deployment on devices like [NVIDIA Jetson](../guides/nvidia-jetson.md) and [Raspberry Pi](../guides/raspberry-pi.md). See the [model comparison](../models/index.md) page for full benchmarks.
 
 ??? question "How much data do I need to train a computer vision model?"
 
-    It depends on the task and approach. Transfer learning from a pretrained model like YOLO11 can achieve strong results with as few as a few hundred labelled images per class. Training from scratch on complex tasks typically requires tens of thousands of examples. Data quality and diversity matter more than raw volume.
+    It depends on the task and approach. Transfer learning from a pretrained model like YOLO26 can achieve strong results with as few as a few hundred labelled images per class. Training from scratch on complex tasks typically requires tens of thousands of examples. Data quality and diversity matter more than raw volume.
 
 ??? question "How does computer vision work?"
 

@@ -449,12 +449,10 @@ def test_export_executorch(isolated_model):
 )
 def test_export_litert_matrix(task, quantize):
     """Test YOLO export to LiteRT format (FP32, static INT8, static w8a16, and dynamic w8a32) for various tasks."""
-    file = YOLO(TASK2MODEL[task]).export(format="litert", imgsz=32, quantize=quantize)
-    assert Path(file).exists(), f"LiteRT export failed for task '{task}', directory not found: {file}"
-    assert next(Path(file).glob("*.tflite"), None), f"LiteRT .tflite file not found for task '{task}': {file}"
-    assert (Path(file) / "metadata.yaml").exists(), f"LiteRT metadata.yaml not found for task '{task}': {file}"
-    YOLO(file)(SOURCE, imgsz=32)  # exported model inference
-    shutil.rmtree(file, ignore_errors=True)  # cleanup
+    file = Path(YOLO(TASK2MODEL[task]).export(format="litert", imgsz=32, quantize=quantize))
+    assert file.is_file() and file.suffix == ".tflite", f"LiteRT export is not a single .tflite for '{task}': {file}"
+    YOLO(file)(SOURCE, imgsz=32)  # exported model inference (also exercises the embedded metadata)
+    file.unlink()  # cleanup
 
 
 @pytest.mark.slow

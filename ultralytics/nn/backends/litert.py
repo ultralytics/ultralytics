@@ -31,12 +31,7 @@ class LiteRTBackend(BaseBackend):
         from ai_edge_litert.interpreter import Interpreter
 
         w = Path(weight)
-        if w.is_dir():
-            tflite_file = next(w.glob("*.tflite"))
-            metadata_file = w / "metadata.yaml"
-        else:
-            tflite_file = w
-            metadata_file = w.parent / "metadata.yaml"
+        tflite_file = next(w.glob("*.tflite")) if w.is_dir() else w
 
         LOGGER.info(f"Loading {tflite_file} for LiteRT inference...")
         self.interpreter = Interpreter(str(tflite_file))
@@ -47,11 +42,26 @@ class LiteRTBackend(BaseBackend):
         # load through this backend (the detection/proto outputs share the same layout for either export path).
         self.nhwc = self.input_details[0]["shape"][-1] == 3
 
-        # Load metadata
-        if metadata_file.exists():
+        # Load metadata: prefer the metadata.json embedded in the .tflite (single-file export); fall back to a
+        # sibling/directory metadata.yaml for older directory-style exports.
+        import json
+        import zipfile
+
+        metadata = None
+        try:
+            with zipfile.ZipFile(tflite_file, "r") as zf:
+                if "metadata.json" in zf.namelist():
+                    metadata = json.loads(zf.read("metadata.json"))
+        except (zipfile.BadZipFile, KeyError, ValueError):
+            pass
+        if metadata is None:
             from ultralytics.utils import YAML
 
-            self.apply_metadata(YAML.load(metadata_file))
+            metadata_file = (w / "metadata.yaml") if w.is_dir() else w.parent / "metadata.yaml"
+            if metadata_file.exists():
+                metadata = YAML.load(metadata_file)
+        if metadata:
+            self.apply_metadata(metadata)
 
     def forward(self, im: torch.Tensor) -> list[np.ndarray]:
         """Run inference using the LiteRT interpreter.

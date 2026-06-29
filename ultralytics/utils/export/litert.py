@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import json
+import zipfile
 from pathlib import Path
 
 import torch
 
-from ultralytics.utils import LOGGER, YAML
+from ultralytics.utils import LOGGER
 
 
 class _NormalizeCoords(torch.nn.Module):
@@ -77,7 +79,7 @@ def torch2litert(
         prefix (str): Prefix for log messages.
 
     Returns:
-        (Path): Path to the exported ``_litert_model`` directory.
+        (Path): Path to the exported ``.tflite`` file with metadata embedded as a ``metadata.json`` entry.
     """
     from ultralytics.utils.checks import check_requirements
 
@@ -89,9 +91,7 @@ def torch2litert(
     dynamic_int8 = quantize == "w8a32"
     LOGGER.info(f"\n{prefix} starting export with litert_torch {litert_torch.__version__}...")
     file = Path(file)
-    quant_tag = "_int8" if static_int8 else "_w8a16" if static_int16 else "_dynamic" if dynamic_int8 else ""
-    f = Path(str(file).replace(file.suffix, f"{quant_tag}_litert_model"))
-    f.mkdir(parents=True, exist_ok=True)
+    quant_tag = "_int8" if static_int8 else "_w8a16" if static_int16 else "_dynamic_int8" if dynamic_int8 else ""
 
     # Normalize coordinate channels to [0, 1] so INT8 quantization preserves scores (denormalized in LiteRTBackend).
     # End-to-end models output post-NMS pixel coordinates in FP32 (no scale collapse), so they are left as-is.
@@ -101,8 +101,7 @@ def torch2litert(
         model = _NormalizeCoords(model, int(im.shape[3]), task, len(meta.get("names", {})), meta.get("kpt_shape"))
 
     edge_model = litert_torch.convert(model, (im,))
-    suffix = "int8" if static_int8 else "w8a16" if static_int16 else "dynamic_int8" if dynamic_int8 else "float32"
-    tflite_file = f / f"{file.stem}_{suffix}.tflite"
+    tflite_file = file.with_name(f"{file.stem}{quant_tag}.tflite")
     edge_model.export(tflite_file)
 
     if static_int8 or static_int16 or dynamic_int8:
@@ -126,5 +125,8 @@ def torch2litert(
             qt.load_quantization_recipe(recipe.dynamic_wi8_afp32())
             qt.quantize().export_model(str(tflite_file), overwrite=True)
 
-    YAML.save(f / "metadata.yaml", metadata or {})
-    return f
+    # Embed metadata as a JSON entry appended to the .tflite (zip-tolerant flatbuffer), so the model is a single
+    # self-contained file; LiteRTBackend reads it back, no separate metadata.yaml needed.
+    with zipfile.ZipFile(tflite_file, "a", zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr("metadata.json", json.dumps(metadata or {}))
+    return tflite_file

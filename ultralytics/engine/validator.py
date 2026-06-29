@@ -24,7 +24,7 @@ Usage - formats:
                           yolo26n_axelera_model      # Axelera AI
                           yolo26n_deepx_model        # DEEPX
                           yolo26n_qnn.onnx           # Qualcomm QNN
-                          yolo26n_litert_model       # LiteRT
+                          yolo26n.tflite             # LiteRT
 """
 
 from __future__ import annotations

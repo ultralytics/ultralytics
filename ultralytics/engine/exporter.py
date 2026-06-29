@@ -22,7 +22,7 @@ ExecuTorch              | `executorch`              | yolo26n_executorch_model/
 Axelera AI              | `axelera`                 | yolo26n_axelera_model/
 DEEPX                   | `deepx`                   | yolo26n_deepx_model/
 Qualcomm QNN            | `qnn`                     | yolo26n_qnn.onnx
-LiteRT                  | `litert`                  | yolo26n_litert_model/
+LiteRT                  | `litert`                  | yolo26n.tflite
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -56,7 +56,7 @@ Inference:
                          yolo26n_axelera_model      # Axelera AI
                          yolo26n_deepx_model        # DEEPX
                          yolo26n_qnn.onnx           # Qualcomm QNN
-                         yolo26n_litert_model       # LiteRT
+                         yolo26n.tflite             # LiteRT
 """
 
 from __future__ import annotations
@@ -210,7 +210,7 @@ def export_formats():
         ],
         ["DEEPX", "deepx", "_deepx_model", False, False, ["data", "quantize", "optimize"], "isolated-deepx"],
         ["Qualcomm QNN", "qnn", "_qnn.onnx", False, False, ["batch", "name", "quantize", "fraction", "data"], "base"],
-        ["LiteRT", "litert", "_litert_model", True, False, ["batch", "quantize", "data", "fraction"], "litert"],
+        ["LiteRT", "litert", ".tflite", True, False, ["batch", "quantize", "data", "fraction"], "litert"],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments", "Env"], zip(*x)))
 

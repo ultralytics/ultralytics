@@ -71,14 +71,14 @@ All [Ultralytics YOLO models](../models/index.md) support export out of the box.
         model = YOLO("yolo26n.pt")
 
         # Export the model to LiteRT format
-        model.export(format="litert")  # creates 'yolo26n_litert_model/'
+        model.export(format="litert")  # creates 'yolo26n.tflite'
         ```
 
     === "CLI"
 
         ```bash
         # Export a YOLO26n PyTorch model to LiteRT format
-        yolo export model=yolo26n.pt format=litert # creates 'yolo26n_litert_model/'
+        yolo export model=yolo26n.pt format=litert # creates 'yolo26n.tflite'
         ```
 
 !!! example "Quantized export"
@@ -91,13 +91,13 @@ All [Ultralytics YOLO models](../models/index.md) support export out of the box.
         model = YOLO("yolo26n.pt")
 
         # Dynamic INT8: int8 weights, FP32 activations - no calibration data needed
-        model.export(format="litert", quantize="w8a32")  # creates 'yolo26n_dynamic_litert_model/'
+        model.export(format="litert", quantize="w8a32")  # creates 'yolo26n_dynamic_int8.tflite'
 
         # Static INT8: int8 weights + int8 activations - needs calibration data
-        model.export(format="litert", quantize=8, data="coco8.yaml")  # creates 'yolo26n_int8_litert_model/'
+        model.export(format="litert", quantize=8, data="coco8.yaml")  # creates 'yolo26n_int8.tflite'
 
         # Static w8a16: int8 weights + int16 activations (higher accuracy) - needs calibration data
-        model.export(format="litert", quantize="w8a16", data="coco8.yaml")  # creates 'yolo26n_w8a16_litert_model/'
+        model.export(format="litert", quantize="w8a16", data="coco8.yaml")  # creates 'yolo26n_w8a16.tflite'
         ```
 
     === "CLI"
@@ -121,7 +121,7 @@ All [Ultralytics YOLO models](../models/index.md) support export out of the box.
         from ultralytics import YOLO
 
         # Load the exported LiteRT model
-        model = YOLO("yolo26n_litert_model")
+        model = YOLO("yolo26n.tflite")
 
         # Run inference
         results = model("https://ultralytics.com/images/bus.jpg")
@@ -131,7 +131,7 @@ All [Ultralytics YOLO models](../models/index.md) support export out of the box.
 
         ```bash
         # Run inference with the exported LiteRT model
-        yolo predict model=yolo26n_litert_model source='https://ultralytics.com/images/bus.jpg'
+        yolo predict model=yolo26n.tflite source='https://ultralytics.com/images/bus.jpg'
         ```
 
 !!! example "Validate"
@@ -142,7 +142,7 @@ All [Ultralytics YOLO models](../models/index.md) support export out of the box.
         from ultralytics import YOLO
 
         # Load the exported LiteRT model
-        model = YOLO("yolo26n_litert_model")
+        model = YOLO("yolo26n.tflite")
 
         # Validate accuracy on the COCO8 dataset
         metrics = model.val(data="coco8.yaml")
@@ -152,7 +152,7 @@ All [Ultralytics YOLO models](../models/index.md) support export out of the box.
 
         ```bash
         # Validate the exported LiteRT model
-        yolo val model=yolo26n_litert_model data=coco8.yaml
+        yolo val model=yolo26n.tflite data=coco8.yaml
         ```
 
 ### Export Arguments
@@ -174,7 +174,7 @@ For more details about the export process, visit the [Ultralytics documentation 
 
 ## Deploying Exported YOLO LiteRT Models
 
-After exporting your Ultralytics YOLO model to LiteRT, you can deploy it across platforms. The quickest way to verify it locally is the `YOLO("yolo26n_litert_model")` method shown above. For deployment in other environments, see the following resources:
+After exporting your Ultralytics YOLO model to LiteRT, you can deploy it across platforms. The quickest way to verify it locally is the `YOLO("yolo26n.tflite")` method shown above. For deployment in other environments, see the following resources:
 
 ### Mobile & Embedded
 
@@ -215,13 +215,13 @@ from ultralytics import YOLO
 model = YOLO("yolo26n.pt")
 
 # Export the model to LiteRT format
-model.export(format="litert")  # creates 'yolo26n_litert_model/'
+model.export(format="litert")  # creates 'yolo26n.tflite'
 ```
 
 For CLI users:
 
 ```bash
-yolo export model=yolo26n.pt format=litert # creates 'yolo26n_litert_model/'
+yolo export model=yolo26n.pt format=litert # creates 'yolo26n.tflite'
 ```
 
 For more details, visit the [Ultralytics export guide](../modes/export.md).

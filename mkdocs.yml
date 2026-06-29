@@ -627,6 +627,8 @@ nav:
       - TensorRT: integrations/tensorrt.md
       - TF GraphDef: integrations/tf-graphdef.md
       - TF SavedModel: integrations/tf-savedmodel.md
+      - TF.js (deprecated): integrations/tfjs.md
+      - TFLite (deprecated): integrations/tflite.md
       - TFLite Edge TPU: integrations/edge-tpu.md
       - TorchScript: integrations/torchscript.md
       - VS Code: integrations/vscode.md

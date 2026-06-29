@@ -517,7 +517,7 @@ class BasePredictor:
                 r = min(self.screen[0] / w, self.screen[1] / h, 1.0)
                 cv2.resizeWindow(name, max(1, int(w * r)), max(1, int(h * r)))  # (width, height)
             except Exception:
-                pass
+                cv2.resizeWindow(name, w, h)
         cv2.imshow(p, im)
         if cv2.waitKey(300 if self.dataset.mode == "image" else 1) & 0xFF == ord("q"):  # 300ms if image; else 1ms
             raise StopIteration

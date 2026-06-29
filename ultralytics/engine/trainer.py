@@ -12,6 +12,7 @@ import gc
 import math
 import os
 import subprocess
+import sys
 import time
 import warnings
 from copy import copy, deepcopy
@@ -236,7 +237,10 @@ class BaseTrainer:
             try:
                 cmd, file = generate_ddp_command(self)
                 LOGGER.info(f"{colorstr('DDP:')} debug command {' '.join(cmd)}")
-                subprocess.run(cmd, check=True)
+                # Propagate parent sys.path so DDP workers import the same ultralytics version as the parent,
+                # avoiding a stale site-packages copy when running from an editable install or local working tree
+                env = {**os.environ, "PYTHONPATH": os.pathsep.join(os.getcwd() if p == "" else p for p in sys.path)}
+                subprocess.run(cmd, check=True, env=env)
             except Exception as e:
                 raise e
             finally:

@@ -143,6 +143,7 @@ class BasePredictor:
         self.source_type = None
         self.seen = 0
         self.windows = []
+        self.screen = None  # cached screen resolution (width, height) for show=True scaling
         self.batch = None
         self.results = None
         self.transforms = None
@@ -502,18 +503,21 @@ class BasePredictor:
     def show(self, p: str = ""):
         """Display an image in a window."""
         im = self.plotted_img
-        if platform.system() == "Linux" and p not in self.windows:
-            self.windows.append(p)
-            cv2.namedWindow(p, cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)  # allow window resize (Linux)
+        if platform.system() == "Linux":
             h, w = im.shape[:2]
-            try:  # scale down to fit screen if image larger than screen resolution
-                root = __import__("tkinter").Tk()
-                r = min(root.winfo_screenwidth() / w, root.winfo_screenheight() / h, 1.0)
-                root.destroy()
-                h, w = int(h * r), int(w * r)
+            if p not in self.windows:
+                self.windows.append(p)
+                cv2.namedWindow(p, cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)  # allow window resize (Linux)
+            try:  # scale window down to fit screen if image larger than screen resolution
+                if self.screen is None:
+                    root = __import__("tkinter").Tk()
+                    root.withdraw()  # hide the empty Tk window
+                    self.screen = root.winfo_screenwidth(), root.winfo_screenheight()
+                    root.destroy()
+                r = min(self.screen[0] / w, self.screen[1] / h, 1.0)
+                cv2.resizeWindow(p, max(1, int(w * r)), max(1, int(h * r)))  # (width, height)
             except Exception:
                 pass
-            cv2.resizeWindow(p, w, h)  # (width, height)
         cv2.imshow(p, im)
         if cv2.waitKey(300 if self.dataset.mode == "image" else 1) & 0xFF == ord("q"):  # 300ms if image; else 1ms
             raise StopIteration

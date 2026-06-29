@@ -211,6 +211,9 @@ def select_device(device="", newline=False, verbose=True):
 
     cpu = device == "cpu"
     mps = device in {"mps", "mps:0"}  # Apple Metal Performance Shaders (MPS)
+    cuda_initialized = False
+    cuda_arg = "0"
+    cuda_info_indices = None
     if cpu or mps:
         os.environ["CUDA_VISIBLE_DEVICES"] = ""  # force torch.cuda.is_available() = False
     elif device:  # non-cpu device requested
@@ -220,7 +223,14 @@ def select_device(device="", newline=False, verbose=True):
             device = ",".join([x for x in device.split(",") if x])  # remove sequential commas, i.e. "0,,1" -> "0,1"
         visible = os.environ.get("CUDA_VISIBLE_DEVICES", None)
         os.environ["CUDA_VISIBLE_DEVICES"] = device  # set environment variable - must be before assert is_available()
-        if not (torch.cuda.is_available() and torch.cuda.device_count() >= len(device.split(","))):
+        devices = device.split(",")
+        cuda_initialized = torch.cuda.is_initialized()
+        numeric_devices = [int(x) for x in devices if x.isdigit()]
+        if not (
+            torch.cuda.is_available()
+            and torch.cuda.device_count()
+            >= (max(numeric_devices) + 1 if cuda_initialized and numeric_devices else len(devices))
+        ):
             LOGGER.info(s)
             install = (
                 "See https://pytorch.org/get-started/locally/ for up-to-date torch install instructions if no "
@@ -237,13 +247,17 @@ def select_device(device="", newline=False, verbose=True):
                 f"\nos.environ['CUDA_VISIBLE_DEVICES']: {visible}\n"
                 f"{install}"
             )
+        if cuda_initialized and len(numeric_devices) == len(devices):
+            cuda_arg = str(numeric_devices[0])
+            cuda_info_indices = numeric_devices
 
     if not cpu and not mps and torch.cuda.is_available():  # prefer GPU if available
-        devices = device.split(",") if device else "0"  # i.e. "0,1" -> ["0", "1"]
+        devices = device.split(",") if device else ["0"]  # i.e. "0,1" -> ["0", "1"]
         space = " " * len(s)
         for i, d in enumerate(devices):
-            s += f"{'' if i == 0 else space}CUDA:{d} ({get_gpu_info(i)})\n"  # bytes to MB
-        arg = "cuda:0"
+            info_index = cuda_info_indices[i] if cuda_info_indices else i
+            s += f"{'' if i == 0 else space}CUDA:{d} ({get_gpu_info(info_index)})\n"  # bytes to MB
+        arg = f"cuda:{cuda_arg}"
     elif mps and TORCH_2_0 and torch.backends.mps.is_available():
         # Prefer MPS if available
         s += f"MPS ({get_cpu_info()})\n"

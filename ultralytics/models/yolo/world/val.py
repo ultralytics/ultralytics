@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import torch
 
-from ultralytics.data.utils import check_det_dataset
+from ultralytics.data.utils import check_det_dataset, convert_ndjson_to_yolo_if_needed
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils.torch_utils import select_device
 
@@ -26,8 +26,10 @@ class WorldValidator(DetectionValidator):
 
                 model = load_checkpoint(model or self.args.model, device=self.device)[0]
             model.eval().to(self.device)
+            self.args.data = convert_ndjson_to_yolo_if_needed(self.args.data)  # match BaseValidator dataset handling
             names = [name.split("/", 1)[0] for name in check_det_dataset(self.args.data)["names"].values()]
-            if list(model.names.values()) != names:  # regenerate prompts only if class order differs from dataset
+            current = model.names.values() if isinstance(model.names, dict) else model.names  # names may be a list
+            if list(current) != names:  # regenerate prompts only if class order differs from dataset
                 state = (model.names, model.txt_feats, model.model[-1].nc)  # restore after to avoid leak to caller
                 model.set_classes(names, cache_clip_model=False)
                 model.names = dict(enumerate(names))  # set_classes updates embeddings/nc but not names

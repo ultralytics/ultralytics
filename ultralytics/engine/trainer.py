@@ -662,22 +662,19 @@ class BaseTrainer:
         """Save model training checkpoints with additional metadata."""
         import io
 
-        # The EMA running average is sticky: one transient non-finite weight permanently poisons it
-        # (ema = decay*ema + (1-decay)*model), and _handle_nan_recovery only fires on a non-finite loss/fitness, so a
-        # finite-loss run with a poisoned EMA would otherwise skip every save and finish with no checkpoint at all.
-        # Resync just the poisoned tensors from the live model (in-place, also un-poisoning later epochs) so a valid
-        # checkpoint is still produced; only skip when the model itself is also non-finite. fp16 overflow on the saved
-        # copy is handled below.
+        # A transient NaN/Inf permanently poisons the EMA running average (ema = decay*ema + (1-decay)*model), so
+        # save_model would otherwise skip every epoch and the run would finish with no checkpoint. Resync each
+        # poisoned EMA tensor from the live model (keys are a subset of the model's); skip only if the model tensor
+        # is also non-finite. fp16 overflow on the saved copy is handled below.
         ema = unwrap_model(self.ema.ema)
         if not all(torch.isfinite(v).all() for v in ema.state_dict().values() if isinstance(v, torch.Tensor)):
-            model_sd = unwrap_model(self.model).state_dict()  # EMA keys are a subset (teacher stripped under distill)
-            if not all(torch.isfinite(v).all() for v in model_sd.values() if isinstance(v, torch.Tensor)):
-                LOGGER.warning(f"Skipping checkpoint save at epoch {self.epoch}: EMA and model contain NaN/Inf")
-                return False
+            model_sd = unwrap_model(self.model).state_dict()
             for k, v in ema.state_dict().items():
                 if isinstance(v, torch.Tensor) and not torch.isfinite(v).all():
+                    if not torch.isfinite(model_sd[k]).all():
+                        LOGGER.warning(f"Skipping checkpoint save at epoch {self.epoch}: EMA and model contain NaN/Inf")
+                        return False
                     v.copy_(model_sd[k])
-            LOGGER.warning(f"Resynced non-finite EMA tensors from model at epoch {self.epoch} to preserve checkpoint")
         ema = deepcopy(ema).half()
         # Clamp fp16 serialization overflow without mutating the live EMA.
         for v in ema.state_dict().values():

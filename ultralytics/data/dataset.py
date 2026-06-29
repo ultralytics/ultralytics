@@ -194,6 +194,11 @@ class YOLODataset(BaseDataset):
         # Check if the dataset is all boxes or all segments
         lengths = ((len(lb["cls"]), len(lb["bboxes"]), len(lb["segments"])) for lb in labels)
         len_cls, len_boxes, len_segments = (sum(x) for x in zip(*lengths))
+        if self.use_segments and len_boxes != len_segments:
+            raise ValueError(
+                f"Segment dataset requires equal numbers of boxes and segments, but got len(segments) = "
+                f"{len_segments}, len(boxes) = {len_boxes}. Please supply a segment dataset, not a detect dataset."
+            )
         if len_segments and len_boxes != len_segments:
             LOGGER.warning(
                 f"Box and segment counts should be equal, but got len(segments) = {len_segments}, "
@@ -203,7 +208,7 @@ class YOLODataset(BaseDataset):
             for lb in labels:
                 lb["segments"] = []
         if len_cls == 0:
-            raise ValueError(f"All labels empty in {cache_path}, can not start training without labels. {HELP_URL}")
+            LOGGER.warning(f"Labels are missing or empty in {cache_path}, training may not work correctly. {HELP_URL}")
         return labels
 
     def build_transforms(self, hyp: dict | None = None) -> Compose:

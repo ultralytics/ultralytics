@@ -58,7 +58,7 @@ Two dominant paradigms:
 
 **Derived capabilities built on tracking:** [Speed estimation](../../guides/speed-estimation.md), [queue management](../../guides/queue-management.md), [zone-based counting](../../guides/trackzone.md), [heatmap generation](../../guides/heatmaps.md).
 
-**Ultralytics implementation:** [Object Tracking](../../modes/track.md) · [Tracking Practical Guide](../../guides/tracking-practical-guide.md)
+**Ultralytics implementation:** [Object Tracking](../../modes/track.md)
 
 ---
 
@@ -70,7 +70,7 @@ The output is a set of `(x, y, confidence)` coordinates per keypoint per detecte
 
 **Common applications:** Workout form analysis, ergonomics monitoring, sports biomechanics, gesture control, rehabilitation tracking.
 
-**Ultralytics implementation:** [Pose Estimation](../../tasks/pose.md) · [Pose Practical Guide](../../guides/pose-practical-guide.md) · [Workouts Monitoring](../../guides/workouts-monitoring.md)
+**Ultralytics implementation:** [Pose Estimation](../../tasks/pose.md) · [Workouts Monitoring](../../guides/workouts-monitoring.md)
 
 ---
 

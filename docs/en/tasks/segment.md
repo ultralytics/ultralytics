@@ -292,3 +292,137 @@ Exporting a YOLO segmentation model to ONNX format is simple and can be done usi
         ```
 
 For more details on exporting to various formats, refer to the [Export](../modes/export.md) page.
+
+### How do I expose the auxiliary semantic segmentation output during inference?
+
+YOLO26-seg includes an auxiliary semantic segmentation branch used to aid training, but this branch is not exposed in the default inference outputs. To expose it during inference, save the helper below as `semseg_wrapper.py`:
+
+```python
+from __future__ import annotations
+
+import types
+
+import torch
+import torch.nn.functional as F
+
+from ultralytics.nn.modules import Segment26
+from ultralytics.nn.modules.block import Proto
+from ultralytics.nn.modules.head import Detect
+from ultralytics.utils import LOGGER, ops
+
+
+def _segment26_forward(self, x):
+    """Patched Segment26.forward: emit (det_output, proto, semseg) at inference."""
+    outputs = Detect.forward(self, x)
+    preds = outputs[1] if isinstance(outputs, tuple) else outputs
+
+    pm = self.proto
+    feat = x[0]
+    for i, f in enumerate(pm.feat_refine):
+        up_feat = f(x[i + 1])
+        up_feat = F.interpolate(up_feat, size=feat.shape[2:], mode="nearest")
+        feat = feat + up_feat
+    proto = Proto.forward(pm, pm.feat_fuse(feat))
+    semseg = pm.semseg(feat) if pm.semseg is not None else None
+
+    if isinstance(preds, dict):
+        if self.end2end:
+            preds["one2many"]["proto"] = proto
+            preds["one2one"]["proto"] = tuple(p.detach() for p in proto) if isinstance(proto, tuple) else proto.detach()
+        else:
+            preds["proto"] = proto
+    if self.training:
+        return preds
+    extras = (proto,) if semseg is None else (proto, semseg)
+    if self.export:
+        return (outputs, *extras)
+    return ((outputs[0], *extras), preds)
+
+
+def _patch_predictor(predictor):
+    """Patch SegmentationPredictor.postprocess to surface semseg on Results."""
+    orig_postprocess = predictor.postprocess
+
+    def postprocess(self, preds, img, orig_imgs):
+        first = preds[0]
+        semseg_batch = first[2] if isinstance(first, tuple) and len(first) >= 3 else None
+        if semseg_batch is None:
+            return orig_postprocess(preds, img, orig_imgs)
+        patched = ((first[0], first[1]), *preds[1:])
+        results = orig_postprocess(patched, img, orig_imgs)
+        sem_up = F.interpolate(semseg_batch, size=img.shape[2:], mode="bilinear", align_corners=False)
+        for r, s in zip(results, sem_up):
+            oh, ow = r.orig_shape
+            # 1-channel (binary): foreground where logit > 0 (== sigmoid > 0.5).
+            # Multi-channel: argmax over channels.
+            scaled = ops.scale_masks(s.unsqueeze(0), (oh, ow), padding=True)[0]  # (C, H, W)
+            if scaled.shape[0] == 1:
+                cls_map = (scaled[0] > 0).to(torch.int32)
+            else:
+                cls_map = scaled.argmax(0).to(torch.int32)
+                cls_map[scaled.amax(0) <= 0] = 255
+            r.update(semantic_mask=cls_map)
+        return results
+
+    predictor.postprocess = types.MethodType(postprocess, predictor)
+    return predictor
+
+
+def enable_semseg(yolo_or_module):
+    """Enable semseg output for all Segment26 heads on a YOLO wrapper or raw nn.Module."""
+    inner = (
+        yolo_or_module.model
+        if hasattr(yolo_or_module, "model") and isinstance(yolo_or_module.model, torch.nn.Module)
+        else yolo_or_module
+    )
+
+    patched = 0
+    for m in inner.modules():
+        if isinstance(m, Segment26):
+            if getattr(m.proto, "semseg", None) is None:
+                LOGGER.warning("Proto26.semseg is None (model was fused). Reload an un-fused checkpoint.")
+                continue
+            m.forward = types.MethodType(_segment26_forward, m)
+            m.proto.fuse = types.MethodType(lambda self: None, m.proto)
+            patched += 1
+    LOGGER.info(f"enable_semseg: patched {patched} Segment26 head(s).")
+
+    if hasattr(yolo_or_module, "_smart_load"):
+        orig_smart_load = yolo_or_module._smart_load
+
+        def smart_load(key):
+            obj = orig_smart_load(key)
+            if key == "predictor":
+                if isinstance(obj, type):
+                    orig_setup = obj.setup_model
+
+                    def setup_model(self_p, *a, **kw):
+                        out = orig_setup(self_p, *a, **kw)
+                        _patch_predictor(self_p)
+                        return out
+
+                    obj.setup_model = setup_model
+                else:
+                    _patch_predictor(obj)
+            return obj
+
+        yolo_or_module._smart_load = smart_load
+
+    return yolo_or_module
+```
+
+Then run inference. The semantic segmentation result is stored on each `Results` object as `r.semantic_mask`:
+
+```python
+from semseg_wrapper import enable_semseg
+
+from ultralytics import YOLO
+
+model = YOLO("yolo26n-seg.pt")
+enable_semseg(model)
+results = model.predict("img.jpg")
+for r in results:
+    semantic_mask = r.semantic_mask
+    r.masks = None
+    r.save("semantic_result.jpg", boxes=False)
+```

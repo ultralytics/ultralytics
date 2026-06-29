@@ -659,7 +659,7 @@ class CorrelationAnalysis:
         for prop in _ALL_PROPERTIES:
             xs = np.array([rec.get(prop, np.nan) for rec in per_image.values()], dtype=float)
             m = np.isfinite(xs) & np.isfinite(f1)
-            if m.sum() < 30 or np.std(xs[m]) == 0:
+            if m.sum() < 30 or np.std(xs[m]) == 0 or np.std(f1[m]) == 0:
                 out[prop] = {
                     "pearson_r": None,
                     "pearson_p": None,
@@ -762,7 +762,11 @@ def _worst_record_score(rec: dict) -> tuple[float, float]:
     Empty-GT images (``num_objects == 0``) have undefined per-image F1 and are pushed past every real image so they
     never pollute the worst-image table.
     """
-    f1 = float("inf") if not rec.get("num_objects", 0) else float(rec.get("f1", 1.0))
+    f1 = (
+        float("inf")
+        if not rec.get("num_objects", 0) or (v := rec.get("f1")) is None or not np.isfinite(v)
+        else float(v)
+    )
     return (f1, -float(rec.get("anomaly_score", 0.0)))
 
 

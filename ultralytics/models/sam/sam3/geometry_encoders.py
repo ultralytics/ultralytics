@@ -4,7 +4,6 @@
 
 import torch
 import torch.nn as nn
-import torchvision
 
 from ultralytics.nn.modules.utils import _get_clones
 from ultralytics.utils.ops import xywh2xyxy
@@ -293,7 +292,10 @@ class SequenceGeometryEncoder(nn.Module):
             boxes_xyxy = boxes_xyxy * scale
 
             # RoI align
-            sampled = torchvision.ops.roi_align(img_feats, boxes_xyxy.transpose(0, 1).unbind(0), self.roi_size)
+            # Scoped for import ultralytics speed: ROI align requires optional torchvision ops.
+            from torchvision.ops import roi_align
+
+            sampled = roi_align(img_feats, boxes_xyxy.transpose(0, 1).unbind(0), self.roi_size)
             assert list(sampled.shape) == [
                 bs * n_boxes,
                 self.d_model,

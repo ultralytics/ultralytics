@@ -1,4 +1,5 @@
 ---
+title: Project Management
 comments: true
 description: Learn how to organize and manage projects in Ultralytics Platform for efficient model development.
 keywords: Ultralytics Platform, projects, model management, experiment tracking, YOLO
@@ -10,19 +11,19 @@ keywords: Ultralytics Platform, projects, model management, experiment tracking,
 
 ```mermaid
 graph TB
-    P[Project] --> M1[Model 1]
-    P --> M2[Model 2]
-    P --> M3[Model 3]
-    M1 --> C[Charts Dashboard]
+    P[Project]:::start --> M1[Model 1]:::proc
+    P --> M2[Model 2]:::proc
+    P --> M3[Model 3]:::proc
+    M1 --> C[Charts Dashboard]:::out
     M2 --> C
     M3 --> C
-    M1 --> T[Comparison Table]
+    M1 --> T[Comparison Table]:::out
     M2 --> T
     M3 --> T
 
-    style P fill:#4CAF50,color:#fff
-    style C fill:#2196F3,color:#fff
-    style T fill:#FF9800,color:#fff
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 ## Create Project

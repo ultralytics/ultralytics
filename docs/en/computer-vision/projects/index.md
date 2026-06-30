@@ -1,7 +1,7 @@
 ---
 comments: true
-title: Computer Vision Projects — Beginner to Advanced with YOLO
-description: A curated library of 25+ computer vision projects from beginner to advanced. Each project includes working Python code, difficulty rating, techniques used, and links to full Ultralytics implementation guides.
+title: Computer Vision Projects — 25+ Beginner to Advanced YOLO Projects
+description: 25+ computer vision projects with working Python code — object detection, pose estimation, segmentation, tracking and more. Beginner to advanced, no training required to start.
 keywords: computer vision projects, computer vision projects for beginners, YOLO projects, object detection projects, image segmentation projects, deep learning projects, computer vision examples, computer vision project ideas, best computer vision projects, OpenCV projects
 ---
 
@@ -157,6 +157,14 @@ Install Ultralytics to get started with any project on this page:
 ```bash
 pip install ultralytics
 ```
+
+!!! tip "What you'll need"
+
+    - **Python 3.8+** — all projects use the Ultralytics Python package
+    - **CPU is fine to start** — beginner projects run on CPU with no GPU required
+    - **GPU recommended for video** — a CUDA-capable GPU gives 30+ FPS on real-time inference
+    - **Webcam or video file** — most projects work with any video source including webcam, RTSP stream, or MP4
+    - **No training required** — all beginner and intermediate projects use pretrained YOLO26 weights out of the box
 
 ---
 
@@ -769,3 +777,29 @@ print(metrics.box.map)  # mAP50-95
 ??? question "How do I deploy a model to production?"
 
     See the [model deployment options guide](../../guides/model-deployment-options.md) for a comparison of TensorRT, ONNX, TFLite, CoreML, and other export formats. For scalable serving, see the [Triton Inference Server guide](../../guides/triton-inference-server.md). For embedded deployment, see [NVIDIA Jetson](../../guides/nvidia-jetson.md) and [Raspberry Pi](../../guides/raspberry-pi.md).
+
+---
+
+## What to Build Next
+
+Not sure where to go after your first project? Here are natural progressions:
+
+| You built this | Try this next |
+|---|---|
+| [Object Counting](#2-object-counting) | [Region & Zone Counting](#13-region--zone-counting) → [Heatmap Generation](#12-heatmap-generation) |
+| [Security Alarm System](#1-security-alarm-system) | [Distance Calculation](#14-distance-calculation) → [Analytics Dashboard](#16-analytics-dashboard) |
+| [Workout Counter](#8-workout--rep-counter) | [Pose Estimation & Ergonomics](#18-pose-estimation--ergonomics) → [Fine-Tune on Custom Dataset](#25-fine-tune-on-custom-dataset) |
+| [Parking Management](#9-parking-management-system) | [Speed Estimation](#11-speed-estimation) → [Vision Eye](#17-vision-eye--perspective-mapping) |
+| [Image Classification](#5-image-classification) | [Object Detection](#1-security-alarm-system) → [Fine-Tune on Custom Dataset](#25-fine-tune-on-custom-dataset) |
+| [Tiled Inference](#20-tiled-inference-for-large-images) | [Rotated Object Detection](#19-rotated-object-detection-obb) → [Defect Detection](#23-defect--anomaly-detection) |
+
+---
+
+## Community & Support
+
+Stuck on a project or want to share what you built?
+
+- **[GitHub Discussions](https://github.com/ultralytics/ultralytics/discussions)** — ask questions, share projects, get help from the community
+- **[Discord](https://discord.com/invite/ultralytics)** — real-time help from the Ultralytics team and community
+- **[Community Forum](https://community.ultralytics.com/)** — longer-form discussion, project showcases, and feedback
+- **[GitHub Issues](https://github.com/ultralytics/ultralytics/issues)** — report bugs or request features in the Ultralytics codebase

@@ -41,14 +41,6 @@ from ultralytics.utils import (
 from ultralytics.utils.downloads import download, safe_download
 from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13
 
-# ReID is an embeddings-only task (no detection boxes/masks, query-gallery val protocol) with dedicated
-# coverage in test_reid.py and test_reid_family_smoke.py. Exclude it from the generic predict/track/val/results
-# matrices below so the suite does not download -reid checkpoints (or the Market-1501 dataset) to run
-# detection-shaped assertions against them.
-DET_MODELS = [m for m in MODELS if "-reid" not in m]
-DET_TASK_MODEL_DATA = [t for t in TASK_MODEL_DATA if t[0] != "reid"]
-
-
 def skip_rpi_semantic():
     """Skip semantic segmentation tests on Raspberry Pi due to memory constraints."""
     if IS_RASPBERRYPI:
@@ -123,7 +115,7 @@ def test_predict_csv_single_row(tmp_path):
     assert len(results) == 7, f"Expected 7 results from single-row CSV, got {len(results)}"
 
 
-@pytest.mark.parametrize("model_name", DET_MODELS)
+@pytest.mark.parametrize("model_name", MODELS)
 def test_predict_img(model_name):
     """Test YOLO model predictions on various image input types and sources, including online images."""
     if IS_RASPBERRYPI and model_name == "yolo26n-sem.pt":
@@ -148,7 +140,7 @@ def test_predict_img(model_name):
     assert len(model(batch, imgsz=32, classes=0)) == len(batch)  # multiple sources in a batch
 
 
-@pytest.mark.parametrize("model", DET_MODELS)
+@pytest.mark.parametrize("model", MODELS)
 def test_predict_visualize(model):
     """Test model prediction methods with 'visualize=True' to generate prediction visualizations."""
     if IS_RASPBERRYPI and model == "yolo26n-sem.pt":
@@ -219,13 +211,13 @@ def test_youtube():
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
-@pytest.mark.parametrize("model", DET_MODELS)
+@pytest.mark.parametrize("model", MODELS)
 def test_track_stream(model, tmp_path):
     """Test streaming tracking on a short video with all built-in trackers and various GMC/ReID configurations.
 
     Note imgsz=160 required for tracking for higher confidence and better matches.
     """
-    if model in {"yolo26n-cls.pt", "yolo26n-sem.pt"}:  # tasks without detection boxes
+    if model in {"yolo26n-cls.pt", "yolo26n-sem.pt", "yolo26n-reid.pt"}:  # tasks without detection boxes
         return
     from ultralytics.trackers.track import TRACKER_MAP
 
@@ -252,7 +244,7 @@ def test_track_stream(model, tmp_path):
         model.track(video_url, imgsz=160, tracker=custom_yaml)
 
 
-@pytest.mark.parametrize("task,weight,data", DET_TASK_MODEL_DATA)
+@pytest.mark.parametrize("task,weight,data", TASK_MODEL_DATA)
 def test_val(task: str, weight: str, data: str) -> None:
     """Test the validation mode of the YOLO model."""
     if IS_RASPBERRYPI and task == "semantic":
@@ -263,10 +255,11 @@ def test_val(task: str, weight: str, data: str) -> None:
         metrics.to_df()
         metrics.to_csv()
         metrics.to_json()
-        # Tests for confusion matrix export
-        metrics.confusion_matrix.to_df()
-        metrics.confusion_matrix.to_csv()
-        metrics.confusion_matrix.to_json()
+        if task != "reid":  # ReID uses a query-gallery retrieval protocol and reports no confusion matrix
+            # Tests for confusion matrix export
+            metrics.confusion_matrix.to_df()
+            metrics.confusion_matrix.to_csv()
+            metrics.confusion_matrix.to_json()
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
@@ -365,7 +358,7 @@ def test_predict_callback_and_setup():
         print(boxes)
 
 
-@pytest.mark.parametrize("model", DET_MODELS)
+@pytest.mark.parametrize("model", MODELS)
 def test_results(model: str, tmp_path):
     """Test YOLO model results processing and output in various formats."""
     if IS_RASPBERRYPI and model == "yolo26n-sem.pt":
@@ -975,7 +968,7 @@ def test_multichannel():
     model.export(format="onnx")
 
 
-@pytest.mark.parametrize("task,model,data", DET_TASK_MODEL_DATA)
+@pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
 def test_grayscale(task: str, model: str, data: str, tmp_path) -> None:
     """Test YOLO model grayscale training, validation, and prediction functionality."""
     if IS_RASPBERRYPI and task == "semantic":

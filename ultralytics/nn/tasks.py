@@ -57,15 +57,12 @@ from ultralytics.nn.modules import (
     HGBlock,
     HGStem,
     HeatmapBiasFusion,
-    HeatmapSoftFusion,
-    HeatmapFiLMFusion,
     MaskPriorAugmenter,
     ImagePoolingAttn,
     Index,
     LRPCHead,
     Pose,
     Pose26,
-    QueryFiLMFusion,
     RepC3,
     RepConv,
     RepNCSPELAN4,
@@ -80,7 +77,6 @@ from ultralytics.nn.modules import (
     YOLOEDetect,
     YOLOESegment,
     YOLOESegment26,
-    query_film_loss,
     v10Detect,
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, WINDOWS, YAML, colorstr, emojis

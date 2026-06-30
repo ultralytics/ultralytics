@@ -54,7 +54,7 @@ class TaskAlignedAssigner(nn.Module):
         self.topk2 = topk2 or topk
         self.o2f = False
         self.o2f_t = 0.6
-        self.o2f_degree = None
+        self.o2f_cls_score = None
         self.o2f_cls_weight = None
         self.full_pos = False  # score every 1:1-matched anchor by its own CIoU (o24 aux head)
         self.num_classes = num_classes
@@ -87,7 +87,7 @@ class TaskAlignedAssigner(nn.Module):
             https://github.com/Nioolek/PPYOLOE_pytorch/blob/master/ppyoloe/assigner/tal_assigner.py
         """
         self.bs = pd_scores.shape[0]
-        self.o2f_degree = self.o2f_cls_weight = None
+        self.o2f_cls_score = self.o2f_cls_weight = None
         self.n_max_boxes = gt_bboxes.shape[1]
         device = gt_bboxes.device
 
@@ -108,8 +108,8 @@ class TaskAlignedAssigner(nn.Module):
                 LOGGER.warning("CUDA OutOfMemoryError in TaskAlignedAssigner, using CPU")
                 cpu_tensors = [t.cpu() for t in (pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt)]
                 result = self._forward(*cpu_tensors)
-                if self.o2f_degree is not None:
-                    self.o2f_degree = self.o2f_degree.to(device)
+                if self.o2f_cls_score is not None:
+                    self.o2f_cls_score = self.o2f_cls_score.to(device)
                     self.o2f_cls_weight = self.o2f_cls_weight.to(device)
                 return tuple(t.to(device) for t in result)
             raise
@@ -152,10 +152,12 @@ class TaskAlignedAssigner(nn.Module):
             pos_overlaps = (overlaps * mask_pos).amax(dim=-1, keepdim=True)  # b, max_num_obj
             norm_align_metric = (align_metric * pos_overlaps / (pos_align_metrics + self.eps)).amax(-2).unsqueeze(-1)
         target_scores = target_scores * norm_align_metric
-        # O2F modulates only the classification target (applied in the loss); box/dfl keep the full target_scores
-        self.o2f_degree = self.o2f_cls_weight = None
+        # O2F overrides only the ambiguous-anchor cls target (applied in the loss); box/dfl keep the full target_scores
+        self.o2f_cls_score = self.o2f_cls_weight = None
         if self.o2f and self.topk > 1:
-            self.o2f_degree, self.o2f_cls_weight = self.get_o2f_degrees(overlaps, mask_pos, align_metric)
+            self.o2f_cls_score, self.o2f_cls_weight = self.get_o2f_cls_targets(
+                overlaps, mask_pos, align_metric, norm_align_metric
+            )
 
         return target_labels, target_bboxes, target_scores, fg_mask.bool(), target_gt_idx
 
@@ -218,22 +220,24 @@ class TaskAlignedAssigner(nn.Module):
         align_metric = bbox_scores.pow(self.alpha) * overlaps.pow(self.beta)
         return align_metric, overlaps
 
-    def get_o2f_degrees(self, overlaps, mask_pos, align_metric):
-        """Return O2F positive degrees and cls weights, keeping each GT best anchor fully positive."""
+    def get_o2f_cls_targets(self, overlaps, mask_pos, align_metric, norm_align_metric):
+        """Return per-anchor O2F cls soft targets and cls weights, keeping each GT best anchor fully positive."""
         mask_pos = mask_pos.bool()
         best_idx = (align_metric * mask_pos).argmax(-1, keepdim=True)
         best_mask = torch.zeros_like(mask_pos, dtype=torch.bool).scatter_(-1, best_idx, True) & mask_pos
         amb_mask = mask_pos & ~best_mask
-        # Grade ambiguous anchors by their CIoU (the metric behind the best anchor's soft label), normalized within
-        # the ambiguous set so the strongest one reaches o2f_t. self.eps guards 0 / 0 when every ambiguous CIoU is 0
-        # (CIoU is float32, so unlike the fp16 class scores self.eps does not underflow under AMP).
-        amb_ciou = overlaps * amb_mask
-        amb_degree = amb_ciou / (amb_ciou.amax(-1, keepdim=True) + self.eps) * self.o2f_t
-        degrees = torch.where(
-            best_mask, torch.ones_like(overlaps), torch.where(amb_mask, amb_degree, torch.zeros_like(overlaps))
-        )
+        # Ambiguous anchors get the standard TAL soft label (align-normalized, IoU-scaled, same form as the
+        # norm_align_metric above) but computed within the ambiguous subset and down-weighted by o2f_t. The strongest
+        # ambiguous reaches (amb-subset max IoU) * o2f_t <= the best anchor's target, so it never exceeds best in any
+        # regime (eps included), since the amb subset's max align/IoU are <= the full set's used for the best anchor.
+        amb_align = align_metric * amb_mask
+        pos_align_amb = amb_align.amax(-1, keepdim=True)  # b, max_obj, 1 — best align within the ambiguous set
+        pos_overlaps_amb = (overlaps * amb_mask).amax(-1, keepdim=True)  # b, max_obj, 1 — max IoU within ambiguous set
+        amb_score = amb_align * pos_overlaps_amb / (pos_align_amb + self.eps) * self.o2f_t
+        norm = norm_align_metric.squeeze(-1).unsqueeze(1)  # (b, 1, h*w) best-anchor soft label
+        cls_score = torch.where(best_mask, norm, torch.where(amb_mask, amb_score, torch.zeros_like(overlaps)))
         cls_weights = torch.where(amb_mask, overlaps.new_full(overlaps.shape, 0.4), torch.ones_like(overlaps))
-        return degrees.amax(-2).unsqueeze(-1), cls_weights.amin(-2).unsqueeze(-1)
+        return cls_score.amax(-2).unsqueeze(-1), cls_weights.amin(-2).unsqueeze(-1)
 
     def iou_calculation(self, gt_bboxes, pd_bboxes):
         """Calculate IoU for horizontal bounding boxes.

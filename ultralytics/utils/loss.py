@@ -468,10 +468,10 @@ class v8DetectionLoss:
 
         target_scores_sum = max(target_scores.sum(), 1)
 
-        # O2F: classification uses degree-scaled soft targets; box/dfl below keep the full target_scores
+        # O2F: ambiguous anchors use their CIoU-graded soft target for cls only; box/dfl below keep target_scores
         cls_target, cls_target_sum = target_scores, target_scores_sum
-        if self.assigner.o2f_degree is not None:
-            cls_target = target_scores * self.assigner.o2f_degree
+        if self.assigner.o2f_cls_score is not None:
+            cls_target = (target_scores > 0) * self.assigner.o2f_cls_score  # place per-anchor score in the GT slot
             cls_target_sum = max(cls_target.sum(), 1)
 
         # Cls loss (Varifocal or BCE) with optional class weighting

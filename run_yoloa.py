@@ -94,18 +94,6 @@ def main():
     ap.add_argument("--mvtec-root", default=None, help="MVTec-YOLO root (default: auto-resolve)")
     ap.add_argument("--out", default=None, help="output root (default: runs/temp/yoloa/<model_id>/<fit_id>)")
     ap.add_argument(
-        "--refiner",
-        default="runs/temp/heatmap_refiner_out_v2_640_oodaug2x_dimgamma/best.pt",
-        help="path to a trained HeatmapRefiner (.pt); cleans the deploy heatmap prior",
-    )
-    ap.add_argument(
-        "--refine-blend",
-        type=float,
-        default=0.0,
-        help="0 = no refine (raw heatmap), 1 = fully refined (raw*sigmoid(R)), "
-        "in between = (1-b)*raw + b*refined. Requires --refiner.",
-    )
-    ap.add_argument(
         "--hm-gate-blend",
         type=float,
         default=0.0,
@@ -149,11 +137,6 @@ def main():
         cats = [args.cat]
 
     model = YOLOA(args.ckpt)
-
-    if args.refine_blend > 0.0:
-        assert args.refiner, "--refine-blend > 0 requires --refiner <weights.pt>"
-        model.model.set_heatmap_refiner(args.refiner, blend=args.refine_blend)
-        print(f"  heatmap refiner: {args.refiner} (blend={args.refine_blend})", flush=True)
 
     # Per-anchor heatmap confidence gate: p_anom *= blend + (1-blend)*heatmap_at_anchor.
     # blend=1 is off (identity); blend<1 suppresses low-heatmap grid cells.

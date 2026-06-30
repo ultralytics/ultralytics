@@ -974,7 +974,7 @@ def test_grayscale(task: str, model: str, data: str, tmp_path) -> None:
     """Test YOLO model grayscale training, validation, and prediction functionality."""
     if IS_RASPBERRYPI and task == "semantic":
         skip_rpi_semantic()
-    if task == "classify":  # not support grayscale classification yet
+    if task in {"classify", "reid"}:  # ImageFolder-style datasets load 3-channel images; grayscale not supported
         return
     grayscale_data = tmp_path / f"{Path(data).stem}-grayscale.yaml"
     data = check_det_dataset(data)

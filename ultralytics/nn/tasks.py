@@ -551,16 +551,6 @@ class YOLOAnomalyV2Model(DetectionModel):
     Spec: docs_yoloa_v2/specs/2026-06-02-softhint-fusion-design.md.
     """
 
-    def init_criterion(self):
-        """Initialize the loss criterion.
-
-        Returns ``AnomalyMCLoss`` when the head is an ``AnomalyMCDetect``,
-        otherwise the standard detection criterion.
-        """
-        if isinstance(self.model[-1], AnomalyMCDetect):
-            return E2ELoss(self, AnomalyMCLoss) if getattr(self, "end2end", False) else AnomalyMCLoss(self)
-        return E2ELoss(self) if getattr(self, "end2end", False) else v8DetectionLoss(self)
-
     def __init__(
         self,
         cfg="yolo26-anomaly-v2.yaml",
@@ -581,12 +571,6 @@ class YOLOAnomalyV2Model(DetectionModel):
         _sf = v2_cfg.get("sigma_factor", 0.25) if sigma_factor is None else sigma_factor
         sigma_factor = [float(_sf[0]), float(_sf[1])] if isinstance(_sf, (list, tuple)) else float(_sf)
         p_drop = float(v2_cfg.get("p_drop", 0.5) if p_drop is None else p_drop)
-        # Mask-prior augmentation knobs. Most are consumed directly by MaskPriorAugmenter from
-        # v2_cfg; only the ones tasks.py needs for prior-resolution guards are parsed here.
-        mask_jitter = float(v2_cfg.get("mask_jitter", 0.0))
-        mask_box_drop_p = float(v2_cfg.get("mask_box_drop_p", 0.0))
-        mask_fragment_p = float(v2_cfg.get("mask_fragment_p", 0.0))
-        mask_fragment_n = int(v2_cfg.get("mask_fragment_n", 4))
         # Polygon-mask prior: when True, the fusion prior is built from the v6 polygon
         # union (batch["masks"]) instead of the coarse bbox-gauss render.
         self.seg_target_polygon = bool(v2_cfg.get("seg_target_polygon", False))
@@ -635,9 +619,7 @@ class YOLOAnomalyV2Model(DetectionModel):
         if isinstance(detect, AnomalyMCDetect):
             detect.type_tau = type_tau
         if not isinstance(detect, Detect):
-            raise TypeError(
-                f"YOLOAnomalyV2Model expects last layer to be Detect, got {type(detect).__name__}"
-            )
+            raise TypeError(f"YOLOAnomalyV2Model expects last layer to be Detect, got {type(detect).__name__}")
 
         # Resolve PAN output channel count per scale from Detect.cv2 (first Conv's in_channels).
         # cv2[i] is a Sequential whose first sub-module is a Conv on the PAN scale's tensor.
@@ -714,12 +696,6 @@ class YOLOAnomalyV2Model(DetectionModel):
         self._qf_capture = False  # diagnostics: force aux capture in eval (scripts/queryfilm_diag.py)
 
         self.p_drop = float(p_drop)
-        # Prior-resolution guards (tasks.py needs these directly); all other mask_* knobs live in
-        # MaskPriorAugmenter and are read from the raw v2_cfg there.
-        self.mask_jitter = float(mask_jitter)
-        self.mask_box_drop_p = float(mask_box_drop_p)
-        self.mask_fragment_p = float(mask_fragment_p)
-        self.mask_fragment_n = int(mask_fragment_n)
         self.mask_augmenter = MaskPriorAugmenter(v2_cfg)
         self.spatial_softmax = bool(v2_cfg.get("spatial_softmax", False))
         self.softmax_temperature = float(v2_cfg.get("softmax_temperature", 1.0))
@@ -781,6 +757,16 @@ class YOLOAnomalyV2Model(DetectionModel):
         self._feat_disc_fuse: str = "mean"  # how the "both" heatmap producer combines bank + scorer
         self._feat_disc_weight: float = 0.5  # scorer weight when fuse="linear"
         self._heatmap_producer: str = "bank"  # bank | learned | both (for prior_mode "heatmap")
+
+    def init_criterion(self):
+        """Initialize the loss criterion.
+
+        Returns ``AnomalyMCLoss`` when the head is an ``AnomalyMCDetect``,
+        otherwise the standard detection criterion.
+        """
+        if isinstance(self.model[-1], AnomalyMCDetect):
+            return E2ELoss(self, AnomalyMCLoss) if getattr(self, "end2end", False) else AnomalyMCLoss(self)
+        return E2ELoss(self) if getattr(self, "end2end", False) else v8DetectionLoss(self)
 
     # ------------------------------------------------------------------
     # Mask input API
@@ -1100,7 +1086,7 @@ class YOLOAnomalyV2Model(DetectionModel):
         self._bb_feats = {}
         if getattr(self, "_bb_layers", None) is not None:
             self._install_backbone_taps(self._bb_layers)
-        # Backward compat: old checkpoints may lack v2.3 attributes
+        # Backward compat: old checkpoints may lack v2.3+ attributes
         for attr, default in [
             ("memory_bank", None),
             ("_prior_mode", None),
@@ -1114,8 +1100,6 @@ class YOLOAnomalyV2Model(DetectionModel):
             ("fusion_mode", "bias"),
             ("heatmap_film_fusion", None),
             ("heatmap_norm", "none"),
-            ("mask_mag_range", (1.0, 1.0)),
-            ("mask_blur_sigma_max", 0.0),
             ("heatmap_edge_weight", False),
             ("heatmap_edge_p", 4.0),
             ("heatmap_edge_m", 4.4),
@@ -1123,20 +1107,12 @@ class YOLOAnomalyV2Model(DetectionModel):
             ("_edge_weight_cache", None),
             ("fit_args", None),
             ("fit_data", None),
-            # MB-style mask augmentations (v2.4)
-            ("mask_fragment_p", 0.0),
-            ("mask_fragment_n", 4),
-            ("mask_bg_blobs_p", 0.0),
-            ("mask_bg_blobs_n", 8),
-            ("mask_bg_blobs_amp", (0.05, 0.15)),
-            ("mask_bg_blobs_sigma", (0.03, 0.08)),
-            ("mask_coherent_noise_p", 0.0),
-            ("mask_coherent_noise_amp", (0.02, 0.06)),
-            ("mask_coherent_noise_sigma", (0.05, 0.15)),
-            ("mask_floor", (0.0, 0.0)),
         ]:
             if not hasattr(self, attr):
                 setattr(self, attr, default)
+        # Old checkpoints may not contain the standalone augmenter module.
+        if not hasattr(self, "mask_augmenter"):
+            self.mask_augmenter = MaskPriorAugmenter({})
 
     def _resize_to_mask(self, x, mask_size):
         """Bilinearly resize a (B, 1, H, W) prior to (B, 1, mask_size, mask_size) when needed."""
@@ -1148,11 +1124,10 @@ class YOLOAnomalyV2Model(DetectionModel):
         """Prior rendered from GT bboxes (bbox->gauss), train-augmented when ``augment``, or None."""
         if bboxes is None:
             return None
-        bb, bi = self._augment_prior_bboxes(bboxes, batch_idx)  # train-only drop + jitter (no-op in eval)
-        if augment and self.mask_fragment_p > 0.0 and torch.rand(1).item() < self.mask_fragment_p:
-            bb, bi = self._fragment_prior_bboxes(bb, bi)
+        bb, bi = self.mask_augmenter.augment_prior_bboxes(bboxes, batch_idx, self.training)
+        bb, bi = self.mask_augmenter.fragment_prior_bboxes(bb, bi, training=augment)
         prior = self.mask_renderer(bb, bi, batch_size)
-        return self._augment_mask(prior) if augment else prior
+        return self.mask_augmenter.augment_mask(prior) if augment else prior
 
     def _mask_union_prior(self, masks, batch_idx, batch_size):
         """Convert ``batch["masks"]`` to a ``(B, 1, mask_size, mask_size)`` binary union prior.
@@ -1161,13 +1136,9 @@ class YOLOAnomalyV2Model(DetectionModel):
           - ``overlap_mask=True``: ``(B, H/4, W/4)`` instance-index map (0=background)
           - ``overlap_mask=False``: ``(N, H/4, W/4)`` per-instance binary masks
 
-        Training-only augmentations (polygon equivalents of bbox-level augs):
-          - ``mask_box_drop_p``: randomly drop individual instances from the union
-          - ``mask_jitter``: random per-sample translation (mis-localized prior)
+        Polygon-equivalent augmentations are delegated to ``self.mask_augmenter``.
         """
-        # Instance-level drop (polygon equiv of box_drop): zero out random instance IDs.
-        if self.training and self.mask_box_drop_p > 0.0 and masks.dim() == 3 and masks.shape[0] == batch_size:
-            masks = self._drop_polygon_instances(masks)
+        masks = self.mask_augmenter.drop_polygon_instances(masks, training=self.training, batch_size=batch_size)
 
         if masks.dim() == 3 and masks.shape[0] == batch_size:
             # overlap_mask=True: (B, H/r, W/r) instance-index map → binary union
@@ -1175,8 +1146,9 @@ class YOLOAnomalyV2Model(DetectionModel):
         else:
             # overlap_mask=False: (N, H/r, W/r) per-instance → union per image.
             # Instance drop: randomly zero individual mask rows.
-            if self.training and self.mask_box_drop_p > 0.0 and masks.numel() > 0:
-                keep = torch.rand(masks.shape[0], device=masks.device) > self.mask_box_drop_p
+            box_drop_p = self.mask_augmenter.mask_box_drop_p
+            if self.training and box_drop_p > 0.0 and masks.numel() > 0:
+                keep = torch.rand(masks.shape[0], device=masks.device) > box_drop_p
                 masks = masks[keep]
                 batch_idx = batch_idx[keep]
             prior = masks.new_zeros(batch_size, 1, masks.shape[-2], masks.shape[-1])
@@ -1189,27 +1161,10 @@ class YOLOAnomalyV2Model(DetectionModel):
         if prior.shape[2] != self.mask_size or prior.shape[3] != self.mask_size:
             prior = torch.nn.functional.interpolate(prior, size=(self.mask_size, self.mask_size), mode="nearest")
 
-        # Spatial translation (polygon equiv of bbox center jitter): random per-sample offset.
-        if self.training and self.mask_jitter > 0.0:
-            prior = self._translate_prior(prior)
-
-        # Mask-level fragment (polygon equiv of _fragment_prior_bboxes).
-        if self.training and self.mask_fragment_p > 0.0 and torch.rand(1).item() < self.mask_fragment_p:
-            prior = self._fragment_mask(prior)
+        prior = self.mask_augmenter.translate_prior(prior, training=self.training)
+        prior = self.mask_augmenter.fragment_mask(prior, training=self.training)
 
         return prior
-
-    def _fragment_mask(self, mask):
-        """Delegate to ``MaskPriorAugmenter.fragment_mask`` (polygon-prior fragmentation)."""
-        return self.mask_augmenter.fragment_mask(mask)
-
-    def _drop_polygon_instances(self, masks):
-        """Delegate to ``MaskPriorAugmenter.drop_polygon_instances`` (polygon instance drop)."""
-        return self.mask_augmenter.drop_polygon_instances(masks)
-
-    def _translate_prior(self, prior):
-        """Delegate to ``MaskPriorAugmenter.translate_prior`` (polygon-prior jitter)."""
-        return self.mask_augmenter.translate_prior(prior)
 
     def _resolve_prior(
         self,
@@ -1227,7 +1182,7 @@ class YOLOAnomalyV2Model(DetectionModel):
 
         The prior is always a mask-format hint fused into the PAN features; ``None`` means
         passthrough (no fusion -> head_a). ``augment=True`` (training only) applies
-        ``_augment_mask`` so the model learns to tolerate an imperfect deploy heatmap.
+        ``mask_augmenter.augment_mask`` so the model learns to tolerate an imperfect deploy heatmap.
 
         Sources:
             none     -> None (explicit passthrough)
@@ -1247,7 +1202,7 @@ class YOLOAnomalyV2Model(DetectionModel):
                 return external_mask.to(device=device, dtype=torch.float32)
             if batch_masks is not None and batch_masks.numel() > 0:
                 prior = self._mask_union_prior(batch_masks, batch_idx, batch_size).to(device=device)
-                return self._augment_mask(prior) if augment else prior
+                return self.mask_augmenter.augment_mask(prior) if augment else prior
             return None
         if source == "heatmap":
             return self._prior_from_heatmap(
@@ -1342,18 +1297,6 @@ class YOLOAnomalyV2Model(DetectionModel):
             )
             return "mask" if use_polygon else "box"
         return "none"
-
-    def _fragment_prior_bboxes(self, bboxes, batch_idx):
-        """Delegate to ``MaskPriorAugmenter.fragment_prior_bboxes`` (bbox-level fragmentation)."""
-        return self.mask_augmenter.fragment_prior_bboxes(bboxes, batch_idx)
-
-    def _augment_mask(self, mask):
-        """Delegate to ``MaskPriorAugmenter.augment_mask`` (stacked mask corruption pipeline)."""
-        return self.mask_augmenter.augment_mask(mask)
-
-    def _augment_prior_bboxes(self, bboxes, batch_idx):
-        """Delegate to ``MaskPriorAugmenter.augment_prior_bboxes`` (bbox drop + jitter, train-only)."""
-        return self.mask_augmenter.augment_prior_bboxes(bboxes, batch_idx, self.training)
 
     def _apply_spatial_softmax(self, mask):
         """Normalize heatmap into a spatial probability distribution.

@@ -39,6 +39,45 @@ TFLite models offer a wide range of key features that enable on-device machine l
 
 - **High Performance**: Achieves superior performance through hardware acceleration and model optimization.
 
+## Measured Performance (historical)
+
+!!! note "Before/after reference for the format migration"
+
+    These TFLite numbers are kept as a **historical before/after record** for the onnx2tf-TFLite → LiteRT migration: the legacy onnx2tf **INT8 TFLite** export below versus the new **[LiteRT](litert.md) w8a32** export (see the [LiteRT Measured Performance table](litert.md#measured-performance)). They are shared with the Google LiteRT team to show where the new litert-torch format still regresses against the format it replaced — see [Format regressions](#format-regressions-vs-litert) below.
+
+End-to-end single-image inference for the official YOLO26n **legacy onnx2tf INT8 TFLite** assets (NHWC, input `images`) on a Xiaomi 17 (Qualcomm Snapdragon 8 Elite Gen 5, SM8850), run on LiteRT 2.x and measured through the [Ultralytics Flutter plugin](https://github.com/ultralytics/yolo-flutter-app). Each cell shows the **total time** (preprocessing + inference + postprocessing) with the per-stage split beneath it.
+
+| Model        | Task     | size<br><sup>(pixels)</sup> | CPU<br><sup>INT8 TFLite<br>(ms)</sup> | GPU Adreno<br><sup>INT8 TFLite<br>(ms)</sup> |
+| ------------ | -------- | --------------------------- | ------------------------------------- | -------------------------------------------- |
+| YOLO26n      | Detect   | 640                         | 53.3<br><sup>3.6 / 47.4 / 2.4</sup>   | **17.2**<br><sup>3.6 / 9.1 / 4.5</sup>       |
+| YOLO26n-seg  | Segment  | 640                         | 76.0<br><sup>3.6 / 64.7 / 7.7</sup>   | **23.9**<br><sup>3.6 / 11.8 / 8.6</sup>      |
+| YOLO26n-sem  | Semantic | 1024                        | 66.6<br><sup>3.6 / 46.3 / 16.8</sup>  | **37.7**<br><sup>3.6 / 17.4 / 16.7</sup>     |
+| YOLO26n-cls  | Classify | 224                         | 5.2<br><sup>0.8 / 4.0 / 0.5</sup>     | **4.5**<br><sup>1.6 / 2.2 / 0.7</sup>        |
+| YOLO26n-pose | Pose     | 640                         | 57.7<br><sup>3.5 / 52.4 / 1.8</sup>   | **15.2**<br><sup>3.6 / 9.7 / 1.9</sup>       |
+| YOLO26n-obb  | OBB      | 1024                        | 50.3<br><sup>3.6 / 45.4 / 1.3</sup>   | **13.9**<br><sup>3.8 / 8.2 / 1.8</sup>       |
+
+### Format regressions vs LiteRT
+
+Same-device YOLO26n detect on the Adreno GPU — legacy onnx2tf INT8 TFLite versus the four LiteRT quantization formats, all measured in one sustained run (so **inference** is the comparable, format-dependent metric):
+
+| Android format                    | GPU inference (ms) | GPU-compiles |
+| --------------------------------- | ------------------ | ------------ |
+| onnx2tf INT8 (legacy TFLite)      | **8.6**            | yes          |
+| LiteRT w8a32 (new official)       | 8.4                | yes          |
+| LiteRT INT8 (`quantize=8`)        | 11.0               | yes          |
+| LiteRT FP32                       | 8.8                | yes          |
+| LiteRT w8a16 (`quantize="w8a16"`) | (CPU fallback)     | no — fails   |
+
+Issues for the Google LiteRT / litert-torch team, surfaced migrating production Android assets from onnx2tf TFLite to LiteRT:
+
+1. **NCHW layout adds a per-frame transpose.** litert-torch traces the PyTorch model and emits **NCHW** `[1,3,H,W]` with a float input, whereas the onnx2tf TFLite export was **NHWC** `[1,H,W,3]` — matching the camera/bitmap layout. The new format forces a host-side HWC→CHW transpose every frame that the old format did not need.
+2. **`quantize="w8a16"` does not compile on the GPU (OpenCL) delegate** and silently falls back to a CPU path that is ~40× slower (~660 ms vs ~17 ms), making the int16-activation format unusable for GPU deployment.
+3. **Static INT8 (`quantize=8`) is the slowest GPU format** — ~11 ms vs ~8.6 ms for the equivalent legacy onnx2tf INT8 model, i.e. LiteRT's own INT8 path regresses against the format it replaced. Dynamic-range **w8a32** is the only LiteRT format that matches the old INT8 speed, which is why it is now shipped.
+4. **Semantic models export as raw NCHW logits with no in-graph ArgMax option,** forcing a cache-unfriendly host-side argmax over `[1, C, H, W]` (each class plane is a full H×W apart). The onnx2tf, CoreML, and QNN paths can emit a compact class map instead.
+5. **Output tensors were renamed `output_0`, `output_1`, …** (vs onnx2tf `Identity`, `Identity_1`, …), which silently broke runtime output-shape lookup until the consumer added the new names.
+
+The corresponding **LiteRT w8a32** numbers (the format now shipped) are on the [LiteRT page](litert.md#measured-performance).
+
 ## Deployment Options in TFLite
 
 Before we look at the code for exporting YOLO26 models to the TFLite format, let's understand how TFLite models are normally used.

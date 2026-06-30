@@ -71,7 +71,7 @@ Projects that combine multiple techniques or require custom data. Good for devel
 |---|---|---|
 | **Pose Estimation** | Keypoint detection, skeleton graph | [Pose Estimation Task](../../tasks/pose.md) |
 | **Workout & Rep Counter** | Pose estimation, angle logic | [Workouts Monitoring Guide](../../guides/workouts-monitoring.md) |
-| **Ergonomics & Posture Monitoring** | Pose estimation, classification | [Pose Practical Guide](../../guides/pose-practical-guide.md) |
+| **Ergonomics & Posture Monitoring** | Pose estimation, classification | [Pose Estimation Task](../../tasks/pose.md) |
 
 ### Applied Systems
 
@@ -115,7 +115,7 @@ Production-grade implementations requiring custom datasets, fine-tuning, or spec
 |---|---|---|
 | **NVIDIA Jetson Deployment** | TensorRT, edge inference | [Jetson Guide](../../guides/nvidia-jetson.md) |
 | **Raspberry Pi Deployment** | ONNX/TFLite, embedded CV | [Raspberry Pi Guide](../../guides/raspberry-pi.md) |
-| **ROS 2 Robot Vision** | Detection, ROS integration | [ROS 2 Quickstart](../../guides/ros2-quickstart.md) |
+| **ROS 2 Robot Vision** | Detection, ROS integration | [Deploy on Jetson](../../guides/nvidia-jetson.md) |
 | **Triton Inference Server** | Scalable serving, batching | [Triton Guide](../../guides/triton-inference-server.md) |
 
 ### Training & Optimisation
@@ -126,7 +126,7 @@ Production-grade implementations requiring custom datasets, fine-tuning, or spec
 | **Hyperparameter Tuning** | Ray Tune, automated search | [Hyperparameter Tuning](../../guides/hyperparameter-tuning.md) |
 | **K-Fold Cross Validation** | Model evaluation, dataset splitting | [K-Fold Guide](../../guides/kfold-cross-validation.md) |
 | **Knowledge Distillation** | Lightweight models, teacher-student | [Knowledge Distillation Guide](../../guides/knowledge-distillation.md) |
-| **Multi-GPU Training** | Distributed training, DDP | [Multi-GPU Training Guide](../../guides/multi-gpu-training.md) |
+| **Multi-GPU Training** | Distributed training, DDP | [Train Mode](../../modes/train.md) |
 
 ---
 

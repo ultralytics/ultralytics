@@ -229,12 +229,14 @@ def xyxy2xywh(x):
     return y
 
 
-def xywh2xyxy(x):
+def xywh2xyxy(x, clamp_neg: bool = False):
     """Convert bounding box coordinates from (x, y, width, height) format to (x1, y1, x2, y2) format where (x1, y1) is
     the top-left corner and (x2, y2) is the bottom-right corner. Note: ops per 2 channels faster than per channel.
 
     Args:
         x (np.ndarray | torch.Tensor): Input bounding box coordinates in (x, y, width, height) format.
+        clamp_neg (bool, optional): If True, clamp negative width/height to 0 before converting, guarding against
+            DETR-style decoder outputs that may produce negative deltas during early training.
 
     Returns:
         (np.ndarray | torch.Tensor): Bounding box coordinates in (x1, y1, x2, y2) format.
@@ -242,7 +244,7 @@ def xywh2xyxy(x):
     assert x.shape[-1] == 4, f"input shape last dimension expected 4 but input shape is {x.shape}"
     y = empty_like(x)  # faster than clone/copy
     xy = x[..., :2]  # centers
-    wh = x[..., 2:] / 2  # half width-height
+    wh = (x[..., 2:].clip(min=0) if clamp_neg else x[..., 2:]) / 2  # half width-height
     y[..., :2] = xy - wh  # top left xy
     y[..., 2:] = xy + wh  # bottom right xy
     return y

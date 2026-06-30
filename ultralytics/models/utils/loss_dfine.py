@@ -17,8 +17,9 @@ import torch.nn.functional as F
 
 from ultralytics.nn.modules.dfine_utils import bbox2distance
 from ultralytics.utils.loss import FocalLoss, MALoss, VarifocalLoss
+from ultralytics.utils.ops import xywh2xyxy
 
-from .box_ops import aligned_box_iou, aligned_giou, box_cxcywh_to_xyxy
+from .box_ops import aligned_box_iou, aligned_giou
 from .ops import HungarianMatcher
 
 # HungarianMatcher kwargs supported by the clean-branch matcher. Other keys in the YAML matcher dict
@@ -383,7 +384,7 @@ class DfineLoss(nn.Module):
         cache_name = "fgl_targets_dn" if is_dn else "fgl_targets"
         target_cache = getattr(self, cache_name)
         if target_cache is None:
-            target_boxes_xyxy = box_cxcywh_to_xyxy(target_boxes)
+            target_boxes_xyxy = xywh2xyxy(target_boxes, clamp_neg=True)
             target_cache = bbox2distance(ref_points[idx].detach(), target_boxes_xyxy, self.reg_max, reg_scale, up)
             setattr(self, cache_name, target_cache)
         target_corners, weight_right, weight_left = target_cache

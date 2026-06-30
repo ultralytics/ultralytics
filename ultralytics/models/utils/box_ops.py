@@ -5,19 +5,7 @@
 import torch
 from torchvision.ops.boxes import box_area
 
-
-def box_cxcywh_to_xyxy(boxes: torch.Tensor) -> torch.Tensor:
-    """Convert boxes from (cx, cy, w, h) to (x1, y1, x2, y2) format, clamping w/h to >= 0."""
-    x_c, y_c, w, h = boxes.unbind(-1)
-    w = w.clamp(min=0.0)
-    h = h.clamp(min=0.0)
-    return torch.stack((x_c - 0.5 * w, y_c - 0.5 * h, x_c + 0.5 * w, y_c + 0.5 * h), dim=-1)
-
-
-def box_xyxy_to_cxcywh(boxes: torch.Tensor) -> torch.Tensor:
-    """Convert boxes from (x1, y1, x2, y2) to (cx, cy, w, h) format."""
-    x0, y0, x1, y1 = boxes.unbind(-1)
-    return torch.stack(((x0 + x1) / 2, (y0 + y1) / 2, (x1 - x0), (y1 - y0)), dim=-1)
+from ultralytics.utils.ops import xywh2xyxy
 
 
 def pairwise_box_iou(boxes1: torch.Tensor, boxes2: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
@@ -58,8 +46,8 @@ def _aligned_inter_union(
     boxes1 = _upcast_boxes(boxes1)
     boxes2 = _upcast_boxes(boxes2)
     if xywh:
-        boxes1 = box_cxcywh_to_xyxy(boxes1)
-        boxes2 = box_cxcywh_to_xyxy(boxes2)
+        boxes1 = xywh2xyxy(boxes1, clamp_neg=True)
+        boxes2 = xywh2xyxy(boxes2, clamp_neg=True)
 
     inter_lt = torch.max(boxes1[:, :2], boxes2[:, :2])
     inter_rb = torch.min(boxes1[:, 2:], boxes2[:, 2:])
@@ -80,8 +68,8 @@ def aligned_box_iou(
 def aligned_giou(boxes1: torch.Tensor, boxes2: torch.Tensor, xywh: bool = False) -> torch.Tensor:
     """Compute element-wise Generalized IoU for matched box pairs."""
     if xywh:
-        boxes1 = box_cxcywh_to_xyxy(boxes1)
-        boxes2 = box_cxcywh_to_xyxy(boxes2)
+        boxes1 = xywh2xyxy(boxes1, clamp_neg=True)
+        boxes2 = xywh2xyxy(boxes2, clamp_neg=True)
 
     inter_lt = torch.max(boxes1[:, :2], boxes2[:, :2])
     inter_rb = torch.min(boxes1[:, 2:], boxes2[:, 2:])

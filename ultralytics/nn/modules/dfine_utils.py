@@ -3,27 +3,18 @@ Copyright (c) 2024 The D-FINE Authors. All Rights Reserved.
 """
 
 import torch
-from torch import Tensor
 
-
-def box_xyxy_to_cxcywh(x: Tensor) -> Tensor:
-    x0, y0, x1, y1 = x.unbind(-1)
-    b = [(x0 + x1) / 2, (y0 + y1) / 2,
-         (x1 - x0), (y1 - y0)]
-    return torch.stack(b, dim=-1)
+from ultralytics.utils.ops import xyxy2xywh
 
 
 def weighting_function(reg_max, up, reg_scale, deploy=False):
-    """
-    Generates the non-uniform Weighting Function W(n) for bounding box regression.
+    """Generates the non-uniform Weighting Function W(n) for bounding box regression.
 
     Args:
         reg_max (int): Max number of the discrete bins.
-        up (Tensor): Controls upper bounds of the sequence,
-                     where maximum offset is ±up * H / W.
-        reg_scale (float): Controls the curvature of the Weighting Function.
-                           Larger values result in flatter weights near the central axis W(reg_max/2)=0
-                           and steeper weights at both ends.
+        up (Tensor): Controls upper bounds of the sequence, where maximum offset is ±up * H / W.
+        reg_scale (float): Controls the curvature of the Weighting Function. Larger values result in flatter weights
+            near the central axis W(reg_max/2)=0 and steeper weights at both ends.
         deploy (bool): If True, uses deployment mode settings.
 
     Returns:
@@ -48,13 +39,11 @@ def weighting_function(reg_max, up, reg_scale, deploy=False):
 
 
 def translate_gt(gt, reg_max, reg_scale, up):
-    """
-    Decodes bounding box ground truth (GT) values into distribution-based GT representations.
+    """Decodes bounding box ground truth (GT) values into distribution-based GT representations.
 
-    This function maps continuous GT values into discrete distribution bins, which can be used
-    for regression tasks in object detection models. It calculates the indices of the closest
-    bins to each GT value and assigns interpolation weights to these bins based on their proximity
-    to the GT value.
+    This function maps continuous GT values into discrete distribution bins, which can be used for regression tasks in
+    object detection models. It calculates the indices of the closest bins to each GT value and assigns interpolation
+    weights to these bins based on their proximity to the GT value.
 
     Args:
         gt (Tensor): Ground truth bounding box values, shape (N, ).
@@ -111,15 +100,13 @@ def translate_gt(gt, reg_max, reg_scale, up):
 
 
 def distance2bbox(points, distance, reg_scale):
-    """
-    Decodes edge-distances into bounding box coordinates.
+    """Decodes edge-distances into bounding box coordinates.
 
     Args:
-        points (Tensor): (B, N, 4) or (N, 4) format, representing [x, y, w, h],
-                         where (x, y) is the center and (w, h) are width and height.
-        distance (Tensor): (B, N, 4) or (N, 4), representing distances from the
-                           point to the left, top, right, and bottom boundaries.
-
+        points (Tensor): (B, N, 4) or (N, 4) format, representing [x, y, w, h], where (x, y) is the center and (w, h)
+            are width and height.
+        distance (Tensor): (B, N, 4) or (N, 4), representing distances from the point to the left, top, right, and
+            bottom boundaries.
         reg_scale (float): Controls the curvature of the Weighting Function.
 
     Returns:
@@ -133,12 +120,11 @@ def distance2bbox(points, distance, reg_scale):
 
     bboxes = torch.stack([x1, y1, x2, y2], -1)
 
-    return box_xyxy_to_cxcywh(bboxes)
+    return xyxy2xywh(bboxes)
 
 
 def bbox2distance(points, bbox, reg_max, reg_scale, up, eps=0.1):
-    """
-    Converts bounding box coordinates to distances from a reference point.
+    """Converts bounding box coordinates to distances from a reference point.
 
     Args:
         points (Tensor): (n, 4) [x, y, w, h], where (x, y) is the center.

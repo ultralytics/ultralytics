@@ -10,7 +10,7 @@ import torch.nn.functional as F
 
 from ultralytics.utils.metrics import bbox_iou
 from ultralytics.utils.ops import linear_sum_assignment, xywh2xyxy, xyxy2xywh
-from .box_ops import box_cxcywh_to_xyxy, pairwise_giou
+from .box_ops import pairwise_giou
 
 
 class HungarianMatcher(nn.Module):
@@ -130,8 +130,8 @@ class HungarianMatcher(nn.Module):
         cost_bbox = (pred_bboxes.unsqueeze(1) - gt_bboxes.unsqueeze(0)).abs().sum(-1)  # (bs*num_queries, num_gt)
 
         # Convert boxes to xyxy for IoU/GIoU computation
-        pred_xyxy = box_cxcywh_to_xyxy(pred_bboxes)
-        gt_xyxy = box_cxcywh_to_xyxy(gt_bboxes)
+        pred_xyxy = xywh2xyxy(pred_bboxes, clamp_neg=True)
+        gt_xyxy = xywh2xyxy(gt_bboxes, clamp_neg=True)
 
         # Compute GIoU cost between boxes, (bs*num_queries, num_gt)
         cost_giou = 1.0 - pairwise_giou(pred_xyxy, gt_xyxy)

@@ -754,7 +754,11 @@ class Model(torch.nn.Module):
 
         checks.check_pip_update_available()
 
-        if isinstance(kwargs.get("pretrained", None), (str, Path)):
+        # When applying pretrained onto a yaml-built model (no existing ckpt), defer the load to trainer.setup_model
+        # so cls_remap sees the target dataset's class names (self.data isn't parsed yet here, so model.names would
+        # still be default int placeholders and remap would no-op).
+        defer_pretrained = isinstance(kwargs.get("pretrained", None), (str, Path)) and not self.ckpt
+        if isinstance(kwargs.get("pretrained", None), (str, Path)) and not defer_pretrained:
             self.load(kwargs["pretrained"])  # load pretrained weights if provided
         overrides = YAML.load(checks.check_yaml(kwargs["cfg"])) if kwargs.get("cfg") else self.overrides
         custom = {
@@ -768,7 +772,7 @@ class Model(torch.nn.Module):
             args["resume"] = self.ckpt_path
 
         self.trainer = (trainer or self._smart_load("trainer"))(overrides=args, _callbacks=self.callbacks)
-        if not args.get("resume"):  # manually set model only if not resuming
+        if not args.get("resume") and not defer_pretrained:  # let setup_model load pretrained when deferred
             self.trainer.model = self.trainer.get_model(weights=self.model if self.ckpt else None, cfg=self.model.yaml)
             self.model = self.trainer.model
 

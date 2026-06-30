@@ -15,6 +15,7 @@ scales:
   # [depth, width, max_channels]
   s: [1.0, 0.50, 1024]
   l: [5.0, 0.75, 1024]
+  x: [5.0, 1.125, 1024] # matches yolo26-fastvit-cls.yaml x scale for cls->det backbone transfer
 
 # FastViT backbone: 4 stages @ strides 4/8/16/32 + det-specific SPPF + C2PSA
 backbone:

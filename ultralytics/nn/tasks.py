@@ -9,7 +9,6 @@ from pathlib import Path
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 from ultralytics.nn.autobackend import check_class_names
 from ultralytics.nn.modules import (
@@ -547,29 +546,18 @@ class YOLOAnomalyV2Model(DetectionModel):
     Spec: docs_yoloa_v2/specs/2026-06-02-softhint-fusion-design.md.
     """
 
-    def __init__(
-        self,
-        cfg="yolo26-anomaly-v2.yaml",
-        ch=3,
-        nc=None,
-        verbose=True,
-        mask_size: int | None = None,
-        mask_mode: str | None = None,
-        sigma_factor: float | list | None = None,
-        p_drop: float | None = None,
-    ):
+    def __init__(self, cfg="yolo26-anomaly-v2.yaml", ch=3, nc=None, verbose=True):
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
         # Read v2-specific config from YAML. Constructor kwargs override.
         v2_cfg = self.yaml.get("anomaly_v2", {}) if isinstance(self.yaml, dict) else {}
-        mask_size = int(v2_cfg.get("mask_size", 80) if mask_size is None else mask_size)
-        mask_mode = str(v2_cfg.get("mask_mode", "rect") if mask_mode is None else mask_mode)
-        _sf = v2_cfg.get("sigma_factor", 0.25) if sigma_factor is None else sigma_factor
+        mask_size = int(v2_cfg.get("mask_size", 80))
+        mask_mode = str(v2_cfg.get("mask_mode", "rect"))
+        _sf = v2_cfg.get("sigma_factor", 0.25)
         sigma_factor = [float(_sf[0]), float(_sf[1])] if isinstance(_sf, (list, tuple)) else float(_sf)
-        p_drop = float(v2_cfg.get("p_drop", 0.5) if p_drop is None else p_drop)
-        # Polygon-mask prior: when True, the fusion prior is built from the v6 polygon
-        # union (batch["masks"]) instead of the coarse bbox-gauss render.
-        self.seg_target_polygon = bool(v2_cfg.get("seg_target_polygon", False))
+        self.p_drop = float(v2_cfg.get("p_drop", 0.5))
+        # Polygon-mask prior: disabled; bbox-rendered gauss prior is used.
+        self.seg_target_polygon = False
         # Fusion mechanism: 'bias' (HeatmapBiasFusion, 1-channel additive), 'soft'
         # (HeatmapSoftFusion, temperature-softmax + BN → bias), 'film'
         # (HeatmapFiLMFusion, global residual grouped-FiLM), or 'queryfilm'
@@ -578,20 +566,11 @@ class YOLOAnomalyV2Model(DetectionModel):
         if fusion_mode != "bias":
             raise ValueError(f"fusion_mode must be bias, got {fusion_mode!r}")
 
-        # Two-head (auxiliary prior head): when True, duplicate the Detect head. head_a
-        # (self.model[-1]) consumes the RAW PAN features (no prior) -- the deployable honest
-        # detector; head_b consumes the prior-fused features. Both are trained jointly so the
-        # prior head's gradients also shape the shared backbone (the point of this variant).
-        # p_drop is bypassed (each head has a fixed input distribution). head_b_gain weights
-        # head_b's detection loss (cf. YOLOv7 aux-head deep supervision). Deploy = head_a.
-        two_head = bool(v2_cfg.get("two_head", False))
-        head_b_gain = float(v2_cfg.get("head_b_gain", 1.0))
-
         # AnomalyMCDetect (decoupled binary detection + multi-class type head):
         #   type_gain -- weight of the type cross-entropy in the loss (read by AnomalyMCLoss).
         #   type_tau  -- softmax temperature for the inference-time type distribution (set on head).
-        self.type_gain = float(v2_cfg.get("type_gain", 0.5))
-        type_tau = float(v2_cfg.get("type_tau", 1.0))
+        self.type_gain = 0.5
+        type_tau = 1.0
 
         detect = self.model[-1]
         if isinstance(detect, AnomalyMCDetect):
@@ -599,48 +578,22 @@ class YOLOAnomalyV2Model(DetectionModel):
         if not isinstance(detect, Detect):
             raise TypeError(f"YOLOAnomalyV2Model expects last layer to be Detect, got {type(detect).__name__}")
 
-        # Resolve PAN output channel count per scale from Detect.cv2 (first Conv's in_channels).
-        # cv2[i] is a Sequential whose first sub-module is a Conv on the PAN scale's tensor.
-        pan_channels = []
-        for cv2_seq in detect.cv2:
-            first = cv2_seq[0]
-            if hasattr(first, "conv") and isinstance(first.conv, torch.nn.Conv2d):
-                pan_channels.append(first.conv.in_channels)
-            else:
-                raise RuntimeError(f"Unable to infer PAN channel from Detect.cv2[0]={type(first).__name__}")
-        if len(pan_channels) != detect.nl:
-            raise RuntimeError(f"Inferred {len(pan_channels)} PAN channels, expected {detect.nl}")
-
-        self.pan_from_indices = list(detect.f)  # layer indices producing P3/P4/P5
-        self.pan_channels = pan_channels
-
         # Anomaly-side modules (live outside self.model so they are not in the Sequential)
         self.mask_renderer = BboxMaskRenderer(mask_size=mask_size, mode=mask_mode, sigma_factor=sigma_factor)
         self.heatmap_bias_fusion = HeatmapBiasFusion(num_scales=detect.nl)
 
-        # Two-head: head_b is a deep copy of the Detect head (identical weights + strides at init,
-        # so with the near-identity fusion both heads start ~ vanilla YOLO). Registered as a
-        # submodule -> trains, moves with .to(device), saves in state_dict, DDP-wrapped. head_a
-        # is self.model[-1]; the shared det criterion works on either (same stride/nc/reg_max).
-        self.two_head = two_head
-        self.head_b_gain = head_b_gain
-        self.head_b = deepcopy(detect) if two_head else None
-
         # Spatial resolution of the rendered/mask prior.
         self.mask_size = mask_size
 
-        self.p_drop = float(p_drop)
         self.mask_augmenter = MaskPriorAugmenter(v2_cfg)
-        self.spatial_softmax = bool(v2_cfg.get("spatial_softmax", False))
-        self.softmax_temperature = float(v2_cfg.get("softmax_temperature", 1.0))
         # Inference-time prior processing: minmax stretch, gaussian/mean blur, spatial softmax,
         # and an edge-suppression window for memory-bank heatmaps.
-        self.heatmap_norm = str(v2_cfg.get("heatmap_norm", "none")).lower()
-        self.heatmap_smooth_kernel = int(v2_cfg.get("heatmap_smooth_kernel", 5))
-        self.heatmap_edge_weight = bool(v2_cfg.get("heatmap_edge_weight", False))
-        self.heatmap_edge_p = float(v2_cfg.get("heatmap_edge_p", 4.0))
-        self.heatmap_edge_m = float(v2_cfg.get("heatmap_edge_m", 4.4))
-        self.heatmap_edge_sigma = float(v2_cfg.get("heatmap_edge_sigma", 1.0))
+        self.heatmap_norm = "none"
+        self.heatmap_smooth_kernel = 5
+        self.heatmap_edge_weight = False
+        self.heatmap_edge_p = 4.0
+        self.heatmap_edge_m = 4.4
+        self.heatmap_edge_sigma = 1.0
         self._edge_weight_cache = None
 
         # Transient bbox input for the next forward pass. Reset after each forward.
@@ -652,23 +605,16 @@ class YOLOAnomalyV2Model(DetectionModel):
         # --- BackboneMemoryBank (v2.3) ---
         bb_layers_cfg = v2_cfg.get("bb_layers", None)
         bb_layers = list(bb_layers_cfg) if bb_layers_cfg else None
-        bb_temperature = float(v2_cfg.get("bb_temperature", 3.0))
-        bb_K = int(v2_cfg.get("bb_K", 5))
-        bb_max_bank_size = v2_cfg.get("bb_max_bank_size", None)
-        bb_calibration_target = float(v2_cfg.get("bb_calibration_target_score", 0.2))
-        bb_calibration_quantile = float(v2_cfg.get("bb_calibration_target_quantile", 0.95))
-        bb_proj_dim = int(v2_cfg.get("bb_proj_dim", 0))
-        bb_hmap_stretch = float(v2_cfg.get("bb_hmap_stretch_strength", 0.0))
         self.memory_bank = (
             BackboneMemoryBank(
-                temperature=bb_temperature,
-                K=bb_K,
-                max_bank_size=bb_max_bank_size,
-                calibration_target_score=bb_calibration_target,
-                calibration_target_quantile=bb_calibration_quantile,
-                proj_dim=bb_proj_dim,
-                hmap_stretch_strength=bb_hmap_stretch,
-                holdout_max=int(v2_cfg.get("bb_holdout_max", 5000)),
+                temperature=3.0,
+                K=5,
+                max_bank_size=None,
+                calibration_target_score=0.2,
+                calibration_target_quantile=0.95,
+                proj_dim=0,
+                hmap_stretch_strength=0.0,
+                holdout_max=5000,
             )
             if bb_layers
             else None
@@ -1028,7 +974,6 @@ class YOLOAnomalyV2Model(DetectionModel):
             ("_feat_disc_fuse", "mean"),
             ("_feat_disc_weight", 0.5),
             ("_heatmap_producer", "bank"),
-            ("spatial_softmax", False),
             ("softmax_temperature", 1.0),
             ("heatmap_norm", "none"),
             ("heatmap_edge_weight", False),
@@ -1229,23 +1174,6 @@ class YOLOAnomalyV2Model(DetectionModel):
             return "mask" if use_polygon else "box"
         return "none"
 
-    def _apply_spatial_softmax(self, mask):
-        """Normalize heatmap into a spatial probability distribution.
-
-        Softmax over the H*W spatial grid, scaled by temperature. Turns any
-        heatmap (binary GT, soft prediction, noisy MB) into a distribution with
-        consistent statistics — sum=1 per sample, with T controlling peakiness.
-
-        Benefits: high values compete across space, suppressing background noise;
-        binary GT rects become softer (closer to predicted heatmaps), while weak
-        predictions become sharper (peaks amplified by softmax's exponential).
-        """
-        T = max(float(getattr(self, "softmax_temperature", 1.0)), 1e-6)
-        b, c, h, w = mask.shape
-        flat = mask.view(b, c, -1)
-        prob = torch.nn.functional.softmax(flat / T, dim=-1)
-        return prob.view(b, c, h, w)
-
     def _smooth_prior(self, mask, mode, kernel):
         """Blur the prior heatmap, preserving its [0, 1] scale and spatial blob structure.
 
@@ -1310,21 +1238,7 @@ class YOLOAnomalyV2Model(DetectionModel):
                 # Forward always consumes them, but be defensive in case of exception.
                 self._mask_bboxes_buf = None
                 self._mask_batch_idx_buf = None
-        # Two-head training: forward returns (preds_a, preds_b). The honest head (head_a, raw PAN,
-        # the deploy target) and the prior head (head_b) each get the shared det criterion; their
-        # losses sum (head_b weighted by head_b_gain). det_loss stays a 3-vector (box, cls, dfl)
-        # so the loss-vector length is invariant across the validator's mask-on/off double pass.
-        # Displayed items are the honest head's. The self.training gate is essential: in eval the
-        # Detect head returns a 2-tuple (inference_out, raw_feats) which must NOT be split here --
-        # it flows to the single criterion (E2ELoss.parse_output handles eval format), exactly as
-        # the single-head model does, so the validator's val-loss path is unchanged.
-        if getattr(self, "two_head", False) and self.training and isinstance(preds, tuple) and len(preds) == 2:
-            preds_a, preds_b = preds
-            det_loss_a, det_items = self.criterion(preds_a, batch)
-            det_loss_b, _ = self.criterion(preds_b, batch)
-            det_loss = det_loss_a + self.head_b_gain * det_loss_b
-        else:
-            det_loss, det_items = self.criterion(preds, batch)
+        det_loss, det_items = self.criterion(preds, batch)
         return det_loss, det_items
 
     def _predict_once(self, x, profile=False, visualize=False, embed=None):
@@ -1418,10 +1332,6 @@ class YOLOAnomalyV2Model(DetectionModel):
                     # Blur the prior: keeps [0,1] scale + blob structure (unlike softmax),
                     # denoising the MB heatmap toward the gauss masks the fusion trained on.
                     prior = self._smooth_prior(prior, _hn, getattr(self, "heatmap_smooth_kernel", 5))
-                # Spatial softmax: normalize to probability distribution (reduces
-                # distribution gap between GT binary masks and soft predictions).
-                if prior is not None and getattr(self, "spatial_softmax", False):
-                    prior = self._apply_spatial_softmax(prior)
                 # NOTE: training-time prior augmentation (_augment_mask) is applied once inside
                 # _resolve_prior (augment=self.training); do not re-apply it here.
                 fused = []
@@ -1442,24 +1352,8 @@ class YOLOAnomalyV2Model(DetectionModel):
                     # Per-sample keep mask (mask dropout): dropped samples get zero increment.
                     delta = delta * keep.to(delta.dtype).view(-1, 1, 1, 1)
                     fused.append(p + delta)
-                # Two-head: head_a (= m = self.model[-1]) always sees RAW PAN (honest, deploy
-                # target); head_b sees the prior-fused features. Training returns both for the
-                # dual det loss; eval routes by prior presence (mask-on pass / external prior ->
-                # head_b, mask-off pass / deploy -> head_a). getattr guards the stride probe in
-                # super().__init__() (runs before two_head is set).
                 _supports_hm = hasattr(m, "_build_heatmap_gate")
-                if getattr(self, "two_head", False):
-                    if self.training:
-                        x = (
-                            m(pan_inputs, heatmap=prior) if _supports_hm else m(pan_inputs),
-                            self.head_b(fused, heatmap=prior) if _supports_hm else self.head_b(fused),
-                        )
-                    elif prior is not None:
-                        x = self.head_b(fused, heatmap=prior) if _supports_hm else self.head_b(fused)
-                    else:
-                        x = m(pan_inputs)
-                else:
-                    x = m(fused, heatmap=prior) if _supports_hm else m(fused)
+                x = m(fused, heatmap=prior) if _supports_hm else m(fused)
             else:
                 if m.f != -1:
                     x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]

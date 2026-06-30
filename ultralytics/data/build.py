@@ -96,6 +96,8 @@ class InfiniteDataLoader(dataloader.DataLoader):
 
     def reset(self):
         """Reset the iterator to allow modifications to the dataset during training."""
+        if hasattr(self.iterator, "_workers"):
+            self.iterator._shutdown_workers()  # free old worker pipes before creating new iterator
         self.iterator = self._get_iterator()
 
 

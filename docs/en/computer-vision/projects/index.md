@@ -148,6 +148,27 @@ keywords: computer vision projects, computer vision projects for beginners, YOLO
 
 # Computer Vision Projects
 
+<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-yolov8-tasks-banner.avif" alt="Computer vision projects — object detection, segmentation, pose estimation, tracking and more with Ultralytics YOLO" width="1280" height="640" loading="eager" style="width:100%;height:auto;border-radius:12px;">
+
+<div style="display:flex;gap:2rem;flex-wrap:wrap;margin:1.5rem 0;padding:1.25rem 1.5rem;background:var(--md-code-bg-color);border-radius:10px;border-left:4px solid var(--md-accent-fg-color);">
+  <div style="text-align:center;min-width:80px;">
+    <div style="font-size:1.75rem;font-weight:700;color:var(--md-accent-fg-color);">25+</div>
+    <div style="font-size:0.8rem;opacity:0.75;">Projects</div>
+  </div>
+  <div style="text-align:center;min-width:80px;">
+    <div style="font-size:1.75rem;font-weight:700;color:var(--md-accent-fg-color);">3</div>
+    <div style="font-size:0.8rem;opacity:0.75;">Difficulty tiers</div>
+  </div>
+  <div style="text-align:center;min-width:80px;">
+    <div style="font-size:1.75rem;font-weight:700;color:var(--md-accent-fg-color);">6</div>
+    <div style="font-size:0.8rem;opacity:0.75;">Techniques</div>
+  </div>
+  <div style="text-align:center;min-width:80px;">
+    <div style="font-size:1.75rem;font-weight:700;color:var(--md-accent-fg-color);">0</div>
+    <div style="font-size:0.8rem;opacity:0.75;">Training required to start</div>
+  </div>
+</div>
+
 A curated library of 25+ computer vision projects built with [Ultralytics YOLO](https://www.ultralytics.com/yolo) — organised by difficulty from first-time experiments to production-ready systems. Each project includes working Python code, the core techniques involved, and a link to the full implementation guide.
 
 Install Ultralytics to get started with any project on this page:

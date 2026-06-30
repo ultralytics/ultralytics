@@ -68,6 +68,8 @@ alarm = solutions.SecurityAlarm(
 alarm.monitor(source="path/to/video.mp4")
 ```
 
+![AI-powered security alarm system with object detection](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/security-alarm-system-ultralytics-yolov8.avif)
+
 **Guide:** [Security Alarm System](../../guides/security-alarm-system.md) · **Task:** [Object Detection](../../tasks/detect.md)
 
 ---
@@ -87,6 +89,8 @@ counter = solutions.ObjectCounter(
 
 counter.count(source="path/to/video.mp4")
 ```
+
+![Fish and conveyor belt object counting using Ultralytics YOLO](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/conveyor-belt-packets-counting.avif)
 
 **Guide:** [Object Counting](../../guides/object-counting.md) · **Task:** [Object Detection](../../tasks/detect.md)
 
@@ -160,6 +164,8 @@ for i, box in enumerate(results[0].boxes.xyxy):
     cv2.imwrite(f"crop_{i}.jpg", crop)
 ```
 
+![Suitcase cropping on airport conveyor belt using YOLO](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/suitcases-cropping-airport-conveyor-belt.avif)
+
 **Guide:** [Object Cropping](../../guides/object-cropping.md) · **Task:** [Object Detection](../../tasks/detect.md)
 
 ---
@@ -175,6 +181,8 @@ model = YOLO("yolo26n.pt")
 results = model.embed(["image1.jpg", "image2.jpg", "image3.jpg"])
 # results contains feature vectors for similarity comparison
 ```
+
+![Visual similarity search with CLIP and Ultralytics YOLO](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/clip-image-retrieval.avif)
 
 **Guide:** [Similarity Search](../../guides/similarity-search.md)
 
@@ -200,6 +208,8 @@ gym = solutions.AIGym(
 gym.monitor(source="path/to/video.mp4")
 ```
 
+![Real-time push-up and pull-up rep counting with YOLO pose estimation](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/pushups-counting.avif)
+
 **Guide:** [Workouts Monitoring](../../guides/workouts-monitoring.md) · **Task:** [Pose Estimation](../../tasks/pose.md)
 
 ---
@@ -219,6 +229,8 @@ parking = solutions.ParkingManagement(
 
 parking.monitor(source="path/to/video.mp4")
 ```
+
+![Aerial view parking management system using Ultralytics YOLO](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/parking-management-aerial-view-ultralytics-yolov8.avif)
 
 **Guide:** [Parking Management](../../guides/parking-management.md) · **Task:** [Object Detection](../../tasks/detect.md)
 
@@ -240,6 +252,8 @@ queue = solutions.QueueManager(
 queue.monitor(source="path/to/video.mp4")
 ```
 
+![Queue management at airport ticket counter using Ultralytics YOLO](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/queue-management-airport-ticket-counter-ultralytics-yolov8.avif)
+
 **Guide:** [Queue Management](../../guides/queue-management.md) · **Task:** [Object Detection](../../tasks/detect.md)
 
 ---
@@ -259,6 +273,8 @@ speed = solutions.SpeedEstimator(
 
 speed.estimate_speed(source="path/to/video.mp4")
 ```
+
+![Speed estimation on road using Ultralytics YOLO](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/speed-estimation-on-road-using-ultralytics-yolov8.avif)
 
 **Guide:** [Speed Estimation](../../guides/speed-estimation.md) · **Mode:** [Track](../../modes/track.md)
 
@@ -280,6 +296,8 @@ heatmap = solutions.Heatmap(
 heatmap.generate(source="path/to/video.mp4")
 ```
 
+![Ultralytics YOLO transportation heatmap showing movement density](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-yolov8-transportation-heatmap.avif)
+
 **Guide:** [Heatmaps](../../guides/heatmaps.md) · **Mode:** [Track](../../modes/track.md)
 
 ---
@@ -300,6 +318,8 @@ region_counter = solutions.RegionCounter(
 region_counter.count(source="path/to/video.mp4")
 ```
 
+![People counting in different regions using Ultralytics YOLO](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/people-counting-different-region-ultralytics-yolov8.avif)
+
 **Guides:** [Region Counting](../../guides/region-counting.md) · [Track Zone](../../guides/trackzone.md)
 
 ---
@@ -319,6 +339,8 @@ distance = solutions.DistanceCalculation(
 distance.calculate(source="path/to/video.mp4")
 ```
 
+![Distance calculation between objects using Ultralytics YOLO](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/distance-calculation.avif)
+
 **Guide:** [Distance Calculation](../../guides/distance-calculation.md) · **Task:** [Object Detection](../../tasks/detect.md)
 
 ---
@@ -333,6 +355,8 @@ from ultralytics import YOLO
 model = YOLO("yolo26n-seg.pt")
 results = model.track(source="path/to/video.mp4", persist=True, show=True)
 ```
+
+![Ultralytics instance segmentation with object tracking](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-instance-segmentation-object-tracking.avif)
 
 **Guide:** [Instance Segmentation with Tracking](../../guides/instance-segmentation-and-tracking.md) · **Task:** [Segmentation](../../tasks/segment.md)
 
@@ -354,6 +378,8 @@ analytics = solutions.Analytics(
 analytics.process(source="path/to/video.mp4")
 ```
 
+![YOLO analytics line graph, bar plot and pie chart](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/analytics-line-graph.avif)
+
 **Guide:** [Analytics](../../guides/analytics.md) · **Task:** [Object Detection](../../tasks/detect.md)
 
 ---
@@ -372,6 +398,8 @@ vision_eye = solutions.VisionEye(
 
 vision_eye.process(source="path/to/video.mp4")
 ```
+
+![Vision Eye object mapping with tracking using Ultralytics YOLO](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/visioneye-object-mapping-with-tracking.avif)
 
 **Guide:** [Vision Eye](../../guides/vision-eye.md) · **Task:** [Object Detection](../../tasks/detect.md)
 
@@ -412,6 +440,8 @@ results = model("path/to/aerial-image.jpg")
 results[0].show()  # displays rotated bounding boxes
 ```
 
+![Ship and vehicle detection using oriented bounding boxes with YOLO](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ships-detection-using-obb.avif)
+
 **Task:** [OBB Detection](../../tasks/obb.md)
 
 ---
@@ -440,6 +470,8 @@ result = get_sliced_prediction(
 )
 ```
 
+![SAHI sliced inference overview for large image detection](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/sahi-sliced-inference-overview.avif)
+
 **Guide:** [SAHI Tiled Inference](../../guides/sahi-tiled-inference.md)
 
 ---
@@ -458,6 +490,8 @@ results = model("path/to/image.jpg")
 results[0].show()
 ```
 
+![YOLO-World open vocabulary detection with text prompt class names](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolo-world-prompt-class-names-overview.avif)
+
 **Model:** [YOLO-World](../../models/yolo-world.md)
 
 ---
@@ -475,6 +509,8 @@ model = SAM("sam2.1_l.pt")
 results = model("path/to/image.jpg", bboxes=[[100, 100, 400, 400]])
 results[0].show()
 ```
+
+![SAM 2 zero-shot segmentation on SA-V dataset](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/sa-v-dataset.avif)
 
 **Model:** [SAM 2](../../models/sam-2.md) · [SAM](../../models/sam.md)
 
@@ -518,6 +554,8 @@ model.export(format="engine", device=0)
 # export for Raspberry Pi (ONNX)
 model.export(format="onnx")
 ```
+
+![Ultralytics YOLO on NVIDIA Jetson ecosystem for edge deployment](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/nvidia-jetson-ecosystem.avif)
 
 **Guides:** [NVIDIA Jetson](../../guides/nvidia-jetson.md) · [Raspberry Pi](../../guides/raspberry-pi.md) · **Mode:** [Export](../../modes/export.md)
 

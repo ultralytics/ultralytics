@@ -186,7 +186,7 @@ def test_objectlab_swap_drops_quality():
 def test_objectlab_empty_labels_flag_overlooked():
     """An empty-label image with a high-confidence prediction scores as likely-overlooked (low quality)."""
     out = compute_objectlab_scores(
-        iou=np.zeros((0, 1)),
+        iou=None,
         pred_bb=np.array([[10, 10, 50, 50]], dtype=np.float32),
         pred_cls=np.array([0]),
         pred_conf=np.array([0.99]),

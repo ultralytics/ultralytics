@@ -789,7 +789,7 @@ def _objectlab_score_dict(overlooked: float, badloc: float, swap: float) -> dict
 
 
 def compute_objectlab_scores(
-    iou: np.ndarray,
+    iou: np.ndarray | None,
     pred_bb: np.ndarray,
     pred_cls: np.ndarray,
     pred_conf: np.ndarray,
@@ -799,7 +799,7 @@ def compute_objectlab_scores(
     """Compute the 4 ObjectLab subtype scores (Tkachenko et al., ICML Workshop 2023) from per-image predictions and GTs.
 
     Args:
-        iou (np.ndarray): Pairwise (n_gt, n_pred) IoU matrix from the validator.
+        iou (np.ndarray | None): Pairwise (n_gt, n_pred) IoU matrix, or None when either side is empty (unused then).
         pred_bb (np.ndarray): Prediction xyxy boxes, shape (n_pred, 4).
         pred_cls (np.ndarray): Prediction class IDs, shape (n_pred,).
         pred_conf (np.ndarray): Prediction confidences, shape (n_pred,).
@@ -817,10 +817,9 @@ def compute_objectlab_scores(
         return {k: float("nan") for k in _OBJECTLAB_PROPERTIES}
     if n_gt == 0:
         # Empty labels with predictions: every high-confidence pred is a likely overlooked (missing) annotation.
+        # _softmin1d returns 1.0 (clean) when no pred clears HIGH_PROB, so no explicit empty-array guard is needed.
         keep = pred_conf >= _OBJECTLAB_HIGH_PROB
-        overlooked = (
-            _softmin1d(_OBJECTLAB_TINY * (1.0 - pred_conf[keep]), _OBJECTLAB_TEMPERATURE) if keep.any() else 1.0
-        )
+        overlooked = _softmin1d(_OBJECTLAB_TINY * (1.0 - pred_conf[keep]), _OBJECTLAB_TEMPERATURE)
         return _objectlab_score_dict(overlooked, 1.0, 1.0)
 
     gt_cx, gt_cy = (gt_bb[:, 0] + gt_bb[:, 2]) / 2, (gt_bb[:, 1] + gt_bb[:, 3]) / 2
@@ -840,7 +839,7 @@ def compute_objectlab_scores(
     sim_same = np.where(same_class, sim, -np.inf)
     best_same_per_pred = sim_same.max(axis=0)
     per_pred = np.where(same_class.any(axis=0), best_same_per_pred, _OBJECTLAB_TINY * (1.0 - pred_conf))
-    overlooked = _softmin1d(per_pred[keep_pred], _OBJECTLAB_TEMPERATURE) if keep_pred.any() else 1.0
+    overlooked = _softmin1d(per_pred[keep_pred], _OBJECTLAB_TEMPERATURE)
 
     # badloc: per-GT best same-class match with IoU>0 and conf>=LOW_PROB,
     # fall back to 1.0 (clean) when no candidate exists.

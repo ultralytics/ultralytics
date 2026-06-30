@@ -33,7 +33,7 @@ class ConsoleLogger:
         >>> print("This will be logged")
         >>> logger.stop_capture()
 
-        API streaming with batching:
+        HTTPS API streaming with batching:
         >>> logger = ConsoleLogger("https://api.example.com/logs", batch_size=10)
         >>> logger.start_capture()
 
@@ -48,13 +48,16 @@ class ConsoleLogger:
         """Initialize console logger with optional batching.
 
         Args:
-            destination (str | Path | None): API endpoint URL (http/https), local file path, or None.
+            destination (str | Path | None): HTTPS API endpoint URL, local file path, or None.
             batch_size (int): Lines to accumulate before flush (1 = immediate, higher = batched).
             flush_interval (float): Max seconds between flushes when batching.
             on_flush (callable | None): Callback(content: str, line_count: int, chunk_id: int) for custom handling.
         """
+        if isinstance(destination, str) and destination.startswith("http://"):
+            raise ValueError("ConsoleLogger API destinations must use HTTPS, not HTTP.")
+
         self.destination = destination
-        self.is_api = isinstance(destination, str) and destination.startswith(("http://", "https://"))
+        self.is_api = isinstance(destination, str) and destination.startswith("https://")
         if destination is not None and not self.is_api:
             self.destination = Path(destination)
 

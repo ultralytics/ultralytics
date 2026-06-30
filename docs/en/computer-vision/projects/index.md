@@ -148,12 +148,6 @@ keywords: computer vision projects, computer vision projects for beginners, YOLO
 
 # Computer Vision Projects
 
-<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;border-radius:12px;overflow:hidden;margin-bottom:0.5rem;">
-  <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/security-alarm-system-ultralytics-yolov8.avif" alt="Security alarm system" style="width:100%;height:160px;object-fit:cover;display:block;margin:0;">
-  <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/pushups-counting.avif" alt="Workout rep counter" style="width:100%;height:160px;object-fit:cover;display:block;margin:0;">
-  <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/speed-estimation-on-road-using-ultralytics-yolov8.avif" alt="Speed estimation" style="width:100%;height:160px;object-fit:cover;display:block;margin:0;">
-  <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/parking-management-aerial-view-ultralytics-yolov8.avif" alt="Parking management" style="width:100%;height:160px;object-fit:cover;display:block;margin:0;">
-</div>
 
 <div style="display:flex;gap:2rem;flex-wrap:wrap;margin:1.5rem 0;padding:1.25rem 1.5rem;background:var(--md-code-bg-color);border-radius:10px;border-left:4px solid var(--md-accent-fg-color);">
   <div style="text-align:center;min-width:80px;">

@@ -9,14 +9,7 @@ keywords: YOLO architecture, YOLOv3, YOLOv5, YOLOv8, YOLO11, YOLO26, backbone, n
 
 Every Ultralytics YOLO model is built from three stages: a **backbone** that extracts features, a **neck** that fuses them across scales, and a **head** that predicts boxes and classes. This guide documents the modules that make up each stage and how they changed from [YOLOv3](../models/yolov3.md) to [YOLO26](../models/yolo26.md), tracing every component to its definition in the configuration files under `ultralytics/cfg/models/` and the module classes in [`ultralytics/nn/modules/`](../reference/nn/modules/block.md).
 
-Each model is defined declaratively in a YAML file as an ordered list of layers, where every layer is `[from, repeats, module, args]`:
-
-- `from` — index of the input layer (`-1` is the previous layer; a list like `[-1, 6]` concatenates several).
-- `repeats` — how many times the module is repeated, scaled by the variant's depth multiple (for CSP modules this becomes the block's internal repeat count).
-- `module` — the layer class (`Conv`, `C3k2`, `SPPF`, `Detect`, …).
-- `args` — constructor arguments; output channels are scaled by the width multiple and capped at `max_channels`.
-
-The [Model YAML Configuration Guide](model-yaml-config.md) documents this format and the module-resolution system in full.
+Each model is defined declaratively in a YAML file as an ordered list of layers, where every layer follows the `[from, repeats, module, args]` format: which layer(s) feed it, how many times the module repeats, the layer class (`Conv`, `C3k2`, `SPPF`, `Detect`, …), and its constructor arguments. The [Model YAML Configuration Guide](model-yaml-config.md) documents this format — including how `repeats` and `args` scale with the variant's depth and width multiples — along with the module-resolution system in full. This guide focuses on the modules themselves and how they changed from version to version.
 
 ## The Three Stages
 

@@ -21,7 +21,6 @@ from ultralytics.nn.autobackend import check_class_names
 from ultralytics.utils import (
     ASSETS_URL,
     DATASETS_DIR,
-    LOCAL_RANK,
     LOGGER,
     NUM_THREADS,
     ROOT,
@@ -139,128 +138,6 @@ def check_file_speeds(
             f"Use local storage instead of remote/mounted storage for better performance. "
             f"See https://docs.ultralytics.com/guides/model-training-tips/"
         )
-
-
-def check_cache_ram(
-    files: list[str],
-    prefix: str = "",
-    safety_margin: float = 0.5,
-    scale: bool = False,
-    sizer=None,
-    flags: int = cv2.IMREAD_COLOR,
-) -> bool:
-    """Check whether there is enough available RAM to cache the given images.
-
-    Used by ``BaseDataset`` (detection/segment/pose/obb), which caches resized images (``scale=True``) while
-    ``ClassificationDataset`` caches originals with its own check (``scale=False`` semantics, raw bytes).
-
-    Args:
-        files (list[str]): Image file paths to sample from.
-        prefix (str): Logging prefix.
-        safety_margin (float): Extra fraction of RAM to require beyond the estimate.
-        scale (bool): If True, estimate post-resize bytes via ``sizer``; else use raw decoded bytes.
-        sizer (callable | None): Maps original ``(h0, w0)`` to the cached ``(h, w)``. Required when ``scale=True``; pass
-            the dataset's ``_resized_hw`` so the estimate matches what the cache actually stores (long-side, short-side,
-            or square stretch) instead of assuming long-side resize for every mode.
-        flags (int): OpenCV decode flag for the sampled images; pass the dataset's ``cv2_flag`` so the estimate counts
-            the same channels the cache stores (e.g. grayscale, else a color sample over-counts by ~3x).
-
-    Returns:
-        (bool): True if the estimated requirement fits in available memory, False otherwise.
-    """
-    import psutil
-
-    from ultralytics.utils.patches import imread
-
-    n = len(files)
-    if not n:
-        return False
-    b, gb = 0, 1 << 30  # bytes of cached images, bytes per gigabyte
-    sample = min(n, 30)  # extrapolate from up to 30 random images
-    for _ in range(sample):
-        im = imread(random.choice(files), flags=flags)
-        if im is None:
-            continue
-        if scale:
-            h, w = sizer(im.shape[0], im.shape[1])  # cached dims via the dataset's own resize geometry
-            b += h * w * (im.shape[2] if im.ndim == 3 else 1) * im.itemsize  # matches _resize_image output bytes
-        else:
-            b += im.nbytes
-    mem_required = b * n / sample * (1 + safety_margin)  # bytes required to cache dataset into RAM
-    mem = psutil.virtual_memory()
-    if mem_required > mem.available:
-        LOGGER.warning(
-            f"{prefix}{mem_required / gb:.1f}GB RAM required to cache images "
-            f"with {int(safety_margin * 100)}% safety margin but only "
-            f"{mem.available / gb:.1f}/{mem.total / gb:.1f}GB available, not caching images"
-        )
-        return False
-    return True
-
-
-def cache_images_to_ram(n: int, probe, decode, prefix: str = ""):
-    """Build one shared-memory ``torch.uint8`` buffer holding ``n`` decoded images, in two passes.
-
-    The buffer is allocated directly in POSIX shared memory before DataLoader workers fork, so every worker maps the
-    same region instead of duplicating the cache per worker — the root cause of the ``cache='ram'`` + ``num_workers>0``
-    leak. Allocating shared up front (rather than populating a private buffer and calling ``share_memory_()``
-    afterwards) also avoids a transient ~2x peak: ``share_memory_()`` copies the whole populated cache into a second
-    shared allocation. Two passes keep peak memory at ~1x the cache: pass 1 records each image's byte size, the shared
-    buffer is allocated, then pass 2 streams each decoded image into its slice. Shared by ``BaseDataset`` and
-    ``ClassificationDataset`` (different ``probe``/``decode`` callables).
-
-    Args:
-        n (int): Number of images.
-        probe (callable): ``probe(i) -> (i, nbytes, meta)`` returning image ``i``'s byte size in the cache and any
-            per-image metadata the caller needs back (shape, dtype, original hw, ...).
-        decode (callable): ``decode(i) -> (i, np.ndarray)`` returning a contiguous array of exactly ``nbytes``.
-        prefix (str): Logging prefix.
-
-    Returns:
-        cache (torch.Tensor | None): Shared ``uint8`` buffer, or None if the build failed (caller falls back to disk).
-        offsets (list[int] | None): Per-image byte offset into ``cache``.
-        metas (list | None): Per-image metadata returned by ``probe``.
-
-    Raises:
-        FileNotFoundError: Propagated from ``probe``/``decode`` to surface a corrupt or missing image.
-    """
-    import torch
-
-    b, gb = 0, 1 << 30  # bytes streamed, bytes per gigabyte
-    offsets, metas, pos = [0] * n, [None] * n, 0
-    try:
-        with ThreadPool(NUM_THREADS) as pool:
-            pbar = TQDM(pool.imap(probe, range(n)), total=n, disable=LOCAL_RANK > 0)
-            for i, nbytes, meta in pbar:
-                offsets[i], metas[i] = pos, meta
-                pos += nbytes
-                pbar.desc = f"{prefix}Probing image sizes"
-            pbar.close()
-
-        # Allocate the buffer directly in shared memory (no populate-then-copy spike). UntypedStorage is torch>=1.13;
-        # on older torch (supported floor 1.8) fall back to share_memory_(), which is correct but copies once (~2x peak).
-        if hasattr(torch, "UntypedStorage"):
-            cache = torch.empty(0, dtype=torch.uint8)
-            cache.set_(torch.UntypedStorage._new_shared(pos, device="cpu"))
-        else:
-            cache = torch.empty(pos, dtype=torch.uint8).share_memory_()
-        with ThreadPool(NUM_THREADS) as pool:
-            pbar = TQDM(pool.imap(decode, range(n)), total=n, disable=LOCAL_RANK > 0)
-            for i, im in pbar:
-                raw = np.ascontiguousarray(im).view(np.uint8).reshape(-1)
-                cache[offsets[i] : offsets[i] + raw.nbytes] = torch.from_numpy(raw)
-                b += raw.nbytes
-                pbar.desc = f"{prefix}Caching images ({b / gb:.1f}GB RAM)"
-            pbar.close()
-    except FileNotFoundError:
-        raise  # surface corrupt/missing image clearly instead of swallowing as a cache fallback
-    except (MemoryError, OSError, RuntimeError) as e:
-        LOGGER.warning(
-            f"{prefix}cache='ram' disabled: {type(e).__name__}: {e}. "
-            "Common cause: /dev/shm quota in Docker (raise with --shm-size). Falling back to disk reads."
-        )
-        return None, None, None
-    return cache, offsets, metas
 
 
 def get_hash(paths: list[str]) -> str:

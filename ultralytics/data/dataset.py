@@ -844,10 +844,6 @@ class SemanticDataset(YOLODataset):
         """Load an image for semantic segmentation, scaling the short side to imgsz when rect_mode=True."""
         return super().load_image(i, rect_mode=rect_mode, resize_short=self.augment)
 
-    def cache_load_params(self) -> tuple[bool, bool]:
-        """Build the shared RAM cache with the short-side resize used during augmentation (see load_image)."""
-        return True, self.augment
-
     def load_mask(self, index: int, image_shape: tuple[int, int] | None = None) -> np.ndarray:
         """Load a semantic mask and apply optional dataset label mapping."""
         mask_file = self.labels[index]["mask_file"]

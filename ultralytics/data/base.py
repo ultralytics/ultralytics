@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import glob
-import inspect
 import math
 import os
 import random
@@ -16,8 +15,7 @@ import cv2
 import numpy as np
 from torch.utils.data import Dataset
 
-from ultralytics.data.utils import FORMATS_HELP_MSG, HELP_URL, IMG_FORMATS, cache_images_to_ram, check_file_speeds
-from ultralytics.data.utils import check_cache_ram as _check_cache_ram
+from ultralytics.data.utils import FORMATS_HELP_MSG, HELP_URL, IMG_FORMATS, check_file_speeds
 from ultralytics.utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, NUM_THREADS, TQDM
 from ultralytics.utils.patches import imread
 
@@ -50,6 +48,9 @@ class BaseDataset(Dataset):
         ims (list): List of loaded images.
         im_hw0 (list): List of original image dimensions (h, w).
         im_hw (list): List of resized image dimensions (h, w).
+        img_cache (np.ndarray): Single contiguous uint8 buffer holding all images when caching in RAM.
+        img_offsets (list): Flat offset of each image within img_cache.
+        img_shapes (list): (h, w, c) shape of each image within img_cache.
         npy_files (list[Path]): List of numpy file paths.
         cache (str | None): Cache setting ('ram', 'disk', or None for no caching).
         transforms (callable): Image transformation function.
@@ -134,23 +135,10 @@ class BaseDataset(Dataset):
 
         # Cache images (options are cache = True, False, None, "ram", "disk")
         self.ims, self.im_hw0, self.im_hw = [None] * self.ni, [None] * self.ni, [None] * self.ni
+        self.img_cache, self.img_offsets, self.img_shapes = None, None, None  # shared RAM buffer + per-image layout
         self.npy_files = [Path(f).with_suffix(".npy") for f in self.im_files]
         self.cache = cache.lower() if isinstance(cache, str) else "ram" if cache is True else None
-        # Shared RAM cache: single torch.uint8 byte buffer pinned via share_memory_() before workers fork.
-        # The buffer holds raw bytes; per-image dtype is tracked so the fast path can view bytes back with the
-        # correct dtype (supports uint8 JPG/PNG and uint16 TIFF alike). Cache is built with the same resize
-        # params (rect_mode, resize_short) and imread() decoder load_image uses at runtime (see
-        # cache_load_params), so probe and load can never disagree on shape/dtype/channels.
-        self.img_cache = None
-        self.img_offsets = None
-        self.img_shapes = None
-        self.img_dtypes = None
-        self._cache_rect_mode, self._cache_resize_short = self.cache_load_params()
-        # safety_margin=1.0 budgets ~2x the (resized) cache estimate: the two-pass build decodes full-resolution
-        # originals concurrently (NUM_THREADS) while the cache holds small resized images, so peak working set is
-        # dominated by transient decodes, not the cache itself (measured ~1.85x the resized estimate even with the
-        # buffer allocated directly in shared memory, since the full-res decodes dwarf the small resized cache).
-        if self.cache == "ram" and self.check_cache_ram(safety_margin=1.0):
+        if self.cache == "ram" and self.check_cache_ram():
             if hyp.deterministic:
                 LOGGER.warning(
                     "cache='ram' may produce non-deterministic training results. "
@@ -223,56 +211,6 @@ class BaseDataset(Dataset):
             if self.single_cls:
                 self.labels[i]["cls"][:, 0] = 0
 
-    def cache_load_params(self) -> tuple[bool, bool]:
-        """Return the ``(rect_mode, resize_short)`` that ``load_image`` uses at runtime.
-
-        The shared RAM cache is built with exactly these values so the cache fast path returns identically
-        resized images as the uncached path. Subclasses that change the resize must override this (e.g.
-        ``SemanticDataset`` resizes the short side during augmentation via ``resize_short=self.augment``).
-
-        Returns:
-            (tuple[bool, bool]): The ``rect_mode`` and ``resize_short`` flags used by ``load_image``.
-        """
-        param = inspect.signature(self.load_image).parameters.get("rect_mode")
-        return (param.default if param is not None else True), False
-
-    def _resized_hw(self, h0: int, w0: int, rect_mode: bool, resize_short: bool) -> tuple[int, int]:
-        """Compute the post-resize ``(h, w)`` without decoding or resizing the image.
-
-        Single source of truth shared by ``load_image`` (runtime), the cache probe pass (offset sizing) and
-        the cache load pass (resize target), so they can never disagree on the cached image shape.
-
-        Args:
-            h0 (int): Original image height.
-            w0 (int): Original image width.
-            rect_mode (bool): Resize the long side to ``imgsz`` keeping aspect ratio.
-            resize_short (bool): Resize the short side to ``imgsz`` keeping aspect ratio (overrides ``rect_mode``).
-
-        Returns:
-            (tuple[int, int]): The target ``(height, width)`` after resizing.
-        """
-        if rect_mode:
-            if resize_short:  # resize short side to imgsz
-                r = self.imgsz / min(h0, w0)
-                if r == 1:
-                    return h0, w0
-                return (self.imgsz, math.ceil(w0 * r)) if h0 < w0 else (math.ceil(h0 * r), self.imgsz)
-            r = self.imgsz / max(h0, w0)  # resize long side to imgsz
-            if r == 1:
-                return h0, w0
-            return min(math.ceil(h0 * r), self.imgsz), min(math.ceil(w0 * r), self.imgsz)
-        if h0 == w0 == self.imgsz:
-            return h0, w0
-        return self.imgsz, self.imgsz  # stretch to square imgsz
-
-    def _resize_image(self, im: np.ndarray, rect_mode: bool, resize_short: bool) -> np.ndarray:
-        """Resize a decoded image exactly as ``load_image`` does (single source of truth, see ``_resized_hw``)."""
-        h0, w0 = im.shape[:2]
-        h, w = self._resized_hw(h0, w0, rect_mode, resize_short)
-        if (h, w) != (h0, w0):
-            im = cv2.resize(im, (w, h), interpolation=cv2.INTER_LINEAR)
-        return im if im.ndim == 3 else im[..., None]
-
     def load_image(
         self, i: int, rect_mode: bool = True, resize_short: bool = False
     ) -> tuple[np.ndarray, tuple[int, int], tuple[int, int]]:
@@ -292,25 +230,13 @@ class BaseDataset(Dataset):
         Raises:
             FileNotFoundError: If the image file is not found.
         """
-        # Shared RAM cache fast path: workers map the same SHM region. The cache is built with the resize params
-        # from cache_load_params(); only callers requesting those same params hit the fast path, others fall
-        # through to decode (so a different rect_mode/resize_short never returns a wrongly-resized cached image).
-        # .copy() prevents in-place augmentations (e.g. RandomHSV cv2.cvtColor with dst=img) from mutating the
-        # shared backing tensor and corrupting the cache for other workers.
-        if (
-            (rect_mode, resize_short) == (self._cache_rect_mode, self._cache_resize_short)
-            and self.cache == "ram"
-            and self.img_cache is not None
-        ):
-            offset = self.img_offsets[i]
-            h, w, c = self.img_shapes[i]
-            dtype = self.img_dtypes[i]
-            nb = h * w * c * dtype.itemsize
-            im = self.img_cache[offset : offset + nb].numpy().view(dtype).reshape(h, w, c).copy()
-            return im, self.im_hw0[i], (h, w)
-
         im, f, fn = self.ims[i], self.im_files[i], self.npy_files[i]
         if im is None:  # not cached in RAM
+            if self.img_cache is not None:  # zero-copy view into the shared RAM buffer
+                h, w, c = self.img_shapes[i]
+                pos = self.img_offsets[i]
+                im = self.img_cache[pos : pos + h * w * c].reshape(h, w, c)
+                return im, self.im_hw0[i], self.im_hw[i]
             if fn.exists():  # load npy
                 try:
                     im = np.load(fn)
@@ -331,33 +257,44 @@ class BaseDataset(Dataset):
                 raise FileNotFoundError(f"Image Not Found {f}")
 
             h0, w0 = im.shape[:2]  # orig hw
-            im = self._resize_image(im, rect_mode, resize_short)
+            if rect_mode:  # resize long side to imgsz while maintaining aspect ratio
+                if resize_short:  # resize short side to imgsz while maintaining aspect ratio
+                    r = self.imgsz / min(h0, w0)  # ratio
+                    if r != 1:  # if sizes are not equal
+                        w, h = (math.ceil(w0 * r), self.imgsz) if h0 < w0 else (self.imgsz, math.ceil(h0 * r))
+                        im = cv2.resize(im, (w, h), interpolation=cv2.INTER_LINEAR)
+                else:
+                    r = self.imgsz / max(h0, w0)  # ratio
+                    if r != 1:  # if sizes are not equal
+                        w, h = (min(math.ceil(w0 * r), self.imgsz), min(math.ceil(h0 * r), self.imgsz))
+                        im = cv2.resize(im, (w, h), interpolation=cv2.INTER_LINEAR)
+            elif not (h0 == w0 == self.imgsz):  # resize by stretching image to square imgsz
+                im = cv2.resize(im, (self.imgsz, self.imgsz), interpolation=cv2.INTER_LINEAR)
+            if im.ndim == 2:
+                im = im[..., None]
 
-            # Add to buffer if training with augmentations (skipped on the shared-cache path above)
+            # Add to buffer if training with augmentations
             if self.augment:
                 self.ims[i], self.im_hw0[i], self.im_hw[i] = im, (h0, w0), im.shape[:2]  # im, hw_original, hw_resized
                 self.buffer.append(i)
                 if 1 < len(self.buffer) >= self.max_buffer_length:  # prevent empty buffer
                     j = self.buffer.pop(0)
-                    self.ims[j] = None  # release private fallback array; else it leaks atop the shared buffer
-                    if self.img_cache is None:  # only the per-image list owns im_hw0/im_hw; the shared cache keeps them
-                        self.im_hw0[j], self.im_hw[j] = None, None
+                    if self.cache != "ram":
+                        self.ims[j], self.im_hw0[j], self.im_hw[j] = None, None, None
 
             return im, (h0, w0), im.shape[:2]
 
         return self.ims[i], self.im_hw0[i], self.im_hw[i]
 
     def cache_images(self) -> None:
-        """Cache images to memory (shared byte buffer) or disk (*.npy files) for faster training.
+        """Cache images to RAM or disk for faster training.
 
-        ``cache='ram'`` builds a single ``torch.uint8`` buffer in two passes (probe shapes, then decode + stream)
-        and pins it with ``share_memory_()`` so all DataLoader workers map the same POSIX shared-memory region
-        instead of duplicating the cache per worker (the source of the ``num_workers > 0`` leak). imread plus the
-        shared ``_resized_hw``/``_resize_image`` helpers are used in both passes and at runtime so probe, load and
-        load_image can't disagree on shape/dtype/channels (matters for multi-frame TIFFs, uint16 TIFFs,
-        EXIF-rotated JPGs, and subclasses using ``resize_short`` such as ``SemanticDataset``).
+        For RAM, images are decoded once into a single contiguous uint8 buffer (`img_cache`) instead of a Python list
+        of per-image arrays, which copy-on-write duplicates into every forked DataLoader worker
+        (https://github.com/ultralytics/ultralytics/issues/9824). One buffer stays read-only-shared across workers so
+        RAM stays flat, and `load_image` returns zero-copy views into it.
         """
-        b, gb = 0, 1 << 30
+        b, gb = 0, 1 << 30  # bytes of cached images, bytes per gigabyte
         if self.cache == "disk":
             with ThreadPool(NUM_THREADS) as pool:
                 pbar = TQDM(
@@ -371,32 +308,20 @@ class BaseDataset(Dataset):
                 pbar.close()
             return
 
-        rect_mode, resize_short = self._cache_rect_mode, self._cache_resize_short
-
-        def probe(i: int):  # (i, cache bytes, ((h0, w0), (h, w, c), dtype)) — decode matches load() for EXIF/dtype
-            im = imread(self.im_files[i], flags=self.cv2_flag)
-            if im is None:
-                raise FileNotFoundError(f"Image Not Found {self.im_files[i]}")
-            h0, w0 = im.shape[:2]
-            h, w = self._resized_hw(h0, w0, rect_mode, resize_short)
-            c = im.shape[2] if im.ndim == 3 else 1
-            return i, h * w * c * im.dtype.itemsize, ((h0, w0), (h, w, c), im.dtype)
-
-        def decode(i: int):
-            im = imread(self.im_files[i], flags=self.cv2_flag)
-            if im is None:
-                raise FileNotFoundError(f"Image Not Found {self.im_files[i]}")
-            return i, self._resize_image(im, rect_mode, resize_short)
-
-        cache, offsets, metas = cache_images_to_ram(self.ni, probe, decode, self.prefix)
-        if cache is None:  # build failed (e.g. /dev/shm quota) — fall back to disk reads
-            self.cache = None
-            return
-        self.img_cache, self.img_offsets = cache, offsets
-        self.im_hw0 = [m[0] for m in metas]
-        self.img_shapes = [m[1] for m in metas]
-        self.img_dtypes = [m[2] for m in metas]
-        self.im_hw = [m[1][:2] for m in metas]
+        ims, offset = [], 0
+        self.img_shapes, self.img_offsets = [None] * self.ni, [None] * self.ni
+        with ThreadPool(NUM_THREADS) as pool:
+            pbar = TQDM(enumerate(pool.imap(self.load_image, range(self.ni))), total=self.ni, disable=LOCAL_RANK > 0)
+            for i, (im, hw0, hw) in pbar:
+                self.im_hw0[i], self.im_hw[i] = hw0, hw
+                self.img_shapes[i], self.img_offsets[i] = im.shape, offset
+                offset += im.size
+                ims.append(im.reshape(-1))
+                b += im.nbytes
+                pbar.desc = f"{self.prefix}Caching images ({b / gb:.1f}GB RAM)"
+            pbar.close()
+        self.img_cache = np.concatenate(ims)  # single contiguous buffer shared read-only across forked workers
+        self.ims = [None] * self.ni  # release per-image arrays; views now come from img_cache
 
     def cache_images_to_disk(self, i: int) -> None:
         """Save an image as an *.npy file for faster loading."""
@@ -444,13 +369,7 @@ class BaseDataset(Dataset):
         return True
 
     def check_cache_ram(self, safety_margin: float = 0.5) -> bool:
-        """Check if there's enough RAM to cache the dataset images, disabling the cache if not.
-
-        Thin wrapper over the shared ``data.utils.check_cache_ram`` (``scale=True`` because detection caches
-        resized images). Passes ``_resized_hw`` so the estimate uses the same resize geometry the cache build
-        uses (``_cache_rect_mode``/``_cache_resize_short``), not a fixed long-side assumption — otherwise
-        short-side (``SemanticDataset``) or square-stretch (``rect_mode=False``) caches are under-budgeted.
-        Kept as a method so the ``self.cache = None`` side effect and subclass overrides remain.
+        """Check if there's enough RAM for caching images.
 
         Args:
             safety_margin (float): Safety margin factor for RAM calculation.
@@ -458,17 +377,25 @@ class BaseDataset(Dataset):
         Returns:
             (bool): True if there's enough RAM, False otherwise.
         """
-        ok = _check_cache_ram(
-            self.im_files,
-            self.prefix,
-            safety_margin,
-            scale=True,
-            sizer=lambda h0, w0: self._resized_hw(h0, w0, self._cache_rect_mode, self._cache_resize_short),
-            flags=self.cv2_flag,  # sample with the dataset's decode flags so channel count matches the cache
-        )
-        if not ok:
+        b, gb = 0, 1 << 30  # bytes of cached images, bytes per gigabytes
+        n = min(self.ni, 30)  # extrapolate from 30 random images
+        for _ in range(n):
+            im = imread(random.choice(self.im_files))  # sample image
+            if im is None:
+                continue
+            ratio = self.imgsz / max(im.shape[0], im.shape[1])  # max(h, w)  # ratio
+            b += im.nbytes * ratio**2
+        mem_required = b * self.ni / n * (1 + safety_margin)  # GB required to cache dataset into RAM
+        mem = __import__("psutil").virtual_memory()
+        if mem_required > mem.available:
             self.cache = None
-        return ok
+            LOGGER.warning(
+                f"{self.prefix}{mem_required / gb:.1f}GB RAM required to cache images "
+                f"with {int(safety_margin * 100)}% safety margin but only "
+                f"{mem.available / gb:.1f}/{mem.total / gb:.1f}GB available, not caching images"
+            )
+            return False
+        return True
 
     def set_rectangle(self) -> None:
         """Sort images by aspect ratio and set batch shapes for rectangular training."""

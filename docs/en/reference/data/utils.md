@@ -24,14 +24,6 @@ keywords: Ultralytics, dataset utils, data handling, image verification, Python,
 
 <br><br><hr><br>
 
-## ::: ultralytics.data.utils.check_cache_ram
-
-<br><br><hr><br>
-
-## ::: ultralytics.data.utils.cache_images_to_ram
-
-<br><br><hr><br>
-
 ## ::: ultralytics.data.utils.get_hash
 
 <br><br><hr><br>

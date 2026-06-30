@@ -579,27 +579,9 @@ class YOLOAnomalyV2Model(DetectionModel):
         # (HeatmapFiLMFusion, global residual grouped-FiLM), or 'queryfilm'
         # (QueryFiLMFusion, K learned queries). Exactly one is instantiated.
         fusion_mode = str(v2_cfg.get("fusion_mode", "bias")).lower()
-        if fusion_mode not in {"bias", "soft", "film", "queryfilm"}:
-            raise ValueError(f"fusion_mode must be bias|soft|film|queryfilm, got {fusion_mode!r}")
-        film_groups = int(v2_cfg.get("film_groups", 16))
-        film_group_dim = int(v2_cfg.get("film_group_dim", 16))
-        film_alpha_init = float(v2_cfg.get("film_alpha_init", 1e-4))
-        film_gamma_bound = bool(v2_cfg.get("film_gamma_bound", False))
-        # QueryFiLM knobs (v0): K queries, query embed dim, group count, identity-at-init
-        # alpha, the three aux-loss gains, and the gauss sigma for per-instance GT masks
-        # (independent of the fusion-prior sigma_factor above).
-        queryfilm_k = int(v2_cfg.get("queryfilm_k", 16))
-        queryfilm_dim = int(v2_cfg.get("queryfilm_dim", 128))
-        queryfilm_groups = int(v2_cfg.get("queryfilm_groups", 16))
-        queryfilm_alpha_init = float(v2_cfg.get("queryfilm_alpha_init", 0.0))
-        queryfilm_softmax = bool(v2_cfg.get("queryfilm_softmax", False))
-        queryfilm_pos = bool(v2_cfg.get("queryfilm_pos", False))  # fixed 2D sincos pos-enc on attn keys
-        self.queryfilm_w_mask = float(v2_cfg.get("queryfilm_w_mask", 0.05))
-        self.queryfilm_w_obj = float(v2_cfg.get("queryfilm_w_obj", 0.10))
-        self.queryfilm_w_overlap = float(v2_cfg.get("queryfilm_w_overlap", 0.01))
-        # Foreground/background (null-slot) supervision gain; 0.0 = off (default, unchanged v0/softmax).
-        self.queryfilm_w_fg = float(v2_cfg.get("queryfilm_w_fg", 0.0))
-        queryfilm_gt_sigma = float(v2_cfg.get("queryfilm_gt_sigma", 0.15))
+        if fusion_mode != "bias":
+            raise ValueError(f"fusion_mode must be bias, got {fusion_mode!r}")
+
         # Two-head (auxiliary prior head): when True, duplicate the Detect head. head_a
         # (self.model[-1]) consumes the RAW PAN features (no prior) -- the deployable honest
         # detector; head_b consumes the prior-fused features. Both are trained jointly so the
@@ -638,41 +620,7 @@ class YOLOAnomalyV2Model(DetectionModel):
 
         # Anomaly-side modules (live outside self.model so they are not in the Sequential)
         self.mask_renderer = BboxMaskRenderer(mask_size=mask_size, mode=mask_mode, sigma_factor=sigma_factor)
-        # Soft-hint fusion: 'bias' adds a bounded per-pixel bias (broadcast) to PAN
-        # features; 'film' modulates a projected copy via residual grouped-FiLM. Both
-        # start near-identity (beta / alpha init ~0) so training begins as vanilla YOLO.
-        # Exactly one module is created so DDP sees no unused parameters.
-        self.fusion_mode = fusion_mode
-        if fusion_mode == "film":
-            self.heatmap_bias_fusion = None
-            self.heatmap_film_fusion = HeatmapFiLMFusion(
-                pan_channels=pan_channels,
-                num_groups=film_groups,
-                group_dim=film_group_dim,
-                alpha_init=film_alpha_init,
-                gamma_bound=film_gamma_bound,
-            )
-            self.queryfilm_fusion = None
-        elif fusion_mode == "queryfilm":
-            # Modulates P3 (pan_channels[0]) only; P4/P5 pass through unchanged in v0.
-            self.heatmap_bias_fusion = None
-            self.heatmap_film_fusion = None
-            self.queryfilm_fusion = QueryFiLMFusion(
-                p3_channels=pan_channels[0],
-                num_queries_k=queryfilm_k,
-                query_dim=queryfilm_dim,
-                num_groups=queryfilm_groups,
-                alpha_init=queryfilm_alpha_init,
-                softmax_attn=queryfilm_softmax,
-                pos_enc=queryfilm_pos,
-            )
-        else:
-            if fusion_mode == "soft":
-                self.heatmap_bias_fusion = HeatmapSoftFusion(num_scales=detect.nl)
-            else:
-                self.heatmap_bias_fusion = HeatmapBiasFusion(num_scales=detect.nl)
-            self.heatmap_film_fusion = None
-            self.queryfilm_fusion = None
+        self.heatmap_bias_fusion = HeatmapBiasFusion(num_scales=detect.nl)
 
         # Two-head: head_b is a deep copy of the Detect head (identical weights + strides at init,
         # so with the near-identity fusion both heads start ~ vanilla YOLO). Registered as a
@@ -684,16 +632,6 @@ class YOLOAnomalyV2Model(DetectionModel):
 
         # Spatial resolution of the rendered/mask prior.
         self.mask_size = mask_size
-
-        # QueryFiLM: per-instance gauss GT renderer (its own sigma) for Hungarian matching,
-        # and a buffer stashing the deployable forward's aux dict for the training loss.
-        self.query_gt_renderer = (
-            BboxMaskRenderer(mask_size=mask_size, mode="gauss", sigma_factor=queryfilm_gt_sigma)
-            if fusion_mode == "queryfilm"
-            else None
-        )
-        self._qf_aux_buf = None  # stashed by _predict_once, consumed by loss()
-        self._qf_capture = False  # diagnostics: force aux capture in eval (scripts/queryfilm_diag.py)
 
         self.p_drop = float(p_drop)
         self.mask_augmenter = MaskPriorAugmenter(v2_cfg)
@@ -1069,7 +1007,6 @@ class YOLOAnomalyV2Model(DetectionModel):
         state["_bb_feats"] = {}
         for k in (
             "_last_heatmap",
-            "_qf_aux_buf",
             "_mask_bboxes_buf",
             "_mask_batch_idx_buf",
             "_external_mask_buf",
@@ -1097,8 +1034,6 @@ class YOLOAnomalyV2Model(DetectionModel):
             ("_heatmap_producer", "bank"),
             ("spatial_softmax", False),
             ("softmax_temperature", 1.0),
-            ("fusion_mode", "bias"),
-            ("heatmap_film_fusion", None),
             ("heatmap_norm", "none"),
             ("heatmap_edge_weight", False),
             ("heatmap_edge_p", 4.0),
@@ -1396,31 +1331,6 @@ class YOLOAnomalyV2Model(DetectionModel):
             det_loss, det_items = self.criterion(preds, batch)
         return det_loss, det_items
 
-    def _compute_query_film_loss(self, batch, batch_size, dtype):
-        """Four QueryFiLM aux losses, scaled like the detection components.
-
-        Returns ``(terms, items)``: ``terms`` is the batch-size-scaled vector that joins the
-        backprop sum; ``items`` is the unscaled detached vector for display. Both are length 4
-        ``[qmask, qobj, qovl, qfg]``. When no aux was stashed (mask-off / disabled forward) both are
-        zeros so the loss-vector length stays constant across the validator's double pass.
-        """
-        device = next(self.parameters()).device
-        aux, self._qf_aux_buf = self._qf_aux_buf, None
-        if aux is None:
-            # ``dtype`` matches det_loss/det_items so torch.cat works under AMP autocast.
-            zeros = torch.zeros(4, device=device, dtype=dtype)
-            return zeros, zeros
-        gt_masks = self.query_gt_renderer.render_per_instance(batch["bboxes"], batch["batch_idx"], batch_size)
-        # Only compute the fg/bg term when enabled (skips it for w_fg=0 / sigmoid models).
-        fg_pred = aux.get("fg_pred") if self.queryfilm_w_fg > 0.0 else None
-        losses = query_film_loss(aux["A"], aux["attn_logits"], aux["obj_logits"], gt_masks, fg_pred=fg_pred)
-        gains = (self.queryfilm_w_mask, self.queryfilm_w_obj, self.queryfilm_w_overlap, self.queryfilm_w_fg)
-        keys = ("mask", "obj", "overlap", "fg")
-        # Cast to det dtype (query ops may run fp16 under autocast) so the cat in loss() is safe.
-        terms = torch.stack([(g * losses[k] * batch_size).to(dtype) for g, k in zip(gains, keys)])
-        items = torch.stack([(g * losses[k]).detach().to(dtype) for g, k in zip(gains, keys)])
-        return terms, items
-
     def _predict_once(self, x, profile=False, visualize=False, embed=None):
         """Forward with heatmap-guided fusion inserted before the Detect head."""
         batch_size = x.shape[0]
@@ -1429,9 +1339,6 @@ class YOLOAnomalyV2Model(DetectionModel):
         # Clear backbone feature cache so stale _ingest_support_batch / warmup
         # features don't interfere with prior_mode="heatmap".
         self._bb_feats = {}
-        # Reset QueryFiLM aux; set only when the queryfilm fusion runs (mask active).
-        self._qf_aux_buf = None
-
         # AutoBackend's fuse() → .to() sequence can drop backbone hooks.
         # Re-install them defensively when any target layer has lost its hook.
         _layers = getattr(self, "_bb_layers", None)
@@ -1528,9 +1435,6 @@ class YOLOAnomalyV2Model(DetectionModel):
                         fused.append(p)
                         continue
                     # QueryFiLM (v0) modulates P3 (i == 0) only; P4/P5 pass through unchanged.
-                    if self.fusion_mode == "queryfilm" and i != 0:
-                        fused.append(p)
-                        continue
                     target_h, target_w = p.shape[2], p.shape[3]
                     if prior.shape[2] != target_h or prior.shape[3] != target_w:
                         m_scale = torch.nn.functional.interpolate(
@@ -1538,20 +1442,7 @@ class YOLOAnomalyV2Model(DetectionModel):
                         )
                     else:
                         m_scale = prior
-                    if self.fusion_mode == "film":
-                        # Residual grouped-FiLM: (B, C, H, W) increment, prior modulates feature.
-                        delta = self.heatmap_film_fusion(p, m_scale, i)
-                    elif self.fusion_mode == "queryfilm":
-                        # K query-driven per-region grouped-FiLM on P3. Stash aux for the
-                        # training loss (Hungarian matching happens there, not in the graph).
-                        # _qf_capture lets diagnostics read aux in eval without affecting export.
-                        if self.training or getattr(self, "_qf_capture", False):
-                            delta, self._qf_aux_buf = self.queryfilm_fusion(p, m_scale, return_aux=True)
-                        else:
-                            delta = self.queryfilm_fusion(p, m_scale, return_aux=False)
-                    else:
-                        # 1-channel additive bias in [-beta_i, +beta_i], broadcast over C.
-                        delta = self.heatmap_bias_fusion(m_scale, i)
+                    delta = self.heatmap_bias_fusion(m_scale, i)
                     # Per-sample keep mask (mask dropout): dropped samples get zero increment.
                     delta = delta * keep.to(delta.dtype).view(-1, 1, 1, 1)
                     fused.append(p + delta)

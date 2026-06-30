@@ -210,16 +210,17 @@ def torch2coreml(
     )
     if not mlmodel:
         # ML Program conversion defaults to FP16. Pin FP32 unless FP16/INT8 was requested.
-        from ultralytics.nn.modules.head import RTDETRDecoder
+        from ultralytics.nn.modules.head import DeimDecoder, RTDETRDecoder, RTDETRDecoderV2
 
         if not (fp16 or weight_int8):
             convert_kwargs["compute_precision"] = ct.precision.FLOAT32
-        elif any(isinstance(m, RTDETRDecoder) for m in model.modules()):
+        elif any(isinstance(m, (DeimDecoder, RTDETRDecoder, RTDETRDecoderV2)) for m in model.modules()):
             # RT-DETR / DEIM / RTDETRv2 decoder class logits and deformable-sampling indices drift in fp16; pin those op types to fp32.
             fp32_ops = {"linear", "gather", "gather_nd", "gather_along_axis"}
             convert_kwargs["compute_precision"] = ct.transform.FP16ComputePrecision(
                 op_selector=lambda op: op.op_type not in fp32_ops
             )
+            LOGGER.info(f"{prefix} DETR-style head detected; pinning {sorted(fp32_ops)} ops to FP32")
     ct_model = ct.convert(ts, **convert_kwargs)
     bits, mode = (8, "kmeans") if weight_int8 else (16, "linear") if fp16 else (32, None)
     if bits < 32:

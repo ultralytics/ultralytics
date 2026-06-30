@@ -44,16 +44,23 @@ _ADVANCED_PRIORS = ("cached",)
 # Bank-build knobs that live in the fit config. bb_* override the model yaml's v2_cfg defaults;
 # imgsz / max_images are build inputs (not part of the model yaml).
 FIT_KEYS = (
-    "imgsz", "max_images", "bb_layers", "bb_max_bank_size", "bb_K", "bb_proj_dim",
+    "imgsz",
+    "max_images",
+    "bb_layers",
+    "bb_max_bank_size",
+    "bb_K",
+    "bb_proj_dim",
     "bb_temperature",
-    "bb_calibration_target_score", "bb_calibration_target_quantile",
+    "bb_calibration_target_score",
+    "bb_calibration_target_quantile",
     "bb_hmap_stretch_strength",
     "bb_holdout_max",
 )
 
 # fit-key -> BackboneMemoryBank attribute it sets (bb_layers handled separately: it re-taps).
 _BB_TO_MB = {
-    "bb_max_bank_size": "max_bank_size", "bb_K": "K",
+    "bb_max_bank_size": "max_bank_size",
+    "bb_K": "K",
     "bb_temperature": "temperature",
     "bb_calibration_target_score": "calibration_target_score",
     "bb_calibration_target_quantile": "calibration_target_quantile",
@@ -61,6 +68,7 @@ _BB_TO_MB = {
     "bb_hmap_stretch_strength": "hmap_stretch_strength",
     "bb_holdout_max": "holdout_max",
 }
+
 
 def apply_bb_overrides(model, fit_args: dict) -> None:
     """Apply bb_* fit overrides onto a YOLOAnomalyV2Model + its memory bank before the bank is built.
@@ -74,8 +82,10 @@ def apply_bb_overrides(model, fit_args: dict) -> None:
     new_layers = fit_args.get("bb_layers")
     if new_layers is not None and list(new_layers) != list(model._bb_layers or []):
         new_layers = list(new_layers)
-        LOGGER.warning(f"apply_bb_overrides: bb_layers {model._bb_layers} -> {new_layers} (rebuilds bank; "
-                       f"deviating from the training layer set may shift fusion behavior)")
+        LOGGER.warning(
+            f"apply_bb_overrides: bb_layers {model._bb_layers} -> {new_layers} (rebuilds bank; "
+            f"deviating from the training layer set may shift fusion behavior)"
+        )
         for h in getattr(model, "_bb_hook_handles", []):
             h.remove()
         model._bb_hook_handles = []
@@ -89,14 +99,21 @@ def apply_bb_overrides(model, fit_args: dict) -> None:
 
 # Prior-shaping knobs set on the model before forward. Accepts canonical names and short aliases.
 _INFER_SET = {
-    "heatmap_norm": "heatmap_norm", "heatmap_smooth_kernel": "heatmap_smooth_kernel",
-    "heatmap_edge_weight": "heatmap_edge_weight", "heatmap_edge_p": "heatmap_edge_p",
-    "heatmap_edge_m": "heatmap_edge_m", "heatmap_edge_sigma": "heatmap_edge_sigma",
-    "spatial_softmax": "spatial_softmax", "softmax_temperature": "softmax_temperature",
+    "heatmap_norm": "heatmap_norm",
+    "heatmap_smooth_kernel": "heatmap_smooth_kernel",
+    "heatmap_edge_weight": "heatmap_edge_weight",
+    "heatmap_edge_p": "heatmap_edge_p",
+    "heatmap_edge_m": "heatmap_edge_m",
+    "heatmap_edge_sigma": "heatmap_edge_sigma",
+    "spatial_softmax": "spatial_softmax",
+    "softmax_temperature": "softmax_temperature",
     # short aliases
-    "heat_norm": "heatmap_norm", "heat_smooth_kernel": "heatmap_smooth_kernel",
-    "heat_edge": "heatmap_edge_weight", "heat_edge_p": "heatmap_edge_p",
-    "heat_edge_m": "heatmap_edge_m", "heat_edge_sigma": "heatmap_edge_sigma",
+    "heat_norm": "heatmap_norm",
+    "heat_smooth_kernel": "heatmap_smooth_kernel",
+    "heat_edge": "heatmap_edge_weight",
+    "heat_edge_p": "heatmap_edge_p",
+    "heat_edge_m": "heatmap_edge_m",
+    "heat_edge_sigma": "heatmap_edge_sigma",
 }
 
 
@@ -119,13 +136,6 @@ class YOLOA(Model):
             }
         }
 
-    @property
-    def is_fitted(self) -> bool:
-        """True if a non-empty memory bank is loaded (ready for prior='heatmap')."""
-        mb = getattr(self.model, "memory_bank", None)
-        bank = getattr(mb, "memory_bank", None) if mb is not None else None
-        return bank is not None and bank.numel() > 0 and bank.shape[0] > 0
-
     def fit(
         self,
         data: str | Path | list[str],
@@ -136,7 +146,6 @@ class YOLOA(Model):
         device: Any = None,
         batch: int = 8,
         fit_disc: bool | dict = False,
-        **kw: Any,
     ) -> "YOLOA":
         """Build (or load from cache) the memory bank from normal images.
 
@@ -152,7 +161,6 @@ class YOLOA(Model):
             fit_disc: If True or a dict, also fit a FeatureDiscriminatorScorer on the bank's
                 normal features (for prior="heatmap_learned" / "heatmap_fused"). A dict forwards
                 as kwargs (noise_std, steps, hidden, ...).
-            **kw: bb_* / imgsz / max_images overrides (highest priority).
 
         Returns:
             (YOLOA): self, now fitted.
@@ -163,7 +171,7 @@ class YOLOA(Model):
         if mb is None or getattr(m, "_bb_layers", None) is None:
             raise RuntimeError("model has no BackboneMemoryBank (no bb_layers in the model yaml) — cannot fit().")
 
-        fit_args = self._resolve_fit_args(self._load_cfg(cfg), kw)
+        fit_args = cfg if isinstance(cfg, dict) else YAML.load(cfg)
         data_name = name or self._derive_name(data)
         self._apply_bb_overrides(fit_args)
 
@@ -183,15 +191,22 @@ class YOLOA(Model):
             LOGGER.info(f"YOLOA.fit: loaded cached bank ({mb.memory_bank.shape[0]} vecs) <- {cache_path}")
         else:
             n = m.load_support_set(
-                data, imgsz=int(fit_args["imgsz"]), device=device, batch=batch,
+                data,
+                imgsz=int(fit_args["imgsz"]),
+                device=device,
+                batch=batch,
                 max_bank_size=fit_args.get("bb_max_bank_size"),
-                max_images=int(fit_args["max_images"] or 0), verbose=True,
+                max_images=int(fit_args["max_images"] or 0),
+                verbose=True,
                 fit_disc=fit_disc,
             )
             if cache_path is not None and n:
                 cache_path.parent.mkdir(parents=True, exist_ok=True)
-                entry = {"memory_bank": mb.memory_bank.detach().cpu(),
-                         "feature_dim": mb.feature_dim, "temperature": float(mb.temperature)}
+                entry = {
+                    "memory_bank": mb.memory_bank.detach().cpu(),
+                    "feature_dim": mb.feature_dim,
+                    "temperature": float(mb.temperature),
+                }
                 if getattr(mb, "_calibrated", False):
                     entry["_threshold"] = mb._threshold
                     entry["_compactness"] = mb._compactness
@@ -203,8 +218,9 @@ class YOLOA(Model):
         m.fit_data = data_name
         return self
 
-    def predict(self, source=None, stream: bool = False, prior: str | None = None,
-                anomaly_model: Any = None, **kwargs: Any):
+    def predict(
+        self, source=None, stream: bool = False, prior: str | None = None, anomaly_model: Any = None, **kwargs: Any
+    ):
         """Predict with an optional prior.
 
         Args:
@@ -221,8 +237,9 @@ class YOLOA(Model):
         """
         prior_mode, external_mask = self._resolve_prior(prior, anomaly_model, source, kwargs)
         self._apply_infer_overrides(kwargs)
-        return super().predict(source=source, stream=stream, prior_mode=prior_mode,
-                               external_mask=external_mask, **kwargs)
+        return super().predict(
+            source=source, stream=stream, prior_mode=prior_mode, external_mask=external_mask, **kwargs
+        )
 
     def val(self, validator=None, prior: str | None = None, **kwargs: Any):
         """Validate with an optional prior (YOLOAnomalyValidator adds image/pixel AUROC).
@@ -238,8 +255,10 @@ class YOLOA(Model):
         """
         prior_mode = None if prior is None else str(prior).lower()
         if prior_mode == "anomaly_model":
-            raise NotImplementedError("prior='anomaly_model' is predict-only for now (needs per-image "
-                                      "external heatmaps through the val dataloader).")
+            raise NotImplementedError(
+                "prior='anomaly_model' is predict-only for now (needs per-image "
+                "external heatmaps through the val dataloader)."
+            )
         self._apply_infer_overrides(kwargs)
         return super().val(validator=validator, prior_mode=prior_mode, **kwargs)
 
@@ -277,42 +296,6 @@ class YOLOA(Model):
     def _apply_bb_overrides(self, fit_args: dict) -> None:
         """Apply bb_* overrides onto the model/bank before building."""
         apply_bb_overrides(self.model, fit_args)
-
-    def resolve_fit_args(self, cfg: str | Path | dict | None = None, **kw) -> dict:
-        """Public: the fully resolved fit config (model yaml <- fit cfg <- kwargs)."""
-        return self._resolve_fit_args(self._load_cfg(cfg), kw)
-
-    def fit_id(self, cfg: str | Path | dict | None = None, **kw) -> str:
-        """8-char hash of the resolved fit config — the fit identity (same hash as the bank cache).
-
-        One fit config -> one id; any change (imgsz / bb_layers / bb_K / calibrate / ...) -> a new id.
-        Resolve with the same (cfg, kwargs) you pass to fit().
-        """
-        return self._fit_hash(self.resolve_fit_args(cfg, **kw))
-
-    def _resolve_fit_args(self, cfg_d: dict, kw: dict) -> dict:
-        """Resolve fit args with precedence: kwargs > fit cfg > model yaml v2_cfg defaults."""
-        v2 = self.model.yaml.get("anomaly_v2", {}) if isinstance(getattr(self.model, "yaml", None), dict) else {}
-        out = {}
-        for k in FIT_KEYS:
-            if kw.get(k) is not None:
-                out[k] = kw[k]
-            elif cfg_d.get(k) is not None:
-                out[k] = cfg_d[k]
-            elif k == "imgsz":
-                out[k] = v2.get("imgsz", 640)
-            elif k == "max_images":
-                out[k] = 0
-            else:
-                out[k] = v2.get(k)  # bb_* default from the model yaml (may be None)
-        return out
-
-    @staticmethod
-    def _load_cfg(cfg) -> dict:
-        """Load a fit config from a yaml path or dict (None -> {})."""
-        if cfg is None:
-            return {}
-        return dict(cfg) if isinstance(cfg, dict) else dict(YAML.load(cfg))
 
     @staticmethod
     def _fit_hash(fit_args: dict) -> str:

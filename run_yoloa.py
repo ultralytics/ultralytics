@@ -28,7 +28,8 @@ import torch
 import cv2
 
 from ultralytics.models.yolo.anomaly_v2.val import MVTEC_CATEGORIES, run_mvtec_ood_eval
-from ultralytics.utils import LOGGER
+from ultralytics.utils import LOGGER, YAML
+from ultralytics.utils.checks import check_yaml
 from ultralytics.yoloa import YOLOA
 from yoloa_utils import (
     CAT_GROUPS,
@@ -37,7 +38,6 @@ from yoloa_utils import (
     good_dir,
     model_id_from_ckpt,
     save_heatmap,
-    load_fit_yaml,
     resolve_infer,
     txt_to_mask,
     load_mask_tensor,
@@ -114,9 +114,6 @@ def main():
     )
     args = ap.parse_args()
 
-    # -- Load fit YAML (single source of truth for all fit params) -------------
-    yaml, fit_cfg_path = load_fit_yaml(args.fit_cfg)
-
     # -- Resolve priors (comma-separated, each → val_mode) -----------------
     prior_list = [p.strip() for p in args.prior.split(",")]
     val_modes = []
@@ -138,7 +135,8 @@ def main():
     # Single-prior name for predict/visualize mode (first prior in list)
     predict_prior = prior_list[0]
 
-    infer = resolve_infer(yaml)
+    fit_args = YAML.load(check_yaml(args.fit_cfg))
+    infer = resolve_infer(fit_args)
     device = args.device or ("mps" if torch.backends.mps.is_available() else "cpu")
     root = Path(args.mvtec_root)
     assert root is not None, "MVTec root not found (pass --mvtec-root or set MVTEC_ROOT)"
@@ -165,12 +163,9 @@ def main():
             _h.hm_gate_blend = args.hm_gate_blend
         print(f"  hm_gate_blend: {args.hm_gate_blend} (heatmap conf gate ON)", flush=True)
 
-    fit_args = m.resolve_fit_args(cfg=fit_cfg_path)
     imgsz = int(fit_args["imgsz"])
-
     mid = model_id_from_ckpt(args.ckpt)
-    fid = Path(fit_cfg_path).stem if fit_cfg_path else m.fit_id(cfg=fit_cfg_path)
-    out_root = Path(args.out) if args.out else Path("runs/temp/yoloa") / mid / fid
+    out_root = Path(args.out) if args.out else Path("runs/temp/yoloa") / mid / Path(args.fit_cfg).stem
     bank_cache = args.bank_cache or str(out_root / "banks")
 
     fit_disc = scorer_kwargs if needs_disc else False
@@ -195,7 +190,7 @@ def main():
         m.fit(
             str(gd),
             name=cat,
-            cfg=fit_cfg_path,
+            cfg=fit_args,
             batch=args.batch,
             device=device,
             cache=bank_cache,

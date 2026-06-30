@@ -75,21 +75,6 @@ def model_id_from_ckpt(ckpt: str) -> str:
 
 # -- Fit YAML resolution ------------------------------------------------------
 
-
-def load_fit_yaml(cfg_path: str | None) -> tuple[dict, str | None]:
-    """Load and resolve the fit YAML; returns (dict, resolved_path)."""
-    if not cfg_path:
-        return {}, None
-    p = Path(cfg_path)
-    if not p.is_file() and not p.is_absolute():
-        alt = Path(__file__).resolve().parent / "ultralytics" / "cfg" / p.name
-        if alt.is_file():
-            p = alt
-    if p.is_file():
-        return dict(YAML.load(str(p))), str(p)
-    return {}, str(p)
-
-
 def resolve_infer(yaml: dict) -> dict:
     """Extract prior-shaping inference knobs from YAML."""
     infer = {}

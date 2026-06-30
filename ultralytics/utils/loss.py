@@ -1197,6 +1197,7 @@ class E2EDetectLoss:
         self.one2many = v8DetectionLoss(model, tal_topk=10)
         self.one2one = v8DetectionLoss(model, tal_topk=7 if self.o2f else 1)
         self.one2one.assigner.o2f = self.o2f
+        self.one2one.assigner.o2f_iou = getattr(model.args, "o2f_iou", "amb_max")
         self.updates = 0
         self.o2f_max_t = 0.6
         self.o2f_min_t = 0.2
@@ -1238,6 +1239,7 @@ class E2ELoss:
             self.one2many = loss_fn(model, tal_topk=10)
         self.one2one = loss_fn(model, tal_topk=7, tal_topk2=1)
         self.one2one.assigner.o2f = self.o2f
+        self.one2one.assigner.o2f_iou = getattr(model.args, "o2f_iou", "amb_max")
         if not getattr(model.args, "vfl_o2m", True):
             self.one2many.vfl = None  # restrict Varifocal Loss to the one2one branch
         self.updates = 0

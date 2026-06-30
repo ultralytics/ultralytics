@@ -107,6 +107,7 @@ vfl_o2m: True # (bool) when vfl=True, also apply Varifocal Loss to the one2many 
 vfl_norm: False # (bool) when vfl=True, normalize Varifocal Loss by positive count instead of target score sum
 vfl_hard: False # (bool) when vfl=True, regress positives toward hard 1.0 target instead of the IoU soft target
 o2f: False # (bool) use one-to-few assignment for the one2one branch
+o2f_iou: amb_max # (str) when o2f=True, ambiguous-anchor cls-target IoU: 'amb_max' (ambiguous-set max) or 'self' (own IoU)
 o2m: True # (bool) train the auxiliary one2many head (False = train the one2one branch only)
 o24: False # (bool) aux head uses o2o-style 1:1 matching on 4x-duplicated GTs instead of one2many
 dfl: 1.5 # (float) distribution focal loss gain

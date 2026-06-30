@@ -65,6 +65,7 @@ theme:
     - announce.dismiss
     - navigation.indexes
     - navigation.sections # groups top-level sections instead of expanding all
+    - navigation.breadcrumbs
     - content.tabs.link # all content tabs with the same label change simultaneously
     # - search.highlight
     # - search.share

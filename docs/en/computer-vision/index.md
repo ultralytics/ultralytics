@@ -558,9 +558,7 @@ Public infrastructure and retail environments use computer vision to analyse how
 
 ## The Integration of Edge Computing and Computer Vision
 
-<video autoplay loop muted playsinline style="width:100%;border-radius:12px;margin:1.5rem 0;display:block;">
-  <source src="https://cdn.jsdelivr.net/gh/miles-deans-ultralytics/assets@main/docs/edge-computing-loop.mp4" type="video/mp4">
-</video>
+<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/nvidia-jetson-ecosystem.avif" alt="Ultralytics YOLO on NVIDIA Jetson ecosystem for edge deployment" width="1280" loading="lazy" style="width:100%;height:auto;border-radius:12px;margin:1.5rem 0;display:block;">
 
 ### Reducing Latency for Real-Time Processing
 
@@ -601,6 +599,8 @@ Vision Transformers are reshaping what is possible in computer vision, offering 
 Depth-sensing cameras and LiDAR are enabling systems to perceive volume and distance with precision, moving beyond flat image analysis. [Distance calculation](../guides/distance-calculation.md) between detected objects is already an established pattern in production deployments. This underpins spatial computing — where digital information is overlaid on the physical world through augmented reality, enabling applications like AR-guided maintenance and real-time structural mapping.
 
 ## Getting Started with Computer Vision
+
+Ready to build something? The [Computer Vision Projects](projects/index.md) library has 25+ hands-on examples from beginner to advanced, each with working Python code and no training required to start.
 
 ### Build Your First Model with YOLO
 

@@ -43,12 +43,12 @@ End-to-end single-image inference for the official YOLO26n Android LiteRT assets
 
 | Model        | Task     | size<br><sup>(pixels)</sup> | CPU<br><sup>w8a32 LiteRT<br>(ms)</sup> | GPU Adreno<br><sup>w8a32 LiteRT<br>(ms)</sup> |
 | ------------ | -------- | --------------------------- | -------------------------------------- | --------------------------------------------- |
-| YOLO26n      | Detect   | 640                         | 87.1<br><sup>7.1 / 77.4 / 2.7</sup>    | **18.3**<br><sup>6.8 / 8.4 / 3.0</sup>        |
-| YOLO26n-seg  | Segment  | 640                         | 129.0<br><sup>7.3 / 109.0 / 12.8</sup> | **44.7**<br><sup>7.8 / 22.7 / 14.2</sup>      |
-| YOLO26n-sem  | Semantic | 640                         | 99.0<br><sup>7.0 / 76.4 / 15.7</sup>   | **55.3**<br><sup>7.6 / 30.9 / 16.8</sup>      |
-| YOLO26n-cls  | Classify | 224                         | 8.1<br><sup>1.2 / 6.1 / 0.8</sup>      | **4.3**<br><sup>0.8 / 1.9 / 1.6</sup>         |
-| YOLO26n-pose | Pose     | 640                         | 102.4<br><sup>7.4 / 92.4 / 2.5</sup>   | **21.1**<br><sup>7.8 / 9.9 / 3.4</sup>        |
-| YOLO26n-obb  | OBB      | 640                         | 90.9<br><sup>7.7 / 81.3 / 1.9</sup>    | **17.6**<br><sup>7.7 / 8.5 / 1.5</sup>        |
+| YOLO26n      | Detect   | 640                         | 87.1<br><sup>7.1 / 77.4 / 2.7</sup>    | **17.4**<br><sup>6.2 / 8.6 / 2.6</sup>        |
+| YOLO26n-seg  | Segment  | 640                         | 129.0<br><sup>7.3 / 109.0 / 12.8</sup> | **43.4**<br><sup>7.7 / 21.9 / 13.7</sup>      |
+| YOLO26n-sem  | Semantic | 640                         | 99.0<br><sup>7.0 / 76.4 / 15.7</sup>   | **59.4**<br><sup>7.5 / 34.4 / 17.5</sup>      |
+| YOLO26n-cls  | Classify | 224                         | 8.1<br><sup>1.2 / 6.1 / 0.8</sup>      | **4.9**<br><sup>1.7 / 2.0 / 1.3</sup>         |
+| YOLO26n-pose | Pose     | 640                         | 102.4<br><sup>7.4 / 92.4 / 2.5</sup>   | **24.0**<br><sup>9.1 / 10.4 / 4.5</sup>       |
+| YOLO26n-obb  | OBB      | 640                         | 90.9<br><sup>7.7 / 81.3 / 1.9</sup>    | **18.4**<br><sup>7.7 / 8.6 / 2.0</sup>        |
 
 - **Speed** values are **single-image burst latencies** — the mean of 15 runs after 3 warmup runs on `bus.jpg`, measured with the Flutter plugin's on-device benchmark harness in profile mode. The full task suite runs back-to-back, so the CPU-bound preprocessing stage reflects sustained operation (a thermally rested single-task measurement is lower); the GPU/CPU inference stage is the steady-state compute cost.
 - The LiteRT export traces the PyTorch model directly, producing an **NCHW** `.tflite` with a float input — the GPU delegate compiles the whole graph (all six tasks run on the Adreno GPU here), and `w8a32` needs no calibration data.

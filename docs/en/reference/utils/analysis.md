@@ -36,6 +36,10 @@ keywords: Ultralytics, image property analysis, label quality, ObjectLab, correl
 
 <br><br><hr><br>
 
+## ::: ultralytics.utils.analysis._objectlab_score_dict
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.analysis.compute_objectlab_scores
 
 <br><br><hr><br>

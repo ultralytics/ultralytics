@@ -220,10 +220,13 @@ class DetectionValidator(BaseValidator):
                     "gt_bboxes": gt_xyxy_np,
                     "gt_cls": cls,
                 }
-                if iou_matrix is not None:
-                    extras.update(
-                        compute_objectlab_scores(iou_matrix, pred_xyxy_np, pred_cls_np, pred_conf_np, gt_xyxy_np, cls)
-                    )
+                # _process_batch omits iou_matrix when either side is empty; rebuild the (n_gt, n_pred) shape so empty-GT
+                # images with confident preds still get scored as likely-overlooked annotations.
+                if iou_matrix is None:
+                    iou_matrix = np.zeros((cls.shape[0], pred_cls_np.shape[0]))
+                extras.update(
+                    compute_objectlab_scores(iou_matrix, pred_xyxy_np, pred_cls_np, pred_conf_np, gt_xyxy_np, cls)
+                )
                 self.metrics.box.image_metrics[im_name].update(extras)
             # Evaluate
             if self.args.plots:

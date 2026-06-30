@@ -181,3 +181,18 @@ def test_objectlab_swap_drops_quality():
         gt_cls=np.array([0]),
     )
     assert out["swap_score"] < 0.1, f"expected low swap score, got {out['swap_score']}"
+
+
+def test_objectlab_empty_labels_flag_overlooked():
+    """An empty-label image with a high-confidence prediction scores as likely-overlooked (low quality)."""
+    out = compute_objectlab_scores(
+        iou=np.zeros((0, 1)),
+        pred_bb=np.array([[10, 10, 50, 50]], dtype=np.float32),
+        pred_cls=np.array([0]),
+        pred_conf=np.array([0.99]),
+        gt_bb=np.zeros((0, 4), dtype=np.float32),
+        gt_cls=np.zeros(0),
+    )
+    assert out["overlooked_score"] < 0.1, f"expected low overlooked score, got {out['overlooked_score']}"
+    assert out["badloc_score"] == 1.0 and out["swap_score"] == 1.0
+    assert out["label_quality_score"] < 0.5, f"expected low label quality, got {out['label_quality_score']}"

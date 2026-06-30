@@ -770,6 +770,24 @@ def _worst_record_score(rec: dict) -> tuple[float, float]:
     return (f1, -float(rec.get("anomaly_score", 0.0)))
 
 
+def _objectlab_score_dict(overlooked: float, badloc: float, swap: float) -> dict[str, float]:
+    """Clip the 3 ObjectLab subtype scores to [0, 1] and append their weighted geometric mean as label_quality_score."""
+    w = 1.0 / 3.0
+    lq = float(
+        np.exp(
+            w * np.log(_OBJECTLAB_TINY + overlooked)
+            + w * np.log(_OBJECTLAB_TINY + badloc)
+            + w * np.log(_OBJECTLAB_TINY + swap)
+        )
+    )
+    return {
+        "overlooked_score": float(np.clip(overlooked, 0.0, 1.0)),
+        "badloc_score": float(np.clip(badloc, 0.0, 1.0)),
+        "swap_score": float(np.clip(swap, 0.0, 1.0)),
+        "label_quality_score": float(np.clip(lq, 0.0, 1.0)),
+    }
+
+
 def compute_objectlab_scores(
     iou: np.ndarray,
     pred_bb: np.ndarray,
@@ -795,8 +813,15 @@ def compute_objectlab_scores(
     pred_cls = pred_cls.astype(int)
     gt_cls = gt_cls.astype(int)
     n_gt, n_pred = gt_bb.shape[0], pred_bb.shape[0]
-    if n_pred == 0 or n_gt == 0:
+    if n_pred == 0:
         return {k: float("nan") for k in _OBJECTLAB_PROPERTIES}
+    if n_gt == 0:
+        # Empty labels with predictions: every high-confidence pred is a likely overlooked (missing) annotation.
+        keep = pred_conf >= _OBJECTLAB_HIGH_PROB
+        overlooked = (
+            _softmin1d(_OBJECTLAB_TINY * (1.0 - pred_conf[keep]), _OBJECTLAB_TEMPERATURE) if keep.any() else 1.0
+        )
+        return _objectlab_score_dict(overlooked, 1.0, 1.0)
 
     gt_cx, gt_cy = (gt_bb[:, 0] + gt_bb[:, 2]) / 2, (gt_bb[:, 1] + gt_bb[:, 3]) / 2
     pr_cx, pr_cy = (pred_bb[:, 0] + pred_bb[:, 2]) / 2, (pred_bb[:, 1] + pred_bb[:, 3]) / 2
@@ -832,20 +857,7 @@ def compute_objectlab_scores(
     swap = _softmin1d(swap_per_box, _OBJECTLAB_TEMPERATURE)
 
     # label_quality_score: weighted geometric mean of the three subtype scores (1/3 each).
-    w = 1.0 / 3.0
-    lq = float(
-        np.exp(
-            w * np.log(_OBJECTLAB_TINY + overlooked)
-            + w * np.log(_OBJECTLAB_TINY + badloc)
-            + w * np.log(_OBJECTLAB_TINY + swap)
-        )
-    )
-    return {
-        "overlooked_score": float(np.clip(overlooked, 0.0, 1.0)),
-        "badloc_score": float(np.clip(badloc, 0.0, 1.0)),
-        "swap_score": float(np.clip(swap, 0.0, 1.0)),
-        "label_quality_score": float(np.clip(lq, 0.0, 1.0)),
-    }
+    return _objectlab_score_dict(overlooked, badloc, swap)
 
 
 def _softmin1d(scores: np.ndarray, T: float) -> float:

@@ -146,7 +146,8 @@ For detailed instructions, see our [Ultralytics Installation guide](../quickstar
     ```bash
     sudo apt update
     sudo apt install -y metis-dkms=1.5.5
-    sudo rmmod metis; sudo modprobe metis
+    sudo rmmod metis
+    sudo modprobe metis
     ```
 
     Then re-run `axdevice` to confirm the device is detected.

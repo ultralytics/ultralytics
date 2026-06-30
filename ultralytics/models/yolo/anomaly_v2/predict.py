@@ -35,7 +35,6 @@ class YOLOAnomalyPredictorBase:
         prior_mode = overrides.pop("prior_mode", None) if isinstance(overrides, dict) else None
         super().__init__(cfg=cfg, overrides=overrides, _callbacks=_callbacks)
         self.prior_mode = prior_mode
-        self.bbox_prompt: tuple[torch.Tensor, torch.Tensor] | None = None
         self.external_mask: torch.Tensor | None = None
 
     def preprocess(self, im):
@@ -51,9 +50,6 @@ class YOLOAnomalyPredictorBase:
                         m.set_external_mask_once(self.external_mask.to(device))
                     elif hasattr(m, "_external_mask_buf"):
                         m._external_mask_buf = self.external_mask.to(device)
-                elif self.bbox_prompt is not None:
-                    bb, bi = self.bbox_prompt
-                    m.set_mask_input(bb.to(device), bi.to(device))
                 elif self.prior_mode is None:
                     # Legacy: no prompt → passthrough
                     m.disable_mask_once()

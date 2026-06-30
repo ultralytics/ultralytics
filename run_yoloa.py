@@ -148,18 +148,18 @@ def main():
     else:
         cats = [args.cat]
 
-    m = YOLOA(args.ckpt)
+    model = YOLOA(args.ckpt)
 
     if args.refine_blend > 0.0:
         assert args.refiner, "--refine-blend > 0 requires --refiner <weights.pt>"
-        m.model.set_heatmap_refiner(args.refiner, blend=args.refine_blend)
+        model.model.set_heatmap_refiner(args.refiner, blend=args.refine_blend)
         print(f"  heatmap refiner: {args.refiner} (blend={args.refine_blend})", flush=True)
 
     # Per-anchor heatmap confidence gate: p_anom *= blend + (1-blend)*heatmap_at_anchor.
     # blend=1 is off (identity); blend<1 suppresses low-heatmap grid cells.
     # The heatmap is passed as head(..., heatmap=prior) — clean graph input, ONNX-friendly.
     if args.hm_gate_blend < 1.0:
-        for _h in [m.model.model[-1]] + ([m.model.head_b] if getattr(m.model, "two_head", False) else []):
+        for _h in [model.model.model[-1]] + ([model.model.head_b] if getattr(model.model, "two_head", False) else []):
             _h.hm_gate_blend = args.hm_gate_blend
         print(f"  hm_gate_blend: {args.hm_gate_blend} (heatmap conf gate ON)", flush=True)
 
@@ -176,7 +176,7 @@ def main():
         f"| cats({len(cats)}): {', '.join(cats)}",
         flush=True,
     )
-    print(f"  model: {type(m.model).__name__}, fusion_mode={getattr(m.model, 'fusion_mode', '?')}", flush=True)
+    print(f"  model: {type(model.model).__name__}, fusion_mode={getattr(model.model, 'fusion_mode', '?')}", flush=True)
     print(f"  out: {out_root}  |  bank-cache: {bank_cache}", flush=True)
     if needs_disc:
         print(f"  scorer: {scorer_kwargs}  fuse={scorer_fuse}", flush=True)
@@ -187,7 +187,7 @@ def main():
         if not gd.is_dir():
             LOGGER.warning(f"[{ci}/{len(cats)}] {cat}: no train dir at {gd}; skipping")
             continue
-        m.fit(
+        model.fit(
             str(gd),
             name=cat,
             cfg=fit_args,
@@ -202,7 +202,7 @@ def main():
             out.mkdir(parents=True, exist_ok=True)
             samples = collect_test_images(root / cat / "test", args.n_per_cat)
             for img, label in samples:
-                r = m.predict(
+                r = model.predict(
                     img,
                     prior=predict_prior,
                     imgsz=imgsz,
@@ -215,7 +215,7 @@ def main():
                 )[0]
                 stem = f"{label}__{Path(img).stem}"
                 cv2.imwrite(str(out / f"{stem}__pred.jpg"), r.plot())
-                save_heatmap(m.model, img, out / f"{stem}__heat.jpg")
+                save_heatmap(model.model, img, out / f"{stem}__heat.jpg")
             print(f"[{ci}/{len(cats)}] {cat}: {len(samples)} predictions -> {out}", flush=True)
         elif args.mode in ("visualize", "vis"):
             out = out_root / "visualize" / cat
@@ -242,10 +242,10 @@ def main():
                 h, w = original.shape[:2]
                 gt_mask = txt_to_mask(str(Path(img).with_suffix(".txt")), h, w)
                 mask_tensor = load_mask_tensor(gt_mask, imgsz)
-                none_pred, n_none, _ = run_prior_viz(m, img, "none", **pkw)
-                seg_pred, n_seg, seg_hmap = run_prior_viz(m, img, "segment", **pkw)
-                heat_pred, n_heat, heat_hmap = run_prior_viz(m, img, "heatmap", **pkw, **infer)
-                mask_pred, n_mask, _ = run_prior_viz(m, img, "mask", external_mask=mask_tensor, **pkw)
+                none_pred, n_none, _ = run_prior_viz(model, img, "none", **pkw)
+                seg_pred, n_seg, seg_hmap = run_prior_viz(model, img, "segment", **pkw)
+                heat_pred, n_heat, heat_hmap = run_prior_viz(model, img, "heatmap", **pkw, **infer)
+                mask_pred, n_mask, _ = run_prior_viz(model, img, "mask", external_mask=mask_tensor, **pkw)
                 pre = f"{source}_{label}__{Path(img).stem}"
                 save_compare_grid(
                     original=original,
@@ -267,7 +267,7 @@ def main():
             print(f"[{ci}/{len(cats)}] {cat}: {n_test} test + {n_tr} train grids -> {out}", flush=True)
         else:  # val
             cat_rows = run_mvtec_ood_eval(
-                m.model,
+                model.model,
                 root,
                 categories=[cat],
                 modes=tuple(val_modes),

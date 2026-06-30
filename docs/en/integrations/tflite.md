@@ -45,16 +45,18 @@ TFLite models offer a wide range of key features that enable on-device machine l
 
     These TFLite numbers are kept as a **historical before/after record** for the onnx2tf-TFLite → LiteRT migration: the legacy onnx2tf **INT8 TFLite** export below versus the new **[LiteRT](litert.md) w8a32** export (see the [LiteRT Measured Performance table](litert.md#measured-performance)). They are shared with the Google LiteRT team to show where the new litert-torch format still regresses against the format it replaced — see [Format regressions](#format-regressions-vs-litert) below.
 
-End-to-end single-image inference for the official YOLO26n **legacy onnx2tf INT8 TFLite** assets (NHWC, input `images`) on a Xiaomi 17 (Qualcomm Snapdragon 8 Elite Gen 5, SM8850), run on LiteRT 2.x and measured through the [Ultralytics Flutter plugin](https://github.com/ultralytics/yolo-flutter-app). Each cell shows the **total time** (preprocessing + inference + postprocessing) with the per-stage split beneath it.
+Per-task before/after on the Adreno GPU of a Xiaomi 17 (Qualcomm Snapdragon 8 Elite Gen 5, SM8850), measured through the [Ultralytics Flutter plugin](https://github.com/ultralytics/yolo-flutter-app): the legacy onnx2tf **INT8 TFLite** assets (NHWC, input `images`) versus the new **w8a32 LiteRT** assets (NCHW, input `args_0`), both run on LiteRT 2.x in the same back-to-back sweep at the shipped Android `imgsz`. Each cell is the **total time** (preprocessing + inference + postprocessing) with the per-stage split beneath it; both formats compiled fully on the GPU.
 
-| Model        | Task     | size<br><sup>(pixels)</sup> | CPU<br><sup>INT8 TFLite<br>(ms)</sup> | GPU Adreno<br><sup>INT8 TFLite<br>(ms)</sup> |
-| ------------ | -------- | --------------------------- | ------------------------------------- | -------------------------------------------- |
-| YOLO26n      | Detect   | 640                         | 53.3<br><sup>3.6 / 47.4 / 2.4</sup>   | **17.2**<br><sup>3.6 / 9.1 / 4.5</sup>       |
-| YOLO26n-seg  | Segment  | 640                         | 76.0<br><sup>3.6 / 64.7 / 7.7</sup>   | **23.9**<br><sup>3.6 / 11.8 / 8.6</sup>      |
-| YOLO26n-sem  | Semantic | 1024                        | 66.6<br><sup>3.6 / 46.3 / 16.8</sup>  | **37.7**<br><sup>3.6 / 17.4 / 16.7</sup>     |
-| YOLO26n-cls  | Classify | 224                         | 5.2<br><sup>0.8 / 4.0 / 0.5</sup>     | **4.5**<br><sup>1.6 / 2.2 / 0.7</sup>        |
-| YOLO26n-pose | Pose     | 640                         | 57.7<br><sup>3.5 / 52.4 / 1.8</sup>   | **15.2**<br><sup>3.6 / 9.7 / 1.9</sup>       |
-| YOLO26n-obb  | OBB      | 1024                        | 50.3<br><sup>3.6 / 45.4 / 1.3</sup>   | **13.9**<br><sup>3.8 / 8.2 / 1.8</sup>       |
+| Model        | Task     | size<br><sup>(pixels)</sup> | Before<br><sup>onnx2tf INT8 TFLite<br>(ms)</sup> | After<br><sup>w8a32 LiteRT<br>(ms)</sup> |
+| ------------ | -------- | --------------------------- | ------------------------------------------------ | ---------------------------------------- |
+| YOLO26n      | Detect   | 640                         | 18.8<br><sup>7.8 / 8.3 / 2.7</sup>               | **17.4**<br><sup>6.2 / 8.6 / 2.6</sup>   |
+| YOLO26n-seg  | Segment  | 640                         | 45.2<br><sup>7.8 / 22.9 / 14.4</sup>             | **43.4**<br><sup>7.7 / 21.9 / 13.7</sup> |
+| YOLO26n-sem  | Semantic | 640                         | **50.5**<br><sup>6.5 / 27.7 / 16.3</sup>         | 59.4<br><sup>7.5 / 34.4 / 17.5</sup>     |
+| YOLO26n-cls  | Classify | 224                         | 5.9<br><sup>1.5 / 2.0 / 2.5</sup>                | **4.9**<br><sup>1.7 / 2.0 / 1.3</sup>    |
+| YOLO26n-pose | Pose     | 640                         | **22.5**<br><sup>7.8 / 9.8 / 4.8</sup>           | 24.0<br><sup>9.1 / 10.4 / 4.5</sup>      |
+| YOLO26n-obb  | OBB      | 640                         | 19.0<br><sup>7.7 / 8.4 / 2.9</sup>               | **18.4**<br><sup>7.7 / 8.6 / 2.0</sup>   |
+
+w8a32 LiteRT matches or beats the legacy onnx2tf INT8 format on four of six tasks; **semantic is the clear regression** (+9 ms, from the NCHW FP32-activation inference and host-side argmax) and pose is ~1.5 ms slower. The legacy onnx2tf models run unchanged on LiteRT 2.x alongside the new NCHW exports.
 
 ### Format regressions vs LiteRT
 

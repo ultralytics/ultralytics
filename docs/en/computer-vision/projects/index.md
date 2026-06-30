@@ -5,6 +5,147 @@ description: A curated library of 25+ computer vision projects from beginner to 
 keywords: computer vision projects, computer vision projects for beginners, YOLO projects, object detection projects, image segmentation projects, deep learning projects, computer vision examples, computer vision project ideas, best computer vision projects, OpenCV projects
 ---
 
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "headline": "Computer Vision Projects — Beginner to Advanced with YOLO",
+      "description": "A curated library of 25+ computer vision projects from beginner to advanced, each with working Python code, difficulty rating, techniques used, and links to full Ultralytics YOLO implementation guides.",
+      "author": {
+        "@type": "Organization",
+        "name": "Ultralytics",
+        "url": "https://www.ultralytics.com"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Ultralytics",
+        "url": "https://www.ultralytics.com",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://cdn.prod.website-files.com/680a070c3b99253410dd3dcf/680a070c3b99253410dd3e84_Ultralytics_full_white.svg"
+        }
+      },
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "https://docs.ultralytics.com/computer-vision/projects/"
+      },
+      "proficiencyLevel": "Beginner"
+    },
+    {
+      "@type": "ItemList",
+      "name": "Computer Vision Projects",
+      "description": "25+ computer vision projects built with Ultralytics YOLO, from beginner to advanced.",
+      "numberOfItems": 25,
+      "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Security Alarm System", "url": "https://docs.ultralytics.com/computer-vision/projects/#1-security-alarm-system"},
+        {"@type": "ListItem", "position": 2, "name": "Object Counting", "url": "https://docs.ultralytics.com/computer-vision/projects/#2-object-counting"},
+        {"@type": "ListItem", "position": 3, "name": "Live Inference App", "url": "https://docs.ultralytics.com/computer-vision/projects/#3-live-inference-app"},
+        {"@type": "ListItem", "position": 4, "name": "Object Blurring & Anonymisation", "url": "https://docs.ultralytics.com/computer-vision/projects/#4-object-blurring--anonymisation"},
+        {"@type": "ListItem", "position": 5, "name": "Image Classification", "url": "https://docs.ultralytics.com/computer-vision/projects/#5-image-classification"},
+        {"@type": "ListItem", "position": 6, "name": "Object Cropping", "url": "https://docs.ultralytics.com/computer-vision/projects/#6-object-cropping"},
+        {"@type": "ListItem", "position": 7, "name": "Visual Similarity Search", "url": "https://docs.ultralytics.com/computer-vision/projects/#7-visual-similarity-search"},
+        {"@type": "ListItem", "position": 8, "name": "Workout & Rep Counter", "url": "https://docs.ultralytics.com/computer-vision/projects/#8-workout--rep-counter"},
+        {"@type": "ListItem", "position": 9, "name": "Parking Management System", "url": "https://docs.ultralytics.com/computer-vision/projects/#9-parking-management-system"},
+        {"@type": "ListItem", "position": 10, "name": "Queue Management System", "url": "https://docs.ultralytics.com/computer-vision/projects/#10-queue-management-system"},
+        {"@type": "ListItem", "position": 11, "name": "Speed Estimation", "url": "https://docs.ultralytics.com/computer-vision/projects/#11-speed-estimation"},
+        {"@type": "ListItem", "position": 12, "name": "Heatmap Generation", "url": "https://docs.ultralytics.com/computer-vision/projects/#12-heatmap-generation"},
+        {"@type": "ListItem", "position": 13, "name": "Region & Zone Counting", "url": "https://docs.ultralytics.com/computer-vision/projects/#13-region--zone-counting"},
+        {"@type": "ListItem", "position": 14, "name": "Distance Calculation", "url": "https://docs.ultralytics.com/computer-vision/projects/#14-distance-calculation"},
+        {"@type": "ListItem", "position": 15, "name": "Instance Segmentation with Tracking", "url": "https://docs.ultralytics.com/computer-vision/projects/#15-instance-segmentation-with-tracking"},
+        {"@type": "ListItem", "position": 16, "name": "Analytics Dashboard", "url": "https://docs.ultralytics.com/computer-vision/projects/#16-analytics-dashboard"},
+        {"@type": "ListItem", "position": 17, "name": "Vision Eye — Perspective Mapping", "url": "https://docs.ultralytics.com/computer-vision/projects/#17-vision-eye--perspective-mapping"},
+        {"@type": "ListItem", "position": 18, "name": "Pose Estimation & Ergonomics", "url": "https://docs.ultralytics.com/computer-vision/projects/#18-pose-estimation--ergonomics"},
+        {"@type": "ListItem", "position": 19, "name": "Rotated Object Detection (OBB)", "url": "https://docs.ultralytics.com/computer-vision/projects/#19-rotated-object-detection-obb"},
+        {"@type": "ListItem", "position": 20, "name": "Tiled Inference for Large Images", "url": "https://docs.ultralytics.com/computer-vision/projects/#20-tiled-inference-for-large-images"},
+        {"@type": "ListItem", "position": 21, "name": "Open-Vocabulary Detection", "url": "https://docs.ultralytics.com/computer-vision/projects/#21-open-vocabulary-detection"},
+        {"@type": "ListItem", "position": 22, "name": "Zero-Shot Segmentation", "url": "https://docs.ultralytics.com/computer-vision/projects/#22-zero-shot-segmentation"},
+        {"@type": "ListItem", "position": 23, "name": "Defect & Anomaly Detection", "url": "https://docs.ultralytics.com/computer-vision/projects/#23-defect--anomaly-detection"},
+        {"@type": "ListItem", "position": 24, "name": "Edge Deployment — Jetson & Raspberry Pi", "url": "https://docs.ultralytics.com/computer-vision/projects/#24-edge-deployment--jetson--raspberry-pi"},
+        {"@type": "ListItem", "position": 25, "name": "Fine-Tune on Custom Dataset", "url": "https://docs.ultralytics.com/computer-vision/projects/#25-fine-tune-on-custom-dataset"}
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is the easiest computer vision project for beginners?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Object Counting and the Security Alarm System are the best starting points — both run with a single pretrained YOLO26 model, require no training, and produce visible results immediately. Install Ultralytics with pip install ultralytics and you have a working project in under 5 minutes."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Do I need a GPU to run computer vision projects?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. All beginner projects run on CPU. A GPU significantly improves speed for real-time video inference. For edge deployment, NVIDIA Jetson and Raspberry Pi projects are designed specifically for embedded hardware."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is the best YOLO model to start with?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "YOLO26n (nano) is the fastest and lightest — ideal for getting started and for edge deployment. Scale up to YOLO26s or YOLO26m when you need more accuracy."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How many images do I need to train a custom computer vision model?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "As few as 50-100 images per class for simple objects in consistent conditions. For production accuracy across varied conditions, aim for 500-1000 images per class."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What are good computer vision project ideas for beginners?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Start with projects that use a pretrained model and produce immediate visual output: object counting, security alarm system, object blurring, or a live inference app. These require no dataset preparation or training and give you hands-on experience with detection pipelines and real-time inference."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I deploy a computer vision model to production?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Export your trained YOLO model to TensorRT, ONNX, TFLite, or CoreML depending on your target platform. For scalable cloud serving use Triton Inference Server. For embedded deployment use NVIDIA Jetson (TensorRT) or Raspberry Pi (ONNX/TFLite)."
+          }
+        }
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Ultralytics Docs",
+          "item": "https://docs.ultralytics.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Computer Vision",
+          "item": "https://docs.ultralytics.com/computer-vision/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Projects",
+          "item": "https://docs.ultralytics.com/computer-vision/projects/"
+        }
+      ]
+    }
+  ]
+}
+</script>
+
 # Computer Vision Projects
 
 A curated library of 25+ computer vision projects built with [Ultralytics YOLO](https://www.ultralytics.com/yolo) — organised by difficulty from first-time experiments to production-ready systems. Each project includes working Python code, the core techniques involved, and a link to the full implementation guide.

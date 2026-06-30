@@ -30,9 +30,6 @@ MVTEC_RANDOM = ["bottle", "cable", "capsule", "carpet", "grid"]
 CAT_GROUPS = {"object": MVTEC_OBJECT, "texture": MVTEC_TEXTURE, "random5": MVTEC_RANDOM}
 VAL_METRICS = ("image_auroc", "pixel_auroc", "mAP10", "mAP25", "mAP50", "mAP50_95")
 
-# YAML heatmap_mode -> prior_mode
-MODE_MAP = {"memory_bank": "heatmap", "learned": "heatmap_learned", "fused": "heatmap_fused"}
-
 # YAML keys -> FeatureDiscriminatorScorer kwargs
 SCORER_YAML_KEYS = {
     "scorer_noise_std": "noise_std",
@@ -154,7 +151,6 @@ def run_prior_viz(m, img, prior, imgsz, conf, iou, device, external_mask=None, *
 
 # -- Compare-grid (visualize mode) ---------------------------------------------
 
-
 def txt_to_mask(txt_path: str, h: int, w: int) -> np.ndarray | None:
     """Render YOLO-seg txt polygon labels into a binary mask (h, w) uint8 0/255.
 
@@ -184,7 +180,7 @@ def txt_to_mask(txt_path: str, h: int, w: int) -> np.ndarray | None:
 def _add_title(img: np.ndarray, text: str, bar_h: int = 48) -> np.ndarray:
     """Stack a left-aligned title bar above a BGR image."""
     bar = np.full((bar_h, img.shape[1], 3), 30, np.uint8)
-    (tw, th), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 1.1, 2)
+    (_, th), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 1.1, 2)
     cv2.putText(bar, text, (8, (bar_h + th) // 2), cv2.FONT_HERSHEY_SIMPLEX, 1.1, (255, 255, 255), 2, cv2.LINE_AA)
     return np.vstack([bar, img])
 

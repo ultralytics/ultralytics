@@ -102,6 +102,7 @@ class Detect(nn.Module):
     o2o_grad_scale = 0.0  # gradient scale for one2one features (0=detach, 1=full gradient)
     o2o_residual_head = False  # lightweight residual cls head for one2one (share boxes with o2m)
     peak_pool_k = 0  # end2end inference-only local-max suppression kernel (0=off, odd int like 3/5)
+    keep_one2many = False  # keep one2many head through fuse() to allow dual-head validation (set by the validator)
 
     def __init__(self, nc: int = 80, reg_max=16, end2end=False, ch: tuple = ()):
         """Initialize the YOLO detection layer with specified number of classes and channels.
@@ -288,6 +289,26 @@ class Detect(nn.Module):
         dbox = self.decode_bboxes(self.dfl(x["boxes"]), self.anchors.unsqueeze(0)) * self.strides
         return dbox
 
+    def inference_one2many(self, preds: dict[str, torch.Tensor]) -> torch.Tensor:
+        """Decode the one2many branch in standard NMS-ready (xywh) format for dual-head validation.
+
+        Reuses the one2many predictions already produced by the shared backbone/neck forward pass (no recompute),
+        so the regular (non NMS-free) head can be evaluated alongside the end2end one2one head.
+
+        Args:
+            preds (dict[str, torch.Tensor]): The dict returned by forward() at inference, containing the "one2many" key.
+
+        Returns:
+            (torch.Tensor): Decoded predictions with shape (B, 4 + nc, num_anchors), boxes in xywh for NMS.
+        """
+        x = preds["one2many"]
+        shape = x["feats"][0].shape  # BCHW
+        if self.dynamic or self.shape != shape:
+            self.anchors, self.strides = (a.transpose(0, 1) for a in make_anchors(x["feats"], self.stride, 0.5))
+            self.shape = shape
+        dbox = dist2bbox(self.dfl(x["boxes"]), self.anchors.unsqueeze(0), xywh=True, dim=1) * self.strides
+        return torch.cat((dbox, x["scores"].sigmoid()), 1)
+
     def bias_init(self):
         """Initialize Detect() biases, WARNING: requires stride availability."""
         for i, (a, b) in enumerate(zip(self.one2many["box_head"], self.one2many["cls_head"])):  # from
@@ -349,9 +370,10 @@ class Detect(nn.Module):
 
     def fuse(self) -> None:
         """Remove the one2many head for inference optimization."""
-        if not self.o2o_residual_head:
+        if not self.o2o_residual_head and not self.keep_one2many:
             self.cv2 = self.cv3 = None
         # residual head keeps cv2+cv3 since o2o inference needs o2m's box+cls as base
+        # keep_one2many keeps cv2+cv3 so dual-head validation can score both heads (still conv-bn fused)
 
 
 class DetectNorm(Detect):

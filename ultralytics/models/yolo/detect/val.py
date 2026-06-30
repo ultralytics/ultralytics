@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 from typing import Any
@@ -14,6 +15,7 @@ from ultralytics.data import build_dataloader, build_yolo_dataset, converter
 from ultralytics.engine.validator import BaseValidator
 from ultralytics.utils import LOGGER, RANK, nms, ops
 from ultralytics.utils.checks import check_requirements
+from ultralytics.nn.modules import Detect
 from ultralytics.utils.metrics import ConfusionMatrix, DetMetrics, box_iou
 from ultralytics.utils.plotting import plot_images
 
@@ -60,6 +62,21 @@ class DetectionValidator(BaseValidator):
         self.niou = self.iouv.numel()
         self.metrics = DetMetrics()
 
+    def __call__(self, trainer=None, model=None):
+        """Run validation, keeping the one2many head through fuse for standalone end2end dual-head logging.
+
+        Training validation already runs the unfused model, so both heads are available there. For standalone
+        validation the model is fused (which normally drops the one2many head), so we temporarily preserve it.
+        """
+        if trainer is None:  # standalone validation fuses the model; keep one2many so both heads can be scored
+            prev = Detect.keep_one2many
+            Detect.keep_one2many = True
+            try:
+                return super().__call__(trainer, model)
+            finally:
+                Detect.keep_one2many = prev
+        return super().__call__(trainer, model)
+
     def preprocess(self, batch: dict[str, Any]) -> dict[str, Any]:
         """Preprocess batch of images for YOLO validation.
 
@@ -97,10 +114,35 @@ class DetectionValidator(BaseValidator):
         self.jdict = []
         self.metrics.names = model.names
         self.confusion_matrix = ConfusionMatrix(names=model.names, save_matches=self.args.plots and self.args.visualize)
+        # Dual-head logging: for end2end detect models also evaluate the one2many (regular NMS) head so both the
+        # end2end (one2one) and non-end2end (one2many) mAP are reported. Reuses the shared forward; only the heads differ.
+        self.head = next((m for m in model.modules() if isinstance(m, Detect)), None) if self.end2end else None
+        self.eval_dual_head = self.end2end and self.args.task == "detect" and self.head is not None
+        self.metrics_o2m = None
+        self._o2m_preds = None
+        self.jdict_o2m = []
+        if self.eval_dual_head:
+            self.metrics_o2m = DetMetrics()
+            self.metrics_o2m.names = model.names
 
     def get_desc(self) -> str:
         """Return a formatted string summarizing class metrics of YOLO model."""
         return ("%22s" + "%11s" * 6) % ("Class", "Images", "Instances", "Box(P", "R", "mAP50", "mAP50-95)")
+
+    def _nms(self, preds: torch.Tensor, end2end: bool) -> list[dict[str, torch.Tensor]]:
+        """Run NMS on predictions and reshape outputs into per-image detection dicts."""
+        outputs = nms.non_max_suppression(
+            preds,
+            self.args.conf,
+            self.args.iou,
+            nc=0 if self.args.task == "detect" else self.nc,
+            multi_label=True,
+            agnostic=self.args.single_cls or self.args.agnostic_nms,
+            max_det=self.args.max_det,
+            end2end=end2end,
+            rotated=self.args.task == "obb",
+        )
+        return [{"bboxes": x[:, :4], "conf": x[:, 4], "cls": x[:, 5], "extra": x[:, 6:]} for x in outputs]
 
     def postprocess(self, preds: torch.Tensor) -> list[dict[str, torch.Tensor]]:
         """Apply Non-maximum suppression to prediction outputs.
@@ -112,18 +154,18 @@ class DetectionValidator(BaseValidator):
             (list[dict[str, torch.Tensor]]): Processed predictions after NMS, where each dict contains 'bboxes', 'conf',
                 'cls', and 'extra' tensors.
         """
-        outputs = nms.non_max_suppression(
-            preds,
-            self.args.conf,
-            self.args.iou,
-            nc=0 if self.args.task == "detect" else self.nc,
-            multi_label=True,
-            agnostic=self.args.single_cls or self.args.agnostic_nms,
-            max_det=self.args.max_det,
-            end2end=self.end2end,
-            rotated=self.args.task == "obb",
-        )
-        return [{"bboxes": x[:, :4], "conf": x[:, 4], "cls": x[:, 5], "extra": x[:, 6:]} for x in outputs]
+        # Dual-head: decode and NMS the one2many branch from the same forward pass for separate (non-e2e) metrics.
+        # one2many is empty when the model is fused (the o2m head is dropped for inference), so require its feats.
+        if (
+            self.eval_dual_head
+            and isinstance(preds, (list, tuple))
+            and isinstance(preds[-1], dict)
+            and "feats" in preds[-1].get("one2many", {})
+        ):
+            self._o2m_preds = self._nms(self.head.inference_one2many(preds[-1]), end2end=False)
+        else:
+            self._o2m_preds = None
+        return self._nms(preds, end2end=self.end2end)
 
     def _prepare_batch(self, si: int, batch: dict[str, Any]) -> dict[str, Any]:
         """Prepare a batch of images and annotations for validation.
@@ -210,6 +252,25 @@ class DetectionValidator(BaseValidator):
                     self.save_dir / "labels" / f"{Path(pbatch['im_file']).stem}.txt",
                 )
 
+        # Accumulate stats for the one2many (regular NMS) head of end2end models
+        if self.metrics_o2m is not None and self._o2m_preds is not None:
+            for si, pred in enumerate(self._o2m_preds):
+                pbatch = self._prepare_batch(si, batch)
+                predn = self._prepare_pred(pred)
+                cls = pbatch["cls"].cpu().numpy()
+                no_pred = predn["cls"].shape[0] == 0
+                self.metrics_o2m.update_stats(
+                    {
+                        **self._process_batch(predn, pbatch),
+                        "target_cls": cls,
+                        "target_img": np.unique(cls),
+                        "conf": np.zeros(0) if no_pred else predn["conf"].cpu().numpy(),
+                        "pred_cls": np.zeros(0) if no_pred else predn["cls"].cpu().numpy(),
+                    }
+                )
+                if self.args.save_json and not no_pred:
+                    self.pred_to_json(self.scale_preds(predn, pbatch), pbatch, jdict=self.jdict_o2m)
+
     def finalize_metrics(self) -> None:
         """Set final values for metrics speed and confusion matrix."""
         if self.args.plots:
@@ -240,6 +301,26 @@ class DetectionValidator(BaseValidator):
             dist.gather_object(self.jdict, None, dst=0)
             self.jdict = []
             self.metrics.clear_stats()
+        # Gather one2many head stats and json across GPUs (same collective ordering on all ranks)
+        if self.metrics_o2m is not None:
+            if RANK == 0:
+                gathered_o2m = [None] * dist.get_world_size()
+                dist.gather_object(self.metrics_o2m.stats, gathered_o2m, dst=0)
+                merged_o2m = {key: [] for key in self.metrics_o2m.stats.keys()}
+                for stats_dict in gathered_o2m:
+                    for key in merged_o2m:
+                        merged_o2m[key].extend(stats_dict[key])
+                self.metrics_o2m.stats = merged_o2m
+                gathered_jdict_o2m = [None] * dist.get_world_size()
+                dist.gather_object(self.jdict_o2m, gathered_jdict_o2m, dst=0)
+                self.jdict_o2m = []
+                for jdict in gathered_jdict_o2m:
+                    self.jdict_o2m.extend(jdict)
+            elif RANK > 0:
+                dist.gather_object(self.metrics_o2m.stats, None, dst=0)
+                self.metrics_o2m.clear_stats()
+                dist.gather_object(self.jdict_o2m, None, dst=0)
+                self.jdict_o2m = []
 
     def get_stats(self) -> dict[str, Any]:
         """Calculate and return metrics statistics.
@@ -249,12 +330,25 @@ class DetectionValidator(BaseValidator):
         """
         self.metrics.process(save_dir=self.save_dir, plot=self.args.plots, on_plot=self.on_plot)
         self.metrics.clear_stats()
-        return self.metrics.results_dict
+        stats = self.metrics.results_dict
+        # Append one2many (non-e2e) head metrics under a separate section so existing metric names are unchanged
+        if self.metrics_o2m is not None and len(self.metrics_o2m.stats["conf"]):
+            self.metrics_o2m.process(save_dir=self.save_dir, plot=False)
+            self.metrics_o2m.clear_stats()
+            for k, v in self.metrics_o2m.results_dict.items():
+                if k == "fitness":
+                    continue
+                stats[k.replace("metrics/", "metrics_o2m/")] = v
+        return stats
 
     def print_results(self) -> None:
         """Print training/validation set metrics per class."""
         pf = "%22s" + "%11i" * 2 + "%11.3g" * len(self.metrics.keys)  # print format
         LOGGER.info(pf % ("all", self.seen, self.metrics.nt_per_class.sum(), *self.metrics.mean_results()))
+        if self.metrics_o2m is not None and self.metrics_o2m.nt_per_class is not None:
+            LOGGER.info(
+                pf % ("all (o2m)", self.seen, self.metrics_o2m.nt_per_class.sum(), *self.metrics_o2m.mean_results())
+            )
         if self.metrics.nt_per_class.sum() == 0:
             LOGGER.warning(f"no labels found in {self.args.task} set, cannot compute metrics without labels")
 
@@ -382,13 +476,14 @@ class DetectionValidator(BaseValidator):
             boxes=torch.cat([predn["bboxes"], predn["conf"].unsqueeze(-1), predn["cls"].unsqueeze(-1)], dim=1),
         ).save_txt(file, save_conf=save_conf)
 
-    def pred_to_json(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> None:
+    def pred_to_json(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any], jdict: list | None = None) -> None:
         """Serialize YOLO predictions to COCO json format.
 
         Args:
             predn (dict[str, torch.Tensor]): Predictions dictionary containing 'bboxes', 'conf', and 'cls' keys with
                 bounding box coordinates, confidence scores, and class predictions.
             pbatch (dict[str, Any]): Batch dictionary containing 'imgsz', 'ori_shape', 'ratio_pad', and 'im_file'.
+            jdict (list, optional): Target list to append results to. Defaults to self.jdict.
 
         Examples:
              >>> result = {
@@ -402,10 +497,11 @@ class DetectionValidator(BaseValidator):
         path = Path(pbatch["im_file"])
         stem = path.stem
         image_id = int(stem) if stem.isnumeric() else stem
+        jdict = self.jdict if jdict is None else jdict
         box = ops.xyxy2xywh(predn["bboxes"])  # xywh
         box[:, :2] -= box[:, 2:] / 2  # xy center to top-left corner
         for b, s, c in zip(box.tolist(), predn["conf"].tolist(), predn["cls"].tolist()):
-            self.jdict.append(
+            jdict.append(
                 {
                     "image_id": image_id,
                     "file_name": path.name,
@@ -442,7 +538,18 @@ class DetectionValidator(BaseValidator):
             / "annotations"
             / ("instances_val2017.json" if self.is_coco else f"lvis_v1_{self.args.split}.json")
         )  # annotations
-        return self.coco_evaluate(stats, pred_json, anno_json)
+        stats = self.coco_evaluate(stats, pred_json, anno_json)
+        # Also COCO-evaluate the one2many head and report under the metrics_o2m/ section (keep e2e fitness)
+        if self.metrics_o2m is not None and self.jdict_o2m and (self.is_coco or self.is_lvis):
+            pred_json_o2m = self.save_dir / "predictions_o2m.json"
+            with open(str(pred_json_o2m), "w", encoding="utf-8") as f:
+                json.dump(self.jdict_o2m, f)
+            o2m_stats = self.coco_evaluate({}, pred_json_o2m, anno_json)
+            for k, v in o2m_stats.items():
+                if k == "fitness":
+                    continue
+                stats[k.replace("metrics/", "metrics_o2m/")] = v
+        return stats
 
     def coco_evaluate(
         self,

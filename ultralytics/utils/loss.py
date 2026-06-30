@@ -480,6 +480,59 @@ class v8DetectionLoss:
         return loss * batch_size, loss_detach
 
 
+class DetectionLoss26RLE(v8DetectionLoss):
+    """YOLO26 detection loss adding a Residual Log-likelihood Estimation (RLE) term on box (l, t, r, b) distances.
+
+    Mirrors PoseLoss26: a shared flow models the normalized box-distance error and the head predicts a per-box
+    sigma, turning the plain box L1 (the reg_max==1 ``dfl`` term) into an uncertainty-aware regression. A
+    dedicated 4-dim RealNVP4 flow models the (l, t, r, b) error jointly (all four values enter the flow together).
+    """
+
+    def __init__(self, model: torch.nn.Module, tal_topk: int = 10, tal_topk2: int | None = None):
+        """Initialize the detection loss and, when the head exposes a flow, the RLE loss and shared flow."""
+        super().__init__(model, tal_topk, tal_topk2)
+        self.flow_model = getattr(model.model[-1], "flow_model", None)
+        self.rle_loss = RLELoss(use_target_weight=False).to(self.device) if self.flow_model is not None else None
+
+    def loss(self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
+        """Calculate detection loss with an extra RLE term on box distances."""
+        batch_size = preds["boxes"].shape[0]
+        (fg_mask, _, target_bboxes, anchor_points, stride_tensor), det_loss, _ = self.get_assigned_targets_and_loss(
+            preds, batch
+        )
+        loss = torch.zeros(4, device=self.device)  # box, cls, dfl, rle
+        loss[:3] = det_loss
+        if self.rle_loss is not None and fg_mask.sum() and preds.get("box_sigma") is not None:
+            pred_ltrb = preds["boxes"].permute(0, 2, 1)[fg_mask]  # (Nfg, 4) predicted ltrb distances (grid units)
+            target_ltrb = bbox2dist(anchor_points, target_bboxes / stride_tensor)[fg_mask]  # (Nfg, 4) grid units
+            sigma = preds["box_sigma"].permute(0, 2, 1)[fg_mask]  # (Nfg, 4)
+            loss[3] = self.calculate_box_rle_loss(pred_ltrb, target_ltrb, sigma) * self.hyp.rle
+        return loss * batch_size, loss.detach()
+
+    def calculate_box_rle_loss(
+        self, pred_ltrb: torch.Tensor, target_ltrb: torch.Tensor, sigma: torch.Tensor
+    ) -> torch.Tensor:
+        """Compute the RLE loss on box (l, t, r, b) distances via the dedicated 4-dim RealNVP4 flow.
+
+        Args:
+            pred_ltrb (torch.Tensor): Predicted box distances, shape (N, 4).
+            target_ltrb (torch.Tensor): Target box distances, shape (N, 4).
+            sigma (torch.Tensor): Predicted box-distance uncertainty logits, shape (N, 4).
+
+        Returns:
+            (torch.Tensor): The RLE loss.
+        """
+        sigma = sigma.sigmoid()  # (N, 4)
+        error = (pred_ltrb - target_ltrb) / (sigma + 1e-9)  # (N, 4): all of l, t, r, b enter the 4-dim flow together
+        valid = ~(torch.isnan(error) | torch.isinf(error)).any(dim=-1)
+        if not valid.any():
+            return sigma.sum() * 0
+        error = error[valid].clamp(-100, 100)  # prevent numerical instability
+        sigma = sigma[valid]
+        log_phi = self.flow_model.log_prob(error)
+        return self.rle_loss(sigma, log_phi, error).clamp(min=0)
+
+
 class v8SegmentationLoss(v8DetectionLoss):
     """Criterion class for computing training losses for YOLOv8 segmentation."""
 

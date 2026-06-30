@@ -2071,3 +2071,69 @@ class RealNVP(nn.Module):
             self.float()
         z, log_det = self.backward_p(x)
         return self.prior.log_prob(z) + log_det
+
+
+class RealNVP4(nn.Module):
+    """RealNVP normalizing flow over 4 dimensions.
+
+    A 4-dim variant of RealNVP used by DetectRLE to model the joint distribution of the normalized box-distance
+    error (l, t, r, b) for the Residual Log-likelihood Estimation (RLE) loss. Unlike the 2-dim RealNVP, all four
+    values enter the flow together (no 2-dim pairing), with checkerboard coupling alternating between the (l, r)
+    and (t, b) axes.
+
+    References:
+        https://arxiv.org/abs/1605.08803
+        https://github.com/open-mmlab/mmpose/blob/main/mmpose/models/utils/realnvp.py
+    """
+
+    @staticmethod
+    def nets():
+        """Get the scale model in a single invertible mapping."""
+        return nn.Sequential(nn.Linear(4, 64), nn.SiLU(), nn.Linear(64, 64), nn.SiLU(), nn.Linear(64, 4), nn.Tanh())
+
+    @staticmethod
+    def nett():
+        """Get the translation model in a single invertible mapping."""
+        return nn.Sequential(nn.Linear(4, 64), nn.SiLU(), nn.Linear(64, 64), nn.SiLU(), nn.Linear(64, 4))
+
+    @property
+    def prior(self):
+        """The prior distribution."""
+        return torch.distributions.MultivariateNormal(self.loc, self.cov)
+
+    def __init__(self):
+        super().__init__()
+
+        self.register_buffer("loc", torch.zeros(4))
+        self.register_buffer("cov", torch.eye(4))
+        self.register_buffer("mask", torch.tensor([[0, 1, 0, 1], [1, 0, 1, 0]] * 3, dtype=torch.float32))
+
+        self.s = torch.nn.ModuleList([self.nets() for _ in range(len(self.mask))])
+        self.t = torch.nn.ModuleList([self.nett() for _ in range(len(self.mask))])
+        self.init_weights()
+
+    def init_weights(self):
+        """Initialize model weights."""
+        for m in self.modules():
+            if isinstance(m, nn.Linear):
+                nn.init.xavier_uniform_(m.weight, gain=0.01)
+
+    def backward_p(self, x):
+        """Apply mapping from the data space to the latent space and calculate the log determinant of the Jacobian
+        matrix.
+        """
+        log_det_jacob, z = x.new_zeros(x.shape[0]), x
+        for i in reversed(range(len(self.t))):
+            z_ = self.mask[i] * z
+            s = self.s[i](z_) * (1 - self.mask[i])
+            t = self.t[i](z_) * (1 - self.mask[i])
+            z = (1 - self.mask[i]) * (z - t) * torch.exp(-s) + z_
+            log_det_jacob -= s.sum(dim=1)
+        return z, log_det_jacob
+
+    def log_prob(self, x):
+        """Calculate the log probability of given sample in data space."""
+        if x.dtype == torch.float32 and self.s[0][0].weight.dtype != torch.float32:
+            self.float()
+        z, log_det = self.backward_p(x)
+        return self.prior.log_prob(z) + log_det

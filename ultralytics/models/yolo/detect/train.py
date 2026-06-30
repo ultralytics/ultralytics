@@ -186,6 +186,8 @@ class DetectionTrainer(BaseTrainer):
     def get_validator(self):
         """Return a DetectionValidator for YOLO model validation."""
         self.loss_names = "box_loss", "cls_loss", "dfl_loss"
+        if getattr(unwrap_model(self.model).model[-1], "flow_model", None) is not None:
+            self.loss_names += ("rle_loss",)
         return yolo.detect.DetectionValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )

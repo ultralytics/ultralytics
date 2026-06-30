@@ -15,7 +15,7 @@ from ultralytics.utils import NOT_MACOS14
 from ultralytics.utils.tal import dist2bbox, dist2rbox, make_anchors
 from ultralytics.utils.torch_utils import TORCH_1_11, fuse_conv_and_bn, smart_inference_mode
 
-from .block import DFL, SAVPE, BNContrastiveHead, ContrastiveHead, Proto, Proto26, RealNVP, Residual, SwiGLUFFN
+from .block import DFL, SAVPE, BNContrastiveHead, ContrastiveHead, Proto, Proto26, RealNVP, RealNVP4, Residual, SwiGLUFFN
 from .conv import Conv, DWConv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init
@@ -24,6 +24,7 @@ __all__ = (
     "OBB",
     "Classify",
     "Detect",
+    "DetectRLE",
     "Pose",
     "RTDETRDecoder",
     "Segment",
@@ -260,6 +261,76 @@ class Detect(nn.Module):
     def fuse(self) -> None:
         """Remove the one2many head for inference optimization."""
         self.cv2 = self.cv3 = None
+
+
+class DetectRLE(Detect):
+    """YOLO26 Detect head with normalizing-flow RLE box regression.
+
+    Extends Detect by predicting a per-box uncertainty sigma (l, t, r, b) and using a shared 4-dim RealNVP4 flow to
+    add a Residual Log-likelihood Estimation (RLE) loss on the box distances during training, mirroring Pose26. The
+    sigma comes from a single extra conv (cv2_sigma) that branches off the box trunk. It is training-only: it is
+    skipped at inference and removed by fuse(), so detection outputs are byte-identical to Detect.
+
+    Attributes:
+        flow_model (RealNVP4): 4-dim normalizing flow shared across levels and branches for the box RLE loss.
+        cv2_sigma (nn.ModuleList): Per-level single conv predicting 4 box-distance sigmas from box-trunk features.
+
+    Examples:
+        Create an RLE detection head
+        >>> detect = DetectRLE(nc=80, end2end=True, ch=(256, 512, 1024))
+        >>> x = [torch.randn(1, 256, 80, 80), torch.randn(1, 512, 40, 40), torch.randn(1, 1024, 20, 20)]
+        >>> outputs = detect(x)
+    """
+
+    def __init__(self, nc: int = 80, reg_max=16, end2end=False, ch: tuple = ()):
+        """Initialize the detection head plus the per-level box-sigma conv and the shared RealNVP4 flow.
+
+        Args:
+            nc (int): Number of classes.
+            reg_max (int): Maximum number of DFL channels.
+            end2end (bool): Whether to use end-to-end NMS-free detection.
+            ch (tuple): Tuple of channel sizes from backbone feature maps.
+        """
+        super().__init__(nc, reg_max, end2end, ch)
+        self.flow_model = RealNVP4()  # 4-dim flow over (l, t, r, b)
+        c2 = self.cv2[0][-1].in_channels  # box-trunk output channels
+        self.cv2_sigma = nn.ModuleList(nn.Conv2d(c2, 4, 1) for _ in ch)  # l, t, r, b uncertainty
+        if end2end:
+            self.one2one_cv2_sigma = copy.deepcopy(self.cv2_sigma)
+
+    @property
+    def one2many(self):
+        """Returns the one-to-many head components."""
+        return dict(box_head=self.cv2, cls_head=self.cv3, sigma_head=self.cv2_sigma)
+
+    @property
+    def one2one(self):
+        """Returns the one-to-one head components."""
+        return dict(box_head=self.one2one_cv2, cls_head=self.one2one_cv3, sigma_head=self.one2one_cv2_sigma)
+
+    def forward_head(
+        self,
+        x: list[torch.Tensor],
+        box_head: torch.nn.Module = None,
+        cls_head: torch.nn.Module = None,
+        sigma_head: torch.nn.Module = None,
+    ) -> dict[str, torch.Tensor]:
+        """Concatenate boxes/scores and, during training, the box-distance sigmas from the box-trunk features."""
+        if box_head is None or cls_head is None:  # for fused inference
+            return dict()
+        bs = x[0].shape[0]  # batch size
+        feats = [box_head[i][:-1](x[i]) for i in range(self.nl)]  # box-trunk features (before the final box conv)
+        boxes = torch.cat([box_head[i][-1](feats[i]).view(bs, 4 * self.reg_max, -1) for i in range(self.nl)], dim=-1)
+        scores = torch.cat([cls_head[i](x[i]).view(bs, self.nc, -1) for i in range(self.nl)], dim=-1)
+        preds = dict(boxes=boxes, scores=scores, feats=x)
+        if self.training and sigma_head is not None:
+            preds["box_sigma"] = torch.cat([sigma_head[i](feats[i]).view(bs, 4, -1) for i in range(self.nl)], dim=-1)
+        return preds
+
+    def fuse(self) -> None:
+        """Remove the one2many head and the training-only sigma/flow modules for inference optimization."""
+        super().fuse()
+        self.cv2_sigma = self.flow_model = self.one2one_cv2_sigma = None
 
 
 class Segment(Detect):

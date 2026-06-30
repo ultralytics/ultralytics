@@ -12,9 +12,7 @@ TensorRT                | `engine`                  | yolo26n.engine
 CoreML                  | `coreml`                  | yolo26n.mlpackage
 TensorFlow SavedModel   | `saved_model`             | yolo26n_saved_model/
 TensorFlow GraphDef     | `pb`                      | yolo26n.pb
-TensorFlow Lite         | `tflite`                  | yolo26n.tflite
 TensorFlow Edge TPU     | `edgetpu`                 | yolo26n_edgetpu.tflite
-TensorFlow.js           | `tfjs`                    | yolo26n_web_model/
 PaddlePaddle            | `paddle`                  | yolo26n_paddle_model/
 MNN                     | `mnn`                     | yolo26n.mnn
 NCNN                    | `ncnn`                    | yolo26n_ncnn_model/
@@ -24,6 +22,7 @@ ExecuTorch              | `executorch`              | yolo26n_executorch_model/
 Axelera AI              | `axelera`                 | yolo26n_axelera_model/
 DEEPX                   | `deepx`                   | yolo26n_deepx_model/
 Qualcomm QNN            | `qnn`                     | yolo26n_qnn.onnx
+LiteRT                  | `litert`                  | yolo26n.tflite
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -47,7 +46,6 @@ Inference:
                          yolo26n.mlpackage          # CoreML (macOS-only)
                          yolo26n_saved_model        # TensorFlow SavedModel
                          yolo26n.pb                 # TensorFlow GraphDef
-                         yolo26n.tflite             # TensorFlow Lite
                          yolo26n_edgetpu.tflite     # TensorFlow Edge TPU
                          yolo26n_paddle_model       # PaddlePaddle
                          yolo26n.mnn                # MNN
@@ -58,12 +56,7 @@ Inference:
                          yolo26n_axelera_model      # Axelera AI
                          yolo26n_deepx_model        # DEEPX
                          yolo26n_qnn.onnx           # Qualcomm QNN
-
-TensorFlow.js:
-    $ cd .. && git clone https://github.com/zldrobit/tfjs-yolov5-example.git && cd tfjs-yolov5-example
-    $ npm install
-    $ ln -s ../../yolo26n_web_model public/yolo26n_web_model
-    $ npm start
+                         yolo26n.tflite             # LiteRT
 """
 
 from __future__ import annotations
@@ -83,7 +76,7 @@ import torch
 from ultralytics import __version__
 from ultralytics.cfg import QUANTIZE_DOCS_URL, TASK2CALIBRATIONDATA, TASK2DATA, get_cfg
 from ultralytics.data import build_dataloader, build_yolo_dataset
-from ultralytics.data.dataset import YOLODataset
+from ultralytics.data.dataset import ClassificationDataset
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.autobackend import check_class_names, default_class_names
 from ultralytics.nn.modules import C2f, Classify, DeimDecoder, Detect, RTDETRDecoder, Segment26, SemanticSegment
@@ -184,30 +177,12 @@ def export_formats():
         ],
         ["TensorFlow GraphDef", "pb", ".pb", True, True, ["batch"], "tensorflow"],
         [
-            "TensorFlow Lite",
-            "tflite",
-            ".tflite",
-            True,
-            False,
-            ["batch", "data", "quantize", "nms", "fraction"],
-            "tensorflow",
-        ],
-        [
             "TensorFlow Edge TPU",
             "edgetpu",
             "_edgetpu.tflite",
             True,
             False,
             ["data", "fraction", "quantize"],
-            "tensorflow",
-        ],
-        [
-            "TensorFlow.js",
-            "tfjs",
-            "_web_model",
-            True,
-            False,
-            ["batch", "data", "fraction", "quantize", "nms"],
             "tensorflow",
         ],
         ["PaddlePaddle", "paddle", "_paddle_model", True, True, ["batch"], "base"],
@@ -235,6 +210,7 @@ def export_formats():
         ],
         ["DEEPX", "deepx", "_deepx_model", False, False, ["data", "quantize", "optimize"], "isolated-deepx"],
         ["Qualcomm QNN", "qnn", "_qnn.onnx", False, False, ["batch", "name", "quantize", "fraction", "data"], "base"],
+        ["LiteRT", "litert", ".tflite", True, False, ["batch", "quantize", "data", "fraction"], "litert"],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments", "Env"], zip(*x)))
 
@@ -266,7 +242,7 @@ EXPORT_ENVS = {
             ("--extra-index-url", "https://pypi.ngc.nvidia.com"),
         ],
         "env": {},
-        "smoke": ["yolo export format=tflite model=yolo26n.pt imgsz=32"],
+        "smoke": ["yolo export format=saved_model model=yolo26n.pt imgsz=32"],
     },
     "coreml": {
         "python": "3.13",
@@ -355,13 +331,20 @@ EXPORT_ENVS = {
         "env": {},
         "smoke": ["yolo export format=deepx model=yolo26n.pt imgsz=32 data=coco8.yaml"],
     },
+    "litert": {
+        "python": "3.13",
+        "extras": ["export-base", "export-litert"],
+        "torch": None,
+        "requirements": [],
+        "indexes": [],
+        "env": {},
+        "smoke": ["yolo export format=litert model=yolo26n.pt imgsz=32"],
+    },
 }
 
 
 # Export precision support per format. Unset/32 requests are FP32 except for formats listed in FP32_UNSUPPORTED_FORMATS.
-FP16_FORMATS = frozenset(
-    {"torchscript", "onnx", "openvino", "engine", "coreml", "tflite", "tfjs", "mnn", "ncnn", "rknn"}
-)
+FP16_FORMATS = frozenset({"torchscript", "onnx", "openvino", "engine", "coreml", "mnn", "ncnn", "rknn"})
 INT8_FORMATS = frozenset(
     {
         "onnx",
@@ -369,18 +352,27 @@ INT8_FORMATS = frozenset(
         "engine",
         "coreml",
         "saved_model",
-        "tflite",
         "edgetpu",
-        "tfjs",
         "mnn",
         "imx",
         "rknn",
         "axelera",
         "deepx",
+        "litert",
     }
 )
-W8A16_FORMATS = frozenset({"coreml", "imx", "qnn"})  # INT8 weights + FP16 activations
+W8A16_FORMATS = frozenset(
+    {"coreml", "imx", "qnn", "litert"}
+)  # INT8 weights + 16-bit activations (FP16; INT16 on LiteRT)
+W8A32_FORMATS = frozenset({"litert"})  # INT8 weights + FP32 activations (dynamic/weight-only INT8, no calibration)
 FP32_UNSUPPORTED_FORMATS = frozenset({"edgetpu", "imx", "rknn", "axelera", "deepx", "qnn"})
+# (label, supporting formats) per quantize precision, used to list valid options in errors. 32/None (FP32) is universal except FP32_UNSUPPORTED_FORMATS.
+QUANTIZE_PRECISIONS = (
+    ("16 (FP16)", FP16_FORMATS),
+    ("8 (INT8)", INT8_FORMATS),
+    ("'w8a16' (INT8 weights + INT16 activations)", W8A16_FORMATS),
+    ("'w8a32' (dynamic INT8)", W8A32_FORMATS),
+)
 
 
 def validate_args(format, passed_args, valid_args):
@@ -399,23 +391,21 @@ def validate_args(format, passed_args, valid_args):
     assert valid_args is not None, f"ERROR ❌️ valid arguments for '{format}' not listed."
     custom = {"batch": 1, "data": None, "device": None}  # exporter defaults
     default_args = get_cfg(DEFAULT_CFG, custom)
-    if passed_args.quantize == 16:  # FP16; 32/None (FP32) is universal
-        assert format in FP16_FORMATS, (
-            f"ERROR ❌️ quantize=16 (FP16) is not supported for format='{format}'. See {QUANTIZE_DOCS_URL}"
-        )
-    elif passed_args.quantize == 8:  # INT8
-        assert format in INT8_FORMATS, (
-            f"ERROR ❌️ quantize={passed_args.quantize} is not supported for format='{format}'. See {QUANTIZE_DOCS_URL}"
-        )
-    elif passed_args.quantize == "w8a16":  # INT8 weights + FP16 activations
-        assert format in W8A16_FORMATS, (
-            f"ERROR ❌️ quantize='w8a16' (INT8 weights + FP16 activations) is not supported for format='{format}'. "
-            f"See {QUANTIZE_DOCS_URL}"
-        )
-    elif passed_args.quantize == 32:
-        assert format not in FP32_UNSUPPORTED_FORMATS, (
-            f"ERROR ❌️ quantize=32 (FP32) is not supported for format='{format}'. See {QUANTIZE_DOCS_URL}"
-        )
+    if passed_args.quantize is not None:  # 32/None (FP32) is universal except FP32_UNSUPPORTED_FORMATS
+        options = [label for label, formats in QUANTIZE_PRECISIONS if format in formats]
+        if format not in FP32_UNSUPPORTED_FORMATS:
+            options.append("32 (FP32)")
+        hint = f"format='{format}' supports quantize={', '.join(options) or 'none'} (or None for FP32). See {QUANTIZE_DOCS_URL}"
+        if passed_args.quantize == 16:  # FP16
+            assert format in FP16_FORMATS, f"ERROR ❌️ quantize=16 (FP16) is not supported; {hint}"
+        elif passed_args.quantize == 8:  # INT8
+            assert format in INT8_FORMATS, f"ERROR ❌️ quantize=8 (INT8) is not supported; {hint}"
+        elif passed_args.quantize == "w8a16":  # INT8 weights + 16-bit activations (FP16; INT16 on LiteRT)
+            assert format in W8A16_FORMATS, f"ERROR ❌️ quantize='w8a16' is not supported; {hint}"
+        elif passed_args.quantize == "w8a32":  # INT8 weights + FP32 activations (dynamic/weight-only INT8)
+            assert format in W8A32_FORMATS, f"ERROR ❌️ quantize='w8a32' is not supported; {hint}"
+        elif passed_args.quantize == 32:  # FP32
+            assert format not in FP32_UNSUPPORTED_FORMATS, f"ERROR ❌️ quantize=32 (FP32) is not supported; {hint}"
     for arg in export_args:
         not_default = getattr(passed_args, arg, None) != getattr(default_args, arg, None)
         if not_default:
@@ -477,9 +467,7 @@ class Exporter:
         export_engine: Export model to TensorRT format.
         export_saved_model: Export model to TensorFlow SavedModel format.
         export_pb: Export model to TensorFlow GraphDef format.
-        export_tflite: Export model to TensorFlow Lite format.
         export_edgetpu: Export model to Edge TPU format.
-        export_tfjs: Export model to TensorFlow.js format.
         export_rknn: Export model to RKNN format.
         export_imx: Export model to IMX format.
         export_executorch: Export model to ExecuTorch format.
@@ -522,6 +510,12 @@ class Exporter:
             fmt = "engine"
         if fmt in {"mlmodel", "mlpackage", "mlprogram", "apple", "ios", "coreml"}:  # 'coreml' aliases
             fmt = "coreml"
+        if fmt in {"tflite", "tfjs"}:  # deprecated formats, replaced by the unified Google LiteRT export
+            LOGGER.warning(
+                f"format='{fmt}' is deprecated as of 8.4.83 and has been replaced by the unified Google LiteRT "
+                f"format. Exporting format='litert' instead. See https://docs.ultralytics.com/integrations/litert/"
+            )
+            fmt = self.args.format = "litert"
         fmts_dict = export_formats()
         fmts = tuple(fmts_dict["Argument"][1:])  # available export formats
         if fmt not in fmts:
@@ -534,7 +528,7 @@ class Exporter:
                 raise ValueError(f"{msg} Valid formats are {fmts}")
             LOGGER.warning(f"Invalid export format='{fmt}', updating to format='{matches[0]}'")
             fmt = matches[0]
-        is_tf_format = fmt in {"saved_model", "pb", "tflite", "edgetpu", "tfjs"}
+        is_tf_format = fmt in {"saved_model", "pb", "edgetpu"}
 
         # Device
         self.dla = None
@@ -585,6 +579,10 @@ class Exporter:
                 # Disable end2end branch for certain export formats as they does not support topk
                 model.end2end = False
                 LOGGER.warning(f"{fmt.upper()} export does not support end2end models, disabling end2end branch.")
+            if fmt == "litert" and self.args.quantize in {8, "w8a16"}:
+                # Static activation quantization collapses the end2end class-index output; export raw and run NMS later
+                model.end2end = False
+                LOGGER.warning("LiteRT INT8 export does not support end2end models, disabling end2end branch.")
             if fmt == "engine":
                 try:
                     import tensorrt as trt
@@ -651,7 +649,6 @@ class Exporter:
             self.args.nms = False
         if self.args.nms:
             assert not isinstance(model, ClassificationModel), "'nms=True' is not valid for classification models."
-            assert fmt != "tflite" or not ARM64 or not LINUX, "TFLite export with NMS unsupported on ARM64 Linux"
             assert not is_tf_format or TORCH_1_13, "TensorFlow exports with NMS require torch>=1.13"
             assert fmt != "onnx" or TORCH_1_13, "ONNX export with NMS requires torch>=1.13"
             if getattr(model, "end2end", False) or isinstance(model.model[-1], RTDETRDecoder):
@@ -683,8 +680,6 @@ class Exporter:
             LOGGER.warning(
                 f"INT8 export requires a missing 'data' arg for calibration. Using default 'data={self.args.data}'."
             )
-        if fmt == "tfjs" and ARM64 and LINUX:
-            raise SystemError("TF.js exports are not currently supported on ARM64 Linux")
         # Recommend OpenVINO if export and Intel CPU
         if SETTINGS.get("openvino_msg"):
             if is_intel():
@@ -714,7 +709,7 @@ class Exporter:
             from ultralytics.utils.export.imx import FXModel
 
             model = FXModel(model, self.imgsz)
-        if fmt in {"tflite", "edgetpu"}:
+        if fmt == "edgetpu":
             from ultralytics.utils.export.tensorflow import tf_wrapper
 
             model = tf_wrapper(model)
@@ -759,7 +754,7 @@ class Exporter:
         if model.task == "semantic" and fmt in {"qnn", "coreml"}:
             # NPU-targeted semantic exports ship a compact uint8 class map instead of float logits: emitting logits
             # forces consumers to dequantize and argmax ~20M floats on the CPU every frame (measured erratic
-            # 123-1065 ms on Hexagon). Not applied to TFLite, where the GPU delegate cannot compile ArgMax (int64
+            # 123-1065 ms on Hexagon). Not applied to LiteRT, where the GPU delegate cannot compile ArgMax (int64
             # indices) and a whole-graph CPU fallback is slower than GPU logits + consumer-side argmax. Python
             # predict/val accept both forms.
             model = ClassMapModel(model)
@@ -823,14 +818,10 @@ class Exporter:
         # Export
         if is_tf_format:
             f, keras_model = self.export_saved_model()
-            if fmt in {"pb", "tfjs"}:  # pb prerequisite to tfjs
+            if fmt == "pb":
                 f = self.export_pb(keras_model=keras_model)
-            if fmt == "tflite":
-                f = self.export_tflite()
             if fmt == "edgetpu":
                 f = self.export_edgetpu(tflite_model=Path(f) / f"{self.file.stem}_full_integer_quant.tflite")
-            if fmt == "tfjs":
-                f = self.export_tfjs()
         else:
             f = getattr(self, f"export_{fmt}")()
 
@@ -845,17 +836,11 @@ class Exporter:
             )
             imgsz = self.imgsz[0] if square else str(self.imgsz)[1:-1].replace(" ", "")
             q = "quantize=16" if self.args.quantize == 16 else ""  # FP16 inference flag for the val/predict hint
-            # Export-only formats deploy in-browser and are not loadable by AutoBackend
-            predict_validate = (
-                ""
-                if fmt == "tfjs"
-                else f"\nPredict:         yolo predict task={model.task} model={f} imgsz={imgsz} {q}"
-                f"\nValidate:        yolo val task={model.task} model={f} imgsz={imgsz} data={data} {q} {s}"
-            )
             LOGGER.info(
                 f"\nExport complete ({time.time() - t:.1f}s)"
                 f"\nResults saved to {colorstr('bold', Path(f).resolve())}"
-                f"{predict_validate}"
+                f"\nPredict:         yolo predict task={model.task} model={f} imgsz={imgsz} {q}"
+                f"\nValidate:        yolo val task={model.task} model={f} imgsz={imgsz} data={data} {q} {s}"
                 f"\nVisualize:       https://netron.app"
             )
 
@@ -866,19 +851,15 @@ class Exporter:
         """Build and return a dataloader for calibration of INT8 models."""
         LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
         data = (check_cls_dataset if self.model.task == "classify" else check_det_dataset)(self.args.data)
+        cfg = deepcopy(self.args)
+        cfg.imgsz = max(self.imgsz)
         if self.model.task == "classify":
-            dataset = YOLODataset(
-                data[self.args.split or "val"],
-                data=data,
-                fraction=self.args.fraction,
-                task=self.model.task,
-                imgsz=max(self.imgsz),
-                augment=False,
-                batch_size=self.args.batch,
-            )
+            import torchvision.transforms as T  # scope for faster 'import ultralytics'
+
+            dataset = ClassificationDataset(data[self.args.split or "val"], args=cfg, augment=False)
+            # INT8 backends divide images by 255, so emit uint8 [0, 255] center-cropped like classify inference
+            dataset.torch_transforms = T.Compose([T.Resize(cfg.imgsz), T.CenterCrop(cfg.imgsz), T.PILToTensor()])
         else:
-            cfg = deepcopy(self.args)
-            cfg.imgsz = max(self.imgsz)
             dataset = build_yolo_dataset(
                 cfg,
                 data[self.args.split or "val"],
@@ -887,7 +868,7 @@ class Exporter:
                 mode="val",
                 fraction=self.args.fraction,
             )
-        if hasattr(dataset.transforms.transforms[0], "new_shape"):
+        if hasattr(dataset, "transforms") and hasattr(dataset.transforms.transforms[0], "new_shape"):
             dataset.transforms.transforms[0].new_shape = self.imgsz  # LetterBox with non-square imgsz
         n = len(dataset)
         if n < 1:
@@ -1092,6 +1073,29 @@ class Exporter:
         )
 
     @try_export
+    def export_litert(self, prefix=colorstr("LiteRT:")):
+        """Export YOLO model to LiteRT format using litert_torch with optional INT8 quantization.
+
+        Supports ``quantize=8`` (static INT8, int8 weights + int8 activations, requires calibration ``data``),
+        ``quantize='w8a16'`` (static, int8 weights + int16 activations, requires calibration ``data``) and
+        ``quantize='w8a32'`` (dynamic/weight-only INT8, int8 weights + FP32 activations, no calibration needed).
+        """
+        assert MACOS or (LINUX and not ARM64), "LiteRT export only supported on Linux x86 and macOS"
+        from ultralytics.utils.export.litert import torch2litert
+
+        return torch2litert(
+            self.model,
+            self.im,
+            self.file,
+            quantize=self.args.quantize,
+            calibration_dataset=self.get_int8_calibration_dataloader(prefix)
+            if self.args.quantize in {8, "w8a16"}
+            else None,
+            metadata=self.metadata,
+            prefix=prefix,
+        )
+
+    @try_export
     def export_mnn(self, prefix=colorstr("MNN:")):
         """Export YOLO model to MNN format using MNN https://github.com/alibaba/MNN."""
         from ultralytics.utils.export.mnn import onnx2mnn
@@ -1266,7 +1270,7 @@ class Exporter:
             f,
             quantize=self.args.quantize,
             images=images,
-            disable_group_convolution=self.args.format in {"tfjs", "edgetpu"},
+            disable_group_convolution=self.args.format == "edgetpu",
             prefix=prefix,
         )
         YAML.save(f / "metadata.yaml", self.metadata)  # add metadata.yaml
@@ -1282,22 +1286,6 @@ class Exporter:
         from ultralytics.utils.export.tensorflow import keras2pb
 
         return keras2pb(keras_model, output_file=self.file.with_suffix(".pb"), prefix=prefix)
-
-    @try_export
-    def export_tflite(self, prefix=colorstr("TensorFlow Lite:")):
-        """Export YOLO model to TensorFlow Lite format."""
-        # BUG https://github.com/ultralytics/ultralytics/issues/13436
-        import tensorflow as tf
-
-        LOGGER.info(f"\n{prefix} starting export with tensorflow {tf.__version__}...")
-        saved_model = Path(str(self.file).replace(self.file.suffix, "_saved_model"))
-        if self.args.quantize == 8:
-            f = saved_model / f"{self.file.stem}_int8.tflite"  # fp32 in/out
-        elif self.args.quantize == 16:
-            f = saved_model / f"{self.file.stem}_float16.tflite"  # fp32 in/out
-        else:
-            f = saved_model / f"{self.file.stem}_float32.tflite"
-        return str(f)
 
     @try_export
     def export_axelera(self, prefix=colorstr("Axelera:")):
@@ -1342,24 +1330,6 @@ class Exporter:
         output_file = tflite2edgetpu(tflite_file=tflite_model, output_dir=tflite_model.parent, prefix=prefix)
         self._add_tflite_metadata(output_file)
         return output_file
-
-    @try_export
-    def export_tfjs(self, prefix=colorstr("TensorFlow.js:")):
-        """Export YOLO model to TensorFlow.js format."""
-        assert not IS_PYTHON_MINIMUM_3_13, (
-            "TensorFlow.js export not supported on Python>=3.13: tensorflowjs requires the np.object alias removed "
-            "in NumPy 1.24, but Python 3.13 has no NumPy<2.1 wheels."
-        )
-        from ultralytics.utils.export.tensorflow import pb2tfjs
-
-        output_dir = pb2tfjs(
-            pb_file=str(self.file.with_suffix(".pb")),
-            output_dir=str(self.file).replace(self.file.suffix, "_web_model/"),
-            quantize=self.args.quantize,
-            prefix=prefix,
-        )
-        YAML.save(Path(output_dir) / "metadata.yaml", self.metadata)
-        return output_dir
 
     @try_export
     def export_rknn(self, prefix=colorstr("RKNN:")):
@@ -1561,7 +1531,7 @@ class NMSModel(torch.nn.Module):
         self.model = model
         self.args = args
         self.obb = model.task == "obb"
-        self.is_tf = self.args.format in frozenset({"saved_model", "tflite", "tfjs"})
+        self.is_tf = self.args.format == "saved_model"
 
     def forward(self, x):
         """Perform inference with NMS post-processing. Supports Detect, Segment, OBB and Pose.
@@ -1602,10 +1572,7 @@ class NMSModel(torch.nn.Module):
             # `8` is the minimum value experimented to get correct NMS results for obb
             multiplier = 8 if self.obb else 1 / max(len(self.model.names), 1)
             # Normalize boxes for NMS since large values for class offset causes issue with int8 quantization
-            if self.args.format == "tflite":  # TFLite is already normalized
-                nmsbox *= multiplier
-            else:
-                nmsbox = multiplier * (nmsbox / torch.tensor(x.shape[2:], **kwargs).max())
+            nmsbox = multiplier * (nmsbox / torch.tensor(x.shape[2:], **kwargs).max())
             if not self.args.agnostic_nms:  # class-wise NMS
                 end = 2 if self.obb else 4
                 # fully explicit expansion otherwise reshape error

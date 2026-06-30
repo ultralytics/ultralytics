@@ -39,6 +39,7 @@ from ultralytics.utils import (
     is_github_action_running,
 )
 from ultralytics.utils.downloads import download, safe_download
+from ultralytics.utils.logger import ConsoleLogger
 from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13
 
 
@@ -46,6 +47,24 @@ def skip_rpi_semantic():
     """Skip semantic segmentation tests on Raspberry Pi due to memory constraints."""
     if IS_RASPBERRYPI:
         pytest.skip("Semantic segmentation tests are skipped on Raspberry Pi due to memory constraints.")
+
+
+def test_console_logger_rejects_http_destination():
+    """Ensure remote console logging does not send captured output over plaintext HTTP."""
+    with pytest.raises(ValueError, match="must use HTTPS"):
+        ConsoleLogger("http://example.com/logs")
+
+
+def test_console_logger_allows_secure_api_and_file_destinations(tmp_path):
+    """Ensure HTTPS API and local file logging destinations continue to work."""
+    api_logger = ConsoleLogger("https://example.com/logs")
+    assert api_logger.is_api
+    assert api_logger.destination == "https://example.com/logs"
+
+    file_path = tmp_path / "training.log"
+    file_logger = ConsoleLogger(file_path)
+    assert not file_logger.is_api
+    assert file_logger.destination == file_path
 
 
 def test_model_forward():

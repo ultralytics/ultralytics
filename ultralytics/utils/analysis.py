@@ -283,7 +283,7 @@ class AnalysisReport(SimpleClass, DataExportMixin):
             "",
             f"## Worst {len(worst)} images (lowest F1)",
             "",
-            "**Why it stands out** lists the properties where this image is most extreme.",
+            "**Why it stands out** lists the properties where this image is most extreme in the F1-lowering direction.",
             "",
             "| Image | F1 | Why it stands out |",
             "|---|---|---|",
@@ -716,8 +716,10 @@ class CorrelationAnalysis:
                 names.append(prop)
             rec["anomaly_score"] = float(np.mean(zs)) if zs else 0.0
             if zs:
-                idx = np.argsort(-np.abs(zs))[:3]
-                rec["top_3_problematic"] = [names[i] for i in idx]
+                # Rank by signed z (sign-aligned so positive = F1-lowering) and keep only bad-direction props, so a
+                # value that is extreme in the F1-raising direction is never listed as problematic.
+                order = np.argsort(-np.asarray(zs))
+                rec["top_3_problematic"] = [names[i] for i in order if zs[i] > 0][:3]
 
     @staticmethod
     def _top_worst_records(per_image: dict, top_n: int = 100) -> list[dict]:

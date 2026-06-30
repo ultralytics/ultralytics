@@ -107,6 +107,21 @@ def test_extractor_augments_labels():
     assert 0.0 <= lbl["brightness"] <= 1.0
 
 
+def test_rank_top_problematic_excludes_good_direction():
+    """Top_3_problematic flags only F1-lowering extremes, never a value extreme in the F1-raising direction."""
+    # high mean_pairwise_iou helps F1, high num_small hurts F1 (names must be real _ALL_PROPERTIES members)
+    corr = {"mean_pairwise_iou": {"pearson_r": 0.9}, "num_small": {"pearson_r": -0.9}}
+    per_image = {
+        "clean.jpg": {"f1": 0.95, "mean_pairwise_iou": 0.0, "num_small": 0.0},
+        "mid.jpg": {"f1": 0.6, "mean_pairwise_iou": 1.0, "num_small": 1.0},
+        "worst.jpg": {"f1": 0.1, "mean_pairwise_iou": 9.0, "num_small": 4.0},  # iou extreme-good, num_small extreme-bad
+    }
+    CorrelationAnalysis._rank_and_score(per_image, corr)
+    flagged = per_image["worst.jpg"]["top_3_problematic"]
+    assert "num_small" in flagged, "the F1-lowering extreme must be flagged"
+    assert "mean_pairwise_iou" not in flagged, "a value extreme in the F1-raising direction must not be flagged"
+
+
 def test_run_correlation_analysis_path(tmp_path):
     """CorrelationAnalysis joins extractor labels with validator metrics and writes the full report."""
     model = YOLO("yolo11n.pt")

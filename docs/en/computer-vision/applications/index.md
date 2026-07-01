@@ -50,11 +50,19 @@ keywords: computer vision applications, computer vision in retail, computer visi
 
 Part of the [Computer Vision Hub](../index.md).
 
-Computer vision has moved from research labs into production across nearly every industry. This page covers the most impactful real-world application areas, how they work technically, and how to implement them using Ultralytics YOLO.
+Computer vision has moved from research labs into production across nearly every industry. This page covers the most impactful real-world application areas, the specific problems they solve, and how to implement them using Ultralytics YOLO.
+
+!!! tip "Prerequisites"
+
+    - Python 3.8+ and `pip install ultralytics`
+    - Most applications on this page work with a pretrained model — no custom training needed to get started
+    - For edge deployment see [NVIDIA Jetson](../../guides/nvidia-jetson.md) and [Raspberry Pi](../../guides/raspberry-pi.md)
 
 ## Retail
 
 Computer vision gives retailers real-time visibility into what is happening on the shop floor - without manual auditing.
+
+![Retail heatmap showing customer movement patterns and dwell zones in a store](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-yolov8-retail-heatmap.avif)
 
 **Core use cases:**
 
@@ -90,6 +98,8 @@ Computer vision gives retailers real-time visibility into what is happening on t
 
 Computer vision assists clinicians by automating the analysis of medical images at a scale and consistency that manual review cannot match.
 
+![Detection and segmentation applied in a robotics and clinical vision context](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/detection-segmentation-ros-gazebo.avif)
+
 **Core use cases:**
 
 - **Radiology** - detect anomalies in X-ray, CT, and MRI scans to flag cases for review
@@ -119,6 +129,8 @@ Computer vision assists clinicians by automating the analysis of medical images 
 ## Manufacturing and Quality Control
 
 Automated visual inspection replaces or augments manual quality checks on production lines, catching defects faster and more consistently than human inspectors.
+
+![Precision detection example showing model confidence and accuracy on manufactured components](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/example-of-precision.avif)
 
 **Core use cases:**
 
@@ -156,6 +168,8 @@ Automated visual inspection replaces or augments manual quality checks on produc
 
 Computer vision enables precision agriculture by providing detailed, timely data about crops, livestock, and field conditions that would be impractical to collect manually.
 
+![Fish counting in open water using Ultralytics YOLO for aquaculture yield estimation](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/fish-counting-in-sea-using-ultralytics-yolov8.avif)
+
 **Core use cases:**
 
 - **Crop monitoring** - identify disease, pest damage, or nutrient deficiency from drone or ground imagery
@@ -191,6 +205,8 @@ Computer vision enables precision agriculture by providing detailed, timely data
 ## Sports and Performance Analysis
 
 Computer vision extracts objective performance data from broadcast footage and training video, giving coaches and analysts insights that manual observation cannot produce at scale.
+
+![Speed estimation applied to athletes using Ultralytics YOLO for performance analysis](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/speed-estimation-using-yolov8.avif)
 
 **Core use cases:**
 
@@ -228,6 +244,8 @@ Computer vision extracts objective performance data from broadcast footage and t
 ## Security and Surveillance
 
 Computer vision makes security systems proactive rather than reactive - detecting events as they happen rather than reviewing footage after the fact.
+
+![Crowd counting across multiple zones using Ultralytics YOLO for security and crowd management](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/crowd-counting-different-region-ultralytics-yolov8.avif)
 
 **Core use cases:**
 
@@ -272,6 +290,8 @@ Computer vision makes security systems proactive rather than reactive - detectin
 ## Autonomous Vehicles and ADAS
 
 Computer vision is a core sensing modality for any system that navigates or operates in the physical world without direct human control.
+
+![Animal and road hazard detection using Ultralytics YOLO for autonomous vehicle safety](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/animals-detection-yolov8.avif)
 
 **Core use cases:**
 
@@ -336,3 +356,14 @@ Computer vision is a core sensing modality for any system that navigates or oper
 ??? question "How accurate is computer vision for industrial defect detection?"
 
     Accuracy depends heavily on training data quality and the complexity of defect types. Custom-trained YOLO models regularly achieve over 95% precision on well-defined defect categories when trained on representative datasets. Tiled inference is often used for high-resolution inspection images to ensure small defects are not missed.
+
+---
+
+## Community and support
+
+Building something with computer vision? The Ultralytics community is active across several channels:
+
+- [GitHub Discussions](https://github.com/ultralytics/ultralytics/discussions) — ask questions, share projects, get help from the team
+- [Discord](https://discord.com/invite/ultralytics) — real-time chat with other developers and Ultralytics engineers
+- [Ultralytics Community Forum](https://community.ultralytics.com/) — longer-form discussion, project showcases, and how-to guides
+- [GitHub Issues](https://github.com/ultralytics/ultralytics/issues) — report bugs or request features

@@ -7,7 +7,7 @@ keywords: MNIST, dataset, handwritten digits, image classification, deep learnin
 
 # MNIST Dataset
 
-The [MNIST](https://en.wikipedia.org/wiki/MNIST_database) (Modified National Institute of Standards and Technology) dataset is an [image classification](https://www.ultralytics.com/glossary/image-classification) benchmark of 70,000 28x28 grayscale images of handwritten digits, evenly split across 10 classes — the digits 0 through 9. It ships with a predefined split of 60,000 training and 10,000 test images and has long served as the standard benchmark for evaluating [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) algorithms. For the harder clothing-image equivalent, see the related [Fashion-MNIST](fashion-mnist.md) dataset; for color images, see [CIFAR-10](cifar10.md).
+The [MNIST](https://en.wikipedia.org/wiki/MNIST_database) (Modified National Institute of Standards and Technology) dataset is an [image classification](https://www.ultralytics.com/glossary/image-classification) benchmark of 70,000 28x28 grayscale images of handwritten digits spanning 10 classes — the digits 0 through 9. It ships with a predefined split of 60,000 training and 10,000 test images and has long served as the standard benchmark for evaluating [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) algorithms. For the harder clothing-image equivalent, see the related [Fashion-MNIST](fashion-mnist.md) dataset; for color images, see [CIFAR-10](cifar10.md).
 
 ## Key Features
 
@@ -34,7 +34,7 @@ Each image is labeled with its corresponding digit (0–9), making MNIST a super
 
 ## Applications
 
-MNIST is widely used to train and evaluate [image classification](https://www.ultralytics.com/glossary/image-classification) models, from classic [Convolutional Neural Networks](https://www.ultralytics.com/glossary/convolutional-neural-network-cnn) (CNNs) and [Support Vector Machines](https://www.ultralytics.com/glossary/support-vector-machine-svm) (SVMs) to modern deep architectures. Its small grayscale images and 10 balanced digit classes make it a fast, reproducible benchmark for algorithm comparison and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) experimentation.
+MNIST is widely used to train and evaluate [image classification](https://www.ultralytics.com/glossary/image-classification) models, from classic [Convolutional Neural Networks](https://www.ultralytics.com/glossary/convolutional-neural-network-cnn) (CNNs) and [Support Vector Machines](https://www.ultralytics.com/glossary/support-vector-machine-svm) (SVMs) to modern deep architectures. Its small grayscale images and 10 digit classes make it a fast, reproducible benchmark for algorithm comparison and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) experimentation.
 
 Some common applications include:
 
@@ -114,7 +114,7 @@ The [MNIST](https://en.wikipedia.org/wiki/MNIST_database) dataset is a benchmark
 
 ### How many classes and images does the MNIST dataset have?
 
-MNIST has 10 classes — the handwritten digits 0 through 9 — and 70,000 grayscale images in total, each 28x28 pixels. It ships with a predefined split of 60,000 training and 10,000 test images, and the classes are balanced across all 10 digits.
+MNIST has 10 classes — the handwritten digits 0 through 9 — and 70,000 grayscale images in total, each 28x28 pixels. It ships with a predefined split of 60,000 training and 10,000 test images, with a roughly even number of examples per digit.
 
 ### How can I use Ultralytics YOLO to train a model on the MNIST dataset?
 

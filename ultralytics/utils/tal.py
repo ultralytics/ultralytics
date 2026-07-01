@@ -55,6 +55,7 @@ class TaskAlignedAssigner(nn.Module):
         self.o2f = False
         self.o2f_t = 0.6
         self.o2f_iou = "amb_max"
+        self.o2f_norm = "align"
         self.o2f_cls_score = None
         self.o2f_cls_weight = None
         self.full_pos = False  # score every 1:1-matched anchor by its own CIoU (o24 aux head)
@@ -157,7 +158,7 @@ class TaskAlignedAssigner(nn.Module):
         self.o2f_cls_score = self.o2f_cls_weight = None
         if self.o2f and self.topk > 1:
             self.o2f_cls_score, self.o2f_cls_weight = self.get_o2f_cls_targets(
-                overlaps, mask_pos, align_metric, norm_align_metric
+                pd_scores, gt_labels, overlaps, mask_pos, align_metric, norm_align_metric
             )
 
         return target_labels, target_bboxes, target_scores, fg_mask.bool(), target_gt_idx
@@ -221,20 +222,31 @@ class TaskAlignedAssigner(nn.Module):
         align_metric = bbox_scores.pow(self.alpha) * overlaps.pow(self.beta)
         return align_metric, overlaps
 
-    def get_o2f_cls_targets(self, overlaps, mask_pos, align_metric, norm_align_metric):
+    def get_o2f_cls_targets(self, pd_scores, gt_labels, overlaps, mask_pos, align_metric, norm_align_metric):
         """Return per-anchor O2F cls soft targets and cls weights, keeping each GT best anchor fully positive."""
         mask_pos = mask_pos.bool()
         best_idx = (align_metric * mask_pos).argmax(-1, keepdim=True)
         best_mask = torch.zeros_like(mask_pos, dtype=torch.bool).scatter_(-1, best_idx, True) & mask_pos
         amb_mask = mask_pos & ~best_mask
-        # Ambiguous anchors get the standard TAL soft label (align-normalized, IoU-scaled, same form as the
-        # norm_align_metric above) but computed within the ambiguous subset and down-weighted by o2f_t. The IoU
-        # magnitude is the ambiguous subset's max CIoU (o2f_iou='amb_max') or each anchor's own CIoU (o2f_iou='self').
-        # Either way the align ratio <= 1 and the IoU factor <= the full set's max, so amb stays <= best in any regime.
-        amb_align = align_metric * amb_mask
-        pos_align_amb = amb_align.amax(-1, keepdim=True)  # b, max_obj, 1 — best align within the ambiguous set
+        # Ambiguous soft label = (metric normalized within the ambiguous subset) * (IoU magnitude) * o2f_t, always
+        # <= the best anchor's target. Normalization metric: task alignment (o2f_norm='align') or the predicted
+        # GT-class probability (o2f_norm='prob', cast to float32 so eps never underflows for fp16 scores under AMP).
+        # IoU magnitude: the ambiguous subset's max CIoU (o2f_iou='amb_max') or each anchor's own CIoU (o2f_iou='self').
+        if self.o2f_norm == "prob":
+            amb_metric = torch.zeros_like(mask_pos, dtype=torch.float32)
+            ind = torch.zeros([2, self.bs, self.n_max_boxes], dtype=torch.long, device=gt_labels.device)
+            ind[0] = torch.arange(end=self.bs, device=gt_labels.device).view(-1, 1).expand(-1, self.n_max_boxes)
+            ind[1] = gt_labels.squeeze(-1).clamp(min=0)
+            amb_metric[amb_mask] = pd_scores[ind[0], :, ind[1]][amb_mask].float()
+        else:
+            amb_metric = align_metric * amb_mask
         amb_iou = overlaps if self.o2f_iou == "self" else (overlaps * amb_mask).amax(-1, keepdim=True)
-        amb_score = amb_align * amb_iou / (pos_align_amb + self.eps) * self.o2f_t
+        # Cap the IoU magnitude at the best anchor's soft target so amb stays <= best even when eps crushes best (tiny
+        # align in low-IoU early training) while a non-align o2f_norm ('prob') does not crush with it.
+        pos_align = align_metric.amax(-1, keepdim=True)  # best align (align already masked by mask_pos in _forward)
+        best_tgt = pos_align * (overlaps * mask_pos).amax(-1, keepdim=True) / (pos_align + self.eps)
+        amb_iou = torch.minimum(amb_iou, best_tgt)
+        amb_score = amb_metric / (amb_metric.amax(-1, keepdim=True) + self.eps) * amb_iou * self.o2f_t
         norm = norm_align_metric.squeeze(-1).unsqueeze(1)  # (b, 1, h*w) best-anchor soft label
         cls_score = torch.where(best_mask, norm, torch.where(amb_mask, amb_score, torch.zeros_like(overlaps)))
         cls_weights = torch.where(amb_mask, overlaps.new_full(overlaps.shape, 0.4), torch.ones_like(overlaps))

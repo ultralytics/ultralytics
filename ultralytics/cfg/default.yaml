@@ -108,6 +108,7 @@ vfl_norm: False # (bool) when vfl=True, normalize Varifocal Loss by positive cou
 vfl_hard: False # (bool) when vfl=True, regress positives toward hard 1.0 target instead of the IoU soft target
 o2f: False # (bool) use one-to-few assignment for the one2one branch
 o2f_iou: amb_max # (str) when o2f=True, ambiguous-anchor cls-target IoU: 'amb_max' (ambiguous-set max) or 'self' (own IoU)
+o2f_norm: align # (str) when o2f=True, ambiguous-anchor normalization metric: 'align' (task alignment) or 'prob' (predicted GT-class prob)
 o2f_max_t: 0.6 # (float) when o2f=True, initial ambiguous-anchor positive degree (start of the linear decay)
 o2f_min_t: 0.2 # (float) when o2f=True, final ambiguous-anchor positive degree (end of the linear decay)
 o2m: True # (bool) train the auxiliary one2many head (False = train the one2one branch only)

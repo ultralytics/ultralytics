@@ -104,7 +104,10 @@ def gpu_pids(gpu: int) -> list[str]:
 
 
 def launch(args, best: Path) -> None:
-    """Create the fire-once sentinel and start phase-2 in its own tmux session."""
+    """Sleep any launch jitter, then start phase-2 in its own tmux session."""
+    if args.launch_jitter:
+        say(f"gate passed, sleeping {args.launch_jitter}s launch-jitter to stagger off a sibling chain's wandb second")
+        time.sleep(args.launch_jitter)
     cmd = (
         f"cd {REPO} && source .venv/bin/activate && "
         f"python run_enc_distill_phase2.py {args.gpu} {best} multi_det_finetune {args.name} "
@@ -147,6 +150,7 @@ def main() -> None:
     p.add_argument("--freeze", type=int, default=9)
     p.add_argument("--lr", default="0.0015")
     p.add_argument("--token", default="", help="pgrep token for the pretrain process (default: ce-dir basename)")
+    p.add_argument("--launch-jitter", type=int, default=0, help="Seconds to sleep after the gate passes before launching (stagger sibling chains off the same wandb second)")
     p.add_argument("--check-once", action="store_true", help="Evaluate gates once, print status, never launch")
     args = p.parse_args()
     args.token = args.token or Path(args.ce_dir).name

@@ -12,31 +12,44 @@ from ultralytics.utils import YAML
 
 # -- Category constants -------------------------------------------------------
 
-MVTEC_OBJECT = ["bottle", "cable", "capsule", "hazelnut", "metal_nut", "pill", "screw",
-                "toothbrush", "transistor", "zipper"]
+MVTEC_OBJECT = [
+    "bottle",
+    "cable",
+    "capsule",
+    "hazelnut",
+    "metal_nut",
+    "pill",
+    "screw",
+    "toothbrush",
+    "transistor",
+    "zipper",
+]
 MVTEC_TEXTURE = ["carpet", "grid", "leather", "tile", "wood"]
-MVTEC_RANDOM=["bottle", "cable", "capsule", "carpet", "grid"]
+MVTEC_RANDOM = ["bottle", "cable", "capsule", "carpet", "grid"]
 
 CAT_GROUPS = {"object": MVTEC_OBJECT, "texture": MVTEC_TEXTURE, "random5": MVTEC_RANDOM}
 VAL_METRICS = ("image_auroc", "pixel_auroc", "mAP10", "mAP25", "mAP50", "mAP50_95")
 
-# YAML heatmap_mode -> prior_mode
-MODE_MAP = {"memory_bank": "heatmap", "learned": "heatmap_learned", "fused": "heatmap_fused"}
-
 # YAML keys -> FeatureDiscriminatorScorer kwargs
 SCORER_YAML_KEYS = {
-    "scorer_noise_std": "noise_std", "scorer_steps": "steps", "scorer_hidden": "hidden",
-    "scorer_n_noise": "n_noise", "scorer_batch": "batch", "scorer_lr": "lr",
+    "scorer_noise_std": "noise_std",
+    "scorer_steps": "steps",
+    "scorer_hidden": "hidden",
+    "scorer_n_noise": "n_noise",
+    "scorer_batch": "batch",
+    "scorer_lr": "lr",
     "scorer_noise_mode": "noise_mode",
 }
 
 
 # -- Path / data helpers ------------------------------------------------------
 
+
 def collect_test_images(test_root: Path, n: int, seed: int = 0) -> list[tuple[str, str]]:
     """Return up to ``n`` (path, defect_type) pairs sampled across a category's test subdirs."""
-    pairs = [(str(p), sub.name) for sub in sorted(test_root.iterdir()) if sub.is_dir()
-             for p in sorted(sub.glob("*.png"))]
+    pairs = [
+        (str(p), sub.name) for sub in sorted(test_root.iterdir()) if sub.is_dir() for p in sorted(sub.glob("*.png"))
+    ]
     random.Random(seed).shuffle(pairs)
     return pairs[:n] if n and n > 0 else pairs
 
@@ -62,36 +75,6 @@ def model_id_from_ckpt(ckpt: str) -> str:
 
 # -- Fit YAML resolution ------------------------------------------------------
 
-def load_fit_yaml(cfg_path: str | None) -> tuple[dict, str | None]:
-    """Load and resolve the fit YAML; returns (dict, resolved_path)."""
-    if not cfg_path:
-        return {}, None
-    p = Path(cfg_path)
-    if not p.is_file() and not p.is_absolute():
-        alt = Path(__file__).resolve().parent / "ultralytics" / "cfg" / p.name
-        if alt.is_file():
-            p = alt
-    if p.is_file():
-        return dict(YAML.load(str(p))), str(p)
-    return {}, str(p)
-
-
-def resolve_prior(yaml: dict) -> str:
-    """Map YAML heatmap_mode to prior_mode string."""
-    mode = yaml.get("heatmap_mode", "memory_bank")
-    return MODE_MAP.get(mode, "heatmap")
-
-
-def resolve_scorer_kwargs(yaml: dict) -> dict:
-    """Extract FeatureDiscriminatorScorer kwargs from YAML keys."""
-    kw = {}
-    for yk, kwk in SCORER_YAML_KEYS.items():
-        if yk in yaml:
-            kw[kwk] = yaml[yk]
-    kw.setdefault("adaptor", yaml.get("scorer_adaptor", True))
-    return kw
-
-
 def resolve_infer(yaml: dict) -> dict:
     """Extract prior-shaping inference knobs from YAML."""
     infer = {}
@@ -105,6 +88,7 @@ def resolve_infer(yaml: dict) -> dict:
 
 # -- Heatmap / mask overlays --------------------------------------------------
 
+
 def save_heatmap(model, img_path: str, out_path: Path) -> None:
     """Save the model's last prior heatmap as a JET overlay on the original image."""
     hm = getattr(model, "_last_heatmap", None)
@@ -113,8 +97,7 @@ def save_heatmap(model, img_path: str, out_path: Path) -> None:
     h = hm.detach().cpu().numpy().squeeze()
     h = (h - h.min()) / (np.ptp(h) + 1e-9)
     orig = cv2.imread(img_path)
-    color = cv2.resize(cv2.applyColorMap((h * 255).astype(np.uint8), cv2.COLORMAP_JET),
-                       (orig.shape[1], orig.shape[0]))
+    color = cv2.resize(cv2.applyColorMap((h * 255).astype(np.uint8), cv2.COLORMAP_JET), (orig.shape[1], orig.shape[0]))
     cv2.imwrite(str(out_path), cv2.addWeighted(orig, 0.55, color, 0.45, 0))
 
 
@@ -134,8 +117,17 @@ def load_mask_tensor(mask, imgsz: int):
 
 def run_prior_viz(m, img, prior, imgsz, conf, iou, device, external_mask=None, **kw):
     """Predict with one prior; return (pred_bgr, n_det, heatmap_np)."""
-    res = m.predict(img, prior=prior, imgsz=imgsz, conf=conf, iou=iou, device=device,
-                    external_mask=external_mask, verbose=False, **kw)[0]
+    res = m.predict(
+        img,
+        prior=prior,
+        imgsz=imgsz,
+        conf=conf,
+        iou=iou,
+        device=device,
+        external_mask=external_mask,
+        verbose=False,
+        **kw,
+    )[0]
     n = 0 if res.boxes is None else res.boxes.shape[0]
     hm = getattr(m.model, "_last_heatmap", None)
     hm_np = hm.detach().cpu().numpy().squeeze() if hm is not None else None
@@ -173,7 +165,7 @@ def txt_to_mask(txt_path: str, h: int, w: int) -> np.ndarray | None:
 def _add_title(img: np.ndarray, text: str, bar_h: int = 48) -> np.ndarray:
     """Stack a left-aligned title bar above a BGR image."""
     bar = np.full((bar_h, img.shape[1], 3), 30, np.uint8)
-    (tw, th), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 1.1, 2)
+    (_, th), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 1.1, 2)
     cv2.putText(bar, text, (8, (bar_h + th) // 2), cv2.FONT_HERSHEY_SIMPLEX, 1.1, (255, 255, 255), 2, cv2.LINE_AA)
     return np.vstack([bar, img])
 
@@ -200,7 +192,9 @@ def _mask_panel(img: np.ndarray, gt_mask: np.ndarray | str | None) -> np.ndarray
     m = cv2.resize(m, (img.shape[1], img.shape[0]), interpolation=cv2.INTER_NEAREST)
     panel = img.copy()
     sel = m > 0
-    panel[sel] = (0.45 * np.array([0, 0, 255], dtype=np.float32) + 0.55 * panel[sel].astype(np.float32)).astype(np.uint8)
+    panel[sel] = (0.45 * np.array([0, 0, 255], dtype=np.float32) + 0.55 * panel[sel].astype(np.float32)).astype(
+        np.uint8
+    )
     pct = (m > 0).mean() * 100
     label = f"defect={pct:.2f}%"
     cv2.putText(panel, label, (8, panel.shape[0] - 12), cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 255, 255), 2, cv2.LINE_AA)
@@ -215,15 +209,28 @@ def _hstack(images: list[np.ndarray], gap: int = 8) -> np.ndarray:
     x = 0
     for im in images:
         y = (h - im.shape[0]) // 2
-        out[y:y + im.shape[0], x:x + im.shape[1]] = im
+        out[y : y + im.shape[0], x : x + im.shape[1]] = im
         x += im.shape[1] + gap
     return out
 
 
-def save_compare_grid(*, original, none_pred, seg_heat, seg_pred,
-                       heat_heat, heat_pred, mask_img, mask_pred,
-                       out_path, n_none=0, n_seg=0, n_heat=0, n_mask=0,
-                       original_title="original"):
+def save_compare_grid(
+    *,
+    original,
+    none_pred,
+    seg_heat,
+    seg_pred,
+    heat_heat,
+    heat_pred,
+    mask_img,
+    mask_pred,
+    out_path,
+    n_none=0,
+    n_seg=0,
+    n_heat=0,
+    n_mask=0,
+    original_title="original",
+):
     """Build and save the 4x2 comparison grid."""
     seg_hmap_title = "seg heatmap"
     if seg_heat is not None:
@@ -231,18 +238,22 @@ def save_compare_grid(*, original, none_pred, seg_heat, seg_pred,
     mb_hmap_title = "mb heatmap"
     if heat_heat is not None:
         mb_hmap_title += f"  [max={heat_heat.max():.3f} min={heat_heat.min():.3f}]"
-    row1 = _hstack([
-        _add_title(original, original_title),
-        _add_title(none_pred, f"None Prior ({n_none} det)"),
-        _add_title(_heatmap_panel(original, seg_heat), seg_hmap_title),
-        _add_title(seg_pred, f"segment prior ({n_seg} det)"),
-    ])
-    row2 = _hstack([
-        _add_title(_heatmap_panel(original, heat_heat), mb_hmap_title),
-        _add_title(heat_pred, f"heatmap prior ({n_heat} det)"),
-        _add_title(_mask_panel(original, mask_img), "GT mask"),
-        _add_title(mask_pred, f"mask prior ({n_mask} det)"),
-    ])
+    row1 = _hstack(
+        [
+            _add_title(original, original_title),
+            _add_title(none_pred, f"None Prior ({n_none} det)"),
+            _add_title(_heatmap_panel(original, seg_heat), seg_hmap_title),
+            _add_title(seg_pred, f"segment prior ({n_seg} det)"),
+        ]
+    )
+    row2 = _hstack(
+        [
+            _add_title(_heatmap_panel(original, heat_heat), mb_hmap_title),
+            _add_title(heat_pred, f"heatmap prior ({n_heat} det)"),
+            _add_title(_mask_panel(original, mask_img), "GT mask"),
+            _add_title(mask_pred, f"mask prior ({n_mask} det)"),
+        ]
+    )
     grid = np.vstack([row1, np.full((8, row1.shape[1], 3), 255, dtype=np.uint8), row2])
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)

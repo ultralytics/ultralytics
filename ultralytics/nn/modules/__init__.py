@@ -110,12 +110,6 @@ from .anomaly_v2 import (
     BackboneMemoryBank,
     BboxMaskRenderer,
     HeatmapBiasFusion,
-    HeatmapSoftFusion,
-    HeatmapFiLMFusion,
-    QueryFiLMFusion,
-    SegBranch,
-    binary_seg_loss,
-    query_film_loss,
 )
 from .anomaly_v2_prior_augment import MaskPriorAugmenter
 
@@ -174,13 +168,7 @@ __all__ = (
     "HGBlock",
     "HGStem",
     "HeatmapBiasFusion",
-    "HeatmapSoftFusion",
-    "HeatmapFiLMFusion",
     "MaskPriorAugmenter",
-    "QueryFiLMFusion",
-    "SegBranch",
-    "binary_seg_loss",
-    "query_film_loss",
     "ImagePoolingAttn",
     "Index",
     "LRPCHead",

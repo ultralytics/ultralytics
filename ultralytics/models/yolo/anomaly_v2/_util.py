@@ -7,7 +7,7 @@ from __future__ import annotations
 from ultralytics.utils.torch_utils import unwrap_model
 
 
-def resolve_v2_model(m):
+def resolve_v2_model(m):  # TODO
     """Peel off all wrappers to reach the underlying ``YOLOAnomalyV2Model``.
 
     ``unwrap_model`` from ``ultralytics.utils.torch_utils`` only handles the

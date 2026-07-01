@@ -1,23 +1,14 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-"""YOLO Anomaly v2 predictors with unified prior-mode routing.
+"""YOLO Anomaly v2 predictor with unified prior-mode routing.
 
-Two predictors share the prior-injection ``preprocess`` via ``YOLOAnomalyPredictorBase``:
-
-  - ``YOLOAnomalyPredictor``    — Detect head (boxes).
-  - ``YOLOAnomalySegPredictor`` — Segment head (boxes + per-instance masks); reuses
-    ``SegmentationPredictor``'s proto/mask decoding.
-
-``YOLOA.task_map`` picks the right one from the loaded checkpoint's head type, mirroring
-how ``AnomalyV2Trainer.get_model`` selects ``YOLOAnomalyV2Model`` vs ``YOLOAnomalyV2SegModel``.
+``YOLOAnomalyPredictor`` extends ``DetectionPredictor`` with prior-injection in
+``preprocess`` via ``YOLOAnomalyPredictorBase``.
 
 Prior modes selectable via ``predictor.prior_mode``:
 
   - ``"none"``     — passthrough (vanilla YOLO, no fusion bias).
-  - ``"segment"``  — SegBranch sigmoid output as prior.
-  - ``"heatmap"``  — feature-side anomaly map (producer set by ``_heatmap_producer``:
-                     bank / learned / both). Legacy ``"heatmap_learned"`` /
-                     ``"heatmap_fused"`` are translated by ``set_prior_mode``.
+  - ``"heatmap"``  — feature-side memory-bank anomaly map.
   - ``"mask"``     — external_mask provided by caller.
 
 Legacy ``external_mask`` / ``bbox_prompt`` attributes still work when
@@ -29,21 +20,19 @@ from __future__ import annotations
 import torch
 
 from ultralytics.models.yolo.detect import DetectionPredictor
-from ultralytics.models.yolo.segment import SegmentationPredictor
 from ultralytics.utils import DEFAULT_CFG
 
 from ._util import resolve_v2_model
 
 
 class YOLOAnomalyPredictorBase:
-    """Shared prior-mode injection for the Detect- and Segment-head anomaly predictors."""
+    """Shared prior-mode injection for the Detect-head anomaly predictor."""
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         # Pop custom keys from overrides before the base predictor validates all keys.
         prior_mode = overrides.pop("prior_mode", None) if isinstance(overrides, dict) else None
         super().__init__(cfg=cfg, overrides=overrides, _callbacks=_callbacks)
         self.prior_mode = prior_mode
-        self.bbox_prompt: tuple[torch.Tensor, torch.Tensor] | None = None
         self.external_mask: torch.Tensor | None = None
 
     def preprocess(self, im):
@@ -59,9 +48,6 @@ class YOLOAnomalyPredictorBase:
                         m.set_external_mask_once(self.external_mask.to(device))
                     elif hasattr(m, "_external_mask_buf"):
                         m._external_mask_buf = self.external_mask.to(device)
-                elif self.bbox_prompt is not None:
-                    bb, bi = self.bbox_prompt
-                    m.set_mask_input(bb.to(device), bi.to(device))
                 elif self.prior_mode is None:
                     # Legacy: no prompt → passthrough
                     m.disable_mask_once()
@@ -70,7 +56,3 @@ class YOLOAnomalyPredictorBase:
 
 class YOLOAnomalyPredictor(YOLOAnomalyPredictorBase, DetectionPredictor):
     """YOLO Anomaly v2 predictor (Detect head) with configurable prior mode."""
-
-
-class YOLOAnomalySegPredictor(YOLOAnomalyPredictorBase, SegmentationPredictor):
-    """YOLO Anomaly v2 predictor (Segment head): boxes + per-instance masks with prior mode."""

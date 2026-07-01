@@ -1702,8 +1702,6 @@ class LetterBox:
             )
         else:  # multispectral
             pad_img = np.full((h + top + bottom, w + left + right, c), fill_value=self.padding_value, dtype=img.dtype)
-            if c > 3:
-                pad_img[..., 3:] = 0  # extra channels (e.g. cached anomaly prior) pad with 0, not gray
             pad_img[top : top + h, left : left + w] = img
             img = pad_img
 

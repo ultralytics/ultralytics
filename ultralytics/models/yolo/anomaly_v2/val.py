@@ -36,7 +36,6 @@ import torch.nn.functional as F
 
 from ultralytics.data.build import build_dataloader
 from ultralytics.models.yolo.detect import DetectionValidator
-from ultralytics.models.yolo.segment import SegmentationValidator
 from ultralytics.utils import LOGGER
 from ultralytics.utils.torch_utils import unwrap_model
 
@@ -46,23 +45,17 @@ _SENTINEL = object()  # "prior mode not snapshotted" marker (distinct from a rea
 
 
 class YOLOAnomalyValidatorBase:
-    """Shared anomaly-v2 validation logic, mixed into a detection or segmentation base validator.
+    """Shared anomaly-v2 validation logic, mixed into ``DetectionValidator``.
 
     Holds all anomaly behavior — prior-mode routing, 2-pass (mask-on / mask-off) training val,
-    image/pixel AUROC, the memory-bank / scorer lifecycle, and the OOD / standalone single-pass
-    path. Composed with ``DetectionValidator`` (box metrics) as :class:`YOLOAnomalyValidator`, or
-    with ``SegmentationValidator`` (box + per-instance mask metrics) as
-    :class:`YOLOAnomalySegValidator`; the concrete class only fixes which metrics base is used.
-    All ``super()`` calls resolve through the concrete class's MRO.
+    image/pixel AUROC, the memory-bank lifecycle, and the OOD / standalone single-pass path.
+    Composed with ``DetectionValidator`` as :class:`YOLOAnomalyValidator`.
     """
 
     def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None,
                  prior_mode: str | None = None) -> None:
-        scorer_kwargs, scorer_fuse = None, "mean"
         if isinstance(args, dict):
             prior_mode = args.pop("prior_mode", prior_mode)
-            scorer_kwargs = args.pop("scorer_kwargs", None)  # FeatureDiscriminatorScorer fit kwargs
-            scorer_fuse = args.pop("scorer_fuse", "mean")  # heatmap_fused combine op
         super().__init__(dataloader, save_dir, args, _callbacks)
         self.args.task = "anomaly_v2"
         self.prior_mode = prior_mode
@@ -87,12 +80,6 @@ class YOLOAnomalyValidatorBase:
         self._ood_bank_size = 10000
         self._saved_prior_mode = _SENTINEL
         self._built_bank = False
-        # FeatureDiscriminatorScorer (heatmap_learned / heatmap_fused): fit from the bank's normal
-        # features inside this validator, then drop after — like the bank, so the shared/EMA model
-        # stays clean (no scorer params in a checkpoint).
-        self._scorer_kwargs = dict(scorer_kwargs) if scorer_kwargs else {}
-        self._scorer_fuse = scorer_fuse
-        self._fit_disc = False
 
         # AUROC accumulators
         self._auroc_image_scores: list[float] = []
@@ -113,18 +100,13 @@ class YOLOAnomalyValidatorBase:
         if m is not None and self.prior_mode is not None and hasattr(m, "set_prior_mode"):
             self._saved_prior_mode = getattr(m, "_prior_mode", None)  # snapshot for restore
             effective = self.prior_mode
-            needs_bank = self.prior_mode in ("heatmap", "heatmap_learned", "heatmap_fused")
+            needs_bank = self.prior_mode == "heatmap"
             if needs_bank and not self._ensure_memory_bank(m):
                 # No usable bank (no bb_layers / no normal images / build failed): never run the
                 # heatmap forward against a missing-or-empty bank — fall back to bare detection so
                 # the run is honest (AUROC nan) instead of crashing or scoring against 0 vectors.
                 LOGGER.warning("YOLOAnomalyValidator: heatmap prior unavailable -> running prior_mode='none'.")
                 effective = "none"
-            elif self.prior_mode in ("heatmap_learned", "heatmap_fused") and not self._ensure_feat_disc(m):
-                # Scorer fit failed: heatmap_fused degrades to the bank alone, heatmap_learned to none.
-                fallback = "heatmap" if self.prior_mode == "heatmap_fused" else "none"
-                LOGGER.warning(f"YOLOAnomalyValidator: learned scorer unavailable -> prior_mode='{fallback}'.")
-                effective = fallback
             m.set_prior_mode(effective)
 
     def preprocess(self, batch):
@@ -151,14 +133,7 @@ class YOLOAnomalyValidatorBase:
         return batch
 
     def postprocess(self, preds):
-        """Post-process predictions, unwrapping Segment head ``((y, proto), preds)`` if needed.
-
-        Segment.forward() returns ``((decoded_tensor, proto), preds_dict)`` during eval, but
-        it may arrive here wrapped in either a tuple or a list depending on the call path
-        (``_predict_once`` vs ``YOLOAnomalyV2Model.predict``).
-        """
-        if isinstance(preds, (list, tuple)) and len(preds) == 2 and isinstance(preds[0], (list, tuple)):
-            preds = preds[0]  # (y, proto) — NMS extracts y via prediction[0]
+        """Post-process predictions."""
         return super().postprocess(preds)
 
     # ------------------------------------------------------------------
@@ -176,7 +151,7 @@ class YOLOAnomalyValidatorBase:
 
     def _single_pass(self, trainer, model):
         self._reset_auroc()
-        if self.prior_mode in ("heatmap", "heatmap_learned", "heatmap_fused"):
+        if self.prior_mode == "heatmap":
             self.args.rect = False
         return super().__call__(trainer=trainer, model=model)
 
@@ -299,29 +274,9 @@ class YOLOAnomalyValidatorBase:
         self._built_bank = True
         return True
 
-    def _ensure_feat_disc(self, m) -> bool:
-        """Fit the FeatureDiscriminatorScorer from the (already-built) bank's normal features.
-
-        Reuses a scorer already fitted on ``m`` (e.g. supplied by the caller); otherwise fits one
-        with ``self._scorer_kwargs`` and marks it for drop in :meth:`_restore_prior_state`. Returns
-        True iff a usable scorer is ready.
-        """
-        if not hasattr(m, "fit_feat_disc"):
-            return False
-        sc = getattr(m, "_feat_disc_scorer", None)
-        if sc is not None and getattr(sc, "fitted", False):
-            return True  # supplied/reused — don't refit
-        try:
-            ok = m.fit_feat_disc(fuse=self._scorer_fuse, **self._scorer_kwargs)
-        except Exception as e:  # never crash the val run on a scorer fit failure
-            LOGGER.warning(f"YOLOAnomalyValidator: feature-discriminator fit failed ({type(e).__name__}: {e}).")
-            return False
-        self._fit_disc = bool(ok)
-        return ok
-
     def _restore_prior_state(self) -> None:
-        """Undo prior_mode + any bank/scorer we built so a shared/EMA model is left clean."""
-        if self._saved_prior_mode is _SENTINEL and not self._built_bank and not self._fit_disc:
+        """Undo prior_mode + any bank we built so a shared/EMA model is left clean."""
+        if self._saved_prior_mode is _SENTINEL and not self._built_bank:
             return
         m = resolve_v2_model(self._model_ref)
         if m is None:
@@ -334,10 +289,6 @@ class YOLOAnomalyValidatorBase:
             if mb is not None and hasattr(mb, "reset_memory_bank"):
                 mb.reset_memory_bank()  # free the bank; prevents EMA/ckpt bloat mid-training
             self._built_bank = False
-        if self._fit_disc:
-            if hasattr(m, "_feat_disc_scorer"):
-                m._feat_disc_scorer = None  # drop scorer params before any checkpoint save
-            self._fit_disc = False
 
     # ------------------------------------------------------------------
     # AUROC
@@ -482,26 +433,7 @@ class YOLOAnomalyValidatorBase:
 
 
 class YOLOAnomalyValidator(YOLOAnomalyValidatorBase, DetectionValidator):
-    """Anomaly-v2 validator with box metrics (Detect-head training val + OOD / standalone path)."""
-
-
-class YOLOAnomalySegValidator(YOLOAnomalyValidatorBase, SegmentationValidator):
-    """Anomaly-v2 validator with box + per-instance mask metrics (Segment-head training val).
-
-    Used for in-distribution training val (``prior_mode=None``); OOD eval stays box-only via
-    :class:`YOLOAnomalyValidator`. ``build_dataset`` forces polygon-mask loading so mask mAP is
-    actually measured (training val reuses the trainer's seg loader directly, so the override only
-    matters for standalone ``YOLOA.val`` on a Segment-head checkpoint).
-    """
-
-    def build_dataset(self, img_path, mode="val", batch=None):
-        """Build a val dataset with polygon masks (task='segment') so mask metrics are computed."""
-        prev_task = self.args.task
-        self.args.task = "segment"
-        try:
-            return super().build_dataset(img_path, mode=mode, batch=batch)
-        finally:
-            self.args.task = prev_task
+    """Anomaly-v2 validator with box metrics (training val + OOD / standalone path)."""
 
 
 # ----------------------------------------------------------------------
@@ -518,8 +450,7 @@ MVTEC_CATEGORIES = [
     "bottle", "cable", "capsule", "carpet", "grid", "hazelnut", "leather",
     "metal_nut", "pill", "screw", "tile", "toothbrush", "transistor", "wood", "zipper",
 ]
-_MODE_TO_PRIOR = {"mask_off": "none", "heatmap": "heatmap", "heatmap_learned": "heatmap_learned",
-                  "heatmap_fused": "heatmap_fused", "mask_on": "box"}
+_MODE_TO_PRIOR = {"mask_off": "none", "heatmap": "heatmap", "mask_on": "box"}
 _OOD_CSV_FIELDS = ["epoch", "category", "mode", "mAP10", "mAP25", "mAP50", "mAP50_95",
                    "P", "R", "image_auroc", "pixel_auroc"]
 
@@ -623,8 +554,6 @@ def run_mvtec_ood_eval(
     heatmap_edge_m: float | None = None,
     heatmap_edge_sigma: float | None = None,
     bank_cache_dir: str | Path | None = None,
-    scorer_kwargs: dict | None = None,
-    scorer_fuse: str = "mean",
     validator_cls: type | None = None,
 ) -> list[dict]:
     """Run the 3-mode MVTec OOD eval over ``categories``; ``model`` is a YOLOAnomalyV2Model.
@@ -691,8 +620,6 @@ def run_mvtec_ood_eval(
                     "rect": False, "plots": False, "verbose": False, "save_json": False,
                     "single_cls": True,  # model is binary-trained; map all GT class IDs → 0
                     "prior_mode": _MODE_TO_PRIOR[mode],  # popped by YOLOAnomalyValidator.__init__
-                    "scorer_kwargs": scorer_kwargs,  # learned-scorer fit kwargs (popped too)
-                    "scorer_fuse": scorer_fuse,  # heatmap_fused combine op (popped too)
                     # RAM-cache only pays off across multiple modes (decode once, reuse). For a
                     # single-mode sweep there's no reuse, so skip it (and the non-determinism warning).
                     "cache": "ram" if len(modes) > 1 else False,

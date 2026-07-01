@@ -84,13 +84,16 @@ class MaskPriorAugmenter:
             bb[:, 1] = (bb[:, 1] + off[:, 1]).clamp(0.0, 1.0)
         return bb, bi
 
-    def fragment_prior_bboxes(self, bboxes, batch_idx):
+    def fragment_prior_bboxes(self, bboxes, batch_idx, training: bool = True):
         """Split each GT box into several sub-boxes to mimic memory-bank's fragmented response.
 
         Returns updated ``(bboxes, batch_idx)`` with each original box replaced by
-        ``self.mask_fragment_n`` smaller boxes sampled inside it.
+        ``self.mask_fragment_n`` smaller boxes sampled inside it. No-op when not training or
+        ``mask_fragment_p`` is zero.
         """
-        if bboxes.numel() == 0:
+        if not training or self.mask_fragment_p <= 0.0 or bboxes.numel() == 0:
+            return bboxes, batch_idx
+        if torch.rand(1).item() >= self.mask_fragment_p:
             return bboxes, batch_idx
         n_frag = self.mask_fragment_n
         frags, frag_idx = [], []
@@ -124,7 +127,7 @@ class MaskPriorAugmenter:
     def augment_mask_once(self, mask):
         """One pass of training-only mask augmentation: make the binary GT prior look like an inference heatmap.
 
-        Closes the train(binary GT) vs inference(soft, weak-peak memory-bank / SegBranch heatmap)
+        Closes the train(binary GT) vs inference(soft, weak-peak memory-bank heatmap)
         distribution gap. Order: shuffle (wrong-location prior) -> Gaussian blur (soft edges) ->
         per-sample magnitude scaling (peak < 1, mimics weak heatmaps) -> additive noise ->
         memory-bank-style background/coherent noise. GT boxes are unchanged, so the model learns
@@ -299,14 +302,19 @@ class MaskPriorAugmenter:
 
     # -- polygon-equivalent augmentations (segment-prior path) -------------------------------
 
-    def fragment_mask(self, mask):
+    def fragment_mask(self, mask, training: bool = True):
         """Randomly break connected mask regions into scattered sub-blobs.
 
         Polygon/segment-equivalent of ``fragment_prior_bboxes``. Operates on a
         ``(B, 1, H, W)`` binary mask by eroding with random kernels and keeping
         only a few random rectangular windows, producing a fragmented, scattered
-        prior that mimics memory-bank heatmap patterns.
+        prior that mimics memory-bank heatmap patterns. No-op when not training or
+        ``mask_fragment_p`` is zero.
         """
+        if not training or self.mask_fragment_p <= 0.0:
+            return mask
+        if torch.rand(1).item() >= self.mask_fragment_p:
+            return mask
         b, _, H, W = mask.shape
         out = mask.clone()
         for i in range(b):
@@ -330,11 +338,18 @@ class MaskPriorAugmenter:
             out[i, 0] = eroded[0, 0] * windows[0, 0]
         return out
 
-    def drop_polygon_instances(self, masks):
+    def drop_polygon_instances(self, masks, training: bool = True, batch_size: int | None = None):
         """Drop random instances from an instance-index map ``(B, H/r, W/r)``.
 
-        Polygon equivalent of ``mask_box_drop_p`` in ``augment_prior_bboxes``.
+        Polygon equivalent of ``mask_box_drop_p`` in ``augment_prior_bboxes``. No-op when not
+        training, ``mask_box_drop_p`` is zero, or ``masks`` is not a batch instance-index map.
         """
+        if not training or self.mask_box_drop_p <= 0.0 or masks.numel() == 0:
+            return masks
+        if masks.dim() != 3:
+            return masks
+        if batch_size is not None and masks.shape[0] != batch_size:
+            return masks
         ids = masks.unique()
         ids = ids[ids > 0]  # exclude background
         if len(ids) == 0:
@@ -348,13 +363,14 @@ class MaskPriorAugmenter:
             out[out == did] = 0
         return out
 
-    def translate_prior(self, prior):
+    def translate_prior(self, prior, training: bool = True):
         """Random per-sample translation of ``(B, 1, H, W)`` prior masks.
 
-        Polygon equivalent of ``mask_jitter`` in ``augment_prior_bboxes``.
-        Uses bilinear sampling so sub-pixel shifts produce soft edges (like the gauss
-        rendering the jittered bbox would).
+        Polygon equivalent of ``mask_jitter`` in ``augment_prior_bboxes``. No-op when
+        not training or ``mask_jitter`` is zero.
         """
+        if not training or self.mask_jitter <= 0.0:
+            return prior
         B, _, H, W = prior.shape
         dev = prior.device
         off = (torch.rand(B, 2, device=dev) * 2 - 1) * (self.mask_jitter * self.mask_size)

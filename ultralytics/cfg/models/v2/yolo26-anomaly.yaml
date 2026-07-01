@@ -3,7 +3,7 @@
 # YOLO Anomaly v2 — softhint (bias) fusion + pure GT-mask prior, aug3 + mixup, mask_aug_passes: 2.
 # Canonical anomaly-v2 detection config (best OOD result). The double mask-augment pass
 # (mask_aug_passes: 2) reproduces the v5 behavior the unify-resolver collapsed to a single pass,
-# which gives the OOD heatmap deploy path its mAP10 robustness. Segment-head variant: yolo26-anomaly-seg.yaml.
+# which gives the OOD heatmap deploy path its mAP10 robustness.
 # Branch: yoloa_clean.
 
 nc: 80
@@ -21,7 +21,6 @@ anomaly_v2:
   mask_mode: gauss
   sigma_factor: [0.20, 0.40]
   p_drop: 0.5
-  seg_branch: false
   bb_layers: [6]
   fusion_mode: bias
   # aug3 base + mixup re-enabled (aug2 strength) — only diff vs aug3
@@ -44,6 +43,21 @@ anomaly_v2:
   test_heatmap_prior: true     # test prior=heatmap — required (fitness = test_metrics(heatmap_prior)/mAP10)
   test_mask_prior: false       # test prior=mask (mask_on)
   test_fit_cfg: ../../yoloa_fit_default.yaml
+
+  # new augs, turned off by default for now
+  mask_fragment_p: 0.0
+  mask_fragment_n: 4
+  mask_bg_blobs_p: 0.0
+  mask_bg_blobs_n: 8
+  mask_bg_blobs_sigma: [0.03, 0.08]
+  mask_coherent_noise_p: 0.0
+  mask_coherent_noise_sigma: [0.05, 0.15]
+  mask_bg_blobs_amp: [0.05, 0.15]
+  mask_coherent_noise_amp: [0.02, 0.06]
+  mask_floor: [0.01, 0.03]
+  # mask_bg_blobs_amp: [0.08, 0.20]
+  # mask_coherent_noise_amp: [0.03, 0.08]
+  # mask_floor: [0.02, 0.05]
 
 backbone:
   - [-1, 1, Conv, [64, 3, 2]]

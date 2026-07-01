@@ -579,6 +579,7 @@ class YOLOAnomalyV2Model(DetectionModel):
         if fusion_mode != "bias":
             raise ValueError(f"fusion_mode must be bias, got {fusion_mode!r}")
         fusion_mid = int(v2_cfg.get("fusion_mid", 32))
+        fusion_norm = bool(v2_cfg.get("fusion_norm", False))
 
         # AnomalyMCDetect (decoupled binary detection + multi-class type head):
         #   type_gain -- weight of the type cross-entropy in the loss (read by AnomalyMCLoss).
@@ -597,7 +598,7 @@ class YOLOAnomalyV2Model(DetectionModel):
         self.mask_size = mask_size
 
         self.mask_augmenter = MaskPriorAugmenter(v2_cfg)
-        self.heatmap_bias_fusion = HeatmapBiasFusion(c_mid=fusion_mid)
+        self.heatmap_bias_fusion = HeatmapBiasFusion(c_mid=fusion_mid, inst_norm=fusion_norm)
         # Inference-time prior processing: minmax stretch, gaussian/mean blur, spatial softmax,
         # and an edge-suppression window for memory-bank heatmaps.
         self.heatmap_norm = "none"

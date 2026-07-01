@@ -49,12 +49,12 @@ def say(msg: str) -> None:
 
 
 def slack(msg: str) -> None:
-    """Send a Slack line via notify_slack.sh when present, else log only."""
-    sh = REPO / "notify_slack.sh"
-    if sh.exists():
-        subprocess.run(["bash", str(sh), msg], check=False)
-    else:
-        say(f"(no notify_slack.sh) SLACK: {msg}")
+    """Send a Slack line via notify_slack.sh (repo or home dir) when present, else log only."""
+    for sh in (REPO / "notify_slack.sh", Path.home() / "notify_slack.sh"):
+        if sh.exists():
+            subprocess.run(["bash", str(sh), msg], check=False)
+            return
+    say(f"(no notify_slack.sh) SLACK: {msg}")
 
 
 def csv_rows(csv_path: Path) -> int:

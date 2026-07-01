@@ -74,6 +74,8 @@ class MHSABlock(nn.Module):
         num_heads (int): Number of attention heads. c must be divisible by num_heads.
         head_dim (int): c // num_heads.
         pe (nn.Conv2d): Depthwise 7x7 conditional positional encoding (FastViT RepCPE / CPVT), applied before attention.
+            Zero-initialized so a fresh block starts as identity (ReZero) and the residual learns the position signal
+            from zero. `forward` guards on it so checkpoints saved before `pe` existed still load and run.
         ln1 (nn.LayerNorm): Pre-attention norm.
         qkv (nn.Linear): Fused QKV projection.
         proj (nn.Linear): Post-attention projection.
@@ -90,6 +92,8 @@ class MHSABlock(nn.Module):
         self.num_heads = num_heads
         self.head_dim = c // num_heads
         self.pe = nn.Conv2d(c, c, 7, padding=3, groups=c, bias=True)
+        nn.init.zeros_(self.pe.weight)
+        nn.init.zeros_(self.pe.bias)
         self.ln1 = nn.LayerNorm(c)
         self.qkv = nn.Linear(c, 3 * c, bias=False)
         self.proj = nn.Linear(c, c, bias=False)
@@ -102,7 +106,8 @@ class MHSABlock(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Forward pass: 4D → tokens → SA + FFN → 4D."""
         b, c, h, w = x.shape
-        x = x + self.pe(x)  # RepCPE conditional position before attention
+        if getattr(self, "pe", None) is not None:
+            x = x + self.pe(x)  # RepCPE conditional position before attention
         t = x.flatten(2).transpose(1, 2)  # (B, N, C)
         n = self.ln1(t)
         qkv = self.qkv(n).reshape(b, -1, 3, self.num_heads, self.head_dim).permute(2, 0, 3, 1, 4)

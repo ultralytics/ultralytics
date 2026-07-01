@@ -217,8 +217,7 @@ def _get_covariance_matrix(boxes: torch.Tensor, floor: float = 0.0) -> tuple[tor
 
     Args:
         boxes (torch.Tensor): A tensor of shape (N, 5) representing rotated bounding boxes, with xywhr format.
-        floor (float, optional): Small value added to width/height to bound gradients for
-            sub-stride boxes.
+        floor (float, optional): Small value added to width/height to bound gradients for sub-stride boxes.
 
     Returns:
         (tuple[torch.Tensor, torch.Tensor, torch.Tensor]): Covariance matrix components (a, b, c) where the covariance
@@ -244,8 +243,7 @@ def probiou(
         obb2 (torch.Tensor): Predicted OBBs, shape (N, 5), format xywhr.
         CIoU (bool, optional): If True, calculate CIoU.
         eps (float, optional): Small value to avoid division by zero.
-        floor (float, optional): Small value passed to `_get_covariance_matrix` to bound gradients for
-            sub-stride boxes.
+        floor (float, optional): Small value passed to `_get_covariance_matrix` to bound gradients for sub-stride boxes.
 
     Returns:
         (torch.Tensor): OBB similarities, shape (N,).

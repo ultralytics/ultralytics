@@ -546,6 +546,19 @@ class YOLOAnomalyV2Model(DetectionModel):
     Spec: docs_yoloa_v2/specs/2026-06-02-softhint-fusion-design.md.
     """
 
+    # Default BackboneMemoryBank build hyperparameters. These are placeholders: the actual
+    # values are supplied by the fit YAML via ``apply_bb_overrides`` before ``load_support_set``
+    # is called. Only ``bb_layers`` comes from the model YAML (it controls architecture).
+    _BANK_DEFAULTS = {
+        "temperature": 3.0,
+        "K": 5,
+        "max_bank_size": None,
+        "calibration_target_score": 0.2,
+        "calibration_target_quantile": 0.95,
+        "hmap_stretch_strength": 0.0,
+        "holdout_max": 5000,
+    }
+
     def __init__(self, cfg="yolo26-anomaly-v2.yaml", ch=3, nc=None, verbose=True):
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
@@ -603,21 +616,10 @@ class YOLOAnomalyV2Model(DetectionModel):
         self._mask_disabled_once = False
 
         # --- BackboneMemoryBank (v2.3) ---
+        # Architecture knob from the model YAML; all build hyperparameters come from the fit YAML.
         bb_layers_cfg = v2_cfg.get("bb_layers", None)
         bb_layers = list(bb_layers_cfg) if bb_layers_cfg else None
-        self.memory_bank = (
-            BackboneMemoryBank(
-                temperature=3.0,
-                K=5,
-                max_bank_size=None,
-                calibration_target_score=0.2,
-                calibration_target_quantile=0.95,
-                hmap_stretch_strength=0.0,
-                holdout_max=5000,
-            )
-            if bb_layers
-            else None
-        )
+        self.memory_bank = BackboneMemoryBank(**self._BANK_DEFAULTS) if bb_layers else None
         self._bb_layers = bb_layers
         self._bb_hook_handles: list = []
         self._bb_feats: dict[int, "torch.Tensor"] = {}

@@ -1169,6 +1169,11 @@ class v8DepthLoss:
         self.l1_weight = h.silog_l1
         # Depth-distance weighting: weight each valid pixel by gt**dist_power (normalized to mean 1).
         self.dist_power = h.dist_pw
+        # Gradient-matching pyramid levels and SILog residual trimming. getattr fallbacks keep this
+        # working for models whose args predate these keys / lack them (inference builds, stubs).
+        # grad_scales=1 reproduces the single-scale gradient loss; trim=0.0 disables trimming.
+        self.grad_scales = int(getattr(h, "silog_grad_scales", 4) or 4)
+        self.trim_pct = float(getattr(h, "silog_trim", 0.0) or 0.0)
         # GT beyond the head's representable range (sigmoid × max_depth) is masked out of the
         # loss: supervising unreachable targets saturates the sigmoid and, through SILog's
         # per-image mean coupling, corrupts gradients on in-range pixels too.
@@ -1177,6 +1182,19 @@ class v8DepthLoss:
             if getattr(m, "max_depth", None) is not None:  # None on log-mode heads (unbounded)
                 self.max_depth = float(m.max_depth)
                 break
+
+    @staticmethod
+    def _grad_l1(pred_log, gt_log, valid_f):
+        """L1 between predicted and GT log-depth spatial gradients (dx, dy), gated by the valid mask.
+
+        Each gradient is zeroed unless both contributing pixels are valid, so edges are only
+        matched where GT is defined.
+        """
+        pred_dx = (pred_log[:, :, :, 1:] - pred_log[:, :, :, :-1]) * valid_f[:, :, :, 1:] * valid_f[:, :, :, :-1]
+        gt_dx = (gt_log[:, :, :, 1:] - gt_log[:, :, :, :-1]) * valid_f[:, :, :, 1:] * valid_f[:, :, :, :-1]
+        pred_dy = (pred_log[:, :, 1:, :] - pred_log[:, :, :-1, :]) * valid_f[:, :, 1:, :] * valid_f[:, :, :-1, :]
+        gt_dy = (gt_log[:, :, 1:, :] - gt_log[:, :, :-1, :]) * valid_f[:, :, 1:, :] * valid_f[:, :, :-1, :]
+        return F.l1_loss(pred_dx, gt_dx) + F.l1_loss(pred_dy, gt_dy)
 
     def __call__(self, preds, batch):
         """Calculate depth estimation loss.
@@ -1227,22 +1245,41 @@ class v8DepthLoss:
             w = w / w.mean()  # mean 1 → weighted-mean is just mean(w * x), magnitude preserved
         else:
             w = 1.0  # scalar broadcasts; mean(w * x) == mean(x), i.e. uniform (unchanged)
+        # Trim the largest-residual pixels before reducing: presumed-noisy labels (transparent/
+        # reflective surfaces, sparse-LiDAR bleed, sky) otherwise dominate the scale-invariant fit.
+        if self.trim_pct > 0 and log_diff.numel() > 1:
+            keep = log_diff.abs() <= torch.quantile(log_diff.abs(), 1.0 - self.trim_pct)
+            log_diff = log_diff[keep]
+            if torch.is_tensor(w):
+                w = w[keep]
+                w = w / w.mean()  # renormalize to mean 1 over the kept set (proper weighted mean)
         wmean = lambda x: (w * x).mean()
         silog = torch.sqrt(wmean(log_diff**2) - self.silog_lambda * wmean(log_diff) ** 2 + 1e-6)
         loss[0] = silog * self.silog_weight
         if self.l1_weight > 0:
             loss[0] = loss[0] + self.l1_weight * wmean(log_diff.abs())  # scale-anchored term
 
-        # Gradient-matching loss (edge-aware): penalize differences in spatial gradients
+        # Gradient-matching loss (edge-aware): penalize differences in spatial gradients.
+        # Run it over a pyramid (grad_scales levels, ×2 masked-avg-pool per level) so coarse
+        # depth discontinuities are matched too, not just full-resolution edges — the dominant
+        # sharpness lever in MiDaS (L_reg) / Depth Anything V2 (L_gm). grad_scales=1 reproduces
+        # the original single-scale term exactly.
         pred_log = torch.log(pred_depth.clamp(min=0.001))
         gt_log = torch.log(gt_depth.clamp(min=0.001))
         valid_f = valid.float()
-        # Horizontal and vertical gradients
-        pred_dx = (pred_log[:, :, :, 1:] - pred_log[:, :, :, :-1]) * valid_f[:, :, :, 1:] * valid_f[:, :, :, :-1]
-        gt_dx = (gt_log[:, :, :, 1:] - gt_log[:, :, :, :-1]) * valid_f[:, :, :, 1:] * valid_f[:, :, :, :-1]
-        pred_dy = (pred_log[:, :, 1:, :] - pred_log[:, :, :-1, :]) * valid_f[:, :, 1:, :] * valid_f[:, :, :-1, :]
-        gt_dy = (gt_log[:, :, 1:, :] - gt_log[:, :, :-1, :]) * valid_f[:, :, 1:, :] * valid_f[:, :, :-1, :]
-        grad_loss = F.l1_loss(pred_dx, gt_dx) + F.l1_loss(pred_dy, gt_dy)
+        n_scales = max(self.grad_scales, 1)
+        grad_loss = 0.0
+        for s in range(n_scales):
+            grad_loss = grad_loss + self._grad_l1(pred_log, gt_log, valid_f)
+            if s == n_scales - 1 or pred_log.shape[-1] < 4 or pred_log.shape[-2] < 4:
+                break  # last level, or too small to pool and still differentiate
+            # Masked ×2 average-pool: aggregate only valid pixels so invalid zeros never bleed
+            # into valid neighbours (same rationale as never resizing sparse GT above).
+            vp = F.avg_pool2d(valid_f, 2)
+            denom = vp.clamp(min=1e-6)
+            pred_log = F.avg_pool2d(pred_log * valid_f, 2) / denom
+            gt_log = F.avg_pool2d(gt_log * valid_f, 2) / denom
+            valid_f = (vp > 0).float()
         loss[1] = grad_loss * self.grad_weight
 
         batch_size = pred_depth.shape[0]

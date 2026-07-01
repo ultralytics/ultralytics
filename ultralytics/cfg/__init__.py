@@ -221,6 +221,7 @@ CFG_FRACTION_KEYS = frozenset(
         "iou",
         "fraction",
         "multi_scale",
+        "silog_trim",
     }
 )
 CFG_INT_KEYS = frozenset(
@@ -236,6 +237,7 @@ CFG_INT_KEYS = frozenset(
         "line_width",
         "nbs",
         "save_period",
+        "silog_grad_scales",
     }
 )
 CFG_BOOL_KEYS = frozenset(

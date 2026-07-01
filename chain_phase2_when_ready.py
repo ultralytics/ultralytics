@@ -25,6 +25,7 @@ Usage:
 """
 
 import argparse
+import json
 import os
 import subprocess
 import time
@@ -49,12 +50,16 @@ def say(msg: str) -> None:
 
 
 def slack(msg: str) -> None:
-    """Send a Slack line via notify_slack.sh (repo or home dir) when present, else log only."""
-    for sh in (REPO / "notify_slack.sh", Path.home() / "notify_slack.sh"):
-        if sh.exists():
-            subprocess.run(["bash", str(sh), msg], check=False)
-            return
-    say(f"(no notify_slack.sh) SLACK: {msg}")
+    """Post a Slack line via the webhook in $SLACK_WEBHOOK_URL or ~/.slack_webhook, else log only."""
+    wf = Path.home() / ".slack_webhook"
+    url = os.environ.get("SLACK_WEBHOOK_URL") or (wf.read_text().strip() if wf.exists() else "")
+    if url:
+        subprocess.run(
+            ["curl", "-s", "-X", "POST", "-H", "Content-type: application/json", "--data", json.dumps({"text": msg}), url],
+            check=False,
+        )
+    else:
+        say(f"(no slack webhook) SLACK: {msg}")
 
 
 def csv_rows(csv_path: Path) -> int:

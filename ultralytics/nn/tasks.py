@@ -597,6 +597,7 @@ class YOLOAnomalyV2Model(DetectionModel):
         self.mask_size = mask_size
 
         self.mask_augmenter = MaskPriorAugmenter(v2_cfg)
+        self.heatmap_bias_fusion = HeatmapBiasFusion(c_mid=fusion_mid)
         # Inference-time prior processing: minmax stretch, gaussian/mean blur, spatial softmax,
         # and an edge-suppression window for memory-bank heatmaps.
         self.heatmap_norm = "none"

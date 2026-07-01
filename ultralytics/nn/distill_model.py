@@ -5,11 +5,10 @@
 Adapted from the `exp-main-distill-clean` branch (YOLO Detect head) for RT-DETR /
 DFINE / DEIM transformer decoders. Forward hooks capture FPN/PAN features at the
 indices feeding the decoder; a per-level 1x1-conv projector aligns student channels
-to teacher channels, and a score-weighted L2 loss is computed between them. The
-per-pixel score is the teacher's own channel-L2 feature magnitude, normalized per
-image to [0, 1] — a class-agnostic spatial saliency. This replaces YOLO's
-classification-score weighting since the transformer decoder produces only
-per-query logits, not a dense per-pixel score map.
+to teacher channels, and a score-weighted L2 loss is computed between them. Saliency
+can come from dense encoder objectness, YOLO dense scores, feature norm, or sparse
+final decoder query scores scattered back to the encoder tokens that initialized
+those queries.
 """
 
 import torch
@@ -172,10 +171,10 @@ class DistillationModel(nn.Module):
         values up-front so a typo is caught at wrapper construction rather than mid-training.
         """
         self.distill_saliency = getattr(student_args, "distill_saliency", "enc_score")
-        if self.distill_saliency not in {"feat_norm", "enc_score", "det_score"}:
+        if self.distill_saliency not in {"feat_norm", "enc_score", "det_score", "dec_score", "enc_dec_score"}:
             raise ValueError(
                 f"distill_saliency={self.distill_saliency!r} not supported. "
-                f"Choose 'feat_norm', 'enc_score' (RTDETR teachers), or 'det_score' (YOLO Detect teachers)."
+                "Choose 'feat_norm', 'enc_score', 'det_score', 'dec_score', or 'enc_dec_score'."
             )
         self.distill_decoder = getattr(student_args, "distill_decoder", "none")
         if self.distill_decoder not in {"none", "objectness", "query_feat", "all", "all_plus"}:
@@ -185,6 +184,7 @@ class DistillationModel(nn.Module):
             )
         self.dis_dec = getattr(student_args, "dis_dec", 0.0)
         self.dis_pred = getattr(student_args, "dis_pred", 0.1)
+        self.distill_dec_score_alpha = getattr(student_args, "distill_dec_score_alpha", 0.5)
 
     def _init_feature_dicts(self):
         """Create empty dicts that hooks write into. Called both at construction and after unpickling."""
@@ -214,22 +214,39 @@ class DistillationModel(nn.Module):
         """True when the configured decoder mode needs Hungarian-matched soft-label prediction KD."""
         return self.distill_decoder == "all_plus"
 
+    def _uses_dec_score_saliency(self):
+        """True when neck KD needs teacher final decoder scores scattered to encoder proposal locations."""
+        return self.distill_saliency in {"dec_score", "enc_dec_score"}
+
     def _register_saliency_hooks(self):
         """Register the teacher head hook used by the configured saliency mode.
 
         For `enc_score` (or any objectness decoder KD): taps the teacher RTDETRDecoder's `enc_score_head`. For
         `det_score`: taps the teacher YOLO `Detect` head's full forward output, which carries the dense one2one /
-        one2many class scores used as a per-pixel objectness map. The same captured tensors also feed any
-        objectness-based decoder KD path.
+        one2many class scores used as a per-pixel objectness map. For `dec_score` / `enc_dec_score`, taps the teacher
+        decoder output and recomputes the encoder top-k token indices from captured teacher encoder logits. The same
+        captured tensors also feed any objectness-based decoder KD path.
         """
         teacher_head = self.teacher_model.model[-1]
-        if self.distill_saliency == "enc_score" or self._uses_objectness():
+        if self.distill_saliency in {"enc_score", "dec_score", "enc_dec_score"} or self._uses_objectness():
             if not hasattr(teacher_head, "enc_score_head"):
                 raise ValueError(
-                    "distill_saliency='enc_score' or distill_decoder='objectness'/'all' requires the teacher decoder "
-                    "to expose enc_score_head; the loaded teacher does not (was it built with learnt_init_query=True?)."
+                    "distill_saliency='enc_score'/'dec_score'/'enc_dec_score' or decoder objectness KD requires the "
+                    "teacher decoder to expose enc_score_head; the loaded teacher does not "
+                    "(was it built with learnt_init_query=True?)."
                 )
             teacher_head.enc_score_head.register_forward_hook(FeatureHook(self._enc_logits, "enc"))
+        if self._uses_dec_score_saliency():
+            if not isinstance(teacher_head, RTDETRDecoder):
+                raise ValueError(
+                    "distill_saliency='dec_score'/'enc_dec_score' requires an RT-DETR/DFINE/DEIM teacher decoder."
+                )
+            if getattr(teacher_head, "learnt_init_query", False):
+                raise ValueError(
+                    "distill_saliency='dec_score'/'enc_dec_score' requires encoder-selected top-k queries; "
+                    "learnt_init_query=True has no encoder-token top-k mapping to scatter onto."
+                )
+            teacher_head.register_forward_hook(FeatureHook(self._teacher_dec_out, "out"))
         if self.distill_saliency == "det_score":
             if not isinstance(teacher_head, Detect):
                 raise ValueError(
@@ -264,7 +281,8 @@ class DistillationModel(nn.Module):
                 )
             t_eval_idx = getattr(teacher_decoder, "eval_idx", len(teacher_decoder.dec_score_head) - 1)
             s_eval_idx = getattr(student_decoder, "eval_idx", len(student_decoder.dec_score_head) - 1)
-            teacher_decoder.register_forward_hook(FeatureHook(self._teacher_dec_out, "out"))
+            if not self._uses_dec_score_saliency():
+                teacher_decoder.register_forward_hook(FeatureHook(self._teacher_dec_out, "out"))
             student_decoder.register_forward_hook(FeatureHook(self._student_dec_out, "out"))
             teacher_decoder.dec_score_head[t_eval_idx].register_forward_pre_hook(
                 InputHook(self._teacher_qf, "qf")
@@ -411,6 +429,44 @@ class DistillationModel(nn.Module):
         parts = torch.split(objectness, split_sizes, dim=-1)
         return tuple(parts)
 
+    def _dec_score_saliency(self, teacher_outputs: list) -> tuple:
+        """Teacher final decoder confidence scattered back to the encoder top-k token locations.
+
+        The teacher decoder selects its queries from flattened encoder tokens. Instead of modifying the head to expose
+        those indices, this recomputes them from the captured encoder logits using the teacher head's own
+        `_select_topk` method, then scatters final decoder query confidence to the encoder token that initialized it.
+        The resulting sparse `(B, 1, total_HW)` map is split back into the teacher FPN levels.
+        """
+        teacher_head = self.teacher_model.model[-1]
+        enc_logits = self._enc_logits.get("enc")
+        if enc_logits is None:
+            raise RuntimeError(
+                "Decoder-score saliency requires captured teacher encoder logits. Ensure enc_score_head hook "
+                "registration was enabled for this distill_saliency mode."
+            )
+
+        _, logits = self._unpack_dec_predictions(self._teacher_dec_out["out"])
+        query_scores = logits.sigmoid().amax(dim=-1)  # (B, Q)
+        q = min(query_scores.shape[1], enc_logits.shape[1])
+        topk_ind = teacher_head._select_topk(enc_logits, q).to(device=query_scores.device)
+        query_scores = query_scores[:, :q]
+
+        split_sizes = [t.shape[-2] * t.shape[-1] for t in teacher_outputs]
+        objectness = query_scores.new_zeros(query_scores.shape[0], sum(split_sizes))
+        if hasattr(objectness, "scatter_reduce_"):
+            objectness.scatter_reduce_(1, topk_ind, query_scores, reduce="amax", include_self=True)
+        else:
+            objectness.scatter_(1, topk_ind, query_scores)
+        parts = torch.split(objectness.unsqueeze(1), split_sizes, dim=-1)
+        return tuple(parts)
+
+    def _enc_dec_score_saliency(self, teacher_outputs: list) -> tuple:
+        """Blend dense encoder objectness with sparse final decoder confidence."""
+        alpha = min(max(float(self.distill_dec_score_alpha), 0.0), 1.0)
+        enc_scores = self._enc_score_saliency(teacher_outputs)
+        dec_scores = self._dec_score_saliency(teacher_outputs)
+        return tuple((1.0 - alpha) * enc + alpha * dec for enc, dec in zip(enc_scores, dec_scores))
+
     def _det_score_saliency(self, teacher_outputs: list) -> tuple:
         """YOLO Detect-head saliency: average one2one + one2many dense class scores, sigmoid+max per level.
 
@@ -439,6 +495,10 @@ class DistillationModel(nn.Module):
             return self._enc_score_saliency(teacher_outputs)
         if self.distill_saliency == "det_score":
             return self._det_score_saliency(teacher_outputs)
+        if self.distill_saliency == "dec_score":
+            return self._dec_score_saliency(teacher_outputs)
+        if self.distill_saliency == "enc_dec_score":
+            return self._enc_dec_score_saliency(teacher_outputs)
         return tuple(self._feat_norm_saliency(t) for t in teacher_outputs)
 
     def _clear_feat_caches(self):

@@ -130,7 +130,7 @@ class AnomalyV2Trainer(DetectionTrainer):
         """Periodic MVTec cross-dataset OOD eval, rank 0 only; called from validate().
 
         Configured via the model YAML ``anomaly_v2`` block: ``test_val_freq`` (every N epochs;
-        default 3, set 0 to disable). When ``test_fit_cfg`` is set, ``imgsz``, ``heatmap_mode``,
+        default 3, set 0 to disable). When ``test_fit_cfg`` is set, ``imgsz``, bank-build knobs,
         and ``heat_edge`` / ``heat_norm`` are read from that fit YAML (the single source of truth
         for all fit params). Without it, ``test_imgsz`` (default 320) and the default heatmap prior
         with no post-processing are used. Per-prior switches ``test_none_prior`` /
@@ -151,7 +151,7 @@ class AnomalyV2Trainer(DetectionTrainer):
                            "test_root); skipping test eval.")
             return
 
-        # -- Fit YAML (optional; single source of truth for imgsz / heatmap_mode / post) --
+        # -- Fit YAML (optional; single source of truth for imgsz / bank knobs / post-processing) --
         fit_cfg_path = v2_cfg.get("test_fit_cfg")
         fit_yaml = {}
         if fit_cfg_path:
@@ -166,15 +166,12 @@ class AnomalyV2Trainer(DetectionTrainer):
         # Per-prior test switches pick which OOD modes run. test_heatmap_prior is forced on because
         # best.pt fitness is test_metrics(heatmap_prior)/mAP10; test_none_prior (mask_off) and
         # test_mask_prior (mask_on) default off (heatmap-only = ~3x faster).
-        heatmap_mode = fit_yaml.get("heatmap_mode")
-        _MODE_MAP = {"memory_bank": "heatmap"}
-        heatmap_variant = _MODE_MAP.get(heatmap_mode, "heatmap")
         if not bool(v2_cfg.get("test_heatmap_prior", True)):
             LOGGER.warning("anomaly_v2: test_heatmap_prior feeds fitness and cannot be disabled; forcing on.")
         modes = []
         if bool(v2_cfg.get("test_none_prior", False)):
             modes.append("mask_off")
-        modes.append(heatmap_variant)  # test_heatmap_prior — always on (fitness source)
+        modes.append("heatmap")  # test_heatmap_prior — always on (fitness source)
         if bool(v2_cfg.get("test_mask_prior", False)):
             modes.append("mask_on")
         modes = tuple(modes)

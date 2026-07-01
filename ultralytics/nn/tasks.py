@@ -673,6 +673,7 @@ class YOLOAnomalyV2Model(DetectionModel):
         fusion_mode = str(v2_cfg.get("fusion_mode", "bias")).lower()
         if fusion_mode not in {"bias", "soft", "film", "queryfilm"}:
             raise ValueError(f"fusion_mode must be bias|soft|film|queryfilm, got {fusion_mode!r}")
+        fusion_mid = int(v2_cfg.get("fusion_mid", 32))
         film_groups = int(v2_cfg.get("film_groups", 16))
         film_group_dim = int(v2_cfg.get("film_group_dim", 16))
         film_alpha_init = float(v2_cfg.get("film_alpha_init", 1e-4))
@@ -762,9 +763,9 @@ class YOLOAnomalyV2Model(DetectionModel):
             )
         else:
             if fusion_mode == "soft":
-                self.heatmap_bias_fusion = HeatmapSoftFusion(num_scales=detect.nl)
+                self.heatmap_bias_fusion = HeatmapSoftFusion(num_scales=detect.nl, c_mid=fusion_mid)
             else:
-                self.heatmap_bias_fusion = HeatmapBiasFusion(num_scales=detect.nl)
+                self.heatmap_bias_fusion = HeatmapBiasFusion(num_scales=detect.nl, c_mid=fusion_mid)
             self.heatmap_film_fusion = None
             self.queryfilm_fusion = None
 
@@ -1229,6 +1230,7 @@ class YOLOAnomalyV2Model(DetectionModel):
             ("spatial_softmax", False),
             ("softmax_temperature", 1.0),
             ("fusion_mode", "bias"),
+            ("fusion_mid", 32),
             ("heatmap_film_fusion", None),
             ("heatmap_norm", "none"),
             ("mask_mag_range", (1.0, 1.0)),

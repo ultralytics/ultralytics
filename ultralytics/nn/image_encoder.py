@@ -12,6 +12,8 @@ Loss formulation follows EUPE (arXiv:2603.22387) Eq.5-6 and AM-RADIO (arXiv:2312
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -401,3 +403,46 @@ class ImageEncoderModel(ClassificationModel):
     def init_criterion(self):
         """Initialize distillation loss."""
         return ImageEncoderLoss(**self._loss_cfg)
+
+
+def export_backbone(ckpt_path, out_path=None):
+    """Export a portable stock-classifier checkpoint from a phase1 distillation checkpoint.
+
+    Phase1 saves the full ImageEncoderModel (a ClassificationModel subclass carrying distillation-only adaptor heads),
+    so its pickled top object references this fork module and will not unpickle on branches that lack it. This rebuilds
+    a plain ClassificationModel from the same yaml, transfers the backbone weights by name (BaseModel.load ->
+    intersect_dicts, shape-safe), and reuses strip_optimizer to emit a canonical FP16 checkpoint that stock Ultralytics
+    loads anywhere. Returns None as a no-op when the checkpoint is already a stock model (idempotent on re-runs).
+
+    Args:
+        ckpt_path (str | Path): Phase1 checkpoint (best.pt or last.pt).
+        out_path (str | Path, optional): Output path. Defaults to '<ckpt_dir>/<stem>_backbone.pt'.
+
+    Returns:
+        (Path | None): The portable checkpoint path, or None if the checkpoint was already stock.
+    """
+    from ultralytics.utils.patches import torch_load
+    from ultralytics.utils.torch_utils import strip_optimizer
+
+    ckpt_path = Path(ckpt_path)
+    ckpt = torch_load(ckpt_path, map_location="cpu")
+    enc = ckpt.get("ema") or ckpt["model"]
+    if not isinstance(enc, ImageEncoderModel):  # already a stock checkpoint, nothing to convert
+        return None
+    out_path = out_path or ckpt_path.with_name(f"{ckpt_path.stem}_backbone.pt")
+    model = ClassificationModel(cfg=enc.yaml, verbose=False)
+    model.load(enc)  # intersect_dicts transfers the backbone by name and drops the distill heads
+    model.half()  # emit FP16 directly so the intermediate save is not a full FP32 copy
+    torch.save({"model": model}, out_path)
+    strip_optimizer(out_path)  # reuse the Ultralytics cleaner: freeze, metadata, drop optimizer
+    return out_path
+
+
+if __name__ == "__main__":
+    import sys
+
+    # Backfill: convert existing phase1 checkpoints (saved before the in-place final_eval) to stock in place.
+    root = Path(sys.argv[1] if len(sys.argv) > 1 else "/data/shared-datasets/fatih-runs/classify/yolo-next-encoder")
+    for f in sorted(root.glob("phase1-*/weights/best.pt")) + sorted(root.glob("phase1-*/weights/last.pt")):
+        if export_backbone(f, out_path=f):
+            print("converted", f)

@@ -620,8 +620,22 @@ class ImageEncoderTrainer(ClassificationTrainer):
         pass
 
     def final_eval(self):
-        """Skip final eval with best.pt (no classification accuracy for distillation)."""
-        pass
+        """Rewrite the finished checkpoints in place as portable stock ClassificationModel weights (rank 0).
+
+        Distillation has no accuracy metric to validate, so this replaces the base strip+val step. The in-memory model
+        is an ImageEncoderModel (a ClassificationModel subclass carrying distillation-only adaptor heads), so its pickled
+        form references this fork module and will not load on branches that lack it. export_backbone rebuilds a plain
+        ClassificationModel from the same yaml, transfers the backbone by name, drops the heads, and reuses
+        strip_optimizer for a canonical FP16 checkpoint. Runs never resume from a finished checkpoint, so overwriting in
+        place is safe. Unlike the base method it does not propagate last.pt's train_results into best.pt; distillation
+        metrics are logged to wandb.
+        """
+        if RANK in {-1, 0}:
+            from ultralytics.nn.image_encoder import export_backbone
+
+            for f in (self.best, self.last):
+                if f.exists():
+                    export_backbone(f, out_path=f)
 
     def plot_metrics(self):
         """Skip metric plotting for distillation (non-standard loss columns; use WandB)."""

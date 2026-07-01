@@ -52,6 +52,18 @@ Part of the [Computer Vision Hub](../index.md).
 
 Computer vision has moved from research labs into production across nearly every industry. This page covers the most impactful real-world application areas, the specific problems they solve, and how to implement them using Ultralytics YOLO.
 
+## Industry overview
+
+| Industry | Key use cases | Difficulty | Primary technique |
+|---|---|---|---|
+| [Retail](#retail) | Loss prevention, footfall, queue analysis | Beginner | Detection + Tracking |
+| [Healthcare](#healthcare-and-medical-imaging) | Anomaly detection, tissue classification | Advanced | Segmentation |
+| [Manufacturing](#manufacturing-and-quality-control) | Defect detection, assembly verification | Intermediate | Detection + OBB |
+| [Agriculture](#agriculture) | Crop monitoring, yield counting | Intermediate | Detection |
+| [Sports](#sports-and-performance-analysis) | Player tracking, biomechanics | Intermediate | Pose + Tracking |
+| [Security](#security-and-surveillance) | Intrusion, crowd management | Beginner | Detection + Tracking |
+| [Autonomous vehicles](#autonomous-vehicles-and-adas) | Road users, obstacles, signs | Advanced | Detection + Depth |
+
 !!! tip "Prerequisites"
 
     - Python 3.8+ and `pip install ultralytics`
@@ -92,6 +104,8 @@ Computer vision gives retailers real-time visibility into what is happening on t
 
 **Relevant guides:** [Object Counting](../../guides/object-counting.md) · [Queue Management](../../guides/queue-management.md) · [Heatmaps](../../guides/heatmaps.md) · [Region Counting](../../guides/region-counting.md)
 
+**Ready-to-run projects:** [Object Counting](../projects/index.md#2-object-counting) · [Queue Management](../projects/index.md#10-queue-management) · [Heatmap Generation](../projects/index.md#12-heatmap-generation) · [Region and Zone Counting](../projects/index.md#13-region-and-zone-counting)
+
 ---
 
 ## Healthcare and Medical Imaging
@@ -123,6 +137,8 @@ Computer vision assists clinicians by automating the analysis of medical images 
         ```
 
 **Relevant guides:** [Instance Segmentation](../../tasks/segment.md) · [Fine-Tune on Custom Dataset](../../modes/train.md)
+
+**Ready-to-run projects:** [Instance Segmentation with Tracking](../projects/index.md#15-instance-segmentation-with-tracking) · [Fine-Tune on Custom Dataset](../projects/index.md#25-fine-tune-on-custom-dataset)
 
 ---
 
@@ -162,6 +178,8 @@ Automated visual inspection replaces or augments manual quality checks on produc
 
 **Relevant guides:** [Tiled Inference for Large Images](../projects/index.md#20-tiled-inference-for-large-images) · [Fine-Tune on Custom Dataset](../../modes/train.md) · [OBB Detection](../../tasks/obb.md)
 
+**Ready-to-run projects:** [Defect and Anomaly Detection](../projects/index.md#23-defect-and-anomaly-detection) · [Tiled Inference for Large Images](../projects/index.md#20-tiled-inference-for-large-images) · [Rotated Object Detection](../projects/index.md#19-rotated-object-detection-obb)
+
 ---
 
 ## Agriculture
@@ -199,6 +217,8 @@ Computer vision enables precision agriculture by providing detailed, timely data
         ```
 
 **Relevant guides:** [Object Counting](../../guides/object-counting.md) · [Tiled Inference for Large Images](../projects/index.md#20-tiled-inference-for-large-images)
+
+**Ready-to-run projects:** [Object Counting](../projects/index.md#2-object-counting) · [Tiled Inference for Large Images](../projects/index.md#20-tiled-inference-for-large-images)
 
 ---
 
@@ -238,6 +258,8 @@ Computer vision extracts objective performance data from broadcast footage and t
         ```
 
 **Relevant guides:** [Pose Estimation](../../tasks/pose.md) · [Speed Estimation](../../guides/speed-estimation.md) · [Workouts Monitoring](../../guides/workouts-monitoring.md) · [Object Tracking](../../modes/track.md)
+
+**Ready-to-run projects:** [Workout and Rep Counter](../projects/index.md#8-workout-and-rep-counter) · [Speed Estimation](../projects/index.md#11-speed-estimation) · [Pose Estimation and Ergonomics](../projects/index.md#18-pose-estimation-and-ergonomics)
 
 ---
 
@@ -285,6 +307,8 @@ Computer vision makes security systems proactive rather than reactive - detectin
 
 **Relevant guides:** [Security Alarm System](../../guides/security-alarm-system.md) · [Zone Tracking](../../guides/trackzone.md) · [Region Counting](../../guides/region-counting.md)
 
+**Ready-to-run projects:** [Security Alarm System](../projects/index.md#1-security-alarm-system) · [Region and Zone Counting](../projects/index.md#13-region-and-zone-counting) · [Object Blurring and Anonymisation](../projects/index.md#4-object-blurring-and-anonymisation)
+
 ---
 
 ## Autonomous Vehicles and ADAS
@@ -324,6 +348,8 @@ Computer vision is a core sensing modality for any system that navigates or oper
         ```
 
 **Relevant guides:** [Object Detection](../../tasks/detect.md) · [Distance Calculation](../../guides/distance-calculation.md) · [Speed Estimation](../../guides/speed-estimation.md) · [OBB Detection](../../tasks/obb.md)
+
+**Ready-to-run projects:** [Speed Estimation](../projects/index.md#11-speed-estimation) · [Distance Measurement](../projects/index.md#14-distance-measurement) · [Edge Deployment: Jetson and Raspberry Pi](../projects/index.md#24-edge-deployment-jetson-and-raspberry-pi)
 
 ---
 

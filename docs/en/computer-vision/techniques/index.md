@@ -57,6 +57,12 @@ Part of the [Computer Vision Hub](../index.md).
 
 Computer vision techniques are the algorithmic building blocks that turn raw image data into structured understanding. Each technique addresses a specific type of visual problem - from locating objects in a frame to mapping every pixel to a class label. This page explains the core approaches conceptually, when to use each, and how they connect to Ultralytics implementations.
 
+!!! tip "Prerequisites"
+
+    - Python 3.8+ and `pip install ultralytics`
+    - A webcam, image file, or video — most techniques work out of the box with a pretrained model
+    - GPU recommended for real-time video; CPU is fine for image-by-image inference
+
 ## Quick reference
 
 | Technique | Output | Real-time capable | Best for |
@@ -82,6 +88,8 @@ Classification is appropriate when the visual question is global ("is this a def
 ![Image classification examples showing predicted class labels on images](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/image-classification-examples.avif)
 
 **Ultralytics implementation:** [Image Classification](../../tasks/classify.md)
+
+**See it in action:** [Live Inference App](../projects/index.md#3-live-inference-app) · [Fine-Tune on Custom Dataset](../projects/index.md#25-fine-tune-on-custom-dataset)
 
 !!! example "Using Ultralytics YOLO"
 
@@ -111,6 +119,8 @@ The YOLO architecture, now in its YOLO11 generation, is the dominant single-stag
 ![Object detection examples showing bounding boxes and class labels on multiple objects](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/object-detection-examples.avif)
 
 **Ultralytics implementation:** [Object Detection](../../tasks/detect.md)
+
+**See it in action:** [Security Alarm System](../projects/index.md#1-security-alarm-system) · [Object Counting](../projects/index.md#2-object-counting) · [Parking Management](../projects/index.md#7-parking-management)
 
 !!! example "Using Ultralytics YOLO"
 
@@ -144,6 +154,8 @@ Mask prediction is handled by a lightweight mask head running in parallel with t
 ![Instance segmentation examples showing per-object pixel masks in different colours](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/instance-segmentation-examples.avif)
 
 **Ultralytics implementation:** [Instance Segmentation](../../tasks/segment.md) · [Instance Segmentation with Tracking](../../guides/instance-segmentation-and-tracking.md) · [Object Cropping](../../guides/object-cropping.md)
+
+**See it in action:** [Object Blurring and Anonymisation](../projects/index.md#4-object-blurring-and-anonymisation) · [Instance Segmentation with Tracking](../projects/index.md#15-instance-segmentation-with-tracking)
 
 !!! example "Using Ultralytics YOLO"
 
@@ -195,6 +207,8 @@ Two dominant paradigms:
 
 **Ultralytics implementation:** [Object Tracking](../../modes/track.md)
 
+**See it in action:** [Speed Estimation](../projects/index.md#11-speed-estimation) · [Heatmap Generation](../projects/index.md#12-heatmap-generation) · [Queue Management](../projects/index.md#10-queue-management) · [Region and Zone Counting](../projects/index.md#13-region-and-zone-counting)
+
 !!! example "Using Ultralytics YOLO"
 
     === "Python"
@@ -228,6 +242,8 @@ The output is a set of `(x, y, confidence)` coordinates per keypoint per detecte
 
 **Ultralytics implementation:** [Pose Estimation](../../tasks/pose.md) · [Workouts Monitoring](../../guides/workouts-monitoring.md)
 
+**See it in action:** [Workout and Rep Counter](../projects/index.md#8-workout-and-rep-counter) · [Pose Estimation and Ergonomics](../projects/index.md#18-pose-estimation-and-ergonomics)
+
 !!! example "Using Ultralytics YOLO"
 
     === "Python"
@@ -260,6 +276,8 @@ This is critical for aerial and satellite imagery, where vehicles, ships, and st
 ![Oriented bounding box detection on aerial imagery showing tight-fitting rotated boxes on ships](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ships-detection-using-obb.avif)
 
 **Ultralytics implementation:** [OBB Detection](../../tasks/obb.md)
+
+**See it in action:** [Rotated Object Detection](../projects/index.md#19-rotated-object-detection-obb) · [Tiled Inference for Large Images](../projects/index.md#20-tiled-inference-for-large-images)
 
 !!! example "Using Ultralytics YOLO"
 
@@ -341,3 +359,14 @@ Ready to apply these techniques? The [Computer Vision Projects](../projects/inde
 ??? question "Can I combine multiple computer vision techniques in one pipeline?"
 
     Yes. Many production pipelines chain techniques together. A common pattern is detection followed by tracking, with classification or pose estimation applied to each tracked region. Ultralytics YOLO supports detection, segmentation, tracking, pose estimation, and OBB - often runnable from the same model checkpoint with different task heads.
+
+---
+
+## Community and support
+
+Have a question about which technique fits your project, or want to share what you've built?
+
+- [GitHub Discussions](https://github.com/ultralytics/ultralytics/discussions) — ask questions and get help from the team
+- [Discord](https://discord.com/invite/ultralytics) — real-time chat with other developers and Ultralytics engineers
+- [Ultralytics Community Forum](https://community.ultralytics.com/) — longer-form discussion and project showcases
+- [GitHub Issues](https://github.com/ultralytics/ultralytics/issues) — report bugs or request features

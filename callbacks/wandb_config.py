@@ -187,3 +187,34 @@ def assert_parent_resolvable(
             f"({type(e).__name__}). Pass the full timestamped run id like phase1-foo_20260101_010101, or empty "
             f"for no parent. Otherwise push_summary_to_parent silently drops the downstream link at the final step."
         )
+
+
+def resolve_run_id_by_name(
+    name: str,
+    entity: str = paths.WANDB_ENTITY,
+    project: str = paths.WANDB_PROJECT,
+) -> str:
+    """Resolve a run display name to its full W&B run id, or empty string on any failure.
+
+    Lets multi_det auto-link its downstream macro onto the phase-1 run when no explicit id was passed, resolving the
+    phase-1 dir basename to its run id. Never raises: an absent, ambiguous, or unreachable name returns "" so the caller
+    (push_summary_to_parent) no-ops instead of aborting a multi-day run. On duplicate names (crash-retry) the finished,
+    longest-history, latest run wins.
+
+    Args:
+        name (str): Run display name (e.g. the phase-1 checkpoint's dir basename).
+        entity (str, optional): WandB entity.
+        project (str, optional): WandB project.
+
+    Returns:
+        (str): Full run id, or "" if it cannot be resolved.
+    """
+    import wandb
+
+    try:  # empty match -> sorted([])[-1] raises IndexError -> caught -> ""
+        return sorted(
+            wandb.Api().runs(f"{entity}/{project}", filters={"displayName": name}),
+            key=lambda r: (r.state == "finished", r.summary.get("_step", -1) if r.summary else -1, str(r.createdAt)),
+        )[-1].id
+    except Exception:
+        return ""

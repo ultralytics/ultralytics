@@ -494,8 +494,11 @@ def _run_multi_det(
         f"mAP50={macro['map50']:.4f} mAP50-95={macro['map50_95']:.4f} fitness={macro['fitness']:.4f}"
     )
     if not teacher_spec:  # frozen-teacher runs have no phase1 distillation parent to push the downstream link to
+        # Auto-resolve the phase-1 run from the backbone dir when no id was passed, so the sweep view self-links.
+        parent_id = phase1_wandb_id or wandb_config.resolve_run_id_by_name(Path(phase1_weights).parents[1].name)
+        print(f"[multi_det_finetune] downstream link -> phase1 wandb id: {parent_id or '(unresolved, skipped)'}")
         wandb_config.push_summary_to_parent(
-            phase1_wandb_id,
+            parent_id,
             {
                 "downstream_multi_macro_map50_95": float(macro["map50_95"]),
                 "downstream_multi_n_datasets": len(results),

@@ -177,7 +177,6 @@ def main():
             batch=args.batch,
             device=device,
             cache=bank_cache,
-            fit_disc=fit_disc,
         )
 
         if args.mode == "predict":
@@ -263,8 +262,6 @@ def main():
                 heatmap_norm=infer.get("heat_norm", "none"),
                 heatmap_edge_weight=(True if infer.get("heat_edge") else None),
                 heatmap_edge_sigma=infer.get("heat_edge_sigma", 1.0),
-                scorer_kwargs=scorer_kwargs if needs_disc else None,
-                scorer_fuse=scorer_fuse,
             )
             mode_rows = [x for x in cat_rows if x["category"] == cat and x.get("mode") in mode_to_prior]
             if not mode_rows:

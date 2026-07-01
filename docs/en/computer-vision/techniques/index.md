@@ -79,6 +79,8 @@ Image classification assigns a single label to an entire image - the simplest co
 
 Classification is appropriate when the visual question is global ("is this a defect or not?") rather than spatial ("where is the defect?"). It is also commonly used as the final layer in a pipeline - for example, classifying a detected region into severity categories after detection has already isolated it.
 
+![Image classification examples showing predicted class labels on images](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/image-classification-examples.avif)
+
 **Ultralytics implementation:** [Image Classification](../../tasks/classify.md)
 
 !!! example "Using Ultralytics YOLO"
@@ -105,6 +107,8 @@ Modern detectors fall into two broad families:
 - **Single-stage detectors** (e.g. YOLO) predict boxes and classes simultaneously. Significantly faster and suitable for real-time applications.
 
 The YOLO architecture, now in its YOLO11 generation, is the dominant single-stage approach for production deployments. It uses anchor-free prediction with decoupled detection heads, removing the need for manual anchor configuration.
+
+![Object detection examples showing bounding boxes and class labels on multiple objects](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/object-detection-examples.avif)
 
 **Ultralytics implementation:** [Object Detection](../../tasks/detect.md)
 
@@ -137,6 +141,8 @@ Mask prediction is handled by a lightweight mask head running in parallel with t
 
 **When to use over bounding boxes:** When the exact shape or boundary of an object matters - surgical instrument tracking, precise crop measurement, or object extraction from backgrounds.
 
+![Instance segmentation examples showing per-object pixel masks in different colours](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/instance-segmentation-examples.avif)
+
 **Ultralytics implementation:** [Instance Segmentation](../../tasks/segment.md) · [Instance Segmentation with Tracking](../../guides/instance-segmentation-and-tracking.md) · [Object Cropping](../../guides/object-cropping.md)
 
 !!! example "Using Ultralytics YOLO"
@@ -168,6 +174,8 @@ This is the technique of choice when the question is "what type of surface or re
 
 **When to use:** Autonomous driving scene understanding, satellite land-use mapping, medical tissue classification.
 
+![Semantic segmentation example showing a dense pixel class map across a full scene](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/semantic-segmentation-examples.avif)
+
 **Ultralytics implementation:** [Semantic Segmentation](../../tasks/semantic.md)
 
 ---
@@ -182,6 +190,8 @@ Two dominant paradigms:
 - **Joint detection and tracking** - learn detection and re-identification simultaneously in a single model. Higher accuracy but more complex to train.
 
 **Derived capabilities built on tracking:** [Speed estimation](../../guides/speed-estimation.md), [queue management](../../guides/queue-management.md), [zone-based counting](../../guides/trackzone.md), [heatmap generation](../../guides/heatmaps.md).
+
+![Multi-object tracking examples showing bounding boxes with consistent track IDs across frames](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/multi-object-tracking-examples.avif)
 
 **Ultralytics implementation:** [Object Tracking](../../modes/track.md)
 
@@ -214,6 +224,8 @@ The output is a set of `(x, y, confidence)` coordinates per keypoint per detecte
 
 **Common applications:** Workout form analysis, ergonomics monitoring, sports biomechanics, gesture control, rehabilitation tracking.
 
+![Pose estimation examples showing skeleton keypoint overlays on people with connected joints](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/pose-estimation-examples.avif)
+
 **Ultralytics implementation:** [Pose Estimation](../../tasks/pose.md) · [Workouts Monitoring](../../guides/workouts-monitoring.md)
 
 !!! example "Using Ultralytics YOLO"
@@ -244,6 +256,8 @@ Standard bounding boxes are axis-aligned rectangles - they cannot capture the tr
 This is critical for aerial and satellite imagery, where vehicles, ships, and structures appear at arbitrary angles, and axis-aligned boxes would introduce significant background noise into the detection region.
 
 **When to use:** Aerial imagery analysis, satellite object detection, document layout analysis, warehouse robotics with rotated goods.
+
+![Oriented bounding box detection on aerial imagery showing tight-fitting rotated boxes on ships](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ships-detection-using-obb.avif)
 
 **Ultralytics implementation:** [OBB Detection](../../tasks/obb.md)
 

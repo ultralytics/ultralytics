@@ -46,7 +46,6 @@ FIT_KEYS = (
     "bb_layers",
     "bb_max_bank_size",
     "bb_K",
-    "bb_proj_dim",
     "bb_temperature",
     "bb_calibration_target_score",
     "bb_calibration_target_quantile",
@@ -61,7 +60,6 @@ _BB_TO_MB = {
     "bb_temperature": "temperature",
     "bb_calibration_target_score": "calibration_target_score",
     "bb_calibration_target_quantile": "calibration_target_quantile",
-    "bb_proj_dim": "proj_dim",
     "bb_hmap_stretch_strength": "hmap_stretch_strength",
     "bb_holdout_max": "holdout_max",
 }

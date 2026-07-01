@@ -612,7 +612,6 @@ class YOLOAnomalyV2Model(DetectionModel):
                 max_bank_size=None,
                 calibration_target_score=0.2,
                 calibration_target_quantile=0.95,
-                proj_dim=0,
                 hmap_stretch_strength=0.0,
                 holdout_max=5000,
             )

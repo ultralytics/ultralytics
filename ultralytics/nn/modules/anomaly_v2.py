@@ -20,7 +20,6 @@ __all__ = (
     "BboxMaskRenderer",
     "HeatmapBiasFusion",
     "BackboneMemoryBank",
-    "LearnedScorer",
 )
 
 
@@ -239,7 +238,6 @@ class BackboneMemoryBank(nn.Module):
         max_bank_size: int | None = None,
         calibration_target_score: float = 0.2,
         calibration_target_quantile: float = 0.95,
-        proj_dim: int = 0,
         hmap_stretch_strength: float = 0.0,
         holdout_max: int = 5000,
     ):
@@ -252,9 +250,7 @@ class BackboneMemoryBank(nn.Module):
         self.hmap_stretch_strength = float(hmap_stretch_strength)
         self.holdout_max = int(holdout_max)
         self._calibrated = False
-        self.proj_dim = int(proj_dim)
         self.register_buffer("memory_bank", torch.empty(0, 0), persistent=True)
-        self.register_buffer("_proj_weight", torch.empty(0, 0), persistent=True)  # lazy-init random projection
         self.feature_dim: int | None = None
         self.update = True
         self._bb_layer_indices: list[int] = []
@@ -270,10 +266,11 @@ class BackboneMemoryBank(nn.Module):
     def __setstate__(self, state):
         """Backfill attributes added after the checkpoint was saved."""
         super().__setstate__(state)
-        if not hasattr(self, "proj_dim"):
-            self.proj_dim = 0
-        if "_proj_weight" not in self._buffers:
-            self.register_buffer("_proj_weight", torch.empty(0, 0), persistent=True)
+        # Drop deprecated projection state from old checkpoints.
+        if "proj_dim" in self.__dict__:
+            delattr(self, "proj_dim")
+        if "_proj_weight" in self._buffers:
+            del self._buffers["_proj_weight"]
         if not hasattr(self, "_compactness"):
             self._compactness = None
         if not hasattr(self, "_threshold"):
@@ -410,7 +407,7 @@ class BackboneMemoryBank(nn.Module):
         return mem[valid]
 
     def _build_fused_feature(self, feat_dict: dict[int, torch.Tensor]) -> torch.Tensor:
-        """Gather backbone features at configured layer indices, concat, optionally project down."""
+        """Gather backbone features at configured layer indices and concat."""
         indices = self._bb_layer_indices
         if not indices:
             return feat_dict[list(feat_dict.keys())[0]]
@@ -421,20 +418,7 @@ class BackboneMemoryBank(nn.Module):
         aligned = [
             F.interpolate(f, size=target_size, mode="nearest") if f.shape[-2:] != target_size else f for f in feats
         ]
-        fused = torch.cat(aligned, dim=1) if len(aligned) > 1 else aligned[0]
-        # Random projection (Johnson-Lindenstrauss): fixed random matrix, ~preserves cosine structure.
-        if self.proj_dim > 0 and fused.shape[1] > self.proj_dim:
-            if self._proj_weight.numel() == 0:
-                in_dim = fused.shape[1]
-                # Random Gaussian projection: E[||Wx||^2] = ||x||^2 (Johnson-Lindenstrauss)
-                w = torch.randn(in_dim, self.proj_dim, device=fused.device, dtype=torch.float32)
-                self._proj_weight = w / (self.proj_dim**0.5)
-            B, C, H, W = fused.shape
-            orig_dtype = fused.dtype
-            fused = fused.permute(0, 2, 3, 1).reshape(-1, C)
-            fused = (fused.to(dtype=self._proj_weight.dtype) @ self._proj_weight).to(orig_dtype)
-            fused = fused.reshape(B, H, W, -1).permute(0, 3, 1, 2)
-        return fused
+        return torch.cat(aligned, dim=1) if len(aligned) > 1 else aligned[0]
 
     def estimate_temperature(self) -> float:
         """Estimate β from the current bank WITHOUT modifying state (lightweight, for MoCo live estimate)."""
@@ -727,86 +711,6 @@ class BackboneMemoryBank(nn.Module):
         pbar.close()
         sel = torch.tensor(selected, device=device)
         return (mem[sel], sel) if return_indices else mem[sel]
-
-
-class LearnedScorer(nn.Module):
-    """Learned drop-in replacement for ``BackboneMemoryBank._anomaly_scores``.
-
-    Maps each query patch's top-K cosine similarities against the normal-feature bank to an
-    anomaly score in [0, 1] via a small MLP, instead of the fixed Noisy-OR formula
-    ``exp(mean log(1 - exp(-beta(1-cos))))``. The bank enters only through top-K similarities,
-    so the score is invariant to bank size (any ``M >= 1`` works; ``M < K`` is padded). Trained
-    on GT defect masks with the backbone frozen/detached, so only this head learns to tell
-    "normal variation" from "real defect". Same call signature as ``_anomaly_scores``
-    (``features[N, C]``, ``mem[M, C]`` -> ``scores[N]``) so Phase B can swap it in directly.
-    """
-
-    def __init__(
-        self,
-        k: int = 9,
-        hidden: int = 32,
-        feature_dim: int | None = None,
-        proj_dim: int = 0,
-        train_self_match_mask: bool = True,
-        self_match_thresh: float = 0.999,
-        score_chunk_elems: int = 1 << 27,
-    ):
-        super().__init__()
-        self.k = int(k)
-        self.train_self_match_mask = bool(train_self_match_mask)
-        self.self_match_thresh = float(self_match_thresh)
-        self.score_chunk_elems = int(score_chunk_elems)
-        # v2: learned projection g reshapes the metric (similarities are computed in g-space).
-        # proj_dim=0 -> v1 (raw-feature cosine readout). proj_dim>0 needs feature_dim; when it equals
-        # feature_dim the projection is IDENTITY-INITIALISED so v2 starts == v1 (raw cosine) and learns
-        # a refinement (random init would scramble the geometry -> near-chance cosine).
-        self.proj = nn.Linear(int(feature_dim), int(proj_dim)) if proj_dim > 0 else None
-        if self.proj is not None and int(proj_dim) == int(feature_dim):
-            nn.init.eye_(self.proj.weight)
-            nn.init.zeros_(self.proj.bias)
-        self.mlp = nn.Sequential(nn.Linear(self.k, hidden), nn.GELU(), nn.Linear(hidden, 1))
-
-    def _embed(self, x: torch.Tensor) -> torch.Tensor:
-        """Optional learned projection (v2), then L2-normalise -> unit vectors for cosine."""
-        if self.proj is not None:
-            x = self.proj(x)
-        return F.normalize(x, p=2, dim=1)
-
-    def topk_sims(self, features: torch.Tensor, mem: torch.Tensor) -> torch.Tensor:
-        """Query patches -> sorted top-K cosine sims ``[N, k]`` in the (optionally projected) space.
-
-        Both query and bank are embedded (v2: projected) and L2-normalised here, so the bank may be
-        passed raw. For v1 (no projection) this is plain cosine; v1 may also cache the result.
-        """
-        q = self._embed(features)
-        m = self._embed(mem)
-        k = min(self.k, m.shape[0])
-        n, mm = q.shape[0], m.shape[0]
-        chunk = max(1, int(self.score_chunk_elems) // max(mm, 1))  # bound the [chunk, M] sim slice
-        out = []
-        for i in range(0, n, chunk):
-            sim = q[i : i + chunk] @ m.t()  # [chunk, M]
-            if self.training and self.train_self_match_mask:
-                # A query finding its own copy in the bank (cos ~ 1) would leak a too-clean score.
-                sim = sim.masked_fill(sim > self.self_match_thresh, float("-inf"))
-            out.append(sim.topk(k=k, dim=1).values)  # [chunk, k] sorted descending
-        return torch.cat(out)
-
-    def score_from_topk(self, topk: torch.Tensor) -> torch.Tensor:
-        """Sorted top-K sims ``[N, k']`` -> anomaly scores ``[N]`` in [0, 1] (pads/trims to k)."""
-        k = topk.shape[1]
-        if k < self.k:  # tiny bank: pad to fixed input width with the lowest available sim
-            topk = torch.cat([topk, topk[:, -1:].expand(-1, self.k - k)], dim=1)
-        elif k > self.k:
-            topk = topk[:, : self.k]
-        topk = topk.nan_to_num(neginf=-1.0).clamp(-1.0, 1.0)
-        return torch.sigmoid(self.mlp(topk).squeeze(1))
-
-    def forward(self, features: torch.Tensor, mem: torch.Tensor) -> torch.Tensor:
-        """Score query patches against the bank: ``features[N, C]``, ``mem[M, C]`` -> ``scores[N]``."""
-        if mem.numel() == 0 or mem.shape[0] == 0:
-            return torch.full((features.shape[0],), 0.5, device=features.device, dtype=features.dtype)
-        return self.score_from_topk(self.topk_sims(features, mem))
 
 
 def heatmap_local_contrast(h: torch.Tensor, k: int = 9, eps: float = 1e-3) -> torch.Tensor:

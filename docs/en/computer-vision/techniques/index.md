@@ -288,11 +288,15 @@ Optical flow estimates the apparent motion of pixels between consecutive frames 
 
 Applications include camera stabilisation, gesture recognition from motion rather than pose, and sports performance analysis where trajectory matters more than object identity.
 
+![Speed and motion estimation on a bridge using Ultralytics YOLO](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/speed-estimation-on-bridge-using-ultralytics-yolov8.avif)
+
 ---
 
 ## Depth Estimation and 3D Vision
 
 Monocular depth estimation infers the relative distance of each pixel from a single camera, using learned scene priors. Stereo depth estimation uses two calibrated cameras to compute disparity and recover true metric depth. LiDAR adds precise 3D point cloud data that computer vision models can fuse with camera inputs.
+
+![3D point cloud segmentation showing depth and spatial structure of a scene](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/point-cloud-segmentation-ultralytics.avif)
 
 [Distance calculation](../../guides/distance-calculation.md) between detected objects is a practical implementation of spatial reasoning built on top of detection output.
 

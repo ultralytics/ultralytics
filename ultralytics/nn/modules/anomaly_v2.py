@@ -169,9 +169,10 @@ class HeatmapBiasFusion(nn.Module):
     Output per pixel is in ``[-beta_i, +beta_i]`` via tanh.
     """
 
-    def __init__(self, num_scales: int = 3, c_mid: int = 8, inst_norm: bool = False):
+    def __init__(self, num_scales: int = 3, c_mid: int = 8, inst_norm: bool = False, residual: bool = False):
         super().__init__()
         self.inst_norm = nn.InstanceNorm2d(1, affine=False, track_running_stats=False) if inst_norm else None
+        self.residual = residual
         self.conv = nn.Sequential(
             nn.Conv2d(1, c_mid, 3, padding=1),
             nn.GELU(),
@@ -190,7 +191,10 @@ class HeatmapBiasFusion(nn.Module):
             Bias tensor (B, 1, H, W) in ``[-beta_i, +beta_i]``.
         """
         x = self.inst_norm(mask) if self.inst_norm is not None else mask
-        return self.beta[scale_idx] * torch.tanh(self.conv(x))
+        y = self.conv(x)
+        if self.residual:
+            y = y + x
+        return self.beta[scale_idx] * torch.tanh(y)
 
 
 def _sincos_pos2d(h: int, w: int, dim: int, device, dtype) -> torch.Tensor:

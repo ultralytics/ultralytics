@@ -22,6 +22,7 @@ from pathlib import Path
 import torch
 
 
+from ultralytics.data import build_yolo_dataset
 from ultralytics.models import yolo
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.modules.head import AnomalyMCDetect
@@ -86,8 +87,22 @@ class AnomalyV2Trainer(DetectionTrainer):
             self.best_fitness = self._ood_best_fitness
         return metrics, fitness
 
+    def _polygon_prior_active(self) -> bool:
+        """True when the fusion prior uses v6 polygon masks (seg_target_polygon)."""
+        return bool(getattr(unwrap_model(self.model), "seg_target_polygon", False))
+
     def build_dataset(self, img_path: str, mode: str = "train", batch: int | None = None):
-        """Build the dataset."""
+        """Build the dataset, forcing polygon-mask loading when polygon-prior mode is on."""
+        if self._polygon_prior_active():
+            # task="segment" flips YOLODataset.use_segments -> Format(return_mask=True) ->
+            # batch["masks"] (overlap-union instance map). Detection head/loss unaffected
+            # (bboxes still present). copy() so the persistent self.args stays task="anomaly_v2".
+            args = copy(self.args)
+            args.task = "segment"
+            gs = max(int(unwrap_model(self.model).stride.max()), 32)
+            return build_yolo_dataset(
+                args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs
+            )
         return super().build_dataset(img_path, mode=mode, batch=batch)
 
     def get_model(self, cfg=None, weights=None, verbose: bool = True):

@@ -300,4 +300,82 @@ class MaskPriorAugmenter:
         mask = F.conv2d(mask, g.view(1, 1, k, 1), padding=(k // 2, 0))
         return mask
 
+    # -- polygon-equivalent augmentations (segment-prior path) -------------------------------
 
+    def fragment_mask(self, mask, training: bool = True):
+        """Randomly break connected mask regions into scattered sub-blobs.
+
+        Polygon/segment-equivalent of ``fragment_prior_bboxes``. Operates on a
+        ``(B, 1, H, W)`` binary mask by eroding with random kernels and keeping
+        only a few random rectangular windows, producing a fragmented, scattered
+        prior that mimics memory-bank heatmap patterns. No-op when not training or
+        ``mask_fragment_p`` is zero.
+        """
+        if not training or self.mask_fragment_p <= 0.0:
+            return mask
+        if torch.rand(1).item() >= self.mask_fragment_p:
+            return mask
+        b, _, H, W = mask.shape
+        out = mask.clone()
+        for i in range(b):
+            mi = mask[i, 0]
+            if mi.max() == 0:
+                continue
+            # Random erosion: shrink with a random 3 or 5 px kernel to break thin connections.
+            k = int(torch.randint(1, 3, (1,)).item()) * 2 + 1  # 3 or 5 (odd -> same spatial size)
+            kernel = torch.ones(1, 1, k, k, device=mask.device)
+            eroded = F.conv2d(mask[i : i + 1], kernel, padding=k // 2)
+            keep_ratio = 0.6 + 0.3 * torch.rand(1).item()
+            eroded = (eroded >= keep_ratio * k * k).float()
+            # Keep only the intersection of a few random rectangular windows with the eroded mask.
+            windows = torch.zeros(1, 1, H, W, device=mask.device)
+            for _ in range(self.mask_fragment_n):
+                fh = int(H * (0.15 + 0.40 * torch.rand(1).item()))
+                fw = int(W * (0.15 + 0.40 * torch.rand(1).item()))
+                fy = int(torch.randint(0, max(1, H - fh), (1,)).item())
+                fx = int(torch.randint(0, max(1, W - fw), (1,)).item())
+                windows[0, 0, fy : fy + fh, fx : fx + fw] = 1.0
+            out[i, 0] = eroded[0, 0] * windows[0, 0]
+        return out
+
+    def drop_polygon_instances(self, masks, training: bool = True, batch_size: int | None = None):
+        """Drop random instances from an instance-index map ``(B, H/r, W/r)``.
+
+        Polygon equivalent of ``mask_box_drop_p`` in ``augment_prior_bboxes``. No-op when not
+        training, ``mask_box_drop_p`` is zero, or ``masks`` is not a batch instance-index map.
+        """
+        if not training or self.mask_box_drop_p <= 0.0 or masks.numel() == 0:
+            return masks
+        if masks.dim() != 3:
+            return masks
+        if batch_size is not None and masks.shape[0] != batch_size:
+            return masks
+        ids = masks.unique()
+        ids = ids[ids > 0]  # exclude background
+        if len(ids) == 0:
+            return masks
+        keep = torch.rand(len(ids), device=masks.device) > self.mask_box_drop_p
+        if keep.all():
+            return masks
+        drop_ids = ids[~keep]
+        out = masks.clone()
+        for did in drop_ids:
+            out[out == did] = 0
+        return out
+
+    def translate_prior(self, prior, training: bool = True):
+        """Random per-sample translation of ``(B, 1, H, W)`` prior masks.
+
+        Polygon equivalent of ``mask_jitter`` in ``augment_prior_bboxes``. No-op when
+        not training or ``mask_jitter`` is zero.
+        """
+        if not training or self.mask_jitter <= 0.0:
+            return prior
+        B, _, H, W = prior.shape
+        dev = prior.device
+        off = (torch.rand(B, 2, device=dev) * 2 - 1) * (self.mask_jitter * self.mask_size)
+        theta = torch.eye(2, 3, device=dev).unsqueeze(0).repeat(B, 1, 1)
+        theta[:, 0, 2] = off[:, 0] / (W / 2)
+        theta[:, 1, 2] = off[:, 1] / (H / 2)
+        grid = F.affine_grid(theta, (B, 1, H, W), align_corners=False)
+        return F.grid_sample(prior, grid, mode="bilinear", padding_mode="zeros", align_corners=False)

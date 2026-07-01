@@ -42,26 +42,26 @@ keywords: computer vision projects, computer vision projects for beginners, YOLO
         {"@type": "ListItem", "position": 1, "name": "Security Alarm System", "url": "https://docs.ultralytics.com/computer-vision/projects/#1-security-alarm-system"},
         {"@type": "ListItem", "position": 2, "name": "Object Counting", "url": "https://docs.ultralytics.com/computer-vision/projects/#2-object-counting"},
         {"@type": "ListItem", "position": 3, "name": "Live Inference App", "url": "https://docs.ultralytics.com/computer-vision/projects/#3-live-inference-app"},
-        {"@type": "ListItem", "position": 4, "name": "Object Blurring & Anonymisation", "url": "https://docs.ultralytics.com/computer-vision/projects/#4-object-blurring--anonymisation"},
+        {"@type": "ListItem", "position": 4, "name": "Object Blurring & Anonymisation", "url": "https://docs.ultralytics.com/computer-vision/projects/#4-object-blurring-and-anonymisation"},
         {"@type": "ListItem", "position": 5, "name": "Image Classification", "url": "https://docs.ultralytics.com/computer-vision/projects/#5-image-classification"},
         {"@type": "ListItem", "position": 6, "name": "Object Cropping", "url": "https://docs.ultralytics.com/computer-vision/projects/#6-object-cropping"},
         {"@type": "ListItem", "position": 7, "name": "Visual Similarity Search", "url": "https://docs.ultralytics.com/computer-vision/projects/#7-visual-similarity-search"},
-        {"@type": "ListItem", "position": 8, "name": "Workout & Rep Counter", "url": "https://docs.ultralytics.com/computer-vision/projects/#8-workout--rep-counter"},
+        {"@type": "ListItem", "position": 8, "name": "Workout & Rep Counter", "url": "https://docs.ultralytics.com/computer-vision/projects/#8-workout-and-rep-counter"},
         {"@type": "ListItem", "position": 9, "name": "Parking Management System", "url": "https://docs.ultralytics.com/computer-vision/projects/#9-parking-management-system"},
         {"@type": "ListItem", "position": 10, "name": "Queue Management System", "url": "https://docs.ultralytics.com/computer-vision/projects/#10-queue-management-system"},
         {"@type": "ListItem", "position": 11, "name": "Speed Estimation", "url": "https://docs.ultralytics.com/computer-vision/projects/#11-speed-estimation"},
         {"@type": "ListItem", "position": 12, "name": "Heatmap Generation", "url": "https://docs.ultralytics.com/computer-vision/projects/#12-heatmap-generation"},
-        {"@type": "ListItem", "position": 13, "name": "Region & Zone Counting", "url": "https://docs.ultralytics.com/computer-vision/projects/#13-region--zone-counting"},
+        {"@type": "ListItem", "position": 13, "name": "Region & Zone Counting", "url": "https://docs.ultralytics.com/computer-vision/projects/#13-region-and-zone-counting"},
         {"@type": "ListItem", "position": 14, "name": "Distance Calculation", "url": "https://docs.ultralytics.com/computer-vision/projects/#14-distance-calculation"},
         {"@type": "ListItem", "position": 15, "name": "Instance Segmentation with Tracking", "url": "https://docs.ultralytics.com/computer-vision/projects/#15-instance-segmentation-with-tracking"},
         {"@type": "ListItem", "position": 16, "name": "Analytics Dashboard", "url": "https://docs.ultralytics.com/computer-vision/projects/#16-analytics-dashboard"},
         {"@type": "ListItem", "position": 17, "name": "Vision Eye: Perspective Mapping", "url": "https://docs.ultralytics.com/computer-vision/projects/#17-vision-eye-perspective-mapping"},
-        {"@type": "ListItem", "position": 18, "name": "Pose Estimation & Ergonomics", "url": "https://docs.ultralytics.com/computer-vision/projects/#18-pose-estimation--ergonomics"},
+        {"@type": "ListItem", "position": 18, "name": "Pose Estimation & Ergonomics", "url": "https://docs.ultralytics.com/computer-vision/projects/#18-pose-estimation-and-ergonomics"},
         {"@type": "ListItem", "position": 19, "name": "Rotated Object Detection (OBB)", "url": "https://docs.ultralytics.com/computer-vision/projects/#19-rotated-object-detection-obb"},
         {"@type": "ListItem", "position": 20, "name": "Tiled Inference for Large Images", "url": "https://docs.ultralytics.com/computer-vision/projects/#20-tiled-inference-for-large-images"},
         {"@type": "ListItem", "position": 21, "name": "Open-Vocabulary Detection", "url": "https://docs.ultralytics.com/computer-vision/projects/#21-open-vocabulary-detection"},
         {"@type": "ListItem", "position": 22, "name": "Zero-Shot Segmentation", "url": "https://docs.ultralytics.com/computer-vision/projects/#22-zero-shot-segmentation"},
-        {"@type": "ListItem", "position": 23, "name": "Defect & Anomaly Detection", "url": "https://docs.ultralytics.com/computer-vision/projects/#23-defect--anomaly-detection"},
+        {"@type": "ListItem", "position": 23, "name": "Defect & Anomaly Detection", "url": "https://docs.ultralytics.com/computer-vision/projects/#23-defect-and-anomaly-detection"},
         {"@type": "ListItem", "position": 24, "name": "Edge Deployment: Jetson and Raspberry Pi", "url": "https://docs.ultralytics.com/computer-vision/projects/#24-edge-deployment-jetson-and-raspberry-pi"},
         {"@type": "ListItem", "position": 25, "name": "Fine-Tune on Custom Dataset", "url": "https://docs.ultralytics.com/computer-vision/projects/#25-fine-tune-on-custom-dataset"}
       ]
@@ -173,26 +173,26 @@ pip install ultralytics
 | [Security Alarm System](#1-security-alarm-system) | Beginner | Object detection |
 | [Object Counting](#2-object-counting) | Beginner | Detection + counting |
 | [Live Inference App](#3-live-inference-app) | Beginner | Detection, Streamlit |
-| [Object Blurring & Anonymisation](#4-object-blurring--anonymisation) | Beginner | Segmentation |
+| [Object Blurring & Anonymisation](#4-object-blurring-and-anonymisation) | Beginner | Segmentation |
 | [Image Classification](#5-image-classification) | Beginner | Classification |
 | [Object Cropping](#6-object-cropping) | Beginner | Detection, region extraction |
 | [Visual Similarity Search](#7-visual-similarity-search) | Beginner | Feature embeddings |
-| [Workout & Rep Counter](#8-workout--rep-counter) | Intermediate | Pose estimation |
+| [Workout & Rep Counter](#8-workout-and-rep-counter) | Intermediate | Pose estimation |
 | [Parking Management System](#9-parking-management-system) | Intermediate | Detection, occupancy logic |
 | [Queue Management System](#10-queue-management-system) | Intermediate | Detection + tracking |
 | [Speed Estimation](#11-speed-estimation) | Intermediate | Tracking, velocity |
 | [Heatmap Generation](#12-heatmap-generation) | Intermediate | Tracking, density mapping |
-| [Region & Zone Counting](#13-region--zone-counting) | Intermediate | Tracking, region logic |
+| [Region & Zone Counting](#13-region-and-zone-counting) | Intermediate | Tracking, region logic |
 | [Distance Calculation](#14-distance-calculation) | Intermediate | Detection, spatial reasoning |
 | [Instance Segmentation with Tracking](#15-instance-segmentation-with-tracking) | Intermediate | Segmentation + tracking |
 | [Analytics Dashboard](#16-analytics-dashboard) | Intermediate | Detection, visualisation |
 | [Vision Eye: Perspective Mapping](#17-vision-eye-perspective-mapping) | Intermediate | Detection, homography |
-| [Pose Estimation & Ergonomics](#18-pose-estimation--ergonomics) | Intermediate | Pose estimation |
+| [Pose Estimation & Ergonomics](#18-pose-estimation-and-ergonomics) | Intermediate | Pose estimation |
 | [Rotated Object Detection](#19-rotated-object-detection-obb) | Advanced | OBB, aerial imagery |
 | [Tiled Inference for Large Images](#20-tiled-inference-for-large-images) | Advanced | SAHI, sliced inference |
 | [Open-Vocabulary Detection](#21-open-vocabulary-detection) | Advanced | YOLO-World, text prompts |
 | [Zero-Shot Segmentation](#22-zero-shot-segmentation) | Advanced | SAM 2, promptable masks |
-| [Defect & Anomaly Detection](#23-defect--anomaly-detection) | Advanced | Custom training |
+| [Defect & Anomaly Detection](#23-defect-and-anomaly-detection) | Advanced | Custom training |
 | [Edge Deployment: Jetson and Raspberry Pi](#24-edge-deployment-jetson-and-raspberry-pi) | Advanced | TensorRT, ONNX, embedded |
 | [Fine-Tune on Custom Dataset](#25-fine-tune-on-custom-dataset) | Advanced | Transfer learning |
 
@@ -292,7 +292,7 @@ Build and deploy a browser-based live inference app in under 20 lines of code us
 
 ---
 
-### 4. Object Blurring & Anonymisation
+### 4. Object Blurring and Anonymisation
 
 Automatically blur faces, license plates, or any detected object class to anonymise video or image data. Uses segmentation masks for pixel-precise blurring rather than bounding-box blurring.
 
@@ -409,7 +409,7 @@ Find visually similar images in a dataset using YOLO feature embeddings and near
 
 Projects that combine multiple techniques, process video streams, or require some domain knowledge. Suitable for developers with basic Python and ML experience.
 
-### 8. Workout & Rep Counter
+### 8. Workout and Rep Counter
 
 Count exercise repetitions in real time by tracking joint angles from pose keypoints. Detects squats, push-ups, pull-ups, and other movements without any custom training.
 
@@ -589,7 +589,7 @@ Generate density heatmaps from object movement data across video frames. Visuali
 
 ---
 
-### 13. Region & Zone Counting
+### 13. Region and Zone Counting
 
 Count objects entering or exiting custom polygonal regions. Useful for restricted area monitoring, entrance counting, and multi-zone analytics from a single camera.
 
@@ -744,7 +744,7 @@ Map detected object positions from camera perspective onto a bird's-eye view usi
 
 ---
 
-### 18. Pose Estimation & Ergonomics
+### 18. Pose Estimation and Ergonomics
 
 Detect human body keypoints and analyse joint angles to monitor posture, flag unsafe working positions, or track athletic performance. Works on individuals or groups without any wearables.
 
@@ -882,7 +882,7 @@ Segment any object using point, box, or text prompts with no training on your sp
 
 ---
 
-### 23. Defect & Anomaly Detection
+### 23. Defect and Anomaly Detection
 
 Train a custom YOLO model to detect defects, damage, or anomalies specific to your product or environment. Requires a labelled dataset but can reach production accuracy with as few as 200-500 images.
 
@@ -976,10 +976,10 @@ Adapt a pretrained YOLO26 model to detect your own object classes using transfer
 
 | Technique | Beginner project | Intermediate project | Advanced project |
 |---|---|---|---|
-| Object Detection | [Object Counting](#2-object-counting) | [Speed Estimation](#11-speed-estimation) | [Defect Detection](#23-defect--anomaly-detection) |
-| Instance Segmentation | [Object Blurring](#4-object-blurring--anonymisation) | [Segmentation + Tracking](#15-instance-segmentation-with-tracking) | [Tiled Inference](#20-tiled-inference-for-large-images) |
+| Object Detection | [Object Counting](#2-object-counting) | [Speed Estimation](#11-speed-estimation) | [Defect Detection](#23-defect-and-anomaly-detection) |
+| Instance Segmentation | [Object Blurring](#4-object-blurring-and-anonymisation) | [Segmentation + Tracking](#15-instance-segmentation-with-tracking) | [Tiled Inference](#20-tiled-inference-for-large-images) |
 | Image Classification | [Image Classification](#5-image-classification) | - | [Fine-Tune on Custom Data](#25-fine-tune-on-custom-dataset) |
-| Pose Estimation | - | [Workout Counter](#8-workout--rep-counter) · [Pose Estimation](#18-pose-estimation--ergonomics) | - |
+| Pose Estimation | - | [Workout Counter](#8-workout-and-rep-counter) · [Pose Estimation](#18-pose-estimation-and-ergonomics) | - |
 | Object Tracking | [Object Counting](#2-object-counting) | [Heatmap Generation](#12-heatmap-generation) | - |
 | OBB Detection | - | - | [Rotated Object Detection](#19-rotated-object-detection-obb) |
 | Foundation Models | - | - | [Open-Vocabulary Detection](#21-open-vocabulary-detection) · [SAM 2](#22-zero-shot-segmentation) |
@@ -1006,7 +1006,7 @@ Adapt a pretrained YOLO26 model to detect your own object classes using transfer
 
 ??? question "What are good computer vision project ideas for beginners?"
 
-    Start with projects that use a pretrained model and produce immediate visual output: [object counting](#2-object-counting), [security alarm system](#1-security-alarm-system), [object blurring](#4-object-blurring--anonymisation), or the [live inference app](#3-live-inference-app). These require no dataset preparation or training and give you hands-on experience with detection pipelines, model outputs, and real-time inference before you tackle custom training.
+    Start with projects that use a pretrained model and produce immediate visual output: [object counting](#2-object-counting), [security alarm system](#1-security-alarm-system), [object blurring](#4-object-blurring-and-anonymisation), or the [live inference app](#3-live-inference-app). These require no dataset preparation or training and give you hands-on experience with detection pipelines, model outputs, and real-time inference before you tackle custom training.
 
 ??? question "How do I deploy a model to production?"
 
@@ -1020,12 +1020,12 @@ Not sure where to go after your first project? Here are natural progressions:
 
 | You built this | Try this next |
 |---|---|
-| [Object Counting](#2-object-counting) | [Region & Zone Counting](#13-region--zone-counting) → [Heatmap Generation](#12-heatmap-generation) |
+| [Object Counting](#2-object-counting) | [Region & Zone Counting](#13-region-and-zone-counting) → [Heatmap Generation](#12-heatmap-generation) |
 | [Security Alarm System](#1-security-alarm-system) | [Distance Calculation](#14-distance-calculation) → [Analytics Dashboard](#16-analytics-dashboard) |
-| [Workout Counter](#8-workout--rep-counter) | [Pose Estimation & Ergonomics](#18-pose-estimation--ergonomics) → [Fine-Tune on Custom Dataset](#25-fine-tune-on-custom-dataset) |
+| [Workout Counter](#8-workout-and-rep-counter) | [Pose Estimation & Ergonomics](#18-pose-estimation-and-ergonomics) → [Fine-Tune on Custom Dataset](#25-fine-tune-on-custom-dataset) |
 | [Parking Management](#9-parking-management-system) | [Speed Estimation](#11-speed-estimation) → [Vision Eye](#17-vision-eye-perspective-mapping) |
 | [Image Classification](#5-image-classification) | [Object Detection](#1-security-alarm-system) → [Fine-Tune on Custom Dataset](#25-fine-tune-on-custom-dataset) |
-| [Tiled Inference](#20-tiled-inference-for-large-images) | [Rotated Object Detection](#19-rotated-object-detection-obb) → [Defect Detection](#23-defect--anomaly-detection) |
+| [Tiled Inference](#20-tiled-inference-for-large-images) | [Rotated Object Detection](#19-rotated-object-detection-obb) → [Defect Detection](#23-defect-and-anomaly-detection) |
 
 ---
 

@@ -35,11 +35,8 @@ from ultralytics.utils import LOGGER, YAML
 
 # Public prior selection. Internal model uses ``prior_mode``; these map 1:1 except
 # "anomaly_model", which runs an external model to produce a heatmap and injects it through the
-# existing external-mask seam (prior_mode="mask"). "cached" remains usable as an advanced
-# pass-through value. (Legacy "heatmap_learned"/"heatmap_fused"/"cached" are translated to the
-# "heatmap" source + a heatmap producer by AnomalyDetection.set_prior_mode.)
-PRIOR_MODES = ("none", "heatmap", "heatmap_learned", "heatmap_fused", "mask", "anomaly_model")
-_ADVANCED_PRIORS = ("cached",)
+# existing external-mask seam (prior_mode="mask").
+PRIOR_MODES = ("none", "heatmap", "mask", "anomaly_model")
 
 # Bank-build knobs that live in the fit config. bb_* override the model yaml's v2_cfg defaults;
 # imgsz / max_images are build inputs (not part of the model yaml).
@@ -143,7 +140,6 @@ class YOLOA(Model):
         refit: bool = False,
         device: Any = None,
         batch: int = 8,
-        fit_disc: bool | dict = False,
     ) -> "YOLOA":
         """Build (or load from cache) the memory bank from normal images.
 
@@ -156,9 +152,6 @@ class YOLOA(Model):
             refit: Force a rebuild even if a cache file exists.
             device: Build device (defaults to the model device); not part of the fit identity.
             batch: Mini-batch size for feature extraction; not part of the fit identity.
-            fit_disc: If True or a dict, also fit a FeatureDiscriminatorScorer on the bank's
-                normal features (for prior="heatmap_learned" / "heatmap_fused"). A dict forwards
-                as kwargs (noise_std, steps, hidden, ...).
 
         Returns:
             (YOLOA): self, now fitted.
@@ -196,7 +189,6 @@ class YOLOA(Model):
                 max_bank_size=fit_args.get("bb_max_bank_size"),
                 max_images=int(fit_args["max_images"] or 0),
                 verbose=True,
-                fit_disc=fit_disc,
             )
             if cache_path is not None and n:
                 cache_path.parent.mkdir(parents=True, exist_ok=True)
@@ -224,8 +216,8 @@ class YOLOA(Model):
         Args:
             source: Image source (path / array / list), as in :meth:`Model.predict`.
             stream: Stream the source.
-            prior: One of "none" / "heatmap" / "mask" / "anomaly_model" (advanced:
-                "cached"). None keeps legacy behavior.
+            prior: One of "none" / "heatmap" / "mask" / "anomaly_model". None keeps
+                legacy behavior.
             anomaly_model: Object exposing ``heatmap(img) -> Tensor[H, W] in [0, 1]``, required
                 when ``prior="anomaly_model"``; its heatmap is injected via the external-mask seam.
             **kwargs: Standard predict args plus prior-shaping knobs (heat_norm / heat_edge / ...).
@@ -267,8 +259,8 @@ class YOLOA(Model):
         if prior is None:
             return None, kwargs.pop("external_mask", None)
         prior = str(prior).lower()
-        if prior not in PRIOR_MODES and prior not in _ADVANCED_PRIORS:
-            raise ValueError(f"prior={prior!r} not in {PRIOR_MODES} (advanced: {_ADVANCED_PRIORS})")
+        if prior not in PRIOR_MODES:
+            raise ValueError(f"prior={prior!r} not in {PRIOR_MODES}")
         if prior == "anomaly_model":
             if anomaly_model is None or not hasattr(anomaly_model, "heatmap"):
                 raise ValueError("prior='anomaly_model' requires anomaly_model with a .heatmap(img) method")

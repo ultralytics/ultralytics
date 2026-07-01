@@ -8,9 +8,7 @@
 Prior modes selectable via ``predictor.prior_mode``:
 
   - ``"none"``     — passthrough (vanilla YOLO, no fusion bias).
-  - ``"heatmap"``  — feature-side anomaly map (producer set by ``_heatmap_producer``:
-                     bank / learned / both). Legacy ``"heatmap_learned"`` /
-                     ``"heatmap_fused"`` are translated by ``set_prior_mode``.
+  - ``"heatmap"``  — feature-side memory-bank anomaly map.
   - ``"mask"``     — external_mask provided by caller.
 
 Legacy ``external_mask`` / ``bbox_prompt`` attributes still work when

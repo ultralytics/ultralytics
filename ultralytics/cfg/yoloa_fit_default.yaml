@@ -25,21 +25,3 @@ bb_hmap_stretch_strength: 0.   # quadratic stretch hmap+=s*hmap² (0=off, 0.5=mo
 heat_edge: true             # edge-suppression on the heatmap
 heat_edge_sigma: 1.0         # edge sigma (bigger = gentler)
 heat_norm: none              # none | minmax | gaussian | mean — prior norm before fusion
-
-# -- Prior selection ----------------------------------------------------
-# heatmap_mode: memory_bank | learned | fused
-heatmap_mode: memory_bank
-# Fusion (heatmap_mode=fused only) —
-scorer_fuse: mean           # mean | max | gmean — how bank + scorer maps combine
-scorer_weight: 0.5          # 0.0 = all bank, 1.0 = all scorer (linear blend)
-
-
-# -- Scorer (FeatureDiscriminatorScorer, used when heatmap_mode is learned or fused) --
-scorer_noise_std: 0.2      # feature-noise std for synthetic anomalies
-scorer_steps: 500           # discriminator training iterations
-scorer_hidden: 128          # MLP hidden dim
-scorer_n_noise: 1           # synthetic anomalies per normal patch
-scorer_batch: 16384         # features sampled per training step
-scorer_lr: 0.001            # Adam learning rate
-scorer_noise_mode: gaussian # gaussian | mixup
-scorer_adaptor: true        # identity-init feature adaptor

@@ -629,14 +629,6 @@ class YOLOAnomalyV2Model(DetectionModel):
         # Prior mode state (predictor/validator controlled)
         self._prior_mode: str | None = None  # None = legacy (GT bboxes -> renderer)
         self._last_heatmap: torch.Tensor | None = None
-        # SuperSimpleNet-style learned scorer (normal vs synthetic feature-noise), fit at support
-        # time alongside the bank. Used by prior_mode "heatmap_learned" (scorer only) and
-        # "heatmap_fused" (bank+scorer ensemble). Built+dropped within the validator like the bank
-        # (always None before a checkpoint save), so its params never reach ModelEMA/state_dict.
-        self._feat_disc_scorer = None
-        self._feat_disc_fuse: str = "mean"  # how the "both" heatmap producer combines bank + scorer
-        self._feat_disc_weight: float = 0.5  # scorer weight when fuse="linear"
-        self._heatmap_producer: str = "bank"  # bank | learned | both (for prior_mode "heatmap")
 
     def init_criterion(self):
         """Initialize the loss criterion.
@@ -705,68 +697,18 @@ class YOLOAnomalyV2Model(DetectionModel):
     # ------------------------------------------------------------------
     # Prior mode API (v2.3 — unified 4-mode routing)
     # ------------------------------------------------------------------
-    # === Back-compat shim: legacy prior_mode aliases -> (prior_mode, heatmap_producer). ===
-    # The heatmap family used to be encoded in the mode string; it is now split into a single
-    # "heatmap" source + a `_heatmap_producer` knob. DELETE this dict and the translation block
-    # in set_prior_mode once all configs/checkpoints pass the split form directly.
-    _LEGACY_PRIOR_MODE_ALIASES = {
-        "heatmap": ("heatmap", "bank"),
-        "heatmap_learned": ("heatmap", "learned"),
-        "heatmap_fused": ("heatmap", "both"),
-    }
-    # === end shim ===
-
     def set_prior_mode(self, mode: str | None) -> None:
         """Set the prior source for the next forward.
 
         Args:
             mode: ``"none"`` (passthrough), ``"box"`` (GT bbox render), ``"mask"`` (external/GT
-                mask), ``"heatmap"`` (feature-side map, producer set by ``_heatmap_producer``), or
-                ``None`` (training default: pick by data). Legacy aliases ``"heatmap_learned"`` /
-                ``"heatmap_fused"`` are translated to ``"heatmap"`` + the matching
-                ``_heatmap_producer``.
+                mask), ``"segment"`` (segmentation prompt), ``"heatmap"`` (feature-side memory-bank
+                map), or ``"anomaly_model"`` (external heatmap injected via mask seam). ``None``
+                keeps the training default (pick by data).
         """
-        # --- back-compat shim (remove with _LEGACY_PRIOR_MODE_ALIASES) ---
-        if mode in self._LEGACY_PRIOR_MODE_ALIASES:
-            mode, self._heatmap_producer = self._LEGACY_PRIOR_MODE_ALIASES[mode]
-        # --- end shim ---
-        if mode is not None and mode not in ("none", "box", "mask", "heatmap"):
+        if mode is not None and mode not in ("none", "box", "mask", "segment", "heatmap", "anomaly_model"):
             raise ValueError(f"Invalid prior_mode: {mode!r}")
         self._prior_mode = mode
-
-    def fit_feat_disc(self, fuse: str = "mean", **kwargs) -> bool:
-        """Fit a FeatureDiscriminatorScorer on the frozen bank's normal features.
-
-        SuperSimpleNet-style: the bank's stored normal patches are the negative class, normal +
-        Gaussian feature-noise the synthetic-anomaly positive class. Call after the bank is built
-        (``load_support_set`` / validator) to enable ``prior_mode`` ``"heatmap_learned"`` (scorer
-        only) or ``"heatmap_fused"`` (bank + scorer ensemble combined by ``fuse``).
-
-        Args:
-            fuse: How ``heatmap_fused`` combines the two maps: ``"mean"`` (default), ``"max"``,
-                or ``"gmean"``.
-            **kwargs: Forwarded to :class:`FeatureDiscriminatorScorer` (``noise_std``, ``steps``,
-                ``hidden``, ``n_noise``, ``adaptor``, ...).
-
-        Returns:
-            True iff a usable scorer is fitted.
-        """
-        from ultralytics.nn.modules.anomaly_v2 import FeatureDiscriminatorScorer
-
-        mb = getattr(self, "memory_bank", None)
-        if mb is None:
-            return False
-        normal = mb._effective_bank()
-        if normal is None or normal.shape[0] < 2:
-            return False
-        scorer_weight = float(kwargs.pop("scorer_weight", 0.5))
-        scorer = FeatureDiscriminatorScorer(**kwargs)
-        scorer._bb_layer_indices = list(self._bb_layers or [])
-        scorer.fit(normal)
-        self._feat_disc_scorer = scorer if scorer.fitted else None
-        self._feat_disc_fuse = str(fuse)
-        self._feat_disc_weight = scorer_weight
-        return scorer.fitted
 
     def load_support_set(
         self,
@@ -777,7 +719,6 @@ class YOLOAnomalyV2Model(DetectionModel):
         max_bank_size: int = 10000,
         max_images: int = 0,
         verbose: bool = True,
-        fit_disc: bool | dict = False,
     ) -> int:
         """Build the BackboneMemoryBank from normal images for ``prior_mode=\"heatmap\"``.
 
@@ -791,10 +732,6 @@ class YOLOAnomalyV2Model(DetectionModel):
             batch: Mini-batch size for backbone feature extraction.
             max_bank_size: Maximum bank entries (coreset subsampling at freeze).
             verbose: Log progress.
-            fit_disc: Also fit a FeatureDiscriminatorScorer on the frozen bank features (for
-                ``prior_mode`` ``"heatmap_learned"``/``"heatmap_fused"``). ``True`` uses defaults;
-                a dict is forwarded to :meth:`fit_feat_disc` (e.g. ``{"noise_std": 0.02,
-                "steps": 600, "fuse": "max"}``).
 
         Returns:
             Final bank size (number of feature vectors).
@@ -863,14 +800,6 @@ class YOLOAnomalyV2Model(DetectionModel):
                 f"max_bank={mb.max_bank_size or 'unlimited'}, holdout_max={mb.holdout_max}, "
                 f"bb_layers={self._bb_layers}"
             )
-        if fit_disc:
-            kw = dict(fit_disc) if isinstance(fit_disc, dict) else {}
-            ok = self.fit_feat_disc(**kw)
-            if verbose:
-                LOGGER.info(
-                    f"FeatureDiscriminatorScorer fit: {'ok' if ok else 'FAILED'} "
-                    f"(fuse={self._feat_disc_fuse}, kwargs={kw})"
-                )
         return final_size
 
     def _ingest_support_batch(self, images, device, memory_bank):
@@ -970,10 +899,6 @@ class YOLOAnomalyV2Model(DetectionModel):
             ("memory_bank", None),
             ("_prior_mode", None),
             ("_last_heatmap", None),
-            ("_feat_disc_scorer", None),
-            ("_feat_disc_fuse", "mean"),
-            ("_feat_disc_weight", 0.5),
-            ("_heatmap_producer", "bank"),
             ("softmax_temperature", 1.0),
             ("heatmap_norm", "none"),
             ("heatmap_edge_weight", False),
@@ -1065,8 +990,7 @@ class YOLOAnomalyV2Model(DetectionModel):
             box      -> GT bboxes rendered to a gauss mask (train default for bbox data)
             mask     -> a given mask tensor: ``external_mask`` if set, else the GT mask union
                         from ``batch_masks`` (train default for segment data)
-            heatmap  -> feature-side anomaly map; the producer (bank / learned / both / cached)
-                        is selected by ``self._heatmap_producer``
+            heatmap  -> feature-side memory-bank anomaly map
         """
         mask_size = getattr(self, "mask_size", 80)
         if source in (None, "none"):
@@ -1081,48 +1005,18 @@ class YOLOAnomalyV2Model(DetectionModel):
                 return self.mask_augmenter.augment_mask(prior) if augment else prior
             return None
         if source == "heatmap":
-            return self._prior_from_heatmap(
-                mask_size, bboxes=bboxes, batch_idx=batch_idx, batch_size=batch_size, augment=augment
-            )
+            return self._prior_from_heatmap(mask_size, device)
         return None
 
-    def _fuse_heatmaps(self, parts):
-        """Combine multiple [0, 1] heatmaps (same scale) per ``_feat_disc_fuse``."""
-        stack = torch.stack(parts, dim=0)  # [n, B, 1, H, W]
-        fuse = getattr(self, "_feat_disc_fuse", "mean")
-        if fuse == "max":
-            return stack.amax(dim=0)
-        if fuse == "gmean":
-            return stack.clamp_min(1e-6).log().mean(dim=0).exp()
-        if fuse == "linear":
-            w = getattr(self, "_feat_disc_weight", 0.5)
-            return (1 - w) * stack[0] + w * stack[1]
-        return stack.mean(dim=0)
-
-    def _prior_from_heatmap(self, mask_size, *, bboxes=None, batch_idx=None, batch_size=None, augment=False):
-        """Feature-side heatmap prior from the configured ``_heatmap_producer``, or None.
-
-        Producers:
-            bank    -> BackboneMemoryBank Noisy-OR map
-            learned -> FeatureDiscriminatorScorer (normal vs synthetic feature-noise)
-            both    -> ensemble of bank + scorer, fused per ``_feat_disc_fuse``
-        """
-        producer = getattr(self, "_heatmap_producer", "bank")
-        bb_feats = getattr(self, "_bb_feats", None)
-        if not bb_feats:
-            return None
+    def _prior_from_heatmap(self, mask_size, device):
+        """Feature-side heatmap prior from the memory bank, or None."""
         mb = getattr(self, "memory_bank", None)
-        disc = getattr(self, "_feat_disc_scorer", None)
-        parts = []
-        if producer in ("bank", "both") and mb is not None:
-            parts.append(mb(bb_feats))
-        if producer in ("learned", "both") and disc is not None and disc.fitted:
-            parts.append(disc(bb_feats))
-        parts = [p for p in parts if p is not None]
-        if not parts:
+        bb_feats = getattr(self, "_bb_feats", None)
+        if mb is None or not bb_feats:
             return None
-        hmap = parts[0] if len(parts) == 1 else self._fuse_heatmaps(parts)
-        return self._resize_to_mask(hmap, mask_size)
+        with torch.no_grad():
+            hmap = mb(bb_feats)
+        return self._resize_to_mask(hmap.to(device=device, dtype=torch.float32), mask_size)
 
     def _select_prior_source(self, external_mask, disabled, bboxes, batch_masks):
         """Pick the prior source for this forward.
@@ -1266,11 +1160,9 @@ class YOLOAnomalyV2Model(DetectionModel):
                 )
                 # Edge-suppression weight: down-weight the memory-bank heatmap toward the image
                 # borders (peripheral patches score high from boundary effects, not real defects).
-                # Bank producer only, matching the legacy prior_mode=="heatmap" behavior.
                 if (
                     prior is not None
                     and source == "heatmap"
-                    and getattr(self, "_heatmap_producer", "bank") == "bank"
                     and getattr(self, "heatmap_edge_weight", False)
                 ):
                     prior = prior * self._edge_weight(prior)

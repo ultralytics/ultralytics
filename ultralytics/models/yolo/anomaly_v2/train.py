@@ -31,13 +31,6 @@ from ultralytics.utils.torch_utils import unwrap_model
 
 from .val import resolve_mvtec_root, run_mvtec_ood_eval
 
-# Fit YAML keys -> FeatureDiscriminatorScorer kwargs
-_SCORER_YAML_KEYS = {
-    "scorer_noise_std": "noise_std", "scorer_steps": "steps", "scorer_hidden": "hidden",
-    "scorer_n_noise": "n_noise", "scorer_batch": "batch", "scorer_lr": "lr",
-    "scorer_noise_mode": "noise_mode",
-}
-
 
 def _resolve_fit_yaml(cfg_path: str, model_yaml_path: str | None = None) -> dict:
     """Load a fit YAML; tries absolute, relative-to-model-YAML, then ``cfg/models/v2/`` as anchor."""
@@ -152,9 +145,9 @@ class AnomalyV2Trainer(DetectionTrainer):
 
         Configured via the model YAML ``anomaly_v2`` block: ``test_val_freq`` (every N epochs;
         default 3, set 0 to disable). When ``test_fit_cfg`` is set, ``imgsz``, ``heatmap_mode``,
-        scorer settings, ``heat_edge`` / ``heat_norm`` are read from that fit YAML (the single source of
-        truth for all fit params). Without it, ``test_imgsz`` (default 320) and the default heatmap
-        prior with no scorer / no post-processing are used. Per-prior switches ``test_none_prior`` /
+        and ``heat_edge`` / ``heat_norm`` are read from that fit YAML (the single source of truth
+        for all fit params). Without it, ``test_imgsz`` (default 320) and the default heatmap prior
+        with no post-processing are used. Per-prior switches ``test_none_prior`` /
         ``test_heatmap_prior`` / ``test_mask_prior`` pick which modes run; ``test_heatmap_prior`` is
         forced on (best.pt fitness is ``test_metrics(heatmap_prior)/mAP10``).
 
@@ -172,7 +165,7 @@ class AnomalyV2Trainer(DetectionTrainer):
                            "test_root); skipping test eval.")
             return
 
-        # -- Fit YAML (optional; single source of truth for imgsz / heatmap_mode / scorer / post) --
+        # -- Fit YAML (optional; single source of truth for imgsz / heatmap_mode / post) --
         fit_cfg_path = v2_cfg.get("test_fit_cfg")
         fit_yaml = {}
         if fit_cfg_path:
@@ -188,7 +181,7 @@ class AnomalyV2Trainer(DetectionTrainer):
         # best.pt fitness is test_metrics(heatmap_prior)/mAP10; test_none_prior (mask_off) and
         # test_mask_prior (mask_on) default off (heatmap-only = ~3x faster).
         heatmap_mode = fit_yaml.get("heatmap_mode")
-        _MODE_MAP = {"memory_bank": "heatmap", "learned": "heatmap_learned", "fused": "heatmap_fused"}
+        _MODE_MAP = {"memory_bank": "heatmap"}
         heatmap_variant = _MODE_MAP.get(heatmap_mode, "heatmap")
         if not bool(v2_cfg.get("test_heatmap_prior", True)):
             LOGGER.warning("anomaly_v2: test_heatmap_prior feeds fitness and cannot be disabled; forcing on.")
@@ -199,14 +192,6 @@ class AnomalyV2Trainer(DetectionTrainer):
         if bool(v2_cfg.get("test_mask_prior", False)):
             modes.append("mask_on")
         modes = tuple(modes)
-
-        # Scorer kwargs (learned / fused only)
-        scorer_kwargs, scorer_fuse = None, "mean"
-        if heatmap_mode in ("learned", "fused"):
-            scorer_kwargs = {kwk: fit_yaml[yk] for yk, kwk in _SCORER_YAML_KEYS.items() if yk in fit_yaml}
-            scorer_kwargs.setdefault("adaptor", fit_yaml.get("scorer_adaptor", True))
-            scorer_kwargs["scorer_weight"] = fit_yaml.get("scorer_weight", 0.5)
-            scorer_fuse = fit_yaml.get("scorer_fuse", "mean")
 
         # Heatmap post-processing (inference-only; from fit YAML)
         heat_edge = bool(fit_yaml.get("heat_edge")) if fit_yaml else None
@@ -233,8 +218,6 @@ class AnomalyV2Trainer(DetectionTrainer):
                     heatmap_norm=heat_norm,
                     heatmap_edge_weight=(True if heat_edge else None),
                     heatmap_edge_sigma=heat_edge_sigma,
-                    scorer_kwargs=scorer_kwargs,
-                    scorer_fuse=scorer_fuse,
                 )
             AnomalyV2Trainer._log_ood_wandb(trainer, rows)
             # Store OOD heatmap mAP10 (test_metrics(heatmap_prior)) for best.pt selection (fitness override)
@@ -268,13 +251,9 @@ class AnomalyV2Trainer(DetectionTrainer):
             return
 
         keys = ("mAP10", "mAP25", "mAP50", "mAP50_95", "image_auroc", "pixel_auroc")
-        # Map OOD val modes to wandb group names. heatmap_learned / heatmap_fused (scorer modes)
-        # also land under test_metrics(heatmap_prior) so they are never silently dropped from wandb.
         mode_to_group = {
             "mask_off": "test_metrics(none_prior)",
             "heatmap": "test_metrics(heatmap_prior)",
-            "heatmap_learned": "test_metrics(heatmap_prior)",
-            "heatmap_fused": "test_metrics(heatmap_prior)",
             "mask_on": "test_metrics(mask_prior)",
         }
 

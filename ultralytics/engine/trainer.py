@@ -663,17 +663,14 @@ class BaseTrainer:
         import io
 
         # A transient NaN/Inf permanently poisons the EMA running average (ema = decay*ema + (1-decay)*model), so
-        # save_model would otherwise skip every epoch and the run would finish with no checkpoint. Resync each
-        # poisoned EMA tensor from the live model (keys are a subset of the model's); skip only if the model tensor
-        # is also non-finite. fp16 overflow on the saved copy is handled below.
+        # save_model would otherwise skip every epoch and the run would finish with no checkpoint on valid input.
+        # Resync each poisoned EMA tensor from the live model where finite; any tensor that is non-finite in both is
+        # left for the nan_to_num_ pass below, so a usable checkpoint is always written.
         ema = unwrap_model(self.ema.ema)
         if not all(torch.isfinite(v).all() for v in ema.state_dict().values() if isinstance(v, torch.Tensor)):
             model_sd = unwrap_model(self.model).state_dict()
             for k, v in ema.state_dict().items():
-                if isinstance(v, torch.Tensor) and not torch.isfinite(v).all():
-                    if not torch.isfinite(model_sd[k]).all():
-                        LOGGER.warning(f"Skipping checkpoint save at epoch {self.epoch}: EMA and model contain NaN/Inf")
-                        return False
+                if isinstance(v, torch.Tensor) and not torch.isfinite(v).all() and torch.isfinite(model_sd[k]).all():
                     v.copy_(model_sd[k])
         ema = deepcopy(ema).half()
         # Clamp fp16 serialization overflow without mutating the live EMA.

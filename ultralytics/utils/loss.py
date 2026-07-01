@@ -1199,8 +1199,9 @@ class E2EDetectLoss:
         self.one2one.assigner.o2f = self.o2f
         self.one2one.assigner.o2f_iou = getattr(model.args, "o2f_iou", "amb_max")
         self.updates = 0
-        self.o2f_max_t = 0.6
-        self.o2f_min_t = 0.2
+        self.o2f_max_t = getattr(model.args, "o2f_max_t", 0.6)
+        self.o2f_min_t = getattr(model.args, "o2f_min_t", 0.2)
+        self.one2one.assigner.o2f_t = self.o2f_max_t  # epoch 0 uses max_t before the first decay update
         if not getattr(model.args, "vfl_o2m", True):
             self.one2many.vfl = None  # restrict Varifocal Loss to the one2one branch
 
@@ -1248,8 +1249,9 @@ class E2ELoss:
         self.o2m = 0.8
         self.o2o = self.total - self.o2m
         self.o2m_copy = self.o2m
-        self.o2f_max_t = 0.6
-        self.o2f_min_t = 0.2
+        self.o2f_max_t = getattr(model.args, "o2f_max_t", 0.6)
+        self.o2f_min_t = getattr(model.args, "o2f_min_t", 0.2)
+        self.one2one.assigner.o2f_t = self.o2f_max_t  # epoch 0 uses max_t before the first decay update
         # final gain
         self.final_o2m = 0.1
 

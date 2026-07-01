@@ -211,6 +211,8 @@ CFG_FRACTION_KEYS = frozenset(
         "iou",
         "fraction",
         "multi_scale",
+        "o2f_max_t",
+        "o2f_min_t",
     }
 )
 CFG_INT_KEYS = frozenset(

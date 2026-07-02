@@ -134,7 +134,7 @@ def main():
     elif cat_arg == "all":
         cats = MVTEC_CATEGORIES
     else:
-        cats = [args.cat]
+        cats = args.cat.split(",")
 
     model = YOLOA(args.ckpt)
 
@@ -289,12 +289,13 @@ def main():
             "mAP10": "mAP10",
             "mAP25": "mAP25",
             "mAP50": "mAP50",
-            "mAP50_95": "mAP5095",
+            "mAP10_95": "mAP1095",
+            "P": "P",
+            "R": "R",
         }
         CW = 9  # column width per metric
         sep = " "  # column spacer
         gsep = " │"  # group separator (before each prior group after the first)
-        # Group width = 6 cols × (sep + CW), matches data area under each prior name
         GP = len(VAL_METRICS) * (len(sep) + CW)
 
         val_cols = [f"{p}_{k}" for p in prior_list for k in VAL_METRICS]

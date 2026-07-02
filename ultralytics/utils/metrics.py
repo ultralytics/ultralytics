@@ -758,6 +758,7 @@ def ap_per_class(
     names: dict[int, str] = {},
     eps: float = 1e-16,
     prefix: str = "",
+    pr_report: float | None = None,
 ) -> tuple:
     """Compute the average precision per class for object detection evaluation.
 
@@ -772,6 +773,8 @@ def ap_per_class(
         names (dict[int, str], optional): Dictionary of class names to plot PR curves.
         eps (float, optional): A small value to avoid division by zero.
         prefix (str, optional): A prefix string for saving the plot files.
+        pr_report (float | None, optional): If a float, P/R are taken at the cumsum row where
+            conf >= pr_report (per class). If None (default), best-F1 is used.
 
     Returns:
         tp (np.ndarray): True positive counts at threshold given by max F1 metric for each class.
@@ -800,6 +803,7 @@ def ap_per_class(
 
     # Average precision, precision and recall curves
     ap, p_curve, r_curve = np.zeros((nc, tp.shape[1])), np.zeros((nc, 1000)), np.zeros((nc, 1000))
+    p_conf, r_conf = np.zeros(nc), np.zeros(nc)  # P/R at min-confidence (conf threshold)
     for ci, c in enumerate(unique_classes):
         i = pred_cls == c
         n_l = nt[ci]  # number of labels
@@ -819,6 +823,16 @@ def ap_per_class(
         precision = tpc / (tpc + fpc)  # precision curve
         p_curve[ci] = np.interp(-x, -conf[i], precision[:, 0], left=1)  # p at pr_score
 
+        # P/R at conf threshold (last cumsum row where conf >= pr_report, first IoU=0.10 column)
+        if pr_report is not None:
+            k = int((conf[i] >= pr_report).sum()) - 1
+            if k >= 0:
+                p_conf[ci] = precision[k, 0]
+                r_conf[ci] = recall[k, 0]
+        else:
+            p_conf[ci] = precision[-1, 0]
+            r_conf[ci] = recall[-1, 0]
+
         # AP from recall-precision curve
         for j in range(tp.shape[1]):
             ap[ci, j], mpre, mrec = compute_ap(recall[:, j], precision[:, j])
@@ -836,8 +850,12 @@ def ap_per_class(
         plot_mc_curve(x, p_curve, save_dir / f"{prefix}P_curve.png", names, ylabel="Precision", on_plot=on_plot)
         plot_mc_curve(x, r_curve, save_dir / f"{prefix}R_curve.png", names, ylabel="Recall", on_plot=on_plot)
 
-    i = smooth(f1_curve.mean(0), 0.1).argmax()  # max F1 index
-    p, r, f1 = p_curve[:, i], r_curve[:, i], f1_curve[:, i]  # max-F1 precision, recall, F1 values
+    if pr_report is not None:
+        p, r = p_conf, r_conf  # P/R at pr_report conf threshold
+    else:
+        i = smooth(f1_curve.mean(0), 0.1).argmax()  # max F1 index
+        p, r = p_curve[:, i], r_curve[:, i]  # best-F1 precision, recall
+    f1 = 2 * p * r / (p + r + eps)
     tp = (r * nt).round()  # true positives
     fp = (tp / (p + eps) - tp).round()  # false positives
     return tp, fp, p, r, f1, ap, unique_classes.astype(int), p_curve, r_curve, f1_curve, x, prec_values
@@ -1049,6 +1067,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
         self.stats = dict(tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
         self.nt_per_class = None
         self.nt_per_image = None
+        self.pr_report = None  # None=bestf1, or a float conf threshold for P/R
 
     def update_stats(self, stat: dict[str, Any]) -> None:
         """Update statistics by appending new values to existing stat collections.
@@ -1084,6 +1103,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
             names=self.names,
             on_plot=on_plot,
             prefix="Box",
+            pr_report=self.pr_report,
         )[2:]
         self.box.nc = len(self.names)
         self.box.update(results)

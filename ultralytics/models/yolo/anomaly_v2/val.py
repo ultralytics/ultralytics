@@ -61,16 +61,17 @@ class YOLOAnomalyValidatorBase:
         self.prior_mode = prior_mode
         self._mask_mode = "on"
         self._model_ref = None
-
-        # OOD/standalone single-pass eval adds coarse low-IoU thresholds (0.10, 0.25) on top of the
-        # standard 0.5:0.95 grid — defect localization is coarse, so mAP@0.10/0.25 are the informative
-        # operating points. Training 2-pass val (prior_mode=None) keeps the default iouv so the
-        # trainer-facing box.map50/box.map stay standard.
         if prior_mode is not None:
-            # Standard 0.5:0.95 grid FIRST (so box.map50/map75 + P/R stay at their standard IoU
-            # operating points), low-IoU thresholds appended. ood_map_metrics indexes by IoU value,
-            # so column order doesn't affect the reported mAP10/25/50/50-95.
-            self.iouv = torch.cat([torch.linspace(0.5, 0.95, 10), torch.tensor([0.10, 0.25])])
+            self.metrics.pr_report = 0.1  # OOD: report P/R at conf >= 0.1
+
+        # OOD/standalone single-pass eval uses a full 0.10:0.95 grid at step 0.05 (18 thresholds)
+        # — defect localization is coarse, so low-IoU operating points are informative.
+        # Training 2-pass val (prior_mode=None) keeps the default iouv so the trainer-facing
+        # box.map50/box.map stay standard.
+        if prior_mode is not None:
+            # Full 0.10:0.95 grid at step 0.05 — defect localization is coarse, so low-IoU
+            # thresholds are the informative operating points.
+            self.iouv = torch.linspace(0.10, 0.95, 18)
             self.niou = self.iouv.numel()
 
         # Heatmap-prior memory-bank lifecycle (single-pass OOD eval). When prior_mode
@@ -386,24 +387,23 @@ class YOLOAnomalyValidatorBase:
         return stats
 
     def ood_map_metrics(self) -> dict[str, float]:
-        """mAP at IoU {0.10, 0.25, 0.50} and the {0.50:0.95} mean, from the extended-iouv ``all_ap``.
+        """mAP at IoU {0.10, 0.25, 0.50} and {0.10:0.95} mean.
 
-        Only meaningful on the OOD/standalone path (``prior_mode`` set), where ``iouv`` carries the
-        low-IoU thresholds. Falls back to the standard box accessors when ``all_ap`` is unavailable.
+        Only meaningful on the OOD/standalone path (``prior_mode`` set). Falls back to the
+        standard box accessors when ``all_ap`` is unavailable.
         """
         import numpy as np
 
         box = self.metrics.box
         all_ap = getattr(box, "all_ap", [])
-        out = {"mAP10": 0.0, "mAP25": 0.0, "mAP50": float(box.map50), "mAP50_95": float(box.map),
-               "P": float(box.mp), "R": float(box.mr)}
+        out = {"mAP10": 0.0, "mAP25": 0.0, "mAP50": float(box.map50),
+               "mAP10_95": 0.0, "P": float(box.mp), "R": float(box.mr)}
         if not len(all_ap):
             return out
         iouv = self.iouv.cpu().numpy()
         _at = lambda thr: float(all_ap[:, int(np.argmin(np.abs(iouv - thr)))].mean())
-        std = all_ap[:, iouv >= 0.5 - 1e-6]
         out["mAP10"], out["mAP25"], out["mAP50"] = _at(0.10), _at(0.25), _at(0.50)
-        out["mAP50_95"] = float(std.mean()) if std.size else float(box.map)
+        out["mAP10_95"] = float(all_ap.mean())
         return out
 
     def get_desc(self) -> str:
@@ -411,16 +411,10 @@ class YOLOAnomalyValidatorBase:
         if self.prior_mode is None:
             return super().get_desc()
         return ("%22s" + "%11s" * 10) % ("Class", "Images", "Instances", "Box(P", "R",
-                                         "mAP10", "mAP25", "mAP50", "mAP50-95)", "im_auroc", "px_auroc")
+                                         "mAP10", "mAP25", "mAP50", "mAP10-95)", "im_auroc", "px_auroc")
 
     def print_results(self) -> None:
-        """OOD/standalone path: print the "all" row in DetectionValidator's aligned column format,
-        with correctly-labeled mAP10/25/50/50-95 from ``ood_map_metrics``.
-
-        The extended iouv shifts the columns ``box.map50``/``box.map`` read, so the standard summary
-        would mislabel mAP@0.10 as "mAP50". Print the right values in the same style; training 2-pass
-        val (``prior_mode=None``, standard iouv) is unchanged.
-        """
+        """OOD/standalone path: print the "all" row with mAP10/25/50/10-95 + im/px AUROC."""
         if self.prior_mode is None:
             return super().print_results()
         mm = self.ood_map_metrics()
@@ -429,7 +423,7 @@ class YOLOAnomalyValidatorBase:
         pa = float(getattr(self.metrics, "pixel_auroc", math.nan))
         pf = "%22s" + "%11i" * 2 + "%11.3g" * 8  # DetectionValidator widths + im/px AUROC columns
         LOGGER.info(pf % ("all", self.seen, nt, mm["P"], mm["R"],
-                          mm["mAP10"], mm["mAP25"], mm["mAP50"], mm["mAP50_95"], ia, pa))
+                          mm["mAP10"], mm["mAP25"], mm["mAP50"], mm["mAP10_95"], ia, pa))
 
 
 class YOLOAnomalyValidator(YOLOAnomalyValidatorBase, DetectionValidator):
@@ -451,7 +445,7 @@ MVTEC_CATEGORIES = [
     "metal_nut", "pill", "screw", "tile", "toothbrush", "transistor", "wood", "zipper",
 ]
 _MODE_TO_PRIOR = {"mask_off": "none", "heatmap": "heatmap", "mask_on": "box"}
-_OOD_CSV_FIELDS = ["epoch", "category", "mode", "mAP10", "mAP25", "mAP50", "mAP50_95",
+_OOD_CSV_FIELDS = ["epoch", "category", "mode", "mAP10", "mAP25", "mAP50", "mAP10_95",
                    "P", "R", "image_auroc", "pixel_auroc"]
 
 # Candidate dataset roots in priority order (env var wins, then ultra6, then laptop).
@@ -645,7 +639,7 @@ def run_mvtec_ood_eval(
                 rows.append({
                     "epoch": epoch, "category": cat, "mode": mode,
                     "mAP10": mm["mAP10"], "mAP25": mm["mAP25"],
-                    "mAP50": mm["mAP50"], "mAP50_95": mm["mAP50_95"],
+                    "mAP50": mm["mAP50"], "mAP10_95": mm["mAP10_95"],
                     "P": mm["P"], "R": mm["R"],
                     "image_auroc": float(getattr(validator.metrics, "image_auroc", math.nan)),
                     "pixel_auroc": float(getattr(validator.metrics, "pixel_auroc", math.nan)),
@@ -654,7 +648,8 @@ def run_mvtec_ood_eval(
                 LOGGER.warning(f"MVTec OOD: {cat}/{mode} failed ({type(e).__name__}: {e}); recording NaN.")
                 rows.append({"epoch": epoch, "category": cat, "mode": mode,
                              "mAP10": math.nan, "mAP25": math.nan, "mAP50": math.nan,
-                             "mAP50_95": math.nan, "P": math.nan, "R": math.nan,
+                             "mAP10_95": math.nan,
+                             "P": math.nan, "R": math.nan,
                              "image_auroc": math.nan, "pixel_auroc": math.nan})
         if cached_bank and m.memory_bank is not None:
             m.memory_bank.reset_memory_bank()  # drop the injected bank before the next category
@@ -678,11 +673,12 @@ def _ood_macro_average(rows: list[dict], epoch: int | None) -> list[dict]:
             return sum(vals) / len(vals) if vals else math.nan
         avg = {"epoch": epoch, "category": "AVERAGE", "mode": mode,
                "mAP10": _avg("mAP10"), "mAP25": _avg("mAP25"),
-               "mAP50": _avg("mAP50"), "mAP50_95": _avg("mAP50_95"), "P": _avg("P"), "R": _avg("R"),
+               "mAP50": _avg("mAP50"), "mAP10_95": _avg("mAP10_95"),
+               "P": _avg("P"), "R": _avg("R"),
                "image_auroc": _avg("image_auroc"), "pixel_auroc": _avg("pixel_auroc")}
         out.append(avg)
         LOGGER.info(f"MVTec OOD @ep{epoch} [{mode:8s}] mAP10={avg['mAP10']:.4f} mAP25={avg['mAP25']:.4f} "
-                    f"mAP50={avg['mAP50']:.4f} mAP50-95={avg['mAP50_95']:.4f} "
+                    f"mAP50={avg['mAP50']:.4f} mAP10-95={avg['mAP10_95']:.4f} "
                     f"img_auroc={avg['image_auroc']:.4f} pix_auroc={avg['pixel_auroc']:.4f} (n={len(rs)})")
     return out
 

@@ -190,9 +190,10 @@ class HeatmapBiasFusion(nn.Module):
         Returns:
             Bias tensor (B, 1, H, W) in ``[-beta_i, +beta_i]``.
         """
-        x = self.inst_norm(mask) if self.inst_norm is not None else mask
+        inst_norm = getattr(self, "inst_norm", None)
+        x = inst_norm(mask) if inst_norm is not None else mask
         y = self.conv(x)
-        if self.residual:
+        if getattr(self, "residual", False):
             y = y + x
         return self.beta[scale_idx] * torch.tanh(y)
 

@@ -578,7 +578,7 @@ class YOLOAnomalyV2Model(DetectionModel):
         fusion_mode = str(v2_cfg.get("fusion_mode", "bias")).lower()
         if fusion_mode != "bias":
             raise ValueError(f"fusion_mode must be bias, got {fusion_mode!r}")
-        fusion_mid = int(v2_cfg.get("fusion_mid", 32))
+        fusion_mid = int(v2_cfg.get("fusion_mid", 8))
         fusion_norm = bool(v2_cfg.get("fusion_norm", False))
         fusion_residual = bool(v2_cfg.get("fusion_residual", False))
 
@@ -910,7 +910,7 @@ class YOLOAnomalyV2Model(DetectionModel):
             ("_edge_weight_cache", None),
             ("fit_args", None),
             ("fit_data", None),
-            ("fusion_mid", 32),
+            ("fusion_mid", 8),
         ]:
             if not hasattr(self, attr):
                 setattr(self, attr, default)

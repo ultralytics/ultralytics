@@ -48,6 +48,20 @@ def skip_rpi_semantic():
         pytest.skip("Semantic segmentation tests are skipped on Raspberry Pi due to memory constraints.")
 
 
+def test_select_device_initialized_cuda(monkeypatch):
+    """select_device must return the requested index once CUDA is initialized, as remapping no longer applies."""
+    from ultralytics.utils import torch_utils
+
+    monkeypatch.setattr(torch_utils.torch.cuda, "is_available", lambda: True)
+    monkeypatch.setattr(torch_utils.torch.cuda, "device_count", lambda: 2)
+    monkeypatch.setattr(torch_utils, "get_gpu_info", lambda i: f"Mock GPU {i}, 1MiB")
+    monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "")  # auto-restored after test
+    monkeypatch.setattr(torch_utils.torch.cuda, "is_initialized", lambda: True)
+    assert str(torch_utils.select_device("1", verbose=False)) == "cuda:1"
+    monkeypatch.setattr(torch_utils.torch.cuda, "is_initialized", lambda: False)
+    assert str(torch_utils.select_device("1", verbose=False)) == "cuda:0"  # remapped via CUDA_VISIBLE_DEVICES
+
+
 def test_model_forward():
     """Test the forward pass of the YOLO model."""
     model = YOLO(CFG)

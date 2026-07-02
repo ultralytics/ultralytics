@@ -211,6 +211,7 @@ def select_device(device="", newline=False, verbose=True):
 
     cpu = device == "cpu"
     mps = device in {"mps", "mps:0"}  # Apple Metal Performance Shaders (MPS)
+    remap = not torch.cuda.is_initialized()  # CUDA_VISIBLE_DEVICES remapping only applies before CUDA init
     if cpu or mps:
         os.environ["CUDA_VISIBLE_DEVICES"] = ""  # force torch.cuda.is_available() = False
     elif device:  # non-cpu device requested
@@ -220,7 +221,12 @@ def select_device(device="", newline=False, verbose=True):
             device = ",".join([x for x in device.split(",") if x])  # remove sequential commas, i.e. "0,,1" -> "0,1"
         visible = os.environ.get("CUDA_VISIBLE_DEVICES", None)
         os.environ["CUDA_VISIBLE_DEVICES"] = device  # set environment variable - must be before assert is_available()
-        if not (torch.cuda.is_available() and torch.cuda.device_count() >= len(device.split(","))):
+        valid = (
+            torch.cuda.device_count() >= len(device.split(","))
+            if remap
+            else all(x.isdigit() and int(x) < torch.cuda.device_count() for x in device.split(","))
+        )
+        if not (torch.cuda.is_available() and valid):
             LOGGER.info(s)
             install = (
                 "See https://pytorch.org/get-started/locally/ for up-to-date torch install instructions if no "
@@ -242,8 +248,8 @@ def select_device(device="", newline=False, verbose=True):
         devices = device.split(",") if device else "0"  # i.e. "0,1" -> ["0", "1"]
         space = " " * len(s)
         for i, d in enumerate(devices):
-            s += f"{'' if i == 0 else space}CUDA:{d} ({get_gpu_info(i)})\n"  # bytes to MB
-        arg = "cuda:0"
+            s += f"{'' if i == 0 else space}CUDA:{d} ({get_gpu_info(i if remap else int(d))})\n"  # bytes to MB
+        arg = "cuda:0" if remap else f"cuda:{devices[0]}"
     elif mps and TORCH_2_0 and torch.backends.mps.is_available():
         # Prefer MPS if available
         s += f"MPS ({get_cpu_info()})\n"

@@ -134,6 +134,10 @@ def get_gpu_info(index):
     return f"{properties.name}, {properties.total_memory / (1 << 20):.0f}MiB"
 
 
+_CVD_AT_IMPORT = os.environ.get("CUDA_VISIBLE_DEVICES")  # value applied at CUDA init if set before process start
+_CVD_REMAP = None  # device string this process wrote to CUDA_VISIBLE_DEVICES before CUDA init
+
+
 def select_device(device="", newline=False, verbose=True):
     """Select the appropriate PyTorch device based on the provided arguments.
 
@@ -161,6 +165,7 @@ def select_device(device="", newline=False, verbose=True):
     Notes:
         Sets the 'CUDA_VISIBLE_DEVICES' environment variable for specifying which GPUs to use.
     """
+    global _CVD_REMAP
     if isinstance(device, torch.device) or str(device).startswith(("tpu", "intel", "vulkan")):
         return device
 
@@ -220,8 +225,8 @@ def select_device(device="", newline=False, verbose=True):
         if "," in device:
             device = ",".join([x for x in device.split(",") if x])  # remove sequential commas, i.e. "0,,1" -> "0,1"
         visible = os.environ.get("CUDA_VISIBLE_DEVICES", None)
-        # Treat as remapped if an earlier pre-init call already set CUDA_VISIBLE_DEVICES to these exact devices
-        remap |= visible == device and torch.cuda.device_count() == len(device.split(","))
+        # A remap is known applied if this process wrote it pre-init or it was inherited at process start
+        remap = remap or device == _CVD_REMAP or visible == device == _CVD_AT_IMPORT
         os.environ["CUDA_VISIBLE_DEVICES"] = device  # set environment variable - must be before assert is_available()
         valid = (
             torch.cuda.device_count() >= len(device.split(","))
@@ -245,6 +250,8 @@ def select_device(device="", newline=False, verbose=True):
                 f"\nos.environ['CUDA_VISIBLE_DEVICES']: {visible}\n"
                 f"{install}"
             )
+        if not torch.cuda.is_initialized():
+            _CVD_REMAP = device  # validated pre-init write, takes effect at CUDA init
 
     if not cpu and not mps and torch.cuda.is_available():  # prefer GPU if available
         devices = device.split(",") if device else "0"  # i.e. "0,1" -> ["0", "1"]

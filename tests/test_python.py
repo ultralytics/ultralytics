@@ -49,27 +49,37 @@ def skip_rpi_semantic():
 
 
 def test_select_device_initialized_cuda(monkeypatch):
-    """Select_device must return the requested index once CUDA is initialized, as remapping no longer applies."""
+    """Select_device must honor requested indices across cold-remap, warm-physical, and re-request regimes."""
     from ultralytics.utils import torch_utils
 
     monkeypatch.setattr(torch_utils.torch.cuda, "is_available", lambda: True)
     monkeypatch.setattr(torch_utils.torch.cuda, "device_count", lambda: 2)
     monkeypatch.setattr(torch_utils, "get_gpu_info", lambda i: f"Mock GPU {i}, 1MiB")
-    monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "")  # auto-restored after test
+    monkeypatch.setattr(torch_utils, "_CVD_REMAP", None)  # auto-restored after test
+    monkeypatch.setattr(torch_utils, "_CVD_AT_IMPORT", None)
+    monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "")
+    # Warm process (CUDA initialized by external code): requested index is physical
     monkeypatch.setattr(torch_utils.torch.cuda, "is_initialized", lambda: True)
     assert str(torch_utils.select_device("1", verbose=False)) == "cuda:1"
+    # Repeated warm calls stay physical; the inert env write from the first call must not read as a remap
+    assert str(torch_utils.select_device("1", verbose=False)) == "cuda:1"
+    # Stale env from a rejected warm call must not authorize a false remap on retry
+    monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "2,3")
+    for _ in range(2):
+        with pytest.raises(ValueError):
+            torch_utils.select_device("2,3", verbose=False)
+    # Cold process: remap via CUDA_VISIBLE_DEVICES
     monkeypatch.setattr(torch_utils.torch.cuda, "is_initialized", lambda: False)
-    assert str(torch_utils.select_device("1", verbose=False)) == "cuda:0"  # remapped via CUDA_VISIBLE_DEVICES
-    # Re-entrant call after this process already remapped, e.g. trainer then final_eval validator with device=3
+    assert str(torch_utils.select_device("1", verbose=False)) == "cuda:0"  # remapped, GPU 1 is cuda:0
+    # Re-request after our own pre-init remap (trainer then final_eval validator): one visible device
     monkeypatch.setattr(torch_utils.torch.cuda, "is_initialized", lambda: True)
     monkeypatch.setattr(torch_utils.torch.cuda, "device_count", lambda: 1)
+    assert str(torch_utils.select_device("1", verbose=False)) == "cuda:0"
+    # CUDA_VISIBLE_DEVICES inherited at process start counts as an applied remap
+    monkeypatch.setattr(torch_utils, "_CVD_REMAP", None)
+    monkeypatch.setattr(torch_utils, "_CVD_AT_IMPORT", "3")
     monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "3")
-    assert str(torch_utils.select_device("3", verbose=False)) == "cuda:0"  # index 3 is visible device 0
-    # Post-init env write is a no-op for torch: repeated initialized calls must not misread it as a remap
-    monkeypatch.setattr(torch_utils.torch.cuda, "device_count", lambda: 2)
-    monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "0,1")
-    assert str(torch_utils.select_device("1", verbose=False)) == "cuda:1"  # writes CUDA_VISIBLE_DEVICES="1"
-    assert str(torch_utils.select_device("1", verbose=False)) == "cuda:1"  # still physical index, not a remap
+    assert str(torch_utils.select_device("3", verbose=False)) == "cuda:0"
 
 
 def test_model_forward():

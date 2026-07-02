@@ -188,7 +188,8 @@ class HeatmapBiasFusion(nn.Module):
         Returns:
             Bias tensor (B, 1, H, W) in ``[-beta_i, +beta_i]``.
         """
-        return self.beta[scale_idx] * torch.tanh(self.conv(mask))
+        dtype = next(self.conv.parameters()).dtype
+        return self.beta[scale_idx] * torch.tanh(self.conv(mask.to(dtype)))
 
 
 def _sincos_pos2d(h: int, w: int, dim: int, device, dtype) -> torch.Tensor:
@@ -304,7 +305,7 @@ class BackboneMemoryBank(nn.Module):
         if not torch.isfinite(features).all():
             raise ValueError(f"BackboneMemoryBank.load_bank: features contain NaN/Inf ({features.shape})")
         self.feature_dim = features.shape[1]
-        self.memory_bank = F.normalize(features.to(self.memory_bank.device), p=2, dim=1)
+        self.memory_bank = F.normalize(features.to(self.memory_bank.device), p=2, dim=1).float()
         self._calibrated = True  # trigger lazy compactness/threshold recompute on next score
         self._compactness = None
         self._threshold = None
@@ -359,7 +360,7 @@ class BackboneMemoryBank(nn.Module):
         if self.feature_dim is None:
             self.feature_dim = C
         flat = fused.permute(0, 2, 3, 1).reshape(-1, C)  # [B*H*W, C]
-        normed = F.normalize(flat, p=2, dim=1)
+        normed = F.normalize(flat, p=2, dim=1).float()
         self._bank_chunks.append(normed)
 
     def forward(self, feat_dict: dict[int, torch.Tensor]) -> torch.Tensor:
@@ -496,7 +497,7 @@ class BackboneMemoryBank(nn.Module):
         """Compute anomaly scores with specific threshold & β (stateless, for calibration)."""
         if beta is None:
             beta = self.temperature
-        q = F.normalize(features.view(-1, self.feature_dim), p=2, dim=1)
+        q = F.normalize(features.view(-1, self.feature_dim), p=2, dim=1).to(mem.dtype)
         k = min(self.K, mem.shape[0])
         n, m = q.shape[0], mem.shape[0]
         chunk = max(1, int(getattr(self, "score_chunk_elems", 1 << 27)) // max(m, 1))
@@ -507,7 +508,7 @@ class BackboneMemoryBank(nn.Module):
             topk = psi.topk(k=k, dim=1).values
             log_prob = torch.log((1.0 - topk).clamp(min=1e-8)).mean(dim=1)
             out.append(torch.exp(log_prob))
-        return torch.cat(out).clamp(0, 1)
+        return torch.cat(out).clamp(0, 1).to(features.dtype)
 
     def _calibrate_threshold_from_holdout(self, holdout: torch.Tensor, mem: torch.Tensor) -> None:
         """Calibrate β & threshold so p95 of hold-out normal scores ≈ target.
@@ -638,7 +639,7 @@ class BackboneMemoryBank(nn.Module):
             t = self.calibration_target_score
             logit = math.log(max((1.0 - t) / max(t, 1e-6), 1e-6))
             self._threshold = self._compactness - logit / max(self.temperature, 0.1)
-        q = F.normalize(features.view(-1, self.feature_dim), p=2, dim=1)
+        q = F.normalize(features.view(-1, self.feature_dim), p=2, dim=1).to(mem.dtype)
         k = min(self.K, mem.shape[0])
         n, m = q.shape[0], mem.shape[0]
         chunk = max(1, int(getattr(self, "score_chunk_elems", 1 << 27)) // max(m, 1))
@@ -656,7 +657,7 @@ class BackboneMemoryBank(nn.Module):
             topk = psi.topk(k=k, dim=1).values  # [chunk, k]
             log_prob = torch.log((1.0 - topk).clamp(min=1e-8)).mean(dim=1)
             out.append(torch.exp(log_prob))
-        return torch.cat(out).clamp(0, 1)
+        return torch.cat(out).clamp(0, 1).to(features.dtype)
 
     @staticmethod
     def _coreset_subsample(mem: torch.Tensor, max_size: int, return_indices: bool = False):

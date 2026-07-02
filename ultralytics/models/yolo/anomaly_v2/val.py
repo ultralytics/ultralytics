@@ -38,6 +38,7 @@ from ultralytics.data.build import build_dataloader
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER
 from ultralytics.utils.torch_utils import unwrap_model
+from ultralytics.nn.modules.anomaly_v2 import BboxMaskRenderer
 
 from ._util import resolve_v2_model
 
@@ -86,6 +87,9 @@ class YOLOAnomalyValidatorBase:
         self._auroc_image_labels: list[int] = []
         self._auroc_pixel_scores: list[float] = []
         self._auroc_pixel_labels: list[int] = []
+
+        # GT mask renderer for pixel-AUROC (matches the 256x256 heatmap resize in update_metrics)
+        self._eval_mask_renderer = BboxMaskRenderer(mask_size=256, mode="rect")
 
 
 
@@ -319,7 +323,8 @@ class YOLOAnomalyValidatorBase:
             if has_anom and bboxes is not None and batch_idx is not None:
                 bb_per_img = bboxes[batch_idx == b]
                 if bb_per_img.numel() > 0:
-                    gt_mask = self._eval_mask_renderer(
+                    renderer = self._eval_mask_renderer.to(bb_per_img.device)
+                    gt_mask = renderer(
                         bb_per_img,
                         torch.zeros(bb_per_img.shape[0], dtype=torch.long, device=bb_per_img.device),
                         1,

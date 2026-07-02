@@ -997,29 +997,34 @@ class YOLOAnomalyV2Model(DetectionModel):
     # ------------------------------------------------------------------
     # Forward
     # ------------------------------------------------------------------
-    def loss(self, batch, preds=None):
+    def loss(self, batch, preds=None, *, prior_mask=None):
         """Compute loss. Passes the pre-built ``batch["prior_mask"]`` into forward."""
         if getattr(self, "criterion", None) is None:
             self.criterion = self.init_criterion()
         if preds is None:
-            preds = self.forward(batch["img"], prior_mask=batch.get("prior_mask"))
+            if prior_mask is None:
+                prior_mask = batch.get("prior_mask")
+            preds = self.forward(batch["img"], prior_mask=prior_mask)
         det_loss, det_items = self.criterion(preds, batch)
         return det_loss, det_items
 
     def forward(self, x, *args, prior_mask=None, **kwargs):
         """Forward pass. Training provides ``prior_mask``; inference routes via ``_prior_mode``.
 
-        The validator stashes per-batch masks in ``self._incoming_prior_mask`` because the base
-        validator calls ``model(batch["img"])`` without extra kwargs. If neither argument nor
-        attribute is set, inference falls back to ``_prior_mode`` / ``_external_mask_buf``.
+        Preserves the base ``DetectionModel`` contract: a dict input routes to ``loss()``
+        (training/validation), while a tensor input runs inference. The validator stashes
+        per-batch masks in ``self._incoming_prior_mask`` because the base validator calls
+        ``model(batch["img"])`` without extra kwargs.
         """
+        if isinstance(x, dict):  # training / val-while-training
+            return self.loss(x, *args, prior_mask=prior_mask, **kwargs)
         incoming = getattr(self, "_incoming_prior_mask", None)
         if incoming is not None and prior_mask is None:
             prior_mask = incoming
             self._incoming_prior_mask = None
         return self._predict_once(x, *args, prior_mask=prior_mask, **kwargs)
 
-    def _predict_once(self, x, profile=False, visualize=False, embed=None, prior_mask=None):
+    def _predict_once(self, x, profile=False, visualize=False, embed=None, augment=False, prior_mask=None):
         """Forward with heatmap-guided fusion inserted before the Detect head."""
         batch_size = x.shape[0]
         device = x.device

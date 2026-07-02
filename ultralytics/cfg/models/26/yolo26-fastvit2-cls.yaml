@@ -1,40 +1,47 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# YOLO26-FastViT2-cls: FastViT (arXiv:2303.14189) RepMixer stages 1-3 + 2x MHSA stage 4.
+# YOLO26-FastViT2-cls: FastViT (arXiv:2303.14189) RepMixer stages 1-3 + MHSA stage 4.
 # Successor to yolo26-fastvit-cls.yaml: conv-mirrored scale table (the old [5.0, ...] entries
 # inflated the shared det neck 2.7-2.8x), SiLU (GELU lowers to un-fused fp32 erf under TensorRT),
 # LayerScale 1e-5 on every residual, ConvMlp DW7x7 FFN in attention blocks, head_dim=32 pin
-# (num_heads=0 sentinel derives heads per scale: n 6, s 12, m 18, l 16, x 24).
+# (num_heads=0 sentinel derives heads per scale: n 9, s 18, m/l 16, x 24).
 # Backbone == yolo26-fastvit2.yaml layers 0-8, so cls/distilled weights cover 100% of the
 # det backbone. Blocks in ultralytics/nn/modules/vit_blocks.py.
 #
+# Scale table v2 (half-neck): backbone base repeats are 2.5x the effective counts, so the depth
+# multiple selects the backbone (n/s 0.20 -> RepMixer [1,1,4] + 1x MHSA, m 0.25 -> [1,1,5] +
+# 1x MHSA, l/x 0.35 -> [2,2,7] + 2x MHSA) and the det yaml's shared neck scales to repeats 1.
+# Stage-4 base 1152 is scale-selective via max_channels (n/s widen MHSA to 288/576, m/l/x
+# capped at 512).
+#
 # Export validation (2026-07-02, commit 8dbabef06): TorchScript, ONNX opset17, OpenVINO,
 # TFLite, TensorRT, PaddlePaddle (x2paddle>=1.6.0), RKNN (rknn-toolkit2>=2.3.2, isolated venv),
-# CoreML all PASS with inference smoke tests (s-det/s-cls/x-cls).
+# CoreML all PASS with inference smoke tests (s-det/s-cls/x-cls); v2 n-det widths re-smoked on
+# ONNX + CoreML (ANE inference (1,300,6)).
 
 # Parameters
 nc: 1000 # number of classes
 
 scales:
   # [depth, width, max_channels]
-  n: [1.0, 0.25, 1024] # 3.08 M params
-  s: [1.0, 0.50, 1024] # 7.82 M params
-  m: [0.5, 1.125, 512] # 13.27 M params; mirrors conv's shallow-medium recipe (RepMixer [1,1,3] + 1x MHSA)
-  l: [1.0, 1.00, 512] # 17.02 M params
-  x: [1.0, 1.50, 512] # 36.02 M params
+  n: [0.20, 0.25, 1152] # 3.24 M params
+  s: [0.20, 0.50, 1152] # 8.28 M params
+  m: [0.25, 1.00, 512] # 12.60 M params
+  l: [0.35, 1.00, 512] # 17.90 M params
+  x: [0.35, 1.50, 512] # 37.97 M params
 
 # FastViT2 backbone: RepMixer stages 1-3 + MHSA stage 4, strides 4/8/16/32
 backbone:
   # [from, repeats, module, args]
-  - [-1, 1, Conv, [96, 3, 2]] # 0 P1/2 stem
+  - [-1, 1, Conv, [64, 3, 2]] # 0 P1/2 stem
   - [-1, 1, Conv, [96, 3, 2]] # 1 P2/4 stem
-  - [-1, 2, FastViTBlock, [3, True, 0.00001]] # 2 stage1 P2/4
+  - [-1, 5, FastViTBlock, [3, True, 0.00001]] # 2 stage1 P2/4
   - [-1, 1, Conv, [192, 3, 2]] # 3 P3/8 downsample
-  - [-1, 2, FastViTBlock, [3, True, 0.00001]] # 4 stage2 P3/8
+  - [-1, 5, FastViTBlock, [3, True, 0.00001]] # 4 stage2 P3/8
   - [-1, 1, Conv, [384, 3, 2]] # 5 P4/16 downsample
-  - [-1, 6, FastViTBlock, [3, True, 0.00001]] # 6 stage3 P4/16
-  - [-1, 1, Conv, [768, 3, 2]] # 7 P5/32 downsample
-  - [-1, 2, MHSABlock, [0, 4, True, 0.00001, True, 32]] # 8 stage4 P5/32
+  - [-1, 20, FastViTBlock, [3, True, 0.00001]] # 6 stage3 P4/16
+  - [-1, 1, Conv, [1152, 3, 2]] # 7 P5/32 downsample
+  - [-1, 5, MHSABlock, [0, 4, True, 0.00001, True, 32]] # 8 stage4 P5/32
 
 # Head
 head:

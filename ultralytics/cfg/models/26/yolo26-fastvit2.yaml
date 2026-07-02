@@ -8,7 +8,15 @@
 # backbone skip indices differ (P3=4, P4=6, P5=8).
 # Blocks in ultralytics/nn/modules/vit_blocks.py: FastViTBlock args [mlp_ratio, silu, ls],
 # MHSABlock args [num_heads, mlp_ratio, silu, ls, conv_ffn, head_dim]. num_heads=0 is a
-# sentinel: head_dim=32 pins per-head width and derives heads per scale (n 6 ... x 24).
+# sentinel: head_dim=32 pins per-head width and derives heads per scale (n 9, s 18, m/l 16, x 24).
+#
+# Scale table v2 (half-neck): backbone base repeats are 2.5x the effective counts, so the
+# depth multiple selects the backbone (n/s 0.20 -> RepMixer [1,1,4] + 1x MHSA,
+# m 0.25 -> [1,1,5] + 1x MHSA, l/x 0.35 -> [2,2,7] + 2x MHSA) while the shared neck C3k2
+# repeats scale to 1 (conv-parity at n/s/m, half of conv yolo26 at l/x). Stage-4 base 1152 is
+# scale-selective via max_channels: n/s (cap 1152) widen MHSA to 288/576 for param capacity,
+# m/l/x (cap 512) are unaffected. TRT det@640 bs1 fp16 beats conv yolo26 at every scale with
+# more params (interleaved A/B: n -1.3/s -2.2/m -0.2/l -8.5/x -9.0%), see backbone-benchmark.md.
 
 # Parameters
 nc: 80 # number of classes
@@ -16,24 +24,24 @@ end2end: True # whether to use end-to-end mode
 reg_max: 1 # DFL bins
 scales:
   # [depth, width, max_channels]
-  n: [1.0, 0.25, 1024] # 2.84 M params
-  s: [1.0, 0.50, 1024] # 10.96 M params
-  m: [0.5, 1.125, 512] # 25.65 M params; mirrors conv's shallow-medium recipe (RepMixer [1,1,3] + 1x MHSA)
-  l: [1.0, 1.00, 512] # 28.40 M params
-  x: [1.0, 1.50, 512] # 63.57 M params
+  n: [0.20, 0.25, 1152] # 2.80 M params
+  s: [0.20, 0.50, 1152] # 10.84 M params
+  m: [0.25, 1.00, 512] # 22.06 M params
+  l: [0.35, 1.00, 512] # 27.36 M params
+  x: [0.35, 1.50, 512] # 61.20 M params
 
 # FastViT2 backbone: RepMixer stages 1-3 + MHSA stage 4, strides 4/8/16/32
 backbone:
   # [from, repeats, module, args]
-  - [-1, 1, Conv, [96, 3, 2]] # 0 P1/2 stem
+  - [-1, 1, Conv, [64, 3, 2]] # 0 P1/2 stem
   - [-1, 1, Conv, [96, 3, 2]] # 1 P2/4 stem
-  - [-1, 2, FastViTBlock, [3, True, 0.00001]] # 2 stage1 P2/4
+  - [-1, 5, FastViTBlock, [3, True, 0.00001]] # 2 stage1 P2/4
   - [-1, 1, Conv, [192, 3, 2]] # 3 P3/8 downsample
-  - [-1, 2, FastViTBlock, [3, True, 0.00001]] # 4 stage2 P3/8    <- head P3 skip target
+  - [-1, 5, FastViTBlock, [3, True, 0.00001]] # 4 stage2 P3/8    <- head P3 skip target
   - [-1, 1, Conv, [384, 3, 2]] # 5 P4/16 downsample
-  - [-1, 6, FastViTBlock, [3, True, 0.00001]] # 6 stage3 P4/16   <- head P4 skip target
-  - [-1, 1, Conv, [768, 3, 2]] # 7 P5/32 downsample
-  - [-1, 2, MHSABlock, [0, 4, True, 0.00001, True, 32]] # 8 stage4 P5/32 <- head P5 skip target
+  - [-1, 20, FastViTBlock, [3, True, 0.00001]] # 6 stage3 P4/16   <- head P4 skip target
+  - [-1, 1, Conv, [1152, 3, 2]] # 7 P5/32 downsample
+  - [-1, 5, MHSABlock, [0, 4, True, 0.00001, True, 32]] # 8 stage4 P5/32 <- head P5 skip target
 
 # Head (byte-identical to yolo26.yaml head, fastvit2 skip indices)
 head:

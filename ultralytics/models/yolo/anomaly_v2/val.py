@@ -473,7 +473,8 @@ def _category_yaml(root: Path, cat: str) -> Path | None:
     return None
 
 
-def _inject_cat_bank(m, root: Path, cat: str, cache_dir: Path, imgsz, device, bank_size: int) -> bool:
+def _inject_cat_bank(m, root: Path, cat: str, cache_dir: Path, imgsz, device, bank_size: int,
+                     rebuild: bool = False) -> bool:
     """Build-or-load a category's memory bank and inject it into ``m`` for reuse across modes.
 
     Mirrors the predict script's disk cache: the bank is saved to
@@ -488,6 +489,8 @@ def _inject_cat_bank(m, root: Path, cat: str, cache_dir: Path, imgsz, device, ba
     isz = imgsz if isinstance(imgsz, int) else 640
     cache_dir.mkdir(parents=True, exist_ok=True)
     path = cache_dir / f"{cat}_sz{isz}_n{bank_size}.pt"
+    if rebuild and path.exists():
+        path.unlink()
     if path.exists():
         d = torch.load(path, map_location="cpu")
         if not d.get("_calibrated"):
@@ -548,6 +551,7 @@ def run_mvtec_ood_eval(
     heatmap_edge_m: float | None = None,
     heatmap_edge_sigma: float | None = None,
     bank_cache_dir: str | Path | None = None,
+    bank_cache_rebuild: bool = False,
     validator_cls: type | None = None,
 ) -> list[dict]:
     """Run the 3-mode MVTec OOD eval over ``categories``; ``model`` is a YOLOAnomalyV2Model.
@@ -601,7 +605,8 @@ def run_mvtec_ood_eval(
         # Opt-in: build-or-load this category's bank once and inject it, so the validator's
         # "bank already supplied" branch reuses it across all modes (no per-heatmap rebuild/drop).
         cached_bank = (
-            _inject_cat_bank(m, root, cat, Path(bank_cache_dir), imgsz, device, bank_size)
+            _inject_cat_bank(m, root, cat, Path(bank_cache_dir), imgsz, device, bank_size,
+                             rebuild=bank_cache_rebuild)
             if bank_cache_dir is not None else False
         )
         cat_dataset = None  # RAM-cached dataset built by first mode, reused by rest

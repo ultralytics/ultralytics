@@ -91,6 +91,8 @@ def main():
         "Its filename stem IS the fit_id.",
     )
     ap.add_argument("--bank-cache", default=None, help="bank cache dir (default: <out>/banks)")
+    ap.add_argument("--bank-size", type=int, default=None, help="memory bank coreset cap (default: from fit YAML bb_max_bank_size)")
+    ap.add_argument("--rebuild", action="store_true", help="force rebuild memory bank (deletes cache)")
     ap.add_argument("--mvtec-root", default=None, help="MVTec-YOLO root (default: auto-resolve)")
     ap.add_argument("--out", default=None, help="output root (default: runs/temp/yoloa/<model_id>/<fit_id>)")
     ap.add_argument(
@@ -147,6 +149,7 @@ def main():
         print(f"  hm_gate_blend: {args.hm_gate_blend} (heatmap conf gate ON)", flush=True)
 
     imgsz = int(fit_args["imgsz"])
+    bank_size = args.bank_size or int(fit_args.get("bb_max_bank_size", 10000))
     mid = model_id_from_ckpt(args.ckpt)
     out_root = Path(args.out) if args.out else Path("runs/temp/yoloa") / mid / Path(args.fit_cfg).stem
     bank_cache = args.bank_cache or str(out_root / "banks")
@@ -177,6 +180,7 @@ def main():
             batch=args.batch,
             device=device,
             cache=bank_cache,
+            refit=args.rebuild,
         )
 
         if args.mode == "predict":
@@ -259,6 +263,9 @@ def main():
                 device=device,
                 e2e=args.e2e,
                 iou=args.iou,
+                bank_size=bank_size,
+                bank_cache_dir=bank_cache,
+                bank_cache_rebuild=args.rebuild,
                 heatmap_norm=infer.get("heat_norm", "none"),
                 heatmap_edge_weight=(True if infer.get("heat_edge") else None),
                 heatmap_edge_sigma=infer.get("heat_edge_sigma", 1.0),

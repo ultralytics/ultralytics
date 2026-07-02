@@ -39,10 +39,13 @@ class FastViTBlock(nn.Module):
         ffn_bn (nn.BatchNorm2d): BN on hidden.
         ffn_pw2 (nn.Conv2d): 1x1 PW conv back to c.
         act (nn.Module): FFN activation, GELU or SiLU.
+        ls1 (nn.Parameter): Optional LayerScale on the mixer residual (timm FastViT trains 1e-5 on every residual).
+            Created only when `ls > 0`; `forward` guards on it so pre-LayerScale checkpoints still load and run.
+        ls2 (nn.Parameter): Optional LayerScale on the FFN residual.
     """
 
-    def __init__(self, c: int, mlp_ratio: float = 3.0, silu: bool = False):
-        """Initialize FastViTBlock with dim c, FFN expansion ratio, and activation choice."""
+    def __init__(self, c: int, mlp_ratio: float = 3.0, silu: bool = False, ls: float = 0.0):
+        """Initialize FastViTBlock with dim c, FFN expansion ratio, activation choice, and LayerScale init."""
         super().__init__()
         self.mixer_dw = nn.Conv2d(c, c, 3, padding=1, groups=c, bias=False)
         self.mixer_bn = nn.BatchNorm2d(c)
@@ -54,18 +57,24 @@ class FastViTBlock(nn.Module):
         # SiLU fuses into conv epilogues under TensorRT; GELU lowers to standalone fp32 erf+cast kernels
         # (measured 9-26% of engine time). GELU stays the default so pre-silu checkpoints keep their activation.
         self.act = nn.SiLU() if silu else nn.GELU()
+        if ls:
+            self.ls1 = nn.Parameter(ls * torch.ones(c, 1, 1))
+            self.ls2 = nn.Parameter(ls * torch.ones(c, 1, 1))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Forward pass: residual mixer + residual FFN."""
-        x = x + self.mixer_bn(self.mixer_dw(x))
+        """Forward pass: residual mixer + residual FFN, each optionally LayerScale-gated."""
+        m = self.mixer_bn(self.mixer_dw(x))
+        ls1 = getattr(self, "ls1", None)
+        x = x + (m if ls1 is None else ls1 * m)
         h = self.act(self.ffn_pw1(x))
         h = self.act(self.ffn_bn(self.ffn_dw(h)))
-        x = x + self.ffn_pw2(h)
-        return x
+        f = self.ffn_pw2(h)
+        ls2 = getattr(self, "ls2", None)
+        return x + (f if ls2 is None else ls2 * f)
 
 
 class MHSABlock(nn.Module):
-    """Pre-norm ViT block with SDPA + LN + Linear FFN. Dim-preserving 4D in/out.
+    """Pre-norm ViT block with SDPA and a token-Linear or NCHW ConvMlp FFN. Dim-preserving 4D in/out.
 
     Uses explicit QKV Linear + `F.scaled_dot_product_attention` instead of `nn.MultiheadAttention` (the AIFI bloat
     source — MHA-based AIFI ViT wraps to ~1327 ONNX nodes @ opset 17). SDPA decomposes in opset 17 to
@@ -74,23 +83,45 @@ class MHSABlock(nn.Module):
     Used for FastViT stage 4 global attention at the coarsest scale.
 
     Attributes:
-        num_heads (int): Number of attention heads. c must be divisible by num_heads.
-        head_dim (int): c // num_heads.
+        num_heads (int): Number of attention heads. c must be divisible by num_heads. YAMLs that pin `head_dim` pass 0
+            here so no dead head count sits in the config; the value is then derived, never read.
+        head_dim (int): Per-head dim. When the `head_dim` arg is nonzero it pins this value and derives num_heads = c //
+            head_dim (Apple FastViT policy, head_dim 32), so head width no longer shrinks with model scale.
         pe (nn.Conv2d): Depthwise 7x7 conditional positional encoding (FastViT RepCPE / CPVT), applied before attention.
             Zero-initialized so a fresh block starts as identity (ReZero) and the residual learns the position signal
             from zero. `forward` guards on it so checkpoints saved before `pe` existed still load and run.
         ln1 (nn.LayerNorm): Pre-attention norm.
         qkv (nn.Linear): Fused QKV projection.
         proj (nn.Linear): Post-attention projection.
-        ln2 (nn.LayerNorm): Pre-FFN norm.
-        fc1 (nn.Linear): FFN first layer.
-        fc2 (nn.Linear): FFN second layer.
+        ln2 (nn.LayerNorm): Pre-FFN norm (token-Linear FFN only).
+        fc1 (nn.Linear): FFN first layer (token-Linear FFN only).
+        fc2 (nn.Linear): FFN second layer (token-Linear FFN only).
+        ffn_dw (nn.Conv2d): 7x7 DW local-mixing conv opening the ConvMlp FFN (timm FastViT AttentionBlock form), created
+            only when `conv_ffn=True`; `forward` guards on it for pre-ConvMlp checkpoints.
+        ffn_bn (nn.BatchNorm2d): ConvMlp norm after the DW conv.
+        ffn_pw1 (nn.Conv2d): ConvMlp 1x1 conv to hidden dim.
+        ffn_pw2 (nn.Conv2d): ConvMlp 1x1 conv back to c.
         act (nn.Module): FFN activation, GELU or SiLU (see FastViTBlock on the TensorRT fusion difference).
+        ls1 (nn.Parameter): Optional LayerScale on the attention residual (does not fold away at inference).
+        ls2 (nn.Parameter): Optional LayerScale on the FFN residual, shaped (C, 1, 1) for the ConvMlp path and (C,) for
+            the token path.
     """
 
-    def __init__(self, c: int, num_heads: int = 6, mlp_ratio: float = 4.0, silu: bool = False):
+    def __init__(
+        self,
+        c: int,
+        num_heads: int = 6,
+        mlp_ratio: float = 4.0,
+        silu: bool = False,
+        ls: float = 0.0,
+        conv_ffn: bool = False,
+        head_dim: int = 0,
+    ):
         """Initialize MHSABlock."""
         super().__init__()
+        if head_dim:
+            assert c % head_dim == 0, f"MHSABlock: c={c} not divisible by head_dim={head_dim}"
+            num_heads = c // head_dim
         assert c % num_heads == 0, f"MHSABlock: c={c} not divisible by num_heads={num_heads}"
         self.num_heads = num_heads
         self.head_dim = c // num_heads
@@ -100,14 +131,25 @@ class MHSABlock(nn.Module):
         self.ln1 = nn.LayerNorm(c)
         self.qkv = nn.Linear(c, 3 * c, bias=False)
         self.proj = nn.Linear(c, c, bias=False)
-        self.ln2 = nn.LayerNorm(c)
         hidden = int(c * mlp_ratio)
-        self.fc1 = nn.Linear(c, hidden)
         self.act = nn.SiLU() if silu else nn.GELU()
-        self.fc2 = nn.Linear(hidden, c)
+        if conv_ffn:
+            self.ffn_dw = nn.Conv2d(c, c, 7, padding=3, groups=c, bias=False)
+            self.ffn_bn = nn.BatchNorm2d(c)
+            self.ffn_pw1 = nn.Conv2d(c, hidden, 1)
+            self.ffn_pw2 = nn.Conv2d(hidden, c, 1)
+        else:
+            self.ln2 = nn.LayerNorm(c)
+            self.fc1 = nn.Linear(c, hidden)
+            self.fc2 = nn.Linear(hidden, c)
+        if ls:
+            self.ls1 = nn.Parameter(ls * torch.ones(c))
+            # ls2 shape follows the FFN form chosen at construction: (C, 1, 1) broadcasts in NCHW for ConvMlp,
+            # (C,) for tokens. Avoids a per-forward view that would add a Reshape node to traced graphs.
+            self.ls2 = nn.Parameter(ls * torch.ones(c, 1, 1) if conv_ffn else ls * torch.ones(c))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Forward pass: 4D → tokens → SA + FFN → 4D."""
+        """Forward pass: 4D → tokens → SA → FFN (token Linear or NCHW ConvMlp) → 4D."""
         b, c, h, w = x.shape
         if getattr(self, "pe", None) is not None:
             x = x + self.pe(x)  # RepCPE conditional position before attention
@@ -116,7 +158,14 @@ class MHSABlock(nn.Module):
         qkv = self.qkv(n).reshape(b, -1, 3, self.num_heads, self.head_dim).permute(2, 0, 3, 1, 4)
         q, k, v = qkv[0], qkv[1], qkv[2]  # indexed split traces to aten::select, x2paddle maps it but not aten::unbind
         a = F.scaled_dot_product_attention(q, k, v)
-        a = a.transpose(1, 2).reshape(b, -1, c)
-        t = t + self.proj(a)
-        t = t + self.fc2(self.act(self.fc1(self.ln2(t))))
+        a = self.proj(a.transpose(1, 2).reshape(b, -1, c))
+        ls1 = getattr(self, "ls1", None)
+        t = t + (a if ls1 is None else ls1 * a)
+        ls2 = getattr(self, "ls2", None)
+        if getattr(self, "ffn_dw", None) is not None:
+            x = t.transpose(1, 2).reshape(b, c, h, w)
+            f = self.ffn_pw2(self.act(self.ffn_pw1(self.ffn_bn(self.ffn_dw(x)))))
+            return x + (f if ls2 is None else ls2 * f)
+        f = self.fc2(self.act(self.fc1(self.ln2(t))))
+        t = t + (f if ls2 is None else ls2 * f)
         return t.transpose(1, 2).reshape(b, c, h, w)

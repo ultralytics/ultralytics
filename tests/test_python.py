@@ -65,6 +65,7 @@ def test_select_device(monkeypatch):
             torch_utils.select_device("3", verbose=False)
         assert os.environ.get("CUDA_VISIBLE_DEVICES") is None  # CUDA_VISIBLE_DEVICES never written
     assert torch_utils.parse_device([0, 1]) == "0,1"
+    assert torch_utils.parse_device("00,01") == "0,1"  # leading zeros stripped for valid torch device strings
     # Physical GPU ids hidden by an external CUDA_VISIBLE_DEVICES restriction translate to torch indices
     monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "2,3")
     assert str(torch_utils.select_device("3", verbose=False)) == "cuda:1"

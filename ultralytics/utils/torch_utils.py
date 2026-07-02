@@ -163,6 +163,7 @@ def parse_device(device: str | int | list | tuple | torch.device = "") -> str:
         device = "0"
     if "," in device:
         device = ",".join(x for x in device.split(",") if x)  # remove sequential commas, i.e. "0,,1" -> "0,1"
+    device = ",".join(str(int(x)) if x.isdigit() else x for x in device.split(","))  # strip leading zeros, "00" -> "0"
     if "-1" in device:
         from ultralytics.utils.autodevice import GPUInfo
 

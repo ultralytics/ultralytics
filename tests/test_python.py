@@ -596,6 +596,8 @@ def test_utils_checks():
     checks.check_yolov5u_filename("yolov5n.pt")
     checks.check_requirements("numpy")  # check requirements.txt
     checks.check_imgsz([600, 600], max_dim=1)
+    with pytest.raises(ValueError):
+        checks.check_imgsz("640x480")  # malformed imgsz string raises a helpful ValueError, not a raw SyntaxError
     checks.check_imshow(warn=True)
     checks.check_version("ultralytics", "8.0.0")
     # parse_version must pad to a 3-tuple so shorter version strings compare correctly

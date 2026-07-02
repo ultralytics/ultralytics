@@ -163,6 +163,7 @@ typing = [
     "types-requests",
     "types-shapely",
 ]
+full = ["ultralytics[export,extra,logging,solutions]"]
 
 [project.urls]
 "Homepage" = "https://ultralytics.com"

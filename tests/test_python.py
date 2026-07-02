@@ -48,23 +48,29 @@ def skip_rpi_semantic():
         pytest.skip("Semantic segmentation tests are skipped on Raspberry Pi due to memory constraints.")
 
 
-def test_select_device_initialized_cuda(monkeypatch):
-    """Select_device must return the requested index once CUDA is initialized, as remapping no longer applies."""
+def test_select_device(monkeypatch):
+    """The same device string must resolve to the same GPU on every call, and the environment is never mutated."""
+    import os
+
     from ultralytics.utils import torch_utils
 
     monkeypatch.setattr(torch_utils.torch.cuda, "is_available", lambda: True)
     monkeypatch.setattr(torch_utils.torch.cuda, "device_count", lambda: 2)
+    monkeypatch.setattr(torch_utils.torch.cuda, "set_device", lambda i: None)
     monkeypatch.setattr(torch_utils, "get_gpu_info", lambda i: f"Mock GPU {i}, 1MiB")
-    monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "")  # auto-restored after test
-    monkeypatch.setattr(torch_utils.torch.cuda, "is_initialized", lambda: True)
-    assert str(torch_utils.select_device("1", verbose=False)) == "cuda:1"
-    monkeypatch.setattr(torch_utils.torch.cuda, "is_initialized", lambda: False)
-    assert str(torch_utils.select_device("1", verbose=False)) == "cuda:0"  # remapped via CUDA_VISIBLE_DEVICES
-    # Re-request after remap was applied (trainer final_eval): CVD="3" set pre-init, so GPU 3 is cuda:0 of 1 visible
+    monkeypatch.delenv("CUDA_VISIBLE_DEVICES", raising=False)
+    for _ in range(2):  # repeated calls are idempotent, e.g. Trainer.__init__ then final_eval, or predict() twice
+        assert str(torch_utils.select_device("1", verbose=False)) == "cuda:1"
+        with pytest.raises(ValueError):
+            torch_utils.select_device("3", verbose=False)
+        assert os.environ.get("CUDA_VISIBLE_DEVICES") is None  # CUDA_VISIBLE_DEVICES never written
+    assert torch_utils.parse_device([0, 1]) == "0,1"
+    # Physical GPU ids hidden by an external CUDA_VISIBLE_DEVICES restriction translate to torch indices
+    monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "2,3")
+    assert str(torch_utils.select_device("3", verbose=False)) == "cuda:1"
     monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "3")
     monkeypatch.setattr(torch_utils.torch.cuda, "device_count", lambda: 1)
-    monkeypatch.setattr(torch_utils.torch.cuda, "is_initialized", lambda: True)
-    assert str(torch_utils.select_device("3", verbose=False)) == "cuda:0"
+    assert str(torch_utils.select_device("3", verbose=False)) == "cuda:0"  # e.g. pods launched with CVD preset
 
 
 def test_model_forward():

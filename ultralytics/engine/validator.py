@@ -178,7 +178,7 @@ class BaseValidator:
                 self.args.data = convert_ndjson_to_yolo_if_needed(self.args.data)
             model = AutoBackend(
                 model=model or self.args.model,
-                device=select_device(self.args.device) if RANK == -1 else torch.device("cuda", RANK),
+                device=select_device(self.args.device, verbose=RANK == -1),
                 dnn=self.args.dnn,
                 data=self.args.data,
                 fp16=self.args.quantize == 16,

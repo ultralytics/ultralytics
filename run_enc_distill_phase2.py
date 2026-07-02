@@ -442,7 +442,6 @@ def _run_multi_det(
                 phase1_wandb_id=phase1_wandb_id,
                 mode="teacher_frozen_det" if teacher_spec else "multi_det_finetune",
                 teacher=teacher_spec,
-                cls_to_det_remap=teacher_spec is None,
                 wandb_group=parent_name,
                 parent_run=parent_name,
                 dataset=basename,
@@ -619,8 +618,7 @@ def main(argv: list[str]) -> None:
     }.get(mode, "downstream-imagenet")
 
     model = YOLO(model_yaml)
-    # NOTE: C2PSA remap tested and abandoned (17.77% vs 28.02% without remap).
-    # Standard pretrained= flow transfers backbone layers 0-8 via intersect_dicts.
+    # Standard pretrained= flow transfers the backbone via intersect_dicts (layers 0-8, or 0-10 for -sppf cls yamls).
     if mode == "inet_finetune":
         model.add_callback("on_train_start", muon_w.override(0.1))
     model.add_callback("on_train_start", grad_clip.override(1.0))
@@ -634,7 +632,6 @@ def main(argv: list[str]) -> None:
             pretrained_from=phase1_weights,
             phase1_wandb_id=phase1_wandb_id,
             mode=mode,
-            cls_to_det_remap=mode == "coco_det_finetune",
             wandb_group=wandb_group,
         ),
     )

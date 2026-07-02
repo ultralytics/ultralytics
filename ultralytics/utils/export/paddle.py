@@ -34,7 +34,7 @@ def torch2paddle(
     check_requirements(
         (
             "paddlepaddle-gpu>=3.0.0,<3.3.0"  # pin <3.3.0 https://github.com/PaddlePaddle/Paddle/issues/77340
-            if torch.cuda.is_available()
+            if im.device.type == "cuda"
             else "paddlepaddle==3.0.0"  # pin 3.0.0 for ARM64
             if ARM64
             else "paddlepaddle>=3.0.0,<3.3.0",  # pin <3.3.0 https://github.com/PaddlePaddle/Paddle/issues/77340

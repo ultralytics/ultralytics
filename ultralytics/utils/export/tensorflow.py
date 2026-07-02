@@ -69,6 +69,7 @@ def onnx2saved_model(
     quantize: int | str | None = None,
     images: np.ndarray | None = None,
     disable_group_convolution: bool = False,
+    cuda: bool = False,
     prefix: str = "",
 ):
     """Convert an ONNX model to TensorFlow SavedModel format using onnx2tf.
@@ -79,6 +80,7 @@ def onnx2saved_model(
         quantize (int | str | None): Precision scheme, 8 for INT8.
         images (np.ndarray | None, optional): Calibration images for INT8 quantization in BHWC format.
         disable_group_convolution (bool, optional): Disable group convolution optimization. Defaults to False.
+        cuda (bool, optional): True if exporting on a CUDA device, selects GPU onnxruntime. Defaults to False.
         prefix (str, optional): Logging prefix. Defaults to "".
 
     Returns:
@@ -89,7 +91,6 @@ def onnx2saved_model(
         - Downloads calibration data if INT8 quantization is enabled.
         - Removes temporary files and renames quantized models after conversion.
     """
-    cuda = torch.cuda.is_available()
     try:
         import tensorflow as tf
     except ImportError:

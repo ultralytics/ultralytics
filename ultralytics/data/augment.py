@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 import random
+import warnings
 from copy import deepcopy
 from typing import Any
 
@@ -2810,8 +2811,10 @@ def classify_transforms(
     scale_size = size if isinstance(size, (tuple, list)) and len(size) == 2 else (size, size)
 
     if crop_fraction:
-        raise DeprecationWarning(
-            "'crop_fraction' arg of classify_transforms is deprecated, will be removed in a future version."
+        warnings.warn(
+            "'crop_fraction' arg of classify_transforms is deprecated, will be removed in a future version.",
+            FutureWarning,
+            stacklevel=2,
         )
 
     # Aspect ratio is preserved, crops center within image, no borders are added, image is lost

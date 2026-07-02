@@ -473,63 +473,6 @@ def _category_yaml(root: Path, cat: str) -> Path | None:
     return None
 
 
-def _inject_cat_bank(m, root: Path, cat: str, cache_dir: Path, imgsz, device, bank_size: int,
-                     rebuild: bool = False) -> bool:
-    """Build-or-load a category's memory bank and inject it into ``m`` for reuse across modes.
-
-    Mirrors the predict script's disk cache: the bank is saved to
-    ``<cache_dir>/<cat>_sz<imgsz>_n<bank_size>.pt`` and reloaded on re-runs, skipping the slow
-    feature extraction. Once injected, :meth:`YOLOAnomalyValidator._ensure_memory_bank` reuses it
-    (its ``_built_bank`` stays False, so the bank is not dropped between modes). Returns True iff a
-    usable bank is now in place; the caller resets it before the next category.
-    """
-    mb = getattr(m, "memory_bank", None)
-    if mb is None or getattr(m, "_bb_layers", None) is None:
-        return False
-    isz = imgsz if isinstance(imgsz, int) else 640
-    cache_dir.mkdir(parents=True, exist_ok=True)
-    path = cache_dir / f"{cat}_sz{isz}_n{bank_size}.pt"
-    if rebuild and path.exists():
-        path.unlink()
-    if path.exists():
-        d = torch.load(path, map_location="cpu")
-        if not d.get("_calibrated"):
-            LOGGER.warning(f"bank cache is old format (no calibration state); delete {path} to rebuild")
-        mb.load_bank(d["memory_bank"])  # re-normalizes + sets feature_dim onto the bank's device
-        mb.temperature = d["temperature"]
-        mb.update = False  # scoring mode (frozen)
-        if d.get("_calibrated"):
-            mb._threshold = d["_threshold"]
-            mb._compactness = d["_compactness"]
-            mb._calibrated = True
-        LOGGER.info(f"MVTec OOD: {cat}: loaded cached bank ({mb.memory_bank.shape[0]} vecs) <- {path}")
-        return True
-    train_dir = root / cat / "train" / "good"
-    if not train_dir.is_dir():
-        train_dir = root / cat / "train"
-    if not train_dir.is_dir():
-        LOGGER.warning(f"MVTec OOD: {cat}: no train split for bank build; skipping cache.")
-        return False
-    mb.reset_memory_bank()
-    try:
-        n = m.load_support_set(str(train_dir), imgsz=isz, device=device, max_bank_size=bank_size, verbose=False)
-    except Exception as e:
-        LOGGER.warning(f"MVTec OOD: {cat}: bank build failed ({type(e).__name__}: {e}); skipping cache.")
-        return False
-    if not n or mb.memory_bank is None or mb.memory_bank.shape[0] == 0:
-        return False
-    entry = {"memory_bank": mb.memory_bank.detach().cpu(), "feature_dim": mb.feature_dim,
-             "temperature": float(mb.temperature)}
-    if getattr(mb, "_calibrated", False):
-        entry["_threshold"] = mb._threshold
-        entry["_compactness"] = mb._compactness
-        entry["_calibrated"] = True
-    torch.save(entry, path)
-    mb.update = False
-    LOGGER.info(f"MVTec OOD: {cat}: built+cached bank ({mb.memory_bank.shape[0]} vecs) -> {path}")
-    return True
-
-
 def run_mvtec_ood_eval(
     model,
     mvtec_root: str | Path,
@@ -550,8 +493,6 @@ def run_mvtec_ood_eval(
     heatmap_edge_p: float | None = None,
     heatmap_edge_m: float | None = None,
     heatmap_edge_sigma: float | None = None,
-    bank_cache_dir: str | Path | None = None,
-    bank_cache_rebuild: bool = False,
     validator_cls: type | None = None,
 ) -> list[dict]:
     """Run the 3-mode MVTec OOD eval over ``categories``; ``model`` is a YOLOAnomalyV2Model.
@@ -561,11 +502,8 @@ def run_mvtec_ood_eval(
     under ``save_dir`` when given. Reuses :class:`YOLOAnomalyValidator` via the ``model.val`` args
     path (the validator pops ``prior_mode`` from the dict and builds/drops the bank internally).
 
-    ``bank_cache_dir`` (opt-in, standalone eval only): persist each category's memory bank to
-    ``<dir>/<cat>_sz<imgsz>_n<bank_size>.pt`` and inject it before the mode loop, so the validator
-    reuses it across the 3 modes (and across re-runs / edge-weight A/Bs) instead of rebuilding and
-    dropping it per heatmap pass. Leave ``None`` during training OOD eval — the build-then-drop
-    default keeps the shared/EMA model clean (a stuck per-category bank would corrupt training).
+    When a bank is already loaded on the model (e.g. from ``YOLOA.fit()``), it is reused across
+    all modes and reset afterwards. Otherwise the validator builds a temporary one per category.
     """
     root = Path(mvtec_root)
     # OOD is box-only for now (detection validator) regardless of the model's head; pass a seg
@@ -602,13 +540,7 @@ def run_mvtec_ood_eval(
         if yaml is None:
             LOGGER.warning(f"MVTec OOD: no data yaml for category '{cat}' under {root}; skipping.")
             continue
-        # Opt-in: build-or-load this category's bank once and inject it, so the validator's
-        # "bank already supplied" branch reuses it across all modes (no per-heatmap rebuild/drop).
-        cached_bank = (
-            _inject_cat_bank(m, root, cat, Path(bank_cache_dir), imgsz, device, bank_size,
-                             rebuild=bank_cache_rebuild)
-            if bank_cache_dir is not None else False
-        )
+        cached_bank = getattr(m, "has_memory_bank", False)
         cat_dataset = None  # RAM-cached dataset built by first mode, reused by rest
         for mi, mode in enumerate(modes):
             try:

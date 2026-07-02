@@ -264,8 +264,6 @@ def main():
                 e2e=args.e2e,
                 iou=args.iou,
                 bank_size=bank_size,
-                bank_cache_dir=bank_cache,
-                bank_cache_rebuild=args.rebuild,
                 heatmap_norm=infer.get("heat_norm", "none"),
                 heatmap_edge_weight=(True if infer.get("heat_edge") else None),
                 heatmap_edge_sigma=infer.get("heat_edge_sigma", 1.0),

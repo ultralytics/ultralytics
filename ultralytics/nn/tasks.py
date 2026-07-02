@@ -632,6 +632,13 @@ class YOLOAnomalyV2Model(DetectionModel):
         self._prior_mode: str | None = None  # None = legacy (GT bboxes -> renderer)
         self._last_heatmap: torch.Tensor | None = None
 
+    @property
+    def has_memory_bank(self) -> bool:
+        """``True`` when a calibrated memory bank is loaded and ready for scoring."""
+        if self.memory_bank is None:
+            return False
+        return self.memory_bank.memory_bank is not None and self.memory_bank.memory_bank.shape[0] > 0
+
     def init_criterion(self):
         """Initialize the loss criterion.
 

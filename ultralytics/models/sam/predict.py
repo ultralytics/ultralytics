@@ -2198,6 +2198,11 @@ class SAM3Predictor(SAM2Predictor):
     ]
     stride = 14
 
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks: dict | None = None):
+        """Initialize SAM3Predictor with default imgsz=1008 to match the pretrained backbone resolution."""
+        (overrides := overrides or {}).setdefault("imgsz", 1008)
+        super().__init__(cfg, overrides, _callbacks)
+
     def setup_model(self, model=None, verbose=True):
         """Setup the SAM3 model with appropriate mean and standard deviation for preprocessing."""
         super().setup_model(model, verbose)

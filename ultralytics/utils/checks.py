@@ -514,13 +514,12 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
         s += " " + " ".join(f'"{c}"' for c in constrain)
     if s:
         if install and AUTOINSTALL:  # check environment variable
-            # Note uv fails on arm64 macOS and Raspberry Pi runners
             n = len(pkgs)  # number of packages updates
             LOGGER.info(f"{prefix} Ultralytics requirement{'s' * (n > 1)} {pkgs} not found, attempting AutoUpdate...")
             try:
                 t = time.time()
                 assert ONLINE, "AutoUpdate skipped (offline)"
-                use_uv = not ARM64 and check_uv()  # uv fails on ARM64
+                use_uv = check_uv()  # allow check_uv to natively determine viability
                 LOGGER.info(attempt_install(s, cmds, use_uv=use_uv))
                 dt = time.time() - t
                 LOGGER.info(f"{prefix} AutoUpdate success ✅ {dt:.1f}s")

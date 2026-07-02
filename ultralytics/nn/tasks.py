@@ -536,12 +536,12 @@ class YOLOAnomalyV2Model(DetectionModel):
       sample is zeroed -> exact passthrough -> model is forced to also perform
       without a mask.
 
-    Mask source:
+    Mask source (single ``prior_mask`` argument to ``forward()``):
       - Training / mask-on validation: ``batch["prior_mask"]`` built by
         ``LoadAnomalyPriorMask`` in the dataset pipeline.
-      - Heatmap inference: feature-side memory-bank anomaly map (``prior_mode="heatmap"``).
-      - External (e.g. user prompt): ``set_external_mask_once`` (``prior_mode="mask"``).
-      - Passthrough: ``prior_mode="none"`` or ``disable_mask_once()``.
+      - Explicit inference mask: ``model(img, prior_mask=...)`` (external prompt/heatmap).
+      - Feature-side heatmap: ``model.set_prior_mode("heatmap")`` then ``model(img)``.
+      - Passthrough: ``model(img, prior_mask=None)`` (default when no heatmap mode is set).
 
     Spec: docs_yoloa_v2/specs/2026-06-02-softhint-fusion-design.md.
     """
@@ -611,12 +611,6 @@ class YOLOAnomalyV2Model(DetectionModel):
         self.heatmap_edge_sigma = 1.0
         self._edge_weight_cache = None
 
-        # Inference-only routing state. Training masks come through the forward() argument
-        # ``prior_mask`` (built by LoadAnomalyPriorMask in the dataset), so no bbox/segment
-        # buffers are needed for training.
-        self._external_mask_buf = None  # (B, 1, H, W) caller-provided mask/heatmap
-        self._mask_disabled_once = False  # force one forward to passthrough
-
         # --- BackboneMemoryBank (v2.3) ---
         # Architecture knob from the model YAML; all build hyperparameters come from the fit YAML.
         bb_layers_cfg = v2_cfg.get("bb_layers", None)
@@ -644,50 +638,20 @@ class YOLOAnomalyV2Model(DetectionModel):
         return E2ELoss(self) if getattr(self, "end2end", False) else v8DetectionLoss(self)
 
     # ------------------------------------------------------------------
-    # Mask input API
-    # ------------------------------------------------------------------
-    def disable_mask_once(self):
-        """Force the next forward to use no mask (bias=0 -> passthrough). Used by B-off val."""
-        self._external_mask_buf = None
-        self._mask_disabled_once = True
-
-    def set_external_mask_once(self, mask: torch.Tensor):
-        """Provide a pre-computed mask (B, 1, H, W) for the next forward, bypassing the
-        bbox renderer. The mask is consumed by ``heatmap_bias_fusion`` and added
-        (broadcast over channels) to each PAN scale's feature.
-
-        ``mask.shape[2:]`` may be any HxW; it is resized to each PAN scale internally.
-        Typical use cases: hand-drawn masks for interactive prediction, MemoryBank
-        outputs, or sanity-check heatmaps.
-        """
-        if mask.dim() != 4 or mask.shape[1] != 1:
-            raise ValueError(f"external mask must be (B, 1, H, W), got {tuple(mask.shape)}")
-        self._external_mask_buf = mask
-        self._mask_disabled_once = False
-
-    def _consume_inference_mask(self):
-        """Read and clear inference-only mask state. Returns (external_mask, disabled)."""
-        ext = getattr(self, "_external_mask_buf", None)
-        disabled = getattr(self, "_mask_disabled_once", False)
-        if hasattr(self, "_external_mask_buf"):
-            self._external_mask_buf = None
-            self._mask_disabled_once = False
-        return ext, disabled
-
-    # ------------------------------------------------------------------
-    # Prior mode API (v2.3 — unified 4-mode routing)
+    # Prior mode API
     # ------------------------------------------------------------------
     def set_prior_mode(self, mode: str | None) -> None:
         """Set the prior source for the next inference forward.
 
         Args:
-            mode: ``"none"`` (passthrough), ``"mask"`` (external mask), ``"heatmap"`` (feature-side
-                memory-bank map), or ``"anomaly_model"`` (external heatmap injected via the mask
-                seam). ``None`` lets the model decide from other inputs.
+            mode: ``"heatmap"`` enables the feature-side memory-bank anomaly map.
+                ``None``, ``"none"``, ``"mask"`` or ``"anomaly_model"`` all mean "no
+                internal heatmap"; any explicit mask must be supplied via the
+                ``prior_mask`` argument to ``forward()``.
         """
         if mode is not None and mode not in ("none", "mask", "heatmap", "anomaly_model"):
             raise ValueError(f"Invalid prior_mode: {mode!r}")
-        self._prior_mode = mode
+        self._prior_mode = "heatmap" if mode == "heatmap" else None
 
     def load_support_set(
         self,
@@ -855,12 +819,7 @@ class YOLOAnomalyV2Model(DetectionModel):
             h.remove()
         state["_bb_hook_handles"] = []
         state["_bb_feats"] = {}
-        for k in (
-            "_last_heatmap",
-            "_external_mask_buf",
-            "_edge_weight_cache",
-            "_incoming_prior_mask",
-        ):
+        for k in ("_last_heatmap", "_edge_weight_cache", "_incoming_prior_mask"):
             if k in state:
                 state[k] = None
         return state
@@ -900,30 +859,16 @@ class YOLOAnomalyV2Model(DetectionModel):
             x = torch.nn.functional.interpolate(x, size=(mask_size, mask_size), mode="bilinear", align_corners=False)
         return x
 
-    def _resolve_prior(self, source, *, external_mask=None, batch_size=None, device=None):
-        """Build the (B, 1, mask_size, mask_size) inference fusion prior from a single source, or None.
+    def _resolve_heatmap_prior(self, batch_size=None, device=None):
+        """Build the (B, 1, mask_size, mask_size) feature-side heatmap prior, or None.
 
-        The prior is always a mask-format hint fused into the PAN features; ``None`` means
-        passthrough (no fusion -> head).
-
-        Sources:
-            none     -> None (explicit passthrough)
-            mask     -> caller-provided ``external_mask``
-            heatmap  -> feature-side memory-bank anomaly map
+        The prior is a mask-format hint fused into the PAN features; ``None`` means
+        passthrough (no fusion -> head). Explicit masks are supplied directly via
+        ``forward(..., prior_mask=...)`` and do not go through this helper.
         """
         mask_size = getattr(self, "mask_size", 80)
-        if source in (None, "none"):
+        if getattr(self, "_prior_mode", None) != "heatmap":
             return None
-        if source == "mask":
-            if external_mask is not None:
-                return external_mask.to(device=device, dtype=torch.float32)
-            return None
-        if source == "heatmap":
-            return self._prior_from_heatmap(mask_size, device)
-        return None
-
-    def _prior_from_heatmap(self, mask_size, device):
-        """Feature-side heatmap prior from the memory bank, or None."""
         mb = getattr(self, "memory_bank", None)
         bb_feats = getattr(self, "_bb_feats", None)
         if mb is None or not bb_feats:
@@ -931,20 +876,6 @@ class YOLOAnomalyV2Model(DetectionModel):
         with torch.no_grad():
             hmap = mb(bb_feats)
         return self._resize_to_mask(hmap.to(device=device, dtype=torch.float32), mask_size)
-
-    def _select_prior_source(self, external_mask, disabled):
-        """Pick the inference prior source when no explicit ``prior_mask`` was passed.
-
-        Precedence: disabled > ``_prior_mode`` (explicit deploy) > external mask > none.
-        """
-        if disabled:
-            return "none"
-        pm = getattr(self, "_prior_mode", None)
-        if pm is not None:
-            return pm
-        if external_mask is not None:
-            return "mask"
-        return "none"
 
     def _smooth_prior(self, mask, mode, kernel):
         """Blur the prior heatmap, preserving its [0, 1] scale and spatial blob structure.
@@ -1041,20 +972,17 @@ class YOLOAnomalyV2Model(DetectionModel):
                     self._install_backbone_taps(_layers)
                     break
 
-        # Consume inference-only mask state (external_mask / disabled). Training masks are passed
-        # directly via ``prior_mask`` and bypass this buffer logic.
-        external_mask, mask_disabled = self._consume_inference_mask()
-
         # Per-sample keep mask for mask dropout (anti-shortcut). Only meaningful when a
         # rendered/blended mask is active; keep[b]=0 zeros the per-sample bias -> passthrough.
         # getattr guards the stride probe in super().__init__(), which runs before our attrs exist.
         p_drop = getattr(self, "p_drop", 0.0)
         keep = torch.ones(batch_size, device=device)
-        if prior_mask is not None and external_mask is None and self.training and p_drop > 0.0:
+        if prior_mask is not None and self.training and p_drop > 0.0:
             keep = (torch.rand(batch_size, device=device) > p_drop).to(keep.dtype)
 
         # The fusion prior is resolved inside the loop once the PAN features are available.
         prior = None
+        source = "none"
 
         y, dt, embeddings = [], [], []
         embed = frozenset(embed) if embed is not None else {-1}
@@ -1066,28 +994,19 @@ class YOLOAnomalyV2Model(DetectionModel):
                 # m.f is a list of indices into y (the PAN P3/P4/P5 outputs).
                 pan_inputs = [y[j] for j in m.f]
 
-                # Resolve the fusion prior. Training provides it directly; inference routes
-                # via _prior_mode / external_mask / disabled flags.
+                # Resolve the fusion prior. Training / explicit-mask inference provide it directly
+                # via ``prior_mask``; otherwise the only internal source is ``_prior_mode="heatmap"``.
                 if prior_mask is not None:
                     prior = prior_mask.to(device=device, dtype=torch.float32)
                     source = "mask"
-                else:
-                    source = self._select_prior_source(external_mask, mask_disabled)
-                    prior = self._resolve_prior(
-                        source,
-                        external_mask=external_mask,
-                        batch_size=batch_size,
-                        device=device,
-                    )
+                elif getattr(self, "_prior_mode", None) == "heatmap":
+                    prior = self._resolve_heatmap_prior(batch_size=batch_size, device=device)
+                    source = "heatmap"
                 # Edge-suppression weight: down-weight the memory-bank heatmap toward the image
                 # borders (peripheral patches score high from boundary effects, not real defects).
-                if (
-                    prior is not None
-                    and source == "heatmap"
-                    and getattr(self, "heatmap_edge_weight", False)
-                ):
+                if prior is not None and source == "heatmap" and getattr(self, "heatmap_edge_weight", False):
                     prior = prior * self._edge_weight(prior)
-                # Stash RAW heatmap for validator AUROC (before softmax/augmentation).
+                # Stash RAW heatmap for validator AUROC (before normalization / smoothing).
                 self._last_heatmap = prior.detach() if prior is not None else None
                 # Per-image min-max normalization: stretch each sample's prior to [0, 1].
                 # Boosts a soft, low-peak prior (memory bank ~0.8) so the fusion conv responds
@@ -1104,8 +1023,6 @@ class YOLOAnomalyV2Model(DetectionModel):
                     # Blur the prior: keeps [0,1] scale + blob structure (unlike softmax),
                     # denoising the MB heatmap toward the gauss masks the fusion trained on.
                     prior = self._smooth_prior(prior, _hn, getattr(self, "heatmap_smooth_kernel", 5))
-                # NOTE: training-time prior augmentation (_augment_mask) is applied once inside
-                # _resolve_prior (augment=self.training); do not re-apply it here.
                 fused = []
                 for i, p in enumerate(pan_inputs):
                     if prior is None:

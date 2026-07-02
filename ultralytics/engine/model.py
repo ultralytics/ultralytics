@@ -524,7 +524,7 @@ class Model(torch.nn.Module):
         args = {**self.overrides, **custom, **kwargs}  # highest priority args on the right
         prompts = args.pop("prompts", None)  # for SAM-type models
         prior_mode = args.pop("prior_mode", None)  # for anomaly v2
-        external_mask = args.pop("external_mask", None)  # for anomaly v2
+        prior_mask = args.pop("prior_mask", None)  # for anomaly v2
 
         if not self.predictor or self.predictor.args.device != args.get("device", self.predictor.args.device):
             self.predictor = (predictor or self._smart_load("predictor"))(overrides=args, _callbacks=self.callbacks)
@@ -535,7 +535,7 @@ class Model(torch.nn.Module):
                 self.predictor.save_dir = get_save_dir(self.predictor.args)
         if hasattr(self.predictor, "prior_mode"):
             self.predictor.prior_mode = prior_mode
-            self.predictor.external_mask = external_mask
+            self.predictor.prior_mask = prior_mask
         if prompts and hasattr(self.predictor, "set_prompts"):  # for SAM-type models
             self.predictor.set_prompts(prompts)
         return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)

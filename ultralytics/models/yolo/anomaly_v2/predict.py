@@ -3,16 +3,15 @@
 """YOLO Anomaly v2 predictor with unified prior-mode routing.
 
 ``YOLOAnomalyPredictor`` extends ``DetectionPredictor`` with prior-injection in
-``preprocess`` via ``YOLOAnomalyPredictorBase``.
+``preprocess`` / ``inference`` via ``YOLOAnomalyPredictorBase``.
 
 Prior modes selectable via ``predictor.prior_mode``:
 
   - ``"none"``     — passthrough (vanilla YOLO, no fusion bias).
   - ``"heatmap"``  — feature-side memory-bank anomaly map.
-  - ``"mask"``     — external_mask provided by caller.
 
-Legacy ``external_mask`` / ``bbox_prompt`` attributes still work when
-``prior_mode`` is ``None`` (backward compat).
+Explicit masks (prompts, external heatmaps, etc.) are supplied via the
+``prior_mask`` argument and fused directly; no one-shot buffer API is used.
 """
 
 from __future__ import annotations
@@ -30,28 +29,32 @@ class YOLOAnomalyPredictorBase:
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         # Pop custom keys from overrides before the base predictor validates all keys.
-        prior_mode = overrides.pop("prior_mode", None) if isinstance(overrides, dict) else None
+        prior_mode = None
+        prior_mask = None
+        if isinstance(overrides, dict):
+            prior_mode = overrides.pop("prior_mode", None)
+            prior_mask = overrides.pop("prior_mask", None)
         super().__init__(cfg=cfg, overrides=overrides, _callbacks=_callbacks)
         self.prior_mode = prior_mode
-        self.external_mask: torch.Tensor | None = None
+        self.prior_mask = prior_mask
 
     def preprocess(self, im):
-        """Set prior mode and optional mask on the model before forward."""
+        """Set heatmap prior mode on the model before forward."""
         m = resolve_v2_model(self.model)
         if m is not None and hasattr(m, "set_prior_mode"):
-            m.set_prior_mode(self.prior_mode)
-            device = next(m.parameters()).device
-            # Legacy prompt handling (backward compat)
-            if self.prior_mode is None or self.prior_mode == "mask":
-                if self.external_mask is not None:
-                    if hasattr(m, "set_external_mask_once"):
-                        m.set_external_mask_once(self.external_mask.to(device))
-                    elif hasattr(m, "_external_mask_buf"):
-                        m._external_mask_buf = self.external_mask.to(device)
-                elif self.prior_mode is None:
-                    # Legacy: no prompt → passthrough
-                    m.disable_mask_once()
+            # "heatmap" enables the internal memory-bank path; everything else
+            # (none / mask / anomaly_model) is handled via explicit prior_mask.
+            m.set_prior_mode("heatmap" if self.prior_mode == "heatmap" else None)
         return super().preprocess(im)
+
+    def inference(self, im, *args, **kwargs):
+        """Run inference, passing any explicit prior_mask to the model."""
+        prior_mask = getattr(self, "prior_mask", None)
+        if prior_mask is not None:
+            m = resolve_v2_model(self.model)
+            device = next(m.parameters()).device if m is not None else prior_mask.device
+            kwargs["prior_mask"] = prior_mask.to(device=device, dtype=torch.float32)
+        return super().inference(im, *args, **kwargs)
 
 
 class YOLOAnomalyPredictor(YOLOAnomalyPredictorBase, DetectionPredictor):

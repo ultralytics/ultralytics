@@ -53,8 +53,9 @@ class YOLOAnomalyValidatorBase:
     Composed with ``DetectionValidator`` as :class:`YOLOAnomalyValidator`.
     """
 
-    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None,
-                 prior_mode: str | None = None) -> None:
+    def __init__(
+        self, dataloader=None, save_dir=None, args=None, _callbacks=None, prior_mode: str | None = None
+    ) -> None:
         if isinstance(args, dict):
             prior_mode = args.pop("prior_mode", prior_mode)
         super().__init__(dataloader, save_dir, args, _callbacks)
@@ -90,8 +91,6 @@ class YOLOAnomalyValidatorBase:
 
         # GT mask renderer for pixel-AUROC (matches the 256x256 heatmap resize in update_metrics)
         self._eval_mask_renderer = BboxMaskRenderer(mask_size=256, mode="rect")
-
-
 
     # ------------------------------------------------------------------
     # Hooks
@@ -169,9 +168,9 @@ class YOLOAnomalyValidatorBase:
         #     (in-distribution val WITH the GT bbox prior; prior-tagged sections mirror the bare det ones).
         def _regroup_on(k):
             if k.startswith("metrics/"):
-                return f"metrics(mask_prior)/{k[len('metrics/'):]}"
+                return f"metrics(mask_prior)/{k[len('metrics/') :]}"
             if k.startswith("val/"):
-                return f"val(mask_prior)/{k[len('val/'):]}"
+                return f"val(mask_prior)/{k[len('val/') :]}"
             return f"metrics(mask_prior)/{k}"  # fitness + any other top-level scalar
 
         merged: dict = {}
@@ -262,8 +261,9 @@ class YOLOAnomalyValidatorBase:
             return False
         imgsz = self.args.imgsz if isinstance(self.args.imgsz, int) else 640
         try:
-            n = m.load_support_set(support, imgsz=imgsz, device=self.device,
-                                   max_bank_size=self._ood_bank_size, verbose=False)
+            n = m.load_support_set(
+                support, imgsz=imgsz, device=self.device, max_bank_size=self._ood_bank_size, verbose=False
+            )
         except Exception as e:  # missing/corrupt images, OOM, etc. — never crash the val run
             LOGGER.warning(f"YOLOAnomalyValidator: memory bank build failed ({type(e).__name__}: {e}).")
             return False
@@ -329,10 +329,9 @@ class YOLOAnomalyValidatorBase:
                         torch.zeros(bb_per_img.shape[0], dtype=torch.long, device=bb_per_img.device),
                         1,
                     )
-                    hmap_b = heatmap[b:b + 1]
+                    hmap_b = heatmap[b : b + 1]
                     if hmap_b.shape[2] != 256 or hmap_b.shape[3] != 256:
-                        hmap_b = F.interpolate(hmap_b, size=(256, 256),
-                                               mode="bilinear", align_corners=False)
+                        hmap_b = F.interpolate(hmap_b, size=(256, 256), mode="bilinear", align_corners=False)
                     self._auroc_pixel_scores.extend(hmap_b.flatten().cpu().tolist())
                     self._auroc_pixel_labels.extend(gt_mask.flatten().cpu().tolist())
 
@@ -396,8 +395,14 @@ class YOLOAnomalyValidatorBase:
 
         box = self.metrics.box
         all_ap = getattr(box, "all_ap", [])
-        out = {"mAP10": 0.0, "mAP25": 0.0, "mAP50": float(box.map50), "mAP50_95": float(box.map),
-               "P": float(box.mp), "R": float(box.mr)}
+        out = {
+            "mAP10": 0.0,
+            "mAP25": 0.0,
+            "mAP50": float(box.map50),
+            "mAP50_95": float(box.map),
+            "P": float(box.mp),
+            "R": float(box.mr),
+        }
         if not len(all_ap):
             return out
         iouv = self.iouv.cpu().numpy()
@@ -411,8 +416,19 @@ class YOLOAnomalyValidatorBase:
         """OOD path: header with low-IoU mAP10/25 + im/px AUROC columns; standard header otherwise."""
         if self.prior_mode is None:
             return super().get_desc()
-        return ("%22s" + "%11s" * 10) % ("Class", "Images", "Instances", "Box(P", "R",
-                                         "mAP10", "mAP25", "mAP50", "mAP50-95)", "im_auroc", "px_auroc")
+        return ("%22s" + "%11s" * 10) % (
+            "Class",
+            "Images",
+            "Instances",
+            "Box(P",
+            "R",
+            "mAP10",
+            "mAP25",
+            "mAP50",
+            "mAP50-95)",
+            "im_auroc",
+            "px_auroc",
+        )
 
     def print_results(self) -> None:
         """OOD/standalone path: print the "all" row in DetectionValidator's aligned column format,
@@ -429,8 +445,9 @@ class YOLOAnomalyValidatorBase:
         ia = float(getattr(self.metrics, "image_auroc", math.nan))
         pa = float(getattr(self.metrics, "pixel_auroc", math.nan))
         pf = "%22s" + "%11i" * 2 + "%11.3g" * 8  # DetectionValidator widths + im/px AUROC columns
-        LOGGER.info(pf % ("all", self.seen, nt, mm["P"], mm["R"],
-                          mm["mAP10"], mm["mAP25"], mm["mAP50"], mm["mAP50_95"], ia, pa))
+        LOGGER.info(
+            pf % ("all", self.seen, nt, mm["P"], mm["R"], mm["mAP10"], mm["mAP25"], mm["mAP50"], mm["mAP50_95"], ia, pa)
+        )
 
 
 class YOLOAnomalyValidator(YOLOAnomalyValidatorBase, DetectionValidator):
@@ -448,12 +465,36 @@ class YOLOAnomalyValidator(YOLOAnomalyValidatorBase, DetectionValidator):
 # Shared by the standalone post-hoc path and the AnomalyV2Trainer callback.
 # ----------------------------------------------------------------------
 MVTEC_CATEGORIES = [
-    "bottle", "cable", "capsule", "carpet", "grid", "hazelnut", "leather",
-    "metal_nut", "pill", "screw", "tile", "toothbrush", "transistor", "wood", "zipper",
+    "bottle",
+    "cable",
+    "capsule",
+    "carpet",
+    "grid",
+    "hazelnut",
+    "leather",
+    "metal_nut",
+    "pill",
+    "screw",
+    "tile",
+    "toothbrush",
+    "transistor",
+    "wood",
+    "zipper",
 ]
 _MODE_TO_PRIOR = {"mask_off": "none", "heatmap": "heatmap", "mask_on": "box"}
-_OOD_CSV_FIELDS = ["epoch", "category", "mode", "mAP10", "mAP25", "mAP50", "mAP50_95",
-                   "P", "R", "image_auroc", "pixel_auroc"]
+_OOD_CSV_FIELDS = [
+    "epoch",
+    "category",
+    "mode",
+    "mAP10",
+    "mAP25",
+    "mAP50",
+    "mAP50_95",
+    "P",
+    "R",
+    "image_auroc",
+    "pixel_auroc",
+]
 
 # Candidate dataset roots in priority order (env var wins, then ultra6, then laptop).
 _MVTEC_ROOT_CANDIDATES = (
@@ -522,8 +563,11 @@ def _inject_cat_bank(m, root: Path, cat: str, cache_dir: Path, imgsz, device, ba
         return False
     if not n or mb.memory_bank is None or mb.memory_bank.shape[0] == 0:
         return False
-    entry = {"memory_bank": mb.memory_bank.detach().cpu(), "feature_dim": mb.feature_dim,
-             "temperature": float(mb.temperature)}
+    entry = {
+        "memory_bank": mb.memory_bank.detach().cpu(),
+        "feature_dim": mb.feature_dim,
+        "temperature": float(mb.temperature),
+    }
     if getattr(mb, "_calibrated", False):
         entry["_threshold"] = mb._threshold
         entry["_compactness"] = mb._compactness
@@ -600,7 +644,7 @@ def run_mvtec_ood_eval(
             m.heatmap_edge_sigma = float(heatmap_edge_sigma)
     rows: list[dict] = []
 
-    for cat in (categories or MVTEC_CATEGORIES):
+    for cat in categories or MVTEC_CATEGORIES:
         yaml = _category_yaml(root, cat)
         if yaml is None:
             LOGGER.warning(f"MVTec OOD: no data yaml for category '{cat}' under {root}; skipping.")
@@ -609,16 +653,25 @@ def run_mvtec_ood_eval(
         # "bank already supplied" branch reuses it across all modes (no per-heatmap rebuild/drop).
         cached_bank = (
             _inject_cat_bank(m, root, cat, Path(bank_cache_dir), imgsz, device, bank_size)
-            if bank_cache_dir is not None else False
+            if bank_cache_dir is not None
+            else False
         )
         cat_dataset = None  # RAM-cached dataset built by first mode, reused by rest
         for mi, mode in enumerate(modes):
             try:
                 overrides = {
-                    "task": "anomaly_v2", "mode": "val", "data": str(yaml), "split": "val",
-                    "imgsz": imgsz, "batch": batch, "workers": workers,
+                    "task": "anomaly_v2",
+                    "mode": "val",
+                    "data": str(yaml),
+                    "split": "val",
+                    "imgsz": imgsz,
+                    "batch": batch,
+                    "workers": workers,
                     "device": str(device) if device is not None else None,
-                    "rect": False, "plots": False, "verbose": False, "save_json": False,
+                    "rect": False,
+                    "plots": False,
+                    "verbose": False,
+                    "save_json": False,
                     "single_cls": True,  # model is binary-trained; map all GT class IDs → 0
                     "prior_mode": _MODE_TO_PRIOR[mode],  # popped by YOLOAnomalyValidator.__init__
                     # RAM-cache only pays off across multiple modes (decode once, reuse). For a
@@ -643,20 +696,38 @@ def run_mvtec_ood_eval(
                     validator._ood_bank_size = bank_size
                     validator(trainer=None, model=m)
                 mm = validator.ood_map_metrics()
-                rows.append({
-                    "epoch": epoch, "category": cat, "mode": mode,
-                    "mAP10": mm["mAP10"], "mAP25": mm["mAP25"],
-                    "mAP50": mm["mAP50"], "mAP50_95": mm["mAP50_95"],
-                    "P": mm["P"], "R": mm["R"],
-                    "image_auroc": float(getattr(validator.metrics, "image_auroc", math.nan)),
-                    "pixel_auroc": float(getattr(validator.metrics, "pixel_auroc", math.nan)),
-                })
+                rows.append(
+                    {
+                        "epoch": epoch,
+                        "category": cat,
+                        "mode": mode,
+                        "mAP10": mm["mAP10"],
+                        "mAP25": mm["mAP25"],
+                        "mAP50": mm["mAP50"],
+                        "mAP50_95": mm["mAP50_95"],
+                        "P": mm["P"],
+                        "R": mm["R"],
+                        "image_auroc": float(getattr(validator.metrics, "image_auroc", math.nan)),
+                        "pixel_auroc": float(getattr(validator.metrics, "pixel_auroc", math.nan)),
+                    }
+                )
             except Exception as e:
                 LOGGER.warning(f"MVTec OOD: {cat}/{mode} failed ({type(e).__name__}: {e}); recording NaN.")
-                rows.append({"epoch": epoch, "category": cat, "mode": mode,
-                             "mAP10": math.nan, "mAP25": math.nan, "mAP50": math.nan,
-                             "mAP50_95": math.nan, "P": math.nan, "R": math.nan,
-                             "image_auroc": math.nan, "pixel_auroc": math.nan})
+                rows.append(
+                    {
+                        "epoch": epoch,
+                        "category": cat,
+                        "mode": mode,
+                        "mAP10": math.nan,
+                        "mAP25": math.nan,
+                        "mAP50": math.nan,
+                        "mAP50_95": math.nan,
+                        "P": math.nan,
+                        "R": math.nan,
+                        "image_auroc": math.nan,
+                        "pixel_auroc": math.nan,
+                    }
+                )
         if cached_bank and m.memory_bank is not None:
             m.memory_bank.reset_memory_bank()  # drop the injected bank before the next category
 
@@ -674,17 +745,30 @@ def _ood_macro_average(rows: list[dict], epoch: int | None) -> list[dict]:
             by_mode[r["mode"]].append(r)
     out = []
     for mode, rs in by_mode.items():
+
         def _avg(key: str) -> float:
             vals = [r[key] for r in rs if not math.isnan(r[key])]
             return sum(vals) / len(vals) if vals else math.nan
-        avg = {"epoch": epoch, "category": "AVERAGE", "mode": mode,
-               "mAP10": _avg("mAP10"), "mAP25": _avg("mAP25"),
-               "mAP50": _avg("mAP50"), "mAP50_95": _avg("mAP50_95"), "P": _avg("P"), "R": _avg("R"),
-               "image_auroc": _avg("image_auroc"), "pixel_auroc": _avg("pixel_auroc")}
+
+        avg = {
+            "epoch": epoch,
+            "category": "AVERAGE",
+            "mode": mode,
+            "mAP10": _avg("mAP10"),
+            "mAP25": _avg("mAP25"),
+            "mAP50": _avg("mAP50"),
+            "mAP50_95": _avg("mAP50_95"),
+            "P": _avg("P"),
+            "R": _avg("R"),
+            "image_auroc": _avg("image_auroc"),
+            "pixel_auroc": _avg("pixel_auroc"),
+        }
         out.append(avg)
-        LOGGER.info(f"MVTec OOD @ep{epoch} [{mode:8s}] mAP10={avg['mAP10']:.4f} mAP25={avg['mAP25']:.4f} "
-                    f"mAP50={avg['mAP50']:.4f} mAP50-95={avg['mAP50_95']:.4f} "
-                    f"img_auroc={avg['image_auroc']:.4f} pix_auroc={avg['pixel_auroc']:.4f} (n={len(rs)})")
+        LOGGER.info(
+            f"MVTec OOD @ep{epoch} [{mode:8s}] mAP10={avg['mAP10']:.4f} mAP25={avg['mAP25']:.4f} "
+            f"mAP50={avg['mAP50']:.4f} mAP50-95={avg['mAP50_95']:.4f} "
+            f"img_auroc={avg['image_auroc']:.4f} pix_auroc={avg['pixel_auroc']:.4f} (n={len(rs)})"
+        )
     return out
 
 

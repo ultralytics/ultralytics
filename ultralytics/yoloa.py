@@ -214,19 +214,20 @@ class YOLOA(Model):
         Args:
             source: Image source (path / array / list), as in :meth:`Model.predict`.
             stream: Stream the source.
-            prior: One of "none" / "heatmap" / "mask" / "anomaly_model". None keeps
-                legacy behavior.
+            prior: One of "none" / "heatmap" / "mask" / "anomaly_model". None means
+                no internal heatmap; pass an explicit ``prior_mask`` if needed.
             anomaly_model: Object exposing ``heatmap(img) -> Tensor[H, W] in [0, 1]``, required
-                when ``prior="anomaly_model"``; its heatmap is injected via the external-mask seam.
+                when ``prior="anomaly_model"``; its heatmap is injected as ``prior_mask``.
             **kwargs: Standard predict args plus prior-shaping knobs (heat_norm / heat_edge / ...).
+                A raw ``prior_mask`` can also be passed directly.
 
         Returns:
             (list[Results]): Prediction results.
         """
-        prior_mode, external_mask = self._resolve_prior(prior, anomaly_model, source, kwargs)
+        prior_mode, prior_mask = self._resolve_prior(prior, anomaly_model, source, kwargs)
         self._apply_infer_overrides(kwargs)
         return super().predict(
-            source=source, stream=stream, prior_mode=prior_mode, external_mask=external_mask, **kwargs
+            source=source, stream=stream, prior_mode=prior_mode, prior_mask=prior_mask, **kwargs
         )
 
     def val(self, validator=None, prior: str | None = None, **kwargs: Any):
@@ -253,21 +254,29 @@ class YOLOA(Model):
     # ---- internals ----------------------------------------------------------------------------
 
     def _resolve_prior(self, prior, anomaly_model, source, kwargs):
-        """Map the public ``prior`` to (prior_mode, external_mask)."""
+        """Map the public ``prior`` to (prior_mode, prior_mask).
+
+        ``prior_mode`` is only used to enable the internal memory-bank heatmap path
+        (``"heatmap"``). Explicit masks are always carried by ``prior_mask``.
+        """
+        explicit_mask = kwargs.pop("prior_mask", None)
+
         if prior is None:
-            return None, kwargs.pop("external_mask", None)
+            return None, explicit_mask
         prior = str(prior).lower()
         if prior not in PRIOR_MODES:
             raise ValueError(f"prior={prior!r} not in {PRIOR_MODES}")
         if prior == "anomaly_model":
             if anomaly_model is None or not hasattr(anomaly_model, "heatmap"):
                 raise ValueError("prior='anomaly_model' requires anomaly_model with a .heatmap(img) method")
-            return "mask", self._external_heatmap(anomaly_model, source)
-        return prior, kwargs.pop("external_mask", None)
+            return None, self._external_heatmap(anomaly_model, source)
+        if prior in ("none", "mask"):
+            return None, explicit_mask
+        return prior, None
 
     @staticmethod
     def _external_heatmap(anomaly_model, source) -> torch.Tensor:
-        """Run an external anomaly model -> (1, 1, H, W) float heatmap for the external-mask seam."""
+        """Run an external anomaly model -> (1, 1, H, W) float heatmap to pass as ``prior_mask``."""
         hm = anomaly_model.heatmap(source)
         hm = hm if torch.is_tensor(hm) else torch.as_tensor(hm)
         hm = hm.float()

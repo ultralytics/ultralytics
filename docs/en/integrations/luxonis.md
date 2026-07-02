@@ -132,8 +132,8 @@ That package includes the underlying platform-specific artifact, such as an `RVC
 
 Local conversion is the fully offline alternative to Luxonis Hub. For YOLO models, it is best understood as a two-stage workflow:
 
-1. Convert the YOLO `.pt` checkpoint into a valid `ONNX` NN Archive with Luxonis [Tools](https://github.com/luxonis/tools).
-2. Convert that `ONNX` NN Archive into an `RVC2` or `RVC4` deployment artifact with [ModelConverter](https://docs.luxonis.com/software-v3/ai-inference/conversion/rvc-conversion/offline/modelconverter/).
+1. **Convert** the YOLO `.pt` checkpoint into a valid `ONNX` NN Archive with Luxonis [Tools](https://github.com/luxonis/tools).
+2. **Compile** that `ONNX` NN Archive into an `RVC2` or `RVC4` deployment artifact with [ModelConverter](https://docs.luxonis.com/software-v3/ai-inference/conversion/rvc-conversion/offline/modelconverter/).
 
 This split is important for YOLO specifically. Luxonis requires using `tools` for the first stage because it adjusts the exported YOLO model so that outputs are standardized for native Luxonis parsing and on-device post-processing. The second stage then compiles that prepared archive into the target-specific format needed by the chosen OAK hardware generation.
 
@@ -207,7 +207,7 @@ The final output of the local workflow is a device-specific NN Archive ready for
 ### Notes and Limitations
 
 - For YOLO models, do not treat generic PyTorch-to-ONNX export as equivalent to the `tools` workflow. Luxonis recommends `tools` because it prepares outputs for native Luxonis parsing.
-- ModelConverter requires Docker.
+- **ModelConverter requires Docker.**
 - If you need to override low-level conversion parameters, use ModelConverter configuration files or CLI overrides rather than editing the compiled output manually.
 
 ## Running Inference on OAK Cameras
@@ -310,8 +310,8 @@ The table below compares representative YOLO models on `RVC2` and `RVC4` OAK pla
 
 !!! note
 
- - `RVC2` results use `FP16` precision and `RVC4` results use `INT8` precision.
- - Benchmarks use an input size of `640x640`.
+ - **`RVC2`** results use `FP16` precision and **`RVC4`** results use `INT8` precision.
+ - Benchmarks use an input size of **`640x640`**.
 
 If you want to reproduce these results or benchmark your specific YOLO model, refer to the Luxonis [benchmarking documentation](https://docs.luxonis.com/software-v3/ai-inference/benchmarking/).
 
@@ -369,6 +369,6 @@ In practice, the best performance usually comes from balancing three factors tog
 
 ### Do I need to care about `OpenVINO` or `SNPE` compatibility?
 
-Usually not. In most cases, you should use the default OpenVINO or SNPE version selected by the Luxonis conversion tools.
+Usually not. In most cases, you should use the **default** OpenVINO or SNPE version selected by the Luxonis conversion tools.
 
 `RVC2` uses an OpenVINO-based path and `RVC4` uses an SNPE-based path, but this is mostly an under-the-hood deployment detail rather than something you need to tune manually. The main exception is `RVC4` troubleshooting, where SNPE version compatibility can matter. If you need to investigate that, refer to the Luxonis [SNPE compatibility troubleshooting table](https://docs.luxonis.com/software-v3/ai-inference/conversion/troubleshooting/#Troubleshooting-SNPE%20Compatibility).

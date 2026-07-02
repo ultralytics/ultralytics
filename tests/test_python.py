@@ -225,6 +225,22 @@ def test_youtube():
         LOGGER.error(f"YouTube Test Error: {e}")
 
 
+def test_track_second_association_indices():
+    """Low-confidence detections matched in second association keep full detection-set indices."""
+    from ultralytics.engine.results import Boxes
+    from ultralytics.trackers.byte_tracker import BYTETracker
+    from ultralytics.utils import ROOT, IterableSimpleNamespace, YAML
+
+    args = IterableSimpleNamespace(**{**YAML.load(ROOT / "cfg/trackers/bytetrack.yaml"), "fuse_score": False})
+    tracker = BYTETracker(args)
+    boxes = [[10, 10, 50, 50], [200, 200, 260, 260], [400, 400, 480, 480]]
+    for confs in ([0.9, 0.9, 0.9], [0.9, 0.9, 0.2]):  # third detection drops to low confidence on frame 2
+        data = torch.tensor([[*b, c, 0] for b, c in zip(boxes, confs)], dtype=torch.float32)
+        tracks = tracker.update(Boxes(data, (640, 640)))
+    low = tracks[np.isclose(tracks[:, 5], 0.2)]  # columns are [x1, y1, x2, y2, id, score, cls, idx]
+    assert len(low) == 1 and int(low[0, -1]) == 2, f"second-association idx not preserved:\n{tracks}"
+
+
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.parametrize("model", MODELS)
 def test_track_stream(model, tmp_path):

@@ -72,6 +72,14 @@ def test_select_device(monkeypatch):
     monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "3")
     monkeypatch.setattr(torch_utils.torch.cuda, "device_count", lambda: 1)
     assert str(torch_utils.select_device("3", verbose=False)) == "cuda:0"  # e.g. pods launched with CVD preset
+    # '-1' idle-GPU auto-selection returns physical ids, which also translate under an external restriction
+    from ultralytics.utils import autodevice
+
+    monkeypatch.setattr(autodevice.GPUInfo, "__init__", lambda self: None)
+    monkeypatch.setattr(autodevice.GPUInfo, "select_idle_gpu", lambda self, **kwargs: [3])
+    monkeypatch.setattr(torch_utils.torch.cuda, "device_count", lambda: 2)
+    monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "1,3")
+    assert torch_utils.parse_device("-1") == "1"  # physical GPU 3 is torch index 1 under CVD='1,3'
 
 
 def test_model_forward():

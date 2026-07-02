@@ -167,9 +167,12 @@ def parse_device(device: str | int | list | tuple | torch.device = "") -> str:
     if "-1" in device:
         from ultralytics.utils.autodevice import GPUInfo
 
-        # Replace each -1 with a selected idle GPU or remove it
+        # Replace each -1 with a selected idle GPU or remove it; GPUInfo returns physical NVML ids
         parts = device.split(",")
         selected = GPUInfo().select_idle_gpu(count=parts.count("-1"), min_memory_fraction=0.2)
+        if visible := os.environ.get("CUDA_VISIBLE_DEVICES"):  # translate physical ids to torch indices
+            vis = visible.replace(" ", "").split(",")
+            selected = [vis.index(str(x)) for x in selected if str(x) in vis]
         for i in range(len(parts)):
             if parts[i] == "-1":
                 parts[i] = str(selected.pop(0)) if selected else ""
@@ -212,6 +215,8 @@ def select_device(device="", newline=False, verbose=True):
         torch.cuda.set_device() so that indexless 'cuda' operations land on it.
     """
     if isinstance(device, torch.device) or str(device).startswith(("tpu", "intel", "vulkan")):
+        if isinstance(device, torch.device) and device.type == "cuda" and device.index is not None:
+            torch.cuda.set_device(device)  # default device for indexless 'cuda' operations
         return device
 
     s = f"Ultralytics {__version__} 🚀 Python-{PYTHON_VERSION} torch-{TORCH_VERSION} "

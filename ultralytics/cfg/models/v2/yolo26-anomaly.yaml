@@ -23,6 +23,7 @@ anomaly_v2:
   p_drop: 0.5
   bb_layers: [6]
   fusion_mode: bias
+  fusion_norm: true
   # aug3 base + mixup re-enabled (aug2 strength) — only diff vs aug3
   mask_jitter: 0.01
   mask_box_drop_p: 0.05

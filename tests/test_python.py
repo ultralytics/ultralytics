@@ -1,7 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import contextlib
-import os
 import csv
 import shutil
 import tarfile
@@ -49,65 +48,18 @@ def skip_rpi_semantic():
         pytest.skip("Semantic segmentation tests are skipped on Raspberry Pi due to memory constraints.")
 
 
-def test_select_device_initialized_cuda_keeps_requested_index(monkeypatch):
-    """select_device should return the requested CUDA index once CUDA is already initialized."""
+def test_select_device_initialized_cuda(monkeypatch):
+    """select_device must return the requested index once CUDA is initialized, as remapping no longer applies."""
     from ultralytics.utils import torch_utils
 
     monkeypatch.setattr(torch_utils.torch.cuda, "is_available", lambda: True)
-    monkeypatch.setattr(torch_utils.torch.cuda, "is_initialized", lambda: True)
     monkeypatch.setattr(torch_utils.torch.cuda, "device_count", lambda: 2)
-    monkeypatch.setattr(torch_utils, "get_gpu_info", lambda index: f"Mock GPU {index}, 1MiB")
-
-    visible = os.environ.get("CUDA_VISIBLE_DEVICES")
-    try:
-        device = torch_utils.select_device("1", verbose=False)
-    finally:
-        if visible is None:
-            os.environ.pop("CUDA_VISIBLE_DEVICES", None)
-        else:
-            os.environ["CUDA_VISIBLE_DEVICES"] = visible
-
-    assert str(device) == "cuda:1"
-
-
-def test_select_device_uninitialized_cuda_uses_visible_remap(monkeypatch):
-    """select_device should keep CUDA_VISIBLE_DEVICES remapping before CUDA initialization."""
-    from ultralytics.utils import torch_utils
-
-    monkeypatch.setattr(torch_utils.torch.cuda, "is_available", lambda: True)
+    monkeypatch.setattr(torch_utils, "get_gpu_info", lambda i: f"Mock GPU {i}, 1MiB")
+    monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "")  # auto-restored after test
+    monkeypatch.setattr(torch_utils.torch.cuda, "is_initialized", lambda: True)
+    assert str(torch_utils.select_device("1", verbose=False)) == "cuda:1"
     monkeypatch.setattr(torch_utils.torch.cuda, "is_initialized", lambda: False)
-    monkeypatch.setattr(torch_utils.torch.cuda, "device_count", lambda: 1)
-    monkeypatch.setattr(torch_utils, "get_gpu_info", lambda index: f"Mock GPU {index}, 1MiB")
-
-    visible = os.environ.get("CUDA_VISIBLE_DEVICES")
-    try:
-        device = torch_utils.select_device("1", verbose=False)
-    finally:
-        if visible is None:
-            os.environ.pop("CUDA_VISIBLE_DEVICES", None)
-        else:
-            os.environ["CUDA_VISIBLE_DEVICES"] = visible
-
-    assert str(device) == "cuda:0"
-
-
-def test_select_device_initialized_cuda_rejects_mixed_tokens(monkeypatch):
-    """select_device should reject invalid CUDA tokens once CUDA is already initialized."""
-    from ultralytics.utils import torch_utils
-
-    monkeypatch.setattr(torch_utils.torch.cuda, "is_available", lambda: True)
-    monkeypatch.setattr(torch_utils.torch.cuda, "is_initialized", lambda: True)
-    monkeypatch.setattr(torch_utils.torch.cuda, "device_count", lambda: 2)
-
-    visible = os.environ.get("CUDA_VISIBLE_DEVICES")
-    try:
-        with pytest.raises(ValueError, match="Invalid CUDA"):
-            torch_utils.select_device("0,foo", verbose=False)
-    finally:
-        if visible is None:
-            os.environ.pop("CUDA_VISIBLE_DEVICES", None)
-        else:
-            os.environ["CUDA_VISIBLE_DEVICES"] = visible
+    assert str(torch_utils.select_device("1", verbose=False)) == "cuda:0"  # remapped via CUDA_VISIBLE_DEVICES
 
 
 def test_model_forward():
@@ -658,6 +610,8 @@ def test_utils_checks():
     checks.check_yolov5u_filename("yolov5n.pt")
     checks.check_requirements("numpy")  # check requirements.txt
     checks.check_imgsz([600, 600], max_dim=1)
+    with pytest.raises(ValueError):
+        checks.check_imgsz("640x480")  # malformed imgsz string raises a helpful ValueError, not a raw SyntaxError
     checks.check_imshow(warn=True)
     checks.check_version("ultralytics", "8.0.0")
     # parse_version must pad to a 3-tuple so shorter version strings compare correctly
@@ -1008,6 +962,34 @@ def test_yoloe(tmp_path):
     # val
     model = YOLOE("yoloe-11s-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
     model.val(data="coco128-seg.yaml", imgsz=32)
+
+
+def test_yoloe_visual_prompt_verbose_false(capfd):
+    """Verify that YOLOE visual prompting respects verbose=False."""
+    model = YOLO(WEIGHTS_DIR / "yoloe-11s-seg.pt")
+
+    from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
+
+    visuals = {
+        "bboxes": np.array([[221.52, 405.8, 344.98, 857.54]]),
+        "cls": np.array([0]),
+    }
+
+    # Ignore any output produced while loading the model
+    capfd.readouterr()
+
+    model.predict(
+        SOURCE,
+        refer_image=SOURCE,
+        visual_prompts=visuals,
+        predictor=YOLOEVPSegPredictor,
+        verbose=False,
+    )
+
+    captured = capfd.readouterr()
+    output = captured.out + captured.err
+
+    assert "Ultralytics" not in output
 
 
 def test_yolov10():

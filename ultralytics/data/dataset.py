@@ -150,7 +150,9 @@ class YOLODataset(BaseDataset):
         if msgs:
             LOGGER.info("\n".join(msgs))
         if nf == 0:
-            raise ValueError(f"{self.prefix}No labels found in {path}. {HELP_URL}")
+            if self.augment:  # training requires labels; unlabeled val splits (e.g. COCO test-dev) only warn
+                raise ValueError(f"{self.prefix}No labels found in {path}. {HELP_URL}")
+            LOGGER.warning(f"{self.prefix}No labels found in {path}. {HELP_URL}")
         x["hash"] = get_hash(self.label_files + self.im_files)
         x["results"] = nf, nm, ne, nc, len(self.im_files)
         x["msgs"] = msgs  # warnings

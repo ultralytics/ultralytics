@@ -326,20 +326,31 @@ If your OAK camera supports stereo depth, you can use [`dai.node.SpatialDetectio
 
 ## Benchmarks
 
-The table below compares representative YOLO models on `RVC2` and `RVC4` OAK platforms. Fill in the measured FPS values for the selected models.
+The tables below compare some YOLO models on `RVC2` and `RVC4` OAK platforms.
 
-| Model    | Variant  | Task                  | RVC2 FPS | RVC4 FPS |
-| :------- | :------- | :-------------------- | :------- | :------- |
-| `YOLOv8n` | `Nano` | Object Detection      | TODO     | TODO     |
-| `YOLO26s` | `Small` | Object Detection      | TODO     | TODO     |
-| `YOLO26m-pose` | `Medium` | Pose Estimation       | TODO     | TODO     |
-| `YOLO11l-seg` | `Large` | Instance Segmentation | TODO     | TODO     |
-| `YOLO26n-seg` | `Nano` | Instance Segmentation | TODO     | TODO     |
+### RVC2
 
-!!! note
+Benchmarks below use `FP16` precision with 2 inference threads at `320x320` input size.
 
- - **`RVC2`** results use `FP16` precision and **`RVC4`** results use `INT8` precision.
- - Benchmarks use an input size of **`640x640`**.
+| Model        | Variant | Task                  | FPS  |
+| :----------- | :------ | :-------------------- | :--- |
+| YOLOv8n      | Nano    | Object Detection      | 40.9 |
+| YOLO11s      | Small   | Object Detection      | 16.5 |
+| YOLO26n-seg  | Nano    | Instance Segmentation | 29.6 |
+| YOLOv8s-seg  | Small   | Instance Segmentation | 17.3 |
+| YOLO11n-pose | Nano    | Pose Estimation       | 36.9 |
+
+### RVC4
+
+Benchmarks below use `INT8` precision with 2 inference threads at `640x640` input size with balanced inference mode.
+
+| Model        | Variant | Task                  | FPS   |
+| :----------- | :------ | :-------------------- | :---- |
+| YOLOv8n      | Nano    | Object Detection      | 470.7 |
+| YOLO26s      | Small   | Object Detection      | 276.4 |
+| YOLO26n-seg  | Nano    | Instance Segmentation | 357.9 |
+| YOLO11l-seg  | Large   | Instance Segmentation | 106.4 |
+| YOLO26m-pose | Medium  | Pose Estimation       | 151   |
 
 If you want to reproduce these results or benchmark your specific YOLO model, refer to the Luxonis [benchmarking documentation](https://docs.luxonis.com/software-v3/ai-inference/benchmarking/).
 

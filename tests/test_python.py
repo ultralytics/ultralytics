@@ -60,6 +60,11 @@ def test_select_device_initialized_cuda(monkeypatch):
     assert str(torch_utils.select_device("1", verbose=False)) == "cuda:1"
     monkeypatch.setattr(torch_utils.torch.cuda, "is_initialized", lambda: False)
     assert str(torch_utils.select_device("1", verbose=False)) == "cuda:0"  # remapped via CUDA_VISIBLE_DEVICES
+    # Re-entrant call after this process already remapped, e.g. trainer then final_eval validator with device=3
+    monkeypatch.setattr(torch_utils.torch.cuda, "is_initialized", lambda: True)
+    monkeypatch.setattr(torch_utils.torch.cuda, "device_count", lambda: 1)
+    monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "3")
+    assert str(torch_utils.select_device("3", verbose=False)) == "cuda:0"  # index 3 is visible device 0
 
 
 def test_model_forward():

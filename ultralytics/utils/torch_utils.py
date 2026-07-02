@@ -161,25 +161,22 @@ def parse_device(device: str | int | list | tuple | torch.device = "") -> str:
         device = device.replace(remove, "")  # to string, 'cuda:0' -> '0' and '(0, 1)' -> '0,1'
     if device == "cuda":
         device = "0"
-    if "," in device:
-        device = ",".join(x for x in device.split(",") if x)  # remove sequential commas, i.e. "0,,1" -> "0,1"
-    device = ",".join(str(int(x)) if x.isdigit() else x for x in device.split(","))  # strip leading zeros, "00" -> "0"
+    device = ",".join(str(int(x)) if x.isdigit() else x for x in device.split(",") if x)  # "0,,01" -> "0,1"
+    visible = os.environ.get("CUDA_VISIBLE_DEVICES", "").replace(" ", "").split(",")
     if "-1" in device:
         from ultralytics.utils.autodevice import GPUInfo
 
         # Replace each -1 with a selected idle GPU or remove it; GPUInfo returns physical NVML ids
         parts = device.split(",")
         selected = GPUInfo().select_idle_gpu(count=parts.count("-1"), min_memory_fraction=0.2)
-        if visible := os.environ.get("CUDA_VISIBLE_DEVICES"):  # translate physical ids to torch indices
-            vis = visible.replace(" ", "").split(",")
-            selected = [vis.index(str(x)) for x in selected if str(x) in vis]
+        if visible != [""]:  # external CUDA_VISIBLE_DEVICES set -> translate physical ids to torch indices
+            selected = [visible.index(str(x)) for x in selected if str(x) in visible]
         for i in range(len(parts)):
             if parts[i] == "-1":
                 parts[i] = str(selected.pop(0)) if selected else ""
         device = ",".join(p for p in parts if p)
     indices = device.split(",")
     if device and all(x.isdigit() for x in indices) and any(int(x) >= torch.cuda.device_count() for x in indices):
-        visible = os.environ.get("CUDA_VISIBLE_DEVICES", "").replace(" ", "").split(",")
         if all(x in visible for x in indices):  # physical GPU ids under an external CUDA_VISIBLE_DEVICES restriction
             device = ",".join(str(visible.index(x)) for x in indices)  # translate to torch indices
     return device

@@ -24,7 +24,6 @@ anomaly_v2:
   mask_mode: gauss
   sigma_factor: [0.20, 0.40]
   p_drop: 0.6
-  seg_branch: false
   seg_target_polygon: true         # ← ONLY diff: prior = polygon union, not bbox→gauss
   bb_layers: [6]
   fusion_mode: bias

@@ -569,8 +569,9 @@ class YOLOAnomalyV2Model(DetectionModel):
         _sf = v2_cfg.get("sigma_factor", 0.25)
         sigma_factor = [float(_sf[0]), float(_sf[1])] if isinstance(_sf, (list, tuple)) else float(_sf)
         self.p_drop = float(v2_cfg.get("p_drop", 0.5))
-        # Polygon-mask prior: disabled; bbox-rendered gauss prior is used.
-        self.seg_target_polygon = False
+        # Polygon-mask prior: when True, the fusion prior is built from the v6 polygon
+        # union (batch["masks"]) instead of the coarse bbox-gauss render.
+        self.seg_target_polygon = bool(v2_cfg.get("seg_target_polygon", False))
         # Fusion mechanism: 'bias' (HeatmapBiasFusion, 1-channel additive), 'soft'
         # (HeatmapSoftFusion, temperature-softmax + BN → bias), 'film'
         # (HeatmapFiLMFusion, global residual grouped-FiLM), or 'queryfilm'
@@ -594,6 +595,9 @@ class YOLOAnomalyV2Model(DetectionModel):
 
         # Anomaly-side modules (live outside self.model so they are not in the Sequential)
         self.mask_renderer = BboxMaskRenderer(mask_size=mask_size, mode=mask_mode, sigma_factor=sigma_factor)
+        self.heatmap_bias_fusion = HeatmapBiasFusion(num_scales=detect.nl, c_mid=fusion_mid)
+
+        # Spatial resolution of the rendered/mask prior.
         self.mask_size = mask_size
 
         self.mask_augmenter = MaskPriorAugmenter(v2_cfg)

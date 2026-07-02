@@ -106,11 +106,7 @@ from .transformer import (
     TransformerEncoderLayer,
     TransformerLayer,
 )
-from .anomaly_v2 import (
-    BackboneMemoryBank,
-    BboxMaskRenderer,
-    HeatmapBiasFusion,
-)
+from .anomaly_v2 import BackboneMemoryBank, BboxMaskRenderer, HeatmapBiasFusion
 from .anomaly_v2_prior_augment import MaskPriorAugmenter
 
 __all__ = (

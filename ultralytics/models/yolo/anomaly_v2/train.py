@@ -220,7 +220,7 @@ class AnomalyV2Trainer(DetectionTrainer):
             AnomalyV2Trainer._log_ood_wandb(trainer, rows)
             # Store OOD heatmap mAP10 (test_metrics(heatmap_prior)) for best.pt selection (fitness override)
             for r in rows:
-                if r["category"] == "AVERAGE" and r["mode"] == heatmap_variant:
+                if r["category"] == "AVERAGE" and r["mode"] == "heatmap":
                     map10 = r.get("mAP10", math.nan)
                     if not math.isnan(map10):
                         trainer._ood_heatmap_map10 = float(map10)

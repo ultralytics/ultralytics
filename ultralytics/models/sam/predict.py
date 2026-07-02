@@ -2215,6 +2215,13 @@ class SAM3Predictor(SAM2Predictor):
 class SAM3SemanticPredictor(SAM3Predictor):
     """Segment Anything Model 3 (SAM3) Predictor for image segmentation tasks."""
 
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+        """Initialize SAM3SemanticPredictor with a default confidence threshold of 0.5."""
+        if overrides is None:
+            overrides = {}
+        overrides.setdefault("conf", 0.5)
+        super().__init__(cfg, overrides, _callbacks)
+
     def get_model(self):
         """Retrieve and initialize the Segment Anything Model 3 (SAM3) for image segmentation tasks."""
         from .build_sam3 import build_sam3_image_model  # slow import

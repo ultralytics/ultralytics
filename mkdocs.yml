@@ -255,6 +255,7 @@ nav:
       - SAM (Segment Anything Model): models/sam.md
       - SAM 2 (Segment Anything Model 2): models/sam-2.md
       - SAM 3 (Segment Anything Model 3): models/sam-3.md
+      - SAM 3 LiteText (Lightweight Text Encoder): models/sam-3-litetext.md
       - MobileSAM (Mobile Segment Anything Model): models/mobile-sam.md
       - FastSAM (Fast Segment Anything Model): models/fast-sam.md
       - YOLO-NAS (Neural Architecture Search): models/yolo-nas.md

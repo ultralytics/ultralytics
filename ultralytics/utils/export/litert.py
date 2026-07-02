@@ -121,9 +121,11 @@ def torch2litert(
             calib_samples = []
             for batch in calibration_dataset:
                 imgs = batch["img"].cpu().float() / 255.0
-                # litert-torch traces a fixed batch; feed whole batches matching im's batch dim (skip a partial tail).
-                if imgs.shape[0] == im.shape[0]:
-                    calib_samples.append({"args_0": imgs.numpy()})
+                # litert-torch traces a fixed batch; tile under-sized batches up to im's batch dim (repeats are
+                # statistics-identical for calibration)
+                if imgs.shape[0] < im.shape[0]:
+                    imgs = imgs.repeat(-(-im.shape[0] // imgs.shape[0]), 1, 1, 1)[: im.shape[0]]
+                calib_samples.append({"args_0": imgs.numpy()})
             assert calib_samples, (
                 f"No calibration batches of size {im.shape[0]} were collected; the calibration dataset needs at least "
                 f"'batch={im.shape[0]}' images for static LiteRT quantization (reduce 'batch' or add more 'data')."

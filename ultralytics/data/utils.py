@@ -493,6 +493,11 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> dict[str, Any]
             data["val"] = data.pop("validation")  # replace 'validation' key with 'val' key
     if "names" not in data and "nc" not in data:
         raise SyntaxError(emojis(f"{dataset} key missing ❌.\n either 'names' or 'nc' are required in all data YAMLs."))
+    if "nc" in data and not isinstance(data["nc"], int):
+        try:
+            data["nc"] = int(data["nc"])
+        except (TypeError, ValueError):
+            raise SyntaxError(emojis(f"{dataset} 'nc: {data['nc']}' must be an integer ❌."))
     if "names" in data and "nc" in data and len(data["names"]) != data["nc"]:
         raise SyntaxError(emojis(f"{dataset} 'names' length {len(data['names'])} and 'nc: {data['nc']}' must match."))
     if "names" not in data:

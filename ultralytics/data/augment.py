@@ -1689,10 +1689,11 @@ class LetterBox(BaseTransform):
         if image is not None:
             labels["img"] = image
         params = self.get_params(labels)
-        labels = self.apply_image(labels, params)
-        if not return_image_only:
-            labels = self.apply_instances(labels, params)
-        labels = self.apply_semantic(labels, params)
+        if params["orig_shape"] != params["new_shape"]:
+            labels = self.apply_image(labels, params)
+            if not return_image_only:
+                labels = self.apply_instances(labels, params)
+            labels = self.apply_semantic(labels, params)
         if return_image_only:
             return labels["img"]
         return labels

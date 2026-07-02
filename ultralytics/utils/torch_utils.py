@@ -138,16 +138,11 @@ def parse_device(device: str | int | list | tuple | torch.device = "") -> str:
     """Parse a device request of any form into a canonical device string.
 
     Args:
-        device (str | int | list | tuple | torch.device, optional): Device request, e.g. 'cuda:0', '0,1', [0, 1],
-            'cpu', 'mps', or '-1' to auto-select an idle GPU ('-1,-1' for two).
+        device (str | int | list | tuple | torch.device, optional): Device request, e.g. 'cuda:0', '0,1', [0, 1], 'cpu',
+            'mps', or '-1' to auto-select an idle GPU ('-1,-1' for two).
 
     Returns:
         (str): Canonical device string, e.g. '', 'cpu', 'mps', '0', or '0,1'.
-
-    Notes:
-        Each '-1' is replaced with an idle GPU index. Requests matching physical GPU ids hidden by an external
-        CUDA_VISIBLE_DEVICES restriction are translated to the corresponding torch indices, e.g. '3' -> '0' when
-        CUDA_VISIBLE_DEVICES='3'.
 
     Examples:
         >>> parse_device("cuda:0")
@@ -155,6 +150,11 @@ def parse_device(device: str | int | list | tuple | torch.device = "") -> str:
 
         >>> parse_device([0, 1])
         '0,1'
+
+    Notes:
+        Each '-1' is replaced with an idle GPU index. Requests matching physical GPU ids hidden by an external
+        CUDA_VISIBLE_DEVICES restriction are translated to the corresponding torch indices, e.g. '3' -> '0' when
+        CUDA_VISIBLE_DEVICES='3'.
     """
     device = str(device).lower()
     for remove in "cuda:", "none", "(", ")", "[", "]", "'", " ":

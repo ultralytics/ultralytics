@@ -1174,6 +1174,12 @@ class v8DepthLoss:
         # grad_scales=1 reproduces the single-scale gradient loss; trim=0.0 disables trimming.
         self.grad_scales = int(getattr(h, "silog_grad_scales", 4) or 4)
         self.trim_pct = float(getattr(h, "silog_trim", 0.0) or 0.0)
+        # Sparsity guard for multi-scale gradient matching: coarse pooled cells over sparse GT
+        # (e.g. LiDAR) aggregate too few real pixels, so their gradients are noise (empirically
+        # degrades KITTI). Stop descending the pyramid once the valid fraction < this threshold;
+        # dense indoor GT stays well above it and keeps all levels. None -> default 0.5.
+        v = getattr(h, "silog_grad_min_valid", 0.5)
+        self.grad_min_valid = 0.5 if v is None else float(v)
         # GT beyond the head's representable range (sigmoid × max_depth) is masked out of the
         # loss: supervising unreachable targets saturates the sigmoid and, through SILog's
         # per-image mean coupling, corrupts gradients on in-range pixels too.
@@ -1276,6 +1282,8 @@ class v8DepthLoss:
             # Masked ×2 average-pool: aggregate only valid pixels so invalid zeros never bleed
             # into valid neighbours (same rationale as never resizing sparse GT above).
             vp = F.avg_pool2d(valid_f, 2)
+            if vp.mean() < self.grad_min_valid:
+                break  # sparsity guard: GT too sparse for reliable coarse gradients
             denom = vp.clamp(min=1e-6)
             pred_log = F.avg_pool2d(pred_log * valid_f, 2) / denom
             gt_log = F.avg_pool2d(gt_log * valid_f, 2) / denom

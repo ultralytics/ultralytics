@@ -222,6 +222,7 @@ CFG_FRACTION_KEYS = frozenset(
         "fraction",
         "multi_scale",
         "silog_trim",
+        "silog_grad_min_valid",
     }
 )
 CFG_INT_KEYS = frozenset(

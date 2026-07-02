@@ -15,6 +15,7 @@ def _args(**over):
         silog_l1=0.0,
         dist_pw=0.0,
         silog_grad_scales=4,
+        silog_grad_min_valid=0.5,
         silog_trim=0.0,
     )
     a.update(over)
@@ -77,6 +78,19 @@ def test_multiscale_grad_adds_coarse_levels():
     single, _ = v8DepthLoss(_Model(silog=0.0, silog_grad=1.0, silog_grad_scales=1))({"depth": pred}, {"depth": gt})
     multi, _ = v8DepthLoss(_Model(silog=0.0, silog_grad=1.0, silog_grad_scales=4))({"depth": pred}, {"depth": gt})
     assert float(multi) > float(single) + 1e-4
+
+
+def test_sparsity_guard_collapses_multiscale_on_sparse_gt():
+    """On sparse GT (valid fraction < silog_grad_min_valid), multi-scale must self-disable and
+    match single-scale — the guard blocks unreliable coarse gradients (the KITTI failure mode)."""
+    torch.manual_seed(3)
+    gt = torch.zeros(1, 1, 32, 32)
+    mask = torch.rand(1, 1, 32, 32) < 0.15  # ~15% valid, below the 0.5 threshold
+    gt[mask] = torch.rand(int(mask.sum())) * 5 + 1.0
+    pred = torch.rand(1, 1, 32, 32) * 5 + 1.0
+    single, _ = v8DepthLoss(_Model(silog=0.0, silog_grad=1.0, silog_grad_scales=1))({"depth": pred}, {"depth": gt})
+    multi, _ = v8DepthLoss(_Model(silog=0.0, silog_grad=1.0, silog_grad_scales=4))({"depth": pred}, {"depth": gt})
+    assert abs(float(single) - float(multi)) < 1e-6  # guard collapsed ms to single-scale
 
 
 def test_trim_pct_0_is_no_op():

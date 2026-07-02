@@ -120,7 +120,8 @@ def _infer_model_yaml(phase1_weights: str, head_suffix: str = "") -> str:
     Reads ``args.yaml`` next to the weights when the path follows the standard ``<run>/weights/<file>.pt`` layout
     (phase-1 distill checkpoints); otherwise derives the cls yaml from the weights filename so bare ultralytics weights
     like ``yolo26l-cls.pt`` pick up the right scale. The trailing ``-cls.yaml`` is rewritten to ``{head_suffix}.yaml``
-    (e.g. ``""`` for det, ``"-pose"`` for pose, ``"-obb"`` for obb).
+    (e.g. ``""`` for det, ``"-pose"`` for pose, ``"-obb"`` for obb), and any ``-sppf`` arch tag is dropped since det
+    yamls already carry SPPF (``yolo26x-cls-sppf.yaml`` -> ``yolo26x.yaml``).
 
     Args:
         phase1_weights (str): Path to a weights ``.pt`` file.
@@ -138,6 +139,8 @@ def _infer_model_yaml(phase1_weights: str, head_suffix: str = "") -> str:
     # Strip the `-cls` task suffix. Lookahead matches both end-position (`yolo26s-cls.yaml` -> `yolo26s.yaml`)
     # and middle-position when a custom arch suffix follows (`yolo26s-cls-attn.yaml` -> `yolo26s-attn.yaml`).
     out = re.sub(r"-cls(?=[-.])", head_suffix, cls_yaml, count=1)
+    # Drop the `-sppf` tag: det yamls already carry SPPF, no `-sppf` det counterparts exist.
+    out = re.sub(r"-sppf(?=[-.])", "", out, count=1)
     if "-cls" in out:
         raise ValueError(
             f"_infer_model_yaml: stripped -cls failed for {cls_yaml!r} -> {out!r} "

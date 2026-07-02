@@ -102,7 +102,16 @@ class PoseValidator(DetectionValidator):
         self.kpt_shape = self.data["kpt_shape"]
         is_pose = self.kpt_shape == [17, 3]
         nkpt = self.kpt_shape[0]
-        self.sigma = OKS_SIGMA if is_pose else np.ones(nkpt) / nkpt
+        # Check if custom OKS sigmas are provided in the dataset YAML
+        if 'kpt_oks_sigmas' in self.data:
+            sigmas = np.array(self.data['kpt_oks_sigmas'], dtype=float).flatten()
+            if len(sigmas) != nkpt:
+                raise ValueError(f"Length of 'kpt_oks_sigmas' ({len(sigmas)}) in dataset YAML does not match the number of keypoints ({nkpt}).")
+            if not np.all(sigmas > 0):
+                raise ValueError(f"All 'kpt_oks_sigmas' values must be strictly positive, but got: {sigmas}")
+            self.sigma = sigmas
+        else:
+            self.sigma = OKS_SIGMA if is_pose else np.ones(nkpt) / nkpt
 
     def postprocess(self, preds: torch.Tensor) -> list[dict[str, torch.Tensor]]:
         """Postprocess YOLO predictions to extract and reshape keypoints for pose estimation.

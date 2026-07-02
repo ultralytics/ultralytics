@@ -33,6 +33,7 @@ kpt_shape: [17, 3] # pose models only
 - `nc` sets the number of classes the model predicts.
 - `scales` define compound scaling factors that adjust model depth, width, and maximum channels to produce different size variants (nano through extra-large).
 - `kpt_shape` applies to pose models. It can be `[N, 2]` for `(x, y)` keypoints or `[N, 3]` for `(x, y, visibility)`.
+- `kpt_oks_sigmas` is an optional dataset parameter for pose models. It defines a custom list of Object Keypoint Similarity (OKS) sigmas for evaluation (e.g., `[0.26, 0.25, ...]`). The length must exactly match `N` from `kpt_shape`.
 
 !!! tip "Reduce redundancy with `scales`"
 

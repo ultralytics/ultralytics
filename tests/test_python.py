@@ -162,6 +162,33 @@ def test_predict_visualize(model):
         skip_rpi_semantic()
     YOLO(WEIGHTS_DIR / model)(SOURCE, imgsz=32, visualize=True)
 
+@pytest.mark.parametrize("model", MODELS)
+def test_predict_tensor_float_bchw(model):
+    """Test float32 BCHW tensor inputs normalized to [0,1]."""
+    m = YOLO(WEIGHTS_DIR / model)
+    channels = 1 if model == "yolo11n-grayscale.pt" else 3
+    im_u8 = torch.randint(0, 256, (1, channels, 32, 32), dtype=torch.uint8)
+    im_f_norm = im_u8.float() / 255.0  # [0, 1]
+
+    assert len(m.predict(source=im_f_norm, imgsz=32, verbose=False)) == 1
+
+
+@pytest.mark.parametrize("model", MODELS)
+def test_predict_numpy_formats(model):
+    """Tests various numpy array inputs for multi image sz, list[np.ndarray], np.ndarray.
+
+    Only tests uint8 format since ultralytics.engine.predictor.BasePredictor.preprocess() expects hwc uint8 [0,255] np
+    inputs
+    """
+    m = YOLO(WEIGHTS_DIR / model)
+    channels = 1 if model == "yolo11n-grayscale.pt" else 3
+    im_48 = np.random.randint(0, 256, (48, 48, channels), dtype=np.uint8)  
+    im_32 = np.random.randint(0, 256, (32, 32, channels), dtype=np.uint8)
+    
+    assert len(m.predict(source=im_48, imgsz=32, verbose=False)) == 1
+    assert len(m.predict(source=im_32, imgsz=32, verbose=False)) == 1
+    assert len(m.predict(source=[im_32, im_48], imgsz=32, verbose=False)) == 2 # test multi img sz arrays
+
 
 def test_predict_gray_and_4ch(tmp_path):
     """Test YOLO prediction on SOURCE converted to grayscale and 4-channel images with various filenames."""

@@ -49,7 +49,7 @@ def skip_rpi_semantic():
 
 
 def test_select_device_initialized_cuda(monkeypatch):
-    """select_device must return the requested index once CUDA is initialized, as remapping no longer applies."""
+    """Select_device must return the requested index once CUDA is initialized, as remapping no longer applies."""
     from ultralytics.utils import torch_utils
 
     monkeypatch.setattr(torch_utils.torch.cuda, "is_available", lambda: True)

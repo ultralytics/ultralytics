@@ -14,7 +14,6 @@ Usage - formats:
                           yolo26n.mlpackage          # CoreML (macOS-only)
                           yolo26n_saved_model        # TensorFlow SavedModel
                           yolo26n.pb                 # TensorFlow GraphDef
-                          yolo26n.tflite             # TensorFlow Lite
                           yolo26n_edgetpu.tflite     # TensorFlow Edge TPU
                           yolo26n_paddle_model       # PaddlePaddle
                           yolo26n.mnn                # MNN
@@ -25,6 +24,7 @@ Usage - formats:
                           yolo26n_axelera_model      # Axelera AI
                           yolo26n_deepx_model        # DEEPX
                           yolo26n_qnn.onnx           # Qualcomm QNN
+                          yolo26n.tflite             # LiteRT
 """
 
 from __future__ import annotations
@@ -157,7 +157,7 @@ class BaseValidator:
             self.device = trainer.device
             self.data = trainer.data
             # Keep training validation read-only: inputs may be fp16, but EMA/model weights stay fp32 under autocast.
-            self.args.half = self.device.type != "cpu" and trainer.amp
+            self.args.quantize = 16 if (self.device.type != "cpu" and trainer.amp) else None
             model = trainer.ema.ema or trainer.model
             if trainer.args.compile and hasattr(model, "_orig_mod"):
                 model = model._orig_mod  # validate non-compiled original model to avoid issues
@@ -181,10 +181,10 @@ class BaseValidator:
                 device=select_device(self.args.device) if RANK == -1 else torch.device("cuda", RANK),
                 dnn=self.args.dnn,
                 data=self.args.data,
-                fp16=self.args.half,
+                fp16=self.args.quantize == 16,
             )
             self.device = model.device  # update device
-            self.args.half = model.fp16  # update half
+            self.args.quantize = 16 if model.fp16 else None  # record actual inference precision
             stride, fmt = model.stride, model.format
             pt = fmt == "pt"
             imgsz = check_imgsz(self.args.imgsz, stride=stride)
@@ -228,7 +228,7 @@ class BaseValidator:
             with dt[0]:
                 batch = self.preprocess(batch)
 
-            with autocast(self.training and self.args.half, device=self.device.type):
+            with autocast(self.training and self.args.quantize == 16, device=self.device.type):
                 # Inference
                 with dt[1]:
                     preds = model(batch["img"], augment=augment)

@@ -2,6 +2,7 @@
 
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -25,6 +26,18 @@ def test_special_modes() -> None:
     run("yolo settings reset")
     run(f"yolo settings weights_dir={WEIGHTS_DIR} datasets_dir={DATASETS_DIR}")
     run("yolo cfg")
+
+
+def test_cli_imports_defer_torchvision() -> None:
+    """Verify startup imports do not load torchvision or SAM3 geometry."""
+    code = (
+        "import sys; "
+        "from ultralytics import YOLO; "
+        "from ultralytics.models.sam import Predictor; "
+        "assert 'torchvision' not in sys.modules; "
+        "assert 'ultralytics.models.sam.sam3.geometry_encoders' not in sys.modules"
+    )
+    subprocess.run([sys.executable, "-c", code], check=True)
 
 
 @pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)

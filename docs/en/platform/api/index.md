@@ -1277,7 +1277,7 @@ Returns aggregated metrics across all user deployments: total requests, active d
 
 ## Export API
 
-Convert models to optimized formats like ONNX, TensorRT, CoreML, and TFLite for edge deployment. See [Deploy documentation](../deploy/index.md).
+Convert models to optimized formats like ONNX, TensorRT, CoreML, and LiteRT for edge deployment. See [Deploy documentation](../deploy/index.md).
 
 ### List Exports
 
@@ -1301,12 +1301,12 @@ POST /api/exports
 
 **Body:**
 
-| Field     | Type   | Required    | Description                                         |
-| --------- | ------ | ----------- | --------------------------------------------------- |
-| `modelId` | string | Yes         | Source model ID                                     |
-| `format`  | string | Yes         | Export format (see table below)                     |
-| `gpuType` | string | Conditional | Required when `format` is `engine` (TensorRT)       |
-| `args`    | object | No          | Export arguments (`imgsz`, `half`, `dynamic`, etc.) |
+| Field     | Type   | Required    | Description                                             |
+| --------- | ------ | ----------- | ------------------------------------------------------- |
+| `modelId` | string | Yes         | Source model ID                                         |
+| `format`  | string | Yes         | Export format (see table below)                         |
+| `gpuType` | string | Conditional | Required when `format` is `engine` (TensorRT)           |
+| `args`    | object | No          | Export arguments (`imgsz`, `quantize`, `dynamic`, etc.) |
 
 === "cURL"
 
@@ -1338,13 +1338,12 @@ POST /api/exports
 | OpenVINO      | `openvino`    | Intel hardware           |
 | TensorRT      | `engine`      | NVIDIA GPU optimization  |
 | CoreML        | `coreml`      | Apple devices            |
-| TFLite        | `tflite`      | Mobile and embedded      |
 | TF SavedModel | `saved_model` | TensorFlow Serving       |
 | TF GraphDef   | `pb`          | TensorFlow frozen graph  |
 | PaddlePaddle  | `paddle`      | Baidu PaddlePaddle       |
 | NCNN          | `ncnn`        | Mobile neural network    |
+| LiteRT        | `litert`      | Mobile/edge and browser  |
 | Edge TPU      | `edgetpu`     | Google Coral devices     |
-| TF.js         | `tfjs`        | Browser inference        |
 | MNN           | `mnn`         | Alibaba mobile inference |
 | RKNN          | `rknn`        | Rockchip NPU             |
 | Qualcomm      | `qnn`         | Qualcomm Snapdragon NPU  |
@@ -2314,10 +2313,10 @@ for r in results:
 
 ```python
 # Export to ONNX
-model.export(format="onnx", imgsz=640, half=True)
+model.export(format="onnx", imgsz=640, quantize=16)
 
 # Export to TensorRT
-model.export(format="engine", imgsz=640, half=True)
+model.export(format="engine", imgsz=640, quantize=16)
 
 # Export to CoreML
 model.export(format="coreml", imgsz=640)

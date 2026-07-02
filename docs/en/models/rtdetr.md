@@ -102,7 +102,7 @@ This example provides simple RT-DETR training and inference examples. For full d
     results = rtdetr("path/to/image.jpg")
 
     # Export uses the same decoder and query settings, including TensorRT exports.
-    rtdetr.export(format="engine", device=0, half=True)
+    rtdetr.export(format="engine", device=0, quantize=16)
     ```
 
 ## Supported Tasks and Modes
@@ -213,6 +213,12 @@ Baidu's RT-DETR stands out due to its efficient hybrid encoder and IoU-aware que
 ### How does RT-DETR support adaptable inference speed for different real-time applications?
 
 Baidu's RT-DETR allows flexible adjustments of inference speed by using different decoder layers without requiring retraining. This adaptability is crucial for scaling performance across various real-time object detection tasks. Whether you need faster processing for lower [precision](https://www.ultralytics.com/glossary/precision) needs or slower, more accurate detections, RT-DETR can be tailored to meet your specific requirements. This feature is particularly valuable when deploying models across devices with varying computational capabilities.
+
+### Can `max_det` make RT-DETR return more than 300 detections?
+
+No. For RT-DETR, `max_det` caps how many predictions are returned after inference, but it does not increase the number of object queries produced by the decoder. The Ultralytics RT-DETR pretrained checkpoints use 300 object queries, so they cannot return more than 300 detections per image even if you set `max_det` to a larger value.
+
+Use `max_det` to reduce returned detections, for example `max_det=100`, when you only need fewer high-confidence predictions. If your dataset can contain more than 300 objects per image, train a custom RT-DETR model with a higher decoder query count (`nq`) in the model YAML; changing this value on a pretrained checkpoint after training is not equivalent and requires retraining to learn the additional queries.
 
 ### Can I use RT-DETR models with other Ultralytics modes, such as training, validation, and export?
 

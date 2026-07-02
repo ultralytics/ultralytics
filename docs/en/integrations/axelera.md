@@ -132,9 +132,25 @@ For detailed instructions, see our [Ultralytics Installation guide](../quickstar
     sudo modprobe metis
     ```
 
-!!! note "Keep the driver in sync with the SDK"
+!!! note "Keep the kernel driver in sync with the SDK"
 
-    The kernel driver installed above is separate from the Python SDK packages. When you upgrade the SDK (for example 1.6 to 1.7), install the matching driver version too — a driver out of sync with the runtime shows up as a runtime error. Run `axdevice` (see [Device Health Check](#device-health-check)) to check the installed driver and device status.
+    The kernel driver is installed separately from the Python SDK packages, so after upgrading the SDK (for example 1.6 to 1.7) you must install the matching driver version. An out-of-sync driver leaves the device unavailable: `axdevice` reports the required version and fails to open the device.
+
+    ```
+    [libaxldev.c:285] Found kernel driver version 1.4.16, but at least version 1.4.18 is required. Please update the kernel driver
+    ERROR: AXR_ERROR_CONNECTION_ERROR: Failed to open device metis-0:4:0
+    ```
+
+    Install the driver version that matches your SDK — see [Step 3: Install the Metis kernel driver](https://docs.axelera.ai/sdk/user-guides/sdk-install#step-3-install-the-metis-kernel-driver). If you are already running an earlier SDK on Ubuntu, update the driver and reload the kernel module (no reboot required):
+
+    ```bash
+    sudo apt update
+    sudo apt install -y metis-dkms=1.5.5
+    sudo rmmod metis
+    sudo modprobe metis
+    ```
+
+    Then re-run `axdevice` to confirm the device is detected.
 
 !!! tip "First run downloads the SDK automatically"
 
@@ -218,15 +234,15 @@ The Axelera format supports the [Export](../modes/export.md), [Predict](../modes
 
 ### Export Arguments
 
-| Argument   | Type             | Default          | Description                                                                                                                             |
-| :--------- | :--------------- | :--------------- | :-------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`   | `str`            | `'axelera'`      | Target format for Axelera Metis AIPU hardware.                                                                                          |
-| `imgsz`    | `int` or `tuple` | `640`            | Image size for model input.                                                                                                             |
-| `batch`    | `int`            | `1`              | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
-| `int8`     | `bool`           | `True`           | Enable [INT8 quantization](https://www.ultralytics.com/glossary/model-quantization) for AIPU.                                           |
-| `data`     | `str`            | `'coco128.yaml'` | [Dataset](../datasets/index.md) config for quantization calibration.                                                                    |
-| `fraction` | `float`          | `1.0`            | Fraction of dataset for calibration (100-400 images recommended).                                                                       |
-| `device`   | `str`            | `None`           | Export device: GPU (`device=0`) or CPU (`device=cpu`).                                                                                  |
+| Argument   | Type             | Default          | Description                                                                                                                                                                                                          |
+| :--------- | :--------------- | :--------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`            | `'axelera'`      | Target format for Axelera Metis AIPU hardware.                                                                                                                                                                       |
+| `imgsz`    | `int` or `tuple` | `640`            | Image size for model input.                                                                                                                                                                                          |
+| `batch`    | `int`            | `1`              | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                              |
+| `quantize` | `int` or `str`   | `8`/auto         | Quantization precision. `8` (INT8) is required and auto-enabled for the Axelera AIPU. Replaces the deprecated `half`/`int8` flags. See [INT8 quantization](https://www.ultralytics.com/glossary/model-quantization). |
+| `data`     | `str`            | `'coco128.yaml'` | [Dataset](../datasets/index.md) config for quantization calibration.                                                                                                                                                 |
+| `fraction` | `float`          | `1.0`            | Fraction of dataset for calibration (100-400 images recommended).                                                                                                                                                    |
+| `device`   | `str`            | `None`           | Export device: GPU (`device=0`) or CPU (`device=cpu`).                                                                                                                                                               |
 
 For all export options, see the [Export Mode documentation](../modes/export.md).
 

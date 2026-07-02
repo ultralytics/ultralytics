@@ -40,7 +40,7 @@ yolo export model=yolo26n-sem.pt format=onnx opset=12          # semantic
 yolo export model=yolo11n.pt format=onnx opset=12 dynamic=True # YOLOv8/YOLO11 (grid) work too
 ```
 
-Add `half=True device=0` to export an FP16 model on a GPU; the client reads the input/output datatype from the metadata and handles FP16 or FP32 automatically.
+Add `quantize=16 device=0` to export an FP16 model on a GPU; the client reads the input/output datatype from the metadata and handles FP16 or FP32 automatically.
 
 Place the exported model under `<repository>/<model_name>/1/model.onnx`. Triton's ONNX backend auto-completes the configuration, so a `config.pbtxt` is optional. A minimal repository looks like:
 

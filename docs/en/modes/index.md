@@ -174,7 +174,7 @@ Benchmark mode in Ultralytics YOLO26 is used to analyze the speed and [accuracy]
 
         # Run benchmark on GPU (device 0)
         # You can adjust parameters like model, dataset, image size, and precision as needed
-        benchmark(model="yolo26n.pt", data="coco8.yaml", imgsz=640, half=False, device=0)
+        benchmark(model="yolo26n.pt", data="coco8.yaml", imgsz=640, device=0)
         ```
 
     === "CLI"
@@ -182,7 +182,7 @@ Benchmark mode in Ultralytics YOLO26 is used to analyze the speed and [accuracy]
         ```bash
         # Benchmark a YOLO model from the command line
         # Adjust parameters as needed for your specific use case
-        yolo benchmark model=yolo26n.pt data='coco8.yaml' imgsz=640 half=False device=0
+        yolo benchmark model=yolo26n.pt data='coco8.yaml' imgsz=640 device=0
         ```
 
 For more details, refer to the [Benchmark Guide](../modes/benchmark.md).

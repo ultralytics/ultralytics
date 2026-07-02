@@ -101,7 +101,7 @@ detections = detections[detections[:, 4] > conf_threshold]  # confidence filter 
 
 ### Switching to the One-to-Many Head
 
-If you need the traditional YOLO output format (for example, to reuse existing NMS-based post-processing code), you can switch to the one-to-many head at any time by setting `end2end=False`:
+If you need the traditional YOLO output format (for example, to reuse existing NMS-based post-processing code), you can switch to the one-to-many head when it is available by setting `end2end=False`:
 
 !!! example "Using the one-to-many head for traditional NMS-based output"
 
@@ -132,7 +132,7 @@ If you need the traditional YOLO output format (for example, to reuse existing N
 
 ## Export Format Compatibility
 
-Most [export formats](../modes/export.md#export-formats) support end-to-end inference out of the box, including [ONNX](../integrations/onnx.md), [TensorRT](../integrations/tensorrt.md), [CoreML](../integrations/coreml.md), [OpenVINO](../integrations/openvino.md), [TFLite](../integrations/tflite.md), [TF.js](../integrations/tfjs.md), and [MNN](../integrations/mnn.md).
+Most [export formats](../modes/export.md#export-formats) support end-to-end inference out of the box, including [ONNX](../integrations/onnx.md), [TensorRT](../integrations/tensorrt.md), [CoreML](../integrations/coreml.md), [OpenVINO](../integrations/openvino.md), [LiteRT](../integrations/litert.md), and [MNN](../integrations/mnn.md).
 
 The following formats **do not** support end-to-end and automatically fall back to the one-to-many head: [NCNN](../integrations/ncnn.md), [RKNN](../integrations/rockchip-rknn.md), [PaddlePaddle](../integrations/paddlepaddle.md), [ExecuTorch](../integrations/executorch.md), [IMX](../integrations/sony-imx500.md), [Edge TPU](../integrations/edge-tpu.md), and [Qualcomm QNN](../integrations/qnn.md).
 
@@ -144,7 +144,7 @@ For [Hailo HEF](../integrations/hailo.md), the compile step happens outside `mod
 
 !!! note "TensorRT + INT8"
 
-    [TensorRT](../integrations/tensorrt.md) supports end-to-end, but it is **auto-disabled** when exporting with `int8=True` on TensorRT 10.3.0 on JetPack 6.
+    [TensorRT](../integrations/tensorrt.md) supports end-to-end, but it is **auto-disabled** when exporting with `quantize=8` on TensorRT 10.3.0 on JetPack 6.
 
 ## Accuracy and Speed Tradeoffs
 
@@ -168,8 +168,8 @@ If you're upgrading an existing project to YOLO26, here's a quick checklist to e
 - **Ultralytics API / CLI users:** No changes needed — just update the model name to `yolo26n.pt` (or `yolo26n-seg.pt`, `yolo26n-pose.pt`, `yolo26n-obb.pt`)
 - **Custom post-processing code:** Update to handle the new output shapes — `(N, 300, 6)` for detection, plus task-specific data for [segmentation](../tasks/segment.md), [pose](../tasks/pose.md), and [OBB](../tasks/obb.md). Also note the box format change from `xywh` to `xyxy`
 - **Export pipelines:** Check the [format compatibility](#export-format-compatibility) section for your target format
-- **TensorRT + INT8:** On JetPack 6, TensorRT 10.3.0 auto-disables end-to-end with `int8=True` — use a different TensorRT version to keep end-to-end
-- **FP16 exports:** If you need all outputs in FP16, export with `end2end=False` — see [why output0 stays FP32](../modes/export.md#why-is-output0-fp32-when-exporting-with-halftrue-and-end2endtrue)
+- **TensorRT + INT8:** On JetPack 6, TensorRT 10.3.0 auto-disables end-to-end with `quantize=8` — use a different TensorRT version to keep end-to-end
+- **FP16 exports:** If you need all outputs in FP16, export with `end2end=False` — see [why output0 stays FP32](../modes/export.md#why-is-output0-fp32-when-exporting-quantized-models-with-end2endtrue)
 - **iOS / CoreML:** End-to-end is fully supported. If you need Xcode Preview support, use `end2end=False` with `nms=True`
 - **Edge devices (NCNN, RKNN):** These formats auto-fallback to one-to-many, so include NMS in your on-device pipeline
 

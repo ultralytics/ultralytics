@@ -75,7 +75,7 @@ from ultralytics import YOLO
 model = YOLO("yolo26n.pt")
 
 # Export the model to OpenVINO format
-model.export(format="openvino", half=True)  # Export with FP16 precision
+model.export(format="openvino", quantize=16)  # Export with FP16 precision
 ```
 
 After exporting, you can run inference with the optimized model:
@@ -154,6 +154,6 @@ Yes, Ultralytics YOLO models are highly versatile and can be integrated with var
 
 - **TensorRT:** For NVIDIA GPU optimization, follow the [TensorRT integration guide](../integrations/tensorrt.md).
 - **CoreML:** For Apple devices, refer to our [CoreML export instructions](../integrations/coreml.md).
-- **[TensorFlow](https://www.ultralytics.com/glossary/tensorflow).js:** For web and Node.js apps, see the [TF.js conversion guide](../integrations/tfjs.md).
+- **LiteRT.js:** For web and Node.js apps, see the [LiteRT integration guide](../integrations/litert.md) and the [LiteRT.js web runtime](https://developers.google.com/edge/litert/web).
 
 Explore more integrations on the [Ultralytics Integrations page](../integrations/index.md).

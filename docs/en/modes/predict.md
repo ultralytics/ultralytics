@@ -45,7 +45,7 @@ Here's why you should consider YOLO26's predict mode for your various inference 
 YOLO26's predict mode is designed to be robust and versatile, featuring:
 
 - **Multiple Data Source Compatibility:** Whether your data is in the form of individual images, a collection of images, video files, or real-time video streams, predict mode has you covered.
-- **Streaming Mode:** Use the streaming feature to generate a memory-efficient generator of `Results` objects. Enable this by setting `stream=True` in the predictor's call method.
+- **Streaming Mode:** Use the streaming feature to generate a memory-efficient generator of `Results` objects. Enable this by setting `stream=True` in the predictor's call method. Unlike the default behavior (`stream=False`), which returns a list containing all results, `stream=True` yields results one at a time, making it especially useful for long videos and live streams.
 - **Batch Processing:** Process multiple images or video frames in a single batch, further reducing total inference time.
 - **Integration Friendly:** Easily integrate with existing data pipelines and other software components, thanks to its flexible API.
 
@@ -396,10 +396,6 @@ Below are code examples for using each source type:
 
 `model.predict()` accepts multiple arguments that can be passed at inference time to override defaults:
 
-!!! note "Arguments persist on the reused predictor"
-
-    A loaded `model` reuses a single predictor across calls, so an argument you pass once stays in effect on later calls until you explicitly override it. This is easy to overlook with `model.embed()`, which is shorthand for `model.predict(embed=[...])`: after you call it, subsequent `model.predict()` calls keep returning embedding tensors instead of [`Results`](#working-with-results) objects. Pass `embed=None` to restore normal predictions.
-
 ### Fixed shape vs minimum rectangle (`rect`)
 
 By default, predict uses **`rect=True`**, which enables **minimum-rectangle** padding when possible. The image is scaled to fit inside `imgsz` and padded only to the nearest stride multiple, so the final tensor may be **smaller** than `imgsz`. Minimum-rectangle padding is only used when **all images in the batch have the same shape** and the backend supports it (PyTorch `.pt`, or dynamic ONNX / Triton). Otherwise, images are padded to the **full** `imgsz` target.
@@ -457,22 +453,21 @@ The below table contains valid Ultralytics image formats.
 
     HEIC/HEIF formats require `pi-heif`, which is installed automatically on first use. AVIF is supported natively by Pillow.
 
-| Image Suffixes | Example Predict Command              | Reference                                                                  |
-| -------------- | ------------------------------------ | -------------------------------------------------------------------------- |
-| `.avif`        | `yolo predict source=image.avif`     | [AV1 Image File Format](https://en.wikipedia.org/wiki/AVIF)                |
-| `.bmp`         | `yolo predict source=image.bmp`      | [Microsoft BMP File Format](https://en.wikipedia.org/wiki/BMP_file_format) |
-| `.dng`         | `yolo predict source=image.dng`      | [Adobe DNG](https://en.wikipedia.org/wiki/Digital_Negative)                |
-| `.heic`        | `yolo predict source=image.heic`     | [High Efficiency Image Format](https://en.wikipedia.org/wiki/HEIF)         |
-| `.heif`        | `yolo predict source=image.heif`     | [High Efficiency Image Format](https://en.wikipedia.org/wiki/HEIF)         |
-| `.jp2`         | `yolo predict source=image.jp2`      | [JPEG 2000](https://en.wikipedia.org/wiki/JPEG_2000)                       |
-| `.jpeg`        | `yolo predict source=image.jpeg`     | [JPEG](https://en.wikipedia.org/wiki/JPEG)                                 |
-| `.jpeg2000`    | `yolo predict source=image.jpeg2000` | [JPEG 2000](https://en.wikipedia.org/wiki/JPEG_2000)                       |
-| `.jpg`         | `yolo predict source=image.jpg`      | [JPEG](https://en.wikipedia.org/wiki/JPEG)                                 |
-| `.mpo`         | `yolo predict source=image.mpo`      | [Multi Picture Object](https://fileinfo.com/extension/mpo)                 |
-| `.png`         | `yolo predict source=image.png`      | [Portable Network Graphics](https://en.wikipedia.org/wiki/PNG)             |
-| `.tif`         | `yolo predict source=image.tif`      | [Tag Image File Format](https://en.wikipedia.org/wiki/TIFF)                |
-| `.tiff`        | `yolo predict source=image.tiff`     | [Tag Image File Format](https://en.wikipedia.org/wiki/TIFF)                |
-| `.webp`        | `yolo predict source=image.webp`     | [WebP](https://en.wikipedia.org/wiki/WebP)                                 |
+| Image Suffixes | Example Predict Command          | Reference                                                                  |
+| -------------- | -------------------------------- | -------------------------------------------------------------------------- |
+| `.avif`        | `yolo predict source=image.avif` | [AV1 Image File Format](https://en.wikipedia.org/wiki/AVIF)                |
+| `.bmp`         | `yolo predict source=image.bmp`  | [Microsoft BMP File Format](https://en.wikipedia.org/wiki/BMP_file_format) |
+| `.dng`         | `yolo predict source=image.dng`  | [Adobe DNG](https://en.wikipedia.org/wiki/Digital_Negative)                |
+| `.heic`        | `yolo predict source=image.heic` | [High Efficiency Image Format](https://en.wikipedia.org/wiki/HEIF)         |
+| `.heif`        | `yolo predict source=image.heif` | [High Efficiency Image Format](https://en.wikipedia.org/wiki/HEIF)         |
+| `.jp2`         | `yolo predict source=image.jp2`  | [JPEG 2000](https://en.wikipedia.org/wiki/JPEG_2000)                       |
+| `.jpeg`        | `yolo predict source=image.jpeg` | [JPEG](https://en.wikipedia.org/wiki/JPEG)                                 |
+| `.jpg`         | `yolo predict source=image.jpg`  | [JPEG](https://en.wikipedia.org/wiki/JPEG)                                 |
+| `.mpo`         | `yolo predict source=image.mpo`  | [Multi Picture Object](https://fileinfo.com/extension/mpo)                 |
+| `.png`         | `yolo predict source=image.png`  | [Portable Network Graphics](https://en.wikipedia.org/wiki/PNG)             |
+| `.tif`         | `yolo predict source=image.tif`  | [Tag Image File Format](https://en.wikipedia.org/wiki/TIFF)                |
+| `.tiff`        | `yolo predict source=image.tiff` | [Tag Image File Format](https://en.wikipedia.org/wiki/TIFF)                |
+| `.webp`        | `yolo predict source=image.webp` | [WebP](https://en.wikipedia.org/wiki/WebP)                                 |
 
 ### Videos
 
@@ -983,6 +978,20 @@ To optimize inference speed and manage memory efficiently, you can use the strea
 ### What inference arguments does Ultralytics YOLO support?
 
 The `model.predict()` method in YOLO supports various arguments such as `conf`, `iou`, `imgsz`, `device`, and more. These arguments allow you to customize the inference process, setting parameters like confidence thresholds, image size, and the device used for computation. Detailed descriptions of these arguments can be found in the [inference arguments](#inference-arguments) section.
+
+### How do I extract embeddings from a YOLO model?
+
+Use `model.embed(source)` to extract feature embeddings from the second-to-last layer, or pass `embed=[layer_index]` to `model.predict()` to choose specific layers.
+
+```python
+from ultralytics import YOLO
+
+model = YOLO("yolo26n.pt")
+source = "https://ultralytics.com/images/bus.jpg"
+
+results = model.predict(source)  # Results objects
+embeddings = model.embed(source)  # list of torch.Tensor embeddings
+```
 
 ### How can I visualize and save the results of YOLO predictions?
 

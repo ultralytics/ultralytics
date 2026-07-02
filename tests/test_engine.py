@@ -260,6 +260,45 @@ def test_checkpoint_fp16_overflow():
     )
 
 
+def test_checkpoint_nonfinite_ema_resync():
+    """Test a non-finite EMA on a finite model is resynced (not skipped) so the run still produces a checkpoint."""
+
+    def poison_ema(trainer):
+        """Make the live fp32 EMA genuinely non-finite while the model stays finite (sticky-NaN on a finite-loss run)."""
+        if trainer.ema is not None:
+            next(iter(trainer.ema.ema.parameters())).data.flatten()[0] = float("inf")
+
+    overrides = {"data": "coco8.yaml", "model": "yolo26n.yaml", "imgsz": 32, "epochs": 2}
+    trainer = detect.DetectionTrainer(overrides=overrides)
+    trainer.add_callback("on_train_epoch_end", poison_ema)
+    trainer.train()
+    assert trainer.last.exists(), "no checkpoint saved when the EMA went non-finite on a finite model"
+    model, _ = load_checkpoint(trainer.last)
+    assert all(torch.isfinite(v).all() for v in model.state_dict().values() if isinstance(v, torch.Tensor)), (
+        "saved checkpoint contains NaN/Inf"
+    )
+
+
+def test_checkpoint_nonfinite_ema_and_model_sanitized():
+    """Test a tensor non-finite in both EMA and model is sanitized (not skipped) so the run still produces a checkpoint."""
+
+    def poison_ema_and_model(trainer):
+        """Force the first parameter non-finite in both the live EMA and the model (finite-loss sticky-NaN)."""
+        if trainer.ema is not None:
+            next(iter(trainer.ema.ema.parameters())).data.flatten()[0] = float("inf")
+            next(iter(unwrap_model(trainer.model).parameters())).data.flatten()[0] = float("nan")
+
+    overrides = {"data": "coco8.yaml", "model": "yolo26n.yaml", "imgsz": 32, "epochs": 1}
+    trainer = detect.DetectionTrainer(overrides=overrides)
+    trainer.add_callback("on_train_epoch_end", poison_ema_and_model)
+    trainer.train()
+    assert trainer.last.exists(), "no checkpoint saved when a tensor went non-finite in both EMA and model"
+    model, _ = load_checkpoint(trainer.last)
+    assert all(torch.isfinite(v).all() for v in model.state_dict().values() if isinstance(v, torch.Tensor)), (
+        "saved checkpoint contains NaN/Inf"
+    )
+
+
 @pytest.mark.parametrize(
     "kwargs,uses_weights",
     [({}, True), ({"pretrained": True}, True), ({"pretrained": False}, False), ({"pretrained": MODEL}, True)],
@@ -305,6 +344,38 @@ def test_train_reuses_loaded_checkpoint_model(monkeypatch, kwargs, uses_weights)
     assert captured["trainer"].model is original_model, "Trainer model does not match original"
     assert captured["cfg"] == original_model.yaml, f"Config mismatch: {captured['cfg']} != {original_model.yaml}"
     assert captured["weights"] is (original_model if uses_weights else None), "Unexpected weights loaded"
+
+
+def test_train_multi_custom_trainer_metrics_and_failure_keys(monkeypatch, tmp_path):
+    """Test custom multi-dataset runs keep memory metrics and unique failure keys."""
+    model = YOLO(MODEL)
+    calls = 0
+
+    class FakeTrainer:
+        def __init__(self, overrides=None, _callbacks=None):
+            pass
+
+        def get_model(self, cfg=None, weights=None, verbose=True):
+            return model.model
+
+        def train(self):
+            nonlocal calls
+            calls += 1
+            if calls == 2:
+                raise RuntimeError("failed repeated dataset")
+            self.validator = SimpleNamespace(metrics=SimpleNamespace(results_dict={"fitness": 1.0}))
+
+    monkeypatch.setattr("ultralytics.engine.model.checks.check_pip_update_available", lambda: None)
+    results = model.train(
+        data=["coco8.yaml", "coco8.yaml"],
+        project=tmp_path,
+        plots=False,
+        save=False,
+        trainer=FakeTrainer,
+    )
+
+    assert model.trainer.trainer is FakeTrainer
+    assert results == {"coco8": {"fitness": 1.0}, "coco8-2": None}
 
 
 @pytest.mark.parametrize("pretrained,uses_weights", [(True, True), (False, False), (MODEL, True)])

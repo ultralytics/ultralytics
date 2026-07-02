@@ -23,7 +23,6 @@ Usage - formats:
                               yolo26n.mlpackage          # CoreML (macOS-only)
                               yolo26n_saved_model        # TensorFlow SavedModel
                               yolo26n.pb                 # TensorFlow GraphDef
-                              yolo26n.tflite             # TensorFlow Lite
                               yolo26n_edgetpu.tflite     # TensorFlow Edge TPU
                               yolo26n_paddle_model       # PaddlePaddle
                               yolo26n.mnn                # MNN
@@ -34,6 +33,7 @@ Usage - formats:
                               yolo26n_axelera_model      # Axelera AI
                               yolo26n_deepx_model        # DEEPX
                               yolo26n_qnn.onnx           # Qualcomm QNN
+                              yolo26n.tflite             # LiteRT
 """
 
 from __future__ import annotations
@@ -404,13 +404,13 @@ class BasePredictor:
             device=select_device(self.args.device, verbose=verbose),
             dnn=self.args.dnn,
             data=self.args.data,
-            fp16=self.args.half,
+            fp16=self.args.quantize == 16,
             fuse=True,
             verbose=verbose,
         )
 
         self.device = self.model.device  # update device
-        self.args.half = self.model.fp16  # update half
+        self.args.quantize = 16 if self.model.fp16 else None  # record actual inference precision
         if hasattr(self.model, "imgsz") and not getattr(self.model, "dynamic", False):
             self.args.imgsz = self.model.imgsz  # reuse imgsz from export metadata
         self.model.eval()

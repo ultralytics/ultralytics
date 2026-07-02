@@ -220,6 +220,7 @@ def select_device(device="", newline=False, verbose=True):
         if "," in device:
             device = ",".join([x for x in device.split(",") if x])  # remove sequential commas, i.e. "0,,1" -> "0,1"
         visible = os.environ.get("CUDA_VISIBLE_DEVICES", None)
+        remap = remap or visible == device  # CVD applied at CUDA init (e.g. earlier call) -> indices already remapped
         os.environ["CUDA_VISIBLE_DEVICES"] = device  # set environment variable - must be before assert is_available()
         valid = (
             torch.cuda.device_count() >= len(device.split(","))

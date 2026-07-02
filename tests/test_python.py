@@ -60,6 +60,11 @@ def test_select_device_initialized_cuda(monkeypatch):
     assert str(torch_utils.select_device("1", verbose=False)) == "cuda:1"
     monkeypatch.setattr(torch_utils.torch.cuda, "is_initialized", lambda: False)
     assert str(torch_utils.select_device("1", verbose=False)) == "cuda:0"  # remapped via CUDA_VISIBLE_DEVICES
+    # Re-request after remap was applied (trainer final_eval): CVD="3" set pre-init, so GPU 3 is cuda:0 of 1 visible
+    monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "3")
+    monkeypatch.setattr(torch_utils.torch.cuda, "device_count", lambda: 1)
+    monkeypatch.setattr(torch_utils.torch.cuda, "is_initialized", lambda: True)
+    assert str(torch_utils.select_device("3", verbose=False)) == "cuda:0"
 
 
 def test_model_forward():

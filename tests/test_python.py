@@ -229,7 +229,7 @@ def test_track_second_association_indices():
     """Low-confidence detections matched in second association keep full detection-set indices."""
     from ultralytics.engine.results import Boxes
     from ultralytics.trackers.byte_tracker import BYTETracker
-    from ultralytics.utils import ROOT, IterableSimpleNamespace, YAML
+    from ultralytics.utils import ROOT, YAML, IterableSimpleNamespace
 
     args = IterableSimpleNamespace(**{**YAML.load(ROOT / "cfg/trackers/bytetrack.yaml"), "fuse_score": False})
     tracker = BYTETracker(args)

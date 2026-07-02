@@ -220,7 +220,8 @@ def select_device(device="", newline=False, verbose=True):
         if "," in device:
             device = ",".join([x for x in device.split(",") if x])  # remove sequential commas, i.e. "0,,1" -> "0,1"
         visible = os.environ.get("CUDA_VISIBLE_DEVICES", None)
-        remap |= visible == device  # requested devices already remapped by an earlier call in this process
+        # Treat as remapped if an earlier pre-init call already set CUDA_VISIBLE_DEVICES to these exact devices
+        remap |= visible == device and torch.cuda.device_count() == len(device.split(","))
         os.environ["CUDA_VISIBLE_DEVICES"] = device  # set environment variable - must be before assert is_available()
         valid = (
             torch.cuda.device_count() >= len(device.split(","))

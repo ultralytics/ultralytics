@@ -65,6 +65,11 @@ def test_select_device_initialized_cuda(monkeypatch):
     monkeypatch.setattr(torch_utils.torch.cuda, "device_count", lambda: 1)
     monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "3")
     assert str(torch_utils.select_device("3", verbose=False)) == "cuda:0"  # index 3 is visible device 0
+    # Post-init env write is a no-op for torch: repeated initialized calls must not misread it as a remap
+    monkeypatch.setattr(torch_utils.torch.cuda, "device_count", lambda: 2)
+    monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "0,1")
+    assert str(torch_utils.select_device("1", verbose=False)) == "cuda:1"  # writes CUDA_VISIBLE_DEVICES="1"
+    assert str(torch_utils.select_device("1", verbose=False)) == "cuda:1"  # still physical index, not a remap
 
 
 def test_model_forward():

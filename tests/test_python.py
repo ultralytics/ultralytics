@@ -232,7 +232,7 @@ def test_track_stream(model, tmp_path):
 
     Note imgsz=160 required for tracking for higher confidence and better matches.
     """
-    if model in {"yolo26n-cls.pt", "yolo26n-sem.pt"}:  # classification and semantic segmentation not supported
+    if model in {"yolo26n-cls.pt", "yolo26n-sem.pt", "yolo26n-reid.pt"}:  # tasks without detection boxes
         return
     from ultralytics.trackers.track import TRACKER_MAP
 
@@ -270,10 +270,11 @@ def test_val(task: str, weight: str, data: str) -> None:
         metrics.to_df()
         metrics.to_csv()
         metrics.to_json()
-        # Tests for confusion matrix export
-        metrics.confusion_matrix.to_df()
-        metrics.confusion_matrix.to_csv()
-        metrics.confusion_matrix.to_json()
+        if task != "reid":  # ReID uses a query-gallery retrieval protocol and reports no confusion matrix
+            # Tests for confusion matrix export
+            metrics.confusion_matrix.to_df()
+            metrics.confusion_matrix.to_csv()
+            metrics.confusion_matrix.to_json()
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
@@ -1017,7 +1018,7 @@ def test_grayscale(task: str, model: str, data: str, tmp_path) -> None:
     """Test YOLO model grayscale training, validation, and prediction functionality."""
     if IS_RASPBERRYPI and task == "semantic":
         skip_rpi_semantic()
-    if task == "classify":  # not support grayscale classification yet
+    if task in {"classify", "reid"}:  # ImageFolder-style datasets load 3-channel images; grayscale not supported
         return
     grayscale_data = tmp_path / f"{Path(data).stem}-grayscale.yaml"
     data = check_det_dataset(data)

@@ -2873,8 +2873,10 @@ def classify_augmentations(
     # Transforms to apply if Albumentations not installed
     import torchvision.transforms as T  # scope for faster 'import ultralytics'
 
-    if not isinstance(size, int):
-        raise TypeError(f"classify_augmentations() size {size} must be integer, not (list, tuple)")
+    if isinstance(size, (list, tuple)):
+        size = tuple(size)  # accept (H, W) tuples for rectangular input
+    elif not isinstance(size, int):
+        raise TypeError(f"classify_augmentations() size {size} must be integer or (H,W) tuple")
     scale = tuple(scale or (0.08, 1.0))  # default imagenet scale range
     ratio = tuple(ratio or (3.0 / 4.0, 4.0 / 3.0))  # default imagenet ratio range
     interpolation = getattr(T.InterpolationMode, interpolation)

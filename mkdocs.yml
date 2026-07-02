@@ -239,6 +239,7 @@ nav:
       - Classify: tasks/classify.md
       - Pose: tasks/pose.md
       - OBB: tasks/obb.md
+      - ReID: tasks/reid.md
   - Models:
       - models/index.md
       - YOLOv3: models/yolov3.md
@@ -492,6 +493,16 @@ nav:
           - Imagenette: datasets/classify/imagenette.md
           - Imagewoof: datasets/classify/imagewoof.md
           - MNIST: datasets/classify/mnist.md
+      - Re-Identification (ReID):
+          - datasets/reid/index.md
+          - Market-1501: datasets/reid/market1501.md
+          - DukeMTMC-reID: datasets/reid/dukemtmc.md
+          - MSMT17: datasets/reid/msmt17.md
+          - VeRi-776: datasets/reid/veri776.md
+          - ATRW: datasets/reid/atrw.md
+          - rOxford5k: datasets/reid/roxford5k.md
+          - RP2K: datasets/reid/rp2k.md
+          - LUPerson-NL: datasets/reid/luperson-nl.md
       - Oriented Bounding Boxes (OBB):
           - OBB Datasets: datasets/obb/index.md
           - DOTA8: datasets/obb/dota8.md
@@ -551,6 +562,8 @@ nav:
       - OpenVINO Latency vs Throughput modes: guides/optimizing-openvino-latency-vs-throughput-modes.md
       - Preprocessing Annotated Data: guides/preprocessing-annotated-data.md
       - Raspberry Pi: guides/raspberry-pi.md
+      - ReID Fine-Tuning on Custom Data: guides/reid-finetuning.md
+      - ReID Beyond Persons (Custom Domains): guides/reid-custom-dataset.md
       - ROS Quickstart: guides/ros-quickstart.md
       - SAHI Tiled Inference: guides/sahi-tiled-inference.md
       - Steps of a Computer Vision Project: guides/steps-of-a-cv-project.md
@@ -761,6 +774,11 @@ nav:
                   - predict: reference/models/yolo/pose/predict.md
                   - train: reference/models/yolo/pose/train.md
                   - val: reference/models/yolo/pose/val.md
+              - reid:
+                  - predict: reference/models/yolo/reid/predict.md
+                  - retrieval: reference/models/yolo/reid/retrieval.md
+                  - train: reference/models/yolo/reid/train.md
+                  - val: reference/models/yolo/reid/val.md
               - segment:
                   - predict: reference/models/yolo/segment/predict.md
                   - train: reference/models/yolo/segment/train.md
@@ -823,6 +841,7 @@ nav:
           - parking_management: reference/solutions/parking_management.md
           - queue_management: reference/solutions/queue_management.md
           - region_counter: reference/solutions/region_counter.md
+          - reid_visualizer: reference/solutions/reid_visualizer.md
           - security_alarm: reference/solutions/security_alarm.md
           - similarity_search: reference/solutions/similarity_search.md
           - solutions: reference/solutions/solutions.md

@@ -1650,6 +1650,290 @@ class ClassifyMetrics(SimpleClass, DataExportMixin):
         return [{"top1_acc": round(self.top1, decimals), "top5_acc": round(self.top5, decimals)}]
 
 
+class ReidMetrics(SimpleClass, DataExportMixin):
+    """Class for computing person re-identification metrics (mAP, CMC Rank-1/5/10).
+
+    Implements the standard Market-1501 evaluation protocol: for each query, rank gallery images by distance, excluding
+    same-pid-same-camid matches.
+
+    Attributes:
+        mAP (float): Mean Average Precision.
+        rank1 (float): CMC Rank-1 accuracy.
+        rank5 (float): CMC Rank-5 accuracy.
+        rank10 (float): CMC Rank-10 accuracy.
+        speed (dict): Timing information for each pipeline step.
+        task (str): The task type, set to 'reid'.
+        match_g_indices (list): Per-query top-K junk-filtered ranked gallery indices (for plotting).
+        match_dists (list): Per-query distances parallel to ``match_g_indices``.
+    """
+
+    PLOT_TOPK = 10  # number of ranked gallery matches retained per query for visualization
+
+    def __init__(self) -> None:
+        """Initialize ReidMetrics instance."""
+        self.mAP = 0.0
+        self.rank1 = 0.0
+        self.rank5 = 0.0
+        self.rank10 = 0.0
+        self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
+        self.task = "reid"
+        self.gallery_feats = None
+        self.gallery_pids = None
+        self.gallery_camids = None
+        # True iff gallery was provided by the validator (vs. fabricated from queries in the
+        # fallback below). Lets process() emit the no-gallery warning every epoch instead of
+        # silently scoring later epochs against the fallback set populated on epoch 1.
+        self._gallery_provided = False
+        # Per-query diagnostics retained for plotting: top-K junk-filtered ranked gallery
+        # indices and their distances, aligned to the query order passed to process().
+        self.match_g_indices = []
+        self.match_dists = []
+
+    def update_gallery(self, feats: np.ndarray, pids: np.ndarray, camids: np.ndarray):
+        """Update gallery features, person IDs, and camera IDs for re-identification evaluation.
+
+        Args:
+            feats (np.ndarray): Feature embeddings of gallery images.
+            pids (np.ndarray): Person identity labels for each gallery image.
+            camids (np.ndarray): Camera IDs corresponding to each gallery image.
+        """
+        self.gallery_feats = feats
+        self.gallery_pids = pids
+        self.gallery_camids = camids
+        self._gallery_provided = True
+
+    def process(self, query_feats, query_pids, query_camids, reranking: bool = False):
+        """Compute mAP and CMC from query/gallery features using Market-1501 protocol.
+
+        Resets self.mAP/rank1/rank5/rank10 at the top so an empty-eval epoch (e.g., disjoint
+        query/gallery pid universes, or fraction sweep that strips all positives) reports
+        zero rather than persisting the previous epoch's values — which would mislead the
+        `fitness=mAP` best-checkpoint selection.
+
+        Args:
+            query_feats (np.ndarray): Query features (Q, D).
+            query_pids (np.ndarray): Query person IDs (Q,).
+            query_camids (np.ndarray): Query camera IDs (Q,).
+            reranking (bool): Enable k-reciprocal re-ranking (Zhong et al., CVPR 2017).
+        """
+        self.mAP = 0.0
+        self.rank1 = 0.0
+        self.rank5 = 0.0
+        self.rank10 = 0.0
+        self.match_g_indices = []
+        self.match_dists = []
+        if not self._gallery_provided:
+            # Warn EVERY epoch — not just the first — so the fallback is visible in the log.
+            # Note: do NOT call self.update_gallery() here (which would flip _gallery_provided
+            # to True and silence the warning on subsequent epochs); use a private set-only path.
+            LOGGER.warning(
+                "ReidMetrics: no gallery path found in dataset config; using query as gallery for "
+                "this epoch's eval. Reported mAP/Rank-k are NOT the standard Market-1501 protocol."
+            )
+            self.gallery_feats = query_feats
+            self.gallery_pids = query_pids
+            self.gallery_camids = query_camids
+        if reranking:
+            dist = self._rerank_distance(query_feats, self.gallery_feats)
+        else:
+            # L2 distance matrix (Q, G)
+            dist = np.sqrt(
+                np.sum(query_feats**2, axis=1, keepdims=True)
+                + np.sum(self.gallery_feats**2, axis=1, keepdims=True).T
+                - 2 * query_feats @ self.gallery_feats.T
+            )
+            dist = np.clip(dist, 0, None)  # numerical stability
+
+        self._eval_distmat(dist, query_pids, query_camids)
+
+    def _eval_distmat(self, dist, query_pids, query_camids):
+        """Evaluate mAP and CMC from a precomputed distance matrix.
+
+        Args:
+            dist (np.ndarray): Distance matrix (Q, G).
+            query_pids (np.ndarray): Query person IDs (Q,).
+            query_camids (np.ndarray): Query camera IDs (Q,).
+        """
+        # Skip same-pid-same-camid exclusion when camera info is unavailable (all camids unique)
+        has_camid = len(set(self.gallery_camids.tolist())) < len(self.gallery_camids)
+
+        all_ap = []
+        all_cmc = []
+        # Cap cmc-curve length at K so per-query rows are constant length regardless of how
+        # many same-pid-same-camid positions get masked out (otherwise `np.array(all_cmc)`
+        # raises on inhomogeneous shape — small galleries like reid8 hit this).
+        K = min(50, len(self.gallery_pids))
+        for i in range(len(query_pids)):
+            q_pid = query_pids[i]
+
+            # Sort gallery by distance
+            order = np.argsort(dist[i])
+
+            # Standard Market-1501 protocol: same-pid-same-camid items are "junk" and are
+            # REMOVED from the ranking. Keep the surviving gallery INDICES (kept_order) so the
+            # visualization can show exactly the images that produced the score.
+            if has_camid:
+                q_camid = query_camids[i]
+                junk = (self.gallery_pids[order] == q_pid) & (self.gallery_camids[order] == q_camid)
+                kept_order = order[~junk]
+            else:
+                kept_order = order
+
+            g_pids_ranked = self.gallery_pids[kept_order]
+
+            # Retain top-K ranked gallery indices + distances for plotting (aligned to query i,
+            # populated for EVERY query including no-match ones so indices stay aligned).
+            topk = kept_order[: self.PLOT_TOPK]
+            self.match_g_indices.append(topk.copy())
+            self.match_dists.append(dist[i][topk].copy())
+
+            matches = (g_pids_ranked == q_pid).astype(np.float32)
+
+            if matches.sum() == 0:
+                continue  # skip queries with no remaining gallery match
+
+            # CMC: pad to constant length K. cmc is monotone non-decreasing, so when the
+            # ranking is shorter than K we extend with the last value (hit stays hit).
+            cum_tp = matches.cumsum()
+            cmc = (cum_tp > 0).astype(np.float32)
+            cmc_padded = np.full(K, cmc[-1], dtype=np.float32)
+            cmc_padded[: min(len(cmc), K)] = cmc[: min(len(cmc), K)]
+            all_cmc.append(cmc_padded)
+
+            # AP
+            num_rel = matches.sum()
+            precision = cum_tp / (np.arange(len(matches)) + 1)
+            ap = (precision * matches).sum() / num_rel
+            all_ap.append(ap)
+
+        if len(all_ap) == 0:
+            return
+
+        all_cmc = np.stack(all_cmc, axis=0)
+        cmc_curve = all_cmc.mean(axis=0)
+
+        self.mAP = float(np.mean(all_ap))
+        self.rank1 = float(cmc_curve[0]) if len(cmc_curve) > 0 else 0.0
+        self.rank5 = float(cmc_curve[4]) if len(cmc_curve) > 4 else 0.0
+        self.rank10 = float(cmc_curve[9]) if len(cmc_curve) > 9 else 0.0
+
+    @staticmethod
+    def _rerank_distance(query_feats, gallery_feats, k1=20, k2=6, lambda_value=0.3):
+        """Compute re-ranked distance matrix using k-reciprocal encoding (Zhong et al., CVPR 2017).
+
+        Args:
+            query_feats (np.ndarray): L2-normalized query features (Q, D).
+            gallery_feats (np.ndarray): L2-normalized gallery features (G, D).
+            k1 (int): K for k-reciprocal nearest neighbors.
+            k2 (int): K for query expansion.
+            lambda_value (float): Weight for original distance in final combination.
+
+        Returns:
+            (np.ndarray): Re-ranked distance matrix (Q, G).
+        """
+        # L2 normalize features for cosine similarity
+        q_norm = query_feats / (np.linalg.norm(query_feats, axis=1, keepdims=True) + 1e-12)
+        g_norm = gallery_feats / (np.linalg.norm(gallery_feats, axis=1, keepdims=True) + 1e-12)
+
+        # Pairwise similarity matrices
+        q_g_sim = q_norm @ g_norm.T
+        q_q_sim = q_norm @ q_norm.T
+        g_g_sim = g_norm @ g_norm.T
+
+        # Combined (Q+G) x (Q+G) distance matrix
+        original_dist = np.concatenate(
+            [np.concatenate([q_q_sim, q_g_sim], axis=1), np.concatenate([q_g_sim.T, g_g_sim], axis=1)],
+            axis=0,
+        )
+        original_dist = np.clip(2.0 - 2.0 * original_dist, 0, None).astype(np.float32)
+        original_dist /= original_dist.max(axis=1, keepdims=True) + 1e-12
+
+        all_num = original_dist.shape[0]
+        query_num = len(query_feats)
+        initial_rank = np.argpartition(original_dist, range(1, k1 + 1), axis=1)
+
+        # Build k-reciprocal encoding vectors
+        V = np.zeros_like(original_dist, dtype=np.float32)
+        for i in range(all_num):
+            # K-reciprocal neighbors
+            forward_k = initial_rank[i, : k1 + 1]
+            backward_k = initial_rank[forward_k, : k1 + 1]
+            k_recip = forward_k[np.where(backward_k == i)[0]]
+
+            # Expand by half-k reciprocal neighbors
+            k_recip_exp = k_recip.copy()
+            for j in range(len(k_recip)):
+                candidate = k_recip[j]
+                fwd = initial_rank[candidate, : int(np.around(k1 / 2)) + 1]
+                bwd = initial_rank[fwd, : int(np.around(k1 / 2)) + 1]
+                cand_recip = fwd[np.where(bwd == candidate)[0]]
+                if len(np.intersect1d(cand_recip, k_recip)) > 2.0 / 3 * len(cand_recip):
+                    k_recip_exp = np.append(k_recip_exp, cand_recip)
+            k_recip_exp = np.unique(k_recip_exp)
+
+            weight = np.exp(-original_dist[i, k_recip_exp])
+            V[i, k_recip_exp] = weight / (np.sum(weight) + 1e-12)
+
+        # Query expansion
+        if k2 != 1:
+            V_qe = np.zeros_like(V, dtype=np.float32)
+            for i in range(all_num):
+                V_qe[i, :] = np.mean(V[initial_rank[i, :k2], :], axis=0)
+            V = V_qe
+
+        # Jaccard distance (only for query rows)
+        jaccard_dist = np.zeros((query_num, all_num), dtype=np.float32)
+        for i in range(query_num):
+            temp_min = np.zeros(all_num, dtype=np.float32)
+            ind_nz = np.where(V[i, :] != 0)[0]
+            ind_images = [np.where(V[:, ind] != 0)[0] for ind in ind_nz]
+            for j in range(len(ind_nz)):
+                temp_min[ind_images[j]] += np.minimum(V[i, ind_nz[j]], V[ind_images[j], ind_nz[j]])
+            jaccard_dist[i] = 1 - temp_min / (2.0 - temp_min + 1e-12)
+
+        # Final: combine Jaccard with original distance (query-gallery block only)
+        original_q_g = original_dist[:query_num, query_num:]
+        jaccard_q_g = jaccard_dist[:, query_num:]
+        return jaccard_q_g * (1 - lambda_value) + original_q_g * lambda_value
+
+    @property
+    def fitness(self) -> float:
+        """Return mAP as the primary fitness score."""
+        return self.mAP
+
+    @property
+    def results_dict(self) -> dict[str, float]:
+        """Return a dictionary with model's performance metrics and fitness score."""
+        return dict(zip([*self.keys, "fitness"], [self.mAP, self.rank1, self.rank5, self.rank10, self.fitness]))
+
+    @property
+    def keys(self) -> list[str]:
+        """Return a list of keys for the results_dict property."""
+        return ["metrics/mAP", "metrics/rank1", "metrics/rank5", "metrics/rank10"]
+
+    @property
+    def curves(self) -> list:
+        """Return a list of curves for accessing specific metrics curves."""
+        return []
+
+    @property
+    def curves_results(self) -> list:
+        """Return a list of curves for accessing specific metrics curves."""
+        return []
+
+    def summary(self, normalize: bool = True, decimals: int = 5) -> list[dict[str, float]]:
+        """Generate a single-row summary of ReID metrics.
+
+        Args:
+            normalize (bool): For ReID metrics, everything is normalized by default [0-1].
+            decimals (int): Number of decimal places to round the metrics values to.
+
+        Returns:
+            (list[dict[str, float]]): A list with one dictionary containing mAP and Rank-1 accuracy.
+        """
+        return [{"mAP": round(self.mAP, decimals), "rank1": round(self.rank1, decimals)}]
+
+
 class OBBMetrics(DetMetrics):
     """Metrics for evaluating oriented bounding box (OBB) detection.
 

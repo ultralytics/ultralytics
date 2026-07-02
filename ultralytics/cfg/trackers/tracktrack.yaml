@@ -32,5 +32,5 @@ min_track_len: 3 # (int) Minimum history length before track is confirmed
 gmc_method: sparseOptFlow # (str) GMC method: sparseOptFlow, orb, sift, ecc, none
 
 # ReID
-with_reid: False # (bool) Enable ReID feature matching
-model: auto # (str) ReID model path; 'auto' uses native YOLO features
+with_reid: False # (bool) Enable ReID feature matching (off by default; set True to use the model below)
+model: yolo26n-reid.pt # (str) ReID encoder when with_reid=True. Recommended default for TrackTrack (trained person-ReID embedding). Use 'auto' for native detector features (lighter, weaker) or an exported file (.onnx/.engine/…).

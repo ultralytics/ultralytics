@@ -80,7 +80,8 @@ from ultralytics.data.dataset import ClassificationDataset
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.autobackend import check_class_names, default_class_names
 from ultralytics.nn.modules import C2f, Classify, Detect, RTDETRDecoder, Segment26, SemanticSegment
-from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, WorldModel
+from ultralytics.nn.modules.head import ReID
+from ultralytics.nn.tasks import ClassificationModel, DetectionModel, ReidModel, SegmentationModel, WorldModel
 from ultralytics.utils import (
     ARM64,
     DEFAULT_CFG,
@@ -122,6 +123,9 @@ from ultralytics.utils.torch_utils import (
     TORCH_2_9,
     select_device,
 )
+
+# Formats that support ReID models (embedding output, no detection head); shared with benchmarks.py
+REID_EXPORT_FORMATS = frozenset({"torchscript", "onnx", "openvino", "engine", "coreml", "mnn", "ncnn"})
 
 
 def export_formats():
@@ -569,6 +573,12 @@ class Exporter:
                 raise ValueError(
                     "IMX export only supported for detection, pose estimation, classification, and segmentation models."
                 )
+        if model.task == "reid" and fmt not in REID_EXPORT_FORMATS:
+            raise ValueError(
+                f"ReID export to {fmt!r} is not supported. ReID outputs an embedding vector and has no detection head, "
+                "so int8 (axelera/imx/edgetpu), TF graph builders, and detect-only pipelines do not apply. "
+                f"Use one of: {', '.join(sorted(REID_EXPORT_FORMATS))}."
+            )
         if not hasattr(model, "names"):
             model.names = default_class_names()
         model.names = check_class_names(model.names)
@@ -648,7 +658,9 @@ class Exporter:
             LOGGER.warning("'nms=True' is not valid for semantic segmentation models. Forcing 'nms=False'.")
             self.args.nms = False
         if self.args.nms:
-            assert not isinstance(model, ClassificationModel), "'nms=True' is not valid for classification models."
+            assert not isinstance(model, (ClassificationModel, ReidModel)), (
+                "'nms=True' is not valid for classification or ReID models (no detection boxes)."
+            )
             assert not is_tf_format or TORCH_1_13, "TensorFlow exports with NMS require torch>=1.13"
             assert fmt != "onnx" or TORCH_1_13, "ONNX export with NMS requires torch>=1.13"
             if getattr(model, "end2end", False) or isinstance(model.model[-1], RTDETRDecoder):
@@ -718,7 +730,7 @@ class Exporter:
 
             model = executorch_wrapper(model)
         for m in model.modules():
-            if isinstance(m, (Classify, SemanticSegment)):
+            if isinstance(m, (Classify, ReID, SemanticSegment)):
                 m.export = True
                 m.format = self.args.format
                 # Semantic argmax bake needs an integer graph output; TensorRT supports uint8 outputs only on TRT>=10
@@ -835,26 +847,49 @@ class Exporter:
     def get_int8_calibration_dataloader(self, prefix=""):
         """Build and return a dataloader for calibration of INT8 models."""
         LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
-        data = (check_cls_dataset if self.model.task == "classify" else check_det_dataset)(self.args.data)
-        cfg = deepcopy(self.args)
-        cfg.imgsz = max(self.imgsz)
-        if self.model.task == "classify":
-            import torchvision.transforms as T  # scope for faster 'import ultralytics'
-
-            dataset = ClassificationDataset(data[self.args.split or "val"], args=cfg, augment=False)
-            # INT8 backends divide images by 255, so emit uint8 [0, 255] center-cropped like classify inference
-            dataset.torch_transforms = T.Compose([T.Resize(cfg.imgsz), T.CenterCrop(cfg.imgsz), T.PILToTensor()])
+        if self.model.task == "reid":
+            data = check_det_dataset(self.args.data)
+            # ReID-specific default: prefer 'gallery' for INT8 calibration because the gallery split
+            # is designed for distributional coverage (Market-1501: 19k images across 6 cameras),
+            # whereas 'val' resolves to the query split (3k images, mostly single-view per identity)
+            # — a poor distribution to derive quantization scales from. Only honor an EXPLICIT
+            # user override; DEFAULT_CFG sets args.split='val' which we treat as unset for reid.
+            split = "gallery" if self.args.split in {None, "", "val"} else self.args.split
+            split_path = data.get(split)
+            if not split_path:
+                # Fall back through the remaining splits in priority order
+                for fallback in ("gallery", "val", "test"):
+                    if data.get(fallback):
+                        split = fallback
+                        split_path = data[fallback]
+                        break
+            assert split_path, f"ReID INT8 calibration could not find a usable split in {self.args.data!r}."
+            root = str(Path(data["path"]) / split_path) if "path" in data else str(split_path)
+            dataset = build_yolo_dataset(self.args, root, self.args.batch, data, mode=split)
         else:
-            dataset = build_yolo_dataset(
-                cfg,
-                data[self.args.split or "val"],
-                self.args.batch,
-                data,
-                mode="val",
-                fraction=self.args.fraction,
-            )
-        if hasattr(dataset, "transforms") and hasattr(dataset.transforms.transforms[0], "new_shape"):
-            dataset.transforms.transforms[0].new_shape = self.imgsz  # LetterBox with non-square imgsz
+            data = (check_cls_dataset if self.model.task == "classify" else check_det_dataset)(self.args.data)
+            cfg = deepcopy(self.args)
+            cfg.imgsz = max(self.imgsz)
+            if self.model.task == "classify":
+                import torchvision.transforms as T  # scope for faster 'import ultralytics'
+
+                dataset = ClassificationDataset(data[self.args.split or "val"], args=cfg, augment=False)
+                # INT8 backends divide images by 255, so emit uint8 [0, 255] center-cropped like classify inference
+                dataset.torch_transforms = T.Compose([T.Resize(cfg.imgsz), T.CenterCrop(cfg.imgsz), T.PILToTensor()])
+            else:
+                dataset = build_yolo_dataset(
+                    cfg,
+                    data[self.args.split or "val"],
+                    self.args.batch,
+                    data,
+                    mode="val",
+                    fraction=self.args.fraction,
+                )
+        # YOLODataset exposes `.transforms` (a compose); ReidDataset/ClassificationDataset expose
+        # `.torch_transforms` instead — gate the LetterBox new_shape patch on attribute presence.
+        transforms = getattr(dataset, "transforms", None)
+        if transforms is not None and hasattr(transforms.transforms[0], "new_shape"):
+            transforms.transforms[0].new_shape = self.imgsz  # LetterBox with non-square imgsz
         n = len(dataset)
         if n < 1:
             raise ValueError(f"The calibration dataset must have at least 1 image, but found {n} images.")
@@ -905,13 +940,20 @@ class Exporter:
             assert TORCH_1_13, f"'nms=True' ONNX export requires torch>=1.13 (found torch=={TORCH_VERSION})"
 
         f = str(self.file.with_suffix(".onnx"))
-        output_names = ["output0", "output1"] if self.model.task == "segment" else ["output0"]
+        if self.model.task == "reid":
+            output_names = ["embeddings"]
+        elif self.model.task == "segment":
+            output_names = ["output0", "output1"]
+        else:
+            output_names = ["output0"]
         dynamic = self.args.dynamic
         if dynamic:
             dynamic = {"images": {0: "batch", 2: "height", 3: "width"}}  # shape(1,3,640,640)
             if isinstance(self.model, SegmentationModel):
                 dynamic["output0"] = {0: "batch", 2: "anchors"}  # shape(1, 116, 8400)
                 dynamic["output1"] = {0: "batch", 2: "mask_height", 3: "mask_width"}  # shape(1,32,160,160)
+            elif isinstance(self.model, ReidModel):
+                dynamic["embeddings"] = {0: "batch"}  # shape(B, embed_dim)
             elif isinstance(self.model, DetectionModel):
                 dynamic["output0"] = {0: "batch", 2: "anchors"}  # shape(1, 84, 8400)
             if self.args.nms:  # only batch size is dynamic with NMS
@@ -1414,10 +1456,19 @@ class Exporter:
 
     @staticmethod
     def _transform_fn(data_item) -> np.ndarray:
-        """Quantization preprocessing transform for INT8 calibration (Axelera, OpenVINO, ONNX, QNN)."""
+        """Quantization preprocessing transform for INT8 calibration (Axelera, OpenVINO, ONNX, QNN).
+
+        Accepts both uint8 (YOLODataset / detect-style) and already-normalised float32
+        (ClassificationDataset / ReidDataset, which emit mean-subtracted/std-divided tensors
+        because their torch_transforms include Normalize). For uint8 inputs we normalize
+        here; for float32 we pass through unchanged.
+        """
         data_item: torch.Tensor = data_item["img"] if isinstance(data_item, dict) else data_item
-        assert data_item.dtype == torch.uint8, "Input image must be uint8 for the quantization preprocessing"
-        im = data_item.numpy().astype(np.float32) / 255.0  # uint8 to fp16/32 and 0 - 255 to 0.0 - 1.0
+        if data_item.dtype == torch.uint8:
+            im = data_item.numpy().astype(np.float32) / 255.0  # uint8 to fp32 and 0-255 to 0.0-1.0
+        else:
+            # Already a float tensor that's been through Normalize; just convert to numpy.
+            im = data_item.detach().cpu().numpy().astype(np.float32)
         return im[None] if im.ndim == 3 else im
 
     def add_callback(self, event: str, callback):

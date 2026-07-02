@@ -20,6 +20,7 @@ from ultralytics.cfg import IterableSimpleNamespace
 from ultralytics.data.dataset import (
     GroundingDataset,
     PolygonSemanticDataset,
+    ReidDataset,
     SemanticDataset,
     YOLODataset,
     YOLOMultiModalDataset,
@@ -222,6 +223,181 @@ class ContiguousDistributedSampler(torch.utils.data.Sampler):
         self.epoch = epoch
 
 
+class IdentityBalancedSampler(torch.utils.data.Sampler):
+    """P-K sampler for ReID: samples P identities x K images per batch.
+
+    Each iteration: shuffle pids, pick P, sample K images per pid (with replacement if fewer than K available).
+
+    In DDP the full PID list is shuffled deterministically from (epoch, base_seed) so all ranks agree on the ordering,
+    then each rank takes a disjoint shard via `pids[rank::world_size]`. Every epoch a new seed is derived from `epoch *
+    LARGE_PRIME + rank` so ranks and epochs are uncorrelated. All randomness is driven by a local `random.Random`
+    instance — no reliance on the global `random` state or `torch`'s global RNG.
+
+    The trainer must call `set_epoch(epoch)` at the start of each epoch for proper per-epoch shuffling and cross-rank
+    coordination, mirroring `torch.utils.data.distributed.DistributedSampler`.
+
+    Args:
+        dataset (ReidDataset): A ReidDataset with pid_to_indices attribute.
+        p (int): Number of identities per batch.
+        k (int): Number of images per identity per batch.
+        num_replicas (int, optional): Number of distributed processes.
+        rank (int, optional): Rank of current process.
+        seed (int, optional): Base seed combined with the epoch for deterministic shuffling.
+    """
+
+    _LARGE_PRIME = 2_147_483_647  # Mersenne prime, epoch multiplier for seed derivation
+
+    def __init__(
+        self,
+        dataset,
+        p: int = 16,
+        k: int = 4,
+        num_replicas: int | None = None,
+        rank: int | None = None,
+        seed: int = 42,
+    ):
+        """Initialize IdentityBalancedSampler."""
+        self.pid_to_indices = dataset.pid_to_indices
+        self.pids = list(self.pid_to_indices.keys())
+        self.p = p
+        self.k = k
+        self.batch_size = p * k
+
+        if num_replicas is None:
+            num_replicas = dist.get_world_size() if dist.is_initialized() else 1
+        if rank is None:
+            rank = dist.get_rank() if dist.is_initialized() else 0
+        self.num_replicas = num_replicas
+        self.rank = rank
+        self.seed = seed
+        self.epoch = 0
+
+        # Per-rank PID shard: each rank walks a disjoint slice of the globally shuffled PID list.
+        # num_batches must be IDENTICAL across all ranks — otherwise ranks with shorter shards
+        # finish early and DDP all-reduce hangs at the next collective. We take the floor of the
+        # smallest shard's batch count so every rank stops at the same iteration.
+        min_pids_per_rank = len(self.pids) // self.num_replicas
+        self.num_batches = max(min_pids_per_rank // self.p, 1)
+        self.total_size = self.num_batches * self.batch_size
+
+    def _derive_seed(self, epoch: int) -> int:
+        """Derive a reproducible per-(epoch, rank) seed."""
+        return (epoch * self._LARGE_PRIME + self.rank + self.seed) & 0xFFFFFFFF
+
+    def _shuffled_pids(self, epoch: int) -> list:
+        """Return the full PID list shuffled deterministically from (epoch, seed). Identical across ranks."""
+        # Seed independent of rank so every rank produces the same global ordering before sharding.
+        rng = random.Random((epoch * self._LARGE_PRIME + self.seed) & 0xFFFFFFFF)
+        pids = list(self.pids)
+        rng.shuffle(pids)
+        return pids
+
+    def _shard_pids(self, pid_order: list) -> list:
+        """Return this rank's disjoint slice of the (already-shuffled) PID list."""
+        return pid_order[self.rank :: self.num_replicas]
+
+    def __iter__(self) -> Iterator:
+        """Generate indices for PK sampling."""
+        rng = random.Random(self._derive_seed(self.epoch))
+
+        # Shuffle the full PID list identically on every rank, then take this rank's shard.
+        pid_order = self._shard_pids(self._shuffled_pids(self.epoch))
+
+        indices = []
+        for pid in pid_order:
+            pid_indices = self.pid_to_indices[pid]
+            if len(pid_indices) >= self.k:
+                selected = rng.sample(pid_indices, self.k)
+            else:
+                selected = rng.choices(pid_indices, k=self.k)
+            indices.extend(selected)
+            if len(indices) >= self.total_size:
+                break
+
+        # Pad if needed. Draw pad PIDs from this rank's shard to keep shards disjoint across ranks.
+        pad_pool = pid_order if pid_order else self.pids
+        while len(indices) < self.total_size:
+            pid = rng.choice(pad_pool)
+            pid_indices = self.pid_to_indices[pid]
+            if len(pid_indices) >= self.k:
+                selected = rng.sample(pid_indices, self.k)
+            else:
+                selected = rng.choices(pid_indices, k=self.k)
+            indices.extend(selected)
+
+        return iter(indices[: self.total_size])
+
+    def __len__(self) -> int:
+        """Return the number of samples per epoch."""
+        return self.total_size
+
+    def set_epoch(self, epoch: int) -> None:
+        """Set the epoch for this sampler. Must be called each epoch before iteration (see DistributedSampler).
+
+        Args:
+            epoch (int): Epoch number used (with rank and seed) to derive the shuffle seed.
+        """
+        self.epoch = epoch
+
+
+def build_reid_dataloader(
+    dataset,
+    batch_size: int,
+    workers: int,
+    p: int = 16,
+    k: int = 4,
+    shuffle: bool = True,
+    rank: int = -1,
+    pin_memory: bool = True,
+) -> InfiniteDataLoader:
+    """Build a dataloader for ReID with PK sampling for training or sequential for val.
+
+    Args:
+        dataset (ReidDataset): ReidDataset instance.
+        batch_size (int): Batch size (P*K for training, arbitrary for val).
+        workers (int): Number of data loading workers.
+        p (int): Number of identities per batch (training only).
+        k (int): Number of images per identity (training only).
+        shuffle (bool): Whether to use PK sampling (training) or sequential (val).
+        rank (int): Process rank for DDP.
+        pin_memory (bool): Whether to use pinned memory.
+
+    Returns:
+        (InfiniteDataLoader): Configured dataloader.
+    """
+    batch_size = min(batch_size, len(dataset))
+    nd = torch.cuda.device_count()
+    nw = min(os.cpu_count() // max(nd, 1), workers)
+
+    if shuffle:
+        sampler = IdentityBalancedSampler(
+            dataset,
+            p=p,
+            k=k,
+            num_replicas=dist.get_world_size() if rank != -1 and dist.is_initialized() else 1,
+            rank=max(rank, 0),
+        )
+        # The trainer calls sampler.set_epoch(epoch) every epoch for both DDP and single-GPU runs
+        # (see engine/trainer.py), so PID order and per-identity image draws reshuffle each epoch.
+        batch_size = p * k  # override batch_size to match PK
+    else:
+        sampler = None if rank == -1 else distributed.DistributedSampler(dataset, shuffle=False)
+
+    generator = torch.Generator()
+    generator.manual_seed(6148914691236517205 + RANK)
+    return InfiniteDataLoader(
+        dataset=dataset,
+        batch_size=batch_size,
+        shuffle=False,  # sampler handles shuffling
+        num_workers=nw,
+        sampler=sampler,
+        prefetch_factor=4 if nw > 0 else None,
+        pin_memory=nd > 0 and pin_memory,
+        worker_init_fn=seed_worker,
+        generator=generator,
+    )
+
+
 def seed_worker(worker_id: int) -> None:
     """Set dataloader worker seed for reproducibility across worker processes."""
     worker_seed = torch.initial_seed() % 2**32
@@ -240,7 +416,14 @@ def build_yolo_dataset(
     multi_modal: bool = False,
     fraction: float | None = None,
 ) -> Dataset:
-    """Build and return a YOLO dataset based on configuration parameters."""
+    """Build and return a YOLO dataset based on configuration parameters.
+
+    For ``task == 'reid'`` returns a ``ReidDataset`` configured for the requested mode; ReID intentionally does not use
+    the YOLO detection-style transform stack, but routing through this single entry point keeps dataset selection
+    centralized.
+    """
+    if cfg.task == "reid":
+        return ReidDataset(root=img_path, args=cfg, augment=mode == "train", prefix=mode, data=data)
     pad = 0.0 if mode == "train" else 0.5
     if cfg.task == "semantic":
         data_path = Path(data.get("path", ""))

@@ -26,7 +26,7 @@
 </div>
 <br>
 
-[Ultralytics](https://www.ultralytics.com/) creates cutting-edge, state-of-the-art (SOTA) [YOLO models](https://www.ultralytics.com/yolo) built on years of foundational research in computer vision and AI. Constantly updated for performance and flexibility, our models are **fast**, **accurate**, and **easy to use**. They excel at [object detection](https://docs.ultralytics.com/tasks/detect), [tracking](https://docs.ultralytics.com/modes/track), [instance segmentation](https://docs.ultralytics.com/tasks/segment), [semantic segmentation](https://docs.ultralytics.com/tasks/semantic), [image classification](https://docs.ultralytics.com/tasks/classify), and [pose estimation](https://docs.ultralytics.com/tasks/pose) tasks.
+[Ultralytics](https://www.ultralytics.com/) creates cutting-edge, state-of-the-art (SOTA) [YOLO models](https://www.ultralytics.com/yolo) built on years of foundational research in computer vision and AI. Constantly updated for performance and flexibility, our models are **fast**, **accurate**, and **easy to use**. They excel at [object detection](https://docs.ultralytics.com/tasks/detect), [tracking](https://docs.ultralytics.com/modes/track), [instance segmentation](https://docs.ultralytics.com/tasks/segment), [semantic segmentation](https://docs.ultralytics.com/tasks/semantic), [image classification](https://docs.ultralytics.com/tasks/classify), [pose estimation](https://docs.ultralytics.com/tasks/pose), and [person re-identification](https://docs.ultralytics.com/tasks/reid) tasks.
 
 Find detailed documentation in the [Ultralytics Docs](https://docs.ultralytics.com/). Get support via [GitHub Issues](https://github.com/ultralytics/ultralytics/issues/new/choose). Join discussions on [Discord](https://discord.com/invite/ultralytics), [Reddit](https://www.reddit.com/r/ultralytics/), and the [Ultralytics Community Forums](https://community.ultralytics.com/)!
 
@@ -122,7 +122,7 @@ Discover more examples in the YOLO [Python Docs](https://docs.ultralytics.com/us
 
 ## ✨ Models
 
-Ultralytics supports a wide range of YOLO models, from early versions like [YOLOv3](https://docs.ultralytics.com/models/yolov3) to the latest [YOLO26](https://docs.ultralytics.com/models/yolo26). The tables below showcase YOLO26 models pretrained on [COCO](https://docs.ultralytics.com/datasets/detect/coco) for [Detection](https://docs.ultralytics.com/tasks/detect), [Segmentation](https://docs.ultralytics.com/tasks/segment), and [Pose Estimation](https://docs.ultralytics.com/tasks/pose). [Semantic Segmentation](https://docs.ultralytics.com/tasks/semantic) models are pretrained on [Cityscapes](https://docs.ultralytics.com/datasets/semantic/cityscapes), and [Classification](https://docs.ultralytics.com/tasks/classify) models are pretrained on [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet). [Tracking](https://docs.ultralytics.com/modes/track) mode is compatible with Detection, Segmentation, and Pose models. All [Models](https://docs.ultralytics.com/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
+Ultralytics supports a wide range of YOLO models, from early versions like [YOLOv3](https://docs.ultralytics.com/models/yolov3/) to the latest [YOLO26](https://docs.ultralytics.com/models/yolo26/). The tables below showcase YOLO26 models pretrained on the [COCO](https://docs.ultralytics.com/datasets/detect/coco/) dataset for [Detection](https://docs.ultralytics.com/tasks/detect/), [Segmentation](https://docs.ultralytics.com/tasks/segment/), [OBB](https://docs.ultralytics.com/tasks/obb/), and [Pose Estimation](https://docs.ultralytics.com/tasks/pose/). [Semantic Segmentation](https://docs.ultralytics.com/tasks/semantic/) models are pretrained on [Cityscapes](https://docs.ultralytics.com/datasets/semantic/cityscapes/), [Classification](https://docs.ultralytics.com/tasks/classify/) models are pretrained on [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet/), and [Person Re-Identification](https://docs.ultralytics.com/tasks/reid/) (ReID) models on [Market-1501](https://docs.ultralytics.com/datasets/reid/market1501/). [Tracking](https://docs.ultralytics.com/modes/track/) mode is compatible with all Detection, Segmentation, and Pose models. All [Models](https://docs.ultralytics.com/models/) are automatically downloaded from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) upon first use.
 
 <a href="https://docs.ultralytics.com/tasks" target="_blank">
     <img width="100%" src="https://raw.githubusercontent.com/ultralytics/assets/main/docs/ultralytics-yolov8-tasks-banner.avif" alt="Ultralytics YOLO supported tasks">
@@ -229,6 +229,19 @@ Check the [OBB Docs](https://docs.ultralytics.com/tasks/obb) for usage examples.
 
 - **mAP<sup>test</sup>** values are for single-model multiscale performance on the [DOTAv1 test set](https://captain-whu.github.io/DOTA/dataset.html). <br>Reproduce by `yolo val obb data=DOTAv1.yaml device=0 split=test` and submit merged results to the [DOTA evaluation server](https://captain-whu.github.io/DOTA/evaluation.html).
 - **Speed** metrics are averaged over [DOTAv1 val images](https://docs.ultralytics.com/datasets/obb/dota-v2#dota-v10) using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. CPU speeds measured with [ONNX](https://onnx.ai/) export. GPU speeds measured with [TensorRT](https://developer.nvidia.com/tensorrt) export. <br>Reproduce by `yolo val obb data=DOTAv1.yaml batch=1 device=0|cpu`
+
+</details>
+
+<details><summary>Person Re-Identification (Market-1501)</summary>
+
+Check the [ReID Docs](https://docs.ultralytics.com/tasks/reid/) for usage examples. These models are trained on [Market-1501](https://docs.ultralytics.com/datasets/reid/market1501/) and produce L2-normalized embedding vectors for matching the same person across cameras.
+
+| Model                                                                                          | size<br><sup>(pixels)</sup> | mAP<sup>Market-1501</sup> | Rank-1<sup>Market-1501</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+| ---------------------------------------------------------------------------------------------- | --------------------------- | ------------------------- | ---------------------------- | ------------------------ | ----------------------- |
+| [YOLO26n-reid](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo26n-reid.pt) | 256                         | 23.7                      | 42.5                         | 2.0                      | 3.3                     |
+| [YOLO26s-reid](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo26s-reid.pt) | 256                         | 29.4                      | 50.4                         | 6.5                      | 12.7                    |
+
+- **mAP** and **Rank-1** values are for single-model single-scale evaluation on the [Market-1501 val/gallery splits](https://docs.ultralytics.com/datasets/reid/market1501/). <br>Reproduce by `yolo reid val data=Market-1501.yaml device=0`
 
 </details>
 

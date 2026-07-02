@@ -833,6 +833,67 @@ class Classify(nn.Module):
         return y if self.export else (y, x)
 
 
+class ReID(nn.Module):
+    """Head for person re-identification using BNNeck architecture.
+
+    Produces identity classification logits during training and normalized embeddings during inference, following the
+    "Bag of Tricks" paper (Luo et al., 2019).
+
+    Attributes:
+        conv (Conv): Convolutional layer for feature transformation.
+        pool_avg (nn.AdaptiveAvgPool2d): Global average pooling layer.
+        pool_max (nn.AdaptiveMaxPool2d): Global max pooling layer.
+        drop (nn.Dropout): Dropout layer for regularization.
+        embed (nn.Linear): Linear layer for embedding projection.
+        bottleneck (nn.BatchNorm1d): BNNeck normalization layer.
+        classifier (nn.Linear): Linear layer for identity classification.
+        embed_dim (int): Dimension of the output embedding.
+    """
+
+    export = False  # export mode
+
+    def __init__(
+        self, c1: int, c2: int, embed_dim: int = 512, k: int = 1, s: int = 1, p: int | None = None, g: int = 1
+    ):
+        """Initialize ReID head.
+
+        Args:
+            c1 (int): Number of input channels.
+            c2 (int): Number of identity classes (training only).
+            embed_dim (int): Embedding dimension.
+            k (int): Kernel size.
+            s (int): Stride.
+            p (int, optional): Padding.
+            g (int): Groups.
+        """
+        super().__init__()
+        c_ = 1280  # intermediate channels (same as Classify)
+        self.conv = Conv(c1, c_, k, s, p, g)
+        self.pool_avg = nn.AdaptiveAvgPool2d(1)
+        self.pool_max = nn.AdaptiveMaxPool2d(1)
+        self.drop = nn.Dropout(p=0.0, inplace=True)
+        self.embed = nn.Linear(c_, embed_dim)
+        self.bottleneck = nn.BatchNorm1d(embed_dim)
+        self.bottleneck.bias.requires_grad_(False)  # no shift per BoT paper
+        self.classifier = nn.Linear(embed_dim, c2, bias=False)
+        self.embed_dim = embed_dim
+
+    def _pool(self, x):
+        """Pool feature map to (B, C) via summed global average and max pooling."""
+        return (self.pool_avg(x) + self.pool_max(x)).flatten(1)
+
+    def forward(self, x: list[torch.Tensor] | torch.Tensor) -> torch.Tensor | tuple:
+        """Perform forward pass of the ReID head."""
+        if isinstance(x, list):
+            x = torch.cat(x, 1)
+        feat = self.embed(self.drop(self._pool(self.conv(x))))
+        feat_bn = self.bottleneck(feat)  # BNNeck feature
+        if self.training:
+            return self.classifier(feat_bn), feat_bn, feat  # (logits, bn_feat, raw_feat)
+        emb = torch.nn.functional.normalize(feat_bn, dim=1)
+        return emb if self.export else (emb, feat_bn)
+
+
 class WorldDetect(Detect):
     """Head for integrating YOLO detection models with semantic understanding from text embeddings.
 

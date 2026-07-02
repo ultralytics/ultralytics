@@ -920,7 +920,10 @@ def check_amp(model):
     try:
         from ultralytics import YOLO
 
-        assert amp_allclose(YOLO("yolo26n.pt"), im)
+        amp_weights = USER_CONFIG_DIR / "weights" / "yolo26n.pt"
+        if not amp_weights.is_file():
+            LOGGER.info(f"{prefix}downloading yolo26n.pt for AMP checks (one-time, not used for training)...")
+        assert amp_allclose(YOLO(amp_weights), im)
         LOGGER.info(f"{prefix}checks passed ✅")
     except ConnectionError:
         LOGGER.warning(f"{prefix}checks skipped. Offline and unable to download YOLO26n for AMP checks. {warning_msg}")

@@ -12,9 +12,9 @@ Export validation (2026-04-23 R3.3, RTX PRO 6000 Blackwell, imgsz=224, bs=1 fp16
     yolo26s-fastvit-cls    5.05 M   228 ONNX nodes   1.948 ms   (conv baseline 1.83 ms, 234 nodes)
     yolo26l-fastvit-cls   14.77 M   804 ONNX nodes   2.652 ms
 
-Must-build export paths pass across the FastViT YAMLs: TorchScript, ONNX opset17, OpenVINO, CoreML, TFLite, TensorRT.
-PaddlePaddle fails (RepMixer/SDPA op-coverage gap in Paddle converter). RKNN runs only in an isolated venv
-(rknn-toolkit2 AutoUpdate downgrades torch 2.9→2.4 + cudnn 9.10→9.1, contaminating the primary env).
+Must-build export paths pass across the FastViT YAMLs: TorchScript, ONNX opset17, OpenVINO, CoreML, TFLite, TensorRT,
+PaddlePaddle (x2paddle>=1.6.0, needs the indexed QKV split in MHSABlock), RKNN (rknn-toolkit2>=2.3.2). RKNN still
+requires an isolated venv (its AutoUpdate downgrades torch 2.9→2.4 + cudnn 9.10→9.1, contaminating the primary env).
 """
 
 from __future__ import annotations
@@ -114,7 +114,7 @@ class MHSABlock(nn.Module):
         t = x.flatten(2).transpose(1, 2)  # (B, N, C)
         n = self.ln1(t)
         qkv = self.qkv(n).reshape(b, -1, 3, self.num_heads, self.head_dim).permute(2, 0, 3, 1, 4)
-        q, k, v = qkv.unbind(0)
+        q, k, v = qkv[0], qkv[1], qkv[2]  # indexed split traces to aten::select, x2paddle maps it but not aten::unbind
         a = F.scaled_dot_product_attention(q, k, v)
         a = a.transpose(1, 2).reshape(b, -1, c)
         t = t + self.proj(a)

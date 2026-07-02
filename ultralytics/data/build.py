@@ -419,6 +419,7 @@ def load_inference_source(
     vid_stride: int = 1,
     buffer: bool = False,
     channels: int = 3,
+    tensor_preprocessed: bool = True,
 ):
     """Load an inference source for object detection and apply necessary transformations.
 
@@ -429,6 +430,9 @@ def load_inference_source(
         vid_stride (int, optional): The frame interval for video sources.
         buffer (bool, optional): Whether stream frames will be buffered.
         channels (int, optional): The number of input channels for the model.
+        tensor_preprocessed (bool, optional): For torch.Tensor sources, whether the tensor is already
+            letterboxed and normalized. If False, raw (B, C, H, W) tensors at original resolution are
+            preprocessed by the predictor.
 
     Returns:
         (Dataset): A dataset object for the specified input source with attached source_type attribute.
@@ -445,7 +449,7 @@ def load_inference_source(
 
     # DataLoader
     if tensor:
-        dataset = LoadTensor(source)
+        dataset = LoadTensor(source, preprocessed=tensor_preprocessed)
     elif in_memory:
         dataset = source
     elif stream:

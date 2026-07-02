@@ -47,6 +47,7 @@ from typing import Any, Callable
 import cv2
 import numpy as np
 import torch
+import torch.nn.functional as F
 
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data import load_inference_source
@@ -174,6 +175,8 @@ class BasePredictor:
         im = im.half() if self.model.fp16 else im.float()  # uint8 to fp16/32
         if not_tensor:
             im /= 255  # 0 - 255 to 0.0 - 1.0
+        elif not self.args.tensor_preprocessed:
+            im = self.pre_transform_tensor(im)
         return im
 
     def inference(self, im: torch.Tensor, *args, **kwargs):
@@ -203,6 +206,26 @@ class BasePredictor:
             stride=self.model.stride,
         )
         return [letterbox(image=x) for x in im]
+    
+    def pre_transform_tensor(self, im: torch.Tensor) -> torch.Tensor:
+        """Pre-transform a raw (B, C, H, W) tensor on-device before inference.
+
+        Args:
+            im (torch.Tensor): Normalized input tensor of shape (B, C, H, W) at original resolution.
+
+        Returns:
+            (torch.Tensor): Transformed tensor.
+        """
+        letterbox = LetterBox(
+            self.imgsz,
+            auto=self.args.rect
+            and (self.model.format == "pt" or (getattr(self.model, "dynamic", False) and self.model.format != "imx")),
+            stride=self.model.stride,
+        )
+        p = letterbox.get_params({"img": im[0].permute(1, 2, 0)})  # geometry only; reads .shape, not pixels
+        if tuple(im.shape[2:]) != p["new_unpad"][::-1]:
+            im = F.interpolate(im, size=p["new_unpad"][::-1], mode="bilinear", align_corners=False)
+        return F.pad(im, (p["left"], p["right"], p["top"], p["bottom"]), value=letterbox.padding_value / 255)
 
     def postprocess(self, preds, img, orig_imgs):
         """Post-process predictions for an image and return them."""
@@ -263,6 +286,8 @@ class BasePredictor:
             vid_stride=self.args.vid_stride,
             buffer=self.args.stream_buffer,
             channels=getattr(self.model, "channels", 3),
+            tensor_preprocessed=self.args.tensor_preprocessed,
+
         )
         self.source_type = self.dataset.source_type
         if (

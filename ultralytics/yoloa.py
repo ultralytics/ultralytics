@@ -90,6 +90,7 @@ def apply_bb_overrides(model, fit_args: dict) -> None:
     for fk, mbk in _BB_TO_MB.items():
         if fit_args.get(fk) is not None:
             setattr(mb, mbk, fit_args[fk])
+    model.fit_args = dict(fit_args)  # full fit config for _ensure_memory_bank to read max_images etc.
 
 
 # Prior-shaping knobs set on the model before forward. Accepts canonical names and short aliases.

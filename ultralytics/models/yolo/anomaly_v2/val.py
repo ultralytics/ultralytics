@@ -262,8 +262,12 @@ class YOLOAnomalyValidatorBase:
             LOGGER.warning("YOLOAnomalyValidator: no train (normal) images found; cannot build memory bank.")
             return False
         imgsz = self.args.imgsz if isinstance(self.args.imgsz, int) else 640
+        fit_args = getattr(m, "fit_args", {}) or {}
+        max_images = fit_args.get("max_images", 0)
+        batch = self.args.batch if isinstance(getattr(self.args, "batch", None), int) else 8
         try:
             n = m.load_support_set(support, imgsz=imgsz, device=self.device,
+                                   batch=batch, max_images=max_images,
                                    max_bank_size=self._ood_bank_size, verbose=False)
         except Exception as e:  # missing/corrupt images, OOM, etc. — never crash the val run
             LOGGER.warning(f"YOLOAnomalyValidator: memory bank build failed ({type(e).__name__}: {e}).")

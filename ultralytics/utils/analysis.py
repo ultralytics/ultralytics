@@ -56,8 +56,8 @@ class ImagePropertyExtractor:
     ``dataset.labels`` gains a single ``im_properties`` sub-dict; the ``dataset.labels`` list is mutated in place and
     re-exposed as ``self.labels`` for chaining.
 
-    Has no model, metrics, or I/O dependency: the property step is platform-consumable. Serialize the
-    ``im_properties`` dicts (all scalar, JSON-ready) to feed a JS/TS visualizer.
+    Has no model, metrics, or I/O dependency: the property step is platform-consumable. Serialize the ``im_properties``
+    dicts (all scalar, JSON-ready) to feed a JS/TS visualizer.
 
     Attributes:
         labels (list[dict]): The same list as ``dataset.labels``, with an ``im_properties`` dict added per image.

@@ -495,8 +495,11 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> dict[str, Any]
         raise SyntaxError(emojis(f"{dataset} key missing ❌.\n either 'names' or 'nc' are required in all data YAMLs."))
     if "nc" in data and not isinstance(data["nc"], int):
         try:
-            data["nc"] = int(str(data["nc"]))  # coerce integer-like strings only, e.g. '10' but not 1.9
-        except ValueError:
+            nc = float(data["nc"])  # accept integer-like values, e.g. '10' or 10.0, but not 1.9 or placeholders
+            if nc != int(nc):
+                raise ValueError
+            data["nc"] = int(nc)
+        except (TypeError, ValueError):
             raise SyntaxError(emojis(f"{dataset} 'nc: {data['nc']}' must be an integer ❌."))
     if "names" in data and "nc" in data and len(data["names"]) != data["nc"]:
         raise SyntaxError(emojis(f"{dataset} 'names' length {len(data['names'])} and 'nc: {data['nc']}' must match."))

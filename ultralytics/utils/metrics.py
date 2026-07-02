@@ -881,6 +881,29 @@ def ap_per_class(
         plot_mc_curve(x, f1_curve, save_dir / f"{prefix}F1_curve.png", names, ylabel="F1", on_plot=on_plot)
         plot_mc_curve(x, p_curve, save_dir / f"{prefix}P_curve.png", names, ylabel="Precision", on_plot=on_plot)
         plot_mc_curve(x, r_curve, save_dir / f"{prefix}R_curve.png", names, ylabel="Recall", on_plot=on_plot)
+        # generate a csv with stats for external analysis/comparison
+        try:
+            import pandas as pd
+
+            metrics = [
+                ("confidence", "precision", p_curve),
+                ("confidence", "recall", r_curve),
+                ("confidence", "f1", f1_curve),
+                ("recall", "precision", prec_values),
+            ]
+            df_list = []
+            for x_label, metric, y in metrics:
+                columns = list(names.values())
+                columns.append("mean")
+                arrays = np.concat((y, np.expand_dims(y.mean(0), axis=1).T), axis=0)
+                df_list.append(pd.DataFrame._from_arrays(arrays, columns=columns, index=x))
+                df_list[-1]["metric"] = metric
+                df_list[-1]["index_label"] = x_label
+                df_list[-1].reset_index(inplace=True)
+            df = pd.concat(df_list)
+            df.to_csv(save_dir / "stats.csv", index=False)
+        except Exception as E:
+            warnings.warn(f"problem exporting stats csv : {E.args()}")
 
     i = smooth(f1_curve.mean(0), 0.1).argmax()  # max F1 index
     p, r, f1 = p_curve[:, i], r_curve[:, i], f1_curve[:, i]  # max-F1 precision, recall, F1 values

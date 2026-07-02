@@ -336,8 +336,7 @@ class BackboneMemoryBank(nn.Module):
             self._calibrate_compactness(mem)
             if holdout is not None and holdout.shape[0] > 0:
                 if holdout.shape[0] > self.holdout_max:
-                    idx = torch.randperm(holdout.shape[0], device=holdout.device)[: self.holdout_max]
-                    holdout = holdout[idx]
+                    holdout = holdout[: self.holdout_max]
                 self._calibrate_threshold_from_holdout(holdout, mem)
 
         self.update = False

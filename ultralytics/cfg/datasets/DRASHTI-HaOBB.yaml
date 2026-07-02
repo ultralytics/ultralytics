@@ -1,0 +1,94 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# DRASHTI-HaOBB dataset https://doi.org/10.5281/zenodo.18278989 by Ahmedabad University
+# Documentation: https://docs.ultralytics.com/datasets/obb/DRASHTI-HaOBB/
+# License: CC BY-NC-ND 4.0
+# Example usage: yolo train data=DRASHTI-HaOBB.yaml
+# parent
+# ├── ultralytics
+# └── datasets
+#     └── DRASHTI-HaOBB ← downloads here (~12 GB)
+
+# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt,
+
+path: DRASHTI-HaOBB # Give Path of dataset directory
+train: images/train # train images (relative to 'path')
+val: images/val # val images (relative to 'path')
+test: images/test # test images (optional)
+
+names:
+  0: Auto3WCargo
+  1: AutoRicksaw
+  2: Bus
+  3: Container
+  4: Mixer
+  5: MotorCycle
+  6: PickUp
+  7: SUV
+  8: Sedan
+  9: Tanker
+  10: Tipper
+  11: Trailer
+  12: Truck
+  13: Van
+
+download: |
+  import zipfile
+  from pathlib import Path
+  from ultralytics.utils.downloads import download
+  from ultralytics.data.converter import convert_drashti_haobb_to_yolo_obb
+  import shutil
+
+  dir = Path(yaml["path"])  # dataset root dir
+
+  images_dir = dir / "images"
+  labels_dir = dir / "labels"
+
+  images_dir.mkdir(parents=True, exist_ok=True)
+  labels_dir.mkdir(parents=True, exist_ok=True)
+
+  BASE_URL = "https://zenodo.org/records/18278989/files"
+  zenodo_zips = [
+      ("test.zip", images_dir, "test"),
+      ("test_original.zip", labels_dir, "test_original"),
+      ("val.zip", images_dir, "val"),
+      ("val_original.zip", labels_dir, "val_original"),
+      ("train.zip", images_dir, "train"),
+      ("train_original.zip", labels_dir, "train_original"),
+      ]
+
+  def extract_flat(zip_path, out_dir, split_name):
+      target = out_dir / split_name
+      target.mkdir(parents=True, exist_ok=True)
+      with zipfile.ZipFile(zip_path) as z:
+          for info in z.infolist():
+              # skip directories explicitly
+              if info.is_dir():
+                  continue
+
+              name = Path(info.filename).name
+              if not name:  # safety guard
+                  continue
+
+              out_file = target / name
+
+              with z.open(info) as src, open(out_file, "wb") as dst:
+                  dst.write(src.read())
+       	
+  for zip_name, base_dir, split in zenodo_zips:
+      zip_path = dir / zip_name
+      url = f"{BASE_URL}/{zip_name}"
+
+      # download one zip
+      download(url, dir=dir)
+
+      # extract + flatten 
+      extract_flat(zip_path, base_dir, split)
+
+      # delete zip
+      zip_path.unlink()
+      
+      # delete that split directory
+      tmpdir= dir / split
+      shutil.rmtree(tmpdir)
+  convert_drashti_haobb_to_yolo_obb(dir) #convert DRASHTI-HaOBB annotations to YOLO annotations

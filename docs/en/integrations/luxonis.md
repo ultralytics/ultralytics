@@ -100,25 +100,27 @@ If you need model history, reusable variants, more control over metadata and con
 
 [`hubai-sdk`](https://docs.luxonis.com/cloud/hubai/model-registry/hubai-sdk/) is the programmatic Python and CLI interface to Luxonis Hub AI. This is a good fit when you want to automate conversions, integrate them into a larger workflow, or avoid manual use of the Hub UI.
 
-The example below shows a self-contained `YOLO26` conversion to `RVC4` from a `.pt` checkpoint:
+!!! example "Example of `YOLO26` conversion from a `.pt` checkpoint with `hubai-sdk` to `RVC4`"
 
-```python
-import os
+    === "Python"
 
-from hubai_sdk import HubAIClient
+        ```python
+        import os
 
-client = HubAIClient(api_key=os.getenv("HUBAI_API_KEY"))
+        from hubai_sdk import HubAIClient
 
-response = client.convert.RVC4(
-    path="yolo26n.pt",
-    name="yolo26n-rvc4",
-    quantization_mode="INT8_STANDARD",
-    quantization_data="GENERAL",
-    yolo_input_shape=[640, 640],
-)
+        client = HubAIClient(api_key=os.getenv("HUBAI_API_KEY"))
 
-print(f"Converted model downloaded to: {response.downloaded_path}")
-```
+        response = client.convert.RVC4(
+            path="yolo26n.pt",
+            name="yolo26n-rvc4",
+            quantization_mode="INT8_STANDARD",
+            quantization_data="GENERAL",
+            yolo_input_shape=[640, 640],
+        )
+
+        print(f"Converted model downloaded to: {response.downloaded_path}")
+        ```
 
 Create your API key in Luxonis Hub and expose it as `HUBAI_API_KEY` before running the script. For more advanced usage, including registry management, CLI workflows, and additional conversion options, refer to the official [HubAI SDK documentation](https://docs.luxonis.com/cloud/hubai/model-registry/hubai-sdk/).
 
@@ -160,43 +162,57 @@ The local workflow has two stages.
 
 As described in the Luxonis [Conversion to ONNX](https://docs.luxonis.com/software-v3/ai-inference/conversion/onnx-conversion/) guide, YOLO models should first be converted with `tools` instead of a generic PyTorch-to-ONNX export. This is the recommended path because it modifies the exported model structure so Luxonis can parse YOLO outputs natively and perform post-processing on-device.
 
-Install `tools`:
+!!! tip "Installation of `tools`"
 
-```bash
-git clone --recursive https://github.com/luxonis/tools.git
-cd tools
-pip install .
-```
+    === "CLI"
 
-Convert a YOLO model to an `ONNX` NN Archive:
+        ```bash
+        git clone --recursive https://github.com/luxonis/tools.git
+        cd tools
+        pip install .
+        ```
 
-```bash
-tools yolo26n.pt --imgsz "640 640"
-```
+
+!!! example "Convert a YOLO model to an `ONNX` NN Archive:"
+
+    === "CLI"
+
+        ```bash
+        tools yolo26n.pt --imgsz "640 640"
+        ```
 
 #### Stage 2: Convert the `ONNX` NN Archive to `RVC2` or `RVC4` with ModelConverter
 
 Once you have a valid `ONNX` NN Archive, use ModelConverter to compile it for the target device generation. ModelConverter accepts a model source as an NN Archive and uses the appropriate target-specific toolchain inside Docker.
 
-Install ModelConverter:
+!!! tip "Installation of ModelConverter"
 
-```bash
-pip install modelconv
-```
+    === "CLI"
+
+        ```bash
+        pip install modelconv
+        ```
+
 And create a shared folder as specified [here](https://docs.luxonis.com/software-v3/ai-inference/conversion/rvc-conversion/offline/modelconverter/#ModelConverter-Preparation-Shared%20Folder).
 
-Example conversion to `RVC4`:
+!!! example "Example conversion to `RVC4`"
 
-```bash
-modelconverter convert rvc4 --path archives/<nn_archive>.tar.xz
-```
+    === "CLI"
 
-If you plan to [quantize](https://www.ultralytics.com/glossary/model-quantization) the model, provide calibration data as part of the ModelConverter invocation:
+        ```bash
+        modelconverter convert rvc4 --path archives/<nn_archive>.tar.xz
+        ```
 
-```bash
-modelconverter convert rvc4 --path archives/<nn_archive>.tar.xz \
- calibration.path calibration_data/<calibration_data_dir>
-```
+If you plan to [quantize](https://www.ultralytics.com/glossary/model-quantization) the model, provide calibration data as part of the ModelConverter invocation.
+
+!!! example "Example conversion to `RVC4` with custom calibration data"
+
+    === "CLI"
+
+        ```bash
+        modelconverter convert rvc4 --path archives/<nn_archive>.tar.xz \
+        calibration.path calibration_data/<calibration_data_dir>
+        ```
 
 Refer to [Running Inference on OAK Cameras](#running-inference-on-oak-cameras) for deployment instructions after conversion.
 
@@ -223,43 +239,51 @@ Before running inference, make sure you have:
 - a converted Luxonis model, either as a local NN Archive or as a model hosted on Luxonis Hub
 - the [DepthAI](https://docs.luxonis.com/software-v3/depthai) Python package installed
 
-```bash
-pip install depthai
-```
+!!! tip "Installation of DepthAI"
+
+    === "CLI"
+
+        ```bash
+        pip install depthai
+        ```
 
 For the models hosted on Luxonis Hub, you can reference them directly using their model identifier, which you can find next to their conversions. If the model is private, then you also need to configure your Luxonis Hub API key first so DepthAI can authenticate when resolving the model identifier. This means setting the `DEPTHAI_HUB_API_KEY` environment variable to the value of the key from [here](https://docs.luxonis.com/cloud/api/api-keys/).
 ![Luxonis Hub model identifier](images/luxonis_model_identifier.png)
 
 ### Python Example
 
-For a model hosted on Luxonis Hub, build a `DetectionNetwork` pipeline directly from its model identifier:
+For a model hosted on Luxonis Hub, build a `DetectionNetwork` pipeline directly from its model identifier.
 
-```python
-import depthai as dai
+!!! example "Simple DetectionNetwork example"
 
-model = "your-model-identifier"
-# Or load a local NN Archive:
-# nn_archive = dai.NNArchive("path/to/model.tar.xz")
+    === "Python"
 
-visualizer = dai.RemoteConnection()
+        ```python
+        import depthai as dai
 
-with dai.Pipeline() as pipeline:
-    camera = pipeline.create(dai.node.Camera).build()
+        model = "your-model-identifier"
+        # Or load a local NN Archive:
+        # nn_archive = dai.NNArchive("path/to/model.tar.xz")
 
-    detection = pipeline.create(dai.node.DetectionNetwork).build(camera, model)
-    # Or for a local NN Archive:
-    # detection = pipeline.create(dai.node.DetectionNetwork).build(camera, nn_archive)
+        visualizer = dai.RemoteConnection()
 
-    visualizer.addTopic("rgb", detection.passthrough, group="RGB")
-    visualizer.addTopic("detections", detection.out, group="RGB")
+        with dai.Pipeline() as pipeline:
+            camera = pipeline.create(dai.node.Camera).build()
 
-    pipeline.start()
-    visualizer.registerPipeline(pipeline)
+            detection = pipeline.create(dai.node.DetectionNetwork).build(camera, model)
+            # Or for a local NN Archive:
+            # detection = pipeline.create(dai.node.DetectionNetwork).build(camera, nn_archive)
 
-    while pipeline.isRunning():
-        if visualizer.waitKey(1) == ord("q"):
-            pipeline.stop()
-```
+            visualizer.addTopic("rgb", detection.passthrough, group="RGB")
+            visualizer.addTopic("detections", detection.out, group="RGB")
+
+            pipeline.start()
+            visualizer.registerPipeline(pipeline)
+
+            while pipeline.isRunning():
+                if visualizer.waitKey(1) == ord("q"):
+                    pipeline.stop()
+        ```
 
 Open `http://localhost:8080` in your browser to view the RGB stream and YOLO detections in the OAK Visualizer. If you use a private Hub model, configure your Luxonis Hub API key first (ie. set `DEPTHAI_HUB_API_KEY` env variable) so DepthAI can authenticate when resolving the model identifier. For broader pipeline patterns and a more generic inference example, see the [generic OAK example](https://github.com/luxonis/oak-examples/tree/main/neural-networks/generic-example).
 
@@ -267,34 +291,38 @@ Open `http://localhost:8080` in your browser to view the RGB stream and YOLO det
 
 If your OAK camera supports stereo depth, you can use [`dai.node.SpatialDetectionNetwork`](https://docs.luxonis.com/software-v3/depthai/depthai-components/nodes/spatial_detection_network) to get 3D spatial coordinates together with the 2D YOLO detections. This is the easiest way to combine YOLO detections with depth-derived spatial coordinates when the camera has a stereo pair.
 
-```python
-import depthai as dai
+!!! example "Simple SpatialDetectionNetwork example"
 
-model = "your-model-identifier"
-visualizer = dai.RemoteConnection()
+    === "Python"
 
-with dai.Pipeline() as pipeline:
-    camera = pipeline.create(dai.node.Camera).build(dai.CameraBoardSocket.CAM_A)
-    left = pipeline.create(dai.node.Camera).build(dai.CameraBoardSocket.CAM_B)
-    right = pipeline.create(dai.node.Camera).build(dai.CameraBoardSocket.CAM_C)
+        ```python
+        import depthai as dai
 
-    stereo = pipeline.create(dai.node.StereoDepth)
-    left.requestOutput(size=(640, 400)).link(stereo.left)
-    right.requestOutput(size=(640, 400)).link(stereo.right)
+        model = "your-model-identifier"
+        visualizer = dai.RemoteConnection()
 
-    spatial_nn = pipeline.create(dai.node.SpatialDetectionNetwork).build(camera, stereo, model)
+        with dai.Pipeline() as pipeline:
+            camera = pipeline.create(dai.node.Camera).build(dai.CameraBoardSocket.CAM_A)
+            left = pipeline.create(dai.node.Camera).build(dai.CameraBoardSocket.CAM_B)
+            right = pipeline.create(dai.node.Camera).build(dai.CameraBoardSocket.CAM_C)
 
-    visualizer.addTopic("rgb", spatial_nn.passthrough, group="RGB")
-    visualizer.addTopic("detections", spatial_nn.out, group="RGB")
-    visualizer.addTopic("depth", stereo.depth, group="Depth")
+            stereo = pipeline.create(dai.node.StereoDepth)
+            left.requestOutput(size=(640, 400)).link(stereo.left)
+            right.requestOutput(size=(640, 400)).link(stereo.right)
 
-    pipeline.start()
-    visualizer.registerPipeline(pipeline)
+            spatial_nn = pipeline.create(dai.node.SpatialDetectionNetwork).build(camera, stereo, model)
 
-    while pipeline.isRunning():
-        if visualizer.waitKey(1) == ord("q"):
-            pipeline.stop()
-```
+            visualizer.addTopic("rgb", spatial_nn.passthrough, group="RGB")
+            visualizer.addTopic("detections", spatial_nn.out, group="RGB")
+            visualizer.addTopic("depth", stereo.depth, group="Depth")
+
+            pipeline.start()
+            visualizer.registerPipeline(pipeline)
+
+            while pipeline.isRunning():
+                if visualizer.waitKey(1) == ord("q"):
+                    pipeline.stop()
+        ```
 
 ## Benchmarks
 

@@ -241,6 +241,7 @@ class Results(SimpleClass, DataExportMixin):
         obb: torch.Tensor | None = None,
         speed: dict[str, float] | None = None,
         semantic_mask: torch.Tensor | None = None,
+        multi_label: bool = False,
     ) -> None:
         """Initialize the Results class for storing and manipulating inference results.
 
@@ -255,6 +256,7 @@ class Results(SimpleClass, DataExportMixin):
             obb (torch.Tensor | None): A 2D tensor of oriented bounding box coordinates for each detection.
             semantic_mask (torch.Tensor | None): A 2D tensor of class IDs for semantic segmentation results.
             speed (dict | None): A dictionary containing preprocess, inference, and postprocess speeds (ms/image).
+            multi_label (bool): Whether this is a multi-label classification result (sigmoid instead of softmax).
 
         Notes:
             For the default pose model, keypoint indices for human body pose estimation are:
@@ -275,6 +277,7 @@ class Results(SimpleClass, DataExportMixin):
         self.names = names
         self.path = path
         self.save_dir = None
+        self.multi_label = multi_label
         self._keys = "boxes", "masks", "probs", "keypoints", "obb", "semantic_mask"
 
     def __getitem__(self, idx):
@@ -572,7 +575,12 @@ class Results(SimpleClass, DataExportMixin):
 
         # Plot Classify results
         if pred_probs is not None and show_probs:
-            text = "\n".join(f"{names[j] if names else j} {pred_probs.data[j]:.2f}" for j in pred_probs.top5)
+            if self.multi_label:
+                indices = (pred_probs.data > 0.5).nonzero(as_tuple=True)[0].tolist()
+                show_indices = indices if indices else pred_probs.top5
+                text = "\n".join(f"{names[j] if names else j} {pred_probs.data[j]:.2f}" for j in show_indices)
+            else:
+                text = "\n".join(f"{names[j] if names else j} {pred_probs.data[j]:.2f}" for j in pred_probs.top5)
             x = round(self.orig_shape[0] * 0.03)
             annotator.text([x, x], text, txt_color=txt_color, box_color=(64, 64, 64, 128))  # RGBA box
 
@@ -679,6 +687,12 @@ class Results(SimpleClass, DataExportMixin):
         if len(self) == 0:
             return "" if self.probs is not None else "(no detections), "
         if self.probs is not None:
+            if self.multi_label:
+                # Show all classes above threshold for multi-label
+                indices = (self.probs.data > 0.5).nonzero(as_tuple=True)[0].tolist()
+                if indices:
+                    return f"{', '.join(f'{self.names[j]} {self.probs.data[j]:.2f}' for j in indices)}, "
+                return f"{self.names[self.probs.top1]} {self.probs.data[self.probs.top1]:.2f}, "
             return f"{', '.join(f'{self.names[j]} {self.probs.data[j]:.2f}' for j in self.probs.top5)}, "
         if boxes:
             counts = boxes.cls.int().bincount()
@@ -724,7 +738,11 @@ class Results(SimpleClass, DataExportMixin):
         texts = []
         if probs is not None:
             # Classify
-            [texts.append(f"{probs.data[j]:.2f} {self.names[j]}") for j in probs.top5]
+            if self.multi_label:
+                indices = (probs.data > 0.5).nonzero(as_tuple=True)[0].tolist()
+                [texts.append(f"{probs.data[j]:.2f} {self.names[j]}") for j in (indices or probs.top5)]
+            else:
+                [texts.append(f"{probs.data[j]:.2f} {self.names[j]}") for j in probs.top5]
         elif boxes:
             # Detect/segment/pose
             for j, d in enumerate(boxes):
@@ -810,16 +828,28 @@ class Results(SimpleClass, DataExportMixin):
         # Create list of detection dictionaries
         results = []
         if self.probs is not None:
-            # Return top 5 classification results
-            for class_id, conf in zip(self.probs.top5, self.probs.top5conf.tolist()):
-                class_id = int(class_id)
-                results.append(
-                    {
-                        "name": self.names[class_id],
-                        "class": class_id,
-                        "confidence": round(conf, decimals),
-                    }
-                )
+            if self.multi_label:
+                # Return all classes above threshold, fall back to top5 if none
+                indices = (self.probs.data > 0.5).nonzero(as_tuple=True)[0].tolist() or self.probs.top5
+                for class_id in indices:
+                    results.append(
+                        {
+                            "name": self.names[class_id],
+                            "class": class_id,
+                            "confidence": round(float(self.probs.data[class_id]), decimals),
+                        }
+                    )
+            else:
+                # Return top 5 classification results
+                for class_id, conf in zip(self.probs.top5, self.probs.top5conf.tolist()):
+                    class_id = int(class_id)
+                    results.append(
+                        {
+                            "name": self.names[class_id],
+                            "class": class_id,
+                            "confidence": round(conf, decimals),
+                        }
+                    )
             return results
 
         if self.semantic_mask is not None:

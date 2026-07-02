@@ -259,3 +259,11 @@ The `output0` tensor contains class indices, which are internally represented as
 This behavior is expected and also applies to lower-precision or quantized exports where class index fidelity must be preserved.
 
 If full FP16 outputs are required, export with `end2end=False` and perform post-processing externally.
+
+### Why does `end2end=False` on YOLO26 still use the one-to-one head?
+
+YOLO26 models are trained with end-to-end detection using two heads: a one-to-one head (used for NMS-free inference) and a one-to-many head (used as an auxiliary training signal). During training, the one-to-many head's loss weight decays from 0.8 to 0.1 over the training epochs, so by the end of training the one-to-one head is the well-calibrated one while the one-to-many head produces poorly calibrated scores.
+
+When you export with `end2end=False` (e.g., for formats that don't support the topk post-processing, or to run custom NMS), the exporter automatically uses the one-to-one head's output with external NMS rather than the decayed one-to-many head. This ensures the exported model uses the best-trained head regardless of the `end2end` setting. A warning is logged during export to inform you of this behavior.
+
+See [issue #24668](https://github.com/ultralytics/ultralytics/issues/24668) for the detailed analysis.

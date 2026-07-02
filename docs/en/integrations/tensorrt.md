@@ -184,7 +184,7 @@ When processing implicitly quantized networks TensorRT uses INT8 opportunistical
 
 #### Configuring INT8 Export
 
-The arguments provided when using [export](../modes/export.md) for an Ultralytics YOLO model will **greatly** influence the performance of the exported model. They will also need to be selected based on the device resources available, however the default arguments _should_ work for most [Ampere (or newer) NVIDIA discrete GPUs](https://developer.nvidia.com/blog/nvidia-ampere-architecture-in-depth/). The calibration algorithm used is `"MINMAX_CALIBRATION"` for GPU exports, while DLA exports on NVIDIA Jetson use `"ENTROPY_CALIBRATION_2"`. You can read more details about the options available [in the TensorRT Developer Guide](https://docs.nvidia.com/deeplearning/tensorrt/latest/inference-library/work-with-quantized-types.html). Ultralytics tests found `"MINMAX_CALIBRATION"` to be the best choice for GPU exports, and the algorithm is selected automatically based on the export device.
+The arguments provided when using [export](../modes/export.md) for an Ultralytics YOLO model will **greatly** influence the performance of the exported model. They will also need to be selected based on the device resources available, however the default arguments _should_ work for most [Ampere (or newer) NVIDIA discrete GPUs](https://developer.nvidia.com/blog/nvidia-ampere-architecture-in-depth/). The calibration algorithm used is `"ENTROPY_CALIBRATION_2"` for all TensorRT INT8 exports (both GPU and DLA). You can read more details about the options available [in the TensorRT Developer Guide](https://docs.nvidia.com/deeplearning/tensorrt/latest/inference-library/work-with-quantized-types.html).
 
 - `workspace` : Controls the size (in GiB) of the device memory allocation while converting the model weights.
     - Adjust the `workspace` value according to your calibration needs and resource availability. While a larger `workspace` may increase calibration time, it allows TensorRT to explore a wider range of optimization tactics, potentially enhancing model performance and [accuracy](https://www.ultralytics.com/glossary/accuracy). Conversely, a smaller `workspace` can reduce calibration time but may limit the optimization strategies, affecting the quality of the quantized model.
@@ -268,6 +268,24 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 - **Increased development times:** Finding the "optimal" settings for INT8 calibration for dataset and device can take a significant amount of testing.
 
 - **Hardware dependency:** Calibration and performance gains could be highly hardware dependent and model weights are less transferable.
+
+#### YOLO26 INT8 confidence calibration
+
+YOLO26 uses a one-to-one assignment head for end-to-end (NMS-free) detection, which produces a different logit distribution than the one-to-many head used by YOLO11 and earlier models. The one-to-one head's positive logits tend to be moderate (roughly 0-3, sigmoid 0.5-0.95) rather than high (5-10, sigmoid 0.99+), placing them in the steep region of the sigmoid function where small perturbations cause relatively large changes in the output probability.
+
+This makes YOLO26's confidence scores more sensitive to INT8 quantization error than earlier models. To preserve score calibration:
+
+1. **ENTROPY_CALIBRATION_2** is used for all INT8 TensorRT exports (both GPU and DLA). This KL-divergence-based algorithm is more robust to the outlier-dominated logit distributions produced by the one-to-one head than the alternative MINMAX_CALIBRATION, which sets quantization scales from `max_abs/127` and is dominated by extreme negative logits from unmatched anchors.
+
+2. **Sigmoid layers are excluded from INT8 quantization.** On TensorRT 11+ (ModelOpt Q/DQ path), `Sigmoid` op types are passed to `op_types_to_exclude` so the sigmoid nonlinearity runs in FP32 on dequantized logits. On TensorRT 10 (implicit quantization path), per-layer precision constraints (`setPrecision`/`setOutputType` with `OBEY_PRECISION_CONSTRAINTS`) force Sigmoid activation layers to FP32. This mirrors the approach already used by the OpenVINO INT8 exporter, which excludes `Sigmoid` via `nncf.IgnoredScope(types=["Sigmoid"])`.
+
+!!! tip "Choosing a confidence threshold for INT8 models"
+
+    INT8 quantization can shift the absolute magnitude of confidence scores even when ranking (mAP) is preserved. Always read the operating confidence threshold from the INT8 model's own [F1 curve](../guides/yolo-performance-metrics.md) rather than reusing a threshold tuned on an FP16 or FP32 model. If your downstream pipeline depends on absolute score magnitude rather than ranking, consider deploying with `quantize=16` (FP16) instead.
+
+!!! warning "Exporting with `end2end=False` on YOLO26"
+
+    YOLO26 models are trained with end-to-end detection enabled. When exporting with `end2end=False` (e.g., for formats that do not support the topk post-processing), the one-to-one head is used with external NMS rather than the one-to-many head, because the one-to-many head was trained with a decaying loss weight (from 0.8 to 0.1 over training epochs) and produces poorly calibrated scores in later epochs. This ensures the exported model uses the best-trained head for inference.
 
 ## Ultralytics YOLO TensorRT Export Performance
 

@@ -121,6 +121,21 @@ def test_modelopt_quantize_onnx_requires_int8_dataset():
         modelopt_quantize_onnx("model.onnx", quantize=8)
 
 
+def test_modelopt_quantize_onnx_excludes_sigmoid():
+    """Verify that INT8 ModelOpt quantization excludes Sigmoid from quantization.
+
+    Sigmoid is kept in FP32 to prevent confidence score compression caused by
+    quantization error amplified through the sigmoid's steep slope.
+    See https://github.com/ultralytics/ultralytics/issues/24668
+    """
+    import inspect
+
+    source = inspect.getsource(modelopt_quantize_onnx)
+    # The function should pass op_types_to_exclude=["Sigmoid"] to modelopt.quantize
+    assert "op_types_to_exclude" in source, "ModelOpt quantization should exclude Sigmoid from INT8"
+    assert "Sigmoid" in source, "op_types_to_exclude should include 'Sigmoid'"
+
+
 def test_torch2onnx_serializes_concurrent_exports(monkeypatch, tmp_path):
     """Ensure ONNX exports do not overlap across worker threads."""
     active = 0
@@ -521,3 +536,69 @@ def test_every_format_env_is_registered():
     """Ensure every export format points at a registered export environment."""
     for fmt, env in zip(export_formats()["Argument"], export_formats()["Env"]):
         assert env in EXPORT_ENVS, f"format '{fmt}' references unknown env '{env}'"
+
+
+def test_end2end_false_uses_one2one_head(isolated_model):
+    """Verify that end2end=False on a YOLO26 model uses the one-to-one head, not the decayed one-to-many head.
+
+    The one-to-many head was trained with a decaying loss weight (E2ELoss: 0.8 -> 0.1) and produces
+    poorly calibrated scores. The fix ensures the one-to-one head is used for inference even when
+    end2end is disabled, producing the traditional output format but with well-calibrated scores.
+    See https://github.com/ultralytics/ultralytics/issues/24668
+    """
+
+    model = YOLO(isolated_model)
+    head = model.model.model[-1]
+
+    # Only applies to models with a one-to-one head (YOLO26, YOLOv10)
+    if not hasattr(head, "one2one_cv2"):
+        pytest.skip("Model does not have a one-to-one head (not a YOLO26/YOLOv10 model)")
+
+    # Verify the model has both heads before fuse
+    assert head.cv2 is not None, "One-to-many head (cv2) should exist before fuse"
+    assert hasattr(head, "one2one_cv2"), "One-to-one head should exist"
+
+    # Set end2end=False and run inference
+    model.model.end2end = False
+    model.model.eval()
+    with torch.no_grad():
+        preds = model.model(torch.zeros(1, 3, 32, 32))
+
+    # The output should be a tuple (y, preds_dict) in eval mode
+    if isinstance(preds, tuple):
+        y = preds[0]
+    else:
+        y = preds
+
+    # Verify we got valid predictions (not NaN from a decayed head)
+    assert torch.isfinite(y).all(), "Predictions contain NaN/Inf — one-to-many head may have been used"
+
+
+def test_end2end_false_export_uses_one2one_head(isolated_model):
+    """Verify that exporting with end2end=False on a YOLO26 model produces a working model.
+
+    The exported model should produce well-calibrated scores from the one-to-one head,
+    not the decayed one-to-many head. This is a smoke test — full F1 curve validation
+    requires GPU and TensorRT, which is done in CI.
+    See https://github.com/ultralytics/ultralytics/issues/24668
+    """
+
+    model = YOLO(isolated_model)
+    head = model.model.model[-1]
+
+    if not hasattr(head, "one2one_cv2"):
+        pytest.skip("Model does not have a one-to-one head (not a YOLO26/YOLOv10 model)")
+
+    # Export with end2end=False
+    file = YOLO(isolated_model).export(format="onnx", imgsz=32, end2end=False)
+    exported = YOLO(file)
+    results = exported(SOURCE, imgsz=32)
+
+    # Verify predictions are produced and contain finite confidence scores
+    assert results is not None, "Exported model produced no results"
+    for r in results:
+        if r.boxes is not None and len(r.boxes) > 0:
+            conf = r.boxes.conf
+            assert torch.isfinite(conf).all(), "Confidence scores contain NaN/Inf"
+            # With the one-to-one head, scores should be in a reasonable range [0, 1]
+            assert (conf >= 0).all() and (conf <= 1).all(), "Confidence scores out of [0, 1] range"

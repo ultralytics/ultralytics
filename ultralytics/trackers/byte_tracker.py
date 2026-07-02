@@ -306,6 +306,15 @@ class BYTETracker:
                 low mask.
         """
         scores = results.conf
+
+        # Filter out zero-area bboxes (indices 2,3 are width,height in xywh format)
+        bboxes = results.xywhr if hasattr(results, "xywhr") else results.xywh
+        valid_inds = (bboxes[:, 2] > 0) & (bboxes[:, 3] > 0)
+        results = results[valid_inds]
+        scores = scores[valid_inds]
+        if feats is not None and len(feats):
+            feats = feats[valid_inds]
+
         remain_inds = scores >= self.args.track_high_thresh
         inds_low = scores > self.args.track_low_thresh
         inds_below_high = scores < self.args.track_high_thresh

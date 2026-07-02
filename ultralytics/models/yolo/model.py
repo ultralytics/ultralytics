@@ -414,6 +414,7 @@ class YOLOE(Model):
                     },
                     _callbacks=self.callbacks,
                 )
+
             num_cls = (
                 max(len(set(c)) for c in visual_prompts["cls"])
                 if isinstance(source, list) and refer_image is None  # means multiple images

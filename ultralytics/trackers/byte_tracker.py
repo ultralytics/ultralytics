@@ -273,6 +273,9 @@ class BYTETracker:
         results_high, results_low, mask_high, mask_low = self._split_detections(results)
         detections = self.init_track(results_high, self._input_for(img, feats, mask_high))
         detections_second = self.init_track(results_low, self._input_for(img, feats, mask_low))
+        for tracks, mask in ((detections, mask_high), (detections_second, mask_low)):
+            for track, i in zip(tracks, np.flatnonzero(mask)):
+                track.idx = i  # idx must be in full detection-set space; parse_bboxes only sees the subset
 
         unconfirmed, tracked_stracks = self._split_tracked()
         strack_pool = joint_stracks(tracked_stracks, self.lost_stracks)
@@ -309,16 +312,7 @@ class BYTETracker:
         remain_inds = scores >= self.args.track_high_thresh
         inds_low = scores > self.args.track_low_thresh
         inds_below_high = scores < self.args.track_high_thresh
-        second_inds = inds_low & inds_below_high
-
-        high_results = results[remain_inds]
-        low_results = results[second_inds]
-
-        idxs = np.arange(len(results)).reshape(-1, 1)
-        setattr(high_results, "idxs", idxs[remain_inds])
-        setattr(low_results, "idxs", idxs[second_inds])
-
-        return high_results, low_results, remain_inds, second_inds
+        return results[remain_inds], results[inds_low & inds_below_high], remain_inds, inds_low & inds_below_high
 
     def _input_for(self, img: np.ndarray | None, feats: np.ndarray | None, mask: np.ndarray) -> Any:
         """Return the per-detection auxiliary input for ``init_track``.

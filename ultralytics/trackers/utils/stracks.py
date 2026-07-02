@@ -66,8 +66,7 @@ def parse_bboxes(results) -> np.ndarray:
             containing the original detection index.
     """
     bboxes = results.xywhr if hasattr(results, "xywhr") else results.xywh
-    bboxes_idxs = results.idxs if hasattr(results, "idxs") else np.arange(len(bboxes)).reshape(-1, 1)
-    return np.concatenate([bboxes, bboxes_idxs], axis=-1)
+    return np.concatenate([bboxes, np.arange(len(bboxes)).reshape(-1, 1)], axis=-1)
 
 
 def joint_stracks(atracks: list, btracks: list) -> list:

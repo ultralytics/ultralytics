@@ -1232,8 +1232,11 @@ class E2EDetectLoss:
             self.one2one.assigner.o2f_t = self.o2f_decay(self.updates)
 
     def o2f_decay(self, x) -> float:
-        """Linearly decay the O2F ambiguous-anchor positive degree from 0.6 to 0.2."""
-        return max(1 - x / max(self.one2one.hyp.epochs - 1, 1), 0) * (self.o2f_max_t - self.o2f_min_t) + self.o2f_min_t
+        """Decay o2f_t linearly from o2f_max_t to o2f_min_t over the first half of epochs, then to 0 over the second."""
+        half = max(self.one2one.hyp.epochs - 1, 1) / 2
+        if x <= half:
+            return self.o2f_max_t - (self.o2f_max_t - self.o2f_min_t) * x / half
+        return max(self.o2f_min_t * (1 - (x - half) / half), 0)
 
 
 class E2ELoss:
@@ -1290,8 +1293,11 @@ class E2ELoss:
         return max(1 - x / max(self.one2one.hyp.epochs - 1, 1), 0) * (self.o2m_copy - self.final_o2m) + self.final_o2m
 
     def o2f_decay(self, x) -> float:
-        """Linearly decay the O2F ambiguous-anchor positive degree from 0.6 to 0.2."""
-        return max(1 - x / max(self.one2one.hyp.epochs - 1, 1), 0) * (self.o2f_max_t - self.o2f_min_t) + self.o2f_min_t
+        """Decay o2f_t linearly from o2f_max_t to o2f_min_t over the first half of epochs, then to 0 over the second."""
+        half = max(self.one2one.hyp.epochs - 1, 1) / 2
+        if x <= half:
+            return self.o2f_max_t - (self.o2f_max_t - self.o2f_min_t) * x / half
+        return max(self.o2f_min_t * (1 - (x - half) / half), 0)
 
 
 class TVPDetectLoss:

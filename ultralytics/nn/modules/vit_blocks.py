@@ -2,7 +2,7 @@
 
 """R3 ViT-like student blocks for encoder distillation (FastViT).
 
-Simple-component constraint: Conv2d, BatchNorm2d, LayerNorm, GELU, Linear, F.scaled_dot_product_attention.
+Simple-component constraint: Conv2d, BatchNorm2d, LayerNorm, GELU/SiLU, Linear, F.scaled_dot_product_attention.
 No `nn.MultiheadAttention` (source of AIFI's 1327-node ONNX bloat). No 2D RoPE (ECViT-t hits 554 Constant nodes).
 
 Registered in `ultralytics.nn.modules.__init__` and imported by `ultralytics.nn.tasks` so `parse_model` resolves
@@ -38,10 +38,11 @@ class FastViTBlock(nn.Module):
         ffn_dw (nn.Conv2d): 3x3 DW conv at hidden dim.
         ffn_bn (nn.BatchNorm2d): BN on hidden.
         ffn_pw2 (nn.Conv2d): 1x1 PW conv back to c.
+        act (nn.Module): FFN activation, GELU or SiLU.
     """
 
-    def __init__(self, c: int, mlp_ratio: float = 3.0):
-        """Initialize FastViTBlock with dim c and FFN expansion ratio."""
+    def __init__(self, c: int, mlp_ratio: float = 3.0, silu: bool = False):
+        """Initialize FastViTBlock with dim c, FFN expansion ratio, and activation choice."""
         super().__init__()
         self.mixer_dw = nn.Conv2d(c, c, 3, padding=1, groups=c, bias=False)
         self.mixer_bn = nn.BatchNorm2d(c)
@@ -50,7 +51,9 @@ class FastViTBlock(nn.Module):
         self.ffn_dw = nn.Conv2d(hidden, hidden, 3, padding=1, groups=hidden, bias=False)
         self.ffn_bn = nn.BatchNorm2d(hidden)
         self.ffn_pw2 = nn.Conv2d(hidden, c, 1, bias=False)
-        self.act = nn.GELU()
+        # SiLU fuses into conv epilogues under TensorRT; GELU lowers to standalone fp32 erf+cast kernels
+        # (measured 9-26% of engine time). GELU stays the default so pre-silu checkpoints keep their activation.
+        self.act = nn.SiLU() if silu else nn.GELU()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Forward pass: residual mixer + residual FFN."""
@@ -82,10 +85,10 @@ class MHSABlock(nn.Module):
         ln2 (nn.LayerNorm): Pre-FFN norm.
         fc1 (nn.Linear): FFN first layer.
         fc2 (nn.Linear): FFN second layer.
-        act (nn.GELU): FFN activation.
+        act (nn.Module): FFN activation, GELU or SiLU (see FastViTBlock on the TensorRT fusion difference).
     """
 
-    def __init__(self, c: int, num_heads: int = 6, mlp_ratio: float = 4.0):
+    def __init__(self, c: int, num_heads: int = 6, mlp_ratio: float = 4.0, silu: bool = False):
         """Initialize MHSABlock."""
         super().__init__()
         assert c % num_heads == 0, f"MHSABlock: c={c} not divisible by num_heads={num_heads}"
@@ -100,7 +103,7 @@ class MHSABlock(nn.Module):
         self.ln2 = nn.LayerNorm(c)
         hidden = int(c * mlp_ratio)
         self.fc1 = nn.Linear(c, hidden)
-        self.act = nn.GELU()
+        self.act = nn.SiLU() if silu else nn.GELU()
         self.fc2 = nn.Linear(hidden, c)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:

@@ -149,6 +149,14 @@ def modelopt_quantize_onnx(
             # scales are EP-independent, so the INT8 engine is equivalent and only this one-time step is slower.
             calibration_eps=["cpu"],
             output_path=out_file,
+            # Exclude Sigmoid from INT8 quantization to preserve confidence score precision.
+            # YOLO26's one-to-one head produces moderate logits (0-3) in the sigmoid's steep region;
+            # quantizing the sigmoid input amplifies error through the nonlinearity, compressing
+            # confidence scores into a narrow range. Keeping Sigmoid in FP32 ensures the dequantized
+            # logits are processed at full precision before the nonlinearity is applied.
+            # Mirrors OpenVINO's IgnoredScope(types=["Sigmoid"]) in the exporter.
+            # See https://github.com/ultralytics/ultralytics/issues/24668
+            op_types_to_exclude=["Sigmoid"],
             **kwargs,
         )
         return out_file
@@ -335,11 +343,14 @@ def onnx2engine(
                 trt.IInt8Calibrator.__init__(self)
                 self.dataset = dataset
                 self.data_iter = iter(dataset)
-                self.algo = (
-                    trt.CalibrationAlgoType.ENTROPY_CALIBRATION_2  # DLA quantization needs ENTROPY_CALIBRATION_2
-                    if dla is not None
-                    else trt.CalibrationAlgoType.MINMAX_CALIBRATION
-                )
+                # ENTROPY_CALIBRATION_2 uses KL-divergence minimization to find a quantization
+                # threshold that best preserves the distribution of typical activation values,
+                # making it robust to the outlier-dominated logit distributions produced by
+                # YOLO26's one-to-one detection head. MINMAX_CALIBRATION sets scales from
+                # max_abs/127, which is dominated by extreme negative logits from unmatched
+                # anchors and compresses positive confidence scores into a narrow range.
+                # See https://github.com/ultralytics/ultralytics/issues/24668
+                self.algo = trt.CalibrationAlgoType.ENTROPY_CALIBRATION_2
                 self.batch = dataset.batch_size
                 self.cache = Path(cache)
 
@@ -378,6 +389,26 @@ def onnx2engine(
 
     elif use_fp16 and not is_trt11:
         config.set_flag(trt.BuilderFlag.FP16)
+
+    # Constrain Sigmoid layers to FP32 during INT8 builds on TensorRT 10 (weakly-typed path).
+    # TensorRT 10 uses implicit quantization (IInt8Calibrator + BuilderFlag.INT8), so there is no
+    # Q/DQ node exclusion mechanism like ModelOpt provides for TRT 11+. Instead, per-layer precision
+    # constraints via setPrecision/setOutputType + OBEY_PRECISION_CONSTRAINTS are used.
+    # NVIDIA's own docs note: "Sigmoid or Softmax amplify small numerical differences due to their
+    # exponential component" and recommend FP32 for precision-sensitive operations.
+    # See https://github.com/ultralytics/ultralytics/issues/24668
+    if use_int8 and not is_trt11:
+        config.set_flag(trt.BuilderFlag.OBEY_PRECISION_CONSTRAINTS)
+        sigmoid_count = 0
+        for i in range(network.num_layers):
+            layer = network.get_layer(i)
+            if layer.type == trt.LayerType.ACTIVATION and layer.activation_type == trt.ActivationType.SIGMOID:
+                layer.precision = trt.float32
+                for j in range(layer.num_outputs):
+                    layer.set_output_type(j, trt.float32)
+                sigmoid_count += 1
+        if sigmoid_count:
+            LOGGER.info(f"{prefix} constraining {sigmoid_count} Sigmoid layer(s) to FP32 for INT8 accuracy")
 
     # Write file
     if hasattr(builder, "build_serialized_network"):

@@ -158,7 +158,13 @@ class Detect(nn.Module):
         self, x: list[torch.Tensor]
     ) -> dict[str, torch.Tensor] | torch.Tensor | tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """Concatenates and returns predicted bounding boxes and class probabilities."""
-        preds = self.forward_head(x, **self.one2many)
+        # When end2end is disabled at inference/export time but the model was trained end-to-end
+        # (has a one2one head), use the one2one head for predictions. The one2many head was trained
+        # with a decaying loss weight (E2ELoss: 0.8 -> 0.1) and produces poorly calibrated scores
+        # in later training epochs, causing F1 curves to peak near conf=0.0.
+        # See https://github.com/ultralytics/ultralytics/issues/24668
+        use_one2one = not self.end2end and not self.training and hasattr(self, "one2one_cv2") and self.cv2 is not None
+        preds = self.forward_head(x, **(self.one2one if use_one2one else self.one2many))
         if self.end2end:
             x_detach = [xi.detach() for xi in x]
             one2one = self.forward_head(x_detach, **self.one2one)

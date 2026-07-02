@@ -25,10 +25,10 @@ For a deeper look at the motivation behind this architectural shift, see the [Ul
 
 YOLO26 uses a **dual-head architecture** during [training](../modes/train.md). Both heads share the same backbone and neck, but produce outputs in different ways:
 
-| Head                     | Purpose                 | Detection Output    | Post-Processing           |
-| ------------------------ | ----------------------- | ------------------- | ------------------------- |
-| **One-to-One** (default) | End-to-end inference    | `(N, 300, 6)`       | Confidence threshold only |
-| **One-to-Many**          | Traditional YOLO output | `(N, nc + 4, 8400)` | Requires NMS              |
+| Head                     | Purpose                          | Detection Output    | Post-Processing           |
+| ------------------------ | -------------------------------- | ------------------- | ------------------------- |
+| **One-to-One** (default) | End-to-end inference             | `(N, 300, 6)`       | Confidence threshold only |
+| **One-to-Many**          | Auxiliary training signal (decaying weight 0.8 → 0.1) | Not used at inference | — |
 
 The shapes above are for [detection](../tasks/detect.md). Other tasks extend the one-to-one output with additional data per detection:
 
@@ -39,7 +39,7 @@ The shapes above are for [detection](../tasks/detect.md). Other tasks extend the
 | [Pose](../tasks/pose.md)                     | `(N, 300, 57)`                             | 17 keypoints × 3 (x, y, visibility) |
 | [OBB](../tasks/obb.md)                       | `(N, 300, 7)`                              | Rotation angle                      |
 
-During training, both heads run simultaneously — the one-to-many head provides a richer learning signal, while the one-to-one head learns to produce clean, non-overlapping predictions. During [inference](../modes/predict.md) and [export](../modes/export.md), only the **one-to-one head** is active by default, producing up to 300 detections per image in the format `[x1, y1, x2, y2, confidence, class_id]`.
+During training, both heads run simultaneously — the one-to-many head provides a richer learning signal, while the one-to-one head learns to produce clean, non-overlapping predictions. The one-to-many head's loss weight decays from 0.8 to 0.1 over training epochs, so by the end of training the one-to-one head is the primary, well-calibrated head. During [inference](../modes/predict.md) and [export](../modes/export.md), only the **one-to-one head** is active by default, producing up to 300 detections per image in the format `[x1, y1, x2, y2, confidence, class_id]`.
 
 When you call `model.fuse()`, it folds Conv + BatchNorm layers for faster inference and, on end-to-end models, also removes the one-to-many head — reducing model size and FLOPs. For more details on the dual-head architecture, see the [YOLO26 model page](../models/yolo26.md).
 
@@ -99,11 +99,11 @@ detections = output[0][0]  # first image in batch
 detections = detections[detections[:, 4] > conf_threshold]  # confidence filter — that's it!
 ```
 
-### Switching to the One-to-Many Head
+### Switching to Traditional NMS-Based Output
 
-If you need the traditional YOLO output format (for example, to reuse existing NMS-based post-processing code), you can switch to the one-to-many head when it is available by setting `end2end=False`:
+If you need the traditional YOLO output format (for example, to reuse existing NMS-based post-processing code), you can switch to NMS-based output by setting `end2end=False`:
 
-!!! example "Using the one-to-many head for traditional NMS-based output"
+!!! example "Using NMS-based output with `end2end=False`"
 
     === "Python"
 
@@ -130,15 +130,21 @@ If you need the traditional YOLO output format (for example, to reuse existing N
         yolo export model=yolo26n.pt format=onnx end2end=False
         ```
 
+??? note "Which head is used when `end2end=False`?"
+
+    On YOLO26 models trained with end-to-end detection, setting `end2end=False` uses the **one-to-one head** with external NMS, not the one-to-many head. This is because the one-to-many head was trained with a decaying loss weight (from 0.8 to 0.1 over training epochs) and produces poorly calibrated scores in later epochs. The one-to-one head is the well-trained one and produces better results even when NMS is applied externally. The output format is the traditional `(N, nc + 4, num_predictions)` tensor that requires NMS post-processing, but the scores come from the one-to-one head.
+
+    See [issue #24668](https://github.com/ultralytics/ultralytics/issues/24668) for the detailed analysis of why the one-to-many head produces poorly calibrated scores.
+
 ## Export Format Compatibility
 
 Most [export formats](../modes/export.md#export-formats) support end-to-end inference out of the box, including [ONNX](../integrations/onnx.md), [TensorRT](../integrations/tensorrt.md), [CoreML](../integrations/coreml.md), [OpenVINO](../integrations/openvino.md), [LiteRT](../integrations/litert.md), and [MNN](../integrations/mnn.md).
 
-The following formats **do not** support end-to-end and automatically fall back to the one-to-many head: [NCNN](../integrations/ncnn.md), [RKNN](../integrations/rockchip-rknn.md), [PaddlePaddle](../integrations/paddlepaddle.md), [ExecuTorch](../integrations/executorch.md), [IMX](../integrations/sony-imx500.md), [Edge TPU](../integrations/edge-tpu.md), and [Qualcomm QNN](../integrations/qnn.md).
+The following formats **do not** support end-to-end and automatically fall back to NMS-based output (using the one-to-one head with external NMS): [NCNN](../integrations/ncnn.md), [RKNN](../integrations/rockchip-rknn.md), [PaddlePaddle](../integrations/paddlepaddle.md), [ExecuTorch](../integrations/executorch.md), [IMX](../integrations/sony-imx500.md), [Edge TPU](../integrations/edge-tpu.md), and [Qualcomm QNN](../integrations/qnn.md).
 
 !!! tip "What happens when end-to-end isn't supported"
 
-    When you export to one of these formats, Ultralytics automatically switches to the one-to-many head and logs a warning — no manual intervention needed. This means **you'll need NMS in your inference pipeline** for these formats, just like with [YOLOv8](../models/yolov8.md) or [YOLO11](../models/yolo11.md).
+    When you export to one of these formats, Ultralytics automatically disables the end-to-end branch and logs a warning — no manual intervention needed. The one-to-one head's output is used with external NMS. This means **you'll need NMS in your inference pipeline** for these formats, just like with [YOLOv8](../models/yolov8.md) or [YOLO11](../models/yolo11.md).
 
 For [Hailo HEF](../integrations/hailo.md), the compile step happens outside `model.export(format=...)` after an ONNX export. Use the Hailo DFC logs, `.alls` model script, and NMS JSON that match your exact detection model; if an end-to-end YOLO26 graph is not supported by your Hailo toolchain, export the ONNX model with `end2end=False` and compile the traditional detection head.
 
@@ -150,14 +156,14 @@ For [Hailo HEF](../integrations/hailo.md), the compile step happens outside `mod
 
 End-to-end detection provides significant deployment benefits with minimal impact on [accuracy](https://www.ultralytics.com/glossary/accuracy):
 
-| Metric                    | End-to-End (default)   | One-to-Many + NMS (`end2end=False`) |
+| Metric                    | End-to-End (default)   | NMS-Based (`end2end=False`)         |
 | ------------------------- | ---------------------- | ----------------------------------- |
 | **CPU Inference Speed**   | Up to **43% faster**   | Baseline                            |
 | **mAP Impact**            | ~0.5 mAP lower         | Matches or exceeds YOLO11           |
 | **Post-Processing**       | Confidence filter only | Full NMS pipeline                   |
 | **Deployment Complexity** | Minimal                | Requires NMS implementation         |
 
-For most real-world applications, the ~0.5 [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map) difference is negligible, especially when considering the speed and simplicity gains. If maximum accuracy is your top priority, you can always fall back to the one-to-many head using `end2end=False`.
+For most real-world applications, the ~0.5 [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map) difference is negligible, especially when considering the speed and simplicity gains. If maximum accuracy is your top priority, you can use `end2end=False` with external NMS (which still uses the one-to-one head's scores for better calibration).
 
 See the [YOLO26 performance metrics](../models/yolo26.md#performance-metrics) for detailed benchmarks across all model sizes (n, s, m, l, x).
 
@@ -239,7 +245,7 @@ Alternatively, check the output shape — end-to-end detection models output `(1
 
 ### Is end-to-end supported for instance segmentation, pose, and OBB tasks?
 
-Yes. YOLO26 detection-style task variants — [detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), [pose estimation](../tasks/pose.md), and [oriented object detection (OBB)](../tasks/obb.md) — support end-to-end inference by default. The `end2end=False` fallback is available across these tasks as well.
+Yes. YOLO26 detection-style task variants — [detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), [pose estimation](../tasks/pose.md), and [oriented object detection (OBB)](../tasks/obb.md) — support end-to-end inference by default. The `end2end=False` fallback (which uses the one-to-one head with external NMS) is available across these tasks as well.
 
 Each task extends the base detection output with task-specific data:
 

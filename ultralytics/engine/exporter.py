@@ -575,6 +575,13 @@ class Exporter:
         if hasattr(model, "end2end"):
             if self.args.end2end is not None:
                 model.end2end = self.args.end2end
+                if not self.args.end2end and hasattr(model.model[-1], "one2one_cv2"):
+                    LOGGER.warning(
+                        "Exporting with end2end=False on a model trained with end2end=True. "
+                        "The one-to-one head will be used with external NMS for better score calibration. "
+                        "The one-to-many head was decayed during training and produces poorly calibrated scores. "
+                        "See https://github.com/ultralytics/ultralytics/issues/24668"
+                    )
             if fmt in {"rknn", "ncnn", "executorch", "paddle", "imx", "edgetpu", "qnn"}:
                 # Disable end2end branch for certain export formats as they does not support topk
                 model.end2end = False

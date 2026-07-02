@@ -880,6 +880,24 @@ def test_yolo_world():
     )
 
 
+@pytest.mark.parametrize("weights", ["yolo11n.pt", "yolo11n-seg.pt", "yolo11n-pose.pt", "yolo11n-obb.pt"])
+def test_logits(weights):
+    """Test logits=True attaches per-detection pre-sigmoid class scores to Results."""
+    model = YOLO(WEIGHTS_DIR / weights)
+    r = model(SOURCE, imgsz=32, conf=0.001, logits=True)[0]
+    det = r.obb if r.obb is not None else r.boxes
+    assert tuple(r.logits.data.shape) == (len(det), len(model.names))
+    probs = r.logits.probs
+    assert probs.shape == r.logits.data.shape and (probs >= 0).all() and (probs <= 1).all()  # sigmoid of data
+    assert torch.allclose(probs.max(dim=1).values.float(), det.conf.float(), rtol=1e-3, atol=1e-3)
+    assert isinstance(r.numpy().logits.probs, np.ndarray)  # _keys propagates and numpy sigmoid branch works
+
+
+def test_logits_end2end_disabled():
+    """Test logits=True is gracefully ignored on end2end models."""
+    assert all(r.logits is None for r in YOLO(MODEL)(SOURCE, imgsz=32, logits=True))
+
+
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for heavy CLIP-based models")
 @pytest.mark.skipif(not TORCH_1_13, reason="YOLOE with CLIP requires torch>=1.13")
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="YOLOE with CLIP is not supported in Python 3.12")

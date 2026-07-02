@@ -269,6 +269,7 @@ CFG_BOOL_KEYS = frozenset(
         "save_conf",
         "save_crop",
         "save_frames",
+        "logits",
         "show_labels",
         "show_conf",
         "visualize",

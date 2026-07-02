@@ -1,8 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from ultralytics.engine.predictor import BasePredictor
-from ultralytics.engine.results import Results
-from ultralytics.utils import nms, ops
+from ultralytics.engine.results import Logits, Results
+from ultralytics.utils import LOGGER, nms, ops
 
 
 class DetectionPredictor(BasePredictor):
@@ -51,6 +51,16 @@ class DetectionPredictor(BasePredictor):
             >>> processed_results = predictor.postprocess(preds, img, orig_imgs)
         """
         save_feats = getattr(self, "_feats", None) is not None
+        save_logits = getattr(self.args, "logits", False)
+
+        raw_scores = getattr(self, "_raw_scores", None)
+        if save_logits and raw_scores is None:
+            raw_scores = self._extract_raw_scores(preds)
+        self._raw_scores = None
+        if save_logits and raw_scores is None:
+            LOGGER.warning("Disabling logits: model output lacks raw class scores (end2end or exported model).")
+            save_logits = False
+
         preds = nms.non_max_suppression(
             preds,
             self.args.conf,
@@ -61,21 +71,28 @@ class DetectionPredictor(BasePredictor):
             nc=0 if self.args.task == "detect" else len(self.model.names),
             end2end=getattr(self.model, "end2end", False),
             rotated=self.args.task == "obb",
-            return_idxs=save_feats,
+            return_idxs=save_feats or save_logits,
         )
 
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)[..., ::-1]
 
-        if save_feats:
-            obj_feats = self.get_obj_feats(self._feats, preds[1])
+        if save_feats or save_logits:
+            idxs = preds[1]
             preds = preds[0]
+            if save_feats:
+                obj_feats = self.get_obj_feats(self._feats, idxs)
+            if save_logits:
+                obj_logits = [raw_scores[i].index_select(-1, idx.long().view(-1)).T for i, idx in enumerate(idxs)]
 
         results = self.construct_results(preds, img, orig_imgs, **kwargs)
 
         if save_feats:
             for r, f in zip(results, obj_feats):
                 r.feats = f  # add object features to results
+        if save_logits:
+            for r, l in zip(results, obj_logits):  # noqa: E741
+                r.logits = Logits(l, r.orig_shape)
 
         return results
 
@@ -89,6 +106,13 @@ class DetectionPredictor(BasePredictor):
             [x.permute(0, 2, 3, 1).reshape(x.shape[0], -1, s, x.shape[1] // s).mean(dim=-1) for x in feat_maps], dim=1
         )  # mean reduce all vectors to same length
         return [feats[idx] if idx.shape[0] else [] for feats, idx in zip(obj_feats, idxs)]  # for each img in batch
+
+    @staticmethod
+    def _extract_raw_scores(preds):
+        """Return raw pre-sigmoid class scores from a model output, or None if the model did not expose them."""
+        if isinstance(preds, (tuple, list)) and len(preds) == 2 and isinstance(preds[1], dict):
+            return preds[1].get("scores")
+        return None
 
     def construct_results(self, preds, img, orig_imgs):
         """Construct a list of Results objects from model predictions.

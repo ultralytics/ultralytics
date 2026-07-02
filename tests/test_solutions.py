@@ -360,3 +360,21 @@ def test_display_output_method():
         mock_imshow.assert_called_once()
         mock_wait.assert_called_once()
         mock_destroy.assert_called_once()
+
+
+def test_region_selector_headless(monkeypatch):
+    """Ensure RegionSelector exits cleanly in headless environments without calling window APIs."""
+    from ultralytics.solutions import select_region
+
+    def hard_fail(*args, **kwargs):
+        """Raise AssertionError if cv2 GUI function is called in headless mode."""
+        raise AssertionError("cv2 GUI function called in headless mode")
+
+    # Force headless mode by patching the local symbol where it's referenced
+    monkeypatch.setattr("ultralytics.solutions.region_selector.check_imshow", lambda warn=True: False)
+    monkeypatch.setattr("cv2.namedWindow", hard_fail)
+    monkeypatch.setattr("cv2.imshow", hard_fail)
+    monkeypatch.setattr("cv2.waitKey", hard_fail)
+
+    with pytest.raises(RuntimeError):
+        select_region("dummy.mp4")

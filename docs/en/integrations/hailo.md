@@ -207,7 +207,14 @@ Before running the script, provide a Hailo NMS JSON that matches the exact YOLO1
     print(f"Compiled HEF saved to: {hef_path}")
     ```
 
-The script writes its artifacts into a `yolo11n_hailo_model/` folder (mirroring the `<model>_<format>_model/` layout of other Ultralytics exports), keeping the working directory tidy. The two files needed for deployment are the compiled `yolo11n.hef` and a `metadata.yaml` copied from the metadata Ultralytics embeds in the ONNX; the intermediate `yolo11n.onnx` and `yolo11n.o.har` checkpoint are placed there too. The `metadata.yaml` sidecar carries the same fields (`names`, `imgsz`, `task`, `stride`, and more) as the one produced by other export formats, and the inference scripts load the class names from it to label detections since the HEF itself does not store them. Keep the `.hef` and its `metadata.yaml` together so inference can find the metadata next to the HEF. The Hailo SDK also drops a few `*.log` files (such as `acceleras.log`, `allocator.log`, `hailo_sdk.client.log`, and `hailo_sdk.core.log`) in the working directory; those are diagnostic scratch files you can ignore or delete. If you are compiling for Raspberry Pi AI Kit, set `HW_ARCH = "hailo8l"` before running the compile step.
+The export script organizes artifacts and logs as follows:
+
+- **Deployment Folder**: Artifacts are saved to `yolo11n_hailo_model/`, mirroring the standard `<model>_<format>_model/` layout used by other Ultralytics exports.
+- **Required Files**: The two files needed for deployment are the compiled `yolo11n.hef` and the `metadata.yaml` sidecar.
+- **Metadata**: The `metadata.yaml` contains essential fields (`names`, `imgsz`, `task`, `stride`, etc.) extracted from the ONNX metadata. Inference scripts load class names from this file since the HEF format does not store them.
+- **Intermediate Files**: The export folder also contains the intermediate `yolo11n.onnx` and `yolo11n.o.har` checkpoints.
+- **Log Files**: The Hailo SDK generates several diagnostic logs (e.g., `acceleras.log`, `allocator.log`, `hailo_sdk.client.log`, and `hailo_sdk.core.log`) in the working directory; these can be safely ignored or deleted.
+- **Raspberry Pi AI Kit**: For this specific hardware, ensure you set `HW_ARCH = "hailo8l"` before running the compilation step.
 
 ## Step-by-Step Breakdown
 

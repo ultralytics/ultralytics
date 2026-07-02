@@ -15,6 +15,10 @@ keywords: YOLO26, LiteRT, TFLite, TensorFlow Lite, LiteRT.js, model export, edge
 
 The LiteRT export format optimizes your models for tasks like [object detection](https://www.ultralytics.com/glossary/object-detection), [segmentation](https://www.ultralytics.com/glossary/image-segmentation), [pose estimation](../tasks/pose.md), and [classification](https://www.ultralytics.com/glossary/image-classification) so they run fast and offline on a wide range of devices.
 
+!!! tip "Run YOLO on Android with LiteRT today via the official Flutter plugin"
+
+    The official [Ultralytics YOLO Flutter plugin](https://github.com/ultralytics/yolo-flutter-app) runs LiteRT `.tflite` exports on Android out of the box — real-time camera inference, single-image prediction, GPU acceleration, and automatic model download for all six YOLO26 tasks. For Apple devices use the [CoreML export](coreml.md); for Qualcomm Snapdragon NPUs see the [Qualcomm QNN integration](qnn.md).
+
 ## Why Should You Export to LiteRT?
 
 [LiteRT](https://developers.google.com/edge/litert/overview) is an open-source framework designed for on-device inference, also known as [edge computing](https://www.ultralytics.com/glossary/edge-computing). It gives developers the tools to execute trained models on mobile, embedded, and IoT devices, traditional computers, and — through [LiteRT.js](https://developers.google.com/edge/litert/web) — directly in web browsers and Node.js.
@@ -32,6 +36,23 @@ One model format, every target:
 - **Hardware Acceleration**: Leverages XNNPACK on CPU, and GPU acceleration via OpenCL, Metal, and WebGPU. The GPU delegate runs in FP16 by default for additional speed.
 - **Quantization**: Supports FP32, static INT8 (`quantize=8`, int8 weights + int8 activations), static INT16-activation (`quantize="w8a16"`, int8 weights + int16 activations for higher accuracy), and dynamic INT8 (`quantize="w8a32"`, int8 weights + FP32 activations, no calibration data needed) to compress models and speed up inference with minimal [accuracy](https://www.ultralytics.com/glossary/accuracy) loss.
 - **Diverse Language Support**: Compatible with Java/Kotlin, Swift, Objective-C, C++, Python, and JavaScript.
+
+## Measured Performance
+
+End-to-end single-image inference for the official YOLO26n Android LiteRT assets (`w8a32`: int8 weights, FP32 activations) on a Xiaomi 17 phone powered by the Qualcomm Snapdragon 8 Elite Gen 5 (SM8850), measured through the [Ultralytics Flutter plugin](https://github.com/ultralytics/yolo-flutter-app). Each cell shows the **total time** (preprocessing + inference + postprocessing, excluding annotation) with the per-stage split beneath it. CPU runs the LiteRT XNNPACK delegate; GPU runs the LiteRT OpenCL/GL delegate (FP16).
+
+| Model        | Task     | size<br><sup>(pixels)</sup> | CPU<br><sup>w8a32 LiteRT<br>(ms)</sup> | GPU Adreno<br><sup>w8a32 LiteRT<br>(ms)</sup> |
+| ------------ | -------- | --------------------------- | -------------------------------------- | --------------------------------------------- |
+| YOLO26n      | Detect   | 640                         | 87.1<br><sup>7.1 / 77.4 / 2.7</sup>    | **17.4**<br><sup>6.2 / 8.6 / 2.6</sup>        |
+| YOLO26n-seg  | Segment  | 640                         | 129.0<br><sup>7.3 / 109.0 / 12.8</sup> | **43.4**<br><sup>7.7 / 21.9 / 13.7</sup>      |
+| YOLO26n-sem  | Semantic | 640                         | 99.0<br><sup>7.0 / 76.4 / 15.7</sup>   | **59.4**<br><sup>7.5 / 34.4 / 17.5</sup>      |
+| YOLO26n-cls  | Classify | 224                         | 8.1<br><sup>1.2 / 6.1 / 0.8</sup>      | **4.9**<br><sup>1.7 / 2.0 / 1.3</sup>         |
+| YOLO26n-pose | Pose     | 640                         | 102.4<br><sup>7.4 / 92.4 / 2.5</sup>   | **24.0**<br><sup>9.1 / 10.4 / 4.5</sup>       |
+| YOLO26n-obb  | OBB      | 640                         | 90.9<br><sup>7.7 / 81.3 / 1.9</sup>    | **18.4**<br><sup>7.7 / 8.6 / 2.0</sup>        |
+
+- **Speed** values are **single-image burst latencies** — the mean of 15 runs after 3 warmup runs on `bus.jpg`, measured with the Flutter plugin's on-device benchmark harness in profile mode. The full task suite runs back-to-back, so the CPU-bound preprocessing stage reflects sustained operation (a thermally rested single-task measurement is lower); the GPU/CPU inference stage is the steady-state compute cost.
+- The LiteRT export traces the PyTorch model directly, producing an **NCHW** `.tflite` with a float input — the GPU delegate compiles the whole graph (all six tasks run on the Adreno GPU here), and `w8a32` needs no calibration data.
+- The matching Snapdragon **Hexagon NPU** numbers (and the INT8 TFLite CPU/GPU baseline) are in the [Qualcomm QNN integration](qnn.md).
 
 ## Export to LiteRT: Converting Your YOLO Model
 

@@ -150,7 +150,41 @@ class BasePredictor:
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         self.txt_path = None
         self._lock = threading.Lock()  # for automatic thread-safe inference
+        self._rect_imgsz_notice_shown = False
         callbacks.add_integration_callbacks(self)
+
+    def _maybe_log_rect_minimal_padding_notice(self, im_list: list[np.ndarray], letterboxed_bhwc: np.ndarray) -> None:
+        """Log once when rectangular imgsz + rect + minimum-rectangle padding may shrink the input tensor."""
+        if self._rect_imgsz_notice_shown or not self.args.verbose or not self.args.rect:
+            return
+        if self.imgsz is None or self.model is None:
+            return
+        if isinstance(self.imgsz, int):
+            h, w = self.imgsz, self.imgsz
+        elif isinstance(self.imgsz, (list, tuple)) and len(self.imgsz) == 2:
+            h, w = int(self.imgsz[0]), int(self.imgsz[1])
+        else:
+            return
+        if h == w:
+            return
+        same_shapes = len({x.shape for x in im_list}) == 1
+        auto = same_shapes and self.args.rect and (
+            self.model.format == "pt" or (getattr(self.model, "dynamic", False) and self.model.format != "imx")
+        )
+        if not auto:
+            return
+        self._rect_imgsz_notice_shown = True
+        lh, lw = int(letterboxed_bhwc.shape[1]), int(letterboxed_bhwc.shape[2])
+        LOGGER.info(
+            "Note: with rect=True and a rectangular imgsz=(%d, %d), minimum-rectangle (stride-aligned) padding may "
+            "yield a smaller letterboxed tensor than this resize box; current (H, W)=(%d, %d). In batched inference, "
+            "minimal padding applies only when every image in the batch has the same height and width; otherwise full "
+            "letterboxing to imgsz is used. See https://docs.ultralytics.com/modes/predict/#inference-arguments",
+            h,
+            w,
+            lh,
+            lw,
+        )
 
     def preprocess(self, im: torch.Tensor | list[np.ndarray]) -> torch.Tensor:
         """Prepare input image before inference.
@@ -163,7 +197,9 @@ class BasePredictor:
         """
         not_tensor = not isinstance(im, torch.Tensor)
         if not_tensor:
-            im = np.stack(self.pre_transform(im))
+            im_list = im
+            im = np.stack(self.pre_transform(im_list))
+            self._maybe_log_rect_minimal_padding_notice(im_list, im)
             if im.shape[-1] == 3:
                 im = im[..., ::-1]  # BGR to RGB
             im = im.transpose((0, 3, 1, 2))  # BHWC to BCHW, (n, 3, h, w)
@@ -291,6 +327,7 @@ class BasePredictor:
         Yields:
             (ultralytics.engine.results.Results): Results objects.
         """
+        self._rect_imgsz_notice_shown = False  # one notice per predict() call; predictor may be reused on same YOLO
         if self.args.verbose:
             LOGGER.info("")
 

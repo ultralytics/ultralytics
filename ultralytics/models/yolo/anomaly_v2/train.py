@@ -22,7 +22,8 @@ from pathlib import Path
 import torch
 
 
-from ultralytics.data import build_yolo_dataset
+from ultralytics.data import YOLOConcatDataset, build_yolo_dataset
+from ultralytics.data.augment import LoadAnomalyPriorMask
 from ultralytics.models import yolo
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.modules.head import AnomalyMCDetect
@@ -92,7 +93,11 @@ class AnomalyV2Trainer(DetectionTrainer):
         return bool(getattr(unwrap_model(self.model), "seg_target_polygon", False))
 
     def build_dataset(self, img_path: str, mode: str = "train", batch: int | None = None):
-        """Build the dataset, forcing polygon-mask loading when polygon-prior mode is on."""
+        """Build the dataset, forcing polygon-mask loading when polygon-prior mode is on.
+
+        Appends ``LoadAnomalyPriorMask`` so the collated batch contains ``prior_mask`` for the
+        model to consume directly.
+        """
         if self._polygon_prior_active():
             # task="segment" flips YOLODataset.use_segments -> Format(return_mask=True) ->
             # batch["masks"] (overlap-union instance map). Detection head/loss unaffected
@@ -100,10 +105,21 @@ class AnomalyV2Trainer(DetectionTrainer):
             args = copy(self.args)
             args.task = "segment"
             gs = max(int(unwrap_model(self.model).stride.max()), 32)
-            return build_yolo_dataset(
+            dataset = build_yolo_dataset(
                 args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs
             )
-        return super().build_dataset(img_path, mode=mode, batch=batch)
+        else:
+            dataset = super().build_dataset(img_path, mode=mode, batch=batch)
+
+        # Attach the prior-mask builder to the final transform pipeline.
+        v2_cfg = getattr(unwrap_model(self.model), "yaml", {}).get("anomaly_v2", {})
+        transform = LoadAnomalyPriorMask(v2_cfg, mode=mode)
+        if isinstance(dataset, YOLOConcatDataset):
+            for d in dataset.datasets:
+                d.transforms.append(transform)
+        else:
+            dataset.transforms.append(transform)
+        return dataset
 
     def get_model(self, cfg=None, weights=None, verbose: bool = True):
         """Return a ``YOLOAnomalyV2Model``.

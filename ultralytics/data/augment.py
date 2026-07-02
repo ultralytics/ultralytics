@@ -21,6 +21,12 @@ from ultralytics.utils.metrics import bbox_ioa
 from ultralytics.utils.ops import segment2box, xywh2xyxy, xyxyxyxy2xywhr
 from ultralytics.utils.torch_utils import TORCHVISION_0_10, TORCHVISION_0_11, TORCHVISION_0_13
 
+# Anomaly v2 prior-mask renderer/augmenter (imported here to keep the transform next to LoadVisualPrompt).
+# These are neural modules but stateless at inference time; importing them at module level is safe because
+# ultralytics.nn.modules does not depend on ultralytics.data.
+from ultralytics.nn.modules.anomaly_v2 import BboxMaskRenderer
+from ultralytics.nn.modules.anomaly_v2_prior_augment import MaskPriorAugmenter
+
 DEFAULT_MEAN = (0.0, 0.0, 0.0)
 DEFAULT_STD = (1.0, 1.0, 1.0)
 
@@ -2259,6 +2265,100 @@ class LoadVisualPrompt:
         for idx, mask in zip(inverse_indices, masks):
             visuals[idx] = torch.logical_or(visuals[idx], mask)
         return visuals
+
+
+class LoadAnomalyPriorMask:
+    """Build and augment the anomaly-v2 fusion prior mask inside the dataset pipeline.
+
+    Mirrors ``LoadVisualPrompt``: the trainer appends this transform to the dataset, and the collate
+    function stacks the resulting ``labels["prior_mask"]`` tensors into ``batch["prior_mask"]``.
+    The model forward then consumes the pre-built mask directly instead of rendering it from bboxes.
+
+    The prior can be rendered from bboxes (default) or from polygon masks when
+    ``seg_target_polygon=True`` in the model YAML.
+    """
+
+    def __init__(self, v2_cfg: dict, mode: str = "train") -> None:
+        """Initialize renderer and augmenter from the model YAML ``anomaly_v2`` block.
+
+        Args:
+            v2_cfg: The ``anomaly_v2`` dictionary from the model YAML.
+            mode: "train" applies mask augmentations; any other mode renders the mask as-is.
+        """
+        self.mask_size = int(v2_cfg.get("mask_size", 80))
+        self.mask_mode = str(v2_cfg.get("mask_mode", "rect"))
+        _sf = v2_cfg.get("sigma_factor", 0.25)
+        self.sigma_factor = [float(_sf[0]), float(_sf[1])] if isinstance(_sf, (list, tuple)) else float(_sf)
+        self.seg_target_polygon = bool(v2_cfg.get("seg_target_polygon", False))
+        self.augment = mode == "train"
+        self.renderer = BboxMaskRenderer(
+            mask_size=self.mask_size, mode=self.mask_mode, sigma_factor=self.sigma_factor
+        )
+        self.augmenter = MaskPriorAugmenter(v2_cfg) if self.augment else None
+
+    def _polygon_union(self, masks: torch.Tensor) -> torch.Tensor:
+        """Convert a single-image polygon mask to a binary union ``(1, mask_size, mask_size)``.
+
+        Supports two formats:
+          - ``(H, W)`` instance-index map (overlap_mask=True): values > 0 become foreground.
+          - ``(N, H, W)`` binary instance masks (overlap_mask=False): union over N.
+        """
+        if masks.dim() == 2:
+            prior = (masks > 0).float().unsqueeze(0)  # (1, H, W)
+        elif masks.dim() == 3:
+            prior = masks.amax(0, keepdim=True).clamp(0, 1).float()  # (1, H, W)
+        else:
+            prior = torch.zeros(1, *masks.shape[-2:], dtype=torch.float32)
+        if prior.shape[1:] != (self.mask_size, self.mask_size):
+            prior = torch.nn.functional.interpolate(
+                prior.unsqueeze(0), size=(self.mask_size, self.mask_size), mode="nearest"
+            ).squeeze(0)
+        return prior
+
+    def __call__(self, labels: dict[str, Any]) -> dict[str, Any]:
+        """Build ``labels["prior_mask"]`` from bboxes or polygons and optional training augmentations.
+
+        Args:
+            labels: Ultralytics label dict with ``img``, ``bboxes`` (and optionally ``masks``).
+
+        Returns:
+            labels with ``prior_mask`` added: float32 tensor of shape ``(1, mask_size, mask_size)``.
+        """
+        bboxes = labels.get("bboxes")
+        masks = labels.get("masks") if self.seg_target_polygon else None
+        device = bboxes.device if isinstance(bboxes, torch.Tensor) else (
+            masks.device if isinstance(masks, torch.Tensor) else "cpu"
+        )
+        dev = device if isinstance(device, torch.device) else torch.device(device)
+
+        # Polygon path: union the provided segment masks.
+        if masks is not None and masks.numel() > 0:
+            prior = self._polygon_union(masks.to(torch.float32))  # (1, H, W)
+
+        # Box path: render normalized bboxes into a gauss/rect mask.
+        elif bboxes is not None and bboxes.numel() > 0:
+            # bboxes are (N, 4) normalized [cx, cy, w, h]; batch_idx is all zeros for single image.
+            batch_idx = torch.zeros(bboxes.shape[0], dtype=torch.long, device=bboxes.device)
+            bb, bi = bboxes, batch_idx
+            if self.augment and self.augmenter is not None:
+                bb, bi = self.augmenter.augment_prior_bboxes(bb, bi, training=True)
+                bb, bi = self.augmenter.fragment_prior_bboxes(bb, bi, training=True)
+            prior = self.renderer(bb, bi, batch_size=1).squeeze(0)  # (1, H, W)
+
+        # No objects: all-zero prior.
+        else:
+            prior = torch.zeros(1, self.mask_size, self.mask_size, dtype=torch.float32)
+
+        # Training augmentations operate on (B, 1, H, W); convert and convert back.
+        if self.augment and self.augmenter is not None and prior.numel() > 0:
+            prior_bchw = prior.unsqueeze(0)  # (1, 1, H, W)
+            prior_bchw = self.augmenter.translate_prior(prior_bchw, training=True)
+            prior_bchw = self.augmenter.fragment_mask(prior_bchw, training=True)
+            prior_bchw = self.augmenter.augment_mask(prior_bchw)
+            prior = prior_bchw.squeeze(0)  # (1, H, W)
+
+        labels["prior_mask"] = prior.to(device=dev)
+        return labels
 
 
 class RandomLoadText:

@@ -537,11 +537,11 @@ class YOLOAnomalyV2Model(DetectionModel):
       without a mask.
 
     Mask source:
-      - Training: rendered from ``batch["bboxes"]`` (set by ``loss()``).
-      - Validation B-on: caller sets bboxes via ``set_mask_input()``.
-      - Validation B-off / pure inference: no bboxes -> bias is None -> PAN features
-        flow through unchanged (vanilla YOLO).
-      - External (e.g. user prompt): ``set_external_mask_once``.
+      - Training / mask-on validation: ``batch["prior_mask"]`` built by
+        ``LoadAnomalyPriorMask`` in the dataset pipeline.
+      - Heatmap inference: feature-side memory-bank anomaly map (``prior_mode="heatmap"``).
+      - External (e.g. user prompt): ``set_external_mask_once`` (``prior_mode="mask"``).
+      - Passthrough: ``prior_mode="none"`` or ``disable_mask_once()``.
 
     Spec: docs_yoloa_v2/specs/2026-06-02-softhint-fusion-design.md.
     """
@@ -611,11 +611,11 @@ class YOLOAnomalyV2Model(DetectionModel):
         self.heatmap_edge_sigma = 1.0
         self._edge_weight_cache = None
 
-        # Transient bbox input for the next forward pass. Reset after each forward.
-        self._mask_bboxes_buf = None  # (N, 4) normalized [cx, cy, w, h]
-        self._mask_batch_idx_buf = None  # (N,) long
-        # Allows external callers (validator) to force mask-off mode for a single forward.
-        self._mask_disabled_once = False
+        # Inference-only routing state. Training masks come through the forward() argument
+        # ``prior_mask`` (built by LoadAnomalyPriorMask in the dataset), so no bbox/segment
+        # buffers are needed for training.
+        self._external_mask_buf = None  # (B, 1, H, W) caller-provided mask/heatmap
+        self._mask_disabled_once = False  # force one forward to passthrough
 
         # --- BackboneMemoryBank (v2.3) ---
         # Architecture knob from the model YAML; all build hyperparameters come from the fit YAML.
@@ -646,22 +646,8 @@ class YOLOAnomalyV2Model(DetectionModel):
     # ------------------------------------------------------------------
     # Mask input API
     # ------------------------------------------------------------------
-    def set_mask_input(self, bboxes, batch_idx, masks=None):
-        """Provide bboxes (and optionally polygon masks) used to render the prior for the NEXT forward pass.
-
-        Cleared automatically after the forward. Typically called by:
-          - ``loss()`` (auto, from batch dict — includes ``batch["masks"]`` when available)
-          - the v2 validator (manual, for B-on val pass — bboxes only, no masks)
-        """
-        self._mask_bboxes_buf = bboxes
-        self._mask_batch_idx_buf = batch_idx
-        self._mask_masks_buf = masks
-        self._mask_disabled_once = False
-
     def disable_mask_once(self):
         """Force the next forward to use no mask (bias=0 -> passthrough). Used by B-off val."""
-        self._mask_bboxes_buf = None
-        self._mask_batch_idx_buf = None
         self._external_mask_buf = None
         self._mask_disabled_once = True
 
@@ -672,44 +658,34 @@ class YOLOAnomalyV2Model(DetectionModel):
 
         ``mask.shape[2:]`` may be any HxW; it is resized to each PAN scale internally.
         Typical use cases: hand-drawn masks for interactive prediction, MemoryBank
-        outputs at v2.1 inference, sanity-check heatmaps.
+        outputs, or sanity-check heatmaps.
         """
         if mask.dim() != 4 or mask.shape[1] != 1:
             raise ValueError(f"external mask must be (B, 1, H, W), got {tuple(mask.shape)}")
         self._external_mask_buf = mask
-        self._mask_bboxes_buf = None
-        self._mask_batch_idx_buf = None
         self._mask_disabled_once = False
 
-    def _consume_mask_input(self):
-        # Robust to being called during super().__init__()'s stride probe,
-        # before our own __init__ has set these attributes.
-        bb = getattr(self, "_mask_bboxes_buf", None)
-        bi = getattr(self, "_mask_batch_idx_buf", None)
+    def _consume_inference_mask(self):
+        """Read and clear inference-only mask state. Returns (external_mask, disabled)."""
         ext = getattr(self, "_external_mask_buf", None)
-        m = getattr(self, "_mask_masks_buf", None)
         disabled = getattr(self, "_mask_disabled_once", False)
-        if hasattr(self, "_mask_bboxes_buf"):
-            self._mask_bboxes_buf = None
-            self._mask_batch_idx_buf = None
+        if hasattr(self, "_external_mask_buf"):
             self._external_mask_buf = None
-            self._mask_masks_buf = None
             self._mask_disabled_once = False
-        return bb, bi, ext, disabled, m
+        return ext, disabled
 
     # ------------------------------------------------------------------
     # Prior mode API (v2.3 — unified 4-mode routing)
     # ------------------------------------------------------------------
     def set_prior_mode(self, mode: str | None) -> None:
-        """Set the prior source for the next forward.
+        """Set the prior source for the next inference forward.
 
         Args:
-            mode: ``"none"`` (passthrough), ``"box"`` (GT bbox render), ``"mask"`` (external/GT
-                mask), ``"segment"`` (segmentation prompt), ``"heatmap"`` (feature-side memory-bank
-                map), or ``"anomaly_model"`` (external heatmap injected via mask seam). ``None``
-                keeps the training default (pick by data).
+            mode: ``"none"`` (passthrough), ``"mask"`` (external mask), ``"heatmap"`` (feature-side
+                memory-bank map), or ``"anomaly_model"`` (external heatmap injected via the mask
+                seam). ``None`` lets the model decide from other inputs.
         """
-        if mode is not None and mode not in ("none", "box", "mask", "segment", "heatmap", "anomaly_model"):
+        if mode is not None and mode not in ("none", "mask", "heatmap", "anomaly_model"):
             raise ValueError(f"Invalid prior_mode: {mode!r}")
         self._prior_mode = mode
 
@@ -881,10 +857,9 @@ class YOLOAnomalyV2Model(DetectionModel):
         state["_bb_feats"] = {}
         for k in (
             "_last_heatmap",
-            "_mask_bboxes_buf",
-            "_mask_batch_idx_buf",
             "_external_mask_buf",
             "_edge_weight_cache",
+            "_incoming_prior_mask",
         ):
             if k in state:
                 state[k] = None
@@ -925,88 +900,23 @@ class YOLOAnomalyV2Model(DetectionModel):
             x = torch.nn.functional.interpolate(x, size=(mask_size, mask_size), mode="bilinear", align_corners=False)
         return x
 
-    def _prior_from_box(self, bboxes, batch_idx, batch_size, augment):
-        """Prior rendered from GT bboxes (bbox->gauss), train-augmented when ``augment``, or None."""
-        if bboxes is None:
-            return None
-        bb, bi = self.mask_augmenter.augment_prior_bboxes(bboxes, batch_idx, self.training)
-        bb, bi = self.mask_augmenter.fragment_prior_bboxes(bb, bi, training=augment)
-        prior = self.mask_renderer(bb, bi, batch_size)
-        return self.mask_augmenter.augment_mask(prior) if augment else prior
-
-    def _mask_union_prior(self, masks, batch_idx, batch_size):
-        """Convert ``batch["masks"]`` to a ``(B, 1, mask_size, mask_size)`` binary union prior.
-
-        Handles both overlap_mask formats:
-          - ``overlap_mask=True``: ``(B, H/4, W/4)`` instance-index map (0=background)
-          - ``overlap_mask=False``: ``(N, H/4, W/4)`` per-instance binary masks
-
-        Polygon-equivalent augmentations are delegated to ``self.mask_augmenter``.
-        """
-        masks = self.mask_augmenter.drop_polygon_instances(masks, training=self.training, batch_size=batch_size)
-
-        if masks.dim() == 3 and masks.shape[0] == batch_size:
-            # overlap_mask=True: (B, H/r, W/r) instance-index map → binary union
-            prior = (masks > 0).float().unsqueeze(1)  # (B, 1, H/r, W/r)
-        else:
-            # overlap_mask=False: (N, H/r, W/r) per-instance → union per image.
-            # Instance drop: randomly zero individual mask rows.
-            box_drop_p = self.mask_augmenter.mask_box_drop_p
-            if self.training and box_drop_p > 0.0 and masks.numel() > 0:
-                keep = torch.rand(masks.shape[0], device=masks.device) > box_drop_p
-                masks = masks[keep]
-                batch_idx = batch_idx[keep]
-            prior = masks.new_zeros(batch_size, 1, masks.shape[-2], masks.shape[-1])
-            for b in range(batch_size):
-                sel = batch_idx == b
-                if sel.any():
-                    prior[b, 0] = masks[sel].amax(0)
-            prior = (prior > 0).float()
-
-        if prior.shape[2] != self.mask_size or prior.shape[3] != self.mask_size:
-            prior = torch.nn.functional.interpolate(prior, size=(self.mask_size, self.mask_size), mode="nearest")
-
-        prior = self.mask_augmenter.translate_prior(prior, training=self.training)
-        prior = self.mask_augmenter.fragment_mask(prior, training=self.training)
-
-        return prior
-
-    def _resolve_prior(
-        self,
-        source,
-        *,
-        bboxes=None,
-        batch_idx=None,
-        batch_masks=None,
-        external_mask=None,
-        batch_size=None,
-        device=None,
-        augment=False,
-    ):
-        """Build the (B, 1, mask_size, mask_size) fusion prior from a single source, or None.
+    def _resolve_prior(self, source, *, external_mask=None, batch_size=None, device=None):
+        """Build the (B, 1, mask_size, mask_size) inference fusion prior from a single source, or None.
 
         The prior is always a mask-format hint fused into the PAN features; ``None`` means
-        passthrough (no fusion -> head_a). ``augment=True`` (training only) applies
-        ``mask_augmenter.augment_mask`` so the model learns to tolerate an imperfect deploy heatmap.
+        passthrough (no fusion -> head).
 
         Sources:
             none     -> None (explicit passthrough)
-            box      -> GT bboxes rendered to a gauss mask (train default for bbox data)
-            mask     -> a given mask tensor: ``external_mask`` if set, else the GT mask union
-                        from ``batch_masks`` (train default for segment data)
+            mask     -> caller-provided ``external_mask``
             heatmap  -> feature-side memory-bank anomaly map
         """
         mask_size = getattr(self, "mask_size", 80)
         if source in (None, "none"):
             return None
-        if source == "box":
-            return self._prior_from_box(bboxes, batch_idx, batch_size, augment)
         if source == "mask":
             if external_mask is not None:
                 return external_mask.to(device=device, dtype=torch.float32)
-            if batch_masks is not None and batch_masks.numel() > 0:
-                prior = self._mask_union_prior(batch_masks, batch_idx, batch_size).to(device=device)
-                return self.mask_augmenter.augment_mask(prior) if augment else prior
             return None
         if source == "heatmap":
             return self._prior_from_heatmap(mask_size, device)
@@ -1022,23 +932,18 @@ class YOLOAnomalyV2Model(DetectionModel):
             hmap = mb(bb_feats)
         return self._resize_to_mask(hmap.to(device=device, dtype=torch.float32), mask_size)
 
-    def _select_prior_source(self, external_mask, disabled, bboxes, batch_masks):
-        """Pick the prior source for this forward.
+    def _select_prior_source(self, external_mask, disabled):
+        """Pick the inference prior source when no explicit ``prior_mask`` was passed.
 
-        Precedence: disabled > ``_prior_mode`` (explicit deploy) > external > GT mask/box > none.
+        Precedence: disabled > ``_prior_mode`` (explicit deploy) > external mask > none.
         """
         if disabled:
             return "none"
         pm = getattr(self, "_prior_mode", None)
         if pm is not None:
-            return pm  # explicit deploy source (legacy aliases already translated by set_prior_mode)
+            return pm
         if external_mask is not None:
             return "mask"
-        if bboxes is not None:
-            use_polygon = (
-                batch_masks is not None and batch_masks.numel() > 0 and getattr(self, "seg_target_polygon", False)
-            )
-            return "mask" if use_polygon else "box"
         return "none"
 
     def _smooth_prior(self, mask, mode, kernel):
@@ -1093,22 +998,28 @@ class YOLOAnomalyV2Model(DetectionModel):
     # Forward
     # ------------------------------------------------------------------
     def loss(self, batch, preds=None):
-        """Compute loss. Sets mask input from ``batch["bboxes"]`` before forward."""
+        """Compute loss. Passes the pre-built ``batch["prior_mask"]`` into forward."""
         if getattr(self, "criterion", None) is None:
             self.criterion = self.init_criterion()
         if preds is None:
-            # Standard ultralytics batch fields: bboxes (N, 4), batch_idx (N,)
-            self.set_mask_input(batch["bboxes"], batch["batch_idx"], batch.get("masks"))
-            try:
-                preds = self.forward(batch["img"])
-            finally:
-                # Forward always consumes them, but be defensive in case of exception.
-                self._mask_bboxes_buf = None
-                self._mask_batch_idx_buf = None
+            preds = self.forward(batch["img"], prior_mask=batch.get("prior_mask"))
         det_loss, det_items = self.criterion(preds, batch)
         return det_loss, det_items
 
-    def _predict_once(self, x, profile=False, visualize=False, embed=None):
+    def forward(self, x, *args, prior_mask=None, **kwargs):
+        """Forward pass. Training provides ``prior_mask``; inference routes via ``_prior_mode``.
+
+        The validator stashes per-batch masks in ``self._incoming_prior_mask`` because the base
+        validator calls ``model(batch["img"])`` without extra kwargs. If neither argument nor
+        attribute is set, inference falls back to ``_prior_mode`` / ``_external_mask_buf``.
+        """
+        incoming = getattr(self, "_incoming_prior_mask", None)
+        if incoming is not None and prior_mask is None:
+            prior_mask = incoming
+            self._incoming_prior_mask = None
+        return self._predict_once(x, *args, prior_mask=prior_mask, **kwargs)
+
+    def _predict_once(self, x, profile=False, visualize=False, embed=None, prior_mask=None):
         """Forward with heatmap-guided fusion inserted before the Detect head."""
         batch_size = x.shape[0]
         device = x.device
@@ -1125,16 +1036,16 @@ class YOLOAnomalyV2Model(DetectionModel):
                     self._install_backbone_taps(_layers)
                     break
 
-        # Consume the mask input set by loss() / set_mask_input() / disable_mask_once() /
-        # set_external_mask_once().
-        bboxes, batch_idx, external_mask, mask_disabled, batch_masks = self._consume_mask_input()
+        # Consume inference-only mask state (external_mask / disabled). Training masks are passed
+        # directly via ``prior_mask`` and bypass this buffer logic.
+        external_mask, mask_disabled = self._consume_inference_mask()
 
         # Per-sample keep mask for mask dropout (anti-shortcut). Only meaningful when a
         # rendered/blended mask is active; keep[b]=0 zeros the per-sample bias -> passthrough.
         # getattr guards the stride probe in super().__init__(), which runs before our attrs exist.
         p_drop = getattr(self, "p_drop", 0.0)
         keep = torch.ones(batch_size, device=device)
-        if bboxes is not None and external_mask is None and self.training and p_drop > 0.0:
+        if prior_mask is not None and external_mask is None and self.training and p_drop > 0.0:
             keep = (torch.rand(batch_size, device=device) > p_drop).to(keep.dtype)
 
         # The fusion prior is resolved inside the loop once the PAN features are available.
@@ -1150,18 +1061,19 @@ class YOLOAnomalyV2Model(DetectionModel):
                 # m.f is a list of indices into y (the PAN P3/P4/P5 outputs).
                 pan_inputs = [y[j] for j in m.f]
 
-                # Resolve the fusion prior from a single source (picker + unified resolver).
-                source = self._select_prior_source(external_mask, mask_disabled, bboxes, batch_masks)
-                prior = self._resolve_prior(
-                    source,
-                    bboxes=bboxes,
-                    batch_idx=batch_idx,
-                    batch_masks=batch_masks,
-                    external_mask=external_mask,
-                    batch_size=batch_size,
-                    device=device,
-                    augment=self.training,
-                )
+                # Resolve the fusion prior. Training provides it directly; inference routes
+                # via _prior_mode / external_mask / disabled flags.
+                if prior_mask is not None:
+                    prior = prior_mask.to(device=device, dtype=torch.float32)
+                    source = "mask"
+                else:
+                    source = self._select_prior_source(external_mask, mask_disabled)
+                    prior = self._resolve_prior(
+                        source,
+                        external_mask=external_mask,
+                        batch_size=batch_size,
+                        device=device,
+                    )
                 # Edge-suppression weight: down-weight the memory-bank heatmap toward the image
                 # borders (peripheral patches score high from boundary effects, not real defects).
                 if (

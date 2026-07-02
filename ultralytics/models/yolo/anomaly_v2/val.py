@@ -87,8 +87,7 @@ class YOLOAnomalyValidatorBase:
         self._auroc_pixel_scores: list[float] = []
         self._auroc_pixel_labels: list[int] = []
 
-        from ultralytics.nn.modules.anomaly_v2 import BboxMaskRenderer
-        self._eval_mask_renderer = BboxMaskRenderer(mask_size=256, mode="rect")
+
 
     # ------------------------------------------------------------------
     # Hooks
@@ -112,24 +111,21 @@ class YOLOAnomalyValidatorBase:
     def preprocess(self, batch):
         batch = super().preprocess(batch)
         model = resolve_v2_model(self._model_ref)
-        if model is None or not hasattr(model, "set_mask_input"):
+        if model is None:
             return batch
+
+        # Stash the per-batch prior mask on the model so the forward pass can consume it.
+        # Training and mask-on validation now receive ``batch["prior_mask"]`` from the dataset
+        # pipeline (built by LoadAnomalyPriorMask); heatmap/none modes leave it None/False.
         if self.prior_mode is not None:
-            # Single-pass prior_mode: "mask"/"box" inject GT bboxes or polygon masks
             if self.prior_mode in ("mask", "box"):
-                bb = batch.get("bboxes")
-                bi = batch.get("batch_idx")
-                if bb is not None and bi is not None:
-                    model.set_mask_input(bb, bi)
-        elif self._mask_mode == "on":
-            bb = batch.get("bboxes")
-            bi = batch.get("batch_idx")
-            if bb is not None and bi is not None:
-                model.set_mask_input(bb, bi)
+                model._incoming_prior_mask = batch.get("prior_mask")
             else:
-                model.disable_mask_once()
+                model._incoming_prior_mask = None
+        elif self._mask_mode == "on":
+            model._incoming_prior_mask = batch.get("prior_mask")
         else:
-            model.disable_mask_once()
+            model._incoming_prior_mask = None
         return batch
 
     def postprocess(self, preds):

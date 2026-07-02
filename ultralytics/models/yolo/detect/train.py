@@ -146,8 +146,8 @@ class DetectionTrainer(BaseTrainer):
         self.model.names = self.data["names"]  # attach class names to model
         self.model.args = self.args  # attach hyperparameters to model
         if getattr(self.model, "end2end", False):
-            # When the one2many head is disabled, let one2one gradients train the backbone (do not detach features).
-            self.model.set_head_attr(max_det=self.args.max_det, detach_one2one=self.args.o2m)
+            # Detach one2one from the backbone only in the standard one2many-aux mode; with o24 (or no aux) let it train too.
+            self.model.set_head_attr(max_det=self.args.max_det, detach_one2one=self.args.o2m and not self.args.o24)
 
     def set_class_weights(self):
         """Compute and set class weights for handling class imbalance.

@@ -1334,6 +1334,10 @@ class E2ELoss:
         self.one2one.assigner.o2f = self.o2f
         self.one2one.assigner.o2f_iou = getattr(model.args, "o2f_iou", "amb_max")
         self.one2one.assigner.o2f_norm = getattr(model.args, "o2f_norm", "align")
+        # o2o takes its topk candidate pool from the o2m positive set (ranked by o2m align) instead of ranking its own
+        self.o2o_from_o2m = self.train_o2m and getattr(model.args, "o2o_from_o2m", False)
+        if self.o2o_from_o2m:
+            self.one2many.assigner.share_pos = True
         if not getattr(model.args, "vfl_o2m", True):
             self.one2many.vfl = None  # restrict Varifocal Loss to the one2one branch
         self.updates = 0
@@ -1359,10 +1363,13 @@ class E2ELoss:
     def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""
         preds = self.one2many.parse_output(preds)
-        loss_one2one = self.one2one.loss(preds["one2one"], batch)
         if not self.train_o2m:  # train the one2one branch only, at full weight
-            return loss_one2one
-        loss_one2many = self.one2many.loss(preds["one2many"], batch)
+            return self.one2one.loss(preds["one2one"], batch)
+        loss_one2many = self.one2many.loss(preds["one2many"], batch)  # run first so o2o can reuse its assignment
+        if self.o2o_from_o2m:  # feed the o2m positive set + align metric as the o2o topk candidate pool
+            self.one2one.assigner.o2m_metric = self.one2many.assigner.shared_metric
+            self.one2one.assigner.o2m_mask = self.one2many.assigner.shared_mask
+        loss_one2one = self.one2one.loss(preds["one2one"], batch)
         total = loss_one2many[0] * self.o2m + loss_one2one[0] * self.o2o  # (box, cls, dfl), summed by the trainer
         loss_items = loss_one2one[1]
         batch_size = preds["one2one"]["scores"].shape[0]

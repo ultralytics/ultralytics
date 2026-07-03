@@ -62,6 +62,9 @@ class TaskAlignedAssigner(nn.Module):
         self.distill_pos_mask = None
         self.distill_norm = None  # one2one target_scores_sum, normalizes the distillation loss like cls/box/dfl
         self.full_pos = False  # score every 1:1-matched anchor by its own CIoU (o24 aux head)
+        self.share_pos = False  # o2m head: cache its positive set + align metric for the o2o head to reuse
+        self.shared_metric = self.shared_mask = None
+        self.o2m_metric = self.o2m_mask = None  # o2o head: when set, take topk candidates from the o2m positive set
         self.num_classes = num_classes
         self.alpha = alpha
         self.beta = beta
@@ -93,6 +96,7 @@ class TaskAlignedAssigner(nn.Module):
         """
         self.bs = pd_scores.shape[0]
         self.o2f_cls_score = self.o2f_cls_weight = self.distill_pos_mask = self.distill_norm = None
+        self.shared_metric = self.shared_mask = None
         self.n_max_boxes = gt_bboxes.shape[1]
         device = gt_bboxes.device
 
@@ -119,6 +123,9 @@ class TaskAlignedAssigner(nn.Module):
                 if self.distill_pos_mask is not None:
                     self.distill_pos_mask = self.distill_pos_mask.to(device)
                     self.distill_norm = self.distill_norm.to(device)
+                if self.shared_metric is not None:
+                    self.shared_metric = self.shared_metric.to(device)
+                    self.shared_mask = self.shared_mask.to(device)
                 return tuple(t.to(device) for t in result)
             raise
 
@@ -169,6 +176,8 @@ class TaskAlignedAssigner(nn.Module):
             self.o2f_cls_score, self.o2f_cls_weight = self.get_o2f_cls_targets(
                 pd_scores, gt_labels, overlaps, mask_pos, align_metric, norm_align_metric
             )
+        if self.share_pos:  # o2m: cache the positive set + align metric for the o2o head to reuse as its candidates
+            self.shared_metric, self.shared_mask = align_metric, mask_pos  # align_metric already masked to positives
 
         return target_labels, target_bboxes, target_scores, fg_mask.bool(), target_gt_idx
 
@@ -191,8 +200,12 @@ class TaskAlignedAssigner(nn.Module):
         mask_in_gts = self.select_candidates_in_gts(anc_points, gt_bboxes, mask_gt)
         # Get anchor_align metric, (b, max_num_obj, h*w)
         align_metric, overlaps = self.get_box_metrics(pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_in_gts * mask_gt)
-        # Get topk_metric mask, (b, max_num_obj, h*w)
-        mask_topk = self.select_topk_candidates(align_metric, topk_mask=mask_gt.expand(-1, -1, self.topk).bool())
+        # Get topk_metric mask, (b, max_num_obj, h*w). When o2m_metric is set the o2o head reuses the o2m positive set:
+        # rank those anchors by the o2m align metric and keep the top-k, instead of ranking o2o's own metric.
+        topk_metric = align_metric if self.o2m_metric is None else self.o2m_metric
+        mask_topk = self.select_topk_candidates(topk_metric, topk_mask=mask_gt.expand(-1, -1, self.topk).bool())
+        if self.o2m_metric is not None:
+            mask_topk = mask_topk * self.o2m_mask  # keep only genuine o2m positives (drop topk zero-fillers)
         # Merge all mask to a final mask, (b, max_num_obj, h*w)
         mask_pos = mask_topk * mask_in_gts * mask_gt
 
@@ -403,7 +416,9 @@ class TaskAlignedAssigner(nn.Module):
             fg_mask = mask_pos.sum(-2)
 
         if self.topk2 != self.topk and not self.o2f:
-            align_metric = align_metric * mask_pos  # update overlaps
+            # Keep the topk2 highest-align positives per GT, ranking strictly within the current positive set so an
+            # all-tied (e.g. zero-align) pool cannot leak the selection to a non-positive anchor (index 0).
+            align_metric = align_metric.masked_fill(mask_pos == 0, -1)
             # (b, n_max_boxes, topk2)
             max_overlaps_idx = torch.topk(align_metric, self.topk2, dim=-1, largest=True).indices
             topk_idx = torch.zeros(mask_pos.shape, dtype=mask_pos.dtype, device=mask_pos.device)  # update mask_pos

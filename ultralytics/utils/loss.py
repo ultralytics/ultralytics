@@ -1269,6 +1269,10 @@ class E2ELoss:
         self.one2one.assigner.o2f_t = self.o2f_max_t  # epoch 0 uses max_t before the first decay update
         # final gain
         self.final_o2m = 0.1
+        # online cls distillation: pull one2one cls toward the one2many teacher at one2one positives
+        self.distill = getattr(model.args, "distill", 0.0)
+        if self.distill:
+            self.one2one.assigner.distill = True  # cache the positive x GT-class mask during assignment
 
     def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""
@@ -1277,7 +1281,51 @@ class E2ELoss:
         if not self.train_o2m:  # train the one2one branch only, at full weight
             return loss_one2one
         loss_one2many = self.one2many.loss(preds["one2many"], batch)
-        return loss_one2many[0] * self.o2m + loss_one2one[0] * self.o2o, loss_one2one[1]
+        total = loss_one2many[0] * self.o2m + loss_one2one[0] * self.o2o  # (box, cls, dfl), summed by the trainer
+        loss_items = loss_one2one[1]
+        batch_size = preds["one2one"]["scores"].shape[0]
+        # Append each enabled one2one auxiliary term as its own component, scaled into the total by the one2one branch
+        # weight (as box/cls/dfl are) and reported at its pre-o2o value. Keep this order in sync with loss_names.
+        if self.distill:  # pull one2one cls toward the one2many teacher at one2one positives
+            distill = self.distill * self.distill_loss(
+                preds["one2one"]["scores"],
+                preds["one2many"]["scores"],
+                self.one2one.assigner.distill_pos_mask,
+                self.one2one.assigner.distill_norm,
+            )
+            total = torch.cat((total, (self.o2o * distill * batch_size).view(1)))
+            loss_items = torch.cat((loss_items, distill.detach().view(1)))
+        return total, loss_items
+
+    @staticmethod
+    def distill_loss(
+        s_o2o: torch.Tensor, s_o2m: torch.Tensor, pos_mask: torch.Tensor | None, norm: torch.Tensor | None
+    ) -> torch.Tensor:
+        """Gap-weighted BCE distillation pulling one2one cls logits toward the detached one2many probabilities.
+
+        Applied only at the one2one positive anchors and only on each GT's class channel (``pos_mask``), so the loss
+        never touches background or non-GT classes. Each position is weighted by ``gap = clamp(teacher - student, 0)``
+        (a detached weight): positions where the student has caught up to or passed the teacher get zero weight and
+        thus zero gradient, so the loss auto-focuses on the lagging "dead tail". The one2many teacher is detached, so
+        gradients flow only into the one2one cls head. Normalized by the one2one ``target_scores_sum`` (sum of soft
+        target scores), matching the cls/box/dfl losses so the ``distill`` gain shares their scale.
+
+        Args:
+            s_o2o (torch.Tensor): One2one class logits with shape (bs, nc, num_anchors).
+            s_o2m (torch.Tensor): One2many class logits with shape (bs, nc, num_anchors).
+            pos_mask (torch.Tensor | None): Positive x GT-class mask with shape (bs, num_anchors, nc).
+            norm (torch.Tensor | None): One2one target-score sum used as the normalization denominator.
+
+        Returns:
+            (torch.Tensor): Scalar distillation loss (0 when there are no positives).
+        """
+        if pos_mask is None or not pos_mask.any():
+            return s_o2o.new_zeros((), dtype=torch.float32)
+        student = s_o2o.permute(0, 2, 1)[pos_mask]  # logits, gradient flows into the one2one cls head
+        teacher = s_o2m.permute(0, 2, 1).detach().sigmoid()[pos_mask]  # soft target, no gradient to teacher/backbone
+        gap = (teacher - student.detach().sigmoid()).clamp(min=0)  # detached focus weight; 0 where student >= teacher
+        bce = F.binary_cross_entropy_with_logits(student, teacher, reduction="none")
+        return (gap * bce).sum() / norm
 
     def update(self) -> None:
         """Update the weights for one-to-many and one-to-one losses based on the decay schedule."""

@@ -58,6 +58,9 @@ class TaskAlignedAssigner(nn.Module):
         self.o2f_norm = "align"
         self.o2f_cls_score = None
         self.o2f_cls_weight = None
+        self.distill = False  # cache the positive x GT-class mask for online one2one<-one2many cls distillation
+        self.distill_pos_mask = None
+        self.distill_norm = None  # one2one target_scores_sum, normalizes the distillation loss like cls/box/dfl
         self.full_pos = False  # score every 1:1-matched anchor by its own CIoU (o24 aux head)
         self.num_classes = num_classes
         self.alpha = alpha
@@ -89,7 +92,7 @@ class TaskAlignedAssigner(nn.Module):
             https://github.com/Nioolek/PPYOLOE_pytorch/blob/master/ppyoloe/assigner/tal_assigner.py
         """
         self.bs = pd_scores.shape[0]
-        self.o2f_cls_score = self.o2f_cls_weight = None
+        self.o2f_cls_score = self.o2f_cls_weight = self.distill_pos_mask = self.distill_norm = None
         self.n_max_boxes = gt_bboxes.shape[1]
         device = gt_bboxes.device
 
@@ -113,6 +116,9 @@ class TaskAlignedAssigner(nn.Module):
                 if self.o2f_cls_score is not None:
                     self.o2f_cls_score = self.o2f_cls_score.to(device)
                     self.o2f_cls_weight = self.o2f_cls_weight.to(device)
+                if self.distill_pos_mask is not None:
+                    self.distill_pos_mask = self.distill_pos_mask.to(device)
+                    self.distill_norm = self.distill_norm.to(device)
                 return tuple(t.to(device) for t in result)
             raise
 
@@ -154,6 +160,9 @@ class TaskAlignedAssigner(nn.Module):
             pos_overlaps = (overlaps * mask_pos).amax(dim=-1, keepdim=True)  # b, max_num_obj
             norm_align_metric = (align_metric * pos_overlaps / (pos_align_metrics + self.eps)).amax(-2).unsqueeze(-1)
         target_scores = target_scores * norm_align_metric
+        if self.distill:  # cache positive x GT-class locations + score sum for online cls distillation (read by E2ELoss)
+            self.distill_pos_mask = target_scores > 0
+            self.distill_norm = target_scores.sum().clamp_(min=1)  # == the loss's target_scores_sum
         # O2F overrides only the ambiguous-anchor cls target (applied in the loss); box/dfl keep the full target_scores
         self.o2f_cls_score = self.o2f_cls_weight = None
         if self.o2f and self.topk > 1:

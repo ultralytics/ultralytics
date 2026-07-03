@@ -187,6 +187,10 @@ class DetectionTrainer(BaseTrainer):
     def get_validator(self):
         """Return a DetectionValidator for YOLO model validation."""
         self.loss_names = "box_loss", "cls_loss", "dfl_loss"
+        # E2ELoss appends these one2one aux terms (in this order) when enabled; keep loss_names in sync
+        e2e = getattr(self.args, "o2m", True) and getattr(unwrap_model(self.model), "end2end", False)
+        if e2e and getattr(self.args, "distill", 0.0):
+            self.loss_names += ("distill_loss",)
         return yolo.detect.DetectionValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )

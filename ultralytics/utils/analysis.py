@@ -2,11 +2,12 @@
 """Per-image property extraction and correlation analysis for object detection.
 
 Two single-purpose pieces:
-    - ``ImagePropertyExtractor(yolo_dataset)``: augment ``dataset.labels`` in place with 31 per-image
-      properties (brightness, blurriness, crowdedness, object-size counts, ...). No model, no metrics,
-      no I/O. The augmented labels are platform-consumable as JSON for JS/TS plotting.
-    - ``CorrelationAnalysis(labels, metrics).run()``: join property-augmented labels with per-image F1
-      and ObjectLab scores from ``model.val(score_labels=True)``, compute Pearson + Spearman
+    - ``ImagePropertyExtractor(yolo_dataset)``: augment each ``dataset.labels`` entry in place with an
+      ``im_properties`` dict of 27 per-image properties (brightness, blurriness, crowdedness, object-size
+      counts, ...). No model, no metrics, no I/O. The ``im_properties`` dicts are all-scalar and
+      platform-consumable as JSON for JS/TS plotting.
+    - ``CorrelationAnalysis(labels, metrics).run()``: join property-augmented labels with the per-image F1
+      and ObjectLab label-quality scores from ``model.val(score_labels=True)``, compute Pearson + Spearman
       correlations, rank worst-performing images, and write CSV/JSON/plots/``summary.md``.
 
 References:
@@ -333,19 +334,19 @@ class AnalysisReport(SimpleClass, DataExportMixin):
 
 
 class ImagePropertyExtractor:
-    """Augment a ``YOLODataset``'s labels in place with 31 per-image properties.
+    """Augment a ``YOLODataset``'s labels in place with an ``im_properties`` dict of 27 per-image properties.
 
     Computes pixel-level properties (brightness, blurriness, contrast, dark/bright-pixel ratio, entropy, edge density,
     sharpness), cache-derived properties (W/H, aspect ratio, COCO-bucket object counts, near-edge counts, class entropy,
     center spread, ...), and annotation-interaction properties (max/mean pairwise IoU). Each label dict in
-    ``dataset.labels`` gains the property keys; the ``dataset.labels`` list is mutated in place and re-exposed as
-    ``self.labels`` for chaining.
+    ``dataset.labels`` gains a single ``im_properties`` sub-dict; the ``dataset.labels`` list is mutated in place and
+    re-exposed as ``self.labels`` for chaining.
 
-    Has no model, metrics, or I/O dependency: the property step is platform-consumable. Serialize ``self.labels`` (after
-    dropping numpy arrays) to feed a JS/TS visualizer.
+    Has no model, metrics, or I/O dependency: the property step is platform-consumable. Serialize the ``im_properties``
+    dicts (all scalar, JSON-ready) to feed a JS/TS visualizer.
 
     Attributes:
-        labels (list[dict]): The same list as ``dataset.labels``, with property keys added per image.
+        labels (list[dict]): The same list as ``dataset.labels``, with an ``im_properties`` dict added per image.
 
     Examples:
         >>> from ultralytics.data.build import build_yolo_dataset
@@ -354,7 +355,7 @@ class ImagePropertyExtractor:
         >>> data = check_det_dataset("coco128.yaml")
         >>> ds = build_yolo_dataset(None, data["val"], 1, data, mode="val", rect=False, stride=32)
         >>> labels = ImagePropertyExtractor(ds).labels
-        >>> labels[0]["brightness"], labels[0]["num_small"]
+        >>> labels[0]["im_properties"]["brightness"], labels[0]["im_properties"]["num_small"]
     """
 
     def __init__(self, dataset: Any):
@@ -373,7 +374,7 @@ class ImagePropertyExtractor:
 
     @staticmethod
     def _augment_label(lbl: dict) -> dict:
-        """Compute pixel, cache, and pairwise-IoU properties for one label dict and merge them in place."""
+        """Compute pixel, cache, and pairwise-IoU properties for one label into its ``im_properties`` dict."""
         im_file = lbl["im_file"]
         cls_arr = np.asarray(lbl.get("cls", np.zeros((0, 1)))).reshape(-1).astype(int)
         bboxes_n = np.asarray(lbl.get("bboxes", np.zeros((0, 4)))).reshape(-1, 4)
@@ -381,19 +382,18 @@ class ImagePropertyExtractor:
         if img is not None and img.size:
             h, w = img.shape[:2]
             gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-            lbl.update(ImagePropertyExtractor._pixel_properties(img, gray))
+            props = ImagePropertyExtractor._pixel_properties(img, gray)
         else:
             h, w = 0, 0
-            for k in _PIXEL_PROPERTIES:
-                lbl[k] = np.nan
-        lbl.update(ImagePropertyExtractor._cache_properties(w, h, bboxes_n, cls_arr))
+            props = {k: np.nan for k in _PIXEL_PROPERTIES}
+        props.update(ImagePropertyExtractor._cache_properties(w, h, bboxes_n, cls_arr))
         if bboxes_n.shape[0] >= 2 and h > 0 and w > 0:
-            lbl["max_pairwise_iou"], lbl["mean_pairwise_iou"] = ImagePropertyExtractor._pairwise_iou_stats(
+            props["max_pairwise_iou"], props["mean_pairwise_iou"] = ImagePropertyExtractor._pairwise_iou_stats(
                 xywhn2xyxy(bboxes_n, w=w, h=h)
             )
         else:
-            lbl["max_pairwise_iou"] = np.nan
-            lbl["mean_pairwise_iou"] = np.nan
+            props["max_pairwise_iou"] = props["mean_pairwise_iou"] = np.nan
+        lbl["im_properties"] = props
         return lbl
 
     @staticmethod
@@ -629,9 +629,10 @@ class CorrelationAnalysis:
                 continue
             rec = dict(image_metrics.get(im_name, {}))
             rec["im_file"] = im_file
+            props = lbl.get("im_properties", {})
             for k in _ALL_PROPERTIES:
-                if k in lbl:
-                    rec[k] = lbl[k]
+                if k in props:
+                    rec[k] = props[k]
             for k in _OBJECTLAB_PROPERTIES:
                 rec.setdefault(k, np.nan)
             per_image[im_name] = rec

@@ -1,14 +1,14 @@
 ---
 comments: true
-description: Per-image property correlation analysis for object detection. Surface which image properties drive bad model performance, rank worst-performing images, and feed them into a synthetic-data-generation loop.
-keywords: Ultralytics, image property analysis, label quality, ObjectLab, correlation, worst images, synthetic data, data-centric
+description: Per-image property extraction and correlation analysis for object detection. Augment YOLO dataset labels with 27 pixel, object-size, and crowdedness properties, correlate them with per-image F1, and add ObjectLab label-quality scores to surface which properties drive bad model performance.
+keywords: Ultralytics, image property analysis, dataset analysis, label quality, ObjectLab, correlation, worst images, brightness, blurriness, crowdedness, object size, data-centric
 ---
 
-# Image Property Correlation Analysis
+# Image Property Analysis
 
-After training a detection model, you often want to know **why** some images are mispredicted. The [`ImagePropertyExtractor`](../reference/utils/analysis.md) augments a `YOLODataset`'s labels in place with 31 per-image properties (brightness, blurriness, crowdedness, ...). [`CorrelationAnalysis`](../reference/utils/analysis.md) then joins those properties with per-image F1 scores from validation, computes Pearson and Spearman correlations, and ranks the worst-performing images so you can feed them into a synthetic-data pipeline.
+The [`ImagePropertyExtractor`](../reference/utils/analysis.md) turns a `YOLODataset` into per-image properties with no model, no metrics, and no I/O. It augments each `dataset.labels[i]` in place with a single `im_properties` dict of **27 properties** across three groups: 8 pixel-reading (brightness, contrast, entropy, edge density, ...), 17 cache-derived (object counts in COCO size buckets, class entropy, edge proximity, ...), and 2 annotation-interaction (max/mean pairwise IoU). After training, [`CorrelationAnalysis`](../reference/utils/analysis.md) joins those properties with per-image F1 scores from validation, computes Pearson and Spearman correlations, and ranks the worst-performing images so you can feed them into a curation or synthetic-data pipeline.
 
-The two-piece split is deliberate: `ImagePropertyExtractor` needs no model or metrics, so you can compute properties once and reuse them across many model evaluations, or hand the augmented labels to a JS/TS front-end for custom visualizations. The extractor ships **31 properties** out of the box: 8 pixel-reading (brightness, contrast, entropy, edge density, ...), 17 cache-derived (object counts in COCO size buckets, class entropy, edge proximity, ...), 2 annotation-interaction (max/mean pairwise IoU), and 4 ObjectLab label-quality scores (overlooked, badloc, swap, label_quality_score) following [Tkachenko, Thyagarajan & Mueller, ICML Workshop 2023](https://arxiv.org/abs/2309.00832).
+With `score_labels=True`, `model.val()` also computes 4 [ObjectLab](https://arxiv.org/abs/2309.00832) label-quality scores per image (overlooked, badloc, swap, and their `label_quality_score` geometric mean), which `CorrelationAnalysis` joins alongside the 27 properties for **31 analyzed columns**. The two-piece split is deliberate: `ImagePropertyExtractor` needs no model or metrics, so you can compute properties once and reuse them across many model evaluations, or explore a dataset's characteristics before training anything. The `im_properties` dict is all-scalar, so it serializes straight to JSON for a JS/TS front-end or the [Ultralytics Platform](https://platform.ultralytics.com/).
 
 ## Quick start
 
@@ -20,10 +20,10 @@ from ultralytics.data.build import build_yolo_dataset
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.utils.analysis import CorrelationAnalysis, ImagePropertyExtractor
 
-# Path 1: dataset-only, no model. Platform-friendly (consume `labels` directly in JS/TS).
+# Path 1: dataset-only, no model. Labels are augmented in place (platform-friendly, consume in JS/TS).
 data = check_det_dataset("coco128.yaml")
 dataset = build_yolo_dataset(None, data["val"], 1, data, mode="val", rect=False, stride=32)
-labels = ImagePropertyExtractor(dataset).labels  # list[dict], augmented in place
+labels = ImagePropertyExtractor(dataset).labels  # list[dict], each with an "im_properties" entry
 
 # Path 2: full analysis after model.val(). Use score_labels=True to enable ObjectLab.
 model = YOLO("yolo11n.pt")
@@ -38,6 +38,43 @@ for ckpt in ("yolo11n.pt", "yolo11s.pt", "yolo11m.pt"):
     CorrelationAnalysis(labels, metrics).run(save_dir=f"runs/analyze-{ckpt[:-3]}")
 ```
 
+Each label keeps its original fields (`im_file`, `cls`, `bboxes`, ...) and gains a single `im_properties` sub-dict. For one 42-object `coco128` image:
+
+```json
+{
+    "im_file": "000000000196.jpg",
+    "im_properties": {
+        "brightness": 0.3564,
+        "blurriness": 0.0005,
+        "contrast": 0.1976,
+        "dark_pixel_ratio": 0.1134,
+        "bright_pixel_ratio": 0.0009,
+        "entropy": 7.5621,
+        "edge_density": 0.1452,
+        "sharpness": 84.9387,
+        "width": 640,
+        "height": 480,
+        "aspect_ratio": 1.3333,
+        "total_pixels": 307200,
+        "num_objects": 42,
+        "num_small": 15,
+        "num_medium": 18,
+        "num_large": 9,
+        "small_object_ratio": 0.3571,
+        "num_near_edge": 10,
+        "mean_center_x": 0.5615,
+        "mean_center_y": 0.6068,
+        "center_spread": 0.3384,
+        "box_area_std_norm": 0.1379,
+        "object_scale_variance": 3.6724,
+        "num_classes_present": 6,
+        "class_entropy": 2.1833,
+        "max_pairwise_iou": 0.5004,
+        "mean_pairwise_iou": 0.0063
+    }
+}
+```
+
 `CorrelationAnalysis.run()` writes the following to an auto-incremented `runs/analyze/` directory (`runs/analyze`, `runs/analyze-2`, ...), following the same `increment_path` convention used for `runs/detect/train`, `runs/detect/val`, etc.:
 
 | File                      | Purpose                                                                               |
@@ -50,7 +87,7 @@ for ckpt in ("yolo11n.pt", "yolo11s.pt", "yolo11m.pt"):
 | `correlation_heatmap.png` | Property × property Pearson r matrix (self-correlations blanked)                      |
 | `worst_images_strip.png`  | Thumbnails of bottom 20 by F1 with green ground-truth and red dashed prediction boxes |
 
-`ImagePropertyExtractor` does not write any files. To export property fields for a JS/TS front-end, serialize `labels` yourself (drop the numpy `bboxes`/`cls`/`segments` arrays if you only need scalar properties).
+`ImagePropertyExtractor` writes no files. To export the properties for a front-end, serialize the `im_properties` dicts directly (`json.dumps([lbl["im_properties"] for lbl in labels])`) — they hold only scalars, so no numpy-array dropping is needed.
 
 ## Example outputs
 
@@ -109,16 +146,15 @@ See the [Platform API docs](https://docs.ultralytics.com/platform/api/) for URI 
 | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `brightness` (HSP perceptual)                                                         | [Hendrycks & Dietterich, ICLR 2019](https://arxiv.org/abs/1903.12261)                                                                             |
 | `dark_pixel_ratio`, `bright_pixel_ratio`                                              | [Hendrycks & Dietterich, ICLR 2019](https://arxiv.org/abs/1903.12261)                                                                             |
-| `blurriness` (variance-of-Laplacian)                                                  | [Pech-Pacheco et al., ICPR 2000](https://doi.org/10.1109/ICPR.2000.903548)                                                                        |
-| `entropy` (Shannon over grayscale histogram)                                          | [Shannon, BSTJ 1948](https://doi.org/10.1002/j.1538-7305.1948.tb01338.x)                                                                          |
 | `contrast` (grayscale std)                                                            | [Hendrycks & Dietterich, ICLR 2019](https://arxiv.org/abs/1903.12261)                                                                             |
+| `blurriness` (variance-of-Laplacian)                                                  | [Pech-Pacheco et al., ICPR 2000](https://doi.org/10.1109/ICPR.2000.903548)                                                                        |
+| `entropy` (Shannon over grayscale histogram), `class_entropy`                         | [Shannon, BSTJ 1948](https://doi.org/10.1002/j.1538-7305.1948.tb01338.x)                                                                          |
 | `edge_density` (Canny edge mean)                                                      | [Canny, IEEE TPAMI 1986](https://doi.org/10.1109/TPAMI.1986.4767851)                                                                              |
 | `sharpness` (Tenengrad gradient)                                                      | [Krotkov, IJCV 1988](https://doi.org/10.1007/BF00127822)                                                                                          |
-| `aspect_ratio`, `width`, `height`, `total_pixels`, `num_objects`                      | trivial                                                                                                                                           |
+| `width`, `height`, `aspect_ratio`, `total_pixels`, `num_objects`                      | trivial                                                                                                                                           |
 | `num_small` / `num_medium` / `num_large` (COCO area buckets 32², 96²)                 | [Lin et al., COCO, ECCV 2014](https://arxiv.org/abs/1405.0312)                                                                                    |
 | `small_object_ratio`, `box_area_std_norm`, `object_scale_variance`                    | trivial                                                                                                                                           |
 | `num_classes_present`                                                                 | trivial                                                                                                                                           |
-| `class_entropy`                                                                       | [Shannon, BSTJ 1948](https://doi.org/10.1002/j.1538-7305.1948.tb01338.x)                                                                          |
 | `mean_center_x`, `mean_center_y`, `center_spread`                                     | trivial                                                                                                                                           |
 | `num_near_edge` (boundary-truncated objects)                                          | [Everingham et al., Pascal VOC, IJCV 2010](https://link.springer.com/article/10.1007/s11263-009-0275-4)                                           |
 | `max_pairwise_iou`, `mean_pairwise_iou` (per-image crowdedness)                       | [Shao et al., CrowdHuman, 2018](https://arxiv.org/abs/1805.00123)                                                                                 |
@@ -130,7 +166,7 @@ See the [Platform API docs](https://docs.ultralytics.com/platform/api/) for URI 
 
 ## Output schema
 
-`per_image_analysis.csv` columns: `im_name`, `im_file`, then validator-supplied prediction-quality fields (`precision`, `recall`, `f1`, `tp`, `fp`, `fn`), then all 31 property fields plus `anomaly_score`. The CSV is always fully sorted ascending by F1.
+`per_image_analysis.csv` columns: `im_name`, `im_file`, then validator-supplied prediction-quality fields (`precision`, `recall`, `f1`, `tp`, `fp`, `fn`), then all 31 property fields (27 image properties + 4 ObjectLab scores) plus `anomaly_score`. The CSV is always fully sorted ascending by F1.
 
 `correlations.json` entries:
 
@@ -187,5 +223,5 @@ If you want to read the raw `pearson_r` / `spearman_r` numbers in `correlations.
 
 - **Filename collisions**: `Metric.image_metrics` is keyed by image basename. If your dataset has duplicate basenames across subdirectories they collide silently. The analyzer emits a single `LOGGER.warning` listing the count and a few examples.
 - **Empty-label images**: zero-box images break per-image-box stats (mean undefined). The analyzer emits `NaN` for those properties and excludes them from correlations.
-- **Tasks supported**: 27 image-property fields work for any of detection / segmentation / pose / OBB. The 4 ObjectLab fields ship for **detection only** (segmentation, pose, and OBB extensions via mask-IoU, OKS, and rotated-box similarity are deferred to a follow-up release).
+- **Tasks supported**: the 27 image-property fields read pixels and boxes only, so they work for any of detection / segmentation / pose / OBB. The 4 ObjectLab fields ship for **detection only** (segmentation, pose, and OBB extensions via mask-IoU, OKS, and rotated-box similarity are deferred to a follow-up release).
 - **DDP**: the validator-side retention path is rank-0 safe, the existing `dist.gather_object` plumbing pickles numpy arrays cleanly without new logic.

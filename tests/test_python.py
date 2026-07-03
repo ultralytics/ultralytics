@@ -102,6 +102,9 @@ def test_select_device(monkeypatch):
     monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "3,2,9,1")  # malformed: CUDA stops at the invalid id 9, 2 usable GPUs
     assert torch_utils.parse_device("9") == "9"  # unusable id is not translated, so select_device rejects it
     assert torch_utils.parse_device("2") == "1"  # physical GPU 2 is torch index 1 of the usable prefix
+    monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "01,03")  # leading zeros are valid for CUDA's atoi-style parsing
+    assert torch_utils.parse_device("3") == "1"  # visible ids normalize like requested ids
+    assert torch_utils.parse_device("-1") == "0"  # idle physical GPU 1 found via normalized visible ids
 
 
 def test_model_forward():

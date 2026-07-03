@@ -60,20 +60,8 @@ class YOLOAnomalyValidatorBase:
             prior_mode = args.pop("prior_mode", prior_mode)
         super().__init__(dataloader, save_dir, args, _callbacks)
         self.args.task = "anomaly_v2"
-        self.prior_mode = prior_mode
         self._mask_mode = "on"
         self._model_ref = None
-
-        # OOD/standalone single-pass eval adds coarse low-IoU thresholds (0.10, 0.25) on top of the
-        # standard 0.5:0.95 grid — defect localization is coarse, so mAP@0.10/0.25 are the informative
-        # operating points. Training 2-pass val (prior_mode=None) keeps the default iouv so the
-        # trainer-facing box.map50/box.map stay standard.
-        if prior_mode is not None:
-            # Standard 0.5:0.95 grid FIRST (so box.map50/map75 + P/R stay at their standard IoU
-            # operating points), low-IoU thresholds appended. ood_map_metrics indexes by IoU value,
-            # so column order doesn't affect the reported mAP10/25/50/50-95.
-            self.iouv = torch.cat([torch.linspace(0.5, 0.95, 10), torch.tensor([0.10, 0.25])])
-            self.niou = self.iouv.numel()
 
         # Heatmap-prior memory-bank lifecycle (single-pass OOD eval). When prior_mode
         # is "heatmap", build the BackboneMemoryBank from the dataset's train (normal)
@@ -91,6 +79,34 @@ class YOLOAnomalyValidatorBase:
 
         # GT mask renderer for pixel-AUROC (matches the 256x256 heatmap resize in update_metrics)
         self._eval_mask_renderer = BboxMaskRenderer(mask_size=256, mode="rect")
+
+        # Set last so the property setter can configure the IoU vector.
+        self.prior_mode = prior_mode
+
+    @property
+    def prior_mode(self) -> str | None:
+        """Active prior mode."""
+        return getattr(self, "_prior_mode", None)
+
+    @prior_mode.setter
+    def prior_mode(self, value: str | None) -> None:
+        """Switch the IoU vector when entering/leaving the OOD/standalone single-pass path.
+
+        OOD/standalone single-pass eval adds coarse low-IoU thresholds (0.10, 0.25) on top of the
+        standard 0.5:0.95 grid — defect localization is coarse, so mAP@0.10/0.25 are the informative
+        operating points. Training 2-pass val (prior_mode=None) keeps the default iouv so the
+        trainer-facing box.map50/box.map stay standard.
+        """
+        self._prior_mode = value
+        if value is not None:
+            # Standard 0.5:0.95 grid FIRST (so box.map50/map75 + P/R stay at their standard IoU
+            # operating points), low-IoU thresholds appended. ood_map_metrics indexes by IoU value,
+            # so column order doesn't affect the reported mAP10/25/50/50-95.
+            self.iouv = torch.cat([torch.linspace(0.5, 0.95, 10), torch.tensor([0.10, 0.25])])
+            self.niou = self.iouv.numel()
+        else:
+            self.iouv = torch.linspace(0.5, 0.95, 10)
+            self.niou = self.iouv.numel()
 
     # ------------------------------------------------------------------
     # Hooks

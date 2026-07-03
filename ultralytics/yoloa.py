@@ -313,6 +313,8 @@ class YOLOA(Model):
                 and the model falls back to vanilla detection. "anomaly_model" is
                 predict-only for now.
             **kwargs: Standard val args plus prior-shaping knobs (heat_norm / heat_edge / ...).
+                ``end2end`` and ``hm_gate_blend`` are also accepted and applied to the
+                detection head for this call only.
 
         Returns:
             Validation metrics.
@@ -323,8 +325,42 @@ class YOLOA(Model):
                 "prior='anomaly_model' is predict-only for now (needs per-image "
                 "external heatmaps through the val dataloader)."
             )
+
+        # Optional head mutations for this val call only (mirror run_yoloa.py --mode val).
+        e2e = kwargs.pop("end2end", None)
+        gate_blend = kwargs.pop("hm_gate_blend", None)
+        heads = [self.model.model[-1]]
+        if getattr(self.model, "two_head", False):
+            heads.append(self.model.head_b)
+        old = {}
+        if e2e is not None:
+            old["model_e2e"] = getattr(self.model, "end2end", None)
+            old["head_e2e"] = [getattr(h, "end2end", None) for h in heads]
+            self.model.end2end = e2e
+            for h in heads:
+                h.end2end = e2e
+        if gate_blend is not None:
+            old["head_gate"] = [getattr(h, "hm_gate_blend", None) for h in heads]
+            for h in heads:
+                h.hm_gate_blend = gate_blend
+
         self._apply_infer_overrides(kwargs)
-        return super().val(validator=validator, prior_mode=prior_mode, **kwargs)
+        try:
+            return super().val(validator=validator, prior_mode=prior_mode, **kwargs)
+        finally:
+            if e2e is not None:
+                self.model.end2end = old["model_e2e"]
+                for h, v in zip(heads, old["head_e2e"]):
+                    if v is None:
+                        h.__dict__.pop("end2end", None)
+                    else:
+                        h.end2end = v
+            if gate_blend is not None:
+                for h, v in zip(heads, old["head_gate"]):
+                    if v is None:
+                        h.__dict__.pop("hm_gate_blend", None)
+                    else:
+                        h.hm_gate_blend = v
 
     # ---- internals ----------------------------------------------------------------------------
 

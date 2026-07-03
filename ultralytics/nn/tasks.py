@@ -729,9 +729,6 @@ class YOLOAnomalyV2Model(DetectionModel):
         """
         import cv2
         from pathlib import Path
-
-        import numpy as np
-
         from ultralytics.utils import LOGGER, TQDM
 
         mb = getattr(self, "memory_bank", None)

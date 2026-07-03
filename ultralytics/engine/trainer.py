@@ -250,7 +250,7 @@ class BaseTrainer:
 
     def _setup_ddp(self):
         """Initialize and set the DistributedDataParallel parameters for training."""
-        index = int(self.args.device.split(",")[LOCAL_RANK]) if self.args.device else LOCAL_RANK
+        index = int(self.args.device.split(",")[LOCAL_RANK])  # world_size > 1 guarantees a multi-device string
         torch.cuda.set_device(index)
         self.device = torch.device("cuda", index)
         os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout

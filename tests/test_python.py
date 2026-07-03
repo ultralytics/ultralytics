@@ -54,16 +54,20 @@ def test_select_device(monkeypatch):
 
     from ultralytics.utils import torch_utils
 
+    set_calls = []
     monkeypatch.setattr(torch_utils.torch.cuda, "is_available", lambda: True)
     monkeypatch.setattr(torch_utils.torch.cuda, "device_count", lambda: 2)
-    monkeypatch.setattr(torch_utils.torch.cuda, "set_device", lambda i: None)
+    monkeypatch.setattr(torch_utils.torch.cuda, "set_device", set_calls.append)
     monkeypatch.setattr(torch_utils, "get_gpu_info", lambda i: f"Mock GPU {i}, 1MiB")
     monkeypatch.delenv("CUDA_VISIBLE_DEVICES", raising=False)
+    assert str(torch_utils.select_device("", verbose=False)) == "cuda:0"
+    assert not set_calls  # default '' request must never move the current device, e.g. diagnostics like check_yolo()
     for _ in range(2):  # repeated calls are idempotent, e.g. Trainer.__init__ then final_eval, or predict() twice
         assert str(torch_utils.select_device("1", verbose=False)) == "cuda:1"
         with pytest.raises(ValueError):
             torch_utils.select_device("3", verbose=False)
         assert os.environ.get("CUDA_VISIBLE_DEVICES") is None  # CUDA_VISIBLE_DEVICES never written
+    assert set_calls == [1, 1]  # explicit requests set the default device for indexless 'cuda' operations
     assert torch_utils.parse_device([0, 1]) == "0,1"
     assert torch_utils.parse_device("00,01") == "0,1"  # leading zeros stripped for valid torch device strings
     # Physical GPU ids hidden by an external CUDA_VISIBLE_DEVICES restriction translate to torch indices
@@ -72,14 +76,16 @@ def test_select_device(monkeypatch):
     monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "3")
     monkeypatch.setattr(torch_utils.torch.cuda, "device_count", lambda: 1)
     assert str(torch_utils.select_device("3", verbose=False)) == "cuda:0"  # e.g. pods launched with CVD preset
-    # '-1' idle-GPU auto-selection returns physical ids, which also translate under an external restriction
+    # '-1' idle-GPU auto-selection searches only externally visible GPUs and translates physical ids to torch indices
     from ultralytics.utils import autodevice
 
     monkeypatch.setattr(autodevice.GPUInfo, "__init__", lambda self: None)
-    monkeypatch.setattr(autodevice.GPUInfo, "select_idle_gpu", lambda self, **kwargs: [3])
+    monkeypatch.setattr(
+        autodevice.GPUInfo, "select_idle_gpu", lambda self, indices=None, **kw: [i for i in (0, 3) if i in indices]
+    )
     monkeypatch.setattr(torch_utils.torch.cuda, "device_count", lambda: 2)
     monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "1,3")
-    assert torch_utils.parse_device("-1") == "1"  # physical GPU 3 is torch index 1 under CVD='1,3'
+    assert torch_utils.parse_device("-1") == "1"  # physical GPU 3 is torch index 1 under CVD='1,3'; hidden 0 excluded
 
 
 def test_model_forward():

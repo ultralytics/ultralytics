@@ -134,7 +134,11 @@ class GPUInfo:
         LOGGER.info(f"{'-' * len(hdr)}\n")
 
     def select_idle_gpu(
-        self, count: int = 1, min_memory_fraction: float = 0, min_util_fraction: float = 0
+        self,
+        count: int = 1,
+        min_memory_fraction: float = 0,
+        min_util_fraction: float = 0,
+        indices: list[int] | None = None,
     ) -> list[int]:
         """Select the most idle GPUs based on utilization and free memory.
 
@@ -142,6 +146,8 @@ class GPUInfo:
             count (int): The number of idle GPUs to select.
             min_memory_fraction (float): Minimum free memory required as a fraction of total memory.
             min_util_fraction (float): Minimum free utilization rate required from 0.0 - 1.0.
+            indices (list[int] | None): Restrict selection to these GPU indices, e.g. the GPUs visible under an
+                external CUDA_VISIBLE_DEVICES restriction. None searches all GPUs.
 
         Returns:
             (list[int]): Indices of the selected GPUs, sorted by idleness (lowest utilization first).
@@ -169,7 +175,8 @@ class GPUInfo:
         eligible_gpus = [
             gpu
             for gpu in self.gpu_stats
-            if gpu.get("memory_free", 0) / gpu.get("memory_total", 1) >= min_memory_fraction
+            if (indices is None or gpu["index"] in indices)
+            and gpu.get("memory_free", 0) / gpu.get("memory_total", 1) >= min_memory_fraction
             and (100 - gpu.get("utilization", 100)) >= min_util_fraction * 100
         ]
         # Random tiebreaker prevents race conditions when multiple processes start simultaneously

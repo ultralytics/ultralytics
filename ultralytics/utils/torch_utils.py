@@ -154,7 +154,8 @@ def parse_device(device: str | int | list | tuple | torch.device = "") -> str:
     Notes:
         Each '-1' is replaced with an idle GPU index. Requests matching physical GPU ids hidden by an external
         CUDA_VISIBLE_DEVICES restriction are translated to the corresponding torch indices, e.g. '3' -> '0' when
-        CUDA_VISIBLE_DEVICES='3'.
+        CUDA_VISIBLE_DEVICES='3'. Returned indices are relative to the active restriction, so strings persisted
+        under one environment (e.g. resumed checkpoint args) address the same physical GPUs only in that environment.
     """
     device = str(device).lower()
     for remove in "cuda:", "none", "(", ")", "[", "]", "'", " ":
@@ -166,11 +167,13 @@ def parse_device(device: str | int | list | tuple | torch.device = "") -> str:
     if "-1" in device:
         from ultralytics.utils.autodevice import GPUInfo
 
-        # Replace each -1 with a selected idle GPU or remove it; GPUInfo returns physical NVML ids
+        # Replace each -1 with a selected idle GPU or remove it; GPUInfo searches physical NVML ids, restricted to
+        # externally visible GPUs so a hidden idle GPU is never selected
         parts = device.split(",")
-        selected = GPUInfo().select_idle_gpu(count=parts.count("-1"), min_memory_fraction=0.2)
+        candidates = [int(x) for x in visible if x.isdigit()] if visible != [""] else None
+        selected = GPUInfo().select_idle_gpu(count=parts.count("-1"), min_memory_fraction=0.2, indices=candidates)
         if visible != [""]:  # external CUDA_VISIBLE_DEVICES set -> translate physical ids to torch indices
-            selected = [visible.index(str(x)) for x in selected if str(x) in visible]
+            selected = [visible.index(str(x)) for x in selected]
         for i in range(len(parts)):
             if parts[i] == "-1":
                 parts[i] = str(selected.pop(0)) if selected else ""
@@ -208,8 +211,9 @@ def select_device(device="", newline=False, verbose=True):
 
     Notes:
         CUDA indices are torch device indices, which reflect any externally set CUDA_VISIBLE_DEVICES. This function
-        never modifies CUDA_VISIBLE_DEVICES; the selected device is made the default CUDA device with
-        torch.cuda.set_device() so that indexless 'cuda' operations land on it.
+        never modifies CUDA_VISIBLE_DEVICES; an explicitly requested device is made the default CUDA device with
+        torch.cuda.set_device() so that indexless 'cuda' operations land on it, while the default '' request leaves
+        the current device untouched.
     """
     if isinstance(device, torch.device) or str(device).startswith(("tpu", "intel", "vulkan")):
         if isinstance(device, torch.device) and device.type == "cuda" and device.index is not None:
@@ -275,7 +279,8 @@ def select_device(device="", newline=False, verbose=True):
         for i, d in enumerate(devices):
             s += f"{'' if i == 0 else space}CUDA:{d} ({get_gpu_info(int(d))})\n"
         arg = f"cuda:{devices[0]}"
-        torch.cuda.set_device(int(devices[0]))  # default device for indexless 'cuda' operations
+        if device:  # explicit request only, so incidental select_device('') calls never move the current device
+            torch.cuda.set_device(int(devices[0]))  # default device for indexless 'cuda' operations
     elif mps and TORCH_2_0 and torch.backends.mps.is_available():
         # Prefer MPS if available
         s += f"MPS ({get_cpu_info()})\n"

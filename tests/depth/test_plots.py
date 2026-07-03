@@ -47,3 +47,24 @@ def test_plot_predictions_layout_unchanged(tmp_path):
     v.plot_predictions(batch, preds, ni=0)
     img = cv2.imread(str(tmp_path / "val_batch0.jpg"))
     assert img.shape == (2 * 32, 3 * 32, 3)
+
+
+def test_calibrate_checkpoint_writes_calibrated_plots(tmp_path):
+    """calibrate_checkpoint(plot_dir=...) writes 4-column val_batch{ni}_calibrated.jpg panels."""
+    from ultralytics.models.yolo.depth.calibrate import calibrate_checkpoint
+    from ultralytics.nn.tasks import DepthModel
+
+    torch.manual_seed(0)
+    model = DepthModel("yolo26n-depth.yaml", verbose=False)
+    batches = [
+        {"img": (torch.rand(2, 3, 64, 64) * 255).to(torch.uint8), "depth": torch.rand(2, 64, 64) * 5 + 0.5}
+        for _ in range(4)
+    ]
+    path = tmp_path / "ckpt.pt"
+    torch.save({"model": model}, path)
+    calibrate_checkpoint(path, batches, device="cpu", plot_dir=tmp_path)
+    for ni in range(3):  # max_batches=3 even though 4 batches are available
+        img = cv2.imread(str(tmp_path / f"val_batch{ni}_calibrated.jpg"))
+        assert img is not None, f"val_batch{ni}_calibrated.jpg missing"
+        assert img.shape == (24 + 2 * 64, 4 * 64, 3)  # header strip + 2 rows, RGB|GT|raw|calibrated
+    assert not (tmp_path / "val_batch3_calibrated.jpg").exists()

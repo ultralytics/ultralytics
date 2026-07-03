@@ -14,6 +14,8 @@ output, so the absolute scale is fixed for cross-domain models without harming i
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -294,7 +296,44 @@ def fit_calibration_selective(
     return res
 
 
-def calibrate_checkpoint(ckpt_path, dataloader, device, dist_power: float = 0.0) -> None:
+def _plot_calibrated_batches(model, dataloader, device, a, b, name, plot_dir, max_batches: int = 3, max_images: int = 4):
+    """Write ``val_batch{ni}_calibrated.jpg`` panels (RGB | GT | raw | calibrated) to ``plot_dir``.
+
+    Runs the model with calibration buffers at identity to get the raw prediction; the calibrated
+    column is its deterministic affine ``exp(a·log(raw) + b)`` — no second forward. The first
+    ``max_batches`` batches are the same ones BaseValidator plots as ``val_batch{ni}.jpg`` (val
+    loaders are not shuffled), so the files are directly comparable. With the "only if it helps"
+    policy the selected ``name`` may be ``identity``; the panels are still written (raw ==
+    calibrated), which documents that calibration was a no-op. Buffers are restored afterwards.
+    """
+    from .val import plot_depth_panels
+
+    head = _depth_head(model)
+    a0, b0 = float(head.cal_a), float(head.cal_b)
+    head.cal_a.fill_(1.0)
+    head.cal_b.fill_(0.0)
+    model = model.to(device).eval()
+    titles = ["RGB", "GT", "raw", f"calibrated ({name} x{np.exp(b):.2f})"]
+    plot_dir = Path(plot_dir)
+    with torch.no_grad():
+        for ni, batch in enumerate(dataloader):
+            if ni >= max_batches:
+                break
+            img = batch["img"].to(device).float() / 255
+            gt = batch["depth"].to(device).float()
+            raw = _extract(model(img)).float()
+            if raw.ndim == 3:
+                raw = raw.unsqueeze(1)
+            cal = torch.exp(a * torch.log(raw.clamp(min=1e-6)) + b)
+            plot_depth_panels(
+                img, gt, [raw, cal], plot_dir / f"val_batch{ni}_calibrated.jpg",
+                titles=titles, max_images=max_images,
+            )
+    head.cal_a.fill_(a0)
+    head.cal_b.fill_(b0)
+
+
+def calibrate_checkpoint(ckpt_path, dataloader, device, dist_power: float = 0.0, plot_dir=None) -> None:
     """Fit calibration for a saved checkpoint in place (used by automatic post-training calibration).
 
     Loads the checkpoint, selects calibration with the "calibrate only if it helps" policy
@@ -306,6 +345,8 @@ def calibrate_checkpoint(ckpt_path, dataloader, device, dist_power: float = 0.0)
         dataloader: Yields batches with ``img`` (uint8, B×3×H×W) and ``depth`` (B×H×W meters).
         device: Torch device to run inference on.
         dist_power (float): Weight each pixel by gt**dist_power in the calibration fit (0.0 = uniform).
+        plot_dir: If set, also write ``val_batch{ni}_calibrated.jpg`` comparison panels
+            (RGB | GT | raw | calibrated) for the first val batches into this directory.
     """
     from copy import deepcopy
 
@@ -327,3 +368,8 @@ def calibrate_checkpoint(ckpt_path, dataloader, device, dist_power: float = 0.0)
     LOGGER.info(
         f"Auto-calibration written to {getattr(ckpt_path, 'name', ckpt_path)}: '{res['name']}' a={a:.4f} b={b:.4f}"
     )
+    if plot_dir is not None:
+        try:
+            _plot_calibrated_batches(work, dataloader, device, a, b, res["name"], plot_dir)
+        except Exception as e:
+            LOGGER.warning(f"Calibrated val plots skipped ({type(e).__name__}: {e})")

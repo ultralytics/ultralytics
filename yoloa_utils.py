@@ -115,7 +115,7 @@ def load_mask_tensor(mask, imgsz: int):
     return torch.from_numpy(m).unsqueeze(0).unsqueeze(0)
 
 
-def run_prior_viz(m, img, prior, imgsz, conf, iou, device, external_mask=None, **kw):
+def run_prior_viz(m, img, prior, imgsz, conf, iou, device, prior_mask=None, **kw):
     """Predict with one prior; return (pred_bgr, n_det, heatmap_np)."""
     res = m.predict(
         img,
@@ -124,7 +124,7 @@ def run_prior_viz(m, img, prior, imgsz, conf, iou, device, external_mask=None, *
         conf=conf,
         iou=iou,
         device=device,
-        external_mask=external_mask,
+        prior_mask=prior_mask,
         verbose=False,
         **kw,
     )[0]

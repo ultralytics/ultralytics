@@ -9,6 +9,7 @@ from pathlib import Path
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 from ultralytics.nn.autobackend import check_class_names
 from ultralytics.nn.modules import (
@@ -679,10 +680,7 @@ class YOLOAnomalyV2Model(DetectionModel):
         Returns:
             Final bank size (number of feature vectors).
         """
-        import cv2
-        from pathlib import Path
-
-        from ultralytics.utils import LOGGER, TQDM
+        from ultralytics.utils import LOGGER
 
         mb = getattr(self, "memory_bank", None)
         if mb is None or self._bb_layers is None:
@@ -691,12 +689,59 @@ class YOLOAnomalyV2Model(DetectionModel):
         mb.reset_memory_bank()
         self.set_prior_mode(None)  # Don't trigger prior routing during build
 
-        # Resolve device
+        features = self.extract_bank_features(
+            source, imgsz=imgsz, device=device, batch=batch, max_images=max_images, verbose=verbose
+        )
+        mb.load_bank(features)
+        mb.freeze_memory_bank()
+        self._heatmap_bank_warned = False
+        final_size = mb.memory_bank.shape[0]
+        if verbose:
+            LOGGER.info(
+                f"Memory bank frozen: {final_size} features, dim={mb.feature_dim}\n"
+                f"  config: temp={mb.temperature:.4f}, K={mb.K}, "
+                f"max_bank={mb.max_bank_size or 'unlimited'}, holdout_max={mb.holdout_max}, "
+                f"bb_layers={self._bb_layers}"
+            )
+        return final_size
+
+    def extract_bank_features(
+        self,
+        source,
+        imgsz: int = 640,
+        device=None,
+        batch: int = 8,
+        max_images: int = 0,
+        verbose: bool = False,
+    ) -> torch.Tensor:
+        """Extract L2-normalized backbone features from normal images without modifying the bank.
+
+        Args:
+            source: Directory of normal images or list of image paths.
+            imgsz: Resize images to this square size.
+            device: Device for feature extraction (defaults to model device).
+            batch: Mini-batch size.
+            max_images: Maximum number of images to use (0 = all).
+            verbose: Log progress.
+
+        Returns:
+            (M, C) normalized feature tensor.
+        """
+        import cv2
+        from pathlib import Path
+
+        import numpy as np
+
+        from ultralytics.utils import LOGGER, TQDM
+
+        mb = getattr(self, "memory_bank", None)
+        if mb is None or self._bb_layers is None:
+            raise RuntimeError("BackboneMemoryBank not configured. Add bb_layers to the anomaly_v2 YAML block.")
+
         if device is None:
             device = next(self.parameters()).device
         self.to(device)
 
-        # Collect image paths
         if isinstance(source, (str, Path)):
             source = Path(source)
             if source.is_dir():
@@ -709,44 +754,34 @@ class YOLOAnomalyV2Model(DetectionModel):
 
         if not paths:
             raise ValueError("No images found in source.")
-
         if max_images > 0 and len(paths) > max_images:
             paths = paths[:max_images]
 
         if verbose:
-            LOGGER.info(f"Building memory bank from {len(paths)} images (imgsz={imgsz})...")
+            LOGGER.info(f"Extracting bank features from {len(paths)} images (imgsz={imgsz})...")
 
-        pbar = TQDM(paths, desc="Building memory bank") if verbose else paths
-        chunk = []
-        n_ingested = 0  # track total images ingested for delayed temp display
+        pbar = TQDM(paths, desc="Extracting bank features") if verbose else paths
+        chunks = []
+        images = []
         for p in pbar:
             img = cv2.imread(str(p))
             if img is None:
                 continue
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             img = cv2.resize(img, (imgsz, imgsz), interpolation=cv2.INTER_LINEAR)
-            chunk.append(img)
-            if len(chunk) >= batch:
-                self._ingest_support_batch(chunk, device, mb)
-                n_ingested += len(chunk)
-                chunk.clear()
-        if chunk:
-            self._ingest_support_batch(chunk, device, mb)
-            n_ingested += len(chunk)
+            images.append(img)
+            if len(images) >= batch:
+                chunks.append(self._extract_features_batch(images, device))
+                images.clear()
+        if images:
+            chunks.append(self._extract_features_batch(images, device))
 
-        mb.freeze_memory_bank()
-        final_size = mb.memory_bank.shape[0]
-        if verbose:
-            LOGGER.info(
-                f"Memory bank frozen: {final_size} features, dim={mb.feature_dim}\n"
-                f"  config: temp={mb.temperature:.4f}, K={mb.K}, "
-                f"max_bank={mb.max_bank_size or 'unlimited'}, holdout_max={mb.holdout_max}, "
-                f"bb_layers={self._bb_layers}"
-            )
-        return final_size
+        if not chunks:
+            return torch.empty(0, mb.feature_dim or 0, device=device, dtype=torch.float32)
+        return torch.cat(chunks, dim=0)
 
-    def _ingest_support_batch(self, images, device, memory_bank):
-        """Run a batch of images through the model and accumulate backbone features via hooks."""
+    def _extract_features_batch(self, images, device) -> torch.Tensor:
+        """Run a batch of images through the model and return normalized backbone features."""
         import numpy as np
 
         batch = np.stack(images, axis=0)  # (B, H, W, 3)
@@ -755,7 +790,10 @@ class YOLOAnomalyV2Model(DetectionModel):
         self._bb_feats = {}
         with torch.no_grad():
             self(batch)
-        memory_bank.accumulate_features(self._bb_feats)
+        mb = self.memory_bank
+        fused = mb._build_fused_feature(self._bb_feats)  # (B, C, H, W)
+        flat = fused.permute(0, 2, 3, 1).reshape(-1, fused.shape[1])  # (B*H*W, C)
+        return F.normalize(flat, p=2, dim=1).float()
 
     # ------------------------------------------------------------------
     # Backbone taps (for BackboneMemoryBank)
@@ -819,7 +857,7 @@ class YOLOAnomalyV2Model(DetectionModel):
             h.remove()
         state["_bb_hook_handles"] = []
         state["_bb_feats"] = {}
-        for k in ("_last_heatmap", "_edge_weight_cache", "_incoming_prior_mask"):
+        for k in ("_last_heatmap", "_edge_weight_cache", "_incoming_prior_mask", "_heatmap_bank_warned"):
             if k in state:
                 state[k] = None
         return state
@@ -872,6 +910,14 @@ class YOLOAnomalyV2Model(DetectionModel):
         mb = getattr(self, "memory_bank", None)
         bb_feats = getattr(self, "_bb_feats", None)
         if mb is None or not bb_feats:
+            return None
+        mem = mb._effective_bank()
+        if mem.shape[0] == 0:
+            if not getattr(self, "_heatmap_bank_warned", False):
+                LOGGER.warning(
+                    "Memory bank is empty; heatmap prior disabled. Run model.fit(source=...) first."
+                )
+                self._heatmap_bank_warned = True
             return None
         with torch.no_grad():
             hmap = mb(bb_feats)

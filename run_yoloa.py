@@ -20,6 +20,7 @@ Usage:
 import argparse
 import csv
 import math
+import os
 from pathlib import Path
 
 import numpy as np
@@ -102,6 +103,14 @@ def main():
     )
     args = ap.parse_args()
 
+    # -- Resolve MVTec root -------------------------------------------------
+    if args.mvtec_root is None:
+        args.mvtec_root = os.environ.get("MVTEC_ROOT")
+    root = Path(args.mvtec_root) if args.mvtec_root else None
+    assert root is not None and root.is_dir(), (
+        "MVTec root not found. Pass --mvtec-root or set MVTEC_ROOT."
+    )
+
     # -- Resolve priors (comma-separated, each → val_mode) -----------------
     prior_list = [p.strip() for p in args.prior.split(",")]
     val_modes = []
@@ -126,8 +135,6 @@ def main():
     fit_args = YAML.load(check_yaml(args.fit_cfg))
     infer = resolve_infer(fit_args)
     device = args.device or ("mps" if torch.backends.mps.is_available() else "cpu")
-    root = Path(args.mvtec_root)
-    assert root is not None, "MVTec root not found (pass --mvtec-root or set MVTEC_ROOT)"
     cat_arg = args.cat.lower()
     if cat_arg in CAT_GROUPS:
         cats = CAT_GROUPS[cat_arg]
@@ -171,7 +178,7 @@ def main():
             LOGGER.warning(f"[{ci}/{len(cats)}] {cat}: no train dir at {gd}; skipping")
             continue
         model.fit(
-            str(gd),
+            source=str(gd),
             name=cat,
             cfg=fit_args,
             batch=args.batch,
@@ -225,9 +232,8 @@ def main():
                 gt_mask = txt_to_mask(str(Path(img).with_suffix(".txt")), h, w)
                 mask_tensor = load_mask_tensor(gt_mask, imgsz)
                 none_pred, n_none, _ = run_prior_viz(model, img, "none", **pkw)
-                seg_pred, n_seg, seg_hmap = run_prior_viz(model, img, "segment", **pkw)
+                seg_pred, n_seg, seg_hmap = run_prior_viz(model, img, "mask", prior_mask=mask_tensor, **pkw)
                 heat_pred, n_heat, heat_hmap = run_prior_viz(model, img, "heatmap", **pkw, **infer)
-                mask_pred, n_mask, _ = run_prior_viz(model, img, "mask", external_mask=mask_tensor, **pkw)
                 pre = f"{source}_{label}__{Path(img).stem}"
                 save_compare_grid(
                     original=original,
@@ -237,12 +243,12 @@ def main():
                     heat_heat=heat_hmap,
                     heat_pred=heat_pred,
                     mask_img=gt_mask,
-                    mask_pred=mask_pred,
+                    mask_pred=seg_pred,
                     out_path=out / f"{pre}.jpg",
                     n_none=n_none,
                     n_seg=n_seg,
                     n_heat=n_heat,
-                    n_mask=n_mask,
+                    n_mask=n_seg,
                     original_title=f"original ({source})",
                 )
             n_test, n_tr = len(test_samples), len(train_samples)

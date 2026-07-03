@@ -131,7 +131,7 @@ class YOLOA(Model):
 
     def fit(
         self,
-        data: str | Path | list[str],
+        source: str | Path | list[str],
         cfg: str | Path | dict | None = None,
         name: str | None = None,
         cache: str | Path | None = None,
@@ -142,10 +142,10 @@ class YOLOA(Model):
         """Build (or load from cache) the memory bank from normal images.
 
         Args:
-            data: Directory of normal images, or a list of image paths.
+            source: Directory of normal images, or a list of image paths.
             cfg: Fit-config yaml path or dict (imgsz / max_images / bb_*); ``kw`` overrides it,
                 which overrides the model yaml's v2_cfg defaults.
-            name: Friendly label for provenance + cache key (default: derived from ``data``).
+            name: Friendly label for provenance + cache key (default: derived from ``source``).
             cache: Directory to cache/reuse the built bank on disk; None disables caching.
             refit: Force a rebuild even if a cache file exists.
             device: Build device (defaults to the model device); not part of the fit identity.
@@ -161,7 +161,7 @@ class YOLOA(Model):
             raise RuntimeError("model has no BackboneMemoryBank (no bb_layers in the model yaml) — cannot fit().")
 
         fit_args = cfg if isinstance(cfg, dict) else YAML.load(cfg)
-        data_name = name or self._derive_name(data)
+        data_name = name or self._derive_name(source)
         self._apply_bb_overrides(fit_args)
 
         device = device if device is not None else next(m.parameters()).device
@@ -180,7 +180,7 @@ class YOLOA(Model):
             LOGGER.info(f"YOLOA.fit: loaded cached bank ({mb.memory_bank.shape[0]} vecs) <- {cache_path}")
         else:
             n = m.load_support_set(
-                data,
+                source,
                 imgsz=int(fit_args["imgsz"]),
                 device=device,
                 batch=batch,
@@ -204,18 +204,91 @@ class YOLOA(Model):
 
         m.fit_args = dict(fit_args)  # provenance — plain attrs, ride along on save()
         m.fit_data = data_name
+        m._heatmap_bank_warned = False
+        return self
+
+    def update_memory_bank(
+        self,
+        source: str | Path | list[str] | None = None,
+        remove_indices: torch.Tensor | list[int] | None = None,
+        reset: bool = False,
+        *,
+        cfg: str | Path | dict | None = None,
+        device: Any = None,
+        batch: int = 8,
+    ) -> "YOLOA":
+        """Add, remove, or reset the memory bank.
+
+        Exactly one of ``source``, ``remove_indices``, or ``reset`` must be supplied.
+
+        Args:
+            source: Directory of normal images or list of paths to add.
+            remove_indices: Flat indices of bank entries to remove.
+            reset: If True, clear the bank.
+            cfg: Fit-config yaml/dict for add (uses ``imgsz``, ``bb_max_bank_size``, ``max_images``).
+            device: Device for feature extraction.
+            batch: Mini-batch size for feature extraction.
+
+        Returns:
+            (YOLOA): self.
+        """
+        self._check_is_pytorch_model()
+        m = self.model
+        mb = getattr(m, "memory_bank", None)
+        if mb is None or getattr(m, "_bb_layers", None) is None:
+            raise RuntimeError("model has no BackboneMemoryBank — cannot update_memory_bank().")
+
+        n_ops = sum([source is not None, remove_indices is not None, reset])
+        if n_ops != 1:
+            raise ValueError("Exactly one of source, remove_indices, or reset must be provided.")
+
+        if reset:
+            mb.reset_memory_bank()
+            m.fit_args = None
+            m.fit_data = None
+            m._heatmap_bank_warned = False
+            return self
+
+        if remove_indices is not None:
+            mb.remove_features(remove_indices)
+            m._heatmap_bank_warned = False
+            return self
+
+        # source is not None
+        fit_args = cfg if isinstance(cfg, dict) else YAML.load(cfg) if cfg else getattr(m, "fit_args", {})
+        if not fit_args:
+            raise ValueError("update_memory_bank(add) requires cfg or a previous fit() to get imgsz/bank knobs.")
+        # Never retap different backbone layers; existing bank dimensions must stay valid.
+        fit_args.pop("bb_layers", None)
+        self._apply_bb_overrides(fit_args)
+        device = device if device is not None else next(m.parameters()).device
+        features = m.extract_bank_features(
+            source,
+            imgsz=int(fit_args.get("imgsz", 640)),
+            device=device,
+            batch=batch,
+            max_images=int(fit_args.get("max_images") or 0),
+        )
+        if features.shape[0] == 0:
+            LOGGER.warning("update_memory_bank(add): no features extracted; bank unchanged.")
+            return self
+        mb.add_features(features)
+        m._heatmap_bank_warned = False
+        LOGGER.info(f"YOLOA.update_memory_bank: bank now has {mb.memory_bank.shape[0]} vectors")
         return self
 
     def predict(
-        self, source=None, stream: bool = False, prior: str | None = None, anomaly_model: Any = None, **kwargs: Any
+        self, source=None, stream: bool = False, prior: str = "heatmap", anomaly_model: Any = None, **kwargs: Any
     ):
         """Predict with an optional prior.
 
         Args:
             source: Image source (path / array / list), as in :meth:`Model.predict`.
             stream: Stream the source.
-            prior: One of "none" / "heatmap" / "mask" / "anomaly_model". None means
-                no internal heatmap; pass an explicit ``prior_mask`` if needed.
+            prior: One of "none" / "heatmap" / "mask" / "anomaly_model". Default is
+                "heatmap"; if the memory bank is empty a warning is emitted and the
+                model falls back to vanilla detection. Pass an explicit ``prior_mask``
+                for an external mask.
             anomaly_model: Object exposing ``heatmap(img) -> Tensor[H, W] in [0, 1]``, required
                 when ``prior="anomaly_model"``; its heatmap is injected as ``prior_mask``.
             **kwargs: Standard predict args plus prior-shaping knobs (heat_norm / heat_edge / ...).
@@ -230,13 +303,15 @@ class YOLOA(Model):
             source=source, stream=stream, prior_mode=prior_mode, prior_mask=prior_mask, **kwargs
         )
 
-    def val(self, validator=None, prior: str | None = None, **kwargs: Any):
+    def val(self, validator=None, prior: str = "heatmap", **kwargs: Any):
         """Validate with an optional prior (YOLOAnomalyValidator adds image/pixel AUROC).
 
         Args:
             validator: Optional custom validator.
             prior: One of "none" / "heatmap" / "mask" (advanced pass-through allowed).
-                "anomaly_model" is predict-only for now.
+                Default is "heatmap"; if the memory bank is empty a warning is emitted
+                and the model falls back to vanilla detection. "anomaly_model" is
+                predict-only for now.
             **kwargs: Standard val args plus prior-shaping knobs (heat_norm / heat_edge / ...).
 
         Returns:
@@ -270,8 +345,14 @@ class YOLOA(Model):
             if anomaly_model is None or not hasattr(anomaly_model, "heatmap"):
                 raise ValueError("prior='anomaly_model' requires anomaly_model with a .heatmap(img) method")
             return None, self._external_heatmap(anomaly_model, source)
-        if prior in ("none", "mask"):
+        if prior == "mask":
+            if explicit_mask is None:
+                raise ValueError("prior='mask' requires an explicit prior_mask")
             return None, explicit_mask
+        if prior == "none":
+            if explicit_mask is not None:
+                LOGGER.warning("prior='none' ignores the provided prior_mask")
+            return None, None
         return prior, None
 
     @staticmethod

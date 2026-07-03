@@ -346,6 +346,57 @@ class BackboneMemoryBank(nn.Module):
         self.update = True
         self._bank_chunks: list[torch.Tensor] = []  # defer cat until freeze
 
+    def add_features(self, features: torch.Tensor) -> None:
+        """Add features [M, C] to the frozen bank, normalize, and re-calibrate.
+
+        If the resulting bank exceeds ``max_bank_size``, coreset subsampling is
+        re-applied over the combined bank, which may evict existing vectors.
+        The bank remains in inference mode after this call.
+        """
+        if features.numel() == 0:
+            return
+        if features.dim() != 2:
+            raise ValueError(f"BackboneMemoryBank.add_features: expected 2D features, got {features.dim()}D ({features.shape})")
+        if not torch.isfinite(features).all():
+            raise ValueError(f"BackboneMemoryBank.add_features: features contain NaN/Inf ({features.shape})")
+        features = F.normalize(features.to(self.memory_bank.device), p=2, dim=1).float()
+        if self.feature_dim is None:
+            self.feature_dim = features.shape[1]
+        if features.shape[1] != self.feature_dim:
+            raise ValueError(f"Feature dim mismatch: expected {self.feature_dim}, got {features.shape[1]}")
+
+        mem = self._effective_bank()
+        self.memory_bank = torch.cat([mem, features], dim=0) if mem.shape[0] > 0 else features
+        self._bank_chunks.clear()
+        self.freeze_memory_bank()
+
+    def remove_features(self, indices: torch.Tensor | list[int]) -> None:
+        """Remove bank entries by flat index and re-calibrate.
+
+        Args:
+            indices: Flat indices into the current bank to remove. Negative indices
+                follow PyTorch semantics.
+        """
+        if isinstance(indices, list):
+            indices = torch.tensor(indices, dtype=torch.long, device=self.memory_bank.device)
+        indices = indices.to(self.memory_bank.device).long()
+        if indices.numel() == 0:
+            return
+        mem = self._effective_bank()
+        if mem.shape[0] == 0:
+            return
+        indices = (indices + mem.shape[0]) % mem.shape[0]
+        if indices.max().item() >= mem.shape[0]:
+            raise IndexError(f"remove index out of range (bank size {mem.shape[0]})")
+        mask = torch.ones(mem.shape[0], dtype=torch.bool, device=mem.device)
+        mask[indices] = False
+        self.memory_bank = mem[mask]
+        self._bank_chunks.clear()
+        if self.memory_bank.shape[0] == 0:
+            self.reset_memory_bank()
+        else:
+            self.freeze_memory_bank()
+
     def accumulate_features(self, feat_dict: dict[int, torch.Tensor]) -> None:
         """Extract and accumulate backbone features into the memory bank (build phase).
 

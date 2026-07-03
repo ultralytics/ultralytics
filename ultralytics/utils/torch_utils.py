@@ -165,7 +165,9 @@ def parse_device(device: str | int | list | tuple | torch.device = "") -> str:
     if device == "cuda":
         device = "0"
     device = ",".join(str(int(x)) if x.isdigit() else x for x in device.split(",") if x)  # "0,,01" -> "0,1"
+    # Visible physical ids truncated to the torch device count, mirroring CUDA's stop at the first invalid CVD entry
     visible = [x for x in os.environ.get("CUDA_VISIBLE_DEVICES", "").replace(" ", "").split(",") if x]
+    visible = visible[: torch.cuda.device_count()]
     indices = [x for x in device.split(",") if x.isdigit()]  # requested ids, excluding '-1' and non-numeric tokens
     if indices and all(x in visible for x in indices) and any(int(x) >= torch.cuda.device_count() for x in indices):
         # Ids exceeding the torch device count can only be physical GPU ids under an external CUDA_VISIBLE_DEVICES

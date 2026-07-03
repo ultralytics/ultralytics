@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# YOLO26-UltraViT (formerly FastViT2) object detection model with P3/8 - P5/32 outputs.
+# YOLO26-UltraViT object detection model with P3/8 - P5/32 outputs.
 # Backbone (layers 0-8) is byte-identical to yolo26-ultravit-cls.yaml so cls/distilled
 # weights transfer name-for-name into the full det backbone via intersect_dicts
 # (no SPPF/C2PSA det tail: C2PSA is redundant next to MHSA, SPPF would be a transfer hole).

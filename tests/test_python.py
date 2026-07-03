@@ -75,6 +75,9 @@ def test_select_device(monkeypatch):
     assert str(torch_utils.select_device(torch.device("cuda", 1), verbose=False)) == "cuda:1"
     with pytest.raises(ValueError):  # torch.device inputs are validated like strings, no raw CUDA errors
         torch_utils.select_device(torch.device("cuda", 3), verbose=False)
+    set_calls.clear()
+    assert str(torch_utils.select_device(torch.device("cuda"), verbose=False)) == "cuda:1"
+    assert not set_calls  # indexless torch.device('cuda') means the current device and never moves it
     assert torch_utils.parse_device([0, 1]) == "0,1"
     assert torch_utils.parse_device("00,01") == "0,1"  # leading zeros stripped for valid torch device strings
     # Physical GPU ids under an external CUDA_VISIBLE_DEVICES restriction translate to torch indices

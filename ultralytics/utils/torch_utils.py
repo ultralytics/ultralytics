@@ -222,7 +222,9 @@ def select_device(device="", newline=False, verbose=True):
         the current device untouched.
     """
     if isinstance(device, torch.device) and device.type == "cuda":
-        device = str(device)  # 'cuda:N' is validated and set as the default device below like any string request
+        # 'cuda:N' is validated and set as the default device below like any string request, while an indexless
+        # torch.device('cuda') keeps its PyTorch meaning: the current device, via the '' default request
+        device = "" if device.index is None else str(device.index)
     elif isinstance(device, torch.device) or str(device).startswith(("tpu", "intel", "vulkan")):
         return device
 

@@ -929,14 +929,3 @@ def test_semantic_polygon_data():
     model = YOLO("yolo26n-sem.pt")
     model.train(data="coco8-seg.yaml", epochs=1, imgsz=32, close_mosaic=1)
     model.val(data="coco8-seg.yaml")
-
-
-def test_depth_results_interface():
-    """Test Results / DepthMap interface for the depth task: construction, device moves, shape invariants."""
-    import numpy as np
-    from ultralytics.engine.results import Results, DepthMap
-
-    r = Results(np.zeros((16, 16, 3), np.uint8), "x.jpg", {0: "depth"}, depth=np.random.rand(16, 16).astype(np.float32))
-    assert isinstance(r.depth, DepthMap), "Results.depth should be a DepthMap instance"
-    r_moved = r.cpu().numpy()
-    assert r_moved.depth.data.shape == (16, 16), "DepthMap shape should survive .cpu().numpy() chain"

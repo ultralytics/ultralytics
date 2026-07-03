@@ -11,6 +11,7 @@ def test_results_depth_field():
     assert r.depth.data.shape == (20, 24)
     rc = r.cpu().numpy()                 # exercises BaseTensor _keys plumbing (.cpu()/.numpy())
     assert rc.depth is not None
+    assert rc.depth.data.shape == (20, 24)  # shape survives the .cpu().numpy() chain
 
 
 def test_results_depth_none_is_none():

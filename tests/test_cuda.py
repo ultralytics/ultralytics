@@ -129,6 +129,21 @@ def test_train():
     assert results is not None
 
 
+@pytest.mark.skipif(not DEVICES or max(DEVICES) == 0, reason="requires an idle CUDA device with nonzero index")
+@pytest.mark.skipif(IS_JETSON, reason="Edge devices not intended for training")
+def test_train_cold_process_nonzero_device():
+    """Train on a nonzero GPU index in a fresh process, where cold CUDA state remaps then re-validates at final_eval.
+
+    A warm pytest process has CUDA initialized with all GPUs visible, so select_device never takes the
+    CUDA_VISIBLE_DEVICES remap path; only a subprocess reproduces real CLI usage (e.g. Platform pods).
+    """
+    import subprocess
+
+    env = {k: v for k, v in os.environ.items() if k != "CUDA_VISIBLE_DEVICES"}
+    cmd = ["yolo", "train", f"model={MODEL}", "data=coco8.yaml", "imgsz=32", "epochs=1", f"device={max(DEVICES)}"]
+    subprocess.run(cmd, check=True, env=env)
+
+
 @pytest.mark.slow
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 def test_predict_multiple_devices():

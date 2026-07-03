@@ -792,6 +792,7 @@ class Exporter:
             "docs": "https://docs.ultralytics.com",
             "stride": int(max(model.stride)),
             "task": model.task,
+            "head": type(model.model[-1]).__name__,
             "batch": self.args.batch,
             "imgsz": self.imgsz,
             "names": model.names,

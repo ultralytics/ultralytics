@@ -41,10 +41,10 @@ class YOLOAnomalyPredictorBase:
     def preprocess(self, im):
         """Set heatmap prior mode on the model before forward."""
         m = resolve_v2_model(self.model)
-        if m is not None and hasattr(m, "set_prior_mode"):
+        if m is not None and hasattr(m, "set_use_heatmap_prior"):
             # "heatmap" enables the internal memory-bank path; everything else
             # (none / mask / anomaly_model) is handled via explicit prior_mask.
-            m.set_prior_mode("heatmap" if self.prior_mode == "heatmap" else None)
+            m.set_use_heatmap_prior(self.prior_mode == "heatmap")
         return super().preprocess(im)
 
     def inference(self, im, *args, **kwargs):

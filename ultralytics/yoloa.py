@@ -32,65 +32,12 @@ from ultralytics.engine.model import Model
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import YOLOAnomalyV2Model
 from ultralytics.utils import LOGGER, YAML
+from ultralytics.utils.anomaly_v2 import FIT_KEYS, apply_bb_overrides
 
 # Public prior selection. Internal model uses ``prior_mode``; these map 1:1 except
 # "anomaly_model", which runs an external model to produce a heatmap and injects it through the
 # existing external-mask seam (prior_mode="mask").
 PRIOR_MODES = ("none", "heatmap", "mask", "anomaly_model")
-
-# Bank-build knobs that live in the fit config. bb_* override the model yaml's v2_cfg defaults;
-# imgsz / max_images are build inputs (not part of the model yaml).
-FIT_KEYS = (
-    "imgsz",
-    "max_images",
-    "bb_layers",
-    "bb_max_bank_size",
-    "bb_K",
-    "bb_temperature",
-    "bb_calibration_target_score",
-    "bb_calibration_target_quantile",
-    "bb_hmap_stretch_strength",
-    "bb_holdout_max",
-)
-
-# fit-key -> BackboneMemoryBank attribute it sets (bb_layers handled separately: it re-taps).
-_BB_TO_MB = {
-    "bb_max_bank_size": "max_bank_size",
-    "bb_K": "K",
-    "bb_temperature": "temperature",
-    "bb_calibration_target_score": "calibration_target_score",
-    "bb_calibration_target_quantile": "calibration_target_quantile",
-    "bb_hmap_stretch_strength": "hmap_stretch_strength",
-    "bb_holdout_max": "holdout_max",
-}
-
-
-def apply_bb_overrides(model, fit_args: dict) -> None:
-    """Apply bb_* fit overrides onto a YOLOAnomalyV2Model + its memory bank before the bank is built.
-
-    Shared by :meth:`YOLOA.fit` and the trainer's MVTec OOD eval so both build the bank with the
-    same fit-config knobs (bb_K / bb_temperature / calibration / bb_max_bank_size / bb_layers re-tap),
-    keeping in-training and post-training evaluation identical. Only keys present (non-None) in
-    ``fit_args`` override the model-baked v2_cfg defaults.
-    """
-    mb = model.memory_bank
-    new_layers = fit_args.get("bb_layers")
-    if new_layers is not None and list(new_layers) != list(model._bb_layers or []):
-        new_layers = list(new_layers)
-        LOGGER.warning(
-            f"apply_bb_overrides: bb_layers {model._bb_layers} -> {new_layers} (rebuilds bank; "
-            f"deviating from the training layer set may shift fusion behavior)"
-        )
-        for h in getattr(model, "_bb_hook_handles", []):
-            h.remove()
-        model._bb_hook_handles = []
-        model._bb_layers = new_layers
-        mb._bb_layer_indices = new_layers
-        model._install_backbone_taps(new_layers)
-    for fk, mbk in _BB_TO_MB.items():
-        if fit_args.get(fk) is not None:
-            setattr(mb, mbk, fit_args[fk])
-
 
 # Prior-shaping knobs set on the model before forward. Accepts canonical names and short aliases.
 _INFER_SET = {
@@ -179,7 +126,7 @@ class YOLOA(Model):
                 mb._calibrated = True
             LOGGER.info(f"YOLOA.fit: loaded cached bank ({mb.memory_bank.shape[0]} vecs) <- {cache_path}")
         else:
-            n = m.load_support_set(
+            n = m.build_memory_bank(
                 source,
                 imgsz=int(fit_args["imgsz"]),
                 device=device,

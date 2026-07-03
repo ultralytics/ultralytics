@@ -31,7 +31,8 @@ from ultralytics.nn.tasks import YOLOAnomalyV2Model
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK, YAML
 from ultralytics.utils.torch_utils import unwrap_model
 
-from .val import resolve_mvtec_root, run_mvtec_ood_eval
+from .benchmark import resolve_mvtec_root, run_mvtec_ood_eval
+from ultralytics.utils.anomaly_v2 import apply_bb_overrides
 
 
 def _resolve_fit_yaml(cfg_path: str, model_yaml_path: str | None = None) -> dict:
@@ -195,16 +196,16 @@ class AnomalyV2Trainer(DetectionTrainer):
         bank_size = int(fit_yaml.get("bb_max_bank_size", v2_cfg.get("test_bank_size", 10000)))
 
         # Per-prior test switches pick which OOD modes run. test_heatmap_prior is forced on because
-        # best.pt fitness is test_metrics(heatmap_prior)/mAP10; test_none_prior (mask_off) and
-        # test_mask_prior (mask_on) default off (heatmap-only = ~3x faster).
+        # best.pt fitness is test_metrics(heatmap_prior)/mAP10; test_none_prior and
+        # test_mask_prior default off (heatmap-only = ~3x faster).
         if not bool(v2_cfg.get("test_heatmap_prior", True)):
             LOGGER.warning("anomaly_v2: test_heatmap_prior feeds fitness and cannot be disabled; forcing on.")
         modes = []
         if bool(v2_cfg.get("test_none_prior", False)):
-            modes.append("mask_off")
+            modes.append("none")
         modes.append("heatmap")  # test_heatmap_prior — always on (fitness source)
         if bool(v2_cfg.get("test_mask_prior", False)):
-            modes.append("mask_on")
+            modes.append("mask")
         modes = tuple(modes)
 
         # Heatmap post-processing (inference-only; from fit YAML)
@@ -217,7 +218,6 @@ class AnomalyV2Trainer(DetectionTrainer):
         # eval copy so the OOD bank is built exactly as YOLOA.fit would post-training — the fit YAML is the
         # single source of truth, overriding the model-baked v2_cfg defaults. No-op without a fit YAML.
         if fit_yaml:
-            from ultralytics.yoloa import apply_bb_overrides
             apply_bb_overrides(ema_eval, fit_yaml)
         trainer._ood_heatmap_map10 = None  # clear stale; only set on success
         try:
@@ -266,9 +266,9 @@ class AnomalyV2Trainer(DetectionTrainer):
 
         keys = ("mAP10", "mAP25", "mAP50", "mAP50_95", "image_auroc", "pixel_auroc")
         mode_to_group = {
-            "mask_off": "test_metrics(none_prior)",
+            "none": "test_metrics(none_prior)",
             "heatmap": "test_metrics(heatmap_prior)",
-            "mask_on": "test_metrics(mask_prior)",
+            "mask": "test_metrics(mask_prior)",
         }
 
         log = {}

@@ -28,7 +28,7 @@ import torch
 
 import cv2
 
-from ultralytics.models.yolo.anomaly_v2.val import MVTEC_CATEGORIES, run_mvtec_ood_eval
+from ultralytics.models.yolo.anomaly_v2.benchmark import MVTEC_CATEGORIES, run_mvtec_ood_eval
 from ultralytics.utils import LOGGER, YAML
 from ultralytics.utils.checks import check_yaml
 from ultralytics.yoloa import YOLOA
@@ -119,14 +119,13 @@ def main():
     scorer_kwargs = {}
     scorer_fuse = "mean"
 
-    mode_map = {"heatmap": "heatmap", "none": "mask_off", "mask": "mask_on"}
+    allowed = {"heatmap", "none", "mask"}
     for p in prior_list:
-        mode = mode_map.get(p, None)
-        if mode is None:
-            raise ValueError(f"Unknown prior '{p}' (valid: {', '.join(mode_map.keys())})")
-        if mode not in val_modes:
-            val_modes.append(mode)
-            mode_to_prior[mode] = p  # TODO
+        if p not in allowed:
+            raise ValueError(f"Unknown prior '{p}' (valid: {', '.join(sorted(allowed))})")
+        if p not in val_modes:
+            val_modes.append(p)
+            mode_to_prior[p] = p
     prior_mode_display = ",".join(prior_list)
 
     # Single-prior name for predict/visualize mode (first prior in list)

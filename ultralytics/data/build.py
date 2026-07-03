@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import atexit
 import math
 import os
 import random
+import weakref
 from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
@@ -41,6 +43,27 @@ from ultralytics.utils.checks import check_file
 from ultralytics.utils.torch_utils import TORCH_2_0
 
 
+_loaders = weakref.WeakSet()
+"""Live InfiniteDataLoader instances, drained by close_dataloaders() at interpreter exit."""
+
+
+def close_dataloaders() -> None:
+    """Gracefully shut down the workers of all live InfiniteDataLoader instances.
+
+    Registered with atexit after multiprocessing registers its own ``_exit_function`` (atexit is
+    LIFO, so this runs first). Without it, the persistent iterators still hold live daemon worker
+    processes at interpreter exit; multiprocessing SIGTERMs those daemons and joins them, and
+    torch's SIGCHLD watchdog — with the workers still registered — raises "DataLoader worker
+    (pid N) is killed by signal: Terminated" inside the atexit callback. Draining the iterators
+    here unregisters and joins every worker first, so multiprocessing finds nothing to kill.
+    """
+    for dl in list(_loaders):
+        dl._shutdown_iterator()
+
+
+atexit.register(close_dataloaders)
+
+
 class InfiniteDataLoader(dataloader.DataLoader):
     """DataLoader that reuses workers for infinite iteration.
 
@@ -72,6 +95,7 @@ class InfiniteDataLoader(dataloader.DataLoader):
         super().__init__(*args, **kwargs)
         object.__setattr__(self, "batch_sampler", _RepeatSampler(self.batch_sampler))
         self.iterator = super().__iter__()
+        _loaders.add(self)  # so close_dataloaders() drains this loader's workers before exit
 
     def __len__(self) -> int:
         """Return the length of the batch sampler's sampler."""
@@ -82,20 +106,28 @@ class InfiniteDataLoader(dataloader.DataLoader):
         for _ in range(len(self)):
             yield next(self.iterator)
 
-    def __del__(self):
-        """Ensure that workers are properly terminated when the DataLoader is deleted."""
+    def _shutdown_iterator(self):
+        """Gracefully stop the persistent iterator's worker processes.
+
+        torch's ``_shutdown_workers`` unregisters the workers from the SIGCHLD watchdog before
+        joining them (terminating stragglers itself after a timeout). Raw ``w.terminate()`` on
+        registered workers is what makes the watchdog raise "killed by signal: Terminated" from
+        any later ``waitpid`` — e.g. multiprocessing's atexit join.
+        """
         try:
-            if not hasattr(self.iterator, "_workers"):
-                return
-            for w in self.iterator._workers:  # force terminate
-                if w.is_alive():
-                    w.terminate()
-            self.iterator._shutdown_workers()  # cleanup
+            it = self.__dict__.get("iterator")
+            if it is not None and hasattr(it, "_shutdown_workers"):
+                it._shutdown_workers()
         except Exception:
             pass
 
+    def __del__(self):
+        """Ensure that workers are properly shut down when the DataLoader is deleted."""
+        self._shutdown_iterator()
+
     def reset(self):
         """Reset the iterator to allow modifications to the dataset during training."""
+        self._shutdown_iterator()  # drain the previous generation's workers deterministically
         self.iterator = self._get_iterator()
 
 

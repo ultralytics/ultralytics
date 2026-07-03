@@ -146,8 +146,8 @@ class GPUInfo:
             count (int): The number of idle GPUs to select.
             min_memory_fraction (float): Minimum free memory required as a fraction of total memory.
             min_util_fraction (float): Minimum free utilization rate required from 0.0 - 1.0.
-            indices (list[int] | None): Restrict selection to these GPU indices, e.g. the GPUs visible under an
-                external CUDA_VISIBLE_DEVICES restriction. None searches all GPUs.
+            indices (list[int] | None): Restrict selection to these GPU indices, e.g. the GPUs visible under an external
+                CUDA_VISIBLE_DEVICES restriction. None searches all GPUs.
 
         Returns:
             (list[int]): Indices of the selected GPUs, sorted by idleness (lowest utilization first).

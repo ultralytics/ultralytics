@@ -594,6 +594,9 @@ class BaseTrainer:
                 self.plot_metrics()
             self.run_callbacks("on_train_end")
         self._clear_memory()
+        for loader in (self.train_loader, self.test_loader):
+            if hasattr(loader, "close"):
+                loader.close()  # shut down persistent dataloader workers so none survive to interpreter exit
         unset_deterministic()
         self.run_callbacks("teardown")
 

@@ -80,6 +80,7 @@ def test_select_device(monkeypatch):
     assert not set_calls  # indexless torch.device('cuda') means the current device and never moves it
     assert torch_utils.parse_device([0, 1]) == "0,1"
     assert torch_utils.parse_device("00,01") == "0,1"  # leading zeros stripped for valid torch device strings
+    assert torch_utils.parse_device(torch.device("cuda")) == ""  # indexless 'cuda' stays the '' default request
     # Physical GPU ids under an external CUDA_VISIBLE_DEVICES restriction translate to torch indices
     monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "2,3")
     assert str(torch_utils.select_device("3", verbose=False)) == "cuda:1"

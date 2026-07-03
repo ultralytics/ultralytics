@@ -159,6 +159,8 @@ def parse_device(device: str | int | list | tuple | torch.device = "") -> str:
         persisted under one environment (e.g. resumed checkpoint args) address the same physical GPUs only in that
         environment.
     """
+    if isinstance(device, torch.device) and device.type == "cuda" and device.index is None:
+        return ""  # indexless torch.device('cuda') means the current CUDA device, i.e. the '' default request
     device = str(device).lower()
     for remove in "cuda:", "none", "(", ")", "[", "]", "'", " ":
         device = device.replace(remove, "")  # to string, 'cuda:0' -> '0' and '(0, 1)' -> '0,1'
@@ -221,11 +223,10 @@ def select_device(device="", newline=False, verbose=True):
         to the current device) and multi-GPU requests (DDP ranks pin their own device in trainer._setup_ddp()) leave
         the current device untouched.
     """
-    if isinstance(device, torch.device) and device.type == "cuda":
-        # 'cuda:N' is validated and set as the default device below like any string request, while an indexless
-        # torch.device('cuda') keeps its PyTorch meaning: the current device, via the '' default request
-        device = "" if device.index is None else str(device.index)
-    elif isinstance(device, torch.device) or str(device).startswith(("tpu", "intel", "vulkan")):
+    if isinstance(device, torch.device):
+        if device.type != "cuda":
+            return device  # non-CUDA torch.device inputs pass through; cuda ones canonicalize via parse_device below
+    elif str(device).startswith(("tpu", "intel", "vulkan")):
         return device
 
     s = f"Ultralytics {__version__} 🚀 Python-{PYTHON_VERSION} torch-{TORCH_VERSION} "

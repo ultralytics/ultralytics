@@ -1266,6 +1266,7 @@ class Exporter:
             quantize=self.args.quantize,
             images=images,
             disable_group_convolution=self.args.format == "edgetpu",
+            cuda=self.device.type == "cuda",
             prefix=prefix,
         )
         YAML.save(f / "metadata.yaml", self.metadata)  # add metadata.yaml

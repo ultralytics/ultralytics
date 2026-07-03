@@ -27,7 +27,9 @@ def _depth_head(model):
     """Return the Depth head module that carries ``cal_a``/``cal_b`` buffers, or None."""
     m = model.module if hasattr(model, "module") else model  # unwrap DDP
     seq = getattr(m, "model", None)
-    head = seq[-1] if seq is not None else m
+    if seq is not None and not isinstance(seq, torch.nn.Sequential):
+        seq = getattr(seq, "model", None)  # unwrap AutoBackend-style wrappers (wrapper.model = DepthModel)
+    head = seq[-1] if isinstance(seq, torch.nn.Sequential) else m
     return head if hasattr(head, "cal_a") else None
 
 

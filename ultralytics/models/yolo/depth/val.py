@@ -29,6 +29,7 @@ class DepthValidator(DetectionValidator):
         self.calibrating = False
         self.calib = None
         self._cal_logp, self._cal_logg, self._cal_pts = [], [], 0
+        self._cal_ab = None
 
     def init_metrics(self, model):
         """Initialize the DepthMetrics accumulator and reset per-pass calibration state."""
@@ -40,6 +41,12 @@ class DepthValidator(DetectionValidator):
         self.calibrating = getattr(self, "calibrating", False)
         self.calib = None
         self._cal_logp, self._cal_logg, self._cal_pts = [], [], 0
+        # Baked calibration of the model under validation, for the standalone-val comparison plot
+        # (the head applies cal_a/cal_b in its forward, so predictions arrive already calibrated).
+        from .calibrate import _depth_head
+
+        head = _depth_head(model)
+        self._cal_ab = (float(head.cal_a), float(head.cal_b)) if head is not None else None
 
     def preprocess(self, batch):
         """Preprocess batch — move to device, normalize images, handle precision."""
@@ -164,14 +171,32 @@ class DepthValidator(DetectionValidator):
         Depth has no boxes/classes, so the detection-style plotters are replaced with a
         side-by-side depth visualization (see plot_depth_panels). Called by BaseValidator
         for the first few batches when args.plots is set.
+
+        Standalone val (``yolo val``) additionally writes ``val_batch{ni}_calibrated.jpg``
+        comparing raw vs the checkpoint's baked calibration. The head already applies
+        ``cal_a``/``cal_b`` in its forward, so the prediction here IS the calibrated output;
+        raw is recovered by inverting the log-affine. Training-epoch validation skips this
+        (buffers are identity until final_eval fits them, so the comparison says nothing).
         """
         if "depth" not in batch:
             return
         try:
+            pred = self._extract_pred(preds)
             plot_depth_panels(
-                batch["img"], batch["depth"], [self._extract_pred(preds)],
+                batch["img"], batch["depth"], [pred],
                 self.save_dir / f"val_batch{ni}.jpg", max_images=max_images,
             )
+            cal = getattr(self, "_cal_ab", None)
+            if cal is not None and not getattr(self, "training", True):
+                a, b = cal
+                raw = torch.exp((torch.log(pred.float().clamp(min=1e-3)) - b) / a)
+                name = "identity" if (a, b) == (1.0, 0.0) else "baked"
+                plot_depth_panels(
+                    batch["img"], batch["depth"], [raw, pred],
+                    self.save_dir / f"val_batch{ni}_calibrated.jpg",
+                    titles=["RGB", "GT", "raw", f"calibrated ({name} x{np.exp(b):.2f})"],
+                    max_images=max_images,
+                )
         except Exception as e:
             LOGGER.warning(f"DepthValidator: failed to plot val_batch{ni}: {e}")
 

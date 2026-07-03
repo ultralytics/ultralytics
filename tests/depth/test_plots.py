@@ -70,6 +70,57 @@ def test_calibrate_checkpoint_writes_calibrated_plots(tmp_path):
     assert not (tmp_path / "val_batch3_calibrated.jpg").exists()
 
 
+def test_depth_head_found_through_autobackend_wrapper():
+    """_depth_head unwraps an AutoBackend-like wrapper (wrapper.model = DepthModel)."""
+    from types import SimpleNamespace
+
+    from ultralytics.models.yolo.depth.calibrate import _depth_head
+    from ultralytics.nn.tasks import DepthModel
+
+    model = DepthModel("yolo26n-depth.yaml", verbose=False)
+    assert _depth_head(SimpleNamespace(model=model)) is model.model[-1]
+
+
+def test_init_metrics_captures_baked_calibration():
+    """init_metrics records the head's baked (cal_a, cal_b) for the calibrated val plot."""
+    from types import SimpleNamespace
+
+    from ultralytics.nn.tasks import DepthModel
+
+    model = DepthModel("yolo26n-depth.yaml", verbose=False)
+    model.model[-1].cal_b.fill_(0.5)
+    v = DepthValidator.__new__(DepthValidator)
+    v.init_metrics(SimpleNamespace(model=model))  # AutoBackend-like wrapper, as in standalone val
+    assert v._cal_ab == (1.0, 0.5)
+
+
+def test_standalone_val_writes_baked_calibration_plot(tmp_path):
+    """Standalone val (training=False) also writes the 4-column baked-calibration comparison."""
+    v = DepthValidator.__new__(DepthValidator)
+    v.save_dir = tmp_path
+    v.training = False
+    v._cal_ab = (1.0, 0.5)
+    batch = {"img": torch.rand(2, 3, 32, 32), "depth": torch.rand(2, 32, 32) * 5 + 0.5}
+    preds = {"depth": torch.rand(2, 1, 32, 32) * 5 + 0.5}
+    v.plot_predictions(batch, preds, ni=0)
+    assert cv2.imread(str(tmp_path / "val_batch0.jpg")).shape == (2 * 32, 3 * 32, 3)
+    img = cv2.imread(str(tmp_path / "val_batch0_calibrated.jpg"))
+    assert img is not None
+    assert img.shape == (24 + 2 * 32, 4 * 32, 3)  # header strip + RGB|GT|raw|calibrated
+
+
+def test_training_val_skips_baked_calibration_plot(tmp_path):
+    """During training-epoch validation the comparison is not written (final_eval owns it)."""
+    v = DepthValidator.__new__(DepthValidator)
+    v.save_dir = tmp_path
+    v.training = True
+    v._cal_ab = (1.0, 0.5)
+    batch = {"img": torch.rand(1, 3, 32, 32), "depth": torch.rand(1, 32, 32) * 5 + 0.5}
+    v.plot_predictions(batch, {"depth": torch.rand(1, 1, 32, 32) * 5 + 0.5}, ni=0)
+    assert (tmp_path / "val_batch0.jpg").exists()
+    assert not (tmp_path / "val_batch0_calibrated.jpg").exists()
+
+
 class _StatefulLoader:
     """Mimics InfiniteDataLoader: one persistent iterator, so partial iteration leaves it mid-epoch."""
 

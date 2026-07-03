@@ -348,6 +348,12 @@ class ReidValidator(ClassificationValidator):
             )
             paths.extend(batch["im_file"])
 
+        # In-train val builds a fresh gallery loader every epoch; relying on __del__/gc to reap
+        # InfiniteDataLoader workers leaks pipes/fds over hundreds of epochs until
+        # 'OSError: Too many open files' — shut the workers down explicitly instead.
+        if hasattr(loader.iterator, "_shutdown_workers"):
+            loader.iterator._shutdown_workers()
+
         return (
             torch.cat(feats, dim=0).numpy(),
             torch.cat(pids, dim=0).numpy(),

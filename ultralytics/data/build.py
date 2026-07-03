@@ -54,6 +54,7 @@ class InfiniteDataLoader(dataloader.DataLoader):
         __len__: Return the length of the batch sampler's sampler.
         __iter__: Yield batches from the underlying iterator.
         __del__: Ensure workers are properly terminated.
+        close: Gracefully shut down persistent workers when the DataLoader is no longer needed.
         reset: Reset the iterator, useful when modifying dataset settings during training.
 
     Examples:
@@ -90,6 +91,19 @@ class InfiniteDataLoader(dataloader.DataLoader):
                 if w.is_alive():
                     w.terminate()
             self.iterator._shutdown_workers()  # cleanup
+        except Exception:
+            pass
+
+    def close(self):
+        """Gracefully shut down persistent workers, unregistering them from torch's SIGCHLD worker watchdog.
+
+        Without this, workers stay alive (and watchdog-registered) until interpreter exit, where a SIGTERM reaching
+        them from outside the parent process races multiprocessing's atexit join and raises
+        'DataLoader worker (pid N) is killed by signal' from torch's SIGCHLD handler.
+        """
+        try:
+            if hasattr(self.iterator, "_workers"):
+                self.iterator._shutdown_workers()  # joins workers and calls torch._C._remove_worker_pids
         except Exception:
             pass
 

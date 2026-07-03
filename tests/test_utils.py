@@ -1,14 +1,18 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """Tests for the per-image property analysis module."""
 
+import subprocess
+import sys
+
 import cv2
 import numpy as np
 import pytest
 
+from ultralytics import YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.data.build import build_yolo_dataset
 from ultralytics.data.utils import check_det_dataset
-from ultralytics.utils.analysis import ImagePropertyExtractor
+from ultralytics.utils.analysis import CorrelationAnalysis, ImagePropertyExtractor
 
 
 def test_pixel_properties():
@@ -50,3 +54,36 @@ def test_extractor_augments_labels():
     for key in ("brightness", "blurriness", "num_small", "num_medium", "num_large", "max_pairwise_iou"):
         assert key in props, f"missing property {key!r}"
     assert 0.0 <= props["brightness"] <= 1.0
+
+
+def test_rank_top_problematic_excludes_good_direction():
+    """_rank_and_score.top_3_problematic flags only F1-lowering extremes, not F1-raising ones."""
+    corr = {"mean_pairwise_iou": {"pearson_r": 0.9}, "num_small": {"pearson_r": -0.9}}
+    per_image = {
+        "clean.jpg": {"f1": 0.95, "mean_pairwise_iou": 0.0, "num_small": 0.0},
+        "mid.jpg": {"f1": 0.6, "mean_pairwise_iou": 1.0, "num_small": 1.0},
+        "worst.jpg": {"f1": 0.1, "mean_pairwise_iou": 9.0, "num_small": 4.0},
+    }
+    CorrelationAnalysis._rank_and_score(per_image, corr)
+    flagged = per_image["worst.jpg"]["top_3_problematic"]
+    assert "num_small" in flagged and "mean_pairwise_iou" not in flagged
+
+
+def test_run_correlation_analysis_path(tmp_path):
+    """CorrelationAnalysis joins extractor labels with validator metrics and writes the full report."""
+    model = YOLO("yolo11n.pt")
+    metrics = model.val(
+        data="coco128.yaml", imgsz=320, batch=8, plots=False, save_json=False, verbose=False, device="cpu"
+    )
+    labels = ImagePropertyExtractor(model.validator.dataloader.dataset).labels
+    out_dir = tmp_path / "corr"
+    report = CorrelationAnalysis(labels, metrics).run(save_dir=out_dir)
+    assert next(iter(report.per_image.values())).get("f1") is not None
+    for fname in ("per_image_analysis.csv", "correlations.json", "summary.md", "correlation_scatter.png"):
+        assert (out_dir / fname).stat().st_size > 0, fname
+
+
+def test_lazy_matplotlib_import():
+    """Importing the analysis module must not import matplotlib (lazy-loaded inside plot)."""
+    code = "import ultralytics.utils.analysis, sys; assert 'matplotlib' not in sys.modules"
+    assert subprocess.run([sys.executable, "-c", code], capture_output=True).returncode == 0

@@ -69,6 +69,7 @@ from ultralytics.nn.modules import (
     Segment,
     Segment26,
     TorchVision,
+    UltraViTBlock,
     WorldDetect,
     YOLOEDetect,
     YOLOESegment,
@@ -1788,7 +1789,7 @@ def parse_model(d, ch, verbose=True):
                     args.extend((True, 1.2))
             if m is C2fCIB:
                 legacy = False
-        elif m in frozenset({AIFI, FastViTBlock, MHSABlock}):
+        elif m in frozenset({AIFI, UltraViTBlock, FastViTBlock, MHSABlock}):
             args = [ch[f], *args]
         elif m is TeacherDetBackbone:
             # Frozen-teacher detection backbone: layer-0 module that maps a 3-channel image to embed_dim feature channels.

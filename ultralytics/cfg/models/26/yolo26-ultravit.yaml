@@ -1,14 +1,12 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# DEPRECATED: renamed yolo26-ultravit.yaml, this stub will be removed. Builds the identical model
-# through the deprecated FastViTBlock alias, which warns at parse time.
 # YOLO26-UltraViT (formerly FastViT2) object detection model with P3/8 - P5/32 outputs.
 # Backbone (layers 0-8) is byte-identical to yolo26-ultravit-cls.yaml so cls/distilled
 # weights transfer name-for-name into the full det backbone via intersect_dicts
 # (no SPPF/C2PSA det tail: C2PSA is redundant next to MHSA, SPPF would be a transfer hole).
 # Head is byte-identical to yolo26.yaml (end2end, reg_max=1, c3k=True rows), only the
 # backbone skip indices differ (P3=4, P4=6, P5=8).
-# Blocks in ultralytics/nn/modules/vit_blocks.py: FastViTBlock args [mlp_ratio, silu, ls],
+# Blocks in ultralytics/nn/modules/vit_blocks.py: UltraViTBlock args [mlp_ratio, silu, ls],
 # MHSABlock args [num_heads, mlp_ratio, silu, ls, conv_ffn, head_dim]. num_heads=0 is a
 # sentinel: head_dim=32 pins per-head width and derives heads per scale (n 9, s 18, m/l 16, x 24).
 #
@@ -37,11 +35,11 @@ backbone:
   # [from, repeats, module, args]
   - [-1, 1, Conv, [64, 3, 2]] # 0 P1/2 stem
   - [-1, 1, Conv, [96, 3, 2]] # 1 P2/4 stem
-  - [-1, 5, FastViTBlock, [3, True, 0.00001]] # 2 stage1 P2/4
+  - [-1, 5, UltraViTBlock, [3, True, 0.00001]] # 2 stage1 P2/4
   - [-1, 1, Conv, [192, 3, 2]] # 3 P3/8 downsample
-  - [-1, 5, FastViTBlock, [3, True, 0.00001]] # 4 stage2 P3/8    <- head P3 skip target
+  - [-1, 5, UltraViTBlock, [3, True, 0.00001]] # 4 stage2 P3/8    <- head P3 skip target
   - [-1, 1, Conv, [384, 3, 2]] # 5 P4/16 downsample
-  - [-1, 20, FastViTBlock, [3, True, 0.00001]] # 6 stage3 P4/16   <- head P4 skip target
+  - [-1, 20, UltraViTBlock, [3, True, 0.00001]] # 6 stage3 P4/16   <- head P4 skip target
   - [-1, 1, Conv, [1152, 3, 2]] # 7 P5/32 downsample
   - [-1, 5, MHSABlock, [0, 4, True, 0.00001, True, 32]] # 8 stage4 P5/32 <- head P5 skip target
 

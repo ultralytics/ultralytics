@@ -20,7 +20,7 @@ Flags:
     --epochs <int>: override epoch budget (default 114).
     --tags <csv>: override wandb tags (comma-separated). Defaults derived from
         model_yaml: imagenet-pretrain, ce-baseline-114ep, exp5b-recipe,
-        yolo26-{conv|fastvit}, scale-{s|l}.
+        yolo26-{conv|fastvit|ultravit}, scale-{s|l}.
     --notes <str>: override wandb run notes (markdown string). Defaults to a
         per-arch summary of recipe, reference top-1, single-gpu constraint,
         and data path.
@@ -98,7 +98,7 @@ def main(argv: list[str]) -> None:
 
     stem = Path(model_yaml).stem
     arch = next(
-        (a for a in ("fastvit", "cls-attn") if a in stem),
+        (a for a in ("ultravit", "fastvit", "cls-attn") if a in stem),
         "vit" if "-vit-" in stem else "conv",
     )
     scale_match = re.match(r"yolo26([nslmx])", stem)

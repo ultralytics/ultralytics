@@ -105,7 +105,7 @@ from .transformer import (
     TransformerEncoderLayer,
     TransformerLayer,
 )
-from .vit_blocks import FastViTBlock, MHSABlock
+from .vit_blocks import FastViTBlock, MHSABlock, UltraViTBlock
 
 __all__ = (
     "AIFI",
@@ -185,6 +185,7 @@ __all__ = (
     "TransformerBlock",
     "TransformerEncoderLayer",
     "TransformerLayer",
+    "UltraViTBlock",
     "WorldDetect",
     "YOLOEDetect",
     "YOLOESegment",

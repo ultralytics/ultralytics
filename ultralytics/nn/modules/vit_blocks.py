@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-"""R3 ViT-like student blocks for encoder distillation (FastViT).
+"""R3 ViT-like student blocks for encoder distillation (UltraViT, formerly FastViT).
 
 Simple-component constraint: Conv2d, BatchNorm2d, LayerNorm, GELU/SiLU, Linear, F.scaled_dot_product_attention.
 No `nn.MultiheadAttention` (source of AIFI's 1327-node ONNX bloat). No 2D RoPE (ECViT-t hits 554 Constant nodes).
@@ -12,7 +12,7 @@ Export validation (2026-04-23 R3.3, RTX PRO 6000 Blackwell, imgsz=224, bs=1 fp16
     yolo26s-fastvit-cls    5.05 M   228 ONNX nodes   1.948 ms   (conv baseline 1.83 ms, 234 nodes)
     yolo26l-fastvit-cls   14.77 M   804 ONNX nodes   2.652 ms
 
-Must-build export paths pass across the FastViT YAMLs: TorchScript, ONNX opset17, OpenVINO, CoreML, TFLite, TensorRT,
+Must-build export paths pass across the UltraViT and legacy FastViT YAMLs: TorchScript, ONNX opset17, OpenVINO, CoreML, TFLite, TensorRT,
 PaddlePaddle (x2paddle>=1.6.0, needs the indexed QKV split in MHSABlock), RKNN (rknn-toolkit2>=2.3.2). RKNN still
 requires an isolated venv (its AutoUpdate downgrades torch 2.9→2.4 + cudnn 9.10→9.1, contaminating the primary env).
 """
@@ -23,9 +23,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from ultralytics.utils import deprecation_warn
 
-class FastViTBlock(nn.Module):
-    """FastViT stages 1-3 block: RepMixer (inference form) + ConvFFN. Dim-preserving 4D in/out.
+
+class UltraViTBlock(nn.Module):
+    """UltraViT stages 1-3 block: RepMixer (inference form) + ConvFFN. Dim-preserving 4D in/out.
 
     Paper: arXiv:2303.14189 §3 (FastViT, Vasu et al. 2023). Reparameterized inference form collapses the train-time
     RepMixer to `x + DWConv3x3+BN(x)`. ConvFFN inverted-bottleneck: PW → GELU → DW3x3+BN → PW. No LayerNorm in stages
@@ -45,7 +47,7 @@ class FastViTBlock(nn.Module):
     """
 
     def __init__(self, c: int, mlp_ratio: float = 3.0, silu: bool = False, ls: float = 0.0):
-        """Initialize FastViTBlock with dim c, FFN expansion ratio, activation choice, and LayerScale init."""
+        """Initialize UltraViTBlock with dim c, FFN expansion ratio, activation choice, and LayerScale init."""
         super().__init__()
         self.mixer_dw = nn.Conv2d(c, c, 3, padding=1, groups=c, bias=False)
         self.mixer_bn = nn.BatchNorm2d(c)
@@ -80,7 +82,7 @@ class MHSABlock(nn.Module):
     source — MHA-based AIFI ViT wraps to ~1327 ONNX nodes @ opset 17). SDPA decomposes in opset 17 to
     `MatMul+Softmax+MatMul+Mul(scale)`; the win is skipping PyTorch's MHA wrapper, not graph fusion.
 
-    Used for FastViT stage 4 global attention at the coarsest scale.
+    Used for UltraViT (and legacy FastViT) stage 4 global attention at the coarsest scale.
 
     Attributes:
         num_heads (int): Number of attention heads. c must be divisible by num_heads. YAMLs that pin `head_dim` pass 0
@@ -101,7 +103,7 @@ class MHSABlock(nn.Module):
         ffn_bn (nn.BatchNorm2d): ConvMlp norm after the DW conv.
         ffn_pw1 (nn.Conv2d): ConvMlp 1x1 conv to hidden dim.
         ffn_pw2 (nn.Conv2d): ConvMlp 1x1 conv back to c.
-        act (nn.Module): FFN activation, GELU or SiLU (see FastViTBlock on the TensorRT fusion difference).
+        act (nn.Module): FFN activation, GELU or SiLU (see UltraViTBlock on the TensorRT fusion difference).
         ls1 (nn.Parameter): Optional LayerScale on the attention residual (does not fold away at inference).
         ls2 (nn.Parameter): Optional LayerScale on the FFN residual, shaped (C, 1, 1) for the ConvMlp path and (C,) for
             the token path.
@@ -169,3 +171,16 @@ class MHSABlock(nn.Module):
         f = self.fc2(self.act(self.fc1(self.ln2(t))))
         t = t + (f if ls2 is None else ls2 * f)
         return t.transpose(1, 2).reshape(b, c, h, w)
+
+
+class FastViTBlock(UltraViTBlock):
+    """Deprecated alias of UltraViTBlock, kept so legacy fastvit YAMLs and pickled checkpoints keep loading."""
+
+    _warned = False  # warn once per session, not once per constructed block
+
+    def __init__(self, *args, **kwargs):
+        """Initialize UltraViTBlock under its deprecated name with a rename warning."""
+        if not FastViTBlock._warned:
+            FastViTBlock._warned = True
+            deprecation_warn("FastViTBlock", "UltraViTBlock")
+        super().__init__(*args, **kwargs)

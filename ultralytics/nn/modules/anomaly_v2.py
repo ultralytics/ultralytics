@@ -20,6 +20,7 @@ __all__ = (
     "BboxMaskRenderer",
     "HeatmapBiasFusion",
     "BackboneMemoryBank",
+    "HeatmapProcessor",
 )
 
 
@@ -772,3 +773,88 @@ def heatmap_local_contrast(h: torch.Tensor, k: int = 9, eps: float = 1e-3) -> to
     std = (sq - mean * mean).clamp(min=0).sqrt()
     z = (h - mean) / (std + eps)
     return (z / 3.0).clamp(-1, 1)
+
+
+class HeatmapProcessor(nn.Module):
+    """Post-process a memory-bank heatmap prior before it is fused into PAN features.
+
+    Encapsulates the inference-time transforms that were previously scattered inside
+    ``YOLOAnomalyV2Model``: edge-suppression window, min-max stretch, and gaussian/mean
+    blur. Keeping them in a module makes the model forward smaller and lets the same
+    processor be reused by predict/val/benchmark paths.
+    """
+
+    def __init__(self, mask_size: int = 80):
+        super().__init__()
+        self.mask_size = int(mask_size)
+        self._edge_weight_cache: tuple | None = None
+
+    def forward(self, hmap: torch.Tensor, ctx) -> torch.Tensor:
+        """Apply edge-weight, normalization, and smoothing to ``hmap``.
+
+        Args:
+            hmap: (B, 1, H, W) raw memory-bank heatmap.
+            ctx: :class:`~ultralytics.utils.anomaly_v2.PriorContext` with processing knobs.
+
+        Returns:
+            Processed heatmap of the same shape.
+        """
+        if hmap is None or hmap.numel() == 0:
+            return hmap
+
+        # Edge-suppression window: down-weight borders where peripheral patches score
+        # high from boundary effects rather than real defects.
+        if getattr(ctx, "heatmap_edge_weight", False):
+            hmap = hmap * self._edge_weight(
+                hmap,
+                p=float(getattr(ctx, "heatmap_edge_p", 4.0)),
+                m=float(getattr(ctx, "heatmap_edge_m", 4.4)),
+                sigma=float(getattr(ctx, "heatmap_edge_sigma", 1.0)),
+            )
+
+        # Per-image min-max normalization: stretch each sample's prior to [0, 1].
+        norm = getattr(ctx, "heatmap_norm", "none")
+        if norm == "minmax":
+            b = hmap.shape[0]
+            flat = hmap.reshape(b, -1)
+            lo = flat.min(dim=1, keepdim=True).values
+            hi = flat.max(dim=1, keepdim=True).values
+            hmap = ((flat - lo) / (hi - lo).clamp_min(1e-6)).reshape_as(hmap)
+        elif norm in ("gaussian", "mean"):
+            kernel = int(getattr(ctx, "heatmap_smooth_kernel", 5))
+            hmap = self._smooth_prior(hmap, norm, kernel)
+
+        return hmap
+
+    @staticmethod
+    def _smooth_prior(mask: torch.Tensor, mode: str, kernel: int) -> torch.Tensor:
+        """Blur the prior heatmap while preserving its [0, 1] scale and blob structure."""
+        k = max(1, int(kernel)) | 1  # force odd so padding keeps H, W
+        if k < 3:
+            return mask
+        if mode == "mean":
+            ker = torch.ones(1, 1, k, k, device=mask.device, dtype=mask.dtype) / float(k * k)
+        else:  # gaussian
+            ax = torch.arange(k, device=mask.device, dtype=mask.dtype) - (k - 1) / 2.0
+            g = torch.exp(-(ax**2) / (2.0 * (k / 6.0) ** 2))
+            g = g / g.sum()
+            ker = (g[:, None] * g[None, :])[None, None]
+        return F.conv2d(mask, ker, padding=k // 2)
+
+    def _edge_weight(self, mask: torch.Tensor, p: float, m: float, sigma: float) -> torch.Tensor:
+        """Fixed squircle-Gaussian center-weight window matching ``mask``'s HxW (cached)."""
+        h, w = mask.shape[-2], mask.shape[-1]
+        key = (h, w, p, m, sigma, mask.device, mask.dtype)
+        cache = self._edge_weight_cache
+        if cache is None or cache[0] != key:
+            yc = (torch.arange(h, device=mask.device, dtype=torch.float32) - (h - 1) / 2.0).abs() / max(
+                (h - 1) / 2.0, 1e-6
+            )
+            xc = (torch.arange(w, device=mask.device, dtype=torch.float32) - (w - 1) / 2.0).abs() / max(
+                (w - 1) / 2.0, 1e-6
+            )
+            dist = (xc[None, :] ** p + yc[:, None] ** p) ** (1.0 / p)
+            wmap = torch.exp(-(dist**m) / (2.0 * sigma**m)).to(mask.dtype)
+            cache = (key, wmap[None, None])
+            self._edge_weight_cache = cache
+        return cache[1]

@@ -32,28 +32,26 @@ from ultralytics.engine.model import Model
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import YOLOAnomalyV2Model
 from ultralytics.utils import LOGGER, YAML
-from ultralytics.utils.anomaly_v2 import FIT_KEYS, apply_bb_overrides
+from ultralytics.utils.anomaly_v2 import FIT_KEYS, PriorContext, PriorMode, apply_bb_overrides, prior_context_from_overrides
 
-# Public prior selection. Internal model uses ``prior_mode``; these map 1:1 except
-# "anomaly_model", which runs an external model to produce a heatmap and injects it through the
-# existing external-mask seam (prior_mode="mask").
-PRIOR_MODES = ("none", "heatmap", "mask", "anomaly_model")
+# Public prior selection. Internal model uses ``prior_mode``.
+PRIOR_MODES = ("none", "heatmap", "mask")
 
-# Prior-shaping knobs set on the model before forward. Accepts canonical names and short aliases.
-_INFER_SET = {
-    "heatmap_norm": "heatmap_norm",
-    "heatmap_smooth_kernel": "heatmap_smooth_kernel",
-    "heatmap_edge_weight": "heatmap_edge_weight",
-    "heatmap_edge_p": "heatmap_edge_p",
-    "heatmap_edge_m": "heatmap_edge_m",
-    "heatmap_edge_sigma": "heatmap_edge_sigma",
-    # short aliases
-    "heat_norm": "heatmap_norm",
-    "heat_smooth_kernel": "heatmap_smooth_kernel",
-    "heat_edge": "heatmap_edge_weight",
-    "heat_edge_p": "heatmap_edge_p",
-    "heat_edge_m": "heatmap_edge_m",
-    "heat_edge_sigma": "heatmap_edge_sigma",
+# Prior-shaping knobs accepted as predict()/val() kwargs. Short aliases are resolved by
+# :func:`~ultralytics.utils.anomaly_v2.prior_context_from_overrides`.
+_INFER_KEYS = {
+    "heatmap_norm",
+    "heatmap_smooth_kernel",
+    "heatmap_edge_weight",
+    "heatmap_edge_p",
+    "heatmap_edge_m",
+    "heatmap_edge_sigma",
+    "heat_norm",
+    "heat_smooth_kernel",
+    "heat_edge",
+    "heat_edge_p",
+    "heat_edge_m",
+    "heat_edge_sigma",
 }
 
 
@@ -154,97 +152,24 @@ class YOLOA(Model):
         m._heatmap_bank_warned = False
         return self
 
-    def update_memory_bank(
-        self,
-        source: str | Path | list[str] | None = None,
-        remove_indices: torch.Tensor | list[int] | None = None,
-        reset: bool = False,
-        *,
-        cfg: str | Path | dict | None = None,
-        device: Any = None,
-        batch: int = 8,
-    ) -> "YOLOA":
-        """Add, remove, or reset the memory bank.
-
-        Exactly one of ``source``, ``remove_indices``, or ``reset`` must be supplied.
-
-        Args:
-            source: Directory of normal images or list of paths to add.
-            remove_indices: Flat indices of bank entries to remove.
-            reset: If True, clear the bank.
-            cfg: Fit-config yaml/dict for add (uses ``imgsz``, ``bb_max_bank_size``, ``max_images``).
-            device: Device for feature extraction.
-            batch: Mini-batch size for feature extraction.
-
-        Returns:
-            (YOLOA): self.
-        """
-        self._check_is_pytorch_model()
-        m = self.model
-        mb = getattr(m, "memory_bank", None)
-        if mb is None or getattr(m, "_bb_layers", None) is None:
-            raise RuntimeError("model has no BackboneMemoryBank — cannot update_memory_bank().")
-
-        n_ops = sum([source is not None, remove_indices is not None, reset])
-        if n_ops != 1:
-            raise ValueError("Exactly one of source, remove_indices, or reset must be provided.")
-
-        if reset:
-            mb.reset_memory_bank()
-            m.fit_args = None
-            m.fit_data = None
-            m._heatmap_bank_warned = False
-            return self
-
-        if remove_indices is not None:
-            mb.remove_features(remove_indices)
-            m._heatmap_bank_warned = False
-            return self
-
-        # source is not None
-        fit_args = cfg if isinstance(cfg, dict) else YAML.load(cfg) if cfg else getattr(m, "fit_args", {})
-        if not fit_args:
-            raise ValueError("update_memory_bank(add) requires cfg or a previous fit() to get imgsz/bank knobs.")
-        # Never retap different backbone layers; existing bank dimensions must stay valid.
-        fit_args.pop("bb_layers", None)
-        self._apply_bb_overrides(fit_args)
-        device = device if device is not None else next(m.parameters()).device
-        features = m.extract_bank_features(
-            source,
-            imgsz=int(fit_args.get("imgsz", 640)),
-            device=device,
-            batch=batch,
-            max_images=int(fit_args.get("max_images") or 0),
-        )
-        if features.shape[0] == 0:
-            LOGGER.warning("update_memory_bank(add): no features extracted; bank unchanged.")
-            return self
-        mb.add_features(features)
-        m._heatmap_bank_warned = False
-        LOGGER.info(f"YOLOA.update_memory_bank: bank now has {mb.memory_bank.shape[0]} vectors")
-        return self
-
     def predict(
-        self, source=None, stream: bool = False, prior: str = "heatmap", anomaly_model: Any = None, **kwargs: Any
+        self, source=None, stream: bool = False, prior: str = "heatmap", **kwargs: Any
     ):
         """Predict with an optional prior.
 
         Args:
             source: Image source (path / array / list), as in :meth:`Model.predict`.
             stream: Stream the source.
-            prior: One of "none" / "heatmap" / "mask" / "anomaly_model". Default is
-                "heatmap"; if the memory bank is empty a warning is emitted and the
-                model falls back to vanilla detection. Pass an explicit ``prior_mask``
-                for an external mask.
-            anomaly_model: Object exposing ``heatmap(img) -> Tensor[H, W] in [0, 1]``, required
-                when ``prior="anomaly_model"``; its heatmap is injected as ``prior_mask``.
+            prior: One of "none" / "heatmap" / "mask". Default is "heatmap"; if the
+                memory bank is empty a warning is emitted and the model falls back to
+                vanilla detection. Pass an explicit ``prior_mask`` for an external mask.
             **kwargs: Standard predict args plus prior-shaping knobs (heat_norm / heat_edge / ...).
                 A raw ``prior_mask`` can also be passed directly.
 
         Returns:
             (list[Results]): Prediction results.
         """
-        prior_mode, prior_mask = self._resolve_prior(prior, anomaly_model, source, kwargs)
+        prior_mode, prior_mask = self._resolve_prior(prior, kwargs)
         self._apply_infer_overrides(kwargs)
         return super().predict(
             source=source, stream=stream, prior_mode=prior_mode, prior_mask=prior_mask, **kwargs
@@ -255,10 +180,9 @@ class YOLOA(Model):
 
         Args:
             validator: Optional custom validator.
-            prior: One of "none" / "heatmap" / "mask" (advanced pass-through allowed).
-                Default is "heatmap"; if the memory bank is empty a warning is emitted
-                and the model falls back to vanilla detection. "anomaly_model" is
-                predict-only for now.
+            prior: One of "none" / "heatmap" / "mask". Default is "heatmap"; if the
+                memory bank is empty a warning is emitted and the model falls back to
+                vanilla detection.
             **kwargs: Standard val args plus prior-shaping knobs (heat_norm / heat_edge / ...).
                 ``end2end`` and ``hm_gate_blend`` are also accepted and applied to the
                 detection head for this call only.
@@ -267,29 +191,20 @@ class YOLOA(Model):
             Validation metrics.
         """
         prior_mode = None if prior is None else str(prior).lower()
-        if prior_mode == "anomaly_model":
-            raise NotImplementedError(
-                "prior='anomaly_model' is predict-only for now (needs per-image "
-                "external heatmaps through the val dataloader)."
-            )
 
         # Optional head mutations for this val call only (mirror run_yoloa.py --mode val).
         e2e = kwargs.pop("end2end", None)
         gate_blend = kwargs.pop("hm_gate_blend", None)
-        heads = [self.model.model[-1]]
-        if getattr(self.model, "two_head", False):
-            heads.append(self.model.head_b)
+        head = self.model.model[-1]
         old = {}
         if e2e is not None:
             old["model_e2e"] = getattr(self.model, "end2end", None)
-            old["head_e2e"] = [getattr(h, "end2end", None) for h in heads]
+            old["head_e2e"] = getattr(head, "end2end", None)
             self.model.end2end = e2e
-            for h in heads:
-                h.end2end = e2e
+            head.end2end = e2e
         if gate_blend is not None:
-            old["head_gate"] = [getattr(h, "hm_gate_blend", None) for h in heads]
-            for h in heads:
-                h.hm_gate_blend = gate_blend
+            old["head_gate"] = getattr(head, "hm_gate_blend", None)
+            head.hm_gate_blend = gate_blend
 
         self._apply_infer_overrides(kwargs)
         try:
@@ -297,21 +212,19 @@ class YOLOA(Model):
         finally:
             if e2e is not None:
                 self.model.end2end = old["model_e2e"]
-                for h, v in zip(heads, old["head_e2e"]):
-                    if v is None:
-                        h.__dict__.pop("end2end", None)
-                    else:
-                        h.end2end = v
+                if old["head_e2e"] is None:
+                    head.__dict__.pop("end2end", None)
+                else:
+                    head.end2end = old["head_e2e"]
             if gate_blend is not None:
-                for h, v in zip(heads, old["head_gate"]):
-                    if v is None:
-                        h.__dict__.pop("hm_gate_blend", None)
-                    else:
-                        h.hm_gate_blend = v
+                if old["head_gate"] is None:
+                    head.__dict__.pop("hm_gate_blend", None)
+                else:
+                    head.hm_gate_blend = old["head_gate"]
 
     # ---- internals ----------------------------------------------------------------------------
 
-    def _resolve_prior(self, prior, anomaly_model, source, kwargs):
+    def _resolve_prior(self, prior, kwargs):
         """Map the public ``prior`` to (prior_mode, prior_mask).
 
         ``prior_mode`` is only used to enable the internal memory-bank heatmap path
@@ -324,10 +237,6 @@ class YOLOA(Model):
         prior = str(prior).lower()
         if prior not in PRIOR_MODES:
             raise ValueError(f"prior={prior!r} not in {PRIOR_MODES}")
-        if prior == "anomaly_model":
-            if anomaly_model is None or not hasattr(anomaly_model, "heatmap"):
-                raise ValueError("prior='anomaly_model' requires anomaly_model with a .heatmap(img) method")
-            return None, self._external_heatmap(anomaly_model, source)
         if prior == "mask":
             if explicit_mask is None:
                 raise ValueError("prior='mask' requires an explicit prior_mask")
@@ -338,21 +247,11 @@ class YOLOA(Model):
             return None, None
         return prior, None
 
-    @staticmethod
-    def _external_heatmap(anomaly_model, source) -> torch.Tensor:
-        """Run an external anomaly model -> (1, 1, H, W) float heatmap to pass as ``prior_mask``."""
-        hm = anomaly_model.heatmap(source)
-        hm = hm if torch.is_tensor(hm) else torch.as_tensor(hm)
-        hm = hm.float()
-        while hm.dim() < 4:
-            hm = hm.unsqueeze(0)
-        return hm
-
     def _apply_infer_overrides(self, kwargs: dict) -> None:
-        """Pop prior-shaping kwargs and set them on the model (read during forward)."""
-        for key in list(kwargs):
-            if key in _INFER_SET:
-                setattr(self.model, _INFER_SET[key], kwargs.pop(key))
+        """Pop prior-shaping kwargs and set them on the model via ``PriorContext``."""
+        overrides = {k: kwargs.pop(k) for k in list(kwargs) if k in _INFER_KEYS}
+        if overrides:
+            self.model.set_prior_overrides(overrides)
 
     def _apply_bb_overrides(self, fit_args: dict) -> None:
         """Apply bb_* overrides onto the model/bank before building."""

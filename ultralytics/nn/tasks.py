@@ -30,7 +30,6 @@ from ultralytics.nn.modules import (
     AConv,
     ADown,
     BackboneMemoryBank,
-    BboxMaskRenderer,
     Bottleneck,
     BottleneckCSP,
     C2f,
@@ -57,7 +56,7 @@ from ultralytics.nn.modules import (
     HGBlock,
     HGStem,
     HeatmapBiasFusion,
-    MaskPriorAugmenter,
+    HeatmapProcessor,
     ImagePoolingAttn,
     Index,
     LRPCHead,
@@ -79,6 +78,7 @@ from ultralytics.nn.modules import (
     YOLOESegment26,
     v10Detect,
 )
+from ultralytics.utils.anomaly_v2 import PriorContext, PriorMode, prior_context_from_overrides
 from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, WINDOWS, YAML, colorstr, emojis
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (
@@ -524,27 +524,27 @@ class DetectionModel(BaseModel):
 class YOLOAnomalyV2Model(DetectionModel):
     """YOLO Anomaly v2 — detection + soft-hint heatmap fusion (yoloa_v2_softhint branch).
 
-    Extends DetectionModel with two anomaly-side modules attached OUTSIDE the parsed
+    Extends DetectionModel with anomaly-side modules attached OUTSIDE the parsed
     Sequential:
-      - ``mask_renderer``: rasterizes GT bboxes into a 1-channel mask.
       - ``heatmap_bias_fusion``: HeatmapBiasFusion. Produces a bounded per-pixel bias
         added (broadcast over channels) to each PAN P3/P4/P5 feature before the Detect
         head. Both reg and cls branches see the bias; this is acceptable because the
         bias is bounded and additive, unlike the previous multiplicative amplifier.
+      - ``heatmap_processor``: post-processes memory-bank heatmaps (edge weight,
+        min-max stretch, gaussian/mean blur) before fusion.
 
     Mask dropout (anti-shortcut, see design.md §3.4):
       During training, with probability ``p_drop`` per sample, the bias for that
       sample is zeroed -> exact passthrough -> model is forced to also perform
       without a mask.
 
-    Mask source (single ``prior_mask`` argument to ``forward()``):
+    Prior sources (single ``prior_mask`` argument to ``forward()`` plus
+    ``model.prior_context``):
       - Training / mask-on validation: ``batch["prior_mask"]`` built by
         ``LoadAnomalyPriorMask`` in the dataset pipeline.
       - Explicit inference mask: ``model(img, prior_mask=...)`` (external prompt/heatmap).
-      - Feature-side heatmap: ``model.set_use_heatmap_prior(True)`` then ``model(img)``.
-      - Passthrough: ``model(img, prior_mask=None)`` (default when no heatmap mode is set).
-
-    Spec: docs_yoloa_v2/specs/2026-06-02-softhint-fusion-design.md.
+      - Feature-side heatmap: ``model.prior_context.mode = PriorMode.HEATMAP`` then ``model(img)``.
+      - Passthrough: ``model(img, prior_mask=None)`` with default ``prior_context``.
     """
 
     # Default BackboneMemoryBank build hyperparameters. These are placeholders: the actual
@@ -566,9 +566,6 @@ class YOLOAnomalyV2Model(DetectionModel):
         # Read v2-specific config from YAML. Constructor kwargs override.
         v2_cfg = self.yaml.get("anomaly_v2", {}) if isinstance(self.yaml, dict) else {}
         mask_size = int(v2_cfg.get("mask_size", 80))
-        mask_mode = str(v2_cfg.get("mask_mode", "rect"))
-        _sf = v2_cfg.get("sigma_factor", 0.25)
-        sigma_factor = [float(_sf[0]), float(_sf[1])] if isinstance(_sf, (list, tuple)) else float(_sf)
         self.p_drop = float(v2_cfg.get("p_drop", 0.5))
         # Polygon-mask prior: when True, the fusion prior is built from the v6 polygon
         # union (batch["masks"]) instead of the coarse bbox-gauss render.
@@ -595,22 +592,11 @@ class YOLOAnomalyV2Model(DetectionModel):
             raise TypeError(f"YOLOAnomalyV2Model expects last layer to be Detect, got {type(detect).__name__}")
 
         # Anomaly-side modules (live outside self.model so they are not in the Sequential)
-        self.mask_renderer = BboxMaskRenderer(mask_size=mask_size, mode=mask_mode, sigma_factor=sigma_factor)
         self.heatmap_bias_fusion = HeatmapBiasFusion(num_scales=detect.nl, c_mid=fusion_mid)
+        self.heatmap_processor = HeatmapProcessor(mask_size=mask_size)
 
         # Spatial resolution of the rendered/mask prior.
         self.mask_size = mask_size
-
-        self.mask_augmenter = MaskPriorAugmenter(v2_cfg)
-        # Inference-time prior processing: minmax stretch, gaussian/mean blur, spatial softmax,
-        # and an edge-suppression window for memory-bank heatmaps.
-        self.heatmap_norm = "none"
-        self.heatmap_smooth_kernel = 5
-        self.heatmap_edge_weight = False
-        self.heatmap_edge_p = 4.0
-        self.heatmap_edge_m = 4.4
-        self.heatmap_edge_sigma = 1.0
-        self._edge_weight_cache = None
 
         # --- BackboneMemoryBank (v2.3) ---
         # Architecture knob from the model YAML; all build hyperparameters come from the fit YAML.
@@ -622,9 +608,31 @@ class YOLOAnomalyV2Model(DetectionModel):
         if self.memory_bank is not None and self._bb_layers:
             self.memory_bank._bb_layer_indices = self._bb_layers
 
-        # Prior mode state (predictor/validator controlled)
-        self._use_heatmap_prior: bool = False  # True -> build memory-bank heatmap internally
+        # Default prior context for inference; predictor/validator build per-call contexts
+        # and assign them here before forward().
+        self.prior_context = PriorContext()
         self._last_heatmap: torch.Tensor | None = None
+
+    def fuse(self, verbose=True):
+        """Fuse Conv/BN while preserving both one2many and one2one heads.
+
+        The base :meth:`BaseModel.fuse` drops the one2many head when ``end2end=True``.
+        Anomaly v2 switches ``end2end`` on/off across predict/val calls, so we
+        temporarily hide the end2end flag from the base fuse to keep both heads.
+        """
+        if self.is_fused():
+            return self
+        saved = {}
+        for m in self.model.modules():
+            if isinstance(m, Detect) and getattr(m, "end2end", False):
+                saved[id(m)] = getattr(m, "_end2end", True)
+                m._end2end = False
+        try:
+            return super().fuse(verbose=verbose)
+        finally:
+            for m in self.model.modules():
+                if isinstance(m, Detect) and id(m) in saved:
+                    m._end2end = saved[id(m)]
 
     def init_criterion(self):
         """Initialize the loss criterion.
@@ -639,12 +647,13 @@ class YOLOAnomalyV2Model(DetectionModel):
     # ------------------------------------------------------------------
     # Prior mode API
     # ------------------------------------------------------------------
-    def set_use_heatmap_prior(self, enabled: bool = True) -> None:
-        """Enable/disable the internal memory-bank heatmap prior.
+    def set_prior_context(self, ctx: "PriorContext") -> None:
+        """Replace the active prior context used by forward()."""
+        self.prior_context = ctx
 
-        When disabled, any prior must be supplied explicitly via ``prior_mask``.
-        """
-        self._use_heatmap_prior = bool(enabled)
+    def set_prior_overrides(self, overrides: dict) -> None:
+        """Apply user overrides to the current prior context (validator/predictor entry point)."""
+        self.prior_context = prior_context_from_overrides(overrides, self.prior_context)
 
     def build_memory_bank(
         self,
@@ -828,7 +837,7 @@ class YOLOAnomalyV2Model(DetectionModel):
         """
         state = super().__getstate__()
         state["_bb_feats"] = {}
-        for k in ("_last_heatmap", "_edge_weight_cache", "_pending_prior_mask", "_heatmap_bank_warned"):
+        for k in ("_last_heatmap", "_heatmap_bank_warned"):
             if k in state:
                 state[k] = None
         return state
@@ -837,27 +846,44 @@ class YOLOAnomalyV2Model(DetectionModel):
         """Set defaults for old-checkpoint compat."""
         super().__setstate__(state)
         self._bb_feats = {}
+        # Backward compat: old checkpoints may lack the unified prior_context/processor.
+        if not hasattr(self, "prior_context"):
+            mode = PriorMode.HEATMAP if getattr(self, "_use_heatmap_prior", False) else PriorMode.NONE
+            self.prior_context = PriorContext(
+                mode=mode,
+                heatmap_norm=getattr(self, "heatmap_norm", "none"),
+                heatmap_smooth_kernel=getattr(self, "heatmap_smooth_kernel", 5),
+                heatmap_edge_weight=getattr(self, "heatmap_edge_weight", False),
+                heatmap_edge_p=getattr(self, "heatmap_edge_p", 4.0),
+                heatmap_edge_m=getattr(self, "heatmap_edge_m", 4.4),
+                heatmap_edge_sigma=getattr(self, "heatmap_edge_sigma", 1.0),
+            )
+            # Drop migrated per-attribute state to avoid shadowing the context.
+            for attr in (
+                "_use_heatmap_prior",
+                "heatmap_norm",
+                "heatmap_smooth_kernel",
+                "heatmap_edge_weight",
+                "heatmap_edge_p",
+                "heatmap_edge_m",
+                "heatmap_edge_sigma",
+                "_edge_weight_cache",
+            ):
+                if attr in self.__dict__:
+                    delattr(self, attr)
+        if not hasattr(self, "heatmap_processor"):
+            self.heatmap_processor = HeatmapProcessor(mask_size=getattr(self, "mask_size", 80))
         # Backward compat: old checkpoints may lack v2.3+ attributes
         for attr, default in [
             ("memory_bank", None),
-            ("_use_heatmap_prior", False),
             ("_last_heatmap", None),
             ("softmax_temperature", 1.0),
-            ("heatmap_norm", "none"),
-            ("heatmap_edge_weight", False),
-            ("heatmap_edge_p", 4.0),
-            ("heatmap_edge_m", 4.4),
-            ("heatmap_edge_sigma", 1.0),
-            ("_edge_weight_cache", None),
             ("fit_args", None),
             ("fit_data", None),
             ("fusion_mid", 32),
         ]:
             if not hasattr(self, attr):
                 setattr(self, attr, default)
-        # Old checkpoints may not contain the standalone augmenter module.
-        if not hasattr(self, "mask_augmenter"):
-            self.mask_augmenter = MaskPriorAugmenter({})
 
     def _resize_to_mask(self, x, mask_size):
         """Bilinearly resize a (B, 1, H, W) prior to (B, 1, mask_size, mask_size) when needed."""
@@ -872,8 +898,8 @@ class YOLOAnomalyV2Model(DetectionModel):
         passthrough (no fusion -> head). Explicit masks are supplied directly via
         ``forward(..., prior_mask=...)`` and do not go through this helper.
         """
-        mask_size = getattr(self, "mask_size", 80)
-        if not getattr(self, "_use_heatmap_prior", False):
+        ctx = getattr(self, "prior_context", PriorContext())
+        if ctx.mode != PriorMode.HEATMAP:
             return None
         mb = getattr(self, "memory_bank", None)
         if mb is None:
@@ -881,63 +907,25 @@ class YOLOAnomalyV2Model(DetectionModel):
         mem = mb._effective_bank()
         if mem.shape[0] == 0:
             if not getattr(self, "_heatmap_bank_warned", False):
-                LOGGER.warning(
-                    "Memory bank is empty; heatmap prior disabled. Run model.fit(source=...) first."
-                )
+                LOGGER.warning("Memory bank is empty; heatmap prior disabled. Run model.fit(source=...) first.")
                 self._heatmap_bank_warned = True
             return None
         with torch.no_grad():
             feat_dict = self._extract_bb_features(x)
             hmap = mb(feat_dict)
-        return self._resize_to_mask(hmap.to(device=x.device, dtype=torch.float32), mask_size)
+        hmap = self._resize_to_mask(hmap.to(device=x.device, dtype=torch.float32), self.mask_size)
 
-    def _smooth_prior(self, mask, mode, kernel):
-        """Blur the prior heatmap, preserving its [0, 1] scale and spatial blob structure.
-
-        ``mode='gaussian'`` uses a Gaussian kernel (sigma = kernel/6); ``'mean'`` uses a uniform box
-        average. Both denoise a noisy memory-bank prior toward the smooth gauss masks the fusion
-        conv trained on — unlike spatial softmax, which collapses scale + spatial extent.
-        """
-        import torch.nn.functional as F
-
-        k = max(1, int(kernel)) | 1  # force odd so padding keeps H, W
-        if k < 3:
-            return mask
-        if mode == "mean":
-            ker = torch.ones(1, 1, k, k, device=mask.device, dtype=mask.dtype) / float(k * k)
-        else:  # gaussian
-            ax = torch.arange(k, device=mask.device, dtype=mask.dtype) - (k - 1) / 2.0
-            g = torch.exp(-(ax**2) / (2.0 * (k / 6.0) ** 2))
-            g = g / g.sum()
-            ker = (g[:, None] * g[None, :])[None, None]
-        return F.conv2d(mask, ker, padding=k // 2)
-
-    def _edge_weight(self, mask):
-        """Fixed squircle-Gaussian center-weight window matching ``mask``'s HxW (cached).
-
-        ``weight = exp(-dist**m / (2*sigma**m))`` with ``dist = (|x|**p + |y|**p)**(1/p)`` over
-        per-axis coords normalized to [0, 1] at the border: 1.0 at the center, decaying toward the
-        edges. Defaults (p=4, m=4.4, sigma=1.0) give edge-mid ~0.61, corner ~0.34 (raise sigma -> gentler).
-        Multiply into the heatmap to suppress memory-bank border noise. Returns (1, 1, H, W).
-        """
-        h, w = mask.shape[-2], mask.shape[-1]
-        p = float(getattr(self, "heatmap_edge_p", 4.0))
-        m = float(getattr(self, "heatmap_edge_m", 4.4))
-        sigma = float(getattr(self, "heatmap_edge_sigma", 1.0))
-        key = (h, w, p, m, sigma, mask.device, mask.dtype)
-        cache = getattr(self, "_edge_weight_cache", None)
-        if cache is None or cache[0] != key:
-            yc = (torch.arange(h, device=mask.device, dtype=torch.float32) - (h - 1) / 2.0).abs() / max(
-                (h - 1) / 2.0, 1e-6
+        # AUROC needs the heatmap after edge-weight but before normalization / smoothing,
+        # matching the original _predict_once ordering.
+        if ctx.heatmap_edge_weight:
+            hmap = hmap * self.heatmap_processor._edge_weight(
+                hmap, ctx.heatmap_edge_p, ctx.heatmap_edge_m, ctx.heatmap_edge_sigma
             )
-            xc = (torch.arange(w, device=mask.device, dtype=torch.float32) - (w - 1) / 2.0).abs() / max(
-                (w - 1) / 2.0, 1e-6
-            )
-            dist = (xc[None, :] ** p + yc[:, None] ** p) ** (1.0 / p)
-            wmap = torch.exp(-(dist**m) / (2.0 * sigma**m)).to(mask.dtype)
-            cache = (key, wmap[None, None])
-            self._edge_weight_cache = cache
-        return cache[1]
+        self._last_heatmap = hmap.detach()
+
+        # Run normalization / smoothing only; edge-weight was already applied for the stash.
+        proc_ctx = PriorContext(**{**ctx.__dict__, "heatmap_edge_weight": False})
+        return self.heatmap_processor(hmap, proc_ctx)
 
     # ------------------------------------------------------------------
     # Forward
@@ -954,7 +942,7 @@ class YOLOAnomalyV2Model(DetectionModel):
         return det_loss, det_items
 
     def forward(self, x, *args, prior_mask=None, **kwargs):
-        """Forward pass. Training provides ``prior_mask``; inference routes via ``_use_heatmap_prior``.
+        """Forward pass. Training provides ``prior_mask``; inference routes via ``prior_context``.
 
         Preserves the base ``DetectionModel`` contract: a dict input routes to ``loss()``
         (training/validation), while a tensor input runs inference. The validator stashes
@@ -975,9 +963,10 @@ class YOLOAnomalyV2Model(DetectionModel):
         device = x.device
         img = x  # original input image, needed for the memory-bank heatmap prior
 
+        ctx = getattr(self, "prior_context", PriorContext())
+
         # Per-sample keep mask for mask dropout (anti-shortcut). Only meaningful when a
         # rendered/blended mask is active; keep[b]=0 zeros the per-sample bias -> passthrough.
-        # getattr guards the stride probe in super().__init__(), which runs before our attrs exist.
         p_drop = getattr(self, "p_drop", 0.0)
         keep = torch.ones(batch_size, device=device)
         if prior_mask is not None and self.training and p_drop > 0.0:
@@ -998,41 +987,24 @@ class YOLOAnomalyV2Model(DetectionModel):
                 pan_inputs = [y[j] for j in m.f]
 
                 # Resolve the fusion prior. Training / explicit-mask inference provide it directly
-                # via ``prior_mask``; otherwise the internal source is ``_use_heatmap_prior``.
+                # via ``prior_mask``; otherwise the internal source is ``ctx.mode``.
                 if prior_mask is not None:
                     prior = prior_mask.to(device=device, dtype=torch.float32)
                     source = "mask"
-                elif getattr(self, "_use_heatmap_prior", False):
+                elif ctx.mode == PriorMode.HEATMAP:
                     prior = self._build_heatmap_prior(img)
                     source = "heatmap"
-                # Edge-suppression weight: down-weight the memory-bank heatmap toward the image
-                # borders (peripheral patches score high from boundary effects, not real defects).
-                if prior is not None and source == "heatmap" and getattr(self, "heatmap_edge_weight", False):
-                    prior = prior * self._edge_weight(prior)
-                # Stash RAW heatmap for validator AUROC (before normalization / smoothing).
-                self._last_heatmap = prior.detach() if prior is not None else None
-                # Per-image min-max normalization: stretch each sample's prior to [0, 1].
-                # Boosts a soft, low-peak prior (memory bank ~0.8) so the fusion conv responds
-                # like it did to binary GT masks. NOTE: on clean images with a flat prior this
-                # amplifies noise to full range -> may induce false positives.
-                _hn = getattr(self, "heatmap_norm", "none")
-                if prior is not None and _hn == "minmax":
-                    b = prior.shape[0]
-                    flat = prior.reshape(b, -1)
-                    lo = flat.min(dim=1, keepdim=True).values
-                    hi = flat.max(dim=1, keepdim=True).values
-                    prior = ((flat - lo) / (hi - lo).clamp_min(1e-6)).reshape_as(prior)
-                elif prior is not None and _hn in ("gaussian", "mean"):
-                    # Blur the prior: keeps [0,1] scale + blob structure (unlike softmax),
-                    # denoising the MB heatmap toward the gauss masks the fusion trained on.
-                    prior = self._smooth_prior(prior, _hn, getattr(self, "heatmap_smooth_kernel", 5))
+                # _build_heatmap_prior() already stashed the raw heatmap for AUROC; stash explicit masks too.
+                if source == "none":
+                    self._last_heatmap = None
+                elif source == "mask" and prior is not None:
+                    self._last_heatmap = prior.detach()
                 fused = []
                 for i, p in enumerate(pan_inputs):
                     if prior is None:
                         # Pure passthrough: skip fusion entirely.
                         fused.append(p)
                         continue
-                    # QueryFiLM (v0) modulates P3 (i == 0) only; P4/P5 pass through unchanged.
                     target_h, target_w = p.shape[2], p.shape[3]
                     if prior.shape[2] != target_h or prior.shape[3] != target_w:
                         m_scale = torch.nn.functional.interpolate(

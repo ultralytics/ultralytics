@@ -106,7 +106,7 @@ from .transformer import (
     TransformerEncoderLayer,
     TransformerLayer,
 )
-from .anomaly_v2 import BackboneMemoryBank, BboxMaskRenderer, HeatmapBiasFusion
+from .anomaly_v2 import BackboneMemoryBank, BboxMaskRenderer, HeatmapBiasFusion, HeatmapProcessor
 from .anomaly_v2_prior_augment import MaskPriorAugmenter
 
 __all__ = (
@@ -164,6 +164,7 @@ __all__ = (
     "HGBlock",
     "HGStem",
     "HeatmapBiasFusion",
+    "HeatmapProcessor",
     "MaskPriorAugmenter",
     "ImagePoolingAttn",
     "Index",

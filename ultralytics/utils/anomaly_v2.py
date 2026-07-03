@@ -4,7 +4,67 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any
+
+import torch
+
 from ultralytics.utils import LOGGER
+
+
+class PriorMode(str, Enum):
+    """Anomaly-v2 prior sources.
+
+    Using an ``Enum`` keeps the string tables in one place and makes it easy to
+    add new prior types (e.g. segmentation masks, text prompts) without hunting
+    through predictor/validator/wrapper code.
+    """
+
+    NONE = "none"
+    HEATMAP = "heatmap"
+    MASK = "mask"
+    BOX = "box"  # alias for MASK: prior comes from rendered GT bboxes
+
+    @classmethod
+    def from_string(cls, value: str | None) -> "PriorMode":
+        """Parse a mode string, accepting the ``box`` alias for ``mask``."""
+        if value is None:
+            return cls.NONE
+        v = str(value).lower()
+        if v == "box":
+            return cls.MASK
+        try:
+            return cls(v)
+        except ValueError as exc:
+            raise ValueError(f"Unknown prior mode {value!r}; expected one of {list(cls)}") from exc
+
+
+@dataclass
+class PriorContext:
+    """Everything the model needs to resolve a fusion prior for one forward pass.
+
+    Keeping prior state in a single per-call dataclass removes scattered mutable
+    flags on the model/validator/predictor and makes restore trivial: just don't
+    reuse the context object.
+    """
+
+    mode: PriorMode = PriorMode.NONE
+    mask: torch.Tensor | None = None  # explicit (B, 1, H, W) mask / heatmap
+    heatmap_norm: str = "none"  # "none" | "minmax" | "gaussian" | "mean"
+    heatmap_smooth_kernel: int = 5
+    heatmap_edge_weight: bool = False
+    heatmap_edge_p: float = 4.0
+    heatmap_edge_m: float = 4.4
+    heatmap_edge_sigma: float = 1.0
+
+    def is_mask_like(self) -> bool:
+        """True when the prior should be read from ``self.mask``."""
+        return self.mode in (PriorMode.MASK, PriorMode.BOX)
+
+    def is_heatmap(self) -> bool:
+        """True when the prior should be built from the memory bank."""
+        return self.mode == PriorMode.HEATMAP
 
 
 # Bank-build knobs that live in the fit config. bb_* override the model yaml's v2_cfg defaults;
@@ -55,3 +115,41 @@ def apply_bb_overrides(model, fit_args: dict) -> None:
     for fk, mbk in _BB_TO_MB.items():
         if fit_args.get(fk) is not None:
             setattr(mb, mbk, fit_args[fk])
+
+
+# Canonical prior-shaping keys plus short aliases used by the YOLOA CLI / run_yoloa.py.
+_INFER_ALIASES = {
+    "heat_norm": "heatmap_norm",
+    "heat_smooth_kernel": "heatmap_smooth_kernel",
+    "heat_edge": "heatmap_edge_weight",
+    "heat_edge_p": "heatmap_edge_p",
+    "heat_edge_m": "heatmap_edge_m",
+    "heat_edge_sigma": "heatmap_edge_sigma",
+}
+
+
+def prior_context_from_overrides(overrides: dict[str, Any], defaults: PriorContext | None = None) -> PriorContext:
+    """Build a :class:`PriorContext` from predictor/validator override kwargs.
+
+    Pops the anomaly-specific keys so the remaining kwargs are safe for the base
+    predictor/validator config. Accepts short aliases (``heat_edge`` -> ``heatmap_edge_weight``).
+    """
+    ctx = defaults or PriorContext()
+    mode = overrides.pop("prior_mode", None)
+    mask = overrides.pop("prior_mask", None)
+
+    def _pop(key: str, default: Any) -> Any:
+        if key in overrides:
+            return overrides.pop(key)
+        return overrides.pop(_INFER_ALIASES.get(key), default)
+
+    return PriorContext(
+        mode=PriorMode.from_string(mode) if mode is not None else ctx.mode,
+        mask=mask if mask is not None else ctx.mask,
+        heatmap_norm=_pop("heatmap_norm", ctx.heatmap_norm),
+        heatmap_smooth_kernel=_pop("heatmap_smooth_kernel", ctx.heatmap_smooth_kernel),
+        heatmap_edge_weight=_pop("heatmap_edge_weight", ctx.heatmap_edge_weight),
+        heatmap_edge_p=_pop("heatmap_edge_p", ctx.heatmap_edge_p),
+        heatmap_edge_m=_pop("heatmap_edge_m", ctx.heatmap_edge_m),
+        heatmap_edge_sigma=_pop("heatmap_edge_sigma", ctx.heatmap_edge_sigma),
+    )

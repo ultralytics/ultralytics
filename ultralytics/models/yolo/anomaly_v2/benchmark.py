@@ -187,23 +187,27 @@ def run_mvtec_ood_eval(
         # model in place (fine for a standalone eval; training OOD passes e2e=None and is untouched).
         m.model[-1].end2end = e2e
         m.end2end = e2e
+    from ultralytics.utils.anomaly_v2 import PriorContext
+
+    ctx = m.prior_context if isinstance(m.prior_context, PriorContext) else PriorContext()
     if heatmap_norm is not None:
         # Prior processing inside the model forward (minmax / gaussian / mean blur). Affects the FUSED
         # prior -> the box/mAP metrics; AUROC uses the RAW heatmap (stashed before this step) so it is
         # unchanged. Standalone-eval mutation only (training OOD passes None).
-        m.heatmap_norm = str(heatmap_norm).lower()
+        ctx.heatmap_norm = str(heatmap_norm).lower()
         if heatmap_smooth_kernel is not None:
-            m.heatmap_smooth_kernel = int(heatmap_smooth_kernel)
+            ctx.heatmap_smooth_kernel = int(heatmap_smooth_kernel)
     if heatmap_edge_weight is not None:
         # Fixed center-weight window multiplied into the memory-bank heatmap to suppress border
         # noise. Unlike heatmap_norm, this is applied BEFORE the AUROC stash -> it moves AUROC too.
-        m.heatmap_edge_weight = bool(heatmap_edge_weight)
+        ctx.heatmap_edge_weight = bool(heatmap_edge_weight)
         if heatmap_edge_p is not None:
-            m.heatmap_edge_p = float(heatmap_edge_p)
+            ctx.heatmap_edge_p = float(heatmap_edge_p)
         if heatmap_edge_m is not None:
-            m.heatmap_edge_m = float(heatmap_edge_m)
+            ctx.heatmap_edge_m = float(heatmap_edge_m)
         if heatmap_edge_sigma is not None:
-            m.heatmap_edge_sigma = float(heatmap_edge_sigma)
+            ctx.heatmap_edge_sigma = float(heatmap_edge_sigma)
+    m.prior_context = ctx
     rows: list[dict] = []
 
     for cat in categories or MVTEC_CATEGORIES:

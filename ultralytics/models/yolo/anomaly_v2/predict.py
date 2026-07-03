@@ -20,6 +20,7 @@ import torch
 
 from ultralytics.models.yolo.detect import DetectionPredictor
 from ultralytics.utils import DEFAULT_CFG
+from ultralytics.utils.anomaly_v2 import PriorContext, PriorMode, prior_context_from_overrides
 
 from ._util import resolve_v2_model
 
@@ -39,12 +40,17 @@ class YOLOAnomalyPredictorBase:
         self.prior_mask = prior_mask
 
     def preprocess(self, im):
-        """Set heatmap prior mode on the model before forward."""
+        """Set prior mode on the model before forward."""
         m = resolve_v2_model(self.model)
-        if m is not None and hasattr(m, "set_use_heatmap_prior"):
+        if m is not None and hasattr(m, "set_prior_context"):
             # "heatmap" enables the internal memory-bank path; everything else
-            # (none / mask / anomaly_model) is handled via explicit prior_mask.
-            m.set_use_heatmap_prior(self.prior_mode == "heatmap")
+            # (none / mask) is handled via explicit prior_mask.
+            mode = PriorMode(self.prior_mode) if self.prior_mode is not None else PriorMode.NONE
+            base = m.prior_context if isinstance(m.prior_context, PriorContext) else PriorContext()
+            ctx = PriorContext(**{**base.__dict__, "mode": mode})
+            if mode == PriorMode.HEATMAP:
+                ctx = prior_context_from_overrides(dict(vars(self.args)), ctx)
+            m.set_prior_context(ctx)
         return super().preprocess(im)
 
     def inference(self, im, *args, **kwargs):

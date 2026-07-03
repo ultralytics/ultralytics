@@ -33,6 +33,7 @@ import torch.nn.functional as F
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER
 from ultralytics.nn.modules.anomaly_v2 import BboxMaskRenderer
+from ultralytics.utils.anomaly_v2 import PriorContext, PriorMode, prior_context_from_overrides
 
 from ._util import resolve_v2_model
 
@@ -62,7 +63,7 @@ class YOLOAnomalyValidatorBase:
         # split inside this validator, then restore prior_mode + drop the bank after —
         # so a shared/EMA model is left clean (no ckpt bloat, no stale prior).
         self._ood_bank_size = 10000
-        self._saved_use_heatmap_prior = _SENTINEL
+        self._saved_prior_context = _SENTINEL
         self._built_bank = False
 
         # AUROC accumulators
@@ -109,16 +110,20 @@ class YOLOAnomalyValidatorBase:
         super().init_metrics(model)
         self._model_ref = model
         m = resolve_v2_model(model)
-        if m is not None and self.prior_mode is not None and hasattr(m, "set_use_heatmap_prior"):
-            self._saved_use_heatmap_prior = getattr(m, "_use_heatmap_prior", False)  # snapshot for restore
-            effective_heatmap = self.prior_mode == "heatmap"
-            if effective_heatmap and not self._ensure_memory_bank(m):
-                # No usable bank (no bb_layers / no normal images / build failed): never run the
-                # heatmap forward against a missing-or-empty bank — fall back to bare detection so
-                # the run is honest (AUROC nan) instead of crashing or scoring against 0 vectors.
-                LOGGER.warning("YOLOAnomalyValidator: heatmap prior unavailable -> running prior_mode='none'.")
-                effective_heatmap = False
-            m.set_use_heatmap_prior(effective_heatmap)
+        if m is not None and self.prior_mode is not None and hasattr(m, "set_prior_context"):
+            self._saved_prior_context = m.prior_context  # snapshot for restore
+            base = m.prior_context if isinstance(m.prior_context, PriorContext) else PriorContext()
+            ctx = PriorContext(**{**base.__dict__, "mode": PriorMode(self.prior_mode)})
+            if self.prior_mode == "heatmap":
+                if not self._ensure_memory_bank(m):
+                    # No usable bank (no bb_layers / no normal images / build failed): never run the
+                    # heatmap forward against a missing-or-empty bank — fall back to bare detection so
+                    # the run is honest (AUROC nan) instead of crashing or scoring against 0 vectors.
+                    LOGGER.warning("YOLOAnomalyValidator: heatmap prior unavailable -> running prior_mode='none'.")
+                    ctx = PriorContext(**{**base.__dict__, "mode": PriorMode.NONE})
+                else:
+                    ctx = prior_context_from_overrides(dict(vars(self.args)), ctx)
+            m.set_prior_context(ctx)
 
     def preprocess(self, batch):
         batch = super().preprocess(batch)
@@ -149,7 +154,7 @@ class YOLOAnomalyValidatorBase:
     # ------------------------------------------------------------------
     def __call__(self, trainer=None, model=None):
         self._built_bank = False
-        self._saved_use_heatmap_prior = _SENTINEL
+        self._saved_prior_context = _SENTINEL
         try:
             if self.prior_mode is not None:
                 return self._single_pass(trainer, model)
@@ -285,14 +290,14 @@ class YOLOAnomalyValidatorBase:
 
     def _restore_prior_state(self) -> None:
         """Undo prior_mode + any bank we built so a shared/EMA model is left clean."""
-        if self._saved_use_heatmap_prior is _SENTINEL and not self._built_bank:
+        if self._saved_prior_context is _SENTINEL and not self._built_bank:
             return
         m = resolve_v2_model(self._model_ref)
         if m is None:
             return
-        if self._saved_use_heatmap_prior is not _SENTINEL and hasattr(m, "set_use_heatmap_prior"):
-            m.set_use_heatmap_prior(self._saved_use_heatmap_prior)
-            self._saved_use_heatmap_prior = _SENTINEL
+        if self._saved_prior_context is not _SENTINEL and hasattr(m, "set_prior_context"):
+            m.set_prior_context(self._saved_prior_context)
+            self._saved_prior_context = _SENTINEL
         if self._built_bank:
             mb = getattr(m, "memory_bank", None)
             if mb is not None and hasattr(mb, "reset_memory_bank"):

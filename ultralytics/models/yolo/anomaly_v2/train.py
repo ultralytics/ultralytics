@@ -83,9 +83,7 @@ class AnomalyV2Trainer(DetectionTrainer):
             AnomalyV2Trainer._mvtec_ood_eval(self)  # sets self._ood_heatmap_map10 (+ wandb log)
             fitness = float(self._ood_heatmap_map10 or 0.0)
             metrics["fitness"] = fitness
-            self._ood_best_fitness = (
-                fitness if self._ood_best_fitness is None else max(self._ood_best_fitness, fitness)
-            )
+            self._ood_best_fitness = fitness if self._ood_best_fitness is None else max(self._ood_best_fitness, fitness)
             self.best_fitness = self._ood_best_fitness
         return metrics, fitness
 
@@ -106,9 +104,7 @@ class AnomalyV2Trainer(DetectionTrainer):
             args = copy(self.args)
             args.task = "segment"
             gs = max(int(unwrap_model(self.model).stride.max()), 32)
-            dataset = build_yolo_dataset(
-                args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs
-            )
+            dataset = build_yolo_dataset(args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs)
         else:
             dataset = super().build_dataset(img_path, mode=mode, batch=batch)
 
@@ -130,12 +126,7 @@ class AnomalyV2Trainer(DetectionTrainer):
             weights (str, optional): Path to pretrained weights (yolo26m.pt etc.).
             verbose (bool): Verbose info.
         """
-        model = YOLOAnomalyV2Model(
-            cfg,
-            nc=self.data["nc"],
-            ch=self.data["channels"],
-            verbose=verbose and RANK == -1,
-        )
+        model = YOLOAnomalyV2Model(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
         if weights:
             model.load(weights)
         return model
@@ -153,8 +144,11 @@ class AnomalyV2Trainer(DetectionTrainer):
             loss_names += ["qmask_loss", "qobj_loss", "qovl_loss", "qfg_loss"]
         self.loss_names = tuple(loss_names)
         return yolo.anomaly_v2.YOLOAnomalyValidator(
-            self.test_loader, save_dir=self.save_dir, args=copy(self.args),
-            _callbacks=self.callbacks, prior_mode=None,  # legacy GT bboxes -> renderer
+            self.test_loader,
+            save_dir=self.save_dir,
+            args=copy(self.args),
+            _callbacks=self.callbacks,
+            prior_mode=None,  # legacy GT bboxes -> renderer
         )
 
     @staticmethod
@@ -179,8 +173,9 @@ class AnomalyV2Trainer(DetectionTrainer):
             return
         root = resolve_mvtec_root(v2_cfg.get("test_root"))
         if root is None:
-            LOGGER.warning("MVTec test: dataset root not found (set MVTEC_ROOT or anomaly_v2."
-                           "test_root); skipping test eval.")
+            LOGGER.warning(
+                "MVTec test: dataset root not found (set MVTEC_ROOT or anomaly_v2.test_root); skipping test eval."
+            )
             return
 
         # -- Fit YAML (optional; single source of truth for imgsz / bank knobs / post-processing) --
@@ -223,12 +218,19 @@ class AnomalyV2Trainer(DetectionTrainer):
         try:
             with torch.no_grad():
                 rows = run_mvtec_ood_eval(
-                    ema_eval, root,
+                    ema_eval,
+                    root,
                     categories=v2_cfg.get("test_categories"),
                     modes=modes,
-                    imgsz=imgsz, batch=batch, workers=trainer.args.workers, bank_size=bank_size,
-                    device=trainer.device, save_dir=trainer.save_dir, epoch=trainer.epoch + 1,
-                    e2e=False, iou=0.1,
+                    imgsz=imgsz,
+                    batch=batch,
+                    workers=trainer.args.workers,
+                    bank_size=bank_size,
+                    device=trainer.device,
+                    save_dir=trainer.save_dir,
+                    epoch=trainer.epoch + 1,
+                    e2e=False,
+                    iou=0.1,
                     heatmap_norm=heat_norm,
                     heatmap_edge_weight=(True if heat_edge else None),
                     heatmap_edge_sigma=heat_edge_sigma,
@@ -277,7 +279,9 @@ class AnomalyV2Trainer(DetectionTrainer):
             avg_row = next((r for r in rows if r["category"] == "AVERAGE" and r["mode"] == mode), None)
             if avg_row is not None:
                 for k in keys:
-                    if avg_row.get(k) is not None and not (isinstance(avg_row.get(k), float) and math.isnan(avg_row[k])):
+                    if avg_row.get(k) is not None and not (
+                        isinstance(avg_row.get(k), float) and math.isnan(avg_row[k])
+                    ):
                         log[f"{group_name}/{k}"] = avg_row[k]
 
         if log:

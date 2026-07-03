@@ -613,10 +613,10 @@ class Exporter:
             assert fmt != "ncnn", "optimize=True not compatible with format='ncnn', i.e. use optimize=False"
             assert self.device.type == "cpu", "optimize=True not compatible with cuda devices, i.e. use device='cpu'"
         if fmt == "rknn":
-            if self.args.int8 and model.task != "detect":
+            if self.args.quantize == 8 and model.task != "detect":
                 raise ValueError(
                     "Rockchip RKNN INT8 export is only supported for detection models. "
-                    "Use FP16 (int8=False) for other tasks."
+                    "Use FP16 (quantize=16) for other tasks."
                 )
             if not self.args.name:
                 LOGGER.warning(
@@ -744,7 +744,7 @@ class Exporter:
                 m.agnostic_nms = self.args.agnostic_nms
                 m.xyxy = self.args.nms and fmt != "coreml"
                 m.shape = None  # reset cached shape for new export input size
-                if fmt == "rknn" and self.args.int8 and isinstance(m, Detect):
+                if fmt == "rknn" and self.args.quantize == 8 and isinstance(m, Detect):
                     # INT8 only: bind a forward that emits raw reg/cls head maps so the backend decodes them on
                     # CPU (see RKNNBackend._decode), keeping the quantization-sensitive decode off the NPU. FP16
                     # keeps the in-graph decode since it tolerates the dynamic range.

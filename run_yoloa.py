@@ -231,6 +231,8 @@ def main():
                 h, w = original.shape[:2]
                 gt_mask = txt_to_mask(str(Path(img).with_suffix(".txt")), h, w)
                 mask_tensor = load_mask_tensor(gt_mask, imgsz)
+                if mask_tensor is None:
+                    mask_tensor = torch.zeros(1, 1, imgsz, imgsz)
                 none_pred, n_none, _ = run_prior_viz(model, img, "none", **pkw)
                 seg_pred, n_seg, seg_hmap = run_prior_viz(model, img, "mask", prior_mask=mask_tensor, **pkw)
                 heat_pred, n_heat, heat_hmap = run_prior_viz(model, img, "heatmap", **pkw, **infer)

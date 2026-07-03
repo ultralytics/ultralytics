@@ -2949,56 +2949,6 @@ def classify_augmentations(
     return T.Compose(primary_tfl + secondary_tfl + final_tfl)
 
 
-class DepthRandomScale:
-    """Random scale and crop for depth estimation (applied to both image and depth).
-
-    Randomly scales the image/depth by a factor in [scale_range], then random-crops
-    to target_size. This improves scale invariance for zero-shot depth models.
-    """
-
-    def __init__(self, scale_range=(0.5, 1.5), target_size=640, p=0.5):
-        self.scale_min, self.scale_max = scale_range
-        self.target_size = target_size
-        self.p = p
-
-    def __call__(self, labels):
-        if random.random() >= self.p:
-            return labels
-        img = labels.get("img")
-        depth = labels.get("depth")
-        if img is None:
-            return labels
-
-        h, w = img.shape[:2]
-        scale = random.uniform(self.scale_min, self.scale_max)
-        new_h, new_w = int(h * scale), int(w * scale)
-
-        # Ensure minimum size
-        new_h = max(new_h, self.target_size)
-        new_w = max(new_w, self.target_size)
-
-        img = cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_LINEAR)
-        if depth is not None:
-            # Nearest, not bilinear: sparse (e.g. LiDAR) GT must not blend valid depth with the
-            # zero/invalid background, which would manufacture spurious near-zero "valid" pixels.
-            depth = cv2.resize(depth, (new_w, new_h), interpolation=cv2.INTER_NEAREST)
-            # Scale depth values are preserved (metric depth doesn't change with image scale)
-
-        # Random crop to target_size
-        if new_h > self.target_size or new_w > self.target_size:
-            top = random.randint(0, max(0, new_h - self.target_size))
-            left = random.randint(0, max(0, new_w - self.target_size))
-            img = img[top:top + self.target_size, left:left + self.target_size]
-            if depth is not None:
-                depth = depth[top:top + self.target_size, left:left + self.target_size]
-
-        labels["img"] = img
-        labels["resized_shape"] = img.shape[:2]
-        if depth is not None:
-            labels["depth"] = depth
-        return labels
-
-
 class DepthRandomFlip:
     """Random horizontal flip for depth estimation (flips both image and depth)."""
 

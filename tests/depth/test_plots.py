@@ -70,6 +70,66 @@ def test_calibrate_checkpoint_writes_calibrated_plots(tmp_path):
     assert not (tmp_path / "val_batch3_calibrated.jpg").exists()
 
 
+class _StatefulLoader:
+    """Mimics InfiniteDataLoader: one persistent iterator, so partial iteration leaves it mid-epoch."""
+
+    def __init__(self, batches):
+        self.batches = batches
+        self.order = []  # batch indices in the order they were yielded
+        self._pos = 0
+
+    def __len__(self):
+        return len(self.batches)
+
+    def __iter__(self):
+        for _ in range(len(self.batches)):
+            i = self._pos % len(self.batches)
+            self._pos += 1
+            self.order.append(i)
+            yield self.batches[i]
+
+    def reset(self):
+        self._pos = 0
+
+
+def _stateful_loader_and_model(n_batches: int = 5):
+    torch.manual_seed(0)
+    from ultralytics.nn.tasks import DepthModel
+
+    model = DepthModel("yolo26n-depth.yaml", verbose=False)
+    batches = [
+        {"img": (torch.rand(1, 3, 64, 64) * 255).to(torch.uint8), "depth": torch.rand(1, 64, 64) * 5 + 0.5}
+        for _ in range(n_batches)
+    ]
+    return _StatefulLoader(batches), model
+
+
+def test_calibrated_plots_start_at_first_batch(tmp_path):
+    """The plot pass rewinds a stateful loader so panels show batches 0..2, matching val_batch{ni}.jpg.
+
+    The trainer's InfiniteDataLoader keeps one persistent iterator across for-loops; the calibration
+    fit breaks mid-epoch, so without a rewind the plots would show arbitrary mid-dataset batches.
+    """
+    from ultralytics.models.yolo.depth.calibrate import _plot_calibrated_batches
+
+    loader, model = _stateful_loader_and_model()
+    for _ in zip(range(2), loader):  # leave the persistent iterator mid-epoch, like the fit pass does
+        pass
+    _plot_calibrated_batches(model, loader, "cpu", 1.0, 0.0, "identity", tmp_path)
+    assert loader.order[-3:] == [0, 1, 2]
+
+
+def test_calibration_fit_starts_at_first_batch():
+    """The fit pass rewinds a stateful loader so "first max_images" means the leading images."""
+    from ultralytics.models.yolo.depth.calibrate import _collect_logpairs
+
+    loader, model = _stateful_loader_and_model()
+    for _ in zip(range(2), loader):  # leave the persistent iterator mid-epoch
+        pass
+    _collect_logpairs(model, loader, "cpu", max_images=3)
+    assert loader.order[-3:] == [0, 1, 2]
+
+
 def test_final_eval_plots_only_representative_checkpoint(tmp_path, monkeypatch):
     """final_eval passes plot_dir for best.pt only; last.pt is calibrated without plotting."""
     from types import SimpleNamespace

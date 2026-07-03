@@ -68,3 +68,32 @@ def test_calibrate_checkpoint_writes_calibrated_plots(tmp_path):
         assert img is not None, f"val_batch{ni}_calibrated.jpg missing"
         assert img.shape == (24 + 2 * 64, 4 * 64, 3)  # header strip + 2 rows, RGB|GT|raw|calibrated
     assert not (tmp_path / "val_batch3_calibrated.jpg").exists()
+
+
+def test_final_eval_plots_only_representative_checkpoint(tmp_path, monkeypatch):
+    """final_eval passes plot_dir for best.pt only; last.pt is calibrated without plotting."""
+    from types import SimpleNamespace
+
+    import ultralytics.models.yolo.depth.calibrate as calibrate
+    from ultralytics.models import yolo
+    from ultralytics.models.yolo.depth.train import DepthTrainer
+
+    calls = []
+    monkeypatch.setattr(yolo.detect.DetectionTrainer, "final_eval", lambda self: None)  # skip real eval
+    monkeypatch.setattr(
+        calibrate, "calibrate_checkpoint",
+        lambda ckpt, dl, dev, dist_power=0.0, plot_dir=None: calls.append((ckpt.name, plot_dir)),
+    )
+    t = DepthTrainer.__new__(DepthTrainer)  # skip __init__ (needs data/model); final_eval uses only these attrs
+    t.args = SimpleNamespace(auto_calibrate=True, plots=True, cal_dist_pw=0.0)
+    t.best, t.last = tmp_path / "best.pt", tmp_path / "last.pt"
+    t.best.touch()
+    t.last.touch()
+    t.save_dir, t.test_loader, t.device = tmp_path, [], "cpu"
+    t.final_eval()
+    assert calls == [("best.pt", tmp_path), ("last.pt", None)]
+
+    calls.clear()
+    t.args.plots = False  # plots disabled -> calibrate both, plot neither
+    t.final_eval()
+    assert calls == [("best.pt", None), ("last.pt", None)]

@@ -177,7 +177,8 @@ class DepthTrainer(yolo.detect.DetectionTrainer):
 
         After training, fits the scale-only log-affine (``cal_a``/``cal_b``) on the validation
         set and writes it into best.pt/last.pt, so the model outputs metric-scaled depth out of
-        the box. Disable with ``auto_calibrate=False``.
+        the box. Disable with ``auto_calibrate=False``. When ``plots`` is set, also writes
+        ``val_batch{ni}_calibrated.jpg`` (RGB | GT | raw | calibrated) comparison panels.
         """
         super().final_eval()
         if RANK not in {-1, 0} or not self.args.auto_calibrate:
@@ -186,8 +187,14 @@ class DepthTrainer(yolo.detect.DetectionTrainer):
             from .calibrate import calibrate_checkpoint
 
             LOGGER.info("Auto-calibrating depth output scale on the validation set...")
+            # Calibrated comparison plots come from the checkpoint that represents the run:
+            # best.pt, or last.pt when best was never saved. Each checkpoint is fitted separately.
+            plot_ckpt = self.best if self.best.exists() else self.last
             for ckpt in (self.best, self.last):
                 if ckpt.exists():
-                    calibrate_checkpoint(ckpt, self.test_loader, self.device, dist_power=self.args.cal_dist_pw)
+                    plot_dir = self.save_dir if self.args.plots and ckpt == plot_ckpt else None
+                    calibrate_checkpoint(
+                        ckpt, self.test_loader, self.device, dist_power=self.args.cal_dist_pw, plot_dir=plot_dir
+                    )
         except Exception as e:
             LOGGER.warning(f"Auto-calibration skipped ({type(e).__name__}: {e}); checkpoints left uncalibrated.")

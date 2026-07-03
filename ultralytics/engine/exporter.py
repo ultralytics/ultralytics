@@ -803,6 +803,9 @@ class Exporter:
                 self.metadata["model_type"] = "rtdetr"
         if self.deim_fp32_pinning:
             self.metadata["deim_fp32_pinning"] = True
+        if fmt == "coreml":
+            q = self.args.quantize
+            self.metadata["precision"] = "int8" if q in {8, "w8a16"} else "fp16" if q == 16 else "fp32"
         if self.dla is not None:
             self.metadata["dla"] = self.dla  # make sure `AutoBackend` uses correct dla device if it has one
         if model.task == "pose":

@@ -35,8 +35,15 @@ class CoreMLBackend(BaseBackend):
         # abort the process via an MPSGraph compiler bug on macOS hosts (coremltools 9.x). CPU_AND_NE needs macOS >= 13,
         # so fall back to CPU_ONLY below that. CoreML inference is macOS-only, so this applies wherever the backend runs.
         # Exception: RT-DETR loses FP16 accuracy and runs slower on the Neural Engine alone, so route it through ALL.
+        # RTDETRDecoderV2 FP32 additionally triggers an MPSGraph MLIR pass bug on GPU under ALL, so keep FP32 off ALL.
         meta = dict(ct.utils.load_spec(str(weight)).description.metadata.userDefined)
-        default_unit = ct.ComputeUnit.ALL if meta.get("head") == "RTDETRDecoder" else ct.ComputeUnit.CPU_AND_NE
+        head = meta.get("head")
+        if head == "RTDETRDecoderV2" and meta.get("precision") != "fp16":
+            default_unit = ct.ComputeUnit.CPU_AND_NE
+        elif head in {"RTDETRDecoder", "RTDETRDecoderV2", "DeimDecoder"}:
+            default_unit = ct.ComputeUnit.ALL
+        else:
+            default_unit = ct.ComputeUnit.CPU_AND_NE
         try:
             self.model = ct.models.MLModel(weight, compute_units=default_unit)
         except Exception:

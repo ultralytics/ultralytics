@@ -3,8 +3,13 @@ Copyright (c) 2024 The D-FINE Authors. All Rights Reserved.
 """
 
 import torch
+from torch import Tensor
 
-from ultralytics.utils.ops import xyxy2xywh
+
+def box_xyxy_to_cxcywh(x: Tensor) -> Tensor:
+    """Convert boxes from (x1, y1, x2, y2) to (cx, cy, w, h) using unbind + stack (trace-safe for CoreML export)."""
+    x0, y0, x1, y1 = x.unbind(-1)
+    return torch.stack([(x0 + x1) / 2, (y0 + y1) / 2, x1 - x0, y1 - y0], dim=-1)
 
 
 def weighting_function(reg_max, up, reg_scale, deploy=False):
@@ -120,7 +125,7 @@ def distance2bbox(points, distance, reg_scale):
 
     bboxes = torch.stack([x1, y1, x2, y2], -1)
 
-    return xyxy2xywh(bboxes)
+    return box_xyxy_to_cxcywh(bboxes)
 
 
 def bbox2distance(points, bbox, reg_max, reg_scale, up, eps=0.1):

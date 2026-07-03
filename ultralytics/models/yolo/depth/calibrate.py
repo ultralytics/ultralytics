@@ -40,6 +40,20 @@ def _extract(preds):
     return preds
 
 
+def _rewind(dataloader):
+    """Rewind a stateful loader to the epoch start before a partial pass.
+
+    The trainer's InfiniteDataLoader keeps one persistent iterator across ``for`` loops, so a
+    previous pass that broke out early (e.g. a fit stopping at ``max_images``) leaves it mid-epoch
+    and the next loop silently resumes there. Every pass here that wants "the first N" must rewind
+    first — the plot pass in particular must see the same leading batches BaseValidator plotted as
+    ``val_batch{ni}.jpg``. Plain DataLoaders and list fixtures restart on every ``__iter__``.
+    """
+    reset = getattr(dataloader, "reset", None)
+    if callable(reset):
+        reset()
+
+
 def lstsq_affine(log_pred, log_gt, dist_power: float = 0.0):
     """Closed-form least-squares fit of (a, b) minimizing ||a·log_pred + b − log_gt||.
 
@@ -175,6 +189,7 @@ def fit_calibration(model, dataloader, device, max_images: int = 200, set_buffer
     head.cal_b.fill_(0.0)
 
     model = model.to(device).eval()
+    _rewind(dataloader)
     logp_all, logg_all = [], []
     seen = 0
     rng = np.random.default_rng(0)
@@ -233,6 +248,7 @@ def _collect_logpairs(model, dataloader, device, max_images: int):
     head.cal_a.fill_(1.0)
     head.cal_b.fill_(0.0)
     model = model.to(device).eval()
+    _rewind(dataloader)
     rng = np.random.default_rng(0)
     pairs = []
     seen = 0
@@ -315,16 +331,16 @@ def _plot_calibrated_batches(model, dataloader, device, a, b, name, plot_dir, ma
     model = model.to(device).eval()
     titles = ["RGB", "GT", "raw", f"calibrated ({name} x{np.exp(b):.2f})"]
     plot_dir = Path(plot_dir)
+    _rewind(dataloader)
     with torch.no_grad():
-        for ni, batch in enumerate(dataloader):
-            if ni >= max_batches:
-                break
+        # zip stops on range exhaustion without pulling an extra batch from the stateful iterator
+        for ni, batch in zip(range(max_batches), dataloader):
             img = batch["img"].to(device).float() / 255
             gt = batch["depth"].to(device).float()
             raw = _extract(model(img)).float()
             if raw.ndim == 3:
                 raw = raw.unsqueeze(1)
-            cal = torch.exp(a * torch.log(raw.clamp(min=1e-6)) + b)
+            cal = torch.exp(a * torch.log(raw.clamp(min=1e-3)) + b)
             plot_depth_panels(
                 img, gt, [raw, cal], plot_dir / f"val_batch{ni}_calibrated.jpg",
                 titles=titles, max_images=max_images,
@@ -371,5 +387,6 @@ def calibrate_checkpoint(ckpt_path, dataloader, device, dist_power: float = 0.0,
     if plot_dir is not None:
         try:
             _plot_calibrated_batches(work, dataloader, device, a, b, res["name"], plot_dir)
+            LOGGER.info(f"Calibrated val_batch plots written to {plot_dir}")
         except Exception as e:
             LOGGER.warning(f"Calibrated val plots skipped ({type(e).__name__}: {e})")

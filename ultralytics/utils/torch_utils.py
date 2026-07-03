@@ -152,10 +152,11 @@ def parse_device(device: str | int | list | tuple | torch.device = "") -> str:
         '0,1'
 
     Notes:
-        Each '-1' is replaced with an idle GPU index. Requests matching physical GPU ids hidden by an external
-        CUDA_VISIBLE_DEVICES restriction are translated to the corresponding torch indices, e.g. '3' -> '0' when
-        CUDA_VISIBLE_DEVICES='3'. Returned indices are relative to the active restriction, so strings persisted
-        under one environment (e.g. resumed checkpoint args) address the same physical GPUs only in that environment.
+        Each '-1' is replaced with an idle GPU index. When an external CUDA_VISIBLE_DEVICES restriction is active and
+        every requested id matches a visible physical GPU id, ids resolve as physical GPU ids and are translated to
+        the corresponding torch indices, e.g. '3' -> '0' when CUDA_VISIBLE_DEVICES='3'; all other requests are torch
+        indices. Returned indices are relative to the active restriction, so strings persisted under one environment
+        (e.g. resumed checkpoint args) address the same physical GPUs only in that environment.
     """
     device = str(device).lower()
     for remove in "cuda:", "none", "(", ")", "[", "]", "'", " ":
@@ -163,25 +164,22 @@ def parse_device(device: str | int | list | tuple | torch.device = "") -> str:
     if device == "cuda":
         device = "0"
     device = ",".join(str(int(x)) if x.isdigit() else x for x in device.split(",") if x)  # "0,,01" -> "0,1"
-    visible = os.environ.get("CUDA_VISIBLE_DEVICES", "").replace(" ", "").split(",")
+    visible = [x for x in os.environ.get("CUDA_VISIBLE_DEVICES", "").replace(" ", "").split(",") if x]
     if "-1" in device:
         from ultralytics.utils.autodevice import GPUInfo
 
-        # Replace each -1 with a selected idle GPU or remove it; GPUInfo searches physical NVML ids, restricted to
-        # externally visible GPUs so a hidden idle GPU is never selected
+        # Replace each -1 with an idle GPU (physical NVML id) or remove it, searching only externally visible GPUs
         parts = device.split(",")
-        candidates = [int(x) for x in visible if x.isdigit()] if visible != [""] else None
+        candidates = [int(x) for x in visible if x.isdigit()] if visible else None
         selected = GPUInfo().select_idle_gpu(count=parts.count("-1"), min_memory_fraction=0.2, indices=candidates)
-        if visible != [""]:  # external CUDA_VISIBLE_DEVICES set -> translate physical ids to torch indices
-            selected = [visible.index(str(x)) for x in selected]
         for i in range(len(parts)):
             if parts[i] == "-1":
                 parts[i] = str(selected.pop(0)) if selected else ""
         device = ",".join(p for p in parts if p)
     indices = device.split(",")
-    if device and all(x.isdigit() for x in indices) and any(int(x) >= torch.cuda.device_count() for x in indices):
-        if all(x in visible for x in indices):  # physical GPU ids under an external CUDA_VISIBLE_DEVICES restriction
-            device = ",".join(str(visible.index(x)) for x in indices)  # translate to torch indices
+    if device and all(x.isdigit() for x in indices) and all(x in visible for x in indices):
+        # All requested ids match externally visible physical GPU ids -> translate to torch indices, e.g. '3' -> '0'
+        device = ",".join(str(visible.index(x)) for x in indices)
     return device
 
 
@@ -211,13 +209,14 @@ def select_device(device="", newline=False, verbose=True):
 
     Notes:
         CUDA indices are torch device indices, which reflect any externally set CUDA_VISIBLE_DEVICES. This function
-        never modifies CUDA_VISIBLE_DEVICES; an explicitly requested device is made the default CUDA device with
-        torch.cuda.set_device() so that indexless 'cuda' operations land on it, while the default '' request leaves
+        never modifies CUDA_VISIBLE_DEVICES; an explicit single-GPU request is made the default CUDA device with
+        torch.cuda.set_device() so that indexless 'cuda' operations land on it, while default '' requests (resolved
+        to the current device) and multi-GPU requests (DDP ranks pin their own device in trainer._setup_ddp()) leave
         the current device untouched.
     """
-    if isinstance(device, torch.device) or str(device).startswith(("tpu", "intel", "vulkan")):
-        if isinstance(device, torch.device) and device.type == "cuda" and device.index is not None:
-            torch.cuda.set_device(device)  # default device for indexless 'cuda' operations
+    if isinstance(device, torch.device) and device.type == "cuda":
+        device = str(device)  # 'cuda:N' is validated and set as the default device below like any string request
+    elif isinstance(device, torch.device) or str(device).startswith(("tpu", "intel", "vulkan")):
         return device
 
     s = f"Ultralytics {__version__} 🚀 Python-{PYTHON_VERSION} torch-{TORCH_VERSION} "
@@ -274,13 +273,13 @@ def select_device(device="", newline=False, verbose=True):
             )
 
     if not cpu and not mps and torch.cuda.is_available():  # prefer GPU if available
-        devices = device.split(",") if device else ["0"]  # i.e. "0,1" -> ["0", "1"]
+        devices = device.split(",") if device else [str(torch.cuda.current_device())]  # '' -> current default device
         space = " " * len(s)
         for i, d in enumerate(devices):
             s += f"{'' if i == 0 else space}CUDA:{d} ({get_gpu_info(int(d))})\n"
         arg = f"cuda:{devices[0]}"
-        if device:  # explicit request only, so incidental select_device('') calls never move the current device
-            torch.cuda.set_device(int(devices[0]))  # default device for indexless 'cuda' operations
+        if device and len(devices) == 1:  # explicit single-GPU request only: '' never moves the current device, and
+            torch.cuda.set_device(int(devices[0]))  # multi-GPU DDP ranks each pin their own device in _setup_ddp()
     elif mps and TORCH_2_0 and torch.backends.mps.is_available():
         # Prefer MPS if available
         s += f"MPS ({get_cpu_info()})\n"

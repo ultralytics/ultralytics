@@ -41,7 +41,7 @@ import torch.cuda
 
 from ultralytics import RTDETR, YOLO, YOLOWorld
 from ultralytics.cfg import TASK2DATA, TASK2METRIC
-from ultralytics.engine.exporter import export_formats
+from ultralytics.engine.exporter import REID_EXPORT_FORMATS, export_formats
 from ultralytics.nn.modules import Segment26
 from ultralytics.utils import (
     ARM64,
@@ -178,6 +178,11 @@ def benchmark(
                 )
                 assert not (model.task == "segment" and any(isinstance(m, Segment26) for m in model.model.modules())), (
                     "Axelera export does not currently support YOLO26 segmentation models"
+                )
+            if model.task == "reid":
+                assert format == "-" or format in REID_EXPORT_FORMATS, (
+                    f"ReID benchmark to {format!r} is not supported — ReID outputs an embedding vector. "
+                    f"Supported formats: {', '.join(sorted(REID_EXPORT_FORMATS))}."
                 )
             if format == "litert":
                 assert MACOS or (LINUX and not ARM64), "LiteRT benchmark only supported on Linux x86 and macOS"

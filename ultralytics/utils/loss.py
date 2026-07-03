@@ -13,7 +13,7 @@ import torch.nn.functional as F
 from ultralytics.utils.metrics import CITYSCAPES_WEIGHT, OKS_SIGMA, RLE_WEIGHT
 from ultralytics.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh
 from ultralytics.utils.tal import RotatedTaskAlignedAssigner, TaskAlignedAssigner, dist2bbox, dist2rbox, make_anchors
-from ultralytics.utils.torch_utils import autocast
+from ultralytics.utils.torch_utils import TORCH_1_10, autocast
 
 from .metrics import bbox_iou, probiou
 from .tal import bbox2dist, rbox2dist
@@ -983,6 +983,204 @@ class v8ClassificationLoss:
         preds = preds[1] if isinstance(preds, (list, tuple)) else preds
         loss = F.cross_entropy(preds, batch["cls"], reduction="mean")
         return loss, loss.detach()
+
+
+class ReIDLoss:
+    """Criterion class for computing ReID training losses (cross-entropy + batch-hard triplet + center)."""
+
+    def __init__(
+        self,
+        nc: int,
+        triplet_margin: float = 0.3,
+        label_smooth: float = 0.1,
+        triplet_weight: float = 1.0,
+        ce_weight: float = 1.0,
+        center_weight: float = 0.0,
+        center_momentum: float = 0.9,
+        focal_gamma: float = 0.0,
+        supcon_temp: float = 0.0,
+    ):
+        """Initialize ReID loss with label-smoothed CE, batch-hard triplet, and center loss.
+
+        Args:
+            nc (int): Number of identity classes.
+            triplet_margin (float): Margin for triplet loss.
+            label_smooth (float): Label smoothing factor for CE loss.
+            triplet_weight (float): Weight for triplet loss (also used for supcon if enabled).
+            ce_weight (float): Weight for cross-entropy loss.
+            center_weight (float): Weight for center loss (0 = disabled).
+            center_momentum (float): EMA momentum for updating class centers.
+            focal_gamma (float): Focal loss gamma (0 = standard CE, >0 = focal).
+            supcon_temp (float): Supervised contrastive loss temperature (0 = use triplet instead).
+        """
+        self.nc = nc
+        self.triplet_margin = triplet_margin
+        self.label_smooth = label_smooth
+        self.triplet_weight = triplet_weight
+        self.ce_weight = ce_weight
+        self.center_weight = center_weight
+        self.center_momentum = center_momentum
+        self.focal_gamma = focal_gamma
+        self.supcon_temp = supcon_temp
+        self.centers = None  # lazily initialized (nc, feat_dim)
+
+    def __call__(self, preds, batch):
+        """Compute the ReID loss between predictions and true labels.
+
+        Args:
+            preds (tuple): Tuple of (cls_logits, bn_feat, raw_feat) from ReID head.
+            batch (dict): Batch dict with 'cls' key containing identity labels.
+
+        Returns:
+            (tuple[torch.Tensor, torch.Tensor]): Total loss and detached component losses [ce, triplet].
+        """
+        # In eval mode the head returns (emb, feat_bn) — skip loss computation. Return a
+        # component vector matching loss_names length so the validator's
+        # `self.loss += model.loss(...)[1]` does not size-mismatch.
+        if not isinstance(preds, (list, tuple)) or len(preds) != 3:
+            zero = torch.tensor(0.0, device=batch["cls"].device)
+            return zero, torch.stack([zero] * 2)
+
+        cls_logits, bn_feat, raw_feat = preds
+        labels = batch["cls"]
+
+        # Cross-entropy with label smoothing (optionally focal). label_smoothing requires torch>=1.10;
+        # drop it on older torch so the minimum-supported environment still trains (smoothing is a refinement).
+        ce_kwargs = {"label_smoothing": self.label_smooth} if TORCH_1_10 else {}
+        if self.focal_gamma > 0:
+            ce_per_sample = F.cross_entropy(cls_logits, labels, reduction="none", **ce_kwargs)
+            pt = torch.exp(-ce_per_sample)
+            ce_loss = ((1 - pt) ** self.focal_gamma * ce_per_sample).mean()
+        else:
+            ce_loss = F.cross_entropy(cls_logits, labels, **ce_kwargs)
+
+        # Metric loss on raw features (before BNNeck)
+        if self.supcon_temp > 0:
+            tri_loss = self._supcon_loss(raw_feat, labels, self.supcon_temp)
+        else:
+            tri_loss = self._batch_hard_triplet_loss(raw_feat, labels)
+
+        total = self.ce_weight * ce_loss + self.triplet_weight * tri_loss
+
+        # Center loss: pull features toward their class centers
+        if self.center_weight > 0:
+            ctr_loss = self._center_loss(bn_feat, labels)
+            total = total + self.center_weight * ctr_loss
+
+        return total, torch.stack([ce_loss.detach(), tri_loss.detach()])
+
+    def _center_loss(self, features, labels):
+        """Compute center loss with EMA-updated class centers.
+
+        Pulls each feature toward the running average center of its class.
+        Centers are updated as exponential moving averages (no gradient).
+
+        Args:
+            features (torch.Tensor): Feature vectors (B, D).
+            labels (torch.Tensor): Identity labels (B,).
+
+        Returns:
+            (torch.Tensor): Center loss scalar.
+        """
+        feat_dim = features.shape[1]
+        # Lazy init centers
+        if self.centers is None or self.centers.shape[1] != feat_dim:
+            self.centers = torch.zeros(self.nc, feat_dim, device=features.device)
+
+        self.centers = self.centers.to(features.device)
+
+        # Update centers via EMA (no gradient)
+        with torch.no_grad():
+            for cls_id in labels.unique():
+                mask = labels == cls_id
+                cls_feat = features[mask].mean(0)
+                self.centers[cls_id] = (
+                    self.center_momentum * self.centers[cls_id] + (1 - self.center_momentum) * cls_feat
+                )
+
+        # Compute center loss: 0.5 * mean(||f - c_y||^2)
+        batch_centers = self.centers[labels].detach()  # detach so gradient only flows to features
+        center_loss = 0.5 * ((features - batch_centers) ** 2).sum(1).mean()
+        return center_loss
+
+    def _batch_hard_triplet_loss(self, features, labels):
+        """Compute batch-hard triplet loss.
+
+        For each anchor, find the hardest positive (max distance same ID) and hardest negative
+        (min distance different ID).
+
+        Args:
+            features (torch.Tensor): Feature vectors (B, D).
+            labels (torch.Tensor): Identity labels (B,).
+
+        Returns:
+            (torch.Tensor): Triplet loss scalar.
+        """
+        # Normalize features before computing distances (cosine-based triplet)
+        features = F.normalize(features, dim=1)
+        # Pairwise L2 distance on unit sphere
+        dist_mat = torch.cdist(features, features, p=2)  # (B, B)
+
+        # Masks
+        same_id = labels.unsqueeze(0) == labels.unsqueeze(1)  # (B, B)
+
+        # Hardest positive: max dist among same identity
+        pos_dist = dist_mat.clone()
+        pos_dist[~same_id] = 0.0
+        hardest_pos, _ = pos_dist.max(dim=1)  # (B,)
+
+        # Hardest negative: min dist among different identity
+        neg_dist = dist_mat.clone()
+        neg_dist[same_id] = float("inf")
+        hardest_neg, _ = neg_dist.min(dim=1)  # (B,)
+
+        # Filter out anchors that have no valid positive or negative
+        valid = (hardest_pos > 0) & (hardest_neg < float("inf"))
+        if valid.sum() == 0:
+            return torch.tensor(0.0, device=features.device, requires_grad=True)
+
+        triplet_loss = F.relu(hardest_pos[valid] - hardest_neg[valid] + self.triplet_margin)
+        return triplet_loss.mean()
+
+    def _supcon_loss(self, features, labels, temperature=0.1):
+        """Supervised contrastive loss (Khosla et al., 2020).
+
+        Uses all positive pairs in the batch for richer gradients than triplet loss.
+
+        Args:
+            features (torch.Tensor): Feature vectors (B, D).
+            labels (torch.Tensor): Identity labels (B,).
+            temperature (float): Temperature scaling for cosine similarities.
+
+        Returns:
+            (torch.Tensor): SupCon loss scalar.
+        """
+        features = F.normalize(features, dim=1)
+        B = features.shape[0]
+        # Cosine similarity matrix scaled by temperature
+        sim = features @ features.t() / temperature  # (B, B)
+
+        # Masks
+        same_id = labels.unsqueeze(0) == labels.unsqueeze(1)  # (B, B)
+        self_mask = ~torch.eye(B, dtype=torch.bool, device=features.device)
+        pos_mask = same_id & self_mask  # positive pairs (same ID, not self)
+        n_pos = pos_mask.sum(dim=1)  # positives per anchor
+
+        # Numerical stability: subtract max per row
+        sim = sim - sim.max(dim=1, keepdim=True).values.detach()
+
+        # Log-softmax over all non-self entries (denominator includes pos+neg)
+        exp_sim = torch.exp(sim) * self_mask.float()
+        log_denom = torch.log(exp_sim.sum(dim=1, keepdim=True) + 1e-6)
+        log_prob = sim - log_denom  # log(exp(sim_ij/t) / sum_k!=i(exp(sim_ik/t)))
+
+        # Average log-prob over positive pairs per anchor
+        valid = n_pos > 0
+        if valid.sum() == 0:
+            return torch.tensor(0.0, device=features.device, requires_grad=True)
+
+        loss = -(log_prob * pos_mask.float()).sum(dim=1) / n_pos.clamp(min=1)
+        return loss[valid].mean()
 
 
 class v8OBBLoss(v8DetectionLoss):

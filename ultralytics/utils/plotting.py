@@ -10,7 +10,7 @@ from typing import Any
 import cv2
 import numpy as np
 import torch
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 from PIL import __version__ as pil_version
 
 from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, TryExcept, ops, plt_settings, threaded
@@ -1148,3 +1148,76 @@ def feature_visualization(x, module_type: str, stage: int, n: int = 32, save_dir
             plt.savefig(f, dpi=300, bbox_inches="tight")
             plt.close()
             np.save(str(f.with_suffix(".npy")), x[0].cpu().numpy())  # npy save
+
+
+def _reid_tile(path, label, tile_size=(240, 320), border_color=(90, 90, 90)):
+    """Render a single labeled image tile for a ReID retrieval grid.
+
+    Args:
+        path (str | Path): Image file path.
+        label (str): Top-left caption (e.g. "QUERY pid=12 c=3" or "#1 pid=12 d=0.123").
+        tile_size (tuple[int, int]): (width, height) of the tile in pixels.
+        border_color (tuple[int, int, int]): RGB border color (green=match, red=miss, blue=query).
+
+    Returns:
+        (PIL.Image.Image): The rendered tile. Missing/unreadable files yield a placeholder.
+    """
+    w, h = tile_size
+    canvas = Image.new("RGB", tile_size, (20, 20, 20))
+    try:
+        image = Image.open(path).convert("RGB")
+        image = ImageOps.contain(image, (w - 16, h - 64))
+        x = (w - image.width) // 2
+        y = 36 + (h - 64 - image.height) // 2
+        canvas.paste(image, (x, y))
+        ok = True
+    except Exception:
+        ok = False
+    sub = Path(path).name[:38] if ok else "missing"
+    draw = ImageDraw.Draw(canvas)
+    font = ImageFont.load_default()
+    draw.rectangle((0, 0, w - 1, h - 1), outline=border_color, width=4)
+
+    # The default PIL bitmap font is latin-1 only; non-latin captions/filenames
+    # (e.g. CJK SKU ids) raise UnicodeEncodeError and would crash final_eval. Map
+    # any un-renderable character to '?' so plotting never aborts training.
+    def _latin1(s: str) -> str:
+        return s.encode("latin-1", "replace").decode("latin-1")
+
+    draw.text((10, 10), _latin1(label), fill=(255, 255, 255), font=font)
+    draw.text((10, h - 22), _latin1(sub), fill=(200, 200, 200), font=font)
+    return canvas
+
+
+def plot_reid_retrieval(rows, save_path, tile_size=(240, 320), gap=24):
+    """Render a query->top-k retrieval grid and save it.
+
+    Args:
+        rows (list): One entry per query. Each entry is a list of ``(path, label, border_color)`` tuples; the FIRST
+            tuple is the query tile, the rest are ranked gallery matches.
+        save_path (str | Path): Output image path.
+        tile_size (tuple[int, int]): (width, height) of each tile in pixels.
+        gap (int): Horizontal gap (px) between the query column and the match columns.
+
+    Returns:
+        (Path): The path the grid was written to.
+    """
+    save_path = Path(save_path)
+    if not rows:
+        LOGGER.warning("plot_reid_retrieval: no rows to plot; skipping.")
+        return save_path
+    w, h = tile_size
+    max_matches = max((len(r) - 1 for r in rows), default=0)
+    sheet_w = w + (gap + max_matches * w if max_matches else 0)  # no trailing gap for query-only grids
+    sheet_h = max(len(rows), 1) * h
+    sheet = Image.new("RGB", (sheet_w, sheet_h), (12, 12, 12))
+    for ri, row in enumerate(rows):
+        y = ri * h
+        for ci, (path, label, color) in enumerate(row):
+            tile = _reid_tile(path, label, tile_size=tile_size, border_color=color)
+            x = 0 if ci == 0 else w + gap + (ci - 1) * w
+            sheet.paste(tile, (x, y))
+    save_path.parent.mkdir(parents=True, exist_ok=True)
+    sheet.save(save_path)
+    LOGGER.info(f"Saved ReID retrieval visualization to {save_path}")
+    return save_path

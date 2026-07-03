@@ -1,0 +1,11 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# ATRW Amur-tiger individual re-identification (LILA BC / CVWC2019 reid subset).
+# Folder-per-identity; no camera structure (each image treated as its own camera).
+# Eval protocol: 20% of labeled identities held out (identity-disjoint) as query/gallery,
+# because the official test-split identity labels are withheld (competition server).
+path: ATRW
+train: train
+val: query
+gallery: gallery
+nc: 86 # train identities after the 20% eval holdout — VERIFY against prep output and update if different

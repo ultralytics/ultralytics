@@ -91,6 +91,12 @@ Pose estimation is a technique used to determine the pose of the object relative
 - [MNIST](classify/mnist.md): A dataset of 70,000 grayscale images of handwritten digits for image classification tasks.
 - [MNIST160](classify/mnist.md): First 8 images of each digit (0-9) from both the MNIST train and test splits. Dataset contains 160 images total.
 
+## [Re-Identification (ReID)](reid/index.md)
+
+Person re-identification (ReID) is a computer vision task that involves matching the same individual across different camera views or time instances. Unlike classification which categorizes images into fixed classes, ReID produces embedding vectors that can be compared by distance to determine identity matches.
+
+- [Market-1501](reid/market1501.md): The most widely used ReID benchmark with 32,668 images of 1,501 identities from 6 cameras.
+
 ## [Oriented Bounding Boxes (OBB)](obb/index.md)
 
 Oriented Bounding Boxes (OBB) is a method in computer vision for detecting angled objects in images using rotated bounding boxes, often applied to aerial and satellite imagery. Unlike traditional bounding boxes, OBB can better fit objects at various orientations.

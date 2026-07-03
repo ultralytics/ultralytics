@@ -197,8 +197,13 @@ def check_image(im_file: str) -> tuple[str, tuple[int, int]]:
 
 
 def verify_image(args: tuple) -> tuple:
-    """Verify one image."""
-    (im_file, cls), prefix = args
+    """Verify one image sample.
+
+    The sample tuple may contain additional metadata after the image path. The original sample is returned unchanged so
+    callers can preserve task-specific annotations (e.g. ReID camera IDs) through verification and cache loading.
+    """
+    sample, prefix = args
+    im_file = sample[0]
     # Number (found, corrupt), message
     nf, nc, msg = 0, 0, ""
     try:
@@ -208,7 +213,7 @@ def verify_image(args: tuple) -> tuple:
     except Exception as e:
         nc = 1
         msg = f"{prefix}{im_file}: ignoring corrupt image/label: {e}"
-    return (im_file, cls), nf, nc, msg
+    return sample, nf, nc, msg
 
 
 def verify_image_mask(args: tuple) -> tuple:

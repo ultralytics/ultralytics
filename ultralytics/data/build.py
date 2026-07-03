@@ -85,32 +85,21 @@ class InfiniteDataLoader(dataloader.DataLoader):
     def __del__(self):
         """Ensure that workers are properly terminated when the DataLoader is deleted."""
         try:
-            if not hasattr(self.iterator, "_workers"):
-                return
-            for w in self.iterator._workers:  # force terminate
+            for w in getattr(self.iterator, "_workers", ()):  # force terminate
                 if w.is_alive():
                     w.terminate()
-            self.iterator._shutdown_workers()  # cleanup
+            self.close()
         except Exception:
             pass
 
     def close(self):
-        """Gracefully shut down persistent workers, unregistering them from torch's SIGCHLD worker watchdog.
-
-        Without this, workers stay alive (and watchdog-registered) until interpreter exit, where a SIGTERM reaching
-        them from outside the parent process races multiprocessing's atexit join and raises
-        'DataLoader worker (pid N) is killed by signal' from torch's SIGCHLD handler.
-        """
-        try:
-            if hasattr(self.iterator, "_workers"):
-                self.iterator._shutdown_workers()  # joins workers and calls torch._C._remove_worker_pids
-        except Exception:
-            pass
+        """Shut down persistent workers, unregistering them from torch's SIGCHLD watchdog before interpreter exit."""
+        if hasattr(self.iterator, "_workers"):
+            self.iterator._shutdown_workers()  # joins workers and calls torch._C._remove_worker_pids
 
     def reset(self):
         """Reset the iterator to allow modifications to the dataset during training."""
-        if hasattr(self.iterator, "_workers"):
-            self.iterator._shutdown_workers()  # free old worker pipes before creating new iterator
+        self.close()  # free old worker pipes before creating new iterator
         self.iterator = self._get_iterator()
 
 

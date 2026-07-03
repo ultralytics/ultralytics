@@ -44,6 +44,7 @@ anomaly_v2:
   test_mask_prior: false       # test prior=mask (mask_on)
   test_fit_cfg: ../../yoloa_fit_default.yaml
 
+
   # new augs, turned off by default for now
   mask_fragment_p: 0.0
   mask_fragment_n: 4
@@ -54,7 +55,7 @@ anomaly_v2:
   mask_coherent_noise_sigma: [0.05, 0.15]
   mask_bg_blobs_amp: [0.05, 0.15]
   mask_coherent_noise_amp: [0.02, 0.06]
-  mask_floor: [0.01, 0.03]
+  mask_floor: [0.0, 0.0]
   # mask_bg_blobs_amp: [0.08, 0.20]
   # mask_coherent_noise_amp: [0.03, 0.08]
   # mask_floor: [0.02, 0.05]

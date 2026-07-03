@@ -469,7 +469,7 @@ def _run_multi_det(
             amp=True,
             seed=0,
             deterministic=True,
-            workers=2,
+            workers=4,
             data=str(ds_yaml),
             **det_args,
         )
@@ -645,7 +645,7 @@ def main(argv: list[str]) -> None:
         amp=True,
         seed=0,
         deterministic=True,
-        workers=2,
+        workers=4,
     )
     if mode == "inet_linear_probe":
         train_args.update(

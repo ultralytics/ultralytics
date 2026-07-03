@@ -133,7 +133,7 @@ def main(argv: list[str]) -> None:
         patience=100,
         batch=batch,
         imgsz=224,
-        workers=2,
+        workers=4,
         pretrained=False,
         optimizer="MuSGD",
         seed=0,

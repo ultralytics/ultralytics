@@ -130,7 +130,7 @@ def check_file_speeds(
         avg_speed = float("inf")
         speed_msg = ""
 
-    if avg_ping < threshold_ms or avg_speed < threshold_mb:
+    if avg_ping < threshold_ms and avg_speed > threshold_mb:
         LOGGER.info(f"{prefix}Fast image access ✅ ({ping_msg}{speed_msg}{size_msg})")
     else:
         LOGGER.warning(

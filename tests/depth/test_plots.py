@@ -97,3 +97,9 @@ def test_final_eval_plots_only_representative_checkpoint(tmp_path, monkeypatch):
     t.args.plots = False  # plots disabled -> calibrate both, plot neither
     t.final_eval()
     assert calls == [("best.pt", None), ("last.pt", None)]
+
+    calls.clear()
+    t.args.plots = True
+    t.best.unlink()  # best never saved -> last.pt becomes the representative checkpoint
+    t.final_eval()
+    assert calls == [("last.pt", tmp_path)]

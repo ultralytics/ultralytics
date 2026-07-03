@@ -324,7 +324,7 @@ def _plot_calibrated_batches(model, dataloader, device, a, b, name, plot_dir, ma
             raw = _extract(model(img)).float()
             if raw.ndim == 3:
                 raw = raw.unsqueeze(1)
-            cal = torch.exp(a * torch.log(raw.clamp(min=1e-6)) + b)
+            cal = torch.exp(a * torch.log(raw.clamp(min=1e-3)) + b)
             plot_depth_panels(
                 img, gt, [raw, cal], plot_dir / f"val_batch{ni}_calibrated.jpg",
                 titles=titles, max_images=max_images,
@@ -371,5 +371,6 @@ def calibrate_checkpoint(ckpt_path, dataloader, device, dist_power: float = 0.0,
     if plot_dir is not None:
         try:
             _plot_calibrated_batches(work, dataloader, device, a, b, res["name"], plot_dir)
+            LOGGER.info(f"Calibrated val_batch plots written to {plot_dir}")
         except Exception as e:
             LOGGER.warning(f"Calibrated val plots skipped ({type(e).__name__}: {e})")

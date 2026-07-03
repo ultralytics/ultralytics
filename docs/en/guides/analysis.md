@@ -42,36 +42,36 @@ Each label keeps its original fields (`im_file`, `cls`, `bboxes`, ...) and gains
 
 ```json
 {
-  "im_file": "000000000196.jpg",
-  "im_properties": {
-    "brightness": 0.3564,
-    "blurriness": 0.0005,
-    "contrast": 0.1976,
-    "dark_pixel_ratio": 0.1134,
-    "bright_pixel_ratio": 0.0009,
-    "entropy": 7.5621,
-    "edge_density": 0.1452,
-    "sharpness": 84.9387,
-    "width": 640,
-    "height": 480,
-    "aspect_ratio": 1.3333,
-    "total_pixels": 307200,
-    "num_objects": 42,
-    "num_small": 15,
-    "num_medium": 18,
-    "num_large": 9,
-    "small_object_ratio": 0.3571,
-    "num_near_edge": 10,
-    "mean_center_x": 0.5615,
-    "mean_center_y": 0.6068,
-    "center_spread": 0.3384,
-    "box_area_std_norm": 0.1379,
-    "object_scale_variance": 3.6724,
-    "num_classes_present": 6,
-    "class_entropy": 2.1833,
-    "max_pairwise_iou": 0.5004,
-    "mean_pairwise_iou": 0.0063
-  }
+    "im_file": "000000000196.jpg",
+    "im_properties": {
+        "brightness": 0.3564,
+        "blurriness": 0.0005,
+        "contrast": 0.1976,
+        "dark_pixel_ratio": 0.1134,
+        "bright_pixel_ratio": 0.0009,
+        "entropy": 7.5621,
+        "edge_density": 0.1452,
+        "sharpness": 84.9387,
+        "width": 640,
+        "height": 480,
+        "aspect_ratio": 1.3333,
+        "total_pixels": 307200,
+        "num_objects": 42,
+        "num_small": 15,
+        "num_medium": 18,
+        "num_large": 9,
+        "small_object_ratio": 0.3571,
+        "num_near_edge": 10,
+        "mean_center_x": 0.5615,
+        "mean_center_y": 0.6068,
+        "center_spread": 0.3384,
+        "box_area_std_norm": 0.1379,
+        "object_scale_variance": 3.6724,
+        "num_classes_present": 6,
+        "class_entropy": 2.1833,
+        "max_pairwise_iou": 0.5004,
+        "mean_pairwise_iou": 0.0063
+    }
 }
 ```
 

@@ -87,7 +87,7 @@ def test_select_device(monkeypatch):
     # '-1' idle-GPU auto-selection searches only externally visible GPUs and translates physical ids to torch indices
     from ultralytics.utils import autodevice
 
-    monkeypatch.setattr(autodevice.GPUInfo, "__init__", lambda self: None)
+    monkeypatch.setattr(autodevice.GPUInfo, "__init__", lambda self: self.__dict__.update(nvml_available=False))
     monkeypatch.setattr(
         autodevice.GPUInfo,
         "select_idle_gpu",

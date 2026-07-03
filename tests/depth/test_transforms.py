@@ -1,10 +1,10 @@
 import numpy as np
 
-from ultralytics.data.augment import DepthColorJitter, DepthFormat, DepthRandomFlip, DepthRandomScale, RandomPerspective
+from ultralytics.data.augment import DepthColorJitter, DepthFormat, DepthRandomFlip, RandomPerspective
 
 
 def test_depth_transforms_live_in_augment():
-    from ultralytics.data.augment import DepthFormat, DepthRandomFlip, DepthRandomScale, DepthColorJitter  # noqa: F401
+    from ultralytics.data.augment import DepthFormat, DepthRandomFlip, DepthColorJitter  # noqa: F401
 
     img = np.zeros((32, 32, 3), dtype=np.uint8)
     depth = np.ones((32, 32), dtype=np.float32)
@@ -20,13 +20,6 @@ def test_depth_random_flip_flips_both():
     out = DepthRandomFlip(p=1.0)({"img": img.copy(), "depth": depth.copy()})
     assert np.array_equal(out["img"], np.ascontiguousarray(np.fliplr(img)))
     assert np.array_equal(out["depth"], np.ascontiguousarray(np.fliplr(depth)))
-
-
-def test_depth_random_scale_outputs_target_size():
-    img = np.zeros((40, 40, 3), dtype=np.uint8)
-    depth = np.ones((40, 40), dtype=np.float32)
-    out = DepthRandomScale(scale_range=(1.5, 1.5), target_size=32, p=1.0)({"img": img, "depth": depth})
-    assert out["img"].shape[:2] == out["depth"].shape[:2]
 
 
 def test_depth_color_jitter_preserves_shape_and_dtype():
@@ -53,20 +46,22 @@ def test_depth_format_resize_does_not_blend_sparse_depth():
     assert blended == 0, f"{blended} spurious blended depth pixels from interpolation"
 
 
-def test_depth_random_scale_does_not_blend_sparse_depth():
-    """DepthRandomScale resize must preserve sparse-depth values (no bilinear blend)."""
-    img = np.zeros((40, 40, 3), dtype=np.uint8)
-    depth = _sparse_depth(40, 40, val=10.0)
-    out = DepthRandomScale(scale_range=(1.5, 1.5), target_size=32, p=1.0)({"img": img, "depth": depth})["depth"]
-    blended = ((out > 1e-6) & (out < 9.0)).sum()
-    assert blended == 0, f"{blended} spurious blended depth pixels from interpolation"
-
-
 def test_random_perspective_warps_depth_with_nearest_interpolation():
-    """RandomPerspective should warp depth without inventing intermediate sparse values."""
+    """RandomPerspective should warp depth without inventing intermediate sparse values.
+
+    Labels carry empty cls/instances like DepthDataset provides (depth label files are
+    backgrounds) — RandomPerspective.apply_instances requires both keys unconditionally.
+    """
+    from ultralytics.utils.instance import Instances
+
     img = np.zeros((16, 16, 3), dtype=np.uint8)
     depth = _sparse_depth(16, 16, val=10.0)
-    labels = {"img": img.copy(), "depth": depth.copy()}
+    labels = {
+        "img": img.copy(),
+        "depth": depth.copy(),
+        "cls": np.zeros((0, 1), dtype=np.float32),
+        "instances": Instances(np.zeros((0, 4), dtype=np.float32), segments=np.zeros((0, 1000, 2), dtype=np.float32)),
+    }
     transform = RandomPerspective(
         degrees=0.0,
         translate=0.0,

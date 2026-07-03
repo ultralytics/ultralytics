@@ -29,7 +29,6 @@ from .augment import (
     DepthColorJitter,
     DepthFormat,
     DepthRandomFlip,
-    DepthRandomScale,
     Format,
     LetterBox,
     RandomLoadText,

@@ -73,16 +73,17 @@ def _transform_names(augment):
 
 
 def test_depth_val_transforms_have_no_augmentation():
-    """Validation (augment=False) must be deterministic: no random scale/crop, flip, or jitter."""
+    """Validation (augment=False) must be deterministic: no random warp, flip, or jitter."""
     names = _transform_names(augment=False)
-    assert "DepthRandomScale" not in names
+    assert "RandomPerspective" not in names
     assert "DepthRandomFlip" not in names
     assert "DepthColorJitter" not in names
     assert "DepthFormat" in names               # still formats img/depth to tensors
 
 
 def test_depth_train_transforms_include_augmentation():
-    """Training (augment=True) keeps the augmentation pipeline."""
+    """Training (augment=True) keeps the augmentation pipeline (perspective-safe affine warp)."""
     names = _transform_names(augment=True)
-    assert "DepthRandomScale" in names
+    assert "RandomPerspective" in names
+    assert "DepthRandomFlip" in names
     assert "DepthFormat" in names

@@ -89,13 +89,16 @@ def test_select_device(monkeypatch):
 
     monkeypatch.setattr(autodevice.GPUInfo, "__init__", lambda self: None)
     monkeypatch.setattr(
-        autodevice.GPUInfo, "select_idle_gpu", lambda self, indices=None, **kw: [i for i in (0, 3) if i in indices]
+        autodevice.GPUInfo,
+        "select_idle_gpu",
+        lambda self, count=1, indices=None, **kw: [i for i in (0, 1, 3) if i in indices][:count],
     )
     monkeypatch.setattr(torch_utils.torch.cuda, "device_count", lambda: 2)
     monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "1,3")
-    assert torch_utils.parse_device("-1") == "1"  # physical GPU 3 is torch index 1 under CVD='1,3'; hidden 0 excluded
-    assert torch_utils.parse_device("1") == "0"  # ids matching visible physical GPUs resolve as physical GPU ids
-    assert torch_utils.parse_device("-1,1") == "1,0"  # mixed auto + explicit physical ids translate together
+    assert torch_utils.parse_device("-1") == "0"  # idle physical GPU 1 is torch index 0 under CVD='1,3'; 0 is hidden
+    assert torch_utils.parse_device("1") == "1"  # in-range ids are torch indices, so repeated parses are stable
+    assert torch_utils.parse_device("-1,3") == "0,1"  # mixed: idle physical GPU 1 + physical GPU 3 as torch indices
+    assert torch_utils.parse_device("0,1") == "0,1"  # already-translated outputs re-parse unchanged (idempotent)
 
 
 def test_model_forward():

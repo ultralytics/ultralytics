@@ -152,11 +152,12 @@ def parse_device(device: str | int | list | tuple | torch.device = "") -> str:
         '0,1'
 
     Notes:
-        Each '-1' is replaced with an idle GPU index. When an external CUDA_VISIBLE_DEVICES restriction is active and
-        every requested id matches a visible physical GPU id, ids resolve as physical GPU ids and are translated to
-        the corresponding torch indices, e.g. '3' -> '0' when CUDA_VISIBLE_DEVICES='3'; all other requests are torch
-        indices. Returned indices are relative to the active restriction, so strings persisted under one environment
-        (e.g. resumed checkpoint args) address the same physical GPUs only in that environment.
+        Each '-1' is replaced with an idle GPU index. Requested ids exceeding the torch device count that match
+        physical GPU ids visible under an external CUDA_VISIBLE_DEVICES restriction are translated to the
+        corresponding torch indices, e.g. '3' -> '0' when CUDA_VISIBLE_DEVICES='3'; in-range ids are always torch
+        indices, keeping parsing idempotent. Returned indices are relative to the active restriction, so strings
+        persisted under one environment (e.g. resumed checkpoint args) address the same physical GPUs only in that
+        environment.
     """
     device = str(device).lower()
     for remove in "cuda:", "none", "(", ")", "[", "]", "'", " ":
@@ -165,21 +166,24 @@ def parse_device(device: str | int | list | tuple | torch.device = "") -> str:
         device = "0"
     device = ",".join(str(int(x)) if x.isdigit() else x for x in device.split(",") if x)  # "0,,01" -> "0,1"
     visible = [x for x in os.environ.get("CUDA_VISIBLE_DEVICES", "").replace(" ", "").split(",") if x]
+    indices = [x for x in device.split(",") if x.isdigit()]  # requested ids, excluding '-1' and non-numeric tokens
+    if indices and all(x in visible for x in indices) and any(int(x) >= torch.cuda.device_count() for x in indices):
+        # Ids exceeding the torch device count can only be physical GPU ids under an external CUDA_VISIBLE_DEVICES
+        # restriction -> translate to torch indices; in-range ids are torch indices, keeping repeated parses stable
+        device = ",".join(str(visible.index(x)) if x.isdigit() else x for x in device.split(","))
     if "-1" in device:
         from ultralytics.utils.autodevice import GPUInfo
 
-        # Replace each -1 with an idle GPU (physical NVML id) or remove it, searching only externally visible GPUs
+        # Replace each -1 with an idle GPU or remove it; GPUInfo searches physical NVML ids among externally visible
+        # GPUs only, translated back to torch indices under a CUDA_VISIBLE_DEVICES restriction
         parts = device.split(",")
         candidates = [int(x) for x in visible if x.isdigit()] if visible else None
         selected = GPUInfo().select_idle_gpu(count=parts.count("-1"), min_memory_fraction=0.2, indices=candidates)
+        selected = [visible.index(str(x)) for x in selected] if visible else selected
         for i in range(len(parts)):
             if parts[i] == "-1":
                 parts[i] = str(selected.pop(0)) if selected else ""
         device = ",".join(p for p in parts if p)
-    indices = device.split(",")
-    if device and all(x.isdigit() for x in indices) and all(x in visible for x in indices):
-        # All requested ids match externally visible physical GPU ids -> translate to torch indices, e.g. '3' -> '0'
-        device = ",".join(str(visible.index(x)) for x in indices)
     return device
 
 

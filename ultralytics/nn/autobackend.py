@@ -305,7 +305,7 @@ class AutoBackend(nn.Module):
         from ultralytics.utils.nms import non_max_suppression
 
         if not self.end2end:
-            import torchvision  # noqa: F401
+            import torchvision  # noqa (import here triggers torchvision NMS use in nms.py)
         if self.format in {"pt", "torchscript", "onnx", "engine", "saved_model", "pb", "triton"} and (
             self.device.type != "cpu" or self.format == "triton"
         ):

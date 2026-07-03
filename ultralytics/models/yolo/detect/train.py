@@ -191,6 +191,8 @@ class DetectionTrainer(BaseTrainer):
         e2e = getattr(self.args, "o2m", True) and getattr(unwrap_model(self.model), "end2end", False)
         if e2e and getattr(self.args, "distill", 0.0):
             self.loss_names += ("distill_loss",)
+        if e2e and getattr(self.args, "rank", 0.0):
+            self.loss_names += ("rank_loss",)
         return yolo.detect.DetectionValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )

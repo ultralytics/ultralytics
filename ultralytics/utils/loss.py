@@ -332,6 +332,82 @@ class KeypointLoss(nn.Module):
         return (kpt_loss_factor.view(-1, 1) * ((1 - torch.exp(-e)) * kpt_mask)).mean()
 
 
+class RankLoss(nn.Module):
+    """RS-style ranking loss (pairwise surrogate) for the one2one classification head.
+
+    Two terms, both active only where the ranking is violated, so healthy positives contribute ~0 loss. This
+    re-ranks rather than globally inflating scores: it lifts lagging positives, keeps suppressing runner-up negatives,
+    and leaves already-correct rankings untouched, preserving accuracy and the NMS-free property.
+
+    - rank: pushes each positive (TP) above the same-class negatives — directly rescues the "dead tail".
+    - sort: orders positives by IoU so higher-IoU anchors score higher.
+
+    Attributes:
+        tau (float): Temperature; smaller approaches hard ranking.
+        k_neg (int): Per image/class, keep only the top-K highest-scoring negatives (the real ranking threats).
+        w_sort (float): Weight of the sort term relative to the rank term.
+    """
+
+    def __init__(self, tau: float = 0.5, k_neg: int = 100, w_sort: float = 0.5):
+        """Initialize the ranking loss with temperature, hard-negative count and sort-term weight."""
+        super().__init__()
+        self.tau = tau
+        self.k_neg = k_neg
+        self.w_sort = w_sort
+
+    def forward(self, pred_logits: torch.Tensor, target_scores: torch.Tensor) -> torch.Tensor:
+        """Compute the ranking loss over one2one positives against same-class negatives.
+
+        Args:
+            pred_logits (torch.Tensor): Classification logits with shape (bs, num_anchors, nc).
+            target_scores (torch.Tensor): One2one soft targets with shape (bs, num_anchors, nc); each positive holds
+                its GT-class IoU in the GT-class channel and 0 elsewhere.
+
+        Returns:
+            (torch.Tensor): Scalar ranking loss (0 when no positive/negative pairs exist).
+        """
+        scores = pred_logits.sigmoid()
+        _, N, nc = scores.shape
+        pos = target_scores > 0
+        pos_idx = pos.nonzero(as_tuple=False)  # (M, 3): image, anchor, class
+        if pos_idx.numel() == 0:
+            return pred_logits.new_zeros((), dtype=torch.float32)
+        b_id, c_id = pos_idx[:, 0], pos_idx[:, 2]
+        # fp32 for AMP-safe pairwise math (scores are fp16 under autocast, target_scores fp32); big tensors stay fp16
+        s_pos, iou = scores[pos].float(), target_scores[pos].float()  # (M,)
+        M = s_pos.numel()
+
+        # Compact (image, class) group ids and per-group positive counts
+        _, inv = torch.unique(b_id * nc + c_id, return_inverse=True)  # inv: (M,) group id in [0, G)
+        counts = torch.bincount(inv)  # (G,)
+        G = counts.numel()
+
+        # rank: each positive vs its group's top-K same-class negatives (one batched topk over all groups)
+        k = min(self.k_neg, N)
+        neg_topk = scores.masked_fill(pos, float("-inf")).topk(k, dim=1).values  # (B, k, nc)
+        neg = neg_topk[b_id, :, c_id].float()  # (M, k) each positive's hard negatives
+        kcnt = neg.isfinite().sum(1).clamp(min=1)  # valid negatives per positive
+        per_pos = F.softplus((neg - s_pos[:, None]) / self.tau).sum(1) / kcnt  # (M,) mean over negatives
+        group_rank = per_pos.new_zeros(G).scatter_add_(0, inv, per_pos) / counts  # (G,) per-group mean
+        total_rank = group_rank.sum()
+
+        # sort: within a group, higher-IoU positives must score higher (padded (G, Pmax, Pmax), P==1 groups give 0)
+        total_sort = s_pos.new_zeros(())
+        if counts.max() > 1:
+            pmax = int(counts.max())
+            order = torch.argsort(inv, stable=True)  # cluster positives by group
+            inv_s = inv[order]
+            within = torch.arange(M, device=scores.device) - (counts.cumsum(0) - counts)[inv_s]
+            pad_s, pad_i = s_pos.new_zeros(G, pmax), s_pos.new_zeros(G, pmax)
+            valid = torch.zeros(G, pmax, dtype=torch.bool, device=scores.device)
+            pad_s[inv_s, within], pad_i[inv_s, within], valid[inv_s, within] = s_pos[order], iou[order], True
+            di = (pad_s[:, None, :] - pad_s[:, :, None]) / self.tau  # [g, i, k] = s_k - s_i
+            wi = (pad_i[:, :, None] - pad_i[:, None, :]).clamp(min=0) * (valid[:, :, None] & valid[:, None, :])
+            total_sort = ((wi * F.softplus(di)).sum((1, 2)) / wi.sum((1, 2)).clamp(min=1)).sum()
+
+        return (total_rank + self.w_sort * total_sort) / G
+
+
 class v8DetectionLoss:
     """Criterion class for computing training losses for YOLOv8 object detection."""
 
@@ -504,6 +580,8 @@ class v8DetectionLoss:
         loss[0] *= self.hyp.box  # box gain
         loss[1] *= self.hyp.cls  # cls gain
         loss[2] *= self.hyp.dfl  # dfl gain
+        if getattr(self, "rank", None) is not None:  # store the o2o ranking loss; E2ELoss reports it as its own term
+            self.rank_loss = self.rank(pred_scores, target_scores)
         return (
             (fg_mask, target_gt_idx, target_bboxes, anchor_points, stride_tensor),
             loss,
@@ -1273,6 +1351,10 @@ class E2ELoss:
         self.distill = getattr(model.args, "distill", 0.0)
         if self.distill:
             self.one2one.assigner.distill = True  # cache the positive x GT-class mask during assignment
+        # one2one-only ranking regularizer (RS-style pairwise surrogate), folded into the o2o cls loss
+        if getattr(model.args, "rank", 0.0):
+            self.one2one.rank = RankLoss()
+            self.one2one.rank_gain = model.args.rank
 
     def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""
@@ -1295,6 +1377,10 @@ class E2ELoss:
             )
             total = torch.cat((total, (self.o2o * distill * batch_size).view(1)))
             loss_items = torch.cat((loss_items, distill.detach().view(1)))
+        if getattr(self.one2one, "rank", None) is not None:  # RS-style ranking regularizer on the one2one cls head
+            rank = self.one2one.rank_gain * self.one2one.rank_loss
+            total = torch.cat((total, (self.o2o * rank * batch_size).view(1)))
+            loss_items = torch.cat((loss_items, rank.detach().view(1)))
         return total, loss_items
 
     @staticmethod

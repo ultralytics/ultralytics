@@ -114,6 +114,7 @@ o2f_min_t: 0.2 # (float) when o2f=True, final ambiguous-anchor positive degree (
 o2m: True # (bool) train the auxiliary one2many head (False = train the one2one branch only)
 o24: False # (bool) aux head uses o2o-style 1:1 matching on 4x-duplicated GTs instead of one2many
 distill: 0.0 # (float) online cls distillation gain: pull one2one cls toward one2many at one2one positives (0=off)
+rank: 0.0 # (float) one2one ranking-loss gain (RS-style pairwise surrogate, folded into the one2one cls loss; 0=off)
 dfl: 1.5 # (float) distribution focal loss gain
 l1_feat: False # (bool) when reg_max=1, compute box L1 loss in feature-map (grid) scale instead of image-normalized
 smooth_l1: False # (bool) when reg_max=1, use Smooth L1 (Huber) loss for box regression instead of L1

@@ -211,6 +211,7 @@ def select_device(device="", newline=False, verbose=True):
 
     cpu = device == "cpu"
     mps = device in {"mps", "mps:0"}  # Apple Metal Performance Shaders (MPS)
+    remap = not torch.cuda.is_initialized()  # CUDA_VISIBLE_DEVICES remapping only applies before CUDA init
     if cpu or mps:
         os.environ["CUDA_VISIBLE_DEVICES"] = ""  # force torch.cuda.is_available() = False
     elif device:  # non-cpu device requested
@@ -219,8 +220,14 @@ def select_device(device="", newline=False, verbose=True):
         if "," in device:
             device = ",".join([x for x in device.split(",") if x])  # remove sequential commas, i.e. "0,,1" -> "0,1"
         visible = os.environ.get("CUDA_VISIBLE_DEVICES", None)
+        remap = remap or visible == device  # CVD applied at CUDA init (e.g. earlier call) -> indices already remapped
         os.environ["CUDA_VISIBLE_DEVICES"] = device  # set environment variable - must be before assert is_available()
-        if not (torch.cuda.is_available() and torch.cuda.device_count() >= len(device.split(","))):
+        valid = (
+            torch.cuda.device_count() >= len(device.split(","))
+            if remap
+            else all(x.isdigit() and int(x) < torch.cuda.device_count() for x in device.split(","))
+        )
+        if not (torch.cuda.is_available() and valid):
             LOGGER.info(s)
             install = (
                 "See https://pytorch.org/get-started/locally/ for up-to-date torch install instructions if no "
@@ -242,8 +249,8 @@ def select_device(device="", newline=False, verbose=True):
         devices = device.split(",") if device else "0"  # i.e. "0,1" -> ["0", "1"]
         space = " " * len(s)
         for i, d in enumerate(devices):
-            s += f"{'' if i == 0 else space}CUDA:{d} ({get_gpu_info(i)})\n"  # bytes to MB
-        arg = "cuda:0"
+            s += f"{'' if i == 0 else space}CUDA:{d} ({get_gpu_info(i if remap else int(d))})\n"  # bytes to MB
+        arg = "cuda:0" if remap else f"cuda:{devices[0]}"
     elif mps and TORCH_2_0 and torch.backends.mps.is_available():
         # Prefer MPS if available
         s += f"MPS ({get_cpu_info()})\n"
@@ -887,13 +894,17 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
                     tb += (t[2] - t[1]) * 1000 / n  # ms per op backward
                     if max_num_obj:  # simulate training with predictions per image grid (for AutoBatch)
                         with cuda_memory_usage(device) as cuda_info:
-                            torch.randn(
-                                x.shape[0],
-                                max_num_obj,
-                                int(sum((x.shape[-1] / s) * (x.shape[-2] / s) for s in m.stride.tolist())),
-                                device=device,
-                                dtype=torch.float32,
+                            anchors = int(sum((x.shape[-1] / s) * (x.shape[-2] / s) for s in m.stride.tolist()))
+                            # Envelope of the detect-loss memory peaks: TaskAlignedAssigner.get_box_metrics holds ~6
+                            # simultaneous (bs, max_num_obj, anchors) fp32 buffers (mask_in_gts, overlaps, bbox_scores,
+                            # gathered pd_scores, pow temps + align_metric); the cls path holds ~6 (bs, anchors, nc)
+                            # fp32-equivalents (int64 target_scores + torch.where output, fg_scores_mask, then
+                            # pred/target/unreduced-BCE in v8DetectionLoss)
+                            sim = (
+                                torch.randn(x.shape[0], 6 * max_num_obj, anchors, device=device, dtype=torch.float32),
+                                torch.randn(x.shape[0], anchors, 6 * len(m.names), device=device, dtype=torch.float32),
                             )
+                        del sim
                         mem += cuda_info["memory"] / 1e9  # (GB)
                 s_in, s_out = (tuple(x.shape) if isinstance(x, torch.Tensor) else "list" for x in (x, y))  # shapes
                 p = sum(x.numel() for x in m.parameters()) if isinstance(m, nn.Module) else 0  # parameters

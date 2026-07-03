@@ -255,6 +255,8 @@ class RLELoss(nn.Module):
 class RotatedBboxLoss(BboxLoss):
     """Criterion class for computing training losses for rotated bounding boxes."""
 
+    floor = 0.01
+
     def __init__(self, reg_max: int):
         """Initialize the RotatedBboxLoss module with regularization maximum and DFL settings."""
         super().__init__(reg_max)
@@ -273,7 +275,7 @@ class RotatedBboxLoss(BboxLoss):
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """Compute IoU and DFL losses for rotated bounding boxes."""
         weight = target_scores.sum(-1)[fg_mask].unsqueeze(-1)
-        iou = probiou(pred_bboxes[fg_mask], target_bboxes[fg_mask])
+        iou = probiou(pred_bboxes[fg_mask], target_bboxes[fg_mask], floor=self.floor)
         loss_iou = ((1.0 - iou) * weight).sum() / target_scores_sum
 
         # DFL loss
@@ -1084,8 +1086,6 @@ class v8OBBLoss(v8DetectionLoss):
             targets = self.preprocess(targets.to(self.device), batch_size, scale_tensor=imgsz[[1, 0, 1, 0]])
             gt_labels, gt_bboxes = targets.split((1, 5), 2)  # cls, xywhr
             mask_gt = gt_bboxes.sum(2, keepdim=True).gt_(0.0)
-            wh = gt_bboxes[..., 2:4]
-            wh.masked_fill_((wh < self.stride[0]) & mask_gt.bool(), self.assigner.stride_val)
         except RuntimeError as e:
             raise TypeError(
                 "ERROR ❌ OBB dataset incorrectly formatted or not a OBB dataset.\n"

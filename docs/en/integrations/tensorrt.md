@@ -269,6 +269,16 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
 - **Hardware dependency:** Calibration and performance gains could be highly hardware dependent and model weights are less transferable.
 
+#### YOLO26 INT8 Sigmoid/Softmax preservation
+
+YOLO26's one-to-one detection head produces moderate logits (0-3) in the sigmoid's steep region, making confidence scores sensitive to INT8 quantization error. **Sigmoid and Softmax layers are excluded from INT8 quantization** to preserve score calibration. On TensorRT 11+ (ModelOpt Q/DQ path), both are passed to `op_types_to_exclude`. On TensorRT 10 (implicit quantization path), per-layer precision constraints force them to FP32. This mirrors the OpenVINO INT8 exporter's `IgnoredScope(types=["Sigmoid"])`.
+
+The excluded op types are defined in `_FP32_PRESERVED_OPS` (`ultralytics/utils/export/engine.py`). To override which nonlinearities are preserved, modify this constant — for example, to also preserve `Tanh` for pose angle prediction, add it to both `_FP32_PRESERVED_OPS` and `_FP32_PRESERVED_ACTIVATIONS`.
+
+!!! tip "Choosing a confidence threshold for INT8 models"
+
+    INT8 quantization can shift the absolute magnitude of confidence scores even when ranking (mAP) is preserved. Always read the operating confidence threshold from the INT8 model's own [F1 curve](../guides/yolo-performance-metrics.md) rather than reusing a threshold tuned on an FP16 or FP32 model.
+
 ## Ultralytics YOLO TensorRT Export Performance
 
 ### NVIDIA A100

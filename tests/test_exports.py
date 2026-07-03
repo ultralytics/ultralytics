@@ -121,6 +121,370 @@ def test_modelopt_quantize_onnx_requires_int8_dataset():
         modelopt_quantize_onnx("model.onnx", quantize=8)
 
 
+def test_modelopt_quantize_onnx_excludes_sigmoid(monkeypatch):
+    """Verify that INT8 ModelOpt quantization excludes precision-sensitive ops from quantization.
+
+    Monkeypatches modelopt.quantize to capture the actual kwargs passed, confirming
+    op_types_to_exclude includes Sigmoid and Softmax.
+    See https://github.com/ultralytics/ultralytics/issues/24668
+    """
+    from ultralytics.utils.export.engine import _FP32_PRESERVED_OPS
+
+    # The constant should include both Sigmoid and Softmax
+    assert "Sigmoid" in _FP32_PRESERVED_OPS, "op_types_to_exclude should include 'Sigmoid'"
+    assert "Softmax" in _FP32_PRESERVED_OPS, "op_types_to_exclude should include 'Softmax'"
+
+    # Stub check_requirements so it doesn't trigger a network install attempt in CI/local
+    monkeypatch.setattr("ultralytics.utils.export.engine.check_requirements", lambda *a, **k: None)
+
+    # Monkeypatch modelopt.quantize to capture kwargs without actually running it
+    captured = {}
+
+    def fake_quantize(*args, **kwargs):
+        captured.update(kwargs)
+        # Write a dummy file so the caller doesn't fail
+        out = kwargs.get("output_path", "dummy.int8.onnx")
+        Path(out).touch()
+        return out
+
+    # modelopt_quantize_onnx imports modelopt.quantize at call time, so patch sys.modules
+    fake_module = SimpleNamespace(quantize=fake_quantize)
+    monkeypatch.setitem(sys.modules, "modelopt.onnx.quantization", fake_module)
+    # Also need onnx since the function imports it at the top
+    import onnx
+
+    monkeypatch.setattr(
+        onnx, "load", lambda *a, **k: SimpleNamespace(graph=SimpleNamespace(input=[SimpleNamespace(name="images")]))
+    )
+    monkeypatch.setattr(onnx, "save", lambda *a, **k: None)
+
+    # Create a dummy ONNX file to satisfy the path check
+    import tempfile
+
+    with tempfile.NamedTemporaryFile(suffix=".onnx", delete=False) as f:
+        onnx_path = f.name
+    try:
+        modelopt_quantize_onnx(onnx_path, quantize=8, dataset=iter([{"img": torch.zeros(1, 3, 8, 8)}]))
+        # Verify op_types_to_exclude was actually passed with the right values
+        assert "op_types_to_exclude" in captured, "modelopt.quantize should receive op_types_to_exclude"
+        assert set(captured["op_types_to_exclude"]) == set(_FP32_PRESERVED_OPS), (
+            f"op_types_to_exclude should match _FP32_PRESERVED_OPS, got {captured['op_types_to_exclude']}"
+        )
+    finally:
+        Path(onnx_path).unlink(missing_ok=True)
+        Path(onnx_path.replace(".onnx", ".int8.onnx")).unlink(missing_ok=True)
+
+
+def test_trt10_constrain_sensitive_activations_call_site(monkeypatch):
+    """Verify that onnx2engine calls the constraint helper only for TRT 10 INT8.
+
+    Monkeypatches _constrain_sensitive_activations_fp32 and tensorrt to verify
+    the helper is invoked when use_int8=True and is_trt11=False, and NOT invoked
+    for FP16 or TRT 11+.
+    See https://github.com/ultralytics/ultralytics/issues/24668
+    """
+    import onnx
+    from onnx import TensorProto, helper
+    from unittest.mock import MagicMock
+
+    from ultralytics.utils.export.engine import onnx2engine
+
+    # Create a minimal valid ONNX model
+    inp = helper.make_tensor_value_info("images", TensorProto.FLOAT, [1, 3, 8, 8])
+    out = helper.make_tensor_value_info("output0", TensorProto.FLOAT, [1, 1, 8, 8])
+    graph = helper.make_graph([], "test", [inp], [out])
+    model = helper.make_model(graph)
+    import tempfile
+
+    with tempfile.NamedTemporaryFile(suffix=".onnx", delete=False) as f:
+        onnx.save(model, f.name)
+        onnx_path = f.name
+
+    # Track calls to the constraint helper
+    call_count = {"n": 0}
+
+    def fake_constrain(network, config, trt, prefix=""):
+        call_count["n"] += 1
+        return 0
+
+    monkeypatch.setattr("ultralytics.utils.export.engine._constrain_sensitive_activations_fp32", fake_constrain)
+
+    # Build a comprehensive fake tensorrt module
+    def make_fake_trt(version="10.7.0"):
+        fake_config = MagicMock()
+        fake_config.set_flag = MagicMock()
+        fake_config.profiling_verbosity = MagicMock()
+        fake_config.int8_calibrator = None
+        fake_config.add_optimization_profile = MagicMock()
+        fake_config.set_calibration_profile = MagicMock()
+        fake_config.default_device_type = None
+        fake_config.DLA_core = None
+
+        fake_network = MagicMock()
+        fake_network.num_inputs = 1
+        fake_network.num_outputs = 1
+        fake_network.num_layers = 0
+        fake_input = MagicMock(name="images", shape=[1, 3, 8, 8], dtype="float32")
+        fake_output = MagicMock(name="output0", shape=[1, 1, 8, 8], dtype="float32")
+        fake_network.get_input = MagicMock(return_value=fake_input)
+        fake_network.get_output = MagicMock(return_value=fake_output)
+        fake_network.get_layer = MagicMock()
+
+        fake_builder = MagicMock()
+        fake_builder.create_builder_config = MagicMock(return_value=fake_config)
+        fake_builder.create_network = MagicMock(return_value=fake_network)
+        fake_builder.build_serialized_network = MagicMock(return_value=b"\x00" * 8)
+        fake_builder.platform_has_fast_fp16 = True
+        fake_builder.platform_has_fast_int8 = True
+
+        fake_parser = MagicMock()
+        fake_parser.parse_from_file = MagicMock(return_value=True)
+
+        class FakeLogger:
+            INFO = 1
+
+            class Severity:
+                VERBOSE = 0
+
+            def __init__(self, *a, **k):
+                pass
+
+        class FakeIInt8Calibrator:
+            def __init__(self):
+                pass
+
+        trt = SimpleNamespace(
+            __version__=version,
+            Logger=FakeLogger,
+            Builder=MagicMock(return_value=fake_builder),
+            OnnxParser=MagicMock(return_value=fake_parser),
+            IInt8Calibrator=FakeIInt8Calibrator,
+            BuilderFlag=SimpleNamespace(
+                INT8=1,
+                FP16=2,
+                OBEY_PRECISION_CONSTRAINTS=3,
+                GPU_FALLBACK=4,
+                EXPLICIT_BATCH=5,
+            ),
+            LayerType=SimpleNamespace(ACTIVATION=1, SOFTMAX=2, CONVOLUTION=3),
+            ActivationType=SimpleNamespace(SIGMOID=10, RELU=12),
+            MemoryPoolType=SimpleNamespace(WORKSPACE=1),
+            NetworkDefinitionCreationFlag=SimpleNamespace(EXPLICIT_BATCH=1),
+            ProfilingVerbosity=SimpleNamespace(DETAILED=1),
+            CalibrationAlgoType=SimpleNamespace(ENTROPY_CALIBRATION_2=1, MINMAX_CALIBRATION=2),
+            DeviceType=SimpleNamespace(DLA=1),
+            float32="float32",
+        )
+        return trt
+
+    try:
+        # Fake dataset with batch_size attribute (needed by EngineCalibrator)
+        class FakeDataset:
+            batch_size = 1
+
+            def __iter__(self):
+                yield {"img": torch.zeros(1, 3, 8, 8)}
+
+        fake_dataset = FakeDataset()
+
+        # Case 1: INT8 on TRT 10 — helper SHOULD be called
+        call_count["n"] = 0
+        monkeypatch.setitem(sys.modules, "tensorrt", make_fake_trt("10.7.0"))
+        monkeypatch.setattr("ultralytics.utils.export.engine.check_version", lambda *a, **k: None)
+        monkeypatch.setattr("ultralytics.utils.export.engine.is_jetson", lambda **k: False)
+        monkeypatch.setattr("ultralytics.utils.export.engine.is_dgx", lambda: False)
+        monkeypatch.setattr("ultralytics.utils.export.engine.check_tensorrt", lambda *a, **k: None)
+        onnx2engine(onnx_path, quantize=8, dataset=fake_dataset, prefix="[TEST]")
+        assert call_count["n"] == 1, f"Helper should be called once for TRT 10 INT8, got {call_count['n']}"
+
+        # Case 2: FP16 on TRT 10 — helper should NOT be called
+        call_count["n"] = 0
+        onnx2engine(onnx_path, quantize=16, prefix="[TEST]")
+        assert call_count["n"] == 0, f"Helper should NOT be called for FP16, got {call_count['n']}"
+
+        # Case 3: INT8 on TRT 11 — helper should NOT be called (ModelOpt handles it)
+        call_count["n"] = 0
+        monkeypatch.setitem(sys.modules, "tensorrt", make_fake_trt("11.0.0"))
+        # TRT 11 path calls modelopt_quantize_onnx before parsing; stub it to just copy the file
+        monkeypatch.setattr("ultralytics.utils.export.engine.modelopt_quantize_onnx", lambda *a, **k: onnx_path)
+        onnx2engine(onnx_path, quantize=8, dataset=fake_dataset, prefix="[TEST]")
+        assert call_count["n"] == 0, f"Helper should NOT be called for TRT 11 INT8, got {call_count['n']}"
+    finally:
+        Path(onnx_path).unlink(missing_ok=True)
+
+
+def test_trt10_constrain_sensitive_activations_execution():
+    """Execute the TRT 10 Sigmoid/Softmax FP32 constraint logic with a stubbed tensorrt module.
+
+    Verifies that OBEY_PRECISION_CONSTRAINTS is set, Sigmoid (ACTIVATION) and Softmax (SOFTMAX)
+    layers are constrained to FP32, non-sensitive layers are left untouched, and the correct
+    count is returned — all without requiring a GPU or TensorRT installation.
+    See https://github.com/ultralytics/ultralytics/issues/24668
+    """
+    from unittest.mock import MagicMock
+
+    from ultralytics.utils.export.engine import _constrain_sensitive_activations_fp32
+
+    # Build a fake tensorrt module — Softmax is LayerType.SOFTMAX, not an ACTIVATION
+    fake_trt = SimpleNamespace(
+        BuilderFlag=SimpleNamespace(OBEY_PRECISION_CONSTRAINTS=999),
+        LayerType=SimpleNamespace(ACTIVATION=1, SOFTMAX=2, CONVOLUTION=3),
+        ActivationType=SimpleNamespace(SIGMOID=10, RELU=12),  # no SOFTMAX in ActivationType
+        float32="float32",
+        IActivationLayer=None,  # simulate TRT 10.7+ where cast constructor is unavailable
+    )
+
+    # Fake layers: Sigmoid (ACTIVATION), Softmax (SOFTMAX), ReLU (ACTIVATION), Conv (CONVOLUTION)
+    sigmoid_layer = MagicMock(name="Sigmoid_0")
+    sigmoid_layer.type = fake_trt.LayerType.ACTIVATION
+    sigmoid_layer.num_outputs = 1
+    sigmoid_layer.name = "Sigmoid_0"
+
+    softmax_layer = MagicMock(name="Softmax_0")
+    softmax_layer.type = fake_trt.LayerType.SOFTMAX  # Softmax is a separate layer type in TRT
+    softmax_layer.num_outputs = 1
+    softmax_layer.name = "Softmax_0"
+
+    relu_layer = MagicMock(name="Relu_0")
+    relu_layer.type = fake_trt.LayerType.ACTIVATION
+    relu_layer.num_outputs = 1
+    relu_layer.name = "Relu_0"
+
+    conv_layer = MagicMock(name="Conv_0")
+    conv_layer.type = fake_trt.LayerType.CONVOLUTION
+    conv_layer.num_outputs = 1
+    conv_layer.name = "Conv_0"
+
+    fake_network = SimpleNamespace(
+        num_layers=4, get_layer=MagicMock(side_effect=[sigmoid_layer, softmax_layer, relu_layer, conv_layer])
+    )
+    fake_config = MagicMock()
+
+    count = _constrain_sensitive_activations_fp32(fake_network, fake_config, fake_trt, prefix="[TEST]")
+
+    # OBEY_PRECISION_CONSTRAINTS flag should be set
+    fake_config.set_flag.assert_called_once_with(fake_trt.BuilderFlag.OBEY_PRECISION_CONSTRAINTS)
+    # Sigmoid layer should be constrained to FP32
+    assert sigmoid_layer.precision == fake_trt.float32, "Sigmoid layer precision should be set to float32"
+    sigmoid_layer.set_output_type.assert_called_once_with(0, fake_trt.float32)
+    # Softmax layer should also be constrained to FP32 (it's LayerType.SOFTMAX, not ACTIVATION)
+    assert softmax_layer.precision == fake_trt.float32, "Softmax layer precision should be set to float32"
+    softmax_layer.set_output_type.assert_called_once_with(0, fake_trt.float32)
+    # Non-sensitive layers should NOT be constrained
+    relu_layer.set_output_type.assert_not_called()
+    conv_layer.set_output_type.assert_not_called()
+    # Count should be 2 (Sigmoid + Softmax)
+    assert count == 2, f"Expected 2 constrained layers (Sigmoid + Softmax), got {count}"
+    # Log which layers were constrained for reviewer visibility
+    constrained = [sigmoid_layer.name, softmax_layer.name]
+    print(f"\nConstrained layers ({count}): {constrained}")
+
+
+def test_trt10_binding_version_detection_branches():
+    """Verify that _is_precision_sensitive_activation takes the correct branch for each TRT binding shape.
+
+    Simulates three TRT binding variants:
+    - TRT 10.3-: IActivationLayer(layer) cast works, exposes .activation_type enum
+    - TRT 10.7+: IActivationLayer exists but cast constructor raises TypeError; fall back to name matching
+    - TRT 10.7+ (no IActivationLayer at all): fall back to name matching
+    See https://github.com/ultralytics/ultralytics/issues/24668
+    """
+    from unittest.mock import MagicMock
+
+    from ultralytics.utils.export.engine import _is_precision_sensitive_activation
+
+    sigmoid_name = "Sigmoid_42"
+    relu_name = "Relu_7"
+
+    # --- Case 1: TRT 10.3- — typed cast works, enum-based detection ---
+    class FakeActivationLayer103:
+        """Simulates the IActivationLayer cast result in TRT 10.3-."""
+
+        def __init__(self, layer):
+            self.activation_type = layer._fake_act_type
+
+    fake_trt_103 = SimpleNamespace(
+        IActivationLayer=FakeActivationLayer103,
+        ActivationType=SimpleNamespace(SIGMOID=10, RELU=12),
+    )
+    sigmoid_layer_103 = MagicMock(name=sigmoid_name)
+    sigmoid_layer_103._fake_act_type = fake_trt_103.ActivationType.SIGMOID
+    relu_layer_103 = MagicMock(name=relu_name)
+    relu_layer_103._fake_act_type = fake_trt_103.ActivationType.RELU
+
+    assert _is_precision_sensitive_activation(sigmoid_layer_103, fake_trt_103) is True, (
+        "TRT 10.3: Sigmoid should be detected via typed cast + enum"
+    )
+    assert _is_precision_sensitive_activation(relu_layer_103, fake_trt_103) is False, (
+        "TRT 10.3: ReLU should not be detected via typed cast + enum"
+    )
+
+    # --- Case 2: TRT 10.7+ — IActivationLayer exists but cast raises TypeError ---
+    class BrokenActivationLayer:
+        """Simulates TRT 10.7+ where the cast constructor was removed."""
+
+        def __init__(self, layer):
+            raise TypeError("IActivationLayer() constructor not available in TRT 10.7+")
+
+    fake_trt_107 = SimpleNamespace(
+        IActivationLayer=BrokenActivationLayer,
+        ActivationType=SimpleNamespace(SIGMOID=10, RELU=12),
+    )
+    sigmoid_layer_107 = MagicMock(name=sigmoid_name)
+    sigmoid_layer_107.name = sigmoid_name
+    relu_layer_107 = MagicMock(name=relu_name)
+    relu_layer_107.name = relu_name
+
+    assert _is_precision_sensitive_activation(sigmoid_layer_107, fake_trt_107) is True, (
+        "TRT 10.7+: Sigmoid should be detected via name fallback when cast fails"
+    )
+    assert _is_precision_sensitive_activation(relu_layer_107, fake_trt_107) is False, (
+        "TRT 10.7+: ReLU should not be detected via name fallback"
+    )
+
+    # --- Case 3: TRT 10.7+ — IActivationLayer attribute missing entirely ---
+    fake_trt_nocast = SimpleNamespace(
+        ActivationType=SimpleNamespace(SIGMOID=10, RELU=12),
+    )
+    sigmoid_layer_nocast = MagicMock(name=sigmoid_name)
+    sigmoid_layer_nocast.name = sigmoid_name
+    relu_layer_nocast = MagicMock(name=relu_name)
+    relu_layer_nocast.name = relu_name
+
+    assert _is_precision_sensitive_activation(sigmoid_layer_nocast, fake_trt_nocast) is True, (
+        "TRT 10.7+ (no IActivationLayer): Sigmoid should be detected via name fallback"
+    )
+    assert _is_precision_sensitive_activation(relu_layer_nocast, fake_trt_nocast) is False, (
+        "TRT 10.7+ (no IActivationLayer): ReLU should not be detected via name fallback"
+    )
+
+
+def test_openvino_int8_ignores_sigmoid():
+    """Verify that the OpenVINO INT8 exporter includes Sigmoid in its ignored scope.
+
+    This documents the cross-exporter invariant: both OpenVINO and TensorRT exclude
+    Sigmoid from INT8 quantization to preserve confidence-score calibration.
+    See https://github.com/ultralytics/ultralytics/issues/24668
+    """
+    from ultralytics.engine.exporter import Exporter
+
+    # export_openvino is wrapped by @try_export. The inner function is captured
+    # in the closure. We iterate the closure cells to find the function object
+    # (robust against cell ordering changes).
+    outer = Exporter.export_openvino
+    inner = None
+    for cell in outer.__closure__ or ():
+        if callable(cell.cell_contents):
+            inner = cell.cell_contents
+            break
+    assert inner is not None, "Could not find inner function in try_export closure"
+    import inspect
+
+    source = inspect.getsource(inner)
+    assert "IgnoredScope" in source, "OpenVINO export should use IgnoredScope for INT8"
+    assert "Sigmoid" in source, "OpenVINO IgnoredScope should include 'Sigmoid'"
+
+
 def test_torch2onnx_serializes_concurrent_exports(monkeypatch, tmp_path):
     """Ensure ONNX exports do not overlap across worker threads."""
     active = 0

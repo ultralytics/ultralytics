@@ -162,36 +162,59 @@ class DepthValidator(DetectionValidator):
         """Save a RGB | GT depth | predicted depth panel for the batch to val_batch{ni}.jpg.
 
         Depth has no boxes/classes, so the detection-style plotters are replaced with a
-        side-by-side depth visualization. GT and prediction share GT's valid depth range
-        so the colors are directly comparable. Called by BaseValidator for the first few
-        batches when args.plots is set.
+        side-by-side depth visualization (see plot_depth_panels). Called by BaseValidator
+        for the first few batches when args.plots is set.
         """
         if "depth" not in batch:
             return
         try:
-            imgs = batch["img"]
-            gt = batch["depth"]
-            pred = self._extract_pred(preds)
-            if gt.ndim == 3:
-                gt = gt.unsqueeze(1)
-            if pred.ndim == 3:
-                pred = pred.unsqueeze(1)
-            h, w = imgs.shape[-2:]
-            rows = []
-            for i in range(min(imgs.shape[0], max_images)):
-                rgb = (imgs[i].detach().float().cpu().clamp(0, 1).numpy() * 255).astype(np.uint8).transpose(1, 2, 0)
-                rgb = cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
-                g, p = gt[i, 0], pred[i, 0]
-                gv = g[g > 0]
-                vmin = float(gv.min()) if gv.numel() else 0.0
-                vmax = float(gv.max()) if gv.numel() else 1.0
-                gc = cv2.resize(self._colorize_depth(g, vmin, vmax), (w, h), interpolation=cv2.INTER_NEAREST)
-                pc = cv2.resize(self._colorize_depth(p, vmin, vmax), (w, h), interpolation=cv2.INTER_NEAREST)
-                rows.append(np.hstack([rgb, gc, pc]))
-            cv2.imwrite(str(self.save_dir / f"val_batch{ni}.jpg"), np.vstack(rows))
+            plot_depth_panels(
+                batch["img"], batch["depth"], [self._extract_pred(preds)],
+                self.save_dir / f"val_batch{ni}.jpg", max_images=max_images,
+            )
         except Exception as e:
             LOGGER.warning(f"DepthValidator: failed to plot val_batch{ni}: {e}")
 
     def plot_val_samples(self, batch, ni):
         """No-op: GT depth is shown alongside predictions in plot_predictions()."""
         pass
+
+
+def plot_depth_panels(imgs, gt, preds, fname, titles=None, max_images: int = 4):
+    """Write a depth panel grid: one row per image, columns RGB | GT | one per entry of ``preds``.
+
+    All depth columns share the GT valid-pixel range per row, so a scale error between GT and any
+    prediction shows up directly as a color mismatch. Panels are resized to the RGB image size,
+    so predictions at head stride need no prior interpolation.
+
+    Args:
+        imgs: (B,3,H,W) float image tensor in [0,1].
+        gt: (B,1,H,W) or (B,H,W) ground-truth depth in meters (pixels <= 0 are invalid, drawn black).
+        preds: List of (B,1,H,W) or (B,H,W) predicted depth tensors; each adds one column.
+        fname: Output image path.
+        titles: Optional list of ``2 + len(preds)`` column labels, drawn in a 24 px header strip.
+            None (the val_batch{ni}.jpg default) keeps the historical strip-free layout.
+        max_images: Maximum number of rows.
+    """
+    if gt.ndim == 3:
+        gt = gt.unsqueeze(1)
+    preds = [p.unsqueeze(1) if p.ndim == 3 else p for p in preds]
+    h, w = imgs.shape[-2:]
+    rows = []
+    for i in range(min(imgs.shape[0], max_images)):
+        rgb = (imgs[i].detach().float().cpu().clamp(0, 1).numpy() * 255).astype(np.uint8).transpose(1, 2, 0)
+        panels = [cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)]
+        g = gt[i, 0]
+        gv = g[g > 0]
+        vmin = float(gv.min()) if gv.numel() else 0.0
+        vmax = float(gv.max()) if gv.numel() else 1.0
+        for d in [g] + [p[i, 0] for p in preds]:
+            panels.append(cv2.resize(DepthValidator._colorize_depth(d, vmin, vmax), (w, h), interpolation=cv2.INTER_NEAREST))
+        rows.append(np.hstack(panels))
+    grid = np.vstack(rows)
+    if titles:
+        strip = np.full((24, grid.shape[1], 3), 255, dtype=np.uint8)
+        for j, t in enumerate(titles):
+            cv2.putText(strip, str(t), (j * w + 4, 17), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+        grid = np.vstack([strip, grid])
+    cv2.imwrite(str(fname), grid)

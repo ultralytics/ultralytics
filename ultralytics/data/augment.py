@@ -1366,6 +1366,26 @@ class RandomPerspective(BaseTransform):
         labels["semantic_mask"] = mask
         return labels
 
+    def apply_depth(self, labels: dict[str, Any], params: dict[str, Any] | None = None) -> dict[str, Any]:
+        """Apply the same projective warp to metric depth maps.
+
+        Depth values remain in meters; only their spatial support is warped. Nearest-neighbor interpolation avoids
+        manufacturing spurious near-zero "valid" pixels when sparse or invalid regions border real depth.
+        """
+        depth = labels.get("depth")
+        if depth is None:
+            return labels
+
+        M = params["M"]
+        size = params["size"]
+        if (size[0] != depth.shape[1] or size[1] != depth.shape[0]) or (M != np.eye(3)).any():
+            if self.perspective:
+                depth = cv2.warpPerspective(depth, M, dsize=size, flags=cv2.INTER_NEAREST, borderValue=0)
+            else:
+                depth = cv2.warpAffine(depth, M[:2], dsize=size, flags=cv2.INTER_NEAREST, borderValue=0)
+        labels["depth"] = depth
+        return labels
+
     @staticmethod
     def box_candidates(
         box1: np.ndarray,

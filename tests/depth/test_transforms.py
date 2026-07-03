@@ -1,6 +1,6 @@
 import numpy as np
 
-from ultralytics.data.augment import DepthColorJitter, DepthFormat, DepthRandomFlip, DepthRandomScale
+from ultralytics.data.augment import DepthColorJitter, DepthFormat, DepthRandomFlip, DepthRandomScale, RandomPerspective
 
 
 def test_depth_transforms_live_in_augment():
@@ -59,4 +59,23 @@ def test_depth_random_scale_does_not_blend_sparse_depth():
     depth = _sparse_depth(40, 40, val=10.0)
     out = DepthRandomScale(scale_range=(1.5, 1.5), target_size=32, p=1.0)({"img": img, "depth": depth})["depth"]
     blended = ((out > 1e-6) & (out < 9.0)).sum()
+    assert blended == 0, f"{blended} spurious blended depth pixels from interpolation"
+
+
+def test_random_perspective_warps_depth_with_nearest_interpolation():
+    """RandomPerspective should warp depth without inventing intermediate sparse values."""
+    img = np.zeros((16, 16, 3), dtype=np.uint8)
+    depth = _sparse_depth(16, 16, val=10.0)
+    labels = {"img": img.copy(), "depth": depth.copy()}
+    transform = RandomPerspective(
+        degrees=0.0,
+        translate=0.0,
+        scale=(1.0, 1.0),
+        shear=0.0,
+        perspective=0.0,
+        size=(32, 32),
+    )
+    out = transform(labels)
+    assert out["img"].shape[:2] == out["depth"].shape[:2] == (32, 32)
+    blended = ((out["depth"] > 1e-6) & (out["depth"] < 9.0)).sum()
     assert blended == 0, f"{blended} spurious blended depth pixels from interpolation"

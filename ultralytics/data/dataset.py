@@ -33,6 +33,7 @@ from .augment import (
     Format,
     LetterBox,
     RandomLoadText,
+    RandomPerspective,
     SemanticFormat,
     classify_augmentations,
     classify_transforms,
@@ -512,15 +513,21 @@ class DepthDataset(YOLODataset):
     def build_transforms(self, hyp=None):
         """Build transforms for depth estimation.
 
-        Training applies random scale/crop, horizontal flip, and color jitter; validation
-        (augment=False) is deterministic — only LetterBox + DepthFormat, no random transforms.
-        No mosaic, mixup, or perspective transforms since they create discontinuities.
+        Training applies a safe affine-only RandomPerspective (rotation/translation/scale/shear with
+        ``perspective=0``), horizontal flip, and color jitter. Validation (augment=False) is deterministic
+        — only LetterBox + DepthFormat, no random transforms.
         """
         letterbox = LetterBox(new_shape=(self.imgsz, self.imgsz), auto=False, scale_fill=True)
         if self.augment:
             return Compose([
-                DepthRandomScale(scale_range=(0.5, 1.5), target_size=self.imgsz, p=0.5),
-                letterbox,
+                RandomPerspective(
+                    degrees=8.0,
+                    translate=0.08,
+                    scale=0.15,
+                    shear=2.0,
+                    perspective=0.0,
+                    size=(self.imgsz, self.imgsz),
+                ),
                 DepthRandomFlip(p=0.5),
                 DepthColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.05),
                 DepthFormat(),

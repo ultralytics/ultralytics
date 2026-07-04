@@ -31,12 +31,6 @@ class MultiScaleGhost(nn.Module):
                     nn.ReLU() if act else nn.Identity()
                 )
             )
-        
-        self.fushion = nn.Sequential(
-            nn.Conv2d(branch_channel*len(kernel_sizes), new_channels, kernel_size=1, padding=0, bias=False),
-            nn.BatchNorm2d(new_channels),
-            nn.ReLU() if act else nn.Identity()
-        )
 
     def forward(self, x):
         x1 = self.primary_conv(x)
@@ -44,7 +38,6 @@ class MultiScaleGhost(nn.Module):
         for branch in self.branches:
             outputs.append(branch(x1))
         x2 = torch.cat(outputs, dim=1)
-        x2 = self.fushion(x2)
         out = torch.cat([x1, x2], dim=1)
         return out[:, :self.output, : , :]
 

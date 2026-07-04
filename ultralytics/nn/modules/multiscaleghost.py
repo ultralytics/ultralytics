@@ -26,7 +26,7 @@ class MultiScaleGhost(nn.Module):
         for kernel in kernel_sizes:
             self.branches.append(
                 nn.Sequential(
-                    nn.Conv2d(init_channels, branch_channel, kernel, stride=1, padding=kernel//2, groups=math.gcd(init_channels, branch_channel), bias=False),
+                    nn.Conv2d(init_channels, branch_channel, kernel, stride=1, padding=kernel//2, groups=init_channels, bias=False),
                     nn.BatchNorm2d(branch_channel),
                     nn.ReLU() if act else nn.Identity()
                 )

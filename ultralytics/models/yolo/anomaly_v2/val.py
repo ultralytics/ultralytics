@@ -125,9 +125,6 @@ class YOLOAnomalyValidator(DetectionValidator):
             mb.reset()
         self._built_bank = False
 
-    # ------------------------------------------------------------------
-    # Metrics formatting (extended IoU grid only when heatmap prior is active)
-    # ------------------------------------------------------------------
     def _ood_map_metrics(self) -> dict[str, float]:
         """mAP at IoU {0.10, 0.25, 0.50} and the {0.50:0.95} mean from the extended iouv."""
         import numpy as np

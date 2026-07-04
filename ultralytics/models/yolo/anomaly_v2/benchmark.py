@@ -22,7 +22,6 @@ from ultralytics.data.build import build_dataloader
 from ultralytics.utils import LOGGER
 from ultralytics.utils.torch_utils import unwrap_model
 
-from ._util import resolve_v2_model
 from .val import YOLOAnomalyValidator
 
 

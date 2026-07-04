@@ -548,28 +548,13 @@ class YOLOAnomalyV2Model(DetectionModel):
 
         # Read v2-specific config from YAML. Constructor kwargs override.
         v2_cfg = self.yaml.get("anomaly_v2", {}) if isinstance(self.yaml, dict) else {}
-        mask_size = int(v2_cfg.get("mask_size", 80))
-        self.p_drop = float(v2_cfg.get("p_drop", 0.5))
+        mask_size = v2_cfg["mask_size"]
+        self.p_drop = v2_cfg["p_drop"]
         self.seg_target_polygon = bool(v2_cfg.get("seg_target_polygon", False))
-        fusion_mode = str(v2_cfg.get("fusion_mode", "bias")).lower()
-        if fusion_mode != "bias":
-            raise ValueError(f"fusion_mode must be bias, got {fusion_mode!r}")
-        fusion_mid = int(v2_cfg.get("fusion_mid", 32))
-
-        # AnomalyMCDetect (decoupled binary detection + multi-class type head):
-        #   type_gain -- weight of the type cross-entropy in the loss (read by AnomalyMCLoss).
-        #   type_tau  -- softmax temperature for the inference-time type distribution (set on head).
-        self.type_gain = 0.5
-        type_tau = 1.0
-
-        detect = self.model[-1]
-        if isinstance(detect, AnomalyMCDetect):
-            detect.type_tau = type_tau
-        if not isinstance(detect, Detect):
-            raise TypeError(f"YOLOAnomalyV2Model expects last layer to be Detect, got {type(detect).__name__}")
+        fusion_mid = v2_cfg["fusion_mid"]
 
         # Anomaly-side modules (live outside self.model so they are not in the Sequential)
-        self.heatmap_bias_fusion = HeatmapBiasFusion(num_scales=detect.nl, c_mid=fusion_mid)
+        self.heatmap_bias_fusion = HeatmapBiasFusion(num_scales=self.model[-1].nl, c_mid=fusion_mid)
         self.heatmap_processor = HeatmapProcessor(mask_size=mask_size)
 
         # Spatial resolution of the rendered/mask prior.
@@ -577,10 +562,8 @@ class YOLOAnomalyV2Model(DetectionModel):
 
         # --- BackboneMemoryBank (v2.3) ---
         # Architecture knob from the model YAML; all build hyperparameters are baked in.
-        bb_layers_cfg = v2_cfg.get("bb_layers", None)
-        bb_layers = list(bb_layers_cfg) if bb_layers_cfg else None
-        self.memory_bank = BackboneMemoryBank() if bb_layers else None
-        self._bb_layers = bb_layers
+        self.bb_layers = list(v2_cfg["bb_layers"])
+        self.memory_bank = BackboneMemoryBank()
 
         # Whether to use the fitted memory-bank heatmap prior during inference.
         self.use_heatmap_prior = False
@@ -665,7 +648,7 @@ class YOLOAnomalyV2Model(DetectionModel):
                 f"Memory bank frozen: {final_size} features, dim={mb.feature_dim}\n"
                 f"  config: temp={mb.temperature:.4f}, K={mb.K}, "
                 f"max_bank={mb.max_bank_size or 'unlimited'}, holdout_max={mb.holdout_max}, "
-                f"bb_layers={self._bb_layers}"
+                f"bb_layers={self.bb_layers}"
             )
         return final_size
 
@@ -717,13 +700,13 @@ class YOLOAnomalyV2Model(DetectionModel):
             Dict mapping layer index to backbone feature tensor.
         """
         y, out, feats = [], x, {}
-        end_idx = max(self._bb_layers)
+        end_idx = max(self.bb_layers)
         for m in self.model[: end_idx + 1]:
             if m.f != -1:
                 out = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]
             out = m(out)
             y.append(out if m.i in self.save else None)
-            if m.i in self._bb_layers:
+            if m.i in self.bb_layers:
                 feats[m.i] = out
         return feats
 

@@ -543,18 +543,6 @@ class YOLOAnomalyV2Model(DetectionModel):
       - Inference: ``self.use_heatmap_prior = True`` uses the fitted memory bank; otherwise passthrough.
     """
 
-    # Default BackboneMemoryBank build hyperparameters. These are the baked-in defaults;
-    # only ``bb_layers`` comes from the model YAML (it controls architecture).
-    _BANK_DEFAULTS = {
-        "temperature": 5.0,
-        "K": 5,
-        "max_bank_size": 10000,
-        "calibration_target_score": 0.4,
-        "calibration_target_quantile": 0.95,
-        "hmap_stretch_strength": 0.0,
-        "holdout_max": 5000,
-    }
-
     def __init__(self, cfg="yolo26-anomaly-v2.yaml", ch=3, nc=None, verbose=True):
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
@@ -597,13 +585,9 @@ class YOLOAnomalyV2Model(DetectionModel):
         # Architecture knob from the model YAML; all build hyperparameters come from the fit YAML.
         bb_layers_cfg = v2_cfg.get("bb_layers", None)
         bb_layers = list(bb_layers_cfg) if bb_layers_cfg else None
-        self.memory_bank = BackboneMemoryBank(**self._BANK_DEFAULTS) if bb_layers else None
+        self.memory_bank = BackboneMemoryBank() if bb_layers else None
         self._bb_layers = bb_layers
         self._bb_feats: dict[int, "torch.Tensor"] = {}
-        if self.memory_bank is not None and self._bb_layers:
-            self.memory_bank._bb_layer_indices = self._bb_layers
-            for k, v in self._BANK_DEFAULTS.items():
-                setattr(self.memory_bank, k, v)
 
         # Whether to use the fitted memory-bank heatmap prior during inference.
         self.use_heatmap_prior = False
@@ -676,7 +660,9 @@ class YOLOAnomalyV2Model(DetectionModel):
 
         target_device = device if device is not None else next(self.parameters()).device
         self.to(target_device)
-        for images in self._iter_image_batches(source, imgsz=imgsz, batch=batch, max_images=max_images, verbose=verbose):
+        for images in self._iter_image_batches(
+            source, imgsz=imgsz, batch=batch, max_images=max_images, verbose=verbose
+        ):
             feat_dict = self._extract_bb_features(images.to(target_device))
             mb.accumulate_features(feat_dict)
 
@@ -721,7 +707,9 @@ class YOLOAnomalyV2Model(DetectionModel):
         target_device = device if device is not None else next(self.parameters()).device
         self.to(target_device)
         chunks = []
-        for images in self._iter_image_batches(source, imgsz=imgsz, batch=batch, max_images=max_images, verbose=verbose):
+        for images in self._iter_image_batches(
+            source, imgsz=imgsz, batch=batch, max_images=max_images, verbose=verbose
+        ):
             feat_dict = self._extract_bb_features(images.to(target_device))
             fused = mb._build_fused_feature(feat_dict)  # (B, C, H, W)
             flat = fused.permute(0, 2, 3, 1).reshape(-1, fused.shape[1])  # (B*H*W, C)
@@ -836,9 +824,7 @@ class YOLOAnomalyV2Model(DetectionModel):
             self.use_heatmap_prior = bool(old_heatmap)
             if not hasattr(self, "heatmap_processor"):
                 self.heatmap_processor = HeatmapProcessor(mask_size=getattr(self, "mask_size", 80))
-            self.heatmap_processor.norm = getattr(
-                old, "heatmap_norm", self.__dict__.pop("heatmap_norm", "none")
-            )
+            self.heatmap_processor.norm = getattr(old, "heatmap_norm", self.__dict__.pop("heatmap_norm", "none"))
             self.heatmap_processor.smooth_kernel = getattr(
                 old, "heatmap_smooth_kernel", self.__dict__.pop("heatmap_smooth_kernel", 5)
             )
@@ -884,11 +870,6 @@ class YOLOAnomalyV2Model(DetectionModel):
             if not hasattr(self, attr):
                 setattr(self, attr, default)
 
-        # Reset bank / heatmap processor to the single-source-of-truth defaults.
-        # These are not configurable, so any values pickled into a checkpoint are ignored.
-        if self.memory_bank is not None:
-            for k, v in self._BANK_DEFAULTS.items():
-                setattr(self.memory_bank, k, v)
         hp = getattr(self, "heatmap_processor", None)
         if hp is not None:
             defaults = HeatmapProcessor(mask_size=getattr(self, "mask_size", 80)).__dict__

@@ -74,7 +74,7 @@ class YOLOA(Model):
         self._check_is_pytorch_model()
         m = self.model
         mb = getattr(m, "memory_bank", None)
-        if mb is None or getattr(m, "_bb_layers", None) is None:
+        if mb is None or getattr(m, "bb_layers", None) is None:
             raise RuntimeError("model has no BackboneMemoryBank (no bb_layers in the model yaml) — cannot fit().")
 
         data_name = name or self._derive_name(source)

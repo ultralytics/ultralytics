@@ -74,12 +74,17 @@ def _migrate_v2_model(m: YOLOAnomalyV2Model) -> None:
         elif isinstance(module, HeatmapProcessor):
             _migrate_heatmap_processor(module)
 
+    # Rename legacy _bb_layers -> bb_layers.
+    if "_bb_layers" in m.__dict__ and "bb_layers" not in m.__dict__:
+        m.bb_layers = m.__dict__.pop("_bb_layers")
+
     # Drop transient / deprecated attributes.
     for attr in (
         "_bb_feats",
         "_heatmap_bank_warned",
         "prior_context",
         "_use_heatmap_prior",
+        "use_heatmap_prior",
         "heatmap_norm",
         "heatmap_smooth_kernel",
         "heatmap_edge_weight",
@@ -96,7 +101,6 @@ def _migrate_v2_model(m: YOLOAnomalyV2Model) -> None:
 
     # Ensure v2.3+ attributes exist.
     for attr, default in (
-        ("use_heatmap_prior", False),
         ("p_drop", 0.5),
         ("seg_target_polygon", False),
         ("softmax_temperature", 1.0),
@@ -114,10 +118,11 @@ def _migrate_v2_model(m: YOLOAnomalyV2Model) -> None:
     # Reset bank defaults so pickled bank-build hyperparameters never override the code defaults.
     mb = getattr(m, "memory_bank", None)
     if mb is not None:
-        for k, v in m._BANK_DEFAULTS.items():
+        defaults = {k: v for k, v in BackboneMemoryBank().__dict__.items() if not k.startswith("_")}
+        for k, v in defaults.items():
             setattr(mb, k, v)
-        if m._bb_layers is not None:
-            mb._bb_layer_indices = m._bb_layers
+        if getattr(m, "bb_layers", None) is not None:
+            mb._bb_layer_indices = m.bb_layers
 
 
 def convert_checkpoint(input_path: str | Path, output_path: str | Path) -> dict[str, Any]:

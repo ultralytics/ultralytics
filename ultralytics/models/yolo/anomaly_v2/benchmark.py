@@ -191,15 +191,10 @@ def run_mvtec_ood_eval(
                 if mode == "heatmap":
                     if bank_cache_dir is not None:
                         _inject_cat_bank(m, root, cat, Path(bank_cache_dir), imgsz, device, bank_size)
-                    else:
-                        # Let the validator build the bank from the train split.
-                        if m.memory_bank is not None:
-                            m.memory_bank.reset_memory_bank()
-                    m.use_heatmap_prior = True
+                    # else: the validator will build the bank from the train split.
                 else:
                     if m.memory_bank is not None:
                         m.memory_bank.reset_memory_bank()
-                    m.use_heatmap_prior = False
 
                 overrides = {
                     "task": "anomaly_v2",

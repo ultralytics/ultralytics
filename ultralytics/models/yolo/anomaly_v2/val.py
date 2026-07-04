@@ -34,7 +34,6 @@ class YOLOAnomalyValidator(DetectionValidator):
 
         # Memory-bank lifecycle: built from the train split when empty, restored after.
         self._ood_bank_size = 10000
-        self._saved_use_heatmap = _SENTINEL
         self._built_bank = False
 
         # Standard IoU grid by default; extended if the heatmap prior is active.
@@ -50,21 +49,17 @@ class YOLOAnomalyValidator(DetectionValidator):
         if m is None:
             return
 
-        self._saved_use_heatmap = getattr(m, "use_heatmap_prior", False)
         if self._ensure_memory_bank(m):
-            m.use_heatmap_prior = True
             self._heatmap_active = True
             # Extended IoU grid for coarse defect localization with the heatmap prior.
             self.iouv = torch.cat([torch.linspace(0.5, 0.95, 10), torch.tensor([0.10, 0.25])])
             self.niou = self.iouv.numel()
         else:
             LOGGER.warning("YOLOAnomalyValidator: heatmap prior unavailable -> running regular validation.")
-            m.use_heatmap_prior = False
 
     def __call__(self, trainer=None, model=None):
         """Single validation pass; restore model state afterwards."""
         self._built_bank = False
-        self._saved_use_heatmap = _SENTINEL
         self._heatmap_active = False
         try:
             return super().__call__(trainer=trainer, model=model)
@@ -99,7 +94,7 @@ class YOLOAnomalyValidator(DetectionValidator):
     def _ensure_memory_bank(self, m) -> bool:
         """Build the bank from the train (normal) split if empty. Returns True iff a usable bank is ready."""
         mb = getattr(m, "memory_bank", None)
-        if mb is None or getattr(m, "_bb_layers", None) is None:
+        if mb is None or getattr(m, "bb_layers", None) is None:
             return False
         if mb.memory_bank is not None and mb.memory_bank.shape[0] > 0:
             return True
@@ -122,20 +117,16 @@ class YOLOAnomalyValidator(DetectionValidator):
         return True
 
     def _restore_prior_state(self) -> None:
-        """Undo heatmap flag changes and free any bank built during validation."""
-        if self._saved_use_heatmap is _SENTINEL and not self._built_bank:
+        """Free any memory bank built during validation."""
+        if not self._built_bank:
             return
         m = resolve_v2_model(self._model_ref)
         if m is None:
             return
-        if self._saved_use_heatmap is not _SENTINEL:
-            m.use_heatmap_prior = self._saved_use_heatmap
-            self._saved_use_heatmap = _SENTINEL
-        if self._built_bank:
-            mb = getattr(m, "memory_bank", None)
-            if mb is not None and hasattr(mb, "reset_memory_bank"):
-                mb.reset_memory_bank()
-            self._built_bank = False
+        mb = getattr(m, "memory_bank", None)
+        if mb is not None and hasattr(mb, "reset_memory_bank"):
+            mb.reset_memory_bank()
+        self._built_bank = False
 
     # ------------------------------------------------------------------
     # Metrics formatting (extended IoU grid only when heatmap prior is active)

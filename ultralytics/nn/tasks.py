@@ -540,7 +540,7 @@ class YOLOAnomalyV2Model(DetectionModel):
 
     Prior sources:
       - Training: ``batch["prior_mask"]`` built by ``LoadAnomalyPriorMask`` from bboxes or polygons.
-      - Inference: ``self.use_heatmap_prior = True`` uses the fitted memory bank; otherwise passthrough.
+      - Inference: a non-empty fitted memory bank is used as the heatmap prior; otherwise passthrough.
     """
 
     def __init__(self, cfg="yolo26-anomaly-v2.yaml", ch=3, nc=None, verbose=True):
@@ -564,9 +564,6 @@ class YOLOAnomalyV2Model(DetectionModel):
         # Architecture knob from the model YAML; all build hyperparameters are baked in.
         self.bb_layers = list(v2_cfg["bb_layers"])
         self.memory_bank = BackboneMemoryBank()
-
-        # Whether to use the fitted memory-bank heatmap prior during inference.
-        self.use_heatmap_prior = False
 
     def fuse(self, verbose=True):
         """Fuse Conv/BN while preserving both one2many and one2one heads.
@@ -710,15 +707,22 @@ class YOLOAnomalyV2Model(DetectionModel):
                 feats[m.i] = out
         return feats
 
+    def _has_memory_bank(self) -> bool:
+        """Return True iff a non-empty memory bank has been built."""
+        mb = getattr(self, "memory_bank", None)
+        if mb is None:
+            return False
+        mem = mb._effective_bank()
+        return mem is not None and mem.shape[0] > 0
+
     def _build_heatmap_prior(self, x: torch.Tensor) -> torch.Tensor | None:
         """Build the (B, 1, mask_size, mask_size) feature-side heatmap prior, or None."""
-        mb = self.memory_bank
-        mem = mb._effective_bank()
-        if mem.shape[0] == 0:
+        if not self._has_memory_bank():
             if not getattr(self, "_heatmap_bank_warned", False):
                 LOGGER.warning("Memory bank is empty; heatmap prior disabled. Run model.fit(source=...) first.")
                 self._heatmap_bank_warned = True
             return None
+        mb = self.memory_bank
         with torch.no_grad():
             feat_dict = self._extract_bb_features(x)
             hmap = mb(feat_dict).to(device=x.device, dtype=torch.float32)
@@ -739,7 +743,7 @@ class YOLOAnomalyV2Model(DetectionModel):
         return self.criterion(preds, batch)
 
     def forward(self, x, *args, prior_mask=None, **kwargs):
-        """Forward pass. Training provides ``prior_mask``; inference uses ``use_heatmap_prior``.
+        """Forward pass. Training provides ``prior_mask``; inference uses a fitted memory bank.
 
         Preserves the base ``DetectionModel`` contract: a dict input routes to ``loss()``
         (training/validation), while a tensor input runs inference.
@@ -752,6 +756,7 @@ class YOLOAnomalyV2Model(DetectionModel):
         """Forward with optional heatmap-guided fusion inserted before the Detect head."""
         batch_size = x.shape[0]
         device = x.device
+        img = x  # original input image, needed for the memory-bank heatmap prior
 
         # Per-sample keep mask for mask dropout (anti-shortcut). Only meaningful when a
         # rendered/blended mask is active; keep[b]=0 zeros the per-sample bias -> passthrough.
@@ -770,11 +775,11 @@ class YOLOAnomalyV2Model(DetectionModel):
                 pan_inputs = [y[j] for j in m.f]
 
                 # Resolve the fusion prior. Training provides an explicit prior_mask;
-                # otherwise the fitted memory-bank heatmap is used when enabled.
+                # otherwise a fitted memory-bank heatmap is used automatically.
                 if prior_mask is not None:
                     prior = prior_mask.to(device=device, dtype=torch.float32)
-                elif getattr(self, "use_heatmap_prior", False):
-                    prior = self._build_heatmap_prior(x)
+                elif self._has_memory_bank():
+                    prior = self._build_heatmap_prior(img)
 
                 fused = []
                 for i, p in enumerate(pan_inputs):

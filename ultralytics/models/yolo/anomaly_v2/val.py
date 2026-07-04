@@ -28,9 +28,9 @@ class YOLOAnomalyValidator(DetectionValidator):
     def init_metrics(self, model) -> None:
         """Set up heatmap flag and try to build the memory bank for heatmap mode."""
         super().init_metrics(model)
-        self.v2_model = model.model
+        self.v2_model = model.model if hasattr(model, "backend") else model  # unwrap AutoBackend if present
 
-        if self._ensure_memory_bank(model.model):
+        if self._ensure_memory_bank(self.v2_model):
             # Extended IoU grid for coarse defect localization with the heatmap prior.
             self.iouv = torch.cat([torch.linspace(0.5, 0.95, 10), torch.tensor([0.10, 0.25])])
             self.niou = self.iouv.numel()

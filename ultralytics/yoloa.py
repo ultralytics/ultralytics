@@ -26,9 +26,6 @@ from ultralytics.models import yolo
 from ultralytics.nn.tasks import YOLOAnomalyV2Model
 from ultralytics.utils import LOGGER
 
-# Extra kwargs accepted by predict()/val(). Only ``hm_gate_blend`` remains as a per-call head override.
-_INFER_KEYS = {"hm_gate_blend"}
-
 
 class YOLOA(Model):
     """Training-free anomaly v2: fit a memory bank on normals, then predict / val with heatmap prior."""

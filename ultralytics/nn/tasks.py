@@ -551,10 +551,9 @@ class YOLOAnomalyV2Model(DetectionModel):
         mask_size = v2_cfg["mask_size"]
         self.p_drop = v2_cfg["p_drop"]
         self.seg_target_polygon = bool(v2_cfg.get("seg_target_polygon", False))
-        fusion_mid = v2_cfg["fusion_mid"]
 
         # Anomaly-side modules (live outside self.model so they are not in the Sequential)
-        self.heatmap_bias_fusion = HeatmapBiasFusion(num_scales=self.model[-1].nl, c_mid=fusion_mid)
+        self.heatmap_bias_fusion = HeatmapBiasFusion(num_scales=self.model[-1].nl, c_mid=32)
         self.heatmap_processor = HeatmapProcessor(mask_size=mask_size)
 
         # Spatial resolution of the rendered/mask prior.

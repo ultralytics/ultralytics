@@ -181,24 +181,6 @@ class HeatmapBiasFusion(nn.Module):
         return self.beta[scale_idx] * torch.tanh(self.conv(mask.to(dtype)))
 
 
-def _sincos_pos2d(h: int, w: int, dim: int, device, dtype) -> torch.Tensor:
-    """Fixed (non-learnable) 2D sinusoidal positional encoding, shape ``(1, dim, h, w)``.
-
-    DETR-style: half the channels encode the row (y) coordinate, half the column (x), each via
-    geometric-frequency sin/cos. Parameter-free and resolution-agnostic (computed from the formula).
-    """
-    d4 = dim // 4
-    omega = 1.0 / (10000.0 ** (torch.arange(d4, device=device, dtype=torch.float32) / d4))  # (d4,)
-    y = torch.arange(h, device=device, dtype=torch.float32)[:, None] * omega[None, :]  # (h, d4)
-    x = torch.arange(w, device=device, dtype=torch.float32)[:, None] * omega[None, :]  # (w, d4)
-    pe_y = torch.cat([y.sin(), y.cos()], dim=1)  # (h, dim//2)
-    pe_x = torch.cat([x.sin(), x.cos()], dim=1)  # (w, dim//2)
-    pe = torch.cat(
-        [pe_y[:, None, :].expand(h, w, dim // 2), pe_x[None, :, :].expand(h, w, dim // 2)], dim=2
-    )  # (h, w, dim)
-    return pe.permute(2, 0, 1).unsqueeze(0).to(dtype)  # (1, dim, h, w)
-
-
 class BackboneMemoryBank(nn.Module):
     """Memory-bank anomaly heatmap from backbone features (v1 ADMBHead inference logic).
 
@@ -326,7 +308,9 @@ class BackboneMemoryBank(nn.Module):
         if features.numel() == 0:
             return
         if features.dim() != 2:
-            raise ValueError(f"BackboneMemoryBank.add_features: expected 2D features, got {features.dim()}D ({features.shape})")
+            raise ValueError(
+                f"BackboneMemoryBank.add_features: expected 2D features, got {features.dim()}D ({features.shape})"
+            )
         if not torch.isfinite(features).all():
             raise ValueError(f"BackboneMemoryBank.add_features: features contain NaN/Inf ({features.shape})")
         features = F.normalize(features.to(self.memory_bank.device), p=2, dim=1).float()
@@ -409,9 +393,6 @@ class BackboneMemoryBank(nn.Module):
             hmap = (hmap + s * hmap * hmap).clamp(0, 1)
         return hmap
 
-    # ------------------------------------------------------------------
-    # Internals
-    # ------------------------------------------------------------------
     @staticmethod
     def _resolve_batch_size(feat_dict: dict[int, torch.Tensor]) -> tuple[int, torch.device]:
         for v in feat_dict.values():
@@ -735,15 +716,6 @@ class BackboneMemoryBank(nn.Module):
         return (mem[sel], sel) if return_indices else mem[sel]
 
 
-def heatmap_local_contrast(h: torch.Tensor, k: int = 9, eps: float = 1e-3) -> torch.Tensor:
-    """Local z-score of a [B,1,H,W] map in [0,1]: (h - local_mean) / (local_std + eps), ~[-1,1]."""
-    mean = F.avg_pool2d(h, k, stride=1, padding=k // 2)
-    sq = F.avg_pool2d(h * h, k, stride=1, padding=k // 2)
-    std = (sq - mean * mean).clamp(min=0).sqrt()
-    z = (h - mean) / (std + eps)
-    return (z / 3.0).clamp(-1, 1)
-
-
 class HeatmapProcessor(nn.Module):
     """Post-process a memory-bank heatmap prior before it is fused into PAN features.
 
@@ -838,5 +810,3 @@ class HeatmapProcessor(nn.Module):
             cache = (key, wmap[None, None])
             self._edge_weight_cache = cache
         return cache[1]
-
-

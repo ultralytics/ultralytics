@@ -39,7 +39,8 @@ jobs:
           publish = publish or os.environ.get("GITHUB_EVENT_NAME") == "workflow_dispatch"  # manual recovery re-run
           os.system(f'echo "increment={publish}" >> $GITHUB_OUTPUT')
           os.system(f'echo "current_tag=v{local_version}" >> $GITHUB_OUTPUT')
-          os.system(f'echo "previous_tag=v{online_version}" >> $GITHUB_OUTPUT')
+          if online_version != local_version:  # empty on recovery re-runs so summarize falls back to the true previous tag
+              os.system(f'echo "previous_tag=v{online_version}" >> $GITHUB_OUTPUT')
           if publish:
               print('Ready to publish new version to PyPI ✅.')
       - name: Tag and Release

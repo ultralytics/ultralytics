@@ -41,8 +41,6 @@ anomaly_v2:
   test_categories: null        # null = all 15 MVTec categories
   test_none_prior: false       # test prior=none
   test_heatmap_prior: true     # test prior=heatmap — required (fitness = test_metrics(heatmap_prior)/mAP10)
-  test_mask_prior: false       # test prior=mask
-  test_fit_cfg: ../../yoloa_fit_default.yaml
 
   # new augs, turned off by default for now
   mask_fragment_p: 0.0

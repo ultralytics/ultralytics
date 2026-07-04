@@ -45,8 +45,6 @@ anomaly_v2:
   test_categories: null
   test_none_prior: false
   test_heatmap_prior: true
-  test_mask_prior: false
-  test_fit_cfg: ../../yoloa_fit_default.yaml
 
 backbone:
   - [-1, 1, Conv, [64, 3, 2]]

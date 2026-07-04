@@ -78,7 +78,7 @@ from ultralytics.nn.modules import (
     YOLOESegment26,
     v10Detect,
 )
-from ultralytics.utils.anomaly_v2 import apply_heatmap_overrides
+
 from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, WINDOWS, YAML, colorstr, emojis
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (
@@ -543,14 +543,13 @@ class YOLOAnomalyV2Model(DetectionModel):
       - Inference: ``self.use_heatmap_prior = True`` uses the fitted memory bank; otherwise passthrough.
     """
 
-    # Default BackboneMemoryBank build hyperparameters. These are placeholders: the actual
-    # values are supplied by the fit YAML via ``apply_bb_overrides`` before ``build_memory_bank``
-    # is called. Only ``bb_layers`` comes from the model YAML (it controls architecture).
+    # Default BackboneMemoryBank build hyperparameters. These are the baked-in defaults;
+    # only ``bb_layers`` comes from the model YAML (it controls architecture).
     _BANK_DEFAULTS = {
-        "temperature": 3.0,
+        "temperature": 5.0,
         "K": 5,
-        "max_bank_size": None,
-        "calibration_target_score": 0.2,
+        "max_bank_size": 10000,
+        "calibration_target_score": 0.4,
         "calibration_target_quantile": 0.95,
         "hmap_stretch_strength": 0.0,
         "holdout_max": 5000,
@@ -603,6 +602,8 @@ class YOLOAnomalyV2Model(DetectionModel):
         self._bb_feats: dict[int, "torch.Tensor"] = {}
         if self.memory_bank is not None and self._bb_layers:
             self.memory_bank._bb_layer_indices = self._bb_layers
+            for k, v in self._BANK_DEFAULTS.items():
+                setattr(self.memory_bank, k, v)
 
         # Whether to use the fitted memory-bank heatmap prior during inference.
         self.use_heatmap_prior = False
@@ -637,10 +638,6 @@ class YOLOAnomalyV2Model(DetectionModel):
         if isinstance(self.model[-1], AnomalyMCDetect):
             return E2ELoss(self, AnomalyMCLoss) if getattr(self, "end2end", False) else AnomalyMCLoss(self)
         return E2ELoss(self) if getattr(self, "end2end", False) else v8DetectionLoss(self)
-
-    def apply_heatmap_cfg(self, cfg: dict) -> None:
-        """Apply heatmap post-processing knobs from a fit-config dict."""
-        apply_heatmap_overrides(self, cfg)
 
     def build_memory_bank(
         self,
@@ -886,6 +883,17 @@ class YOLOAnomalyV2Model(DetectionModel):
         ]:
             if not hasattr(self, attr):
                 setattr(self, attr, default)
+
+        # Reset bank / heatmap processor to the single-source-of-truth defaults.
+        # These are not configurable, so any values pickled into a checkpoint are ignored.
+        if self.memory_bank is not None:
+            for k, v in self._BANK_DEFAULTS.items():
+                setattr(self.memory_bank, k, v)
+        hp = getattr(self, "heatmap_processor", None)
+        if hp is not None:
+            defaults = HeatmapProcessor(mask_size=getattr(self, "mask_size", 80)).__dict__
+            for k in ("norm", "smooth_kernel", "edge_weight", "edge_p", "edge_m", "edge_sigma"):
+                setattr(hp, k, defaults[k])
 
     def _resize_to_mask(self, x, mask_size):
         """Bilinearly resize a (B, 1, H, W) prior to (B, 1, mask_size, mask_size) when needed."""

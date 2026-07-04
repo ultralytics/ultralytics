@@ -3,26 +3,19 @@
 """YOLOA — training-free anomaly detection (v2) wrapper.
 
 Fit a memory bank on normal images ("fit" = build the bank, no gradient training), then predict /
-val with the heatmap prior. The fitted weight self-describes: the bank, the fit config
-(``fit_args``) and the data label (``fit_data``) all round-trip in the saved ``*.pt``.
-
-Three config layers, each with its own home:
-  - architecture + training knobs -> baked in the model yaml / ckpt (frozen after training)
-  - bank-build knobs (imgsz / max_images / bb_*) -> the fit config (yaml or kwargs, overridable)
-  - heatmap-shaping knobs (heat_norm / heat_edge* / ...) -> the fit config (yaml or kwargs)
+val with the heatmap prior. All bank-build and heatmap-processing knobs are baked into the model
+and are not configurable per call.
 
 Examples:
     >>> m = YOLOA("best.pt")
-    >>> m.fit("bottle/train/good", name="bottle", cfg="yoloa_fit.yaml", bb_K=5)
+    >>> m.fit("bottle/train/good", name="bottle")
     >>> m.predict("test.png")
     >>> m.val(data="bottle.yaml")
-    >>> m.save("bottle_fitted.pt")  # carries bank + fit_args + fit_data
+    >>> m.save("bottle_fitted.pt")  # carries bank + fit_data
 """
 
 from __future__ import annotations
 
-import hashlib
-import json
 from pathlib import Path
 from typing import Any
 
@@ -31,11 +24,9 @@ import torch
 from ultralytics.engine.model import Model
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import YOLOAnomalyV2Model
-from ultralytics.utils import LOGGER, YAML
-from ultralytics.utils.anomaly_v2 import FIT_KEYS, apply_bb_overrides, apply_heatmap_overrides
+from ultralytics.utils import LOGGER
 
-# Extra kwargs accepted by predict()/val(). Only ``hm_gate_blend`` remains as a per-call
-# head override; heatmap post-processing is configured via the fit YAML.
+# Extra kwargs accepted by predict()/val(). Only ``hm_gate_blend`` remains as a per-call head override.
 _INFER_KEYS = {"hm_gate_blend"}
 
 
@@ -61,7 +52,6 @@ class YOLOA(Model):
     def fit(
         self,
         source: str | Path | list[str],
-        cfg: str | Path | dict | None = None,
         name: str | None = None,
         cache: str | Path | None = None,
         refit: bool = False,
@@ -72,8 +62,6 @@ class YOLOA(Model):
 
         Args:
             source: Directory of normal images, or a list of image paths.
-            cfg: Fit-config yaml path or dict (imgsz / max_images / bb_*); ``kw`` overrides it,
-                which overrides the model yaml's v2_cfg defaults.
             name: Friendly label for provenance + cache key (default: derived from ``source``).
             cache: Directory to cache/reuse the built bank on disk; None disables caching.
             refit: Force a rebuild even if a cache file exists.
@@ -89,13 +77,9 @@ class YOLOA(Model):
         if mb is None or getattr(m, "_bb_layers", None) is None:
             raise RuntimeError("model has no BackboneMemoryBank (no bb_layers in the model yaml) — cannot fit().")
 
-        fit_args = cfg if isinstance(cfg, dict) else YAML.load(cfg)
         data_name = name or self._derive_name(source)
-        self._apply_bb_overrides(fit_args)
-        m.apply_heatmap_cfg(fit_args)
-
         device = device if device is not None else next(m.parameters()).device
-        cache_path = (Path(cache) / f"{self._cache_key(fit_args, data_name)}.pt") if cache is not None else None
+        cache_path = (Path(cache) / f"{data_name}.pt") if cache is not None else None
         if cache_path is not None and cache_path.exists() and not refit:
             d = torch.load(cache_path, map_location="cpu")
             if not d.get("_calibrated"):
@@ -111,11 +95,11 @@ class YOLOA(Model):
         else:
             n = m.build_memory_bank(
                 source,
-                imgsz=int(fit_args["imgsz"]),
+                imgsz=640,
                 device=device,
                 batch=batch,
-                max_bank_size=fit_args.get("bb_max_bank_size"),
-                max_images=int(fit_args["max_images"] or 0),
+                max_bank_size=10000,
+                max_images=0,
                 verbose=True,
             )
             if cache_path is not None and n:
@@ -132,7 +116,6 @@ class YOLOA(Model):
                 torch.save(entry, cache_path)
                 LOGGER.info(f"YOLOA.fit: cached bank ({mb.memory_bank.shape[0]} vecs) -> {cache_path}")
 
-        m.fit_args = dict(fit_args)
         m.fit_data = data_name
         m._heatmap_bank_warned = False
         return self
@@ -187,21 +170,6 @@ class YOLOA(Model):
         """Pop the optional ``hm_gate_blend`` head override."""
         if "hm_gate_blend" in kwargs:
             self.model.model[-1].hm_gate_blend = float(kwargs.pop("hm_gate_blend"))
-
-    def _apply_bb_overrides(self, fit_args: dict) -> None:
-        """Apply bb_* overrides onto the model/bank before building."""
-        apply_bb_overrides(self.model, fit_args)
-
-    @staticmethod
-    def _fit_hash(fit_args: dict) -> str:
-        """8-char hash of the resolved fit config (imgsz + bank knobs) — the fit identity."""
-        blob = json.dumps({k: fit_args.get(k) for k in FIT_KEYS}, sort_keys=True, default=str)
-        return hashlib.md5(blob.encode()).hexdigest()[:8]
-
-    @staticmethod
-    def _cache_key(fit_args: dict, data_name: str) -> str:
-        """Bank cache filename = data label + fit hash (different categories / fit configs never collide)."""
-        return f"{data_name}_{YOLOA._fit_hash(fit_args)}"
 
     @staticmethod
     def _derive_name(data) -> str:

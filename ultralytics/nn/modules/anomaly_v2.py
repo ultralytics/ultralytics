@@ -230,10 +230,10 @@ class BackboneMemoryBank(nn.Module):
 
     def __init__(
         self,
-        temperature: float = 3.0,
+        temperature: float = 5.0,
         K: int = 5,
-        max_bank_size: int | None = None,
-        calibration_target_score: float = 0.2,
+        max_bank_size: int | None = 10000,
+        calibration_target_score: float = 0.4,
         calibration_target_quantile: float = 0.95,
         hmap_stretch_strength: float = 0.0,
         holdout_max: int = 5000,
@@ -775,8 +775,7 @@ class HeatmapProcessor(nn.Module):
 
     Encapsulates the inference-time transforms that were previously scattered inside
     ``YOLOAnomalyV2Model``: edge-suppression window, min-max stretch, and gaussian/mean
-    blur. The processing knobs are owned here (not in an external context object) and
-    are set from ``yoloa_fit_default.yaml`` during ``YOLOA.fit()``.
+    blur. The processing knobs are owned here as baked-in defaults and are not configurable.
     """
 
     def __init__(
@@ -784,7 +783,7 @@ class HeatmapProcessor(nn.Module):
         mask_size: int = 80,
         norm: str = "none",
         smooth_kernel: int = 5,
-        edge_weight: bool = False,
+        edge_weight: bool = True,
         edge_p: float = 4.0,
         edge_m: float = 4.4,
         edge_sigma: float = 1.0,
@@ -798,15 +797,6 @@ class HeatmapProcessor(nn.Module):
         self.edge_m = float(edge_m)
         self.edge_sigma = float(edge_sigma)
         self._edge_weight_cache: tuple | None = None
-
-    def apply_cfg(self, cfg: dict) -> None:
-        """Update processing knobs from a fit-config dict (e.g. yoloa_fit_default.yaml)."""
-        self.norm = str(cfg.get("heat_norm", self.norm))
-        self.smooth_kernel = int(cfg.get("heat_smooth_kernel", self.smooth_kernel))
-        self.edge_weight = bool(cfg.get("heat_edge", self.edge_weight))
-        self.edge_p = float(cfg.get("heat_edge_p", self.edge_p))
-        self.edge_m = float(cfg.get("heat_edge_m", self.edge_m))
-        self.edge_sigma = float(cfg.get("heat_edge_sigma", self.edge_sigma))
 
     def forward(self, hmap: torch.Tensor) -> torch.Tensor:
         """Apply edge-weight, normalization, and smoothing to ``hmap``.

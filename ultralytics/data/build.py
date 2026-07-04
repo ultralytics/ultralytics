@@ -17,7 +17,7 @@ from PIL import Image
 from torch.utils.data import Dataset, dataloader, distributed
 
 from ultralytics.cfg import IterableSimpleNamespace
-from ultralytics.data.dataset import GroundingDataset, YOLODataset, YOLOMultiModalDataset
+from ultralytics.data.dataset import GroundingDataset, YOLODataset, YOLOMultiModalDataset, YOLOWeightedDataset
 from ultralytics.data.loaders import (
     LOADERS,
     LoadImagesAndVideos,
@@ -232,7 +232,17 @@ def build_yolo_dataset(
     multi_modal: bool = False,
 ) -> Dataset:
     """Build and return a YOLO dataset based on configuration parameters."""
-    dataset = YOLOMultiModalDataset if multi_modal else YOLODataset
+    class_balance = getattr(cfg, "class_balance", "") or ""
+    if class_balance and mode == "train" and not multi_modal:
+        dataset = YOLOWeightedDataset
+        extra = {
+            "agg": class_balance,
+            "f1_adaptive": bool(getattr(cfg, "class_balance_f1", False)),
+            "momentum": float(getattr(cfg, "class_balance_momentum", 0.9)),
+        }
+    else:
+        dataset = YOLOMultiModalDataset if multi_modal else YOLODataset
+        extra = {}
     return dataset(
         img_path=img_path,
         imgsz=cfg.imgsz,
@@ -249,6 +259,7 @@ def build_yolo_dataset(
         classes=cfg.classes,
         data=data,
         fraction=cfg.fraction if mode == "train" else 1.0,
+        **extra,
     )
 
 

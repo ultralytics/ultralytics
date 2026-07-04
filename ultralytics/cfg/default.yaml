@@ -36,6 +36,9 @@ close_mosaic: 10 # (int) disable mosaic augmentation for final N epochs (0 to ke
 resume: False # (bool) resume training from last checkpoint in the run dir
 amp: True # (bool) Automatic Mixed Precision (AMP) training; True runs AMP capability check
 fraction: 1.0 # (float) fraction of training dataset to use (1.0 = all)
+class_balance: '' # (str) weighted-sampling image aggregation: '' (off), 'mean', 'sum', or 'max'
+class_balance_f1: False # (bool) drive class_balance weights from validation F1 (worse class weighed more) instead of inverse frequency
+class_balance_momentum: 0.9 # (float) EMA inertia for class_balance_f1 updates (higher = smoother/slower)
 profile: False # (bool) profile ONNX/TensorRT speeds during training for loggers
 freeze: # (int | list, optional) freeze first N layers (int) or specific layer indices (list)
 multi_scale: 0.0 # (float) multiscale training by varying image size

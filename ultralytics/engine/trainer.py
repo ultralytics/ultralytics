@@ -489,6 +489,7 @@ class BaseTrainer:
             if self.args.val or final_epoch or self.stopper.possible_stop or self.stop:
                 self._clear_memory(threshold=0.5)  # prevent VRAM spike
                 self.metrics, self.fitness = self.validate()
+                self._update_class_balance()
 
             # NaN recovery
             if self._handle_nan_recovery(epoch):
@@ -723,6 +724,22 @@ class BaseTrainer:
         if not self.best_fitness or self.best_fitness < fitness:
             self.best_fitness = fitness
         return metrics, fitness
+
+    def _update_class_balance(self):
+        """Feed per-class validation F1 back to an F1-adaptive class-balancing dataset for the next epoch."""
+        # TODO(DDP): validation only runs on rank 0, so only rank 0's dataset gets updated; other ranks keep
+        # their initial (uniform) weights and sample differently. Broadcast f1/probabilities to all ranks
+        # (e.g. dist.broadcast the f1 vector before calling update_class_weights) for correct DDP behavior.
+        dataset = getattr(self.train_loader, "dataset", None)
+        if not (RANK in {-1, 0} and hasattr(dataset, "update_class_weights") and getattr(dataset, "f1_adaptive", False)):
+            return
+        metrics = getattr(self.validator, "metrics", None)
+        box = getattr(metrics, "box", None)
+        if box is None or not len(getattr(box, "f1", [])):
+            return
+        f1 = np.full(dataset.nc, np.nan, dtype=np.float64)  # NaN = class not evaluated this round
+        f1[np.asarray(metrics.ap_class_index, dtype=np.int64)] = np.asarray(box.f1, dtype=np.float64)
+        dataset.update_class_weights(f1)
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Get model and raise NotImplementedError for loading cfg files."""

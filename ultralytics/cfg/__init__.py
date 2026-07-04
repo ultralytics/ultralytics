@@ -187,6 +187,7 @@ CFG_FRACTION_KEYS = frozenset(
         "iou",
         "fraction",
         "multi_scale",
+        "class_balance_momentum",
     }
 )
 CFG_INT_KEYS = frozenset(
@@ -241,6 +242,7 @@ CFG_BOOL_KEYS = frozenset(
         "profile",
         "end2end",
         "cls_remap",
+        "class_balance_f1",
     }
 )
 

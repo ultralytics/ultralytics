@@ -308,6 +308,98 @@ class YOLODataset(BaseDataset):
         return new_batch
 
 
+class YOLOWeightedDataset(YOLODataset):
+    """YOLODataset variant that oversamples images according to per-class weights.
+
+    Each image gets a weight aggregated from the per-class weight of every class instance it contains.
+    During training, __getitem__ ignores the sequential index and draws from np.random.choice with these
+    weights, oversampling images of favored classes without duplicating files. Validation is unaffected
+    (uses the passed-in index directly).
+
+    Two weighting schemes are available:
+        - Static inverse-frequency (default): rare classes get higher weight, fixed for the whole run.
+        - F1-adaptive (``f1_adaptive=True``): all classes start equal; after every validation the trainer
+          feeds back per-class F1 via :meth:`update_class_weights`, raising the weight of poorly-performing
+          classes for the next epoch. An EMA (``momentum``) adds inertia so weights update smoothly.
+
+    The probability vector is stored in a shared-memory tensor so in-place updates from the main process
+    are visible to the persistent dataloader workers (which hold a forked copy of the dataset).
+
+    Args:
+        agg (str): Aggregation over per-instance class weights within one image. One of "mean", "sum", "max".
+        f1_adaptive (bool): Drive per-class weights from validation F1 instead of inverse frequency.
+        momentum (float): EMA inertia for F1-adaptive updates in [0, 1); higher is smoother/slower.
+    """
+
+    def __init__(self, *args, agg: str = "mean", f1_adaptive: bool = False, momentum: float = 0.9, **kwargs):
+        super().__init__(*args, **kwargs)
+        if agg not in {"mean", "sum", "max"}:
+            raise ValueError(f"class_balance agg must be one of mean|sum|max, got {agg!r}")
+        self.agg = getattr(np, agg)
+        self.f1_adaptive = f1_adaptive
+        self.momentum = float(momentum)
+        self.nc = len(self.data["names"])
+        counts = np.zeros(self.nc, dtype=np.int64)
+        for lb in self.labels:
+            cls = lb["cls"].reshape(-1).astype(np.int64)
+            if cls.size:
+                np.add.at(counts, cls, 1)
+        self.counts = counts
+        if f1_adaptive:
+            self.class_w = np.ones(self.nc, dtype=np.float64)  # equal weights until first val feedback
+        else:
+            total = counts.sum()
+            self.class_w = np.where(counts > 0, total / np.maximum(counts, 1), 0.0)  # inverse frequency
+        # Shared-memory probability buffer so update_class_weights() reaches forked workers in place.
+        self._prob = torch.zeros(len(self.labels), dtype=torch.float64).share_memory_()
+        self.probabilities = self._prob.numpy()  # numpy view over the same storage
+        self._recompute_probabilities()
+        LOGGER.info(
+            f"{self.prefix}class_balance='{agg}'{' f1-adaptive' if f1_adaptive else ''} active: "
+            f"{int((counts > 0).sum())}/{self.nc} classes present, "
+            f"min/max class count = {counts[counts > 0].min() if (counts > 0).any() else 0}/{counts.max()}"
+        )
+
+    def _recompute_probabilities(self):
+        """Aggregate per-class weights into per-image probabilities and write them into shared memory."""
+        img_w = np.zeros(len(self.labels), dtype=np.float64)
+        for i, lb in enumerate(self.labels):
+            cls = lb["cls"].reshape(-1).astype(np.int64)
+            img_w[i] = self.agg(self.class_w[cls]) if cls.size else 0.0
+        nonzero = img_w[img_w > 0]
+        if nonzero.size:
+            img_w[img_w == 0] = nonzero.min()  # keep background images sampleable
+        s = img_w.sum()
+        prob = img_w / s if s > 0 else np.full(len(img_w), 1 / len(img_w))
+        self._prob.copy_(torch.from_numpy(prob))  # in-place: visible to workers sharing this storage
+
+    def update_class_weights(self, f1: np.ndarray):
+        """Update per-class weights from validation F1 with EMA inertia (F1-adaptive mode only).
+
+        Worse-performing classes (low F1) receive higher weight for the next epoch. Classes not evaluated
+        this round (NaN in ``f1``) keep their previous weight. Target weights are floored and normalized to
+        mean 1 for a stable scale, then blended with the previous weights via ``momentum``.
+
+        Args:
+            f1 (np.ndarray): Per-class F1 of shape (nc,); NaN marks classes absent from this validation.
+        """
+        if not self.f1_adaptive:
+            return
+        f1 = np.asarray(f1, dtype=np.float64).reshape(-1)
+        target = self.class_w.copy()
+        mask = ~np.isnan(f1)
+        if mask.any():
+            tw = np.clip(1.0 - np.clip(f1[mask], 0.0, 1.0), 0.05, 1.0)  # inverse performance, floored
+            target[mask] = tw / tw.mean()  # normalize evaluated classes to mean 1
+        self.class_w = self.momentum * self.class_w + (1.0 - self.momentum) * target
+        self._recompute_probabilities()
+
+    def __getitem__(self, index: int) -> dict:
+        if self.augment:  # train-only weighted sampling
+            index = int(np.random.choice(len(self.labels), p=self.probabilities))
+        return self.transforms(self.get_image_and_label(index))
+
+
 class YOLOMultiModalDataset(YOLODataset):
     """Dataset class for loading object detection and/or segmentation labels in YOLO format with multi-modal support.
 

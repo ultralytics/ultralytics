@@ -4,14 +4,11 @@
 
 from __future__ import annotations
 
+import numpy as np
 import torch
 
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER
-
-from ._util import resolve_v2_model
-
-_SENTINEL = object()
 
 
 class YOLOAnomalyValidator(DetectionValidator):
@@ -29,10 +26,9 @@ class YOLOAnomalyValidator(DetectionValidator):
         # Memory-bank features are built at square imgsz; force square inference so
         # the heatmap prior stays aligned with the PAN features.
         self.args.rect = False
-        self._model_ref = None
-        self._heatmap_active = False
 
-        # Memory-bank lifecycle: built from the train split when empty, restored after.
+        self._v2_model = None  # underlying YOLOAnomalyV2Model (after unwrapping AutoBackend)
+        self._heatmap_active = False
         self._built_bank = False
 
         # Standard IoU grid by default; extended if the heatmap prior is active.
@@ -42,13 +38,12 @@ class YOLOAnomalyValidator(DetectionValidator):
     def init_metrics(self, model) -> None:
         """Set up heatmap flag and try to build the memory bank for heatmap mode."""
         super().init_metrics(model)
-        self._model_ref = model
+        self._v2_model = model.model
         self._heatmap_active = False
-        m = resolve_v2_model(model)
-        if m is None:
+        if self._v2_model is None:
             return
 
-        if self._ensure_memory_bank(m):
+        if self._ensure_memory_bank():
             self._heatmap_active = True
             # Extended IoU grid for coarse defect localization with the heatmap prior.
             self.iouv = torch.cat([torch.linspace(0.5, 0.95, 10), torch.tensor([0.10, 0.25])])
@@ -90,8 +85,9 @@ class YOLOAnomalyValidator(DetectionValidator):
             return out
         return [str(p)]
 
-    def _ensure_memory_bank(self, m) -> bool:
+    def _ensure_memory_bank(self) -> bool:
         """Build the bank from the train (normal) split if empty. Returns True iff a usable bank is ready."""
+        m = self._v2_model
         mb = getattr(m, "memory_bank", None)
         if mb is None or getattr(m, "bb_layers", None) is None:
             return False
@@ -117,18 +113,13 @@ class YOLOAnomalyValidator(DetectionValidator):
         """Free any memory bank built during validation."""
         if not self._built_bank:
             return
-        m = resolve_v2_model(self._model_ref)
-        if m is None:
-            return
-        mb = getattr(m, "memory_bank", None)
+        mb = getattr(self._v2_model, "memory_bank", None)
         if mb is not None and hasattr(mb, "reset"):
             mb.reset()
         self._built_bank = False
 
     def _ood_map_metrics(self) -> dict[str, float]:
         """mAP at IoU {0.10, 0.25, 0.50} and the {0.50:0.95} mean from the extended iouv."""
-        import numpy as np
-
         box = self.metrics.box
         all_ap = getattr(box, "all_ap", [])
         out = {
@@ -142,9 +133,12 @@ class YOLOAnomalyValidator(DetectionValidator):
         if not len(all_ap) or not self._heatmap_active:
             return out
         iouv = self.iouv.cpu().numpy()
-        _at = lambda thr: float(all_ap[:, int(np.argmin(np.abs(iouv - thr)))].mean())
+        idx = {thr: int(np.where(np.isclose(iouv, thr))[0][0]) for thr in (0.10, 0.25, 0.50)}
+        out["mAP10"] = float(all_ap[:, idx[0.10]].mean())
+        out["mAP25"] = float(all_ap[:, idx[0.25]].mean())
+        out["mAP50"] = float(all_ap[:, idx[0.50]].mean())
+        # COCO mAP50-95 must use only the 0.50:0.95 columns, not the appended 0.10/0.25.
         std = all_ap[:, iouv >= 0.5 - 1e-6]
-        out["mAP10"], out["mAP25"], out["mAP50"] = _at(0.10), _at(0.25), _at(0.50)
         out["mAP50_95"] = float(std.mean()) if std.size else float(box.map)
         return out
 
@@ -167,4 +161,6 @@ class YOLOAnomalyValidator(DetectionValidator):
         mm = self._ood_map_metrics()
         nt = int(self.metrics.nt_per_class.sum()) if len(self.metrics.nt_per_class) else 0
         pf = "%22s" + "%11i" * 2 + "%11.3g" * 6
-        LOGGER.info(pf % ("all", self.seen, nt, mm["P"], mm["R"], mm["mAP10"], mm["mAP25"], mm["mAP50"], mm["mAP50_95"]))
+        LOGGER.info(
+            pf % ("all", self.seen, nt, mm["P"], mm["R"], mm["mAP10"], mm["mAP25"], mm["mAP50"], mm["mAP50_95"])
+        )

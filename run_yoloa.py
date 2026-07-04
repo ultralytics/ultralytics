@@ -129,6 +129,8 @@ def main():
     fit_args = YAML.load(check_yaml(args.fit_cfg))
     infer = resolve_infer(fit_args)
     device = args.device or ("mps" if torch.backends.mps.is_available() else "cpu")
+    if str(device).isdigit():
+        device = f"cuda:{device}"  # bare GPU index breaks model.to() in YOLOA.fit (torch wants cuda:N)
     root = Path(args.mvtec_root)
     assert root is not None, "MVTec root not found (pass --mvtec-root or set MVTEC_ROOT)"
     cat_arg = args.cat.lower()

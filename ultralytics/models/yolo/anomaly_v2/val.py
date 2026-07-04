@@ -33,7 +33,6 @@ class YOLOAnomalyValidator(DetectionValidator):
         self._heatmap_active = False
 
         # Memory-bank lifecycle: built from the train split when empty, restored after.
-        self._ood_bank_size = 10000
         self._built_bank = False
 
         # Standard IoU grid by default; extended if the heatmap prior is active.
@@ -103,9 +102,7 @@ class YOLOAnomalyValidator(DetectionValidator):
             return False
         imgsz = self.args.imgsz if isinstance(self.args.imgsz, int) else 640
         try:
-            n = m.build_memory_bank(
-                support, imgsz=imgsz, device=self.device, max_bank_size=self._ood_bank_size, verbose=False
-            )
+            n = m.build_memory_bank(support, imgsz=imgsz, device=self.device, verbose=False)
         except Exception as e:
             LOGGER.warning(f"YOLOAnomalyValidator: memory bank build failed ({type(e).__name__}: {e}).")
             return False

@@ -98,7 +98,6 @@ class YOLOA(Model):
                 imgsz=640,
                 device=device,
                 batch=batch,
-                max_bank_size=10000,
                 max_images=0,
                 verbose=True,
             )

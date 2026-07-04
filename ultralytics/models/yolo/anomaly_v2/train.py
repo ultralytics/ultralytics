@@ -167,7 +167,6 @@ class AnomalyV2Trainer(DetectionTrainer):
                     imgsz=640,
                     batch=batch,
                     workers=trainer.args.workers,
-                    bank_size=10000,
                     device=trainer.device,
                     save_dir=trainer.save_dir,
                     epoch=trainer.epoch + 1,

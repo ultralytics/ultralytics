@@ -81,21 +81,21 @@ def _category_yaml(root: Path, cat: str) -> Path | None:
     return None
 
 
-def _inject_cat_bank(m, root: Path, cat: str, cache_dir: Path, imgsz, device, bank_size: int) -> bool:
+def _inject_cat_bank(m, root: Path, cat: str, cache_dir: Path, imgsz, device) -> bool:
     """Build-or-load a category's memory bank and inject it into ``m`` for reuse across modes.
 
     Mirrors the predict script's disk cache: the bank is saved to
-    ``<cache_dir>/<cat>_sz<imgsz>_n<bank_size>.pt`` and reloaded on re-runs, skipping the slow
+    ``<cache_dir>/<cat>_sz<imgsz>.pt`` and reloaded on re-runs, skipping the slow
     feature extraction. Once injected, :meth:`YOLOAnomalyValidator._ensure_memory_bank` reuses it
     (its ``_built_bank`` stays False, so the bank is not dropped between modes). Returns True iff a
     usable bank is now in place.
     """
     mb = getattr(m, "memory_bank", None)
-    if mb is None or getattr(m, "_bb_layers", None) is None:
+    if mb is None or getattr(m, "bb_layers", None) is None:
         return False
     isz = imgsz if isinstance(imgsz, int) else 640
     cache_dir.mkdir(parents=True, exist_ok=True)
-    path = cache_dir / f"{cat}_sz{isz}_n{bank_size}.pt"
+    path = cache_dir / f"{cat}_sz{isz}.pt"
     if path.exists():
         d = torch.load(path, map_location="cpu")
         if not d.get("_calibrated"):
@@ -117,7 +117,7 @@ def _inject_cat_bank(m, root: Path, cat: str, cache_dir: Path, imgsz, device, ba
         return False
     mb.reset_memory_bank()
     try:
-        n = m.build_memory_bank(str(train_dir), imgsz=isz, device=device, max_bank_size=bank_size, verbose=False)
+        n = m.build_memory_bank(str(train_dir), imgsz=isz, device=device, verbose=False)
     except Exception as e:
         LOGGER.warning(f"MVTec OOD: {cat}: bank build failed ({type(e).__name__}: {e}); skipping cache.")
         return False
@@ -147,7 +147,6 @@ def run_mvtec_ood_eval(
     batch: int = 8,
     workers: int = 0,
     device=None,
-    bank_size: int = 10000,
     save_dir: str | Path | None = None,
     epoch: int | None = None,
     e2e: bool | None = None,
@@ -163,7 +162,7 @@ def run_mvtec_ood_eval(
     path.
 
     ``bank_cache_dir`` (opt-in): persist each category's memory bank to
-    ``<dir>/<cat>_sz<imgsz>_n<bank_size>.pt`` and inject it before the mode loop, so the validator
+    ``<dir>/<cat>_sz<imgsz>.pt`` and inject it before the mode loop, so the validator
     reuses it across modes instead of rebuilding and dropping it per pass.
     """
     root = Path(mvtec_root)
@@ -190,7 +189,7 @@ def run_mvtec_ood_eval(
             try:
                 if mode == "heatmap":
                     if bank_cache_dir is not None:
-                        _inject_cat_bank(m, root, cat, Path(bank_cache_dir), imgsz, device, bank_size)
+                        _inject_cat_bank(m, root, cat, Path(bank_cache_dir), imgsz, device)
                     # else: the validator will build the bank from the train split.
                 else:
                     if m.memory_bank is not None:
@@ -219,13 +218,11 @@ def run_mvtec_ood_eval(
                 sd = Path(save_dir) / "mvtec_ood_runs" if save_dir is not None else None
                 if mi == 0:
                     validator = validator_cls(args=overrides, save_dir=sd)
-                    validator._ood_bank_size = bank_size
                     validator(trainer=None, model=m)
                     cat_dataset = validator.dataloader.dataset
                 else:
                     cat_dl = build_dataloader(cat_dataset, batch, workers, shuffle=False, rank=-1)
                     validator = validator_cls(dataloader=cat_dl, args=overrides, save_dir=sd)
-                    validator._ood_bank_size = bank_size
                     validator(trainer=None, model=m)
                 mm = validator._ood_map_metrics()
                 rows.append(

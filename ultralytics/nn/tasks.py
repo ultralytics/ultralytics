@@ -602,7 +602,6 @@ class YOLOAnomalyV2Model(DetectionModel):
         imgsz: int = 320,
         device=None,
         batch: int = 8,
-        max_bank_size: int = 10000,
         max_images: int = 0,
         verbose: bool = True,
     ) -> int:
@@ -616,7 +615,6 @@ class YOLOAnomalyV2Model(DetectionModel):
             imgsz: Resize images to this square size.
             device: Device for the bank (defaults to model device).
             batch: Mini-batch size for backbone feature extraction.
-            max_bank_size: Maximum bank entries (coreset subsampling at freeze).
             max_images: Maximum number of images to use (0 = all).
             verbose: Log progress.
 
@@ -626,7 +624,6 @@ class YOLOAnomalyV2Model(DetectionModel):
         from ultralytics.utils import LOGGER
 
         mb = self.memory_bank
-        mb.max_bank_size = max_bank_size
         mb.reset_memory_bank()
 
         target_device = device if device is not None else next(self.parameters()).device

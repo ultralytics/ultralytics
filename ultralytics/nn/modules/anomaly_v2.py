@@ -230,9 +230,6 @@ class BackboneMemoryBank(nn.Module):
         self._threshold: float | None = None  # sigmoid threshold in cosine space
         self.score_chunk_elems = 1 << 27  # max elements per similarity slice in _anomaly_scores
 
-    # ------------------------------------------------------------------
-    # Public API
-    # ------------------------------------------------------------------
     def load_bank(self, features: torch.Tensor) -> None:
         """Direct-set the memory bank from pre-extracted L2-normalised features [M, C]."""
         if features.numel() == 0:
@@ -289,7 +286,7 @@ class BackboneMemoryBank(nn.Module):
         if not feat_dict:
             return
         fused = self._build_fused_feature(feat_dict)  # (B, C, H, W)
-        C, H, W = fused.shape[1], fused.shape[2], fused.shape[3]
+        C = fused.shape[1]
         if self.feature_dim is None:
             self.feature_dim = C
         flat = fused.permute(0, 2, 3, 1).reshape(-1, C)  # [B*H*W, C]
@@ -374,16 +371,6 @@ class BackboneMemoryBank(nn.Module):
         t = self.calibration_target_score
         logit = math.log(max((1.0 - t) / max(t, 1e-6), 1e-6))
         self._threshold = compactness - logit / max(beta, 0.1)
-        import logging
-
-        logger = logging.getLogger(__name__)
-        logger.debug(
-            "BackboneMemoryBank: compactness=%.4f  β=%.3f  threshold_cos=%.4f  target=%.2f",
-            compactness,
-            beta,
-            self._threshold,
-            self.calibration_target_score,
-        )
 
     def _score_with_threshold(
         self, features: torch.Tensor, mem: torch.Tensor, threshold_cos: float, beta: float | None = None

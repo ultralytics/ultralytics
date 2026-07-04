@@ -73,9 +73,13 @@ class YOLOAnomalyValidator(DetectionValidator):
         if not support:
             return False
         imgsz = self.args.imgsz if isinstance(self.args.imgsz, int) else 640
-        n = model.build_memory_bank(support, imgsz=imgsz, device=self.device, verbose=False)
-        if not n:
-            LOGGER.warning("YOLOAnomalyValidator: memory bank is empty after build.")
+        try:  # NOTE: for validation during training, TODO
+            n = model.build_memory_bank(support, imgsz=imgsz, device=self.device, verbose=False)
+            if not n:
+                LOGGER.warning("YOLOAnomalyValidator: memory bank is empty after build.")
+                return False
+        except Exception as e:
+            LOGGER.warning(f"YOLOAnomalyValidator: failed to build memory bank: {e}")
             return False
         LOGGER.info(f"YOLOAnomalyValidator: built memory bank ({n} features) from {len(support)} normal images.")
         return True

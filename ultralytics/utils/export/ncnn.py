@@ -35,6 +35,7 @@ def torch2ncnn(
     from ultralytics.utils.checks import check_requirements
 
     check_requirements("ncnn", cmds="--no-deps")  # no deps to avoid installing opencv-python
+    # Pin until PNNX 20260704 NCNN inference segfault is fixed: https://github.com/pnnx/pnnx/issues/293
     check_requirements("pnnx==20260526")
     import ncnn
     import pnnx

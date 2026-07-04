@@ -10,7 +10,7 @@ bb_layers: [6]             # backbone tap indices (P3/P4/P5 for yolo26m)
 
 # -- Bank-build knobs ---------------------------------------------------
 max_images: 0              # 0 = all normal images
-bb_max_bank_size: 10000    # coreset cap (unset/None = no cap, use full bank)
+bb_max_bank_size: 40000
 bb_holdout_max: 5000          # max holdout samples for calibration (speed cap)
 bb_K: 5                    # top-K for Noisy-OR scoring
 bb_temperature: 5.0        # β = sigmoid steepness (higher = more sensitive to small deviations)

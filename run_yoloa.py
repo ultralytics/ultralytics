@@ -98,9 +98,10 @@ def main():
     ap.add_argument(
         "--hm-gate-blend",
         type=float,
-        default=0.0,
+        default=None,
         help="Heatmap gating blend: 1.0=off, 0.0=full suppress at low-heatmap cells. "
-        "p_anom = p_anom * (blend + (1-blend) * hm).",
+        "p_anom = p_anom * (blend + (1-blend) * hm). Default: hm_gate_blend from the fit YAML "
+        "(yoloa_fit_default.yaml ships 0.0 = gate ON, same as the in-training OOD eval).",
     )
     args = ap.parse_args()
 
@@ -143,11 +144,14 @@ def main():
     # Per-anchor heatmap confidence gate: p_anom *= blend + (1-blend)*heatmap_at_anchor.
     # blend=1 is off (identity); blend<1 suppresses low-heatmap grid cells.
     # The heatmap is passed as head(..., heatmap=prior) — clean graph input, ONNX-friendly.
-    if args.hm_gate_blend < 1.0:
-        model.model.hm_gate_blend = args.hm_gate_blend
+    # Fit YAML carries the default so this CLI and the in-training OOD eval score the same graph.
+    hm_gate_blend = args.hm_gate_blend if args.hm_gate_blend is not None else float(fit_args.get("hm_gate_blend", 1.0))
+    if hm_gate_blend < 1.0:
+        model.model.hm_gate_blend = hm_gate_blend
         for _h in [model.model.model[-1]] + ([model.model.head_b] if getattr(model.model, "two_head", False) else []):
-            _h.hm_gate_blend = args.hm_gate_blend
-        print(f"  hm_gate_blend: {args.hm_gate_blend} (heatmap conf gate ON)", flush=True)
+            _h.hm_gate_blend = hm_gate_blend
+        src = "cli" if args.hm_gate_blend is not None else "fit yaml"
+        print(f"  hm_gate_blend: {hm_gate_blend} (heatmap conf gate ON, from {src})", flush=True)
 
     imgsz = int(fit_args["imgsz"])
     bank_size = args.bank_size or int(fit_args.get("bb_max_bank_size", 10000))

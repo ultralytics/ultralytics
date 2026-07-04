@@ -146,8 +146,8 @@ class AnomalyV2Trainer(DetectionTrainer):
 
         Configured via the model YAML ``anomaly_v2`` block: ``test_val_freq`` (every N epochs;
         default 3, set 0 to disable). When ``test_fit_cfg`` is set, ``imgsz``, bank-build knobs,
-        and ``heat_edge`` / ``heat_norm`` are read from that fit YAML (the single source of truth
-        for all fit params). Without it, ``test_imgsz`` (default 320) and the default heatmap prior
+        ``heat_edge`` / ``heat_norm`` and ``hm_gate_blend`` are read from that fit YAML (the single
+        source of truth for all fit params). Without it, ``test_imgsz`` (default 320) and the default heatmap prior
         with no post-processing are used. Per-prior switches ``test_none_prior`` /
         ``test_heatmap_prior`` / ``test_mask_prior`` pick which modes run; ``test_heatmap_prior`` is
         forced on (best.pt fitness is ``test_metrics(heatmap_prior)/mAP10``).
@@ -203,6 +203,15 @@ class AnomalyV2Trainer(DetectionTrainer):
         if fit_yaml:
             from ultralytics.yoloa import apply_bb_overrides
             apply_bb_overrides(ema_eval, fit_yaml)
+        # Heatmap conf gate (p_anom *= blend + (1-blend)*hm) — same knob run_yoloa.py resolves from the
+        # same fit YAML, so in-training OOD metrics and post-hoc CLI val score the identical graph.
+        gb = fit_yaml.get("hm_gate_blend") if fit_yaml else None
+        if gb is not None and float(gb) < 1.0:
+            gb = float(gb)
+            ema_eval.hm_gate_blend = gb
+            for _h in [ema_eval.model[-1]] + ([ema_eval.head_b] if getattr(ema_eval, "two_head", False) else []):
+                _h.hm_gate_blend = gb
+            LOGGER.info(f"MVTec OOD: hm_gate_blend={gb} (heatmap conf gate ON, from fit yaml)")
         trainer._ood_heatmap_map10 = None  # clear stale; only set on success
         try:
             with torch.no_grad():

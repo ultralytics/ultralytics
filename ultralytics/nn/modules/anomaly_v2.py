@@ -426,6 +426,18 @@ class BackboneMemoryBank(nn.Module):
         ]
         return torch.cat(aligned, dim=1) if len(aligned) > 1 else aligned[0]
 
+    @staticmethod
+    def _sample_idx(n: int, k: int, device) -> torch.Tensor:
+        """First ``k`` of a seeded CPU randperm, moved to ``device``.
+
+        Calibration (compactness / β / threshold) must be reproducible: the bank cache stores the
+        calibrated state, and an unseeded device-side randperm made β/threshold jitter between
+        otherwise-identical builds (and between CUDA and MPS). CPU RNG with a fixed seed gives the
+        same sample everywhere.
+        """
+        g = torch.Generator().manual_seed(0)
+        return torch.randperm(n, generator=g)[:k].to(device)
+
     def estimate_temperature(self) -> float:
         """Estimate β from the current bank WITHOUT modifying state (lightweight, for MoCo live estimate)."""
         import math
@@ -436,7 +448,7 @@ class BackboneMemoryBank(nn.Module):
         with torch.no_grad():
             k = min(self.K, mem.shape[0])
             n_sample = min(512, mem.shape[0])
-            idx = torch.randperm(mem.shape[0], device=mem.device)[:n_sample]
+            idx = self._sample_idx(mem.shape[0], n_sample, mem.device)
             sample = mem[idx]
             sim = sample @ mem.t()
             topk_sim = sim.topk(k=k, dim=1).values
@@ -454,7 +466,7 @@ class BackboneMemoryBank(nn.Module):
         with torch.no_grad():
             k = min(self.K, mem.shape[0])
             n_sample = min(512, mem.shape[0])
-            idx = torch.randperm(mem.shape[0], device=mem.device)[:n_sample]
+            idx = self._sample_idx(mem.shape[0], n_sample, mem.device)
             sample = mem[idx]
             sim = sample @ mem.t()  # [n_sample, M]
             sim[torch.arange(n_sample, device=mem.device), idx] = -1.0

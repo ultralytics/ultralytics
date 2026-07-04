@@ -42,6 +42,8 @@ class YOLOAnomalyValidator(DetectionValidator):
     def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None) -> None:
         super().__init__(dataloader, save_dir, args, _callbacks)
         self.args.task = "anomaly_v2"
+        # TODO
+        self.args.rect = False  # heatmap prior requires square inference (matches bank build imgsz)
         self._model_ref = None
         self._heatmap_active = False
 

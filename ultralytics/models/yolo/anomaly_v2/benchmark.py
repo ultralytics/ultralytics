@@ -20,20 +20,6 @@ import torch
 
 from ultralytics.data.build import build_dataloader
 from ultralytics.utils import LOGGER
-from ultralytics.utils.anomaly_v2 import PriorContext, PriorMode
-
-
-def _ctx_with_mode(base: PriorContext, mode: PriorMode) -> PriorContext:
-    """Return a fresh PriorContext with ``mode`` replaced, copying only known fields."""
-    return PriorContext(
-        mode=mode,
-        heatmap_norm=base.heatmap_norm,
-        heatmap_smooth_kernel=base.heatmap_smooth_kernel,
-        heatmap_edge_weight=base.heatmap_edge_weight,
-        heatmap_edge_p=base.heatmap_edge_p,
-        heatmap_edge_m=base.heatmap_edge_m,
-        heatmap_edge_sigma=base.heatmap_edge_sigma,
-    )
 from ultralytics.utils.torch_utils import unwrap_model
 
 from ._util import resolve_v2_model
@@ -166,12 +152,6 @@ def run_mvtec_ood_eval(
     epoch: int | None = None,
     e2e: bool | None = None,
     iou: float | None = None,
-    heatmap_norm: str | None = None,
-    heatmap_smooth_kernel: int | None = None,
-    heatmap_edge_weight: bool | None = None,
-    heatmap_edge_p: float | None = None,
-    heatmap_edge_m: float | None = None,
-    heatmap_edge_sigma: float | None = None,
     bank_cache_dir: str | Path | None = None,
     validator_cls: type | None = None,
 ) -> list[dict]:
@@ -192,21 +172,6 @@ def run_mvtec_ood_eval(
     if e2e is not None:
         m.model[-1].end2end = e2e
         m.end2end = e2e
-
-    base_ctx = m.prior_context if isinstance(m.prior_context, PriorContext) else PriorContext()
-    if heatmap_norm is not None:
-        base_ctx.heatmap_norm = str(heatmap_norm).lower()
-        if heatmap_smooth_kernel is not None:
-            base_ctx.heatmap_smooth_kernel = int(heatmap_smooth_kernel)
-    if heatmap_edge_weight is not None:
-        base_ctx.heatmap_edge_weight = bool(heatmap_edge_weight)
-        if heatmap_edge_p is not None:
-            base_ctx.heatmap_edge_p = float(heatmap_edge_p)
-        if heatmap_edge_m is not None:
-            base_ctx.heatmap_edge_m = float(heatmap_edge_m)
-        if heatmap_edge_sigma is not None:
-            base_ctx.heatmap_edge_sigma = float(heatmap_edge_sigma)
-    m.prior_context = base_ctx
 
     rows: list[dict] = []
 
@@ -230,11 +195,11 @@ def run_mvtec_ood_eval(
                         # Let the validator build the bank from the train split.
                         if m.memory_bank is not None:
                             m.memory_bank.reset_memory_bank()
-                    m.prior_context = _ctx_with_mode(base_ctx, PriorMode.HEATMAP)
+                    m.use_heatmap_prior = True
                 else:
                     if m.memory_bank is not None:
                         m.memory_bank.reset_memory_bank()
-                    m.prior_context = _ctx_with_mode(base_ctx, PriorMode.NONE)
+                    m.use_heatmap_prior = False
 
                 overrides = {
                     "task": "anomaly_v2",

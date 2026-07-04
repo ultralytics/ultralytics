@@ -15,8 +15,8 @@ def resolve_v2_model(m):  # TODO
     (``.module``) wrappers. At predict/val time the v2 model is additionally
     wrapped by :class:`~ultralytics.nn.autobackend.AutoBackend`, whose
     real ``nn.Module`` lives at ``backend.model``. Without this extra hop our
-    v2-specific methods (e.g. ``set_prior_context``) are silently never called and
-    prompts have no effect on inference.
+    v2-specific attributes (e.g. ``use_heatmap_prior``) would otherwise be silently
+    inaccessible and the heatmap prior would have no effect on inference.
 
     Returns ``None`` if ``m`` is ``None``.
     """

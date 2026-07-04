@@ -29,7 +29,7 @@ from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK, YAML
 from ultralytics.utils.torch_utils import unwrap_model
 
 from .benchmark import resolve_mvtec_root, run_mvtec_ood_eval
-from ultralytics.utils.anomaly_v2 import apply_bb_overrides
+from ultralytics.utils.anomaly_v2 import apply_bb_overrides, apply_heatmap_overrides
 
 
 def _resolve_fit_yaml(cfg_path: str, model_yaml_path: str | None = None) -> dict:
@@ -147,8 +147,8 @@ class AnomalyV2Trainer(DetectionTrainer):
         """Periodic MVTec cross-dataset OOD eval, rank 0 only; called from validate().
 
         Configured via the model YAML ``anomaly_v2`` block: ``test_val_freq`` (every N epochs;
-        default 3, set 0 to disable). When ``test_fit_cfg`` is set, ``imgsz``, bank-build knobs,
-        and ``heat_edge`` / ``heat_norm`` are read from that fit YAML.
+        default 3, set 0 to disable). When ``test_fit_cfg`` is set, ``imgsz`` plus the bank-build
+        and heatmap post-processing knobs are read from that fit YAML.
 
         ``test_heatmap_prior`` is forced on (best.pt fitness is ``test_metrics(heatmap_prior)/mAP10``);
         ``test_none_prior`` defaults off.
@@ -187,13 +187,10 @@ class AnomalyV2Trainer(DetectionTrainer):
         modes.append("heatmap")
         modes = tuple(modes)
 
-        heat_edge = bool(fit_yaml.get("heat_edge")) if fit_yaml else None
-        heat_edge_sigma = fit_yaml.get("heat_edge_sigma", 1.0)
-        heat_norm = fit_yaml.get("heat_norm") or None
-
         ema_eval = deepcopy(trainer.ema.ema).eval()
         if fit_yaml:
             apply_bb_overrides(ema_eval, fit_yaml)
+            apply_heatmap_overrides(ema_eval, fit_yaml)
         trainer._ood_heatmap_map10 = None
         try:
             with torch.no_grad():
@@ -211,9 +208,6 @@ class AnomalyV2Trainer(DetectionTrainer):
                     epoch=trainer.epoch + 1,
                     e2e=False,
                     iou=0.1,
-                    heatmap_norm=heat_norm,
-                    heatmap_edge_weight=(True if heat_edge else None),
-                    heatmap_edge_sigma=heat_edge_sigma,
                 )
             AnomalyV2Trainer._log_ood_wandb(trainer, rows)
             for r in rows:

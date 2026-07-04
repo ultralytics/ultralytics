@@ -17,6 +17,9 @@ bb_calibration_target_quantile: 0.95 # quantile for the tail (0.95 → z≈1.645
 
 # -- Heatmap post-processing (inference only) ---------------------------
 bb_hmap_stretch_strength: 0. # quadratic stretch hmap+=s*hmap² (0=off, 0.5=moderate, ONNX-safe)
-heat_edge: true # edge-suppression on the heatmap
-heat_edge_sigma: 1.0 # edge sigma (bigger = gentler)
 heat_norm: none # none | minmax | gaussian | mean — prior norm before fusion
+heat_smooth_kernel: 5 # gaussian/mean blur kernel size
+heat_edge: true # edge-suppression on the heatmap
+heat_edge_p: 4.0 # squircle exponent
+heat_edge_m: 4.4 # squircle-Gaussian exponent
+heat_edge_sigma: 1.0 # edge sigma (bigger = gentler)

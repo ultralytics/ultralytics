@@ -4,35 +4,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from enum import Enum
-from typing import Any
-
 from ultralytics.utils import LOGGER
-
-
-class PriorMode(str, Enum):
-    """Anomaly-v2 prior sources."""
-
-    NONE = "none"
-    HEATMAP = "heatmap"
-
-
-@dataclass
-class PriorContext:
-    """Everything the model needs to resolve a fusion prior for one forward pass."""
-
-    mode: PriorMode = PriorMode.NONE
-    heatmap_norm: str = "none"  # "none" | "minmax" | "gaussian" | "mean"
-    heatmap_smooth_kernel: int = 5
-    heatmap_edge_weight: bool = False
-    heatmap_edge_p: float = 4.0
-    heatmap_edge_m: float = 4.4
-    heatmap_edge_sigma: float = 1.0
-
-    def is_heatmap(self) -> bool:
-        """True when the prior should be built from the memory bank."""
-        return self.mode == PriorMode.HEATMAP
 
 
 # Bank-build knobs that live in the fit config. bb_* override the model yaml's v2_cfg defaults;
@@ -48,6 +20,16 @@ FIT_KEYS = (
     "bb_calibration_target_quantile",
     "bb_hmap_stretch_strength",
     "bb_holdout_max",
+)
+
+# Heatmap post-processing knobs that live in the fit config and are owned by HeatmapProcessor.
+HEATMAP_KEYS = (
+    "heat_norm",
+    "heat_smooth_kernel",
+    "heat_edge",
+    "heat_edge_p",
+    "heat_edge_m",
+    "heat_edge_sigma",
 )
 
 # fit-key -> BackboneMemoryBank attribute it sets (bb_layers handled separately: it re-taps).
@@ -85,36 +67,8 @@ def apply_bb_overrides(model, fit_args: dict) -> None:
             setattr(mb, mbk, fit_args[fk])
 
 
-# Canonical prior-shaping keys plus short aliases used by YOLOA.
-_INFER_ALIASES = {
-    "heat_norm": "heatmap_norm",
-    "heat_smooth_kernel": "heatmap_smooth_kernel",
-    "heat_edge": "heatmap_edge_weight",
-    "heat_edge_p": "heatmap_edge_p",
-    "heat_edge_m": "heatmap_edge_m",
-    "heat_edge_sigma": "heatmap_edge_sigma",
-}
-
-
-def prior_context_from_overrides(overrides: dict[str, Any], defaults: PriorContext | None = None) -> PriorContext:
-    """Build a :class:`PriorContext` from predictor/validator override kwargs.
-
-    Pops the anomaly-specific heatmap-shaping keys so the remaining kwargs are safe for the base
-    predictor/validator config. Accepts short aliases (``heat_edge`` -> ``heatmap_edge_weight``).
-    """
-    ctx = defaults or PriorContext()
-
-    def _pop(key: str, default: Any) -> Any:
-        if key in overrides:
-            return overrides.pop(key)
-        return overrides.pop(_INFER_ALIASES.get(key), default)
-
-    return PriorContext(
-        mode=ctx.mode,
-        heatmap_norm=_pop("heatmap_norm", ctx.heatmap_norm),
-        heatmap_smooth_kernel=_pop("heatmap_smooth_kernel", ctx.heatmap_smooth_kernel),
-        heatmap_edge_weight=_pop("heatmap_edge_weight", ctx.heatmap_edge_weight),
-        heatmap_edge_p=_pop("heatmap_edge_p", ctx.heatmap_edge_p),
-        heatmap_edge_m=_pop("heatmap_edge_m", ctx.heatmap_edge_m),
-        heatmap_edge_sigma=_pop("heatmap_edge_sigma", ctx.heatmap_edge_sigma),
-    )
+def apply_heatmap_overrides(model, fit_args: dict) -> None:
+    """Apply heatmap post-processing knobs from the fit config onto the model's HeatmapProcessor."""
+    hp = getattr(model, "heatmap_processor", None)
+    if hp is not None:
+        hp.apply_cfg(fit_args)

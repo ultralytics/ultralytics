@@ -775,21 +775,44 @@ class HeatmapProcessor(nn.Module):
 
     Encapsulates the inference-time transforms that were previously scattered inside
     ``YOLOAnomalyV2Model``: edge-suppression window, min-max stretch, and gaussian/mean
-    blur. Keeping them in a module makes the model forward smaller and lets the same
-    processor be reused by predict/val/benchmark paths.
+    blur. The processing knobs are owned here (not in an external context object) and
+    are set from ``yoloa_fit_default.yaml`` during ``YOLOA.fit()``.
     """
 
-    def __init__(self, mask_size: int = 80):
+    def __init__(
+        self,
+        mask_size: int = 80,
+        norm: str = "none",
+        smooth_kernel: int = 5,
+        edge_weight: bool = False,
+        edge_p: float = 4.0,
+        edge_m: float = 4.4,
+        edge_sigma: float = 1.0,
+    ):
         super().__init__()
         self.mask_size = int(mask_size)
+        self.norm = str(norm)
+        self.smooth_kernel = int(smooth_kernel)
+        self.edge_weight = bool(edge_weight)
+        self.edge_p = float(edge_p)
+        self.edge_m = float(edge_m)
+        self.edge_sigma = float(edge_sigma)
         self._edge_weight_cache: tuple | None = None
 
-    def forward(self, hmap: torch.Tensor, ctx) -> torch.Tensor:
+    def apply_cfg(self, cfg: dict) -> None:
+        """Update processing knobs from a fit-config dict (e.g. yoloa_fit_default.yaml)."""
+        self.norm = str(cfg.get("heat_norm", self.norm))
+        self.smooth_kernel = int(cfg.get("heat_smooth_kernel", self.smooth_kernel))
+        self.edge_weight = bool(cfg.get("heat_edge", self.edge_weight))
+        self.edge_p = float(cfg.get("heat_edge_p", self.edge_p))
+        self.edge_m = float(cfg.get("heat_edge_m", self.edge_m))
+        self.edge_sigma = float(cfg.get("heat_edge_sigma", self.edge_sigma))
+
+    def forward(self, hmap: torch.Tensor) -> torch.Tensor:
         """Apply edge-weight, normalization, and smoothing to ``hmap``.
 
         Args:
             hmap: (B, 1, H, W) raw memory-bank heatmap.
-            ctx: :class:`~ultralytics.utils.anomaly_v2.PriorContext` with processing knobs.
 
         Returns:
             Processed heatmap of the same shape.
@@ -799,25 +822,23 @@ class HeatmapProcessor(nn.Module):
 
         # Edge-suppression window: down-weight borders where peripheral patches score
         # high from boundary effects rather than real defects.
-        if getattr(ctx, "heatmap_edge_weight", False):
+        if self.edge_weight:
             hmap = hmap * self._edge_weight(
                 hmap,
-                p=float(getattr(ctx, "heatmap_edge_p", 4.0)),
-                m=float(getattr(ctx, "heatmap_edge_m", 4.4)),
-                sigma=float(getattr(ctx, "heatmap_edge_sigma", 1.0)),
+                p=self.edge_p,
+                m=self.edge_m,
+                sigma=self.edge_sigma,
             )
 
         # Per-image min-max normalization: stretch each sample's prior to [0, 1].
-        norm = getattr(ctx, "heatmap_norm", "none")
-        if norm == "minmax":
+        if self.norm == "minmax":
             b = hmap.shape[0]
             flat = hmap.reshape(b, -1)
             lo = flat.min(dim=1, keepdim=True).values
             hi = flat.max(dim=1, keepdim=True).values
             hmap = ((flat - lo) / (hi - lo).clamp_min(1e-6)).reshape_as(hmap)
-        elif norm in ("gaussian", "mean"):
-            kernel = int(getattr(ctx, "heatmap_smooth_kernel", 5))
-            hmap = self._smooth_prior(hmap, norm, kernel)
+        elif self.norm in ("gaussian", "mean"):
+            hmap = self._smooth_prior(hmap, self.norm, self.smooth_kernel)
 
         return hmap
 

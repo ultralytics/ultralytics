@@ -4,30 +4,14 @@
 
 from __future__ import annotations
 
-import math
-
 import torch
 
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER
-from ultralytics.utils.anomaly_v2 import PriorContext, PriorMode, prior_context_from_overrides
 
 from ._util import resolve_v2_model
 
 _SENTINEL = object()
-
-
-def _ctx_with_mode(base: PriorContext, mode: PriorMode) -> PriorContext:
-    """Return a fresh PriorContext with ``mode`` replaced, copying only known fields."""
-    return PriorContext(
-        mode=mode,
-        heatmap_norm=base.heatmap_norm,
-        heatmap_smooth_kernel=base.heatmap_smooth_kernel,
-        heatmap_edge_weight=base.heatmap_edge_weight,
-        heatmap_edge_p=base.heatmap_edge_p,
-        heatmap_edge_m=base.heatmap_edge_m,
-        heatmap_edge_sigma=base.heatmap_edge_sigma,
-    )
 
 
 class YOLOAnomalyValidator(DetectionValidator):
@@ -42,14 +26,15 @@ class YOLOAnomalyValidator(DetectionValidator):
     def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None) -> None:
         super().__init__(dataloader, save_dir, args, _callbacks)
         self.args.task = "anomaly_v2"
-        # TODO
-        self.args.rect = False  # heatmap prior requires square inference (matches bank build imgsz)
+        # Memory-bank features are built at square imgsz; force square inference so
+        # the heatmap prior stays aligned with the PAN features.
+        self.args.rect = False
         self._model_ref = None
         self._heatmap_active = False
 
         # Memory-bank lifecycle: built from the train split when empty, restored after.
         self._ood_bank_size = 10000
-        self._saved_prior_context = _SENTINEL
+        self._saved_use_heatmap = _SENTINEL
         self._built_bank = False
 
         # Standard IoU grid by default; extended if the heatmap prior is active.
@@ -57,33 +42,29 @@ class YOLOAnomalyValidator(DetectionValidator):
         self.niou = self.iouv.numel()
 
     def init_metrics(self, model) -> None:
-        """Set up prior context and try to build the memory bank for heatmap mode."""
+        """Set up heatmap flag and try to build the memory bank for heatmap mode."""
         super().init_metrics(model)
         self._model_ref = model
         self._heatmap_active = False
         m = resolve_v2_model(model)
-        if m is None or not hasattr(m, "set_prior_context"):
+        if m is None:
             return
 
-        self._saved_prior_context = m.prior_context
-        base = m.prior_context if isinstance(m.prior_context, PriorContext) else PriorContext()
-
-        ctx = _ctx_with_mode(base, PriorMode.HEATMAP)
+        self._saved_use_heatmap = getattr(m, "use_heatmap_prior", False)
         if self._ensure_memory_bank(m):
-            ctx = prior_context_from_overrides(dict(vars(self.args)), ctx)
-            m.set_prior_context(ctx)
+            m.use_heatmap_prior = True
             self._heatmap_active = True
             # Extended IoU grid for coarse defect localization with the heatmap prior.
             self.iouv = torch.cat([torch.linspace(0.5, 0.95, 10), torch.tensor([0.10, 0.25])])
             self.niou = self.iouv.numel()
         else:
             LOGGER.warning("YOLOAnomalyValidator: heatmap prior unavailable -> running regular validation.")
-            m.set_prior_context(_ctx_with_mode(base, PriorMode.NONE))
+            m.use_heatmap_prior = False
 
     def __call__(self, trainer=None, model=None):
         """Single validation pass; restore model state afterwards."""
         self._built_bank = False
-        self._saved_prior_context = _SENTINEL
+        self._saved_use_heatmap = _SENTINEL
         self._heatmap_active = False
         try:
             return super().__call__(trainer=trainer, model=model)
@@ -141,15 +122,15 @@ class YOLOAnomalyValidator(DetectionValidator):
         return True
 
     def _restore_prior_state(self) -> None:
-        """Undo prior context changes and free any bank built during validation."""
-        if self._saved_prior_context is _SENTINEL and not self._built_bank:
+        """Undo heatmap flag changes and free any bank built during validation."""
+        if self._saved_use_heatmap is _SENTINEL and not self._built_bank:
             return
         m = resolve_v2_model(self._model_ref)
         if m is None:
             return
-        if self._saved_prior_context is not _SENTINEL and hasattr(m, "set_prior_context"):
-            m.set_prior_context(self._saved_prior_context)
-            self._saved_prior_context = _SENTINEL
+        if self._saved_use_heatmap is not _SENTINEL:
+            m.use_heatmap_prior = self._saved_use_heatmap
+            self._saved_use_heatmap = _SENTINEL
         if self._built_bank:
             mb = getattr(m, "memory_bank", None)
             if mb is not None and hasattr(mb, "reset_memory_bank"):

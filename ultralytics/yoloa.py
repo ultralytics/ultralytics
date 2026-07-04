@@ -9,12 +9,12 @@ val with the heatmap prior. The fitted weight self-describes: the bank, the fit 
 Three config layers, each with its own home:
   - architecture + training knobs -> baked in the model yaml / ckpt (frozen after training)
   - bank-build knobs (imgsz / max_images / bb_*) -> the fit config (yaml or kwargs, overridable)
-  - heatmap-shaping knobs (heatmap_norm / heat_edge* / ...) -> predict()/val() kwargs (per-call)
+  - heatmap-shaping knobs (heat_norm / heat_edge* / ...) -> the fit config (yaml or kwargs)
 
 Examples:
     >>> m = YOLOA("best.pt")
     >>> m.fit("bottle/train/good", name="bottle", cfg="yoloa_fit.yaml", bb_K=5)
-    >>> m.predict("test.png", heat_edge=True)
+    >>> m.predict("test.png")
     >>> m.val(data="bottle.yaml")
     >>> m.save("bottle_fitted.pt")  # carries bank + fit_args + fit_data
 """
@@ -32,25 +32,11 @@ from ultralytics.engine.model import Model
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import YOLOAnomalyV2Model
 from ultralytics.utils import LOGGER, YAML
-from ultralytics.utils.anomaly_v2 import FIT_KEYS, apply_bb_overrides, prior_context_from_overrides
+from ultralytics.utils.anomaly_v2 import FIT_KEYS, apply_bb_overrides, apply_heatmap_overrides
 
-# Heatmap-shaping knobs accepted as predict()/val() kwargs. Short aliases are resolved by
-# :func:`~ultralytics.utils.anomaly_v2.prior_context_from_overrides`.
-_INFER_KEYS = {
-    "heatmap_norm",
-    "heatmap_smooth_kernel",
-    "heatmap_edge_weight",
-    "heatmap_edge_p",
-    "heatmap_edge_m",
-    "heatmap_edge_sigma",
-    "heat_norm",
-    "heat_smooth_kernel",
-    "heat_edge",
-    "heat_edge_p",
-    "heat_edge_m",
-    "heat_edge_sigma",
-    "hm_gate_blend",
-}
+# Extra kwargs accepted by predict()/val(). Only ``hm_gate_blend`` remains as a per-call
+# head override; heatmap post-processing is configured via the fit YAML.
+_INFER_KEYS = {"hm_gate_blend"}
 
 
 class YOLOA(Model):
@@ -106,6 +92,7 @@ class YOLOA(Model):
         fit_args = cfg if isinstance(cfg, dict) else YAML.load(cfg)
         data_name = name or self._derive_name(source)
         self._apply_bb_overrides(fit_args)
+        m.apply_heatmap_cfg(fit_args)
 
         device = device if device is not None else next(m.parameters()).device
         cache_path = (Path(cache) / f"{self._cache_key(fit_args, data_name)}.pt") if cache is not None else None
@@ -156,7 +143,7 @@ class YOLOA(Model):
         Args:
             source: Image source (path / array / list), as in :meth:`Model.predict`.
             stream: Stream the source.
-            **kwargs: Standard predict args plus heatmap-shaping knobs (heat_norm / heat_edge / ...).
+            **kwargs: Standard predict args plus ``hm_gate_blend``.
 
         Returns:
             (list[Results]): Prediction results.
@@ -169,8 +156,8 @@ class YOLOA(Model):
 
         Args:
             validator: Optional custom validator.
-            **kwargs: Standard val args plus heatmap-shaping knobs (heat_norm / heat_edge / ...).
-                ``end2end`` is also accepted and applied to the detection head for this call only.
+            **kwargs: Standard val args plus ``end2end`` and ``hm_gate_blend``.
+                ``end2end`` is applied to the detection head for this call only.
 
         Returns:
             Validation metrics.
@@ -197,12 +184,9 @@ class YOLOA(Model):
     # ---- internals ----------------------------------------------------------------------------
 
     def _apply_infer_overrides(self, kwargs: dict) -> None:
-        """Pop heatmap-shaping kwargs and set them on the model via ``PriorContext``."""
-        overrides = {k: kwargs.pop(k) for k in list(kwargs) if k in _INFER_KEYS}
-        if "hm_gate_blend" in overrides:
-            self.model.model[-1].hm_gate_blend = float(overrides.pop("hm_gate_blend"))
-        if overrides:
-            self.model.set_prior_overrides(overrides)
+        """Pop the optional ``hm_gate_blend`` head override."""
+        if "hm_gate_blend" in kwargs:
+            self.model.model[-1].hm_gate_blend = float(kwargs.pop("hm_gate_blend"))
 
     def _apply_bb_overrides(self, fit_args: dict) -> None:
         """Apply bb_* overrides onto the model/bank before building."""

@@ -26,7 +26,7 @@ from ultralytics.data import build_yolo_dataset
 from ultralytics.models import yolo
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.modules.head import AnomalyMCDetect
-from ultralytics.nn.tasks import YOLOAnomalyV2Model
+from ultralytics.nn.tasks import YOLOAnomalyV2Model, load_checkpoint
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK, YAML
 from ultralytics.utils.torch_utils import unwrap_model
 
@@ -141,42 +141,28 @@ class AnomalyV2Trainer(DetectionTrainer):
         )
 
     @staticmethod
-    def _mvtec_ood_eval(trainer: "AnomalyV2Trainer") -> None:
-        """Periodic MVTec cross-dataset OOD eval, rank 0 only; called from validate().
+    def _ood_eval_setup(trainer: "AnomalyV2Trainer") -> dict | None:
+        """Resolve the OOD-eval configuration shared by the per-epoch and final passes.
 
-        Configured via the model YAML ``anomaly_v2`` block: ``test_val_freq`` (every N epochs;
-        default 3, set 0 to disable). When ``test_fit_cfg`` is set, ``imgsz``, bank-build knobs,
-        ``heat_edge`` / ``heat_norm`` and ``hm_gate_blend`` are read from that fit YAML (the single
-        source of truth for all fit params). Without it, ``test_imgsz`` (default 320) and the default heatmap prior
-        with no post-processing are used. Per-prior switches ``test_none_prior`` /
-        ``test_heatmap_prior`` / ``test_mask_prior`` pick which modes run; ``test_heatmap_prior`` is
-        forced on (best.pt fitness is ``test_metrics(heatmap_prior)/mAP10``).
-
-        Runs on a deepcopy of the EMA so val-time fuse()/bank-build never corrupt the live EMA.
+        Reads the model YAML ``anomaly_v2`` block; when ``test_fit_cfg`` is set, ``imgsz``,
+        bank-build knobs and heatmap post-processing come from that fit YAML (the single source
+        of truth for all fit params). Without it, ``test_imgsz`` (default 320) and the default
+        heatmap prior with no post-processing are used. Returns None when the MVTec root is
+        unavailable.
         """
-        if RANK not in (-1, 0) or trainer.ema is None:
-            return
         v2_cfg = getattr(unwrap_model(trainer.model), "yaml", {}).get("anomaly_v2", {})
-        freq = int(v2_cfg.get("test_val_freq", 3))
-        if freq <= 0 or (trainer.epoch + 1) % freq != 0:
-            return
         root = resolve_mvtec_root(v2_cfg.get("test_root"))
         if root is None:
             LOGGER.warning("MVTec test: dataset root not found (set MVTEC_ROOT or anomaly_v2."
                            "test_root); skipping test eval.")
-            return
+            return None
 
         # -- Fit YAML (optional; single source of truth for imgsz / bank knobs / post-processing) --
         fit_cfg_path = v2_cfg.get("test_fit_cfg")
         fit_yaml = {}
         if fit_cfg_path:
             model_yaml = getattr(unwrap_model(trainer.model), "yaml", {}) or {}
-            model_yaml_path = model_yaml.get("yaml_file")
-            fit_yaml = _resolve_fit_yaml(str(fit_cfg_path), model_yaml_path)
-
-        imgsz = int(fit_yaml.get("imgsz", v2_cfg.get("test_imgsz", 320)))
-        batch = int(v2_cfg.get("test_batch", 8))
-        bank_size = int(fit_yaml.get("bb_max_bank_size", v2_cfg.get("test_bank_size", 10000)))
+            fit_yaml = _resolve_fit_yaml(str(fit_cfg_path), model_yaml.get("yaml_file"))
 
         # Per-prior test switches pick which OOD modes run. test_heatmap_prior is forced on because
         # best.pt fitness is test_metrics(heatmap_prior)/mAP10; test_none_prior (mask_off) and
@@ -189,43 +175,80 @@ class AnomalyV2Trainer(DetectionTrainer):
         modes.append("heatmap")  # test_heatmap_prior — always on (fitness source)
         if bool(v2_cfg.get("test_mask_prior", False)):
             modes.append("mask_on")
-        modes = tuple(modes)
 
-        # Heatmap post-processing (inference-only; from fit YAML)
-        heat_edge = bool(fit_yaml.get("heat_edge")) if fit_yaml else None
-        heat_edge_sigma = fit_yaml.get("heat_edge_sigma", 1.0)
-        heat_norm = fit_yaml.get("heat_norm") or None
+        return {
+            "v2_cfg": v2_cfg, "root": root, "fit_yaml": fit_yaml,
+            "imgsz": int(fit_yaml.get("imgsz", v2_cfg.get("test_imgsz", 320))),
+            "batch": int(v2_cfg.get("test_batch", 8)),
+            "bank_size": int(fit_yaml.get("bb_max_bank_size", v2_cfg.get("test_bank_size", 10000))),
+            "modes": tuple(modes),
+            # Heatmap post-processing (inference-only; from fit YAML)
+            "heat_edge": bool(fit_yaml.get("heat_edge")) if fit_yaml else None,
+            "heat_edge_sigma": fit_yaml.get("heat_edge_sigma", 1.0),
+            "heat_norm": fit_yaml.get("heat_norm") or None,
+        }
 
-        ema_eval = deepcopy(trainer.ema.ema).eval()
-        # Apply the fit YAML's bank-build knobs (bb_K / bb_temperature / calibration / bb_layers) onto the
-        # eval copy so the OOD bank is built exactly as YOLOA.fit would post-training — the fit YAML is the
-        # single source of truth, overriding the model-baked v2_cfg defaults. No-op without a fit YAML.
+    @staticmethod
+    def _ood_eval_prep_model(model, fit_yaml: dict) -> None:
+        """Apply fit-YAML bank-build knobs + heatmap conf gate onto an eval copy of the model.
+
+        The bank knobs (bb_K / bb_temperature / calibration / bb_layers) make the OOD bank build
+        exactly as YOLOA.fit would post-training; the gate (p_anom *= blend + (1-blend)*hm) is the
+        same knob run_yoloa.py resolves from the same fit YAML — so in-training OOD metrics and
+        post-hoc CLI val score the identical graph. No-op without a fit YAML.
+        """
         if fit_yaml:
             from ultralytics.yoloa import apply_bb_overrides
-            apply_bb_overrides(ema_eval, fit_yaml)
-        # Heatmap conf gate (p_anom *= blend + (1-blend)*hm) — same knob run_yoloa.py resolves from the
-        # same fit YAML, so in-training OOD metrics and post-hoc CLI val score the identical graph.
+            apply_bb_overrides(model, fit_yaml)
         gb = fit_yaml.get("hm_gate_blend") if fit_yaml else None
         if gb is not None and float(gb) < 1.0:
             gb = float(gb)
-            ema_eval.hm_gate_blend = gb
-            for _h in [ema_eval.model[-1]] + ([ema_eval.head_b] if getattr(ema_eval, "two_head", False) else []):
+            model.hm_gate_blend = gb
+            for _h in [model.model[-1]] + ([model.head_b] if getattr(model, "two_head", False) else []):
                 _h.hm_gate_blend = gb
             LOGGER.info(f"MVTec OOD: hm_gate_blend={gb} (heatmap conf gate ON, from fit yaml)")
+
+    @staticmethod
+    def _run_ood_eval(trainer: "AnomalyV2Trainer", model, cfg: dict, epoch) -> list[dict]:
+        """Run ``run_mvtec_ood_eval`` with a resolved cfg (shared by per-epoch and final passes)."""
+        with torch.no_grad():
+            return run_mvtec_ood_eval(
+                model, cfg["root"],
+                categories=cfg["v2_cfg"].get("test_categories"),
+                modes=cfg["modes"],
+                imgsz=cfg["imgsz"], batch=cfg["batch"], workers=trainer.args.workers,
+                bank_size=cfg["bank_size"],
+                device=trainer.device, save_dir=trainer.save_dir, epoch=epoch,
+                e2e=False, iou=0.1,
+                heatmap_norm=cfg["heat_norm"],
+                heatmap_edge_weight=(True if cfg["heat_edge"] else None),
+                heatmap_edge_sigma=cfg["heat_edge_sigma"],
+            )
+
+    @staticmethod
+    def _mvtec_ood_eval(trainer: "AnomalyV2Trainer") -> None:
+        """Periodic MVTec cross-dataset OOD eval, rank 0 only; called from validate().
+
+        Configured via the model YAML ``anomaly_v2`` block: ``test_val_freq`` (every N epochs;
+        default 3, set 0 to disable); see ``_ood_eval_setup`` for the fit-YAML / mode resolution.
+        ``test_heatmap_prior`` is forced on (best.pt fitness is ``test_metrics(heatmap_prior)/mAP10``).
+
+        Runs on a deepcopy of the EMA so val-time fuse()/bank-build never corrupt the live EMA.
+        """
+        if RANK not in (-1, 0) or trainer.ema is None:
+            return
+        v2_cfg = getattr(unwrap_model(trainer.model), "yaml", {}).get("anomaly_v2", {})
+        freq = int(v2_cfg.get("test_val_freq", 3))
+        if freq <= 0 or (trainer.epoch + 1) % freq != 0:
+            return
+        cfg = AnomalyV2Trainer._ood_eval_setup(trainer)
+        if cfg is None:
+            return
+        ema_eval = deepcopy(trainer.ema.ema).eval()
+        AnomalyV2Trainer._ood_eval_prep_model(ema_eval, cfg["fit_yaml"])
         trainer._ood_heatmap_map10 = None  # clear stale; only set on success
         try:
-            with torch.no_grad():
-                rows = run_mvtec_ood_eval(
-                    ema_eval, root,
-                    categories=v2_cfg.get("test_categories"),
-                    modes=modes,
-                    imgsz=imgsz, batch=batch, workers=trainer.args.workers, bank_size=bank_size,
-                    device=trainer.device, save_dir=trainer.save_dir, epoch=trainer.epoch + 1,
-                    e2e=False, iou=0.1,
-                    heatmap_norm=heat_norm,
-                    heatmap_edge_weight=(True if heat_edge else None),
-                    heatmap_edge_sigma=heat_edge_sigma,
-                )
+            rows = AnomalyV2Trainer._run_ood_eval(trainer, ema_eval, cfg, trainer.epoch + 1)
             AnomalyV2Trainer._log_ood_wandb(trainer, rows)
             # Store OOD heatmap mAP10 (test_metrics(heatmap_prior)) for best.pt selection (fitness override)
             for r in rows:
@@ -238,6 +261,39 @@ class AnomalyV2Trainer(DetectionTrainer):
             LOGGER.warning(f"MVTec OOD eval failed at epoch {trainer.epoch + 1}: {type(e).__name__}: {e}")
         finally:
             del ema_eval
+
+    def final_eval(self):
+        """Standard final in-dist val on best.pt, then one MVTec OOD eval on the same weights."""
+        super().final_eval()
+        self._mvtec_ood_eval_final()
+
+    def _mvtec_ood_eval_final(self) -> None:
+        """Re-run the MVTec OOD eval on the saved best.pt after training (epoch label ``final``).
+
+        The per-epoch OOD rows score each epoch's EMA; this pass scores the saved checkpoint
+        itself, producing the exact reference row a post-hoc ``run_yoloa.py --mode val`` on the
+        pulled best.pt should reproduce (same weights / fit yaml / gate; residual = fp16 ckpt
+        round-trip + device numerics). Runs whenever the periodic OOD eval is enabled; disable
+        just this pass with ``anomaly_v2.test_final_eval: false``.
+        """
+        if RANK not in (-1, 0):
+            return
+        v2_cfg = getattr(unwrap_model(self.model), "yaml", {}).get("anomaly_v2", {})
+        if int(v2_cfg.get("test_val_freq", 3)) <= 0 or not bool(v2_cfg.get("test_final_eval", True)):
+            return
+        ckpt_path = self.best if self.best.exists() else self.last
+        if not ckpt_path.exists():
+            return
+        cfg = AnomalyV2Trainer._ood_eval_setup(self)
+        if cfg is None:
+            return
+        LOGGER.info(f"MVTec OOD final eval on {ckpt_path}...")
+        try:
+            model, _ = load_checkpoint(str(ckpt_path), device=self.device)  # FP32, eval mode
+            AnomalyV2Trainer._ood_eval_prep_model(model, cfg["fit_yaml"])
+            AnomalyV2Trainer._run_ood_eval(self, model, cfg, "final")
+        except Exception as e:  # never let the final OOD eval mask a finished training
+            LOGGER.warning(f"MVTec OOD final eval failed: {type(e).__name__}: {e}")
 
     @staticmethod
     def _log_ood_wandb(trainer: "AnomalyV2Trainer", rows: list) -> None:

@@ -7,6 +7,7 @@ added (broadcast over channels) to PAN features before the Detect head.
 
 from __future__ import annotations
 
+import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -276,16 +277,16 @@ class BackboneMemoryBank(nn.Module):
         self.update = True
         self._bank_chunks: list[torch.Tensor] = []  # defer cat until freeze
 
-    def accumulate_features(self, feat_dict: dict[int, torch.Tensor]) -> None:
+    def accumulate_features(self, feats: list[torch.Tensor]) -> None:
         """Extract and accumulate backbone features into the memory bank (build phase).
 
         Fused backbone features are L2-normalised per spatial position and appended
         to a chunk list; the full bank is materialised once in ``freeze_memory_bank``
         to avoid O(N²) reallocation from repeated ``torch.cat``.
         """
-        if not feat_dict:
+        if not feats:
             return
-        fused = self._build_fused_feature(feat_dict)  # (B, C, H, W)
+        fused = self._build_fused_feature(feats)  # (B, C, H, W)
         C = fused.shape[1]
         if self.feature_dim is None:
             self.feature_dim = C
@@ -293,15 +294,15 @@ class BackboneMemoryBank(nn.Module):
         normed = F.normalize(flat, p=2, dim=1).float()
         self._bank_chunks.append(normed)
 
-    def forward(self, feat_dict: dict[int, torch.Tensor]) -> torch.Tensor:
+    def forward(self, feats: dict[int, torch.Tensor]) -> torch.Tensor:
         """Produce (B, 1, H, W) anomaly heatmap from backbone features."""
-        first = next(iter(feat_dict.values()))
+        first = feats[0]
         b, device, h, w = first.shape[0], first.device, first.shape[2], first.shape[3]
         mem = self._effective_bank()
         if self.update or mem.shape[0] == 0:
             return torch.zeros(b, 1, h, w, device=device)
 
-        fused = self._build_fused_feature(feat_dict)  # (B, C, H, W)
+        fused = self._build_fused_feature(feats)  # (B, C, H, W)
         flat = fused.permute(0, 2, 3, 1).reshape(-1, fused.shape[1])
         scores = self._anomaly_scores(flat, mem)  # [B*H*W]
         hmap = scores.view(b, 1, fused.shape[2], fused.shape[3])
@@ -319,14 +320,10 @@ class BackboneMemoryBank(nn.Module):
             return mem[:0]
         return mem[mem.norm(dim=1) > 0]
 
-    def _build_fused_feature(self, feat_dict: dict[int, torch.Tensor]) -> torch.Tensor:
+    def _build_fused_feature(self, feats: list[torch.Tensor]) -> torch.Tensor:
         """Gather backbone features at configured layer indices and concat."""
-        indices = self._bb_layer_indices
-        if not indices:
-            return feat_dict[list(feat_dict.keys())[0]]
-        feats = [feat_dict[i] for i in indices if i in feat_dict]
-        if not feats:
-            return feat_dict[list(feat_dict.keys())[0]]
+        if len(feats) == 1:
+            return feats[0]
         target_size = feats[0].shape[-2:]
         aligned = [
             F.interpolate(f, size=target_size, mode="nearest") if f.shape[-2:] != target_size else f for f in feats
@@ -363,8 +360,6 @@ class BackboneMemoryBank(nn.Module):
         A normal query has cos ≈ compactness → psi ≈ 1−target → normal
         anomaly score ≈ target.  β is the user-controlled ``temperature``.
         """
-        import math
-
         compactness = self._measure_compactness(mem)
         self._compactness = compactness
         beta = self.temperature
@@ -399,12 +394,6 @@ class BackboneMemoryBank(nn.Module):
         ``calibration_target_score``, then picks the β that gives the tightest
         normal-score distribution (smallest p95−p5).
         """
-        import math
-        import logging
-
-        logger = logging.getLogger(__name__)
-
-        n_holdout = holdout.shape[0]
         target = self.calibration_target_score
         target_q = self.calibration_target_quantile  # e.g. 0.95 → 95% of normal scores ≤ target
         c = self._compactness
@@ -471,30 +460,14 @@ class BackboneMemoryBank(nn.Module):
             spread = _spread(scores)
             return thresh, achieved, spread
 
-        best_beta, best_thresh, best_achieved, best_spread = beta0, c, float("inf"), float("inf")
+        best_beta, best_thresh, best_spread = beta0, c, float("inf")
         for beta in beta_candidates:
-            thresh, achieved, spread = _find_thresh(beta)
+            thresh, _, spread = _find_thresh(beta)
             if thresh is not None and spread < best_spread:
-                best_spread, best_achieved, best_beta, best_thresh = spread, achieved, beta, thresh
+                best_spread, best_beta, best_thresh = spread, beta, thresh
 
-        old_beta = self.temperature
         self.temperature = best_beta
         self._threshold = best_thresh
-        logger.debug(
-            "BackboneMemoryBank: gauss calibration  n=%d  q=%.2f  z=%.4f  "
-            "β %.3f→%.3f  thresh(formula)=%.4f→(holdout)=%.4f  "
-            "target=%.2f→achieved=%.4f  spread=%.4f",
-            n_holdout,
-            target_q,
-            z_q,
-            old_beta,
-            best_beta,
-            c - math.log(max((1.0 - target) / max(target, 1e-6), 1e-6)) / max(old_beta, 0.1),
-            best_thresh,
-            target,
-            best_achieved,
-            best_spread,
-        )
 
     def _anomaly_scores(self, features: torch.Tensor, mem: torch.Tensor | None = None) -> torch.Tensor:
         """Noisy-OR cosine anomaly scores ∈ [0, 1] for every spatial position.

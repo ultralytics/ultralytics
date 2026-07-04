@@ -121,22 +121,38 @@ def run_prior_viz(m, img, prior, imgsz, conf, iou, device, prior_mask=None, **kw
     ``prior`` is one of ``none``, ``mask``, ``heatmap``.  ``mask`` requires a
     pre-rendered ``prior_mask`` tensor.  The current memory-bank heatmap is
     returned for overlay.
+
+    Note:
+        ``model.predict(...)`` stores kwargs in ``predictor.args`` but does not
+        forward them to ``predictor.__call__``; ``prior_mask`` would therefore
+        be ignored.  We instead ensure the predictor is initialized via
+        ``model.predict(..., stream=True)`` (which does not run inference) and
+        then call ``predictor(source, prior_mask=...)`` directly so the prior
+        reaches ``YOLOAnomalyV2Model.forward``.
     """
     mb = getattr(m.model, "memory_bank", None)
     saved_building = getattr(mb, "building", None) if mb is not None else None
+    # Only a small set of kwargs are real predictor args (e.g. end2end).
+    # Remaining keys (heat_edge, heat_norm, ...) are model-construction options
+    # and must not be passed to ``get_cfg``.
+    predictor_kw = {k: v for k, v in kw.items() if k in {"end2end"}}
     try:
         if prior == "none" and mb is not None:
             mb.building = True  # disable memory-bank prior
-        res = m.predict(
+        # (Re-)initialize/update the predictor with the desired base args.
+        # stream=True returns a generator object without actually running inference.
+        _ = m.predict(
             img,
             imgsz=imgsz,
             conf=conf,
             iou=iou,
             device=device,
-            prior_mask=prior_mask,
             verbose=False,
-            **kw,
-        )[0]
+            stream=True,
+            **predictor_kw,
+        )
+        # Direct predictor call forwards kwargs through inference -> model.forward.
+        res = m.predictor(img, prior_mask=prior_mask, stream=False)[0]
     finally:
         if saved_building is not None:
             mb.building = saved_building
@@ -224,6 +240,81 @@ def _hstack(images: list[np.ndarray], gap: int = 8) -> np.ndarray:
         out[y : y + im.shape[0], x : x + im.shape[1]] = im
         x += im.shape[1] + gap
     return out
+
+
+def _draw_gt_boxes(img: np.ndarray, txt_path: str | None, color=(0, 255, 0), thickness=2) -> np.ndarray:
+    """Return a copy of ``img`` with green bounding boxes from a YOLO label file.
+
+    Supports both YOLO-bbox (class x y w h) and YOLO-seg polygon (class x1 y1 ...)
+    formats. Missing/empty label files are a no-op.
+    """
+    if txt_path is None:
+        return img
+    try:
+        with open(txt_path, "r") as f:
+            lines = f.read().strip().splitlines()
+    except (FileNotFoundError, OSError):
+        return img
+    if not lines:
+        return img
+
+    h, w = img.shape[:2]
+    out = img.copy()
+    for line in lines:
+        parts = line.strip().split()
+        if len(parts) < 5:
+            continue
+        vals = list(map(float, parts[1:]))
+        if len(vals) == 4:
+            # YOLO bbox: x, y, bw, bh (normalized)
+            x, y, bw, bh = vals
+            x1 = int((x - bw / 2) * w)
+            y1 = int((y - bh / 2) * h)
+            x2 = int((x + bw / 2) * w)
+            y2 = int((y + bh / 2) * h)
+        elif len(vals) >= 6 and len(vals) % 2 == 0:
+            # YOLO-seg polygon
+            xs = vals[0::2]
+            ys = vals[1::2]
+            x1, x2 = int(min(xs) * w), int(max(xs) * w)
+            y1, y2 = int(min(ys) * h), int(max(ys) * h)
+        else:
+            continue
+        cv2.rectangle(out, (x1, y1), (x2, y2), color, thickness)
+    return out
+
+
+def save_simple_grid(
+    original,
+    none_pred,
+    heat_pred,
+    heat_hmap,
+    gt_txt_path,
+    out_path,
+    n_none=0,
+    n_heat=0,
+):
+    """Build and save a 1x3 comparison grid.
+
+    Layout:
+      - none-prior prediction with GT boxes
+      - original image with the heatmap overlay
+      - heatmap-prior prediction with GT boxes
+    """
+    hmap_title = "heatmap prior"
+    if heat_hmap is not None:
+        hmap_title += f"  [max={heat_hmap.max():.3f} min={heat_hmap.min():.3f}]"
+    grid = _hstack(
+        [
+            _add_title(_draw_gt_boxes(none_pred, gt_txt_path), f"none prior + GT ({n_none} det)"),
+            _add_title(_heatmap_panel(original, heat_hmap), hmap_title),
+            _add_title(_draw_gt_boxes(heat_pred, gt_txt_path), f"heatmap prior + GT ({n_heat} det)"),
+        ]
+    )
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    cv2.imwrite(str(out_path), grid)
+    return out_path
 
 
 def save_compare_grid(

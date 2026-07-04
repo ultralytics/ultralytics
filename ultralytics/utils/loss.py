@@ -1357,7 +1357,11 @@ class E2ELoss:
             self.one2one.assigner.distill = True  # cache the positive x GT-class mask during assignment
         # one2one-only ranking regularizer (RS-style pairwise surrogate), folded into the o2o cls loss
         if getattr(model.args, "rank", 0.0):
-            self.one2one.rank = RankLoss()
+            self.one2one.rank = RankLoss(
+                tau=getattr(model.args, "rank_tau", 0.5),
+                k_neg=getattr(model.args, "rank_k_neg", 100),
+                w_sort=getattr(model.args, "rank_w_sort", 0.5),
+            )
             self.one2one.rank_gain = model.args.rank
 
     def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:

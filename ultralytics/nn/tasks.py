@@ -9,7 +9,7 @@ from pathlib import Path
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
+import numpy as np
 
 from ultralytics.nn.autobackend import check_class_names
 from ultralytics.nn.modules import (
@@ -550,13 +550,7 @@ class YOLOAnomalyV2Model(DetectionModel):
         v2_cfg = self.yaml.get("anomaly_v2", {}) if isinstance(self.yaml, dict) else {}
         mask_size = int(v2_cfg.get("mask_size", 80))
         self.p_drop = float(v2_cfg.get("p_drop", 0.5))
-        # Polygon-mask prior: when True, the fusion prior is built from the v6 polygon
-        # union (batch["masks"]) instead of the coarse bbox-gauss render.
         self.seg_target_polygon = bool(v2_cfg.get("seg_target_polygon", False))
-        # Fusion mechanism: 'bias' (HeatmapBiasFusion, 1-channel additive), 'soft'
-        # (HeatmapSoftFusion, temperature-softmax + BN → bias), 'film'
-        # (HeatmapFiLMFusion, global residual grouped-FiLM), or 'queryfilm'
-        # (QueryFiLMFusion, K learned queries). Exactly one is instantiated.
         fusion_mode = str(v2_cfg.get("fusion_mode", "bias")).lower()
         if fusion_mode != "bias":
             raise ValueError(f"fusion_mode must be bias, got {fusion_mode!r}")
@@ -709,17 +703,9 @@ class YOLOAnomalyV2Model(DetectionModel):
         letterbox = LetterBox(new_shape=(imgsz, imgsz), auto=False, scaleup=True)
         pbar = TQDM(dataset, desc="Extracting bank features") if verbose else dataset
         for _, imgs, _ in pbar:
-            processed = [letterbox(image=im) for im in imgs]
-            yield self._images_to_tensor(processed)
-
-    @staticmethod
-    def _images_to_tensor(images: list) -> torch.Tensor:
-        """Stack a list of (H, W, 3) uint8 images into a normalized (B, 3, H, W) float tensor."""
-        import numpy as np
-
-        batch = np.stack(images, axis=0)  # (B, H, W, 3)
-        batch = (torch.from_numpy(batch).permute(0, 3, 1, 2).float() / 255.0).contiguous()
-        return batch
+            processed = np.stack([letterbox(image=im) for im in imgs], axis=0)
+            processed = (torch.from_numpy(processed).permute(0, 3, 1, 2).float() / 255.0).contiguous()
+            yield processed
 
     def _extract_bb_features(self, x: torch.Tensor) -> dict[int, torch.Tensor]:
         """Run the backbone prefix up to the deepest tapped layer and return tapped outputs.
@@ -730,8 +716,7 @@ class YOLOAnomalyV2Model(DetectionModel):
         Returns:
             Dict mapping layer index to backbone feature tensor.
         """
-        y, out = [], x
-        feats = {}
+        y, out, feats = [], x, {}
         end_idx = max(self._bb_layers)
         for m in self.model[: end_idx + 1]:
             if m.f != -1:
@@ -784,7 +769,6 @@ class YOLOAnomalyV2Model(DetectionModel):
         """Forward with optional heatmap-guided fusion inserted before the Detect head."""
         batch_size = x.shape[0]
         device = x.device
-        img = x  # original input image, needed for the memory-bank heatmap prior
 
         # Per-sample keep mask for mask dropout (anti-shortcut). Only meaningful when a
         # rendered/blended mask is active; keep[b]=0 zeros the per-sample bias -> passthrough.
@@ -807,7 +791,7 @@ class YOLOAnomalyV2Model(DetectionModel):
                 if prior_mask is not None:
                     prior = prior_mask.to(device=device, dtype=torch.float32)
                 elif getattr(self, "use_heatmap_prior", False):
-                    prior = self._build_heatmap_prior(img)
+                    prior = self._build_heatmap_prior(x)
 
                 fused = []
                 for i, p in enumerate(pan_inputs):

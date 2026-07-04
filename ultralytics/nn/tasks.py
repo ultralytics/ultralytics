@@ -543,18 +543,6 @@ class YOLOAnomalyV2Model(DetectionModel):
       - Inference: ``self.use_heatmap_prior = True`` uses the fitted memory bank; otherwise passthrough.
     """
 
-    # Default BackboneMemoryBank build hyperparameters. These are the baked-in defaults;
-    # only ``bb_layers`` comes from the model YAML (it controls architecture).
-    _BANK_DEFAULTS = {
-        "temperature": 5.0,
-        "K": 5,
-        "max_bank_size": 10000,
-        "calibration_target_score": 0.4,
-        "calibration_target_quantile": 0.95,
-        "hmap_stretch_strength": 0.0,
-        "holdout_max": 5000,
-    }
-
     def __init__(self, cfg="yolo26-anomaly-v2.yaml", ch=3, nc=None, verbose=True):
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
@@ -597,13 +585,8 @@ class YOLOAnomalyV2Model(DetectionModel):
         # Architecture knob from the model YAML; all build hyperparameters are baked in.
         bb_layers_cfg = v2_cfg.get("bb_layers", None)
         bb_layers = list(bb_layers_cfg) if bb_layers_cfg else None
-        self.memory_bank = BackboneMemoryBank(**self._BANK_DEFAULTS) if bb_layers else None
+        self.memory_bank = BackboneMemoryBank() if bb_layers else None
         self._bb_layers = bb_layers
-        self._bb_feats: dict[int, "torch.Tensor"] = {}
-        if self.memory_bank is not None and self._bb_layers is not None:
-            self.memory_bank._bb_layer_indices = self._bb_layers
-            for k, v in self._BANK_DEFAULTS.items():
-                setattr(self.memory_bank, k, v)
 
         # Whether to use the fitted memory-bank heatmap prior during inference.
         self.use_heatmap_prior = False
@@ -668,9 +651,7 @@ class YOLOAnomalyV2Model(DetectionModel):
         """
         from ultralytics.utils import LOGGER
 
-        mb = getattr(self, "memory_bank", None)
-        if mb is None or self._bb_layers is None:
-            raise RuntimeError("BackboneMemoryBank not configured. Add bb_layers to the anomaly_v2 YAML block.")
+        mb = self.memory_bank
         mb.max_bank_size = max_bank_size
         mb.reset_memory_bank()
 
@@ -716,9 +697,7 @@ class YOLOAnomalyV2Model(DetectionModel):
         Returns:
             (M, C) normalized feature tensor.
         """
-        mb = getattr(self, "memory_bank", None)
-        if mb is None or self._bb_layers is None:
-            raise RuntimeError("BackboneMemoryBank not configured. Add bb_layers to the anomaly_v2 YAML block.")
+        mb = self.memory_bank
 
         target_device = device if device is not None else next(self.parameters()).device
         self.to(target_device)
@@ -799,11 +778,8 @@ class YOLOAnomalyV2Model(DetectionModel):
         Returns:
             Dict mapping layer index to backbone feature tensor.
         """
-        self._bb_feats = {}
-        if not self._bb_layers:
-            return self._bb_feats
-
         y, out = [], x
+        feats = {}
         end_idx = max(self._bb_layers)
         for m in self.model[: end_idx + 1]:
             if m.f != -1:
@@ -811,8 +787,8 @@ class YOLOAnomalyV2Model(DetectionModel):
             out = m(out)
             y.append(out if m.i in self.save else None)
             if m.i in self._bb_layers:
-                self._bb_feats[m.i] = out
-        return self._bb_feats
+                feats[m.i] = out
+        return feats
 
     def _resize_to_mask(self, x, mask_size):
         """Bilinearly resize a (B, 1, H, W) prior to (B, 1, mask_size, mask_size) when needed."""
@@ -822,11 +798,7 @@ class YOLOAnomalyV2Model(DetectionModel):
 
     def _build_heatmap_prior(self, x: torch.Tensor) -> torch.Tensor | None:
         """Build the (B, 1, mask_size, mask_size) feature-side heatmap prior, or None."""
-        if not getattr(self, "use_heatmap_prior", False):
-            return None
-        mb = getattr(self, "memory_bank", None)
-        if mb is None:
-            return None
+        mb = self.memory_bank
         mem = mb._effective_bank()
         if mem.shape[0] == 0:
             if not getattr(self, "_heatmap_bank_warned", False):
@@ -839,9 +811,6 @@ class YOLOAnomalyV2Model(DetectionModel):
         hmap = self._resize_to_mask(hmap.to(device=x.device, dtype=torch.float32), self.mask_size)
         return self.heatmap_processor(hmap)
 
-    # ------------------------------------------------------------------
-    # Forward
-    # ------------------------------------------------------------------
     def loss(self, batch, preds=None, *, prior_mask=None):
         """Compute loss. Passes the pre-built ``batch["prior_mask"]`` into forward."""
         if getattr(self, "criterion", None) is None:
@@ -870,10 +839,9 @@ class YOLOAnomalyV2Model(DetectionModel):
 
         # Per-sample keep mask for mask dropout (anti-shortcut). Only meaningful when a
         # rendered/blended mask is active; keep[b]=0 zeros the per-sample bias -> passthrough.
-        p_drop = getattr(self, "p_drop", 0.0)
         keep = torch.ones(batch_size, device=device)
-        if prior_mask is not None and self.training and p_drop > 0.0:
-            keep = (torch.rand(batch_size, device=device) > p_drop).to(keep.dtype)
+        if prior_mask is not None and self.training and self.p_drop > 0.0:
+            keep = (torch.rand(batch_size, device=device) > self.p_drop).to(keep.dtype)
 
         prior = None
         y, dt, embeddings = [], [], []

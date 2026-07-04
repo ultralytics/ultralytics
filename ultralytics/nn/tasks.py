@@ -543,6 +543,18 @@ class YOLOAnomalyV2Model(DetectionModel):
       - Inference: ``self.use_heatmap_prior = True`` uses the fitted memory bank; otherwise passthrough.
     """
 
+    # Default BackboneMemoryBank build hyperparameters. These are the baked-in defaults;
+    # only ``bb_layers`` comes from the model YAML (it controls architecture).
+    _BANK_DEFAULTS = {
+        "temperature": 5.0,
+        "K": 5,
+        "max_bank_size": 10000,
+        "calibration_target_score": 0.4,
+        "calibration_target_quantile": 0.95,
+        "hmap_stretch_strength": 0.0,
+        "holdout_max": 5000,
+    }
+
     def __init__(self, cfg="yolo26-anomaly-v2.yaml", ch=3, nc=None, verbose=True):
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
@@ -582,12 +594,16 @@ class YOLOAnomalyV2Model(DetectionModel):
         self.mask_size = mask_size
 
         # --- BackboneMemoryBank (v2.3) ---
-        # Architecture knob from the model YAML; all build hyperparameters come from the fit YAML.
+        # Architecture knob from the model YAML; all build hyperparameters are baked in.
         bb_layers_cfg = v2_cfg.get("bb_layers", None)
         bb_layers = list(bb_layers_cfg) if bb_layers_cfg else None
-        self.memory_bank = BackboneMemoryBank() if bb_layers else None
+        self.memory_bank = BackboneMemoryBank(**self._BANK_DEFAULTS) if bb_layers else None
         self._bb_layers = bb_layers
         self._bb_feats: dict[int, "torch.Tensor"] = {}
+        if self.memory_bank is not None and self._bb_layers is not None:
+            self.memory_bank._bb_layer_indices = self._bb_layers
+            for k, v in self._BANK_DEFAULTS.items():
+                setattr(self.memory_bank, k, v)
 
         # Whether to use the fitted memory-bank heatmap prior during inference.
         self.use_heatmap_prior = False
@@ -797,84 +813,6 @@ class YOLOAnomalyV2Model(DetectionModel):
             if m.i in self._bb_layers:
                 self._bb_feats[m.i] = out
         return self._bb_feats
-
-    def __getstate__(self):
-        """Drop forward-time scratch buffers before pickle/deepcopy.
-
-        The captured backbone features are transient — repopulated on the next forward — but
-        if a forward ran just before ``torch.save`` they get pickled into the checkpoint and
-        bloat it. Null them in the returned state only (a shallow copy), so the live model is
-        untouched.
-        """
-        state = super().__getstate__()
-        state["_bb_feats"] = {}
-        if "_heatmap_bank_warned" in state:
-            state["_heatmap_bank_warned"] = None
-        return state
-
-    def __setstate__(self, state):
-        """Set defaults for old-checkpoint compat."""
-        super().__setstate__(state)
-        self._bb_feats = {}
-
-        # Migrate old prior_context / per-attribute heatmap settings into HeatmapProcessor.
-        if not hasattr(self, "use_heatmap_prior"):
-            old = self.__dict__.pop("prior_context", None)
-            old_heatmap = getattr(old, "mode", None) == "heatmap" or self.__dict__.pop("_use_heatmap_prior", False)
-            self.use_heatmap_prior = bool(old_heatmap)
-            if not hasattr(self, "heatmap_processor"):
-                self.heatmap_processor = HeatmapProcessor(mask_size=getattr(self, "mask_size", 80))
-            self.heatmap_processor.norm = getattr(old, "heatmap_norm", self.__dict__.pop("heatmap_norm", "none"))
-            self.heatmap_processor.smooth_kernel = getattr(
-                old, "heatmap_smooth_kernel", self.__dict__.pop("heatmap_smooth_kernel", 5)
-            )
-            self.heatmap_processor.edge_weight = getattr(
-                old, "heatmap_edge_weight", self.__dict__.pop("heatmap_edge_weight", False)
-            )
-            self.heatmap_processor.edge_p = getattr(old, "heatmap_edge_p", self.__dict__.pop("heatmap_edge_p", 4.0))
-            self.heatmap_processor.edge_m = getattr(old, "heatmap_edge_m", self.__dict__.pop("heatmap_edge_m", 4.4))
-            self.heatmap_processor.edge_sigma = getattr(
-                old, "heatmap_edge_sigma", self.__dict__.pop("heatmap_edge_sigma", 1.0)
-            )
-
-        # Drop deprecated fields/submodules from old checkpoints.
-        for attr in (
-            "prior_context",
-            "_use_heatmap_prior",
-            "heatmap_norm",
-            "heatmap_smooth_kernel",
-            "heatmap_edge_weight",
-            "heatmap_edge_p",
-            "heatmap_edge_m",
-            "heatmap_edge_sigma",
-            "_edge_weight_cache",
-            "mask_renderer",
-            "mask_augmenter",
-        ):
-            if attr in self.__dict__:
-                delattr(self, attr)
-
-        if not hasattr(self, "heatmap_processor"):
-            self.heatmap_processor = HeatmapProcessor(mask_size=getattr(self, "mask_size", 80))
-        # Backward compat: old checkpoints may lack v2.3+ attributes
-        for attr, default in [
-            ("memory_bank", None),
-            ("use_heatmap_prior", False),
-            ("p_drop", 0.5),
-            ("seg_target_polygon", False),
-            ("softmax_temperature", 1.0),
-            ("fit_args", None),
-            ("fit_data", None),
-            ("fusion_mid", 32),
-        ]:
-            if not hasattr(self, attr):
-                setattr(self, attr, default)
-
-        hp = getattr(self, "heatmap_processor", None)
-        if hp is not None:
-            defaults = HeatmapProcessor(mask_size=getattr(self, "mask_size", 80)).__dict__
-            for k in ("norm", "smooth_kernel", "edge_weight", "edge_p", "edge_m", "edge_sigma"):
-                setattr(hp, k, defaults[k])
 
     def _resize_to_mask(self, x, mask_size):
         """Bilinearly resize a (B, 1, H, W) prior to (B, 1, mask_size, mask_size) when needed."""

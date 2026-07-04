@@ -53,13 +53,6 @@ class BboxMaskRenderer(nn.Module):
         self.register_buffer("grid_x", xs + 0.5, persistent=False)
         self.register_buffer("grid_y", ys + 0.5, persistent=False)
 
-    def __setstate__(self, state):
-        """Backfill sigma_lo/sigma_hi for checkpoints pickled before the [lo, hi] range knob."""
-        super().__setstate__(state)
-        if not hasattr(self, "sigma_lo"):
-            sf = float(getattr(self, "sigma_factor", 0.25))
-            self.sigma_lo = self.sigma_hi = sf
-
     def forward(self, bboxes: torch.Tensor, batch_idx: torch.Tensor, batch_size: int) -> torch.Tensor:
         H = self.mask_size
         device = self.grid_x.device
@@ -259,25 +252,6 @@ class BackboneMemoryBank(nn.Module):
     @property
     def built(self) -> bool:
         return not self.update
-
-    def __setstate__(self, state):
-        """Backfill attributes added after the checkpoint was saved."""
-        super().__setstate__(state)
-        # Drop deprecated projection state from old checkpoints.
-        if "proj_dim" in self.__dict__:
-            delattr(self, "proj_dim")
-        if "_proj_weight" in self._buffers:
-            del self._buffers["_proj_weight"]
-        if not hasattr(self, "_compactness"):
-            self._compactness = None
-        if not hasattr(self, "_threshold"):
-            self._threshold = None
-        if not hasattr(self, "calibration_target_quantile"):
-            self.calibration_target_quantile = 0.95
-        if not hasattr(self, "hmap_stretch_strength"):
-            self.hmap_stretch_strength = 0.0
-        if not hasattr(self, "holdout_max"):
-            self.holdout_max = 5000
 
     def _apply(self, fn, recurse=True):
         """Keep a plain-attribute memory bank in sync with ``.to()``/``.float()``/``.half()``.

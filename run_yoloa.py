@@ -230,22 +230,18 @@ def main():
                 gt_mask = txt_to_mask(str(Path(img).with_suffix(".txt")), h, w)
                 mask_tensor = load_mask_tensor(gt_mask, imgsz)
                 none_pred, n_none, _ = run_prior_viz(model, img, "none", **pkw)
-                seg_pred, n_seg, seg_hmap = run_prior_viz(model, img, "segment", **pkw)
                 heat_pred, n_heat, heat_hmap = run_prior_viz(model, img, "heatmap", **pkw, **infer)
                 mask_pred, n_mask, _ = run_prior_viz(model, img, "mask", external_mask=mask_tensor, **pkw)
                 pre = f"{source}_{label}__{Path(img).stem}"
                 save_compare_grid(
                     original=original,
                     none_pred=none_pred,
-                    seg_heat=seg_hmap,
-                    seg_pred=seg_pred,
                     heat_heat=heat_hmap,
                     heat_pred=heat_pred,
                     mask_img=gt_mask,
                     mask_pred=mask_pred,
                     out_path=out / f"{pre}.jpg",
                     n_none=n_none,
-                    n_seg=n_seg,
                     n_heat=n_heat,
                     n_mask=n_mask,
                     original_title=f"original ({source})",

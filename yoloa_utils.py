@@ -218,23 +218,17 @@ def save_compare_grid(
     *,
     original,
     none_pred,
-    seg_heat,
-    seg_pred,
     heat_heat,
     heat_pred,
     mask_img,
     mask_pred,
     out_path,
     n_none=0,
-    n_seg=0,
     n_heat=0,
     n_mask=0,
     original_title="original",
 ):
-    """Build and save the 4x2 comparison grid."""
-    seg_hmap_title = "seg heatmap"
-    if seg_heat is not None:
-        seg_hmap_title += f"  [max={seg_heat.max():.3f} min={seg_heat.min():.3f}]"
+    """Build and save the 3x2 comparison grid (segment prior removed)."""
     mb_hmap_title = "mb heatmap"
     if heat_heat is not None:
         mb_hmap_title += f"  [max={heat_heat.max():.3f} min={heat_heat.min():.3f}]"
@@ -242,18 +236,20 @@ def save_compare_grid(
         [
             _add_title(original, original_title),
             _add_title(none_pred, f"None Prior ({n_none} det)"),
-            _add_title(_heatmap_panel(original, seg_heat), seg_hmap_title),
-            _add_title(seg_pred, f"segment prior ({n_seg} det)"),
+            _add_title(_heatmap_panel(original, heat_heat), mb_hmap_title),
+            _add_title(heat_pred, f"heatmap prior ({n_heat} det)"),
         ]
     )
     row2 = _hstack(
         [
-            _add_title(_heatmap_panel(original, heat_heat), mb_hmap_title),
-            _add_title(heat_pred, f"heatmap prior ({n_heat} det)"),
             _add_title(_mask_panel(original, mask_img), "GT mask"),
             _add_title(mask_pred, f"mask prior ({n_mask} det)"),
         ]
     )
+    # Pad row2 to match row1 width
+    if row2.shape[1] < row1.shape[1]:
+        pad = np.full((row2.shape[0], row1.shape[1] - row2.shape[1], 3), 255, dtype=np.uint8)
+        row2 = np.hstack([row2, pad])
     grid = np.vstack([row1, np.full((8, row1.shape[1], 3), 255, dtype=np.uint8), row2])
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)

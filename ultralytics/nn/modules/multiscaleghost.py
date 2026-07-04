@@ -23,10 +23,12 @@ class MultiScaleGhost(nn.Module):
 
         branch_channel = math.ceil(new_channels / len(kernel_sizes))
         self.branches = nn.ModuleList() # ModuleList giúp chạy cả cpu/gpu để tránh gặp lỗi
+        groups = math.gcd(init_channels, branch_channel)
+
         for kernel in kernel_sizes:
             self.branches.append(
                 nn.Sequential(
-                    nn.Conv2d(init_channels, branch_channel, kernel, stride=1, padding=kernel//2, groups=init_channels, bias=False),
+                    nn.Conv2d(init_channels, branch_channel, kernel, stride=1, padding=kernel//2, groups=groups, bias=False),
                     nn.BatchNorm2d(branch_channel),
                     nn.ReLU() if act else nn.Identity()
                 )

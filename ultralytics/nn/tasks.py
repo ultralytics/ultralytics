@@ -597,6 +597,9 @@ class YOLOAnomalyV2Model(DetectionModel):
             for m in self.modules():
                 if isinstance(m, Detect):
                     m.max_det = int(_max_det)
+        # Heatmap gate blend: 0=full gate (conf × heatmap), 1=off (deployment-friendly).
+        hm_gate_blend = float(v2_cfg.get("hm_gate_blend", 1.0))
+        detect.hm_gate_blend = hm_gate_blend
         if not isinstance(detect, Detect):
             raise TypeError(f"YOLOAnomalyV2Model expects last layer to be Detect, got {type(detect).__name__}")
 
@@ -606,6 +609,8 @@ class YOLOAnomalyV2Model(DetectionModel):
 
         self.mask_augmenter = MaskPriorAugmenter(v2_cfg)
         self.heatmap_bias_fusion = HeatmapBiasFusion(c_mid=fusion_mid, inst_norm=fusion_norm, residual=fusion_residual)
+        # Heatmap gate blend on the Detect head (0=full gate, 1=off).
+        self.hm_gate_blend = float(v2_cfg.get("hm_gate_blend", 1.0))
         # Inference-time prior processing: minmax stretch, gaussian/mean blur, spatial softmax,
         # and an edge-suppression window for memory-bank heatmaps.
         self.heatmap_norm = "none"
@@ -924,9 +929,20 @@ class YOLOAnomalyV2Model(DetectionModel):
             ("fit_args", None),
             ("fit_data", None),
             ("fusion_mid", 8),
+            ("hm_gate_blend", 1.0),
         ]:
             if not hasattr(self, attr):
                 setattr(self, attr, default)
+        # Push model-level hm_gate_blend to every Detect head (old checkpoints may have stale 1.0).
+        # If the stored YAML carries a value, it overrides the fallback default.
+        _yaml = getattr(self, "yaml", None)
+        if isinstance(_yaml, dict):
+            _yaml_gb = _yaml.get("anomaly_v2", {}).get("hm_gate_blend")
+            if _yaml_gb is not None:
+                self.hm_gate_blend = float(_yaml_gb)
+        for m in self.modules():
+            if isinstance(m, Detect) and hasattr(m, "hm_gate_blend"):
+                m.hm_gate_blend = self.hm_gate_blend
         # Old checkpoints may not contain the standalone augmenter module.
         if not hasattr(self, "mask_augmenter"):
             self.mask_augmenter = MaskPriorAugmenter({})

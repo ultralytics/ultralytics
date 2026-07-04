@@ -144,6 +144,7 @@ def main():
     # blend=1 is off (identity); blend<1 suppresses low-heatmap grid cells.
     # The heatmap is passed as head(..., heatmap=prior) — clean graph input, ONNX-friendly.
     if args.hm_gate_blend < 1.0:
+        model.model.hm_gate_blend = args.hm_gate_blend
         for _h in [model.model.model[-1]] + ([model.model.head_b] if getattr(model.model, "two_head", False) else []):
             _h.hm_gate_blend = args.hm_gate_blend
         print(f"  hm_gate_blend: {args.hm_gate_blend} (heatmap conf gate ON)", flush=True)

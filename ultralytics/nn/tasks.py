@@ -631,8 +631,8 @@ class YOLOAnomalyV2Model(DetectionModel):
         for images in self._iter_image_batches(
             source, imgsz=imgsz, batch=batch, max_images=max_images, verbose=verbose
         ):
-            feat_dict = self._extract_bb_features(images.to(target_device))
-            mb.accumulate_features(feat_dict)
+            feats = self._extract_bb_features(images.to(target_device))
+            mb.accumulate_features(feats)
 
         mb.freeze_memory_bank()
         final_size = mb.memory_bank.shape[0]
@@ -692,7 +692,7 @@ class YOLOAnomalyV2Model(DetectionModel):
         Returns:
             Dict mapping layer index to backbone feature tensor.
         """
-        y, out, feats = [], x, {}
+        y, out, feats = [], x, []
         end_idx = max(self.bb_layers)
         for m in self.model[: end_idx + 1]:
             if m.f != -1:
@@ -700,7 +700,7 @@ class YOLOAnomalyV2Model(DetectionModel):
             out = m(out)
             y.append(out if m.i in self.save else None)
             if m.i in self.bb_layers:
-                feats[m.i] = out
+                feats.append(out)
         return feats
 
     def _has_memory_bank(self) -> bool:

@@ -722,43 +722,34 @@ class YOLOAnomalyV2Model(DetectionModel):
         max_images: int = 0,
         verbose: bool = False,
     ):
-        """Yield pre-processed image tensors of shape (B, 3, imgsz, imgsz) from a directory or path list."""
-        import cv2
-        from pathlib import Path
+        """Yield pre-processed image tensors of shape (B, 3, imgsz, imgsz) from a source.
+
+        Uses the same loader as the predictor (``load_inference_source``) and applies a
+        square LetterBox, so bank-build preprocessing matches inference-time preprocessing.
+        """
+        from ultralytics.data import load_inference_source
+        from ultralytics.data.augment import LetterBox
         from ultralytics.utils import LOGGER, TQDM
 
-        if isinstance(source, (str, Path)):
-            source = Path(source)
-            if source.is_dir():
-                exts = {".bmp", ".dng", ".jpeg", ".jpg", ".mpo", ".png", ".tif", ".tiff", ".webp", ".pfm"}
-                paths = sorted(p for p in source.iterdir() if p.is_file() and p.suffix.lower() in exts)
-            else:
-                paths = [str(source)]
-        else:
-            paths = list(source)
+        dataset = load_inference_source(source, batch=batch, channels=3)
+        if any(getattr(dataset, "video_flag", [])):
+            raise ValueError("video sources are not supported for memory bank feature extraction")
 
-        if not paths:
-            raise ValueError("No images found in source.")
-        if max_images > 0 and len(paths) > max_images:
-            paths = paths[:max_images]
+        files = getattr(dataset, "files", None)
+        n_files = len(files) if files is not None else len(dataset)
+        if max_images > 0 and files is not None and n_files > max_images:
+            dataset.files = files[:max_images]
+            dataset.nf = max_images
+            n_files = max_images
 
         if verbose:
-            LOGGER.info(f"Extracting bank features from {len(paths)} images (imgsz={imgsz})...")
+            LOGGER.info(f"Extracting bank features from {n_files} images (imgsz={imgsz})...")
 
-        pbar = TQDM(paths, desc="Extracting bank features") if verbose else paths
-        images = []
-        for p in pbar:
-            img = cv2.imread(str(p))
-            if img is None:
-                continue
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-            img = cv2.resize(img, (imgsz, imgsz), interpolation=cv2.INTER_LINEAR)
-            images.append(img)
-            if len(images) >= batch:
-                yield self._images_to_tensor(images)
-                images.clear()
-        if images:
-            yield self._images_to_tensor(images)
+        letterbox = LetterBox(new_shape=(imgsz, imgsz), auto=False, scaleup=True)
+        pbar = TQDM(dataset, desc="Extracting bank features") if verbose else dataset
+        for _, imgs, _ in pbar:
+            processed = [letterbox(image=im) for im in imgs]
+            yield self._images_to_tensor(processed)
 
     @staticmethod
     def _images_to_tensor(images: list) -> torch.Tensor:

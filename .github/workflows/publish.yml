@@ -58,6 +58,7 @@ jobs:
             git push origin "$CURRENT_TAG"
           fi
           if ! gh release view "$CURRENT_TAG" >/dev/null 2>&1; then
+            [ -n "$PREVIOUS_TAG" ] || git fetch --unshallow --tags # summarize resolves the previous tag from git history
             ultralytics-actions-summarize-release
           fi
           uv cache prune --ci

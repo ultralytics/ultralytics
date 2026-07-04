@@ -635,7 +635,6 @@ class YOLOAnomalyV2Model(DetectionModel):
             mb.accumulate_features(feat_dict)
 
         mb.freeze_memory_bank()
-        self._heatmap_bank_warned = False
         final_size = mb.memory_bank.shape[0]
         if verbose:
             LOGGER.info(
@@ -715,9 +714,7 @@ class YOLOAnomalyV2Model(DetectionModel):
     def _build_heatmap_prior(self, x: torch.Tensor) -> torch.Tensor | None:
         """Build the (B, 1, mask_size, mask_size) feature-side heatmap prior, or None."""
         if not self._has_memory_bank():
-            if not getattr(self, "_heatmap_bank_warned", False):
-                LOGGER.warning("Memory bank is empty; heatmap prior disabled. Run model.fit(source=...) first.")
-                self._heatmap_bank_warned = True
+            LOGGER.warning("Memory bank is empty; heatmap prior disabled. Run model.fit(source=...) first.")
             return None
         mb = self.memory_bank
         with torch.no_grad():

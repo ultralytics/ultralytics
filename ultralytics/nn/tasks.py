@@ -591,6 +591,12 @@ class YOLOAnomalyV2Model(DetectionModel):
         detect = self.model[-1]
         if isinstance(detect, AnomalyMCDetect):
             detect.type_tau = type_tau
+        # max_det override for anomaly (typically much lower than the default 300)
+        _max_det = v2_cfg.get("max_det")
+        if _max_det is not None:
+            for m in self.modules():
+                if isinstance(m, Detect):
+                    m.max_det = int(_max_det)
         if not isinstance(detect, Detect):
             raise TypeError(f"YOLOAnomalyV2Model expects last layer to be Detect, got {type(detect).__name__}")
 

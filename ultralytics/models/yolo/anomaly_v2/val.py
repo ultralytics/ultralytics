@@ -497,6 +497,7 @@ def run_mvtec_ood_eval(
     heatmap_edge_p: float | None = None,
     heatmap_edge_m: float | None = None,
     heatmap_edge_sigma: float | None = None,
+    max_det: int | None = None,
     validator_cls: type | None = None,
 ) -> list[dict]:
     """Run the 3-mode MVTec OOD eval over ``categories``; ``model`` is a YOLOAnomalyV2Model.
@@ -563,6 +564,8 @@ def run_mvtec_ood_eval(
                     overrides["end2end"] = e2e
                 if iou is not None:
                     overrides["iou"] = iou
+                if max_det is not None:
+                    overrides["max_det"] = max_det
                 sd = Path(save_dir) / "mvtec_ood_runs" if save_dir is not None else None
                 if mi == 0:
                     # First mode: build normally — triggers RAM cache in the dataset

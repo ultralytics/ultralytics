@@ -87,8 +87,8 @@ def main():
     ap.add_argument("--e2e", action="store_true", help="end-to-end NMS-free head")
     ap.add_argument(
         "--fit-cfg",
-        default="yoloa_fit_default.yaml",
-        help="fit-config yaml (all fit params: heatmap_mode, scorer, bank, imgsz, etc.). "
+        default=None,
+        help="Optional fit-config yaml (only imgsz and heatmap-shaping keys are still read). "
         "Its filename stem IS the fit_id.",
     )
     ap.add_argument("--bank-cache", default=None, help="bank cache dir (default: <out>/banks)")
@@ -115,9 +115,6 @@ def main():
     prior_list = [p.strip() for p in args.prior.split(",")]
     val_modes = []
     mode_to_prior = {}  # val_mode → prior_name (for column prefixes)
-    needs_disc = False
-    scorer_kwargs = {}
-    scorer_fuse = "mean"
 
     allowed = {"heatmap", "none", "mask"}
     for p in prior_list:
@@ -131,8 +128,12 @@ def main():
     # Single-prior name for predict/visualize mode (first prior in list)
     predict_prior = prior_list[0]
 
-    fit_args = YAML.load(check_yaml(args.fit_cfg))
-    infer = resolve_infer(fit_args)
+    if args.fit_cfg:
+        fit_args = YAML.load(check_yaml(args.fit_cfg))
+        infer = resolve_infer(fit_args)
+    else:
+        fit_args = {}
+        infer = {}
     device = args.device or ("mps" if torch.backends.mps.is_available() else "cpu")
     cat_arg = args.cat.lower()
     if cat_arg in CAT_GROUPS:
@@ -152,12 +153,11 @@ def main():
             _h.hm_gate_blend = args.hm_gate_blend
         print(f"  hm_gate_blend: {args.hm_gate_blend} (heatmap conf gate ON)", flush=True)
 
-    imgsz = int(fit_args["imgsz"])
+    imgsz = int(fit_args.get("imgsz", 640))
     mid = model_id_from_ckpt(args.ckpt)
-    out_root = Path(args.out) if args.out else Path("runs/temp/yoloa") / mid / Path(args.fit_cfg).stem
+    fit_id = Path(args.fit_cfg).stem if args.fit_cfg else f"sz{imgsz}"
+    out_root = Path(args.out) if args.out else Path("runs/temp/yoloa") / mid / fit_id
     bank_cache = args.bank_cache or str(out_root / "banks")
-
-    fit_disc = scorer_kwargs if needs_disc else False
 
     print(
         f"YOLOA {args.mode} | root: {root} | device: {device} | imgsz: {imgsz} | "
@@ -167,8 +167,6 @@ def main():
     )
     print(f"  model: {type(model.model).__name__}, fusion_mode={getattr(model.model, 'fusion_mode', '?')}", flush=True)
     print(f"  out: {out_root}  |  bank-cache: {bank_cache}", flush=True)
-    if needs_disc:
-        print(f"  scorer: {scorer_kwargs}  fuse={scorer_fuse}", flush=True)
 
     rows = []
     for ci, cat in enumerate(cats, 1):
@@ -179,7 +177,6 @@ def main():
         model.fit(
             source=str(gd),
             name=cat,
-            cfg=fit_args,
             batch=args.batch,
             device=device,
             cache=bank_cache,
@@ -190,19 +187,25 @@ def main():
             out.mkdir(parents=True, exist_ok=True)
             samples = collect_test_images(root / cat / "test", args.n_per_cat)
             for img, label in samples:
-                r = model.predict(
+                prior_mask = None
+                if predict_prior == "mask":
+                    orig = cv2.imread(img)
+                    h, w = orig.shape[:2]
+                    gt_mask = txt_to_mask(str(Path(img).with_suffix(".txt")), h, w)
+                    prior_mask = load_mask_tensor(gt_mask, imgsz)
+                pred_bgr, _, _ = run_prior_viz(
+                    model,
                     img,
-                    prior=predict_prior,
+                    predict_prior,
                     imgsz=imgsz,
                     conf=args.conf,
                     iou=args.iou,
                     device=device,
-                    end2end=args.e2e,
-                    verbose=False,
+                    prior_mask=prior_mask,
                     **infer,
-                )[0]
+                )
                 stem = f"{label}__{Path(img).stem}"
-                cv2.imwrite(str(out / f"{stem}__pred.jpg"), r.plot())
+                cv2.imwrite(str(out / f"{stem}__pred.jpg"), pred_bgr)
                 save_heatmap(model.model, img, out / f"{stem}__heat.jpg")
             print(f"[{ci}/{len(cats)}] {cat}: {len(samples)} predictions -> {out}", flush=True)
         elif args.mode in ("visualize", "vis"):
@@ -266,9 +269,7 @@ def main():
                 device=device,
                 e2e=args.e2e,
                 iou=args.iou,
-                heatmap_norm=infer.get("heat_norm", "none"),
-                heatmap_edge_weight=(True if infer.get("heat_edge") else None),
-                heatmap_edge_sigma=infer.get("heat_edge_sigma", 1.0),
+                bank_cache_dir=bank_cache,
             )
             mode_rows = [x for x in cat_rows if x["category"] == cat and x.get("mode") in mode_to_prior]
             if not mode_rows:

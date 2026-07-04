@@ -22,7 +22,7 @@ from typing import Any
 
 import torch
 
-from ultralytics.nn.modules.anomaly_v2 import BackboneMemoryBank, BboxMaskRenderer, HeatmapProcessor
+from ultralytics.nn.modules.anomaly_v2 import AnomalyMemoryBank, BboxMaskRenderer, HeatmapProcessor
 from ultralytics.nn.tasks import YOLOAnomalyV2Model
 
 
@@ -35,23 +35,53 @@ def _migrate_bbox_mask_renderer(m: BboxMaskRenderer) -> None:
         m.sigma_factor = m.sigma_lo
 
 
-def _migrate_backbone_memory_bank(m: BackboneMemoryBank) -> None:
-    """Backfill attributes added after the checkpoint was saved."""
+def _migrate_anomaly_memory_bank(m: AnomalyMemoryBank) -> None:
+    """Migrate an old BackboneMemoryBank pickle to the current AnomalyMemoryBank layout."""
     # Drop deprecated projection state from very old checkpoints.
     if "proj_dim" in m.__dict__:
         delattr(m, "proj_dim")
     if "_proj_weight" in m._buffers:
         del m._buffers["_proj_weight"]
+
+    # Rename old tensor attribute to the new registered buffer.
+    if hasattr(m, "memory_bank"):
+        bank_tensor = m.memory_bank
+    else:
+        bank_tensor = torch.empty(0, 0)
+    if "bank" not in m._buffers:
+        m.register_buffer("bank", bank_tensor if isinstance(bank_tensor, torch.Tensor) else torch.empty(0, 0))
+    else:
+        m.bank = bank_tensor
+    if hasattr(m, "memory_bank") and "memory_bank" not in m._buffers:
+        delattr(m, "memory_bank")
+
+    # Rename scalar / transient attributes.
+    if hasattr(m, "feature_dim") and not hasattr(m, "dim"):
+        m.dim = m.feature_dim
+    if hasattr(m, "update") and not hasattr(m, "building"):
+        m.building = m.update
+    if hasattr(m, "_bank_chunks") and not hasattr(m, "_chunks"):
+        m._chunks = m._bank_chunks
+
     if not hasattr(m, "_compactness"):
         m._compactness = None
     if not hasattr(m, "_threshold"):
         m._threshold = None
-    if not hasattr(m, "calibration_target_quantile"):
-        m.calibration_target_quantile = 0.95
-    if not hasattr(m, "hmap_stretch_strength"):
-        m.hmap_stretch_strength = 0.0
-    if not hasattr(m, "holdout_max"):
-        m.holdout_max = 5000
+
+    # Drop deprecated / removed attributes.
+    for attr in (
+        "calibration_target_quantile",
+        "hmap_stretch_strength",
+        "holdout_max",
+        "max_bank_size",
+        "score_chunk_elems",
+        "_calibrated",
+        "feature_dim",
+        "update",
+        "_bank_chunks",
+    ):
+        if attr in m.__dict__:
+            delattr(m, attr)
 
 
 def _migrate_heatmap_processor(m: HeatmapProcessor) -> None:
@@ -69,8 +99,8 @@ def _migrate_v2_model(m: YOLOAnomalyV2Model) -> None:
     for module in m.modules():
         if isinstance(module, BboxMaskRenderer):
             _migrate_bbox_mask_renderer(module)
-        elif isinstance(module, BackboneMemoryBank):
-            _migrate_backbone_memory_bank(module)
+        elif isinstance(module, AnomalyMemoryBank):
+            _migrate_anomaly_memory_bank(module)
         elif isinstance(module, HeatmapProcessor):
             _migrate_heatmap_processor(module)
 
@@ -118,11 +148,15 @@ def _migrate_v2_model(m: YOLOAnomalyV2Model) -> None:
     # Reset bank defaults so pickled bank-build hyperparameters never override the code defaults.
     mb = getattr(m, "memory_bank", None)
     if mb is not None:
-        defaults = {k: v for k, v in BackboneMemoryBank().__dict__.items() if not k.startswith("_")}
-        for k, v in defaults.items():
-            setattr(mb, k, v)
-        if getattr(m, "bb_layers", None) is not None:
-            mb._bb_layer_indices = m.bb_layers
+        defaults = AnomalyMemoryBank().__dict__
+        for k in ("bank_size", "K", "temperature", "target_score", "stretch", "score_chunk"):
+            setattr(mb, k, defaults[k])
+        mb.bank = torch.empty(0, 0, device=mb.bank.device)
+        mb.dim = None
+        mb._compactness = None
+        mb._threshold = None
+        mb.building = True
+        mb._chunks = []
 
 
 def convert_checkpoint(input_path: str | Path, output_path: str | Path) -> dict[str, Any]:

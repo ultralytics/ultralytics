@@ -116,18 +116,30 @@ def load_mask_tensor(mask, imgsz: int):
 
 
 def run_prior_viz(m, img, prior, imgsz, conf, iou, device, prior_mask=None, **kw):
-    """Predict with one prior; return (pred_bgr, n_det, heatmap_np)."""
-    res = m.predict(
-        img,
-        prior=prior,
-        imgsz=imgsz,
-        conf=conf,
-        iou=iou,
-        device=device,
-        prior_mask=prior_mask,
-        verbose=False,
-        **kw,
-    )[0]
+    """Predict with one prior; return (pred_bgr, n_det, heatmap_np).
+
+    ``prior`` is one of ``none``, ``mask``, ``heatmap``.  ``mask`` requires a
+    pre-rendered ``prior_mask`` tensor.  The current memory-bank heatmap is
+    returned for overlay.
+    """
+    mb = getattr(m.model, "memory_bank", None)
+    saved_building = getattr(mb, "building", None) if mb is not None else None
+    try:
+        if prior == "none" and mb is not None:
+            mb.building = True  # disable memory-bank prior
+        res = m.predict(
+            img,
+            imgsz=imgsz,
+            conf=conf,
+            iou=iou,
+            device=device,
+            prior_mask=prior_mask,
+            verbose=False,
+            **kw,
+        )[0]
+    finally:
+        if saved_building is not None:
+            mb.building = saved_building
     n = 0 if res.boxes is None else res.boxes.shape[0]
     hm = getattr(m.model, "_last_heatmap", None)
     hm_np = hm.detach().cpu().numpy().squeeze() if hm is not None else None

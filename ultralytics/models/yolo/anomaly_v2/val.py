@@ -171,7 +171,7 @@ class YOLOAnomalyValidator(DetectionValidator):
             "P": float(box.mp),
             "R": float(box.mr),
         }
-        if not len(all_ap):
+        if not len(all_ap) or not self._heatmap_active:
             return out
         iouv = self.iouv.cpu().numpy()
         _at = lambda thr: float(all_ap[:, int(np.argmin(np.abs(iouv - thr)))].mean())
@@ -181,9 +181,7 @@ class YOLOAnomalyValidator(DetectionValidator):
         return out
 
     def get_desc(self) -> str:
-        """Return the column header."""
-        if not self._heatmap_active:
-            return super().get_desc()
+        """Return the column header with mAP10/mAP25 columns (always, for alignment)."""
         return ("%22s" + "%11s" * 8) % (
             "Class",
             "Images",
@@ -197,9 +195,7 @@ class YOLOAnomalyValidator(DetectionValidator):
         )
 
     def print_results(self) -> None:
-        """Print the 'all' row; use the extended-iou labels when the heatmap prior is active."""
-        if not self._heatmap_active:
-            return super().print_results()
+        """Print the 'all' row with mAP10/mAP25 (non-zero only when the heatmap prior is active)."""
         mm = self._ood_map_metrics()
         nt = int(self.metrics.nt_per_class.sum()) if len(self.metrics.nt_per_class) else 0
         pf = "%22s" + "%11i" * 2 + "%11.3g" * 6

@@ -23,28 +23,14 @@ class YOLOAnomalyValidator(DetectionValidator):
     def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None) -> None:
         super().__init__(dataloader, save_dir, args, _callbacks)
         self.args.task = "anomaly_v2"
-        # Memory-bank features are built at square imgsz; force square inference so
-        # the heatmap prior stays aligned with the PAN features.
         self.args.rect = False
-
-        self._v2_model = None  # underlying YOLOAnomalyV2Model (after unwrapping AutoBackend)
-        self._heatmap_active = False
-        self._built_bank = False
-
-        # Standard IoU grid by default; extended if the heatmap prior is active.
-        self.iouv = torch.linspace(0.5, 0.95, 10)
-        self.niou = self.iouv.numel()
 
     def init_metrics(self, model) -> None:
         """Set up heatmap flag and try to build the memory bank for heatmap mode."""
         super().init_metrics(model)
-        self._v2_model = model.model
-        self._heatmap_active = False
-        if self._v2_model is None:
-            return
+        self.v2_model = model.model
 
-        if self._ensure_memory_bank():
-            self._heatmap_active = True
+        if self._ensure_memory_bank(model.model):
             # Extended IoU grid for coarse defect localization with the heatmap prior.
             self.iouv = torch.cat([torch.linspace(0.5, 0.95, 10), torch.tensor([0.10, 0.25])])
             self.niou = self.iouv.numel()
@@ -53,17 +39,11 @@ class YOLOAnomalyValidator(DetectionValidator):
 
     def __call__(self, trainer=None, model=None):
         """Single validation pass; restore model state afterwards."""
-        self._built_bank = False
-        self._heatmap_active = False
-        try:
-            return super().__call__(trainer=trainer, model=model)
-        finally:
-            self._restore_prior_state()
+        metrics = super().__call__(trainer=trainer, model=model)
+        self.v2_model.memory_bank.reset()
+        return metrics
 
-    # ------------------------------------------------------------------
-    # Memory-bank lifecycle
-    # ------------------------------------------------------------------
-    def _collect_support_paths(self) -> list[str]:
+    def _collect_support_paths(self) -> list[str]:  # TODO
         """Resolve normal (good) image paths from the dataset's train split for the bank."""
         from pathlib import Path
 
@@ -85,38 +65,20 @@ class YOLOAnomalyValidator(DetectionValidator):
             return out
         return [str(p)]
 
-    def _ensure_memory_bank(self) -> bool:
+    def _ensure_memory_bank(self, model) -> bool:
         """Build the bank from the train (normal) split if empty. Returns True iff a usable bank is ready."""
-        m = self._v2_model
-        mb = getattr(m, "memory_bank", None)
-        if mb is None or getattr(m, "bb_layers", None) is None:
-            return False
-        if mb.is_ready:
+        if model.memory_bank.is_ready:
             return True
         support = self._collect_support_paths()
         if not support:
             return False
         imgsz = self.args.imgsz if isinstance(self.args.imgsz, int) else 640
-        try:
-            n = m.build_memory_bank(support, imgsz=imgsz, device=self.device, verbose=False)
-        except Exception as e:
-            LOGGER.warning(f"YOLOAnomalyValidator: memory bank build failed ({type(e).__name__}: {e}).")
-            return False
+        n = model.build_memory_bank(support, imgsz=imgsz, device=self.device, verbose=False)
         if not n:
             LOGGER.warning("YOLOAnomalyValidator: memory bank is empty after build.")
             return False
         LOGGER.info(f"YOLOAnomalyValidator: built memory bank ({n} features) from {len(support)} normal images.")
-        self._built_bank = True
         return True
-
-    def _restore_prior_state(self) -> None:
-        """Free any memory bank built during validation."""
-        if not self._built_bank:
-            return
-        mb = getattr(self._v2_model, "memory_bank", None)
-        if mb is not None and hasattr(mb, "reset"):
-            mb.reset()
-        self._built_bank = False
 
     def _ood_map_metrics(self) -> dict[str, float]:
         """mAP at IoU {0.10, 0.25, 0.50} and the {0.50:0.95} mean from the extended iouv."""
@@ -130,7 +92,7 @@ class YOLOAnomalyValidator(DetectionValidator):
             "P": float(box.mp),
             "R": float(box.mr),
         }
-        if not len(all_ap) or not self._heatmap_active:
+        if not len(all_ap) or not self.v2_model.memory_bank.is_ready:
             return out
         iouv = self.iouv.cpu().numpy()
         idx = {thr: int(np.where(np.isclose(iouv, thr))[0][0]) for thr in (0.10, 0.25, 0.50)}

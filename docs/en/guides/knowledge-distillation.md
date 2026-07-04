@@ -31,6 +31,8 @@ Train a smaller student model with guidance from a larger teacher model by addin
 
 [Knowledge distillation](https://www.ultralytics.com/glossary/knowledge-distillation) transfers knowledge from a large, accurate **teacher model** to a smaller **student model**. The student learns to mimic the teacher's internal feature representations, often achieving better accuracy than training from scratch.
 
+![Knowledge distillation workflow image](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/knowledge-distillation.avif‎)
+
 **Use distillation when:**
 
 - You need a smaller, faster model for deployment

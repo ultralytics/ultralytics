@@ -221,31 +221,14 @@ class BackboneMemoryBank(nn.Module):
         self.calibration_target_quantile = float(calibration_target_quantile)
         self.hmap_stretch_strength = float(hmap_stretch_strength)
         self.holdout_max = int(holdout_max)
-        self._calibrated = False
         self.register_buffer("memory_bank", torch.empty(0, 0), persistent=True)
         self.feature_dim: int | None = None
         self.update = True
         self._bb_layer_indices: list[int] = []
         self._bank_chunks: list[torch.Tensor] = []
         self._compactness: float | None = None  # normal-manifold tightness from coreset
-        self._threshold: float | None = None  # sigmoid threshold in d_norm space
+        self._threshold: float | None = None  # sigmoid threshold in cosine space
         self.score_chunk_elems = 1 << 27  # max elements per similarity slice in _anomaly_scores
-
-    @property
-    def built(self) -> bool:
-        return not self.update
-
-    def _apply(self, fn, recurse=True):
-        """Keep a plain-attribute memory bank in sync with ``.to()``/``.float()``/``.half()``.
-
-        If ``memory_bank`` is ever held as a plain attribute (not a registered buffer), it is
-        skipped by ``nn.Module._apply`` and would stay on the old device/dtype after
-        ``model.to(device)``; this defensively moves it. A no-op for the registered-buffer case.
-        """
-        module = super()._apply(fn, recurse)
-        if "memory_bank" not in module._buffers and isinstance(module.memory_bank, torch.Tensor):
-            module.memory_bank = fn(module.memory_bank)
-        return module
 
     # ------------------------------------------------------------------
     # Public API
@@ -258,9 +241,8 @@ class BackboneMemoryBank(nn.Module):
             raise ValueError(f"BackboneMemoryBank.load_bank: features contain NaN/Inf ({features.shape})")
         self.feature_dim = features.shape[1]
         self.memory_bank = F.normalize(features.to(self.memory_bank.device), p=2, dim=1).float()
-        self._calibrated = True  # trigger lazy compactness/threshold recompute on next score
-        self._compactness = None
-        self._threshold = None
+        self.update = False
+        self._calibrate_compactness(self._effective_bank())
 
     def freeze_memory_bank(self) -> None:
         """Coreset-compress, calibrate via compactness + holdout, then freeze the bank."""
@@ -292,64 +274,10 @@ class BackboneMemoryBank(nn.Module):
         """Clear the bank and return to build mode."""
         self.memory_bank = torch.empty(0, 0, device=self.memory_bank.device)
         self.feature_dim = None
-        self._calibrated = False
         self._compactness = None
         self._threshold = None
         self.update = True
         self._bank_chunks: list[torch.Tensor] = []  # defer cat until freeze
-
-    def add_features(self, features: torch.Tensor) -> None:
-        """Add features [M, C] to the frozen bank, normalize, and re-calibrate.
-
-        If the resulting bank exceeds ``max_bank_size``, coreset subsampling is
-        re-applied over the combined bank, which may evict existing vectors.
-        The bank remains in inference mode after this call.
-        """
-        if features.numel() == 0:
-            return
-        if features.dim() != 2:
-            raise ValueError(
-                f"BackboneMemoryBank.add_features: expected 2D features, got {features.dim()}D ({features.shape})"
-            )
-        if not torch.isfinite(features).all():
-            raise ValueError(f"BackboneMemoryBank.add_features: features contain NaN/Inf ({features.shape})")
-        features = F.normalize(features.to(self.memory_bank.device), p=2, dim=1).float()
-        if self.feature_dim is None:
-            self.feature_dim = features.shape[1]
-        if features.shape[1] != self.feature_dim:
-            raise ValueError(f"Feature dim mismatch: expected {self.feature_dim}, got {features.shape[1]}")
-
-        mem = self._effective_bank()
-        self.memory_bank = torch.cat([mem, features], dim=0) if mem.shape[0] > 0 else features
-        self._bank_chunks.clear()
-        self.freeze_memory_bank()
-
-    def remove_features(self, indices: torch.Tensor | list[int]) -> None:
-        """Remove bank entries by flat index and re-calibrate.
-
-        Args:
-            indices: Flat indices into the current bank to remove. Negative indices
-                follow PyTorch semantics.
-        """
-        if isinstance(indices, list):
-            indices = torch.tensor(indices, dtype=torch.long, device=self.memory_bank.device)
-        indices = indices.to(self.memory_bank.device).long()
-        if indices.numel() == 0:
-            return
-        mem = self._effective_bank()
-        if mem.shape[0] == 0:
-            return
-        indices = (indices + mem.shape[0]) % mem.shape[0]
-        if indices.max().item() >= mem.shape[0]:
-            raise IndexError(f"remove index out of range (bank size {mem.shape[0]})")
-        mask = torch.ones(mem.shape[0], dtype=torch.bool, device=mem.device)
-        mask[indices] = False
-        self.memory_bank = mem[mask]
-        self._bank_chunks.clear()
-        if self.memory_bank.shape[0] == 0:
-            self.reset_memory_bank()
-        else:
-            self.freeze_memory_bank()
 
     def accumulate_features(self, feat_dict: dict[int, torch.Tensor]) -> None:
         """Extract and accumulate backbone features into the memory bank (build phase).
@@ -369,45 +297,30 @@ class BackboneMemoryBank(nn.Module):
         self._bank_chunks.append(normed)
 
     def forward(self, feat_dict: dict[int, torch.Tensor]) -> torch.Tensor:
-        """Produce (B, 1, H, W) anomaly heatmap from backbone features.
-
-        During build mode or when the bank is empty, returns zeros.
-        """
-        b, device = self._resolve_batch_size(feat_dict)
-        h = feat_dict[list(feat_dict.keys())[0]].shape[2] if feat_dict else 80
-        w = feat_dict[list(feat_dict.keys())[0]].shape[3] if feat_dict else 80
-        if self.update:
-            return torch.zeros(b, 1, h, w, device=device)
+        """Produce (B, 1, H, W) anomaly heatmap from backbone features."""
+        first = next(iter(feat_dict.values()))
+        b, device, h, w = first.shape[0], first.device, first.shape[2], first.shape[3]
         mem = self._effective_bank()
-        if mem.shape[0] == 0:
+        if self.update or mem.shape[0] == 0:
             return torch.zeros(b, 1, h, w, device=device)
+
         fused = self._build_fused_feature(feat_dict)  # (B, C, H, W)
-        if fused.shape[1] != self.feature_dim:
-            return torch.zeros(b, 1, fused.shape[2], fused.shape[3], device=device)
-        bh, bw = fused.shape[2], fused.shape[3]
-        flat = fused.permute(0, 2, 3, 1).reshape(-1, self.feature_dim)
+        flat = fused.permute(0, 2, 3, 1).reshape(-1, fused.shape[1])
         scores = self._anomaly_scores(flat, mem)  # [B*H*W]
-        hmap = scores.view(b, 1, bh, bw)
+        hmap = scores.view(b, 1, fused.shape[2], fused.shape[3])
         s = self.hmap_stretch_strength
         if s:
             hmap = (hmap + s * hmap * hmap).clamp(0, 1)
         return hmap
-
-    @staticmethod
-    def _resolve_batch_size(feat_dict: dict[int, torch.Tensor]) -> tuple[int, torch.device]:
-        for v in feat_dict.values():
-            return v.shape[0], v.device
-        return 1, torch.device("cpu")
 
     def _effective_bank(self) -> torch.Tensor:
         """Return real memory-bank entries excluding zero-padding placeholders."""
         if self.update and self._bank_chunks:
             return torch.cat(self._bank_chunks, dim=0)
         mem = self.memory_bank
-        if self.feature_dim is None or mem.numel() == 0 or mem.shape[0] == 0:
+        if self.feature_dim is None or mem.shape[0] == 0:
             return mem[:0]
-        valid = mem.norm(dim=1) > 0
-        return mem[valid]
+        return mem[mem.norm(dim=1) > 0]
 
     def _build_fused_feature(self, feat_dict: dict[int, torch.Tensor]) -> torch.Tensor:
         """Gather backbone features at configured layer indices and concat."""
@@ -422,26 +335,6 @@ class BackboneMemoryBank(nn.Module):
             F.interpolate(f, size=target_size, mode="nearest") if f.shape[-2:] != target_size else f for f in feats
         ]
         return torch.cat(aligned, dim=1) if len(aligned) > 1 else aligned[0]
-
-    def estimate_temperature(self) -> float:
-        """Estimate β from the current bank WITHOUT modifying state (lightweight, for MoCo live estimate)."""
-        import math
-
-        mem = self._effective_bank()
-        if mem.shape[0] < 2:
-            return self.temperature
-        with torch.no_grad():
-            k = min(self.K, mem.shape[0])
-            n_sample = min(512, mem.shape[0])
-            idx = torch.randperm(mem.shape[0], device=mem.device)[:n_sample]
-            sample = mem[idx]
-            sim = sample @ mem.t()
-            topk_sim = sim.topk(k=k, dim=1).values
-            mean_topk = topk_sim.mean(dim=1)
-            s_max = mean_topk.max().clamp(0.0, 1.0 - 1e-4).item()
-            beta = -math.log(1.0 - self.calibration_target_score) / max(1.0 - s_max, 1e-6)
-            beta = max(0.1, min(20.0, beta))
-        return beta
 
     def _measure_compactness(self, mem: torch.Tensor) -> float:
         """Compute compactness from the bank without touching ``self.temperature``.
@@ -481,7 +374,6 @@ class BackboneMemoryBank(nn.Module):
         t = self.calibration_target_score
         logit = math.log(max((1.0 - t) / max(t, 1e-6), 1e-6))
         self._threshold = compactness - logit / max(beta, 0.1)
-        self._calibrated = True
         import logging
 
         logger = logging.getLogger(__name__)
@@ -629,33 +521,19 @@ class BackboneMemoryBank(nn.Module):
         """
         if mem is None:
             mem = self._effective_bank()
-        if mem.numel() == 0 or mem.shape[0] == 0:
+        if mem.shape[0] == 0 or self._threshold is None:
             return torch.full((features.shape[0],), 0.5, device=features.device)
-        # Lazy recompute after state_dict load (compactness/threshold are not persisted)
-        if self._compactness is None and self._calibrated:
-            self._compactness = self._measure_compactness(mem)
-            self._threshold = None  # force recompute below
-        if self._threshold is None and self._compactness is not None:
-            import math
-
-            t = self.calibration_target_score
-            logit = math.log(max((1.0 - t) / max(t, 1e-6), 1e-6))
-            self._threshold = self._compactness - logit / max(self.temperature, 0.1)
         q = F.normalize(features.view(-1, self.feature_dim), p=2, dim=1).to(mem.dtype)
         k = min(self.K, mem.shape[0])
         n, m = q.shape[0], mem.shape[0]
-        chunk = max(1, int(getattr(self, "score_chunk_elems", 1 << 27)) // max(m, 1))
-        use_sigmoid = self._threshold is not None and self._compactness is not None
-        beta = self.temperature
+        chunk = max(1, int(self.score_chunk_elems) // max(m, 1))
+        beta, thresh = self.temperature, self._threshold
         out = []
         for i in range(0, n, chunk):
             cos = q[i : i + chunk] @ mem.t()  # [chunk, M] cosine similarities
             if self.training:
                 cos = cos.masked_fill(cos > 0.999, float("-inf"))
-            if use_sigmoid:
-                psi = torch.sigmoid(beta * (cos - self._threshold))  # cos-space sigmoid
-            else:
-                psi = torch.exp(-beta * (1.0 - cos))  # legacy exp, un-normalized
+            psi = torch.sigmoid(beta * (cos - thresh))  # cos-space sigmoid
             topk = psi.topk(k=k, dim=1).values  # [chunk, k]
             log_prob = torch.log((1.0 - topk).clamp(min=1e-8)).mean(dim=1)
             out.append(torch.exp(log_prob))

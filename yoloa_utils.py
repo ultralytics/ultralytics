@@ -115,53 +115,6 @@ def load_mask_tensor(mask, imgsz: int):
     return torch.from_numpy(m).unsqueeze(0).unsqueeze(0)
 
 
-def run_prior_viz(m, img, prior, imgsz, conf, iou, device, prior_mask=None, **kw):
-    """Predict with one prior; return (pred_bgr, n_det, heatmap_np).
-
-    ``prior`` is one of ``none``, ``mask``, ``heatmap``.  ``mask`` requires a
-    pre-rendered ``prior_mask`` tensor.  The current memory-bank heatmap is
-    returned for overlay.
-
-    Note:
-        ``model.predict(...)`` stores kwargs in ``predictor.args`` but does not
-        forward them to ``predictor.__call__``; ``prior_mask`` would therefore
-        be ignored.  We instead ensure the predictor is initialized via
-        ``model.predict(..., stream=True)`` (which does not run inference) and
-        then call ``predictor(source, prior_mask=...)`` directly so the prior
-        reaches ``YOLOAnomalyV2Model.forward``.
-    """
-    mb = getattr(m.model, "memory_bank", None)
-    saved_building = getattr(mb, "building", None) if mb is not None else None
-    # Only a small set of kwargs are real predictor args (e.g. end2end).
-    # Remaining keys (heat_edge, heat_norm, ...) are model-construction options
-    # and must not be passed to ``get_cfg``.
-    predictor_kw = {k: v for k, v in kw.items() if k in {"end2end"}}
-    try:
-        if prior == "none" and mb is not None:
-            mb.building = True  # disable memory-bank prior
-        # (Re-)initialize/update the predictor with the desired base args.
-        # stream=True returns a generator object without actually running inference.
-        _ = m.predict(
-            img,
-            imgsz=imgsz,
-            conf=conf,
-            iou=iou,
-            device=device,
-            verbose=False,
-            stream=True,
-            **predictor_kw,
-        )
-        # Direct predictor call forwards kwargs through inference -> model.forward.
-        res = m.predictor(img, prior_mask=prior_mask, stream=False)[0]
-    finally:
-        if saved_building is not None:
-            mb.building = saved_building
-    n = 0 if res.boxes is None else res.boxes.shape[0]
-    hm = getattr(m.model, "_last_heatmap", None)
-    hm_np = hm.detach().cpu().numpy().squeeze() if hm is not None else None
-    return res.plot(), n, hm_np
-
-
 # -- Compare-grid (visualize mode) ---------------------------------------------
 
 def txt_to_mask(txt_path: str, h: int, w: int) -> np.ndarray | None:

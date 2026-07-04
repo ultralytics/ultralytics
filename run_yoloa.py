@@ -32,7 +32,6 @@ from yoloa_utils import (
     collect_test_images,
     good_dir,
     model_id_from_ckpt,
-    run_prior_viz,
     save_simple_grid,
 )
 
@@ -67,6 +66,27 @@ def _bank_is_ready(model) -> bool:
 def _average(rows: list[dict], key: str) -> float:
     vals = [r[key] for r in rows if not (isinstance(r[key], float) and np.isnan(r[key]))]
     return float(np.mean(vals)) if vals else float("nan")
+
+
+def _predict_plot(model, img: str, prior: str, pkw: dict):
+    """Run ``model.predict`` with the requested prior and return (plot_bgr, n_dets, heatmap_np).
+
+    ``prior`` is one of ``none`` or ``heatmap``.  The memory bank is temporarily
+    disabled for ``none`` so no heatmap prior is used.
+    """
+    mb = getattr(model.model, "memory_bank", None)
+    saved_building = getattr(mb, "building", None)
+    try:
+        if prior == "none" and mb is not None:
+            mb.building = True
+        res = model.predict(source=img, stream=False, verbose=False, **pkw)[0]
+    finally:
+        if saved_building is not None:
+            mb.building = saved_building
+    n = 0 if res.boxes is None else len(res.boxes)
+    hm = getattr(model.model, "_last_heatmap", None)
+    hm_np = hm.detach().cpu().numpy().squeeze() if hm is not None else None
+    return res.plot(), n, hm_np
 
 
 def main():
@@ -211,12 +231,12 @@ def main():
             for img, label in samples:
                 if args.mode == "predict":
                     prior = "heatmap" if _bank_is_ready(model) else "none"
-                    pred_bgr, _, _ = run_prior_viz(model, img, prior, **pkw)
+                    pred_bgr, _, _ = _predict_plot(model, img, prior, pkw)
                     cv2.imwrite(str(out / f"{label}__{Path(img).stem}.jpg"), pred_bgr)
                 else:  # visualize
                     original = cv2.imread(img)
-                    none_pred, n_none, _ = run_prior_viz(model, img, "none", **pkw)
-                    heat_pred, n_heat, heat_hmap = run_prior_viz(model, img, "heatmap", **pkw)
+                    none_pred, n_none, _ = _predict_plot(model, img, "none", pkw)
+                    heat_pred, n_heat, heat_hmap = _predict_plot(model, img, "heatmap", pkw)
                     gt_txt = str(Path(img).with_suffix(".txt"))
                     save_simple_grid(
                         original,

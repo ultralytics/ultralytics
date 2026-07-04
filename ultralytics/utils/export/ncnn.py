@@ -35,7 +35,7 @@ def torch2ncnn(
     from ultralytics.utils.checks import check_requirements
 
     check_requirements("ncnn", cmds="--no-deps")  # no deps to avoid installing opencv-python
-    check_requirements("pnnx")
+    check_requirements("pnnx==20260526")
     import ncnn
     import pnnx
 

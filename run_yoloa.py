@@ -302,12 +302,25 @@ def main():
 
         val_cols = [f"{p}_{k}" for p in prior_list for k in VAL_METRICS]
 
-        # AVERAGE row
-        avg = {"category": "AVERAGE"}
-        for c in val_cols:
-            vals = [r[c] for r in rows if not math.isnan(r[c])]
-            avg[c] = float(np.nanmean(vals)) if vals else math.nan
-        rows.append(avg)
+        # MVTec standard texture / object split
+        TEXTURE_CATS = {"carpet", "grid", "leather", "tile", "wood"}
+
+        def _group_avg(name, subset):
+            row = {"category": name}
+            for c in val_cols:
+                vals = [r[c] for r in subset if not math.isnan(r[c])]
+                row[c] = float(np.nanmean(vals)) if vals else math.nan
+            return row
+
+        texture_rows = [r for r in rows if r["category"] in TEXTURE_CATS]
+        object_rows = [r for r in rows if r["category"] not in TEXTURE_CATS]
+
+        # Group averages (texture / object) then overall AVERAGE row
+        if texture_rows:
+            rows.append(_group_avg("texture_avg", texture_rows))
+        if object_rows:
+            rows.append(_group_avg("object_avg", object_rows))
+        rows.append(_group_avg("AVERAGE", [r for r in rows if r["category"] not in ("texture_avg", "object_avg")]))
 
         # --- Two-line header ---
         line1 = f"{'':12s}"

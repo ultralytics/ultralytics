@@ -675,45 +675,6 @@ class YOLOAnomalyV2Model(DetectionModel):
             )
         return final_size
 
-    def extract_bank_features(
-        self,
-        source,
-        imgsz: int = 640,
-        device=None,
-        batch: int = 8,
-        max_images: int = 0,
-        verbose: bool = False,
-    ) -> torch.Tensor:
-        """Extract L2-normalized backbone features from normal images without modifying the bank.
-
-        Args:
-            source: Directory of normal images or list of image paths.
-            imgsz: Resize images to this square size.
-            device: Device for feature extraction (defaults to model device).
-            batch: Mini-batch size.
-            max_images: Maximum number of images to use (0 = all).
-            verbose: Log progress.
-
-        Returns:
-            (M, C) normalized feature tensor.
-        """
-        mb = self.memory_bank
-
-        target_device = device if device is not None else next(self.parameters()).device
-        self.to(target_device)
-        chunks = []
-        for images in self._iter_image_batches(
-            source, imgsz=imgsz, batch=batch, max_images=max_images, verbose=verbose
-        ):
-            feat_dict = self._extract_bb_features(images.to(target_device))
-            fused = mb._build_fused_feature(feat_dict)  # (B, C, H, W)
-            flat = fused.permute(0, 2, 3, 1).reshape(-1, fused.shape[1])  # (B*H*W, C)
-            chunks.append(F.normalize(flat, p=2, dim=1).float())
-
-        if not chunks:
-            return torch.empty(0, mb.feature_dim or 0, device=target_device, dtype=torch.float32)
-        return torch.cat(chunks, dim=0)
-
     def _iter_image_batches(
         self,
         source,
@@ -781,12 +742,6 @@ class YOLOAnomalyV2Model(DetectionModel):
                 feats[m.i] = out
         return feats
 
-    def _resize_to_mask(self, x, mask_size):
-        """Bilinearly resize a (B, 1, H, W) prior to (B, 1, mask_size, mask_size) when needed."""
-        if x.shape[2] != mask_size or x.shape[3] != mask_size:
-            x = torch.nn.functional.interpolate(x, size=(mask_size, mask_size), mode="bilinear", align_corners=False)
-        return x
-
     def _build_heatmap_prior(self, x: torch.Tensor) -> torch.Tensor | None:
         """Build the (B, 1, mask_size, mask_size) feature-side heatmap prior, or None."""
         mb = self.memory_bank
@@ -798,8 +753,11 @@ class YOLOAnomalyV2Model(DetectionModel):
             return None
         with torch.no_grad():
             feat_dict = self._extract_bb_features(x)
-            hmap = mb(feat_dict)
-        hmap = self._resize_to_mask(hmap.to(device=x.device, dtype=torch.float32), self.mask_size)
+            hmap = mb(feat_dict).to(device=x.device, dtype=torch.float32)
+        if hmap.shape[2] != self.mask_size or hmap.shape[3] != self.mask_size:
+            hmap = torch.nn.functional.interpolate(
+                hmap, size=(self.mask_size, self.mask_size), mode="bilinear", align_corners=False
+            )
         return self.heatmap_processor(hmap)
 
     def loss(self, batch, preds=None, *, prior_mask=None):

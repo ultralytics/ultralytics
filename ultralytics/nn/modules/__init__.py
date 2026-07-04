@@ -106,7 +106,7 @@ from .transformer import (
     TransformerEncoderLayer,
     TransformerLayer,
 )
-from .anomaly_v2 import BackboneMemoryBank, BboxMaskRenderer, HeatmapBiasFusion, HeatmapProcessor
+from .anomaly_v2 import AnomalyMemoryBank, BboxMaskRenderer, HeatmapBiasFusion, HeatmapProcessor
 from .anomaly_v2_prior_augment import MaskPriorAugmenter
 
 __all__ = (
@@ -132,7 +132,7 @@ __all__ = (
     "ADown",
     "Attention",
     "BNContrastiveHead",
-    "BackboneMemoryBank",
+    "AnomalyMemoryBank",
     "BboxMaskRenderer",
     "Bottleneck",
     "BottleneckCSP",

@@ -13,9 +13,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 __all__ = (
+    "AnomalyMemoryBank",
     "BboxMaskRenderer",
     "HeatmapBiasFusion",
-    "BackboneMemoryBank",
     "HeatmapProcessor",
 )
 
@@ -182,146 +182,132 @@ class HeatmapBiasFusion(nn.Module):
         return self.beta[scale_idx] * torch.tanh(self.conv(mask.to(dtype)))
 
 
-class BackboneMemoryBank(nn.Module):
-    """Memory-bank anomaly heatmap from backbone features (v1 ADMBHead inference logic).
+class AnomalyMemoryBank(nn.Module):
+    """Cosine-similarity memory bank that produces an anomaly heatmap.
 
-    Stores L2-normalised normal-image backbone features. During inference, scores
-    each spatial position via Noisy-OR cosine similarity against the bank, producing a
-    (B, 1, H, W) heatmap that feeds into HeatmapBiasFusion as a prior.
+    The bank stores L2-normalised backbone feature vectors from normal images.
+    At inference each spatial query looks up its ``K`` nearest bank vectors and
+    returns a noisy-OR anomaly score.  The score is calibrated so that a typical
+    normal query maps to ``target_score``.
 
-    Two modes controlled by ``update``:
-      - ``True`` (build): ``forward()`` returns zeros — bank not yet frozen.
-      - ``False`` (inference): ``forward()`` returns anomaly scores in [0, 1].
-
-    Calibration modes (``calibrate`` parameter):
-
-      - ``"auto"`` (default): sample from the full accumulated bank and calibrate β
-        so that the 90th-percentile normal feature scores ``calibration_target_score``.
-        Coreset is skipped in this mode.
-      - ``"compactness"``: first subsample via greedy k-centre coreset, then measure
-        local neighbour density (compactness) on the coreset to calibrate β.
-        Scores naturally map to [0, 1] because compactness reflects the true normal
-        manifold tightness.
+    Args:
+        bank_size: Maximum number of vectors kept after coreset compression.
+        K: Number of nearest neighbours used per query.
+        temperature: β sharpness of the sigmoid over cosine similarity.
+        target_score: Desired anomaly score for normal queries.
+        stretch: Optional quadratic stretch applied to the output heatmap.
+        score_chunk: Element budget for chunked scoring (device memory knob).
     """
 
     def __init__(
         self,
-        temperature: float = 5.0,
+        bank_size: int = 10000,
         K: int = 5,
-        max_bank_size: int | None = 10000,
-        calibration_target_score: float = 0.4,
-        calibration_target_quantile: float = 0.95,
-        hmap_stretch_strength: float = 0.0,
-        holdout_max: int = 5000,
+        temperature: float = 5.0,
+        target_score: float = 0.4,
+        stretch: float = 0.0,
+        score_chunk: int = 1 << 27,
     ):
         super().__init__()
+        self.bank_size = bank_size
+        self.K = K
         self.temperature = float(temperature)
-        self.K = int(K)
-        self.max_bank_size = max_bank_size
-        self.calibration_target_score = float(calibration_target_score)
-        self.calibration_target_quantile = float(calibration_target_quantile)
-        self.hmap_stretch_strength = float(hmap_stretch_strength)
-        self.holdout_max = int(holdout_max)
-        self.register_buffer("memory_bank", torch.empty(0, 0), persistent=True)
-        self.feature_dim: int | None = None
-        self.update = True
-        self._bb_layer_indices: list[int] = []
-        self._bank_chunks: list[torch.Tensor] = []
-        self._compactness: float | None = None  # normal-manifold tightness from coreset
-        self._threshold: float | None = None  # sigmoid threshold in cosine space
-        self.score_chunk_elems = 1 << 27  # max elements per similarity slice in _anomaly_scores
+        self.target_score = float(target_score)
+        self.stretch = float(stretch)
+        self.score_chunk = int(score_chunk)
+
+        self.dim: int | None = None
+        self._compactness: float | None = None
+        self._threshold: float | None = None
+        self.building = True
+        self._chunks: list[torch.Tensor] = []
+
+        self.register_buffer("bank", torch.empty(0, 0))
+
+    @property
+    def is_ready(self) -> bool:
+        """True when a non-empty, calibrated bank is available."""
+        return self.bank.shape[0] > 0 and self._threshold is not None and not self.building
+
+    def reset(self) -> None:
+        """Clear the bank and return to build mode."""
+        self.bank = torch.empty(0, 0, device=self.bank.device)
+        self.dim = None
+        self._compactness = None
+        self._threshold = None
+        self.building = True
+        self._chunks = []
 
     def load_bank(self, features: torch.Tensor) -> None:
-        """Direct-set the memory bank from pre-extracted L2-normalised features [M, C]."""
+        """Direct-load a pre-built bank from L2-normalised feature vectors [M, C]."""
         if features.numel() == 0:
             return
         if not torch.isfinite(features).all():
-            raise ValueError(f"BackboneMemoryBank.load_bank: features contain NaN/Inf ({features.shape})")
-        self.feature_dim = features.shape[1]
-        self.memory_bank = F.normalize(features.to(self.memory_bank.device), p=2, dim=1).float()
-        self.update = False
-        self._calibrate_compactness(self._effective_bank())
+            raise ValueError(f"AnomalyMemoryBank.load_bank: features contain NaN/Inf ({features.shape})")
+        self.dim = features.shape[1]
+        self.bank = F.normalize(features.to(self.bank.device), p=2, dim=1).float()
+        self.building = False
+        self._calibrate(self._active_bank())
 
-    def freeze_memory_bank(self) -> None:
-        """Coreset-compress, calibrate via compactness + holdout, then freeze the bank."""
-        if self._bank_chunks:
-            self.memory_bank = torch.cat(self._bank_chunks, dim=0)
-            self._bank_chunks.clear()
-        mem = self._effective_bank()
-
-        # Coreset subsample, collect holdout (features not selected into coreset)
-        holdout = None
-        if self.max_bank_size is not None and mem.shape[0] > self.max_bank_size:
-            self.memory_bank, coreset_idx = self._coreset_subsample(mem, self.max_bank_size, return_indices=True)
-            holdout_mask = torch.ones(mem.shape[0], dtype=torch.bool, device=mem.device)
-            holdout_mask[coreset_idx] = False
-            holdout = mem[holdout_mask]
-        mem = self._effective_bank()
-
-        if mem.shape[0] > 0:
-            self._calibrate_compactness(mem)
-            if holdout is not None and holdout.shape[0] > 0:
-                if holdout.shape[0] > self.holdout_max:
-                    idx = torch.randperm(holdout.shape[0], device=holdout.device)[: self.holdout_max]
-                    holdout = holdout[idx]
-                self._calibrate_threshold_from_holdout(holdout, mem)
-
-        self.update = False
-
-    def reset_memory_bank(self) -> None:
-        """Clear the bank and return to build mode."""
-        self.memory_bank = torch.empty(0, 0, device=self.memory_bank.device)
-        self.feature_dim = None
-        self._compactness = None
-        self._threshold = None
-        self.update = True
-        self._bank_chunks: list[torch.Tensor] = []  # defer cat until freeze
-
-    def accumulate_features(self, feats: list[torch.Tensor]) -> None:
-        """Extract and accumulate backbone features into the memory bank (build phase).
-
-        Fused backbone features are L2-normalised per spatial position and appended
-        to a chunk list; the full bank is materialised once in ``freeze_memory_bank``
-        to avoid O(N²) reallocation from repeated ``torch.cat``.
-        """
+    def add_features(self, feats: list[torch.Tensor]) -> None:
+        """Extract and accumulate backbone features into the bank (build phase)."""
         if not feats:
             return
-        fused = self._build_fused_feature(feats)  # (B, C, H, W)
+        fused = self._fuse_features(feats)
         C = fused.shape[1]
-        if self.feature_dim is None:
-            self.feature_dim = C
-        flat = fused.permute(0, 2, 3, 1).reshape(-1, C)  # [B*H*W, C]
-        normed = F.normalize(flat, p=2, dim=1).float()
-        self._bank_chunks.append(normed)
+        if self.dim is None:
+            self.dim = C
+        flat = fused.permute(0, 2, 3, 1).reshape(-1, C)
+        self._chunks.append(F.normalize(flat, p=2, dim=1).float())
 
-    def forward(self, feats: dict[int, torch.Tensor]) -> torch.Tensor:
-        """Produce (B, 1, H, W) anomaly heatmap from backbone features."""
+    def freeze(self) -> None:
+        """Materialise the bank, optionally coreset-compress it, then calibrate and freeze."""
+        if self._chunks:
+            self.bank = torch.cat(self._chunks, dim=0)
+            self._chunks = []
+
+        mem = self._active_bank()
+        holdout = None
+        if self.bank_size is not None and mem.shape[0] > self.bank_size:
+            self.bank, selected = self._coreset(mem, self.bank_size, return_indices=True)
+            mask = torch.zeros(mem.shape[0], dtype=torch.bool, device=mem.device)
+            mask[selected] = True
+            holdout = mem[~mask]
+            mem = self._active_bank()
+
+        if mem.shape[0] > 0:
+            self._calibrate(mem, holdout=holdout)
+
+        self.building = False
+
+    def forward(self, feats: list[torch.Tensor]) -> torch.Tensor:
+        """Return an anomaly heatmap (B, 1, H, W) from backbone features."""
         first = feats[0]
         b, device, h, w = first.shape[0], first.device, first.shape[2], first.shape[3]
-        mem = self._effective_bank()
-        if self.update or mem.shape[0] == 0:
+        mem = self._active_bank()
+        if self.building or mem.shape[0] == 0:
             return torch.zeros(b, 1, h, w, device=device)
 
-        fused = self._build_fused_feature(feats)  # (B, C, H, W)
+        fused = self._fuse_features(feats)
         flat = fused.permute(0, 2, 3, 1).reshape(-1, fused.shape[1])
-        scores = self._anomaly_scores(flat, mem)  # [B*H*W]
+        scores = self._score(flat, mem)
         hmap = scores.view(b, 1, fused.shape[2], fused.shape[3])
-        s = self.hmap_stretch_strength
+        s = self.stretch
         if s:
             hmap = (hmap + s * hmap * hmap).clamp(0, 1)
         return hmap
 
-    def _effective_bank(self) -> torch.Tensor:
-        """Return real memory-bank entries excluding zero-padding placeholders."""
-        if self.update and self._bank_chunks:
-            return torch.cat(self._bank_chunks, dim=0)
-        mem = self.memory_bank
-        if self.feature_dim is None or mem.shape[0] == 0:
-            return mem[:0]
-        return mem[mem.norm(dim=1) > 0]
+    def _active_bank(self) -> torch.Tensor:
+        """Return the current bank tensor, or an empty tensor if none exists."""
+        if self.building and self._chunks:
+            return torch.cat(self._chunks, dim=0)
+        if self.dim is None or self.bank.shape[0] == 0:
+            return self.bank[:0]
+        return self.bank[self.bank.norm(dim=1) > 0]
 
-    def _build_fused_feature(self, feats: list[torch.Tensor]) -> torch.Tensor:
-        """Gather backbone features at configured layer indices and concat."""
+    @staticmethod
+    def _fuse_features(feats: list[torch.Tensor]) -> torch.Tensor:
+        """Concatenate tapped backbone features after resizing to the first map size."""
         if len(feats) == 1:
             return feats[0]
         target_size = feats[0].shape[-2:]
@@ -330,195 +316,110 @@ class BackboneMemoryBank(nn.Module):
         ]
         return torch.cat(aligned, dim=1) if len(aligned) > 1 else aligned[0]
 
-    def _measure_compactness(self, mem: torch.Tensor) -> float:
-        """Compute compactness from the bank without touching ``self.temperature``.
-
-        Used for lazy restore after state_dict load and by ``_calibrate_compactness``.
-        """
+    def _estimate_compactness(self, mem: torch.Tensor) -> float:
+        """Mean local cosine density of the bank."""
         with torch.no_grad():
             k = min(self.K, mem.shape[0])
             n_sample = min(512, mem.shape[0])
             idx = torch.randperm(mem.shape[0], device=mem.device)[:n_sample]
             sample = mem[idx]
-            sim = sample @ mem.t()  # [n_sample, M]
+            sim = sample @ mem.t()
             sim[torch.arange(n_sample, device=mem.device), idx] = -1.0
             topk_sim = sim.topk(k=k, dim=1).values
-            local_density = topk_sim.mean(dim=1)
-            return local_density.mean().clamp(0.0, 1.0 - 1e-4).item()
+            return topk_sim.mean().clamp(0.0, 1.0 - 1e-4).item()
 
-    def _calibrate_compactness(self, mem: torch.Tensor) -> None:
-        """Measure compactness and calibrate sigmoid threshold in cosine space.
+    def _calibrate(self, mem: torch.Tensor, holdout: torch.Tensor | None = None) -> None:
+        """Set the threshold so the upper tail of normal-query scores ≈ target_score.
 
-        Compactness = mean local cosine density on the coreset.  The sigmoid
-        operates directly on cosine similarity so that the dynamic range is
-        never compressed by the bank spread:
-
-            psi = sigmoid(β × (cos − threshold_cos))
-
-        threshold_cos = compactness − logit(1−target)/β.
-
-        A normal query has cos ≈ compactness → psi ≈ 1−target → normal
-        anomaly score ≈ target.  β is the user-controlled ``temperature``.
+        Normal queries come from the coreset hold-out (queries not present in the
+        final bank).  If no hold-out is available, a sample of the bank itself is
+        used with its own match masked out.  This is a single threshold search at
+        the user β; the previous multi-β hold-out sweep has been removed.
         """
-        compactness = self._measure_compactness(mem)
+        compactness = self._estimate_compactness(mem)
         self._compactness = compactness
-        beta = self.temperature
-        t = self.calibration_target_score
-        logit = math.log(max((1.0 - t) / max(t, 1e-6), 1e-6))
-        self._threshold = compactness - logit / max(beta, 0.1)
 
-    def _score_with_threshold(
-        self, features: torch.Tensor, mem: torch.Tensor, threshold_cos: float, beta: float | None = None
-    ) -> torch.Tensor:
-        """Compute anomaly scores with specific threshold & β (stateless, for calibration)."""
-        if beta is None:
-            beta = self.temperature
-        q = F.normalize(features.view(-1, self.feature_dim), p=2, dim=1).to(mem.dtype)
+        beta = max(self.temperature, 0.1)
+        target = self.target_score
+        target_quantile = 0.95
+        z_q = math.sqrt(2) * torch.erfinv(torch.tensor(2.0 * target_quantile - 1.0)).item()
+        k = min(self.K, mem.shape[0])
+
+        if holdout is not None and holdout.shape[0] > 0:
+            holdout_max = 5000
+            if holdout.shape[0] > holdout_max:
+                holdout = holdout[torch.randperm(holdout.shape[0], device=holdout.device)[:holdout_max]]
+            n_query = min(1024, holdout.shape[0])
+            idx = torch.randperm(holdout.shape[0], device=holdout.device)[:n_query]
+            queries = holdout[idx]
+            topk_cos = (queries @ mem.t()).topk(k=k, dim=1).values
+        else:
+            n_query = min(1024, mem.shape[0])
+            idx = torch.randperm(mem.shape[0], device=mem.device)[:n_query]
+            queries = mem[idx]
+            cos_mat = queries @ mem.t()
+            cos_mat[torch.arange(n_query, device=mem.device), idx] = -1.0
+            topk_cos = cos_mat.topk(k=k, dim=1).values
+
+        def _tail_stat(thresh: float) -> float:
+            psi = torch.sigmoid(beta * (topk_cos - thresh))
+            log_prob = torch.log((1.0 - psi).clamp(min=1e-8)).mean(dim=1)
+            scores = torch.exp(log_prob).clamp(0, 1)
+            return scores.mean().item() + z_q * scores.std().item()
+
+        half_range = 5.0 / beta
+        lo, hi = compactness - half_range, compactness + half_range
+        s_lo = _tail_stat(lo)
+        s_hi = _tail_stat(hi)
+        # Expand the bracket until the target tail-stat is inside it.
+        for _ in range(10):
+            if s_lo <= target <= s_hi:
+                break
+            if s_lo > target:
+                lo -= half_range
+                s_lo = _tail_stat(lo)
+            if s_hi < target:
+                hi += half_range
+                s_hi = _tail_stat(hi)
+
+        if not (s_lo <= target <= s_hi):
+            # Fallback: keep the compactness-based closed-form threshold.
+            logit = math.log(max((1.0 - target) / max(target, 1e-6), 1e-6))
+            self._threshold = compactness - logit / beta
+            return
+
+        for _ in range(30):
+            mid = (lo + hi) / 2.0
+            s_mid = _tail_stat(mid)
+            if s_mid > target:
+                hi = mid
+            else:
+                lo = mid
+        self._threshold = (lo + hi) / 2.0
+
+    def _score(self, features: torch.Tensor, mem: torch.Tensor | None = None) -> torch.Tensor:
+        """Noisy-OR anomaly scores in [0, 1] for each query feature."""
+        if mem is None:
+            mem = self._active_bank()
+        if mem.shape[0] == 0 or self._threshold is None:
+            return torch.full((features.shape[0],), 0.5, device=features.device)
+        q = F.normalize(features.view(-1, self.dim), p=2, dim=1).to(mem.dtype)
         k = min(self.K, mem.shape[0])
         n, m = q.shape[0], mem.shape[0]
-        chunk = max(1, int(getattr(self, "score_chunk_elems", 1 << 27)) // max(m, 1))
+        chunk = max(1, int(self.score_chunk) // max(m, 1))
+        beta, thresh = self.temperature, self._threshold
         out = []
         for i in range(0, n, chunk):
             cos = q[i : i + chunk] @ mem.t()
-            psi = torch.sigmoid(beta * (cos - threshold_cos))
+            psi = torch.sigmoid(beta * (cos - thresh))
             topk = psi.topk(k=k, dim=1).values
             log_prob = torch.log((1.0 - topk).clamp(min=1e-8)).mean(dim=1)
             out.append(torch.exp(log_prob))
         return torch.cat(out).clamp(0, 1).to(features.dtype)
 
-    def _calibrate_threshold_from_holdout(self, holdout: torch.Tensor, mem: torch.Tensor) -> None:
-        """Calibrate β & threshold so p95 of hold-out normal scores ≈ target.
-
-        The user β is a sensitivity floor — it is never lowered.  For each
-        candidate β, binary-searches ``threshold_cos`` to put p95 at
-        ``calibration_target_score``, then picks the β that gives the tightest
-        normal-score distribution (smallest p95−p5).
-        """
-        target = self.calibration_target_score
-        target_q = self.calibration_target_quantile  # e.g. 0.95 → 95% of normal scores ≤ target
-        c = self._compactness
-        beta0 = self.temperature
-
-        # β candidates: user β as floor, log-spaced upward
-        beta_candidates = [beta0]
-        n_extra = 8
-        for i in range(1, n_extra + 1):
-            b = beta0 * (10 ** (i / n_extra))
-            if b > 100:
-                break
-            beta_candidates.append(round(b, 4))
-
-        # Pre-compute cosine matrix and top-K once (sigmoid is monotonic,
-        # so the top-K indices of cos are identical to top-K of psi).
-        q_feats = F.normalize(holdout.view(-1, self.feature_dim), p=2, dim=1)
-        cos_mat = q_feats @ mem.t()  # [N_holdout, M]
-        k = min(self.K, mem.shape[0])
-        topk_cos = cos_mat.topk(k=k, dim=1).values  # [N_holdout, k] — only these matter
-
-        # z-score for the target quantile (√2 · erf⁻¹(2q−1))
-        z_q = math.sqrt(2) * torch.erfinv(torch.tensor(2.0 * target_q - 1.0)).item()
-
-        def _scores_for(beta, thresh):
-            """Compute anomaly scores from pre-computed top-K cos values."""
-            psi = torch.sigmoid(beta * (topk_cos - thresh))
-            log_prob = torch.log((1.0 - psi).clamp(min=1e-8)).mean(dim=1)
-            return torch.exp(log_prob).clamp(0, 1)
-
-        def _tail_stat(scores):
-            """Gaussian tail: μ + z·σ."""
-            return scores.mean().item() + z_q * scores.std().item()
-
-        def _spread(scores):
-            """Score spread: standard deviation (smaller = tighter normal distribution)."""
-            return scores.std().item()
-
-        def _find_thresh(beta):
-            """Binary-search threshold so tail-stat ≈ target."""
-            half_range = 3.0 / max(beta, 0.1)
-            lo, hi = c - half_range, c + half_range
-            s_lo = _tail_stat(_scores_for(beta, lo))
-            s_hi = _tail_stat(_scores_for(beta, hi))
-            for _ in range(5):
-                if s_lo > target and lo > c - 5.0:
-                    lo -= half_range
-                    s_lo = _tail_stat(_scores_for(beta, lo))
-                if s_hi < target and hi < c + 5.0:
-                    hi += half_range
-                    s_hi = _tail_stat(_scores_for(beta, hi))
-            if not (s_lo <= target <= s_hi):
-                return None, float("inf"), float("inf")
-            for _ in range(20):
-                mid = (lo + hi) / 2
-                sm = _tail_stat(_scores_for(beta, mid))
-                if sm > target:
-                    hi = mid
-                else:
-                    lo = mid
-            thresh = (lo + hi) / 2
-            scores = _scores_for(beta, thresh)
-            achieved = _tail_stat(scores)
-            spread = _spread(scores)
-            return thresh, achieved, spread
-
-        best_beta, best_thresh, best_spread = beta0, c, float("inf")
-        for beta in beta_candidates:
-            thresh, _, spread = _find_thresh(beta)
-            if thresh is not None and spread < best_spread:
-                best_spread, best_beta, best_thresh = spread, beta, thresh
-
-        self.temperature = best_beta
-        self._threshold = best_thresh
-
-    def _anomaly_scores(self, features: torch.Tensor, mem: torch.Tensor | None = None) -> torch.Tensor:
-        """Noisy-OR cosine anomaly scores ∈ [0, 1] for every spatial position.
-
-        Args:
-            features: [N, C] query features.
-            mem: [M, C] memory bank. If None, uses ``self._effective_bank()``.
-
-        Returns:
-            [N] tensor of anomaly scores.
-        """
-        if mem is None:
-            mem = self._effective_bank()
-        if mem.shape[0] == 0 or self._threshold is None:
-            return torch.full((features.shape[0],), 0.5, device=features.device)
-        q = F.normalize(features.view(-1, self.feature_dim), p=2, dim=1).to(mem.dtype)
-        k = min(self.K, mem.shape[0])
-        n, m = q.shape[0], mem.shape[0]
-        chunk = max(1, int(self.score_chunk_elems) // max(m, 1))
-        beta, thresh = self.temperature, self._threshold
-        out = []
-        for i in range(0, n, chunk):
-            cos = q[i : i + chunk] @ mem.t()  # [chunk, M] cosine similarities
-            if self.training:
-                cos = cos.masked_fill(cos > 0.999, float("-inf"))
-            psi = torch.sigmoid(beta * (cos - thresh))  # cos-space sigmoid
-            topk = psi.topk(k=k, dim=1).values  # [chunk, k]
-            log_prob = torch.log((1.0 - topk).clamp(min=1e-8)).mean(dim=1)
-            out.append(torch.exp(log_prob))
-        return torch.cat(out).clamp(0, 1).to(features.dtype)
-
     @staticmethod
-    def _coreset_subsample(mem: torch.Tensor, max_size: int, return_indices: bool = False):
-        """Greedy k-center coreset on L2-normalised features using cosine distance.
-
-        Complexity: O(max_size × M). Features must be L2-normalised.
-
-        Batched greedy: selects ``batch_size`` farthest points per iteration and
-        computes distances against all of them in one GEMM call, amortizing the
-        large bank read over multiple centres and trading a small amount of
-        greediness for a large wall-clock speedup on memory-bandwidth-limited
-        devices (MPS / CPU).
-
-        Args:
-            mem: [M, C] L2-normalised feature bank.
-            max_size: Target coreset size.
-            return_indices: If True, also return the indices of selected rows.
-
-        Returns:
-            Coreset tensor, or (coreset, indices) if ``return_indices``.
-        """
+    def _coreset(mem: torch.Tensor, max_size: int, return_indices: bool = False):
+        """Greedy k-center coreset on L2-normalised features using cosine distance."""
         from ultralytics.utils import TQDM
 
         M = mem.shape[0]
@@ -526,14 +427,13 @@ class BackboneMemoryBank(nn.Module):
             idx = torch.arange(M, device=mem.device)
             return (mem, idx) if return_indices else mem
         device = mem.device
-        BATCH = 64  # centres per GEMM call — amortizes bank reads
+        BATCH = 64  # centres per GEMM call — amortises bank reads
         dist = torch.full((M,), float("inf"), device=device, dtype=torch.float32)
         selected: list[int] = []
         mean = mem.mean(dim=0)
         mean = mean / mean.norm().clamp(min=1e-8)
         seed = int((mem @ mean).argmax().item())
         selected.append(seed)
-        # seed distance so the first topk isn't random (all-inf)
         centre = mem[seed].unsqueeze(0)
         seed_cos = (mem @ centre.t()).squeeze(1)
         dist = (1.0 - seed_cos).clamp(min=0.0)
@@ -543,9 +443,9 @@ class BackboneMemoryBank(nn.Module):
             k = min(BATCH, max_size - len(selected))
             _, top_idx = dist.topk(k)
             selected.extend(top_idx.tolist())
-            centres = mem[top_idx]  # [k, C]
-            cos_sim = mem @ centres.t()  # [M, k]
-            new_dist = (1.0 - cos_sim).clamp(min=0.0).min(dim=1).values  # [M]
+            centres = mem[top_idx]
+            cos_sim = mem @ centres.t()
+            new_dist = (1.0 - cos_sim).clamp(min=0.0).min(dim=1).values
             dist = torch.minimum(dist, new_dist)
             n_needed = max_size - len(selected)
             pbar.update(k)

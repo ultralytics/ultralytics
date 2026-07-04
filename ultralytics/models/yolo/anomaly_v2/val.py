@@ -17,7 +17,7 @@ _SENTINEL = object()
 class YOLOAnomalyValidator(DetectionValidator):
     """Anomaly-v2 validator.
 
-    Runs a single validation pass. If a BackboneMemoryBank is configured and can be
+    Runs a single validation pass. If an AnomalyMemoryBank is configured and can be
     built from the dataset's train (normal) split, the pass uses the heatmap prior
     (extended IoU grid for coarse localization). Otherwise it falls back to a regular
     detection validation with a warning.
@@ -95,7 +95,7 @@ class YOLOAnomalyValidator(DetectionValidator):
         mb = getattr(m, "memory_bank", None)
         if mb is None or getattr(m, "bb_layers", None) is None:
             return False
-        if mb.memory_bank is not None and mb.memory_bank.shape[0] > 0:
+        if mb.is_ready:
             return True
         support = self._collect_support_paths()
         if not support:
@@ -121,8 +121,8 @@ class YOLOAnomalyValidator(DetectionValidator):
         if m is None:
             return
         mb = getattr(m, "memory_bank", None)
-        if mb is not None and hasattr(mb, "reset_memory_bank"):
-            mb.reset_memory_bank()
+        if mb is not None and hasattr(mb, "reset"):
+            mb.reset()
         self._built_bank = False
 
     # ------------------------------------------------------------------

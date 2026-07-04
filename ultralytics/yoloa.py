@@ -75,23 +75,24 @@ class YOLOA(Model):
         m = self.model
         mb = getattr(m, "memory_bank", None)
         if mb is None or getattr(m, "bb_layers", None) is None:
-            raise RuntimeError("model has no BackboneMemoryBank (no bb_layers in the model yaml) — cannot fit().")
+            raise RuntimeError("model has no AnomalyMemoryBank (no bb_layers in the model yaml) — cannot fit().")
 
         data_name = name or self._derive_name(source)
         device = device if device is not None else next(m.parameters()).device
         cache_path = (Path(cache) / f"{data_name}.pt") if cache is not None else None
         if cache_path is not None and cache_path.exists() and not refit:
             d = torch.load(cache_path, map_location="cpu")
-            if not d.get("_calibrated"):
-                LOGGER.warning(f"bank cache is old format (no calibration state); delete {cache_path} to rebuild")
-            mb.load_bank(d["memory_bank"])
-            mb.temperature = d["temperature"]
-            mb.update = False
-            if d.get("_calibrated"):
-                mb._threshold = d["_threshold"]
-                mb._compactness = d["_compactness"]
-                mb._calibrated = True
-            LOGGER.info(f"YOLOA.fit: loaded cached bank ({mb.memory_bank.shape[0]} vecs) <- {cache_path}")
+            bank = d["bank"] if "bank" in d else d.get("memory_bank")
+            if bank is None:
+                LOGGER.warning(f"bank cache is old format (missing bank tensor); delete {cache_path} to rebuild")
+            else:
+                if "temperature" in d:
+                    mb.temperature = d["temperature"]
+                mb.load_bank(bank)
+                if "_threshold" in d and "_compactness" in d:
+                    mb._threshold = d["_threshold"]
+                    mb._compactness = d["_compactness"]
+                LOGGER.info(f"YOLOA.fit: loaded cached bank ({mb.bank.shape[0]} vecs) <- {cache_path}")
         else:
             n = m.build_memory_bank(
                 source,
@@ -104,16 +105,14 @@ class YOLOA(Model):
             if cache_path is not None and n:
                 cache_path.parent.mkdir(parents=True, exist_ok=True)
                 entry = {
-                    "memory_bank": mb.memory_bank.detach().cpu(),
-                    "feature_dim": mb.feature_dim,
+                    "bank": mb.bank.detach().cpu(),
+                    "dim": mb.dim,
                     "temperature": float(mb.temperature),
+                    "_threshold": mb._threshold,
+                    "_compactness": mb._compactness,
                 }
-                if getattr(mb, "_calibrated", False):
-                    entry["_threshold"] = mb._threshold
-                    entry["_compactness"] = mb._compactness
-                    entry["_calibrated"] = True
                 torch.save(entry, cache_path)
-                LOGGER.info(f"YOLOA.fit: cached bank ({mb.memory_bank.shape[0]} vecs) -> {cache_path}")
+                LOGGER.info(f"YOLOA.fit: cached bank ({mb.bank.shape[0]} vecs) -> {cache_path}")
 
         m.fit_data = data_name
         m._heatmap_bank_warned = False

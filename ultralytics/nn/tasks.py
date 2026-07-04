@@ -29,7 +29,7 @@ from ultralytics.nn.modules import (
     A2C2f,
     AConv,
     ADown,
-    BackboneMemoryBank,
+    AnomalyMemoryBank,
     Bottleneck,
     BottleneckCSP,
     C2f,
@@ -560,10 +560,10 @@ class YOLOAnomalyV2Model(DetectionModel):
         # Spatial resolution of the rendered/mask prior.
         self.mask_size = mask_size
 
-        # --- BackboneMemoryBank (v2.3) ---
+        # --- AnomalyMemoryBank (v2.3) ---
         # Architecture knob from the model YAML; all build hyperparameters are baked in.
         self.bb_layers = list(v2_cfg["bb_layers"])
-        self.memory_bank = BackboneMemoryBank()
+        self.memory_bank = AnomalyMemoryBank()
 
     def fuse(self, verbose=True):
         """Fuse Conv/BN while preserving both one2many and one2one heads.
@@ -605,7 +605,7 @@ class YOLOAnomalyV2Model(DetectionModel):
         max_images: int = 0,
         verbose: bool = True,
     ) -> int:
-        """Build the BackboneMemoryBank from normal images for the internal heatmap prior.
+        """Build the AnomalyMemoryBank from normal images for the internal heatmap prior.
 
         Iterates over images, extracts backbone features, accumulates them into the
         memory bank, then compresses and freezes the bank.
@@ -624,7 +624,7 @@ class YOLOAnomalyV2Model(DetectionModel):
         from ultralytics.utils import LOGGER
 
         mb = self.memory_bank
-        mb.reset_memory_bank()
+        mb.reset()
 
         target_device = device if device is not None else next(self.parameters()).device
         self.to(target_device)
@@ -632,16 +632,15 @@ class YOLOAnomalyV2Model(DetectionModel):
             source, imgsz=imgsz, batch=batch, max_images=max_images, verbose=verbose
         ):
             feats = self._extract_bb_features(images.to(target_device))
-            mb.accumulate_features(feats)
+            mb.add_features(feats)
 
-        mb.freeze_memory_bank()
-        final_size = mb.memory_bank.shape[0]
+        mb.freeze()
+        final_size = mb.bank.shape[0]
         if verbose:
             LOGGER.info(
-                f"Memory bank frozen: {final_size} features, dim={mb.feature_dim}\n"
+                f"Memory bank frozen: {final_size} features, dim={mb.dim}\n"
                 f"  config: temp={mb.temperature:.4f}, K={mb.K}, "
-                f"max_bank={mb.max_bank_size or 'unlimited'}, holdout_max={mb.holdout_max}, "
-                f"bb_layers={self.bb_layers}"
+                f"bank_size={mb.bank_size}, bb_layers={self.bb_layers}"
             )
         return final_size
 
@@ -706,10 +705,7 @@ class YOLOAnomalyV2Model(DetectionModel):
     def _has_memory_bank(self) -> bool:
         """Return True iff a non-empty memory bank has been built."""
         mb = getattr(self, "memory_bank", None)
-        if mb is None:
-            return False
-        mem = mb._effective_bank()
-        return mem is not None and mem.shape[0] > 0
+        return mb is not None and mb.is_ready
 
     def _build_heatmap_prior(self, x: torch.Tensor) -> torch.Tensor | None:
         """Build the (B, 1, mask_size, mask_size) feature-side heatmap prior, or None."""
@@ -718,12 +714,13 @@ class YOLOAnomalyV2Model(DetectionModel):
             return None
         mb = self.memory_bank
         with torch.no_grad():
-            feat_dict = self._extract_bb_features(x)
-            hmap = mb(feat_dict).to(device=x.device, dtype=torch.float32)
+            feats = self._extract_bb_features(x)
+            hmap = mb(feats).to(device=x.device, dtype=torch.float32)
         if hmap.shape[2] != self.mask_size or hmap.shape[3] != self.mask_size:
             hmap = torch.nn.functional.interpolate(
                 hmap, size=(self.mask_size, self.mask_size), mode="bilinear", align_corners=False
             )
+        self._last_heatmap = hmap
         return self.heatmap_processor(hmap)
 
     def loss(self, batch, preds=None, *, prior_mask=None):
@@ -772,6 +769,7 @@ class YOLOAnomalyV2Model(DetectionModel):
                 # otherwise a fitted memory-bank heatmap is used automatically.
                 if prior_mask is not None:
                     prior = prior_mask.to(device=device, dtype=torch.float32)
+                    self._last_heatmap = prior
                 elif self._has_memory_bank():
                     prior = self._build_heatmap_prior(img)
 

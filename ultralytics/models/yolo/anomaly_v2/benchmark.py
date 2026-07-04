@@ -98,43 +98,42 @@ def _inject_cat_bank(m, root: Path, cat: str, cache_dir: Path, imgsz, device) ->
     path = cache_dir / f"{cat}_sz{isz}.pt"
     if path.exists():
         d = torch.load(path, map_location="cpu")
-        if not d.get("_calibrated"):
-            LOGGER.warning(f"bank cache is old format (no calibration state); delete {path} to rebuild")
-        mb.load_bank(d["memory_bank"])
-        mb.temperature = d["temperature"]
-        mb.update = False
-        if d.get("_calibrated"):
-            mb._threshold = d["_threshold"]
-            mb._compactness = d["_compactness"]
-            mb._calibrated = True
-        LOGGER.info(f"MVTec OOD: {cat}: loaded cached bank ({mb.memory_bank.shape[0]} vecs) <- {path}")
-        return True
+        bank = d["bank"] if "bank" in d else d.get("memory_bank")
+        if bank is None:
+            LOGGER.warning(f"bank cache is old format (missing bank tensor); delete {path} to rebuild")
+        else:
+            if "temperature" in d:
+                mb.temperature = d["temperature"]
+            mb.load_bank(bank)
+            if "_threshold" in d and "_compactness" in d:
+                mb._threshold = d["_threshold"]
+                mb._compactness = d["_compactness"]
+            LOGGER.info(f"MVTec OOD: {cat}: loaded cached bank ({mb.bank.shape[0]} vecs) <- {path}")
+            return True
     train_dir = root / cat / "train" / "good"
     if not train_dir.is_dir():
         train_dir = root / cat / "train"
     if not train_dir.is_dir():
         LOGGER.warning(f"MVTec OOD: {cat}: no train split for bank build; skipping cache.")
         return False
-    mb.reset_memory_bank()
+    mb.reset()
     try:
         n = m.build_memory_bank(str(train_dir), imgsz=isz, device=device, verbose=False)
     except Exception as e:
         LOGGER.warning(f"MVTec OOD: {cat}: bank build failed ({type(e).__name__}: {e}); skipping cache.")
         return False
-    if not n or mb.memory_bank is None or mb.memory_bank.shape[0] == 0:
+    if not n or mb.bank.shape[0] == 0:
         return False
     entry = {
-        "memory_bank": mb.memory_bank.detach().cpu(),
-        "feature_dim": mb.feature_dim,
+        "bank": mb.bank.detach().cpu(),
+        "dim": mb.dim,
         "temperature": float(mb.temperature),
+        "_threshold": mb._threshold,
+        "_compactness": mb._compactness,
     }
-    if getattr(mb, "_calibrated", False):
-        entry["_threshold"] = mb._threshold
-        entry["_compactness"] = mb._compactness
-        entry["_calibrated"] = True
     torch.save(entry, path)
-    mb.update = False
-    LOGGER.info(f"MVTec OOD: {cat}: built+cached bank ({mb.memory_bank.shape[0]} vecs) -> {path}")
+    mb.building = False
+    LOGGER.info(f"MVTec OOD: {cat}: built+cached bank ({mb.bank.shape[0]} vecs) -> {path}")
     return True
 
 
@@ -193,7 +192,7 @@ def run_mvtec_ood_eval(
                     # else: the validator will build the bank from the train split.
                 else:
                     if m.memory_bank is not None:
-                        m.memory_bank.reset_memory_bank()
+                        m.memory_bank.reset()
 
                 overrides = {
                     "task": "anomaly_v2",
@@ -254,7 +253,7 @@ def run_mvtec_ood_eval(
                     }
                 )
         if m.memory_bank is not None:
-            m.memory_bank.reset_memory_bank()
+            m.memory_bank.reset()
 
     rows.extend(_ood_macro_average(rows, epoch))
     if save_dir is not None:

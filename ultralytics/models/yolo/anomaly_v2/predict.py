@@ -1,67 +1,50 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-"""YOLO Anomaly v2 predictor with unified prior-mode routing.
-
-``YOLOAnomalyPredictor`` extends ``DetectionPredictor`` with prior-injection in
-``preprocess`` / ``inference`` via ``YOLOAnomalyPredictorBase``.
-
-Prior modes selectable via ``predictor.prior_mode``:
-
-  - ``"none"``     — passthrough (vanilla YOLO, no fusion bias).
-  - ``"heatmap"``  — feature-side memory-bank anomaly map.
-
-Explicit masks (prompts, external heatmaps, etc.) are supplied via the
-``prior_mask`` argument and fused directly; no one-shot buffer API is used.
-"""
+"""YOLO Anomaly v2 predictor with optional heatmap prior."""
 
 from __future__ import annotations
 
-import torch
-
 from ultralytics.models.yolo.detect import DetectionPredictor
-from ultralytics.utils import DEFAULT_CFG
 from ultralytics.utils.anomaly_v2 import PriorContext, PriorMode, prior_context_from_overrides
 
 from ._util import resolve_v2_model
 
 
-class YOLOAnomalyPredictorBase:
-    """Shared prior-mode injection for the Detect-head anomaly predictor."""
+def _ctx_with_mode(base: PriorContext, mode: PriorMode) -> PriorContext:
+    """Return a fresh PriorContext with ``mode`` replaced, copying only known fields."""
+    return PriorContext(
+        mode=mode,
+        heatmap_norm=base.heatmap_norm,
+        heatmap_smooth_kernel=base.heatmap_smooth_kernel,
+        heatmap_edge_weight=base.heatmap_edge_weight,
+        heatmap_edge_p=base.heatmap_edge_p,
+        heatmap_edge_m=base.heatmap_edge_m,
+        heatmap_edge_sigma=base.heatmap_edge_sigma,
+    )
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
-        # Pop custom keys from overrides before the base predictor validates all keys.
-        prior_mode = None
-        prior_mask = None
-        if isinstance(overrides, dict):
-            prior_mode = overrides.pop("prior_mode", None)
-            prior_mask = overrides.pop("prior_mask", None)
-        super().__init__(cfg=cfg, overrides=overrides, _callbacks=_callbacks)
-        self.prior_mode = prior_mode
-        self.prior_mask = prior_mask
+
+class YOLOAnomalyPredictor(DetectionPredictor):
+    """YOLO Anomaly v2 predictor.
+
+    Uses the memory-bank heatmap prior when a non-empty bank is available.
+    Otherwise it falls back to regular detection inference.
+    """
 
     def preprocess(self, im):
-        """Set prior mode on the model before forward."""
+        """Enable the heatmap prior only when a built memory bank exists."""
         m = resolve_v2_model(self.model)
         if m is not None and hasattr(m, "set_prior_context"):
-            # "heatmap" enables the internal memory-bank path; everything else
-            # (none / mask) is handled via explicit prior_mask.
-            mode = PriorMode(self.prior_mode) if self.prior_mode is not None else PriorMode.NONE
             base = m.prior_context if isinstance(m.prior_context, PriorContext) else PriorContext()
-            ctx = PriorContext(**{**base.__dict__, "mode": mode})
-            if mode == PriorMode.HEATMAP:
+            mb = getattr(m, "memory_bank", None)
+            has_bank = (
+                mb is not None
+                and getattr(mb, "memory_bank", None) is not None
+                and mb.memory_bank.shape[0] > 0
+            )
+            if has_bank:
+                ctx = _ctx_with_mode(base, PriorMode.HEATMAP)
                 ctx = prior_context_from_overrides(dict(vars(self.args)), ctx)
-            m.set_prior_context(ctx)
+                m.set_prior_context(ctx)
+            else:
+                m.set_prior_context(_ctx_with_mode(base, PriorMode.NONE))
         return super().preprocess(im)
-
-    def inference(self, im, *args, **kwargs):
-        """Run inference, passing any explicit prior_mask to the model."""
-        prior_mask = getattr(self, "prior_mask", None)
-        if prior_mask is not None:
-            m = resolve_v2_model(self.model)
-            device = next(m.parameters()).device if m is not None else prior_mask.device
-            kwargs["prior_mask"] = prior_mask.to(device=device, dtype=torch.float32)
-        return super().inference(im, *args, **kwargs)
-
-
-class YOLOAnomalyPredictor(YOLOAnomalyPredictorBase, DetectionPredictor):
-    """YOLO Anomaly v2 predictor (Detect head) with configurable prior mode."""

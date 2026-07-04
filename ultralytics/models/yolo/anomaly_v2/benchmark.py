@@ -3,9 +3,9 @@
 """MVTec cross-dataset OOD benchmark for YOLO Anomaly v2.
 
 This module is **not** imported during normal training/validation; it is loaded on
--demand by the trainer's periodic OOD callback and by the standalone ``run_yoloa.py``
-driver. Keeping it separate keeps the core validator / predictor paths small and makes
-it obvious that the MVTec sweep is a post-hoc evaluation, not a required code path.
+-demand by the trainer's periodic OOD callback. Keeping it separate keeps the core
+validator / predictor paths small and makes it obvious that the MVTec sweep is a
+post-hoc evaluation, not a required code path.
 """
 
 from __future__ import annotations
@@ -20,6 +20,20 @@ import torch
 
 from ultralytics.data.build import build_dataloader
 from ultralytics.utils import LOGGER
+from ultralytics.utils.anomaly_v2 import PriorContext, PriorMode
+
+
+def _ctx_with_mode(base: PriorContext, mode: PriorMode) -> PriorContext:
+    """Return a fresh PriorContext with ``mode`` replaced, copying only known fields."""
+    return PriorContext(
+        mode=mode,
+        heatmap_norm=base.heatmap_norm,
+        heatmap_smooth_kernel=base.heatmap_smooth_kernel,
+        heatmap_edge_weight=base.heatmap_edge_weight,
+        heatmap_edge_p=base.heatmap_edge_p,
+        heatmap_edge_m=base.heatmap_edge_m,
+        heatmap_edge_sigma=base.heatmap_edge_sigma,
+    )
 from ultralytics.utils.torch_utils import unwrap_model
 
 from ._util import resolve_v2_model
@@ -54,8 +68,6 @@ _OOD_CSV_FIELDS = [
     "mAP50_95",
     "P",
     "R",
-    "image_auroc",
-    "pixel_auroc",
 ]
 
 # Candidate dataset roots in priority order (env var wins, then ultra6, then laptop).
@@ -90,7 +102,7 @@ def _inject_cat_bank(m, root: Path, cat: str, cache_dir: Path, imgsz, device, ba
     ``<cache_dir>/<cat>_sz<imgsz>_n<bank_size>.pt`` and reloaded on re-runs, skipping the slow
     feature extraction. Once injected, :meth:`YOLOAnomalyValidator._ensure_memory_bank` reuses it
     (its ``_built_bank`` stays False, so the bank is not dropped between modes). Returns True iff a
-    usable bank is now in place; the caller resets it before the next category.
+    usable bank is now in place.
     """
     mb = getattr(m, "memory_bank", None)
     if mb is None or getattr(m, "_bb_layers", None) is None:
@@ -102,9 +114,9 @@ def _inject_cat_bank(m, root: Path, cat: str, cache_dir: Path, imgsz, device, ba
         d = torch.load(path, map_location="cpu")
         if not d.get("_calibrated"):
             LOGGER.warning(f"bank cache is old format (no calibration state); delete {path} to rebuild")
-        mb.load_bank(d["memory_bank"])  # re-normalizes + sets feature_dim onto the bank's device
+        mb.load_bank(d["memory_bank"])
         mb.temperature = d["temperature"]
-        mb.update = False  # scoring mode (frozen)
+        mb.update = False
         if d.get("_calibrated"):
             mb._threshold = d["_threshold"]
             mb._compactness = d["_compactness"]
@@ -144,7 +156,7 @@ def run_mvtec_ood_eval(
     model,
     mvtec_root: str | Path,
     categories: list[str] | None = None,
-    modes: tuple[str, ...] = ("none", "heatmap", "mask"),
+    modes: tuple[str, ...] = ("none", "heatmap"),
     imgsz: int = 320,
     batch: int = 8,
     workers: int = 0,
@@ -168,46 +180,34 @@ def run_mvtec_ood_eval(
     Each (category, mode) is isolated in try/except so one failure never aborts the sweep.
     Returns per-(category, mode) rows plus per-mode ``AVERAGE`` rows; appends ``mvtec_ood.csv``
     under ``save_dir`` when given. Reuses :class:`YOLOAnomalyValidator` via the ``model.val`` args
-    path (the validator pops ``prior_mode`` from the dict and builds/drops the bank internally).
+    path.
 
-    ``bank_cache_dir`` (opt-in, standalone eval only): persist each category's memory bank to
+    ``bank_cache_dir`` (opt-in): persist each category's memory bank to
     ``<dir>/<cat>_sz<imgsz>_n<bank_size>.pt`` and inject it before the mode loop, so the validator
-    reuses it across the 3 modes (and across re-runs / edge-weight A/Bs) instead of rebuilding and
-    dropping it per heatmap pass. Leave ``None`` during training OOD eval — the build-then-drop
-    default keeps the shared/EMA model clean (a stuck per-category bank would corrupt training).
+    reuses it across modes instead of rebuilding and dropping it per pass.
     """
     root = Path(mvtec_root)
-    # OOD is box-only for now (detection validator) regardless of the model's head; pass a seg
-    # validator class here in the future to also score masks cross-dataset.
     validator_cls = validator_cls or YOLOAnomalyValidator
     m = unwrap_model(model)
     if e2e is not None:
-        # e2e=False -> one2many head emits dense preds so the validator's NMS (with `iou`) runs and
-        # merges/suppresses nearby boxes; e2e=True -> NMS-free one2one head (ignores iou). Mutates the
-        # model in place (fine for a standalone eval; training OOD passes e2e=None and is untouched).
         m.model[-1].end2end = e2e
         m.end2end = e2e
-    from ultralytics.utils.anomaly_v2 import PriorContext
 
-    ctx = m.prior_context if isinstance(m.prior_context, PriorContext) else PriorContext()
+    base_ctx = m.prior_context if isinstance(m.prior_context, PriorContext) else PriorContext()
     if heatmap_norm is not None:
-        # Prior processing inside the model forward (minmax / gaussian / mean blur). Affects the FUSED
-        # prior -> the box/mAP metrics; AUROC uses the RAW heatmap (stashed before this step) so it is
-        # unchanged. Standalone-eval mutation only (training OOD passes None).
-        ctx.heatmap_norm = str(heatmap_norm).lower()
+        base_ctx.heatmap_norm = str(heatmap_norm).lower()
         if heatmap_smooth_kernel is not None:
-            ctx.heatmap_smooth_kernel = int(heatmap_smooth_kernel)
+            base_ctx.heatmap_smooth_kernel = int(heatmap_smooth_kernel)
     if heatmap_edge_weight is not None:
-        # Fixed center-weight window multiplied into the memory-bank heatmap to suppress border
-        # noise. Unlike heatmap_norm, this is applied BEFORE the AUROC stash -> it moves AUROC too.
-        ctx.heatmap_edge_weight = bool(heatmap_edge_weight)
+        base_ctx.heatmap_edge_weight = bool(heatmap_edge_weight)
         if heatmap_edge_p is not None:
-            ctx.heatmap_edge_p = float(heatmap_edge_p)
+            base_ctx.heatmap_edge_p = float(heatmap_edge_p)
         if heatmap_edge_m is not None:
-            ctx.heatmap_edge_m = float(heatmap_edge_m)
+            base_ctx.heatmap_edge_m = float(heatmap_edge_m)
         if heatmap_edge_sigma is not None:
-            ctx.heatmap_edge_sigma = float(heatmap_edge_sigma)
-    m.prior_context = ctx
+            base_ctx.heatmap_edge_sigma = float(heatmap_edge_sigma)
+    m.prior_context = base_ctx
+
     rows: list[dict] = []
 
     for cat in categories or MVTEC_CATEGORIES:
@@ -215,16 +215,27 @@ def run_mvtec_ood_eval(
         if yaml is None:
             LOGGER.warning(f"MVTec OOD: no data yaml for category '{cat}' under {root}; skipping.")
             continue
-        # Opt-in: build-or-load this category's bank once and inject it, so the validator's
-        # "bank already supplied" branch reuses it across all modes (no per-heatmap rebuild/drop).
-        cached_bank = (
-            _inject_cat_bank(m, root, cat, Path(bank_cache_dir), imgsz, device, bank_size)
-            if bank_cache_dir is not None
-            else False
-        )
-        cat_dataset = None  # RAM-cached dataset built by first mode, reused by rest
+
+        cat_dataset = None
         for mi, mode in enumerate(modes):
+            if mode not in ("none", "heatmap"):
+                LOGGER.warning(f"MVTec OOD: unsupported mode '{mode}'; skipping.")
+                continue
+
             try:
+                if mode == "heatmap":
+                    if bank_cache_dir is not None:
+                        _inject_cat_bank(m, root, cat, Path(bank_cache_dir), imgsz, device, bank_size)
+                    else:
+                        # Let the validator build the bank from the train split.
+                        if m.memory_bank is not None:
+                            m.memory_bank.reset_memory_bank()
+                    m.prior_context = _ctx_with_mode(base_ctx, PriorMode.HEATMAP)
+                else:
+                    if m.memory_bank is not None:
+                        m.memory_bank.reset_memory_bank()
+                    m.prior_context = _ctx_with_mode(base_ctx, PriorMode.NONE)
+
                 overrides = {
                     "task": "anomaly_v2",
                     "mode": "val",
@@ -238,10 +249,7 @@ def run_mvtec_ood_eval(
                     "plots": False,
                     "verbose": False,
                     "save_json": False,
-                    "single_cls": True,  # model is binary-trained; map all GT class IDs -> 0
-                    "prior_mode": mode,  # popped by YOLOAnomalyValidator.__init__
-                    # RAM-cache only pays off across multiple modes (decode once, reuse). For a
-                    # single-mode sweep there's no reuse, so skip it (and the non-determinism warning).
+                    "single_cls": True,
                     "cache": "ram" if len(modes) > 1 else False,
                 }
                 if e2e is not None:
@@ -250,18 +258,16 @@ def run_mvtec_ood_eval(
                     overrides["iou"] = iou
                 sd = Path(save_dir) / "mvtec_ood_runs" if save_dir is not None else None
                 if mi == 0:
-                    # First mode: build normally — triggers RAM cache in the dataset
                     validator = validator_cls(args=overrides, save_dir=sd)
                     validator._ood_bank_size = bank_size
                     validator(trainer=None, model=m)
                     cat_dataset = validator.dataloader.dataset
                 else:
-                    # Subsequent modes: reuse RAM-cached dataset in a fresh DataLoader
                     cat_dl = build_dataloader(cat_dataset, batch, workers, shuffle=False, rank=-1)
                     validator = validator_cls(dataloader=cat_dl, args=overrides, save_dir=sd)
                     validator._ood_bank_size = bank_size
                     validator(trainer=None, model=m)
-                mm = validator.ood_map_metrics()
+                mm = validator._ood_map_metrics()
                 rows.append(
                     {
                         "epoch": epoch,
@@ -273,8 +279,6 @@ def run_mvtec_ood_eval(
                         "mAP50_95": mm["mAP50_95"],
                         "P": mm["P"],
                         "R": mm["R"],
-                        "image_auroc": float(getattr(validator.metrics, "image_auroc", math.nan)),
-                        "pixel_auroc": float(getattr(validator.metrics, "pixel_auroc", math.nan)),
                     }
                 )
             except Exception as e:
@@ -290,12 +294,10 @@ def run_mvtec_ood_eval(
                         "mAP50_95": math.nan,
                         "P": math.nan,
                         "R": math.nan,
-                        "image_auroc": math.nan,
-                        "pixel_auroc": math.nan,
                     }
                 )
-        if cached_bank and m.memory_bank is not None:
-            m.memory_bank.reset_memory_bank()  # drop the injected bank before the next category
+        if m.memory_bank is not None:
+            m.memory_bank.reset_memory_bank()
 
     rows.extend(_ood_macro_average(rows, epoch))
     if save_dir is not None:
@@ -326,14 +328,11 @@ def _ood_macro_average(rows: list[dict], epoch: int | None) -> list[dict]:
             "mAP50_95": _avg("mAP50_95"),
             "P": _avg("P"),
             "R": _avg("R"),
-            "image_auroc": _avg("image_auroc"),
-            "pixel_auroc": _avg("pixel_auroc"),
         }
         out.append(avg)
         LOGGER.info(
             f"MVTec OOD @ep{epoch} [{mode:8s}] mAP10={avg['mAP10']:.4f} mAP25={avg['mAP25']:.4f} "
-            f"mAP50={avg['mAP50']:.4f} mAP50-95={avg['mAP50_95']:.4f} "
-            f"img_auroc={avg['image_auroc']:.4f} pix_auroc={avg['pixel_auroc']:.4f} (n={len(rs)})"
+            f"mAP50={avg['mAP50']:.4f} mAP50-95={avg['mAP50_95']:.4f} (n={len(rs)})"
         )
     return out
 
@@ -346,4 +345,4 @@ def _append_ood_csv(rows: list[dict], path: Path) -> None:
         if write_header:
             w.writeheader()
         for r in rows:
-            w.writerow({k: r.get(k) for k in _OOD_CSV_FIELDS})
+            w.writerow({k: ("" if r.get(k) is None else r[k]) for k in _OOD_CSV_FIELDS})

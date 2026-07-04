@@ -4,13 +4,10 @@
 
 Thin extension of ``DetectionTrainer``. The differences:
   * ``get_model`` returns a ``YOLOAnomalyV2Model`` instead of a plain ``DetectionModel``.
-  * ``get_validator`` returns a ``YOLOAnomalyValidator`` that runs val twice
-    (mask-on and mask-off) — see ``val.py``.
+  * ``get_validator`` returns a ``YOLOAnomalyValidator``.
 
 Everything else (dataset, dataloader, augmentation, loss aggregation, plot,
-auto_batch, etc.) is inherited from ``DetectionTrainer`` unchanged. Mask
-rendering happens inside ``YOLOAnomalyV2Model.loss`` from ``batch["bboxes"]``;
-no special handling needed at the trainer level.
+auto_batch, etc.) is inherited from ``DetectionTrainer`` unchanged.
 """
 
 from __future__ import annotations
@@ -40,14 +37,12 @@ def _resolve_fit_yaml(cfg_path: str, model_yaml_path: str | None = None) -> dict
     p = Path(cfg_path)
     if p.is_file():
         return dict(YAML.load(str(p)))
-    # Relative to model YAML's directory (when model_yaml_path is a real path)
     if model_yaml_path:
         m = Path(model_yaml_path)
-        if m.parent != Path("."):  # skip basename-only; use the cfg/models/v2 anchor instead
+        if m.parent != Path("."):
             alt = (m.parent / cfg_path).resolve()
             if alt.is_file():
                 return dict(YAML.load(str(alt)))
-    # Resolve from <repo_root>/ultralytics/cfg/models/v2/ — the canonical model-YAML location
     cfg_dir = Path(__file__).resolve().parents[3] / "cfg" / "models" / "v2"
     alt = (cfg_dir / cfg_path).resolve()
     if alt.is_file():
@@ -63,24 +58,23 @@ class AnomalyV2Trainer(DetectionTrainer):
         super().__init__(cfg, overrides, _callbacks)
         # NOTE: _mvtec_ood_eval is NOT a callback — it runs inside validate() so best.pt
         # selection sees the current epoch's OOD score (no one-epoch lag).
-        self._ood_best_fitness = None  # running max of the OOD-scale fitness (best.pt selection)
+        self._ood_best_fitness = None
 
     def validate(self):
-        """Run validation; when OOD eval is enabled, use OOD heatmap mAP10 (test_metrics(heatmap_prior)) as fitness.
+        """Run validation; when OOD eval is enabled, use OOD heatmap mAP10 as fitness.
 
         The OOD eval runs here (not as an ``on_fit_epoch_end`` callback) on the current epoch's
         EMA, so best.pt selection sees this epoch's score with no one-epoch lag. Fitness stays on
-        the OOD scale every epoch (``0.0`` when the eval can't run) — it never falls back to the
-        in-domain metric, which is a different scale and would freeze best.pt at epoch 0. The base
-        ``validate`` bumps ``best_fitness`` on the in-domain scale, so we recompute it on the OOD
-        scale (``_ood_best_fitness``) and overwrite — ``save_model`` saves best.pt when
+        the OOD scale every epoch (``0.0`` when the eval can't run). The base ``validate`` bumps
+        ``best_fitness`` on the in-domain scale, so we recompute it on the OOD scale
+        (``_ood_best_fitness``) and overwrite — ``save_model`` saves best.pt when
         ``best_fitness == fitness``, i.e. on each new OOD max.
         """
         metrics, fitness = super().validate()
         v2_cfg = getattr(unwrap_model(self.model), "yaml", {}).get("anomaly_v2", {})
         if int(v2_cfg.get("test_val_freq", 3)) > 0 and metrics is not None:
-            self._ood_heatmap_map10 = None  # skipped (freq) epochs -> 0.0, not a best.pt candidate
-            AnomalyV2Trainer._mvtec_ood_eval(self)  # sets self._ood_heatmap_map10 (+ wandb log)
+            self._ood_heatmap_map10 = None
+            AnomalyV2Trainer._mvtec_ood_eval(self)
             fitness = float(self._ood_heatmap_map10 or 0.0)
             metrics["fitness"] = fitness
             self._ood_best_fitness = fitness if self._ood_best_fitness is None else max(self._ood_best_fitness, fitness)
@@ -94,10 +88,11 @@ class AnomalyV2Trainer(DetectionTrainer):
     def build_dataset(self, img_path: str, mode: str = "train", batch: int | None = None):
         """Build the dataset, forcing polygon-mask loading when polygon-prior mode is on.
 
-        Appends ``LoadAnomalyPriorMask`` so the collated batch contains ``prior_mask`` for the
-        model to consume directly.
+        For training only, appends ``LoadAnomalyPriorMask`` so the collated batch contains
+        ``prior_mask`` for the model to consume directly. Validation uses the heatmap prior
+        (or passthrough) instead of an explicit mask.
         """
-        if self._polygon_prior_active():
+        if self._polygon_prior_active() and mode == "train":
             # task="segment" flips YOLODataset.use_segments -> Format(return_mask=True) ->
             # batch["masks"] (overlap-union instance map). Detection head/loss unaffected
             # (bboxes still present). copy() so the persistent self.args stays task="anomaly_v2".
@@ -108,14 +103,15 @@ class AnomalyV2Trainer(DetectionTrainer):
         else:
             dataset = super().build_dataset(img_path, mode=mode, batch=batch)
 
-        # Attach the prior-mask builder to the final transform pipeline.
-        v2_cfg = getattr(unwrap_model(self.model), "yaml", {}).get("anomaly_v2", {})
-        transform = LoadAnomalyPriorMask(v2_cfg, mode=mode)
-        if isinstance(dataset, YOLOConcatDataset):
-            for d in dataset.datasets:
-                d.transforms.append(transform)
-        else:
-            dataset.transforms.append(transform)
+        # Attach the prior-mask builder only to the training transform pipeline.
+        if mode == "train":
+            v2_cfg = getattr(unwrap_model(self.model), "yaml", {}).get("anomaly_v2", {})
+            transform = LoadAnomalyPriorMask(v2_cfg, mode=mode)
+            if isinstance(dataset, YOLOConcatDataset):
+                for d in dataset.datasets:
+                    d.transforms.append(transform)
+            else:
+                dataset.transforms.append(transform)
         return dataset
 
     def get_model(self, cfg=None, weights=None, verbose: bool = True):
@@ -132,23 +128,18 @@ class AnomalyV2Trainer(DetectionTrainer):
         return model
 
     def get_validator(self):
-        """Return the anomaly validator (2-pass, legacy GT mask rendering for training)."""
+        """Return the anomaly validator."""
         model = unwrap_model(self.model)
         if isinstance(model.model[-1], AnomalyMCDetect):
-            # AnomalyMCLoss returns [box, anom, dfl, type] (decoupled detection + type).
             loss_names = ["box_loss", "anom_loss", "dfl_loss", "type_loss"]
         else:
             loss_names = ["box_loss", "cls_loss", "dfl_loss"]
-        # QueryFiLM appends 4 aux components in this exact order (see YOLOAnomalyV2Model.loss).
-        if getattr(model, "fusion_mode", None) == "queryfilm":
-            loss_names += ["qmask_loss", "qobj_loss", "qovl_loss", "qfg_loss"]
         self.loss_names = tuple(loss_names)
         return yolo.anomaly_v2.YOLOAnomalyValidator(
             self.test_loader,
             save_dir=self.save_dir,
             args=copy(self.args),
             _callbacks=self.callbacks,
-            prior_mode=None,  # legacy GT bboxes -> renderer
         )
 
     @staticmethod
@@ -157,11 +148,10 @@ class AnomalyV2Trainer(DetectionTrainer):
 
         Configured via the model YAML ``anomaly_v2`` block: ``test_val_freq`` (every N epochs;
         default 3, set 0 to disable). When ``test_fit_cfg`` is set, ``imgsz``, bank-build knobs,
-        and ``heat_edge`` / ``heat_norm`` are read from that fit YAML (the single source of truth
-        for all fit params). Without it, ``test_imgsz`` (default 320) and the default heatmap prior
-        with no post-processing are used. Per-prior switches ``test_none_prior`` /
-        ``test_heatmap_prior`` / ``test_mask_prior`` pick which modes run; ``test_heatmap_prior`` is
-        forced on (best.pt fitness is ``test_metrics(heatmap_prior)/mAP10``).
+        and ``heat_edge`` / ``heat_norm`` are read from that fit YAML.
+
+        ``test_heatmap_prior`` is forced on (best.pt fitness is ``test_metrics(heatmap_prior)/mAP10``);
+        ``test_none_prior`` defaults off.
 
         Runs on a deepcopy of the EMA so val-time fuse()/bank-build never corrupt the live EMA.
         """
@@ -178,7 +168,6 @@ class AnomalyV2Trainer(DetectionTrainer):
             )
             return
 
-        # -- Fit YAML (optional; single source of truth for imgsz / bank knobs / post-processing) --
         fit_cfg_path = v2_cfg.get("test_fit_cfg")
         fit_yaml = {}
         if fit_cfg_path:
@@ -190,31 +179,22 @@ class AnomalyV2Trainer(DetectionTrainer):
         batch = int(v2_cfg.get("test_batch", 8))
         bank_size = int(fit_yaml.get("bb_max_bank_size", v2_cfg.get("test_bank_size", 10000)))
 
-        # Per-prior test switches pick which OOD modes run. test_heatmap_prior is forced on because
-        # best.pt fitness is test_metrics(heatmap_prior)/mAP10; test_none_prior and
-        # test_mask_prior default off (heatmap-only = ~3x faster).
         if not bool(v2_cfg.get("test_heatmap_prior", True)):
             LOGGER.warning("anomaly_v2: test_heatmap_prior feeds fitness and cannot be disabled; forcing on.")
         modes = []
         if bool(v2_cfg.get("test_none_prior", False)):
             modes.append("none")
-        modes.append("heatmap")  # test_heatmap_prior — always on (fitness source)
-        if bool(v2_cfg.get("test_mask_prior", False)):
-            modes.append("mask")
+        modes.append("heatmap")
         modes = tuple(modes)
 
-        # Heatmap post-processing (inference-only; from fit YAML)
         heat_edge = bool(fit_yaml.get("heat_edge")) if fit_yaml else None
         heat_edge_sigma = fit_yaml.get("heat_edge_sigma", 1.0)
         heat_norm = fit_yaml.get("heat_norm") or None
 
         ema_eval = deepcopy(trainer.ema.ema).eval()
-        # Apply the fit YAML's bank-build knobs (bb_K / bb_temperature / calibration / bb_layers) onto the
-        # eval copy so the OOD bank is built exactly as YOLOA.fit would post-training — the fit YAML is the
-        # single source of truth, overriding the model-baked v2_cfg defaults. No-op without a fit YAML.
         if fit_yaml:
             apply_bb_overrides(ema_eval, fit_yaml)
-        trainer._ood_heatmap_map10 = None  # clear stale; only set on success
+        trainer._ood_heatmap_map10 = None
         try:
             with torch.no_grad():
                 rows = run_mvtec_ood_eval(
@@ -236,27 +216,20 @@ class AnomalyV2Trainer(DetectionTrainer):
                     heatmap_edge_sigma=heat_edge_sigma,
                 )
             AnomalyV2Trainer._log_ood_wandb(trainer, rows)
-            # Store OOD heatmap mAP10 (test_metrics(heatmap_prior)) for best.pt selection (fitness override)
             for r in rows:
                 if r["category"] == "AVERAGE" and r["mode"] == "heatmap":
                     map10 = r.get("mAP10", math.nan)
                     if not math.isnan(map10):
                         trainer._ood_heatmap_map10 = float(map10)
                     break
-        except Exception as e:  # never let OOD eval take down a training run
+        except Exception as e:
             LOGGER.warning(f"MVTec OOD eval failed at epoch {trainer.epoch + 1}: {type(e).__name__}: {e}")
         finally:
             del ema_eval
 
     @staticmethod
     def _log_ood_wandb(trainer: "AnomalyV2Trainer", rows: list) -> None:
-        """Push OOD metrics to wandb grouped by mode (test_metrics(none_prior/heatmap_prior/mask_prior)).
-
-        For each OOD mode, logs the AVERAGE row (mean across all 15 MVTec categories)
-        with metrics {mAP10, mAP25, mAP50, mAP50_95, image_auroc, pixel_auroc}.
-        NaN values are skipped. Logged at ``step=epoch+1`` so it merges into the
-        same wandb history row the loss/lr already populate this epoch.
-        """
+        """Push OOD metrics to wandb grouped by mode (test_metrics(none_prior/heatmap_prior))."""
         if not rows:
             return
         try:
@@ -266,16 +239,14 @@ class AnomalyV2Trainer(DetectionTrainer):
         if wb is None or getattr(wb, "run", None) is None:
             return
 
-        keys = ("mAP10", "mAP25", "mAP50", "mAP50_95", "image_auroc", "pixel_auroc")
+        keys = ("mAP10", "mAP25", "mAP50", "mAP50_95", "P", "R")
         mode_to_group = {
             "none": "test_metrics(none_prior)",
             "heatmap": "test_metrics(heatmap_prior)",
-            "mask": "test_metrics(mask_prior)",
         }
 
         log = {}
         for mode, group_name in mode_to_group.items():
-            # Find AVERAGE row for this mode
             avg_row = next((r for r in rows if r["category"] == "AVERAGE" and r["mode"] == mode), None)
             if avg_row is not None:
                 for k in keys:

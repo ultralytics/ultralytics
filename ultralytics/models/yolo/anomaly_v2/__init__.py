@@ -1,13 +1,11 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from .predict import YOLOAnomalyPredictor, YOLOAnomalyPredictorBase
+from .predict import YOLOAnomalyPredictor
 from .train import AnomalyV2Trainer
-from .val import YOLOAnomalyValidator, YOLOAnomalyValidatorBase
+from .val import YOLOAnomalyValidator
 
 __all__ = (
     "YOLOAnomalyPredictor",
-    "YOLOAnomalyPredictorBase",
     "AnomalyV2Trainer",
     "YOLOAnomalyValidator",
-    "YOLOAnomalyValidatorBase",
 )

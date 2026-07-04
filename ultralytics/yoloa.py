@@ -3,19 +3,19 @@
 """YOLOA — training-free anomaly detection (v2) wrapper.
 
 Fit a memory bank on normal images ("fit" = build the bank, no gradient training), then predict /
-val with a chosen prior. The fitted weight self-describes: the bank, the fit config (``fit_args``)
-and the data label (``fit_data``) all round-trip in the saved ``*.pt``.
+val with the heatmap prior. The fitted weight self-describes: the bank, the fit config
+(``fit_args``) and the data label (``fit_data``) all round-trip in the saved ``*.pt``.
 
 Three config layers, each with its own home:
   - architecture + training knobs -> baked in the model yaml / ckpt (frozen after training)
   - bank-build knobs (imgsz / max_images / bb_*) -> the fit config (yaml or kwargs, overridable)
-  - prior-shaping knobs (heatmap_norm / heat_edge* / ...) -> predict()/val() kwargs (per-call)
+  - heatmap-shaping knobs (heatmap_norm / heat_edge* / ...) -> predict()/val() kwargs (per-call)
 
 Examples:
     >>> m = YOLOA("best.pt")
     >>> m.fit("bottle/train/good", name="bottle", cfg="yoloa_fit.yaml", bb_K=5)
-    >>> m.predict("test.png", prior="heatmap", heat_edge=True)
-    >>> m.val(data="bottle.yaml", prior="heatmap")
+    >>> m.predict("test.png", heat_edge=True)
+    >>> m.val(data="bottle.yaml")
     >>> m.save("bottle_fitted.pt")  # carries bank + fit_args + fit_data
 """
 
@@ -32,12 +32,9 @@ from ultralytics.engine.model import Model
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import YOLOAnomalyV2Model
 from ultralytics.utils import LOGGER, YAML
-from ultralytics.utils.anomaly_v2 import FIT_KEYS, PriorContext, PriorMode, apply_bb_overrides, prior_context_from_overrides
+from ultralytics.utils.anomaly_v2 import FIT_KEYS, apply_bb_overrides, prior_context_from_overrides
 
-# Public prior selection. Internal model uses ``prior_mode``.
-PRIOR_MODES = ("none", "heatmap", "mask")
-
-# Prior-shaping knobs accepted as predict()/val() kwargs. Short aliases are resolved by
+# Heatmap-shaping knobs accepted as predict()/val() kwargs. Short aliases are resolved by
 # :func:`~ultralytics.utils.anomaly_v2.prior_context_from_overrides`.
 _INFER_KEYS = {
     "heatmap_norm",
@@ -52,11 +49,12 @@ _INFER_KEYS = {
     "heat_edge_p",
     "heat_edge_m",
     "heat_edge_sigma",
+    "hm_gate_blend",
 }
 
 
 class YOLOA(Model):
-    """Training-free anomaly v2: fit a memory bank on normals, then predict / val with a prior."""
+    """Training-free anomaly v2: fit a memory bank on normals, then predict / val with heatmap prior."""
 
     def __init__(self, model: str | Path = "yolo26m-anomaly-v2.yaml", verbose: bool = False) -> None:
         """Load a YOLOA model. A v2 ckpt routes by its baked ``task``; a yaml is forced to anomaly_v2."""
@@ -147,109 +145,62 @@ class YOLOA(Model):
                 torch.save(entry, cache_path)
                 LOGGER.info(f"YOLOA.fit: cached bank ({mb.memory_bank.shape[0]} vecs) -> {cache_path}")
 
-        m.fit_args = dict(fit_args)  # provenance — plain attrs, ride along on save()
+        m.fit_args = dict(fit_args)
         m.fit_data = data_name
         m._heatmap_bank_warned = False
         return self
 
-    def predict(
-        self, source=None, stream: bool = False, prior: str = "heatmap", **kwargs: Any
-    ):
-        """Predict with an optional prior.
+    def predict(self, source=None, stream: bool = False, **kwargs: Any):
+        """Predict with the heatmap prior when a fitted bank is available.
 
         Args:
             source: Image source (path / array / list), as in :meth:`Model.predict`.
             stream: Stream the source.
-            prior: One of "none" / "heatmap" / "mask". Default is "heatmap"; if the
-                memory bank is empty a warning is emitted and the model falls back to
-                vanilla detection. Pass an explicit ``prior_mask`` for an external mask.
-            **kwargs: Standard predict args plus prior-shaping knobs (heat_norm / heat_edge / ...).
-                A raw ``prior_mask`` can also be passed directly.
+            **kwargs: Standard predict args plus heatmap-shaping knobs (heat_norm / heat_edge / ...).
 
         Returns:
             (list[Results]): Prediction results.
         """
-        prior_mode, prior_mask = self._resolve_prior(prior, kwargs)
         self._apply_infer_overrides(kwargs)
-        return super().predict(
-            source=source, stream=stream, prior_mode=prior_mode, prior_mask=prior_mask, **kwargs
-        )
+        return super().predict(source=source, stream=stream, **kwargs)
 
-    def val(self, validator=None, prior: str = "heatmap", **kwargs: Any):
-        """Validate with an optional prior (YOLOAnomalyValidator adds image/pixel AUROC).
+    def val(self, validator=None, **kwargs: Any):
+        """Validate with the heatmap prior when a fitted bank is available.
 
         Args:
             validator: Optional custom validator.
-            prior: One of "none" / "heatmap" / "mask". Default is "heatmap"; if the
-                memory bank is empty a warning is emitted and the model falls back to
-                vanilla detection.
-            **kwargs: Standard val args plus prior-shaping knobs (heat_norm / heat_edge / ...).
-                ``end2end`` and ``hm_gate_blend`` are also accepted and applied to the
-                detection head for this call only.
+            **kwargs: Standard val args plus heatmap-shaping knobs (heat_norm / heat_edge / ...).
+                ``end2end`` is also accepted and applied to the detection head for this call only.
 
         Returns:
             Validation metrics.
         """
-        prior_mode = None if prior is None else str(prior).lower()
-
-        # Optional head mutations for this val call only (mirror run_yoloa.py --mode val).
+        # Optional head mutations for this val call only.
         e2e = kwargs.pop("end2end", None)
-        gate_blend = kwargs.pop("hm_gate_blend", None)
         head = self.model.model[-1]
-        old = {}
+        old_e2e = None
         if e2e is not None:
-            old["model_e2e"] = getattr(self.model, "end2end", None)
-            old["head_e2e"] = getattr(head, "end2end", None)
-            self.model.end2end = e2e
+            old_e2e = getattr(head, "end2end", None)
             head.end2end = e2e
-        if gate_blend is not None:
-            old["head_gate"] = getattr(head, "hm_gate_blend", None)
-            head.hm_gate_blend = gate_blend
+            self.model.end2end = e2e
 
         self._apply_infer_overrides(kwargs)
         try:
-            return super().val(validator=validator, prior_mode=prior_mode, **kwargs)
+            return super().val(validator=validator, **kwargs)
         finally:
             if e2e is not None:
-                self.model.end2end = old["model_e2e"]
-                if old["head_e2e"] is None:
+                if old_e2e is None:
                     head.__dict__.pop("end2end", None)
                 else:
-                    head.end2end = old["head_e2e"]
-            if gate_blend is not None:
-                if old["head_gate"] is None:
-                    head.__dict__.pop("hm_gate_blend", None)
-                else:
-                    head.hm_gate_blend = old["head_gate"]
+                    head.end2end = old_e2e
 
     # ---- internals ----------------------------------------------------------------------------
 
-    def _resolve_prior(self, prior, kwargs):
-        """Map the public ``prior`` to (prior_mode, prior_mask).
-
-        ``prior_mode`` is only used to enable the internal memory-bank heatmap path
-        (``"heatmap"``). Explicit masks are always carried by ``prior_mask``.
-        """
-        explicit_mask = kwargs.pop("prior_mask", None)
-
-        if prior is None:
-            return None, explicit_mask
-        prior = str(prior).lower()
-        if prior not in PRIOR_MODES:
-            raise ValueError(f"prior={prior!r} not in {PRIOR_MODES}")
-        if prior == "mask":
-            if explicit_mask is None:
-                raise ValueError("prior='mask' requires an explicit prior_mask")
-            return None, explicit_mask
-        if prior == "none":
-            if explicit_mask is not None:
-                LOGGER.warning("prior='none' ignores the provided prior_mask")
-            return None, None
-        return prior, None
-
     def _apply_infer_overrides(self, kwargs: dict) -> None:
-        """Pop prior-shaping kwargs and set them on the model via ``PriorContext``."""
+        """Pop heatmap-shaping kwargs and set them on the model via ``PriorContext``."""
         overrides = {k: kwargs.pop(k) for k in list(kwargs) if k in _INFER_KEYS}
+        if "hm_gate_blend" in overrides:
+            self.model.model[-1].hm_gate_blend = float(overrides.pop("hm_gate_blend"))
         if overrides:
             self.model.set_prior_overrides(overrides)
 

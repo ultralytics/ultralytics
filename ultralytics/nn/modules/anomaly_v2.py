@@ -1,13 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-"""YOLOA v2 modules: bbox-mask renderer, heatmap fusion, and memory-bank scorer.
+"""YOLOA v2 modules: heatmap fusion and memory-bank scorer.
 
-Soft-hint fusion: a 1-channel mask is turned into a bounded per-pixel bias added
-(broadcast over channels) to PAN features before the Detect head. PAN feature
-addition keeps the Detect head unmodified, lets reg and cls both see the bias
-(empirical question — see spec §2), and is bounded vs the previous multiplicative
-amplifier that forced detections.
-
-See docs_yoloa_v2/specs/2026-06-02-softhint-fusion-design.md.
+Soft-hint fusion: a 1-channel memory-bank heatmap is turned into a bounded per-pixel bias
+added (broadcast over channels) to PAN features before the Detect head.
 """
 
 from __future__ import annotations
@@ -858,3 +853,5 @@ class HeatmapProcessor(nn.Module):
             cache = (key, wmap[None, None])
             self._edge_weight_cache = cache
         return cache[1]
+
+

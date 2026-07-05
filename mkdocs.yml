@@ -773,6 +773,7 @@ nav:
               - world:
                   - train: reference/models/yolo/world/train.md
                   - train_world: reference/models/yolo/world/train_world.md
+                  - val: reference/models/yolo/world/val.md
               - yoloe:
                   - predict: reference/models/yolo/yoloe/predict.md
                   - train: reference/models/yolo/yoloe/train.md

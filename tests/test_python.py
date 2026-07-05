@@ -263,11 +263,7 @@ def test_predict_tensor_float_bchw(model):
 
 @pytest.mark.parametrize("model", MODELS)
 def test_predict_numpy_formats(model):
-    """Tests various numpy array inputs for multi image sz, list[np.ndarray], np.ndarray.
-
-    Only tests uint8 format since ultralytics.engine.predictor.BasePredictor.preprocess() expects hwc uint8 [0,255] np
-    inputs
-    """
+    """Test single np.ndarray and mixed-size list[np.ndarray] inputs (uint8 HWC [0, 255] as preprocess expects)."""
     m = YOLO(WEIGHTS_DIR / model)
     channels = 1 if model == "yolo11n-grayscale.pt" else 3
     im_48 = np.random.randint(0, 256, (48, 48, channels), dtype=np.uint8)

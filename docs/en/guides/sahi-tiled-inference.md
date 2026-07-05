@@ -1,4 +1,5 @@
 ---
+title: YOLO26 Sliced Inference with SAHI
 comments: true
 description: Learn how to implement YOLO26 with SAHI for sliced inference. Optimize memory usage and enhance detection accuracy for large-scale applications.
 keywords: YOLO26, SAHI, Sliced Inference, Object Detection, Ultralytics, High-resolution Images, Computational Efficiency, Integration Guide
@@ -20,13 +21,13 @@ SAHI (Slicing Aided Hyper Inference) is an innovative library designed to optimi
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/ILqMBah5ZvI"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/Kpl6cOUKbb8"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Inference with SAHI (Slicing Aided Hyper Inference) using Ultralytics YOLO26
+  <strong>Watch:</strong> How to use SAHI with Ultralytics YOLO26 to Detect Small Objects | Slicing Aided Hyper Inference 🚀
 </p>
 
 ### Key Features of SAHI
@@ -164,12 +165,14 @@ SAHI provides a `PredictionResult` object, which can be converted into various a
 # Access the object prediction list
 object_prediction_list = result.object_prediction_list
 
-# Convert to COCO annotation, COCO prediction, imantics, and fiftyone formats
+# Convert to COCO annotation and COCO prediction formats
 result.to_coco_annotations()[:3]
 result.to_coco_predictions(image_id=1)[:3]
-result.to_imantics_annotations()[:3]
-result.to_fiftyone_detections()[:3]
 ```
+
+!!! tip "Additional export formats"
+
+    `PredictionResult` can also convert detections to [imantics](https://github.com/jsbroks/imantics) and [FiftyOne](https://github.com/voxel51/fiftyone) objects with `result.to_imantics_annotations()` and `result.to_fiftyone_detections()`. These methods require the respective packages, so install them first with `pip install imantics fiftyone`.
 
 ## Batch Prediction
 

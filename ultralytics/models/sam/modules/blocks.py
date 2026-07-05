@@ -1,4 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 from __future__ import annotations
 
 import copy
@@ -1032,7 +1033,7 @@ class PatchEmbed(nn.Module):
         >>> x = torch.randn(1, 3, 224, 224)
         >>> output = patch_embed(x)
         >>> print(output.shape)
-        torch.Size([1, 768, 14, 14])
+        torch.Size([1, 14, 14, 768])
     """
 
     def __init__(

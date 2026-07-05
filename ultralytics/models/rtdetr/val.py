@@ -8,7 +8,6 @@ from typing import Any
 import torch
 
 from ultralytics.data import YOLODataset
-from ultralytics.data.augment import Compose, Format, v8_transforms
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import colorstr, ops
 
@@ -16,7 +15,7 @@ __all__ = ("RTDETRValidator",)  # tuple or list
 
 
 class RTDETRDataset(YOLODataset):
-    """Real-Time DEtection and TRacking (RT-DETR) dataset class extending the base YOLODataset class.
+    """Real-Time DEtection TRansformer (RT-DETR) dataset class extending the base YOLODataset class.
 
     This specialized dataset class is designed for use with the RT-DETR object detection model and is optimized for
     real-time detection and tracking tasks.
@@ -41,7 +40,7 @@ class RTDETRDataset(YOLODataset):
     def __init__(self, *args, data=None, **kwargs):
         """Initialize the RTDETRDataset class by inheriting from the YOLODataset class.
 
-        This constructor sets up a dataset specifically optimized for the RT-DETR (Real-Time DEtection and TRacking)
+        This constructor sets up a dataset specifically optimized for the RT-DETR (Real-Time DEtection TRansformer)
         model, building upon the base YOLODataset functionality.
 
         Args:
@@ -69,36 +68,6 @@ class RTDETRDataset(YOLODataset):
             >>> image, hw0, hw = dataset.load_image(0)
         """
         return super().load_image(i=i, rect_mode=rect_mode)
-
-    def build_transforms(self, hyp=None):
-        """Build transformation pipeline for the dataset.
-
-        Args:
-            hyp (dict, optional): Hyperparameters for transformations.
-
-        Returns:
-            (Compose): Composition of transformation functions.
-        """
-        if self.augment:
-            hyp.mosaic = hyp.mosaic if self.augment and not self.rect else 0.0
-            hyp.mixup = hyp.mixup if self.augment and not self.rect else 0.0
-            hyp.cutmix = hyp.cutmix if self.augment and not self.rect else 0.0
-            transforms = v8_transforms(self, self.imgsz, hyp, stretch=True)
-        else:
-            # transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), auto=False, scale_fill=True)])
-            transforms = Compose([])
-        transforms.append(
-            Format(
-                bbox_format="xywh",
-                normalize=True,
-                return_mask=self.use_segments,
-                return_keypoint=self.use_keypoints,
-                batch_idx=True,
-                mask_ratio=hyp.mask_ratio,
-                mask_overlap=hyp.overlap_mask,
-            )
-        )
-        return transforms
 
 
 class RTDETRValidator(DetectionValidator):

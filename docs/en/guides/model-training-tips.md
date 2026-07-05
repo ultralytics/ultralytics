@@ -1,6 +1,7 @@
 ---
+title: Model Training Tips & Best Practices
 comments: true
-description: Learn best practices for training computer vision models, including batch size optimization, mixed precision training, early stopping, and optimizer selection for improved efficiency and accuracy.
+description: Train YOLO computer vision models more efficiently with proven tips on batch size, mixed precision, caching, early stopping, and optimizer choice.
 keywords: Model Training Machine Learning, AI Model Training, Number of Epochs, How to Train a Model in Machine Learning, Machine Learning Best Practices, What is Model Training
 ---
 
@@ -8,7 +9,9 @@ keywords: Model Training Machine Learning, AI Model Training, Number of Epochs, 
 
 ## Introduction
 
-One of the most important steps when working on a [computer vision project](./steps-of-a-cv-project.md) is model training. Before reaching this step, you need to [define your goals](./defining-project-goals.md) and [collect and annotate your data](./data-collection-and-annotation.md). After [preprocessing the data](./preprocessing_annotated_data.md) to make sure it is clean and consistent, you can move on to training your model.
+One of the most important steps when working on a [computer vision project](./steps-of-a-cv-project.md) is model training. Before reaching this step, you need to [define your goals](./defining-project-goals.md) and [collect and annotate your data](./data-collection-and-annotation.md). After [preprocessing the data](./preprocessing-annotated-data.md) to make sure it is clean and consistent, you can move on to training your model.
+
+[Model training](../modes/train.md) is the process of teaching your model to recognize visual patterns and make predictions from your data, and it directly shapes the accuracy of your application. This guide walks through best practices, optimization techniques, and troubleshooting tips to help you train your computer vision models effectively.
 
 <p align="center">
   <br>
@@ -21,8 +24,6 @@ One of the most important steps when working on a [computer vision project](./st
   <strong>Watch:</strong> Model Training Tips | How to Handle Large Datasets | Batch Size, GPU Utilization and <a href="https://www.ultralytics.com/glossary/mixed-precision">Mixed Precision</a>
 </p>
 
-So, what is [model training](../modes/train.md)? Model training is the process of teaching your model to recognize visual patterns and make predictions based on your data. It directly impacts the performance and accuracy of your application. In this guide, we'll cover best practices, optimization techniques, and troubleshooting tips to help you train your computer vision models effectively.
-
 ## How to Train a Machine Learning Model
 
 A computer vision model is trained by adjusting its internal parameters to minimize errors. Initially, the model is fed a large set of labeled images. It makes predictions about what is in these images, and the predictions are compared to the actual labels or contents to calculate errors. These errors show how far off the model's predictions are from the true values.
@@ -33,7 +34,7 @@ During training, the model iteratively makes predictions, calculates errors, and
   <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/backpropagation-diagram.avif" alt="What is Backpropagation?">
 </p>
 
-This learning process makes it possible for the [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) model to perform various [tasks](../tasks/index.md), including [object detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), and [image classification](../tasks/classify.md). The ultimate goal is to create a model that can generalize its learning to new, unseen images so that it can accurately understand visual data in real-world applications.
+This learning process makes it possible for the [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) model to perform various [tasks](../tasks/index.md), including [object detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), and [image classification](../tasks/classify.md). The ultimate goal is to create a model that can generalize its learning to new, unseen images so that it can accurately understand visual data in real-world applications.
 
 Now that we know what is happening behind the scenes when we train a model, let's look at points to consider when training a model.
 
@@ -57,7 +58,7 @@ Using the maximum batch size supported by your GPU, you can fully take advantage
   <strong>Watch:</strong> How to Use Batch Inference with Ultralytics YOLO26 | Speed Up Object Detection in Python 🎉
 </p>
 
-With respect to YOLO26, you can set the `batch_size` parameter in the [training configuration](../modes/train.md) to match your GPU capacity. Also, setting `batch=-1` in your training script will automatically determine the [batch size](https://www.ultralytics.com/glossary/batch-size) that can be efficiently processed based on your device's capabilities. By fine-tuning the batch size, you can make the most of your GPU resources and improve the overall training process.
+With respect to YOLO26, you can set the `batch` parameter in the [training configuration](../modes/train.md) to match your GPU capacity. Also, setting `batch=-1` in your training script will automatically determine the [batch size](https://www.ultralytics.com/glossary/batch-size) that can be efficiently processed based on your device's capabilities. By fine-tuning the batch size, you can make the most of your GPU resources and improve the overall training process.
 
 ### Subset Training
 
@@ -79,9 +80,9 @@ Caching is an important technique to improve the efficiency of training machine 
 
 Caching can be controlled when training YOLO26 using the `cache` parameter:
 
-- _`cache=True`_: Stores dataset images in RAM, providing the fastest access speed but at the cost of increased memory usage.
-- _`cache='disk'`_: Stores the images on disk, slower than RAM but faster than loading fresh data each time.
-- _`cache=False`_: Disables caching, relying entirely on disk I/O, which is the slowest option.
+- **`cache=True`**: Stores dataset images in RAM, providing the fastest access speed but at the cost of increased memory usage.
+- **`cache='disk'`**: Stores the images on disk, slower than RAM but faster than loading fresh data each time.
+- **`cache=False`**: Disables caching, relying entirely on disk I/O, which is the slowest option.
 
 ### Mixed Precision Training
 
@@ -154,7 +155,7 @@ Different optimizers have various strengths and weaknesses. Let's take a glimpse
     - Combines the benefits of both SGD with momentum and RMSProp.
     - Adjusts the learning rate for each parameter based on estimates of the first and second moments of the gradients.
     - Well-suited for noisy data and sparse gradients.
-    - Efficient and generally requires less tuning, making it a recommended optimizer for YOLO26.
+    - Efficient and generally requires less tuning. For shorter training runs, YOLO26's `optimizer=auto` selects the closely related **AdamW** rather than Adam itself.
 
 - **RMSProp (Root Mean Square Propagation)**:
     - Adjusts the learning rate for each parameter by dividing the gradient by a running average of the magnitudes of recent gradients.
@@ -163,9 +164,9 @@ Different optimizers have various strengths and weaknesses. Let's take a glimpse
 - **MuSGD (Muon + SGD hybrid)**:
     - Combines SGD-style updates with Muon-inspired behavior for improved stability in large-scale training.
     - A good choice when you want SGD-like generalization but need smoother convergence than vanilla SGD.
-    - Especially relevant for YOLO26 training recipes; if unsure, start with `optimizer=auto` and compare against MuSGD on your dataset.
+    - Especially relevant for [YOLO26 training recipes](./yolo26-training-recipe.md); if unsure, start with `optimizer=auto` and compare against MuSGD on your dataset.
 
-For YOLO26, the `optimizer` parameter lets you choose from various optimizers, including SGD, MuSGD, Adam, AdamW, NAdam, RAdam, and RMSProp, or you can set it to `auto` for automatic selection based on model configuration.
+For YOLO26, the `optimizer` parameter lets you choose from various optimizers, including SGD, MuSGD, Adam, Adamax, AdamW, NAdam, RAdam, and RMSProp, or you can set it to `auto` for automatic selection based on model configuration.
 
 ```bash
 yolo train model=yolo26n.pt data=coco8.yaml optimizer=MuSGD
@@ -194,7 +195,7 @@ Training computer vision models involves following good practices, optimizing yo
 
 ### How can I improve GPU utilization when training a large dataset with Ultralytics YOLO?
 
-To improve GPU utilization, set the `batch_size` parameter in your training configuration to the maximum size supported by your GPU. This ensures that you make full use of the GPU's capabilities, reducing training time. If you encounter memory errors, incrementally reduce the batch size until training runs smoothly. For YOLO26, setting `batch=-1` in your training script will automatically determine the optimal batch size for efficient processing. For further information, refer to the [training configuration](../modes/train.md).
+To improve GPU utilization, set the `batch` parameter in your training configuration to the maximum size supported by your GPU. This ensures that you make full use of the GPU's capabilities, reducing training time. If you encounter memory errors, incrementally reduce the batch size until training runs smoothly. For YOLO26, setting `batch=-1` in your training script will automatically determine the optimal batch size for efficient processing. For further information, refer to the [training configuration](../modes/train.md).
 
 ### What is mixed precision training, and how do I enable it in YOLO26?
 

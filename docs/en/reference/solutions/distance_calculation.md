@@ -1,4 +1,5 @@
 ---
+title: solutions.distance_calculation API Reference
 description: Explore the Ultralytics distance calculation module. Learn to calculate distances between objects in real-time video streams with our comprehensive guide.
 keywords: Ultralytics, distance calculation, object tracking, real-time video, centroid, distance estimation, YOLO, ML, cv2
 ---
@@ -7,7 +8,7 @@ keywords: Ultralytics, distance calculation, object tracking, real-time video, c
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/distance_calculation.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/distance_calculation.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/distance_calculation.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/distance_calculation.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
 <br>
 

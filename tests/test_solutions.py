@@ -178,10 +178,8 @@ def process_video(solution, video_path: str, needs_frame_count: bool = False):
 )
 def test_solution(name, solution_class, needs_frame_count, video_key, kwargs_update, tmp_path, solution_assets):
     """Test individual Ultralytics solution with video processing and parameter validation."""
-    # Get video path from persistent cache (no copying needed, read-only access)
     video_path = str(solution_assets(video_key)) if video_key else None
 
-    # Update kwargs to use cached paths for parking manager
     kwargs = {}
     for key, value in kwargs_update.items():
         if key.startswith("temp_"):
@@ -192,6 +190,7 @@ def test_solution(name, solution_class, needs_frame_count, video_key, kwargs_upd
             kwargs[key] = str(solution_assets("parking_areas"))
         else:
             kwargs[key] = value
+    kwargs.setdefault("imgsz", 320)
 
     if name == "StreamlitInference":
         if checks.check_imshow():  # do not merge with elif above
@@ -268,7 +267,7 @@ def test_plot_with_no_masks():
     assert results.plot_im is not None, "Instance segmentation plot returned None"
 
 
-def test_streamlit_handle_video_upload_creates_file():
+def test_streamlit_handle_video_upload_creates_file(tmp_path):
     """Test Streamlit video upload logic saves file correctly."""
     import io
 
@@ -276,17 +275,18 @@ def test_streamlit_handle_video_upload_creates_file():
     fake_file.read = fake_file.getvalue
     if fake_file is not None:
         g = io.BytesIO(fake_file.read())
-        with open("ultralytics.mp4", "wb") as out:
+        with open(tmp_path / "ultralytics.mp4", "wb") as out:
             out.write(g.read())
-        output_path = "ultralytics.mp4"
+        output_path = str(tmp_path / "ultralytics.mp4")
     else:
         output_path = None
-    assert output_path == "ultralytics.mp4", f"Expected output_path 'ultralytics.mp4', got {output_path}"
-    assert os.path.exists("ultralytics.mp4"), "ultralytics.mp4 file not created"
-    with open("ultralytics.mp4", "rb") as f:
+    assert output_path == str(tmp_path / "ultralytics.mp4"), (
+        f"Expected output_path '{tmp_path / 'ultralytics.mp4'}', got {output_path}"
+    )
+    assert os.path.exists(tmp_path / "ultralytics.mp4"), "ultralytics.mp4 file not created"
+    with open(tmp_path / "ultralytics.mp4", "rb") as f:
         content = f.read()
         assert content == b"fake video content", f"File content mismatch: {content}"
-    os.remove("ultralytics.mp4")
 
 
 @pytest.mark.skipif(not TORCH_2_4, reason=f"VisualAISearch requires torch>=2.4 (found torch=={TORCH_VERSION})")

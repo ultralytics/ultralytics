@@ -1,4 +1,5 @@
 ---
+title: utils.uploads API Reference
 description: Explore the Ultralytics upload utilities with retry logic, progress bars, and signed URL support for cloud storage.
 keywords: Ultralytics, upload utilities, file upload, retry logic, progress bar, cloud storage, GCS, YOLO, machine learning
 ---
@@ -7,7 +8,7 @@ keywords: Ultralytics, upload utilities, file upload, retry logic, progress bar,
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/uploads.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/uploads.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/uploads.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/uploads.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
 <br>
 

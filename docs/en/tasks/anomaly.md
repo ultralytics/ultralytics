@@ -130,6 +130,29 @@ Predict with a fitted model. When the memory bank is non-empty, each image is sc
 
 Results are standard detection [Results](../reference/engine/results.md) objects with `boxes` populated. See full `predict` mode details in the [Predict](../modes/predict.md) page.
 
+### Results Output
+
+YOLOA returns one `Results` object per image with the same fields as [object detection](detect.md) — downstream code written for YOLO detections works unchanged.
+
+| Attribute           | Type            | Shape   | Description                                       |
+| ------------------- | --------------- | ------- | ------------------------------------------------- |
+| `result.boxes`      | `Boxes`         | `(N,6)` | Bounding boxes around anomalous regions.          |
+| `result.boxes.data` | `torch.float32` | `(N,6)` | `x1, y1, x2, y2, confidence, class` for each box. |
+| `result.boxes.xyxy` | `torch.float32` | `(N,4)` | Box coordinates in pixels.                        |
+| `result.boxes.conf` | `torch.float32` | `(N,)`  | Confidence scores.                                |
+| `result.masks`      | -               | -       | No masks.                                         |
+| `result.probs`      | -               | -       | No classification probabilities.                  |
+
+### Anomaly Detection vs Object Detection
+
+| Aspect            | Object detection (`YOLO`)              | Anomaly detection (`YOLOA`)                                           |
+| ----------------- | -------------------------------------- | --------------------------------------------------------------------- |
+| Learns from       | Labeled boxes for every class          | Normal images alone via `fit()`; labeled defects optional (`train()`) |
+| Detects           | Only classes seen during training      | Deviations from normal, including unseen defect types                 |
+| Gradient training | Required                               | Optional fine-tune                                                    |
+| Output field      | `result.boxes`                         | `result.boxes` (same format)                                          |
+| Typical use       | General objects: people, cars, animals | Industrial inspection, quality control, defect screening              |
+
 ## Val
 
 Validate on a dataset YAML whose `val` split contains labeled defect images. The validator reports two extra columns alongside the standard detection metrics — mAP10 and mAP25, computed at IoU 0.10 and 0.25 for coarse defect localization — populated when a fitted memory bank supplies the heatmap prior.

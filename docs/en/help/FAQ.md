@@ -166,7 +166,7 @@ For environment-specific installation instructions and troubleshooting tips, con
 Ultralytics YOLO boasts a rich set of features for advanced computer vision tasks:
 
 - Real-Time Detection: Efficiently detect and classify objects in real-time scenarios.
-- Multi-Task Capabilities: Perform object detection, instance segmentation, classification, and pose estimation with a unified framework.
+- Multi-Task Capabilities: Perform object detection, instance segmentation, classification, pose estimation, and [anomaly detection](../tasks/anomaly.md) with a unified framework.
 - Pretrained Models: Access a variety of [pretrained models](https://docs.ultralytics.com/models/) that balance speed and accuracy for different use cases.
 - Custom Training: Easily fine-tune models on custom datasets with the flexible [training pipeline](https://docs.ultralytics.com/modes/train/).
 - Wide [Deployment Options](https://docs.ultralytics.com/guides/model-deployment-options/): Export models to various formats like TensorRT, ONNX, and CoreML for deployment across different platforms.

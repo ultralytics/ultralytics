@@ -211,7 +211,7 @@ The platform streamlines the transition from dataset management to model trainin
 Ultralytics YOLO models provide several unique features for [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks:
 
 - **Real-time Performance**: High-speed inference and training capabilities for time-sensitive applications.
-- **Versatility**: Support for detection, segmentation, classification, and pose estimation tasks in a unified framework.
+- **Versatility**: Support for detection, segmentation, classification, pose estimation, and anomaly detection tasks in a unified framework.
 - **Pretrained Models**: Access to high-performing, pretrained models for various applications, reducing training time.
 - **Extensive Community Support**: Active community and comprehensive documentation for troubleshooting and development.
 - **Easy Integration**: Simple API for integrating with existing projects and workflows.

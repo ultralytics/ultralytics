@@ -1,4 +1,5 @@
 ---
+title: solutions.distance_calculation API Reference
 description: Explore the Ultralytics distance calculation module. Learn to calculate distances between objects in real-time video streams with our comprehensive guide.
 keywords: Ultralytics, distance calculation, object tracking, real-time video, centroid, distance estimation, YOLO, ML, cv2
 ---

@@ -1,10 +1,17 @@
 ---
+title: Export YOLO26 to TensorFlow.js (TF.js)
 comments: true
 description: Convert your Ultralytics YOLO26 models to TensorFlow.js for high-speed, local object detection. Learn how to optimize ML models for browser and Node.js apps.
 keywords: YOLO26, TensorFlow.js, TF.js, model export, machine learning, object detection, browser ML, Node.js, Ultralytics, YOLO, export models
 ---
 
 # Export to TF.js Model Format From a YOLO26 Model Format
+
+!!! warning "Deprecated — replaced by LiteRT"
+
+    As of **Ultralytics 8.4.83**, the `tfjs` (TensorFlow.js) export format has been removed and replaced by the unified **[Google LiteRT](litert.md)** format. LiteRT runs in the browser via [LiteRT.js](https://developers.google.com/edge/litert/web) (with WebGPU acceleration) — covering the in-browser and Node.js use cases TF.js handled, alongside mobile, embedded, and edge, from a single `.tflite` model.
+
+    `format="tfjs"` still works but emits a deprecation warning and exports a LiteRT model instead. **Use [`format="litert"`](litert.md)** going forward; for current export instructions and the browser deployment path, see the **[LiteRT export guide](litert.md)**.
 
 Deploying [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models directly in the browser or on Node.js can be tricky. You'll need to make sure your model format is optimized for faster performance so that the model can be used to run interactive applications locally on the user's device. The TensorFlow.js, or TF.js, model format is designed to use minimal power while delivering fast performance.
 
@@ -65,7 +72,7 @@ For detailed instructions and best practices related to the installation process
 
 All [Ultralytics YOLO26 models](../models/index.md) are designed to support export out of the box, making it easy to integrate them into your preferred deployment workflow. You can [view the full list of supported export formats and configuration options](../modes/export.md) to choose the best setup for your application.
 
-The TF.js format is **export-only** in Ultralytics — [Predict](../modes/predict.md) and [Validate](../modes/val.md) are not available locally. Deploy the exported model in the browser or a Node.js application with the [TensorFlow.js](https://www.tensorflow.org/js) runtime.
+The `tfjs` argument now exports a [LiteRT](litert.md) `.tflite` model, which supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes locally and runs in the browser via [LiteRT.js](https://developers.google.com/edge/litert/web). See the [LiteRT export guide](litert.md) for the current browser and on-device deployment path.
 
 !!! example "Export"
 
@@ -78,41 +85,39 @@ The TF.js format is **export-only** in Ultralytics — [Predict](../modes/predic
         model = YOLO("yolo26n.pt")
 
         # Export the model to TF.js format
-        model.export(format="tfjs")  # creates '/yolo26n_web_model'
+        model.export(format="litert")  # creates 'yolo26n.tflite'
         ```
 
     === "CLI"
 
         ```bash
         # Export a YOLO26n PyTorch model to TF.js format
-        yolo export model=yolo26n.pt format=tfjs # creates '/yolo26n_web_model'
+        yolo export model=yolo26n.pt format=litert # creates 'yolo26n.tflite'
         ```
 
 !!! note "Predict and Validate"
 
-    Ultralytics does not provide a local TF.js inference backend, so `yolo predict` and `yolo val` cannot load a `_web_model`. Run the exported model with the TensorFlow.js runtime in your web or Node.js application instead.
+    The exported LiteRT `.tflite` model loads directly with `yolo predict` and `yolo val`, and runs in the browser via [LiteRT.js](https://developers.google.com/edge/litert/web). See the [LiteRT export guide](litert.md).
 
 ### Export Arguments
 
-| Argument   | Type             | Default        | Description                                                                                                                                                                                                                                                      |
-| ---------- | ---------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`   | `str`            | `'tfjs'`       | Target format for the exported model, defining compatibility with various deployment environments.                                                                                                                                                               |
-| `imgsz`    | `int` or `tuple` | `640`          | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                                                                |
-| `half`     | `bool`           | `False`        | Enables FP16 (half-precision) quantization, reducing model size and potentially speeding up inference on supported hardware.                                                                                                                                     |
-| `int8`     | `bool`           | `False`        | Activates INT8 quantization, further compressing the model and speeding up inference with minimal [accuracy](https://www.ultralytics.com/glossary/accuracy) loss, primarily for edge devices.                                                                    |
-| `nms`      | `bool`           | `False`        | Adds Non-Maximum Suppression (NMS), essential for accurate and efficient detection post-processing.                                                                                                                                                              |
-| `batch`    | `int`            | `1`            | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                                                          |
-| `data`     | `str`            | `'coco8.yaml'` | Path to the [dataset](https://docs.ultralytics.com/datasets) configuration file (default: `coco8.yaml`), essential for quantization.                                                                                                                             |
-| `fraction` | `float`          | `1.0`          | Specifies the fraction of the dataset to use for INT8 quantization calibration. Allows for calibrating on a subset of the full dataset, useful for experiments or when resources are limited. If not specified with INT8 enabled, the full dataset will be used. |
-| `device`   | `str`            | `None`         | Specifies the device for exporting: CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                                                                                                                                                                    |
+| Argument   | Type             | Default        | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| ---------- | ---------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`            | `'tfjs'`       | Target format for the exported model, defining compatibility with various deployment environments.                                                                                                                                                                                                                                                                                                                                                            |
+| `imgsz`    | `int` or `tuple` | `640`          | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                                                                                                                                                                                                                                                             |
+| `quantize` | `int` or `str`   | `None`         | Quantization precision: `8` (static INT8, int8 weights + int8 activations; needs calibration `data`/`fraction`), `'w8a16'` (static, int8 weights + int16 activations; needs calibration `data`/`fraction`), `'w8a32'` (dynamic INT8, int8 weights + FP32 activations; no calibration needed), or `32`/unset (FP32). FP16 is not exported separately — an FP32 model runs in FP16 automatically on GPU delegates. Replaces the deprecated `half`/`int8` flags. |
+| `batch`    | `int`            | `1`            | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                                                                                                                                                                                                                                                       |
+| `data`     | `str`            | `'coco8.yaml'` | Path to the [dataset](../datasets/index.md) configuration file (default: `coco8.yaml`), essential for quantization.                                                                                                                                                                                                                                                                                                                                           |
+| `fraction` | `float`          | `1.0`          | Specifies the fraction of the dataset to use for INT8 quantization calibration. Allows for calibrating on a subset of the full dataset, useful for experiments or when resources are limited. If not specified with INT8 enabled, the full dataset will be used.                                                                                                                                                                                              |
+| `device`   | `str`            | `None`         | Specifies the device for exporting: CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                                                                                                                                                                                                                                                                                                                                                                 |
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
 ## Deploying Exported YOLO26 TensorFlow.js Models
 
-Now that you have exported your YOLO26 model to the TF.js format, the next step is to deploy it. Ultralytics does not provide a local TF.js inference backend, so the exported `_web_model` is intended to run directly with the [TensorFlow.js](https://www.tensorflow.org/js) runtime in a browser or Node.js application.
+Now that you have exported your YOLO26 model, the next step is to deploy it. The export produces a [LiteRT](litert.md) `.tflite` model that runs on-device and in the browser via [LiteRT.js](https://developers.google.com/edge/litert/web) — see the [LiteRT export guide](litert.md) for the current path.
 
-For in-depth instructions on deploying your TF.js models, take a look at the following resources:
+For reference, the legacy TensorFlow.js runtime resources are below:
 
 - **[Chrome Extension](https://www.tensorflow.org/js/tutorials/deployment/web_ml_in_chrome)**: Here's the developer documentation for how to deploy your TF.js models to a Chrome extension.
 
@@ -145,20 +150,18 @@ Exporting Ultralytics YOLO26 models to TensorFlow.js (TF.js) format is straightf
         model = YOLO("yolo26n.pt")
 
         # Export the model to TF.js format
-        model.export(format="tfjs")  # creates '/yolo26n_web_model'
+        model.export(format="litert")  # creates 'yolo26n.tflite'
 
-        # Deploy the exported '_web_model' with the TensorFlow.js runtime in a browser or Node.js app.
-        # Ultralytics does not provide a local TF.js inference backend.
+        # The exported '.tflite' model runs in the browser via LiteRT.js or locally with yolo predict/val.
         ```
 
     === "CLI"
 
         ```bash
         # Export a YOLO26n PyTorch model to TF.js format
-        yolo export model=yolo26n.pt format=tfjs # creates '/yolo26n_web_model'
+        yolo export model=yolo26n.pt format=litert # creates 'yolo26n.tflite'
 
-        # Deploy the exported '_web_model' with the TensorFlow.js runtime in a browser or Node.js app.
-        # Ultralytics does not provide a local TF.js inference backend.
+        # The exported '.tflite' model runs in the browser via LiteRT.js or locally with yolo predict/val.
         ```
 
 For more details about supported export options, visit the [Ultralytics documentation page on deployment options](../guides/model-deployment-options.md).

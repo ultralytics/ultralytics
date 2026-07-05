@@ -19,14 +19,9 @@ jobs:
     if: github.repository == 'ultralytics/ultralytics'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
       - uses: actions/setup-python@v6
         with:
           python-version: "3.x"
-          cache: "pip"
       - name: Install requirements
         run: |
           pip install pygithub

@@ -23,7 +23,6 @@ Usage - formats:
                               yolo26n.mlpackage          # CoreML (macOS-only)
                               yolo26n_saved_model        # TensorFlow SavedModel
                               yolo26n.pb                 # TensorFlow GraphDef
-                              yolo26n.tflite             # TensorFlow Lite
                               yolo26n_edgetpu.tflite     # TensorFlow Edge TPU
                               yolo26n_paddle_model       # PaddlePaddle
                               yolo26n.mnn                # MNN
@@ -33,7 +32,8 @@ Usage - formats:
                               yolo26n_executorch_model   # PyTorch Executorch
                               yolo26n_axelera_model      # Axelera AI
                               yolo26n_deepx_model        # DEEPX
-                              yolo26n_qnn_model          # Qualcomm QNN
+                              yolo26n_qnn.onnx           # Qualcomm QNN
+                              yolo26n.tflite             # LiteRT
 """
 
 from __future__ import annotations
@@ -143,6 +143,7 @@ class BasePredictor:
         self.source_type = None
         self.seen = 0
         self.windows = []
+        self.screen = None  # cached screen resolution (width, height) for show=True scaling
         self.batch = None
         self.results = None
         self.transforms = None
@@ -404,13 +405,13 @@ class BasePredictor:
             device=select_device(self.args.device, verbose=verbose),
             dnn=self.args.dnn,
             data=self.args.data,
-            fp16=self.args.half,
+            fp16=self.args.quantize == 16,
             fuse=True,
             verbose=verbose,
         )
 
         self.device = self.model.device  # update device
-        self.args.half = self.model.fp16  # update half
+        self.args.quantize = 16 if self.model.fp16 else None  # record actual inference precision
         if hasattr(self.model, "imgsz") and not getattr(self.model, "dynamic", False):
             self.args.imgsz = self.model.imgsz  # reuse imgsz from export metadata
         self.model.eval()
@@ -502,10 +503,21 @@ class BasePredictor:
     def show(self, p: str = ""):
         """Display an image in a window."""
         im = self.plotted_img
-        if platform.system() == "Linux" and p not in self.windows:
+        if platform.system() in {"Linux", "Windows"} and p not in self.windows:  # macOS scales natively
             self.windows.append(p)
-            cv2.namedWindow(p, cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)  # allow window resize (Linux)
-            cv2.resizeWindow(p, im.shape[1], im.shape[0])  # (width, height)
+            name = p.encode("unicode_escape").decode()  # match patched cv2.imshow window name
+            cv2.namedWindow(name, cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)  # allow window resize and scaling
+            h, w = im.shape[:2]
+            try:  # size window to fit screen once on creation if image larger than screen resolution
+                if self.screen is None:
+                    root = __import__("tkinter").Tk()
+                    root.withdraw()  # hide the empty Tk window
+                    self.screen = 0.9 * root.winfo_screenwidth(), 0.9 * root.winfo_screenheight()  # 0.9 taskbar margin
+                    root.destroy()
+                r = min(self.screen[0] / w, self.screen[1] / h, 1.0)
+                cv2.resizeWindow(name, max(1, int(w * r)), max(1, int(h * r)))  # (width, height)
+            except Exception:
+                cv2.resizeWindow(name, w, h)
         cv2.imshow(p, im)
         if cv2.waitKey(300 if self.dataset.mode == "image" else 1) & 0xFF == ord("q"):  # 300ms if image; else 1ms
             raise StopIteration

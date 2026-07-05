@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # LVIS dataset http://www.lvisdataset.org by Facebook AI Research.
-# Documentation: https://docs.ultralytics.com/datasets/detect/lvis/
+# Documentation: https://docs.ultralytics.com/datasets/detect/lvis
 # Example usage: yolo train data=lvis.yaml
 # parent
 # ├── ultralytics

@@ -19,7 +19,7 @@ The TensorFlow SavedModel format is part of the TensorFlow ecosystem developed b
   <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/tf-savedmodel-overview.avif" alt="TensorFlow SavedModel export format structure">
 </p>
 
-The TF SavedModel has a key advantage: its compatibility. It works well with [TensorFlow Serving](https://www.tensorflow.org/tfx/guide/serving), TensorFlow Lite, and TensorFlow.js. This compatibility makes it easier to share and deploy models across various platforms, including web and mobile applications. The TF SavedModel format is useful both for research and production. It provides a unified way to manage your models, ensuring they are ready for any application.
+The TF SavedModel has a key advantage: its compatibility. It works well with [TensorFlow Serving](https://www.tensorflow.org/tfx/guide/serving), [LiteRT](litert.md) (formerly TensorFlow Lite), and TensorFlow.js. This compatibility makes it easier to share and deploy models across various platforms, including web and mobile applications. The TF SavedModel format is useful both for research and production. It provides a unified way to manage your models, ensuring they are ready for any application.
 
 ## Key Features of TF SavedModels
 
@@ -210,7 +210,7 @@ Refer to the [Ultralytics Export documentation](../modes/export.md) for more det
 The TensorFlow SavedModel format offers several advantages for [model deployment](https://www.ultralytics.com/glossary/model-deployment):
 
 - **Portability:** It provides a language-neutral format, making it easy to share and deploy models across different environments.
-- **Compatibility:** Integrates seamlessly with tools like TensorFlow Serving, TensorFlow Lite, and TensorFlow.js, which are essential for deploying models on various platforms, including web and mobile applications.
+- **Compatibility:** Integrates seamlessly with tools like TensorFlow Serving, [LiteRT](litert.md), and TensorFlow.js, which are essential for deploying models on various platforms, including web and mobile applications.
 - **Complete encapsulation:** Encodes the model architecture, weights, and compilation information, allowing for straightforward sharing and training continuation.
 
 For more benefits and deployment options, check out the [Ultralytics YOLO model deployment options](../guides/model-deployment-options.md).

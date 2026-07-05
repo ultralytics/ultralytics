@@ -362,6 +362,7 @@ class BaseTrainer:
                 self.model,
                 device_ids=[self.device.index],
                 static_graph=bool(self.args.compile),
+                broadcast_buffers=False,
                 find_unused_parameters=not bool(self.args.compile),
             )
 

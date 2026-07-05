@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import os
 from copy import deepcopy
 
 import numpy as np
@@ -19,6 +18,7 @@ def check_train_batch_size(
     amp: bool = True,
     batch: int | float = -1,
     max_num_obj: int = 1,
+    dataset_size: int = 0,
 ) -> int:
     """Compute optimal YOLO training batch size using the autobatch() function.
 
@@ -28,6 +28,7 @@ def check_train_batch_size(
         amp (bool, optional): Use automatic mixed precision if True.
         batch (int | float, optional): Fraction of GPU memory to use. If -1, use default.
         max_num_obj (int, optional): The maximum number of objects from dataset.
+        dataset_size (int, optional): Total number of training images. If > 0, batch size will not exceed this value.
 
     Returns:
         (int): Optimal batch size computed using the autobatch() function.
@@ -38,7 +39,11 @@ def check_train_batch_size(
     """
     with autocast(enabled=amp):
         return autobatch(
-            deepcopy(model).train(), imgsz, fraction=batch if 0.0 < batch < 1.0 else 0.6, max_num_obj=max_num_obj
+            deepcopy(model).train(),
+            imgsz,
+            fraction=batch if 0.0 < batch < 1.0 else 0.6,
+            max_num_obj=max_num_obj,
+            dataset_size=dataset_size,
         )
 
 
@@ -48,6 +53,7 @@ def autobatch(
     fraction: float = 0.60,
     batch_size: int = DEFAULT_CFG.batch,
     max_num_obj: int = 1,
+    dataset_size: int = 0,
 ) -> int:
     """Automatically estimate the best YOLO batch size to use a fraction of the available CUDA memory.
 
@@ -57,6 +63,7 @@ def autobatch(
         fraction (float, optional): The fraction of available CUDA memory to use.
         batch_size (int, optional): The default batch size to use if an error is detected.
         max_num_obj (int, optional): The maximum number of objects from dataset.
+        dataset_size (int, optional): Total number of training images. If > 0, batch size will not exceed this value.
 
     Returns:
         (int): The optimal batch size.
@@ -74,7 +81,7 @@ def autobatch(
 
     # Inspect CUDA memory
     gb = 1 << 30  # bytes to GiB (1024 ** 3)
-    d = f"CUDA:{os.getenv('CUDA_VISIBLE_DEVICES', '0').strip()[0]}"  # 'CUDA:0'
+    d = f"CUDA:{device.index}"  # 'CUDA:0'
     properties = torch.cuda.get_device_properties(device)  # device properties
     t = properties.total_memory / gb  # GiB total
     r = torch.cuda.memory_reserved(device) / gb  # GiB reserved
@@ -84,8 +91,11 @@ def autobatch(
 
     # Profile batch sizes
     batch_sizes = [1, 2, 4, 8, 16] if t < 16 else [1, 2, 4, 8, 16, 32, 64]
+    if dataset_size > 0:
+        batch_sizes = [b for b in batch_sizes if b <= dataset_size]
+    ch = model.yaml.get("channels", 3)
     try:
-        img = [torch.empty(b, 3, imgsz, imgsz) for b in batch_sizes]
+        img = [torch.empty(b, ch, imgsz, imgsz) for b in batch_sizes]
         results = profile_ops(img, model, n=1, device=device, max_num_obj=max_num_obj)
 
         # Fit a solution
@@ -98,7 +108,7 @@ def autobatch(
             and (i == 0 or not results[i - 1] or y[2] > results[i - 1][2])  # first item or increasing memory
         ]
         fit_x, fit_y = zip(*xy) if xy else ([], [])
-        p = np.polyfit(fit_x, fit_y, deg=1)  # first-degree polynomial fit in log space
+        p = np.polyfit(fit_x, fit_y, deg=1)  # first-degree (linear) polynomial fit
         b = int((round(f * fraction) - p[1]) / p[0])  # y intercept (optimal batch size)
         if None in results:  # some sizes failed
             i = results.index(None)  # first fail index
@@ -107,6 +117,8 @@ def autobatch(
         if b < 1 or b > 1024:  # b outside of safe range
             LOGGER.warning(f"{prefix}batch={b} outside safe range, using default batch-size {batch_size}.")
             b = batch_size
+        if dataset_size > 0:
+            b = min(b, dataset_size)
 
         fraction = (np.polyval(p, b) + r + a) / t  # predicted fraction
         LOGGER.info(f"{prefix}Using batch-size {b} for {d} {t * fraction:.2f}G/{t:.2f}G ({fraction * 100:.0f}%) ✅")

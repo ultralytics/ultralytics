@@ -1,4 +1,5 @@
 ---
+title: models.yolo.world.train API Reference
 description: Learn how to train a World Model with Ultralytics YOLO using advanced techniques and customizable options for optimal performance.
 keywords: Ultralytics, YOLO, World Model, training, deep learning, computer vision, AI, machine learning, tutorial
 ---
@@ -7,7 +8,7 @@ keywords: Ultralytics, YOLO, World Model, training, deep learning, computer visi
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/world/train.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/world/train.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/world/train.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/world/train.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
 <br>
 

@@ -1,4 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 from __future__ import annotations
 
 import copy
@@ -79,6 +80,7 @@ class MaskDownSampler(nn.Module):
         padding: int = 0,
         total_stride: int = 16,
         activation: type[nn.Module] = nn.GELU,
+        interpol_size: tuple[int, int] | None = None,
     ):
         """Initialize a mask downsampler module for progressive downsampling and channel expansion."""
         super().__init__()
@@ -102,9 +104,24 @@ class MaskDownSampler(nn.Module):
             mask_in_chans = mask_out_chans
 
         self.encoder.append(nn.Conv2d(mask_out_chans, embed_dim, kernel_size=1))
+        self.interpol_size = interpol_size
+        if self.interpol_size is not None:
+            assert isinstance(self.interpol_size, (list, tuple)), (
+                f"Unsupported type {type(self.interpol_size)}. Should be a list or tuple."
+            )
+            self.interpol_size = list(interpol_size)
+            assert len(self.interpol_size) == 2
 
     def forward(self, x: Tensor) -> Tensor:
         """Downsample and encode input mask to embed_dim channels using convolutional layers and LayerNorm2d."""
+        if self.interpol_size is not None and self.interpol_size != list(x.shape[-2:]):
+            x = F.interpolate(
+                x.float(),
+                size=self.interpol_size,
+                align_corners=False,
+                mode="bilinear",
+                antialias=True,
+            ).to(x.dtype)
         return self.encoder(x)
 
 
@@ -288,7 +305,7 @@ class SAM2TwoWayAttentionBlock(TwoWayAttentionBlock):
             embedding_dim (int): The channel dimension of the embeddings.
             num_heads (int): The number of heads in the attention layers.
             mlp_dim (int): The hidden dimension of the MLP block.
-            activation (Type[nn.Module]): The activation function of the MLP block.
+            activation (type[nn.Module]): The activation function of the MLP block.
             attention_downsample_rate (int): The downsample rate for attention computations.
             skip_first_layer_pe (bool): Whether to skip the positional encoding in the first layer.
         """
@@ -343,7 +360,7 @@ class SAM2TwoWayTransformer(TwoWayTransformer):
             embedding_dim (int): Channel dimension for the input embeddings.
             num_heads (int): Number of heads for multihead attention. Must divide embedding_dim.
             mlp_dim (int): Channel dimension internal to the MLP block.
-            activation (Type[nn.Module]): Activation function to use in the MLP block.
+            activation (type[nn.Module]): Activation function to use in the MLP block.
             attention_downsample_rate (int): Downsampling rate for attention computations.
         """
         super().__init__(depth, embedding_dim, num_heads, mlp_dim, activation, attention_downsample_rate)
@@ -429,13 +446,7 @@ class RoPEAttention(Attention):
         )
 
         # Attention
-        _, _, _, c_per_head = q.shape
-        attn = q @ k.permute(0, 1, 3, 2)  # B x N_heads x N_tokens x N_tokens
-        attn = attn / math.sqrt(c_per_head)
-        attn = torch.softmax(attn, dim=-1)
-
-        # Get output
-        out = attn @ v
+        out = F.scaled_dot_product_attention(q, k, v)
 
         out = self._recombine_heads(out)
         out = self.out_proj(out)
@@ -881,8 +892,8 @@ class Block(nn.Module):
             num_heads (int): Number of attention heads in the self-attention layer.
             mlp_ratio (float): Ratio of mlp hidden dimension to embedding dimension.
             qkv_bias (bool): If True, adds a learnable bias to query, key, value projections.
-            norm_layer (Type[nn.Module]): Type of normalization layer to use.
-            act_layer (Type[nn.Module]): Type of activation function to use in the MLP block.
+            norm_layer (type[nn.Module]): Type of normalization layer to use.
+            act_layer (type[nn.Module]): Type of activation function to use in the MLP block.
             use_rel_pos (bool): If True, uses relative positional embeddings in attention.
             rel_pos_zero_init (bool): If True, initializes relative positional parameters to zero.
             window_size (int): Size of attention window. If 0, uses global attention.
@@ -926,8 +937,7 @@ class REAttention(nn.Module):
     """Relative Position Attention module for efficient self-attention in transformer architectures.
 
     This class implements a multi-head attention mechanism with relative positional embeddings, designed for use in
-    vision transformer models. It supports optional query pooling and window partitioning for efficient processing of
-    large inputs.
+    vision transformer models.
 
     Attributes:
         num_heads (int): Number of attention heads.
@@ -1023,7 +1033,7 @@ class PatchEmbed(nn.Module):
         >>> x = torch.randn(1, 3, 224, 224)
         >>> output = patch_embed(x)
         >>> print(output.shape)
-        torch.Size([1, 768, 14, 14])
+        torch.Size([1, 14, 14, 768])
     """
 
     def __init__(
@@ -1033,6 +1043,7 @@ class PatchEmbed(nn.Module):
         padding: tuple[int, int] = (0, 0),
         in_chans: int = 3,
         embed_dim: int = 768,
+        bias: bool = True,
     ) -> None:
         """Initialize the PatchEmbed module for converting image patches to embeddings.
 
@@ -1045,10 +1056,11 @@ class PatchEmbed(nn.Module):
             padding (tuple[int, int]): Padding applied to the input before convolution.
             in_chans (int): Number of input image channels.
             embed_dim (int): Dimensionality of the output patch embeddings.
+            bias (bool): Whether to include a bias term in the convolutional layer.
         """
         super().__init__()
 
-        self.proj = nn.Conv2d(in_chans, embed_dim, kernel_size=kernel_size, stride=stride, padding=padding)
+        self.proj = nn.Conv2d(in_chans, embed_dim, kernel_size=kernel_size, stride=stride, padding=padding, bias=bias)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Compute patch embedding by applying convolution and transposing resulting tensor."""

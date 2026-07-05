@@ -56,7 +56,7 @@ class Analytics(BaseSolution):
         from matplotlib.backends.backend_agg import FigureCanvasAgg
         from matplotlib.figure import Figure
 
-        self.type = self.CFG["analytics_type"]  # type of analytics i.e "line", "pie", "bar" or "area" charts.
+        self.type = self.CFG["analytics_type"]  # Chart type: "line", "pie", "bar", or "area".
         self.x_label = "Classes" if self.type in {"bar", "pie"} else "Frame#"
         self.y_label = "Total Counts"
 
@@ -66,10 +66,10 @@ class Analytics(BaseSolution):
         self.title = "Ultralytics Solutions"  # window name
         self.max_points = 45  # maximum points to be drawn on window
         self.fontsize = 25  # text font size for display
-        figsize = self.CFG["figsize"]  # set output image size i.e (12.8, 7.2) -> w = 1280, h = 720
+        figsize = self.CFG["figsize"]  # Output size, e.g. (12.8, 7.2) -> 1280x720.
         self.color_cycle = cycle(["#DD00BA", "#042AFF", "#FF4447", "#7D24FF", "#BD00FF"])
 
-        self.total_counts = 0  # count variable for storing total counts i.e. for line
+        self.total_counts = 0  # Stores total counts for line charts.
         self.clswise_count = {}  # dictionary for class-wise counts
         self.update_every = kwargs.get("update_every", 30)  # Only update graph every 30 frames by default
         self.last_plot_im = None  # Cache of the last rendered chart
@@ -104,7 +104,7 @@ class Analytics(BaseSolution):
                 and 'classwise_count' (dict, per-class object count).
 
         Raises:
-            ModuleNotFoundError: If an unsupported chart type is specified.
+            ValueError: If an unsupported chart type is specified.
 
         Examples:
             >>> analytics = Analytics(analytics_type="line")
@@ -113,8 +113,7 @@ class Analytics(BaseSolution):
         """
         self.extract_tracks(im0)  # Extract tracks
         if self.type == "line":
-            for _ in self.boxes:
-                self.total_counts += 1
+            self.total_counts += len(self.boxes)
             update_required = frame_number % self.update_every == 0 or self.last_plot_im is None
             if update_required:
                 self.last_plot_im = self.update_graph(frame_number=frame_number)
@@ -131,9 +130,9 @@ class Analytics(BaseSolution):
                 )
             plot_im = self.last_plot_im
         else:
-            raise ModuleNotFoundError(f"{self.type} chart is not supported ❌")
+            raise ValueError(f"Unsupported analytics_type='{self.type}'. Supported types: line, bar, pie, area.")
 
-        # return output dictionary with summary for more usage
+        # Return results for downstream use.
         return SolutionResults(plot_im=plot_im, total_tracks=len(self.track_ids), classwise_count=self.clswise_count)
 
     def update_graph(
@@ -176,20 +175,20 @@ class Analytics(BaseSolution):
                 color_cycle = cycle(["#DD00BA", "#042AFF", "#FF4447", "#7D24FF", "#BD00FF"])
                 # Multiple lines or area update
                 x_data = self.ax.lines[0].get_xdata() if self.ax.lines else np.array([])
-                y_data_dict = {key: np.array([]) for key in count_dict.keys()}
+                y_data_dict = {key: np.array([]) for key in count_dict}
                 if self.ax.lines:
                     for line, key in zip(self.ax.lines, count_dict.keys()):
                         y_data_dict[key] = line.get_ydata()
 
                 x_data = np.append(x_data, float(frame_number))
                 max_length = len(x_data)
-                for key in count_dict.keys():
+                for key in count_dict:
                     y_data_dict[key] = np.append(y_data_dict[key], float(count_dict[key]))
                     if len(y_data_dict[key]) < max_length:
                         y_data_dict[key] = np.pad(y_data_dict[key], (0, max_length - len(y_data_dict[key])))
                 if len(x_data) > self.max_points:
                     x_data = x_data[1:]
-                    for key in count_dict.keys():
+                    for key in count_dict:
                         y_data_dict[key] = y_data_dict[key][1:]
 
                 self.ax.clear()

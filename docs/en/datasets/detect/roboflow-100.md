@@ -6,17 +6,17 @@ keywords: Roboflow 100, Ultralytics, object detection, dataset, benchmarking, ma
 
 # Roboflow 100 Dataset
 
-Roboflow 100, sponsored by [Intel](https://www.intel.com/), is a groundbreaking [object detection](../../tasks/detect.md) benchmark dataset. It includes 100 diverse datasets sampled from over 90,000 public datasets available on Roboflow Universe. This benchmark is specifically designed to test the adaptability of [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models, like [Ultralytics YOLO models](../../models/yolo11.md), to various domains, including healthcare, aerial imagery, and video games.
+Roboflow 100, sponsored by [Intel](https://www.intel.com/), is a groundbreaking [object detection](../../tasks/detect.md) benchmark dataset. It includes 100 diverse datasets. This benchmark is specifically designed to test the adaptability of [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models, like [Ultralytics YOLO models](../../models/yolo26.md), to various domains, including healthcare, aerial imagery, and video games.
 
 !!! question "Licensing"
 
     Ultralytics offers two licensing options to accommodate different use cases:
 
     - **AGPL-3.0 License**: This [OSI-approved](https://opensource.org/license) open-source license is ideal for students and enthusiasts, promoting open collaboration and knowledge sharing. See the [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) file for more details and visit our [AGPL-3.0 License page](https://www.ultralytics.com/legal/agpl-3-0-software-license).
-    - **Enterprise License**: Designed for commercial use, this license allows for the seamless integration of Ultralytics software and AI models into commercial products and services. If your scenario involves commercial applications, please reach out via [Ultralytics Licensing](https://www.ultralytics.com/license).
+    - **Enterprise License**: For development and production use, this license enables seamless integration of Ultralytics software and AI models into business products and services, including internal tools, automated workflows, and production deployments, bypassing the open-source requirements of AGPL-3.0. To get started, please contact us via [Ultralytics Licensing](https://www.ultralytics.com/license).
 
 <p align="center">
-  <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/roboflow-100-overview.avif" alt="Roboflow 100 Overview">
+  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/roboflow-100-overview.avif" alt="Roboflow 100 diverse object detection benchmark">
 </p>
 
 ## Key Features
@@ -47,50 +47,53 @@ Dataset [benchmarking](../../modes/benchmark.md) involves evaluating the perform
 
 !!! tip "Benchmarking Results"
 
-    Benchmarking results using the provided script will be stored in the `ultralytics-benchmarks/` directory, specifically in `evaluation.txt`.
+    Every output is grouped under a single `runs/<task>/multitrain/` directory: each dataset is fine-tuned in its own subdirectory (with its own `results.png`), and the per-dataset and mean metrics are written to `multitrain_results.json` alongside a `multitrain_results.png` bar chart. The `model.train()` call also returns a `{dataset: metrics}` dictionary for programmatic access.
 
 !!! example "Benchmarking Example"
 
-    The following script demonstrates how to programmatically benchmark an Ultralytics YOLO model (e.g., YOLO11n) on all 100 datasets within the Roboflow 100 benchmark using the `RF100Benchmark` class.
+    The script below downloads the Roboflow 100 datasets listed in `datasets_links.txt` from Roboflow, then fine-tunes a single base model (e.g., YOLO26n) across the whole collection in one `model.train()` call. Passing a list of datasets fine-tunes the base model on each one in series and automatically visualizes the cross-dataset results. A free [Roboflow API key](https://docs.roboflow.com/api-reference/authentication) is required to download the datasets.
 
     === "Python"
 
         ```python
-        import os
-        import shutil
+        import re
         from pathlib import Path
 
-        from ultralytics.utils.benchmarks import RF100Benchmark
+        from ultralytics import YOLO
+        from ultralytics.utils import ASSETS_URL, YAML
+        from ultralytics.utils.checks import check_requirements
+        from ultralytics.utils.downloads import safe_download
 
-        # Initialize RF100Benchmark and set API key
-        benchmark = RF100Benchmark()
-        benchmark.set_key(api_key="YOUR_ROBOFLOW_API_KEY")
+        # Download the RF100 datasets from Roboflow (requires a free Roboflow API key)
+        check_requirements("roboflow")
+        from roboflow import Roboflow
 
-        # Parse dataset and define file paths
-        names, cfg_yamls = benchmark.parse_dataset()
-        val_log_file = Path("ultralytics-benchmarks") / "validation.txt"
-        eval_log_file = Path("ultralytics-benchmarks") / "evaluation.txt"
+        rf = Roboflow(api_key="YOUR_ROBOFLOW_API_KEY")
+        safe_download(f"{ASSETS_URL}/datasets_links.txt")  # list of RF100 dataset links
 
-        # Run benchmarks on each dataset in RF100
-        for ind, path in enumerate(cfg_yamls):
-            path = Path(path)
-            if path.exists():
-                # Fix YAML file and run training
-                benchmark.fix_yaml(str(path))
-                os.system(f"yolo detect train data={path} model=yolo11s.pt epochs=1 batch=16")
-
-                # Run validation and evaluate
-                os.system(f"yolo detect val data={path} model=runs/detect/train/weights/best.pt > {val_log_file} 2>&1")
-                benchmark.evaluate(str(path), str(val_log_file), str(eval_log_file), ind)
-
-                # Remove the 'runs' directory
-                runs_dir = Path.cwd() / "runs"
-                shutil.rmtree(runs_dir)
-            else:
-                print("YAML file path does not exist")
+        datasets = []
+        for line in Path("datasets_links.txt").read_text().splitlines():
+            try:
+                _, _url, workspace, project, version = re.split("/+", line.strip())
+                location = f"rf-100/{project}-{version}"
+                rf.workspace(workspace).project(project).version(version).download("yolov8", location=location)
+                yaml = Path(location) / "data.yaml"
+                cfg = YAML.load(yaml)  # point train/val at the downloaded image folders
+                cfg["train"], cfg["val"] = "train/images", "valid/images"
+                YAML.save(yaml, cfg)
+                datasets.append(str(yaml))
+            except Exception:
                 continue
 
-        print("RF100 Benchmarking completed!")
+        # Fine-tune one base model across all RF100 datasets and visualize the cross-dataset results
+        model = YOLO("yolo26n.pt")
+        results = model.train(data=datasets, epochs=100, imgsz=640)  # {dataset: metrics}
+
+        # Per-dataset runs, multitrain_results.json (per-dataset + mean), and multitrain_results.png are saved
+        # together under runs/detect/multitrain. Read results in-memory or from the JSON for custom post-processing.
+        for dataset, metrics in results.items():
+            if metrics:  # None if that dataset failed to train
+                print(f"{dataset}: mAP50-95 = {metrics['metrics/mAP50-95(B)']:.4f}")
         ```
 
 ## Applications
@@ -103,18 +106,18 @@ Roboflow 100 is invaluable for various applications related to [computer vision]
 - Compare model performance across different [neural network](https://www.ultralytics.com/glossary/neural-network-nn) architectures and [optimization](https://www.ultralytics.com/glossary/optimization-algorithm) techniques.
 - Identify domain-specific challenges that may require specialized [model training tips](../../guides/model-training-tips.md) or [fine-tuning](https://www.ultralytics.com/glossary/fine-tuning) approaches like [transfer learning](https://www.ultralytics.com/glossary/transfer-learning).
 
-For more ideas and inspiration on real-world applications, explore [our guides on practical projects](../../guides/index.md) or check out [Ultralytics HUB](https://www.ultralytics.com/hub) for streamlined [model training](../../modes/train.md) and [deployment](../../guides/model-deployment-options.md).
+For more ideas and inspiration on real-world applications, explore [our guides on practical projects](../../guides/index.md) or check out [Ultralytics Platform](https://platform.ultralytics.com) for streamlined [model training](../../modes/train.md) and [deployment](../../guides/model-deployment-options.md).
 
 ## Usage
 
-The Roboflow 100 dataset, including metadata and download links, is available on the official [Roboflow 100 GitHub repository](https://github.com/roboflow/roboflow-100-benchmark). You can access and utilize the dataset directly from there for your benchmarking needs. The Ultralytics `RF100Benchmark` utility simplifies the process of downloading and preparing these datasets for use with Ultralytics models.
+The Roboflow 100 dataset, including metadata and download links, is available on the official [Roboflow 100 GitHub repository](https://github.com/roboflow/roboflow-100-benchmark). You can access and utilize the dataset directly from there for your benchmarking needs. Once the datasets are downloaded and prepared as shown above, Ultralytics models can be fine-tuned across the entire collection in a single `model.train()` call by passing the list of dataset YAMLs.
 
 ## Sample Data and Annotations
 
 Roboflow 100 consists of datasets with diverse images captured from various angles and domains. Below are examples of annotated images included in the RF100 benchmark, showcasing the variety of objects and scenes. Techniques like [data augmentation](https://www.ultralytics.com/glossary/data-augmentation) can further enhance the diversity during training.
 
 <p align="center">
-  <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/sample-data-annotations.avif" alt="Sample Data and Annotations">
+  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/sample-data-annotations.avif" alt="Roboflow 100 sample images with annotations">
 </p>
 
 The diversity seen in the Roboflow 100 benchmark represents a significant advancement from traditional benchmarks, which often focus on optimizing a single metric within a limited domain. This comprehensive approach aids in developing more robust and versatile [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models capable of performing well across a multitude of different scenarios.
@@ -145,7 +148,7 @@ If you are interested in exploring more datasets to enhance your object detectio
 
 ### What is the Roboflow 100 dataset, and why is it significant for object detection?
 
-The **Roboflow 100** dataset is a benchmark for [object detection](../../tasks/detect.md) models. It comprises 100 diverse datasets sourced from Roboflow Universe, covering domains like healthcare, aerial imagery, and video games. Its significance lies in providing a standardized way to test model adaptability and robustness across a wide range of real-world scenarios, moving beyond traditional, often domain-limited, benchmarks.
+The **Roboflow 100** dataset is a benchmark for [object detection](../../tasks/detect.md) models. It comprises 100 diverse datasets covering domains like healthcare, aerial imagery, and video games. Its significance lies in providing a standardized way to test model adaptability and robustness across a wide range of real-world scenarios, moving beyond traditional, often domain-limited, benchmarks.
 
 ### Which domains are covered by the Roboflow 100 dataset?
 

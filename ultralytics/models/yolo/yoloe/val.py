@@ -159,7 +159,7 @@ class YOLOEDetectValidator(DetectionValidator):
 
             if load_vp:
                 LOGGER.info("Validate using the visual prompt.")
-                self.args.half = False
+                self.args.quantize = None
                 # Directly use the same dataloader for visual embeddings extracted during training
                 vpe = self.get_visual_pe(self.dataloader, model)
                 model.set_classes(names, vpe)
@@ -181,11 +181,18 @@ class YOLOEDetectValidator(DetectionValidator):
             data = check_det_dataset(refer_data or self.args.data)
             names = [name.split("/", 1)[0] for name in list(data["names"].values())]
 
+            if refer_data is not None:
+                eval_data = check_det_dataset(self.args.data)
+                eval_names = [name.split("/", 1)[0] for name in list(eval_data["names"].values())]
+                if names != eval_names:
+                    LOGGER.warning(
+                        f"Class names from refer data {names} do not match evaluation dataset {eval_names}. "
+                        f"This may lead to incorrect validation results."
+                    )
+
             if load_vp:
                 LOGGER.info("Validate using the visual prompt.")
-                self.args.half = False
-                # TODO: need to check if the names from refer data is consistent with the evaluated dataset
-                # could use same dataset or refer to extract visual prompt embeddings
+                self.args.quantize = None
                 dataloader = self.get_vpe_dataloader(data)
                 vpe = self.get_visual_pe(dataloader, model)
                 model.set_classes(names, vpe)

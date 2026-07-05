@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 from PIL import Image
 
-from ultralytics.utils import checks
+from ultralytics.utils import WEIGHTS_DIR, checks
 from ultralytics.utils.torch_utils import smart_inference_mode
 
 try:
@@ -53,6 +53,7 @@ class CLIP(TextModel):
 
     Attributes:
         model (clip.model.CLIP): The loaded CLIP model.
+        image_preprocess (callable): Preprocessing transform for images.
         device (torch.device): Device where the model is loaded.
 
     Methods:
@@ -79,7 +80,7 @@ class CLIP(TextModel):
             device (torch.device): Device to load the model on.
         """
         super().__init__()
-        self.model, self.image_preprocess = clip.load(size, device=device)
+        self.model, self.image_preprocess = clip.load(size, device=device, download_root=str(WEIGHTS_DIR / "clip"))
         self.to(device)
         self.device = device
         self.eval()
@@ -131,14 +132,14 @@ class CLIP(TextModel):
 
     @smart_inference_mode()
     def encode_image(self, image: Image.Image | torch.Tensor, dtype: torch.dtype = torch.float32) -> torch.Tensor:
-        """Encode preprocessed images into normalized feature vectors.
+        """Encode images into normalized feature vectors.
 
-        This method processes preprocessed image inputs through the CLIP model to generate feature vectors, which are
-        then normalized to unit length. These normalized vectors can be used for text-image similarity comparisons.
+        This method processes image inputs through the CLIP model to generate feature vectors, which are then
+        normalized to unit length. These normalized vectors can be used for text-image similarity comparisons.
 
         Args:
-            image (PIL.Image | torch.Tensor): Preprocessed image input. If a PIL Image is provided, it will be converted
-                to a tensor using the model's image preprocessing function.
+            image (PIL.Image | torch.Tensor): Image input as a PIL Image or preprocessed tensor. If a PIL Image is
+                provided, it will be converted to a tensor using the model's image preprocessing function.
             dtype (torch.dtype, optional): Data type for output features.
 
         Returns:
@@ -196,12 +197,7 @@ class MobileCLIP(TextModel):
             device (torch.device): Device to load the model on.
         """
         try:
-            import warnings
-
-            # Suppress 'timm.models.layers is deprecated, please import via timm.layers' warning from mobileclip usage
-            with warnings.catch_warnings():
-                warnings.filterwarnings("ignore", category=FutureWarning)
-                import mobileclip
+            import mobileclip
         except ImportError:
             # Ultralytics fork preferred since Apple MobileCLIP repo has incorrect version of torchvision
             checks.check_requirements("git+https://github.com/ultralytics/mobileclip.git")
@@ -280,7 +276,7 @@ class MobileCLIPTS(TextModel):
         >>> features = text_encoder.encode_text(tokens)
     """
 
-    def __init__(self, device: torch.device):
+    def __init__(self, device: torch.device, weight: str = "mobileclip_blt.ts"):
         """Initialize the MobileCLIP TorchScript text encoder.
 
         This class implements the TextModel interface using Apple's MobileCLIP model in TorchScript format for efficient
@@ -288,11 +284,12 @@ class MobileCLIPTS(TextModel):
 
         Args:
             device (torch.device): Device to load the model on.
+            weight (str): Path to the TorchScript model weights.
         """
         super().__init__()
         from ultralytics.utils.downloads import attempt_download_asset
 
-        self.encoder = torch.jit.load(attempt_download_asset("mobileclip_blt.ts"), map_location=device)
+        self.encoder = torch.jit.load(attempt_download_asset(weight), map_location=device)
         self.tokenizer = clip.clip.tokenize
         self.device = device
 
@@ -308,7 +305,7 @@ class MobileCLIPTS(TextModel):
             (torch.Tensor): Tokenized text inputs with shape (batch_size, sequence_length).
 
         Examples:
-            >>> model = MobileCLIPTS("cpu")
+            >>> model = MobileCLIPTS(device=torch.device("cpu"))
             >>> tokens = model.tokenize(["a photo of a cat", "a photo of a dog"])
             >>> strict_tokens = model.tokenize(
             ...     ["a very long caption"], truncate=False
@@ -357,5 +354,7 @@ def build_text_model(variant: str, device: torch.device = None) -> TextModel:
         return CLIP(size, device)
     elif base == "mobileclip":
         return MobileCLIPTS(device)
+    elif base == "mobileclip2":
+        return MobileCLIPTS(device, weight="mobileclip2_b.ts")
     else:
-        raise ValueError(f"Unrecognized base model: '{base}'. Supported base models: 'clip', 'mobileclip'.")
+        raise ValueError(f"Unrecognized base model '{base}'. Supported models are 'clip', 'mobileclip', 'mobileclip2'.")

@@ -21,10 +21,20 @@ const checkTheme = () => {
   }
 };
 
+function syncEmbedTheme() {
+  const isDark = document.body.getAttribute("data-md-color-scheme") === "slate";
+  document.querySelectorAll("iframe").forEach((iframe) => {
+    const targetOrigin = iframe.src ? new URL(iframe.src, window.location.href).origin : window.location.origin;
+    iframe.contentWindow?.postMessage({ type: "ul-theme", theme: isDark ? "dark" : "light" }, targetOrigin);
+    iframe.addEventListener("load", syncEmbedTheme, { once: true });
+  });
+}
+
 // Initialize theme handling on page load
 document.addEventListener("DOMContentLoaded", () => {
   checkTheme();
   syncWidgetTheme();
+  syncEmbedTheme();
 
   // Watch for system theme changes
   window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", checkTheme);
@@ -39,19 +49,24 @@ document.addEventListener("DOMContentLoaded", () => {
     attributes: true,
     attributeFilter: ["data-md-color-scheme"],
   });
+
+  // Sync embed
+  new MutationObserver(syncEmbedTheme).observe(document.body, { attributeFilter: ["data-md-color-scheme"] });
 });
 
 // Ultralytics Chat Widget ---------------------------------------------------------------------------------------------
-let ultralyticsChat = null;
-
 document.addEventListener("DOMContentLoaded", () => {
-  ultralyticsChat = new UltralyticsChat({
+  const ultralyticsChat = new UltralyticsChat({
     welcome: {
       title: "Hello 👋",
       message: "Ask about YOLO, tutorials, training, export, deployment, or troubleshooting.",
-      chatExamples: ["What's new in SAM 3?", "How can I get started with YOLO?", "How does Enterprise Licensing work?"],
+      chatExamples: [
+        "What's new in SAM 3?",
+        "How can I get started with YOLO26?",
+        "How does Enterprise Licensing work?",
+      ],
       searchExamples: [
-        "YOLO11 quickstart",
+        "YOLO26 quickstart",
         "custom dataset training",
         "model export formats",
         "object detection tutorial",
@@ -98,66 +113,54 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// Fix language switcher links
+// Fix language switcher links to preserve current page path, query string, and hash
 (() => {
   function fixLanguageLinks() {
     const path = location.pathname;
-    const links = document.querySelectorAll(".md-select__link");
-    if (!links.length) {
-      return;
-    }
+    const links = document.querySelectorAll(".md-select__link[hreflang]");
+    if (!links.length) return;
 
-    const langs = [];
-    let defaultLink = null;
+    // Derive language codes from the actual links (config-driven)
+    const langCodes = Array.from(links)
+      .map((link) => link.getAttribute("hreflang"))
+      .filter(Boolean);
+    const defaultLang =
+      Array.from(links)
+        .find((link) => link.getAttribute("href") === "/")
+        ?.getAttribute("hreflang") || "en";
 
-    // Extract language codes
-    links.forEach((link) => {
-      const href = link.getAttribute("href");
-      if (!href) {
-        return;
+    // Extract base path (without leading slash and language prefix)
+    let basePath = path.startsWith("/") ? path.slice(1) : path;
+    for (const code of langCodes) {
+      if (code === defaultLang) continue;
+      const prefix = `${code}/`;
+      if (basePath === code || basePath === prefix) {
+        basePath = "";
+        break;
       }
-
-      const url = new URL(href, location.origin);
-      const match = url.pathname.match(/^\/([a-z]{2})\/?$/);
-
-      if (match) {
-        langs.push({ code: match[1], link });
-      } else if (url.pathname === "/" || url.pathname === "") {
-        defaultLink = link;
-      }
-    });
-
-    // Find current language and base path
-    let basePath = path;
-    for (const lang of langs) {
-      if (path.startsWith(`/${lang.code}/`)) {
-        basePath = path.substring(lang.code.length + 1);
+      if (basePath.startsWith(prefix)) {
+        basePath = basePath.slice(prefix.length);
         break;
       }
     }
 
-    // Update links
-    langs.forEach((lang) => {
-      lang.link.href = `${location.origin}/${lang.code}${basePath}`;
+    // Preserve query string and hash
+    const suffix = location.search + location.hash;
+
+    // Update all language links
+    links.forEach((link) => {
+      const lang = link.getAttribute("hreflang");
+      link.href =
+        lang === defaultLang
+          ? `${location.origin}/${basePath}${suffix}`
+          : `${location.origin}/${lang}/${basePath}${suffix}`;
     });
-    if (defaultLink) {
-      defaultLink.href = location.origin + basePath;
-    }
   }
 
-  // Run immediately
+  // Run on load and navigation
   fixLanguageLinks();
 
-  // Handle SPA navigation
   if (typeof document$ !== "undefined") {
     document$.subscribe(() => setTimeout(fixLanguageLinks, 50));
-  } else {
-    let lastPath = location.pathname;
-    setInterval(() => {
-      if (location.pathname !== lastPath) {
-        lastPath = location.pathname;
-        setTimeout(fixLanguageLinks, 50);
-      }
-    }, 200);
   }
 })();

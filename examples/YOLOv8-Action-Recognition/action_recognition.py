@@ -102,7 +102,7 @@ class TorchVisionVideoClassifier:
             input_size (list[int], optional): The target input size for the model.
 
         Returns:
-            (torch.Tensor): Preprocessed crops as a tensor with dimensions (1, T, C, H, W).
+            (torch.Tensor): Preprocessed crops as a tensor with dimensions (1, C, T, H, W).
         """
         if input_size is None:
             input_size = [224, 224]
@@ -123,8 +123,8 @@ class TorchVisionVideoClassifier:
         """Perform inference on the given sequences.
 
         Args:
-            sequences (torch.Tensor): The input sequences for the model with dimensions (B, T, C, H, W) for batched
-                video frames or (T, C, H, W) for single video frames.
+            sequences (torch.Tensor): The input sequences for the model with dimensions (B, C, T, H, W) for batched
+                video frames or (C, T, H, W) for single video frames.
 
         Returns:
             (torch.Tensor): The model's output logits.
@@ -139,8 +139,7 @@ class TorchVisionVideoClassifier:
             outputs (torch.Tensor): The model's output logits.
 
         Returns:
-            pred_labels (list[str]): The predicted labels.
-            pred_confs (list[float]): The predicted confidences.
+            (tuple[list[str], list[float]]): Predicted labels and their confidence scores.
         """
         pred_labels = []
         pred_confs = []
@@ -241,7 +240,7 @@ class HuggingFaceVideoClassifier:
         """Perform inference on the given sequences.
 
         Args:
-            sequences (torch.Tensor): Batched input video frames with shape (B, T, H, W, C).
+            sequences (torch.Tensor): Batched input video frames with shape (B, T, C, H, W).
 
         Returns:
             (torch.Tensor): The model's output logits.
@@ -262,8 +261,7 @@ class HuggingFaceVideoClassifier:
             outputs (torch.Tensor): The model's output logits.
 
         Returns:
-            pred_labels (list[list[str]]): The predicted top2 labels for each sample.
-            pred_confs (list[list[float]]): The predicted top2 confidences for each sample.
+            (tuple[list[list[str]], list[list[float]]]): Predicted top-2 labels and confidence scores for each sample.
         """
         pred_labels = []
         pred_confs = []
@@ -273,7 +271,7 @@ class HuggingFaceVideoClassifier:
             probs = logits_per_video.softmax(dim=-1)  # Use softmax to convert logits to probabilities
 
         for prob in probs:
-            top2_indices = prob.topk(2).indices.tolist()
+            top2_indices = prob.topk(min(2, len(self.labels), prob.numel())).indices.tolist()
             top2_labels = [self.labels[idx] for idx in top2_indices]
             top2_confs = prob[top2_indices].tolist()
             pred_labels.append(top2_labels)

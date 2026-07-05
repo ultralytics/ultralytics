@@ -1,4 +1,5 @@
 ---
+title: models.sam.modules.utils API Reference
 description: Explore the detailed API reference for Ultralytics SAM and SAM 2 models.
 keywords: Ultralytics, SAM, SAM 2, API Reference, models, window partition, data processing, YOLO
 ---
@@ -7,7 +8,7 @@ keywords: Ultralytics, SAM, SAM 2, API Reference, models, window partition, data
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/modules/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/modules/utils.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/modules/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/modules/utils.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
 <br>
 
@@ -48,5 +49,13 @@ keywords: Ultralytics, SAM, SAM 2, API Reference, models, window partition, data
 <br><br><hr><br>
 
 ## ::: ultralytics.models.sam.modules.utils.add_decomposed_rel_pos
+
+<br><br><hr><br>
+
+## ::: ultralytics.models.sam.modules.utils.get_abs_pos
+
+<br><br><hr><br>
+
+## ::: ultralytics.models.sam.modules.utils.concat_rel_pos
 
 <br><br>

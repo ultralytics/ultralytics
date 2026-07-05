@@ -6,7 +6,7 @@
 
 # Parameters
 nc: 80 # number of classes
-scales: # model compound scaling constants, i.e. 'model=yolov8n.yaml' will call yolov8.yaml with scale 'n'
+scales: # model compound scaling constants, i.e. 'model=yolov8n-world.yaml' will call yolov8-world.yaml with scale 'n'
   # [depth, width, max_channels]
   n: [0.33, 0.25, 1024] # YOLOv8n-world summary: 161 layers, 4204111 parameters, 4204095 gradients, 39.6 GFLOPs
   s: [0.33, 0.50, 1024] # YOLOv8s-world summary: 161 layers, 13383496 parameters, 13383480 gradients, 71.5 GFLOPs
@@ -48,4 +48,4 @@ head:
   - [[-1, 9], 1, Concat, [1]] # cat head P5
   - [-1, 3, C2fAttn, [1024, 512, 16]] # 22 (P5/32-large)
 
-  - [[15, 19, 22], 1, WorldDetect, [nc, 512, False]] # Detect(P3, P4, P5)
+  - [[15, 19, 22], 1, WorldDetect, [nc, 512, False]] # WorldDetect(P3, P4, P5)

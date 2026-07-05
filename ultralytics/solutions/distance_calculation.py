@@ -17,7 +17,7 @@ class DistanceCalculation(BaseSolution):
 
     Attributes:
         left_mouse_count (int): Counter for left mouse button clicks.
-        selected_boxes (dict[int, list[float]]): Dictionary to store selected bounding boxes and their track IDs.
+        selected_boxes (dict[int, Any]): Dictionary to store selected bounding boxes keyed by track ID.
         centroids (list[list[int]]): List to store centroids of selected bounding boxes.
 
     Methods:

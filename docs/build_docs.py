@@ -26,6 +26,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 import time
 from pathlib import Path
@@ -39,7 +40,7 @@ try:
 except ImportError:
     postprocess_site = None
 
-from build_reference import build_reference_docs, build_reference_for
+from build_reference import build_reference_docs
 
 from ultralytics.utils import LINUX, LOGGER, MACOS
 from ultralytics.utils.tqdm import TQDM
@@ -66,16 +67,6 @@ def prepare_docs_markdown(clone_repos: bool = True):
     shutil.rmtree(DOCS / "repos", ignore_errors=True)
 
     if clone_repos:
-        # Get hub-sdk repo
-        repo = "https://github.com/ultralytics/hub-sdk"
-        local_dir = DOCS / "repos" / Path(repo).name
-        subprocess.run(
-            ["git", "clone", "-q", "--depth=1", "--single-branch", "-b", "main", repo, str(local_dir)], check=True
-        )
-        shutil.rmtree(DOCS / "en/hub/sdk", ignore_errors=True)  # delete if exists
-        shutil.copytree(local_dir / "docs", DOCS / "en/hub/sdk")  # for docs
-        LOGGER.info(f"Cloned/Updated {repo} in {local_dir}")
-
         # Get docs repo
         repo = "https://github.com/ultralytics/docs"
         local_dir = DOCS / "repos" / Path(repo).name
@@ -101,7 +92,11 @@ def update_markdown_files(md_filepath: Path):
 
         # Add frontmatter if missing
         if not content.strip().startswith("---\n"):
-            header = "---\ncomments: true\ndescription: TODO ADD DESCRIPTION\nkeywords: TODO ADD KEYWORDS\n---\n\n"
+            header = (
+                "---\ncomments: true\n"
+                "description: Ultralytics documentation for YOLO model training, validation, prediction, export, and deployment.\n"
+                "keywords: Ultralytics, YOLO, computer vision, model training, model export, deployment\n---\n\n"
+            )
             content = header + content
 
         # Ensure MkDocs admonitions "=== " lines are preceded and followed by empty newlines
@@ -160,8 +155,8 @@ def _process_html_file(html_file: Path) -> bool:
     except ValueError:
         rel_path = html_file.name
 
-    # For pages sourced from external repos (hub-sdk, compare), drop edit/copy buttons to avoid wrong links
-    if rel_path.startswith(("hub/sdk/", "compare/")):
+    # For pages sourced from external repos (compare), drop edit/copy buttons to avoid wrong links
+    if rel_path.startswith("compare/"):
         before = content
         content = re.sub(
             r'<a[^>]*class="[^"]*md-content__button[^"]*"[^>]*>.*?</a>',
@@ -284,8 +279,9 @@ def update_docs_soup(content: str, html_file: Path | None = None, max_title_leng
                 span.insert_after(tail)
             modified = True
 
-    highlight_labels(soup.select("main h1, main h2, main h3, main h4, main h5"))
-    highlight_labels(soup.select("nav.md-nav--secondary .md-ellipsis, nav.md-nav__list .md-ellipsis"))
+    if "reference" in rel_path:
+        highlight_labels(soup.select("main h1, main h2, main h3, main h4, main h5"))
+        highlight_labels(soup.select("nav.md-nav--secondary .md-ellipsis, nav.md-nav__list .md-ellipsis"))
 
     if "reference" in rel_path:
         for ellipsis in soup.select("nav.md-nav--secondary .md-ellipsis"):
@@ -455,7 +451,7 @@ def minify_files(html: bool = True, css: bool = True, js: bool = True):
 
 
 def render_jinja_macros() -> None:
-    """Render MiniJinja macros in markdown files before building with MkDocs."""
+    """Render MiniJinja macros in Markdown files before building with MkDocs."""
     mkdocs_yml = DOCS.parent / "mkdocs.yml"
     default_yaml = DOCS.parent / "ultralytics" / "cfg" / "default.yaml"
 
@@ -592,6 +588,9 @@ def restore_docs_sources(backup_root: Path, backups: list[tuple[Path, Path]]):
 
 def main():
     """Build docs, update titles and edit links, minify HTML, and print local server command."""
+    if not shutil.which("zensical"):
+        raise SystemExit("zensical is not installed. Install it with: pip install -e '.[dev]'")
+
     start_time = time.perf_counter()
     backup_root: Path | None = None
     docs_backups: list[tuple[Path, Path]] = []
@@ -609,17 +608,6 @@ def main():
         backup_root, docs_backups = backup_docs_sources()
         prepare_docs_markdown()
         build_reference_docs(update_nav=False)
-        # Render reference docs for any extra packages present (e.g., hub-sdk)
-        extra_refs = [
-            {
-                "package": DOCS / "repos" / "hub-sdk" / "hub_sdk",
-                "reference_dir": DOCS / "en" / "hub" / "sdk" / "reference",
-                "repo": "ultralytics/hub-sdk",
-            },
-        ]
-        for ref in extra_refs:
-            if ref["package"].exists():
-                build_reference_for(ref["package"], ref["reference_dir"], ref["repo"], update_nav=False)
         render_jinja_macros()
 
         # Remove cloned repos before serving/building to keep the tree lean during mkdocs processing
@@ -627,13 +615,16 @@ def main():
 
         # Build the main documentation
         LOGGER.info(f"Building docs from {DOCS}")
-        subprocess.run(["zensical", "build", "-f", str(DOCS.parent / "mkdocs.yml")], check=True)
+        subprocess.run(["zensical", "build", "-f", str(DOCS.parent / "mkdocs.yml"), "--strict"], check=True)
         LOGGER.info(f"Site built at {SITE}")
+
+        # Remove search index JSON files to disable search
+        Path(SITE / "search.json").unlink(missing_ok=True)
 
         # Update docs HTML pages
         update_docs_html()
 
-        # Post-process site for meta tags, authors, social cards, and mkdocstrings polish
+        # Post-process site for meta tags, authors, social cards, and reference-page polish
         if postprocess_site:
             postprocess_site(
                 site_dir=SITE,
@@ -650,10 +641,29 @@ def main():
                 verbose=True,
             )
         else:
-            LOGGER.warning("postprocess_site not available; skipping mkdocstrings postprocessing")
+            LOGGER.warning("postprocess_site not available; skipping docs postprocessing")
 
         # Minify files
         minify_files(html=False, css=False, js=False)
+
+        # Add missing pages to sitemap
+        sitemap = SITE / "sitemap.xml"
+        if sitemap.exists():
+            content = sitemap.read_text()
+            in_sitemap = set(re.findall(r"<loc>([^<]+)</loc>", content))
+            all_pages = {
+                f"https://docs.ultralytics.com/{f.relative_to(SITE).as_posix().replace('index.html', '')}"
+                for f in SITE.rglob("*.html")
+                if f.name != "404.html"
+            }
+            if missing := (all_pages - in_sitemap):
+                entries = "\n".join(f"  <url>\n    <loc>{u}</loc>\n  </url>" for u in sorted(missing))
+                sitemap.write_text(content.replace("</urlset>", f"{entries}\n</urlset>"))
+            LOGGER.info(
+                f"{len(all_pages)}/{len(all_pages)} pages in sitemap.xml ✅ (+{len(missing)} added)"
+                if missing
+                else f"{len(in_sitemap)}/{len(all_pages)} pages in sitemap.xml ✅"
+            )
 
         # Print results and auto-serve on macOS
         size = sum(f.stat().st_size for f in SITE.rglob("*") if f.is_file()) >> 20
@@ -670,7 +680,7 @@ def main():
             LOGGER.info(f"Opening browser at {url}")
             webbrowser.open(url)
             try:
-                subprocess.run(["python", "-m", "http.server", "--directory", str(SITE), "8000"], check=True)
+                subprocess.run([sys.executable, "-m", "http.server", "--directory", str(SITE), "8000"], check=True)
             except KeyboardInterrupt:
                 LOGGER.info(f"\n✅ Server stopped. Restart at {url}")
             except Exception as e:
@@ -683,7 +693,6 @@ def main():
     finally:
         if not restored:
             restore_all()
-        shutil.rmtree(DOCS.parent / "hub_sdk", ignore_errors=True)
         shutil.rmtree(DOCS / "repos", ignore_errors=True)
 
 

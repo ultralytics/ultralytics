@@ -1,4 +1,4 @@
-"""YOLOA utilities — categories, YAML loading, visualization helpers."""
+"""YOLOA utilities — categories, paths, and visualization helpers."""
 
 import hashlib
 import random
@@ -6,9 +6,6 @@ from pathlib import Path
 
 import cv2
 import numpy as np
-import torch
-
-from ultralytics.utils import YAML
 
 # -- Category constants -------------------------------------------------------
 
@@ -28,18 +25,6 @@ MVTEC_TEXTURE = ["carpet", "grid", "leather", "tile", "wood"]
 MVTEC_RANDOM = ["bottle", "cable", "capsule", "carpet", "grid"]
 
 CAT_GROUPS = {"object": MVTEC_OBJECT, "texture": MVTEC_TEXTURE, "random5": MVTEC_RANDOM}
-VAL_METRICS = ("image_auroc", "pixel_auroc", "mAP10", "mAP25", "mAP50", "mAP50_95")
-
-# YAML keys -> FeatureDiscriminatorScorer kwargs
-SCORER_YAML_KEYS = {
-    "scorer_noise_std": "noise_std",
-    "scorer_steps": "steps",
-    "scorer_hidden": "hidden",
-    "scorer_n_noise": "n_noise",
-    "scorer_batch": "batch",
-    "scorer_lr": "lr",
-    "scorer_noise_mode": "noise_mode",
-}
 
 
 # -- Path / data helpers ------------------------------------------------------
@@ -73,75 +58,7 @@ def model_id_from_ckpt(ckpt: str) -> str:
     return f"{label}__{hashlib.md5(str(p).encode()).hexdigest()[:6]}"
 
 
-# -- Fit YAML resolution ------------------------------------------------------
-
-def resolve_infer(yaml: dict) -> dict:
-    """Extract prior-shaping inference knobs from YAML."""
-    infer = {}
-    if yaml.get("heat_edge"):
-        infer["heat_edge"] = True
-        infer["heat_edge_sigma"] = yaml.get("heat_edge_sigma", 1.0)
-    if yaml.get("heat_norm"):
-        infer["heat_norm"] = yaml["heat_norm"]
-    return infer
-
-
 # -- Heatmap / mask overlays --------------------------------------------------
-
-
-def save_heatmap(model, img_path: str, out_path: Path) -> None:
-    """Save the model's last prior heatmap as a JET overlay on the original image."""
-    hm = getattr(model, "_last_heatmap", None)
-    if hm is None:
-        return
-    h = hm.detach().cpu().numpy().squeeze()
-    h = (h - h.min()) / (np.ptp(h) + 1e-9)
-    orig = cv2.imread(img_path)
-    color = cv2.resize(cv2.applyColorMap((h * 255).astype(np.uint8), cv2.COLORMAP_JET), (orig.shape[1], orig.shape[0]))
-    cv2.imwrite(str(out_path), cv2.addWeighted(orig, 0.55, color, 0.45, 0))
-
-
-def load_mask_tensor(mask, imgsz: int):
-    """Load a GT mask as a (1, 1, imgsz, imgsz) float tensor, or None. Accepts path or numpy array."""
-    if mask is None:
-        return None
-    if isinstance(mask, (str, Path)):
-        m = cv2.imread(str(mask), cv2.IMREAD_GRAYSCALE)
-        if m is None:
-            return None
-    else:
-        m = mask
-    m = cv2.resize(m, (imgsz, imgsz), interpolation=cv2.INTER_NEAREST).astype(np.float32) / 255.0
-    return torch.from_numpy(m).unsqueeze(0).unsqueeze(0)
-
-
-# -- Compare-grid (visualize mode) ---------------------------------------------
-
-def txt_to_mask(txt_path: str, h: int, w: int) -> np.ndarray | None:
-    """Render YOLO-seg txt polygon labels into a binary mask (h, w) uint8 0/255.
-
-    Returns None if the txt file is missing or contains no valid polygons (e.g. good images).
-    """
-    try:
-        with open(txt_path, "r") as f:
-            lines = f.read().strip().splitlines()
-    except (FileNotFoundError, OSError):
-        return None
-    if not lines:
-        return None
-    mask = np.zeros((h, w), dtype=np.uint8)
-    for line in lines:
-        parts = line.strip().split()
-        if len(parts) < 7:
-            continue
-        coords = list(map(float, parts[1:]))
-        if len(coords) % 2 != 0:
-            continue
-        pts = [(int(coords[i] * w), int(coords[i + 1] * h)) for i in range(0, len(coords), 2)]
-        pts_array = np.array(pts, dtype=np.int32).reshape((-1, 1, 2))
-        cv2.fillPoly(mask, [pts_array], 255)
-    return mask
-
 
 def _add_title(img: np.ndarray, text: str, bar_h: int = 48) -> np.ndarray:
     """Stack a left-aligned title bar above a BGR image."""
@@ -158,28 +75,6 @@ def _heatmap_panel(img: np.ndarray, hmap: np.ndarray | None) -> np.ndarray:
     h = cv2.resize(hmap.astype("float32"), (img.shape[1], img.shape[0]), interpolation=cv2.INTER_LINEAR)
     cmap = cv2.applyColorMap((np.clip(h, 0, 1) * 255).astype("uint8"), cv2.COLORMAP_JET)
     return cv2.addWeighted(cmap, 0.45, img, 0.55, 0)
-
-
-def _mask_panel(img: np.ndarray, gt_mask: np.ndarray | str | None) -> np.ndarray:
-    """Red-tint overlay with defect-pixel percentage (BGR in/out). Accepts array or file path."""
-    if gt_mask is None:
-        return img
-    if isinstance(gt_mask, (str, Path)):
-        m = cv2.imread(str(gt_mask), cv2.IMREAD_GRAYSCALE)
-    else:
-        m = gt_mask
-    if m is None:
-        return img
-    m = cv2.resize(m, (img.shape[1], img.shape[0]), interpolation=cv2.INTER_NEAREST)
-    panel = img.copy()
-    sel = m > 0
-    panel[sel] = (0.45 * np.array([0, 0, 255], dtype=np.float32) + 0.55 * panel[sel].astype(np.float32)).astype(
-        np.uint8
-    )
-    pct = (m > 0).mean() * 100
-    label = f"defect={pct:.2f}%"
-    cv2.putText(panel, label, (8, panel.shape[0] - 12), cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 255, 255), 2, cv2.LINE_AA)
-    return panel
 
 
 def _hstack(images: list[np.ndarray], gap: int = 8) -> np.ndarray:
@@ -264,53 +159,6 @@ def save_simple_grid(
             _add_title(_draw_gt_boxes(heat_pred, gt_txt_path), f"heatmap prior + GT ({n_heat} det)"),
         ]
     )
-    out_path = Path(out_path)
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    cv2.imwrite(str(out_path), grid)
-    return out_path
-
-
-def save_compare_grid(
-    *,
-    original,
-    none_pred,
-    seg_heat,
-    seg_pred,
-    heat_heat,
-    heat_pred,
-    mask_img,
-    mask_pred,
-    out_path,
-    n_none=0,
-    n_seg=0,
-    n_heat=0,
-    n_mask=0,
-    original_title="original",
-):
-    """Build and save the 4x2 comparison grid."""
-    seg_hmap_title = "seg heatmap"
-    if seg_heat is not None:
-        seg_hmap_title += f"  [max={seg_heat.max():.3f} min={seg_heat.min():.3f}]"
-    mb_hmap_title = "mb heatmap"
-    if heat_heat is not None:
-        mb_hmap_title += f"  [max={heat_heat.max():.3f} min={heat_heat.min():.3f}]"
-    row1 = _hstack(
-        [
-            _add_title(original, original_title),
-            _add_title(none_pred, f"None Prior ({n_none} det)"),
-            _add_title(_heatmap_panel(original, seg_heat), seg_hmap_title),
-            _add_title(seg_pred, f"segment prior ({n_seg} det)"),
-        ]
-    )
-    row2 = _hstack(
-        [
-            _add_title(_heatmap_panel(original, heat_heat), mb_hmap_title),
-            _add_title(heat_pred, f"heatmap prior ({n_heat} det)"),
-            _add_title(_mask_panel(original, mask_img), "GT mask"),
-            _add_title(mask_pred, f"mask prior ({n_mask} det)"),
-        ]
-    )
-    grid = np.vstack([row1, np.full((8, row1.shape[1], 3), 255, dtype=np.uint8), row2])
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     cv2.imwrite(str(out_path), grid)

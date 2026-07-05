@@ -35,7 +35,8 @@ class YOLOAnomalyValidator(DetectionValidator):
             self.iouv = torch.cat([torch.linspace(0.5, 0.95, 10), torch.tensor([0.10, 0.25])])
             self.niou = self.iouv.numel()
         else:
-            LOGGER.warning("YOLOAnomalyValidator: heatmap prior unavailable -> running regular validation.")
+            pass
+            # LOGGER.warning("YOLOAnomalyValidator: heatmap prior unavailable -> running regular validation.")
 
     def __call__(self, trainer=None, model=None):
         """Single validation pass; restore model state afterwards."""
@@ -79,7 +80,7 @@ class YOLOAnomalyValidator(DetectionValidator):
                 LOGGER.warning("YOLOAnomalyValidator: memory bank is empty after build.")
                 return False
         except Exception as e:
-            LOGGER.warning(f"YOLOAnomalyValidator: failed to build memory bank: {e}")
+            # LOGGER.warning(f"YOLOAnomalyValidator: failed to build memory bank: {e}")
             return False
         LOGGER.info(f"YOLOAnomalyValidator: built memory bank ({n} features) from {len(support)} normal images.")
         return True

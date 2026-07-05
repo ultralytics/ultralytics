@@ -586,10 +586,12 @@ class YOLOAnomalyV2Model(DetectionModel):
         # input only. Rationale: the training prior is rendered FROM the GT bbox, so a box branch
         # that sees it can learn to read defect extent off the prior — an oracle that a deploy-time
         # memory-bank blob cannot honor. The cls branch only needs the prior's location, which
-        # transfers.
+        # transfers. 'all_clsgrad' = all-mode FORWARD (both branches see the bias, deploy graph
+        # identical to 'all') but the fusion module receives gradients from the cls path only —
+        # isolates whether the extent-oracle lives in fusion shaping or in box-weight adaptation.
         fusion_target = str(v2_cfg.get("fusion_target", "all")).lower()
-        if fusion_target not in ("all", "cls"):
-            raise ValueError(f"fusion_target must be 'all' or 'cls', got {fusion_target!r}")
+        if fusion_target not in ("all", "cls", "all_clsgrad"):
+            raise ValueError(f"fusion_target must be 'all', 'cls' or 'all_clsgrad', got {fusion_target!r}")
         self.fusion_target = fusion_target
 
         # AnomalyMCDetect (decoupled binary detection + multi-class type head):
@@ -1231,8 +1233,14 @@ class YOLOAnomalyV2Model(DetectionModel):
                 fused = []
                 # fusion_target='cls': PAN features stay clean; the per-scale deltas go to the
                 # Detect head as ``hm_bias`` and are added to the cls-branch input only.
-                cls_only = getattr(self, "fusion_target", "all") == "cls"
-                hm_bias = [] if cls_only and prior is not None else None
+                # fusion_target='all_clsgrad' (training only): both branches see the bias, but the
+                # fusion module gets gradients from the cls path alone — box input carries
+                # delta.detach(), and the head's cls_x adds back (delta - delta.detach()), which is
+                # zero-valued yet grad-carrying. In eval it reduces to plain 'all'.
+                _ft = getattr(self, "fusion_target", "all")
+                cls_only = _ft == "cls"
+                clsgrad = _ft == "all_clsgrad" and self.training
+                hm_bias = [] if (cls_only or clsgrad) and prior is not None else None
                 for i, p in enumerate(pan_inputs):
                     if prior is None:
                         # Pure passthrough: skip fusion entirely.
@@ -1249,7 +1257,10 @@ class YOLOAnomalyV2Model(DetectionModel):
                     delta = self.heatmap_bias_fusion(m_scale, i)
                     # Per-sample keep mask (mask dropout): dropped samples get zero increment.
                     delta = delta * keep.to(delta.dtype).view(-1, 1, 1, 1)
-                    if hm_bias is not None:
+                    if hm_bias is not None and clsgrad:
+                        fused.append(p + delta.detach())
+                        hm_bias.append(delta - delta.detach())
+                    elif hm_bias is not None:
                         fused.append(p)
                         hm_bias.append(delta)
                     else:

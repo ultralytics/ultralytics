@@ -522,7 +522,9 @@ class LoadPilAndNumpy:
 
         Notes:
             - PIL inputs are converted to NumPy and returned in OpenCV-compatible BGR order for color images.
-            - NumPy inputs are returned as-is (no channel-order conversion is applied).
+            - NumPy color inputs are returned as-is (no channel-order conversion is applied).
+            - 2D grayscale NumPy inputs are expanded to match the model channels (3 for color, 1 for grayscale),
+              mirroring how PIL and file inputs are handled.
         """
         assert isinstance(im, (Image.Image, np.ndarray)), f"Expected PIL/np.ndarray image type, but got {type(im)}"
         if isinstance(im, Image.Image):
@@ -531,7 +533,8 @@ class LoadPilAndNumpy:
             im = im[..., None] if flag == "L" else im[..., ::-1]
             im = np.ascontiguousarray(im)  # contiguous
         elif im.ndim == 2:  # grayscale in numpy form
-            im = im[..., None]
+            # Expand 2D grayscale to 3 channels for color models (like PIL/file inputs); np.repeat preserves dtype
+            im = im[..., None] if flag == "L" else np.repeat(im[..., None], 3, axis=2)
         return im
 
     def __len__(self) -> int:

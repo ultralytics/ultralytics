@@ -62,7 +62,7 @@ class YOLOAnomalyValidatorBase:
         self._mask_mode = "on"
         self._model_ref = None
         if prior_mode is not None:
-            self.metrics.pr_report = 0.1  # OOD: report P/R at conf >= 0.1
+            self.metrics.pr_report = None  # OOD: report P/R at conf >= 0.1
 
         # OOD/standalone single-pass eval uses a full 0.10:0.95 grid at step 0.05 (18 thresholds)
         # — defect localization is coarse, so low-IoU operating points are informative.

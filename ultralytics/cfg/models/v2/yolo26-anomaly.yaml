@@ -39,7 +39,7 @@ anomaly_v2:
   # test (cross-dataset MVTec) eval
   test_val_freq: 1
   test_categories: null        # null = all 15 MVTec categories
-  test_none_prior: false       # test prior=none (mask_off)
+  test_none_prior: true        # per-epoch OOD none pass — traces prior-free decay (Louis 2026-07-05)
   test_heatmap_prior: true     # test prior=heatmap — required (fitness = test_metrics(heatmap_prior)/mAP10)
   test_mask_prior: false       # test prior=mask (mask_on)
   test_fit_cfg: ../../yoloa_fit_default.yaml

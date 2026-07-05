@@ -279,6 +279,26 @@ def test_checkpoint_nonfinite_ema_resync():
     )
 
 
+def test_checkpoint_nonfinite_ema_and_model_sanitized():
+    """Test a tensor non-finite in both EMA and model is sanitized (not skipped) so the run still produces a checkpoint."""
+
+    def poison_ema_and_model(trainer):
+        """Force the first parameter non-finite in both the live EMA and the model (finite-loss sticky-NaN)."""
+        if trainer.ema is not None:
+            next(iter(trainer.ema.ema.parameters())).data.flatten()[0] = float("inf")
+            next(iter(unwrap_model(trainer.model).parameters())).data.flatten()[0] = float("nan")
+
+    overrides = {"data": "coco8.yaml", "model": "yolo26n.yaml", "imgsz": 32, "epochs": 1}
+    trainer = detect.DetectionTrainer(overrides=overrides)
+    trainer.add_callback("on_train_epoch_end", poison_ema_and_model)
+    trainer.train()
+    assert trainer.last.exists(), "no checkpoint saved when a tensor went non-finite in both EMA and model"
+    model, _ = load_checkpoint(trainer.last)
+    assert all(torch.isfinite(v).all() for v in model.state_dict().values() if isinstance(v, torch.Tensor)), (
+        "saved checkpoint contains NaN/Inf"
+    )
+
+
 @pytest.mark.parametrize(
     "kwargs,uses_weights",
     [({}, True), ({"pretrained": True}, True), ({"pretrained": False}, False), ({"pretrained": MODEL}, True)],

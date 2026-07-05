@@ -170,7 +170,7 @@ class BOTSORT(BYTETracker):
         # ReID module
         self.proximity_thresh = args.proximity_thresh
         self.appearance_thresh = args.appearance_thresh
-        self.encoder = build_encoder(args.with_reid, args.model)
+        self.encoder = build_encoder(args.with_reid, args.model, getattr(args, "device", None))
 
     def get_kalmanfilter(self) -> KalmanFilterXYWH:
         """Return an instance of KalmanFilterXYWH for predicting and updating object states in the tracking process."""

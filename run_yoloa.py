@@ -24,7 +24,7 @@ import cv2
 import numpy as np
 import torch
 
-from ultralytics.models.yolo.anomaly_v2.benchmark import MVTEC_CATEGORIES
+from ultralytics.models.yolo.anomaly_v2.train_rnd import MVTEC_CATEGORIES
 from ultralytics.utils import LOGGER
 from ultralytics.yoloa import YOLOA
 from yoloa_utils import (

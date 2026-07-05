@@ -40,7 +40,10 @@ class YOLOA(Model):
         return {
             "anomaly_v2": {
                 "model": YOLOAnomalyV2Model,
-                "trainer": yolo.anomaly_v2.AnomalyV2Trainer,
+                # TODO: AnomalyV2Trainer is the public trainer (standard in-domain validation only).
+                # During the R&D stage we default to AnomalyV2RNDTrainer so OOD eval drives best.pt
+                # selection. Switch back to AnomalyV2Trainer once the R&D phase is over.
+                "trainer": yolo.anomaly_v2.AnomalyV2RNDTrainer,
                 "validator": yolo.anomaly_v2.YOLOAnomalyValidator,
                 "predictor": yolo.anomaly_v2.YOLOAnomalyPredictor,
             }

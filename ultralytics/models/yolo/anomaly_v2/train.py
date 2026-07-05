@@ -12,9 +12,7 @@ auto_batch, etc.) is inherited from ``DetectionTrainer`` unchanged.
 
 from __future__ import annotations
 
-import math
-from copy import copy, deepcopy
-import torch
+from copy import copy
 
 from ultralytics.data import YOLOConcatDataset, build_yolo_dataset
 from ultralytics.data.augment import LoadAnomalyPriorMask
@@ -22,10 +20,8 @@ from ultralytics.models import yolo
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.modules.head import AnomalyMCDetect
 from ultralytics.nn.tasks import YOLOAnomalyV2Model
-from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
+from ultralytics.utils import DEFAULT_CFG, RANK
 from ultralytics.utils.torch_utils import unwrap_model
-
-from .benchmark import resolve_mvtec_root, run_mvtec_ood_eval
 
 
 class AnomalyV2Trainer(DetectionTrainer):
@@ -33,30 +29,6 @@ class AnomalyV2Trainer(DetectionTrainer):
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         super().__init__(cfg, overrides, _callbacks)
-        # NOTE: _mvtec_ood_eval is NOT a callback — it runs inside validate() so best.pt
-        # selection sees the current epoch's OOD score (no one-epoch lag).
-        self._ood_best_fitness = None
-
-    def validate(self):
-        """Run validation; when OOD eval is enabled, use OOD heatmap mAP10 as fitness.
-
-        The OOD eval runs here (not as an ``on_fit_epoch_end`` callback) on the current epoch's
-        EMA, so best.pt selection sees this epoch's score with no one-epoch lag. Fitness stays on
-        the OOD scale every epoch (``0.0`` when the eval can't run). The base ``validate`` bumps
-        ``best_fitness`` on the in-domain scale, so we recompute it on the OOD scale
-        (``_ood_best_fitness``) and overwrite — ``save_model`` saves best.pt when
-        ``best_fitness == fitness``, i.e. on each new OOD max.
-        """
-        metrics, fitness = super().validate()
-        v2_cfg = getattr(unwrap_model(self.model), "yaml", {}).get("anomaly_v2", {})
-        if int(v2_cfg.get("test_val_freq", 3)) > 0 and metrics is not None:
-            self._ood_heatmap_map10 = None
-            AnomalyV2Trainer._mvtec_ood_eval(self)
-            fitness = float(self._ood_heatmap_map10 or 0.0)
-            metrics["fitness"] = fitness
-            self._ood_best_fitness = fitness if self._ood_best_fitness is None else max(self._ood_best_fitness, fitness)
-            self.best_fitness = self._ood_best_fitness
-        return metrics, fitness
 
     def _polygon_prior_active(self) -> bool:
         """True when the fusion prior uses v6 polygon masks (seg_target_polygon)."""
@@ -118,103 +90,3 @@ class AnomalyV2Trainer(DetectionTrainer):
             args=copy(self.args),
             _callbacks=self.callbacks,
         )
-
-    @staticmethod
-    def _mvtec_ood_eval(trainer: "AnomalyV2Trainer") -> None:
-        """Periodic MVTec cross-dataset OOD eval, rank 0 only; called from validate().
-
-        Configured via the model YAML ``anomaly_v2`` block: ``test_val_freq`` (every N epochs;
-        default 3, set 0 to disable). Bank-build and heatmap post-processing knobs are baked into
-        the model; only the MVTec root and test categories come from the YAML.
-
-        ``test_heatmap_prior`` is forced on (best.pt fitness is ``test_metrics(heatmap_prior)/mAP10``);
-        ``test_none_prior`` defaults off.
-
-        Runs on a deepcopy of the EMA so val-time fuse()/bank-build never corrupt the live EMA.
-        """
-        if RANK not in (-1, 0) or trainer.ema is None:
-            return
-        v2_cfg = getattr(unwrap_model(trainer.model), "yaml", {}).get("anomaly_v2", {})
-        freq = int(v2_cfg.get("test_val_freq", 3))
-        if freq <= 0 or (trainer.epoch + 1) % freq != 0:
-            return
-        root = resolve_mvtec_root(v2_cfg.get("test_root"))
-        if root is None:
-            LOGGER.warning(
-                "MVTec test: dataset root not found (set MVTEC_ROOT or anomaly_v2.test_root); skipping test eval."
-            )
-            return
-
-        batch = int(v2_cfg.get("test_batch", 8))
-
-        if not bool(v2_cfg.get("test_heatmap_prior", True)):
-            LOGGER.warning("anomaly_v2: test_heatmap_prior feeds fitness and cannot be disabled; forcing on.")
-        modes = []
-        if bool(v2_cfg.get("test_none_prior", False)):
-            modes.append("none")
-        modes.append("heatmap")
-        modes = tuple(modes)
-
-        ema_eval = deepcopy(trainer.ema.ema).eval()
-        trainer._ood_heatmap_map10 = None
-        try:
-            with torch.no_grad():
-                rows = run_mvtec_ood_eval(
-                    ema_eval,
-                    root,
-                    categories=v2_cfg.get("test_categories"),
-                    modes=modes,
-                    imgsz=640,
-                    batch=batch,
-                    workers=trainer.args.workers,
-                    device=trainer.device,
-                    save_dir=trainer.save_dir,
-                    epoch=trainer.epoch + 1,
-                    e2e=False,
-                    iou=0.1,
-                )
-            AnomalyV2Trainer._log_ood_wandb(trainer, rows)
-            for r in rows:
-                if r["category"] == "AVERAGE" and r["mode"] == "heatmap":
-                    map10 = r.get("mAP10", math.nan)
-                    if not math.isnan(map10):
-                        trainer._ood_heatmap_map10 = float(map10)
-                    break
-        except Exception as e:
-            LOGGER.warning(f"MVTec OOD eval failed at epoch {trainer.epoch + 1}: {type(e).__name__}: {e}")
-        finally:
-            del ema_eval
-
-    @staticmethod
-    def _log_ood_wandb(trainer: "AnomalyV2Trainer", rows: list) -> None:
-        """Push OOD metrics to wandb grouped by mode (test_metrics(none_prior/heatmap_prior))."""
-        if not rows:
-            return
-        try:
-            from ultralytics.utils.callbacks.wb import wb
-        except Exception:
-            wb = None
-        if wb is None or getattr(wb, "run", None) is None:
-            return
-
-        keys = ("mAP10", "mAP25", "mAP50", "mAP50_95", "P", "R")
-        mode_to_group = {
-            "none": "test_metrics(none_prior)",
-            "heatmap": "test_metrics(heatmap_prior)",
-        }
-
-        log = {}
-        for mode, group_name in mode_to_group.items():
-            avg_row = next((r for r in rows if r["category"] == "AVERAGE" and r["mode"] == mode), None)
-            if avg_row is not None:
-                for k in keys:
-                    if avg_row.get(k) is not None and not (
-                        isinstance(avg_row.get(k), float) and math.isnan(avg_row[k])
-                    ):
-                        log[f"{group_name}/{k}"] = avg_row[k]
-
-        if log:
-            try:
-                wb.run.log(log, step=trainer.epoch + 1)
-            except Exception as e:
-                LOGGER.warning(f"MVTec OOD: wandb log failed: {type(e).__name__}: {e}")

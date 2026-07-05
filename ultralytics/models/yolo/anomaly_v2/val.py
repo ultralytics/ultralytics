@@ -43,7 +43,7 @@ class YOLOAnomalyValidator(DetectionValidator):
         self.v2_model.memory_bank.reset()
         return metrics
 
-    def _collect_support_paths(self) -> list[str]:  # TODO
+    def _collect_support_paths(self) -> list[str]:
         """Resolve normal (good) image paths from the dataset's train split for the bank."""
         from pathlib import Path
 
@@ -73,7 +73,7 @@ class YOLOAnomalyValidator(DetectionValidator):
         if not support:
             return False
         imgsz = self.args.imgsz if isinstance(self.args.imgsz, int) else 640
-        try:  # NOTE: for validation during training, TODO
+        try:
             n = model.build_memory_bank(support, imgsz=imgsz, device=self.device, verbose=False)
             if not n:
                 LOGGER.warning("YOLOAnomalyValidator: memory bank is empty after build.")

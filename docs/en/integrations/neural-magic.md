@@ -1,4 +1,5 @@
 ---
+title: DeepSparse CPU Inference for YOLO26
 comments: true
 description: Enhance YOLO26 performance using Neural Magic's DeepSparse Engine. Learn how to deploy and benchmark YOLO26 models on CPUs for efficient object detection.
 keywords: YOLO26, DeepSparse, Neural Magic, model optimization, object detection, inference speed, CPU performance, sparsity, pruning, quantization
@@ -12,7 +13,7 @@ This guide shows you how to deploy YOLO26 using Neural Magic's DeepSparse, how t
 
 !!! danger "SparseML EOL"
 
-    Neural Magic was [acquired by Red Hat in January 2025](https://www.redhat.com/en/about/press-releases/red-hat-completes-acquisition-neural-magic-fuel-optimized-generative-ai-innovation-across-hybrid-cloud), and is deprecating the community versions of their `deepsparse`, `sparseml`, `sparsezoo`, and `sparsify` libraries. For additional information, see the notice posted [in the Readme on the `sparseml` GitHub repository](https://github.com/neuralmagic/sparsify/blob/5eb26a4e21b497ce573d10024e318a5ce48a7f9c/README.md#-2025-end-of-life-announcement-deepsparse-sparseml-sparsezoo-and-sparsify).
+    Neural Magic was [acquired by Red Hat in January 2025](https://www.redhat.com/en/about/press-releases/red-hat-completes-acquisition-neural-magic-fuel-optimized-generative-ai-innovation-across-hybrid-cloud), and is deprecating the community versions of their `deepsparse`, `sparseml`, `sparsezoo`, and `sparsify` libraries. For additional information, see the notice posted [in the Readme on the `sparsify` GitHub repository](https://github.com/neuralmagic/sparsify/blob/5eb26a4e21b497ce573d10024e318a5ce48a7f9c/README.md#-2025-end-of-life-announcement-deepsparse-sparseml-sparsezoo-and-sparsify).
 
 ## Neural Magic's DeepSparse
 

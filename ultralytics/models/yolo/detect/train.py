@@ -148,24 +148,36 @@ class DetectionTrainer(BaseTrainer):
         if getattr(self.model, "end2end", False):
             self.model.set_head_attr(max_det=self.args.max_det)
 
+    def get_class_counts(self):
+        """Return per-class instance counts from the training dataset labels."""
+        classes = np.concatenate([lb["cls"].flatten() for lb in self.train_loader.dataset.labels], 0)
+        return np.bincount(classes.astype(int), minlength=self.data["nc"]).astype(np.float32)
+
+    def compute_class_weights(self, class_counts):
+        """Convert class counts to inverse-frequency weights raised to the power of cls_pw."""
+        class_counts = np.where(class_counts == 0, 1.0, class_counts)
+        return (1.0 / class_counts) ** self.args.cls_pw  # apply power directly
+
     def set_class_weights(self):
         """Compute and set class weights for handling class imbalance.
 
         Class weights are computed based on inverse class frequency in the training dataset,
-        raised to the power of cls_pw (0 < cls_pw <= 1 dampens, cls_pw > 1 amplifies).
+        raised to the power of cls_pw (0 < cls_pw <= 1 dampens; values are restricted to the range [0, 1]).
         Final weights are normalized so their mean equals 1.0.
         """
         assert 0 <= self.args.cls_pw <= 1.0, "cls_pw must be in the range [0, 1]"
         if self.args.cls_pw == 0.0:
             return
-        classes = np.concatenate([lb["cls"].flatten() for lb in self.train_loader.dataset.labels], 0)
-        class_counts = np.bincount(classes.astype(int), minlength=self.data["nc"]).astype(np.float32)
-        class_counts = np.where(class_counts == 0, 1.0, class_counts)
-
-        weights = (1.0 / class_counts) ** self.args.cls_pw  # apply power directly
+        class_counts = self.get_class_counts()
+        if not class_counts.any():  # nothing counted (e.g. missing/unreadable masks); keep default weights
+            return
+        weights = self.compute_class_weights(class_counts)
         weights = weights / weights.mean()  # normalize so mean equals 1.0
-        self.model.class_weights = torch.from_numpy(weights).to(self.device)
-        LOGGER.info(f"Class weights: {self.model.class_weights.cpu().numpy().round(3)}")
+        model = self.model
+        if hasattr(unwrap_model(model), "student_model"):
+            model = unwrap_model(model).student_model  # distillation: the student model builds the loss criterion
+        model.class_weights = torch.from_numpy(weights).to(self.device)
+        LOGGER.info(f"Class weights: {model.class_weights.cpu().numpy().round(3)}")
 
     def get_model(self, cfg: str | None = None, weights: str | None = None, verbose: bool = True):
         """Return a YOLO detection model.

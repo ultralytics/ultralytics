@@ -150,6 +150,8 @@ class YOLODataset(BaseDataset):
         if msgs:
             LOGGER.info("\n".join(msgs))
         if nf == 0:
+            if self.augment:  # training requires labels; unlabeled val splits (e.g. COCO test-dev) only warn
+                raise ValueError(f"{self.prefix}No labels found in {path}. {HELP_URL}")
             LOGGER.warning(f"{self.prefix}No labels found in {path}. {HELP_URL}")
         x["hash"] = get_hash(self.label_files + self.im_files)
         x["results"] = nf, nm, ne, nc, len(self.im_files)
@@ -194,6 +196,11 @@ class YOLODataset(BaseDataset):
         # Check if the dataset is all boxes or all segments
         lengths = ((len(lb["cls"]), len(lb["bboxes"]), len(lb["segments"])) for lb in labels)
         len_cls, len_boxes, len_segments = (sum(x) for x in zip(*lengths))
+        if self.use_segments and len_boxes != len_segments:
+            raise ValueError(
+                f"Segment dataset requires equal numbers of boxes and segments, but got len(segments) = "
+                f"{len_segments}, len(boxes) = {len_boxes}. Please supply a segment dataset, not a detect dataset."
+            )
         if len_segments and len_boxes != len_segments:
             LOGGER.warning(
                 f"Box and segment counts should be equal, but got len(segments) = {len_segments}, "
@@ -694,6 +701,7 @@ class SemanticDataset(YOLODataset):
     Attributes:
         data (dict): Dataset configuration from YAML.
         mask_files (list[str]): List of mask file paths corresponding to images.
+        include_class (np.ndarray | None): Class ids to keep per pixel (None keeps all).
     """
 
     def __init__(self, *args, data: dict | None = None, **kwargs):
@@ -707,7 +715,28 @@ class SemanticDataset(YOLODataset):
         self.data = data or {}
         self.label_mapping = self._parse_label_mapping(self.data.get("label_mapping"))
         self.mask_files = []
+        self.include_class = None
         super().__init__(*args, data=data, **kwargs)
+
+    def update_labels(self, include_class: list[int] | None) -> None:
+        """Update labels to include only specified classes.
+
+        Args:
+            include_class (list[int], optional): List of classes to include. If None, all classes are included.
+        """
+        if self.single_cls:
+            raise NotImplementedError(
+                "'single_cls=True' is not supported for semantic segmentation: it forces a single-channel "
+                "model but cannot collapse multi-class masks. Use a dataset with 'nc: 1' for binary "
+                "(foreground/background) segmentation instead."
+            )
+        self.include_class = None if include_class is None else np.asarray(include_class, dtype=np.int32).reshape(-1)
+        if self.include_class is not None and int(self.data.get("nc", 0)) == 1:
+            LOGGER.warning(
+                "'classes' filtering is ignored for single-class (binary) semantic segmentation: keeping only "
+                "the sole class would discard all background supervision."
+            )
+            self.include_class = None
 
     def _parse_label_mapping(self, mapping):
         """Normalize label_mapping entries from dataset YAML into integer-to-integer ids."""
@@ -880,6 +909,8 @@ class SemanticDataset(YOLODataset):
         label = super().get_image_and_label(index)
         h, w = label["img"].shape[:2]
         mask = self.load_mask(index, image_shape=(h, w))
+        if self.include_class is not None:  # keep only selected classes; remap the rest to the ignore label
+            mask[~np.isin(mask, self.include_class)] = 255
         # Resize mask to match the resized image dimensions
         if mask.shape[:2] != (h, w):
             mask = cv2.resize(mask, (w, h), interpolation=cv2.INTER_NEAREST)
@@ -955,11 +986,15 @@ class ClassificationDataset:
         torch_transforms (callable): PyTorch transforms to be applied to the images.
         root (str): Root directory of the dataset.
         prefix (str): Prefix for logging and cache filenames.
+        img_cache (np.ndarray): Contiguous uint8 buffer holding all cached images when caching in RAM.
+        img_offsets (np.ndarray): Flat offset of each image within img_cache.
+        img_shapes (list): (h, w, c) shape of each cached image.
 
     Methods:
         __getitem__: Return transformed image and class index for the given sample index.
         __len__: Return the total number of samples in the dataset.
         verify_images: Verify all images in dataset.
+        cache_images: Decode all images once into a single contiguous RAM buffer.
     """
 
     def __init__(self, root: str, args, augment: bool = False, prefix: str = ""):
@@ -987,15 +1022,11 @@ class ClassificationDataset:
             self.samples = self.samples[: round(len(self.samples) * args.fraction)]
         self.prefix = colorstr(f"{prefix}: ") if prefix else ""
         self.cache_ram = args.cache is True or str(args.cache).lower() == "ram"  # cache images into RAM
-        if self.cache_ram:
-            LOGGER.warning(
-                "Classification `cache_ram` training has known memory leak in "
-                "https://github.com/ultralytics/ultralytics/issues/9824, setting `cache_ram=False`."
-            )
-            self.cache_ram = False
         self.cache_disk = str(args.cache).lower() == "disk"  # cache images on hard drive as uncompressed *.npy files
         self.samples = self.verify_images()  # filter out bad images
         self.samples = [[*list(x), Path(x[0]).with_suffix(".npy"), None] for x in self.samples]  # file, index, npy, im
+        if self.cache_ram:
+            self.cache_images()
         scale = (1.0 - args.scale, 1.0)  # (0.08, 1.0)
         self.torch_transforms = (
             classify_augmentations(
@@ -1024,8 +1055,9 @@ class ClassificationDataset:
         """
         f, j, fn, im = self.samples[i]  # filename, index, filename.with_suffix('.npy'), image
         if self.cache_ram:
-            if im is None:  # Warning: two separate if statements required here, do not combine this with previous line
-                im = self.samples[i][3] = cv2.imread(f)
+            h, w, c = self.img_shapes[i]
+            pos = self.img_offsets[i]
+            im = self.img_cache[pos : pos + h * w * c].reshape(h, w, c)  # zero-copy view
         elif self.cache_disk:
             if not fn.exists():  # load npy
                 np.save(fn.as_posix(), cv2.imread(f), allow_pickle=False)
@@ -1041,6 +1073,26 @@ class ClassificationDataset:
         """Return the total number of samples in the dataset."""
         return len(self.samples)
 
+    def cache_images(self) -> None:
+        """Decode all images once into a single contiguous uint8 buffer before DataLoader workers fork.
+
+        A Python list of per-image arrays is duplicated into every forked worker by copy-on-write refcounting
+        (https://github.com/ultralytics/ultralytics/issues/9824); one shared numpy buffer is read-only across
+        workers instead, so RAM stays flat. Original image sizes are preserved for the transforms.
+        """
+        with ThreadPool(NUM_THREADS) as pool:
+            ims = list(
+                TQDM(
+                    pool.imap(lambda s: cv2.imread(s[0]), self.samples),
+                    total=len(self.samples),
+                    desc=f"{self.prefix}Caching images",
+                    disable=LOCAL_RANK > 0,
+                )
+            )
+        self.img_shapes = [im.shape for im in ims]
+        self.img_offsets = np.cumsum([0] + [im.size for im in ims[:-1]])
+        self.img_cache = np.concatenate([im.reshape(-1) for im in ims])
+
     def verify_images(self) -> list[tuple]:
         """Verify all images in dataset.
 
@@ -1055,7 +1107,7 @@ class ClassificationDataset:
             cache = load_dataset_cache_file(path)  # attempt to load a *.cache file
             assert cache["version"] == DATASET_CACHE_VERSION  # matches current version
             assert cache["hash"] == get_hash([x[0] for x in self.samples])  # identical hash
-            nf, nc, n, samples = cache.pop("results")  # found, missing, empty, corrupt, total
+            nf, nc, n, samples = cache.pop("results")  # found, corrupt, total, samples
             if LOCAL_RANK in {-1, 0}:
                 d = f"{desc} {nf} images, {nc} corrupt"
                 TQDM(None, desc=d, total=n, initial=n)

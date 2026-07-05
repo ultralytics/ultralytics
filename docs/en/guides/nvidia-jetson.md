@@ -1,4 +1,5 @@
 ---
+title: YOLO26 on NVIDIA Jetson Setup & Benchmarks
 comments: true
 description: Learn to deploy Ultralytics YOLO26 on NVIDIA Jetson devices with our detailed guide. Explore performance benchmarks and maximize AI capabilities.
 keywords: Ultralytics, YOLO26, NVIDIA Jetson, JetPack, AI deployment, performance benchmarks, embedded systems, deep learning, TensorRT, computer vision
@@ -50,7 +51,7 @@ For a more detailed comparison table, please visit the **Compare Specifications*
 
 ## What is NVIDIA JetPack?
 
-[NVIDIA JetPack SDK](https://developer.nvidia.com/embedded/jetpack) powering the Jetson modules is the most comprehensive solution and provides full development environment for building end-to-end accelerated AI applications and shortens time to market. JetPack includes Jetson Linux with bootloader, Linux kernel, Ubuntu desktop environment, and a complete set of libraries for acceleration of GPU computing, multimedia, graphics, and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv). It also includes samples, documentation, and developer tools for both host computer and developer kit, and supports higher level SDKs such as [DeepStream](https://docs.ultralytics.com/guides/deepstream-nvidia-jetson) for streaming video analytics, Isaac for robotics, and Riva for conversational AI.
+[NVIDIA JetPack SDK](https://developer.nvidia.com/embedded/jetpack) powering the Jetson modules is the most comprehensive solution and provides full development environment for building end-to-end accelerated AI applications and shortens time to market. JetPack includes Jetson Linux with bootloader, Linux kernel, Ubuntu desktop environment, and a complete set of libraries for acceleration of GPU computing, multimedia, graphics, and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv). It also includes samples, documentation, and developer tools for both host computer and developer kit, and supports higher level SDKs such as [DeepStream](deepstream-nvidia-jetson.md) for streaming video analytics, Isaac for robotics, and Riva for conversational AI.
 
 ## Flash JetPack to NVIDIA Jetson
 
@@ -344,6 +345,10 @@ The YOLO26n model in PyTorch format is converted to TensorRT to run inference wi
 
 [NVIDIA Deep Learning Accelerator (DLA)](https://developer.nvidia.com/deep-learning-accelerator) is a specialized hardware component built into NVIDIA Jetson devices that optimizes deep learning inference for energy efficiency and performance. By offloading tasks from the GPU (freeing it up for more intensive processes), DLA enables models to run with lower power consumption while maintaining high throughput, ideal for embedded systems and real-time AI applications.
 
+!!! warning "TensorRT 11.0 and DLA"
+
+    DLA is not supported in TensorRT 11.0 and is planned to return in a later release, so DLA export requires TensorRT 10.x. On JetPack 6.x/7.x, export with a TensorRT 10.x build to use DLA, or use the GPU for TensorRT 11.0 engines.
+
 The following Jetson devices are equipped with DLA hardware:
 
 | Jetson Device            | DLA Cores | DLA Max Frequency |
@@ -365,7 +370,7 @@ The following Jetson devices are equipped with DLA hardware:
         model = YOLO("yolo26n.pt")
 
         # Export the model to TensorRT with DLA enabled (only works with FP16 or INT8)
-        model.export(format="engine", device="dla:0", half=True)  # dla:0 or dla:1 corresponds to the DLA cores
+        model.export(format="engine", device="dla:0", quantize=16)  # dla:0 or dla:1 corresponds to the DLA cores
 
         # Load the exported TensorRT model
         trt_model = YOLO("yolo26n.engine")
@@ -379,7 +384,7 @@ The following Jetson devices are equipped with DLA hardware:
         ```bash
         # Export a YOLO26n PyTorch model to TensorRT format with DLA enabled (only works with FP16 or INT8)
         # Once DLA core number is specified at export, it will use the same core at inference
-        yolo export model=yolo26n.pt format=engine device="dla:0" half=True # dla:0 or dla:1 corresponds to the DLA cores
+        yolo export model=yolo26n.pt format=engine device="dla:0" quantize=16 # dla:0 or dla:1 corresponds to the DLA cores
 
         # Run inference with the exported model on the DLA
         yolo predict model=yolo26n.engine source='https://ultralytics.com/images/bus.jpg'
@@ -896,7 +901,7 @@ Non-essential background services (Bluetooth, connectivity managers, unused hard
 systemctl list-units --type=service --state=running
 
 # Disable a service
-sudo systemctl disable <service-name>
+sudo systemctl disable SERVICE_NAME
 ```
 
 ### 3. Profile Memory Usage

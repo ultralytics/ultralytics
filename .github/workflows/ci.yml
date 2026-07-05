@@ -81,8 +81,9 @@ jobs:
             if [[ "${{ matrix.os }}" != "cpu-latest" ]]; then
               uv_system_args=(--system)
             fi
+            # Pin PNNX until 20260704 NCNN inference segfault is fixed: https://github.com/pnnx/pnnx/issues/293
             uv pip install "${uv_system_args[@]}" -e ".[export,export-executorch]" \
-              ncnn pnnx "coverage[toml]" \
+              ncnn pnnx==20260526 "coverage[toml]" \
               --torch-backend cpu
       - name: Check environment
         run: |

@@ -18,7 +18,7 @@ from PIL import Image
 
 from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
 from ultralytics import RTDETR, YOLO
-from ultralytics.data.build import load_inference_source
+from ultralytics.data.build import build_dataloader, load_inference_source
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.utils import (
     ARM64,
@@ -41,6 +41,31 @@ from ultralytics.utils import (
 )
 from ultralytics.utils.downloads import download, safe_download
 from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13
+
+
+class TinyDataset(torch.utils.data.Dataset):
+    """Minimal dataset for dataloader worker-count tests."""
+
+    def __init__(self, size: int):
+        self.size = size
+
+    def __len__(self):
+        return self.size
+
+    def __getitem__(self, index):
+        return torch.tensor(index)
+
+
+def test_dataloader_caps_workers_to_batches():
+    """Test tiny datasets do not spawn persistent workers beyond useful batch count."""
+    single_batch = build_dataloader(TinyDataset(4), batch=4, workers=8)
+    two_batches = build_dataloader(TinyDataset(8), batch=4, workers=8)
+    try:
+        assert single_batch.num_workers == 0
+        assert two_batches.num_workers <= 2
+    finally:
+        single_batch.close()
+        two_batches.close()
 
 
 def skip_rpi_semantic():

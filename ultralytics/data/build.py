@@ -340,8 +340,11 @@ def build_dataloader(
         >>> dataloader = build_dataloader(dataset, batch=16, workers=4, shuffle=True)
     """
     batch = min(batch, len(dataset))
+    batches = math.ceil(len(dataset) / max(batch, 1))
     nd = torch.cuda.device_count()  # number of CUDA devices
-    nw = min(os.cpu_count() // max(nd, 1), workers)  # number of workers
+    # Do not create more worker processes than batches. Single-batch loaders run in-process to avoid persistent
+    # DataLoader worker pools that add overhead and can stall tiny datasets while holding CUDA context.
+    nw = min(os.cpu_count() // max(nd, 1), workers, 0 if batches <= 1 else batches)  # number of workers
     sampler = (
         None
         if rank == -1

@@ -537,8 +537,7 @@ class LoadPilAndNumpy:
             im = im[..., None] if flag == "L" else im[..., ::-1]
             im = np.ascontiguousarray(im)  # contiguous
         elif im.ndim == 2:  # grayscale in numpy form
-            # Expand to 3 channels for a color model (as PIL/file inputs do); keep 1 channel for a grayscale model.
-            # np.repeat (vs cv2.cvtColor) keeps the input dtype for any 2D array.
+            # Expand 2D grayscale to 3 channels for color models (like PIL/file inputs); np.repeat preserves dtype
             im = im[..., None] if flag == "L" else np.repeat(im[..., None], 3, axis=2)
         return im
 

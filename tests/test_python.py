@@ -725,6 +725,7 @@ def test_utils_checks():
     with pytest.raises(ValueError):
         checks.check_imgsz("640x480")  # malformed imgsz string raises a helpful ValueError, not a raw SyntaxError
     checks.check_imshow(warn=True)
+    checks.check_suffix("https://example.com/model.pt?token=abc", ".pt")
     checks.check_version("ultralytics", "8.0.0")
     # parse_version must pad to a 3-tuple so shorter version strings compare correctly
     assert checks.parse_version("2") == (2, 0, 0)
@@ -760,6 +761,7 @@ def test_utils_ops():
         ltwh2xywh,
         ltwh2xyxy,
         make_divisible,
+        segment2box,
         xywh2ltwh,
         xywh2xyxy,
         xywhn2xyxy,
@@ -781,6 +783,9 @@ def test_utils_ops():
     boxes = torch.rand(10, 5)  # xywhr for OBB
     boxes[:, 4] = torch.randn(10) * 30
     torch.allclose(boxes, xyxyxyxy2xywhr(xywhr2xyxyxyxy(boxes)), rtol=1e-3)
+
+    # segment2box must not drop a polygon lying on the left image edge (all x == 0) to a zero box
+    assert segment2box(np.array([[0, 100], [0, 150], [0, 200]]), 640, 640).tolist() == [0, 100, 0, 200]
 
 
 def test_utils_files(tmp_path):

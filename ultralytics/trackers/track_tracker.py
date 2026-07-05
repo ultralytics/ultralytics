@@ -388,7 +388,9 @@ class TRACKTRACK:
 
         from .utils.reid import build_encoder
 
-        self.encoder = build_encoder(getattr(args, "with_reid", False), getattr(args, "model", "auto"))
+        self.encoder = build_encoder(
+            getattr(args, "with_reid", False), getattr(args, "model", "auto"), getattr(args, "device", None)
+        )
 
     @classmethod
     def setup_predictor(cls, predictor):

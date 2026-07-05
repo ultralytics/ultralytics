@@ -10,12 +10,20 @@ from math import isfinite
 from pathlib import Path
 from time import sleep, time
 
-from ultralytics.utils import ENVIRONMENT, GIT, LOGGER, PYTHON_VERSION, RANK, SETTINGS, TESTS_RUNNING, Retry, colorstr
+from ultralytics.utils import (
+    ENVIRONMENT,
+    GIT,
+    LOGGER,
+    PLATFORM_URL,
+    PYTHON_VERSION,
+    RANK,
+    SETTINGS,
+    TESTS_RUNNING,
+    Retry,
+    colorstr,
+)
 
 PREFIX = colorstr("Platform: ")
-
-# Configurable platform URL for debugging (e.g. ULTRALYTICS_PLATFORM_URL=http://localhost:3000)
-PLATFORM_URL = os.getenv("ULTRALYTICS_PLATFORM_URL", "https://platform.ultralytics.com").rstrip("/")
 PLATFORM_API_URL = f"{PLATFORM_URL}/api/webhooks"
 
 
@@ -426,7 +434,7 @@ def on_fit_epoch_end(trainer):
     system = {}
     try:
         if not ctx["system_logger"]:
-            ctx["system_logger"] = SystemLogger()
+            ctx["system_logger"] = SystemLogger(all_drives=True)
         system = ctx["system_logger"].get_metrics(rates=True)
     except Exception:
         pass

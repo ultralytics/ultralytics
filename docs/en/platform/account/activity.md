@@ -1,4 +1,5 @@
 ---
+title: Account Activity Feed
 comments: true
 description: Track all account activity and events on Ultralytics Platform with the activity feed, including training, uploads, and system events.
 keywords: Ultralytics Platform, activity feed, audit log, notifications, event tracking, activity history
@@ -98,7 +99,7 @@ Find specific events quickly:
 
 ### Search
 
-Use the search bar to find events by resource name or event description.
+Use the search bar to find events by resource name or resource type.
 
 ### Date Range
 
@@ -114,12 +115,12 @@ Filter by time period using the date range picker:
 
 Each event displays:
 
-| Field           | Description                                        |
-| --------------- | -------------------------------------------------- |
-| **Icon**        | Resource type indicator                            |
-| **Description** | What happened (e.g., "Created project my-project") |
-| **Timestamp**   | Relative time (e.g., "2 hours ago")                |
-| **Metadata**    | Additional context when available                  |
+| Field           | Description                                            |
+| --------------- | ------------------------------------------------------ |
+| **Icon**        | Resource type indicator                                |
+| **Description** | What happened (e.g., "Created project my-project")     |
+| **Timestamp**   | Relative time (e.g., "Today at 3:45 PM", "3 days ago") |
+| **Metadata**    | Additional context when available                      |
 
 ## Undo Support
 

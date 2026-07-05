@@ -273,6 +273,15 @@ def test_predict_gray_and_4ch(tmp_path):
         f.unlink()  # cleanup
 
 
+def test_predict_grayscale_ndarray():
+    """Test that a 2D grayscale NumPy array is accepted by a color model, consistent with PIL/file inputs."""
+    model = YOLO(MODEL)  # default 3-channel model
+    gray = np.asarray(Image.open(SOURCE).convert("L"))  # genuine 2D (H, W) uint8 array
+    assert gray.ndim == 2, "Expected a 2D grayscale array for this test"
+    assert len(model(source=gray, imgsz=32, verbose=False)) == 1  # 2D ndarray auto-expanded to 3 channels
+    assert len(model(source=gray.astype("float64"), imgsz=32, verbose=False)) == 1  # non-OpenCV dtype also works
+
+
 @pytest.mark.slow
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 def test_predict_all_image_formats():

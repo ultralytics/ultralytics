@@ -496,6 +496,8 @@ def process_mask(protos, masks_in, bboxes, shape, upsample: bool = False):
             upsample=True h and w match the input image size; otherwise they are the prototype mask resolution.
     """
     c, mh, mw = protos.shape  # CHW
+    if upsample and masks_in.shape[0] == 0:  # F.interpolate below rejects an empty (N=0) batch
+        return torch.zeros((0, *shape), dtype=torch.uint8, device=masks_in.device)
     masks = (masks_in @ protos.float().view(c, -1)).view(-1, mh, mw)  # NHW
 
     width_ratio = mw / shape[1]
@@ -521,8 +523,10 @@ def process_mask_native(protos, masks_in, bboxes, shape):
         (torch.Tensor): Binary mask tensor with shape (N, H, W).
     """
     c, mh, mw = protos.shape  # CHW
-    coeffs = masks_in @ protos.float().view(c, -1)  # (N, mh*mw) prototype-resolution mask logits
     h, w = shape
+    if masks_in.shape[0] == 0:  # no detections: return a well-formed empty mask stack
+        return torch.zeros((0, h, w), dtype=torch.uint8, device=masks_in.device)
+    coeffs = masks_in @ protos.float().view(c, -1)  # (N, mh*mw) prototype-resolution mask logits
     # Upsampling all N masks at once allocates an N*H*W float intermediate (~9 GB on a large image with many
     # detections), which OOMs the worker. Upsample in chunks bounded by a pixel budget, thresholding each chunk to
     # uint8 immediately so the float intermediate stays small, then crop the assembled uint8 stack.

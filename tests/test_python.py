@@ -788,6 +788,30 @@ def test_utils_ops():
     assert segment2box(np.array([[0, 100], [0, 150], [0, 200]]), 640, 640).tolist() == [0, 100, 0, 200]
 
 
+def test_process_mask_empty():
+    """process_mask/process_mask_native must handle a frame with 0 detections without crashing."""
+    from ultralytics.utils.ops import process_mask, process_mask_native
+
+    protos = torch.rand(32, 160, 160)
+    empty_coeffs = torch.zeros(0, 32)
+    empty_bboxes = torch.zeros(0, 4)
+
+    # 0 detections -> well-formed empty mask stacks (same dtype/device as N>=1), not a crash
+    for empty in (
+        process_mask(protos, empty_coeffs, empty_bboxes, (640, 640), upsample=True),
+        process_mask_native(protos, empty_coeffs, empty_bboxes, (640, 640)),
+    ):
+        assert tuple(empty.shape) == (0, 640, 640)
+        assert empty.dtype == torch.uint8
+        assert empty.device == protos.device
+    assert tuple(process_mask(protos, empty_coeffs, empty_bboxes, (640, 640), upsample=False).shape) == (0, 160, 160)
+
+    # a single detection must still return one mask at the requested resolution
+    coeffs, bboxes = torch.rand(1, 32), torch.tensor([[10.0, 10.0, 100.0, 100.0]])
+    assert tuple(process_mask(protos, coeffs, bboxes, (640, 640), upsample=True).shape) == (1, 640, 640)
+    assert tuple(process_mask_native(protos, coeffs, bboxes, (640, 640)).shape) == (1, 640, 640)
+
+
 def test_utils_files(tmp_path):
     """Test file handling utilities including file age, date, and paths with spaces."""
     from ultralytics.utils.files import file_age, file_date, get_latest_run, increment_path, spaces_in_path

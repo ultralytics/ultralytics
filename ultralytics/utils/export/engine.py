@@ -231,10 +231,10 @@ def _constrain_sensitive_activations_fp32(network, config, trt, prefix: str = ""
     separate ``ISoftMaxLayer`` (``LayerType.SOFTMAX``), so both layer types must be checked.
 
     Args:
-        network: TensorRT INetworkDefinition.
-        config: TensorRT IBuilderConfig.
-        trt: The tensorrt module.
-        prefix: Log message prefix.
+        network (Any): TensorRT INetworkDefinition.
+        config (Any): TensorRT IBuilderConfig.
+        trt (types.ModuleType): The tensorrt module.
+        prefix (str): Log message prefix.
 
     Returns:
         (int): Number of layers constrained to FP32.

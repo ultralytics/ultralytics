@@ -259,6 +259,21 @@ def test_train_pretrained(scls):
     model(SOURCE)
 
 
+@pytest.mark.skipif(not ONLINE, reason="environment is offline")
+def test_train_resume_save_dir(isolated_model, tmp_path):
+    """Test resuming preserves 'save_dir' override."""
+    from ultralytics.cfg import get_save_dir
+    from ultralytics.models.yolo.detect import DetectionTrainer
+
+    save_dir = tmp_path / "resume_custom"
+    overrides = {"data": "coco8.yaml", "device": "cpu", "resume": isolated_model, "save_dir": str(save_dir)}
+    trainer = DetectionTrainer(overrides=overrides)
+    trainer.check_resume(overrides)
+    assert trainer.save_dir == save_dir
+    assert str(trainer.args.save_dir) == str(save_dir)
+    assert get_save_dir(trainer.args) == save_dir
+
+
 def test_all_model_yamls():
     """Test YOLO model creation for all available YAML configurations in the `cfg/models` directory."""
     for m in (ROOT / "cfg" / "models").rglob("*.yaml"):

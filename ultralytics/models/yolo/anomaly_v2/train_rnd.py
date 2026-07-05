@@ -98,8 +98,10 @@ class AnomalyV2RNDTrainer(AnomalyV2Trainer):
             rows = self._run_ood_eval(ema_eval, yamls, v2_cfg)
             if rows:
                 avg = _average_ood_rows(rows)
+                avg_metrics = {f"ood/{k}": v for k, v in avg.items()}
                 fitness = float(avg["mAP50"])
                 metrics["fitness"] = fitness
+                metrics.update(avg_metrics)
                 self.best_fitness = max(self.best_fitness or -math.inf, fitness)
                 LOGGER.info(
                     f"OOD eval @ep{self.epoch + 1}: mAP50={avg['mAP50']:.4f} "

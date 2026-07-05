@@ -627,11 +627,12 @@ class YOLOAnomalyV2Model(DetectionModel):
 
         target_device = device if device is not None else next(self.parameters()).device
         self.to(target_device)
-        for images in self._iter_image_batches(
-            source, imgsz=imgsz, batch=batch, max_images=max_images, verbose=verbose
-        ):
-            feats = self._extract_bb_features(images.to(target_device))
-            mb.add_features(feats)
+        with torch.no_grad():  # bank build is gradient-free; grad-tracking banks break deepcopy in save/export
+            for images in self._iter_image_batches(
+                source, imgsz=imgsz, batch=batch, max_images=max_images, verbose=verbose
+            ):
+                feats = self._extract_bb_features(images.to(target_device))
+                mb.add_features(feats)
 
         mb.freeze()
         final_size = mb.bank.shape[0]

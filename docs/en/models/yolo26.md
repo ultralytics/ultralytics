@@ -66,8 +66,9 @@ YOLO26 builds upon the versatile model range established by earlier Ultralytics 
 | YOLO26-pose | `yolo26n-pose.pt` `yolo26s-pose.pt` `yolo26m-pose.pt` `yolo26l-pose.pt` `yolo26x-pose.pt` | [Pose/Keypoints](../tasks/pose.md)           | ✅        | ✅         | ✅       | ✅     |
 | YOLO26-obb  | `yolo26n-obb.pt` `yolo26s-obb.pt` `yolo26m-obb.pt` `yolo26l-obb.pt` `yolo26x-obb.pt`      | [Oriented Detection](../tasks/obb.md)        | ✅        | ✅         | ✅       | ✅     |
 | YOLO26-cls  | `yolo26n-cls.pt` `yolo26s-cls.pt` `yolo26m-cls.pt` `yolo26l-cls.pt` `yolo26x-cls.pt`      | [Classification](../tasks/classify.md)       | ✅        | ✅         | ✅       | ✅     |
+| YOLOA       | `yolo26n-anomaly.yaml` (n/s/m/l/x scales; pretrained weights not yet published)           | [Anomaly Detection](../tasks/anomaly.md)     | ✅        | ✅         | ✅       | ✅     |
 
-This unified framework ensures YOLO26 is applicable across real-time detection, segmentation, classification, pose estimation, and oriented object detection — all with training, validation, inference, and export support.
+This unified framework ensures YOLO26 is applicable across real-time detection, segmentation, classification, pose estimation, oriented object detection, and anomaly detection — all with training, validation, inference, and export support.
 
 ---
 
@@ -355,6 +356,7 @@ YOLO26 is a **unified model family**, providing end-to-end support for multiple 
 - [Image Classification](../tasks/classify.md)
 - [Pose Estimation](../tasks/pose.md)
 - [Oriented Object Detection (OBB)](../tasks/obb.md)
+- [Anomaly Detection](../tasks/anomaly.md)
 
 Each size variant (n, s, m, l, x) supports all tasks, plus open-vocabulary versions via [YOLOE-26](#yoloe-26-open-vocabulary-instance-segmentation).
 

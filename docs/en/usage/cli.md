@@ -29,7 +29,7 @@ The Ultralytics command line interface (CLI) provides a straightforward way to u
         ```
 
         Where:
-        - `TASK` (optional) is one of [detect, segment, classify, pose, obb]
+        - `TASK` (optional) is one of [detect, segment, classify, pose, obb, anomaly_v2] (`anomaly_v2` has no default model yet and requires an explicit `model=`)
         - `MODE` (required) is one of [train, val, predict, export, track, benchmark]
         - `ARGS` (optional) are any number of custom `arg=value` pairs like `imgsz=320` that override defaults.
 
@@ -82,7 +82,7 @@ The Ultralytics command line interface (CLI) provides a straightforward way to u
 
 Where:
 
-- `TASK` (optional) is one of `[detect, segment, classify, pose, obb]`. If not explicitly passed, YOLO will attempt to infer the `TASK` from the model type.
+- `TASK` (optional) is one of `[detect, segment, classify, pose, obb, anomaly_v2]`. If not explicitly passed, YOLO will attempt to infer the `TASK` from the model type. The `anomaly_v2` task has no default model yet and requires an explicit `model=` argument.
 - `MODE` (required) is one of `[train, val, predict, export, track, benchmark]`
 - `ARGS` (optional) are any number of custom `arg=value` pairs like `imgsz=320` that override defaults. For a full list of available `ARGS`, see the [Configuration](cfg.md) page and `default.yaml`.
 

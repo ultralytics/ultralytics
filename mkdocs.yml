@@ -236,6 +236,7 @@ nav:
       - Classify: tasks/classify.md
       - Pose: tasks/pose.md
       - OBB: tasks/obb.md
+      - Anomaly: tasks/anomaly.md
   - Models:
       - models/index.md
       - YOLOv3: models/yolov3.md
@@ -457,6 +458,8 @@ nav:
           - VisDrone: datasets/detect/visdrone.md
           - VOC: datasets/detect/voc.md
           - xView: datasets/detect/xview.md
+      - Anomaly Detection:
+          - datasets/anomaly/index.md
       - Segmentation:
           - datasets/segment/index.md
           - Carparts-seg: datasets/segment/carparts-seg.md
@@ -719,6 +722,11 @@ nav:
               - loss: reference/models/utils/loss.md
               - ops: reference/models/utils/ops.md
           - yolo:
+              - anomaly_v2:
+                  - predict: reference/models/yolo/anomaly_v2/predict.md
+                  - train: reference/models/yolo/anomaly_v2/train.md
+                  - train_rnd: reference/models/yolo/anomaly_v2/train_rnd.md
+                  - val: reference/models/yolo/anomaly_v2/val.md
               - classify:
                   - predict: reference/models/yolo/classify/predict.md
                   - train: reference/models/yolo/classify/train.md
@@ -767,6 +775,8 @@ nav:
               - triton: reference/nn/backends/triton.md
           - modules:
               - activation: reference/nn/modules/activation.md
+              - anomaly_v2: reference/nn/modules/anomaly_v2.md
+              - anomaly_v2_prior_augment: reference/nn/modules/anomaly_v2_prior_augment.md
               - block: reference/nn/modules/block.md
               - conv: reference/nn/modules/conv.md
               - head: reference/nn/modules/head.md
@@ -857,6 +867,7 @@ nav:
           - triton: reference/utils/triton.md
           - tuner: reference/utils/tuner.md
           - uploads: reference/utils/uploads.md
+      - yoloa: reference/yoloa.md
 
   - Help:
       - Help: help/index.md

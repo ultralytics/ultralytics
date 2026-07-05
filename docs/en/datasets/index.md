@@ -46,6 +46,12 @@ Ultralytics provides support for various datasets to facilitate computer vision 
 - [VOC](detect/voc.md): The Pascal Visual Object Classes (VOC) dataset for object detection and segmentation with 20 object classes and over 11K images.
 - [xView](detect/xview.md): A dataset for object detection in overhead imagery with 60 object categories and over 1 million annotated objects.
 
+## [Anomaly Detection](anomaly/index.md)
+
+Anomaly detection with YOLOA fits a memory bank on normal images alone and flags visual defects without labeled anomalies, targeting industrial quality inspection.
+
+- [Anomaly Dataset Guide](anomaly/index.md): How to prepare the normal-image fit set, the optional labeled-defect train set, and the validation layout.
+
 ## [Instance Segmentation](segment/index.md)
 
 Instance segmentation is a computer vision technique that involves identifying and localizing objects in an image at the pixel level. Unlike semantic segmentation which only classifies each pixel, [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) distinguishes between different instances of the same class.

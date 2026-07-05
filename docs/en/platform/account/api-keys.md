@@ -1,4 +1,5 @@
 ---
+title: API Key Management
 comments: true
 description: Create and manage API keys for Ultralytics Platform with secure AES-256-GCM encryption for remote training and programmatic access.
 keywords: Ultralytics Platform, API keys, authentication, remote training, security, access control
@@ -14,11 +15,10 @@ keywords: Ultralytics Platform, API keys, authentication, remote training, secur
 
 Create a new API key:
 
-1. Go to **Settings > Profile**
-2. Scroll to the **API Keys** section
-3. Click **Create Key**
-4. Enter a name for the key (e.g., "Training Server")
-5. Click **Create Key**
+1. Go to **Settings > API Keys**
+2. Click **Create Key**
+3. Enter a name for the key (e.g., "Training Server")
+4. Click **Create Key**
 
 ![Ultralytics Platform Settings Profile Tab Create Api Key Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-profile-tab-create-api-key-dialog.avif)
 
@@ -55,7 +55,7 @@ ul_a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4
 ### Key Security
 
 - Keys are stored with **AES-256-GCM encryption**
-- Authentication uses SHA-256 hash for fast prefix lookup and hash comparison
+- Authentication uses a SHA-256 hash for a fast indexed lookup
 - Full key values are never stored in plaintext
 
 ## Using API Keys
@@ -67,13 +67,13 @@ Set your key as an environment variable:
 === "Linux/macOS"
 
     ```bash
-    export ULTRALYTICS_API_KEY="ul_your_key_here"
+    export ULTRALYTICS_API_KEY="YOUR_API_KEY"
     ```
 
 === "Windows"
 
     ```powershell
-    $env:ULTRALYTICS_API_KEY = "ul_your_key_here"
+    $env:ULTRALYTICS_API_KEY = "YOUR_API_KEY"
     ```
 
 ### YOLO CLI
@@ -81,7 +81,7 @@ Set your key as an environment variable:
 Set the key using the YOLO CLI:
 
 ```bash
-yolo settings api_key="ul_your_key_here"
+yolo settings api_key="YOUR_API_KEY"
 ```
 
 ### In Code
@@ -95,7 +95,7 @@ import os
 api_key = os.environ.get("ULTRALYTICS_API_KEY")
 
 # Or directly (not recommended for production)
-api_key = "ul_your_key_here"
+api_key = "YOUR_API_KEY"
 ```
 
 ### HTTP Headers
@@ -103,7 +103,7 @@ api_key = "ul_your_key_here"
 Include the key in API requests:
 
 ```bash
-curl -H "Authorization: Bearer ul_your_key_here" \
+curl -H "Authorization: Bearer YOUR_API_KEY" \
   https://platform.ultralytics.com/api/...
 ```
 
@@ -115,14 +115,14 @@ Enable metric streaming with your key.
 
 !!! warning "Package Version Requirement"
 
-    Platform integration requires **ultralytics>=8.4.14**. Lower versions will NOT work with Platform.
+    Platform integration requires **ultralytics>=8.4.60**. Lower versions will NOT work with Platform.
 
     ```bash
-    pip install "ultralytics>=8.4.14"
+    pip install "ultralytics>=8.4.60"
     ```
 
 ```bash
-export ULTRALYTICS_API_KEY="ul_your_key_here"
+export ULTRALYTICS_API_KEY="YOUR_API_KEY"
 yolo train model=yolo26n.pt data=coco.yaml project=username/project name=exp1
 ```
 
@@ -132,7 +132,7 @@ See [Cloud Training](../train/cloud-training.md#remote-training) for the complet
 
 ### View Keys
 
-All keys are listed in `Settings > Profile` under the API Keys section:
+All keys are listed on the `Settings > API Keys` tab:
 
 Each key card shows the key name, the full decrypted key value (copyable), relative creation time, and a revoke button.
 
@@ -208,7 +208,7 @@ Solutions:
 1. Verify key is copied correctly (including the `ul_` prefix)
 2. Check key hasn't been revoked
 3. Confirm environment variable is set
-4. Ensure you're using `ultralytics>=8.4.14`
+4. Ensure you're using `ultralytics>=8.4.60`
 
 ### Permission Denied
 
@@ -246,7 +246,7 @@ Keys don't expire automatically. They remain valid until revoked. Consider imple
 
 ### Can I see my key after creation?
 
-Yes, full key values are visible in the key list on `Settings > Profile`. The Platform decrypts and displays your keys so you can copy them anytime.
+Yes, full key values are visible in the key list on `Settings > API Keys`. The Platform decrypts and displays your keys so you can copy them anytime.
 
 ### Are keys region-specific?
 

@@ -129,13 +129,19 @@ def on_pretrain_routine_start(trainer):
     """Initialize and start wandb project if module is present."""
     if not wb.run:
         from datetime import datetime
+        from pathlib import Path
 
         name = str(trainer.args.name).replace("/", "-").replace(" ", "_")
+        latest_run = Path(trainer.save_dir) / "wandb" / "latest-run"
+        resuming = trainer.args.resume and latest_run.exists()
         wb.init(
             project=str(trainer.args.project).replace("/", "-") if trainer.args.project else "Ultralytics",
             name=name,
             config=vars(trainer.args),
-            id=f"{name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",  # add unique id
+            id=latest_run.resolve().name.split("-", 2)[2]
+            if resuming
+            else f"{name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            resume="allow" if resuming else None,
             dir=str(trainer.save_dir),
         )
 

@@ -1,4 +1,5 @@
 ---
+title: Inference API Testing
 comments: true
 description: Learn how to test YOLO models with the Ultralytics Platform inference API including browser testing and programmatic access.
 keywords: Ultralytics Platform, inference, API, YOLO, object detection, prediction, testing
@@ -33,13 +34,14 @@ The predict panel supports multiple input methods:
 
 ```mermaid
 graph LR
-    A[Upload Image] --> D[Auto-Inference]
-    B[Example Image] --> D
-    C[Webcam Capture] --> D
-    D --> E[Results + Overlays]
+    A[Upload Image]:::start --> D[Auto-Inference]:::proc
+    B[Example Image]:::start --> D
+    C[Webcam Capture]:::start --> D
+    D --> E[Results + Overlays]:::out
 
-    style D fill:#2196F3,color:#fff
-    style E fill:#4CAF50,color:#fff
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 ### Upload Image
@@ -103,11 +105,11 @@ Adjust detection behavior with parameters in the collapsible **Parameters** sect
 
 ![Ultralytics Platform Predict Tab Parameters Sliders](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/predict-tab-parameters-sliders.avif)
 
-| Parameter      | Range          | Default | Description                            |
-| -------------- | -------------- | ------- | -------------------------------------- |
-| **Confidence** | 0.01-1.0       | 0.25    | Minimum confidence threshold           |
-| **IoU**        | 0.0-0.95       | 0.70    | NMS IoU threshold                      |
-| **Image Size** | 320, 640, 1280 | 640     | Input resize dimension (button toggle) |
+| Parameter      | Range                      | Default | Description                                              |
+| -------------- | -------------------------- | ------- | -------------------------------------------------------- |
+| **Confidence** | 0.01 – 1.0                 | 0.25    | Minimum confidence threshold                             |
+| **IoU**        | 0.0 – 0.95                 | 0.7     | NMS IoU threshold                                        |
+| **Image Size** | 320, 640, 1280 (UI toggle) | 640     | Input resize dimension (API accepts any value 32 – 1280) |
 
 !!! note "Auto-Rerun"
 
@@ -127,7 +129,7 @@ Control Non-Maximum Suppression:
 
 - **Higher (0.7+)**: Allow more overlapping boxes
 - **Lower (0.3-0.5)**: Merge nearby detections more aggressively
-- **Default (0.70)**: Balanced NMS behavior for most use cases
+- **Default (0.7)**: Balanced NMS behavior for most use cases
 
 ## Deployment Predict
 
@@ -147,11 +149,11 @@ Authorization: Bearer YOUR_API_KEY
 
 !!! warning "API Key Required"
 
-    To run inference from your own scripts, notebooks, or apps, include an API key. Generate one in [`Settings`](../account/api-keys.md) (API Keys section on the Profile tab).
+    To run inference from your own scripts, notebooks, or apps, include an API key. Generate one in [`Settings > API Keys`](../account/api-keys.md).
 
 ### Endpoint
 
-```
+```http
 POST https://platform.ultralytics.com/api/models/{modelId}/predict
 ```
 
@@ -207,6 +209,18 @@ POST https://platform.ultralytics.com/api/models/{modelId}/predict
 
 ![Ultralytics Platform Predict Tab Code Examples Python Tab](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/predict-tab-code-examples-python-tab.avif)
 
+### Request Parameters
+
+| Parameter   | Type   | Default | Range      | Description                                        |
+| ----------- | ------ | ------- | ---------- | -------------------------------------------------- |
+| `file`      | file   | -       | -          | Image or video file (required unless `source` set) |
+| `conf`      | float  | 0.25    | 0.01 – 1.0 | Minimum confidence threshold                       |
+| `iou`       | float  | 0.7     | 0.0 – 0.95 | NMS IoU threshold                                  |
+| `imgsz`     | int    | 640     | 32 – 1280  | Input image size in pixels                         |
+| `normalize` | bool   | false   | -          | Return bounding box coordinates as 0 – 1           |
+| `decimals`  | int    | 5       | 0 – 10     | Decimal precision for coordinate values            |
+| `source`    | string | -       | -          | Image URL or base64 string (alternative to `file`) |
+
 ### Response
 
 ```json
@@ -240,7 +254,7 @@ POST https://platform.ultralytics.com/api/models/{modelId}/predict
         "functionTimeCall": 0.018,
         "model": "model.pt",
         "version": {
-            "ultralytics": "8.4.14",
+            "ultralytics": "8.x.x",
             "torch": "2.6.0",
             "torchvision": "0.21.0",
             "python": "3.13.0"
@@ -258,6 +272,7 @@ POST https://platform.ultralytics.com/api/models/{modelId}/predict
 | `images`                        | array  | List of processed images          |
 | `images[].shape`                | array  | Image dimensions [height, width]  |
 | `images[].results`              | array  | List of detections                |
+| `images[].results[].class`      | int    | Class index (integer ID)          |
 | `images[].results[].name`       | string | Class name                        |
 | `images[].results[].confidence` | float  | Detection confidence (0-1)        |
 | `images[].results[].box`        | object | Bounding box coordinates          |
@@ -287,9 +302,22 @@ Response format varies by task:
       "name": "person",
       "confidence": 0.92,
       "box": {"x1": 100, "y1": 50, "x2": 300, "y2": 400},
-      "segments": [[100, 50], [150, 60], ...]
+      "segments": {"x": [100, 150, ...], "y": [50, 60, ...]}
     }
     ```
+
+=== "Semantic"
+
+    ```json
+    {
+      "results": [
+        {"class": 0, "name": "road", "pixel_ratio": 0.42},
+        {"class": 1, "name": "building", "pixel_ratio": 0.23}
+      ]
+    }
+    ```
+
+    Semantic segmentation returns per-class pixel coverage (`pixel_ratio`, the fraction of image pixels assigned to each class) instead of per-object boxes.
 
 === "Pose"
 
@@ -299,12 +327,15 @@ Response format varies by task:
       "name": "person",
       "confidence": 0.92,
       "box": {"x1": 100, "y1": 50, "x2": 300, "y2": 400},
-      "keypoints": [
-        {"x": 200, "y": 75, "conf": 0.95},
-        ...
-      ]
+      "keypoints": {
+        "x": [200, ...],
+        "y": [75, ...],
+        "visible": [0.95, ...]
+      }
     }
     ```
+
+    The `visible` array contains per-keypoint confidence scores (0-1 floats), not COCO-style 0-2 visibility flags.
 
 === "Classification"
 
@@ -324,10 +355,15 @@ Response format varies by task:
       "class": 0,
       "name": "ship",
       "confidence": 0.89,
-      "box": {"x1": 100, "y1": 50, "x2": 300, "y2": 400},
-      "obb": {"x1": 105, "y1": 48, "x2": 295, "y2": 55, "x3": 290, "y3": 395, "x4": 110, "y4": 402}
+      "box": {"x1": 105, "y1": 48, "x2": 295, "y2": 55, "x3": 290, "y3": 395, "x4": 110, "y4": 402}
     }
     ```
+
+## Billing
+
+Shared inference (the Predict tab and `/api/models/{id}/predict` endpoint) is **included at no additional cost** on all plans. There are no per-request charges for shared inference.
+
+For production workloads requiring higher throughput, deploy a [dedicated endpoint](endpoints.md).
 
 ## Rate Limits
 
@@ -341,25 +377,23 @@ Shared inference is rate-limited to **20 requests/min per API key**. When thrott
 
 Common error responses:
 
-| Code | Message         | Solution                                                                             |
-| ---- | --------------- | ------------------------------------------------------------------------------------ |
-| 400  | Invalid image   | Check file format                                                                    |
-| 401  | Unauthorized    | Verify API key                                                                       |
-| 404  | Model not found | Check model ID                                                                       |
-| 429  | Rate limited    | Wait and retry, or use a [dedicated endpoint](endpoints.md) for unlimited throughput |
-| 500  | Server error    | Retry request                                                                        |
+| Code | Message             | Solution                                                                             |
+| ---- | ------------------- | ------------------------------------------------------------------------------------ |
+| 400  | Invalid image       | Check file format                                                                    |
+| 401  | Unauthorized        | Verify API key                                                                       |
+| 404  | Model not found     | Check model ID                                                                       |
+| 429  | Rate limited        | Wait and retry, or use a [dedicated endpoint](endpoints.md) for unlimited throughput |
+| 500  | Server error        | Retry request                                                                        |
+| 503  | Service unavailable | Predict service starting up or unreachable; wait briefly and retry                   |
 
 ## FAQ
 
 ### Can I run inference on video?
 
-The API accepts individual frames. For video:
+Both inference methods accept video files:
 
-1. Extract frames locally
-2. Send each frame to the API
-3. Aggregate results
-
-For real-time video, consider deploying a [dedicated endpoint](endpoints.md).
+- **Dedicated endpoints** accept video files directly. Supported formats (up to 100 MB): ASF, AVI, GIF, M4V, MKV, MOV, MP4, MPEG, MPG, TS, WEBM, WMV. Each frame is processed individually and results are returned per frame. See [dedicated endpoints](endpoints.md#request-parameters) for details.
+- **Shared inference** (`/api/models/{id}/predict`) uses the same predict service and accepts the same video formats. However, the browser **Predict tab** in the UI only uploads images — use the REST API directly or a [dedicated endpoint](endpoints.md) for video workflows. The shared endpoint is also [rate-limited to 20 req/min](../api/index.md#per-api-key-limits), so dedicated endpoints are the better choice for heavy video workloads.
 
 ### How do I get the annotated image?
 

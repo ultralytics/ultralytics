@@ -1,7 +1,8 @@
 ---
+title: Real-Time Object Blurring with YOLO26
 comments: true
-description: Learn how to use Ultralytics YOLO26 for real-time object blurring to enhance privacy and focus in your images and videos.
-keywords: YOLO26, object blurring, real-time processing, privacy protection, image manipulation, video editing, Ultralytics
+description: Automatically detect and blur objects in real time with Ultralytics YOLO26. Anonymize faces, license plates, and sensitive content with adjustable intensity.
+keywords: YOLO26, object blurring, real-time processing, privacy protection, face blurring, data anonymization, GDPR, image manipulation, video editing, Ultralytics
 ---
 
 # Object Blurring using Ultralytics YOLO26 🚀
@@ -12,13 +13,13 @@ Object blurring with [Ultralytics YOLO26](https://github.com/ultralytics/ultraly
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/J1BaCqytBmA"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/m-Lc5MXbydg"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Object Blurring using Ultralytics YOLO26
+  <strong>Watch:</strong> How to Train Face Detection Model using Ultralytics Platform & Blur Faces | Ultralytics YOLO26 🚀
 </p>
 
 ## Advantages of Object Blurring
@@ -28,6 +29,10 @@ Object blurring with [Ultralytics YOLO26](https://github.com/ultralytics/ultraly
 - **Real-time Processing**: YOLO26's efficiency enables object blurring in real-time, making it suitable for applications requiring on-the-fly privacy enhancements in dynamic environments.
 - **Regulatory Compliance**: Helps organizations comply with data protection regulations like GDPR by anonymizing identifiable information in visual content.
 - **Content Moderation**: Useful for blurring inappropriate or sensitive content in media platforms while preserving the overall context.
+
+## Blur Objects with YOLO26
+
+Pass your video to the `ObjectBlurrer` solution and it detects objects each frame and applies an averaging (box) blur to every detection. Control the strength with `blur_ratio` (0.1–1.0) and restrict blurring to specific `classes` — for example, only people and cars.
 
 !!! example "Object Blurring using Ultralytics YOLO"
 
@@ -129,42 +134,7 @@ Object blurring with [Ultralytics YOLO26](https://github.com/ultralytics/ultraly
 
 ### How can I implement real-time object blurring using YOLO26?
 
-To implement real-time object blurring with YOLO26, follow the provided Python example. This involves using YOLO26 for [object detection](https://www.ultralytics.com/glossary/object-detection) and OpenCV for applying the blur effect. Here's a simplified version:
-
-```python
-import cv2
-
-from ultralytics import solutions
-
-cap = cv2.VideoCapture("path/to/video.mp4")
-assert cap.isOpened(), "Error reading video file"
-w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-
-# Video writer
-video_writer = cv2.VideoWriter("object_blurring_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-
-# Init ObjectBlurrer
-blurrer = solutions.ObjectBlurrer(
-    show=True,  # display the output
-    model="yolo26n.pt",  # model="yolo26n-obb.pt" for object blurring using YOLO26 OBB model.
-    blur_ratio=0.5,  # set blur percentage, e.g., 0.7 for 70% blur on detected objects
-    # line_width=2,  # width of bounding box.
-    # classes=[0, 2],  # count specific classes, e.g., person and car with the COCO pretrained model.
-)
-
-# Process video
-while cap.isOpened():
-    success, im0 = cap.read()
-    if not success:
-        print("Video frame is empty or processing is complete.")
-        break
-    results = blurrer(im0)
-    video_writer.write(results.plot_im)
-
-cap.release()
-video_writer.release()
-cv2.destroyAllWindows()
-```
+Use the [Python example above](#blur-objects-with-yolo26), which runs YOLO26 [object detection](https://www.ultralytics.com/glossary/object-detection) and blurs each detection every frame. Set `blur_ratio` (for example `0.5` for 50% blur intensity) to control the effect, and pass `classes` to blur only specific object types.
 
 ### What are the benefits of using Ultralytics YOLO26 for object blurring?
 
@@ -180,8 +150,8 @@ For more detailed applications, check the [advantages of object blurring section
 
 ### Can I use Ultralytics YOLO26 to blur faces in a video for privacy reasons?
 
-Yes, Ultralytics YOLO26 can be configured to detect and blur faces in videos to protect privacy. By training or using a pretrained model to specifically recognize faces, the detection results can be processed with [OpenCV](https://www.ultralytics.com/glossary/opencv) to apply a blur effect. Refer to our guide on [object detection with YOLO26](https://docs.ultralytics.com/models/yolo26/) and modify the code to target face detection.
+Yes, Ultralytics YOLO26 can be configured to detect and blur faces in videos to protect privacy. By training or using a pretrained model to specifically recognize faces, the detection results can be processed with [OpenCV](https://www.ultralytics.com/glossary/opencv) to apply a blur effect. Refer to our guide on [object detection with YOLO26](../models/yolo26.md) and modify the code to target face detection.
 
 ### How does YOLO26 compare to other object detection models like Faster R-CNN for object blurring?
 
-Ultralytics YOLO26 typically outperforms models like Faster R-CNN in terms of speed, making it more suitable for real-time applications. While both models offer accurate detection, YOLO26's architecture is optimized for rapid inference, which is critical for tasks like real-time object blurring. Learn more about the technical differences and performance metrics in our [YOLO26 documentation](https://docs.ultralytics.com/models/yolo26/).
+Ultralytics YOLO26 typically outperforms models like Faster R-CNN in terms of speed, making it more suitable for real-time applications. While both models offer accurate detection, YOLO26's architecture is optimized for rapid inference, which is critical for tasks like real-time object blurring. Learn more about the technical differences and performance metrics in our [YOLO26 documentation](../models/yolo26.md).

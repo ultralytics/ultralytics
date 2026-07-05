@@ -86,6 +86,7 @@ class ParsedDocstring:
     raises: list[ParameterDoc] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)
     examples: list[str] = field(default_factory=list)
+    references: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -117,7 +118,7 @@ class DocumentedModule:
 
 
 # --------------------------------------------------------------------------------------------- #
-# Placeholder (legacy) generation for mkdocstrings-style stubs
+# Placeholder (legacy) generation for reference stubs
 # --------------------------------------------------------------------------------------------- #
 
 
@@ -129,8 +130,21 @@ def extract_classes_and_functions(filepath: Path) -> tuple[list[str], list[str]]
     return classes, functions
 
 
+def _with_reference_title(header_content: str, module_path: str) -> str:
+    """Inject a concise, front-loaded `title:` into reference frontmatter (idempotent).
+
+    The H1 keeps the full module path; the `<title>` uses `{module} API Reference` (with the redundant package prefix
+    dropped) to fit the 60-char SEO target once the docs renderer appends its ` | Ultralytics` brand suffix — a few of
+    the deepest module paths still rely on the renderer's truncation backstop. Curated description/keywords are kept.
+    """
+    if re.search(r"(?m)^title\s*:", header_content):  # line-anchored: ignore `title:` inside a description
+        return header_content
+    title = f"{module_path.removeprefix(f'{PACKAGE_DIR.name}.')} API Reference"
+    return header_content.replace("---\n", f"---\ntitle: {title}\n", 1)
+
+
 def create_placeholder_markdown(py_filepath: Path, module_path: str, classes: list[str], functions: list[str]) -> Path:
-    """Create a minimal Markdown stub used by mkdocstrings."""
+    """Create a minimal Markdown reference stub."""
     md_filepath = REFERENCE_DIR / py_filepath.relative_to(PACKAGE_DIR).with_suffix(".md")
     exists = md_filepath.exists()
 
@@ -142,7 +156,11 @@ def create_placeholder_markdown(py_filepath: Path, module_path: str, classes: li
             if len(parts) > 2:
                 header_content = f"---{parts[1]}---\n\n"
     if not header_content:
-        header_content = "---\ndescription: TODO ADD DESCRIPTION\nkeywords: TODO ADD KEYWORDS\n---\n\n"
+        header_content = (
+            f"---\ndescription: Reference for `{module_path}` in the Ultralytics package.\n"
+            f"keywords: Ultralytics, {module_path}, API reference, YOLO, Python\n---\n\n"
+        )
+    header_content = _with_reference_title(header_content, module_path)
 
     module_path_dots = module_path
     module_path_fs = module_path.replace(".", "/")
@@ -405,6 +423,8 @@ SECTION_ALIASES = {
     "example": "examples",
     "notes": "notes",
     "note": "notes",
+    "references": "references",
+    "reference": "references",
     "methods": "methods",
 }
 
@@ -471,6 +491,7 @@ def parse_google_docstring(docstring: str | None) -> ParsedDocstring:
         raises=_parse_named_entries(sections.get("raises", [])),
         notes=[textwrap.dedent("\n".join(sections.get("notes", []))).strip()] if sections.get("notes") else [],
         examples=[textwrap.dedent("\n".join(sections.get("examples", []))).strip()] if sections.get("examples") else [],
+        references=[line.strip() for line in sections.get("references", []) if line.strip()],
     )
 
 
@@ -494,6 +515,7 @@ def merge_docstrings(base: ParsedDocstring, extra: ParsedDocstring, ignore_summa
     _merge_unique(base.raises, extra.raises, lambda r: (r.name, r.type, r.description, r.default))
     _merge_unique(base.notes, extra.notes, lambda n: n.strip())
     _merge_unique(base.examples, extra.examples, lambda e: e.strip())
+    _merge_unique(base.references, extra.references, lambda r: r.strip())
     return base
 
 
@@ -705,7 +727,7 @@ def _merge_params(doc_params: list[ParameterDoc], signature_params: list[Paramet
     return merged
 
 
-DEFAULT_SECTION_ORDER = ["args", "returns", "examples", "notes", "attributes", "yields", "raises"]
+DEFAULT_SECTION_ORDER = ["args", "returns", "examples", "notes", "references", "attributes", "yields", "raises"]
 SUMMARY_BADGE_MAP = {"Classes": "class", "Properties": "property", "Methods": "method", "Functions": "function"}
 _missing_type_warnings: list[str] = []
 
@@ -715,7 +737,7 @@ def contribution_admonition(pretty: str, url: str, *, kind: str = "note", title:
     label = f' "{title}"' if title else ""
     body = (
         f"This page is sourced from [{pretty}]({url}). Have an improvement or example to add? "
-        f"Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏"
+        f"Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏"
     )
     return f"!!! {kind}{label}\n\n    {body}\n\n"
 
@@ -817,6 +839,10 @@ def render_docstring(
             rows.append([f"`{type_cell}`" if type_cell else "", e.description or ""])
         table = _render_table(["Type", "Description"], rows, level, title=None)
         sections["raises"] = f"**Raises**\n\n{table}"
+
+    if doc.references:
+        links = "\n".join(ref if ref.startswith("- ") else f"- {ref}" for ref in doc.references)
+        sections["references"] = f"**References**\n\n{links}\n\n"
 
     if extra_sections:
         sections.update({k: v for k, v in extra_sections.items() if v})
@@ -1002,7 +1028,11 @@ def create_markdown(module: DocumentedModule) -> Path:
             if "description:" in part or "comments:" in part:
                 header_content += f"---{part}---\n\n"
     if not header_content:
-        header_content = "---\ndescription: TODO ADD DESCRIPTION\nkeywords: TODO ADD KEYWORDS\n---\n\n"
+        header_content = (
+            f"---\ndescription: Reference for `{module.module_path}` in the Ultralytics package.\n"
+            f"keywords: Ultralytics, {module.module_path}, API reference, YOLO, Python\n---\n\n"
+        )
+    header_content = _with_reference_title(header_content, module.module_path)
 
     module_path_fs = module.module_path.replace(".", "/")
     url = f"https://github.com/{GITHUB_REPO}/blob/main/{module_path_fs}.py"
@@ -1062,13 +1092,14 @@ def create_nav_menu_yaml(nav_items: list[str]) -> str:
 def extract_document_paths(yaml_section: str) -> list[str]:
     """Extract document paths from a YAML section, ignoring formatting and structure."""
     paths = []
-    # Match all paths that appear after a colon in the YAML
+    # Match `key: path` entries
     path_matches = re.findall(r":\s*([^\s][^:\n]*?)(?:\n|$)", yaml_section)
     for path in path_matches:
-        # Clean up the path
         path = path.strip()
         if path and not path.startswith("-") and not path.endswith(":"):
             paths.append(path)
+    # Also match bare `- path.md` entries (e.g. `- reference/index.md`)
+    paths.extend(re.findall(r"^\s*-\s+([^\s:][^:\n]*\.md)\s*$", yaml_section, re.MULTILINE))
     return sorted(paths)
 
 
@@ -1080,13 +1111,14 @@ def update_mkdocs_file(reference_yaml: str) -> None:
     ref_pattern = r"(\n  - Reference:[\s\S]*?)(?=\n  - \w|$)"
     ref_match = re.search(ref_pattern, mkdocs_content)
 
-    # Build new section with proper indentation
-    new_section_lines = ["\n  - Reference:"]
-    new_section_lines.extend(
-        f"    {line}"
-        for line in reference_yaml.splitlines()
-        if line.strip() != "- reference:"  # Skip redundant header
-    )
+    # Build new section with proper indentation. The hand-written `reference/index.md`
+    # overview is pinned to the top so the Reference section has a landing page (matching
+    # the convention used by Modes, Tasks, Datasets, Help, etc.). It must share the same
+    # 4-space inner indent as the auto-generated sibling entries below so the resulting
+    # YAML is parseable (otherwise siblings nest under it as children of a string scalar).
+    inner_lines = [line for line in reference_yaml.splitlines() if line.strip() != "- reference:"]
+    inner_lines.insert(0, "    - reference/index.md")
+    new_section_lines = ["\n  - Reference:", *(f"    {line}" for line in inner_lines)]
     new_ref_section = "\n".join(new_section_lines) + "\n"
 
     if ref_match:
@@ -1138,15 +1170,16 @@ def _finalize_reference(nav_items: list[str], update_nav: bool, created: int, cr
 
 
 def build_reference(update_nav: bool = True) -> list[str]:
-    """Create placeholder reference files (legacy mkdocstrings flow)."""
+    """Create placeholder reference files for the legacy stub flow."""
     return build_reference_placeholders(update_nav=update_nav)
 
 
 def build_reference_placeholders(update_nav: bool = True) -> list[str]:
-    """Create minimal placeholder reference files (mkdocstrings-style) and optionally update nav."""
+    """Create minimal placeholder reference files and optionally update nav."""
     nav_items: list[str] = []
     created = 0
     orphans = set(REFERENCE_DIR.rglob("*.md"))
+    orphans.discard(REFERENCE_DIR / "index.md")  # Preserve hand-written overview page
 
     for py_filepath in TQDM(list(PACKAGE_DIR.rglob("*.py")), desc="Building reference stubs", unit="file"):
         classes, functions = extract_classes_and_functions(py_filepath)

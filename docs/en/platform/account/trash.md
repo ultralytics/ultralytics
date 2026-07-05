@@ -46,15 +46,16 @@ The Trash shows all soft-deleted resources with filter options:
 
 Each item in Trash displays:
 
-| Field              | Description                              |
-| ------------------ | ---------------------------------------- |
-| **Name**           | Original resource name                   |
-| **Type**           | Project, Dataset, or Model (color-coded) |
-| **Deleted**        | Date and time of deletion                |
-| **Days Remaining** | Time until permanent deletion            |
-| **Size**           | Storage used by the item                 |
-| **Cascaded Items** | Number of child items included           |
-| **Parent Project** | Parent project (for models)              |
+| Field        | Description                                                  |
+| ------------ | ------------------------------------------------------------ |
+| **Name**     | Original resource name                                       |
+| **Type**     | Project, Dataset, or Model (color-coded)                     |
+| **Deleted**  | Date and time of deletion                                    |
+| **Expires**  | Days until permanent deletion (e.g. "30d")                   |
+| **Size**     | Storage used by the item                                     |
+| **Cascaded** | Child items included, shown as a `+N` badge next to the name |
+
+(Parent project information is returned by the Trash API for models but is not shown in the Trash table.)
 
 ### Cascade Behavior
 
@@ -87,6 +88,8 @@ Recover a deleted item:
 
 The item returns to its original location with all data intact.
 
+If the original slug is already taken, the platform restores the item with a unique available slug so you can access it immediately.
+
 ### Restore Behavior
 
 | Resource | Restore Behavior                                            |
@@ -103,7 +106,7 @@ The item returns to its original location with all data intact.
 
 ### Automatic Deletion
 
-Items in Trash are automatically and permanently deleted after 30 days. A daily cleanup job runs at 3:00 AM UTC to remove expired items.
+Items in Trash are automatically and permanently deleted after 30 days. A daily cleanup job removes expired items automatically.
 
 ### Empty Trash
 
@@ -115,7 +118,7 @@ Permanently delete all items immediately:
 
 !!! warning "Irreversible Action"
 
-    Emptying Trash permanently deletes all items immediately. This action cannot be undone and all data will be lost.
+    Emptying Trash permanently deletes all items immediately. This action cannot be undone and all data will be lost, including attached deployments, export jobs, and stored files tied to the trashed resources.
 
 ### Delete Single Item Permanently
 
@@ -124,6 +127,8 @@ To permanently delete one item without waiting:
 1. Find the item in Trash
 2. Click the **Delete** button
 3. Confirm deletion
+
+For projects, permanent deletion also removes related deployments and export files that belong to the deleted workspace resources.
 
 ## Storage and Trash
 
@@ -162,10 +167,9 @@ Access trash programmatically via the [REST API](../api/index.md#trash-api):
 
 === "Empty Trash"
 
-    ```bash
-    curl -X DELETE -H "Authorization: Bearer YOUR_API_KEY" \
-      https://platform.ultralytics.com/api/trash/empty
-    ```
+    !!! note "Browser session only"
+
+        `DELETE /api/trash/empty` requires an authenticated browser session and cannot be called with an API key. Use the **Empty Trash** button in [**Settings > Trash**](../account/settings.md#trash-tab) instead, or permanently delete individual items via `DELETE /api/trash` (API-key compatible).
 
 ## FAQ
 
@@ -187,4 +191,4 @@ No. If a project is permanently deleted, all models that were inside it are also
 
 ### How do I know when an item will be permanently deleted?
 
-Each item in Trash shows a "Days Remaining" counter indicating how many days until automatic permanent deletion occurs.
+Each item in Trash shows an "Expires" column with the number of days (e.g. "30d") until automatic permanent deletion occurs.

@@ -1,4 +1,5 @@
 ---
+title: Explore Datasets & Projects
 comments: true
 description: Discover public datasets and projects on the Ultralytics Platform Explore page. Browse, search, and clone community content for computer vision and YOLO.
 keywords: Ultralytics Platform, explore, public datasets, public projects, computer vision, YOLO, community
@@ -12,16 +13,14 @@ keywords: Ultralytics Platform, explore, public datasets, public projects, compu
 
 ```mermaid
 graph LR
-    A[🔍 Browse Explore] --> B[📥 Clone to Account]
-    B --> C[✏️ Customize & Annotate]
-    C --> D[🚀 Train Model]
-    D --> E[🌐 Deploy Endpoint]
+    A[🔍 Browse Explore]:::start --> B[📥 Clone to Account]:::proc
+    B --> C[✏️ Customize & Annotate]:::proc
+    C --> D[🚀 Train Model]:::proc
+    D --> E[🌐 Deploy Endpoint]:::out
 
-    style A fill:#4CAF50,color:#fff
-    style B fill:#2196F3,color:#fff
-    style C fill:#FF9800,color:#fff
-    style D fill:#9C27B0,color:#fff
-    style E fill:#E91E63,color:#fff
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 !!! info "Anonymous Access"
@@ -54,15 +53,12 @@ Each tab provides a search bar and sort options:
 
 ![Ultralytics Platform Explore Datasets Tab With Search](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-explore-datasets-tab-with-search.avif)
 
-| Sort Option       | Description                                   |
-| ----------------- | --------------------------------------------- |
-| **Most Starred**  | Content with most community stars (default)   |
-| **Newest**        | Most recently created                         |
-| **Oldest**        | Oldest first                                  |
-| **Name A-Z**      | Alphabetical ascending                        |
-| **Name Z-A**      | Alphabetical descending                       |
-| **Most images**   | Most images (datasets) or models (projects)   |
-| **Fewest images** | Fewest images (datasets) or models (projects) |
+| Sort Option             | Description                                                      |
+| ----------------------- | ---------------------------------------------------------------- |
+| **Stars**               | Community star count (descending)                                |
+| **Created**             | Creation date, newest (default) or oldest first                  |
+| **Name**                | Alphabetical, ascending or descending                            |
+| **Images** / **Models** | Image count (datasets) or model count (projects), most or fewest |
 
 ### View Modes
 
@@ -92,7 +88,6 @@ Each item displays:
     | **Description**      | Short project description                                     |
     | **Model Count**      | Number of models in the project                               |
     | **Model Tags**       | Names of models in the project                                |
-    | **Visibility Badge** | Public or private indicator (shows lock icon for private)     |
     | **Star Count**       | Number of community stars                                     |
 
 === "Dataset Cards"
@@ -104,28 +99,32 @@ Each item displays:
     | **Creator**          | Author avatar and username                                    |
     | **Task Badge**       | YOLO task type (detect, segment, etc.)                        |
     | **Image Count**      | Number of images in the dataset                               |
-    | **Visibility Badge** | Public or private indicator (shows lock icon for private)     |
     | **Star Count**       | Number of community stars                                     |
 
 ## Use Public Content
 
 ```mermaid
 graph TD
-    A[Find Content on Explore] --> B{Content Type}
-    B --> C[Dataset]
-    B --> D[Project]
-    B --> E[Model]
-    C --> F[Clone Dataset]
-    D --> G[Clone Project]
-    E --> H[Download Model]
-    E --> I[Clone Model]
-    F --> J[Private Copy in Your Account]
-    G --> K[Private Copy with All Models]
-    H --> L[.pt / ONNX / Other Formats]
-    I --> M[Copy to Your Project]
-    J --> N[Edit, Annotate, Train]
+    A[Find Content on Explore]:::start --> B{Content Type}:::decide
+    B --> C[Dataset]:::proc
+    B --> D[Project]:::proc
+    B --> E[Model]:::proc
+    C --> F[Clone Dataset]:::proc
+    D --> G[Clone Project]:::proc
+    E --> H[Download Model]:::proc
+    E --> I[Clone Model]:::proc
+    F --> J[Private Copy in Your Account]:::out
+    G --> K[Private Copy with All Models]:::out
+    H --> L[.pt / ONNX / Other Formats]:::out
+    I --> M[Copy to Your Project]:::proc
+    J --> N[Edit, Annotate, Train]:::out
     K --> N
     M --> N
+
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef decide fill:#FF9800,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 ### Clone Dataset
@@ -143,7 +142,7 @@ Use a public dataset for your training:
     - Cloned datasets are **private by default**
     - You can modify classes, annotations, and splits
     - Changes don't affect the original dataset
-    - Images are deduplicated using content-addressable storage — cloning is fast
+    - Images are deduplicated using content-addressable storage (CAS) — cloning is fast and **does not double your storage usage**
 
 See [Datasets](data/datasets.md) for managing and annotating your cloned dataset.
 
@@ -197,12 +196,12 @@ See [Projects](train/projects.md) for organizing models in your project.
 
 Official `@ultralytics` content is pinned to the top of the Explore page. This includes:
 
-| Project                           | Description                 | Models                       | Tasks                                |
-| --------------------------------- | --------------------------- | ---------------------------- | ------------------------------------ |
-| **[YOLO26](../models/yolo26.md)** | Latest January 2026 release | 25 models (all sizes, tasks) | detect, segment, pose, OBB, classify |
-| **[YOLO11](../models/yolo11.md)** | Current stable release      | 10+ models                   | detect, segment, pose, OBB, classify |
-| **YOLOv8**                        | Previous generation         | Various                      | detect, segment, pose, classify      |
-| **YOLOv5**                        | Legacy, widely adopted      | Various                      | detect, segment, classify            |
+| Project                           | Description                 | Models                        | Tasks                                          |
+| --------------------------------- | --------------------------- | ----------------------------- | ---------------------------------------------- |
+| **[YOLO26](../models/yolo26.md)** | Latest January 2026 release | 30 models (5 sizes × 6 tasks) | detect, segment, semantic, pose, OBB, classify |
+| **[YOLO11](../models/yolo11.md)** | Current stable release      | 25 models (5 sizes × 5 tasks) | detect, segment, pose, OBB, classify           |
+| **YOLOv8**                        | Previous generation         | 25 models (5 sizes × 5 tasks) | detect, segment, pose, OBB, classify           |
+| **YOLOv5**                        | Legacy, widely adopted      | 15+ models                    | detect, segment, classify                      |
 
 Official datasets include benchmark datasets like [coco8](../datasets/detect/coco8.md) (8-image COCO subset), [VOC](../datasets/detect/voc.md), [african-wildlife](../datasets/detect/african-wildlife.md), [dota8](../datasets/obb/dota8.md), and other commonly used computer vision datasets.
 
@@ -221,12 +220,17 @@ Click on a creator's username to view their public profile at `platform.ultralyt
 
 ![Ultralytics Platform User Profile Public Content](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-user-profile-public-content.avif)
 
-| Section      | Content                      |
-| ------------ | ---------------------------- |
-| **Bio**      | User description and company |
-| **Links**    | Social profiles              |
-| **Projects** | Public projects with models  |
-| **Datasets** | Public datasets              |
+| Section       | Content                      |
+| ------------- | ---------------------------- |
+| **Bio**       | User description and company |
+| **Links**     | Social profiles              |
+| **Followers** | Follower count               |
+| **Projects**  | Public projects with models  |
+| **Datasets**  | Public datasets              |
+
+### Follow Users
+
+Click the **Follow** button on any user's profile to follow them. Following helps you discover new content from creators you're interested in. Your follower count is displayed on your profile.
 
 ## Make Your Content Public
 
@@ -234,10 +238,14 @@ Make your work available to the community. Public content appears on the Explore
 
 ```mermaid
 graph LR
-    A[Your Private Content] --> B[Edit Settings]
-    B --> C[Set Visibility: Public]
-    C --> D[Appears on Explore Page]
-    D --> E[Community Can Clone/Download]
+    A[Your Private Content]:::start --> B[Edit Settings]:::proc
+    B --> C[Set Visibility: Public]:::proc
+    C --> D[Appears on Explore Page]:::proc
+    D --> E[Community Can Clone/Download]:::out
+
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 ### Make Dataset Public
@@ -289,6 +297,22 @@ When contributing public content:
 - Spam low-quality content
 - Misrepresent performance
 
+## Share Content
+
+Click the **Share** button on any public project, model, or dataset to share it. The share dialog provides pre-filled text for social platforms and a direct copy link.
+
+## Embed Widgets
+
+Public content can be embedded in external websites using embed URLs:
+
+| Content | Embed URL Pattern                                             |
+| ------- | ------------------------------------------------------------- |
+| Project | `platform.ultralytics.com/embed/{username}/{project}`         |
+| Model   | `platform.ultralytics.com/embed/{username}/{project}/{model}` |
+| Dataset | `platform.ultralytics.com/embed/{username}/datasets/{slug}`   |
+
+Use these URLs in an `<iframe>` to embed interactive project views, model prediction widgets, or dataset viewers on your website.
+
 ## Public Content URLs
 
 Public content on the platform uses clean, shareable URLs:
@@ -322,12 +346,12 @@ Contact creators for commercial licensing.
 To report inappropriate content:
 
 1. Navigate to the public page containing the content (project or dataset), if accessible
-2. Click the **Feedback** button in the sidebar
+2. Open the **Help** page from the sidebar
 3. Select **General** as the feedback type
 4. Describe the content and the issue, including a link to the page
 5. Submit the report
 
-If the content is no longer accessible, use the **Feedback** button from any page and include as much detail as possible (URL, username, or description).
+If the content is no longer accessible, use the **Help** page from any page and include as much detail as possible (URL, username, or description).
 
 Our team reviews reports within 24-48 hours.
 

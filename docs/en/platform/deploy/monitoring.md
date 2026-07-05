@@ -1,4 +1,5 @@
 ---
+title: Deployment Monitoring
 comments: true
 description: Monitor deployed YOLO models on Ultralytics Platform with real-time metrics, request logs, and performance dashboards.
 keywords: Ultralytics Platform, monitoring, metrics, logs, deployment, performance, YOLO, observability
@@ -17,15 +18,15 @@ The `Deploy` page in the sidebar serves as the monitoring dashboard for all your
 ```mermaid
 graph TB
     subgraph Dashboard
-        Map[World Map] --- Cards[Overview Cards]
-        Cards --- List[Deployments List]
+        Map[World Map]:::proc --- Cards[Overview Cards]:::proc
+        Cards --- List[Deployments List]:::decide
     end
     subgraph "Per Deployment"
-        Metrics[Metrics Row]
-        Health[Health Check]
-        Logs[Logs Tab]
-        Code[Code Tab]
-        Predict[Predict Tab]
+        Metrics[Metrics Row]:::out
+        Health[Health Check]:::out
+        Logs[Logs Tab]:::out
+        Code[Code Tab]:::out
+        Predict[Predict Tab]:::out
     end
     List --> Metrics
     List --> Health
@@ -33,10 +34,9 @@ graph TB
     List --> Code
     List --> Predict
 
-    style Dashboard fill:#f5f5f5,color:#333
-    style Map fill:#2196F3,color:#fff
-    style Cards fill:#FF9800,color:#fff
-    style List fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef decide fill:#FF9800,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 ### Overview Cards
@@ -79,7 +79,7 @@ Below the overview cards, the deployments list shows all endpoints across your p
 
 !!! tip "Real-Time Updates"
 
-    The dashboard polls every 30 seconds for metric updates. When deployments are in a transitional state (creating, deploying), polling increases to every 3 seconds. Click the refresh button for immediate updates.
+    The dashboard polls every 15 seconds for deployment status updates. When deployments are in a transitional state (`creating`, `deploying`, or `stopping`), polling increases to every 3 seconds. Metric charts refresh every 60 seconds. Click the refresh button for immediate updates.
 
 ## Per-Deployment Metrics
 
@@ -230,7 +230,7 @@ The `Predict` tab on each deployment card provides an inline predict panel — t
 
 ### Monitoring Overview
 
-```
+```http
 GET /api/monitoring
 ```
 
@@ -238,7 +238,7 @@ Returns aggregated metrics for all deployments owned by the authenticated user. 
 
 ### Deployment Metrics
 
-```
+```http
 GET /api/deployments/{deploymentId}/metrics?sparkline=true&range=24h
 ```
 
@@ -251,7 +251,7 @@ Returns sparkline data and summary metrics for a specific deployment. Refresh in
 
 ### Deployment Logs
 
-```
+```http
 GET /api/deployments/{deploymentId}/logs?limit=50&severity=ERROR,WARNING
 ```
 
@@ -265,7 +265,7 @@ Returns recent log entries with optional severity filter and pagination.
 
 ### Deployment Health
 
-```
+```http
 GET /api/deployments/{deploymentId}/health
 ```
 
@@ -275,7 +275,8 @@ Returns health check status with response latency.
 {
     "healthy": true,
     "status": 200,
-    "latencyMs": 142
+    "latencyMs": 142,
+    "serverTiming": { "db": 8, "ping": 142, "total": 150 }
 }
 ```
 

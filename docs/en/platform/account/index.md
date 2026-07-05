@@ -8,6 +8,17 @@ keywords: Ultralytics Platform, account, settings, API keys, billing, security, 
 
 [Ultralytics Platform](https://platform.ultralytics.com) provides comprehensive account management for API keys, billing, teams, and user settings. Manage your account securely with GDPR-compliant data handling.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/u_s1R5ZXcSE"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch: </strong> Get Started with Ultralytics Platform - Account
+</p>
+
 ## Overview
 
 The Account section helps you:
@@ -24,27 +35,29 @@ The Account section helps you:
 
 ## Account Features
 
-| Feature      | Description                                              |
-| ------------ | -------------------------------------------------------- |
-| **Settings** | Profile, social links, emails, data region, and API keys |
-| **Plans**    | Free, Pro, and Enterprise plan comparison                |
-| **Billing**  | Credits, payment methods, and transaction history        |
-| **Teams**    | Members, roles, invites, and seat management             |
-| **Trash**    | Recover deleted items within 30 days                     |
-| **Emails**   | Add, remove, verify, and set primary email address       |
-| **Activity** | Event log with inbox, archive, search, and undo          |
+| Feature      | Description                                                 |
+| ------------ | ----------------------------------------------------------- |
+| **Settings** | Profile, emails, social links, and data region              |
+| **API Keys** | Generate AES-256-GCM encrypted keys for programmatic access |
+| **Plans**    | Free, Pro, and Enterprise plan comparison                   |
+| **Billing**  | Credits, payment methods, and transaction history           |
+| **Teams**    | Members, roles, invites, and seat management                |
+| **Trash**    | Recover deleted items within 30 days                        |
+| **Activity** | Event log with inbox, archive, search, and undo             |
 
 ## Settings Tabs
 
-Account management is organized into tabs within `Settings`:
+Account management is organized into seven tabs within `Settings` (in order):
 
-| Tab       | Description                                                      |
-| --------- | ---------------------------------------------------------------- |
-| `Profile` | Display name, bio, company, use case, emails, social links, keys |
-| `Plans`   | Compare Free, Pro, and Enterprise plans                          |
-| `Billing` | Credit balance, top-up, payment methods, transactions            |
-| `Teams`   | Member list, roles, invites, seat allocation                     |
-| `Trash`   | Soft-deleted projects, datasets, and models                      |
+| Tab            | Description                                                                                                                               |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `Profile`      | Display name, bio, company, use case, emails, social links, data region                                                                   |
+| `API Keys`     | Create and manage API keys for remote training and programmatic access                                                                    |
+| `Plans`        | Compare Free, Pro, and Enterprise plans                                                                                                   |
+| `Billing`      | Credit balance, top-up, payment methods, transactions                                                                                     |
+| `Teams`        | Member list, roles, invites, seat allocation                                                                                              |
+| `Integrations` | Transfer datasets, projects, models, and balance from Ultralytics HUB; import datasets from Roboflow; Weights & Biases sync (coming soon) |
+| `Trash`        | Soft-deleted projects, datasets, and models (30-day recovery)                                                                             |
 
 ## Security
 
@@ -97,8 +110,8 @@ Account deletion is available in Settings:
 
 1. Go to `Settings > Profile`
 2. Scroll to the bottom
-3. Click **Delete Account**
-4. Confirm deletion
+3. Click **Delete My Account**
+4. Type `DELETE` to confirm, then click **Delete My Account**
 
 !!! warning "Permanent Action"
 
@@ -115,10 +128,6 @@ Yes, Ultralytics Platform implements:
 
 ### Can I change my data region?
 
-No, data region is selected during signup and cannot be changed. To use a different region:
-
-1. Export your data
-2. Create a new account in desired region
-3. Re-upload your data
+Your data region is selected during onboarding and can't be changed yourself. To move to a different region, contact support to request a region change.
 
 This ensures data residency compliance.

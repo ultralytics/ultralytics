@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from collections import OrderedDict, defaultdict
 from copy import deepcopy
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import cv2
 import numpy as np
@@ -37,7 +37,9 @@ from .amg import (
     uncrop_boxes_xyxy,
     uncrop_masks,
 )
-from .sam3.geometry_encoders import Prompt
+
+if TYPE_CHECKING:
+    from .sam3.geometry_encoders import Prompt
 
 
 class Predictor(BasePredictor):
@@ -228,7 +230,7 @@ class Predictor(BasePredictor):
             >>> predictor = Predictor()
             >>> im = torch.rand(1, 3, 1024, 1024)
             >>> bboxes = [[100, 100, 200, 200]]
-            >>> masks, scores, logits = predictor.prompt_inference(im, bboxes=bboxes)
+            >>> masks, scores = predictor.prompt_inference(im, bboxes=bboxes)
         """
         features = self.get_im_features(im) if self.features is None else self.features
 
@@ -454,9 +456,11 @@ class Predictor(BasePredictor):
         device = select_device(self.args.device, verbose=verbose)
         if model is None:
             model = self.get_model()
-        model.eval()
+        # Move model to device first, then cast dtype, then set eval so any eval-time caches are created on-device.
         model = model.to(device)
-        self.model = model.half() if self.args.half else model.float()
+        model = model.half() if self.args.quantize == 16 else model.float()
+        model.eval()
+        self.model = model
         self.device = device
         self.mean = torch.tensor([123.675, 116.28, 103.53]).view(-1, 1, 1).to(device)
         self.std = torch.tensor([58.395, 57.12, 57.375]).view(-1, 1, 1).to(device)
@@ -464,7 +468,7 @@ class Predictor(BasePredictor):
         # Ultralytics compatibility settings
         self.model.format = "sam"
         self.model.stride = 32
-        self.model.fp16 = self.args.half
+        self.model.fp16 = self.args.quantize == 16
         self.done_warmup = True
         self.torch_dtype = torch.float16 if self.model.fp16 else torch.float32
 
@@ -627,7 +631,8 @@ class Predictor(BasePredictor):
 
         # Recalculate boxes and remove any new duplicates
         new_masks = torch.cat(new_masks, dim=0)
-        boxes = batched_mask_to_box(new_masks)
+        # batched_mask_to_box requires bool masks; on uint8 it returns all-zero boxes and the NMS dedup below is a no-op
+        boxes = batched_mask_to_box(new_masks.bool())
         keep = torchvision.ops.nms(boxes.float(), torch.as_tensor(scores), nms_thresh)
 
         return new_masks[keep].to(device=masks.device, dtype=masks.dtype), keep
@@ -1970,8 +1975,8 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             raise RuntimeError("No objects have been added to the state. Please add objects before inference.")
         idx = list(self.obj_idx_set)  # cls id
         pred_masks, pred_scores = pred_masks[idx], pred_scores[idx]
-        # the original score are in [-32,32], and a object score larger than 0 means the object is present, we map it to [-1,1] range,
-        # and use a activate function to make sure the object score logits are non-negative, so that we can use it as a mask
+        # The original scores are in [-32, 32]. An object score larger than 0 means the object is present.
+        # Map scores to [0, 1] so that the object score logits are non-negative and can be used as a mask.
         pred_scores = torch.clamp_(pred_scores / 32, min=0)
         return pred_masks.flatten(0, 1), pred_scores.flatten(0, 1)
 
@@ -2049,7 +2054,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
                 consolidated_out["pred_masks"][obj_idx : obj_idx + 1] = obj_mask
                 consolidated_out["obj_ptr"][obj_idx : obj_idx + 1] = out["obj_ptr"]
 
-                if "object_score_logits" in out.keys():
+                if "object_score_logits" in out:
                     consolidated_out["object_score_logits"][obj_idx : obj_idx + 1] = out["object_score_logits"]
 
         high_res_masks = F.interpolate(
@@ -2271,8 +2276,9 @@ class SAM3SemanticPredictor(SAM3Predictor):
         """Run inference on the extracted features with optional bounding boxes and labels."""
         # NOTE: priority: bboxes > text > pre-set classes
         nc = 1 if bboxes is not None else len(text) if text is not None else len(self.model.names)
-        geometric_prompt = self._get_dummy_prompt(nc)
+        geometric_prompt = None
         if bboxes is not None:
+            geometric_prompt = self._get_dummy_prompt(nc)
             for i in range(len(bboxes)):
                 geometric_prompt.append_boxes(bboxes[[i]], labels[[i]])
             if text is None:
@@ -2404,6 +2410,9 @@ class SAM3SemanticPredictor(SAM3Predictor):
 
     def _get_dummy_prompt(self, num_prompts=1):
         """Get a dummy geometric prompt with zero boxes."""
+        # Scoped for import ultralytics speed: SAM3 geometry imports optional torchvision ops.
+        from .sam3.geometry_encoders import Prompt
+
         geometric_prompt = Prompt(
             box_embeddings=torch.zeros(0, num_prompts, 4, device=self.device),
             box_mask=torch.zeros(num_prompts, 0, device=self.device, dtype=torch.bool),
@@ -2507,8 +2516,8 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         hotstart_delay=0,
         hotstart_unmatch_thresh=3,
         hotstart_dup_thresh=3,
-        init_trk_keep_alive=30,
-        max_trk_keep_alive=30,
+        init_trk_keep_alive=10,
+        max_trk_keep_alive=10,
         min_trk_keep_alive=-4,
         # Threshold for suppressing overlapping objects based on recent occlusion
         suppress_overlapping_based_on_recent_occlusion_threshold=0.0,
@@ -2520,7 +2529,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         max_num_objects=-1,
         recondition_every_nth_frame=-1,
         # masket confirmation status (to suppress unconfirmed masklets)
-        masklet_confirmation_enable=False,
+        masklet_confirmation_enable=True,
         # a masklet is confirmed after being consecutively detected and matched for
         # `masklet_confirmation_consecutive_det_thresh`
         masklet_confirmation_consecutive_det_thresh=3,
@@ -2723,7 +2732,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         if self.masklet_confirmation_enable:
             status = metadata["masklet_confirmation"]["status"]
             is_unconfirmed = status == self.UNCONFIRMED
-            out["unconfirmed_obj_ids"] = tracker_metadata_new["obj_ids_all_gpu"][is_unconfirmed].tolist()
+            out["unconfirmed_obj_ids"] = tracker_metadata_new["obj_ids"][is_unconfirmed].tolist()
         else:
             out["unconfirmed_obj_ids"] = []
         return out
@@ -3002,7 +3011,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             for state_idx, inference_state in enumerate(tracker_states_local):
                 if (
                     trk_obj_id in inference_state["obj_ids"]
-                    # NOTE: Goal of this condition is to avoid reconditioning masks that are occluded/low qualiy.
+                    # NOTE: Goal of this condition is to avoid reconditioning masks that are occluded/low quality.
                     # Unfortunately, these can get reconditioned anyway due to batching. We should consider removing these heuristics.
                     and obj_score > HIGH_CONF_THRESH
                 ):
@@ -3560,7 +3569,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
         ious_np = ious.cpu().numpy()
         if self.o2o_matching_masklets_enable:
-            from scipy.optimize import linear_sum_assignment
+            from ultralytics.utils.ops import linear_sum_assignment
 
             # Hungarian matching for tracks (one-to-one: each track matches at most one detection)
             cost_matrix = 1 - ious_np  # Hungarian solves for minimum cost

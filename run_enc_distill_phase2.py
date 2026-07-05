@@ -29,6 +29,8 @@ Flags:
     --datasets <path>: multi_det_finetune only. Either a file with one YOLO data.yaml
                 path per line (#-comments and blanks ignored), or a directory scanned
                 one level deep for ``*/data.yaml``.
+    --imgsz <int>: multi_det_finetune/teacher_frozen_det only. Override the canonical det
+                imgsz (640), e.g. 224 to run the frozen backbone at its phase-1 grid.
 """
 
 import os
@@ -337,6 +339,7 @@ def _run_multi_det(
     nbs_override: str,
     datasets_arg: str,
     freeze_override: str = "",
+    imgsz_override: str = "",
     teacher_spec: str | None = None,
 ) -> None:
     """Sequentially train + val on a list of YOLO-format detection datasets.
@@ -458,6 +461,10 @@ def _run_multi_det(
         elif freeze_override:
             # Frozen distilled-student backbone; same trainer re-enable caveat as the teacher branch above.
             det_args["freeze"] = int(freeze_override)
+        if imgsz_override:
+            # Ablation lever: run the whole detector (and thus the frozen backbone) at a non-640 imgsz, e.g. 224 to
+            # match the backbone's phase-1 distillation grid. Overrides the canonical 640 and any per-teacher imgsz.
+            det_args["imgsz"] = int(imgsz_override)
         train_args = dict(
             pretrained=False if teacher_spec else phase1_weights,
             device=int(gpu),
@@ -519,6 +526,7 @@ def main(argv: list[str]) -> None:
     argv, freeze_override = _pop_flag(argv, "--freeze")
     argv, scratch = _pop_flag(argv, "--scratch", is_bool=True)
     argv, datasets_arg = _pop_flag(argv, "--datasets")
+    argv, imgsz_override = _pop_flag(argv, "--imgsz")
     argv, teacher_spec = _pop_flag(argv, "--teacher")
     if teacher_spec:
         # Layout: <gpu> teacher_frozen_det <name> --teacher <spec> --datasets <file>. The frozen-teacher backbone
@@ -554,6 +562,7 @@ def main(argv: list[str]) -> None:
             lr_override=lr_override,
             nbs_override=nbs_override,
             datasets_arg=datasets_arg,
+            imgsz_override=imgsz_override,
             teacher_spec=teacher_spec,
         )
         return
@@ -595,6 +604,7 @@ def main(argv: list[str]) -> None:
             nbs_override=nbs_override,
             datasets_arg=datasets_arg,
             freeze_override=freeze_override,
+            imgsz_override=imgsz_override,
         )
         return
 

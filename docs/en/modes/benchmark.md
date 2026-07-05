@@ -184,7 +184,7 @@ When running benchmarks, several arguments can be customized to suit specific ne
 
 - **model:** Path to the model file (e.g., "yolo26n.pt").
 - **data:** Path to a YAML file defining the dataset (e.g., "coco8.yaml").
-- **imgsz:** The input image size, either as a single integer or a tuple.
+- **imgsz:** The square input image size as a single integer, such as `640`. Benchmark mode uses the same square image size across PyTorch and exported formats for fair comparison.
 - **quantize:** Quantization precision: `16` for FP16, `8` for INT8 (useful for edge devices); `32`/unset is FP32.
 - **device:** Specify the computation device (e.g., "cpu", "cuda:0").
 - **verbose:** Control the level of logging detail.

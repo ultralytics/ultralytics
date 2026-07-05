@@ -23,14 +23,16 @@ class Sam3DualViTDetNeck(nn.Module):
         scale_factors=(4.0, 2.0, 1.0, 0.5),
         add_sam2_neck: bool = False,
     ):
-        """
-        SimpleFPN neck a la ViTDet
-        (From detectron2, very lightly adapted)
-        It supports a "dual neck" setting, where we have two identical necks (for SAM3 and SAM2), with different weights.
+        """SimpleFPN neck a la ViTDet, very lightly adapted from detectron2.
 
-        :param trunk: the backbone
-        :param position_encoding: the positional encoding to use
-        :param d_model: the dimension of the model
+        Supports a "dual neck" setting with two identical necks (for SAM3 and SAM2) that have different weights.
+
+        Args:
+            trunk (nn.Module): The backbone.
+            position_encoding (nn.Module): The positional encoding to use.
+            d_model (int): The dimension of the model.
+            scale_factors (tuple): Scale factors for each FPN level.
+            add_sam2_neck (bool): Whether to add a second neck for SAM2.
         """
         super().__init__()
         self.trunk = trunk
@@ -124,6 +126,7 @@ class Sam3DualViTDetNeck(nn.Module):
             poss.append(self.position_encoding(feat).to(feat.dtype))
         return outs, poss
 
-    def set_imgsz(self, imgsz: list[int] = [1008, 1008]):
+    def set_imgsz(self, imgsz: list[int] | None = None):
         """Set the image size for the trunk backbone."""
+        imgsz = imgsz if imgsz is not None else [1008, 1008]
         self.trunk.set_imgsz(imgsz)

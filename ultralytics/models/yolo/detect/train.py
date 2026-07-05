@@ -52,13 +52,13 @@ class DetectionTrainer(BaseTrainer):
         >>> trainer.train()
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides: dict[str, Any] | None = None, _callbacks=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides: dict[str, Any] | None = None, _callbacks: dict | None = None):
         """Initialize a DetectionTrainer object for training YOLO object detection models.
 
         Args:
             cfg (dict, optional): Default configuration dictionary containing training parameters.
             overrides (dict, optional): Dictionary of parameter overrides for the default configuration.
-            _callbacks (list, optional): List of callback functions to be executed during training.
+            _callbacks (dict, optional): Dictionary of callback functions to be executed during training.
         """
         super().__init__(cfg, overrides, _callbacks)
 
@@ -121,8 +121,8 @@ class DetectionTrainer(BaseTrainer):
             imgs = batch["img"]
             sz = (
                 random.randrange(
-                    int(self.args.imgsz * (1.0 - self.args.multi_scale)),
-                    int(self.args.imgsz * (1.0 + self.args.multi_scale) + self.stride),
+                    max(self.stride, int(self.args.imgsz * (1.0 - self.args.multi_scale))),  # min imgsz
+                    int(self.args.imgsz * (1.0 + self.args.multi_scale) + self.stride),  # max imgsz
                 )
                 // self.stride
                 * self.stride
@@ -145,9 +145,39 @@ class DetectionTrainer(BaseTrainer):
         self.model.nc = self.data["nc"]  # attach number of classes to model
         self.model.names = self.data["names"]  # attach class names to model
         self.model.args = self.args  # attach hyperparameters to model
-        if getattr(self.model, "end2end"):
+        if getattr(self.model, "end2end", False):
             self.model.set_head_attr(max_det=self.args.max_det)
-        # TODO: self.model.class_weights = labels_to_class_weights(dataset.labels, nc).to(device) * nc
+
+    def get_class_counts(self):
+        """Return per-class instance counts from the training dataset labels."""
+        classes = np.concatenate([lb["cls"].flatten() for lb in self.train_loader.dataset.labels], 0)
+        return np.bincount(classes.astype(int), minlength=self.data["nc"]).astype(np.float32)
+
+    def compute_class_weights(self, class_counts):
+        """Convert class counts to inverse-frequency weights raised to the power of cls_pw."""
+        class_counts = np.where(class_counts == 0, 1.0, class_counts)
+        return (1.0 / class_counts) ** self.args.cls_pw  # apply power directly
+
+    def set_class_weights(self):
+        """Compute and set class weights for handling class imbalance.
+
+        Class weights are computed based on inverse class frequency in the training dataset,
+        raised to the power of cls_pw (0 < cls_pw <= 1 dampens; values are restricted to the range [0, 1]).
+        Final weights are normalized so their mean equals 1.0.
+        """
+        assert 0 <= self.args.cls_pw <= 1.0, "cls_pw must be in the range [0, 1]"
+        if self.args.cls_pw == 0.0:
+            return
+        class_counts = self.get_class_counts()
+        if not class_counts.any():  # nothing counted (e.g. missing/unreadable masks); keep default weights
+            return
+        weights = self.compute_class_weights(class_counts)
+        weights = weights / weights.mean()  # normalize so mean equals 1.0
+        model = self.model
+        if hasattr(unwrap_model(model), "student_model"):
+            model = unwrap_model(model).student_model  # distillation: the student model builds the loss criterion
+        model.class_weights = torch.from_numpy(weights).to(self.device)
+        LOGGER.info(f"Class weights: {model.class_weights.cpu().numpy().round(3)}")
 
     def get_model(self, cfg: str | None = None, weights: str | None = None, verbose: bool = True):
         """Return a YOLO detection model.
@@ -204,7 +234,7 @@ class DetectionTrainer(BaseTrainer):
 
         Args:
             batch (dict[str, Any]): Dictionary containing batch data.
-            ni (int): Number of iterations.
+            ni (int): Batch index used for naming the output file.
         """
         plot_images(
             labels=batch,
@@ -228,5 +258,6 @@ class DetectionTrainer(BaseTrainer):
         with override_configs(self.args, overrides={"cache": False}) as self.args:
             train_dataset = self.build_dataset(self.data["train"], mode="train", batch=16)
         max_num_obj = max(len(label["cls"]) for label in train_dataset.labels) * 4  # 4 for mosaic augmentation
+        n = len(train_dataset)
         del train_dataset  # free memory
-        return super().auto_batch(max_num_obj)
+        return super().auto_batch(max_num_obj, dataset_size=n)

@@ -53,14 +53,14 @@ class ClassificationValidator(BaseValidator):
         Torchvision classification models can also be passed to the 'model' argument, i.e. model='resnet18'.
     """
 
-    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None) -> None:
+    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks: dict | None = None) -> None:
         """Initialize ClassificationValidator with dataloader, save directory, and other parameters.
 
         Args:
             dataloader (torch.utils.data.DataLoader, optional): DataLoader to use for validation.
             save_dir (str | Path, optional): Directory to save results.
             args (dict, optional): Arguments containing model and validation configuration.
-            _callbacks (list, optional): List of callback functions to be called during validation.
+            _callbacks (dict, optional): Dictionary of callback functions to be called during validation.
         """
         super().__init__(dataloader, save_dir, args, _callbacks)
         self.targets = None
@@ -83,7 +83,7 @@ class ClassificationValidator(BaseValidator):
     def preprocess(self, batch: dict[str, Any]) -> dict[str, Any]:
         """Preprocess input batch by moving data to device and converting to appropriate dtype."""
         batch["img"] = batch["img"].to(self.device, non_blocking=self.device.type == "cuda")
-        batch["img"] = batch["img"].half() if self.args.half else batch["img"].float()
+        batch["img"] = batch["img"].half() if self.args.quantize == 16 else batch["img"].float()
         batch["cls"] = batch["cls"].to(self.device, non_blocking=self.device.type == "cuda")
         return batch
 

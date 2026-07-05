@@ -19,7 +19,7 @@ From the results in the YOLO comparison table we know that the proposed method h
 
 <canvas id="modelComparisonChart" width="1024" height="400" active-models='["YOLOv7"]'></canvas>
 
-If we compare YOLOv7-X with 114 fps inference speed to YOLOv5-L (r6.1) with 99 fps inference speed, YOLOv7-X can improve AP by 3.9%. If YOLOv7-X is compared with YOLOv5-X (r6.1) of similar scale, the inference speed of YOLOv7-X is 31 fps faster. In addition, in terms the amount of parameters and computation, YOLOv7-X reduces 22% of parameters and 8% of computation compared to YOLOv5-X (r6.1), but improves AP by 2.2% ([Source](https://arxiv.org/pdf/2207.02696)).
+If we compare YOLOv7-X with 114 fps inference speed to YOLOv5-L (r6.1) with 99 fps inference speed, YOLOv7-X can improve AP by 3.9%. If YOLOv7-X is compared with YOLOv5-X (r6.1) of similar scale, the inference speed of YOLOv7-X is 31 fps faster. In addition, in terms of the amount of parameters and computation, YOLOv7-X reduces 22% of parameters and 8% of computation compared to YOLOv5-X (r6.1), but improves AP by 2.2% ([Source](https://arxiv.org/pdf/2207.02696)).
 
 !!! tip "Performance"
 
@@ -91,7 +91,7 @@ YOLOv7 introduces several key features:
 
 ## Usage Examples
 
-As of the time of writing, Ultralytics only supports ONNX and TensorRT inference for YOLOv7.
+Ultralytics does not publish `yolov7.pt` pretrained weights or `ultralytics/cfg/models/v7/` YAMLs, and native PyTorch training and inference for YOLOv7 are **not supported** by the Ultralytics Python package. However, you can bring a YOLOv7 checkpoint trained in the [upstream YOLOv7 repository](https://github.com/WongKinYiu/yolov7) into Ultralytics by exporting it to ONNX or TensorRT, as shown below.
 
 ### ONNX Export
 
@@ -356,15 +356,16 @@ We would like to acknowledge the YOLOv7 authors for their significant contributi
     === "BibTeX"
 
         ```bibtex
-        @article{wang2022yolov7,
-          title={YOLOv7: Trainable bag-of-freebies sets new state-of-the-art for real-time object detectors},
+        @inproceedings{wang2023yolov7,
+          title={YOLOv7: Trainable Bag-of-Freebies Sets New State-of-the-Art for Real-Time Object Detectors},
           author={Wang, Chien-Yao and Bochkovskiy, Alexey and Liao, Hong-Yuan Mark},
-          journal={arXiv preprint arXiv:2207.02696},
-          year={2022}
+          booktitle={Proceedings of the IEEE/CVF conference on Computer Vision and Pattern Recognition (CVPR)},
+          pages={7464--7475},
+          year={2023}
         }
         ```
 
-The original YOLOv7 paper can be found on [arXiv](https://arxiv.org/pdf/2207.02696). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/WongKinYiu/yolov7). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
+The official YOLOv7 paper was published in the [CVF 2023 Open Access](https://openaccess.thecvf.com/content/CVPR2023/papers/Wang_YOLOv7_Trainable_Bag-of-Freebies_Sets_New_State-of-the-Art_for_Real-Time_Object_Detectors_CVPR_2023_paper.pdf), with a preprint on [arXiv](https://arxiv.org/pdf/2207.02696). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/WongKinYiu/yolov7). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
 
 ## FAQ
 

@@ -1,4 +1,5 @@
 ---
+title: nn.text_model API Reference
 description: Documentation for text encoding models in Ultralytics YOLOE, supporting both OpenAI CLIP and Apple MobileCLIP implementations for vision-language tasks.
 keywords: YOLOE, text encoding, CLIP, MobileCLIP, TextModel, vision-language models, embeddings, Ultralytics, deep learning
 ---
@@ -7,7 +8,7 @@ keywords: YOLOE, text encoding, CLIP, MobileCLIP, TextModel, vision-language mod
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/text_model.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/text_model.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/text_model.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/text_model.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
 <br>
 

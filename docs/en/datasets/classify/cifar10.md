@@ -6,7 +6,7 @@ keywords: CIFAR-10, dataset, machine learning, computer vision, image classifica
 
 # CIFAR-10 Dataset
 
-The [CIFAR-10](https://www.cs.toronto.edu/~kriz/cifar.html) (Canadian Institute For Advanced Research) dataset is a collection of images used widely for [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and computer vision algorithms. It was developed by researchers at the CIFAR institute and consists of 60,000 32x32 color images in 10 different classes.
+The [CIFAR-10](https://cave.cs.toronto.edu/kriz/cifar.html) (Canadian Institute For Advanced Research) dataset is a collection of images used widely for [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and computer vision algorithms. It was developed by researchers at the CIFAR institute and consists of 60,000 32x32 color images in 10 different classes.
 
 <p align="center">
   <br>
@@ -88,7 +88,7 @@ If you use the CIFAR-10 dataset in your research or development work, please cit
         }
         ```
 
-We would like to acknowledge Alex Krizhevsky for creating and maintaining the CIFAR-10 dataset as a valuable resource for the machine learning and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) research community. For more information about the CIFAR-10 dataset and its creator, visit the [CIFAR-10 dataset website](https://www.cs.toronto.edu/~kriz/cifar.html).
+We would like to acknowledge Alex Krizhevsky for creating and maintaining the CIFAR-10 dataset as a valuable resource for the machine learning and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) research community. For more information about the CIFAR-10 dataset and its creator, visit the [CIFAR-10 dataset website](https://cave.cs.toronto.edu/kriz/cifar.html).
 
 ## FAQ
 

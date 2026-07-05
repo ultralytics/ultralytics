@@ -1,4 +1,5 @@
 ---
+title: YOLO26 Sliced Inference with SAHI
 comments: true
 description: Learn how to implement YOLO26 with SAHI for sliced inference. Optimize memory usage and enhance detection accuracy for large-scale applications.
 keywords: YOLO26, SAHI, Sliced Inference, Object Detection, Ultralytics, High-resolution Images, Computational Efficiency, Integration Guide
@@ -20,13 +21,13 @@ SAHI (Slicing Aided Hyper Inference) is an innovative library designed to optimi
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/ILqMBah5ZvI"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/Kpl6cOUKbb8"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Inference with SAHI (Slicing Aided Hyper Inference) using Ultralytics YOLO26
+  <strong>Watch:</strong> How to use SAHI with Ultralytics YOLO26 to Detect Small Objects | Slicing Aided Hyper Inference 🚀
 </p>
 
 ### Key Features of SAHI
@@ -70,15 +71,10 @@ pip install -U ultralytics sahi
 
 ### Import Modules and Download Resources
 
-Here's how to import the necessary modules and download a YOLO26 model and some test images:
+Here's how to download some test images:
 
 ```python
 from sahi.utils.file import download_from_url
-from sahi.utils.ultralytics import download_yolo26n_model
-
-# Download YOLO26 model
-model_path = "models/yolo26n.pt"
-download_yolo26n_model(model_path)
 
 # Download test images
 download_from_url(
@@ -102,7 +98,7 @@ from sahi import AutoDetectionModel
 
 detection_model = AutoDetectionModel.from_pretrained(
     model_type="ultralytics",
-    model_path=model_path,
+    model_path="yolo26n.pt",
     confidence_threshold=0.3,
     device="cpu",  # or 'cuda:0'
 )
@@ -110,17 +106,14 @@ detection_model = AutoDetectionModel.from_pretrained(
 
 ### Perform Standard Prediction
 
-Perform standard inference using an image path or a numpy image.
+Perform standard inference using an image path.
 
 ```python
 from sahi.predict import get_prediction
-from sahi.utils.cv import read_image
 
-# With an image path
 result = get_prediction("demo_data/small-vehicles1.jpeg", detection_model)
 
-# With a numpy image
-result_with_np_image = get_prediction(read_image("demo_data/small-vehicles1.jpeg"), detection_model)
+result.export_visuals(export_dir="demo_data/", hide_conf=True)
 ```
 
 ### Visualize Results
@@ -128,10 +121,13 @@ result_with_np_image = get_prediction(read_image("demo_data/small-vehicles1.jpeg
 Export and visualize the predicted bounding boxes and masks:
 
 ```python
-from IPython.display import Image
+from PIL import Image
 
-result.export_visuals(export_dir="demo_data/")
-Image("demo_data/prediction_visual.png")
+# Open the predicted image
+processed_image = Image.open("demo_data/prediction_visual.png")
+
+# Display the predicted image
+processed_image.show()
 ```
 
 ## Sliced Inference with YOLO26
@@ -139,6 +135,7 @@ Image("demo_data/prediction_visual.png")
 Perform sliced inference by specifying the slice dimensions and overlap ratios:
 
 ```python
+from PIL import Image
 from sahi.predict import get_sliced_prediction
 
 result = get_sliced_prediction(
@@ -149,6 +146,15 @@ result = get_sliced_prediction(
     overlap_height_ratio=0.2,
     overlap_width_ratio=0.2,
 )
+
+# Export results
+result.export_visuals(export_dir="demo_data/", hide_conf=True)
+
+# Open the predicted image
+processed_image = Image.open("demo_data/prediction_visual.png")
+
+# Display the predicted image
+processed_image.show()
 ```
 
 ## Handling Prediction Results
@@ -159,12 +165,14 @@ SAHI provides a `PredictionResult` object, which can be converted into various a
 # Access the object prediction list
 object_prediction_list = result.object_prediction_list
 
-# Convert to COCO annotation, COCO prediction, imantics, and fiftyone formats
+# Convert to COCO annotation and COCO prediction formats
 result.to_coco_annotations()[:3]
 result.to_coco_predictions(image_id=1)[:3]
-result.to_imantics_annotations()[:3]
-result.to_fiftyone_detections()[:3]
 ```
+
+!!! tip "Additional export formats"
+
+    `PredictionResult` can also convert detections to [imantics](https://github.com/jsbroks/imantics) and [FiftyOne](https://github.com/voxel51/fiftyone) objects with `result.to_imantics_annotations()` and `result.to_fiftyone_detections()`. These methods require the respective packages, so install them first with `pip install imantics fiftyone`.
 
 ## Batch Prediction
 
@@ -175,7 +183,7 @@ from sahi.predict import predict
 
 predict(
     model_type="ultralytics",
-    model_path="path/to/yolo26n.pt",
+    model_path="yolo26n.pt",
     model_device="cpu",  # or 'cuda:0'
     model_confidence_threshold=0.4,
     source="path/to/dir",
@@ -219,20 +227,19 @@ Integrating Ultralytics YOLO26 with SAHI (Slicing Aided Hyper Inference) for sli
 pip install -U ultralytics sahi
 ```
 
-Then, download a YOLO26 model and test images:
+Then, download test images:
 
 ```python
 from sahi.utils.file import download_from_url
-from sahi.utils.ultralytics import download_yolo26n_model
-
-# Download YOLO26 model
-model_path = "models/yolo26n.pt"
-download_yolo26n_model(model_path)
 
 # Download test images
 download_from_url(
     "https://raw.githubusercontent.com/obss/sahi/main/demo/demo_data/small-vehicles1.jpeg",
     "demo_data/small-vehicles1.jpeg",
+)
+download_from_url(
+    "https://raw.githubusercontent.com/obss/sahi/main/demo/demo_data/terrain2.png",
+    "demo_data/terrain2.png",
 )
 ```
 
@@ -253,10 +260,13 @@ Learn more about the [benefits of sliced inference](#benefits-of-sliced-inferenc
 Yes, you can visualize prediction results when using YOLO26 with SAHI. Here's how you can export and visualize the results:
 
 ```python
-from IPython.display import Image
+from PIL import Image
 
-result.export_visuals(export_dir="demo_data/")
-Image("demo_data/prediction_visual.png")
+result.export_visuals(export_dir="demo_data/", hide_conf=True)
+
+processed_image = Image.open("demo_data/prediction_visual.png")
+
+processed_image.show()
 ```
 
 This command will save the visualized predictions to the specified directory, and you can then load the image to view it in your notebook or application. For a detailed guide, check out the [Standard Inference section](#visualize-results).

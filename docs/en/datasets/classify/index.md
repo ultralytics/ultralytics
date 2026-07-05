@@ -8,7 +8,7 @@ keywords: YOLO, image classification, dataset structure, CIFAR-10, Ultralytics, 
 
 ## Dataset Structure for YOLO Classification Tasks
 
-For [Ultralytics](https://www.ultralytics.com/) YOLO classification tasks, the dataset must be organized in a specific split-directory structure under the `root` directory to facilitate proper training, testing, and optional validation processes. This structure includes separate directories for training (`train`) and testing (`test`) phases, with an optional directory for validation (`val`).
+For [Ultralytics](https://www.ultralytics.com/) YOLO classification tasks, the dataset must be organized in a specific split-directory structure under the `root` directory to facilitate proper training, testing, and optional validation processes. This structure includes separate directories for training (`train`) and validation (`val`) phases, with an optional directory for testing (`test`).
 
 Each of these directories should contain one subdirectory for each class in the dataset. The subdirectories are named after the corresponding class and contain all the images for that class. Ensure that each image file is named uniquely and stored in a common format such as JPEG or PNG.
 
@@ -117,7 +117,7 @@ Ultralytics supports the following datasets with automatic download:
 - [Imagenette](imagenette.md): A smaller subset of ImageNet that contains 10 easily distinguishable classes for quicker training and testing.
 - [Imagewoof](imagewoof.md): A more challenging subset of ImageNet containing 10 dog breed categories for image classification tasks.
 - [MNIST](mnist.md): A dataset of 70,000 grayscale images of handwritten digits for image classification tasks.
-- [MNIST160](mnist.md): First 8 images of each MNIST category from the MNIST dataset. Dataset contains 160 images total.
+- [MNIST160](mnist.md): First 8 images of each digit (0-9) from both the MNIST train and test splits. Dataset contains 160 images total.
 
 ### Adding your own dataset
 
@@ -207,4 +207,4 @@ Training a model using Ultralytics YOLO can be done easily in both Python and CL
         yolo classify train data=path/to/data model=yolo26n-cls.pt epochs=100 imgsz=640
         ```
 
-These examples demonstrate the straightforward process of training a YOLO model using either approach. For more information, visit the [Usage](#usage) section and the [Train](https://docs.ultralytics.com/tasks/classify/#train) page for classification tasks.
+These examples demonstrate the straightforward process of training a YOLO model using either approach. For more information, visit the [Usage](#usage) section and the [Train](../../tasks/classify.md#train) page for classification tasks.

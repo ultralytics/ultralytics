@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Explore the Ultralytics COCO12-Formats dataset, a test dataset featuring all 12 supported image formats (AVIF, BMP, DNG, HEIC, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WebP) for validating image loading pipelines.
+description: Explore the Ultralytics COCO12-Formats dataset, a test dataset featuring 12 supported image formats (AVIF, BMP, DNG, HEIC, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WebP) for validating image loading pipelines.
 keywords: COCO12-Formats, Ultralytics, dataset, image formats, object detection, YOLO, AVIF, BMP, DNG, HEIC, JP2, JPEG, PNG, TIFF, WebP, MPO
 ---
 
@@ -8,18 +8,18 @@ keywords: COCO12-Formats, Ultralytics, dataset, image formats, object detection,
 
 ## Introduction
 
-The [Ultralytics](https://www.ultralytics.com/) COCO12-Formats dataset is a specialized test dataset designed to validate image loading across all 12 supported image format extensions. It contains 12 images (6 for training, 6 for validation), each saved in a different format to ensure comprehensive testing of the image loading pipeline.
+The [Ultralytics](https://www.ultralytics.com/) COCO12-Formats dataset is a specialized test dataset designed to validate image loading across 12 supported image format extensions. It contains 12 images (6 for training, 6 for validation), each saved in a different format to ensure comprehensive testing of the image loading pipeline.
 
 This dataset is invaluable for:
 
-- **Testing image format support**: Verify that all supported formats load correctly
+- **Testing image format support**: Verify that common image formats load correctly
 - **CI/CD pipelines**: Automated testing of format compatibility
 - **Debugging**: Isolate format-specific issues in training pipelines
 - **Development**: Validate new format additions or changes
 
 ## Supported Formats
 
-The dataset includes one image for each of the 12 supported format extensions defined in `ultralytics/data/utils.py`:
+The dataset includes one image for each of 12 supported format extensions defined in `ultralytics/data/utils.py`:
 
 | Format | Extension | Description                          | Train/Val |
 | ------ | --------- | ------------------------------------ | --------- |
@@ -58,17 +58,6 @@ The COCO12-Formats dataset is configured using a YAML file that defines dataset 
     ```yaml
     --8<-- "ultralytics/cfg/datasets/coco12-formats.yaml"
     ```
-
-## Dataset Generation
-
-The dataset can be generated using the provided script that converts source images from COCO8 and COCO128 to all supported formats:
-
-```python
-from ultralytics.data.scripts.generate_coco12_formats import generate_coco12_formats
-
-# Generate the dataset
-generate_coco12_formats()
-```
 
 ### Requirements
 
@@ -122,7 +111,7 @@ To train a YOLO model on the COCO12-Formats dataset, use the following examples:
         # Load a pretrained YOLO model
         model = YOLO("yolo26n.pt")
 
-        # Train on COCO12-Formats to test all image formats
+        # Train on COCO12-Formats to test 12 supported image formats
         results = model.train(data="coco12-formats.yaml", epochs=1, imgsz=640)
         ```
 
@@ -155,9 +144,11 @@ JPEG 2000 is a wavelet-based image compression standard offering better compress
 
 MPO files are used for stereoscopic (3D) images. The dataset stores standard JPEG data with the `.mpo` extension for format testing.
 
-### HEIC (High Efficiency Image Coding)
+### HEIC / HEIF (High Efficiency Image File Format)
 
-HEIC requires the `pillow-heif` package for proper encoding:
+Both `.heic` and `.heif` extensions reference the same ISO/IEC 23008-12 container. By convention, `.heic` denotes HEVC-encoded HEIF files (the variant produced by Apple devices), while `.heif` is the broader umbrella extension.
+
+Ultralytics decodes both via the OpenCV → Pillow fallback in `ultralytics/utils/patches.py`, which auto-installs `pi-heif` (lightweight, decode-only) on first use — no manual setup required for reading. To produce HEIC/HEIF files yourself (e.g., re-encoding sample images), install the full `pillow-heif` package, which includes encoders:
 
 ```bash
 pip install pillow-heif
@@ -171,8 +162,8 @@ pip install pillow-heif
 from ultralytics import YOLO
 
 
-def test_all_image_formats():
-    """Test that all image formats load correctly."""
+def test_image_formats():
+    """Test that 12 supported image formats load correctly."""
     model = YOLO("yolo26n.pt")
     results = model.train(data="coco12-formats.yaml", epochs=1, imgsz=64)
     assert results is not None
@@ -185,10 +176,10 @@ from pathlib import Path
 
 from ultralytics.data.utils import IMG_FORMATS
 
-# Verify all formats are represented
+# Verify all dataset formats are supported
 dataset_dir = Path("datasets/coco12-formats/images")
 found_formats = {f.suffix[1:].lower() for f in dataset_dir.rglob("*.*")}
-assert found_formats == IMG_FORMATS, f"Missing formats: {IMG_FORMATS - found_formats}"
+assert found_formats <= IMG_FORMATS, f"Unsupported formats: {found_formats - IMG_FORMATS}"
 ```
 
 ## Citations and Acknowledgments
@@ -214,7 +205,7 @@ If you use the COCO dataset in your research, please cite:
 
 ### What Is the COCO12-Formats Dataset Used For?
 
-The COCO12-Formats dataset is designed for testing image format compatibility in Ultralytics YOLO training pipelines. It ensures all 12 supported image formats (AVIF, BMP, DNG, HEIC, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WebP) load and process correctly.
+The COCO12-Formats dataset is designed for testing image format compatibility in Ultralytics YOLO training pipelines. It ensures 12 supported image formats (AVIF, BMP, DNG, HEIC, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WebP) load and process correctly.
 
 ### Why Test Multiple Image Formats?
 
@@ -228,7 +219,3 @@ Different image formats have unique characteristics (compression, bit depth, col
 
 - **AVIF**: Requires `pillow-avif-plugin`
 - **HEIC**: Requires `pillow-heif`
-
-### Can I Add New Format Tests?
-
-Yes! Modify the `generate_coco12_formats.py` script to include additional formats. Ensure you also update `IMG_FORMATS` in `ultralytics/data/utils.py`.

@@ -1,4 +1,5 @@
 ---
+title: YOLO26 on NVIDIA DGX Spark
 comments: true
 description: Learn to deploy Ultralytics YOLO26 on NVIDIA DGX Spark with our detailed guide. Explore performance benchmarks and maximize AI capabilities on this compact desktop AI supercomputer.
 keywords: Ultralytics, YOLO26, NVIDIA DGX Spark, AI deployment, performance benchmarks, deep learning, TensorRT, computer vision, GB10 Grace Blackwell
@@ -19,6 +20,17 @@ This comprehensive guide provides a detailed walkthrough for deploying Ultralyti
 ## What is NVIDIA DGX Spark?
 
 NVIDIA DGX Spark is a compact desktop AI supercomputer powered by the NVIDIA GB10 Grace Blackwell Superchip. It delivers up to 1 petaFLOP of AI computing performance with FP4 precision, making it ideal for developers, researchers, and data scientists who need powerful AI capabilities in a desktop form factor.
+
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/VHGfpOrPh-s"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Get up to 1000 FPS with Ultralytics YOLO26 on NVIDIA DGX Spark | <a href="https://docs.ultralytics.com/integrations/tensorrt">TensorRT</a> & Batch Inference
+</p>
 
 ### Key Specifications
 
@@ -132,7 +144,7 @@ pip install torch torchvision --index-url https://download.pytorch.org/whl/cu130
 
     When running PyTorch 2.9.1 on NVIDIA DGX Spark, you may encounter the following `UserWarning` when initializing CUDA (e.g. running `yolo checks`, `yolo predict`, etc.):
 
-    ```text
+    ```
     UserWarning: Found GPU0 NVIDIA GB10 which is of cuda capability 12.1.
     Minimum and Maximum cuda capability supported by this version of PyTorch is (8.0) - (12.0)
     ```
@@ -348,8 +360,8 @@ When using NVIDIA DGX Spark, there are a couple of best practices to follow in o
     For best performance, export models with FP16 or INT8 precision:
 
     ```bash
-    yolo export model=yolo26n.pt format=engine half=True # FP16
-    yolo export model=yolo26n.pt format=engine int8=True # INT8
+    yolo export model=yolo26n.pt format=engine quantize=16 # FP16
+    yolo export model=yolo26n.pt format=engine quantize=8  # INT8
     ```
 
 ## System Updates (Founders Edition)
@@ -400,7 +412,7 @@ TensorRT is highly recommended for deploying YOLO26 models on DGX Spark due to i
 
 ### How does DGX Spark compare to Jetson devices for YOLO26?
 
-DGX Spark offers significantly more compute power than Jetson devices with up to 1 PFLOP of AI performance and 128GB unified memory, compared to Jetson AGX Thor's 2070 TFLOPS and 128GB memory. DGX Spark is designed as a desktop AI supercomputer, while Jetson devices are embedded systems optimized for edge deployment.
+DGX Spark offers up to 1 PFLOP of AI performance and 128GB unified memory, compared to Jetson AGX Thor's 2070 TFLOPS and 128GB memory. DGX Spark is designed as a desktop AI supercomputer, while Jetson devices are embedded systems optimized for edge deployment.
 
 ### Can I use the same Docker image for DGX Spark and Jetson AGX Thor?
 

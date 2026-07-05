@@ -53,14 +53,26 @@ def generate_ddp_file(trainer: BaseTrainer) -> str:
     """
     module, name = f"{trainer.__class__.__module__}.{trainer.__class__.__name__}".rsplit(".", 1)
 
+    # Serialize augmentations to JSON-safe dicts to avoid NameError in DDP subprocess
+    overrides = vars(trainer.args).copy()
+    if overrides.get("augmentations") is not None:
+        import albumentations as A
+
+        overrides["augmentations"] = [A.to_dict(t) for t in overrides["augmentations"]]
+
     content = f"""
 # Ultralytics Multi-GPU training temp file (should be automatically deleted after use)
 from pathlib import Path, PosixPath  # For model arguments stored as Path instead of str
-overrides = {vars(trainer.args)}
+overrides = {overrides}
 
 if __name__ == "__main__":
     from {module} import {name}
     from ultralytics.utils import DEFAULT_CFG_DICT
+
+    # Deserialize augmentations from dicts back to Albumentations transform objects
+    if overrides.get("augmentations") is not None:
+        import albumentations as A
+        overrides["augmentations"] = [A.from_dict(t) for t in overrides["augmentations"]]
 
     cfg = DEFAULT_CFG_DICT.copy()
     cfg.update(save_dir='')   # handle the extra key 'save_dir'

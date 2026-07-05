@@ -17,7 +17,7 @@ The signature detection dataset is split into two subsets:
 
 ## Applications
 
-This dataset can be applied in various computer vision tasks such as [object detection](https://www.ultralytics.com/glossary/object-detection), [object tracking](https://docs.ultralytics.com/modes/track/), and document analysis. Specifically, it can be used to train and evaluate models for identifying signatures in documents, which has significant applications in:
+This dataset can be applied in various computer vision tasks such as [object detection](https://www.ultralytics.com/glossary/object-detection), [object tracking](../../modes/track.md), and document analysis. Specifically, it can be used to train and evaluate models for identifying signatures in documents, which has significant applications in:
 
 - **Document Verification**: Automating the verification process for legal and financial documents
 - **Fraud Detection**: Identifying potentially forged or unauthorized signatures
@@ -95,7 +95,7 @@ This example illustrates the variety and complexity of images in the signature D
 
 ## Citations and Acknowledgments
 
-The dataset has been released available under the [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE).
+The dataset has been released under the [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE).
 
 ## FAQ
 

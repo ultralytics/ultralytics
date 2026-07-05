@@ -155,7 +155,7 @@ class SAM(Model):
         """Provide a mapping from the 'segment' task to its corresponding 'Predictor'.
 
         Returns:
-            (dict[str, dict[str, Type[Predictor]]]): A dictionary mapping the 'segment' task to its corresponding
+            (dict[str, dict[str, type[Predictor]]]): A dictionary mapping the 'segment' task to its corresponding
                 Predictor class. For SAM2 models, it maps to SAM2Predictor, otherwise to the standard Predictor.
 
         Examples:

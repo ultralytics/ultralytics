@@ -18,10 +18,6 @@ on:
     - cron: "0 8 * * *" # runs at 08:00 UTC every day
   workflow_dispatch:
     inputs:
-      hub:
-        description: "Run HUB"
-        default: true
-        type: boolean
       benchmarks:
         description: "Run Benchmarks"
         default: true
@@ -48,111 +44,82 @@ on:
         type: boolean
 
 jobs:
-  HUB:
-    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.hub == 'true'))
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest]
-        python: ["3.12"]
-    steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
-        with:
-          python-version: ${{ matrix.python }}
-      - uses: astral-sh/setup-uv@v7
-      - name: Install requirements
-        shell: bash # for Windows compatibility
-        run: |
-          uv pip install --system . --extra-index-url https://download.pytorch.org/whl/cpu
-      - name: Check environment
-        run: |
-          yolo checks
-          uv pip list
-      - name: Test HUB training
-        shell: python
-        env:
-          API_KEY: ${{ secrets.ULTRALYTICS_HUB_API_KEY }}
-          MODEL_ID: ${{ secrets.ULTRALYTICS_HUB_MODEL_ID }}
-        run: |
-          import os
-          from ultralytics import YOLO, hub
-          api_key, model_id = os.environ['API_KEY'], os.environ['MODEL_ID']
-          hub.login(api_key)
-          hub.reset_model(model_id)
-          model = YOLO('https://hub.ultralytics.com/models/' + model_id)
-          model.train()
-      - name: Test HUB inference API
-        shell: python
-        env:
-          API_KEY: ${{ secrets.ULTRALYTICS_HUB_API_KEY }}
-          MODEL_ID: ${{ secrets.ULTRALYTICS_HUB_MODEL_ID }}
-        run: |
-          import os
-          import requests
-          import json
-          api_key, model_id = os.environ['API_KEY'], os.environ['MODEL_ID']
-          url = f"https://api.ultralytics.com/v1/predict/{model_id}"
-          headers = {"x-api-key": api_key}
-          data = {"size": 320, "confidence": 0.25, "iou": 0.45}
-          with open("ultralytics/assets/zidane.jpg", "rb") as f:
-              response = requests.post(url, headers=headers, data=data, files={"image": f})
-          assert response.status_code == 200, f'Status code {response.status_code}, Reason {response.reason}'
-          print(json.dumps(response.json(), indent=2))
-
   Benchmarks:
     if: github.event_name != 'workflow_dispatch' || github.event.inputs.benchmarks == 'true'
+    permissions:
+      contents: read
+      id-token: write
     runs-on: ${{ matrix.os }}
+    env:
+      # Keep benchmark jobs hermetic so missing export deps fail during setup instead of mutating mid-run.
+      YOLO_AUTOINSTALL: "false"
     strategy:
       fail-fast: false
       matrix:
         # Temporarily disable windows-latest due to https://github.com/ultralytics/ultralytics/actions/runs/13020330819/job/36319338854?pr=18921
         os: [ubuntu-latest, macos-26, ubuntu-24.04-arm]
-        python: ["3.12"]
+        python: ["3.13"]
         model: [yolo26n]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v6
+        if: matrix.os != 'cpu-latest'
         with:
           python-version: ${{ matrix.python }}
       - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: ${{ matrix.python }}
+          activate-environment: ${{ matrix.os == 'cpu-latest' }}
       - name: Install requirements
-        shell: bash # for Windows compatibility
-        run: |
-          uv pip install --system -e ".[export]" "coverage[toml]" --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+        uses: ultralytics/actions/retry@main
+        with:
+          retries: 3
+          retry_delay_seconds: 20
+          timeout_minutes: 20
+          run: |
+            uv_system_args=()
+            if [[ "${{ matrix.os }}" != "cpu-latest" ]]; then
+              uv_system_args=(--system)
+            fi
+            # Pin PNNX until 20260704 NCNN inference segfault is fixed: https://github.com/pnnx/pnnx/issues/293
+            uv pip install "${uv_system_args[@]}" -e ".[export,export-executorch]" \
+              ncnn pnnx==20260526 "coverage[toml]" \
+              --torch-backend cpu
       - name: Check environment
         run: |
           yolo checks
           uv pip list
       - name: Benchmark DetectionModel
         shell: bash
-        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 verbose=0.218
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 verbose=0.216
       - name: Benchmark ClassificationModel
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-cls.pt' imgsz=160 verbose=0.249
       - name: Benchmark YOLOWorld DetectionModel
         shell: bash
-        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/yolov8s-worldv2.pt' imgsz=160 verbose=0.337
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/yolov8s-worldv2.pt' imgsz=160 verbose=0.335
       - name: Benchmark SegmentationModel
         shell: bash
-        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-seg.pt' imgsz=160 verbose=0.230
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-seg.pt' imgsz=160 verbose=0.21
       - name: Benchmark PoseModel
         shell: bash
-        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-pose.pt' imgsz=160 verbose=0.194
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-pose.pt' imgsz=160 verbose=0.185
       - name: Benchmark OBBModel
         shell: bash
-        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-obb.pt' imgsz=160 verbose=0.374
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-obb.pt' imgsz=160 verbose=0.371
+      - name: Benchmark SemanticSegmentationModel
+        shell: bash
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-sem.pt' imgsz=160 verbose=0.189
       - name: Merge Coverage Reports
         run: |
           coverage xml -o coverage-benchmarks.xml
       - name: Upload Coverage Reports to CodeCov
         if: github.repository == 'ultralytics/ultralytics'
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v7
         with:
           flags: Benchmarks
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
+          use_oidc: true
       - name: Prune uv Cache
         run: uv cache prune --ci
       - name: Benchmark Summary
@@ -164,13 +131,16 @@ jobs:
 
   Tests:
     if: github.event_name == 'pull_request' || github.event_name == 'push'
+    permissions:
+      contents: read
+      id-token: write
     timeout-minutes: 60
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-26, windows-latest, ubuntu-24.04-arm]
-        python: ["3.12"]
+        python: ["3.13"]
         torch: [latest]
         include:
           - os: ubuntu-latest
@@ -178,11 +148,15 @@ jobs:
             torch: "1.8.0"
             torchvision: "0.9.0"
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v6
+        if: matrix.os != 'cpu-latest'
         with:
           python-version: ${{ matrix.python }}
       - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: ${{ matrix.python }}
+          activate-environment: true
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |
@@ -191,24 +165,48 @@ jobs:
           if [ "${{ matrix.torch }}" != "latest" ]; then
               torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
           fi
-          uv pip install --system -e ".[export,solutions]" $torch pytest-cov --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+          uv pip install -e ".[export-base,solutions]" \
+            $torch aiohttp pytest-cov pytest-xdist "git+https://github.com/ultralytics/CLIP.git" \
+            --torch-backend cpu
       - name: Check environment
         run: |
           yolo checks
           uv pip list
+      - name: Configure Ultralytics cache paths
+        shell: bash # for Windows compatibility
+        run: yolo settings weights_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/weights" datasets_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/datasets"
+      - name: Cache test assets
+        uses: actions/cache@v6
+        with:
+          path: ${{ github.workspace }}/.ultralytics_cache
+          key: ultralytics-test-assets-${{ runner.os }}-${{ hashFiles('tests/cache_test_assets.py', 'tests/__init__.py') }}
+          restore-keys: |
+            ultralytics-test-assets-${{ runner.os }}-
+      - name: Pre-cache test assets
+        shell: bash # for Windows compatibility
+        run: python tests/cache_test_assets.py
       - name: Pytest tests
         shell: bash # for Windows compatibility
-        run: pytest --cov=ultralytics/ --cov-report=xml tests/
+        run: |
+          if [[ "${{ matrix.os }}" == "ubuntu-24.04-arm" ]]; then
+            # GitHub-hosted ARM runners have disconnected under xdist auto-parallelism.
+            pytest --cov=ultralytics/ --cov-report=xml tests/ --export-env base
+          else
+            pytest -n auto --dist=loadfile --cov=ultralytics/ --cov-report=xml tests/ --export-env base
+          fi
+        env:
+          YOLO_AUTOINSTALL: "false"
       - name: Upload Coverage Reports to CodeCov
-        if: github.repository == 'ultralytics/ultralytics' # && matrix.os == 'ubuntu-latest' && matrix.python == '3.12'
-        uses: codecov/codecov-action@v5
+        if: github.repository == 'ultralytics/ultralytics' # && matrix.os == 'ubuntu-latest' && matrix.python == '3.13'
+        uses: codecov/codecov-action@v7
         with:
           flags: Tests
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
+          use_oidc: true
       - name: Prune uv Cache
         run: uv cache prune --ci
 
+  # Shared runner CI keeps current stacks on the main path; legacy torch shards are isolated only where needed.
   SlowTests:
     if: (github.event_name == 'workflow_dispatch' && github.event.inputs.tests == 'true') || github.event_name == 'schedule'
     timeout-minutes: 360
@@ -217,9 +215,10 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-26, windows-latest, ubuntu-24.04-arm]
-        python: ["3.12"]
+        python: ["3.13"]
         torch: [latest]
         include:
+          # Legacy PyTorch shards keep NumPy <2 only where the older torch builds actually need it.
           - os: ubuntu-latest
             python: "3.8" # torch 1.8.0 requires python >=3.6, <=3.9
             torch: "1.8.0"
@@ -228,38 +227,42 @@ jobs:
             python: "3.9"
             torch: "1.9.0"
             torchvision: "0.10.0"
+            numpy_extra: export-legacy-torch
           - os: ubuntu-latest
             python: "3.9"
             torch: "1.10.0"
             torchvision: "0.11.0"
+            numpy_extra: export-legacy-torch
           - os: ubuntu-latest
             python: "3.10"
             torch: "1.11.0"
             torchvision: "0.12.0"
+            numpy_extra: export-legacy-torch
           - os: ubuntu-latest
             python: "3.10"
             torch: "1.12.0"
             torchvision: "0.13.0"
+            numpy_extra: export-legacy-torch
           - os: ubuntu-latest
             python: "3.10"
             torch: "1.13.0"
             torchvision: "0.14.0"
-          - os: ubuntu-latest # Axelera exports
-            python: "3.10"
-            torch: "2.8.0"
-            torchvision: "0.23.0"
+            numpy_extra: export-legacy-torch
           - os: ubuntu-latest
             python: "3.11"
             torch: "2.0.0"
             torchvision: "0.15.0"
+            numpy_extra: export-legacy-torch
           - os: ubuntu-latest
             python: "3.11"
             torch: "2.1.0"
             torchvision: "0.16.0"
+            numpy_extra: export-legacy-torch
           - os: ubuntu-latest
             python: "3.12"
             torch: "2.2.0"
             torchvision: "0.17.0"
+            numpy_extra: export-legacy-torch
           - os: ubuntu-latest
             python: "3.12"
             torch: "2.3.0"
@@ -280,46 +283,156 @@ jobs:
             python: "3.12"
             torch: "2.7.0"
             torchvision: "0.22.0"
+          - os: ubuntu-latest
+            python: "3.12"
+            torch: "2.8.0"
+            torchvision: "0.23.0"
+          - os: ubuntu-latest
+            python: "3.12"
+            torch: "2.9.0"
+            torchvision: "0.24.0"
+          - os: ubuntu-latest
+            python: "3.12"
+            torch: "2.10.0"
+            torchvision: "0.25.0"
+          - os: ubuntu-latest
+            python: "3.13"
+            torch: "2.11.0"
+            torchvision: "0.26.0"
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v6
+        if: matrix.os != 'cpu-latest'
         with:
           python-version: ${{ matrix.python }}
       - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: ${{ matrix.python }}
+          activate-environment: true
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |
+          legacy_extra=""
+          if [ -n "${{ matrix.numpy_extra }}" ]; then
+            legacy_extra=",${{ matrix.numpy_extra }}"
+          fi
           torch=""
           if [ "${{ matrix.torch }}" != "latest" ]; then
-              torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
+            torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
           fi
-          uv pip install --system -e ".[export,solutions]" $torch faster-coco-eval mlflow pytest-cov --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+          uv pip install -e ".[export-base,solutions${legacy_extra}]" $torch \
+            aiohttp faster-coco-eval mlflow pytest-cov pytest-xdist "git+https://github.com/ultralytics/CLIP.git" \
+            --torch-backend cpu
       - name: Check environment
         run: |
           yolo checks
           uv pip list
+      - name: Configure Ultralytics cache paths
+        shell: bash # for Windows compatibility
+        run: yolo settings weights_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/weights" datasets_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/datasets"
+      - name: Cache test assets
+        uses: actions/cache@v6
+        with:
+          path: ${{ github.workspace }}/.ultralytics_cache
+          key: ultralytics-test-assets-${{ runner.os }}-${{ hashFiles('tests/cache_test_assets.py', 'tests/__init__.py') }}
+          restore-keys: |
+            ultralytics-test-assets-${{ runner.os }}-
+      - name: Pre-cache test assets
+        shell: bash # for Windows compatibility
+        run: python tests/cache_test_assets.py --slow
       - name: Pytest tests
         uses: ultralytics/actions/retry@main
         with:
           shell: bash # for Windows compatibility
-          run: pytest --slow --cov=ultralytics/ --cov-report=xml tests/
+          # -n 2 limits parallelism for resource-heavy base export tests on shared runners. The ARM runner is
+          # single-process to avoid xdist worker overhead and runner disconnects during long slow-test runs.
+          run: |
+            pytest_args=(-vv -s --slow --durations=50 --durations-min=1 tests/ --export-env base)
+            if [[ "${{ matrix.os }}" == "ubuntu-24.04-arm" ]]; then
+              PYTHONFAULTHANDLER=1 PYTHONUNBUFFERED=1 pytest "${pytest_args[@]}"
+            else
+              PYTHONFAULTHANDLER=1 PYTHONUNBUFFERED=1 pytest -n 2 --dist=loadfile "${pytest_args[@]}"
+            fi
           retries: 1 # Retry once after initial attempt (2 total runs)
+          timeout_minutes: 180
           retry_delay_seconds: 60
+        env:
+          YOLO_AUTOINSTALL: "false"
+      - name: Prune uv Cache
+        run: uv cache prune --ci
+
+  # Export recipes that need their own environments are validated here so the shared CI jobs stay lean.
+  IsolatedExports:
+    if: github.event_name == 'pull_request' || github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.tests == 'true') || github.event_name == 'schedule'
+    timeout-minutes: 360
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.13"
+      - name: Install export system dependencies
+        run: sudo apt-get update && sudo apt-get install -y openjdk-21-jre flatbuffers-compiler
+      - name: Cache uv wheels
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/uv
+          key: isolated-exports-uv-${{ hashFiles('ultralytics/engine/exporter.py', 'pyproject.toml') }}
+          restore-keys: |
+            isolated-exports-uv-
+      - name: Install base package
+        run: uv pip install --system -e ".[export-base]" pytest "git+https://github.com/ultralytics/CLIP.git" --torch-backend cpu
+      - name: Configure Ultralytics cache paths
+        run: yolo settings weights_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/weights" datasets_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/datasets"
+      - name: Cache test assets
+        uses: actions/cache@v6
+        with:
+          path: ${{ github.workspace }}/.ultralytics_cache
+          key: ultralytics-test-assets-${{ runner.os }}-${{ hashFiles('tests/cache_test_assets.py', 'tests/__init__.py') }}
+          restore-keys: |
+            ultralytics-test-assets-${{ runner.os }}-
+      - name: Pre-cache test assets
+        env:
+          YOLO_AUTOINSTALL: "false"
+        run: python tests/cache_test_assets.py --slow
+      - name: Build and run export tests in isolated environments
+        env:
+          ULTRALYTICS_ISOLATED_VENVS: ${{ runner.temp }}/venvs
+          YOLO_AUTOINSTALL: "false"
+        run: |
+          slow_arg=""
+          if [[ "${{ github.event_name }}" == "schedule" || "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            slow_arg="--slow"
+          fi
+          for env in $(python .github/scripts/create-export-env.py --list); do
+            python .github/scripts/create-export-env.py --env "$env"
+            "${ULTRALYTICS_ISOLATED_VENVS}/${env}/bin/python" -m pytest -vv -s $slow_arg tests/test_exports.py --export-env "$env"
+            rm -rf "${ULTRALYTICS_ISOLATED_VENVS:?}/${env}"
+          done
       - name: Prune uv Cache
         run: uv cache prune --ci
 
   GPU:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name != 'workflow_dispatch' || github.event.inputs.gpu == 'true')
+    permissions:
+      contents: read
+      id-token: write
     timeout-minutes: 60
     runs-on: gpu-latest
+    env:
+      YOLO_AUTOINSTALL: "false"
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v7
         with:
           activate-environment: true
       - name: Install requirements
         run: |
-          uv pip install -e . pytest-cov nvidia-ml-py
+          # Install TensorRT into the job venv so uv can reuse the runner image cache.
+          uv pip install -e ".[export-base]" pytest-cov onnxruntime-gpu "torch<2.11" "tensorrt-cu12>=7.0.0,!=10.2.0" "nvidia-modelopt[onnx]>=0.44"  # TODO: remove torch pin after GPU runner driver update to CUDA 13.0
         env:
           PIP_BREAK_SYSTEM_PACKAGES: 1
       - name: Check environment
@@ -336,12 +449,13 @@ jobs:
         env:
           PIP_BREAK_SYSTEM_PACKAGES: 1
       - name: Upload Coverage Reports to CodeCov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v7
         with:
           flags: GPU
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
+          use_oidc: true
 
+  # Raspberry Pi stays separate because it is a long-tail self-hosted runner with its own setup and cleanup flow.
   RaspberryPi:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.raspberrypi == 'true')
     timeout-minutes: 120
@@ -349,7 +463,7 @@ jobs:
     steps:
       - name: Clean up runner
         uses: eviden-actions/clean-self-hosted-runner@v1
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Activate Virtual Environment for Tests
         run: |
           python3.11 -m venv env-tests
@@ -357,38 +471,61 @@ jobs:
           echo PATH=$PATH >> $GITHUB_ENV
       - uses: astral-sh/setup-uv@v7
       - name: Install requirements
-        run: |
-          uv pip install -e ".[export]" pytest mlflow faster-coco-eval --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+        uses: ultralytics/actions/retry@main
+        with:
+          retries: 3
+          retry_delay_seconds: 20
+          timeout_minutes: 20
+          run: |
+            uv pip install -e ".[export]" pytest pytest-xdist mlflow faster-coco-eval --torch-backend cpu
       - name: Check environment
         run: |
           yolo checks
           uv pip list
+      - name: Configure Ultralytics cache paths
+        run: yolo settings weights_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/weights" datasets_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/datasets"
+      - name: Cache test assets
+        uses: actions/cache@v6
+        with:
+          path: ${{ github.workspace }}/.ultralytics_cache
+          key: ultralytics-test-assets-${{ runner.os }}-${{ hashFiles('tests/cache_test_assets.py', 'tests/__init__.py') }}
+          restore-keys: |
+            ultralytics-test-assets-${{ runner.os }}-
+      - name: Pre-cache test assets
+        run: python tests/cache_test_assets.py --slow
       - name: Pytest tests
-        run: pytest --slow tests/
+        run: pytest -n auto --dist=loadfile --slow tests/ --export-env base
       - name: Activate Virtual Environment for Benchmarks
         run: |
           python3.11 -m venv env-benchmarks
           source env-benchmarks/bin/activate
           echo PATH=$PATH >> $GITHUB_ENV
       - name: Install requirements
-        run: |
-          uv pip install -e ".[export]" pytest mlflow faster-coco-eval --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+        uses: ultralytics/actions/retry@main
+        with:
+          retries: 3
+          retry_delay_seconds: 20
+          timeout_minutes: 20
+          run: |
+            uv pip install -e ".[export]" pytest mlflow faster-coco-eval --torch-backend cpu
       - name: Check environment
         run: |
           yolo checks
           uv pip list
       - name: Benchmark DetectionModel
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n.pt' imgsz=160 verbose=0.218
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n.pt' imgsz=160 verbose=0.216
       - name: Benchmark ClassificationModel
         run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n-cls.pt' imgsz=160 verbose=0.249
       - name: Benchmark YOLOWorld DetectionModel
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolov8s-worldv2.pt' imgsz=160 verbose=0.337
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolov8s-worldv2.pt' imgsz=160 verbose=0.335
       - name: Benchmark SegmentationModel
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n-seg.pt' imgsz=160 verbose=0.230
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n-seg.pt' imgsz=160 verbose=0.21
       - name: Benchmark PoseModel
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n-pose.pt' imgsz=160 verbose=0.194
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n-pose.pt' imgsz=160 verbose=0.185
       - name: Benchmark OBBModel
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n-obb.pt' imgsz=160 verbose=0.374
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n-obb.pt' imgsz=160 verbose=0.371
+      - name: Benchmark SemanticSegmentationModel
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n-sem.pt' imgsz=160 verbose=0.189
       - name: Benchmark Summary
         run: |
           cat benchmarks.log
@@ -425,7 +562,7 @@ jobs:
     steps:
       - name: Clean up runner
         uses: eviden-actions/clean-self-hosted-runner@v1
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v7
       - name: Activate virtual environment
         run: |
@@ -433,11 +570,16 @@ jobs:
           source env/bin/activate
           echo PATH=$PATH >> $GITHUB_ENV
       - name: Install requirements
-        run: |
-          uv pip install -e ".[export]" pytest \
-          "${{ matrix.torch_whl }}" "${{ matrix.torchvision_whl }}" "${{ matrix.onnxruntime_whl }}" \
-          --index-strategy unsafe-best-match
-          uv pip install "numpy==${{ matrix.numpy }}"
+        uses: ultralytics/actions/retry@main
+        with:
+          retries: 3
+          retry_delay_seconds: 60
+          timeout_minutes: 60
+          run: |
+            uv pip install -e ".[export]" pytest \
+            "${{ matrix.torch_whl }}" "${{ matrix.torchvision_whl }}" "${{ matrix.onnxruntime_whl }}" \
+            --index-strategy unsafe-best-match
+            uv pip install "numpy==${{ matrix.numpy }}"
       - name: Check environment
         run: |
           yolo checks
@@ -451,6 +593,8 @@ jobs:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.conda == 'true')
     timeout-minutes: 120
     runs-on: ${{ matrix.os }}
+    env:
+      YOLO_AUTOINSTALL: "false"
     strategy:
       fail-fast: false
       matrix:
@@ -461,26 +605,22 @@ jobs:
         shell: bash -el {0}
     steps:
       - uses: astral-sh/setup-uv@v7
-      - uses: conda-incubator/setup-miniconda@v3
+      - uses: conda-incubator/setup-miniconda@v4
         with:
           python-version: ${{ matrix.python }}
           channels: conda-forge,defaults
           channel-priority: true
           activate-environment: anaconda-client-env
       - name: Install Ultralytics package from conda-forge
-        run: conda install -c pytorch -c conda-forge pytorch-cpu torchvision ultralytics openvino
+        run: conda install -c pytorch -c conda-forge pytorch-cpu torchvision ultralytics "openvino<2026"
       - name: Install pip packages
-        run: uv pip install pytest
+        run: |
+          VERSION=$(python -c "from importlib.metadata import version; print(version('ultralytics'))")
+          uv pip install pytest "ultralytics[export-base,solutions]==${VERSION}" "git+https://github.com/ultralytics/CLIP.git"
       - name: Check environment
         run: conda list
-      - name: Test CLI
-        run: |
-          yolo predict model=yolo26n.pt imgsz=320
-          yolo train model=yolo26n.pt data=coco8.yaml epochs=1 imgsz=32
-          yolo val model=yolo26n.pt data=coco8.yaml imgsz=32
-          yolo export model=yolo26n.pt format=torchscript imgsz=160
-          yolo benchmark model=yolo26n.pt data='coco8.yaml' imgsz=640 format=onnx
-          yolo solutions
+      - name: Test benchmark CLI
+        run: yolo benchmark model=yolo26n.pt data='coco8.yaml' imgsz=640 format=onnx
       - name: Test Python
         # Note this step must use the updated default bash environment, not a Python environment
         run: |
@@ -494,8 +634,8 @@ jobs:
           "
       - name: PyTest Setup
         run: |
-          VERSION=$(conda list ultralytics | grep ultralytics | awk '{print $2}')
-          git clone --branch v$VERSION https://github.com/ultralytics/ultralytics.git
+          VERSION=$(python -c "from importlib.metadata import version; print(version('ultralytics'))")
+          git clone --depth 1 --branch v$VERSION https://github.com/ultralytics/ultralytics.git
       - name: test_cli.py
         run: pytest ultralytics/tests/test_cli.py -v -s
       - name: test_cuda.py
@@ -503,7 +643,7 @@ jobs:
       - name: test_engine.py
         run: pytest ultralytics/tests/test_engine.py -v -s
       - name: test_exports.py
-        run: pytest ultralytics/tests/test_exports.py -v -s
+        run: pytest ultralytics/tests/test_exports.py -v -s --export-env base
       - name: test_integrations.py
         run: pytest ultralytics/tests/test_integrations.py -v -s
       - name: test_solutions.py
@@ -514,14 +654,14 @@ jobs:
 
   Summary:
     runs-on: ubuntu-latest
-    needs: [HUB, Benchmarks, Tests, SlowTests, GPU, RaspberryPi, NVIDIA_Jetson, Conda]
+    needs: [Benchmarks, Tests, SlowTests, IsolatedExports, GPU, RaspberryPi, NVIDIA_Jetson, Conda]
     if: always()
     steps:
       - name: Check for failure and notify
-        if: (needs.HUB.result == 'failure' || needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure' || needs.SlowTests.result == 'failure' || needs.GPU.result == 'failure' || needs.RaspberryPi.result == 'failure' || needs.NVIDIA_Jetson.result == 'failure' || needs.Conda.result == 'failure' ) && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push') && github.run_attempt == '1'
-        uses: slackapi/slack-github-action@v2.1.1
+        if: (needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure' || needs.SlowTests.result == 'failure' || needs.IsolatedExports.result == 'failure' || needs.GPU.result == 'failure' || needs.RaspberryPi.result == 'failure' || needs.NVIDIA_Jetson.result == 'failure' || needs.Conda.result == 'failure' ) && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push') && github.run_attempt == '1'
+        uses: slackapi/slack-github-action@v3.0.3
         with:
           webhook-type: incoming-webhook
           webhook: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}
           payload: |
-            text: "<!channel> GitHub Actions error for ${{ github.workflow }} ❌\n\n\n*Repository:* https://github.com/${{ github.repository }}\n*Action:* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\n*Author:* ${{ github.actor }}\n*Event:* ${{ github.event_name }}\n"
+            text: "<!subteam^S082BPCRAJ3> *${{ github.workflow }}* ❌ `${{ github.repository }}`  <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|*Run*>"

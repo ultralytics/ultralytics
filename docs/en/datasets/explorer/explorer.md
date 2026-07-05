@@ -9,23 +9,27 @@ keywords: Ultralytics Explorer, data exploration, semantic search, vector simila
 <div align="center">
 
 <a href="https://www.ultralytics.com/events/yolovision" target="_blank"><img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-yolov8-banner.avif" alt="Ultralytics YOLO banner"></a>
-<a href="https://docs.ultralytics.com/zh/">中文</a> |
-<a href="https://docs.ultralytics.com/ko/">한국어</a> |
-<a href="https://docs.ultralytics.com/ja/">日本語</a> |
-<a href="https://docs.ultralytics.com/ru/">Русский</a> |
-<a href="https://docs.ultralytics.com/de/">Deutsch</a> |
-<a href="https://docs.ultralytics.com/fr/">Français</a> |
-<a href="https://docs.ultralytics.com/es">Español</a> |
-<a href="https://docs.ultralytics.com/pt/">Português</a> |
-<a href="https://docs.ultralytics.com/tr/">Türkçe</a> |
-<a href="https://docs.ultralytics.com/vi/">Tiếng Việt</a> |
-<a href="https://docs.ultralytics.com/ar/">العربية</a>
-<br>
 
+</div>
+
+<p align="center">
+<a href="https://docs.ultralytics.com/zh">中文</a> |
+<a href="https://docs.ultralytics.com/ko">한국어</a> |
+<a href="https://docs.ultralytics.com/ja">日本語</a> |
+<a href="https://docs.ultralytics.com/ru">Русский</a> |
+<a href="https://docs.ultralytics.com/de">Deutsch</a> |
+<a href="https://docs.ultralytics.com/fr">Français</a> |
+<a href="https://docs.ultralytics.com/es">Español</a> |
+<a href="https://docs.ultralytics.com/pt">Português</a> |
+<a href="https://docs.ultralytics.com/tr">Türkçe</a> |
+<a href="https://docs.ultralytics.com/vi">Tiếng Việt</a> |
+<a href="https://docs.ultralytics.com/ar">العربية</a>
+</p>
+
+<div align="center">
 <br>
     <a href="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yml"><img src="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yml/badge.svg" alt="Ultralytics CI"></a>
     <a href="https://clickpy.clickhouse.com/dashboard/ultralytics"><img src="https://static.pepy.tech/badge/ultralytics" alt="Ultralytics Downloads"></a>
-    <a href="https://zenodo.org/badge/latestdoi/264818686"><img src="https://zenodo.org/badge/264818686.svg" alt="Ultralytics YOLO Citation"></a>
     <a href="https://discord.com/invite/ultralytics"><img alt="Ultralytics Discord" src="https://img.shields.io/discord/1089800235347353640?logo=discord&logoColor=white&label=Discord&color=blue"></a>
     <a href="https://community.ultralytics.com/"><img alt="Ultralytics Forums" src="https://img.shields.io/discourse/users?server=https%3A%2F%2Fcommunity.ultralytics.com&logo=discourse&label=Forums&color=blue"></a>
     <a href="https://www.reddit.com/r/ultralytics/"><img alt="Ultralytics Reddit" src="https://img.shields.io/reddit/subreddit-subscribers/ultralytics?style=flat&logo=reddit&logoColor=white&label=Reddit&color=blue"></a>
@@ -45,7 +49,7 @@ Install `ultralytics` and run `yolo explorer` in your terminal to run custom que
 
 !!! warning "Community Note ⚠️"
 
-    As of **`ultralytics>=8.3.10`**, Ultralytics Explorer support is deprecated. Similar (and expanded) dataset exploration features are available in [Ultralytics Platform](https://platform.ultralytics.com/).
+    As of **`ultralytics>=8.3.12`**, Ultralytics Explorer has been removed. To use Explorer, install `pip install ultralytics==8.3.11`. Similar (and expanded) dataset exploration features are available in [Ultralytics Platform](https://platform.ultralytics.com/).
 
 ## Setup
 
@@ -61,7 +65,7 @@ yolo checks
 Utilize the power of vector similarity search to find the similar data points in your dataset along with their distance in the embedding space. Simply create an embeddings table for the given dataset-model pair. It is only needed once, and it is reused automatically.
 
 ```python
-exp = Explorer("VOC.yaml", model="yolo26n.pt")
+exp = Explorer("VOC.yaml", model="yolo11n.pt")
 exp.create_embeddings_table()
 ```
 
@@ -80,7 +84,7 @@ similar = exp.get_similar(idx=1, limit=10)
 similar.head()
 ```
 
-You can use the also plot the similar samples directly using the `plot_similar` util
+You can also plot the similar samples directly using the `plot_similar` util
 
 ![Similar images found by vector search](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/similarity-search-image-1.avif)
 
@@ -236,7 +240,7 @@ Here's a simple example of an operation powered by the embeddings table. Explore
 - It tries to estimate how similar each data point is with the rest of the dataset.
 - It does that by counting how many image embeddings lie closer than max_dist to the current image in the generated embedding space, considering top_k similar images at a time.
 
-For a given dataset, model, `max_dist` & `top_k` the similarity index once generated will be reused. In case, your dataset has changed, or you simply need to regenerate the similarity index, you can pass `force=True`. Similar to vector and SQL search, this also comes with a util to directly plot it. Let's look
+For a given dataset, model, `max_dist` & `top_k` the similarity index once generated will be reused. In case, your dataset has changed, or you simply need to regenerate the similarity index, you can pass `force=True`. Similar to vector and SQL search, this also comes with a util to directly plot it.
 
 ```python
 sim_idx = exp.similarity_index(max_dist=0.2, top_k=0.01)
@@ -245,7 +249,7 @@ exp.plot_similarity_index(max_dist=0.2, top_k=0.01)
 
 ![Dataset similarity index analysis](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/similarity-index.avif)
 
-at the plot first
+Let's look at the plot first
 
 ```python
 exp.plot_similarity_index(max_dist=0.2, top_k=0.01)

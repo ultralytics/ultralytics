@@ -26,6 +26,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 import time
 from pathlib import Path
@@ -91,7 +92,11 @@ def update_markdown_files(md_filepath: Path):
 
         # Add frontmatter if missing
         if not content.strip().startswith("---\n"):
-            header = "---\ncomments: true\ndescription: TODO ADD DESCRIPTION\nkeywords: TODO ADD KEYWORDS\n---\n\n"
+            header = (
+                "---\ncomments: true\n"
+                "description: Ultralytics documentation for YOLO model training, validation, prediction, export, and deployment.\n"
+                "keywords: Ultralytics, YOLO, computer vision, model training, model export, deployment\n---\n\n"
+            )
             content = header + content
 
         # Ensure MkDocs admonitions "=== " lines are preceded and followed by empty newlines
@@ -274,8 +279,9 @@ def update_docs_soup(content: str, html_file: Path | None = None, max_title_leng
                 span.insert_after(tail)
             modified = True
 
-    highlight_labels(soup.select("main h1, main h2, main h3, main h4, main h5"))
-    highlight_labels(soup.select("nav.md-nav--secondary .md-ellipsis, nav.md-nav__list .md-ellipsis"))
+    if "reference" in rel_path:
+        highlight_labels(soup.select("main h1, main h2, main h3, main h4, main h5"))
+        highlight_labels(soup.select("nav.md-nav--secondary .md-ellipsis, nav.md-nav__list .md-ellipsis"))
 
     if "reference" in rel_path:
         for ellipsis in soup.select("nav.md-nav--secondary .md-ellipsis"):
@@ -582,6 +588,9 @@ def restore_docs_sources(backup_root: Path, backups: list[tuple[Path, Path]]):
 
 def main():
     """Build docs, update titles and edit links, minify HTML, and print local server command."""
+    if not shutil.which("zensical"):
+        raise SystemExit("zensical is not installed. Install it with: pip install -e '.[dev]'")
+
     start_time = time.perf_counter()
     backup_root: Path | None = None
     docs_backups: list[tuple[Path, Path]] = []
@@ -606,7 +615,7 @@ def main():
 
         # Build the main documentation
         LOGGER.info(f"Building docs from {DOCS}")
-        subprocess.run(["zensical", "build", "-f", str(DOCS.parent / "mkdocs.yml")], check=True)
+        subprocess.run(["zensical", "build", "-f", str(DOCS.parent / "mkdocs.yml"), "--strict"], check=True)
         LOGGER.info(f"Site built at {SITE}")
 
         # Remove search index JSON files to disable search
@@ -615,7 +624,7 @@ def main():
         # Update docs HTML pages
         update_docs_html()
 
-        # Post-process site for meta tags, authors, social cards, and mkdocstrings polish
+        # Post-process site for meta tags, authors, social cards, and reference-page polish
         if postprocess_site:
             postprocess_site(
                 site_dir=SITE,
@@ -632,7 +641,7 @@ def main():
                 verbose=True,
             )
         else:
-            LOGGER.warning("postprocess_site not available; skipping mkdocstrings postprocessing")
+            LOGGER.warning("postprocess_site not available; skipping docs postprocessing")
 
         # Minify files
         minify_files(html=False, css=False, js=False)
@@ -671,7 +680,7 @@ def main():
             LOGGER.info(f"Opening browser at {url}")
             webbrowser.open(url)
             try:
-                subprocess.run(["python", "-m", "http.server", "--directory", str(SITE), "8000"], check=True)
+                subprocess.run([sys.executable, "-m", "http.server", "--directory", str(SITE), "8000"], check=True)
             except KeyboardInterrupt:
                 LOGGER.info(f"\n✅ Server stopped. Restart at {url}")
             except Exception as e:

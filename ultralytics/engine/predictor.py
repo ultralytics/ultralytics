@@ -23,14 +23,17 @@ Usage - formats:
                               yolo26n.mlpackage          # CoreML (macOS-only)
                               yolo26n_saved_model        # TensorFlow SavedModel
                               yolo26n.pb                 # TensorFlow GraphDef
-                              yolo26n.tflite             # TensorFlow Lite
                               yolo26n_edgetpu.tflite     # TensorFlow Edge TPU
                               yolo26n_paddle_model       # PaddlePaddle
                               yolo26n.mnn                # MNN
                               yolo26n_ncnn_model         # NCNN
                               yolo26n_imx_model          # Sony IMX
                               yolo26n_rknn_model         # Rockchip RKNN
-                              yolo26n.pte                # PyTorch Executorch
+                              yolo26n_executorch_model   # PyTorch Executorch
+                              yolo26n_axelera_model      # Axelera AI
+                              yolo26n_deepx_model        # DEEPX
+                              yolo26n_qnn.onnx           # Qualcomm QNN
+                              yolo26n.tflite             # LiteRT
 """
 
 from __future__ import annotations
@@ -39,7 +42,7 @@ import platform
 import re
 import threading
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 import cv2
 import numpy as np
@@ -78,18 +81,18 @@ class BasePredictor:
         save_dir (Path): Directory to save results.
         done_warmup (bool): Whether the predictor has finished setup.
         model (torch.nn.Module): Model used for prediction.
-        data (dict): Data configuration.
+        data (str): Data configuration.
         device (torch.device): Device used for prediction.
         dataset (Dataset): Dataset used for prediction.
-        vid_writer (dict[str, cv2.VideoWriter]): Dictionary of {save_path: video_writer} for saving video output.
+        vid_writer (dict[Path, cv2.VideoWriter]): Dictionary of {save_path: video_writer} for saving video output.
         plotted_img (np.ndarray): Last plotted image.
         source_type (SimpleNamespace): Type of input source.
         seen (int): Number of images processed.
         windows (list[str]): List of window names for visualization.
         batch (tuple): Current batch data.
         results (list[Any]): Current batch results.
-        transforms (callable): Image transforms for classification.
-        callbacks (dict[str, list[callable]]): Callback functions for different events.
+        transforms (Callable): Image transforms for classification.
+        callbacks (dict[str, list[Callable]]): Callback functions for different events.
         txt_path (Path): Path to save text results.
         _lock (threading.Lock): Lock for thread-safe inference.
 
@@ -112,12 +115,12 @@ class BasePredictor:
         self,
         cfg=DEFAULT_CFG,
         overrides: dict[str, Any] | None = None,
-        _callbacks: dict[str, list[callable]] | None = None,
+        _callbacks: dict | None = None,
     ):
         """Initialize the BasePredictor class.
 
         Args:
-            cfg (str | dict): Path to a configuration file or a configuration dictionary.
+            cfg (str | Path | dict | SimpleNamespace): Path to a configuration file or a configuration dictionary.
             overrides (dict, optional): Configuration overrides.
             _callbacks (dict, optional): Dictionary of callback functions.
         """
@@ -140,6 +143,7 @@ class BasePredictor:
         self.source_type = None
         self.seen = 0
         self.windows = []
+        self.screen = None  # cached screen resolution (width, height) for show=True scaling
         self.batch = None
         self.results = None
         self.transforms = None
@@ -195,7 +199,7 @@ class BasePredictor:
             self.imgsz,
             auto=same_shapes
             and self.args.rect
-            and (self.model.pt or (getattr(self.model, "dynamic", False) and not self.model.imx)),
+            and (self.model.format == "pt" or (getattr(self.model, "dynamic", False) and self.model.format != "imx")),
             stride=self.model.stride,
         )
         return [letterbox(image=x) for x in im]
@@ -258,7 +262,7 @@ class BasePredictor:
             batch=self.args.batch,
             vid_stride=self.args.vid_stride,
             buffer=self.args.stream_buffer,
-            channels=getattr(self.model, "ch", 3),
+            channels=getattr(self.model, "channels", 3),
         )
         self.source_type = self.dataset.source_type
         if (
@@ -275,7 +279,7 @@ class BasePredictor:
 
     @smart_inference_mode()
     def stream_inference(self, source=None, model=None, *args, **kwargs):
-        """Stream real-time inference on camera feed and save results to file.
+        """Stream inference on input source and save results to file.
 
         Args:
             source (str | Path | list[str] | list[Path] | list[np.ndarray] | np.ndarray | torch.Tensor, optional):
@@ -305,7 +309,11 @@ class BasePredictor:
             # Warmup model
             if not self.done_warmup:
                 self.model.warmup(
-                    imgsz=(1 if self.model.pt or self.model.triton else self.dataset.bs, self.model.ch, *self.imgsz)
+                    imgsz=(
+                        1 if self.model.format in {"pt", "triton"} else self.dataset.bs,
+                        self.model.channels,
+                        *self.imgsz,
+                    )
                 )
                 self.done_warmup = True
 
@@ -372,7 +380,7 @@ class BasePredictor:
             t = tuple(x.t / self.seen * 1e3 for x in profilers)  # speeds per image
             LOGGER.info(
                 f"Speed: %.1fms preprocess, %.1fms inference, %.1fms postprocess per image at shape "
-                f"{(min(self.args.batch, self.seen), getattr(self.model, 'ch', 3), *im.shape[2:])}" % t
+                f"{(min(self.args.batch, self.seen), getattr(self.model, 'channels', 3), *im.shape[2:])}" % t
             )
         if self.args.save or self.args.save_txt or self.args.save_crop:
             nl = len(list(self.save_dir.glob("labels/*.txt")))  # number of labels
@@ -384,7 +392,7 @@ class BasePredictor:
         """Initialize YOLO model with given parameters and set it to evaluation mode.
 
         Args:
-            model (str | Path | torch.nn.Module, optional): Model to load or use.
+            model (str | Path | torch.nn.Module): Model to load or use.
             verbose (bool): Whether to print verbose output.
         """
         if hasattr(model, "end2end"):
@@ -397,13 +405,13 @@ class BasePredictor:
             device=select_device(self.args.device, verbose=verbose),
             dnn=self.args.dnn,
             data=self.args.data,
-            fp16=self.args.half,
+            fp16=self.args.quantize == 16,
             fuse=True,
             verbose=verbose,
         )
 
         self.device = self.model.device  # update device
-        self.args.half = self.model.fp16  # update half
+        self.args.quantize = 16 if self.model.fp16 else None  # record actual inference precision
         if hasattr(self.model, "imgsz") and not getattr(self.model, "dynamic", False):
             self.args.imgsz = self.model.imgsz  # reuse imgsz from export metadata
         self.model.eval()
@@ -429,7 +437,7 @@ class BasePredictor:
             frame = self.dataset.count
         else:
             match = re.search(r"frame (\d+)/", s[i])
-            frame = int(match[1]) if match else None  # 0 if frame undetermined
+            frame = int(match[1]) if match else None  # None if frame undetermined
 
         self.txt_path = self.save_dir / "labels" / (p.stem + ("" if self.dataset.mode == "image" else f"_{frame}"))
         string += "{:g}x{:g} ".format(*im.shape[2:])
@@ -460,7 +468,7 @@ class BasePredictor:
         return string
 
     def save_predicted_images(self, save_path: Path, frame: int = 0):
-        """Save video predictions as mp4 or images as jpg at specified path.
+        """Save video predictions as mp4/avi or images as jpg at specified path.
 
         Args:
             save_path (Path): Path to save the results.
@@ -495,10 +503,21 @@ class BasePredictor:
     def show(self, p: str = ""):
         """Display an image in a window."""
         im = self.plotted_img
-        if platform.system() == "Linux" and p not in self.windows:
+        if platform.system() in {"Linux", "Windows"} and p not in self.windows:  # macOS scales natively
             self.windows.append(p)
-            cv2.namedWindow(p, cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)  # allow window resize (Linux)
-            cv2.resizeWindow(p, im.shape[1], im.shape[0])  # (width, height)
+            name = p.encode("unicode_escape").decode()  # match patched cv2.imshow window name
+            cv2.namedWindow(name, cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)  # allow window resize and scaling
+            h, w = im.shape[:2]
+            try:  # size window to fit screen once on creation if image larger than screen resolution
+                if self.screen is None:
+                    root = __import__("tkinter").Tk()
+                    root.withdraw()  # hide the empty Tk window
+                    self.screen = 0.9 * root.winfo_screenwidth(), 0.9 * root.winfo_screenheight()  # 0.9 taskbar margin
+                    root.destroy()
+                r = min(self.screen[0] / w, self.screen[1] / h, 1.0)
+                cv2.resizeWindow(name, max(1, int(w * r)), max(1, int(h * r)))  # (width, height)
+            except Exception:
+                cv2.resizeWindow(name, w, h)
         cv2.imshow(p, im)
         if cv2.waitKey(300 if self.dataset.mode == "image" else 1) & 0xFF == ord("q"):  # 300ms if image; else 1ms
             raise StopIteration
@@ -508,6 +527,6 @@ class BasePredictor:
         for callback in self.callbacks.get(event, []):
             callback(self)
 
-    def add_callback(self, event: str, func: callable):
+    def add_callback(self, event: str, func: Callable):
         """Add a callback function for a specific event."""
         self.callbacks[event].append(func)

@@ -1,4 +1,5 @@
 ---
+title: YOLO12 Attention-Centric Object Detection
 comments: true
 description: Discover YOLO12, featuring groundbreaking attention-centric architecture for state-of-the-art object detection with unmatched accuracy and efficiency.
 keywords: YOLO12, attention-centric object detection, YOLO series, Ultralytics, computer vision, AI, machine learning, deep learning
@@ -48,13 +49,19 @@ YOLO12, released in early 2025, introduces an attention-centric architecture tha
 
 YOLO12 supports a variety of computer vision tasks. The table below shows task support and the operational modes (Inference, Validation, Training, and Export) enabled for each:
 
-| Model Type                                                                                                     | Task                                   | Inference | Validation | Training | Export |
-| -------------------------------------------------------------------------------------------------------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
-| [YOLO12](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12.yaml)           | [Detection](../tasks/detect.md)        | ✅        | ✅         | ✅       | ✅     |
-| [YOLO12-seg](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12-seg.yaml)   | [Segmentation](../tasks/segment.md)    | ✅        | ✅         | ✅       | ✅     |
-| [YOLO12-pose](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12-pose.yaml) | [Pose](../tasks/pose.md)               | ✅        | ✅         | ✅       | ✅     |
-| [YOLO12-cls](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12-cls.yaml)   | [Classification](../tasks/classify.md) | ✅        | ✅         | ✅       | ✅     |
-| [YOLO12-obb](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12-obb.yaml)   | [OBB](../tasks/obb.md)                 | ✅        | ✅         | ✅       | ✅     |
+!!! warning "Pretrained weights availability"
+
+    Only detection weights (`yolo12n.pt`, `yolo12s.pt`, `yolo12m.pt`, `yolo12l.pt`, `yolo12x.pt`) are released on [ultralytics/assets](https://github.com/ultralytics/assets/releases). Segmentation, classification, pose, and OBB architectures are defined in [ultralytics/cfg/models/12/](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/12), so those variants support training from scratch from the `.yaml` config, but no pretrained `.pt` files are currently available for them. For pretrained segmentation, pose, classification, or OBB checkpoints, Ultralytics recommends [YOLO11](yolo11.md) or [YOLO26](yolo26.md).
+
+| Model Type                                                                                                     | Task                                   | Pretrained Weights | Inference | Validation | Training | Export |
+| -------------------------------------------------------------------------------------------------------------- | -------------------------------------- | ------------------ | --------- | ---------- | -------- | ------ |
+| [YOLO12](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12.yaml)           | [Detection](../tasks/detect.md)        | ✅                 | ✅        | ✅         | ✅       | ✅     |
+| [YOLO12-seg](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12-seg.yaml)   | [Segmentation](../tasks/segment.md)    | ❌                 | ✅        | ✅         | ✅       | ✅     |
+| [YOLO12-pose](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12-pose.yaml) | [Pose](../tasks/pose.md)               | ❌                 | ✅        | ✅         | ✅       | ✅     |
+| [YOLO12-cls](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12-cls.yaml)   | [Classification](../tasks/classify.md) | ❌                 | ✅        | ✅         | ✅       | ✅     |
+| [YOLO12-obb](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12-obb.yaml)   | [OBB](../tasks/obb.md)                 | ❌                 | ✅        | ✅         | ✅       | ✅     |
+
+All YOLO12 architectures support every mode once a trained checkpoint is available. The `Pretrained Weights` column indicates only whether Ultralytics publishes an official pretrained `.pt` on [ultralytics/assets](https://github.com/ultralytics/assets/releases): for segmentation, pose, classification, and OBB, you must train your own checkpoint from the corresponding `.yaml` before running inference, validation, or export.
 
 ## Performance Metrics
 
@@ -149,11 +156,14 @@ If you use YOLO12 in your research, please cite the original work by [University
     === "BibTeX"
 
         ```bibtex
-        @article{tian2025yolo12,
-          title={YOLO12: Attention-Centric Real-Time Object Detectors},
+        @inproceedings{tian2025yolov12,
+          title={YOLOv12: Attention-Centric Real-Time Object Detectors},
           author={Tian, Yunjie and Ye, Qixiang and Doermann, David},
-          journal={arXiv preprint arXiv:2502.12524},
-          year={2025}
+          booktitle={Advances in Neural Information Processing Systems},
+          volume={38},
+          pages={78433--78457},
+          year={2025},
+          url={https://proceedings.neurips.cc/paper_files/paper/2025/file/7103444259031cc58051f8c9a4868533-Paper-Conference.pdf}
         }
 
         @software{yolo12,
@@ -165,6 +175,8 @@ If you use YOLO12 in your research, please cite the original work by [University
         }
         ```
 
+The YOLO12 paper was published in the [NeurIPS 2025 proceedings](https://proceedings.neurips.cc/paper_files/paper/2025/hash/7103444259031cc58051f8c9a4868533-Abstract-Conference.html), with a preprint on [arXiv](https://arxiv.org/abs/2502.12524).
+
 ## FAQ
 
 ### How does YOLO12 achieve real-time object detection while maintaining high accuracy?
@@ -173,11 +185,11 @@ YOLO12 incorporates several key innovations to balance speed and accuracy. The A
 
 ### What [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks does YOLO12 support?
 
-YOLO12 is a versatile model that supports a wide range of core computer vision tasks. It excels in object [detection](../tasks/detect.md), instance [segmentation](../tasks/segment.md), image [classification](../tasks/classify.md), [pose estimation](../tasks/pose.md), and oriented object detection (OBB) ([see details](../tasks/obb.md)). This comprehensive task support makes YOLO12 a powerful tool for diverse applications, from [robotics](https://www.ultralytics.com/glossary/robotics) and autonomous driving to medical imaging and industrial inspection. Each of these tasks can be performed in Inference, Validation, Training, and Export modes.
+YOLO12 is a versatile model that supports a wide range of core computer vision tasks. It excels in object [detection](../tasks/detect.md), instance [segmentation](../tasks/segment.md), image [classification](../tasks/classify.md), [pose estimation](../tasks/pose.md), and oriented object detection (OBB) ([see details](../tasks/obb.md)). This comprehensive task support makes YOLO12 a powerful tool for diverse applications, from [robotics](https://www.ultralytics.com/glossary/robotics) and autonomous driving to medical imaging and industrial inspection. Note that pretrained `.pt` weights are currently published for detection only; the segmentation, pose, classification, and OBB architectures are provided as `.yaml` configs for training from scratch.
 
 ### How does YOLO12 compare to other YOLO models and competitors like RT-DETR?
 
-YOLO12 demonstrates significant accuracy improvements across all model scales compared to prior YOLO models like YOLOv10 and YOLO11, with some trade-offs in speed compared to the _fastest_ prior models. For example, YOLO12n achieves a +2.1% mAP improvement over YOLOv10n and +1.2% over YOLO11n on the COCO val2017 dataset. Compared to models like [RT-DETR](https://docs.ultralytics.com/models/rtdetr/), YOLO12s offers a +1.5% mAP improvement and a substantial +42% speed increase. These metrics highlight YOLO12's strong balance between accuracy and efficiency. See the [performance metrics section](#performance-metrics) for detailed comparisons.
+YOLO12 demonstrates significant accuracy improvements across all model scales compared to prior YOLO models like YOLOv10 and YOLO11, with some trade-offs in speed compared to the _fastest_ prior models. For example, YOLO12n achieves a +2.1% mAP improvement over YOLOv10n and +1.2% over YOLO11n on the COCO val2017 dataset. Compared to models like [RT-DETR](rtdetr.md), YOLO12s offers a +1.5% mAP improvement and a substantial +42% speed increase. These metrics highlight YOLO12's strong balance between accuracy and efficiency. See the [performance metrics section](#performance-metrics) for detailed comparisons.
 
 ### What are the hardware requirements for running YOLO12, especially for using FlashAttention?
 

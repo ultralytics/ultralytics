@@ -60,7 +60,7 @@ def on_model_save(trainer):
 def on_train_end(trainer):
     """Upload final model and metrics to Ultralytics HUB at the end of training."""
     if session := getattr(trainer, "hub_session", None):
-        # Upload final model and metrics with exponential standoff
+        # Upload final model and metrics with exponential backoff
         LOGGER.info(f"{PREFIX}Syncing final model...")
         session.upload_model(
             trainer.epoch,
@@ -85,7 +85,8 @@ def on_val_start(validator):
 
 def on_predict_start(predictor):
     """Run events on predict start."""
-    events(predictor.args, predictor.device)
+    backend = getattr(getattr(predictor, "model", None), "backend", None)
+    events(predictor.args, predictor.device, backend=backend)
 
 
 def on_export_start(exporter):

@@ -24,9 +24,9 @@ class TQDM:
     description updates.
 
     Attributes:
-        iterable (object): Iterable to wrap with progress bar.
+        iterable (Any): Iterable to wrap with progress bar.
         desc (str): Prefix description for the progress bar.
-        total (int): Expected number of iterations.
+        total (int | None): Expected number of iterations.
         disable (bool): Whether to disable the progress bar.
         unit (str): String for units of iteration.
         unit_scale (bool): Auto-scale units flag.
@@ -36,8 +36,8 @@ class TQDM:
         initial (int): Initial counter value.
         n (int): Current iteration count.
         closed (bool): Whether the progress bar is closed.
-        bar_format (str): Custom bar format string.
-        file (object): Output file stream.
+        bar_format (str | None): Custom bar format string.
+        file (IO[str]): Output file stream.
 
     Methods:
         update: Update progress by n steps.
@@ -96,11 +96,11 @@ class TQDM:
         """Initialize the TQDM progress bar with specified configuration options.
 
         Args:
-            iterable (object, optional): Iterable to wrap with progress bar.
+            iterable (Any, optional): Iterable to wrap with progress bar.
             desc (str, optional): Prefix description for the progress bar.
             total (int, optional): Expected number of iterations.
             leave (bool, optional): Whether to leave the progress bar after completion.
-            file (object, optional): Output file stream for progress display.
+            file (IO[str], optional): Output file stream for progress display.
             mininterval (float, optional): Minimum time interval between updates (default 0.1s, 60s in GitHub Actions).
             disable (bool, optional): Whether to disable the progress bar. Auto-detected if None.
             unit (str, optional): String for units of iteration (default "it" for items).
@@ -247,9 +247,9 @@ class TQDM:
             est_rate = rate or (self.n / elapsed)
             remaining_str = f"<{self._format_time((self.total - self.n) / est_rate)}"
 
-        # Numbers and percent
+        # Numbers and percent (floor so 100% only shows at true completion)
         if self.total:
-            percent = (self.n / self.total) * 100
+            percent = int(self.n / self.total * 100)
             n_str = self._format_num(self.n)
             t_str = self._format_num(self.total)
             if self.is_bytes and n_str[-2] == t_str[-2]:  # Collapse suffix only when identical (e.g. "5.4/5.4MB")

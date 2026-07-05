@@ -17,7 +17,13 @@ from PIL import Image
 from torch.utils.data import Dataset, dataloader, distributed
 
 from ultralytics.cfg import IterableSimpleNamespace
-from ultralytics.data.dataset import GroundingDataset, YOLODataset, YOLOMultiModalDataset
+from ultralytics.data.dataset import (
+    GroundingDataset,
+    PolygonSemanticDataset,
+    SemanticDataset,
+    YOLODataset,
+    YOLOMultiModalDataset,
+)
 from ultralytics.data.loaders import (
     LOADERS,
     LoadImagesAndVideos,
@@ -46,8 +52,9 @@ class InfiniteDataLoader(dataloader.DataLoader):
 
     Methods:
         __len__: Return the length of the batch sampler's sampler.
-        __iter__: Create a sampler that repeats indefinitely.
+        __iter__: Yield batches from the underlying iterator.
         __del__: Ensure workers are properly terminated.
+        close: Gracefully shut down persistent workers when the DataLoader is no longer needed.
         reset: Reset the iterator, useful when modifying dataset settings during training.
 
     Examples:
@@ -78,17 +85,21 @@ class InfiniteDataLoader(dataloader.DataLoader):
     def __del__(self):
         """Ensure that workers are properly terminated when the DataLoader is deleted."""
         try:
-            if not hasattr(self.iterator, "_workers"):
-                return
-            for w in self.iterator._workers:  # force terminate
+            for w in getattr(self.iterator, "_workers", ()):  # force terminate
                 if w.is_alive():
                     w.terminate()
-            self.iterator._shutdown_workers()  # cleanup
+            self.close()
         except Exception:
             pass
 
+    def close(self):
+        """Shut down persistent workers, unregistering them from torch's SIGCHLD watchdog before interpreter exit."""
+        if hasattr(self.iterator, "_workers"):
+            self.iterator._shutdown_workers()  # joins workers and calls torch._C._remove_worker_pids
+
     def reset(self):
         """Reset the iterator to allow modifications to the dataset during training."""
+        self.close()  # free old worker pipes before creating new iterator
         self.iterator = self._get_iterator()
 
 
@@ -99,7 +110,7 @@ class _RepeatSampler:
     dataset without recreating the sampler.
 
     Attributes:
-        sampler (Dataset.sampler): The sampler to repeat.
+        sampler (torch.utils.data.Sampler): The sampler to repeat.
     """
 
     def __init__(self, sampler: Any):
@@ -127,7 +138,7 @@ class ContiguousDistributedSampler(torch.utils.data.Sampler):
     Args:
         dataset (Dataset): Dataset to sample from. Must implement __len__.
         num_replicas (int, optional): Number of distributed processes. Defaults to world size.
-        batch_size (int, optional): Batch size used by dataloader. Defaults to dataset batch size.
+        batch_size (int, optional): Batch size used by dataloader. Defaults to dataset.batch_size or 1.
         rank (int, optional): Rank of current process. Defaults to current rank.
         shuffle (bool, optional): Whether to shuffle indices within each rank's chunk. Defaults to False. When True,
             shuffling is deterministic and controlled by set_epoch() for reproducibility.
@@ -230,25 +241,42 @@ def build_yolo_dataset(
     rect: bool = False,
     stride: int = 32,
     multi_modal: bool = False,
+    fraction: float | None = None,
 ) -> Dataset:
     """Build and return a YOLO dataset based on configuration parameters."""
-    dataset = YOLOMultiModalDataset if multi_modal else YOLODataset
+    pad = 0.0 if mode == "train" else 0.5
+    if cfg.task == "semantic":
+        data_path = Path(data.get("path", ""))
+        if "masks_dir" in data:
+            dataset = SemanticDataset
+        elif (data_path / "masks").exists():
+            dataset = SemanticDataset
+        else:
+            dataset = PolygonSemanticDataset
+        pad = 0.0  # no pad for semantic
+    elif multi_modal:
+        dataset = YOLOMultiModalDataset
+    else:
+        dataset = YOLODataset
+
+    if fraction is None:
+        fraction = cfg.fraction if mode == "train" else 1.0
     return dataset(
         img_path=img_path,
         imgsz=cfg.imgsz,
         batch_size=batch,
-        augment=mode == "train",  # augmentation
-        hyp=cfg,  # TODO: probably add a get_hyps_from_cfg function
-        rect=cfg.rect or rect,  # rectangular batches
+        augment=mode == "train",
+        hyp=cfg,
+        rect=cfg.rect or rect,
         cache=cfg.cache or None,
         single_cls=cfg.single_cls or False,
         stride=stride,
-        pad=0.0 if mode == "train" else 0.5,
+        pad=pad,
         prefix=colorstr(f"{mode}: "),
         task=cfg.task,
         classes=cfg.classes,
         data=data,
-        fraction=cfg.fraction if mode == "train" else 1.0,
+        fraction=fraction,
     )
 
 
@@ -292,12 +320,12 @@ def build_dataloader(
     drop_last: bool = False,
     pin_memory: bool = True,
 ) -> InfiniteDataLoader:
-    """Create and return an InfiniteDataLoader or DataLoader for training or validation.
+    """Create and return an InfiniteDataLoader for training or validation.
 
     Args:
         dataset (Dataset): Dataset to load data from.
         batch (int): Batch size for the dataloader.
-        workers (int): Number of worker threads for loading data.
+        workers (int): Number of worker processes for data loading.
         shuffle (bool, optional): Whether to shuffle the dataset.
         rank (int, optional): Process rank in distributed training. -1 for single-GPU training.
         drop_last (bool, optional): Whether to drop the last incomplete batch.
@@ -311,9 +339,8 @@ def build_dataloader(
         >>> dataset = YOLODataset(...)
         >>> dataloader = build_dataloader(dataset, batch=16, workers=4, shuffle=True)
     """
-    batch = min(batch, len(dataset))
-    nd = torch.cuda.device_count()  # number of CUDA devices
-    nw = min(os.cpu_count() // max(nd, 1), workers)  # number of workers
+    dataset_len = len(dataset)
+    batch = min(batch, dataset_len)
     sampler = (
         None
         if rank == -1
@@ -321,6 +348,13 @@ def build_dataloader(
         if shuffle
         else ContiguousDistributedSampler(dataset)
     )
+    samples = len(sampler) if sampler is not None else dataset_len
+    drop_last = drop_last and bool(batch) and dataset_len % batch != 0
+    batches = (samples // batch if drop_last else math.ceil(samples / batch)) if batch else 0
+    nd = torch.cuda.device_count()  # number of CUDA devices
+    # Do not create more worker processes than final loader batches. Single-batch loaders run in-process to avoid
+    # persistent DataLoader worker pools that add overhead and can stall tiny datasets while holding CUDA context.
+    nw = min(os.cpu_count() // max(nd, 1), workers, 0 if batches <= 1 else batches)  # number of workers
     generator = torch.Generator()
     generator.manual_seed(6148914691236517205 + RANK)
     return InfiniteDataLoader(
@@ -334,7 +368,7 @@ def build_dataloader(
         collate_fn=getattr(dataset, "collate_fn", None),
         worker_init_fn=seed_worker,
         generator=generator,
-        drop_last=drop_last and len(dataset) % batch != 0,
+        drop_last=drop_last,
     )
 
 
@@ -398,7 +432,8 @@ def load_inference_source(
     """Load an inference source for object detection and apply necessary transformations.
 
     Args:
-        source (str | Path | list | tuple | torch.Tensor | PIL.Image | np.ndarray): The input source for inference.
+        source (str | int | Path | list | tuple | np.ndarray | PIL.Image | torch.Tensor): The input source for
+            inference.
         batch (int, optional): Batch size for dataloaders.
         vid_stride (int, optional): The frame interval for video sources.
         buffer (bool, optional): Whether stream frames will be buffered.

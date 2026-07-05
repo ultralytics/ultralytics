@@ -15,7 +15,7 @@ from typing import Any
 import cv2
 import numpy as np
 import torch
-from PIL import Image
+from PIL import Image, ImageOps
 
 from ultralytics.data.utils import FORMATS_HELP_MSG, IMG_FORMATS, VID_FORMATS
 from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, ops
@@ -33,7 +33,7 @@ class SourceTypes:
     Attributes:
         stream (bool): Flag indicating if the input source is a video stream.
         screenshot (bool): Flag indicating if the input source is a screenshot.
-        from_img (bool): Flag indicating if the input source is an image file.
+        from_img (bool): Flag indicating if the input source is an in-memory image (PIL/numpy) or list of images.
         tensor (bool): Flag indicating if the input source is a tensor.
 
     Examples:
@@ -117,43 +117,47 @@ class LoadStreams:
         self.imgs = [[] for _ in range(n)]  # images
         self.shape = [[] for _ in range(n)]  # image shapes
         self.sources = [ops.clean_str(x).replace(os.sep, "_") for x in sources]  # clean source names for later
-        for i, s in enumerate(sources):  # index, source
-            # Start thread to read frames from video stream
-            st = f"{i + 1}/{n}: {s}... "
-            if urllib.parse.urlparse(s).hostname in {"www.youtube.com", "youtube.com", "youtu.be"}:  # YouTube video
-                # YouTube format i.e. 'https://www.youtube.com/watch?v=Jsn8D3aC840' or 'https://youtu.be/Jsn8D3aC840'
-                s = get_best_youtube_url(s)
-            s = int(s) if s.isnumeric() else s  # i.e. s = '0' local webcam
-            if s == 0 and (IS_COLAB or IS_KAGGLE):
-                raise NotImplementedError(
-                    "'source=0' webcam not supported in Colab and Kaggle notebooks. "
-                    "Try running 'source=0' in a local environment."
-                )
-            self.caps[i] = cv2.VideoCapture(s)  # store video capture object
-            if not self.caps[i].isOpened():
-                raise ConnectionError(f"{st}Failed to open {s}")
-            w = int(self.caps[i].get(cv2.CAP_PROP_FRAME_WIDTH))
-            h = int(self.caps[i].get(cv2.CAP_PROP_FRAME_HEIGHT))
-            fps = self.caps[i].get(cv2.CAP_PROP_FPS)  # warning: may return 0 or nan
-            self.frames[i] = max(int(self.caps[i].get(cv2.CAP_PROP_FRAME_COUNT)), 0) or float(
-                "inf"
-            )  # infinite stream fallback
-            self.fps[i] = max((fps if math.isfinite(fps) else 0) % 100, 0) or 30  # 30 FPS fallback
+        try:
+            for i, s in enumerate(sources):  # index, source
+                # Start thread to read frames from video stream
+                st = f"{i + 1}/{n}: {s}... "
+                if urllib.parse.urlparse(s).hostname in {"www.youtube.com", "youtube.com", "youtu.be"}:  # YouTube video
+                    # YouTube format i.e. 'https://www.youtube.com/watch?v=Jsn8D3aC840' or 'https://youtu.be/Jsn8D3aC840'
+                    s = get_best_youtube_url(s)
+                s = int(s) if s.isnumeric() else s  # i.e. s = '0' local webcam
+                if s == 0 and (IS_COLAB or IS_KAGGLE):
+                    raise NotImplementedError(
+                        "'source=0' webcam not supported in Colab and Kaggle notebooks. "
+                        "Try running 'source=0' in a local environment."
+                    )
+                self.caps[i] = cv2.VideoCapture(s)  # store video capture object
+                if not self.caps[i].isOpened():
+                    raise ConnectionError(f"{st}Failed to open {s}")
+                w = int(self.caps[i].get(cv2.CAP_PROP_FRAME_WIDTH))
+                h = int(self.caps[i].get(cv2.CAP_PROP_FRAME_HEIGHT))
+                fps = self.caps[i].get(cv2.CAP_PROP_FPS)  # warning: may return 0 or nan
+                self.frames[i] = max(int(self.caps[i].get(cv2.CAP_PROP_FRAME_COUNT)), 0) or float(
+                    "inf"
+                )  # infinite stream fallback
+                self.fps[i] = max((fps if math.isfinite(fps) else 0) % 100, 0) or 30  # 30 FPS fallback
 
-            success, im = self.caps[i].read()  # guarantee first frame
-            im = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)[..., None] if self.cv2_flag == cv2.IMREAD_GRAYSCALE else im
-            if not success or im is None:
-                raise ConnectionError(f"{st}Failed to read images from {s}")
-            self.imgs[i].append(im)
-            self.shape[i] = im.shape
-            self.threads[i] = Thread(target=self.update, args=([i, self.caps[i], s]), daemon=True)
-            LOGGER.info(f"{st}Success ✅ ({self.frames[i]} frames of shape {w}x{h} at {self.fps[i]:.2f} FPS)")
-            self.threads[i].start()
+                success, im = self.caps[i].read()  # guarantee first frame
+                if not success or im is None:
+                    raise ConnectionError(f"{st}Failed to read images from {s}")
+                im = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)[..., None] if self.cv2_flag == cv2.IMREAD_GRAYSCALE else im
+                self.imgs[i].append(im)
+                self.shape[i] = im.shape
+                self.threads[i] = Thread(target=self.update, args=([i, self.caps[i], s]), daemon=True)
+                LOGGER.info(f"{st}Success ✅ ({self.frames[i]} frames of shape {w}x{h} at {self.fps[i]:.2f} FPS)")
+                self.threads[i].start()
+        except Exception:
+            self.close()  # release opened captures and stop started threads before re-raising
+            raise
         LOGGER.info("")  # newline
 
     def update(self, i: int, cap: cv2.VideoCapture, stream: str):
         """Read stream frames in daemon thread and update image buffer."""
-        n, f = 0, self.frames[i]  # frame number, frame array
+        n, f = 0, self.frames[i]  # frame number, total frames
         while self.running and cap.isOpened() and n < (f - 1):
             if len(self.imgs[i]) < 30:  # keep a <=30-image buffer
                 n += 1
@@ -178,16 +182,18 @@ class LoadStreams:
         """Terminate stream loader, stop threads, and release video capture resources."""
         self.running = False  # stop flag for Thread
         for thread in self.threads:
-            if thread.is_alive():
+            if thread is not None and thread.is_alive():
                 thread.join(timeout=5)  # Add timeout
         for cap in self.caps:  # Iterate through the stored VideoCapture objects
+            if cap is None:
+                continue
             try:
                 cap.release()  # release video capture
             except Exception as e:
                 LOGGER.warning(f"Could not release VideoCapture object: {e}")
 
     def __iter__(self):
-        """Iterate through YOLO image feed and re-open unresponsive streams."""
+        """Return an iterator object and reset the frame counter."""
         self.count = -1
         return self
 
@@ -220,7 +226,7 @@ class LoadStreams:
 
     def __len__(self) -> int:
         """Return the number of video streams in the LoadStreams object."""
-        return self.bs  # 1E12 frames = 32 streams at 30 FPS for 30 years
+        return self.bs
 
 
 class LoadScreenshots:
@@ -230,7 +236,6 @@ class LoadScreenshots:
     predict source=screen`.
 
     Attributes:
-        source (str): The source input indicating which screen to capture.
         screen (int): The screen number to capture.
         left (int): The left coordinate for screen capture area.
         top (int): The top coordinate for screen capture area.
@@ -250,8 +255,8 @@ class LoadScreenshots:
 
     Examples:
         >>> loader = LoadScreenshots("0 100 100 640 480")  # screen 0, top-left (100,100), 640x480
-        >>> for source, im, im0s, vid_cap, s in loader:
-        ...     print(f"Captured frame: {im.shape}")
+        >>> for sources, imgs, info in loader:
+        ...     print(f"Captured frame: {imgs[0].shape}")
     """
 
     def __init__(self, source: str, channels: int = 3):
@@ -288,7 +293,7 @@ class LoadScreenshots:
         self.monitor = {"left": self.left, "top": self.top, "width": self.width, "height": self.height}
 
     def __iter__(self):
-        """Yield the next screenshot image from the specified screen or region for processing."""
+        """Return an iterator object for the screenshot capture."""
         return self
 
     def __next__(self) -> tuple[list[str], list[np.ndarray], list[str]]:
@@ -360,7 +365,7 @@ class LoadImagesAndVideos:
             if "*" in a:
                 files.extend(sorted(glob.glob(a, recursive=True)))  # glob
             elif os.path.isdir(a):
-                files.extend(sorted(glob.glob(os.path.join(a, "*.*"))))  # dir
+                files.extend(sorted(glob.glob(os.path.join(glob.escape(a), "*.*"))))  # dir
             elif os.path.isfile(a):
                 files.append(a)  # files (absolute or relative to CWD)
             elif parent and (parent / p).is_file():
@@ -443,19 +448,9 @@ class LoadImagesAndVideos:
                     if self.count < self.nf:
                         self._new_video(self.files[self.count])
             else:
-                # Handle image files (including HEIC)
+                # Handle image files
                 self.mode = "image"
-                if path.rpartition(".")[-1].lower() == "heic":
-                    # Load HEIC image using Pillow with pillow-heif
-                    check_requirements("pi-heif")
-
-                    from pi_heif import register_heif_opener
-
-                    register_heif_opener()  # Register HEIF opener with Pillow
-                    with Image.open(path) as img:
-                        im0 = cv2.cvtColor(np.asarray(img), cv2.COLOR_RGB2BGR)  # convert image to BGR nparray
-                else:
-                    im0 = imread(path, flags=self.cv2_flag)  # BGR
+                im0 = imread(path, flags=self.cv2_flag)  # BGR
                 if im0 is None:
                     LOGGER.warning(f"Image Read Error {path}")
                 else:
@@ -463,7 +458,7 @@ class LoadImagesAndVideos:
                     imgs.append(im0)
                     info.append(f"image {self.count + 1}/{self.nf} {path}: ")
                 self.count += 1  # move to the next file
-                if self.count >= self.ni:  # end of image list
+                if self.count >= self.ni and imgs:  # end of image list, flush only a non-empty batch
                     break
 
         return paths, imgs, info
@@ -478,7 +473,7 @@ class LoadImagesAndVideos:
         self.frames = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT) / self.vid_stride)
 
     def __len__(self) -> int:
-        """Return the number of files (images and videos) in the dataset."""
+        """Return the number of batches in the dataset."""
         return math.ceil(self.nf / self.bs)  # number of batches
 
 
@@ -523,6 +518,7 @@ class LoadPilAndNumpy:
         self.im0 = [self._single_check(im, pil_flag) for im in im0]
         self.mode = "image"
         self.bs = len(self.im0)
+        self.count = 0
 
     @staticmethod
     def _single_check(im: Image.Image | np.ndarray, flag: str = "RGB") -> np.ndarray:
@@ -530,7 +526,9 @@ class LoadPilAndNumpy:
 
         Notes:
             - PIL inputs are converted to NumPy and returned in OpenCV-compatible BGR order for color images.
-            - NumPy inputs are returned as-is (no channel-order conversion is applied).
+            - NumPy color inputs are returned as-is (no channel-order conversion is applied).
+            - 2D grayscale NumPy inputs are expanded to match the model channels (3 for color, 1 for grayscale),
+              mirroring how PIL and file inputs are handled.
         """
         assert isinstance(im, (Image.Image, np.ndarray)), f"Expected PIL/np.ndarray image type, but got {type(im)}"
         if isinstance(im, Image.Image):
@@ -539,7 +537,8 @@ class LoadPilAndNumpy:
             im = im[..., None] if flag == "L" else im[..., ::-1]
             im = np.ascontiguousarray(im)  # contiguous
         elif im.ndim == 2:  # grayscale in numpy form
-            im = im[..., None]
+            # Expand 2D grayscale to 3 channels for color models (like PIL/file inputs); np.repeat preserves dtype
+            im = im[..., None] if flag == "L" else np.repeat(im[..., None], 3, axis=2)
         return im
 
     def __len__(self) -> int:
@@ -591,7 +590,8 @@ class LoadTensor:
         self.im0 = self._single_check(im0)
         self.bs = self.im0.shape[0]
         self.mode = "image"
-        self.paths = [getattr(im, "filename", f"image{i}.jpg") for i, im in enumerate(im0)]
+        self.paths = [f"image{i}.jpg" for i in range(self.bs)]
+        self.count = 0
 
     @staticmethod
     def _single_check(im: torch.Tensor, stride: int = 32) -> torch.Tensor:
@@ -633,11 +633,13 @@ class LoadTensor:
 
 
 def autocast_list(source: list[Any]) -> list[Image.Image | np.ndarray]:
-    """Merge a list of sources into a list of numpy arrays or PIL images for Ultralytics prediction."""
+    """Convert a list of sources into a list of numpy arrays or PIL images for Ultralytics prediction."""
     files = []
     for im in source:
         if isinstance(im, (str, Path)):  # filename or uri
-            files.append(Image.open(urllib.request.urlopen(im) if str(im).startswith("http") else im))
+            files.append(
+                ImageOps.exif_transpose(Image.open(urllib.request.urlopen(im) if str(im).startswith("http") else im))
+            )
         elif isinstance(im, (Image.Image, np.ndarray)):  # PIL or np Image
             files.append(im)
         else:

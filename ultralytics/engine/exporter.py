@@ -750,6 +750,9 @@ class Exporter:
                     # keeps the in-graph decode since it tolerates the dynamic range.
                     from ultralytics.utils.export.rknn import rknn_detect_forward
 
+                    # Raw one2many heads decode to (1, 4 + nc, anchors) and need full NMS, so clear end2end to keep
+                    # the exported metadata driving the predictor's standard NMS path, not the NMS-free end2end branch.
+                    m.end2end = False
                     m.forward = MethodType(rknn_detect_forward, m)
                 if hasattr(model, "pe") and hasattr(m, "fuse") and not hasattr(m, "lrpc"):  # for YOLOE models
                     m.fuse(model.pe.to(self.device))

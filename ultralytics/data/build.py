@@ -347,8 +347,8 @@ def build_dataloader(
         if shuffle
         else ContiguousDistributedSampler(dataset)
     )
-    samples = len(sampler) if sampler else len(dataset)
-    drop_last = drop_last and samples % batch != 0
+    samples = len(sampler) if sampler is not None else len(dataset)
+    drop_last = drop_last and len(dataset) % batch != 0
     batches = samples // batch if drop_last else math.ceil(samples / batch)
     nd = torch.cuda.device_count()  # number of CUDA devices
     # Do not create more worker processes than final loader batches. Single-batch loaders run in-process to avoid

@@ -17,9 +17,7 @@ TensorRT                | `engine`                  | yolo26n.engine
 CoreML                  | `coreml`                  | yolo26n.mlpackage
 TensorFlow SavedModel   | `saved_model`             | yolo26n_saved_model/
 TensorFlow GraphDef     | `pb`                      | yolo26n.pb
-TensorFlow Lite         | `tflite`                  | yolo26n.tflite
 TensorFlow Edge TPU     | `edgetpu`                 | yolo26n_edgetpu.tflite
-TensorFlow.js           | `tfjs`                    | yolo26n_web_model/
 PaddlePaddle            | `paddle`                  | yolo26n_paddle_model/
 MNN                     | `mnn`                     | yolo26n.mnn
 NCNN                    | `ncnn`                    | yolo26n_ncnn_model/
@@ -32,9 +30,7 @@ Axelera AI              | `axelera`                 | yolo26n_axelera_model/
 from __future__ import annotations
 
 import glob
-import os
 import platform
-import re
 import shutil
 import time
 from copy import deepcopy
@@ -43,14 +39,13 @@ from pathlib import Path
 import numpy as np
 import torch.cuda
 
-from ultralytics import YOLO, YOLOWorld
+from ultralytics import RTDETR, YOLO, YOLOWorld
 from ultralytics.cfg import TASK2DATA, TASK2METRIC
 from ultralytics.engine.exporter import export_formats
 from ultralytics.nn.modules import Segment26
 from ultralytics.utils import (
     ARM64,
     ASSETS,
-    ASSETS_URL,
     IS_DOCKER,
     IS_JETSON,
     LINUX,
@@ -58,10 +53,9 @@ from ultralytics.utils import (
     MACOS,
     TQDM,
     WEIGHTS_DIR,
-    YAML,
+    is_github_action_running,
 )
 from ultralytics.utils.checks import IS_PYTHON_MINIMUM_3_13, check_imgsz, check_requirements, check_yolo, is_rockchip
-from ultralytics.utils.downloads import safe_download
 from ultralytics.utils.files import file_size
 from ultralytics.utils.torch_utils import get_cpu_info, select_device
 
@@ -70,8 +64,7 @@ def benchmark(
     model=WEIGHTS_DIR / "yolo26n.pt",
     data=None,
     imgsz=160,
-    half=False,
-    int8=False,
+    quantize=None,
     device="cpu",
     verbose=False,
     eps=1e-3,
@@ -84,8 +77,7 @@ def benchmark(
         model (str | Path): Path to the model file or directory.
         data (str | None): Dataset to evaluate on, inherited from TASK2DATA if not passed.
         imgsz (int): Image size for the benchmark.
-        half (bool): Use half-precision for the model if True.
-        int8 (bool): Use int8-precision for the model if True.
+        quantize (int | str | None): Precision for export and inference: 16 (FP16), 8 (INT8), or None/32 (FP32).
         device (str): Device to run the benchmark on, either 'cpu' or 'cuda'.
         verbose (bool | float): If True or a float, assert benchmarks pass with given metric.
         eps (float): Epsilon value for divide by zero prevention.
@@ -131,11 +123,7 @@ def benchmark(
         try:
             if format_arg and format_arg != format:
                 continue
-            if (
-                IS_PYTHON_MINIMUM_3_13
-                and not format_arg
-                and format in {"saved_model", "pb", "tflite", "edgetpu", "tfjs"}
-            ):
+            if IS_PYTHON_MINIMUM_3_13 and not format_arg and format in {"saved_model", "pb", "edgetpu"}:
                 continue
 
             # Checks
@@ -144,8 +132,6 @@ def benchmark(
             elif format == "edgetpu":
                 assert LINUX and not ARM64, "Edge TPU export only supported on non-aarch64 Linux"
                 assert shutil.which("edgetpu_compiler"), "Edge TPU benchmark requires edgetpu_compiler"
-            elif format == "tfjs":
-                assert not (LINUX and ARM64), "TF.js export not supported on ARM64 Linux"
             elif format == "coreml":
                 assert MACOS or (LINUX and not ARM64), "CoreML export only supported on macOS and non-aarch64 Linux"
                 # coremltools deadlocks after OpenVINO on macOS Python 3.13 (conflicting OpenMP runtimes); CoreML
@@ -153,9 +139,8 @@ def benchmark(
                 assert not (MACOS and IS_PYTHON_MINIMUM_3_13), (
                     "CoreML not benchmarked on macOS Python>=3.13 (coremltools/OpenVINO OpenMP deadlock)"
                 )
-            if format in {"saved_model", "pb", "tflite", "edgetpu", "tfjs"}:
+            if format in {"saved_model", "pb", "edgetpu"}:
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 TensorFlow exports not supported by onnx2tf yet"
-                # assert not IS_PYTHON_MINIMUM_3_12, "TFLite exports not supported on Python>=3.12 yet"
             if format == "paddle":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 Paddle exports not supported yet"
                 assert model.task != "obb", "Paddle OBB bug https://github.com/PaddlePaddle/Paddle/issues/72024"
@@ -194,6 +179,13 @@ def benchmark(
                 assert not (model.task == "segment" and any(isinstance(m, Segment26) for m in model.model.modules())), (
                     "Axelera export does not currently support YOLO26 segmentation models"
                 )
+            if format == "litert":
+                assert MACOS or (LINUX and not ARM64), "LiteRT benchmark only supported on Linux x86 and macOS"
+                # benchmark() deadlocks on the ai-edge-litert/TensorFlow abseil mutex (RAW: Lock blocking) on macOS CI
+                # when litert runs after other TF-based formats in the shared process; still benchmarked locally.
+                assert not (MACOS and is_github_action_running()), (
+                    "LiteRT not benchmarked on macOS CI (ai-edge-litert/TF abseil mutex deadlock)"
+                )
             if "cpu" in device.type:
                 assert cpu, "inference not supported on CPU"
             if "cuda" in device.type:
@@ -208,23 +200,22 @@ def benchmark(
                 filename = deepcopy(model).export(
                     imgsz=imgsz,
                     format=format,
-                    half=half,
-                    int8=int8,
+                    quantize=quantize,
                     data=export_data,
                     device=device,
                     verbose=False,
                     **kwargs,
                 )
-                exported_model = YOLO(filename, task=model.task)
+                exported_model = RTDETR(filename) if isinstance(model, RTDETR) else YOLO(filename, task=model.task)
                 assert suffix in str(filename), "export failed"
             emoji = "❎"  # indicates export succeeded
 
             # Predict
             assert model.task != "pose" or format != "pb", "GraphDef Pose inference is not supported"
-            assert format not in {"edgetpu", "tfjs"}, "inference not supported"
+            assert format != "edgetpu", "inference not supported"
             assert format != "coreml" or platform.system() == "Darwin", "inference only supported on macOS>=10.13"
             assert format != "axelera", "inference only supported on Axelera hardware"
-            exported_model.predict(ASSETS / "bus.jpg", imgsz=imgsz, device=device, half=half, verbose=False)
+            exported_model.predict(ASSETS / "bus.jpg", imgsz=imgsz, device=device, quantize=quantize, verbose=False)
 
             # Validate
             results = exported_model.val(
@@ -233,8 +224,7 @@ def benchmark(
                 imgsz=imgsz,
                 plots=False,
                 device=device,
-                half=half,
-                int8=int8,
+                quantize=quantize,
                 verbose=False,
                 conf=0.001,  # all the pre-set benchmark mAP values are based on conf=0.001
             )
@@ -269,147 +259,6 @@ def benchmark(
     return df_display
 
 
-class RF100Benchmark:
-    """Benchmark YOLO model performance on the RF100 dataset collection.
-
-    This class provides functionality to download, process, and evaluate YOLO models on the RF100 datasets.
-
-    Attributes:
-        ds_names (list[str]): Names of datasets used for benchmarking.
-        ds_cfg_list (list[Path]): List of paths to dataset configuration files.
-        rf (Roboflow | None): Roboflow instance for accessing datasets.
-        val_metrics (list[str]): Metrics used for validation.
-
-    Methods:
-        set_key: Set Roboflow API key for accessing datasets.
-        parse_dataset: Parse dataset links and download datasets.
-        fix_yaml: Fix train and validation paths in YAML files.
-        evaluate: Evaluate model performance on validation results.
-    """
-
-    def __init__(self):
-        """Initialize the RF100Benchmark class for benchmarking YOLO model performance on RF100 datasets."""
-        self.ds_names = []
-        self.ds_cfg_list = []
-        self.rf = None
-        self.val_metrics = ["class", "images", "targets", "precision", "recall", "map50", "map95"]
-
-    def set_key(self, api_key: str):
-        """Set Roboflow API key for processing.
-
-        Args:
-            api_key (str): The API key.
-
-        Examples:
-            Set the Roboflow API key for accessing datasets:
-            >>> benchmark = RF100Benchmark()
-            >>> benchmark.set_key("your_roboflow_api_key")
-        """
-        check_requirements("roboflow")
-        from roboflow import Roboflow
-
-        self.rf = Roboflow(api_key=api_key)
-
-    def parse_dataset(self, ds_link_txt: str = "datasets_links.txt"):
-        """Parse dataset links and download datasets.
-
-        Args:
-            ds_link_txt (str): Path to the file containing dataset links.
-
-        Returns:
-            (tuple[list[str], list[Path]]): List of dataset names and list of paths to dataset configuration files.
-
-        Examples:
-            >>> benchmark = RF100Benchmark()
-            >>> benchmark.set_key("api_key")
-            >>> benchmark.parse_dataset("datasets_links.txt")
-        """
-        (shutil.rmtree("rf-100"), os.mkdir("rf-100")) if os.path.exists("rf-100") else os.mkdir("rf-100")
-        os.chdir("rf-100")
-        os.mkdir("ultralytics-benchmarks")
-        safe_download(f"{ASSETS_URL}/datasets_links.txt")
-
-        with open(ds_link_txt, encoding="utf-8") as file:
-            for line in file:
-                try:
-                    _, _url, workspace, project, version = re.split("/+", line.strip())
-                    self.ds_names.append(project)
-                    proj_version = f"{project}-{version}"
-                    if not Path(proj_version).exists():
-                        self.rf.workspace(workspace).project(project).version(version).download("yolov8")
-                    else:
-                        LOGGER.info("Dataset already downloaded.")
-                    self.ds_cfg_list.append(Path.cwd() / proj_version / "data.yaml")
-                except Exception:
-                    continue
-
-        return self.ds_names, self.ds_cfg_list
-
-    @staticmethod
-    def fix_yaml(path: Path):
-        """Fix the train and validation paths in a given YAML file."""
-        yaml_data = YAML.load(path)
-        yaml_data["train"] = "train/images"
-        yaml_data["val"] = "valid/images"
-        YAML.save(path, yaml_data)
-
-    def evaluate(self, yaml_path: str, val_log_file: str, eval_log_file: str, list_ind: int):
-        """Evaluate model performance on validation results.
-
-        Args:
-            yaml_path (str): Path to the YAML configuration file.
-            val_log_file (str): Path to the validation log file.
-            eval_log_file (str): Path to the evaluation log file.
-            list_ind (int): Index of the current dataset in the list.
-
-        Returns:
-            (float): The mean average precision (mAP) value for the evaluated model.
-
-        Examples:
-            Evaluate a model on a specific dataset
-            >>> benchmark = RF100Benchmark()
-            >>> benchmark.evaluate("path/to/data.yaml", "path/to/val_log.txt", "path/to/eval_log.txt", 0)
-        """
-        skip_symbols = ["🚀", "⚠️", "💡", "❌"]
-        class_names = YAML.load(yaml_path)["names"]
-        with open(val_log_file, encoding="utf-8") as f:
-            lines = f.readlines()
-            eval_lines = []
-            for line in lines:
-                if any(symbol in line for symbol in skip_symbols):
-                    continue
-                entries = line.split(" ")
-                entries = list(filter(lambda val: val != "", entries))
-                entries = [e.strip("\n") for e in entries]
-                eval_lines.extend(
-                    {
-                        "class": entries[0],
-                        "images": entries[1],
-                        "targets": entries[2],
-                        "precision": entries[3],
-                        "recall": entries[4],
-                        "map50": entries[5],
-                        "map95": entries[6],
-                    }
-                    for e in entries
-                    if e in class_names or (e == "all" and "(AP)" not in entries and "(AR)" not in entries)
-                )
-        map_val = 0.0
-        if len(eval_lines) > 1:
-            LOGGER.info("Multiple dicts found")
-            for lst in eval_lines:
-                if lst["class"] == "all":
-                    map_val = lst["map50"]
-        else:
-            LOGGER.info("Single dict found")
-            map_val = next(res["map50"] for res in eval_lines)
-
-        with open(eval_log_file, "a", encoding="utf-8") as f:
-            f.write(f"{self.ds_names[list_ind]}: {map_val}\n")
-
-        return float(map_val)
-
-
 class ProfileModels:
     """ProfileModels class for profiling different models on ONNX and TensorRT.
 
@@ -421,7 +270,7 @@ class ProfileModels:
         num_warmup_runs (int): Number of warmup runs before profiling.
         min_time (float): Minimum number of seconds to profile for.
         imgsz (int): Image size used in the models.
-        half (bool): Flag to indicate whether to use FP16 half-precision for TensorRT profiling.
+        quantize (int | str | None): Export precision for TensorRT profiling, e.g. 16 (FP16) or 8 (INT8).
         trt (bool): Flag to indicate whether to profile using TensorRT.
         device (torch.device): Device used for profiling.
 
@@ -450,7 +299,7 @@ class ProfileModels:
         num_warmup_runs: int = 10,
         min_time: float = 60,
         imgsz: int = 640,
-        half: bool = True,
+        quantize: int | str | None = 16,
         trt: bool = True,
         device: torch.device | str | None = None,
     ):
@@ -462,19 +311,19 @@ class ProfileModels:
             num_warmup_runs (int): Number of warmup runs before the actual profiling starts.
             min_time (float): Minimum time in seconds for profiling a model.
             imgsz (int): Size of the image used during profiling.
-            half (bool): Flag to indicate whether to use FP16 half-precision for TensorRT profiling.
+            quantize (int | str | None): Export precision for TensorRT profiling, e.g. 16 (FP16, default) or 8 (INT8).
             trt (bool): Flag to indicate whether to profile using TensorRT.
             device (torch.device | str | None): Device used for profiling. If None, it is determined automatically.
 
         Notes:
-            FP16 'half' argument option removed for ONNX as slower on CPU than FP32.
+            quantize applies only to the TensorRT profiling export; ONNX profiling stays FP32 (FP16 is slower on CPU).
         """
         self.paths = paths
         self.num_timed_runs = num_timed_runs
         self.num_warmup_runs = num_warmup_runs
         self.min_time = min_time
         self.imgsz = imgsz
-        self.half = half
+        self.quantize = quantize
         self.trt = trt  # run TensorRT profiling
         self.device = device if isinstance(device, torch.device) else select_device(device)
 
@@ -507,7 +356,7 @@ class ProfileModels:
                 if self.trt and self.device.type != "cpu" and not engine_file.is_file():
                     engine_file = model.export(
                         format="engine",
-                        half=self.half,
+                        quantize=self.quantize,
                         imgsz=self.imgsz,
                         device=self.device,
                         verbose=False,

@@ -1,4 +1,5 @@
 ---
+title: YOLO26 Computer Vision Tasks Overview
 comments: true
 description: Explore Ultralytics YOLO26 for detection, segmentation, semantic segmentation, classification, OBB, and pose estimation with high accuracy and speed. Learn how to apply each task.
 keywords: Ultralytics YOLO26, detection, segmentation, semantic segmentation, classification, oriented object detection, pose estimation, computer vision, AI framework
@@ -103,7 +104,7 @@ To use Ultralytics YOLO26 for object detection, follow these steps:
 
         ```bash
         # Run YOLO detection from the command line
-        yolo detect model=yolo26n.pt source="image.jpg" # Adjust model and source as needed
+        yolo detect predict model=yolo26n.pt source="image.jpg" # Adjust model and source as needed
         ```
 
 For more detailed instructions, check out our [detection examples](detect.md).

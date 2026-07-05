@@ -37,6 +37,7 @@ from ultralytics.utils import (
     LOGGER,
     MACOS,
     ONLINE,
+    PLATFORM_URL,
     PYTHON_VERSION,
     RKNN_CHIPS,
     ROOT,
@@ -56,6 +57,19 @@ from ultralytics.utils import (
 )
 
 REMOTE_FILE_PREFIXES = ("https://", "http://", "rtsp://", "rtmp://", "tcp://", "ul://", "gs://")
+
+
+def normalize_platform_uri(uri):
+    """Rewrite an Ultralytics Platform web URL to its ul:// URI so it can be loaded directly as data or model.
+
+    Args:
+        uri (str | Path): Resource identifier, e.g. "https://platform.ultralytics.com/user/datasets/slug".
+
+    Returns:
+        (str | Path): "ul://user/datasets/slug" for Platform web URLs, otherwise the input unchanged.
+    """
+    s = str(uri)
+    return f"ul://{s[len(PLATFORM_URL) + 1 :].strip('/')}" if s.startswith(f"{PLATFORM_URL}/") else uri
 
 
 def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
@@ -109,7 +123,8 @@ def parse_version(version="0.0.0") -> tuple:
         (tuple): Tuple of integers representing the numeric part of the version, i.e. (2, 0, 1)
     """
     try:
-        return tuple(map(int, re.findall(r"\d+", version)[:3]))  # '2.0.1+cpu' -> (2, 0, 1)
+        nums = [int(x) for x in re.findall(r"\d+", version)[:3]]
+        return tuple(nums + [0] * (3 - len(nums)))  # pad to 3, i.e. '2.0.1+cpu' -> (2, 0, 1), '2' -> (2, 0, 0)
     except Exception as e:
         LOGGER.warning(f"failure for parse_version({version}), returning (0, 0, 0): {e}")
         return 0, 0, 0
@@ -150,7 +165,13 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
     elif isinstance(imgsz, (list, tuple)):
         imgsz = list(imgsz)
     elif isinstance(imgsz, str):  # i.e. '640' or '[640,640]'
-        imgsz = [int(imgsz)] if imgsz.isnumeric() else ast.literal_eval(imgsz)
+        try:
+            imgsz = [int(imgsz)] if imgsz.isnumeric() else ast.literal_eval(imgsz)
+        except (ValueError, SyntaxError):
+            raise ValueError(
+                f"'imgsz={imgsz}' is not a valid image size. "
+                f"Valid imgsz values are int i.e. 'imgsz=640' or list i.e. 'imgsz=[640,640]'"
+            ) from None
     else:
         raise TypeError(
             f"'imgsz={imgsz}' is of invalid type {type(imgsz).__name__}. "
@@ -646,6 +667,7 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
     Returns:
         (str | list): Path to the file, or an empty list if not found.
     """
+    file = normalize_platform_uri(file)  # accept Platform web URLs (rewritten to ul://)
     check_suffix(file, suffix)  # optional
     file = str(file).strip()  # convert to string and strip spaces
     file = check_yolov5u_filename(file)  # yolov5n -> yolov5nu

@@ -1,4 +1,5 @@
 ---
+title: Billing & Credits
 comments: true
 description: Manage credits, payments, and subscriptions on Ultralytics Platform with transparent pricing for cloud training and deployments.
 keywords: Ultralytics Platform, billing, credits, pricing, subscription, payments, training costs
@@ -25,9 +26,9 @@ Choose the plan that fits your needs. Compare plans in `Settings > Plans`:
 | **Storage**                                                | 100 GB     | 500 GB          | Unlimited   |
 | **Dataset Upload (ZIP/TAR incl. `.tar.gz`/`.tgz`/NDJSON)** | 10 GB      | 20 GB           | 50 GB       |
 | **Deployments**                                            | 3          | 10              | Unlimited   |
-| **Cloud GPU Types**                                        | 22         | 24              | 24          |
+| **Cloud GPU Types**                                        | 24         | 26              | 26          |
 | **Best GPUs (B200, B300)**                                 | -          | Yes             | Yes         |
-| **Teams**                                                  | -          | Up to 5 members | 50+ members |
+| **Teams**                                                  | -          | Up to 5 members | Custom size |
 | **SSO / SAML**                                             | -          | -               | Yes         |
 | **Enterprise License**                                     | -          | -               | Yes         |
 | **License**                                                | AGPL-3.0   | AGPL-3.0        | Enterprise  |
@@ -46,7 +47,7 @@ Get started at no cost:
 - 100 GB storage · 10 GB dataset upload limit
 - Model export to all 19+ formats
 - Manual, SAM 3 & YOLO Smart annotation
-- 22 cloud GPU types including 5090, H100 & H200 ($0.24–$3.99/hr)
+- 24 cloud GPU types including 5090, H100 & H200 ($0.24–$4.39/hr)
 - Community support
 
 !!! tip "Company Email Bonus"
@@ -169,9 +170,13 @@ Cloud training estimates cost before start and charges for actual GPU time used.
 
 ```mermaid
 flowchart LR
-    A[Start Training] --> B[Estimate Cost]
-    B --> C[Run Training]
-    C --> D[Charge Actual Usage]
+    A[Start Training]:::start --> B[Estimate Cost]:::proc
+    B --> C[Run Training]:::proc
+    C --> D[Charge Actual Usage]:::out
+
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 ### How It Works
@@ -204,7 +209,7 @@ Total Cost = GPU Rate x Training Time (hours)
 Example: Training for 2.5 hours on RTX PRO 6000
 
 ```
-$1.89 x 2.5 = $4.73
+$2.09 x 2.5 = $5.23
 ```
 
 ## Upgrade to Pro

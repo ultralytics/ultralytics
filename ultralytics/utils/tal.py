@@ -34,7 +34,7 @@ class TaskAlignedAssigner(nn.Module):
         num_classes: int = 80,
         alpha: float = 1.0,
         beta: float = 6.0,
-        stride: list = [8, 16, 32],
+        stride: list | None = None,
         eps: float = 1e-9,
         topk2=None,
     ):
@@ -55,7 +55,7 @@ class TaskAlignedAssigner(nn.Module):
         self.num_classes = num_classes
         self.alpha = alpha
         self.beta = beta
-        self.stride = stride
+        self.stride = stride if stride is not None else [8, 16, 32]
         self.stride_val = self.stride[1] if len(self.stride) > 1 else self.stride[0]
         self.eps = eps
 
@@ -97,13 +97,13 @@ class TaskAlignedAssigner(nn.Module):
         try:
             return self._forward(pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt)
         except RuntimeError as e:
-            if "out of memory" in str(e).lower():
-                # Move tensors to CPU, compute, then move back to original device
-                LOGGER.warning("CUDA OutOfMemoryError in TaskAlignedAssigner, using CPU")
-                cpu_tensors = [t.cpu() for t in (pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt)]
-                result = self._forward(*cpu_tensors)
-                return tuple(t.to(device) for t in result)
-            raise
+            if "out of memory" not in str(e).lower():
+                raise
+        # Recover outside the except block: exiting it drops e.__traceback__, releasing the failed attempt's GPU
+        # intermediates back to the allocator so the copy-back below can succeed
+        LOGGER.warning("CUDA OutOfMemoryError in TaskAlignedAssigner, using CPU")
+        result = self._forward(*(t.cpu() for t in (pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt)))
+        return tuple(t.to(device) for t in result)
 
     def _forward(self, pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt):
         """Compute the task-aligned assignment.

@@ -16,9 +16,10 @@ import pytest
 import torch
 from PIL import Image
 
+import ultralytics.data.build as data_build
 from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
 from ultralytics import RTDETR, YOLO
-from ultralytics.data.build import load_inference_source
+from ultralytics.data.build import build_dataloader, load_inference_source
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.utils import (
     ARM64,
@@ -41,6 +42,43 @@ from ultralytics.utils import (
 )
 from ultralytics.utils.downloads import download, safe_download
 from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13
+
+
+def test_dataloader_caps_workers_to_batches():
+    """Test tiny datasets do not spawn persistent workers beyond useful batch count."""
+    single_batch = build_dataloader(range(4), batch=4, workers=8)
+    drop_last_single_batch = build_dataloader(range(5), batch=4, workers=8, drop_last=True)
+    two_batches = build_dataloader(range(8), batch=4, workers=8)
+    try:
+        assert single_batch.num_workers == 0
+        assert drop_last_single_batch.num_workers == 0
+        assert two_batches.num_workers <= 2
+    finally:
+        single_batch.close()
+        drop_last_single_batch.close()
+        two_batches.close()
+
+
+def test_dataloader_cap_preserves_distributed_drop_last(monkeypatch):
+    """Test worker cap follows distributed sampler size without changing global drop_last behavior."""
+    sampler_cls = data_build.distributed.DistributedSampler
+
+    def distributed_sampler(dataset, shuffle):
+        return sampler_cls(dataset, num_replicas=3, rank=0, shuffle=shuffle)
+
+    monkeypatch.setattr(data_build.distributed, "DistributedSampler", distributed_sampler)
+    loader = build_dataloader(range(8), batch=4, workers=8, rank=0, drop_last=True)
+    try:
+        assert len(loader) == 1
+        assert loader.num_workers == 0
+    finally:
+        loader.close()
+
+
+def test_dataloader_empty_dataset_uses_dataloader_validation():
+    """Test empty datasets fail through DataLoader validation instead of worker-cap math."""
+    with pytest.raises(ValueError, match="positive integer"):
+        build_dataloader([], batch=4, workers=2)
 
 
 def skip_rpi_semantic():

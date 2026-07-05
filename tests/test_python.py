@@ -75,6 +75,12 @@ def test_dataloader_cap_preserves_distributed_drop_last(monkeypatch):
         loader.close()
 
 
+def test_dataloader_empty_dataset_uses_dataloader_validation():
+    """Test empty datasets fail through DataLoader validation instead of worker-cap math."""
+    with pytest.raises(ValueError, match="positive integer"):
+        build_dataloader([], batch=4, workers=2)
+
+
 def skip_rpi_semantic():
     """Skip semantic segmentation tests on Raspberry Pi due to memory constraints."""
     if IS_RASPBERRYPI:

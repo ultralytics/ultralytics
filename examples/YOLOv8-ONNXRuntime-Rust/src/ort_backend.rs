@@ -4,12 +4,14 @@ use anyhow::Result;
 use clap::ValueEnum;
 use half::f16;
 use ndarray::{Array, CowArray, IxDyn};
-use ort::{
+use ort::execution_providers::{
     CPUExecutionProvider, CUDAExecutionProvider, ExecutionProvider, ExecutionProviderDispatch,
     TensorRTExecutionProvider,
 };
-use ort::{Session, SessionBuilder};
-use ort::{TensorElementType, ValueType};
+use ort::session::builder::SessionBuilder;
+use ort::session::Session;
+use ort::tensor::TensorElementType;
+use ort::value::ValueType;
 use regex::Regex;
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
 pub enum YOLOTask {
@@ -66,9 +68,14 @@ impl OrtInputs {
                 .map(|x| if let Some(x) = x { x as i32 } else { -1i32 })
                 .collect();
             shapes.push(shape); */
-            if let ort::ValueType::Tensor { ty, dimensions } = &i.input_type {
+            if let ValueType::Tensor {
+                ty,
+                dimension_symbols: _,
+                shape,
+            } = &i.input_type
+            {
                 dtypes.push(ty.clone());
-                let shape = dimensions.clone();
+                let shape = shape.to_vec().clone();
                 shapes.push(shape);
             } else {
                 panic!("不支持的数据格式, {} - {}", file!(), line!());
@@ -208,9 +215,14 @@ impl OrtBackend {
         let mut dtypes = Vec::new();
         let mut names = Vec::new();
         for i in session.inputs.iter() {
-            if let ort::ValueType::Tensor { ty, dimensions } = &i.input_type {
+            if let ValueType::Tensor {
+                ty,
+                dimension_symbols: _,
+                shape,
+            } = &i.input_type
+            {
                 dtypes.push(ty.clone());
-                let shape = dimensions.clone();
+                let shape = shape.to_vec().clone();
                 shapes.push(shape);
             } else {
                 panic!("不支持的数据格式, {} - {}", file!(), line!());
@@ -297,7 +309,7 @@ impl OrtBackend {
         }
     }
 
-    pub fn run(&self, xs: Array<f32, IxDyn>, profile: bool) -> Result<Vec<Array<f32, IxDyn>>> {
+    pub fn run(&mut self, xs: Array<f32, IxDyn>, profile: bool) -> Result<Vec<Array<f32, IxDyn>>> {
         // ORT inference
         match self.dtype() {
             TensorElementType::Float16 => self.run_fp16(xs, profile),
@@ -306,7 +318,11 @@ impl OrtBackend {
         }
     }
 
-    pub fn run_fp16(&self, xs: Array<f32, IxDyn>, profile: bool) -> Result<Vec<Array<f32, IxDyn>>> {
+    pub fn run_fp16(
+        &mut self,
+        xs: Array<f32, IxDyn>,
+        profile: bool,
+    ) -> Result<Vec<Array<f32, IxDyn>>> {
         // f32->f16
         let t = std::time::Instant::now();
         let xs = xs.mapv(f16::from_f32);
@@ -321,9 +337,19 @@ impl OrtBackend {
             println!("[ORT H2D]: {:?}", t.elapsed());
         }
 
+        // prepare input Value from the ndarray (needed because SessionInputValue implements From<Value<_>>)
+        let t = std::time::Instant::now();
+        let input = ort::value::Value::from_array(xs.into_owned())?;
+        if profile {
+            println!("[ORT Prepare Value]: {:?}", t.elapsed());
+        }
+
+        // compute output shapes before calling session.run to avoid borrowing self immutably while session is mutably borrowed
+        let out_shapes = self.output_shapes();
+
         // run
         let t = std::time::Instant::now();
-        let ys = self.session.run(ort::inputs![xs.view()]?)?;
+        let ys = self.session.run(ort::inputs![input])?;
         if profile {
             println!("[ORT Inference]: {:?}", t.elapsed());
         }
@@ -331,18 +357,23 @@ impl OrtBackend {
         // d2h
         Ok(ys
             .iter()
-            .map(|(_k, v)| {
+            .enumerate()
+            .map(|(idx, (_k, v))| {
                 // d2h
                 let t = std::time::Instant::now();
-                let v = v.try_extract_tensor().unwrap();
-                //let v = v.try_extract::<_>().unwrap().view().clone().into_owned();
+                // try_extract_tensor for f16 returns (shape, slice)
+                let (_shape, slice) = v.try_extract_tensor::<f16>().unwrap();
                 if profile {
                     println!("[ORT D2H]: {:?}", t.elapsed());
                 }
 
                 // f16->f32
                 let t_ = std::time::Instant::now();
-                let v = v.mapv(f16::to_f32);
+                // build ndarray from the returned slice using the runtime output shape
+                let out_shape = out_shapes[idx].clone();
+                let dims = out_shape.iter().map(|&d| d as usize).collect::<Vec<_>>();
+                let arr_f16 = Array::from_shape_vec(IxDyn(&dims), slice.to_vec()).unwrap();
+                let v = arr_f16.mapv(f16::to_f32);
                 if profile {
                     println!("[ORT f16->f32]: {:?}", t_.elapsed());
                 }
@@ -351,7 +382,11 @@ impl OrtBackend {
             .collect::<Vec<Array<_, _>>>())
     }
 
-    pub fn run_fp32(&self, xs: Array<f32, IxDyn>, profile: bool) -> Result<Vec<Array<f32, IxDyn>>> {
+    pub fn run_fp32(
+        &mut self,
+        xs: Array<f32, IxDyn>,
+        profile: bool,
+    ) -> Result<Vec<Array<f32, IxDyn>>> {
         // h2d
         let t = std::time::Instant::now();
         let xs = CowArray::from(xs);
@@ -359,9 +394,19 @@ impl OrtBackend {
             println!("[ORT H2D]: {:?}", t.elapsed());
         }
 
+        // prepare input Value from the ndarray (needed because SessionInputValue implements From<Value<_>>)
+        let t = std::time::Instant::now();
+        let input = ort::value::Value::from_array(xs.into_owned())?;
+        if profile {
+            println!("[ORT Prepare Value]: {:?}", t.elapsed());
+        }
+
+        // compute output shapes before calling session.run to avoid borrowing self immutably while session is mutably borrowed
+        let out_shapes = self.output_shapes();
+
         // run
         let t = std::time::Instant::now();
-        let ys = self.session.run(ort::inputs![xs.view()]?)?;
+        let ys = self.session.run(ort::inputs![input])?;
         if profile {
             println!("[ORT Inference]: {:?}", t.elapsed());
         }
@@ -369,24 +414,28 @@ impl OrtBackend {
         // d2h
         Ok(ys
             .iter()
-            .map(|(_k, v)| {
+            .enumerate()
+            .map(|(idx, (_k, v))| {
                 let t = std::time::Instant::now();
-                let v = v.try_extract_tensor::<f32>().unwrap().into_owned();
-                //let x = x.try_extract::<_>().unwrap().view().clone().into_owned();
+                // try_extract_tensor for f32 returns (shape, slice)
+                let (_shape, slice) = v.try_extract_tensor::<f32>().unwrap();
                 if profile {
                     println!("[ORT D2H]: {:?}", t.elapsed());
                 }
-                v
+
+                // build ndarray from the returned slice using the runtime output shape
+                let out_shape = out_shapes[idx].clone();
+                let dims = out_shape.iter().map(|&d| d as usize).collect::<Vec<_>>();
+                Array::from_shape_vec(IxDyn(&dims), slice.to_vec()).unwrap()
             })
-            .collect::<Vec<Array<_, _>>>())
+            .collect::<Vec<Array<f32, IxDyn>>>())
     }
 
     pub fn output_shapes(&self) -> Vec<Vec<i64>> {
         let mut shapes = Vec::new();
         for output in &self.session.outputs {
-            if let ValueType::Tensor { ty: _, dimensions } = &output.output_type {
-                let shape = dimensions.clone();
-                shapes.push(shape);
+            if let ValueType::Tensor { shape, .. } = &output.output_type {
+                shapes.push(shape.to_vec().clone());
             } else {
                 panic!("not support data format, {} - {}", file!(), line!());
             }
@@ -397,7 +446,12 @@ impl OrtBackend {
     pub fn output_dtypes(&self) -> Vec<TensorElementType> {
         let mut dtypes = Vec::new();
         for output in &self.session.outputs {
-            if let ValueType::Tensor { ty, dimensions: _ } = &output.output_type {
+            if let ValueType::Tensor {
+                ty,
+                shape: _,
+                dimension_symbols: _,
+            } = &output.output_type
+            {
                 dtypes.push(ty.clone());
             } else {
                 panic!("not support data format, {} - {}", file!(), line!());

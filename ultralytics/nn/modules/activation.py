@@ -6,8 +6,7 @@ import torch.nn as nn
 
 
 class AGLU(nn.Module):
-    """
-    Unified activation function module from AGLU.
+    """Unified activation function module from AGLU.
 
     This class implements a parameterized activation function with learnable parameters lambda and kappa, based on the
     AGLU (Adaptive Gated Linear Unit) approach.
@@ -40,11 +39,10 @@ class AGLU(nn.Module):
         self.kappa = nn.Parameter(nn.init.uniform_(torch.empty(1, device=device, dtype=dtype)))  # kappa parameter
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """
-        Apply the Adaptive Gated Linear Unit (AGLU) activation function.
+        """Apply the Adaptive Gated Linear Unit (AGLU) activation function.
 
-        This forward method implements the AGLU activation function with learnable parameters lambda and kappa.
-        The function applies a transformation that adaptively combines linear and non-linear components.
+        This forward method implements the AGLU activation function with learnable parameters lambda and kappa. The
+        function applies a transformation that adaptively combines linear and non-linear components.
 
         Args:
             x (torch.Tensor): Input tensor to apply the activation function to.

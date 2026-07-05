@@ -13,11 +13,10 @@ except (ImportError, AssertionError):
 
 
 def on_fit_epoch_end(trainer):
-    """
-    Report training metrics to Ray Tune at epoch end when a Ray session is active.
+    """Report training metrics to Ray Tune at epoch end when a Ray session is active.
 
-    Captures metrics from the trainer object and sends them to Ray Tune with the current epoch number,
-    enabling hyperparameter tuning optimization. Only executes when within an active Ray Tune session.
+    Captures metrics from the trainer object and sends them to Ray Tune with the current epoch number, enabling
+    hyperparameter tuning optimization. Only executes when within an active Ray Tune session.
 
     Args:
         trainer (ultralytics.engine.trainer.BaseTrainer): The Ultralytics trainer object containing metrics and epochs.

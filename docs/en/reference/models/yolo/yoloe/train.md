@@ -1,13 +1,14 @@
 ---
-description: Learn about YOLOE enhanced visual prompting (EVP) predictors in Ultralytics, which enable object detection and segmentation models to use visual prompts during inference for improved performance.
-keywords: YOLOE, EVP, visual prompts, computer vision, object detection, segmentation, bounding boxes, masks, predictors, YOLOEVPDetectPredictor, YOLOEVPSegPredictor, Ultralytics, inference
+title: models.yolo.yoloe.train API Reference
+description: Learn about YOLOE training classes in Ultralytics, including standard, linear probing, and visual prompt training for detection and segmentation models.
+keywords: YOLOE, training, trainers, EVP, visual prompts, computer vision, object detection, segmentation, Ultralytics, deep learning
 ---
 
 # Reference for `ultralytics/models/yolo/yoloe/train.py`
 
-!!! note
+!!! success "Improvements"
 
-    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/yoloe/train.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/yoloe/train.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/models/yolo/yoloe/train.py) 🛠️. Thank you 🙏!
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/yoloe/train.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/yoloe/train.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
 <br>
 

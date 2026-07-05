@@ -1,13 +1,14 @@
 ---
+title: models.sam.modules.encoders API Reference
 description: Explore detailed documentation of various SAM encoder modules such as ImageEncoderViT, PromptEncoder, and more, available in Ultralytics' repository.
 keywords: Ultralytics, SAM encoder, ImageEncoderViT, PromptEncoder, PositionEmbeddingRandom, Block, Attention, PatchEmbed
 ---
 
 # Reference for `ultralytics/models/sam/modules/encoders.py`
 
-!!! note
+!!! success "Improvements"
 
-    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/modules/encoders.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/modules/encoders.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/models/sam/modules/encoders.py) 🛠️. Thank you 🙏!
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/modules/encoders.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/modules/encoders.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
 <br>
 

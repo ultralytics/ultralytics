@@ -1,32 +1,35 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import math
 import random
 from copy import copy
-from typing import Dict, List, Optional
+from typing import Any
 
 import numpy as np
+import torch
 import torch.nn as nn
 
 from ultralytics.data import build_dataloader, build_yolo_dataset
 from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import DetectionModel
-from ultralytics.utils import LOGGER, RANK
-from ultralytics.utils.plotting import plot_images, plot_labels, plot_results
-from ultralytics.utils.torch_utils import de_parallel, torch_distributed_zero_first
+from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
+from ultralytics.utils.patches import override_configs
+from ultralytics.utils.plotting import plot_images, plot_labels
+from ultralytics.utils.torch_utils import torch_distributed_zero_first, unwrap_model
 
 
 class DetectionTrainer(BaseTrainer):
-    """
-    A class extending the BaseTrainer class for training based on a detection model.
+    """A class extending the BaseTrainer class for training based on a detection model.
 
-    This trainer specializes in object detection tasks, handling the specific requirements for training YOLO models
-    for object detection including dataset building, data loading, preprocessing, and model configuration.
+    This trainer specializes in object detection tasks, handling the specific requirements for training YOLO models for
+    object detection including dataset building, data loading, preprocessing, and model configuration.
 
     Attributes:
         model (DetectionModel): The YOLO detection model being trained.
-        data (Dict): Dictionary containing dataset information including class names and number of classes.
+        data (dict): Dictionary containing dataset information including class names and number of classes.
         loss_names (tuple): Names of the loss components used in training (box_loss, cls_loss, dfl_loss).
 
     Methods:
@@ -39,20 +42,28 @@ class DetectionTrainer(BaseTrainer):
         label_loss_items: Return a loss dictionary with labeled training loss items.
         progress_string: Return a formatted string of training progress.
         plot_training_samples: Plot training samples with their annotations.
-        plot_metrics: Plot metrics from a CSV file.
         plot_training_labels: Create a labeled training plot of the YOLO model.
         auto_batch: Calculate optimal batch size based on model memory requirements.
 
     Examples:
         >>> from ultralytics.models.yolo.detect import DetectionTrainer
-        >>> args = dict(model="yolo11n.pt", data="coco8.yaml", epochs=3)
+        >>> args = dict(model="yolo26n.pt", data="coco8.yaml", epochs=3)
         >>> trainer = DetectionTrainer(overrides=args)
         >>> trainer.train()
     """
 
-    def build_dataset(self, img_path: str, mode: str = "train", batch: Optional[int] = None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides: dict[str, Any] | None = None, _callbacks: dict | None = None):
+        """Initialize a DetectionTrainer object for training YOLO object detection models.
+
+        Args:
+            cfg (dict, optional): Default configuration dictionary containing training parameters.
+            overrides (dict, optional): Dictionary of parameter overrides for the default configuration.
+            _callbacks (dict, optional): Dictionary of callback functions to be executed during training.
         """
-        Build YOLO Dataset for training or validation.
+        super().__init__(cfg, overrides, _callbacks)
+
+    def build_dataset(self, img_path: str, mode: str = "train", batch: int | None = None):
+        """Build YOLO Dataset for training or validation.
 
         Args:
             img_path (str): Path to the folder containing images.
@@ -62,12 +73,11 @@ class DetectionTrainer(BaseTrainer):
         Returns:
             (Dataset): YOLO dataset object configured for the specified mode.
         """
-        gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
+        gs = max(int(unwrap_model(self.model).stride.max()), 32)
         return build_yolo_dataset(self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs)
 
     def get_dataloader(self, dataset_path: str, batch_size: int = 16, rank: int = 0, mode: str = "train"):
-        """
-        Construct and return dataloader for the specified mode.
+        """Construct and return dataloader for the specified mode.
 
         Args:
             dataset_path (str): Path to the dataset.
@@ -82,27 +92,38 @@ class DetectionTrainer(BaseTrainer):
         with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
             dataset = self.build_dataset(dataset_path, mode, batch_size)
         shuffle = mode == "train"
-        if getattr(dataset, "rect", False) and shuffle:
+        if getattr(dataset, "rect", False) and shuffle and not np.all(dataset.batch_shapes == dataset.batch_shapes[0]):
             LOGGER.warning("'rect=True' is incompatible with DataLoader shuffle, setting shuffle=False")
             shuffle = False
-        workers = self.args.workers if mode == "train" else self.args.workers * 2
-        return build_dataloader(dataset, batch_size, workers, shuffle, rank)  # return dataloader
+        return build_dataloader(
+            dataset,
+            batch=batch_size,
+            workers=self.args.workers if mode == "train" else self.args.workers * 2,
+            shuffle=shuffle,
+            rank=rank,
+            drop_last=self.args.compile and mode == "train",
+        )
 
-    def preprocess_batch(self, batch: Dict) -> Dict:
-        """
-        Preprocess a batch of images by scaling and converting to float.
+    def preprocess_batch(self, batch: dict) -> dict:
+        """Preprocess a batch of images by scaling and converting to float.
 
         Args:
-            batch (Dict): Dictionary containing batch data with 'img' tensor.
+            batch (dict): Dictionary containing batch data with 'img' tensor.
 
         Returns:
-            (Dict): Preprocessed batch with normalized images.
+            (dict): Preprocessed batch with normalized images.
         """
-        batch["img"] = batch["img"].to(self.device, non_blocking=True).float() / 255
-        if self.args.multi_scale:
+        for k, v in batch.items():
+            if isinstance(v, torch.Tensor):
+                batch[k] = v.to(self.device, non_blocking=self.device.type == "cuda")
+        batch["img"] = batch["img"].float() / 255
+        if self.args.multi_scale > 0.0:
             imgs = batch["img"]
             sz = (
-                random.randrange(int(self.args.imgsz * 0.5), int(self.args.imgsz * 1.5 + self.stride))
+                random.randrange(
+                    max(self.stride, int(self.args.imgsz * (1.0 - self.args.multi_scale))),  # min imgsz
+                    int(self.args.imgsz * (1.0 + self.args.multi_scale) + self.stride),  # max imgsz
+                )
                 // self.stride
                 * self.stride
             )  # size
@@ -124,11 +145,42 @@ class DetectionTrainer(BaseTrainer):
         self.model.nc = self.data["nc"]  # attach number of classes to model
         self.model.names = self.data["names"]  # attach class names to model
         self.model.args = self.args  # attach hyperparameters to model
-        # TODO: self.model.class_weights = labels_to_class_weights(dataset.labels, nc).to(device) * nc
+        if getattr(self.model, "end2end", False):
+            self.model.set_head_attr(max_det=self.args.max_det)
 
-    def get_model(self, cfg: Optional[str] = None, weights: Optional[str] = None, verbose: bool = True):
+    def get_class_counts(self):
+        """Return per-class instance counts from the training dataset labels."""
+        classes = np.concatenate([lb["cls"].flatten() for lb in self.train_loader.dataset.labels], 0)
+        return np.bincount(classes.astype(int), minlength=self.data["nc"]).astype(np.float32)
+
+    def compute_class_weights(self, class_counts):
+        """Convert class counts to inverse-frequency weights raised to the power of cls_pw."""
+        class_counts = np.where(class_counts == 0, 1.0, class_counts)
+        return (1.0 / class_counts) ** self.args.cls_pw  # apply power directly
+
+    def set_class_weights(self):
+        """Compute and set class weights for handling class imbalance.
+
+        Class weights are computed based on inverse class frequency in the training dataset,
+        raised to the power of cls_pw (0 < cls_pw <= 1 dampens; values are restricted to the range [0, 1]).
+        Final weights are normalized so their mean equals 1.0.
         """
-        Return a YOLO detection model.
+        assert 0 <= self.args.cls_pw <= 1.0, "cls_pw must be in the range [0, 1]"
+        if self.args.cls_pw == 0.0:
+            return
+        class_counts = self.get_class_counts()
+        if not class_counts.any():  # nothing counted (e.g. missing/unreadable masks); keep default weights
+            return
+        weights = self.compute_class_weights(class_counts)
+        weights = weights / weights.mean()  # normalize so mean equals 1.0
+        model = self.model
+        if hasattr(unwrap_model(model), "student_model"):
+            model = unwrap_model(model).student_model  # distillation: the student model builds the loss criterion
+        model.class_weights = torch.from_numpy(weights).to(self.device)
+        LOGGER.info(f"Class weights: {model.class_weights.cpu().numpy().round(3)}")
+
+    def get_model(self, cfg: str | None = None, weights: str | None = None, verbose: bool = True):
+        """Return a YOLO detection model.
 
         Args:
             cfg (str, optional): Path to model configuration file.
@@ -150,16 +202,15 @@ class DetectionTrainer(BaseTrainer):
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
 
-    def label_loss_items(self, loss_items: Optional[List[float]] = None, prefix: str = "train"):
-        """
-        Return a loss dict with labeled training loss items tensor.
+    def label_loss_items(self, loss_items: list[float] | None = None, prefix: str = "train"):
+        """Return a loss dict with labeled training loss items tensor.
 
         Args:
-            loss_items (List[float], optional): List of loss values.
+            loss_items (list[float], optional): List of loss values.
             prefix (str): Prefix for keys in the returned dictionary.
 
         Returns:
-            (Dict | List): Dictionary of labeled loss items if loss_items is provided, otherwise list of keys.
+            (dict | list): Dictionary of labeled loss items if loss_items is provided, otherwise list of keys.
         """
         keys = [f"{prefix}/{x}" for x in self.loss_names]
         if loss_items is not None:
@@ -178,27 +229,19 @@ class DetectionTrainer(BaseTrainer):
             "Size",
         )
 
-    def plot_training_samples(self, batch: Dict, ni: int):
-        """
-        Plot training samples with their annotations.
+    def plot_training_samples(self, batch: dict[str, Any], ni: int) -> None:
+        """Plot training samples with their annotations.
 
         Args:
-            batch (Dict): Dictionary containing batch data.
-            ni (int): Number of iterations.
+            batch (dict[str, Any]): Dictionary containing batch data.
+            ni (int): Batch index used for naming the output file.
         """
         plot_images(
-            images=batch["img"],
-            batch_idx=batch["batch_idx"],
-            cls=batch["cls"].squeeze(-1),
-            bboxes=batch["bboxes"],
+            labels=batch,
             paths=batch["im_file"],
             fname=self.save_dir / f"train_batch{ni}.jpg",
             on_plot=self.on_plot,
         )
-
-    def plot_metrics(self):
-        """Plot metrics from a CSV file."""
-        plot_results(file=self.csv, on_plot=self.on_plot)  # save results.png
 
     def plot_training_labels(self):
         """Create a labeled training plot of the YOLO model."""
@@ -207,12 +250,14 @@ class DetectionTrainer(BaseTrainer):
         plot_labels(boxes, cls.squeeze(), names=self.data["names"], save_dir=self.save_dir, on_plot=self.on_plot)
 
     def auto_batch(self):
-        """
-        Get optimal batch size by calculating memory occupation of model.
+        """Get optimal batch size by calculating memory occupation of model.
 
         Returns:
             (int): Optimal batch size.
         """
-        train_dataset = self.build_dataset(self.data["train"], mode="train", batch=16)
+        with override_configs(self.args, overrides={"cache": False}) as self.args:
+            train_dataset = self.build_dataset(self.data["train"], mode="train", batch=16)
         max_num_obj = max(len(label["cls"]) for label in train_dataset.labels) * 4  # 4 for mosaic augmentation
-        return super().auto_batch(max_num_obj)
+        n = len(train_dataset)
+        del train_dataset  # free memory
+        return super().auto_batch(max_num_obj, dataset_size=n)

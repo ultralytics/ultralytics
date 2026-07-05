@@ -1,13 +1,14 @@
 ---
+title: trackers.utils.gmc API Reference
 description: Explore the Generalized Motion Compensation (GMC) class for tracking and object detection with methods like ORB, SIFT, ECC, and more.
 keywords: GMC, Generalized Motion Compensation, Ultralytics, tracking, object detection, ORB, SIFT, ECC, Sparse Optical Flow, computer vision, video frames
 ---
 
 # Reference for `ultralytics/trackers/utils/gmc.py`
 
-!!! note
+!!! success "Improvements"
 
-    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/utils/gmc.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/utils/gmc.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/trackers/utils/gmc.py) 🛠️. Thank you 🙏!
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/utils/gmc.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/utils/gmc.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
 <br>
 

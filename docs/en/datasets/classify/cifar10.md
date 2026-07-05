@@ -6,7 +6,7 @@ keywords: CIFAR-10, dataset, machine learning, computer vision, image classifica
 
 # CIFAR-10 Dataset
 
-The [CIFAR-10](https://www.cs.toronto.edu/~kriz/cifar.html) (Canadian Institute For Advanced Research) dataset is a collection of images used widely for [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and computer vision algorithms. It was developed by researchers at the CIFAR institute and consists of 60,000 32x32 color images in 10 different classes.
+The [CIFAR-10](https://cave.cs.toronto.edu/kriz/cifar.html) (Canadian Institute For Advanced Research) dataset is a collection of images used widely for [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and computer vision algorithms. It was developed by researchers at the CIFAR institute and consists of 60,000 32x32 color images in 10 different classes.
 
 <p align="center">
   <br>
@@ -16,7 +16,7 @@ The [CIFAR-10](https://www.cs.toronto.edu/~kriz/cifar.html) (Canadian Institute 
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Train an <a href="https://www.ultralytics.com/glossary/image-classification">Image Classification</a> Model with CIFAR-10 Dataset using Ultralytics YOLO11
+  <strong>Watch:</strong> How to Train an <a href="https://www.ultralytics.com/glossary/image-classification">Image Classification</a> Model with CIFAR-10 Dataset using Ultralytics YOLO26
 </p>
 
 ## Key Features
@@ -50,7 +50,7 @@ To train a YOLO model on the CIFAR-10 dataset for 100 [epochs](https://www.ultra
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="cifar10", epochs=100, imgsz=32)
@@ -60,14 +60,14 @@ To train a YOLO model on the CIFAR-10 dataset for 100 [epochs](https://www.ultra
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo classify train data=cifar10 model=yolo11n-cls.pt epochs=100 imgsz=32
+        yolo classify train data=cifar10 model=yolo26n-cls.pt epochs=100 imgsz=32
         ```
 
 ## Sample Images and Annotations
 
 The CIFAR-10 dataset contains color images of various objects, providing a well-structured dataset for image classification tasks. Here are some examples of images from the dataset:
 
-![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/cifar10-sample-image.avif)
+![CIFAR-10 image classification dataset samples](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/cifar10-sample-image.avif)
 
 The example showcases the variety and complexity of the objects in the CIFAR-10 dataset, highlighting the importance of a diverse dataset for training robust image classification models.
 
@@ -88,7 +88,7 @@ If you use the CIFAR-10 dataset in your research or development work, please cit
         }
         ```
 
-We would like to acknowledge Alex Krizhevsky for creating and maintaining the CIFAR-10 dataset as a valuable resource for the machine learning and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) research community. For more information about the CIFAR-10 dataset and its creator, visit the [CIFAR-10 dataset website](https://www.cs.toronto.edu/~kriz/cifar.html).
+We would like to acknowledge Alex Krizhevsky for creating and maintaining the CIFAR-10 dataset as a valuable resource for the machine learning and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) research community. For more information about the CIFAR-10 dataset and its creator, visit the [CIFAR-10 dataset website](https://cave.cs.toronto.edu/kriz/cifar.html).
 
 ## FAQ
 
@@ -104,7 +104,7 @@ To train a YOLO model on the CIFAR-10 dataset using Ultralytics, you can follow 
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="cifar10", epochs=100, imgsz=32)
@@ -114,7 +114,7 @@ To train a YOLO model on the CIFAR-10 dataset using Ultralytics, you can follow 
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo classify train data=cifar10 model=yolo11n-cls.pt epochs=100 imgsz=32
+        yolo classify train data=cifar10 model=yolo26n-cls.pt epochs=100 imgsz=32
         ```
 
 For more details, refer to the model [Training](../../modes/train.md) page.

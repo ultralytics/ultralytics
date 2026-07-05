@@ -9,12 +9,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.init import uniform_
 
-__all__ = "multi_scale_deformable_attn_pytorch", "inverse_sigmoid"
+__all__ = "inverse_sigmoid", "multi_scale_deformable_attn_pytorch"
 
 
 def _get_clones(module, n):
-    """
-    Create a list of cloned modules from the given module.
+    """Create a list of cloned modules from the given module.
 
     Args:
         module (nn.Module): The module to be cloned.
@@ -34,12 +33,12 @@ def _get_clones(module, n):
 
 
 def bias_init_with_prob(prior_prob=0.01):
-    """
-    Initialize conv/fc bias value according to a given probability value.
+    """Initialize conv/fc bias value according to a given probability value.
 
-    This function calculates the bias initialization value based on a prior probability using the inverse error function.
-    It's commonly used in object detection models to initialize classification layers with a specific positive prediction
-    probability.
+    This function calculates the bias initialization value based on a prior probability using the inverse sigmoid
+    (logit)
+    function. It's commonly used in object detection models to initialize classification layers with a specific positive
+    prediction probability.
 
     Args:
         prior_prob (float, optional): Prior probability for bias initialization.
@@ -56,22 +55,18 @@ def bias_init_with_prob(prior_prob=0.01):
 
 
 def linear_init(module):
-    """
-    Initialize the weights and biases of a linear module.
+    """Initialize the weights and biases of a linear module.
 
-    This function initializes the weights of a linear module using a uniform distribution within bounds calculated
-    from the input dimension. If the module has a bias, it is also initialized.
+    This function initializes the weights of a linear module using a uniform distribution within bounds calculated from
+    the output dimension. If the module has a bias, it is also initialized.
 
     Args:
         module (nn.Module): Linear module to initialize.
 
-    Returns:
-        (nn.Module): The initialized module.
-
     Examples:
         >>> import torch.nn as nn
         >>> linear = nn.Linear(10, 5)
-        >>> initialized_linear = linear_init(linear)
+        >>> linear_init(linear)
     """
     bound = 1 / math.sqrt(module.weight.shape[0])
     uniform_(module.weight, -bound, bound)
@@ -80,8 +75,7 @@ def linear_init(module):
 
 
 def inverse_sigmoid(x, eps=1e-5):
-    """
-    Calculate the inverse sigmoid function for a tensor.
+    """Calculate the inverse sigmoid function for a tensor.
 
     This function applies the inverse of the sigmoid function to a tensor, which is useful in various neural network
     operations, particularly in attention mechanisms and coordinate transformations.
@@ -106,58 +100,48 @@ def inverse_sigmoid(x, eps=1e-5):
 
 def multi_scale_deformable_attn_pytorch(
     value: torch.Tensor,
-    value_spatial_shapes: torch.Tensor,
+    value_spatial_shapes: list,
     sampling_locations: torch.Tensor,
     attention_weights: torch.Tensor,
 ) -> torch.Tensor:
-    """
-    Implement multi-scale deformable attention in PyTorch.
+    """Implement multi-scale deformable attention in PyTorch.
 
-    This function performs deformable attention across multiple feature map scales, allowing the model to attend to
-    different spatial locations with learned offsets.
+    Folds the (num_levels, num_points) axes into a single num_total_points axis so every traced tensor stays at rank <=
+    5, the maximum rank supported by CoreML's MIL converter. Numerically equivalent to the rank-6 reference
+    implementation on CUDA and CPU.
 
     Args:
-        value (torch.Tensor): The value tensor with shape (bs, num_keys, num_heads, embed_dims).
-        value_spatial_shapes (torch.Tensor): Spatial shapes of the value tensor with shape (num_levels, 2).
-        sampling_locations (torch.Tensor): The sampling locations with shape
-            (bs, num_queries, num_heads, num_levels, num_points, 2).
-        attention_weights (torch.Tensor): The attention weights with shape
-            (bs, num_queries, num_heads, num_levels, num_points).
+        value (torch.Tensor): Value tensor with shape (bs, num_keys, num_heads, embed_dims).
+        value_spatial_shapes (list): Per-level spatial shapes as [(H_0, W_0), ..., (H_{L-1}, W_{L-1})].
+        sampling_locations (torch.Tensor): Sampling locations with shape (bs, num_queries, num_heads, num_levels *
+            num_points, 2).
+        attention_weights (torch.Tensor): Attention weights with shape (bs, num_queries, num_heads, num_levels *
+            num_points).
 
     Returns:
-        (torch.Tensor): The output tensor with shape (bs, num_queries, embed_dims).
+        (torch.Tensor): Output tensor with shape (bs, num_queries, num_heads * embed_dims).
 
     References:
         https://github.com/IDEA-Research/detrex/blob/main/detrex/layers/multi_scale_deform_attn.py
     """
     bs, _, num_heads, embed_dims = value.shape
-    _, num_queries, num_heads, num_levels, num_points, _ = sampling_locations.shape
-    value_list = value.split([H_ * W_ for H_, W_ in value_spatial_shapes], dim=1)
-    sampling_grids = 2 * sampling_locations - 1
+    _, num_queries, _, num_total_points, _ = sampling_locations.shape
+    num_points = num_total_points // len(value_spatial_shapes)
+
+    # (bs, num_keys, num_heads, embed_dims) -> tuple of (bs*num_heads, embed_dims, H*W) per level
+    value_list = value.permute(0, 2, 3, 1).flatten(0, 1).split([h * w for h, w in value_spatial_shapes], dim=-1)
+    # Map to grid_sample coords in [-1, 1] and split per level: tuple of (bs*num_heads, num_queries, num_points, 2)
+    sampling_grids = (2 * sampling_locations - 1).permute(0, 2, 1, 3, 4).flatten(0, 1).split(num_points, dim=-2)
+
     sampling_value_list = []
-    for level, (H_, W_) in enumerate(value_spatial_shapes):
-        # bs, H_*W_, num_heads, embed_dims ->
-        # bs, H_*W_, num_heads*embed_dims ->
-        # bs, num_heads*embed_dims, H_*W_ ->
-        # bs*num_heads, embed_dims, H_, W_
-        value_l_ = value_list[level].flatten(2).transpose(1, 2).reshape(bs * num_heads, embed_dims, H_, W_)
-        # bs, num_queries, num_heads, num_points, 2 ->
-        # bs, num_heads, num_queries, num_points, 2 ->
-        # bs*num_heads, num_queries, num_points, 2
-        sampling_grid_l_ = sampling_grids[:, :, :, level].transpose(1, 2).flatten(0, 1)
-        # bs*num_heads, embed_dims, num_queries, num_points
-        sampling_value_l_ = F.grid_sample(
-            value_l_, sampling_grid_l_, mode="bilinear", padding_mode="zeros", align_corners=False
+    for level, (h, w) in enumerate(value_spatial_shapes):
+        value_l = value_list[level].reshape(bs * num_heads, embed_dims, h, w)
+        sampling_value_list.append(
+            F.grid_sample(value_l, sampling_grids[level], mode="bilinear", padding_mode="zeros", align_corners=False)
         )
-        sampling_value_list.append(sampling_value_l_)
-    # (bs, num_queries, num_heads, num_levels, num_points) ->
-    # (bs, num_heads, num_queries, num_levels, num_points) ->
-    # (bs, num_heads, 1, num_queries, num_levels*num_points)
-    attention_weights = attention_weights.transpose(1, 2).reshape(
-        bs * num_heads, 1, num_queries, num_levels * num_points
-    )
+    attention_weights = attention_weights.permute(0, 2, 1, 3).reshape(bs * num_heads, 1, num_queries, num_total_points)
     output = (
-        (torch.stack(sampling_value_list, dim=-2).flatten(-2) * attention_weights)
+        (torch.cat(sampling_value_list, dim=-1) * attention_weights)
         .sum(-1)
         .view(bs, num_heads * embed_dims, num_queries)
     )

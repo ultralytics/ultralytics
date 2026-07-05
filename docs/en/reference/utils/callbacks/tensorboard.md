@@ -1,13 +1,14 @@
 ---
+title: utils.callbacks.tensorboard API Reference
 description: Learn how to integrate and use TensorBoard with Ultralytics for effective model training visualization.
 keywords: Ultralytics, TensorBoard, callbacks, machine learning, training visualization, logging
 ---
 
 # Reference for `ultralytics/utils/callbacks/tensorboard.py`
 
-!!! note
+!!! success "Improvements"
 
-    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/tensorboard.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/tensorboard.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/callbacks/tensorboard.py) 🛠️. Thank you 🙏!
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/tensorboard.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/tensorboard.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
 <br>
 

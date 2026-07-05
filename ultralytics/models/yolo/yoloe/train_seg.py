@@ -11,8 +11,7 @@ from .val import YOLOESegValidator
 
 
 class YOLOESegTrainer(YOLOETrainer, SegmentationTrainer):
-    """
-    Trainer class for YOLOE segmentation models.
+    """Trainer class for YOLOE segmentation models.
 
     This class combines YOLOETrainer and SegmentationTrainer to provide training functionality specifically for YOLOE
     segmentation models, enabling both object detection and instance segmentation capabilities.
@@ -20,12 +19,11 @@ class YOLOESegTrainer(YOLOETrainer, SegmentationTrainer):
     Attributes:
         cfg (dict): Configuration dictionary with training parameters.
         overrides (dict): Dictionary with parameter overrides.
-        _callbacks (list): List of callback functions for training events.
+        _callbacks (dict): Dictionary of callback functions for training events.
     """
 
     def get_model(self, cfg=None, weights=None, verbose=True):
-        """
-        Return YOLOESegModel initialized with specified config and weights.
+        """Return YOLOESegModel initialized with specified config and weights.
 
         Args:
             cfg (dict | str, optional): Model configuration dictionary or YAML file path.
@@ -49,8 +47,7 @@ class YOLOESegTrainer(YOLOETrainer, SegmentationTrainer):
         return model
 
     def get_validator(self):
-        """
-        Create and return a validator for YOLOE segmentation model evaluation.
+        """Create and return a validator for YOLOE segmentation model evaluation.
 
         Returns:
             (YOLOESegValidator): Validator for YOLOE segmentation models.
@@ -62,8 +59,7 @@ class YOLOESegTrainer(YOLOETrainer, SegmentationTrainer):
 
 
 class YOLOEPESegTrainer(SegmentationTrainer):
-    """
-    Fine-tune YOLOESeg model in linear probing way.
+    """Fine-tune YOLOESeg model in linear probing way.
 
     This trainer specializes in fine-tuning YOLOESeg models using a linear probing approach, which involves freezing
     most of the model and only training specific layers for efficient adaptation to new tasks.
@@ -73,8 +69,7 @@ class YOLOEPESegTrainer(SegmentationTrainer):
     """
 
     def get_model(self, cfg=None, weights=None, verbose=True):
-        """
-        Return YOLOESegModel initialized with specified config and weights for linear probing.
+        """Return YOLOESegModel initialized with specified config and weights for linear probing.
 
         Args:
             cfg (dict | str, optional): Model configuration dictionary or YAML file path.
@@ -84,8 +79,6 @@ class YOLOEPESegTrainer(SegmentationTrainer):
         Returns:
             (YOLOESegModel): Initialized YOLOE segmentation model configured for linear probing.
         """
-        # NOTE: This `nc` here is the max number of different text samples in one image, rather than the actual `nc`.
-        # NOTE: Following the official config, nc hard-coded to 80 for now.
         model = YOLOESegModel(
             cfg["yaml_file"] if isinstance(cfg, dict) else cfg,
             ch=self.data["channels"],
@@ -109,7 +102,12 @@ class YOLOEPESegTrainer(SegmentationTrainer):
         model.model[-1].cv3[0][2] = deepcopy(model.model[-1].cv3[0][2]).requires_grad_(True)
         model.model[-1].cv3[1][2] = deepcopy(model.model[-1].cv3[1][2]).requires_grad_(True)
         model.model[-1].cv3[2][2] = deepcopy(model.model[-1].cv3[2][2]).requires_grad_(True)
-        del model.pe
+
+        if getattr(model.model[-1], "one2one_cv3", None) is not None:
+            model.model[-1].one2one_cv3[0][2] = deepcopy(model.model[-1].cv3[0][2]).requires_grad_(True)
+            model.model[-1].one2one_cv3[1][2] = deepcopy(model.model[-1].cv3[1][2]).requires_grad_(True)
+            model.model[-1].one2one_cv3[2][2] = deepcopy(model.model[-1].cv3[2][2]).requires_grad_(True)
+
         model.train()
 
         return model

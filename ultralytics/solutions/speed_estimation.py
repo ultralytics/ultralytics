@@ -2,18 +2,18 @@
 
 from collections import deque
 from math import sqrt
+from typing import Any
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils.plotting import colors
 
 
 class SpeedEstimator(BaseSolution):
-    """
-    A class to estimate the speed of objects in a real-time video stream based on their tracks.
+    """A class to estimate the speed of objects in a real-time video stream based on their tracks.
 
-    This class extends the BaseSolution class and provides functionality for estimating object speeds using
-    tracking data in video streams. Speed is calculated based on pixel displacement over time and converted
-    to real-world units using a configurable meters-per-pixel scale factor.
+    This class extends the BaseSolution class and provides functionality for estimating object speeds using tracking
+    data in video streams. Speed is calculated based on pixel displacement over time and converted to real-world units
+    using a configurable meters-per-pixel scale factor.
 
     Attributes:
         fps (float): Video frame rate for time calculations.
@@ -40,9 +40,8 @@ class SpeedEstimator(BaseSolution):
         >>> cv2.imshow("Speed Estimation", results.plot_im)
     """
 
-    def __init__(self, **kwargs):
-        """
-        Initialize the SpeedEstimator object with speed estimation parameters and data structures.
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize the SpeedEstimator object with speed estimation parameters and data structures.
 
         Args:
             **kwargs (Any): Additional keyword arguments passed to the parent class.
@@ -53,18 +52,17 @@ class SpeedEstimator(BaseSolution):
         self.frame_count = 0  # Global frame counter
         self.trk_frame_ids = {}  # Track ID → first frame index
         self.spd = {}  # Final speed per object (km/h), once locked
-        self.trk_hist = {}  # Track ID → deque of (time, position)
+        self.trk_hist = {}  # Track ID → deque of position history
         self.locked_ids = set()  # Track IDs whose speed has been finalized
         self.max_hist = self.CFG["max_hist"]  # Required frame history before computing speed
         self.meter_per_pixel = self.CFG["meter_per_pixel"]  # Scene scale, depends on camera details
         self.max_speed = self.CFG["max_speed"]  # Maximum speed adjustment
 
-    def process(self, im0):
-        """
-        Process an input frame to estimate object speeds based on tracking data.
+    def process(self, im0) -> SolutionResults:
+        """Process an input frame to estimate object speeds based on tracking data.
 
         Args:
-            im0 (np.ndarray): Input image for processing with shape (H, W, C) for RGB images.
+            im0 (np.ndarray): Input image for processing with shape (H, W, C) in OpenCV BGR format.
 
         Returns:
             (SolutionResults): Contains processed image `plot_im` and `total_tracks` (number of tracked objects).

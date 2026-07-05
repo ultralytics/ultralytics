@@ -1,13 +1,14 @@
 ---
+title: solutions.instance_segmentation API Reference
 description: This page provides a detailed reference for the InstanceSegmentation class in the Ultralytics solutions package, enabling instance segmentation in images and videos.
 keywords: Ultralytics, InstanceSegmentation, instance segmentation, masks, Python, computer vision
 ---
 
 # Reference for `ultralytics/solutions/instance_segmentation.py`
 
-!!! note
+!!! success "Improvements"
 
-    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/instance_segmentation.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/instance_segmentation.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/solutions/instance_segmentation.py) 🛠️. Thank you 🙏!
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/instance_segmentation.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/instance_segmentation.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
 <br>
 

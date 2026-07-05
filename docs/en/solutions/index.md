@@ -1,14 +1,15 @@
 ---
+title: YOLO26 Computer Vision Solutions
 comments: true
-description: Explore Ultralytics Solutions using YOLO11 for object counting, blurring, security, and more. Enhance efficiency and solve real-world problems with cutting-edge AI.
-keywords: Ultralytics, YOLO11, object counting, object blurring, security systems, AI solutions, real-time analysis, computer vision applications
+description: Explore Ultralytics Solutions using YOLO26 for object counting, blurring, security, and more. Enhance efficiency and solve real-world problems with cutting-edge AI.
+keywords: Ultralytics, YOLO26, object counting, object blurring, security systems, AI solutions, real-time analysis, computer vision applications
 ---
 
-# Ultralytics Solutions: Harness YOLO11 to Solve Real-World Problems
+# Ultralytics Solutions: Harness YOLO26 to Solve Real-World Problems
 
-Ultralytics Solutions provide cutting-edge applications of YOLO models, offering real-world solutions like object counting, blurring, and security systems, enhancing efficiency and [accuracy](https://www.ultralytics.com/glossary/accuracy) in diverse industries. Discover the power of YOLO11 for practical, impactful implementations.
+Ultralytics Solutions provide cutting-edge applications of YOLO models, offering real-world solutions like object counting, blurring, and security systems, enhancing efficiency and [accuracy](https://www.ultralytics.com/glossary/accuracy) in diverse industries. Discover the power of YOLO26 for practical, impactful implementations.
 
-![Ultralytics Solutions Thumbnail](https://github.com/ultralytics/docs/releases/download/0/ultralytics-solutions-thumbnail.avif)
+![Ultralytics Solutions Thumbnail](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-solutions-thumbnail.avif)
 
 <p align="center">
   <br>
@@ -18,30 +19,30 @@ Ultralytics Solutions provide cutting-edge applications of YOLO models, offering
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Run Ultralytics Solutions from the Command Line (CLI) | Ultralytics YOLO11 🚀
+  <strong>Watch:</strong> How to Run Ultralytics Solutions from the Command Line (CLI) | Ultralytics YOLO26 🚀
 </p>
 
 ## Solutions
 
 Here's our curated list of Ultralytics solutions that can be used to create awesome [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) projects.
 
-- [Object Counting](../guides/object-counting.md): Learn to perform real-time object counting with YOLO11. Gain the expertise to accurately count objects in live video streams.
-- [Object Cropping](../guides/object-cropping.md): Master object cropping with YOLO11 for precise extraction of objects from images and videos.
-- [Object Blurring](../guides/object-blurring.md): Apply object blurring using YOLO11 to protect privacy in image and video processing.
-- [Workouts Monitoring](../guides/workouts-monitoring.md): Discover how to monitor workouts using YOLO11. Learn to track and analyze various fitness routines in real time.
-- [Objects Counting in Regions](../guides/region-counting.md): Count objects in specific regions using YOLO11 for accurate detection in varied areas.
-- [Security Alarm System](../guides/security-alarm-system.md): Create a security alarm system with YOLO11 that triggers alerts upon detecting new objects. Customize the system to fit your specific needs.
+- [Analytics](../guides/analytics.md): Conduct comprehensive data analysis to discover patterns and make informed decisions, leveraging YOLO26 for descriptive, predictive, and prescriptive analytics.
+- [Distance Calculation](../guides/distance-calculation.md): Calculate distances between objects using [bounding box](https://www.ultralytics.com/glossary/bounding-box) centroids in YOLO26, essential for spatial analysis.
 - [Heatmaps](../guides/heatmaps.md): Utilize detection heatmaps to visualize data intensity across a matrix, providing clear insights in computer vision tasks.
-- [Instance Segmentation with Object Tracking](../guides/instance-segmentation-and-tracking.md): Implement [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) and object tracking with YOLO11 to achieve precise object boundaries and continuous monitoring.
+- [Instance Segmentation with Object Tracking](../guides/instance-segmentation-and-tracking.md): Implement [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) and object tracking with YOLO26 to achieve precise object boundaries and continuous monitoring.
+- [Live Inference with Streamlit](../guides/streamlit-live-inference.md): Leverage the power of YOLO26 for real-time [object detection](https://www.ultralytics.com/glossary/object-detection) directly through your web browser with a user-friendly Streamlit interface.
+- [Object Blurring](../guides/object-blurring.md): Apply object blurring using YOLO26 to protect privacy in image and video processing.
+- [Object Counting](../guides/object-counting.md): Learn to perform real-time object counting with YOLO26. Gain the expertise to accurately count objects in live video streams.
+- [Object Counting in Regions](../guides/region-counting.md): Count objects in specific regions using YOLO26 for accurate detection in varied areas.
+- [Object Cropping](../guides/object-cropping.md): Master object cropping with YOLO26 for precise extraction of objects from images and videos.
+- [Parking Management](../guides/parking-management.md): Organize and direct vehicle flow in parking areas with YOLO26, optimizing space utilization and user experience.
+- [Queue Management](../guides/queue-management.md): Implement efficient queue management systems to minimize wait times and improve productivity using YOLO26.
+- [Security Alarm System](../guides/security-alarm-system.md): Create a security alarm system with YOLO26 that triggers alerts upon detecting new objects. Customize the system to fit your specific needs.
+- [Similarity Search](../guides/similarity-search.md): Enable intelligent image retrieval by combining [OpenAI CLIP](https://cookbook.openai.com/examples/custom_image_embedding_search) embeddings with cosine-similarity search, allowing natural language queries like "person holding a bag" or "vehicles in motion."
+- [Speed Estimation](../guides/speed-estimation.md): Estimate object speed using YOLO26 and object tracking techniques, crucial for applications like autonomous vehicles and traffic monitoring.
+- [Track Objects in Zone](../guides/trackzone.md): Learn how to track objects within specific zones of video frames using YOLO26 for precise and efficient monitoring.
 - [VisionEye View Objects Mapping](../guides/vision-eye.md): Develop systems that mimic human eye focus on specific objects, enhancing the computer's ability to discern and prioritize details.
-- [Speed Estimation](../guides/speed-estimation.md): Estimate object speed using YOLO11 and object tracking techniques, crucial for applications like autonomous vehicles and traffic monitoring.
-- [Distance Calculation](../guides/distance-calculation.md): Calculate distances between objects using [bounding box](https://www.ultralytics.com/glossary/bounding-box) centroids in YOLO11, essential for spatial analysis.
-- [Queue Management](../guides/queue-management.md): Implement efficient queue management systems to minimize wait times and improve productivity using YOLO11.
-- [Parking Management](../guides/parking-management.md): Organize and direct vehicle flow in parking areas with YOLO11, optimizing space utilization and user experience.
-- [Analytics](../guides/analytics.md): Conduct comprehensive data analysis to discover patterns and make informed decisions, leveraging YOLO11 for descriptive, predictive, and prescriptive analytics.
-- [Live Inference with Streamlit](../guides/streamlit-live-inference.md): Leverage the power of YOLO11 for real-time [object detection](https://www.ultralytics.com/glossary/object-detection) directly through your web browser with a user-friendly Streamlit interface.
-- [Track Objects in Zone](../guides/trackzone.md): Learn how to track objects within specific zones of video frames using YOLO11 for precise and efficient monitoring.
-- [Similarity search](../guides/similarity-search.md) 🚀 NEW: Enable intelligent image retrieval by combining [OpenAI CLIP](https://cookbook.openai.com/examples/custom_image_embedding_search) embeddings with [Meta FAISS](https://ai.meta.com/tools/faiss/), allowing natural language queries like "person holding a bag" or "vehicles in motion."
+- [Workouts Monitoring](../guides/workouts-monitoring.md): Discover how to monitor workouts using YOLO26. Learn to track and analyze various fitness routines in real time.
 
 ### Solutions Arguments
 
@@ -64,30 +65,28 @@ Here's our curated list of Ultralytics solutions that can be used to create awes
 
 ### Usage of SolutionAnnotator
 
-All Ultralytics Solutions use the separate class [`SolutionAnnotator`](https://docs.ultralytics.com/reference/solutions/solutions/#ultralytics.solutions.solutions.SolutionAnnotator), that extends the main [`Annotator`](https://docs.ultralytics.com/reference/utils/plotting/#ultralytics.utils.plotting.Annotator) class, and have the following methods:
+All Ultralytics Solutions use the separate class [`SolutionAnnotator`](../reference/solutions/solutions.md#ultralytics.solutions.solutions.SolutionAnnotator), that extends the main [`Annotator`](../reference/utils/plotting.md#ultralytics.utils.plotting.Annotator) class, and have the following methods:
 
-| Method                             | Return Type | Description                                                            |
-| ---------------------------------- | ----------- | ---------------------------------------------------------------------- |
-| `draw_region()`                    | `None`      | Draws a region using specified points, colors, and thickness.          |
-| `queue_counts_display()`           | `None`      | Displays queue counts in the specified region.                         |
-| `display_analytics()`              | `None`      | Displays overall statistics for parking lot management.                |
-| `estimate_pose_angle()`            | `float`     | Calculates the angle between three points in an object pose.           |
-| `draw_specific_points()`           | `None`      | Draws specific keypoints on the image.                                 |
-| `plot_workout_information()`       | `None`      | Draws a labeled text box on the image.                                 |
-| `plot_angle_and_count_and_stage()` | `None`      | Visualizes angle, step count, and stage for workout monitoring.        |
-| `plot_distance_and_line()`         | `None`      | Displays the distance between centroids and connects them with a line. |
-| `display_objects_labels()`         | `None`      | Annotates bounding boxes with object class labels.                     |
-| `seg_bbox()`                       | `None`      | Draws contours for segmented objects and optionally labels them.       |
-| `sweep_annotator()`                | `None`      | Visualizes a vertical sweep line and optional label.                   |
-| `visioneye()`                      | `None`      | Maps and connects object centroids to a visual "eye" point.            |
-| `circle_label()`                   | `None`      | Draws a circular label in the place of a bounding box.                 |
-| `text_label()`                     | `None`      | Draws a rectangular label in the place of a bounding box.              |
+| Method                             | Return Type  | Description                                                                       |
+| ---------------------------------- | ------------ | --------------------------------------------------------------------------------- |
+| `draw_region()`                    | `None`       | Draws a region using specified points, colors, and thickness.                     |
+| `queue_counts_display()`           | `None`       | Displays queue counts in the specified region.                                    |
+| `display_analytics()`              | `None`       | Displays overall statistics for parking lot management.                           |
+| `estimate_pose_angle()`            | `float`      | Calculates the angle between three points in an object pose.                      |
+| `draw_specific_kpts()`             | `np.ndarray` | Draws specific keypoints on the image.                                            |
+| `plot_workout_information()`       | `int`        | Draws a labeled text box on the image.                                            |
+| `plot_angle_and_count_and_stage()` | `None`       | Visualizes angle, step count, and stage for workout monitoring.                   |
+| `plot_distance_and_line()`         | `None`       | Displays the distance between centroids and connects them with a line.            |
+| `display_objects_labels()`         | `None`       | Annotates bounding boxes with object class labels.                                |
+| `sweep_annotator()`                | `None`       | Visualizes a vertical sweep line and optional label.                              |
+| `visioneye()`                      | `None`       | Maps and connects object centroids to a visual "eye" point.                       |
+| `adaptive_label()`                 | `None`       | Draws a circular or rectangular background label in the center of a bounding box. |
 
 ### Working with SolutionResults
 
-All Solutions calls return a list of `SolutionResults` objects, containing comprehensive information about the solutions.
+Except [`Similarity Search`](../guides/similarity-search.md), each Solution call returns a `SolutionResults` object.
 
-- For object counting, the results include `incount`, `outcount`, and `classwise_counts`.
+- For object counting, the results include `in_count`, `out_count`, and `classwise_count`.
 
 !!! example "SolutionResults"
 
@@ -103,16 +102,39 @@ All Solutions calls return a list of `SolutionResults` objects, containing compr
     counter = solutions.ObjectCounter(
         show=True,  # display the output
         region=region_points,  # pass region points
-        model="yolo11n.pt",  # model="yolo11n-obb.pt" for object counting with OBB model.
+        model="yolo26n.pt",  # model="yolo26n-obb.pt" for object counting with OBB model.
         # classes=[0, 2],  # count specific classes i.e. person and car with COCO pretrained model.
         # tracker="botsort.yaml"  # Choose trackers i.e "bytetrack.yaml"
     )
     results = counter(im0)
     print(results.in_count)  # display in_counts
     print(results.out_count)  # display out_counts
+    print(results.classwise_count)  # display classwise_count
     ```
 
-For more details, refer to the [`SolutionResults` class documentation](https://docs.ultralytics.com/reference/solutions/solutions/#ultralytics.solutions.solutions.SolutionAnnotator).
+`SolutionResults` object have the following attributes:
+
+| Attribute            | Type                   | Description                                                                                                   |
+| -------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `plot_im`            | `np.ndarray`           | Image with visual overlays such as counts, blur effects, or solution-specific enhancements.                   |
+| `in_count`           | `int`                  | Total number of objects detected entering the defined zone in the video stream.                               |
+| `out_count`          | `int`                  | Total number of objects detected exiting the defined zone in the video stream.                                |
+| `classwise_count`    | `Dict[str, int]`       | Dictionary recording class-wise in/out object counts for advanced analytics.                                  |
+| `queue_count`        | `int`                  | Number of objects currently within a predefined queue or waiting area (suitable for queue management).        |
+| `workout_count`      | `int \| list[int]`     | Total workout repetitions, or per-person counts from AI Gym.                                                  |
+| `workout_angle`      | `float \| list[float]` | Calculated joint or pose angle, or per-person angles from AI Gym.                                             |
+| `workout_stage`      | `str \| list[str]`     | Current workout stage, or per-person stages from AI Gym.                                                      |
+| `pixels_distance`    | `float`                | Pixel-based distance between two objects or points e.g., bounding boxes. (Suitable for distance calculation). |
+| `available_slots`    | `int`                  | Number of unoccupied slots in a monitored area (suitable for parking management).                             |
+| `filled_slots`       | `int`                  | Number of occupied slots in a monitored area. (suitable for parking management)                               |
+| `email_sent`         | `bool`                 | Indicates whether a notification or alert email has been successfully sent (suitable for security alarm).     |
+| `total_tracks`       | `int`                  | Total number of unique object tracks observed during video analysis.                                          |
+| `region_counts`      | `Dict[str, int]`       | Object counts within user-defined regions or zones.                                                           |
+| `speed_dict`         | `Dict[str, float]`     | Track-wise dictionary of calculated object speeds, useful for velocity analysis.                              |
+| `total_crop_objects` | `int`                  | Total number of cropped object images generated by the ObjectCropper solution.                                |
+| `speed`              | `Dict[str, float]`     | Dictionary containing performance metrics for tracking and solution processing.                               |
+
+For more details, refer to the [`SolutionResults` class documentation](../reference/solutions/solutions.md#ultralytics.solutions.solutions.SolutionResults).
 
 ### Solutions Usage via CLI
 
@@ -120,20 +142,20 @@ For more details, refer to the [`SolutionResults` class documentation](https://d
 
     Most of the Solutions can be used directly through the command-line interface, including:
 
-    `Count`, `Crop`, `Blur`, `Workout`, `Heatmap`, `Isegment`, `Visioneye`, `Speed`, `Queue`, `Analytics`, `Inference`
+    `Count`, `Crop`, `Blur`, `Workout`, `Heatmap`, `Isegment`, `Visioneye`, `Speed`, `Queue`, `Analytics`, `Inference`, `Trackzone`
 
     **Syntax**
 
         yolo SOLUTIONS SOLUTION_NAME ARGS
 
     - **SOLUTIONS** is a required keyword.
-    - **SOLUTION_NAME** is one of: `['count', 'crop', 'blur', 'workout', 'heatmap', 'isegment', 'queue', 'speed', 'analytics', 'trackzone', 'inference', 'visioneye']`.
+    - **SOLUTION_NAME** is one of: `['count', 'crop', 'blur', 'workout', 'heatmap', 'isegment', 'queue', 'speed', 'analytics', 'trackzone', 'inference', 'visioneye', 'region', 'security', 'parking']`.
     - **ARGS** (optional) are custom `arg=value` pairs, such as `show_in=True`, to override default settings.
 
 ```bash
 yolo solutions count show=True # for object counting
 
-yolo solutions source="path/to/video.mp4" # specify video file path
+yolo solutions count source="path/to/video.mp4" # specify video file path
 ```
 
 ### Contribute to Our Solutions
@@ -148,20 +170,20 @@ Let's work together to make the Ultralytics YOLO ecosystem more robust and versa
 
 ### How can I use Ultralytics YOLO for real-time object counting?
 
-Ultralytics YOLO11 can be used for real-time object counting by leveraging its advanced object detection capabilities. You can follow our detailed guide on [Object Counting](../guides/object-counting.md) to set up YOLO11 for live video stream analysis. Simply install YOLO11, load your model, and process video frames to count objects dynamically.
+Ultralytics YOLO26 can be used for real-time object counting by leveraging its advanced object detection capabilities. You can follow our detailed guide on [Object Counting](../guides/object-counting.md) to set up YOLO26 for live video stream analysis. Simply install YOLO26, load your model, and process video frames to count objects dynamically.
 
 ### What are the benefits of using Ultralytics YOLO for security systems?
 
-Ultralytics YOLO11 enhances security systems by offering real-time object detection and alert mechanisms. By employing YOLO11, you can create a security alarm system that triggers alerts when new objects are detected in the surveillance area. Learn how to set up a [Security Alarm System](../guides/security-alarm-system.md) with YOLO11 for robust security monitoring.
+Ultralytics YOLO26 enhances security systems by offering real-time object detection and alert mechanisms. By employing YOLO26, you can create a security alarm system that triggers alerts when new objects are detected in the surveillance area. Learn how to set up a [Security Alarm System](../guides/security-alarm-system.md) with YOLO26 for robust security monitoring.
 
 ### How can Ultralytics YOLO improve queue management systems?
 
-Ultralytics YOLO11 can significantly improve queue management systems by accurately counting and tracking people in queues, thus helping to reduce wait times and optimize service efficiency. Follow our detailed guide on [Queue Management](../guides/queue-management.md) to learn how to implement YOLO11 for effective queue monitoring and analysis.
+Ultralytics YOLO26 can significantly improve queue management systems by accurately counting and tracking people in queues, thus helping to reduce wait times and optimize service efficiency. Follow our detailed guide on [Queue Management](../guides/queue-management.md) to learn how to implement YOLO26 for effective queue monitoring and analysis.
 
 ### Can Ultralytics YOLO be used for workout monitoring?
 
-Yes, Ultralytics YOLO11 can be effectively used for monitoring workouts by tracking and analyzing fitness routines in real-time. This allows for precise evaluation of exercise form and performance. Explore our guide on [Workouts Monitoring](../guides/workouts-monitoring.md) to learn how to set up an AI-powered workout monitoring system using YOLO11.
+Yes, Ultralytics YOLO26 can be effectively used for monitoring workouts by tracking and analyzing fitness routines in real-time. This allows for precise evaluation of exercise form and performance. Explore our guide on [Workouts Monitoring](../guides/workouts-monitoring.md) to learn how to set up an AI-powered workout monitoring system using YOLO26.
 
 ### How does Ultralytics YOLO help in creating heatmaps for [data visualization](https://www.ultralytics.com/glossary/data-visualization)?
 
-Ultralytics YOLO11 can generate heatmaps to visualize data intensity across a given area, highlighting regions of high activity or interest. This feature is particularly useful in understanding patterns and trends in various computer vision tasks. Learn more about creating and using [Heatmaps](../guides/heatmaps.md) with YOLO11 for comprehensive data analysis and visualization.
+Ultralytics YOLO26 can generate heatmaps to visualize data intensity across a given area, highlighting regions of high activity or interest. This feature is particularly useful in understanding patterns and trends in various computer vision tasks. Learn more about creating and using [Heatmaps](../guides/heatmaps.md) with YOLO26 for comprehensive data analysis and visualization.

@@ -2,13 +2,12 @@
 comments: true
 description: Optimize your Ultralytics YOLO model's performance with the right settings and hyperparameters. Learn about training, validation, and prediction configurations.
 keywords: YOLO, hyperparameters, configuration, training, validation, prediction, model settings, Ultralytics, performance optimization, machine learning
+title: YOLO Configuration
 ---
 
 # Configuration
 
 YOLO settings and hyperparameters play a critical role in the model's performance, speed, and [accuracy](https://www.ultralytics.com/glossary/accuracy). These settings can affect the model's behavior at various stages, including training, validation, and prediction.
-
-**Watch:** Mastering Ultralytics YOLO: Configuration
 
 <p align="center">
   <br>
@@ -36,34 +35,37 @@ Ultralytics commands use the following syntax:
         ```python
         from ultralytics import YOLO
 
-        # Load a YOLO model from a pre-trained weights file
-        model = YOLO("yolo11n.pt")
+        # Load a YOLO model from a pretrained weights file
+        model = YOLO("yolo26n.pt")
 
-        # Run MODE mode using the custom arguments ARGS (guess TASK)
-        model.MODE(ARGS)
+        # Run the model in MODE using custom ARGS
+        MODE = "predict"
+        ARGS = {"source": "image.jpg", "imgsz": 640}
+        getattr(model, MODE)(**ARGS)
         ```
 
 Where:
 
-- `TASK` (optional) is one of ([detect](../tasks/detect.md), [segment](../tasks/segment.md), [classify](../tasks/classify.md), [pose](../tasks/pose.md), [obb](../tasks/obb.md))
+- `TASK` (optional) is one of ([detect](../tasks/detect.md), [segment](../tasks/segment.md), [semantic](../tasks/semantic.md), [classify](../tasks/classify.md), [pose](../tasks/pose.md), [obb](../tasks/obb.md))
 - `MODE` (required) is one of ([train](../modes/train.md), [val](../modes/val.md), [predict](../modes/predict.md), [export](../modes/export.md), [track](../modes/track.md), [benchmark](../modes/benchmark.md))
 - `ARGS` (optional) are `arg=value` pairs like `imgsz=640` that override defaults.
 
-Default `ARG` values are defined on this page and come from the `cfg/defaults.yaml` [file](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/default.yaml).
+Default `ARG` values are defined on this page and come from the `cfg/default.yaml` [file](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/default.yaml).
 
 ## Tasks
 
 Ultralytics YOLO models can perform a variety of computer vision tasks, including:
 
-- **Detect**: [Object detection](https://docs.ultralytics.com/tasks/detect/) identifies and localizes objects within an image or video.
-- **Segment**: [Instance segmentation](https://docs.ultralytics.com/tasks/segment/) divides an image or video into regions corresponding to different objects or classes.
-- **Classify**: [Image classification](https://docs.ultralytics.com/tasks/classify/) predicts the class label of an input image.
-- **Pose**: [Pose estimation](https://docs.ultralytics.com/tasks/pose/) identifies objects and estimates their keypoints in an image or video.
-- **OBB**: [Oriented Bounding Boxes](https://docs.ultralytics.com/tasks/obb/) uses rotated bounding boxes, suitable for satellite or medical imagery.
+- **Detect**: [Object detection](../tasks/detect.md) identifies and localizes objects within an image or video.
+- **Segment**: [Instance segmentation](../tasks/segment.md) divides an image or video into regions corresponding to different objects or classes.
+- **Semantic segmentation (`semantic`)**: [Semantic segmentation](../tasks/semantic.md) assigns a class label to every pixel in an image for dense scene understanding.
+- **Classify**: [Image classification](../tasks/classify.md) predicts the class label of an input image.
+- **Pose**: [Pose estimation](../tasks/pose.md) identifies objects and estimates their keypoints in an image or video.
+- **OBB**: [Oriented Bounding Boxes](../tasks/obb.md) uses rotated bounding boxes, suitable for satellite or medical imagery.
 
-| Argument | Default    | Description                                                                                                                                                                                                                                                                                                                        |
-| -------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `task`   | `'detect'` | Specifies the YOLO task: `detect` for [object detection](https://www.ultralytics.com/glossary/object-detection), `segment` for segmentation, `classify` for classification, `pose` for pose estimation, and `obb` for oriented bounding boxes. Each task is tailored to specific outputs and problems in image and video analysis. |
+| Argument | Default    | Description                                                                                                                                                                                                                                                                                                                                                                       |
+| -------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `task`   | `'detect'` | Specifies the YOLO task: `detect` for [object detection](https://www.ultralytics.com/glossary/object-detection), `segment` for instance segmentation, `semantic` for semantic segmentation, `classify` for classification, `pose` for pose estimation, and `obb` for oriented bounding boxes. Each task is tailored to specific outputs and problems in image and video analysis. |
 
 [Tasks Guide](../tasks/index.md){ .md-button }
 
@@ -150,24 +152,34 @@ Ultralytics Solutions configuration settings offer flexibility to customize mode
 
 Adjust these settings to meet dataset and task requirements. Experimenting with different values can help find the optimal augmentation strategy for the best model performance.
 
+[Augmentation Guide](../guides/yolo-data-augmentation.md){ .md-button }
+
 ## Logging, Checkpoints and Plotting Settings
 
 Logging, checkpoints, plotting, and file management are important when training a YOLO model:
 
-- **Logging**: Track the model's progress and diagnose issues using libraries like [TensorBoard](https://docs.ultralytics.com/integrations/tensorboard/) or by writing to a file.
+- **Logging**: Track the model's progress and diagnose issues using libraries like [TensorBoard](../integrations/tensorboard.md) or by writing to a file.
 - **Checkpoints**: Save the model at regular intervals to resume training or experiment with different configurations.
-- **Plotting**: Visualize performance and training progress using libraries like matplotlib or TensorBoard.
+- **Plotting**: Visualize performance and training progress using libraries like Matplotlib or TensorBoard.
 - **File management**: Organize files generated during training, such as checkpoints, log files, and plots, for easy access and analysis.
 
 Effective management of these aspects helps track progress and makes debugging and optimization easier.
 
-| Argument   | Default  | Description                                                                                                                                                                                                                                                                                               |
-| ---------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `project`  | `'runs'` | Specifies the root directory for saving training runs. Each run is saved in a separate subdirectory.                                                                                                                                                                                                      |
-| `name`     | `'exp'`  | Defines the experiment name. If unspecified, YOLO increments this name for each run (e.g., `exp`, `exp2`) to avoid overwriting.                                                                                                                                                                           |
-| `exist_ok` | `False`  | Determines whether to overwrite an existing experiment directory. `True` allows overwriting; `False` prevents it.                                                                                                                                                                                         |
-| `plots`    | `False`  | Controls the generation and saving of training and validation plots. Set to `True` to create plots like loss curves, [precision](https://www.ultralytics.com/glossary/precision)-[recall](https://www.ultralytics.com/glossary/recall) curves, and sample predictions for visual tracking of performance. |
-| `save`     | `False`  | Enables saving training checkpoints and final model weights. Set to `True` to save model states periodically, allowing training resumption or model deployment.                                                                                                                                           |
+| Argument   | Default | Description                                                                                                                                                                                                                                                                                               |
+| ---------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `project`  | `None`  | Specifies the root directory for saving training runs. If unspecified, runs are saved under `runs/<task>`. Each run is saved in a separate subdirectory.                                                                                                                                                  |
+| `name`     | `None`  | Defines the experiment name. If unspecified, YOLO uses the mode name and increments it for each run (e.g., `train`, `train-2`) to avoid overwriting.                                                                                                                                                      |
+| `exist_ok` | `False` | Determines whether to overwrite an existing experiment directory. `True` allows overwriting; `False` prevents it.                                                                                                                                                                                         |
+| `plots`    | `True`  | Controls the generation and saving of training and validation plots. Set to `True` to create plots like loss curves, [precision](https://www.ultralytics.com/glossary/precision)-[recall](https://www.ultralytics.com/glossary/recall) curves, and sample predictions for visual tracking of performance. |
+| `save`     | `True`  | Enables saving training checkpoints and final model weights. Set to `True` to save model states periodically, allowing training resumption or model deployment.                                                                                                                                           |
+
+## Custom Configuration File
+
+Load a saved YAML to reuse a full set of arguments without passing them inline. The `cfg` argument overrides values from `default.yaml`, while additional arguments passed alongside still take precedence.
+
+| Argument | Default | Description                                                                                                                                                            |
+| -------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `cfg`    | `None`  | Path to a YAML file whose values replace `default.yaml` entries. See [Overriding Default Config File](cli.md#overriding-default-config-file) for a worked CLI example. |
 
 ## FAQ
 
@@ -197,7 +209,7 @@ Default settings include:
 - **Confidence Threshold (`conf=0.25`)**: Minimum confidence for detections.
 - **IoU Threshold (`iou=0.7`)**: For [Non-Maximum Suppression (NMS)](https://www.ultralytics.com/glossary/non-maximum-suppression-nms).
 - **Image Size (`imgsz=640`)**: Resizes input images.
-- **Device (`device=None`)**: Selects CPU or GPU.
+- **Device (`device=None`)**: Selects CPU, GPU, Apple MPS or Huawei Ascend NPU (`npu`).
 
 For a full overview, see [Predict Settings](#predict-settings) and the [Predict Guide](../modes/predict.md).
 

@@ -6,7 +6,7 @@
 
 # Parameters
 nc: 80 # number of classes
-scales: # model compound scaling constants, i.e. 'model=yolov8n.yaml' will call yolov8.yaml with scale 'n'
+scales: # model compound scaling constants, i.e. 'model=yolov8n-rtdetr.yaml' will call yolov8-rtdetr.yaml with scale 'n'
   # [depth, width, max_channels]
   n: [0.33, 0.25, 1024] # YOLOv8n-rtdetr summary: 235 layers, 9643868 parameters, 9643868 gradients, 17.1 GFLOPs
   s: [0.33, 0.50, 1024] # YOLOv8s-rtdetr summary: 235 layers, 16518572 parameters, 16518572 gradients, 32.8 GFLOPs
@@ -46,4 +46,4 @@ head:
   - [[-1, 9], 1, Concat, [1]] # cat head P5
   - [-1, 3, C2f, [1024]] # 21 (P5/32-large)
 
-  - [[15, 18, 21], 1, RTDETRDecoder, [nc]] # Detect(P3, P4, P5)
+  - [[15, 18, 21], 1, RTDETRDecoder, [nc]] # RTDETRDecoder(P3, P4, P5)

@@ -1,13 +1,14 @@
 ---
+title: utils.ops API Reference
 description: Explore detailed documentation on utility operations in Ultralytics including non-max suppression, bounding box transformations, and more.
 keywords: Ultralytics, utility operations, non-max suppression, bounding box transformations, YOLOv8, machine learning
 ---
 
 # Reference for `ultralytics/utils/ops.py`
 
-!!! note
+!!! success "Improvements"
 
-    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/ops.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/ops.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/ops.py) 🛠️. Thank you 🙏!
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/ops.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/ops.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
 <br>
 
@@ -27,23 +28,11 @@ keywords: Ultralytics, utility operations, non-max suppression, bounding box tra
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.ops.nms_rotated
-
-<br><br><hr><br>
-
-## ::: ultralytics.utils.ops.non_max_suppression
-
-<br><br><hr><br>
-
 ## ::: ultralytics.utils.ops.clip_boxes
 
 <br><br><hr><br>
 
 ## ::: ultralytics.utils.ops.clip_coords
-
-<br><br><hr><br>
-
-## ::: ultralytics.utils.ops.scale_image
 
 <br><br><hr><br>
 
@@ -132,5 +121,13 @@ keywords: Ultralytics, utility operations, non-max suppression, bounding box tra
 <br><br><hr><br>
 
 ## ::: ultralytics.utils.ops.empty_like
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.ops.linear_sum_assignment
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.ops._linear_sum_assignment_numpy
 
 <br><br>

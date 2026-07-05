@@ -10,18 +10,28 @@ from ultralytics.utils.checks import check_yaml
 
 from .bot_sort import BOTSORT
 from .byte_tracker import BYTETracker
+from .deep_oc_sort import DeepOCSORT
+from .fast_tracker import FASTTracker
+from .oc_sort import OCSORT
+from .track_tracker import TRACKTRACK
 
 # A mapping of tracker types to corresponding tracker classes
-TRACKER_MAP = {"bytetrack": BYTETracker, "botsort": BOTSORT}
+TRACKER_MAP = {
+    "bytetrack": BYTETracker,
+    "botsort": BOTSORT,
+    "tracktrack": TRACKTRACK,
+    "fasttrack": FASTTracker,
+    "ocsort": OCSORT,
+    "deepocsort": DeepOCSORT,
+}
 
 
 def on_predict_start(predictor: object, persist: bool = False) -> None:
-    """
-    Initialize trackers for object tracking during prediction.
+    """Initialize trackers for object tracking during prediction.
 
     Args:
         predictor (ultralytics.engine.predictor.BasePredictor): The predictor object to initialize trackers for.
-        persist (bool, optional): Whether to persist the trackers if they already exist.
+        persist (bool, optional): Whether to reuse existing trackers if they are already attached.
 
     Examples:
         Initialize trackers for a predictor object
@@ -36,14 +46,18 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
 
     tracker = check_yaml(predictor.args.tracker)
     cfg = IterableSimpleNamespace(**YAML.load(tracker))
+    cfg.device = predictor.device  # run any ReID encoder on the predictor's device
 
-    if cfg.tracker_type not in {"bytetrack", "botsort"}:
-        raise AssertionError(f"Only 'bytetrack' and 'botsort' are supported for now, but got '{cfg.tracker_type}'")
+    if cfg.tracker_type not in TRACKER_MAP:
+        raise AssertionError(f"Only {sorted(TRACKER_MAP)} are supported for now, but got '{cfg.tracker_type}'")
 
-    predictor._feats = None  # reset in case used earlier
+    predictor._feats = None  # reset ReID pre-hook state
     if hasattr(predictor, "_hook"):
         predictor._hook.remove()
-    if cfg.tracker_type == "botsort" and cfg.with_reid and cfg.model == "auto":
+    if hasattr(predictor, "_orig_postprocess"):  # restore any raw-preds wrapper left by a prior TRACKTRACK run
+        predictor.postprocess = predictor._orig_postprocess
+        del predictor._orig_postprocess
+    if cfg.tracker_type in {"botsort", "tracktrack", "deepocsort"} and cfg.with_reid and cfg.model == "auto":
         from ultralytics.nn.modules.head import Detect
 
         if not (
@@ -51,7 +65,7 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
             and isinstance(predictor.model.model.model[-1], Detect)
             and not predictor.model.model.model[-1].end2end
         ):
-            cfg.model = "yolo11n-cls.pt"
+            cfg.model = "yolo26n-cls.pt"
         else:
             # Register hook to extract input of Detect layer
             def pre_hook(module, input):
@@ -61,17 +75,20 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
 
     trackers = []
     for _ in range(predictor.dataset.bs):
-        tracker = TRACKER_MAP[cfg.tracker_type](args=cfg, frame_rate=30)
+        tracker = TRACKER_MAP[cfg.tracker_type](args=cfg)
         trackers.append(tracker)
-        if predictor.dataset.mode != "stream":  # only need one tracker for other modes
+        if predictor.dataset.mode != "stream":  # non-stream modes reuse a single tracker
             break
     predictor.trackers = trackers
-    predictor.vid_path = [None] * predictor.dataset.bs  # for determining when to reset tracker on new video
+    predictor.vid_path = [None] * predictor.dataset.bs  # used to reset the tracker when switching videos
+
+    tracker_cls = TRACKER_MAP[cfg.tracker_type]
+    if hasattr(tracker_cls, "setup_predictor"):
+        tracker_cls.setup_predictor(predictor)
 
 
 def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None:
-    """
-    Postprocess detected boxes and update with object tracking.
+    """Postprocess detected boxes and update with object tracking.
 
     Args:
         predictor (object): The predictor object containing the predictions.
@@ -84,6 +101,12 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
     """
     is_obb = predictor.args.task == "obb"
     is_stream = predictor.dataset.mode == "stream"
+
+    tracker_cls = type(predictor.trackers[0])
+    dets_del_list = (
+        tracker_cls.compute_frame_extras(predictor) if hasattr(tracker_cls, "compute_frame_extras") else None
+    )
+
     for i, result in enumerate(predictor.results):
         tracker = predictor.trackers[i if is_stream else 0]
         vid_path = predictor.save_dir / Path(result.path).name
@@ -92,9 +115,10 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
             predictor.vid_path[i if is_stream else 0] = vid_path
 
         det = (result.obb if is_obb else result.boxes).cpu().numpy()
-        if len(det) == 0:
-            continue
-        tracks = tracker.update(det, result.orig_img, getattr(result, "feats", None))
+        kwargs = {"feats": getattr(result, "feats", None)}
+        if dets_del_list is not None:
+            kwargs["dets_del"] = dets_del_list[i]
+        tracks = tracker.update(det, result.orig_img, **kwargs)
         if len(tracks) == 0:
             continue
         idx = tracks[:, -1].astype(int)
@@ -105,8 +129,7 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
 
 
 def register_tracker(model: object, persist: bool) -> None:
-    """
-    Register tracking callbacks to the model for object tracking during prediction.
+    """Register tracking callbacks to the model for object tracking during prediction.
 
     Args:
         model (object): The model object to register tracking callbacks for.

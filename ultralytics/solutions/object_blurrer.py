@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from typing import Any
+
 import cv2
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
@@ -8,8 +10,7 @@ from ultralytics.utils.plotting import colors
 
 
 class ObjectBlurrer(BaseSolution):
-    """
-    A class to manage the blurring of detected objects in a real-time video stream.
+    """A class to manage the blurring of detected objects in a real-time video stream.
 
     This class extends the BaseSolution class and provides functionality for blurring objects based on detected bounding
     boxes. The blurred areas are updated directly in the input image, allowing for privacy preservation or other effects.
@@ -31,13 +32,12 @@ class ObjectBlurrer(BaseSolution):
         >>> print(f"Total blurred objects: {processed_results.total_tracks}")
     """
 
-    def __init__(self, **kwargs):
-        """
-        Initialize the ObjectBlurrer class for applying a blur effect to objects detected in video streams or images.
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize the ObjectBlurrer class for applying a blur effect to objects detected in video streams or images.
 
         Args:
-            **kwargs (Any): Keyword arguments passed to the parent class and for configuration.
-                blur_ratio (float): Intensity of the blur effect (0.1-1.0, default=0.5).
+            **kwargs (Any): Keyword arguments passed to the parent class and for configuration including:
+                - blur_ratio (float): Intensity of the blur effect (0.1-1.0, default=0.5).
         """
         super().__init__(**kwargs)
         blur_ratio = self.CFG["blur_ratio"]
@@ -46,19 +46,18 @@ class ObjectBlurrer(BaseSolution):
             blur_ratio = 0.5
         self.blur_ratio = int(blur_ratio * 100)
 
-    def process(self, im0):
-        """
-        Apply a blurring effect to detected objects in the input image.
+    def process(self, im0) -> SolutionResults:
+        """Apply a blurring effect to detected objects in the input image.
 
-        This method extracts tracking information, applies blur to regions corresponding to detected objects,
-        and annotates the image with bounding boxes.
+        This method extracts tracking information, applies blur to regions corresponding to detected objects, and
+        annotates the image with bounding boxes.
 
         Args:
-            im0 (numpy.ndarray): The input image containing detected objects.
+            im0 (np.ndarray): The input image containing detected objects.
 
         Returns:
             (SolutionResults): Object containing the processed image and number of tracked objects.
-                - plot_im (numpy.ndarray): The annotated output image with blurred objects.
+                - plot_im (np.ndarray): The annotated output image with blurred objects.
                 - total_tracks (int): The total number of tracked objects in the frame.
 
         Examples:

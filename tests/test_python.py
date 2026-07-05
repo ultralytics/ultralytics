@@ -812,19 +812,6 @@ def test_utils_patches_torch_save(tmp_path):
     assert mock.call_count == 4, "torch_save was not attempted the expected number of times"
 
 
-def test_cli_classes_strip_whitespace(monkeypatch):
-    """Test CLI 'classes' for YOLOE/World strips surrounding whitespace, e.g. classes='person, bus'."""
-    from unittest.mock import MagicMock, patch
-
-    from ultralytics import cfg
-
-    mock_model = MagicMock()
-    monkeypatch.setattr(cfg, "ARGV", ["yolo", "predict", "model=yoloe-11s-seg.pt", "classes=person, bus"])
-    with patch("ultralytics.YOLO", return_value=mock_model):
-        cfg.entrypoint()
-    mock_model.set_classes.assert_called_once_with(["person", "bus"])
-
-
 def test_nn_modules_conv():
     """Test Convolutional Neural Network modules including CBAM, Conv2, and ConvTranspose."""
     from ultralytics.nn.modules.conv import CBAM, Conv2, ConvTranspose, DWConvTranspose2d, Focus

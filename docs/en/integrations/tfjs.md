@@ -9,7 +9,7 @@ keywords: YOLO26, TensorFlow.js, TF.js, model export, machine learning, object d
 
 !!! warning "Deprecated — replaced by LiteRT"
 
-    As of **Ultralytics 8.4.83**, the `tfjs` (TensorFlow.js) export format has been removed and replaced by the unified **[Google LiteRT](litert.md)** format. LiteRT runs in the browser via [LiteRT.js](https://github.com/google-ai-edge/LiteRT.js) (with WebGPU acceleration) — covering the in-browser and Node.js use cases TF.js handled, alongside mobile, embedded, and edge, from a single `.tflite` model.
+    As of **Ultralytics 8.4.83**, the `tfjs` (TensorFlow.js) export format has been removed and replaced by the unified **[Google LiteRT](litert.md)** format. LiteRT runs in the browser via [LiteRT.js](https://developers.google.com/edge/litert/web) (with WebGPU acceleration) — covering the in-browser and Node.js use cases TF.js handled, alongside mobile, embedded, and edge, from a single `.tflite` model.
 
     `format="tfjs"` still works but emits a deprecation warning and exports a LiteRT model instead. **Use [`format="litert"`](litert.md)** going forward; for current export instructions and the browser deployment path, see the **[LiteRT export guide](litert.md)**.
 
@@ -72,7 +72,7 @@ For detailed instructions and best practices related to the installation process
 
 All [Ultralytics YOLO26 models](../models/index.md) are designed to support export out of the box, making it easy to integrate them into your preferred deployment workflow. You can [view the full list of supported export formats and configuration options](../modes/export.md) to choose the best setup for your application.
 
-The `tfjs` argument now exports a [LiteRT](litert.md) `.tflite` model, which supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes locally and runs in the browser via [LiteRT.js](https://github.com/google-ai-edge/LiteRT.js). See the [LiteRT export guide](litert.md) for the current browser and on-device deployment path.
+The `tfjs` argument now exports a [LiteRT](litert.md) `.tflite` model, which supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes locally and runs in the browser via [LiteRT.js](https://developers.google.com/edge/litert/web). See the [LiteRT export guide](litert.md) for the current browser and on-device deployment path.
 
 !!! example "Export"
 
@@ -97,7 +97,7 @@ The `tfjs` argument now exports a [LiteRT](litert.md) `.tflite` model, which sup
 
 !!! note "Predict and Validate"
 
-    The exported LiteRT `.tflite` model loads directly with `yolo predict` and `yolo val`, and runs in the browser via [LiteRT.js](https://github.com/google-ai-edge/LiteRT.js). See the [LiteRT export guide](litert.md).
+    The exported LiteRT `.tflite` model loads directly with `yolo predict` and `yolo val`, and runs in the browser via [LiteRT.js](https://developers.google.com/edge/litert/web). See the [LiteRT export guide](litert.md).
 
 ### Export Arguments
 
@@ -115,7 +115,7 @@ For more details about the export process, visit the [Ultralytics documentation 
 
 ## Deploying Exported YOLO26 TensorFlow.js Models
 
-Now that you have exported your YOLO26 model, the next step is to deploy it. The export produces a [LiteRT](litert.md) `.tflite` model that runs on-device and in the browser via [LiteRT.js](https://github.com/google-ai-edge/LiteRT.js) — see the [LiteRT export guide](litert.md) for the current path.
+Now that you have exported your YOLO26 model, the next step is to deploy it. The export produces a [LiteRT](litert.md) `.tflite` model that runs on-device and in the browser via [LiteRT.js](https://developers.google.com/edge/litert/web) — see the [LiteRT export guide](litert.md) for the current path.
 
 For reference, the legacy TensorFlow.js runtime resources are below:
 

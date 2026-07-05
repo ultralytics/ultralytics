@@ -1,4 +1,5 @@
 ---
+title: MNIST Classification Dataset
 comments: true
 description: Explore the MNIST dataset, a cornerstone in machine learning for handwritten digit recognition. Learn about its structure, features, and applications.
 keywords: MNIST, dataset, handwritten digits, image classification, deep learning, machine learning, training set, testing set, NIST
@@ -24,7 +25,7 @@ The MNIST dataset is split into two subsets:
 
 ## Dataset Access
 
-- **Original files**: Download the gzip archives from [Yann LeCun's MNIST page](http://yann.lecun.com/exdb/mnist/) if you want direct control over preprocessing.
+- **Original files**: Download the gzip archives from the original MNIST archive if you want direct control over preprocessing.
 - **Ultralytics loader**: Use `data="mnist"` (or `data="mnist160"` for the subset below) in your command and the dataset will be downloaded, converted to PNG, and cached automatically.
 
 Each image in the dataset is labeled with the corresponding digit (0-9), making it a supervised learning dataset ideal for classification tasks.
@@ -89,7 +90,7 @@ If you use the MNIST dataset in your research or development work, please cite t
         @article{lecun2010mnist,
                  title={MNIST handwritten digit database},
                  author={LeCun, Yann and Cortes, Corinna and Burges, CJ},
-                 journal={ATT Labs [Online]. Available: http://yann.lecun.com/exdb/mnist},
+                 journal={ATT Labs [Online]},
                  volume={2},
                  year={2010}
         }
@@ -99,7 +100,7 @@ We would like to acknowledge Yann LeCun, Corinna Cortes, and Christopher J.C. Bu
 
 ## MNIST160 Quick Tests
 
-Need a lightning-fast regression test? Ultralytics also exposes `data="mnist160"`, a 160-image slice containing the first eight samples from each digit class. It mirrors the MNIST directory structure, so you can swap datasets without changing any other arguments:
+Need a lightning-fast regression test? Ultralytics also exposes `data="mnist160"`, a 160-image slice containing the first eight images of each digit (0-9) from both the train and test splits. It mirrors the MNIST directory structure, so you can swap datasets without changing any other arguments:
 
 !!! example "Train Example with MNIST160"
 
@@ -150,7 +151,7 @@ The MNIST dataset contains only handwritten digits, whereas the Extended MNIST (
 
 ### Can I use Ultralytics Platform to train models on custom datasets like MNIST?
 
-Yes, you can use [Ultralytics Platform](https://docs.ultralytics.com/platform/) to train models on custom datasets like MNIST. Ultralytics Platform offers a user-friendly interface for uploading datasets, training models, and managing projects without needing extensive coding knowledge. For more details on how to get started, check out the [Ultralytics Platform Quickstart](https://docs.ultralytics.com/platform/quickstart/) page.
+Yes, you can use [Ultralytics Platform](../../platform/index.md) to train models on custom datasets like MNIST. Ultralytics Platform offers a user-friendly interface for uploading datasets, training models, and managing projects without needing extensive coding knowledge. For more details on how to get started, check out the [Ultralytics Platform Quickstart](../../platform/quickstart.md) page.
 
 ### How does MNIST compare to other image classification datasets?
 

@@ -235,9 +235,12 @@ Here is a list of the supported datasets and a brief description for each:
 - [COCO8](coco8.md): A smaller subset of the first 4 images from COCO train and COCO val, suitable for quick tests.
 - [COCO8-Grayscale](coco8-grayscale.md): A grayscale version of COCO8 created by converting RGB to grayscale, useful for single-channel model evaluation.
 - [COCO8-Multispectral](coco8-multispectral.md): A 10-channel multispectral version of COCO8 created by interpolating RGB wavelengths, useful for spectral-aware model evaluation.
-- [COCO12-Formats](coco12-formats.md): A test dataset with 12 images covering all supported image formats (AVIF, BMP, DNG, HEIC, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WebP) for validating image loading pipelines.
-- [COCO128](coco128.md): A smaller subset of the first 128 images from COCO train and COCO val, suitable for tests.
-- [Construction-PPE](construction-ppe.md): A dataset featuring construction site workers with labeled safety gear such as helmets, vests, gloves, boots, and goggles, including missing-equipment annotations like no_helmet, no_googles for real-world compliance monitoring.
+- [COCO12-Formats](coco12-formats.md): A test dataset with 12 images covering 12 supported image formats (AVIF, BMP, DNG, HEIC, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WebP) for validating image loading pipelines.
+- [COCO16](https://github.com/ultralytics/assets/releases/download/v0.0.0/coco16.zip): A subset of the first 16 images from COCO train2017 (8 train + 8 val), suitable for quick tests.
+- [COCO32](https://github.com/ultralytics/assets/releases/download/v0.0.0/coco32.zip): A subset of the first 32 images from COCO train2017 (16 train + 16 val), suitable for quick tests.
+- [COCO64](https://github.com/ultralytics/assets/releases/download/v0.0.0/coco64.zip): A subset of the first 64 images from COCO train2017 (32 train + 32 val), suitable for quick tests.
+- [COCO128](coco128.md): A smaller subset of the first 128 images from COCO train2017, suitable for tests.
+- [Construction-PPE](construction-ppe.md): A dataset featuring construction site workers with labeled safety gear such as helmets, vests, gloves, boots, and goggles, including missing-equipment annotations like no_helmet, no_goggle for real-world compliance monitoring.
 - [Global Wheat 2020](globalwheat2020.md): A dataset containing images of wheat heads for the Global Wheat Challenge 2020.
 - [HomeObjects-3K](homeobjects-3k.md): A dataset of indoor household items including beds, chairs, TVs, and more—ideal for applications in smart home automation, robotics, augmented reality, and room layout analysis.
 - [KITTI](kitti.md): A dataset featuring real-world driving scenes with stereo, LiDAR, and GPS/IMU data, used here for **2D object detection** tasks such as identifying cars, pedestrians, and cyclists in urban, rural, and highway environments.

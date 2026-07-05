@@ -30,7 +30,7 @@ The output of an instance segmentation model is a set of masks or contours that 
 
 ## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26)
 
-YOLO26 pretrained Segment models are shown here. Detect, Segment and Pose models are pretrained on the [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml) dataset, while Classify models are pretrained on the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml) dataset.
+YOLO26 pretrained Segment models are shown here. Detect, Segment and Pose models are pretrained on the [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml) dataset, [Semantic](semantic.md) models are pretrained on [Cityscapes](../datasets/semantic/cityscapes.md), and Classify models are pretrained on the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml) dataset.
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
@@ -135,9 +135,9 @@ Use a trained YOLO26n-seg model to run predictions on images.
 
         # Access the results
         for result in results:
-            xy = result.masks.xy  # mask in polygon format
-            xyn = result.masks.xyn  # normalized
-            masks = result.masks.data  # mask in matrix format (num_objects x H x W)
+            xy = result.masks.xy  # mask polygons in pixel coordinates
+            xyn = result.masks.xyn  # normalized mask polygons
+            masks = result.masks.data  # binary masks, shape (N,H,W), dtype torch.uint8
         ```
 
     === "CLI"
@@ -148,6 +148,28 @@ Use a trained YOLO26n-seg model to run predictions on images.
         ```
 
 See full `predict` mode details in the [Predict](../modes/predict.md) page.
+
+### Results Output
+
+YOLO instance segmentation returns one `Results` object per image. Each result stores object-level predictions, where
+each detected instance has its own binary mask, class, confidence, and box.
+
+| Attribute           | Type            | Shape         | Description                         |
+| ------------------- | --------------- | ------------- | ----------------------------------- |
+| `result.masks`      | `Masks`         | `(N)`         | Instance masks.                     |
+| `result.masks.data` | `torch.uint8`   | `(N,H,W)`     | Binary masks, values `0` or `1`.    |
+| `result.masks.xy`   | `np.float32`    | `list[(P,2)]` | Pixel polygons.                     |
+| `result.masks.xyn`  | `np.float32`    | `list[(P,2)]` | Normalized polygons.                |
+| `result.boxes`      | `Boxes`         | `(N)`         | Instance boxes/classes/confidences. |
+| `result.boxes.cls`  | `torch.float32` | `(N,)`        | Class IDs; cast to `int` for names. |
+
+For task-specific `Results` fields across every task, see the [Predict Results by Task](../modes/predict.md#results-by-task) section.
+
+### How This Differs from Semantic Segmentation
+
+Instance segmentation is object-level segmentation: two cars produce two masks, two boxes, and two confidence scores.
+[Semantic segmentation](semantic.md) is pixel-level classification: those same cars become pixels with the same class ID
+in one image-sized class map, with no per-object boxes, confidences, or default polygon list.
 
 ## Export
 

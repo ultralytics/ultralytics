@@ -16,7 +16,7 @@ The [Caltech-101](https://data.caltech.edu/records/mzrjq-6wc02) dataset is a wid
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Train <a href="https://www.ultralytics.com/glossary/image-classification">Image Classification</a> Model using Caltech-256 Dataset with Ultralytics Platform
+  <strong>Watch:</strong> How to Train <a href="https://www.ultralytics.com/glossary/image-classification">Image Classification</a> Model using Caltech-101 Dataset with Ultralytics Platform
 </p>
 
 !!! note "Automatic Data Splitting"

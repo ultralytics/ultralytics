@@ -1,4 +1,5 @@
 ---
+title: models.yolo.model API Reference
 description: Explore the ultralytics.models.yolo.model module for YOLO object detection. Learn initialization, model mapping, and more.
 keywords: YOLO, object detection, Ultralytics, YOLO model, machine learning, Python, model initialization
 ---
@@ -7,7 +8,7 @@ keywords: YOLO, object detection, Ultralytics, YOLO model, machine learning, Pyt
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/model.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/model.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/model.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/model.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
 <br>
 

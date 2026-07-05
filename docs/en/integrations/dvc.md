@@ -1,4 +1,5 @@
 ---
+title: YOLO26 Experiment Tracking with DVCLive
 comments: true
 description: Unlock seamless YOLO26 tracking with DVCLive. Discover how to log, visualize, and analyze experiments for optimized ML model performance.
 keywords: YOLO26, DVCLive, experiment tracking, machine learning, model training, data visualization, Git integration
@@ -52,7 +53,7 @@ Begin by initializing a Git repository, as Git plays a crucial role in version c
         git init -q
 
         # Configure Git with your details
-        git config --local user.email "you@example.com"
+        git config --local user.email "your-email"
         git config --local user.name "Your Name"
 
         # Initialize DVCLive in your project
@@ -62,7 +63,7 @@ Begin by initializing a Git repository, as Git plays a crucial role in version c
         git commit -m "DVC init"
         ```
 
-In these commands, ensure you replace "you@example.com" with the email address associated with your Git account, and "Your Name" with your Git account username.
+In these commands, ensure you replace `your-email` with the email address associated with your Git account, and "Your Name" with your Git account username.
 
 ## Usage
 
@@ -192,7 +193,7 @@ Next, initialize a Git repository and configure DVCLive in your project:
 
         ```bash
         git init -q
-        git config --local user.email "you@example.com"
+        git config --local user.email "your-email"
         git config --local user.name "Your Name"
         dvc init -q
         git commit -m "DVC init"

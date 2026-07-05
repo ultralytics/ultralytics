@@ -127,7 +127,7 @@ pip install -U ultralytics
 
 !!! warning "SAM 3 Model Weights Required"
 
-    Unlike other Ultralytics models, SAM 3 weights (`sam3.pt`) are **not automatically downloaded**. You must first request access for the model weights on the [SAM 3 model page on Hugging Face](https://huggingface.co/facebook/sam3) and then, once approved, download the [`sam3.pt` file](https://huggingface.co/facebook/sam3/resolve/main/sam3.pt?download=true). Place the downloaded `sam3.pt` file in your working directory or specify the full path when loading the model.
+    Unlike other Ultralytics models, SAM 3 weights (`sam3.pt`) are **not automatically downloaded**. You must first request access for the model weights on the [SAM 3 model page on Hugging Face](https://huggingface.co/facebook/sam3) and then, once approved, download `sam3.pt` from that page. Place the downloaded `sam3.pt` file in your working directory or specify the full path when loading the model.
 
 !!! warning "`TypeError: 'SimpleTokenizer' object is not callable`"
 
@@ -168,7 +168,7 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
             task="segment",
             mode="predict",
             model="sam3.pt",
-            half=True,  # Use FP16 for faster inference
+            quantize=16,  # Use FP16 for faster inference
             save=True,
         )
         predictor = SAM3SemanticPredictor(overrides=overrides)
@@ -198,7 +198,7 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
         from ultralytics.models.sam import SAM3SemanticPredictor
 
         # Initialize predictor
-        overrides = dict(conf=0.25, task="segment", mode="predict", model="sam3.pt", half=True, save=True)
+        overrides = dict(conf=0.25, task="segment", mode="predict", model="sam3.pt", quantize=16, save=True)
         predictor = SAM3SemanticPredictor(overrides=overrides)
 
         # Set image
@@ -207,7 +207,7 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
         # Provide bounding box examples to segment similar objects
         results = predictor(bboxes=[[480.0, 290.0, 590.0, 650.0]])
 
-        # Multiple bounding boxes for different concepts
+        # Multiple bounding boxes as exemplars of the same visual concept
         results = predictor(bboxes=[[539, 599, 589, 639], [343, 267, 499, 662]])
         ```
 
@@ -269,7 +269,7 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
         from ultralytics.models.sam import SAM3VideoPredictor
 
         # Create video predictor
-        overrides = dict(conf=0.25, task="segment", mode="predict", model="sam3.pt", half=True)
+        overrides = dict(conf=0.25, task="segment", mode="predict", model="sam3.pt", quantize=16)
         predictor = SAM3VideoPredictor(overrides=overrides)
 
         # Track objects using bounding box prompts
@@ -292,7 +292,7 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
         from ultralytics.models.sam import SAM3VideoSemanticPredictor
 
         # Initialize semantic video predictor
-        overrides = dict(conf=0.25, task="segment", mode="predict", imgsz=640, model="sam3.pt", half=True, save=True)
+        overrides = dict(conf=0.25, task="segment", mode="predict", imgsz=640, model="sam3.pt", quantize=16, save=True)
         predictor = SAM3VideoSemanticPredictor(overrides=overrides)
 
         # Track concepts using text prompts
@@ -528,7 +528,7 @@ High-quality human annotations provide large gains over synthetic or external da
 SAM 3's concept segmentation capability enables new use cases:
 
 - **Content Moderation**: Find all instances of specific content types across media libraries
-- **E-commerce**: Segment all products of a certain type in catalog images, supporting [auto-annotation](../guides/preprocessing_annotated_data.md)
+- **E-commerce**: Segment all products of a certain type in catalog images, supporting [auto-annotation](../guides/preprocessing-annotated-data.md)
 - **Medical Imaging**: Identify all occurrences of specific tissue types or abnormalities
 - **Autonomous Systems**: Track all instances of traffic signs, pedestrians, or vehicles by category
 - **Video Analytics**: Count and track all people wearing specific clothing or performing actions

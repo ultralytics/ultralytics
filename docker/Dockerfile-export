@@ -6,15 +6,13 @@
 
 FROM ultralytics/ultralytics:latest
 
-# Install export dependencies and run exports to AutoInstall packages
+# Install export dependencies
 # Numpy 1.26.4 required for TensorFlow export compatibility
+# onnxruntime-gpu pinned <1.27.0 as 1.27.0 dropped CUDA 12 support and ships CUDA 13 binaries (base image is CUDA 12.8)
 # Note tensorrt installed on-demand as depends on runtime environment CUDA version
-RUN uv pip install --system -e ".[export]" "onnxruntime-gpu" paddlepaddle x2paddle numpy==1.26.4 && \
-    # Run exports to AutoInstall packages \
-    yolo export model=tmp/yolo26n.pt format=edgetpu imgsz=32 && \
-    yolo export model=tmp/yolo26n.pt format=ncnn imgsz=32 && \
-    # Remove temporary files \
-    rm -rf tmp /root/.config/Ultralytics/persistent_cache.json
+RUN uv pip install --system --no-cache -e ".[export]" numpy==1.26.4 && \
+    uv pip install --system --no-cache "onnxruntime-gpu<1.27.0" paddlepaddle x2paddle numpy==1.26.4 && \
+    rm -rf tmp ~/.cache /root/.config/Ultralytics/persistent_cache.json
 
 # Usage --------------------------------------------------------------------------------------------------------------
 

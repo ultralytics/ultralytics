@@ -1,4 +1,5 @@
 ---
+title: Export YOLO26 to TorchScript
 comments: true
 description: Learn how to export Ultralytics YOLO26 models to TorchScript for flexible, cross-platform deployment. Boost performance and utilize in various environments.
 keywords: YOLO26, TorchScript, model export, Ultralytics, PyTorch, deep learning, AI deployment, cross-platform, performance optimization
@@ -75,24 +76,20 @@ For detailed instructions and best practices related to the installation process
 
 All [Ultralytics YOLO26 models](../models/index.md) are designed to support export out of the box, making it easy to integrate them into your preferred deployment workflow. You can [view the full list of supported export formats and configuration options](../modes/export.md) to choose the best setup for your application.
 
-!!! example "Usage"
+The TorchScript format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Export your model, then load the exported model to run inference or validate its accuracy.
+
+!!! example "Export"
 
     === "Python"
 
         ```python
         from ultralytics import YOLO
 
-        # Load the YOLO26 model
+        # Load a YOLO26 model
         model = YOLO("yolo26n.pt")
 
         # Export the model to TorchScript format
         model.export(format="torchscript")  # creates 'yolo26n.torchscript'
-
-        # Load the exported TorchScript model
-        torchscript_model = YOLO("yolo26n.torchscript")
-
-        # Run inference
-        results = torchscript_model("https://ultralytics.com/images/bus.jpg")
         ```
 
     === "CLI"
@@ -100,9 +97,48 @@ All [Ultralytics YOLO26 models](../models/index.md) are designed to support expo
         ```bash
         # Export a YOLO26n PyTorch model to TorchScript format
         yolo export model=yolo26n.pt format=torchscript # creates 'yolo26n.torchscript'
+        ```
 
-        # Run inference with the exported model
+!!! example "Predict"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the exported TorchScript model
+        model = YOLO("yolo26n.torchscript")
+
+        # Run inference
+        results = model("https://ultralytics.com/images/bus.jpg")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Run inference with the exported TorchScript model
         yolo predict model=yolo26n.torchscript source='https://ultralytics.com/images/bus.jpg'
+        ```
+
+!!! example "Validate"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the exported TorchScript model
+        model = YOLO("yolo26n.torchscript")
+
+        # Validate accuracy on the COCO8 dataset
+        metrics = model.val(data="coco8.yaml")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Validate the exported TorchScript model
+        yolo val model=yolo26n.torchscript data=coco8.yaml
         ```
 
 ### Export Arguments
@@ -112,7 +148,7 @@ All [Ultralytics YOLO26 models](../models/index.md) are designed to support expo
 | `format`   | `str`            | `'torchscript'` | Target format for the exported model, defining compatibility with various deployment environments.                                      |
 | `imgsz`    | `int` or `tuple` | `640`           | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.       |
 | `dynamic`  | `bool`           | `False`         | Allows dynamic input sizes, enhancing flexibility in handling varying image dimensions.                                                 |
-| `half`     | `bool`           | `False`         | Enables FP16 (half-precision) quantization, reducing model size and potentially speeding up inference on supported hardware.            |
+| `quantize` | `int` or `str`   | `None`          | Quantization precision: `16` (FP16) requires GPU export with `device=0`; `32`/unset is FP32. Replaces the deprecated `half` flag.       |
 | `optimize` | `bool`           | `False`         | Applies optimization for mobile devices, potentially reducing model size and improving performance.                                     |
 | `nms`      | `bool`           | `False`         | Adds Non-Maximum Suppression (NMS), essential for accurate and efficient detection post-processing.                                     |
 | `batch`    | `int`            | `1`             | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
@@ -155,7 +191,7 @@ To export a YOLO26 model to TorchScript, you can use the following example code:
         ```python
         from ultralytics import YOLO
 
-        # Load the YOLO26 model
+        # Load a YOLO26 model
         model = YOLO("yolo26n.pt")
 
         # Export the model to TorchScript format
@@ -189,7 +225,7 @@ Using TorchScript for deploying YOLO26 models offers several advantages:
 - **Cross-Language Integration**: TorchScript models can be integrated into other programming languages, enhancing flexibility and expandability.
 - **Serialization**: Models can be serialized, allowing for platform-independent loading and inference.
 
-For more insights into deployment, visit the [PyTorch Mobile Documentation](https://docs.pytorch.org/executorch/), [TorchServe Documentation](https://docs.pytorch.org/serve/getting_started.html), and [C++ Deployment Guide](https://docs.pytorch.org/tutorials/advanced/cpp_export.html).
+For more insights into deployment, visit the [TorchServe Documentation](https://docs.pytorch.org/serve/getting_started.html) and the [C++ Deployment Guide](https://docs.pytorch.org/tutorials/advanced/cpp_export.html). For on-device mobile deployment, PyTorch now recommends [ExecuTorch](https://docs.pytorch.org/executorch/), which uses its own separate `torch.export()` → `.pte` pipeline rather than TorchScript.
 
 ### What are the installation steps for exporting YOLO26 models to TorchScript?
 
@@ -211,7 +247,7 @@ For detailed instructions, visit the [Ultralytics Installation guide](../quickst
 After exporting YOLO26 models to the TorchScript format, you can deploy them across a variety of platforms:
 
 - **C++ API**: Ideal for low-overhead, highly efficient production environments.
-- **Mobile Deployment**: Use [PyTorch Mobile](https://docs.pytorch.org/executorch/) for iOS and Android applications.
+- **Mobile Deployment**: Run TorchScript models on-device with [LibTorch](https://docs.pytorch.org/cppdocs/) (the PyTorch C++ runtime). For new mobile projects, PyTorch recommends [ExecuTorch](https://docs.pytorch.org/executorch/), a separate `.pte` export pipeline.
 - **Cloud Deployment**: Utilize services like [TorchServe](https://docs.pytorch.org/serve/getting_started.html) for scalable server-side deployment.
 
 Explore comprehensive guidelines for deploying models in these settings to take full advantage of TorchScript's capabilities.

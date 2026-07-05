@@ -1,12 +1,11 @@
 ---
+title: NVIDIA DALI GPU Preprocessing for YOLO
 comments: true
-description: Learn how to use NVIDIA DALI for GPU-accelerated preprocessing with Ultralytics YOLO models. Eliminate CPU bottlenecks by running letterbox resize, padding, and normalization on the GPU for faster TensorRT and Triton deployments.
+description: Use NVIDIA DALI to run YOLO letterbox resize, padding, and normalization on the GPU, removing CPU preprocessing bottlenecks in TensorRT and Triton deployments.
 keywords: NVIDIA DALI, GPU preprocessing, Ultralytics, YOLO, YOLO26, TensorRT, Triton Inference Server, letterbox, inference optimization, deep learning, computer vision, deployment, video processing, batch inference, DALI pipeline, CV-CUDA
 ---
 
 # GPU-Accelerated Preprocessing with NVIDIA DALI
-
-## Introduction
 
 When deploying [Ultralytics YOLO](../models/index.md) models in production, [preprocessing](https://www.ultralytics.com/glossary/data-preprocessing) often becomes the bottleneck. While [TensorRT](../integrations/tensorrt.md) can run model [inference](../modes/predict.md) in just a few milliseconds, the CPU-based preprocessing (resize, pad, normalize) can take 2-10ms per image, especially at high resolutions. [NVIDIA DALI](https://docs.nvidia.com/deeplearning/dali/user-guide/docs/index.html) (Data Loading Library) solves this by moving the entire preprocessing pipeline to the GPU.
 
@@ -49,6 +48,13 @@ With DALI, all these operations run on the GPU, eliminating the CPU bottleneck. 
 
 Install the required packages:
 
+=== "CUDA 13.x"
+
+    ```bash
+    pip install ultralytics
+    pip install --extra-index-url https://pypi.nvidia.com nvidia-dali-cuda130
+    ```
+
 === "CUDA 12.x"
 
     ```bash
@@ -66,13 +72,13 @@ Install the required packages:
 **Requirements:**
 
 - NVIDIA GPU (compute capability 5.0+ / Maxwell or newer)
-- CUDA 11.0+ or 12.0+
+- CUDA 11.0+, 12.0+ or 13.0+
 - Python 3.10-3.14
 - Linux operating system
 
 ## Understanding YOLO Preprocessing
 
-Before building a DALI pipeline, it helps to understand exactly what Ultralytics does during preprocessing. The key class is `LetterBox` in [`ultralytics/data/augment.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/augment.py):
+Before building a DALI pipeline, it's worth understanding exactly what Ultralytics does during preprocessing. The key class is `LetterBox` in [`ultralytics/data/augment.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/augment.py):
 
 ```python
 from ultralytics.data.augment import LetterBox
@@ -103,7 +109,7 @@ The letterbox operation preserves the aspect ratio by:
 
 ## DALI Pipeline for YOLO
 
-Use the centered pipeline below as the default reference. It matches Ultralytics `LetterBox(center=True)` behavior, which is what standard YOLO inference uses.
+The recommended DALI pipeline replicates Ultralytics' default `LetterBox(center=True)` behavior, which is what standard YOLO inference uses.
 
 ### Centered Pipeline (Recommended, matches Ultralytics LetterBox)
 
@@ -386,7 +392,7 @@ Serialize the DALI pipeline for the Triton DALI backend:
     from ultralytics import YOLO
 
     model = YOLO("yolo26n.pt")
-    model.export(format="engine", imgsz=640, half=True, batch=8)
+    model.export(format="engine", imgsz=640, quantize=16, batch=8)
     # Copy the .engine file to model_repository/yolo_trt/1/model.plan
     ```
 
@@ -492,7 +498,7 @@ ensemble_scheduling {
 
 ### Step 4: Send Inference Requests
 
-!!! info "Why `tritonclient` instead of `YOLO(\"http://...\")`?"
+!!! info "Why `tritonclient` instead of `YOLO('http://...')`?"
 
     Ultralytics has [built-in Triton support](triton-inference-server.md#running-inference) that handles pre/postprocessing automatically. However, it won't work with the DALI ensemble because `YOLO()` sends a preprocessed float32 tensor while the ensemble expects raw JPEG bytes. Use `tritonclient` directly for DALI ensembles, and the [built-in integration](triton-inference-server.md) for standard deployments without DALI.
 
@@ -530,13 +536,14 @@ ensemble_scheduling {
 
 DALI preprocessing works with all YOLO tasks that use the standard `LetterBox` pipeline:
 
-| Task                                        | Supported | Notes                                                    |
-| ------------------------------------------- | --------- | -------------------------------------------------------- |
-| [Detection](../tasks/detect.md)             | ✅        | Standard letterbox preprocessing                         |
-| [Segmentation](../tasks/segment.md)         | ✅        | Same preprocessing as detection                          |
-| [Pose Estimation](../tasks/pose.md)         | ✅        | Same preprocessing as detection                          |
-| [Oriented Detection (OBB)](../tasks/obb.md) | ✅        | Same preprocessing as detection                          |
-| [Classification](../tasks/classify.md)      | ❌        | Uses torchvision transforms (center crop), not letterbox |
+| Task                                          | Supported | Notes                                                    |
+| --------------------------------------------- | --------- | -------------------------------------------------------- |
+| [Detection](../tasks/detect.md)               | ✅        | Standard letterbox preprocessing                         |
+| [Instance Segmentation](../tasks/segment.md)  | ✅        | Same preprocessing as detection                          |
+| [Semantic Segmentation](../tasks/semantic.md) | ✅        | Same image preprocessing as detection                    |
+| [Pose Estimation](../tasks/pose.md)           | ✅        | Same preprocessing as detection                          |
+| [Oriented Detection (OBB)](../tasks/obb.md)   | ✅        | Same preprocessing as detection                          |
+| [Classification](../tasks/classify.md)        | ❌        | Uses torchvision transforms (center crop), not letterbox |
 
 ## Limitations
 

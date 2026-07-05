@@ -70,6 +70,7 @@ class ObjectCropper(BaseSolution):
                 conf=self.conf,
                 iou=self.iou,
                 device=self.CFG["device"],
+                imgsz=self.CFG["imgsz"],
                 verbose=False,
             )[0]
             self.clss = results.boxes.cls.tolist()  # required for logging only.

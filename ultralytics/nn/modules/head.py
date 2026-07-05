@@ -20,7 +20,18 @@ from .conv import Conv, DWConv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init
 
-__all__ = "OBB", "Classify", "Detect", "Pose", "RTDETRDecoder", "Segment", "YOLOEDetect", "YOLOESegment", "v10Detect"
+__all__ = (
+    "OBB",
+    "Classify",
+    "Detect",
+    "Pose",
+    "RTDETRDecoder",
+    "Segment",
+    "SemanticSegment",
+    "YOLOEDetect",
+    "YOLOESegment",
+    "v10Detect",
+)
 
 
 class Detect(nn.Module):
@@ -87,7 +98,7 @@ class Detect(nn.Module):
         super().__init__()
         self.nc = nc  # number of classes
         self.nl = len(ch)  # number of detection layers
-        self.reg_max = reg_max  # DFL channels (ch[0] // 16 to scale 4/8/12/16/20 for n/s/m/l/x)
+        self.reg_max = reg_max  # DFL channels
         self.no = nc + self.reg_max * 4  # number of outputs per anchor
         self.stride = torch.zeros(self.nl)  # strides computed during build
         c2, c3 = max((16, ch[0] // 4, self.reg_max * 4)), max(ch[0], min(self.nc, 100))  # channels
@@ -231,7 +242,7 @@ class Detect(nn.Module):
         Returns:
             (torch.Tensor, torch.Tensor, torch.Tensor): Top scores, class indices, and filtered indices.
         """
-        batch_size, anchors, nc = scores.shape  # i.e. shape(16,8400,84)
+        batch_size, anchors, nc = scores.shape  # i.e. shape(16,8400,80)
         # Use max_det directly during export for TensorRT compatibility (requires k to be constant),
         # otherwise use min(max_det, anchors) for safety with small inputs during Python inference
         k = max_det if self.export else min(max_det, anchors)
@@ -986,7 +997,7 @@ class YOLOEDetect(Detect):
         >>> yoloe_detect = YOLOEDetect(nc=80, embed=512, with_bn=True, ch=(256, 512, 1024))
         >>> x = [torch.randn(1, 256, 80, 80), torch.randn(1, 512, 40, 40), torch.randn(1, 1024, 20, 20)]
         >>> cls_pe = torch.randn(1, 80, 512)
-        >>> outputs = yoloe_detect(x, cls_pe)
+        >>> outputs = yoloe_detect([*x, cls_pe])
     """
 
     is_fused = False
@@ -1196,7 +1207,7 @@ class YOLOESegment(YOLOEDetect):
         >>> yoloe_segment = YOLOESegment(nc=80, nm=32, npr=256, embed=512, with_bn=True, ch=(256, 512, 1024))
         >>> x = [torch.randn(1, 256, 80, 80), torch.randn(1, 512, 40, 40), torch.randn(1, 1024, 20, 20)]
         >>> text = torch.randn(1, 80, 512)
-        >>> outputs = yoloe_segment(x, text)
+        >>> outputs = yoloe_segment([*x, text])
     """
 
     def __init__(
@@ -1392,7 +1403,7 @@ class YOLOESegment26(YOLOESegment):
         """Return model outputs and mask coefficients if training, otherwise return outputs and mask coefficients."""
         outputs = YOLOEDetect.forward(self, x)
         preds = outputs[1] if isinstance(outputs, tuple) else outputs
-        proto = self.proto([xi.detach() for xi in x], return_semseg=False)  # mask protos
+        proto = self.proto([xi.detach() for xi in x], return_semantic=False)  # mask protos
 
         if isinstance(preds, dict):  # training and validating during training
             if self.end2end and not hasattr(self, "lrpc"):  # not prompt-free
@@ -1538,8 +1549,8 @@ class RTDETRDecoder(nn.Module):
 
         Returns:
             outputs (tuple | torch.Tensor): During training, returns a tuple of bounding boxes, scores, and other
-                metadata. During inference, returns a tensor of shape (bs, 300, 4+nc) containing bounding boxes and
-                class scores.
+                metadata. During inference, returns a tensor of shape (bs, num_queries, 6) containing bounding boxes,
+                confidence scores, and class labels.
         """
         from ultralytics.models.utils.ops import get_cdn_group
 
@@ -1571,12 +1582,32 @@ class RTDETRDecoder(nn.Module):
             self.query_pos_head,
             attn_mask=attn_mask,
         )
+        if self.training and dn_meta is None:
+            # Touch denoising_class_embed so DDP sees it as used when batch has zero GTs.
+            dec_bboxes = dec_bboxes + 0 * self.denoising_class_embed.weight.sum()
         x = dec_bboxes, dec_scores, enc_bboxes, enc_scores, dn_meta
         if self.training:
             return x
-        # (bs, 300, 4+nc)
-        y = torch.cat((dec_bboxes.squeeze(0), dec_scores.squeeze(0).sigmoid()), -1)
+        # (bs, num_queries, 4), (bs, num_queries, nc)
+        y = self.postprocess(dec_bboxes.squeeze(0), dec_scores.squeeze(0).sigmoid())
         return y if self.export else (y, x)
+
+    def postprocess(self, boxes: torch.Tensor, scores: torch.Tensor) -> torch.Tensor:
+        """Post-process predictions to select top-k detections.
+
+        Args:
+            boxes (torch.Tensor): Predicted bounding boxes with shape (batch_size, num_queries, 4) in xywh format.
+            scores (torch.Tensor): Class scores with shape (batch_size, num_queries, nc).
+
+        Returns:
+            (torch.Tensor): Processed predictions with shape (batch_size, num_queries, 6) and last dimension format [cx,
+                cy, w, h, max_class_prob, class_index].
+        """
+        scores, index = scores.flatten(1).topk(self.num_queries)
+        # CoreML MIL lacks integer floor-div and mod lowering: use torch.div(rounding_mode="floor") and (index - q*nc).
+        query_idx = torch.div(index, self.nc, rounding_mode="floor")
+        boxes = boxes.gather(dim=1, index=query_idx.unsqueeze(-1).expand(-1, -1, 4).long())
+        return torch.cat([boxes, scores[..., None], (index - query_idx * self.nc)[..., None].float()], dim=-1)
 
     @staticmethod
     def _generate_anchors(
@@ -1777,3 +1808,70 @@ class v10Detect(Detect):
     def fuse(self):
         """Remove the one2many head for inference optimization."""
         self.cv2 = self.cv3 = None
+
+
+class SemanticSegment(nn.Module):
+    """YOLO semantic segmentation head for per-pixel classification.
+
+    This head produces dense per-pixel class predictions. Unlike instance segmentation, no bounding boxes or instance
+    masks are produced.
+
+    Attributes:
+        nc (int): Number of semantic classes.
+        nl (int): Number of input feature levels.
+        stride (torch.Tensor): Feature map strides.
+        export (bool): Export mode flag.
+        format (str): Export format.
+        classifier (nn.Sequential): Final convolutional classifier head.
+        aux_head (nn.Sequential | None): Auxiliary classifier on P4 for deep supervision.
+    """
+
+    export = False  # export mode
+    format = None  # export format
+    bake_argmax = False  # export: emit a baked [B, H, W] class map (set by the exporter for TensorRT>=10)
+
+    def __init__(self, nc=19, ch=()):
+        """Initialize the semantic segmentation head.
+
+        Args:
+            nc (int): Number of semantic classes.
+            ch (tuple): Tuple of channel sizes from neck feature maps (P3, P4).
+        """
+        super().__init__()
+        self.nc = nc
+        self.nl = len(ch)
+        self.stride = torch.zeros(self.nl)
+
+        c_mid = ch[0]  # use P3 channel width as intermediate dimension
+        # Final classifier
+        self.classifier = nn.Sequential(Conv(c_mid, c_mid, 3), nn.Conv2d(c_mid, nc, 1))
+        # Auxiliary head on P4 (index 1) for training
+        self.aux_head = nn.Sequential(Conv(ch[1], c_mid, 3), nn.Conv2d(c_mid, nc, 1)) if len(ch) > 1 else None
+
+    def forward(self, x):
+        """Forward pass: fuse multi-scale features and predict per-pixel classes.
+
+        Args:
+            x (list[torch.Tensor]): List of feature maps [P3, P4].
+
+        Returns:
+            (torch.Tensor | tuple): Logits of shape [B, nc, H/8, W/8] during training (or a (main, aux) tuple when
+                aux_head is present) and inference. ONNX, MNN, and TensorRT>=10 export bake in the argmax and return a
+                compact class map of shape [B, H, W] (uint8 when nc <= 256, else int32). Other export formats return
+                upsampled logits of shape [B, nc, H, W].
+        """
+        # Classify
+        logits = self.classifier(x[0])  # [B, nc, H/8, W/8]
+        if self.training:
+            if self.aux_head is not None:
+                return logits, self.aux_head(x[1])  # main + aux (P4)
+            return logits
+        if self.export:
+            y = F.interpolate(logits, scale_factor=8, mode="bilinear", align_corners=False)  # [B, nc, H, W]
+            # Bake argmax: emit [B, H, W] class map, shrinking the D2H copy ~80x. ONNX/MNN preserve the
+            # integer output; TensorRT only supports uint8 graph outputs on TRT>=10, so engine is gated by the exporter.
+            if self.format in {"onnx", "mnn"} or (self.format == "engine" and self.bake_argmax):
+                cls = y.argmax(1) if self.nc > 1 else y.squeeze(1) > 0
+                return cls.to(torch.uint8 if self.nc <= 256 else torch.int32)
+            return y
+        return logits

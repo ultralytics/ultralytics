@@ -1,4 +1,5 @@
 ---
+title: Albumentations Augmentation for YOLO26
 comments: true
 description: Learn how to use Albumentations with YOLO26 to enhance data augmentation, improve model performance, and streamline your computer vision projects.
 keywords: Albumentations, YOLO26, data augmentation, Ultralytics, computer vision, object detection, model training, image transformations, machine learning
@@ -8,7 +9,7 @@ keywords: Albumentations, YOLO26, data augmentation, Ultralytics, computer visio
 
 When you are building [computer vision models](../models/index.md), the quality and variety of your [training data](../datasets/index.md) can play a big role in how well your model performs. Albumentations offers a fast, flexible, and efficient way to apply a wide range of image transformations that can improve your model's ability to adapt to real-world scenarios. It easily integrates with [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) and can help you create robust datasets for [object detection](../tasks/detect.md), [segmentation](../tasks/segment.md), and [classification](../tasks/classify.md) tasks.
 
-By using Albumentations, you can boost your YOLO26 training data with techniques like geometric transformations and color adjustments. In this article, we'll see how Albumentations can improve your [data augmentation](../guides/preprocessing_annotated_data.md) process and make your [YOLO26 projects](../solutions/index.md) even more impactful. Let's get started!
+By using Albumentations, you can boost your YOLO26 training data with techniques like geometric transformations and color adjustments. In this article, we'll see how Albumentations can improve your [data augmentation](../guides/preprocessing-annotated-data.md) process and make your [YOLO26 projects](../solutions/index.md) even more impactful. Let's get started!
 
 ## Albumentations for Image Augmentation
 
@@ -255,7 +256,7 @@ If you are interested in learning more about Albumentations, check out the follo
 
 - **[Albumentations Documentation](https://albumentations.ai/docs/)**: The official documentation provides a full range of supported transformations and advanced usage techniques.
 
-- **[Ultralytics Albumentations Guide](https://docs.ultralytics.com/reference/data/augment/?h=albumentation#ultralytics.data.augment.Albumentations)**: Get a closer look at the details of the function that facilitate this integration.
+- **[Ultralytics Albumentations Guide](../reference/data/augment.md#ultralytics.data.augment.Albumentations)**: Get a closer look at the details of the function that facilitate this integration.
 
 - **[Albumentations GitHub Repository](https://github.com/albumentations-team/albumentations/)**: The repository includes examples, benchmarks, and discussions to help you get started with customizing augmentations.
 

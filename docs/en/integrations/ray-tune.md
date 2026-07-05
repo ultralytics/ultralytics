@@ -1,4 +1,5 @@
 ---
+title: YOLO26 Hyperparameter Tuning - Ray Tune
 comments: true
 description: Optimize YOLO26 model performance with Ray Tune. Learn efficient hyperparameter tuning using advanced search strategies, parallelism, and early stopping.
 keywords: YOLO26, Ray Tune, hyperparameter tuning, model optimization, machine learning, deep learning, AI, Ultralytics, Weights & Biases
@@ -102,7 +103,7 @@ The following table lists the default search space parameters for hyperparameter
 | `mixup`           | `tune.uniform(0.0, 1.0)`   | Mixup augmentation probability that blends two images and their labels together.                                                  |
 | `cutmix`          | `tune.uniform(0.0, 1.0)`   | Cutmix augmentation probability that combines image regions while maintaining local features.                                     |
 | `copy_paste`      | `tune.uniform(0.0, 1.0)`   | Copy-paste augmentation probability that transfers objects between images to increase instance diversity.                         |
-| `close_mosaic`    | `tune.randint(0.0, 11)`    | Disables mosaic in the last N epochs to stabilize training before completion.                                                     |
+| `close_mosaic`    | `tune.randint(0, 11)`      | Disables mosaic in the last N epochs to stabilize training before completion.                                                     |
 
 ## Custom Search Space Example
 

@@ -35,11 +35,10 @@ TRUTHY = frozenset({"1", "true", "yes", "on", "y", "t"})
 
 
 def env_bool(name: str, default: bool = False) -> bool:
-    """
-    Parse a boolean environment variable, accepting common truthy strings.
+    """Parse a boolean environment variable, accepting common truthy strings.
 
-    Accepts "1", "true", "yes", "on", "y", "t" (case-insensitive, whitespace-trimmed) as True; any other set value
-    is False. The default is returned only when the variable is unset, not when it is set to an empty string.
+    Accepts "1", "true", "yes", "on", "y", "t" (case-insensitive, whitespace-trimmed) as True; any other set value is
+    False. The default is returned only when the variable is unset, not when it is set to an empty string.
 
     Args:
         name (str): Environment variable name.

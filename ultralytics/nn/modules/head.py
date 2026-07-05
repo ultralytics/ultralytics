@@ -145,24 +145,44 @@ class Detect(nn.Module):
         self._end2end = value
 
     def forward_head(
-        self, x: list[torch.Tensor], box_head: torch.nn.Module = None, cls_head: torch.nn.Module = None
+        self,
+        x: list[torch.Tensor],
+        box_head: torch.nn.Module = None,
+        cls_head: torch.nn.Module = None,
+        cls_x: list[torch.Tensor] | None = None,
     ) -> dict[str, torch.Tensor]:
-        """Concatenates and returns predicted bounding boxes and class probabilities."""
+        """Concatenates and returns predicted bounding boxes and class probabilities.
+
+        ``cls_x`` (fusion_target='cls'): alternative per-scale features for the cls branch only —
+        the box branch always reads ``x``, so box regression never conditions on the fusion prior.
+        """
         if box_head is None or cls_head is None:  # for fused inference
             return dict()
         bs = x[0].shape[0]  # batch size
+        cx = x if cls_x is None else cls_x
         boxes = torch.cat([box_head[i](x[i]).view(bs, 4 * self.reg_max, -1) for i in range(self.nl)], dim=-1)
-        scores = torch.cat([cls_head[i](x[i]).view(bs, self.nc, -1) for i in range(self.nl)], dim=-1)
+        scores = torch.cat([cls_head[i](cx[i]).view(bs, self.nc, -1) for i in range(self.nl)], dim=-1)
         return dict(boxes=boxes, scores=scores, feats=x)
 
     def forward(
-        self, x: list[torch.Tensor], heatmap: torch.Tensor | None = None
+        self,
+        x: list[torch.Tensor],
+        heatmap: torch.Tensor | None = None,
+        hm_bias: list[torch.Tensor] | None = None,
     ) -> dict[str, torch.Tensor] | torch.Tensor | tuple[torch.Tensor, dict[str, torch.Tensor]]:
-        """Concatenates and returns predicted bounding boxes and class probabilities."""
-        preds = self.forward_head(x, **self.one2many)
+        """Concatenates and returns predicted bounding boxes and class probabilities.
+
+        ``hm_bias``: per-scale ``(B, 1, H, W)`` prior biases (fusion_target='cls'). Added to the
+        cls-branch input only; the kwarg is forwarded as ``cls_x`` solely when set, so heads whose
+        ``forward_head`` predates ``cls_x`` stay compatible.
+        """
+        cls_x = [xi + b for xi, b in zip(x, hm_bias)] if hm_bias is not None else None
+        kw = {} if cls_x is None else {"cls_x": cls_x}
+        preds = self.forward_head(x, **kw, **self.one2many)
         if self.end2end:
             x_detach = [xi.detach() for xi in x]
-            one2one = self.forward_head(x_detach, **self.one2one)
+            kw = {} if cls_x is None else {"cls_x": [ci.detach() for ci in cls_x]}
+            one2one = self.forward_head(x_detach, **kw, **self.one2one)
             preds = {"one2many": preds, "one2one": one2one}
         if self.training:
             return preds
@@ -337,16 +357,21 @@ class AnomalyMCDetect(Detect):
         """One-to-one head components, with the anomaly branch added (raises if not end2end)."""
         return dict(box_head=self.one2one_cv2, cls_head=self.one2one_cv3, anom_head=self.one2one_cv_anom)
 
-    def forward_head(self, x, box_head=None, cls_head=None, anom_head=None):
-        """Return boxes, type scores (``cv3``) and the 1-channel anomaly logit (``cv_anom``)."""
+    def forward_head(self, x, box_head=None, cls_head=None, anom_head=None, cls_x=None):
+        """Return boxes, type scores (``cv3``) and the 1-channel anomaly logit (``cv_anom``).
+
+        ``cls_x`` (fusion_target='cls'): prior-biased features consumed by the type AND anomaly
+        branches (both drive confidence); the box branch always reads the clean ``x``.
+        """
         if box_head is None or cls_head is None:
             return dict()
         bs = x[0].shape[0]
+        cx = x if cls_x is None else cls_x
         boxes = torch.cat([box_head[i](x[i]).view(bs, 4 * self.reg_max, -1) for i in range(self.nl)], dim=-1)
-        scores = torch.cat([cls_head[i](x[i]).view(bs, self.nc, -1) for i in range(self.nl)], dim=-1)
+        scores = torch.cat([cls_head[i](cx[i]).view(bs, self.nc, -1) for i in range(self.nl)], dim=-1)
         out = dict(boxes=boxes, scores=scores, feats=x)
         if anom_head is not None:
-            out["anom"] = torch.cat([anom_head[i](x[i]).view(bs, 1, -1) for i in range(self.nl)], dim=-1)
+            out["anom"] = torch.cat([anom_head[i](cx[i]).view(bs, 1, -1) for i in range(self.nl)], dim=-1)
         return out
 
     def _inference(self, x: dict[str, torch.Tensor], heatmap: torch.Tensor | None = None) -> torch.Tensor:

@@ -581,6 +581,16 @@ class YOLOAnomalyV2Model(DetectionModel):
         fusion_mid = int(v2_cfg.get("fusion_mid", 8))
         fusion_norm = bool(v2_cfg.get("fusion_norm", False))
         fusion_residual = bool(v2_cfg.get("fusion_residual", False))
+        # Prior injection target: 'all' adds the bias to the PAN features (box + cls branches both
+        # see it); 'cls' hands the bias to the Detect head, which applies it to the cls-branch
+        # input only. Rationale: the training prior is rendered FROM the GT bbox, so a box branch
+        # that sees it can learn to read defect extent off the prior — an oracle that a deploy-time
+        # memory-bank blob cannot honor. The cls branch only needs the prior's location, which
+        # transfers.
+        fusion_target = str(v2_cfg.get("fusion_target", "all")).lower()
+        if fusion_target not in ("all", "cls"):
+            raise ValueError(f"fusion_target must be 'all' or 'cls', got {fusion_target!r}")
+        self.fusion_target = fusion_target
 
         # AnomalyMCDetect (decoupled binary detection + multi-class type head):
         #   type_gain -- weight of the type cross-entropy in the loss (read by AnomalyMCLoss).
@@ -930,6 +940,7 @@ class YOLOAnomalyV2Model(DetectionModel):
             ("fit_data", None),
             ("fusion_mid", 8),
             ("hm_gate_blend", 1.0),
+            ("fusion_target", "all"),
         ]:
             if not hasattr(self, attr):
                 setattr(self, attr, default)
@@ -1218,6 +1229,10 @@ class YOLOAnomalyV2Model(DetectionModel):
                 # NOTE: training-time prior augmentation (_augment_mask) is applied once inside
                 # _resolve_prior (augment=self.training); do not re-apply it here.
                 fused = []
+                # fusion_target='cls': PAN features stay clean; the per-scale deltas go to the
+                # Detect head as ``hm_bias`` and are added to the cls-branch input only.
+                cls_only = getattr(self, "fusion_target", "all") == "cls"
+                hm_bias = [] if cls_only and prior is not None else None
                 for i, p in enumerate(pan_inputs):
                     if prior is None:
                         # Pure passthrough: skip fusion entirely.
@@ -1234,9 +1249,15 @@ class YOLOAnomalyV2Model(DetectionModel):
                     delta = self.heatmap_bias_fusion(m_scale, i)
                     # Per-sample keep mask (mask dropout): dropped samples get zero increment.
                     delta = delta * keep.to(delta.dtype).view(-1, 1, 1, 1)
-                    fused.append(p + delta)
+                    if hm_bias is not None:
+                        fused.append(p)
+                        hm_bias.append(delta)
+                    else:
+                        fused.append(p + delta)
                 _supports_hm = hasattr(m, "_build_heatmap_gate")
-                x = m(fused, heatmap=prior) if _supports_hm else m(fused)
+                if hm_bias is not None and not _supports_hm:
+                    raise RuntimeError("fusion_target='cls' requires a Detect head that accepts hm_bias")
+                x = m(fused, heatmap=prior, hm_bias=hm_bias) if _supports_hm else m(fused)
             else:
                 if m.f != -1:
                     x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]

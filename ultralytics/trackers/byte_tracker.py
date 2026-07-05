@@ -273,6 +273,9 @@ class BYTETracker:
         results_high, results_low, mask_high, mask_low = self._split_detections(results)
         detections = self.init_track(results_high, self._input_for(img, feats, mask_high))
         detections_second = self.init_track(results_low, self._input_for(img, feats, mask_low))
+        for tracks, mask in ((detections, mask_high), (detections_second, mask_low)):
+            for track, i in zip(tracks, np.flatnonzero(mask)):
+                track.idx = i  # idx must be in full detection-set space; parse_bboxes only sees the subset
 
         unconfirmed, tracked_stracks = self._split_tracked()
         strack_pool = joint_stracks(tracked_stracks, self.lost_stracks)

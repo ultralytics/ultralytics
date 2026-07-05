@@ -106,7 +106,12 @@ Arguments such as `model`, `data`, `imgsz`, `quantize`, `device`, `verbose` and 
 | `quantize` | `None`        | Quantization precision: `16` (FP16) or `8` (INT8/PTQ; needs calibration `data`/`fraction`); `32`/unset is FP32. Replaces the deprecated `half`/`int8` flags.                                            |
 | `device`   | `'cpu'`       | Defines the computation device(s) for benchmarking, such as `"cpu"` or `"cuda:0"`.                                                                                                                      |
 | `verbose`  | `False`       | Controls the level of detail in logging output. Set `verbose=True` for detailed logs.                                                                                                                   |
+| `eps`      | `0.001`       | Small epsilon (milliseconds) added to the per-image inference time before converting it to FPS, preventing division by zero. Rarely changed.                                                            |
 | `format`   | `''`          | Benchmarks only the specified export format (e.g., `format=onnx`). Leave it blank to test every supported format automatically.                                                                         |
+
+!!! note "Standalone `benchmark()` function defaults"
+
+    The standalone `benchmark()` function (`from ultralytics.utils.benchmarks import benchmark`) uses its own signature defaults instead of the table values above, notably `model="yolo26n.pt"` and `imgsz=160`; pass `imgsz` explicitly to match the `yolo benchmark` CLI.
 
 ## Export Formats
 
@@ -179,7 +184,7 @@ When running benchmarks, several arguments can be customized to suit specific ne
 
 - **model:** Path to the model file (e.g., "yolo26n.pt").
 - **data:** Path to a YAML file defining the dataset (e.g., "coco8.yaml").
-- **imgsz:** The input image size, either as a single integer or a tuple.
+- **imgsz:** The square input image size as a single integer, such as `640`. Benchmark mode uses the same square image size across PyTorch and exported formats for fair comparison.
 - **quantize:** Quantization precision: `16` for FP16, `8` for INT8 (useful for edge devices); `32`/unset is FP32.
 - **device:** Specify the computation device (e.g., "cpu", "cuda:0").
 - **verbose:** Control the level of logging detail.

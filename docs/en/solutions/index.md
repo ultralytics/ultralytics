@@ -122,9 +122,9 @@ Except [`Similarity Search`](../guides/similarity-search.md), each Solution call
 | `out_count`          | `int`                  | Total number of objects detected exiting the defined zone in the video stream.                                |
 | `classwise_count`    | `Dict[str, int]`       | Dictionary recording class-wise in/out object counts for advanced analytics.                                  |
 | `queue_count`        | `int`                  | Number of objects currently within a predefined queue or waiting area (suitable for queue management).        |
-| `workout_count`      | `int \| list[int]`     | Total workout repetitions, or per-person counts from AI Gym.                                                  |
-| `workout_angle`      | `float \| list[float]` | Calculated joint or pose angle, or per-person angles from AI Gym.                                             |
-| `workout_stage`      | `str \| list[str]`     | Current workout stage, or per-person stages from AI Gym.                                                      |
+| `workout_count`      | `list[int]`            | Per-track workout repetition counts from AI Gym (one entry per currently tracked individual).                 |
+| `workout_angle`      | `list[float]`          | Per-track exercise angles from AI Gym (one entry per currently tracked individual).                           |
+| `workout_stage`      | `list[str]`            | Per-track current workout stage from AI Gym (one entry per currently tracked individual).                     |
 | `pixels_distance`    | `float`                | Pixel-based distance between two objects or points e.g., bounding boxes. (Suitable for distance calculation). |
 | `available_slots`    | `int`                  | Number of unoccupied slots in a monitored area (suitable for parking management).                             |
 | `filled_slots`       | `int`                  | Number of occupied slots in a monitored area. (suitable for parking management)                               |

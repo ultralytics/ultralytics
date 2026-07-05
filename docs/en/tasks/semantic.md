@@ -165,6 +165,15 @@ belong to separate objects.
 
 For task-specific `Results` fields across every task, see the [Predict Results by Task](../modes/predict.md#results-by-task) section.
 
+!!! tip "Mask boundary quality"
+
+    Semantic segmentation predicts a dense class map, then resizes that map back to the image shape for visualization and
+    downstream use. Very thin structures, such as lane markings, court lines, poles, or wires, can therefore look
+    stair-stepped when inference runs at a much lower `imgsz` than the original image resolution. If boundaries appear
+    jagged, first retest the native PyTorch `.pt` model with a larger `imgsz`, such as `1024`, `1280`, or the closest
+    practical value to the source image size. Use exported models only after confirming the `.pt` output is acceptable,
+    since lower-resolution inputs cannot recover fine detail that was not present in the predicted class map.
+
 ### Instance vs Semantic Segmentation
 
 | Aspect               | Instance Segmentation (`task="segment"`)               | Semantic Segmentation (`task="semantic"`)                        |

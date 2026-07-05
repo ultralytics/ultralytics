@@ -63,13 +63,15 @@ class ImagePropertyExtractor:
         labels (list[dict]): The same list as ``dataset.labels``, with an ``im_properties`` dict added per image.
 
     Examples:
+        >>> from ultralytics.cfg import get_cfg
         >>> from ultralytics.data.build import build_yolo_dataset
         >>> from ultralytics.data.utils import check_det_dataset
         >>> from ultralytics.utils.analysis import ImagePropertyExtractor
         >>> data = check_det_dataset("coco128.yaml")
-        >>> ds = build_yolo_dataset(None, data["val"], 1, data, mode="val", rect=False, stride=32)
+        >>> cfg = get_cfg(overrides={"task": "detect", "imgsz": 320})
+        >>> ds = build_yolo_dataset(cfg, data["val"], 1, data, mode="val", rect=False, stride=32)
         >>> labels = ImagePropertyExtractor(ds).labels
-        >>> labels[0]["im_properties"]["brightness"], labels[0]["im_properties"]["num_small"]
+        >>> brightness = labels[0]["im_properties"]["brightness"]
     """
 
     def __init__(self, dataset: Any):

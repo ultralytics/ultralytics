@@ -46,7 +46,7 @@ class ReID:
 
             self.model = YOLO(model)
             # Initialize predictor with embed=[idx] so subsequent calls return embeddings.
-            self.model(embed=[len(self.model.model.model) - 2], verbose=False, save=False)
+            self.model(embed=[len(self.model.model.model) - 2], device=self.device, verbose=False, save=False)
             self.fp16 = False
         else:
             from pathlib import Path
@@ -116,13 +116,14 @@ class ReID:
         return [f.cpu().numpy() for f in feats]
 
 
-def build_encoder(with_reid: bool, model: str | None):
+def build_encoder(with_reid: bool, model: str | None, device: str | torch.device | None = None):
     """Return a ReID encoder, the native-features pass-through, or None.
 
     Args:
         with_reid (bool): Whether ReID is enabled at all.
         model (str | None): `"auto"` returns a callable that converts pre-extracted backbone features to numpy arrays;
             any other value loads a `ReID` model from that path. Ignored when `with_reid` is False.
+        device (str | torch.device | None): Inference device for the ReID model; defaults to CUDA if available.
 
     Returns:
         (Callable | None): A `(img, dets) -> list[np.ndarray]` encoder, or None when ReID is disabled.
@@ -137,7 +138,7 @@ def build_encoder(with_reid: bool, model: str | None):
             return [f.cpu().numpy() for f in feats]
 
         return _auto_encoder
-    return ReID(model)
+    return ReID(model, device=device)
 
 
 def smooth_feature(

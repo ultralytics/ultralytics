@@ -147,7 +147,7 @@ def non_max_suppression(
             i = TorchNMS.fast_nms(boxes, scores, iou_thres, iou_func=batch_probiou)
         else:
             boxes = x[:, :4] + c  # boxes (offset by class)
-            # Speed strategy: torchvision for val or already loaded (faster), TorchNMS for predict (lower latency)
+            # Speed strategy: torchvision if already imported (preloaded by warmup/val/streams), else TorchNMS (no slow import)
             if "torchvision" in sys.modules:
                 import torchvision  # scope as slow import
 

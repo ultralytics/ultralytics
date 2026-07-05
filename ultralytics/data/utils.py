@@ -130,7 +130,7 @@ def check_file_speeds(
         avg_speed = float("inf")
         speed_msg = ""
 
-    if avg_ping < threshold_ms or avg_speed < threshold_mb:
+    if avg_ping < threshold_ms and avg_speed > threshold_mb:
         LOGGER.info(f"{prefix}Fast image access ✅ ({ping_msg}{speed_msg}{size_msg})")
     else:
         LOGGER.warning(
@@ -464,6 +464,10 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> dict[str, Any]
     Returns:
         (dict[str, Any]): Parsed dataset information and paths.
     """
+    dataset = str(dataset)
+    if "://" not in dataset and not Path(dataset).exists() and Path(dataset).suffix not in {".yaml", ".yml"}:
+        # allow bare dataset names, e.g. 'coco8' -> 'coco8.yaml', 'DOTAv1.5' -> 'DOTAv1.5.yaml'
+        dataset = next((f"{dataset}{x}" for x in (".yaml", ".yml") if check_file(f"{dataset}{x}", hard=False)), dataset)
     file = Path(check_file(dataset))
     if file.is_dir():
         file = find_dataset_yaml(file)
@@ -489,6 +493,14 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> dict[str, Any]
             data["val"] = data.pop("validation")  # replace 'validation' key with 'val' key
     if "names" not in data and "nc" not in data:
         raise SyntaxError(emojis(f"{dataset} key missing ❌.\n either 'names' or 'nc' are required in all data YAMLs."))
+    if "nc" in data and not isinstance(data["nc"], int):
+        try:
+            nc = float(data["nc"])  # accept integer-like values, e.g. '10' or 10.0, but not 1.9 or placeholders
+            if nc != int(nc):
+                raise ValueError
+            data["nc"] = int(nc)
+        except (TypeError, ValueError):
+            raise SyntaxError(emojis(f"{dataset} 'nc: {data['nc']}' must be an integer ❌."))
     if "names" in data and "nc" in data and len(data["names"]) != data["nc"]:
         raise SyntaxError(emojis(f"{dataset} 'names' length {len(data['names'])} and 'nc: {data['nc']}' must match."))
     if "names" not in data:

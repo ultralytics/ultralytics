@@ -62,6 +62,7 @@ class InfiniteDataLoader(dataloader.DataLoader):
         __len__: Return the length of the batch sampler's sampler.
         __iter__: Yield batches from the underlying iterator.
         __del__: Ensure workers are properly terminated.
+        close: Gracefully shut down persistent workers when the DataLoader is no longer needed.
         reset: Reset the iterator, useful when modifying dataset settings during training.
 
     Examples:
@@ -92,19 +93,21 @@ class InfiniteDataLoader(dataloader.DataLoader):
     def __del__(self):
         """Ensure that workers are properly terminated when the DataLoader is deleted."""
         try:
-            if not hasattr(self.iterator, "_workers"):
-                return
-            for w in self.iterator._workers:  # force terminate
+            for w in getattr(self.iterator, "_workers", ()):  # force terminate
                 if w.is_alive():
                     w.terminate()
-            self.iterator._shutdown_workers()  # cleanup
+            self.close()
         except Exception:
             pass
 
+    def close(self):
+        """Shut down persistent workers, unregistering them from torch's SIGCHLD watchdog before interpreter exit."""
+        if hasattr(self.iterator, "_workers"):
+            self.iterator._shutdown_workers()  # joins workers and calls torch._C._remove_worker_pids
+
     def reset(self):
         """Reset the iterator to allow modifications to the dataset during training."""
-        if hasattr(self.iterator, "_workers"):
-            self.iterator._shutdown_workers()  # free old worker pipes before creating new iterator
+        self.close()  # free old worker pipes before creating new iterator
         self.iterator = self._get_iterator()
 
 
@@ -344,9 +347,8 @@ def build_dataloader(
         >>> dataset = YOLODataset(...)
         >>> dataloader = build_dataloader(dataset, batch=16, workers=4, shuffle=True)
     """
-    batch = min(batch, len(dataset))
-    nd = torch.cuda.device_count()  # number of CUDA devices
-    nw = min(os.cpu_count() // max(nd, 1), workers)  # number of workers
+    dataset_len = len(dataset)
+    batch = min(batch, dataset_len)
     sampler = (
         None
         if rank == -1
@@ -354,6 +356,13 @@ def build_dataloader(
         if shuffle
         else ContiguousDistributedSampler(dataset)
     )
+    samples = len(sampler) if sampler is not None else dataset_len
+    drop_last = drop_last and bool(batch) and dataset_len % batch != 0
+    batches = (samples // batch if drop_last else math.ceil(samples / batch)) if batch else 0
+    nd = torch.cuda.device_count()  # number of CUDA devices
+    # Do not create more worker processes than final loader batches. Single-batch loaders run in-process to avoid
+    # persistent DataLoader worker pools that add overhead and can stall tiny datasets while holding CUDA context.
+    nw = min(os.cpu_count() // max(nd, 1), workers, 0 if batches <= 1 else batches)  # number of workers
     generator = torch.Generator()
     generator.manual_seed(6148914691236517205 + RANK)
     return InfiniteDataLoader(
@@ -367,7 +376,7 @@ def build_dataloader(
         collate_fn=getattr(dataset, "collate_fn", None),
         worker_init_fn=seed_worker,
         generator=generator,
-        drop_last=drop_last and len(dataset) % batch != 0,
+        drop_last=drop_last,
     )
 
 

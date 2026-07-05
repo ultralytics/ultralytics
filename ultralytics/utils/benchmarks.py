@@ -39,7 +39,7 @@ from pathlib import Path
 import numpy as np
 import torch.cuda
 
-from ultralytics import YOLO, YOLOWorld
+from ultralytics import RTDETR, YOLO, YOLOWorld
 from ultralytics.cfg import TASK2DATA, TASK2METRIC
 from ultralytics.engine.exporter import export_formats
 from ultralytics.nn.modules import Segment26
@@ -117,7 +117,7 @@ def benchmark(
     format_arg = format.lower()
     if format_arg:
         formats = frozenset(export_formats()["Argument"])
-        assert format in formats, f"Expected format to be one of {formats}, but got '{format_arg}'."
+        assert format_arg in formats, f"Expected format to be one of {formats}, but got '{format_arg}'."
     for name, format, suffix, cpu, gpu, valid_args, _ in zip(*export_formats().values()):
         emoji, filename = "❌", None  # export defaults
         try:
@@ -206,7 +206,7 @@ def benchmark(
                     verbose=False,
                     **kwargs,
                 )
-                exported_model = YOLO(filename, task=model.task)
+                exported_model = RTDETR(filename) if isinstance(model, RTDETR) else YOLO(filename, task=model.task)
                 assert suffix in str(filename), "export failed"
             emoji = "❎"  # indicates export succeeded
 

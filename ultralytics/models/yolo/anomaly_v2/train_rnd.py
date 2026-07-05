@@ -43,6 +43,12 @@ MVTEC_CATEGORIES = [
     "zipper",
 ]
 
+_MVTEC_ROOT_CANDIDATES = (
+    "/data/shared-datasets/louis_data/MVTec-YOLO",
+    "/Users/louis/workspace/ultra_louis_work/buffer/AnomalyData/MVTEC/MVTec-YOLO",
+    "/home/laughing/codes/datasets/MVTec-YOLO",
+)
+
 
 def _normal_dir_from_yaml(yaml_path: str | Path) -> Path:
     """Resolve the directory of normal images referenced by a data yaml.
@@ -110,6 +116,11 @@ class AnomalyV2RNDTrainer(AnomalyV2Trainer):
             return [Path(p) for p in explicit]
 
         root = v2_cfg.get("test_root")
+        if not root:
+            for candidate in _MVTEC_ROOT_CANDIDATES:
+                if Path(candidate).is_dir():
+                    root = candidate
+                    break
         if not root:
             LOGGER.warning("AnomalyV2RNDTrainer: no test_data_yamls or test_root configured; skipping OOD eval.")
             return []

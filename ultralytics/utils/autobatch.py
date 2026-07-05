@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import os
 from copy import deepcopy
 
 import numpy as np
@@ -82,7 +81,7 @@ def autobatch(
 
     # Inspect CUDA memory
     gb = 1 << 30  # bytes to GiB (1024 ** 3)
-    d = f"CUDA:{os.getenv('CUDA_VISIBLE_DEVICES', '0').strip()[0]}"  # 'CUDA:0'
+    d = f"CUDA:{device.index}"  # 'CUDA:0'
     properties = torch.cuda.get_device_properties(device)  # device properties
     t = properties.total_memory / gb  # GiB total
     r = torch.cuda.memory_reserved(device) / gb  # GiB reserved

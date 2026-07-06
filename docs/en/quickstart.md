@@ -72,7 +72,7 @@ Ultralytics offers a variety of installation methods, including pip, conda, and 
         sudo docker pull $t
 
         # Run the ultralytics image in a container with GPU support
-        sudo docker run -it --ipc=host --device nvidia.com/gpu=all $t            # all GPUs
+        sudo docker run -it --ipc=host --device nvidia.com/gpu=all $t                         # all GPUs
         sudo docker run -it --ipc=host --device nvidia.com/gpu=2 --device nvidia.com/gpu=3 $t # specify GPUs
         ```
 
@@ -116,7 +116,7 @@ Ultralytics offers a variety of installation methods, including pip, conda, and 
         sudo docker pull $t
 
         # Run the ultralytics image in a container with GPU support
-        sudo docker run -it --ipc=host --device nvidia.com/gpu=all $t            # all GPUs
+        sudo docker run -it --ipc=host --device nvidia.com/gpu=all $t                         # all GPUs
         sudo docker run -it --ipc=host --device nvidia.com/gpu=2 --device nvidia.com/gpu=3 $t # specify GPUs
         ```
 

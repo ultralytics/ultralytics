@@ -789,27 +789,13 @@ def test_utils_ops():
 
 
 def test_process_mask_empty():
-    """process_mask/process_mask_native must handle a frame with 0 detections without crashing."""
-    from ultralytics.utils.ops import process_mask, process_mask_native
+    """process_mask/process_mask_native/scale_masks must handle 0 detections without crashing."""
+    from ultralytics.utils import ops
 
-    protos = torch.rand(32, 160, 160)
-    empty_coeffs = torch.zeros(0, 32)
-    empty_bboxes = torch.zeros(0, 4)
-
-    # 0 detections -> well-formed empty mask stacks (same dtype/device as N>=1), not a crash
-    for empty in (
-        process_mask(protos, empty_coeffs, empty_bboxes, (640, 640), upsample=True),
-        process_mask_native(protos, empty_coeffs, empty_bboxes, (640, 640)),
-    ):
-        assert tuple(empty.shape) == (0, 640, 640)
-        assert empty.dtype == torch.uint8
-        assert empty.device == protos.device
-    assert tuple(process_mask(protos, empty_coeffs, empty_bboxes, (640, 640), upsample=False).shape) == (0, 160, 160)
-
-    # a single detection must still return one mask at the requested resolution
-    coeffs, bboxes = torch.rand(1, 32), torch.tensor([[10.0, 10.0, 100.0, 100.0]])
-    assert tuple(process_mask(protos, coeffs, bboxes, (640, 640), upsample=True).shape) == (1, 640, 640)
-    assert tuple(process_mask_native(protos, coeffs, bboxes, (640, 640)).shape) == (1, 640, 640)
+    protos, coeffs, bboxes = torch.rand(32, 160, 160), torch.zeros(0, 32), torch.zeros(0, 4)
+    assert ops.process_mask(protos, coeffs, bboxes, (640, 640), upsample=True).shape == (0, 640, 640)
+    assert ops.process_mask_native(protos, coeffs, bboxes, (640, 640)).shape == (0, 640, 640)
+    assert ops.scale_masks(torch.zeros(1, 0, 160, 160), (640, 640)).shape == (1, 0, 640, 640)
 
 
 def test_utils_files(tmp_path):

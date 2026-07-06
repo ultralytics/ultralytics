@@ -561,6 +561,8 @@ def scale_masks(
     im0_h, im0_w = shape[:2]
     if im1_h == im0_h and im1_w == im0_w:
         return masks
+    if masks.shape[1] == 0:  # empty mask stack: F.interpolate rejects a 0-length channel dim
+        return masks.new_zeros((*masks.shape[:2], im0_h, im0_w), dtype=torch.float32)
 
     if ratio_pad is None:  # calculate from im0_shape
         gain = min(im1_h / im0_h, im1_w / im0_w)  # gain  = old / new

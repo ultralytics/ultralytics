@@ -54,8 +54,8 @@ ruff format . && ruff check --fix .
 # Regenerate docs/en/reference/ after adding/removing/renaming public APIs (docs.yml runs this)
 python docs/build_reference.py
 
-# Fastest end-to-end smoke test (auto-downloads yolo26n.pt)
-yolo predict model=yolo26n.pt source=ultralytics/assets/bus.jpg
+# Fastest end-to-end smoke test (auto-downloads yolo26n.pt, runs on 2 local asset images)
+yolo predict model=yolo26n.pt
 ```
 
 - CI (`ci.yml`) runs tests on Python 3.13 across ubuntu-latest, macos-26, windows-latest, and ubuntu-24.04-arm, plus a floor job on Python 3.8 with torch 1.8.0.

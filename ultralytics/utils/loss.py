@@ -333,30 +333,32 @@ class KeypointLoss(nn.Module):
 
 
 class RankLoss(nn.Module):
-    """RS-style ranking loss (pairwise surrogate) for the one2one classification head.
+    """Rank & Sort loss (differentiable surrogate) for the one2one classification head.
 
-    Two terms, both active only where the ranking is violated, so healthy positives contribute ~0 loss. This
-    re-ranks rather than globally inflating scores: it lifts lagging positives, keeps suppressing runner-up negatives,
-    and leaves already-correct rankings untouched, preserving accuracy and the NMS-free property.
+    Ports the two error terms of Rank & Sort Loss (Oksuz et al., ICCV 2021) as a differentiable regularizer
+    folded into the one2one cls loss — autograd computes the gradient instead of the paper's identity update.
+    Ranking is global across every (anchor, class) location in an image, so a positive competes with same- and
+    cross-class negatives alike, exactly as in the original. The piecewise-linear step saturates once a negative
+    is more than ``delta`` below a positive, so healthy rankings contribute no gradient and the loss only re-ranks
+    the violations, preserving accuracy and the NMS-free property.
 
-    - rank: pushes each positive (TP) above the same-class negatives — directly rescues the "dead tail".
-    - sort: orders positives by IoU so higher-IoU anchors score higher.
+    - rank: drives each positive's ranking error ``FP_num / rank`` (fraction of relevant negatives scoring above
+      it) to 0, lifting positives over the negatives that outrank them.
+    - sort: ``current - target`` sorting error orders positives by IoU so higher-IoU anchors score higher.
 
     Attributes:
-        tau (float): Temperature; smaller approaches hard ranking.
-        k_neg (int): Per image/class, keep only the top-K highest-scoring negatives (the real ranking threats).
+        delta (float): Half-width of the piecewise-linear step; smaller approaches hard ranking.
         w_sort (float): Weight of the sort term relative to the rank term.
     """
 
-    def __init__(self, tau: float = 0.5, k_neg: int = 100, w_sort: float = 0.5):
-        """Initialize the ranking loss with temperature, hard-negative count and sort-term weight."""
+    def __init__(self, delta: float = 0.5, w_sort: float = 0.5):
+        """Initialize the ranking loss with the step half-width and sort-term weight."""
         super().__init__()
-        self.tau = tau
-        self.k_neg = k_neg
+        self.delta = delta
         self.w_sort = w_sort
 
     def forward(self, pred_logits: torch.Tensor, target_scores: torch.Tensor) -> torch.Tensor:
-        """Compute the ranking loss over one2one positives against same-class negatives.
+        """Compute the RS ranking/sorting loss over one2one positives against relevant negatives.
 
         Args:
             pred_logits (torch.Tensor): Classification logits with shape (bs, num_anchors, nc).
@@ -364,48 +366,41 @@ class RankLoss(nn.Module):
                 its GT-class IoU in the GT-class channel and 0 elsewhere.
 
         Returns:
-            (torch.Tensor): Scalar ranking loss (0 when no positive/negative pairs exist).
+            (torch.Tensor): Scalar ranking loss (0 when no positives exist).
         """
-        scores = pred_logits.sigmoid()
-        _, N, nc = scores.shape
-        pos = target_scores > 0
-        pos_idx = pos.nonzero(as_tuple=False)  # (M, 3): image, anchor, class
-        if pos_idx.numel() == 0:
+        delta = self.delta
+        losses = []
+        # Per image so anchors from different images never rank against each other; within an image the ranking is
+        # global across classes (each positive competes with same- and cross-class negatives, as in the original).
+        for logits_i, target_i in zip(pred_logits, target_scores):
+            # fp32 for AMP-safe pairwise math (logits are fp16 under autocast); flatten every (anchor, class) score
+            s = logits_i.sigmoid().float().flatten()  # (N*nc,)
+            t = target_i.float().flatten()  # (N*nc,)
+            fg = t > 0
+            if not fg.any():
+                continue
+            s_fg, iou = s[fg], t[fg]  # (M,) positive scores and their IoU targets
+
+            # Relevant negatives: score within delta of the lowest positive (the rest cannot alter precision)
+            s_bg = s[(t == 0) & (s >= s_fg.min() - delta)]  # (Nbg,)
+
+            # Piecewise-linear rank indicator H(x) = clamp(x / (2*delta) + 0.5, 0, 1)
+            fg_rel = ((s_fg[None] - s_fg[:, None]) / (2 * delta) + 0.5).clamp(0, 1)  # (M, M) [i,j] = H(s_j - s_i)
+            rank_pos = fg_rel.sum(1)  # (M,) rank among positives (includes self's 0.5)
+            fp_num = ((s_bg[None] - s_fg[:, None]) / (2 * delta) + 0.5).clamp(0, 1).sum(1)  # (M,) negatives above i
+            ranking_error = fp_num / (rank_pos + fp_num)  # (M,) target ranking error is 0
+
+            # sort: penalize positives ranked above others that have a higher IoU target
+            current_sort = (fg_rel * (1 - iou)[None]).sum(1) / rank_pos  # (M,)
+            target_rel = (iou[None] >= iou[:, None]) * fg_rel  # (M, M) positives in i's target sorted order
+            target_sort = (target_rel * (1 - iou)[None]).sum(1) / target_rel.sum(1)  # (M,)
+            sorting_error = current_sort - target_sort  # (M,)
+
+            losses.append(ranking_error.mean() + self.w_sort * sorting_error.mean())
+
+        if not losses:
             return pred_logits.new_zeros((), dtype=torch.float32)
-        b_id, c_id = pos_idx[:, 0], pos_idx[:, 2]
-        # fp32 for AMP-safe pairwise math (scores are fp16 under autocast, target_scores fp32); big tensors stay fp16
-        s_pos, iou = scores[pos].float(), target_scores[pos].float()  # (M,)
-        M = s_pos.numel()
-
-        # Compact (image, class) group ids and per-group positive counts
-        _, inv = torch.unique(b_id * nc + c_id, return_inverse=True)  # inv: (M,) group id in [0, G)
-        counts = torch.bincount(inv)  # (G,)
-        G = counts.numel()
-
-        # rank: each positive vs its group's top-K same-class negatives (one batched topk over all groups)
-        k = min(self.k_neg, N)
-        neg_topk = scores.masked_fill(pos, float("-inf")).topk(k, dim=1).values  # (B, k, nc)
-        neg = neg_topk[b_id, :, c_id].float()  # (M, k) each positive's hard negatives
-        kcnt = neg.isfinite().sum(1).clamp(min=1)  # valid negatives per positive
-        per_pos = F.softplus((neg - s_pos[:, None]) / self.tau).sum(1) / kcnt  # (M,) mean over negatives
-        group_rank = per_pos.new_zeros(G).scatter_add_(0, inv, per_pos) / counts  # (G,) per-group mean
-        total_rank = group_rank.sum()
-
-        # sort: within a group, higher-IoU positives must score higher (padded (G, Pmax, Pmax), P==1 groups give 0)
-        total_sort = s_pos.new_zeros(())
-        if counts.max() > 1:
-            pmax = int(counts.max())
-            order = torch.argsort(inv, stable=True)  # cluster positives by group
-            inv_s = inv[order]
-            within = torch.arange(M, device=scores.device) - (counts.cumsum(0) - counts)[inv_s]
-            pad_s, pad_i = s_pos.new_zeros(G, pmax), s_pos.new_zeros(G, pmax)
-            valid = torch.zeros(G, pmax, dtype=torch.bool, device=scores.device)
-            pad_s[inv_s, within], pad_i[inv_s, within], valid[inv_s, within] = s_pos[order], iou[order], True
-            di = (pad_s[:, None, :] - pad_s[:, :, None]) / self.tau  # [g, i, k] = s_k - s_i
-            wi = (pad_i[:, :, None] - pad_i[:, None, :]).clamp(min=0) * (valid[:, :, None] & valid[:, None, :])
-            total_sort = ((wi * F.softplus(di)).sum((1, 2)) / wi.sum((1, 2)).clamp(min=1)).sum()
-
-        return (total_rank + self.w_sort * total_sort) / G
+        return torch.stack(losses).mean()
 
 
 class v8DetectionLoss:
@@ -1358,8 +1353,7 @@ class E2ELoss:
         # one2one-only ranking regularizer (RS-style pairwise surrogate), folded into the o2o cls loss
         if getattr(model.args, "rank", 0.0):
             self.one2one.rank = RankLoss(
-                tau=getattr(model.args, "rank_tau", 0.5),
-                k_neg=getattr(model.args, "rank_k_neg", 100),
+                delta=getattr(model.args, "rank_delta", 0.5),
                 w_sort=getattr(model.args, "rank_w_sort", 0.5),
             )
             self.one2one.rank_gain = model.args.rank

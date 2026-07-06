@@ -204,9 +204,13 @@ class DetectionValidator(BaseValidator):
                         pred_boxes = np.asarray(predn["bboxes"].cpu().numpy())
 
                         # compute centers
-                        if gt_boxes.shape[1] == 9:
+                        # for GT boxes, pred boxes is basically the same
+                        if gt_boxes.shape[1] == 9: # for polygons
                             gt_positions = gt_boxes[:, 1:]
                             gt_positions = gt_positions.reshape(-1, 4, 2)
+                            gt_centers = gt_positions.mean(axis=1)
+                        elif gt_boxes.shape[1] == 5: # for [xywhr] - where xy are the x and y origin point of the box
+                            gt_positions = gt_boxes[:,:2]
                             gt_centers = gt_positions.mean(axis=1)
                         else:
                             gt_centers = (gt_boxes[:, :2] + gt_boxes[:, 2:4]) / 2.0
@@ -214,6 +218,9 @@ class DetectionValidator(BaseValidator):
                         if pred_boxes.shape[1] == 9:
                             pred_positions = pred_boxes[:, 1:]
                             pred_positions = pred_positions.reshape(-1, 4, 2)
+                            pred_centers = pred_positions.mean(axis=1)
+                        elif pred_boxes.shape[1] == 5:
+                            pred_positions = pred_boxes[:,:2]
                             pred_centers = pred_positions.mean(axis=1)
                         else:
                             pred_centers = (pred_boxes[:, :2] + pred_boxes[:, 2:4]) / 2.0

@@ -775,6 +775,72 @@ def test_utils_torchutils():
     time_sync()
 
 
+def test_utils_class_map():
+    """Test class_map utilities: name normalization, numeric-name detection, and class-row remapping with aliases."""
+    from ultralytics.utils.class_map import (
+        build_class_row_map,
+        is_default_numeric_names,
+        names_to_list,
+        normalize_class_name,
+        remap_class_row_state_dict,
+    )
+
+    # names_to_list normalizes dict / list / tuple / None into an index-ordered list
+    assert names_to_list(None) == []
+    assert names_to_list(["a", "b"]) == ["a", "b"]
+    assert names_to_list({1: "b", 0: "a"}) == ["a", "b"]  # sorted by class index
+    assert names_to_list(("x", "y")) == ["x", "y"]
+
+    # is_default_numeric_names distinguishes default index-string placeholders from real names
+    assert is_default_numeric_names({0: "0", 1: "1"})
+    assert not is_default_numeric_names(["person", "car"])
+    assert not is_default_numeric_names([])
+    assert not is_default_numeric_names(None)
+
+    # normalize_class_name lowercases, splits separators and &, and collapses whitespace
+    assert normalize_class_name("Hair Dryer") == "hair dryer"
+    assert normalize_class_name("Handbag/Satchel") == "handbag satchel"
+    assert normalize_class_name("Rock & Roll") == "rock and roll"
+    assert normalize_class_name("  a__b  ") == "a b"
+
+    # build_class_row_map matches by normalized name, resolves via aliases, and reports missing dst rows
+    src_names = ["Person", "Handbag/Satchel", "Wild Bird"]  # v2-style Objects365 names
+    dst_names = ["person", "handbag", "bird", "airplane"]  # COCO-style; 'airplane' has no source
+    aliases = {"handbag": "handbag/satchel", "bird": "wild bird"}
+    row_map, missing = build_class_row_map(src_names, dst_names, aliases=aliases)
+    assert row_map == {0: 0, 1: 1, 2: 2}
+    assert len(missing) == 1 and missing[0][1] == "airplane"
+
+    # remap_class_row_state_dict copies aliased rows, keeps unmatched dst rows at init, and skips non-class keys
+    src_state = {
+        "decoder.score_head.weight": torch.tensor([[1.0], [2.0], [3.0]]),
+        "decoder.score_head.bias": torch.tensor([10.0, 20.0, 30.0]),
+        "backbone.conv.weight": torch.zeros(3, 5),  # not in DEFAULT_CLASS_KEY_HINTS -> must pass through untouched
+    }
+    dst_state = {
+        "decoder.score_head.weight": torch.full((4, 1), -1.0),
+        "decoder.score_head.bias": torch.full((4,), -1.0),
+        "backbone.conv.weight": torch.zeros(4, 5),
+    }
+    remapped, remapped_keys, missing = remap_class_row_state_dict(
+        src_state, dst_state, src_names, dst_names, aliases=aliases
+    )
+    got_w, got_b = remapped["decoder.score_head.weight"], remapped["decoder.score_head.bias"]
+    assert torch.equal(got_w[:3, 0], torch.tensor([1.0, 2.0, 3.0]))  # person / handbag / bird copied via aliases
+    assert got_w[3, 0].item() == -1.0  # unmatched 'airplane' row kept at dst init
+    assert torch.equal(got_b[:3], torch.tensor([10.0, 20.0, 30.0]))
+    assert got_b[3].item() == -1.0
+    assert {k for k, _, _ in remapped_keys} == {"decoder.score_head.weight", "decoder.score_head.bias"}
+    assert (
+        remapped["backbone.conv.weight"] is src_state["backbone.conv.weight"]
+    )  # key_hints gate: non-class key untouched
+    assert len(missing) == 1 and missing[0][1] == "airplane"
+
+    # Empty src_names or dst_names hits the early-return path and leaves the state unchanged
+    r_state, r_keys, r_missing = remap_class_row_state_dict(src_state, dst_state, [], dst_names)
+    assert r_keys == [] and r_missing == [] and set(r_state) == set(src_state)
+
+
 def test_utils_ops():
     """Test utility operations for coordinate transformations and normalizations."""
     from ultralytics.utils.ops import (

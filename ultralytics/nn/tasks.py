@@ -317,6 +317,15 @@ class BaseModel(torch.nn.Module):
         """
         model = weights["model"] if isinstance(weights, dict) else weights  # torchvision models are not dicts
         csd = model.float().state_dict()  # checkpoint state_dict as FP32
+        self._transfer_state_dict(csd, verbose=verbose)
+
+    def _transfer_state_dict(self, csd, verbose=True):
+        """Transfer a checkpoint state_dict into the model, with partial first-conv copy for multi-channel training.
+
+        Args:
+            csd (dict): Checkpoint state_dict to transfer; entries are intersected with the model's own state_dict.
+            verbose (bool, optional): Whether to log the transfer progress.
+        """
         updated_csd = intersect_dicts(csd, self.state_dict())  # intersect
         self.load_state_dict(updated_csd, strict=False)  # load
         len_updated_csd = len(updated_csd)
@@ -834,8 +843,17 @@ class RTDETRDetectionModel(DetectionModel):
         """
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
-    def load(self, weights, verbose=True, src_names=None, dst_names=None):
-        """Load weights with optional RT-DETR class-row remapping for cross-dataset transfer."""
+    def load(self, weights, verbose=True, src_names=None, dst_names=None, aliases=None):
+        """Load weights with optional RT-DETR class-row remapping for cross-dataset transfer.
+
+        Args:
+            weights (dict | torch.nn.Module): Pretrained weights to load.
+            verbose (bool, optional): Whether to log the transfer progress.
+            src_names (dict | list, optional): Class names of the source (pretrained) checkpoint.
+            dst_names (dict | list, optional): Class names of the target (current) model.
+            aliases (dict, optional): Extra src-name aliases keyed by normalized dst name, used only when direct name
+                matching fails; falls back to DEFAULT_CLASS_ALIASES when None.
+        """
         model = weights["model"] if isinstance(weights, dict) else weights
         csd = model.float().state_dict()
         state_dict = self.state_dict()
@@ -864,17 +882,14 @@ class RTDETRDetectionModel(DetectionModel):
             and not names_match
         ):
             csd, remapped, missing = remap_class_row_state_dict(
-                csd, state_dict, src_names=src_names, dst_names=dst_names
+                csd, state_dict, src_names=src_names, dst_names=dst_names, aliases=aliases
             )
             if verbose and remapped:
                 LOGGER.info(f"Remapped {len(remapped)} class tensors using source->target class-name map")
             if verbose and missing:
                 LOGGER.info(f"{len(missing)} target classes were not mapped and kept target initialization")
 
-        updated_csd = intersect_dicts(csd, state_dict)
-        self.load_state_dict(updated_csd, strict=False)
-        if verbose:
-            LOGGER.info(f"Transferred {len(updated_csd)}/{len(self.model.state_dict())} items from pretrained weights")
+        self._transfer_state_dict(csd, verbose=verbose)
 
     def _apply(self, fn):
         """Apply a function to all tensors in the model, including decoder anchors and valid mask.

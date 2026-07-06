@@ -1,7 +1,7 @@
 ---
 title: utils.class_map API Reference
-description: TODO ADD DESCRIPTION
-keywords: TODO ADD KEYWORDS
+description: RT-DETR class-name mapping utilities that transfer classifier head rows from a pretrained checkpoint, initializing overlapping classes instead of training the head from scratch.
+keywords: Ultralytics, RT-DETR, class map, transfer learning, cross-dataset transfer, Objects365, COCO, object detection, deep learning
 ---
 
 # Reference for `ultralytics/utils/class_map.py`

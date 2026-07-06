@@ -56,6 +56,7 @@ from ultralytics.nn.modules import (
     DeimLayerNormDecoder,
     DWConv,
     DWConvTranspose2d,
+    FastViTBlock,
     Focus,
     GhostBottleneck,
     GhostConv,
@@ -65,6 +66,7 @@ from ultralytics.nn.modules import (
     Index,
     LayerNorm2d,
     LRPCHead,
+    MHSABlock,
     Pose,
     Pose26,
     DFineDecoder,
@@ -83,6 +85,7 @@ from ultralytics.nn.modules import (
     Segment26,
     TorchVision,
     Timm,
+    UltraViTBlock,
     WorldDetect,
     YOLOEDetect,
     YOLOESegment,
@@ -1968,7 +1971,7 @@ def parse_model(d, ch, verbose=True):
                     args.extend((True, 1.2))
             if m is C2fCIB:
                 legacy = False
-        elif m is AIFI:
+        elif m in frozenset({AIFI, UltraViTBlock, FastViTBlock, MHSABlock}):
             args = [ch[f], *args]
         elif m in frozenset({HGStem, HGBlock}):
             c1, cm, c2 = ch[f], args[0], args[1]

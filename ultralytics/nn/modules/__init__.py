@@ -121,6 +121,7 @@ from .transformer import (
     TransformerEncoderLayer,
     TransformerLayer,
 )
+from .vit_blocks import FastViTBlock, MHSABlock, UltraViTBlock
 
 __all__ = (
     "AIFI",
@@ -173,6 +174,7 @@ __all__ = (
     "DeformableTransformerDecoderLayerv2",
     "Detect",
     "DFineDecoder",
+    "FastViTBlock",
     "Focus",
     "GhostBottleneck",
     "GhostConv",
@@ -189,6 +191,7 @@ __all__ = (
     "LayerNorm2d",
     "LightConv",
     "MLPBlock",
+    "MHSABlock",
     "MSDeformAttn",
     "MSDeformAttnv2",
     "MaxSigmoidAttnBlock",
@@ -213,6 +216,7 @@ __all__ = (
     "TransformerBlock",
     "TransformerEncoderLayer",
     "TransformerLayer",
+    "UltraViTBlock",
     "WorldDetect",
     "YOLOEDetect",
     "YOLOESegment",

@@ -2,7 +2,7 @@
 
 This file provides guidance to AI coding agents (Claude Code, etc.) when working with code in this repository. CLAUDE.md is a symlink to this file.
 
-Ultralytics YOLO (`ultralytics` on PyPI, AGPL-3.0) is the Python package for YOLO-family vision models — detection, instance and semantic segmentation, classification, pose, oriented boxes, and tracking — plus training, validation, benchmarking, export to 19 deployment formats, and the `yolo` CLI. The version lives in `ultralytics/__init__.py`, and the supported floors are Python>=3.8 with PyTorch>=1.8.
+Ultralytics YOLO (`ultralytics` on PyPI, AGPL-3.0) is the Python package for YOLO-family vision models — detection, instance and semantic segmentation, classification, pose, oriented boxes, and tracking — plus training, validation, benchmarking, export to 19 deployment formats, and the `yolo` CLI. Supported floors are Python>=3.8 with PyTorch>=1.8.
 
 ## Core Principles (CRITICAL)
 

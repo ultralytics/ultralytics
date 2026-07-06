@@ -81,8 +81,9 @@ jobs:
             if [[ "${{ matrix.os }}" != "cpu-latest" ]]; then
               uv_system_args=(--system)
             fi
+            # Pin PNNX until 20260704 NCNN inference segfault is fixed: https://github.com/pnnx/pnnx/issues/293
             uv pip install "${uv_system_args[@]}" -e ".[export,export-executorch]" \
-              ncnn pnnx "coverage[toml]" \
+              ncnn pnnx==20260526 "coverage[toml]" \
               --torch-backend cpu
       - name: Check environment
         run: |
@@ -266,6 +267,7 @@ jobs:
             python: "3.12"
             torch: "2.3.0"
             torchvision: "0.18.0"
+            numpy_extra: export-legacy-torch # torchvision 0.18.0 adjust_hue casts negative hue via np.uint8(), rejected by NumPy 2 (fixed in torchvision 0.19.0)
           - os: ubuntu-latest
             python: "3.12"
             torch: "2.4.0"

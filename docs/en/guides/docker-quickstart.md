@@ -199,6 +199,18 @@ sudo docker run -it --ipc=host --runtime=nvidia --gpus '"device=2,3"' $t
 
 The `-it` flag assigns a pseudo-TTY and keeps stdin open, allowing you to interact with the container. The `--ipc=host` flag enables sharing of host's IPC namespace, essential for sharing memory between processes. The `--gpus` flag allows the container to access the host's GPUs.
 
+!!! tip "Long-running containers"
+
+    Containers started with `--gpus` can lose GPU access (`Failed to initialize NVML: Unknown Error`) when the host reloads systemd, which happens during routine package updates ([nvidia-container-toolkit#48](https://github.com/NVIDIA/nvidia-container-toolkit/issues/48)). For containers that stay up for days, such as training workers or CI runners, request GPUs through [CDI](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/cdi-support.html) instead, which registers the devices with systemd so access survives reloads (requires `nvidia-container-toolkit` >= 1.18):
+
+    ```bash
+    # Run with all GPUs via CDI
+    sudo docker run -it --ipc=host --device nvidia.com/gpu=all $t
+
+    # Run specifying which GPUs to use via CDI
+    sudo docker run -it --ipc=host --device nvidia.com/gpu=2 --device nvidia.com/gpu=3 $t
+    ```
+
 ### Note on File Accessibility
 
 To work with files on your local machine within the container, you can use Docker volumes:

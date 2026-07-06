@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-"""Convert an old anomaly-v2 checkpoint to the current format.
+"""Convert an old anomaly checkpoint to the current format.
 
-This script exists because the anomaly_v2 code no longer carries __setstate__/
+This script exists because the anomaly code no longer carries __setstate__/
 __getstate__ workarounds in the model classes. Run it once per old weight file
 to migrate deprecated attributes and bake the current defaults into the saved
 object, then use the converted file with the current code.
 
 Example:
-    python scripts/convert_anomaly_v2_ckpt.py \
+    python scripts/convert_anomaly_ckpt.py \
         --input best_old.pt \
         --output best_converted.pt
 """
@@ -22,9 +22,9 @@ from typing import Any
 
 import torch
 
-from ultralytics.nn.modules import anomaly_v2 as _anomaly_v2
-from ultralytics.nn.modules.anomaly_v2 import AnomalyMemoryBank, BboxMaskRenderer, HeatmapProcessor
-from ultralytics.nn.tasks import YOLOAnomalyV2Model
+from ultralytics.nn.modules import anomaly as _anomaly
+from ultralytics.nn.modules.anomaly import AnomalyMemoryBank, BboxMaskRenderer, HeatmapProcessor
+from ultralytics.nn.tasks import YOLOAnomalyModel
 
 # Old checkpoints pickle classes that were later renamed. Alias them onto the module so
 # torch.load can unpickle the old objects; the migration below then normalizes attributes.
@@ -34,8 +34,8 @@ _LEGACY_CLASS_ALIASES = {"BackboneMemoryBank": AnomalyMemoryBank}
 def _install_legacy_aliases() -> None:
     """Make renamed/removed classes resolvable by name during unpickling (idempotent)."""
     for old_name, new_cls in _LEGACY_CLASS_ALIASES.items():
-        if not hasattr(_anomaly_v2, old_name):
-            setattr(_anomaly_v2, old_name, new_cls)
+        if not hasattr(_anomaly, old_name):
+            setattr(_anomaly, old_name, new_cls)
 
 
 def _migrate_bbox_mask_renderer(m: BboxMaskRenderer) -> None:
@@ -105,8 +105,8 @@ def _migrate_heatmap_processor(m: HeatmapProcessor) -> None:
     m._edge_weight_cache = None
 
 
-def _migrate_v2_model(m: YOLOAnomalyV2Model) -> None:
-    """Apply the migration that used to live in YOLOAnomalyV2Model.__setstate__."""
+def _migrate_v2_model(m: YOLOAnomalyModel) -> None:
+    """Apply the migration that used to live in YOLOAnomalyModel.__setstate__."""
     # Ensure submodules are migrated.
     for module in m.modules():
         if isinstance(module, BboxMaskRenderer):
@@ -178,14 +178,14 @@ def convert_checkpoint(input_path: str | Path, output_path: str | Path) -> dict[
 
     _install_legacy_aliases()
     ckpt = torch.load(input_path, map_location="cpu", weights_only=False)
-    if isinstance(ckpt, YOLOAnomalyV2Model):
+    if isinstance(ckpt, YOLOAnomalyModel):
         model = ckpt
         ckpt = {"model": model, "updates": None, "optimizer": None, "args": None}
     else:
         model = ckpt.get("model")
 
-    if not isinstance(model, YOLOAnomalyV2Model):
-        raise TypeError(f"expected YOLOAnomalyV2Model, got {type(model).__name__}")
+    if not isinstance(model, YOLOAnomalyModel):
+        raise TypeError(f"expected YOLOAnomalyModel, got {type(model).__name__}")
 
     model.eval()
     _migrate_v2_model(model)
@@ -196,7 +196,7 @@ def convert_checkpoint(input_path: str | Path, output_path: str | Path) -> dict[
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Convert an old anomaly-v2 checkpoint to the current format.")
+    parser = argparse.ArgumentParser(description="Convert an old anomaly checkpoint to the current format.")
     parser.add_argument("--input", "-i", required=True, type=Path, help="Path to the old checkpoint.")
     parser.add_argument("--output", "-o", required=True, type=Path, help="Path to write the converted checkpoint.")
     args = parser.parse_args()

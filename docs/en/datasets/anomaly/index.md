@@ -45,7 +45,7 @@ nc: 1
 names: [defect]
 ```
 
-During training, the anomaly prior mask is rendered automatically from the ground-truth boxes — you do not need to supply masks. If your labels are polygon segments, setting `seg_target_polygon: true` in the model YAML `anomaly_v2` block renders the prior from the polygon union instead of boxes.
+During training, the anomaly prior mask is rendered automatically from the ground-truth boxes — you do not need to supply masks. If your labels are polygon segments, setting `seg_target_polygon: true` in the model YAML `anomaly` block renders the prior from the polygon union instead of boxes.
 
 ## Validation layout
 

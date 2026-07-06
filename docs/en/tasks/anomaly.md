@@ -14,7 +14,7 @@ Unlike [object detection](detect.md), which requires labeled examples of every c
 
 !!! tip
 
-    The registered task string is `task=anomaly_v2`, and model configurations use the `-anomaly` suffix, such as `yolo26n-anomaly.yaml`. Import the model class from the `ultralytics.yoloa` submodule: `from ultralytics.yoloa import YOLOA`. The `fit()` step is Python-only; `fit` is not a CLI mode.
+    The registered task string is `task=anomaly`, and model configurations use the `-anomaly` suffix, such as `yolo26n-anomaly.yaml`. Import the model class from the `ultralytics.yoloa` submodule: `from ultralytics.yoloa import YOLOA`. The `fit()` step is Python-only; `fit` is not a CLI mode.
 
 ## Models
 

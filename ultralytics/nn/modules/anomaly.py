@@ -458,7 +458,7 @@ class HeatmapProcessor(nn.Module):
     """Post-process a memory-bank heatmap prior before it is fused into PAN features.
 
     Encapsulates the inference-time transforms that were previously scattered inside
-    ``YOLOAnomalyV2Model``: edge-suppression window, min-max stretch, and gaussian/mean
+    ``YOLOAnomalyModel``: edge-suppression window, min-max stretch, and gaussian/mean
     blur. The processing knobs are owned here as baked-in defaults and are not configurable.
     """
 

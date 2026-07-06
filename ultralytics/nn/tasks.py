@@ -519,8 +519,8 @@ class DetectionModel(BaseModel):
         return E2ELoss(self) if getattr(self, "end2end", False) else v8DetectionLoss(self)
 
 
-class YOLOAnomalyV2Model(DetectionModel):
-    """YOLO Anomaly v2 — detection + soft-hint heatmap fusion.
+class YOLOAnomalyModel(DetectionModel):
+    """YOLO Anomaly — detection + soft-hint heatmap fusion.
 
     Extends DetectionModel with anomaly-side modules attached OUTSIDE the parsed
     Sequential:
@@ -541,11 +541,11 @@ class YOLOAnomalyV2Model(DetectionModel):
       - Inference: a non-empty fitted memory bank is used as the heatmap prior; otherwise passthrough.
     """
 
-    def __init__(self, cfg="yolo26-anomaly-v2.yaml", ch=3, nc=None, verbose=True):
+    def __init__(self, cfg="yolo26-anomaly.yaml", ch=3, nc=None, verbose=True):
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
         # Read v2-specific config from YAML. Constructor kwargs override.
-        v2_cfg = self.yaml.get("anomaly_v2", {}) if isinstance(self.yaml, dict) else {}
+        v2_cfg = self.yaml.get("anomaly", {}) if isinstance(self.yaml, dict) else {}
         mask_size = v2_cfg["mask_size"]
         self.p_drop = v2_cfg["p_drop"]
         self.seg_target_polygon = bool(v2_cfg.get("seg_target_polygon", False))
@@ -566,7 +566,7 @@ class YOLOAnomalyV2Model(DetectionModel):
         """Fuse Conv/BN while preserving both one2many and one2one heads.
 
         The base :meth:`BaseModel.fuse` drops the one2many head when ``end2end=True``.
-        Anomaly v2 switches ``end2end`` on/off across predict/val calls, so we
+        Anomaly switches ``end2end`` on/off across predict/val calls, so we
         temporarily hide the end2end flag from the base fuse to keep both heads.
         """
         if self.is_fused():
@@ -2079,9 +2079,9 @@ def guess_model_task(model):
 
     def cfg2task(cfg):
         """Guess from YAML dictionary."""
-        # YOLO Anomaly v2 marks itself with a dedicated config block (see yolo26-anomaly-v2.yaml).
-        if isinstance(cfg, dict) and "anomaly_v2" in cfg:
-            return "anomaly_v2"
+        # YOLO Anomaly marks itself with a dedicated config block (see yolo26-anomaly.yaml).
+        if isinstance(cfg, dict) and "anomaly" in cfg:
+            return "anomaly"
         m = cfg["head"][-1][-2].lower()  # output module name
         if m in {"classify", "classifier", "cls", "fc"}:
             return "classify"
@@ -2100,10 +2100,10 @@ def guess_model_task(model):
             return cfg2task(model)
     # Guess from PyTorch model
     if isinstance(model, torch.nn.Module):  # PyTorch model
-        # YOLOAnomalyV2Model carries v2-specific submodules; check class first so we don't
+        # YOLOAnomalyModel carries v2-specific submodules; check class first so we don't
         # fall through to "detect" via the Detect-head module check below.
-        if isinstance(model, YOLOAnomalyV2Model):
-            return "anomaly_v2"
+        if isinstance(model, YOLOAnomalyModel):
+            return "anomaly"
         for x in "model.args", "model.model.args", "model.model.model.args":
             with contextlib.suppress(Exception):
                 return eval(x)["task"]  # nosec B307: safe eval of known attribute paths
@@ -2125,8 +2125,8 @@ def guess_model_task(model):
     # Guess from model filename
     if isinstance(model, (str, Path)):
         model = Path(model)
-        if "-anomaly-v2" in model.stem or "anomaly_v2" in model.parts:
-            return "anomaly_v2"
+        if "-anomaly" in model.stem:
+            return "anomaly"
         elif "-seg" in model.stem or "segment" in model.parts:
             return "segment"
         elif "-cls" in model.stem or "classify" in model.parts:
@@ -2141,6 +2141,6 @@ def guess_model_task(model):
     # Unable to determine task from model
     LOGGER.warning(
         "Unable to automatically guess model task, assuming 'task=detect'. "
-        "Explicitly define task for your model, i.e. 'task=detect', 'segment', 'classify', 'pose', 'obb' or 'anomaly_v2'."
+        "Explicitly define task for your model, i.e. 'task=detect', 'segment', 'classify', 'pose', 'obb' or 'anomaly'."
     )
     return "detect"  # assume detect

@@ -23,29 +23,29 @@ import torch
 
 from ultralytics.engine.model import Model
 from ultralytics.models import yolo
-from ultralytics.nn.tasks import YOLOAnomalyV2Model
+from ultralytics.nn.tasks import YOLOAnomalyModel
 from ultralytics.utils import LOGGER
 
 
 class YOLOA(Model):
-    """Training-free anomaly v2: fit a memory bank on normals, then predict / val with heatmap prior."""
+    """Training-free anomaly: fit a memory bank on normals, then predict / val with heatmap prior."""
 
-    def __init__(self, model: str | Path = "yolo26m-anomaly-v2.yaml", verbose: bool = False) -> None:
-        """Load a YOLOA model. A v2 ckpt routes by its baked ``task``; a yaml is forced to anomaly_v2."""
-        super().__init__(model=model, task="anomaly_v2", verbose=verbose)
+    def __init__(self, model: str | Path = "yolo26m-anomaly.yaml", verbose: bool = False) -> None:
+        """Load a YOLOA model. A v2 ckpt routes by its baked ``task``; a yaml is forced to anomaly."""
+        super().__init__(model=model, task="anomaly", verbose=verbose)
 
     @property
     def task_map(self) -> dict[str, dict[str, Any]]:
-        """Map the anomaly_v2 task to its model, trainer, validator and predictor."""
+        """Map the anomaly task to its model, trainer, validator and predictor."""
         return {
-            "anomaly_v2": {
-                "model": YOLOAnomalyV2Model,
-                # TODO: AnomalyV2Trainer is the public trainer (standard in-domain validation only).
-                # During the R&D stage we default to AnomalyV2RNDTrainer so OOD eval drives best.pt
-                # selection. Switch back to AnomalyV2Trainer once the R&D phase is over.
-                "trainer": yolo.anomaly_v2.AnomalyV2RNDTrainer,
-                "validator": yolo.anomaly_v2.YOLOAnomalyValidator,
-                "predictor": yolo.anomaly_v2.YOLOAnomalyPredictor,
+            "anomaly": {
+                "model": YOLOAnomalyModel,
+                # TODO: AnomalyTrainer is the public trainer (standard in-domain validation only).
+                # During the R&D stage we default to AnomalyRNDTrainer so OOD eval drives best.pt
+                # selection. Switch back to AnomalyTrainer once the R&D phase is over.
+                "trainer": yolo.anomaly.AnomalyRNDTrainer,
+                "validator": yolo.anomaly.YOLOAnomalyValidator,
+                "predictor": yolo.anomaly.YOLOAnomalyPredictor,
             }
         }
 

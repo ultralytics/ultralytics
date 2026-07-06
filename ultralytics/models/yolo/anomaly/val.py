@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-"""YOLO Anomaly v2 validator — single-pass with optional heatmap prior."""
+"""YOLO Anomaly validator — single-pass with optional heatmap prior."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ from ultralytics.utils import LOGGER
 
 
 class YOLOAnomalyValidator(DetectionValidator):
-    """Anomaly-v2 validator.
+    """Anomaly validator.
 
     Runs a single validation pass. If an AnomalyMemoryBank is configured and can be
     built from the dataset's train (normal) split, the pass uses the heatmap prior
@@ -22,7 +22,7 @@ class YOLOAnomalyValidator(DetectionValidator):
 
     def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None) -> None:
         super().__init__(dataloader, save_dir, args, _callbacks)
-        self.args.task = "anomaly_v2"
+        self.args.task = "anomaly"
         self.args.rect = False
 
     def init_metrics(self, model) -> None:

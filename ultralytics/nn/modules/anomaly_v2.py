@@ -454,6 +454,9 @@ class AnomalyMemoryBank(nn.Module):
         return (mem[sel], sel) if return_indices else mem[sel]
 
 
+BackboneMemoryBank = AnomalyMemoryBank  # back-compat alias
+
+
 class HeatmapProcessor(nn.Module):
     """Post-process a memory-bank heatmap prior before it is fused into PAN features.
 

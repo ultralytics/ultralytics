@@ -19,11 +19,22 @@ requires an isolated venv (its AutoUpdate downgrades torch 2.9→2.4 + cudnn 9.1
 
 from __future__ import annotations
 
+import math
+import os
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
 from ultralytics.utils import deprecation_warn
+
+# Length-aware SDPA temperature (A1). A P5 token grid trained at ~224px (49 tokens for the /16 stem) but run at 640px
+# (400 tokens) diffuses the fixed 1/sqrt(d) softmax over 8x more keys. Scaling the logits by sqrt(log N / log N_ref)
+# restores the training-time peakiness. Env-gated so the CE/distill graph is byte-identical unless opted in; at
+# N == N_ref the factor is exactly 1 (no-op at training resolution). q.shape[-2] is a concrete int under static-shape
+# export, so this folds into SDPA's scalar scale (one constant Mul, no branch) and passes RKNN/Paddle/CoreML.
+_LOGN_ATTN = os.getenv("ULTRAVIT_LOGN_ATTN", "0") == "1"
+_INV_LOG_REF = 1.0 / math.log(49)  # 49 = /16-stem P5 tokens at the ~224px training grid
 
 
 class UltraViTBlock(nn.Module):
@@ -159,7 +170,11 @@ class MHSABlock(nn.Module):
         n = self.ln1(t)
         qkv = self.qkv(n).reshape(b, -1, 3, self.num_heads, self.head_dim).permute(2, 0, 3, 1, 4)
         q, k, v = qkv[0], qkv[1], qkv[2]  # indexed split traces to aten::select, x2paddle maps it but not aten::unbind
-        a = F.scaled_dot_product_attention(q, k, v)
+        if _LOGN_ATTN:  # length-aware temperature: sharpen softmax as the token grid grows past the 49-token train grid
+            scale = self.head_dim**-0.5 * (math.log(max(int(q.shape[-2]), 2)) * _INV_LOG_REF) ** 0.5
+            a = F.scaled_dot_product_attention(q, k, v, scale=scale)
+        else:
+            a = F.scaled_dot_product_attention(q, k, v)
         a = self.proj(a.transpose(1, 2).reshape(b, -1, c))
         ls1 = getattr(self, "ls1", None)
         t = t + (a if ls1 is None else ls1 * a)

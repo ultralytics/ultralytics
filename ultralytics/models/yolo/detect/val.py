@@ -210,8 +210,7 @@ class DetectionValidator(BaseValidator):
                             gt_positions = gt_positions.reshape(-1, 4, 2)
                             gt_centers = gt_positions.mean(axis=1)
                         elif gt_boxes.shape[1] == 5: # for [xywhr] - where xy are the x and y origin point of the box
-                            gt_positions = gt_boxes[:,:2]
-                            gt_centers = gt_positions.mean(axis=1)
+                            gt_centers = gt_boxes[:,:2]
                         else:
                             gt_centers = (gt_boxes[:, :2] + gt_boxes[:, 2:4]) / 2.0
 
@@ -220,8 +219,7 @@ class DetectionValidator(BaseValidator):
                             pred_positions = pred_positions.reshape(-1, 4, 2)
                             pred_centers = pred_positions.mean(axis=1)
                         elif pred_boxes.shape[1] == 5:
-                            pred_positions = pred_boxes[:,:2]
-                            pred_centers = pred_positions.mean(axis=1)
+                            pred_centers = pred_boxes[:,:2]
                         else:
                             pred_centers = (pred_boxes[:, :2] + pred_boxes[:, 2:4]) / 2.0
 

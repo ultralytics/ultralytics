@@ -162,7 +162,7 @@ class AnomalyRNDTrainer(AnomalyTrainer):
                     continue
 
                 overrides = {
-                    "task": "anomaly",
+                    "task": "detect",
                     "mode": "val",
                     "data": str(yaml),
                     "split": "val",

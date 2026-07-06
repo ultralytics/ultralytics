@@ -2079,9 +2079,9 @@ def guess_model_task(model):
 
     def cfg2task(cfg):
         """Guess from YAML dictionary."""
-        # YOLO Anomaly marks itself with a dedicated config block (see yolo26-anomaly.yaml).
+        # YOLO Anomaly is a detection model with an extra heatmap-prior block (see yolo26-anomaly.yaml).
         if isinstance(cfg, dict) and "anomaly" in cfg:
-            return "anomaly"
+            return "detect"
         m = cfg["head"][-1][-2].lower()  # output module name
         if m in {"classify", "classifier", "cls", "fc"}:
             return "classify"
@@ -2100,10 +2100,6 @@ def guess_model_task(model):
             return cfg2task(model)
     # Guess from PyTorch model
     if isinstance(model, torch.nn.Module):  # PyTorch model
-        # YOLOAnomalyModel carries v2-specific submodules; check class first so we don't
-        # fall through to "detect" via the Detect-head module check below.
-        if isinstance(model, YOLOAnomalyModel):
-            return "anomaly"
         for x in "model.args", "model.model.args", "model.model.model.args":
             with contextlib.suppress(Exception):
                 return eval(x)["task"]  # nosec B307: safe eval of known attribute paths
@@ -2126,7 +2122,7 @@ def guess_model_task(model):
     if isinstance(model, (str, Path)):
         model = Path(model)
         if "-anomaly" in model.stem:
-            return "anomaly"
+            return "detect"
         elif "-seg" in model.stem or "segment" in model.parts:
             return "segment"
         elif "-cls" in model.stem or "classify" in model.parts:
@@ -2141,6 +2137,6 @@ def guess_model_task(model):
     # Unable to determine task from model
     LOGGER.warning(
         "Unable to automatically guess model task, assuming 'task=detect'. "
-        "Explicitly define task for your model, i.e. 'task=detect', 'segment', 'classify', 'pose', 'obb' or 'anomaly'."
+        "Explicitly define task for your model, i.e. 'task=detect', 'segment', 'classify', 'pose' or 'obb'."
     )
     return "detect"  # assume detect

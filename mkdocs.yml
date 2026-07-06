@@ -236,7 +236,6 @@ nav:
       - Classify: tasks/classify.md
       - Pose: tasks/pose.md
       - OBB: tasks/obb.md
-      - Anomaly: tasks/anomaly.md
   - Models:
       - models/index.md
       - YOLOv3: models/yolov3.md
@@ -259,6 +258,7 @@ nav:
       - RT-DETR (Realtime Detection Transformer): models/rtdetr.md
       - YOLO-World (Real-Time Open-Vocabulary Object Detection): models/yolo-world.md
       - YOLOE (Real-Time Seeing Anything): models/yoloe.md
+      - YOLOA (YOLO Anomaly Detection): models/yoloa.md
   - Compare:
       - compare/index.md
       - YOLO26:
@@ -867,7 +867,6 @@ nav:
           - triton: reference/utils/triton.md
           - tuner: reference/utils/tuner.md
           - uploads: reference/utils/uploads.md
-      - yoloa: reference/yoloa.md
 
   - Help:
       - Help: help/index.md

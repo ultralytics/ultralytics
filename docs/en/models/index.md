@@ -6,7 +6,7 @@ keywords: Ultralytics, supported models, YOLOv3, YOLOv4, YOLOv5, YOLOv6, YOLOv7,
 
 # Models Supported by Ultralytics
 
-Welcome to Ultralytics' model documentation! We offer support for a wide range of models, each tailored to specific tasks like [object detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), [image classification](../tasks/classify.md), [pose estimation](../tasks/pose.md), [anomaly detection](../tasks/anomaly.md), and [multi-object tracking](../modes/track.md). If you're interested in contributing your model architecture to Ultralytics, check out our [Contributing Guide](../help/contributing.md).
+Welcome to Ultralytics' model documentation! We offer support for a wide range of models, each tailored to specific tasks like [object detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), [image classification](../tasks/classify.md), and [pose estimation](../tasks/pose.md), as well as specialized model groups like [YOLOA](yoloa.md) for anomaly detection and [multi-object tracking](../modes/track.md). If you're interested in contributing your model architecture to Ultralytics, check out our [Contributing Guide](../help/contributing.md).
 
 ![Ultralytics YOLO11 Comparison Plots](https://raw.githubusercontent.com/ultralytics/assets/refs/heads/main/yolo/performance-comparison.png)
 
@@ -33,6 +33,7 @@ Here are some of the key models supported:
 17. **[Real-Time Detection Transformers (RT-DETR)](rtdetr.md)**: Baidu's PaddlePaddle real-time Detection [Transformer](https://www.ultralytics.com/glossary/transformer) (RT-DETR) models.
 18. **[YOLO-World](yolo-world.md)**: Real-time Open Vocabulary Object Detection models from Tencent AI Lab.
 19. **[YOLOE](yoloe.md)**: An improved open-vocabulary object detector that maintains YOLO's real-time performance while detecting arbitrary classes beyond its training data.
+20. **[YOLOA](yoloa.md)**: Training-free anomaly detection that fits a memory bank on normal images and flags visual defects with standard YOLO detection outputs.
 
 <p align="center">
   <br>

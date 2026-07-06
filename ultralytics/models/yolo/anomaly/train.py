@@ -43,7 +43,7 @@ class AnomalyTrainer(DetectionTrainer):
         if self._polygon_prior_active() and mode == "train":
             # task="segment" flips YOLODataset.use_segments -> Format(return_mask=True) ->
             # batch["masks"] (overlap-union instance map). Detection head/loss unaffected
-            # (bboxes still present). copy() so the persistent self.args stays task="anomaly".
+            # (bboxes still present). copy() so the persistent self.args stays task="detect".
             args = copy(self.args)
             args.task = "segment"
             gs = max(int(unwrap_model(self.model).stride.max()), 32)

@@ -857,7 +857,7 @@ This script will run predictions on each frame of the video, visualize the resul
 
 ### What is Ultralytics YOLO and its predict mode for real-time inference?
 
-Ultralytics YOLO is a state-of-the-art model for real-time [object detection](https://www.ultralytics.com/glossary/object-detection), segmentation, classification, and [anomaly detection](../tasks/anomaly.md). Its **predict mode** allows users to perform high-speed inference on various data sources such as images, videos, and live streams. Designed for performance and versatility, it also offers batch processing and streaming modes. For more details on its features, check out the [Ultralytics YOLO predict mode](#key-features-of-predict-mode).
+Ultralytics YOLO is a state-of-the-art model for real-time [object detection](https://www.ultralytics.com/glossary/object-detection), segmentation, classification, and [anomaly detection](../models/yoloa.md). Its **predict mode** allows users to perform high-speed inference on various data sources such as images, videos, and live streams. Designed for performance and versatility, it also offers batch processing and streaming modes. For more details on its features, check out the [Ultralytics YOLO predict mode](#key-features-of-predict-mode).
 
 ### How can I run inference using Ultralytics YOLO on different data sources?
 

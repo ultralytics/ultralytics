@@ -4,19 +4,27 @@ description: Detect visual defects without labeled anomalies using Ultralytics Y
 keywords: anomaly detection, defect detection, YOLOA, YOLO26, visual inspection, quality control, one-class learning, memory bank, industrial AI, Ultralytics
 ---
 
-# Anomaly Detection
+# YOLOA: YOLO Anomaly Detection
 
-<!-- BLOCKED: hero image pending an assets AVIF (like the semantic-segmentation hero) once the feature is public -->
+<!-- BLOCKED: hero image pending an assets AVIF once the feature is public -->
 
-[Anomaly detection](https://www.ultralytics.com/glossary/anomaly-detection) with Ultralytics YOLOA finds visual defects — scratches, dents, cracks, contamination — after fitting on normal images alone, storing up to 10,000 reference feature vectors in a coreset-compressed memory bank instead of learning from labeled defects. Built on [YOLO26](../models/yolo26.md), YOLOA outputs standard detection [bounding boxes](https://www.ultralytics.com/glossary/bounding-box) around anomalous regions, so the results plug into any pipeline that already consumes YOLO detections.
+[YOLOA](https://www.ultralytics.com/glossary/anomaly-detection) is a YOLO model group (like [YOLOE](yoloe.md) and [YOLO-World](yolo-world.md)) that adds training-free anomaly detection to the standard YOLO detection architecture. After fitting a memory bank on normal images alone, YOLOA fuses a heatmap prior into the detector at inference to find visual defects — scratches, dents, cracks, contamination — without labeled anomalies. Built on [YOLO26](yolo26.md), it outputs standard detection [bounding boxes](https://www.ultralytics.com/glossary/bounding-box) around anomalous regions, so the results plug into any pipeline that already consumes YOLO detections.
 
-Unlike [object detection](detect.md), which requires labeled examples of every class it should find, YOLOA targets defect types you cannot enumerate in advance: it learns what _normal_ looks like and flags anything that deviates. This one-class approach fits industrial visual inspection, where normal samples are plentiful and defects are rare, diverse, and expensive to label.
+Unlike a regular [object detection](../tasks/detect.md) model, which requires labeled examples of every class it should find, YOLOA targets defect types you cannot enumerate in advance: it learns what _normal_ looks like and flags anything that deviates. This one-class approach fits industrial visual inspection, where normal samples are plentiful and defects are rare, diverse, and expensive to label.
 
 !!! tip
 
-    The registered task string is `task=anomaly`, and model configurations use the `-anomaly` suffix, such as `yolo26n-anomaly.yaml`. Import the model class from the `ultralytics.yoloa` submodule: `from ultralytics.yoloa import YOLOA`. The `fit()` step is Python-only; `fit` is not a CLI mode.
+    Import the model class with `from ultralytics import YOLOA`. YOLOA uses the standard `detect` task under the hood; model configurations use the `-anomaly` suffix, such as `yolo26n-anomaly.yaml`. The `fit()` step is Python-only and is not a CLI mode.
 
-## Models
+## Available Models, Supported Tasks, and Operating Modes
+
+| Model Type | Model YAML            | Task Supported               | Inference | Validation | Training | Export |
+| ---------- | --------------------- | ---------------------------- | --------- | ---------- | -------- | ------ |
+| YOLOA-N    | `yolo26n-anomaly.yaml`  | [Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOA-S    | `yolo26s-anomaly.yaml`  | [Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOA-M    | `yolo26m-anomaly.yaml`  | [Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOA-L    | `yolo26l-anomaly.yaml`  | [Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOA-X    | `yolo26x-anomaly.yaml`  | [Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
 
 Pretrained YOLOA checkpoints and benchmark numbers have not been published yet. Build a model from the `yolo26-anomaly.yaml` configuration, which supports the standard n/s/m/l/x scales via the scale letter in the filename, for example `yolo26n-anomaly.yaml`.
 
@@ -46,7 +54,7 @@ Fit the memory bank on a directory of normal (defect-free) images or a list of i
     === "Python"
 
         ```python
-        from ultralytics.yoloa import YOLOA
+        from ultralytics import YOLOA
 
         # Build a model from a YAML configuration
         model = YOLOA("yolo26n-anomaly.yaml")
@@ -75,7 +83,7 @@ Bank-building hyperparameters (bank size 10,000 vectors, 5 nearest neighbors per
 
 ### Fit dataset format
 
-The fit set is a plain folder of good images — no labels and no dataset YAML, similar to how [classification](classify.md) trains from a folder. Supported extensions: `avif`, `bmp`, `dng`, `heic`, `heif`, `jp2`, `jpeg`, `jpeg2000`, `jpg`, `mpo`, `png`, `tif`, `tiff`, `webp`. See the [Anomaly Detection Dataset Guide](../datasets/anomaly/index.md) for details.
+The fit set is a plain folder of good images — no labels and no dataset YAML, similar to how [classification](../tasks/classify.md) trains from a folder. Supported extensions: `avif`, `bmp`, `dng`, `heic`, `heif`, `jp2`, `jpeg`, `jpeg2000`, `jpg`, `mpo`, `png`, `tif`, `tiff`, `webp`. See the [Anomaly Detection Dataset Guide](../datasets/anomaly/index.md) for details.
 
 ## Train (optional)
 
@@ -86,7 +94,7 @@ Fine-tune the detector on a standard YOLO detection dataset of labeled defects. 
     === "Python"
 
         ```python
-        from ultralytics.yoloa import YOLOA
+        from ultralytics import YOLOA
 
         model = YOLOA("yolo26n-anomaly.yaml")
 
@@ -111,7 +119,7 @@ Predict with a fitted model. When the memory bank is non-empty, each image is sc
     === "Python"
 
         ```python
-        from ultralytics.yoloa import YOLOA
+        from ultralytics import YOLOA
 
         # Load a fitted checkpoint (bank included, no re-fit needed)
         model = YOLOA("yolo26n-anomaly-bottle.pt")
@@ -132,7 +140,7 @@ Results are standard detection [Results](../reference/engine/results.md) objects
 
 ### Results Output
 
-YOLOA returns one `Results` object per image with the same fields as [object detection](detect.md) — downstream code written for YOLO detections works unchanged.
+YOLOA returns one `Results` object per image with the same fields as [object detection](../tasks/detect.md) — downstream code written for YOLO detections works unchanged.
 
 | Attribute           | Type            | Shape   | Description                                       |
 | ------------------- | --------------- | ------- | ------------------------------------------------- |
@@ -143,7 +151,7 @@ YOLOA returns one `Results` object per image with the same fields as [object det
 | `result.masks`      | -               | -       | No masks.                                         |
 | `result.probs`      | -               | -       | No classification probabilities.                  |
 
-### Anomaly Detection vs Object Detection
+### YOLOA vs regular YOLO detection
 
 | Aspect            | Object detection (`YOLO`)              | Anomaly detection (`YOLOA`)                                           |
 | ----------------- | -------------------------------------- | --------------------------------------------------------------------- |
@@ -162,7 +170,7 @@ Validate on a dataset YAML whose `val` split contains labeled defect images. The
     === "Python"
 
         ```python
-        from ultralytics.yoloa import YOLOA
+        from ultralytics import YOLOA
 
         model = YOLOA("yolo26n-anomaly.yaml")
         model.fit("path/to/normal/images")
@@ -190,7 +198,7 @@ Export the model to a format like ONNX. The exported graph is built entirely fro
     === "Python"
 
         ```python
-        from ultralytics.yoloa import YOLOA
+        from ultralytics import YOLOA
 
         # Load a fitted checkpoint and export with the memory bank embedded
         model = YOLOA("yolo26n-anomaly-bottle.pt")
@@ -217,7 +225,7 @@ Yes — YOLOA fits a memory bank on normal images alone — `model.fit("path/to/
 
 ### How does anomaly detection differ from object detection?
 
-[Object detection](detect.md) learns to find classes it saw labeled during training, so it misses defect types absent from the training set. Anomaly detection inverts the problem: YOLOA models what normal looks like and flags deviations, so it can detect defect types never seen before. The output format is the same — bounding boxes with confidence scores.
+[Object detection](../tasks/detect.md) learns to find classes it saw labeled during training, so it misses defect types absent from the training set. Anomaly detection inverts the problem: YOLOA models what normal looks like and flags deviations, so it can detect defect types never seen before. The output format is the same — bounding boxes with confidence scores.
 
 ### How do I control the anomaly prior at inference?
 

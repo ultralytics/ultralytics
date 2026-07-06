@@ -53,14 +53,13 @@ SOLUTION_MAP = {
 
 # Define valid tasks and modes
 MODES = frozenset({"train", "val", "predict", "export", "track", "benchmark"})
-TASKS = frozenset({"detect", "segment", "classify", "pose", "obb", "anomaly"})
+TASKS = frozenset({"detect", "segment", "classify", "pose", "obb"})
 TASK2DATA = {
     "detect": "coco8.yaml",
     "segment": "coco8-seg.yaml",
     "classify": "imagenet10",
     "pose": "coco8-pose.yaml",
     "obb": "dota8.yaml",
-    "anomaly": "coco8.yaml",  # placeholder; user supplies their own anomaly dataset
 }
 TASK2CALIBRATIONDATA = {
     "detect": "coco128.yaml",
@@ -68,7 +67,6 @@ TASK2CALIBRATIONDATA = {
     "classify": "imagenet100",
     "pose": "coco8-pose.yaml",
     "obb": "dota128.yaml",
-    "anomaly": "coco128.yaml",
 }
 TASK2MODEL = {
     "detect": "yolo26n.pt",
@@ -76,7 +74,6 @@ TASK2MODEL = {
     "classify": "yolo26n-cls.pt",
     "pose": "yolo26n-pose.pt",
     "obb": "yolo26n-obb.pt",
-    "anomaly": "yolo26m-anomaly.yaml",
 }
 TASK2METRIC = {
     "detect": "metrics/mAP50-95(B)",
@@ -84,7 +81,6 @@ TASK2METRIC = {
     "classify": "metrics/accuracy_top1",
     "pose": "metrics/mAP50-95(P)",
     "obb": "metrics/mAP50-95(B)",
-    "anomaly": "metrics/mAP50-95(B)",  # uses standard detection mAP (mask-on pass)
 }
 
 ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []
@@ -963,7 +959,7 @@ def entrypoint(debug: str = "") -> None:
         from ultralytics import SAM
 
         model = SAM(model)
-    elif "anomaly" in stem:
+    elif "-anomaly" in stem:
         from ultralytics.yoloa import YOLOA
 
         model = YOLOA(model)

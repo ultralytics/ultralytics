@@ -24,7 +24,7 @@ bottle/
 Point `fit()` at the folder (or pass an explicit list of image paths):
 
 ```python
-from ultralytics.yoloa import YOLOA
+from ultralytics import YOLOA
 
 model = YOLOA("yolo26n-anomaly.yaml")
 model.fit("bottle/train/good", name="bottle")
@@ -63,7 +63,7 @@ names: [defect]
 The memory bank comes from your `fit()` call or a fitted checkpoint — not from the YAML — so fit before validating:
 
 ```python
-from ultralytics.yoloa import YOLOA
+from ultralytics import YOLOA
 
 model = YOLOA("yolo26n-anomaly.yaml")
 model.fit("bottle/train/good", name="bottle")

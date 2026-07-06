@@ -45,13 +45,13 @@ Ensure you have the following prerequisites before proceeding:
 
 - Docker or Podman installed on your machine
 - Install `ultralytics`:
-  ```bash
-  pip install ultralytics
-  ```
+    ```bash
+    pip install ultralytics
+    ```
 - Install `tritonclient`:
-  ```bash
-  pip install tritonclient[all]
-  ```
+    ```bash
+    pip install tritonclient[all]
+    ```
 
 ## Setting Up Triton Inference Server
 
@@ -238,64 +238,64 @@ Setting up [Ultralytics YOLO26](../models/yolo26.md) with [NVIDIA Triton Inferen
 
 1. **Export YOLO26 to ONNX format**:
 
-   ```python
-   from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-   # Load a model
-   model = YOLO("yolo26n.pt")  # load an official model
+    # Load a model
+    model = YOLO("yolo26n.pt")  # load an official model
 
-   # Export the model to ONNX format
-   onnx_file = model.export(format="onnx", dynamic=True)
-   ```
+    # Export the model to ONNX format
+    onnx_file = model.export(format="onnx", dynamic=True)
+    ```
 
 2. **Set up Triton Model Repository**:
 
-   ```python
-   from pathlib import Path
+    ```python
+    from pathlib import Path
 
-   # Define paths
-   model_name = "yolo"
-   triton_repo_path = Path("tmp") / "triton_repo"
-   triton_model_path = triton_repo_path / model_name
+    # Define paths
+    model_name = "yolo"
+    triton_repo_path = Path("tmp") / "triton_repo"
+    triton_model_path = triton_repo_path / model_name
 
-   # Create directories
-   (triton_model_path / "1").mkdir(parents=True, exist_ok=True)
-   Path(onnx_file).rename(triton_model_path / "1" / "model.onnx")
-   (triton_model_path / "config.pbtxt").touch()
-   ```
+    # Create directories
+    (triton_model_path / "1").mkdir(parents=True, exist_ok=True)
+    Path(onnx_file).rename(triton_model_path / "1" / "model.onnx")
+    (triton_model_path / "config.pbtxt").touch()
+    ```
 
 3. **Run the Triton Server**:
 
-   ```python
-   import contextlib
-   import subprocess
-   import time
+    ```python
+    import contextlib
+    import subprocess
+    import time
 
-   from tritonclient.http import InferenceServerClient
+    from tritonclient.http import InferenceServerClient
 
-   # Define image https://catalog.ngc.nvidia.com/orgs/nvidia/containers/tritonserver
-   tag = "nvcr.io/nvidia/tritonserver:26.02-py3"
+    # Define image https://catalog.ngc.nvidia.com/orgs/nvidia/containers/tritonserver
+    tag = "nvcr.io/nvidia/tritonserver:26.02-py3"
 
-   runtime = "docker"  # set to "podman" to use Podman
-   subprocess.call(f"{runtime} pull {tag}", shell=True)
+    runtime = "docker"  # set to "podman" to use Podman
+    subprocess.call(f"{runtime} pull {tag}", shell=True)
 
-   # CDI GPU request works identically on Docker and Podman
-   gpu_flags = "--device nvidia.com/gpu=all"
+    # CDI GPU request works identically on Docker and Podman
+    gpu_flags = "--device nvidia.com/gpu=all"
 
-   container_name = "triton_server"
-   subprocess.call(
-       f"{runtime} run -d --rm --name {container_name} {gpu_flags} -v {triton_repo_path.absolute()}:/models:z -p 8000:8000 {tag} tritonserver --model-repository=/models",
-       shell=True,
-   )
+    container_name = "triton_server"
+    subprocess.call(
+        f"{runtime} run -d --rm --name {container_name} {gpu_flags} -v {triton_repo_path.absolute()}:/models:z -p 8000:8000 {tag} tritonserver --model-repository=/models",
+        shell=True,
+    )
 
-   triton_client = InferenceServerClient(url="127.0.0.1:8000", verbose=False, ssl=False)
+    triton_client = InferenceServerClient(url="127.0.0.1:8000", verbose=False, ssl=False)
 
-   for _ in range(10):
-       with contextlib.suppress(Exception):
-           assert triton_client.is_model_ready(model_name)
-           break
-       time.sleep(1)
-   ```
+    for _ in range(10):
+        with contextlib.suppress(Exception):
+            assert triton_client.is_model_ready(model_name)
+            break
+        time.sleep(1)
+    ```
 
 This setup can help you efficiently deploy [Ultralytics YOLO26](../models/yolo26.md) models at scale on Triton Inference Server for high-performance AI model inference.
 

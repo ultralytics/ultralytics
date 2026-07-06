@@ -114,23 +114,23 @@ Here we will install Ultralytics package on DGX Spark with optional dependencies
 
 1. Update packages list, install pip and upgrade to latest
 
-   ```bash
-   sudo apt update
-   sudo apt install python3-pip -y
-   pip install -U pip
-   ```
+    ```bash
+    sudo apt update
+    sudo apt install python3-pip -y
+    pip install -U pip
+    ```
 
 2. Install `ultralytics` pip package with optional dependencies
 
-   ```bash
-   pip install ultralytics[export]
-   ```
+    ```bash
+    pip install ultralytics[export]
+    ```
 
 3. Reboot the device
 
-   ```bash
-   sudo reboot
-   ```
+    ```bash
+    sudo reboot
+    ```
 
 ### Install PyTorch and Torchvision
 
@@ -338,31 +338,31 @@ When using NVIDIA DGX Spark, there are a couple of best practices to follow in o
 
 1. **Monitor System Performance**
 
-   Use NVIDIA's monitoring tools to track GPU and CPU utilization:
+    Use NVIDIA's monitoring tools to track GPU and CPU utilization:
 
-   ```bash
-   nvidia-smi
-   ```
+    ```bash
+    nvidia-smi
+    ```
 
 2. **Optimize Memory Usage**
 
-   With 128GB of unified memory, DGX Spark can handle large batch sizes and models. Consider increasing batch size for improved throughput:
+    With 128GB of unified memory, DGX Spark can handle large batch sizes and models. Consider increasing batch size for improved throughput:
 
-   ```python
-   from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-   model = YOLO("yolo26n.engine")
-   results = model.predict(source="path/to/images", batch=16)
-   ```
+    model = YOLO("yolo26n.engine")
+    results = model.predict(source="path/to/images", batch=16)
+    ```
 
 3. **Use TensorRT with FP16 or INT8**
 
-   For best performance, export models with FP16 or INT8 precision:
+    For best performance, export models with FP16 or INT8 precision:
 
-   ```bash
-   yolo export model=yolo26n.pt format=engine quantize=16 # FP16
-   yolo export model=yolo26n.pt format=engine quantize=8  # INT8
-   ```
+    ```bash
+    yolo export model=yolo26n.pt format=engine quantize=16 # FP16
+    yolo export model=yolo26n.pt format=engine quantize=8  # INT8
+    ```
 
 ## System Updates (Founders Edition)
 

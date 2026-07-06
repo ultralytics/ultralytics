@@ -103,6 +103,9 @@ class MHSABlock(nn.Module):
         pe (nn.Conv2d): Depthwise 7x7 conditional positional encoding (FastViT RepCPE / CPVT), applied before attention.
             Zero-initialized so a fresh block starts as identity (ReZero) and the residual learns the position signal
             from zero. `forward` guards on it so checkpoints saved before `pe` existed still load and run.
+        temperature (nn.Parameter): Per-head scalar for cross-covariance attention (XCiT), created only when `xca=True`.
+            Its presence switches `forward` to channel attention (map is head_dim x head_dim, invariant to token count),
+            so a frozen backbone meets no length-coupled softmax when transferred to a larger detection grid.
         ln1 (nn.LayerNorm): Pre-attention norm.
         qkv (nn.Linear): Fused QKV projection.
         proj (nn.Linear): Post-attention projection.
@@ -130,6 +133,7 @@ class MHSABlock(nn.Module):
         conv_ffn: bool = False,
         head_dim: int = 0,
         cpe: bool = True,
+        xca: bool = False,
     ):
         """Initialize MHSABlock."""
         super().__init__()
@@ -145,6 +149,8 @@ class MHSABlock(nn.Module):
             nn.init.zeros_(self.pe.bias)
         else:
             self.pe = None
+        if xca:  # A5 cross-covariance attention: map is head_dim x head_dim (N-invariant), learnable per-head temp (XCiT)
+            self.temperature = nn.Parameter(torch.ones(num_heads, 1, 1))
         self.ln1 = nn.LayerNorm(c)
         self.qkv = nn.Linear(c, 3 * c, bias=False)
         self.proj = nn.Linear(c, c, bias=False)
@@ -174,12 +180,19 @@ class MHSABlock(nn.Module):
         n = self.ln1(t)
         qkv = self.qkv(n).reshape(b, -1, 3, self.num_heads, self.head_dim).permute(2, 0, 3, 1, 4)
         q, k, v = qkv[0], qkv[1], qkv[2]  # indexed split traces to aten::select, x2paddle maps it but not aten::unbind
-        if _LOGN_ATTN:  # length-aware temperature: sharpen softmax as the token grid grows past the 49-token train grid
-            scale = self.head_dim**-0.5 * (math.log(max(int(q.shape[-2]), 2)) * _INV_LOG_REF) ** 0.5
-            a = F.scaled_dot_product_attention(q, k, v, scale=scale)
+        if getattr(self, "temperature", None) is not None:  # A5 XCA: attention over channels, invariant to token count
+            qn = F.normalize(q.transpose(-2, -1), dim=-1)  # (B, heads, head_dim, N), L2-normed over tokens
+            kn = F.normalize(k.transpose(-2, -1), dim=-1)
+            attn = (qn @ kn.transpose(-2, -1)) * self.temperature  # (B, heads, head_dim, head_dim)
+            a = (attn.softmax(dim=-1) @ v.transpose(-2, -1)).permute(0, 3, 1, 2).reshape(b, -1, c)
         else:
-            a = F.scaled_dot_product_attention(q, k, v)
-        a = self.proj(a.transpose(1, 2).reshape(b, -1, c))
+            if _LOGN_ATTN:  # length-aware temperature: sharpen softmax as the grid grows past the 49-token train grid
+                scale = self.head_dim**-0.5 * (math.log(max(int(q.shape[-2]), 2)) * _INV_LOG_REF) ** 0.5
+                a = F.scaled_dot_product_attention(q, k, v, scale=scale)
+            else:
+                a = F.scaled_dot_product_attention(q, k, v)
+            a = a.transpose(1, 2).reshape(b, -1, c)
+        a = self.proj(a)
         ls1 = getattr(self, "ls1", None)
         t = t + (a if ls1 is None else ls1 * a)
         ls2 = getattr(self, "ls2", None)

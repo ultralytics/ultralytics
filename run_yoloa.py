@@ -297,7 +297,7 @@ def main():
             "mAP10": "mAP10",
             "mAP25": "mAP25",
             "mAP50": "mAP50",
-            "mAP10_95": "mAP1095",
+            "mAP10_50": "mAP1050",
             "P": "P",
             "R": "R",
         }

@@ -28,7 +28,7 @@ MVTEC_TEXTURE = ["carpet", "grid", "leather", "tile", "wood"]
 MVTEC_RANDOM = ["bottle", "cable", "capsule", "carpet", "grid"]
 
 CAT_GROUPS = {"object": MVTEC_OBJECT, "texture": MVTEC_TEXTURE, "random5": MVTEC_RANDOM}
-VAL_METRICS = ("image_auroc", "pixel_auroc", "mAP10", "mAP25", "mAP50", "mAP10_95", "P", "R")
+VAL_METRICS = ("image_auroc", "pixel_auroc", "mAP10", "mAP25", "mAP50", "mAP10_50", "P", "R")
 
 # YAML keys -> FeatureDiscriminatorScorer kwargs
 SCORER_YAML_KEYS = {

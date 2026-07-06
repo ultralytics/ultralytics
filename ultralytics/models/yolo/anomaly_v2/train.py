@@ -64,7 +64,7 @@ class AnomalyV2Trainer(DetectionTrainer):
         self._ood_best_fitness = None  # running max of the OOD-scale fitness (best.pt selection)
 
     def validate(self):
-        """Run validation; when OOD eval is enabled, use OOD heatmap mAP10 (test_metrics(heatmap_prior)) as fitness.
+        """Run validation; when OOD eval is enabled, use OOD none-prior mAP10_50 (test_metrics(none_prior)) as fitness.
 
         The OOD eval runs here (not as an ``on_fit_epoch_end`` callback) on the current epoch's
         EMA, so best.pt selection sees this epoch's score with no one-epoch lag. Fitness stays on
@@ -77,9 +77,9 @@ class AnomalyV2Trainer(DetectionTrainer):
         metrics, fitness = super().validate()
         v2_cfg = getattr(unwrap_model(self.model), "yaml", {}).get("anomaly_v2", {})
         if int(v2_cfg.get("test_val_freq", 3)) > 0 and metrics is not None:
-            self._ood_heatmap_map10 = None  # skipped (freq) epochs -> 0.0, not a best.pt candidate
-            AnomalyV2Trainer._mvtec_ood_eval(self)  # sets self._ood_heatmap_map10 (+ wandb log)
-            fitness = float(self._ood_heatmap_map10 or 0.0)
+            self._ood_none_map1050 = None  # skipped (freq) epochs -> 0.0, not a best.pt candidate
+            AnomalyV2Trainer._mvtec_ood_eval(self)  # sets self._ood_none_map1050 (+ wandb log)
+            fitness = float(self._ood_none_map1050 or 0.0)
             metrics["fitness"] = fitness
             self._ood_best_fitness = (
                 fitness if self._ood_best_fitness is None else max(self._ood_best_fitness, fitness)
@@ -164,15 +164,14 @@ class AnomalyV2Trainer(DetectionTrainer):
             model_yaml = getattr(unwrap_model(trainer.model), "yaml", {}) or {}
             fit_yaml = _resolve_fit_yaml(str(fit_cfg_path), model_yaml.get("yaml_file"))
 
-        # Per-prior test switches pick which OOD modes run. test_heatmap_prior is forced on because
-        # best.pt fitness is test_metrics(heatmap_prior)/mAP10; test_none_prior (mask_off) and
-        # test_mask_prior (mask_on) default off (heatmap-only = ~3x faster).
-        if not bool(v2_cfg.get("test_heatmap_prior", True)):
-            LOGGER.warning("anomaly_v2: test_heatmap_prior feeds fitness and cannot be disabled; forcing on.")
-        modes = []
-        if bool(v2_cfg.get("test_none_prior", False)):
-            modes.append("mask_off")
-        modes.append("heatmap")  # test_heatmap_prior — always on (fitness source)
+        # Per-prior test switches pick which OOD modes run. test_none_prior is forced on because
+        # best.pt fitness is test_metrics(none_prior)/mAP10_50; test_heatmap_prior defaults on
+        # (core fusion signal), test_mask_prior (mask_on) defaults off.
+        if not bool(v2_cfg.get("test_none_prior", True)):
+            LOGGER.warning("anomaly_v2: test_none_prior feeds fitness and cannot be disabled; forcing on.")
+        modes = ["mask_off"]  # test_none_prior — always on (fitness source)
+        if bool(v2_cfg.get("test_heatmap_prior", True)):
+            modes.append("heatmap")
         if bool(v2_cfg.get("test_mask_prior", False)):
             modes.append("mask_on")
 
@@ -231,7 +230,7 @@ class AnomalyV2Trainer(DetectionTrainer):
 
         Configured via the model YAML ``anomaly_v2`` block: ``test_val_freq`` (every N epochs;
         default 3, set 0 to disable); see ``_ood_eval_setup`` for the fit-YAML / mode resolution.
-        ``test_heatmap_prior`` is forced on (best.pt fitness is ``test_metrics(heatmap_prior)/mAP10``).
+        ``test_none_prior`` is forced on (best.pt fitness is ``test_metrics(none_prior)/mAP10_50``).
 
         Runs on a deepcopy of the EMA so val-time fuse()/bank-build never corrupt the live EMA.
         """
@@ -246,16 +245,16 @@ class AnomalyV2Trainer(DetectionTrainer):
             return
         ema_eval = deepcopy(trainer.ema.ema).eval()
         AnomalyV2Trainer._ood_eval_prep_model(ema_eval, cfg["fit_yaml"])
-        trainer._ood_heatmap_map10 = None  # clear stale; only set on success
+        trainer._ood_none_map1050 = None  # clear stale; only set on success
         try:
             rows = AnomalyV2Trainer._run_ood_eval(trainer, ema_eval, cfg, trainer.epoch + 1)
             AnomalyV2Trainer._log_ood_wandb(trainer, rows)
-            # Store OOD heatmap mAP10 (test_metrics(heatmap_prior)) for best.pt selection (fitness override)
+            # Store OOD none-prior mAP10_50 (test_metrics(none_prior)) for best.pt selection (fitness override)
             for r in rows:
-                if r["category"] == "AVERAGE" and r["mode"] == "heatmap":
-                    map10 = r.get("mAP10", math.nan)
-                    if not math.isnan(map10):
-                        trainer._ood_heatmap_map10 = float(map10)
+                if r["category"] == "AVERAGE" and r["mode"] == "mask_off":
+                    map1050 = r.get("mAP10_50", math.nan)
+                    if not math.isnan(map1050):
+                        trainer._ood_none_map1050 = float(map1050)
                     break
         except Exception as e:  # never let OOD eval take down a training run
             LOGGER.warning(f"MVTec OOD eval failed at epoch {trainer.epoch + 1}: {type(e).__name__}: {e}")
@@ -300,7 +299,7 @@ class AnomalyV2Trainer(DetectionTrainer):
         """Push OOD metrics to wandb grouped by mode (test_metrics(none_prior/heatmap_prior/mask_prior)).
 
         For each OOD mode, logs the AVERAGE row (mean across all 15 MVTec categories)
-        with metrics {mAP10, mAP25, mAP50, mAP50_95, image_auroc, pixel_auroc}.
+        with metrics {mAP10, mAP25, mAP50, mAP10_50, image_auroc, pixel_auroc}.
         NaN values are skipped. Logged at ``step=epoch+1`` so it merges into the
         same wandb history row the loss/lr already populate this epoch.
         """
@@ -313,7 +312,7 @@ class AnomalyV2Trainer(DetectionTrainer):
         if wb is None or getattr(wb, "run", None) is None:
             return
 
-        keys = ("mAP10", "mAP25", "mAP50", "mAP50_95", "image_auroc", "pixel_auroc")
+        keys = ("mAP10", "mAP25", "mAP50", "mAP10_50", "image_auroc", "pixel_auroc")
         mode_to_group = {
             "mask_off": "test_metrics(none_prior)",
             "heatmap": "test_metrics(heatmap_prior)",

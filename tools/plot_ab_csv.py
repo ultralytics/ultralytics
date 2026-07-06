@@ -28,7 +28,7 @@ import numpy as np
 # ──────────────────────────────────────────────────────────────────────────────
 
 DEFAULT_METRICS = None  # means auto-detect from CSV
-_METRIC_ORDER = ("image_auroc", "pixel_auroc", "mAP10", "mAP25", "mAP50", "mAP10_95", "P", "R")
+_METRIC_ORDER = ("image_auroc", "pixel_auroc", "mAP10", "mAP25", "mAP50", "mAP10_50", "P", "R")
 
 # Colours for up to 6 methods (enough for none / heatmap / mask / segment / ...).
 # Light-to-dark progression; if more than 6, matplotlib cycles.

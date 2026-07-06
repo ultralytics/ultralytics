@@ -105,7 +105,7 @@ from .transformer import (
     TransformerEncoderLayer,
     TransformerLayer,
 )
-from .vit_blocks import FastViTBlock, MHSABlock, UltraViTBlock
+from .vit_blocks import FastViTBlock, MHSABlock, RoPEMHSABlock, UltraViTBlock
 
 __all__ = (
     "AIFI",
@@ -165,6 +165,7 @@ __all__ = (
     "LayerNorm2d",
     "LightConv",
     "MHSABlock",
+    "RoPEMHSABlock",
     "MLPBlock",
     "MSDeformAttn",
     "MaxSigmoidAttnBlock",

@@ -64,6 +64,7 @@ from ultralytics.nn.modules import (
     RepNCSPELAN4,
     RepVGGDW,
     ResNetLayer,
+    RoPEMHSABlock,
     RTDETRDecoder,
     SCDown,
     Segment,
@@ -255,6 +256,13 @@ class BaseModel(torch.nn.Module):
                 if isinstance(m, RepVGGDW):
                     m.fuse()
                     m.forward = m.forward_fuse
+                if isinstance(m, RoPEMHSABlock) and getattr(self, "_deploy_imgsz", None) is not None:
+                    # Bake the axial-RoPE cos/sin for the export grid (P5 stride 32) into constant buffers so the
+                    # folded rotation stays in the ncnn/tflite-legal elementwise op set; skipped for plain info() fuse.
+                    imgsz = self._deploy_imgsz
+                    imgsz = (imgsz, imgsz) if isinstance(imgsz, int) else imgsz
+                    stride = int(self.stride.max())
+                    m.switch_to_deploy(imgsz[0] // stride, imgsz[1] // stride)
                 if isinstance(m, Detect) and getattr(m, "end2end", False):
                     m.fuse()  # remove one2many head
             self.info(verbose=verbose)
@@ -1789,7 +1797,7 @@ def parse_model(d, ch, verbose=True):
                     args.extend((True, 1.2))
             if m is C2fCIB:
                 legacy = False
-        elif m in frozenset({AIFI, UltraViTBlock, FastViTBlock, MHSABlock}):
+        elif m in frozenset({AIFI, UltraViTBlock, FastViTBlock, MHSABlock, RoPEMHSABlock}):
             args = [ch[f], *args]
         elif m is TeacherDetBackbone:
             # Frozen-teacher detection backbone: layer-0 module that maps a 3-channel image to embed_dim feature channels.

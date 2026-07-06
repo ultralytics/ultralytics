@@ -449,6 +449,7 @@ class Exporter:
             p.requires_grad = False
         model.eval()
         model.float()
+        model._deploy_imgsz = self.imgsz  # lets RoPEMHSABlock bake its cos/sin for the export grid inside fuse()
         model = model.fuse()
 
         if fmt == "imx":

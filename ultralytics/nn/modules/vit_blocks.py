@@ -205,6 +205,101 @@ class MHSABlock(nn.Module):
         return t.transpose(1, 2).reshape(b, c, h, w)
 
 
+def _rotate_half(x: torch.Tensor) -> torch.Tensor:
+    """Split the last dim in half and rotate: [x1, x2] -> [-x2, x1] via indexed slices (never aten::unbind)."""
+    d = x.shape[-1] // 2
+    return torch.cat((-x[..., d:], x[..., :d]), dim=-1)
+
+
+class RoPEMHSABlock(MHSABlock):
+    """MHSABlock with resolution-independent axial 2D RoPE applied to q/k before SDPA. Dim-preserving 4D in/out.
+
+    Inspired by DINOv3 (arXiv:2508.10104) axial 2D RoPE. Patch coordinates are normalized to a resolution-independent
+    [-1, 1] box before the rotary frequencies apply, so a patch at the same fractional position gets the same phase at
+    any grid size. The attention score q_i . R(theta_i - theta_j) . k_j then depends on relative fractional position, not
+    absolute index or token count, so a head that learned a geometric offset keeps that meaning whether the grid is 7x7
+    (224px) or 20x20 (640px). This is a relative-position length fix that stays in the ncnn-legal op set.
+
+    The head_dim is split into an x-axial half and a y-axial half; within each half the frequency embedding is laid out
+    [f, f] so a single whole-dim `_rotate_half` pairs each frequency's cos/sin partner inside its own axis (norm-
+    preserving). Training runs the dynamic [-1, 1] path with box jitter (`s` in `train_jitter`) for resolution tolerance;
+    `switch_to_deploy(h, w)` bakes the destination grid's cos/sin into non-persistent constant buffers, turning the
+    rotation into two elementwise Mul + one Add against frozen constants (the folded static form is the ncnn/tflite-legal
+    path, the un-folded dynamic arange/cos/sin is not).
+
+    Attributes:
+        train_jitter (tuple): (low, high) uniform range for the [-1, 1]-box scale `s` sampled per forward while training.
+        inv_freq (torch.Tensor): Per-axis inverse frequencies (head_dim // 4,), non-persistent buffer.
+        cos_c (torch.Tensor): Baked cos table (N, head_dim) after `switch_to_deploy`, non-persistent buffer.
+        sin_c (torch.Tensor): Baked sin table (N, head_dim) after `switch_to_deploy`, non-persistent buffer.
+    """
+
+    def __init__(self, *args, rope_base: float = 100.0, train_jitter: tuple = (0.5, 2.0), **kwargs):
+        """Initialize RoPEMHSABlock with the parent MHSABlock args plus the RoPE frequency base and train jitter range."""
+        super().__init__(*args, **kwargs)
+        assert self.head_dim % 4 == 0, f"RoPEMHSABlock: head_dim={self.head_dim} must be divisible by 4 for axial RoPE"
+        self.train_jitter = train_jitter
+        self._deploy = False
+        n_freq = self.head_dim // 4  # per-axis frequency pairs; x and y axes each rotate head_dim // 2 dims
+        self.register_buffer("inv_freq", 1.0 / (rope_base ** (torch.arange(n_freq).float() / n_freq)), persistent=False)
+
+    def _build_cos_sin(self, h: int, w: int, device, dtype, scale: float = 1.0):
+        """Build axial 2D cos/sin tables (N, head_dim) from a [-1, 1]-normalized h x w grid scaled by `scale`."""
+        inv_freq = self.inv_freq.to(device=device, dtype=torch.float32)
+        ys = torch.linspace(-1.0, 1.0, h, device=device, dtype=torch.float32) * scale
+        xs = torch.linspace(-1.0, 1.0, w, device=device, dtype=torch.float32) * scale
+        yy = ys.view(h, 1).expand(h, w).reshape(-1)  # (N,)
+        xx = xs.view(1, w).expand(h, w).reshape(-1)  # (N,)
+        fx = xx[:, None] * inv_freq[None, :]  # (N, head_dim // 4)
+        fy = yy[:, None] * inv_freq[None, :]  # (N, head_dim // 4)
+        half = torch.cat((fx, fy), dim=-1)  # (N, head_dim // 2), [x-axis dims, y-axis dims]
+        emb = torch.cat((half, half), dim=-1)  # (N, head_dim), duplicated so _rotate_half pairs stay within each axis
+        return emb.cos().to(dtype), emb.sin().to(dtype)
+
+    def switch_to_deploy(self, h: int, w: int):
+        """Bake the h x w export grid's cos/sin into constant buffers and switch forward to the static path."""
+        w_ref = self.qkv.weight
+        cos, sin = self._build_cos_sin(h, w, w_ref.device, w_ref.dtype, scale=1.0)
+        self.register_buffer("cos_c", cos, persistent=False)
+        self.register_buffer("sin_c", sin, persistent=False)
+        self._deploy = True
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Forward pass: 4D -> tokens -> RoPE(q,k) + SDPA -> FFN (token Linear or NCHW ConvMlp) -> 4D."""
+        b, c, h, w = x.shape
+        if getattr(self, "pe", None) is not None:
+            x = x + self.pe(x)  # RepCPE conditional position before attention
+        t = x.flatten(2).transpose(1, 2)  # (B, N, C)
+        n = self.ln1(t)
+        qkv = self.qkv(n).reshape(b, -1, 3, self.num_heads, self.head_dim).permute(2, 0, 3, 1, 4)
+        q, k, v = qkv[0], qkv[1], qkv[2]  # indexed split traces to aten::select, x2paddle maps it but not aten::unbind
+        if self._deploy:
+            cos, sin = self.cos_c, self.sin_c  # frozen constants baked for the export grid
+        else:
+            scale = 1.0
+            if self.training:  # box jitter widens resolution tolerance; fixed at s=1 for eval/export
+                scale = float(torch.empty(1).uniform_(*self.train_jitter))
+            cos, sin = self._build_cos_sin(h, w, q.device, q.dtype, scale)
+        q = q * cos + _rotate_half(q) * sin
+        k = k * cos + _rotate_half(k) * sin
+        if _LOGN_ATTN:  # length-aware temperature: sharpen softmax as the grid grows past the 49-token train grid
+            attn_scale = self.head_dim**-0.5 * (math.log(max(int(q.shape[-2]), 2)) * _INV_LOG_REF) ** 0.5
+            a = F.scaled_dot_product_attention(q, k, v, scale=attn_scale)
+        else:
+            a = F.scaled_dot_product_attention(q, k, v)
+        a = self.proj(a.transpose(1, 2).reshape(b, -1, c))
+        ls1 = getattr(self, "ls1", None)
+        t = t + (a if ls1 is None else ls1 * a)
+        ls2 = getattr(self, "ls2", None)
+        if getattr(self, "ffn_dw", None) is not None:
+            x = t.transpose(1, 2).reshape(b, c, h, w)
+            f = self.ffn_pw2(self.act(self.ffn_pw1(self.ffn_bn(self.ffn_dw(x)))))
+            return x + (f if ls2 is None else ls2 * f)
+        f = self.fc2(self.act(self.fc1(self.ln2(t))))
+        t = t + (f if ls2 is None else ls2 * f)
+        return t.transpose(1, 2).reshape(b, c, h, w)
+
+
 class FastViTBlock(UltraViTBlock):
     """Deprecated alias of UltraViTBlock, kept so legacy fastvit YAMLs and pickled checkpoints keep loading."""
 

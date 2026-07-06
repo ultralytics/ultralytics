@@ -162,10 +162,10 @@ def main(argv: list[str]) -> None:
             input to each teacher's training-time distribution: no-op for EUPE/DINOv3 (which already match ImageNet
             stats), SigLIP-style ``2x - 1`` for SigLIP2/MoonViT/SAM3. Default off matches all existing phase1 anchors.
             On resume, inherits from the checkpoint when not re-passed.
-        --student_scales <csv>: comma-joined student input sizes for multi-scale distillation, e.g. "224,448,640".
-            The loader serves the largest scale (genuine detail); preprocess round-robins the student size per step
-            while the teacher stays at its native res. Trains the frozen backbone on the higher token counts it meets
-            at detection resolution (640 -> 20x20 P5 vs 224 -> 7x7). Unset = single-scale at ``imgsz`` (legacy).
+        --high_res_final_epochs <imgsz:epochs>: e.g. "640:12" runs the student at <imgsz> for the last <epochs>
+            epochs (DINOv3 high-resolution adaptation) so its frozen P5 attention meets the larger token count it
+            will see at detection resolution. Load size and teacher size stay put, so earlier epochs are identical
+            to a run without it. ``--hires_tail`` is the legacy alias. Unset = student runs at ``imgsz`` throughout.
     """
     args = argv[1:]
     args, resume = _pop_flag(args, "--resume")
@@ -182,7 +182,6 @@ def main(argv: list[str]) -> None:
     args, optimizer = _pop_flag(args, "--optimizer")
     args, norm_in_str = _pop_flag(args, "--normalize_teacher_input", is_bool=True)
     args, loss_type = _pop_flag(args, "--loss_type")
-    args, student_scales = _pop_flag(args, "--student_scales")  # e.g. "224,448,640" (R1 multi-scale)
     args, high_res_final_epochs = _pop_flag(args, "--high_res_final_epochs")  # "<imgsz>:<epochs>" e.g. "384:12"
     args, _hires_legacy = _pop_flag(args, "--hires_tail")  # legacy alias for --high_res_final_epochs
 
@@ -195,7 +194,6 @@ def main(argv: list[str]) -> None:
     optimizer = optimizer or "AdamW"
     normalize_teacher_input = bool(norm_in_str)
     loss_type = loss_type or "cos_l1"
-    student_scales = student_scales or None
     high_res_final_epochs = high_res_final_epochs or _hires_legacy or None
 
     if resume:
@@ -230,7 +228,6 @@ def main(argv: list[str]) -> None:
             ("optimizer", optimizer, "AdamW"),
             ("normalize_teacher_input", normalize_teacher_input, False),
             ("loss_type", loss_type, "cos_l1"),
-            ("student_scales", student_scales, None),
             ("high_res_final_epochs", high_res_final_epochs, None),
         ):
             prev = resume_args.get(key, default)
@@ -255,10 +252,8 @@ def main(argv: list[str]) -> None:
     global_batch = (
         int(batch_override) * world_size if batch_override else int(resume_args.get("batch", 64 * world_size))
     )
-    # nbs = effective (post-accumulation) batch. Default rises to the global step-batch (floored at
-    # NBS_CANONICAL); --nbs pins it higher so a memory-capped micro-batch still reaches a target effective
-    # batch via gradient accumulation (trainer.py:281). lr0/warmup scale off nbs (the effective batch), so a
-    # small micro-batch + --nbs matches the recipe LR of a same-effective-batch run with no manual --lr pin.
+    # nbs = effective batch after gradient accumulation. --nbs pins it so a memory-capped micro-batch still
+    # trains at the target effective batch, and lr0/warmup scale off it (a small batch + --nbs keeps the recipe LR).
     nbs = int(nbs_override) if nbs_override else max(global_batch, NBS_CANONICAL)
     scale = max(1.0, nbs / NBS_CANONICAL)
     lr0 = float(lr_override or r["lr0"]) * scale
@@ -285,7 +280,6 @@ def main(argv: list[str]) -> None:
             optimizer=optimizer,
             normalize_teacher_input=normalize_teacher_input,
             loss_type=loss_type,
-            student_scales=student_scales,
             high_res_final_epochs=high_res_final_epochs,
             grad_clip=r["grad_clip"],
             beta2=r["beta2"],
@@ -305,7 +299,6 @@ def main(argv: list[str]) -> None:
         adaptor_arch=adaptor_arch,
         sample_t=sample_t,
         loss_type=loss_type,
-        student_scales=student_scales,
         high_res_final_epochs=high_res_final_epochs,
         device=gpu,
         **paths.run_paths(name),
@@ -330,10 +323,9 @@ def main(argv: list[str]) -> None:
         seed=0,
         deterministic=True,
         fliplr=0.5,
-        # Single-scale distill is teacher-compute-bound, so 2 workers suffice. Multi-scale loads every
-        # batch at the largest scale (e.g. 640), making CPU augmentation ~8x heavier per image, so raise
-        # to 4 (the shared-NFS cap; 8+ triggers an EPERM remount) to keep the teacher forward fed.
-        workers=4 if student_scales else 2,
+        # Distillation is teacher-compute-bound, so 2 workers keep the teacher forward fed (the shared-NFS
+        # cap is 4; 8+ triggers an EPERM remount).
+        workers=2,
         nfs_sync=True,
     )
     # Recipe-driven aug overrides — applied only when present so legacy recipes inherit

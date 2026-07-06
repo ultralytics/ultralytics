@@ -182,14 +182,6 @@ class ImageEncoderTrainer(ClassificationTrainer):
         self.teachers = raw.split("+") if isinstance(raw, str) else raw
         self._safe_keys = [safe_key(n) for n in self.teachers]
         self._teacher_imgsz = max(TEACHER_REGISTRY[n]["imgsz"] for n in self.teachers)
-        # Multi-scale distillation (R1): student sees a rotating set of input sizes so the frozen backbone
-        # learns the higher token counts it meets at detection resolution (640 -> 20x20 P5 vs 224 -> 7x7).
-        # The loader serves the largest scale (genuine detail, not upsampled 224); preprocess_batch
-        # round-robins the student size per step and downsamples the teacher back to its native res.
-        ss = getattr(self.args, "student_scales", None)
-        self._student_scales = [int(s) for s in str(ss).split(",")] if ss else None
-        self._student_scale_step = 0
-        self._load_imgsz = max(self._student_scales) if self._student_scales else self._teacher_imgsz
         # Run the student at a higher input size for the last N epochs (DINOv3's "high-resolution adaptation"):
         # its frozen P5 attention then sees the larger token count it will meet at detection resolution
         # (224 -> 7x7 vs 384 -> 12x12). The load size and teacher size stay put, so every earlier epoch is
@@ -361,6 +353,15 @@ class ImageEncoderTrainer(ClassificationTrainer):
                 m.reset_parameters()
             if isinstance(m, torch.nn.Dropout) and self.args.dropout:
                 m.p = self.args.dropout
+        # Fork integrity: a .pt model arg reloads a trained backbone (pretrained=True skips the reset loop above),
+        # so make sure the first conv carried over instead of silently cold-starting a wasted run.
+        if weights and self.args.pretrained:
+            k = "model.0.conv.weight"
+            wsd = weights.state_dict() if hasattr(weights, "state_dict") else weights
+            ref, got = wsd.get(k), model.state_dict()[k]
+            if ref is None or not torch.allclose(got.float(), ref.to(got.device).float(), atol=1e-5):
+                raise RuntimeError(f"fork integrity FAILED: {k} did not load from the .pt (cold-start), aborting")
+            LOGGER.info("fork integrity OK: forked backbone loaded from the .pt")
         for p in model.parameters():
             p.requires_grad = True
         model.model[-1].linear.requires_grad_(False)
@@ -380,10 +381,9 @@ class ImageEncoderTrainer(ClassificationTrainer):
         """Build shared transform at the load resolution with ImageNet normalization.
 
         Same augmented image goes to both teacher and student, resized to their respective resolutions
-        in preprocess_batch (EUPE Stage 2 / DUNE / AM-RADIO convention). ``_load_imgsz`` is the teacher
-        resolution normally, or the largest student scale under multi-scale distillation.
+        in preprocess_batch (EUPE Stage 2 / DUNE / AM-RADIO convention). Images load at the teacher resolution.
         """
-        sz = self._load_imgsz
+        sz = self._teacher_imgsz
         if mode == "train":
             return classify_augmentations_distill(
                 size=sz,
@@ -491,14 +491,11 @@ class ImageEncoderTrainer(ClassificationTrainer):
     def preprocess_batch(self, batch):
         """Move images to device, resize for student and teacher, run all teachers.
 
-        One augmented image loaded at ``_load_imgsz`` is resized to the student and teacher resolutions
-        via F.interpolate. Follows DUNE convention (dune/teachers/forward.py:30). Under multi-scale
-        distillation (R1) the student size rotates through ``_student_scales`` per step while the teacher
-        stays at its native resolution; the loss (image_encoder.py) resamples teacher patches to the
-        student grid, so the student learns higher token counts on genuine detail.
+        One augmented image loaded at the teacher resolution is resized to the student and teacher resolutions
+        via F.interpolate. Follows DUNE convention (dune/teachers/forward.py:30).
 
         Args:
-            batch (torch.Tensor): Images at the load resolution (B, 3, H, W).
+            batch (torch.Tensor): Images at the teacher resolution (B, 3, H, W).
 
         Returns:
             (dict): Batch with 'img', 'cls', per-teacher entries, and '_teacher_keys'.
@@ -509,21 +506,14 @@ class ImageEncoderTrainer(ClassificationTrainer):
         # resume part-way through the final epochs re-enter the higher-resolution regime for free.
         if self._high_res_imgsz and self.epoch >= self.epochs - self._high_res_epochs:
             student_size = self._high_res_imgsz
-        elif self._student_scales:
-            student_size = self._student_scales[self._student_scale_step % len(self._student_scales)]
-            self._student_scale_step += 1
         else:
             student_size = self.args.imgsz
         student_imgs = (
             torch.nn.functional.interpolate(imgs, size=student_size, mode="bilinear", antialias=True)
-            if student_size != self._load_imgsz
+            if student_size != self._teacher_imgsz
             else imgs
         )
-        teacher_imgs = (
-            torch.nn.functional.interpolate(imgs, size=self._teacher_imgsz, mode="bilinear", antialias=True)
-            if self._teacher_imgsz != self._load_imgsz
-            else imgs
-        )
+        teacher_imgs = imgs  # loaded at the teacher resolution, so no resize needed
 
         result = {
             "img": student_imgs,
@@ -563,7 +553,7 @@ class ImageEncoderTrainer(ClassificationTrainer):
             self.test_loader, self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
         validator.teacher_models = self.teacher_models
-        validator._teacher_imgsz = self._teacher_imgsz  # val loads at _load_imgsz, teacher needs its native res
+        validator._teacher_imgsz = self._teacher_imgsz  # teacher runs at its native resolution
         return validator
 
     def validate(self):

@@ -27,4 +27,4 @@ heat_edge_sigma: 1.0         # edge sigma (bigger = gentler)
 heat_norm: none              # none | minmax | gaussian | mean — prior norm before fusion
 # heatmap conf gate: p_anom *= blend + (1-blend)*hm — 0 = gate fully ON, 1 = off.
 # Read by BOTH run_yoloa.py and the in-training MVTec OOD eval, so the two stay aligned.
-hm_gate_blend: 0.0
+hm_gate_blend: 1.0

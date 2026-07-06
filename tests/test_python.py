@@ -337,15 +337,15 @@ def test_track_second_association_indices():
     assert len(low) == 1 and int(low[0, -1]) == 2, f"second-association idx not preserved:\n{tracks}"
 
 
-def test_track_second_association_low_conf_keeps_id():
+@pytest.mark.parametrize("tracker_type", ["bytetrack", "fasttrack"])
+def test_track_second_association_low_conf_keeps_id(tracker_type):
     """Low-confidence detection is recovered by the second association under the default fuse_score=True."""
     from ultralytics.engine.results import Boxes
-    from ultralytics.trackers.byte_tracker import BYTETracker
+    from ultralytics.trackers.track import TRACKER_MAP
     from ultralytics.utils import ROOT, YAML, IterableSimpleNamespace
 
-    args = IterableSimpleNamespace(**YAML.load(ROOT / "cfg/trackers/bytetrack.yaml"))  # default fuse_score=True
-    assert args.fuse_score is True
-    tracker = BYTETracker(args)
+    args = IterableSimpleNamespace(**YAML.load(ROOT / f"cfg/trackers/{tracker_type}.yaml"))  # default fuse_score=True
+    tracker = TRACKER_MAP[tracker_type](args)
     box = [100, 100, 200, 200]  # same box on both frames, so IoU is 1.0
     # frame 1: high score starts the track; frame 2: score drops into the low band (track_low_thresh < 0.15 < track_high_thresh)
     frame1 = tracker.update(Boxes(torch.tensor([[*box, 0.9, 0]], dtype=torch.float32), (640, 640)))

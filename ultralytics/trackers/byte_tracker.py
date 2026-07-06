@@ -419,9 +419,7 @@ class BYTETracker:
         """Second-stage association between remaining tracked tracks and low-score detections."""
         r_tracked_stracks = [strack_pool[i] for i in u_track if strack_pool[i].state == TrackState.Tracked]
         if r_tracked_stracks and detections_second:
-            # Second stage uses IoU alone by design (ByteTrack paper arXiv:2110.06864, sec. 3.2).
-            # Fusing the low detection score here pushes the cost above the 0.5 threshold for any IoU,
-            # which turns this recovery step into a no-op under the default fuse_score=True.
+            # IoU-only by design (ByteTrack paper sec. 3.2): fusing low scores pushes costs above the 0.5 threshold
             dists = matching.iou_distance(r_tracked_stracks, detections_second)
             matches, u_track, _ = matching.linear_assignment(dists, thresh=0.5)
             self._apply_matches(matches, r_tracked_stracks, detections_second, activated, refind)

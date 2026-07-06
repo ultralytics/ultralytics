@@ -267,7 +267,7 @@ jobs:
             python: "3.12"
             torch: "2.3.0"
             torchvision: "0.18.0"
-            numpy_extra: export-legacy-torch
+            numpy_extra: export-legacy-torch # torchvision 0.18.0 adjust_hue casts negative hue via np.uint8(), rejected by NumPy 2 (fixed in torchvision 0.19.0)
           - os: ubuntu-latest
             python: "3.12"
             torch: "2.4.0"

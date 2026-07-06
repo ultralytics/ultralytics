@@ -375,13 +375,20 @@ class BaseModel(torch.nn.Module):
 
         valid = idx >= 0
         state_dict = self.state_dict()
+        # Exact class-logit conv weight/bias keys from the detection head(s) — restricting to these avoids
+        # class-ordering tensors that merely share the nc dimension (backbone blocks, box/mask/pose branches).
+        cls_keys = {
+            f"{name}.{attr}.{i}.{len(seq) - 1}.{p}"
+            for name, m in self.named_modules()
+            if isinstance(m, Detect)
+            for attr in ("cv3", "one2one_cv3")
+            for i, seq in enumerate(getattr(m, attr, ()))
+            for p in ("weight", "bias")
+        }
         remapped = 0
-        for k in list(csd.keys()):
-            v_src, v_tgt = csd[k], state_dict.get(k)
-            # Only remap cls conv weight/bias: dim 0 is the class count in both, with matching trailing dims
-            if v_tgt is None or v_src.dim() < 1 or v_src.shape[0] != src_nc or v_tgt.shape[0] != tgt_nc:
-                continue
-            if v_src.shape[1:] != v_tgt.shape[1:]:
+        for k in cls_keys & csd.keys():
+            v_src, v_tgt = csd[k], state_dict[k]
+            if v_src.shape[1:] != v_tgt.shape[1:]:  # cls-conv weight input width (c3) differs across nc; copy bias only
                 continue
             v_tgt[valid] = v_src[idx[valid]].to(v_tgt.dtype)
             csd.pop(k)  # prevent intersect_dicts from copying these rows in the wrong (source) order

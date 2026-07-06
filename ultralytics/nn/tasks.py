@@ -1665,7 +1665,6 @@ def torch_safe_load(weight, safe_only=None):
     if safe_only is None:
         safe_only = SAFE_LOAD
     if safe_only and not _SafeLoad.SUPPORTED:
-        LOGGER.warning("Restricted model loading requires torch>=2.5; loading without restriction.")
         safe_only = False
     check_suffix(file=weight, suffix=".pt")
     file = attempt_download_asset(weight)  # search online if missing locally

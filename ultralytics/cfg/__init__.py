@@ -527,6 +527,10 @@ def check_dict_alignment(
             "grayscale",
             "gaussian_blur",
             "solarize",
+            # ``student_scales``: comma-joined student input sizes (e.g. "224,448,640") for multi-scale
+            #   distillation (R1). The loader serves the largest scale; preprocess round-robins the student
+            #   size per step and downsamples the teacher to its native res (DINOv3 high-res adaptation).
+            "student_scales",
         }
     if mismatched := [k for k in custom_keys if k not in base_keys and k not in allowed_custom_keys]:
         from difflib import get_close_matches

@@ -72,10 +72,13 @@ class ImageEncoderValidator(BaseValidator):
         model.float()
 
     def preprocess(self, batch):
-        """Preprocess batch: resize for student, run all teachers.
+        """Preprocess batch: resize for student and teacher, run all teachers.
+
+        Validation runs the student at a fixed ``args.imgsz`` (no multi-scale rotation); when the loader
+        serves a larger scale under multi-scale distillation, the teacher is downsampled to its native res.
 
         Args:
-            batch (torch.Tensor): Images at teacher resolution (B, 3, H, W).
+            batch (torch.Tensor): Images at the load resolution (B, 3, H, W).
 
         Returns:
             (dict): Batch with 'img', 'cls', per-teacher entries, and '_teacher_keys'.
@@ -89,6 +92,13 @@ class ImageEncoderValidator(BaseValidator):
         if self.args.half:
             student_imgs = student_imgs.half()
 
+        teacher_imgsz = getattr(self, "_teacher_imgsz", imgs.shape[-1])
+        teacher_imgs = (
+            torch.nn.functional.interpolate(imgs, size=teacher_imgsz, mode="bilinear", antialias=True)
+            if imgs.shape[-1] != teacher_imgsz
+            else imgs
+        )
+
         teacher_keys = list(self.teacher_models.keys())
         result = {
             "img": student_imgs,
@@ -97,7 +107,7 @@ class ImageEncoderValidator(BaseValidator):
         }
 
         for sk in teacher_keys:
-            out = self.teacher_models[sk].encode(imgs)
+            out = self.teacher_models[sk].encode(teacher_imgs)
             result[sk] = {"cls": out.cls, "patches": out.patches}
 
         return result

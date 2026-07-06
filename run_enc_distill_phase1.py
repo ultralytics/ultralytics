@@ -105,15 +105,17 @@ RECIPES = {
 # to the global batch so wd_eff stays at the recipe value.
 NBS_CANONICAL = 512
 
-DATA_7SRC_DEFAULT = ','.join([
-    '/data/shared-datasets/imagenet',
-    '/data/shared-datasets/coco',
-    '/data/shared-datasets/yoloe26_data/Objects365v1/images/train',
-    '/data/shared-datasets/yoloe26_data/mixed_grounding/gqa/paired/train',
-    '/data/shared-datasets/yoloe26_data/flickr/paired/train',
-    '/data/shared-datasets/DOTAv1-split/paired/train',
-    '/data/shared-datasets/SODA-A-split/images/train',
-])
+DATA_7SRC_DEFAULT = ",".join(
+    [
+        "/data/shared-datasets/imagenet",
+        "/data/shared-datasets/coco",
+        "/data/shared-datasets/yoloe26_data/Objects365v1/images/train",
+        "/data/shared-datasets/yoloe26_data/mixed_grounding/gqa/paired/train",
+        "/data/shared-datasets/yoloe26_data/flickr/paired/train",
+        "/data/shared-datasets/DOTAv1-split/paired/train",
+        "/data/shared-datasets/SODA-A-split/images/train",
+    ]
+)
 
 
 def _pop_flag(argv: list[str], flag: str, is_bool: bool = False) -> tuple[list[str], str]:
@@ -160,6 +162,10 @@ def main(argv: list[str]) -> None:
             input to each teacher's training-time distribution: no-op for EUPE/DINOv3 (which already match ImageNet
             stats), SigLIP-style ``2x - 1`` for SigLIP2/MoonViT/SAM3. Default off matches all existing phase1 anchors.
             On resume, inherits from the checkpoint when not re-passed.
+        --student_scales <csv>: comma-joined student input sizes for multi-scale distillation, e.g. "224,448,640".
+            The loader serves the largest scale (genuine detail); preprocess round-robins the student size per step
+            while the teacher stays at its native res. Trains the frozen backbone on the higher token counts it meets
+            at detection resolution (640 -> 20x20 P5 vs 224 -> 7x7). Unset = single-scale at ``imgsz`` (legacy).
     """
     args = argv[1:]
     args, resume = _pop_flag(args, "--resume")
@@ -175,6 +181,7 @@ def main(argv: list[str]) -> None:
     args, optimizer = _pop_flag(args, "--optimizer")
     args, norm_in_str = _pop_flag(args, "--normalize_teacher_input", is_bool=True)
     args, loss_type = _pop_flag(args, "--loss_type")
+    args, student_scales = _pop_flag(args, "--student_scales")  # e.g. "224,448,640" (R1 multi-scale)
 
     cos_weight = float(cos_w) if cos_w else 0.9
     l1_weight = float(l1_w) if l1_w else 0.1
@@ -185,6 +192,7 @@ def main(argv: list[str]) -> None:
     optimizer = optimizer or "AdamW"
     normalize_teacher_input = bool(norm_in_str)
     loss_type = loss_type or "cos_l1"
+    student_scales = student_scales or None
 
     if resume:
         resume = paths.patch_resume(resume)
@@ -218,6 +226,7 @@ def main(argv: list[str]) -> None:
             ("optimizer", optimizer, "AdamW"),
             ("normalize_teacher_input", normalize_teacher_input, False),
             ("loss_type", loss_type, "cos_l1"),
+            ("student_scales", student_scales, None),
         ):
             prev = resume_args.get(key, default)
             if now != prev:
@@ -232,7 +241,7 @@ def main(argv: list[str]) -> None:
             raise ValueError(
                 f"Refusing resume: device mismatch (ckpt={prev_device!r} vs cli={gpu!r}). "
                 f"To resume on different GPUs, bake the new device into the checkpoint first:\n"
-                f"  python -c \"from callbacks.paths import patch_resume; "
+                f'  python -c "from callbacks.paths import patch_resume; '
                 f"patch_resume('{resume}', device='{gpu}')\"\n"
                 f"Then re-run with the same --resume path."
             )
@@ -263,6 +272,7 @@ def main(argv: list[str]) -> None:
             optimizer=optimizer,
             normalize_teacher_input=normalize_teacher_input,
             loss_type=loss_type,
+            student_scales=student_scales,
             grad_clip=r["grad_clip"],
             beta2=r["beta2"],
             wandb_group="distill",
@@ -281,6 +291,7 @@ def main(argv: list[str]) -> None:
         adaptor_arch=adaptor_arch,
         sample_t=sample_t,
         loss_type=loss_type,
+        student_scales=student_scales,
         device=gpu,
         **paths.run_paths(name),
         epochs=epochs or r["epochs"],
@@ -304,7 +315,10 @@ def main(argv: list[str]) -> None:
         seed=0,
         deterministic=True,
         fliplr=0.5,
-        workers=2,
+        # Single-scale distill is teacher-compute-bound, so 2 workers suffice. Multi-scale loads every
+        # batch at the largest scale (e.g. 640), making CPU augmentation ~8x heavier per image, so raise
+        # to 4 (the shared-NFS cap; 8+ triggers an EPERM remount) to keep the teacher forward fed.
+        workers=4 if student_scales else 2,
         nfs_sync=True,
     )
     # Recipe-driven aug overrides — applied only when present so legacy recipes inherit

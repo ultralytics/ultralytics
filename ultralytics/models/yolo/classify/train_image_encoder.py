@@ -57,7 +57,7 @@ class BalancedSampler(torch.utils.data.WeightedRandomSampler):
     """
 
     def __init__(self, sizes: list[int], t: float, total_n: int, num_replicas: int = 1, rank: int = 0):
-        weights = torch.cat([torch.full((s,), s ** -t, dtype=torch.double) for s in sizes])
+        weights = torch.cat([torch.full((s,), s**-t, dtype=torch.double) for s in sizes])
         super().__init__(weights, total_n // num_replicas, replacement=True)
         self.num_replicas, self.rank, self.epoch = num_replicas, rank, 0
 
@@ -182,6 +182,14 @@ class ImageEncoderTrainer(ClassificationTrainer):
         self.teachers = raw.split("+") if isinstance(raw, str) else raw
         self._safe_keys = [safe_key(n) for n in self.teachers]
         self._teacher_imgsz = max(TEACHER_REGISTRY[n]["imgsz"] for n in self.teachers)
+        # Multi-scale distillation (R1): student sees a rotating set of input sizes so the frozen backbone
+        # learns the higher token counts it meets at detection resolution (640 -> 20x20 P5 vs 224 -> 7x7).
+        # The loader serves the largest scale (genuine detail, not upsampled 224); preprocess_batch
+        # round-robins the student size per step and downsamples the teacher back to its native res.
+        ss = getattr(self.args, "student_scales", None)
+        self._student_scales = [int(s) for s in str(ss).split(",")] if ss else None
+        self._student_scale_step = 0
+        self._load_imgsz = max(self._student_scales) if self._student_scales else self._teacher_imgsz
 
         # Register hooks here (not in runner): dist.py:57 only serializes self.args to DDP workers.
         from callbacks import beta2_override, grad_clip, muon_w, nfs_sync, paths, wd_schedule  # runner-local package
@@ -362,12 +370,13 @@ class ImageEncoderTrainer(ClassificationTrainer):
                 LOGGER.info(f"  {name}: {n:.1f}M params, embed_dim={self.teacher_models[sk].embed_dim}")
 
     def _build_transforms(self, mode):
-        """Build shared transform at teacher resolution with ImageNet normalization.
+        """Build shared transform at the load resolution with ImageNet normalization.
 
-        Same augmented image goes to both teacher and student, resized to student resolution in
-        preprocess_batch (EUPE Stage 2 / DUNE / AM-RADIO convention).
+        Same augmented image goes to both teacher and student, resized to their respective resolutions
+        in preprocess_batch (EUPE Stage 2 / DUNE / AM-RADIO convention). ``_load_imgsz`` is the teacher
+        resolution normally, or the largest student scale under multi-scale distillation.
         """
-        sz = self._teacher_imgsz
+        sz = self._load_imgsz
         if mode == "train":
             return classify_augmentations_distill(
                 size=sz,
@@ -473,22 +482,34 @@ class ImageEncoderTrainer(ClassificationTrainer):
         )
 
     def preprocess_batch(self, batch):
-        """Move images to device, resize for student, run all teachers.
+        """Move images to device, resize for student and teacher, run all teachers.
 
-        Single augmented image at teacher resolution is resized to student resolution
-        via F.interpolate. Follows DUNE convention (dune/teachers/forward.py:30).
+        One augmented image loaded at ``_load_imgsz`` is resized to the student and teacher resolutions
+        via F.interpolate. Follows DUNE convention (dune/teachers/forward.py:30). Under multi-scale
+        distillation (R1) the student size rotates through ``_student_scales`` per step while the teacher
+        stays at its native resolution; the loss (image_encoder.py) resamples teacher patches to the
+        student grid, so the student learns higher token counts on genuine detail.
 
         Args:
-            batch (torch.Tensor): Images at teacher resolution (B, 3, H, W).
+            batch (torch.Tensor): Images at the load resolution (B, 3, H, W).
 
         Returns:
             (dict): Batch with 'img', 'cls', per-teacher entries, and '_teacher_keys'.
         """
         imgs = batch.to(self.device, non_blocking=True)
-        # Resize to student resolution if different (DUNE: dune/teachers/forward.py:30)
+        if self._student_scales:
+            student_size = self._student_scales[self._student_scale_step % len(self._student_scales)]
+            self._student_scale_step += 1
+        else:
+            student_size = self.args.imgsz
         student_imgs = (
-            torch.nn.functional.interpolate(imgs, size=self.args.imgsz, mode="bilinear", antialias=True)
-            if self.args.imgsz != self._teacher_imgsz
+            torch.nn.functional.interpolate(imgs, size=student_size, mode="bilinear", antialias=True)
+            if student_size != self._load_imgsz
+            else imgs
+        )
+        teacher_imgs = (
+            torch.nn.functional.interpolate(imgs, size=self._teacher_imgsz, mode="bilinear", antialias=True)
+            if self._teacher_imgsz != self._load_imgsz
             else imgs
         )
 
@@ -499,7 +520,7 @@ class ImageEncoderTrainer(ClassificationTrainer):
         }
 
         for sk in self._safe_keys:
-            out = self.teacher_models[sk].encode(imgs)
+            out = self.teacher_models[sk].encode(teacher_imgs)
             result[sk] = {"cls": out.cls, "patches": out.patches}
 
         return result
@@ -530,6 +551,7 @@ class ImageEncoderTrainer(ClassificationTrainer):
             self.test_loader, self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
         validator.teacher_models = self.teacher_models
+        validator._teacher_imgsz = self._teacher_imgsz  # val loads at _load_imgsz, teacher needs its native res
         return validator
 
     def validate(self):

@@ -337,6 +337,26 @@ def test_track_second_association_indices():
     assert len(low) == 1 and int(low[0, -1]) == 2, f"second-association idx not preserved:\n{tracks}"
 
 
+def test_track_second_association_low_conf_keeps_id():
+    """Low-confidence detection is recovered by the second association under the default fuse_score=True."""
+    from ultralytics.engine.results import Boxes
+    from ultralytics.trackers.byte_tracker import BYTETracker
+    from ultralytics.utils import ROOT, YAML, IterableSimpleNamespace
+
+    args = IterableSimpleNamespace(**YAML.load(ROOT / "cfg/trackers/bytetrack.yaml"))  # default fuse_score=True
+    assert args.fuse_score is True
+    tracker = BYTETracker(args)
+    box = [100, 100, 200, 200]  # same box on both frames, so IoU is 1.0
+    # frame 1: high score starts the track; frame 2: score drops into the low band (track_low_thresh < 0.15 < track_high_thresh)
+    frame1 = tracker.update(Boxes(torch.tensor([[*box, 0.9, 0]], dtype=torch.float32), (640, 640)))
+    frame2 = tracker.update(Boxes(torch.tensor([[*box, 0.15, 0]], dtype=torch.float32), (640, 640)))
+    assert len(frame1) == 1, f"expected one track on frame 1:\n{frame1}"
+    tid = int(frame1[0, 4])
+    # the low-score box must be kept and mapped to the same id via the second association
+    assert len(frame2) == 1, f"low-confidence detection lost by second association:\n{frame2}"
+    assert int(frame2[0, 4]) == tid, f"id switched on low-confidence frame: {tid} -> {int(frame2[0, 4])}\n{frame2}"
+
+
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.parametrize("model", MODELS)
 def test_track_stream(model, tmp_path):

@@ -67,7 +67,7 @@ def non_max_suppression(
         output = [pred[pred[:, 4] > conf_thres] for pred in prediction]
         if classes is not None:
             output = [pred[(pred[:, 5:6] == classes).any(1)] for pred in output]
-        return [pred[:max_det] for pred in output]  # filter by class before limiting detections
+        return [pred[:max_det] for pred in output]  # apply max_det after classes filter
 
     bs = prediction.shape[0]  # batch size (BCN, i.e. 1,84,6300)
     nc = nc or (prediction.shape[1] - 4)  # number of classes

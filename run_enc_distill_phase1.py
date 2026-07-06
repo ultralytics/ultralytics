@@ -174,6 +174,7 @@ def main(argv: list[str]) -> None:
     args, cls_l1_str = _pop_flag(args, "--cls_l1", is_bool=True)
     args, lr_override = _pop_flag(args, "--lr")
     args, batch_override = _pop_flag(args, "--batch")
+    args, nbs_override = _pop_flag(args, "--nbs")  # pin effective (accumulated) batch; lr/warmup scale off it
     args, fork_from = _pop_flag(args, "--fork_from")  # format: <parent_run_id>:<fork_step>
     args, distill_path = _pop_flag(args, "--distill_path")
     args, adaptor_arch = _pop_flag(args, "--adaptor_arch")
@@ -254,9 +255,13 @@ def main(argv: list[str]) -> None:
     global_batch = (
         int(batch_override) * world_size if batch_override else int(resume_args.get("batch", 64 * world_size))
     )
-    scale = max(1.0, global_batch / NBS_CANONICAL)
+    # nbs = effective (post-accumulation) batch. Default rises to the global step-batch (floored at
+    # NBS_CANONICAL); --nbs pins it higher so a memory-capped micro-batch still reaches a target effective
+    # batch via gradient accumulation (trainer.py:281). lr0/warmup scale off nbs (the effective batch), so a
+    # small micro-batch + --nbs matches the recipe LR of a same-effective-batch run with no manual --lr pin.
+    nbs = int(nbs_override) if nbs_override else max(global_batch, NBS_CANONICAL)
+    scale = max(1.0, nbs / NBS_CANONICAL)
     lr0 = float(lr_override or r["lr0"]) * scale
-    nbs = max(global_batch, NBS_CANONICAL)
     warmup_epochs = r["warmup_epochs"] * scale
 
     model = YOLO(model_yaml)

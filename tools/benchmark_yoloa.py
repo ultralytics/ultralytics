@@ -6,7 +6,7 @@ bank, then validate again (with-memory / heatmap prior). Finally export both gra
 deploy size + CPU speed.
 
 mAP is read from ``metrics.box.all_ap`` on the anomaly validator's coarse IoU grid
-(``linspace(0.10, 0.50, niou)``; see ``anomaly_v2/val.py`` ``_ood_map_metrics``), so it stays
+(``linspace(0.10, 0.50, niou)``; see ``anomaly/val.py`` ``_ood_map_metrics``), so it stays
 consistent with ``run_yoloa.py`` and the in-training OOD eval. The val pass uses the NMS head
 (``--e2e`` opts into the end-to-end / NMS-free head); the ONNX export always uses the deploy
 (end-to-end) graph regardless of ``--e2e``.
@@ -130,14 +130,22 @@ def run_val(model, data_yaml: str, device: str, batch: int, use_prior: bool, e2e
     the end-to-end (NMS-free) head, which scores differently, so pass it explicitly for consistency.
     """
     metrics = model.val(
-        data=data_yaml, iou=0.1, single_cls=True, device=device, verbose=False,
-        batch=batch, end2end=e2e, use_prior=use_prior, hm_gate_blend=0.0 if use_prior else 1.0,
+        data=data_yaml,
+        iou=0.1,
+        single_cls=True,
+        device=device,
+        verbose=False,
+        batch=batch,
+        end2end=e2e,
+        use_prior=use_prior,
+        hm_gate_blend=0.0 if use_prior else 1.0,
     )
     return extract_map(metrics)
 
 
-def export_profile(ckpt: Path, imgsz: int, device: str, fit_dir: str | None = None,
-                   cat: str | None = None, cache: str | None = None) -> dict:
+def export_profile(
+    ckpt: Path, imgsz: int, device: str, fit_dir: str | None = None, cat: str | None = None, cache: str | None = None
+) -> dict:
     """Fresh-load, optionally fit, export to ONNX, and profile deploy size + CPU speed.
 
     A fresh model is loaded per export because ``export()`` fuses layers and mutates state.
@@ -156,25 +164,32 @@ def export_profile(ckpt: Path, imgsz: int, device: str, fit_dir: str | None = No
 
 def print_map(m: dict) -> None:
     """Print a one-line mAP summary for a val pass."""
-    print(f"  mAP10={m['mAP10']:.4f} mAP25={m['mAP25']:.4f} "
-          f"mAP50={m['mAP50']:.4f} mAP10-50={m['mAP10-50']:.4f}", flush=True)
+    print(
+        f"  mAP10={m['mAP10']:.4f} mAP25={m['mAP25']:.4f} mAP50={m['mAP50']:.4f} mAP10-50={m['mAP10-50']:.4f}",
+        flush=True,
+    )
 
 
-def print_summary(params_m: float, flops: float, m_no: dict, m_with: dict,
-                  o_no: dict, o_with: dict, device: str) -> None:
+def print_summary(
+    params_m: float, flops: float, m_no: dict, m_with: dict, o_no: dict, o_with: dict, device: str
+) -> None:
     """Print the final no-memory vs with-memory comparison table."""
     flops_str = "-" if np.isnan(flops) else f"{flops:.1f}G"
 
     def row(label: str, m: dict, o: dict, buf: str) -> str:
-        return (f"{label:29s} {params_m:>7.2f}M {flops_str:>8s} {buf:>9s} "
-                f"{m.get('mAP10', NAN):>8.4f} {m.get('mAP25', NAN):>8.4f} "
-                f"{m.get('mAP50', NAN):>8.4f} {m.get('mAP10-50', NAN):>10.4f} "
-                f"{o['speed_mean']:>7.1f}±{o['speed_std']:<4.1f}ms {o['size']:>7.1f}MB")
+        return (
+            f"{label:29s} {params_m:>7.2f}M {flops_str:>8s} {buf:>9s} "
+            f"{m.get('mAP10', NAN):>8.4f} {m.get('mAP25', NAN):>8.4f} "
+            f"{m.get('mAP50', NAN):>8.4f} {m.get('mAP10-50', NAN):>10.4f} "
+            f"{o['speed_mean']:>7.1f}±{o['speed_std']:<4.1f}ms {o['size']:>7.1f}MB"
+        )
 
     print("=" * 112)
-    print(f"{'':29s} {'params':>8s} {'FLOPs':>8s} {'buffer':>9s} "
-          f"{'mAP10':>8s} {'mAP25':>8s} {'mAP50':>8s} {'mAP10-50':>10s} "
-          f"{'CPU ONNX':>16s} {'size':>9s}")
+    print(
+        f"{'':29s} {'params':>8s} {'FLOPs':>8s} {'buffer':>9s} "
+        f"{'mAP10':>8s} {'mAP25':>8s} {'mAP50':>8s} {'mAP10-50':>10s} "
+        f"{'CPU ONNX':>16s} {'size':>9s}"
+    )
     print("-" * 112)
     print(row("YOLOA (no memory)", m_no, o_no, "-"))
     print(row("YOLOA (with memory)", m_with, o_with, f"{o_with['buffer']:.2f}MB"))
@@ -195,10 +210,18 @@ def main():
     ap.add_argument("--device", default="cpu", help="torch device")
     ap.add_argument("--imgsz", type=int, default=640)
     ap.add_argument("--val-batch", type=int, default=8, help="val batch size (lower if OOM)")
-    ap.add_argument("--e2e", "--end2end", action="store_true",
-                    help="val with the end-to-end (NMS-free) head (default: NMS head, matches run_yoloa.py)")
-    ap.add_argument("--score-chunk", type=int, default=1 << 23,
-                    help="bank score matmul chunk in elements (~32MB); lower if MPS OOMs. Affects chunking only.")
+    ap.add_argument(
+        "--e2e",
+        "--end2end",
+        action="store_true",
+        help="val with the end-to-end (NMS-free) head (default: NMS head, matches run_yoloa.py)",
+    )
+    ap.add_argument(
+        "--score-chunk",
+        type=int,
+        default=1 << 23,
+        help="bank score matmul chunk in elements (~32MB); lower if MPS OOMs. Affects chunking only.",
+    )
     ap.add_argument("--cache-dir", default=None, help="bank cache dir (default: runs/temp/bank_cache)")
     ap.add_argument("--no-fit", action="store_true", help="skip fit+mAP (YAML-only: params/FLOPs/speed)")
     args = ap.parse_args()
@@ -254,10 +277,17 @@ def main():
     if not can_fit:
         print("  (no fit — no train images)", flush=True)
     onnx_with = export_profile(
-        ckpt, args.imgsz, args.device,
-        fit_dir=str(fit_dir) if can_fit else None, cat=cat, cache=cache,
+        ckpt,
+        args.imgsz,
+        args.device,
+        fit_dir=str(fit_dir) if can_fit else None,
+        cat=cat,
+        cache=cache,
     )
-    print(f"  {onnx_with['size']:.1f} MB  |  {onnx_with['speed_mean']:.1f} ± {onnx_with['speed_std']:.1f} ms\n", flush=True)
+    print(
+        f"  {onnx_with['size']:.1f} MB  |  {onnx_with['speed_mean']:.1f} ± {onnx_with['speed_std']:.1f} ms\n",
+        flush=True,
+    )
 
     print_summary(params_m, flops, metrics_no, metrics_with, onnx_no, onnx_with, args.device)
 

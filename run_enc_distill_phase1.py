@@ -264,6 +264,10 @@ def main(argv: list[str]) -> None:
     lr0 = float(lr_override or r["lr0"]) * scale
     warmup_epochs = r["warmup_epochs"] * scale
 
+    # A .pt model arg forks a finished run's trained backbone: pretrained=True then skips the
+    # reset_parameters() wipe in ImageEncoderTrainer.get_model that would re-randomize the loaded
+    # weights back to a cold start. A .yaml build stays pretrained=False (fresh init).
+    fork_pretrained = str(model_yaml).endswith(".pt")
     model = YOLO(model_yaml)
     # grad_clip, beta2, nfs_sync registered inside ImageEncoderTrainer (survives DDP respawn).
     model.add_callback(
@@ -321,7 +325,7 @@ def main(argv: list[str]) -> None:
         warmup_bias_lr=0,
         dropout=0,
         optimizer=optimizer,
-        pretrained=False,
+        pretrained=fork_pretrained,
         amp=True,
         seed=0,
         deterministic=True,

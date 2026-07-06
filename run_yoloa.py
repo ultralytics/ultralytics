@@ -100,7 +100,8 @@ def main():
     ap.add_argument("--iou", type=float, default=0.1, help="NMS IoU")
     ap.add_argument("--e2e", "--end2end", action="store_true", help="use end-to-end NMS-free head")
     ap.add_argument("--hm-gate-blend", type=float, default=0.0, help="heatmap conf gate (0=on, 1=off)")
-    ap.add_argument("--single-cls", action="store_true", help="treat all classes as one during val")
+    ap.add_argument("--no-memory", action="store_true",
+                    help="skip building/using the memory bank (bank-free, no heatmap prior)")
     ap.add_argument("--n-per-cat", type=int, default=0, help="predict/visualize: images per cat (0=all)")
     ap.add_argument("--imgsz", type=int, default=640, help="inference image size")
     ap.add_argument("--mvtec-root", default=None, help="MVTec-YOLO root (default: MVTEC_ROOT env or built-in)")
@@ -138,22 +139,25 @@ def main():
                 LOGGER.warning(f"[{ci}/{len(cats)}] {cat}: no data yaml; skipping")
                 continue
 
-            print(f"\n{'=' * 60}\n[{ci}/{len(cats)}] {cat}: fit + val\n{'=' * 60}", flush=True)
-            model.fit(
-                source=str(good_dir(root, cat)),
-                name=cat,
-                batch=args.batch,
-                device=device,
-                cache=bank_cache,
-            )
+            stage = "val (no memory)" if args.no_memory else "fit + val"
+            print(f"\n{'=' * 60}\n[{ci}/{len(cats)}] {cat}: {stage}\n{'=' * 60}", flush=True)
+            if not args.no_memory:
+                model.fit(
+                    source=str(good_dir(root, cat)),
+                    name=cat,
+                    batch=args.batch,
+                    device=device,
+                    cache=bank_cache,
+                )
 
             metrics = model.val(
                 data=str(yaml),
                 iou=args.iou,
                 end2end=args.e2e,
-                hm_gate_blend=args.hm_gate_blend,
-                single_cls=args.single_cls,
+                hm_gate_blend=args.hm_gate_blend if not args.no_memory else 1.0,
+                single_cls=True,
                 device=device,
+                use_prior=not args.no_memory,
             )
 
             ap_mat = metrics.box.all_ap
@@ -212,13 +216,14 @@ def main():
                 LOGGER.warning(f"[{ci}/{len(cats)}] {cat}: missing category dir; skipping")
                 continue
 
-            model.fit(
-                source=str(good_dir(root, cat)),
-                name=cat,
-                batch=args.batch,
-                device=device,
-                cache=bank_cache,
-            )
+            if not args.no_memory:
+                model.fit(
+                    source=str(good_dir(root, cat)),
+                    name=cat,
+                    batch=args.batch,
+                    device=device,
+                    cache=bank_cache,
+                )
 
             samples = collect_test_images(root / cat / "test", args.n_per_cat)
             if not samples:
@@ -230,7 +235,7 @@ def main():
 
             for img, label in samples:
                 if args.mode == "predict":
-                    prior = "heatmap" if _bank_is_ready(model) else "none"
+                    prior = "heatmap" if (not args.no_memory and _bank_is_ready(model)) else "none"
                     pred_bgr, _, _ = _predict_plot(model, img, prior, pkw)
                     cv2.imwrite(str(out / f"{label}__{Path(img).stem}.jpg"), pred_bgr)
                 else:  # visualize

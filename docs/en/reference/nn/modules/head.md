@@ -15,10 +15,6 @@ keywords: Ultralytics, YOLO, Detection, Pose, RTDETRDecoder, nn modules, guides
 
 <br><br><hr><br>
 
-## ::: ultralytics.nn.modules.head.AnomalyMCDetect
-
-<br><br><hr><br>
-
 ## ::: ultralytics.nn.modules.head.Segment
 
 <br><br><hr><br>

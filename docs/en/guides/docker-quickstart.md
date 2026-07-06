@@ -83,7 +83,7 @@ Now, let's install the [NVIDIA Container Toolkit](https://docs.nvidia.com/datace
         Optionally, you can install a specific version of the nvidia-container-toolkit by setting the `NVIDIA_CONTAINER_TOOLKIT_VERSION` environment variable:
 
         ```bash
-        export NVIDIA_CONTAINER_TOOLKIT_VERSION=1.17.8-1
+        export NVIDIA_CONTAINER_TOOLKIT_VERSION=1.18.1-1
         sudo apt-get install -y \
           nvidia-container-toolkit=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
           nvidia-container-toolkit-base=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
@@ -124,7 +124,7 @@ Now, let's install the [NVIDIA Container Toolkit](https://docs.nvidia.com/datace
         Optionally, you can install a specific version of the nvidia-container-toolkit by setting the `NVIDIA_CONTAINER_TOOLKIT_VERSION` environment variable:
 
           ```bash
-          export NVIDIA_CONTAINER_TOOLKIT_VERSION=1.17.8-1
+          export NVIDIA_CONTAINER_TOOLKIT_VERSION=1.18.1-1
           sudo dnf install -y \
             nvidia-container-toolkit-${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
             nvidia-container-toolkit-base-${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
@@ -137,13 +137,15 @@ Now, let's install the [NVIDIA Container Toolkit](https://docs.nvidia.com/datace
     sudo systemctl restart docker
     ```
 
-### Verify NVIDIA Runtime with Docker
+### Verify CDI Devices with Docker
 
-Run `docker info | grep -i runtime` to ensure that `nvidia` appears in the list of runtimes:
+Run `nvidia-ctk cdi list` to ensure the GPU CDI devices are available (the toolkit's `nvidia-cdi-refresh` service generates and maintains the spec automatically on toolkit >= 1.18):
 
 ```bash
-docker info | grep -i runtime
+nvidia-ctk cdi list
 ```
+
+You should see entries such as `nvidia.com/gpu=0` and `nvidia.com/gpu=all`. Discovered CDI devices also appear in `docker info`.
 
 ---
 
@@ -201,7 +203,7 @@ The `-it` flag assigns a pseudo-TTY and keeps stdin open, allowing you to intera
 
 !!! tip "Older Docker or NVIDIA Container Toolkit versions"
 
-    CDI device requests require Docker >= 28.3.0 (CDI enabled by default) and `nvidia-container-toolkit` >= 1.18 (automatic CDI spec generation). On older hosts, fall back to the legacy flags:
+    CDI device requests require Docker >= 28.2.0 (CDI enabled by default) and `nvidia-container-toolkit` >= 1.18 (automatic CDI spec generation). On older hosts, fall back to the legacy flags:
 
     ```bash
     # Legacy GPU access on older hosts

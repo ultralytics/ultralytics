@@ -58,7 +58,7 @@ Next, install the NVIDIA Container Toolkit. The commands below are typical for D
         Optionally, you can install a specific version of the nvidia-container-toolkit by setting the `NVIDIA_CONTAINER_TOOLKIT_VERSION` environment variable:
 
         ```bash
-        export NVIDIA_CONTAINER_TOOLKIT_VERSION=1.17.8-1
+        export NVIDIA_CONTAINER_TOOLKIT_VERSION=1.18.1-1
         sudo apt-get install -y \
           nvidia-container-toolkit=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
           nvidia-container-toolkit-base=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
@@ -98,7 +98,7 @@ Next, install the NVIDIA Container Toolkit. The commands below are typical for D
         Optionally, you can install a specific version of the nvidia-container-toolkit by setting the `NVIDIA_CONTAINER_TOOLKIT_VERSION` environment variable:
 
         ```bash
-        export NVIDIA_CONTAINER_TOOLKIT_VERSION=1.17.8-1
+        export NVIDIA_CONTAINER_TOOLKIT_VERSION=1.18.1-1
         sudo dnf install -y \
           nvidia-container-toolkit-${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
           nvidia-container-toolkit-base-${NVIDIA_CONTAINER_TOOLKIT_VERSION} \

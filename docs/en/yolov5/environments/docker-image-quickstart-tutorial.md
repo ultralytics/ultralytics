@@ -111,15 +111,15 @@ Next, install the NVIDIA Container Toolkit. The commands below are typical for D
     sudo systemctl restart docker
     ```
 
-### Verify NVIDIA Runtime with Docker
+### Verify CDI Devices with Docker
 
-Run `docker info | grep -i runtime` to ensure that `nvidia` appears in the list of runtimes:
+Run `nvidia-ctk cdi list` to ensure the GPU CDI devices are available (the toolkit's `nvidia-cdi-refresh` service generates and maintains the spec automatically on toolkit >= 1.18):
 
 ```bash
-docker info | grep -i runtime
+nvidia-ctk cdi list
 ```
 
-You should see `nvidia` listed as one of the available runtimes.
+You should see entries such as `nvidia.com/gpu=0` and `nvidia.com/gpu=all`. CDI device requests require Docker >= 28.2.0 and NVIDIA Container Toolkit >= 1.18; on older hosts, use the legacy `--runtime=nvidia --gpus all` flags instead.
 
 ## Step 1: Pull the YOLOv5 Docker Image
 

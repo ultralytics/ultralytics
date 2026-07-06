@@ -581,6 +581,19 @@ class YOLOAnomalyV2Model(DetectionModel):
         fusion_mid = int(v2_cfg.get("fusion_mid", 8))
         fusion_norm = bool(v2_cfg.get("fusion_norm", False))
         fusion_residual = bool(v2_cfg.get("fusion_residual", False))
+        # Direction B (feature-conditioned fusion) + direction A (per-scale conv).
+        #   fusion_feat      -- fusion also reads the PAN feature it biases (concat proj + mask).
+        #   fusion_feat_k    -- width of the per-scale C_i -> k feature projection.
+        #   fusion_per_scale -- unshare the conv across P3/P4/P5.
+        #   fusion_feat_grad -- if True, the feature-input path back-props into the backbone;
+        #                       if False (default), the feature is detached so the fusion reads
+        #                       the trunk but does not reshape it (keeps the trunk prior-clean).
+        #                       Only has effect when fusion_feat is on.
+        fusion_feat = bool(v2_cfg.get("fusion_feat", False))
+        fusion_feat_k = int(v2_cfg.get("fusion_feat_k", 8))
+        fusion_per_scale = bool(v2_cfg.get("fusion_per_scale", False))
+        self.fusion_feat = fusion_feat
+        self.fusion_feat_grad = bool(v2_cfg.get("fusion_feat_grad", False))
         # Prior injection target: 'all' adds the bias to the PAN features (box + cls branches both
         # see it); 'cls' hands the bias to the Detect head, which applies it to the cls-branch
         # input only. Rationale: the training prior is rendered FROM the GT bbox, so a box branch
@@ -620,7 +633,12 @@ class YOLOAnomalyV2Model(DetectionModel):
         self.mask_size = mask_size
 
         self.mask_augmenter = MaskPriorAugmenter(v2_cfg)
-        self.heatmap_bias_fusion = HeatmapBiasFusion(c_mid=fusion_mid, inst_norm=fusion_norm, residual=fusion_residual)
+        # Per-scale PAN channel counts (C3, C4, C5) recovered from the Detect box head — needed
+        # by the feature-conditioned projection. cv2[i][0] is the first Conv of scale i's box head.
+        pan_ch = [detect.cv2[i][0].conv.in_channels for i in range(detect.nl)] if fusion_feat else None
+        self.heatmap_bias_fusion = HeatmapBiasFusion(
+            c_mid=fusion_mid, inst_norm=fusion_norm, residual=fusion_residual,
+            ch=pan_ch, feat=fusion_feat, k_feat=fusion_feat_k, per_scale=fusion_per_scale)
         # Heatmap gate blend on the Detect head (0=full gate, 1=off).
         self.hm_gate_blend = float(v2_cfg.get("hm_gate_blend", 1.0))
         # Inference-time prior processing: minmax stretch, gaussian/mean blur, spatial softmax,
@@ -1254,7 +1272,13 @@ class YOLOAnomalyV2Model(DetectionModel):
                         )
                     else:
                         m_scale = prior
-                    delta = self.heatmap_bias_fusion(m_scale, i)
+                    # Feature-conditioned mode: hand the fusion the PAN feature it is biasing.
+                    # fusion_feat_grad gates whether that path reaches the backbone (detach if not).
+                    if getattr(self, "fusion_feat", False):
+                        feat_in = p if getattr(self, "fusion_feat_grad", False) else p.detach()
+                        delta = self.heatmap_bias_fusion(m_scale, i, feat=feat_in)
+                    else:
+                        delta = self.heatmap_bias_fusion(m_scale, i)
                     # Per-sample keep mask (mask dropout): dropped samples get zero increment.
                     delta = delta * keep.to(delta.dtype).view(-1, 1, 1, 1)
                     if hm_bias is not None and clsgrad:

@@ -155,46 +155,78 @@ class BboxMaskRenderer(nn.Module):
 
 
 class HeatmapBiasFusion(nn.Module):
-    """Soft-hint fusion: 1-ch mask -> bounded per-pixel bias broadcast onto PAN features.
+    """Soft-hint fusion: mask (+ optional PAN feature) -> bounded per-pixel bias.
 
     Output shape ``(B, 1, H, W)`` — the caller broadcasts (adds) it to a PAN feature
-    of shape ``(B, C, H, W)``. The conv stack is SHARED across PAN scales; the caller
-    is responsible for resizing the mask to each scale before calling forward.
+    of shape ``(B, C, H, W)``. The caller is responsible for resizing the mask to each
+    scale before calling forward.
 
     Per-scale magnitude is controlled by ``beta[i]``, initialized to zero so training
     starts as pure passthrough (vanilla YOLO). Without a hard cap, beta can in
     principle grow large; that is intentional — the detection loss decides how much
-    to lean on the heatmap.
+    to lean on the heatmap. Output per pixel is in ``[-beta_i, +beta_i]`` via tanh.
 
-    Output per pixel is in ``[-beta_i, +beta_i]`` via tanh.
+    Modes (all default OFF -> byte-identical to the original mask-only shared-conv module):
+
+    - ``feat=True`` (direction B, feature-conditioned): the module also consumes the PAN
+      feature ``p`` it is about to bias. A per-scale 1x1 projection ``C_i -> k_feat`` is
+      concatenated with the mask, so the conv can (a) SUPPRESS bias where the prior fires
+      but features disagree (precision / mAP50) and (b) ADD bias where features look
+      anomalous but a sharp prior missed (recall / mAP10). Unlike the GT-extent oracle,
+      the feature is available at deploy, so the signal transfers. Requires ``ch`` (the
+      per-scale PAN channel counts) at construction.
+    - ``per_scale=True`` (direction A): unshare the conv across P3/P4/P5 so the fine scale
+      can sharpen (mAP50) while the coarse scale stays broad (mAP10). Cheap (~3x a tiny conv).
+
+    Whether the feature-input path back-propagates into the backbone is controlled by the
+    CALLER (it passes ``feat=p`` or ``feat=p.detach()``); this module is agnostic.
     """
 
-    def __init__(self, num_scales: int = 3, c_mid: int = 8, inst_norm: bool = False, residual: bool = False):
+    def __init__(self, num_scales: int = 3, c_mid: int = 8, inst_norm: bool = False, residual: bool = False,
+                 ch=None, feat: bool = False, k_feat: int = 8, per_scale: bool = False):
         super().__init__()
         self.inst_norm = nn.InstanceNorm2d(1, affine=False, track_running_stats=False) if inst_norm else None
         self.residual = residual
-        self.conv = nn.Sequential(
-            nn.Conv2d(1, c_mid, 3, padding=1),
-            nn.GELU(),
-            nn.Conv2d(c_mid, 1, 3, padding=1),
-        )
+        self.feat = bool(feat) and ch is not None
+        self.per_scale = bool(per_scale)
+        in_ch = 1
+        if self.feat:
+            # Per-scale 1x1 projection C_i -> k_feat (P3/P4/P5 differ in channel count).
+            self.feat_proj = nn.ModuleList([nn.Conv2d(int(c), k_feat, 1) for c in ch])
+            in_ch = 1 + k_feat
+
+        def _block():
+            return nn.Sequential(
+                nn.Conv2d(in_ch, c_mid, 3, padding=1),
+                nn.GELU(),
+                nn.Conv2d(c_mid, 1, 3, padding=1),
+            )
+
+        # Unshared per-scale convs (direction A) or a single shared stack (original behavior).
+        self.conv = nn.ModuleList([_block() for _ in range(num_scales)]) if self.per_scale else _block()
         self.beta = nn.Parameter(torch.zeros(num_scales))
 
-    def forward(self, mask: torch.Tensor, scale_idx: int) -> torch.Tensor:
+    def forward(self, mask: torch.Tensor, scale_idx: int, feat: torch.Tensor | None = None) -> torch.Tensor:
         """Return bias (B, 1, H, W) for the given PAN scale.
 
         Args:
             mask: (B, 1, H, W) already resized to the target PAN scale.
-            scale_idx: index into ``self.beta``.
+            scale_idx: index into ``self.beta`` (and the per-scale conv / feat_proj).
+            feat: (B, C_i, H, W) PAN feature for feature-conditioned mode; pass ``p`` to let
+                the feature path reach the backbone, or ``p.detach()`` to block it. Ignored
+                unless the module was built with ``feat=True``.
 
         Returns:
             Bias tensor (B, 1, H, W) in ``[-beta_i, +beta_i]``.
         """
         inst_norm = getattr(self, "inst_norm", None)
         x = inst_norm(mask) if inst_norm is not None else mask
-        y = self.conv(x)
+        if getattr(self, "feat", False) and feat is not None:
+            x = torch.cat([x, self.feat_proj[scale_idx](feat)], dim=1)
+        conv = self.conv[scale_idx] if getattr(self, "per_scale", False) else self.conv
+        y = conv(x)
         if getattr(self, "residual", False):
-            y = y + x
+            y = y + mask  # residual on the raw mask channel
         return self.beta[scale_idx] * torch.tanh(y)
 
 

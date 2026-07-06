@@ -223,6 +223,7 @@ CFG_FRACTION_KEYS = frozenset(
         "multi_scale",
         "silog_trim",
         "silog_grad_min_valid",
+        "dense_gate",
     }
 )
 CFG_INT_KEYS = frozenset(

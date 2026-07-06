@@ -115,6 +115,7 @@ silog_trim: 0.0 # (float) depth: fraction of largest-residual pixels dropped fro
 silog_lambda: 0.5 # (float) SILog variance focus: 1.0=scale-invariant, 0.0=log-RMSE (depth tasks)
 silog_l1: 0.0 # (float) scale-anchored L1 depth loss gain (depth tasks)
 dist_pw: 0.0 # (float) far-pixel distance weighting power in depth loss (depth tasks)
+dense_gate: 0.0 # (float) depth: per-image valid-fraction gate enabling dense-only loss extras, 0=off (depth tasks)
 cal_dist_pw: 0.0 # (float) distance weighting power in depth scale calibration (depth tasks)
 auto_calibrate: True # (bool) auto-calibrate depth output scale after training (depth tasks)
 nbs: 64 # (int) nominal batch size used for loss normalization

@@ -1169,6 +1169,10 @@ class v8DepthLoss:
         self.l1_weight = h.silog_l1
         # Depth-distance weighting: weight each valid pixel by gt**dist_power (normalized to mean 1).
         self.dist_power = h.dist_pw
+        # Density gate: when >0, images whose valid-GT fraction >= dense_gate get the dense-only
+        # loss extras (dist_pw far-weighting; MiDaS-normalized coarse gradient levels). Sparse
+        # images (e.g. LiDAR) keep the exact ungated single-scale loss - non-regression by design.
+        self.dense_gate = float(getattr(h, "dense_gate", 0.0) or 0.0)
         # Gradient-matching pyramid levels and SILog residual trimming. getattr fallbacks keep this
         # working for models whose args predate these keys / lack them (inference builds, stubs).
         # grad_scales=1 reproduces the single-scale gradient loss; trim=0.0 disables trimming.
@@ -1246,7 +1250,19 @@ class v8DepthLoss:
 
         # SILog loss (scale-invariant log error), optionally depth-distance weighted.
         log_diff = torch.log(pred_valid) - torch.log(gt_valid)
-        if self.dist_power > 0:
+        if self.dist_power > 0 and self.dense_gate > 0:
+            # Per-image gating: dense images get gt**p far-weighting; sparse keep uniform.
+            # Per-image mean-1 normalization keeps each image's total weight equal to its
+            # valid-pixel count, so sparse images are exactly invariant vs dist_pw=0.
+            b = gt_depth.shape[0]
+            img_idx = torch.arange(b, device=gt_depth.device).view(-1, 1, 1, 1).expand_as(gt_depth)[valid]
+            vfrac = valid.float().mean(dim=(1, 2, 3))  # (B,) per-image valid fraction
+            dense_px = (vfrac >= self.dense_gate).float()[img_idx]  # per-valid-pixel flag
+            w = torch.where(dense_px > 0, gt_valid.clamp(min=0.001) ** self.dist_power, torch.ones_like(gt_valid))
+            sums = torch.zeros(b, device=w.device, dtype=w.dtype).scatter_add_(0, img_idx, w)
+            cnts = torch.zeros(b, device=w.device, dtype=w.dtype).scatter_add_(0, img_idx, torch.ones_like(w))
+            w = w * (cnts / sums.clamp(min=1e-12))[img_idx]  # per-image mean-1
+        elif self.dist_power > 0:
             w = gt_valid.clamp(min=0.001) ** self.dist_power
             w = w / w.mean()  # mean 1 → weighted-mean is just mean(w * x), magnitude preserved
         else:
@@ -1274,6 +1290,25 @@ class v8DepthLoss:
         gt_log = torch.log(gt_depth.clamp(min=0.001))
         valid_f = valid.float()
         n_scales = max(self.grad_scales, 1)
+        if self.dense_gate > 0 and n_scales > 1:
+            # Density-gated MiDaS-style pyramid: coarse levels (s>=1) apply only to dense
+            # images and carry 4**-s level weights (MiDaS L_reg), so full-res dominates and
+            # total magnitude stays within ~1.33x single-scale. Sparse images: level 0 only.
+            dense_b = (valid_f.mean(dim=(1, 2, 3)) >= self.dense_gate).float().view(-1, 1, 1, 1)
+            grad_loss = self._grad_l1(pred_log, gt_log, valid_f)  # level 0: all images
+            for s in range(1, n_scales):
+                if pred_log.shape[-1] < 4 or pred_log.shape[-2] < 4:
+                    break  # too small to pool and still differentiate
+                vp = F.avg_pool2d(valid_f, 2)
+                denom = vp.clamp(min=1e-6)
+                pred_log = F.avg_pool2d(pred_log * valid_f, 2) / denom
+                gt_log = F.avg_pool2d(gt_log * valid_f, 2) / denom
+                valid_f = (vp > 0).float()
+                # Gating by mask: sparse images' gradient pairs zero out at coarse levels.
+                grad_loss = grad_loss + (4.0 ** -s) * self._grad_l1(pred_log, gt_log, valid_f * dense_b)
+            loss[1] = grad_loss * self.grad_weight
+            batch_size = pred_depth.shape[0]
+            return loss.sum() * batch_size, loss.detach()
         grad_loss = 0.0
         for s in range(n_scales):
             grad_loss = grad_loss + self._grad_l1(pred_log, gt_log, valid_f)

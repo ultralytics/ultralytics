@@ -41,7 +41,6 @@ from ultralytics.nn.modules import (
     C3x,
     CBFuse,
     CBLinear,
-    AnomalyMCDetect,
     Classify,
     Concat,
     Conv,
@@ -82,7 +81,6 @@ from ultralytics.nn.modules import (
 from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, WINDOWS, YAML, colorstr, emojis
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (
-    AnomalyMCLoss,
     E2ELoss,
     PoseLoss26,
     v8ClassificationLoss,
@@ -584,16 +582,6 @@ class YOLOAnomalyV2Model(DetectionModel):
             for m in self.model.modules():
                 if isinstance(m, Detect) and id(m) in saved:
                     m._end2end = saved[id(m)]
-
-    def init_criterion(self):
-        """Initialize the loss criterion.
-
-        Returns ``AnomalyMCLoss`` when the head is an ``AnomalyMCDetect``,
-        otherwise the standard detection criterion.
-        """
-        if isinstance(self.model[-1], AnomalyMCDetect):
-            return E2ELoss(self, AnomalyMCLoss) if getattr(self, "end2end", False) else AnomalyMCLoss(self)
-        return E2ELoss(self) if getattr(self, "end2end", False) else v8DetectionLoss(self)
 
     def build_memory_bank(
         self,
@@ -1980,7 +1968,6 @@ def parse_model(d, ch, verbose=True):
         elif m in frozenset(
             {
                 Detect,
-                AnomalyMCDetect,
                 WorldDetect,
                 YOLOEDetect,
                 Segment,
@@ -1998,7 +1985,6 @@ def parse_model(d, ch, verbose=True):
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
             if m in {
                 Detect,
-                AnomalyMCDetect,
                 YOLOEDetect,
                 Segment,
                 Segment26,

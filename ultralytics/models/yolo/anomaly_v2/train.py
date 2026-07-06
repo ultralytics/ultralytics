@@ -18,7 +18,6 @@ from ultralytics.data import YOLOConcatDataset, build_yolo_dataset
 from ultralytics.data.augment import LoadAnomalyPriorMask
 from ultralytics.models import yolo
 from ultralytics.models.yolo.detect import DetectionTrainer
-from ultralytics.nn.modules.head import AnomalyMCDetect
 from ultralytics.nn.tasks import YOLOAnomalyV2Model
 from ultralytics.utils import DEFAULT_CFG, RANK
 from ultralytics.utils.torch_utils import unwrap_model
@@ -78,15 +77,8 @@ class AnomalyV2Trainer(DetectionTrainer):
 
     def get_validator(self):
         """Return the anomaly validator."""
-        model = unwrap_model(self.model)
-        if isinstance(model.model[-1], AnomalyMCDetect):
-            loss_names = ["box_loss", "anom_loss", "dfl_loss", "type_loss"]
-        else:
-            loss_names = ["box_loss", "cls_loss", "dfl_loss"]
+        loss_names = ["box_loss", "cls_loss", "dfl_loss"]
         self.loss_names = tuple(loss_names)
         return yolo.anomaly_v2.YOLOAnomalyValidator(
-            self.test_loader,
-            save_dir=self.save_dir,
-            args=copy(self.args),
-            _callbacks=self.callbacks,
+            self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )

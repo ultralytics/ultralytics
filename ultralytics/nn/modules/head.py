@@ -24,7 +24,6 @@ __all__ = (
     "OBB",
     "Classify",
     "Detect",
-    "AnomalyMCDetect",
     "Pose",
     "RTDETRDecoder",
     "Segment",
@@ -282,97 +281,6 @@ class Detect(nn.Module):
     def fuse(self) -> None:
         """Remove the one2many head for inference optimization."""
         self.cv2 = self.cv3 = None
-
-
-class AnomalyMCDetect(Detect):
-    """Detect head that decouples binary anomaly detection from multi-class type prediction.
-
-    Anomaly detection and defect-type classification are split into two independent branches so the
-    type task never dilutes the detection confidence (the dominant cause of missed detections when a
-    plain ``Detect`` head is trained multi-class):
-
-    - ``cv_anom`` (1 channel): the "anomaly-ness" logit. Drives box matching, confidence, and NMS.
-      Trained as a binary detector (see ``AnomalyMCLoss``), so recall is governed by it alone.
-    - ``cv3`` (``nc`` channels, inherited): the defect-type logits. Supervised by a separate
-      cross-entropy on matched positives only; never enters matching or confidence.
-
-    At inference the two are fused into a standard ``[4 + nc]`` output so the model is, to any
-    downstream runtime (ONNX/TensorRT/NMS), an ordinary ``nc``-class detector::
-
-        class_scores = P_anom * softmax(type / tau) / max(softmax(type / tau))
-
-    The ``/ max`` rescaling pins the winning class score to ``P_anom`` (recall preserved, identical
-    decision to argmax) while keeping the soft runner-up distribution. ``tau -> 0`` approaches a
-    hard one-hot. Only Softmax/ReduceMax/Div/Mul are added — all ONNX-native.
-
-    Attributes:
-        type_tau (float): Softmax temperature for the type distribution at fusion time.
-    """
-
-    type_tau = 1.0  # softmax temperature for the inference-time type distribution
-
-    def __init__(self, nc: int = 80, reg_max=16, end2end=False, ch: tuple = ()):
-        """Build the standard Detect head (type branch = ``cv3``) plus the 1-channel anomaly branch."""
-        super().__init__(nc, reg_max, end2end, ch)
-        c3 = max(ch[0], min(self.nc, 100))
-
-        def _anom_stack(x):
-            return nn.Sequential(
-                nn.Sequential(DWConv(x, x, 3), Conv(x, c3, 1)),
-                nn.Sequential(DWConv(c3, c3, 3), Conv(c3, c3, 1)),
-                nn.Conv2d(c3, 1, 1),
-            )
-
-        self.cv_anom = nn.ModuleList(_anom_stack(x) for x in ch)
-        if end2end:
-            self.one2one_cv_anom = copy.deepcopy(self.cv_anom)
-
-    @property
-    def one2many(self):
-        """One-to-many head components, with the anomaly branch added to the box/type heads."""
-        return dict(box_head=self.cv2, cls_head=self.cv3, anom_head=self.cv_anom)
-
-    @property
-    def one2one(self):
-        """One-to-one head components, with the anomaly branch added (raises if not end2end)."""
-        return dict(box_head=self.one2one_cv2, cls_head=self.one2one_cv3, anom_head=self.one2one_cv_anom)
-
-    def forward_head(self, x, box_head=None, cls_head=None, anom_head=None):
-        """Return boxes, type scores (``cv3``) and the 1-channel anomaly logit (``cv_anom``)."""
-        if box_head is None or cls_head is None:
-            return dict()
-        bs = x[0].shape[0]
-        boxes = torch.cat([box_head[i](x[i]).view(bs, 4 * self.reg_max, -1) for i in range(self.nl)], dim=-1)
-        scores = torch.cat([cls_head[i](x[i]).view(bs, self.nc, -1) for i in range(self.nl)], dim=-1)
-        out = dict(boxes=boxes, scores=scores, feats=x)
-        if anom_head is not None:
-            out["anom"] = torch.cat([anom_head[i](x[i]).view(bs, 1, -1) for i in range(self.nl)], dim=-1)
-        return out
-
-    def _inference(self, x: dict[str, torch.Tensor], heatmap: torch.Tensor | None = None) -> torch.Tensor:
-        """Decode boxes and fuse the anomaly score with the type distribution into ``[4 + nc]``."""
-        dbox = self._get_decode_boxes(x)
-        p_anom = x["anom"].sigmoid()  # (bs, 1, A) — drives confidence
-        if heatmap is not None and getattr(self, "hm_gate_blend", 1.0) < 1.0:
-            gate = self._build_heatmap_gate(heatmap, x["feats"])
-            b = float(self.hm_gate_blend)
-            factor = (b + (1.0 - b) * gate).clamp(0.0, 1.0)
-            p_anom = p_anom * factor
-        type_prob = (x["scores"] / self.type_tau).softmax(1)  # (bs, nc, A) over classes
-        type_prob = type_prob / type_prob.amax(1, keepdim=True).clamp_min(1e-9)  # peak -> 1
-        return torch.cat((dbox, p_anom * type_prob), 1)
-
-    def bias_init(self):
-        """Initialize Detect biases, plus the anomaly branch as a single-class detector."""
-        super().bias_init()
-        heads = [self.cv_anom] + ([self.one2one_cv_anom] if self.end2end else [])
-        for head in heads:
-            for i, b in enumerate(head):
-                b[-1].bias.data[:1] = math.log(5 / 1 / (640 / self.stride[i]) ** 2)  # ~1 object / image
-
-    def fuse(self) -> None:
-        """Remove the one2many heads (incl. anomaly branch) for inference optimization."""
-        self.cv2 = self.cv3 = self.cv_anom = None
 
 
 class Segment(Detect):

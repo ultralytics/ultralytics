@@ -531,11 +531,11 @@ def check_dict_alignment(
             #   distillation (R1). The loader serves the largest scale; preprocess round-robins the student
             #   size per step and downsamples the teacher to its native res (DINOv3 high-res adaptation).
             "student_scales",
-            # ``hires_adapt``: "<res>:<epochs>" (e.g. "384:12") runs the student at <res> for the last
-            #   <epochs> epochs (DINOv3 "high-resolution adaptation") so the frozen P5 attention adapts to the
-            #   higher token count met at detection resolution. Load res and teacher res unchanged, so the
-            #   pre-adapt phase matches a no-adapt run. ``hires_tail`` is the legacy alias for pre-rename runs.
-            "hires_adapt",
+            # ``high_res_final_epochs``: "<imgsz>:<epochs>" (e.g. "384:12") runs the student at <imgsz> for the
+            #   last <epochs> epochs (DINOv3's "high-resolution adaptation") so the frozen P5 attention meets the
+            #   larger token count it will see at detection resolution. Load size and teacher size stay unchanged,
+            #   so earlier epochs match a run without it. ``hires_tail`` is the legacy alias for pre-rename runs.
+            "high_res_final_epochs",
             "hires_tail",
         }
     if mismatched := [k for k in custom_keys if k not in base_keys and k not in allowed_custom_keys]:

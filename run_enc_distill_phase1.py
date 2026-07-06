@@ -182,8 +182,8 @@ def main(argv: list[str]) -> None:
     args, norm_in_str = _pop_flag(args, "--normalize_teacher_input", is_bool=True)
     args, loss_type = _pop_flag(args, "--loss_type")
     args, student_scales = _pop_flag(args, "--student_scales")  # e.g. "224,448,640" (R1 multi-scale)
-    args, hires_adapt = _pop_flag(args, "--hires_adapt")  # "<res>:<epochs>" e.g. "384:12" (DINOv3 high-res adaptation)
-    args, _hires_legacy = _pop_flag(args, "--hires_tail")  # legacy alias for --hires_adapt
+    args, high_res_final_epochs = _pop_flag(args, "--high_res_final_epochs")  # "<imgsz>:<epochs>" e.g. "384:12"
+    args, _hires_legacy = _pop_flag(args, "--hires_tail")  # legacy alias for --high_res_final_epochs
 
     cos_weight = float(cos_w) if cos_w else 0.9
     l1_weight = float(l1_w) if l1_w else 0.1
@@ -195,7 +195,7 @@ def main(argv: list[str]) -> None:
     normalize_teacher_input = bool(norm_in_str)
     loss_type = loss_type or "cos_l1"
     student_scales = student_scales or None
-    hires_adapt = hires_adapt or _hires_legacy or None
+    high_res_final_epochs = high_res_final_epochs or _hires_legacy or None
 
     if resume:
         resume = paths.patch_resume(resume)
@@ -230,7 +230,7 @@ def main(argv: list[str]) -> None:
             ("normalize_teacher_input", normalize_teacher_input, False),
             ("loss_type", loss_type, "cos_l1"),
             ("student_scales", student_scales, None),
-            ("hires_adapt", hires_adapt, None),
+            ("high_res_final_epochs", high_res_final_epochs, None),
         ):
             prev = resume_args.get(key, default)
             if now != prev:
@@ -277,7 +277,7 @@ def main(argv: list[str]) -> None:
             normalize_teacher_input=normalize_teacher_input,
             loss_type=loss_type,
             student_scales=student_scales,
-            hires_adapt=hires_adapt,
+            high_res_final_epochs=high_res_final_epochs,
             grad_clip=r["grad_clip"],
             beta2=r["beta2"],
             wandb_group="distill",
@@ -297,7 +297,7 @@ def main(argv: list[str]) -> None:
         sample_t=sample_t,
         loss_type=loss_type,
         student_scales=student_scales,
-        hires_adapt=hires_adapt,
+        high_res_final_epochs=high_res_final_epochs,
         device=gpu,
         **paths.run_paths(name),
         epochs=epochs or r["epochs"],

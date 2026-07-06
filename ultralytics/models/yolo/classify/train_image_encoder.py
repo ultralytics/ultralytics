@@ -190,13 +190,13 @@ class ImageEncoderTrainer(ClassificationTrainer):
         self._student_scales = [int(s) for s in str(ss).split(",")] if ss else None
         self._student_scale_step = 0
         self._load_imgsz = max(self._student_scales) if self._student_scales else self._teacher_imgsz
-        # High-resolution adaptation (DINOv3 / FastViT convention): the student runs at ``_hires_res`` for the
-        # last ``_hires_epochs`` epochs so its frozen P5 attention adapts to the higher token count met at
-        # detection resolution (224 -> 7x7 vs 384 -> 12x12). The load resolution and teacher res stay put, so
-        # every pre-adapt epoch is identical to a no-adapt run and the adaptation is the only changed variable.
+        # Run the student at a higher input size for the last N epochs (DINOv3's "high-resolution adaptation"):
+        # its frozen P5 attention then sees the larger token count it will meet at detection resolution
+        # (224 -> 7x7 vs 384 -> 12x12). The load size and teacher size stay put, so every earlier epoch is
+        # identical to a run without it and the higher final resolution is the only changed variable.
         # ``hires_tail`` is read as a legacy alias so runs launched before the rename still resume.
-        ha = getattr(self.args, "hires_adapt", None) or getattr(self.args, "hires_tail", None)
-        self._hires_res, self._hires_epochs = map(int, ha.split(":")) if ha else (None, None)
+        v = getattr(self.args, "high_res_final_epochs", None) or getattr(self.args, "hires_tail", None)
+        self._high_res_imgsz, self._high_res_epochs = map(int, v.split(":")) if v else (None, None)
 
         # Register hooks here (not in runner): dist.py:57 only serializes self.args to DDP workers.
         from callbacks import beta2_override, grad_clip, muon_w, nfs_sync, paths, wd_schedule  # runner-local package
@@ -504,11 +504,11 @@ class ImageEncoderTrainer(ClassificationTrainer):
             (dict): Batch with 'img', 'cls', per-teacher entries, and '_teacher_keys'.
         """
         imgs = batch.to(self.device, non_blocking=True)
-        # Per-batch gate (not an on_train_epoch_start hook like close_mosaic): the adaptation only swaps the
-        # interpolation target, no dataloader rebuild, so reading live self.epoch here also makes a mid-adapt
-        # resume re-enter the high-res regime for free.
-        if self._hires_res and self.epoch >= self.epochs - self._hires_epochs:
-            student_size = self._hires_res
+        # Per-batch gate (not an on_train_epoch_start hook like close_mosaic): raising the final-epoch resolution
+        # only swaps the interpolation target, no dataloader rebuild, so reading live self.epoch here also makes a
+        # resume part-way through the final epochs re-enter the higher-resolution regime for free.
+        if self._high_res_imgsz and self.epoch >= self.epochs - self._high_res_epochs:
+            student_size = self._high_res_imgsz
         elif self._student_scales:
             student_size = self._student_scales[self._student_scale_step % len(self._student_scales)]
             self._student_scale_step += 1

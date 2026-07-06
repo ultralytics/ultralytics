@@ -191,25 +191,24 @@ sudo docker run -it --ipc=host $t
 
 ```bash
 # Run with all GPUs
-sudo docker run -it --ipc=host --runtime=nvidia --gpus all $t
+sudo docker run -it --ipc=host --device nvidia.com/gpu=all $t
 
 # Run specifying which GPUs to use
-sudo docker run -it --ipc=host --runtime=nvidia --gpus '"device=2,3"' $t
+sudo docker run -it --ipc=host --device nvidia.com/gpu=2 --device nvidia.com/gpu=3 $t
 ```
 
-The `-it` flag assigns a pseudo-TTY and keeps stdin open, allowing you to interact with the container. The `--ipc=host` flag enables sharing of host's IPC namespace, essential for sharing memory between processes. The `--gpus` flag allows the container to access the host's GPUs.
+The `-it` flag assigns a pseudo-TTY and keeps stdin open, allowing you to interact with the container. The `--ipc=host` flag enables sharing of host's IPC namespace, essential for sharing memory between processes. The `--device nvidia.com/gpu=...` flag grants the container access to the host's GPUs through [CDI](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/cdi-support.html).
 
-!!! tip "Long-running containers"
+!!! tip "Older Docker or NVIDIA Container Toolkit versions"
 
-    Containers started with `--gpus` can lose GPU access (`Failed to initialize NVML: Unknown Error`) when the host reloads systemd, which happens during routine package updates ([nvidia-container-toolkit#48](https://github.com/NVIDIA/nvidia-container-toolkit/issues/48)). For containers that stay up for days, such as training workers or CI runners, request GPUs through [CDI](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/cdi-support.html) instead, which includes the device nodes in the container configuration itself so access survives reloads (requires Docker >= 28.3.0 for CDI enabled by default and `nvidia-container-toolkit` >= 1.18 for automatic CDI spec generation):
+    CDI device requests require Docker >= 28.3.0 (CDI enabled by default) and `nvidia-container-toolkit` >= 1.18 (automatic CDI spec generation). On older hosts, fall back to the legacy flags:
 
     ```bash
-    # Run with all GPUs via CDI
-    sudo docker run -it --ipc=host --device nvidia.com/gpu=all $t
-
-    # Run specifying which GPUs to use via CDI
-    sudo docker run -it --ipc=host --device nvidia.com/gpu=2 --device nvidia.com/gpu=3 $t
+    # Legacy GPU access on older hosts
+    sudo docker run -it --ipc=host --runtime=nvidia --gpus all $t
     ```
+
+    Note that legacy `--gpus` containers can lose GPU access (`Failed to initialize NVML: Unknown Error`) when the host reloads systemd, which happens during routine package updates ([nvidia-container-toolkit#48](https://github.com/NVIDIA/nvidia-container-toolkit/issues/48)). CDI includes the device nodes in the container configuration itself, so long-running containers such as training workers or CI runners keep GPU access across reloads.
 
 ### Note on File Accessibility
 
@@ -217,7 +216,7 @@ To work with files on your local machine within the container, you can use Docke
 
 ```bash
 # Mount a local directory into the container
-sudo docker run -it --ipc=host --runtime=nvidia --gpus all -v /path/on/host:/path/in/container $t
+sudo docker run -it --ipc=host --device nvidia.com/gpu=all -v /path/on/host:/path/in/container $t
 ```
 
 Replace `/path/on/host` with the directory path on your local machine and `/path/in/container` with the desired path inside the Docker container.
@@ -255,10 +254,7 @@ Setup and configuration of an X11 or Wayland display server is outside the scope
 !!! example
 
     ??? info "Use GPUs"
-            If you're using [GPUs](#using-gpus), you can add the `--gpus all` flag to the command.
-
-    ??? info "Docker runtime flag"
-            If your Docker installation does not use the `nvidia` runtime by default, you can add the `--runtime=nvidia` flag to the command.
+            If you're using [GPUs](#using-gpus), you can add the `--device nvidia.com/gpu=all` flag to the command.
 
     === "X11"
 
@@ -337,7 +333,7 @@ Using Ultralytics Docker images ensures a consistent environment across differen
 First, ensure that the [NVIDIA Container Toolkit](#installing-nvidia-container-toolkit) is installed and configured. Then, use the following command to run Ultralytics YOLO with GPU support:
 
 ```bash
-sudo docker run -it --ipc=host --runtime=nvidia --gpus all ultralytics/ultralytics:latest # all GPUs
+sudo docker run -it --ipc=host --device nvidia.com/gpu=all ultralytics/ultralytics:latest # all GPUs
 ```
 
 This command sets up a Docker container with GPU access. For additional details, see the Docker Quickstart Guide.
@@ -368,7 +364,7 @@ More information can be found in the [Run graphical user interface (GUI) applica
 Yes, you can mount local directories into the Ultralytics Docker container using the `-v` flag:
 
 ```bash
-sudo docker run -it --ipc=host --runtime=nvidia --gpus all -v /path/on/host:/path/in/container ultralytics/ultralytics:latest
+sudo docker run -it --ipc=host --device nvidia.com/gpu=all -v /path/on/host:/path/in/container ultralytics/ultralytics:latest
 ```
 
 Replace `/path/on/host` with the directory on your local machine and `/path/in/container` with the desired path inside the container. This setup allows you to work with your local files within the container. For more information, refer to the [Note on File Accessibility](#note-on-file-accessibility) section.

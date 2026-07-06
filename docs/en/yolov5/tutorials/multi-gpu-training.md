@@ -121,9 +121,9 @@ Training does not start until **all** `N` machines are connected. Output is only
 - GPU 0 uses slightly more memory than the others because it maintains the EMA and handles checkpointing.
 - If you get `RuntimeError: Address already in use`, it usually means multiple training runs are using the same port. Specify a different port with `--master_port`:
 
-    ```bash
-    python -m torch.distributed.run --master_port 1234 --nproc_per_node 2 ...
-    ```
+  ```bash
+  python -m torch.distributed.run --master_port 1234 --nproc_per_node 2 ...
+  ```
 
 ## Results
 
@@ -134,7 +134,7 @@ DDP profiling results on an [AWS EC2 P4d instance](../environments/aws-quickstar
 
 ```bash
 # prepare
-t=ultralytics/yolov5:latest && sudo docker pull $t && sudo docker run -it --runtime=nvidia --ipc=host --gpus all -v "$(pwd)"/coco:/usr/src/coco $t
+t=ultralytics/yolov5:latest && sudo docker pull $t && sudo docker run -it --ipc=host --device nvidia.com/gpu=all -v "$(pwd)"/coco:/usr/src/coco $t
 pip3 install torch==1.9.0+cu111 torchvision==0.10.0+cu111 -f https://download.pytorch.org/whl/torch_stable.html
 cd .. && rm -rf app && git clone https://github.com/ultralytics/yolov5 -b master app && cd app
 cp data/coco.yaml data/coco_profile.yaml

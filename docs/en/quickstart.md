@@ -72,8 +72,8 @@ Ultralytics offers a variety of installation methods, including pip, conda, and 
         sudo docker pull $t
 
         # Run the ultralytics image in a container with GPU support
-        sudo docker run -it --ipc=host --runtime=nvidia --gpus all $t            # all GPUs
-        sudo docker run -it --ipc=host --runtime=nvidia --gpus '"device=2,3"' $t # specify GPUs
+        sudo docker run -it --ipc=host --device nvidia.com/gpu=all $t            # all GPUs
+        sudo docker run -it --ipc=host --device nvidia.com/gpu=2 --device nvidia.com/gpu=3 $t # specify GPUs
         ```
 
     === "Git clone"
@@ -116,17 +116,17 @@ Ultralytics offers a variety of installation methods, including pip, conda, and 
         sudo docker pull $t
 
         # Run the ultralytics image in a container with GPU support
-        sudo docker run -it --ipc=host --runtime=nvidia --gpus all $t            # all GPUs
-        sudo docker run -it --ipc=host --runtime=nvidia --gpus '"device=2,3"' $t # specify GPUs
+        sudo docker run -it --ipc=host --device nvidia.com/gpu=all $t            # all GPUs
+        sudo docker run -it --ipc=host --device nvidia.com/gpu=2 --device nvidia.com/gpu=3 $t # specify GPUs
         ```
 
-        The above command initializes a Docker container with the latest `ultralytics` image. The `-it` flags assign a pseudo-TTY and keep stdin open, allowing interaction with the container. The `--ipc=host` flag sets the IPC (Inter-Process Communication) namespace to the host, which is essential for sharing memory between processes. The `--gpus all` flag enables access to all available GPUs inside the container, crucial for tasks requiring GPU computation.
+        The above command initializes a Docker container with the latest `ultralytics` image. The `-it` flags assign a pseudo-TTY and keep stdin open, allowing interaction with the container. The `--ipc=host` flag sets the IPC (Inter-Process Communication) namespace to the host, which is essential for sharing memory between processes. The `--device nvidia.com/gpu=all` flag grants access to all available GPUs inside the container through [CDI](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/cdi-support.html), crucial for tasks requiring GPU computation.
 
         Note: To work with files on your local machine within the container, use Docker volumes to mount a local directory into the container:
 
         ```bash
         # Mount local directory to a directory inside the container
-        sudo docker run -it --ipc=host --runtime=nvidia --gpus all -v /path/on/host:/path/in/container $t
+        sudo docker run -it --ipc=host --device nvidia.com/gpu=all -v /path/on/host:/path/in/container $t
         ```
 
         Replace `/path/on/host` with the directory path on your local machine, and `/path/in/container` with the desired path inside the Docker container.
@@ -501,7 +501,7 @@ Docker provides an isolated, consistent environment for Ultralytics YOLO, ensuri
 sudo docker pull ultralytics/ultralytics:latest
 
 # Run the ultralytics image in a container with GPU support
-sudo docker run -it --ipc=host --runtime=nvidia --gpus all ultralytics/ultralytics:latest
+sudo docker run -it --ipc=host --device nvidia.com/gpu=all ultralytics/ultralytics:latest
 ```
 
 For detailed Docker instructions, see the [Docker quickstart guide](guides/docker-quickstart.md).

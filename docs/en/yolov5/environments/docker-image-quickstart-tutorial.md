@@ -150,14 +150,14 @@ sudo docker run -it --ipc=host $t
 
 ### Using GPU
 
-To enable GPU access within the container, use the `--gpus` flag. This requires the NVIDIA Container Toolkit to be installed correctly.
+To enable GPU access within the container, use the `--device nvidia.com/gpu=...` [CDI](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/cdi-support.html) flag. This requires the NVIDIA Container Toolkit to be installed correctly.
 
 ```bash
 # Run with access to all available GPUs
-sudo docker run -it --runtime=nvidia --ipc=host --gpus all $t
+sudo docker run -it --ipc=host --device nvidia.com/gpu=all $t
 
 # Run with access to specific GPUs (e.g., GPUs 2 and 3)
-sudo docker run -it --runtime=nvidia --ipc=host --gpus '"device=2,3"' $t
+sudo docker run -it --ipc=host --device nvidia.com/gpu=2 --device nvidia.com/gpu=3 $t
 ```
 
 Refer to the [Docker run reference](https://docs.docker.com/engine/containers/run/) for more details on command options.
@@ -168,7 +168,7 @@ To work with your local files (datasets, model weights, etc.) inside the contain
 
 ```bash
 # Mount /path/on/host (your local machine) to /path/in/container (inside the container)
-sudo docker run -it --runtime=nvidia --ipc=host --gpus all -v /path/on/host:/path/in/container $t
+sudo docker run -it --ipc=host --device nvidia.com/gpu=all -v /path/on/host:/path/in/container $t
 ```
 
 Replace `/path/on/host` with the actual path on your machine and `/path/in/container` with the desired path inside the Docker container (e.g., `/usr/src/datasets`).

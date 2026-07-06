@@ -59,12 +59,12 @@ Dataset [benchmarking](../../modes/benchmark.md) involves evaluating the perform
         import re
         from pathlib import Path
 
+        # Download the RF100 datasets from Roboflow (requires a Roboflow API key)
+        from roboflow import Roboflow
+
         from ultralytics import YOLO
         from ultralytics.utils import ASSETS_URL, YAML
         from ultralytics.utils.downloads import safe_download
-
-        # Download the RF100 datasets from Roboflow (requires a Roboflow API key)
-        from roboflow import Roboflow
 
         rf = Roboflow(api_key="YOUR_ROBOFLOW_API_KEY")
         safe_download(f"{ASSETS_URL}/datasets_links.txt")  # list of RF100 dataset links

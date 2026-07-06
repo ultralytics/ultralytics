@@ -801,10 +801,6 @@ class YOLOAnomalyModel(DetectionModel):
         return x
 
 
-# Backward-compatible alias for checkpoints saved before the anomaly_v2 -> anomaly rename.
-YOLOAnomalyV2Model = YOLOAnomalyModel
-
-
 class OBBModel(DetectionModel):
     """YOLO Oriented Bounding Box (OBB) model.
 
@@ -1730,17 +1726,11 @@ def torch_safe_load(weight, safe_only=False):
                 "ultralytics.yolo.utils": "ultralytics.utils",
                 "ultralytics.yolo.v8": "ultralytics.models.yolo",
                 "ultralytics.yolo.data": "ultralytics.data",
-                # Backward compatibility: anomaly_v2 -> anomaly module rename.
-                "ultralytics.nn.modules.anomaly_v2": "ultralytics.nn.modules.anomaly",
-                "ultralytics.nn.modules.anomaly_v2_prior_augment": "ultralytics.nn.modules.anomaly_prior_augment",
-                "ultralytics.models.yolo.anomaly_v2": "ultralytics.models.yolo.anomaly",
             },
             attributes={
                 "ultralytics.nn.modules.block.Silence": "torch.nn.Identity",  # YOLOv9e
                 "ultralytics.nn.tasks.YOLOv10DetectionModel": "ultralytics.nn.tasks.DetectionModel",  # YOLOv10
                 "ultralytics.utils.loss.v10DetectLoss": "ultralytics.utils.loss.E2EDetectLoss",  # YOLOv10
-                # Backward-compatible aliases for the anomaly_v2 -> anomaly class rename.
-                "ultralytics.nn.tasks.YOLOAnomalyV2Model": "ultralytics.nn.tasks.YOLOAnomalyModel",
                 # resolve cross-platform pathlib pickle incompatibility
                 **(
                     {"pathlib.PosixPath": "pathlib.WindowsPath"}

@@ -531,6 +531,10 @@ def check_dict_alignment(
             #   distillation (R1). The loader serves the largest scale; preprocess round-robins the student
             #   size per step and downsamples the teacher to its native res (DINOv3 high-res adaptation).
             "student_scales",
+            # ``hires_tail``: "<res>:<epochs>" (e.g. "512:12") runs the student at <res> for the last
+            #   <epochs> epochs so the frozen P5 attention adapts to the higher token count met at
+            #   detection resolution. Load res and teacher res are unchanged, so pre-tail matches a no-tail run.
+            "hires_tail",
         }
     if mismatched := [k for k in custom_keys if k not in base_keys and k not in allowed_custom_keys]:
         from difflib import get_close_matches

@@ -2,6 +2,8 @@
 
 This file provides guidance to AI coding agents (Claude Code, etc.) when working with code in this repository. CLAUDE.md is a symlink to this file.
 
+Ultralytics (`ultralytics` on PyPI, AGPL-3.0) is the official Python package for YOLO-family vision models — detection, instance and semantic segmentation, classification, pose, oriented boxes, and tracking — plus training, validation, benchmarking, export to 19 deployment formats, and the `yolo` CLI. Supported floors are Python>=3.8 with PyTorch>=1.8.
+
 ## Core Principles (CRITICAL)
 
 **Delete > Replace > Add.** Before writing any change, answer in order: what can I delete? what can I replace? only then, what must I add?
@@ -51,15 +53,18 @@ ruff format . && ruff check --fix .
 
 # Regenerate docs/en/reference/ after adding/removing/renaming public APIs (docs.yml runs this)
 python docs/build_reference.py
+
+# Fastest end-to-end smoke test (auto-downloads yolo26n.pt, runs on 2 local asset images)
+yolo predict model=yolo26n.pt
 ```
 
-- CI (`ci.yml`) runs tests on Python 3.13 across ubuntu-latest, macos-26, windows-latest, and ubuntu-24.04-arm, plus a floor job on Python 3.8 with torch 1.8.0; the package supports Python>=3.8, PyTorch>=1.8.
+- CI (`ci.yml`) runs tests on Python 3.13 across ubuntu-latest, macos-26, windows-latest, and ubuntu-24.04-arm, plus a floor job on Python 3.8 with torch 1.8.0.
 - `pyproject.toml` pytest `addopts` includes `--doctest-modules`, so pointing pytest at `ultralytics/` runs docstring doctests — CI only runs `tests/`, so package doctests are NOT exercised in CI.
 - `tests/test_exports.py` is partitioned by `--export-env` (env ids from `export_formats()`); omitting the flag runs ALL export formats, so pass `--export-env base` to match CI. GPU tests live in `tests/test_cuda.py` and skip without CUDA.
 
 ## Architecture
 
-`ultralytics` is a layered system: the user-facing `Model` facade in `ultralytics/engine/model.py` (`.train()`, `.val()`, `.predict()`, `.export()`, `.track()`) lazily dispatches to task-specific components through each model family's `task_map` property.
+The user-facing `Model` facade in `ultralytics/engine/model.py` (`.train()`, `.val()`, `.predict()`, `.export()`, `.track()`) lazily dispatches to task-specific components through each model family's `task_map` property.
 
 - `ultralytics/engine/` — model-agnostic core: `BaseTrainer`, `BaseValidator`, `BasePredictor`, `Exporter`, and `Results`.
 - `ultralytics/models/` — families (yolo, rtdetr, sam, fastsam, nas) subclass the engine per task, e.g. `models/yolo/detect/{train,val,predict}.py`; `YOLO.__init__` morphs into `YOLOWorld`, `YOLOE`, or `RTDETR` based on the checkpoint/YAML filename.

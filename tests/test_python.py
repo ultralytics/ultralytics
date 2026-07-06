@@ -808,6 +808,17 @@ def test_utils_ops():
     assert segment2box(np.array([[0, 100], [0, 150], [0, 200]]), 640, 640).tolist() == [0, 100, 0, 200]
 
 
+def test_process_mask_empty():
+    """process_mask/process_mask_native/scale_masks must handle 0 detections without crashing."""
+    from ultralytics.utils import ops
+
+    protos, coeffs, bboxes = torch.rand(32, 160, 160), torch.zeros(0, 32), torch.zeros(0, 4)
+    assert ops.process_mask(protos, coeffs, bboxes, (640, 640), upsample=True).shape == (0, 640, 640)
+    assert ops.process_mask(protos, coeffs, bboxes, (640, 640)).shape == (0, 160, 160)  # prototype res when no upsample
+    assert ops.process_mask_native(protos, coeffs, bboxes, (640, 640)).shape == (0, 640, 640)
+    assert ops.scale_masks(torch.zeros(1, 0, 160, 160), (640, 640)).shape == (1, 0, 640, 640)
+
+
 def test_utils_files(tmp_path):
     """Test file handling utilities including file age, date, and paths with spaces."""
     from ultralytics.utils.files import file_age, file_date, get_latest_run, increment_path, spaces_in_path

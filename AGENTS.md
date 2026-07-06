@@ -36,7 +36,7 @@ After opening a PR:
 # Dev install (editable); tests also need export/solutions extras
 uv pip install -e ".[dev,export-base,solutions]"
 
-# All tests with coverage, exactly as CI runs them (ci.yml Tests job)
+# All tests with coverage, matching ci.yml's Tests job (CI also sets YOLO_AUTOINSTALL=false and drops -n auto on ARM)
 pytest -n auto --dist=loadfile --cov=ultralytics/ --cov-report=xml tests/ --export-env base
 
 # Single file / single test
@@ -54,8 +54,8 @@ python docs/build_reference.py
 ```
 
 - CI (`ci.yml`) runs tests on Python 3.13 across ubuntu-latest, macos-26, windows-latest, and ubuntu-24.04-arm, plus a floor job on Python 3.8 with torch 1.8.0; the package supports Python>=3.8, PyTorch>=1.8.
-- `pyproject.toml` sets `addopts = "--doctest-modules"`, so pointing pytest at `ultralytics/` runs docstring doctests — CI only runs `tests/`, so package doctests are NOT exercised in CI.
-- `tests/test_exports.py` is partitioned by `--export-env` (env ids from `export_formats()`); `base` is the default set. GPU tests live in `tests/test_cuda.py` and skip without CUDA.
+- `pyproject.toml` pytest `addopts` includes `--doctest-modules`, so pointing pytest at `ultralytics/` runs docstring doctests — CI only runs `tests/`, so package doctests are NOT exercised in CI.
+- `tests/test_exports.py` is partitioned by `--export-env` (env ids from `export_formats()`); omitting the flag runs ALL export formats, so pass `--export-env base` to match CI. GPU tests live in `tests/test_cuda.py` and skip without CUDA.
 
 ## Architecture
 

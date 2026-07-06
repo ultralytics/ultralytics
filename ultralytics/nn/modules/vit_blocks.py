@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-"""R3 ViT-like student blocks for encoder distillation (UltraViT).
+"""ViT-like student blocks for encoder distillation (UltraViT).
 
 Simple-component constraint: Conv2d, BatchNorm2d, LayerNorm, GELU/SiLU, Linear, F.scaled_dot_product_attention.
 No `nn.MultiheadAttention` (source of AIFI's 1327-node ONNX bloat). No 2D RoPE (ECViT-t hits 554 Constant nodes).
@@ -8,7 +8,7 @@ No `nn.MultiheadAttention` (source of AIFI's 1327-node ONNX bloat). No 2D RoPE (
 Registered in `ultralytics.nn.modules.__init__` and imported by `ultralytics.nn.tasks` so `parse_model` resolves
 them through `globals()[m]`. All blocks are dim-preserving (C_in == C_out, H/W unchanged).
 
-Export validation (2026-04-23 R3.3, RTX PRO 6000 Blackwell, imgsz=224, bs=1 fp16):
+Export validation (2026-04-23, RTX PRO 6000 Blackwell, imgsz=224, bs=1 fp16):
     yolo26s-fastvit-cls    5.05 M   228 ONNX nodes   1.948 ms   (conv baseline 1.83 ms, 234 nodes)
     yolo26l-fastvit-cls   14.77 M   804 ONNX nodes   2.652 ms
 
@@ -28,7 +28,7 @@ import torch.nn.functional as F
 
 from ultralytics.utils import deprecation_warn
 
-# Length-aware SDPA temperature (A1). A P5 token grid trained at ~224px (49 tokens for the /16 stem) but run at 640px
+# Length-aware SDPA temperature. A P5 token grid trained at ~224px (49 tokens for the /16 stem) but run at 640px
 # (400 tokens) diffuses the fixed 1/sqrt(d) softmax over 8x more keys. Scaling the logits by sqrt(log N / log N_ref)
 # restores the training-time peakiness. Env-gated so the CE/distill graph is byte-identical unless opted in; at
 # N == N_ref the factor is exactly 1 (no-op at training resolution). q.shape[-2] is a concrete int under static-shape
@@ -100,9 +100,6 @@ class MHSABlock(nn.Module):
             here so no dead head count sits in the config; the value is then derived, never read.
         head_dim (int): Per-head dim. When the `head_dim` arg is nonzero it pins this value and derives num_heads = c //
             head_dim (Apple FastViT policy, head_dim 32), so head width no longer shrinks with model scale.
-        pe (nn.Conv2d): Depthwise 7x7 conditional positional encoding (FastViT RepCPE / CPVT), applied before attention.
-            Zero-initialized so a fresh block starts as identity (ReZero) and the residual learns the position signal
-            from zero. `forward` guards on it so checkpoints saved before `pe` existed still load and run.
         temperature (nn.Parameter): Per-head scalar for cross-covariance attention (XCiT), created only when `xca=True`.
             Its presence switches `forward` to channel attention (map is head_dim x head_dim, invariant to token count),
             so a frozen backbone meets no length-coupled softmax when transferred to a larger detection grid.
@@ -132,7 +129,6 @@ class MHSABlock(nn.Module):
         ls: float = 0.0,
         conv_ffn: bool = False,
         head_dim: int = 0,
-        cpe: bool = True,
         xca: bool = False,
     ):
         """Initialize MHSABlock."""
@@ -143,13 +139,7 @@ class MHSABlock(nn.Module):
         assert c % num_heads == 0, f"MHSABlock: c={c} not divisible by num_heads={num_heads}"
         self.num_heads = num_heads
         self.head_dim = c // num_heads
-        if cpe:  # zero-init depthwise conditional position; A3 drops it (D4: net-harmful at frozen hi-res transfer)
-            self.pe = nn.Conv2d(c, c, 7, padding=3, groups=c, bias=True)
-            nn.init.zeros_(self.pe.weight)
-            nn.init.zeros_(self.pe.bias)
-        else:
-            self.pe = None
-        if xca:  # A5 cross-covariance attention: map is head_dim x head_dim (N-invariant), learnable per-head temp (XCiT)
+        if xca:  # cross-covariance attention: map is head_dim x head_dim (token-count invariant), learnable per-head temperature (XCiT)
             self.temperature = nn.Parameter(torch.ones(num_heads, 1, 1))
         self.ln1 = nn.LayerNorm(c)
         self.qkv = nn.Linear(c, 3 * c, bias=False)
@@ -174,13 +164,11 @@ class MHSABlock(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Forward pass: 4D → tokens → SA → FFN (token Linear or NCHW ConvMlp) → 4D."""
         b, c, h, w = x.shape
-        if getattr(self, "pe", None) is not None:
-            x = x + self.pe(x)  # RepCPE conditional position before attention
         t = x.flatten(2).transpose(1, 2)  # (B, N, C)
         n = self.ln1(t)
         qkv = self.qkv(n).reshape(b, -1, 3, self.num_heads, self.head_dim).permute(2, 0, 3, 1, 4)
         q, k, v = qkv[0], qkv[1], qkv[2]  # indexed split traces to aten::select, x2paddle maps it but not aten::unbind
-        if getattr(self, "temperature", None) is not None:  # A5 XCA: attention over channels, invariant to token count
+        if getattr(self, "temperature", None) is not None:  # XCA: attention over channels, invariant to token count
             qn = F.normalize(q.transpose(-2, -1), dim=-1)  # (B, heads, head_dim, N), L2-normed over tokens
             kn = F.normalize(k.transpose(-2, -1), dim=-1)
             attn = (qn @ kn.transpose(-2, -1)) * self.temperature  # (B, heads, head_dim, head_dim)

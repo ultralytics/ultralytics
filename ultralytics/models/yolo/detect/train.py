@@ -191,6 +191,8 @@ class DetectionTrainer(BaseTrainer):
             (DetectionModel): YOLO detection model.
         """
         model = DetectionModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
+        if getattr(self.args, "cls_remap", True) and self.data.get("names"):
+            model.names = self.data["names"]  # set early so load() can remap cls head by class name
         if weights:
             model.load(weights)
         return model

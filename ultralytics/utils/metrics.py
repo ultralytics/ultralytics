@@ -1144,7 +1144,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
         box (Metric): An instance of the Metric class for storing detection results.
         speed (dict[str, float]): A dictionary for storing execution times of different parts of the detection process.
         stats (dict[str, list]): A dictionary containing lists for true positives, confidence scores, predicted classes,
-            target classes, target images and the normalised (imgsz) offset of the predictions with respect to the
+            target classes, target images and the normalized (imgsz) offset of the predictions with respect to the
             ground truth.
         nt_per_class: Number of targets per class.
         nt_per_image: Number of targets per image.

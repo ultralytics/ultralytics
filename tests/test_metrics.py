@@ -1,7 +1,9 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 import numpy as np
 
+from ultralytics.models.yolo.detect.val import _compute_box_centers
 from ultralytics.utils.metrics import DetMetrics, SegmentMetrics
-from ultralytics.models.yolo.detect.val import _compute_box_centers 
 
 
 def test_det_metrics_center_rmse_single_tp():
@@ -57,7 +59,7 @@ def test_det_metrics_center_rmse_empty():
 
 
 def test_det_metrics_center_rmse_ignores_non_tp_offsets():
-    """center_rmse must use only TP offsets and expose the value in results_dict."""
+    """Center_rmse must use only TP offsets and expose the value in results_dict."""
     met = DetMetrics({0: "a"})
     met.update_stats(
         {
@@ -82,29 +84,30 @@ def test_segment_metrics_no_center_rmse():
     met = SegmentMetrics({0: "a", 1: "b"})
     assert "metrics/center_rmse(B)" not in met.keys
 
+
 def test_compute_box_centers_xyxy():
-    "Basic and simplest YOLO possible output"
+    """Basic and simplest YOLO possible output."""
     boxes = np.array([[0.0, 0.0, 10.0, 10.0]])
     centers = _compute_box_centers(boxes)
     np.testing.assert_allclose(centers, [[5.0, 5.0]])
 
 
 def test_compute_box_centers_xywhr():
-    "Takes the origin of (x, y) points into consideration"
+    """Takes the origin of (x, y) points into consideration."""
     boxes = np.array([[10.0, 20.0, 4.0, 2.0, 0.5]])
     centers = _compute_box_centers(boxes)
     np.testing.assert_allclose(centers, [[10.0, 20.0]])
 
 
 def test_compute_box_centers_xywhr_shape():
-    "Generates a random shape for the xywhr configuration"
+    """Generates a random shape for the xywhr configuration."""
     boxes = np.random.rand(6, 5)
     centers = _compute_box_centers(boxes)
     assert centers.shape == (6, 2)
 
 
 def test_compute_box_centers_polygon():
-    "Checks that the polygon shapes also are computed fine - it takes an unitary square as example"
+    """Checks that the polygon shapes also are computed fine - it takes an unitary square as example."""
     # unitary square
     boxes = np.array([[0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0]])
     centers = _compute_box_centers(boxes)

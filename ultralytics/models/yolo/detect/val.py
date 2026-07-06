@@ -204,7 +204,7 @@ class DetectionValidator(BaseValidator):
             if no_pred or cls.shape[0] == 0:
                 tp_center_offsets = np.zeros(len(predn["cls"]))  # same size as predictions
             else:
-                # TP-RMSE calculation (normalised by img diagonal)
+                # TP-RMSE calculation (normalized by img diagonal)
                 tp = stats["tp"]
                 tp_preds = tp[:, 0]
                 tp_idx = np.where(tp_preds)[0]

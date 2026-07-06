@@ -9,7 +9,7 @@ to migrate deprecated attributes and bake the current defaults into the saved
 object, then use the converted file with the current code.
 
 Example:
-    python scripts/convert_anomaly_ckpt.py \
+    python tools/convert_anomaly_ckpt.py \
         --input best_old.pt \
         --output best_converted.pt
 """
@@ -17,25 +17,40 @@ Example:
 from __future__ import annotations
 
 import argparse
+import sys
 from pathlib import Path
 from typing import Any
 
 import torch
 
+from ultralytics.models.yolo import anomaly as _yolo_anomaly
 from ultralytics.nn.modules import anomaly as _anomaly
 from ultralytics.nn.modules.anomaly import AnomalyMemoryBank, BboxMaskRenderer, HeatmapProcessor
-from ultralytics.nn.tasks import YOLOAnomalyModel
+from ultralytics.nn.tasks import YOLOAnomalyModel, temporary_modules
 
-# Old checkpoints pickle classes that were later renamed. Alias them onto the module so
-# torch.load can unpickle the old objects; the migration below then normalizes attributes.
-_LEGACY_CLASS_ALIASES = {"BackboneMemoryBank": AnomalyMemoryBank}
+# Old checkpoints pickle modules/classes that were later renamed. Alias them
+# temporarily during torch.load so the old pickle can unpickle; the migration
+# below then normalizes attributes and bakes the current names into the saved
+# object so the aliases are no longer needed at load time.
+_LEGACY_ALIASES = {
+    "modules": {
+        "ultralytics.nn.modules.anomaly_v2": "ultralytics.nn.modules.anomaly",
+        "ultralytics.nn.modules.anomaly_v2_prior_augment": "ultralytics.nn.modules.anomaly",
+        "ultralytics.models.yolo.anomaly_v2": "ultralytics.models.yolo.anomaly",
+    },
+    "attributes": {
+        "ultralytics.nn.tasks.YOLOAnomalyV2Model": "ultralytics.nn.tasks.YOLOAnomalyModel",
+        "ultralytics.nn.modules.anomaly.BackboneMemoryBank": "ultralytics.nn.modules.anomaly.AnomalyMemoryBank",
+    },
+}
 
 
-def _install_legacy_aliases() -> None:
-    """Make renamed/removed classes resolvable by name during unpickling (idempotent)."""
-    for old_name, new_cls in _LEGACY_CLASS_ALIASES.items():
-        if not hasattr(_anomaly, old_name):
-            setattr(_anomaly, old_name, new_cls)
+def _load_with_aliases(input_path: Path) -> Any:
+    """Load a checkpoint, applying legacy aliases so old pickles can unpickle."""
+    with temporary_modules(
+        modules=_LEGACY_ALIASES["modules"], attributes=_LEGACY_ALIASES["attributes"]
+    ):
+        return torch.load(input_path, map_location="cpu", weights_only=False)
 
 
 def _migrate_bbox_mask_renderer(m: BboxMaskRenderer) -> None:
@@ -171,13 +186,28 @@ def _migrate_v2_model(m: YOLOAnomalyModel) -> None:
         mb._chunks = []
 
 
+def _fix_task(model: YOLOAnomalyModel, ckpt: dict[str, Any]) -> None:
+    """Bake the current 'detect' task into the model and checkpoint args.
+
+    YOLOA is now a model group that uses the standard detection task, so any
+    stale 'anomaly' or 'anomaly_v2' task strings in old checkpoints must be
+    overwritten before the converted file can be loaded by ``YOLOA(...)``.
+    """
+    model.task = "detect"
+    if hasattr(model, "args") and isinstance(model.args, dict):
+        model.args["task"] = "detect"
+
+    train_args = ckpt.get("train_args")
+    if isinstance(train_args, dict):
+        train_args["task"] = "detect"
+
+
 def convert_checkpoint(input_path: str | Path, output_path: str | Path) -> dict[str, Any]:
     """Load an old checkpoint, migrate it, and save the migrated checkpoint."""
     input_path = Path(input_path)
     output_path = Path(output_path)
 
-    _install_legacy_aliases()
-    ckpt = torch.load(input_path, map_location="cpu", weights_only=False)
+    ckpt = _load_with_aliases(input_path)
     if isinstance(ckpt, YOLOAnomalyModel):
         model = ckpt
         ckpt = {"model": model, "updates": None, "optimizer": None, "args": None}
@@ -189,6 +219,7 @@ def convert_checkpoint(input_path: str | Path, output_path: str | Path) -> dict[
 
     model.eval()
     _migrate_v2_model(model)
+    _fix_task(model, ckpt)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     torch.save(ckpt, output_path)

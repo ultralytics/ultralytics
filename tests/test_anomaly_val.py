@@ -3,10 +3,10 @@
 Runs per-category ``model.fit`` + ``model.val`` over the full MVTec-YOLO dataset
 and checks the final average mAP values match the reference run::
 
-    AVERAGE  mAP10=0.6444  mAP25=0.4759  mAP50=0.1936  mAP50-95=0.0729
+    AVERAGE  mAP10=0.6444  mAP25=0.4759  mAP50=0.1936  mAP10-50=0.4155
 
 Usage:
-    pytest tests/test_anomaly_val.py -v -s
+    pytest tests/test_anomaly_val.py -v -s --slow
     python tests/test_anomaly_val.py
 """
 
@@ -29,7 +29,7 @@ EXPECTED = {
     "mAP10": 0.6433,
     "mAP25": 0.4760,
     "mAP50": 0.1929,
-    "mAP50-95": 0.0728,
+    "mAP10-50": 0.4155,
 }
 TOL = 0.001
 
@@ -44,13 +44,24 @@ def _data_yaml(root: Path, cat: str) -> Path | None:
 
 
 def _compute_metrics(metrics):
-    """Return mAP10/25/50/50-95 from a YOLO validation metrics object."""
+    """Return mAP10/25/50/10-50 from a YOLOA validation metrics object.
+
+    The anomaly validator uses a coarse IoU grid 0.10:0.05:0.50, so
+    ``all_ap`` has 9 columns: col0=0.10, col3=0.25, col8=0.50.
+    """
     ap = metrics.box.all_ap
-    map10 = float(ap[:, 10].mean()) if ap.shape[1] > 10 else float("nan")
-    map25 = float(ap[:, 11].mean()) if ap.shape[1] > 11 else float("nan")
-    map50 = float(metrics.box.map50)
-    map50_95 = float(ap[:, :10].mean())
-    return map10, map25, map50, map50_95
+    if ap.shape[1] == 9:
+        map10 = float(ap[:, 0].mean())
+        map25 = float(ap[:, 3].mean())
+        map50 = float(ap[:, 8].mean())
+        map10_50 = float(ap.mean())
+    else:
+        # Fallback for non-anomaly validation grids.
+        map10 = float(ap[:, 10].mean()) if ap.shape[1] > 10 else float("nan")
+        map25 = float(ap[:, 11].mean()) if ap.shape[1] > 11 else float("nan")
+        map50 = float(metrics.box.map50)
+        map10_50 = float(ap[:, :10].mean())
+    return map10, map25, map50, map10_50
 
 
 @pytest.mark.slow
@@ -83,19 +94,19 @@ def test_anomaly_validation_averages():
             device=DEVICE,
         )
 
-        map10, map25, map50, map50_95 = _compute_metrics(metrics)
+        map10, map25, map50, map10_50 = _compute_metrics(metrics)
         rows.append(
-            {"category": cat, "mAP10": map10, "mAP25": map25, "mAP50": map50, "mAP50-95": map50_95}
+            {"category": cat, "mAP10": map10, "mAP25": map25, "mAP50": map50, "mAP10-50": map10_50}
         )
         print(
             f"[{cat}] mAP10={map10:.4f} mAP25={map25:.4f} "
-            f"mAP50={map50:.4f} mAP50-95={map50_95:.4f}"
+            f"mAP50={map50:.4f} mAP10-50={map10_50:.4f}"
         )
 
     avg = {k: float(np.mean([r[k] for r in rows])) for k in EXPECTED}
     print(
         f"\nAVERAGE  mAP10={avg['mAP10']:.4f}  mAP25={avg['mAP25']:.4f}  "
-        f"mAP50={avg['mAP50']:.4f}  mAP50-95={avg['mAP50-95']:.4f}"
+        f"mAP50={avg['mAP50']:.4f}  mAP10-50={avg['mAP10-50']:.4f}"
     )
 
     for key, expected in EXPECTED.items():

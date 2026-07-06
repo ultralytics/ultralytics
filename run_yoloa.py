@@ -160,15 +160,17 @@ def main():
                 use_prior=not args.no_memory,
             )
 
+            # all_ap cols: iouv = linspace(.10, .50, 9) → .10=col0, .25=col3, .50=col8.
             ap_mat = metrics.box.all_ap
-            map10 = float(ap_mat[:, 10].mean()) if ap_mat.shape[1] > 10 else float("nan")
-            map25 = float(ap_mat[:, 11].mean()) if ap_mat.shape[1] > 11 else float("nan")
-            map50 = float(metrics.box.map50)
-            map50_95 = float(ap_mat[:, :10].mean())
+            ok = ap_mat.ndim == 2 and ap_mat.shape[1] >= 9
+            map10 = float(ap_mat[:, 0].mean()) if ok else float("nan")
+            map25 = float(ap_mat[:, 3].mean()) if ok else float("nan")
+            map50 = float(ap_mat[:, 8].mean()) if ok else float("nan")
+            map10_50 = float(ap_mat.mean()) if ok else float("nan")  # mean over IoU .10:.50
 
-            rows.append({"category": cat, "mAP10": map10, "mAP25": map25, "mAP50": map50, "mAP50-95": map50_95})
+            rows.append({"category": cat, "mAP10": map10, "mAP25": map25, "mAP50": map50, "mAP10-50": map10_50})
             print(
-                f"[{cat}] mAP10={map10:.4f} mAP25={map25:.4f} mAP50={map50:.4f} mAP50-95={map50_95:.4f}",
+                f"[{cat}] mAP10={map10:.4f} mAP25={map25:.4f} mAP50={map50:.4f} mAP10-50={map10_50:.4f}",
                 flush=True,
             )
 
@@ -179,25 +181,25 @@ def main():
                     "mAP10": _average(rows, "mAP10"),
                     "mAP25": _average(rows, "mAP25"),
                     "mAP50": _average(rows, "mAP50"),
-                    "mAP50-95": _average(rows, "mAP50-95"),
+                    "mAP10-50": _average(rows, "mAP10-50"),
                 }
             )
 
             print("\n" + "=" * 80)
-            print(f"{'category':<15s} {'mAP10':>10s} {'mAP25':>10s} {'mAP50':>10s} {'mAP50-95':>10s}")
+            print(f"{'category':<15s} {'mAP10':>10s} {'mAP25':>10s} {'mAP50':>10s} {'mAP10-50':>10s}")
             print("-" * 80)
             for r in rows:
                 print(
                     f"{r['category']:<15s} "
                     f"{r['mAP10']:>10.4f} {r['mAP25']:>10.4f} "
-                    f"{r['mAP50']:>10.4f} {r['mAP50-95']:>10.4f}"
+                    f"{r['mAP50']:>10.4f} {r['mAP10-50']:>10.4f}"
                 )
             print("=" * 80)
 
             out_csv = out_root / f"val_{args.cat}.csv"
             out_csv.parent.mkdir(parents=True, exist_ok=True)
             with open(out_csv, "w", newline="") as f:
-                w = csv.DictWriter(f, fieldnames=["category", "mAP10", "mAP25", "mAP50", "mAP50-95"])
+                w = csv.DictWriter(f, fieldnames=["category", "mAP10", "mAP25", "mAP50", "mAP10-50"])
                 w.writeheader()
                 w.writerows(rows)
             print(f"\nCSV -> {out_csv}", flush=True)

@@ -31,13 +31,14 @@ class YOLOAnomalyValidator(DetectionValidator):
         self.v2_model = model.model if hasattr(model, "backend") else model  # unwrap AutoBackend if present
         self._bank_built = False
 
-        if self.use_prior and self._ensure_memory_bank(self.v2_model):
-            # Extended IoU grid for coarse defect localization with the heatmap prior.
-            self.iouv = torch.cat([torch.linspace(0.5, 0.95, 10), torch.tensor([0.10, 0.25])])
-            self.niou = self.iouv.numel()
-        else:
-            pass
-            # LOGGER.warning("YOLOAnomalyValidator: heatmap prior unavailable -> running regular validation.")
+        # Build the bank only when the prior is enabled; a bank-free pass leaves it untouched.
+        if self.use_prior:
+            self._ensure_memory_bank(self.v2_model)
+        # Coarse IoU grid .10:.50 (step .05) — anomaly localization cares about coarse overlap,
+        # not tight boxes. Same grid with or without the prior, so both are directly comparable.
+        # Columns: .10=0, .25=3, .50=8. mAP10-50 is the mean over the whole grid.
+        self.iouv = torch.linspace(0.1, 0.5, 9)
+        self.niou = self.iouv.numel()
 
     @property
     def use_prior(self) -> bool:
@@ -96,27 +97,25 @@ class YOLOAnomalyValidator(DetectionValidator):
         return True
 
     def _ood_map_metrics(self) -> dict[str, float]:
-        """mAP at IoU {0.10, 0.25, 0.50} and the {0.50:0.95} mean from the extended iouv."""
+        """mAP at IoU {0.10, 0.25, 0.50} and mAP10-50 (mean over the whole .10:.50 grid)."""
         box = self.metrics.box
         all_ap = getattr(box, "all_ap", [])
         out = {
             "mAP10": 0.0,
             "mAP25": 0.0,
-            "mAP50": float(box.map50),
-            "mAP50_95": float(box.map),
+            "mAP50": 0.0,
+            "mAP10_50": 0.0,
             "P": float(box.mp),
             "R": float(box.mr),
         }
-        if not len(all_ap) or not self.use_prior or not self.v2_model.memory_bank.is_ready:
+        if not len(all_ap):
             return out
         iouv = self.iouv.cpu().numpy()
         idx = {thr: int(np.where(np.isclose(iouv, thr))[0][0]) for thr in (0.10, 0.25, 0.50)}
         out["mAP10"] = float(all_ap[:, idx[0.10]].mean())
         out["mAP25"] = float(all_ap[:, idx[0.25]].mean())
         out["mAP50"] = float(all_ap[:, idx[0.50]].mean())
-        # COCO mAP50-95 must use only the 0.50:0.95 columns, not the appended 0.10/0.25.
-        std = all_ap[:, iouv >= 0.5 - 1e-6]
-        out["mAP50_95"] = float(std.mean()) if std.size else float(box.map)
+        out["mAP10_50"] = float(all_ap.mean())  # mean over the full .10:.50 grid
         return out
 
     def get_desc(self) -> str:
@@ -130,14 +129,14 @@ class YOLOAnomalyValidator(DetectionValidator):
             "mAP10",
             "mAP25",
             "mAP50",
-            "mAP50-95)",
+            "mAP10-50)",
         )
 
     def print_results(self) -> None:
-        """Print the 'all' row with mAP10/mAP25 (non-zero only when the heatmap prior is active)."""
+        """Print the 'all' row with mAP10/mAP25/mAP50 and the mAP10:50 aggregate."""
         mm = self._ood_map_metrics()
         nt = int(self.metrics.nt_per_class.sum()) if len(self.metrics.nt_per_class) else 0
         pf = "%22s" + "%11i" * 2 + "%11.3g" * 6
         LOGGER.info(
-            pf % ("all", self.seen, nt, mm["P"], mm["R"], mm["mAP10"], mm["mAP25"], mm["mAP50"], mm["mAP50_95"])
+            pf % ("all", self.seen, nt, mm["P"], mm["R"], mm["mAP10"], mm["mAP25"], mm["mAP50"], mm["mAP10_50"])
         )

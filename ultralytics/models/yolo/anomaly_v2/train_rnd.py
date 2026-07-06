@@ -68,7 +68,7 @@ def _normal_dir_from_yaml(yaml_path: str | Path) -> Path:
 def _average_ood_rows(rows: list[dict]) -> dict[str, float]:
     """Macro-average over categories, ignoring NaNs."""
     out: dict[str, float] = {}
-    for key in ("mAP10", "mAP25", "mAP50", "mAP50_95", "P", "R"):
+    for key in ("mAP10", "mAP25", "mAP50", "mAP10_50", "P", "R"):
         vals = [r[key] for r in rows if not math.isnan(r[key])]
         out[key] = sum(vals) / len(vals) if vals else math.nan
     return out

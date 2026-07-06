@@ -54,6 +54,25 @@ def _resolve_fit_yaml(cfg_path: str, model_yaml_path: str | None = None) -> dict
     return {}
 
 
+def _fitness_prior_mode(v2_cfg: dict) -> str:
+    """Map ``anomaly_v2.test_fitness_prior`` to the OOD-row mode that feeds best.pt fitness.
+
+    ``heatmap`` (default) -> ``heatmap``; ``none``/``mask_off`` -> ``mask_off``;
+    ``mask``/``mask_on`` -> ``mask_on``. Unknown values fall back to ``heatmap``.
+    """
+    alias = {
+        "heatmap": "heatmap",
+        "none": "mask_off",
+        "mask_off": "mask_off",
+        "mask": "mask_on",
+        "mask_on": "mask_on",
+    }
+    key = str(v2_cfg.get("test_fitness_prior", "heatmap")).lower()
+    if key not in alias:
+        LOGGER.warning(f"anomaly_v2: unknown test_fitness_prior={key!r}; falling back to 'heatmap'.")
+    return alias.get(key, "heatmap")
+
+
 class AnomalyV2Trainer(DetectionTrainer):
     """Trainer for YOLOAnomalyV2."""
 
@@ -64,22 +83,24 @@ class AnomalyV2Trainer(DetectionTrainer):
         self._ood_best_fitness = None  # running max of the OOD-scale fitness (best.pt selection)
 
     def validate(self):
-        """Run validation; when OOD eval is enabled, use OOD none-prior mAP10_50 (test_metrics(none_prior)) as fitness.
+        """Run validation; when OOD eval is enabled, use the OOD ``test_fitness_prior`` mAP10_50 as fitness.
 
-        The OOD eval runs here (not as an ``on_fit_epoch_end`` callback) on the current epoch's
-        EMA, so best.pt selection sees this epoch's score with no one-epoch lag. Fitness stays on
-        the OOD scale every epoch (``0.0`` when the eval can't run) — it never falls back to the
-        in-domain metric, which is a different scale and would freeze best.pt at epoch 0. The base
-        ``validate`` bumps ``best_fitness`` on the in-domain scale, so we recompute it on the OOD
-        scale (``_ood_best_fitness``) and overwrite — ``save_model`` saves best.pt when
+        The fitness prior mode defaults to ``heatmap`` (``anomaly_v2.test_fitness_prior``; also
+        accepts ``none``/``mask_off`` and ``mask``/``mask_on``). The OOD eval runs here (not as an
+        ``on_fit_epoch_end`` callback) on the current epoch's EMA, so best.pt selection sees this
+        epoch's score with no one-epoch lag. Fitness stays on the OOD scale every epoch (``0.0``
+        when the eval can't run) — it never falls back to the in-domain metric, which is a
+        different scale and would freeze best.pt at epoch 0. The base ``validate`` bumps
+        ``best_fitness`` on the in-domain scale, so we recompute it on the OOD scale
+        (``_ood_best_fitness``) and overwrite — ``save_model`` saves best.pt when
         ``best_fitness == fitness``, i.e. on each new OOD max.
         """
         metrics, fitness = super().validate()
         v2_cfg = getattr(unwrap_model(self.model), "yaml", {}).get("anomaly_v2", {})
         if int(v2_cfg.get("test_val_freq", 3)) > 0 and metrics is not None:
-            self._ood_none_map1050 = None  # skipped (freq) epochs -> 0.0, not a best.pt candidate
-            AnomalyV2Trainer._mvtec_ood_eval(self)  # sets self._ood_none_map1050 (+ wandb log)
-            fitness = float(self._ood_none_map1050 or 0.0)
+            self._ood_fit_map1050 = None  # skipped (freq) epochs -> 0.0, not a best.pt candidate
+            AnomalyV2Trainer._mvtec_ood_eval(self)  # sets self._ood_fit_map1050 (+ wandb log)
+            fitness = float(self._ood_fit_map1050 or 0.0)
             metrics["fitness"] = fitness
             self._ood_best_fitness = (
                 fitness if self._ood_best_fitness is None else max(self._ood_best_fitness, fitness)
@@ -195,16 +216,22 @@ class AnomalyV2Trainer(DetectionTrainer):
             model_yaml = getattr(unwrap_model(trainer.model), "yaml", {}) or {}
             fit_yaml = _resolve_fit_yaml(str(fit_cfg_path), model_yaml.get("yaml_file"))
 
-        # Per-prior test switches pick which OOD modes run. test_none_prior is forced on because
-        # best.pt fitness is test_metrics(none_prior)/mAP10_50; test_heatmap_prior defaults on
-        # (core fusion signal), test_mask_prior (mask_on) defaults off.
-        if not bool(v2_cfg.get("test_none_prior", True)):
-            LOGGER.warning("anomaly_v2: test_none_prior feeds fitness and cannot be disabled; forcing on.")
-        modes = ["mask_off"]  # test_none_prior — always on (fitness source)
+        # Per-prior test switches pick which OOD modes run. mask_off (none) is always on as the
+        # baseline none-curve reference; test_heatmap_prior defaults on (core fusion signal),
+        # test_mask_prior (mask_on) defaults off. The fitness-source mode (test_fitness_prior,
+        # default 'heatmap') is forced on regardless of its toggle — best.pt selection needs it.
+        fitness_mode = _fitness_prior_mode(v2_cfg)
+        modes = ["mask_off"]  # baseline none-curve reference — always on
         if bool(v2_cfg.get("test_heatmap_prior", True)):
             modes.append("heatmap")
         if bool(v2_cfg.get("test_mask_prior", False)):
             modes.append("mask_on")
+        if fitness_mode not in modes:
+            LOGGER.warning(
+                f"anomaly_v2: test_fitness_prior resolves to '{fitness_mode}' but that OOD pass is "
+                f"off; forcing it on (fitness source)."
+            )
+            modes.append(fitness_mode)
 
         return {
             "v2_cfg": v2_cfg, "root": root, "fit_yaml": fit_yaml,
@@ -212,6 +239,7 @@ class AnomalyV2Trainer(DetectionTrainer):
             "batch": int(v2_cfg.get("test_batch", 8)),
             "bank_size": int(fit_yaml.get("bb_max_bank_size", v2_cfg.get("test_bank_size", 10000))),
             "modes": tuple(modes),
+            "fitness_mode": fitness_mode,
             # Heatmap post-processing (inference-only; from fit YAML)
             "heat_edge": bool(fit_yaml.get("heat_edge")) if fit_yaml else None,
             "heat_edge_sigma": fit_yaml.get("heat_edge_sigma", 1.0),
@@ -261,7 +289,7 @@ class AnomalyV2Trainer(DetectionTrainer):
 
         Configured via the model YAML ``anomaly_v2`` block: ``test_val_freq`` (every N epochs;
         default 3, set 0 to disable); see ``_ood_eval_setup`` for the fit-YAML / mode resolution.
-        ``test_none_prior`` is forced on (best.pt fitness is ``test_metrics(none_prior)/mAP10_50``).
+        best.pt fitness is the AVERAGE mAP10_50 of the ``test_fitness_prior`` mode (default heatmap).
 
         Runs on a deepcopy of the EMA so val-time fuse()/bank-build never corrupt the live EMA.
         """
@@ -276,16 +304,17 @@ class AnomalyV2Trainer(DetectionTrainer):
             return
         ema_eval = deepcopy(trainer.ema.ema).eval()
         AnomalyV2Trainer._ood_eval_prep_model(ema_eval, cfg["fit_yaml"])
-        trainer._ood_none_map1050 = None  # clear stale; only set on success
+        trainer._ood_fit_map1050 = None  # clear stale; only set on success
         try:
             rows = AnomalyV2Trainer._run_ood_eval(trainer, ema_eval, cfg, trainer.epoch + 1)
             AnomalyV2Trainer._log_ood_wandb(trainer, rows)
-            # Store OOD none-prior mAP10_50 (test_metrics(none_prior)) for best.pt selection (fitness override)
+            # Store the fitness-prior AVERAGE mAP10_50 for best.pt selection (fitness override).
+            fit_mode = cfg["fitness_mode"]
             for r in rows:
-                if r["category"] == "AVERAGE" and r["mode"] == "mask_off":
+                if r["category"] == "AVERAGE" and r["mode"] == fit_mode:
                     map1050 = r.get("mAP10_50", math.nan)
                     if not math.isnan(map1050):
-                        trainer._ood_none_map1050 = float(map1050)
+                        trainer._ood_fit_map1050 = float(map1050)
                     break
         except Exception as e:  # never let OOD eval take down a training run
             LOGGER.warning(f"MVTec OOD eval failed at epoch {trainer.epoch + 1}: {type(e).__name__}: {e}")

@@ -129,6 +129,7 @@ class MHSABlock(nn.Module):
         ls: float = 0.0,
         conv_ffn: bool = False,
         head_dim: int = 0,
+        cpe: bool = True,
     ):
         """Initialize MHSABlock."""
         super().__init__()
@@ -138,9 +139,12 @@ class MHSABlock(nn.Module):
         assert c % num_heads == 0, f"MHSABlock: c={c} not divisible by num_heads={num_heads}"
         self.num_heads = num_heads
         self.head_dim = c // num_heads
-        self.pe = nn.Conv2d(c, c, 7, padding=3, groups=c, bias=True)
-        nn.init.zeros_(self.pe.weight)
-        nn.init.zeros_(self.pe.bias)
+        if cpe:  # zero-init depthwise conditional position; A3 drops it (D4: net-harmful at frozen hi-res transfer)
+            self.pe = nn.Conv2d(c, c, 7, padding=3, groups=c, bias=True)
+            nn.init.zeros_(self.pe.weight)
+            nn.init.zeros_(self.pe.bias)
+        else:
+            self.pe = None
         self.ln1 = nn.LayerNorm(c)
         self.qkv = nn.Linear(c, 3 * c, bias=False)
         self.proj = nn.Linear(c, c, bias=False)

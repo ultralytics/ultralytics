@@ -43,7 +43,7 @@ Using Triton Inference Server with [Ultralytics YOLO26](../models/yolo26.md) pro
 
 Ensure you have the following prerequisites before proceeding:
 
-- Docker or Podman installed on your machine
+- Docker (>= 28.2.0, with [NVIDIA Container Toolkit](docker-quickstart.md) >= 1.18 for CDI GPU access) or Podman installed on your machine
 - Install `ultralytics`:
     ```bash
     pip install ultralytics

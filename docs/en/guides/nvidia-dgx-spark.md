@@ -102,6 +102,8 @@ t=ultralytics/ultralytics:latest-nvidia-arm64
 sudo docker pull $t && sudo docker run -it --ipc=host --device nvidia.com/gpu=all $t
 ```
 
+The CDI device request above applies to DGX Spark running DGX OS. On Jetson AGX Thor, launch the same image with `--runtime=nvidia` instead, as shown in the [NVIDIA Jetson guide](nvidia-jetson.md).
+
 After this is done, skip to [Use TensorRT on NVIDIA DGX Spark section](#use-tensorrt-on-nvidia-dgx-spark).
 
 ## Start with Native Installation

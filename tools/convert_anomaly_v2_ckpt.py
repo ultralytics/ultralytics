@@ -22,8 +22,20 @@ from typing import Any
 
 import torch
 
+from ultralytics.nn.modules import anomaly_v2 as _anomaly_v2
 from ultralytics.nn.modules.anomaly_v2 import AnomalyMemoryBank, BboxMaskRenderer, HeatmapProcessor
 from ultralytics.nn.tasks import YOLOAnomalyV2Model
+
+# Old checkpoints pickle classes that were later renamed. Alias them onto the module so
+# torch.load can unpickle the old objects; the migration below then normalizes attributes.
+_LEGACY_CLASS_ALIASES = {"BackboneMemoryBank": AnomalyMemoryBank}
+
+
+def _install_legacy_aliases() -> None:
+    """Make renamed/removed classes resolvable by name during unpickling (idempotent)."""
+    for old_name, new_cls in _LEGACY_CLASS_ALIASES.items():
+        if not hasattr(_anomaly_v2, old_name):
+            setattr(_anomaly_v2, old_name, new_cls)
 
 
 def _migrate_bbox_mask_renderer(m: BboxMaskRenderer) -> None:
@@ -164,6 +176,7 @@ def convert_checkpoint(input_path: str | Path, output_path: str | Path) -> dict[
     input_path = Path(input_path)
     output_path = Path(output_path)
 
+    _install_legacy_aliases()
     ckpt = torch.load(input_path, map_location="cpu", weights_only=False)
     if isinstance(ckpt, YOLOAnomalyV2Model):
         model = ckpt

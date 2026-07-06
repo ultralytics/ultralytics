@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import shutil
 import warnings
 from pathlib import Path
@@ -42,6 +43,15 @@ warnings.filterwarnings("ignore")
 REPO_ROOT = Path(__file__).resolve().parents[2] / "ultralytics2"
 DEFAULT_YAML = REPO_ROOT / "ultralytics/cfg/models/27/yolo27x-detr.yaml"
 DEFAULT_BUS = REPO_ROOT / "ultralytics/assets/bus.jpg"
+
+
+def _stub(*a, **kw):
+    """Module-level placeholder matching ``distill_extract._stub`` so ckpts extracted there re-load here.
+
+    Pickle records callables by ``(module, qualname)``; both scripts run as ``__main__``, so ``__main__._stub`` needs to
+    resolve regardless of which script is executing.
+    """
+    raise NotImplementedError("unpickle-time stub")
 
 
 def install_pickle_shims() -> None:
@@ -117,6 +127,40 @@ def build_clean_model(yaml_path: Path, source_model, nc: int | None, dtype: torc
     return m
 
 
+DISTILL_ARG_KEYS = ("distill_model", "dis")
+
+
+def clean_train_args(train_args: dict) -> tuple[list, str | None]:
+    """Filter train_args to current-branch default.yaml keys, drop distillation-related keys, and strip ConvNeXt tokens
+    from ``name``.
+
+    Only invoked when ``--clean-args`` is passed on the CLI; otherwise train_args is preserved verbatim.
+
+    Args:
+        train_args (dict): Mutated in-place; keys absent from ``DEFAULT_CFG_DICT`` and any distillation-only keys are
+            removed.
+
+    Returns:
+        dropped (list): Sorted list of removed key names.
+        old_name (str, optional): Original ``name`` string if it was rewritten, else None.
+    """
+    from ultralytics.cfg import DEFAULT_CFG_DICT
+
+    valid = set(DEFAULT_CFG_DICT.keys()) - set(DISTILL_ARG_KEYS)
+    dropped = sorted(k for k in list(train_args) if k not in valid)
+    for k in dropped:
+        train_args.pop(k, None)
+    old_name = None
+    if isinstance(train_args.get("name"), str):
+        orig = train_args["name"]
+        cleaned = re.sub(r"[Cc](?:onv)?[Nn]ext[A-Za-z0-9]*", "", orig)
+        cleaned = re.sub(r"_+", "_", cleaned).strip("_")
+        if cleaned != orig:
+            old_name = orig
+            train_args["name"] = cleaned
+    return dropped, old_name
+
+
 def apply_coco_metrics(train_metrics: dict, coco: dict) -> None:
     """In-place patch of headline metrics with pycocotools AP values."""
     key_map = {
@@ -187,6 +231,17 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="drop source state_dict keys absent from the target YAML model (e.g. ndl=6 src into ndl=4 YAML)",
     )
+    p.add_argument(
+        "--imgsz",
+        type=int,
+        default=None,
+        help="override the saved ckpt's deployment imgsz (writes to train_args.imgsz and model.args.imgsz)",
+    )
+    p.add_argument(
+        "--clean-args",
+        action="store_true",
+        help="filter train_args to current-branch default.yaml keys, drop distillation cfg keys, strip ConvNeXt tokens from experiment name",
+    )
     return p.parse_args()
 
 
@@ -226,6 +281,32 @@ def main() -> None:
         coco = json.loads(args.coco_eval)
         print(f"patching pycocotools metrics: {coco}")
         apply_coco_metrics(src["train_metrics"], coco)
+
+    if args.imgsz is not None:
+        ta = src.get("train_args")
+        if isinstance(ta, dict):
+            ta["imgsz"] = args.imgsz
+        m_args = getattr(model, "args", None)
+        if m_args is not None and hasattr(m_args, "imgsz"):
+            m_args.imgsz = args.imgsz
+        elif isinstance(m_args, dict):
+            m_args["imgsz"] = args.imgsz
+        print(f"  overrode deployment imgsz -> {args.imgsz}")
+
+    if args.clean_args:
+        ta = src.get("train_args")
+        if isinstance(ta, dict):
+            dropped, old_name = clean_train_args(ta)
+            if dropped:
+                print(f"  clean-args: dropped {len(dropped)} key(s): {dropped}")
+            if old_name is not None:
+                print(f"  clean-args: renamed {old_name!r} -> {ta['name']!r}")
+        m_args = getattr(model, "args", None)
+        if m_args is not None and not isinstance(m_args, dict):
+            for k in [a for a in vars(m_args) if a in DISTILL_ARG_KEYS]:
+                delattr(m_args, k)
+            if isinstance(ta, dict) and "name" in ta:
+                m_args.name = ta["name"]
 
     print(f"saving: {out}")
     save_clean(src, model, out)

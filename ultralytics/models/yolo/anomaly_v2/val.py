@@ -29,8 +29,9 @@ class YOLOAnomalyValidator(DetectionValidator):
         """Set up heatmap flag and try to build the memory bank for heatmap mode."""
         super().init_metrics(model)
         self.v2_model = model.model if hasattr(model, "backend") else model  # unwrap AutoBackend if present
+        self._bank_built = False
 
-        if self._ensure_memory_bank(self.v2_model):
+        if self.use_prior and self._ensure_memory_bank(self.v2_model):
             # Extended IoU grid for coarse defect localization with the heatmap prior.
             self.iouv = torch.cat([torch.linspace(0.5, 0.95, 10), torch.tensor([0.10, 0.25])])
             self.niou = self.iouv.numel()
@@ -38,10 +39,18 @@ class YOLOAnomalyValidator(DetectionValidator):
             pass
             # LOGGER.warning("YOLOAnomalyValidator: heatmap prior unavailable -> running regular validation.")
 
+    @property
+    def use_prior(self) -> bool:
+        """Whether the heatmap prior is active for this pass (mirrors model._prior_enabled)."""
+        return bool(getattr(getattr(self, "v2_model", None), "_prior_enabled", True))
+
     def __call__(self, trainer=None, model=None):
         """Single validation pass; restore model state afterwards."""
         metrics = super().__call__(trainer=trainer, model=model)
-        self.v2_model.memory_bank.reset()
+        # Only clear a bank this validator built itself; leave a pre-fitted bank intact
+        # so the same model can be validated again (e.g. with vs. without the prior).
+        if getattr(self, "_bank_built", False):
+            self.v2_model.memory_bank.reset()
         return metrics
 
     def _collect_support_paths(self) -> list[str]:
@@ -82,6 +91,7 @@ class YOLOAnomalyValidator(DetectionValidator):
         except Exception as e:
             # LOGGER.warning(f"YOLOAnomalyValidator: failed to build memory bank: {e}")
             return False
+        self._bank_built = True
         LOGGER.info(f"YOLOAnomalyValidator: built memory bank ({n} features) from {len(support)} normal images.")
         return True
 
@@ -97,7 +107,7 @@ class YOLOAnomalyValidator(DetectionValidator):
             "P": float(box.mp),
             "R": float(box.mr),
         }
-        if not len(all_ap) or not self.v2_model.memory_bank.is_ready:
+        if not len(all_ap) or not self.use_prior or not self.v2_model.memory_bank.is_ready:
             return out
         iouv = self.iouv.cpu().numpy()
         idx = {thr: int(np.where(np.isclose(iouv, thr))[0][0]) for thr in (0.10, 0.25, 0.50)}

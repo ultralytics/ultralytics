@@ -137,8 +137,9 @@ class YOLOA(Model):
 
         Args:
             validator: Optional custom validator.
-            **kwargs: Standard val args plus ``end2end`` and ``hm_gate_blend``.
+            **kwargs: Standard val args plus ``end2end``, ``hm_gate_blend`` and ``use_prior``.
                 ``end2end`` is applied to the detection head for this call only.
+                ``use_prior=False`` runs a bank-free pass without discarding the fitted bank.
 
         Returns:
             Validation metrics.
@@ -165,7 +166,13 @@ class YOLOA(Model):
     # ---- internals ----------------------------------------------------------------------------
 
     def _apply_infer_overrides(self, kwargs: dict) -> None:
-        """Pop the optional ``hm_gate_blend`` head override."""
+        """Apply per-call inference overrides: ``use_prior`` and ``hm_gate_blend``.
+
+        ``use_prior`` (default True) toggles the memory-bank heatmap prior for this call
+        without touching the fitted bank, so a single fitted model can be validated both
+        with and without the prior.
+        """
+        self.model._prior_enabled = bool(kwargs.pop("use_prior", True))
         if "hm_gate_blend" in kwargs:
             self.model.model[-1].hm_gate_blend = float(kwargs.pop("hm_gate_blend"))
 

@@ -703,7 +703,13 @@ class YOLOAnomalyV2Model(DetectionModel):
         return feats
 
     def _has_memory_bank(self) -> bool:
-        """Return True iff a non-empty memory bank has been built."""
+        """Return True iff a non-empty memory bank has been built and the prior is enabled.
+
+        ``_prior_enabled`` (default True) lets callers run a bank-free pass without
+        destroying a fitted bank -- e.g. val twice, once with the prior and once without.
+        """
+        if not getattr(self, "_prior_enabled", True):
+            return False
         mb = getattr(self, "memory_bank", None)
         return mb is not None and mb.is_ready
 

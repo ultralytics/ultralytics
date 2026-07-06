@@ -496,8 +496,8 @@ def process_mask(protos, masks_in, bboxes, shape, upsample: bool = False):
             upsample=True h and w match the input image size; otherwise they are the prototype mask resolution.
     """
     c, mh, mw = protos.shape  # CHW
-    if upsample and masks_in.shape[0] == 0:  # F.interpolate below rejects an empty (N=0) batch
-        return torch.zeros((0, *shape), dtype=torch.uint8, device=masks_in.device)
+    if masks_in.shape[0] == 0:  # no detections: F.interpolate below rejects an empty (N=0) batch
+        return torch.zeros((0, *(shape if upsample else (mh, mw))), dtype=torch.uint8, device=masks_in.device)
     masks = (masks_in @ protos.float().view(c, -1)).view(-1, mh, mw)  # NHW
 
     width_ratio = mw / shape[1]

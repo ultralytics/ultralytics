@@ -84,7 +84,7 @@ Run the image:
 
 ```bash
 # Run the Ultralytics image in a container with GPU support
-sudo docker run -it --ipc=host --device nvidia.com/gpu=all $t            # all GPUs
+sudo docker run -it --ipc=host --device nvidia.com/gpu=all $t                         # all GPUs
 sudo docker run -it --ipc=host --device nvidia.com/gpu=2 --device nvidia.com/gpu=3 $t # specify GPUs
 ```
 
@@ -150,7 +150,7 @@ Using Ultralytics Docker images ensures a consistent and reproducible environmen
 
 ```bash
 sudo docker pull ultralytics/ultralytics:latest-conda
-sudo docker run -it --ipc=host --device nvidia.com/gpu=all ultralytics/ultralytics:latest-conda            # all GPUs
+sudo docker run -it --ipc=host --device nvidia.com/gpu=all ultralytics/ultralytics:latest-conda                         # all GPUs
 sudo docker run -it --ipc=host --device nvidia.com/gpu=2 --device nvidia.com/gpu=3 ultralytics/ultralytics:latest-conda # specify GPUs
 ```
 

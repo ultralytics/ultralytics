@@ -18,6 +18,24 @@ from ultralytics.utils.metrics import ConfusionMatrix, DetMetrics, box_iou
 from ultralytics.utils.plotting import plot_images
 
 
+def _compute_box_centers(boxes: np.ndarray) -> np.ndarray:
+    """Compute (x, y) centers for boxes in xyxy, xywhr, or polygon format.
+
+    Args:
+        boxes (np.ndarray): Boxes array of shape (N, 4), (N, 5) for xywhr, or (N, 9) for polygons.
+
+    Returns:
+        (np.ndarray): Centers of shape (N, 2).
+    """
+    if boxes.shape[1] == 9:  # polygon: cls + 4 points (x, y)
+        positions = boxes[:, 1:].reshape(-1, 4, 2)
+        return positions.mean(axis=1)
+    elif boxes.shape[1] == 5:  # xywhr: x, y are the box center
+        return boxes[:, :2]
+    else:  # xyxy
+        return (boxes[:, :2] + boxes[:, 2:4]) / 2.0
+
+
 class DetectionValidator(BaseValidator):
     """A class extending the BaseValidator class for validation based on a detection model.
 
@@ -204,25 +222,8 @@ class DetectionValidator(BaseValidator):
                         pred_boxes = np.asarray(predn["bboxes"].cpu().numpy())
 
                         # compute centers
-                        # for GT boxes, pred boxes is basically the same
-                        if gt_boxes.shape[1] == 9: # for polygons
-                            gt_positions = gt_boxes[:, 1:]
-                            gt_positions = gt_positions.reshape(-1, 4, 2)
-                            gt_centers = gt_positions.mean(axis=1)
-                        elif gt_boxes.shape[1] == 5: # for [xywhr] - where xy are the x and y origin point of the box
-                            gt_centers = gt_boxes[:,:2]
-                        else:
-                            gt_centers = (gt_boxes[:, :2] + gt_boxes[:, 2:4]) / 2.0
-
-                        if pred_boxes.shape[1] == 9:
-                            pred_positions = pred_boxes[:, 1:]
-                            pred_positions = pred_positions.reshape(-1, 4, 2)
-                            pred_centers = pred_positions.mean(axis=1)
-                        elif pred_boxes.shape[1] == 5:
-                            pred_centers = pred_boxes[:,:2]
-                        else:
-                            pred_centers = (pred_boxes[:, :2] + pred_boxes[:, 2:4]) / 2.0
-
+                        gt_centers = _compute_box_centers(gt_boxes)
+                        pred_centers = _compute_box_centers(pred_boxes)
                         # keep only TP predictions
                         pred_centers_tp = pred_centers[tp_idx_valid]
                         # final distances

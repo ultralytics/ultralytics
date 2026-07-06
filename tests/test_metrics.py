@@ -1,6 +1,7 @@
 import numpy as np
 
 from ultralytics.utils.metrics import DetMetrics, SegmentMetrics
+from ultralytics.models.yolo.detect.val import _compute_box_centers 
 
 
 def test_det_metrics_center_rmse_single_tp():
@@ -80,3 +81,27 @@ def test_segment_metrics_no_center_rmse():
     """SegmentMetrics must not expose center_rmse."""
     met = SegmentMetrics({0: "a", 1: "b"})
     assert "metrics/center_rmse(B)" not in met.keys
+
+def test_compute_box_centers_xyxy():
+    boxes = np.array([[0.0, 0.0, 10.0, 10.0]])
+    centers = _compute_box_centers(boxes)
+    np.testing.assert_allclose(centers, [[5.0, 5.0]])
+
+
+def test_compute_box_centers_xywhr():
+    boxes = np.array([[10.0, 20.0, 4.0, 2.0, 0.5]])
+    centers = _compute_box_centers(boxes)
+    np.testing.assert_allclose(centers, [[10.0, 20.0]])
+
+
+def test_compute_box_centers_xywhr_shape():
+    boxes = np.random.rand(6, 5)
+    centers = _compute_box_centers(boxes)
+    assert centers.shape == (6, 2)
+
+
+def test_compute_box_centers_polygon():
+    # unitary square
+    boxes = np.array([[0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0]])
+    centers = _compute_box_centers(boxes)
+    np.testing.assert_allclose(centers, [[0.5, 0.5]])

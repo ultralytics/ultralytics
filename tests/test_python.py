@@ -809,7 +809,7 @@ def test_utils_ops():
 
 
 def test_process_mask_empty():
-    """Process_mask/process_mask_native/scale_masks must handle 0 detections without crashing."""
+    """process_mask/process_mask_native/scale_masks must handle 0 detections without crashing."""
     from ultralytics.utils import ops
 
     protos, coeffs, bboxes = torch.rand(32, 160, 160), torch.zeros(0, 32), torch.zeros(0, 4)

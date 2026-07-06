@@ -1,5 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-"""Prior-mask augmentation for YOLO Anomaly v2.
+"""Prior-mask augmentation for YOLO Anomaly.
 
 Training renders a soft hint from GT bboxes (or polygon masks) and then perturbs it so the model
 learns to use a noisy, weak-peak, mis-localized prior instead of treating the mask as a clean
@@ -21,7 +21,7 @@ class MaskPriorAugmenter:
     """Apply training-time augmentations to a rendered GT prior (bbox-, mask-, and polygon-level).
 
     Args:
-        v2_cfg (dict | None): Sub-dict under the model YAML ``anomaly_v2`` key. Recognized keys:
+        v2_cfg (dict | None): Sub-dict under the model YAML ``anomaly`` key. Recognized keys:
             mask_size, mask_aug_passes, mask_shuffle_p, mask_noise_std, mask_mag_range,
             mask_blur_sigma_max, mask_jitter, mask_box_drop_p, mask_distractor_p, mask_distractor_n,
             mask_erase_p, mask_warp_p, mask_mixup_p, mask_mixup_alpha, mask_fragment_p,

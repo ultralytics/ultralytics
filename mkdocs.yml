@@ -722,11 +722,11 @@ nav:
               - loss: reference/models/utils/loss.md
               - ops: reference/models/utils/ops.md
           - yolo:
-              - anomaly_v2:
-                  - predict: reference/models/yolo/anomaly_v2/predict.md
-                  - train: reference/models/yolo/anomaly_v2/train.md
-                  - train_rnd: reference/models/yolo/anomaly_v2/train_rnd.md
-                  - val: reference/models/yolo/anomaly_v2/val.md
+              - anomaly:
+                  - predict: reference/models/yolo/anomaly/predict.md
+                  - train: reference/models/yolo/anomaly/train.md
+                  - train_rnd: reference/models/yolo/anomaly/train_rnd.md
+                  - val: reference/models/yolo/anomaly/val.md
               - classify:
                   - predict: reference/models/yolo/classify/predict.md
                   - train: reference/models/yolo/classify/train.md
@@ -775,8 +775,8 @@ nav:
               - triton: reference/nn/backends/triton.md
           - modules:
               - activation: reference/nn/modules/activation.md
-              - anomaly_v2: reference/nn/modules/anomaly_v2.md
-              - anomaly_v2_prior_augment: reference/nn/modules/anomaly_v2_prior_augment.md
+              - anomaly: reference/nn/modules/anomaly.md
+              - anomaly_prior_augment: reference/nn/modules/anomaly_prior_augment.md
               - block: reference/nn/modules/block.md
               - conv: reference/nn/modules/conv.md
               - head: reference/nn/modules/head.md

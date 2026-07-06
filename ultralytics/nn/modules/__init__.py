@@ -105,8 +105,8 @@ from .transformer import (
     TransformerEncoderLayer,
     TransformerLayer,
 )
-from .anomaly_v2 import AnomalyMemoryBank, BboxMaskRenderer, HeatmapBiasFusion, HeatmapProcessor
-from .anomaly_v2_prior_augment import MaskPriorAugmenter
+from .anomaly import AnomalyMemoryBank, BboxMaskRenderer, HeatmapBiasFusion, HeatmapProcessor
+from .anomaly_prior_augment import MaskPriorAugmenter
 
 __all__ = (
     "AIFI",

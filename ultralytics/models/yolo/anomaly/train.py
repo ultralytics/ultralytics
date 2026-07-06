@@ -1,9 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-"""YOLO Anomaly v2 trainer.
+"""YOLO Anomaly trainer.
 
 Thin extension of ``DetectionTrainer``. The differences:
-  * ``get_model`` returns a ``YOLOAnomalyV2Model`` instead of a plain ``DetectionModel``.
+  * ``get_model`` returns a ``YOLOAnomalyModel`` instead of a plain ``DetectionModel``.
   * ``get_validator`` returns a ``YOLOAnomalyValidator``.
 
 Everything else (dataset, dataloader, augmentation, loss aggregation, plot,
@@ -18,13 +18,13 @@ from ultralytics.data import YOLOConcatDataset, build_yolo_dataset
 from ultralytics.data.augment import LoadAnomalyPriorMask
 from ultralytics.models import yolo
 from ultralytics.models.yolo.detect import DetectionTrainer
-from ultralytics.nn.tasks import YOLOAnomalyV2Model
+from ultralytics.nn.tasks import YOLOAnomalyModel
 from ultralytics.utils import DEFAULT_CFG, RANK
 from ultralytics.utils.torch_utils import unwrap_model
 
 
-class AnomalyV2Trainer(DetectionTrainer):
-    """Trainer for YOLOAnomalyV2."""
+class AnomalyTrainer(DetectionTrainer):
+    """Trainer for YOLOAnomaly."""
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         super().__init__(cfg, overrides, _callbacks)
@@ -43,7 +43,7 @@ class AnomalyV2Trainer(DetectionTrainer):
         if self._polygon_prior_active() and mode == "train":
             # task="segment" flips YOLODataset.use_segments -> Format(return_mask=True) ->
             # batch["masks"] (overlap-union instance map). Detection head/loss unaffected
-            # (bboxes still present). copy() so the persistent self.args stays task="anomaly_v2".
+            # (bboxes still present). copy() so the persistent self.args stays task="anomaly".
             args = copy(self.args)
             args.task = "segment"
             gs = max(int(unwrap_model(self.model).stride.max()), 32)
@@ -53,7 +53,7 @@ class AnomalyV2Trainer(DetectionTrainer):
 
         # Attach the prior-mask builder only to the training transform pipeline.
         if mode == "train":
-            v2_cfg = getattr(unwrap_model(self.model), "yaml", {}).get("anomaly_v2", {})
+            v2_cfg = getattr(unwrap_model(self.model), "yaml", {}).get("anomaly", {})
             transform = LoadAnomalyPriorMask(v2_cfg, mode=mode)
             if isinstance(dataset, YOLOConcatDataset):
                 for d in dataset.datasets:
@@ -63,14 +63,14 @@ class AnomalyV2Trainer(DetectionTrainer):
         return dataset
 
     def get_model(self, cfg=None, weights=None, verbose: bool = True):
-        """Return a ``YOLOAnomalyV2Model``.
+        """Return a ``YOLOAnomalyModel``.
 
         Args:
             cfg (str, optional): Path to model YAML.
             weights (str, optional): Path to pretrained weights (yolo26m.pt etc.).
             verbose (bool): Verbose info.
         """
-        model = YOLOAnomalyV2Model(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
+        model = YOLOAnomalyModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
         if weights:
             model.load(weights)
         return model
@@ -79,6 +79,6 @@ class AnomalyV2Trainer(DetectionTrainer):
         """Return the anomaly validator."""
         loss_names = ["box_loss", "cls_loss", "dfl_loss"]
         self.loss_names = tuple(loss_names)
-        return yolo.anomaly_v2.YOLOAnomalyValidator(
+        return yolo.anomaly.YOLOAnomalyValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )

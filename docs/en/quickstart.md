@@ -239,7 +239,7 @@ The Ultralytics command-line interface (CLI) allows for simple single-line comma
         ```bash
         yolo TASK MODE ARGS
         ```
-        - `TASK` (optional) is one of ([detect](tasks/detect.md), [segment](tasks/segment.md), [classify](tasks/classify.md), [pose](tasks/pose.md), [obb](tasks/obb.md), [anomaly_v2](tasks/anomaly.md)); `anomaly_v2` has no default model yet and requires an explicit `model=` argument
+        - `TASK` (optional) is one of ([detect](tasks/detect.md), [segment](tasks/segment.md), [classify](tasks/classify.md), [pose](tasks/pose.md), [obb](tasks/obb.md), [anomaly](tasks/anomaly.md)); `anomaly` has no default model yet and requires an explicit `model=` argument
         - `MODE` (required) is one of ([train](modes/train.md), [val](modes/val.md), [predict](modes/predict.md), [export](modes/export.md), [track](modes/track.md), [benchmark](modes/benchmark.md))
         - `ARGS` (optional) are `arg=value` pairs like `imgsz=640` that override defaults.
 

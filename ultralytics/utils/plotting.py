@@ -889,7 +889,7 @@ def plot_results(file: str = "path/to/results.csv", dir: str = "", on_plot: Call
                 columns = (
                     loss_keys[:loss_mid] + metric_keys[:metric_mid] + loss_keys[loss_mid:] + metric_keys[metric_mid:]
                 )
-                # ncols holds all columns even when the count is odd (e.g. anomaly_v2's 2-pass
+                # ncols holds all columns even when the count is odd (e.g. anomaly's 2-pass
                 # mask_on/mask_off wide schema) — a plain len//2 grid would index past the axes.
                 ncols = max(1, (len(columns) + 1) // 2)
                 fig, ax = plt.subplots(2, ncols, figsize=(2 * ncols + 2, 6), tight_layout=True)

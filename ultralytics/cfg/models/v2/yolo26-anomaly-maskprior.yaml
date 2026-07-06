@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# YOLO Anomaly v2 — polygon-mask prior (maskprior) variant.
+# YOLO Anomaly — polygon-mask prior (maskprior) variant.
 # Single diff vs yolo26-anomaly.yaml: seg_target_polygon: true.
 #
 # Training prior source: polygon union from batch["masks"] instead of bbox→gauss render.
@@ -19,7 +19,7 @@ scales:
   l: [1.00, 1.00, 512]
   x: [1.00, 1.50, 512]
 
-anomaly_v2:
+anomaly:
   mask_size: 80
   mask_mode: gauss
   sigma_factor: [0.20, 0.40]

@@ -1,8 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-"""Internal R&D trainer for YOLO Anomaly v2.
+"""Internal R&D trainer for YOLO Anomaly.
 
-Extends ``AnomalyV2Trainer`` with periodic cross-dataset OOD validation. This is
+Extends ``AnomalyTrainer`` with periodic cross-dataset OOD validation. This is
 not intended for normal users; it exists for internal experiments where best.pt
 selection should be driven by a macro-average OOD metric (e.g. MVTec mAP50).
 
@@ -19,8 +19,8 @@ import math
 from copy import deepcopy
 from pathlib import Path
 
-from ultralytics.models.yolo.anomaly_v2.train import AnomalyV2Trainer
-from ultralytics.models.yolo.anomaly_v2.val import YOLOAnomalyValidator
+from ultralytics.models.yolo.anomaly.train import AnomalyTrainer
+from ultralytics.models.yolo.anomaly.val import YOLOAnomalyValidator
 from ultralytics.utils import LOGGER, RANK, YAML
 from ultralytics.utils.torch_utils import unwrap_model
 
@@ -74,8 +74,8 @@ def _average_ood_rows(rows: list[dict]) -> dict[str, float]:
     return out
 
 
-class AnomalyV2RNDTrainer(AnomalyV2Trainer):
-    """Trainer for YOLOAnomalyV2 with periodic cross-dataset OOD validation."""
+class AnomalyRNDTrainer(AnomalyTrainer):
+    """Trainer for YOLOAnomaly with periodic cross-dataset OOD validation."""
 
     def validate(self):
         """Run normal validation, then periodic OOD validation; fitness = OOD mAP50."""
@@ -84,7 +84,7 @@ class AnomalyV2RNDTrainer(AnomalyV2Trainer):
         if RANK not in (-1, 0) or self.ema is None:
             return metrics, fitness
 
-        v2_cfg = getattr(unwrap_model(self.model), "yaml", {}).get("anomaly_v2", {})
+        v2_cfg = getattr(unwrap_model(self.model), "yaml", {}).get("anomaly", {})
         freq = int(v2_cfg.get("test_val_freq", 0))
         if freq <= 0 or (self.epoch + 1) % freq != 0:
             return metrics, fitness
@@ -124,7 +124,7 @@ class AnomalyV2RNDTrainer(AnomalyV2Trainer):
                     root = candidate
                     break
         if not root:
-            LOGGER.warning("AnomalyV2RNDTrainer: no test_data_yamls or test_root configured; skipping OOD eval.")
+            LOGGER.warning("AnomalyRNDTrainer: no test_data_yamls or test_root configured; skipping OOD eval.")
             return []
 
         cats = v2_cfg.get("test_categories") or MVTEC_CATEGORIES
@@ -136,7 +136,7 @@ class AnomalyV2RNDTrainer(AnomalyV2Trainer):
                     yamls.append(p)
                     break
             else:
-                LOGGER.warning(f"AnomalyV2RNDTrainer: no yaml found for category '{cat}' under {root}")
+                LOGGER.warning(f"AnomalyRNDTrainer: no yaml found for category '{cat}' under {root}")
         return yamls
 
     def _run_ood_eval(self, model, yamls: list[Path], v2_cfg: dict) -> list[dict]:
@@ -162,7 +162,7 @@ class AnomalyV2RNDTrainer(AnomalyV2Trainer):
                     continue
 
                 overrides = {
-                    "task": "anomaly_v2",
+                    "task": "anomaly",
                     "mode": "val",
                     "data": str(yaml),
                     "split": "val",

@@ -21,11 +21,11 @@ from ultralytics.utils.metrics import bbox_ioa
 from ultralytics.utils.ops import segment2box, xywh2xyxy, xyxyxyxy2xywhr
 from ultralytics.utils.torch_utils import TORCHVISION_0_10, TORCHVISION_0_11, TORCHVISION_0_13
 
-# Anomaly v2 prior-mask renderer/augmenter (imported here to keep the transform next to LoadVisualPrompt).
+# Anomaly prior-mask renderer/augmenter (imported here to keep the transform next to LoadVisualPrompt).
 # These are neural modules but stateless at inference time; importing them at module level is safe because
 # ultralytics.nn.modules does not depend on ultralytics.data.
-from ultralytics.nn.modules.anomaly_v2 import BboxMaskRenderer
-from ultralytics.nn.modules.anomaly_v2_prior_augment import MaskPriorAugmenter
+from ultralytics.nn.modules.anomaly import BboxMaskRenderer
+from ultralytics.nn.modules.anomaly_prior_augment import MaskPriorAugmenter
 
 DEFAULT_MEAN = (0.0, 0.0, 0.0)
 DEFAULT_STD = (1.0, 1.0, 1.0)
@@ -2268,7 +2268,7 @@ class LoadVisualPrompt:
 
 
 class LoadAnomalyPriorMask:
-    """Build and augment the anomaly-v2 fusion prior mask inside the dataset pipeline.
+    """Build and augment the anomaly fusion prior mask inside the dataset pipeline.
 
     Mirrors ``LoadVisualPrompt``: the trainer appends this transform to the dataset, and the collate
     function stacks the resulting ``labels["prior_mask"]`` tensors into ``batch["prior_mask"]``.
@@ -2279,10 +2279,10 @@ class LoadAnomalyPriorMask:
     """
 
     def __init__(self, v2_cfg: dict, mode: str = "train") -> None:
-        """Initialize renderer and augmenter from the model YAML ``anomaly_v2`` block.
+        """Initialize renderer and augmenter from the model YAML ``anomaly`` block.
 
         Args:
-            v2_cfg: The ``anomaly_v2`` dictionary from the model YAML.
+            v2_cfg: The ``anomaly`` dictionary from the model YAML.
             mode: "train" applies mask augmentations; any other mode renders the mask as-is.
         """
         self.mask_size = int(v2_cfg.get("mask_size", 80))

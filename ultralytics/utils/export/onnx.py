@@ -48,11 +48,13 @@ def onnx_int8_quantize(
     import onnx
     from onnxruntime.quantization import quantize_static
 
-    # Quantize only weighted ops; leaving elementwise math in float keeps the head's decode (Concat of box pixels
-    # ~0-640 and class probs 0-1) off a single per-tensor scale that would round every class score to 0. Excluding by
-    # node (vs op_types_to_quantize) still calibrates all tensors, avoiding an ONNX Runtime crash on attention Softmax.
+    # Quantize weighted ops (plus MaxPool); leaving elementwise math in float keeps the head's decode (Concat of box
+    # pixels ~0-640 and class probs 0-1) off a single per-tensor scale that would round every class score to 0.
+    # Excluding by node (vs op_types_to_quantize) still calibrates all tensors, avoiding an ONNX Runtime crash on
+    # attention Softmax. MaxPool must quantize too: left in float between quantized convs (SPPF) it becomes an island
+    # whose boundary QuantizeLinear gets a mismatched INT8/UINT8 type that fails to load on newer ONNX Runtime.
     graph = onnx.load(onnx_file).graph
-    exclude = [n.name for n in graph.node if n.op_type not in {"Conv", "Gemm", "MatMul"}]
+    exclude = [n.name for n in graph.node if n.op_type not in {"Conv", "Gemm", "MatMul", "MaxPool"}]
 
     LOGGER.info(f"{prefix} quantizing INT8 with ONNX Runtime...")
     quantize_static(

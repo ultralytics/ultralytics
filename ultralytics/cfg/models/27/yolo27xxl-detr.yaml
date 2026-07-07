@@ -1,15 +1,13 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# YOLO27xxl-DETR inference config: DEIMv2 DINOv3-ViT-B/16 + STA backbone with DeimDecoder head (ndl=4).
-# Source weights: yolo27xxl-detr-objv2.pt (DINOv3-vitb16 backbone, XL HybridEncoder width); this variant
-# truncates the source 6-layer decoder to 4 layers. See yolo27xxl-detr-ndl6.yaml for the full 6-layer variant.
-# Task: detect.
+# YOLO27xxl-DETR inference config: DINOv3-ViT-B/16 + STA backbone with DeimDecoder head (ndl=4).
+# Task: detect. See yolo27xxl-detr-ndl6.yaml for the full 6-layer decoder variant.
 
 nc: 80 # number of classes
 
 backbone:
   # [from, repeats, module, args]
-  # DEIMv2 DINOv3+STA backbone wrapper. First arg (320) is output channels for the parser.
+  # DINOv3-ViT + STA backbone wrapper. First arg (320) is output channels for the parser.
   # Args: [out_ch, name, interaction_indexes, patch_size, use_sta, conv_inplane, hidden_dim, split]
   - [-1, 1, DEIMDINOv3STAs, [320, dinov3_vitb16, [5, 8, 11], 16, True, 96, 320, True]] # 0
   - [0, 1, Index, [320, 1]] # 1 P3
@@ -17,7 +15,7 @@ backbone:
   - [0, 1, Index, [320, 3]] # 3 P5
 
 head:
-  # DEIMv2-XL HybridEncoder head: input_proj + AIFI + FPN/PAN. hidden_dim=256.
+  # HybridEncoder head: input_proj + AIFI + FPN/PAN. hidden_dim=256.
   # input_proj is Conv (not Identity) because backbone outputs 320, not 256.
   - [3, 1, Conv, [256, 1, 1, None, 1, 1, False]] # 4 input_proj.2
   - [-1, 1, AIFI, [1024, 8]]
@@ -42,7 +40,7 @@ head:
   - [[-1, 6], 1, Add, []]
   - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]] # 21 F5, pan_blocks.1
 
-  # DeimDecoder (DEIMv2-XL defaults explicit). Args:
+  # DeimDecoder (defaults explicit). Args:
   # [nc, hd, nq, ndp, nh, ndl, d_ffn, dropout, act, eval_idx, nd, label_noise_ratio, box_noise_scale,
   #  learnt_init_query, query_select_method, reg_max, reg_scale, layer_scale, mlp_act,
   #  o2m_topk_mode, use_gateway, share_bbox_head, share_score_head]

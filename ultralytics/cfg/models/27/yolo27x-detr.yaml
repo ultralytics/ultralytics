@@ -1,14 +1,13 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# YOLO27x-DETR inference config: DEIMv2-XL DINOv3+STA backbone with DeimDecoder head.
-# Source weights: deimv2XL_obj365_frm24.pt (COCO 80-class head, DINOv3-vits16plus backbone).
+# YOLO27x-DETR inference config: DINOv3-ViT-S/16-plus + STA backbone with DeimDecoder head.
 # Task: detect.
 
 nc: 80 # number of classes
 
 backbone:
   # [from, repeats, module, args]
-  # DEIMv2 DINOv3+STA backbone wrapper. First arg (256) is output channels for the parser.
+  # DINOv3-ViT + STA backbone wrapper. First arg (256) is output channels for the parser.
   # Args: [out_ch, name, interaction_indexes, patch_size, use_sta, conv_inplane, hidden_dim, split]
   - [-1, 1, DEIMDINOv3STAs, [256, dinov3_vits16plus, [5, 8, 11], 16, True, 64, 256, True]] # 0
   - [0, 1, Index, [256, 1]] # 1 P3
@@ -16,7 +15,7 @@ backbone:
   - [0, 1, Index, [256, 3]] # 3 P5
 
 head:
-  # DEIMv2-XL HybridEncoder head: input_proj + AIFI + FPN/PAN. hidden_dim=256.
+  # HybridEncoder head: input_proj + AIFI + FPN/PAN. hidden_dim=256.
   - [3, 1, nn.Identity, []] # 4 input_proj.2
   - [-1, 1, AIFI, [1024, 8]]
   - [-1, 1, Conv, [256, 1, 1, None, 1, 1, False]] # 6 Y5, lateral_convs.0
@@ -40,7 +39,7 @@ head:
   - [[-1, 6], 1, Add, []]
   - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]] # 21 F5, pan_blocks.1
 
-  # DeimDecoder (DEIMv2-XL defaults explicit). Args:
+  # DeimDecoder (defaults explicit). Args:
   # [nc, hd, nq, ndp, nh, ndl, d_ffn, dropout, act, eval_idx, nd, label_noise_ratio, box_noise_scale,
   #  learnt_init_query, query_select_method, reg_max, reg_scale, layer_scale, mlp_act,
   #  o2m_topk_mode, use_gateway, share_bbox_head, share_score_head]

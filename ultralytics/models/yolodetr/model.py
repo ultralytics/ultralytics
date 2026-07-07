@@ -1,5 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-"""YOLO-DETR: DEIMv2-style DINOv3+STA backbone with DEIM/DFine/RT-DETR decoder variants."""
+"""YOLO-DETR: DEIMv2-style DINOv3-ViT + STA backbone with DEIM/DFine/RT-DETR decoder variants."""
 
 from ultralytics.engine.model import Model
 from ultralytics.models.rtdetr.predict import RTDETRPredictor
@@ -9,14 +9,16 @@ from .train import _YOLODETR_DEFAULTS, YOLODETRTrainer, YOLODETRValidator
 
 
 class YOLODETR(Model):
-    """Interface for YOLO-DETR, a DEIMv2-style DINOv3+STA detector with DEIM/DFine/RT-DETR decoder heads.
+    """Interface for YOLO-DETR, a DEIMv2-style DINOv3-ViT + STA detector with DEIM/DFine/RT-DETR decoder heads.
 
-    Reuses the RT-DETR predict/val pipeline because the decoder output contract is identical (bs, num_queries, [x, y, w,
-    h, conf, cls]). Training is routed through YOLODETRTrainer for augment decay, flat-cosine LR, and the head/backbone
-    LR split. The underlying detection model is YOLODETRDetectionModel which dispatches DfineLoss for D-Fine/DEIM heads
-    with the full FGL/DDF terms and for RTDETRDecoderV2 with FGL/DDF gains zeroed and union-set matching off
-    (RTDETRDecoderV2 emits no pred_corners / pre-stage tensors). The parent RTDETRDecoder head still uses
-    RTDETRDetectionLoss.
+    Scale-to-backbone mapping: n/s/m/l scales use a CNN CSP trunk with RTDETRDecoderV2; x scale uses a
+    DINOv3-ViT-S/16-plus + STA backbone with DeimDecoder; xxl scale uses a DINOv3-ViT-B/16 + STA backbone with
+    DeimDecoder. Reuses the RT-DETR predict/val pipeline because the decoder output contract is identical
+    (bs, num_queries, [x, y, w, h, conf, cls]). Training is routed through YOLODETRTrainer for augment decay,
+    flat-cosine LR, and the head/backbone LR split. The underlying detection model is YOLODETRDetectionModel which
+    dispatches DfineLoss for D-Fine/DEIM heads with the full FGL/DDF terms and for RTDETRDecoderV2 with FGL/DDF gains
+    zeroed and union-set matching off (RTDETRDecoderV2 emits no pred_corners / pre-stage tensors). The parent
+    RTDETRDecoder head still uses RTDETRDetectionLoss.
 
     Examples:
         Run inference from a YAML

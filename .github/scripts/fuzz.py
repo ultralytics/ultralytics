@@ -253,10 +253,11 @@ def run_trial(trial, timeout=None):
     argv = list(trial["argv"])
     if mode == "export":  # exports write beside the model file: copy the weight in so shared weights_dir stays clean
         src = Path(next(a for a in argv if a.startswith("model=")).split("=", 1)[1])
-        if not src.exists():  # bare weight name: resolve against the precached shared weights_dir
+        if not src.exists():  # bare weight name: resolve via the package downloader (no-op on the precached cache)
             from ultralytics.utils import WEIGHTS_DIR
+            from ultralytics.utils.downloads import attempt_download_asset
 
-            src = WEIGHTS_DIR / src.name
+            src = Path(attempt_download_asset(WEIGHTS_DIR / src.name))
         local = workdir / src.name
         shutil.copy2(src, local)
         argv = [a if not a.startswith("model=") else f"model={local}" for a in argv]
@@ -569,7 +570,7 @@ def cmd_report(args):
     if new_t2:  # T2 validation gaps roll up into one umbrella issue; only its creation counts against the cap
         lines = [f"- `{f['command']}` → {f['title']} `<!-- fuzz-signature: {f['signature']} -->`" for f in new_t2]
         comment = f"New CLI validation gaps found by [Infinite CI]({run_url}):\n\n" + "\n".join(lines)
-        if umbrella:
+        if umbrella and umbrella["state"] == "OPEN":
             gh(
                 "issue",
                 "comment",
@@ -580,6 +581,8 @@ def cmd_report(args):
                 comment,
                 dry_run=args.dry_run,
             )
+        elif umbrella:  # a closed umbrella means T2 reporting was deliberately opted out: summary only
+            print(f"[report] umbrella issue #{umbrella['number']} is closed; {len(new_t2)} T2 gaps in summary only")
         elif created < args.max_issues:
             gh(
                 "issue",
@@ -597,16 +600,29 @@ def cmd_report(args):
             )
             created += 1
 
+    by_issue = {}
     for f, issue in regressions:
+        if umbrella and issue["number"] == umbrella["number"]:
+            continue  # known T2 signatures in a closed umbrella are dedup state, not per-bug regression signals
+        by_issue.setdefault(issue["number"], []).append(f)
+    for number, group in by_issue.items():  # one comment per issue per run, and never twice for the same signature
+        commented = ""
+        if not args.dry_run:
+            view = json.loads(gh("issue", "view", str(number), "--repo", args.repo, "--json", "comments") or "{}")
+            commented = " ".join(c.get("body") or "" for c in view.get("comments", []))
+        fresh = [f for f in group if f"fuzz-regression: {f['signature']}" not in commented]
+        if not fresh:
+            continue
+        blocks = "\n\n".join(f"```bash\n{f['command']}\n```\n<!-- fuzz-regression: {f['signature']} -->" for f in fresh)
         gh(
             "issue",
             "comment",
-            str(issue["number"]),
+            str(number),
             "--repo",
             args.repo,
             "--body",
             f"Reproduced again by [Infinite CI]({run_url}) after this issue was closed — possible "
-            f"regression.\n\n```bash\n{f['command']}\n```",
+            f"regression.\n\n{blocks}",
             dry_run=args.dry_run,
         )
 

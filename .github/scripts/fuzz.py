@@ -353,7 +353,7 @@ def cmd_fuzz(args):
             if outcome == "timeout":
                 if hang_confirms < MAX_HANG_CONFIRMS:
                     hang_confirms += 1
-                    rc2, _, d2 = run_trial(trial, timeout=CONFIRM_TIMEOUT)
+                    rc2, _, _d2 = run_trial(trial, timeout=CONFIRM_TIMEOUT)
                     confirmed = rc2 == "timeout"
                     if not confirmed:
                         outcome = "pass" if rc2 == 0 else outcome  # completed quickly on replay: not a hang
@@ -430,7 +430,7 @@ def cmd_repro(args):
     outcomes = []
     for i in range(args.runs):
         rc, stderr, duration = run_trial(trial, timeout=args.debug_timeout)
-        outcome, sig, human = classify(trial, rc, stderr)
+        outcome, _sig, human = classify(trial, rc, stderr)
         outcomes.append(outcome)
         log.info(f"[repro] run {i + 1}/{args.runs}: {outcome} ({duration}s) {human or ''}")
         if outcome not in {"pass", "expected"}:

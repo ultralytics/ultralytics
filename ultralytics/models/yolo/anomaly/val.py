@@ -36,6 +36,19 @@ class YOLOAnomalyValidator(DetectionValidator):
         self.iouv = torch.linspace(0.1, 0.5, 9)
         self.niou = self.iouv.numel()
 
+    def postprocess(self, preds: list[torch.Tensor]) -> list[dict[str, torch.Tensor]]:
+        """Post-process YOLO predictions and return output detections with proto.
+
+        Args:
+            preds (list[torch.Tensor]): Raw predictions from the model.
+
+        Returns:
+            (list[dict[str, torch.Tensor]]): Processed detection predictions with masks.
+        """
+        # heatmap = preds[0][1] if isinstance(preds[0], tuple) else preds[1]
+        preds = super().postprocess(preds[0])
+        return preds
+
     def _ood_map_metrics(self) -> dict[str, float]:
         """mAP at IoU {0.10, 0.25, 0.50} and mAP10-50 (mean over the whole .10:.50 grid)."""
         box = self.metrics.box

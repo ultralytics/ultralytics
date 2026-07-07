@@ -150,13 +150,7 @@ class AnomalyRNDTrainer(AnomalyTrainer):
             source = _normal_dir_from_yaml(yaml)
             try:
                 model.memory_bank.reset()
-                n = model.build_memory_bank(
-                    str(source),
-                    imgsz=640,
-                    device=device,
-                    batch=batch,
-                    verbose=False,
-                )
+                n = model.build_memory_bank(str(source), imgsz=640, device=device, batch=batch)
                 if not n:
                     LOGGER.warning(f"OOD eval: empty bank for {yaml.name}; skipping.")
                     continue

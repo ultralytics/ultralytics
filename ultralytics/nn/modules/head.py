@@ -374,7 +374,7 @@ class AnomalyDetect(Detect):
         y = self._inference(preds["one2one"] if self.end2end else preds, heatmap=processed_prior)
         if self.end2end:
             y = self.postprocess(y.permute(0, 2, 1))
-        return (y, out_heatmap) if self.export else (y, out_heatmap, preds)
+        return (y, out_heatmap) if self.export else ((y, out_heatmap), preds)
 
     def _inference(self, x: dict[str, torch.Tensor], heatmap: torch.Tensor | None = None) -> torch.Tensor:
         """Decode predicted bounding boxes and class probabilities based on multiple-level feature maps.

@@ -185,9 +185,36 @@ model.train(data="coco8.yaml", epochs=10, trainer=WeightedTrainer)
     # Result: [1.0, 25.0, 1.67]
     ```
 
+!!! note "Loading a model with custom classes"
+
+    Custom classes such as `WeightedDetectionModel` are stored in the checkpoint by reference. When defined in a training script they belong to the `__main__` module, so loading `best.pt` from a different script raises `AttributeError: Can't get attribute 'WeightedDetectionModel' on <module '__main__'>`.
+
+    Define custom classes in a dedicated module so they remain importable, and ensure that module is on your `PYTHONPATH` at load time.
+
+    ```python
+    # weighted_model.py
+    from ultralytics.nn.tasks import DetectionModel
+
+
+    class WeightedDetectionModel(DetectionModel):
+        """Detection model that uses class-weighted loss."""
+
+        ...
+    ```
+
+    ```python
+    # inference script
+    from weighted_model import WeightedDetectionModel  # noqa: F401 - must be importable at checkpoint load time
+
+    from ultralytics import YOLO
+
+    model = YOLO("runs/detect/train/weights/best.pt")
+    metrics = model.val()
+    ```
+
 ## Saving the Best Model by Custom Metric
 
-The trainer saves `best.pt` based on fitness, which defaults to `0.9 × mAP@0.5:0.95 + 0.1 × mAP@0.5`. To use a different metric (like `mAP@0.5` or recall), override `validate()` and return your chosen metric as the fitness value. The built-in `save_model()` will then use it automatically:
+The trainer saves `best.pt` based on fitness, which for detection defaults to `mAP@0.5:0.95` (weights `[0.0, 0.0, 0.0, 1.0]` for [P, R, mAP@0.5, mAP@0.5:0.95]). To use a different metric (like `mAP@0.5` or recall), override `validate()` and return your chosen metric as the fitness value. The built-in `save_model()` will then use it automatically:
 
 ```python
 from ultralytics import YOLO
@@ -258,11 +285,11 @@ model = YOLO("yolo26n.pt")
 model.train(data="coco8.yaml", epochs=20, freeze=10, trainer=FreezingTrainer)
 ```
 
-The `freeze=10` parameter freezes the first 10 layers (the backbone) at training start. The `on_train_epoch_start` callback fires at the beginning of each epoch and unfreezes all parameters once the freeze period is complete.
+The `freeze=10` parameter freezes the first 10 layers (indices 0-9) at training start, which covers most of the YOLO26 backbone. The backbone spans layers 0-10, so `freeze=10` leaves the final C2PSA block (layer 10) trainable; use `freeze=11` to freeze the entire backbone. The `on_train_epoch_start` callback fires at the beginning of each epoch and unfreezes all parameters once the freeze period is complete.
 
 !!! tip "Choosing What to Freeze"
 
-    - `freeze=10` freezes the first 10 layers (typically the backbone in YOLO architectures)
+    - `freeze=10` freezes the first 10 layers, indices 0-9 (most of the YOLO26 backbone; use `freeze=11` to include the final C2PSA block at layer 10)
     - `freeze=[0, 1, 2, 3]` freezes specific layers by index
     - Higher `FREEZE_EPOCHS` values give the head more time to adapt before the backbone changes
 
@@ -287,10 +314,13 @@ class PerLayerLRTrainer(DetectionTrainer):
         backbone_params = []
         head_params = []
 
-        for k, v in unwrap_model(model).named_parameters():
+        unwrapped = unwrap_model(model)
+        backbone_len = len(unwrapped.yaml["backbone"])  # YOLO26 backbone spans layers 0-10 (C2PSA at layer 10)
+
+        for k, v in unwrapped.named_parameters():
             if not v.requires_grad:
                 continue
-            is_backbone = any(k.startswith(f"model.{i}.") for i in range(10))
+            is_backbone = any(k.startswith(f"model.{i}.") for i in range(backbone_len))
             if is_backbone:
                 backbone_params.append(v)
             else:

@@ -1,6 +1,7 @@
 ---
+title: Trained Model Management
 comments: true
-description: Learn how to manage, analyze, and export trained models in Ultralytics Platform with support for 17+ deployment formats.
+description: Learn how to manage, analyze, and export trained models in Ultralytics Platform with support for 19+ deployment formats.
 keywords: Ultralytics Platform, models, model management, export, ONNX, TensorRT, CoreML, YOLO
 ---
 
@@ -30,7 +31,7 @@ Supported model formats:
 
 After upload, the platform parses model metadata:
 
-- Task type ([detect](../../tasks/detect.md), [segment](../../tasks/segment.md), [pose](../../tasks/pose.md), [OBB](../../tasks/obb.md), [classify](../../tasks/classify.md))
+- Task type ([detect](../../tasks/detect.md), [segment](../../tasks/segment.md), [semantic](../../tasks/semantic.md), [pose](../../tasks/pose.md), [OBB](../../tasks/obb.md), [classify](../../tasks/classify.md))
 - Architecture (YOLO26n, YOLO26s, etc.)
 - Class names and count
 - Input size and parameters
@@ -53,18 +54,17 @@ See [Cloud Training](cloud-training.md) for detailed instructions.
 
 ```mermaid
 graph LR
-    A[Upload .pt] --> B[Overview]
-    C[Train] --> B
-    B --> D[Predict]
-    B --> E[Export]
-    B --> F[Deploy]
-    E --> G[17+ Formats]
-    F --> H[Endpoint]
+    A[Upload .pt]:::start --> B[Overview]:::proc
+    C[Train]:::start --> B
+    B --> D[Predict]:::proc
+    B --> E[Export]:::proc
+    B --> F[Deploy]:::proc
+    E --> G[19+ Formats]:::out
+    F --> H[Endpoint]:::out
 
-    style A fill:#4CAF50,color:#fff
-    style C fill:#FF9800,color:#fff
-    style E fill:#2196F3,color:#fff
-    style F fill:#9C27B0,color:#fff
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 ## Model Page Tabs
@@ -100,12 +100,12 @@ The Train tab has three subtabs:
 
 Interactive training metric charts showing loss curves and performance metrics over epochs:
 
-| Chart Group       | Metrics                                        |
-| ----------------- | ---------------------------------------------- |
-| **Metrics**       | mAP50, mAP50-95, precision, recall             |
-| **Train Loss**    | train/box_loss, train/cls_loss, train/dfl_loss |
-| **Val Loss**      | val/box_loss, val/cls_loss, val/dfl_loss       |
-| **Learning Rate** | lr/pg0, lr/pg1, lr/pg2                         |
+| Chart Group         | Metrics                                        |
+| ------------------- | ---------------------------------------------- |
+| **Metrics**         | mAP50, mAP50-95, precision, recall             |
+| **Training Loss**   | train/box_loss, train/cls_loss, train/dfl_loss |
+| **Validation Loss** | val/box_loss, val/cls_loss, val/dfl_loss       |
+| **Learning Rate**   | lr/pg0, lr/pg1, lr/pg2                         |
 
 ![Ultralytics Platform Model Train Charts Subtab](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-train-charts-subtab.avif)
 
@@ -150,7 +150,7 @@ Run interactive inference directly in the browser:
 
 ### Export Tab
 
-Export your model to 17+ deployment formats. See [Export Model](#export-model) below and the core [Export mode guide](../../modes/export.md) for full details.
+Export your model to 19+ deployment formats. See [Export Model](#export-model) below and the core [Export mode guide](../../modes/export.md) for full details.
 
 ### Deploy Tab
 
@@ -183,20 +183,21 @@ Performance curves at different confidence thresholds:
 
 ```mermaid
 graph LR
-    A[Select Format] --> B[Configure Args]
-    B --> C[Export]
-    C --> D{GPU Required?}
-    D -->|Yes| E[Cloud GPU Export]
-    D -->|No| F[CPU Export]
-    E --> G[Download]
+    A[Select Format]:::start --> B[Configure Args]:::proc
+    B --> C[Export]:::proc
+    C --> D{GPU Required?}:::decide
+    D -->|Yes| E[Cloud GPU Export]:::proc
+    D -->|No| F[CPU Export]:::proc
+    E --> G[Download]:::out
     F --> G
 
-    style A fill:#2196F3,color:#fff
-    style C fill:#FF9800,color:#fff
-    style G fill:#4CAF50,color:#fff
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef decide fill:#FF9800,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
-Export your model to 17+ deployment formats:
+Export your model to 19+ deployment formats:
 
 1. Navigate to the **Export** tab
 2. Select target format
@@ -209,7 +210,7 @@ Export your model to 17+ deployment formats:
 
 ### Supported Formats
 
-The Platform supports export to [17+ deployment formats](../../modes/export.md#export-formats): ONNX, TorchScript, OpenVINO, TensorRT, CoreML, TF SavedModel, TF GraphDef, TF Lite, TF Edge TPU, TF.js, PaddlePaddle, NCNN, MNN, RKNN, IMX500, Axelera, and ExecuTorch.
+The Platform supports export to [19+ deployment formats](../../modes/export.md#export-formats): ONNX, TorchScript, OpenVINO, TensorRT, CoreML, TF SavedModel, TF GraphDef, LiteRT, TF Edge TPU, PaddlePaddle, NCNN, MNN, RKNN, Qualcomm (QNN), IMX500, Axelera, ExecuTorch, and DeepX.
 
 ### Format Selection Guide
 
@@ -217,9 +218,9 @@ The Platform supports export to [17+ deployment formats](../../modes/export.md#e
 | ------------------ | ------------------- | -------------------------------------------------------------- |
 | **NVIDIA GPUs**    | TensorRT            | Maximum inference speed                                        |
 | **Intel Hardware** | OpenVINO            | CPUs, GPUs, and VPUs                                           |
-| **Apple Devices**  | CoreML              | iOS, macOS, Apple Silicon                                      |
-| **Android**        | TF Lite or NCNN     | Best mobile performance                                        |
-| **Web Browsers**   | TF.js or ONNX       | ONNX via ONNX Runtime Web                                      |
+| **Apple Devices**  | CoreML or LiteRT    | iOS, macOS, Apple Silicon                                      |
+| **Android**        | LiteRT or NCNN      | LiteRT (Google's on-device runtime) or NCNN for ARM            |
+| **Web Browsers**   | LiteRT.js or ONNX   | LiteRT.js or ONNX via ONNX Runtime Web                         |
 | **Edge Devices**   | TF Edge TPU or RKNN | Coral and Rockchip (see [supported chips](#rknn-chip-support)) |
 | **General**        | ONNX                | Works with most runtimes                                       |
 
@@ -269,11 +270,10 @@ Export jobs progress through the following statuses:
 
 Some export formats have architecture or task restrictions:
 
-| Format           | Restriction                                             |
-| ---------------- | ------------------------------------------------------- |
-| **IMX500**       | Available only for `YOLOv8n` and `YOLO11n`              |
-| **Axelera**      | Detect models only                                      |
-| **PaddlePaddle** | Not available for YOLO26 detect/segment/pose/OBB models |
+| Format      | Restriction                                |
+| ----------- | ------------------------------------------ |
+| **IMX500**  | Available only for `YOLOv8n` and `YOLO11n` |
+| **Axelera** | Detect models only                         |
 
 !!! note "Additional Export Rules"
 
@@ -330,7 +330,7 @@ Control who can see your model:
 | **Private** | Only you can access             |
 | **Public**  | Anyone can view on Explore page |
 
-To change visibility, click the visibility badge (e.g., `private` or `public`) on the model page. Switching to private takes effect immediately. Switching to public shows a confirmation dialog before applying.
+To change visibility, click the visibility badge (e.g., `private` or `public`) in the page header. Visibility is set at the project level, so this controls all models in the project. Switching to private takes effect immediately. Switching to public shows a confirmation dialog before applying.
 
 ## Delete Model
 
@@ -349,7 +349,7 @@ Remove a model you no longer need:
 - [**Inference**](../deploy/inference.md): Test models in the browser with the Predict tab
 - [**Endpoints**](../deploy/endpoints.md): Deploy models to production with dedicated endpoints
 - [**Cloud Training**](cloud-training.md): Configure and run training jobs on cloud GPUs
-- [**Export Formats**](../../modes/export.md): Full guide to all 17+ export formats
+- [**Export Formats**](../../modes/export.md): Full guide to all 19+ export formats
 
 ## FAQ
 
@@ -381,7 +381,7 @@ Currently, model comparison is within projects. To compare across projects:
 
 ### What's the maximum model size?
 
-There's no strict limit, but very large models (>2GB) may have longer upload and processing times.
+Uploaded `.pt` model files are limited to 1 GB, and models near that limit may take longer to upload and process.
 
 ### Can I fine-tune pretrained models?
 

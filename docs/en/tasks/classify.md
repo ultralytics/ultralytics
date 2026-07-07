@@ -9,7 +9,7 @@ model_name: yolo26n-cls
 
 <img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/image-classification-examples.avif" alt="YOLO image classification of objects and scenes">
 
-[Image classification](https://www.ultralytics.com/glossary/image-classification) is the simplest of the three tasks and involves classifying an entire image into one of a set of predefined classes.
+[Image classification](https://www.ultralytics.com/glossary/image-classification) is the simplest of the supported tasks and involves classifying an entire image into one of a set of predefined classes.
 
 The output of an image classifier is a single class label and a confidence score. Image classification is useful when you need to know only what class an image belongs to and don't need to know where objects of that class are located or what their exact shape is.
 
@@ -134,9 +134,9 @@ Train YOLO26n-cls on the MNIST160 dataset for 100 [epochs](https://www.ultralyti
     class CustomizedValidator(ClassificationValidator):
         """A customized validator class for YOLO classification models with enhanced dataset handling."""
 
-        def build_dataset(self, img_path: str, mode: str = "train"):
-            """Build a customized dataset for classification standalone validation."""
-            return CustomizedDataset(root=img_path, args=self.args, augment=mode == "train", prefix=self.args.split)
+        def build_dataset(self, img_path: str):
+            """Build a customized dataset for classification standalone validation (no augmentation)."""
+            return CustomizedDataset(root=img_path, args=self.args, augment=False, prefix=self.args.split)
 
 
     model = YOLO("yolo26n-cls.pt")

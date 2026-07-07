@@ -1,4 +1,5 @@
 ---
+title: Training Callbacks
 comments: true
 description: Explore Ultralytics callbacks for training, validation, exporting, and prediction. Learn how to use and customize them for your ML models.
 keywords: Ultralytics, callbacks, training, validation, export, prediction, ML models, YOLO, Python, machine learning

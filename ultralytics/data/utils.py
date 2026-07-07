@@ -32,7 +32,7 @@ from ultralytics.utils import (
     emojis,
     is_dir_writeable,
 )
-from ultralytics.utils.checks import check_file, check_font, is_ascii
+from ultralytics.utils.checks import check_file, check_font, is_ascii, normalize_platform_uri
 from ultralytics.utils.downloads import download, safe_download, unzip_file
 from ultralytics.utils.ops import segments2boxes
 
@@ -45,7 +45,6 @@ IMG_FORMATS = {
     "heif",
     "jp2",
     "jpeg",
-    "jpeg2000",
     "jpg",
     "mpo",
     "png",
@@ -131,7 +130,7 @@ def check_file_speeds(
         avg_speed = float("inf")
         speed_msg = ""
 
-    if avg_ping < threshold_ms or avg_speed < threshold_mb:
+    if avg_ping < threshold_ms and avg_speed > threshold_mb:
         LOGGER.info(f"{prefix}Fast image access ✅ ({ping_msg}{speed_msg}{size_msg})")
     else:
         LOGGER.warning(
@@ -215,7 +214,7 @@ def verify_image(args: tuple) -> tuple:
 def verify_image_mask(args: tuple) -> tuple:
     """Verify that an image and its semantic mask exist, are readable, and have matching shapes."""
     im_file, mask_file, prefix = args
-    # Number (found, corrupt), message
+    # Number (found, missing, corrupt), message
     nf, nm, nc, msg = 0, 0, 0, ""
     try:
         msg, shape = check_image(im_file)
@@ -440,6 +439,7 @@ def find_dataset_yaml(path: Path) -> Path:
 
 def convert_ndjson_to_yolo_if_needed(data: str | Path) -> str | Path:
     """Convert an NDJSON dataset or Platform dataset URI to YOLO format."""
+    data = normalize_platform_uri(data)  # accept Platform web URLs (https://platform.ultralytics.com/.../datasets/...)
     data_str = str(data)
     if data_str.endswith(".ndjson") or (data_str.startswith("ul://") and "/datasets/" in data_str):
         import asyncio
@@ -464,6 +464,10 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> dict[str, Any]
     Returns:
         (dict[str, Any]): Parsed dataset information and paths.
     """
+    dataset = str(dataset)
+    if "://" not in dataset and not Path(dataset).exists() and Path(dataset).suffix not in {".yaml", ".yml"}:
+        # allow bare dataset names, e.g. 'coco8' -> 'coco8.yaml', 'DOTAv1.5' -> 'DOTAv1.5.yaml'
+        dataset = next((f"{dataset}{x}" for x in (".yaml", ".yml") if check_file(f"{dataset}{x}", hard=False)), dataset)
     file = Path(check_file(dataset))
     if file.is_dir():
         file = find_dataset_yaml(file)
@@ -489,6 +493,14 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> dict[str, Any]
             data["val"] = data.pop("validation")  # replace 'validation' key with 'val' key
     if "names" not in data and "nc" not in data:
         raise SyntaxError(emojis(f"{dataset} key missing ❌.\n either 'names' or 'nc' are required in all data YAMLs."))
+    if "nc" in data and not isinstance(data["nc"], int):
+        try:
+            nc = float(data["nc"])  # accept integer-like values, e.g. '10' or 10.0, but not 1.9 or placeholders
+            if nc != int(nc):
+                raise ValueError
+            data["nc"] = int(nc)
+        except (TypeError, ValueError):
+            raise SyntaxError(emojis(f"{dataset} 'nc: {data['nc']}' must be an integer ❌."))
     if "names" in data and "nc" in data and len(data["names"]) != data["nc"]:
         raise SyntaxError(emojis(f"{dataset} 'names' length {len(data['names'])} and 'nc: {data['nc']}' must match."))
     if "names" not in data:
@@ -794,15 +806,23 @@ class HUBDatasetStats:
 
     def process_images(self) -> Path:
         """Compress images for Ultralytics HUB."""
-        from ultralytics.data import YOLODataset  # ClassificationDataset
+        from ultralytics.data import YOLODataset
 
         self.im_dir.mkdir(parents=True, exist_ok=True)  # makes dataset-hub/images/
         for split in "train", "val", "test":
-            if self.data.get(split) is None:
+            split_path = self.data.get(split)
+            if split_path is None:
                 continue
-            dataset = YOLODataset(img_path=self.data[split], data=self.data)
+            if self.task == "classify":
+                from torchvision.datasets import ImageFolder  # scope for faster 'import ultralytics'
+
+                dataset = ImageFolder(split_path)
+                im_files = [f for f, _ in dataset.imgs]
+            else:
+                dataset = YOLODataset(img_path=split_path, data=self.data, task=self.task)
+                im_files = dataset.im_files
             with ThreadPool(NUM_THREADS) as pool:
-                for _ in TQDM(pool.imap(self._hub_ops, dataset.im_files), total=len(dataset), desc=f"{split} images"):
+                for _ in TQDM(pool.imap(self._hub_ops, im_files), total=len(im_files), desc=f"{split} images"):
                     pass
         LOGGER.info(f"Done. All images saved to {self.im_dir}")
         return self.im_dir

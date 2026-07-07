@@ -25,8 +25,9 @@ from torch import distributed as dist
 from torch import nn, optim
 
 from ultralytics import __version__
-from ultralytics.cfg import get_cfg, get_save_dir
+from ultralytics.cfg import _YOLO_CLI_COMMAND, get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset, convert_ndjson_to_yolo_if_needed
+from ultralytics.nn.distill_model import DistillationModel
 from ultralytics.nn.tasks import load_checkpoint
 from ultralytics.optim import MuSGD
 from ultralytics.utils import (
@@ -56,6 +57,7 @@ from ultralytics.utils.torch_utils import (
     convert_optimizer_state_dict_to_fp16,
     init_seeds,
     one_cycle,
+    parse_device,
     select_device,
     strip_optimizer,
     torch_distributed_zero_first,
@@ -125,9 +127,8 @@ class BaseTrainer:
         self.hub_session = overrides.pop("session", None)  # HUB
         self.args = get_cfg(cfg, overrides)
         self.check_resume(overrides)
+        self.args.device = parse_device(self.args.device)  # canonical string, resolves '-1' auto-selection once
         self.device = select_device(self.args.device)
-        # Update "-1" devices so post-training val does not repeat search
-        self.args.device = os.getenv("CUDA_VISIBLE_DEVICES") if "cuda" in str(self.device) else str(self.device)
         self.validator = None
         self.metrics = None
         self.plots = {}
@@ -162,16 +163,10 @@ class BaseTrainer:
         # Callbacks - initialize early so on_pretrain_routine_start can capture original args.data
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
 
-        if isinstance(self.args.device, str) and len(self.args.device):  # i.e. device='0' or device='0,1,2,3'
-            world_size = len(self.args.device.split(","))
-        elif isinstance(self.args.device, (tuple, list)):  # i.e. device=[0, 1, 2, 3] (multi-GPU from CLI is list)
-            world_size = len(self.args.device)
-        elif self.args.device in {"cpu", "mps"}:  # i.e. device='cpu' or 'mps'
+        if self.device.type in {"cpu", "mps"}:
             world_size = 0
-        elif torch.cuda.is_available():  # i.e. device=None or device='' or device=number
-            world_size = 1  # default to device 0
-        else:  # i.e. device=None or device=''
-            world_size = 0
+        else:  # i.e. device='0', '0,1,2,3', 'npu:0', or '' auto-selecting a single GPU
+            world_size = len(self.args.device.split(",")) if self.args.device else 1
 
         self.ddp = world_size > 1 and "LOCAL_RANK" not in os.environ
         self.world_size = world_size
@@ -255,8 +250,9 @@ class BaseTrainer:
 
     def _setup_ddp(self):
         """Initialize and set the DistributedDataParallel parameters for training."""
-        torch.cuda.set_device(RANK)
-        self.device = torch.device("cuda", RANK)
+        index = int(self.args.device.split(",")[LOCAL_RANK])  # world_size > 1 guarantees a multi-device string
+        torch.cuda.set_device(index)
+        self.device = torch.device("cuda", index)
         os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
         dist.init_process_group(
             backend="nccl" if dist.is_nccl_available() else "gloo",
@@ -297,7 +293,11 @@ class BaseTrainer:
         self.model = self.model.to(self.device)
         self.set_model_attributes()
 
-        # Compile model
+        # Compile model (knowledge distillation runs the wrapped model eagerly and relies on
+        # find_unused_parameters under DDP for the frozen teacher, so disable compilation when distilling)
+        if self.args.distill_model is not None and self.args.compile:
+            LOGGER.warning("'compile' is not supported with knowledge distillation and will be disabled.")
+            self.args.compile = False
         self.model = attempt_compile(self.model, device=self.device, mode=self.args.compile)
 
         # Freeze layers
@@ -310,6 +310,8 @@ class BaseTrainer:
         )
         always_freeze_names = [".dfl"]  # always freeze these layers
         freeze_layer_names = [f"model.{x}." for x in freeze_list] + always_freeze_names
+        if isinstance(unwrap_model(self.model), DistillationModel):
+            freeze_layer_names.append("teacher_model.")
         self.freeze_layer_names = freeze_layer_names
         for k, v in self.model.named_parameters():
             # v.register_hook(lambda x: torch.nan_to_num(x))  # NaN to 0 (commented for erratic training results)
@@ -335,7 +337,8 @@ class BaseTrainer:
             self.amp = torch.tensor(check_amp(self.model), device=self.device)
             callbacks.default_callbacks = callbacks_backup  # restore callbacks
         if RANK > -1 and self.world_size > 1:  # DDP
-            dist.broadcast(self.amp.int(), src=0)  # broadcast from rank 0 to all other ranks; gloo errors with boolean
+            self.amp = self.amp.int()  # gloo errors with boolean
+            dist.broadcast(self.amp, src=0)  # broadcast from rank 0 to all other ranks
         self.amp = bool(self.amp)  # as boolean
         self.scaler = (
             torch.amp.GradScaler("cuda", enabled=self.amp) if TORCH_2_4 else torch.cuda.amp.GradScaler(enabled=self.amp)
@@ -345,10 +348,18 @@ class BaseTrainer:
         self.args.imgsz = check_imgsz(self.args.imgsz, stride=gs, floor=gs, max_dim=1)
         self.stride = gs  # for multiscale training
 
+        # resume training would directly load DistillationModel so check here
+        if self.args.distill_model is not None and not isinstance(unwrap_model(self.model), DistillationModel):
+            self.model = DistillationModel(student_model=self.model, teacher_model=self.args.distill_model)
         if self.world_size > 1:
             # static_graph=True permits params used >1 time per forward (e.g. flow_model in
             # o2m+o2o pose loss branches) under torch.compile.
-            ddp_kwargs = {"device_ids": [RANK], "static_graph": bool(self.args.compile)}
+            ddp_kwargs = {
+                "device_ids": [self.device.index],
+                "static_graph": bool(self.args.compile),
+                "broadcast_buffers": False,
+                "find_unused_parameters": not bool(self.args.compile),
+            }
             if self.args.task == "depth":
                 # The depth task reuses the YOLO graph but its loss only drives the depth head,
                 # so detection-head params receive no gradient. DDP rejects that unless told to
@@ -363,6 +374,8 @@ class BaseTrainer:
 
         self._build_train_pipeline()
         self.validator = self.get_validator()
+        if self.args.distill_model is not None and "dis_loss" not in self.loss_names:
+            self.loss_names += ("dis_loss",)
         self.ema = ModelEMA(self.model)
         self.set_class_weights()  # compute class weights after dataloader is ready
         if RANK in {-1, 0}:
@@ -508,7 +521,7 @@ class BaseTrainer:
                             f"{epoch + 1}/{self.epochs}",
                             f"{self._get_memory():.3g}G",  # (GB) GPU memory util
                             *(self.tloss if loss_length > 1 else torch.unsqueeze(self.tloss, 0)),  # losses
-                            batch["img"].shape[0],  # batch size, i.e. 8
+                            batch.get("cls", batch["img"]).shape[0],  # no. of instances
                             batch["img"].shape[-1],  # imgsz, i.e 640
                         )
                     )
@@ -588,6 +601,9 @@ class BaseTrainer:
                 self.plot_metrics()
             self.run_callbacks("on_train_end")
         self._clear_memory()
+        for loader in (self.train_loader, self.test_loader):
+            if hasattr(loader, "close"):
+                loader.close()  # shut down persistent dataloader workers so none survive to interpreter exit
         unset_deterministic()
         self.run_callbacks("teardown")
 
@@ -651,10 +667,21 @@ class BaseTrainer:
         """Save model training checkpoints with additional metadata."""
         import io
 
-        ema = deepcopy(unwrap_model(self.ema.ema)).half()
+        # A transient NaN/Inf permanently poisons the EMA running average (ema = decay*ema + (1-decay)*model), so
+        # save_model would otherwise skip every epoch and the run would finish with no checkpoint on valid input.
+        # Resync each poisoned EMA tensor from the live model where finite; any tensor that is non-finite in both is
+        # left for the nan_to_num_ pass below, so a usable checkpoint is always written.
+        ema = unwrap_model(self.ema.ema)
         if not all(torch.isfinite(v).all() for v in ema.state_dict().values() if isinstance(v, torch.Tensor)):
-            LOGGER.warning(f"Skipping checkpoint save at epoch {self.epoch}: EMA contains NaN/Inf")
-            return False
+            model_sd = unwrap_model(self.model).state_dict()
+            for k, v in ema.state_dict().items():
+                if isinstance(v, torch.Tensor) and not torch.isfinite(v).all() and torch.isfinite(model_sd[k]).all():
+                    v.copy_(model_sd[k])
+        ema = deepcopy(ema).half()
+        # Clamp fp16 serialization overflow without mutating the live EMA.
+        for v in ema.state_dict().values():
+            if isinstance(v, torch.Tensor) and v.is_floating_point():
+                torch.nan_to_num_(v)
 
         # Serialize ckpt to a byte buffer once (faster than repeated torch.save() calls)
         buffer = io.BytesIO()
@@ -744,7 +771,22 @@ class BaseTrainer:
             weights, _ = load_checkpoint(self.args.pretrained)
         elif self.args.pretrained is False and not self.resume:
             weights = None
-        self.model = self.get_model(cfg=cfg, weights=weights, verbose=RANK in {-1, 0})  # calls Model(cfg, weights)
+
+        # rebuild DistillationModel from resuming checkpoint
+        if isinstance(weights, DistillationModel):
+            if RANK in {-1, 0}:
+                LOGGER.info("Resuming training DistillationModel from checkpoint weights")
+            student_model = self.get_model(cfg=cfg, weights=weights.student_model, verbose=RANK in {-1, 0})
+            student_model.args = self.args
+            # teacher is stripped from the checkpoint to save memory/disk; rebuild it from the distill_model path
+            teacher_model = weights.teacher_model if weights.teacher_model is not None else self.args.distill_model
+            model = DistillationModel(student_model=student_model, teacher_model=teacher_model)
+            if getattr(weights, "projector", None) is not None:
+                model.projector.load_state_dict(weights.projector.state_dict())  # restore the trained projector
+            model.criterion = None
+            self.model = model
+        else:
+            self.model = self.get_model(cfg=cfg, weights=weights, verbose=RANK in {-1, 0})  # calls Model(cfg, weights)
         return ckpt
 
     def optimizer_step(self):
@@ -896,6 +938,7 @@ class BaseTrainer:
                     "freeze",
                     "val",
                     "plots",
+                    "distill_model",
                 ):  # allow arg updates to reduce memory or update device on resume
                     if k in overrides:
                         setattr(self.args, k, overrides[k])
@@ -953,12 +996,20 @@ class BaseTrainer:
         LOGGER.warning(f"{reason} detected (attempt {self.nan_recovery_attempts}/3), recovering from last.pt...")
         self._model_train()  # set model to train mode before loading checkpoint to avoid inference tensor errors
         _, ckpt = load_checkpoint(self.last)
-        ema_state = ckpt["ema"].float().state_dict()
+        ema = ckpt["ema"].float()
+        ema_state = ema.state_dict()
         if not all(torch.isfinite(v).all() for v in ema_state.values() if isinstance(v, torch.Tensor)):
             raise RuntimeError(f"Checkpoint {self.last} is corrupted with NaN/Inf weights")
-        unwrap_model(self.model).load_state_dict(ema_state)  # Load EMA weights into model
+        model = unwrap_model(self.model)
+        if hasattr(model, "student_model"):
+            # Distillation: the EMA is stripped of the teacher (rebuilt from the distill_model path), so only the
+            # student and projector are restored; loading them separately keeps a strict key match.
+            model.student_model.load_state_dict(ema.student_model.state_dict())
+            model.projector.load_state_dict(ema.projector.state_dict())
+        else:
+            model.load_state_dict(ema_state)  # Load EMA weights into model
         self._load_checkpoint_state(ckpt)  # Load optimizer/scaler/EMA/best_fitness
-        del ckpt, ema_state
+        del ckpt, ema, ema_state
         self.scheduler.last_epoch = epoch - 1
         return True
 
@@ -1050,7 +1101,7 @@ class BaseTrainer:
         else:
             raise NotImplementedError(
                 f"Optimizer '{name}' not found in list of available optimizers {optimizers}. "
-                "Request support for addition optimizers at https://github.com/ultralytics/ultralytics."
+                "Request support for additional optimizers at https://github.com/ultralytics/ultralytics."
             )
 
         num_params = [len(g[0]), len(g[1]), len(g[2])]  # number of param groups
@@ -1063,7 +1114,7 @@ class BaseTrainer:
             g[3] = {"params": g[3], **optim_args, "weight_decay": decay, "use_muon": True, "param_group": "muon"}
             import re
 
-            # higher lr for certain parameters in MuSGD when funetuning
+            # higher lr for certain parameters in MuSGD when finetuning
             # proto.semseg is the checkpoint parameter name for YOLO26 semantic auxiliary heads.
             pattern = re.compile(r"(?=.*23)(?=.*cv3)|proto\.semseg|SemanticSegment")
             g_ = []  # new param groups
@@ -1080,3 +1131,161 @@ class BaseTrainer:
             f"{num_params[1]} weight(decay=0.0), {num_params[0]} weight(decay={decay}), {num_params[2]} bias(decay=0.0)"
         )
         return optimizer
+
+
+class MultiTrainer:
+    """Fine-tune a single base model across a collection of datasets and aggregate per-dataset results.
+
+    Used automatically by Model.train() when `data` is a list or tuple, allowing one base model to be benchmarked across
+    many datasets (such as the RF100 collection) in a single call. The datasets are fine-tuned in series and the same
+    base weights seed each run, so every run starts from an identical model. All output is grouped under one sweep
+    directory (e.g. runs/detect/multitrain): each dataset gets its own run subdirectory, and the per-dataset and mean
+    metrics are written to multitrain_results.json (for post-processing) alongside a multitrain_results.png bar
+    chart. The base model object is left unchanged; each dataset's fine-tuned weights live in its own run directory.
+
+    Attributes:
+        trainer (type[BaseTrainer] | None): Task trainer class for Python runs, or None for CLI subprocess runs.
+        args (dict): Training arguments shared across datasets; its `data` key holds the dataset collection.
+        model (torch.nn.Module): Base model whose weights seed each per-dataset fine-tune.
+        callbacks (dict | None): Callbacks forwarded to each per-dataset trainer.
+        trainers (list[SimpleNamespace]): Completed per-dataset run records.
+        metrics (dict): Mapping of each run name (e.g. coco8, coco8-2) to its training-metrics dict from the checkpoint.
+        save_dir (Path | None): Sweep directory holding the per-dataset runs and the results JSON/plot.
+
+    Examples:
+        Fine-tune one base model across several datasets and read back per-run metrics:
+        >>> from ultralytics import YOLO
+        >>> model = YOLO("yolo26n.pt")
+        >>> results = model.train(data=["coco8.yaml", "african-wildlife.yaml"], epochs=10)
+        >>> results["coco8"]["fitness"]  # final fitness on the coco8 run
+    """
+
+    def __init__(self, trainer, args, model, _callbacks: dict | None = None):
+        """Initialize MultiTrainer with a task trainer class, shared training arguments, and the base model.
+
+        Args:
+            trainer (type[BaseTrainer] | None): Task trainer class to run once per dataset. None uses CLI subprocesses.
+            args (dict): Training arguments; the `data` key holds the list/tuple of datasets to fine-tune on.
+            model (torch.nn.Module): Base model whose weights seed each per-dataset fine-tune.
+            _callbacks (dict, optional): Callback functions forwarded to each per-dataset trainer.
+        """
+        self.trainer = trainer
+        self.args = args
+        self.model = model
+        self.callbacks = _callbacks
+        self.trainers = []
+        self.metrics = {}
+        self.save_dir = None
+
+    def train(self):
+        """Fine-tune the base model on each dataset in series and return a {dataset: metrics} mapping."""
+        from types import SimpleNamespace
+
+        from ultralytics.utils.patches import torch_load, torch_save
+
+        datasets = self.args["data"]
+        # Group every per-dataset run and the summary plot under one sweep directory, e.g. runs/detect/multitrain
+        sweep = SimpleNamespace(
+            project=self.args.get("project"),
+            task=self.args.get("task"),
+            mode="train",
+            exist_ok=self.args.get("exist_ok", False),
+        )
+        self.save_dir = get_save_dir(sweep, name="multitrain")
+        self.save_dir.mkdir(parents=True, exist_ok=True)
+        base_model = self.save_dir / "multitrain_base.pt" if self.trainer is None else None
+        if base_model:
+            torch_save(
+                {"model": deepcopy(self.model).half(), "train_args": getattr(self.model, "args", {})}, base_model
+            )
+        try:
+            for i, data in enumerate(datasets):
+                LOGGER.info(
+                    f"\n{colorstr('blue', 'bold', f'MultiTrainer {i + 1}/{len(datasets)}:')} fine-tuning on {data}"
+                )
+                name = Path(str(data)).stem
+                run_name = name
+                try:
+                    overrides = {
+                        **self.args,
+                        "data": data,
+                        "project": str(self.save_dir),  # nest per-dataset runs inside the sweep directory
+                        "name": name,
+                        "resume": False,
+                        "session": None,
+                    }
+                    run = SimpleNamespace(
+                        project=overrides["project"],
+                        name=overrides["name"],
+                        task=overrides.get("task"),
+                        mode="train",
+                        exist_ok=overrides.get("exist_ok", False),
+                        save_dir=None,
+                    )
+                    save_dir = get_save_dir(run)
+                    save_dir.mkdir(parents=True, exist_ok=True)
+                    run_name = save_dir.name
+                    overrides["save_dir"] = str(save_dir)
+                    if self.trainer is None:
+                        overrides["model"] = str(base_model)
+                        overrides["pretrained"] = True
+                        subprocess.run(
+                            [
+                                *_YOLO_CLI_COMMAND,
+                                "train",
+                                *(f"{k}={v}" for k, v in overrides.items() if k != "session"),
+                            ],
+                            check=True,
+                        )
+                    else:
+                        trainer = self.trainer(overrides=overrides, _callbacks=self.callbacks)
+                        trainer.model = trainer.get_model(weights=self.model, cfg=self.model.yaml)
+                        trainer.train()
+                    best, last = save_dir / "weights" / "best.pt", save_dir / "weights" / "last.pt"
+                    ckpt = best if best.exists() else last
+                    metrics = None
+                    if self.trainer is not None:
+                        metrics = getattr(getattr(trainer, "validator", None), "metrics", None)
+                        if metrics is not None:
+                            metrics = metrics.results_dict
+                    self.metrics[run_name] = metrics or (torch_load(ckpt)["train_metrics"] if ckpt.exists() else None)
+                    self.trainers.append(SimpleNamespace(save_dir=save_dir, best=best, last=last))
+                except Exception as e:  # one bad dataset should not abort the whole sweep
+                    LOGGER.error(f"MultiTrainer: fine-tuning on {data} failed, skipping: {e}")
+                    self.metrics[run_name] = None
+        finally:
+            if base_model:
+                base_model.unlink(missing_ok=True)
+        if RANK in {-1, 0} and self.trainers:
+            self.save_dir.mkdir(parents=True, exist_ok=True)
+            self.save_results()  # JSON of per-dataset + mean metrics for programmatic post-processing
+            if self.args.get("plots", True):
+                self.plot_results()
+        return self.metrics
+
+    def save_results(self):
+        """Write per-dataset and mean metrics to multitrain_results.json for programmatic post-processing."""
+        import json
+
+        results = {run: ({k: float(v) for k, v in m.items()} if m else None) for run, m in self.metrics.items()}
+        valid = [m for m in results.values() if m]
+        keys = {k for m in valid for k in m}
+        mean = {k: sum(m[k] for m in valid if k in m) / sum(k in m for m in valid) for k in keys}
+        file = self.save_dir / "multitrain_results.json"
+        with open(file, "w", encoding="utf-8") as f:
+            json.dump({"results": results, "mean": mean}, f, indent=2)
+        LOGGER.info(f"MultiTrainer results saved to {colorstr('bold', file)}")
+        return file
+
+    def plot_results(self):
+        """Save a cross-dataset bar chart of the per-dataset metric with the mean across all datasets."""
+        from ultralytics.cfg import TASK2METRIC
+        from ultralytics.utils.plotting import plot_multitrain_results
+
+        key = TASK2METRIC.get(self.args.get("task"))
+        scores = {run: float(m.get(key, m.get("fitness", 0.0))) for run, m in self.metrics.items() if m}
+        if not scores:
+            return None
+        fname = plot_multitrain_results(scores, key=key or "fitness", save_dir=self.save_dir)
+        LOGGER.info(f"MultiTrainer results saved to {colorstr('bold', fname)}")
+        return fname

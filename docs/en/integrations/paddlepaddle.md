@@ -1,4 +1,5 @@
 ---
+title: Export YOLO26 to PaddlePaddle Format
 comments: true
 description: Learn how to export YOLO26 models to PaddlePaddle format for enhanced performance, flexibility, and deployment across various platforms and devices.
 keywords: YOLO26, PaddlePaddle, export models, computer vision, deep learning, model deployment, performance optimization
@@ -24,7 +25,7 @@ The ability to export to PaddlePaddle model format allows you to optimize your [
 ## Why should you export to PaddlePaddle?
 
 <p align="center">
-  <img width="75%" src="https://github.com/PaddlePaddle/Paddle/blob/develop/doc/imgs/logo.png" alt="PaddlePaddle deep learning framework logo">
+  <img width="75%" src="https://github.com/PaddlePaddle/Paddle/blob/develop/doc/imgs/logo.png?raw=true" alt="PaddlePaddle deep learning framework logo">
 </p>
 
 Developed by Baidu, [PaddlePaddle](https://www.paddlepaddle.org.cn/en) (**PA**rallel **D**istributed **D**eep **LE**arning) is China's first open-source [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) platform. Unlike some frameworks built mainly for research, PaddlePaddle prioritizes ease of use and smooth integration across industries.
@@ -147,12 +148,13 @@ The PaddlePaddle format supports the [Export](../modes/export.md), [Predict](../
 
 ### Export Arguments
 
-| Argument | Type             | Default    | Description                                                                                                                             |
-| -------- | ---------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `format` | `str`            | `'paddle'` | Target format for the exported model, defining compatibility with various deployment environments.                                      |
-| `imgsz`  | `int` or `tuple` | `640`      | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.       |
-| `batch`  | `int`            | `1`        | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
-| `device` | `str`            | `None`     | Specifies the device for exporting: CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                                           |
+| Argument   | Type             | Default    | Description                                                                                                                             |
+| ---------- | ---------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`            | `'paddle'` | Target format for the exported model, defining compatibility with various deployment environments.                                      |
+| `imgsz`    | `int` or `tuple` | `640`      | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.       |
+| `quantize` | `int` or `str`   | `None`     | Fixed FP32 export. PaddlePaddle export does not support export-time FP16, INT8, or W8A16 precision conversion.                          |
+| `batch`    | `int`            | `1`        | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
+| `device`   | `str`            | `None`     | Specifies the device for exporting: CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                                           |
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
@@ -166,7 +168,7 @@ However, for in-depth instructions on deploying your PaddlePaddle models in vari
 
 - **[Paddle Lite](https://github.com/PaddlePaddle/Paddle-Lite/blob/develop/README_en.md)**: Explore how to optimize and deploy models on mobile and embedded devices using Paddle Lite.
 
-- **[Paddle.js](https://github.com/PaddlePaddle/Paddle.js)**: Discover how to run PaddlePaddle models in web browsers for client-side AI using Paddle.js.
+- **[Paddle.js](https://paddlejs.baidu.com)**: Discover how to run PaddlePaddle models in web browsers for client-side AI using Paddle.js.
 
 ## Summary
 

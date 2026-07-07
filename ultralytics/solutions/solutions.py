@@ -115,7 +115,7 @@ class BaseSolution:
         self.device = self.CFG["device"]
 
         self.track_add_args = {  # Tracker additional arguments for advance configuration
-            k: self.CFG[k] for k in {"iou", "conf", "device", "max_det", "half", "tracker", "imgsz"}
+            k: self.CFG[k] for k in {"iou", "conf", "device", "max_det", "quantize", "tracker", "imgsz"}
         }  # verbose must be passed to track method; setting it False in YOLO still logs the track information.
 
         if is_cli and self.CFG["source"] is None:
@@ -784,9 +784,9 @@ class SolutionResults:
         out_count (int): The total number of "out" counts in a video stream.
         classwise_count (dict[str, int]): A dictionary containing counts of objects categorized by class.
         queue_count (int): The count of objects in a queue or waiting area.
-        workout_count (int): The count of workout repetitions.
-        workout_angle (float): The angle calculated during a workout exercise.
-        workout_stage (str): The current stage of the workout.
+        workout_count (list[int]): Per-track workout repetition counts (one entry per currently tracked individual).
+        workout_angle (list[float]): Per-track exercise angles for currently tracked individuals.
+        workout_stage (list[str]): Per-track current exercise stage for currently tracked individuals.
         pixels_distance (float): The calculated distance in pixels between two points or objects.
         available_slots (int): The number of available slots in a monitored area.
         filled_slots (int): The number of filled slots in a monitored area.
@@ -809,9 +809,9 @@ class SolutionResults:
         self.out_count = 0
         self.classwise_count = {}
         self.queue_count = 0
-        self.workout_count = 0
-        self.workout_angle = 0.0
-        self.workout_stage = None
+        self.workout_count = []
+        self.workout_angle = []
+        self.workout_stage = []
         self.pixels_distance = 0.0
         self.available_slots = 0
         self.filled_slots = 0

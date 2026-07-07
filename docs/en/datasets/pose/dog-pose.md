@@ -29,14 +29,14 @@ This dataset is intended for use with [Ultralytics Platform](https://platform.ul
 
 ## Dataset Structure
 
-- **Split**: 6,773 train / 1,703 test images with matching YOLO-format label files.
+- **Split**: 6,773 train / 1,703 val images with matching YOLO-format label files.
 - **Keypoints**: 24 per dog with `(x, y, visibility)` triplets.
 - **Layout**:
 
     ```
     datasets/dog-pose/
-    ├── images/{train,test}
-    └── labels/{train,test}
+    ├── images/{train,val}
+    └── labels/{train,val}
     ```
 
 ## Dataset YAML
@@ -172,4 +172,4 @@ The Dog-pose dataset YAML file can be found at <https://github.com/ultralytics/u
 
 To use this file with YOLO26 training scripts, simply reference it in your training command as shown in the [Usage](#usage) section. The dataset will be automatically downloaded when first used, making setup straightforward.
 
-For more FAQs and detailed documentation, visit the [Ultralytics Documentation](https://docs.ultralytics.com/).
+For more FAQs and detailed documentation, visit the [Ultralytics Documentation](../../index.md).

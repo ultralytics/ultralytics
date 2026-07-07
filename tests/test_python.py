@@ -175,6 +175,24 @@ def test_model_methods():
     _ = model.task_map
 
 
+def test_model_load_remaps_cls_head_by_names():
+    """Test class-name remap is limited to closed-set class-logit heads."""
+    from ultralytics.nn.tasks import DetectionModel, YOLOEModel
+
+    src = DetectionModel("yolo26n.yaml", nc=3, verbose=False)
+    tgt = DetectionModel("yolo26n.yaml", nc=2, verbose=False)
+    src.names, tgt.names = {0: "cat", 1: "dog", 2: "car"}, {0: "dog", 1: "cat"}
+    for seq in src.model[-1].cv3:
+        seq[-1].bias.data.copy_(torch.tensor([10.0, 20.0, 30.0]))
+    tgt.load(src, verbose=False)
+    assert all(seq[-1].bias.tolist() == [20.0, 10.0] for seq in tgt.model[-1].cv3)
+
+    src = YOLOEModel("yoloe-26n.yaml", nc=3, verbose=False)
+    tgt = YOLOEModel("yoloe-26n.yaml", nc=2, verbose=False)
+    src.names, tgt.names = {0: "cat", 1: "dog", 2: "car"}, {0: "dog", 1: "cat"}
+    tgt.load(src, verbose=False)  # YOLOE cv3 outputs embeddings, not class rows
+
+
 def test_model_profile():
     """Test profiling of the YOLO model with `profile=True` to assess performance and resource usage."""
     from ultralytics.nn.tasks import DetectionModel

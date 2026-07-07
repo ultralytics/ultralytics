@@ -383,6 +383,7 @@ class BaseModel(torch.nn.Module):
             if isinstance(m, Detect)
             for attr in ("cv3", "one2one_cv3")
             for i, seq in enumerate(getattr(m, attr, ()))
+            if getattr(seq[-1], "out_channels", None) == tgt_nc
             for p in ("weight", "bias")
         }
         remapped = 0

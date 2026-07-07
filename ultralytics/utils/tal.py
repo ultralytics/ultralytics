@@ -56,6 +56,7 @@ class TaskAlignedAssigner(nn.Module):
         self.beta = beta
         self.target_score_floor = 0.0  # clamp positive target_scores >= floor (keeps small-obj cls signal alive)
         self.target_top_one = False  # if True, drop pos_overlaps from norm so the best-aligned anchor per GT targets 1.0
+        self.hungarian = False  # if True, solve globally-optimal one-to-one matching on TAL scores (vs greedy top-1)
         self.stride = stride
         self.eps = eps
 
@@ -327,6 +328,12 @@ class TaskAlignedAssigner(nn.Module):
             fg_mask (torch.Tensor): Foreground mask, shape (b, h*w).
             mask_pos (torch.Tensor): Updated positive mask, shape (b, n_max_boxes, h*w).
         """
+        if self.hungarian:
+            mask_pos = self.hungarian_assign(mask_pos, align_metric)
+            fg_mask = mask_pos.sum(-2)
+            target_gt_idx = mask_pos.argmax(-2)  # (b, h*w)
+            return target_gt_idx, fg_mask, mask_pos
+
         # Convert (b, n_max_boxes, h*w) -> (b, h*w)
         fg_mask = mask_pos.sum(-2)
         if fg_mask.max() > 1:  # one anchor is assigned to multiple gt_bboxes
@@ -349,6 +356,38 @@ class TaskAlignedAssigner(nn.Module):
         # Find each grid serve which gt(index)
         target_gt_idx = mask_pos.argmax(-2)  # (b, h*w)
         return target_gt_idx, fg_mask, mask_pos
+
+    def hungarian_assign(self, mask_pos, align_metric):
+        """Solve globally-optimal one-to-one GT-anchor matching on the TAL metric.
+
+        Replaces greedy top-1 assignment: conflicting GTs trade anchors to maximize total alignment
+        instead of resolving conflicts by local argmax. Candidates are already spatially pre-filtered
+        (topk within GT box), so per-image cost matrices stay small.
+
+        Args:
+            mask_pos (torch.Tensor): Candidate mask, shape (b, n_max_boxes, h*w).
+            align_metric (torch.Tensor): TAL alignment metric, shape (b, n_max_boxes, h*w).
+
+        Returns:
+            (torch.Tensor): One-to-one positive mask, shape (b, n_max_boxes, h*w), at most one anchor per GT.
+        """
+        import numpy as np
+        from scipy.optimize import linear_sum_assignment
+
+        cand = mask_pos.bool().cpu().numpy()
+        metric = (align_metric * mask_pos).float().cpu().numpy()
+        new_mask = torch.zeros_like(mask_pos)
+        for b in range(mask_pos.shape[0]):
+            gt_idx = cand[b].any(-1).nonzero()[0]
+            if gt_idx.size == 0:
+                continue
+            anc_idx = cand[b].any(-2).nonzero()[0]
+            sub_cand = cand[b][np.ix_(gt_idx, anc_idx)]
+            cost = np.where(sub_cand, -metric[b][np.ix_(gt_idx, anc_idx)], 1e6)  # forbid non-candidate pairs
+            rows, cols = linear_sum_assignment(cost)
+            keep = sub_cand[rows, cols]  # drop GTs forced onto non-candidate anchors
+            new_mask[b, gt_idx[rows[keep]], anc_idx[cols[keep]]] = 1.0
+        return new_mask
 
 
 class RotatedTaskAlignedAssigner(TaskAlignedAssigner):

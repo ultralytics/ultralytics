@@ -1217,6 +1217,9 @@ class E2ELoss:
         self.topk2_start = yaml_cfg.get("topk2_start", 3)
         if self.topk_anneal:
             self.one2one.assigner.topk2 = self.topk2_start
+        # Hungarian solver: globally-optimal one2one matching on TAL scores (vs greedy top-1)
+        if yaml_cfg.get("o2o_hungarian", False):
+            self.one2one.assigner.hungarian = True
         # TAL beta override for one2one assigner (sharper IoU-weighted matching)
         o2o_tal_beta = yaml_cfg.get("o2o_tal_beta", None)
         if o2o_tal_beta is not None:

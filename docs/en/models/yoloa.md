@@ -60,8 +60,8 @@ YOLOA separates what most anomaly-detection newcomers conflate: the **normal-ima
         ```python
         from ultralytics import YOLOA
 
-        # Build a model from a YAML configuration
-        model = YOLOA("yolo26n-anomaly.yaml")
+        # Build a model from a pt weight
+        model = YOLOA("yolo26n-anomaly.pt")
 
         # Fit the memory bank on normal images and cache it for reuse
         # Note by default it'd run on CPU, but you can specify GPU by calling `model.to("cuda:0")` first
@@ -102,7 +102,7 @@ Fine-tune the detector on a standard YOLO detection dataset of labeled defects. 
         ```python
         from ultralytics import YOLOA
 
-        model = YOLOA("yolo26n-anomaly.yaml")
+        model = YOLOA("yolo26n-anomaly.pt")
 
         # Train on a standard YOLO detection dataset of labeled defects
         results = model.train(data="defects.yaml", epochs=100, imgsz=640)

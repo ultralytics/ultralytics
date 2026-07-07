@@ -470,19 +470,26 @@ class YOLOA(Model):
             }
         }
 
-    def fit(self, source: str | Path | list[str], batch: int = 8, imgsz: int = 640) -> "YOLOA":
+    def fit(
+        self,
+        source: str | Path | list[str],
+        batch: int = 8,
+        imgsz: int = 640,
+        device: str | int | torch.device | None = None,
+    ) -> "YOLOA":
         """Build (or load from cache) the memory bank from normal images.
 
         Args:
             source: Directory of normal images, or a list of image paths.
             batch: Mini-batch size for feature extraction.
             imgsz: Image size for feature extraction.
+            device: Device to use for feature extraction. If None, uses the model's current device.
 
         Returns:
             (YOLOA): self, now fitted.
         """
         self._check_is_pytorch_model()
-        self.model.build_memory_bank(source, imgsz=imgsz, batch=batch)
+        self.model.build_memory_bank(source, imgsz=imgsz, batch=batch, device=device)
         return self
 
     def reset_memorybank(self) -> "YOLOA":

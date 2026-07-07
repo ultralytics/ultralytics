@@ -12,6 +12,7 @@ import torch.nn as nn
 import numpy as np
 
 from ultralytics.nn.autobackend import check_class_names
+from ultralytics.utils.torch_utils import select_device
 from ultralytics.nn.modules import (
     AIFI,
     C1,
@@ -604,7 +605,8 @@ class YOLOAnomalyModel(DetectionModel):
         mb = self.memory_bank
         mb.reset()
 
-        device = next(self.model.parameters()).device
+        device = select_device(device)
+        self.model.to(device)
         for images in self._iter_image_batches(source, imgsz=imgsz, batch=batch, max_images=max_images):
             feats = self._extract_bb_features(images.to(device))
             mb.add_features(feats)

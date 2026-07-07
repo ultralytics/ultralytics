@@ -10,15 +10,15 @@ import torch
 
 from ultralytics.utils import IS_JETSON, LOGGER, TORCH_VERSION, ThreadingLocked, is_dgx, is_jetson
 from ultralytics.utils.checks import check_requirements, check_tensorrt, check_version
-from ultralytics.utils.torch_utils import TORCH_2_4, TORCH_2_9
+from ultralytics.utils.torch_utils import TORCH_2_4, TORCH_2_8
 
 
 def best_onnx_opset(onnx: types.ModuleType, cuda: bool = False) -> int:
     """Return max ONNX opset for this torch version with ONNX fallback."""
     if TORCH_2_4:  # _constants.ONNX_MAX_OPSET first defined in torch 1.13
         opset = torch.onnx.utils._constants.ONNX_MAX_OPSET - 1  # use second-latest version for safety
-        if TORCH_2_9:
-            opset = min(opset, 20)  # legacy TorchScript exporter caps at opset 20 in torch 2.9+
+        if TORCH_2_8:
+            opset = min(opset, 20)  # opset>=21 breaks ONNX Runtime INT8 quantization; torch 2.8+ defaults higher
         if cuda:
             opset -= 2  # fix CUDA ONNXRuntime NMS squeeze op errors
     else:

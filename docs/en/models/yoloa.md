@@ -64,8 +64,6 @@ YOLOA separates what most anomaly-detection newcomers conflate: the **normal-ima
         model = YOLOA("yolo26n-anomaly.pt")
 
         # Set the memory bank on normal images and cache it for reuse
-        # Note by default it'd run on CPU, but you can specify GPU by calling `model.to("cuda:0")` first
-        model.to("cuda:0")
         model.set_memory("path/to/normal/images")
 
         # Save the model with memory set; the memory bank is stored inside the checkpoint

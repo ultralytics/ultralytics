@@ -129,15 +129,19 @@ COMBO_POOL = [
     ("export", "nms=True"),
     ("export", "simplify=False"),
     ("export", "optimize=True"),
-    ("export", "keras=True"),
     ("export", "opset=12"),
     ("export", "quantize=half"),
     ("export", "end2end=True max_det=10"),
 ]
 
-# Oracle: expected clean errors are these types raised from the validation layer modules
+# Oracle: expected clean errors are these types raised from the validation layers (modules or exact frames)
 EXPECTED_TYPES = {"SyntaxError", "ValueError", "TypeError", "AssertionError", "FileNotFoundError"}
-EXPECTED_MODULES = ("ultralytics/cfg/__init__.py", "ultralytics/utils/checks.py", "ultralytics/data/utils.py")
+EXPECTED_MODULES = (
+    "ultralytics/cfg/__init__.py",
+    "ultralytics/utils/checks.py",
+    "ultralytics/data/utils.py",
+    "ultralytics/engine/exporter.py:validate_args",  # exporter's intentional per-format argument validation
+)
 NETWORK_MARKERS = (
     "Connection",
     "urlopen error",

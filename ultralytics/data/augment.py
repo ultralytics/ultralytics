@@ -2820,7 +2820,7 @@ def classify_transforms(
         tfl = [T.Resize(scale_size[0], interpolation=getattr(T.InterpolationMode, interpolation))]
     else:
         # Resize the shortest edge to matching target dim for non-square target
-        tfl = [T.Resize(scale_size)]
+        tfl = [T.Resize(scale_size, interpolation=getattr(T.InterpolationMode, interpolation))]
     tfl += [T.CenterCrop(size), T.ToTensor(), T.Normalize(mean=torch.tensor(mean), std=torch.tensor(std))]
     return T.Compose(tfl)
 

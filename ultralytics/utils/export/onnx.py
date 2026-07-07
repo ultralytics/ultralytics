@@ -55,6 +55,5 @@ def onnx_int8_quantize(
         output_file,
         onnx_calibration_reader(dataset, transform_fn, input_name, batch),
         op_types_to_quantize=["Conv", "Gemm", "MatMul"],
-        per_channel=True,  # per output channel weight scales recover roughly half the INT8 mAP drop on detectors
     )
     return output_file

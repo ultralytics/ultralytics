@@ -137,7 +137,6 @@ def run_val(model, data_yaml: str, device: str, batch: int, use_prior: bool, e2e
         verbose=False,
         batch=batch,
         end2end=e2e,
-        use_prior=use_prior,
         hm_gate_blend=0.0 if use_prior else 1.0,
     )
     return extract_map(metrics)
@@ -256,7 +255,7 @@ def main():
 
         print("\n=== FIT ===", flush=True)
         free_cache(args.device)
-        model.fit(str(fit_dir), name=cat, cache=cache, device=args.device)
+        model.fit(str(fit_dir), device=args.device)
         mb = getattr(model.model, "memory_bank", None)
         if mb is not None:
             mb.score_chunk = int(args.score_chunk)  # smaller chunk = tighter peak memory; results unchanged

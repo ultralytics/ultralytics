@@ -485,6 +485,12 @@ class YOLOA(Model):
         self.model.build_memory_bank(source, imgsz=imgsz, batch=batch)
         return self
 
+    def reset_memorybank(self) -> "YOLOA":
+        """Reset the memory bank to empty, so a new fit can be done."""
+        self._check_is_pytorch_model()
+        self.model.memory_bank.reset()
+        return self
+
     def predict(self, source=None, stream: bool = False, **kwargs: Any):
         """Predict with the heatmap prior when a fitted bank is available.
 
@@ -496,7 +502,7 @@ class YOLOA(Model):
         Returns:
             (list[Results]): Prediction results.
         """
-        self._apply_infer_overrides(kwargs)
+        # self._apply_infer_overrides(kwargs)
         return super().predict(source=source, stream=stream, **kwargs)
 
     def val(self, validator=None, **kwargs: Any):
@@ -530,8 +536,6 @@ class YOLOA(Model):
                 else:
                     head.end2end = old_e2e
 
-    # ---- internals ----------------------------------------------------------------------------
-
     def _apply_infer_overrides(self, kwargs: dict) -> None:
         """Apply per-call inference overrides: ``use_prior`` and ``hm_gate_blend``.
 
@@ -542,14 +546,3 @@ class YOLOA(Model):
         self.model._prior_enabled = bool(kwargs.pop("use_prior", True))
         if "hm_gate_blend" in kwargs:
             self.model.model[-1].hm_gate_blend = float(kwargs.pop("hm_gate_blend"))
-
-    @staticmethod
-    def _derive_name(data) -> str:
-        """Derive a short label from a data path (".../bottle/train/good" -> "bottle")."""
-        if isinstance(data, (list, tuple)):
-            return "imgset"
-        p = Path(data)
-        for cand in reversed(p.parts[:-1] if p.name in ("good", "train", "test") else p.parts):
-            if cand not in ("good", "train", "test"):
-                return cand
-        return p.stem or p.name

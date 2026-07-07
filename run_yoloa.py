@@ -100,8 +100,9 @@ def main():
     ap.add_argument("--iou", type=float, default=0.1, help="NMS IoU")
     ap.add_argument("--e2e", "--end2end", action="store_true", help="use end-to-end NMS-free head")
     ap.add_argument("--hm-gate-blend", type=float, default=0.0, help="heatmap conf gate (0=on, 1=off)")
-    ap.add_argument("--no-memory", action="store_true",
-                    help="skip building/using the memory bank (bank-free, no heatmap prior)")
+    ap.add_argument(
+        "--no-memory", action="store_true", help="skip building/using the memory bank (bank-free, no heatmap prior)"
+    )
     ap.add_argument("--n-per-cat", type=int, default=0, help="predict/visualize: images per cat (0=all)")
     ap.add_argument("--imgsz", type=int, default=640, help="inference image size")
     ap.add_argument("--mvtec-root", default=None, help="MVTec-YOLO root (default: MVTEC_ROOT env or built-in)")
@@ -142,13 +143,9 @@ def main():
             stage = "val (no memory)" if args.no_memory else "fit + val"
             print(f"\n{'=' * 60}\n[{ci}/{len(cats)}] {cat}: {stage}\n{'=' * 60}", flush=True)
             if not args.no_memory:
-                model.fit(
-                    source=str(good_dir(root, cat)),
-                    name=cat,
-                    batch=args.batch,
-                    device=device,
-                    cache=bank_cache,
-                )
+                model.reset_memorybank()
+                model.to(device)
+                model.fit(source=str(good_dir(root, cat)), batch=args.batch)
 
             metrics = model.val(
                 data=str(yaml),
@@ -157,7 +154,7 @@ def main():
                 hm_gate_blend=args.hm_gate_blend if not args.no_memory else 1.0,
                 single_cls=True,
                 device=device,
-                use_prior=not args.no_memory,
+                batch=args.batch,
             )
 
             # all_ap cols: iouv = linspace(.10, .50, 9) → .10=col0, .25=col3, .50=col8.
@@ -219,13 +216,8 @@ def main():
                 continue
 
             if not args.no_memory:
-                model.fit(
-                    source=str(good_dir(root, cat)),
-                    name=cat,
-                    batch=args.batch,
-                    device=device,
-                    cache=bank_cache,
-                )
+                model.to(device)
+                model.fit(source=str(good_dir(root, cat)), batch=args.batch)
 
             samples = collect_test_images(root / cat / "test", args.n_per_cat)
             if not samples:

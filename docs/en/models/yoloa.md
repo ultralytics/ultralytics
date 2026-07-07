@@ -47,7 +47,10 @@ YOLOA separates what most anomaly-detection newcomers conflate: the **normal-ima
 
 ## Fit
 
-Fit the memory bank on a directory of normal (defect-free) images or a list of image paths. Images are read with the same loader as prediction and resized to 640 pixels internally. Fitting a few dozen images completes in seconds, even on CPU — there are no gradients and no epochs.
+- **Fit the memory bank**: Use a directory of normal (defect-free) images or a list of image paths.
+- **Image Processing**: Images are read with the same loader as prediction and resized to 640 pixels internally.
+- **Speed**: Training completes in seconds for a few dozen images, even on CPU.
+- **Efficiency**: There are no gradients and no epochs required.
 
 !!! example
 
@@ -60,7 +63,7 @@ Fit the memory bank on a directory of normal (defect-free) images or a list of i
         model = YOLOA("yolo26n-anomaly.yaml")
 
         # Fit the memory bank on normal images and cache it for reuse
-        model.fit("path/to/normal/images", name="bottle", cache="banks")
+        model.fit("path/to/normal/images")
 
         # Save the fitted model; the memory bank is stored inside the checkpoint
         model.save("yolo26n-anomaly-bottle.pt")
@@ -73,11 +76,8 @@ A fitted checkpoint reloads with its memory bank intact, so `YOLOA("yolo26n-anom
 | Argument | Default | Description                                                                                                 |
 | -------- | ------- | ----------------------------------------------------------------------------------------------------------- |
 | `source` | —       | Directory of normal images or a list of image paths. Required.                                              |
-| `name`   | `None`  | Label for provenance and the cache key; derived from `source` when omitted.                                 |
-| `cache`  | `None`  | Directory to store the built bank as `<name>.pt`; the next `fit()` with the same name reloads it instantly. |
-| `refit`  | `False` | Force a rebuild even if a cache file exists.                                                                |
-| `device` | `None`  | Build device; defaults to the model device.                                                                 |
 | `batch`  | `8`     | Mini-batch size for feature extraction.                                                                     |
+| `imgsz`  | `640`   | Resize images to this size (pixels) before feature extraction.                                              |
 
 Bank-building hyperparameters (bank size 10,000 vectors, 5 nearest neighbors per query, sigmoid temperature 5.0) are baked into the model and are not configurable per call.
 

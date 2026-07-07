@@ -696,7 +696,6 @@ class YOLOAnomalyModel(DetectionModel):
             hmap = torch.nn.functional.interpolate(
                 hmap, size=(self.mask_size, self.mask_size), mode="bilinear", align_corners=False
             )
-        self._last_heatmap = hmap
         return hmap
 
     def loss(self, batch, preds=None, *, prior_mask=None):
@@ -736,7 +735,6 @@ class YOLOAnomalyModel(DetectionModel):
                 # otherwise a built memory-bank heatmap is used automatically.
                 if prior_mask is not None:
                     prior = prior_mask.to(device=device, dtype=torch.float32)
-                    self._last_heatmap = prior
                 elif self._has_memory_bank():
                     prior = self._build_heatmap_prior(img)
 

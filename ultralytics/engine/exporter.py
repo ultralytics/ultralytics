@@ -82,7 +82,7 @@ from ultralytics.data.dataset import YOLODataset
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.autobackend import check_class_names, default_class_names
 from ultralytics.nn.modules import C2f, Classify, Detect, RTDETRDecoder, Segment26
-from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, WorldModel
+from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, WorldModel, YOLOAnomalyModel
 from ultralytics.utils import (
     ARM64,
     DEFAULT_CFG,
@@ -626,7 +626,8 @@ class Exporter:
             assert TORCH_1_13, f"'nms=True' ONNX export requires torch>=1.13 (found torch=={TORCH_VERSION})"
 
         f = str(self.file.with_suffix(".onnx"))
-        output_names = ["output0", "output1"] if self.model.task == "segment" else ["output0"]
+        is_anomaly = isinstance(self.model, YOLOAnomalyModel)
+        output_names = ["output0", "output1"] if self.model.task == "segment" or is_anomaly else ["output0"]
         dynamic = self.args.dynamic
         if dynamic:
             dynamic = {"images": {0: "batch", 2: "height", 3: "width"}}  # shape(1,3,640,640)
@@ -635,8 +636,12 @@ class Exporter:
                 dynamic["output1"] = {0: "batch", 2: "mask_height", 3: "mask_width"}  # shape(1,32,160,160)
             elif isinstance(self.model, DetectionModel):
                 dynamic["output0"] = {0: "batch", 2: "anchors"}  # shape(1, 84, 8400)
+            if is_anomaly:
+                # End-to-end anomaly head emits a fixed (B, 300, 6) detection tensor plus a (B, 1, H, W) heatmap.
+                dynamic["output0"] = {0: "batch"}
+                dynamic["output1"] = {0: "batch", 2: "mask_height", 3: "mask_width"}
             if self.args.nms:  # only batch size is dynamic with NMS
-                dynamic["output0"].pop(2)
+                dynamic["output0"].pop(2, None)
         if self.args.nms and self.model.task == "obb":
             self.args.opset = opset  # for NMSModel
             self.args.simplify = True  # fix OBB runtime error related to topk

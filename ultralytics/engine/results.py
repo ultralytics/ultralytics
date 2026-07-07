@@ -231,6 +231,7 @@ class Results(SimpleClass, DataExportMixin):
         keypoints: torch.Tensor | None = None,
         obb: torch.Tensor | None = None,
         speed: dict[str, float] | None = None,
+        heatmap: torch.Tensor | np.ndarray | None = None,
     ) -> None:
         """Initialize the Results class for storing and manipulating inference results.
 
@@ -244,6 +245,7 @@ class Results(SimpleClass, DataExportMixin):
             keypoints (torch.Tensor | None): A 2D tensor of keypoint coordinates for each detection.
             obb (torch.Tensor | None): A 2D tensor of oriented bounding box coordinates for each detection.
             speed (dict | None): A dictionary containing preprocess, inference, and postprocess speeds (ms/image).
+            heatmap (torch.Tensor | np.ndarray | None): A 2D anomaly heatmap (H, W) scaled to the original image.
 
         Notes:
             For the default pose model, keypoint indices for human body pose estimation are:
@@ -259,6 +261,7 @@ class Results(SimpleClass, DataExportMixin):
         self.probs = Probs(probs) if probs is not None else None
         self.keypoints = Keypoints(keypoints, self.orig_shape) if keypoints is not None else None
         self.obb = OBB(obb, self.orig_shape) if obb is not None else None
+        self.heatmap = heatmap
         self.speed = speed if speed is not None else {"preprocess": None, "inference": None, "postprocess": None}
         self.names = names
         self.path = path
@@ -305,11 +308,12 @@ class Results(SimpleClass, DataExportMixin):
         probs: torch.Tensor | None = None,
         obb: torch.Tensor | None = None,
         keypoints: torch.Tensor | None = None,
+        heatmap: torch.Tensor | np.ndarray | None = None,
     ):
         """Update the Results object with new detection data.
 
-        This method allows updating the boxes, masks, keypoints, probabilities, and oriented bounding boxes (OBB) of
-        the Results object. It ensures that boxes are clipped to the original image shape.
+        This method allows updating the boxes, masks, keypoints, probabilities, oriented bounding boxes (OBB), and
+        anomaly heatmap of the Results object. It ensures that boxes are clipped to the original image shape.
 
         Args:
             boxes (torch.Tensor | None): A tensor of shape (N, 6) containing bounding box coordinates and confidence
@@ -318,6 +322,7 @@ class Results(SimpleClass, DataExportMixin):
             probs (torch.Tensor | None): A tensor of shape (num_classes,) containing class probabilities.
             obb (torch.Tensor | None): A tensor of shape (N, 7) or (N, 8) containing oriented bounding box coordinates.
             keypoints (torch.Tensor | None): A tensor of shape (N, K, 3) containing keypoints, were K=17 for persons.
+            heatmap (torch.Tensor | np.ndarray | None): A 2D anomaly heatmap (H, W) scaled to the original image.
 
         Examples:
             >>> results = model("image.jpg")
@@ -334,6 +339,8 @@ class Results(SimpleClass, DataExportMixin):
             self.obb = OBB(obb, self.orig_shape)
         if keypoints is not None:
             self.keypoints = Keypoints(keypoints, self.orig_shape)
+        if heatmap is not None:
+            self.heatmap = heatmap
 
     def _apply(self, fn: str, *args, **kwargs):
         """Apply a function to all non-empty attributes and return a new Results object with modified attributes.
@@ -359,6 +366,9 @@ class Results(SimpleClass, DataExportMixin):
             v = getattr(self, k)
             if v is not None:
                 setattr(r, k, getattr(v, fn)(*args, **kwargs))
+        # Heatmap is a plain tensor, not a BaseTensor wrapper; only apply device/dtype conversions.
+        if self.heatmap is not None and fn in {"cpu", "cuda", "to", "numpy"}:
+            r.heatmap = getattr(self.heatmap, fn)(*args, **kwargs)
         return r
 
     def cpu(self):

@@ -154,6 +154,7 @@ YOLOA returns one `Results` object per image with the same fields as [object det
 | `result.boxes.conf` | `torch.float32` | `(N,)`  | Confidence scores.                                |
 | `result.masks`      | -               | -       | No masks.                                         |
 | `result.probs`      | -               | -       | No classification probabilities.                  |
+| `result.heatmap`    | `torch.Tensor`  | `(H,W)` | Anomaly heatmap scaled to the original image size. `None` when no memory bank is set. |
 
 ### YOLOA vs regular YOLO detection
 

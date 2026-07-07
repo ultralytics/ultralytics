@@ -84,8 +84,8 @@ def _predict_plot(model, img: str, prior: str, pkw: dict):
         if saved_building is not None:
             mb.building = saved_building
     n = 0 if res.boxes is None else len(res.boxes)
-    hm = getattr(model.model, "_last_heatmap", None)
-    hm_np = hm.detach().cpu().numpy().squeeze() if hm is not None else None
+    hm = getattr(res, "heatmap", None)
+    hm_np = hm.detach().cpu().numpy() if hm is not None else None
     return res.plot(), n, hm_np
 
 

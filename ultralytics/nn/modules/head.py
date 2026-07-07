@@ -352,6 +352,16 @@ class AnomalyDetect(Detect):
                     delta = delta * keep.to(delta.dtype).view(-1, 1, 1, 1)
                 feats.append(p + delta)
 
+        # Build the heatmap that will be returned alongside the detections.
+        # When no prior is active we still emit a zero heatmap so ONNX graphs
+        # have a deterministic second output.
+        bs = x[0].shape[0]
+        if processed_prior is not None:
+            out_heatmap = processed_prior
+        else:
+            ms = self.heatmap_processor.mask_size
+            out_heatmap = torch.zeros(bs, 1, ms, ms, device=x[0].device, dtype=x[0].dtype)
+
         # Delegate the rest to the standard Detect logic, using the (possibly)
         # fused features. The processed prior is passed to _inference for score gating.
         preds = self.forward_head(feats, **self.one2many)
@@ -364,7 +374,7 @@ class AnomalyDetect(Detect):
         y = self._inference(preds["one2one"] if self.end2end else preds, heatmap=processed_prior)
         if self.end2end:
             y = self.postprocess(y.permute(0, 2, 1))
-        return y if self.export else (y, preds)
+        return (y, out_heatmap) if self.export else (y, out_heatmap, preds)
 
     def _inference(self, x: dict[str, torch.Tensor], heatmap: torch.Tensor | None = None) -> torch.Tensor:
         """Decode predicted bounding boxes and class probabilities based on multiple-level feature maps.

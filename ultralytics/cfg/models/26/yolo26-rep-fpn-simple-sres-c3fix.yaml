@@ -2,14 +2,15 @@
 
 # Ultralytics YOLO26 object detection model with P3/8 - P5/32 outputs
 # Variant: C3k2Simple (no bottleneck, e=0.5) at early backbone stages for speed
-# fixed_c3: 80 pins Detect cls branch hidden width to max(ch[0], 80) regardless of dataset nc,
-# so heads built for Objects365 (nc=365) and COCO (nc=80) share identical shapes for finetuning.
+# fixed_c3: 100 pins Detect cls branch hidden width to max(ch[0], 100) regardless of dataset nc,
+# so heads built for any dataset share identical shapes for finetuning. 100 is the ceiling of the
+# default min(nc, 100) term, so shapes also match checkpoints pretrained with nc >= 100 (Objects365).
 
 # Parameters
 nc: 80 # number of classes
 end2end: True # whether to use end-to-end mode
 reg_max: 1 # DFL bins
-fixed_c3: 80 # fix Detect cls branch hidden width (0 = auto: min(nc, 100))
+fixed_c3: 100 # fix Detect cls branch hidden width (0 = auto: min(nc, 100))
 scales: # model compound scaling constants, i.e. 'model=yolo26n.yaml' will call yolo26.yaml with scale 'n'
   # [depth, width, max_channels]
   n: [0.50, 0.25, 1024]

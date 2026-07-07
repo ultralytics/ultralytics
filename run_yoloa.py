@@ -26,7 +26,7 @@ import torch
 
 from ultralytics.models.yolo.anomaly.train_rnd import MVTEC_CATEGORIES
 from ultralytics.utils import LOGGER
-from ultralytics.yoloa import YOLOA
+from ultralytics import YOLOA
 from yoloa_utils import (
     CAT_GROUPS,
     collect_test_images,
@@ -151,7 +151,6 @@ def main():
                 data=str(yaml),
                 iou=args.iou,
                 end2end=args.e2e,
-                hm_gate_blend=args.hm_gate_blend if not args.no_memory else 1.0,
                 single_cls=True,
                 device=device,
                 batch=args.batch,

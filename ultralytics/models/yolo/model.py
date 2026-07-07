@@ -21,7 +21,7 @@ from ultralytics.nn.tasks import (
     YOLOEModel,
     YOLOESegModel,
 )
-from ultralytics.utils import LOGGER, ROOT, YAML
+from ultralytics.utils import ROOT, YAML
 
 
 class YOLO(Model):
@@ -490,59 +490,3 @@ class YOLOA(Model):
         self._check_is_pytorch_model()
         self.model.memory_bank.reset()
         return self
-
-    def predict(self, source=None, stream: bool = False, **kwargs: Any):
-        """Predict with the heatmap prior when a fitted bank is available.
-
-        Args:
-            source: Image source (path / array / list), as in :meth:`Model.predict`.
-            stream: Stream the source.
-            **kwargs: Standard predict args plus ``hm_gate_blend``.
-
-        Returns:
-            (list[Results]): Prediction results.
-        """
-        # self._apply_infer_overrides(kwargs)
-        return super().predict(source=source, stream=stream, **kwargs)
-
-    def val(self, validator=None, **kwargs: Any):
-        """Validate with the heatmap prior when a fitted bank is available.
-
-        Args:
-            validator: Optional custom validator.
-            **kwargs: Standard val args plus ``end2end``, ``hm_gate_blend`` and ``use_prior``.
-                ``end2end`` is applied to the detection head for this call only.
-                ``use_prior=False`` runs a bank-free pass without discarding the fitted bank.
-
-        Returns:
-            Validation metrics.
-        """
-        # Optional head mutations for this val call only.
-        e2e = kwargs.pop("end2end", None)
-        head = self.model.model[-1]
-        old_e2e = None
-        if e2e is not None:
-            old_e2e = getattr(head, "end2end", None)
-            head.end2end = e2e
-            self.model.end2end = e2e
-
-        self._apply_infer_overrides(kwargs)
-        try:
-            return super().val(validator=validator, **kwargs)
-        finally:
-            if e2e is not None:
-                if old_e2e is None:
-                    head.__dict__.pop("end2end", None)
-                else:
-                    head.end2end = old_e2e
-
-    def _apply_infer_overrides(self, kwargs: dict) -> None:
-        """Apply per-call inference overrides: ``use_prior`` and ``hm_gate_blend``.
-
-        ``use_prior`` (default True) toggles the memory-bank heatmap prior for this call
-        without touching the fitted bank, so a single fitted model can be validated both
-        with and without the prior.
-        """
-        self.model._prior_enabled = bool(kwargs.pop("use_prior", True))
-        if "hm_gate_blend" in kwargs:
-            self.model.model[-1].hm_gate_blend = float(kwargs.pop("hm_gate_blend"))

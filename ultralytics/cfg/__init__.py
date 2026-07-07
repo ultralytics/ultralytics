@@ -960,7 +960,7 @@ def entrypoint(debug: str = "") -> None:
 
         model = SAM(model)
     elif "-anomaly" in stem:
-        from ultralytics.yoloa import YOLOA
+        from ultralytics import YOLOA
 
         model = YOLOA(model)
     else:

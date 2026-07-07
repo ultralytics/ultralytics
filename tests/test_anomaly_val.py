@@ -17,7 +17,7 @@ import pytest
 import torch
 
 from ultralytics.models.yolo.anomaly.train_rnd import MVTEC_CATEGORIES
-from ultralytics.yoloa import YOLOA
+from ultralytics import YOLOA
 from yoloa_utils import good_dir
 
 CKPT = Path("/home/laughing/Downloads/best_converted.pt")
@@ -89,7 +89,6 @@ def test_anomaly_validation_averages():
             data=str(yaml),
             iou=0.1,
             end2end=False,
-            hm_gate_blend=0.0,
             single_cls=True,
             device=DEVICE,
         )

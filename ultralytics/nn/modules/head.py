@@ -100,7 +100,7 @@ class Detect(nn.Module):
         self.reg_max = reg_max  # DFL channels (ch[0] // 16 to scale 4/8/12/16/20 for n/s/m/l/x)
         self.no = nc + self.reg_max * 4  # number of outputs per anchor
         self.stride = torch.zeros(self.nl)  # strides computed during build
-        self.hm_gate_blend = 1.0  # 0=full heatmap conf gate, 1=off (deployment-friendly)
+        self.hm_gate_blend = 0.0  # 0=full heatmap conf gate, 1=off (deployment-friendly)
         c2, c3 = max((16, ch[0] // 4, self.reg_max * 4)), max(ch[0], min(self.nc, 100))  # channels
         self.cv2 = nn.ModuleList(
             nn.Sequential(Conv(x, c2, 3), Conv(c2, c2, 3), nn.Conv2d(c2, 4 * self.reg_max, 1)) for x in ch
@@ -193,7 +193,8 @@ class Detect(nn.Module):
         # Inference path
         dbox = self._get_decode_boxes(x)
         scores = x["scores"].sigmoid()
-        if heatmap is not None and getattr(self, "hm_gate_blend", 1.0) < 1.0:
+        self.hm_gate_blend = getattr(self, "hm_gate_blend", 0.0)
+        if heatmap is not None and self.hm_gate_blend < 1.0:
             gate = self._build_heatmap_gate(heatmap, x["feats"])
             b = float(self.hm_gate_blend)
             factor = (b + (1.0 - b) * gate).clamp(0.0, 1.0)

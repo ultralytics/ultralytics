@@ -49,7 +49,7 @@ import numpy as np
 import onnxruntime as ort
 import torch
 
-from ultralytics.yoloa import YOLOA
+from ultralytics import YOLOA
 
 NAN = float("nan")
 
@@ -123,8 +123,8 @@ def extract_map(metrics) -> dict:
     }
 
 
-def run_val(model, data_yaml: str, device: str, batch: int, use_prior: bool, e2e: bool = False) -> dict:
-    """One val pass. ``use_prior=False`` → no-memory (gate off); ``True`` → with-memory (gate on).
+def run_val(model, data_yaml: str, device: str, batch: int, e2e: bool = False) -> dict:
+    """One val pass. no-memory (gate off); ``True`` → with-memory (gate on).
 
     ``e2e=False`` forces the NMS head (matches ``run_yoloa.py``); the model's baked-in default is
     the end-to-end (NMS-free) head, which scores differently, so pass it explicitly for consistency.
@@ -137,7 +137,6 @@ def run_val(model, data_yaml: str, device: str, batch: int, use_prior: bool, e2e
         verbose=False,
         batch=batch,
         end2end=e2e,
-        hm_gate_blend=0.0 if use_prior else 1.0,
     )
     return extract_map(metrics)
 
@@ -250,7 +249,7 @@ def main():
     if can_fit:
         print("=== VAL: NO MEMORY (before fit) ===", flush=True)
         free_cache(args.device)
-        metrics_no = run_val(model, data_yaml, args.device, args.val_batch, use_prior=False, e2e=args.e2e)
+        metrics_no = run_val(model, data_yaml, args.device, args.val_batch, e2e=args.e2e)
         print_map(metrics_no)
 
         print("\n=== FIT ===", flush=True)
@@ -263,7 +262,7 @@ def main():
 
         print("\n=== VAL: WITH MEMORY (after fit) ===", flush=True)
         free_cache(args.device)
-        metrics_with = run_val(model, data_yaml, args.device, args.val_batch, use_prior=True, e2e=args.e2e)
+        metrics_with = run_val(model, data_yaml, args.device, args.val_batch, e2e=args.e2e)
         print_map(metrics_with)
         print(flush=True)
 

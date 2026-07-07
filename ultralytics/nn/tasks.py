@@ -682,20 +682,14 @@ class YOLOAnomalyModel(DetectionModel):
         ``_prior_enabled`` (default True) lets callers run a bank-free pass without
         destroying a fitted bank -- e.g. val twice, once with the prior and once without.
         """
-        if not getattr(self, "_prior_enabled", True):
-            return False
         mb = getattr(self, "memory_bank", None)
         return mb is not None and mb.is_ready
 
+    @smart_inference_mode()
     def _build_heatmap_prior(self, x: torch.Tensor) -> torch.Tensor | None:
         """Build the (B, 1, mask_size, mask_size) feature-side heatmap prior, or None."""
-        if not self._has_memory_bank():
-            LOGGER.warning("Memory bank is empty; heatmap prior disabled. Run model.fit(source=...) first.")
-            return None
-        mb = self.memory_bank
-        with torch.no_grad():
-            feats = self._extract_bb_features(x)
-            hmap = mb(feats).to(device=x.device, dtype=torch.float32)
+        feats = self._extract_bb_features(x)
+        hmap = self.memory_bank(feats).to(device=x.device, dtype=torch.float32)
         if hmap.shape[2] != self.mask_size or hmap.shape[3] != self.mask_size:
             hmap = torch.nn.functional.interpolate(
                 hmap, size=(self.mask_size, self.mask_size), mode="bilinear", align_corners=False

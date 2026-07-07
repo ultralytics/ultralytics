@@ -174,7 +174,7 @@ class BasePredictor:
         im = im.half() if self.model.fp16 else im.float()  # uint8 to fp16/32
         if not_tensor:
             im /= 255  # 0 - 255 to 0.0 - 1.0
-        elif not self.args.tensor_preprocessed:
+        elif self.args.preprocess_tensor:
             im = self.pre_transform_tensor(im)
         return im
 
@@ -285,8 +285,7 @@ class BasePredictor:
             vid_stride=self.args.vid_stride,
             buffer=self.args.stream_buffer,
             channels=getattr(self.model, "channels", 3),
-            tensor_preprocessed=self.args.tensor_preprocessed,
-
+            preprocess_tensor=self.args.preprocess_tensor,
         )
         self.source_type = self.dataset.source_type
         if (

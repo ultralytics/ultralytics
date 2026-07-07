@@ -67,7 +67,7 @@ class ClassificationPredictor(BasePredictor):
     def preprocess(self, img):
         """Convert input images to model-compatible tensor format with appropriate normalization."""
         if isinstance(img, torch.Tensor):
-            if not self.args.tensor_preprocessed:  # raw (B, C, H, W) tensor at original resolution
+            if self.args.preprocess_tensor:  # raw (B, C, H, W) tensor at original resolution
                 img = self.tensor_transforms(img)
         else:
             img = torch.stack(

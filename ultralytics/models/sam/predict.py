@@ -137,8 +137,8 @@ class Predictor(BasePredictor):
         im = im.to(self.device)
         if not_tensor:
             im = (im - self.mean) / self.std
-        elif not self.args.tensor_preprocessed:
-            im = self.pre_transform_tensor(im * 255) # im is in [0-1]
+        elif self.args.preprocess_tensor:
+            im = self.pre_transform_tensor(im * 255)  # im is in [0-1]
             im = (im - self.mean) / self.std
         im = im.half() if self.model.fp16 else im.float()
         return im

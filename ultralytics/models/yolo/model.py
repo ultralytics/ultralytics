@@ -466,7 +466,7 @@ class YOLOA(Model):
                 # selection. Switch back to AnomalyTrainer once the R&D phase is over.
                 "trainer": yolo.anomaly.AnomalyRNDTrainer,
                 "validator": yolo.anomaly.YOLOAnomalyValidator,
-                "predictor": yolo.anomaly.YOLOAnomalyPredictor,
+                "predictor": yolo.detect.DetectionPredictor,
             }
         }
 

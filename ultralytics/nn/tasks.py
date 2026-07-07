@@ -581,7 +581,12 @@ class YOLOAnomalyModel(DetectionModel):
 
     @smart_inference_mode()
     def build_memory_bank(
-        self, source: str | Path | list[str], imgsz: int = 640, batch: int = 8, max_images: int = 0
+        self,
+        source: str | Path | list[str],
+        imgsz: int = 640,
+        batch: int = 8,
+        max_images: int = 0,
+        device: str | int | torch.device | None = None,
     ) -> int:
         """Build the AnomalyMemoryBank from normal images for the internal heatmap prior.
 
@@ -593,6 +598,7 @@ class YOLOAnomalyModel(DetectionModel):
             imgsz: Resize images to this square size.
             batch: Mini-batch size for backbone feature extraction.
             max_images: Maximum number of images to use (0 = all).
+            device: Device to run the backbone on (default = auto-select).
 
         Returns:
             Final bank size (number of feature vectors).
@@ -1942,7 +1948,19 @@ def parse_model(d, ch, verbose=True):
             args.extend([reg_max, end2end, [ch[x] for x in f]])
             if m is Segment or m is YOLOESegment or m is Segment26 or m is YOLOESegment26:
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
-            if m in {Detect, AnomalyDetect, YOLOEDetect, Segment, Segment26, YOLOESegment, YOLOESegment26, Pose, Pose26, OBB, OBB26}:
+            if m in {
+                Detect,
+                AnomalyDetect,
+                YOLOEDetect,
+                Segment,
+                Segment26,
+                YOLOESegment,
+                YOLOESegment26,
+                Pose,
+                Pose26,
+                OBB,
+                OBB26,
+            }:
                 m.legacy = legacy
         elif m is v10Detect:
             args.append([ch[x] for x in f])

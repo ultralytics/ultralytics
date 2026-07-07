@@ -958,10 +958,6 @@ def entrypoint(debug: str = "") -> None:
         from ultralytics import SAM
 
         model = SAM(model)
-    elif "-anomaly" in stem:
-        from ultralytics import YOLOA
-
-        model = YOLOA(model)
     else:
         from ultralytics import YOLO
 

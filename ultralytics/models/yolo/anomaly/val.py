@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import numpy as np
 import torch
+import torch.distributed as dist
 
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER
@@ -79,3 +80,9 @@ class YOLOAnomalyValidator(DetectionValidator):
         LOGGER.info(
             pf % ("all", self.seen, nt, mm["P"], mm["R"], mm["mAP10"], mm["mAP25"], mm["mAP50"], mm["mAP10_50"])
         )
+
+    def gather_stats(self) -> None:
+        """Gather stats from all GPUs."""
+        if not self.training or not dist.is_initialized():
+            return  # no DDP collectives when running standalone (e.g. OOD eval)
+        super().gather_stats()

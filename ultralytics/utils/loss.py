@@ -477,58 +477,6 @@ class v8DetectionLoss:
         return loss * batch_size, loss_detach
 
 
-class AnomalyMCLoss(v8DetectionLoss):
-    """Decoupled binary-detection + multi-class type loss for ``AnomalyMCDetect``.
-
-    Box matching, regression, and confidence are trained on the 1-channel anomaly logit
-    (``preds["anom"]``) as a single-class detector, so recall is governed by anomaly-ness alone.
-    The defect-type head (``preds["scores"]``, ``type_nc`` channels) is supervised by a separate
-    cross-entropy on matched positives only — reusing the assigner's foreground mask and target
-    indices — so the type task never affects detection. Loss vector: ``[box, anom, dfl, type]``.
-    """
-
-    def __init__(self, model, tal_topk: int = 10, tal_topk2: int | None = None):
-        """Collapse the detection branch to a single class and read the type-loss gain."""
-        super().__init__(model, tal_topk, tal_topk2)
-        self.type_nc = self.nc  # K defect classes (cv3 output width)
-        self.nc = 1  # detection matching/confidence is binary "anomaly vs background"
-        self.no = 1 + self.reg_max * 4
-        self.assigner.num_classes = 1
-        self.type_gain = float(getattr(model, "type_gain", 0.5))
-
-    def loss(self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
-        """Compute the decoupled detection + type loss."""
-        batch_size = preds["boxes"].shape[0]
-        # Binary detection: match + box/dfl/conf on the anomaly logit with GT class collapsed to 0.
-        det_preds = {"boxes": preds["boxes"], "scores": preds["anom"], "feats": preds["feats"]}
-        det_batch = dict(batch)
-        det_batch["cls"] = torch.zeros_like(batch["cls"])
-        (fg_mask, target_gt_idx, *_), det_loss, _ = self.get_assigned_targets_and_loss(det_preds, det_batch)
-        # Multi-class type: CE on matched positives only (cv3 -> preds["scores"]).
-        type_loss = self._type_loss(preds["scores"], batch, fg_mask, target_gt_idx) * self.type_gain
-        loss = torch.cat([det_loss, type_loss.reshape(1)])
-        return loss * batch_size, loss.detach()
-
-    def _type_loss(self, type_scores, batch, fg_mask, target_gt_idx):
-        """Cross-entropy between predicted defect type and matched-GT type over foreground anchors."""
-        type_scores = type_scores.permute(0, 2, 1)  # (bs, A, K)
-        if not fg_mask.any():
-            return type_scores.sum() * 0.0  # keep the type head in the graph, zero contribution
-        batch_idx = batch["batch_idx"].view(-1).to(type_scores.device).long()
-        gt_cls = batch["cls"].view(-1).to(type_scores.device).long()
-        preds_fg, targets_fg = [], []
-        for b in range(type_scores.shape[0]):
-            sel = fg_mask[b].bool()
-            gt_b = gt_cls[batch_idx == b]
-            if not sel.any() or gt_b.numel() == 0:
-                continue
-            preds_fg.append(type_scores[b][sel])
-            targets_fg.append(gt_b[target_gt_idx[b][sel]])
-        if not preds_fg:
-            return type_scores.sum() * 0.0
-        return F.cross_entropy(torch.cat(preds_fg), torch.cat(targets_fg))
-
-
 class v8SegmentationLoss(v8DetectionLoss):
     """Criterion class for computing training losses for YOLOv8 segmentation."""
 

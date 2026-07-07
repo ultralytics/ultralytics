@@ -67,6 +67,9 @@ YOLOA separates what most anomaly-detection newcomers conflate: the **normal-ima
 
         # Save the fitted model; the memory bank is stored inside the checkpoint
         model.save("yolo26n-anomaly-bottle.pt")
+
+        # Export the fitted model to ONNX with the memory bank embedded
+        model.export(format="onnx")
         ```
 
 A fitted checkpoint reloads with its memory bank intact, so `YOLOA("yolo26n-anomaly-bottle.pt")` predicts immediately without re-fitting.

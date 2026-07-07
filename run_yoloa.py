@@ -143,7 +143,7 @@ def main():
             stage = "val (no memory)" if args.no_memory else "set_memory + val"
             print(f"\n{'=' * 60}\n[{ci}/{len(cats)}] {cat}: {stage}\n{'=' * 60}", flush=True)
             if not args.no_memory:
-                model.reset_memorybank()
+                model.reset_memory()
                 model.to(device)
                 model.set_memory(source=str(good_dir(root, cat)), batch=args.batch)
 

@@ -58,6 +58,19 @@ The main YOLO-DETR family currently contains six release-facing variants. The `n
     deployment point rather than a separate YOLO26m backbone. The `n/s/m/l` configs also resolve scale-specific
     `RTDETRDecoderV2` settings such as decoder depth and `efficient_ms` from `scale_args`.
 
+### Recommended image size
+
+Each scale ships with a recommended training/inference image size that preserves its latency-performance balance:
+
+| Scale       | Recommended imgsz |
+| ----------- | ----------------- |
+| `n`         | 480               |
+| `s`, `m`    | 512               |
+| `l`, `x`, `xxl` | 640           |
+
+Larger inputs raise inference time; the smaller sizes let the nano/small deployment points hit their latency targets
+while `l/x/xxl` use 640 to retain accuracy at scale-appropriate resolutions.
+
 ## Supported Tasks and Modes
 
 YOLO-DETR is currently an object detection family.
@@ -82,8 +95,8 @@ documentation.
         # Load a YOLO27n-DETR model from YAML
         model = YOLODETR("yolo27n-detr.yaml")
 
-        # Train the model on the COCO8 example dataset
-        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
+        # Train the model on the COCO8 example dataset (imgsz=480 is the recommended nano size)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=480)
 
         # Run inference on an image
         results = model("path/to/image.jpg")
@@ -92,8 +105,8 @@ documentation.
     === "CLI"
 
         ```bash
-        # Train a YOLO27n-DETR model on the COCO8 example dataset
-        yolo train model=yolo27n-detr.yaml data=coco8.yaml epochs=100 imgsz=640
+        # Train a YOLO27n-DETR model on the COCO8 example dataset (imgsz=480 is the recommended nano size)
+        yolo train model=yolo27n-detr.yaml data=coco8.yaml epochs=100 imgsz=480
 
         # Run inference with a YOLO27n-DETR model
         yolo predict model=yolo27n-detr.yaml source=path/to/image.jpg

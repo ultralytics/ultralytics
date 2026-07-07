@@ -583,14 +583,9 @@ class YOLOAnomalyModel(DetectionModel):
                 if isinstance(m, Detect) and id(m) in saved:
                     m._end2end = saved[id(m)]
 
+    @smart_inference_mode()
     def build_memory_bank(
-        self,
-        source: str | Path | list[str],
-        imgsz: int = 320,
-        device=None,
-        batch: int = 8,
-        max_images: int = 0,
-        verbose: bool = True,
+        self, source: str | Path | list[str], imgsz: int = 640, batch: int = 8, max_images: int = 0
     ) -> int:
         """Build the AnomalyMemoryBank from normal images for the internal heatmap prior.
 
@@ -600,36 +595,27 @@ class YOLOAnomalyModel(DetectionModel):
         Args:
             source: Directory of normal images or list of image paths.
             imgsz: Resize images to this square size.
-            device: Device for the bank (defaults to model device).
             batch: Mini-batch size for backbone feature extraction.
             max_images: Maximum number of images to use (0 = all).
-            verbose: Log progress.
 
         Returns:
             Final bank size (number of feature vectors).
         """
-        from ultralytics.utils import LOGGER
-
         mb = self.memory_bank
         mb.reset()
 
-        target_device = device if device is not None else next(self.parameters()).device
-        self.to(target_device)
-        with torch.no_grad():  # bank build is gradient-free; grad-tracking banks break deepcopy in save/export
-            for images in self._iter_image_batches(
-                source, imgsz=imgsz, batch=batch, max_images=max_images, verbose=verbose
-            ):
-                feats = self._extract_bb_features(images.to(target_device))
-                mb.add_features(feats)
+        device = next(self.model.parameters()).device
+        for images in self._iter_image_batches(source, imgsz=imgsz, batch=batch, max_images=max_images):
+            feats = self._extract_bb_features(images.to(device))
+            mb.add_features(feats)
 
         mb.freeze()
         final_size = mb.bank.shape[0]
-        if verbose:
-            LOGGER.info(
-                f"Memory bank frozen: {final_size} features, dim={mb.dim}\n"
-                f"  config: temp={mb.temperature:.4f}, K={mb.K}, "
-                f"bank_size={mb.bank_size}, bb_layers={self.bb_layers}"
-            )
+        LOGGER.info(
+            f"Memory bank frozen: {final_size} features, dim={mb.dim}\n"
+            f"  config: temp={mb.temperature:.4f}, K={mb.K}, "
+            f"bank_size={mb.bank_size}, bb_layers={self.bb_layers}"
+        )
         return final_size
 
     def _iter_image_batches(

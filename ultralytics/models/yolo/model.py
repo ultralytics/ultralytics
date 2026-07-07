@@ -470,73 +470,19 @@ class YOLOA(Model):
             }
         }
 
-    def fit(
-        self,
-        source: str | Path | list[str],
-        name: str | None = None,
-        cache: str | Path | None = None,
-        refit: bool = False,
-        device: Any = None,
-        batch: int = 8,
-    ) -> "YOLOA":
+    def fit(self, source: str | Path | list[str], batch: int = 8, imgsz: int = 640) -> "YOLOA":
         """Build (or load from cache) the memory bank from normal images.
 
         Args:
             source: Directory of normal images, or a list of image paths.
-            name: Friendly label for provenance + cache key (default: derived from ``source``).
-            cache: Directory to cache/reuse the built bank on disk; None disables caching.
-            refit: Force a rebuild even if a cache file exists.
-            device: Build device (defaults to the model device); not part of the fit identity.
-            batch: Mini-batch size for feature extraction; not part of the fit identity.
+            batch: Mini-batch size for feature extraction.
+            imgsz: Image size for feature extraction.
 
         Returns:
             (YOLOA): self, now fitted.
         """
         self._check_is_pytorch_model()
-        m = self.model
-        mb = getattr(m, "memory_bank", None)
-        if mb is None or getattr(m, "bb_layers", None) is None:
-            raise RuntimeError("model has no AnomalyMemoryBank (no bb_layers in the model yaml) — cannot fit().")
-
-        data_name = name or self._derive_name(source)
-        device = device if device is not None else next(m.parameters()).device
-        cache_path = (Path(cache) / f"{data_name}.pt") if cache is not None else None
-        if cache_path is not None and cache_path.exists() and not refit:
-            d = torch.load(cache_path, map_location="cpu")
-            bank = d["bank"] if "bank" in d else d.get("memory_bank")
-            if bank is None:
-                LOGGER.warning(f"bank cache is old format (missing bank tensor); delete {cache_path} to rebuild")
-            else:
-                if "temperature" in d:
-                    mb.temperature = d["temperature"]
-                mb.load_bank(bank)
-                if "_threshold" in d and "_compactness" in d:
-                    mb._threshold = d["_threshold"]
-                    mb._compactness = d["_compactness"]
-                LOGGER.info(f"YOLOA.fit: loaded cached bank ({mb.bank.shape[0]} vecs) <- {cache_path}")
-        else:
-            n = m.build_memory_bank(
-                source,
-                imgsz=640,
-                device=device,
-                batch=batch,
-                max_images=0,
-                verbose=True,
-            )
-            if cache_path is not None and n:
-                cache_path.parent.mkdir(parents=True, exist_ok=True)
-                entry = {
-                    "bank": mb.bank.detach().cpu(),
-                    "dim": mb.dim,
-                    "temperature": float(mb.temperature),
-                    "_threshold": mb._threshold,
-                    "_compactness": mb._compactness,
-                }
-                torch.save(entry, cache_path)
-                LOGGER.info(f"YOLOA.fit: cached bank ({mb.bank.shape[0]} vecs) -> {cache_path}")
-
-        m.fit_data = data_name
-        m._heatmap_bank_warned = False
+        self.model.build_memory_bank(source, imgsz=imgsz, batch=batch)
         return self
 
     def predict(self, source=None, stream: bool = False, **kwargs: Any):

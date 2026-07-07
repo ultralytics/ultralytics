@@ -87,6 +87,21 @@ def _load_train_args(resume: str) -> dict:
     return torch.load(Path(resume), map_location="cpu", weights_only=False)["train_args"]
 
 
+def _is_cls_yaml(model) -> bool:
+    """Return True when model names a classification yaml."""
+    return bool(model) and Path(str(model)).suffix in ("", ".yaml", ".yml") and "-cls" in Path(str(model)).stem
+
+
+def _checkpoint_cls_yaml(weights: Path) -> str:
+    """Read classification yaml metadata from a checkpoint."""
+    ckpt = torch.load(weights, map_location="cpu", weights_only=False)
+    model = ckpt.get("model")
+    for yaml_file in (ckpt.get("train_args", {}).get("model"), getattr(model, "yaml", {}).get("yaml_file", "")):
+        if _is_cls_yaml(yaml_file):
+            return str(yaml_file)
+    raise ValueError(f"Could not infer a classification yaml from checkpoint metadata: {weights}")
+
+
 def _export_hf_token() -> None:
     """Export HF_TOKEN from .env so HF-gated teachers (dinov3 L/convnextb/7b) load. No-op if already set or no .env."""
     env = Path(".env")
@@ -136,8 +151,9 @@ def _infer_model_yaml(phase1_weights: str, head_suffix: str = "") -> str:
     cls_yaml = w.stem + ".yaml"
     if w.parent.name == "weights":
         args_yaml = w.parent.parent / "args.yaml"
-        if args_yaml.exists():
-            cls_yaml = YAML.load(args_yaml)["model"]
+        cls_yaml = YAML.load(args_yaml).get("model") if args_yaml.exists() else cls_yaml
+        if not _is_cls_yaml(cls_yaml):
+            cls_yaml = _checkpoint_cls_yaml(w)
     # Strip the `-cls` task suffix. Lookahead matches both end-position (`yolo26s-cls.yaml` -> `yolo26s.yaml`)
     # and middle-position when a custom arch suffix follows (`yolo26s-cls-attn.yaml` -> `yolo26s-attn.yaml`).
     out = re.sub(r"-cls(?=[-.])", head_suffix, cls_yaml, count=1)

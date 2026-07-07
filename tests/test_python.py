@@ -263,6 +263,16 @@ def test_predict_img(model_name):
     assert len(model(batch, imgsz=32, classes=0)) == len(batch)  # multiple sources in a batch
 
 
+@pytest.mark.parametrize("model_name", ["yolo26n.pt", "yolo11n.pt"])  # end2end and NMS-based models
+def test_predict_classes_with_max_det(model_name):
+    """Test that the classes filter applies before max_det truncation in both end2end and NMS-based models."""
+    boxes = YOLO(WEIGHTS_DIR / model_name)(SOURCE, classes=[0], max_det=300, verbose=False)[0].boxes
+    assert len(boxes) > 1  # bus.jpg contains multiple persons
+    top1 = YOLO(WEIGHTS_DIR / model_name)(SOURCE, classes=[0], max_det=1, verbose=False)[0].boxes  # fresh model
+    assert len(top1) == 1 and int(top1.cls) == 0
+    assert float(top1.conf) == pytest.approx(float(boxes.conf.max()))  # best person kept, not an arbitrary one
+
+
 @pytest.mark.parametrize("model", MODELS)
 def test_predict_visualize(model):
     """Test model prediction methods with 'visualize=True' to generate prediction visualizations."""
@@ -827,6 +837,25 @@ def test_utils_ops():
 
     # segment2box must not drop a polygon lying on the left image edge (all x == 0) to a zero box
     assert segment2box(np.array([[0, 100], [0, 150], [0, 200]]), 640, 640).tolist() == [0, 100, 0, 200]
+
+
+def test_nms_end2end_classes_before_max_det():
+    """The end-to-end NMS branch must filter classes before truncating to max_det, like the NMS-based branch."""
+    from ultralytics.utils.nms import non_max_suppression
+
+    # (2, 4, 6) end2end predictions sorted by descending confidence: [x1, y1, x2, y2, conf, cls]
+    pred = torch.tensor(
+        [
+            [[0, 0, 9, 9, 0.9, 5], [1, 1, 9, 9, 0.8, 0], [2, 2, 9, 9, 0.7, 0], [3, 3, 9, 9, 0.6, 0]],
+            [[0, 0, 9, 9, 0.9, 0], [1, 1, 9, 9, 0.8, 5], [2, 2, 9, 9, 0.7, 5], [3, 3, 9, 9, 0.6, 0]],
+        ],
+        dtype=torch.float32,
+    )
+    for out, confs in zip(non_max_suppression(pred, conf_thres=0.25, classes=[0], max_det=2), ([0.8, 0.7], [0.9, 0.6])):
+        assert out.shape[0] == 2 and (out[:, 5] == 0).all()  # top-2 class-0 boxes kept, not truncated away
+        assert torch.allclose(out[:, 4], torch.tensor(confs))
+    out = non_max_suppression(pred, conf_thres=0.25, max_det=2)[0]  # without classes, top-2 overall unchanged
+    assert torch.allclose(out[:, 4], torch.tensor([0.9, 0.8]))
 
 
 def test_process_mask_empty():

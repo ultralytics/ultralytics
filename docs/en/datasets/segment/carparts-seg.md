@@ -10,7 +10,7 @@ keywords: Carparts Segmentation Dataset, computer vision, automotive AI, vehicle
 
 The Carparts Segmentation Dataset is a curated collection of images and videos designed for [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) applications, specifically focusing on [segmentation tasks](../../tasks/segment.md). This dataset provides a diverse set of visuals captured from multiple perspectives, offering valuable [annotated](https://www.ultralytics.com/glossary/data-labeling) examples for training and testing segmentation models.
 
-Whether you're working on [automotive research](https://www.ultralytics.com/solutions/ai-in-automotive), developing AI solutions for vehicle maintenance, or exploring computer vision applications, the Carparts Segmentation Dataset serves as a valuable resource for enhancing the [accuracy](https://www.ultralytics.com/glossary/accuracy) and efficiency of your projects using models like [Ultralytics YOLO](../../models/yolo26.md).
+Whether you're working on [automotive research](https://www.ultralytics.com/solutions/computer-vision-in-automotive), developing AI solutions for vehicle maintenance, or exploring computer vision applications, the Carparts Segmentation Dataset serves as a valuable resource for enhancing the [accuracy](https://www.ultralytics.com/glossary/accuracy) and efficiency of your projects using models like [Ultralytics YOLO](../../models/yolo26.md).
 
 <p align="center">
   <br>
@@ -35,7 +35,7 @@ The data distribution within the Carparts Segmentation Dataset is organized as f
 
 Carparts Segmentation finds applications in various domains including:
 
-- **Automotive Quality Control**: Identifying defects or inconsistencies in car parts during manufacturing ([AI in Manufacturing](https://www.ultralytics.com/solutions/ai-in-manufacturing)).
+- **Automotive Quality Control**: Identifying defects or inconsistencies in car parts during manufacturing ([AI in Manufacturing](https://www.ultralytics.com/solutions/computer-vision-in-manufacturing)).
 - **Auto Repair**: Assisting mechanics in identifying parts for repair or replacement.
 - **E-commerce Cataloging**: Automatically tagging and categorizing car parts in online stores for [e-commerce](https://en.wikipedia.org/wiki/E-commerce) platforms.
 - **Traffic Monitoring**: Analyzing vehicle components in traffic surveillance footage.
@@ -160,10 +160,10 @@ You can train an [Ultralytics YOLO26](../../models/yolo26.md) segmentation model
 
 Carparts Segmentation is useful in:
 
-- **Automotive Quality Control**: Ensuring parts meet standards ([AI in Manufacturing](https://www.ultralytics.com/solutions/ai-in-manufacturing)).
+- **Automotive Quality Control**: Ensuring parts meet standards ([AI in Manufacturing](https://www.ultralytics.com/solutions/computer-vision-in-manufacturing)).
 - **Auto Repair**: Identifying parts needing service.
 - **E-commerce**: Cataloging parts online.
-- **Autonomous Vehicles**: Improving vehicle perception ([AI in Automotive](https://www.ultralytics.com/solutions/ai-in-automotive)).
+- **Autonomous Vehicles**: Improving vehicle perception ([AI in Automotive](https://www.ultralytics.com/solutions/computer-vision-in-automotive)).
 - **Insurance**: Assessing vehicle damage automatically.
 - **Recycling**: Sorting parts efficiently.
 

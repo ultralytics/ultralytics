@@ -105,7 +105,7 @@ from .transformer import (
     TransformerEncoderLayer,
     TransformerLayer,
 )
-from .vit_blocks import FastViTBlock, MHSABlock, UltraViTBlock
+from .vit_blocks import FastViTBlock, FracRoPE2D, MHSABlock, UltraViTBlock
 
 __all__ = (
     "AIFI",
@@ -155,6 +155,7 @@ __all__ = (
     "Detect",
     "FastViTBlock",
     "Focus",
+    "FracRoPE2D",
     "GhostBottleneck",
     "GhostConv",
     "HGBlock",

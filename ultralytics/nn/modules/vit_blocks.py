@@ -193,6 +193,126 @@ class MHSABlock(nn.Module):
         return t.transpose(1, 2).reshape(b, c, h, w)
 
 
+def _frac_rope_tbl(h: int, w: int, head_dim: int, base: float = 100.0):
+    """Build a normalized-coordinate 2D rotary cos/sin table for an h x w token grid.
+
+    Angles are keyed to fractional coordinates (x/W, y/H) in [0, 1] rather than integer indices, so the relative phase
+    between two tokens is a function of their normalized separation and stays constant as the grid grows. Row (y)
+    frequencies fill the first head_dim half, col (x) frequencies the second, matching the rotate-half convention `[-x2,
+    x1]`. Returns dense (N, head_dim) cos and sin tensors so the traced graph carries one initializer per table (not
+    per-frequency Constants), dodging the ECViT 554-Constant blowup.
+
+    Args:
+        h (int): Token grid height.
+        w (int): Token grid width.
+        head_dim (int): Per-head dim. Must be divisible by 4 (row/col halves, each rotary needs cos/sin pairs).
+        base (float, optional): Rotary frequency base.
+
+    Returns:
+        cos (torch.Tensor): Cosine table of shape (N, head_dim) with N = h * w.
+        sin (torch.Tensor): Sine table of shape (N, head_dim) with N = h * w.
+    """
+    assert head_dim % 4 == 0, f"FracRoPE2D: head_dim={head_dim} must be divisible by 4"
+    n_freq = head_dim // 4  # distinct freqs per axis; each axis fills head_dim // 2 dims as (freqs, freqs)
+    freqs = 1.0 / (base ** (torch.arange(n_freq, dtype=torch.float32) / n_freq))
+    gy, gx = torch.meshgrid(torch.linspace(0, 1, h), torch.linspace(0, 1, w), indexing="ij")
+    ay = gy.reshape(-1, 1) * freqs[None, :]  # (N, n_freq) row angles
+    ax = gx.reshape(-1, 1) * freqs[None, :]  # (N, n_freq) col angles
+    ang = torch.cat([ay, ay, ax, ax], dim=-1)  # (N, head_dim): row half then col half, doubled for rotate-half
+    return torch.cos(ang), torch.sin(ang)
+
+
+def _rotate_half(x: torch.Tensor) -> torch.Tensor:
+    """Rotate the last dim by splitting in half and mapping (x1, x2) -> (-x2, x1) for RoPE."""
+    d = x.shape[-1] // 2
+    return torch.cat([-x[..., d:], x[..., :d]], dim=-1)
+
+
+class FracRoPE2D(MHSABlock):
+    """MHSABlock with fractional-coordinate 2D rotary position embedding on Q/K. Dim-preserving 4D in/out.
+
+    Keys the RoPE rotation angles to NORMALIZED fractional coordinates (x/W, y/H) instead of integer indices, so the
+    relative phase between two tokens depends on their normalized separation and is resolution-invariant by
+    construction. The 224-trained attention geometry stays correct at 640 with no positional interpolation and no
+    learned table, leaving only content magnitude for a short hi-res finetune to adapt. Row frequencies occupy one
+    head_dim half, col frequencies the other; cos/sin are baked as one dense registered buffer each (not per-frequency
+    Constants) so ONNX carries them as initializers.
+
+    Mutually exclusive with the `xca` branch of MHSABlock (rotary phase applies to the token-attention path). The
+    dense-buffer cos/sin are resolution-dependent: `forward` rebuilds them on the fly when the running grid differs from
+    the cached grid (so a single build serves 224 and 640), and `switch_to_deploy(hw)` rebakes them at the export imgsz.
+    The indexed qkv[0..2] split of MHSABlock is preserved for x2paddle.
+
+    Attributes:
+        rope_hw (tuple): Cached (h, w) the current cos/sin buffers were built for.
+        rope_cos (torch.Tensor): Dense (N, head_dim) cosine table registered as a buffer.
+        rope_sin (torch.Tensor): Dense (N, head_dim) sine table registered as a buffer.
+        rope_base (float): Rotary frequency base used to build the tables.
+    """
+
+    def __init__(
+        self,
+        c: int,
+        num_heads: int = 6,
+        mlp_ratio: float = 4.0,
+        silu: bool = False,
+        ls: float = 0.0,
+        conv_ffn: bool = False,
+        head_dim: int = 0,
+        hw: int = 7,
+        rope_base: float = 100.0,
+    ):
+        """Initialize FracRoPE2D, building the cos/sin tables for an hw x hw build grid; xca is forced off."""
+        super().__init__(c, num_heads, mlp_ratio, silu, ls, conv_ffn, head_dim, xca=False)
+        assert self.head_dim % 4 == 0, f"FracRoPE2D: head_dim={self.head_dim} must be divisible by 4"
+        self.rope_base = rope_base
+        self.rope_hw = (hw, hw)
+        cos, sin = _frac_rope_tbl(hw, hw, self.head_dim, rope_base)
+        self.register_buffer("rope_cos", cos, persistent=False)
+        self.register_buffer("rope_sin", sin, persistent=False)
+
+    def _rope(self, h: int, w: int):
+        """Return cos/sin tables for the h x w grid, rebuilding the buffers if the grid changed."""
+        if self.rope_hw != (h, w):
+            cos, sin = _frac_rope_tbl(h, w, self.head_dim, self.rope_base)
+            self.rope_cos = cos.to(self.rope_cos.device, self.rope_cos.dtype)
+            self.rope_sin = sin.to(self.rope_sin.device, self.rope_sin.dtype)
+            self.rope_hw = (h, w)
+        return self.rope_cos, self.rope_sin
+
+    def switch_to_deploy(self, hw: int):
+        """Rebake the cos/sin buffers for an hw x hw export grid so ONNX/TRT carry them at the export imgsz."""
+        self._rope(hw, hw)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Forward pass: 4D -> tokens -> RoPE(q,k) -> SDPA -> FFN (token Linear or NCHW ConvMlp) -> 4D."""
+        b, c, h, w = x.shape
+        t = x.flatten(2).transpose(1, 2)  # (B, N, C)
+        n = self.ln1(t)
+        qkv = self.qkv(n).reshape(b, -1, 3, self.num_heads, self.head_dim).permute(2, 0, 3, 1, 4)
+        q, k, v = qkv[0], qkv[1], qkv[2]  # indexed split traces to aten::select, x2paddle maps it but not aten::unbind
+        cos, sin = self._rope(h, w)  # (N, head_dim), broadcasts over (B, heads, N, head_dim)
+        q = q * cos + _rotate_half(q) * sin
+        k = k * cos + _rotate_half(k) * sin
+        if _LOGN_ATTN:  # length-aware temperature: sharpen softmax as the grid grows past the 49-token train grid
+            scale = self.head_dim**-0.5 * (math.log(max(int(q.shape[-2]), 2)) * _INV_LOG_REF) ** 0.5
+            a = F.scaled_dot_product_attention(q, k, v, scale=scale)
+        else:
+            a = F.scaled_dot_product_attention(q, k, v)
+        a = a.transpose(1, 2).reshape(b, -1, c)
+        a = self.proj(a)
+        ls1 = getattr(self, "ls1", None)
+        t = t + (a if ls1 is None else ls1 * a)
+        ls2 = getattr(self, "ls2", None)
+        if getattr(self, "ffn_dw", None) is not None:
+            x = t.transpose(1, 2).reshape(b, c, h, w)
+            f = self.ffn_pw2(self.act(self.ffn_pw1(self.ffn_bn(self.ffn_dw(x)))))
+            return x + (f if ls2 is None else ls2 * f)
+        f = self.fc2(self.act(self.fc1(self.ln2(t))))
+        t = t + (f if ls2 is None else ls2 * f)
+        return t.transpose(1, 2).reshape(b, c, h, w)
+
+
 class FastViTBlock(UltraViTBlock):
     """Deprecated alias of UltraViTBlock, kept so legacy fastvit YAMLs and pickled checkpoints keep loading."""
 

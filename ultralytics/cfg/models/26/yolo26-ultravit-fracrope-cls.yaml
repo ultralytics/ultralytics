@@ -1,0 +1,43 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# YOLO26-UltraViT-FracRoPE-cls: yolo26-ultravit-cls with the stage-4 P5 attention block (layer 8) swapped
+# MHSABlock -> FracRoPE2D. ONLY change vs yolo26-ultravit-cls.yaml. FracRoPE2D is MHSA with a fractional
+# -coordinate 2D rotary position embedding on Q/K, keyed to normalized (x/W, y/H) coords so the 224-trained
+# attention geometry stays resolution-invariant at 640 with no positional interpolation and no learned table.
+# Backbone tensor names are byte-identical to yolo26-ultravit-cls.yaml (RoPE adds only non-persistent cos/sin
+# buffers), so cls/distilled weights transfer name-for-name into the full det backbone via intersect_dicts.
+# Blocks in ultralytics/nn/modules/vit_blocks.py. FracRoPE2D args [num_heads, mlp_ratio, silu, ls, conv_ffn,
+# head_dim] with hw=7 (224px P5 grid) and rope_base=100 defaulted; num_heads=0 sentinel derives heads per
+# scale from head_dim=32 (n 9, s 18, m/l 16, x 24). head_dim must be divisible by 4 for the row/col rotary split.
+#
+# Scale table v2 (half-neck): backbone base repeats are 2.5x the effective counts, so the depth multiple selects
+# the backbone (n/s 0.20 -> RepMixer [1,1,4] + 1x MHSA, m 0.25 -> [1,1,5] + 1x MHSA, l/x 0.35 -> [2,2,7] +
+# 2x MHSA). Stage-4 base 1152 is scale-selective via max_channels (n/s widen to 288/576, m/l/x capped at 512).
+
+# Parameters
+nc: 1000 # number of classes
+
+scales:
+  # [depth, width, max_channels]
+  n: [0.20, 0.25, 1152] # 3.24 M params
+  s: [0.20, 0.50, 1152] # 8.28 M params
+  m: [0.25, 1.00, 512] # 12.60 M params
+  l: [0.35, 1.00, 512] # 17.90 M params
+  x: [0.35, 1.50, 512] # 37.97 M params
+
+# UltraViT backbone: RepMixer stages 1-3 + FracRoPE2D stage 4, strides 4/8/16/32
+backbone:
+  # [from, repeats, module, args]
+  - [-1, 1, Conv, [64, 3, 2]] # 0 P1/2 stem
+  - [-1, 1, Conv, [96, 3, 2]] # 1 P2/4 stem
+  - [-1, 5, UltraViTBlock, [3, True, 0.00001]] # 2 stage1 P2/4
+  - [-1, 1, Conv, [192, 3, 2]] # 3 P3/8 downsample
+  - [-1, 5, UltraViTBlock, [3, True, 0.00001]] # 4 stage2 P3/8
+  - [-1, 1, Conv, [384, 3, 2]] # 5 P4/16 downsample
+  - [-1, 20, UltraViTBlock, [3, True, 0.00001]] # 6 stage3 P4/16
+  - [-1, 1, Conv, [1152, 3, 2]] # 7 P5/32 downsample
+  - [-1, 5, FracRoPE2D, [0, 4, True, 0.00001, True, 32]] # 8 stage4 P5/32
+
+# Head
+head:
+  - [-1, 1, Classify, [nc]] # 9 AdaptiveAvgPool + Conv1x1 + Linear

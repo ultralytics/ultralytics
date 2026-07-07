@@ -26,7 +26,8 @@ class MaskPriorAugmenter:
             mask_blur_sigma_max, mask_jitter, mask_box_drop_p, mask_distractor_p, mask_distractor_n,
             mask_erase_p, mask_warp_p, mask_mixup_p, mask_mixup_alpha, mask_fragment_p,
             mask_fragment_n, mask_bg_blobs_p, mask_bg_blobs_n, mask_bg_blobs_amp, mask_bg_blobs_sigma,
-            mask_coherent_noise_p, mask_coherent_noise_amp, mask_coherent_noise_sigma, mask_floor.
+            mask_coherent_noise_p, mask_coherent_noise_amp, mask_coherent_noise_sigma, mask_floor,
+            mask_scale_range, mask_offset_range.
     """
 
     def __init__(self, v2_cfg: dict | None = None):
@@ -62,6 +63,10 @@ class MaskPriorAugmenter:
         self.mask_coherent_noise_sigma = (float(_csig[0]), float(_csig[1]))
         _floor = v2_cfg.get("mask_floor", [0.0, 0.0])
         self.mask_floor = (float(_floor[0]), float(_floor[1]))
+        _scale_r = v2_cfg.get("mask_scale_range", [1.0, 1.0])
+        self.mask_scale_range = (float(_scale_r[0]), float(_scale_r[1]))
+        _offset_r = v2_cfg.get("mask_offset_range", [0.0, 0.0])
+        self.mask_offset_range = (float(_offset_r[0]), float(_offset_r[1]))
 
     # -- bbox-level augmentations ------------------------------------------------------------
 
@@ -152,6 +157,7 @@ class MaskPriorAugmenter:
             mask = mask + torch.randn_like(mask) * self.mask_noise_std
         mask = self._augment_prior_extra(mask)
         mask = self._augment_mask_mb_style(mask)
+        mask = self._apply_value_adjust(mask)
         return mask.clamp(0.0, 1.0)
 
     def _augment_prior_extra(self, mask):
@@ -245,6 +251,25 @@ class MaskPriorAugmenter:
                 blob = torch.exp(-((xs - cx) ** 2 + (ys - cy) ** 2) / (2.0 * sigma**2))
                 out = out + amp * blob
         return out
+
+    def _apply_value_adjust(self, mask):
+        """Per-sample affine value adjustment: mask * scale + offset, then clamp to [0, 1].
+
+        ``mask_scale_range`` controls the multiplicative shrink (default [1,1] = identity).
+        ``mask_offset_range`` controls the additive offset (default [0,0] = none).
+        The combination maps a [0,1] prior into a narrower, shifted value range to
+        bridge the gap between clean GT masks and weak, noisy inference heatmaps.
+        """
+        s_lo, s_hi = self.mask_scale_range
+        o_lo, o_hi = self.mask_offset_range
+        no_scale = (s_lo >= 1.0 and s_hi >= 1.0)
+        no_offset = (o_lo <= 0.0 and o_hi <= 0.0)
+        if no_scale and no_offset:
+            return mask
+        b = mask.shape[0]
+        scale = torch.empty(b, 1, 1, 1, device=mask.device).uniform_(s_lo, s_hi)
+        offset = torch.empty(b, 1, 1, 1, device=mask.device).uniform_(o_lo, o_hi)
+        return (mask * scale + offset).clamp_(0.0, 1.0)
 
     def _apply_mask_floor(self, mask):
         """Add a per-sample uniform noise floor to the whole heatmap."""

@@ -43,7 +43,8 @@ YOLOA separates what most anomaly-detection newcomers conflate: the **normal-ima
 | "Training"  | No gradients, a single feature-extraction pass | Real backpropagation                          |
 | Required?   | Required                                       | Optional                                      |
 
-`fit()` is not training: it extracts backbone features from your normal images, compresses them into a memory bank, and calibrates an anomaly threshold — no gradients, no epochs. `train()` is an optional gradient fine-tune on a standard YOLO detection dataset of labeled defects that teaches the detector to convert anomaly evidence into tight boxes.
+- **fit()**: Extracts backbone features from normal images, compresses them into a memory bank, and calibrates an anomaly threshold without gradients or epochs.
+- **train()**: An optional gradient fine-tune on a standard YOLO detection dataset of labeled defects to teach the detector to convert anomaly evidence into localized boxes.
 
 ## Fit
 
@@ -63,6 +64,8 @@ YOLOA separates what most anomaly-detection newcomers conflate: the **normal-ima
         model = YOLOA("yolo26n-anomaly.yaml")
 
         # Fit the memory bank on normal images and cache it for reuse
+        # Note by default it'd run on CPU, but you can specify GPU by calling `model.to("cuda:0")` first
+        model.to("cuda:0")
         model.fit("path/to/normal/images")
 
         # Save the fitted model; the memory bank is stored inside the checkpoint

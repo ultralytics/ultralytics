@@ -78,7 +78,7 @@ CLAMPS = {
     "predict": "imgsz=32",
     "export": "imgsz=32",
 }
-EXPORT_POOL = ["torchscript", "onnx", "openvino", "paddle"]  # CPU-friendly with deps in the export-base extra
+EXPORT_POOL = ["torchscript", "onnx", "openvino"]  # CPU-friendly with deps installed by the export-base extra
 
 # Valid + invalid probes for string-enum args that bypass check_cfg (the highest-value fuzz targets)
 ENUM_POOLS = {
@@ -193,11 +193,10 @@ def precache_assets(uni):
 
 def build_corpus(uni):
     """Build the known-good seed corpus: every task x mode with clamped fast knobs and explicit local source."""
-    from ultralytics.utils import WEIGHTS_DIR
-
     corpus = []
     for task in uni["tasks"]:
-        model, data = str(WEIGHTS_DIR / uni["task2model"][task]), uni["task2data"][task]
+        # Bare weight names keep issue repro commands portable; they resolve against the precached weights_dir
+        model, data = uni["task2model"][task], uni["task2data"][task]
         for mode in MODES:
             argv = [mode, task, f"model={model}", *CLAMPS[mode].split()]
             if mode in {"train", "val"}:
@@ -254,6 +253,10 @@ def run_trial(trial, timeout=None):
     argv = list(trial["argv"])
     if mode == "export":  # exports write beside the model file: copy the weight in so shared weights_dir stays clean
         src = Path(next(a for a in argv if a.startswith("model=")).split("=", 1)[1])
+        if not src.exists():  # bare weight name: resolve against the precached shared weights_dir
+            from ultralytics.utils import WEIGHTS_DIR
+
+            src = WEIGHTS_DIR / src.name
         local = workdir / src.name
         shutil.copy2(src, local)
         argv = [a if not a.startswith("model=") else f"model={local}" for a in argv]
@@ -312,7 +315,8 @@ def classify(trial, rc, stderr):
     if rc == 0:
         return "pass", None, None
     if rc == "timeout":
-        sig = hashlib.sha256(f"Timeout|{trial['mode']}|{trial['task']}".encode()).hexdigest()[:12]
+        mutated = "|".join(sorted(trial.get("mutated", []))) or "baseline"  # distinct hangs get distinct signatures
+        sig = hashlib.sha256(f"Timeout|{trial['mode']}|{trial['task']}|{mutated}".encode()).hexdigest()[:12]
         return "timeout", sig, f"Timeout in yolo {trial['mode']} ({trial['task']})"
     exc, frames = parse_traceback(stderr)
     if isinstance(rc, int) and rc < 0:
@@ -366,6 +370,8 @@ def cmd_fuzz(args):
                     confirmed = rc2 == "timeout"
                     if not confirmed:
                         outcome = "pass" if rc2 == 0 else outcome  # completed quickly on replay: not a hang
+                if not confirmed:  # transient/capped timeouts may still be real hangs: let later occurrences retry
+                    seen.discard(sig)
             else:
                 rc2, stderr2, _ = run_trial(trial, timeout=args.debug_timeout)
                 outcome2, sig2, _ = classify(trial, rc2, stderr2)
@@ -434,6 +440,21 @@ def cmd_repro(args):
     uni = load_universe()
     log = uni["logger"]
     argv = args.command.split()
+    if argv and argv[0] == "yolo":  # issue bodies quote full `yolo ...` commands; accept them verbatim
+        argv = argv[1:]
+
+    def portable(arg):
+        """Remap runner-local absolute model/source paths from issue commands to this machine's copies."""
+        k, _, v = arg.partition("=")
+        if k in {"model", "source"} and ("/" in v or "\\" in v) and not Path(v).exists():
+            from ultralytics.utils import ASSETS, WEIGHTS_DIR
+
+            local = (WEIGHTS_DIR if k == "model" else ASSETS) / Path(v).name
+            if local.exists():
+                return f"{k}={local}"
+        return arg
+
+    argv = [portable(a) for a in argv]
     mode = next((a for a in argv if a in MODES), "predict")
     task = next((a for a in argv if a in uni["tasks"]), "detect")
     trial = {"mode": mode, "task": task, "argv": argv}

@@ -45,15 +45,20 @@ def onnx_int8_quantize(
     prefix: str = "",
 ) -> str:
     """Quantize an ONNX model to INT8 using ONNX Runtime static quantization."""
+    import onnx
     from onnxruntime.quantization import quantize_static
 
+    # Quantize only weighted ops; leaving elementwise math in float keeps the head's decode (Concat of box pixels
+    # ~0-640 and class probs 0-1) off a single per-tensor scale that would round every class score to 0. Excluding by
+    # node (vs op_types_to_quantize) still calibrates all tensors, avoiding an ONNX Runtime crash on attention Softmax.
+    graph = onnx.load(onnx_file).graph
+    exclude = [n.name for n in graph.node if n.op_type not in {"Conv", "Gemm", "MatMul"}]
+
     LOGGER.info(f"{prefix} quantizing INT8 with ONNX Runtime...")
-    # Quantize only weighted ops; leaving the detect head's decode math (DFL/Concat/Sigmoid) in float avoids a single
-    # per-tensor scale spanning box pixels (~0-640) and class probs (0-1), which would round every class score to 0.
     quantize_static(
         onnx_file,
         output_file,
         onnx_calibration_reader(dataset, transform_fn, input_name, batch),
-        op_types_to_quantize=["Conv", "Gemm", "MatMul"],
+        nodes_to_exclude=exclude,
     )
     return output_file

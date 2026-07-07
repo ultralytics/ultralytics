@@ -103,6 +103,7 @@ class Detect(nn.Module):
     o2o_residual_head = False  # lightweight residual cls head for one2one (share boxes with o2m)
     peak_pool_k = 0  # end2end inference-only local-max suppression kernel (0=off, odd int like 3/5)
     keep_one2many = False  # keep one2many head through fuse() to allow dual-head validation (set by the validator)
+    fixed_c3 = 0  # fix cls branch hidden width regardless of nc (0 = auto: min(nc, 100)); keeps head shape stable across datasets for finetuning
 
     def __init__(self, nc: int = 80, reg_max=16, end2end=False, ch: tuple = ()):
         """Initialize the YOLO detection layer with specified number of classes and channels.
@@ -119,7 +120,7 @@ class Detect(nn.Module):
         self.reg_max = reg_max  # DFL channels (ch[0] // 16 to scale 4/8/12/16/20 for n/s/m/l/x)
         self.no = nc + self.reg_max * 4  # number of outputs per anchor
         self.stride = torch.zeros(self.nl)  # strides computed during build
-        c2, c3 = max((16, ch[0] // 4, self.reg_max * 4)), max(ch[0], min(self.nc, 100))  # channels
+        c2, c3 = max((16, ch[0] // 4, self.reg_max * 4)), max(ch[0], (self.fixed_c3 or min(self.nc, 100)))  # channels
         if self.rep_head:
             self.cv2 = nn.ModuleList(
                 nn.Sequential(RepConv(x, c2, 3, bn=(x == c2)), RepConv(c2, c2, 3, bn=True), nn.Conv2d(c2, 4 * self.reg_max, 1)) for x in ch
@@ -440,7 +441,7 @@ class DetectBoxContext(Detect):
 
         if end2end:
             c2 = max((16, ch[0] // 4, self.reg_max * 4))
-            c3 = max(ch[0], min(self.nc, 100))
+            c3 = max(ch[0], (self.fixed_c3 or min(self.nc, 100)))
 
             # Shared regression reference (no duplication)
             self.one2one_cv2 = self.cv2
@@ -570,7 +571,7 @@ class DetectBoxContextFull(DetectBoxContext):
         super().__init__(nc, reg_max, end2end=end2end, ch=ch)
 
         c2 = max((16, ch[0] // 4, self.reg_max * 4))
-        c3 = max(ch[0], min(self.nc, 100))
+        c3 = max(ch[0], (self.fixed_c3 or min(self.nc, 100)))
 
         # Rebuild cv3 with box context input: x + c2 channels
         if self.rep_head:
@@ -661,7 +662,7 @@ class DetectBoxContextSep(Detect):
 
         if end2end:
             c2 = max((16, ch[0] // 4, self.reg_max * 4))
-            c3 = max(ch[0], min(self.nc, 100))
+            c3 = max(ch[0], (self.fixed_c3 or min(self.nc, 100)))
 
             # Separate o2o regression (deepcopy of cv2 structure)
             self.one2one_cv2 = copy.deepcopy(self.cv2)
@@ -758,7 +759,7 @@ class DetectBoxContextFullSep(DetectBoxContextSep):
         super().__init__(nc, reg_max, end2end=end2end, ch=ch)
 
         c2 = max((16, ch[0] // 4, self.reg_max * 4))
-        c3 = max(ch[0], min(self.nc, 100))
+        c3 = max(ch[0], (self.fixed_c3 or min(self.nc, 100)))
 
         # Rebuild cv3 with box context input: x + c2 channels
         if self.rep_head:
@@ -1617,7 +1618,7 @@ class WorldDetect(Detect):
             ch (tuple): Tuple of channel sizes from backbone feature maps.
         """
         super().__init__(nc, reg_max=reg_max, end2end=end2end, ch=ch)
-        c3 = max(ch[0], min(self.nc, 100))
+        c3 = max(ch[0], (self.fixed_c3 or min(self.nc, 100)))
         self.cv3 = nn.ModuleList(nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3), nn.Conv2d(c3, embed, 1)) for x in ch)
         self.cv4 = nn.ModuleList(BNContrastiveHead(embed) if with_bn else ContrastiveHead() for _ in ch)
 
@@ -1758,7 +1759,7 @@ class YOLOEDetect(Detect):
             ch (tuple): Tuple of channel sizes from backbone feature maps.
         """
         super().__init__(nc, reg_max, end2end, ch)
-        c3 = max(ch[0], min(self.nc, 100))
+        c3 = max(ch[0], (self.fixed_c3 or min(self.nc, 100)))
         assert c3 <= embed
         assert with_bn
         self.cv3 = (
@@ -2514,7 +2515,7 @@ class v10Detect(Detect):
             ch (tuple): Tuple of channel sizes from backbone feature maps.
         """
         super().__init__(nc, end2end=True, ch=ch)
-        c3 = max(ch[0], min(self.nc, 100))  # channels
+        c3 = max(ch[0], (self.fixed_c3 or min(self.nc, 100)))  # channels
         # Light cls head
         self.cv3 = nn.ModuleList(
             nn.Sequential(

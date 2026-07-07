@@ -1,0 +1,38 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# YOLO26-UltraViT-attn2-cls: classification counterpart of yolo26-ultravit-attn2.yaml.
+# ONLY change vs yolo26-ultravit-cls.yaml: layer-8 MHSABlock repeat 5 -> 8, i.e. +1 effective
+# P5 attention block per size (n/s/m 1->2, l/x 2->3). Phase1-distillation config for the deeper
+# P5 stage; backbone 0-8 stays name-for-name identical to yolo26-ultravit-attn2.yaml, so the
+# distilled weights transfer into the det backbone via intersect_dicts.
+# NOTE latency gate (backbone-benchmark.md): the uniform repeat-8 clears conv det@640 only at
+# m/l/x; n/s exceed conv latency (+1.7/+3.5%), so a DEPLOYABLE n/s must keep the base count.
+# This uniform config is the X-scale distillation research arm (X cleared the gate).
+
+# Parameters
+nc: 1000 # number of classes
+
+scales:
+  # [depth, width, max_channels]
+  n: [0.20, 0.25, 1152]
+  s: [0.20, 0.50, 1152]
+  m: [0.25, 1.00, 512]
+  l: [0.35, 1.00, 512]
+  x: [0.35, 1.50, 512]
+
+# UltraViT backbone: RepMixer stages 1-3 + MHSA stage 4, strides 4/8/16/32
+backbone:
+  # [from, repeats, module, args]
+  - [-1, 1, Conv, [64, 3, 2]] # 0 P1/2 stem
+  - [-1, 1, Conv, [96, 3, 2]] # 1 P2/4 stem
+  - [-1, 5, UltraViTBlock, [3, True, 0.00001]] # 2 stage1 P2/4
+  - [-1, 1, Conv, [192, 3, 2]] # 3 P3/8 downsample
+  - [-1, 5, UltraViTBlock, [3, True, 0.00001]] # 4 stage2 P3/8
+  - [-1, 1, Conv, [384, 3, 2]] # 5 P4/16 downsample
+  - [-1, 20, UltraViTBlock, [3, True, 0.00001]] # 6 stage3 P4/16
+  - [-1, 1, Conv, [1152, 3, 2]] # 7 P5/32 downsample
+  - [-1, 8, MHSABlock, [0, 4, True, 0.00001, True, 32]] # 8 stage4 P5/32 (+1 block per size)
+
+# Head
+head:
+  - [-1, 1, Classify, [nc]] # 9 AdaptiveAvgPool + Conv1x1 + Linear

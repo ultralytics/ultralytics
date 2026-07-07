@@ -151,14 +151,9 @@ def modelopt_quantize_onnx(
             # scales are EP-independent, so the INT8 engine is equivalent and only this one-time step is slower.
             calibration_eps=["cpu"],
             output_path=out_file,
-            # Exclude precision-sensitive nonlinearities from INT8 quantization to preserve
-            # confidence score calibration. YOLO26's one-to-one head produces moderate logits in
-            # the sigmoid's steep region where quantization error is amplified. Softmax is also
-            # excluded for RT-DETR classifier heads. Excluded ops run in FP16 (ModelOpt's default
-            # high_precision_dtype), which is sufficient for 0-3 logits. OpenVINO's IgnoredScope
-            # is stricter (keeps ops in FP32), but the accuracy impact is negligible here.
-            # See https://github.com/ultralytics/ultralytics/issues/24668
-            op_types_to_exclude=list(_FP32_PRESERVED_OPS),
+            # Keep Sigmoid/Softmax unquantized (they run in FP16) to preserve confidence-score calibration,
+            # mirroring the OpenVINO IgnoredScope https://github.com/ultralytics/ultralytics/issues/24668
+            op_types_to_exclude=["Sigmoid", "Softmax"],
             **kwargs,
         )
         return out_file
@@ -177,89 +172,6 @@ def modelopt_quantize_onnx(
         out_file,
     )
     return out_file
-
-
-# Activation types that should be preserved in FP32 during INT8 quantization.
-# These nonlinearities produce calibrated scores (confidences, probabilities, angles)
-# where INT8 quantization error in the steep region causes score compression.
-# See https://github.com/ultralytics/ultralytics/issues/24668
-# UPPERCASE: matches trt.ActivationType enum names (used by the TRT 10 layer loop).
-_FP32_PRESERVED_ACTIVATIONS = ("SIGMOID", "SOFTMAX")
-# Title-case: matches ONNX op type names (used by ModelOpt's op_types_to_exclude).
-_FP32_PRESERVED_OPS = ("Sigmoid", "Softmax")
-
-
-def _is_precision_sensitive_activation(layer, trt) -> bool:
-    """Check whether an activation layer is precision-sensitive (should be kept in FP32 for INT8).
-
-    Tries the typed cast ``IActivationLayer`` first (TRT 10.3-), then falls back to layer name
-    matching (TRT 10.7+ bindings don't expose ``activation_type`` on the base ``ILayer``).
-    """
-    # TRT 10.3-: IActivationLayer(layer) cast works, exposing .activation_type for reliable
-    # enum-based detection. TRT 10.7+: the cast constructor was removed from the Python bindings,
-    # so we fall back to matching by layer name (the ONNX importer names Sigmoid layers "Sigmoid_*").
-    if not hasattr(trt, "IActivationLayer"):
-        return _is_sensitive_by_name(layer.name, trt)
-    try:
-        act_layer = trt.IActivationLayer(layer)
-        act_type = getattr(act_layer, "activation_type", None)
-        if act_type is not None:
-            for name in _FP32_PRESERVED_ACTIVATIONS:
-                attr = getattr(trt.ActivationType, name, None)
-                if attr is not None and act_type == attr:
-                    return True
-            return False
-    except TypeError:
-        pass  # TRT 10.7+ — IActivationLayer() constructor not available
-    return _is_sensitive_by_name(layer.name, trt)
-
-
-def _is_sensitive_by_name(name: str, trt) -> bool:
-    """Fallback: detect precision-sensitive activations by layer name."""
-    lower = name.lower()
-    for act_name in _FP32_PRESERVED_ACTIVATIONS:
-        if act_name.lower() in lower:
-            return True
-    return False
-
-
-def _constrain_sensitive_activations_fp32(network, config, trt, prefix: str = "") -> int:
-    """Constrain precision-sensitive nonlinearities (Sigmoid, Softmax) to FP32 for INT8 on TRT 10.
-
-    TRT 10 uses implicit quantization (no Q/DQ nodes), so precision-sensitive nonlinearities
-    cannot be excluded via ModelOpt. Instead, per-layer precision constraints are used.
-
-    In TensorRT, Sigmoid is an ``IActivationLayer`` (``LayerType.ACTIVATION``) while Softmax is a
-    separate ``ISoftMaxLayer`` (``LayerType.SOFTMAX``), so both layer types must be checked.
-
-    Args:
-        network (Any): TensorRT INetworkDefinition.
-        config (Any): TensorRT IBuilderConfig.
-        trt (types.ModuleType): The tensorrt module.
-        prefix (str): Log message prefix.
-
-    Returns:
-        (int): Number of layers constrained to FP32.
-    """
-    config.set_flag(trt.BuilderFlag.OBEY_PRECISION_CONSTRAINTS)
-    count = 0
-    softmax_type = getattr(trt.LayerType, "SOFTMAX", None)
-    for i in range(network.num_layers):
-        layer = network.get_layer(i)
-        if layer.type == trt.LayerType.ACTIVATION and _is_precision_sensitive_activation(layer, trt):
-            layer.precision = trt.float32
-            for j in range(layer.num_outputs):
-                layer.set_output_type(j, trt.float32)
-            count += 1
-        elif softmax_type is not None and layer.type == softmax_type:
-            layer.precision = trt.float32
-            for j in range(layer.num_outputs):
-                layer.set_output_type(j, trt.float32)
-            count += 1
-    if count:
-        names = "/".join(a.title() for a in _FP32_PRESERVED_ACTIVATIONS)
-        LOGGER.info(f"{prefix} constraining {count} {names} layer(s) to FP32 for INT8 accuracy")
-    return count
 
 
 def onnx2engine(
@@ -302,9 +214,8 @@ def onnx2engine(
         calibration uses an ``IInt8Calibrator`` over ``dataset`` and writes a calibration cache, while FP16/INT8 are
         enabled with builder flags. On TensorRT 11 these were removed in favor of strongly-typed networks, so reduced
         precision is baked into the ONNX with NVIDIA ModelOpt before building (FP16 AutoCast, INT8 explicit Q/DQ) by
-        `modelopt_quantize_onnx`. For INT8 on TRT 10, precision-sensitive nonlinearities (Sigmoid activations and
-        Softmax layers) are constrained to FP32 via ``OBEY_PRECISION_CONSTRAINTS`` to preserve confidence-score
-        calibration (see #24668). Metadata is serialized and written to the engine file if provided.
+        `modelopt_quantize_onnx`. Both INT8 paths keep Sigmoid/Softmax at higher precision to preserve
+        confidence-score calibration (see #24668). Metadata is serialized and written to the engine file if provided.
     """
     # Force re-install TensorRT on CUDA 13 ARM devices to 10.15.x versions for RT-DETR exports
     # https://github.com/ultralytics/ultralytics/issues/22873
@@ -471,17 +382,27 @@ def onnx2engine(
             cache=str(Path(onnx_file).with_suffix(".cache")),
         )
 
+        # Implicit quantization cannot exclude op types like ModelOpt on TRT 11, so keep Sigmoid (an ACTIVATION
+        # layer named after its ONNX node) and Softmax (a dedicated layer type) in FP32 via per-layer precision
+        # constraints to preserve confidence-score calibration, mirroring the OpenVINO IgnoredScope
+        # https://github.com/ultralytics/ultralytics/issues/24668
+        if hasattr(trt.BuilderFlag, "OBEY_PRECISION_CONSTRAINTS"):  # TensorRT >= 8.2
+            count = 0
+            for i in range(network.num_layers):
+                layer = network.get_layer(i)
+                if layer.type == trt.LayerType.SOFTMAX or (
+                    layer.type == trt.LayerType.ACTIVATION and "sigmoid" in layer.name.lower()
+                ):
+                    layer.precision = trt.float32
+                    for j in range(layer.num_outputs):
+                        layer.set_output_type(j, trt.float32)
+                    count += 1
+            if count:
+                config.set_flag(trt.BuilderFlag.OBEY_PRECISION_CONSTRAINTS)
+                LOGGER.info(f"{prefix} keeping {count} Sigmoid/Softmax layers in FP32 for INT8 accuracy")
+
     elif use_fp16 and not is_trt11:
         config.set_flag(trt.BuilderFlag.FP16)
-
-    # Constrain precision-sensitive activations (Sigmoid, Softmax) to FP32 for INT8 on TRT 10.
-    # TRT 10 uses implicit quantization (no Q/DQ nodes), so unlike TRT 11+ where ModelOpt's
-    # op_types_to_exclude handles this, we must set per-layer precision + OBEY_PRECISION_CONSTRAINTS.
-    # The helper handles both IActivationLayer (Sigmoid) and ISoftMaxLayer (Softmax) layer types,
-    # and uses a typed cast for TRT 10.3- or name matching for TRT 10.7+ (see helper docstring).
-    # See https://github.com/ultralytics/ultralytics/issues/24668
-    if use_int8 and not is_trt11:
-        _constrain_sensitive_activations_fp32(network, config, trt, prefix)
 
     # Write file
     if hasattr(builder, "build_serialized_network"):

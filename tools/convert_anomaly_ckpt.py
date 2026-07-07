@@ -33,7 +33,8 @@ from ultralytics.nn.tasks import YOLOAnomalyModel, temporary_modules
 _LEGACY_ALIASES = {
     "modules": {
         "ultralytics.nn.modules.anomaly_v2": "ultralytics.nn.modules.anomaly",
-        "ultralytics.nn.modules.anomaly_v2_prior_augment": "ultralytics.nn.modules.anomaly",
+        # "ultralytics.nn.modules.anomaly_v2_prior_augment": "ultralytics.nn.modules.anomaly",
+        "ultralytics.nn.modules.anomaly_v2_prior_augment": "ultralytics.nn.modules.anomaly_prior_augment",
         "ultralytics.models.yolo.anomaly_v2": "ultralytics.models.yolo.anomaly",
     },
     "attributes": {

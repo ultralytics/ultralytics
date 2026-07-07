@@ -51,7 +51,6 @@ Oriented Bounding Box (OBB) detection enhances traditional object detection by a
 
 [Oriented Detection](obb.md){ .md-button }
 
-
 ## Conclusion
 
 Ultralytics YOLO26 supports multiple computer vision tasks, including detection, segmentation, classification, oriented object detection, and keypoint detection. Each task addresses specific needs in the computer vision landscape, from basic object identification to detailed pose analysis. By understanding the capabilities and applications of each task, you can select the most appropriate approach for your specific computer vision challenges and leverage YOLO26's powerful features to build effective solutions.
@@ -66,6 +65,7 @@ Ultralytics YOLO26 is a versatile AI framework capable of performing various com
 - **[Image segmentation](segment.md):** Segmenting images into different regions based on their content, useful for applications like medical imaging.
 - **[Classification](classify.md):** Categorizing entire images based on their content.
 - **[Pose estimation](pose.md):** Detecting specific keypoints in an image or video frame to track movements or poses.
+- **[Oriented Object Detection (OBB)](obb.md):** Detecting rotated objects with an added orientation angle for enhanced accuracy.
 
 ### How do I use Ultralytics YOLO26 for object detection?
 

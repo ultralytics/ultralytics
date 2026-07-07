@@ -138,8 +138,12 @@ from .transformer import (
     TransformerEncoderLayer,
     TransformerLayer,
 )
+from .vit_blocks import FastViTBlock, MHSABlock, UltraViTBlock
 
 __all__ = (
+    "FastViTBlock",
+    "MHSABlock",
+    "UltraViTBlock",
     "AIFI",
     "AFPNFuse",
     "DilatedBottleneck",

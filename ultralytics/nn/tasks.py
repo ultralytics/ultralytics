@@ -14,6 +14,9 @@ from ultralytics.nn.autobackend import check_class_names
 from ultralytics.nn.modules import (
     AIFI,
     AFPNFuse,
+    FastViTBlock,
+    MHSABlock,
+    UltraViTBlock,
     DilatedBottleneck,
     DilatedEncoder,
     GSConv,
@@ -1794,7 +1797,7 @@ def parse_model(d, ch, verbose=True):
                     args.extend((True, 1.2))
             if m is C2fCIB:
                 legacy = False
-        elif m is AIFI:
+        elif m in frozenset({AIFI, UltraViTBlock, FastViTBlock, MHSABlock}):
             args = [ch[f], *args]
         elif m in frozenset({HGStem, HGBlock}):
             c1 = ch[f]

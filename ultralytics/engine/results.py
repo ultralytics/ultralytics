@@ -256,8 +256,8 @@ class Results(SimpleClass, DataExportMixin):
             obb (torch.Tensor | None): A 2D tensor of oriented bounding box coordinates for each detection.
             semantic_mask (torch.Tensor | None): A 2D tensor of class IDs for semantic segmentation results.
             speed (dict | None): A dictionary containing preprocess, inference, and postprocess speeds (ms/image).
-            logits (torch.Tensor | None): A 2D tensor of shape (N, num_classes) containing raw pre-sigmoid class
-                scores for each surviving detection. Populated when predict() is called with logits=True.
+            logits (torch.Tensor | None): A 2D tensor of shape (N, num_classes) containing raw pre-sigmoid class scores
+                for each surviving detection. Populated when predict() is called with logits=True.
 
         Notes:
             For the default pose model, keypoint indices for human body pose estimation are:
@@ -1395,14 +1395,13 @@ class Probs(BaseTensor):
 class Logits(BaseTensor):
     """Per-detection raw class scores (pre-sigmoid logits).
 
-    Stores the raw classification head output for each detection that survives NMS, gathered via the
-    `logits=True` predict flag. The post-sigmoid per-class probabilities are exposed via the `probs`
-    property; calling `.sigmoid().max(1).values` on the data is equivalent to the corresponding `boxes.conf`
-    value for each row.
+    Stores the raw classification head output for each detection that survives NMS, gathered via the `logits=True`
+    predict flag. The post-sigmoid per-class probabilities are exposed via the `probs` property; calling
+    `.sigmoid().max(1).values` on the data is equivalent to the corresponding `boxes.conf` value for each row.
 
     Attributes:
-        data (torch.Tensor | np.ndarray): Tensor of shape (N, num_classes) with raw pre-sigmoid class scores,
-            where N matches the number of detections in the accompanying Boxes.
+        data (torch.Tensor | np.ndarray): Tensor of shape (N, num_classes) with raw pre-sigmoid class scores, where N
+            matches the number of detections in the accompanying Boxes.
         orig_shape (tuple[int, int]): Original image shape; kept for API consistency.
 
     Examples:
@@ -1428,8 +1427,8 @@ class Logits(BaseTensor):
         """Return per-class probabilities by applying sigmoid to the stored logits.
 
         Returns:
-            (torch.Tensor | np.ndarray): Probabilities of shape (N, num_classes), values in [0, 1]. The dtype
-                and backend (torch or numpy) match `self.data`.
+            (torch.Tensor | np.ndarray): Probabilities of shape (N, num_classes), values in [0, 1]. The dtype and
+                backend (torch or numpy) match `self.data`.
         """
         if isinstance(self.data, torch.Tensor):
             return self.data.sigmoid()

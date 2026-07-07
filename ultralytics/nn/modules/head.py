@@ -20,7 +20,154 @@ from .conv import Conv, DWConv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init
 
-__all__ = ("OBB", "Classify", "Detect", "Pose", "RTDETRDecoder", "Segment", "YOLOEDetect", "YOLOESegment", "v10Detect")
+__all__ = (
+    "AnomalyDetect",
+    "OBB",
+    "Classify",
+    "Detect",
+    "Pose",
+    "RTDETRDecoder",
+    "Segment",
+    "YOLOEDetect",
+    "YOLOESegment",
+    "v10Detect",
+)
+
+
+class HeatmapBiasFusion(nn.Module):
+    """Soft-hint fusion: 1-ch mask -> bounded per-pixel bias broadcast onto PAN features.
+
+    Output shape ``(B, 1, H, W)`` — the caller broadcasts (adds) it to a PAN feature
+    of shape ``(B, C, H, W)``. The conv stack is SHARED across PAN scales; the caller
+    is responsible for resizing the mask to each scale before calling forward.
+
+    Per-scale magnitude is controlled by ``beta[i]``, initialized to zero so training
+    starts as pure passthrough (vanilla YOLO). Without a hard cap, beta can in
+    principle grow large; that is intentional — the detection loss decides how much
+    to lean on the heatmap.
+
+    Output per pixel is in ``[-beta_i, +beta_i]`` via tanh.
+    """
+
+    def __init__(self, num_scales: int = 3, c_mid: int = 8):
+        """Initialize shared conv stack and per-scale beta parameters."""
+        super().__init__()
+        self.conv = nn.Sequential(
+            nn.Conv2d(1, c_mid, 3, padding=1),
+            nn.GELU(),
+            nn.Conv2d(c_mid, 1, 3, padding=1),
+        )
+        self.beta = nn.Parameter(torch.zeros(num_scales))
+
+    def forward(self, mask: torch.Tensor, scale_idx: int) -> torch.Tensor:
+        """Return bias (B, 1, H, W) for the given PAN scale.
+
+        Args:
+            mask: (B, 1, H, W) already resized to the target PAN scale.
+            scale_idx: index into ``self.beta``.
+
+        Returns:
+            Bias tensor (B, 1, H, W) in ``[-beta_i, +beta_i]``.
+        """
+        dtype = next(self.conv.parameters()).dtype
+        return self.beta[scale_idx] * torch.tanh(self.conv(mask.to(dtype)))
+
+
+class HeatmapProcessor(nn.Module):
+    """Post-process a memory-bank heatmap prior before it is fused into PAN features.
+
+    Encapsulates the inference-time transforms that were previously scattered inside
+    ``YOLOAnomalyModel``: edge-suppression window, min-max stretch, and gaussian/mean
+    blur. The processing knobs are owned here as baked-in defaults and are not configurable.
+    """
+
+    def __init__(
+        self,
+        mask_size: int = 80,
+        norm: str = "none",
+        smooth_kernel: int = 5,
+        edge_weight: bool = True,
+        edge_p: float = 4.0,
+        edge_m: float = 4.4,
+        edge_sigma: float = 1.0,
+    ):
+        """Initialize processor with baked-in defaults."""
+        super().__init__()
+        self.mask_size = int(mask_size)
+        self.norm = str(norm)
+        self.smooth_kernel = int(smooth_kernel)
+        self.edge_weight = bool(edge_weight)
+        self.edge_p = float(edge_p)
+        self.edge_m = float(edge_m)
+        self.edge_sigma = float(edge_sigma)
+        self._edge_weight_cache: tuple | None = None
+
+    def forward(self, hmap: torch.Tensor) -> torch.Tensor:
+        """Apply edge-weight, normalization, and smoothing to ``hmap``.
+
+        Args:
+            hmap: (B, 1, H, W) raw memory-bank heatmap.
+
+        Returns:
+            Processed heatmap of the same shape.
+        """
+        if hmap is None or hmap.numel() == 0:
+            return hmap
+
+        # Edge-suppression window: down-weight borders where peripheral patches score
+        # high from boundary effects rather than real defects.
+        if self.edge_weight:
+            hmap = hmap * self._edge_weight(
+                hmap,
+                p=self.edge_p,
+                m=self.edge_m,
+                sigma=self.edge_sigma,
+            )
+
+        # Per-image min-max normalization: stretch each sample's prior to [0, 1].
+        if self.norm == "minmax":
+            b = hmap.shape[0]
+            flat = hmap.reshape(b, -1)
+            lo = flat.min(dim=1, keepdim=True).values
+            hi = flat.max(dim=1, keepdim=True).values
+            hmap = ((flat - lo) / (hi - lo).clamp_min(1e-6)).reshape_as(hmap)
+        elif self.norm in ("gaussian", "mean"):
+            hmap = self._smooth_prior(hmap, self.norm, self.smooth_kernel)
+
+        return hmap
+
+    @staticmethod
+    def _smooth_prior(mask: torch.Tensor, mode: str, kernel: int) -> torch.Tensor:
+        """Blur the prior heatmap while preserving its [0, 1] scale and blob structure."""
+        k = max(1, int(kernel)) | 1  # force odd so padding keeps H, W
+        if k < 3:
+            return mask
+        if mode == "mean":
+            ker = torch.ones(1, 1, k, k, device=mask.device, dtype=mask.dtype) / float(k * k)
+        else:  # gaussian
+            ax = torch.arange(k, device=mask.device, dtype=mask.dtype) - (k - 1) / 2.0
+            g = torch.exp(-(ax**2) / (2.0 * (k / 6.0) ** 2))
+            g = g / g.sum()
+            ker = (g[:, None] * g[None, :])[None, None]
+        return F.conv2d(mask, ker, padding=k // 2)
+
+    def _edge_weight(self, mask: torch.Tensor, p: float, m: float, sigma: float) -> torch.Tensor:
+        """Fixed squircle-Gaussian center-weight window matching ``mask``'s HxW (cached)."""
+        h, w = mask.shape[-2], mask.shape[-1]
+        key = (h, w, p, m, sigma, mask.device, mask.dtype)
+        cache = self._edge_weight_cache
+        if cache is None or cache[0] != key:
+            yc = (torch.arange(h, device=mask.device, dtype=torch.float32) - (h - 1) / 2.0).abs() / max(
+                (h - 1) / 2.0, 1e-6
+            )
+            xc = (torch.arange(w, device=mask.device, dtype=torch.float32) - (w - 1) / 2.0).abs() / max(
+                (w - 1) / 2.0, 1e-6
+            )
+            dist = (xc[None, :] ** p + yc[:, None] ** p) ** (1.0 / p)
+            wmap = torch.exp(-(dist**m) / (2.0 * sigma**m)).to(mask.dtype)
+            cache = (key, wmap[None, None])
+            self._edge_weight_cache = cache
+        return cache[1]
 
 
 class Detect(nn.Module):
@@ -272,6 +419,110 @@ class Detect(nn.Module):
     def fuse(self) -> None:
         """Remove the one2many head for inference optimization."""
         self.cv2 = self.cv3 = None
+
+
+class AnomalyDetect(Detect):
+    """YOLO detection head with built-in anomaly heatmap fusion and gating.
+
+    Unlike the standard ``Detect`` head, ``AnomalyDetect`` owns the heatmap
+    processing and fusion machinery:
+
+      - ``heatmap_processor``: edge-suppression, normalization, and smoothing of
+        the input prior/heatmap.
+      - ``heatmap_bias_fusion``: produces a bounded per-pixel bias added to each
+        PAN feature before the box/cls branches run.
+
+    During inference, the processed heatmap is also used to gate classification
+    scores via the inherited ``Detect._inference`` heatmap gate.
+
+    Attributes:
+        heatmap_processor (HeatmapProcessor): Post-processes the raw heatmap prior.
+        heatmap_bias_fusion (HeatmapBiasFusion): Produces per-scale feature biases.
+        hm_gate_blend (float): Blend factor for inference confidence gating;
+            0.0 = full heatmap gate, 1.0 = disabled (vanilla detection).
+
+    Methods:
+        forward: Fuse prior into PAN features and run detection forward.
+    """
+
+    def __init__(
+        self,
+        nc: int = 80,
+        c_mid: int = 32,
+        reg_max: int = 16,
+        end2end: bool = False,
+        ch: tuple = (),
+        mask_size: int = 80,
+    ):
+        """Initialize an anomaly-aware detection head.
+
+        Args:
+            nc (int): Number of classes.
+            c_mid (int): Intermediate channels for the heatmap fusion conv stack.
+            reg_max (int): Maximum number of DFL channels.
+            end2end (bool): Whether to use end-to-end NMS-free detection.
+            ch (tuple): Tuple of channel sizes from backbone feature maps.
+            mask_size (int): Nominal spatial resolution of the heatmap prior.
+        """
+        super().__init__(nc, reg_max, end2end, ch)
+        self.heatmap_bias_fusion = HeatmapBiasFusion(num_scales=self.nl, c_mid=c_mid)
+        self.heatmap_processor = HeatmapProcessor(mask_size=mask_size)
+        self.hm_gate_blend = 0.0
+
+    def forward(
+        self,
+        x: list[torch.Tensor],
+        prior: torch.Tensor | None = None,
+        keep: torch.Tensor | None = None,
+        heatmap: torch.Tensor | None = None,
+    ) -> dict[str, torch.Tensor] | torch.Tensor | tuple[torch.Tensor, dict[str, torch.Tensor]]:
+        """Fuse an optional heatmap prior into PAN features, then run detection.
+
+        Args:
+            x (list[torch.Tensor]): PAN feature maps.
+            prior (torch.Tensor | None): Optional ``(B, 1, H, W)`` heatmap or rendered
+                mask prior. This is processed and resized to each PAN scale before fusion.
+            keep (torch.Tensor | None): Optional ``(B,)`` dropout mask used during
+                training. A zero entry zeros the fused bias for that sample.
+            heatmap (torch.Tensor | None): Alias for ``prior`` kept for compatibility
+                with callers that pass an inference heatmap as ``heatmap``.
+
+        Returns:
+            Training predictions dict, or inference detections (and raw preds tuple
+            when not exporting), following the ``Detect`` contract.
+        """
+        prior = prior if prior is not None else heatmap
+        processed_prior = None
+        feats = x
+        if prior is not None:
+            processed_prior = self.heatmap_processor(prior.to(device=x[0].device, dtype=x[0].dtype))
+            feats = []
+            for i, p in enumerate(x):
+                target_h, target_w = p.shape[2], p.shape[3]
+                if processed_prior.shape[-2:] != (target_h, target_w):
+                    m_scale = F.interpolate(
+                        processed_prior, size=(target_h, target_w), mode="bilinear", align_corners=False
+                    )
+                else:
+                    m_scale = processed_prior
+                delta = self.heatmap_bias_fusion(m_scale, i)
+                if keep is not None:
+                    delta = delta * keep.to(delta.dtype).view(-1, 1, 1, 1)
+                feats.append(p + delta)
+
+        # Delegate the rest to the standard Detect logic, using the (possibly)
+        # fused features. The processed prior is passed to _inference for score gating.
+        preds = self.forward_head(feats, **self.one2many)
+        if self.end2end:
+            x_detach = [xi.detach() for xi in feats]
+            one2one = self.forward_head(x_detach, **self.one2one)
+            preds = {"one2many": preds, "one2one": one2one}
+        if self.training:
+            return preds
+        y = self._inference(preds["one2one"] if self.end2end else preds, heatmap=processed_prior)
+        if self.end2end:
+            y = self.postprocess(y.permute(0, 2, 1))
+        return y if self.export else (y, preds)
 
 
 class Segment(Detect):

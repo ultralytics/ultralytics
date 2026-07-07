@@ -87,4 +87,4 @@ head:
   - [[-1, 10], 1, Concat, [1]]
   - [-1, 1, C3k2, [1024, True, 0.5, True]]
 
-  - [[16, 19, 22], 1, Detect, [nc]]
+  - [[16, 19, 22], 1, AnomalyDetect, [nc, 32]]

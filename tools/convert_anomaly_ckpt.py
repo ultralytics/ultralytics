@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-"""Convert an old anomaly checkpoint to the current format.
+"""Convert an old anomaly checkpoint to the current AnomalyDetect-head format.
 
-This script exists because the anomaly code no longer carries __setstate__/
-__getstate__ workarounds in the model classes. Run it once per old weight file
-to migrate deprecated attributes and bake the current defaults into the saved
-object, then use the converted file with the current code.
+Older anomaly checkpoints stored ``HeatmapBiasFusion`` and ``HeatmapProcessor`` as
+model-level modules alongside a standard ``Detect`` head. Current code moves both
+modules *inside* a dedicated ``AnomalyDetect`` head. This script rebuilds a fresh
+model with the new architecture and migrates the weights/state.
 
 Example:
     python tools/convert_anomaly_ckpt.py \
@@ -17,15 +17,13 @@ Example:
 from __future__ import annotations
 
 import argparse
-import sys
+from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
 import torch
 
-from ultralytics.models.yolo import anomaly as _yolo_anomaly
-from ultralytics.nn.modules import anomaly as _anomaly
-from ultralytics.nn.modules.anomaly import AnomalyMemoryBank, BboxMaskRenderer, HeatmapProcessor
+from ultralytics.nn.modules.anomaly import AnomalyMemoryBank, BboxMaskRenderer
 from ultralytics.nn.tasks import YOLOAnomalyModel, temporary_modules
 
 # Old checkpoints pickle modules/classes that were later renamed. Alias them
@@ -111,25 +109,13 @@ def _migrate_anomaly_memory_bank(m: AnomalyMemoryBank) -> None:
             delattr(m, attr)
 
 
-def _migrate_heatmap_processor(m: HeatmapProcessor) -> None:
-    """Ensure HeatmapProcessor owns the current default knobs."""
-    defaults = HeatmapProcessor(mask_size=getattr(m, "mask_size", 80)).__dict__
-    for k in ("norm", "smooth_kernel", "edge_weight", "edge_p", "edge_m", "edge_sigma"):
-        setattr(m, k, defaults[k])
-    # Transient cache should not be saved.
-    m._edge_weight_cache = None
-
-
-def _migrate_v2_model(m: YOLOAnomalyModel) -> None:
-    """Apply the migration that used to live in YOLOAnomalyModel.__setstate__."""
-    # Ensure submodules are migrated.
+def _migrate_modules(m: YOLOAnomalyModel) -> None:
+    """Apply module-level migrations to memory bank and bbox renderer."""
     for module in m.modules():
         if isinstance(module, BboxMaskRenderer):
             _migrate_bbox_mask_renderer(module)
         elif isinstance(module, AnomalyMemoryBank):
             _migrate_anomaly_memory_bank(module)
-        elif isinstance(module, HeatmapProcessor):
-            _migrate_heatmap_processor(module)
 
     # Rename legacy _bb_layers -> bb_layers.
     if "_bb_layers" in m.__dict__ and "bb_layers" not in m.__dict__:
@@ -167,11 +153,6 @@ def _migrate_v2_model(m: YOLOAnomalyModel) -> None:
         if not hasattr(m, attr):
             setattr(m, attr, default)
 
-    # Ensure the heatmap processor exists and is reset to defaults.
-    if not hasattr(m, "heatmap_processor"):
-        m.heatmap_processor = HeatmapProcessor(mask_size=getattr(m, "mask_size", 80))
-    _migrate_heatmap_processor(m.heatmap_processor)
-
     # Reset bank defaults so pickled bank-build hyperparameters never override the code defaults.
     mb = getattr(m, "memory_bank", None)
     if mb is not None:
@@ -186,16 +167,71 @@ def _migrate_v2_model(m: YOLOAnomalyModel) -> None:
         mb._chunks = []
 
 
-def _fix_task(model: YOLOAnomalyModel, ckpt: dict[str, Any]) -> None:
-    """Bake the current 'detect' task into the model and checkpoint args.
+def _build_new_model(old_model: YOLOAnomalyModel) -> YOLOAnomalyModel:
+    """Create a fresh YOLOAnomalyModel using the old YAML but with AnomalyDetect head."""
+    yaml_cfg = deepcopy(old_model.yaml)
 
-    YOLOA is now a model group that uses the standard detection task, so any
-    stale 'anomaly' or 'anomaly_v2' task strings in old checkpoints must be
-    overwritten before the converted file can be loaded by ``YOLOA(...)``.
-    """
-    model.task = "detect"
-    if hasattr(model, "args") and isinstance(model.args, dict):
-        model.args["task"] = "detect"
+    # Normalize legacy ``anomaly_v2`` key to ``anomaly``.
+    if "anomaly_v2" in yaml_cfg and "anomaly" not in yaml_cfg:
+        yaml_cfg["anomaly"] = yaml_cfg.pop("anomaly_v2")
+
+    # Infer the old fusion mid-channel from the pickled state so we preserve weights.
+    old_state = old_model.state_dict()
+    fusion_key = "heatmap_bias_fusion.conv.0.weight"
+    inferred_c_mid = old_state.get(fusion_key, torch.empty(32, 1, 3, 3)).shape[0]
+
+    for entry in yaml_cfg.get("head", []):
+        if len(entry) >= 3 and entry[2] == "Detect":
+            entry[2] = "AnomalyDetect"
+            args = list(entry[3]) if len(entry) > 3 else []
+            if not args:
+                args = [yaml_cfg.get("nc", 80)]
+            if len(args) < 2:
+                args.append(inferred_c_mid)
+            entry[3] = args
+
+    new_model = YOLOAnomalyModel(
+        cfg=yaml_cfg,
+        ch=getattr(old_model, "ch", 3),
+        nc=yaml_cfg.get("nc", 80),
+        verbose=False,
+    )
+
+    # Carry over model-level attributes not baked into the YAML.
+    for attr in ("p_drop", "seg_target_polygon", "mask_size", "bb_layers", "names"):
+        if hasattr(old_model, attr):
+            setattr(new_model, attr, getattr(old_model, attr))
+
+    return new_model
+
+
+def _remap_state_dict(old_state: dict[str, torch.Tensor], new_model: YOLOAnomalyModel) -> dict[str, torch.Tensor]:
+    """Remap old state-dict keys into the new AnomalyDetect structure."""
+    head_idx = len(new_model.model) - 1
+    new_state: dict[str, torch.Tensor] = {}
+
+    for key, value in old_state.items():
+        if key.startswith("heatmap_bias_fusion."):
+            new_key = f"model.{head_idx}.heatmap_bias_fusion.{key[len('heatmap_bias_fusion.'):]}"
+        elif key.startswith("heatmap_processor."):
+            new_key = f"model.{head_idx}.heatmap_processor.{key[len('heatmap_processor.'):]}"
+        elif key == "memory_bank.memory_bank":
+            # Very old checkpoints used ``memory_bank`` as the buffer name.
+            new_key = "memory_bank.bank"
+        else:
+            new_key = key
+        new_state[new_key] = value
+
+    return new_state
+
+
+def _fix_task(ckpt: dict[str, Any]) -> None:
+    """Bake the current 'detect' task into the checkpoint args."""
+    model = ckpt.get("model")
+    if model is not None:
+        model.task = "detect"
+        if hasattr(model, "args") and isinstance(model.args, dict):
+            model.args["task"] = "detect"
 
     train_args = ckpt.get("train_args")
     if isinstance(train_args, dict):
@@ -203,23 +239,42 @@ def _fix_task(model: YOLOAnomalyModel, ckpt: dict[str, Any]) -> None:
 
 
 def convert_checkpoint(input_path: str | Path, output_path: str | Path) -> dict[str, Any]:
-    """Load an old checkpoint, migrate it, and save the migrated checkpoint."""
+    """Load an old checkpoint, migrate it to the AnomalyDetect-head format, and save."""
     input_path = Path(input_path)
     output_path = Path(output_path)
 
     ckpt = _load_with_aliases(input_path)
     if isinstance(ckpt, YOLOAnomalyModel):
-        model = ckpt
-        ckpt = {"model": model, "updates": None, "optimizer": None, "args": None}
+        old_model = ckpt
+        ckpt = {"model": old_model, "updates": None, "optimizer": None, "args": None}
     else:
-        model = ckpt.get("model")
+        old_model = ckpt.get("model")
 
-    if not isinstance(model, YOLOAnomalyModel):
-        raise TypeError(f"expected YOLOAnomalyModel, got {type(model).__name__}")
+    if not isinstance(old_model, YOLOAnomalyModel):
+        raise TypeError(f"expected YOLOAnomalyModel, got {type(old_model).__name__}")
 
-    model.eval()
-    _migrate_v2_model(model)
-    _fix_task(model, ckpt)
+    old_model.eval()
+    _migrate_modules(old_model)
+
+    new_model = _build_new_model(old_model)
+
+    # Copy weights with remapping for the heatmap modules that moved into the head.
+    old_state = old_model.state_dict()
+    remapped_state = _remap_state_dict(old_state, new_model)
+    new_state = new_model.state_dict()
+
+    matched = {}
+    for key, value in remapped_state.items():
+        if key in new_state and new_state[key].shape == value.shape:
+            matched[key] = value
+        else:
+            print(f"  skipping incompatible/missing key: {key}")
+
+    new_model.load_state_dict(matched, strict=False)
+
+    # Replace the model in the checkpoint dict.
+    ckpt["model"] = new_model
+    _fix_task(ckpt)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     torch.save(ckpt, output_path)
@@ -227,7 +282,7 @@ def convert_checkpoint(input_path: str | Path, output_path: str | Path) -> dict[
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Convert an old anomaly checkpoint to the current format.")
+    parser = argparse.ArgumentParser(description="Convert an old anomaly checkpoint to the current AnomalyDetect format.")
     parser.add_argument("--input", "-i", required=True, type=Path, help="Path to the old checkpoint.")
     parser.add_argument("--output", "-o", required=True, type=Path, help="Path to write the converted checkpoint.")
     args = parser.parse_args()

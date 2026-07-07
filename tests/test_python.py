@@ -18,7 +18,7 @@ from PIL import Image
 
 import ultralytics.data.build as data_build
 from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
-from ultralytics import RTDETR, YOLO
+from ultralytics import RTDETR, YOLO, YOLODETR
 from ultralytics.data.build import build_dataloader, load_inference_source
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.utils import (
@@ -459,6 +459,17 @@ def test_workflow(isolated_model):
     model.val(imgsz=32)
     model.predict(SOURCE, imgsz=32)
     model.export(format="torchscript")  # WARNING: Windows slow CI export bug
+
+
+@pytest.mark.skipif(not TORCH_1_11, reason="YOLODETR uses RT-DETR components that require torch>=1.11")
+@pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
+@pytest.mark.parametrize("cfg", ["yolo27n-detr.yaml", "yolo27x-detr.yaml"])
+def test_yolodetr_train(cfg, tmp_path):
+    """Test YOLODETR train, val, and predict on the CNN and DINOv3 backbone variants."""
+    model = YOLODETR(cfg)
+    model.train(data="coco8.yaml", imgsz=160, epochs=1, save=False, project=str(tmp_path))
+    model.val(data="coco8.yaml", imgsz=160)
+    model.predict(SOURCE, imgsz=160)
 
 
 def test_predict_callback_and_setup():

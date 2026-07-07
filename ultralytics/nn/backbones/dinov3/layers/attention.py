@@ -3,7 +3,6 @@
 # This software may be used and distributed in accordance with
 # the terms of the DINOv3 License Agreement.
 
-import math
 from typing import List, Tuple
 
 import torch
@@ -33,7 +32,10 @@ class LinearKMaskedBias(nn.Linear):
         o = self.out_features
         assert o % 3 == 0
         if self.bias is not None:
-            self.register_buffer("bias_mask", torch.full_like(self.bias, fill_value=math.nan))
+            c = o // 3  # Q|K|V split: enable Q and V bias, mask K bias to zero.
+            mask = torch.ones_like(self.bias)
+            mask[c : 2 * c] = 0.0
+            self.register_buffer("bias_mask", mask)
 
     def forward(self, input: Tensor) -> Tensor:
         masked_bias = self.bias * self.bias_mask.to(self.bias.dtype) if self.bias is not None else None

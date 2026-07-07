@@ -107,7 +107,7 @@ class YOLODETRDataset(RTDETRDataset):
             hyp.mixup = hyp.mixup if not self.rect else 0.0
             hyp.cutmix = hyp.cutmix if not self.rect else 0.0
             # Keep v8 MixUp inputs same-sized; current v8 Mosaic no longer carries the old mosaic_border crop hint.
-            transforms = v8_transforms(self, self.imgsz, hyp, stretch=False)
+            transforms = v8_transforms(self, self.imgsz, hyp)
         else:
             transforms = Compose([])
         transforms.append(
@@ -173,6 +173,7 @@ class YOLODETRTrainer(RTDETRTrainer):
         super().__init__(cfg=cfg, overrides=overrides, _callbacks=_callbacks)
         for k, default in self._DEIM_DEFAULTS.items():
             setattr(self.args, k, deim_overrides.get(k, default))
+        self.args.no_aug_epoch = min(int(self.args.no_aug_epoch), int(self.args.epochs))
 
     def _sample_multiscale_size(self) -> int:
         """Sample a multi-scale size, biasing the base imgsz by ``base_size_repeat`` extra picks."""

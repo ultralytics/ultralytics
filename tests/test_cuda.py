@@ -180,6 +180,15 @@ def test_predict_multiple_devices():
 
 
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
+def test_track_exported_model():
+    """Track with an exported model on GPU; exported backends return raw preds as a single Tensor."""
+    file = YOLO(MODEL).export(format="torchscript", imgsz=160, device=DEVICES[0])
+    results = YOLO(file).track(SOURCE, imgsz=160, device=DEVICES[0])
+    assert len(results[0].boxes)
+    Path(file).unlink()  # cleanup
+
+
+@pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 def test_autobatch():
     """Check optimal batch size for YOLO model training using autobatch utility."""
     from ultralytics.utils.autobatch import check_train_batch_size

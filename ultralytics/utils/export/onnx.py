@@ -49,7 +49,13 @@ def onnx_int8_quantize(
     """Quantize an ONNX model to INT8 using ONNX Runtime static quantization."""
     from onnxruntime.quantization import quantize_static
 
-    onnx_file, output_file = Path(onnx_file), Path(output_file)
     LOGGER.info(f"{prefix} quantizing INT8 with ONNX Runtime...")
-    quantize_static(str(onnx_file), str(output_file), onnx_calibration_reader(dataset, transform_fn, input_name, batch))
-    return str(output_file)
+    # Quantize only weighted ops; leaving the detect head's decode math (DFL/Concat/Sigmoid) in float avoids a single
+    # per-tensor scale spanning box pixels (~0-640) and class probs (0-1), which would round every class score to 0.
+    quantize_static(
+        onnx_file,
+        output_file,
+        onnx_calibration_reader(dataset, transform_fn, input_name, batch),
+        op_types_to_quantize=["Conv", "Gemm", "MatMul"],
+    )
+    return output_file

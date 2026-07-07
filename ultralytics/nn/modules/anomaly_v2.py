@@ -177,13 +177,17 @@ class HeatmapBiasFusion(nn.Module):
       per-scale PAN channel counts) at construction.
     - ``per_scale=True`` (direction A): unshare the conv across P3/P4/P5 so the fine scale
       can sharpen (mAP50) while the coarse scale stays broad (mAP10). Cheap (~3x a tiny conv).
+    - ``depth=N`` (N>=1): deepen the conv stack for stronger expressiveness. The block is
+      ``Conv(in->c_mid) -> GELU -> [Conv(c_mid->c_mid) -> GELU] * N -> Conv(c_mid->1)``, i.e. N
+      extra hidden 3x3 convs (at c_mid width) inserted before the output projection. ``depth=0``
+      (default) is byte-identical to the original 2-conv block.
 
     Whether the feature-input path back-propagates into the backbone is controlled by the
     CALLER (it passes ``feat=p`` or ``feat=p.detach()``); this module is agnostic.
     """
 
     def __init__(self, num_scales: int = 3, c_mid: int = 8, inst_norm: bool = False, residual: bool = False,
-                 ch=None, feat: bool = False, k_feat: int = 8, per_scale: bool = False):
+                 ch=None, feat: bool = False, k_feat: int = 8, per_scale: bool = False, depth: int = 0):
         super().__init__()
         self.inst_norm = nn.InstanceNorm2d(1, affine=False, track_running_stats=False) if inst_norm else None
         self.residual = residual
@@ -195,12 +199,14 @@ class HeatmapBiasFusion(nn.Module):
             self.feat_proj = nn.ModuleList([nn.Conv2d(int(c), k_feat, 1) for c in ch])
             in_ch = 1 + k_feat
 
+        n_hidden = max(0, int(depth))
+
         def _block():
-            return nn.Sequential(
-                nn.Conv2d(in_ch, c_mid, 3, padding=1),
-                nn.GELU(),
-                nn.Conv2d(c_mid, 1, 3, padding=1),
-            )
+            layers = [nn.Conv2d(in_ch, c_mid, 3, padding=1), nn.GELU()]
+            for _ in range(n_hidden):  # extra hidden 3x3 convs at c_mid width (depth>=1)
+                layers += [nn.Conv2d(c_mid, c_mid, 3, padding=1), nn.GELU()]
+            layers.append(nn.Conv2d(c_mid, 1, 3, padding=1))
+            return nn.Sequential(*layers)
 
         # Unshared per-scale convs (direction A) or a single shared stack (original behavior).
         self.conv = nn.ModuleList([_block() for _ in range(num_scales)]) if self.per_scale else _block()

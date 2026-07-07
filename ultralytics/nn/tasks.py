@@ -585,6 +585,7 @@ class YOLOAnomalyV2Model(DetectionModel):
         #   fusion_feat      -- fusion also reads the PAN feature it biases (concat proj + mask).
         #   fusion_feat_k    -- width of the per-scale C_i -> k feature projection.
         #   fusion_per_scale -- unshare the conv across P3/P4/P5.
+        #   fusion_depth     -- N extra hidden 3x3 convs (c_mid width) in each block; 0 = original.
         #   fusion_feat_grad -- if True, the feature-input path back-props into the backbone;
         #                       if False (default), the feature is detached so the fusion reads
         #                       the trunk but does not reshape it (keeps the trunk prior-clean).
@@ -592,6 +593,7 @@ class YOLOAnomalyV2Model(DetectionModel):
         fusion_feat = bool(v2_cfg.get("fusion_feat", False))
         fusion_feat_k = int(v2_cfg.get("fusion_feat_k", 8))
         fusion_per_scale = bool(v2_cfg.get("fusion_per_scale", False))
+        fusion_depth = int(v2_cfg.get("fusion_depth", 0))
         self.fusion_feat = fusion_feat
         self.fusion_feat_grad = bool(v2_cfg.get("fusion_feat_grad", False))
         # Prior injection target: 'all' adds the bias to the PAN features (box + cls branches both
@@ -638,7 +640,8 @@ class YOLOAnomalyV2Model(DetectionModel):
         pan_ch = [detect.cv2[i][0].conv.in_channels for i in range(detect.nl)] if fusion_feat else None
         self.heatmap_bias_fusion = HeatmapBiasFusion(
             c_mid=fusion_mid, inst_norm=fusion_norm, residual=fusion_residual,
-            ch=pan_ch, feat=fusion_feat, k_feat=fusion_feat_k, per_scale=fusion_per_scale)
+            ch=pan_ch, feat=fusion_feat, k_feat=fusion_feat_k, per_scale=fusion_per_scale,
+            depth=fusion_depth)
         # Heatmap gate blend on the Detect head (0=full gate, 1=off).
         self.hm_gate_blend = float(v2_cfg.get("hm_gate_blend", 1.0))
         # Inference-time prior processing: minmax stretch, gaussian/mean blur, spatial softmax,

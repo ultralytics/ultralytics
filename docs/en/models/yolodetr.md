@@ -203,3 +203,9 @@ layers.
 No. `max_det` can reduce or cap returned predictions, but it cannot increase the number of object queries produced by
 the decoder. To support more objects per image than the configured query count, change the query count in the YAML and
 train the model with that setting.
+
+## License
+
+YOLO27-DETR-X and YOLO27-DETR-XXL use DINOv3-derived weights and are Built with DINOv3. These variants are subject to
+the DINOv3 License in addition to the applicable Ultralytics license terms. The `n/s/m/l` variants use YOLO26-style
+CSP backbones and are covered by the Ultralytics license terms only.

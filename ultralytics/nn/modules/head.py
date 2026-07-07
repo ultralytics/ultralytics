@@ -237,7 +237,6 @@ class Detect(nn.Module):
         self.reg_max = reg_max  # DFL channels (ch[0] // 16 to scale 4/8/12/16/20 for n/s/m/l/x)
         self.no = nc + self.reg_max * 4  # number of outputs per anchor
         self.stride = torch.zeros(self.nl)  # strides computed during build
-        self.hm_gate_blend = 0.0  # 0=full heatmap conf gate, 1=off (deployment-friendly)
         c2, c3 = max((16, ch[0] // 4, self.reg_max * 4)), max(ch[0], min(self.nc, 100))  # channels
         self.cv2 = nn.ModuleList(
             nn.Sequential(Conv(x, c2, 3), Conv(c2, c2, 3), nn.Conv2d(c2, 4 * self.reg_max, 1)) for x in ch
@@ -292,7 +291,7 @@ class Detect(nn.Module):
         return dict(boxes=boxes, scores=scores, feats=x)
 
     def forward(
-        self, x: list[torch.Tensor], heatmap: torch.Tensor | None = None
+        self, x: list[torch.Tensor]
     ) -> dict[str, torch.Tensor] | torch.Tensor | tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """Concatenates and returns predicted bounding boxes and class probabilities."""
         preds = self.forward_head(x, **self.one2many)
@@ -302,41 +301,23 @@ class Detect(nn.Module):
             preds = {"one2many": preds, "one2one": one2one}
         if self.training:
             return preds
-        y = self._inference(preds["one2one"] if self.end2end else preds, heatmap=heatmap)
+        y = self._inference(preds["one2one"] if self.end2end else preds)
         if self.end2end:
             y = self.postprocess(y.permute(0, 2, 1))
         return y if self.export else (y, preds)
 
-    def _build_heatmap_gate(self, hm: torch.Tensor, feats: list[torch.Tensor]) -> torch.Tensor:
-        """Resize heatmap to each scale's grid and return ``(bs, 1, A)`` gate tensor."""
-        gates = []
-        for i in range(self.nl):
-            h, w = feats[i].shape[2], feats[i].shape[3]
-            g = torch.nn.functional.interpolate(hm, size=(h, w), mode="bilinear", align_corners=False)
-            gates.append(g.view(g.shape[0], 1, -1))
-        return torch.cat(gates, dim=-1)  # (bs, 1, A)
-
-    def _inference(self, x: dict[str, torch.Tensor], heatmap: torch.Tensor | None = None) -> torch.Tensor:
+    def _inference(self, x: dict[str, torch.Tensor]) -> torch.Tensor:
         """Decode predicted bounding boxes and class probabilities based on multiple-level feature maps.
 
         Args:
             x (dict[str, torch.Tensor]): Dictionary of predictions from detection layers.
-            heatmap: Optional ``(B, 1, H, W)`` heatmap for per-anchor confidence gating.
-                blend=1 (default) → identity; blend=0 → full suppression at low-heatmap cells.
 
         Returns:
             (torch.Tensor): Concatenated tensor of decoded bounding boxes and class probabilities.
         """
         # Inference path
         dbox = self._get_decode_boxes(x)
-        scores = x["scores"].sigmoid()
-        self.hm_gate_blend = getattr(self, "hm_gate_blend", 0.0)
-        if heatmap is not None and self.hm_gate_blend < 1.0:
-            gate = self._build_heatmap_gate(heatmap, x["feats"])
-            b = float(self.hm_gate_blend)
-            factor = (b + (1.0 - b) * gate).clamp(0.0, 1.0)
-            scores = scores * factor
-        return torch.cat((dbox, scores), 1)
+        return torch.cat((dbox, x["scores"].sigmoid()), 1)
 
     def _get_decode_boxes(self, x: dict[str, torch.Tensor]) -> torch.Tensor:
         """Get decoded boxes based on anchors and strides."""
@@ -523,6 +504,37 @@ class AnomalyDetect(Detect):
         if self.end2end:
             y = self.postprocess(y.permute(0, 2, 1))
         return y if self.export else (y, preds)
+
+    def _inference(self, x: dict[str, torch.Tensor], heatmap: torch.Tensor | None = None) -> torch.Tensor:
+        """Decode predicted bounding boxes and class probabilities based on multiple-level feature maps.
+
+        Args:
+            x (dict[str, torch.Tensor]): Dictionary of predictions from detection layers.
+            heatmap: Optional ``(B, 1, H, W)`` heatmap for per-anchor confidence gating.
+                blend=1 (default) → identity; blend=0 → full suppression at low-heatmap cells.
+
+        Returns:
+            (torch.Tensor): Concatenated tensor of decoded bounding boxes and class probabilities.
+        """
+        # Inference path
+        dbox = self._get_decode_boxes(x)
+        scores = x["scores"].sigmoid()
+        self.hm_gate_blend = getattr(self, "hm_gate_blend", 0.0)
+        if heatmap is not None and self.hm_gate_blend < 1.0:
+            gate = self._build_heatmap_gate(heatmap, x["feats"])
+            b = float(self.hm_gate_blend)
+            factor = (b + (1.0 - b) * gate).clamp(0.0, 1.0)
+            scores = scores * factor
+        return torch.cat((dbox, scores), 1)
+
+    def _build_heatmap_gate(self, hm: torch.Tensor, feats: list[torch.Tensor]) -> torch.Tensor:
+        """Resize heatmap to each scale's grid and return ``(bs, 1, A)`` gate tensor."""
+        gates = []
+        for i in range(self.nl):
+            h, w = feats[i].shape[2], feats[i].shape[3]
+            g = torch.nn.functional.interpolate(hm, size=(h, w), mode="bilinear", align_corners=False)
+            gates.append(g.view(g.shape[0], 1, -1))
+        return torch.cat(gates, dim=-1)  # (bs, 1, A)
 
 
 class Segment(Detect):

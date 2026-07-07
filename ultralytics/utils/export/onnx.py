@@ -63,4 +63,4 @@ def onnx_int8_quantize(
         onnx_calibration_reader(dataset, transform_fn, input_name, batch),
         nodes_to_exclude=exclude,
     )
-    return output_file
+    return str(output_file)

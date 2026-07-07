@@ -173,6 +173,12 @@ class AnomalyV2Trainer(DetectionTrainer):
         )
         if weights:
             model.load(weights)
+        # Warm-start the fusion block from a donor run (anomaly_v2.fusion_load in the model YAML).
+        # Applied AFTER the pretrained load so the donor fusion weights win. Skipped on resume:
+        # last.pt already carries the trained fusion state — re-loading the donor would roll it back.
+        fusion_load = (model.yaml.get("anomaly_v2", {}) or {}).get("fusion_load")
+        if fusion_load and not self.args.resume:
+            model.load_fusion_weights(fusion_load)
         return model
 
     def get_validator(self):

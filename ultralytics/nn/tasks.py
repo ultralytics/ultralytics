@@ -693,6 +693,75 @@ class YOLOAnomalyV2Model(DetectionModel):
             return E2ELoss(self, AnomalyMCLoss) if getattr(self, "end2end", False) else AnomalyMCLoss(self)
         return E2ELoss(self) if getattr(self, "end2end", False) else v8DetectionLoss(self)
 
+    # YAML knobs that define the HeatmapBiasFusion FORMAT (module structure / forward semantics).
+    # fusion_load requires the donor and the current model to agree on ALL of these. Note that
+    # fusion_norm / fusion_residual add no parameters, so a state-dict compare alone would miss
+    # them — they still change what the weights mean. fusion_lr_scale / fusion_target /
+    # fusion_feat_grad are caller-side (optimizer / gradient routing) and deliberately excluded.
+    _FUSION_FORMAT_KEYS = {
+        "fusion_mode": "bias",
+        "fusion_mid": 8,
+        "fusion_norm": False,
+        "fusion_residual": False,
+        "fusion_feat": False,
+        "fusion_feat_k": 8,
+        "fusion_per_scale": False,
+        "fusion_depth": 0,
+    }
+
+    def load_fusion_weights(self, weights: str) -> None:
+        """Load ONLY the ``heatmap_bias_fusion`` weights from a donor anomaly_v2 checkpoint.
+
+        Trainer entry point for ``anomaly_v2.fusion_load``: warm-starts the fusion block
+        (conv stack + per-scale beta) from a previous run's best.pt while everything else
+        comes from ``pretrained``. The fusion module has several formats (shared vs per-scale
+        conv, feature-conditioned input, depth/width variants), so the donor is format-checked
+        first — YAML ``fusion_*`` knobs, state-dict keys and tensor shapes must all match —
+        and any mismatch raises with a side-by-side diff instead of silently loading garbage.
+        """
+        path = Path(weights)
+        if not path.is_file():
+            raise FileNotFoundError(f"anomaly_v2.fusion_load: checkpoint not found: {path}")
+        donor, _ = load_checkpoint(str(path))  # FP32 eval copy on CPU
+        donor_fusion = getattr(donor, "heatmap_bias_fusion", None)
+        if donor_fusion is None:
+            raise ValueError(
+                f"anomaly_v2.fusion_load: {path} ({type(donor).__name__}) has no heatmap_bias_fusion "
+                f"module — not an anomaly_v2 checkpoint?"
+            )
+        # Format check 1: structural YAML knobs (catches param-free diffs like fusion_norm).
+        donor_v2 = (getattr(donor, "yaml", None) or {}).get("anomaly_v2", {})
+        cur_v2 = (self.yaml or {}).get("anomaly_v2", {})
+        cfg_diff = [
+            f"  {k}: ckpt={donor_v2.get(k, d)!r} vs model={cur_v2.get(k, d)!r}"
+            for k, d in self._FUSION_FORMAT_KEYS.items()
+            if donor_v2.get(k, d) != cur_v2.get(k, d)
+        ]
+        # Format check 2: state-dict keys + shapes (catches donors older than the knobs above).
+        donor_sd = donor_fusion.state_dict()
+        cur_sd = self.heatmap_bias_fusion.state_dict()
+        missing = sorted(cur_sd.keys() - donor_sd.keys())
+        unexpected = sorted(donor_sd.keys() - cur_sd.keys())
+        shape_diff = [
+            f"  {k}: ckpt={tuple(donor_sd[k].shape)} vs model={tuple(cur_sd[k].shape)}"
+            for k in cur_sd
+            if k in donor_sd and tuple(donor_sd[k].shape) != tuple(cur_sd[k].shape)
+        ]
+        if cfg_diff or missing or unexpected or shape_diff:
+            msg = [f"anomaly_v2.fusion_load: fusion format mismatch between {path} and this model."]
+            if cfg_diff:
+                msg.append("fusion_* config diff:\n" + "\n".join(cfg_diff))
+            if missing:
+                msg.append(f"keys missing from ckpt fusion: {missing}")
+            if unexpected:
+                msg.append(f"extra keys in ckpt fusion: {unexpected}")
+            if shape_diff:
+                msg.append("shape mismatches:\n" + "\n".join(shape_diff))
+            raise ValueError("\n".join(msg))
+        self.heatmap_bias_fusion.load_state_dict(donor_sd, strict=True)
+        beta = [round(b, 4) for b in self.heatmap_bias_fusion.beta.detach().tolist()]
+        LOGGER.info(f"anomaly_v2.fusion_load: transferred {len(donor_sd)} fusion tensors from {path} (beta={beta})")
+
     # ------------------------------------------------------------------
     # Mask input API
     # ------------------------------------------------------------------

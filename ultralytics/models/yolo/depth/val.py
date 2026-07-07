@@ -54,7 +54,7 @@ class DepthValidator(DetectionValidator):
             if isinstance(v, torch.Tensor):
                 batch[k] = v.to(self.device, non_blocking=self.device.type == "cuda")
         # Normalize images to [0,1] (DepthFormat outputs uint8, same as detection pipeline)
-        batch["img"] = (batch["img"].half() if self.args.half else batch["img"].float()) / 255
+        batch["img"] = (batch["img"].half() if self.args.quantize == 16 else batch["img"].float()) / 255
         if "depth" in batch:
             batch["depth"] = batch["depth"].float()  # depth always float32
         return batch

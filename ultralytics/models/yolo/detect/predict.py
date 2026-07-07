@@ -1,7 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-import torch
-
 from ultralytics.engine.predictor import BasePredictor
 from ultralytics.engine.results import Results
 from ultralytics.utils import nms, ops
@@ -53,15 +51,6 @@ class DetectionPredictor(BasePredictor):
             >>> processed_results = predictor.postprocess(preds, img, orig_imgs)
         """
         save_feats = getattr(self, "_feats", None) is not None
-
-        # YOLOA's AnomalyDetect head returns (detections, heatmap, raw_preds).
-        # Pull out the heatmap before NMS consumes the first tensor.
-        heatmap = None
-        if isinstance(preds, (list, tuple)) and len(preds) >= 2 and isinstance(preds[1], torch.Tensor):
-            h = preds[1]
-            if h.ndim == 4 and h.shape[1] == 1:
-                heatmap = h
-
         preds = nms.non_max_suppression(
             preds,
             self.args.conf,
@@ -82,7 +71,7 @@ class DetectionPredictor(BasePredictor):
             obj_feats = self.get_obj_feats(self._feats, preds[1])
             preds = preds[0]
 
-        results = self.construct_results(preds, img, orig_imgs, heatmap=heatmap, **kwargs)
+        results = self.construct_results(preds, img, orig_imgs, **kwargs)
 
         if save_feats:
             for r, f in zip(results, obj_feats):
@@ -101,24 +90,23 @@ class DetectionPredictor(BasePredictor):
         )  # mean reduce all vectors to same length
         return [feats[idx] if idx.shape[0] else [] for feats, idx in zip(obj_feats, idxs)]  # for each img in batch
 
-    def construct_results(self, preds, img, orig_imgs, heatmap=None):
+    def construct_results(self, preds, img, orig_imgs):
         """Construct a list of Results objects from model predictions.
 
         Args:
             preds (list[torch.Tensor]): List of predicted bounding boxes and scores for each image.
             img (torch.Tensor): Batch of preprocessed images used for inference.
             orig_imgs (list[np.ndarray]): List of original images before preprocessing.
-            heatmap (torch.Tensor | None): Optional batch heatmap tensor with shape (B, 1, H, W).
 
         Returns:
             (list[Results]): List of Results objects containing detection information for each image.
         """
         return [
-            self.construct_result(pred, img, orig_img, img_path, idx=i, heatmap=heatmap)
-            for i, (pred, orig_img, img_path) in enumerate(zip(preds, orig_imgs, self.batch[0]))
+            self.construct_result(pred, img, orig_img, img_path)
+            for pred, orig_img, img_path in zip(preds, orig_imgs, self.batch[0])
         ]
 
-    def construct_result(self, pred, img, orig_img, img_path, idx=0, heatmap=None):
+    def construct_result(self, pred, img, orig_img, img_path):
         """Construct a single Results object from one image prediction.
 
         Args:
@@ -126,14 +114,9 @@ class DetectionPredictor(BasePredictor):
             img (torch.Tensor): Preprocessed image tensor used for inference.
             orig_img (np.ndarray): Original image before preprocessing.
             img_path (str): Path to the original image file.
-            heatmap (torch.Tensor | None): Optional batch heatmap tensor with shape (B, 1, H, W).
 
         Returns:
             (Results): Results object containing the original image, image path, class names, and scaled bounding boxes.
         """
         pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
-        result = Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6])
-        if heatmap is not None:
-            h = ops.scale_masks(heatmap[idx : idx + 1], orig_img.shape[:2]).squeeze(0).squeeze(0)
-            result.heatmap = h
-        return result
+        return Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6])

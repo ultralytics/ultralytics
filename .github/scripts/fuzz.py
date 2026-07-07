@@ -19,12 +19,14 @@ Usage:
 """
 
 import argparse
+import contextlib
 import hashlib
 import json
 import os
 import random
 import re
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
@@ -260,11 +262,18 @@ def run_trial(trial, timeout=None):
     cmd = [sys.executable, "-m", "ultralytics.cfg.__init__", *argv]
     env = {**os.environ, "YOLO_AUTOINSTALL": "false", "PYTHONFAULTHANDLER": "1"}
     t0 = time.perf_counter()
+    # New session so a timeout kills the whole process group (dataloader workers, export converter subprocesses)
+    proc = subprocess.Popen(
+        cmd, cwd=workdir, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env, start_new_session=True
+    )
     try:
-        proc = subprocess.run(cmd, cwd=workdir, capture_output=True, text=True, timeout=timeout, env=env)
-        rc, stderr = proc.returncode, proc.stderr
-    except subprocess.TimeoutExpired as e:
-        rc, stderr = "timeout", (e.stderr.decode(errors="replace") if isinstance(e.stderr, bytes) else e.stderr) or ""
+        _, stderr = proc.communicate(timeout=timeout)
+        rc = proc.returncode
+    except subprocess.TimeoutExpired:
+        with contextlib.suppress(ProcessLookupError):
+            os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+        _, stderr = proc.communicate()
+        rc, stderr = "timeout", stderr or ""
     finally:
         shutil.rmtree(workdir, ignore_errors=True)
     return rc, stderr, round(time.perf_counter() - t0, 1)
@@ -359,7 +368,8 @@ def cmd_fuzz(args):
                         outcome = "pass" if rc2 == 0 else outcome  # completed quickly on replay: not a hang
             else:
                 rc2, stderr2, _ = run_trial(trial, timeout=args.debug_timeout)
-                confirmed = classify(trial, rc2, stderr2)[0] == outcome
+                outcome2, sig2, _ = classify(trial, rc2, stderr2)
+                confirmed = outcome2 == outcome and sig2 == sig  # same failure, not merely the same class
             if confirmed:
                 tier = "T2" if trial.get("strategy") == "invalid" and outcome == "bug-candidate" else "T1"
                 findings[sig] = {
@@ -501,6 +511,13 @@ def cmd_report(args):
             for sig in re.findall(r"fuzz-signature: (\w+)", issue.get("body") or ""):
                 existing[sig] = issue
 
+    umbrella = next((i for i in existing.values() if i["title"].startswith("Fuzz: CLI validation gaps")), None)
+    if umbrella:  # T2 signatures from prior runs live in umbrella comments, which `issue list` does not return
+        view = json.loads(gh("issue", "view", str(umbrella["number"]), "--repo", args.repo, "--json", "comments"))
+        for comment_body in [c.get("body") or "" for c in view.get("comments", [])]:
+            for sig in re.findall(r"fuzz-signature: (\w+)", comment_body):
+                existing[sig] = umbrella
+
     new_t1 = [f for s, f in findings.items() if f["tier"] == "T1" and s not in existing]
     new_t2 = [f for s, f in findings.items() if f["tier"] == "T2" and s not in existing]
     regressions = [(f, existing[s]) for s, f in findings.items() if s in existing and existing[s]["state"] == "CLOSED"]
@@ -531,7 +548,6 @@ def cmd_report(args):
     if new_t2:  # T2 validation gaps roll up into one umbrella issue; only its creation counts against the cap
         lines = [f"- `{f['command']}` → {f['title']} `<!-- fuzz-signature: {f['signature']} -->`" for f in new_t2]
         comment = f"New CLI validation gaps found by [Infinite CI]({run_url}):\n\n" + "\n".join(lines)
-        umbrella = next((i for i in existing.values() if i["title"].startswith("Fuzz: CLI validation gaps")), None)
         if umbrella:
             gh(
                 "issue",

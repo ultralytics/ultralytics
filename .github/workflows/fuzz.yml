@@ -68,15 +68,19 @@ jobs:
             ultralytics-test-assets-${{ runner.os }}-
       - name: Fuzz
         if: github.event.inputs.repro_command == ''
+        env:
+          MINUTES: ${{ github.event.inputs.minutes || '285' }} # via env, never interpolated into shell
         run: |
           python .github/scripts/fuzz.py fuzz \
-            --budget-minutes ${{ github.event.inputs.minutes || '285' }} \
+            --budget-minutes "$MINUTES" \
             --seed ${{ github.run_id }} \
             --personality ${{ matrix.personality }} \
             --out fuzz-out
       - name: Reproduce command
         if: github.event.inputs.repro_command != '' && matrix.personality == 'chaos'
-        run: python .github/scripts/fuzz.py repro "${{ github.event.inputs.repro_command }}"
+        env:
+          REPRO_COMMAND: ${{ github.event.inputs.repro_command }} # via env, never interpolated into shell
+        run: python .github/scripts/fuzz.py repro "$REPRO_COMMAND"
       - name: Upload findings
         if: always() && github.event.inputs.repro_command == ''
         uses: actions/upload-artifact@v7

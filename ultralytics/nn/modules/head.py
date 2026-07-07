@@ -337,7 +337,8 @@ class AnomalyDetect(Detect):
         processed_prior = None
         feats = x
         if prior is not None:
-            processed_prior = self.heatmap_processor(prior.to(device=x[0].device, dtype=x[0].dtype))
+            prior = prior.to(device=x[0].device, dtype=x[0].dtype)
+            processed_prior = self.heatmap_processor(prior)
             feats = []
             for i, p in enumerate(x):
                 target_h, target_w = p.shape[2], p.shape[3]
@@ -357,7 +358,7 @@ class AnomalyDetect(Detect):
         # have a deterministic second output.
         bs = x[0].shape[0]
         if processed_prior is not None:
-            out_heatmap = processed_prior
+            out_heatmap = prior
         else:
             ms = self.heatmap_processor.mask_size
             out_heatmap = torch.zeros(bs, 1, ms, ms, device=x[0].device, dtype=x[0].dtype)

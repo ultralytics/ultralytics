@@ -445,7 +445,7 @@ class YOLOA(Model):
 
     Examples:
         >>> m = YOLOA("yolo26m-anomaly.yaml")
-        >>> m.fit("bottle/train/good", name="bottle")
+        >>> m.set_memory("bottle/train/good")
         >>> m.predict("test.png")
         >>> m.val(data="bottle.yaml")
         >>> m.save("yolo26m-anomaly-bottle.pt")  # carries bank + fit_data
@@ -470,7 +470,7 @@ class YOLOA(Model):
             }
         }
 
-    def fit(
+    def set_memory(
         self,
         source: str | Path | list[str],
         batch: int = 8,
@@ -486,14 +486,14 @@ class YOLOA(Model):
             device: Device to use for feature extraction. If None, uses the model's current device.
 
         Returns:
-            (YOLOA): self, now fitted.
+            (YOLOA): self, with memory bank set.
         """
         self._check_is_pytorch_model()
         self.model.build_memory_bank(source, imgsz=imgsz, batch=batch, device=device)
         return self
 
     def reset_memorybank(self) -> "YOLOA":
-        """Reset the memory bank to empty, so a new fit can be done."""
+        """Reset the memory bank to empty, so a new set_memory can be done."""
         self._check_is_pytorch_model()
         self.model.memory_bank.reset()
         return self

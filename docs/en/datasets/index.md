@@ -50,7 +50,7 @@ Ultralytics provides support for various datasets to facilitate computer vision 
 
 Anomaly detection with YOLOA fits a memory bank on normal images alone and flags visual defects without labeled anomalies, targeting industrial quality inspection.
 
-- [Anomaly Dataset Guide](anomaly/index.md): How to prepare the normal-image fit set, the optional labeled-defect train set, and the validation layout.
+- [Anomaly Dataset Guide](anomaly/index.md): How to prepare the normal-image memory set, the optional labeled-defect train set, and the validation layout.
 
 ## [Instance Segmentation](segment/index.md)
 

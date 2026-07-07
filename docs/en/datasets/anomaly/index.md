@@ -1,16 +1,16 @@
 ---
 comments: true
-description: Prepare datasets for Ultralytics YOLOA anomaly detection, including the normal-image fit set, the optional labeled-defect train set, and the validation layout.
+description: Prepare datasets for Ultralytics YOLOA anomaly detection, including the normal-image memory set, the optional labeled-defect train set, and the validation layout.
 keywords: Ultralytics, YOLOA, anomaly detection dataset, defect detection, normal images, one-class learning, memory bank, dataset format
 ---
 
 # Anomaly Detection Datasets Overview
 
-[Anomaly detection](https://www.ultralytics.com/glossary/anomaly-detection) with Ultralytics YOLOA uses two distinct kinds of data: a **fit set** of normal images that builds the memory bank, and an optional **train set** of labeled defects for gradient fine-tuning. Keeping the two apart is the single most important dataset decision — the fit set needs no labels at all, while the train set is a standard YOLO detection dataset.
+[Anomaly detection](https://www.ultralytics.com/glossary/anomaly-detection) with Ultralytics YOLOA uses two distinct kinds of data: a **memory set** of normal images that builds the memory bank, and an optional **train set** of labeled defects for gradient fine-tuning. Keeping the two apart is the single most important dataset decision — the memory set needs no labels at all, while the train set is a standard YOLO detection dataset.
 
-## Fit dataset (normal images)
+## Memory dataset (normal images)
 
-The fit set is a plain folder of good, defect-free images. No label files, no dataset YAML — structurally the same "train from a folder" convention as [classification datasets](../classify/index.md).
+The memory set is a plain folder of good, defect-free images. No label files, no dataset YAML — structurally the same "train from a folder" convention as [classification datasets](../classify/index.md).
 
 ```text
 bottle/
@@ -21,16 +21,16 @@ bottle/
         └── ...
 ```
 
-Point `fit()` at the folder (or pass an explicit list of image paths):
+Point `set_memory()` at the folder (or pass an explicit list of image paths):
 
 ```python
 from ultralytics import YOLOA
 
 model = YOLOA("yolo26n-anomaly.yaml")
-model.fit("bottle/train/good", name="bottle")
+model.set_memory("bottle/train/good")
 ```
 
-Supported image extensions: `avif`, `bmp`, `dng`, `heic`, `heif`, `jp2`, `jpeg`, `jpeg2000`, `jpg`, `mpo`, `png`, `tif`, `tiff`, `webp`. Video sources are not supported for fitting.
+Supported image extensions: `avif`, `bmp`, `dng`, `heic`, `heif`, `jp2`, `jpeg`, `jpeg2000`, `jpg`, `mpo`, `png`, `tif`, `tiff`, `webp`. Video sources are not supported for building memory.
 
 ## Train dataset (labeled defects, optional)
 
@@ -60,36 +60,36 @@ nc: 1
 names: [defect]
 ```
 
-The memory bank comes from your `fit()` call or a fitted checkpoint — not from the YAML — so fit before validating:
+The memory bank comes from your `set_memory()` call or a checkpoint with memory set — not from the YAML — so set memory before validating:
 
 ```python
 from ultralytics import YOLOA
 
 model = YOLOA("yolo26n-anomaly.yaml")
-model.fit("bottle/train/good", name="bottle")
+model.set_memory("bottle/train/good")
 metrics = model.val(data="bottle.yaml")
 ```
 
-With a fitted bank, the validator adds mAP10 and mAP25 columns (IoU 0.10 and 0.25) for coarse defect localization alongside standard detection metrics. Note that `val()` resets the bank when it finishes — re-fit (cached banks reload instantly) before predicting with the same model instance.
+With a memory bank, the validator adds mAP10 and mAP25 columns (IoU 0.10 and 0.25) for coarse defect localization alongside standard detection metrics. Note that `val()` resets the bank when it finishes — re-run `set_memory()` (cached banks reload instantly) before predicting with the same model instance.
 
 ## Supported datasets
 
-Downloadable dataset configurations for anomaly detection have not been published yet. Prepare your own data using the layouts above: collect normal images of your product or scene for the fit set, and optionally label defect boxes in [standard YOLO format](../detect/index.md) for fine-tuning and validation. You can annotate, manage, and version your defect datasets on the [Ultralytics Platform](https://platform.ultralytics.com).
+Downloadable dataset configurations for anomaly detection have not been published yet. Prepare your own data using the layouts above: collect normal images of your product or scene for the memory set, and optionally label defect boxes in [standard YOLO format](../detect/index.md) for fine-tuning and validation. You can annotate, manage, and version your defect datasets on the [Ultralytics Platform](https://platform.ultralytics.com).
 
 ## FAQ
 
 ### Do I need labeled images to use YOLOA?
 
-No — the required fit set is a plain folder of normal images with no labels and no YAML. Labels are only needed for the optional `train()` fine-tune and for computing validation metrics, both of which use the standard YOLO detection format.
+No — the required memory set is a plain folder of normal images with no labels and no YAML. Labels are only needed for the optional `train()` fine-tune and for computing validation metrics, both of which use the standard YOLO detection format.
 
-### How many normal images should the fit set contain?
+### How many normal images should the memory set contain?
 
 The memory bank keeps at most 10,000 feature vectors after coreset compression, and each image contributes a grid of patch features, so even a few dozen representative normal images produce a full bank. Cover the natural variation of your normal class — lighting, orientation, texture — rather than maximizing raw image count.
 
-### Why does my fit set have no dataset YAML?
+### Why does my memory set have no dataset YAML?
 
-`fit()` performs feature extraction, not training: it only needs images, so it takes a folder path or a list of image paths directly. A dataset YAML describes labeled splits for training and validation, which the fit step does not use. This mirrors how classification trains from a folder without a YAML.
+`set_memory()` performs feature extraction, not training: it only needs images, so it takes a folder path or a list of image paths directly. A dataset YAML describes labeled splits for training and validation, which the memory step does not use. This mirrors how classification trains from a folder without a YAML.
 
 ### Can I use an existing detection dataset with YOLOA?
 
-Yes, for the optional fine-tune and for validation: any standard YOLO detection dataset of defect boxes works unchanged with `model.train(data="defects.yaml")` and `model.val(data="defects.yaml")`. For the fit set, extract the defect-free images into their own folder — the memory bank must see only normal samples.
+Yes, for the optional fine-tune and for validation: any standard YOLO detection dataset of defect boxes works unchanged with `model.train(data="defects.yaml")` and `model.val(data="defects.yaml")`. For the memory set, extract the defect-free images into their own folder — the memory bank must see only normal samples.

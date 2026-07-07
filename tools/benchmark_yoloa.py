@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 """YOLOA benchmark: params, FLOPs, buffer, ONNX size/speed, and mAP — no-memory vs with-memory.
 
-One linear pass: validate BEFORE fit (bank empty → no-memory / pure detection), fit the memory
-bank, then validate again (with-memory / heatmap prior). Finally export both graphs to ONNX for
-deploy size + CPU speed.
+One linear pass: validate BEFORE setting memory (bank empty → no-memory / pure detection), set the
+memory bank, then validate again (with-memory / heatmap prior). Finally export both graphs to ONNX
+for deploy size + CPU speed.
 
 mAP is read from ``metrics.box.all_ap`` on the anomaly validator's coarse IoU grid
 (``linspace(0.10, 0.50, niou)``; see ``anomaly/val.py`` ``_ood_map_metrics``), so it stays
@@ -28,13 +28,12 @@ Guide (run from the repo root, ``PYTHONPATH=.`` so imports resolve to this repo,
     # Other useful invocations:
     PYTHONPATH=. python tools/benchmark_yoloa.py --ckpt ./yoloa-26l.pt --cat zipper \\
         --mvtec-root <root> --device cpu --val-batch 4   # tight-memory / CPU-only box
-    PYTHONPATH=. python tools/benchmark_yoloa.py --ckpt yolo26l-anomaly.yaml --no-fit --device cpu
-        # YAML (no trained weights): reports params/FLOPs/ONNX size+speed only, skips fit + mAP
+    PYTHONPATH=. python tools/benchmark_yoloa.py --ckpt yolo26l-anomaly.yaml --no-memory --device cpu
+        # YAML (no trained weights): reports params/FLOPs/ONNX size+speed only, skips memory set + mAP
 
 Notes:
   - --cat is any MVTec category; it must have <cat>/<cat>_binary.yaml and <cat>/train/good under
-    --mvtec-root. The memory bank is cached to runs/temp/bank_cache/<cat>.pt and reused on reruns
-    (delete that file to force a rebuild).
+    --mvtec-root.
   - If MPS OOMs during the bank score, lower --score-chunk (e.g. --score-chunk 4194304) and/or
     --val-batch; these change chunking only, not the results.
 """
@@ -142,16 +141,16 @@ def run_val(model, data_yaml: str, device: str, batch: int, e2e: bool = False) -
 
 
 def export_profile(
-    ckpt: Path, imgsz: int, device: str, fit_dir: str | None = None, cat: str | None = None, cache: str | None = None
+    ckpt: Path, imgsz: int, device: str, mem_dir: str | None = None
 ) -> dict:
-    """Fresh-load, optionally fit, export to ONNX, and profile deploy size + CPU speed.
+    """Fresh-load, optionally set memory, export to ONNX, and profile deploy size + CPU speed.
 
     A fresh model is loaded per export because ``export()`` fuses layers and mutates state.
     """
     m = YOLOA(str(ckpt), verbose=False)
     buf = 0.0
-    if fit_dir:
-        m.fit(fit_dir, name=cat, cache=cache, device=device)
+    if mem_dir:
+        m.set_memory(mem_dir, device=device)
         buf = buffer_size_mb(m)
     onnx = m.export(format="onnx", imgsz=imgsz, simplify=True)
     size = Path(onnx).stat().st_size / 1024 / 1024
@@ -220,8 +219,7 @@ def main():
         default=1 << 23,
         help="bank score matmul chunk in elements (~32MB); lower if MPS OOMs. Affects chunking only.",
     )
-    ap.add_argument("--cache-dir", default=None, help="bank cache dir (default: runs/temp/bank_cache)")
-    ap.add_argument("--no-fit", action="store_true", help="skip fit+mAP (YAML-only: params/FLOPs/speed)")
+    ap.add_argument("--no-memory", action="store_true", help="skip memory set + mAP (YAML-only: params/FLOPs/speed)")
     args = ap.parse_args()
 
     ckpt = Path(args.ckpt).resolve()
@@ -231,10 +229,9 @@ def main():
     cat = args.cat
     data_yaml = str(root / cat / f"{cat}_binary.yaml")
     fit_dir = root / cat / "train" / "good"
-    cache = args.cache_dir or "runs/temp/bank_cache"
 
-    is_yaml = ckpt.suffix in (".yaml", ".yml") or args.no_fit
-    can_fit = not is_yaml and fit_dir.is_dir()
+    is_yaml = ckpt.suffix in (".yaml", ".yml") or args.no_memory
+    can_set_memory = not is_yaml and fit_dir.is_dir()
 
     # -- load + params/FLOPs --
     print(f"Loading: {ckpt}", flush=True)
@@ -244,23 +241,23 @@ def main():
     info = f"  params: {params_m:.1f}M" + ("" if np.isnan(flops) else f", FLOPs: {flops:.1f} G")
     print(info + "\n", flush=True)
 
-    # -- val (no-mem before fit) → fit → val (with-mem after fit) --
+    # -- val (no-mem before set_memory) → set_memory → val (with-mem after set_memory) --
     metrics_no, metrics_with = {}, {}
-    if can_fit:
-        print("=== VAL: NO MEMORY (before fit) ===", flush=True)
+    if can_set_memory:
+        print("=== VAL: NO MEMORY (before set_memory) ===", flush=True)
         free_cache(args.device)
         metrics_no = run_val(model, data_yaml, args.device, args.val_batch, e2e=args.e2e)
         print_map(metrics_no)
 
-        print("\n=== FIT ===", flush=True)
+        print("\n=== SET MEMORY ===", flush=True)
         free_cache(args.device)
-        model.fit(str(fit_dir), device=args.device)
+        model.set_memory(str(fit_dir), device=args.device)
         mb = getattr(model.model, "memory_bank", None)
         if mb is not None:
             mb.score_chunk = int(args.score_chunk)  # smaller chunk = tighter peak memory; results unchanged
         print(f"  buffer (memory bank): {buffer_size_mb(model):.2f} MB", flush=True)
 
-        print("\n=== VAL: WITH MEMORY (after fit) ===", flush=True)
+        print("\n=== VAL: WITH MEMORY (after set_memory) ===", flush=True)
         free_cache(args.device)
         metrics_with = run_val(model, data_yaml, args.device, args.val_batch, e2e=args.e2e)
         print_map(metrics_with)
@@ -272,15 +269,13 @@ def main():
     print(f"  {onnx_no['size']:.1f} MB  |  {onnx_no['speed_mean']:.1f} ± {onnx_no['speed_std']:.1f} ms\n", flush=True)
 
     print("=== ONNX: WITH MEMORY ===", flush=True)
-    if not can_fit:
-        print("  (no fit — no train images)", flush=True)
+    if not can_set_memory:
+        print("  (no memory set — no train images)", flush=True)
     onnx_with = export_profile(
         ckpt,
         args.imgsz,
         args.device,
-        fit_dir=str(fit_dir) if can_fit else None,
-        cat=cat,
-        cache=cache,
+        mem_dir=str(fit_dir) if can_set_memory else None,
     )
     print(
         f"  {onnx_with['size']:.1f} MB  |  {onnx_with['speed_mean']:.1f} ± {onnx_with['speed_std']:.1f} ms\n",

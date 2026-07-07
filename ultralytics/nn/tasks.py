@@ -537,7 +537,7 @@ class YOLOAnomalyModel(DetectionModel):
 
     Prior sources:
       - Training: ``batch["prior_mask"]`` built by ``LoadAnomalyPriorMask`` from bboxes or polygons.
-      - Inference: a non-empty fitted memory bank is used as the heatmap prior; otherwise passthrough.
+      - Inference: a non-empty memory bank is used as the heatmap prior; otherwise passthrough.
     """
 
     def __init__(self, cfg="yolo26-anomaly.yaml", ch=3, nc=None, verbose=True):
@@ -682,7 +682,7 @@ class YOLOAnomalyModel(DetectionModel):
         """Return True iff a non-empty memory bank has been built and the prior is enabled.
 
         ``_prior_enabled`` (default True) lets callers run a bank-free pass without
-        destroying a fitted bank -- e.g. val twice, once with the prior and once without.
+        destroying a built memory bank -- e.g. val twice, once with the prior and once without.
         """
         mb = getattr(self, "memory_bank", None)
         return mb is not None and mb.is_ready
@@ -710,7 +710,7 @@ class YOLOAnomalyModel(DetectionModel):
         return self.criterion(preds, batch)
 
     def forward(self, x, *args, prior_mask=None, **kwargs):
-        """Forward pass. Training provides ``prior_mask``; inference uses a fitted memory bank.
+        """Forward pass. Training provides ``prior_mask``; inference uses a built memory bank.
 
         Preserves the base ``DetectionModel`` contract: a dict input routes to ``loss()``
         (training/validation), while a tensor input runs inference.
@@ -733,7 +733,7 @@ class YOLOAnomalyModel(DetectionModel):
         for m in self.model:
             if m is last:
                 # Resolve the fusion prior. Training provides an explicit prior_mask;
-                # otherwise a fitted memory-bank heatmap is used automatically.
+                # otherwise a built memory-bank heatmap is used automatically.
                 if prior_mask is not None:
                     prior = prior_mask.to(device=device, dtype=torch.float32)
                     self._last_heatmap = prior

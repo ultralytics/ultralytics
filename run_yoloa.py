@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """Simplified YOLOA driver using the new high-level API.
 
-- val      : per-category ``model.fit`` + ``model.val`` (matches ``runs/anomaly/test_anomaly.py``).
-- predict  : ``model.fit`` + heatmap-prior prediction; falls back to no prior if no bank is ready.
+- val      : per-category ``model.set_memory`` + ``model.val`` (matches ``runs/anomaly/test_anomaly.py``).
+- predict  : ``model.set_memory`` + heatmap-prior prediction; falls back to no prior if no bank is ready.
 - visualize: 1x3 grid:
     - none-prior prediction + GT boxes
     - original image with heatmap overlay
@@ -10,9 +10,9 @@
   (no masks / seg heatmaps).
 
 Usage:
-  python run_yoloa_new.py --mode val --cat all
-  python run_yoloa_new.py --mode predict --cat bottle --n-per-cat 5
-  python run_yoloa_new.py --mode visualize --cat texture --n-per-cat 3
+  python run_yoloa.py --mode val --cat all
+  python run_yoloa.py --mode predict --cat bottle --n-per-cat 5
+  python run_yoloa.py --mode visualize --cat texture --n-per-cat 3
 """
 
 import argparse
@@ -95,7 +95,7 @@ def main():
     ap.add_argument("--ckpt", default=DEFAULT_CKPT, help="path to converted YOLOA checkpoint")
     ap.add_argument("--cat", default="bottle", help="category, 'all', 'object', or 'texture'")
     ap.add_argument("--device", default=None, help="cpu / cuda:0 / 0 (default: cuda:0 if available)")
-    ap.add_argument("--batch", type=int, default=8, help="fit feature-extraction batch size")
+    ap.add_argument("--batch", type=int, default=8, help="memory-bank feature-extraction batch size")
     ap.add_argument("--conf", type=float, default=0.1, help="predict conf threshold")
     ap.add_argument("--iou", type=float, default=0.1, help="NMS IoU")
     ap.add_argument("--e2e", "--end2end", action="store_true", help="use end-to-end NMS-free head")
@@ -140,12 +140,12 @@ def main():
                 LOGGER.warning(f"[{ci}/{len(cats)}] {cat}: no data yaml; skipping")
                 continue
 
-            stage = "val (no memory)" if args.no_memory else "fit + val"
+            stage = "val (no memory)" if args.no_memory else "set_memory + val"
             print(f"\n{'=' * 60}\n[{ci}/{len(cats)}] {cat}: {stage}\n{'=' * 60}", flush=True)
             if not args.no_memory:
                 model.reset_memorybank()
                 model.to(device)
-                model.fit(source=str(good_dir(root, cat)), batch=args.batch)
+                model.set_memory(source=str(good_dir(root, cat)), batch=args.batch)
 
             metrics = model.val(
                 data=str(yaml),
@@ -216,7 +216,7 @@ def main():
 
             if not args.no_memory:
                 model.to(device)
-                model.fit(source=str(good_dir(root, cat)), batch=args.batch)
+                model.set_memory(source=str(good_dir(root, cat)), batch=args.batch)
 
             samples = collect_test_images(root / cat / "test", args.n_per_cat)
             if not samples:

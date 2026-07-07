@@ -77,6 +77,7 @@ from .conv import (
     SpatialAttention,
 )
 from .head import (
+    AnomalyDetect,
     OBB,
     OBB26,
     Classify,
@@ -131,6 +132,7 @@ __all__ = (
     "ADown",
     "Attention",
     "BNContrastiveHead",
+    "AnomalyDetect",
     "AnomalyMemoryBank",
     "BboxMaskRenderer",
     "Bottleneck",

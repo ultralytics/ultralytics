@@ -48,6 +48,7 @@ from ultralytics.nn.modules import (
     Conv2,
     ConvTranspose,
     Detect,
+    AnomalyDetect,
     DWConv,
     DWConvTranspose2d,
     Focus,
@@ -55,8 +56,6 @@ from ultralytics.nn.modules import (
     GhostConv,
     HGBlock,
     HGStem,
-    HeatmapBiasFusion,
-    HeatmapProcessor,
     ImagePoolingAttn,
     Index,
     LRPCHead,
@@ -523,14 +522,14 @@ class DetectionModel(BaseModel):
 class YOLOAnomalyModel(DetectionModel):
     """YOLO Anomaly — detection + soft-hint heatmap fusion.
 
-    Extends DetectionModel with anomaly-side modules attached OUTSIDE the parsed
-    Sequential:
-      - ``heatmap_bias_fusion``: HeatmapBiasFusion. Produces a bounded per-pixel bias
-        added (broadcast over channels) to each PAN P3/P4/P5 feature before the Detect
-        head. Both reg and cls branches see the bias; this is acceptable because the
-        bias is bounded and additive, unlike the previous multiplicative amplifier.
-      - ``heatmap_processor``: post-processes memory-bank heatmaps (edge weight,
-        min-max stretch, gaussian/mean blur) before fusion.
+    Extends ``DetectionModel`` with a dedicated ``AnomalyDetect`` head that owns the
+    heatmap processing and fusion machinery. The model-level additions are:
+
+      - ``memory_bank``: cosine-similarity bank that builds an anomaly heatmap from
+        normal-image backbone features at inference time.
+      - ``mask_size``: nominal spatial resolution shared by rendered training priors
+        and the memory-bank heatmap.
+      - ``p_drop``: training mask-dropout probability (anti-shortcut).
 
     Mask dropout (anti-shortcut):
       During training, with probability ``p_drop`` per sample, the bias for that
@@ -550,10 +549,6 @@ class YOLOAnomalyModel(DetectionModel):
         mask_size = v2_cfg["mask_size"]
         self.p_drop = v2_cfg["p_drop"]
         self.seg_target_polygon = bool(v2_cfg.get("seg_target_polygon", False))
-
-        # Anomaly-side modules (live outside self.model so they are not in the Sequential)
-        self.heatmap_bias_fusion = HeatmapBiasFusion(num_scales=self.model[-1].nl, c_mid=32)
-        self.heatmap_processor = HeatmapProcessor(mask_size=mask_size)
 
         # Spatial resolution of the rendered/mask prior.
         self.mask_size = mask_size
@@ -689,7 +684,7 @@ class YOLOAnomalyModel(DetectionModel):
 
     @smart_inference_mode()
     def _build_heatmap_prior(self, x: torch.Tensor) -> torch.Tensor | None:
-        """Build the (B, 1, mask_size, mask_size) feature-side heatmap prior, or None."""
+        """Build the (B, 1, mask_size, mask_size) raw memory-bank heatmap prior, or None."""
         feats = self._extract_bb_features(x)
         hmap = self.memory_bank(feats).to(device=x.device, dtype=torch.float32)
         if hmap.shape[2] != self.mask_size or hmap.shape[3] != self.mask_size:
@@ -697,7 +692,7 @@ class YOLOAnomalyModel(DetectionModel):
                 hmap, size=(self.mask_size, self.mask_size), mode="bilinear", align_corners=False
             )
         self._last_heatmap = hmap
-        return self.heatmap_processor(hmap)
+        return hmap
 
     def loss(self, batch, preds=None, *, prior_mask=None):
         """Compute loss. Passes the pre-built ``batch["prior_mask"]`` into forward."""
@@ -720,16 +715,10 @@ class YOLOAnomalyModel(DetectionModel):
         return self._predict_once(x, *args, prior_mask=prior_mask, **kwargs)
 
     def _predict_once(self, x, profile=False, visualize=False, embed=None, augment=False, prior_mask=None):
-        """Forward with optional heatmap-guided fusion inserted before the Detect head."""
+        """Forward with optional heatmap-guided fusion handled by the AnomalyDetect head."""
         batch_size = x.shape[0]
         device = x.device
         img = x  # original input image, needed for the memory-bank heatmap prior
-
-        # Per-sample keep mask for mask dropout (anti-shortcut). Only meaningful when a
-        # rendered/blended mask is active; keep[b]=0 zeros the per-sample bias -> passthrough.
-        keep = torch.ones(batch_size, device=device)
-        if prior_mask is not None and self.training and self.p_drop > 0.0:
-            keep = (torch.rand(batch_size, device=device) > self.p_drop).to(keep.dtype)
 
         prior = None
         y, dt, embeddings = [], [], []
@@ -738,9 +727,6 @@ class YOLOAnomalyModel(DetectionModel):
         last = self.model[-1]
         for m in self.model:
             if m is last:
-                # Apply soft-hint fusion to the PAN inputs before Detect.
-                pan_inputs = [y[j] for j in m.f]
-
                 # Resolve the fusion prior. Training provides an explicit prior_mask;
                 # otherwise a fitted memory-bank heatmap is used automatically.
                 if prior_mask is not None:
@@ -749,24 +735,14 @@ class YOLOAnomalyModel(DetectionModel):
                 elif self._has_memory_bank():
                     prior = self._build_heatmap_prior(img)
 
-                fused = []
-                for i, p in enumerate(pan_inputs):
-                    if prior is None:
-                        fused.append(p)
-                        continue
-                    target_h, target_w = p.shape[2], p.shape[3]
-                    if prior.shape[2] != target_h or prior.shape[3] != target_w:
-                        m_scale = torch.nn.functional.interpolate(
-                            prior, size=(target_h, target_w), mode="bilinear", align_corners=False
-                        )
-                    else:
-                        m_scale = prior
-                    delta = self.heatmap_bias_fusion(m_scale, i)
-                    # Per-sample keep mask (mask dropout): dropped samples get zero increment.
-                    delta = delta * keep.to(delta.dtype).view(-1, 1, 1, 1)
-                    fused.append(p + delta)
-                _supports_hm = hasattr(m, "_build_heatmap_gate")
-                x = m(fused, heatmap=prior) if _supports_hm else m(fused)
+                # Per-sample keep mask for mask dropout (anti-shortcut). Only meaningful when a
+                # rendered/blended mask is active; keep[b]=0 zeros the per-sample bias -> passthrough.
+                keep = None
+                if prior is not None and self.training and self.p_drop > 0.0:
+                    keep = (torch.rand(batch_size, device=device) > self.p_drop).to(torch.float32)
+
+                pan_inputs = [y[j] for j in m.f]
+                x = m(pan_inputs, prior=prior, keep=keep)
             else:
                 if m.f != -1:
                     x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]
@@ -1950,6 +1926,7 @@ def parse_model(d, ch, verbose=True):
         elif m in frozenset(
             {
                 Detect,
+                AnomalyDetect,
                 WorldDetect,
                 YOLOEDetect,
                 Segment,
@@ -1965,7 +1942,7 @@ def parse_model(d, ch, verbose=True):
             args.extend([reg_max, end2end, [ch[x] for x in f]])
             if m is Segment or m is YOLOESegment or m is Segment26 or m is YOLOESegment26:
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
-            if m in {Detect, YOLOEDetect, Segment, Segment26, YOLOESegment, YOLOESegment26, Pose, Pose26, OBB, OBB26}:
+            if m in {Detect, AnomalyDetect, YOLOEDetect, Segment, Segment26, YOLOESegment, YOLOESegment26, Pose, Pose26, OBB, OBB26}:
                 m.legacy = legacy
         elif m is v10Detect:
             args.append([ch[x] for x in f])

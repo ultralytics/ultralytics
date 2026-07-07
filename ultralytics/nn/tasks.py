@@ -557,27 +557,6 @@ class YOLOAnomalyModel(DetectionModel):
         self.bb_layers = list(v2_cfg["bb_layers"])
         self.memory_bank = AnomalyMemoryBank()
 
-    def fuse(self, verbose=True):
-        """Fuse Conv/BN while preserving both one2many and one2one heads.
-
-        The base :meth:`BaseModel.fuse` drops the one2many head when ``end2end=True``.
-        Anomaly switches ``end2end`` on/off across predict/val calls, so we
-        temporarily hide the end2end flag from the base fuse to keep both heads.
-        """
-        if self.is_fused():
-            return self
-        saved = {}
-        for m in self.model.modules():
-            if isinstance(m, Detect) and getattr(m, "end2end", False):
-                saved[id(m)] = getattr(m, "_end2end", True)
-                m._end2end = False
-        try:
-            return super().fuse(verbose=verbose)
-        finally:
-            for m in self.model.modules():
-                if isinstance(m, Detect) and id(m) in saved:
-                    m._end2end = saved[id(m)]
-
     @smart_inference_mode()
     def build_memory_bank(
         self,

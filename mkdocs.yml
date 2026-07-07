@@ -252,6 +252,7 @@ nav:
       - YOLO11: models/yolo11.md
       - YOLO12: models/yolo12.md
       - YOLO26 🚀: models/yolo26.md
+      - YOLO-DETR: models/yolodetr.md
       - SAM (Segment Anything Model): models/sam.md
       - SAM 2 (Segment Anything Model 2): models/sam-2.md
       - SAM 3 (Segment Anything Model 3): models/sam-3.md

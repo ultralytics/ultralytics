@@ -81,7 +81,7 @@ def test_best_onnx_opset_caps_int8_only(monkeypatch):
 
     monkeypatch.setattr(engine, "TORCH_2_4", True)
     monkeypatch.setattr(engine, "TORCH_2_9", False)
-    monkeypatch.setattr(engine.torch.onnx.utils._constants, "ONNX_MAX_OPSET", 23)
+    monkeypatch.setattr(engine.torch.onnx.utils, "_constants", SimpleNamespace(ONNX_MAX_OPSET=23), raising=False)
     onnx = SimpleNamespace(defs=_Defs())
     assert best_onnx_opset(onnx) == 22
     assert best_onnx_opset(onnx, cuda=True) == 20

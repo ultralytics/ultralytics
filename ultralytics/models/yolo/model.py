@@ -492,7 +492,7 @@ class YOLOA(Model):
         self.model.build_memory_bank(source, imgsz=imgsz, batch=batch, device=device)
         return self
 
-    def reset_memorybank(self) -> "YOLOA":
+    def reset_memory(self) -> "YOLOA":
         """Reset the memory bank to empty, so a new set_memory can be done."""
         self._check_is_pytorch_model()
         self.model.memory_bank.reset()

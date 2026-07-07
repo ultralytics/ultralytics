@@ -1,0 +1,117 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Infinite CI — daily Monte Carlo fuzzing of the yolo CLI on a 4-personality runner matrix
+# Confirmed, deduplicated findings are auto-filed as GitHub issues (hard cap per run) by the Report job
+
+name: Infinite CI
+
+permissions:
+  contents: read
+
+on:
+  schedule:
+    - cron: "0 2 * * *" # daily at 02:00 UTC, 6h before ci.yml's 08:00 heavy run
+  workflow_dispatch:
+    inputs:
+      minutes:
+        description: "Fuzzing budget per runner in minutes"
+        default: "285"
+        type: string
+      repro_command:
+        description: "Reproduce one exact command from a fuzz issue instead of fuzzing, e.g. 'train detect model=yolo26n.pt data=coco8.yaml epochs=abc'"
+        default: ""
+        type: string
+
+concurrency:
+  group: infinite-ci
+  cancel-in-progress: false
+
+env:
+  PYTHONFAULTHANDLER: 1
+  YOLO_AUTOINSTALL: "false"
+
+jobs:
+  Fuzz:
+    if: github.repository == 'ultralytics/ultralytics' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    strategy:
+      fail-fast: false
+      matrix:
+        personality: [train, export, predict-val, chaos]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.13"
+          activate-environment: true
+      - name: Install requirements
+        uses: ultralytics/actions/retry@main
+        with:
+          retries: 3
+          retry_delay_seconds: 30
+          run: uv pip install -e ".[export-base,solutions]" --torch-backend cpu
+      - name: Check environment
+        run: yolo checks
+      - name: Configure Ultralytics cache paths
+        run: yolo settings weights_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/weights" datasets_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/datasets"
+      - name: Cache fuzz assets
+        uses: actions/cache@v6
+        with:
+          path: ${{ github.workspace }}/.ultralytics_cache
+          key: ultralytics-fuzz-assets-${{ runner.os }}-${{ hashFiles('.github/scripts/fuzz.py') }}
+          restore-keys: |
+            ultralytics-fuzz-assets-${{ runner.os }}-
+            ultralytics-test-assets-${{ runner.os }}-
+      - name: Fuzz
+        if: github.event.inputs.repro_command == ''
+        run: |
+          python .github/scripts/fuzz.py fuzz \
+            --budget-minutes ${{ github.event.inputs.minutes || '285' }} \
+            --seed ${{ github.run_id }} \
+            --personality ${{ matrix.personality }} \
+            --out fuzz-out
+      - name: Reproduce command
+        if: github.event.inputs.repro_command != '' && matrix.personality == 'chaos'
+        run: python .github/scripts/fuzz.py repro "${{ github.event.inputs.repro_command }}"
+      - name: Upload findings
+        if: always() && github.event.inputs.repro_command == ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: fuzz-${{ matrix.personality }}
+          path: fuzz-out/
+      - name: Prune uv Cache
+        run: uv cache prune --ci
+
+  Report:
+    needs: Fuzz
+    if: always() && github.event.inputs.repro_command == ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v7 # report mode is stdlib-only, no package install needed
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: fuzz-*
+          path: fuzz-out
+          merge-multiple: true
+      - name: File issues for confirmed findings
+        id: report
+        if: github.repository == 'ultralytics/ultralytics'
+        env:
+          GH_TOKEN: ${{ secrets._GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
+        run: python .github/scripts/fuzz.py report --in fuzz-out --max-issues 3
+      - name: Notify on new issues
+        if: steps.report.outputs.new_issues > 0 && github.event_name == 'schedule' && github.run_attempt == '1'
+        uses: slackapi/slack-github-action@v3.0.3
+        with:
+          webhook-type: incoming-webhook
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}
+          payload: |
+            text: "<!subteam^S082BPCRAJ3> *Infinite CI* 🐛 filed ${{ steps.report.outputs.new_issues }} new fuzz issue(s) in `${{ github.repository }}` <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|*Run*>"

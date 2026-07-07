@@ -1,14 +1,15 @@
 ---
+title: YOLO26 Computer Vision Tasks Overview
 comments: true
-description: Explore Ultralytics YOLO26 for detection, segmentation, classification, OBB, and pose estimation with high accuracy and speed. Learn how to apply each task.
-keywords: Ultralytics YOLO26, detection, segmentation, classification, oriented object detection, pose estimation, computer vision, AI framework
+description: Explore Ultralytics YOLO26 for detection, segmentation, semantic segmentation, classification, OBB, and pose estimation with high accuracy and speed. Learn how to apply each task.
+keywords: Ultralytics YOLO26, detection, segmentation, semantic segmentation, classification, oriented object detection, pose estimation, computer vision, AI framework
 ---
 
 # Computer Vision Tasks Supported by Ultralytics YOLO26
 
 <img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-yolov8-tasks-banner.avif" alt="Ultralytics YOLO supported computer vision tasks">
 
-Ultralytics YOLO26 is a versatile AI framework that supports multiple [computer vision](https://www.ultralytics.com/blog/everything-you-need-to-know-about-computer-vision-in-2025) **tasks**. The framework can be used to perform [detection](detect.md), [segmentation](segment.md), [OBB](obb.md), [classification](classify.md), and [pose](pose.md) estimation. Each of these tasks has a different objective and use case, allowing you to address various computer vision challenges with a single framework.
+Ultralytics YOLO26 is a versatile AI framework that supports multiple [computer vision](https://www.ultralytics.com/blog/everything-you-need-to-know-about-computer-vision-in-2025) **tasks**. The framework can be used to perform [detection](detect.md), [segmentation](segment.md), [semantic segmentation](semantic.md), [OBB](obb.md), [classification](classify.md), and [pose](pose.md) estimation. Each of these tasks has a different objective and use case, allowing you to address various computer vision challenges with a single framework.
 
 <p align="center">
   <br>
@@ -23,7 +24,7 @@ Ultralytics YOLO26 is a versatile AI framework that supports multiple [computer 
 
 ## [Detection](detect.md)
 
-Detection is the primary task supported by YOLO26. It involves identifying objects in an image or video frame and drawing bounding boxes around them. The detected objects are classified into different categories based on their features. YOLO26 can detect multiple objects in a single image or video frame with high [accuracy](https://www.ultralytics.com/glossary/accuracy) and speed, making it ideal for real-time applications like [surveillance systems](https://www.ultralytics.com/blog/shattering-the-surveillance-status-quo-with-vision-ai) and [autonomous vehicles](https://www.ultralytics.com/solutions/ai-in-automotive).
+Detection is the primary task supported by YOLO26. It involves identifying objects in an image or video frame and drawing bounding boxes around them. The detected objects are classified into different categories based on their features. YOLO26 can detect multiple objects in a single image or video frame with high [accuracy](https://www.ultralytics.com/glossary/accuracy) and speed, making it ideal for real-time applications like [surveillance systems](https://www.ultralytics.com/blog/shattering-the-surveillance-status-quo-with-vision-ai) and [autonomous vehicles](https://www.ultralytics.com/solutions/computer-vision-in-automotive).
 
 [Detection Examples](detect.md){ .md-button }
 
@@ -32,6 +33,12 @@ Detection is the primary task supported by YOLO26. It involves identifying objec
 Segmentation takes object detection further by producing pixel-level masks for each object. This precision is useful for applications such as [medical imaging](https://www.ultralytics.com/blog/ai-and-radiology-a-new-era-of-precision-and-efficiency), [agricultural analysis](https://www.ultralytics.com/blog/from-farm-to-table-how-ai-drives-innovation-in-agriculture), and [manufacturing quality control](https://www.ultralytics.com/blog/improving-manufacturing-with-computer-vision).
 
 [Segmentation Examples](segment.md){ .md-button }
+
+## [Semantic Segmentation](semantic.md)
+
+Semantic segmentation assigns a class label to every pixel in an image, producing a dense class map of the entire scene. Unlike instance segmentation, it does not distinguish between individual objects of the same class. This makes it ideal for [autonomous driving](https://www.ultralytics.com/solutions/computer-vision-in-automotive), [scene parsing](https://www.ultralytics.com/glossary/semantic-segmentation), and land-cover mapping where understanding the full spatial layout matters more than identifying individual objects.
+
+[Semantic Segmentation Examples](semantic.md){ .md-button }
 
 ## [Classification](classify.md)
 
@@ -53,7 +60,7 @@ Oriented Bounding Box (OBB) detection enhances traditional object detection by a
 
 ## Conclusion
 
-Ultralytics YOLO26 supports multiple computer vision tasks, including detection, segmentation, classification, oriented object detection, and keypoint detection. Each task addresses specific needs in the computer vision landscape, from basic object identification to detailed pose analysis. By understanding the capabilities and applications of each task, you can select the most appropriate approach for your specific computer vision challenges and leverage YOLO26's powerful features to build effective solutions.
+Ultralytics YOLO26 supports multiple computer vision tasks, including detection, instance segmentation, semantic segmentation, classification, oriented object detection, and keypoint detection. Each task addresses specific needs in the computer vision landscape, from basic object identification to detailed pose analysis. By understanding the capabilities and applications of each task, you can select the most appropriate approach for your specific computer vision challenges and leverage YOLO26's powerful features to build effective solutions.
 
 ## FAQ
 
@@ -63,6 +70,7 @@ Ultralytics YOLO26 is a versatile AI framework capable of performing various com
 
 - **[Object Detection](detect.md):** Identifying and localizing objects in images or video frames by drawing bounding boxes around them.
 - **[Image segmentation](segment.md):** Segmenting images into different regions based on their content, useful for applications like medical imaging.
+- **[Semantic Segmentation](semantic.md):** Assigning a class label to every pixel in an image for dense scene understanding.
 - **[Classification](classify.md):** Categorizing entire images based on their content.
 - **[Pose estimation](pose.md):** Detecting specific keypoints in an image or video frame to track movements or poses.
 - **[Oriented Object Detection (OBB)](obb.md):** Detecting rotated objects with an added orientation angle for enhanced accuracy.
@@ -96,7 +104,7 @@ To use Ultralytics YOLO26 for object detection, follow these steps:
 
         ```bash
         # Run YOLO detection from the command line
-        yolo detect model=yolo26n.pt source="image.jpg" # Adjust model and source as needed
+        yolo detect predict model=yolo26n.pt source="image.jpg" # Adjust model and source as needed
         ```
 
 For more detailed instructions, check out our [detection examples](detect.md).

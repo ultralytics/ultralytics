@@ -44,8 +44,8 @@ def imread(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | None:
         return None
     else:
         im = cv2.imdecode(file_bytes, flags)
-        # Fallback for formats OpenCV imdecode may not support (AVIF, HEIC)
-        if im is None and filename.lower().endswith((".avif", ".heic")):
+        # Fallback for formats OpenCV imdecode may not support (AVIF, HEIC, HEIF)
+        if im is None and filename.lower().endswith((".avif", ".heic", ".heif")):
             im = _imread_pil(filename, flags)
         return im[..., None] if im is not None and im.ndim == 2 else im  # Always ensure 3 dimensions
 
@@ -205,12 +205,12 @@ def torch_save(*args, **kwargs):
 
 
 @contextmanager
-def arange_patch(dynamic: bool = False, half: bool = False, fmt: str = ""):
+def arange_patch(dynamic: bool = False, quantize: int | str | None = None, fmt: str = ""):
     """Workaround for ONNX torch.arange incompatibility with FP16.
 
     https://github.com/pytorch/pytorch/issues/148041.
     """
-    if dynamic and half and fmt == "onnx":
+    if dynamic and quantize == 16 and fmt == "onnx":
         func = torch.arange
 
         def arange(*args, dtype=None, **kwargs):

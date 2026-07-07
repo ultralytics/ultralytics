@@ -28,14 +28,14 @@ Comprising 4029 static images captured from diverse road and wall scenarios, thi
 The Crack Segmentation Dataset is organized into three subsets:
 
 - **Training set**: 3717 images with corresponding annotations.
-- **Testing set**: 112 images with corresponding annotations.
-- **Validation set**: 200 images with corresponding annotations.
+- **Testing set**: 200 images with corresponding annotations.
+- **Validation set**: 112 images with corresponding annotations.
 
 ## Applications
 
 Crack segmentation finds practical applications in [infrastructure maintenance](https://www.ultralytics.com/blog/using-ai-for-crack-detection-and-segmentation), aiding in the identification and assessment of structural damage in buildings, bridges, and roads. It also plays a crucial role in enhancing [road safety](https://www.who.int/news-room/fact-sheets/detail/road-traffic-injuries) by enabling automated systems to detect pavement cracks for timely repairs.
 
-In industrial settings, crack detection using deep learning models like [Ultralytics YOLO26](../../models/yolo26.md) helps ensure building integrity in construction, prevents costly downtimes in [manufacturing](https://www.ultralytics.com/solutions/ai-in-manufacturing), and makes road inspections safer and more effective. Automatically identifying and classifying cracks allows maintenance teams to prioritize repairs efficiently, contributing to better [model evaluation insights](../../guides/model-evaluation-insights.md).
+In industrial settings, crack detection using deep learning models like [Ultralytics YOLO26](../../models/yolo26.md) helps ensure building integrity in construction, prevents costly downtimes in [manufacturing](https://www.ultralytics.com/solutions/computer-vision-in-manufacturing), and makes road inspections safer and more effective. Automatically identifying and classifying cracks allows maintenance teams to prioritize repairs efficiently, contributing to better [model evaluation insights](../../guides/model-evaluation-insights.md).
 
 ## Dataset YAML
 

@@ -22,7 +22,6 @@ class SegmentationValidator(DetectionValidator):
     compute metrics such as mAP for both detection and segmentation tasks.
 
     Attributes:
-        plot_masks (list): List to store masks for plotting.
         process (callable): Function to process masks based on save_json and save_txt flags.
         args (SimpleNamespace): Arguments for the validator.
         metrics (SegmentMetrics): Metrics calculator for segmentation tasks.
@@ -104,15 +103,7 @@ class SegmentationValidator(DetectionValidator):
         imgsz = [4 * x for x in proto.shape[2:]]  # get image size from proto
         for i, pred in enumerate(preds):
             coefficient = pred.pop("extra")
-            pred["masks"] = (
-                self.process(proto[i], coefficient, pred["bboxes"], shape=imgsz)
-                if coefficient.shape[0]
-                else torch.zeros(
-                    (0, *(imgsz if self.process is ops.process_mask_native else proto.shape[2:])),
-                    dtype=torch.uint8,
-                    device=pred["bboxes"].device,
-                )
-            )
+            pred["masks"] = self.process(proto[i], coefficient, pred["bboxes"], shape=imgsz)
         return preds
 
     def _prepare_batch(self, si: int, batch: dict[str, Any]) -> dict[str, Any]:

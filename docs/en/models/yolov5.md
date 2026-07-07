@@ -12,9 +12,9 @@ YOLOv5u represents an advancement in [object detection](https://www.ultralytics.
 
 ![YOLOv5 object detection model architecture and performance](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-yolov5-splash.avif)
 
-!!! warning "YOLOv5 models trained by [ultralytics/yolov5](https://github.com/ultralytics/yolov5) are not compatible with [ultralytics/ultralytics](https://github.com/ultralytics/ultralytics) library"
+!!! warning "Models trained with the original YOLOv5 repo are not compatible with the Ultralytics library"
 
-    Ultralytics provides an [anchor-free variant of YOLOv5 model](#performance-metrics). Models trained with the [original YOLOv5 repo](https://github.com/ultralytics/yolov5) cannot be used with the Ultralytics library.
+    Ultralytics provides an [anchor-free variant of YOLOv5 model](#performance-metrics). Models trained with the [ultralytics/yolov5](https://github.com/ultralytics/yolov5) repo cannot be loaded with the [ultralytics/ultralytics](https://github.com/ultralytics/ultralytics) library. To use YOLOv5 here, train a new model from an Ultralytics YOLOv5u checkpoint (e.g. `yolov5su.pt`).
 
 !!! tip "Try on Ultralytics Platform"
 
@@ -107,7 +107,7 @@ This example provides simple YOLOv5 training and inference examples. For full do
 
 !!! tip "Ultralytics YOLOv5 Publication"
 
-    Ultralytics has not published a formal research paper for YOLOv5 due to the rapidly evolving nature of the models. We focus on advancing the technology and making it easier to use, rather than producing static documentation. For the most up-to-date information on YOLO architecture, features, and usage, please refer to our [GitHub repository](https://github.com/ultralytics/ultralytics) and [documentation](https://docs.ultralytics.com/).
+    Ultralytics has not published a formal research paper for YOLOv5 due to the rapidly evolving nature of the models. We focus on advancing the technology and making it easier to use, rather than producing static documentation. For the most up-to-date information on YOLO architecture, features, and usage, please refer to our [GitHub repository](https://github.com/ultralytics/ultralytics) and [documentation](../index.md).
 
 If you use YOLOv5 or YOLOv5u in your research, please cite the Ultralytics YOLOv5 repository as follows:
 

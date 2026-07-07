@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Explore Ultralytics' diverse datasets for vision tasks like detection, segmentation, classification, and more. Enhance your projects with high-quality annotated data.
-keywords: Ultralytics, datasets, computer vision, object detection, instance segmentation, pose estimation, image classification, multi-object tracking
+description: Explore Ultralytics' diverse datasets for vision tasks like detection, segmentation, semantic segmentation, classification, and more. Enhance your projects with high-quality annotated data.
+keywords: Ultralytics, datasets, computer vision, object detection, instance segmentation, semantic segmentation, pose estimation, image classification, multi-object tracking
 ---
 
 # Datasets Overview
 
-Ultralytics provides support for various datasets to facilitate computer vision tasks such as detection, [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), pose estimation, classification, and multi-object tracking. Below is a list of the main Ultralytics datasets, followed by a summary of each computer vision task and the respective datasets.
+Ultralytics provides support for various datasets to facilitate computer vision tasks such as detection, [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), semantic segmentation, pose estimation, classification, and multi-object tracking. Below is a list of the main Ultralytics datasets, followed by a summary of each computer vision task and the respective datasets.
 
 <p align="center">
   <br>
@@ -30,7 +30,7 @@ Ultralytics provides support for various datasets to facilitate computer vision 
 - [COCO8](detect/coco8.md): A smaller subset of the first 4 images from COCO train and COCO val, suitable for quick tests.
 - [COCO8-Grayscale](detect/coco8-grayscale.md): A grayscale version of COCO8 created by converting RGB to grayscale, useful for single-channel model evaluation.
 - [COCO8-Multispectral](detect/coco8-multispectral.md): A 10-channel multispectral version of COCO8 created by interpolating RGB wavelengths, useful for spectral-aware model evaluation.
-- [COCO128](detect/coco128.md): A smaller subset of the first 128 images from COCO train and COCO val, suitable for tests.
+- [COCO128](detect/coco128.md): A smaller subset of the first 128 images from COCO train2017, suitable for tests.
 - [Construction-PPE](detect/construction-ppe.md): A dataset of construction site imagery annotated with key safety gear such as helmets, vests, gloves, boots, and goggles, along with labels for missing equipment, supporting the development of AI models for compliance and worker protection.
 - [Global Wheat 2020](detect/globalwheat2020.md): A dataset containing images of wheat heads for the Global Wheat Challenge 2020.
 - [HomeObjects-3K](detect/homeobjects-3k.md): A dataset of annotated indoor scenes featuring 12 common household items, ideal for developing and testing computer vision models in smart home systems, robotics, and augmented reality.
@@ -57,13 +57,21 @@ Instance segmentation is a computer vision technique that involves identifying a
 - [Crack-seg](segment/crack-seg.md): Specifically crafted dataset for detecting cracks on roads and walls, applicable for both object detection and segmentation tasks.
 - [Package-seg](segment/package-seg.md): Tailored dataset for identifying packages in warehouses or industrial settings, suitable for both object detection and segmentation applications.
 
+## [Semantic Segmentation](semantic/index.md)
+
+Semantic segmentation assigns a class label to every pixel in an image, producing dense scene maps for applications such as autonomous driving, scene parsing, and land-cover mapping.
+
+- [Cityscapes](semantic/cityscapes.md): Urban street-scene semantic segmentation dataset with 19 train classes.
+- [Cityscapes8](semantic/cityscapes8.md): A compact 8-image Cityscapes subset for quick semantic segmentation pipeline checks.
+- [ADE20K](semantic/ade20k.md): Scene parsing dataset with 150 semantic classes.
+
 ## [Pose Estimation](pose/index.md)
 
 Pose estimation is a technique used to determine the pose of the object relative to the camera or the world coordinate system. This involves identifying key points or joints on objects, particularly humans or animals.
 
 - [COCO](pose/coco.md): A large-scale dataset with human pose annotations designed for pose estimation tasks.
 - [COCO8-pose](pose/coco8-pose.md): A smaller dataset for pose estimation tasks, containing a subset of 8 COCO images with human pose annotations.
-- [Dog-pose](pose/dog-pose.md): A comprehensive dataset featuring approximately 6,000 images focused on dogs, annotated with 24 keypoints per dog, tailored for pose estimation tasks.
+- [Dog-pose](pose/dog-pose.md): A comprehensive dataset featuring approximately 8,500 images focused on dogs, annotated with 24 keypoints per dog, tailored for pose estimation tasks.
 - [Hand-Keypoints](pose/hand-keypoints.md): A concise dataset featuring over 26,000 images centered on human hands, annotated with 21 keypoints per hand, designed for pose estimation tasks.
 - [Tiger-pose](pose/tiger-pose.md): A compact dataset consisting of 263 images focused on tigers, annotated with 12 keypoints per tiger for pose estimation tasks.
 
@@ -81,7 +89,7 @@ Pose estimation is a technique used to determine the pose of the object relative
 - [Imagenette](classify/imagenette.md): A smaller subset of ImageNet that contains 10 easily distinguishable classes for quicker training and testing.
 - [Imagewoof](classify/imagewoof.md): A more challenging subset of ImageNet containing 10 dog breed categories for image classification tasks.
 - [MNIST](classify/mnist.md): A dataset of 70,000 grayscale images of handwritten digits for image classification tasks.
-- [MNIST160](classify/mnist.md): First 8 images of each MNIST category from the MNIST dataset. Dataset contains 160 images total.
+- [MNIST160](classify/mnist.md): First 8 images of each digit (0-9) from both the MNIST train and test splits. Dataset contains 160 images total.
 
 ## [Oriented Bounding Boxes (OBB)](obb/index.md)
 
@@ -133,7 +141,7 @@ Contributing a new dataset involves several steps to ensure that it aligns well 
 5. **Create a `data.yaml` File**: In your dataset's root directory, create a `data.yaml` file that describes the dataset, classes, and other necessary information.
 6. **Optimize Images (Optional)**: If you want to reduce the size of the dataset for more efficient processing, you can optimize the images using the code below. This is not required, but recommended for smaller dataset sizes and faster download speeds.
 7. **Zip Dataset**: Compress the entire dataset folder into a zip file.
-8. **Document and PR**: Create a documentation page describing your dataset and how it fits into the existing framework. After that, submit a Pull Request (PR). Refer to [Ultralytics Contribution Guidelines](https://docs.ultralytics.com/help/contributing) for more details on how to submit a PR.
+8. **Document and PR**: Create a documentation page describing your dataset and how it fits into the existing framework. After that, submit a Pull Request (PR). Refer to [Ultralytics Contribution Guidelines](../help/contributing.md) for more details on how to submit a PR.
 
 ### Example Code to Optimize and Zip a Dataset
 
@@ -172,7 +180,7 @@ Ultralytics supports a wide variety of datasets for [object detection](https://w
 - [VisDrone](detect/visdrone.md): A dataset with object detection and multi-object tracking data from drone-captured imagery.
 - [SKU-110K](detect/sku-110k.md): Featuring dense object detection in retail environments with over 11K images.
 
-These datasets facilitate training robust [Ultralytics YOLO](https://docs.ultralytics.com/models) models for various object detection applications.
+These datasets facilitate training robust [Ultralytics YOLO](../models/index.md) models for various object detection applications.
 
 ### How do I contribute a new dataset to Ultralytics?
 
@@ -185,7 +193,7 @@ Contributing a new dataset involves several steps:
 5. **Create a `data.yaml` File**: Include dataset descriptions, classes, and other relevant information.
 6. **Optimize Images (Optional)**: Reduce dataset size for efficiency.
 7. **Zip Dataset**: Compress the dataset into a zip file.
-8. **Document and PR**: Describe your dataset and submit a Pull Request following [Ultralytics Contribution Guidelines](https://docs.ultralytics.com/help/contributing).
+8. **Document and PR**: Describe your dataset and submit a Pull Request following [Ultralytics Contribution Guidelines](../help/contributing.md).
 
 Visit [Contribute New Datasets](#contribute-new-datasets) for a comprehensive guide.
 
@@ -198,19 +206,19 @@ Visit [Contribute New Datasets](#contribute-new-datasets) for a comprehensive gu
 - **Visualization Tools**: Explore and visualize your dataset images and annotations.
 - **Dataset Analysis**: Get insights into your dataset distribution and characteristics.
 
-The platform streamlines the transition from dataset management to model training, making the entire process more efficient. Learn more about [Ultralytics Platform Datasets](https://docs.ultralytics.com/platform/data).
+The platform streamlines the transition from dataset management to model training, making the entire process more efficient. Learn more about [Ultralytics Platform Datasets](../platform/data/index.md).
 
 ### What are the unique features of Ultralytics YOLO models for computer vision?
 
 Ultralytics YOLO models provide several unique features for [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks:
 
 - **Real-time Performance**: High-speed inference and training capabilities for time-sensitive applications.
-- **Versatility**: Support for detection, segmentation, classification, and pose estimation tasks in a unified framework.
+- **Versatility**: Support for detection, instance segmentation, semantic segmentation, classification, and pose estimation tasks in a unified framework.
 - **Pretrained Models**: Access to high-performing, pretrained models for various applications, reducing training time.
 - **Extensive Community Support**: Active community and comprehensive documentation for troubleshooting and development.
 - **Easy Integration**: Simple API for integrating with existing projects and workflows.
 
-Discover more about YOLO models on the [Ultralytics Models](https://docs.ultralytics.com/models) page.
+Discover more about YOLO models on the [Ultralytics Models](../models/index.md) page.
 
 ### How can I optimize and zip a dataset using Ultralytics tools?
 

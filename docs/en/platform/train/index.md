@@ -1,4 +1,5 @@
 ---
+title: Cloud Model Training
 comments: true
 description: Learn about model training in Ultralytics Platform including project organization, cloud training, and real-time metrics streaming.
 keywords: Ultralytics Platform, model training, cloud training, YOLO, GPU training, machine learning, deep learning
@@ -27,7 +28,7 @@ The Training section helps you:
 - **Train** on cloud GPUs with a single click
 - **Monitor** real-time metrics during training
 - **Compare** model performance across experiments
-- **Export** to 17+ deployment formats (see [supported formats](models.md#supported-formats))
+- **Export** to 19+ deployment formats (see [supported formats](models.md#supported-formats))
 
 ![Ultralytics Platform Train Overview](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-train-overview.avif)
 
@@ -35,16 +36,14 @@ The Training section helps you:
 
 ```mermaid
 graph LR
-    A[📁 Project] --> B[⚙️ Configure]
-    B --> C[🚀 Train]
-    C --> D[📈 Monitor]
-    D --> E[📦 Export]
+    A[📁 Project]:::start --> B[⚙️ Configure]:::proc
+    B --> C[🚀 Train]:::proc
+    C --> D[📈 Monitor]:::proc
+    D --> E[📦 Export]:::out
 
-    style A fill:#4CAF50,color:#fff
-    style B fill:#2196F3,color:#fff
-    style C fill:#FF9800,color:#fff
-    style D fill:#9C27B0,color:#fff
-    style E fill:#00BCD4,color:#fff
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 | Stage         | Description                                                                |
@@ -53,7 +52,7 @@ graph LR
 | **Configure** | Select [dataset](../data/datasets.md), base model, and training parameters |
 | **Train**     | Run on cloud GPUs or your local hardware                                   |
 | **Monitor**   | View real-time loss curves and metrics                                     |
-| **Export**    | Convert to 17+ deployment formats ([details](models.md#supported-formats)) |
+| **Export**    | Convert to 19+ deployment formats ([details](models.md#supported-formats)) |
 
 ## Training Options
 
@@ -85,16 +84,15 @@ During training, view live metrics across three subtabs:
 
 ```mermaid
 graph LR
-    A[Charts] --> B[Loss Curves]
-    A --> C[Performance Metrics]
-    D[Console] --> E[Live Logs]
-    D --> F[Error Detection]
-    G[System] --> H[GPU Utilization]
-    G --> I[Memory & Temp]
+    A[Charts]:::start --> B[Loss Curves]:::out
+    A --> C[Performance Metrics]:::out
+    D[Console]:::start --> E[Live Logs]:::out
+    D --> F[Error Detection]:::out
+    G[System]:::start --> H[GPU Utilization]:::out
+    G --> I[Memory & Temp]:::out
 
-    style A fill:#2196F3,color:#fff
-    style D fill:#FF9800,color:#fff
-    style G fill:#9C27B0,color:#fff
+    classDef start fill:#4CAF50,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 | Subtab      | Metrics                                                |
@@ -157,7 +155,7 @@ Training time depends on:
 - Number of epochs
 - GPU type selected
 
-A typical training run with 1000 images, YOLO26n, 100 epochs on RTX PRO 6000 takes about 2-3 hours. Smaller runs (500 images, 50 epochs on RTX 4090) complete in under an hour. See [cost examples](cloud-training.md#cost-examples) for detailed estimates.
+A typical training run with 1000 images, YOLO26n, 100 epochs on RTX PRO 6000 takes about 5-10 minutes. Smaller runs (500 images, 50 epochs on RTX 4090) complete in under an hour. See [cost examples](cloud-training.md#cost-examples) for detailed estimates.
 
 ### Can I train multiple models simultaneously?
 
@@ -167,8 +165,8 @@ Yes. Concurrent cloud training limits depend on your plan: Free allows 3, Pro al
 
 If training fails:
 
-1. Checkpoints are saved at each epoch
-2. You can resume from the last checkpoint
+1. The model is marked failed and the compute instance is terminated
+2. You can start a new training run from the base model
 3. Credits are only charged for completed compute time
 
 ### How do I choose the right GPU?

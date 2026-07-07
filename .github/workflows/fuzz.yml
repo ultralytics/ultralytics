@@ -9,8 +9,6 @@ permissions:
   contents: read
 
 on:
-  push:
-    branches: [infinite-ci] # TEMPORARY: pre-merge validation run, remove before merge
   schedule:
     - cron: "0 2 * * *" # daily at 02:00 UTC, 6h before ci.yml's 08:00 heavy run
   workflow_dispatch:

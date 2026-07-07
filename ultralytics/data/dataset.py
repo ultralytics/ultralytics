@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import os
 from collections import defaultdict
 from itertools import repeat
 from multiprocessing.pool import ThreadPool
@@ -41,8 +40,8 @@ from .utils import (
     img2label_paths,
     load_dataset_cache_file,
     parse_image_cache,
-    prepare_cache_dir,
     polygons2masks_overlap,
+    prepare_cache_dir,
     save_dataset_cache_file,
     verify_image,
     verify_image_label,
@@ -1040,7 +1039,9 @@ class ClassificationDataset:
             if self.cache_dir is None:
                 self.cache_disk = False
         self.samples = self.verify_images()  # filter out bad images
-        self.samples = [[*list(x), get_cache_file_path(x[0], self.cache_dir), None] for x in self.samples]  # file, index, npy, im
+        self.samples = [
+            [*list(x), get_cache_file_path(x[0], self.cache_dir), None] for x in self.samples
+        ]  # file, index, npy, im
         if self.cache_ram:
             self.cache_images()
         scale = (1.0 - args.scale, 1.0)  # (0.08, 1.0)

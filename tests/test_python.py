@@ -19,7 +19,6 @@ from PIL import Image
 import ultralytics.data.build as data_build
 from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
 from ultralytics import RTDETR, YOLO
-from ultralytics.cfg import TASK2DATA, TASKS
 from ultralytics.data.base import BaseDataset
 from ultralytics.data.build import build_dataloader, load_inference_source
 from ultralytics.data.utils import check_det_dataset
@@ -992,6 +991,7 @@ def test_model_embeddings():
     assert isinstance(model_classify.predict(SOURCE, imgsz=32, embed=[-2])[0], torch.Tensor)
     assert model_classify.predict(SOURCE, imgsz=32)[0].probs is not None
 
+
 class _TestCachePathDataset(BaseDataset):
     """Minimal BaseDataset subclass for testing disk cache locations."""
 
@@ -1024,7 +1024,9 @@ def test_base_dataset_cache_modes(tmp_path, cache):
     assert cv2.imwrite(str(image), np.full((16, 16, 3), 255, dtype=np.uint8))
 
     cache_value = "disk" if cache == "disk" else str(tmp_path / "disk-cache")
-    dataset = _TestCachePathDataset(img_path=str(image_dir), imgsz=32, cache=cache_value, augment=False, hyp=copy(DEFAULT_CFG))
+    dataset = _TestCachePathDataset(
+        img_path=str(image_dir), imgsz=32, cache=cache_value, augment=False, hyp=copy(DEFAULT_CFG)
+    )
 
     cache_file = dataset.npy_files[0]
     assert cache_file.exists()
@@ -1059,6 +1061,7 @@ def test_classification_dataset_cache_modes(tmp_path, cache):
     else:
         assert Path(args.cache) in cache_file.parents
         assert not image.with_suffix(".npy").exists()
+
 
 def test_process_mask_native_chunked():
     """Chunked native upsampling is identical to upsampling all masks at once."""

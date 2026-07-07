@@ -175,7 +175,9 @@ def get_cache_file_path(im_file: str | Path, cache_dir: str | Path | None = None
     return Path(cache_dir) / digest[:2] / f"{digest}.npy"
 
 
-def prepare_cache_dir(cache_dir: str | Path | None, prefix: str, context: str = "caching images to disk") -> Path | None:
+def prepare_cache_dir(
+    cache_dir: str | Path | None, prefix: str, context: str = "caching images to disk"
+) -> Path | None:
     """Create and validate a cache directory, returning None if it is unavailable."""
     if cache_dir is None:
         return None

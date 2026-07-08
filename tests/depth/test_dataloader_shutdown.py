@@ -8,10 +8,16 @@ traceback. ``InfiniteDataLoader.close()`` drains the persistent iterator gracefu
 and unregistering them from the watchdog), leaving nothing for multiprocessing to SIGTERM.
 """
 
+import pytest
 import torch
 from torch.utils.data import Dataset
 
 from ultralytics.data.build import InfiniteDataLoader
+from ultralytics.utils.torch_utils import TORCH_2_0
+
+pytestmark = pytest.mark.skipif(
+    not TORCH_2_0, reason="torch<2.0 dataloader workers segfault in this synthetic multiprocessing harness"
+)
 
 
 class _DS(Dataset):

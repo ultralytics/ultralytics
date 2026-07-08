@@ -1215,11 +1215,12 @@ class v8DepthLoss:
         """Calculate depth estimation loss.
 
         Args:
-            preds: Dict with "depth" key → (B, 1, H, W) predicted depth.
-            batch: Dict with "depth" key → (B, H, W) ground truth depth in meters.
+            preds (dict | torch.Tensor): Dict with "depth" key or raw tensor of (B, 1, H, W) predicted depth.
+            batch (dict): Dict with "depth" key holding (B, H, W) ground truth depth in meters.
 
         Returns:
-            (loss_sum, loss_items): Total loss and per-component losses.
+            loss_sum (torch.Tensor): Total loss scaled by batch size.
+            loss_items (torch.Tensor): Detached per-component [silog, grad] losses.
         """
         loss = torch.zeros(2, device=self.device)  # [silog_loss, grad_loss]
         # Handle both training (dict) and validation (tensor) prediction formats

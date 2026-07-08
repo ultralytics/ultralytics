@@ -209,11 +209,11 @@ def plot_depth_panels(imgs, gt, preds, fname, titles=None, max_images: int = 4):
     so predictions at head stride need no prior interpolation.
 
     Args:
-        imgs: (B,3,H,W) float image tensor in [0,1].
-        gt: (B,1,H,W) or (B,H,W) ground-truth depth in meters (pixels <= 0 are invalid, drawn black).
-        preds: List of (B,1,H,W) or (B,H,W) predicted depth tensors; each adds one column.
-        fname: Output image path.
-        titles: Optional list of ``2 + len(preds)`` column labels, drawn in a 24 px header strip.
+        imgs (torch.Tensor): (B,3,H,W) float image tensor in [0,1].
+        gt (torch.Tensor): (B,1,H,W) or (B,H,W) ground-truth depth in meters (pixels <= 0 invalid, drawn black).
+        preds (list): List of (B,1,H,W) or (B,H,W) predicted depth tensors; each adds one column.
+        fname (str | Path): Output image path.
+        titles (list, optional): List of ``2 + len(preds)`` column labels, drawn in a 24 px header strip.
             None (the val_batch{ni}.jpg default) keeps the historical strip-free layout.
         max_images: Maximum number of rows.
     """

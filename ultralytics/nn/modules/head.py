@@ -804,11 +804,11 @@ class Depth(nn.Module):
         """Initialize Depth head.
 
         Args:
-            c_mid: Number of intermediate channels for the fusion decoder.
-            mode: Output parameterization. "sigmoid" → sigmoid × max_depth (bounded metric
-                output). "log" → exp(logit) (unbounded): shape and scale stay decoupled for
-                scale-invariant pretraining; eval recovers scale via log-LS alignment.
-            ch: Tuple of input channel sizes from backbone feature maps (P3, P4, P5).
+            c_mid (int): Number of intermediate channels for the fusion decoder.
+            mode (str): Output parameterization. "sigmoid" is sigmoid x max_depth (bounded metric output);
+                "log" is exp(logit) (unbounded), keeping shape and scale decoupled for scale-invariant
+                pretraining, with eval recovering scale via log-LS alignment.
+            ch (tuple): Input channel sizes from backbone feature maps (P3, P4, P5).
         """
         super().__init__()
         self.nl = len(ch)  # number of detection layers (pyramid levels)

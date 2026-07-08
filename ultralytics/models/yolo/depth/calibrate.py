@@ -297,11 +297,11 @@ def calibrate_checkpoint(ckpt_path, dataloader, device, dist_power: float = 0.0,
     the chosen buffers into the stored model, and re-saves — preserving the rest of the checkpoint.
 
     Args:
-        ckpt_path: Path to the ``.pt`` checkpoint file to calibrate in place.
-        dataloader: Yields batches with ``img`` (uint8, B×3×H×W) and ``depth`` (B×H×W meters).
-        device: Torch device to run inference on.
+        ckpt_path (str | Path): Path to the ``.pt`` checkpoint file to calibrate in place.
+        dataloader (object): Yields batches with ``img`` (uint8, Bx3xHxW) and ``depth`` (BxHxW meters).
+        device (str | torch.device): Torch device to run inference on.
         dist_power (float): Weight each pixel by gt**dist_power in the calibration fit (0.0 = uniform).
-        plot_dir: If set, also write ``val_batch{ni}_calibrated.jpg`` comparison panels
+        plot_dir (str | Path, optional): If set, also write ``val_batch{ni}_calibrated.jpg`` comparison panels
             (RGB | GT | raw | calibrated) for the first val batches into this directory.
     """
     from copy import deepcopy

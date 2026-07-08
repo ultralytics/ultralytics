@@ -16,7 +16,7 @@ keywords: COCO8-Pose, Ultralytics, pose detection dataset, object detection, YOL
 - **Classes**: 1 (person) with 17 keypoints per annotation.
 - **Recommended directory layout**: `datasets/coco8-pose/images/{train,val}` and `datasets/coco8-pose/labels/{train,val}` with YOLO-format keypoints stored as `.txt` files.
 
-This dataset is intended for use with [Ultralytics Platform](https://platform.ultralytics.com/) and [YOLO26](https://github.com/ultralytics/ultralytics).
+Explore [COCO8-Pose on Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/coco8-pose) to browse every image with its keypoint skeletons, view the keypoint and class distributions in the **Charts** tab, and clone it to train your own model in the cloud.
 
 ## Dataset YAML
 

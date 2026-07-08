@@ -30,6 +30,7 @@ def test_depth_onnx_export_dynamic(tmp_path):
 
 def test_depth_imx_blocked():
     import pytest
+
     from ultralytics import YOLO
 
     m = YOLO("ultralytics/cfg/models/26/yolo26-depth.yaml")

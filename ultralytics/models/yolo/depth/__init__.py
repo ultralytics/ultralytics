@@ -1,10 +1,10 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from .predict import DepthPredictor
-from .val import DepthValidator
-
 # Lazy import to avoid circular dependency (depth.train imports yolo.detect)
 import importlib as _importlib
+
+from .predict import DepthPredictor
+from .val import DepthValidator
 
 
 def __getattr__(name):

@@ -1,6 +1,6 @@
 import numpy as np
 
-from ultralytics.engine.results import Results, DepthMap
+from ultralytics.engine.results import DepthMap, Results
 
 
 def test_results_depth_field():
@@ -39,6 +39,7 @@ def test_results_update_depth():
 
 def test_depth_predictor_postprocess_sets_depthmap():
     import torch
+
     from ultralytics.engine.results import DepthMap
     from ultralytics.models.yolo.depth.predict import DepthPredictor
 

@@ -41,7 +41,8 @@ def _loss_for_scaled_pred(lam, scale, l1=0.0):
 
 def test_lower_lambda_penalizes_scale_error_more():
     """A globally scale-shifted prediction is ~free under scale-invariant silog (lambda=1) but
-    must be heavily penalized as lambda drops (loss becomes scale-dependent)."""
+    must be heavily penalized as lambda drops (loss becomes scale-dependent).
+    """
     loss_invariant = _loss_for_scaled_pred(lam=1.0, scale=2.0)
     loss_anchored = _loss_for_scaled_pred(lam=0.15, scale=2.0)
     assert loss_invariant < 0.05
@@ -71,7 +72,8 @@ def test_grad_scales_1_matches_single_scale():
 
 def test_multiscale_grad_adds_coarse_levels():
     """silog_grad_scales>1 sums non-negative coarse-level terms, so it exceeds the single-scale
-    loss whenever the prediction mismatches GT at coarse scales (generic random case)."""
+    loss whenever the prediction mismatches GT at coarse scales (generic random case).
+    """
     torch.manual_seed(1)
     gt = torch.rand(2, 1, 32, 32) * 5 + 1.0
     pred = (gt + 0.5 * torch.randn(2, 1, 32, 32)).clamp(min=0.1)
@@ -82,7 +84,8 @@ def test_multiscale_grad_adds_coarse_levels():
 
 def test_sparsity_guard_collapses_multiscale_on_sparse_gt():
     """On sparse GT (valid fraction < silog_grad_min_valid), multi-scale must self-disable and
-    match single-scale — the guard blocks unreliable coarse gradients (the KITTI failure mode)."""
+    match single-scale — the guard blocks unreliable coarse gradients (the KITTI failure mode).
+    """
     torch.manual_seed(3)
     gt = torch.zeros(1, 1, 32, 32)
     mask = torch.rand(1, 1, 32, 32) < 0.15  # ~15% valid, below the 0.5 threshold

@@ -1,4 +1,4 @@
-from ultralytics.cfg import TASKS, TASK2CALIBRATIONDATA, TASK2DATA, TASK2METRIC, TASK2MODEL
+from ultralytics.cfg import TASK2CALIBRATIONDATA, TASK2DATA, TASK2METRIC, TASK2MODEL, TASKS
 
 
 def test_depth_registered_in_tasks():

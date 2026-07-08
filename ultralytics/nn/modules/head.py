@@ -21,9 +21,9 @@ from .transformer import MLP, DeformableTransformerDecoder, DeformableTransforme
 from .utils import bias_init_with_prob, linear_init
 
 __all__ = (
-    "Depth",
     "OBB",
     "Classify",
+    "Depth",
     "Detect",
     "Pose",
     "RTDETRDecoder",

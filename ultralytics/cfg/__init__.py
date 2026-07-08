@@ -298,6 +298,7 @@ CFG_BOOL_KEYS = frozenset(
         "profile",
         "end2end",
         "auto_calibrate",
+        "cls_remap",
     }
 )
 

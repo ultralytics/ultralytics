@@ -1933,7 +1933,7 @@ class CopyPaste(BaseMixTransform):
     def __init__(self, dataset=None, pre_transform=None, p: float = 0.5, mode: str = "flip") -> None:
         """Initialize CopyPaste object with dataset, pre_transform, and probability of applying CopyPaste."""
         super().__init__(dataset=dataset, pre_transform=pre_transform, p=p)
-        assert mode in {"flip", "mixup"}, f"Expected `mode` to be `flip` or `mixup`, but got {mode}."
+        assert mode in ("flip", "mixup"), f"Expected `mode` to be `flip` or `mixup`, but got {mode}."
         self.mode = mode
 
     def __call__(self, labels: dict[str, Any]) -> dict[str, Any]:
@@ -2867,14 +2867,14 @@ def classify_transforms(
             "'crop_fraction' arg of classify_transforms is deprecated, will be removed in a future version."
         )
 
-    # Aspect ratio is preserved, crops center within image, no borders are added, image is lost
-    if scale_size[0] == scale_size[1]:
-        # Simple case, use torchvision built-in Resize with the shortest edge mode (scalar size arg)
-        tfl = [T.Resize(scale_size[0], interpolation=getattr(T.InterpolationMode, interpolation))]
-    else:
-        # Resize the shortest edge to matching target dim for non-square target
-        tfl = [T.Resize(scale_size)]
-    tfl += [T.CenterCrop(size), T.ToTensor(), T.Normalize(mean=torch.tensor(mean), std=torch.tensor(std))]
+    # Square target uses the scalar shortest-edge mode (preserves aspect); non-square resizes to the exact (h, w).
+    resize = scale_size[0] if scale_size[0] == scale_size[1] else scale_size
+    tfl = [
+        T.Resize(resize, interpolation=getattr(T.InterpolationMode, interpolation)),
+        T.CenterCrop(size),
+        T.ToTensor(),
+        T.Normalize(mean=torch.tensor(mean), std=torch.tensor(std)),
+    ]
     return T.Compose(tfl)
 
 

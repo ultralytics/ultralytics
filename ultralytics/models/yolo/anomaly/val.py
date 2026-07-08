@@ -12,9 +12,9 @@ import torch
 import torch.distributed as dist
 
 from ultralytics.data.augment import LetterBox
-from ultralytics.engine.results import Results
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER, ops
+from ultralytics.utils.plotting import Annotator, colors
 
 
 class YOLOAnomalyValidator(DetectionValidator):
@@ -121,19 +121,23 @@ class YOLOAnomalyValidator(DetectionValidator):
         gt_boxes: torch.Tensor,
         title: str,
     ) -> np.ndarray:
-        """Draw predictions (red) and GT boxes (green) on a preprocessed image."""
-        panel = img.copy()
-        # Predictions in red
+        """Draw predictions with class/conf labels and GT boxes on a preprocessed image."""
+        annotator = Annotator(img.copy(), line_width=1, font_size=0.35)
+        # Predictions
         if len(pred.get("bboxes", [])):
-            for box in pred["bboxes"]:
-                x1, y1, x2, y2 = map(int, box[:4])
-                cv2.rectangle(panel, (x1, y1), (x2, y2), (0, 0, 255), 2)
+            bboxes = pred["bboxes"]
+            confs = pred.get("conf", None)
+            clss = pred.get("cls", None)
+            for j in range(len(bboxes)):
+                box = bboxes[j].tolist()
+                c = int(clss[j]) if clss is not None else 0
+                label = f"{self.names.get(c, '')} {confs[j]:.2f}" if confs is not None else ""
+                annotator.box_label(box, label, color=colors(c, True))
         # GT boxes in green
         if len(gt_boxes):
             for box in gt_boxes:
-                x1, y1, x2, y2 = map(int, box[:4])
-                cv2.rectangle(panel, (x1, y1), (x2, y2), (0, 255, 0), 2)
-        return self._add_title(panel, f"{title} ({len(pred.get('bboxes', []))} det)")
+                annotator.box_label(box.tolist(), "GT", color=(0, 255, 0))
+        return self._add_title(annotator.result(), f"{title} ({len(pred.get('bboxes', []))} det)")
 
     def _draw_heatmap_panel(self, img: np.ndarray, heatmap: torch.Tensor | None, title: str) -> np.ndarray:
         """Overlay the anomaly heatmap on the preprocessed image."""

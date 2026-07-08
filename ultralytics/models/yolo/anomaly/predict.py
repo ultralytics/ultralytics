@@ -18,15 +18,23 @@ class AnomalyPredictor(DetectionPredictor):
         """Post-process YOLO predictions and return output detections with proto.
 
         Args:
-            preds (torch.Tensor): Raw predictions from the model.
+            preds (torch.Tensor | tuple): Raw predictions from the model.
             img (torch.Tensor): Processed input image tensor in model input format.
             orig_imgs (torch.Tensor | list): Original input images before preprocessing.
 
         Returns:
             (list[dict[str, torch.Tensor]]): Processed detection predictions with masks.
         """
-        heatmap = preds[0][1] if isinstance(preds[0], tuple) else preds[1]
-        return super().postprocess(preds[0], img, orig_imgs, heatmap=heatmap)
+        # Baseline AnomalyDetect returns ((detections, heatmap), raw_preds).
+        # The neck-fusion variant uses a standard Detect head and returns
+        # (detections, raw_preds) with no heatmap tensor.
+        if isinstance(preds, (list, tuple)) and isinstance(preds[0], tuple):
+            heatmap = preds[0][1]
+            detections = preds[0]
+        else:
+            heatmap = None
+            detections = preds[0] if isinstance(preds, (list, tuple)) else preds
+        return super().postprocess(detections, img, orig_imgs, heatmap=heatmap)
 
     def construct_results(self, preds, img, orig_imgs, heatmap=None):
         """Build Results objects, forwarding the optional batch heatmap."""

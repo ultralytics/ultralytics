@@ -17,6 +17,7 @@ __all__ = (
     "AnomalyMemoryBank",
     "BboxMaskRenderer",
     "HeatmapBiasFusion",
+    "HeatmapNeckFusion",
     "HeatmapProcessor",
 )
 
@@ -58,6 +59,55 @@ class HeatmapBiasFusion(nn.Module):
         """
         dtype = next(self.conv.parameters()).dtype
         return self.beta[scale_idx] * torch.tanh(self.conv(mask.to(dtype)))
+
+
+class HeatmapNeckFusion(nn.Module):
+    """Inject an anomaly heatmap prior into one neck feature map before its C3k2 block.
+
+    This is the neck-level counterpart of ``AnomalyDetect``'s head-level fusion:
+    the same ``HeatmapProcessor`` + ``HeatmapBiasFusion`` bias is added to a single
+    PAN feature, but it is applied *before* the neck refinement module (C3k2) instead
+    of *after* it. When no prior is provided the layer is a strict passthrough.
+    """
+
+    def __init__(self, c_mid: int = 8, mask_size: int = 80):
+        """Initialize processor and a single-scale bias fusion stack.
+
+        Args:
+            c_mid: Intermediate channels for the 1->1 channel bias conv stack.
+            mask_size: Nominal spatial resolution of the input prior (used by the
+                heatmap processor's edge-weight cache).
+        """
+        super().__init__()
+        self.heatmap_processor = HeatmapProcessor(mask_size=mask_size)
+        self.bias_fusion = HeatmapBiasFusion(num_scales=1, c_mid=c_mid)
+
+    def forward(
+        self, x: torch.Tensor, prior: torch.Tensor | None = None, keep: torch.Tensor | None = None
+    ) -> torch.Tensor:
+        """Fuse ``prior`` into ``x`` and return a feature of the same shape.
+
+        Args:
+            x: Neck feature tensor of shape ``(B, C, H, W)``.
+            prior: Optional heatmap/mask prior of shape ``(B, 1, Hp, Wp)``.
+            keep: Optional per-sample dropout mask of shape ``(B,)``.
+
+        Returns:
+            Fused feature tensor of shape ``(B, C, H, W)``.
+        """
+        if prior is None or prior.numel() == 0:
+            return x
+
+        prior = prior.to(device=x.device, dtype=x.dtype)
+        _, _, h, w = x.shape
+        if prior.shape[-2:] != (h, w):
+            prior = F.interpolate(prior, size=(h, w), mode="bilinear", align_corners=False)
+
+        processed = self.heatmap_processor(prior)
+        bias = self.bias_fusion(processed, scale_idx=0)
+        if keep is not None:
+            bias = bias * keep.to(bias.dtype).view(-1, 1, 1, 1)
+        return x + bias
 
 
 class HeatmapProcessor(nn.Module):
@@ -551,5 +601,3 @@ class AnomalyMemoryBank(nn.Module):
         pbar.close()
         sel = torch.tensor(selected, device=device)
         return (mem[sel], sel) if return_indices else mem[sel]
-
-

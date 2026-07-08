@@ -13,6 +13,7 @@ import torch.distributed as dist
 
 from ultralytics.data.augment import LetterBox
 from ultralytics.models.yolo.detect import DetectionValidator
+from ultralytics.nn.modules import AnomalyDetect
 from ultralytics.utils import LOGGER, ops, TryExcept
 from ultralytics.utils.plotting import Annotator, colors
 
@@ -55,9 +56,10 @@ class YOLOAnomalyValidator(DetectionValidator):
         return preds
 
     def _anomaly_head(self):
-        """Return the ``AnomalyDetect`` head of the raw YOLOA model."""
+        """Return the ``AnomalyDetect`` head of the raw YOLOA model, if present."""
         try:
-            return self.v2_model.model[-1]
+            head = self.v2_model.model[-1]
+            return head if isinstance(head, AnomalyDetect) else None
         except Exception:
             return None
 

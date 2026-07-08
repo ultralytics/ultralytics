@@ -9,6 +9,7 @@ from pathlib import Path
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import numpy as np
 
 from ultralytics.nn.autobackend import check_class_names
@@ -31,6 +32,7 @@ from ultralytics.nn.modules import (
     AConv,
     ADown,
     AnomalyMemoryBank,
+    HeatmapNeckFusion,
     Bottleneck,
     BottleneckCSP,
     C2f,
@@ -698,39 +700,59 @@ class YOLOAnomalyModel(DetectionModel):
         return self._predict_once(x, *args, prior_mask=prior_mask, **kwargs)
 
     def _predict_once(self, x, profile=False, visualize=False, embed=None, augment=False, prior_mask=None):
-        """Forward with optional heatmap-guided fusion handled by the AnomalyDetect head."""
+        """Forward with optional heatmap-guided fusion in the neck or in the head."""
         batch_size = x.shape[0]
         device = x.device
         img = x  # original input image, needed for the memory-bank heatmap prior
 
         prior = None
+        keep = None
         y, dt, embeddings = [], [], []
         embed = frozenset(embed) if embed is not None else {-1}
         max_idx = max(embed)
-        last = self.model[-1]
-        for m in self.model:
-            if m is last:
-                # Resolve the fusion prior. Training provides an explicit prior_mask;
-                # otherwise a built memory-bank heatmap is used automatically.
-                if prior_mask is not None:
-                    prior = prior_mask.to(device=device, dtype=torch.float32)
-                elif self._has_memory_bank():
+
+        def _resolve_prior():
+            """Build or return the cached heatmap prior (training mask or memory bank)."""
+            nonlocal prior
+            if prior is not None:
+                return prior
+            if prior_mask is not None:
+                prior = prior_mask.to(device=device, dtype=torch.float32)
+            elif self._has_memory_bank():
+                # Reuse backbone features already computed in this forward pass; fall back to
+                # a fresh backbone pass only if a tapped layer is not cached.
+                cached_feats = [y[i] for i in self.bb_layers]
+                if all(f is not None for f in cached_feats):
+                    hmap = self.memory_bank(cached_feats).to(device=device, dtype=torch.float32)
+                    if hmap.shape[-2:] != (self.mask_size, self.mask_size):
+                        hmap = F.interpolate(
+                            hmap, size=(self.mask_size, self.mask_size), mode="bilinear", align_corners=False
+                        )
+                    prior = hmap
+                else:
                     prior = self._build_heatmap_prior(img)
+            return prior
 
-                # Per-sample keep mask for mask dropout (anti-shortcut). Only meaningful when a
-                # rendered/blended mask is active; keep[b]=0 zeros the per-sample bias -> passthrough.
-                keep = None
-                if prior is not None and self.training and self.p_drop > 0.0:
-                    keep = (torch.rand(batch_size, device=device) > self.p_drop).to(torch.float32)
+        def _resolve_keep():
+            """Return the per-sample mask-dropout mask once the prior is known."""
+            nonlocal keep
+            if keep is None and prior is not None and self.training and self.p_drop > 0.0:
+                keep = (torch.rand(batch_size, device=device) > self.p_drop).to(torch.float32)
+            return keep
 
-                pan_inputs = [y[j] for j in m.f]
-                x = m(pan_inputs, prior=prior, keep=keep)
+        for m in self.model:
+            if m.f != -1:
+                x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]
+            if profile:
+                self._profile_one_layer(m, x, dt)
+
+            if isinstance(m, HeatmapNeckFusion):
+                x = m(x, prior=_resolve_prior(), keep=_resolve_keep())
+            elif isinstance(m, AnomalyDetect):
+                x = m(x, prior=_resolve_prior(), keep=_resolve_keep())
             else:
-                if m.f != -1:
-                    x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]
-                if profile:
-                    self._profile_one_layer(m, x, dt)
                 x = m(x)
+
             y.append(x if m.i in self.save else None)
             if visualize:
                 feature_visualization(x, m.type, m.i, save_dir=visualize)

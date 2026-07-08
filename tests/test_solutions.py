@@ -9,6 +9,7 @@ from unittest.mock import patch
 import cv2
 import numpy as np
 import pytest
+import torch
 
 from tests import MODEL
 from ultralytics import solutions
@@ -70,7 +71,7 @@ def process_video(solution, video_path: str, needs_frame_count: bool = False):
             "ObjectCounterwithOBB",
             solutions.ObjectCounter,
             False,
-            "demo_video",
+            "parking_video",  # yolo26n-obb.pt yields no tracks on demo_video, so it would not exercise the OBB path
             {"region": REGION, "model": "yolo26n-obb.pt", "show": SHOW},
         ),
         (
@@ -210,6 +211,45 @@ def test_left_click_selection():
     dc.boxes, dc.track_ids = [[10, 10, 50, 50]], [1]
     dc.mouse_event_for_distance(cv2.EVENT_LBUTTONDOWN, 30, 30, None, None)
     assert 1 in dc.selected_boxes, f"Expected track_id 1 in selected_boxes, got {dc.selected_boxes}"
+
+
+def test_left_click_selection_obb():
+    """Test distance calculation left click selection with (4, 2) OBB corner boxes."""
+    dc = solutions.DistanceCalculation()
+    dc.boxes = [torch.tensor([[30.0, 10.0], [50.0, 30.0], [30.0, 50.0], [10.0, 30.0]])]  # rotated box corners
+    dc.track_ids = [1]
+    dc.mouse_event_for_distance(cv2.EVENT_LBUTTONDOWN, 30, 30, None, None)
+    assert 1 in dc.selected_boxes, f"Expected track_id 1 in selected_boxes, got {dc.selected_boxes}"
+
+
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled for testing due to --slow test errors after YOLOE PR.")
+@pytest.mark.parametrize(
+    "solution_class, extra_kwargs",
+    [
+        (solutions.Heatmap, {"colormap": cv2.COLORMAP_PARULA, "region": None}),
+        (solutions.ObjectBlurrer, {"blur_ratio": 0.02}),
+        (solutions.VisionEye, {}),
+        (solutions.RegionCounter, {"region": REGION}),
+        (solutions.ParkingManagement, {"json_file": "parking_areas"}),
+    ],
+    ids=["Heatmap", "ObjectBlurrer", "VisionEye", "RegionCounter", "ParkingManagement"],
+)
+def test_solution_obb_boxes(solution_class, extra_kwargs, solution_assets):
+    """Regression: solutions consuming self.boxes must handle (4, 2) OBB corner boxes without crashing.
+
+    OBB models fill self.boxes with (4, 2) corner points instead of xyxy scalars, and get_enclosing_box normalizes
+    them. A single parking_video frame already yields OBB tracks, so one frame exercises each crash site without
+    processing the whole video. Reuses the parking_video and yolo26n-obb.pt assets already in the test matrix.
+    """
+    kwargs = {"model": "yolo26n-obb.pt", "show": SHOW, "imgsz": 320, **extra_kwargs}
+    if kwargs.get("json_file") == "parking_areas":
+        kwargs["json_file"] = str(solution_assets("parking_areas"))
+    cap = cv2.VideoCapture(str(solution_assets("parking_video")))
+    success, im0 = cap.read()
+    cap.release()
+    assert success, "Failed to read first frame of parking_video"
+    results = solution_class(**kwargs)(im0)
+    assert results.plot_im is not None, f"{solution_class.__name__} returned no plot_im on OBB input"
 
 
 def test_right_click_reset():

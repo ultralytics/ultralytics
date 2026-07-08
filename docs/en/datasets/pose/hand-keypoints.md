@@ -54,7 +54,7 @@ The hand keypoint dataset is split into two subsets:
 
 - **Download size**: ~369 MB.
 
-This dataset is intended for use with [Ultralytics Platform](https://platform.ultralytics.com/) and [YOLO26](https://github.com/ultralytics/ultralytics).
+For a custom gesture vocabulary beyond generic hand landmarks, [Ultralytics Platform](https://platform.ultralytics.com/) handles labeling and training your own dataset from the browser.
 
 ## Applications
 

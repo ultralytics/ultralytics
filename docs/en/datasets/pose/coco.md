@@ -30,7 +30,7 @@ The COCO-Pose dataset is split into three subsets:
 2. **Val2017**: This subset has 2346 images used for validation purposes during model training.
 3. **Test2017**: This subset consists of images used for testing and benchmarking the trained models. Ground truth annotations for this subset are not publicly available, and the results are submitted to the [COCO evaluation server](https://cocodataset.org/#upload) for performance evaluation.
 
-This dataset is intended for use with [Ultralytics Platform](https://platform.ultralytics.com/) and [YOLO26](https://github.com/ultralytics/ultralytics).
+Training at this scale is where [Ultralytics Platform](https://platform.ultralytics.com/) helps most — it manages the compute so you can launch and monitor runs without provisioning your own GPUs.
 
 ## Applications
 

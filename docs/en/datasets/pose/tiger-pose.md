@@ -13,7 +13,7 @@ keywords: Ultralytics, Tiger-Pose, dataset, pose estimation, YOLO26, training da
 
 Despite its manageable training split of 210 images, the Tiger-Pose dataset offers diversity, making it suitable for assessing training pipelines, identifying potential errors, and serving as a valuable preliminary step before working with larger datasets for [pose estimation](../../tasks/pose.md).
 
-This dataset is intended for use with [Ultralytics Platform](https://platform.ultralytics.com/) and [YOLO26](https://github.com/ultralytics/ultralytics).
+Once your pipeline trains clean on this small set, swap in your own animal or object keypoints and scale up training on [Ultralytics Platform](https://platform.ultralytics.com/) without leaving the browser.
 
 ## Dataset Structure
 

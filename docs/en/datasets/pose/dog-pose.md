@@ -26,7 +26,7 @@ Each annotated image includes 24 keypoints with 3 dimensions per keypoint (x, y,
 
 <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-dogs.avif" alt="Ultralytics Dog-pose display image" width="800">
 
-This dataset is intended for use with [Ultralytics Platform](https://platform.ultralytics.com/) and [YOLO26](https://github.com/ultralytics/ultralytics).
+For a specific breed or a different animal altogether, [Ultralytics Platform](https://platform.ultralytics.com/) handles uploading, labeling, and training a custom keypoint model on your own data without managing infrastructure.
 
 ## Dataset Structure
 

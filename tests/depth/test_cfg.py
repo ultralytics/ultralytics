@@ -21,3 +21,15 @@ def test_depth_hyperparameters_in_default_cfg():
     assert args.dist_pw == 0.0
     assert args.cal_dist_pw == 0.0
     assert args.auto_calibrate is True
+
+
+def test_depth_hyp_recipe_yaml_reproduces_release_training():
+    """depth-hyp.yaml resolves by name, contains only valid cfg args, and carries the release recipe."""
+    from ultralytics.cfg import get_cfg
+    from ultralytics.utils import YAML, checks
+
+    recipe = YAML.load(checks.check_yaml("depth-hyp.yaml"))
+    args = get_cfg(overrides=recipe)  # raises on any key not in default.yaml
+    assert (args.degrees, args.translate, args.scale, args.shear) == (8.0, 0.08, 0.15, 2.0)
+    assert (args.fliplr, args.flipud, args.perspective) == (0.5, 0.0, 0.0)
+    assert (args.hsv_h, args.hsv_s, args.hsv_v) == (0.05, 0.3, 0.3)

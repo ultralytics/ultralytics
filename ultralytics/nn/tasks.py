@@ -481,7 +481,7 @@ class DetectionModel(BaseModel):
 
         # Build strides
         m = self.model[-1]  # Detect()
-        if isinstance(m, Detect):  # includes all Detect subclasses like Segment, Pose, OBB, YOLOEDetect, YOLOESegment
+        if isinstance(m, Detect) or isinstance(m, HybridHead):  # includes Segment, Pose, OBB etc. and custom HybridHead
             s = 256  # 2x min stride
             m.inplace = self.inplace
 
@@ -490,6 +490,9 @@ class DetectionModel(BaseModel):
                 output = self.forward(x)
                 if self.end2end:
                     output = output["one2many"]
+                # HybridHead returns {"anchor": feats, "anchor_free": ...} in training mode
+                if isinstance(output, dict) and "anchor" in output:
+                    return output["anchor"]
                 return output["feats"]
 
             self.model.eval()  # Avoid changing batch statistics until training begins

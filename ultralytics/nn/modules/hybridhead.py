@@ -30,3 +30,37 @@ class HybridHead(nn.Module):
             "anchor": anchor_output,
             "anchor_free": af_output
         }
+
+    # --- Properties that delegate to the inner Detect head ---
+    # Required by DetectionModel stride init and v8DetectionLoss
+    @property
+    def stride(self):
+        return self.anchor_head.stride
+
+    @stride.setter
+    def stride(self, value):
+        self.anchor_head.stride = value
+
+    @property
+    def nc(self):
+        return self.anchor_head.nc
+
+    @property
+    def reg_max(self):
+        return self.anchor_head.reg_max
+
+    @property
+    def no(self):
+        return self.anchor_head.no
+
+    @property
+    def inplace(self):
+        return self.anchor_head.inplace
+
+    @inplace.setter
+    def inplace(self, value):
+        self.anchor_head.inplace = value
+
+    def bias_init(self):
+        """Initialize biases of the inner Detect head."""
+        self.anchor_head.bias_init()

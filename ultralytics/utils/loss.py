@@ -387,6 +387,76 @@ class KeypointLoss(nn.Module):
         return (kpt_loss_factor.view(-1, 1) * ((1 - torch.exp(-e)) * kpt_mask)).mean()
 
 
+class RankLoss(nn.Module):
+    """Rank & Sort loss (differentiable surrogate) for one2one classification heads.
+
+    Ports the two error terms of Rank & Sort Loss (Oksuz et al., ICCV 2021) as a differentiable regularizer folded into
+    the one2one cls loss; autograd computes the gradient instead of the paper's identity update. Ranking is global
+    across every (query, class) location in an image, so a positive competes with same- and cross-class negatives alike.
+    The piecewise-linear step saturates once a negative is more than ``delta`` below a positive, so healthy rankings
+    contribute no gradient and the loss only re-ranks the violations, preserving accuracy and the NMS-free property.
+
+    - rank: drives each positive's ranking error ``FP_num / (rank_pos + FP_num)`` (fraction of relevant negatives
+    scoring above it) to 0, lifting positives over the negatives that outrank them.
+    - sort: ``current - target`` sorting error orders positives by IoU so higher-IoU queries score higher.
+
+    Attributes:
+        delta (float): Half-width of the piecewise-linear step; smaller approaches hard ranking.
+        w_sort (float): Weight of the sort term relative to the rank term.
+    """
+
+    def __init__(self, delta: float = 0.5, w_sort: float = 0.5):
+        """Initialize the ranking loss with the step half-width and sort-term weight."""
+        super().__init__()
+        self.delta = delta
+        self.w_sort = w_sort
+
+    def forward(self, pred_logits: torch.Tensor, target_scores: torch.Tensor) -> torch.Tensor:
+        """Compute the RS ranking/sorting loss over one2one positives against relevant negatives.
+
+        Args:
+            pred_logits (torch.Tensor): Classification logits with shape (bs, N, nc).
+            target_scores (torch.Tensor): One2one soft targets with shape (bs, N, nc); each positive holds its GT-class
+                IoU in the GT-class channel and 0 elsewhere.
+
+        Returns:
+            (torch.Tensor): Scalar ranking loss (0 when no positives exist).
+        """
+        delta = self.delta
+        losses = []
+        # Per image so anchors from different images never rank against each other; within an image the ranking is
+        # global across classes (each positive competes with same- and cross-class negatives, as in the original).
+        for logits_i, target_i in zip(pred_logits, target_scores):
+            # fp32 for AMP-safe pairwise math (logits are fp16 under autocast); flatten every (query, class) score
+            s = logits_i.sigmoid().float().flatten()  # (N*nc,)
+            t = target_i.float().flatten()  # (N*nc,)
+            fg = t > 0
+            if not fg.any():
+                continue
+            s_fg, iou = s[fg], t[fg]  # (M,) positive scores and their IoU targets
+
+            # Relevant negatives: score within delta of the lowest positive (the rest cannot alter precision)
+            s_bg = s[(t == 0) & (s >= s_fg.min() - delta)]  # (Nbg,)
+
+            # Piecewise-linear rank indicator H(x) = clamp(x / (2*delta) + 0.5, 0, 1)
+            fg_rel = ((s_fg[None] - s_fg[:, None]) / (2 * delta) + 0.5).clamp(0, 1)  # (M, M) [i,j] = H(s_j - s_i)
+            rank_pos = fg_rel.sum(1)  # (M,) rank among positives (includes self's 0.5)
+            fp_num = ((s_bg[None] - s_fg[:, None]) / (2 * delta) + 0.5).clamp(0, 1).sum(1)  # (M,) negatives above i
+            ranking_error = fp_num / (rank_pos + fp_num)  # (M,) target ranking error is 0
+
+            # sort: penalize positives ranked above others that have a higher IoU target
+            current_sort = (fg_rel * (1 - iou)[None]).sum(1) / rank_pos  # (M,)
+            target_rel = (iou[None] >= iou[:, None]) * fg_rel  # (M, M) positives in i's target sorted order
+            target_sort = (target_rel * (1 - iou)[None]).sum(1) / target_rel.sum(1)  # (M,)
+            sorting_error = current_sort - target_sort  # (M,)
+
+            losses.append(ranking_error.mean() + self.w_sort * sorting_error.mean())
+
+        if not losses:
+            return pred_logits.new_zeros((), dtype=torch.float32)
+        return torch.stack(losses).mean()
+
+
 class v8DetectionLoss:
     """Criterion class for computing training losses for YOLOv8 object detection."""
 

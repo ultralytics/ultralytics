@@ -344,6 +344,8 @@ class RTDETRTrainer(DetectionTrainer):
             loss_names.append("fgl_loss")
         if loss_gain.get("ddf", 0) > 0:
             loss_names.append("ddf_loss")
+        if loss_gain.get("rank", 0) > 0:
+            loss_names.append("rank_loss")
         # Add o2m loss names if one_to_many_groups > 0
         model = unwrap_model(self.model)
         if getattr(model.model[-1], "one_to_many_groups", 0) > 0:

@@ -1107,6 +1107,8 @@ class RTDETRDetectionModel(DetectionModel):
             loss_keys.append("loss_fgl")
         if getattr(self.criterion, "ddf_gain", 0.0) > 0:
             loss_keys.append("loss_ddf")
+        if getattr(self.criterion, "rank_gain", 0.0) > 0:
+            loss_keys.append("loss_rank")
         # Add o2m losses for debugging if configured (fill with zeros during validation)
         # Check head attribute directly since dn_meta is None during validation
         head_o2m_groups = getattr(self.model[-1], "one_to_many_groups", 0)

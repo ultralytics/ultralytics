@@ -1,0 +1,76 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Ultralytics RT-DETR DEIM config aligned to upstream DeimV2 `deimv2_dinov3_x_coco`.
+# Upstream names this variant "dinov3_x" while the actual backbone checkpoint is `dinov3_vits16plus`.
+# Variant of deim_dinov3splus_sta_l6_xl.yaml with Rank & Sort loss (Oksuz et al., ICCV 2021) enabled
+# on the o2o classification head, applied at every decoder layer (final + aux + encoder pre-head).
+# Model docs: https://docs.ultralytics.com/models/rtdetr
+# Task docs: https://docs.ultralytics.com/tasks/detect
+
+# Parameters
+nc: 80 # number of classes
+
+backbone:
+  # [from, repeats, module, args]
+  # DEIMv2 DINOv3+STA backbone wrapper.
+  # Parser args: [out_ch, name, pretrained, interaction_indexes, finetune, patch_size, use_sta, conv_inplane, hidden_dim, split]
+  # If pretrained=True, loader uses official DINOv3 torch.hub URL by model name.
+  # For access-gated links, set DEIMV2_DINOV3_URL to your granted direct checkpoint URL.
+  - [-1, 1, DEIMDINOv3STAs, [256, dinov3_vits16plus, True, [5, 8, 11], True, 16, True, 64, 256, True]] # 0
+  - [0, 1, Index, [256, 1]] # 1 P3
+  - [0, 1, Index, [256, 2]] # 2 P4
+  - [0, 1, Index, [256, 3]] # 3 P5
+
+head:
+  # DEIMv2-X HybridEncoder head: input_proj + AIFI + FPN/PAN.
+  # Upstream DeimV2-X uses hidden_dim=256, dim_feedforward=1024, expansion=1.25, depth_mult=1.37.
+  # That maps here to RepNCSPELAN5 args [c2=256, c3=512, c4=160, n=4].
+  # Upstream input_proj layers are identities because in_channels == hidden_dim == 256.
+  - [3, 1, nn.Identity, []] # 4 input_proj.2
+  - [-1, 1, AIFI, [1024, 8]]
+  - [-1, 1, Conv, [256, 1, 1, None, 1, 1, False]] # 6 Y5, lateral_convs.0
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [2, 1, nn.Identity, []] # 8 input_proj.1
+  - [[-2, -1], 1, Add, []]
+  - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]] # 10 fpn_blocks.0
+  - [-1, 1, Conv, [256, 1, 1, None, 1, 1, False]] # 11 Y4, lateral_convs.1
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [1, 1, nn.Identity, []] # 13 input_proj.0
+  - [[-2, -1], 1, Add, []]
+  - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]] # 15 X3, fpn_blocks.1
+
+  - [-1, 1, SCDown, [256, 3, 2, False]] # 16 downsample_convs.0
+  - [[-1, 11], 1, Add, []]
+  - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]] # 18 F4, pan_blocks.0
+
+  - [-1, 1, SCDown, [256, 3, 2, False]] # 19 downsample_convs.1
+  - [[-1, 6], 1, Add, []]
+  - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]] # 21 F5, pan_blocks.1
+
+  # DeimDecoder (DEIMv2-X defaults explicitly set in YAML)
+  # Args: [nc, hd, nq, ndp, nh, ndl, d_ffn, dropout, act, eval_idx, nd, label_noise_ratio, box_noise_scale,
+  #        learnt_init_query, enable_cuda_acceleration, one_to_many_groups, dab_sine_embedding,
+  #        efficient_msdeformable_attn, query_select_method, reg_max, reg_scale, layer_scale, mlp_act,
+  #        o2m_topk_mode, use_gateway, share_bbox_head, share_score_head]
+  - [[15, 18, 21], 1, DeimDecoder, [nc, 256, 300, [3, 6, 3], 8, 6, 2048, 0.0, "silu", -1, 100, 0.5, 1.0, False, False, 0, False, False, "default", 32, 4.0, 1.0, "silu", "unshared", True, False, False]]
+
+loss:
+  gamma: 1.5
+  alpha: 0.75
+  use_fl: False
+  use_vfl: False
+  use_mal: True
+  use_union_set: True
+  reg_max: 32
+  # rank: 1.0 enables Rank & Sort loss on the o2o cls head (final + aux + pre); omit or set to 0 to disable.
+  loss_gain: {class: 1, bbox: 5, giou: 2, fgl: 0.15, ddf: 1.5, rank: 1.0}
+  matcher:
+    cost_gain: {class: 2, bbox: 5, giou: 2}
+    use_fl: True
+    alpha: 0.25
+    gamma: 2.0
+    change_matcher: True
+    iou_order_alpha: 4.0
+    matcher_change_epoch: 45

@@ -10,7 +10,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from ultralytics.nn.modules.dfine_utils import bbox2distance
-from ultralytics.utils.loss import FocalLoss, MALoss, VarifocalLoss
+from ultralytics.utils.loss import FocalLoss, MALoss, RankLoss, VarifocalLoss
 
 from .box_ops import aligned_box_iou, aligned_giou, aligned_giou_new, box_cxcywh_to_xyxy
 from .ops import HungarianMatcher
@@ -75,6 +75,8 @@ class DfineLoss(nn.Module):
         self.kl_loss = nn.KLDivLoss(reduction="none")
         self.fgl_gain = self.loss_gain.get("fgl", 0.0)
         self.ddf_gain = self.loss_gain.get("ddf", 0.0)
+        self.rank_gain = self.loss_gain.get("rank", 0.0)
+        self.rank = RankLoss() if self.rank_gain > 0 else None
 
         # Cache FGL targets per forward pass (DEIM-style) for normal and DN branches.
         self.fgl_targets = None
@@ -224,6 +226,23 @@ class DfineLoss(nn.Module):
         loss_giou = self.loss_gain["giou"] * (loss_giou.sum() / norm_boxes)
         return {name_bbox: loss_bbox.squeeze(), name_giou: loss_giou.squeeze()}
 
+    def _get_loss_rank(
+        self,
+        pred_scores: torch.Tensor,
+        targets: torch.Tensor,
+        gt_scores: torch.Tensor,
+        local_num_gts: int,
+        postfix: str = "",
+    ) -> dict[str, torch.Tensor]:
+        """Rank & Sort regularizer on the cls head; skipped on the DN branch and when no matches exist."""
+        if self.rank is None or not local_num_gts or "_dn" in postfix:
+            return {}
+        bs, nq = pred_scores.shape[:2]
+        one_hot = torch.zeros((bs, nq, self.nc + 1), dtype=torch.int64, device=targets.device)
+        one_hot.scatter_(2, targets.unsqueeze(-1), 1)
+        target_scores = gt_scores.view(bs, nq, 1) * one_hot[..., :-1]
+        return {f"loss_rank{postfix}": self.rank_gain * self.rank(pred_scores, target_scores)}
+
     def _compute_layer_losses(
         self,
         pred_bboxes: torch.Tensor,
@@ -256,6 +275,7 @@ class DfineLoss(nn.Module):
         return {
             **self._get_loss_class(pred_scores, targets, gt_scores, int(cls_gt_idx.numel()), cls_norm, postfix),
             **self._get_loss_bbox(pred_assigned_box, gt_assigned_box, box_norm, postfix),
+            **self._get_loss_rank(pred_scores, targets, gt_scores, int(cls_gt_idx.numel()), postfix),
         }
 
     def _compute_aux_losses(
@@ -271,6 +291,8 @@ class DfineLoss(nn.Module):
         postfix: str = "",
     ) -> dict[str, torch.Tensor]:
         loss = torch.zeros(3, device=pred_bboxes.device)
+        loss_rank_aux = torch.zeros((), device=pred_bboxes.device)
+        rank_key = f"loss_rank{postfix}"
         for i, (aux_bboxes, aux_scores) in enumerate(zip(pred_bboxes, pred_scores)):
             cls_indices = cls_indices_list[i] if isinstance(cls_indices_list[0], list) else cls_indices_list
             box_indices = box_indices_list[i] if isinstance(box_indices_list[0], list) else box_indices_list
@@ -288,11 +310,16 @@ class DfineLoss(nn.Module):
             loss[0] += layer_loss[f"loss_class{postfix}"]
             loss[1] += layer_loss[f"loss_bbox{postfix}"]
             loss[2] += layer_loss[f"loss_giou{postfix}"]
-        return {
+            if rank_key in layer_loss:
+                loss_rank_aux = loss_rank_aux + layer_loss[rank_key]
+        out = {
             f"loss_class_aux{postfix}": loss[0],
             f"loss_bbox_aux{postfix}": loss[1],
             f"loss_giou_aux{postfix}": loss[2],
         }
+        if self.rank is not None and "_dn" not in postfix:
+            out[f"loss_rank_aux{postfix}"] = loss_rank_aux
+        return out
 
     @staticmethod
     def _unimodal_distribution_focal_loss(

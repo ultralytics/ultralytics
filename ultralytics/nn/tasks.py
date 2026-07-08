@@ -1881,8 +1881,6 @@ def parse_model(d, ch, verbose=True):
     layers, save, c2 = [], [], ch[-1]  # layers, savelist, ch out
     base_modules = frozenset(
         {
-            HybridHead,
-            AnchorFreeHead,
             MultiScaleGhost,
             Classify,
             Conv,
@@ -2014,6 +2012,8 @@ def parse_model(d, ch, verbose=True):
         elif m is SemanticSegment:
             args.append([ch[x] for x in f])  # nc, ch tuple
         elif m is v10Detect:
+            args.append([ch[x] for x in f])
+        elif m in frozenset({HybridHead, AnchorFreeHead}):
             args.append([ch[x] for x in f])
         elif m is ImagePoolingAttn:
             args.insert(1, [ch[x] for x in f])  # channels as second arg

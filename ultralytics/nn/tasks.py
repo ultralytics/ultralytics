@@ -705,40 +705,21 @@ class YOLOAnomalyModel(DetectionModel):
         device = x.device
         img = x  # original input image, needed for the memory-bank heatmap prior
 
-        prior = None
         keep = None
         y, dt, embeddings = [], [], []
         embed = frozenset(embed) if embed is not None else {-1}
         max_idx = max(embed)
 
-        def _resolve_prior():
+        def _resolve_prior(prior):
             """Build or return the cached heatmap prior (training mask or memory bank)."""
-            nonlocal prior
             if prior is not None:
-                return prior
-            if prior_mask is not None:
-                prior = prior_mask.to(device=device, dtype=torch.float32)
+                prior = prior.to(device=device, dtype=torch.float32)
             elif self._has_memory_bank():
-                # Reuse backbone features already computed in this forward pass; fall back to
-                # a fresh backbone pass only if a tapped layer is not cached.
-                cached_feats = [y[i] for i in self.bb_layers]
-                if all(f is not None for f in cached_feats):
-                    hmap = self.memory_bank(cached_feats).to(device=device, dtype=torch.float32)
-                    if hmap.shape[-2:] != (self.mask_size, self.mask_size):
-                        hmap = F.interpolate(
-                            hmap, size=(self.mask_size, self.mask_size), mode="bilinear", align_corners=False
-                        )
-                    prior = hmap
-                else:
-                    prior = self._build_heatmap_prior(img)
+                prior = self._build_heatmap_prior(img)
             return prior
 
-        def _resolve_keep():
-            """Return the per-sample mask-dropout mask once the prior is known."""
-            nonlocal keep
-            if keep is None and prior is not None and self.training and self.p_drop > 0.0:
-                keep = (torch.rand(batch_size, device=device) > self.p_drop).to(torch.float32)
-            return keep
+        if prior_mask is not None and self.training and self.p_drop > 0.0:
+            keep = (torch.rand(batch_size, device=device) > self.p_drop).to(torch.float32)
 
         for m in self.model:
             if m.f != -1:
@@ -747,9 +728,9 @@ class YOLOAnomalyModel(DetectionModel):
                 self._profile_one_layer(m, x, dt)
 
             if isinstance(m, HeatmapNeckFusion):
-                x = m(x, prior=_resolve_prior(), keep=_resolve_keep())
+                x = m(x, prior=_resolve_prior(prior_mask), keep=keep)
             elif isinstance(m, AnomalyDetect):
-                x = m(x, prior=_resolve_prior(), keep=_resolve_keep())
+                x = m(x, prior=_resolve_prior(prior_mask), keep=keep)
             else:
                 x = m(x)
 

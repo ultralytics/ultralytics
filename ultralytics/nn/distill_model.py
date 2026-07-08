@@ -67,8 +67,13 @@ class DistillationModel(nn.Module):
             student_model (nn.Module): Student model module to be trained.
         """
         super().__init__()
+        ch = student_model.yaml.get("channels", 3)
         if isinstance(teacher_model, (str, Path)):
             teacher_model = load_checkpoint(teacher_model)[0]
+            if teacher_model.yaml.get("channels", 3) != ch:
+                weights = teacher_model
+                teacher_model = type(weights)(weights.yaml.copy(), ch=ch, nc=weights.yaml["nc"], verbose=False)
+                teacher_model.load(weights)
         device = next(student_model.parameters()).device
         self.teacher_model = teacher_model.to(device)
         self._freeze_teacher()
@@ -84,11 +89,11 @@ class DistillationModel(nn.Module):
 
         # Get feature dimensions via dummy forward pass (hooks capture outputs)
         imgsz = student_model.args.imgsz
-        ch = student_model.yaml.get("channels", 3)
         student_model.eval()
         with torch.no_grad():
-            teacher_model(torch.zeros(2, ch, imgsz, imgsz).to(device))
-            student_model(torch.zeros(2, ch, imgsz, imgsz).to(device))
+            im = torch.zeros(2, ch, imgsz, imgsz, device=device)
+            teacher_model(im)
+            student_model(im)
         student_model.train()
         teacher_output = [self._teacher_feats[idx] for idx in self.feats_idx]
         student_output = [self._student_feats[idx] for idx in self.feats_idx]

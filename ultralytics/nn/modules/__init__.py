@@ -18,8 +18,6 @@ Examples:
 """
 from .multiscaleghost import MultiScaleGhost
 
-from .hybrid_head import HybridHead
-
 from .block import (
     C1,
     C2,
@@ -96,6 +94,7 @@ from .head import (
     YOLOESegment,
     YOLOESegment26,
     v10Detect,
+    HybridHead
 )
 from .transformer import (
     AIFI,
@@ -192,5 +191,6 @@ __all__ = (
     "YOLOESegment",
     "YOLOESegment26",
     "v10Detect",
-    "MultiScaleGhost"
+    "MultiScaleGhost",
+    "HybridHead"
 )

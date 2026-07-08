@@ -490,12 +490,31 @@ class DetectionModel(BaseModel):
                 output = self.forward(x)
                 if self.end2end:
                     output = output["one2many"]
-                # HybridHead returns {"anchor": {"feats": [...], ...}, "anchor_free": ...} in training mode
-                # Detect.forward() in training mode returns a dict with "feats" key (not a plain list)
+
+                # HybridHead returns {"anchor": <anchor_out>, "anchor_free": [...]}
                 if isinstance(output, dict) and "anchor" in output:
                     anchor = output["anchor"]
-                    return anchor["feats"] if isinstance(anchor, dict) else anchor
-                return output["feats"]
+                    # Training mode: anchor_head returns {"feats": [t1,t2,t3], "boxes":..., "scores":...}
+                    if isinstance(anchor, dict) and "feats" in anchor:
+                        return anchor["feats"]
+                    # Eval mode: anchor_head returns (decoded_tensor, preds_dict) or just decoded_tensor
+                    if isinstance(anchor, (tuple, list)):
+                        for item in reversed(anchor):
+                            if isinstance(item, dict) and "feats" in item:
+                                return item["feats"]
+                    return anchor
+
+                # Standard Detect, training mode: returns {"feats": [...], ...}
+                if isinstance(output, dict) and "feats" in output:
+                    return output["feats"]
+
+                # Standard Detect, eval mode: returns (y, preds) or just y
+                if isinstance(output, (tuple, list)):
+                    for item in reversed(output):
+                        if isinstance(item, dict) and "feats" in item:
+                            return item["feats"]
+
+                return output
 
             self.model.eval()  # Avoid changing batch statistics until training begins
             m.training = True  # Setting it to True to properly return strides

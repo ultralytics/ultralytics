@@ -1,15 +1,18 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import io
+import os
 import shutil
 import sys
 import threading
 import time
-import uuid
 from contextlib import redirect_stderr, redirect_stdout
 from itertools import product
 from pathlib import Path
 from types import SimpleNamespace
+
+if sys.platform == "win32":
+    os.environ.setdefault("ONEDNN_MAX_CPU_ISA", "AVX2")
 
 import pytest
 import torch
@@ -201,10 +204,6 @@ def test_torch2onnx_serializes_concurrent_exports(monkeypatch, tmp_path):
 def test_export_openvino(end2end, isolated_model):
     """Test YOLO export to OpenVINO format for model inference compatibility."""
     file = YOLO(isolated_model).export(format="openvino", imgsz=32, end2end=end2end)
-    if WINDOWS:
-        # Ensure a unique export path per test to prevent OpenVINO file writes
-        file = Path(file)
-        file = file.rename(file.with_stem(f"{file.stem}-{uuid.uuid4()}"))
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
@@ -234,10 +233,6 @@ def test_export_openvino_matrix(task, dynamic, quantize, batch, nms, end2end):
         nms=nms,
         end2end=end2end,
     )
-    if WINDOWS:
-        # Use unique filenames due to Windows file permissions bug possibly due to latent threaded use
-        file = Path(file)
-        file = file.rename(file.with_stem(f"{file.stem}-{uuid.uuid4()}"))
     YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32, batch=batch)  # exported model inference
     shutil.rmtree(file, ignore_errors=True)  # retry in case of potential lingering multi-threaded file usage errors
 

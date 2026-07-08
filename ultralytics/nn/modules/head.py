@@ -25,6 +25,7 @@ __all__ = (
     "Classify",
     "Detect",
     "DetectO2OSA",
+    "DetectO2OSAD",
     "DetectO2OStem",
     "Pose",
     "RTDETRDecoder",
@@ -328,6 +329,15 @@ class SA(nn.Module):
         return x + self.conv(x).sigmoid()
 
 
+class SAD(nn.Module):
+    def __init__(self, c):
+        super().__init__()
+        self.conv = nn.Conv2d(c, 1, 1)
+
+    def forward(self, x):
+        return x * self.conv(x).sigmoid()
+
+
 class DetectO2OSA(Detect):
     """YOLO Detect head that adds spatial attention to the one2one branch.
 
@@ -366,6 +376,54 @@ class DetectO2OSA(Detect):
         if self.end2end:
             feats = [xi.detach() for xi in x] if self.detach_one2one else x
             feats = [self.one2one_sa[i](feats[i]) for i in range(self.nl)]
+            one2one = self.forward_head(feats, **self.one2one)
+            preds = {"one2many": preds, "one2one": one2one}
+        if self.training:
+            return preds
+        y = self._inference(preds["one2one"] if self.end2end else preds)
+        if self.end2end:
+            y = self.postprocess(y.permute(0, 2, 1))
+        return y if self.export else (y, preds)
+
+
+class DetectO2OSAD(Detect):
+    """YOLO Detect head that adds multiplicative spatial attention to the one2one branch.
+
+    Identical to Detect, but inserts a per-level multiplicative spatial-attention block (SAD) before the one2one box
+    and classification heads. It refines the (optionally detached) features feeding the one2one branch only; the
+    one2many branch is unchanged. Has no effect unless end-to-end detection is enabled.
+
+    Attributes:
+        one2one_sad (nn.ModuleList): Per-level SAD block applied to the one2one features before the heads.
+
+    Examples:
+        Create an end-to-end detection head with one2one multiplicative spatial attention
+        >>> detect = DetectO2OSAD(nc=80, end2end=True, ch=(256, 512, 1024))
+        >>> x = [torch.randn(1, 256, 80, 80), torch.randn(1, 512, 40, 40), torch.randn(1, 1024, 20, 20)]
+        >>> outputs = detect(x)
+    """
+
+    def __init__(self, nc: int = 80, reg_max=16, end2end=False, ch: tuple = ()):
+        """Initialize the detection head and, when end-to-end, the per-level one2one multiplicative spatial-attention block.
+
+        Args:
+            nc (int): Number of classes.
+            reg_max (int): Maximum number of DFL channels.
+            end2end (bool): Whether to use end-to-end NMS-free detection.
+            ch (tuple): Tuple of channel sizes from backbone feature maps.
+        """
+        super().__init__(nc, reg_max, end2end, ch)
+        if end2end:
+            self.one2one_sad = nn.ModuleList(SAD(x) for x in ch)
+
+    def forward(
+        self, x: list[torch.Tensor]
+    ) -> dict[str, torch.Tensor] | torch.Tensor | tuple[torch.Tensor, dict[str, torch.Tensor]]:
+        """Run the one2many head on raw features and the one2one head on attention-refined features."""
+        preds = self.forward_head(x, **self.one2many)
+        if self.end2end:
+            feats = [xi.detach() for xi in x] if self.detach_one2one else x
+            feats = [self.one2one_sad[i](feats[i]) for i in range(self.nl)]
             one2one = self.forward_head(feats, **self.one2one)
             preds = {"one2many": preds, "one2one": one2one}
         if self.training:

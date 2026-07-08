@@ -232,6 +232,7 @@ def test_export_openvino_matrix(task, dynamic, quantize, batch, nms, end2end):
         end2end=end2end,
     )
     if WINDOWS:
+        shutil.rmtree(file, ignore_errors=True)
         pytest.skip("OpenVINO inference intermittently crashes GitHub Windows runners")
     YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32, batch=batch)  # exported model inference
     shutil.rmtree(file, ignore_errors=True)  # retry in case of potential lingering multi-threaded file usage errors

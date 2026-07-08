@@ -64,22 +64,28 @@ class HeatmapBiasFusion(nn.Module):
 class HeatmapNeckFusion(nn.Module):
     """Inject an anomaly heatmap prior into one neck feature map before its C3k2 block.
 
-    This is the neck-level counterpart of ``AnomalyDetect``'s head-level fusion:
-    the same ``HeatmapProcessor`` + ``HeatmapBiasFusion`` bias is added to a single
-    PAN feature, but it is applied *before* the neck refinement module (C3k2) instead
-    of *after* it. When no prior is provided the layer is a strict passthrough.
+    This is the configurable neck-level counterpart of ``AnomalyDetect``'s head-level
+    fusion. The YAML-controlled ``use_processor`` flag decides whether the 1-channel
+    prior is first run through ``HeatmapProcessor`` (edge suppression / smoothing)
+    or used raw. Each ``HeatmapNeckFusion`` layer in the YAML owns its own
+    ``HeatmapBiasFusion`` conv stack, so three layers naturally give three separate
+    convs.
+
+    When no prior is provided the layer is a strict passthrough.
     """
 
-    def __init__(self, c_mid: int = 8, mask_size: int = 80):
+    def __init__(self, c_mid: int = 8, mask_size: int = 80, use_processor: bool = True):
         """Initialize processor and a single-scale bias fusion stack.
 
         Args:
             c_mid: Intermediate channels for the 1->1 channel bias conv stack.
             mask_size: Nominal spatial resolution of the input prior (used by the
                 heatmap processor's edge-weight cache).
+            use_processor: If True, apply ``HeatmapProcessor`` to the prior before
+                generating the bias. If False, use the resized raw prior directly.
         """
         super().__init__()
-        self.heatmap_processor = HeatmapProcessor(mask_size=mask_size)
+        self.heatmap_processor = HeatmapProcessor(mask_size=mask_size) if use_processor else None
         self.bias_fusion = HeatmapBiasFusion(num_scales=1, c_mid=c_mid)
 
     def forward(
@@ -103,7 +109,7 @@ class HeatmapNeckFusion(nn.Module):
         if prior.shape[-2:] != (h, w):
             prior = F.interpolate(prior, size=(h, w), mode="bilinear", align_corners=False)
 
-        processed = self.heatmap_processor(prior)
+        processed = self.heatmap_processor(prior) if self.heatmap_processor is not None else prior
         bias = self.bias_fusion(processed, scale_idx=0)
         if keep is not None:
             bias = bias * keep.to(bias.dtype).view(-1, 1, 1, 1)

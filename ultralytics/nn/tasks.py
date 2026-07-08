@@ -2099,7 +2099,7 @@ def guess_model_task(model):
         m = cfg["head"][-1][-2].lower()  # output module name
         if m in {"classify", "classifier", "cls", "fc"}:
             return "classify"
-        if "detect" in m:
+        if "detect" in m or "hybrid" in m or "anchorfree" in m:
             return "detect"
         if "semanticsegment" in m:
             return "semantic"

@@ -7,7 +7,7 @@ class HybridHead(nn.Module):
     def __init__(self, nc, ch):
         super().__init__()
 
-        self.anchor_head = Detect(nc, ch)
+        self.anchor_head = Detect(nc, ch=ch)
 
         self.af_head = nn.ModuleList(
             [

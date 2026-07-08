@@ -1,8 +1,22 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-train: images/train
-val: images/val
+# SUN RGB-D dataset for monocular depth estimation — real indoor, multi-sensor RGB-D (RealSense/Xtion/Kinect), up to ~10 m
+# Documentation: https://docs.ultralytics.com/datasets/depth/sunrgbd
+# Example usage: yolo depth train data=depth-sunrgbd.yaml model=yolo26n-depth.pt
+# No autodownload — obtain the source data (see docs) and arrange it as below.
+# parent
+# ├── ultralytics
+# └── datasets
+#     └── depth-sunrgbd
+#         ├── images/{train,val}  # RGB images
+#         └── depth/{train,val}   # paired *.npy, float32 meters (images/ -> depth/)
+
+path: depth-sunrgbd # dataset root dir (relative to Ultralytics settings 'datasets_dir')
+train: images/train # train images (relative to 'path') 9245 images
+val: images/val # val images (relative to 'path') 1090 images
+
 nc: 1
 names:
   0: depth
+
 channels: 3

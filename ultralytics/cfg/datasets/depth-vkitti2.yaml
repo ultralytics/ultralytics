@@ -1,8 +1,22 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-train: images/train
-val: images/val
+# Virtual KITTI 2 dataset for monocular depth estimation — photorealistic synthetic outdoor driving, dense per-pixel depth
+# Documentation: https://docs.ultralytics.com/datasets/depth/vkitti2
+# Example usage: yolo depth train data=depth-vkitti2.yaml model=yolo26n-depth.pt
+# No autodownload — obtain the source data (see docs) and arrange it as below.
+# parent
+# ├── ultralytics
+# └── datasets
+#     └── depth-vkitti2
+#         ├── images/{train,val}  # RGB images
+#         └── depth/{train,val}   # paired *.npy, float32 meters (images/ -> depth/)
+
+path: depth-vkitti2 # dataset root dir (relative to Ultralytics settings 'datasets_dir')
+train: images/train # train images (relative to 'path') 25780 images
+val: images/val # val images (relative to 'path') 16740 images
+
 nc: 1
 names:
   0: depth
+
 channels: 3

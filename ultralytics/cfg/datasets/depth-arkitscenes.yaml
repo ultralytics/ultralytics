@@ -1,8 +1,22 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-train: images/train
-val: images/val
+# ARKitScenes dataset for monocular depth estimation — real indoor RGB-D from Apple ARKit (iPad Pro LiDAR), depth ~0.5-6 m
+# Documentation: https://docs.ultralytics.com/datasets/depth/arkitscenes
+# Example usage: yolo depth train data=depth-arkitscenes.yaml model=yolo26n-depth.pt
+# No autodownload — obtain the source data (see docs) and arrange it as below.
+# parent
+# ├── ultralytics
+# └── datasets
+#     └── depth-arkitscenes
+#         ├── images/{train,val}  # RGB images
+#         └── depth/{train,val}   # paired *.npy, float32 meters (images/ -> depth/)
+
+path: depth-arkitscenes # dataset root dir (relative to Ultralytics settings 'datasets_dir')
+train: images/train # train images (relative to 'path') 676080 images
+val: images/val # val images (relative to 'path') 21559 images
+
 nc: 1
 names:
   0: depth
+
 channels: 3

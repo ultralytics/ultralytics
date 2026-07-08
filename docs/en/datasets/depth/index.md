@@ -80,7 +80,7 @@ Train a YOLO26 depth estimation model with Python or CLI:
 
 ## Supported Datasets
 
-The YOLO26 depth models are pretrained on a broad multi-dataset mix (~2.2M images) spanning indoor (≤10 m) to outdoor (~80 m) ranges, then evaluated zero-shot across five benchmarks. Each dataset has a dedicated page:
+The YOLO26 depth models are pretrained on a broad multi-dataset mix (~2.19M images) spanning indoor (≤10 m) to outdoor (~80 m) ranges, then evaluated zero-shot across five benchmarks. Each dataset has a dedicated page:
 
 **Pretraining sources**
 

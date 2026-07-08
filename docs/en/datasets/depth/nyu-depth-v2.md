@@ -6,7 +6,7 @@ keywords: Ultralytics, YOLO, depth estimation, NYU Depth V2, indoor RGB-D, Kinec
 
 # NYU Depth V2 Depth Dataset
 
-[NYU Depth V2](https://cs.nyu.edu/~fergus/datasets/nyu_depth_v2.html) is the standard indoor benchmark for [monocular depth estimation](index.md). It consists of RGB-D video sequences of a wide variety of indoor scenes recorded with a Microsoft Kinect v1. It is the primary benchmark used to report YOLO26-Depth accuracy.
+[NYU Depth V2](https://cs.nyu.edu/~silberman/datasets/nyu_depth_v2.html) is the standard indoor benchmark for [monocular depth estimation](index.md). It consists of RGB-D video sequences of a wide variety of indoor scenes recorded with a Microsoft Kinect v1. It is the primary benchmark used to report YOLO26-Depth accuracy.
 
 ## Key Features
 

@@ -475,6 +475,32 @@ def test_val(task: str, weight: str, data: str) -> None:
         metrics.confusion_matrix.to_json()
 
 
+def test_val_save_txt_pose(tmp_path):
+    """Test that pose keypoints saved by val(save_txt=True) and val(save_json=True) are in the original image space."""
+    model = YOLO(WEIGHTS_DIR / "yolo26n-pose.pt")
+    # imgsz=640 (not the imgsz=32 used elsewhere): coco8-pose images are non-square, so the letterbox offset is only
+    # large enough to push mis-scaled keypoints outside [0, 1] at full resolution; at small imgsz they would stay in
+    # range and hide the regression. save_json=True also exercises pred_to_json, the other consumer of the scaled key.
+    metrics = model.val(
+        data="coco8-pose.yaml", imgsz=640, conf=0.25, save_txt=True, save_json=True, project=tmp_path, name="val"
+    )
+    txt_files = list((Path(metrics.save_dir) / "labels").glob("*.txt"))
+    assert txt_files, "val(save_txt=True) saved no label files"
+    assert (Path(metrics.save_dir) / "predictions.json").exists(), "val(save_json=True) saved no predictions.json"
+    for txt_file in txt_files:
+        for line in txt_file.read_text().splitlines():
+            values = [float(v) for v in line.split()]
+            x, y, w, h = values[1:5]  # normalized xywh box
+            kpts = torch.tensor(values[5:]).view(-1, 3)  # (17, 3) of normalized (x, y, conf) keypoints
+            assert ((kpts[:, :2] >= 0) & (kpts[:, :2] <= 1)).all(), f"keypoints not in [0, 1] in {txt_file.name}"
+            # Keypoints scaled into the wrong (letterbox) space also land off the person, so check that visible
+            # keypoints cluster on the box; the 0.05 margin allows joints (wrists, ankles) just outside a tight box.
+            visible = kpts[kpts[:, 2] > 0.5, :2]
+            if len(visible):
+                cx, cy = visible.mean(0)
+                assert abs(cx - x) < w / 2 + 0.05 and abs(cy - y) < h / 2 + 0.05, "keypoints misaligned with box"
+
+
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_train_multi():

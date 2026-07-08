@@ -28,7 +28,7 @@ keywords: DOTA8 dataset, Ultralytics, YOLO26, object detection, debugging, train
         └── val/
     ```
 
-This dataset is intended for use with [Ultralytics Platform](https://platform.ultralytics.com/) and [YOLO26](https://github.com/ultralytics/ultralytics).
+Explore [DOTA8 on Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/dota8) to browse the aerial tiles with their oriented-box overlays, view the class distribution and annotation heatmaps in the **Charts** tab, and clone it to train your own model in the cloud.
 
 ## Dataset YAML
 

@@ -219,7 +219,7 @@ class PoseValidator(DetectionValidator):
         format, and appends the results with keypoints to the internal JSON dictionary (self.jdict).
 
         Args:
-            predn (dict[str, torch.Tensor]): Prediction dictionary containing 'bboxes', 'conf', 'cls', and 'kpts'
+            predn (dict[str, torch.Tensor]): Prediction dictionary containing 'bboxes', 'conf', 'cls', and 'keypoints'
                 tensors.
             pbatch (dict[str, Any]): Batch dictionary containing 'imgsz', 'ori_shape', 'ratio_pad', and 'im_file'.
 
@@ -229,7 +229,7 @@ class PoseValidator(DetectionValidator):
             before saving to the JSON dictionary.
         """
         super().pred_to_json(predn, pbatch)
-        kpts = predn["kpts"]
+        kpts = predn["keypoints"]
         for i, k in enumerate(kpts.flatten(1, 2).tolist()):
             self.jdict[-len(kpts) + i]["keypoints"] = k  # keypoints
 
@@ -237,7 +237,7 @@ class PoseValidator(DetectionValidator):
         """Scales predictions to the original image size."""
         return {
             **super().scale_preds(predn, pbatch),
-            "kpts": ops.scale_coords(
+            "keypoints": ops.scale_coords(
                 pbatch["imgsz"],
                 predn["keypoints"].clone(),
                 pbatch["ori_shape"],

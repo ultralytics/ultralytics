@@ -74,6 +74,8 @@ class ObjectBlurrer(BaseSolution):
         for box, cls, conf in zip(self.boxes, self.clss, self.confs):
             x0, y0, x1, y1 = map(int, self.get_enclosing_box(box))
             x0, y0, x1, y1 = max(x0, 0), max(y0, 0), min(x1, w), min(y1, h)  # clip OBB corners to image bounds
+            if x0 >= x1 or y0 >= y1:  # box fully outside the frame clips to an empty ROI, cv2.blur would assert
+                continue
             # Crop and blur the detected object
             blur_obj = cv2.blur(im0[y0:y1, x0:x1], (self.blur_ratio, self.blur_ratio))
             # Update the blurred area in the original image

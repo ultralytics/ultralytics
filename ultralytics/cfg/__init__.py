@@ -283,6 +283,7 @@ CFG_BOOL_KEYS = frozenset(
         "nms",
         "profile",
         "end2end",
+        "cls_remap",
     }
 )
 
@@ -1051,7 +1052,7 @@ def entrypoint(debug: str = "") -> None:
         if "yoloe" in stem or "world" in stem:
             cls_list = overrides.pop("classes", DEFAULT_CFG.classes)
             if cls_list is not None and isinstance(cls_list, str):
-                model.set_classes(cls_list.split(","))  # convert "person, bus" -> ['person', ' bus'].
+                model.set_classes([c.strip() for c in cls_list.split(",")])  # "person, bus" -> ['person', 'bus']
     # Task Update
     if task != model.task:
         if task:

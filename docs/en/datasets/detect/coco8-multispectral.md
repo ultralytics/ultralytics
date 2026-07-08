@@ -1,4 +1,5 @@
 ---
+title: COCO8-Multispectral Detection Dataset
 comments: true
 description: Explore the Ultralytics COCO8-Multispectral dataset, an enhanced version of COCO8 with interpolated spectral channels, ideal for testing multispectral object detection models and training pipelines.
 keywords: COCO8-Multispectral, Ultralytics, dataset, multispectral, object detection, YOLO26, training, validation, machine learning, computer vision
@@ -24,8 +25,22 @@ COCO8-Multispectral is fully compatible with [Ultralytics Platform](https://plat
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Train Ultralytics YOLO26 on Multispectral Datasets | Multi-Channel VisionAI 🚀
+  <strong>Watch:</strong> How to Train Ultralytics YOLO on Grayscale and Multispectral Datasets | Multi-Channel VisionAI 🚀
 </p>
+
+## Dataset Structure
+
+COCO8-Multispectral shares the same 8 images as [COCO8](coco8.md)—4 for training and 4 for validation across all 80 COCO object classes—but each image is stored as a 10-channel multispectral `.tiff` in [YOLO label format](../index.md):
+
+```
+coco8-multispectral/
+├── images/
+│   ├── train/   # 4 images (10-channel .tiff)
+│   └── val/     # 4 images (10-channel .tiff)
+└── labels/
+    ├── train/
+    └── val/
+```
 
 ## Dataset Generation
 
@@ -67,7 +82,7 @@ The COCO8-Multispectral dataset is configured using a YAML file, which defines d
 
 ## Usage
 
-To train a YOLO26n model on the COCO8-Multispectral dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following examples. For a comprehensive list of training options, refer to the [YOLO Training documentation](../../modes/train.md).
+The COCO8-Multispectral dataset (20.2 MB) downloads automatically the first time you start training. To train a YOLO26n model on COCO8-Multispectral for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following examples. For a comprehensive list of training options, refer to the [YOLO Training documentation](../../modes/train.md).
 
 !!! example "Train Example"
 

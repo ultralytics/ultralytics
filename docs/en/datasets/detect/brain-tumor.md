@@ -38,6 +38,8 @@ Every image is labeled with one of 2 classes:
 
 The dataset downloads automatically (4.21 MB) from Ultralytics GitHub assets the first time you train, so no manual setup is required.
 
+Explore [Brain Tumor on Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/brain-tumor) to browse the images with their annotation overlays, view the class distribution and bounding-box heatmaps in the **Charts** tab, and clone it to train your own model in the cloud.
+
 ## Applications
 
 Brain tumor detection with [computer vision](../../tasks/detect.md) enables [early diagnosis](https://www.ultralytics.com/blog/ai-and-radiology-a-new-era-of-precision-and-efficiency), treatment planning, and tumor-progression monitoring. By analyzing MRI or CT scans, detection models accurately locate tumors, supporting timely medical intervention and personalized treatment.
@@ -48,8 +50,6 @@ Medical professionals can leverage this technology to:
 - Assist in surgical planning by precisely locating tumors
 - Monitor treatment effectiveness over time
 - Support research in oncology and neurology
-
-To label, train, and deploy a brain tumor detection model without managing local infrastructure, run the full workflow in your browser with [Ultralytics Platform](https://platform.ultralytics.com/).
 
 ## Dataset YAML
 

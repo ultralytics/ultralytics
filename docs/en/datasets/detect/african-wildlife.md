@@ -32,6 +32,8 @@ The Ultralytics African Wildlife Dataset contains **1,504 images** across **4 cl
 
     The African Wildlife Dataset (~100 MB) downloads automatically the first time you start training, so no manual download or preparation is required.
 
+Explore [African Wildlife on Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/african-wildlife) to browse the images with their annotation overlays, view the class distribution and bounding-box heatmaps in the **Charts** tab, and clone it to train your own model in the cloud.
+
 ## Applications
 
 The Ultralytics African Wildlife Dataset supports a range of [object detection](../../tasks/detect.md) applications:
@@ -174,7 +176,3 @@ The YAML configuration file for the African Wildlife Dataset, named `african-wil
 ### What license is the African Wildlife Dataset released under?
 
 The African Wildlife Dataset is available under the [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE). It was originally released on Kaggle by [Bianca Ferreira](https://www.kaggle.com/biancaferreira/datasets) and adapted by Ultralytics for seamless use with [Ultralytics YOLO](https://www.ultralytics.com/yolo) models. If you use the dataset in your research, please cite it using the BibTeX entry in the [Citations](#citations-license-and-acknowledgments) section.
-
-### Can I train on the African Wildlife Dataset with Ultralytics Platform?
-
-Yes. [Ultralytics Platform](https://platform.ultralytics.com) lets you manage the dataset, train [object detection](../../tasks/detect.md) models, and deploy them without heavy local setup — a convenient way to run African Wildlife experiments in the cloud. You can also browse related datasets in the [detection datasets overview](../index.md).

@@ -31,6 +31,8 @@ The Medical Pills dataset contains 115 images annotated with a single class, `pi
 | Train      | 92     | Labeled images for model training               |
 | Validation | 23     | Held-out images for evaluation and benchmarking |
 
+Explore [Medical Pills on Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/medical-pills) to browse the images with their annotation overlays, view the class distribution and bounding-box heatmaps in the **Charts** tab, and clone it to train your own model in the cloud.
+
 ## Applications
 
 Using computer vision for medical pills detection enables automation in the pharmaceutical industry, supporting tasks like:
@@ -40,8 +42,6 @@ Using computer vision for medical pills detection enables automation in the phar
 - **Digital Inventory Systems**: Powering smart inventory solutions by integrating automated pill recognition for real-time stock monitoring and replenishment planning.
 - **Quality Control**: Ensuring consistency in pill production by identifying defects, irregularities, or contamination.
 - **Counterfeit Detection**: Helping identify potentially counterfeit medications by analyzing visual characteristics against known standards.
-
-To label your own pill images, train, and manage dataset versions in your browser, run the full workflow with [Ultralytics Platform](https://platform.ultralytics.com/).
 
 ## Dataset YAML
 

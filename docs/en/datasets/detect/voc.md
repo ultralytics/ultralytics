@@ -45,6 +45,8 @@ VOC2007 test annotations were released publicly after that year's challenge, whi
 
     The automatic converter skips objects flagged `difficult` in the original VOC XML annotations, so per-class instance counts differ slightly from official VOC statistics.
 
+Explore [VOC on Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/voc) to browse the images with their annotation overlays, view the class distribution and bounding-box heatmaps in the **Charts** tab, and clone it to train your own model in the cloud.
+
 ## Applications
 
 PASCAL VOC was the primary benchmark for object detection research in the years before the larger [COCO dataset](coco.md): detectors such as [Faster R-CNN](https://arxiv.org/abs/1506.01497) and [SSD](https://arxiv.org/abs/1512.02325) reported their original results on it, and [Ultralytics YOLO](../../models/yolo26.md) models train on it out of the box. Today it remains popular for:
@@ -92,8 +94,6 @@ To train a YOLO26n model on the VOC dataset for 100 [epochs](https://www.ultraly
         # Dataset will auto-download and convert on first run
         yolo detect train data=VOC.yaml model=yolo26n.pt epochs=100 imgsz=640
         ```
-
-To label your own images for detection and manage VOC training runs in your browser, use [Ultralytics Platform](https://platform.ultralytics.com/).
 
 ## Sample Images and Annotations
 

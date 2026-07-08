@@ -24,6 +24,8 @@ Every image carries bounding-box annotations for one class, `signature`, and the
 
     The Signature Detection Dataset (11.3 MB) downloads automatically from Ultralytics GitHub assets the first time you train, so no manual download or preparation is required.
 
+Explore [Signature on Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/signature) to browse the images with their annotation overlays, view the class distribution and bounding-box heatmaps in the **Charts** tab, and clone it to train your own model in the cloud.
+
 ## Applications
 
 A model trained on this dataset can identify and [track](../../modes/track.md) signatures in scanned documents and video, supporting:
@@ -34,8 +36,6 @@ A model trained on this dataset can identify and [track](../../modes/track.md) s
 - **Banking and Finance**: Enhancing security in check processing and loan document verification
 - **Archival Research**: Supporting historical document analysis and cataloging
 - **Education and Research**: Studying signature characteristics across document types in computer vision courses
-
-To label your own document images, train, and manage dataset versions in your browser, run the full workflow with [Ultralytics Platform](https://platform.ultralytics.com/).
 
 ## Dataset YAML
 

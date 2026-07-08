@@ -22,8 +22,6 @@ The [Ultralytics](https://www.ultralytics.com/) COCO8-Grayscale dataset is a com
   <strong>Watch:</strong> How to Train Ultralytics YOLO on Grayscale and Multispectral Datasets | Multi-Channel VisionAI 🚀
 </p>
 
-COCO8-Grayscale is fully compatible with [Ultralytics Platform](https://platform.ultralytics.com/) and [YOLO26](../../models/yolo26.md), enabling seamless integration into your computer vision workflows.
-
 ## Dataset Structure
 
 COCO8-Grayscale mirrors [COCO8](coco8.md)—the first 8 images from the COCO train 2017 set, split into 4 for training and 4 for validation across all 80 COCO object classes—but each image is stored as a single-channel (`channels: 1`) grayscale image in [YOLO label format](../index.md):
@@ -37,6 +35,8 @@ coco8-grayscale/
     ├── train/
     └── val/
 ```
+
+Explore [COCO8-Grayscale on Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/coco8-grayscale) to browse every image with its annotation overlays, view the class distribution and bounding-box heatmaps in the **Charts** tab, and clone it to train your own model in the cloud.
 
 ## Dataset YAML
 
@@ -139,10 +139,6 @@ You can train a YOLO26 model on COCO8-Grayscale using either Python or the CLI:
         ```
 
 For additional training options, refer to the [YOLO Training documentation](../../modes/train.md).
-
-### Why Should I Use Ultralytics Platform for Managing My COCO8-Grayscale Training?
-
-[Ultralytics Platform](https://platform.ultralytics.com/) streamlines dataset management, training, and deployment for [YOLO](../../models/yolo26.md) models—including COCO8-Grayscale. With features like cloud training, real-time monitoring, and intuitive dataset handling, the Platform lets you launch experiments with a single click and eliminates manual setup hassles. Learn more about [Ultralytics Platform](https://platform.ultralytics.com/) and how it can accelerate your computer vision projects.
 
 ### What Are the Benefits of Using Mosaic Augmentation in Training With the COCO8-Grayscale Dataset?
 

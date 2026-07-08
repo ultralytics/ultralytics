@@ -80,10 +80,10 @@ class AnomalyV2Trainer(DetectionTrainer):
         super().__init__(cfg, overrides, _callbacks)
         # NOTE: _mvtec_ood_eval is NOT a callback — it runs inside validate() so best.pt
         # selection sees the current epoch's OOD score (no one-epoch lag).
-        self._ood_best_fitness = None  # running max of the OOD-scale fitness (best.pt selection)
+        self._ood_best_fitness = None  # running max of the OOD-scale mAP50 fitness (best.pt selection)
 
     def validate(self):
-        """Run validation; when OOD eval is enabled, use the OOD ``test_fitness_prior`` mAP10_50 as fitness.
+        """Run validation; when OOD eval is enabled, use the OOD ``test_fitness_prior`` mAP50 as fitness.
 
         The fitness prior mode defaults to ``heatmap`` (``anomaly_v2.test_fitness_prior``; also
         accepts ``none``/``mask_off`` and ``mask``/``mask_on``). The OOD eval runs here (not as an
@@ -98,9 +98,9 @@ class AnomalyV2Trainer(DetectionTrainer):
         metrics, fitness = super().validate()
         v2_cfg = getattr(unwrap_model(self.model), "yaml", {}).get("anomaly_v2", {})
         if int(v2_cfg.get("test_val_freq", 3)) > 0 and metrics is not None:
-            self._ood_fit_map1050 = None  # skipped (freq) epochs -> 0.0, not a best.pt candidate
-            AnomalyV2Trainer._mvtec_ood_eval(self)  # sets self._ood_fit_map1050 (+ wandb log)
-            fitness = float(self._ood_fit_map1050 or 0.0)
+            self._ood_fit_map50 = None  # skipped (freq) epochs -> 0.0, not a best.pt candidate
+            AnomalyV2Trainer._mvtec_ood_eval(self)  # sets self._ood_fit_map50 (+ wandb log)
+            fitness = float(self._ood_fit_map50 or 0.0)
             metrics["fitness"] = fitness
             self._ood_best_fitness = (
                 fitness if self._ood_best_fitness is None else max(self._ood_best_fitness, fitness)
@@ -295,7 +295,7 @@ class AnomalyV2Trainer(DetectionTrainer):
 
         Configured via the model YAML ``anomaly_v2`` block: ``test_val_freq`` (every N epochs;
         default 3, set 0 to disable); see ``_ood_eval_setup`` for the fit-YAML / mode resolution.
-        best.pt fitness is the AVERAGE mAP10_50 of the ``test_fitness_prior`` mode (default heatmap).
+        best.pt fitness is the AVERAGE mAP50 of the ``test_fitness_prior`` mode (default heatmap).
 
         Runs on a deepcopy of the EMA so val-time fuse()/bank-build never corrupt the live EMA.
         """
@@ -310,17 +310,17 @@ class AnomalyV2Trainer(DetectionTrainer):
             return
         ema_eval = deepcopy(trainer.ema.ema).eval()
         AnomalyV2Trainer._ood_eval_prep_model(ema_eval, cfg["fit_yaml"])
-        trainer._ood_fit_map1050 = None  # clear stale; only set on success
+        trainer._ood_fit_map50 = None  # clear stale; only set on success
         try:
             rows = AnomalyV2Trainer._run_ood_eval(trainer, ema_eval, cfg, trainer.epoch + 1)
             AnomalyV2Trainer._log_ood_wandb(trainer, rows)
-            # Store the fitness-prior AVERAGE mAP10_50 for best.pt selection (fitness override).
+            # Store the fitness-prior AVERAGE mAP50 for best.pt selection (fitness override).
             fit_mode = cfg["fitness_mode"]
             for r in rows:
                 if r["category"] == "AVERAGE" and r["mode"] == fit_mode:
-                    map1050 = r.get("mAP10_50", math.nan)
-                    if not math.isnan(map1050):
-                        trainer._ood_fit_map1050 = float(map1050)
+                    map50 = r.get("mAP50", math.nan)
+                    if not math.isnan(map50):
+                        trainer._ood_fit_map50 = float(map50)
                     break
         except Exception as e:  # never let OOD eval take down a training run
             LOGGER.warning(f"MVTec OOD eval failed at epoch {trainer.epoch + 1}: {type(e).__name__}: {e}")

@@ -499,6 +499,12 @@ class DetectionModel(BaseModel):
 
             self.model.eval()  # Avoid changing batch statistics until training begins
             m.training = True  # Setting it to True to properly return strides
+            # HybridHead: m.training=True does NOT propagate to the inner anchor_head (Detect),
+            # because PyTorch only sets the flag on m itself (unlike m.train() which is recursive).
+            # self.model.eval() set anchor_head.training=False, so Detect.forward() would return
+            # a (y, preds) tuple instead of dict {"feats":[...]}, causing AttributeError on stride calc.
+            if isinstance(m, HybridHead):
+                m.anchor_head.training = True
             m.stride = torch.tensor([s / x.shape[-2] for x in _forward(torch.zeros(1, ch, s, s))])  # forward
             self.stride = m.stride
             self.model.train()  # Set model back to training(default) mode

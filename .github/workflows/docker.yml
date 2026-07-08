@@ -247,9 +247,7 @@ jobs:
 
       - name: Run Tests
         if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && (matrix.platforms == 'linux/amd64' || matrix.platforms == 'linux/arm64') && matrix.dockerfile != 'Dockerfile-conda'
-        run: |
-          image="ultralytics/ultralytics:${{ (matrix.tags == 'latest-python' && 'latest-python-export') || (matrix.tags == 'latest' && 'latest-export') || matrix.tags }}"
-          docker run --rm "$image" /bin/bash -c "uv pip install --system --break-system-packages -e '.[solutions]' aiohttp pytest 'git+https://github.com/ultralytics/CLIP.git' && YOLO_AUTOINSTALL=false python3 tests/cache_test_assets.py && YOLO_AUTOINSTALL=false pytest tests --export-env base"
+        run: docker run --rm ultralytics/ultralytics:${{ (matrix.tags == 'latest-python' && 'latest-python-export') || (matrix.tags == 'latest' && 'latest-export') || matrix.tags }} /bin/bash -c "uv pip install --system --break-system-packages -e '.[solutions]' aiohttp pytest 'git+https://github.com/ultralytics/CLIP.git' && YOLO_AUTOINSTALL=false python3 tests/cache_test_assets.py && YOLO_AUTOINSTALL=false pytest tests --export-env base"
 
       - name: Run Benchmarks
         if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && (matrix.platforms == 'linux/amd64' || matrix.dockerfile == 'Dockerfile-arm64') && matrix.dockerfile != 'Dockerfile' && matrix.dockerfile != 'Dockerfile-conda'

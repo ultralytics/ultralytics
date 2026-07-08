@@ -313,6 +313,114 @@ class FracRoPE2D(MHSABlock):
         return t.transpose(1, 2).reshape(b, c, h, w)
 
 
+class AnchorPoolQueryMix(nn.Module):
+    """Anchor-pooled two-stage attention block with dense 4D output."""
+
+    def __init__(
+        self,
+        c: int,
+        m: int = 49,
+        mlp_ratio: float = 4.0,
+        silu: bool = False,
+        ls: float = 0.0,
+        head_dim: int = 32,
+        pool_stride: int = 3,
+    ):
+        """Initialize the anchor-pooled attention block."""
+        super().__init__()
+        assert c % head_dim == 0, f"AnchorPoolQueryMix: c={c} not divisible by head_dim={head_dim}"
+        self.num_heads = c // head_dim
+        self.head_dim = head_dim
+        self.dim = c
+        g = round(m**0.5)
+        self.m = g * g
+        self.anchors = nn.Parameter(self._coord_seed(g, c))
+        self.pool_dw = nn.Conv2d(c, c, 3, stride=pool_stride, padding=1, groups=c, bias=False)
+        self.pool_bn = nn.BatchNorm2d(c)
+        self.lnA = nn.LayerNorm(c)
+        self.lnP = nn.LayerNorm(c)
+        self.lnB = nn.LayerNorm(c)
+        self.qA = nn.Linear(c, c, bias=False)
+        self.kvA = nn.Linear(c, 2 * c, bias=False)
+        self.qB = nn.Linear(c, c, bias=False)
+        self.kvB = nn.Linear(c, 2 * c, bias=False)
+        self.projA = nn.Linear(c, c, bias=False)
+        self.projB = nn.Linear(c, c, bias=False)
+        hidden = int(c * mlp_ratio)
+        self.ffn_dw = nn.Conv2d(c, c, 7, padding=3, groups=c, bias=False)
+        self.ffn_bn = nn.BatchNorm2d(c)
+        self.ffn_pw1 = nn.Conv2d(c, hidden, 1)
+        self.ffn_pw2 = nn.Conv2d(hidden, c, 1)
+        self.act = nn.SiLU() if silu else nn.GELU()
+        if ls:
+            self.ls1 = nn.Parameter(ls * torch.ones(c))
+            self.ls2 = nn.Parameter(ls * torch.ones(c, 1, 1))
+
+    @staticmethod
+    def _coord_seed(g: int, c: int) -> torch.Tensor:
+        """Build a 2D sinusoidal seed for the anchor slots."""
+        d = c // 2
+        div = torch.exp(torch.arange(0, d, 2) * (-math.log(10000.0) / max(d, 1)))
+        ys, xs = torch.meshgrid(torch.arange(g), torch.arange(g), indexing="ij")
+        pos = torch.zeros(g * g, c)
+        for coord, off in ((ys.flatten(), 0), (xs.flatten(), d)):
+            a = coord.unsqueeze(1).float() * div
+            pos[:, off : off + a.shape[1] * 2 : 2] = torch.sin(a)
+            pos[:, off + 1 : off + a.shape[1] * 2 : 2] = torch.cos(a)
+        return pos.unsqueeze(0) * 0.02
+
+    def _sdpa(self, q: torch.Tensor, kv: torch.Tensor, b: int) -> torch.Tensor:
+        """Apply multi-head attention from query tokens to fused K/V tokens."""
+        nq = q.shape[1]
+        q = q.reshape(b, nq, self.num_heads, self.head_dim).transpose(1, 2)
+        kv = kv.reshape(b, -1, 2, self.num_heads, self.head_dim).permute(2, 0, 3, 1, 4)
+        k, v = kv[0], kv[1]
+        a = F.scaled_dot_product_attention(q, k, v)
+        return a.transpose(1, 2).reshape(b, nq, self.dim)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Run anchor gather, dense scatter, and ConvMlp FFN."""
+        b, c, h, w = x.shape
+        p = self.pool_bn(self.pool_dw(x)).flatten(2).transpose(1, 2)
+        t = x.flatten(2).transpose(1, 2)
+        anchors = self.lnA(self.anchors).expand(b, -1, -1)
+        a = self.projA(self._sdpa(self.qA(anchors), self.kvA(self.lnP(p)), b))
+        d = self.projB(self._sdpa(self.qB(self.lnB(t)), self.kvB(a), b))
+        ls1 = getattr(self, "ls1", None)
+        t = t + (d if ls1 is None else ls1 * d)
+        x = t.transpose(1, 2).reshape(b, c, h, w)
+        f = self.ffn_pw2(self.act(self.ffn_pw1(self.ffn_bn(self.ffn_dw(x)))))
+        ls2 = getattr(self, "ls2", None)
+        return x + (f if ls2 is None else ls2 * f)
+
+    def forward_fuse(self, x: torch.Tensor) -> torch.Tensor:
+        """Run the block after BN folding and anchor query caching."""
+        b, c, h, w = x.shape
+        p = self.pool_dw(x).flatten(2).transpose(1, 2)
+        t = x.flatten(2).transpose(1, 2)
+        a = self.projA(self._sdpa(self.anchors_flat.expand(b, -1, -1), self.kvA(self.lnP(p)), b))
+        d = self.projB(self._sdpa(self.qB(self.lnB(t)), self.kvB(a), b))
+        ls1 = getattr(self, "ls1", None)
+        t = t + (d if ls1 is None else ls1 * d)
+        x = t.transpose(1, 2).reshape(b, c, h, w)
+        f = self.ffn_pw2(self.act(self.ffn_pw1(self.ffn_dw(x))))
+        ls2 = getattr(self, "ls2", None)
+        return x + (f if ls2 is None else ls2 * f)
+
+    @torch.no_grad()
+    def fuse(self):
+        """Fold BN layers and cache the anchor query projection."""
+        if hasattr(self, "anchors_flat"):
+            return
+        from ultralytics.utils.torch_utils import fuse_conv_and_bn
+
+        self.pool_dw = fuse_conv_and_bn(self.pool_dw, self.pool_bn)
+        self.ffn_dw = fuse_conv_and_bn(self.ffn_dw, self.ffn_bn)
+        self.register_buffer("anchors_flat", self.qA(self.lnA(self.anchors)))
+        delattr(self, "pool_bn")
+        delattr(self, "ffn_bn")
+
+
 class FastViTBlock(UltraViTBlock):
     """Deprecated alias of UltraViTBlock, kept so legacy fastvit YAMLs and pickled checkpoints keep loading."""
 

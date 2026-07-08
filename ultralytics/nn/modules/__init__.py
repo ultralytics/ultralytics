@@ -106,7 +106,7 @@ from .transformer import (
     TransformerEncoderLayer,
     TransformerLayer,
 )
-from .vit_blocks import FastViTBlock, FracRoPE2D, MHSABlock, UltraViTBlock
+from .vit_blocks import AnchorPoolQueryMix, FastViTBlock, FracRoPE2D, MHSABlock, UltraViTBlock
 
 __all__ = (
     "AIFI",
@@ -129,6 +129,7 @@ __all__ = (
     "A2C2f",
     "AConv",
     "ADown",
+    "AnchorPoolQueryMix",
     "Attention",
     "BNContrastiveHead",
     "Bottleneck",

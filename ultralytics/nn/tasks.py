@@ -28,6 +28,7 @@ from ultralytics.nn.modules import (
     A2C2f,
     AConv,
     ADown,
+    AnchorPoolQueryMix,
     Bottleneck,
     BottleneckCSP,
     C2f,
@@ -270,6 +271,9 @@ class BaseModel(torch.nn.Module):
                     m.forward = m.forward_fuse
                 if isinstance(m, FracRoPE2D):
                     m.switch_to_deploy(m.rope_hw[0])  # rebake the RoPE cos/sin buffers at the current grid for deploy
+                if isinstance(m, AnchorPoolQueryMix):
+                    m.fuse()
+                    m.forward = m.forward_fuse
                 if isinstance(m, Detect) and getattr(m, "end2end", False):
                     m.fuse()  # remove one2many head
             self.info(verbose=verbose)
@@ -2099,7 +2103,7 @@ def parse_model(d, ch, verbose=True):
                     args.extend((True, 1.2))
             if m is C2fCIB:
                 legacy = False
-        elif m in frozenset({AIFI, UltraViTBlock, FastViTBlock, MHSABlock, FracRoPE2D}):
+        elif m in frozenset({AIFI, UltraViTBlock, FastViTBlock, MHSABlock, FracRoPE2D, AnchorPoolQueryMix}):
             args = [ch[f], *args]
         elif m is TeacherDetBackbone:
             # Frozen-teacher detection backbone: layer-0 module that maps a 3-channel image to embed_dim feature channels.

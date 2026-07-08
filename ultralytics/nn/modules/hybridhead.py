@@ -21,15 +21,21 @@ class HybridHead(nn.Module):
     
     def forward(self, x):
         anchor_output = self.anchor_head(x)
-        af_output = []
-        for i, f in enumerate(x):
-            af_output.append(
-                self.af_head[i](f)
-            )
-        return {
-            "anchor": anchor_output,
-            "anchor_free": af_output
-        }
+        if self.training:
+            # Training: return combined dict so DetectionModel.loss() can extract anchor preds
+            af_output = []
+            for i, f in enumerate(x):
+                af_output.append(
+                    self.af_head[i](f)
+                )
+            return {
+                "anchor": anchor_output,
+                "anchor_free": af_output
+            }
+        else:
+            # Inference: return anchor output directly (same format as Detect: (decoded_tensor, preds_dict))
+            # This ensures validator/NMS receives the tensor it expects
+            return anchor_output
 
     # --- Properties that delegate to the inner Detect head ---
     # Required by DetectionModel stride init and v8DetectionLoss

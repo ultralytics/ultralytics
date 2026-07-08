@@ -196,17 +196,17 @@ def test_torch2onnx_serializes_concurrent_exports(monkeypatch, tmp_path):
 
 
 @pytest.mark.skipif(not TORCH_2_1, reason="OpenVINO requires torch>=2.1")
-@pytest.mark.skipif(WINDOWS, reason="OpenVINO inference intermittently crashes GitHub Windows runners")
 @pytest.mark.parametrize("end2end", [False, True])
 def test_export_openvino(end2end, isolated_model):
     """Test YOLO export to OpenVINO format for model inference compatibility."""
     file = YOLO(isolated_model).export(format="openvino", imgsz=32, end2end=end2end)
+    if WINDOWS:
+        pytest.skip("OpenVINO inference intermittently crashes GitHub Windows runners")
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
 @pytest.mark.slow
 @pytest.mark.skipif(not TORCH_2_1, reason="OpenVINO requires torch>=2.1")
-@pytest.mark.skipif(WINDOWS, reason="OpenVINO inference intermittently crashes GitHub Windows runners")
 @pytest.mark.parametrize(
     "task, dynamic, quantize, batch, nms, end2end",
     [  # generate all combinations except for exclusion cases
@@ -231,6 +231,8 @@ def test_export_openvino_matrix(task, dynamic, quantize, batch, nms, end2end):
         nms=nms,
         end2end=end2end,
     )
+    if WINDOWS:
+        pytest.skip("OpenVINO inference intermittently crashes GitHub Windows runners")
     YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32, batch=batch)  # exported model inference
     shutil.rmtree(file, ignore_errors=True)  # retry in case of potential lingering multi-threaded file usage errors
 

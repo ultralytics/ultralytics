@@ -280,8 +280,6 @@ class AnomalyDetect(Detect):
     Attributes:
         heatmap_processor (HeatmapProcessor): Post-processes the raw heatmap prior.
         heatmap_bias_fusion (HeatmapBiasFusion): Produces per-scale feature biases.
-        hm_gate_blend (float): Blend factor for inference confidence gating;
-            0.0 = full heatmap gate, 1.0 = disabled (vanilla detection).
 
     Methods:
         forward: Fuse prior into PAN features and run detection forward.
@@ -309,7 +307,6 @@ class AnomalyDetect(Detect):
         super().__init__(nc, reg_max, end2end, ch)
         self.heatmap_bias_fusion = HeatmapBiasFusion(num_scales=self.nl, c_mid=c_mid)
         self.heatmap_processor = HeatmapProcessor(mask_size=mask_size)
-        self.hm_gate_blend = 0.0
 
     def forward(
         self,
@@ -372,32 +369,10 @@ class AnomalyDetect(Detect):
             preds = {"one2many": preds, "one2one": one2one}
         if self.training:
             return preds
-        y = self._inference(preds["one2one"] if self.end2end else preds, heatmap=processed_prior)
+        y = self._inference(preds["one2one"] if self.end2end else preds)
         if self.end2end:
             y = self.postprocess(y.permute(0, 2, 1))
         return (y, out_heatmap) if self.export else ((y, out_heatmap), preds)
-
-    def _inference(self, x: dict[str, torch.Tensor], heatmap: torch.Tensor | None = None) -> torch.Tensor:
-        """Decode predicted bounding boxes and class probabilities based on multiple-level feature maps.
-
-        Args:
-            x (dict[str, torch.Tensor]): Dictionary of predictions from detection layers.
-            heatmap: Optional ``(B, 1, H, W)`` heatmap for per-anchor confidence gating.
-                blend=1 (default) → identity; blend=0 → full suppression at low-heatmap cells.
-
-        Returns:
-            (torch.Tensor): Concatenated tensor of decoded bounding boxes and class probabilities.
-        """
-        # Inference path
-        dbox = self._get_decode_boxes(x)
-        scores = x["scores"].sigmoid()
-        self.hm_gate_blend = getattr(self, "hm_gate_blend", 0.0)
-        if heatmap is not None and self.hm_gate_blend < 1.0:
-            gate = self._build_heatmap_gate(heatmap, x["feats"])
-            b = float(self.hm_gate_blend)
-            factor = (b + (1.0 - b) * gate).clamp(0.0, 1.0)
-            scores = scores * factor
-        return torch.cat((dbox, scores), 1)
 
     def _build_heatmap_gate(self, hm: torch.Tensor, feats: list[torch.Tensor]) -> torch.Tensor:
         """Resize heatmap to each scale's grid and return ``(bs, 1, A)`` gate tensor."""

@@ -1585,7 +1585,7 @@ class _SafeLoad:
             klass = getattr(nn, attrs[0])
             assert isinstance(klass, type) and issubclass(klass, nn.Module)
             args = [ast.literal_eval(a) for a in call.args]
-            kwargs = {kw.arg: ast.literal_eval(kw.value) for kw in call.keywords}
+            kwargs = {str(kw.arg): ast.literal_eval(kw.value) for kw in call.keywords if kw.arg is not None}
             return klass(*args, **kwargs)
         except Exception as e:
             raise TypeError(

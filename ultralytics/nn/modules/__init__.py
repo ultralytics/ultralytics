@@ -18,6 +18,8 @@ Examples:
 """
 from .multiscaleghost import MultiScaleGhost
 
+from .hybrid_head import HybridHead
+
 from .block import (
     C1,
     C2,

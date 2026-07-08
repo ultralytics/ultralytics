@@ -46,6 +46,7 @@ from ultralytics.nn.modules import (
     Conv2,
     ConvTranspose,
     Detect,
+    HybridHead,
     DWConv,
     DWConvTranspose2d,
     Focus,
@@ -1814,6 +1815,7 @@ def parse_model(d, ch, verbose=True):
     layers, save, c2 = [], [], ch[-1]  # layers, savelist, ch out
     base_modules = frozenset(
         {
+            HybridHead,
             MultiScaleGhost,
             Classify,
             Conv,

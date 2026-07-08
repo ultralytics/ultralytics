@@ -1943,6 +1943,9 @@ def parse_model(d, ch, verbose=True):
                 OBB26,
             }
         ):
+            if m is AnomalyDetect and len(args) == 2:
+                # Backward-compatible default: old YAMLs used [nc, c_mid].
+                args.insert(2, True)  # use_processor=True
             args.extend([reg_max, end2end, [ch[x] for x in f]])
             if m is Segment or m is YOLOESegment or m is Segment26 or m is YOLOESegment26:
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)

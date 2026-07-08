@@ -289,6 +289,7 @@ class AnomalyDetect(Detect):
         self,
         nc: int = 80,
         c_mid: int = 32,
+        use_processor: bool = True,
         reg_max: int = 16,
         end2end: bool = False,
         ch: tuple = (),
@@ -299,14 +300,17 @@ class AnomalyDetect(Detect):
         Args:
             nc (int): Number of classes.
             c_mid (int): Intermediate channels for the heatmap fusion conv stack.
+            use_processor (bool): Whether to run the prior through ``HeatmapProcessor``
+                before fusion. If False, the raw resized prior is used directly.
             reg_max (int): Maximum number of DFL channels.
             end2end (bool): Whether to use end-to-end NMS-free detection.
             ch (tuple): Tuple of channel sizes from backbone feature maps.
             mask_size (int): Nominal spatial resolution of the heatmap prior.
         """
         super().__init__(nc, reg_max, end2end, ch)
+        self.mask_size = int(mask_size)
         self.heatmap_bias_fusion = HeatmapBiasFusion(num_scales=self.nl, c_mid=c_mid)
-        self.heatmap_processor = HeatmapProcessor(mask_size=mask_size)
+        self.heatmap_processor = HeatmapProcessor(mask_size=mask_size) if use_processor else None
 
     def forward(
         self,
@@ -335,7 +339,7 @@ class AnomalyDetect(Detect):
         feats = x
         if prior is not None:
             prior = prior.to(device=x[0].device, dtype=x[0].dtype)
-            processed_prior = self.heatmap_processor(prior)
+            processed_prior = self.heatmap_processor(prior) if self.heatmap_processor is not None else prior
             feats = []
             for i, p in enumerate(x):
                 target_h, target_w = p.shape[2], p.shape[3]
@@ -357,8 +361,7 @@ class AnomalyDetect(Detect):
         if processed_prior is not None:
             out_heatmap = prior
         else:
-            ms = self.heatmap_processor.mask_size
-            out_heatmap = torch.zeros(bs, 1, ms, ms, device=x[0].device, dtype=x[0].dtype)
+            out_heatmap = torch.zeros(bs, 1, self.mask_size, self.mask_size, device=x[0].device, dtype=x[0].dtype)
 
         # Delegate the rest to the standard Detect logic, using the (possibly)
         # fused features. The processed prior is passed to _inference for score gating.

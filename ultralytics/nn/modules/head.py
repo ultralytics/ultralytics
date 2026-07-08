@@ -377,15 +377,6 @@ class AnomalyDetect(Detect):
             y = self.postprocess(y.permute(0, 2, 1))
         return (y, out_heatmap) if self.export else ((y, out_heatmap), preds)
 
-    def _build_heatmap_gate(self, hm: torch.Tensor, feats: list[torch.Tensor]) -> torch.Tensor:
-        """Resize heatmap to each scale's grid and return ``(bs, 1, A)`` gate tensor."""
-        gates = []
-        for i in range(self.nl):
-            h, w = feats[i].shape[2], feats[i].shape[3]
-            g = torch.nn.functional.interpolate(hm, size=(h, w), mode="bilinear", align_corners=False)
-            gates.append(g.view(g.shape[0], 1, -1))
-        return torch.cat(gates, dim=-1)  # (bs, 1, A)
-
 
 class Segment(Detect):
     """YOLO Segment head for segmentation models.

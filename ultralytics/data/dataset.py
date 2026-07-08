@@ -558,6 +558,8 @@ class DepthDataset(YOLODataset):
                     DepthFormat(),
                 ]
             )
+        # scale_fill stretch matches the released-weights eval protocol; training reaches the same square
+        # canvas through RandomPerspective's warp, so train and val share the output geometry.
         letterbox = LetterBox(new_shape=(self.imgsz, self.imgsz), auto=False, scale_fill=True)
         return Compose([letterbox, DepthFormat()])
 

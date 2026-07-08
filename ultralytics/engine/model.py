@@ -657,7 +657,12 @@ class Model(torch.nn.Module):
             args["data"] = data
         validator = self._smart_load("validator")(args=args, _callbacks=self.callbacks)
         validator.calibrating = True
-        validator(model=self.model)
+        try:
+            validator(model=self.model)
+        except Exception:
+            head.cal_a.fill_(a0)
+            head.cal_b.fill_(b0)  # a failed val pass must not wipe the model's existing calibration
+            raise
         if validator.calib is None:
             head.cal_a.fill_(a0)
             head.cal_b.fill_(b0)  # restore whatever calibration the model had

@@ -84,10 +84,11 @@ class DistillationModel(nn.Module):
 
         # Get feature dimensions via dummy forward pass (hooks capture outputs)
         imgsz = student_model.args.imgsz
+        ch = student_model.yaml.get("channels", 3)
         student_model.eval()
         with torch.no_grad():
-            teacher_model(torch.zeros(2, 3, imgsz, imgsz).to(device))
-            student_model(torch.zeros(2, 3, imgsz, imgsz).to(device))
+            teacher_model(torch.zeros(2, ch, imgsz, imgsz).to(device))
+            student_model(torch.zeros(2, ch, imgsz, imgsz).to(device))
         student_model.train()
         teacher_output = [self._teacher_feats[idx] for idx in self.feats_idx]
         student_output = [self._student_feats[idx] for idx in self.feats_idx]

@@ -203,6 +203,25 @@ def test_distill_resume(tmp_path: Path):
     assert trainer.start_epoch == trainer.epoch == 1, "resume test failed"
 
 
+def test_distill_grayscale(tmp_path: Path):
+    """Test knowledge distillation on a single-channel dataset (https://github.com/ultralytics/ultralytics/issues/25066)."""
+    train_args = {
+        "data": "coco8-grayscale.yaml",
+        "imgsz": 32,
+        "epochs": 1,
+        "plots": False,
+        "val": False,
+        "workers": 0,
+        "project": tmp_path,
+        "exist_ok": True,
+    }
+    teacher = YOLO("yolo26n.yaml")
+    teacher.train(name="teacher", **train_args)
+    student = YOLO("yolo26n.yaml")
+    student.train(distill_model=teacher.trainer.last, name="student", **train_args)
+    assert isinstance(unwrap_model(student.trainer.model), DistillationModel)
+
+
 @pytest.mark.parametrize(
     "ckpt",
     [

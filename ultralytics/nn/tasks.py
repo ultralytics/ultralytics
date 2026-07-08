@@ -624,6 +624,21 @@ class DetectionModel(BaseModel):
         y[-1] = y[-1][..., i:]  # small
         return y
 
+    def loss(self, batch, preds=None):
+        """Compute loss, handling HybridHead's combined output format.
+
+        HybridHead returns {"anchor": {"boxes":..., "scores":..., "feats":[...]}, "anchor_free": [...]}
+        but v8DetectionLoss expects the anchor dict directly. Extract it here.
+        """
+        if getattr(self, "criterion", None) is None:
+            self.criterion = self.init_criterion()
+        if preds is None:
+            preds = self.forward(batch["img"])
+        # HybridHead wraps anchor and anchor_free in a top-level dict
+        if isinstance(preds, dict) and "anchor" in preds and "anchor_free" in preds:
+            preds = preds["anchor"]
+        return self.criterion(preds, batch)
+
     def init_criterion(self):
         """Initialize the loss criterion for the DetectionModel."""
         return E2ELoss(self) if getattr(self, "end2end", False) else v8DetectionLoss(self)

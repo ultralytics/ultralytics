@@ -802,6 +802,9 @@ class Results(SimpleClass, DataExportMixin):
         if self.semantic_mask is not None:
             LOGGER.warning("Semantic Segmentation task does not support `save_crop`.")
             return
+        if self.depth is not None:
+            LOGGER.warning("Depth task does not support `save_crop`.")
+            return
         for d in self.boxes:
             save_one_box(
                 d.xyxy,

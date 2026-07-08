@@ -301,7 +301,9 @@ def calibrate_checkpoint(ckpt_path, dataloader, device, dist_power: float = 0.0,
     """
     from copy import deepcopy
 
-    ckpt = torch.load(ckpt_path, map_location="cpu", weights_only=False)
+    from ultralytics.utils.patches import torch_load
+
+    ckpt = torch_load(ckpt_path, map_location="cpu")
     saved = ckpt.get("ema") or ckpt.get("model")
     if saved is None or _depth_head(saved) is None:
         return

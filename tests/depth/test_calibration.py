@@ -184,7 +184,9 @@ def test_calibrate_checkpoint_applies_selective_policy(tmp_path):
     torch.save({"model": copy.deepcopy(model)}, path)
     calibrate_checkpoint(path, batches, device="cpu")
 
-    head = _depth_head(torch.load(path, weights_only=False)["model"])
+    from ultralytics.utils.patches import torch_load
+
+    head = _depth_head(torch_load(path)["model"])
     assert abs(float(head.cal_a) - expected["a"]) < 1e-6 and abs(float(head.cal_b) - expected["b"]) < 1e-6
 
 

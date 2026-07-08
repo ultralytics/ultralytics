@@ -1066,8 +1066,8 @@ def plt_color_scatter(v, f, bins: int = 20, cmap: str = "viridis", alpha: float 
     hist, xedges, yedges = np.histogram2d(v, f, bins=bins)
     colors = [
         hist[
-            min(np.digitize(v[i], xedges, right=True) - 1, hist.shape[0] - 1),
-            min(np.digitize(f[i], yedges, right=True) - 1, hist.shape[1] - 1),
+            np.clip(np.digitize(v[i], xedges, right=False) - 1, 0, hist.shape[0] - 1),
+            np.clip(np.digitize(f[i], yedges, right=False) - 1, 0, hist.shape[1] - 1),
         ]
         for i in range(len(v))
     ]

@@ -17,6 +17,8 @@ Examples:
     >>> subprocess.run(f"onnxslim {f} {f} && open {f}", shell=True, check=True)  # pip install onnxslim
 """
 from .multiscaleghost import MultiScaleGhost
+from .anchor_free import AnchorFreeHead
+from .hybridhead import HybridHead
 
 from .block import (
     C1,
@@ -94,7 +96,6 @@ from .head import (
     YOLOESegment,
     YOLOESegment26,
     v10Detect,
-    HybridHead
 )
 from .transformer import (
     AIFI,
@@ -192,5 +193,6 @@ __all__ = (
     "YOLOESegment26",
     "v10Detect",
     "MultiScaleGhost",
-    "HybridHead"
+    "HybridHead",
+    "AnchorFreeHead",
 )

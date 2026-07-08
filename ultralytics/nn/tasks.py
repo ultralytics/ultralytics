@@ -12,6 +12,8 @@ import torch.nn as nn
 
 from ultralytics.nn.autobackend import check_class_names
 from ultralytics.nn.modules import (
+    HybridHead,
+    AnchorFreeHead,
     MultiScaleGhost,
     AIFI,
     C1,
@@ -46,7 +48,6 @@ from ultralytics.nn.modules import (
     Conv2,
     ConvTranspose,
     Detect,
-    HybridHead,
     DWConv,
     DWConvTranspose2d,
     Focus,
@@ -1881,6 +1882,7 @@ def parse_model(d, ch, verbose=True):
     base_modules = frozenset(
         {
             HybridHead,
+            AnchorFreeHead,
             MultiScaleGhost,
             Classify,
             Conv,

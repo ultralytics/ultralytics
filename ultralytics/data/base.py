@@ -15,7 +15,15 @@ import cv2
 import numpy as np
 from torch.utils.data import Dataset
 
-from ultralytics.data.utils import FORMATS_HELP_MSG, HELP_URL, IMG_FORMATS, check_file_speeds
+from ultralytics.data.utils import (
+    FORMATS_HELP_MSG,
+    HELP_URL,
+    IMG_FORMATS,
+    check_file_speeds,
+    get_cache_file_path,
+    parse_image_cache,
+    prepare_cache_dir,
+)
 from ultralytics.utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, NUM_THREADS, TQDM
 from ultralytics.utils.patches import imread
 
@@ -49,7 +57,8 @@ class BaseDataset(Dataset):
         im_hw0 (list): List of original image dimensions (h, w).
         im_hw (list): List of resized image dimensions (h, w).
         npy_files (list[Path]): List of numpy file paths.
-        cache (str | None): Cache setting ('ram', 'disk', or None for no caching).
+        cache (str | None): Cache setting ('ram', 'disk' to cache beside source images, a custom disk cache path, or
+            None for no caching).
         transforms (callable): Image transformation function.
         batch_shapes (np.ndarray): Batch shapes for rectangular training.
         batch (np.ndarray): Batch index of each image.
@@ -91,7 +100,8 @@ class BaseDataset(Dataset):
         Args:
             img_path (str | list[str]): Path to the folder containing images or list of image paths.
             imgsz (int): Image size for resizing.
-            cache (bool | str): Cache images to RAM or disk during training.
+            cache (bool | str): Cache images to RAM, use "disk" to cache beside source images, or pass a path-like value
+                to cache under that directory during training.
             augment (bool): If True, data augmentation is applied.
             hyp (dict[str, Any]): Hyperparameters to apply data augmentation.
             prefix (str): Prefix to print in log messages.
@@ -130,10 +140,10 @@ class BaseDataset(Dataset):
         self.buffer = []  # buffer size = batch size
         self.max_buffer_length = min((self.ni, self.batch_size * 8, 1000)) if self.augment else 0
 
-        # Cache images (options are cache = True, False, None, "ram", "disk")
+        # Cache images (options are cache = True, False, None, "ram", "disk" beside source images, or a custom path)
         self.ims, self.im_hw0, self.im_hw = [None] * self.ni, [None] * self.ni, [None] * self.ni
-        self.npy_files = [Path(f).with_suffix(".npy") for f in self.im_files]
-        self.cache = cache.lower() if isinstance(cache, str) else "ram" if cache is True else None
+        self.cache, self.cache_dir = parse_image_cache(cache)
+        self.npy_files = [get_cache_file_path(f, self.cache_dir) for f in self.im_files]
         if self.cache == "ram" and self.check_cache_ram():
             if hyp.deterministic:
                 LOGGER.warning(
@@ -298,6 +308,7 @@ class BaseDataset(Dataset):
         f = self.npy_files[i]
         if not f.exists():
             try:
+                f.parent.mkdir(parents=True, exist_ok=True)
                 np.save(f.as_posix(), imread(self.im_files[i], flags=self.cv2_flag), allow_pickle=False)
             except Exception as e:
                 f.unlink(missing_ok=True)
@@ -315,6 +326,14 @@ class BaseDataset(Dataset):
         import shutil
 
         b, gb = 0, 1 << 30  # bytes of cached images, bytes per gigabytes
+        if self.cache_dir:
+            cache_root = prepare_cache_dir(self.cache_dir, self.prefix)
+            if cache_root is None:
+                self.cache = None
+                return False
+        else:
+            cache_root = Path(self.im_files[0]).parent
+
         n = min(self.ni, 30)  # extrapolate from 30 random images
         for _ in range(n):
             im_file = random.choice(self.im_files)
@@ -322,12 +341,12 @@ class BaseDataset(Dataset):
             if im is None:
                 continue
             b += im.nbytes
-            if not os.access(Path(im_file).parent, os.W_OK):
+            if not self.cache_dir and not os.access(Path(im_file).parent, os.W_OK):
                 self.cache = None
                 LOGGER.warning(f"{self.prefix}Skipping caching images to disk, directory not writable")
                 return False
         disk_required = b * self.ni / n * (1 + safety_margin)  # bytes required to cache dataset to disk
-        total, _used, free = shutil.disk_usage(Path(self.im_files[0]).parent)
+        total, _used, free = shutil.disk_usage(cache_root)
         if disk_required > free:
             self.cache = None
             LOGGER.warning(

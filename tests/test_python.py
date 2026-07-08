@@ -19,6 +19,7 @@ from PIL import Image
 import ultralytics.data.build as data_build
 from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
 from ultralytics import RTDETR, YOLO
+from ultralytics.data.base import BaseDataset
 from ultralytics.data.build import build_dataloader, load_inference_source
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.utils import (
@@ -1080,6 +1081,77 @@ def test_model_embeddings():
     assert model_classify.predict(SOURCE, imgsz=32)[0].probs is not None
     assert isinstance(model_classify.predict(SOURCE, imgsz=32, embed=[-2])[0], torch.Tensor)
     assert model_classify.predict(SOURCE, imgsz=32)[0].probs is not None
+
+
+class _TestCachePathDataset(BaseDataset):
+    """Minimal BaseDataset subclass for testing disk cache locations."""
+
+    def build_transforms(self, hyp=None):
+        """Return an identity transform for cache path tests."""
+        return lambda sample: sample
+
+    def get_labels(self):
+        """Return a single empty label entry for the temporary test image."""
+        return [
+            {
+                "im_file": self.im_files[0],
+                "shape": (16, 16),
+                "cls": np.zeros((0, 1), dtype=np.float32),
+                "bboxes": np.zeros((0, 4), dtype=np.float32),
+                "segments": [],
+                "keypoints": None,
+                "normalized": True,
+                "bbox_format": "xywh",
+            }
+        ]
+
+
+@pytest.mark.parametrize("cache", ["disk", "path"], ids=["disk", "path"])
+def test_base_dataset_cache_modes(tmp_path, cache):
+    """Test BaseDataset caching for `cache="disk"` versus a custom cache path."""
+    image_dir = tmp_path / "images"
+    image = image_dir / "image.jpg"
+    image_dir.mkdir(parents=True)
+    assert cv2.imwrite(str(image), np.full((16, 16, 3), 255, dtype=np.uint8))
+
+    cache_value = "disk" if cache == "disk" else str(tmp_path / "disk-cache")
+    dataset = _TestCachePathDataset(
+        img_path=str(image_dir), imgsz=32, cache=cache_value, augment=False, hyp=copy(DEFAULT_CFG)
+    )
+
+    cache_file = dataset.npy_files[0]
+    assert cache_file.exists()
+    if cache == "disk":
+        assert cache_file == image.with_suffix(".npy")
+    else:
+        assert Path(cache_value) in cache_file.parents
+        assert not image.with_suffix(".npy").exists()
+
+
+@pytest.mark.parametrize("cache", ["disk", "path"], ids=["disk", "path"])
+def test_classification_dataset_cache_modes(tmp_path, cache):
+    """Test ClassificationDataset caching for `cache="disk"` versus a custom cache path."""
+    from ultralytics.data import ClassificationDataset
+
+    root = tmp_path / "cls"
+    image = root / "class0" / "image.jpg"
+    image.parent.mkdir(parents=True)
+    assert cv2.imwrite(str(image), np.full((16, 16, 3), 255, dtype=np.uint8))
+
+    args = copy(DEFAULT_CFG)
+    args.cache = "disk" if cache == "disk" else str(tmp_path / "disk-cache")
+    args.imgsz = 32
+    dataset = ClassificationDataset(root=str(root), args=args, augment=False)
+
+    sample = dataset.samples[0]
+    _ = dataset[0]
+    cache_file = Path(sample[2])
+    assert cache_file.exists()
+    if cache == "disk":
+        assert cache_file == image.with_suffix(".npy")
+    else:
+        assert Path(args.cache) in cache_file.parents
+        assert not image.with_suffix(".npy").exists()
 
 
 def test_process_mask_native_chunked():

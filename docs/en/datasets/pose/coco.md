@@ -1,6 +1,7 @@
 ---
+title: COCO-Pose Estimation Dataset
 comments: true
-description: Explore the COCO-Pose dataset for advanced pose estimation. Learn about datasets, pretrained models, metrics, and applications for training with YOLO.
+description: Explore the COCO-Pose dataset: 58,945 images with 156K+ annotated people and 17 keypoints each, for training pose estimation models with YOLO26.
 keywords: COCO-Pose, pose estimation, dataset, keypoints, COCO Keypoints 2017, YOLO, deep learning, computer vision
 ---
 
@@ -16,9 +17,10 @@ The [COCO-Pose](https://cocodataset.org/#keypoints-2017) dataset is a specialize
 
 ## Key Features
 
-- COCO-Pose builds upon the COCO Keypoints 2017 dataset which contains 200K images labeled with keypoints for pose estimation tasks.
+- COCO-Pose builds upon the [COCO Keypoints 2017](http://presentations.cocodataset.org/COCO17-Keypoints-Overview.pdf) challenge: 58,945 images annotated with 156,165 people and 1,710,498 individual keypoints for pose estimation tasks.
 - The dataset supports 17 keypoints for human figures, facilitating detailed pose estimation.
 - Like COCO, it provides standardized evaluation metrics, including Object Keypoint Similarity (OKS) for pose estimation tasks, making it suitable for comparing model performance.
+- **Download size**: ~20.1 GB.
 
 ## Dataset Structure
 
@@ -27,6 +29,8 @@ The COCO-Pose dataset is split into three subsets:
 1. **Train2017**: This subset contains 56599 images from the COCO dataset, annotated for training pose estimation models.
 2. **Val2017**: This subset has 2346 images used for validation purposes during model training.
 3. **Test2017**: This subset consists of images used for testing and benchmarking the trained models. Ground truth annotations for this subset are not publicly available, and the results are submitted to the [COCO evaluation server](https://cocodataset.org/#upload) for performance evaluation.
+
+This dataset is intended for use with [Ultralytics Platform](https://platform.ultralytics.com/) and [YOLO26](https://github.com/ultralytics/ultralytics).
 
 ## Applications
 
@@ -106,30 +110,7 @@ The [COCO-Pose](https://cocodataset.org/#keypoints-2017) dataset is a specialize
 
 ### How can I train a YOLO26 model on the COCO-Pose dataset?
 
-Training a YOLO26 model on the COCO-Pose dataset can be accomplished using either Python or CLI commands. For example, to train a YOLO26n-pose model for 100 epochs with an image size of 640, you can follow the steps below:
-
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo26n-pose.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="coco-pose.yaml", epochs=100, imgsz=640)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo pose train data=coco-pose.yaml model=yolo26n-pose.pt epochs=100 imgsz=640
-        ```
-
-For more details on the training process and available arguments, check the [training page](../../modes/train.md).
+Load `yolo26n-pose.pt` and call `model.train(data="coco-pose.yaml", epochs=100, imgsz=640)` — see the [Train Example](#usage) above for the full Python and CLI snippets, and the [training page](../../modes/train.md) for a comprehensive list of arguments.
 
 ### What are the different metrics provided by the COCO-Pose dataset for evaluating model performance?
 

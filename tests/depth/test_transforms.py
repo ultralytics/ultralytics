@@ -13,6 +13,7 @@ def _empty_instances():
 
 
 def test_depth_format_converts_to_tensors():
+    """Test depth format converts to tensors."""
     img = np.zeros((32, 32, 3), dtype=np.uint8)
     depth = np.ones((32, 32), dtype=np.float32)
     out = DepthFormat()({"img": img, "depth": depth})
@@ -22,6 +23,7 @@ def test_depth_format_converts_to_tensors():
 
 
 def test_random_flip_flips_depth_with_image():
+    """Test random flip flips depth with image."""
     img = np.arange(32 * 32 * 3, dtype=np.uint8).reshape(32, 32, 3)
     depth = np.arange(32 * 32, dtype=np.float32).reshape(32, 32)
     out = RandomFlip(p=1.0, direction="horizontal")({"img": img.copy(), "depth": depth.copy(), **_empty_instances()})
@@ -32,6 +34,7 @@ def test_random_flip_flips_depth_with_image():
 
 
 def test_random_hsv_preserves_depth():
+    """Test random hsv preserves depth."""
     img = np.full((16, 16, 3), 100, dtype=np.uint8)
     depth = np.ones((16, 16), dtype=np.float32)
     out = RandomHSV(hgain=0.5, sgain=0.5, vgain=0.5)({"img": img, "depth": depth})

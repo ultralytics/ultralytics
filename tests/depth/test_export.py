@@ -2,6 +2,7 @@ from ultralytics import YOLO
 
 
 def test_depth_onnx_export():
+    """Test depth onnx export."""
     m = YOLO("ultralytics/cfg/models/26/yolo26-depth.yaml")
     f = m.export(format="onnx", imgsz=128, nms=True)  # nms=True must be forced off, not crash
     assert str(f).endswith(".onnx")
@@ -13,6 +14,7 @@ def test_depth_onnx_export():
 
 
 def test_depth_onnx_export_dynamic(tmp_path):
+    """Test depth onnx export dynamic."""
     from ultralytics import YOLO
 
     m = YOLO("ultralytics/cfg/models/26/yolo26-depth.yaml")
@@ -29,6 +31,7 @@ def test_depth_onnx_export_dynamic(tmp_path):
 
 
 def test_depth_imx_blocked():
+    """Test depth imx blocked."""
     import pytest
 
     from ultralytics import YOLO

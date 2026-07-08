@@ -7,6 +7,7 @@ from ultralytics.utils import DEFAULT_CFG
 
 
 def test_build_yolo_dataset_routes_depth(tmp_path):
+    """Test build yolo dataset routes depth."""
     cfg = get_cfg(DEFAULT_CFG)
     cfg.task = "depth"
     data = {"nc": 1, "channels": 3, "names": {0: "depth"}, "path": str(tmp_path)}
@@ -20,6 +21,7 @@ def test_build_yolo_dataset_routes_depth(tmp_path):
 
 
 def test_build_yolo_dataset_routes_depth_multisource(tmp_path):
+    """Test build yolo dataset routes depth multisource."""
     cfg = get_cfg(DEFAULT_CFG)
     cfg.task = "depth"
     data = {"nc": 1, "channels": 3, "names": {0: "depth"}, "path": str(tmp_path)}
@@ -36,6 +38,7 @@ def test_build_yolo_dataset_routes_depth_multisource(tmp_path):
 
 
 def test_streamlit_tord_has_depth_suffix():
+    """Test streamlit tord has depth suffix."""
     import ultralytics.solutions.streamlit_inference as si
 
     src = open(si.__file__).read()

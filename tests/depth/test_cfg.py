@@ -2,6 +2,7 @@ from ultralytics.cfg import TASK2CALIBRATIONDATA, TASK2DATA, TASK2METRIC, TASK2M
 
 
 def test_depth_registered_in_tasks():
+    """Test depth registered in tasks."""
     assert "depth" in TASKS
     assert TASK2DATA["depth"] == "nyu-depth.yaml"
     assert TASK2CALIBRATIONDATA["depth"] == "nyu-depth.yaml"

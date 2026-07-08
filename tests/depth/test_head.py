@@ -4,6 +4,7 @@ from ultralytics.nn.modules.head import Depth
 
 
 def test_depth_head_export_upsamples_to_input():
+    """Test depth head export upsamples to input."""
     head = Depth(c_mid=32, ch=(32, 64, 128)).eval()
     feats = [torch.randn(1, 32, 32, 32), torch.randn(1, 64, 16, 16), torch.randn(1, 128, 8, 8)]
     head.export, head.format = True, "onnx"
@@ -15,6 +16,7 @@ def test_depth_head_export_upsamples_to_input():
 
 
 def test_depth_head_training_returns_dict():
+    """Test depth head training returns dict."""
     head = Depth(c_mid=32, ch=(32, 64, 128)).train()
     feats = [torch.randn(1, 32, 32, 32), torch.randn(1, 64, 16, 16), torch.randn(1, 128, 8, 8)]
     out = head(feats)
@@ -22,6 +24,7 @@ def test_depth_head_training_returns_dict():
 
 
 def test_depth_head_export_coreml_no_upsample():
+    """Test depth head export coreml no upsample."""
     head = Depth(c_mid=32, ch=(32, 64, 128)).eval()
     feats = [torch.randn(1, 32, 32, 32), torch.randn(1, 64, 16, 16), torch.randn(1, 128, 8, 8)]
     head.export, head.format = True, "coreml"

@@ -2989,6 +2989,7 @@ class DepthFormat:
     """
 
     def __call__(self, labels):
+        """Convert img (HWC BGR uint8 -> CHW RGB tensor) and depth (-> (1, H, W) float tensor) in labels."""
         img = labels.get("img")
         if img is not None:
             # Resize depth to match img shape (LetterBox may have changed img size)

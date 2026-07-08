@@ -1189,7 +1189,7 @@ class v8DepthLoss:
         # dense indoor GT stays well above it and keeps all levels. None -> default 0.5.
         v = getattr(h, "silog_grad_min_valid", 0.5)
         self.grad_min_valid = 0.5 if v is None else float(v)
-        # GT beyond the head's representable range (sigmoid × max_depth) is masked out of the
+        # GT beyond the head's representable range (sigmoid x max_depth) is masked out of the
         # loss: supervising unreachable targets saturates the sigmoid and, through SILog's
         # per-image mean coupling, corrupts gradients on in-range pixels too.
         self.max_depth = None
@@ -1295,7 +1295,7 @@ class v8DepthLoss:
             loss[0] = loss[0] + self.l1_weight * wmean(log_diff.abs())  # scale-anchored term
 
         # Gradient-matching loss (edge-aware): penalize differences in spatial gradients.
-        # Run it over a pyramid (grad_scales levels, ×2 masked-avg-pool per level) so coarse
+        # Run it over a pyramid (grad_scales levels, x2 masked-avg-pool per level) so coarse
         # depth discontinuities are matched too, not just full-resolution edges — the dominant
         # sharpness lever in MiDaS (L_reg) / Depth Anything V2 (L_gm). grad_scales=1 reproduces
         # the original single-scale term exactly.
@@ -1313,7 +1313,7 @@ class v8DepthLoss:
         for s in range(1, n_scales):
             if pred_log.shape[-1] < 4 or pred_log.shape[-2] < 4:
                 break  # too small to pool and still differentiate
-            # Masked ×2 average-pool: aggregate only valid pixels so invalid zeros never bleed
+            # Masked x2 average-pool: aggregate only valid pixels so invalid zeros never bleed
             # into valid neighbours (same rationale as never resizing sparse GT above).
             vp = F.avg_pool2d(valid_f, 2)
             if not gated and vp.mean() < self.grad_min_valid:

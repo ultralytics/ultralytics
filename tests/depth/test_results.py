@@ -4,6 +4,7 @@ from ultralytics.engine.results import DepthMap, Results
 
 
 def test_results_depth_field():
+    """Test results depth field."""
     img = np.zeros((20, 24, 3), dtype=np.uint8)
     depth = np.random.rand(20, 24).astype(np.float32)
     r = Results(orig_img=img, path="x.jpg", names={0: "depth"}, depth=depth)
@@ -15,12 +16,14 @@ def test_results_depth_field():
 
 
 def test_results_depth_none_is_none():
+    """Test results depth none is none."""
     img = np.zeros((8, 8, 3), dtype=np.uint8)
     r = Results(orig_img=img, path="x.jpg", names={}, depth=None)
     assert r.depth is None
 
 
 def test_results_depth_only_summary_empty_and_len():
+    """Test results depth only summary empty and len."""
     img = np.zeros((8, 8, 3), dtype=np.uint8)
     depth = np.ones((8, 8), dtype=np.float32)
     r = Results(orig_img=img, path="x.jpg", names={0: "depth"}, depth=depth)
@@ -29,6 +32,7 @@ def test_results_depth_only_summary_empty_and_len():
 
 
 def test_results_update_depth():
+    """Test results update depth."""
     img = np.zeros((8, 8, 3), dtype=np.uint8)
     r = Results(orig_img=img, path="x.jpg", names={0: "depth"})
     r.update(depth=np.ones((8, 8), dtype=np.float32))
@@ -38,6 +42,7 @@ def test_results_update_depth():
 
 
 def test_depth_predictor_postprocess_sets_depthmap():
+    """Test depth predictor postprocess sets depthmap."""
     import torch
 
     from ultralytics.engine.results import DepthMap
@@ -59,6 +64,7 @@ def test_depth_predictor_postprocess_sets_depthmap():
 
 
 def test_annotator_depth_map_runs():
+    """Test annotator depth map runs."""
     from ultralytics.utils.plotting import Annotator
 
     ann = Annotator(np.zeros((32, 32, 3), dtype=np.uint8))
@@ -68,6 +74,7 @@ def test_annotator_depth_map_runs():
 
 
 def test_results_plot_with_depth_runs():
+    """Test results plot with depth runs."""
     from ultralytics.engine.results import Results
 
     img = np.zeros((24, 24, 3), dtype=np.uint8)
@@ -78,6 +85,7 @@ def test_results_plot_with_depth_runs():
 
 
 def test_annotator_depth_map_all_zero():
+    """Test annotator depth map all zero."""
     from ultralytics.utils.plotting import Annotator
 
     ann = Annotator(np.zeros((16, 16, 3), dtype=np.uint8))

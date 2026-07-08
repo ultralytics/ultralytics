@@ -1918,6 +1918,9 @@ class DepthMetrics(SimpleClass, DataExportMixin):
         """Initialize depth metric accumulators.
 
         Args:
+            names (dict, optional): Class names mapping (unused for depth; kept for API parity).
+            min_depth (float): Minimum valid depth in meters; pixels with gt <= min_depth are ignored.
+            max_depth (float): Maximum valid depth in meters (predictions/gt clamped).
             align (str): Per-image scale alignment before scoring, following the Depth Anything
                 eval protocol. "median" rescales each prediction by median(gt)/median(pred) so
                 affine-invariant (scale-ambiguous) outputs are comparable to metric GT; "none"

@@ -4,6 +4,7 @@ from ultralytics.utils.metrics import DepthMetrics
 
 
 def test_depth_metrics_perfect_prediction():
+    """Test depth metrics perfect prediction."""
     m = DepthMetrics()
     gt = torch.rand(2, 1, 16, 16) * 5 + 0.5  # depths in [0.5, 5.5]
     m.update_stats(gt.clone(), gt.clone())  # perfect prediction

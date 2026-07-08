@@ -12,6 +12,7 @@ def _bare_validator():
 
 
 def test_depth_validator_uses_metrics_object():
+    """Test depth validator uses metrics object."""
     v = _bare_validator()
     gt = torch.rand(1, 1, 16, 16) * 5 + 0.5
     v.update_metrics({"depth": gt.clone()}, {"depth": gt.clone()})
@@ -21,6 +22,7 @@ def test_depth_validator_uses_metrics_object():
 
 
 def test_depth_validator_imperfect_and_resized():
+    """Test depth validator imperfect and resized."""
     v = _bare_validator()
     gt = torch.rand(1, 1, 32, 32) * 5 + 0.5
     pred = (gt * 1.5)[:, :, ::2, ::2]  # scaled error + half resolution (exercises interpolate)

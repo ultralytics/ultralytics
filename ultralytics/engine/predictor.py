@@ -403,7 +403,8 @@ class BasePredictor:
             if self.args.end2end is not None:
                 model.end2end = self.args.end2end
             if model.end2end:
-                model.set_head_attr(max_det=self.args.max_det, agnostic_nms=self.args.agnostic_nms)
+                # Keep head top-k >= 300 so `classes` filtering in NMS sees all candidates before `max_det` truncation
+                model.set_head_attr(max_det=max(self.args.max_det, 300), agnostic_nms=self.args.agnostic_nms)
         self.model = AutoBackend(
             model=model or self.args.model,
             device=select_device(self.args.device, verbose=verbose),

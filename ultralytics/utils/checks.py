@@ -545,7 +545,9 @@ def check_executorch_requirements():
     if LINUX and ARM64 and IS_DOCKER:
         check_requirements("packaging>=22.0")
 
-    check_requirements("executorch", cmds=f"torch=={TORCH_VERSION.split('+')[0]}")
+    torch_requirement = ">=2.12.0,<2.13.0" if LINUX and ARM64 else f"=={TORCH_VERSION.split('+')[0]}"
+    check_requirements("executorch", cmds=f"torch{torch_requirement}")
+    check_version(TORCH_VERSION, torch_requirement, name="torch", hard=True)
 
 
 def check_tensorrt(min_version: str = "7.0.0"):

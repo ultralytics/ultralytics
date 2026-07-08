@@ -27,6 +27,8 @@ ImageNet10 ships with a predefined split, using the first 10 classes of the full
 
 Each of the 10 classes is a WordNet synset (a set of synonymous terms), and images sit in per-class folders named by synset ID — the exact layout Ultralytics classification training expects. This makes ImageNet10 a compact, structurally faithful stand-in for the full dataset when testing that a model recognizes the expected folder format.
 
+Explore [ImageNet10 on Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/imagenet10) to browse the images grouped by class, view the class distribution in the **Charts** tab, and clone it to train your own model in the cloud.
+
 ## Applications
 
 The ImageNet10 dataset is useful for quickly testing and debugging computer vision models and pipelines. Its small size allows for rapid iteration, making it ideal for [continuous integration](../../help/CI.md) tests and sanity checks. It is also handy for fast preliminary testing of new models or code changes before moving on to full-scale runs with the complete [ImageNet](imagenet.md) dataset.

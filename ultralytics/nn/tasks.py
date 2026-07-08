@@ -490,9 +490,11 @@ class DetectionModel(BaseModel):
                 output = self.forward(x)
                 if self.end2end:
                     output = output["one2many"]
-                # HybridHead returns {"anchor": feats, "anchor_free": ...} in training mode
+                # HybridHead returns {"anchor": {"feats": [...], ...}, "anchor_free": ...} in training mode
+                # Detect.forward() in training mode returns a dict with "feats" key (not a plain list)
                 if isinstance(output, dict) and "anchor" in output:
-                    return output["anchor"]
+                    anchor = output["anchor"]
+                    return anchor["feats"] if isinstance(anchor, dict) else anchor
                 return output["feats"]
 
             self.model.eval()  # Avoid changing batch statistics until training begins

@@ -1,6 +1,7 @@
 ---
+title: Hand Keypoints Pose Estimation Dataset
 comments: true
-description: Explore the hand keypoints estimation dataset for advanced pose estimation. Learn about datasets, pretrained models, metrics, and applications for training with YOLO.
+description: Explore the Ultralytics Hand Keypoints dataset: 26,768 hand images with 21 keypoints each, for gesture recognition and pose estimation with YOLO26.
 keywords: Hand KeyPoints, pose estimation, dataset, keypoints, MediaPipe, YOLO, deep learning, computer vision
 ---
 
@@ -18,7 +19,7 @@ The hand-keypoints dataset contains 26,768 images of hands annotated with keypoi
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Hand Keypoints Estimation with Ultralytics YOLO26 | Human Hand Pose Estimation Tutorial
+  <strong>Watch:</strong> Hand Keypoints Estimation with Ultralytics YOLO | Human Hand Pose Estimation Tutorial
 </p>
 
 ## Hand Landmarks
@@ -50,6 +51,10 @@ The hand keypoint dataset is split into two subsets:
 
 1. **Train**: This subset contains 18,776 images from the hand keypoints dataset, annotated for training pose estimation models.
 2. **Val**: This subset contains 7,992 images that can be used for validation purposes during model training.
+
+- **Download size**: ~369 MB.
+
+This dataset is intended for use with [Ultralytics Platform](https://platform.ultralytics.com/) and [YOLO26](https://github.com/ultralytics/ultralytics).
 
 ## Applications
 
@@ -122,30 +127,7 @@ We would also like to acknowledge the creator of this dataset, [Rion Dsilva](htt
 
 ### How do I train a YOLO26 model on the Hand Keypoints dataset?
 
-To train a YOLO26 model on the Hand Keypoints dataset, you can use either Python or the command line interface (CLI). Here's an example for training a YOLO26n-pose model for 100 epochs with an image size of 640:
-
-!!! example
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo26n-pose.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="hand-keypoints.yaml", epochs=100, imgsz=640)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo pose train data=hand-keypoints.yaml model=yolo26n-pose.pt epochs=100 imgsz=640
-        ```
-
-For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+Load `yolo26n-pose.pt` and call `model.train(data="hand-keypoints.yaml", epochs=100, imgsz=640)` — see the [Train Example](#usage) above for the full Python and CLI snippets, and the model [Training](../../modes/train.md) page for a comprehensive list of arguments.
 
 ### What are the key features of the Hand Keypoints dataset?
 

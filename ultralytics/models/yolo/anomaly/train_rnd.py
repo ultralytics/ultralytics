@@ -169,7 +169,9 @@ class AnomalyRNDTrainer(AnomalyTrainer):
                     "verbose": False,
                     "save_json": False,
                     "single_cls": True,
-                    "iou": 0.1,
+                    "iou": 0.2,
+                    "conf": 0.25,
+                    "end2end": False,
                 }
                 validator = YOLOAnomalyValidator(args=overrides)
                 validator(trainer=None, model=model)

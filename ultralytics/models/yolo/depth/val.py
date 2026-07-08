@@ -17,8 +17,7 @@ from ultralytics.utils.plotting import colorize_depth
 class DepthValidator(DetectionValidator):
     """Validator for YOLO depth estimation models.
 
-    Computes standard depth metrics: delta1, abs_rel, rmse, silog.
-    Uses validation loss as the primary training signal.
+    Computes standard depth metrics: delta1, abs_rel, rmse, silog. Uses validation loss as the primary training signal.
     """
 
     def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None):
@@ -204,17 +203,17 @@ class DepthValidator(DetectionValidator):
 def plot_depth_panels(imgs, gt, preds, fname, titles=None, max_images: int = 4):
     """Write a depth panel grid: one row per image, columns RGB | GT | one per entry of ``preds``.
 
-    All depth columns share the GT valid-pixel range per row, so a scale error between GT and any
-    prediction shows up directly as a color mismatch. Panels are resized to the RGB image size,
-    so predictions at head stride need no prior interpolation.
+    All depth columns share the GT valid-pixel range per row, so a scale error between GT and any prediction shows up
+    directly as a color mismatch. Panels are resized to the RGB image size, so predictions at head stride need no prior
+    interpolation.
 
     Args:
         imgs (torch.Tensor): (B,3,H,W) float image tensor in [0,1].
         gt (torch.Tensor): (B,1,H,W) or (B,H,W) ground-truth depth in meters (pixels <= 0 invalid, drawn black).
         preds (list): List of (B,1,H,W) or (B,H,W) predicted depth tensors; each adds one column.
         fname (str | Path): Output image path.
-        titles (list, optional): List of ``2 + len(preds)`` column labels, drawn in a 24 px header strip.
-            None (the val_batch{ni}.jpg default) keeps the historical strip-free layout.
+        titles (list, optional): List of ``2 + len(preds)`` column labels, drawn in a 24 px header strip. None (the
+            val_batch{ni}.jpg default) keeps the historical strip-free layout.
         max_images: Maximum number of rows.
     """
     if gt.ndim == 3:

@@ -5,6 +5,7 @@ from __future__ import annotations
 import torch
 
 from ultralytics.engine.validator import BaseValidator
+from ultralytics.nn.teacher_model import encode_teacher_batch, resize_to
 from ultralytics.utils import LOGGER
 
 
@@ -84,22 +85,13 @@ class ImageEncoderValidator(BaseValidator):
             (dict): Batch with 'img', 'cls', per-teacher entries, and '_teacher_keys'.
         """
         imgs = batch.to(self.device, non_blocking=True)
-        student_imgs = (
-            torch.nn.functional.interpolate(imgs, size=self.args.imgsz, mode="bilinear", antialias=True)
-            if imgs.shape[-1] != self.args.imgsz
-            else imgs
-        )
+        student_imgs = resize_to(imgs, self.args.imgsz)
         if self.args.half:
             student_imgs = student_imgs.half()
 
-        teacher_imgsz = getattr(self, "_teacher_imgsz", imgs.shape[-1])
-        teacher_imgs = (
-            torch.nn.functional.interpolate(imgs, size=teacher_imgsz, mode="bilinear", antialias=True)
-            if imgs.shape[-1] != teacher_imgsz
-            else imgs
-        )
-
         teacher_keys = list(self.teacher_models.keys())
+        teacher_imgsz_by_key = getattr(self, "_teacher_imgsz_by_key", {})
+        teacher_chunk_by_key = getattr(self, "_teacher_chunk_by_key", {})
         result = {
             "img": student_imgs,
             "cls": torch.zeros(imgs.shape[0], dtype=torch.long, device=self.device),
@@ -107,7 +99,9 @@ class ImageEncoderValidator(BaseValidator):
         }
 
         for sk in teacher_keys:
-            out = self.teacher_models[sk].encode(teacher_imgs)
+            teacher_imgsz = teacher_imgsz_by_key.get(sk, getattr(self, "_teacher_imgsz", imgs.shape[-1]))
+            teacher_imgs = resize_to(imgs, teacher_imgsz)
+            out = encode_teacher_batch(self.teacher_models[sk], teacher_imgs, teacher_chunk_by_key.get(sk, 0))
             result[sk] = {"cls": out.cls, "patches": out.patches}
 
         return result

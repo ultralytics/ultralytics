@@ -163,7 +163,11 @@ class ImageEncoderLoss:
         with torch.autocast(device_type=s_scales[0].device.type, dtype=torch.float32, enabled=s_scales[0].is_cuda):
             for s in s_scales:
                 h, w = s.shape[-2:]
-                t = F.interpolate(t_grid, size=(h, w), mode="bilinear", antialias=True) if (h, w) != (grid, grid) else t_grid
+                t = (
+                    F.interpolate(t_grid, size=(h, w), mode="bilinear", antialias=True)
+                    if (h, w) != (grid, grid)
+                    else t_grid
+                )
                 mse = F.mse_loss(s, t)
                 loss = loss + mse
                 items.append(mse.detach())
@@ -219,7 +223,6 @@ class ImageEncoderModel(ClassificationModel):
     Attributes:
         token_norm (nn.LayerNorm): Shared norm for [CLS; patches] (EUPE ConvNeXt pattern).
         adaptors (nn.ModuleDict): Per-teacher adaptor heads {safe_name: ModuleDict{"cls": MLP, "patch": MLP}}.
-        teacher_grids (dict): Per-teacher spatial grid height {safe_name: int}.
     """
 
     # P3/P4/P5 on the cls yaml (strides 8/16/32); layers 0-8 are what cls->det intersect_dicts transfers.
@@ -268,7 +271,6 @@ class ImageEncoderModel(ClassificationModel):
         self.token_norm = nn.LayerNorm(c_)
 
         self.adaptors = nn.ModuleDict()
-        self.teacher_grids = {}
         for name, tcfg in teachers.items():
             safe = safe_key(name)
             heads = nn.ModuleDict()
@@ -276,7 +278,6 @@ class ImageEncoderModel(ClassificationModel):
                 heads["cls"] = _make_adaptor(c_, tcfg["embed_dim"], proj_hidden_dim, arch=adaptor_arch)
             heads["patch"] = _make_adaptor(c_, tcfg["embed_dim"], proj_hidden_dim, arch=adaptor_arch)
             self.adaptors[safe] = heads
-            self.teacher_grids[safe] = int(tcfg["num_patches"] ** 0.5) if tcfg["num_patches"] > 0 else 16
 
         if distill_path == "feat_map":
             tap_channels = self._infer_tap_channels(ch)
@@ -339,13 +340,16 @@ class ImageEncoderModel(ClassificationModel):
         # CLS via global avg pool (EUPE ConvNeXt: x_pool = x.mean([-2, -1]))
         cls_feats = head.pool(features).flatten(1)  # (B, 1280)
 
-        # Per-teacher: interpolate to teacher grid, normalize, project through adaptors.
+        # Per-teacher: interpolate to the live teacher grid, normalize, project through adaptors.
         # EUPE convnext.py:224 does norm(cat([cls, patches])), but LayerNorm(c_) normalizes
         # over channel dim independently per position, so separate application is equivalent.
         cls_normed = self.token_norm(cls_feats)
         teacher_preds = {}
         for key in self.adaptors:
-            h = self.teacher_grids[key]
+            n = batch[key]["patches"].shape[1]
+            h = int(n**0.5)
+            if h * h != n:
+                raise ValueError(f"Teacher patches for {key} must form a square grid, got {n} tokens")
             # Patches via bilinear upsample (EUPE convnext.py:256, bilinear+antialias)
             patch_feats = F.interpolate(features, size=(h, h), mode="bilinear", antialias=True)
             patch_feats = patch_feats.flatten(2).transpose(1, 2)  # (B, N, 1280)

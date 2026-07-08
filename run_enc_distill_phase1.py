@@ -164,8 +164,8 @@ def main(argv: list[str]) -> None:
             On resume, inherits from the checkpoint when not re-passed.
         --high_res_final_epochs <imgsz:epochs>: e.g. "640:12" runs the student at <imgsz> for the last <epochs>
             epochs (DINOv3 high-resolution adaptation) so its frozen P5 attention meets the larger token count it
-            will see at detection resolution. Load size and teacher size stay put, so earlier epochs are identical
-            to a run without it. ``--hires_tail`` is the legacy alias. Unset = student runs at ``imgsz`` throughout.
+            will see at detection resolution. DINOv3 and EUPE teachers use the same size in that tail.
+            ``--hires_tail`` is the legacy alias. Unset = student runs at ``imgsz`` throughout.
     """
     args = argv[1:]
     args, resume = _pop_flag(args, "--resume")

@@ -610,8 +610,8 @@ def check_dict_alignment(
             "solarize",
             # ``high_res_final_epochs``: "<imgsz>:<epochs>" (e.g. "384:12") runs the student at <imgsz> for the
             #   last <epochs> epochs (DINOv3's "high-resolution adaptation") so the frozen P5 attention meets the
-            #   larger token count it will see at detection resolution. Load size and teacher size stay unchanged,
-            #   so earlier epochs match a run without it. ``hires_tail`` is the legacy alias for pre-rename runs.
+            #   larger token count it will see at detection resolution. DINOv3 and EUPE teachers follow that size
+            #   in the tail. ``hires_tail`` is the legacy alias for pre-rename runs.
             "high_res_final_epochs",
             "hires_tail",
         }

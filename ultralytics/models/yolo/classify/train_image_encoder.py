@@ -26,7 +26,13 @@ from ultralytics.data.augment import classify_transforms
 from ultralytics.data.utils import IMG_FORMATS
 from ultralytics.models.yolo.classify.train import ClassificationTrainer
 from ultralytics.nn.image_encoder import ImageEncoderModel
-from ultralytics.nn.teacher_model import TEACHER_REGISTRY, build_teacher_model, safe_key
+from ultralytics.nn.teacher_model import (
+    TEACHER_REGISTRY,
+    build_teacher_model,
+    encode_teacher_batch,
+    resize_to,
+    safe_key,
+)
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
 from ultralytics.utils import callbacks as ul_callbacks
 
@@ -184,11 +190,21 @@ class ImageEncoderTrainer(ClassificationTrainer):
         self._teacher_imgsz = max(TEACHER_REGISTRY[n]["imgsz"] for n in self.teachers)
         # Run the student at a higher input size for the last N epochs (DINOv3's "high-resolution adaptation"):
         # its frozen P5 attention then sees the larger token count it will meet at detection resolution
-        # (224 -> 7x7 vs 384 -> 12x12). The load size and teacher size stay put, so every earlier epoch is
-        # identical to a run without it and the higher final resolution is the only changed variable.
+        # (224 -> 7x7 vs 384 -> 12x12). DINOv3 and EUPE teachers follow that size in the tail so their patch targets
+        # stay aligned with the student tokens.
         # ``hires_tail`` is read as a legacy alias so runs launched before the rename still resume.
         v = getattr(self.args, "high_res_final_epochs", None) or getattr(self.args, "hires_tail", None)
         self._high_res_imgsz, self._high_res_epochs = map(int, v.split(":")) if v else (None, None)
+        self._teacher_dynamic = {safe_key(n): TEACHER_REGISTRY[n].get("dynamic_imgsz", False) for n in self.teachers}
+        self._teacher_multiples = {safe_key(n): TEACHER_REGISTRY[n].get("imgsz_multiple", 1) for n in self.teachers}
+        self._load_imgsz = max(self._teacher_imgsz, self._high_res_imgsz or 0)
+        if self._high_res_imgsz:
+            for name, sk in zip(self.teachers, self._safe_keys):
+                if self._teacher_dynamic[sk] and self._high_res_imgsz % self._teacher_multiples[sk]:
+                    raise ValueError(
+                        f"{name} high-res teacher size must be divisible by {self._teacher_multiples[sk]}, "
+                        f"got {self._high_res_imgsz}"
+                    )
 
         # Register hooks here (not in runner): dist.py:57 only serializes self.args to DDP workers.
         from callbacks import beta2_override, grad_clip, muon_w, nfs_sync, paths, wd_schedule  # runner-local package
@@ -225,9 +241,20 @@ class ImageEncoderTrainer(ClassificationTrainer):
             )
 
         if RANK in (-1, 0):
+            teacher_tail = {
+                name: (
+                    self._high_res_imgsz if self._high_res_imgsz and self._teacher_dynamic[sk] else self._teacher_imgsz
+                )
+                for name, sk in zip(self.teachers, self._safe_keys)
+            }
             LOGGER.info(
                 f"ImageEncoderTrainer hooks: grad_clip={grad_clip_v} beta2={beta2_v} "
                 f"muon_w={muon_w_v} nfs_sync={nfs_sync_v} wd_end={wd_end_v}"
+            )
+            LOGGER.info(
+                f"ImageEncoderTrainer sizes: load={self._load_imgsz} student={self.args.imgsz}"
+                f" high_res_final_epochs={getattr(self.args, 'high_res_final_epochs', None)} "
+                f"teacher_tail={teacher_tail}"
             )
 
     def _setup_train(self):
@@ -381,9 +408,9 @@ class ImageEncoderTrainer(ClassificationTrainer):
         """Build shared transform at the load resolution with ImageNet normalization.
 
         Same augmented image goes to both teacher and student, resized to their respective resolutions
-        in preprocess_batch (EUPE Stage 2 / DUNE / AM-RADIO convention). Images load at the teacher resolution.
+        in preprocess_batch (EUPE Stage 2 / DUNE / AM-RADIO convention). Images load at the largest active resolution.
         """
-        sz = self._teacher_imgsz
+        sz = self._load_imgsz
         if mode == "train":
             return classify_augmentations_distill(
                 size=sz,
@@ -491,11 +518,11 @@ class ImageEncoderTrainer(ClassificationTrainer):
     def preprocess_batch(self, batch):
         """Move images to device, resize for student and teacher, run all teachers.
 
-        One augmented image loaded at the teacher resolution is resized to the student and teacher resolutions
+        One augmented image loaded at the largest active resolution is resized to the student and teacher resolutions
         via F.interpolate. Follows DUNE convention (dune/teachers/forward.py:30).
 
         Args:
-            batch (torch.Tensor): Images at the teacher resolution (B, 3, H, W).
+            batch (torch.Tensor): Images at the load resolution (B, 3, H, W).
 
         Returns:
             (dict): Batch with 'img', 'cls', per-teacher entries, and '_teacher_keys'.
@@ -504,16 +531,7 @@ class ImageEncoderTrainer(ClassificationTrainer):
         # Per-batch gate (not an on_train_epoch_start hook like close_mosaic): raising the final-epoch resolution
         # only swaps the interpolation target, no dataloader rebuild, so reading live self.epoch here also makes a
         # resume part-way through the final epochs re-enter the higher-resolution regime for free.
-        if self._high_res_imgsz and self.epoch >= self.epochs - self._high_res_epochs:
-            student_size = self._high_res_imgsz
-        else:
-            student_size = self.args.imgsz
-        student_imgs = (
-            torch.nn.functional.interpolate(imgs, size=student_size, mode="bilinear", antialias=True)
-            if student_size != self._teacher_imgsz
-            else imgs
-        )
-        teacher_imgs = imgs  # loaded at the teacher resolution, so no resize needed
+        student_imgs = resize_to(imgs, self._student_imgsz())
 
         result = {
             "img": student_imgs,
@@ -522,10 +540,40 @@ class ImageEncoderTrainer(ClassificationTrainer):
         }
 
         for sk in self._safe_keys:
-            out = self.teacher_models[sk].encode(teacher_imgs)
+            teacher_imgsz = self._teacher_imgsz_for(sk)
+            teacher_imgs = resize_to(imgs, teacher_imgsz)
+            out = encode_teacher_batch(
+                self.teacher_models[sk], teacher_imgs, self._teacher_chunk_for(sk, teacher_imgsz)
+            )
             result[sk] = {"cls": out.cls, "patches": out.patches}
 
         return result
+
+    def _student_imgsz(self):
+        """Return current student image size."""
+        return (
+            self._high_res_imgsz
+            if self._high_res_imgsz and self.epoch >= self.epochs - self._high_res_epochs
+            else self.args.imgsz
+        )
+
+    def _teacher_imgsz_for(self, sk):
+        """Return current teacher image size for a safe teacher key."""
+        return (
+            self._high_res_imgsz
+            if self._high_res_imgsz and self._teacher_dynamic[sk] and self.epoch >= self.epochs - self._high_res_epochs
+            else self._teacher_imgsz
+        )
+
+    def _teacher_chunk_for(self, sk, teacher_imgsz):
+        """Return teacher forward chunk size for the active teacher size."""
+        return 8 if teacher_imgsz > self._teacher_imgsz and self._teacher_dynamic[sk] else 0
+
+    def _sync_validator_sizes(self, validator):
+        """Set per-teacher size and chunk maps on the validator for the current epoch."""
+        sizes = {sk: self._teacher_imgsz_for(sk) for sk in self._safe_keys}
+        validator._teacher_imgsz_by_key = sizes
+        validator._teacher_chunk_by_key = {sk: self._teacher_chunk_for(sk, sizes[sk]) for sk in self._safe_keys}
 
     def get_validator(self):
         """Return ImageEncoderValidator for loss-only validation."""
@@ -553,11 +601,14 @@ class ImageEncoderTrainer(ClassificationTrainer):
             self.test_loader, self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
         validator.teacher_models = self.teacher_models
-        validator._teacher_imgsz = self._teacher_imgsz  # teacher runs at its native resolution
+        validator._teacher_imgsz = self._teacher_imgsz
+        self._sync_validator_sizes(validator)
         return validator
 
     def validate(self):
         """Run validation, then kNN eval if configured."""
+        self.validator.args.imgsz = self._student_imgsz()
+        self._sync_validator_sizes(self.validator)
         metrics, fitness = super().validate()
         if metrics is not None and "path" in self._knn_state:
             knn_top1 = self._knn_eval()

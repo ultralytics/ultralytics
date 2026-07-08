@@ -47,6 +47,33 @@ class TeacherOutput:
     patches: torch.Tensor
 
 
+def resize_to(img: torch.Tensor, size: int) -> torch.Tensor:
+    """Bilinear-resize a (B, C, H, W) image to a square ``size``, unchanged if already that size."""
+    if img.shape[-1] == size:
+        return img
+    return torch.nn.functional.interpolate(img, size=size, mode="bilinear", antialias=True)
+
+
+def encode_teacher_batch(teacher: TeacherModel, image: torch.Tensor, chunk: int = 0) -> TeacherOutput:
+    """Encode a teacher batch, optionally splitting it into smaller calls.
+
+    Args:
+        teacher (TeacherModel): Frozen teacher model.
+        image (torch.Tensor): Preprocessed image tensor (B, 3, H, W).
+        chunk (int): Images per teacher forward call. Non-positive values encode the full batch.
+
+    Returns:
+        (TeacherOutput): Concatenated CLS and patch features.
+    """
+    if chunk <= 0 or chunk >= image.shape[0]:
+        return teacher.encode(image)
+    outputs = [teacher.encode(x) for x in image.split(chunk)]
+    return TeacherOutput(
+        cls=None if outputs[0].cls is None else torch.cat([x.cls for x in outputs], 0),
+        patches=torch.cat([x.patches for x in outputs], 0),
+    )
+
+
 class TeacherModel(nn.Module):
     """Abstract base for frozen teacher models in encoder distillation.
 
@@ -164,6 +191,8 @@ class EUPETeacher(TeacherModel):
             "embed_dim": 768,
             "num_patches": 256,  # 16x16 grid at 256x256, patch_size=16
             "imgsz": 256,
+            "dynamic_imgsz": True,
+            "imgsz_multiple": 16,
             "token_types": ("cls", "patches"),
         },
         "vits16": {
@@ -173,6 +202,8 @@ class EUPETeacher(TeacherModel):
             "embed_dim": 384,
             "num_patches": 256,
             "imgsz": 256,
+            "dynamic_imgsz": True,
+            "imgsz_multiple": 16,
             "token_types": ("cls", "patches"),
         },
         "convnextb": {
@@ -182,6 +213,8 @@ class EUPETeacher(TeacherModel):
             "embed_dim": 1024,
             "num_patches": 64,  # 8x8 grid at 256x256 with 32x downsample
             "imgsz": 256,
+            "dynamic_imgsz": True,
+            "imgsz_multiple": 32,
             # ConvNeXt CLS is global avg pool (eupe/models/convnext.py:220: x_pool = x.mean([-2, -1]))
             "token_types": ("cls", "patches"),
         },
@@ -247,6 +280,8 @@ class DINOv3Teacher(TeacherModel):
             "num_patches": 196,  # 14x14 at 224x224, patch_size=16
             "imgsz": 224,
             "n_registers": 4,
+            "dynamic_imgsz": True,
+            "imgsz_multiple": 16,
             "token_types": ("cls", "patches"),
         },
         "vitl16": {
@@ -255,6 +290,8 @@ class DINOv3Teacher(TeacherModel):
             "num_patches": 196,
             "imgsz": 224,
             "n_registers": 4,
+            "dynamic_imgsz": True,
+            "imgsz_multiple": 16,
             "token_types": ("cls", "patches"),
         },
         "convnextb": {
@@ -263,6 +300,8 @@ class DINOv3Teacher(TeacherModel):
             "num_patches": 49,  # 7x7 at 224x224 with 32x downsample
             "imgsz": 224,
             "n_registers": 0,
+            "dynamic_imgsz": True,
+            "imgsz_multiple": 32,
             # CLS is token 0 in last_hidden_state (verified: shape [1, 50, 1024] = 1 CLS + 49 patches)
             "token_types": ("cls", "patches"),
         },
@@ -272,6 +311,8 @@ class DINOv3Teacher(TeacherModel):
             "num_patches": 196,
             "imgsz": 224,
             "n_registers": 4,
+            "dynamic_imgsz": True,
+            "imgsz_multiple": 16,
             "token_types": ("cls", "patches"),
         },
     }
@@ -634,13 +675,20 @@ class TorchScriptTeacher(TeacherModel):
 # Teacher registry built from per-class CONFIGS to avoid duplicating embed_dim/num_patches/token_types.
 # SAM3 has no CONFIGS dict (hardcoded ViT-L config), so it's added manually.
 TEACHER_REGISTRY = {}
-for _prefix, _cls in [("eupe", EUPETeacher), ("dinov3", DINOv3Teacher), ("siglip2", SigLIP2Teacher), ("moonvit", MoonViTTeacher)]:
+for _prefix, _cls in [
+    ("eupe", EUPETeacher),
+    ("dinov3", DINOv3Teacher),
+    ("siglip2", SigLIP2Teacher),
+    ("moonvit", MoonViTTeacher),
+]:
     for _variant, _cfg in _cls.CONFIGS.items():
         TEACHER_REGISTRY[f"{_prefix}:{_variant}"] = {
             "cls": _cls,
             "embed_dim": _cfg["embed_dim"],
             "num_patches": _cfg["num_patches"],
             "imgsz": _cfg["imgsz"],
+            "dynamic_imgsz": _cfg.get("dynamic_imgsz", False),
+            "imgsz_multiple": _cfg.get("imgsz_multiple", 1),
             "token_types": _cfg["token_types"],
         }
 TEACHER_REGISTRY["sam3:l"] = {
@@ -648,6 +696,8 @@ TEACHER_REGISTRY["sam3:l"] = {
     "embed_dim": 1024,
     "num_patches": 0,
     "imgsz": 1024,
+    "dynamic_imgsz": False,
+    "imgsz_multiple": 1,
     "token_types": ("patches",),
 }
 
@@ -666,9 +716,7 @@ def resolve_teacher_key(spec: str) -> str:
     return next((k for k in TEACHER_REGISTRY if k == spec or safe_key(k) == spec), spec)
 
 
-def build_teacher_model(
-    variant: str, device: torch.device = None, normalize_input: bool = False
-) -> TeacherModel:
+def build_teacher_model(variant: str, device: torch.device = None, normalize_input: bool = False) -> TeacherModel:
     """Build a frozen teacher model for encoder distillation.
 
     Args:
@@ -753,5 +801,7 @@ class TeacherDetBackbone(nn.Module):
         gh, gw = h // self.patch_stride, w // self.patch_stride
         # Recover the real (gh, gw) grid instead of assuming a square sqrt(N): detection val uses rect=True (H!=W), so a
         # square-grid assumption would raise on reshape or silently scramble the spatial map and invalidate the run.
-        assert gh * gw == n, f"teacher grid {gh}x{gw}={gh * gw} != {n} tokens at input {h}x{w}, stride {self.patch_stride}"
+        assert gh * gw == n, (
+            f"teacher grid {gh}x{gw}={gh * gw} != {n} tokens at input {h}x{w}, stride {self.patch_stride}"
+        )
         return patches.transpose(1, 2).reshape(b, d, gh, gw)

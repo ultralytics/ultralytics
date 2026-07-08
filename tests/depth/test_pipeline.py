@@ -65,25 +65,39 @@ def test_depth_dataset_load_resize_does_not_blend_sparse_gt(tmp_path):
     assert blended == 0, f"{blended} spurious blended depth pixels from interpolation at load"
 
 
-def _transform_names(augment):
+def _build_transforms(augment, **overrides):
     ds = DepthDataset.__new__(DepthDataset)
     ds.augment = augment
     ds.imgsz = 384
-    return [type(t).__name__ for t in ds.build_transforms().transforms]
+    hyp = get_cfg(DEFAULT_CFG)
+    for k, v in overrides.items():
+        setattr(hyp, k, v)
+    return ds.build_transforms(hyp).transforms
 
 
 def test_depth_val_transforms_have_no_augmentation():
     """Validation (augment=False) must be deterministic: no random warp, flip, or jitter."""
-    names = _transform_names(augment=False)
+    names = [type(t).__name__ for t in _build_transforms(augment=False)]
     assert "RandomPerspective" not in names
-    assert "DepthRandomFlip" not in names
-    assert "DepthColorJitter" not in names
+    assert "RandomFlip" not in names
+    assert "RandomHSV" not in names
     assert "DepthFormat" in names  # still formats img/depth to tensors
 
 
 def test_depth_train_transforms_include_augmentation():
     """Training (augment=True) keeps the augmentation pipeline (perspective-safe affine warp)."""
-    names = _transform_names(augment=True)
+    names = [type(t).__name__ for t in _build_transforms(augment=True)]
     assert "RandomPerspective" in names
-    assert "DepthRandomFlip" in names
+    assert "RandomFlip" in names
+    assert "RandomHSV" in names
     assert "DepthFormat" in names
+
+
+def test_depth_train_transforms_read_cfg_args():
+    """The augmentation pipeline is driven by the cfg args, not hardcoded values."""
+    warp, vflip, hflip, hsv = _build_transforms(
+        augment=True, degrees=33.0, translate=0.25, scale=0.75, shear=4.5, flipud=0.1, fliplr=0.9, hsv_h=0.2
+    )[:4]
+    assert warp.degrees == 33.0 and warp.translate == 0.25 and warp.scale == 0.75 and warp.shear == 4.5
+    assert vflip.p == 0.1 and hflip.p == 0.9
+    assert hsv.hgain == 0.2

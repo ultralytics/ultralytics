@@ -24,11 +24,11 @@ from ultralytics.utils.torch_utils import TORCHVISION_0_18
 
 from .augment import (
     Compose,
-    DepthColorJitter,
     DepthFormat,
-    DepthRandomFlip,
     Format,
     LetterBox,
+    RandomFlip,
+    RandomHSV,
     RandomLoadText,
     RandomPerspective,
     SemanticFormat,
@@ -534,29 +534,33 @@ class DepthDataset(YOLODataset):
         return label
 
     def build_transforms(self, hyp=None):
-        """Build transforms for depth estimation.
+        """Build transforms for depth estimation from the standard augmentation hyperparameters.
 
-        Training applies a safe affine-only RandomPerspective (rotation/translation/scale/shear with
-        ``perspective=0``), horizontal flip, and color jitter. Validation (augment=False) is deterministic
-        — only LetterBox + DepthFormat, no random transforms.
+        Training reads the cfg augmentation args: ``degrees``/``translate``/``scale``/``shear``/
+        ``perspective`` (geometric warp, applied identically to the paired depth map),
+        ``flipud``/``fliplr`` (flips, also applied to the depth map), and ``hsv_h``/``hsv_s``/``hsv_v``
+        (image-only color jitter). Mixing augmentations (mosaic/mixup/cutmix/copy_paste) do not apply
+        to dense metric depth and are ignored. Validation (augment=False) is deterministic — only
+        LetterBox + DepthFormat, no random transforms.
         """
-        letterbox = LetterBox(new_shape=(self.imgsz, self.imgsz), auto=False, scale_fill=True)
         if self.augment:
             return Compose(
                 [
                     RandomPerspective(
-                        degrees=8.0,
-                        translate=0.08,
-                        scale=0.15,
-                        shear=2.0,
-                        perspective=0.0,
+                        degrees=hyp.degrees,
+                        translate=hyp.translate,
+                        scale=hyp.scale,
+                        shear=hyp.shear,
+                        perspective=hyp.perspective,
                         size=(self.imgsz, self.imgsz),
                     ),
-                    DepthRandomFlip(p=0.5),
-                    DepthColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.05),
+                    RandomFlip(direction="vertical", p=hyp.flipud),
+                    RandomFlip(direction="horizontal", p=hyp.fliplr),
+                    RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v),
                     DepthFormat(),
                 ]
             )
+        letterbox = LetterBox(new_shape=(self.imgsz, self.imgsz), auto=False, scale_fill=True)
         return Compose([letterbox, DepthFormat()])
 
     @staticmethod

@@ -1635,6 +1635,25 @@ class RandomFlip(BaseTransform):
                 labels["semantic_mask"] = np.ascontiguousarray(np.fliplr(labels["semantic_mask"]))
         return labels
 
+    def apply_depth(self, labels: dict[str, Any], params: dict[str, Any]) -> dict[str, Any]:
+        """Apply flip to the paired metric depth map.
+
+        Args:
+            labels (dict[str, Any]): Dictionary containing 'depth'.
+            params (dict): Parameters from get_params.
+
+        Returns:
+            (dict): Updated labels with flipped (or unchanged) depth map.
+        """
+        if labels.get("depth") is None:
+            return labels
+        if params["flip"]:
+            if params["direction"] == "vertical":
+                labels["depth"] = np.ascontiguousarray(np.flipud(labels["depth"]))
+            elif params["direction"] == "horizontal":
+                labels["depth"] = np.ascontiguousarray(np.fliplr(labels["depth"]))
+        return labels
+
 
 class LetterBox(BaseTransform):
     """Resize image and padding for detection, instance segmentation, pose.
@@ -2960,69 +2979,6 @@ def classify_augmentations(
     ]
 
     return T.Compose(primary_tfl + secondary_tfl + final_tfl)
-
-
-class DepthRandomFlip:
-    """Random horizontal flip for depth estimation (flips both image and depth)."""
-
-    def __init__(self, p=0.5):
-        self.p = p
-
-    def __call__(self, labels):
-        if random.random() < self.p:
-            img = labels.get("img")
-            depth = labels.get("depth")
-            if img is not None:
-                labels["img"] = np.ascontiguousarray(np.fliplr(img))
-            if depth is not None:
-                labels["depth"] = np.ascontiguousarray(np.fliplr(depth))
-        return labels
-
-
-class DepthColorJitter:
-    """Random color jitter for depth estimation (modifies image only, depth unchanged).
-
-    Applies random brightness, contrast, saturation adjustments in BGR space.
-    """
-
-    def __init__(self, brightness=0.3, contrast=0.3, saturation=0.3, hue=0.05):
-        self.brightness = brightness
-        self.contrast = contrast
-        self.saturation = saturation
-        self.hue = hue
-
-    def __call__(self, labels):
-        img = labels.get("img")
-        if img is None:
-            return labels
-
-        # Random brightness
-        if self.brightness > 0 and random.random() < 0.5:
-            factor = 1.0 + random.uniform(-self.brightness, self.brightness)
-            img = np.clip(img.astype(np.float32) * factor, 0, 255).astype(np.uint8)
-
-        # Random contrast
-        if self.contrast > 0 and random.random() < 0.5:
-            factor = 1.0 + random.uniform(-self.contrast, self.contrast)
-            mean = img.mean()
-            img = np.clip((img.astype(np.float32) - mean) * factor + mean, 0, 255).astype(np.uint8)
-
-        # Random saturation (convert to HSV, adjust S channel)
-        if self.saturation > 0 and random.random() < 0.5:
-            hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV).astype(np.float32)
-            factor = 1.0 + random.uniform(-self.saturation, self.saturation)
-            hsv[:, :, 1] = np.clip(hsv[:, :, 1] * factor, 0, 255)
-            img = cv2.cvtColor(hsv.astype(np.uint8), cv2.COLOR_HSV2BGR)
-
-        # Random hue shift
-        if self.hue > 0 and random.random() < 0.5:
-            hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV).astype(np.float32)
-            shift = random.uniform(-self.hue, self.hue) * 180
-            hsv[:, :, 0] = (hsv[:, :, 0] + shift) % 180
-            img = cv2.cvtColor(hsv.astype(np.uint8), cv2.COLOR_HSV2BGR)
-
-        labels["img"] = img
-        return labels
 
 
 class DepthFormat:

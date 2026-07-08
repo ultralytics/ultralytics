@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import ast
+import math
 import os
 import shutil
 import subprocess
@@ -198,7 +199,6 @@ CFG_FLOAT_KEYS = frozenset(
         "warmup_epochs",
         "box",
         "cls",
-        "cls_pw",
         "dfl",
         "dis",
         "degrees",
@@ -213,6 +213,7 @@ CFG_FRACTION_KEYS = frozenset(
         "dropout",
         "lr0",
         "lrf",
+        "cls_pw",
         "momentum",
         "weight_decay",
         "warmup_momentum",
@@ -285,6 +286,23 @@ CFG_BOOL_KEYS = frozenset(
         "end2end",
         "cls_remap",
     }
+)
+CFG_OPTION_KEYS = {
+    "auto_augment": {"randaugment", "autoaugment", "augmix"},
+    "copy_paste_mode": {"flip", "mixup"},
+    "optimizer": {"SGD", "MuSGD", "Adam", "Adamax", "AdamW", "NAdam", "RAdam", "RMSProp", "auto"},
+    "split": {"train", "val", "test"},
+}
+CFG_CACHE_VALUES = {"ram", "disk"}
+CFG_COMPILE_VALUES = {"default", "reduce-overhead", "max-autotune-no-cudagraphs"}
+CFG_NON_NEGATIVE_KEYS = frozenset({"degrees", "dis", "seed", "shear"})
+CFG_POSITIVE_KEYS = frozenset({"mask_ratio", "max_det", "nbs", "vid_stride"})
+CFG_TYPED_KEYS = CFG_FLOAT_KEYS | CFG_FRACTION_KEYS | CFG_INT_KEYS | CFG_BOOL_KEYS | {"scale"}
+CFG_OPTIONAL_KEYS = frozenset({"auto_augment"})
+CFG_REQUIRED_KEYS = frozenset(
+    k
+    for k in CFG_TYPED_KEYS | CFG_OPTION_KEYS.keys()
+    if k not in CFG_OPTIONAL_KEYS and DEFAULT_CFG_DICT.get(k) is not None
 )
 
 
@@ -393,70 +411,93 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
 
     Notes:
         - The function modifies the input dictionary in-place.
-        - None values are ignored as they may be from optional arguments.
+        - None values are accepted only for optional arguments.
         - Fraction keys are checked to be within the range [0.0, 1.0].
     """
     for k, v in cfg.items():
-        if v is not None:  # None values may be from optional args
-            if k in CFG_FLOAT_KEYS and not isinstance(v, FLOAT_OR_INT):
+        if v is None:
+            if k in CFG_REQUIRED_KEYS and hard:
+                raise TypeError(f"'{k}=None' is invalid. '{k}' must not be None.")
+            continue
+        if k in CFG_FLOAT_KEYS:
+            if not isinstance(v, FLOAT_OR_INT):
                 if hard:
                     raise TypeError(
                         f"'{k}={v}' is of invalid type {type(v).__name__}. "
                         f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')"
                     )
                 cfg[k] = float(v)
-            elif k == "scale":
-                if isinstance(v, (list, tuple)):
-                    if len(v) != 2 or not all(isinstance(x, (int, float)) for x in v):
-                        if hard:
-                            raise TypeError(
-                                f"'{k}={v}' is of invalid type {type(v).__name__}. "
-                                f"Valid '{k}' types are int, float, or a tuple/list of two floats (i.e. '{k}=(0.5, 2.0)')"
-                            )
-                        continue
+            if not math.isfinite(float(cfg[k])):
+                raise ValueError(f"'{k}={cfg[k]}' is invalid. '{k}' must be a finite number.")
+        elif k == "scale":
+            if isinstance(v, (list, tuple)):
+                if len(v) != 2 or not all(isinstance(x, (int, float)) for x in v):
+                    if hard:
+                        raise TypeError(
+                            f"'{k}={v}' is of invalid type {type(v).__name__}. "
+                            f"Valid '{k}' types are int, float, or a tuple/list of two floats (i.e. '{k}=(0.5, 2.0)')"
+                        )
                     continue
-                elif not isinstance(v, FLOAT_OR_INT):
-                    if hard:
-                        raise TypeError(
-                            f"'{k}={v}' is of invalid type {type(v).__name__}. "
-                            f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')"
-                        )
-                    cfg[k] = v = float(v)
-                if not (0.0 <= v <= 1.0):
-                    raise ValueError(f"'{k}={v}' is an invalid value. Valid '{k}' values are between 0.0 and 1.0.")
-            elif k in CFG_FRACTION_KEYS:
-                if not isinstance(v, FLOAT_OR_INT):
-                    if hard:
-                        raise TypeError(
-                            f"'{k}={v}' is of invalid type {type(v).__name__}. "
-                            f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')"
-                        )
-                    cfg[k] = v = float(v)
-                if not (0.0 <= v <= 1.0):
-                    raise ValueError(f"'{k}={v}' is an invalid value. Valid '{k}' values are between 0.0 and 1.0.")
-            elif k in CFG_INT_KEYS and not isinstance(v, int):
-                if hard:
-                    raise TypeError(
-                        f"'{k}={v}' is of invalid type {type(v).__name__}. '{k}' must be an int (i.e. '{k}=8')"
-                    )
-                cfg[k] = int(v)
-            elif k in CFG_BOOL_KEYS and not isinstance(v, bool):
+                if not all(math.isfinite(float(x)) for x in v):
+                    raise ValueError(f"'{k}={v}' is invalid. '{k}' values must be finite numbers.")
+                continue
+            elif not isinstance(v, FLOAT_OR_INT):
                 if hard:
                     raise TypeError(
                         f"'{k}={v}' is of invalid type {type(v).__name__}. "
-                        f"'{k}' must be a bool (i.e. '{k}=True' or '{k}=False')"
+                        f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')"
                     )
-                cfg[k] = bool(v)
-            elif k == "quantize":  # canonicalize 8/16/32 or w-notation to a scheme (unset stays None for FP32)
-                scheme = QUANTIZE_ALIASES.get(str(v).lower())
-                if scheme is None:
-                    if hard:
-                        raise ValueError(
-                            f"'{k}={v}' is invalid. Valid '{k}' values are {QUANTIZE_VALID_VALUES}. "
-                            f"See {QUANTIZE_DOCS_URL}"
-                        )
-                else:
-                    cfg[k] = scheme
+                cfg[k] = v = float(v)
+            if not math.isfinite(float(v)):
+                raise ValueError(f"'{k}={v}' is invalid. '{k}' must be a finite number.")
+            if not (0.0 <= v <= 1.0):
+                raise ValueError(f"'{k}={v}' is an invalid value. Valid '{k}' values are between 0.0 and 1.0.")
+        elif k in CFG_FRACTION_KEYS:
+            if not isinstance(v, FLOAT_OR_INT):
+                if hard:
+                    raise TypeError(
+                        f"'{k}={v}' is of invalid type {type(v).__name__}. "
+                        f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')"
+                    )
+                cfg[k] = v = float(v)
+            if not (0.0 <= v <= 1.0):
+                raise ValueError(f"'{k}={v}' is an invalid value. Valid '{k}' values are between 0.0 and 1.0.")
+        elif k in CFG_INT_KEYS and not isinstance(v, int):
+            if hard:
+                raise TypeError(f"'{k}={v}' is of invalid type {type(v).__name__}. '{k}' must be an int (i.e. '{k}=8')")
+            cfg[k] = int(v)
+        elif k in CFG_BOOL_KEYS and not isinstance(v, bool):
+            if hard:
+                raise TypeError(
+                    f"'{k}={v}' is of invalid type {type(v).__name__}. "
+                    f"'{k}' must be a bool (i.e. '{k}=True' or '{k}=False')"
+                )
+            cfg[k] = bool(v)
+        elif k == "quantize":  # canonicalize 8/16/32 or w-notation to a scheme (unset stays None for FP32)
+            scheme = QUANTIZE_ALIASES.get(str(v).lower())
+            if scheme is None:
+                if hard:
+                    raise ValueError(
+                        f"'{k}={v}' is invalid. Valid '{k}' values are {QUANTIZE_VALID_VALUES}. See {QUANTIZE_DOCS_URL}"
+                    )
+            else:
+                cfg[k] = scheme
+        elif k == "cache":
+            if not isinstance(v, bool) and (not isinstance(v, str) or v.lower() not in CFG_CACHE_VALUES):
+                raise TypeError(f"'{k}={v}' is invalid. '{k}' must be a bool or one of {sorted(CFG_CACHE_VALUES)}.")
+        elif k == "compile":
+            if not isinstance(v, bool) and (not isinstance(v, str) or v not in CFG_COMPILE_VALUES):
+                raise TypeError(f"'{k}={v}' is invalid. '{k}' must be a bool or one of {sorted(CFG_COMPILE_VALUES)}.")
+        elif k in CFG_OPTION_KEYS:
+            options = CFG_OPTION_KEYS[k]
+            value = v if k != "optimizer" or not isinstance(v, str) else v.lower()
+            valid = {x.lower() for x in options} if k == "optimizer" else options
+            if not isinstance(v, str) or value not in valid:
+                raise ValueError(f"'{k}={v}' is invalid. Valid '{k}' values are {sorted(options)}.")
+        if k in CFG_NON_NEGATIVE_KEYS and cfg[k] < 0:
+            raise ValueError(f"'{k}={cfg[k]}' is invalid. '{k}' must be greater than or equal to 0.")
+        if k in CFG_POSITIVE_KEYS and cfg[k] <= 0:
+            raise ValueError(f"'{k}={cfg[k]}' is invalid. '{k}' must be greater than 0.")
 
 
 def get_save_dir(args: SimpleNamespace, name: str | None = None) -> Path:

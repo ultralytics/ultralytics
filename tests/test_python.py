@@ -19,6 +19,7 @@ from PIL import Image
 import ultralytics.data.build as data_build
 from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
 from ultralytics import RTDETR, YOLO
+from ultralytics.cfg import get_cfg
 from ultralytics.data.build import build_dataloader, load_inference_source
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.utils import (
@@ -79,6 +80,107 @@ def test_dataloader_empty_dataset_uses_dataloader_validation():
     """Test empty datasets fail through DataLoader validation instead of worker-cap math."""
     with pytest.raises(ValueError, match="positive integer"):
         build_dataloader([], batch=4, workers=2)
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"box": None},
+        {"close_mosaic": None},
+        {"cls_pw": None},
+        {"copy_paste_mode": None},
+        {"degrees": None},
+        {"fraction": None},
+        {"hsv_s": None},
+        {"iou": None},
+        {"lrf": None},
+        {"max_det": None},
+        {"mixup": None},
+        {"mosaic": None},
+        {"multi_scale": None},
+        {"nbs": None},
+        {"optimizer": None},
+        {"save_json": None},
+        {"save_period": None},
+        {"seed": None},
+        {"split": None},
+    ],
+)
+def test_cfg_rejects_required_none(overrides):
+    """Required config values should fail before None reaches runtime code."""
+    with pytest.raises(TypeError, match=next(iter(overrides))):
+        get_cfg(overrides=overrides)
+
+
+@pytest.mark.parametrize(
+    "key", ["auto_augment", "compile", "conf", "end2end", "line_width", "quantize", "time", "workspace"]
+)
+def test_cfg_accepts_optional_none(key):
+    """Optional config values keep accepting None."""
+    assert getattr(get_cfg(overrides={key: None}), key) is None
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"auto_augment": "invalid"},
+        {"cache": "gpu"},
+        {"cache": 1.5},
+        {"compile": {}},
+        {"compile": "max-autotune"},
+        {"copy_paste_mode": {}},
+        {"optimizer": [1, 2]},
+        {"split": {}},
+        {"split": 0.5},
+        {"split": "trainval"},
+    ],
+)
+def test_cfg_rejects_invalid_option_values(overrides):
+    """String-like config options should validate at the cfg layer."""
+    with pytest.raises((TypeError, ValueError), match=next(iter(overrides))):
+        get_cfg(overrides=overrides)
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"cls_pw": -5},
+        {"cls_pw": 10},
+        {"dis": -5},
+        {"dis": float("inf")},
+        {"mask_ratio": 0},
+        {"max_det": -1},
+        {"max_det": 0},
+        {"nbs": 0},
+        {"seed": -1},
+        {"shear": -5},
+        {"vid_stride": -1},
+    ],
+)
+def test_cfg_rejects_invalid_numeric_ranges(overrides):
+    """Numerically bounded config values should fail before runtime use."""
+    with pytest.raises(ValueError, match=next(iter(overrides))):
+        get_cfg(overrides=overrides)
+
+
+def test_cfg_accepts_valid_option_values():
+    """Valid option values should continue passing through config validation."""
+    args = get_cfg(
+        overrides={
+            "auto_augment": "augmix",
+            "cache": "ram",
+            "compile": "reduce-overhead",
+            "copy_paste_mode": "mixup",
+            "optimizer": "SGD",
+            "split": "test",
+        }
+    )
+    assert args.auto_augment == "augmix"
+    assert args.cache == "ram"
+    assert args.compile == "reduce-overhead"
+    assert args.copy_paste_mode == "mixup"
+    assert args.optimizer == "SGD"
+    assert args.split == "test"
 
 
 def skip_rpi_semantic():

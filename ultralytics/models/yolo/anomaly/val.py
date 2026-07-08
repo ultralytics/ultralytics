@@ -95,7 +95,7 @@ class YOLOAnomalyValidator(DetectionValidator):
     def _add_title(img: np.ndarray, text: str, bar_h: int = 32) -> np.ndarray:
         """Stack a left-aligned title bar above a BGR image."""
         bar = np.full((bar_h, img.shape[1], 3), 30, np.uint8)
-        (tw, th), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 0.55, 1)
+        (_, th), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 0.55, 1)
         cv2.putText(
             bar, text, (8, (bar_h + th) // 2), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255), 1, cv2.LINE_AA
         )
@@ -152,13 +152,12 @@ class YOLOAnomalyValidator(DetectionValidator):
     def plot_predictions(
         self, batch: dict[str, any], preds: list[dict[str, torch.Tensor]], ni: int, max_det: int | None = None
     ) -> None:
-        """Plot a 1x5 anomaly comparison grid for the first few validation batches.
+        """Plot a 1x4 anomaly comparison grid for the first few validation batches.
 
         The grid contains:
           - none-prior predictions + GT boxes
           - original image with the heatmap overlay
-          - heatmap-prior predictions + GT boxes (e2e=False)
-          - heatmap-prior predictions + GT boxes (e2e=True)
+          - heatmap-prior predictions + GT boxes (reuses the provided ``preds``)
           - real-mask-as-prior predictions + GT boxes
         """
         if not preds:
@@ -175,13 +174,13 @@ class YOLOAnomalyValidator(DetectionValidator):
         device = imgs.device
 
         # -- run the variants ---------------------------------------------------
-        # 1) default heatmap-prior (e2e controlled by current head state)
-        raw_default = self.model(imgs, augment=False)
-        preds_default = self.postprocess(raw_default)
+        # Reuse the provided preds as the heatmap-prior boxes; run one forward pass
+        # to grab the matching heatmap for the overlay panel.
+        raw_heatmap = self.model(imgs, augment=False)
         # AnomalyDetect returns [(detections, heatmap), raw_preds]
-        heatmaps = raw_default[0][1] if isinstance(raw_default, (list, tuple)) and len(raw_default) else None
+        heatmaps = raw_heatmap[0][1] if isinstance(raw_heatmap, (list, tuple)) and len(raw_heatmap) else None
 
-        # 2) none-prior: disable the memory bank temporarily
+        # 1) none-prior: disable the memory bank temporarily
         mb = getattr(self.v2_model, "memory_bank", None)
         saved_building = getattr(mb, "building", None)
         if mb is not None:
@@ -193,16 +192,7 @@ class YOLOAnomalyValidator(DetectionValidator):
             if mb is not None and saved_building is not None:
                 mb.building = saved_building
 
-        # 3) heatmap-prior with e2e=True
-        orig_e2e = head.end2end
-        head.end2end = True
-        try:
-            raw_e2e = self.model(imgs, augment=False)
-            preds_e2e = self.postprocess(raw_e2e)
-        finally:
-            head.end2end = orig_e2e
-
-        # 4) real-mask-as-prior
+        # 2) real-mask-as-prior
         prior_masks = []
         for i, path in enumerate(batch["im_file"]):
             m = self._render_gt_mask(path, tuple(batch["ori_shape"][i]), mask_size)
@@ -231,8 +221,7 @@ class YOLOAnomalyValidator(DetectionValidator):
             panels = [
                 self._draw_panel(img, preds_none[i], gt_xyxy, "none prior + GT"),
                 self._draw_heatmap_panel(img, hmap, "heatmap"),
-                self._draw_panel(img, preds_default[i], gt_xyxy, "heatmap prior e2e=False + GT"),
-                self._draw_panel(img, preds_e2e[i], gt_xyxy, "heatmap prior e2e=True + GT"),
+                self._draw_panel(img, preds[i], gt_xyxy, "heatmap prior + GT"),
                 self._draw_panel(img, preds_mask[i], gt_xyxy, "mask prior + GT"),
             ]
             grid = self._hstack(panels)

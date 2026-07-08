@@ -624,9 +624,11 @@ class Model(torch.nn.Module):
         """Fit scale-only depth calibration on a small labeled set (depth task only).
 
         Runs a validation pass to fit the global log-affine ``d' = exp(a·log d + b)`` against
-        ground-truth depth, then writes ``(a, b)`` into the head's ``cal_a``/``cal_b`` buffers.
-        No gradient training and the decoder weights are untouched, so it cannot degrade the
-        relative depth structure. Call ``model.save(...)`` afterwards to persist the calibration.
+        ground-truth depth using the same "calibrate only if it helps" selective policy as
+        auto-calibration (identity / scale-only chosen by held-out δ1), then writes ``(a, b)`` into
+        the head's ``cal_a``/``cal_b`` buffers. No gradient training and the decoder weights are
+        untouched, so it cannot degrade the relative depth structure. Call ``model.save(...)``
+        afterwards to persist the calibration.
 
         Args:
             data (str, optional): Dataset YAML providing a labeled split to calibrate against.

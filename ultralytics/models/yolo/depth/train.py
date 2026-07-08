@@ -92,8 +92,6 @@ class DepthTrainer(yolo.detect.DetectionTrainer):
         which has no identity". Instead, sample GT depth maps from the training set and plot a
         histogram of valid (``> 0``) depth values, annotated with basic statistics.
         """
-        from pathlib import Path
-
         import matplotlib.pyplot as plt
         import numpy as np
 
@@ -109,16 +107,9 @@ class DepthTrainer(yolo.detect.DetectionTrainer):
         per_map_cap = max(1, 1_000_000 // sample_size)  # bound total memory to ~1M values
         values = []
         for idx in indices:
-            if dataset._depth_stack is not None:
-                d = np.asarray(dataset._depth_stack[idx], dtype=np.float32)
-            else:
-                df = dataset._depth_path_for(dataset.im_files[idx])
-                if not Path(df).exists():
-                    continue
-                try:
-                    d = np.load(df).astype(np.float32)
-                except Exception:
-                    continue
+            d = dataset._load_depth(idx)  # shared loader sanitizes non-finite GT to 0
+            if d is None:
+                continue
             v = d[d > 0].ravel()
             if v.size == 0:
                 continue

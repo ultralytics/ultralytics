@@ -508,21 +508,31 @@ class DepthDataset(YOLODataset):
         mode = "RAM" if load_to_ram else "mmap (paged on demand)"
         LOGGER.info(f"{self.prefix}depth cache ready: {cache_path.name} ({stack.nbytes / 1e9:.2f} GB, {mode})")
 
+    def _load_depth(self, index):
+        """Return the native-resolution depth map for an image (non-finite -> 0 = invalid), or None if missing.
+
+        Sole owner of depth-map loading + sanitization, shared by get_image_and_label (GT for
+        loss/metrics/calibration) and DepthTrainer.plot_training_labels (histogram), so non-finite
+        (+inf/NaN for sky/invalid in some .npy) handling lives in exactly one place.
+        """
+        if self._depth_stack is not None:
+            # np.asarray copies the (ram/mmap) slice into a contiguous owned array so downstream
+            # augmentations don't mutate the cache and don't pin mmap pages.
+            depth = np.asarray(self._depth_stack[index], dtype=np.float32)
+        else:
+            depth_file = self._depth_path_for(self.im_files[index])
+            if not Path(depth_file).exists():
+                return None
+            depth = np.load(depth_file).astype(np.float32)
+        return np.nan_to_num(depth, nan=0.0, posinf=0.0, neginf=0.0)
+
     def get_image_and_label(self, index):
         """Load image, label, and depth map for the given index."""
         label = super().get_image_and_label(index)
         h, w = label["resized_shape"]
-        if self._depth_stack is not None:
-            # ndarray slice (cache='ram') or memmap slice (cache='disk').
-            # np.asarray copies the slice into a contiguous owned array so downstream
-            # augmentations don't mutate the cache and don't pin mmap pages.
-            depth = np.asarray(self._depth_stack[index], dtype=np.float32)
-        else:
-            depth_file = self._depth_path_for(self.labels[index]["im_file"])
-            if Path(depth_file).exists():
-                depth = np.load(depth_file).astype(np.float32)
-            else:
-                depth = np.zeros((h, w), dtype=np.float32)
+        depth = self._load_depth(index)
+        if depth is None:
+            depth = np.zeros((h, w), dtype=np.float32)
         if depth.shape[:2] != (h, w):
             # Nearest, not bilinear: sparse (e.g. LiDAR) GT must not blend valid depth with the
             # zero/invalid background — bilinear creates near-zero "valid" pixels that corrupt

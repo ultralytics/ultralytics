@@ -58,6 +58,7 @@ def test_depth_dataset_load_resize_does_not_blend_sparse_gt(tmp_path):
 
     ds = DepthDataset.__new__(DepthDataset)  # bypass __init__
     ds._depth_stack = None
+    ds.im_files = ["x.png"]
     ds.labels = [{"im_file": "x.png"}]
     ds._depth_path_for = lambda f: str(npy)
 

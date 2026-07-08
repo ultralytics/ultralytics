@@ -6,10 +6,11 @@ from __future__ import annotations
 import cv2
 import numpy as np
 import torch
+import torch.distributed as dist
 import torch.nn.functional as F
 
 from ultralytics.models.yolo.detect import DetectionValidator
-from ultralytics.utils import LOGGER
+from ultralytics.utils import LOGGER, RANK
 from ultralytics.utils.metrics import DepthMetrics
 from ultralytics.utils.plotting import colorize_depth
 
@@ -24,8 +25,9 @@ class DepthValidator(DetectionValidator):
         """Initialize DepthValidator."""
         super().__init__(dataloader, save_dir, args, _callbacks)
         self.args.task = "depth"
-        # Scale-only calibration: when enabled (by Model.calibrate), collect (log pred, log gt)
-        # pairs during the val pass and fit the global log-affine in get_stats().
+        # Scale-only calibration: when enabled (by Model.calibrate), collect per-batch (log pred,
+        # log gt) arrays during the val pass and fit the log-affine in get_stats() via the same
+        # "calibrate only if it helps" selective policy used by auto-calibration.
         self.calibrating = False
 
     def init_metrics(self, model):
@@ -86,45 +88,67 @@ class DepthValidator(DetectionValidator):
         self.metrics.update_stats(pred_depth, gt_depth)
 
         if self.calibrating and self._cal_pts < 500_000:
-            valid = (gt_depth > 1e-3) & (pred_depth > 1e-3) & torch.isfinite(pred_depth)
-            if valid.any():
-                lp = torch.log(pred_depth[valid]).flatten().cpu().numpy()
-                lg = torch.log(gt_depth[valid]).flatten().cpu().numpy()
-                if lp.size > 50_000:  # subsample per batch — calibration is only a 2-parameter fit
-                    idx = np.random.default_rng(self._cal_pts).choice(lp.size, 50_000, replace=False)
+            # One (log pred, log gt) pair per image so select_calibration_cv folds by image (no
+            # pixel leakage) and a batch=N run yields N calibration samples, not a single pair.
+            for pi, gi in zip(pred_depth, gt_depth):
+                valid = (gi > 1e-3) & (pi > 1e-3) & torch.isfinite(pi)
+                if not valid.any():
+                    continue
+                lp = torch.log(pi[valid]).cpu().numpy()
+                lg = torch.log(gi[valid]).cpu().numpy()
+                if lp.size > 20_000:  # subsample per image — calibration is only a 2-parameter fit
+                    idx = np.random.default_rng(self._cal_pts).choice(lp.size, 20_000, replace=False)
                     lp, lg = lp[idx], lg[idx]
                 self._cal_logp.append(lp)
                 self._cal_logg.append(lg)
                 self._cal_pts += lp.size
+                if self._cal_pts >= 500_000:
+                    break
 
     def get_stats(self):
         """Finalize and return the metrics dict.
 
-        No cross-rank reduction happens here: DDP training validates on rank 0 alone, so a
-        collective would deadlock waiting for ranks that never enter validation.
+        Cross-rank metric reduction is handled by gather_stats() (called before this on all ranks);
+        this runs on rank 0 with the already-summed accumulators.
 
-        If calibration was enabled, fit the global log-affine ``(a, b)`` from the collected pairs.
+        If calibration was enabled, choose ``(a, b)`` via the "calibrate only if it helps" policy.
         """
         self.metrics.process()
-        if self.calibrating and self._cal_logp:
-            from .calibrate import lstsq_affine
+        if self.calibrating and len(self._cal_logp) >= 2:
+            from .calibrate import select_calibration_cv
 
-            self.calib = lstsq_affine(
-                np.concatenate(self._cal_logp),
-                np.concatenate(self._cal_logg),
-                dist_power=self.args.cal_dist_pw,
+            # Reuse auto-calibration's "only if it helps" CV policy so an unhelpful fit is rejected;
+            # each collected pair is one image, so held-out folds have no pixel leakage.
+            res = select_calibration_cv(
+                list(zip(self._cal_logp, self._cal_logg)), dist_power=self.args.cal_dist_pw, margin=0.002
             )
-            LOGGER.info(f"Depth calibration fit on {self._cal_pts} pixels: a={self.calib[0]:.4f} b={self.calib[1]:.4f}")
+            self.calib = (res["a"], res["b"])
+            LOGGER.info(
+                f"Depth calibration selected '{res['name']}' on {self._cal_pts} pixels: "
+                f"a={res['a']:.4f} b={res['b']:.4f}"
+            )
         return self.metrics.results_dict
 
     def gather_stats(self) -> None:
-        """No-op DDP gather for depth validation.
+        """Sum depth metric accumulators across DDP ranks onto rank 0.
 
-        Validation runs on rank 0 only over the full val set, so the accumulators are already
-        complete. DetectionValidator.gather_stats() accesses self.metrics.stats and self.metrics.box
-        which do not exist on DepthMetrics, so we override here to prevent AttributeError.
+        Validation is sharded (ContiguousDistributedSampler gives each rank a distinct chunk of the
+        val set), so each rank holds only its shard's summed statistics. All-reduce the sums so
+        rank 0's get_stats() computes metrics over the full val set instead of a single shard.
+        Overrides DetectionValidator.gather_stats(), which reduces detection-specific stats/box
+        attributes that DepthMetrics does not have.
         """
-        pass
+        if RANK == -1 or not dist.is_initialized():
+            return
+        totals = self.metrics._totals
+        totals = (
+            totals.to(self.device) if totals is not None else torch.zeros(7, dtype=torch.float64, device=self.device)
+        )
+        count = torch.tensor([self.metrics._count], dtype=torch.float64, device=self.device)
+        dist.all_reduce(totals, op=dist.ReduceOp.SUM)
+        dist.all_reduce(count, op=dist.ReduceOp.SUM)
+        self.metrics._totals = totals
+        self.metrics._count = float(count.item())
 
     def print_results(self):
         """Log the headline depth metrics in the detection-style aligned table format.

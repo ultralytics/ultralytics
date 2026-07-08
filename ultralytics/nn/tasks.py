@@ -62,6 +62,7 @@ from ultralytics.nn.modules import (
     Classify,
     Concat,
     ScaledAdd,
+    WeightedFusion,
     Conv,
     Conv2,
     ConvTranspose,
@@ -1813,6 +1814,9 @@ def parse_model(d, ch, verbose=True):
             args = [ch[f]]
         elif m in {Add, ScaledAdd}:
             c2 = ch[f[0]]
+        elif m is WeightedFusion:
+            args[0] = make_divisible(min(args[0], max_channels) * width, 8)
+            c2 = args[0]
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
         elif m in frozenset(

@@ -34,6 +34,7 @@ __all__ = (
     "RepConv",
     "RepGhostConv",
     "SpatialAttention",
+    "WeightedFusion",
 )
 
 
@@ -1309,6 +1310,33 @@ class ScaledAdd(nn.Module):
             (torch.Tensor): main + alpha * residual.
         """
         return x[0] + self.alpha * x[1]
+
+
+class WeightedFusion(nn.Module):
+    """Learnable softmax-weighted fusion of same-shape features, followed by a 1x1 conv."""
+
+    def __init__(self, c: int, num_inputs: int = 3):
+        """Initialize WeightedFusion.
+
+        Args:
+            c (int): Number of channels of each input (and output).
+            num_inputs (int): Number of input tensors to fuse.
+        """
+        super().__init__()
+        self.weights = nn.Parameter(torch.ones(num_inputs) / num_inputs)
+        self.conv = nn.Conv2d(c, c, 1)
+
+    def forward(self, x: list[torch.Tensor]):
+        """Fuse input tensors with softmax-normalized learnable weights.
+
+        Args:
+            x (list[torch.Tensor]): Input tensors with matching shapes.
+
+        Returns:
+            (torch.Tensor): Fused tensor.
+        """
+        w = F.softmax(self.weights, dim=0)
+        return self.conv(sum(wi * f for wi, f in zip(w, x)))
 
 
 class Concat(nn.Module):

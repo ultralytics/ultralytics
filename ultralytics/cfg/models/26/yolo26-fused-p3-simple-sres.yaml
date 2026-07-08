@@ -1,0 +1,53 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Single-scale P3 detection via WeightedFusion (trimmed head: FPN top-down only)
+# + rep-fpn-simple-sres changes: C3k2Simple (e=0.5) early backbone, C3k2Rep head, scaled residual
+
+# Parameters
+nc: 80 # number of classes
+end2end: True # whether to use end-to-end mode
+reg_max: 1 # DFL bins
+scales: # model compound scaling constants, i.e. 'model=yolo26n.yaml' will call yolo26.yaml with scale 'n'
+  # [depth, width, max_channels]
+  n: [0.50, 0.25, 1024]
+  s: [0.50, 0.50, 1024]
+  m: [0.50, 1.00, 512]
+  l: [1.00, 1.00, 512]
+  x: [1.00, 1.50, 512]
+
+# YOLO26n backbone
+backbone:
+  # [from, repeats, module, args]
+  - [-1, 1, Conv, [64, 3, 2]] # 0-P1/2
+  - [-1, 1, Conv, [128, 3, 2]] # 1-P2/4
+  - [-1, 2, C3k2Simple, [256, False, 0.5]] # 2 - simple block, e=0.5
+  - [-1, 1, Conv, [256, 3, 2]] # 3-P3/8
+  - [-1, 2, C3k2Simple, [512, False, 0.5]] # 4 - simple block, e=0.5
+  - [-1, 1, Conv, [512, 3, 2]] # 5-P4/16
+  - [-1, 2, C3k2, [512, True]]
+  - [-1, 1, Conv, [1024, 3, 2]] # 7-P5/32
+  - [-1, 2, C3k2, [1024, True]]
+  - [-1, 1, SPPF, [1024, 5, 3, True]] # 9
+  - [-1, 2, C2PSA, [1024]] # 10
+
+# YOLO26n head
+head:
+  # FPN top-down only (no PAN bottom-up: no P4/P5 detect heads to feed)
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 6], 1, Concat, [1]]
+  - [-1, 3, C3k2Rep, [512, True]] # 13 (P4/16 top-down, increase depth)
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 4], 1, Concat, [1]]
+  - [-1, 3, C3k2Rep, [256, True]] # 16 (P3/8, increase depth)
+
+  # Fuse all scales to P3 resolution
+  - [13, 1, Conv, [256, 1, 1]] # 17: P4 top-down 512→256ch
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]] # 18: 40×40 → 80×80
+  - [10, 1, Conv, [256, 1, 1]] # 19: P5 backbone 1024→256ch
+  - [-1, 1, nn.Upsample, [None, 4, "nearest"]] # 20: 20×20 → 80×80
+  - [[16, 18, 20], 1, WeightedFusion, [256, 3]] # 21: fuse all at 80×80
+  - [-1, 2, C3k2Rep, [256, True]] # 22: refine
+  - [[-1, 16], 1, ScaledAdd, []] # 23: scaled residual from P3 head
+
+  - [[23], 1, Detect, [nc]] # Single-scale Detect

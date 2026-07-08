@@ -145,15 +145,17 @@ def main():
             if not args.no_memory:
                 model.reset_memory()
                 model.to(device)
-                model.set_memory(source=str(good_dir(root, cat)), batch=args.batch)
+                model.set_memory(source=str(good_dir(root, cat)), batch=args.batch, imgsz=args.imgsz)
 
             metrics = model.val(
                 data=str(yaml),
+                imgsz=args.imgsz,
                 iou=args.iou,
                 end2end=args.e2e,
                 single_cls=True,
                 device=device,
                 batch=args.batch,
+                conf=args.conf,
             )
 
             # all_ap cols: iouv = linspace(.10, .50, 9) → .10=col0, .25=col3, .50=col8.

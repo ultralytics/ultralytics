@@ -36,6 +36,7 @@ class MaskPriorAugmenter:
         self.mask_aug_passes = int(v2_cfg.get("mask_aug_passes", 1))
         self.mask_shuffle_p = float(v2_cfg.get("mask_shuffle_p", 0.0))
         self.mask_noise_std = float(v2_cfg.get("mask_noise_std", 0.0))
+        self.mask_noise_p = float(v2_cfg.get("mask_noise_p", 0.0))
         _mag = v2_cfg.get("mask_mag_range", [1.0, 1.0])
         self.mask_mag_range = (float(_mag[0]), float(_mag[1]))
         self.mask_blur_sigma_max = float(v2_cfg.get("mask_blur_sigma_max", 0.0))
@@ -148,7 +149,7 @@ class MaskPriorAugmenter:
         lo, hi = self.mask_mag_range
         if lo < 1.0 or hi < 1.0:
             mask = mask * torch.empty(b, 1, 1, 1, device=mask.device).uniform_(lo, hi)
-        if self.mask_noise_std > 0.0:
+        if self.mask_noise_std > 0.0 and self.mask_noise_p > 0.0 and torch.rand(1).item() < self.mask_noise_p:
             mask = mask + torch.randn_like(mask) * self.mask_noise_std
         mask = self._augment_prior_extra(mask)
         mask = self._augment_mask_mb_style(mask)

@@ -1,4 +1,5 @@
 ---
+title: Model Deployment Options
 comments: true
 description: Learn about model deployment options in Ultralytics Platform including inference testing, dedicated endpoints, and monitoring dashboards.
 keywords: Ultralytics Platform, deployment, inference, endpoints, monitoring, YOLO, production, cloud deployment
@@ -26,7 +27,7 @@ The Deployment section helps you:
 - **Test** models directly in the browser with the `Predict` tab
 - **Deploy** to dedicated endpoints in 43 global regions
 - **Monitor** request metrics, logs, and health checks
-- **Scale** automatically with traffic (including scale-to-zero)
+- **Scale to zero** when idle (deployments currently run a single active instance)
 
 ![Ultralytics Platform Deploy Page World Map With Overview Cards](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deploy-page-world-map-with-overview-cards.avif)
 
@@ -44,22 +45,21 @@ Ultralytics Platform offers multiple deployment paths:
 
 ```mermaid
 graph LR
-    A[✅ Test] --> B[⚙️ Configure]
-    B --> C[🌐 Deploy]
-    C --> D[📊 Monitor]
+    A[✅ Test]:::start --> B[⚙️ Configure]:::proc
+    B --> C[🌐 Deploy]:::proc
+    C --> D[📊 Monitor]:::out
 
-    style A fill:#4CAF50,color:#fff
-    style B fill:#2196F3,color:#fff
-    style C fill:#FF9800,color:#fff
-    style D fill:#9C27B0,color:#fff
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
-| Stage         | Description                                                              |
-| ------------- | ------------------------------------------------------------------------ |
-| **Test**      | Validate model with the [`Predict` tab](inference.md)                    |
-| **Configure** | Select region, resources, and deployment name                            |
-| **Deploy**    | Create a dedicated endpoint from the [`Deploy` tab](endpoints.md)        |
-| **Monitor**   | Track requests, latency, errors, and logs in [Monitoring](monitoring.md) |
+| Stage         | Description                                                                 |
+| ------------- | --------------------------------------------------------------------------- |
+| **Test**      | Validate model with the [`Predict` tab](inference.md)                       |
+| **Configure** | Select region and deployment name (deployments use fixed default resources) |
+| **Deploy**    | Create a dedicated endpoint from the [`Deploy` tab](endpoints.md)           |
+| **Monitor**   | Track requests, latency, errors, and logs in [Monitoring](monitoring.md)    |
 
 ## Architecture
 
@@ -69,25 +69,23 @@ The shared inference service runs in 3 key regions, automatically routing reques
 
 ```mermaid
 graph TB
-    User[User Request] --> API[Platform API]
-    API --> Router{Region Router}
-    Router -->|US users| US["US Predict Service<br/>Iowa"]
-    Router -->|EU users| EU["EU Predict Service<br/>Belgium"]
-    Router -->|AP users| AP["AP Predict Service<br/>Hong Kong"]
+    User[User Request]:::start --> API[Platform API]:::proc
+    API --> Router{Region Router}:::decide
+    Router -->|US users| US["US Predict Service<br/>Iowa"]:::out
+    Router -->|EU users| EU["EU Predict Service<br/>Belgium"]:::out
+    Router -->|AP users| AP["AP Predict Service<br/>Taiwan"]:::out
 
-    style User fill:#f5f5f5,color:#333
-    style API fill:#2196F3,color:#fff
-    style Router fill:#FF9800,color:#fff
-    style US fill:#4CAF50,color:#fff
-    style EU fill:#4CAF50,color:#fff
-    style AP fill:#4CAF50,color:#fff
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef decide fill:#FF9800,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
-| Region | Location                |
-| ------ | ----------------------- |
-| US     | Iowa, USA               |
-| EU     | Belgium, Europe         |
-| AP     | Hong Kong, Asia-Pacific |
+| Region | Location             |
+| ------ | -------------------- |
+| US     | Iowa, USA            |
+| EU     | Belgium, Europe      |
+| AP     | Taiwan, Asia-Pacific |
 
 ### Dedicated Endpoints
 
@@ -100,8 +98,8 @@ Deploy to 43 regions worldwide on Ultralytics Cloud:
 
 Each endpoint is a single-tenant service with:
 
-- Dedicated compute resources (configurable CPU and memory)
-- Auto-scaling (scale-to-zero when idle)
+- Default resources of `1 CPU`, `2 GiB` memory, `minInstances=0`, `maxInstances=1`
+- Scale-to-zero when idle
 - Unique endpoint URL
 - Independent monitoring, logs, and health checks
 
@@ -118,7 +116,7 @@ Access the global deployments page from the sidebar under `Deploy`. This page sh
 
 !!! info "Automatic Polling"
 
-    The page polls every 30 seconds for metric updates. When deployments are in a transitional state (creating, deploying, stopping), polling increases to every 2-3 seconds for near-instant feedback.
+    The page polls every 15 seconds normally. When deployments are in a transitional state (`creating`, `deploying`, or `stopping`), polling increases to every 3 seconds for faster feedback.
 
 ## Key Features
 
@@ -130,12 +128,12 @@ Deploy close to your users with 43 regions covering:
 - Europe, Middle East, Africa
 - Asia Pacific, Oceania
 
-### Auto-Scaling
+### Scaling Behavior
 
-Endpoints scale automatically:
+Endpoints currently behave as follows:
 
 - **Scale to zero**: No cost when idle (default)
-- **Scale up**: Handle traffic spikes automatically
+- **Single active instance**: `maxInstances` is currently capped at `1` on all plans
 
 !!! tip "Cost Savings"
 
@@ -185,14 +183,14 @@ Deploy a model in under 2 minutes:
 
 ### What's the difference between shared and dedicated inference?
 
-| Feature     | Shared          | Dedicated                            |
-| ----------- | --------------- | ------------------------------------ |
-| **Latency** | Variable        | Consistent                           |
-| **Cost**    | Free (included) | Free (basic), usage-based (advanced) |
-| **Scale**   | Limited         | Configurable                         |
-| **Regions** | 3               | 43                                   |
-| **URL**     | Generic         | Custom                               |
-| **Rate**    | 20 req/min      | Unlimited                            |
+| Feature     | Shared          | Dedicated                                                 |
+| ----------- | --------------- | --------------------------------------------------------- |
+| **Latency** | Variable        | Consistent                                                |
+| **Cost**    | Free (included) | Free (basic), usage-based (advanced)                      |
+| **Scale**   | Limited         | Scale-to-zero, single instance                            |
+| **Regions** | 3               | 43                                                        |
+| **URL**     | Generic         | Custom                                                    |
+| **Rate**    | 20 req/min      | 20 req/min via Platform; unlimited on direct endpoint URL |
 
 ### How long does deployment take?
 
@@ -204,7 +202,7 @@ Dedicated endpoint deployment typically takes 1-2 minutes:
 
 ### Can I deploy multiple models?
 
-Yes, each model can have multiple endpoints in different regions. There's no limit on total endpoints (subject to your plan).
+Yes, each model can have multiple endpoints in different regions. Deployment counts are limited by plan: Free `3`, Pro `10`, Enterprise `unlimited`.
 
 ### What happens when an endpoint is idle?
 

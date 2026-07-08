@@ -34,7 +34,7 @@ class TaskAlignedAssigner(nn.Module):
         num_classes: int = 80,
         alpha: float = 1.0,
         beta: float = 6.0,
-        stride: list = [8, 16, 32],
+        stride: list | None = None,
         eps: float = 1e-9,
         topk2=None,
     ):
@@ -55,7 +55,7 @@ class TaskAlignedAssigner(nn.Module):
         self.num_classes = num_classes
         self.alpha = alpha
         self.beta = beta
-        self.stride = stride
+        self.stride = stride if stride is not None else [8, 16, 32]
         self.stride_val = self.stride[1] if len(self.stride) > 1 else self.stride[0]
         self.eps = eps
 
@@ -97,13 +97,13 @@ class TaskAlignedAssigner(nn.Module):
         try:
             return self._forward(pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt)
         except RuntimeError as e:
-            if "out of memory" in str(e).lower():
-                # Move tensors to CPU, compute, then move back to original device
-                LOGGER.warning("CUDA OutOfMemoryError in TaskAlignedAssigner, using CPU")
-                cpu_tensors = [t.cpu() for t in (pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt)]
-                result = self._forward(*cpu_tensors)
-                return tuple(t.to(device) for t in result)
-            raise
+            if "out of memory" not in str(e).lower():
+                raise
+        # Recover outside the except block: exiting it drops e.__traceback__, releasing the failed attempt's GPU
+        # intermediates back to the allocator so the copy-back below can succeed
+        LOGGER.warning("CUDA OutOfMemoryError in TaskAlignedAssigner, using CPU")
+        result = self._forward(*(t.cpu() for t in (pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt)))
+        return tuple(t.to(device) for t in result)
 
     def _forward(self, pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt):
         """Compute the task-aligned assignment.
@@ -345,7 +345,8 @@ class TaskAlignedAssigner(nn.Module):
 
         if self.topk2 != self.topk:
             align_metric = align_metric * mask_pos  # update overlaps
-            max_overlaps_idx = torch.topk(align_metric, self.topk2, dim=-1, largest=True).indices  # (b, n_max_boxes)
+            # (b, n_max_boxes, topk2)
+            max_overlaps_idx = torch.topk(align_metric, self.topk2, dim=-1, largest=True).indices
             topk_idx = torch.zeros(mask_pos.shape, dtype=mask_pos.dtype, device=mask_pos.device)  # update mask_pos
             topk_idx.scatter_(-1, max_overlaps_idx, 1.0)
             mask_pos *= topk_idx
@@ -373,15 +374,16 @@ class RotatedTaskAlignedAssigner(TaskAlignedAssigner):
         Returns:
             (torch.Tensor): Boolean mask of positive anchors with shape (b, n_boxes, h*w).
         """
-        wh_mask = gt_bboxes[..., 2:4] < self.stride[0]
-        gt_bboxes[..., 2:4] = torch.where(
+        gt_bboxes_clone = gt_bboxes.clone()
+        wh_mask = gt_bboxes_clone[..., 2:4] < self.stride[0]
+        gt_bboxes_clone[..., 2:4] = torch.where(
             (wh_mask * mask_gt).bool(),
-            torch.tensor(self.stride_val, dtype=gt_bboxes.dtype, device=gt_bboxes.device),
-            gt_bboxes[..., 2:4],
+            torch.tensor(self.stride_val, dtype=gt_bboxes_clone.dtype, device=gt_bboxes_clone.device),
+            gt_bboxes_clone[..., 2:4],
         )
 
         # (b, n_boxes, 5) --> (b, n_boxes, 4, 2)
-        corners = xywhr2xyxyxyxy(gt_bboxes)
+        corners = xywhr2xyxyxyxy(gt_bboxes_clone)
         # (b, n_boxes, 1, 2)
         a, b, _, d = corners.split(1, dim=-2)
         ab = b - a

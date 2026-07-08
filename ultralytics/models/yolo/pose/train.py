@@ -8,7 +8,7 @@ from typing import Any
 
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import PoseModel
-from ultralytics.utils import DEFAULT_CFG
+from ultralytics.utils import DEFAULT_CFG, RANK
 from ultralytics.utils.torch_utils import unwrap_model
 
 
@@ -71,8 +71,14 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
         Returns:
             (PoseModel): Initialized pose estimation model.
         """
-        model = PoseModel(
-            cfg, nc=self.data["nc"], ch=self.data["channels"], data_kpt_shape=self.data["kpt_shape"], verbose=verbose
+        model = self.set_model_names_for_load(
+            PoseModel(
+                cfg,
+                nc=self.data["nc"],
+                ch=self.data["channels"],
+                data_kpt_shape=self.data["kpt_shape"],
+                verbose=verbose and RANK == -1,
+            )
         )
         if weights:
             model.load(weights)
@@ -92,7 +98,10 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
     def get_validator(self):
         """Return an instance of the PoseValidator class for validation."""
         self.loss_names = "box_loss", "pose_loss", "kobj_loss", "cls_loss", "dfl_loss"
-        if getattr(unwrap_model(self.model).model[-1], "flow_model", None) is not None:
+        model = unwrap_model(self.model)
+        if hasattr(model, "student_model"):
+            model = model.student_model  # copy_attr does not copy nn.Module attributes like .model
+        if getattr(model.model[-1], "flow_model", None) is not None:
             self.loss_names += ("rle_loss",)
         return yolo.pose.PoseValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks

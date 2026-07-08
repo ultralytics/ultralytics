@@ -2,17 +2,18 @@
 comments: true
 description: Configure your Ultralytics Platform profile, preferences, and data settings with GDPR-compliant data export and deletion options.
 keywords: Ultralytics Platform, settings, profile, preferences, GDPR, data export, privacy
+title: Account Settings
 ---
 
 # Settings
 
 [Ultralytics Platform](https://platform.ultralytics.com) settings allow you to configure your profile, social links, workspace preferences, and manage your data with GDPR-compliant export and deletion options.
 
-Settings is organized into five tabs: `Profile`, `Plans`, `Billing`, `Teams`, and `Trash`.
+Settings is organized into seven tabs (in order): `Profile`, `API Keys`, `Plans`, `Billing`, `Teams`, `Integrations`, and `Trash`.
 
 ## Profile Tab
 
-The `Profile` tab contains your profile information, social links, API keys, data region, and account management options.
+The `Profile` tab contains your profile information, social links, data region, and account management options.
 
 ### Profile Information
 
@@ -71,10 +72,9 @@ Connect your professional profiles:
 | **LinkedIn**       | profile-slug   |
 | **X (Twitter)**    | username       |
 | **YouTube**        | channel-handle |
-| **Bilibili**       | user-id        |
 | **Google Scholar** | user-id        |
 | **Discord**        | username       |
-| **WeChat**         | username       |
+| **Website**        | `example.com`  |
 
 Social links appear on your public profile page.
 
@@ -95,10 +95,6 @@ Manage email addresses linked to your account in the `Profile` tab:
 
     Your primary email is used for notifications and account recovery. Only verified emails can be set as primary.
 
-### API Keys
-
-API keys are managed directly on the `Profile` tab. See [API Keys](api-keys.md) for full documentation.
-
 ### Data Region
 
 View your data region on the `Profile` tab:
@@ -109,9 +105,9 @@ View your data region on the `Profile` tab:
 | **EU** | Europe        | European users, GDPR compliance |
 | **AP** | Asia Pacific  | Asia-Pacific users              |
 
-!!! note "Region is Permanent"
+!!! note "Data Region"
 
-    Data region is selected during signup and cannot be changed. All your data stays in this region.
+    Your data region is selected during onboarding and cannot be changed yourself. All your data stays in this region — contact support to request a region change.
 
 ### Storage Usage
 
@@ -131,10 +127,6 @@ The storage card shows:
 | **Datasets** | Uploaded images, videos, labels, and annotation files |
 | **Models**   | Trained model checkpoints (`.pt` files)               |
 | **Exports**  | Exported model formats (ONNX, TensorRT, CoreML, etc)  |
-
-!!! tip "Recalculate Storage"
-
-    To refresh your storage values, click the **Recalculate** button on the storage card.
 
 #### Storage Limits
 
@@ -183,16 +175,17 @@ Download all your data:
 
 1. Go to **Settings > Profile**
 2. Scroll to the bottom section
-3. Click **Export Data**
-4. Receive download link via email
+3. Click **Export All Data**
+4. An asynchronous export job runs in the background; a **Download Export** link appears on the same page when the job completes (download link valid for 1 hour)
 
 Export includes:
 
 - Profile information
 - Dataset metadata
 - Model metadata
-- Training history
-- API key metadata (not secrets)
+- Project metadata
+- Activity history (recent events)
+- API key metadata (keys themselves are never exported in plaintext)
 
 #### Account Deletion
 
@@ -200,8 +193,8 @@ Permanently delete your account:
 
 1. Go to **Settings > Profile**
 2. Scroll to the bottom section
-3. Click **Delete Account**
-4. Confirm deletion
+3. Click **Delete My Account**
+4. Type `DELETE` in the confirmation field, then confirm
 
 !!! warning "Irreversible Action"
 
@@ -221,6 +214,10 @@ Permanently delete your account:
 - Server logs (90 days)
 - Legal compliance records
 
+## API Keys Tab
+
+The `API Keys` tab lets you create and manage API keys for remote training and inference. See [API Keys](api-keys.md) for full documentation.
+
 ## Plans Tab
 
 The `Plans` tab lets you compare available plans and upgrade or downgrade your subscription.
@@ -231,13 +228,13 @@ The `Plans` tab lets you compare available plans and upgrade or downgrade your s
 | -------------- | --------- | --------- | ----------- | -------------------- | ---------- |
 | **Free**       | 100 GB    | 100       | 3           | 3                    | —          |
 | **Pro**        | 500 GB    | 500       | 10          | 10                   | Up to 5    |
-| **Enterprise** | Unlimited | Unlimited | Unlimited   | Unlimited            | Up to 50   |
+| **Enterprise** | Unlimited | Unlimited | Unlimited   | Unlimited            | Custom     |
 
 From this tab you can:
 
 - **Compare features** across Free, Pro, and Enterprise tiers
 - **Upgrade to Pro** to unlock more storage, models, team collaboration, and priority GPU access
-- **Contact Sales** for Enterprise needs including SSO/SAML and commercial licensing
+- **Review Enterprise** capabilities including SSO/SAML and commercial licensing — see [Ultralytics Licensing](https://www.ultralytics.com/license)
 
 See [Billing](billing.md) for detailed plan information, pricing, and upgrade instructions.
 
@@ -280,7 +277,7 @@ The `Teams` tab lets you manage workspace members, roles, and invitations. Teams
 
 Owners and admins can manage the team:
 
-- **Invite members** via email (invitations expire after 7 days)
+- **Invite members** via email (invites stay valid until accepted or canceled; pending invites count against the seat limit)
 - **Change roles**: Click the role dropdown next to a member (only the owner can assign/remove the admin role)
 - **Remove members**: Click the menu and select **Remove**
 - **Cancel invites**: Cancel pending invitations that haven't been accepted
@@ -300,6 +297,16 @@ All resources created in a team workspace belong to the team, not individual mem
     On Pro plans, each team member is a paid seat. The team credit balance is shared across all members.
 
 See [Teams](teams.md) for full documentation on team creation, switching workspaces, and enterprise features.
+
+## Integrations Tab
+
+The `Integrations` tab lets you import datasets and projects from external services and connect third-party tools:
+
+- **Ultralytics HUB** — import your existing datasets and projects from [Ultralytics HUB](../integrations/ultralytics-hub.md).
+- **Roboflow** — import annotated datasets from a [Roboflow](../integrations/roboflow.md) workspace using a Roboflow API key.
+- **Weights & Biases** — experiment-tracking sync (coming soon).
+
+See [Integrations](../integrations/index.md) for the full list of supported services.
 
 ## Trash Tab
 
@@ -325,7 +332,7 @@ See [Trash](trash.md) for full documentation including cascade behavior and API 
 The **Help** page is accessible from the sidebar footer. Use it to:
 
 - **Rate your experience** with a 1-5 star rating
-- **Choose a feedback type**: Bug Report, Feature Request, or General
+- **Choose a feedback type**: Bug, Feature, or General
 - **Describe the issue** with a text message
 - **Attach screenshots** for visual context
 

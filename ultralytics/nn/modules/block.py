@@ -58,7 +58,7 @@ __all__ = (
 class DFL(nn.Module):
     """Integral module of Distribution Focal Loss (DFL).
 
-    Proposed in Generalized Focal Loss https://ieeexplore.ieee.org/document/9792391
+    Proposed in Generalized Focal Loss https://arxiv.org/abs/2006.04388
     """
 
     def __init__(self, c1: int = 16):
@@ -1682,6 +1682,12 @@ class AAttn(nn.Module):
         self.proj = Conv(all_head_dim, dim, 1, act=False)
         self.pe = Conv(all_head_dim, all_head_dim, 7, 1, 3, g=all_head_dim, act=False)
 
+    def __setstate__(self, state):
+        """Add missing all_head_dim attribute to old checkpoints."""
+        super().__setstate__(state)
+        if not hasattr(self, "all_head_dim"):
+            self.all_head_dim = self.head_dim * self.num_heads
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Process the input tensor through the area-attention.
 
@@ -1988,7 +1994,7 @@ class Proto26(Proto):
         self.feat_fuse = Conv(ch[0], c_, k=3)
         self.semseg = nn.Sequential(Conv(ch[0], c_, k=3), Conv(c_, c_, k=3), nn.Conv2d(c_, nc, 1))
 
-    def forward(self, x: torch.Tensor, return_semseg: bool = True) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, return_semantic: bool = True) -> torch.Tensor:
         """Perform a forward pass by fusing multi-scale feature maps and generating proto masks."""
         feat = x[0]
         for i, f in enumerate(self.feat_refine):
@@ -1996,9 +2002,9 @@ class Proto26(Proto):
             up_feat = F.interpolate(up_feat, size=feat.shape[2:], mode="nearest")
             feat = feat + up_feat
         p = super().forward(self.feat_fuse(feat))
-        if self.training and return_semseg:
-            semseg = self.semseg(feat)
-            return (p, semseg)
+        if self.training and return_semantic:
+            semantic = self.semseg(feat)
+            return (p, semantic)
         return p
 
     def fuse(self):

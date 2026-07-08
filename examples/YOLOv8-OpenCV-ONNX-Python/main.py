@@ -8,10 +8,9 @@ from typing import Any
 import cv2.dnn
 import numpy as np
 
-from ultralytics.utils import ASSETS, YAML
-from ultralytics.utils.checks import check_yaml
+from ultralytics.utils import ASSETS, ROOT, YAML
 
-CLASSES = YAML.load(check_yaml("coco8.yaml"))["names"]
+CLASSES = YAML.load(ROOT / "cfg/datasets/coco8.yaml")["names"]
 colors = np.random.uniform(0, 255, size=(len(CLASSES), 3))
 
 
@@ -51,6 +50,8 @@ def main(onnx_model: str, input_image: str) -> list[dict[str, Any]]:
 
     # Read the input image
     original_image: np.ndarray = cv2.imread(input_image)
+    if original_image is None:
+        raise FileNotFoundError(f"Image Not Found {input_image}")
     [height, width, _] = original_image.shape
 
     # Prepare a square image for inference

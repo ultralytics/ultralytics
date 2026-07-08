@@ -1,4 +1,5 @@
 ---
+title: models.sam.sam3.model_misc API Reference
 description: Explore the ultralytics.models.sam.sam3.model_misc module with helper layers and utilities used in SAM3 model components.
 keywords: Ultralytics, SAM3, SAM, transformer, layers, utilities, deep learning, Python
 ---
@@ -7,7 +8,7 @@ keywords: Ultralytics, SAM3, SAM, transformer, layers, utilities, deep learning,
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/sam3/model_misc.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/sam3/model_misc.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/sam3/model_misc.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/sam3/model_misc.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
 <br>
 

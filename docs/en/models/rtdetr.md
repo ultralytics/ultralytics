@@ -1,7 +1,8 @@
 ---
+title: RT-DETR: Real-Time Detection Transformer
 comments: true
 description: Explore Baidu's RT-DETR, a Vision Transformer-based real-time object detector offering high accuracy and adaptable inference speed. Learn more with Ultralytics.
-keywords: RT-DETR, Baidu, Vision Transformer, real-time object detection, PaddlePaddle, Ultralytics, pretrained models, AI, machine learning, computer vision
+keywords: RT-DETR, Baidu, Vision Transformer, real-time object detection, PaddlePaddle, Ultralytics, pretrained models, decoder layer index, query count, AI, machine learning, computer vision
 ---
 
 # Baidu's RT-DETR: A Vision [Transformer](https://www.ultralytics.com/glossary/transformer)-Based Real-Time Object Detector
@@ -47,7 +48,7 @@ Additionally, Baidu has released RTDETRv2 in July 2024, which further improves u
 
 ## Usage Examples
 
-This example provides simple RT-DETR training and inference examples. For full documentation on these and other [modes](../modes/index.md) see the [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md) docs pages.
+This example provides simple RT-DETR training and inference examples. For full documentation on these and other [modes](../modes/index.md) see the [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md) docs pages. Models can also be trained on cloud GPUs through [Ultralytics Platform](https://platform.ultralytics.com).
 
 !!! example
 
@@ -79,6 +80,31 @@ This example provides simple RT-DETR training and inference examples. For full d
         yolo predict model=rtdetr-l.pt source=path/to/bus.jpg
         ```
 
+!!! tip "Faster Inference Trade-Offs"
+
+    RT-DETR pretrained weights support two inference-time settings to reduce latency without retraining:
+
+    - **`eval_idx`**: Stop decoding early. For the default 6-layer decoder, use a zero-based index (`0`–`5`). `eval_idx=5` uses all layers; `eval_idx=3` uses 4 layers. On a T4 GPU with TensorRT v10.11, RT-DETR-L improves from 8.0 ms / 52.7 mAP to 7.4 ms / 52.5 mAP with 4 layers.
+    - **`num_queries`**: Reduce object queries (default: 300). Lowering to 100 can reach 7.4 ms / 51.7 mAP on COCO in the same setup. On datasets with fewer objects per image the mAP drop is typically smaller, but keep the value above the maximum expected objects per image.
+
+    Both settings can lower mAP — validate the trade-off on your dataset before deployment.
+
+    ```python
+    from ultralytics import RTDETR
+
+    rtdetr = RTDETR("rtdetr-l.pt")
+    head = rtdetr.model.model[-1]
+
+    # Choose one or both settings after validating the speed/accuracy trade-off.
+    head.decoder.eval_idx = 3  # Use 4 of 6 decoder layers.
+    head.num_queries = 100  # Use fewer object queries.
+
+    results = rtdetr("path/to/image.jpg")
+
+    # Export uses the same decoder and query settings, including TensorRT exports.
+    rtdetr.export(format="engine", device=0, quantize=16)
+    ```
+
 ## Supported Tasks and Modes
 
 This table presents the model types, the specific pretrained weights, the tasks supported by each model, and the various modes ([Train](../modes/train.md) , [Val](../modes/val.md), [Predict](../modes/predict.md), [Export](../modes/export.md)) that are supported, indicated by ✅ emojis.
@@ -88,14 +114,18 @@ This table presents the model types, the specific pretrained weights, the tasks 
 | RT-DETR Large       | [rtdetr-l.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/rtdetr-l.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
 | RT-DETR Extra-Large | [rtdetr-x.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/rtdetr-x.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
 
+!!! note "Architecture-only variants"
+
+    [`rtdetr-resnet50.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/rt-detr/rtdetr-resnet50.yaml) and [`rtdetr-resnet101.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/rt-detr/rtdetr-resnet101.yaml) are shipped as YAML architectures only. Ultralytics releases pretrained weights only for `rtdetr-l` and `rtdetr-x`. Instantiate the ResNet variants from YAML (for example, `RTDETR("rtdetr-resnet50.yaml")`) and train or fine-tune them as needed.
+
 ## Ideal Use Cases
 
 RT-DETR is particularly well-suited for applications requiring both high accuracy and real-time performance:
 
-- **Autonomous Driving**: For reliable environmental perception in self-driving systems where both speed and accuracy are critical. [Learn more about AI in self-driving cars](https://www.ultralytics.com/solutions/ai-in-automotive).
+- **Autonomous Driving**: For reliable environmental perception in self-driving systems where both speed and accuracy are critical. [Learn more about AI in self-driving cars](https://www.ultralytics.com/solutions/computer-vision-in-automotive).
 - **Advanced Robotics**: Enabling robots to perform complex tasks requiring accurate object recognition and interaction in dynamic environments. [Explore AI's role in robotics](https://www.ultralytics.com/blog/from-algorithms-to-automation-ais-role-in-robotics).
-- **Medical Imaging**: For applications in healthcare where precision in object detection can be crucial for diagnostics. [Discover AI in healthcare](https://www.ultralytics.com/solutions/ai-in-healthcare).
-- **Surveillance Systems**: For security applications requiring real-time monitoring with high detection accuracy. [Learn about security alarm systems](https://docs.ultralytics.com/guides/security-alarm-system/).
+- **Medical Imaging**: For applications in healthcare where precision in object detection can be crucial for diagnostics. [Discover AI in healthcare](https://www.ultralytics.com/solutions/computer-vision-in-healthcare).
+- **Surveillance Systems**: For security applications requiring real-time monitoring with high detection accuracy. [Learn about security alarm systems](../guides/security-alarm-system.md).
 - **Satellite Image Analysis**: For detailed analysis of high-resolution imagery where global context understanding is important. [Read about computer vision in satellite imagery](https://www.ultralytics.com/blog/using-computer-vision-to-analyze-satellite-imagery).
 
 ## Citations and Acknowledgments
@@ -183,6 +213,12 @@ Baidu's RT-DETR stands out due to its efficient hybrid encoder and IoU-aware que
 ### How does RT-DETR support adaptable inference speed for different real-time applications?
 
 Baidu's RT-DETR allows flexible adjustments of inference speed by using different decoder layers without requiring retraining. This adaptability is crucial for scaling performance across various real-time object detection tasks. Whether you need faster processing for lower [precision](https://www.ultralytics.com/glossary/precision) needs or slower, more accurate detections, RT-DETR can be tailored to meet your specific requirements. This feature is particularly valuable when deploying models across devices with varying computational capabilities.
+
+### Can `max_det` make RT-DETR return more than 300 detections?
+
+No. For RT-DETR, `max_det` caps how many predictions are returned after inference, but it does not increase the number of object queries produced by the decoder. The Ultralytics RT-DETR pretrained checkpoints use 300 object queries, so they cannot return more than 300 detections per image even if you set `max_det` to a larger value.
+
+Use `max_det` to reduce returned detections, for example `max_det=100`, when you only need fewer high-confidence predictions. If your dataset can contain more than 300 objects per image, train a custom RT-DETR model with a higher decoder query count (`nq`) in the model YAML; changing this value on a pretrained checkpoint after training is not equivalent and requires retraining to learn the additional queries.
 
 ### Can I use RT-DETR models with other Ultralytics modes, such as training, validation, and export?
 

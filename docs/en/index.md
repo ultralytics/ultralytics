@@ -1,4 +1,5 @@
 ---
+title: YOLO Object Detection & Segmentation
 comments: true
 description: Discover Ultralytics YOLO - the latest in real-time object detection and image segmentation. Learn about its features and maximize its potential in your projects.
 keywords: Ultralytics, YOLO, YOLO26, YOLO11, object detection, image segmentation, deep learning, computer vision, AI, machine learning, documentation, tutorial
@@ -8,21 +9,26 @@ keywords: Ultralytics, YOLO, YOLO26, YOLO11, object detection, image segmentatio
 <br><br>
 <a href="https://platform.ultralytics.com/ultralytics/yolo26?utm_source=docs&utm_medium=referral&utm_campaign=platform_launch&utm_content=banner&utm_term=ultralytics_docs" target="_blank"><img width="100%" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png" alt="Ultralytics YOLO banner"></a>
 <br><br>
-<a href="https://docs.ultralytics.com/zh/">中文</a> ·
-<a href="https://docs.ultralytics.com/ko/">한국어</a> ·
-<a href="https://docs.ultralytics.com/ja/">日本語</a> ·
-<a href="https://docs.ultralytics.com/ru/">Русский</a> ·
-<a href="https://docs.ultralytics.com/de/">Deutsch</a> ·
-<a href="https://docs.ultralytics.com/fr/">Français</a> ·
-<a href="https://docs.ultralytics.com/es/">Español</a> ·
-<a href="https://docs.ultralytics.com/pt/">Português</a> ·
-<a href="https://docs.ultralytics.com/tr/">Türkçe</a> ·
-<a href="https://docs.ultralytics.com/vi/">Tiếng Việt</a> ·
-<a href="https://docs.ultralytics.com/ar/">العربية</a>
-<br><br>
+</div>
+
+<p align="center">
+<a href="https://docs.ultralytics.com/zh">中文</a> ·
+<a href="https://docs.ultralytics.com/ko">한국어</a> ·
+<a href="https://docs.ultralytics.com/ja">日本語</a> ·
+<a href="https://docs.ultralytics.com/ru">Русский</a> ·
+<a href="https://docs.ultralytics.com/de">Deutsch</a> ·
+<a href="https://docs.ultralytics.com/fr">Français</a> ·
+<a href="https://docs.ultralytics.com/es">Español</a> ·
+<a href="https://docs.ultralytics.com/pt">Português</a> ·
+<a href="https://docs.ultralytics.com/tr">Türkçe</a> ·
+<a href="https://docs.ultralytics.com/vi">Tiếng Việt</a> ·
+<a href="https://docs.ultralytics.com/ar">العربية</a>
+</p>
+
+<div align="center">
+<br>
     <a href="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yml"><img src="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yml/badge.svg" alt="Ultralytics CI"></a>
     <a href="https://clickpy.clickhouse.com/dashboard/ultralytics"><img src="https://static.pepy.tech/badge/ultralytics" alt="Ultralytics Downloads"></a>
-    <a href="https://zenodo.org/badge/latestdoi/264818686"><img src="https://zenodo.org/badge/264818686.svg" alt="Ultralytics YOLO Citation"></a>
     <a href="https://discord.com/invite/ultralytics"><img alt="Ultralytics Discord" src="https://img.shields.io/discord/1089800235347353640?logo=discord&logoColor=white&label=Discord&color=blue"></a>
     <a href="https://community.ultralytics.com/"><img alt="Ultralytics Forums" src="https://img.shields.io/discourse/users?server=https%3A%2F%2Fcommunity.ultralytics.com&logo=discourse&label=Forums&color=blue"></a>
     <a href="https://www.reddit.com/r/ultralytics/"><img alt="Ultralytics Reddit" src="https://img.shields.io/reddit/subreddit-subscribers/ultralytics?style=flat&logo=reddit&logoColor=white&label=Reddit&color=blue"></a>
@@ -40,6 +46,8 @@ Introducing Ultralytics [YOLO26](models/yolo26.md), the latest version of the ac
 
 Explore the Ultralytics Docs, a comprehensive resource designed to help you understand and utilize its features and capabilities. Whether you are a seasoned [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) practitioner or new to the field, this hub aims to maximize YOLO's potential in your projects.
 
+Request an Enterprise License for commercial use at [Ultralytics Licensing](https://www.ultralytics.com/license?utm_source=docs.ultralytics.com&utm_medium=referral&utm_content=license_inline_link).
+
 <div align="center">
   <br>
   <a href="https://github.com/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-github.png" width="3%" alt="Ultralytics GitHub"></a>
@@ -56,6 +64,12 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
   <img width="3%" src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" alt="">
   <a href="https://discord.com/invite/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-discord.png" width="3%" alt="Ultralytics Discord"></a>
 </div>
+
+!!! tip "🚀 New: Knowledge Distillation"
+
+    Train smaller YOLO models with guidance from a larger teacher model — no extra inference cost, just better accuracy.
+
+    [:octicons-arrow-right-24: Learn more](guides/knowledge-distillation.md)
 
 ## Where to Start
 
@@ -79,7 +93,7 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
 
     ***
 
-    [:octicons-arrow-right-24: Learn more](modes/predict.md)
+    [:octicons-arrow-right-24: Explore Predict mode](modes/predict.md)
 
 - :fontawesome-solid-brain:{ .lg .middle } &nbsp; **Train a Model**
 
@@ -89,13 +103,13 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
 
     ***
 
-    [:octicons-arrow-right-24: Learn more](modes/train.md)
+    [:octicons-arrow-right-24: Explore Train mode](modes/train.md)
 
 - :material-magnify-expand:{ .lg .middle } &nbsp; **Explore Computer Vision Tasks**
 
     ***
 
-    Discover YOLO tasks like detect, segment, classify, pose, OBB and track <br /> &nbsp;
+    Discover YOLO tasks like detect, segment, semantic, classify, pose, OBB and track <br /> &nbsp;
 
     ***
 
@@ -162,10 +176,13 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
 
 ## YOLO Licenses: How is Ultralytics YOLO licensed?
 
+<a href="https://www.ultralytics.com/license?utm_source=docs.ultralytics.com&utm_medium=referral&utm_content=license_banner" target="_blank" rel="noopener noreferrer">
+<img width="100%" style="border-radius:.4rem" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-license.avif" alt="Ultralytics Enterprise License banner"></a>
+
 Ultralytics offers two licensing options to accommodate diverse use cases:
 
-- **AGPL-3.0 License**: This [OSI-approved](https://opensource.org/license/agpl-v3) open-source license is ideal for students and enthusiasts, promoting open collaboration and knowledge sharing. See the [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) file for more details.
-- **Enterprise License**: Designed for commercial use, this license permits seamless integration of Ultralytics software and AI models into commercial goods and services, bypassing the open-source requirements of AGPL-3.0. If your scenario involves embedding our solutions into a commercial offering, reach out through [Ultralytics Licensing](https://www.ultralytics.com/license).
+- **AGPL-3.0 License**: This [OSI-approved](https://opensource.org/license/agpl-3.0) open-source license is ideal for students and enthusiasts, promoting open collaboration and knowledge sharing. See the [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) file for more details.
+- **Enterprise License**: For development and production use, this license enables seamless integration of Ultralytics software and AI models into business products and services, including internal tools, automated workflows, and production deployments, bypassing the open-source requirements of AGPL-3.0. To get started, please contact us via [Ultralytics Licensing](https://www.ultralytics.com/license).
 
 Our licensing strategy is designed to ensure that any improvements to our open-source projects are returned to the community. We believe in open source, and our mission is to ensure that our contributions can be used and expanded in ways that benefit everyone.
 
@@ -181,7 +198,7 @@ With each new version, YOLO has introduced architectural improvements and innova
 
 ### What is Ultralytics YOLO and how does it improve object detection?
 
-Ultralytics YOLO is the acclaimed YOLO (You Only Look Once) series for real-time object detection and image segmentation. The latest model, [YOLO26](models/yolo26.md), builds on previous versions by introducing end-to-end NMS-free inference and optimized edge deployment. YOLO supports various [vision AI tasks](tasks/index.md) such as detection, segmentation, pose estimation, tracking, and classification. Its efficient architecture ensures excellent speed and accuracy, making it suitable for diverse applications, including edge devices and cloud APIs.
+Ultralytics YOLO is the acclaimed YOLO (You Only Look Once) series for real-time object detection and image segmentation. The latest model, [YOLO26](models/yolo26.md), builds on previous versions by introducing end-to-end NMS-free inference and optimized edge deployment. YOLO supports various [vision AI tasks](tasks/index.md) such as [detection](tasks/detect.md), [instance segmentation](tasks/segment.md), [semantic segmentation](tasks/semantic.md), [pose estimation](tasks/pose.md), [tracking](modes/track.md), and [classification](tasks/classify.md). Its efficient architecture ensures excellent speed and accuracy, making it suitable for diverse applications, including edge devices and cloud APIs.
 
 ### How can I get started with YOLO installation and setup?
 
@@ -235,7 +252,7 @@ For a detailed walkthrough, check out our [Train a Model](modes/train.md) guide,
 Ultralytics offers two licensing options for YOLO:
 
 - **AGPL-3.0 License**: This open-source license is ideal for educational and non-commercial use, promoting open collaboration.
-- **Enterprise License**: This is designed for commercial applications, allowing seamless integration of Ultralytics software into commercial products without the restrictions of the AGPL-3.0 license.
+- **Enterprise License**: For development and production use, including internal tools, automated workflows, and production deployments, bypassing the open-source requirements of AGPL-3.0.
 
 For more details, visit our [Licensing](https://www.ultralytics.com/license) page.
 

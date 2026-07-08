@@ -80,7 +80,7 @@ class NAS(Model):
         self.model.args = {**DEFAULT_CFG_DICT, **self.overrides}  # for export()
         self.model.eval()
 
-    def info(self, detailed: bool = False, verbose: bool = True) -> dict[str, Any]:
+    def info(self, detailed: bool = False, verbose: bool = True) -> tuple:
         """Log model information.
 
         Args:

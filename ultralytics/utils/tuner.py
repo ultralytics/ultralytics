@@ -365,7 +365,7 @@ def run_ray_tune(
     """
     LOGGER.info("💡 Learn about RayTune at https://docs.ultralytics.com/integrations/ray-tune")
     try:
-        checks.check_requirements("ray[tune]")
+        checks.check_requirements("ray[tune]", constrain=["pydantic>=2.0,<2.12"])
 
         import ray
         from ray import tune
@@ -392,6 +392,7 @@ def run_ray_tune(
         "warmup_momentum": tune.uniform(0.0, 0.95),  # warmup initial momentum
         "box": tune.uniform(1.0, 20.0),  # box loss gain
         "cls": tune.uniform(0.1, 4.0),  # cls loss gain (scale with pixels)
+        "cls_pw": tune.uniform(0.0, 1.0),  # cls power weight (scale with pixels)
         "dfl": tune.uniform(0.4, 12.0),  # dfl loss gain
         "hsv_h": tune.uniform(0.0, 0.1),  # image HSV-Hue augmentation (fraction)
         "hsv_s": tune.uniform(0.0, 0.9),  # image HSV-Saturation augmentation (fraction)
@@ -426,7 +427,10 @@ def run_ray_tune(
 
         # Set trial-specific name for W&B logging
         try:
-            trial_id = tune.get_trial_id()  # Get current trial ID (e.g., "2c2fc_00000")
+            if hasattr(tune, "get_context"):
+                trial_id = tune.get_context().get_trial_id()  # Ray ≥2.7, get current trial ID (e.g., "tune_c1c1ce99")
+            else:
+                trial_id = tune.get_trial_id()  # Ray <2.7
             trial_suffix = trial_id.split("_")[-1] if "_" in trial_id else trial_id
             config["name"] = f"{base_name}_{trial_suffix}"
         except Exception:

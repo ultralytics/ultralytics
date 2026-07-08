@@ -34,38 +34,38 @@ The Data section of Ultralytics Platform helps you:
 
 ```mermaid
 graph LR
-    A[Upload] --> B[Annotate]
-    B --> C[Analyze]
-    C --> D[Train]
+    A[Upload]:::start --> B[Annotate]:::proc
+    B --> C[Analyze]:::proc
+    C --> D[Train]:::out
 
-    style A fill:#4CAF50,color:#fff
-    style B fill:#2196F3,color:#fff
-    style C fill:#FF9800,color:#fff
-    style D fill:#9C27B0,color:#fff
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
-| Stage        | Description                                                                                           |
-| ------------ | ----------------------------------------------------------------------------------------------------- |
-| **Upload**   | Import images, videos, or archives with automatic processing                                          |
-| **Annotate** | Label data with manual tools for all 5 task types, or use SAM annotation for detect, segment, and OBB |
-| **Analyze**  | View class distributions, spatial heatmaps, and dimension statistics                                  |
-| **Export**   | Download in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) for offline use |
+| Stage        | Description                                                                                                     |
+| ------------ | --------------------------------------------------------------------------------------------------------------- |
+| **Upload**   | Import images, videos, or archives with automatic processing                                                    |
+| **Annotate** | Label data with manual tools for all 6 task types, or use SAM annotation for detect, segment, semantic, and OBB |
+| **Analyze**  | View class distributions, spatial heatmaps, and dimension statistics                                            |
+| **Export**   | Download in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) for offline use           |
 
 ## Supported Tasks
 
-Ultralytics Platform supports all 5 YOLO task types:
+Ultralytics Platform supports all 6 YOLO task types:
 
 | Task                                             | Description                                                     | Annotation Tool   |
 | ------------------------------------------------ | --------------------------------------------------------------- | ----------------- |
 | **[Detect](../../datasets/detect/index.md)**     | Object detection with bounding boxes                            | Rectangle tool    |
 | **[Segment](../../datasets/segment/index.md)**   | Instance segmentation with pixel masks                          | Polygon tool      |
+| **[Semantic](../../datasets/semantic/index.md)** | Semantic segmentation with per-class pixel regions              | Polygon tool      |
 | **[Pose](../../datasets/pose/index.md)**         | Keypoint estimation with built-in and custom skeleton templates | Keypoint tool     |
 | **[OBB](../../datasets/obb/index.md)**           | Oriented bounding boxes for rotated objects                     | Oriented box tool |
 | **[Classify](../../datasets/classify/index.md)** | Image-level classification                                      | Class selector    |
 
 !!! info "Task Type Selection"
 
-    The task type is set when creating a dataset and determines which annotation tools are available. You can change it later from the dataset settings, but incompatible annotations won't be displayed after switching.
+    The task type is set when creating a dataset and determines which annotation tools are available. You can change it later from the dataset header task selector, but incompatible annotations won't be displayed after switching.
 
 ## Key Features
 
@@ -102,7 +102,7 @@ Create immutable NDJSON snapshots of your dataset for reproducible training. Eac
 
 ### Dataset Tabs
 
-Every dataset page provides six tabs:
+Dataset pages can show up to six tabs, depending on the dataset state and your permissions:
 
 | Tab          | Description                                                                  |
 | ------------ | ---------------------------------------------------------------------------- |
@@ -113,17 +113,22 @@ Every dataset page provides six tabs:
 | **Versions** | Create and download immutable NDJSON snapshots for reproducible training     |
 | **Errors**   | Images that failed processing with error details and fix guidance            |
 
+`Classes` and `Charts` appear when the dataset has images. `Errors` appears only when processing failures exist. `Versions` appears for owners, or for non-owners when versions already exist.
+
+### Clustering
+
+Explore your dataset as an interactive 2D scatter plot where visually similar images sit close together — useful for surfacing clusters, duplicates, and outliers, and for inspecting how splits or classes are distributed across your data. Lasso a region of the plot to filter the gallery to those images. See [Clustering](datasets.md#clustering) for details.
+
 ### Statistics and Visualization
 
 The `Charts` tab provides automatic analysis including:
 
 - **Split Distribution**: Donut chart of train/val/test image counts
 - **Top Classes**: Donut chart of most frequent annotation classes
-- **Image Widths**: Histogram of image width distribution
-- **Image Heights**: Histogram of image height distribution
+- **Image Dimensions**: Histogram of image width and height distribution (in pixels)
 - **Points per Instance**: Polygon vertex or keypoint count distribution (segment/pose datasets)
 - **Annotation Locations**: 2D heatmap of bounding box center positions
-- **Image Dimensions**: 2D heatmap of width vs height with aspect ratio guide lines
+- **Image Dimensions 2D**: 2D heatmap of width vs height with aspect ratio guide lines
 
 ## Quick Links
 
@@ -140,7 +145,7 @@ Ultralytics Platform supports:
 
 **Images:** JPEG, PNG, WebP, BMP, TIFF, HEIC, AVIF, JP2, DNG, MPO (max 50MB each)
 
-**Videos:** MP4, WebM, MOV, AVI, MKV, M4V (max 1GB, frames extracted at 1 FPS, max 100 frames)
+**Videos:** MP4, WebM, MOV, MKV, M4V (max 1GB, frames extracted at 1 FPS, max 100 frames)
 
 **Dataset files:** ZIP or TAR archives including `.tar.gz` and `.tgz` (max 10GB on Free, 20GB on Pro, 50GB on Enterprise) containing images with optional [YOLO-format labels](../../datasets/detect/index.md#ultralytics-yolo-format), plus NDJSON exports
 

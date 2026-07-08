@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn about Ultralytics YOLO format for pose estimation datasets, supported formats, COCO-Pose, COCO8-Pose, Tiger-Pose, and how to add your own dataset.
-keywords: pose estimation, Ultralytics, YOLO format, COCO-Pose, COCO8-Pose, Tiger-Pose, dataset conversion, keypoints
+description: Learn the Ultralytics YOLO format for pose estimation datasets — COCO-Pose, COCO8-Pose, Dog-Pose, Hand Keypoints, Tiger-Pose — and how to add your own.
+keywords: pose estimation, Ultralytics, YOLO format, COCO-Pose, COCO8-Pose, Dog-Pose, Hand Keypoints, Tiger-Pose, dataset conversion, keypoints
 title: Pose Estimation Datasets
 ---
 
@@ -82,27 +82,27 @@ This section outlines the datasets that are compatible with Ultralytics YOLO for
 
 ### COCO-Pose
 
-- **Description**: COCO-Pose is a large-scale [object detection](https://www.ultralytics.com/glossary/object-detection), segmentation, and pose estimation dataset. It is a subset of the popular COCO dataset and focuses on human pose estimation. COCO-Pose includes multiple keypoints for each human instance.
+- **Description**: COCO-Pose is a large-scale pose estimation dataset. It is a subset of the popular COCO dataset and focuses on human pose estimation. COCO-Pose includes multiple keypoints for each human instance.
 - **Label Format**: Same as Ultralytics YOLO format as described above, with keypoints for human poses.
 - **Number of Classes**: 1 (Human).
 - **Keypoints**: 17 keypoints including nose, eyes, ears, shoulders, elbows, wrists, hips, knees, and ankles.
 - **Usage**: Suitable for training human pose estimation models.
-- **Additional Notes**: The dataset is rich and diverse, containing over 200k labeled images.
+- **Additional Notes**: The dataset builds on the [COCO Keypoints 2017](http://presentations.cocodataset.org/COCO17-Keypoints-Overview.pdf) challenge: 58,945 images annotated with 156,165 people.
 - [Read more about COCO-Pose](coco.md)
 
 ### COCO8-Pose
 
-- **Description**: [Ultralytics](https://www.ultralytics.com/) COCO8-Pose is a small, but versatile pose detection dataset composed of the first 8 images of the COCO train 2017 set, 4 for training and 4 for validation.
+- **Description**: [Ultralytics](https://www.ultralytics.com/) COCO8-Pose is a small, but versatile pose estimation dataset composed of the first 8 images of the COCO train 2017 set, 4 for training and 4 for validation.
 - **Label Format**: Same as Ultralytics YOLO format as described above, with keypoints for human poses.
 - **Number of Classes**: 1 (Human).
 - **Keypoints**: 17 keypoints including nose, eyes, ears, shoulders, elbows, wrists, hips, knees, and ankles.
-- **Usage**: Suitable for testing and debugging object detection models, or for experimenting with new detection approaches.
+- **Usage**: Suitable for testing and debugging pose estimation models, or for experimenting with new keypoint-detection approaches.
 - **Additional Notes**: COCO8-Pose is ideal for sanity checks and [CI checks](../../help/CI.md).
 - [Read more about COCO8-Pose](coco8-pose.md)
 
 ### Dog-Pose
 
-- **Description**: The Dog Pose dataset contains 6,773 training and 1,703 test images, providing a diverse and extensive resource for canine keypoint estimation.
+- **Description**: The Dog Pose dataset contains 6,773 training and 1,703 validation images, providing a diverse and extensive resource for canine keypoint estimation.
 - **Label Format**: Follows the Ultralytics YOLO format, with annotations for multiple keypoints specific to dog anatomy.
 - **Number of Classes**: 1 (Dog).
 - **Keypoints**: Includes 24 keypoints tailored to dog poses, such as limbs, joints, and head positions.

@@ -89,6 +89,17 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         self.prompts = prompts.half() if self.model.fp16 else prompts.float()
         return img
 
+    def pre_transform_tensor(self, im: torch.Tensor) -> torch.Tensor:
+        """Reject raw-tensor sources, which are unsupported for visual prompt prediction.
+
+        Args:
+            im (torch.Tensor): Normalized input tensor of shape (B, C, H, W) at original resolution.
+
+        Raises:
+            NotImplementedError: Always, since visual prompt prediction does not support raw-tensor preprocessing.
+        """
+        raise NotImplementedError("'preprocess_tensor=True' is not supported for YOLOE visual prompt prediction.")
+
     def _process_single_image(self, dst_shape, src_shape, category, bboxes=None, masks=None):
         """Process a single image by resizing bounding boxes or masks and generating visuals.
 

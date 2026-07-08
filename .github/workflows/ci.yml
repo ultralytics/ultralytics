@@ -110,7 +110,7 @@ jobs:
       - name: Benchmark SemanticSegmentationModel
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-sem.pt' imgsz=160 verbose=0.189
-      # Depth benchmark enabled once yolo26n-depth.pt is published to GitHub assets
+      # continue-on-error until depth benchmark floors are validated across all export formats
       - name: Benchmark DepthModel
         continue-on-error: true
         shell: bash
@@ -532,7 +532,7 @@ jobs:
         run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n-obb.pt' imgsz=160 verbose=0.371
       - name: Benchmark SemanticSegmentationModel
         run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n-sem.pt' imgsz=160 verbose=0.189
-      # Depth benchmark enabled once yolo26n-depth.pt is published to GitHub assets
+      # continue-on-error until depth benchmark floors are validated across all export formats
       - name: Benchmark DepthModel
         continue-on-error: true
         run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n-depth.pt' imgsz=160 verbose=0.5

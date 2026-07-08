@@ -1,9 +1,0 @@
-# mega_v9: mega_v8 (779K) + ImageNet_RGBD_DepthAnything pseudo-depth (1.28M) = ~2.06M
-# ImageNet pseudo-depth from DA ViT-L, stored as float32 [0,10] meters (uint8/255*10)
-path: mega_v9  # dataset root dir (relative to Ultralytics settings 'datasets_dir')
-train: images/train
-val: images/val
-nc: 1
-names:
-  0: depth
-channels: 3

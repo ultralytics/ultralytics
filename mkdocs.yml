@@ -764,6 +764,12 @@ nav:
                   - predict: reference/models/yolo/classify/predict.md
                   - train: reference/models/yolo/classify/train.md
                   - val: reference/models/yolo/classify/val.md
+              - depth:
+                  - __init__: reference/models/yolo/depth/__init__.md
+                  - calibrate: reference/models/yolo/depth/calibrate.md
+                  - predict: reference/models/yolo/depth/predict.md
+                  - train: reference/models/yolo/depth/train.md
+                  - val: reference/models/yolo/depth/val.md
               - detect:
                   - predict: reference/models/yolo/detect/predict.md
                   - train: reference/models/yolo/detect/train.md

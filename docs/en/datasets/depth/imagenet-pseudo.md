@@ -31,7 +31,7 @@ Because ImageNet ships without depth annotations, depth targets are produced off
 2. The teacher prediction is saved as a `.npy` float32 array in meters, following the [Ultralytics depth dataset format](index.md), and paired with its source image by file stem.
 3. The pseudo-labeled pairs are then added as one component of a larger training mix, where a student YOLO26-Depth model learns to match the teacher while also training on real ground-truth sources.
 
-This pseudo-labeled source is a component of the combined `depth-mega-v11.yaml` mixed-training configuration and is not distributed as a standalone download.
+This pseudo-labeled source is a component of the internal mixed-training configuration used to pretrain the released YOLO26-Depth weights and is not distributed as a standalone download.
 
 ## Role in YOLO26-Depth
 
@@ -39,7 +39,7 @@ This source contributes the bulk of the YOLO26-Depth pretraining data and the wi
 
 ## Usage
 
-The pseudo-labeled ImageNet data is not trained on in isolation; it is consumed as one component of a combined depth mix. The mega-mix YAML is an internal/experiment configuration rather than a public dataset download. Conceptually, training on the combined mix looks like the following:
+The pseudo-labeled ImageNet data is not trained on in isolation; it is consumed as one component of a combined depth mix, defined by an internal/experiment YAML rather than a public dataset download. Conceptually, training on such a mix looks like the following:
 
 !!! example "Train Example"
 
@@ -51,15 +51,15 @@ The pseudo-labeled ImageNet data is not trained on in isolation; it is consumed 
         # Load a pretrained depth model
         model = YOLO("yolo26n-depth.pt")
 
-        # Train on the combined depth mix (internal/experiment configuration)
-        results = model.train(data="depth-mega-v11.yaml", epochs=100, imgsz=640)
+        # Train on a combined depth mix (your own multi-source dataset YAML)
+        results = model.train(data="depth-mix.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"
 
         ```bash
-        # Train on the combined depth mix (internal/experiment configuration)
-        yolo depth train data=depth-mega-v11.yaml model=yolo26n-depth.pt epochs=100 imgsz=640
+        # Train on a combined depth mix (your own multi-source dataset YAML)
+        yolo depth train data=depth-mix.yaml model=yolo26n-depth.pt epochs=100 imgsz=640
         ```
 
 ## Pretrained Models

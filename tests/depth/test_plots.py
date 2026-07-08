@@ -192,7 +192,8 @@ def test_final_eval_plots_only_representative_checkpoint(tmp_path, monkeypatch):
     calls = []
     monkeypatch.setattr(yolo.detect.DetectionTrainer, "final_eval", lambda self: None)  # skip real eval
     monkeypatch.setattr(
-        calibrate, "calibrate_checkpoint",
+        calibrate,
+        "calibrate_checkpoint",
         lambda ckpt, dl, dev, dist_power=0.0, plot_dir=None: calls.append((ckpt.name, plot_dir)),
     )
     t = DepthTrainer.__new__(DepthTrainer)  # skip __init__ (needs data/model); final_eval uses only these attrs

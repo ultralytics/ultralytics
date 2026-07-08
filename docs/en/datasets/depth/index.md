@@ -101,7 +101,7 @@ The YOLO26 depth models are pretrained on a broad multi-dataset mix (~2.2M image
 - [Make3D](make3d.md) — outdoor, out-of-distribution
 - [iBims-1](ibims-1.md) — high-quality indoor (edges and planar surfaces)
 
-Per-model accuracy on these benchmarks and the downloadable pretrained weights are listed on the [Depth Estimation task page](../../tasks/depth.md#models). Mixed-training YAMLs (e.g., `depth-mega-v11.yaml`) combine these sources for large-scale training.
+Per-model accuracy on these benchmarks and the downloadable pretrained weights are listed on the [Depth Estimation task page](../../tasks/depth.md#models). A dataset YAML whose `train` field lists multiple image directories combines these sources for large-scale mixed training.
 
 ## Adding Your Own Dataset
 

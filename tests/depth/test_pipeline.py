@@ -47,11 +47,11 @@ def test_depth_dataset_load_resize_does_not_blend_sparse_gt(tmp_path):
     import numpy as np
 
     depth = np.zeros((8, 8), dtype=np.float32)
-    depth[2:4, 2:4] = 10.0                      # sparse valid block on a zero (invalid) background
+    depth[2:4, 2:4] = 10.0  # sparse valid block on a zero (invalid) background
     npy = tmp_path / "d.npy"
     np.save(npy, depth)
 
-    ds = DepthDataset.__new__(DepthDataset)     # bypass __init__
+    ds = DepthDataset.__new__(DepthDataset)  # bypass __init__
     ds._depth_stack = None
     ds.labels = [{"im_file": "x.png"}]
     ds._depth_path_for = lambda f: str(npy)
@@ -61,7 +61,7 @@ def test_depth_dataset_load_resize_does_not_blend_sparse_gt(tmp_path):
         out = ds.get_image_and_label(0)
 
     d = out["depth"]
-    blended = ((d > 1e-6) & (d < 9.0)).sum()    # values between background(0) and valid(10)
+    blended = ((d > 1e-6) & (d < 9.0)).sum()  # values between background(0) and valid(10)
     assert blended == 0, f"{blended} spurious blended depth pixels from interpolation at load"
 
 
@@ -78,7 +78,7 @@ def test_depth_val_transforms_have_no_augmentation():
     assert "RandomPerspective" not in names
     assert "DepthRandomFlip" not in names
     assert "DepthColorJitter" not in names
-    assert "DepthFormat" in names               # still formats img/depth to tensors
+    assert "DepthFormat" in names  # still formats img/depth to tensors
 
 
 def test_depth_train_transforms_include_augmentation():

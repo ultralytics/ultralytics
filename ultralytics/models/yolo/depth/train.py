@@ -18,7 +18,7 @@ class DepthTrainer(yolo.detect.DetectionTrainer):
 
     Examples:
         >>> from ultralytics.models.yolo.depth import DepthTrainer
-        >>> args = dict(model="yolo26s-depth.yaml", data="depth-mixed.yaml", epochs=100)
+        >>> args = dict(model="yolo26s-depth.yaml", data="nyu-depth.yaml", epochs=100)
         >>> trainer = DepthTrainer(overrides=args)
         >>> trainer.train()
     """
@@ -38,7 +38,9 @@ class DepthTrainer(yolo.detect.DetectionTrainer):
         GT beyond the head's range is otherwise unrepresentable. The value persists in saved
         checkpoints, so fine-tuned models predict in the new range at inference.
         """
-        model = DepthModel(cfg, ch=self.data.get("channels", 3), nc=self.data["nc"], verbose=verbose and RANK in {-1, 0})
+        model = DepthModel(
+            cfg, ch=self.data.get("channels", 3), nc=self.data["nc"], verbose=verbose and RANK in {-1, 0}
+        )
         if weights:
             model.load(weights)
         max_depth = self.data.get("max_depth")
@@ -70,31 +72,13 @@ class DepthTrainer(yolo.detect.DetectionTrainer):
     def plot_training_samples(self, batch, ni):
         """Plot training samples as RGB | GT-depth panels (consistent with val_batch plots).
 
-        The inherited DetectionTrainer version routes the batch through ``plot_images``, which
-        blends the depth colormap over the RGB at alpha=0.6 — a confusing "RGB+depth" tint.
-        Render side-by-side instead. Batch is already preprocessed here (img in [0,1]).
+        The inherited DetectionTrainer version routes the batch through ``plot_images``, which has
+        no depth rendering. Batch is already preprocessed here (img in [0,1]).
         """
         try:
-            import cv2
-            import numpy as np
+            from .val import plot_depth_panels
 
-            from .val import DepthValidator
-
-            imgs, gt = batch["img"], batch["depth"]
-            if gt.ndim == 3:
-                gt = gt.unsqueeze(1)
-            h, w = imgs.shape[-2:]
-            rows = []
-            for i in range(min(imgs.shape[0], 8)):
-                rgb = (imgs[i].detach().float().cpu().clamp(0, 1).numpy() * 255).astype(np.uint8).transpose(1, 2, 0)
-                rgb = cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
-                g = gt[i, 0]
-                gv = g[g > 0]
-                vmin = float(gv.min()) if gv.numel() else 0.0
-                vmax = float(gv.max()) if gv.numel() else 1.0
-                gc = cv2.resize(DepthValidator._colorize_depth(g, vmin, vmax), (w, h), interpolation=cv2.INTER_NEAREST)
-                rows.append(np.hstack([rgb, gc]))
-            cv2.imwrite(str(self.save_dir / f"train_batch{ni}.jpg"), np.vstack(rows))
+            plot_depth_panels(batch["img"], batch["depth"], [], self.save_dir / f"train_batch{ni}.jpg", max_images=8)
         except Exception as e:
             LOGGER.warning(f"DepthTrainer: failed to plot train_batch{ni}: {e}")
 
@@ -160,7 +144,13 @@ class DepthTrainer(yolo.detect.DetectionTrainer):
         ax.legend(loc="upper right", frameon=False)
         stats = f"images: {sample_size}\nmin: {vmin:.2f} m\nmax: {values.max():.2f} m\nstd: {std:.2f} m"
         ax.text(
-            0.98, 0.7, stats, transform=ax.transAxes, ha="right", va="top", fontsize=9,
+            0.98,
+            0.7,
+            stats,
+            transform=ax.transAxes,
+            ha="right",
+            va="top",
+            fontsize=9,
             bbox=dict(boxstyle="round", facecolor="white", alpha=0.6, edgecolor="none"),
         )
         for spine in ax.spines.values():

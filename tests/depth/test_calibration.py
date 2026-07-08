@@ -7,7 +7,6 @@ import torch
 
 from ultralytics.models.yolo.depth.calibrate import (
     _depth_head,
-    fit_calibration,
     fit_calibration_selective,
     lstsq_affine,
     select_calibration,
@@ -56,26 +55,11 @@ def test_calibration_applied_in_forward():
     assert torch.allclose(cal, raw.pow(a) * math.exp(b), rtol=1e-4, atol=1e-5)
 
 
-def test_fit_calibration_sets_buffers():
-    """fit_calibration returns (a, b), writes them into the head, and is finite."""
-    model = DepthModel("yolo26n-depth.yaml", verbose=False)
-    batches = [
-        {"img": (torch.rand(2, 3, 64, 64) * 255).to(torch.uint8), "depth": torch.rand(2, 64, 64) * 5 + 0.5}
-        for _ in range(2)
-    ]
-    res = fit_calibration(model, batches, device="cpu", max_images=4)
-    assert res is not None
-    a, b = res
-    assert math.isfinite(a) and math.isfinite(b)
-    head = model.model[-1]
-    assert abs(float(head.cal_a) - a) < 1e-4 and abs(float(head.cal_b) - b) < 1e-4
-
-
-def test_fit_calibration_no_valid_pixels_returns_none():
-    """All-invalid ground truth → no fit; buffers restored to identity."""
+def test_fit_calibration_selective_no_valid_pixels_returns_none():
+    """All-invalid ground truth → no fit; buffers left at identity."""
     model = DepthModel("yolo26n-depth.yaml", verbose=False)
     batches = [{"img": (torch.rand(1, 3, 64, 64) * 255).to(torch.uint8), "depth": torch.zeros(1, 64, 64)}]
-    res = fit_calibration(model, batches, device="cpu", max_images=2)
+    res = fit_calibration_selective(model, batches, device="cpu", max_images=2)
     assert res is None
     head = model.model[-1]
     assert float(head.cal_a) == 1.0 and float(head.cal_b) == 0.0

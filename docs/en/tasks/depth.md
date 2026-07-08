@@ -338,12 +338,14 @@ Check the [Configuration](../usage/cfg.md) page for more available arguments.
 
 ### What metrics does YOLO26 depth estimation report?
 
-Depth estimation validation reports the standard Depth Anything metric set:
+Depth estimation validation reports the metric set used by Depth Anything and related monocular-depth work:
 
 - **delta1 / delta2 / delta3** — percentage of pixels where the ratio of predicted to ground-truth depth (or its inverse) is below 1.25, 1.25², and 1.25³ respectively. Higher is better.
 - **abs_rel** — mean absolute relative error. Lower is better.
 - **rmse** — root mean squared error in meters. Lower is better.
 - **silog** — scale-invariant logarithmic error. Lower is better.
+
+Each prediction is median-aligned to its ground truth per image, and the statistics are then pooled over every valid pixel of the validation set (images with more valid depth pixels weigh proportionally more). Papers that instead average per-image metrics can report slightly different values on the same predictions.
 
 ### What is the depth map output format?
 

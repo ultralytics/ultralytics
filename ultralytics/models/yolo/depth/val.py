@@ -9,8 +9,9 @@ import torch
 import torch.nn.functional as F
 
 from ultralytics.models.yolo.detect import DetectionValidator
-from ultralytics.utils import LOGGER, RANK
+from ultralytics.utils import LOGGER
 from ultralytics.utils.metrics import DepthMetrics
+from ultralytics.utils.plotting import colorize_depth
 
 
 class DepthValidator(DetectionValidator):
@@ -27,18 +28,15 @@ class DepthValidator(DetectionValidator):
         # Scale-only calibration: when enabled (by Model.calibrate), collect (log pred, log gt)
         # pairs during the val pass and fit the global log-affine in get_stats().
         self.calibrating = False
-        self.calib = None
-        self._cal_logp, self._cal_logg, self._cal_pts = [], [], 0
-        self._cal_ab = None
 
     def init_metrics(self, model):
-        """Initialize the DepthMetrics accumulator and reset per-pass calibration state."""
+        """Initialize the DepthMetrics accumulator and reset per-pass calibration state.
+
+        The calibrating flag is not reset here: Model.calibrate() sets it after construction,
+        before the val pass runs.
+        """
         self.metrics = DepthMetrics()
         self.metrics.clear_stats()
-        # Reset calibration accumulators for this val pass. These also live here (not only in
-        # __init__) so the validator works when constructed via __new__ (e.g. unit tests). The
-        # calibrating flag is set externally by Model.calibrate() before the pass, so preserve it.
-        self.calibrating = getattr(self, "calibrating", False)
         self.calib = None
         self._cal_logp, self._cal_logg, self._cal_pts = [], [], 0
         # Baked calibration of the model under validation, for the standalone-val comparison plot
@@ -83,7 +81,9 @@ class DepthValidator(DetectionValidator):
         if pred_depth.ndim == 3:
             pred_depth = pred_depth.unsqueeze(1)
         if pred_depth.shape[-2:] != gt_depth.shape[-2:]:
-            pred_depth = F.interpolate(pred_depth.float(), size=gt_depth.shape[-2:], mode="bilinear", align_corners=True)
+            pred_depth = F.interpolate(
+                pred_depth.float(), size=gt_depth.shape[-2:], mode="bilinear", align_corners=True
+            )
         self.metrics.update_stats(pred_depth, gt_depth)
 
         if self.calibrating and self._cal_pts < 500_000:
@@ -99,17 +99,20 @@ class DepthValidator(DetectionValidator):
                 self._cal_pts += lp.size
 
     def get_stats(self):
-        """Reduce across ranks, finalize, and return the metrics dict.
+        """Finalize and return the metrics dict.
+
+        No cross-rank reduction happens here: DDP training validates on rank 0 alone, so a
+        collective would deadlock waiting for ranks that never enter validation.
 
         If calibration was enabled, fit the global log-affine ``(a, b)`` from the collected pairs.
         """
-        self.metrics.reduce_ddp()
         self.metrics.process()
         if self.calibrating and self._cal_logp:
             from .calibrate import lstsq_affine
 
             self.calib = lstsq_affine(
-                np.concatenate(self._cal_logp), np.concatenate(self._cal_logg),
+                np.concatenate(self._cal_logp),
+                np.concatenate(self._cal_logg),
                 dist_power=self.args.cal_dist_pw,
             )
             LOGGER.info(f"Depth calibration fit on {self._cal_pts} pixels: a={self.calib[0]:.4f} b={self.calib[1]:.4f}")
@@ -118,9 +121,9 @@ class DepthValidator(DetectionValidator):
     def gather_stats(self) -> None:
         """No-op DDP gather for depth validation.
 
-        Depth metrics are reduced across ranks in DepthMetrics.reduce_ddp(); no per-stat gather needed.
-        DetectionValidator.gather_stats() accesses self.metrics.stats and self.metrics.box which do not
-        exist on DepthMetrics, so we override here to prevent AttributeError on multi-GPU val runs.
+        Validation runs on rank 0 only over the full val set, so the accumulators are already
+        complete. DetectionValidator.gather_stats() accesses self.metrics.stats and self.metrics.box
+        which do not exist on DepthMetrics, so we override here to prevent AttributeError.
         """
         pass
 
@@ -153,18 +156,6 @@ class DepthValidator(DetectionValidator):
         """Return description for progress bar."""
         return f"{'Class':>22}{'Images':>11}{'delta1':>11}{'abs_rel':>11}{'rmse':>11}{'silog':>11}"
 
-    @staticmethod
-    def _colorize_depth(depth, vmin: float, vmax: float):
-        """Map a (H,W) metric-depth map to a BGR uint8 image (INFERNO), invalid pixels black."""
-        d = depth.detach().float().cpu().numpy() if isinstance(depth, torch.Tensor) else np.asarray(depth, np.float32)
-        valid = d > 0
-        if vmax <= vmin:
-            vmax = vmin + 1e-6
-        dn = np.clip((d - vmin) / (vmax - vmin), 0.0, 1.0)
-        color = cv2.applyColorMap((dn * 255).astype(np.uint8), cv2.COLORMAP_INFERNO)  # BGR
-        color[~valid] = 0
-        return color
-
     def plot_predictions(self, batch, preds, ni, max_images: int = 4):
         """Save a RGB | GT depth | predicted depth panel for the batch to val_batch{ni}.jpg.
 
@@ -183,8 +174,11 @@ class DepthValidator(DetectionValidator):
         try:
             pred = self._extract_pred(preds)
             plot_depth_panels(
-                batch["img"], batch["depth"], [pred],
-                self.save_dir / f"val_batch{ni}.jpg", max_images=max_images,
+                batch["img"],
+                batch["depth"],
+                [pred],
+                self.save_dir / f"val_batch{ni}.jpg",
+                max_images=max_images,
             )
             cal = getattr(self, "_cal_ab", None)
             if cal is not None and not getattr(self, "training", True):
@@ -192,7 +186,9 @@ class DepthValidator(DetectionValidator):
                 raw = torch.exp((torch.log(pred.float().clamp(min=1e-3)) - b) / a)
                 name = "identity" if (a, b) == (1.0, 0.0) else "baked"
                 plot_depth_panels(
-                    batch["img"], batch["depth"], [raw, pred],
+                    batch["img"],
+                    batch["depth"],
+                    [raw, pred],
                     self.save_dir / f"val_batch{ni}_calibrated.jpg",
                     titles=["RGB", "GT", "raw", f"calibrated ({name} x{np.exp(b):.2f})"],
                     max_images=max_images,
@@ -234,7 +230,8 @@ def plot_depth_panels(imgs, gt, preds, fname, titles=None, max_images: int = 4):
         vmin = float(gv.min()) if gv.numel() else 0.0
         vmax = float(gv.max()) if gv.numel() else 1.0
         for d in [g] + [p[i, 0] for p in preds]:
-            panels.append(cv2.resize(DepthValidator._colorize_depth(d, vmin, vmax), (w, h), interpolation=cv2.INTER_NEAREST))
+            d = d.detach().float().cpu().numpy() if isinstance(d, torch.Tensor) else np.asarray(d, np.float32)
+            panels.append(cv2.resize(colorize_depth(d, vmin, vmax), (w, h), interpolation=cv2.INTER_NEAREST))
         rows.append(np.hstack(panels))
     grid = np.vstack(rows)
     if titles:

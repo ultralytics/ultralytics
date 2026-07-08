@@ -184,6 +184,31 @@ class Colors:
 colors = Colors()  # create instance for 'from utils.plots import colors'
 
 
+def colorize_depth(depth: np.ndarray, vmin: float | None = None, vmax: float | None = None) -> np.ndarray:
+    """Map a (H, W) metric-depth array to a BGR uint8 INFERNO image, invalid (<= 0) pixels black.
+
+    Args:
+        depth (np.ndarray): (H, W) depth in meters.
+        vmin (float, optional): Lower bound of the color range; defaults to the valid-pixel minimum.
+        vmax (float, optional): Upper bound of the color range; defaults to the valid-pixel maximum.
+
+    Returns:
+        (np.ndarray): (H, W, 3) BGR uint8 colorized depth.
+    """
+    d = np.asarray(depth, dtype=np.float32)
+    valid = d > 0
+    if vmin is None:
+        vmin = float(d[valid].min()) if valid.any() else 0.0
+    if vmax is None:
+        vmax = float(d[valid].max()) if valid.any() else 1.0
+    if vmax <= vmin:
+        vmax = vmin + 1e-6
+    dn = np.clip((d - vmin) / (vmax - vmin), 0.0, 1.0)
+    color = cv2.applyColorMap((dn * 255).astype(np.uint8), cv2.COLORMAP_INFERNO)  # BGR
+    color[~valid] = 0
+    return color
+
+
 class Annotator:
     """Ultralytics Annotator for train/val mosaics and JPGs and predictions annotations.
 
@@ -461,14 +486,7 @@ class Annotator:
         """
         if self.pil:
             self.im = np.asarray(self.im).copy()
-        d = np.asarray(depth, dtype=np.float32)
-        valid = d > 0
-        if valid.any():
-            lo, hi = float(d[valid].min()), float(d[valid].max())
-            norm = np.clip((d - lo) / (hi - lo + 1e-8), 0, 1)
-        else:
-            norm = np.zeros_like(d)
-        heat = cv2.applyColorMap((norm * 255).astype(np.uint8), cv2.COLORMAP_INFERNO)
+        heat = colorize_depth(depth)
         if heat.shape[:2] != self.im.shape[:2]:
             heat = cv2.resize(heat, (self.im.shape[1], self.im.shape[0]))
         self.im = np.hstack([self.im, heat]) if side_by_side else cv2.addWeighted(self.im, 1 - alpha, heat, alpha, 0)
@@ -783,7 +801,7 @@ def plot_images(
         - 3 channels: Used as-is (standard RGB)
         - 4+ channels: Cropped to first 3 channels
     """
-    for k in {"cls", "bboxes", "conf", "masks", "keypoints", "batch_idx", "images", "semantic_mask", "depth"}:
+    for k in {"cls", "bboxes", "conf", "masks", "keypoints", "batch_idx", "images", "semantic_mask"}:
         if k not in labels:
             continue
         if k == "cls" and labels[k].ndim == 2:
@@ -798,9 +816,6 @@ def plot_images(
     masks = labels.get("masks", np.zeros(0, dtype=np.uint8))
     kpts = labels.get("keypoints", np.zeros(0, dtype=np.float32))
     semantic_masks = labels.get("semantic_mask", np.zeros(0, dtype=np.int64))
-    depths = labels.get("depth", np.zeros(0))
-    if hasattr(depths, "cpu"):
-        depths = depths.cpu().float().numpy()
     images = labels.get("img", images)  # default to input images
 
     if len(images) and isinstance(images, torch.Tensor):
@@ -933,15 +948,6 @@ def plot_images(
             im[y : y + h, x : x + w] = sub_annotator.im
             annotator.fromarray(im)
 
-        # Plot depth maps
-        if len(depths) and i < len(depths):
-            dm = depths[i]
-            dm = dm[0] if getattr(dm, "ndim", 2) == 3 else dm
-            im = np.asarray(annotator.im).copy()
-            sub_annotator = Annotator(np.ascontiguousarray(im[y : y + h, x : x + w]), line_width=1, pil=False)
-            sub_annotator.depth_map(dm, alpha=0.6)
-            im[y : y + h, x : x + w] = sub_annotator.im
-            annotator.fromarray(im)
     if not save:
         return np.asarray(annotator.im)
     annotator.im.save(fname)  # save

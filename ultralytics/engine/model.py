@@ -648,6 +648,7 @@ class Model(torch.nn.Module):
         head = _depth_head(self.model)
         if head is None:
             raise ValueError("Model has no Depth head with calibration buffers (cal_a/cal_b).")
+        a0, b0 = float(head.cal_a), float(head.cal_b)
         head.cal_a.fill_(1.0)  # fit on the raw, un-calibrated output
         head.cal_b.fill_(0.0)
 
@@ -658,7 +659,9 @@ class Model(torch.nn.Module):
         validator.calibrating = True
         validator(model=self.model)
         if validator.calib is None:
-            LOGGER.warning("calibrate(): no valid depth pixels found; model left uncalibrated.")
+            head.cal_a.fill_(a0)
+            head.cal_b.fill_(b0)  # restore whatever calibration the model had
+            LOGGER.warning("calibrate(): no valid depth pixels found; existing calibration kept.")
             return None
         a, b = validator.calib
         head.cal_a.fill_(a)

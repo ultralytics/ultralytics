@@ -2602,6 +2602,7 @@ class LoadVisualPrompt(BaseTransform):
             visuals[idx] = torch.logical_or(visuals[idx], mask)
         return visuals
 
+
 class RandomLoadText(BaseTransform):
     """Randomly sample positive and negative texts and update class indices accordingly.
 
@@ -3050,6 +3051,9 @@ class DepthFormat:
             img = np.ascontiguousarray(img.transpose(2, 0, 1)[::-1])  # HWC→CHW, BGR→RGB
             labels["img"] = torch.from_numpy(img)
 
+        # Depth has no box/class targets; drop the detection keys so collate needs no special-casing
+        labels.pop("cls", None)
+        labels.pop("instances", None)
         return labels
 
 

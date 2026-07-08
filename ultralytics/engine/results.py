@@ -705,6 +705,10 @@ class Results(SimpleClass, DataExportMixin):
         if boxes:
             counts = boxes.cls.int().bincount()
             return "".join(f"{n} {self.names[i]}{'s' * (n > 1)}, " for i, n in enumerate(counts) if n > 0)
+        if self.depth is not None:
+            d = self.depth.data
+            d = d[d > 0]
+            return f"depth {d.min():.2f}-{d.max():.2f}m, " if len(d) else "depth (no valid pixels), "
         if self.semantic_mask is not None:
             return ""
 

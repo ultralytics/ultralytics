@@ -364,7 +364,11 @@ def test_track_stream(model, tmp_path):
 
     Note imgsz=160 required for tracking for higher confidence and better matches.
     """
-    if model in {"yolo26n-cls.pt", "yolo26n-sem.pt", "yolo26n-depth.pt"}:  # classification, semantic, and depth not supported
+    if model in {
+        "yolo26n-cls.pt",
+        "yolo26n-sem.pt",
+        "yolo26n-depth.pt",
+    }:  # classification, semantic, and depth not supported
         return
     from ultralytics.trackers.track import TRACKER_MAP
 

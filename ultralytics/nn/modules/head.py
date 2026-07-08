@@ -794,13 +794,11 @@ class Depth(nn.Module):
     Examples:
         >>> depth = Depth(ch=(256, 512, 1024))
         >>> x = [torch.randn(1, 256, 80, 80), torch.randn(1, 512, 40, 40), torch.randn(1, 1024, 20, 20)]
-        >>> out = depth(x)  # (1, 1, 160, 160) if training
+        >>> out = depth(x)  # training: {"depth": (1, 1, 160, 160)} at P2 resolution (input/4)
     """
 
     export = False  # export mode
     format = None  # export format
-    input_hw = None  # (H, W) of model input, set by exporter for full-res upsample
-    mode = "sigmoid"  # class default so pre-`mode` pickled checkpoints keep working
 
     def __init__(self, c_mid: int = 256, mode: str = "log", ch: tuple = ()):
         """Initialize Depth head.
@@ -819,10 +817,8 @@ class Depth(nn.Module):
         # Project each pyramid level to c_mid channels
         self.proj = nn.ModuleList(Conv(c, c_mid, k=1) for c in ch)
 
-        # Refinement blocks after fusion at each level
-        self.refine = nn.ModuleList(
-            nn.Sequential(Conv(c_mid, c_mid, k=3), Conv(c_mid, c_mid, k=3)) for _ in ch
-        )
+        # Refinement blocks after each of the nl-1 fusion steps (the coarsest level is not refined)
+        self.refine = nn.ModuleList(nn.Sequential(Conv(c_mid, c_mid, k=3), Conv(c_mid, c_mid, k=3)) for _ in ch[:-1])
 
         # Output head: features → 1-channel depth (or log-depth)
         layers = [
@@ -883,9 +879,10 @@ class Depth(nn.Module):
 
         if self.training:
             return {"depth": depth}
-        # align_corners=False matches SemanticSegment export convention
-        if self.export and self.format != "coreml" and self.input_hw is not None:
-            depth = F.interpolate(depth, size=self.input_hw, mode="bilinear", align_corners=False)
+        # Upsample P2-resolution output to the input size. scale_factor (not a fixed size) keeps the
+        # exported graph valid for dynamic input shapes; align_corners=False matches SemanticSegment.
+        if self.export and self.format != "coreml":
+            depth = F.interpolate(depth, scale_factor=4.0, mode="bilinear", align_corners=False)
         return depth
 
 

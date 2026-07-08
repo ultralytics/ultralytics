@@ -1245,7 +1245,9 @@ class v8DepthLoss:
         if self.max_depth is not None:
             valid &= gt_depth <= self.max_depth
         if valid.sum() < 10:
-            return loss.sum(), loss.detach()
+            # Zero loss for GT-less batches, kept attached to the graph: BaseTrainer calls
+            # backward() unconditionally and a plain zeros tensor has no grad_fn.
+            return pred_depth.sum() * 0.0, loss.detach()
 
         pred_valid = pred_depth[valid]
         gt_valid = gt_depth[valid]
@@ -1275,12 +1277,18 @@ class v8DepthLoss:
         # Trim the largest-residual pixels before reducing: presumed-noisy labels (transparent/
         # reflective surfaces, sparse-LiDAR bleed, sky) otherwise dominate the scale-invariant fit.
         if self.trim_pct > 0 and log_diff.numel() > 1:
-            keep = log_diff.abs() <= torch.quantile(log_diff.abs(), 1.0 - self.trim_pct)
+            # kthvalue, not torch.quantile: quantile hard-fails above 2^24 elements, which dense GT
+            # reaches from batch≈41 at 640x640.
+            k = max(1, round(log_diff.numel() * (1.0 - self.trim_pct)))
+            keep = log_diff.abs() <= log_diff.abs().kthvalue(k).values
             log_diff = log_diff[keep]
             if torch.is_tensor(w):
                 w = w[keep]
                 w = w / w.mean()  # renormalize to mean 1 over the kept set (proper weighted mean)
-        wmean = lambda x: (w * x).mean()
+
+        def wmean(x):
+            return (w * x).mean()
+
         silog = torch.sqrt(wmean(log_diff**2) - self.silog_lambda * wmean(log_diff) ** 2 + 1e-6)
         loss[0] = silog * self.silog_weight
         if self.l1_weight > 0:
@@ -1295,43 +1303,32 @@ class v8DepthLoss:
         gt_log = torch.log(gt_depth.clamp(min=0.001))
         valid_f = valid.float()
         n_scales = max(self.grad_scales, 1)
-        if self.dense_gate > 0 and n_scales > 1:
-            # Density-gated MiDaS-style pyramid: coarse levels (s>=1) apply only to dense
-            # images and carry 4**-s level weights (MiDaS L_reg), so full-res dominates and
-            # total magnitude stays within ~1.33x single-scale. Sparse images: level 0 only.
-            dense_b = (valid_f.mean(dim=(1, 2, 3)) >= self.dense_gate).float().view(-1, 1, 1, 1)
-            grad_loss = self._grad_l1(pred_log, gt_log, valid_f)  # level 0: all images
-            for s in range(1, n_scales):
-                if pred_log.shape[-1] < 4 or pred_log.shape[-2] < 4:
-                    break  # too small to pool and still differentiate
-                vp = F.avg_pool2d(valid_f, 2)
-                denom = vp.clamp(min=1e-6)
-                pred_log = F.avg_pool2d(pred_log * valid_f, 2) / denom
-                gt_log = F.avg_pool2d(gt_log * valid_f, 2) / denom
-                valid_f = (vp > 0).float()
-                # Gating by mask: sparse images' gradient pairs zero out at coarse levels.
-                grad_loss = grad_loss + (4.0 ** -s) * self._grad_l1(pred_log, gt_log, valid_f * dense_b)
-            loss[1] = grad_loss * self.grad_weight
-            batch_size = pred_depth.shape[0]
-            return loss.sum() * batch_size, loss.detach()
-        grad_loss = 0.0
-        for s in range(n_scales):
-            grad_loss = grad_loss + self._grad_l1(pred_log, gt_log, valid_f)
-            if s == n_scales - 1 or pred_log.shape[-1] < 4 or pred_log.shape[-2] < 4:
-                break  # last level, or too small to pool and still differentiate
+        # Density-gated MiDaS-style pyramid: coarse levels (s>=1) apply only to dense images and
+        # carry 4**-s level weights (MiDaS L_reg), so full-res dominates and total magnitude stays
+        # within ~1.33x single-scale. Sparse images: level 0 only. Ungated: uniform level weights
+        # with the grad_min_valid sparsity guard instead.
+        gated = self.dense_gate > 0 and n_scales > 1
+        dense_b = (valid_f.mean(dim=(1, 2, 3)) >= self.dense_gate).float().view(-1, 1, 1, 1) if gated else None
+        grad_loss = self._grad_l1(pred_log, gt_log, valid_f)  # level 0: all images, full resolution
+        for s in range(1, n_scales):
+            if pred_log.shape[-1] < 4 or pred_log.shape[-2] < 4:
+                break  # too small to pool and still differentiate
             # Masked ×2 average-pool: aggregate only valid pixels so invalid zeros never bleed
             # into valid neighbours (same rationale as never resizing sparse GT above).
             vp = F.avg_pool2d(valid_f, 2)
-            if vp.mean() < self.grad_min_valid:
+            if not gated and vp.mean() < self.grad_min_valid:
                 break  # sparsity guard: GT too sparse for reliable coarse gradients
             denom = vp.clamp(min=1e-6)
             pred_log = F.avg_pool2d(pred_log * valid_f, 2) / denom
             gt_log = F.avg_pool2d(gt_log * valid_f, 2) / denom
             valid_f = (vp > 0).float()
+            # Gated: sparse images' gradient pairs zero out at coarse levels via the dense_b mask.
+            grad_loss = grad_loss + (4.0**-s if gated else 1.0) * self._grad_l1(
+                pred_log, gt_log, valid_f * dense_b if gated else valid_f
+            )
         loss[1] = grad_loss * self.grad_weight
 
-        batch_size = pred_depth.shape[0]
-        return loss.sum() * batch_size, loss.detach()
+        return loss.sum() * pred_depth.shape[0], loss.detach()
 
 
 class E2EDetectLoss:

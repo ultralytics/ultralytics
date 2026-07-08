@@ -9,8 +9,8 @@ def test_depth_transforms_live_in_augment():
     img = np.zeros((32, 32, 3), dtype=np.uint8)
     depth = np.ones((32, 32), dtype=np.float32)
     out = DepthFormat()({"img": img, "depth": depth})
-    assert out["img"].shape == (3, 32, 32)            # CHW
-    assert tuple(out["depth"].shape) == (1, 32, 32)   # (1,H,W)
+    assert out["img"].shape == (3, 32, 32)  # CHW
+    assert tuple(out["depth"].shape) == (1, 32, 32)  # (1,H,W)
     assert out["depth"].dtype.is_floating_point
 
 
@@ -27,7 +27,7 @@ def test_depth_color_jitter_preserves_shape_and_dtype():
     depth = np.ones((16, 16), dtype=np.float32)
     out = DepthColorJitter()({"img": img, "depth": depth})
     assert out["img"].shape == (16, 16, 3) and out["img"].dtype == np.uint8
-    assert np.array_equal(out["depth"], depth)   # depth unchanged by color jitter
+    assert np.array_equal(out["depth"], depth)  # depth unchanged by color jitter
 
 
 def _sparse_depth(h, w, val=10.0):
@@ -39,10 +39,10 @@ def _sparse_depth(h, w, val=10.0):
 
 def test_depth_format_resize_does_not_blend_sparse_depth():
     """Resizing sparse depth must not create intermediate near-zero values (no bilinear blend)."""
-    img = np.zeros((32, 32, 3), dtype=np.uint8)        # forces depth resize 16->32
+    img = np.zeros((32, 32, 3), dtype=np.uint8)  # forces depth resize 16->32
     depth = _sparse_depth(16, 16, val=10.0)
     out = DepthFormat()({"img": img, "depth": depth})["depth"].numpy()
-    blended = ((out > 1e-6) & (out < 9.0)).sum()       # values between background(0) and valid(10)
+    blended = ((out > 1e-6) & (out < 9.0)).sum()  # values between background(0) and valid(10)
     assert blended == 0, f"{blended} spurious blended depth pixels from interpolation"
 
 

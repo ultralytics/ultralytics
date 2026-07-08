@@ -1898,9 +1898,9 @@ class SemanticMetrics(SimpleClass, DataExportMixin):
 class DepthMetrics(SimpleClass, DataExportMixin):
     """Monocular depth estimation metrics: delta1-3, abs_rel, rmse, silog.
 
-    Accumulates summed per-pixel statistics on-device so DDP reduction is a single
-    all-reduce over the running totals. Metrics follow the Depth Anything protocol;
-    pixels with gt <= min_depth are ignored.
+    Accumulates summed per-pixel statistics on-device, pooled over every valid pixel of the val
+    set (images with more valid pixels weigh proportionally more; this differs from protocols
+    that average per-image metrics). Pixels with gt <= min_depth are ignored.
 
     Attributes:
         names (dict): Class names mapping (unused for depth; kept for API parity).
@@ -1955,29 +1955,21 @@ class DepthMetrics(SimpleClass, DataExportMixin):
             pv = pv.clamp(self.min_depth, self.max_depth)
             thresh = torch.maximum(pv / gv, gv / pv)
             log_diff = torch.log(pv) - torch.log(gv)
-            totals = torch.stack([
-                (thresh < 1.25).sum(),
-                (thresh < 1.25 ** 2).sum(),
-                (thresh < 1.25 ** 3).sum(),
-                (torch.abs(pv - gv) / gv).sum(),
-                ((pv - gv) ** 2).sum(),
-                (log_diff ** 2).sum(),
-                log_diff.sum(),
-            ]).double()
+            totals = torch.stack(
+                [
+                    (thresh < 1.25).sum(),
+                    (thresh < 1.25**2).sum(),
+                    (thresh < 1.25**3).sum(),
+                    (torch.abs(pv - gv) / gv).sum(),
+                    ((pv - gv) ** 2).sum(),
+                    (log_diff**2).sum(),
+                    log_diff.sum(),
+                ]
+            ).double()
             if self._totals is None:
                 self._totals = torch.zeros(7, dtype=torch.float64, device=totals.device)
             self._totals += totals
             self._count += float(mask.sum())
-
-    def reduce_ddp(self) -> None:
-        """No-op: validation runs on rank 0 only over the full val set, so accumulators are
-        already complete and no cross-rank reduction is needed.
-
-        Must NOT issue a collective (e.g. all_reduce): during DDP training Ultralytics validates
-        on rank 0 alone — the other ranks never enter validation, so a collective here would
-        block rank 0 forever waiting for participants that never arrive (deadlock at epoch end).
-        """
-        return
 
     def process(self, *args, **kwargs) -> None:
         """Finalize metrics from accumulated sums."""
@@ -2006,7 +1998,14 @@ class DepthMetrics(SimpleClass, DataExportMixin):
     @property
     def keys(self):
         """Metric keys for logging."""
-        return ["metrics/delta1", "metrics/delta2", "metrics/delta3", "metrics/abs_rel", "metrics/rmse", "metrics/silog"]
+        return [
+            "metrics/delta1",
+            "metrics/delta2",
+            "metrics/delta3",
+            "metrics/abs_rel",
+            "metrics/rmse",
+            "metrics/silog",
+        ]
 
     def mean_results(self):
         """Return metric values in `keys` order."""

@@ -3,12 +3,9 @@
 
 from __future__ import annotations
 
-import torch
-
 from ultralytics.engine.predictor import BasePredictor
 from ultralytics.engine.results import Results
-from ultralytics.utils import DEFAULT_CFG
-from ultralytics.utils import ops
+from ultralytics.utils import DEFAULT_CFG, ops
 
 
 class DepthPredictor(BasePredictor):
@@ -29,29 +26,20 @@ class DepthPredictor(BasePredictor):
 
     def postprocess(self, preds, img, orig_imgs):
         """Post-process depth predictions to Results objects."""
-        # preds is the depth map tensor from model
-        if isinstance(preds, (tuple, list)):
-            depth_maps = preds[0]  # first element is depth
-        else:
-            depth_maps = preds
-
-        if not isinstance(orig_imgs, list):
-            orig_imgs = [orig_imgs]
-
+        depth_maps = preds[0] if isinstance(preds, (tuple, list)) else preds  # (B, 1, H, W)
         if depth_maps.ndim == 3:
             depth_maps = depth_maps.unsqueeze(1)  # (B, H, W) → (B, 1, H, W)
 
+        if not isinstance(orig_imgs, list):  # torch.Tensor source (B, 3, H, W)
+            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
+
         results = []
         for i, orig_img in enumerate(orig_imgs):
-            depth = depth_maps[i] if depth_maps.ndim == 4 else depth_maps
-            if depth.ndim == 2:
-                depth = depth.unsqueeze(0)  # (H, W) → (1, H, W)
-
             # Remove letterbox padding and rescale to the original image size. The model output is
             # padded to a (square) inference shape, so the padding must be cropped before resizing
             # or the depth map ends up stretched relative to the RGB image (e.g. on ONNX/TorchScript
             # exports that run at a fixed square imgsz instead of rectangular inference).
-            depth = ops.scale_masks(depth.unsqueeze(0).float(), orig_img.shape[:2])
+            depth = ops.scale_masks(depth_maps[i : i + 1].float(), orig_img.shape[:2])
             depth = depth.squeeze().cpu().numpy()
 
             results.append(

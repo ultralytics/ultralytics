@@ -116,7 +116,9 @@ def select_calibration(lp_fit, lg_fit, lp_score, lg_score, dist_power: float = 0
     return {"a": best[1], "b": best[2], "name": best[0], "scores": {s[0]: s[3] for s in scored}}
 
 
-def select_calibration_cv(pairs, dist_power: float = 0.0, margin: float = 0.0, folds: int = 2, allow_affine: bool = False):
+def select_calibration_cv(
+    pairs, dist_power: float = 0.0, margin: float = 0.0, folds: int = 2, allow_affine: bool = False
+):
     """Cross-validated "calibrate only if it helps": choose a candidate by K-fold held-out δ1.
 
     ``pairs`` is a list of per-image ``(log_pred, log_gt)`` arrays. Each candidate type is scored
@@ -143,8 +145,10 @@ def select_calibration_cv(pairs, dist_power: float = 0.0, margin: float = 0.0, f
         if not fit or not score:
             continue
         s = select_calibration(
-            np.concatenate([p[0] for p in fit]), np.concatenate([p[1] for p in fit]),
-            np.concatenate([p[0] for p in score]), np.concatenate([p[1] for p in score]),
+            np.concatenate([p[0] for p in fit]),
+            np.concatenate([p[1] for p in fit]),
+            np.concatenate([p[0] for p in score]),
+            np.concatenate([p[1] for p in score]),
             dist_power=dist_power,
         )["scores"]
         for n in names:
@@ -164,78 +168,6 @@ def select_calibration_cv(pairs, dist_power: float = 0.0, margin: float = 0.0, f
     else:
         a, b = lstsq_affine(lp, lg, dist_power=dist_power)
     return {"a": a, "b": b, "name": best, "cv_scores": cv}
-
-
-def fit_calibration(model, dataloader, device, max_images: int = 200, set_buffers: bool = True, dist_power: float = 0.0):
-    """Fit the global log-affine ``(a, b)`` so ``exp(a·log(pred) + b) ≈ gt`` over valid pixels.
-
-    Args:
-        model: A ``DepthModel`` (or DDP-wrapped) with a log/sigmoid Depth head.
-        dataloader: Yields batches with ``img`` (uint8, B×3×H×W) and ``depth`` (B×H×W meters).
-        device: Torch device to run inference on.
-        max_images: Stop after roughly this many images (calibration needs only a small set).
-        set_buffers: If True, write the fitted values into the head's ``cal_a``/``cal_b``.
-        dist_power (float): Weight each pixel by gt**dist_power in the calibration fit (0.0 = uniform).
-
-    Returns:
-        (a, b) as Python floats, or None if no Depth head / no valid pixels were found.
-    """
-    head = _depth_head(model)
-    if head is None:
-        LOGGER.warning("calibrate: no Depth head with cal buffers found; skipping.")
-        return None
-
-    # Fit on the raw (un-calibrated) output: temporarily reset to identity.
-    a0, b0 = float(head.cal_a), float(head.cal_b)
-    head.cal_a.fill_(1.0)
-    head.cal_b.fill_(0.0)
-
-    model = model.to(device).eval()
-    _rewind(dataloader)
-    logp_all, logg_all = [], []
-    seen = 0
-    rng = np.random.default_rng(0)
-    with torch.no_grad():
-        for batch in dataloader:
-            img = batch["img"].to(device).float() / 255
-            gt = batch["depth"].to(device).float()
-            if gt.ndim == 3:
-                gt = gt.unsqueeze(1)
-            pred = _extract(model(img)).float()
-            if pred.ndim == 3:
-                pred = pred.unsqueeze(1)
-            if pred.shape[-2:] != gt.shape[-2:]:
-                pred = F.interpolate(pred, size=gt.shape[-2:], mode="bilinear", align_corners=True)
-            valid = (gt > 1e-3) & (pred > 1e-3) & torch.isfinite(pred)
-            if valid.any():
-                lp = torch.log(pred[valid]).cpu().numpy()
-                lg = torch.log(gt[valid]).cpu().numpy()
-                # subsample to keep memory bounded (calibration is a 2-param fit)
-                if lp.size > 50_000:
-                    idx = rng.choice(lp.size, 50_000, replace=False)
-                    lp, lg = lp[idx], lg[idx]
-                logp_all.append(lp)
-                logg_all.append(lg)
-            seen += img.shape[0]
-            if seen >= max_images:
-                break
-
-    if not logp_all:
-        head.cal_a.fill_(a0)
-        head.cal_b.fill_(b0)  # restore
-        LOGGER.warning("calibrate: no valid depth pixels found; calibration skipped.")
-        return None
-
-    a, b = lstsq_affine(np.concatenate(logp_all), np.concatenate(logg_all), dist_power=dist_power)
-
-    if set_buffers:
-        head.cal_a.fill_(a)
-        head.cal_b.fill_(b)
-    else:
-        head.cal_a.fill_(a0)
-        head.cal_b.fill_(b0)
-    LOGGER.info(f"Depth calibration fit on {seen} images: a={a:.4f} b={b:.4f} (scale ×{np.exp(b):.3f})")
-    return a, b
 
 
 def _collect_logpairs(model, dataloader, device, max_images: int):
@@ -314,7 +246,9 @@ def fit_calibration_selective(
     return res
 
 
-def _plot_calibrated_batches(model, dataloader, device, a, b, name, plot_dir, max_batches: int = 3, max_images: int = 4):
+def _plot_calibrated_batches(
+    model, dataloader, device, a, b, name, plot_dir, max_batches: int = 3, max_images: int = 4
+):
     """Write ``val_batch{ni}_calibrated.jpg`` panels (RGB | GT | raw | calibrated) to ``plot_dir``.
 
     Runs the model with calibration buffers at identity to get the raw prediction; the calibrated
@@ -344,8 +278,12 @@ def _plot_calibrated_batches(model, dataloader, device, a, b, name, plot_dir, ma
                 raw = raw.unsqueeze(1)
             cal = torch.exp(a * torch.log(raw.clamp(min=1e-3)) + b)
             plot_depth_panels(
-                img, gt, [raw, cal], plot_dir / f"val_batch{ni}_calibrated.jpg",
-                titles=titles, max_images=max_images,
+                img,
+                gt,
+                [raw, cal],
+                plot_dir / f"val_batch{ni}_calibrated.jpg",
+                titles=titles,
+                max_images=max_images,
             )
     head.cal_a.fill_(a0)
     head.cal_b.fill_(b0)

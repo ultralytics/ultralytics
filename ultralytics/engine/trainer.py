@@ -354,19 +354,13 @@ class BaseTrainer:
         if self.world_size > 1:
             # static_graph=True permits params used >1 time per forward (e.g. flow_model in
             # o2m+o2o pose loss branches) under torch.compile.
-            ddp_kwargs = {
-                "device_ids": [self.device.index],
-                "static_graph": bool(self.args.compile),
-                "broadcast_buffers": False,
-                "find_unused_parameters": not bool(self.args.compile),
-            }
-            if self.args.task == "depth":
-                # The depth task reuses the YOLO graph but its loss only drives the depth head,
-                # so detection-head params receive no gradient. DDP rejects that unless told to
-                # expect it. (Mutually exclusive with static_graph.)
-                ddp_kwargs["find_unused_parameters"] = True
-                ddp_kwargs["static_graph"] = False
-            self.model = nn.parallel.DistributedDataParallel(self.model, **ddp_kwargs)
+            self.model = nn.parallel.DistributedDataParallel(
+                self.model,
+                device_ids=[self.device.index],
+                static_graph=bool(self.args.compile),
+                broadcast_buffers=False,
+                find_unused_parameters=not bool(self.args.compile),
+            )
 
         # Batch size
         if self.batch_size < 1 and RANK == -1:  # single-GPU only, estimate best batch size

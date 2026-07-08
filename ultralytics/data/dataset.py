@@ -11,8 +11,6 @@ from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from typing import Any
 
-import random
-
 import cv2
 import numpy as np
 import torch
@@ -84,8 +82,7 @@ class YOLODataset(BaseDataset):
 
     # Whether this task is driven by per-image bbox/cls label files under a ``labels/`` tree.
     # Tasks whose GT lives elsewhere (e.g. depth estimation, GT is a paired ``depth/*.npy`` map)
-    # set this False to (a) skip the "no labels found" / "labels missing" warnings, which are
-    # expected, and (b) skip writing a label-scan cache into a ``labels/`` dir that need not exist.
+    # set this False to skip the "no labels found" / "labels missing" warnings, which are expected.
     uses_label_files = True
 
     def __init__(self, *args, data: dict | None = None, task: str = "detect", **kwargs):
@@ -170,10 +167,14 @@ class YOLODataset(BaseDataset):
         x["hash"] = get_hash(self.label_files + self.im_files)
         x["results"] = nf, nm, ne, nc, len(self.im_files)
         x["msgs"] = msgs  # warnings
-        x["version"] = DATASET_CACHE_VERSION  # set here, not only as a save_dataset_cache_file side effect
-        if x["labels"] and self.uses_label_files:
+        if x["labels"]:
             save_dataset_cache_file(self.prefix, path, x, DATASET_CACHE_VERSION)
         return x
+
+    @property
+    def cache_path(self) -> Path:
+        """Path of the label-scan .cache file for this split (subclasses may relocate it)."""
+        return Path(self.label_files[0]).parent.with_suffix(".cache")
 
     def get_labels(self) -> list[dict]:
         """Return list of label dictionaries for YOLO training.
@@ -184,7 +185,7 @@ class YOLODataset(BaseDataset):
             (list[dict]): List of label dictionaries, each containing information about an image and its annotations.
         """
         self.label_files = img2label_paths(self.im_files)
-        cache_path = Path(self.label_files[0]).parent.with_suffix(".cache")
+        cache_path = self.cache_path
         try:
             cache, exists = load_dataset_cache_file(cache_path), True  # attempt to load a *.cache file
             assert cache["version"] == DATASET_CACHE_VERSION  # matches current version
@@ -356,9 +357,8 @@ class DepthDataset(YOLODataset):
         >>> dataset = DepthDataset(img_path="/data/nyu/images/train", data={"nc": 1}, cache="disk")
     """
 
-    # Depth GT is the paired .npy depth map, not per-image bbox/cls labels under a labels/ tree.
-    # The detection label scan therefore finds every image a "background" (expected, don't warn)
-    # and there is no labels/ dir to write a label cache into (don't try, don't warn it's missing).
+    # Depth GT is the paired .npy depth map, not per-image bbox/cls labels under a labels/ tree,
+    # so the detection label scan finds every image a "background" (expected, don't warn).
     uses_label_files = False
 
     def __init__(self, *args, **kwargs):
@@ -373,14 +373,34 @@ class DepthDataset(YOLODataset):
                 self._depth_stack = None
 
     def _depth_path_for(self, im_file: str) -> str:
-        """Map an image path to its companion depth .npy path.
+        """Map an image path to its companion depth .npy path (images/ → depth/, like img2label_paths)."""
+        sa, sb = f"{os.sep}images{os.sep}", f"{os.sep}depth{os.sep}"
+        return str(Path(sb.join(im_file.rsplit(sa, 1))).with_suffix(".npy"))
 
-        Note: matches the legacy substring rewrite which uses forward slashes only.
-        On Windows the input may contain backslashes; both the legacy loader and this
-        cache build will see no matches and silently fall back to the zero-depth path.
+    @property
+    def cache_path(self) -> Path:
+        """Store the label-scan cache next to the depth maps (depth datasets have no labels/ tree)."""
+        return Path(self._depth_path_for(self.im_files[0])).parent.with_suffix(".cache")
+
+    def get_labels(self) -> list[dict]:
+        """Load labels, then verify the paired depth maps actually exist.
+
+        Depth GT lives outside the labels/ tree the detection scan checks, so without this check a
+        wrong directory layout (e.g. 'depths/' instead of 'depth/') would train/validate silently
+        against all-zero depth.
         """
-        d = im_file.replace("/images/", "/depth/")
-        return str(Path(d).with_suffix(".npy"))
+        labels = super().get_labels()
+        missing = sum(not os.path.exists(self._depth_path_for(lb["im_file"])) for lb in labels)
+        if missing == len(labels):
+            raise FileNotFoundError(
+                f"{self.prefix}No depth maps found for {len(labels)} images. Expected float32-meter .npy files in a "
+                f"'depth/' tree parallel to 'images/' (images/train/x.jpg → depth/train/x.npy). {HELP_URL}"
+            )
+        if missing:
+            LOGGER.warning(
+                f"{self.prefix}{missing}/{len(labels)} depth maps missing; those images load all-invalid (zero) depth."
+            )
+        return labels
 
     @staticmethod
     def _depth_hash(files: list[str]) -> str:
@@ -390,6 +410,7 @@ class DepthDataset(YOLODataset):
         or a path reorder will produce a different hash and trigger a cache rebuild.
         """
         import hashlib
+
         h = hashlib.sha256()
         for p in files:
             try:
@@ -482,16 +503,12 @@ class DepthDataset(YOLODataset):
         stack = np.load(str(cache_path), mmap_mode=None if load_to_ram else "r")
         if stack.shape[0] != len(self.im_files):
             LOGGER.warning(
-                f"{self.prefix}depth cache row count {stack.shape[0]} != "
-                f"{len(self.im_files)}; disabling cache."
+                f"{self.prefix}depth cache row count {stack.shape[0]} != {len(self.im_files)}; disabling cache."
             )
             return
         self._depth_stack = stack
         mode = "RAM" if load_to_ram else "mmap (paged on demand)"
-        LOGGER.info(
-            f"{self.prefix}depth cache ready: {cache_path.name} "
-            f"({stack.nbytes / 1e9:.2f} GB, {mode})"
-        )
+        LOGGER.info(f"{self.prefix}depth cache ready: {cache_path.name} ({stack.nbytes / 1e9:.2f} GB, {mode})")
 
     def get_image_and_label(self, index):
         """Load image, label, and depth map for the given index."""
@@ -525,40 +542,32 @@ class DepthDataset(YOLODataset):
         """
         letterbox = LetterBox(new_shape=(self.imgsz, self.imgsz), auto=False, scale_fill=True)
         if self.augment:
-            return Compose([
-                RandomPerspective(
-                    degrees=8.0,
-                    translate=0.08,
-                    scale=0.15,
-                    shear=2.0,
-                    perspective=0.0,
-                    size=(self.imgsz, self.imgsz),
-                ),
-                DepthRandomFlip(p=0.5),
-                DepthColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.05),
-                DepthFormat(),
-            ])
+            return Compose(
+                [
+                    RandomPerspective(
+                        degrees=8.0,
+                        translate=0.08,
+                        scale=0.15,
+                        shear=2.0,
+                        perspective=0.0,
+                        size=(self.imgsz, self.imgsz),
+                    ),
+                    DepthRandomFlip(p=0.5),
+                    DepthColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.05),
+                    DepthFormat(),
+                ]
+            )
         return Compose([letterbox, DepthFormat()])
 
     @staticmethod
     def collate_fn(batch):
-        """Collate samples into batches, stacking depth maps alongside images."""
-        new_batch = {}
-        batch = [dict(sorted(b.items())) for b in batch]
-        keys = batch[0].keys()
-        values = list(zip(*[list(b.values()) for b in batch]))
-        for i, k in enumerate(keys):
-            value = values[i]
-            if k in {"img", "depth"}:
-                value = torch.stack(value, 0)
-            elif k in {"masks", "keypoints", "bboxes", "cls", "segments", "obb", "batch_idx"}:
-                # Convert numpy to tensor if needed
-                value = [torch.from_numpy(v) if isinstance(v, np.ndarray) else v for v in value]
-                value = torch.cat(value, 0)
-            new_batch[k] = value
-        if "batch_idx" in new_batch and isinstance(new_batch["batch_idx"], torch.Tensor):
-            # Re-index batch_idx is not needed for depth (no detection targets)
-            pass
+        """Collate samples into batches, stacking depth maps alongside images.
+
+        DepthFormat drops the detection keys (cls/instances), so the parent collate only needs the
+        extra depth stack.
+        """
+        new_batch = YOLODataset.collate_fn(batch)
+        new_batch["depth"] = torch.stack(new_batch["depth"], 0)
         return new_batch
 
 

@@ -2063,7 +2063,7 @@ def guess_model_task(model):
             return "pose"
         if "obb" in m:
             return "obb"
-        if "depth" in m or "dinov2" in m:
+        if "depth" in m:
             return "depth"
 
     # Guess from model cfg

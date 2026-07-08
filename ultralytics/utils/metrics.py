@@ -1898,9 +1898,9 @@ class SemanticMetrics(SimpleClass, DataExportMixin):
 class DepthMetrics(SimpleClass, DataExportMixin):
     """Monocular depth estimation metrics: delta1-3, abs_rel, rmse, silog.
 
-    Accumulates summed per-pixel statistics on-device, pooled over every valid pixel of the val
-    set (images with more valid pixels weigh proportionally more; this differs from protocols
-    that average per-image metrics). Pixels with gt <= min_depth are ignored.
+    Accumulates summed per-pixel statistics on-device, pooled over every valid pixel of the val set (images with more
+    valid pixels weigh proportionally more; this differs from protocols that average per-image metrics). Pixels with gt
+    <= min_depth are ignored.
 
     Attributes:
         names (dict): Class names mapping (unused for depth; kept for API parity).
@@ -1921,10 +1921,9 @@ class DepthMetrics(SimpleClass, DataExportMixin):
             names (dict, optional): Class names mapping (unused for depth; kept for API parity).
             min_depth (float): Minimum valid depth in meters; pixels with gt <= min_depth are ignored.
             max_depth (float): Maximum valid depth in meters (predictions/gt clamped).
-            align (str): Per-image scale alignment before scoring, following the Depth Anything
-                eval protocol. "median" rescales each prediction by median(gt)/median(pred) so
-                affine-invariant (scale-ambiguous) outputs are comparable to metric GT; "none"
-                disables alignment and scores predictions in their raw output scale.
+            align (str): Per-image scale alignment before scoring, following the Depth Anything eval protocol. "median"
+                rescales each prediction by median(gt)/median(pred) so affine-invariant (scale-ambiguous) outputs are
+                comparable to metric GT; "none" disables alignment and scores predictions in their raw output scale.
         """
         self.names = names or {}
         self.min_depth = min_depth

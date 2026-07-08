@@ -1,3 +1,4 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """Unit tests for depth panel plotting (val_batch grids and calibrated variants)."""
 
 import cv2
@@ -158,8 +159,8 @@ def _stateful_loader_and_model(n_batches: int = 5):
 def test_calibrated_plots_start_at_first_batch(tmp_path):
     """The plot pass rewinds a stateful loader so panels show batches 0..2, matching val_batch{ni}.jpg.
 
-    The trainer's InfiniteDataLoader keeps one persistent iterator across for-loops; the calibration
-    fit breaks mid-epoch, so without a rewind the plots would show arbitrary mid-dataset batches.
+    The trainer's InfiniteDataLoader keeps one persistent iterator across for-loops; the calibration fit breaks
+    mid-epoch, so without a rewind the plots would show arbitrary mid-dataset batches.
     """
     from ultralytics.models.yolo.depth.calibrate import _plot_calibrated_batches
 

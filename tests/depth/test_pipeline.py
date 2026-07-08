@@ -1,3 +1,5 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 from unittest.mock import patch
 
 from ultralytics.cfg import get_cfg

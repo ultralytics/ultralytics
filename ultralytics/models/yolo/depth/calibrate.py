@@ -45,11 +45,11 @@ def _extract(preds):
 def _rewind(dataloader):
     """Rewind a stateful loader to the epoch start before a partial pass.
 
-    The trainer's InfiniteDataLoader keeps one persistent iterator across ``for`` loops, so a
-    previous pass that broke out early (e.g. a fit stopping at ``max_images``) leaves it mid-epoch
-    and the next loop silently resumes there. Every pass here that wants "the first N" must rewind
-    first — the plot pass in particular must see the same leading batches BaseValidator plotted as
-    ``val_batch{ni}.jpg``. Plain DataLoaders and list fixtures restart on every ``__iter__``.
+    The trainer's InfiniteDataLoader keeps one persistent iterator across ``for`` loops, so a previous pass that broke
+    out early (e.g. a fit stopping at ``max_images``) leaves it mid-epoch and the next loop silently resumes there.
+    Every pass here that wants "the first N" must rewind first — the plot pass in particular must see the same leading
+    batches BaseValidator plotted as ``val_batch{ni}.jpg``. Plain DataLoaders and list fixtures restart on every
+    ``__iter__``.
     """
     reset = getattr(dataloader, "reset", None)
     if callable(reset):
@@ -59,9 +59,9 @@ def _rewind(dataloader):
 def lstsq_affine(log_pred, log_gt, dist_power: float = 0.0):
     """Closed-form least-squares fit of (a, b) minimizing ||a·log_pred + b − log_gt||.
 
-    With ``dist_power > 0`` the fit is weighted by ``gt**dist_power`` per pixel (gt = exp(log_gt)),
-    so far pixels count more. This counters the near-pixel domination of an unweighted fit, which
-    on near-heavy data over-compresses the scale and harms the far range. 0.0 = unweighted (default).
+    With ``dist_power > 0`` the fit is weighted by ``gt**dist_power`` per pixel (gt = exp(log_gt)), so far pixels count
+    more. This counters the near-pixel domination of an unweighted fit, which on near-heavy data over-compresses the
+    scale and harms the far range. 0.0 = unweighted (default).
     """
     log_pred = np.asarray(log_pred, dtype=np.float64)
     log_gt = np.asarray(log_gt, dtype=np.float64)
@@ -77,10 +77,9 @@ def lstsq_affine(log_pred, log_gt, dist_power: float = 0.0):
 def _delta1_none(log_pred, log_gt, a: float, b: float) -> float:
     """δ1 under no per-image alignment after applying ``d' = exp(a·log_pred + b)``.
 
-    δ1 is the fraction of pixels with ``max(d'/gt, gt/d') < 1.25``; in log space that is
-    ``|a·log_pred + b − log_gt| < log(1.25)``. This is the deployment metric (raw absolute
-    scale, the ``align="none"`` protocol) the policy optimizes — the val scoreboard's default
-    ``align="median"`` is scale-invariant and cannot see calibration.
+    δ1 is the fraction of pixels with ``max(d'/gt, gt/d') < 1.25``; in log space that is ``|a·log_pred + b − log_gt| <
+    log(1.25)``. This is the deployment metric (raw absolute scale, the ``align="none"`` protocol) the policy optimizes
+    — the val scoreboard's default ``align="median"`` is scale-invariant and cannot see calibration.
     """
     ld = (a * np.asarray(log_pred, dtype=np.float64) + b) - np.asarray(log_gt, dtype=np.float64)
     return float(np.mean(np.abs(ld) < np.log(1.25)))
@@ -89,14 +88,14 @@ def _delta1_none(log_pred, log_gt, a: float, b: float) -> float:
 def select_calibration(lp_fit, lg_fit, lp_score, lg_score, dist_power: float = 0.0, margin: float = 0.0):
     """Pick the calibration that best improves *held-out* raw-scale δ1 — "calibrate only if it helps".
 
-    Three candidates are fit on the ``*_fit`` log-pixel arrays and scored on the independent
-    ``*_score`` arrays under :func:`_delta1_none`:
-      - ``identity`` (a=1, b=0): no calibration,
-      - ``scale-only`` (a=1, b=mean(log_gt − log_pred)): a global scale,
-      - ``affine`` (a, b from :func:`lstsq_affine`): scale + log-slope.
-    The winner is the highest held-out δ1. A candidate must beat the current best by ``margin``
-    to win, so ties favor the simpler model (identity > scale-only > affine). Identity is the
-    baseline, so a calibration that does not generalize is rejected — auto-cal does no harm.
+    Three candidates are fit on the ``*_fit`` log-pixel arrays and scored on the independent ``*_score`` arrays under
+    :func:`_delta1_none`:
+    - ``identity`` (a=1, b=0): no calibration,
+    - ``scale-only`` (a=1, b=mean(log_gt − log_pred)): a global scale,
+    - ``affine`` (a, b from :func:`lstsq_affine`): scale + log-slope.
+    The winner is the highest held-out δ1. A candidate must beat the current best by ``margin`` to win, so ties favor
+    the simpler model (identity > scale-only > affine). Identity is the baseline, so a calibration that does not
+    generalize is rejected — auto-cal does no harm.
 
     Returns:
         dict with ``a``, ``b`` (floats of the winner), ``name``, and ``scores`` (per-candidate δ1).
@@ -121,17 +120,16 @@ def select_calibration_cv(
 ):
     """Cross-validated "calibrate only if it helps": choose a candidate by K-fold held-out δ1.
 
-    ``pairs`` is a list of per-image ``(log_pred, log_gt)`` arrays. Each candidate type is scored
-    on every fold while held out (fit on the rest) via :func:`select_calibration`, and the per-type
-    held-out δ1 is averaged across folds — so every image contributes to scoring exactly once and a
-    candidate that only wins on one noisy split cannot be selected. The winning *type* must beat
-    identity's mean held-out δ1 by ``margin`` (ties favor the simpler type); the final ``(a, b)`` is
-    then refit on all pairs.
+    ``pairs`` is a list of per-image ``(log_pred, log_gt)`` arrays. Each candidate type is scored on every fold while
+    held out (fit on the rest) via :func:`select_calibration`, and the per-type held-out δ1 is averaged across folds —
+    so every image contributes to scoring exactly once and a candidate that only wins on one noisy split cannot be
+    selected. The winning *type* must beat identity's mean held-out δ1 by ``margin`` (ties favor the simpler type); the
+    final ``(a, b)`` is then refit on all pairs.
 
-    Only ``identity`` and ``scale-only`` are auto-selected by default. The affine *slope* (``a``)
-    overfits within-dataset cross-validation — both folds share a dataset's idiosyncrasies, so the
-    extra parameter looks free and gets picked even when it harms cross-distribution generalization
-    (confirmed across NYU/SUNRGBD/KITTI). Set ``allow_affine=True`` to include it.
+    Only ``identity`` and ``scale-only`` are auto-selected by default. The affine *slope* (``a``) overfits
+    within-dataset cross-validation — both folds share a dataset's idiosyncrasies, so the extra parameter looks free and
+    gets picked even when it harms cross-distribution generalization (confirmed across NYU/SUNRGBD/KITTI). Set
+    ``allow_affine=True`` to include it.
 
     Returns:
         dict with ``a``, ``b`` (floats), ``name``, and ``cv_scores`` (mean held-out δ1 per type).
@@ -173,9 +171,8 @@ def select_calibration_cv(
 def _collect_logpairs(model, dataloader, device, max_images: int):
     """Run the model over the loader and return a list of per-image ``(log_pred, log_gt)`` arrays.
 
-    One entry per image (each subsampled to ≤20k valid pixels) so callers can split images into
-    independent fit/score sets. Calibration buffers are reset to identity for the duration so the
-    fit sees the raw output, then restored.
+    One entry per image (each subsampled to ≤20k valid pixels) so callers can split images into independent fit/score
+    sets. Calibration buffers are reset to identity for the duration so the fit sees the raw output, then restored.
     """
     head = _depth_head(model)
     a0, b0 = float(head.cal_a), float(head.cal_b)
@@ -220,13 +217,12 @@ def fit_calibration_selective(
 ):
     """Select and apply calibration via "calibrate only if it helps" (see :func:`select_calibration_cv`).
 
-    Collects per-image ``(log_pred, log_gt)`` over the loader, splits images into independent
-    fit/score folds (no leakage), chooses identity / scale-only / affine by cross-validated raw-scale
-    δ1, and writes the winner into the head's ``cal_a``/``cal_b``. ``dist_power > 0`` weights the
-    affine fit toward far pixels (see :func:`lstsq_affine`).
+    Collects per-image ``(log_pred, log_gt)`` over the loader, splits images into independent fit/score folds (no
+    leakage), chooses identity / scale-only / affine by cross-validated raw-scale δ1, and writes the winner into the
+    head's ``cal_a``/``cal_b``. ``dist_power > 0`` weights the affine fit toward far pixels (see :func:`lstsq_affine`).
 
     Returns:
-        The :func:`select_calibration_cv` result dict, or None if no Depth head / too few images.
+        The: func:`select_calibration_cv` result dict, or None if no Depth head / too few images.
     """
     head = _depth_head(model)
     if head is None:
@@ -251,12 +247,11 @@ def _plot_calibrated_batches(
 ):
     """Write ``val_batch{ni}_calibrated.jpg`` panels (RGB | GT | raw | calibrated) to ``plot_dir``.
 
-    Runs the model with calibration buffers at identity to get the raw prediction; the calibrated
-    column is its deterministic affine ``exp(a·log(raw) + b)`` — no second forward. The first
-    ``max_batches`` batches are the same ones BaseValidator plots as ``val_batch{ni}.jpg`` (val
-    loaders are not shuffled), so the files are directly comparable. With the "only if it helps"
-    policy the selected ``name`` may be ``identity``; the panels are still written (raw ==
-    calibrated), which documents that calibration was a no-op. Buffers are restored afterwards.
+    Runs the model with calibration buffers at identity to get the raw prediction; the calibrated column is its
+    deterministic affine ``exp(a·log(raw) + b)`` — no second forward. The first ``max_batches`` batches are the same
+    ones BaseValidator plots as ``val_batch{ni}.jpg`` (val loaders are not shuffled), so the files are directly
+    comparable. With the "only if it helps" policy the selected ``name`` may be ``identity``; the panels are still
+    written (raw == calibrated), which documents that calibration was a no-op. Buffers are restored afterwards.
     """
     from .val import plot_depth_panels
 
@@ -293,16 +288,16 @@ def calibrate_checkpoint(ckpt_path, dataloader, device, dist_power: float = 0.0,
     """Fit calibration for a saved checkpoint in place (used by automatic post-training calibration).
 
     Loads the checkpoint, selects calibration with the "calibrate only if it helps" policy
-    (:func:`fit_calibration_selective`) on ``dataloader`` using a float copy on ``device``, writes
-    the chosen buffers into the stored model, and re-saves — preserving the rest of the checkpoint.
+    (:func:`fit_calibration_selective`) on ``dataloader`` using a float copy on ``device``, writes the chosen buffers
+    into the stored model, and re-saves — preserving the rest of the checkpoint.
 
     Args:
         ckpt_path: Path to the ``.pt`` checkpoint file to calibrate in place.
         dataloader: Yields batches with ``img`` (uint8, B×3×H×W) and ``depth`` (B×H×W meters).
         device: Torch device to run inference on.
         dist_power (float): Weight each pixel by gt**dist_power in the calibration fit (0.0 = uniform).
-        plot_dir: If set, also write ``val_batch{ni}_calibrated.jpg`` comparison panels
-            (RGB | GT | raw | calibrated) for the first val batches into this directory.
+        plot_dir: If set, also write ``val_batch{ni}_calibrated.jpg`` comparison panels (RGB | GT | raw | calibrated)
+            for the first val batches into this directory.
     """
     from copy import deepcopy
 

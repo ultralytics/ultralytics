@@ -784,8 +784,8 @@ class Pose26(Pose):
 class Depth(nn.Module):
     """YOLO Depth head for monocular depth estimation.
 
-    A dense prediction head that takes multi-scale backbone features and produces
-    a single-channel depth map via progressive upsampling and fusion.
+    A dense prediction head that takes multi-scale backbone features and produces a single-channel depth map via
+    progressive upsampling and fusion.
 
     Attributes:
         ch (tuple): Channel sizes from backbone feature maps (P3, P4, P5).
@@ -806,8 +806,8 @@ class Depth(nn.Module):
         Args:
             c_mid: Number of intermediate channels for the fusion decoder.
             mode: Output parameterization. "sigmoid" → sigmoid × max_depth (bounded metric
-                output). "log" → exp(logit) (unbounded): shape and scale stay decoupled for
-                scale-invariant pretraining; eval recovers scale via log-LS alignment.
+            output). "log" → exp(logit) (unbounded): shape and scale stay decoupled for scale-invariant pretraining;
+                eval recovers scale via log-LS alignment.
             ch: Tuple of input channel sizes from backbone feature maps (P3, P4, P5).
         """
         super().__init__()

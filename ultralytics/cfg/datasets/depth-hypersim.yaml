@@ -1,5 +1,5 @@
-# Hypersim only (68,242 train / 6,377 val)
-path: hypersim  # dataset root dir (relative to Ultralytics settings 'datasets_dir')
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 train: images/train
 val: images/val
 nc: 1

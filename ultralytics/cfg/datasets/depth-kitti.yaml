@@ -1,5 +1,5 @@
-# KITTI only (60,040 train / 32,378 val)
-path: kitti  # dataset root dir (relative to Ultralytics settings 'datasets_dir')
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 train: images/train
 val: images/val
 max_depth: 80 # (m) head output range: sigmoid × max_depth; GT beyond this is masked in the loss

@@ -1,5 +1,5 @@
-# TartanAir only (55,660 train / 5,810 val)
-path: tartanair  # dataset root dir (relative to Ultralytics settings 'datasets_dir')
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 train: images/train
 val: images/val
 nc: 1

@@ -26,13 +26,13 @@ Evaluation uses multi-scale and horizontal-flip test-time augmentation (TTA), fo
 
 The table below reports the `delta1` accuracy (percentage of pixels within a 1.25× threshold, higher is better) on the iBims-1 evaluation images by model size.
 
-| Model        | delta1 |
-| ------------ | ------ |
-| YOLO26n-depth | 0.923 |
-| YOLO26s-depth | 0.899 |
-| YOLO26m-depth | 0.953 |
-| YOLO26l-depth | 0.952 |
-| YOLO26x-depth | 0.961 |
+| Model         | delta1 |
+| ------------- | ------ |
+| YOLO26n-depth | 0.923  |
+| YOLO26s-depth | 0.899  |
+| YOLO26m-depth | 0.953  |
+| YOLO26l-depth | 0.952  |
+| YOLO26x-depth | 0.961  |
 
 ## Evaluation
 

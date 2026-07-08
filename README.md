@@ -185,8 +185,8 @@ See the [Semantic Segmentation Docs](https://docs.ultralytics.com/tasks/semantic
 
 See the [Depth Estimation Docs](https://docs.ultralytics.com/tasks/depth) for usage examples. These models are trained on [NYU Depth V2](https://cs.nyu.edu/~silberman/datasets/nyu_depth_v2.html), predicting per-pixel depth in meters.
 
-| Model                                                                                              | size<br><sup>(pixels)</sup> | delta1<sup>val</sup> | abs_rel<sup>val</sup> | rmse<sup>val</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
-| -------------------------------------------------------------------------------------------------- | --------------------------- | -------------------- | --------------------- | ------------------ | ------------------------ | ----------------------- |
+| Model                                                                                            | size<br><sup>(pixels)</sup> | delta1<sup>val</sup> | abs_rel<sup>val</sup> | rmse<sup>val</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+| ------------------------------------------------------------------------------------------------ | --------------------------- | -------------------- | --------------------- | ------------------ | ------------------------ | ----------------------- |
 | [YOLO26n-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n-depth.pt) | 518                         | -                    | -                     | -                  | -                        | -                       |
 | [YOLO26s-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26s-depth.pt) | 518                         | -                    | -                     | -                  | -                        | -                       |
 | [YOLO26m-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26m-depth.pt) | 518                         | -                    | -                     | -                  | -                        | -                       |

@@ -1,5 +1,5 @@
-# SUN RGB-D only (10,335 scenes; 9,245 train / 1,090 val)
-path: sunrgbd  # dataset root dir (relative to Ultralytics settings 'datasets_dir')
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 train: images/train
 val: images/val
 nc: 1

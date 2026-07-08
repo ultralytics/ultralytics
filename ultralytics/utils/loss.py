@@ -1156,9 +1156,8 @@ class v8OBBLoss(v8DetectionLoss):
 class v8DepthLoss:
     """Criterion class for computing training losses for YOLO depth estimation.
 
-    Uses scale-invariant log loss (SILog) + gradient-matching loss, following the
-    Depth Anything approach. SILog handles scale ambiguity while gradient loss
-    preserves edges.
+    Uses scale-invariant log loss (SILog) + gradient-matching loss, following the Depth Anything approach. SILog handles
+    scale ambiguity while gradient loss preserves edges.
     """
 
     def __init__(self, model):
@@ -1314,7 +1313,7 @@ class v8DepthLoss:
             if pred_log.shape[-1] < 4 or pred_log.shape[-2] < 4:
                 break  # too small to pool and still differentiate
             # Masked x2 average-pool: aggregate only valid pixels so invalid zeros never bleed
-            # into valid neighbours (same rationale as never resizing sparse GT above).
+            # into valid neighbors (same rationale as never resizing sparse GT above).
             vp = F.avg_pool2d(valid_f, 2)
             if not gated and vp.mean() < self.grad_min_valid:
                 break  # sparsity guard: GT too sparse for reliable coarse gradients

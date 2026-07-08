@@ -1,3 +1,4 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """Unit tests for scale-only depth calibration (cal_a/cal_b log-affine)."""
 
 import math

@@ -39,14 +39,14 @@ For example, an image at `images/train/scene_001.jpg` is paired with a depth map
 
 Depth estimation datasets are configured with YAML files. The main fields are:
 
-| Key       | Description                                                   |
-| --------- | ------------------------------------------------------------- |
-| `path`    | Dataset root directory.                                       |
-| `train`   | Training image path relative to `path`, or an absolute path. |
-| `val`     | Validation image path relative to `path`, or an absolute path.|
-| `test`    | Optional test image path.                                     |
-| `nc`      | Number of classes — always `1` for depth estimation.         |
-| `names`   | Class name mapping — always `{0: depth}`.                    |
+| Key     | Description                                                    |
+| ------- | -------------------------------------------------------------- |
+| `path`  | Dataset root directory.                                        |
+| `train` | Training image path relative to `path`, or an absolute path.   |
+| `val`   | Validation image path relative to `path`, or an absolute path. |
+| `test`  | Optional test image path.                                      |
+| `nc`    | Number of classes — always `1` for depth estimation.           |
+| `names` | Class name mapping — always `{0: depth}`.                      |
 
 !!! example "ultralytics/cfg/datasets/nyu-depth.yaml"
 
@@ -117,7 +117,7 @@ val: images/val
 
 nc: 1
 names:
-  0: depth
+    0: depth
 ```
 
 ## FAQ

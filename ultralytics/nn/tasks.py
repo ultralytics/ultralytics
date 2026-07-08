@@ -778,8 +778,8 @@ class PoseModel(DetectionModel):
 class DepthModel(DetectionModel):
     """YOLO depth estimation model.
 
-    This class extends DetectionModel for monocular depth estimation, using YOLO backbone + FPN with a
-    DPT-style dense depth decoder head. Follows the Depth Anything approach adapted to YOLO architecture.
+    This class extends DetectionModel for monocular depth estimation, using YOLO backbone + FPN with a DPT-style dense
+    depth decoder head. Follows the Depth Anything approach adapted to YOLO architecture.
 
     Examples:
         >>> model = DepthModel("yolo26n-depth.yaml", ch=3)

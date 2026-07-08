@@ -1,3 +1,5 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 import torch
 
 from ultralytics.utils.metrics import DepthMetrics
@@ -43,8 +45,8 @@ def test_median_alignment_is_per_image():
 
 
 def test_process_does_not_invoke_collective(monkeypatch):
-    """Ultralytics validates on rank 0 only — a collective while finalizing depth metrics would
-    deadlock the other ranks (they never validate).
+    """Ultralytics validates on rank 0 only — a collective while finalizing depth metrics would deadlock the other ranks
+    (they never validate).
     """
     import torch.distributed as dist
 

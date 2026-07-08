@@ -40,10 +40,10 @@ YOLO26 depth models pretrained on a broad multi-dataset mix (indoor + outdoor, ~
 
 The depth head supports two output parameterizations, selected by the model YAML:
 
-| Mode | Output | YAML | Use when |
-| ---- | ------ | ---- | -------- |
-| **`log`** (default) | `exp(logit)` — **unbounded** (~0.02–150 m) | `yolo26-depth.yaml` | General use, mixed or unknown depth range |
-| `sigmoid` | `sigmoid(logit) × max_depth` — **bounded** `[0, max_depth]` | `yolo26-depth-sigmoid.yaml` | Fixed-range / safety-constrained rigs |
+| Mode                | Output                                                      | YAML                        | Use when                                  |
+| ------------------- | ----------------------------------------------------------- | --------------------------- | ----------------------------------------- |
+| **`log`** (default) | `exp(logit)` — **unbounded** (~0.02–150 m)                  | `yolo26-depth.yaml`         | General use, mixed or unknown depth range |
+| `sigmoid`           | `sigmoid(logit) × max_depth` — **bounded** `[0, max_depth]` | `yolo26-depth-sigmoid.yaml` | Fixed-range / safety-constrained rigs     |
 
 The default `log` head **decouples scene shape from absolute scale**: the network predicts a relative log-depth field, and absolute meters are set by a separate two-parameter transform (`exp(a·log d + b)`) recovered at evaluation, by lightweight calibration, or by fine-tuning. A bounded `sigmoid × max_depth` head instead bakes a fixed ceiling into the architecture, so any depth beyond `max_depth` is clipped — which prevents training on, and predicting, longer-range scenes.
 
@@ -51,34 +51,34 @@ The default `log` head **decouples scene shape from absolute scale**: the networ
 
 **Controlled A/B — same data, same schedule, only the head differs.** Training both heads from scratch on an identical mix of indoor (≤10 m) and outdoor (≤80 m) data:
 
-| Head | Output range | Mixed-range val δ1 | Training behavior |
-| ---- | ------------ | -----------------: | ----------------- |
-| `sigmoid × max_depth` (10 m) | bounded 0–10 m | 0.221 | **plateaus at epoch 1** |
-| `log` (unbounded) | 0–~150 m | **0.367** (+66%) | improves throughout |
+| Head                         | Output range   | Mixed-range val δ1 | Training behavior       |
+| ---------------------------- | -------------- | -----------------: | ----------------------- |
+| `sigmoid × max_depth` (10 m) | bounded 0–10 m |              0.221 | **plateaus at epoch 1** |
+| `log` (unbounded)            | 0–~150 m       |   **0.367** (+66%) | improves throughout     |
 
 The bounded head cannot represent the >10 m majority of outdoor pixels, so it stops improving almost immediately; the `log` head learns from the full range.
 
 **The failure mode it fixes — single-dataset fine-tuning, stratified by range.** Fine-tuning a bounded (10 m) head on individual datasets works when the data fits the cap and collapses when it exceeds it:
 
-| Dataset | Depth range | Bounded-head δ1 |
-| ------- | ----------- | --------------: |
-| SUN RGB-D | ≤10 m | 0.78 ✅ |
-| Hypersim | mostly ≤10 m | 0.74 ✅ |
-| KITTI | ~80 m | 0.08 ❌ (abs_rel ≈ 7.0 — the 80/10 scale mismatch) |
-| vKITTI2 | 80 m | 0.04 ❌ |
+| Dataset   | Depth range  |                                    Bounded-head δ1 |
+| --------- | ------------ | -------------------------------------------------: |
+| SUN RGB-D | ≤10 m        |                                            0.78 ✅ |
+| Hypersim  | mostly ≤10 m |                                            0.74 ✅ |
+| KITTI     | ~80 m        | 0.08 ❌ (abs_rel ≈ 7.0 — the 80/10 scale mismatch) |
+| vKITTI2   | 80 m         |                                            0.04 ❌ |
 
 The collapse lands exactly at the cap boundary. The `log` head has no such boundary.
 
 **Released models — cross-range performance.** The shipped `log`-head family, evaluated across benchmarks spanning 10 m (NYU, iBims-1) to 80 m (KITTI), with scale-aligned δ1:
 
-| Benchmark | Range | YOLO26x-depth (`log`) | prior bounded release |
-| --------- | ----- | --------------------: | --------------------: |
-| NYU Eigen | 10 m | 0.923 | 0.934 |
-| iBims-1 | 10 m | 0.961 | 0.945 |
-| ETH3D | ~60 m | 0.953 | 0.931 |
-| Make3D | ~70 m | 0.299 | 0.296 |
-| KITTI Eigen | 80 m | **0.939** | 0.891 |
-| **Mean** | — | **0.815** | 0.799 |
+| Benchmark   | Range | YOLO26x-depth (`log`) | prior bounded release |
+| ----------- | ----- | --------------------: | --------------------: |
+| NYU Eigen   | 10 m  |                 0.923 |                 0.934 |
+| iBims-1     | 10 m  |                 0.961 |                 0.945 |
+| ETH3D       | ~60 m |                 0.953 |                 0.931 |
+| Make3D      | ~70 m |                 0.299 |                 0.296 |
+| KITTI Eigen | 80 m  |             **0.939** |                 0.891 |
+| **Mean**    | —     |             **0.815** |                 0.799 |
 
 The largest gains are on the longer-range outdoor benchmarks (KITTI, ETH3D) — exactly where a fixed 10 m ceiling hurts most — while indoor performance is retained.
 
@@ -135,8 +135,8 @@ When adapting a pretrained depth model to a custom dataset, **lower the learning
             epochs=20,
             imgsz=640,
             optimizer="AdamW",
-            lr0=1e-4,            # ~100x below the from-scratch default
-            warmup_bias_lr=1e-4, # keep warmup gentle too
+            lr0=1e-4,  # ~100x below the from-scratch default
+            warmup_bias_lr=1e-4,  # keep warmup gentle too
         )
         ```
 
@@ -144,7 +144,7 @@ When adapting a pretrained depth model to a custom dataset, **lower the learning
 
         ```bash
         yolo depth train data=path/to/your_dataset.yaml model=yolo26s-depth.pt \
-             epochs=20 imgsz=640 optimizer=AdamW lr0=1e-4 warmup_bias_lr=1e-4
+          epochs=20 imgsz=640 optimizer=AdamW lr0=1e-4 warmup_bias_lr=1e-4
         ```
 
 Additional tips:
@@ -209,17 +209,17 @@ Validate a trained YOLO26n-depth model [accuracy](https://www.ultralytics.com/gl
 
         # Validate the model
         metrics = model.val(data="nyu-depth.yaml")
-        metrics.delta1   # percentage of pixels within threshold δ=1.25
+        metrics.delta1  # percentage of pixels within threshold δ=1.25
         metrics.abs_rel  # mean absolute relative error
-        metrics.rmse     # root mean squared error (meters)
-        metrics.silog    # scale-invariant logarithmic error
+        metrics.rmse  # root mean squared error (meters)
+        metrics.silog  # scale-invariant logarithmic error
         ```
 
     === "CLI"
 
         ```bash
-        yolo depth val model=yolo26n-depth.pt data=nyu-depth.yaml    # validate official model
-        yolo depth val model=path/to/best.pt data=path/to/data.yaml  # validate custom model
+        yolo depth val model=yolo26n-depth.pt data=nyu-depth.yaml   # validate official model
+        yolo depth val model=path/to/best.pt data=path/to/data.yaml # validate custom model
         ```
 
 ## Predict
@@ -248,8 +248,8 @@ Use a trained YOLO26n-depth model to run predictions on images.
     === "CLI"
 
         ```bash
-        yolo depth predict model=yolo26n-depth.pt source='https://ultralytics.com/images/bus.jpg'  # predict with official model
-        yolo depth predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'   # predict with custom model
+        yolo depth predict model=yolo26n-depth.pt source='https://ultralytics.com/images/bus.jpg' # predict with official model
+        yolo depth predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # predict with custom model
         ```
 
 See full `predict` mode details in the [Predict](../modes/predict.md) page.
@@ -258,12 +258,12 @@ See full `predict` mode details in the [Predict](../modes/predict.md) page.
 
 YOLO depth estimation returns one `Results` object per image. Each result stores one dense float depth map for the full image.
 
-| Attribute          | Type           | Shape   | Description                                          |
-| ------------------ | -------------- | ------- | ---------------------------------------------------- |
-| `result.depth`     | `DepthMap`     | `(H,W)` | Dense per-pixel depth map.                           |
-| `result.depth.data`| NumPy `float32`| `(H,W)` | Depth values in meters.                              |
-| `result.boxes`     | -              | -       | No instance boxes.                                   |
-| `result.masks`     | -              | -       | No instance masks.                                   |
+| Attribute           | Type            | Shape   | Description                |
+| ------------------- | --------------- | ------- | -------------------------- |
+| `result.depth`      | `DepthMap`      | `(H,W)` | Dense per-pixel depth map. |
+| `result.depth.data` | NumPy `float32` | `(H,W)` | Depth values in meters.    |
+| `result.boxes`      | -               | -       | No instance boxes.         |
+| `result.masks`      | -               | -       | No instance masks.         |
 
 For task-specific `Results` fields across every task, see the [Predict Results by Task](../modes/predict.md#results-by-task) section.
 
@@ -289,8 +289,8 @@ Export a YOLO26n-depth model to a different format like ONNX, CoreML, etc.
     === "CLI"
 
         ```bash
-        yolo export model=yolo26n-depth.pt format=onnx  # export official model
-        yolo export model=path/to/best.pt format=onnx   # export custom model
+        yolo export model=yolo26n-depth.pt format=onnx # export official model
+        yolo export model=path/to/best.pt format=onnx  # export custom model
         ```
 
 Available YOLO26 depth estimation export formats are in the table below. You can export to any format using the `format` argument, i.e., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e., `yolo predict model=yolo26n-depth.onnx`. Usage examples are shown for your model after export completes.
@@ -332,7 +332,7 @@ Start from pretrained weights and use a low learning rate with AdamW so the fine
 
         ```bash
         yolo depth train data=path/to/your_dataset.yaml model=yolo26s-depth.pt \
-             epochs=20 imgsz=640 optimizer=AdamW lr0=1e-4 warmup_bias_lr=1e-4
+          epochs=20 imgsz=640 optimizer=AdamW lr0=1e-4 warmup_bias_lr=1e-4
         ```
 
 Check the [Configuration](../usage/cfg.md) page for more available arguments.

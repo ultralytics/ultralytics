@@ -1,3 +1,4 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """Regression tests for InfiniteDataLoader worker shutdown.
 
 At interpreter exit, multiprocessing's ``_exit_function`` SIGTERMs any still-alive daemon child and

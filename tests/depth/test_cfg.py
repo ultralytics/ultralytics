@@ -1,3 +1,5 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 from ultralytics.cfg import TASK2CALIBRATIONDATA, TASK2DATA, TASK2METRIC, TASK2MODEL, TASKS
 
 

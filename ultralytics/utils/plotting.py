@@ -714,7 +714,7 @@ def plot_images(
         - 3 channels: Used as-is (standard RGB)
         - 4+ channels: Cropped to first 3 channels
     """
-    for k in {"cls", "bboxes", "conf", "masks", "keypoints", "batch_idx", "images"}:
+    for k in {"cls", "bboxes", "conf", "masks", "keypoints", "batch_idx", "images", "prior_mask"}:
         if k not in labels:
             continue
         if k == "cls" and labels[k].ndim == 2:
@@ -728,6 +728,7 @@ def plot_images(
     confs = labels.get("conf", None)
     masks = labels.get("masks", np.zeros(0, dtype=np.uint8))
     kpts = labels.get("keypoints", np.zeros(0, dtype=np.float32))
+    prior_masks = labels.get("prior_mask", np.zeros(0, dtype=np.float32))
     images = labels.get("img", images)  # default to input images
 
     if len(images) and isinstance(images, torch.Tensor):
@@ -769,6 +770,25 @@ def plot_images(
         annotator.rectangle([x, y, x + w, y + h], None, (255, 255, 255), width=2)  # borders
         if paths:
             annotator.text([x + 5, y + 5], text=Path(paths[i]).name[:40], txt_color=(220, 220, 220))  # filenames
+
+        # Plot prior_mask heatmap (anomaly path) underneath boxes/masks
+        if len(prior_masks) and i < prior_masks.shape[0]:
+            pm = prior_masks[i]
+            if pm.ndim == 3:
+                pm = pm[0] if pm.shape[0] == 1 else pm
+            pm = pm.astype(np.float32)
+            pm_h, pm_w = pm.shape
+            if pm_h != h or pm_w != w:
+                pm = cv2.resize(pm, (w, h), interpolation=cv2.INTER_LINEAR)
+            pm = np.clip(pm, 0.0, 1.0)
+            if pm.max() > 0:
+                im = np.asarray(annotator.im).copy()
+                cell = im[y : y + h, x : x + w, :]
+                # Jet colormap; applyColorMap returns BGR, flip to RGB for consistent viewing
+                heat = cv2.applyColorMap((pm * 255).astype(np.uint8), cv2.COLORMAP_JET)[..., ::-1]
+                cell[:] = (cell * 0.55 + heat * 0.45).astype(np.uint8)
+                annotator.fromarray(im)
+
         if len(cls) > 0:
             idx = batch_idx == i
             classes = cls[idx].astype("int")
@@ -847,7 +867,12 @@ def plot_images(
                 annotator.fromarray(im)
     if not save:
         return np.asarray(annotator.im)
-    annotator.im.save(fname)  # save
+    # When prior_mask is present, save through PIL so the RGB colormap is encoded as RGB.
+    # Otherwise keep the existing cv2.imwrite path to avoid changing normal detection plots.
+    if len(prior_masks):
+        Image.fromarray(np.asarray(annotator.im)).save(fname)
+    else:
+        annotator.im.save(fname)  # save
     if on_plot:
         on_plot(fname)
 

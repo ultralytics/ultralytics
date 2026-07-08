@@ -338,20 +338,19 @@ class YOLODataset(BaseDataset):
 class DepthDataset(YOLODataset):
     """Dataset for monocular depth estimation with paired RGB + depth map loading.
 
-    Extends YOLODataset to load depth ground truth maps alongside RGB images.
-    Depth maps are stored as .npy files in a parallel directory structure
-    (images/train/*.jpg → depth/train/*.npy).
+    Extends YOLODataset to load depth ground truth maps alongside RGB images. Depth maps are stored as .npy files in a
+    parallel directory structure (images/train/*.jpg → depth/train/*.npy).
 
     Honors the BaseDataset ``cache`` parameter for depth labels too:
 
     - ``cache='disk'`` builds a stacked .npy and ``mmap_mode='r'`` it. RAM-safe at any
-      dataset size; pages are faulted on demand and evicted under memory pressure.
+    dataset size; pages are faulted on demand and evicted under memory pressure.
     - ``cache='ram'`` builds the same stack and fully loads it into RAM. Fastest, but
-      requires ``N × H × W × 4B`` of RAM (e.g. NYU full train ≈ 30 GB).
+    requires ``N × H × W × 4B`` of RAM (e.g. NYU full train ≈ 30 GB).
     - ``cache=None`` / ``False`` (default) uses per-file ``np.load`` (legacy behavior).
 
-    The cache is only built when every depth map shares a common shape — otherwise
-    the dataset transparently falls back to per-file np.load.
+    The cache is only built when every depth map shares a common shape — otherwise the dataset transparently falls back
+    to per-file np.load.
 
     Examples:
         >>> dataset = DepthDataset(img_path="/data/nyu/images/train", data={"nc": 1}, cache="disk")
@@ -434,8 +433,7 @@ class DepthDataset(YOLODataset):
         for the cache file to appear, then mmap it.
 
         Args:
-            load_to_ram: if True, load the entire stack into RAM (cache='ram');
-                otherwise mmap it lazily (cache='disk').
+            load_to_ram: if True, load the entire stack into RAM (cache='ram'); otherwise mmap it lazily (cache='disk').
         """
         depth_files = [self._depth_path_for(im) for im in self.im_files]
         existing = [d for d in depth_files if Path(d).exists()]

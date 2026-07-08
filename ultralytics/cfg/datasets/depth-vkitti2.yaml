@@ -1,5 +1,5 @@
-# Virtual KITTI 2 only (25,780 train / 16,740 val)
-path: vkitti2  # dataset root dir (relative to Ultralytics settings 'datasets_dir')
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 train: images/train
 val: images/val
 nc: 1

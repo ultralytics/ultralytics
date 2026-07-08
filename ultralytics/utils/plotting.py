@@ -481,8 +481,8 @@ class Annotator:
         Args:
             depth (np.ndarray): (H, W) depth in meters.
             alpha (float): Blend factor for the heatmap overlay (ignored when side_by_side).
-            side_by_side (bool): If True, place the colorized depth next to the image
-                (image | depth) instead of blending on top. Clearer for depth predictions.
+            side_by_side (bool): If True, place the colorized depth next to the image (image | depth) instead of
+                blending on top. Clearer for depth predictions.
         """
         if self.pil:
             self.im = np.asarray(self.im).copy()

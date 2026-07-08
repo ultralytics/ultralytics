@@ -1,3 +1,5 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 import numpy as np
 
 from ultralytics.engine.results import DepthMap, Results

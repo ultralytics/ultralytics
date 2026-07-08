@@ -1,4 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 # Training augmentation recipe for YOLO26-Depth — the settings the released yolo26{n..x}-depth.pt
 # weights were pretrained with. Merge over default.yaml via cfg=.
 # Example usage (cfg= must come FIRST on the CLI — the parser discards any k=v args seen before it):
@@ -6,17 +7,17 @@
 #   model.train(data="nyu-depth.yaml", cfg="depth-hyp.yaml")
 
 # Geometric augmentation (the warp and flips are applied identically to the paired metric depth map)
-degrees: 8.0  # (float) rotation range in degrees
-translate: 0.08  # (float) translation fraction
-scale: 0.15  # (float) scale gain (zoom range ±15%)
-shear: 2.0  # (float) shear range in degrees
-perspective: 0.0  # (float) perspective kept off: a projective warp does not preserve metric depth
-fliplr: 0.5  # (float) horizontal flip probability
-flipud: 0.0  # (float) vertical flip probability
+degrees: 8.0 # (float) rotation range in degrees
+translate: 0.08 # (float) translation fraction
+scale: 0.15 # (float) scale gain (zoom range ±15%)
+shear: 2.0 # (float) shear range in degrees
+perspective: 0.0 # (float) perspective kept off: a projective warp does not preserve metric depth
+fliplr: 0.5 # (float) horizontal flip probability
+flipud: 0.0 # (float) vertical flip probability
 
 # Color augmentation (image only, depth unchanged). Closest HSV equivalent of the original
 # brightness/contrast/saturation/hue jitter: hsv_s and hsv_h match its ±0.3 saturation and ±9° hue
 # ranges exactly; hsv_v approximates its ±0.3 brightness (contrast jitter has no HSV counterpart).
-hsv_h: 0.05  # (float) hue gain fraction
-hsv_s: 0.3  # (float) saturation gain fraction
-hsv_v: 0.3  # (float) value (brightness) gain fraction
+hsv_h: 0.05 # (float) hue gain fraction
+hsv_s: 0.3 # (float) saturation gain fraction
+hsv_v: 0.3 # (float) value (brightness) gain fraction

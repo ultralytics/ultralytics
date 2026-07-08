@@ -1,5 +1,5 @@
-# ARKitScenes only (676,080 train / 21,559 val)
-path: arkitscenes  # dataset root dir (relative to Ultralytics settings 'datasets_dir')
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 train: images/train
 val: images/val
 nc: 1

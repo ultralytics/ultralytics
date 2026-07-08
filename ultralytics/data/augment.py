@@ -2984,8 +2984,8 @@ def classify_augmentations(
 class DepthFormat:
     """Format transform for depth estimation: converts images and depth maps to tensors.
 
-    Applied after LetterBox, so img is already at target shape.
-    Resizes depth to match img, then converts both to tensors.
+    Applied after LetterBox, so img is already at target shape. Resizes depth to match img, then converts both to
+    tensors.
     """
 
     def __call__(self, labels):

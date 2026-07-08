@@ -26,13 +26,13 @@ Evaluation uses multi-scale and horizontal-flip test-time augmentation (TTA), fo
 
 The table below reports the `delta1` accuracy (percentage of pixels within a 1.25× threshold, higher is better) on the Make3D test set by model size.
 
-| Model        | delta1 |
-| ------------ | ------ |
-| YOLO26n-depth | 0.307 |
-| YOLO26s-depth | 0.311 |
-| YOLO26m-depth | 0.293 |
-| YOLO26l-depth | 0.297 |
-| YOLO26x-depth | 0.299 |
+| Model         | delta1 |
+| ------------- | ------ |
+| YOLO26n-depth | 0.307  |
+| YOLO26s-depth | 0.311  |
+| YOLO26m-depth | 0.293  |
+| YOLO26l-depth | 0.297  |
+| YOLO26x-depth | 0.299  |
 
 ## Evaluation
 

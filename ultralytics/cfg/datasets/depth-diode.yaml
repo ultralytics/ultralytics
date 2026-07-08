@@ -1,5 +1,5 @@
-# DIODE only (18,660 train / 771 val)
-path: diode  # dataset root dir (relative to Ultralytics settings 'datasets_dir')
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 train: images/train
 val: images/val
 nc: 1

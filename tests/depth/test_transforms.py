@@ -1,3 +1,5 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 import numpy as np
 
 from ultralytics.data.augment import DepthFormat, RandomFlip, RandomHSV, RandomPerspective

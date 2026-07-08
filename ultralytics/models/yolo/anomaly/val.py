@@ -13,7 +13,7 @@ import torch.distributed as dist
 
 from ultralytics.data.augment import LetterBox
 from ultralytics.models.yolo.detect import DetectionValidator
-from ultralytics.utils import LOGGER, ops
+from ultralytics.utils import LOGGER, ops, TryExcept
 from ultralytics.utils.plotting import Annotator, colors
 
 
@@ -65,7 +65,7 @@ class YOLOAnomalyValidator(DetectionValidator):
         """Render the ground-truth polygon mask and resize it to ``mask_size``."""
         txt_path = Path(img_path).with_suffix(".txt")
         h, w = ori_shape
-        mask = np.zeros((h, w, 3), dtype=np.uint8)
+        mask = np.zeros((h, w), dtype=np.uint8)
         if txt_path.exists():
             for line in Path(txt_path).read_text().strip().splitlines():
                 parts = line.strip().split()
@@ -96,9 +96,7 @@ class YOLOAnomalyValidator(DetectionValidator):
         """Stack a left-aligned title bar above a BGR image."""
         bar = np.full((bar_h, img.shape[1], 3), 30, np.uint8)
         (_, th), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 0.55, 1)
-        cv2.putText(
-            bar, text, (8, (bar_h + th) // 2), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255), 1, cv2.LINE_AA
-        )
+        cv2.putText(bar, text, (8, (bar_h + th) // 2), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255), 1, cv2.LINE_AA)
         return np.vstack([bar, img])
 
     @staticmethod
@@ -149,6 +147,7 @@ class YOLOAnomalyValidator(DetectionValidator):
         panel = cv2.addWeighted(cmap, 0.45, img, 0.55, 0)
         return self._add_title(panel, title)
 
+    @TryExcept()
     def plot_predictions(
         self, batch: dict[str, any], preds: list[dict[str, torch.Tensor]], ni: int, max_det: int | None = None
     ) -> None:

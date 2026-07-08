@@ -65,7 +65,7 @@ class YOLOAnomalyValidator(DetectionValidator):
         """Render the ground-truth polygon mask and resize it to ``mask_size``."""
         txt_path = Path(img_path).with_suffix(".txt")
         h, w = ori_shape
-        mask = np.zeros((h, w), dtype=np.uint8)
+        mask = np.zeros((h, w, 3), dtype=np.uint8)
         if txt_path.exists():
             for line in Path(txt_path).read_text().strip().splitlines():
                 parts = line.strip().split()

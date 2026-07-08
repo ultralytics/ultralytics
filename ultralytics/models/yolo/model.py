@@ -464,8 +464,8 @@ class YOLOA(Model):
                 # TODO: AnomalyTrainer is the public trainer (standard in-domain validation only).
                 # During the R&D stage we default to AnomalyRNDTrainer so OOD eval drives best.pt
                 # selection. Switch back to AnomalyTrainer once the R&D phase is over.
-                # "trainer": yolo.anomaly.AnomalyRNDTrainer,
-                "trainer": yolo.anomaly.AnomalyTrainer,
+                "trainer": yolo.anomaly.AnomalyRNDTrainer,
+                # "trainer": yolo.anomaly.AnomalyTrainer,
                 "validator": yolo.anomaly.YOLOAnomalyValidator,
                 "predictor": yolo.anomaly.AnomalyPredictor,
             }

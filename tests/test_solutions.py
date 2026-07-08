@@ -252,6 +252,18 @@ def test_solution_obb_boxes(solution_class, extra_kwargs, solution_assets):
     assert results.plot_im is not None, f"{solution_class.__name__} returned no plot_im on OBB input"
 
 
+def test_object_blurrer_obb_outside_frame():
+    """An OBB box that clips fully outside the frame produces an empty ROI and must be skipped before cv2.blur."""
+    blurrer = solutions.ObjectBlurrer()
+    frame = np.zeros((480, 640, 3), dtype=np.uint8)
+    inside = torch.tensor([[100.0, 100], [200, 100], [200, 200], [100, 200]])  # (4, 2) OBB, in frame
+    outside = torch.tensor([[700.0, 100], [760, 100], [760, 200], [700, 200]])  # (4, 2) OBB, fully off the right edge
+    blurrer.boxes, blurrer.clss, blurrer.confs, blurrer.track_ids = [inside, outside], [0, 0], [0.9, 0.9], [1, 2]
+    with patch.object(blurrer, "extract_tracks"), patch.object(blurrer, "display_output"):
+        results = blurrer.process(frame)
+    assert results.plot_im is not None
+
+
 def test_right_click_reset():
     """Test distance calculation right click reset functionality."""
     dc = solutions.DistanceCalculation()

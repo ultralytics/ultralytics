@@ -25,7 +25,7 @@ anomaly:
   bb_layers: [6]
   fusion_mode: bias
   mask_jitter: 0.01
-  mask_box_drop_p: 0.05
+  mask_box_drop_p: 0.0
   mask_distractor_p: 0.0
   mask_distractor_n: 1
   mask_erase_p: 0.08

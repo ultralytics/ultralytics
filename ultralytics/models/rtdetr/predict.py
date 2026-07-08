@@ -1,7 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import torch
-import torch.nn.functional as F
 
 from ultralytics.data.augment import LetterBox
 from ultralytics.engine.predictor import BasePredictor
@@ -95,7 +94,4 @@ class RTDETRPredictor(BasePredictor):
             (torch.Tensor): Transformed tensor.
         """
         letterbox = LetterBox(self.imgsz, auto=False, scale_fill=True)
-        p = letterbox.get_params({"img": im[0].permute(1, 2, 0)})
-        if tuple(im.shape[2:]) != p["new_unpad"][::-1]:
-            im = F.interpolate(im, size=p["new_unpad"][::-1], mode="bilinear", align_corners=False)
-        return F.pad(im, (p["left"], p["right"], p["top"], p["bottom"]), value=letterbox.padding_value / 255)
+        return letterbox.apply_tensor(im)

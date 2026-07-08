@@ -138,7 +138,7 @@ class Predictor(BasePredictor):
         if not_tensor:
             im = (im - self.mean) / self.std
         elif self.args.preprocess_tensor:
-            im = self.pre_transform_tensor(im * 255)  # im is in [0-1]
+            im = self.pre_transform_tensor(im) * 255  # letterbox in [0-1], then scale to [0-255]
             im = (im - self.mean) / self.std
         im = im.half() if self.model.fp16 else im.float()
         return im
@@ -179,10 +179,7 @@ class Predictor(BasePredictor):
             (torch.Tensor): Transformed tensor.
         """
         letterbox = LetterBox(self.imgsz, auto=False, center=False)
-        p = letterbox.get_params({"img": im[0].permute(1, 2, 0)})
-        if tuple(im.shape[2:]) != p["new_unpad"][::-1]:
-            im = F.interpolate(im, size=p["new_unpad"][::-1], mode="bilinear", align_corners=False)
-        return F.pad(im, (p["left"], p["right"], p["top"], p["bottom"]), value=letterbox.padding_value)
+        return letterbox.apply_tensor(im)
 
     def inference(self, im, bboxes=None, points=None, labels=None, masks=None, multimask_output=False, *args, **kwargs):
         """Perform image segmentation inference based on the given input cues, using the currently loaded image.

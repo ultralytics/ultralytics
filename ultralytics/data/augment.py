@@ -1778,6 +1778,24 @@ class LetterBox(BaseTransform):
         labels["resized_shape"] = params["new_shape"]
         return labels
 
+    def apply_tensor(self, im: torch.Tensor) -> torch.Tensor:
+        """Resize and pad a normalized (B, C, H, W) tensor on-device, mirroring apply_image for tensor sources.
+
+        This is the tensor-native counterpart of apply_image, letterboxing a batched image tensor entirely on its
+        current device (e.g. GPU) without a CPU round-trip. Padding uses the normalized value (padding_value / 255)
+        so inputs are expected in the 0.0-1.0 range.
+
+        Args:
+            im (torch.Tensor): Normalized input tensor of shape (B, C, H, W) at original resolution.
+
+        Returns:
+            (torch.Tensor): Letterboxed tensor at the model input size.
+        """
+        p = self.get_params({"img": im[0].permute(1, 2, 0)})  # geometry only; reads .shape, not pixels
+        if tuple(im.shape[2:]) != p["new_unpad"][::-1]:
+            im = F.interpolate(im, size=p["new_unpad"][::-1], mode="bilinear", align_corners=False)
+        return F.pad(im, (p["left"], p["right"], p["top"], p["bottom"]), value=self.padding_value / 255)
+
     def apply_semantic(self, labels: dict[str, Any], params: dict[str, Any]) -> dict[str, Any]:
         """Apply letterboxing to semantic segmentation mask.
 

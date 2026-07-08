@@ -47,7 +47,6 @@ from typing import Any, Callable
 import cv2
 import numpy as np
 import torch
-import torch.nn.functional as F
 
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data import load_inference_source
@@ -205,7 +204,7 @@ class BasePredictor:
             stride=self.model.stride,
         )
         return [letterbox(image=x) for x in im]
-    
+
     def pre_transform_tensor(self, im: torch.Tensor) -> torch.Tensor:
         """Pre-transform a raw (B, C, H, W) tensor on-device before inference.
 
@@ -221,10 +220,7 @@ class BasePredictor:
             and (self.model.format == "pt" or (getattr(self.model, "dynamic", False) and self.model.format != "imx")),
             stride=self.model.stride,
         )
-        p = letterbox.get_params({"img": im[0].permute(1, 2, 0)})  # geometry only; reads .shape, not pixels
-        if tuple(im.shape[2:]) != p["new_unpad"][::-1]:
-            im = F.interpolate(im, size=p["new_unpad"][::-1], mode="bilinear", align_corners=False)
-        return F.pad(im, (p["left"], p["right"], p["top"], p["bottom"]), value=letterbox.padding_value / 255)
+        return letterbox.apply_tensor(im)
 
     def postprocess(self, preds, img, orig_imgs):
         """Post-process predictions for an image and return them."""

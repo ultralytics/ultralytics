@@ -96,12 +96,16 @@ def main():
     ap.add_argument("--mvtec-root", default=None, help="MVTec-YOLO root (default: auto-resolve)")
     ap.add_argument("--out", default=None, help="output root (default: runs/temp/yoloa/<model_id>/<fit_id>)")
     ap.add_argument(
+        "--heat-edge", type=int, default=None, choices=[0, 1],
+        help="Override heatmap edge suppression: 0=off, 1=on. Default: from fit YAML.",
+    )
+    ap.add_argument(
         "--hm-gate-blend",
         type=float,
         default=None,
         help="Heatmap gating blend: 1.0=off, 0.0=full suppress at low-heatmap cells. "
         "p_anom = p_anom * (blend + (1-blend) * hm). Default: hm_gate_blend from the fit YAML "
-        "(yoloa_fit_default.yaml ships 0.0 = gate ON, same as the in-training OOD eval).",
+        "(yoloa_fit_default.yaml ships 1.0 = gate OFF, same as the in-training OOD eval).",
     )
     args = ap.parse_args()
 
@@ -127,7 +131,6 @@ def main():
     predict_prior = prior_list[0]
 
     fit_args = YAML.load(check_yaml(args.fit_cfg))
-    infer = resolve_infer(fit_args)
     device = args.device or ("mps" if torch.backends.mps.is_available() else "cpu")
     if str(device).isdigit():
         device = f"cuda:{device}"  # bare GPU index breaks model.to() in YOLOA.fit (torch wants cuda:N)
@@ -155,6 +158,13 @@ def main():
         src = "cli" if args.hm_gate_blend is not None else "fit yaml"
         print(f"  hm_gate_blend: {hm_gate_blend} (heatmap conf gate ON, from {src})", flush=True)
 
+    # Heatmap edge suppression override: CLI wins, otherwise defer to fit YAML.
+    heat_edge = bool(args.heat_edge) if args.heat_edge is not None else bool(fit_args.get("heat_edge", False))
+    fit_args["heat_edge"] = heat_edge
+    infer = resolve_infer(fit_args)
+    if args.heat_edge is not None:
+        print(f"  heat_edge: {heat_edge} (from cli)", flush=True)
+
     imgsz = int(fit_args["imgsz"])
     bank_size = args.bank_size or int(fit_args.get("bb_max_bank_size", 10000))
     mid = model_id_from_ckpt(args.ckpt)
@@ -165,7 +175,7 @@ def main():
 
     print(
         f"YOLOA {args.mode} | root: {root} | device: {device} | imgsz: {imgsz} | "
-        f"priors: {prior_mode_display} | heat_edge: {infer.get('heat_edge', False)} "
+        f"priors: {prior_mode_display} | heat_edge: {heat_edge} "
         f"| cats({len(cats)}): {', '.join(cats)}",
         flush=True,
     )
@@ -268,7 +278,7 @@ def main():
                 iou=args.iou,
                 bank_size=bank_size,
                 heatmap_norm=infer.get("heat_norm", "none"),
-                heatmap_edge_weight=(True if infer.get("heat_edge") else None),
+                heatmap_edge_weight=(True if heat_edge else None),
                 heatmap_edge_sigma=infer.get("heat_edge_sigma", 1.0),
             )
             mode_rows = [x for x in cat_rows if x["category"] == cat and x.get("mode") in mode_to_prior]

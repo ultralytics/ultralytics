@@ -206,3 +206,8 @@ results.csv
 
 # CI test asset cache
 .ultralytics_cache/
+
+# Agent/skill working artifacts (local planning docs, never commit)
+docs/superpowers/
+docs/plans/
+docs/specs/

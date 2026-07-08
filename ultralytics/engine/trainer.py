@@ -297,6 +297,11 @@ class BaseTrainer:
         self.model = self.model.to(self.device)
         self.set_model_attributes()
 
+        # o2o fine-tuning: init the one2one head from the trained one2many head before freezing the trunk
+        self.o2o_ft = self.args.o2o_ft
+        if self.o2o_ft and not self.resume:
+            unwrap_model(self.model).model[-1].init_o2o_from_o2m()
+
         # Compile model
         self.model = attempt_compile(self.model, device=self.device, mode=self.args.compile)
 
@@ -313,8 +318,10 @@ class BaseTrainer:
         self.freeze_layer_names = freeze_layer_names
         for k, v in self.model.named_parameters():
             # v.register_hook(lambda x: torch.nan_to_num(x))  # NaN to 0 (commented for erratic training results)
-            if any(x in k for x in freeze_layer_names):
-                LOGGER.info(f"Freezing layer '{k}'")
+            # In o2o_ft mode freeze everything except the one2one branch (backbone+neck+o2m head stay frozen)
+            if (self.o2o_ft and "one2one" not in k) or any(x in k for x in freeze_layer_names):
+                if not self.o2o_ft:
+                    LOGGER.info(f"Freezing layer '{k}'")
                 v.requires_grad = False
             elif not v.requires_grad and v.dtype.is_floating_point:  # only floating point Tensor can require gradients
                 LOGGER.warning(
@@ -322,6 +329,8 @@ class BaseTrainer:
                     "See ultralytics.engine.trainer for customization of frozen layers."
                 )
                 v.requires_grad = True
+        if self.o2o_ft:
+            LOGGER.info("o2o_ft: frozen trunk (backbone+neck+o2m head), training the one2one head only")
         if not any(v.requires_grad for v in self.model.parameters()):
             raise RuntimeError(
                 f"'freeze={self.args.freeze}' froze the entire model with no trainable parameters left. "
@@ -640,9 +649,12 @@ class BaseTrainer:
     def _model_train(self):
         """Set model in training mode."""
         self.model.train()
-        # Freeze BN stat
+        # Freeze BN stat (trunk BN uses frozen running stats, matching deployment). In o2o_ft the trunk is
+        # everything outside the one2one branch, so only the trained o2o head keeps its BN in train mode.
         for n, m in self.model.named_modules():
-            if any(filter(lambda f: f in n, self.freeze_layer_names)) and isinstance(m, nn.BatchNorm2d):
+            if not isinstance(m, nn.BatchNorm2d):
+                continue
+            if (self.o2o_ft and "one2one" not in n) or any(f in n for f in self.freeze_layer_names):
                 m.eval()
 
     def save_model(self):

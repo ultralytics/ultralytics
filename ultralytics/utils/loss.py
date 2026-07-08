@@ -1352,7 +1352,8 @@ class E2ELoss:
     def __init__(self, model: torch.nn.Module, loss_fn=v8DetectionLoss):
         """Initialize E2ELoss with one-to-many and one-to-one detection losses using the provided model."""
         self.o2f = getattr(model.args, "o2f", False)
-        self.train_o2m = getattr(model.args, "o2m", True)  # train the auxiliary one2many head
+        # o2o_ft freezes the trunk (backbone+neck+o2m head) and trains the one2one head only at full weight
+        self.train_o2m = getattr(model.args, "o2m", True) and not getattr(model.args, "o2o_ft", False)
         self.o24 = getattr(model.args, "o24", False)  # aux head: o2o-style 1:1 on 4x-duplicated GTs vs one2many
         if self.o24:
             self.one2many = loss_fn(model, tal_topk=7, tal_topk2=4)  # 4 full-positive 1:1 matches per GT

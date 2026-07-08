@@ -135,6 +135,12 @@ class Detect(nn.Module):
         """Returns the one-to-one head components."""
         return dict(box_head=self.one2one_cv2, cls_head=self.one2one_cv3)
 
+    def init_o2o_from_o2m(self):
+        """Copy the one2many box/cls head weights into the one2one branch (o2o-only fine-tuning init)."""
+        assert self.end2end, "init_o2o_from_o2m requires an end-to-end head with a one2one branch"
+        self.one2one["box_head"].load_state_dict(self.one2many["box_head"].state_dict())
+        self.one2one["cls_head"].load_state_dict(self.one2many["cls_head"].state_dict())
+
     @property
     def end2end(self):
         """Checks if the model has one2one for v3/v5/v8/v9/v11 backward compatibility."""

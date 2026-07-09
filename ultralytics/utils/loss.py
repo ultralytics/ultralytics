@@ -392,7 +392,7 @@ class _BucketedRankSort(torch.autograd.Function):
 
     @staticmethod
     def forward(
-        ctx, logits: torch.Tensor, targets: torch.Tensor, delta: float = 0.5, sort_weight: float = 0.5
+        ctx, logits: torch.Tensor, targets: torch.Tensor, delta: float = 0.5, sort_weight: float = 1.0
     ) -> torch.Tensor:
         """Return weighted rank/sort loss while saving the manually constructed classification gradient."""
         logits = logits.float()
@@ -523,10 +523,11 @@ class _BucketedRankSort(torch.autograd.Function):
 class RankLoss(nn.Module):
     """Bucketed Rank & Sort loss for one2one DETR-style classification heads.
 
-    Ports Bucketed Rank & Sort Loss for DEIM/DFine decoder logits. Ranking is global across every (query, class)
-    location in an image, so a positive competes with same- and cross-class negatives alike. Relevant background
-    logits are sorted and grouped into buckets between foreground logits, which reduces comparisons while preserving
-    each bucket's negative count in the manually constructed identity-update gradient.
+    Ports Bucketed Rank & Sort Loss for DEIM/DFine decoder logits. Ranking is global across every local-batch
+    (image, query, class) location, matching the Co-DETR adaptation where flattened decoder logits are passed to the
+    ranking loss. Relevant background logits are sorted and grouped into buckets between foreground logits, which
+    reduces comparisons while preserving each bucket's negative count in the manually constructed identity-update
+    gradient.
 
     - rank: drives each positive's ranking error ``FP_num / (rank_pos + FP_num)`` (fraction of relevant negatives
     scoring above it) to 0, lifting positives over the negatives that outrank them.
@@ -537,7 +538,7 @@ class RankLoss(nn.Module):
         w_sort (float): Weight of the sort term relative to the rank term.
     """
 
-    def __init__(self, delta: float = 0.5, w_sort: float = 0.5):
+    def __init__(self, delta: float = 0.5, w_sort: float = 1.0):
         """Initialize the ranking loss with the step half-width and sort-term weight."""
         super().__init__()
         self.delta = delta
@@ -554,19 +555,12 @@ class RankLoss(nn.Module):
         Returns:
             (torch.Tensor): Scalar ranking loss (0 when no positives exist).
         """
-        delta = self.delta
-        losses = []
-        # Per image so queries from different images never rank against each other.
-        for logits_i, target_i in zip(pred_logits, target_scores):
-            # fp32 for AMP-safe ranking math; flatten every (query, class) logit as in DETR-style heads.
-            s = logits_i.float().flatten()  # (N*nc,)
-            t = target_i.float().flatten()  # (N*nc,)
-            if (t > 0).any():
-                losses.append(_BucketedRankSort.apply(s, t, delta, self.w_sort))
-
-        if not losses:
+        # fp32 for AMP-safe ranking math; flatten every local-batch (image, query, class) logit as in Co-DETR heads.
+        s = pred_logits.float().flatten()
+        t = target_scores.float().flatten()
+        if not (t > 0).any():
             return pred_logits.float().sum() * 0
-        return torch.stack(losses).mean()
+        return _BucketedRankSort.apply(s, t, self.delta, self.w_sort)
 
 
 class v8DetectionLoss:

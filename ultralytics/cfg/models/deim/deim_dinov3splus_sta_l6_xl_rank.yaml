@@ -64,8 +64,8 @@ loss:
   use_mal: True
   use_union_set: True
   reg_max: 32
-  # rank: 1.0 enables Rank & Sort loss on the o2o cls head (final + aux + pre); omit or set to 0 to disable.
-  loss_gain: {class: 1, bbox: 5, giou: 2, fgl: 0.15, ddf: 1.5, rank: 1.0}
+  # rank: 2.0 enables Bucketed Rank & Sort loss on the o2o cls head (final + aux + pre).
+  loss_gain: {class: 1, bbox: 5, giou: 2, fgl: 0.15, ddf: 1.5, rank: 2.0}
   matcher:
     cost_gain: {class: 2, bbox: 5, giou: 2}
     use_fl: True

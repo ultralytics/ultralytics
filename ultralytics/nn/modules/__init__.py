@@ -63,6 +63,12 @@ from .block import (
     SCDown,
     TorchVision,
 )
+from .dinov3_blocks import (
+    DinoV3Block,
+    DinoV3Downsample2x,
+    DinoV3PatchStem,
+    DinoV3TokenToSpatial,
+)
 from .conv import (
     CBAM,
     ChannelAttention,
@@ -155,6 +161,10 @@ __all__ = (
     "Conv2",
     "ConvTranspose",
     "DEIMDINOv3STAs",
+    "DinoV3Block",
+    "DinoV3Downsample2x",
+    "DinoV3PatchStem",
+    "DinoV3TokenToSpatial",
     "DWConv",
     "DWConvTranspose2d",
     "DeformableTransformerDecoder",

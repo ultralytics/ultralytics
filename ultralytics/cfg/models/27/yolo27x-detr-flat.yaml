@@ -1,0 +1,101 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# YOLO27x-DETR-Flat: layer-by-layer YAML for the DINOv3-ViT-S/16-plus + STA backbone. Same
+# architecture as yolo27x-detr.yaml, but the ViT depth, SPM stem, and per-scale fusion are
+# expanded into individual YAML rows (mirroring the yolo26-ultravit-cls.yaml convention).
+# Task: detect.
+#
+# Requires four new modules in ultralytics/nn/modules/dinov3_blocks.py:
+#   DinoV3PatchStem       (c1, c2, patch_size, n_storage): Conv2d patch embed + prepend cls
+#                         and n_storage register tokens; emits (B, 1 + n_storage + HW, c2).
+#   DinoV3Block           (dim, num_heads, ffn_ratio, ffn_layer, ls_init): pre-norm SA + LS
+#                         + FFN (mlp | swiglu | swiglu64) on (B, N, dim) tokens; RoPE built
+#                         inside from N (square-grid assumption).
+#   DinoV3TokenToSpatial  (dim, n_storage): LayerNorm on (B, N, dim), drop the leading
+#                         1 + n_storage tokens, reshape to (B, dim, H/patch, W/patch).
+#   DinoV3Downsample2x    (): F.interpolate(scale_factor=0.5, mode="bilinear") on (B,C,H,W).
+#
+# Parser plumbing (ultralytics/nn/tasks.py): add DinoV3PatchStem to the base_modules
+# frozenset, and DinoV3Block + DinoV3TokenToSpatial to a new dim-preserving frozenset that
+# injects `dim = ch[f]` as the first init arg. DinoV3Downsample2x is a plain fall-through
+# (dim-preserving, no channel change).
+
+nc: 80 # number of classes
+
+backbone:
+  # [from, repeats, module, args]
+  # Row 0 holds the raw input so the SPM branch can reach it via `from: 0` after the
+  # parser resets ch on i == 0. Same trick your friend uses implicitly through Conv stems.
+  - [-1, 1, nn.Identity, []] # 0 input capture
+
+  # ── ViT branch (dinov3_vits16plus: embed_dim=384, depth=12, heads=6, ffn_ratio=6, swiglu) ──
+  # Patch embed + prepend 1 cls + 4 storage tokens. Emits token tensor (B, 1+4+HW, 384).
+  - [-1, 1, DinoV3PatchStem, [384, 16, 4]] # 1
+
+  # 12 transformer blocks, chunked to expose the interaction outputs at 5/8/11.
+  - [-1, 5, DinoV3Block, [6, 6, "swiglu", 1.0e-5]] # 2  vit blocks 0..4
+  - [-1, 1, DinoV3Block, [6, 6, "swiglu", 1.0e-5]] # 3  vit block 5   (snapshot → P3)
+  - [-1, 2, DinoV3Block, [6, 6, "swiglu", 1.0e-5]] # 4  vit blocks 6..7
+  - [-1, 1, DinoV3Block, [6, 6, "swiglu", 1.0e-5]] # 5  vit block 8   (snapshot → P4)
+  - [-1, 2, DinoV3Block, [6, 6, "swiglu", 1.0e-5]] # 6  vit blocks 9..10
+  - [-1, 1, DinoV3Block, [6, 6, "swiglu", 1.0e-5]] # 7  vit block 11  (snapshot → P5)
+
+  # Tokens → spatial: LayerNorm + strip cls/storage + reshape to (B, 384, H/16, W/16).
+  - [3, 1, DinoV3TokenToSpatial, [4]] # 8  vit /16 from block 5
+  - [5, 1, DinoV3TokenToSpatial, [4]] # 9  vit /16 from block 8
+  - [7, 1, DinoV3TokenToSpatial, [4]] # 10 vit /16 from block 11
+
+  # Pyramid resample: ViT is uniformly at /16, produce /8, /16, /32.
+  - [8, 1, nn.Upsample, [None, 2, "bilinear"]] # 11 vit_P3 at /8
+  # row 9 is unchanged                          → vit_P4 at /16 (used directly below)
+  - [10, 1, DinoV3Downsample2x, []] # 12 vit_P5 at /32
+
+  # ── SPM branch (Spatial Prior Module v2, from raw input at row 0) ──
+  - [0, 1, Conv, [64, 3, 2, None, 1, 1, False]] # 13 stem conv (act=False)
+  - [-1, 1, nn.GELU, []] # 14
+  - [-1, 1, nn.MaxPool2d, [3, 2, 1]] # 15 stem pool → /4
+  - [-1, 1, Conv, [128, 3, 2, None, 1, 1, False]] # 16 c2 → /8
+  - [-1, 1, nn.GELU, []] # 17
+  - [-1, 1, Conv, [256, 3, 2, None, 1, 1, False]] # 18 c3 → /16
+  - [-1, 1, nn.GELU, []] # 19
+  - [-1, 1, Conv, [256, 3, 2, None, 1, 1, False]] # 20 c4 → /32
+
+  # ── Fusion (Concat ViT + SPM per scale, then 1×1 Conv+BN) ──
+  - [[11, 16], 1, Concat, [1]] # 21 concat vit_P3 + spm_c2
+  - [-1, 1, Conv, [256, 1, 1, None, 1, 1, False]] # 22 P3 out
+  - [[9, 18], 1, Concat, [1]] # 23 concat vit_P4 + spm_c3
+  - [-1, 1, Conv, [256, 1, 1, None, 1, 1, False]] # 24 P4 out
+  - [[12, 20], 1, Concat, [1]] # 25 concat vit_P5 + spm_c4
+  - [-1, 1, Conv, [256, 1, 1, None, 1, 1, False]] # 26 P5 out
+
+head:
+  # HybridEncoder head: input_proj + AIFI + FPN/PAN. hidden_dim=256.
+  # Backbone P3/P4/P5 are at rows 22/24/26 (compare with yolo27x-detr.yaml rows 1/2/3).
+  - [26, 1, nn.Identity, []] # 27 input_proj.2 (P5)
+  - [-1, 1, AIFI, [1024, 8]] # 28
+  - [-1, 1, Conv, [256, 1, 1, None, 1, 1, False]] # 29 Y5, lateral_convs.0
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]] # 30
+  - [24, 1, nn.Identity, []] # 31 input_proj.1 (P4)
+  - [[-2, -1], 1, Add, []] # 32
+  - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]] # 33 fpn_blocks.0
+  - [-1, 1, Conv, [256, 1, 1, None, 1, 1, False]] # 34 Y4, lateral_convs.1
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]] # 35
+  - [22, 1, nn.Identity, []] # 36 input_proj.0 (P3)
+  - [[-2, -1], 1, Add, []] # 37
+  - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]] # 38 X3, fpn_blocks.1
+
+  - [-1, 1, SCDown, [256, 3, 2, False]] # 39 downsample_convs.0
+  - [[-1, 34], 1, Add, []] # 40
+  - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]] # 41 F4, pan_blocks.0
+
+  - [-1, 1, SCDown, [256, 3, 2, False]] # 42 downsample_convs.1
+  - [[-1, 29], 1, Add, []] # 43
+  - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]] # 44 F5, pan_blocks.1
+
+  # DeimDecoder (defaults explicit). Args:
+  # [nc, hd, nq, ndp, nh, ndl, d_ffn, dropout, act, eval_idx, nd, label_noise_ratio, box_noise_scale,
+  #  learnt_init_query, query_select_method, reg_max, reg_scale, layer_scale, mlp_act,
+  #  o2m_topk_mode, use_gateway, share_bbox_head, share_score_head]
+  - [[38, 41, 44], 1, DeimDecoder, [nc, 256, 300, [3, 6, 3], 8, 6, 2048, 0.0, "silu", -1, 100, 0.5, 1.0, False, "default", 32, 4.0, 1.0, "silu", "unshared", True, False, False]] # 45

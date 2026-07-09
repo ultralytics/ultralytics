@@ -169,7 +169,8 @@ class YOLOAnomalyValidator(DetectionValidator):
             # Fall back to the standard detection plot if the head is not a YOLOA head.
             return super().plot_predictions(batch, preds, ni, max_det)
 
-        mask_size = head.heatmap_processor.mask_size
+        # mask_size = head.heatmap_processor.mask_size
+        mask_size = 80  # hard-code to 80 now
         imgs = batch["img"]
         b = imgs.shape[0]
         device = imgs.device

@@ -114,7 +114,8 @@ class RegionCounter(BaseSolution):
 
         for box, cls, track_id, conf in zip(self.boxes, self.clss, self.track_ids, self.confs):
             annotator.box_label(box, label=self.adjust_box_label(cls, conf, track_id), color=colors(track_id, True))
-            center = self.Point(((box[0] + box[2]) / 2, (box[1] + box[3]) / 2))
+            x0, y0, x1, y1 = self.get_enclosing_box(box)
+            center = self.Point(((x0 + x1) / 2, (y0 + y1) / 2))
             for region in self.counting_regions:
                 if region["prepared_polygon"].contains(center):
                     region["counts"] += 1

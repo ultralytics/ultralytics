@@ -45,7 +45,7 @@ class HeatmapBiasFusion(nn.Module):
             nn.GELU(),
             nn.Conv2d(c_mid, 1, 3, padding=1),
         )
-        # self.beta = nn.Parameter(torch.zeros(num_scales))
+        self.beta = nn.Parameter(torch.zeros(num_scales))
 
     def forward(self, mask: torch.Tensor, scale_idx: int) -> torch.Tensor:
         """Return bias (B, 1, H, W) for the given PAN scale.
@@ -58,8 +58,8 @@ class HeatmapBiasFusion(nn.Module):
             Bias tensor (B, 1, H, W) in ``[-beta_i, +beta_i]``.
         """
         dtype = next(self.conv.parameters()).dtype
-        return torch.sigmoid(self.conv(mask.to(dtype)))
-        # return self.beta[scale_idx] * torch.tanh(self.conv(mask.to(dtype)))
+        # return torch.sigmoid(self.conv(mask.to(dtype)))
+        return self.beta[scale_idx] * torch.tanh(self.conv(mask.to(dtype)))
 
 
 class HeatmapNeckFusion(nn.Module):

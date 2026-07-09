@@ -350,12 +350,12 @@ class AnomalyDetect(Detect):
                 else:
                     m_scale = processed_prior
                 delta = self.heatmap_bias_fusion(m_scale, i)
-                # if keep is not None:
-                #     delta = delta * keep.to(delta.dtype).view(-1, 1, 1, 1)
-                # feats.append(p + delta)
                 if keep is not None:
-                    p = torch.where(keep.view(-1, 1, 1, 1), p * delta, p)
-                feats.append(p)
+                    delta = delta * keep.to(delta.dtype).view(-1, 1, 1, 1)
+                feats.append(p + delta)
+                # if keep is not None:
+                #     p = torch.where(keep.view(-1, 1, 1, 1), p * delta, p)
+                # feats.append(p)
 
         # Build the heatmap that will be returned alongside the detections.
         # When no prior is active we still emit a zero heatmap so ONNX graphs

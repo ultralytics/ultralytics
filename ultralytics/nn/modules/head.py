@@ -875,14 +875,11 @@ class Depth(nn.Module):
             depth = out * self.max_depth  # meters
 
         if self.training:
-            # Loss always supervises the raw head output (calibration is refit on raw after training),
-            # and the .item() host-device sync below stays off the training hot path.
+            # Loss always supervises the raw head output (calibration is refit on raw after training).
             return {"depth": depth}
 
-        # Scale-only calibration (identity unless fitted; getattr: pre-cal_a checkpoints)
-        a, b = getattr(self, "cal_a", None), getattr(self, "cal_b", None)
-        if a is not None and (a.item() != 1.0 or b.item() != 0.0):
-            depth = torch.exp(a * torch.log(depth.clamp(min=1e-3)) + b)
+        # Scale-only calibration (identity unless fitted)
+        depth = depth.pow(self.cal_a) * self.cal_b.exp()
         # Upsample P2-resolution output to the input size. scale_factor (not a fixed size) keeps the
         # exported graph valid for dynamic input shapes; align_corners=False matches SemanticSegment.
         if self.export:

@@ -366,8 +366,9 @@ def classify(trial, rc, stderr):
     if any(marker in stderr for marker in NETWORK_MARKERS):
         return "flake", None, None
     if trial.get("mutated") and (
-        # "'X' is not supported" rejections are intentional wherever raised; "not implemented" abstract gaps are bugs
-        (exc == "NotImplementedError" and "support" in stderr)
+        # "'X' is not supported" rejections are intentional wherever raised; "not implemented" abstract gaps and
+        # "not found ... Request support" lookups are bugs or validation gaps and must keep their signatures
+        (exc == "NotImplementedError" and re.search(r"not supported|(?:doesn't|does not) support", stderr))
         or (exc in EXPECTED_TYPES and frames and frames[-1].startswith(EXPECTED_MODULES))
     ):
         return "expected", None, None  # clean validation errors are expected only for trials we actually mutated

@@ -86,7 +86,6 @@ from ultralytics.utils import (
     emojis,
 )
 from ultralytics.utils.checks import REMOTE_FILE_PREFIXES, check_file, check_requirements, check_suffix, check_yaml
-from ultralytics.utils.class_map import is_default_numeric_names, names_to_list, remap_class_row_state_dict
 from ultralytics.utils.loss import (
     E2ELoss,
     PoseLoss26,
@@ -317,18 +316,13 @@ class BaseModel(torch.nn.Module):
         """
         model = weights["model"] if isinstance(weights, dict) else weights  # torchvision models are not dicts
         csd = model.float().state_dict()  # checkpoint state_dict as FP32
-        self._transfer_state_dict(csd, verbose=verbose)
 
-    def _transfer_state_dict(self, csd, verbose=True):
-        """Transfer a checkpoint state_dict into the model, with partial first-conv copy for multi-channel training.
+        # Remap classification head rows by class-name when nc differs (e.g. Obj365 -> COCO fine-tune)
+        cls_remapped = self._remap_cls_by_names(csd, model, verbose=verbose)
 
-        Args:
-            csd (dict): Checkpoint state_dict to transfer; entries are intersected with the model's own state_dict.
-            verbose (bool, optional): Whether to log the transfer progress.
-        """
         updated_csd = intersect_dicts(csd, self.state_dict())  # intersect
         self.load_state_dict(updated_csd, strict=False)  # load
-        len_updated_csd = len(updated_csd)
+        len_updated_csd = len(updated_csd) + cls_remapped
         first_conv = "model.0.conv.weight"  # hard-coded to yolo models for now
         # mostly used to boost multi-channel training
         state_dict = self.state_dict()
@@ -341,6 +335,68 @@ class BaseModel(torch.nn.Module):
                 len_updated_csd += 1
         if verbose:
             LOGGER.info(f"Transferred {len_updated_csd}/{len(self.model.state_dict())} items from pretrained weights")
+
+    def _remap_cls_by_names(self, csd, src_model, verbose=True):
+        """Remap pretrained classification head rows to current class order by name.
+
+        Copies rows from pretrained cls layers into the current model's state_dict where the destination class name
+        matches a source class name (case-insensitive, whitespace-stripped). Useful when fine-tuning across datasets
+        with overlapping classes, whether the class counts differ (e.g. Objects365 -> COCO) or match but the class
+        order differs. Mutates the destination tensors in-place via state_dict references; matched cls tensors are
+        removed from `csd` so the subsequent intersect_dicts skips them.
+
+        Args:
+            csd (dict): Pretrained checkpoint state_dict (will be mutated).
+            src_model (torch.nn.Module): Pretrained module, used to read `.names` and `.nc`.
+            verbose (bool): Log mapping summary.
+
+        Returns:
+            (int): Number of cls tensors remapped (counted toward "Transferred" log line).
+        """
+        src_names = getattr(src_model, "names", None)
+        tgt_names = getattr(self, "names", None)
+        if not (isinstance(src_names, dict) and isinstance(tgt_names, dict)):
+            return 0
+        src_nc, tgt_nc = len(src_names), len(tgt_names)
+
+        def _norm(s):
+            return str(s).strip().lower()
+
+        # Skip default placeholder names {0:"0", 1:"1", ...} (also catches empty dicts) — nothing to match on
+        if any(all(str(k) == str(v) for k, v in n.items()) for n in (src_names, tgt_names)):
+            return 0
+
+        src_lookup = {_norm(v): k for k, v in src_names.items()}
+        idx = torch.tensor([src_lookup.get(_norm(tgt_names.get(k)), -1) for k in range(tgt_nc)], dtype=torch.long)
+        n_match = int((idx >= 0).sum())
+        # Skip if nothing matches, or class names already share order and count (intersect_dicts copies directly)
+        if n_match == 0 or (src_nc == tgt_nc and torch.equal(idx, torch.arange(tgt_nc))):
+            return 0
+
+        valid = idx >= 0
+        state_dict = self.state_dict()
+        # Exact class-logit conv weight/bias keys from the detection head(s) — restricting to these avoids
+        # class-ordering tensors that merely share the nc dimension (backbone blocks, box/mask/pose branches).
+        cls_keys = {
+            f"{name}.{attr}.{i}.{len(seq) - 1}.{p}"
+            for name, m in self.named_modules()
+            if isinstance(m, Detect)
+            for attr in ("cv3", "one2one_cv3")
+            for i, seq in enumerate(getattr(m, attr, ()))
+            if getattr(seq[-1], "out_channels", None) == tgt_nc
+            for p in ("weight", "bias")
+        }
+        remapped = 0
+        for k in cls_keys & csd.keys():
+            v_src, v_tgt = csd[k], state_dict[k]
+            if v_src.shape[1:] != v_tgt.shape[1:]:  # cls-conv weight input width (c3) differs across nc; copy bias only
+                continue
+            v_tgt[valid] = v_src[idx[valid]].to(v_tgt.dtype)
+            csd.pop(k)  # prevent intersect_dicts from copying these rows in the wrong (source) order
+            remapped += 1
+        if verbose and remapped:
+            LOGGER.info(f"Remapped {n_match}/{tgt_nc} cls head rows from pretrained weights by class name")
+        return remapped
 
     def loss(self, batch, preds=None):
         """Compute loss.
@@ -832,6 +888,8 @@ class RTDETRDetectionModel(DetectionModel):
         >>> results = model.predict(image_tensor)
     """
 
+    class_aliases: dict | None = None  # optional dst-name -> src-name overrides consumed by _remap_cls_by_names
+
     def __init__(self, cfg="rtdetr-l.yaml", ch=3, nc=None, verbose=True):
         """Initialize the RTDETRDetectionModel.
 
@@ -843,53 +901,84 @@ class RTDETRDetectionModel(DetectionModel):
         """
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
-    def load(self, weights, verbose=True, src_names=None, dst_names=None, aliases=None):
-        """Load weights with optional RT-DETR class-row remapping for cross-dataset transfer.
+    def _remap_cls_by_names(self, csd, src_model, verbose=True):
+        """Remap RT-DETR decoder cls-head rows by class name, with optional alias table.
+
+        Overrides BaseModel's YOLO-specific implementation. Handles RT-DETR decoder cls tensors (`score_head`,
+        `class_embed`), discards `denoising_class_embed` on class-count mismatch, and consults `self.class_aliases`
+        (set by the trainer/user) for cross-dataset name overrides when direct name matches fail. Normalization
+        additionally maps `&`, `/`, `_`, `-` to spaces so names like `Handbag/Satchel` and `handbag` can align.
 
         Args:
-            weights (dict | torch.nn.Module): Pretrained weights to load.
-            verbose (bool, optional): Whether to log the transfer progress.
-            src_names (dict | list, optional): Class names of the source (pretrained) checkpoint.
-            dst_names (dict | list, optional): Class names of the target (current) model.
-            aliases (dict, optional): Extra src-name aliases keyed by normalized dst name, used only when direct name
-                matching fails; falls back to DEFAULT_CLASS_ALIASES when None.
+            csd (dict): Pretrained checkpoint state_dict (will be mutated).
+            src_model (torch.nn.Module): Pretrained module, used to read `.names`.
+            verbose (bool): Log mapping and discard summary.
+
+        Returns:
+            (int): Number of cls tensors remapped (counted toward "Transferred" log line).
         """
-        model = weights["model"] if isinstance(weights, dict) else weights
-        csd = model.float().state_dict()
+        src_names = getattr(src_model, "names", None)
+        tgt_names = getattr(self, "names", None)
+        if not (isinstance(src_names, dict) and isinstance(tgt_names, dict)):
+            return 0
+        # Skip default placeholder names {0:"0", 1:"1", ...} (also catches empty dicts)
+        if any(all(str(k) == str(v) for k, v in n.items()) for n in (src_names, tgt_names)):
+            return 0
+
+        # Discard `denoising_class_embed` on class-count mismatch so it is randomly initialized after intersect_dicts
         state_dict = self.state_dict()
-
-        if src_names is None:
-            src_names = getattr(model, "names", None)
-        if dst_names is None:
-            dst_names = getattr(self, "names", None)
-
-        dn_discard = [
-            k for k in csd if "denoising_class_embed" in k and k in state_dict and csd[k].shape != state_dict[k].shape
-        ]
-        for k in dn_discard:
+        for k in [
+            k
+            for k in list(csd)
+            if "denoising_class_embed" in k and k in state_dict and csd[k].shape != state_dict[k].shape
+        ]:
             del csd[k]
             if verbose:
                 LOGGER.info(f"Discarded '{k}' due to class-count mismatch (will be randomly initialized)")
 
-        src_name_list = names_to_list(src_names)
-        dst_name_list = names_to_list(dst_names)
-        names_match = bool(src_name_list) and src_name_list == dst_name_list
-        if (
-            src_names is not None
-            and dst_names is not None
-            and not is_default_numeric_names(src_names)
-            and not is_default_numeric_names(dst_names)
-            and not names_match
-        ):
-            csd, remapped, missing = remap_class_row_state_dict(
-                csd, state_dict, src_names=src_names, dst_names=dst_names, aliases=aliases
-            )
-            if verbose and remapped:
-                LOGGER.info(f"Remapped {len(remapped)} class tensors using source->target class-name map")
-            if verbose and missing:
-                LOGGER.info(f"{len(missing)} target classes were not mapped and kept target initialization")
+        def _norm(s):
+            """Normalize a class name for matching: lower, strip, '&'->'and', '/_-'->' ', collapse whitespace."""
+            s = str(s).lower().strip().replace("&", "and")
+            return re.sub(r"\s+", " ", re.sub(r"[/_-]+", " ", s))
 
-        self._transfer_state_dict(csd, verbose=verbose)
+        aliases = self.class_aliases or {}
+        src_lookup = {_norm(v): k for k, v in src_names.items()}
+
+        def _resolve(name):
+            """Return src index for dst name via direct normalized match, then alias fallback, else -1."""
+            key = _norm(name)
+            if key in src_lookup:
+                return src_lookup[key]
+            alias = aliases.get(key)
+            if alias:
+                for a in [alias] if isinstance(alias, str) else alias:
+                    if _norm(a) in src_lookup:
+                        return src_lookup[_norm(a)]
+            return -1
+
+        tgt_nc = len(tgt_names)
+        idx = torch.tensor([_resolve(tgt_names[k]) for k in range(tgt_nc)], dtype=torch.long)
+        n_match = int((idx >= 0).sum())
+        # Skip if nothing matches, or class names already share order and count (intersect_dicts handles it directly)
+        if n_match == 0 or (len(src_names) == tgt_nc and torch.equal(idx, torch.arange(tgt_nc))):
+            return 0
+
+        valid = idx >= 0
+        # RT-DETR decoder cls-head keys: `score_head` + `class_embed`, but not the already-handled `denoising_class_embed`
+        cls_keys = {
+            k for k in csd if ("score_head" in k or "class_embed" in k) and "denoising" not in k and k in state_dict
+        }
+        remapped = 0
+        for k in cls_keys:
+            v_src, v_tgt = csd[k], state_dict[k]
+            if v_src.ndim != v_tgt.ndim or v_src.shape[1:] != v_tgt.shape[1:]:
+                continue
+            v_tgt[valid] = v_src[idx[valid]].to(v_tgt.dtype)
+            csd.pop(k)  # prevent intersect_dicts from copying these rows in the wrong (source) order
+            remapped += 1
+        if verbose and remapped:
+            LOGGER.info(f"Remapped {n_match}/{tgt_nc} decoder cls head rows from pretrained weights by class name")
+        return remapped
 
     def _apply(self, fn):
         """Apply a function to all tensors in the model, including decoder anchors and valid mask.

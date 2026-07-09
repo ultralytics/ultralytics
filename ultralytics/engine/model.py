@@ -659,7 +659,7 @@ class Model(torch.nn.Module):
         custom = {"verbose": False}  # method defaults
         args = {**DEFAULT_CFG_DICT, **self.model.args, **custom, **kwargs, "mode": "benchmark"}
         fmts = export_formats()
-        export_args = set(dict(zip(fmts["Argument"], fmts["Arguments"])).get(format, [])) - {
+        export_args = set(dict(zip(fmts["Argument"], fmts["Arguments"])).get(format.lower(), [])) - {
             "batch",
             "data",
             "quantize",

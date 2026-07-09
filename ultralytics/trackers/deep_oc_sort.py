@@ -180,7 +180,9 @@ class DeepOCSORT(OCSORT):
         self.appearance_thresh = getattr(args, "appearance_thresh", 0.75)
         self.alpha_fixed_emb = getattr(args, "alpha_fixed_emb", 0.95)
 
-        self.encoder = build_encoder(getattr(args, "with_reid", False), getattr(args, "model", "auto"))
+        self.encoder = build_encoder(
+            getattr(args, "with_reid", False), getattr(args, "model", "auto"), getattr(args, "device", None)
+        )
 
     def init_track(self, results, img: np.ndarray | None = None) -> list[DeepOCSortTrack]:
         """Build `DeepOCSortTrack` instances, attaching ReID features when enabled.

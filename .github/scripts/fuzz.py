@@ -21,6 +21,7 @@ Usage:
 import argparse
 import contextlib
 import hashlib
+import importlib.util
 import json
 import os
 import random
@@ -338,7 +339,7 @@ def classify(trial, rc, stderr):
         sig, human = make_signature(f"Signal{-rc}", frames, trial["mode"], trial["task"])
         return "crash", sig, human
     missing = re.search(r"No module named '(\w+)", stderr)
-    if missing and missing.group(1) != "ultralytics":  # missing optional third-party dep; package breakage stays fatal
+    if missing and not importlib.util.find_spec(missing.group(1)):  # module genuinely absent: optional-dep skip
         return "env-skip", None, None
     if any(marker in stderr for marker in NETWORK_MARKERS):
         return "flake", None, None
@@ -362,6 +363,9 @@ def cmd_fuzz(args):
     out.mkdir(parents=True, exist_ok=True)
     trials_path = out / f"trials-{args.personality}.jsonl"
     log.info(f"[fuzz] personality={args.personality} seed={args.seed} budget={args.budget_minutes}min")
+    from ultralytics.utils.checks import collect_system_info
+
+    environment = {k: str(v) for k, v in collect_system_info().items()}  # before fuzzing: fail fast, never lose trials
     precache_assets(uni)
     corpus = build_corpus(uni)
 
@@ -434,8 +438,6 @@ def cmd_fuzz(args):
         execute(sample_trial(rng, uni, corpus, args.personality))
 
     infra_failed = bool(canary_results) and (canary_results.count(False) / len(canary_results)) > CANARY_FAIL_FRACTION
-    from ultralytics.utils.checks import collect_system_info
-
     summary = {
         "personality": args.personality,
         "seed": args.seed,
@@ -443,7 +445,7 @@ def cmd_fuzz(args):
         "counters": counters,
         "infra_failed": infra_failed,
         "findings": sorted(findings.values(), key=lambda x: (x["tier"], x["signature"])),
-        "environment": {k: str(v) for k, v in collect_system_info().items()},
+        "environment": environment,
     }
     (out / f"findings-{args.personality}.json").write_text(json.dumps(summary, indent=2))
     log.info(
@@ -503,13 +505,12 @@ def cmd_report(args):
         print("[report] no findings files found")
         return
     run_url = f"https://github.com/{args.repo}/actions/runs/{os.environ.get('GITHUB_RUN_ID', '')}"
-    findings, counters, skipped = {}, {}, []
+    findings, counters, flagged = {}, {}, []
     for shard in shards:
         for k, v in shard["counters"].items():
             counters[k] = counters.get(k, 0) + v
-        if shard["infra_failed"]:
-            skipped.append(shard["personality"])
-            continue
+        if shard["infra_failed"]:  # warn only: a regression tripping the canaries IS the finding, never discard it
+            flagged.append(shard["personality"])
         for f in shard["findings"]:
             findings.setdefault(f["signature"], {**f, "environment": shard["environment"], "seed": shard["seed"]})
 
@@ -646,7 +647,7 @@ def cmd_report(args):
         f"## Fuzz — {total} trials\n\n"
         + "\n".join(table)
         + f"\n\nNew issues filed: {created} (cap {args.max_issues})"
-        + (f" · infra-failed shards skipped: {', '.join(skipped)}" if skipped else "")
+        + (f" · ⚠️ shards with >20% canary failures: {', '.join(flagged)}" if flagged else "")
     )
     if step_summary := os.environ.get("GITHUB_STEP_SUMMARY"):
         Path(step_summary).write_text(summary)

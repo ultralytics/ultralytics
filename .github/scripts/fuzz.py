@@ -145,8 +145,7 @@ EXPECTED_MODULES = (
     "ultralytics/data/utils.py",
     "ultralytics/engine/exporter.py:validate_args",  # exporter's intentional per-format argument validation
 )
-NETWORK_MARKERS = (
-    "Connection",
+NETWORK_MARKERS = (  # specific download/network signatures only; bare ConnectionError is raised for local sources too
     "urlopen error",
     "Read timed out",
     "Download failure",
@@ -343,8 +342,8 @@ def classify(trial, rc, stderr):
         return "env-skip", None, None
     if any(marker in stderr for marker in NETWORK_MARKERS):
         return "flake", None, None
-    if exc in EXPECTED_TYPES and frames and frames[-1].startswith(EXPECTED_MODULES):
-        return "expected", None, None
+    if trial.get("mutated") and exc in EXPECTED_TYPES and frames and frames[-1].startswith(EXPECTED_MODULES):
+        return "expected", None, None  # clean validation errors are expected only for trials we actually mutated
     sig, human = make_signature(exc, frames, trial["mode"], trial["task"])
     return "bug-candidate", sig, human
 
@@ -475,7 +474,7 @@ def cmd_repro(args):
     argv = [portable(a) for a in argv]
     mode = next((a for a in argv if a in MODES), "predict")
     task = next((a for a in argv if a in uni["tasks"]), "detect")
-    trial = {"mode": mode, "task": task, "argv": argv}
+    trial = {"mode": mode, "task": task, "argv": argv, "mutated": ["repro"]}  # replayed commands were fuzz-mutated
     outcomes = []
     for i in range(args.runs):
         rc, stderr, duration = run_trial(trial, timeout=args.debug_timeout)

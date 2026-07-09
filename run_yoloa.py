@@ -156,6 +156,8 @@ def main():
                 device=device,
                 batch=args.batch,
                 conf=args.conf,
+                project=Path(args.ckpt).stem,
+                name=cat,
             )
 
             # all_ap cols: iouv = linspace(.10, .50, 9) → .10=col0, .25=col3, .50=col8.

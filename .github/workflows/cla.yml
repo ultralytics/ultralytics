@@ -3,7 +3,7 @@
 # Ultralytics Contributor License Agreement (CLA) action https://docs.ultralytics.com/help/CLA
 # This workflow automatically requests Pull Requests (PR) authors to sign the Ultralytics CLA before PRs can be merged
 
-name: CLA Assistant
+name: CLA
 on:
   issue_comment:
     types:

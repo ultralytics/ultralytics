@@ -3,10 +3,12 @@
 # YOLO Anomaly v2 — clsgrad per-scale MUL gate, ITERATIVE fusion warm-start (round 2).
 # Fork of yolo26-anomaly-clsgrad-perscale-fload-flr01-mul — IDENTICAL except fusion_load donor:
 #   round 1 (mul_v1): warm-start from an ADDITIVE-trained fusion (regime mismatch) -> lr0.1 near-frozen.
-#   round 2 (this):   warm-start from mul_v1's OWN best.pt (mul-regime fusion) -> iterate.
+#   round 2 (this):   warm-start from mul_v1's OWN last.pt (mul-regime fusion, trained the full 10ep
+#                     = most-adapted; last.pt > best.pt here since best.pt may sit at an early-fitness
+#                     epoch whose fusion barely moved) -> iterate.
 # Since fusion_lr_scale 0.1 barely moves the fusion per run, iterating (warm-start from the previous
 # mul round) accumulates the mul-regime adaptation across rounds while keeping each round stable.
-# ⚠️ Requires 26m_yoloav2_v8.2_clsgrad_flr01_perscale_mul_v1 to have FINISHED (its best.pt is the donor)
+# ⚠️ Requires 26m_yoloav2_v8.2_clsgrad_flr01_perscale_mul_v1 to have FINISHED (its last.pt is the donor)
 # -> launch with --after that run.
 # Branch: yoloa_clean_louis.
 
@@ -31,7 +33,7 @@ anomaly_v2:
   fusion_apply: mul                # p * (1 + tanh(delta)) — bounded multiplicative gate
   fusion_lr_scale: 0.1             # near-frozen, preserve warm-start
   fusion_per_scale: true           # unshared fusion conv across P3/P4/P5 (must match the donor format)
-  fusion_load: runs/yoloa_clean/26m_yoloav2_v8.2_clsgrad_flr01_perscale_mul_v1/weights/best.pt
+  fusion_load: runs/yoloa_clean/26m_yoloav2_v8.2_clsgrad_flr01_perscale_mul_v1/weights/last.pt
   # aug3 base + mixup re-enabled (aug2 strength) — only diff vs aug3
   mask_jitter: 0.01
   mask_box_drop_p: 0.05

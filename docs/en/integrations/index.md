@@ -61,7 +61,7 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 ## Deployment Integrations
 
-- [Ambarella](ambarella.md): Train, compress, and export Ultralytics YOLO models for Ambarella CVflow® SoCs such as the CV72 using SpongeTorch compression-aware training and the offline CVFlow toolchain.
+- [Ambarella](ambarella.md): Train, compress, and export Ultralytics YOLO models for Ambarella CVflow® SoCs such as the CV72 using SpongeTorch compression-aware training and the offline CVflow toolchain.
 
 - [Axelera](axelera.md): Explore Metis accelerators and the Voyager SDK for running Ultralytics models with efficient edge inference.
 

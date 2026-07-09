@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-"""Infinite CI — Monte Carlo fuzzing of the `yolo` CLI to find bugs outside the finite test matrix.
+"""Monte Carlo fuzzing of the `yolo` CLI to find bugs outside the finite test matrix.
 
 Runs randomized/mutated `yolo` commands in subprocesses, classifies every outcome (pass, expected cfg error,
 environment skip, network flake, hang, crash, bug candidate), confirms bug candidates by replaying them, and emits
@@ -33,7 +33,9 @@ import tempfile
 import time
 from pathlib import Path
 
-# Per-mode subprocess timeouts (seconds) on CPU runners, ~6-10x headroom over observed norms
+# Per-mode subprocess timeouts (seconds) on Linux CPU runners, ~6-10x headroom over observed norms
+# Windows runners are ~2x slower (interpreter startup, filesystem), so all timeouts scale there
+TIMEOUT_SCALE = 2 if os.name == "nt" else 1
 MODE_TIMEOUTS = {"train": 360, "val": 180, "predict": 180, "export": 480}
 CONFIRM_TIMEOUT = 180  # shorter secondary timeout when confirming hangs (never re-pay the full timeout)
 MAX_HANG_CONFIRMS = 5  # cap hang confirmations per shard so one pathological class can't eat the budget
@@ -252,7 +254,7 @@ def sample_mutation(rng, uni, chaos=False):
 def run_trial(trial, timeout=None):
     """Execute one trial in an isolated tmp workdir; outputs go to a per-trial `project=`, assets stay shared."""
     mode = trial["mode"]
-    timeout = timeout or MODE_TIMEOUTS[mode]
+    timeout = (timeout or MODE_TIMEOUTS[mode]) * TIMEOUT_SCALE
     workdir = Path(tempfile.mkdtemp(prefix="fuzz-trial-"))
     argv = list(trial["argv"])
     if mode == "export":  # exports write beside the model file: copy the weight in so shared weights_dir stays clean
@@ -267,19 +269,27 @@ def run_trial(trial, timeout=None):
         argv = [a if not a.startswith("model=") else f"model={local}" for a in argv]
     else:
         argv.append(f"project={workdir / 'runs'}")
-    cmd = [sys.executable, "-m", "ultralytics.cfg.__init__", *argv]
+    from ultralytics.cfg import _YOLO_CLI_COMMAND  # same invocation trainer/tuner use to respawn the CLI
+
+    cmd = [*_YOLO_CLI_COMMAND, *argv]
     env = {**os.environ, "YOLO_AUTOINSTALL": "false", "PYTHONFAULTHANDLER": "1"}
     t0 = time.perf_counter()
-    # New session so a timeout kills the whole process group (dataloader workers, export converter subprocesses)
+    # Own session/group so a timeout kills the whole tree (dataloader workers, export converter subprocesses)
+    group = (
+        {"start_new_session": True} if os.name == "posix" else {"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP}
+    )
     proc = subprocess.Popen(
-        cmd, cwd=workdir, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env, start_new_session=True
+        cmd, cwd=workdir, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env, **group
     )
     try:
         _, stderr = proc.communicate(timeout=timeout)
         rc = proc.returncode
     except subprocess.TimeoutExpired:
-        with contextlib.suppress(ProcessLookupError):
-            os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+        if os.name == "posix":
+            with contextlib.suppress(ProcessLookupError):
+                os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+        else:
+            subprocess.run(["taskkill", "/F", "/T", "/PID", str(proc.pid)], capture_output=True)
         _, stderr = proc.communicate()
         rc, stderr = "timeout", stderr or ""
     finally:
@@ -509,7 +519,7 @@ def cmd_report(args):
             "create",
             "fuzz",
             "--description",
-            "Found by Infinite CI fuzzing",
+            "Found by the scheduled Fuzz workflow",
             "--color",
             "8B5CF6",
             "--repo",
@@ -573,7 +583,7 @@ def cmd_report(args):
 
     if new_t2:  # T2 validation gaps roll up into one umbrella issue; only its creation counts against the cap
         lines = [f"- `{f['command']}` → {f['title']} `<!-- fuzz-signature: {f['signature']} -->`" for f in new_t2]
-        comment = f"New CLI validation gaps found by [Infinite CI]({run_url}):\n\n" + "\n".join(lines)
+        comment = f"New CLI validation gaps found by [fuzzing]({run_url}):\n\n" + "\n".join(lines)
         if umbrella and umbrella["state"] == "OPEN":
             gh(
                 "issue",
@@ -596,7 +606,7 @@ def cmd_report(args):
                 "--title",
                 "Fuzz: CLI validation gaps (rolling)",
                 "--body",
-                "Deep tracebacks from invalid CLI input, found by Infinite CI fuzzing. Each should raise "
+                "Deep tracebacks from invalid CLI input, found by scheduled fuzzing. Each should raise "
                 "a clean error from the cfg layer instead.\n\n" + comment + "\n<!-- fuzz-signature: umbrella -->",
                 "--label",
                 "bug,fuzz",
@@ -625,15 +635,14 @@ def cmd_report(args):
             "--repo",
             args.repo,
             "--body",
-            f"Reproduced again by [Infinite CI]({run_url}) after this issue was closed — possible "
-            f"regression.\n\n{blocks}",
+            f"Reproduced again by [fuzzing]({run_url}) after this issue was closed — possible regression.\n\n{blocks}",
             dry_run=args.dry_run,
         )
 
     total = sum(counters.values())
     table = ["| Outcome | Count |", "|---|---|"] + [f"| {k} | {v} |" for k, v in sorted(counters.items())]
     summary = (
-        f"## Infinite CI — {total} trials\n\n"
+        f"## Fuzz — {total} trials\n\n"
         + "\n".join(table)
         + f"\n\nNew issues filed: {created} (cap {args.max_issues})"
         + (f" · infra-failed shards skipped: {', '.join(skipped)}" if skipped else "")
@@ -649,7 +658,7 @@ def cmd_report(args):
 def issue_body(f, run_url):
     """Format the GitHub issue body for one confirmed T1 finding."""
     env = "\n".join(f"{k}: {v}" for k, v in f["environment"].items())
-    return f"""Infinite CI fuzzing found a reproducible failure (confirmed 2/2 runs).
+    return f"""Automated fuzzing found a reproducible failure (confirmed 2/2 runs).
 
 ### Reproduce
 

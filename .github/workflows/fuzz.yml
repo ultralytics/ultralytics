@@ -1,9 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# Infinite CI — daily Monte Carlo fuzzing of the yolo CLI on a 4-personality runner matrix
+# Daily Monte Carlo fuzzing of the yolo CLI on a 4-personality, 3-OS runner matrix
 # Confirmed, deduplicated findings are auto-filed as GitHub issues (hard cap per run) by the Report job
 
-name: Infinite CI
+name: Fuzz
 
 permissions:
   contents: read
@@ -23,7 +23,7 @@ on:
         type: string
 
 concurrency:
-  group: infinite-ci
+  group: fuzz
   cancel-in-progress: false
 
 env:
@@ -33,12 +33,23 @@ env:
 jobs:
   Fuzz:
     if: github.repository == 'ultralytics/ultralytics' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 330
     strategy:
       fail-fast: false
       matrix:
-        personality: [train, export, predict-val, chaos]
+        include: # one OS per personality: exports are the most platform-sensitive, predict/val exercise macOS spawn multiprocessing
+          - personality: train
+            os: ubuntu-latest
+          - personality: export
+            os: windows-latest
+          - personality: predict-val
+            os: macos-26
+          - personality: chaos
+            os: ubuntu-latest
+    defaults:
+      run:
+        shell: bash # multi-line run blocks and ${GITHUB_WORKSPACE} expansion on all three OSes
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v6
@@ -118,4 +129,4 @@ jobs:
           webhook-type: incoming-webhook
           webhook: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}
           payload: |
-            text: "<!subteam^S082BPCRAJ3> *Infinite CI* 🐛 filed ${{ steps.report.outputs.new_issues }} new fuzz issue(s) in `${{ github.repository }}` <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|*Run*>"
+            text: "<!subteam^S082BPCRAJ3> *${{ github.workflow }}* 🐛 filed ${{ steps.report.outputs.new_issues }} new fuzz issue(s) in `${{ github.repository }}` <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|*Run*>"

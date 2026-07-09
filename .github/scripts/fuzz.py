@@ -83,23 +83,27 @@ CLAMPS = {
 }
 EXPORT_POOL = ["torchscript", "onnx", "openvino"]  # CPU-friendly with deps installed by the export-base extra
 
-# Valid + invalid probes for string-enum args that bypass check_cfg (the highest-value fuzz targets)
+# Probe pools: "valid" values exercise semantics (deep failures are T1 bugs), "invalid" values exercise
+# validation (deep failures are T2 gaps). Enum keys bypass check_cfg — the highest-value fuzz targets.
 ENUM_POOLS = {
-    "optimizer": ["SGD", "Adam", "AdamW", "NAdam", "RAdam", "RMSProp", "auto", "sgd", "Ranger", "", "none"],
-    "split": ["val", "test", "train", "trainval", "", "0.5"],
-    "cache": ["True", "False", "ram", "disk", "gpu", "1.5"],
-    "compile": ["True", "False", "default", "reduce-overhead", "max-autotune", "turbo"],
-    "auto_augment": ["randaugment", "autoaugment", "augmix", "randaug", ""],
-    "copy_paste_mode": ["flip", "mixup", "paste", ""],
-    "quantize": ["none", "half", "fp16", "int8_dynamic", "w8a8", "int4"],
+    "optimizer": {
+        "valid": ["SGD", "Adam", "AdamW", "NAdam", "RAdam", "RMSProp", "auto"],
+        "invalid": ["sgd", "Ranger", "", "none"],
+    },
+    "split": {"valid": ["val", "test", "train"], "invalid": ["trainval", "", "0.5"]},
+    "cache": {"valid": ["True", "False", "ram", "disk"], "invalid": ["gpu", "1.5"]},
+    "compile": {"valid": ["True", "False", "default", "reduce-overhead", "max-autotune"], "invalid": ["turbo"]},
+    "auto_augment": {"valid": ["randaugment", "autoaugment", "augmix"], "invalid": ["randaug", ""]},
+    "copy_paste_mode": {"valid": ["flip", "mixup"], "invalid": ["paste", ""]},
+    "quantize": {"valid": ["fp16", "w8a8"], "invalid": ["none", "half", "int8_dynamic", "int4"]},
 }
-
-# Wrong-type / boundary probes per typed key family (values are CLI strings)
-FRACTION_PROBES = ["0.0", "1.0", "0.5", "-0.1", "1.5", "half", "True", "none"]
-INT_PROBES = ["0", "1", "7", "-1", "3.5", "ten", "none"]
-BOOL_PROBES = ["True", "False", "yes", "1", "none"]
-FLOAT_PROBES = ["0.0", "0.1", "10", "-5", "big", "none"]
-CHAOS_PROBES = ["[]", "[1,2]", "{}", "🚀", "1e309", "nan", "-0"]  # chaos shard extras for any key
+PROBES = {  # boundary and wrong-type probes per typed key family (values are CLI strings)
+    "fraction": {"valid": ["0.0", "1.0", "0.5"], "invalid": ["-0.1", "1.5", "half", "True", "none"]},
+    "int": {"valid": ["0", "1", "7"], "invalid": ["-1", "3.5", "ten", "none"]},
+    "bool": {"valid": ["True", "False"], "invalid": ["yes", "1", "none"]},
+    "float": {"valid": ["0.0", "0.1", "10"], "invalid": ["-5", "big", "none"]},
+}
+CHAOS_PROBES = ["[]", "[1,2]", "{}", "🚀", "1e309", "nan", "-0"]  # chaos shard extras for any key, all invalid
 
 # Valid-but-rare combinations (mode, extra args) — where the T1 semantic bugs live
 COMBO_POOL = [
@@ -233,6 +237,7 @@ def sample_trial(rng, uni, corpus, personality):
         argv.extend(kept)
         mutated.extend(a.partition("=")[0] for a in kept)
 
+    valid_input = True  # tier is decided by input validity, not sampler name: combos and corpus stay valid
     if mode == "export":  # fuzz the format from the installable pool; the default torchscript stays implicit
         mutate([f"format={rng.choice(EXPORT_POOL)}"])
     if strategy == "combo":
@@ -240,22 +245,30 @@ def sample_trial(rng, uni, corpus, personality):
     elif strategy == "invalid":
         n_keys = rng.randint(1, 4 if personality == "chaos" else 3)
         for _ in range(n_keys):
-            key, value = sample_mutation(rng, uni, chaos=personality == "chaos")
+            key, value, valid = sample_mutation(rng, uni, chaos=personality == "chaos")
             mutate([f"{key}={value}"])
-    return {"mode": mode, "task": base["task"], "argv": argv, "strategy": strategy, "mutated": mutated}
+            valid_input = valid_input and valid
+    return {
+        "mode": mode,
+        "task": base["task"],
+        "argv": argv,
+        "strategy": strategy,
+        "mutated": mutated,
+        "valid_input": valid_input,
+    }
 
 
 def sample_mutation(rng, uni, chaos=False):
-    """Pick one fuzzable key and a probe value, weighted toward the unvalidated string-enum args."""
+    """Pick one fuzzable key, a probe value, and whether that value is documented-valid for the key."""
     family = rng.choices(["enum", "fraction", "int", "bool", "float"], weights=[4, 2, 2, 1, 1])[0]
     if family == "enum":
         key = rng.choice(uni["enum_keys"])
         pool = ENUM_POOLS[key]
     else:
         key = rng.choice(uni[f"{family}_keys"])
-        pool = {"fraction": FRACTION_PROBES, "int": INT_PROBES, "bool": BOOL_PROBES, "float": FLOAT_PROBES}[family]
-    value = rng.choice(pool + CHAOS_PROBES) if chaos else rng.choice(pool)
-    return key, value
+        pool = PROBES[family]
+    value = rng.choice(pool["valid"] + pool["invalid"] + (CHAOS_PROBES if chaos else []))
+    return key, value, value in pool["valid"]
 
 
 def run_trial(trial, timeout=None):
@@ -392,15 +405,29 @@ def cmd_fuzz(args):
             rc, stderr, duration = run_trial(trial, timeout=args.debug_timeout)
             outcome, sig, human = classify(trial, rc, stderr)
         confirmed = False
-        tier = "T2" if trial.get("strategy") == "invalid" and outcome == "bug-candidate" else "T1"
+        tier = "T2" if outcome == "bug-candidate" and not trial.get("valid_input", True) else "T1"
+
+        def finding():
+            """Build the finding record from this occurrence's fresh trial, outcome, and traceback."""
+            return {
+                "signature": sig,
+                "title": human,
+                "tier": tier,
+                "outcome": outcome,
+                "mode": trial["mode"],
+                "task": trial["task"],
+                "strategy": trial.get("strategy", "corpus"),
+                "command": "yolo " + " ".join(trial["argv"]),
+                "stderr_tail": stderr_tail(stderr),
+                "duration_s": duration,
+            }
+
         if sig and sig in findings and tier == "T1" and findings[sig]["tier"] == "T2":
             # a valid-input occurrence proves a confirmed validation-gap signature is a real bug: confirm, then upgrade
             rc2, stderr2, _ = run_trial(trial, timeout=args.debug_timeout)
             outcome2, sig2, _ = classify(trial, rc2, stderr2)
             if outcome2 == outcome and sig2 == sig:
-                findings[sig].update(
-                    tier="T1", strategy=trial.get("strategy", "corpus"), command="yolo " + " ".join(trial["argv"])
-                )
+                findings[sig] = finding()
         if sig and sig not in seen:  # confirm only the first occurrence of each signature
             seen.add(sig)
             if outcome == "timeout":
@@ -417,18 +444,7 @@ def cmd_fuzz(args):
             if not confirmed:  # flaky/capped confirmations may still be real failures: let later occurrences retry
                 seen.discard(sig)
             if confirmed:
-                findings[sig] = {
-                    "signature": sig,
-                    "title": human,
-                    "tier": tier,
-                    "outcome": outcome,
-                    "mode": trial["mode"],
-                    "task": trial["task"],
-                    "strategy": trial.get("strategy", "corpus"),
-                    "command": "yolo " + " ".join(trial["argv"]),
-                    "stderr_tail": stderr_tail(stderr),
-                    "duration_s": duration,
-                }
+                findings[sig] = finding()
         counters[outcome] += 1
         if canary:
             canary_results.append(outcome == "pass")

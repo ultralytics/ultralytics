@@ -255,7 +255,7 @@ def check_version(
             name = current  # assigned package name to 'name' arg
             current = metadata.version(current)  # get version string from package name
         except metadata.PackageNotFoundError as e:
-            if re.match(r"v\d", current):  # not an installed package: compare the v-prefixed version directly
+            if re.fullmatch(r"v\d+(\.\d+)*([-_.]?(a|b|rc|post|dev)\d*)?(\+[\w.-]+)?", current, re.I):
                 pass
             elif hard:
                 raise ModuleNotFoundError(f"{current} package is required but not installed") from e

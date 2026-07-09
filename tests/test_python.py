@@ -9,7 +9,6 @@ import urllib
 import zipfile
 from copy import copy
 from pathlib import Path
-from unittest.mock import Mock
 
 import cv2
 import numpy as np
@@ -821,6 +820,12 @@ def test_utils_init():
 
 def test_utils_checks(monkeypatch):
     """Test various utility checks for filenames, requirements, image sizes, display capabilities, and versions."""
+
+    def package_version(name):
+        if name == "v2":
+            return "1.0"
+        raise checks.metadata.PackageNotFoundError
+
     checks.check_yolov5u_filename("yolov5n.pt")
     checks.check_requirements("numpy")  # check requirements.txt
     checks.check_imgsz([600, 600], max_dim=1)
@@ -828,13 +833,20 @@ def test_utils_checks(monkeypatch):
         checks.check_imgsz("640x480")  # malformed imgsz string raises a helpful ValueError, not a raw SyntaxError
     checks.check_imshow(warn=True)
     checks.check_suffix("https://example.com/model.pt?token=abc", ".pt")
+    checks.check_version("ultralytics", "8.0.0")
     # parse_version must pad to at least 3 components and keep all segments so any version pair compares correctly
+    assert checks.parse_version("2") == (2, 0, 0)
     assert checks.parse_version("4.13.0.92") == (4, 13, 0, 92)
     assert checks.parse_version("2.0.1+cu118") == (2, 0, 1)  # numeric local/build suffixes are not release segments
-    assert all(checks.check_version(v, ">=2.0") for v in ("v2", "v2.1-rc1", "v2.1RC1", "v2.1.post1", "v2.1+cu118"))
-    monkeypatch.setattr(checks.metadata, "version", Mock(side_effect=["1.0", checks.metadata.PackageNotFoundError()]))
-    assert not checks.check_version("v2-package", ">=2.0")  # installed v+digit package names keep metadata precedence
-    assert not checks.check_version("v2-missing", ">=2.0")
+    assert checks.parse_version("1.0.0rc1") == (1, 0, 0)
+    assert checks.parse_version("v2.1") == (2, 1, 0)
+    assert checks.parse_version("1.0rc1") == (1, 0, 0)  # documented non-PEP-440 tradeoff: pre-releases equal the final
+    monkeypatch.setattr(checks.metadata, "version", package_version)
+    assert not checks.check_version("v2", ">=2.0")  # installed version-shaped package keeps metadata precedence
+    versions = ("v2.1-rc.1", "v2.1-beta1", "v2.1rev1", "v2.1-dev1", "v2.1+cu118")
+    assert all(checks.check_version(v, ">=2.0") for v in versions)
+    with pytest.raises(ModuleNotFoundError):
+        checks.check_version("v2-missing", ">=2.0", hard=True)
     assert checks.check_version("10.3.0.30", ">=10.3.0,<10.4.0")  # Jetson TensorRT family pin
     assert checks.check_version("6.0", ">=6.0.0")  # 2-component current must satisfy 3-component requirement
     assert checks.check_version("2.1", "==2.1.0")

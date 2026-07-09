@@ -309,7 +309,7 @@ class AnomalyDetect(Detect):
         """
         super().__init__(nc, reg_max, end2end, ch)
         self.mask_size = int(mask_size)
-        self.heatmap_bias_fusion = HeatmapBiasFusion(num_scales=self.nl, c_mid=c_mid)
+        # self.heatmap_bias_fusion = HeatmapBiasFusion(num_scales=self.nl, c_mid=c_mid)
         self.heatmap_processor = HeatmapProcessor(mask_size=mask_size) if use_processor else None
 
     def forward(
@@ -349,7 +349,8 @@ class AnomalyDetect(Detect):
                     )
                 else:
                     m_scale = processed_prior
-                delta = self.heatmap_bias_fusion(m_scale, i)
+                # delta = self.heatmap_bias_fusion(m_scale, i)
+                delta = m_scale
                 # if keep is not None:
                 #     delta = delta * keep.to(delta.dtype).view(-1, 1, 1, 1)
                 # feats.append(p + delta)

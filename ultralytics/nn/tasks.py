@@ -890,8 +890,6 @@ class RTDETRDetectionModel(DetectionModel):
         >>> results = model.predict(image_tensor)
     """
 
-    class_aliases: dict | None = None  # optional dst-name -> src-name overrides consumed by _remap_cls_by_names
-
     def __init__(self, cfg="rtdetr-l.yaml", ch=3, nc=None, verbose=True):
         """Initialize the RTDETRDetectionModel.
 
@@ -904,12 +902,12 @@ class RTDETRDetectionModel(DetectionModel):
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
     def _remap_cls_by_names(self, csd, src_model, verbose=True):
-        """Remap RT-DETR decoder cls-head rows by class name, with optional alias table.
+        """Remap RT-DETR decoder cls-head rows by class name.
 
-        Overrides BaseModel's YOLO-specific implementation. Handles RT-DETR decoder cls tensors (`score_head`,
-        `class_embed`), discards `denoising_class_embed` on class-count mismatch, and consults `self.class_aliases`
-        (set by the trainer/user) for cross-dataset name overrides when direct name matches fail. Normalization
-        additionally maps `&`, `/`, `_`, `-` to spaces so names like `Handbag/Satchel` and `handbag` can align.
+        Overrides BaseModel's YOLO-specific implementation: RT-DETR's classification tensors live under
+        `score_head` and `class_embed` inside `RTDETRDecoder` rather than `Detect.cv3`, and the training-only
+        `denoising_class_embed` embedding is discarded (not remapped) when source and target `nc` differ so it
+        is randomly re-initialized after `intersect_dicts`.
 
         Args:
             csd (dict): Pretrained checkpoint state_dict (will be mutated).
@@ -938,35 +936,17 @@ class RTDETRDetectionModel(DetectionModel):
             if verbose:
                 LOGGER.info(f"Discarded '{k}' due to class-count mismatch (will be randomly initialized)")
 
-        def _norm(s):
-            """Normalize a class name for matching: lower, strip, '&'->'and', '/_-'->' ', collapse whitespace."""
-            s = str(s).lower().strip().replace("&", "and")
-            return re.sub(r"\s+", " ", re.sub(r"[/_-]+", " ", s))
-
-        aliases = self.class_aliases or {}
-        src_lookup = {_norm(v): k for k, v in src_names.items()}
-
-        def _resolve(name):
-            """Return src index for dst name via direct normalized match, then alias fallback, else -1."""
-            key = _norm(name)
-            if key in src_lookup:
-                return src_lookup[key]
-            alias = aliases.get(key)
-            if alias:
-                for a in [alias] if isinstance(alias, str) else alias:
-                    if _norm(a) in src_lookup:
-                        return src_lookup[_norm(a)]
-            return -1
-
+        src_lookup = {str(v).strip().lower(): k for k, v in src_names.items()}
         tgt_nc = len(tgt_names)
-        idx = torch.tensor([_resolve(tgt_names[k]) for k in range(tgt_nc)], dtype=torch.long)
+        idx = torch.tensor(
+            [src_lookup.get(str(tgt_names[k]).strip().lower(), -1) for k in range(tgt_nc)], dtype=torch.long
+        )
         n_match = int((idx >= 0).sum())
         # Skip if nothing matches, or class names already share order and count (intersect_dicts handles it directly)
         if n_match == 0 or (len(src_names) == tgt_nc and torch.equal(idx, torch.arange(tgt_nc))):
             return 0
 
         valid = idx >= 0
-        # RT-DETR decoder cls-head keys: `score_head` + `class_embed`, but not the already-handled `denoising_class_embed`
         cls_keys = {
             k for k in csd if ("score_head" in k or "class_embed" in k) and "denoising" not in k and k in state_dict
         }

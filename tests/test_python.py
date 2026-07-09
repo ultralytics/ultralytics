@@ -857,12 +857,12 @@ def test_utils_torchutils():
 
 
 def test_rtdetr_remap_cls_by_names():
-    """Test RT-DETR decoder cls-head remap (matched, alias-driven, unmatched) and denoising discard."""
+    """Test RT-DETR decoder cls-head remap (direct-name match, unmatched, denoising discard)."""
     from types import SimpleNamespace
 
     from ultralytics.nn.tasks import RTDETRDetectionModel
 
-    # Objects365 v2 -> COCO transfer: 'bird' matches 'wild bird' only via the alias table, 'airplane' has no source
+    # Source has 2 classes (person, bird), target has 3 (person, bird, airplane). Target 'airplane' has no source.
     dst_state = {
         "score_head.weight": torch.full((3, 1), -1.0),
         "score_head.bias": torch.full((3,), -1.0),
@@ -873,18 +873,14 @@ def test_rtdetr_remap_cls_by_names():
         "score_head.bias": torch.tensor([10.0, 20.0]),
         "decoder.denoising_class_embed.weight": torch.full((2, 4), 9.0),
     }
-    tgt = SimpleNamespace(
-        names={0: "person", 1: "bird", 2: "airplane"},
-        class_aliases={"bird": "wild bird"},
-        state_dict=lambda: dst_state,
-    )
-    src = SimpleNamespace(names={0: "person", 1: "wild bird"})
+    tgt = SimpleNamespace(names={0: "person", 1: "bird", 2: "airplane"}, state_dict=lambda: dst_state)
+    src = SimpleNamespace(names={0: "bird", 1: "person"})  # inverted order to exercise the row-index mapping
     n = RTDETRDetectionModel._remap_cls_by_names(tgt, csd, src, verbose=False)
     assert n == 2  # score_head.weight + score_head.bias remapped, denoising_class_embed discarded
-    assert dst_state["score_head.weight"][0, 0].item() == 1.0  # 'person' via direct match
-    assert dst_state["score_head.weight"][1, 0].item() == 2.0  # 'bird' via alias -> 'wild bird'
+    assert dst_state["score_head.weight"][0, 0].item() == 2.0  # 'person' <- src[1]
+    assert dst_state["score_head.weight"][1, 0].item() == 1.0  # 'bird' <- src[0]
     assert dst_state["score_head.weight"][2, 0].item() == -1.0  # 'airplane' unmatched -> dst init kept
-    assert dst_state["score_head.bias"].tolist() == [10.0, 20.0, -1.0]
+    assert dst_state["score_head.bias"].tolist() == [20.0, 10.0, -1.0]
     assert "decoder.denoising_class_embed.weight" not in csd  # discarded due to nc mismatch
 
 

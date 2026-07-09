@@ -115,12 +115,11 @@ COMBO_POOL = [
     ("train", "mosaic=0 mixup=1.0 cutmix=1.0"),
     ("train", "copy_paste=1.0 copy_paste_mode=mixup"),
     ("train", "hsv_h=1.0 hsv_s=0.0 degrees=180 perspective=0.001"),
-    ("val", "save_json=True plots=True"),
+    ("val", "save_json=True"),
     ("val", "split=train"),
     ("val", "end2end=True max_det=5"),
     ("val", "agnostic_nms=True conf=0.9 iou=0.1"),
-    ("val", "rect=False"),
-    ("predict", "save=True save_txt=True save_conf=True save_crop=True"),
+    ("predict", "save_txt=True save_conf=True save_crop=True"),
     ("predict", "visualize=True"),
     ("predict", "augment=True"),
     ("predict", "classes=0"),
@@ -169,12 +168,13 @@ def load_universe():
         TASK2MODEL,
         TASKS,
     )
-    from ultralytics.utils import ASSETS, LOGGER
+    from ultralytics.utils import ASSETS, DEFAULT_CFG_DICT, LOGGER
 
     return {
         "tasks": sorted(TASKS),
         "task2model": TASK2MODEL,
         "task2data": TASK2DATA,
+        "defaults": DEFAULT_CFG_DICT,
         "fraction_keys": sorted(CFG_FRACTION_KEYS - NEVER_MUTATE),
         "int_keys": sorted(CFG_INT_KEYS - NEVER_MUTATE),
         "bool_keys": sorted(CFG_BOOL_KEYS - NEVER_MUTATE),
@@ -197,6 +197,11 @@ def precache_assets(uni):
         check_cls_dataset(data) if str(data).startswith("imagenet") else check_det_dataset(data, autodownload=True)
 
 
+def strip_defaults(pairs, defaults):
+    """Drop k=v args whose value equals the package default: argv only ever carries changed args."""
+    return [a for a in pairs if a.partition("=")[2].lower() != str(defaults.get(a.partition("=")[0])).lower()]
+
+
 def build_corpus(uni):
     """Build the known-good seed corpus: every task x mode with clamped fast knobs and explicit local source."""
     corpus = []
@@ -204,14 +209,12 @@ def build_corpus(uni):
         # Bare weight names keep issue repro commands portable; they resolve against the precached weights_dir
         model, data = uni["task2model"][task], uni["task2data"][task]
         for mode in MODES:
-            argv = [mode, task, f"model={model}", *CLAMPS[mode].split()]
+            argv = [mode, task, f"model={model}", *strip_defaults(CLAMPS[mode].split(), uni["defaults"])]
             if mode in {"train", "val"}:
                 argv.append(f"data={data}")
             elif mode == "predict":
                 argv.append(f"source={uni['source']}")
-            else:  # export
-                argv.append("format=torchscript")
-            corpus.append({"mode": mode, "task": task, "argv": argv})
+            corpus.append({"mode": mode, "task": task, "argv": argv})  # export: default torchscript stays implicit
     return corpus
 
 
@@ -222,19 +225,22 @@ def sample_trial(rng, uni, corpus, personality):
     base = rng.choice([c for c in corpus if c["mode"] == mode])
     argv, mutated = list(base["argv"]), []
     strategy = rng.choices([s for s, _ in STRATEGY_WEIGHTS], weights=[w for _, w in STRATEGY_WEIGHTS])[0]
-    if mode == "export":  # export format is pinned in the corpus; fuzz it from the installable pool instead
-        argv[argv.index("format=torchscript")] = f"format={rng.choice(EXPORT_POOL)}"
+
+    def mutate(pairs):
+        """Append the non-default k=v pairs to argv and record their keys as mutated."""
+        kept = strip_defaults(pairs, uni["defaults"])
+        argv.extend(kept)
+        mutated.extend(a.partition("=")[0] for a in kept)
+
+    if mode == "export":  # fuzz the format from the installable pool; the default torchscript stays implicit
+        mutate([f"format={rng.choice(EXPORT_POOL)}"])
     if strategy == "combo":
-        combos = [c for m, c in COMBO_POOL if m == mode]
-        extra = rng.choice(combos)
-        argv += extra.split()
-        mutated = [kv.split("=")[0] for kv in extra.split()]
+        mutate(rng.choice([c for m, c in COMBO_POOL if m == mode]).split())
     elif strategy == "invalid":
         n_keys = rng.randint(1, 4 if personality == "chaos" else 3)
         for _ in range(n_keys):
             key, value = sample_mutation(rng, uni, chaos=personality == "chaos")
-            argv.append(f"{key}={value}")
-            mutated.append(key)
+            mutate([f"{key}={value}"])
     return {"mode": mode, "task": base["task"], "argv": argv, "strategy": strategy, "mutated": mutated}
 
 
@@ -424,7 +430,8 @@ def cmd_fuzz(args):
                 "strategy": trial.get("strategy", "corpus"),
             }
             f.write(json.dumps(record) + "\n")
-        log.info(f"[fuzz] #{n} {outcome:>13} {duration:6.1f}s  yolo {' '.join(trial['argv'][:6])} ...")
+        changed = " ".join(a for a in trial["argv"] if a.partition("=")[0] in set(trial.get("mutated", [])))
+        log.info(f"[fuzz] #{n} {outcome:>13} {duration:6.1f}s  yolo {trial['mode']} {trial['task']} {changed}".rstrip())
 
     for base in corpus:  # canaries first: unmutated corpus must pass or the environment itself is broken
         if time.time() > deadline or (args.max_trials and n >= args.max_trials):

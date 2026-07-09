@@ -151,8 +151,8 @@ Yes. DL Streamer supports inference on Intel CPUs (Core, Core Ultra, Xeon), inte
 
 ### How do I choose between FP16 and INT8 precision?
 
-**FP16** is recommended as the default for GPU inference — it provides near-FP32 accuracy with approximately 2x throughput improvement.
-**INT8** delivers the highest performance (2–3x over FP32) with a small accuracy trade-off and is ideal when maximum throughput is the priority. INT8 models are automatically calibrated during Ultralytics export.
+- **FP16** is recommended as the default for GPU inference — it provides near-FP32 accuracy with approximately 2x throughput improvement.
+- **INT8** delivers the highest performance (2–3x over FP32) with a small accuracy trade-off and is ideal when maximum throughput is the priority. INT8 models are automatically calibrated during Ultralytics export.
 
 ### What YOLO26 tasks are supported?
 

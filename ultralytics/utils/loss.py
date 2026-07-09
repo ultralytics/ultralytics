@@ -332,99 +332,31 @@ class KeypointLoss(nn.Module):
         return (kpt_loss_factor.view(-1, 1) * ((1 - torch.exp(-e)) * kpt_mask)).mean()
 
 
-class RankSortFunction(torch.autograd.Function):
-    """Rank & Sort loss with the paper's identity-update gradient (Oksuz et al., ICCV 2021).
-
-    ``forward`` returns the scalar rank+sort error only for logging; ``backward`` returns the manually derived
-    error-driven gradient — each positive is pushed up by its own error, and the error is redistributed as a
-    positive gradient over the negatives (ranking pmf) and the misranked lower-IoU positives (sorting pmf). This
-    is the correct optimization direction; a naive autograd pass over the error *value* is not, which is exactly
-    why the paper defines the identity update. The original per-positive Python loop is vectorized here, and the
-    ranking is done per (image, class) group in logit space (monotonic with sigmoid, so the order is unchanged).
-    """
-
-    @staticmethod
-    def forward(ctx, logits, targets, delta, w_sort, eps=1e-6):
-        """Accumulate the identity-update gradient per (image, class) group and return the scalar error."""
-        grad = torch.zeros_like(logits, dtype=torch.float32)
-        errors = []
-        for b in range(logits.shape[0]):
-            s_img, t_img = logits[b].float(), targets[b].float()  # (N, nc) logit space, no sigmoid
-            for c in (t_img > 0).any(0).nonzero().flatten():  # only classes with a positive in this image
-                s, t = s_img[:, c], t_img[:, c]  # (N,)
-                fg = t > 0
-                fg_i, iou = fg.nonzero().flatten(), t[fg]  # positive anchor indices, IoU targets (M,)
-                s_fg = s[fg]  # (M,)
-                bg = (t == 0) & (s >= s_fg.min() - delta)  # relevant same-class negatives
-                bg_i, s_bg = bg.nonzero().flatten(), s[bg]  # (Nbg,)
-
-                # Piecewise-linear rank indicator H(x) = clamp((s_j - s_i) / (2*delta) + 0.5, 0, 1)
-                fg_rel = ((s_fg[None] - s_fg[:, None]) / (2 * delta) + 0.5).clamp(0, 1)  # (M, M) H(s_j - s_i)
-                bg_rel = ((s_bg[None] - s_fg[:, None]) / (2 * delta) + 0.5).clamp(0, 1)  # (M, Nbg)
-                rank_pos = fg_rel.sum(1)  # (M,) rank among positives (includes self's 0.5)
-                fp_num = bg_rel.sum(1)  # (M,) false positives ranked above i
-                ranking_error = fp_num / (rank_pos + fp_num)  # (M,) target ranking error is 0
-
-                current_sort = (fg_rel * (1 - iou)[None]).sum(1) / rank_pos  # (M,)
-                iou_ge = iou[None] >= iou[:, None]  # (M, M) i's target sorted order (iou_j >= iou_i)
-                target_rel = iou_ge * fg_rel  # (M, M)
-                target_sort = (target_rel * (1 - iou)[None]).sum(1) / target_rel.sum(1)  # (M,)
-                sorting_error = current_sort - target_sort  # (M,)
-
-                # Identity update — ranking: positive i down by its error; negatives up by the pmf-weighted error.
-                g_fg = -ranking_error  # (M,) (≈0 where fp_num≈0, so the eps mask is unnecessary)
-                g_bg = (bg_rel * (ranking_error / fp_num.clamp(min=eps))[:, None]).sum(0)  # (Nbg,)
-                # Identity update — sorting: positive i down by its error; the lower-IoU positives that outrank it up.
-                missorted = (~iou_ge) * fg_rel  # (M, M) j has lower IoU yet ranks at/above i
-                g_sort = -sorting_error + (missorted * (sorting_error / missorted.sum(1).clamp(min=eps))[:, None]).sum(0)
-
-                m = s_fg.numel()
-                grad[b, fg_i, c] = (g_fg + w_sort * g_sort) / m
-                grad[b, bg_i, c] = g_bg / m
-                errors.append(ranking_error.mean() + w_sort * sorting_error.mean())
-
-        if errors:
-            grad /= len(errors)  # match loss = mean over (image, class) groups
-            loss = torch.stack(errors).mean()
-        else:
-            loss = logits.new_zeros((), dtype=torch.float32)
-        ctx.save_for_backward(grad)
-        ctx.in_dtype = logits.dtype
-        return loss
-
-    @staticmethod
-    def backward(ctx, out_grad):
-        """Return the cached identity-update gradient scaled by the upstream (loss-gain) gradient."""
-        (grad,) = ctx.saved_tensors
-        return (grad * out_grad).to(ctx.in_dtype), None, None, None, None
-
-
 class RankLoss(nn.Module):
-    """Rank & Sort loss (RS, Oksuz et al., ICCV 2021) folded into the one2one classification head.
+    """RS-style ranking loss (pairwise surrogate) for the one2one classification head.
 
-    A ranking regularizer with the paper's error-driven identity-update gradient (see ``RankSortFunction``), run
-    per (image, class) group so a positive competes only with same-class negatives and same-class positives sort
-    against each other — matching per-class NMS (cross-class scores never compete). The piecewise-linear step
-    saturates once a negative is more than ``delta`` below a positive, so healthy rankings get no gradient and the
-    loss only re-ranks the violations, preserving accuracy and the NMS-free property.
+    Two terms, both active only where the ranking is violated, so healthy positives contribute ~0 loss. This
+    re-ranks rather than globally inflating scores: it lifts lagging positives, keeps suppressing runner-up negatives,
+    and leaves already-correct rankings untouched, preserving accuracy and the NMS-free property.
 
-    - rank: drives each positive's ranking error ``FP_num / rank`` (fraction of relevant negatives scoring above
-      it) to 0, lifting positives over the negatives that outrank them.
-    - sort: ``current - target`` sorting error orders positives by IoU so higher-IoU anchors score higher.
+    - rank: pushes each positive (TP) above the same-class negatives — directly rescues the "dead tail".
+    - sort: orders positives by IoU so higher-IoU anchors score higher.
 
     Attributes:
-        delta (float): Logit-space half-width of the piecewise-linear step; smaller approaches hard ranking.
+        tau (float): Temperature; smaller approaches hard ranking.
+        k_neg (int): Per image/class, keep only the top-K highest-scoring negatives (the real ranking threats).
         w_sort (float): Weight of the sort term relative to the rank term.
     """
 
-    def __init__(self, delta: float = 0.5, w_sort: float = 0.5):
-        """Initialize the ranking loss with the step half-width and sort-term weight."""
+    def __init__(self, tau: float = 0.5, k_neg: int = 100, w_sort: float = 0.5):
+        """Initialize the ranking loss with temperature, hard-negative count and sort-term weight."""
         super().__init__()
-        self.delta = delta
+        self.tau = tau
+        self.k_neg = k_neg
         self.w_sort = w_sort
 
     def forward(self, pred_logits: torch.Tensor, target_scores: torch.Tensor) -> torch.Tensor:
-        """Compute the RS ranking/sorting loss (identity-update gradient) over one2one positives.
+        """Compute the ranking loss over one2one positives against same-class negatives.
 
         Args:
             pred_logits (torch.Tensor): Classification logits with shape (bs, num_anchors, nc).
@@ -432,9 +364,48 @@ class RankLoss(nn.Module):
                 its GT-class IoU in the GT-class channel and 0 elsewhere.
 
         Returns:
-            (torch.Tensor): Scalar ranking loss (0 when no positives exist).
+            (torch.Tensor): Scalar ranking loss (0 when no positive/negative pairs exist).
         """
-        return RankSortFunction.apply(pred_logits, target_scores, self.delta, self.w_sort)
+        scores = pred_logits.sigmoid()
+        _, N, nc = scores.shape
+        pos = target_scores > 0
+        pos_idx = pos.nonzero(as_tuple=False)  # (M, 3): image, anchor, class
+        if pos_idx.numel() == 0:
+            return pred_logits.new_zeros((), dtype=torch.float32)
+        b_id, c_id = pos_idx[:, 0], pos_idx[:, 2]
+        # fp32 for AMP-safe pairwise math (scores are fp16 under autocast, target_scores fp32); big tensors stay fp16
+        s_pos, iou = scores[pos].float(), target_scores[pos].float()  # (M,)
+        M = s_pos.numel()
+
+        # Compact (image, class) group ids and per-group positive counts
+        _, inv = torch.unique(b_id * nc + c_id, return_inverse=True)  # inv: (M,) group id in [0, G)
+        counts = torch.bincount(inv)  # (G,)
+        G = counts.numel()
+
+        # rank: each positive vs its group's top-K same-class negatives (one batched topk over all groups)
+        k = min(self.k_neg, N)
+        neg_topk = scores.masked_fill(pos, float("-inf")).topk(k, dim=1).values  # (B, k, nc)
+        neg = neg_topk[b_id, :, c_id].float()  # (M, k) each positive's hard negatives
+        kcnt = neg.isfinite().sum(1).clamp(min=1)  # valid negatives per positive
+        per_pos = F.softplus((neg - s_pos[:, None]) / self.tau).sum(1) / kcnt  # (M,) mean over negatives
+        group_rank = per_pos.new_zeros(G).scatter_add_(0, inv, per_pos) / counts  # (G,) per-group mean
+        total_rank = group_rank.sum()
+
+        # sort: within a group, higher-IoU positives must score higher (padded (G, Pmax, Pmax), P==1 groups give 0)
+        total_sort = s_pos.new_zeros(())
+        if counts.max() > 1:
+            pmax = int(counts.max())
+            order = torch.argsort(inv, stable=True)  # cluster positives by group
+            inv_s = inv[order]
+            within = torch.arange(M, device=scores.device) - (counts.cumsum(0) - counts)[inv_s]
+            pad_s, pad_i = s_pos.new_zeros(G, pmax), s_pos.new_zeros(G, pmax)
+            valid = torch.zeros(G, pmax, dtype=torch.bool, device=scores.device)
+            pad_s[inv_s, within], pad_i[inv_s, within], valid[inv_s, within] = s_pos[order], iou[order], True
+            di = (pad_s[:, None, :] - pad_s[:, :, None]) / self.tau  # [g, i, k] = s_k - s_i
+            wi = (pad_i[:, :, None] - pad_i[:, None, :]).clamp(min=0) * (valid[:, :, None] & valid[:, None, :])
+            total_sort = ((wi * F.softplus(di)).sum((1, 2)) / wi.sum((1, 2)).clamp(min=1)).sum()
+
+        return (total_rank + self.w_sort * total_sort) / G
 
 
 class v8DetectionLoss:
@@ -1385,15 +1356,14 @@ class E2ELoss:
         self.distill = getattr(model.args, "distill", 0.0)
         if self.distill:
             self.one2one.assigner.distill = True  # cache the positive x GT-class mask during assignment
-        # RS ranking regularizer, folded into the cls loss of both heads (each scaled by its branch weight)
+        # one2one-only ranking regularizer (RS-style pairwise surrogate), folded into the o2o cls loss
         if getattr(model.args, "rank", 0.0):
-            rank = RankLoss(
-                delta=getattr(model.args, "rank_delta", 0.5),
+            self.one2one.rank = RankLoss(
+                tau=getattr(model.args, "rank_tau", 0.5),
+                k_neg=getattr(model.args, "rank_k_neg", 100),
                 w_sort=getattr(model.args, "rank_w_sort", 0.5),
             )
-            self.one2one.rank, self.one2one.rank_gain = rank, model.args.rank
-            if self.train_o2m:  # apply the same regularizer to the one2many head
-                self.one2many.rank, self.one2many.rank_gain = rank, model.args.rank
+            self.one2one.rank_gain = model.args.rank
 
     def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""
@@ -1419,14 +1389,10 @@ class E2ELoss:
             )
             total = torch.cat((total, (self.o2o * distill * batch_size).view(1)))
             loss_items = torch.cat((loss_items, distill.detach().view(1)))
-        if getattr(self.one2one, "rank", None) is not None:  # RS ranking regularizer on the one2one cls head
+        if getattr(self.one2one, "rank", None) is not None:  # RS-style ranking regularizer on the one2one cls head
             rank = self.one2one.rank_gain * self.one2one.rank_loss
             total = torch.cat((total, (self.o2o * rank * batch_size).view(1)))
             loss_items = torch.cat((loss_items, rank.detach().view(1)))
-        if getattr(self.one2many, "rank", None) is not None:  # same regularizer on the one2many cls head
-            rank_o2m = self.one2many.rank_gain * self.one2many.rank_loss
-            total = torch.cat((total, (self.o2m * rank_o2m * batch_size).view(1)))
-            loss_items = torch.cat((loss_items, rank_o2m.detach().view(1)))
         return total, loss_items
 
     @staticmethod

@@ -1,5 +1,5 @@
 ---
-title: YOLO26 on Intel: DL Streamer & OpenVINO
+title: YOLO26 on Intel DL Streamer & OpenVINO
 comments: true
 description: Learn how to deploy Ultralytics YOLO26 on Intel Core Ultra Series 3 platforms using DL Streamer Pipeline Framework and OpenVINO™ for optimized inference.
 keywords: Ultralytics, YOLO26, Intel, Intel Core Ultra, DL Streamer, OpenVINO, deep learning, inference, computer vision, GStreamer

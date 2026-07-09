@@ -719,7 +719,8 @@ class YOLOAnomalyModel(DetectionModel):
             return prior
 
         if prior_mask is not None and self.training and self.p_drop > 0.0:
-            keep = (torch.rand(batch_size, device=device) > self.p_drop).to(torch.float32)
+            # keep = (torch.rand(batch_size, device=device) > self.p_drop).to(torch.float32)
+            keep = torch.rand(batch_size, device=device) > self.p_drop
 
         is_neck_fuse = False
         for m in self.model:

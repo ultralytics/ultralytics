@@ -112,8 +112,11 @@ class HeatmapNeckFusion(nn.Module):
         processed = self.heatmap_processor(prior) if self.heatmap_processor is not None else prior
         bias = self.bias_fusion(processed, scale_idx=0)
         if keep is not None:
-            bias = bias * keep.to(bias.dtype).view(-1, 1, 1, 1)
-        return x + bias
+            x = torch.where(keep.view(-1, 1, 1, 1), x * bias, x)
+        return x
+        # if keep is not None:
+        #     bias = bias * keep.to(bias.dtype).view(-1, 1, 1, 1)
+        # return x + bias
 
 
 class HeatmapProcessor(nn.Module):

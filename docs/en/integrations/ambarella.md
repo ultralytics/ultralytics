@@ -61,15 +61,15 @@ SpongeTorch is driven by a SpongeKit configuration file (protobuf-text format, `
 
 Two arguments control the SpongeTorch integration across `train`, `val`, and `export` modes:
 
-| Argument       | Type  | Default | Description                                                                                                                       |
-| -------------- | ----- | ------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `amba_config`  | `str` | `None`  | Path to the SpongeKit config passed to `spongetorch.prepare()`. Enables compression-aware training and SpongeTorch-aware export.  |
-| `amba_chipset` | `str` | `None`  | Target chipset name passed to `spongetorch.set_target_chipset()`, e.g. `CV72`.  |
+| Argument       | Type  | Default | Description                                                                                                                      |
+| -------------- | ----- | ------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `amba_config`  | `str` | `None`  | Path to the SpongeKit config passed to `spongetorch.prepare()`. Enables compression-aware training and SpongeTorch-aware export. |
+| `amba_chipset` | `str` | `None`  | Target chipset name passed to `spongetorch.set_target_chipset()`, e.g. `CV72`.                                                   |
 
 An additional export-only argument is available:
 
-| Argument      | Type  | Default | Description                                                              |
-| ------------- | ----- | ------- | ------------------------------------------------------------------------ |
+| Argument      | Type  | Default | Description                                                                 |
+| ------------- | ----- | ------- | --------------------------------------------------------------------------- |
 | `export_file` | `str` | `None`  | Custom export output path/name, e.g. `'/tmp/model.onnx'` or `'model.onnx'`. |
 
 ## Compression-Aware Training
@@ -96,7 +96,7 @@ Train (or fine-tune) your model with SpongeTorch compression enabled:
 
         ```bash
         yolo train model=yolo26n.pt data=coco8.yaml epochs=100 \
-            amba_config=config.prototxt amba_chipset=CV72
+          amba_config=config.prototxt amba_chipset=CV72
         ```
 
 When `amba_config` is set, the trainer wraps the model and optimizer with `spongetorch.prepare()` at setup. Compression is applied progressively on a step schedule, so the network learns to stay accurate while becoming sparse and quantization-friendly. The trained checkpoint stores SpongeTorch's sparse state (`_orig`/`_mask` tensors), which the export step later requires. The config file is copied into the run directory as `amba_config.prototxt` for reproducibility.
@@ -119,7 +119,7 @@ Validate accuracy before compiling, using the same config:
 
         ```bash
         yolo val model=runs/detect/train/weights/best.pt data=coco8.yaml \
-            amba_config=config.prototxt amba_chipset=CV72
+          amba_config=config.prototxt amba_chipset=CV72
         ```
 
 The validator re-applies `spongetorch.prepare()` when required and disables Conv+BN fusion so the compression structure is preserved. Compare mAP against your uncompressed baseline; if the accuracy drop is too large, adjust the SpongeKit config and retrain.
@@ -147,7 +147,7 @@ Export the compressed checkpoint with the **same** `amba_config` used in trainin
 
         ```bash
         yolo export model=runs/detect/train/weights/best.pt format=onnx \
-            amba_config=config.prototxt amba_chipset=CV72
+          amba_config=config.prototxt amba_chipset=CV72
         ```
 
 The exporter rebuilds the model, re-applies `spongetorch.prepare()` with your config, reloads the sparse checkpoint weights into the prepared structure, and traces to ONNX with Conv+BN fusion disabled - producing a graph in the exact form the CVFlow compiler expects.

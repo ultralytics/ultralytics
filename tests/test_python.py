@@ -15,7 +15,7 @@ import pytest
 import torch
 from PIL import Image
 
-from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
+from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA, TASK2MODEL
 from ultralytics import RTDETR, YOLO
 from ultralytics.data.build import load_inference_source
 from ultralytics.data.utils import check_det_dataset
@@ -139,6 +139,22 @@ def test_predict_img(model_name):
         np.zeros((320, 640, channels), dtype=np.uint8),  # numpy
     ]
     assert len(model(batch, imgsz=32, classes=0)) == len(batch)  # multiple sources in a batch
+
+
+@pytest.mark.parametrize("task", ["detect", "segment"])
+def test_predict_tensor_preprocess(task):
+    """Test that on-device raw-tensor preprocessing matches the numpy path within tolerance, detect and segment tasks."""
+    model = YOLO(WEIGHTS_DIR / TASK2MODEL[task])
+    im = cv2.imread(str(SOURCE))  # BGR HWC uint8 at original resolution
+    tensor = torch.from_numpy(cv2.cvtColor(im, cv2.COLOR_BGR2RGB)).permute(2, 0, 1)[None].float() # (1,3,H,W) uint8 RGB
+
+    np_boxes = model.predict(im, imgsz=640)[0].boxes  # numpy path letterboxes on CPU
+    pt_boxes = model.predict(tensor, imgsz=640, preprocess_tensor=True)[0].boxes  # raw tensor letterboxed on-device
+
+    assert len(np_boxes) == len(pt_boxes), f"box count mismatch: {len(np_boxes)} vs {len(pt_boxes)}"
+    np_order, pt_order = np_boxes.xyxy[:, 0].argsort(), pt_boxes.xyxy[:, 0].argsort()  # align by x1 to avoid tie swaps
+    assert torch.allclose(np_boxes.xyxy[np_order], pt_boxes.xyxy[pt_order], atol=1.0), "boxes differ beyond tolerance"
+    assert (np_boxes.cls[np_order] == pt_boxes.cls[pt_order]).all(), "class predictions differ"
 
 
 @pytest.mark.parametrize("model", MODELS)

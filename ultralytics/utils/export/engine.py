@@ -14,7 +14,7 @@ from ultralytics.utils.checks import check_requirements, check_tensorrt, check_v
 from ultralytics.utils.torch_utils import TORCH_2_4, TORCH_2_9
 
 
-def best_onnx_opset(onnx: types.ModuleType, cuda: bool = False) -> int:
+def best_onnx_opset(onnx: types.ModuleType, cuda: bool = False, quantize: int | str | None = None) -> int:
     """Return max ONNX opset for this torch version with ONNX fallback."""
     if TORCH_2_4:  # _constants.ONNX_MAX_OPSET first defined in torch 1.13
         opset = torch.onnx.utils._constants.ONNX_MAX_OPSET - 1  # use second-latest version for safety
@@ -41,6 +41,8 @@ def best_onnx_opset(onnx: types.ModuleType, cuda: bool = False) -> int:
             "2.7": 20,
             "2.8": 23,
         }.get(version, 12)
+    if quantize == 8:
+        opset = min(opset, 20)  # ONNX Runtime static INT8 quantization does not support opset>=21
     return min(opset, onnx.defs.onnx_opset_version())
 
 

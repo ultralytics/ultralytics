@@ -19,6 +19,7 @@ from PIL import Image
 import ultralytics.data.build as data_build
 from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
 from ultralytics import RTDETR, YOLO, YOLODETR
+from ultralytics.cfg import get_cfg
 from ultralytics.data.build import build_dataloader, load_inference_source
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.utils import (
@@ -79,6 +80,14 @@ def test_dataloader_empty_dataset_uses_dataloader_validation():
     """Test empty datasets fail through DataLoader validation instead of worker-cap math."""
     with pytest.raises(ValueError, match="positive integer"):
         build_dataloader([], batch=4, workers=2)
+
+
+def test_cfg_rejects_fuzzed_scalars():
+    """Test invalid scalar overrides fail in config validation."""
+    with pytest.raises(TypeError, match="degrees"):
+        get_cfg(overrides={"degrees": None})
+    with pytest.raises(ValueError, match="cls_pw"):
+        get_cfg(overrides={"cls_pw": 10})
 
 
 def skip_rpi_semantic():
@@ -175,6 +184,42 @@ def test_model_methods():
     _ = model.task_map
 
 
+def test_model_load_remaps_cls_head_by_names():
+    """Test class-name remap is limited to closed-set class-logit heads."""
+    from types import SimpleNamespace
+
+    from ultralytics.models.yolo.detect.train import DetectionTrainer
+    from ultralytics.models.yolo.obb.train import OBBTrainer
+    from ultralytics.models.yolo.pose.train import PoseTrainer
+    from ultralytics.models.yolo.segment.train import SegmentationTrainer
+    from ultralytics.nn.tasks import DetectionModel, OBBModel, PoseModel, SegmentationModel, YOLOEModel
+
+    src = DetectionModel("yolo26n.yaml", nc=3, verbose=False)
+    tgt = DetectionModel("yolo26n.yaml", nc=2, verbose=False)
+    src.names, tgt.names = {0: "cat", 1: "dog", 2: "car"}, {0: "dog", 1: "cat"}
+    for seq in src.model[-1].cv3:
+        seq[-1].bias.data.copy_(torch.tensor([10.0, 20.0, 30.0]))
+    tgt.load(src, verbose=False)
+    assert all(seq[-1].bias.tolist() == [20.0, 10.0] for seq in tgt.model[-1].cv3)
+
+    src = YOLOEModel("yoloe-26n.yaml", nc=3, verbose=False)
+    tgt = YOLOEModel("yoloe-26n.yaml", nc=2, verbose=False)
+    src.names, tgt.names = {0: "cat", 1: "dog", 2: "car"}, {0: "dog", 1: "cat"}
+    tgt.load(src, verbose=False)  # YOLOE cv3 outputs embeddings, not class rows
+
+    names = {0: "dog", 1: "cat"}
+    for trainer_cls, model in (
+        (DetectionTrainer, DetectionModel("yolo26n.yaml", nc=2, verbose=False)),
+        (SegmentationTrainer, SegmentationModel("yolo26n-seg.yaml", nc=2, verbose=False)),
+        (PoseTrainer, PoseModel("yolo26n-pose.yaml", nc=2, data_kpt_shape=[17, 3], verbose=False)),
+        (OBBTrainer, OBBModel("yolo26n-obb.yaml", nc=2, verbose=False)),
+    ):
+        trainer = object.__new__(trainer_cls)
+        trainer.args = SimpleNamespace(cls_remap=True)
+        trainer.data = {"names": names}
+        assert trainer.set_model_names_for_load(model).names == names
+
+
 def test_model_profile():
     """Test profiling of the YOLO model with `profile=True` to assess performance and resource usage."""
     from ultralytics.nn.tasks import DetectionModel
@@ -240,6 +285,16 @@ def test_predict_img(model_name):
         np.zeros((320, 640, channels), dtype=np.uint8),  # numpy
     ]
     assert len(model(batch, imgsz=32, classes=0)) == len(batch)  # multiple sources in a batch
+
+
+@pytest.mark.parametrize("model_name", ["yolo26n.pt", "yolo11n.pt"])  # end2end and NMS-based models
+def test_predict_classes_with_max_det(model_name):
+    """Test that the classes filter applies before max_det truncation in both end2end and NMS-based models."""
+    boxes = YOLO(WEIGHTS_DIR / model_name)(SOURCE, classes=[0], max_det=300, verbose=False)[0].boxes
+    assert len(boxes) > 1  # bus.jpg contains multiple persons
+    top1 = YOLO(WEIGHTS_DIR / model_name)(SOURCE, classes=[0], max_det=1, verbose=False)[0].boxes  # fresh model
+    assert len(top1) == 1 and int(top1.cls) == 0
+    assert float(top1.conf) == pytest.approx(float(boxes.conf.max()))  # best person kept, not an arbitrary one
 
 
 @pytest.mark.parametrize("model", MODELS)
@@ -406,6 +461,32 @@ def test_val(task: str, weight: str, data: str) -> None:
         metrics.confusion_matrix.to_df()
         metrics.confusion_matrix.to_csv()
         metrics.confusion_matrix.to_json()
+
+
+def test_val_save_txt_pose(tmp_path):
+    """Test that pose keypoints saved by val(save_txt=True) and val(save_json=True) are in the original image space."""
+    model = YOLO(WEIGHTS_DIR / "yolo26n-pose.pt")
+    # imgsz=640 (not the imgsz=32 used elsewhere): coco8-pose images are non-square, so the letterbox offset is only
+    # large enough to push mis-scaled keypoints outside [0, 1] at full resolution; at small imgsz they would stay in
+    # range and hide the regression. save_json=True also exercises pred_to_json, the other consumer of the scaled key.
+    metrics = model.val(
+        data="coco8-pose.yaml", imgsz=640, conf=0.25, save_txt=True, save_json=True, project=tmp_path, name="val"
+    )
+    txt_files = list((Path(metrics.save_dir) / "labels").glob("*.txt"))
+    assert txt_files, "val(save_txt=True) saved no label files"
+    assert (Path(metrics.save_dir) / "predictions.json").exists(), "val(save_json=True) saved no predictions.json"
+    for txt_file in txt_files:
+        for line in txt_file.read_text().splitlines():
+            values = [float(v) for v in line.split()]
+            x, y, w, h = values[1:5]  # normalized xywh box
+            kpts = torch.tensor(values[5:]).view(-1, 3)  # (17, 3) of normalized (x, y, conf) keypoints
+            assert ((kpts[:, :2] >= 0) & (kpts[:, :2] <= 1)).all(), f"keypoints not in [0, 1] in {txt_file.name}"
+            # Keypoints scaled into the wrong (letterbox) space also land off the person, so check that visible
+            # keypoints cluster on the box; the 0.05 margin allows joints (wrists, ankles) just outside a tight box.
+            visible = kpts[kpts[:, 2] > 0.5, :2]
+            if len(visible):
+                cx, cy = visible.mean(0)
+                assert abs(cx - x) < w / 2 + 0.05 and abs(cy - y) < h / 2 + 0.05, "keypoints misaligned with box"
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
@@ -819,8 +900,27 @@ def test_utils_ops():
     assert segment2box(np.array([[0, 100], [0, 150], [0, 200]]), 640, 640).tolist() == [0, 100, 0, 200]
 
 
+def test_nms_end2end_classes_before_max_det():
+    """The end-to-end NMS branch must filter classes before truncating to max_det, like the NMS-based branch."""
+    from ultralytics.utils.nms import non_max_suppression
+
+    # (2, 4, 6) end2end predictions sorted by descending confidence: [x1, y1, x2, y2, conf, cls]
+    pred = torch.tensor(
+        [
+            [[0, 0, 9, 9, 0.9, 5], [1, 1, 9, 9, 0.8, 0], [2, 2, 9, 9, 0.7, 0], [3, 3, 9, 9, 0.6, 0]],
+            [[0, 0, 9, 9, 0.9, 0], [1, 1, 9, 9, 0.8, 5], [2, 2, 9, 9, 0.7, 5], [3, 3, 9, 9, 0.6, 0]],
+        ],
+        dtype=torch.float32,
+    )
+    for out, confs in zip(non_max_suppression(pred, conf_thres=0.25, classes=[0], max_det=2), ([0.8, 0.7], [0.9, 0.6])):
+        assert out.shape[0] == 2 and (out[:, 5] == 0).all()  # top-2 class-0 boxes kept, not truncated away
+        assert torch.allclose(out[:, 4], torch.tensor(confs))
+    out = non_max_suppression(pred, conf_thres=0.25, max_det=2)[0]  # without classes, top-2 overall unchanged
+    assert torch.allclose(out[:, 4], torch.tensor([0.9, 0.8]))
+
+
 def test_process_mask_empty():
-    """process_mask/process_mask_native/scale_masks must handle 0 detections without crashing."""
+    """Process_mask/process_mask_native/scale_masks must handle 0 detections without crashing."""
     from ultralytics.utils import ops
 
     protos, coeffs, bboxes = torch.rand(32, 160, 160), torch.zeros(0, 32), torch.zeros(0, 4)

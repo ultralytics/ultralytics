@@ -1880,7 +1880,7 @@ class CopyPaste(BaseMixTransform):
     def __init__(self, dataset=None, pre_transform=None, p: float = 0.5, mode: str = "flip") -> None:
         """Initialize CopyPaste object with dataset, pre_transform, and probability of applying CopyPaste."""
         super().__init__(dataset=dataset, pre_transform=pre_transform, p=p)
-        assert mode in {"flip", "mixup"}, f"Expected `mode` to be `flip` or `mixup`, but got {mode}."
+        assert mode in ("flip", "mixup"), f"Expected `mode` to be `flip` or `mixup`, but got {mode}."
         self.mode = mode
 
     def __call__(self, labels: dict[str, Any]) -> dict[str, Any]:

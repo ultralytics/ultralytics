@@ -70,7 +70,9 @@ class AnomalyTrainer(DetectionTrainer):
             weights (str, optional): Path to pretrained weights (yolo26m.pt etc.).
             verbose (bool): Verbose info.
         """
-        model = YOLOAnomalyModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
+        model = YOLOAnomalyModel(
+            cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1, p_drop=self.args.p_drop
+        )
         if weights:
             model.load(weights)
         return model

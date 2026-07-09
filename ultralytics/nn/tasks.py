@@ -9,7 +9,6 @@ from pathlib import Path
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import numpy as np
 
 from ultralytics.nn.autobackend import check_class_names
@@ -542,13 +541,13 @@ class YOLOAnomalyModel(DetectionModel):
       - Inference: a non-empty memory bank is used as the heatmap prior; otherwise passthrough.
     """
 
-    def __init__(self, cfg="yolo26-anomaly.yaml", ch=3, nc=None, verbose=True):
+    def __init__(self, cfg="yolo26-anomaly.yaml", ch=3, nc=None, verbose=True, p_drop: float = 0.5):
+        self.p_drop = p_drop
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
         # Read v2-specific config from YAML. Constructor kwargs override.
         v2_cfg = self.yaml.get("anomaly", {}) if isinstance(self.yaml, dict) else {}
         mask_size = v2_cfg["mask_size"]
-        self.p_drop = v2_cfg["p_drop"]
         self.seg_target_polygon = bool(v2_cfg.get("seg_target_polygon", False))
 
         # Spatial resolution of the rendered/mask prior.

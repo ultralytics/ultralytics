@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-"""R3 ViT-like student blocks for encoder distillation (UltraViT).
+"""ViT-like student blocks for encoder distillation (UltraViT).
 
 Simple-component constraint: Conv2d, BatchNorm2d, LayerNorm, GELU/SiLU, Linear, F.scaled_dot_product_attention.
 No `nn.MultiheadAttention` (source of AIFI's 1327-node ONNX bloat). No 2D RoPE (ECViT-t hits 554 Constant nodes).
@@ -8,7 +8,7 @@ No `nn.MultiheadAttention` (source of AIFI's 1327-node ONNX bloat). No 2D RoPE (
 Registered in `ultralytics.nn.modules.__init__` and imported by `ultralytics.nn.tasks` so `parse_model` resolves
 them through `globals()[m]`. All blocks are dim-preserving (C_in == C_out, H/W unchanged).
 
-Export validation (2026-04-23 R3.3, RTX PRO 6000 Blackwell, imgsz=224, bs=1 fp16):
+Export validation (2026-04-23, RTX PRO 6000 Blackwell, imgsz=224, bs=1 fp16):
     yolo26s-fastvit-cls    5.05 M   228 ONNX nodes   1.948 ms   (conv baseline 1.83 ms, 234 nodes)
     yolo26l-fastvit-cls   14.77 M   804 ONNX nodes   2.652 ms
 
@@ -28,7 +28,7 @@ import torch.nn.functional as F
 
 from ultralytics.utils import deprecation_warn
 
-# Length-aware SDPA temperature (A1). A P5 token grid trained at ~224px (49 tokens for the /16 stem) but run at 640px
+# Length-aware SDPA temperature. A P5 token grid trained at ~224px (49 tokens for the /16 stem) but run at 640px
 # (400 tokens) diffuses the fixed 1/sqrt(d) softmax over 8x more keys. Scaling the logits by sqrt(log N / log N_ref)
 # restores the training-time peakiness. Env-gated so the CE/distill graph is byte-identical unless opted in; at
 # N == N_ref the factor is exactly 1 (no-op at training resolution). q.shape[-2] is a concrete int under static-shape
@@ -100,9 +100,9 @@ class MHSABlock(nn.Module):
             here so no dead head count sits in the config; the value is then derived, never read.
         head_dim (int): Per-head dim. When the `head_dim` arg is nonzero it pins this value and derives num_heads = c //
             head_dim (Apple FastViT policy, head_dim 32), so head width no longer shrinks with model scale.
-        pe (nn.Conv2d): Depthwise 7x7 conditional positional encoding (FastViT RepCPE / CPVT), applied before attention.
-            Zero-initialized so a fresh block starts as identity (ReZero) and the residual learns the position signal
-            from zero. `forward` guards on it so checkpoints saved before `pe` existed still load and run.
+        temperature (nn.Parameter): Per-head scalar for cross-covariance attention (XCiT), created only when `xca=True`.
+            Its presence switches `forward` to channel attention (map is head_dim x head_dim, invariant to token count),
+            so a frozen backbone meets no length-coupled softmax when transferred to a larger detection grid.
         ln1 (nn.LayerNorm): Pre-attention norm.
         qkv (nn.Linear): Fused QKV projection.
         proj (nn.Linear): Post-attention projection.
@@ -129,7 +129,7 @@ class MHSABlock(nn.Module):
         ls: float = 0.0,
         conv_ffn: bool = False,
         head_dim: int = 0,
-        cpe: bool = True,
+        xca: bool = False,
     ):
         """Initialize MHSABlock."""
         super().__init__()
@@ -139,12 +139,8 @@ class MHSABlock(nn.Module):
         assert c % num_heads == 0, f"MHSABlock: c={c} not divisible by num_heads={num_heads}"
         self.num_heads = num_heads
         self.head_dim = c // num_heads
-        if cpe:  # zero-init depthwise conditional position; A3 drops it (D4: net-harmful at frozen hi-res transfer)
-            self.pe = nn.Conv2d(c, c, 7, padding=3, groups=c, bias=True)
-            nn.init.zeros_(self.pe.weight)
-            nn.init.zeros_(self.pe.bias)
-        else:
-            self.pe = None
+        if xca:  # cross-covariance attention: map is head_dim x head_dim (token-count invariant), learnable per-head temperature (XCiT)
+            self.temperature = nn.Parameter(torch.ones(num_heads, 1, 1))
         self.ln1 = nn.LayerNorm(c)
         self.qkv = nn.Linear(c, 3 * c, bias=False)
         self.proj = nn.Linear(c, c, bias=False)
@@ -168,18 +164,23 @@ class MHSABlock(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Forward pass: 4D → tokens → SA → FFN (token Linear or NCHW ConvMlp) → 4D."""
         b, c, h, w = x.shape
-        if getattr(self, "pe", None) is not None:
-            x = x + self.pe(x)  # RepCPE conditional position before attention
         t = x.flatten(2).transpose(1, 2)  # (B, N, C)
         n = self.ln1(t)
         qkv = self.qkv(n).reshape(b, -1, 3, self.num_heads, self.head_dim).permute(2, 0, 3, 1, 4)
         q, k, v = qkv[0], qkv[1], qkv[2]  # indexed split traces to aten::select, x2paddle maps it but not aten::unbind
-        if _LOGN_ATTN:  # length-aware temperature: sharpen softmax as the token grid grows past the 49-token train grid
-            scale = self.head_dim**-0.5 * (math.log(max(int(q.shape[-2]), 2)) * _INV_LOG_REF) ** 0.5
-            a = F.scaled_dot_product_attention(q, k, v, scale=scale)
+        if getattr(self, "temperature", None) is not None:  # XCA: attention over channels, invariant to token count
+            qn = F.normalize(q.transpose(-2, -1), dim=-1)  # (B, heads, head_dim, N), L2-normed over tokens
+            kn = F.normalize(k.transpose(-2, -1), dim=-1)
+            attn = (qn @ kn.transpose(-2, -1)) * self.temperature  # (B, heads, head_dim, head_dim)
+            a = (attn.softmax(dim=-1) @ v.transpose(-2, -1)).permute(0, 3, 1, 2).reshape(b, -1, c)
         else:
-            a = F.scaled_dot_product_attention(q, k, v)
-        a = self.proj(a.transpose(1, 2).reshape(b, -1, c))
+            if _LOGN_ATTN:  # length-aware temperature: sharpen softmax as the grid grows past the 49-token train grid
+                scale = self.head_dim**-0.5 * (math.log(max(int(q.shape[-2]), 2)) * _INV_LOG_REF) ** 0.5
+                a = F.scaled_dot_product_attention(q, k, v, scale=scale)
+            else:
+                a = F.scaled_dot_product_attention(q, k, v)
+            a = a.transpose(1, 2).reshape(b, -1, c)
+        a = self.proj(a)
         ls1 = getattr(self, "ls1", None)
         t = t + (a if ls1 is None else ls1 * a)
         ls2 = getattr(self, "ls2", None)
@@ -190,6 +191,234 @@ class MHSABlock(nn.Module):
         f = self.fc2(self.act(self.fc1(self.ln2(t))))
         t = t + (f if ls2 is None else ls2 * f)
         return t.transpose(1, 2).reshape(b, c, h, w)
+
+
+def _frac_rope_tbl(h: int, w: int, head_dim: int, base: float = 100.0):
+    """Build a normalized-coordinate 2D rotary cos/sin table for an h x w token grid.
+
+    Angles are keyed to fractional coordinates (x/W, y/H) in [0, 1] rather than integer indices, so the relative phase
+    between two tokens is a function of their normalized separation and stays constant as the grid grows. Row (y)
+    frequencies fill the first head_dim half, col (x) frequencies the second, matching the rotate-half convention `[-x2,
+    x1]`. Returns dense (N, head_dim) cos and sin tensors so the traced graph carries one initializer per table (not
+    per-frequency Constants), dodging the ECViT 554-Constant blowup.
+
+    Args:
+        h (int): Token grid height.
+        w (int): Token grid width.
+        head_dim (int): Per-head dim. Must be divisible by 4 (row/col halves, each rotary needs cos/sin pairs).
+        base (float, optional): Rotary frequency base.
+
+    Returns:
+        cos (torch.Tensor): Cosine table of shape (N, head_dim) with N = h * w.
+        sin (torch.Tensor): Sine table of shape (N, head_dim) with N = h * w.
+    """
+    assert head_dim % 4 == 0, f"FracRoPE2D: head_dim={head_dim} must be divisible by 4"
+    n_freq = head_dim // 4  # distinct freqs per axis; each axis fills head_dim // 2 dims as (freqs, freqs)
+    freqs = 1.0 / (base ** (torch.arange(n_freq, dtype=torch.float32) / n_freq))
+    gy, gx = torch.meshgrid(torch.linspace(0, 1, h), torch.linspace(0, 1, w), indexing="ij")
+    ay = gy.reshape(-1, 1) * freqs[None, :]  # (N, n_freq) row angles
+    ax = gx.reshape(-1, 1) * freqs[None, :]  # (N, n_freq) col angles
+    ang = torch.cat([ay, ay, ax, ax], dim=-1)  # (N, head_dim): row half then col half, doubled for rotate-half
+    return torch.cos(ang), torch.sin(ang)
+
+
+def _rotate_half(x: torch.Tensor) -> torch.Tensor:
+    """Rotate the last dim by splitting in half and mapping (x1, x2) -> (-x2, x1) for RoPE."""
+    d = x.shape[-1] // 2
+    return torch.cat([-x[..., d:], x[..., :d]], dim=-1)
+
+
+class FracRoPE2D(MHSABlock):
+    """MHSABlock with fractional-coordinate 2D rotary position embedding on Q/K. Dim-preserving 4D in/out.
+
+    Keys the RoPE rotation angles to NORMALIZED fractional coordinates (x/W, y/H) instead of integer indices, so the
+    relative phase between two tokens depends on their normalized separation and is resolution-invariant by
+    construction. The 224-trained attention geometry stays correct at 640 with no positional interpolation and no
+    learned table, leaving only content magnitude for a short hi-res finetune to adapt. Row frequencies occupy one
+    head_dim half, col frequencies the other; cos/sin are baked as one dense registered buffer each (not per-frequency
+    Constants) so ONNX carries them as initializers.
+
+    Mutually exclusive with the `xca` branch of MHSABlock (rotary phase applies to the token-attention path). The
+    dense-buffer cos/sin are resolution-dependent: `forward` rebuilds them on the fly when the running grid differs from
+    the cached grid (so a single build serves 224 and 640), and `switch_to_deploy(hw)` rebakes them at the export imgsz.
+    The indexed qkv[0..2] split of MHSABlock is preserved for x2paddle.
+
+    Attributes:
+        rope_hw (tuple): Cached (h, w) the current cos/sin buffers were built for.
+        rope_cos (torch.Tensor): Dense (N, head_dim) cosine table registered as a buffer.
+        rope_sin (torch.Tensor): Dense (N, head_dim) sine table registered as a buffer.
+        rope_base (float): Rotary frequency base used to build the tables.
+    """
+
+    def __init__(
+        self,
+        c: int,
+        num_heads: int = 6,
+        mlp_ratio: float = 4.0,
+        silu: bool = False,
+        ls: float = 0.0,
+        conv_ffn: bool = False,
+        head_dim: int = 0,
+        hw: int = 7,
+        rope_base: float = 100.0,
+    ):
+        """Initialize FracRoPE2D, building the cos/sin tables for an hw x hw build grid; xca is forced off."""
+        super().__init__(c, num_heads, mlp_ratio, silu, ls, conv_ffn, head_dim, xca=False)
+        assert self.head_dim % 4 == 0, f"FracRoPE2D: head_dim={self.head_dim} must be divisible by 4"
+        self.rope_base = rope_base
+        self.rope_hw = (hw, hw)
+        cos, sin = _frac_rope_tbl(hw, hw, self.head_dim, rope_base)
+        self.register_buffer("rope_cos", cos, persistent=False)
+        self.register_buffer("rope_sin", sin, persistent=False)
+
+    def _rope(self, h: int, w: int):
+        """Return cos/sin tables for the h x w grid, rebuilding the buffers if the grid changed."""
+        if self.rope_hw != (h, w):
+            cos, sin = _frac_rope_tbl(h, w, self.head_dim, self.rope_base)
+            self.rope_cos = cos.to(self.rope_cos.device, self.rope_cos.dtype)
+            self.rope_sin = sin.to(self.rope_sin.device, self.rope_sin.dtype)
+            self.rope_hw = (h, w)
+        return self.rope_cos, self.rope_sin
+
+    def switch_to_deploy(self, hw: int):
+        """Rebake the cos/sin buffers for an hw x hw export grid so ONNX/TRT carry them at the export imgsz."""
+        self._rope(hw, hw)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Forward pass: 4D -> tokens -> RoPE(q,k) -> SDPA -> FFN (token Linear or NCHW ConvMlp) -> 4D."""
+        b, c, h, w = x.shape
+        t = x.flatten(2).transpose(1, 2)  # (B, N, C)
+        n = self.ln1(t)
+        qkv = self.qkv(n).reshape(b, -1, 3, self.num_heads, self.head_dim).permute(2, 0, 3, 1, 4)
+        q, k, v = qkv[0], qkv[1], qkv[2]  # indexed split traces to aten::select, x2paddle maps it but not aten::unbind
+        cos, sin = self._rope(h, w)  # (N, head_dim), broadcasts over (B, heads, N, head_dim)
+        q = q * cos + _rotate_half(q) * sin
+        k = k * cos + _rotate_half(k) * sin
+        if _LOGN_ATTN:  # length-aware temperature: sharpen softmax as the grid grows past the 49-token train grid
+            scale = self.head_dim**-0.5 * (math.log(max(int(q.shape[-2]), 2)) * _INV_LOG_REF) ** 0.5
+            a = F.scaled_dot_product_attention(q, k, v, scale=scale)
+        else:
+            a = F.scaled_dot_product_attention(q, k, v)
+        a = a.transpose(1, 2).reshape(b, -1, c)
+        a = self.proj(a)
+        ls1 = getattr(self, "ls1", None)
+        t = t + (a if ls1 is None else ls1 * a)
+        ls2 = getattr(self, "ls2", None)
+        if getattr(self, "ffn_dw", None) is not None:
+            x = t.transpose(1, 2).reshape(b, c, h, w)
+            f = self.ffn_pw2(self.act(self.ffn_pw1(self.ffn_bn(self.ffn_dw(x)))))
+            return x + (f if ls2 is None else ls2 * f)
+        f = self.fc2(self.act(self.fc1(self.ln2(t))))
+        t = t + (f if ls2 is None else ls2 * f)
+        return t.transpose(1, 2).reshape(b, c, h, w)
+
+
+class AnchorPoolQueryMix(nn.Module):
+    """Anchor-pooled two-stage attention block with dense 4D output."""
+
+    def __init__(
+        self,
+        c: int,
+        m: int = 49,
+        mlp_ratio: float = 4.0,
+        silu: bool = False,
+        ls: float = 0.0,
+        head_dim: int = 32,
+        pool_stride: int = 3,
+    ):
+        """Initialize the anchor-pooled attention block."""
+        super().__init__()
+        assert c % head_dim == 0, f"AnchorPoolQueryMix: c={c} not divisible by head_dim={head_dim}"
+        self.num_heads = c // head_dim
+        self.head_dim = head_dim
+        self.dim = c
+        g = round(m**0.5)
+        self.m = g * g
+        self.anchors = nn.Parameter(self._coord_seed(g, c))
+        self.pool_dw = nn.Conv2d(c, c, 3, stride=pool_stride, padding=1, groups=c, bias=False)
+        self.pool_bn = nn.BatchNorm2d(c)
+        self.lnA = nn.LayerNorm(c)
+        self.lnP = nn.LayerNorm(c)
+        self.lnB = nn.LayerNorm(c)
+        self.qA = nn.Linear(c, c, bias=False)
+        self.kvA = nn.Linear(c, 2 * c, bias=False)
+        self.qB = nn.Linear(c, c, bias=False)
+        self.kvB = nn.Linear(c, 2 * c, bias=False)
+        self.projA = nn.Linear(c, c, bias=False)
+        self.projB = nn.Linear(c, c, bias=False)
+        hidden = int(c * mlp_ratio)
+        self.ffn_dw = nn.Conv2d(c, c, 7, padding=3, groups=c, bias=False)
+        self.ffn_bn = nn.BatchNorm2d(c)
+        self.ffn_pw1 = nn.Conv2d(c, hidden, 1)
+        self.ffn_pw2 = nn.Conv2d(hidden, c, 1)
+        self.act = nn.SiLU() if silu else nn.GELU()
+        if ls:
+            self.ls1 = nn.Parameter(ls * torch.ones(c))
+            self.ls2 = nn.Parameter(ls * torch.ones(c, 1, 1))
+
+    @staticmethod
+    def _coord_seed(g: int, c: int) -> torch.Tensor:
+        """Build a 2D sinusoidal seed for the anchor slots."""
+        d = c // 2
+        div = torch.exp(torch.arange(0, d, 2) * (-math.log(10000.0) / max(d, 1)))
+        ys, xs = torch.meshgrid(torch.arange(g), torch.arange(g), indexing="ij")
+        pos = torch.zeros(g * g, c)
+        for coord, off in ((ys.flatten(), 0), (xs.flatten(), d)):
+            a = coord.unsqueeze(1).float() * div
+            pos[:, off : off + a.shape[1] * 2 : 2] = torch.sin(a)
+            pos[:, off + 1 : off + a.shape[1] * 2 : 2] = torch.cos(a)
+        return pos.unsqueeze(0) * 0.02
+
+    def _sdpa(self, q: torch.Tensor, kv: torch.Tensor, b: int) -> torch.Tensor:
+        """Apply multi-head attention from query tokens to fused K/V tokens."""
+        nq = q.shape[1]
+        q = q.reshape(b, nq, self.num_heads, self.head_dim).transpose(1, 2)
+        kv = kv.reshape(b, -1, 2, self.num_heads, self.head_dim).permute(2, 0, 3, 1, 4)
+        k, v = kv[0], kv[1]
+        a = F.scaled_dot_product_attention(q, k, v)
+        return a.transpose(1, 2).reshape(b, nq, self.dim)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Run anchor gather, dense scatter, and ConvMlp FFN."""
+        b, c, h, w = x.shape
+        p = self.pool_bn(self.pool_dw(x)).flatten(2).transpose(1, 2)
+        t = x.flatten(2).transpose(1, 2)
+        anchors = self.lnA(self.anchors).expand(b, -1, -1)
+        a = self.projA(self._sdpa(self.qA(anchors), self.kvA(self.lnP(p)), b))
+        d = self.projB(self._sdpa(self.qB(self.lnB(t)), self.kvB(a), b))
+        ls1 = getattr(self, "ls1", None)
+        t = t + (d if ls1 is None else ls1 * d)
+        x = t.transpose(1, 2).reshape(b, c, h, w)
+        f = self.ffn_pw2(self.act(self.ffn_pw1(self.ffn_bn(self.ffn_dw(x)))))
+        ls2 = getattr(self, "ls2", None)
+        return x + (f if ls2 is None else ls2 * f)
+
+    def forward_fuse(self, x: torch.Tensor) -> torch.Tensor:
+        """Run the block after BN folding and anchor query caching."""
+        b, c, h, w = x.shape
+        p = self.pool_dw(x).flatten(2).transpose(1, 2)
+        t = x.flatten(2).transpose(1, 2)
+        a = self.projA(self._sdpa(self.anchors_flat.expand(b, -1, -1), self.kvA(self.lnP(p)), b))
+        d = self.projB(self._sdpa(self.qB(self.lnB(t)), self.kvB(a), b))
+        ls1 = getattr(self, "ls1", None)
+        t = t + (d if ls1 is None else ls1 * d)
+        x = t.transpose(1, 2).reshape(b, c, h, w)
+        f = self.ffn_pw2(self.act(self.ffn_pw1(self.ffn_dw(x))))
+        ls2 = getattr(self, "ls2", None)
+        return x + (f if ls2 is None else ls2 * f)
+
+    @torch.no_grad()
+    def fuse(self):
+        """Fold BN layers and cache the anchor query projection."""
+        if hasattr(self, "anchors_flat"):
+            return
+        from ultralytics.utils.torch_utils import fuse_conv_and_bn
+
+        self.pool_dw = fuse_conv_and_bn(self.pool_dw, self.pool_bn)
+        self.ffn_dw = fuse_conv_and_bn(self.ffn_dw, self.ffn_bn)
+        self.register_buffer("anchors_flat", self.qA(self.lnA(self.anchors)))
+        delattr(self, "pool_bn")
+        delattr(self, "ffn_bn")
 
 
 class FastViTBlock(UltraViTBlock):

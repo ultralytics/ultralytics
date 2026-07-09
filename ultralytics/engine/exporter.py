@@ -266,7 +266,7 @@ EXPORT_ENVS = {
         "python": "3.13",
         "extras": ["export-base"],
         "torch": None,
-        "requirements": ["ncnn", "pnnx"],
+        "requirements": ["ncnn", "pnnx==20260526"],
         "indexes": [],
         "env": {},
         "smoke": ["yolo export format=ncnn model=yolo26n.pt imgsz=32"],
@@ -779,6 +779,7 @@ class Exporter:
             "docs": "https://docs.ultralytics.com",
             "stride": int(max(model.stride)),
             "task": model.task,
+            "head": type(model.model[-1]).__name__,
             "batch": self.args.batch,
             "imgsz": self.imgsz,
             "names": model.names,
@@ -898,7 +899,7 @@ class Exporter:
 
         from ultralytics.utils.export.engine import best_onnx_opset, torch2onnx
 
-        opset = self.args.opset or best_onnx_opset(onnx, cuda="cuda" in self.device.type)
+        opset = self.args.opset or best_onnx_opset(onnx, cuda="cuda" in self.device.type, quantize=self.args.quantize)
         LOGGER.info(f"\n{prefix} starting export with onnx {onnx.__version__} opset {opset}...")
         if self.args.nms:
             assert TORCH_1_13, f"'nms=True' ONNX export requires torch>=1.13 (found torch=={TORCH_VERSION})"
@@ -1252,6 +1253,7 @@ class Exporter:
             quantize=self.args.quantize,
             images=images,
             disable_group_convolution=self.args.format == "edgetpu",
+            cuda=self.device.type == "cuda",
             prefix=prefix,
         )
         YAML.save(f / "metadata.yaml", self.metadata)  # add metadata.yaml

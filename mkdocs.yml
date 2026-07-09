@@ -559,6 +559,7 @@ nav:
       - Triton Inference Server: guides/triton-inference-server.md
       - Viewing Inference Images in a Terminal: guides/view-results-in-terminal.md
       - YOLO26 Training Recipe: guides/yolo26-training-recipe.md
+      - YOLO Architecture Explained: guides/yolo-architecture.md
       - YOLO Common Issues: guides/yolo-common-issues.md
       - YOLO Data Augmentation: guides/yolo-data-augmentation.md
       - YOLO Performance Metrics: guides/yolo-performance-metrics.md
@@ -773,6 +774,7 @@ nav:
               - world:
                   - train: reference/models/yolo/world/train.md
                   - train_world: reference/models/yolo/world/train_world.md
+                  - val: reference/models/yolo/world/val.md
               - yoloe:
                   - predict: reference/models/yolo/yoloe/predict.md
                   - train: reference/models/yolo/yoloe/train.md

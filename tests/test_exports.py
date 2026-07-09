@@ -1,15 +1,18 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import io
+import os
 import shutil
 import sys
 import threading
 import time
-import uuid
 from contextlib import redirect_stderr, redirect_stdout
 from itertools import product
 from pathlib import Path
 from types import SimpleNamespace
+
+if sys.platform == "win32":
+    os.environ.setdefault("ONEDNN_MAX_CPU_ISA", "AVX2")
 
 import pytest
 import torch
@@ -29,7 +32,7 @@ from ultralytics.utils import (
     WINDOWS,
     checks,
 )
-from ultralytics.utils.export.engine import modelopt_quantize_onnx, torch2onnx
+from ultralytics.utils.export.engine import best_onnx_opset, modelopt_quantize_onnx, torch2onnx
 from ultralytics.utils.torch_utils import (
     TORCH_1_10,
     TORCH_1_11,
@@ -68,6 +71,47 @@ def test_export_onnx_int8(isolated_model, precision):
     assert Path(file).name.endswith("_int8.onnx")
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
     Path(file).unlink()  # cleanup
+
+
+def test_best_onnx_opset_caps_int8_only(monkeypatch):
+    """Check opset>=21 is capped for ONNX Runtime INT8 quantization, not normal ONNX export."""
+    from ultralytics.utils.export import engine
+
+    class _Defs:
+        @staticmethod
+        def onnx_opset_version():
+            return 25
+
+    monkeypatch.setattr(engine, "TORCH_2_4", True)
+    monkeypatch.setattr(engine, "TORCH_2_9", False)
+    monkeypatch.setattr(engine.torch.onnx.utils, "_constants", SimpleNamespace(ONNX_MAX_OPSET=23), raising=False)
+    onnx = SimpleNamespace(defs=_Defs())
+    assert best_onnx_opset(onnx) == 22
+    assert best_onnx_opset(onnx, cuda=True) == 20
+    assert best_onnx_opset(onnx, quantize=8) == 20
+
+
+def test_onnx_int8_quantize_excludes_non_weighted_ops(monkeypatch):
+    """Check ONNX INT8 keeps only weighted ops quantized while preserving the string return contract."""
+    import onnx
+    import onnxruntime.quantization as ort_quantization
+
+    from ultralytics.utils.export.onnx import onnx_int8_quantize
+
+    calls = {}
+    graph = SimpleNamespace(
+        node=[
+            SimpleNamespace(name="conv", op_type="Conv"),
+            SimpleNamespace(name="pool", op_type="MaxPool"),
+            SimpleNamespace(name="sigmoid", op_type="Sigmoid"),
+        ]
+    )
+
+    monkeypatch.setattr(onnx, "load", lambda _: SimpleNamespace(graph=graph))
+    monkeypatch.setattr(ort_quantization, "quantize_static", lambda *args, **kwargs: calls.update(kwargs))
+    result = onnx_int8_quantize(Path("model.onnx"), Path("model_int8.onnx"), [], lambda x: x)
+    assert result == "model_int8.onnx"
+    assert calls["nodes_to_exclude"] == ["pool", "sigmoid"]
 
 
 def test_quantize_canonicalization():
@@ -160,10 +204,6 @@ def test_torch2onnx_serializes_concurrent_exports(monkeypatch, tmp_path):
 def test_export_openvino(end2end, isolated_model):
     """Test YOLO export to OpenVINO format for model inference compatibility."""
     file = YOLO(isolated_model).export(format="openvino", imgsz=32, end2end=end2end)
-    if WINDOWS:
-        # Ensure a unique export path per test to prevent OpenVINO file writes
-        file = Path(file)
-        file = file.rename(file.with_stem(f"{file.stem}-{uuid.uuid4()}"))
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
@@ -193,10 +233,6 @@ def test_export_openvino_matrix(task, dynamic, quantize, batch, nms, end2end):
         nms=nms,
         end2end=end2end,
     )
-    if WINDOWS:
-        # Use unique filenames due to Windows file permissions bug possibly due to latent threaded use
-        file = Path(file)
-        file = file.rename(file.with_stem(f"{file.stem}-{uuid.uuid4()}"))
     YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32, batch=batch)  # exported model inference
     shutil.rmtree(file, ignore_errors=True)  # retry in case of potential lingering multi-threaded file usage errors
 

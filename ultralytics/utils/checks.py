@@ -250,7 +250,7 @@ def check_version(
     if not current:  # if current is '' or None
         LOGGER.warning(f"invalid check_version({current}, {required}) requested, please check values.")
         return True
-    elif not re.match(r"v?\d", current):  # current is package name rather than version string, i.e. 'ultralytics'
+    elif not re.match(r"(?:v\d+(?:\.\d+)+|\d)", current):  # package name rather than version, i.e. 'ultralytics'
         try:
             name = current  # assigned package name to 'name' arg
             current = metadata.version(current)  # get version string from package name

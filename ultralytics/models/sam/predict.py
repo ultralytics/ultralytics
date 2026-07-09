@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from collections import OrderedDict, defaultdict
 from copy import deepcopy
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import cv2
 import numpy as np
@@ -37,7 +37,9 @@ from .amg import (
     uncrop_boxes_xyxy,
     uncrop_masks,
 )
-from .sam3.geometry_encoders import Prompt
+
+if TYPE_CHECKING:
+    from .sam3.geometry_encoders import Prompt
 
 
 class Predictor(BasePredictor):
@@ -471,7 +473,7 @@ class Predictor(BasePredictor):
             model = self.get_model()
         # Move model to device first, then cast dtype, then set eval so any eval-time caches are created on-device.
         model = model.to(device)
-        model = model.half() if self.args.half else model.float()
+        model = model.half() if self.args.quantize == 16 else model.float()
         model.eval()
         self.model = model
         self.device = device
@@ -481,7 +483,7 @@ class Predictor(BasePredictor):
         # Ultralytics compatibility settings
         self.model.format = "sam"
         self.model.stride = 32
-        self.model.fp16 = self.args.half
+        self.model.fp16 = self.args.quantize == 16
         self.done_warmup = True
         self.torch_dtype = torch.float16 if self.model.fp16 else torch.float32
 
@@ -1988,8 +1990,8 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             raise RuntimeError("No objects have been added to the state. Please add objects before inference.")
         idx = list(self.obj_idx_set)  # cls id
         pred_masks, pred_scores = pred_masks[idx], pred_scores[idx]
-        # the original score are in [-32,32], and a object score larger than 0 means the object is present, we map it to [-1,1] range,
-        # and use a activate function to make sure the object score logits are non-negative, so that we can use it as a mask
+        # The original scores are in [-32, 32]. An object score larger than 0 means the object is present.
+        # Map scores to [0, 1] so that the object score logits are non-negative and can be used as a mask.
         pred_scores = torch.clamp_(pred_scores / 32, min=0)
         return pred_masks.flatten(0, 1), pred_scores.flatten(0, 1)
 
@@ -2423,6 +2425,9 @@ class SAM3SemanticPredictor(SAM3Predictor):
 
     def _get_dummy_prompt(self, num_prompts=1):
         """Get a dummy geometric prompt with zero boxes."""
+        # Scoped for import ultralytics speed: SAM3 geometry imports optional torchvision ops.
+        from .sam3.geometry_encoders import Prompt
+
         geometric_prompt = Prompt(
             box_embeddings=torch.zeros(0, num_prompts, 4, device=self.device),
             box_mask=torch.zeros(num_prompts, 0, device=self.device, dtype=torch.bool),
@@ -3021,7 +3026,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             for state_idx, inference_state in enumerate(tracker_states_local):
                 if (
                     trk_obj_id in inference_state["obj_ids"]
-                    # NOTE: Goal of this condition is to avoid reconditioning masks that are occluded/low qualiy.
+                    # NOTE: Goal of this condition is to avoid reconditioning masks that are occluded/low quality.
                     # Unfortunately, these can get reconditioned anyway due to batching. We should consider removing these heuristics.
                     and obj_score > HIGH_CONF_THRESH
                 ):
@@ -3579,7 +3584,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
         ious_np = ious.cpu().numpy()
         if self.o2o_matching_masklets_enable:
-            from scipy.optimize import linear_sum_assignment
+            from ultralytics.utils.ops import linear_sum_assignment
 
             # Hungarian matching for tracks (one-to-one: each track matches at most one detection)
             cost_matrix = 1 - ious_np  # Hungarian solves for minimum cost

@@ -40,7 +40,7 @@ This guide serves as a comprehensive introduction to setting up a Docker environ
 
 - Make sure Docker is installed on your system. If not, you can download and install it from [Docker's website](https://www.docker.com/products/docker-desktop/).
 - Ensure that your system has an NVIDIA GPU and NVIDIA drivers are installed.
-- If you are using NVIDIA Jetson devices, ensure that you have the appropriate JetPack version installed. Refer to the [NVIDIA Jetson guide](https://docs.ultralytics.com/guides/nvidia-jetson) for more details.
+- If you are using NVIDIA Jetson devices, ensure that you have the appropriate JetPack version installed. Refer to the [NVIDIA Jetson guide](nvidia-jetson.md) for more details.
 
 ---
 
@@ -83,7 +83,7 @@ Now, let's install the [NVIDIA Container Toolkit](https://docs.nvidia.com/datace
         Optionally, you can install a specific version of the nvidia-container-toolkit by setting the `NVIDIA_CONTAINER_TOOLKIT_VERSION` environment variable:
 
         ```bash
-        export NVIDIA_CONTAINER_TOOLKIT_VERSION=1.17.8-1
+        export NVIDIA_CONTAINER_TOOLKIT_VERSION=1.18.1-1
         sudo apt-get install -y \
           nvidia-container-toolkit=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
           nvidia-container-toolkit-base=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
@@ -124,7 +124,7 @@ Now, let's install the [NVIDIA Container Toolkit](https://docs.nvidia.com/datace
         Optionally, you can install a specific version of the nvidia-container-toolkit by setting the `NVIDIA_CONTAINER_TOOLKIT_VERSION` environment variable:
 
           ```bash
-          export NVIDIA_CONTAINER_TOOLKIT_VERSION=1.17.8-1
+          export NVIDIA_CONTAINER_TOOLKIT_VERSION=1.18.1-1
           sudo dnf install -y \
             nvidia-container-toolkit-${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
             nvidia-container-toolkit-base-${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
@@ -137,13 +137,15 @@ Now, let's install the [NVIDIA Container Toolkit](https://docs.nvidia.com/datace
     sudo systemctl restart docker
     ```
 
-### Verify NVIDIA Runtime with Docker
+### Verify CDI Devices with Docker
 
-Run `docker info | grep -i runtime` to ensure that `nvidia` appears in the list of runtimes:
+Run `nvidia-ctk cdi list` to ensure the GPU CDI devices are available (the toolkit's `nvidia-cdi-refresh` service generates and maintains the spec automatically on toolkit >= 1.18):
 
 ```bash
-docker info | grep -i runtime
+nvidia-ctk cdi list
 ```
+
+You should see entries such as `nvidia.com/gpu=0` and `nvidia.com/gpu=all`. Discovered CDI devices also appear in `docker info`.
 
 ---
 
@@ -154,9 +156,9 @@ Ultralytics offers several Docker images optimized for various platforms and use
 - **Dockerfile:** GPU image, ideal for training.
 - **Dockerfile-arm64:** For ARM64 architecture, suitable for devices like [Raspberry Pi](raspberry-pi.md).
 - **Dockerfile-cpu:** CPU-only version for inference and non-GPU environments.
-- **Dockerfile-jetson-jetpack4:** Optimized for [NVIDIA Jetson](https://docs.ultralytics.com/guides/nvidia-jetson) devices running [NVIDIA JetPack 4](https://developer.nvidia.com/embedded/jetpack-sdk-461).
-- **Dockerfile-jetson-jetpack5:** Optimized for [NVIDIA Jetson](https://docs.ultralytics.com/guides/nvidia-jetson) devices running [NVIDIA JetPack 5](https://developer.nvidia.com/embedded/jetpack-sdk-512).
-- **Dockerfile-jetson-jetpack6:** Optimized for [NVIDIA Jetson](https://docs.ultralytics.com/guides/nvidia-jetson) devices running [NVIDIA JetPack 6](https://developer.nvidia.com/embedded/jetpack-sdk-61).
+- **Dockerfile-jetson-jetpack4:** Optimized for [NVIDIA Jetson](nvidia-jetson.md) devices running [NVIDIA JetPack 4](https://developer.nvidia.com/embedded/jetpack-sdk-461).
+- **Dockerfile-jetson-jetpack5:** Optimized for [NVIDIA Jetson](nvidia-jetson.md) devices running [NVIDIA JetPack 5](https://developer.nvidia.com/embedded/jetpack-sdk-512).
+- **Dockerfile-jetson-jetpack6:** Optimized for [NVIDIA Jetson](nvidia-jetson.md) devices running [NVIDIA JetPack 6](https://developer.nvidia.com/embedded/jetpack-sdk-61).
 - **Dockerfile-jupyter:** For interactive development using JupyterLab in the browser.
 - **Dockerfile-nvidia-arm64:** For NVIDIA ARM64 devices such as Jetson AGX Thor and DGX Spark, supporting JetPack 7.0 and DGX OS.
 - **Dockerfile-python:** Minimal Python environment for lightweight applications.
@@ -191,13 +193,24 @@ sudo docker run -it --ipc=host $t
 
 ```bash
 # Run with all GPUs
-sudo docker run -it --ipc=host --runtime=nvidia --gpus all $t
+sudo docker run -it --ipc=host --device nvidia.com/gpu=all $t
 
 # Run specifying which GPUs to use
-sudo docker run -it --ipc=host --runtime=nvidia --gpus '"device=2,3"' $t
+sudo docker run -it --ipc=host --device nvidia.com/gpu=2 --device nvidia.com/gpu=3 $t
 ```
 
-The `-it` flag assigns a pseudo-TTY and keeps stdin open, allowing you to interact with the container. The `--ipc=host` flag enables sharing of host's IPC namespace, essential for sharing memory between processes. The `--gpus` flag allows the container to access the host's GPUs.
+The `-it` flag assigns a pseudo-TTY and keeps stdin open, allowing you to interact with the container. The `--ipc=host` flag enables sharing of host's IPC namespace, essential for sharing memory between processes. The `--device nvidia.com/gpu=...` flag grants the container access to the host's GPUs through [CDI](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/cdi-support.html).
+
+!!! tip "Older Docker or NVIDIA Container Toolkit versions"
+
+    CDI device requests require Docker >= 28.2.0 (CDI enabled by default) and `nvidia-container-toolkit` >= 1.18 (automatic CDI spec generation). On older hosts, fall back to the legacy flags:
+
+    ```bash
+    # Legacy GPU access on older hosts
+    sudo docker run -it --ipc=host --runtime=nvidia --gpus all $t
+    ```
+
+    Note that legacy `--gpus` containers can lose GPU access (`Failed to initialize NVML: Unknown Error`) when the host reloads systemd, which happens during routine package updates ([nvidia-container-toolkit#48](https://github.com/NVIDIA/nvidia-container-toolkit/issues/48)). CDI includes the device nodes in the container configuration itself, so long-running containers such as training workers or CI runners keep GPU access across reloads.
 
 ### Note on File Accessibility
 
@@ -205,7 +218,7 @@ To work with files on your local machine within the container, you can use Docke
 
 ```bash
 # Mount a local directory into the container
-sudo docker run -it --ipc=host --runtime=nvidia --gpus all -v /path/on/host:/path/in/container $t
+sudo docker run -it --ipc=host --device nvidia.com/gpu=all -v /path/on/host:/path/in/container $t
 ```
 
 Replace `/path/on/host` with the directory path on your local machine and `/path/in/container` with the desired path inside the Docker container.
@@ -243,10 +256,7 @@ Setup and configuration of an X11 or Wayland display server is outside the scope
 !!! example
 
     ??? info "Use GPUs"
-            If you're using [GPUs](#using-gpus), you can add the `--gpus all` flag to the command.
-
-    ??? info "Docker runtime flag"
-            If your Docker installation does not use the `nvidia` runtime by default, you can add the `--runtime=nvidia` flag to the command.
+            If you're using [GPUs](#using-gpus), you can add the `--device nvidia.com/gpu=all` flag to the command.
 
     === "X11"
 
@@ -325,7 +335,7 @@ Using Ultralytics Docker images ensures a consistent environment across differen
 First, ensure that the [NVIDIA Container Toolkit](#installing-nvidia-container-toolkit) is installed and configured. Then, use the following command to run Ultralytics YOLO with GPU support:
 
 ```bash
-sudo docker run -it --ipc=host --runtime=nvidia --gpus all ultralytics/ultralytics:latest # all GPUs
+sudo docker run -it --ipc=host --device nvidia.com/gpu=all ultralytics/ultralytics:latest # all GPUs
 ```
 
 This command sets up a Docker container with GPU access. For additional details, see the Docker Quickstart Guide.
@@ -356,7 +366,7 @@ More information can be found in the [Run graphical user interface (GUI) applica
 Yes, you can mount local directories into the Ultralytics Docker container using the `-v` flag:
 
 ```bash
-sudo docker run -it --ipc=host --runtime=nvidia --gpus all -v /path/on/host:/path/in/container ultralytics/ultralytics:latest
+sudo docker run -it --ipc=host --device nvidia.com/gpu=all -v /path/on/host:/path/in/container ultralytics/ultralytics:latest
 ```
 
 Replace `/path/on/host` with the directory on your local machine and `/path/in/container` with the desired path inside the container. This setup allows you to work with your local files within the container. For more information, refer to the [Note on File Accessibility](#note-on-file-accessibility) section.

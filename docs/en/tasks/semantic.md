@@ -13,13 +13,13 @@ model_name: yolo26n-sem
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/zF2T17ppKIE"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/_fvGA9LPXzs"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Train Ultralytics YOLO26 Semantic Segmentation Model on Custom Dataset | Ultralytics Platform
+  <strong>Watch:</strong> Semantic Segmentation with Ultralytics YOLO26 | Quickstart Tutorial
 </p>
 
 The output of a semantic segmentation model is a single height-by-width class map where each pixel value corresponds to a predicted class ID. This makes semantic segmentation ideal for scene parsing tasks such as autonomous driving, medical imaging, and land-cover mapping.
@@ -38,6 +38,16 @@ YOLO26 semantic segmentation models pretrained on the [Cityscapes](https://githu
 
 - **mIoU<sup>val</sup>** values are for single-model single-scale on the [Cityscapes](https://www.cityscapes-dataset.com/) validation set. <br>Reproduce with `yolo semantic val data=cityscapes.yaml device=0 imgsz=2048`
 - **Speed** metrics are averaged over Cityscapes validation images using an RTX3090 instance. <br>Reproduce with `yolo semantic val data=cityscapes.yaml batch=1 device=0|cpu imgsz=2048`
+- **Params** and **FLOPs** values are for the fused model after `model.fuse()`, which merges Conv and BatchNorm layers. Pretrained checkpoints retain the full training architecture and may show higher counts.
+
+YOLO26 semantic segmentation models pretrained on the [ADE20K](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ade20k.yaml) dataset are shown below.
+
+[Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
+
+{% include "macros/yolo-semantic-ade20k-perf.md" %}
+
+- **mIoU<sup>val</sup>** values are for single-model single-scale on the [ADE20K](https://ade20k.csail.mit.edu/) validation set. <br>Reproduce with `yolo semantic val model=yolo26n-sem-ade20k.pt data=ade20k.yaml device=0 imgsz=640`, replacing `yolo26n-sem-ade20k.pt` with the desired `yolo26*-sem-ade20k.pt` checkpoint.
+- **Speed** metrics are averaged over ADE20K validation images using an RTX3090 instance. <br>Reproduce with `yolo semantic val model=yolo26n-sem-ade20k.pt data=ade20k.yaml batch=1 device=0|cpu imgsz=640`, replacing `yolo26n-sem-ade20k.pt` with the desired `yolo26*-sem-ade20k.pt` checkpoint.
 - **Params** and **FLOPs** values are for the fused model after `model.fuse()`, which merges Conv and BatchNorm layers. Pretrained checkpoints retain the full training architecture and may show higher counts.
 
 ## Train
@@ -154,6 +164,15 @@ belong to separate objects.
 | `result.masks.xy`           | -                                               | -       | No default polygons.                      |
 
 For task-specific `Results` fields across every task, see the [Predict Results by Task](../modes/predict.md#results-by-task) section.
+
+!!! tip "Mask boundary quality"
+
+    Semantic segmentation predicts a dense class map, then resizes that map back to the image shape for visualization and
+    downstream use. Very thin structures, such as lane markings, court lines, poles, or wires, can therefore look
+    stair-stepped when inference runs at a much lower `imgsz` than the original image resolution. If boundaries appear
+    jagged, first retest the native PyTorch `.pt` model with a larger `imgsz`, such as `1024`, `1280`, or the closest
+    practical value to the source image size. Use exported models only after confirming the `.pt` output is acceptable,
+    since lower-resolution inputs cannot recover fine detail that was not present in the predicted class map.
 
 ### Instance vs Semantic Segmentation
 

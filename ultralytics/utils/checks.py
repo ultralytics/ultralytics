@@ -37,6 +37,7 @@ from ultralytics.utils import (
     LOGGER,
     MACOS,
     ONLINE,
+    PLATFORM_URL,
     PYTHON_VERSION,
     RKNN_CHIPS,
     ROOT,
@@ -55,6 +56,19 @@ from ultralytics.utils import (
 )
 
 REMOTE_FILE_PREFIXES = ("https://", "http://", "rtsp://", "rtmp://", "tcp://", "ul://", "gs://")
+
+
+def normalize_platform_uri(uri):
+    """Rewrite an Ultralytics Platform web URL to its ul:// URI so it can be loaded directly as data or model.
+
+    Args:
+        uri (str | Path): Resource identifier, e.g. "https://platform.ultralytics.com/user/datasets/slug".
+
+    Returns:
+        (str | Path): "ul://user/datasets/slug" for Platform web URLs, otherwise the input unchanged.
+    """
+    s = str(uri)
+    return f"ul://{s[len(PLATFORM_URL) + 1 :].strip('/')}" if s.startswith(f"{PLATFORM_URL}/") else uri
 
 
 def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
@@ -150,7 +164,13 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
     elif isinstance(imgsz, (list, tuple)):
         imgsz = list(imgsz)
     elif isinstance(imgsz, str):  # i.e. '640' or '[640,640]'
-        imgsz = [int(imgsz)] if imgsz.isnumeric() else ast.literal_eval(imgsz)
+        try:
+            imgsz = [int(imgsz)] if imgsz.isnumeric() else ast.literal_eval(imgsz)
+        except (ValueError, SyntaxError):
+            raise ValueError(
+                f"'imgsz={imgsz}' is not a valid image size. "
+                f"Valid imgsz values are int i.e. 'imgsz=640' or list i.e. 'imgsz=[640,640]'"
+            ) from None
     else:
         raise TypeError(
             f"'imgsz={imgsz}' is of invalid type {type(imgsz).__name__}. "
@@ -587,7 +607,7 @@ def check_suffix(file="yolo26n.pt", suffix=".pt", msg=""):
         if isinstance(suffix, str):
             suffix = {suffix}
         for f in file if isinstance(file, (list, tuple)) else [file]:
-            if s := str(f).rpartition(".")[-1].lower().strip():  # file suffix
+            if s := clean_url(f).rpartition(".")[-1].lower().strip():  # file suffix
                 assert f".{s}" in suffix, f"{msg}{f} acceptable suffix is {suffix}, not .{s}"
 
 
@@ -646,6 +666,7 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
     Returns:
         (str | list): Path to the file, or an empty list if not found.
     """
+    file = normalize_platform_uri(file)  # accept Platform web URLs (rewritten to ul://)
     check_suffix(file, suffix)  # optional
     file = str(file).strip()  # convert to string and strip spaces
     file = check_yolov5u_filename(file)  # yolov5n -> yolov5nu

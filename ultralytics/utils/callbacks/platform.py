@@ -10,12 +10,20 @@ from math import isfinite
 from pathlib import Path
 from time import sleep, time
 
-from ultralytics.utils import ENVIRONMENT, GIT, LOGGER, PYTHON_VERSION, RANK, SETTINGS, TESTS_RUNNING, Retry, colorstr
+from ultralytics.utils import (
+    ENVIRONMENT,
+    GIT,
+    LOGGER,
+    PLATFORM_URL,
+    PYTHON_VERSION,
+    RANK,
+    SETTINGS,
+    TESTS_RUNNING,
+    Retry,
+    colorstr,
+)
 
 PREFIX = colorstr("Platform: ")
-
-# Configurable platform URL for debugging (e.g. ULTRALYTICS_PLATFORM_URL=http://localhost:3000)
-PLATFORM_URL = os.getenv("ULTRALYTICS_PLATFORM_URL", "https://platform.ultralytics.com").rstrip("/")
 PLATFORM_API_URL = f"{PLATFORM_URL}/api/webhooks"
 
 

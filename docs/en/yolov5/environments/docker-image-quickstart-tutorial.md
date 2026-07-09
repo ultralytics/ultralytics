@@ -58,7 +58,7 @@ Next, install the NVIDIA Container Toolkit. The commands below are typical for D
         Optionally, you can install a specific version of the nvidia-container-toolkit by setting the `NVIDIA_CONTAINER_TOOLKIT_VERSION` environment variable:
 
         ```bash
-        export NVIDIA_CONTAINER_TOOLKIT_VERSION=1.17.8-1
+        export NVIDIA_CONTAINER_TOOLKIT_VERSION=1.18.1-1
         sudo apt-get install -y \
           nvidia-container-toolkit=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
           nvidia-container-toolkit-base=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
@@ -98,7 +98,7 @@ Next, install the NVIDIA Container Toolkit. The commands below are typical for D
         Optionally, you can install a specific version of the nvidia-container-toolkit by setting the `NVIDIA_CONTAINER_TOOLKIT_VERSION` environment variable:
 
         ```bash
-        export NVIDIA_CONTAINER_TOOLKIT_VERSION=1.17.8-1
+        export NVIDIA_CONTAINER_TOOLKIT_VERSION=1.18.1-1
         sudo dnf install -y \
           nvidia-container-toolkit-${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
           nvidia-container-toolkit-base-${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
@@ -111,15 +111,15 @@ Next, install the NVIDIA Container Toolkit. The commands below are typical for D
     sudo systemctl restart docker
     ```
 
-### Verify NVIDIA Runtime with Docker
+### Verify CDI Devices with Docker
 
-Run `docker info | grep -i runtime` to ensure that `nvidia` appears in the list of runtimes:
+Run `nvidia-ctk cdi list` to ensure the GPU CDI devices are available (the toolkit's `nvidia-cdi-refresh` service generates and maintains the spec automatically on toolkit >= 1.18):
 
 ```bash
-docker info | grep -i runtime
+nvidia-ctk cdi list
 ```
 
-You should see `nvidia` listed as one of the available runtimes.
+You should see entries such as `nvidia.com/gpu=0` and `nvidia.com/gpu=all`. CDI device requests require Docker >= 28.2.0 and NVIDIA Container Toolkit >= 1.18; on older hosts, use the legacy `--runtime=nvidia --gpus all` flags instead.
 
 ## Step 1: Pull the YOLOv5 Docker Image
 
@@ -150,14 +150,14 @@ sudo docker run -it --ipc=host $t
 
 ### Using GPU
 
-To enable GPU access within the container, use the `--gpus` flag. This requires the NVIDIA Container Toolkit to be installed correctly.
+To enable GPU access within the container, use the `--device nvidia.com/gpu=...` [CDI](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/cdi-support.html) flag. This requires the NVIDIA Container Toolkit to be installed correctly.
 
 ```bash
 # Run with access to all available GPUs
-sudo docker run -it --runtime=nvidia --ipc=host --gpus all $t
+sudo docker run -it --ipc=host --device nvidia.com/gpu=all $t
 
 # Run with access to specific GPUs (e.g., GPUs 2 and 3)
-sudo docker run -it --runtime=nvidia --ipc=host --gpus '"device=2,3"' $t
+sudo docker run -it --ipc=host --device nvidia.com/gpu=2 --device nvidia.com/gpu=3 $t
 ```
 
 Refer to the [Docker run reference](https://docs.docker.com/engine/containers/run/) for more details on command options.
@@ -168,7 +168,7 @@ To work with your local files (datasets, model weights, etc.) inside the contain
 
 ```bash
 # Mount /path/on/host (your local machine) to /path/in/container (inside the container)
-sudo docker run -it --runtime=nvidia --ipc=host --gpus all -v /path/on/host:/path/in/container $t
+sudo docker run -it --ipc=host --device nvidia.com/gpu=all -v /path/on/host:/path/in/container $t
 ```
 
 Replace `/path/on/host` with the actual path on your machine and `/path/in/container` with the desired path inside the Docker container (e.g., `/usr/src/datasets`).
@@ -198,7 +198,7 @@ Explore the documentation for detailed usage of different modes:
 - [Predict](../../modes/predict.md)
 - [Export](../../modes/export.md)
 
-Learn more about evaluation metrics like [Precision](https://www.ultralytics.com/glossary/precision), [Recall](https://www.ultralytics.com/glossary/recall), and [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map). Understand different export formats like [ONNX](../../integrations/onnx.md), [CoreML](../../integrations/coreml.md), and [TFLite](../../integrations/tflite.md), and explore various [Model Deployment Options](../../guides/model-deployment-options.md). Remember to manage your [model weights](https://www.ultralytics.com/glossary/model-weights) effectively.
+Learn more about evaluation metrics like [Precision](https://www.ultralytics.com/glossary/precision), [Recall](https://www.ultralytics.com/glossary/recall), and [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map). Understand different export formats like [ONNX](../../integrations/onnx.md), [CoreML](../../integrations/coreml.md), and [TFLite](../../integrations/litert.md), and explore various [Model Deployment Options](../../guides/model-deployment-options.md). Remember to manage your [model weights](https://www.ultralytics.com/glossary/model-weights) effectively.
 
 <p align="center"><img width="1000" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/gcp-running-docker.avif" alt="Running YOLOv5 inside a Docker container on GCP"></p>
 

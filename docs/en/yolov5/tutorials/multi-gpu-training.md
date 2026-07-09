@@ -134,7 +134,7 @@ DDP profiling results on an [AWS EC2 P4d instance](../environments/aws-quickstar
 
 ```bash
 # prepare
-t=ultralytics/yolov5:latest && sudo docker pull $t && sudo docker run -it --runtime=nvidia --ipc=host --gpus all -v "$(pwd)"/coco:/usr/src/coco $t
+t=ultralytics/yolov5:latest && sudo docker pull $t && sudo docker run -it --ipc=host --device nvidia.com/gpu=all -v "$(pwd)"/coco:/usr/src/coco $t
 pip3 install torch==1.9.0+cu111 torchvision==0.10.0+cu111 -f https://download.pytorch.org/whl/torch_stable.html
 cd .. && rm -rf app && git clone https://github.com/ultralytics/yolov5 -b master app && cd app
 cp data/coco.yaml data/coco_profile.yaml
@@ -197,6 +197,6 @@ We would like to thank @MagicFrogSJTU, who did all the heavy lifting, and @glenn
 
 ## See Also
 
-- [Train Mode](https://docs.ultralytics.com/modes/train) - Learn about training YOLO models with Ultralytics
-- [Hyperparameter Tuning](https://docs.ultralytics.com/guides/hyperparameter-tuning) - Optimize your model's performance
-- [Docker Quickstart Guide](https://docs.ultralytics.com/guides/docker-quickstart) - Set up your Docker environment for training
+- [Train Mode](../../modes/train.md) - Learn about training YOLO models with Ultralytics
+- [Hyperparameter Tuning](../../guides/hyperparameter-tuning.md) - Optimize your model's performance
+- [Docker Quickstart Guide](../../guides/docker-quickstart.md) - Set up your Docker environment for training

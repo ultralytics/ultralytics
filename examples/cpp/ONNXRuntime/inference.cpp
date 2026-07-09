@@ -3,6 +3,7 @@
 #include "inference.h"
 
 #include <array>
+#include <filesystem>
 #include <iostream>
 #include <regex>
 
@@ -77,7 +78,8 @@ Predictor::Predictor(const Config& config) : config_(config) {
     }
 #endif
 
-    session_ = new Ort::Session(env_, config_.model_path.c_str(), session_options_);
+    const std::filesystem::path model_path = std::filesystem::u8path(config_.model_path);
+    session_ = new Ort::Session(env_, model_path.c_str(), session_options_);
 
     Ort::AllocatorWithDefaultOptions allocator;
     for (size_t i = 0; i < session_->GetInputCount(); ++i) {

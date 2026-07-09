@@ -67,10 +67,10 @@ def torch_distributed_zero_first(local_rank: int):
     use_ids = initialized and dist.get_backend() == "nccl"
 
     if initialized and local_rank not in {-1, 0}:
-        dist.barrier(device_ids=[local_rank]) if use_ids else dist.barrier()
+        dist.barrier(device_ids=[torch.cuda.current_device()]) if use_ids else dist.barrier()
     yield
     if initialized and local_rank == 0:
-        dist.barrier(device_ids=[local_rank]) if use_ids else dist.barrier()
+        dist.barrier(device_ids=[torch.cuda.current_device()]) if use_ids else dist.barrier()
 
 
 def smart_inference_mode():
@@ -134,6 +134,64 @@ def get_gpu_info(index):
     return f"{properties.name}, {properties.total_memory / (1 << 20):.0f}MiB"
 
 
+def parse_device(device: str | int | list | tuple | torch.device = "") -> str:
+    """Parse a device request of any form into a canonical device string.
+
+    Args:
+        device (str | int | list | tuple | torch.device, optional): Device request, e.g. 'cuda:0', '0,1', [0, 1], 'cpu',
+            'mps', or '-1' to auto-select an idle GPU ('-1,-1' for two).
+
+    Returns:
+        (str): Canonical device string, e.g. '', 'cpu', 'mps', '0', or '0,1'.
+
+    Examples:
+        >>> parse_device("cuda:0")
+        '0'
+
+        >>> parse_device([0, 1])
+        '0,1'
+
+    Notes:
+        Each '-1' is replaced with an idle GPU index. Requested ids exceeding the torch device count that match
+        physical GPU ids visible under an external CUDA_VISIBLE_DEVICES restriction are translated to the
+        corresponding torch indices, e.g. '3' -> '0' when CUDA_VISIBLE_DEVICES='3'; in-range ids are always torch
+        indices, keeping parsing idempotent. Returned indices are relative to the active restriction, so strings
+        persisted under one environment (e.g. resumed checkpoint args) address the same physical GPUs only in that
+        environment.
+    """
+    if isinstance(device, torch.device) and device.type == "cuda" and device.index is None:
+        return ""  # indexless torch.device('cuda') means the current CUDA device, i.e. the '' default request
+    device = str(device).lower()
+    for remove in "cuda:", "none", "(", ")", "[", "]", "'", " ":
+        device = device.replace(remove, "")  # to string, 'cuda:0' -> '0' and '(0, 1)' -> '0,1'
+    if device == "cuda":
+        device = "0"
+    device = ",".join(str(int(x)) if x.isdigit() else x for x in device.split(",") if x)  # "0,,01" -> "0,1"
+    # Visible physical ids normalized like requested ids and truncated to the torch device count, mirroring CUDA's
+    # atoi-style parsing and its stop at the first invalid CVD entry
+    cvd = os.environ.get("CUDA_VISIBLE_DEVICES", "").replace(" ", "")
+    visible = [str(int(x)) if x.isdigit() else x for x in cvd.split(",") if x][: torch.cuda.device_count()]
+    indices = [x for x in device.split(",") if x.isdigit()]  # requested ids, excluding '-1' and non-numeric tokens
+    if indices and all(x in visible for x in indices) and any(int(x) >= torch.cuda.device_count() for x in indices):
+        # Ids exceeding the torch device count can only be physical GPU ids under an external CUDA_VISIBLE_DEVICES
+        # restriction -> translate to torch indices; in-range ids are torch indices, keeping repeated parses stable
+        device = ",".join(str(visible.index(x)) if x.isdigit() else x for x in device.split(","))
+    if "-1" in device:
+        from ultralytics.utils.autodevice import GPUInfo
+
+        # Replace each -1 with an idle GPU or remove it; GPUInfo searches physical NVML ids among externally visible
+        # GPUs only, translated back to torch indices under a CUDA_VISIBLE_DEVICES restriction
+        parts = device.split(",")
+        candidates = [int(x) for x in visible if x.isdigit()] if visible else None
+        selected = GPUInfo().select_idle_gpu(count=parts.count("-1"), min_memory_fraction=0.2, indices=candidates)
+        selected = [visible.index(str(x)) for x in selected] if visible else selected
+        for i in range(len(parts)):
+            if parts[i] == "-1":
+                parts[i] = str(selected.pop(0)) if selected else ""
+        device = ",".join(p for p in parts if p)
+    return device
+
+
 def select_device(device="", newline=False, verbose=True):
     """Select the appropriate PyTorch device based on the provided arguments.
 
@@ -159,15 +217,20 @@ def select_device(device="", newline=False, verbose=True):
         device(type='cpu')
 
     Notes:
-        Sets the 'CUDA_VISIBLE_DEVICES' environment variable for specifying which GPUs to use.
+        CUDA indices are torch device indices, which reflect any externally set CUDA_VISIBLE_DEVICES. This function
+        never modifies CUDA_VISIBLE_DEVICES; an explicit single-GPU request is made the default CUDA device with
+        torch.cuda.set_device() so that indexless 'cuda' operations land on it, while default '' requests (resolved
+        to the current device) and multi-GPU requests (DDP ranks pin their own device in trainer._setup_ddp()) leave
+        the current device untouched.
     """
-    if isinstance(device, torch.device) or str(device).startswith(("tpu", "intel", "vulkan")):
+    if isinstance(device, torch.device):
+        if device.type != "cuda":
+            return device  # non-CUDA torch.device inputs pass through; cuda ones canonicalize via parse_device below
+    elif str(device).startswith(("tpu", "intel", "vulkan")):
         return device
 
     s = f"Ultralytics {__version__} 🚀 Python-{PYTHON_VERSION} torch-{TORCH_VERSION} "
-    device = str(device).lower()
-    for remove in "cuda:", "none", "(", ")", "[", "]", "'", " ":
-        device = device.replace(remove, "")  # to string, 'cuda:0' -> '0' and '(0, 1)' -> '0,1'
+    device = parse_device(device)
 
     # Huawei Ascend NPU
     if device.startswith("npu"):
@@ -197,30 +260,11 @@ def select_device(device="", newline=False, verbose=True):
             LOGGER.info(f"{s}NPU:{idx} ({torch.npu.get_device_name(idx)})\n")
         return torch.device(f"npu:{idx}")
 
-    # Auto-select GPUs
-    if "-1" in device:
-        from ultralytics.utils.autodevice import GPUInfo
-
-        # Replace each -1 with a selected GPU or remove it
-        parts = device.split(",")
-        selected = GPUInfo().select_idle_gpu(count=parts.count("-1"), min_memory_fraction=0.2)
-        for i in range(len(parts)):
-            if parts[i] == "-1":
-                parts[i] = str(selected.pop(0)) if selected else ""
-        device = ",".join(p for p in parts if p)
-
     cpu = device == "cpu"
     mps = device in {"mps", "mps:0"}  # Apple Metal Performance Shaders (MPS)
-    if cpu or mps:
-        os.environ["CUDA_VISIBLE_DEVICES"] = ""  # force torch.cuda.is_available() = False
-    elif device:  # non-cpu device requested
-        if device == "cuda":
-            device = "0"
-        if "," in device:
-            device = ",".join([x for x in device.split(",") if x])  # remove sequential commas, i.e. "0,,1" -> "0,1"
-        visible = os.environ.get("CUDA_VISIBLE_DEVICES", None)
-        os.environ["CUDA_VISIBLE_DEVICES"] = device  # set environment variable - must be before assert is_available()
-        if not (torch.cuda.is_available() and torch.cuda.device_count() >= len(device.split(","))):
+    if not cpu and not mps and device:  # non-cpu device requested
+        valid = all(x.isdigit() and int(x) < torch.cuda.device_count() for x in device.split(","))
+        if not (torch.cuda.is_available() and valid):
             LOGGER.info(s)
             install = (
                 "See https://pytorch.org/get-started/locally/ for up-to-date torch install instructions if no "
@@ -234,16 +278,18 @@ def select_device(device="", newline=False, verbose=True):
                 f" i.e. 'device=0' or 'device=0,1,2,3' for Multi-GPU.\n"
                 f"\ntorch.cuda.is_available(): {torch.cuda.is_available()}"
                 f"\ntorch.cuda.device_count(): {torch.cuda.device_count()}"
-                f"\nos.environ['CUDA_VISIBLE_DEVICES']: {visible}\n"
+                f"\nos.environ['CUDA_VISIBLE_DEVICES']: {os.environ.get('CUDA_VISIBLE_DEVICES')}\n"
                 f"{install}"
             )
 
     if not cpu and not mps and torch.cuda.is_available():  # prefer GPU if available
-        devices = device.split(",") if device else "0"  # i.e. "0,1" -> ["0", "1"]
+        devices = device.split(",") if device else [str(torch.cuda.current_device())]  # '' -> current default device
         space = " " * len(s)
         for i, d in enumerate(devices):
-            s += f"{'' if i == 0 else space}CUDA:{d} ({get_gpu_info(i)})\n"  # bytes to MB
-        arg = "cuda:0"
+            s += f"{'' if i == 0 else space}CUDA:{d} ({get_gpu_info(int(d))})\n"
+        arg = f"cuda:{devices[0]}"
+        if device and len(devices) == 1:  # explicit single-GPU request only: '' never moves the current device, and
+            torch.cuda.set_device(int(devices[0]))  # multi-GPU DDP ranks each pin their own device in _setup_ddp()
     elif mps and TORCH_2_0 and torch.backends.mps.is_available():
         # Prefer MPS if available
         s += f"MPS ({get_cpu_info()})\n"
@@ -318,6 +364,8 @@ def fuse_deconv_and_bn(deconv, bn):
         >>> bn = nn.BatchNorm2d(3)
         >>> fused_deconv = fuse_deconv_and_bn(deconv, bn)
     """
+    if isinstance(bn, nn.Identity):  # ConvTranspose(bn=False) leaves bn as nn.Identity, nothing to fuse
+        return deconv.requires_grad_(False)
     # Compute fused weights
     w_deconv = deconv.weight.view(deconv.out_channels, -1)
     w_bn = torch.diag(bn.weight.div(torch.sqrt(bn.eps + bn.running_var)))
@@ -673,6 +721,9 @@ class ModelEMA:
             updates (int, optional): Initial number of updates.
         """
         self.ema = deepcopy(unwrap_model(model)).eval()  # FP32 EMA
+        if hasattr(self.ema, "teacher_model"):
+            # DistillationModel: strip the teacher so the EMA does not carry a full duplicate copy.
+            self.ema.teacher_model = None
         self.updates = updates  # number of EMA updates
         self.decay = lambda x: decay * (1 - math.exp(-x / tau))  # decay exponential ramp (to help early epochs)
         for p in self.ema.parameters():
@@ -744,6 +795,14 @@ def strip_optimizer(f: str | Path = "best.pt", s: str = "", updates: dict[str, A
     # Update model
     if x.get("ema"):
         x["model"] = x["ema"]  # replace model with EMA
+
+    # Unwrap DistillationModel to save only the student model
+    from ultralytics.nn.distill_model import DistillationModel
+
+    if isinstance(x["model"], DistillationModel):
+        x["model"]._remove_feature_hooks()
+        x["model"] = x["model"].student_model
+
     if hasattr(x["model"], "args"):
         x["model"].args = dict(x["model"].args)  # convert from IterableSimpleNamespace to dict
     if hasattr(x["model"], "criterion"):
@@ -874,13 +933,17 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
                     tb += (t[2] - t[1]) * 1000 / n  # ms per op backward
                     if max_num_obj:  # simulate training with predictions per image grid (for AutoBatch)
                         with cuda_memory_usage(device) as cuda_info:
-                            torch.randn(
-                                x.shape[0],
-                                max_num_obj,
-                                int(sum((x.shape[-1] / s) * (x.shape[-2] / s) for s in m.stride.tolist())),
-                                device=device,
-                                dtype=torch.float32,
+                            anchors = int(sum((x.shape[-1] / s) * (x.shape[-2] / s) for s in m.stride.tolist()))
+                            # Envelope of the detect-loss memory peaks: TaskAlignedAssigner.get_box_metrics holds ~6
+                            # simultaneous (bs, max_num_obj, anchors) fp32 buffers (mask_in_gts, overlaps, bbox_scores,
+                            # gathered pd_scores, pow temps + align_metric); the cls path holds ~6 (bs, anchors, nc)
+                            # fp32-equivalents (int64 target_scores + torch.where output, fg_scores_mask, then
+                            # pred/target/unreduced-BCE in v8DetectionLoss)
+                            sim = (
+                                torch.randn(x.shape[0], 6 * max_num_obj, anchors, device=device, dtype=torch.float32),
+                                torch.randn(x.shape[0], anchors, 6 * len(m.names), device=device, dtype=torch.float32),
                             )
+                        del sim
                         mem += cuda_info["memory"] / 1e9  # (GB)
                 s_in, s_out = (tuple(x.shape) if isinstance(x, torch.Tensor) else "list" for x in (x, y))  # shapes
                 p = sum(x.numel() for x in m.parameters()) if isinstance(m, nn.Module) else 0  # parameters

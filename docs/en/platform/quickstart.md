@@ -23,16 +23,20 @@ The following interactive diagram outlines the four primary stages of the Ultral
 
 ```mermaid
 graph LR
-    A(Sign Up) --> B(Prepare Data) --> C(Train) --> D(Deploy)
-    A -.- A1["<a href='#get-started'>Create account</a><br/><a href='#region-selection'>Select region</a>"]
-    B -.- B1["<a href='#upload-your-first-dataset'>Upload dataset</a><br/><a href='#create-your-first-project'>Create Project</a>"]
-    C -.- C1["<a href='#training-configuration'>Configure training</a><br/><a href='#monitor-training'>Monitor progress</a>"]
-    D -.- D1["<a href='#test-your-model'>Test model</a><br/><a href='#deploy-to-production'>Deploy endpoint</a>"]
+    A(Sign Up):::start --> B(Prepare Data):::proc --> C(Train):::proc --> D(Deploy):::out
+    A -.- A1["<a href='#get-started'>Create account</a><br/><a href='#region-selection'>Select region</a>"]:::proc
+    B -.- B1["<a href='#upload-your-first-dataset'>Upload dataset</a><br/><a href='#create-your-first-project'>Create Project</a>"]:::proc
+    C -.- C1["<a href='#training-configuration'>Configure training</a><br/><a href='#monitor-training'>Monitor progress</a>"]:::proc
+    D -.- D1["<a href='#test-your-model'>Test model</a><br/><a href='#deploy-to-production'>Deploy endpoint</a>"]:::proc
 
     click A "#get-started"
     click B "#upload-your-first-dataset"
     click C "#train-your-first-model"
     click D "#deploy-to-production"
+
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 ## Get Started
@@ -176,13 +180,17 @@ Ultralytics Platform supports multiple upload formats (full details in [Datasets
 
 ```mermaid
 graph LR
-    A[Drop Files] --> B[Auto-Package ZIP]
-    B --> C[Upload to Storage]
-    C --> D[Backend Worker]
-    D --> E[Resize & Thumbnail]
-    E --> F[Parse Labels]
-    F --> G[Compute Statistics]
-    G --> H[Dataset Ready]
+    A[Drop Files]:::start --> B[Auto-Package ZIP]:::proc
+    B --> C[Upload to Storage]:::proc
+    C --> D[Backend Worker]:::proc
+    D --> E[Resize & Thumbnail]:::proc
+    E --> F[Parse Labels]:::proc
+    F --> G[Compute Statistics]:::proc
+    G --> H[Dataset Ready]:::out
+
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 After upload, the platform automatically processes your data:
@@ -325,14 +333,20 @@ Deploy your model to a dedicated endpoint for production use:
 
 ```mermaid
 graph LR
-    A[Select Region] --> B[Deploy]
-    B --> C[Provisioning ~1 min]
-    C --> D[Running]
-    D --> E{Lifecycle}
-    E --> F[Stop]
-    E --> G[Delete]
-    F --> H[Resume]
+    A[Select Region]:::start --> B[Deploy]:::proc
+    B --> C[Provisioning ~1 min]:::proc
+    C --> D[Running]:::out
+    D --> E{Lifecycle}:::decide
+    E --> F[Stop]:::error
+    E --> G[Delete]:::error
+    F --> H[Resume]:::proc
     H --> D
+
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef decide fill:#FF9800,color:#fff
+    classDef out fill:#9C27B0,color:#fff
+    classDef error fill:#F44336,color:#fff
 ```
 
 Your endpoint will be ready in about a minute with:

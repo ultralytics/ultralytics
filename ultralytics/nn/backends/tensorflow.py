@@ -2,10 +2,7 @@
 
 from __future__ import annotations
 
-import ast
-import json
 import platform
-import zipfile
 from pathlib import Path
 
 import numpy as np
@@ -13,31 +10,31 @@ import torch
 
 from ultralytics.utils import LOGGER
 
-from .base import BaseBackend
+from .base import BaseBackend, read_tflite_metadata
 
 
 class TensorFlowBackend(BaseBackend):
     """Google TensorFlow inference backend supporting multiple serialization formats.
 
-    Loads and runs inference with Google TensorFlow models in SavedModel, GraphDef (.pb), TFLite (.tflite), and Edge TPU
-    formats. Handles quantized model dequantization and task-specific output formatting.
+    Loads and runs inference with Google TensorFlow models in SavedModel, GraphDef (.pb), and Edge TPU formats. Handles
+    quantized model dequantization and task-specific output formatting.
     """
 
     def __init__(self, weight: str | Path, device: torch.device, fp16: bool = False, format: str = "saved_model"):
         """Initialize the Google TensorFlow backend.
 
         Args:
-            weight (str | Path): Path to the SavedModel directory, .pb file, or .tflite file.
+            weight (str | Path): Path to the SavedModel directory, .pb file, or Edge TPU .tflite file.
             device (torch.device): Device to run inference on.
             fp16 (bool): Whether to use FP16 half-precision inference.
-            format (str): Model format, one of "saved_model", "pb", "tflite", or "edgetpu".
+            format (str): Model format, one of "saved_model", "pb", or "edgetpu".
         """
-        assert format in {"saved_model", "pb", "tflite", "edgetpu"}, f"Unsupported TensorFlow format: {format}."
+        assert format in {"saved_model", "pb", "edgetpu"}, f"Unsupported TensorFlow format: {format}."
         self.format = format
         super().__init__(weight, device, fp16)
 
     def load_model(self, weight: str | Path) -> None:
-        """Load a Google TensorFlow model in SavedModel, GraphDef, TFLite, or Edge TPU format.
+        """Load a Google TensorFlow model in SavedModel, GraphDef, or Edge TPU format.
 
         Args:
             weight (str | Path): Path to the model file or directory.
@@ -79,7 +76,7 @@ class TensorFlowBackend(BaseBackend):
                 self.apply_metadata(YAML.load(metadata_file))
             except StopIteration:
                 pass
-        else:  # tflite and edgetpu
+        else:  # edgetpu
             try:
                 from tflite_runtime.interpreter import Interpreter, load_delegate
 
@@ -90,36 +87,23 @@ class TensorFlowBackend(BaseBackend):
                 self.tf = tf
                 Interpreter, load_delegate = tf.lite.Interpreter, tf.lite.experimental.load_delegate
 
-            if self.format == "edgetpu":
-                device = self.device[3:] if str(self.device).startswith("tpu") else ":0"
-                LOGGER.info(f"Loading {weight} on device {device[1:]} for TensorFlow Lite Edge TPU inference...")
-                delegate = {"Linux": "libedgetpu.so.1", "Darwin": "libedgetpu.1.dylib", "Windows": "edgetpu.dll"}[
-                    platform.system()
-                ]
-                self.interpreter = Interpreter(
-                    model_path=str(weight),
-                    experimental_delegates=[load_delegate(delegate, options={"device": device})],
-                )
-                self.device = torch.device("cpu")  # Edge TPU runs on CPU from PyTorch's perspective
-            else:
-                LOGGER.info(f"Loading {weight} for TensorFlow Lite inference...")
-                self.interpreter = Interpreter(model_path=weight)
+            device = self.device[3:] if str(self.device).startswith("tpu") else ":0"
+            LOGGER.info(f"Loading {weight} on device {device[1:]} for TensorFlow Lite Edge TPU inference...")
+            delegate = {"Linux": "libedgetpu.so.1", "Darwin": "libedgetpu.1.dylib", "Windows": "edgetpu.dll"}[
+                platform.system()
+            ]
+            self.interpreter = Interpreter(
+                model_path=str(weight),
+                experimental_delegates=[load_delegate(delegate, options={"device": device})],
+            )
+            self.device = torch.device("cpu")  # Edge TPU runs on CPU from PyTorch's perspective
 
             self.interpreter.allocate_tensors()
             self.input_details = self.interpreter.get_input_details()
             self.output_details = self.interpreter.get_output_details()
 
-            # Load metadata
-            try:
-                with zipfile.ZipFile(weight, "r") as zf:
-                    name = zf.namelist()[0]
-                    contents = zf.read(name).decode("utf-8")
-                    if name == "metadata.json":
-                        self.apply_metadata(json.loads(contents))
-                    else:
-                        self.apply_metadata(ast.literal_eval(contents))
-            except (zipfile.BadZipFile, SyntaxError, ValueError, json.JSONDecodeError):
-                pass
+            # Load metadata embedded in the .tflite (shared helper handles metadata.json and legacy entries)
+            self.apply_metadata(read_tflite_metadata(weight))
 
     def forward(self, im: torch.Tensor) -> list[np.ndarray]:
         """Run Google TensorFlow inference with format-specific execution and output post-processing.
@@ -155,6 +139,11 @@ class TensorFlowBackend(BaseBackend):
             y = []
             for output in self.output_details:
                 x = self.interpreter.get_tensor(output["index"])
+                if self.task == "semantic" and x.ndim == 3:
+                    # Baked argmax class map [B, H, W] of integer class IDs, not boxes or quantized logits:
+                    # skip dequantization and xywh denormalization, which would corrupt and overflow the indices.
+                    y.append(x)
+                    continue
                 if is_int:
                     scale, zero_point = output["quantization"]
                     x = (x.astype(np.float32) - zero_point) * scale

@@ -148,6 +148,12 @@ class DetectionTrainer(BaseTrainer):
         if getattr(self.model, "end2end", False):
             self.model.set_head_attr(max_det=self.args.max_det)
 
+    def set_model_names_for_load(self, model):
+        """Set target dataset names before loading weights so cls heads can remap by name."""
+        if getattr(self.args, "cls_remap", True) and self.data.get("names"):
+            model.names = self.data["names"]
+        return model
+
     def get_class_counts(self):
         """Return per-class instance counts from the training dataset labels."""
         classes = np.concatenate([lb["cls"].flatten() for lb in self.train_loader.dataset.labels], 0)
@@ -173,8 +179,11 @@ class DetectionTrainer(BaseTrainer):
             return
         weights = self.compute_class_weights(class_counts)
         weights = weights / weights.mean()  # normalize so mean equals 1.0
-        self.model.class_weights = torch.from_numpy(weights).to(self.device)
-        LOGGER.info(f"Class weights: {self.model.class_weights.cpu().numpy().round(3)}")
+        model = self.model
+        if hasattr(unwrap_model(model), "student_model"):
+            model = unwrap_model(model).student_model  # distillation: the student model builds the loss criterion
+        model.class_weights = torch.from_numpy(weights).to(self.device)
+        LOGGER.info(f"Class weights: {model.class_weights.cpu().numpy().round(3)}")
 
     def get_model(self, cfg: str | None = None, weights: str | None = None, verbose: bool = True):
         """Return a YOLO detection model.
@@ -187,7 +196,9 @@ class DetectionTrainer(BaseTrainer):
         Returns:
             (DetectionModel): YOLO detection model.
         """
-        model = DetectionModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
+        model = self.set_model_names_for_load(
+            DetectionModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
+        )
         if weights:
             model.load(weights)
         return model

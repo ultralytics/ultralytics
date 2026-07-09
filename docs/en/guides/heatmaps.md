@@ -1,4 +1,5 @@
 ---
+title: YOLO26 Heatmaps for Data Visualization
 comments: true
 description: Generate real-time object tracking heatmaps on video with the Ultralytics YOLO26 Heatmap solution to visualize traffic flow and crowd movement patterns.
 keywords: Ultralytics, YOLO26, heatmap, object tracking heatmap, video heatmap, traffic flow visualization, crowd movement analysis, Heatmap solution, OpenCV colormaps, computer vision

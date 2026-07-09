@@ -58,9 +58,10 @@ def _log_tensorboard_graph(trainer) -> None:
     """
     # Input image
     imgsz = trainer.args.imgsz
+    ch = torch_utils.unwrap_model(trainer.model).yaml.get("channels", 3)
     imgsz = (imgsz, imgsz) if isinstance(imgsz, int) else imgsz
     p = next(trainer.model.parameters())  # for device, type
-    im = torch.zeros((1, 3, *imgsz), device=p.device, dtype=p.dtype)  # input image (must be zeros, not empty)
+    im = torch.zeros((1, ch, *imgsz), device=p.device, dtype=p.dtype)  # input image (must be zeros, not empty)
 
     # Try simple method first (YOLO)
     try:

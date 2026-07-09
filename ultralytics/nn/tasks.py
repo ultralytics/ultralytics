@@ -610,12 +610,14 @@ class YOLOAnomalyV2Model(DetectionModel):
         self.fusion_target = fusion_target
         # How the per-scale fusion output is applied to the PAN feature p:
         #   'add' -- p + delta                (additive residual; delta creates/removes signal)
-        #   'mul' -- p * (1 + tanh(delta))    (bounded multiplicative gate in [0,2]; scales existing
-        #            activations -> can suppress background but cannot create where p~=0). Composes
-        #            with fusion_target (all/cls/all_clsgrad) via the same detach split.
+        #   'mul' -- p * (1 + tanh(delta))    (bounded multiplicative gate in [0,2]; tanh is symmetric
+        #            around 0 -> equal-effort suppress/amplify, max gradient at neutral point)
+        #   'sigmoid' -- p * (2 * sigmoid(delta)) (same [0,2] range; milder gating — farther from
+        #            neutral at the same |delta|, damps extreme suppression. Better with frozen/lr0.1
+        #            fusion where tanh may over-gate. Composes identically with fusion_target.)
         fusion_apply = str(v2_cfg.get("fusion_apply", "add")).lower()
-        if fusion_apply not in ("add", "mul"):
-            raise ValueError(f"fusion_apply must be 'add' or 'mul', got {fusion_apply!r}")
+        if fusion_apply not in ("add", "mul", "sigmoid"):
+            raise ValueError(f"fusion_apply must be 'add', 'mul', or 'sigmoid', got {fusion_apply!r}")
         self._fusion_apply = fusion_apply
 
         # AnomalyMCDetect (decoupled binary detection + multi-class type head):
@@ -1363,17 +1365,20 @@ class YOLOAnomalyV2Model(DetectionModel):
                         delta = self.heatmap_bias_fusion(m_scale, i)
                     # Per-sample keep mask (mask dropout): dropped samples get zero increment.
                     delta = delta * keep.to(delta.dtype).view(-1, 1, 1, 1)
-                    if getattr(self, "_fusion_apply", "add") == "mul":
-                        # Bounded multiplicative gate: p * (1 + tanh(delta)), factor in [0, 2].
-                        # keep=0 -> delta=0 -> factor=1 -> passthrough. Detach split mirrors 'add'
-                        # so box/cls gradient routing (all_clsgrad / cls) is preserved.
-                        factor = 1.0 + torch.tanh(delta)
+                    if getattr(self, "_fusion_apply", "add") in ("mul", "sigmoid"):
+                        # Bounded multiplicative gate, factor in [0, 2], delta=0 -> factor=1 (passthrough).
+                        # keep=0 -> delta=0 -> factor=1. Detach split mirrors 'add' so box/cls gradient
+                        # routing (all_clsgrad / cls) is preserved.
+                        if getattr(self, "_fusion_apply", "add") == "sigmoid":
+                            factor = 2.0 * torch.sigmoid(delta)          # milder gating than tanh
+                        else:
+                            factor = 1.0 + torch.tanh(delta)             # symmetric around 0
                         if hm_bias is not None and clsgrad:
                             fused.append(p * factor.detach())
                             hm_bias.append(p * (factor - factor.detach()))
-                        elif hm_bias is not None:  # cls_only: cls sees p*factor via additive hm_bias
+                        elif hm_bias is not None:  # cls_only: p + hm_bias = p*factor
                             fused.append(p)
-                            hm_bias.append(p * torch.tanh(delta))
+                            hm_bias.append(p * (factor - 1.0))
                         else:  # all
                             fused.append(p * factor)
                     else:

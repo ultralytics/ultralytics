@@ -32,7 +32,7 @@ import subprocess
 import sys
 import tempfile
 import time
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 
 # Per-mode subprocess timeouts (seconds) on Linux CPU runners, ~6-10x headroom over observed norms
 # Windows runners are ~2x slower (interpreter startup, filesystem), so all timeouts scale there
@@ -475,7 +475,8 @@ def cmd_repro(args):
         if k in {"model", "source"} and ("/" in v or "\\" in v) and not Path(v).exists():
             from ultralytics.utils import ASSETS, WEIGHTS_DIR
 
-            local = (WEIGHTS_DIR if k == "model" else ASSETS) / Path(v).name
+            # PureWindowsPath splits on both separators, so Windows-origin issue commands remap on any OS
+            local = (WEIGHTS_DIR if k == "model" else ASSETS) / PureWindowsPath(v).name
             if local.exists():
                 return f"{k}={local}"
         return arg

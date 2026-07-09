@@ -351,7 +351,8 @@ def classify(trial, rc, stderr):
     if any(marker in stderr for marker in NETWORK_MARKERS):
         return "flake", None, None
     if trial.get("mutated") and (
-        exc == "NotImplementedError"  # "'X' is not supported" rejections are intentional wherever they are raised
+        # "'X' is not supported" rejections are intentional wherever raised; "not implemented" abstract gaps are bugs
+        (exc == "NotImplementedError" and "support" in stderr)
         or (exc in EXPECTED_TYPES and frames and frames[-1].startswith(EXPECTED_MODULES))
     ):
         return "expected", None, None  # clean validation errors are expected only for trials we actually mutated
@@ -391,6 +392,12 @@ def cmd_fuzz(args):
             rc, stderr, duration = run_trial(trial, timeout=args.debug_timeout)
             outcome, sig, human = classify(trial, rc, stderr)
         confirmed = False
+        tier = "T2" if trial.get("strategy") == "invalid" and outcome == "bug-candidate" else "T1"
+        if sig and sig in findings and tier == "T1" and findings[sig]["tier"] == "T2":
+            # a valid-input occurrence proves a confirmed validation-gap signature is a real bug: upgrade it
+            findings[sig].update(
+                tier="T1", strategy=trial.get("strategy", "corpus"), command="yolo " + " ".join(trial["argv"])
+            )
         if sig and sig not in seen:  # confirm only the first occurrence of each signature
             seen.add(sig)
             if outcome == "timeout":
@@ -407,7 +414,6 @@ def cmd_fuzz(args):
             if not confirmed:  # flaky/capped confirmations may still be real failures: let later occurrences retry
                 seen.discard(sig)
             if confirmed:
-                tier = "T2" if trial.get("strategy") == "invalid" and outcome == "bug-candidate" else "T1"
                 findings[sig] = {
                     "signature": sig,
                     "title": human,

@@ -529,6 +529,7 @@ nav:
       - Data Collection and Annotation: guides/data-collection-and-annotation.md
       - DeepStream on NVIDIA Jetson: guides/deepstream-nvidia-jetson.md
       - Define CV Project Goals: guides/defining-project-goals.md
+      - DL Streamer on Intel: guides/dlstreamer-intel.md
       - YOLO on Vertex AI: guides/vertex-ai-deployment-with-docker.md
       - Docker Quickstart: guides/docker-quickstart.md
       - Edge TPU on Raspberry Pi: guides/coral-edge-tpu-on-raspberry-pi.md

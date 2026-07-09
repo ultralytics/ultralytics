@@ -19,6 +19,7 @@ from PIL import Image
 import ultralytics.data.build as data_build
 from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
 from ultralytics import RTDETR, YOLO
+from ultralytics.cfg import get_cfg
 from ultralytics.data.build import build_dataloader, load_inference_source
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.utils import (
@@ -79,6 +80,14 @@ def test_dataloader_empty_dataset_uses_dataloader_validation():
     """Test empty datasets fail through DataLoader validation instead of worker-cap math."""
     with pytest.raises(ValueError, match="positive integer"):
         build_dataloader([], batch=4, workers=2)
+
+
+def test_cfg_rejects_fuzzed_scalars():
+    """Test invalid scalar overrides fail in config validation."""
+    with pytest.raises(TypeError, match="degrees"):
+        get_cfg(overrides={"degrees": None})
+    with pytest.raises(ValueError, match="cls_pw"):
+        get_cfg(overrides={"cls_pw": 10})
 
 
 def skip_rpi_semantic():
@@ -813,8 +822,14 @@ def test_utils_init():
     is_github_action_running()
 
 
-def test_utils_checks():
+def test_utils_checks(monkeypatch):
     """Test various utility checks for filenames, requirements, image sizes, display capabilities, and versions."""
+
+    def package_version(name):
+        if name == "v2":
+            return "1.0"
+        raise checks.metadata.PackageNotFoundError
+
     checks.check_yolov5u_filename("yolov5n.pt")
     checks.check_requirements("numpy")  # check requirements.txt
     checks.check_imgsz([600, 600], max_dim=1)
@@ -823,10 +838,25 @@ def test_utils_checks():
     checks.check_imshow(warn=True)
     checks.check_suffix("https://example.com/model.pt?token=abc", ".pt")
     checks.check_version("ultralytics", "8.0.0")
-    # parse_version must pad to a 3-tuple so shorter version strings compare correctly
+    # parse_version must pad to at least 3 components and keep all segments so any version pair compares correctly
     assert checks.parse_version("2") == (2, 0, 0)
+    assert checks.parse_version("4.13.0.92") == (4, 13, 0, 92)
+    assert checks.parse_version("2.0.1+cu118") == (2, 0, 1)  # numeric local/build suffixes are not release segments
+    assert checks.parse_version("1.0.0rc1") == (1, 0, 0)
+    assert checks.parse_version("v2.1") == (2, 1, 0)
+    assert checks.parse_version("1.0rc1") == (1, 0, 0)  # documented non-PEP-440 tradeoff: pre-releases equal the final
+    monkeypatch.setattr(checks.metadata, "version", package_version)
+    assert not checks.check_version("v2", ">=2.0")  # installed version-shaped package keeps metadata precedence
+    versions = ("v2.1-rc.1", "v2.1-beta1", "v2.1rev1", "v2.1-dev1", "v2.1+cu118")
+    assert all(checks.check_version(v, ">=2.0") for v in versions)
+    with pytest.raises(ModuleNotFoundError):
+        checks.check_version("v2-missing", ">=2.0", hard=True)
+    assert checks.check_version("10.3.0.30", ">=10.3.0,<10.4.0")  # Jetson TensorRT family pin
     assert checks.check_version("6.0", ">=6.0.0")  # 2-component current must satisfy 3-component requirement
     assert checks.check_version("2.1", "==2.1.0")
+    assert checks.check_version("4.13.0.92", "!=4.13.0.90")  # 4-segment pins must not be truncated
+    assert not checks.check_version("4.13.0.90", "!=4.13.0.90")
+    assert checks.check_version("2.0.1", "<2.0.1.5")
     checks.print_args()
 
 

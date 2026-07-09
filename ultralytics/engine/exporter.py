@@ -597,7 +597,11 @@ class Exporter:
                             "Please upgrade TensorRT to 8.5.0 or later to enable end2end export."
                         )
 
-                    if self.args.quantize == 8 and check_version(trt.__version__, "==10.3.0") and is_jetson(jetpack=6):
+                    if (
+                        self.args.quantize == 8
+                        and check_version(trt.__version__, ">=10.3.0,<10.4.0")  # JetPack 6 builds report 10.3.0.x
+                        and is_jetson(jetpack=6)
+                    ):
                         # https://github.com/ultralytics/ultralytics/issues/23841
                         model.end2end = False
                         LOGGER.warning(

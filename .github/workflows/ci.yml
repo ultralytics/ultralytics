@@ -120,10 +120,11 @@ jobs:
           coverage xml -o coverage-benchmarks.xml
       - name: Upload Coverage Reports to CodeCov
         if: github.repository == 'ultralytics/ultralytics'
+        continue-on-error: true
         uses: codecov/codecov-action@v7
         with:
           flags: Benchmarks
-          fail_ci_if_error: true
+          fail_ci_if_error: false
           use_oidc: true
       - name: Prune uv Cache
         run: uv cache prune --ci
@@ -203,10 +204,11 @@ jobs:
           YOLO_AUTOINSTALL: "false"
       - name: Upload Coverage Reports to CodeCov
         if: github.repository == 'ultralytics/ultralytics' # && matrix.os == 'ubuntu-latest' && matrix.python == '3.13'
+        continue-on-error: true
         uses: codecov/codecov-action@v7
         with:
           flags: Tests
-          fail_ci_if_error: true
+          fail_ci_if_error: false
           use_oidc: true
       - name: Prune uv Cache
         run: uv cache prune --ci
@@ -455,10 +457,11 @@ jobs:
         env:
           PIP_BREAK_SYSTEM_PACKAGES: 1
       - name: Upload Coverage Reports to CodeCov
+        continue-on-error: true
         uses: codecov/codecov-action@v7
         with:
           flags: GPU
-          fail_ci_if_error: true
+          fail_ci_if_error: false
           use_oidc: true
 
   # Raspberry Pi stays separate because it is a long-tail self-hosted runner with its own setup and cleanup flow.

@@ -395,12 +395,12 @@ def cmd_fuzz(args):
                     confirmed = rc2 == "timeout"
                     if not confirmed:
                         outcome = "pass" if rc2 == 0 else outcome  # completed quickly on replay: not a hang
-                if not confirmed:  # transient/capped timeouts may still be real hangs: let later occurrences retry
-                    seen.discard(sig)
             else:
                 rc2, stderr2, _ = run_trial(trial, timeout=args.debug_timeout)
                 outcome2, sig2, _ = classify(trial, rc2, stderr2)
                 confirmed = outcome2 == outcome and sig2 == sig  # same failure, not merely the same class
+            if not confirmed:  # flaky/capped confirmations may still be real failures: let later occurrences retry
+                seen.discard(sig)
             if confirmed:
                 tier = "T2" if trial.get("strategy") == "invalid" and outcome == "bug-candidate" else "T1"
                 findings[sig] = {

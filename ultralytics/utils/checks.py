@@ -116,14 +116,14 @@ def parse_version(version="0.0.0") -> tuple:
     """Convert a version string to a tuple of integers, ignoring any extra non-numeric string attached to the version.
 
     Args:
-        version (str): Version string, i.e. '2.0.1+cpu'
+        version (str): Version string, i.e. '2.0.1+cpu' or '4.13.0.92'
 
     Returns:
-        (tuple): Tuple of integers representing the numeric part of the version, i.e. (2, 0, 1)
+        (tuple): Tuple of integers representing the numeric part of the version, at least 3 long, i.e. (2, 0, 1)
     """
     try:
-        nums = [int(x) for x in re.findall(r"\d+", version)[:3]]
-        return tuple(nums + [0] * (3 - len(nums)))  # pad to 3, i.e. '2.0.1+cpu' -> (2, 0, 1), '2' -> (2, 0, 0)
+        nums = [int(x) for x in re.findall(r"\d+", version)]
+        return tuple(nums + [0] * (3 - len(nums)))  # '2.0.1+cpu' -> (2, 0, 1), '2' -> (2, 0, 0), keep all segments
     except Exception as e:
         LOGGER.warning(f"failure for parse_version({version}), returning (0, 0, 0): {e}")
         return 0, 0, 0
@@ -276,17 +276,19 @@ def check_version(
         if not op:
             op = ">="  # assume >= if no op passed
         v = parse_version(version)  # '1.2.3' -> (1, 2, 3)
-        if op == "==" and c != v:
+        n = max(len(c), len(v))  # pad to equal length so 4-segment pins like '!=4.13.0.90' compare exactly
+        cn, vn = c + (0,) * (n - len(c)), v + (0,) * (n - len(v))
+        if op == "==" and cn != vn:
             result = False
-        elif op == "!=" and c == v:
+        elif op == "!=" and cn == vn:
             result = False
-        elif op == ">=" and not (c >= v):
+        elif op == ">=" and not (cn >= vn):
             result = False
-        elif op == "<=" and not (c <= v):
+        elif op == "<=" and not (cn <= vn):
             result = False
-        elif op == ">" and not (c > v):
+        elif op == ">" and not (cn > vn):
             result = False
-        elif op == "<" and not (c < v):
+        elif op == "<" and not (cn < vn):
             result = False
     if not result:
         warning = f"{name}{required} is required, but {name}=={current} is currently installed {msg}"
@@ -842,7 +844,7 @@ def collect_system_info():
     for r in parse_requirements(package=get_distribution_name("ultralytics")):
         try:
             current = metadata.version(r.name)
-            is_met = "✅ " if check_version(current, str(r.specifier), name=r.name, hard=True) else "❌ "
+            is_met = "✅ " if check_version(current, str(r.specifier), name=r.name) else "❌ "
         except metadata.PackageNotFoundError:
             current = "(not installed)"
             is_met = "❌ "

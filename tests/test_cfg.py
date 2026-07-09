@@ -27,7 +27,7 @@ def test_check_cfg_bool_or_str_keys_soft_convert():
     """With hard=False a non-bool/non-str `compile` is coerced rather than raising."""
     cfg = {"compile": 1}
     check_cfg(cfg, hard=False)
-    assert cfg["compile"] is True  # 1 -> bool True, mirroring CFG_BOOL_KEYS behaviour
+    assert cfg["compile"] is True  # 1 -> bool True, mirroring CFG_BOOL_KEYS behavior
     cfg = {"compile": 0}
     check_cfg(cfg, hard=False)
     assert cfg["compile"] is False

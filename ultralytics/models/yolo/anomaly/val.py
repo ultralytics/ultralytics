@@ -181,6 +181,9 @@ class YOLOAnomalyValidator(DetectionValidator):
         raw_heatmap = self.model(imgs, augment=False)
         # AnomalyDetect returns [(detections, heatmap), raw_preds]
         heatmaps = raw_heatmap[0][1] if isinstance(raw_heatmap, (list, tuple)) and len(raw_heatmap) else None
+        heatmaps_fusion = raw_heatmap[0][2] if isinstance(raw_heatmap, (list, tuple)) and len(raw_heatmap) else None
+        if heatmaps_fusion.max() > 1.0:
+            heatmaps_fusion = (heatmaps_fusion - heatmaps_fusion.min()) / heatmaps_fusion.max()  # normalize to [0, 1]
 
         # 1) none-prior: disable the memory bank temporarily
         mb = getattr(self.v2_model, "memory_bank", None)
@@ -220,9 +223,11 @@ class YOLOAnomalyValidator(DetectionValidator):
                 gt_xyxy = torch.zeros((0, 4), device=imgs.device)
 
             hmap = heatmaps[i] if heatmaps is not None else None
+            hmap_fusion = heatmaps_fusion[i] if heatmaps_fusion is not None else None
             panels = [
                 self._draw_panel(img, preds_none[i], gt_xyxy, "none prior + GT"),
                 self._draw_heatmap_panel(img, hmap, "heatmap"),
+                self._draw_heatmap_panel(img, hmap_fusion, "hmap_fusion"),
                 self._draw_panel(img, preds[i], gt_xyxy, "heatmap prior + GT"),
                 self._draw_panel(img, preds_mask[i], gt_xyxy, "mask prior + GT"),
             ]

@@ -103,7 +103,7 @@ class HeatmapNeckFusion(nn.Module):
             Fused feature tensor of shape ``(B, C, H, W)``.
         """
         if prior is None or prior.numel() == 0:
-            return x
+            return x, None
 
         prior = prior.to(device=x.device, dtype=x.dtype)
         _, _, h, w = x.shape
@@ -114,7 +114,7 @@ class HeatmapNeckFusion(nn.Module):
         bias = self.bias_fusion(processed, scale_idx=0)
         if keep is not None:
             bias = torch.where(keep.view(-1, 1, 1, 1), bias, 1.0)
-        return x * bias
+        return x * bias, bias
         # if keep is not None:
         #     bias = bias * keep.to(bias.dtype).view(-1, 1, 1, 1)
         # return x + bias

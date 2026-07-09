@@ -363,8 +363,10 @@ class AnomalyDetect(Detect):
         bs = x[0].shape[0]
         if processed_prior is not None:
             out_heatmap = prior
+            heatmap_fusion = delta
         else:
             out_heatmap = torch.zeros(bs, 1, self.mask_size, self.mask_size, device=x[0].device, dtype=x[0].dtype)
+            heatmap_fusion = torch.ones(bs, 1, self.mask_size, self.mask_size, device=x[0].device, dtype=x[0].dtype)
 
         # Delegate the rest to the standard Detect logic, using the (possibly)
         # fused features. The processed prior is passed to _inference for score gating.
@@ -378,7 +380,7 @@ class AnomalyDetect(Detect):
         y = self._inference(preds["one2one"] if self.end2end else preds)
         if self.end2end:
             y = self.postprocess(y.permute(0, 2, 1))
-        return (y, out_heatmap) if self.export else ((y, out_heatmap), preds)
+        return (y, out_heatmap) if self.export else ((y, out_heatmap, heatmap_fusion), preds)
 
 
 class Segment(Detect):

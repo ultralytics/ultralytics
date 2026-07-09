@@ -167,6 +167,37 @@ model.train(
 )
 ```
 
+### DETR Training Practices
+
+DETR-family training benefits from a few practices that differ from the base Ultralytics defaults. The first
+group is applied through standard `model.train(...)` kwargs; the last two require subclassing `YOLODETRTrainer`
+and passing the subclass through `model.train(trainer=...)`:
+
+- **Batch size with `nbs = batch`.** DETR-style training typically uses per-GPU batches of `16` or `32`, while
+  the base Ultralytics defaults assume a nominal batch of `64` (`nbs=64` in `default.yaml`) for internal loss
+  and learning-rate scaling. Setting `nbs` equal to `batch` disables that scaling and reproduces the published
+  DETR learning rates directly, for example `model.train(..., batch=16, nbs=16)`.
+- **AdamW optimizer with a small learning rate.** DETR recipes use `optimizer="AdamW"` with a small `lr0` (around
+  `1e-4` is a safe starting point, since `RTDETRDecoderV2` can become unstable at larger values) and a low
+  `weight_decay`, which is closer to transformer-training practice than the SGD defaults used for CNN-only
+  detectors.
+- **Bias-less warmup.** Set `warmup_bias_lr=0.0` and `warmup_momentum` equal to `momentum` so the bias parameters
+  are not given a separate boosted warmup schedule. Combined with a short `warmup_epochs`, this matches DETR
+  training conventions.
+- **Gradient clipping.** The base trainer clips gradients at `max_norm=10.0` inside `optimizer_step`, while the
+  DEIM reference recipe uses `0.1`. The tighter norm materially affects transformer-decoder stability in early
+  epochs, so DETR-style training should override `optimizer_step` with the reference value.
+- **Synchronized batch normalization (multi-GPU only).** The DINOv3-ViT + STA adapter declares `SyncBatchNorm`
+  layers directly for its spatial-prior branch, but the neck and head still use plain `BatchNorm2d`. When
+  training across multiple GPUs with DDP (`world_size > 1`), wrap the model with
+  `torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)` inside the trainer's `setup_model` so batch statistics
+  are aggregated across ranks for every BN layer. Single-GPU training does not need this conversion.
+
+The [Customizing Trainer](../guides/custom-trainer.md) guide walks through the trainer-subclass patterns; see
+specifically the [Synchronized BatchNorm](../guides/custom-trainer.md#synchronized-batchnorm-for-multi-gpu-training)
+and [Configurable Gradient Clipping](../guides/custom-trainer.md#configurable-gradient-clipping) sections, then
+adapt the shown `DetectionTrainer` subclass to `YOLODETRTrainer` and pass it via `model.train(trainer=...)`.
+
 ## Inference and Export Notes
 
 YOLO-DETR models use a fixed number of decoder queries, 300 in the default configs. Increasing `max_det` does not

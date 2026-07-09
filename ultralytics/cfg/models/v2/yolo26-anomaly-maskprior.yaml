@@ -37,7 +37,7 @@ anomaly:
   mask_mixup_p: 0.08
   mask_mixup_alpha: 0.4
   mask_mag_range: [0.7, 1]
-  mask_aug_passes: 2
+  mask_aug_passes: 1
   # in-dist val
   val_mask_prior: false
   # test (cross-dataset MVTec) eval

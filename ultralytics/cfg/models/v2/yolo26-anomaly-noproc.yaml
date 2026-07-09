@@ -33,7 +33,7 @@ anomaly:
   mask_mixup_p: 0.08              # RE-ENABLED: additive other-sample blend
   mask_mixup_alpha: 0.4
   mask_mag_range: [0.7, 1]
-  mask_aug_passes: 2             # reproduce v5 double-augment (v7 default is 1)
+  mask_aug_passes: 1             # reproduce v5 double-augment (v7 default is 1)
   # in-dist val: mask-off (vanilla floor) always runs; mask-on prior pass optional
   val_mask_prior: false        # skip the mask-ON (prior) in-dist pass -> ~halves in-dist val time
   # test (cross-dataset MVTec) eval

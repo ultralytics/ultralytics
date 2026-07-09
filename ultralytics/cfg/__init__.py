@@ -286,6 +286,11 @@ CFG_BOOL_KEYS = frozenset(
         "cls_remap",
     }
 )
+CFG_STR_KEYS = frozenset(
+    {  # string-only arguments that are consumed by name (e.g. dataset split selection)
+        "split",
+    }
+)
 
 
 def cfg2dict(cfg: str | Path | dict | SimpleNamespace) -> dict:
@@ -450,6 +455,13 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                         f"'{k}' must be a bool (i.e. '{k}=True' or '{k}=False')"
                     )
                 cfg[k] = bool(v)
+            elif k in CFG_STR_KEYS and not isinstance(v, str):
+                if hard:
+                    raise TypeError(
+                        f"'{k}={v}' is of invalid type {type(v).__name__}. '{k}' must be a str "
+                        f"(i.e. '{k}=val', '{k}=test' or '{k}=train')"
+                    )
+                cfg[k] = str(v)
             elif k == "quantize":  # canonicalize 8/16/32 or w-notation to a scheme (unset stays None for FP32)
                 scheme = QUANTIZE_ALIASES.get(str(v).lower())
                 if scheme is None:

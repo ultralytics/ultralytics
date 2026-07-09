@@ -832,7 +832,7 @@ def test_utils_checks():
     assert checks.parse_version("2") == (2, 0, 0)
     assert checks.parse_version("4.13.0.92") == (4, 13, 0, 92)
     assert checks.parse_version("2.0.1+cu118") == (2, 0, 1)  # numeric local/build suffixes are not release segments
-    assert not checks.check_version("v2-not-a-version", ">=2.0")  # v+digit package names stay on metadata path
+    assert not checks.check_version("v2.1-not-a-version", ">=2.0")  # dotted v+digit package names use metadata
     assert checks.check_version("v2.1", ">=2.0")  # v-prefixed versions must not be mistaken for package names
     assert checks.parse_version("1.0rc1") == (1, 0, 0)  # documented non-PEP-440 tradeoff: pre-releases equal the final
     assert checks.check_version("10.3.0.30", ">=10.3.0,<10.4.0")  # Jetson TensorRT family pin

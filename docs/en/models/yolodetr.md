@@ -58,19 +58,6 @@ The main YOLO-DETR family currently contains six release-facing variants. The `n
     deployment point rather than a separate YOLO26m backbone. The `n/s/m/l` configs also resolve scale-specific
     `RTDETRDecoderV2` settings such as decoder depth and `efficient_ms` from `scale_args`.
 
-### Recommended image size
-
-Each scale ships with a recommended training/inference image size that preserves its latency-performance balance:
-
-| Scale       | Recommended imgsz |
-| ----------- | ----------------- |
-| `n`         | 480               |
-| `s`, `m`    | 512               |
-| `l`, `x`, `xxl` | 640           |
-
-Larger inputs raise inference time; the smaller sizes let the nano/small deployment points hit their latency targets
-while `l/x/xxl` use 640 to retain accuracy at scale-appropriate resolutions.
-
 ## Supported Tasks and Modes
 
 YOLO-DETR is currently an object detection family.
@@ -78,6 +65,25 @@ YOLO-DETR is currently an object detection family.
 | Model Family | Task                                | Inference | Validation | Training | Export |
 | ------------ | ----------------------------------- | --------- | ---------- | -------- | ------ |
 | YOLO-DETR    | [Object Detection](../tasks/detect.md) | Yes       | Yes        | Yes      | Yes    |
+
+## Performance Metrics
+
+!!! tip "Performance"
+
+    === "Detection (COCO)"
+
+        | Model          | size<br><sup>(pixels)</sup> | mAP<sup>val<br>50-95</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>T4 TensorRT10<br>(ms)</sup> | params<br><sup>(M)</sup> |
+        | -------------- | --------------------------- | -------------------------- | ------------------------------------ | ----------------------------------------- | ------------------------ |
+        | YOLO27n-DETR   | 480                         | -                          | 49.8 ± 1.0                           | 1.7 ± 0.0                                 | 6.04                     |
+        | YOLO27s-DETR   | 512                         | -                          | 114.2 ± 2.4                          | 2.7 ± 0.0                                 | 13.05                    |
+        | YOLO27m-DETR   | 512                         | -                          | 224.7 ± 5.0                          | 4.6 ± 0.1                                 | 26.35                    |
+        | YOLO27l-DETR   | 640                         | -                          | 357.1 ± 2.5                          | 7.2 ± 0.1                                 | 28.65                    |
+        | YOLO27x-DETR   | 640                         | -                          | 965.3 ± 5.1                          | 13.8 ± 0.2                                | 50.37                    |
+        | YOLO27xxl-DETR | 640                         | -                          | 1775.3 ± 12.2                        | 25.3 ± 0.8                                | 106.22                   |
+
+_Latency measured on NVIDIA T4 with TensorRT v10.11 FP16 (batch=1) and CPU ONNX at each scale's recommended `imgsz`
+(shown in the `size` column) to preserve the latency-performance balance. mAP values will be filled in once
+final COCO benchmarks are complete._
 
 ## Usage Examples
 
@@ -174,38 +180,19 @@ Export keeps the selected architecture and decoder behavior, including `efficien
 
 ## FAQ
 
-### How is YOLO-DETR different from RT-DETR?
+### How is YOLO-DETR different from other YOLO models?
 
-RT-DETR is a specific real-time Detection Transformer architecture. YOLO-DETR is an Ultralytics model family that uses
-RT-DETR-compatible prediction and validation behavior while adding YOLO26-style CSP and DINOv3-ViT + STA backbone
-variants, YOLO-DETR-specific training behavior, and decoder variants such as `RTDETRDecoderV2` and `DeimDecoder`.
+Standard YOLO models use CNN-based detection heads that predict outputs on dense feature grids. YOLO-DETR replaces
+that with a Transformer-based DETR-style decoder head, adopting the object-query design and the training and inference
+practices established in the DETR literature, which yields NMS-free predictions with a fixed set of decoder queries
+per image.
 
-### How is YOLO-DETR different from YOLO26?
 
-YOLO26 is a broad YOLO model family covering detection, segmentation, classification, pose, semantic segmentation, and
-oriented detection. YOLO-DETR is detection-only and uses DETR-style transformer decoder queries instead of the standard
-YOLO26 detection head.
 
-### Which YOLO-DETR model should I start with?
-
-Start with `yolo27n-detr.yaml` when latency is the priority, `yolo27s-detr.yaml` or `yolo27l-detr.yaml` for
-YOLO26-style CSP backbones, and `yolo27x-detr.yaml` or `yolo27xxl-detr.yaml` when you want the DINOv3-ViT + STA
-backbone variants.
-
-### Why does YOLO27n-DETR use `efficient_ms=True`?
-
-The nano variant enables an efficient multi-scale decoder path that attends to one feature level per decoder layer and
-schedules levels in round-robin order. This reduces decoder cost while preserving multi-scale feature usage across
-layers.
-
-### Can `max_det` make YOLO-DETR return more detections than decoder queries?
-
-No. `max_det` can reduce or cap returned predictions, but it cannot increase the number of object queries produced by
-the decoder. To support more objects per image than the configured query count, change the query count in the YAML and
-train the model with that setting.
 
 ## License
 
 YOLO27-DETR-X and YOLO27-DETR-XXL use DINOv3-derived weights and are Built with DINOv3. These variants are subject to
-the DINOv3 License in addition to the applicable Ultralytics license terms. The `n/s/m/l` variants use YOLO26-style
-CSP backbones and are covered by the Ultralytics license terms only.
+the [DINOv3 License](https://ai.meta.com/resources/models-and-libraries/dinov3-license/) in addition to the applicable
+Ultralytics license terms. The `n/s/m/l` variants use YOLO26-style CSP backbones and are covered by the Ultralytics
+license terms only.

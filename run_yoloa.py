@@ -104,6 +104,13 @@ def main():
         "--no-memory", action="store_true", help="skip building/using the memory bank (bank-free, no heatmap prior)"
     )
     ap.add_argument("--n-per-cat", type=int, default=0, help="predict/visualize: images per cat (0=all)")
+    ap.add_argument(
+        "--bb-layers",
+        type=int,
+        nargs="+",
+        default=None,
+        help="override memory-bank backbone tap layers (applied before set_memory), e.g. --bb-layers 8",
+    )
     ap.add_argument("--imgsz", type=int, default=640, help="inference image size")
     ap.add_argument("--mvtec-root", default=None, help="MVTec-YOLO root (default: MVTEC_ROOT env or built-in)")
     ap.add_argument("--bank-cache", default=None, help="bank cache dir (default: <out>/banks)")
@@ -118,6 +125,9 @@ def main():
     cats = resolve_categories(args.cat)
 
     model = YOLOA(args.ckpt)
+    if args.bb_layers:
+        model.model.bb_layers = list(args.bb_layers)
+        print(f"  bb_layers override -> {model.model.bb_layers}", flush=True)
 
     mid = model_id_from_ckpt(args.ckpt)
     out_root = Path(args.out) if args.out else Path("runs/temp/yoloa_new") / mid

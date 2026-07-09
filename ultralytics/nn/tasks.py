@@ -721,6 +721,7 @@ class YOLOAnomalyModel(DetectionModel):
         if prior_mask is not None and self.training and self.p_drop > 0.0:
             keep = (torch.rand(batch_size, device=device) > self.p_drop).to(torch.float32)
 
+        is_neck_fuse = False
         for m in self.model:
             if m.f != -1:
                 x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]
@@ -728,7 +729,10 @@ class YOLOAnomalyModel(DetectionModel):
                 self._profile_one_layer(m, x, dt)
 
             if isinstance(m, HeatmapNeckFusion):
-                x = m(x, prior=_resolve_prior(prior_mask), keep=keep)
+                _prior_mask = _resolve_prior(prior_mask)
+                x = m(x, prior=_prior_mask, keep=keep)
+                is_neck_fuse = True
+                return_prior = _prior_mask
             elif isinstance(m, AnomalyDetect):
                 x = m(x, prior=_resolve_prior(prior_mask), keep=keep)
             else:
@@ -741,6 +745,10 @@ class YOLOAnomalyModel(DetectionModel):
                 embeddings.append(torch.nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze(-1).squeeze(-1))
                 if m.i == max_idx:
                     return torch.unbind(torch.cat(embeddings, 1), dim=0)
+        # NOTE: hard code here for now
+        if is_neck_fuse and isinstance(x, (tuple, list)):
+            y, preds = x
+            x = ((y, return_prior), preds)
         return x
 
 

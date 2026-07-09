@@ -101,7 +101,7 @@ BOOL_PROBES = ["True", "False", "yes", "1", "none"]
 FLOAT_PROBES = ["0.0", "0.1", "10", "-5", "big", "none"]
 CHAOS_PROBES = ["[]", "[1,2]", "{}", "🚀", "1e309", "nan", "-0"]  # chaos shard extras for any key
 
-# Valid-but-rare combinations (mode, extra args) — where the T1 semantic bugs live
+# Valid-but-rare combinations (mode, extra args[, applicable tasks]) — where the T1 semantic bugs live
 COMBO_POOL = [
     ("train", "rect=True"),
     ("train", "single_cls=True"),
@@ -128,11 +128,11 @@ COMBO_POOL = [
     ("predict", "line_width=1 show_labels=False show_conf=False"),
     ("predict", "vid_stride=2 stream_buffer=True"),
     ("export", "dynamic=True"),
-    ("export", "nms=True"),
+    ("export", "nms=True", "detect segment pose obb"),  # exporter intentionally rejects nms for classify/semantic
     ("export", "simplify=False"),
     ("export", "optimize=True"),
     ("export", "opset=12"),
-    ("export", "quantize=half"),
+    ("export", "quantize=fp16"),
     ("export", "end2end=True max_det=10"),
 ]
 
@@ -235,7 +235,8 @@ def sample_trial(rng, uni, corpus, personality):
     if mode == "export":  # fuzz the format from the installable pool; the default torchscript stays implicit
         mutate([f"format={rng.choice(EXPORT_POOL)}"])
     if strategy == "combo":
-        mutate(rng.choice([c for m, c in COMBO_POOL if m == mode]).split())
+        combos = [c[1] for c in COMBO_POOL if c[0] == mode and (len(c) < 3 or base["task"] in c[2])]
+        mutate(rng.choice(combos).split())
     elif strategy == "invalid":
         n_keys = rng.randint(1, 4 if personality == "chaos" else 3)
         for _ in range(n_keys):
@@ -336,7 +337,8 @@ def classify(trial, rc, stderr):
     if rc == 0:
         return "pass", None, None
     if rc == "timeout":
-        mutated = "|".join(sorted(trial.get("mutated", []))) or "baseline"  # distinct hangs get distinct signatures
+        keys = set(trial.get("mutated", []))  # exact mutated k=v pairs: distinct hangs get distinct signatures
+        mutated = "|".join(sorted(a for a in trial["argv"] if a.partition("=")[0] in keys)) or "baseline"
         sig = hashlib.sha256(f"Timeout|{trial['mode']}|{trial['task']}|{mutated}".encode()).hexdigest()[:12]
         return "timeout", sig, f"Timeout in yolo {trial['mode']} ({trial['task']})"
     exc, frames = parse_traceback(stderr)
@@ -518,7 +520,9 @@ def cmd_report(args):
         if shard["infra_failed"]:  # warn only: a regression tripping the canaries IS the finding, never discard it
             flagged.append(shard["personality"])
         for f in shard["findings"]:
-            findings.setdefault(f["signature"], {**f, "environment": shard["environment"], "seed": shard["seed"]})
+            prev = findings.get(f["signature"])
+            if not prev or (prev["tier"] == "T2" and f["tier"] == "T1"):  # prefer the T1 view of a shared signature
+                findings[f["signature"]] = {**f, "environment": shard["environment"], "seed": shard["seed"]}
 
     existing = {}
     if not args.dry_run:

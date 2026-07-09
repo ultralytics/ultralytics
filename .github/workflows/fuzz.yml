@@ -77,6 +77,13 @@ jobs:
           restore-keys: |
             ultralytics-fuzz-assets-${{ runner.os }}-
             ultralytics-test-assets-${{ runner.os }}-
+      - name: Precache fuzz assets
+        if: github.event.inputs.repro_command == ''
+        uses: ultralytics/actions/retry@main
+        with:
+          retries: 3
+          retry_delay_seconds: 60
+          run: python .github/scripts/fuzz.py fuzz --budget-minutes 0 --personality ${{ matrix.personality }} --out fuzz-out # zero-budget run downloads all corpus assets and executes no trials
       - name: Fuzz
         if: github.event.inputs.repro_command == ''
         env:

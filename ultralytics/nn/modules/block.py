@@ -16,6 +16,7 @@ __all__ = (
     "C1",
     "C2",
     "C2PSA",
+    "C2SHSA",
     "C3",
     "C3TR",
     "CIB",
@@ -2451,6 +2452,66 @@ class C3k2AC(C2fAC):
                 )
                 for _ in range(n)
             )
+
+
+class SHSA(nn.Module):
+    """Single-Head Self-Attention on partial channels (SHViT, CVPR 2024).
+
+    Attends over a small subset of channels with a single head; remaining channels
+    pass through untouched and are mixed by the output projection.
+    """
+
+    def __init__(self, dim: int, qk_dim: int = 16, pdim_ratio: float = 0.25):
+        """Initialize SHSA.
+
+        Args:
+            dim (int): Input/output channels.
+            qk_dim (int): Query/key dimension.
+            pdim_ratio (float): Fraction of channels to attend over.
+        """
+        super().__init__()
+        self.pdim = max(int(dim * pdim_ratio) // 8 * 8, 8)
+        self.qk_dim = qk_dim
+        self.scale = qk_dim**-0.5
+        self.pre_norm = nn.GroupNorm(1, self.pdim)
+        self.qkv = nn.Conv2d(self.pdim, 2 * qk_dim + self.pdim, 1)
+        self.proj = nn.Sequential(nn.SiLU(), nn.Conv2d(dim, dim, 1))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Apply single-head attention on partial channels."""
+        b, c, h, w = x.shape
+        x1, x2 = torch.split(x, [self.pdim, c - self.pdim], dim=1)
+        qkv = self.qkv(self.pre_norm(x1))
+        q, k, v = qkv.split([self.qk_dim, self.qk_dim, self.pdim], dim=1)
+        q, k, v = q.flatten(2), k.flatten(2), v.flatten(2)
+        attn = (q.transpose(-2, -1) @ k) * self.scale
+        x1 = (v @ attn.softmax(dim=-1).transpose(-2, -1)).reshape(b, self.pdim, h, w)
+        return self.proj(torch.cat([x1, x2], dim=1))
+
+
+class SHSABlock(nn.Module):
+    """SHSA followed by an FFN, mirroring PSABlock with residual connections."""
+
+    def __init__(self, c: int, qk_dim: int = 16, pdim_ratio: float = 0.25, shortcut: bool = True):
+        """Initialize SHSABlock."""
+        super().__init__()
+        self.attn = SHSA(c, qk_dim, pdim_ratio)
+        self.ffn = nn.Sequential(Conv(c, c * 2, 1), Conv(c * 2, c, 1, act=False))
+        self.add = shortcut
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Apply attention and FFN with optional residuals."""
+        x = x + self.attn(x) if self.add else self.attn(x)
+        return x + self.ffn(x) if self.add else self.ffn(x)
+
+
+class C2SHSA(C2PSA):
+    """C2PSA variant using single-head partial-channel attention (SHViT)."""
+
+    def __init__(self, c1: int, c2: int, n: int = 1, e: float = 0.5, qk_dim: int = 16, pdim_ratio: float = 0.25):
+        """Initialize C2SHSA."""
+        super().__init__(c1, c2, n, e)
+        self.m = nn.Sequential(*(SHSABlock(self.c, qk_dim, pdim_ratio) for _ in range(n)))
 
 
 class C2PSALite(nn.Module):

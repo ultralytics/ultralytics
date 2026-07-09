@@ -394,10 +394,13 @@ def cmd_fuzz(args):
         confirmed = False
         tier = "T2" if trial.get("strategy") == "invalid" and outcome == "bug-candidate" else "T1"
         if sig and sig in findings and tier == "T1" and findings[sig]["tier"] == "T2":
-            # a valid-input occurrence proves a confirmed validation-gap signature is a real bug: upgrade it
-            findings[sig].update(
-                tier="T1", strategy=trial.get("strategy", "corpus"), command="yolo " + " ".join(trial["argv"])
-            )
+            # a valid-input occurrence proves a confirmed validation-gap signature is a real bug: confirm, then upgrade
+            rc2, stderr2, _ = run_trial(trial, timeout=args.debug_timeout)
+            outcome2, sig2, _ = classify(trial, rc2, stderr2)
+            if outcome2 == outcome and sig2 == sig:
+                findings[sig].update(
+                    tier="T1", strategy=trial.get("strategy", "corpus"), command="yolo " + " ".join(trial["argv"])
+                )
         if sig and sig not in seen:  # confirm only the first occurrence of each signature
             seen.add(sig)
             if outcome == "timeout":
@@ -565,18 +568,25 @@ def cmd_report(args):
             )
             or "[]"
         )
+    umbrella = None
+    if not args.dry_run:
+        umbrella = next((i for i in issues if i["title"].startswith("Fuzz: CLI validation gaps")), None)
         for issue in issues:
+            if umbrella and issue["number"] == umbrella["number"]:
+                continue  # umbrella signatures are collected below with setdefault so standalone issues always win
             for sig in re.findall(r"fuzz-signature: (\w+)", issue.get("body") or ""):
                 existing[sig] = issue
-
-    umbrella = next((i for i in existing.values() if i["title"].startswith("Fuzz: CLI validation gaps")), None)
-    if umbrella:  # T2 signatures from prior runs live in umbrella comments, which `issue list` does not return
+    if umbrella:  # T2 signatures from prior runs live in the umbrella body and comments
         view = json.loads(gh("issue", "view", str(umbrella["number"]), "--repo", args.repo, "--json", "comments"))
-        for comment_body in [c.get("body") or "" for c in view.get("comments", [])]:
-            for sig in re.findall(r"fuzz-signature: (\w+)", comment_body):
-                existing[sig] = umbrella
+        for body in [umbrella.get("body") or ""] + [c.get("body") or "" for c in view.get("comments", [])]:
+            for sig in re.findall(r"fuzz-signature: (\w+)", body):
+                existing.setdefault(sig, umbrella)  # a standalone issue for the same signature takes precedence
 
-    new_t1 = [f for s, f in findings.items() if f["tier"] == "T1" and s not in existing]
+    def only_umbrella(s):
+        """True when a signature is known only as a T2 umbrella entry, so a T1 sighting still deserves its own issue."""
+        return umbrella and s in existing and existing[s]["number"] == umbrella["number"]
+
+    new_t1 = [f for s, f in findings.items() if f["tier"] == "T1" and (s not in existing or only_umbrella(s))]
     new_t2 = [f for s, f in findings.items() if f["tier"] == "T2" and s not in existing]
     regressions = [(f, existing[s]) for s, f in findings.items() if s in existing and existing[s]["state"] == "CLOSED"]
 

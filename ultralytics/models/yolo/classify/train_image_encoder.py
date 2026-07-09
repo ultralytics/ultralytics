@@ -551,17 +551,19 @@ class ImageEncoderTrainer(ClassificationTrainer):
 
     def _student_imgsz(self):
         """Return current student image size."""
+        epoch = getattr(self, "epoch", 0)
         return (
             self._high_res_imgsz
-            if self._high_res_imgsz and self.epoch >= self.epochs - self._high_res_epochs
+            if self._high_res_imgsz and epoch >= self.epochs - self._high_res_epochs
             else self.args.imgsz
         )
 
     def _teacher_imgsz_for(self, sk):
         """Return current teacher image size for a safe teacher key."""
+        epoch = getattr(self, "epoch", 0)
         return (
             self._high_res_imgsz
-            if self._high_res_imgsz and self._teacher_dynamic[sk] and self.epoch >= self.epochs - self._high_res_epochs
+            if self._high_res_imgsz and self._teacher_dynamic[sk] and epoch >= self.epochs - self._high_res_epochs
             else self._teacher_imgsz
         )
 
@@ -615,8 +617,7 @@ class ImageEncoderTrainer(ClassificationTrainer):
         metrics, fitness = super().validate()
         if metrics is not None and "path" in self._knn_state:
             knn_top1 = self._knn_eval()
-            if knn_top1 is not None:
-                metrics["knn/top1"] = round(knn_top1, 4)
+            metrics["knn/top1"] = round(knn_top1, 4) if knn_top1 is not None else float("nan")
         return metrics, fitness
 
     def _knn_eval(self, every_n=5):

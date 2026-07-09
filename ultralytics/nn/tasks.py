@@ -608,6 +608,15 @@ class YOLOAnomalyV2Model(DetectionModel):
         if fusion_target not in ("all", "cls", "all_clsgrad"):
             raise ValueError(f"fusion_target must be 'all', 'cls' or 'all_clsgrad', got {fusion_target!r}")
         self.fusion_target = fusion_target
+        # How the per-scale fusion output is applied to the PAN feature p:
+        #   'add' -- p + delta                (additive residual; delta creates/removes signal)
+        #   'mul' -- p * (1 + tanh(delta))    (bounded multiplicative gate in [0,2]; scales existing
+        #            activations -> can suppress background but cannot create where p~=0). Composes
+        #            with fusion_target (all/cls/all_clsgrad) via the same detach split.
+        fusion_apply = str(v2_cfg.get("fusion_apply", "add")).lower()
+        if fusion_apply not in ("add", "mul"):
+            raise ValueError(f"fusion_apply must be 'add' or 'mul', got {fusion_apply!r}")
+        self._fusion_apply = fusion_apply
 
         # AnomalyMCDetect (decoupled binary detection + multi-class type head):
         #   type_gain -- weight of the type cross-entropy in the loss (read by AnomalyMCLoss).
@@ -1033,6 +1042,7 @@ class YOLOAnomalyV2Model(DetectionModel):
             ("fusion_mid", 8),
             ("hm_gate_blend", 1.0),
             ("fusion_target", "all"),
+            ("_fusion_apply", "add"),
         ]:
             if not hasattr(self, attr):
                 setattr(self, attr, default)
@@ -1353,14 +1363,28 @@ class YOLOAnomalyV2Model(DetectionModel):
                         delta = self.heatmap_bias_fusion(m_scale, i)
                     # Per-sample keep mask (mask dropout): dropped samples get zero increment.
                     delta = delta * keep.to(delta.dtype).view(-1, 1, 1, 1)
-                    if hm_bias is not None and clsgrad:
-                        fused.append(p + delta.detach())
-                        hm_bias.append(delta - delta.detach())
-                    elif hm_bias is not None:
-                        fused.append(p)
-                        hm_bias.append(delta)
+                    if getattr(self, "_fusion_apply", "add") == "mul":
+                        # Bounded multiplicative gate: p * (1 + tanh(delta)), factor in [0, 2].
+                        # keep=0 -> delta=0 -> factor=1 -> passthrough. Detach split mirrors 'add'
+                        # so box/cls gradient routing (all_clsgrad / cls) is preserved.
+                        factor = 1.0 + torch.tanh(delta)
+                        if hm_bias is not None and clsgrad:
+                            fused.append(p * factor.detach())
+                            hm_bias.append(p * (factor - factor.detach()))
+                        elif hm_bias is not None:  # cls_only: cls sees p*factor via additive hm_bias
+                            fused.append(p)
+                            hm_bias.append(p * torch.tanh(delta))
+                        else:  # all
+                            fused.append(p * factor)
                     else:
-                        fused.append(p + delta)
+                        if hm_bias is not None and clsgrad:
+                            fused.append(p + delta.detach())
+                            hm_bias.append(delta - delta.detach())
+                        elif hm_bias is not None:
+                            fused.append(p)
+                            hm_bias.append(delta)
+                        else:
+                            fused.append(p + delta)
                 _supports_hm = hasattr(m, "_build_heatmap_gate")
                 if hm_bias is not None and not _supports_hm:
                     raise RuntimeError("fusion_target='cls' requires a Detect head that accepts hm_bias")

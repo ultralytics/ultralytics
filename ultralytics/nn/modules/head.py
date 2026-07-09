@@ -159,11 +159,17 @@ class Detect(nn.Module):
         self, x: list[torch.Tensor]
     ) -> dict[str, torch.Tensor] | torch.Tensor | tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """Concatenates and returns predicted bounding boxes and class probabilities."""
-        preds = self.forward_head(x, **self.one2many)
-        if self.end2end:
-            x_detach = [xi.detach() for xi in x]
-            one2one = self.forward_head(x_detach, **self.one2one)
-            preds = {"one2many": preds, "one2one": one2one}
+        # A fused end2end model drops its one2many (cv2/cv3) heads. If end2end was then disabled
+        # (e.g. ncnn/paddle export, which don't support topk), fall back to the one2one heads so a
+        # raw decoded prediction is emitted for external NMS instead of an empty forward_head dict.
+        if not self.end2end and self.cv2 is None:
+            preds = self.forward_head(x, **self.one2one)
+        else:
+            preds = self.forward_head(x, **self.one2many)
+            if self.end2end:
+                x_detach = [xi.detach() for xi in x]
+                one2one = self.forward_head(x_detach, **self.one2one)
+                preds = {"one2many": preds, "one2one": one2one}
         if self.training:
             return preds
         y = self._inference(preds["one2one"] if self.end2end else preds)
@@ -365,11 +371,16 @@ class AnomalyDetect(Detect):
 
         # Delegate the rest to the standard Detect logic, using the (possibly)
         # fused features. The processed prior is passed to _inference for score gating.
-        preds = self.forward_head(feats, **self.one2many)
-        if self.end2end:
-            x_detach = [xi.detach() for xi in feats]
-            one2one = self.forward_head(x_detach, **self.one2one)
-            preds = {"one2many": preds, "one2one": one2one}
+        # A fused end2end model drops its one2many (cv2/cv3) heads; if end2end was disabled
+        # (ncnn/paddle export), fall back to the one2one heads for a raw decoded prediction.
+        if not self.end2end and self.cv2 is None:
+            preds = self.forward_head(feats, **self.one2one)
+        else:
+            preds = self.forward_head(feats, **self.one2many)
+            if self.end2end:
+                x_detach = [xi.detach() for xi in feats]
+                one2one = self.forward_head(x_detach, **self.one2one)
+                preds = {"one2many": preds, "one2one": one2one}
         if self.training:
             return preds
         y = self._inference(preds["one2one"] if self.end2end else preds)

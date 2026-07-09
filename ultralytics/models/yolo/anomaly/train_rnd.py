@@ -18,6 +18,7 @@ from __future__ import annotations
 import math
 from copy import deepcopy
 from pathlib import Path
+from torch import distributed as dist
 
 from ultralytics.models.yolo.anomaly.train import AnomalyTrainer
 from ultralytics.models.yolo.anomaly.val import YOLOAnomalyValidator
@@ -79,8 +80,12 @@ class AnomalyRNDTrainer(AnomalyTrainer):
 
     def validate(self):
         """Run normal validation, then periodic OOD validation; fitness = OOD mAP50."""
-        metrics, fitness = super().validate()
-
+        if self.ema and self.world_size > 1:
+            # Sync EMA buffers from rank 0 to all ranks
+            for buffer in self.ema.ema.buffers():
+                dist.broadcast(buffer, src=0)
+        metrics = self.validator(self)
+        fitness = metrics.pop("fitness", -self.loss.detach().cpu().numpy())
         if RANK not in (-1, 0) or self.ema is None:
             return metrics, fitness
 

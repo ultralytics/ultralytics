@@ -337,7 +337,8 @@ def classify(trial, rc, stderr):
     if isinstance(rc, int) and rc < 0:
         sig, human = make_signature(f"Signal{-rc}", frames, trial["mode"], trial["task"])
         return "crash", sig, human
-    if exc in {"ImportError", "ModuleNotFoundError"} or "No module named" in stderr:
+    missing = re.search(r"No module named '(\w+)", stderr)
+    if missing and missing.group(1) != "ultralytics":  # missing optional third-party dep; package breakage stays fatal
         return "env-skip", None, None
     if any(marker in stderr for marker in NETWORK_MARKERS):
         return "flake", None, None

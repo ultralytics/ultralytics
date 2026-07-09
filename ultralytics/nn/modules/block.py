@@ -2194,7 +2194,11 @@ class C2fRep(nn.Module):
 
 
 class C3k2Rep(C2fRep):
-    """C3k2 replacement using RepConv."""
+    """C3k2 replacement using RepConv.
+
+    attn=True (or 1) uses PSABlock; attn=2 uses SHSABlock (single-head partial attention, cheap
+    enough for P4/P3 head blocks).
+    """
 
     def __init__(
         self,
@@ -2203,17 +2207,22 @@ class C3k2Rep(C2fRep):
         n: int = 1,
         c3k: bool = False,
         e: float = 0.5,
-        attn: bool = False,
+        attn: int = 0,
         g: int = 1,
         shortcut: bool = True,
         identity: bool = True,
     ):
         super().__init__(c1, c2, n, shortcut, g, e, identity)
         if attn:
+            attn_block = (
+                (lambda c: SHSABlock(c))
+                if attn == 2
+                else (lambda c: PSABlock(c, attn_ratio=0.5, num_heads=max(c // 64, 1)))
+            )
             self.m = nn.ModuleList(
                 nn.Sequential(
                     RepConv(self.c, self.c, bn=shortcut, identity=identity),
-                    PSABlock(self.c, attn_ratio=0.5, num_heads=max(self.c // 64, 1)),
+                    attn_block(self.c),
                 )
                 for _ in range(n)
             )

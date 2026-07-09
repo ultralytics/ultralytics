@@ -387,14 +387,146 @@ class KeypointLoss(nn.Module):
         return (kpt_loss_factor.view(-1, 1) * ((1 - torch.exp(-e)) * kpt_mask)).mean()
 
 
-class RankLoss(nn.Module):
-    """Rank & Sort loss (differentiable surrogate) for one2one classification heads.
+class _BucketedRankSort(torch.autograd.Function):
+    """Bucketed Rank & Sort with the identity-update gradient used by ranking-based detection losses."""
 
-    Ports the two error terms of Rank & Sort Loss (Oksuz et al., ICCV 2021) as a differentiable regularizer folded into
-    the one2one cls loss; autograd computes the gradient instead of the paper's identity update. Ranking is global
-    across every (query, class) location in an image, so a positive competes with same- and cross-class negatives alike.
-    The piecewise-linear step saturates once a negative is more than ``delta`` below a positive, so healthy rankings
-    contribute no gradient and the loss only re-ranks the violations, preserving accuracy and the NMS-free property.
+    @staticmethod
+    def forward(
+        ctx, logits: torch.Tensor, targets: torch.Tensor, delta: float = 0.5, sort_weight: float = 0.5
+    ) -> torch.Tensor:
+        """Return weighted rank/sort loss while saving the manually constructed classification gradient."""
+        logits = logits.float()
+        targets = targets.float()
+        grad = torch.zeros_like(logits)
+        pos_indices = torch.nonzero(targets > 0, as_tuple=False).flatten()
+        neg_indices = torch.nonzero(targets == 0, as_tuple=False).flatten()
+        if pos_indices.numel() == 0:
+            ctx.save_for_backward(grad)
+            return logits.sum() * 0
+
+        pn_indices = torch.cat((pos_indices, neg_indices))
+        pn_logits = logits[pn_indices]
+        pn_targets = targets[pn_indices]
+        sorted_logits, sorted_order = torch.sort(pn_logits, descending=True)
+        sorted_targets = pn_targets[sorted_order]
+
+        fg_mask = sorted_targets > 0
+        fg_logits = sorted_logits[fg_mask]
+        fg_targets = sorted_targets[fg_mask]
+        fg_num = fg_logits.numel()
+        threshold = fg_logits.min() - delta
+        relevant_count = int((sorted_logits >= threshold).sum().item())
+        relevant_logits = sorted_logits[:relevant_count]
+        relevant_targets = sorted_targets[:relevant_count]
+        relevant_fg_pos = torch.nonzero(relevant_targets > 0, as_tuple=False).flatten()
+        relevant_bg_pos = torch.nonzero(relevant_targets == 0, as_tuple=False).flatten()
+        if relevant_fg_pos.numel() == 0:
+            ctx.save_for_backward(grad)
+            return logits.sum() * 0
+
+        if relevant_bg_pos.numel() > 0:
+            bucket_sizes = []
+            previous_fg = -1
+            for fg_pos in relevant_fg_pos.tolist():
+                size = fg_pos - previous_fg - 1
+                if size > 0:
+                    bucket_sizes.append(size)
+                previous_fg = fg_pos
+            tail_size = relevant_count - previous_fg - 1
+            if tail_size > 0:
+                bucket_sizes.append(tail_size)
+
+            bucket_sizes_t = torch.tensor(bucket_sizes, device=logits.device, dtype=logits.dtype)
+            bg_bucket_means = torch.stack(
+                [b.mean() for b in torch.split(relevant_logits[relevant_bg_pos], bucket_sizes)]
+            )
+
+            all_bucket_logits = torch.cat((fg_logits, bg_bucket_means))
+            all_bucket_logits, bucket_order = torch.sort(all_bucket_logits, descending=True)
+            bucket_targets = torch.zeros_like(all_bucket_logits)
+            bucket_targets[bucket_order < fg_num] = fg_targets
+            bucket_fg_mask = bucket_targets > 0
+            bucket_bg_mask = bucket_targets == 0
+            bucket_fg_logits = all_bucket_logits[bucket_fg_mask]
+            bucket_fg_targets = bucket_targets[bucket_fg_mask]
+            bucket_bg_logits = all_bucket_logits[bucket_bg_mask]
+
+            bg_relations = bucket_bg_logits[:, None] - bucket_fg_logits[None]
+            fg_relations = bucket_fg_logits[:, None] - bucket_fg_logits[None]
+            if delta > 0:
+                bg_relations = (bg_relations / (2 * delta) + 0.5).clamp_(0, 1)
+                fg_relations = (fg_relations / (2 * delta) + 0.5).clamp_(0, 1)
+            else:
+                bg_relations = (bg_relations >= 0).float()
+                fg_relations = (fg_relations >= 0).float()
+
+            weighted_bg_relations = bg_relations * bucket_sizes_t[:, None]
+            fp_num = weighted_bg_relations.sum(0)
+            rank_pos = fg_relations.sum(0)
+            ranking_error = fp_num / (rank_pos + fp_num).clamp_min(1e-12)
+
+            current_sort = (fg_relations.T * (1 - bucket_fg_targets)).sum(1) / rank_pos.clamp_min(1e-12)
+            iou_relations = bucket_fg_targets >= bucket_fg_targets[:, None]
+            target_sorted_order = fg_relations.T * iou_relations
+            target_sort = (target_sorted_order * (1 - bucket_fg_targets)).sum(1) / target_sorted_order.sum(
+                1
+            ).clamp_min(1e-12)
+            sorting_error = current_sort - target_sort
+
+            missorted_examples = fg_relations.T * (~iou_relations)
+            sorting_denom = missorted_examples.sum(1)
+            safe_fp_num = fp_num.clamp_min(1e-12)
+            bucket_grads = (weighted_bg_relations * (ranking_error / safe_fp_num)).sum(1) / bucket_sizes_t
+            bg_grads = bucket_grads.repeat_interleave(bucket_sizes_t.long())
+
+            relevant_sorted_order = sorted_order[:relevant_count]
+            all_pos_in_sorted = torch.nonzero(sorted_targets > 0, as_tuple=False).flatten()
+            grad[pn_indices[relevant_sorted_order[relevant_bg_pos]]] = bg_grads.to(grad.dtype)
+            grad[pn_indices[sorted_order[all_pos_in_sorted]]] = -ranking_error.to(grad.dtype)
+
+            pos_grad_update = -sorting_error * (sorting_denom > 0)
+            safe_sorting_denom = sorting_denom.clamp_min(1e-12)
+            pos_grad_update += (missorted_examples.T * (sorting_error / safe_sorting_denom)).sum(1)
+            grad[pn_indices[sorted_order[all_pos_in_sorted]]] += (sort_weight * pos_grad_update).to(grad.dtype)
+            grad /= fg_num
+            ctx.save_for_backward(grad)
+            return ranking_error.mean() + sort_weight * sorting_error.mean()
+
+        ranking_error = logits.new_zeros(1)
+        fg_relations = fg_logits[:, None] - fg_logits[None]
+        if delta > 0:
+            fg_relations = (fg_relations / (2 * delta) + 0.5).clamp_(0, 1)
+        else:
+            fg_relations = (fg_relations >= 0).float()
+        rank_pos = fg_relations.sum(0)
+        current_sort = (fg_relations.T * (1 - fg_targets)).sum(1) / rank_pos.clamp_min(1e-12)
+        iou_relations = fg_targets >= fg_targets[:, None]
+        target_sorted_order = fg_relations.T * iou_relations
+        target_sort = (target_sorted_order * (1 - fg_targets)).sum(1) / target_sorted_order.sum(1).clamp_min(1e-12)
+        sorting_error = current_sort - target_sort
+        missorted_examples = fg_relations.T * (~iou_relations)
+        sorting_denom = missorted_examples.sum(1)
+        all_pos_in_sorted = torch.nonzero(sorted_targets > 0, as_tuple=False).flatten()
+        pos_grad_update = -sorting_error * (sorting_denom > 0)
+        pos_grad_update += (missorted_examples.T * (sorting_error / sorting_denom.clamp_min(1e-12))).sum(1)
+        grad[pn_indices[sorted_order[all_pos_in_sorted]]] = (sort_weight * pos_grad_update).to(grad.dtype) / fg_num
+        ctx.save_for_backward(grad)
+        return ranking_error.mean() + sort_weight * sorting_error.mean()
+
+    @staticmethod
+    def backward(ctx, out_grad: torch.Tensor) -> tuple[torch.Tensor, None, None, None]:
+        """Apply the saved identity-update gradient to logits."""
+        (grad,) = ctx.saved_tensors
+        return grad * out_grad, None, None, None
+
+
+class RankLoss(nn.Module):
+    """Bucketed Rank & Sort loss for one2one DETR-style classification heads.
+
+    Ports Bucketed Rank & Sort Loss for DEIM/DFine decoder logits. Ranking is global across every (query, class)
+    location in an image, so a positive competes with same- and cross-class negatives alike. Relevant background
+    logits are sorted and grouped into buckets between foreground logits, which reduces comparisons while preserving
+    each bucket's negative count in the manually constructed identity-update gradient.
 
     - rank: drives each positive's ranking error ``FP_num / (rank_pos + FP_num)`` (fraction of relevant negatives
     scoring above it) to 0, lifting positives over the negatives that outrank them.
@@ -412,7 +544,7 @@ class RankLoss(nn.Module):
         self.w_sort = w_sort
 
     def forward(self, pred_logits: torch.Tensor, target_scores: torch.Tensor) -> torch.Tensor:
-        """Compute the RS ranking/sorting loss over one2one positives against relevant negatives.
+        """Compute bucketed RS over one2one positives against relevant negatives.
 
         Args:
             pred_logits (torch.Tensor): Classification logits with shape (bs, N, nc).
@@ -424,36 +556,16 @@ class RankLoss(nn.Module):
         """
         delta = self.delta
         losses = []
-        # Per image so anchors from different images never rank against each other; within an image the ranking is
-        # global across classes (each positive competes with same- and cross-class negatives, as in the original).
+        # Per image so queries from different images never rank against each other.
         for logits_i, target_i in zip(pred_logits, target_scores):
-            # fp32 for AMP-safe pairwise math (logits are fp16 under autocast); flatten every (query, class) score
-            s = logits_i.sigmoid().float().flatten()  # (N*nc,)
+            # fp32 for AMP-safe ranking math; flatten every (query, class) logit as in DETR-style heads.
+            s = logits_i.float().flatten()  # (N*nc,)
             t = target_i.float().flatten()  # (N*nc,)
-            fg = t > 0
-            if not fg.any():
-                continue
-            s_fg, iou = s[fg], t[fg]  # (M,) positive scores and their IoU targets
-
-            # Relevant negatives: score within delta of the lowest positive (the rest cannot alter precision)
-            s_bg = s[(t == 0) & (s >= s_fg.min() - delta)]  # (Nbg,)
-
-            # Piecewise-linear rank indicator H(x) = clamp(x / (2*delta) + 0.5, 0, 1)
-            fg_rel = ((s_fg[None] - s_fg[:, None]) / (2 * delta) + 0.5).clamp(0, 1)  # (M, M) [i,j] = H(s_j - s_i)
-            rank_pos = fg_rel.sum(1)  # (M,) rank among positives (includes self's 0.5)
-            fp_num = ((s_bg[None] - s_fg[:, None]) / (2 * delta) + 0.5).clamp(0, 1).sum(1)  # (M,) negatives above i
-            ranking_error = fp_num / (rank_pos + fp_num)  # (M,) target ranking error is 0
-
-            # sort: penalize positives ranked above others that have a higher IoU target
-            current_sort = (fg_rel * (1 - iou)[None]).sum(1) / rank_pos  # (M,)
-            target_rel = (iou[None] >= iou[:, None]) * fg_rel  # (M, M) positives in i's target sorted order
-            target_sort = (target_rel * (1 - iou)[None]).sum(1) / target_rel.sum(1)  # (M,)
-            sorting_error = current_sort - target_sort  # (M,)
-
-            losses.append(ranking_error.mean() + self.w_sort * sorting_error.mean())
+            if (t > 0).any():
+                losses.append(_BucketedRankSort.apply(s, t, delta, self.w_sort))
 
         if not losses:
-            return pred_logits.new_zeros((), dtype=torch.float32)
+            return pred_logits.float().sum() * 0
         return torch.stack(losses).mean()
 
 

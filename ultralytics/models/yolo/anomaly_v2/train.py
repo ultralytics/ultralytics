@@ -155,6 +155,35 @@ class AnomalyV2Trainer(DetectionTrainer):
             f"anomaly_v2: fusion_lr_scale={scale} -> {n_moved} heatmap_bias_fusion params split into "
             f"scaled groups ({len(optimizer.param_groups)} groups total)"
         )
+        # Backbone LR scale: splits all backbone params (model.0. … model.<N-1>.) into their own
+        # group with lr * backbone_lr_scale. Like fusion_lr_scale, the scheduler and warmup both scale
+        # from the group's own lr, so the ratio holds across the whole schedule. Default 1.0 = no-op.
+        bb_scale = float((getattr(m, "yaml", {}) or {}).get("anomaly_v2", {}).get("backbone_lr_scale", 1.0))
+        if bb_scale != 1.0:
+            # Backbone layers are model.0 … model.10 (the 11 backbone layers)
+            bb_prefixes = tuple(f"model.{i}." for i in range(11))
+            # Build param id -> name map ONCE (O(N) total)
+            pid2name = {id(p): n for n, p in m.named_parameters()}
+            n_bb = 0
+            for group in list(optimizer.param_groups):
+                bb_params, other = [], []
+                for p in group["params"]:
+                    name = pid2name.get(id(p), "")
+                    if name.startswith(bb_prefixes):
+                        bb_params.append(p)
+                    else:
+                        other.append(p)
+                if not bb_params:
+                    continue
+                group["params"] = other
+                new_group = {k: v for k, v in group.items() if k != "params"}
+                new_group.update(params=bb_params, lr=group["lr"] * bb_scale)
+                optimizer.add_param_group(new_group)
+                n_bb += len(bb_params)
+            LOGGER.info(
+                f"anomaly_v2: backbone_lr_scale={bb_scale} -> {n_bb} backbone params split into "
+                f"scaled groups ({len(optimizer.param_groups)} groups total)"
+            )
         return optimizer
 
     def get_model(self, cfg=None, weights=None, verbose: bool = True):

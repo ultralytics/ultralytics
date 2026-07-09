@@ -149,6 +149,7 @@ def main(argv: list[str]) -> None:
         --l1_weight <float>: smooth L1 loss weight (default 0.1)
         --cls_l1: add smooth L1 to CLS token loss (default False)
         --loss_type <str>: patch loss "cos_l1" (default, 0.9cos+0.1L1) or "l2" (pure MSE on un-normalized features)
+        --gram_weight <float>: add DINOv3-style Gram loss on patch-token similarities. Default 0 disables it.
         --lr <float>: override recipe lr0 (applied before batch scaling)
         --batch <int>: per-GPU (per-rank) batch. Global batch = per-GPU * world_size. When the
             global batch exceeds NBS_CANONICAL (512), lr0 and warmup_epochs scale linearly and
@@ -182,6 +183,7 @@ def main(argv: list[str]) -> None:
     args, optimizer = _pop_flag(args, "--optimizer")
     args, norm_in_str = _pop_flag(args, "--normalize_teacher_input", is_bool=True)
     args, loss_type = _pop_flag(args, "--loss_type")
+    args, gram_weight_str = _pop_flag(args, "--gram_weight")
     args, high_res_final_epochs = _pop_flag(args, "--high_res_final_epochs")  # "<imgsz>:<epochs>" e.g. "384:12"
     args, _hires_legacy = _pop_flag(args, "--hires_tail")  # legacy alias for --high_res_final_epochs
 
@@ -194,6 +196,7 @@ def main(argv: list[str]) -> None:
     optimizer = optimizer or "AdamW"
     normalize_teacher_input = bool(norm_in_str)
     loss_type = loss_type or "cos_l1"
+    gram_weight = float(gram_weight_str) if gram_weight_str else 0.0
     high_res_final_epochs = high_res_final_epochs or _hires_legacy or None
 
     if resume:
@@ -228,6 +231,7 @@ def main(argv: list[str]) -> None:
             ("optimizer", optimizer, "AdamW"),
             ("normalize_teacher_input", normalize_teacher_input, False),
             ("loss_type", loss_type, "cos_l1"),
+            ("gram_weight", gram_weight, 0.0),
             ("high_res_final_epochs", high_res_final_epochs, None),
         ):
             prev = resume_args.get(key, default)
@@ -280,6 +284,7 @@ def main(argv: list[str]) -> None:
             optimizer=optimizer,
             normalize_teacher_input=normalize_teacher_input,
             loss_type=loss_type,
+            gram_weight=gram_weight,
             high_res_final_epochs=high_res_final_epochs,
             grad_clip=r["grad_clip"],
             beta2=r["beta2"],
@@ -299,6 +304,7 @@ def main(argv: list[str]) -> None:
         adaptor_arch=adaptor_arch,
         sample_t=sample_t,
         loss_type=loss_type,
+        gram_weight=gram_weight,
         high_res_final_epochs=high_res_final_epochs,
         device=gpu,
         **paths.run_paths(name),

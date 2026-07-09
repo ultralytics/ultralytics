@@ -358,7 +358,7 @@ class ImageEncoderTrainer(ClassificationTrainer):
                 "token_types": reg["token_types"],
             }
         loss_cfg = {}
-        for k in ("cos_weight", "l1_weight", "cls_l1", "loss_type"):
+        for k in ("cos_weight", "l1_weight", "cls_l1", "loss_type", "gram_weight"):
             v = getattr(self.args, k, None)
             if v is not None:
                 loss_cfg[k] = v
@@ -581,6 +581,9 @@ class ImageEncoderTrainer(ClassificationTrainer):
 
         dp = getattr(self.model, "distill_path", "adaptor")
         sub = ("cls_cos", "patch_cos", "patch_l1") if dp != "feat_map" else ("feat_p3", "feat_p4", "feat_p5")
+        if dp != "feat_map" and getattr(self.args, "gram_weight", 0.0) > 0:
+            sub = (*sub, "gram")
+        self._loss_sub = sub
         self.loss_names = []
         for sk in self._safe_keys:
             self.loss_names.extend([f"{sk}/{s}" for s in sub])
@@ -682,10 +685,11 @@ class ImageEncoderTrainer(ClassificationTrainer):
         if loss_items is None:
             return keys
         loss_items = [round(float(x), 5) for x in loss_items]
-        # Append teacher-averaged aggregates (cls_cos, patch_cos, patch_l1)
+        # Append teacher-averaged aggregate losses.
         n = len(self._safe_keys)
-        for i in range(3):
-            loss_items.append(round(sum(loss_items[j * 3 + i] for j in range(n)) / n, 5))
+        m = len(getattr(self, "_loss_sub", ("cls_cos", "patch_cos", "patch_l1")))
+        for i in range(m):
+            loss_items.append(round(sum(loss_items[j * m + i] for j in range(n)) / n, 5))
         result = dict(zip(keys, loss_items))
         result["epoch"] = self.epoch + 1
         return result

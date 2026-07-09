@@ -67,7 +67,15 @@ class ImageEncoderLoss:
         l1_weight (float): Beta in EUPE Eq.5.
     """
 
-    def __init__(self, cos_weight=0.9, l1_weight=0.1, cls_l1=False, distill_path="adaptor", loss_type="cos_l1"):
+    def __init__(
+        self,
+        cos_weight=0.9,
+        l1_weight=0.1,
+        cls_l1=False,
+        distill_path="adaptor",
+        loss_type="cos_l1",
+        gram_weight=0.0,
+    ):
         """Initialize ImageEncoderLoss.
 
         Args:
@@ -82,12 +90,16 @@ class ImageEncoderLoss:
                 un-normalized patch features, no cosine). CLS loss stays cosine in both. Tests Mengyu's L2-wins evidence
                 (same-arch YOLO det features) in our cross-arch ViT to YOLO conv regime. The third logged loss item
                 (wandb "patch_l1") holds smooth_L1 under cos_l1 and MSE under l2.
+            gram_weight (float): Weight for DINOv3-style Gram loss on patch-token similarities. Disabled when zero.
         """
         self.cos_weight = cos_weight
         self.l1_weight = l1_weight
         self.cls_l1 = cls_l1
         self.distill_path = distill_path
         self.loss_type = loss_type
+        self.gram_weight = gram_weight
+        if self.gram_weight > 0 and self.distill_path == "feat_map":
+            raise ValueError("Gram loss requires distill_path='adaptor' patch tokens")
 
     def _teacher_loss(self, s_cls, s_patch, t_cls, t_patch):
         """Compute loss for a single teacher (EUPE Eq.5).
@@ -96,25 +108,11 @@ class ImageEncoderLoss:
             s_cls (torch.Tensor): Student CLS features (B, D).
             s_patch (torch.Tensor): Student patch features (B, N, D).
             t_cls (torch.Tensor | None): Teacher CLS features or None for patches-only.
-            t_patch (torch.Tensor): Teacher patch features (B, N, D).
+            t_patch (torch.Tensor): Teacher patch features (B, N, D), pre-aligned to the student grid by forward().
 
         Returns:
             (tuple): (teacher_loss, [cls_cos, patch_cos, patch_term]).
         """
-        # Spatial alignment: if student and teacher have different patch counts, interpolate teacher
-        # to match student grid. EUPE Section 3.1 upsamples to max(N_S, N_T); for teachers with
-        # very large grids (SAM3: 5184 patches), we downsample teacher to student grid instead.
-        # TODO: for SAM3, use pixel-shuffle upsampling in the adaptor MLP instead of downsampling
-        # teacher patches. C-RADIOv4 (RADIO/radio/adaptor_mlp.py:99-107) uses einops.rearrange
-        # with upsample_factor to produce higher-res student patches matching SAM's dense grid.
-        t_patch = t_patch.to(s_patch)
-        if t_patch.shape[1] != s_patch.shape[1]:
-            h = int(s_patch.shape[1] ** 0.5)
-            th = int(t_patch.shape[1] ** 0.5)
-            t_patch = t_patch.transpose(1, 2).reshape(t_patch.shape[0], t_patch.shape[2], th, th)
-            t_patch = F.interpolate(t_patch, size=(h, h), mode="bilinear", antialias=True)
-            t_patch = t_patch.flatten(2).transpose(1, 2)
-
         # Force fp32 for loss: fp16 cosine_similarity eps=1e-8 rounds to 0, causing nan on
         # near-zero features (random init). Follows DUNE (dune/model/losses.py:58).
         with torch.autocast(device_type=s_cls.device.type, dtype=torch.float32, enabled=s_cls.is_cuda):
@@ -140,6 +138,45 @@ class ImageEncoderLoss:
             loss = cls_cos_w * cls_cos + self.l1_weight * cls_l1 + patch_loss
 
         return loss, [cls_cos.detach(), patch_cos.detach(), patch_term.detach()]
+
+    @staticmethod
+    def _align_patch_tokens(s_patch, t_patch):
+        """Resize teacher patch tokens to the student patch grid."""
+        # Spatial alignment: if student and teacher have different patch counts, interpolate teacher
+        # to match student grid. EUPE Section 3.1 upsamples to max(N_S, N_T); for teachers with
+        # very large grids (SAM3: 5184 patches), we downsample teacher to student grid instead.
+        # TODO: for SAM3, use pixel-shuffle upsampling in the adaptor MLP instead of downsampling
+        # teacher patches. C-RADIOv4 (RADIO/radio/adaptor_mlp.py:99-107) uses einops.rearrange
+        # with upsample_factor to produce higher-res student patches matching SAM's dense grid.
+        t_patch = t_patch.to(s_patch)
+        if t_patch.shape[1] != s_patch.shape[1]:
+            h = int(s_patch.shape[1] ** 0.5)
+            th = int(t_patch.shape[1] ** 0.5)
+            t_patch = t_patch.transpose(1, 2).reshape(t_patch.shape[0], t_patch.shape[2], th, th)
+            t_patch = F.interpolate(t_patch, size=(h, h), mode="bilinear", antialias=True)
+            t_patch = t_patch.flatten(2).transpose(1, 2)
+        return t_patch
+
+    def _gram_loss(self, s_patch, t_patch):
+        """Compute the DINOv3 Gram loss over the local batch via the factored covariance form.
+
+        Uses ||X X^T||_F^2 = ||X^T X||_F^2 to avoid building the (B*N, B*N) token similarity matrix,
+        so the cost scales with the feature dim D, not the token count.
+
+        Args:
+            s_patch (torch.Tensor): Student patch features (B, N, D).
+            t_patch (torch.Tensor): Teacher patch features (B, N, D).
+
+        Returns:
+            (torch.Tensor): Scalar Gram loss.
+        """
+        s_patch = F.normalize(s_patch.float(), dim=-1).flatten(0, 1)
+        t_patch = F.normalize(t_patch.float(), dim=-1).flatten(0, 1)
+        s_cov = s_patch.T @ s_patch
+        t_cov = t_patch.T @ t_patch
+        st_cov = s_patch.T @ t_patch
+        denom = s_patch.shape[0] ** 2
+        return (s_cov.square().sum() + t_cov.square().sum() - 2 * st_cov.square().sum()) / denom
 
     def _teacher_loss_feat_map(self, s_scales, t_patch):
         """Per-scale MSE between student feat maps and bilinearly-resized teacher tokens.
@@ -199,8 +236,12 @@ class ImageEncoderLoss:
             else:
                 s_cls, s_patch = preds[key]
                 t_cls = batch[key]["cls"]
-                t_patch = batch[key]["patches"]
+                t_patch = self._align_patch_tokens(s_patch, batch[key]["patches"])
                 loss_i, items_i = self._teacher_loss(s_cls, s_patch, t_cls, t_patch)
+                if self.gram_weight > 0:
+                    gram_loss = self._gram_loss(s_patch, t_patch)
+                    loss_i = loss_i + self.gram_weight * gram_loss
+                    items_i.append(gram_loss.detach())
             total_loss = total_loss + loss_i
             all_items.extend(items_i)
 

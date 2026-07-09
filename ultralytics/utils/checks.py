@@ -250,14 +250,14 @@ def check_version(
     if not current:  # if current is '' or None
         LOGGER.warning(f"invalid check_version({current}, {required}) requested, please check values.")
         return True
-    elif not current[0].isdigit() and not re.fullmatch(
-        r"v\d+(?:\.\d+)*(?:\.?(?:a|b|rc|post|dev)\d*)?(?:\+[\w.-]+)?", current
-    ):
+    elif not current[0].isdigit():  # current is package name rather than version string, i.e. current='ultralytics'
         try:
             name = current  # assigned package name to 'name' arg
             current = metadata.version(current)  # get version string from package name
         except metadata.PackageNotFoundError as e:
-            if hard:
+            if re.match(r"v\d", current):  # not an installed package: compare the v-prefixed version directly
+                pass
+            elif hard:
                 raise ModuleNotFoundError(f"{current} package is required but not installed") from e
             else:
                 return False

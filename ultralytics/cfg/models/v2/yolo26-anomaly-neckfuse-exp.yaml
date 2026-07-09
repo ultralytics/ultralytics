@@ -79,14 +79,17 @@ head:
 
   - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
   - [[-1, 4], 1, Concat, [1]]
+  - [-1, 1, HeatmapNeckFusion, [32, 80, False]]
   - [-1, 2, C3k2, [256, True]]
 
   - [-1, 1, Conv, [256, 3, 2]]
   - [[-1, 13], 1, Concat, [1]]
+  - [-1, 1, HeatmapNeckFusion, [32, 80, False]]
   - [-1, 2, C3k2, [512, True]]
 
   - [-1, 1, Conv, [512, 3, 2]]
   - [[-1, 10], 1, Concat, [1]]
+  - [-1, 1, HeatmapNeckFusion, [32, 80, False]]
   - [-1, 1, C3k2, [1024, True, 0.5, True]]
 
-  - [[16, 19, 22], 1, AnomalyDetect, [nc, 32, False]]
+  - [[17, 21, 25], 1, Detect, [nc]]

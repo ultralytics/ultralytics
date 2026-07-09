@@ -83,19 +83,20 @@ CLAMPS = {
 }
 EXPORT_POOL = ["torchscript", "onnx", "openvino"]  # CPU-friendly with deps installed by the export-base extra
 
-# Probe pools: "valid" values exercise semantics (deep failures are T1 bugs), "invalid" values exercise
-# validation (deep failures are T2 gaps). Enum keys bypass check_cfg — the highest-value fuzz targets.
+# Probe pools: "valid" values are supported inputs (deep failures are T1 bugs); "invalid" values are ones the
+# cfg layer SHOULD reject — by current checks or by missing range checks — so deep failures are T2 validation
+# gaps. Labels express that intent, not what check_cfg happens to accept today (e.g. it passes negative ints).
 ENUM_POOLS = {
     "optimizer": {
-        "valid": ["SGD", "Adam", "AdamW", "NAdam", "RAdam", "RMSProp", "auto"],
-        "invalid": ["sgd", "Ranger", "", "none"],
+        "valid": ["SGD", "Adam", "AdamW", "NAdam", "RAdam", "RMSProp", "auto", "sgd"],  # case is canonicalized
+        "invalid": ["Ranger", "", "none"],
     },
     "split": {"valid": ["val", "test", "train"], "invalid": ["trainval", "", "0.5"]},
     "cache": {"valid": ["True", "False", "ram", "disk"], "invalid": ["gpu", "1.5"]},
     "compile": {"valid": ["True", "False", "default", "reduce-overhead", "max-autotune"], "invalid": ["turbo"]},
     "auto_augment": {"valid": ["randaugment", "autoaugment", "augmix"], "invalid": ["randaug", ""]},
     "copy_paste_mode": {"valid": ["flip", "mixup"], "invalid": ["paste", ""]},
-    "quantize": {"valid": ["fp16", "w8a8"], "invalid": ["none", "half", "int8_dynamic", "int4"]},
+    "quantize": {"valid": ["fp16", "w8a8", "none"], "invalid": ["half", "int8_dynamic", "int4"]},
 }
 PROBES = {  # boundary and wrong-type probes per typed key family (values are CLI strings)
     "fraction": {"valid": ["0.0", "1.0", "0.5"], "invalid": ["-0.1", "1.5", "half", "True", "none"]},
@@ -231,13 +232,15 @@ def sample_trial(rng, uni, corpus, personality):
     argv, mutated = list(base["argv"]), []
     strategy = rng.choices([s for s, _ in STRATEGY_WEIGHTS], weights=[w for _, w in STRATEGY_WEIGHTS])[0]
 
-    def mutate(pairs):
-        """Append the non-default k=v pairs to argv and record their keys as mutated."""
-        kept = strip_defaults(pairs, uni["defaults"])
-        argv.extend(kept)
-        mutated.extend(a.partition("=")[0] for a in kept)
+    validity = {}  # key -> is its EFFECTIVE value supported: stripped args contribute nothing, duplicates last-win
 
-    valid_input = True  # tier is decided by input validity, not sampler name: combos and corpus stay valid
+    def mutate(pairs, valid=True):
+        """Append the non-default k=v pairs to argv and record their keys as mutated."""
+        for a in strip_defaults(pairs, uni["defaults"]):
+            argv.append(a)
+            mutated.append(a.partition("=")[0])
+            validity[a.partition("=")[0]] = valid
+
     if mode == "export":  # fuzz the format from the installable pool; the default torchscript stays implicit
         mutate([f"format={rng.choice(EXPORT_POOL)}"])
     if strategy == "combo":
@@ -246,15 +249,14 @@ def sample_trial(rng, uni, corpus, personality):
         n_keys = rng.randint(1, 4 if personality == "chaos" else 3)
         for _ in range(n_keys):
             key, value, valid = sample_mutation(rng, uni, chaos=personality == "chaos")
-            mutate([f"{key}={value}"])
-            valid_input = valid_input and valid
+            mutate([f"{key}={value}"], valid=valid)
     return {
         "mode": mode,
         "task": base["task"],
         "argv": argv,
         "strategy": strategy,
         "mutated": mutated,
-        "valid_input": valid_input,
+        "valid_input": all(validity.values()),
     }
 
 

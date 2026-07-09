@@ -83,7 +83,7 @@ jobs:
         with:
           retries: 3
           retry_delay_seconds: 60
-          run: python .github/scripts/fuzz.py fuzz --budget-minutes 0 --personality ${{ matrix.personality }} --out fuzz-out # zero-budget run downloads all corpus assets and executes no trials
+          run: python .github/scripts/fuzz.py fuzz --budget-minutes 0 --personality ${{ matrix.personality }} --out fuzz-precache # zero-budget run downloads all corpus assets and executes no trials; its empty findings stay out of fuzz-out
       - name: Fuzz
         if: github.event.inputs.repro_command == ''
         env:

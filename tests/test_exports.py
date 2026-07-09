@@ -165,8 +165,8 @@ def test_modelopt_quantize_onnx_requires_int8_dataset():
         modelopt_quantize_onnx("model.onnx", quantize=8)
 
 
-def test_modelopt_quantize_onnx_excludes_sigmoid_softmax(monkeypatch):
-    """Check ModelOpt INT8 keeps Sigmoid/Softmax unquantized to preserve confidence calibration (#24668)."""
+def test_modelopt_quantize_onnx_excludes_sigmoid(monkeypatch):
+    """Check ModelOpt INT8 keeps Sigmoid unquantized to preserve confidence calibration (#24668)."""
     import onnx
 
     calls = {}
@@ -177,7 +177,7 @@ def test_modelopt_quantize_onnx_excludes_sigmoid_softmax(monkeypatch):
     )
     monkeypatch.setattr(onnx, "load", lambda *args, **kwargs: SimpleNamespace(graph=graph))
     modelopt_quantize_onnx("model.onnx", quantize=8, dataset=[{"img": torch.zeros(1, 3, 8, 8)}])
-    assert calls["op_types_to_exclude"] == ["Sigmoid", "Softmax"]
+    assert calls["op_types_to_exclude"] == ["Sigmoid"]
 
 
 def test_torch2onnx_serializes_concurrent_exports(monkeypatch, tmp_path):

@@ -263,15 +263,11 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
 #### Drawbacks of using YOLO with TensorRT INT8
 
-- **Decreases in evaluation metrics:** Using a lower precision will mean that `mAP`, `Precision`, `Recall` or any [other metric used to evaluate model performance](../guides/yolo-performance-metrics.md) is likely to be somewhat worse. See the [Performance results section](#ultralytics-yolo-tensorrt-export-performance) to compare the differences in `mAP50` and `mAP50-95` when exporting with INT8 on small sample of various devices.
+- **Decreases in evaluation metrics:** Using a lower precision will mean that `mAP`, `Precision`, `Recall` or any [other metric used to evaluate model performance](../guides/yolo-performance-metrics.md) is likely to be somewhat worse. Sigmoid layers are kept at higher precision to preserve score calibration, but INT8 can still shift confidence values, so select the operating threshold from the INT8 model's own F1 curve. See the [Performance results section](#ultralytics-yolo-tensorrt-export-performance) to compare the differences in `mAP50` and `mAP50-95` when exporting with INT8 on small sample of various devices.
 
 - **Increased development times:** Finding the "optimal" settings for INT8 calibration for dataset and device can take a significant amount of testing.
 
 - **Hardware dependency:** Calibration and performance gains could be highly hardware dependent and model weights are less transferable.
-
-!!! tip "Choosing a confidence threshold for INT8 models"
-
-    Confidence scores are sensitive to quantization error, so Sigmoid and Softmax layers are automatically kept at higher precision during INT8 export to preserve score calibration, mirroring the [OpenVINO](openvino.md) INT8 exporter. INT8 can still shift absolute confidence values even when mAP is preserved, so read the operating confidence threshold from the INT8 model's own [F1 curve](../guides/yolo-performance-metrics.md) rather than reusing a threshold tuned on an FP16 or FP32 model.
 
 ## Ultralytics YOLO TensorRT Export Performance
 

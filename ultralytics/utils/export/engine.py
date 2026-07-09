@@ -151,9 +151,9 @@ def modelopt_quantize_onnx(
             # scales are EP-independent, so the INT8 engine is equivalent and only this one-time step is slower.
             calibration_eps=["cpu"],
             output_path=out_file,
-            # Keep Sigmoid/Softmax unquantized (they run in FP16) to preserve confidence-score calibration,
+            # Keep Sigmoid unquantized (it runs in FP16) to preserve confidence-score calibration,
             # mirroring the OpenVINO IgnoredScope https://github.com/ultralytics/ultralytics/issues/24668
-            op_types_to_exclude=["Sigmoid", "Softmax"],
+            op_types_to_exclude=["Sigmoid"],
             **kwargs,
         )
         return out_file
@@ -214,7 +214,7 @@ def onnx2engine(
         calibration uses an ``IInt8Calibrator`` over ``dataset`` and writes a calibration cache, while FP16/INT8 are
         enabled with builder flags. On TensorRT 11 these were removed in favor of strongly-typed networks, so reduced
         precision is baked into the ONNX with NVIDIA ModelOpt before building (FP16 AutoCast, INT8 explicit Q/DQ) by
-        `modelopt_quantize_onnx`. Both INT8 paths keep Sigmoid/Softmax at higher precision to preserve
+        `modelopt_quantize_onnx`. Both INT8 paths keep Sigmoid at higher precision to preserve
         confidence-score calibration (see #24668). Metadata is serialized and written to the engine file if provided.
     """
     # Force re-install TensorRT on CUDA 13 ARM devices to 10.15.x versions for RT-DETR exports
@@ -383,23 +383,25 @@ def onnx2engine(
         )
 
         # Implicit quantization cannot exclude op types like ModelOpt on TRT 11, so keep Sigmoid (an ACTIVATION
-        # layer named after its ONNX node) and Softmax (a dedicated layer type) in FP32 via per-layer precision
-        # constraints to preserve confidence-score calibration, mirroring the OpenVINO IgnoredScope
+        # layer named after its ONNX node) in FP32 via per-layer precision constraints to preserve confidence-score
+        # calibration, mirroring the OpenVINO IgnoredScope
         # https://github.com/ultralytics/ultralytics/issues/24668
-        if hasattr(trt.BuilderFlag, "OBEY_PRECISION_CONSTRAINTS"):  # TensorRT >= 8.2
-            count = 0
-            for i in range(network.num_layers):
-                layer = network.get_layer(i)
-                if layer.type == trt.LayerType.SOFTMAX or (
-                    layer.type == trt.LayerType.ACTIVATION and "sigmoid" in layer.name.lower()
-                ):
-                    layer.precision = trt.float32
-                    for j in range(layer.num_outputs):
-                        layer.set_output_type(j, trt.float32)
-                    count += 1
-            if count:
-                config.set_flag(trt.BuilderFlag.OBEY_PRECISION_CONSTRAINTS)
-                LOGGER.info(f"{prefix} keeping {count} Sigmoid/Softmax layers in FP32 for INT8 accuracy")
+        count = 0
+        for i in range(network.num_layers):
+            layer = network.get_layer(i)
+            if layer.type == trt.LayerType.ACTIVATION and "sigmoid" in layer.name.lower():
+                layer.precision = trt.float32
+                for j in range(layer.num_outputs):
+                    layer.set_output_type(j, trt.float32)
+                count += 1
+        if count:
+            flag = (
+                trt.BuilderFlag.OBEY_PRECISION_CONSTRAINTS
+                if hasattr(trt.BuilderFlag, "OBEY_PRECISION_CONSTRAINTS")
+                else trt.BuilderFlag.STRICT_TYPES
+            )
+            config.set_flag(flag)  # OBEY_PRECISION_CONSTRAINTS replaced STRICT_TYPES in TensorRT 8.2
+            LOGGER.info(f"{prefix} keeping {count} Sigmoid layers in FP32 for INT8 accuracy")
 
     elif use_fp16 and not is_trt11:
         config.set_flag(trt.BuilderFlag.FP16)

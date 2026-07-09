@@ -708,7 +708,7 @@ class Results(SimpleClass, DataExportMixin):
         if self.depth is not None:
             d = self.depth.data
             d = d[d > 0]
-            return f"depth {d.min():.2f}-{d.max():.2f}m, " if len(d) else "depth (no valid pixels), "
+            return f"depth {float(d.min()):.2f}-{float(d.max()):.2f}m, " if len(d) else "depth (no valid pixels), "
         if self.semantic_mask is not None:
             return ""
 

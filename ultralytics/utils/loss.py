@@ -1238,6 +1238,7 @@ class v8DepthLoss:
         # bilinear blends invalid zeros into valid sparse GT (e.g. LiDAR), and nearest
         # decimation discards supervision; pred is dense/smooth so interpolating it is safe.
         if gt_depth.shape[-2:] != pred_depth.shape[-2:]:
+            # align_corners=True matches the head's internal fusion convention (baked into trained weights)
             pred_depth = F.interpolate(pred_depth, size=gt_depth.shape[-2:], mode="bilinear", align_corners=True)
 
         # Valid mask: positive depth values within the head's representable range

@@ -372,9 +372,13 @@ class DepthDataset(YOLODataset):
                 self._depth_stack = None
 
     def _depth_path_for(self, im_file: str) -> str:
-        """Map an image path to its companion depth .npy path (images/ → depth/, like img2label_paths)."""
-        sa, sb = f"{os.sep}images{os.sep}", f"{os.sep}depth{os.sep}"
-        return str(Path(sb.join(im_file.rsplit(sa, 1))).with_suffix(".npy"))
+        """Map an image path to its companion depth .npy path (last 'images' path component → 'depth')."""
+        parts = list(Path(im_file).parts)
+        for i in range(len(parts) - 1, -1, -1):
+            if parts[i] == "images":
+                parts[i] = "depth"
+                break
+        return str(Path(*parts).with_suffix(".npy"))
 
     @property
     def cache_path(self) -> Path:

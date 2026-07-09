@@ -861,6 +861,8 @@ class Depth(nn.Module):
         # Bottom-up fusion: start from coarsest (P5), upsample and add finer levels
         out = feats[-1]
         for i in range(self.nl - 2, -1, -1):
+            # align_corners=True is baked into the released depth weights (they were trained with it);
+            # changing it would silently shift published-model outputs.
             out = F.interpolate(out, size=feats[i].shape[2:], mode="bilinear", align_corners=True)
             out = out + feats[i]
             out = self.refine[i](out)
@@ -872,13 +874,15 @@ class Depth(nn.Module):
         else:
             depth = out * self.max_depth  # meters
 
+        if self.training:
+            # Loss always supervises the raw head output (calibration is refit on raw after training),
+            # and the .item() host-device sync below stays off the training hot path.
+            return {"depth": depth}
+
         # Scale-only calibration (identity unless fitted; getattr: pre-cal_a checkpoints)
         a, b = getattr(self, "cal_a", None), getattr(self, "cal_b", None)
         if a is not None and (a.item() != 1.0 or b.item() != 0.0):
             depth = torch.exp(a * torch.log(depth.clamp(min=1e-3)) + b)
-
-        if self.training:
-            return {"depth": depth}
         # Upsample P2-resolution output to the input size. scale_factor (not a fixed size) keeps the
         # exported graph valid for dynamic input shapes; align_corners=False matches SemanticSegment.
         if self.export and self.format != "coreml":

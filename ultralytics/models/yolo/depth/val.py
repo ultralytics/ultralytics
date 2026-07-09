@@ -82,6 +82,7 @@ class DepthValidator(DetectionValidator):
         if pred_depth.ndim == 3:
             pred_depth = pred_depth.unsqueeze(1)
         if pred_depth.shape[-2:] != gt_depth.shape[-2:]:
+            # align_corners=True matches the loss upsample, so val scores the same alignment training optimized
             pred_depth = F.interpolate(
                 pred_depth.float(), size=gt_depth.shape[-2:], mode="bilinear", align_corners=True
             )

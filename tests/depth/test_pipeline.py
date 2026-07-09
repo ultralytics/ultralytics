@@ -71,6 +71,18 @@ def test_depth_dataset_load_resize_does_not_blend_sparse_gt(tmp_path):
     assert blended == 0, f"{blended} spurious blended depth pixels from interpolation at load"
 
 
+def test_depth_path_mapping_handles_relative_and_absolute():
+    """The images→depth rewrite works on relative, absolute, and nested paths (last 'images' wins)."""
+    import os
+
+    ds = DepthDataset.__new__(DepthDataset)
+    assert ds._depth_path_for(os.path.join("images", "train", "x.jpg")) == os.path.join("depth", "train", "x.npy")
+    absolute = os.path.join(os.sep, "data", "images", "val", "y.png")
+    assert ds._depth_path_for(absolute) == os.path.join(os.sep, "data", "depth", "val", "y.npy")
+    nested = os.path.join("images", "sub", "images", "z.jpg")
+    assert ds._depth_path_for(nested) == os.path.join("images", "sub", "depth", "z.npy")
+
+
 def _build_transforms(augment, **overrides):
     ds = DepthDataset.__new__(DepthDataset)
     ds.augment = augment

@@ -56,7 +56,7 @@ Here is a short description of each format and when to reach for it. For the ful
 - **[DEEPX](../integrations/deepx.md)** (`deepx`): Targets DEEPX NPU hardware with INT8 quantization for embedded edge inference.
 - **[Qualcomm QNN](../integrations/qnn.md)** (`qnn`): On-device inference on Snapdragon Hexagon NPU, Adreno GPU, and CPU through the Qualcomm AI stack.
 
-For an additional edge target, the [Hailo integration](../integrations/hailo.md) compiles YOLO detection models to Hailo HEF. It is not a direct `model.export()` target: detection models are exported to ONNX first, then compiled to HEF with the external Hailo Dataflow Compiler for Hailo-8, Hailo-8L, and Hailo-15 accelerators.
+Additional edge targets follow an ONNX-first workflow rather than a direct `model.export()` format. The [Hailo integration](../integrations/hailo.md) compiles YOLO detection models to Hailo HEF with the external Hailo Dataflow Compiler for Hailo-8, Hailo-8L, and Hailo-15 accelerators. The [Ambarella integration](../integrations/ambarella.md) compiles ONNX exports to the AmbaPB format with Ambarella's CVFlow toolchain for CVflow® SoCs such as the CV72, optionally using SpongeTorch compression-aware training.
 
 ## Deployment Options Compared
 

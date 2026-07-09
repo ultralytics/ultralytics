@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Discover Ultralytics integrations for streamlined ML workflows, dataset management, optimized model training, and robust deployment solutions.
-keywords: Ultralytics, machine learning, ML workflows, dataset management, model training, model deployment, Roboflow, ClearML, Comet ML, DVC, MLFlow, Ultralytics Platform, Neptune, Ray Tune, TensorBoard, Weights & Biases, Amazon SageMaker, Paperspace Gradient, Google Colab, Neural Magic, Gradio, TorchScript, ONNX, OpenVINO, TensorRT, CoreML, TF SavedModel, TF GraphDef, TFLite Edge TPU, LiteRT, PaddlePaddle, NCNN, Hailo, Hailo HEF, Qualcomm QNN, RKNN, edge AI
+keywords: Ultralytics, machine learning, ML workflows, dataset management, model training, model deployment, Roboflow, ClearML, Comet ML, DVC, MLFlow, Ultralytics Platform, Neptune, Ray Tune, TensorBoard, Weights & Biases, Amazon SageMaker, Paperspace Gradient, Google Colab, Neural Magic, Gradio, TorchScript, ONNX, OpenVINO, TensorRT, CoreML, TF SavedModel, TF GraphDef, TFLite Edge TPU, LiteRT, PaddlePaddle, NCNN, Hailo, Hailo HEF, Ambarella, CVflow, Qualcomm QNN, RKNN, edge AI
 ---
 
 # Ultralytics Integrations
@@ -60,6 +60,8 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 - [Weights & Biases (W&B)](weights-biases.md): Monitor experiments, visualize metrics, and foster reproducibility and collaboration on Ultralytics projects.
 
 ## Deployment Integrations
+
+- [Ambarella](ambarella.md): Train, compress, and export Ultralytics YOLO models for Ambarella CVflow® SoCs such as the CV72 using SpongeTorch compression-aware training and the offline CVFlow toolchain.
 
 - [Axelera](axelera.md): Explore Metis accelerators and the Voyager SDK for running Ultralytics models with efficient edge inference.
 

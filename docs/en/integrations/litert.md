@@ -209,6 +209,35 @@ After exporting your Ultralytics YOLO model to LiteRT, you can deploy it across 
 - **[LiteRT.js overview](https://developers.google.com/edge/litert/web)**: Run the same `.tflite` model directly in the browser with WebGPU/WASM acceleration, eliminating server-side computation and keeping data on the user's device.
 - **[End-to-End Examples](https://github.com/google-ai-edge/litert)**: Practical examples and tutorials for implementing LiteRT across mobile, edge, and web.
 
+### Intel NPU Acceleration
+
+On Intel Core Ultra laptops, the **same** `.tflite` model can run on the built-in [NPU](https://www.ultralytics.com/glossary/neural-processing-unit-npu) through the [LiteRT OpenVINO dispatch](https://developers.google.com/edge/litert/next/intel), with no re-export required — the compiler plugin partitions and compiles the graph just-in-time at load. Supported hardware: Intel Core Ultra Series 2 (Lunar Lake) and Series 3 (Panther Lake).
+
+The NPU path needs the LiteRT OpenVINO SDK, installed from the pre-release index:
+
+```bash
+pip install --pre \
+    --extra-index-url https://storage.openvinotoolkit.org/simple/wheels/nightly \
+    ai-edge-litert-nightly ai-edge-litert-sdk-intel-nightly
+```
+
+!!! note "The nightly wheels replace the stable `ai-edge-litert`"
+
+    Install them in a dedicated environment. Ultralytics only auto-installs them on an explicit `device="intel:npu"` request; auto-detection uses the NPU only when the SDK is already present.
+
+Then run inference — Ultralytics **auto-detects** the NPU on Intel hardware, or you can select it explicitly:
+
+```python
+from ultralytics import YOLO
+
+model = YOLO("yolo26n.tflite")  # exported with format="litert"
+
+model.predict("https://ultralytics.com/images/bus.jpg", device="intel:npu")  # explicit NPU
+model.predict("https://ultralytics.com/images/bus.jpg")  # auto-uses the NPU when available
+```
+
+If no NPU (or the SDK) is present, inference transparently falls back to the CPU interpreter. For Intel CPU/GPU deployment of non-`.tflite` models, use the dedicated [OpenVINO export](openvino.md) instead.
+
 ## Summary
 
 In this guide, we covered how to export Ultralytics YOLO models to the LiteRT format. By consolidating mobile/edge (formerly TFLite) and browser (formerly TF.js) deployment into a single `.tflite` model, LiteRT makes your YOLO models faster, smaller, and portable across virtually every on-device target.

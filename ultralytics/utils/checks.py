@@ -115,8 +115,8 @@ def get_distribution_name(import_name: str) -> str:
 def parse_version(version="0.0.0") -> tuple:
     """Convert a version string to a tuple of integers from its release segments, ignoring prefixes and suffixes.
 
-    Not PEP 440: pre-release/dev/post/local suffixes are dropped, so '1.0rc1', '1.0.post1', and '1.0+cu118' all
-    compare equal to '1.0'. Use the `packaging` library where exact pre-release ordering matters.
+    Not PEP 440: pre-release/dev/post/local suffixes are dropped, so '1.0rc1', '1.0.post1', and '1.0+cu118' all compare
+    equal to '1.0'. Use the `packaging` library where exact pre-release ordering matters.
 
     Args:
         version (str): Version string, i.e. '2.0.1+cpu', '4.13.0.92', or 'v2.1'

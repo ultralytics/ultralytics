@@ -350,7 +350,10 @@ def classify(trial, rc, stderr):
         return "env-skip", None, None
     if any(marker in stderr for marker in NETWORK_MARKERS):
         return "flake", None, None
-    if trial.get("mutated") and exc in EXPECTED_TYPES and frames and frames[-1].startswith(EXPECTED_MODULES):
+    if trial.get("mutated") and (
+        exc == "NotImplementedError"  # "'X' is not supported" rejections are intentional wherever they are raised
+        or (exc in EXPECTED_TYPES and frames and frames[-1].startswith(EXPECTED_MODULES))
+    ):
         return "expected", None, None  # clean validation errors are expected only for trials we actually mutated
     sig, human = make_signature(exc, frames, trial["mode"], trial["task"])
     return "bug-candidate", sig, human

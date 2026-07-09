@@ -3,25 +3,13 @@
 # This software may be used and distributed in accordance with
 # the terms of the DINOv3 License Agreement.
 
-from typing import Callable, List, Optional
+from typing import Callable, Optional
 
 import torch.nn.functional as F
 from torch import Tensor, nn
 
-from ..utils import cat_keep_shapes, uncat_with_shapes
 
-
-class ListForwardMixin(object):
-    def forward(self, x: Tensor):
-        raise NotImplementedError
-
-    def forward_list(self, x_list: List[Tensor]) -> List[Tensor]:
-        x_flat, shapes, num_tokens = cat_keep_shapes(x_list)
-        x_flat = self.forward(x_flat)
-        return uncat_with_shapes(x_flat, shapes, num_tokens)
-
-
-class Mlp(nn.Module, ListForwardMixin):
+class Mlp(nn.Module):
     def __init__(
         self,
         in_features: int,
@@ -49,7 +37,7 @@ class Mlp(nn.Module, ListForwardMixin):
         return x
 
 
-class SwiGLUFFN(nn.Module, ListForwardMixin):
+class SwiGLUFFN(nn.Module):
     def __init__(
         self,
         in_features: int,

@@ -885,7 +885,7 @@ class Depth(nn.Module):
             depth = torch.exp(a * torch.log(depth.clamp(min=1e-3)) + b)
         # Upsample P2-resolution output to the input size. scale_factor (not a fixed size) keeps the
         # exported graph valid for dynamic input shapes; align_corners=False matches SemanticSegment.
-        if self.export and self.format != "coreml":
+        if self.export:
             depth = F.interpolate(depth, scale_factor=4.0, mode="bilinear", align_corners=False)
         return depth
 

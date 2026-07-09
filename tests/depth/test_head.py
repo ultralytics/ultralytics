@@ -25,13 +25,13 @@ def test_depth_head_training_returns_dict():
     assert isinstance(out, dict) and "depth" in out
 
 
-def test_depth_head_export_coreml_no_upsample():
-    """Test depth head export coreml no upsample."""
+def test_depth_head_export_coreml_upsamples():
+    """Test depth head export coreml upsampling."""
     head = Depth(c_mid=32, ch=(32, 64, 128)).eval()
     feats = [torch.randn(1, 32, 32, 32), torch.randn(1, 64, 16, 16), torch.randn(1, 128, 8, 8)]
     head.export, head.format = True, "coreml"
     out = head(feats)
-    assert out.shape[-2:] != (256, 256)  # coreml export must NOT interpolate
+    assert out.shape[-2:] == (256, 256)
 
 
 def test_depth_head_no_dead_parameters():

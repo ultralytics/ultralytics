@@ -834,6 +834,7 @@ def test_utils_checks():
     assert checks.parse_version("2.0.1+cu118") == (2, 0, 1)  # numeric local/build suffixes are not release segments
     assert checks.parse_version("1.0.0rc1") == (1, 0, 0)
     assert checks.parse_version("v2.1") == (2, 1, 0)
+    assert checks.parse_version("1.0rc1") == (1, 0, 0)  # documented non-PEP-440 tradeoff: pre-releases equal the final
     assert checks.check_version("10.3.0.30", ">=10.3.0,<10.4.0")  # Jetson TensorRT family pin
     assert checks.check_version("6.0", ">=6.0.0")  # 2-component current must satisfy 3-component requirement
     assert checks.check_version("2.1", "==2.1.0")

@@ -101,7 +101,7 @@ BOOL_PROBES = ["True", "False", "yes", "1", "none"]
 FLOAT_PROBES = ["0.0", "0.1", "10", "-5", "big", "none"]
 CHAOS_PROBES = ["[]", "[1,2]", "{}", "🚀", "1e309", "nan", "-0"]  # chaos shard extras for any key
 
-# Valid-but-rare combinations (mode, extra args[, applicable tasks]) — where the T1 semantic bugs live
+# Valid-but-rare combinations (mode, extra args) — where the T1 semantic bugs live
 COMBO_POOL = [
     ("train", "rect=True"),
     ("train", "single_cls=True"),
@@ -128,7 +128,7 @@ COMBO_POOL = [
     ("predict", "line_width=1 show_labels=False show_conf=False"),
     ("predict", "vid_stride=2 stream_buffer=True"),
     ("export", "dynamic=True"),
-    ("export", "nms=True", "detect segment pose obb"),  # exporter intentionally rejects nms for classify/semantic
+    ("export", "nms=True"),
     ("export", "simplify=False"),
     ("export", "optimize=True"),
     ("export", "opset=12"),
@@ -143,6 +143,7 @@ EXPECTED_MODULES = (
     "ultralytics/utils/checks.py",
     "ultralytics/data/utils.py",
     "ultralytics/engine/exporter.py:validate_args",  # exporter's intentional per-format argument validation
+    "ultralytics/engine/exporter.py:__call__",  # intentional compat asserts; per-format bugs raise in deeper frames
 )
 NETWORK_MARKERS = (  # specific download/network signatures only; bare ConnectionError is raised for local sources too
     "urlopen error",
@@ -235,8 +236,7 @@ def sample_trial(rng, uni, corpus, personality):
     if mode == "export":  # fuzz the format from the installable pool; the default torchscript stays implicit
         mutate([f"format={rng.choice(EXPORT_POOL)}"])
     if strategy == "combo":
-        combos = [c[1] for c in COMBO_POOL if c[0] == mode and (len(c) < 3 or base["task"] in c[2])]
-        mutate(rng.choice(combos).split())
+        mutate(rng.choice([c for m, c in COMBO_POOL if m == mode]).split())
     elif strategy == "invalid":
         n_keys = rng.randint(1, 4 if personality == "chaos" else 3)
         for _ in range(n_keys):

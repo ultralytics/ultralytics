@@ -69,6 +69,16 @@ class DepthTrainer(yolo.detect.DetectionTrainer):
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
 
+    def progress_string(self):
+        """Progress string with an Images column: depth has no instances, so that slot shows the batch image count."""
+        return ("\n" + "%11s" * (4 + len(self.loss_names))) % (
+            "Epoch",
+            "GPU_mem",
+            *self.loss_names,
+            "Images",
+            "Size",
+        )
+
     def plot_training_samples(self, batch, ni):
         """Plot training samples as RGB | GT-depth panels (consistent with val_batch plots).
 

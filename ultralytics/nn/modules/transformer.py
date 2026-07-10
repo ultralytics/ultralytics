@@ -795,8 +795,9 @@ class DeformableTransformerDecoder(nn.Module):
         last_refined_bbox = None
         refer_bbox = refer_bbox.sigmoid()
 
-        # Pre-compute round-robin schedule. Layer i -> order[i % n_levels], smallest first.
-        # Per-layer scale stays fixed across num_layers changes (e.g. early-exit at inference).
+        # Round-robin schedule: layer i attends to level order[i % n_levels], smallest first.
+        # Assignments repeat every n_levels layers, so num_layers can vary at inference (e.g.
+        # early-exit) without shifting per-layer assignments.
         if self.efficient_ms:
             n_levels = len(shapes)
             level_sizes = [h * w for h, w in shapes]

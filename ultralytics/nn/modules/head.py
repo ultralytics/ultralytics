@@ -1771,8 +1771,9 @@ class RTDETRDecoderV2(RTDETRDecoder):
 
     When `efficient_ms=False`, behavior is parameter-equivalent and bit-identical to `RTDETRDecoder` for the same
     constructor arguments — only the class identity differs. When `efficient_ms=True`, the decoder is rebuilt with
-    `n_levels=1` cross-attention and the loop schedules each layer to a single feature level via round-robin (small to
-    large, last layer pinned to the largest level).
+    `n_levels=1` cross-attention and the loop schedules each layer to a single feature level via round-robin (smallest
+    scale first). Assignments repeat every `n_levels` layers, so `num_layers` can vary at inference without shifting
+    per-layer assignments.
 
     Examples:
         Parent-equivalent inference wiring (used by yolo27l-detr.yaml)

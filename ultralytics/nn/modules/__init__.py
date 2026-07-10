@@ -63,12 +63,12 @@ from .block import (
     SCDown,
     TorchVision,
 )
-from .dinov3_blocks import (
+from .vit_blocks import (
     ConvSyncBN,
-    DinoV3Block,
-    DinoV3Downsample2x,
-    DinoV3PatchStem,
-    DinoV3TokenToSpatial,
+    VITBlock,
+    VITDownsample2x,
+    VITPatchStem,
+    VITTokenToSpatial,
 )
 from .conv import (
     CBAM,
@@ -163,10 +163,6 @@ __all__ = (
     "ConvSyncBN",
     "ConvTranspose",
     "DEIMDINOv3STAs",
-    "DinoV3Block",
-    "DinoV3Downsample2x",
-    "DinoV3PatchStem",
-    "DinoV3TokenToSpatial",
     "DWConv",
     "DWConvTranspose2d",
     "DeformableTransformerDecoder",
@@ -206,6 +202,10 @@ __all__ = (
     "TransformerBlock",
     "TransformerEncoderLayer",
     "TransformerLayer",
+    "VITBlock",
+    "VITDownsample2x",
+    "VITPatchStem",
+    "VITTokenToSpatial",
     "WorldDetect",
     "YOLOEDetect",
     "YOLOESegment",

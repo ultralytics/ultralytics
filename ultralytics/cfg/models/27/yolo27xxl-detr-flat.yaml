@@ -1,13 +1,13 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# YOLO27xxl-DETR-Flat: layer-by-layer YAML for the DINOv3-ViT-B/16 + STA backbone. Same
-# architecture as yolo27xxl-detr.yaml, but the ViT depth, SPM stem, and per-scale fusion are
-# expanded into individual YAML rows (mirroring the yolo26-ultravit-cls.yaml convention).
-# Task: detect. See yolo27x-detr-flat.yaml for the ViT-S/16-plus variant and the same
-# structural template.
+# YOLO27xxl-DETR-Flat: layer-by-layer YAML for a ViT (embed_dim=768, depth=12, heads=12,
+# ffn_ratio=4, mlp FFN) plus Spatial Prior Module backbone. Same architecture as
+# yolo27xxl-detr.yaml, but the ViT depth, SPM stem, and per-scale fusion are expressed as
+# individual YAML rows. Task: detect. See yolo27x-detr-flat.yaml for the smaller variant
+# and the same structural template.
 #
-# Requires the four new modules in ultralytics/nn/modules/dinov3_blocks.py:
-#   DinoV3PatchStem, DinoV3Block, DinoV3TokenToSpatial, DinoV3Downsample2x.
+# Requires the four ViT modules in ultralytics/nn/modules/vit_blocks.py:
+#   VITPatchStem, VITBlock, VITTokenToSpatial, VITDownsample2x.
 
 nc: 80 # number of classes
 
@@ -16,27 +16,27 @@ backbone:
   # Row 0 captures the raw input so the SPM branch can reach it via `from: 0`.
   - [-1, 1, nn.Identity, []] # 0 input capture
 
-  # ── ViT branch (dinov3_vitb16: embed_dim=768, depth=12, heads=12, ffn_ratio=4, mlp) ──
-  # Patch embed + prepend 1 cls + 4 storage tokens. Emits (B, 1+4+HW, 768).
-  - [-1, 1, DinoV3PatchStem, [768, 16, 4]] # 1
+  # ── ViT branch (embed_dim=768, depth=12, heads=12, ffn_ratio=4, mlp FFN) ──
+  # Patch embed + prepend 1 cls + 4 register tokens. Emits (B, 1+4+HW, 768).
+  - [-1, 1, VITPatchStem, [768, 16, 4]] # 1
 
   # 12 transformer blocks, chunked to expose the interaction outputs at 5/8/11.
-  - [-1, 5, DinoV3Block, [12, 4, "mlp", 1.0e-5]] # 2 vit blocks 0..4
-  - [-1, 1, DinoV3Block, [12, 4, "mlp", 1.0e-5]] # 3 vit block 5   (snapshot → P3)
-  - [-1, 2, DinoV3Block, [12, 4, "mlp", 1.0e-5]] # 4 vit blocks 6..7
-  - [-1, 1, DinoV3Block, [12, 4, "mlp", 1.0e-5]] # 5 vit block 8   (snapshot → P4)
-  - [-1, 2, DinoV3Block, [12, 4, "mlp", 1.0e-5]] # 6 vit blocks 9..10
-  - [-1, 1, DinoV3Block, [12, 4, "mlp", 1.0e-5]] # 7 vit block 11  (snapshot → P5)
+  - [-1, 5, VITBlock, [12, 4, "mlp", 1.0e-5]] # 2 vit blocks 0..4
+  - [-1, 1, VITBlock, [12, 4, "mlp", 1.0e-5]] # 3 vit block 5   (snapshot → P3)
+  - [-1, 2, VITBlock, [12, 4, "mlp", 1.0e-5]] # 4 vit blocks 6..7
+  - [-1, 1, VITBlock, [12, 4, "mlp", 1.0e-5]] # 5 vit block 8   (snapshot → P4)
+  - [-1, 2, VITBlock, [12, 4, "mlp", 1.0e-5]] # 6 vit blocks 9..10
+  - [-1, 1, VITBlock, [12, 4, "mlp", 1.0e-5]] # 7 vit block 11  (snapshot → P5)
 
-  # Tokens → spatial: LayerNorm + strip cls/storage + reshape to (B, 768, H/16, W/16).
-  - [3, 1, DinoV3TokenToSpatial, [4]] # 8  vit /16 from block 5
-  - [5, 1, DinoV3TokenToSpatial, [4]] # 9  vit /16 from block 8
-  - [7, 1, DinoV3TokenToSpatial, [4]] # 10 vit /16 from block 11
+  # Tokens → spatial: LayerNorm + strip cls/registers + reshape to (B, 768, H/16, W/16).
+  - [3, 1, VITTokenToSpatial, [4]] # 8  vit /16 from block 5
+  - [5, 1, VITTokenToSpatial, [4]] # 9  vit /16 from block 8
+  - [7, 1, VITTokenToSpatial, [4]] # 10 vit /16 from block 11
 
   # Pyramid resample: ViT is uniformly at /16, produce /8, /16, /32.
   - [8, 1, nn.Upsample, [None, 2, "bilinear"]] # 11 vit_P3 at /8
   # row 9 stays at /16 → vit_P4
-  - [10, 1, DinoV3Downsample2x, []] # 12 vit_P5 at /32
+  - [10, 1, VITDownsample2x, []] # 12 vit_P5 at /32
 
   # ── SPM branch (Spatial Prior Module v2, conv_inplane=96) ──
   - [0, 1, ConvSyncBN, [96, 3, 2, None, 1, 1, False]] # 13 stem conv (act=False)

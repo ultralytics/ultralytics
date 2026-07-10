@@ -20,7 +20,7 @@ The [COCO-Pose](https://cocodataset.org/#keypoints-2017) dataset adapts COCO (Co
 - COCO-Pose builds upon the [COCO Keypoints 2017](http://presentations.cocodataset.org/COCO17-Keypoints-Overview.pdf) challenge, which labels 1,710,498 individual keypoints across 156,165 annotated people.
 - Each person is annotated with 17 keypoints — nose, eyes, ears, shoulders, elbows, wrists, hips, knees, and ankles — stored as `(x, y, visibility)` triplets.
 - Like COCO, it provides standardized evaluation metrics, including Object Keypoint Similarity (OKS) for pose estimation tasks, making it suitable for comparing model performance.
-- **Download size**: ~20.1 GB.
+- **Download size**: ~27 GB on first use — the download script fetches `train2017.zip`, `val2017.zip`, and `test2017.zip` together, even though the test archive is only needed for the optional test-dev2017 submission split.
 
 ## Dataset Structure
 

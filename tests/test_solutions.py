@@ -205,6 +205,31 @@ def test_solution(name, solution_class, needs_frame_count, video_key, kwargs_upd
     )
 
 
+@pytest.mark.parametrize(
+    "region",
+    [[(220, 140), (420, 140), (420, 340), (220, 340)], [(20, 360), (1080, 360), (1080, 400), (20, 400)]],
+    ids=["square-zone", "wide-band"],
+)
+@pytest.mark.parametrize(
+    "step, expected",
+    [((8, 0), "IN"), ((-8, 0), "OUT"), ((0, 8), "IN"), ((0, -8), "OUT")],
+    ids=["left-to-right", "right-to-left", "downward", "upward"],
+)
+def test_object_counter_polygon_direction(region, step, expected):
+    """Polygonal counting must follow the object's motion axis regardless of the region's aspect ratio."""
+    counter = solutions.ObjectCounter(region=region, show=False)
+    counter.initialize_region()
+    cx = sum(p[0] for p in region) / 4
+    cy = sum(p[1] for p in region) / 4
+    track = [(cx + (i - 5) * step[0], cy + (i - 5) * step[1]) for i in range(6)]  # ends at region center
+    counter.track_history[1] = track
+    counter.count_objects(track[-1], 1, track[-2], 0)
+    counts = {"IN": counter.in_count, "OUT": counter.out_count}
+    assert counts[expected] == 1 and counts["IN" if expected == "OUT" else "OUT"] == 0, (
+        f"step {step} into {region} expected {expected}, got in={counter.in_count} out={counter.out_count}"
+    )
+
+
 def test_left_click_selection():
     """Test distance calculation left click selection functionality."""
     dc = solutions.DistanceCalculation()

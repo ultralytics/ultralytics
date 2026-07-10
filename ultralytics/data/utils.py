@@ -450,7 +450,7 @@ def convert_ndjson_to_yolo_if_needed(data: str | Path) -> str | Path:
     return data
 
 
-def check_det_dataset(dataset: str, autodownload: bool = True) -> dict[str, Any]:
+def check_det_dataset(dataset: str, autodownload: bool = True, split: str = "") -> dict[str, Any]:
     """Download, verify, and/or unzip a dataset if not found locally.
 
     This function checks the availability of a specified dataset, and if not found, it has the option to download and
@@ -460,6 +460,7 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> dict[str, Any]
     Args:
         dataset (str): Path to the dataset or dataset descriptor (like a YAML file).
         autodownload (bool, optional): Whether to automatically download the dataset if not found.
+        split (str, optional): Dataset split required by the caller.
 
     Returns:
         (dict[str, Any]): Parsed dataset information and paths.
@@ -491,6 +492,8 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> dict[str, Any]
                 )
             LOGGER.warning("renaming data YAML 'validation' key to 'val' to match YOLO format.")
             data["val"] = data.pop("validation")  # replace 'validation' key with 'val' key
+    if split and not data.get(split):
+        raise FileNotFoundError(f"{dataset} '{split}:' images not found ❌")
     if "names" not in data and "nc" not in data:
         raise SyntaxError(emojis(f"{dataset} key missing ❌.\n either 'names' or 'nc' are required in all data YAMLs."))
     if "nc" in data and not isinstance(data["nc"], int):

@@ -667,6 +667,8 @@ def test_data_utils(tmp_path):
     autosplit(tmp_path / "coco8/images")
     assert any((tmp_path / "coco8").glob("autosplit_*.txt"))
     assert zip_directory(images_dir).is_file()
+    with pytest.raises(FileNotFoundError, match="'test:' images not found"):
+        check_det_dataset("coco8.yaml", split="test")
 
 
 def test_safe_download_unzips_local_path_archive(tmp_path):

@@ -80,6 +80,8 @@ The example showcases the variety and complexity of the images in the Tiger-Pose
 
 ## Inference Example
 
+After training, load your best checkpoint and run inference on new images or video — see the [Prediction](../../modes/predict.md) page for the full list of arguments.
+
 !!! example "Inference Example"
 
     === "Python"
@@ -109,7 +111,7 @@ The dataset has been released under the [AGPL-3.0 License](https://github.com/ul
 
 ### What is the Ultralytics Tiger-Pose dataset used for?
 
-The Ultralytics Tiger-Pose dataset is designed for pose estimation tasks, consisting of 263 images sourced from a [YouTube video](https://www.youtube.com/watch?v=MIBAT6BGE6U). The dataset is divided into 210 training images and 53 validation images. It is particularly useful for testing, training, and refining pose estimation algorithms using [Ultralytics Platform](https://platform.ultralytics.com/) and [YOLO26](https://github.com/ultralytics/ultralytics).
+The Ultralytics Tiger-Pose dataset is designed for pose estimation tasks, consisting of 263 images sourced from a [YouTube video](https://www.youtube.com/watch?v=MIBAT6BGE6U). The dataset is divided into 210 training images and 53 validation images, making it well-suited for testing, training, and refining pose estimation algorithms.
 
 ### How do I train a YOLO26 model on the Tiger-Pose dataset?
 
@@ -117,7 +119,7 @@ Load `yolo26n-pose.pt` and call `model.train(data="tiger-pose.yaml", epochs=100,
 
 ### What configurations does the `tiger-pose.yaml` file include?
 
-The `tiger-pose.yaml` file is used to specify the configuration details of the Tiger-Pose dataset. It includes crucial data such as file paths and class definitions. To see the exact configuration, you can check out the [Ultralytics Tiger-Pose Dataset Configuration File](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/tiger-pose.yaml).
+The `tiger-pose.yaml` file defines the dataset path, train/val image directories, a single class (`tiger`), and `kpt_shape: [12, 2]` — 12 keypoints per instance with no visibility flag. See the [Ultralytics Tiger-Pose Dataset Configuration File](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/tiger-pose.yaml) for the exact configuration.
 
 ### How can I run inference using a YOLO26 model trained on the Tiger-Pose dataset?
 
@@ -125,4 +127,4 @@ Load your trained checkpoint (e.g., `path/to/best.pt`) and call `model.predict(s
 
 ### What are the benefits of using the Tiger-Pose dataset for pose estimation?
 
-With 263 total images (210 train / 53 val), 1 class, 12 keypoints per instance, and a ~49.8 MB download, Tiger-Pose is small enough to manage quickly yet diverse enough to sanity-check a pose training pipeline and identify errors before working with larger datasets, using tools like [Ultralytics Platform](https://platform.ultralytics.com/) and [YOLO26](https://github.com/ultralytics/ultralytics).
+With 263 total images (210 train / 53 val), 1 class, 12 keypoints per instance, and a ~49.8 MB download, Tiger-Pose is small enough to manage quickly yet diverse enough to sanity-check a pose training pipeline and identify errors before working with larger datasets.

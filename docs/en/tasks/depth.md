@@ -25,11 +25,11 @@ YOLO26 depth models pretrained on a broad multi-dataset mix (indoor + outdoor, ~
 
 | Model                                                                                            | size<br><sup>(pixels)</sup> | delta1<sup>NYU</sup> | abs_rel<sup>NYU</sup> | rmse<sup>NYU</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
 | ------------------------------------------------------------------------------------------------ | --------------------------- | -------------------- | --------------------- | ------------------ | ------------------------ | ----------------------- |
-| [YOLO26n-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n-depth.pt) | 640                         | 0.882                | 0.110                 | 0.419              | 6.4                      | 32.6                    |
-| [YOLO26s-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26s-depth.pt) | 640                         | 0.855                | 0.122                 | 0.445              | 13.2                     | 47.1                    |
-| [YOLO26m-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26m-depth.pt) | 640                         | 0.919                | 0.090                 | 0.370              | 23.3                     | 90.8                    |
-| [YOLO26l-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26l-depth.pt) | 640                         | 0.927                | 0.086                 | 0.354              | 27.7                     | 109.2                   |
-| [YOLO26x-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26x-depth.pt) | 640                         | 0.923                | 0.087                 | 0.390              | 57.0                     | 209.7                   |
+| [YOLO26n-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n-depth.pt) | 640                         | 0.882                | 0.109                 | 0.414              | 6.4                      | 32.6                    |
+| [YOLO26s-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26s-depth.pt) | 640                         | 0.896                | 0.104                 | 0.399              | 13.2                     | 47.1                    |
+| [YOLO26m-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26m-depth.pt) | 640                         | 0.921                | 0.089                 | 0.364              | 23.3                     | 90.8                    |
+| [YOLO26l-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26l-depth.pt) | 640                         | 0.930                | 0.083                 | 0.351              | 27.7                     | 109.2                   |
+| [YOLO26x-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26x-depth.pt) | 640                         | 0.933                | 0.080                 | 0.344              | 57.0                     | 209.7                   |
 
 - **delta1<sup>NYU</sup>** is the percentage of pixels where the predicted depth is within a factor of 1.25 of the ground truth, on the NYU Depth V2 Eigen test split (654 images) with multi-scale + horizontal-flip TTA and log-least-squares alignment.
 - **abs_rel** is the mean absolute relative error between predicted and ground-truth depth values.
@@ -73,12 +73,12 @@ The collapse lands exactly at the cap boundary. The `log` head has no such bound
 
 | Benchmark   | Range | YOLO26x-depth (`log`) | prior bounded release |
 | ----------- | ----- | --------------------: | --------------------: |
-| NYU Eigen   | 10 m  |                 0.923 |                 0.934 |
+| NYU Eigen   | 10 m  |                 0.933 |                 0.934 |
 | iBims-1     | 10 m  |                 0.961 |                 0.945 |
-| ETH3D       | ~60 m |                 0.953 |                 0.931 |
-| Make3D      | ~70 m |                 0.299 |                 0.296 |
-| KITTI Eigen | 80 m  |             **0.939** |                 0.891 |
-| **Mean**    | —     |             **0.815** |                 0.799 |
+| ETH3D       | ~60 m |                 0.959 |                 0.931 |
+| Make3D      | ~70 m |                 0.302 |                 0.296 |
+| KITTI Eigen | 80 m  |             **0.942** |                 0.891 |
+| **Mean**    | —     |             **0.819** |                 0.799 |
 
 The largest gains are on the longer-range outdoor benchmarks (KITTI, ETH3D) — exactly where a fixed 10 m ceiling hurts most — while indoor performance is retained.
 
@@ -175,6 +175,8 @@ The depth head separates **shape** (relative scene structure) from **scale** (ab
 Calibration needs ground-truth depth to fit against, so it runs on a labeled split — it is not something that can happen at blind inference. Use it when relative depth is already good and only the scale/range is wrong; if the relative structure itself needs to change for your domain, [fine-tune](#fine-tuning-on-your-own-data) instead.
 
 Training does this for you automatically: after `model.train(...)` completes, the best and last checkpoints are calibrated on the validation set so they output metric-scaled depth out of the box. Disable with `auto_calibrate=False`.
+
+The released `yolo26*-depth.pt` checkpoints ship with this calibration already baked in, fit on the pretraining validation mix. It is a single global scale across all domains, so for the most accurate absolute depth on a specific camera or scene type, run `model.calibrate()` on a small labeled split from your own data — it replaces the baked-in fit.
 
 ### Dataset format
 

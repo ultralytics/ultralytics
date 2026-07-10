@@ -18,6 +18,52 @@ from ultralytics.utils import LOGGER, ops, TryExcept
 from ultralytics.utils.plotting import Annotator, colors
 
 
+# def heatmap_to_boxes(
+#     heatmap: "torch.Tensor",
+#     thresh: float = 0.5,
+#     max_det: int = 9,
+#     min_area: int = 64,
+# ) -> "torch.Tensor":
+#     """Threshold a spatial heatmap and fit bounding boxes via connected components.
+#
+#     Args:
+#         heatmap (Tensor): (H, W) float tensor, values in [0, 1].
+#         thresh (float): Score threshold for foreground pixels.
+#         max_det (int): Maximum number of boxes returned.
+#         min_area (int): Minimum connected-component area (pixels) to keep.
+#
+#     Returns:
+#         Tensor: Shape (N, 6) — ``[x1, y1, x2, y2, score, class_id=0]``,
+#             sorted by score descending.  Returns empty (0, 6) when no
+#             component passes the threshold or min_area filter.
+#     """
+#     import cv2
+#     import numpy as np
+#     import torch
+#
+#     h_np = heatmap.detach().cpu().float().numpy()
+#     mask = (h_np >= thresh).astype(np.uint8)
+#     if mask.sum() == 0:
+#         return torch.zeros((0, 6), dtype=torch.float32)
+#     num, labels, stats, _ = cv2.connectedComponentsWithStats(mask, connectivity=8)
+#     H, W = h_np.shape
+#     boxes = []
+#     for lbl in range(1, num):  # skip background label 0
+#         x, y, w, h, area = stats[lbl]
+#         if area < min_area:
+#             continue
+#         # Skip components that touch the image border (resize / padding artifacts).
+#         if x == 0 or y == 0 or (x + w) >= W or (y + h) >= H:
+#             continue
+#         score = float(h_np[labels == lbl].mean())
+#         boxes.append([float(x), float(y), float(x + w), float(y + h), score, 0.0])
+#     if not boxes:
+#         return torch.zeros((0, 6), dtype=torch.float32)
+#     t = torch.tensor(boxes, dtype=torch.float32)
+#     order = t[:, 4].argsort(descending=True)[:max_det]
+#     return t[order]
+
+
 class YOLOAnomalyValidator(DetectionValidator):
     """Anomaly validator.
 
@@ -52,6 +98,21 @@ class YOLOAnomalyValidator(DetectionValidator):
         Returns:
             (list[dict[str, torch.Tensor]]): Processed predictions after NMS.
         """
+        # heatmap = preds[0][1]
+        # h, w = heatmap.shape[2], heatmap.shape[3]
+        # outputs = []
+        # for i in range(len(heatmap)):
+        #     boxes = heatmap_to_boxes(heatmap[i].squeeze())
+        #     outputs.append(boxes.to(preds[0][0].device))
+        # return [
+        #     {
+        #         "bboxes": ops.scale_boxes((h, w), x[:, :4], (self.args.imgsz, self.args.imgsz)),
+        #         "conf": x[:, 4],
+        #         "cls": x[:, 5],
+        #         "extra": x[:, 6:],
+        #     }
+        #     for x in outputs
+        # ]
         preds = super().postprocess(preds[0])
         return preds
 

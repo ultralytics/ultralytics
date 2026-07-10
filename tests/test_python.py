@@ -21,6 +21,7 @@ from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
 from ultralytics import RTDETR, YOLO
 from ultralytics.data.build import build_dataloader, load_inference_source
 from ultralytics.data.utils import check_det_dataset
+from ultralytics.nn.tasks import parse_model
 from ultralytics.utils import (
     ARM64,
     ASSETS,
@@ -79,6 +80,22 @@ def test_dataloader_empty_dataset_uses_dataloader_validation():
     """Test empty datasets fail through DataLoader validation instead of worker-cap math."""
     with pytest.raises(ValueError, match="positive integer"):
         build_dataloader([], batch=4, workers=2)
+
+
+def test_parse_model_with_ahfin_multi_input():
+    """Parse a model config where AHFIN receives multiple feature-map inputs from earlier layers."""
+    d = {
+        "backbone": [
+            [-1, 1, "Conv", [3, 16, 3, 2]],
+            [-1, 1, "Conv", [16, 32, 3, 2]],
+            [[0, 1], 1, "AHFIN", [32]],
+        ],
+        "head": [],
+        "nc": 80,
+    }
+    model, _ = parse_model(d, ch=3, verbose=False)
+    assert isinstance(model, torch.nn.Module)
+    assert model[2].__class__.__name__ == "AHFIN"
 
 
 def skip_rpi_semantic():

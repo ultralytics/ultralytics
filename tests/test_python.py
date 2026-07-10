@@ -671,7 +671,7 @@ def test_data_utils(tmp_path):
         check_det_dataset("coco8.yaml", split="test")
     data_yaml = tmp_path / "coco8.yaml"
     data_yaml.write_text("train: images/train\nval: images/val\ntest: images/test\nnames: [item]\n")
-    with pytest.raises(FileNotFoundError, match="images/test"):
+    with pytest.raises(FileNotFoundError, match="images not found"):
         check_det_dataset(data_yaml, split="test")
 
 

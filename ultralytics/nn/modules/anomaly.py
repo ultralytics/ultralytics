@@ -87,7 +87,7 @@ class HeatmapNeckFusion(nn.Module):
         """
         super().__init__()
         self.heatmap_processor = HeatmapProcessor(mask_size=mask_size) if use_processor else None
-        # self.bias_fusion = HeatmapBiasFusion(num_scales=1, c_mid=c_mid)
+        self.bias_fusion = HeatmapBiasFusion(num_scales=1, c_mid=c_mid)
 
     def forward(
         self, x: torch.Tensor, prior: torch.Tensor | None = None, keep: torch.Tensor | None = None
@@ -111,8 +111,8 @@ class HeatmapNeckFusion(nn.Module):
             prior = F.interpolate(prior, size=(h, w), mode="bilinear", align_corners=False)
 
         processed = self.heatmap_processor(prior) if self.heatmap_processor is not None else prior
-        # bias = self.bias_fusion(processed, scale_idx=0)
-        bias = processed
+        bias = self.bias_fusion(processed, scale_idx=0)
+        # bias = processed
         if keep is not None:
             bias = torch.where(keep.view(-1, 1, 1, 1), bias, 1.0)
         return x * bias, bias

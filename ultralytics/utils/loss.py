@@ -336,15 +336,18 @@ class RankLoss(nn.Module):
     """RS-style ranking loss (pairwise surrogate) for the one2one classification head.
 
     Two terms, both active only where the ranking is violated, so healthy positives contribute ~0 loss. This
-    re-ranks rather than globally inflating scores: it lifts lagging positives, keeps suppressing runner-up negatives,
-    and leaves already-correct rankings untouched, preserving accuracy and the NMS-free property.
+    re-ranks rather than globally inflating scores: it lifts lagging positives and leaves already-correct rankings
+    untouched, preserving accuracy and the NMS-free property.
 
-    - rank: pushes each positive (TP) above the same-class negatives — directly rescues the "dead tail".
-    - sort: orders positives by IoU so higher-IoU anchors score higher.
+    - rank: in logit space, pushes each positive above its class's top-K negatives gathered across the whole batch.
+      Negatives are detached (only positives are lifted; suppressing negatives is left to the cls loss), and the
+      loss is normalized by the total positive count so each class contributes ∝ its instance count.
+    - sort: per (image, class), in probability space, orders positives by IoU so higher-IoU anchors score higher
+      (cross-image ranking is meaningless, so this term stays within an image).
 
     Attributes:
         tau (float): Temperature; smaller approaches hard ranking.
-        k_neg (int): Per image/class, keep only the top-K highest-scoring negatives (the real ranking threats).
+        k_neg (int): Per class (across the batch), keep only the top-K highest-scoring negatives (the real threats).
         w_sort (float): Weight of the sort term relative to the rank term.
     """
 
@@ -366,46 +369,45 @@ class RankLoss(nn.Module):
         Returns:
             (torch.Tensor): Scalar ranking loss (0 when no positive/negative pairs exist).
         """
-        scores = pred_logits.sigmoid()
-        _, N, nc = scores.shape
+        B, N, nc = pred_logits.shape
         pos = target_scores > 0
         pos_idx = pos.nonzero(as_tuple=False)  # (M, 3): image, anchor, class
         if pos_idx.numel() == 0:
             return pred_logits.new_zeros((), dtype=torch.float32)
         b_id, c_id = pos_idx[:, 0], pos_idx[:, 2]
-        # fp32 for AMP-safe pairwise math (scores are fp16 under autocast, target_scores fp32); big tensors stay fp16
-        s_pos, iou = scores[pos].float(), target_scores[pos].float()  # (M,)
-        M = s_pos.numel()
+        # fp32 for AMP-safe pairwise math (logits are fp16 under autocast)
+        z_pos, iou = pred_logits[pos].float(), target_scores[pos].float()  # (M,) positive logits (grad), IoU targets
+        M = z_pos.numel()
 
-        # Compact (image, class) group ids and per-group positive counts
-        _, inv = torch.unique(b_id * nc + c_id, return_inverse=True)  # inv: (M,) group id in [0, G)
-        counts = torch.bincount(inv)  # (G,)
-        G = counts.numel()
-
-        # rank: each positive vs its group's top-K same-class negatives (one batched topk over all groups)
-        k = min(self.k_neg, N)
-        neg_topk = scores.masked_fill(pos, float("-inf")).topk(k, dim=1).values  # (B, k, nc)
-        neg = neg_topk[b_id, :, c_id].float()  # (M, k) each positive's hard negatives
+        # rank: each positive vs its class's whole-batch top-K negatives (batch-global per class, logit space).
+        # Negatives are detached, so the loss only lifts positives — suppressing negatives is left to the cls loss.
+        k = min(self.k_neg, B * N)
+        z_by_cls = pred_logits.permute(2, 0, 1).reshape(nc, B * N).detach()  # (nc, B*N) all anchors of a class
+        pos_by_cls = pos.permute(2, 0, 1).reshape(nc, B * N)
+        neg = z_by_cls.masked_fill(pos_by_cls, float("-inf")).topk(k, dim=1).values[c_id].float()  # (M, k) detached
         kcnt = neg.isfinite().sum(1).clamp(min=1)  # valid negatives per positive
-        per_pos = F.softplus((neg - s_pos[:, None]) / self.tau).sum(1) / kcnt  # (M,) mean over negatives
-        group_rank = per_pos.new_zeros(G).scatter_add_(0, inv, per_pos) / counts  # (G,) per-group mean
-        total_rank = group_rank.sum()
+        per_pos = F.softplus((neg - z_pos[:, None]) / self.tau).sum(1) / kcnt  # (M,) mean over K negatives
+        total_rank = per_pos.sum() / M  # normalize by total positives → each class contributes ∝ its instance count
 
-        # sort: within a group, higher-IoU positives must score higher (padded (G, Pmax, Pmax), P==1 groups give 0)
-        total_sort = s_pos.new_zeros(())
+        # sort: within an (image, class) group, higher-IoU positives must score higher (per-image, probability space)
+        total_sort = z_pos.new_zeros(())
+        _, inv = torch.unique(b_id * nc + c_id, return_inverse=True)  # (image, class) group ids
+        counts = torch.bincount(inv)
+        G = counts.numel()
         if counts.max() > 1:
+            s_pos = z_pos.sigmoid()  # sort stays in probability space (baseline behavior)
             pmax = int(counts.max())
             order = torch.argsort(inv, stable=True)  # cluster positives by group
             inv_s = inv[order]
-            within = torch.arange(M, device=scores.device) - (counts.cumsum(0) - counts)[inv_s]
+            within = torch.arange(M, device=pred_logits.device) - (counts.cumsum(0) - counts)[inv_s]
             pad_s, pad_i = s_pos.new_zeros(G, pmax), s_pos.new_zeros(G, pmax)
-            valid = torch.zeros(G, pmax, dtype=torch.bool, device=scores.device)
+            valid = torch.zeros(G, pmax, dtype=torch.bool, device=pred_logits.device)
             pad_s[inv_s, within], pad_i[inv_s, within], valid[inv_s, within] = s_pos[order], iou[order], True
             di = (pad_s[:, None, :] - pad_s[:, :, None]) / self.tau  # [g, i, k] = s_k - s_i
             wi = (pad_i[:, :, None] - pad_i[:, None, :]).clamp(min=0) * (valid[:, :, None] & valid[:, None, :])
-            total_sort = ((wi * F.softplus(di)).sum((1, 2)) / wi.sum((1, 2)).clamp(min=1)).sum()
+            total_sort = ((wi * F.softplus(di)).sum((1, 2)) / wi.sum((1, 2)).clamp(min=1)).sum() / G
 
-        return (total_rank + self.w_sort * total_sort) / G
+        return total_rank + self.w_sort * total_sort
 
 
 class v8DetectionLoss:

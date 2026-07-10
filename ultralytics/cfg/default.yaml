@@ -118,7 +118,7 @@ o24: False # (bool) aux head uses o2o-style 1:1 matching on 4x-duplicated GTs in
 distill: 0.0 # (float) online cls distillation gain: pull one2one cls toward one2many at one2one positives (0=off)
 rank: 0.0 # (float) one2one ranking-loss gain (RS-style pairwise surrogate, folded into the one2one cls loss; 0=off)
 rank_tau: 0.5 # (float) when rank>0, ranking-loss temperature (smaller = closer to hard ranking)
-rank_k_neg: 100 # (int) when rank>0, per image/class keep only the top-K highest-scoring negatives
+rank_k_neg: 100 # (int) when rank>0, per class (across the batch) keep only the top-K highest-scoring negatives
 rank_w_sort: 0.5 # (float) when rank>0, weight of the IoU-sort term relative to the rank term
 dfl: 1.5 # (float) distribution focal loss gain
 l1_feat: False # (bool) when reg_max=1, compute box L1 loss in feature-map (grid) scale instead of image-normalized

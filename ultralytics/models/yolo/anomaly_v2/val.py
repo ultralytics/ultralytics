@@ -490,6 +490,7 @@ def run_mvtec_ood_eval(
     save_dir: str | Path | None = None,
     epoch: int | None = None,
     e2e: bool | None = None,
+    conf: float | None = None,
     iou: float | None = None,
     heatmap_norm: str | None = None,
     heatmap_smooth_kernel: int | None = None,
@@ -562,6 +563,8 @@ def run_mvtec_ood_eval(
                 }
                 if e2e is not None:
                     overrides["end2end"] = e2e
+                if conf is not None:
+                    overrides["conf"] = conf
                 if iou is not None:
                     overrides["iou"] = iou
                 if max_det is not None:

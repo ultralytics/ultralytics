@@ -81,8 +81,8 @@ def main():
     ap.add_argument(
         "--n-train", type=int, default=0, help="vis mode: also sample N training images per category (default 0)"
     )
-    ap.add_argument("--conf", type=float, default=0.1)
-    ap.add_argument("--iou", type=float, default=0.1, help="NMS IoU")
+    ap.add_argument("--conf", type=float, default=0.25)
+    ap.add_argument("--iou", type=float, default=0.2, help="NMS IoU")
     ap.add_argument("--e2e", action="store_true", help="end-to-end NMS-free head")
     ap.add_argument(
         "--fit-cfg",
@@ -275,6 +275,7 @@ def main():
                 workers=args.workers,
                 device=device,
                 e2e=args.e2e,
+                conf=args.conf,
                 iou=args.iou,
                 bank_size=bank_size,
                 heatmap_norm=infer.get("heat_norm", "none"),

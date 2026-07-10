@@ -230,6 +230,21 @@ def test_object_counter_polygon_direction(region, step, expected):
     )
 
 
+def test_object_counter_polygon_reversal_at_entry():
+    """A track that backs away, turns around and then enters must be counted by its crossing motion."""
+    counter = solutions.ObjectCounter(region=[(220, 140), (420, 140), (420, 340), (220, 340)], show=False)
+    counter.initialize_region()
+    # outside the right edge moving away (rightward), then reversing and entering leftward
+    xs = [428, 436, 444, 436, 428, 420, 412]  # turn at x=444, entry at x=412
+    track = [(float(x), 240.0) for x in xs]
+    for i in range(2, len(track) + 1):
+        counter.track_history[1] = track[:i]
+        counter.count_objects(track[i - 1], 1, track[i - 2], 0)
+    assert (counter.in_count, counter.out_count) == (0, 1), (
+        f"entered moving left, expected OUT, got in={counter.in_count} out={counter.out_count}"
+    )
+
+
 def test_left_click_selection():
     """Test distance calculation left click selection functionality."""
     dc = solutions.DistanceCalculation()

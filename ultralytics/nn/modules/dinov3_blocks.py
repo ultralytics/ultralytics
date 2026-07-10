@@ -27,8 +27,24 @@ import torch.nn.functional as F
 from torch import Tensor
 
 from ultralytics.nn.backbones.dinov3.layers import LayerScale, Mlp, SelfAttention, SwiGLUFFN
+from ultralytics.nn.modules.conv import Conv
 
-__all__ = ["DinoV3PatchStem", "DinoV3Block", "DinoV3TokenToSpatial", "DinoV3Downsample2x"]
+__all__ = ["DinoV3PatchStem", "DinoV3Block", "DinoV3TokenToSpatial", "DinoV3Downsample2x", "ConvSyncBN"]
+
+
+class ConvSyncBN(Conv):
+    """Ultralytics Conv wrapper whose BN is nn.SyncBatchNorm instead of nn.BatchNorm2d.
+
+    Purpose: match the source DEIMDINOv3STAs SPM/fusion convention (SyncBN with eps=1e-5, momentum=0.1) and slip past
+    `initialize_weights`, which mutates only modules whose `type(m) is nn.BatchNorm2d`. SyncBatchNorm is a sibling
+    class, not a subclass, so the strict-identity check skips it and the eps stays at 1e-5. State_dict keys are
+    identical to nn.BatchNorm2d, so existing flat checkpoints load without any remap.
+    """
+
+    def __init__(self, c1, c2, k=1, s=1, p=None, g=1, d=1, act=True):
+        """Build a Conv but replace its BatchNorm2d with a SyncBatchNorm of the same width."""
+        super().__init__(c1, c2, k, s, p, g, d, act)
+        self.bn = nn.SyncBatchNorm(c2)
 
 
 _FFN_MAP = {

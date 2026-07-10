@@ -51,22 +51,22 @@ backbone:
   - [10, 1, DinoV3Downsample2x, []] # 12 vit_P5 at /32
 
   # ── SPM branch (Spatial Prior Module v2, from raw input at row 0) ──
-  - [0, 1, Conv, [64, 3, 2, None, 1, 1, False]] # 13 stem conv (act=False)
+  - [0, 1, ConvSyncBN, [64, 3, 2, None, 1, 1, False]] # 13 stem conv (act=False)
   - [-1, 1, nn.GELU, []] # 14
   - [-1, 1, nn.MaxPool2d, [3, 2, 1]] # 15 stem pool → /4
-  - [-1, 1, Conv, [128, 3, 2, None, 1, 1, False]] # 16 c2 → /8
+  - [-1, 1, ConvSyncBN, [128, 3, 2, None, 1, 1, False]] # 16 c2 → /8
   - [-1, 1, nn.GELU, []] # 17
-  - [-1, 1, Conv, [256, 3, 2, None, 1, 1, False]] # 18 c3 → /16
+  - [-1, 1, ConvSyncBN, [256, 3, 2, None, 1, 1, False]] # 18 c3 → /16
   - [-1, 1, nn.GELU, []] # 19
-  - [-1, 1, Conv, [256, 3, 2, None, 1, 1, False]] # 20 c4 → /32
+  - [-1, 1, ConvSyncBN, [256, 3, 2, None, 1, 1, False]] # 20 c4 → /32
 
   # ── Fusion (Concat ViT + SPM per scale, then 1×1 Conv+BN) ──
   - [[11, 16], 1, Concat, [1]] # 21 concat vit_P3 + spm_c2
-  - [-1, 1, Conv, [256, 1, 1, None, 1, 1, False]] # 22 P3 out
+  - [-1, 1, ConvSyncBN, [256, 1, 1, None, 1, 1, False]] # 22 P3 out
   - [[9, 18], 1, Concat, [1]] # 23 concat vit_P4 + spm_c3
-  - [-1, 1, Conv, [256, 1, 1, None, 1, 1, False]] # 24 P4 out
+  - [-1, 1, ConvSyncBN, [256, 1, 1, None, 1, 1, False]] # 24 P4 out
   - [[12, 20], 1, Concat, [1]] # 25 concat vit_P5 + spm_c4
-  - [-1, 1, Conv, [256, 1, 1, None, 1, 1, False]] # 26 P5 out
+  - [-1, 1, ConvSyncBN, [256, 1, 1, None, 1, 1, False]] # 26 P5 out
 
 head:
   # HybridEncoder head: input_proj + AIFI + FPN/PAN. hidden_dim=256.

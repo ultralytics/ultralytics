@@ -64,6 +64,7 @@ from .block import (
     TorchVision,
 )
 from .dinov3_blocks import (
+    ConvSyncBN,
     DinoV3Block,
     DinoV3Downsample2x,
     DinoV3PatchStem,
@@ -159,6 +160,7 @@ __all__ = (
     "ContrastiveHead",
     "Conv",
     "Conv2",
+    "ConvSyncBN",
     "ConvTranspose",
     "DEIMDINOv3STAs",
     "DinoV3Block",

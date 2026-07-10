@@ -44,6 +44,7 @@ from ultralytics.nn.modules import (
     Concat,
     Conv,
     Conv2,
+    ConvSyncBN,
     ConvTranspose,
     Detect,
     DWConv,
@@ -2027,6 +2028,7 @@ def parse_model(d, ch, verbose=True):
         {
             Classify,
             Conv,
+            ConvSyncBN,
             ConvTranspose,
             GhostConv,
             Bottleneck,

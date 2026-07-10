@@ -1,10 +1,10 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# YOLO27xxl-DETR-Flat: layer-by-layer YAML for the DINOv3-ViT-B/16 + STA backbone. Same
-# architecture as yolo27xxl-detr.yaml, but the ViT depth, SPM stem, and per-scale fusion are
-# expanded into individual YAML rows (mirroring the yolo26-ultravit-cls.yaml convention).
-# Task: detect. See yolo27x-detr-flat.yaml for the ViT-S/16-plus variant and the same
-# structural template.
+# YOLO27xxl-DETR-ndl6-Flat: layer-by-layer YAML for the DINOv3-ViT-B/16 + STA backbone
+# with a 6-decoder-layer DeimDecoder head. Same architecture as yolo27xxl-detr-ndl6.yaml,
+# but the ViT depth, SPM stem, and per-scale fusion are expanded into individual YAML rows
+# (mirroring the yolo26-ultravit-cls.yaml convention). Only differs from yolo27xxl-detr-flat.yaml
+# in the final DeimDecoder row (ndl=6 vs ndl=4). Task: detect.
 #
 # Requires the four new modules in ultralytics/nn/modules/dinov3_blocks.py:
 #   DinoV3PatchStem, DinoV3Block, DinoV3TokenToSpatial, DinoV3Downsample2x.
@@ -82,8 +82,8 @@ head:
   - [[-1, 29], 1, Add, []] # 43
   - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]] # 44 F5, pan_blocks.1
 
-  # DeimDecoder (defaults explicit; ndl=4 for xxl, vs ndl=6 for x). Args:
+  # DeimDecoder (defaults explicit; ndl=6). Args:
   # [nc, hd, nq, ndp, nh, ndl, d_ffn, dropout, act, eval_idx, nd, label_noise_ratio, box_noise_scale,
   #  learnt_init_query, query_select_method, reg_max, reg_scale, layer_scale, mlp_act,
   #  o2m_topk_mode, use_gateway, share_bbox_head, share_score_head]
-  - [[38, 41, 44], 1, DeimDecoder, [nc, 256, 300, [3, 6, 3], 8, 4, 2048, 0.0, "silu", -1, 100, 0.5, 1.0, False, "default", 32, 4.0, 1.0, "silu", "unshared", True, False, False]] # 45
+  - [[38, 41, 44], 1, DeimDecoder, [nc, 256, 300, [3, 6, 3], 8, 6, 2048, 0.0, "silu", -1, 100, 0.5, 1.0, False, "default", 32, 4.0, 1.0, "silu", "unshared", True, False, False]] # 45

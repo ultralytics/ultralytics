@@ -63,7 +63,6 @@ Install [this Ultralytics fork](https://github.com/Ambarella-Inc/ultralytics/tre
         cd ultralytics
         git checkout amba_v8.4.46
         pip install -e .
-
         ```
 
 Ambarella toolchain package names and installation methods depend on the SDK release. Follow its documentation to install SpongeTorch, `cvflowbackend`, and the CVflow compiler.

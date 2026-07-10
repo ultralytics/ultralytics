@@ -1,7 +1,7 @@
 ---
 title: Dog-Pose Estimation Dataset
 comments: true
-description: Explore the Ultralytics Dog-Pose dataset: 6,773 training and 1,703 validation images with 24 keypoints per dog, for canine pose estimation with YOLO26.
+description: "Explore the Ultralytics Dog-Pose dataset: 6,773 training and 1,703 validation images with 24 keypoints per dog, for canine pose estimation with YOLO26."
 keywords: Dog-Pose, Ultralytics, pose estimation dataset, YOLO26, machine learning, computer vision, training data
 ---
 

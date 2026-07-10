@@ -1,7 +1,7 @@
 ---
 title: COCO8-Pose Estimation Dataset
 comments: true
-description: Explore the Ultralytics COCO8-Pose dataset: 8 images (4 train / 4 val) with 17 keypoints per person, for pose estimation sanity checks with YOLO26.
+description: "Explore the Ultralytics COCO8-Pose dataset: 8 images (4 train / 4 val) using a 17-keypoint schema, for pose estimation sanity checks with YOLO26."
 keywords: COCO8-Pose, Ultralytics, pose estimation dataset, keypoint detection, YOLO26, machine learning, computer vision, training data
 ---
 
@@ -9,12 +9,12 @@ keywords: COCO8-Pose, Ultralytics, pose estimation dataset, keypoint detection, 
 
 ## Introduction
 
-[Ultralytics](https://www.ultralytics.com/) COCO8-Pose is a small but versatile pose estimation dataset composed of the first 8 images of the COCO train 2017 set (4 for training, 4 for validation), annotated with 17 keypoints for the single "person" class. This dataset is ideal for testing and debugging [pose estimation](../../tasks/pose.md) models, or for experimenting with new keypoint-detection approaches. With 8 images, it is small enough to be easily manageable, yet diverse enough to test training pipelines for errors and act as a sanity check before training on the full [COCO-Pose](coco.md) dataset.
+[Ultralytics](https://www.ultralytics.com/) COCO8-Pose is a small but versatile pose estimation dataset composed of the first 8 images of the COCO train 2017 set (4 for training, 4 for validation), using a 17-keypoint schema for the single "person" class. This dataset is ideal for testing and debugging [pose estimation](../../tasks/pose.md) models, or for experimenting with new keypoint-detection approaches. With 8 images, it is small enough to be easily manageable, yet diverse enough to test training pipelines for errors and act as a sanity check before training on the full [COCO-Pose](coco.md) dataset.
 
 ## Dataset Structure
 
 - **Total images**: 8 (4 train / 4 val).
-- **Classes**: 1 (person) with 17 keypoints per annotation.
+- **Classes**: 1 (person) with 17 keypoint types per annotation.
 - **Download size**: ~1 MB.
 - **Recommended directory layout**: `datasets/coco8-pose/images/{train,val}` and `datasets/coco8-pose/labels/{train,val}` with YOLO-format keypoints stored as `.txt` files.
 
@@ -96,7 +96,7 @@ Load `yolo26n-pose.pt` and call `model.train(data="coco8-pose.yaml", epochs=100,
 
 ### What are the benefits of using the COCO8-Pose dataset?
 
-With 8 total images (4 train / 4 val), 1 class, 17 keypoints per instance, and a ~1 MB download, COCO8-Pose is small enough to manage in seconds yet diverse enough to sanity-check a pose training pipeline for errors before scaling up to the full [COCO-Pose](coco.md) dataset. For more about its features and usage, see the [Dataset Introduction](#introduction) section.
+With 8 total images (4 train / 4 val), 1 class, a 17-keypoint schema, and a ~1 MB download, COCO8-Pose is small enough to manage in seconds yet diverse enough to sanity-check a pose training pipeline for errors before scaling up to the full [COCO-Pose](coco.md) dataset. For more about its features and usage, see the [Dataset Introduction](#introduction) section.
 
 ### How does mosaicing benefit the YOLO26 training process using the COCO8-Pose dataset?
 

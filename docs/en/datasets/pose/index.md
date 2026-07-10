@@ -85,7 +85,7 @@ This section outlines the datasets that are compatible with Ultralytics YOLO for
 - **Description**: COCO-Pose is a large-scale human pose estimation dataset covering the COCO 2017 images that contain keypoint-annotated people.
 - **Label Format**: Same as Ultralytics YOLO format as described above, with keypoints for human poses.
 - **Number of Classes**: 1 (person).
-- **Keypoints**: 17 keypoints including nose, eyes, ears, shoulders, elbows, wrists, hips, knees, and ankles, each with a visibility dimension.
+- **Keypoints**: 17 keypoint types including nose, eyes, ears, shoulders, elbows, wrists, hips, knees, and ankles, each with a visibility dimension.
 - **Usage**: Suitable for training human pose estimation models.
 - **Additional Notes**: The dataset builds on the [COCO Keypoints 2017](http://presentations.cocodataset.org/COCO17-Keypoints-Overview.pdf) challenge: 58,945 images annotated with 156,165 people.
 - [Read more about COCO-Pose](coco.md)
@@ -95,7 +95,7 @@ This section outlines the datasets that are compatible with Ultralytics YOLO for
 - **Description**: [Ultralytics](https://www.ultralytics.com/) COCO8-Pose is a small, but versatile pose estimation dataset composed of the first 8 images of the COCO train 2017 set, 4 for training and 4 for validation.
 - **Label Format**: Same as Ultralytics YOLO format as described above, with keypoints for human poses.
 - **Number of Classes**: 1 (person).
-- **Keypoints**: 17 keypoints including nose, eyes, ears, shoulders, elbows, wrists, hips, knees, and ankles, each with a visibility dimension.
+- **Keypoints**: 17 keypoint types including nose, eyes, ears, shoulders, elbows, wrists, hips, knees, and ankles, each with a visibility dimension.
 - **Usage**: Suitable for testing and debugging pose estimation models, or for experimenting with new keypoint-detection approaches.
 - **Additional Notes**: COCO8-Pose is ideal for sanity checks and [CI checks](../../help/CI.md).
 - [Read more about COCO8-Pose](coco8-pose.md)

@@ -1,7 +1,7 @@
 ---
 title: Hand Keypoints Pose Estimation Dataset
 comments: true
-description: Explore the Ultralytics Hand Keypoints dataset: 26,768 hand images with 21 keypoints each, for gesture recognition and pose estimation with YOLO26.
+description: "Explore the Ultralytics Hand Keypoints dataset: 26,768 hand images with 21 keypoints each, for gesture recognition and pose estimation with YOLO26."
 keywords: Hand KeyPoints, pose estimation, dataset, keypoints, MediaPipe, YOLO, deep learning, computer vision
 ---
 

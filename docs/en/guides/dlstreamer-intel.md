@@ -48,13 +48,13 @@ DL Streamer uses models in [OpenVINO™ IR format](https://docs.openvino.ai/2026
 ```bash
 mkdir -p ~/intel/dlstreamer_demo && cd ~/intel/dlstreamer_demo
 python3 -m venv .dls-venv && source .dls-venv/bin/activate
-pip install openvino==2026.2.0 ultralytics==8.4.57
+pip install openvino==2026.2.0 ultralytics==8.4.92
 ```
 
 2.  Download PyTorch YOLO26s model from Ultralytics, converts it to OpenVINO™ IR format, and generates INT8 precision variant.
 
 ```bash
-yolo export model=yolo26s.pt format=openvino dynamic=True int8=True data=coco128.yaml
+yolo export model=yolo26s.pt format=openvino dynamic=True quantize=8 data=coco128.yaml
 ```
 
 Model should be downloaded to `~/intel/dlstreamer_demo/yolo26s_int8_openvino_model` folder.
@@ -68,10 +68,10 @@ DL Streamer supports FP32, FP16, and INT8 precision models. Each requires a sepa
 yolo export model=yolo26s.pt format=openvino dynamic=True
 
 # FP16 (recommended for GPU inference, good accuracy/performance balance)
-yolo export model=yolo26s.pt format=openvino dynamic=True half=True
+yolo export model=yolo26s.pt format=openvino dynamic=True quantize=16
 
 # INT8 (maximum performance, requires calibration dataset)
-yolo export model=yolo26s.pt format=openvino dynamic=True int8=True data=coco128.yaml
+yolo export model=yolo26s.pt format=openvino dynamic=True quantize=8 data=coco128.yaml
 ```
 
 The examples below use the INT8 model exported in the [preparation step](#yolo26-model-preparation). To use FP32 or FP16 models, replace the model path accordingly (e.g. `yolo26s_openvino_model/yolo26s.xml`).

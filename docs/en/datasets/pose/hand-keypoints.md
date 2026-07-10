@@ -9,7 +9,7 @@ keywords: Hand KeyPoints, pose estimation, dataset, keypoints, MediaPipe, YOLO, 
 
 ## Introduction
 
-The hand-keypoints dataset contains 26,768 images of hands annotated with keypoints, making it suitable for training models like Ultralytics YOLO for pose estimation tasks. The annotations were generated using the Google MediaPipe library, ensuring high [accuracy](https://www.ultralytics.com/glossary/accuracy) and consistency, and the dataset is compatible with [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) formats.
+The [Ultralytics](https://www.ultralytics.com/) Hand Keypoints dataset contains 26,768 images of hands annotated with 21 keypoints each, generated using the [Google MediaPipe](https://developers.google.com/mediapipe/solutions/vision/hand_landmarker) library for high [accuracy](https://www.ultralytics.com/glossary/accuracy) and consistency. It's compatible with [Ultralytics YOLO26](../../models/yolo26.md) formats for training pose estimation models.
 
 <p align="center">
   <br>
@@ -22,13 +22,11 @@ The hand-keypoints dataset contains 26,768 images of hands annotated with keypoi
   <strong>Watch:</strong> Hand Keypoints Estimation with Ultralytics YOLO | Human Hand Pose Estimation Tutorial
 </p>
 
-## Hand Landmarks
+## Keypoints
 
 ![Hand keypoints landmark diagram with 21 points](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/hand_landmarks.jpg)
 
-## Keypoints
-
-The dataset includes keypoints for hand detection. The keypoints are annotated as follows:
+Each hand is annotated with 21 keypoints as follows:
 
 1. Wrist
 2. Thumb (4 points)
@@ -37,28 +35,25 @@ The dataset includes keypoints for hand detection. The keypoints are annotated a
 5. Ring finger (4 points)
 6. Little finger (4 points)
 
-Each hand has a total of 21 keypoints.
-
-## Key Features
-
-- **Large Dataset**: 26,768 images with hand keypoint annotations.
-- **YOLO26 Compatibility**: Labels ship in YOLO keypoint format and are ready for use with YOLO26 models.
-- **21 Keypoints**: Detailed hand pose representation spanning the wrist and four points per finger.
-
 ## Dataset Structure
 
-The hand keypoint dataset is split into two subsets:
-
-1. **Train**: This subset contains 18,776 images from the hand keypoints dataset, annotated for training pose estimation models.
-2. **Val**: This subset contains 7,992 images that can be used for validation purposes during model training.
-
+- **Total images**: 26,768 (18,776 train / 7,992 val).
+- **Classes**: 1 (hand).
+- **Keypoints**: 21 per hand with `(x, y, visibility)` triplets.
 - **Download size**: ~369 MB.
 
 For a custom gesture vocabulary beyond generic hand landmarks, [Ultralytics Platform](https://platform.ultralytics.com/) handles labeling and training your own dataset from the browser.
 
 ## Applications
 
-Hand keypoints can be used for [gesture recognition](https://www.ultralytics.com/blog/enhancing-hand-keypoints-estimation-with-ultralytics-yolo11), [AR/VR controls](../../tasks/pose.md), robotic manipulation, and hand movement analysis in healthcare. They can also be applied in animation for motion capture and biometric authentication systems for security. The detailed tracking of finger positions enables precise interaction with virtual objects and touchless control interfaces.
+Hand keypoints support several real-world applications:
+
+- **[Gesture recognition](https://www.ultralytics.com/blog/enhancing-hand-keypoints-estimation-with-ultralytics-yolo11)**: human-computer interaction and touchless control interfaces.
+- **[AR/VR controls](../../tasks/pose.md)**: precise interaction with virtual objects.
+- **Robotic manipulation**: fine-grained control of robotic hands.
+- **Healthcare**: hand movement analysis for medical diagnostics.
+- **Animation**: motion capture for realistic hand movement.
+- **Biometric authentication**: security systems based on hand geometry.
 
 ## Dataset YAML
 
@@ -97,7 +92,7 @@ To train a YOLO26n-pose model on the Hand Keypoints dataset for 100 [epochs](htt
 
 ## Sample Images and Annotations
 
-The Hand keypoints dataset contains a diverse set of images with human hands annotated with keypoints. Here are some examples of images from the dataset, along with their corresponding annotations:
+The Hand Keypoints dataset contains a diverse set of images with human hands annotated with keypoints. Here are some examples of images from the dataset, along with their corresponding annotations:
 
 ![Hand keypoints pose estimation dataset sample](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/human-hand-pose.avif)
 
@@ -107,7 +102,7 @@ The example showcases the variety and complexity of the images in the Hand Keypo
 
 ## Citations and Acknowledgments
 
-If you use the hand-keypoints dataset in your research or development work, please acknowledge the following sources:
+If you use the Hand Keypoints dataset in your research or development work, please acknowledge the following sources:
 
 !!! quote ""
 
@@ -129,28 +124,13 @@ We would also like to acknowledge the creator of this dataset, [Rion Dsilva](htt
 
 Load `yolo26n-pose.pt` and call `model.train(data="hand-keypoints.yaml", epochs=100, imgsz=640)` — see the [Train Example](#usage) above for the full Python and CLI snippets, and the model [Training](../../modes/train.md) page for a comprehensive list of arguments.
 
-### What are the key features of the Hand Keypoints dataset?
+### What are the benefits of using the Hand Keypoints dataset?
 
-The Hand Keypoints dataset is designed for advanced [pose estimation](index.md) tasks and includes several key features:
-
-- **Large Dataset**: Contains 26,768 images with hand keypoint annotations.
-- **YOLO26 Compatibility**: Ready for use with YOLO26 models.
-- **21 Keypoints**: Detailed hand pose representation, including wrist and finger joints.
-
-For more details, you can explore the [Hand Keypoints Dataset](#introduction) section.
+With 26,768 annotated images and 21 keypoints per hand generated via Google MediaPipe, the Hand Keypoints dataset gives pose estimation models the scale and annotation accuracy needed for [advanced pose estimation](../../tasks/pose.md) tasks. See the [Keypoints](#keypoints) section for the full landmark breakdown.
 
 ### What applications can benefit from using the Hand Keypoints dataset?
 
-The Hand Keypoints dataset can be applied in various fields, including:
-
-- **Gesture Recognition**: Enhancing human-computer interaction.
-- **AR/VR Controls**: Improving user experience in augmented and virtual reality.
-- **Robotic Manipulation**: Enabling precise control of robotic hands.
-- **Healthcare**: Analyzing hand movements for medical diagnostics.
-- **Animation**: Capturing motion for realistic animations.
-- **Biometric Authentication**: Enhancing security systems.
-
-For more information, refer to the [Applications](#applications) section.
+Hand Keypoints supports gesture recognition, AR/VR controls, robotic manipulation, healthcare movement analysis, animation, and biometric authentication — see the [Applications](#applications) section for details on each.
 
 ### How is the Hand Keypoints dataset structured?
 

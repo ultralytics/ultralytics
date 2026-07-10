@@ -74,8 +74,8 @@ class Profile(contextlib.ContextDecorator):
 def segment2box(segment: np.ndarray, width: int = 640, height: int = 640) -> np.ndarray:
     """Convert segment coordinates to bounding box coordinates.
 
-    Converts a single segment label to a box label by finding the minimum and maximum x and y coordinates of the
-    polygon clipped to the image, so segments crossing the image boundary keep their visible extent.
+    Converts a single segment label to a box label by finding the minimum and maximum x and y coordinates of the polygon
+    clipped to the image, so segments crossing the image boundary keep their visible extent.
 
     Args:
         segment (np.ndarray): Segment coordinates in format (N, 2) where N is number of points.

@@ -208,7 +208,7 @@ class Stereo3DDetValidator(BaseValidator):
         Uses shared preprocessing from preprocess.py for consistency with trainer.
         Also stores the current batch for postprocess() access.
         """
-        batch = preprocess_stereo_batch(batch, self.device, half=self.args.half)
+        batch = preprocess_stereo_batch(batch, self.device, half=self.args.quantize == 16)
         # Make the *current* batch available to postprocess(); BaseValidator calls postprocess() before update_metrics().
         self._current_batch = batch
         return batch

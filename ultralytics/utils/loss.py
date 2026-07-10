@@ -95,7 +95,7 @@ class DFLoss(nn.Module):
         self.reg_max = reg_max
 
     def __call__(self, pred_dist: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
-        """Return sum of left and right DFL losses from https://ieeexplore.ieee.org/document/9792391."""
+        """Return sum of left and right DFL losses from https://arxiv.org/abs/2006.04388."""
         target = target.clamp_(0, self.reg_max - 1 - 0.01)
         tl = target.long()  # target left
         tr = tl + 1  # target right
@@ -211,6 +211,8 @@ class RLELoss(nn.Module):
 class RotatedBboxLoss(BboxLoss):
     """Criterion class for computing training losses for rotated bounding boxes."""
 
+    floor = 0.01
+
     def __init__(self, reg_max: int):
         """Initialize the RotatedBboxLoss module with regularization maximum and DFL settings."""
         super().__init__(reg_max)
@@ -229,7 +231,7 @@ class RotatedBboxLoss(BboxLoss):
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """Compute IoU and DFL losses for rotated bounding boxes."""
         weight = target_scores.sum(-1)[fg_mask].unsqueeze(-1)
-        iou = probiou(pred_bboxes[fg_mask], target_bboxes[fg_mask])
+        iou = probiou(pred_bboxes[fg_mask], target_bboxes[fg_mask], floor=self.floor)
         loss_iou = ((1.0 - iou) * weight).sum() / target_scores_sum
 
         # DFL loss
@@ -798,7 +800,7 @@ class v8PoseLoss(v8DetectionLoss):
 
 
 class PoseLoss26(v8PoseLoss):
-    """Criterion class for computing training losses for YOLOv8 pose estimation with RLE loss support."""
+    """Criterion class for computing training losses for YOLO26 pose estimation with RLE loss support."""
 
     def __init__(
         self, model: torch.nn.Module, tal_topk: int = 10, tal_topk2: int | None = None
@@ -1050,7 +1052,7 @@ class v8OBBLoss(v8DetectionLoss):
             ) from e
 
         # Pboxes
-        pred_bboxes = self.bbox_decode(anchor_points, pred_distri, pred_angle)  # xyxy, (b, h*w, 4)
+        pred_bboxes = self.bbox_decode(anchor_points, pred_distri, pred_angle)  # xywhr, (b, h*w, 5)
 
         bboxes_for_assigner = pred_bboxes.clone().detach()
         # Only the first four elements need to be scaled
@@ -1068,7 +1070,10 @@ class v8OBBLoss(v8DetectionLoss):
 
         # Cls loss
         # loss[1] = self.varifocal_loss(pred_scores, target_scores, target_labels) / target_scores_sum  # VFL way
-        loss[1] = self.bce(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE
+        bce_loss = self.bce(pred_scores, target_scores.to(dtype))  # BCE
+        if self.class_weights is not None:
+            bce_loss *= self.class_weights
+        loss[1] = bce_loss.sum() / target_scores_sum
 
         # Bbox loss
         if fg_mask.sum():
@@ -1289,13 +1294,16 @@ class SemanticSegmentationLoss(nn.Module):
         self.dtype = next(model.parameters()).dtype
         data_name = Path(str(getattr(model.args, "data", "") or "")).stem.lower()
         self.use_cityscapes_weight = data_name in {"cityscapes", "cityscapes8"} and self.nc == len(CITYSCAPES_WEIGHT)
+        weight = getattr(model, "class_weights", None)  # cls_pw frequency weights, else hardcoded Cityscapes
+        if weight is None and self.use_cityscapes_weight:
+            weight = torch.from_numpy(CITYSCAPES_WEIGHT)
+        weight = None if weight is None else weight.to(device=self.device, dtype=self.dtype)
         if self.nc == 1:
-            self.ce = nn.BCEWithLogitsLoss()
+            self.ce = nn.BCEWithLogitsLoss()  # binary: class weighting intentionally unsupported
         else:
             self.ce = nn.CrossEntropyLoss(ignore_index=255).to(device=self.device, dtype=self.dtype)
-            if self.use_cityscapes_weight:
+            if weight is not None:
                 # Non-persistent: weight is a deterministic constant, no need to serialize into ckpt state_dict.
-                weight = torch.from_numpy(CITYSCAPES_WEIGHT).to(device=self.device, dtype=self.dtype)
                 self.ce.register_buffer("weight", weight, persistent=False)
 
     def _resize_masks(self, masks, target_shape):

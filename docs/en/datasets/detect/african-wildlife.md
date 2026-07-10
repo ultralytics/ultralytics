@@ -1,12 +1,13 @@
 ---
+title: African Wildlife Detection Dataset
 comments: true
-description: Explore our African Wildlife Dataset featuring images of buffalo, elephant, rhino, and zebra for training computer vision models. Ideal for research and conservation.
-keywords: African Wildlife Dataset, South African animals, object detection, computer vision, YOLO26, wildlife research, conservation, dataset
+description: Train YOLO object detection models on the African Wildlife Dataset — 1,504 images across 4 classes (buffalo, elephant, rhino, zebra) with automatic download.
+keywords: African Wildlife Dataset, object detection, computer vision, YOLO26, buffalo, elephant, rhino, zebra, wildlife conservation, animal detection
 ---
 
 # African Wildlife Dataset
 
-This dataset showcases four common animal classes typically found in South African nature reserves. It includes images of African wildlife such as buffalo, elephant, rhino, and zebra, providing valuable insights into their characteristics. Essential for training [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) algorithms, this dataset aids in identifying animals in various habitats, from zoos to forests, and supports wildlife research.
+The Ultralytics African Wildlife Dataset is an [object detection](../../tasks/detect.md) dataset of 1,504 images across 4 animal classes — buffalo, elephant, rhino, and zebra — commonly found in South African nature reserves. The images are pre-split into 1,052 training, 225 validation, and 227 test images, and the dataset downloads automatically (~100 MB) the first time you train. It is a compact, ready-to-use benchmark for training [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models for wildlife monitoring, conservation, and ecological research.
 
 <p align="center">
   <br>
@@ -21,19 +22,30 @@ This dataset showcases four common animal classes typically found in South Afric
 
 ## Dataset Structure
 
-The African wildlife objects detection dataset is split into three subsets:
+The Ultralytics African Wildlife Dataset contains **1,504 images** across **4 classes** (buffalo, elephant, rhino, and zebra), pre-split into three subsets:
 
-- **Training set**: Contains 1052 images, each with corresponding annotations.
-- **Validation set**: Includes 225 images, each with paired annotations.
-- **Testing set**: Comprises 227 images, each with paired annotations.
+- **Training set**: 1,052 images, each with corresponding annotations.
+- **Validation set**: 225 images, each with paired annotations.
+- **Testing set**: 227 images, each with paired annotations.
+
+!!! tip "Automatic download"
+
+    The African Wildlife Dataset (~100 MB) downloads automatically the first time you start training, so no manual download or preparation is required.
+
+Explore [African Wildlife on Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/african-wildlife) to browse the images with their annotation overlays, view the class distribution and bounding-box heatmaps in the **Charts** tab, and clone it to train your own model in the cloud.
 
 ## Applications
 
-This dataset can be applied in various computer vision tasks such as [object detection](https://www.ultralytics.com/glossary/object-detection), object tracking, and research. Specifically, it can be used to train and evaluate models for identifying African wildlife objects in images, which can have applications in wildlife conservation, ecological research, and monitoring efforts in natural reserves and protected areas. Additionally, it can serve as a valuable resource for educational purposes, enabling students and researchers to study and understand the characteristics and behaviors of different animal species.
+The Ultralytics African Wildlife Dataset supports a range of [object detection](../../tasks/detect.md) applications:
+
+- **Wildlife conservation** — detect and count buffalo, elephant, rhino, and zebra to support [animal population monitoring](../../solutions/index.md) in nature reserves and protected areas.
+- **Ecological research** — study species distribution and behavior across different habitats.
+- **Anti-poaching surveillance** — flag animals in camera-trap or drone footage over large protected areas.
+- **Education and prototyping** — a compact four-class dataset for learning [model training](../../modes/train.md) and [prediction](../../modes/predict.md).
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file defines the dataset configuration, including paths, classes, and other pertinent details. For the African wildlife dataset, the `african-wildlife.yaml` file is located at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/african-wildlife.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/african-wildlife.yaml).
+A YAML (Yet Another Markup Language) file defines the dataset configuration, including paths, classes, and other pertinent details. For the African Wildlife Dataset, the `african-wildlife.yaml` file is located at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/african-wildlife.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/african-wildlife.yaml).
 
 !!! example "ultralytics/cfg/datasets/african-wildlife.yaml"
 
@@ -43,7 +55,7 @@ A YAML (Yet Another Markup Language) file defines the dataset configuration, inc
 
 ## Usage
 
-To train a YOLO26n model on the African wildlife dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the provided code samples. For a comprehensive list of available parameters, refer to the model's [Training](../../modes/train.md) page.
+To train a YOLO26n model on the African Wildlife Dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the provided code samples. For a comprehensive list of available parameters, refer to the model's [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -65,6 +77,8 @@ To train a YOLO26n model on the African wildlife dataset for 100 [epochs](https:
         # Start training from a pretrained *.pt model
         yolo detect train data=african-wildlife.yaml model=yolo26n.pt epochs=100 imgsz=640
         ```
+
+Once trained, run [inference](../../modes/predict.md) with the fine-tuned model on new images:
 
 !!! example "Inference Example"
 
@@ -89,13 +103,11 @@ To train a YOLO26n model on the African wildlife dataset for 100 [epochs](https:
 
 ## Sample Images and Annotations
 
-The African wildlife dataset comprises a wide variety of images showcasing diverse animal species and their natural habitats. Below are examples of images from the dataset, each accompanied by its corresponding annotations.
+The African Wildlife Dataset comprises a wide variety of images showcasing diverse animal species and their natural habitats. Below are examples of images from the dataset, each accompanied by its corresponding annotations.
 
 ![African wildlife dataset sample image](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/african-wildlife-dataset-sample.avif)
 
 - **Mosaiced Image**: Here, we present a training batch consisting of mosaiced dataset images. Mosaicing, a training technique, combines multiple images into one, enriching batch diversity. This method helps enhance the model's ability to generalize across different object sizes, aspect ratios, and contexts.
-
-This example illustrates the variety and complexity of images in the African wildlife dataset, emphasizing the benefits of including mosaicing during the training process.
 
 ## Citations, License and Acknowledgments
 
@@ -124,7 +136,11 @@ If you use this dataset in your research, please cite it using the mentioned det
 
 ### What is the African Wildlife Dataset, and how can it be used in computer vision projects?
 
-The African Wildlife Dataset includes images of four common animal species found in South African nature reserves: buffalo, elephant, rhino, and zebra. It is a valuable resource for training computer vision algorithms in object detection and animal identification. The dataset supports various tasks like object tracking, research, and conservation efforts. For more information on its structure and applications, refer to the [Dataset Structure](#dataset-structure) section and [Applications](#applications) of the dataset.
+The African Wildlife Dataset is an [object detection](../../tasks/detect.md) dataset of 1,504 images across 4 animal classes — buffalo, elephant, rhino, and zebra — found in South African nature reserves. It is used to train and evaluate models for identifying African wildlife in images, which supports wildlife conservation, ecological research, and monitoring in natural reserves. It also serves as an accessible resource for students and researchers studying computer vision.
+
+### How many images and classes are in the African Wildlife Dataset?
+
+The Ultralytics African Wildlife Dataset contains 1,504 images across 4 classes: buffalo, elephant, rhino, and zebra. The images are pre-split into 1,052 training, 225 validation, and 227 test images, and the dataset downloads automatically (~100 MB) the first time you train.
 
 ### How do I train a YOLO26 model using the African Wildlife Dataset?
 
@@ -155,12 +171,8 @@ For additional training parameters and options, refer to the [Training](../../mo
 
 ### Where can I find the YAML configuration file for the African Wildlife Dataset?
 
-The YAML configuration file for the African Wildlife Dataset, named `african-wildlife.yaml`, can be found at [this GitHub link](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/african-wildlife.yaml). This file defines the dataset configuration, including paths, classes, and other details crucial for training [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models. See the [Dataset YAML](#dataset-yaml) section for more details.
+The YAML configuration file for the African Wildlife Dataset, named `african-wildlife.yaml`, can be found at [this GitHub link](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/african-wildlife.yaml). This file defines the dataset configuration, including paths, classes, and other details crucial for training [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models.
 
-### Can I see sample images and annotations from the African Wildlife Dataset?
+### What license is the African Wildlife Dataset released under?
 
-Yes, the African Wildlife Dataset includes a wide variety of images showcasing diverse animal species in their natural habitats. You can view sample images and their corresponding annotations in the [Sample Images and Annotations](#sample-images-and-annotations) section. This section also illustrates the use of mosaicing technique to combine multiple images into one for enriched batch diversity, enhancing the model's generalization ability.
-
-### How can the African Wildlife Dataset be used to support wildlife conservation and research?
-
-The African Wildlife Dataset is ideal for supporting wildlife conservation and research by enabling the training and evaluation of models to identify African wildlife in different habitats. These models can assist in [monitoring animal populations](https://docs.ultralytics.com/solutions), studying their behavior, and recognizing conservation needs. Additionally, the dataset can be utilized for educational purposes, helping students and researchers understand the characteristics and behaviors of different animal species. More details can be found in the [Applications](#applications) section.
+The African Wildlife Dataset is available under the [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE). It was originally released on Kaggle by [Bianca Ferreira](https://www.kaggle.com/biancaferreira/datasets) and adapted by Ultralytics for seamless use with [Ultralytics YOLO](https://www.ultralytics.com/yolo) models. If you use the dataset in your research, please cite it using the BibTeX entry in the [Citations](#citations-license-and-acknowledgments) section.

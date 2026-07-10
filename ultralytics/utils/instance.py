@@ -54,6 +54,7 @@ class Bboxes:
         >>> bboxes = Bboxes(np.array([[100, 50, 150, 100]]), format="xywh")
         >>> bboxes.convert("xyxy")
         >>> print(bboxes.areas())
+        [15000]
 
     Notes:
         This class does not handle normalization or denormalization of bounding boxes.

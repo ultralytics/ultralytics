@@ -337,13 +337,13 @@ def safe_download(
             desc = f"Downloading {uri} to '{f}'"
             f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing
             curl_installed = shutil.which("curl")
+            expected_size = None  # set by urllib from Content-Length; reused to validate curl retries
             for i in range(retry + 1):
                 try:
                     if (curl or i > 0) and curl_installed:  # curl download with retry, continue
                         s = "sS" * (not progress)  # silent
                         r = subprocess.run(["curl", "-#", f"-{s}L", url, "-o", f, "--retry", "3", "-C", "-"]).returncode
                         assert r == 0, f"Curl return value {r}"
-                        expected_size = None  # Can't get size with curl
                     else:  # urllib download
                         with request.urlopen(url) as response:
                             expected_size = int(response.getheader("Content-Length", 0))
@@ -450,9 +450,17 @@ def get_github_assets(
     if version != "latest":
         version = f"tags/{version}"  # i.e. tags/v6.2
     url = f"https://api.github.com/repos/{repo}/releases/{version}"
-    r = requests.get(url)  # github api
-    if r.status_code != 200 and r.reason != "rate limit exceeded" and retry:  # failed and not 403 rate limit exceeded
-        r = requests.get(url)  # try again
+    attempts = 2 if retry else 1  # retry once on transient network errors or non-200 responses
+    for attempt in range(attempts):
+        try:
+            r = requests.get(url, timeout=30)  # github api
+        except requests.exceptions.RequestException as e:
+            if attempt < attempts - 1:
+                continue  # transient network error, try again
+            LOGGER.warning(f"GitHub assets check failure for {url}: {e}")
+            return "", []
+        if r.status_code == 200 or r.reason == "rate limit exceeded":  # do not retry 403 rate limits
+            break
     if r.status_code != 200:
         LOGGER.warning(f"GitHub assets check failure for {url}: {r.status_code} {r.reason}")
         return "", []
@@ -540,7 +548,7 @@ def download(
         exist_ok (bool, optional): Whether to overwrite existing contents during unzipping.
 
     Examples:
-        >>> download("https://ultralytics.com/assets/example.zip", dir="path/to/dir", unzip=True)
+        >>> download("https://github.com/ultralytics/assets/releases/download/v0.0.0/bus.jpg", dir="path/to/dir")
     """
     dir = Path(dir)
     dir.mkdir(parents=True, exist_ok=True)  # make directory

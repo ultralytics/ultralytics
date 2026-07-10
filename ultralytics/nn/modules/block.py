@@ -59,7 +59,7 @@ __all__ = (
 class DFL(nn.Module):
     """Integral module of Distribution Focal Loss (DFL).
 
-    Proposed in Generalized Focal Loss https://ieeexplore.ieee.org/document/9792391
+    Proposed in Generalized Focal Loss https://arxiv.org/abs/2006.04388
     """
 
     def __init__(self, c1: int = 16):
@@ -1330,7 +1330,7 @@ class Attention(nn.Module):
         q = q.clamp(min=-50.0, max=50.0)
         k = k.clamp(min=-50.0, max=50.0)
 
-        attn = (q.transpose(-2, -1) @ k) * self.scale
+        attn = (q * self.scale).transpose(-2, -1) @ k
         # Clamp attention scores to prevent numerical instability (NaN) during warmup/validation
         attn = attn.clamp(min=-50.0, max=50.0)
         attn = attn.softmax(dim=-1)
@@ -1823,7 +1823,7 @@ class AAttn(nn.Module):
             .permute(0, 2, 3, 1)
             .split([self.head_dim, self.head_dim, self.head_dim], dim=2)
         )
-        attn = (q.transpose(-2, -1) @ k) * (self.head_dim**-0.5)
+        attn = (q * (self.head_dim**-0.5)).transpose(-2, -1) @ k
         attn = attn.softmax(dim=-1)
         x = v @ attn.transpose(-2, -1)
         x = x.permute(0, 3, 1, 2)

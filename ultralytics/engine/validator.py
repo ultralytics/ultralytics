@@ -14,7 +14,6 @@ Usage - formats:
                           yolo26n.mlpackage          # CoreML (macOS-only)
                           yolo26n_saved_model        # TensorFlow SavedModel
                           yolo26n.pb                 # TensorFlow GraphDef
-                          yolo26n.tflite             # TensorFlow Lite
                           yolo26n_edgetpu.tflite     # TensorFlow Edge TPU
                           yolo26n_paddle_model       # PaddlePaddle
                           yolo26n.mnn                # MNN
@@ -24,7 +23,8 @@ Usage - formats:
                           yolo26n_executorch_model   # ExecuTorch
                           yolo26n_axelera_model      # Axelera AI
                           yolo26n_deepx_model        # DEEPX
-                          yolo26n_qnn_model          # Qualcomm QNN
+                          yolo26n_qnn.onnx           # Qualcomm QNN
+                          yolo26n.tflite             # LiteRT
 """
 
 from __future__ import annotations
@@ -42,9 +42,10 @@ from ultralytics.data.utils import check_cls_dataset, check_det_dataset, convert
 from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.utils import LOCAL_RANK, LOGGER, RANK, TQDM, callbacks, colorstr, emojis
 from ultralytics.utils.checks import check_imgsz
-from ultralytics.utils.ops import Profile
+from ultralytics.utils.ops import Profile, linear_sum_assignment
 from ultralytics.utils.torch_utils import (
     attempt_compile,
+    autocast,
     select_device,
     smart_inference_mode,
     torch_distributed_zero_first,
@@ -159,12 +160,12 @@ class BaseValidator:
         if self.training:
             self.device = trainer.device
             self.data = trainer.data
-            # Force FP16 val during training
-            self.args.half = self.device.type != "cpu" and trainer.amp
+            # Keep training validation read-only: inputs may be fp16, but EMA/model weights stay fp32 under autocast.
+            self.args.quantize = 16 if (self.device.type != "cpu" and trainer.amp) else None
             model = trainer.ema.ema or trainer.model
             if trainer.args.compile and hasattr(model, "_orig_mod"):
                 model = model._orig_mod  # validate non-compiled original model to avoid issues
-            model = model.half() if self.args.half else model.float()
+            model = model.float()
             self.loss = torch.zeros_like(trainer.loss_items, device=trainer.device)
             self.args.plots &= trainer.stopper.possible_stop or (trainer.epoch == trainer.epochs - 1)
             model.eval()
@@ -181,13 +182,16 @@ class BaseValidator:
                 self.args.data = convert_ndjson_to_yolo_if_needed(self.args.data)
             model = AutoBackend(
                 model=model or self.args.model,
-                device=select_device(self.args.device) if RANK == -1 else torch.device("cuda", RANK),
+                # DDP ranks reuse the device assigned in trainer._setup_ddp() via torch.cuda.set_device()
+                device=select_device(self.args.device)
+                if RANK == -1
+                else torch.device("cuda", torch.cuda.current_device()),
                 dnn=self.args.dnn,
                 data=self.args.data,
-                fp16=self.args.half,
+                fp16=self.args.quantize == 16,
             )
             self.device = model.device  # update device
-            self.args.half = model.fp16  # update half
+            self.args.quantize = 16 if model.fp16 else None  # record actual inference precision
             stride, fmt = model.stride, model.format
             pt = fmt == "pt"
             imgsz = check_imgsz(self.args.imgsz, stride=stride, min_dim=2 if self.args.task == "s3d" else 1)
@@ -200,15 +204,20 @@ class BaseValidator:
                 else:
                     LOGGER.info(f"Setting batch={self.args.batch} input of shape ({self.args.batch}, 3, {imgsz}, {imgsz})")
 
-            if str(self.args.data).rsplit(".", 1)[-1] in {"yaml", "yml"}:
+            if self.args.task == "s3d" and str(self.args.data).rsplit(".", 1)[-1] in {"yaml", "yml"}:
                 # For s3d, use task-specific get_dataset() to handle stereo paths/metadata
-                if self.args.task == "s3d":
-                    if not (isinstance(self.data, dict) and self.data.get("channels") == 6):
-                        self.data = self.get_dataset()
-                else:
-                    self.data = check_det_dataset(self.args.data)
+                if not (isinstance(self.data, dict) and self.data.get("channels") == 6):
+                    self.data = self.get_dataset()
             elif self.args.task == "classify":
                 self.data = check_cls_dataset(self.args.data, split=self.args.split)
+            elif str(self.args.data).rsplit(".", 1)[-1] in {"yaml", "yml"} or self.args.task in {
+                "detect",
+                "segment",
+                "pose",
+                "obb",
+                "semantic",
+            }:
+                self.data = check_det_dataset(self.args.data)
             else:
                 raise FileNotFoundError(emojis(f"Dataset '{self.args.data}' for task={self.args.task} not found ❌"))
 
@@ -244,14 +253,15 @@ class BaseValidator:
             with dt[0]:
                 batch = self.preprocess(batch)
 
-            # Inference
-            with dt[1]:
-                preds = model(batch["img"], augment=augment)
+            with autocast(self.training and self.args.quantize == 16, device=self.device.type):
+                # Inference
+                with dt[1]:
+                    preds = model(batch["img"], augment=augment)
 
-            # Loss
-            with dt[2]:
-                if self.training:
-                    self.loss += model.loss(batch, preds)[1]
+                # Loss
+                with dt[2]:
+                    if self.training:
+                        self.loss += model.loss(batch, preds)[1]
 
             # Postprocess
             with dt[3]:
@@ -274,7 +284,6 @@ class BaseValidator:
             self.run_callbacks("on_val_end")
 
         if self.training:
-            model.float()
             # Reduce loss across all GPUs
             loss = self.loss.clone().detach()
             if trainer.world_size > 1:
@@ -309,7 +318,7 @@ class BaseValidator:
             pred_classes (torch.Tensor): Predicted class indices of shape (N,).
             true_classes (torch.Tensor): Target class indices of shape (M,).
             iou (torch.Tensor): An NxM tensor containing the pairwise IoU values for predictions and ground truth.
-            use_scipy (bool, optional): Whether to use scipy for matching (more precise).
+            use_scipy (bool, optional): Whether to use Hungarian one-to-one matching (more precise).
 
         Returns:
             (torch.Tensor): Correct tensor of shape (N, 10) for 10 IoU thresholds.
@@ -322,11 +331,9 @@ class BaseValidator:
         iou = iou.cpu().numpy()
         for i, threshold in enumerate(self.iouv.cpu().tolist()):
             if use_scipy:
-                import scipy  # scope import to avoid importing for all commands
-
                 cost_matrix = iou * (iou >= threshold)
                 if cost_matrix.any():
-                    labels_idx, detections_idx = scipy.optimize.linear_sum_assignment(cost_matrix, maximize=True)
+                    labels_idx, detections_idx = linear_sum_assignment(-cost_matrix)  # negate to maximize IoU
                     valid = cost_matrix[labels_idx, detections_idx] > 0
                     if valid.any():
                         correct[detections_idx[valid], i] = True

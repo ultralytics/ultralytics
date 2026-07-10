@@ -3,7 +3,7 @@
 import contextlib
 import pickle
 import re
-import types
+import threading
 from copy import deepcopy
 from pathlib import Path
 
@@ -75,7 +75,17 @@ from ultralytics.nn.modules import (
     YOLOESegment26,
     v10Detect,
 )
-from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, SETTINGS, WINDOWS, YAML, colorstr, emojis
+from ultralytics.utils import (
+    DEFAULT_CFG_DICT,
+    LOGGER,
+    SAFE_LOAD,
+    SETTINGS,
+    WINDOWS,
+    YAML,
+    IterableSimpleNamespace,
+    colorstr,
+    emojis,
+)
 from ultralytics.utils.checks import REMOTE_FILE_PREFIXES, check_file, check_requirements, check_suffix, check_yaml
 
 # Lazy import stereo-specific module for parse_model() resolution
@@ -325,9 +335,13 @@ class BaseModel(torch.nn.Module):
         """
         model = weights["model"] if isinstance(weights, dict) else weights  # torchvision models are not dicts
         csd = model.float().state_dict()  # checkpoint state_dict as FP32
+
+        # Remap classification head rows by class-name when nc differs (e.g. Obj365 -> COCO fine-tune)
+        cls_remapped = self._remap_cls_by_names(csd, model, verbose=verbose)
+
         updated_csd = intersect_dicts(csd, self.state_dict())  # intersect
         self.load_state_dict(updated_csd, strict=False)  # load
-        len_updated_csd = len(updated_csd)
+        len_updated_csd = len(updated_csd) + cls_remapped
         first_conv = "model.0.conv.weight"  # hard-coded to yolo models for now
         # mostly used to boost multi-channel training
         state_dict = self.state_dict()
@@ -340,6 +354,68 @@ class BaseModel(torch.nn.Module):
                 len_updated_csd += 1
         if verbose:
             LOGGER.info(f"Transferred {len_updated_csd}/{len(self.model.state_dict())} items from pretrained weights")
+
+    def _remap_cls_by_names(self, csd, src_model, verbose=True):
+        """Remap pretrained classification head rows to current class order by name.
+
+        Copies rows from pretrained cls layers into the current model's state_dict where the destination class name
+        matches a source class name (case-insensitive, whitespace-stripped). Useful when fine-tuning across datasets
+        with overlapping classes, whether the class counts differ (e.g. Objects365 -> COCO) or match but the class
+        order differs. Mutates the destination tensors in-place via state_dict references; matched cls tensors are
+        removed from `csd` so the subsequent intersect_dicts skips them.
+
+        Args:
+            csd (dict): Pretrained checkpoint state_dict (will be mutated).
+            src_model (torch.nn.Module): Pretrained module, used to read `.names` and `.nc`.
+            verbose (bool): Log mapping summary.
+
+        Returns:
+            (int): Number of cls tensors remapped (counted toward "Transferred" log line).
+        """
+        src_names = getattr(src_model, "names", None)
+        tgt_names = getattr(self, "names", None)
+        if not (isinstance(src_names, dict) and isinstance(tgt_names, dict)):
+            return 0
+        src_nc, tgt_nc = len(src_names), len(tgt_names)
+
+        def _norm(s):
+            return str(s).strip().lower()
+
+        # Skip default placeholder names {0:"0", 1:"1", ...} (also catches empty dicts) — nothing to match on
+        if any(all(str(k) == str(v) for k, v in n.items()) for n in (src_names, tgt_names)):
+            return 0
+
+        src_lookup = {_norm(v): k for k, v in src_names.items()}
+        idx = torch.tensor([src_lookup.get(_norm(tgt_names.get(k)), -1) for k in range(tgt_nc)], dtype=torch.long)
+        n_match = int((idx >= 0).sum())
+        # Skip if nothing matches, or class names already share order and count (intersect_dicts copies directly)
+        if n_match == 0 or (src_nc == tgt_nc and torch.equal(idx, torch.arange(tgt_nc))):
+            return 0
+
+        valid = idx >= 0
+        state_dict = self.state_dict()
+        # Exact class-logit conv weight/bias keys from the detection head(s) — restricting to these avoids
+        # class-ordering tensors that merely share the nc dimension (backbone blocks, box/mask/pose branches).
+        cls_keys = {
+            f"{name}.{attr}.{i}.{len(seq) - 1}.{p}"
+            for name, m in self.named_modules()
+            if isinstance(m, Detect)
+            for attr in ("cv3", "one2one_cv3")
+            for i, seq in enumerate(getattr(m, attr, ()))
+            if getattr(seq[-1], "out_channels", None) == tgt_nc
+            for p in ("weight", "bias")
+        }
+        remapped = 0
+        for k in cls_keys & csd.keys():
+            v_src, v_tgt = csd[k], state_dict[k]
+            if v_src.shape[1:] != v_tgt.shape[1:]:  # cls-conv weight input width (c3) differs across nc; copy bias only
+                continue
+            v_tgt[valid] = v_src[idx[valid]].to(v_tgt.dtype)
+            csd.pop(k)  # prevent intersect_dicts from copying these rows in the wrong (source) order
+            remapped += 1
+        if verbose and remapped:
+            LOGGER.info(f"Remapped {n_match}/{tgt_nc} cls head rows from pretrained weights by class name")
+        return remapped
 
     def loss(self, batch, preds=None):
         """Compute loss.
@@ -1469,54 +1545,154 @@ def temporary_modules(modules=None, attributes=None):
                 del sys.modules[old]
 
 
-class SafeClass:
-    """A placeholder class to replace unknown classes during unpickling."""
+class _SafeLoad:
+    """Opt-in restricted checkpoint loading: reconstruct only known model classes (`weights_only=True` plus an
+    allow-list) and build models without `eval()`.
 
-    def __init__(self, *args, **kwargs):
-        """Initialize SafeClass instance, ignoring all arguments."""
-        pass
+    Enabled per-process by the `ULTRALYTICS_SAFE_LOAD` env flag, or per-call by `torch_safe_load(..., safe_only=True)`.
+    Default loading (flag off) is unchanged.
+    """
 
-    def __call__(self, *args, **kwargs):
-        """Run SafeClass instance, ignoring all arguments."""
-        pass
+    # Restricted loading reconstructs allow-listed classes via the torch.serialization.safe_globals context manager,
+    # added in torch 2.5. On older torch it is unavailable, so restricted loading degrades to a standard load there.
+    SUPPORTED = hasattr(torch.serialization, "safe_globals")
+    _globals = None  # cached allow-list, built once
+    _local = threading.local()  # per-thread flag set while a weights_only load is in progress
 
+    @classmethod
+    def restricted(cls):
+        """Whether model construction should use the no-eval, known-layer path (env flag or an in-progress load)."""
+        return cls.SUPPORTED and (SAFE_LOAD or getattr(cls._local, "active", False))
 
-class SafeUnpickler(pickle.Unpickler):
-    """Custom Unpickler that replaces unknown classes with SafeClass."""
+    @classmethod
+    @contextlib.contextmanager
+    def loading(cls):
+        """Load with `weights_only=True`: scope the allow-list to this load and mark the thread restricted, so a
+        checkpoint that reaches model construction (parse_model) also uses the no-eval, known-layer path.
+        """
+        if cls._globals is None:
+            cls._globals = cls._build()
+        cls._local.active = True
+        try:
+            with torch.serialization.safe_globals(cls._globals):
+                yield
+        finally:
+            cls._local.active = False
 
-    def find_class(self, module, name):
-        """Attempt to find a class, returning SafeClass if not among safe modules.
+    @staticmethod
+    def activation(act):
+        """Resolve a model-yaml `activation` spec to a `torch.nn` module instance without `eval()`.
 
-        Args:
-            module (str): Module name.
-            name (str): Class name.
+        Accepts only the documented `[torch.]nn.<Class>(literal args)` shape (e.g. `nn.SiLU()`,
+        `torch.nn.LeakyReLU(0.1)`) with literal arguments, and rejects anything else.
+        """
+        import ast
+
+        try:
+            call = ast.parse(act.strip(), mode="eval").body
+            assert isinstance(call, ast.Call)
+            attrs = []
+            node = call.func
+            while isinstance(node, ast.Attribute):  # unwind e.g. torch.nn.SiLU -> ["SiLU","nn","torch"]
+                attrs.append(node.attr)
+                node = node.value
+            assert isinstance(node, ast.Name)
+            attrs.append(node.id)  # e.g. ["SiLU", "nn"] or ["SiLU", "nn", "torch"]
+            assert attrs[1:] in (["nn"], ["nn", "torch"]), "activation must be a torch.nn class"
+            klass = getattr(nn, attrs[0])
+            assert isinstance(klass, type) and issubclass(klass, nn.Module)
+            args = [ast.literal_eval(a) for a in call.args]
+            kwargs = {kw.arg: ast.literal_eval(kw.value) for kw in call.keywords}
+            return klass(*args, **kwargs)
+        except Exception as e:
+            raise TypeError(
+                emojis(f"ERROR ❌️ unsupported activation '{act}' blocked during restricted model load.")
+            ) from e
+
+    @classmethod
+    def _build(cls):
+        """Auto-discover `nn.Module` subclasses across `torch.nn` and the ultralytics model families, registered under
+        every namespace path they are reachable from (covering re-exports such as `block.RealNVP` as
+        `head.RealNVP`), plus torchvision transforms and legacy aliases.
 
         Returns:
-            (type): Found class or SafeClass.
+            (list): Items for `torch.serialization.safe_globals` — classes and `(obj, "module.Name")` aliases.
         """
-        safe_modules = (
-            "torch",
-            "collections",
-            "collections.abc",
-            "builtins",
-            "math",
-            "numpy",
-            # Add other modules considered safe
-        )
-        if module in safe_modules:
-            return super().find_class(module, name)
+        import enum
+        import importlib
+        import inspect
+        import pathlib
+        import pkgutil
+
+        import torch.nn.modules as torch_nn
+
+        import ultralytics.nn.modules as ul_nn
+        import ultralytics.nn.tasks as ul_tasks
+
+        allow = []
+
+        def _scan(pkg):
+            mods = [pkg]
+            if hasattr(pkg, "__path__"):  # package: include all submodules
+                for info in pkgutil.iter_modules(pkg.__path__, f"{pkg.__name__}."):
+                    try:
+                        mods.append(importlib.import_module(info.name))
+                    except Exception:  # optional/oddball submodule — skip
+                        continue
+            for mod in mods:
+                for name, klass in inspect.getmembers(mod, inspect.isclass):
+                    if issubclass(klass, nn.Module):
+                        # Register under the path the class is reachable from — matches how a checkpoint pickled it.
+                        allow.append((klass, f"{mod.__name__}.{name}"))
+
+        _scan(torch_nn)  # PyTorch nn modules
+        _scan(ul_nn)  # ultralytics block/conv/head/transformer
+        _scan(ul_tasks)  # ultralytics task models
+
+        # Non-nn.Module data globals in official checkpoints, incl. the pre-8.0.44 `ultralytics.yolo.utils` path.
+        allow.append(IterableSimpleNamespace)
+        allow.append((IterableSimpleNamespace, "ultralytics.yolo.utils.IterableSimpleNamespace"))
+
+        # Classification preprocessing transforms.
+        try:
+            import torchvision.transforms.transforms as tvt
+            from torchvision.transforms.functional import InterpolationMode
+
+            allow += [tvt.Compose, tvt.Normalize, tvt.Resize, tvt.CenterCrop, tvt.ToTensor, InterpolationMode]
+        except ImportError:
+            pass
+
+        # Legacy/cross-platform aliases (pickled paths with no current class namespace), mirroring temporary_modules().
+        from ultralytics.utils.loss import E2EDetectLoss
+
+        def _getattr(obj, name):  # ckpts pickle `Detect.forward` and `InterpolationMode.BILINEAR` via getattr
+            if isinstance(obj, type) and not name.startswith("__") and issubclass(obj, (nn.Module, enum.Enum)):
+                return getattr(obj, name)
+            raise pickle.UnpicklingError(f"unsafe getattr({obj!r}, {name!r}) blocked during restricted model load")
+
+        allow += [
+            (nn.Identity, "ultralytics.nn.modules.block.Silence"),  # YOLOv9e
+            (DetectionModel, "ultralytics.nn.tasks.YOLOv10DetectionModel"),  # YOLOv10
+            (E2EDetectLoss, "ultralytics.utils.loss.v10DetectLoss"),  # YOLOv10
+            (_getattr, "builtins.getattr"),  # non-det YOLOv8, YOLO11 ckpts (restrict to nn.Module attrs)
+        ]
+        if WINDOWS:
+            allow += [pathlib.WindowsPath, (pathlib.WindowsPath, "pathlib.PosixPath")]
         else:
-            return SafeClass
+            allow += [pathlib.PosixPath, (pathlib.PosixPath, "pathlib.WindowsPath")]
+        return allow
 
 
-def torch_safe_load(weight, safe_only=False):
+def torch_safe_load(weight, safe_only=None):
     """Attempt to load a PyTorch model with the torch.load() function. If a ModuleNotFoundError is raised, it catches
     the error, logs a warning message, and attempts to install the missing module via the check_requirements()
     function. After installation, the function again attempts to load the model using torch.load().
 
     Args:
         weight (str | Path): The file path of the PyTorch model.
-        safe_only (bool): If True, replace unknown classes with SafeClass during loading.
+        safe_only (bool, optional): Load with `torch.load(weights_only=True)`, reconstructing only the known
+            Ultralytics/torch model classes on the allow-list. Defaults to the `ULTRALYTICS_SAFE_LOAD` environment
+            variable (off), so standard usage is unchanged; set the env to opt in.
 
     Returns:
         (dict): The loaded model checkpoint.
@@ -1526,8 +1702,12 @@ def torch_safe_load(weight, safe_only=False):
         >>> from ultralytics.nn.tasks import torch_safe_load
         >>> ckpt, file = torch_safe_load("path/to/best.pt", safe_only=True)
     """
-    from ultralytics.utils.downloads import attempt_download_asset
+    from ultralytics.utils.downloads import GITHUB_ASSETS_NAMES, attempt_download_asset
 
+    if safe_only is None:
+        safe_only = SAFE_LOAD
+    if safe_only and not _SafeLoad.SUPPORTED:
+        safe_only = False
     check_suffix(file=weight, suffix=".pt")
     file = attempt_download_asset(weight)  # search online if missing locally
 
@@ -1551,20 +1731,17 @@ def torch_safe_load(weight, safe_only=False):
             },
         ):
             if safe_only:
-                # Load via custom pickle module
-                safe_pickle = types.ModuleType("safe_pickle")
-                safe_pickle.Unpickler = SafeUnpickler
-                safe_pickle.load = lambda file_obj: SafeUnpickler(file_obj).load()
-                with open(file, "rb") as f:
-                    return torch_load(f, pickle_module=safe_pickle)
+                with _SafeLoad.loading():  # weights_only load scoped to the known-class allow-list
+                    return torch_load(file, map_location="cpu", weights_only=True)
             return torch_load(file, map_location="cpu")
 
     try:
         ckpt = _load()
 
     except RuntimeError as e:
-        # Corrupt downloaded weight (e.g. truncated); skip user-supplied local paths to avoid destructive unlink.
-        if "PytorchStreamReader" not in str(e) or Path(str(weight)).exists():
+        # Recover only a corrupt cached official asset requested by bare name; never touch user-supplied paths.
+        name = Path(str(weight)).name
+        if "PytorchStreamReader" not in str(e) or str(weight) != name or name not in GITHUB_ASSETS_NAMES:
             raise
         LOGGER.warning(f"Corrupt cache {file}, re-downloading {weight}...")
         Path(file).unlink(missing_ok=True)
@@ -1572,11 +1749,11 @@ def torch_safe_load(weight, safe_only=False):
         ckpt = _load()
 
     except ModuleNotFoundError as e:  # e.name is missing module name
-        if e.name == "models":
+        if e.name in {"models", "models.yolo", "models.common", "models.experimental"}:
             raise TypeError(
                 emojis(
                     f"ERROR ❌️ {weight} appears to be an Ultralytics YOLOv5 model originally trained "
-                    f"with https://github.com/ultralytics/yolov5.\nThis model is NOT forwards compatible with "
+                    f"with https://github.com/ultralytics/yolov5. This model is NOT forwards compatible with "
                     f"YOLOv8 at https://github.com/ultralytics/ultralytics."
                     f"\nRecommend fixes are to train a new model using the latest 'ultralytics' package or to "
                     f"run a command with an official Ultralytics model, i.e. 'yolo predict model=yolo26n.pt'"
@@ -1596,6 +1773,10 @@ def torch_safe_load(weight, safe_only=False):
                     "Ultralytics model, i.e. 'yolo predict model=yolo26n.pt'"
                 )
             ) from e
+        if safe_only:
+            # Under weights_only loading, do not auto-install a module named by the checkpoint or fall back to a
+            # weights_only=False reload.
+            raise
         LOGGER.warning(
             f"{weight} appears to require '{e.name}', which is not in Ultralytics requirements."
             f"\nAutoInstall will run now for '{e.name}' but this feature will be removed in the future."
@@ -1604,6 +1785,18 @@ def torch_safe_load(weight, safe_only=False):
         )
         check_requirements(e.name)  # install missing module
         ckpt = torch_load(file, map_location="cpu")
+
+    except pickle.UnpicklingError as e:
+        # weights_only=True encountered a global outside the allow-list. The default (weights_only=False) path can also
+        # raise this for a corrupt or legacy file, so re-raise verbatim there to preserve existing behavior.
+        if not safe_only:
+            raise
+        raise TypeError(
+            emojis(
+                f"ERROR ❌️ {weight} references types outside the supported Ultralytics checkpoint format. "
+                f"Use an official Ultralytics model, i.e. 'yolo predict model=yolo26n.pt'"
+            )
+        ) from e
 
     if not isinstance(ckpt, dict):
         # File is likely a YOLO instance saved with i.e. torch.save(model, "saved_model.pt")
@@ -1633,7 +1826,15 @@ def load_checkpoint(weight, device=None, inplace=True, fuse=False):
         weight = check_file(weight, download_dir=SETTINGS["weights_dir"])
     ckpt, weight = torch_safe_load(weight)  # load ckpt
     args = {**DEFAULT_CFG_DICT, **(ckpt.get("train_args", {}))}  # combine model and default args, preferring model args
-    model = (ckpt.get("ema") or ckpt["model"]).float()  # FP32 model
+    candidate = ckpt.get("ema") or ckpt.get("model")
+    if not isinstance(candidate, torch.nn.Module):
+        raise TypeError(
+            emojis(
+                f"ERROR ❌️ {weight} references types outside the supported Ultralytics checkpoint format. "
+                f"Use an official Ultralytics model, i.e. 'yolo predict model=yolo26n.pt'"
+            )
+        )
+    model = candidate.float()  # FP32 model
 
     # Model compatibility updates
     model.args = args  # attach args to model
@@ -1682,8 +1883,11 @@ def parse_model(d, ch, verbose=True):
             LOGGER.warning(f"no model scale passed. Assuming scale='{scale}'.")
         depth, width, max_channels = scales[scale]
 
+    restricted = _SafeLoad.restricted()
     if act:
-        Conv.default_act = eval(act)  # redefine default activation, i.e. Conv.default_act = torch.nn.SiLU()
+        # redefine default activation, i.e. Conv.default_act = torch.nn.SiLU(). Under restricted loading, resolve the
+        # spec without eval() (see _SafeLoad.activation).
+        Conv.default_act = _SafeLoad.activation(act) if restricted else eval(act)
         if verbose:
             LOGGER.info(f"{colorstr('activation:')} {act}")  # print
 
@@ -1754,11 +1958,14 @@ def parse_model(d, ch, verbose=True):
             _lazy_import_s3d_head()
         m = (
             getattr(torch.nn, m[3:])
-            if "nn." in m
+            if m.startswith("nn.")
             else getattr(__import__("torchvision").ops, m[16:])
-            if "torchvision.ops." in m
+            if m.startswith("torchvision.ops.")
             else globals()[m]
         )  # get module
+        if restricted and not (isinstance(m, type) and issubclass(m, torch.nn.Module)):
+            # Under restricted loading, only known model layers may be named here.
+            raise TypeError(emojis(f"ERROR ❌️ module '{m}' is not a permitted model layer under restricted loading."))
         for j, a in enumerate(args):
             if isinstance(a, str):
                 with contextlib.suppress(ValueError):
@@ -1984,6 +2191,6 @@ def guess_model_task(model):
     # Unable to determine task from model
     LOGGER.warning(
         "Unable to automatically guess model task, assuming 'task=detect'. "
-        "Explicitly define task for your model, i.e. 'task=detect', 'segment', 'classify','pose' or 'obb'."
+        "Explicitly define task for your model, i.e. 'task=detect', 'segment', 'classify', 'pose', 'obb' or 'semantic'."
     )
     return "detect"  # assume detect

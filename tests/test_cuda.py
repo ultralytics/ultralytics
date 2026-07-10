@@ -13,7 +13,7 @@ from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.utils import ASSETS, IS_JETSON, WEIGHTS_DIR
 from ultralytics.utils.autodevice import GPUInfo
 from ultralytics.utils.checks import check_amp, check_tensorrt
-from ultralytics.utils.torch_utils import TORCH_1_13
+from ultralytics.utils.torch_utils import TORCH_1_13, parse_device
 
 # Try to find idle devices if CUDA is available
 DEVICES = []
@@ -48,25 +48,21 @@ def test_amp():
 @pytest.mark.slow
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 @pytest.mark.parametrize(
-    "task, dynamic, int8, half, batch, simplify, nms",
+    "task, dynamic, batch, simplify, nms",
     [  # generate all combinations except for exclusion cases
-        (task, dynamic, int8, half, batch, simplify, nms)
-        for task, dynamic, int8, half, batch, simplify, nms in product(
-            sorted(TASKS), [True, False], [False], [False], [1, 2], [True, False], [True, False]
+        (task, dynamic, batch, simplify, nms)
+        for task, dynamic, batch, simplify, nms in product(
+            sorted(TASKS), [True, False], [1, 2], [True, False], [True, False]
         )
-        if not (
-            (int8 and half) or (task == "classify" and nms) or (task == "obb" and nms and (not TORCH_1_13 or IS_JETSON))
-        )
+        if not ((task == "classify" and nms) or (task == "obb" and nms and (not TORCH_1_13 or IS_JETSON)))
     ],
 )
-def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms):
+def test_export_onnx_matrix(task, dynamic, batch, simplify, nms):
     """Test YOLO exports to ONNX format with various configurations and parameters."""
     file = YOLO(TASK2MODEL[task]).export(
         format="onnx",
         imgsz=32,
         dynamic=dynamic,
-        int8=int8,
-        half=half,
         batch=batch,
         simplify=simplify,
         nms=nms,
@@ -80,55 +76,76 @@ def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms):
 @pytest.mark.slow
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 @pytest.mark.parametrize(
-    "task, dynamic, int8, half, batch",
-    [  # generate all combinations but exclude those where both int8 and half are True
-        (task, dynamic, int8, half, batch)
-        # Note: tests reduced below pending compute availability expansion as GPU CI runner utilization is high
-        # for task, dynamic, int8, half, batch in product(TASKS, [True, False], [True, False], [True, False], [1, 2])
-        for task, dynamic, int8, half, batch in product(sorted(TASKS), [True], [True], [False], [2])
-        if not (int8 and half)  # exclude cases where both int8 and half are True
-    ],
+    "task, dynamic, quantize, batch",
+    [
+        (task, dynamic, quantize, batch)
+        # Limit Jetson task coverage for slow CI speed; full task coverage remains on GPU CI.
+        # for task, dynamic, quantize, batch in product(TASKS, [True, False], [8, 16], [1, 2])
+        for task, dynamic, quantize, batch in product(["detect"] if IS_JETSON else sorted(TASKS), [True], [8, 16], [2])
+    ]
+    + [("detect", False, 8, 2)],  # exercise TensorRT 7-10 implicit INT8 quantization on GPU CI
 )
-def test_export_engine_matrix(task, dynamic, int8, half, batch):
+def test_export_engine_matrix(task, dynamic, quantize, batch):
     """Test YOLO model export to TensorRT format for various configurations and run inference."""
     check_tensorrt()
     import tensorrt as trt
 
-    is_trt10 = int(trt.__version__.split(".", 1)[0]) >= 10
-    if is_trt10 and int8 and dynamic:
-        pytest.skip("YOLO26 INT8+dynamic export requires explicit quantization on TensorRT 10+")
+    is_trt11 = int(trt.__version__.split(".", 1)[0]) >= 11
+    if not is_trt11 and quantize == 8 and dynamic:
+        # TensorRT 7-10 calibrator path cannot quantize dynamic-shape models; TensorRT 11 uses ModelOpt explicit Q/DQ
+        pytest.skip("INT8 + dynamic export requires explicit quantization, available on TensorRT 11+")
 
     file = YOLO(TASK2MODEL[task]).export(
         format="engine",
         imgsz=32,
         dynamic=dynamic,
-        int8=int8,
-        half=half,
+        quantize=quantize,
         batch=batch,
-        data=TASK2DATA[task],
+        data=TASK2DATA[task],  # use the smallest task datasets for fast INT8 calibration
         workspace=1,  # reduce workspace GB for less resource utilization during testing
         simplify=True,
         device=DEVICES[0],
     )
     YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32, device=DEVICES[0])  # exported model inference
     Path(file).unlink()  # cleanup
-    Path(file).with_suffix(".cache").unlink(missing_ok=True) if int8 else None  # cleanup INT8 cache
+    if quantize == 8:
+        Path(file).with_suffix(".cache").unlink(missing_ok=True)  # cleanup TensorRT 7-10 INT8 calibration cache
+        Path(file).with_suffix(".int8.onnx").unlink(missing_ok=True)  # cleanup TensorRT 11 ModelOpt INT8 ONNX
+    if quantize == 16:
+        Path(file).with_suffix(".fp16.onnx").unlink(missing_ok=True)  # cleanup TensorRT 11 ModelOpt FP16 ONNX
 
 
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
+@pytest.mark.skipif(IS_JETSON, reason="Edge devices not intended for training")
 def test_train():
     """Test model training on a minimal dataset using available CUDA devices."""
     device = tuple(DEVICES) if len(DEVICES) > 1 else DEVICES[0]
-    # NVIDIA Jetson only has one GPU and therefore skipping checks
-    if not IS_JETSON:
-        results = YOLO(MODEL).train(data="coco8-grayscale.yaml", imgsz=64, epochs=1, device=DEVICES[0], batch=-1)
-        results = YOLO(MODEL).train(data="coco8.yaml", imgsz=64, epochs=1, device=device, batch=15, compile=True)
-        results = YOLO(MODEL).train(data="coco128.yaml", imgsz=64, epochs=1, device=device, batch=15, val=False)
-        visible = tuple(int(x) for x in os.environ["CUDA_VISIBLE_DEVICES"].split(","))
-        visible = visible[0] if len(visible) == 1 else visible
-        assert visible == device, f"Passed GPUs '{device}', but used GPUs '{visible}'"
-        # Note DDP training returns None, single-GPU returns metrics
-        assert (results is None) if len(DEVICES) > 1 else (results is not None)
+    expected = parse_device(device)  # canonical torch indices, e.g. physical ids translate under external CVD
+    visible = os.environ.get("CUDA_VISIBLE_DEVICES")
+    results = YOLO(MODEL).train(data="coco8-grayscale.yaml", imgsz=64, epochs=1, device=DEVICES[0], batch=-1)
+    model = YOLO(MODEL)
+    results = model.train(data="coco8.yaml", imgsz=64, epochs=1, device=device, batch=15, compile=True)
+    assert model.trainer.args.device == expected, "trained on wrong GPUs"
+    assert model.trainer.device.index == int(expected.split(",")[0]), "trained on wrong GPU"
+    assert os.environ.get("CUDA_VISIBLE_DEVICES") == visible, "CUDA_VISIBLE_DEVICES must never be mutated"
+    results = YOLO(MODEL).train(data="coco128.yaml", imgsz=64, epochs=1, device=device, batch=15, val=False)
+    # Both single-GPU and DDP return metrics (recovered from the saved checkpoint under DDP)
+    assert results is not None
+
+
+@pytest.mark.skipif(not DEVICES or max(DEVICES) == 0, reason="requires an idle CUDA device with nonzero index")
+@pytest.mark.skipif(IS_JETSON, reason="Edge devices not intended for training")
+def test_train_cold_process_nonzero_device():
+    """Train on a nonzero GPU index in a fresh process with cold CUDA state, reproducing real CLI usage.
+
+    A warm pytest process has CUDA initialized, so a subprocess without CUDA_VISIBLE_DEVICES is the only way to
+    reproduce cold-start device selection as on production pods (e.g. Ultralytics Platform).
+    """
+    import subprocess
+
+    env = {k: v for k, v in os.environ.items() if k != "CUDA_VISIBLE_DEVICES"}
+    cmd = ["yolo", "train", f"model={MODEL}", "data=coco8.yaml", "imgsz=32", "epochs=1", f"device={max(DEVICES)}"]
+    subprocess.run(cmd, check=True, env=env)
 
 
 @pytest.mark.slow
@@ -164,6 +181,15 @@ def test_predict_multiple_devices():
 
 
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
+def test_track_exported_model():
+    """Track with an exported model on GPU; exported backends return raw preds as a single Tensor."""
+    file = YOLO(MODEL).export(format="torchscript", imgsz=160, device=DEVICES[0])
+    results = YOLO(file).track(SOURCE, imgsz=160, device=DEVICES[0])
+    assert len(results[0].boxes)
+    Path(file).unlink()  # cleanup
+
+
+@pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 def test_autobatch():
     """Check optimal batch size for YOLO model training using autobatch utility."""
     from ultralytics.utils.autobatch import check_train_batch_size
@@ -182,7 +208,7 @@ def test_utils_benchmarks(isolated_model):
     ProfileModels(
         [isolated_model],
         imgsz=32,
-        half=False,
+        quantize=32,
         min_time=1,
         num_timed_runs=3,
         num_warmup_runs=1,
@@ -190,6 +216,7 @@ def test_utils_benchmarks(isolated_model):
     ).run()
 
 
+@pytest.mark.slow
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 def test_predict_sam():
     """Test SAM model predictions using different prompts."""
@@ -217,7 +244,7 @@ def test_predict_sam():
             imgsz=1024,
             model=WEIGHTS_DIR / "mobile_sam.pt",
             device=DEVICES[0],
-            half=True,
+            quantize=16,
         )
     )
     predictor.set_image(ASSETS / "zidane.jpg")

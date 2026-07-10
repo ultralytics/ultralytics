@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import inspect
-from pathlib import Path
 from collections.abc import Iterator
+from pathlib import Path
 from typing import Any, Literal, overload
 
 import numpy as np
@@ -153,8 +153,7 @@ class Model(torch.nn.Module):
         source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None,
         stream: Literal[True],
         **kwargs: Any,
-    ) -> Iterator[Results]:
-        ...
+    ) -> Iterator[Results]: ...
 
     @overload
     def __call__(
@@ -162,8 +161,7 @@ class Model(torch.nn.Module):
         source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
         stream: Literal[False] = False,
         **kwargs: Any,
-    ) -> list[Results]:
-        ...
+    ) -> list[Results]: ...
 
     @overload
     def __call__(
@@ -171,8 +169,7 @@ class Model(torch.nn.Module):
         source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
         stream: bool = False,
         **kwargs: Any,
-    ) -> Iterator[Results] | list[Results]:
-        ...
+    ) -> Iterator[Results] | list[Results]: ...
 
     def __call__(
         self,
@@ -186,15 +183,15 @@ class Model(torch.nn.Module):
         with the required arguments.
 
         Args:
-            source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | list | tuple | None): The source of the image(s)
-                to make predictions on. Can be a file path, URL, PIL image, numpy array, PyTorch tensor, or a list/tuple
-                of these. If you don't provide a source, it defaults to a sample image with a warning.
+            source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | list | tuple | None): The source of the
+                image(s) to make predictions on. Can be a file path, URL, PIL image, numpy array, PyTorch tensor, or a
+                list/tuple of these. If you don't provide a source, it defaults to a sample image with a warning.
             stream (bool): If True, treat the input source as a continuous stream for predictions.
             **kwargs (Any): Additional keyword arguments to configure the prediction process.
 
         Returns:
-            (Iterator[ultralytics.engine.results.Results] | list[ultralytics.engine.results.Results]): A list of prediction results, each encapsulated in a Results
-                object.
+            (Iterator[ultralytics.engine.results.Results] | list[ultralytics.engine.results.Results]): A list of
+                prediction results, each encapsulated in a Results object.
 
         Examples:
             >>> model = YOLO("yolo26n.pt")
@@ -514,8 +511,7 @@ class Model(torch.nn.Module):
         stream: Literal[True],
         predictor=None,
         **kwargs: Any,
-    ) -> Iterator[Results]:
-        ...
+    ) -> Iterator[Results]: ...
 
     @overload
     def predict(
@@ -524,8 +520,7 @@ class Model(torch.nn.Module):
         stream: Literal[False] = False,
         predictor=None,
         **kwargs: Any,
-    ) -> list[Results]:
-        ...
+    ) -> list[Results]: ...
 
     @overload
     def predict(
@@ -534,8 +529,7 @@ class Model(torch.nn.Module):
         stream: bool = False,
         predictor=None,
         **kwargs: Any,
-    ) -> Iterator[Results] | list[Results]:
-        ...
+    ) -> Iterator[Results] | list[Results]: ...
 
     def predict(
         self,
@@ -561,8 +555,8 @@ class Model(torch.nn.Module):
                 for returning feature embeddings from specified layers.
 
         Returns:
-            (Iterator[ultralytics.engine.results.Results] | list[ultralytics.engine.results.Results] | list[torch.Tensor]): Prediction results as `Results` objects, or
-                embedding tensors when `embed` is set.
+            (Iterator[ultralytics.engine.results.Results] | list[ultralytics.engine.results.Results] | list[torch.Tensor]):
+                Prediction results as `Results` objects, or embedding tensors when `embed` is set.
 
         Examples:
             >>> model = YOLO("yolo26n.pt")

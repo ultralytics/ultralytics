@@ -32,6 +32,89 @@ Pretrained YOLOA checkpoints and benchmark numbers have not been published yet. 
 <!-- {% include "macros/yolo-anomaly-perf.md" %} -->
 <!-- Params and FLOPs values are for the fused model after `model.fuse()`, which merges Conv and BatchNorm layers. -->
 
+## Training data
+
+The pretrained YOLOA detector is trained on an internal binary-anomaly mixture (the "v8" mixture) that merges **65 public defect sources** into a single `anomaly` class — every defect type is treated as one class, so the model learns to localize "something wrong" rather than to name a specific defect. The base mixture contains **206,014 training images and 10,846 validation images (216,860 total, ~180k annotated defect instances)**; an augmented build with zoom crops and synthetic defects (v8.2) expands the training pool to **405,851 images**.
+
+The sources span several industrial domains, so the detector sees a wide variety of surfaces and defect appearances before any memory bank is set:
+
+- **Electronic and industrial components** — [RealIAD](https://realiad4ad.github.io/Real-IAD/) parts (PCBs, connectors, USBs, switches, terminal blocks, buttons, plastic nuts, toys, zippers) and [VisA](https://github.com/amazon-science/spot-diff) objects (PCBs, cashews, chewing gum, candles, pipe fryum, and more).
+- **Metal and steel surfaces** — [NEU-DET](http://faculty.neu.edu.cn/yunhyan/NEU_surface_defect_database.html), several metal-surface defect sets, magnetic-tile defects, and cast/case defects (scratches, pits, rolled-in scale, crazing).
+- **Textures and materials** — [DAGM](https://hci.iwr.uni-heidelberg.de/content/weakly-supervised-learning-industrial-optical-inspection) synthetic textures, woven fabrics, Tianchi fabric, wall-surface defects, and crack sets.
+- **Consumer goods and packaging** — GoodsAD (drink bottles and cans, food boxes and packages, cigarette boxes) and food-bottle defects.
+- **Automotive** — car-scratch and car-case defects.
+
+This breadth is what lets YOLOA act as a strong general-purpose localizer once a memory bank supplies the "normal" reference for a new part — even for categories it never saw during training (see the MVTec-AD evaluation below).
+
+## Evaluation on MVTec-AD
+
+We evaluate YOLOA zero-shot on [MVTec-AD](https://www.mvtec.com/research-teaching/datasets/mvtec-ad), the standard industrial anomaly-detection benchmark of **15 categories** (5 textures and 10 objects). **None of these categories appear in the training mixture above**, so this measures out-of-distribution transfer: for each category we build a memory bank from that category's own defect-free (`good`) training images with `set_memory()`, then run detection on the held-out test split and score the predicted boxes against the ground-truth defect boxes. Reported numbers are from the current YOLOA-M checkpoint.
+
+mAP is reported at IoU 0.10, 0.25, and 0.50 (coarse defect localization matters more than tight boxes here), plus the standard COCO mAP@[.50:.95].
+
+| Category    | mAP10  | mAP25  | mAP50  | mAP10-50 |
+| ----------- | ------ | ------ | ------ | -------- |
+| bottle      | 0.8295 | 0.7074 | 0.4487 | 0.6436   |
+| cable       | 0.1346 | 0.0996 | 0.0877 | 0.1005   |
+| capsule     | 0.4830 | 0.3964 | 0.2235 | 0.3538   |
+| carpet      | 0.6820 | 0.6690 | 0.5446 | 0.6320   |
+| grid        | 0.1251 | 0.0625 | 0.0195 | 0.0588   |
+| hazelnut    | 0.3564 | 0.2926 | 0.2128 | 0.2772   |
+| leather     | 0.5834 | 0.5631 | 0.4844 | 0.5427   |
+| metal_nut   | 0.2678 | 0.2579 | 0.2443 | 0.2582   |
+| pill        | 0.3451 | 0.3150 | 0.2732 | 0.3113   |
+| screw       | 0.1498 | 0.1367 | 0.1270 | 0.1352   |
+| tile        | 0.8326 | 0.8053 | 0.6886 | 0.7711   |
+| toothbrush  | 0.1926 | 0.1100 | 0.0312 | 0.0911   |
+| transistor  | 0.0657 | 0.0406 | 0.0109 | 0.0387   |
+| wood        | 0.8320 | 0.7840 | 0.7005 | 0.7786   |
+| zipper      | 0.1485 | 0.1300 | 0.0351 | 0.1013   |
+| **AVERAGE** | **0.4019** | **0.3580** | **0.2755** | **0.3396** |
+
+### Where YOLOA works well
+
+YOLOA is strongest on **random-grain textures and simple rigid objects whose defects are medium-to-large and high-contrast** — stains, holes, cracks, cuts, breakage, and contamination that clearly change local appearance. The normal surface is easy for the memory bank to model, so a genuine defect stands out.
+
+| Category | Domain | Typical defects | Fit |
+| -------- | ------ | --------------- | --- |
+| wood     | Texture — wood-grain panels | color stain, hole, liquid soak, scratch | Strong |
+| tile     | Texture — stone / ceramic | crack, glue strip, gray stroke, oil, rough | Strong |
+| carpet   | Texture — woven fabric | color, cut, hole, metal contamination, thread | Strong |
+| leather  | Texture — leather grain | color, cut, fold, glue, poke | Strong |
+| bottle   | Object — bottle mouth (top-down) | broken large / small, contamination | Strong |
+
+### Where YOLOA struggles (and why)
+
+The weaker categories share four repeatable patterns. They are not random failures — each reflects a known limit of one-class, feature-based scoring, and each is a candidate for fine-tuning on labeled defects.
+
+| Category | Domain | Typical defects | Fit | Main difficulty |
+| -------- | ------ | --------------- | --- | --------------- |
+| capsule    | Object — two-tone capsule | crack, faulty imprint, poke, scratch, squeeze | Moderate | Small object; tiny pokes and thin cracks |
+| pill       | Object — tablet | color, contamination, crack, faulty imprint, scratch | Moderate | Normal speckled surface masks small defects |
+| metal_nut  | Object — flanged metal nut | bent, color, flip, scratch | Moderate | Reflective metal; `flip` is a pose change, not a local defect |
+| hazelnut   | Object — nut (organic) | crack, cut, hole, print | Moderate | Naturally ridged/pitted shell looks like defects |
+| screw      | Object — metal screw | manipulated front, scratch head/neck, thread side/top | Limited | Reflective threads; fine thread damage blends with the ridges |
+| cable      | Object — cable cross-section | bent / missing wire, cable swap, cut / poke insulation | Limited | Busy normal structure; semantic swaps and missing cores |
+| zipper     | Object / texture — zipper | broken / split / squeezed teeth, fabric border/interior, rough | Limited | Periodic teeth; tiny tooth defects; fabric-tape defects |
+| toothbrush | Object — brush head | defective (bent / missing bristles) | Limited | Dense bristle texture; very small test set |
+| grid       | Texture — wire mesh | bent, broken, glue, metal contamination, thread | Limited | Strongly periodic mesh drowns out small wire defects |
+| transistor | Object — transistor on a perforated PCB | bent / cut lead, damaged case, misplaced | Limited | Tiny leads on a board busier than the defect; `cut_lead` is an absence |
+
+The recurring failure modes:
+
+- **Periodic or high-frequency structure** (`grid` wire mesh, `zipper` teeth, `toothbrush` bristles). The normal pattern is itself high-frequency, so a small defect no longer stands out against it.
+- **Tiny sub-component defects on busy assemblies** (`transistor` leads on a perforated PCB, `cable` cores, `screw` threads). The surrounding normal structure scores higher than the defect, and the smallest targets fall below what the stride-16/32 features resolve cleanly.
+- **Reflective metals and naturally noisy surfaces** (`screw`, `metal_nut`, `hazelnut`, `pill` speckle). View-dependent highlights and organic texture inflate the normal model and hide small defects.
+- **Semantic, absence, or pose defects** (`cable_swap`, `missing_wire`, `cut_lead`, `flip`, `misplaced`). One-class feature scoring detects *appearance* deviation, not "a part moved, swapped, or is missing."
+
+!!! tip "Rules of thumb for scoping a deployment"
+
+    When a sales or CS engineer qualifies a new inspection task, three questions predict whether the memory bank alone will be enough:
+
+    - **How big is the defect relative to the part, and how much does it change local appearance?** Larger stains, holes, cracks, cuts, and contamination on calm surfaces are the sweet spot. Sub-millimeter scratches, faint imprints, and fine thread damage are not.
+    - **Is the normal surface calm, periodic, reflective, or organic?** Calm random grain (wood, tile, leather, carpet) is ideal. Periodic mesh/teeth/bristles, shiny metal, and naturally speckled or ridged surfaces need a labeled-defect fine-tune.
+    - **Is the defect a local appearance change or a semantic change?** "A scratch on the surface" localizes well; "a wire is missing, swapped, or the part is flipped" does not, and needs labeled examples.
+
 ## Two datasets, two "trainings"
 
 YOLOA separates what most anomaly-detection newcomers conflate: the **normal-image set** consumed by `set_memory()` and the optional **labeled-defect set** consumed by `train()`.
@@ -45,6 +128,28 @@ YOLOA separates what most anomaly-detection newcomers conflate: the **normal-ima
 
 - **set_memory()**: Extracts backbone features from normal images, compresses them into a memory bank, and calibrates an anomaly threshold without gradients or epochs.
 - **train()**: An optional gradient fine-tune on a standard YOLO detection dataset of labeled defects to teach the detector to convert anomaly evidence into localized boxes.
+
+## Using YOLOA on your own domain
+
+Start from what data you have, not from the model. The decision is whether to fine-tune or to rely on the memory bank alone.
+
+```mermaid
+flowchart TD
+    A[Your inspection domain] --> B{Labeled defect boxes available?}
+    B -->|No - only normal images| C[Build a memory bank with set_memory on your normal images]
+    C --> D{Detections good enough?}
+    D -->|Yes| E[Deploy: predict with memory set]
+    D -->|No| F[Collect and label defects]
+    B -->|Yes - normal and labeled defects| G[Fine-tune with train on the labeled defects]
+    F --> G
+    G --> H[Keep the memory bank set so the prior is fused at inference]
+    H --> E
+```
+
+- **Only normal images, no abnormal images or labels.** Build the memory bank first (`set_memory()`) and evaluate on a held-out set — this is the cheapest way to learn whether YOLOA fits your part. If the memory-bank results do not meet your bar (common for the periodic, reflective, tiny-defect, or semantic-defect cases in the MVTec-AD evaluation above), collect and label defects and fine-tune.
+- **A decent dataset of both normal and labeled abnormal images.** Fine-tune directly with `train()` on your labeled defects. Keep the memory bank set from your normal images — the fused prior improves over a regular detection model, because the detector gets both the learned defect evidence and the "deviation from normal" signal.
+
+In both paths the deliverable is the same — a checkpoint with the memory bank embedded that you `predict()`, `val()`, or `export()` like any YOLO model.
 
 ## Set memory
 
@@ -117,6 +222,10 @@ The `data` argument takes a standard [detection dataset YAML](../datasets/detect
 ## Predict
 
 Predict with a model that has memory set. When the memory bank is non-empty, each image is scored against the bank to produce an anomaly heatmap that is fused into the detector automatically — there is no prior argument to pass. Without a set memory bank, the model runs as a vanilla YOLO26 detector.
+
+!!! note
+
+    Scoring each image against the memory bank and fusing the heatmap prior adds work on top of the detector. With the memory bank set, inference runs roughly **20–25% slower** than the equivalent regular YOLO26 detection model, measured on NVIDIA T4 with TensorRT. Exporting before setting memory removes this overhead and yields a plain detector graph.
 
 !!! example
 

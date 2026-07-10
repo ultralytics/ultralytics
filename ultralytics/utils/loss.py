@@ -1316,14 +1316,16 @@ class SemanticSegmentationLoss(nn.Module):
 
     def _ce_loss(self, preds, masks):
         """Compute cross-entropy on flattened pixels to avoid the CUDA nll_loss2d path."""
+        flat = masks.reshape(-1)
+        valid = flat != 255
+        if not valid.any():  # all pixels ignored: mean over 0 elements is NaN
+            return preds.sum() * 0
         if self.nc == 1:
-            flat = masks.reshape(-1)
-            valid = flat != 255
             logits = preds.reshape(-1)[valid]
             target = flat[valid].float()
         else:
             logits = preds.permute(0, 2, 3, 1).reshape(-1, self.nc)
-            target = masks.reshape(-1).long()
+            target = flat.long()
         return self.ce(logits, target)
 
     def _dice_loss(self, preds, masks):

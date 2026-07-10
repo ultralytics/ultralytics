@@ -883,6 +883,21 @@ def test_utils_torchutils():
     time_sync()
 
 
+@pytest.mark.parametrize("nc", [1, 3])
+def test_semantic_loss_all_ignore(nc):
+    """SemanticSegmentationLoss must stay finite when the whole batch is ignore (255), e.g. unlabeled/void frames."""
+    from ultralytics.cfg import get_cfg
+    from ultralytics.nn.tasks import SemanticSegmentationModel
+    from ultralytics.utils.loss import SemanticSegmentationLoss
+
+    model = SemanticSegmentationModel(cfg="yolo26-sem.yaml", nc=nc, verbose=False)
+    model.args = get_cfg()
+    loss_fn = SemanticSegmentationLoss(model)
+    preds = model(torch.randn(1, 3, 64, 64))
+    loss, items = loss_fn(preds, {"semantic_mask": torch.full((1, 64, 64), 255, dtype=torch.long)})
+    assert torch.isfinite(loss).all() and torch.isfinite(items).all()
+
+
 def test_utils_ops():
     """Test utility operations for coordinate transformations and normalizations."""
     from ultralytics.utils.ops import (

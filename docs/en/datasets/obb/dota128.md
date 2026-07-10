@@ -16,6 +16,7 @@ keywords: DOTA128 dataset, Ultralytics, YOLO26, object detection, debugging, tra
 - **Images**: 128 aerial tiles (all in train folder, used for both train and val) sourced from DOTAv1.
 - **Classes**: Inherits the 15 DOTAv1 categories such as plane, ship, and large vehicle.
 - **Labels**: YOLO-format oriented bounding boxes saved as `.txt` files beside each image.
+- **Download**: 34 MB, fetched automatically from Ultralytics GitHub assets the first time you train.
 
 This dataset is intended for use with [Ultralytics Platform](https://platform.ultralytics.com/) and [YOLO26](https://github.com/ultralytics/ultralytics).
 
@@ -77,10 +78,10 @@ If you use the DOTA dataset in your research or development work, please cite th
           author={Ding, Jian and Xue, Nan and Xia, Gui-Song and Bai, Xiang and Yang, Wen and Yang, Michael and Belongie, Serge and Luo, Jiebo and Datcu, Mihai and Pelillo, Marcello and Zhang, Liangpei},
           journal={IEEE Transactions on Pattern Analysis and Machine Intelligence},
           title={Object Detection in Aerial Images: A Large-Scale Benchmark and Challenges},
-          year={2021},
-          volume={},
-          number={},
-          pages={1-1},
+          year={2022},
+          volume={44},
+          number={11},
+          pages={7778-7796},
           doi={10.1109/TPAMI.2021.3117983}
         }
         ```

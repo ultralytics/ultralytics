@@ -121,6 +121,7 @@ export-coreml = [
 ]
 export-executorch = [
     "executorch",
+    "torch>=2.12.0,<2.13.0; platform_system == 'Linux' and platform_machine == 'aarch64'",
     "numpy<=2.3.5",
 ]
 export-deepx = [
@@ -137,6 +138,8 @@ export = [
     "ultralytics[export-tensorflow]",
     "ultralytics[export-coreml]",
     "ultralytics[export-litert]",
+    # Raspberry Pi Python 3.11 ExecuTorch inference requires the last known-good Linux ARM64 Torch 2.12 stack.
+    "torch>=2.12.0,<2.13.0; platform_system == 'Linux' and platform_machine == 'aarch64' and python_version == '3.11'",
 ]
 solutions = [
     "shapely>=2.0.0",    # shapely for point and polygon data matching

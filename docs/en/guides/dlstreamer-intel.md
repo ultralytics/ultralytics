@@ -54,7 +54,7 @@ pip install openvino==2026.2.0 ultralytics==8.4.57
 2.  Download PyTorch YOLO26s model from Ultralytics, converts it to OpenVINO™ IR format, and generates INT8 precision variant.
 
 ```bash
-yolo export model=yolo26s.pt format=openvino dynamic=True quantize=8 data=coco128.yaml
+yolo export model=yolo26s.pt format=openvino dynamic=True int8=True data=coco128.yaml
 ```
 
 Model should be downloaded to `~/intel/dlstreamer_demo/yolo26s_int8_openvino_model` folder.
@@ -71,7 +71,7 @@ yolo export model=yolo26s.pt format=openvino dynamic=True
 yolo export model=yolo26s.pt format=openvino dynamic=True half=True
 
 # INT8 (maximum performance, requires calibration dataset)
-yolo export model=yolo26s.pt format=openvino dynamic=True quantize=8 data=coco128.yaml
+yolo export model=yolo26s.pt format=openvino dynamic=True int8=True data=coco128.yaml
 ```
 
 The examples below use the INT8 model exported in the [preparation step](#yolo26-model-preparation). To use FP32 or FP16 models, replace the model path accordingly (e.g. `yolo26s_openvino_model/yolo26s.xml`).

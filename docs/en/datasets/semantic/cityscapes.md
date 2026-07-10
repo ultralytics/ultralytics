@@ -6,7 +6,7 @@ keywords: Cityscapes dataset, semantic segmentation, Ultralytics YOLO, YOLO26, a
 
 # Cityscapes Dataset
 
-The [Cityscapes](https://www.cityscapes-dataset.com/) dataset is a large-scale [semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation) benchmark focused on urban street scenes captured across 50 European cities. It provides high-quality pixel-level annotations and is one of the most widely used datasets for autonomous driving research and urban scene understanding with [Ultralytics YOLO](https://docs.ultralytics.com/models) models.
+The [Cityscapes](https://www.cityscapes-dataset.com/) dataset is a large-scale [semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation) benchmark focused on urban street scenes captured across 50 European cities. It provides high-quality pixel-level annotations and is one of the most widely used datasets for autonomous driving research and urban scene understanding with [Ultralytics YOLO](../../models/index.md) models.
 
 ## Key Features
 

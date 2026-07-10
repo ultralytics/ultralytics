@@ -1,4 +1,5 @@
 ---
+title: utils.export.deepx API Reference
 description: Reference for the Ultralytics DEEPX export utility. Learn how to convert ONNX models to DEEPX format using the DX-Compiler.
 keywords: onnx2deepx, DEEPX export, dx_com, ONNX, model conversion, Ultralytics, INT8 quantization
 ---

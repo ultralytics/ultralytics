@@ -1,4 +1,5 @@
 ---
+title: hub.__init__ API Reference
 description: Explore Ultralytics Platform API functions for login, logout, model reset, export, and dataset checks. Enhance your YOLO workflows with these essential utilities.
 keywords: Ultralytics Platform API, login, logout, reset model, export model, check dataset, YOLO, machine learning
 ---

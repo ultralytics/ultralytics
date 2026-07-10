@@ -34,15 +34,15 @@ jobs:
     if: github.repository == 'ultralytics/ultralytics'
     runs-on: ubuntu-latest
     env:
-      GITHUB_REF: ${{ github.head_ref || github.ref }}
+      BRANCH: ${{ github.head_ref || github.ref_name }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           # Fetch depth 0 required to capture full docs author history
           repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
           token: ${{ secrets._GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
-          ref: ${{ env.GITHUB_REF }}
+          ref: ${{ env.BRANCH }}
           fetch-depth: 0
       - uses: astral-sh/setup-uv@v7
         with:
@@ -69,7 +69,7 @@ jobs:
           git config --global user.email "web@ultralytics.com"
           npm install --global prettier prettier-plugin-sh
           python docs/build_reference.py
-          git pull origin "$GITHUB_REF"
+          git pull origin "$BRANCH"
           git add .
           git reset HEAD -- .github/workflows/  # workflow changes are not permitted with default token
           if [[ "${{ github.event_name }}" == "pull_request" ]] && ! git diff --staged --quiet; then
@@ -92,7 +92,7 @@ jobs:
         continue-on-error: true
         if: always()
         run: |
-          git pull origin "$GITHUB_REF"
+          git pull origin "$BRANCH"
           git add --update  # only add updated files
           git reset HEAD -- .github/workflows/  # workflow changes are not permitted with default token
           if [[ "${{ github.event_name }}" == "pull_request" ]] && ! git diff --staged --quiet; then

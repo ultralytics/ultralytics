@@ -1,7 +1,8 @@
 ---
+title: Extract and Crop Objects with YOLO26
 comments: true
-description: Learn how to crop and extract objects using Ultralytics YOLO26 for focused analysis, reduced data volume, and enhanced precision.
-keywords: Ultralytics, YOLO26, object cropping, object detection, image processing, video analysis, AI, machine learning
+description: Detect and crop objects from images and videos with Ultralytics YOLO26, saving each detection to disk for focused analysis and dataset building.
+keywords: Ultralytics, YOLO26, object cropping, object extraction, object detection, dataset creation, image processing, video analysis, AI, machine learning
 ---
 
 # Object Cropping using Ultralytics YOLO26
@@ -33,6 +34,10 @@ Object cropping with [Ultralytics YOLO26](https://github.com/ultralytics/ultraly
 | :-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
 | ![Conveyor Belt at Airport Suitcases Cropping using Ultralytics YOLO26](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/suitcases-cropping-airport-conveyor-belt.avif) |
 |                                                      Suitcases Cropping at airport conveyor belt using Ultralytics YOLO26                                                       |
+
+## Crop Objects with YOLO26
+
+Pass your video to the `ObjectCropper` solution and it detects objects each frame and saves every detection as a separate image. Restrict cropping to specific `classes`, raise `conf` to keep only confident detections, and set `crop_dir` to choose where the crops are written.
 
 !!! example "Object Cropping using Ultralytics YOLO"
 
@@ -101,7 +106,7 @@ Moreover, the following visualization arguments are available for use:
 
 ### What is object cropping in Ultralytics YOLO26 and how does it work?
 
-Object cropping using [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) involves isolating and extracting specific objects from an image or video based on YOLO26's detection capabilities. This process allows for focused analysis, reduced data volume, and enhanced [precision](https://www.ultralytics.com/glossary/precision) by leveraging YOLO26 to identify objects with high accuracy and crop them accordingly. For an in-depth tutorial, refer to the [object cropping example](#object-cropping-using-ultralytics-yolo26).
+Object cropping using [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) involves isolating and extracting specific objects from an image or video based on YOLO26's detection capabilities. This process allows for focused analysis, reduced data volume, and enhanced [precision](https://www.ultralytics.com/glossary/precision) by leveraging YOLO26 to identify objects with high accuracy and crop them accordingly. For an in-depth tutorial, refer to the [object cropping example](#crop-objects-with-yolo26).
 
 ### Why should I use Ultralytics YOLO26 for object cropping over other solutions?
 
@@ -117,4 +122,4 @@ Yes, Ultralytics YOLO26 can process real-time video feeds to detect and crop obj
 
 ### What are the hardware requirements for efficiently running YOLO26 for object cropping?
 
-Ultralytics YOLO26 is optimized for both CPU and GPU environments, but to achieve optimal performance, especially for real-time or high-volume inference, a dedicated GPU (e.g., NVIDIA Tesla, RTX series) is recommended. For deployment on lightweight devices, consider using [CoreML](../integrations/coreml.md) for iOS or [TFLite](../integrations/tflite.md) for Android. More details on supported devices and formats can be found in our [model deployment options](../guides/model-deployment-options.md).
+Ultralytics YOLO26 is optimized for both CPU and GPU environments, but to achieve optimal performance, especially for real-time or high-volume inference, a dedicated GPU (e.g., NVIDIA Tesla, RTX series) is recommended. For deployment on lightweight devices, consider using [CoreML](../integrations/coreml.md) for iOS or [LiteRT](../integrations/litert.md) for Android. More details on supported devices and formats can be found in our [model deployment options](../guides/model-deployment-options.md).

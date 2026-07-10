@@ -1,4 +1,5 @@
 ---
+title: Install YOLO with Conda
 comments: true
 description: Install Ultralytics YOLO with Conda. Set up an isolated conda-forge environment, add CUDA GPU support, run the Conda Docker image, and speed up installs with the libmamba solver.
 keywords: Ultralytics, YOLO, Conda, conda-forge, install Ultralytics, conda environment, CUDA, GPU, pytorch-cuda, Miniconda, Anaconda, libmamba solver, Conda Docker image, machine learning, environment management
@@ -83,9 +84,11 @@ Run the image:
 
 ```bash
 # Run the Ultralytics image in a container with GPU support
-sudo docker run -it --ipc=host --runtime=nvidia --gpus all $t            # all GPUs
-sudo docker run -it --ipc=host --runtime=nvidia --gpus '"device=2,3"' $t # specify GPUs
+sudo docker run -it --ipc=host --device nvidia.com/gpu=all $t                         # all GPUs
+sudo docker run -it --ipc=host --device nvidia.com/gpu=2 --device nvidia.com/gpu=3 $t # specify GPUs
 ```
+
+CDI device requests require Docker >= 28.2.0 and NVIDIA Container Toolkit >= 1.18. On older hosts, use the legacy `--runtime=nvidia --gpus all` flags instead — see the [Docker Quickstart Guide](docker-quickstart.md) for details.
 
 ## Speeding Up Installation with Libmamba
 
@@ -149,8 +152,8 @@ Using Ultralytics Docker images ensures a consistent and reproducible environmen
 
 ```bash
 sudo docker pull ultralytics/ultralytics:latest-conda
-sudo docker run -it --ipc=host --runtime=nvidia --gpus all ultralytics/ultralytics:latest-conda            # all GPUs
-sudo docker run -it --ipc=host --runtime=nvidia --gpus '"device=2,3"' ultralytics/ultralytics:latest-conda # specify GPUs
+sudo docker run -it --ipc=host --device nvidia.com/gpu=all ultralytics/ultralytics:latest-conda                         # all GPUs
+sudo docker run -it --ipc=host --device nvidia.com/gpu=2 --device nvidia.com/gpu=3 ultralytics/ultralytics:latest-conda # specify GPUs
 ```
 
 This approach is ideal for deploying applications in production or running complex workflows without manual configuration. Learn more about [Ultralytics Conda Docker Image](../quickstart.md).

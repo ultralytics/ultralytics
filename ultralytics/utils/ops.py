@@ -74,8 +74,8 @@ class Profile(contextlib.ContextDecorator):
 def segment2box(segment: np.ndarray, width: int = 640, height: int = 640) -> np.ndarray:
     """Convert segment coordinates to bounding box coordinates.
 
-    Converts a single segment label to a box label by finding the minimum and maximum x and y coordinates. Applies
-    inside-image constraint and clips coordinates when necessary.
+    Converts a single segment label to a box label by finding the minimum and maximum x and y coordinates of the
+    polygon clipped to the image, so segments crossing the image boundary keep their visible extent.
 
     Args:
         segment (np.ndarray): Segment coordinates in format (N, 2) where N is number of points.
@@ -86,18 +86,14 @@ def segment2box(segment: np.ndarray, width: int = 640, height: int = 640) -> np.
         (np.ndarray): Bounding box coordinates in xyxy format [x1, y1, x2, y2].
     """
     x, y = segment.T  # segment xy
-    # Clip coordinates if 3 out of 4 sides are outside the image
-    if np.array([x.min() < 0, y.min() < 0, x.max() > width, y.max() > height]).sum() >= 3:
-        x = x.clip(0, width)
-        y = y.clip(0, height)
     inside = (x >= 0) & (y >= 0) & (x <= width) & (y <= height)
-    x = x[inside]
-    y = y[inside]
-    return (
-        np.array([x.min(), y.min(), x.max(), y.max()], dtype=segment.dtype)
-        if len(x)  # avoid any(x) as drops x=0 segments
-        else np.zeros(4, dtype=segment.dtype)
-    )  # xyxy
+    # Fully out-of-frame polygon: keep a box only if it surrounds the image (3+ sides outside)
+    if not inside.any() and np.array([x.min() < 0, y.min() < 0, x.max() > width, y.max() > height]).sum() < 3:
+        return np.zeros(4, dtype=segment.dtype)
+    # Clip instead of dropping outside points so boundary-crossing polygons keep their true extent
+    x = x.clip(0, width)
+    y = y.clip(0, height)
+    return np.array([x.min(), y.min(), x.max(), y.max()], dtype=segment.dtype)  # xyxy
 
 
 def scale_boxes(

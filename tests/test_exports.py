@@ -168,16 +168,10 @@ def test_modelopt_quantize_onnx_requires_int8_dataset():
 def test_export_rknn_batch_expansion(monkeypatch, tmp_path):
     """Check RKNN calibrates batch 1 before Toolkit expands to the requested batch."""
     calls = {}
-    rknn = SimpleNamespace(
-        config=lambda **kwargs: 0,
-        load_onnx=lambda **kwargs: 0,
-        build=lambda **kwargs: calls.update(build=kwargs),
-        export_rknn=lambda file: Path(file).write_bytes(b"0" * 1024**2) and 0,
+    monkeypatch.setattr(
+        "ultralytics.utils.export.rknn.onnx2rknn", lambda **kwargs: calls.update(kwargs) or kwargs["output_dir"]
     )
-    api = SimpleNamespace(RKNN=lambda **kwargs: rknn)
-    monkeypatch.setitem(sys.modules, "rknn", SimpleNamespace(api=api))
-    monkeypatch.setitem(sys.modules, "rknn.api", api)
-    monkeypatch.setattr(checks, "check_requirements", lambda *args, **kwargs: None)
+    monkeypatch.setattr("ultralytics.engine.exporter.file_size", lambda _: 1)
 
     image = tmp_path / "image.jpg"
     exporter = SimpleNamespace(
@@ -190,11 +184,7 @@ def test_export_rknn_batch_expansion(monkeypatch, tmp_path):
     exporter.export_onnx = lambda: calls.update(onnx_batch=len(exporter.im)) or tmp_path / "model.onnx"
     Exporter.export_rknn(exporter)
     assert calls["onnx_batch"] == 1
-    assert calls["build"] == {
-        "do_quantization": True,
-        "dataset": str(tmp_path / "model_rknn_model" / "dataset.txt"),
-        "rknn_batch_size": 8,
-    }
+    assert calls["batch"] == 8
 
 
 def test_modelopt_quantize_onnx_excludes_sigmoid(monkeypatch):

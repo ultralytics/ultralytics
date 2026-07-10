@@ -41,9 +41,9 @@ Before you begin, ensure the following are installed and configured on your Inte
 
 ## YOLO26 Model Preparation
 
-DL Streamer uses models in [OpenVINO™ IR format](https://docs.openvino.ai/2026/documentation/openvino-ir-format.html). Ultralytics YOLO26 models are exported from PyTorch to OpenVINO IR using the Ultralytics exporter. DL Streamer leverages the official [Ultralytics OpenVINO integration](https://docs.ultralytics.com/integrations/openvino), which provides optimized export and inference capabilities for Intel hardware.
+DL Streamer uses models in [OpenVINO™ IR format](https://docs.openvino.ai/2026/documentation/openvino-ir-format.html). Ultralytics YOLO26 models are exported from PyTorch to OpenVINO™ IR using the Ultralytics exporter. DL Streamer leverages the official [Ultralytics OpenVINO™ integration](https://docs.ultralytics.com/integrations/openvino), which provides optimized export and inference capabilities for Intel hardware.
 
-1.  Create `~/intel/dlstreamer_demo` folder and install OpenVINO and Ultralytics in virtual environment
+1.  Create `~/intel/dlstreamer_demo` folder and install OpenVINO™ and Ultralytics in virtual environment
 
 ```bash
 mkdir -p ~/intel/dlstreamer_demo && cd ~/intel/dlstreamer_demo
@@ -51,7 +51,7 @@ python3 -m venv .dls-venv && source .dls-venv/bin/activate
 pip install openvino==2026.2.0 ultralytics==8.4.57
 ```
 
-2.  Download PyTorch YOLO26s model from Ultralytics, converts it to OpenVINO IR format, and generates INT8 precision variant.
+2.  Download PyTorch YOLO26s model from Ultralytics, converts it to OpenVINO™ IR format, and generates INT8 precision variant.
 
 ```bash
 yolo export model=yolo26s.pt format=openvino quantize=8 data=coco128.yaml

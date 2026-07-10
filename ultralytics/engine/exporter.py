@@ -1324,6 +1324,7 @@ class Exporter:
         from ultralytics.utils.export.rknn import onnx2rknn
 
         self.args.opset = min(self.args.opset or 19, 19)  # rknn-toolkit expects opset<=19
+        self.im = self.im[:1]  # RKNN Toolkit expands the batch after calibrating the batch-1 ONNX model
         f_onnx = self.export_onnx()
         output_dir = Path(str(self.file).replace(self.file.suffix, f"_rknn_model{os.sep}"))
         rknn_dataset = None
@@ -1342,6 +1343,7 @@ class Exporter:
             output_dir=output_dir,
             name=self.args.name,
             quantize=self.args.quantize,
+            batch=self.args.batch,
             dataset=rknn_dataset,
             metadata=self.metadata,
             prefix=prefix,

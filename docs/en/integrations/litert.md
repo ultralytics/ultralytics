@@ -21,7 +21,7 @@ The LiteRT export format optimizes your models for tasks like [object detection]
 
 !!! tip "Run YOLO on Web with LiteRT.js today via the official @ultralytics/yolo npm package"
 
-    The official [Ultralytics YOLO NPM package](https://www.npmjs.com/package/@ultralytics/yolo) runs LiteRT `.tflite` exports directly in the browser via [LiteRT.js](https://developers.google.com/edge/litert/web) no server and no Python with real-time webcam inference, single-image prediction, and WebGPU acceleration (automatic CPU/wasm fallback) across all six YOLO26 tasks (detect, segment, pose, OBB, classify, semantic). On WebGPU it's often ~2× faster than ONNX Runtime Web.
+    The official [Ultralytics YOLO NPM package](https://www.npmjs.com/package/@ultralytics/yolo) runs LiteRT `.tflite` exports directly in the browser via [LiteRT.js](https://developers.google.com/edge/litert/web) no server or Python required — with real-time webcam inference, single-image prediction, and WebGPU acceleration (automatic CPU/WASM fallback) across all six YOLO26 tasks (detect, segment, pose, OBB, classify, semantic). On WebGPU it's often ~2× faster than ONNX Runtime Web.
 
     ```bash
     npm i @ultralytics/yolo @litertjs/core

@@ -842,7 +842,6 @@ class ReID(nn.Module):
     Attributes:
         conv (Conv): Convolutional layer for feature transformation.
         pool_avg (nn.AdaptiveAvgPool2d): Global average pooling layer.
-        pool_max (nn.AdaptiveMaxPool2d): Global max pooling layer.
         drop (nn.Dropout): Dropout layer for regularization.
         embed (nn.Linear): Linear layer for embedding projection.
         bottleneck (nn.BatchNorm1d): BNNeck normalization layer.
@@ -870,7 +869,6 @@ class ReID(nn.Module):
         c_ = 1280  # intermediate channels (same as Classify)
         self.conv = Conv(c1, c_, k, s, p, g)
         self.pool_avg = nn.AdaptiveAvgPool2d(1)
-        self.pool_max = nn.AdaptiveMaxPool2d(1)
         self.drop = nn.Dropout(p=0.0, inplace=True)
         self.embed = nn.Linear(c_, embed_dim)
         self.bottleneck = nn.BatchNorm1d(embed_dim)
@@ -880,7 +878,7 @@ class ReID(nn.Module):
 
     def _pool(self, x):
         """Pool feature map to (B, C) via summed global average and max pooling."""
-        return (self.pool_avg(x) + self.pool_max(x)).flatten(1)
+        return (self.pool_avg(x) + torch.nn.functional.max_pool2d(x, kernel_size=x.shape[-2:])).flatten(1)
 
     def forward(self, x: list[torch.Tensor] | torch.Tensor) -> torch.Tensor | tuple:
         """Perform forward pass of the ReID head."""

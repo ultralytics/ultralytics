@@ -125,7 +125,7 @@ from ultralytics.utils.torch_utils import (
 )
 
 # Formats that support ReID models (embedding output, no detection head); shared with benchmarks.py
-REID_EXPORT_FORMATS = frozenset({"torchscript", "onnx", "openvino", "engine", "coreml", "mnn", "ncnn"})
+REID_EXPORT_FORMATS = frozenset({"torchscript", "onnx", "openvino", "engine", "coreml", "mnn", "ncnn", "tflite", "litert"})
 
 
 def export_formats():

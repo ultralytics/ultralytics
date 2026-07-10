@@ -532,7 +532,7 @@ def check_det_dataset(dataset: str, autodownload: bool = True, split: str = "") 
                 data[k] = [str((path / x).resolve()) for x in data[k]]
 
     # Parse YAML
-    val, s = (data.get(x) for x in ("val", "download"))
+    val, s = (data.get(x) for x in (split or "val", "download"))
     if val:
         val = [Path(x).resolve() for x in (val if isinstance(val, list) else [val])]  # val path
         if not all(x.exists() for x in val):

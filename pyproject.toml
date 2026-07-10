@@ -115,7 +115,7 @@ export-tensorflow = [
     "h5py!=3.11.0; platform_machine == 'aarch64'", # fix h5py build issues due to missing aarch64 wheels in 3.11 release
 ]
 export-coreml = [
-    "numpy<=2.3.5; python_version >= '3.13'",  # pin until CoreML>9.0 new release
+    "numpy<=2.3.5",  # pin until CoreML>9.0 fixes numpy>=2.4 int() cast crash; all Python versions, not just 3.13
     "coremltools>=9.0; platform_system != 'Windows' and python_version <= '3.13'", # CoreML supported on macOS and Linux
     "scikit-learn>=1.3.2; platform_system != 'Windows' and python_version <= '3.13'", # CoreML k-means quantization
 ]

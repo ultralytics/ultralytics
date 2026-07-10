@@ -127,7 +127,7 @@ With 8,476 total images (6,773 train / 1,703 val) covering a wide range of dog b
 
 ### How does mosaicing benefit the YOLO26 training process using the Dog-Pose dataset?
 
-Mosaicing combines multiple Dog-Pose images into a single training batch, increasing the variety of dog poses, sizes, and backgrounds the model sees per step, which improves generalization to new contexts and scales while reducing overfitting. For example images, refer to the [Sample Images and Annotations](#sample-images-and-annotations) section.
+Mosaicing combines multiple Dog-Pose images into a single training image, increasing the variety of dog poses, sizes, and backgrounds the model sees per step, which improves generalization to new contexts and scales while reducing overfitting. For example images, refer to the [Sample Images and Annotations](#sample-images-and-annotations) section.
 
 ### Where can I find the Dog-Pose dataset YAML file and how do I use it?
 

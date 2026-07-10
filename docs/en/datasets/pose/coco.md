@@ -24,7 +24,7 @@ The [COCO-Pose](https://cocodataset.org/#keypoints-2017) dataset adapts COCO (Co
 
 ## Dataset Structure
 
-COCO-Pose covers the COCO 2017 images that contain keypoint-annotated people, so its splits are smaller than full COCO's. It is divided into three subsets:
+For training and validation, COCO-Pose includes only COCO 2017 images with keypoint-annotated people, so its labeled splits are smaller than full COCO's. Its YAML defines three subsets:
 
 1. **Train2017**: This subset contains 56,599 images from the COCO dataset, annotated for training pose estimation models.
 2. **Val2017**: This subset has 2,346 images used for validation purposes during model training.

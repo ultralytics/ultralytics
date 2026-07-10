@@ -2,8 +2,10 @@
 """YOLOA driver — fit a memory bank per MVTec category, then predict or val with a prior.
 
 One model load, per-category fit (disk-cached via ``YOLOA.fit``), then:
-  --mode predict : save annotated predictions + heatmap overlays for sampled test images
-  --mode val     : report image/pixel AUROC + mAP50 per category (+ AVERAGE), write a CSV
+  --mode predict   : save annotated predictions + heatmap overlays for sampled test images
+  --mode visualize : 6-panel compare grid per sample (image, none/heatmap/mask priors + GT mask)
+  --mode grid4     : 4-panel row per sample (image | non-prior | heatmap | heatmap-prior)
+  --mode val       : report image/pixel AUROC + mAP50 per category (+ AVERAGE), write a CSV
 
 Both modes fit through ``YOLOA.fit``, so they share one bank cache (``--bank-cache``): a bank built
 for predict is reused by val and vice versa.
@@ -43,6 +45,7 @@ from yoloa_utils import (
     load_mask_tensor,
     run_prior_viz,
     save_compare_grid,
+    save_grid4,
 )
 
 DEFAULT_CKPT = (
@@ -65,7 +68,7 @@ def main():
     ap = argparse.ArgumentParser(
         description="YOLOA driver — per-category fit, then predict or val. All fit params come from --fit-cfg YAML."
     )
-    ap.add_argument("--mode", choices=["predict", "val", "visualize", "vis"], default="predict")
+    ap.add_argument("--mode", choices=["predict", "val", "visualize", "vis", "grid4"], default="predict")
     ap.add_argument("--ckpt", default=DEFAULT_CKPT)
     ap.add_argument("--cat", default="bottle", help="MVTec category name, 'all' (14), 'object' (10), or 'texture' (5)")
     ap.add_argument(
@@ -84,6 +87,7 @@ def main():
     ap.add_argument("--conf", type=float, default=0.25)
     ap.add_argument("--iou", type=float, default=0.2, help="NMS IoU")
     ap.add_argument("--e2e", action="store_true", help="end-to-end NMS-free head")
+    ap.add_argument("--bare", action="store_true", help="grid4 mode: bare panels, no title bars")
     ap.add_argument(
         "--fit-cfg",
         default="yoloa_fit_default.yaml",
@@ -264,6 +268,27 @@ def main():
                 )
             n_test, n_tr = len(test_samples), len(train_samples)
             print(f"[{ci}/{len(cats)}] {cat}: {n_test} test + {n_tr} train grids -> {out}", flush=True)
+        elif args.mode == "grid4":
+            out = out_root / "grid4" / cat
+            out.mkdir(parents=True, exist_ok=True)
+            samples = collect_test_images(root / cat / "test", args.n_per_cat)
+            pkw = dict(imgsz=imgsz, conf=args.conf, iou=args.iou, device=device, end2end=args.e2e)
+            for img, label in samples:
+                original = cv2.imread(img)
+                none_pred, n_none, _ = run_prior_viz(model, img, "none", **pkw)
+                heat_pred, n_heat, heat_hmap = run_prior_viz(model, img, "heatmap", **pkw, **infer)
+                stem = f"{label}__{Path(img).stem}"
+                save_grid4(
+                    original=original,
+                    none_pred=none_pred,
+                    heat_heat=heat_hmap,
+                    heat_pred=heat_pred,
+                    out_path=out / f"{stem}.jpg",
+                    n_none=n_none,
+                    n_heat=n_heat,
+                    titles=not args.bare,
+                )
+            print(f"[{ci}/{len(cats)}] {cat}: {len(samples)} grid4 -> {out}", flush=True)
         else:  # val
             cat_rows = run_mvtec_ood_eval(
                 model.model,

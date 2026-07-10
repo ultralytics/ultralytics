@@ -48,7 +48,11 @@ SCORER_YAML_KEYS = {
 def collect_test_images(test_root: Path, n: int, seed: int = 0) -> list[tuple[str, str]]:
     """Return up to ``n`` (path, defect_type) pairs sampled across a category's test subdirs."""
     pairs = [
-        (str(p), sub.name) for sub in sorted(test_root.iterdir()) if sub.is_dir() for p in sorted(sub.glob("*.png"))
+        (str(p), sub.name)
+        for sub in sorted(test_root.iterdir())
+        if sub.is_dir()
+        for ext in ("*.png", "*.jpg", "*.jpeg")
+        for p in sorted(sub.glob(ext))
     ]
     random.Random(seed).shuffle(pairs)
     return pairs[:n] if n and n > 0 else pairs
@@ -137,9 +141,11 @@ def run_prior_viz(m, img, prior, imgsz, conf, iou, device, external_mask=None, *
 # -- Compare-grid (visualize mode) ---------------------------------------------
 
 def txt_to_mask(txt_path: str, h: int, w: int) -> np.ndarray | None:
-    """Render YOLO-seg txt polygon labels into a binary mask (h, w) uint8 0/255.
+    """Render YOLO txt labels into a binary mask (h, w) uint8 0/255.
 
-    Returns None if the txt file is missing or contains no valid polygons (e.g. good images).
+    Handles both label formats per line: seg polygons (``cls x1 y1 x2 y2 ...``, >=3 points) are
+    filled as polygons; bbox (``cls cx cy w h``, exactly 4 coords) is filled as a rectangle.
+    Returns None if the txt file is missing or empty (e.g. good images).
     """
     try:
         with open(txt_path, "r") as f:
@@ -151,14 +157,18 @@ def txt_to_mask(txt_path: str, h: int, w: int) -> np.ndarray | None:
     mask = np.zeros((h, w), dtype=np.uint8)
     for line in lines:
         parts = line.strip().split()
-        if len(parts) < 7:
-            continue
         coords = list(map(float, parts[1:]))
         if len(coords) % 2 != 0:
             continue
-        pts = [(int(coords[i] * w), int(coords[i + 1] * h)) for i in range(0, len(coords), 2)]
-        pts_array = np.array(pts, dtype=np.int32).reshape((-1, 1, 2))
-        cv2.fillPoly(mask, [pts_array], 255)
+        if len(coords) == 4:  # bbox: cx cy w h (normalized) -> filled rectangle
+            cx, cy, bw, bh = coords
+            x1, y1 = int((cx - bw / 2) * w), int((cy - bh / 2) * h)
+            x2, y2 = int((cx + bw / 2) * w), int((cy + bh / 2) * h)
+            cv2.rectangle(mask, (x1, y1), (x2, y2), 255, thickness=-1)
+        elif len(coords) >= 6:  # seg polygon: >=3 (x, y) points
+            pts = [(int(coords[i] * w), int(coords[i + 1] * h)) for i in range(0, len(coords), 2)]
+            pts_array = np.array(pts, dtype=np.int32).reshape((-1, 1, 2))
+            cv2.fillPoly(mask, [pts_array], 255)
     return mask
 
 
@@ -254,4 +264,41 @@ def save_compare_grid(
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     cv2.imwrite(str(out_path), grid)
+    return out_path
+
+
+def save_grid4(
+    *,
+    original,
+    none_pred,
+    heat_heat,
+    heat_pred,
+    out_path,
+    n_none=0,
+    n_heat=0,
+    original_title="original",
+    titles=True,
+):
+    """Save a single 4-panel row: image | non-prior | heatmap | heatmap-prior.
+
+    Same panels as row1 of ``save_compare_grid`` (drops the GT-mask / mask-prior
+    row). Set ``titles=False`` for bare panels (no title bars). The heatmap uses
+    ``_heatmap_panel`` (raw clipped score, no minmax) so it matches the val grids.
+    """
+    mb_hmap_title = "mb heatmap"
+    if heat_heat is not None:
+        mb_hmap_title += f"  [max={heat_heat.max():.3f} min={heat_heat.min():.3f}]"
+    panels = [
+        original,
+        none_pred,
+        _heatmap_panel(original, heat_heat),
+        heat_pred,
+    ]
+    if titles:
+        labels = [original_title, f"None Prior ({n_none} det)", mb_hmap_title, f"heatmap prior ({n_heat} det)"]
+        panels = [_add_title(p, t) for p, t in zip(panels, labels)]
+    row = _hstack(panels)
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    cv2.imwrite(str(out_path), row)
     return out_path

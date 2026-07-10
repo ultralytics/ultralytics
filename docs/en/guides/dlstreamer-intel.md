@@ -76,7 +76,6 @@ yolo export model=yolo26s.pt format=openvino quantize=8 data=coco128.yaml
 
 The examples below use the INT8 model exported in the [preparation step](#yolo26-model-preparation). To use FP32 or FP16 models, replace the model path accordingly (e.g. `yolo26s_openvino_model/yolo26s.xml` or `yolo26s_float16_openvino_model/yolo26s.xml`).
 
-
 ## Running Inference with YOLO26
 
 Before running DL Streamer YOLO26 inference detection pipeline, run DL Streamer docker image in the interactive mode.

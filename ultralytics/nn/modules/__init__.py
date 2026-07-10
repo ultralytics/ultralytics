@@ -19,7 +19,7 @@ Examples:
 from .multiscaleghost import MultiScaleGhost
 from .anchor_free import AnchorFreeHead
 from .hybridhead import HybridHead
-
+from .AHFIN import AHFIN
 from .block import (
     C1,
     C2,
@@ -195,4 +195,5 @@ __all__ = (
     "MultiScaleGhost",
     "HybridHead",
     "AnchorFreeHead",
+    "AHFIN",
 )

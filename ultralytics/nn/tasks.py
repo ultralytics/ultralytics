@@ -556,7 +556,7 @@ class YOLOAnomalyModel(DetectionModel):
         # --- AnomalyMemoryBank (v2.3) ---
         # Architecture knob from the model YAML; all build hyperparameters are baked in.
         self.bb_layers = list(v2_cfg["bb_layers"])
-        self.memory_bank = AnomalyMemoryBank()
+        self.memory_bank = AnomalyMemoryBank(spatial=bool(v2_cfg.get("spatial", False)))
 
     @smart_inference_mode()
     def build_memory_bank(
@@ -592,10 +592,10 @@ class YOLOAnomalyModel(DetectionModel):
             mb.add_features(feats)
 
         mb.freeze()
-        final_size = mb.bank.shape[0]
+        final_size = mb.num_features
         LOGGER.info(
             f"Memory bank frozen: {final_size} features, dim={mb.dim}\n"
-            f"  config: temp={mb.temperature:.4f}, K={mb.K}, "
+            f"  config: spatial={mb.spatial}, temp={mb.temperature:.4f}, K={mb.K}, "
             f"bank_size={mb.bank_size}, bb_layers={self.bb_layers}"
         )
         return final_size

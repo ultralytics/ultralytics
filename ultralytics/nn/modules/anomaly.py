@@ -352,11 +352,15 @@ class AnomalyMemoryBank(nn.Module):
 
     Args:
         bank_size: Maximum number of vectors kept after coreset compression.
+            In spatial mode this bounds the TOTAL bank size across all positions.
         K: Number of nearest neighbours used per query.
         temperature: β sharpness of the sigmoid over cosine similarity.
         target_score: Desired anomaly score for normal queries.
         stretch: Optional quadratic stretch applied to the output heatmap.
         score_chunk: Element budget for chunked scoring (device memory knob).
+        spatial: If True, keep one sub-bank per (h, w) position and score each
+            query cell only against its own position's bank. If False (default),
+            pool all positions into one global bank scored at the query resolution.
     """
 
     def __init__(
@@ -367,6 +371,7 @@ class AnomalyMemoryBank(nn.Module):
         target_score: float = 0.4,
         stretch: float = 0.0,
         score_chunk: int = 1 << 27,
+        spatial: bool = False,
     ):
         super().__init__()
         self.bank_size = bank_size
@@ -375,28 +380,77 @@ class AnomalyMemoryBank(nn.Module):
         self.target_score = float(target_score)
         self.stretch = float(stretch)
         self.score_chunk = int(score_chunk)
+        self.spatial = bool(spatial)
 
         self.dim: int | None = None
         self._compactness: float | None = None
         self._threshold: float | None = None
         self.building = True
         self._chunks: list[torch.Tensor] = []
+        # Per-position bank grid (spatial mode). 0/0 = global bank.
+        self._bank_H: int = 0
+        self._bank_W: int = 0
 
         self.register_buffer("bank", torch.empty(0, 0))
+        # Stacked per-position storage (spatial mode): [P, C, max_n] and [P].
+        # Empty in global mode, where ``bank`` [M, C] is used instead.
+        self.register_buffer("bank_stacked", torch.empty(0, 0, 0))
+        self.register_buffer("bank_sizes", torch.empty(0, dtype=torch.long))
 
     @property
     def is_ready(self) -> bool:
         """True when a non-empty, calibrated bank is available."""
-        return self.bank.shape[0] > 0 and self._threshold is not None and not self.building
+        if self.spatial:
+            has_bank = self.bank_stacked.shape[0] > 0
+        else:
+            has_bank = self.bank.shape[0] > 0
+        return has_bank and self._threshold is not None and not self.building
+
+    @property
+    def num_features(self) -> int:
+        """Total feature vectors stored in the bank (all positions in spatial mode)."""
+        if self.spatial and self.bank_sizes.numel():
+            return int(self.bank_sizes.sum().item())
+        return int(self.bank.shape[0])
 
     def reset(self) -> None:
         """Clear the bank and return to build mode."""
         self.bank = torch.empty(0, 0, device=self.bank.device)
+        self.bank_stacked = torch.empty(0, 0, 0, device=self.bank_stacked.device)
+        self.bank_sizes = torch.empty(0, dtype=torch.long, device=self.bank_sizes.device)
         self.dim = None
         self._compactness = None
         self._threshold = None
         self.building = True
         self._chunks = []
+        self._bank_H = self._bank_W = 0
+
+    def __setstate__(self, state):
+        """Backfill attributes/buffers added after a checkpoint was saved.
+
+        Old checkpoints pickle an ``AnomalyMemoryBank`` whose ``__dict__`` lacks the
+        spatial-mode fields (``spatial``, ``_bank_H``, ``_bank_W``) and the stacked
+        buffers (``bank_stacked``, ``bank_sizes``). Restore them to safe defaults so
+        legacy weights load and keep behaving as a global bank.
+        """
+        super().__setstate__(state)
+        if not hasattr(self, "spatial"):
+            self.spatial = False
+        if not hasattr(self, "_bank_H"):
+            self._bank_H = 0
+        if not hasattr(self, "_bank_W"):
+            self._bank_W = 0
+        bufs = self._buffers
+        if bufs.get("bank") is None:
+            self.register_buffer("bank", torch.empty(0, 0))
+        if bufs.get("bank_stacked") is None:
+            self.register_buffer("bank_stacked", torch.empty(0, 0, 0))
+        if bufs.get("bank_sizes") is None:
+            self.register_buffer("bank_sizes", torch.empty(0, dtype=torch.long))
+        # A populated legacy flat bank is always a global bank.
+        if self.bank is not None and self.bank.numel() > 0:
+            self.spatial = False
+            self._bank_H = self._bank_W = 0
 
     def load_bank(self, features: torch.Tensor) -> None:
         """Direct-load a pre-built bank from L2-normalised feature vectors [M, C]."""
@@ -410,18 +464,38 @@ class AnomalyMemoryBank(nn.Module):
         self._calibrate(self._active_bank())
 
     def add_features(self, feats: list[torch.Tensor]) -> None:
-        """Extract and accumulate backbone features into the bank (build phase)."""
+        """Extract and accumulate backbone features into the bank (build phase).
+
+        Features are L2-normalised per spatial position. In global mode each chunk is
+        stored flat as ``[B*H*W, C]``; in spatial mode chunks keep their grid as
+        ``[B, H, W, C]`` so ``freeze`` can split them into per-position sub-banks.
+        """
         if not feats:
             return
         fused = self._fuse_features(feats)
-        C = fused.shape[1]
+        B, C, H, W = fused.shape
         if self.dim is None:
             self.dim = C
-        flat = fused.permute(0, 2, 3, 1).reshape(-1, C)
-        self._chunks.append(F.normalize(flat, p=2, dim=1).float())
+        normed = F.normalize(fused.permute(0, 2, 3, 1), p=2, dim=3).float()  # [B, H, W, C]
+        if self.spatial:
+            if self._bank_H == 0:
+                self._bank_H, self._bank_W = H, W
+            elif H != self._bank_H or W != self._bank_W:
+                raise ValueError(f"Spatial dims changed during build: ({self._bank_H},{self._bank_W}) -> ({H},{W})")
+            self._chunks.append(normed)  # [B, H, W, C]
+        else:
+            self._chunks.append(normed.reshape(-1, C))  # [B*H*W, C]
 
     def freeze(self) -> None:
         """Materialise the bank, optionally coreset-compress it, then calibrate and freeze."""
+        if self.spatial:
+            self._freeze_spatial()
+        else:
+            self._freeze_global()
+        self.building = False
+
+    def _freeze_global(self) -> None:
+        """Global-mode freeze: pool every position, coreset once, calibrate on the bank."""
         if self._chunks:
             self.bank = torch.cat(self._chunks, dim=0)
             self._chunks = []
@@ -438,20 +512,77 @@ class AnomalyMemoryBank(nn.Module):
         if mem.shape[0] > 0:
             self._calibrate(mem, holdout=holdout)
 
-        self.building = False
+    def _freeze_spatial(self) -> None:
+        """Spatial-mode freeze: build one sub-bank per (h, w) position.
+
+        Each position keeps up to ``bank_size // P`` vectors (total ≤ ``bank_size``)
+        via a per-position k-center coreset. Calibration runs once on the union of
+        the per-position banks (a pooled, size-bounded sample) and the resulting
+        scalar threshold is shared by every position.
+        """
+        if not self._chunks:
+            return
+        grid = torch.cat(self._chunks, dim=0)  # [N, H, W, C], already normalised
+        self._chunks = []
+        N, H, W, C = grid.shape
+        P = H * W
+        device = grid.device
+
+        per_pos = max(1, int(self.bank_size) // P) if self.bank_size is not None else None
+
+        max_n = 0
+        sub_banks: list[torch.Tensor] = []
+        sizes: list[int] = []
+        for p in range(P):
+            h, w = divmod(p, W)
+            feats_p = grid[:, h, w, :]  # [N, C]
+            if per_pos is not None and feats_p.shape[0] > per_pos:
+                feats_p = self._coreset(feats_p, per_pos, show_progress=False)
+            sub_banks.append(feats_p)
+            sizes.append(feats_p.shape[0])
+            if feats_p.shape[0] > max_n:
+                max_n = feats_p.shape[0]
+
+        stacked = grid.new_zeros(P, C, max_n)
+        sizes_t = torch.tensor(sizes, dtype=torch.long, device=device)
+        for p, feats_p in enumerate(sub_banks):
+            n = feats_p.shape[0]
+            if n:
+                stacked[p, :, :n] = feats_p.t()  # [C, n]
+        self.bank_stacked = stacked
+        self.bank_sizes = sizes_t
+
+        # Calibrate once on the pooled (size-bounded) per-position banks.
+        calib_mem = torch.cat(sub_banks, dim=0) if sub_banks else grid.new_zeros(0, C)
+        if calib_mem.shape[0] > 0:
+            self._calibrate(calib_mem)
 
     def forward(self, feats: list[torch.Tensor]) -> torch.Tensor:
-        """Return an anomaly heatmap (B, 1, H, W) from backbone features."""
+        """Return an anomaly heatmap (B, 1, H, W) from backbone features.
+
+        Global mode scores every query position against one pooled bank at the query
+        resolution. Spatial mode scores each query cell only against its own (h, w)
+        sub-bank, interpolating the query to the bank grid when their sizes differ;
+        the returned heatmap is at the bank-grid resolution and the caller resizes it.
+        """
         first = feats[0]
         b, device, h, w = first.shape[0], first.device, first.shape[2], first.shape[3]
-        mem = self._active_bank()
-        if self.building or mem.shape[0] == 0:
+        if self.building or self.num_features == 0:
             return torch.zeros(b, 1, h, w, device=device)
 
         fused = self._fuse_features(feats)
-        flat = fused.permute(0, 2, 3, 1).reshape(-1, fused.shape[1])
-        scores = self._score(flat, mem)
-        hmap = scores.view(b, 1, fused.shape[2], fused.shape[3])
+        B, C, H, W = fused.shape
+        if self.spatial:
+            if H != self._bank_H or W != self._bank_W:
+                fused = F.interpolate(fused, size=(self._bank_H, self._bank_W), mode="bilinear", align_corners=False)
+                B, C, H, W = fused.shape
+            q = F.normalize(fused.permute(0, 2, 3, 1).reshape(B, H * W, C), p=2, dim=-1)
+            scores = self._score_spatial(q)
+            hmap = scores.view(B, 1, self._bank_H, self._bank_W)
+        else:
+            flat = fused.permute(0, 2, 3, 1).reshape(-1, C)
+            scores = self._score(flat)
+            hmap = scores.view(B, 1, H, W)
         s = self.stretch
         if s:
             hmap = (hmap + s * hmap * hmap).clamp(0, 1)
@@ -577,9 +708,51 @@ class AnomalyMemoryBank(nn.Module):
             out.append(torch.exp(log_prob))
         return torch.cat(out).clamp(0, 1).to(features.dtype)
 
+    def _score_spatial(self, q: torch.Tensor) -> torch.Tensor:
+        """Noisy-OR anomaly scores for per-position query features.
+
+        Args:
+            q: L2-normalised queries of shape ``[B, P, C]`` (P = H*W positions).
+
+        Returns:
+            Score tensor ``[B, P]`` in [0, 1]. Scoring uses a single batched matmul
+            (``q @ bank_stacked``) with padded sub-bank columns masked to -inf so the
+            top-K ignores empty slots.
+        """
+        bank = self.bank_stacked  # [P, C, max_n]
+        sizes = self.bank_sizes  # [P]
+        B, P, C = q.shape
+        if P == 0 or bank.shape[0] == 0 or self._threshold is None:
+            return torch.full((B, P), 0.5, device=q.device)
+
+        max_n = bank.shape[2]
+        q = q.to(bank.dtype)
+        # Valid-column mask per position: [P, max_n].
+        col_idx = torch.arange(max_n, device=q.device).unsqueeze(0)
+        valid = col_idx < sizes.unsqueeze(1)  # [P, max_n]
+        k = max(1, min(self.K, int(sizes.max().item())))
+        beta, thresh = self.temperature, self._threshold
+
+        # Chunk over the batch to honour the score element budget.
+        chunk_b = max(1, int(self.score_chunk) // max(P * max_n, 1))
+        outs = []
+        for i in range(0, B, chunk_b):
+            qb = q[i : i + chunk_b]  # [b, P, C]
+            cos = torch.einsum("bpc,pcn->bpn", qb, bank)  # [b, P, max_n], one batched contraction
+            cos = cos.masked_fill(~valid.unsqueeze(0), float("-inf"))
+            psi = torch.sigmoid(beta * (cos - thresh))  # padded (-inf) -> 0
+            topk = psi.topk(k=k, dim=2).values  # [b, P, k]
+            log_prob = torch.log((1.0 - topk).clamp(min=1e-8)).mean(dim=2)  # [b, P]
+            outs.append(torch.exp(log_prob))
+        return torch.cat(outs, dim=0).clamp(0, 1).to(q.dtype)
+
     @staticmethod
-    def _coreset(mem: torch.Tensor, max_size: int, return_indices: bool = False):
-        """Greedy k-center coreset on L2-normalised features using cosine distance."""
+    def _coreset(mem: torch.Tensor, max_size: int, return_indices: bool = False, show_progress: bool = True):
+        """Greedy k-center coreset on L2-normalised features using cosine distance.
+
+        ``show_progress=False`` suppresses the per-call progress bar (used by the
+        per-position coreset loop in spatial mode).
+        """
         from ultralytics.utils import TQDM
 
         M = mem.shape[0]
@@ -598,7 +771,7 @@ class AnomalyMemoryBank(nn.Module):
         seed_cos = (mem @ centre.t()).squeeze(1)
         dist = (1.0 - seed_cos).clamp(min=0.0)
         n_needed = max_size - len(selected)
-        pbar = TQDM(total=n_needed, desc="Coreset subsample", leave=False)
+        pbar = TQDM(total=n_needed, desc="Coreset subsample", leave=False) if show_progress else None
         while n_needed > 0:
             k = min(BATCH, max_size - len(selected))
             _, top_idx = dist.topk(k)
@@ -608,7 +781,9 @@ class AnomalyMemoryBank(nn.Module):
             new_dist = (1.0 - cos_sim).clamp(min=0.0).min(dim=1).values
             dist = torch.minimum(dist, new_dist)
             n_needed = max_size - len(selected)
-            pbar.update(k)
-        pbar.close()
+            if pbar is not None:
+                pbar.update(k)
+        if pbar is not None:
+            pbar.close()
         sel = torch.tensor(selected, device=device)
         return (mem[sel], sel) if return_indices else mem[sel]

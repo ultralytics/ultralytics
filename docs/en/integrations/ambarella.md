@@ -33,7 +33,7 @@ Current CVflow SoC families and their typical applications:
 
 - **Performance per watt**: CVflow SoCs are designed for always-on edge AI, running real-time [object detection](https://www.ultralytics.com/glossary/object-detection) within camera-grade power budgets.
 - **Compression-aware training**: SpongeTorch applies [pruning](https://www.ultralytics.com/glossary/pruning) and [quantization](https://www.ultralytics.com/glossary/model-quantization)-aware optimization during training, so the model learns to stay accurate while becoming NPU-friendly.
-- **Compiled-model host validation**: the compiled AmbaPB model runs through Ultralytics `predict`/`val` on your workstation, so you can measure quantized [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map) before touching hardware.
+- **Bit-exact host validation**: the compiled AmbaPB model runs through Ultralytics `predict`/`val` on your workstation exactly as it will execute on the chip, so you can measure quantized [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map) before touching hardware.
 - **Integrated camera pipeline**: Ambarella SoCs combine the AI engine with an ISP and video encoders, making them a single-chip solution for AI cameras.
 
 ## Workflow Overview
@@ -51,7 +51,7 @@ SpongeTorch training and SpongeTorch-aware export can be replaced by a plain ONN
 
 ### Installation
 
-Install [this Ultralytics fork](https://github.com/Ambarella-Inc/ultralytics/tree/amba_v8.4.46), then follow the installation instructions for your Ambarella SDK release:
+Install [this Ultralytics fork](https://github.com/Ambarella-Inc/ultralytics/tree/amba_v8.4.46), then install the Ambarella toolchain wheels from the SDK distribution:
 
 !!! Tip "Installation"
 
@@ -63,9 +63,11 @@ Install [this Ultralytics fork](https://github.com/Ambarella-Inc/ultralytics/tre
         cd ultralytics
         git checkout amba_v8.4.46
         pip install -e .
-        ```
 
-Ambarella toolchain package names and installation methods depend on the SDK release. Follow its documentation to install SpongeTorch, `cvflowbackend`, and the CVflow compiler.
+        # Install Ambarella toolchain wheels from the SDK
+        pip install /path/to/spongetorch-*.whl
+        pip install /path/to/cvflowbackend-*.whl
+        ```
 
 The AmbaPB inference backend locates `cvflowbackend` through the CVflow toolchain's `tv2` command (`tv2 -libpath cvflowbackend`), so the toolchain must be installed and on your `PATH` before running inference or validation with compiled models.
 
@@ -198,7 +200,7 @@ Compile the exported ONNX model for your target chipset using the CVflow compile
 
 ## Run Inference with the Compiled Model
 
-The compiled AmbaPB model loads directly through the Ultralytics API — [AutoBackend](../reference/nn/autobackend.md) detects the `.ambapb` suffix and routes host inference through `cvflowbackend`:
+The compiled AmbaPB model loads directly through the Ultralytics API — [AutoBackend](../reference/nn/autobackend.md) detects the `.ambapb` suffix and routes inference through `cvflowbackend`, executing the model bit-exactly as it will run on the AI engine:
 
 !!! example "Usage"
 
@@ -223,11 +225,11 @@ The compiled AmbaPB model loads directly through the Ultralytics API — [AutoBa
         yolo val model=model.ambapb.ckpt.onnx data=coco8.yaml
         ```
 
-This is the final host-side accuracy check before hardware deployment, including the compiled model's quantized outputs. If a `metadata.yaml` file sits next to the compiled model, the backend reads class names, stride, and task information from it. The backend uses CVflow inference mode `acinf` by default; set the environment variable `ULTRALYTICS_AMBAPB_DEBUG=1` to log input/output details for debugging. Confirm host-to-device numerical parity against your Ambarella SDK and target hardware.
+This is the final accuracy check before hardware deployment, including all compiler quantization effects. If a `metadata.yaml` file sits next to the compiled model, the backend reads class names, stride, and task information from it. The backend uses CVflow inference mode `acinf` by default; set the environment variable `ULTRALYTICS_AMBAPB_DEBUG=1` to log input/output details for debugging.
 
 ## Deploy on the Board
 
-Load the compiled model on your Ambarella device using the Ambarella SDK runtime. Preprocessing and postprocessing must match what the detection model was compiled for: letterboxed RGB input in the `0–255` range (the Ultralytics AmbaPB backend feeds the compiled model `0–255` RGB), and standard YOLO detection decoding on the outputs. Refer to the SDK deployment documentation for runtime APIs and verify host-to-device parity on your target.
+Load the compiled model on your Ambarella device using the Ambarella SDK runtime. Preprocessing and postprocessing must match what the detection model was compiled for: letterboxed RGB input in the `0–255` range (the Ultralytics AmbaPB backend feeds the compiled model `0–255` RGB), and standard YOLO detection decoding on the outputs. Refer to the SDK deployment documentation for runtime APIs.
 
 ## Exporting Without SpongeTorch
 
@@ -241,7 +243,7 @@ If you do not need SpongeTorch's training-time pruning and quantization-aware op
         yolo export model=yolo26n.pt format=onnx
         ```
 
-Compile the resulting ONNX with the CVflow toolchain. Depending on the model, compiler settings, and target, this simpler workflow may trade NPU performance or quantized accuracy for avoiding the `spongetorch` training dependency; benchmark both paths on your hardware.
+Compile the resulting ONNX with the CVflow toolchain, which performs post-training quantization itself. This path trades some NPU performance and quantized accuracy for a simpler workflow with no `spongetorch` dependency at training time.
 
 ## Real-World Applications
 
@@ -254,7 +256,7 @@ Ultralytics YOLO models on Ambarella CVflow SoCs power always-on vision at the e
 
 ## Summary
 
-This guide covered the complete workflow to deploy Ultralytics YOLO models on Ambarella CVflow SoCs: compression-aware training with SpongeTorch (`amba_config`/`amba_chipset`), ONNX export of the compressed checkpoint, offline compilation to AmbaPB with the CVflow toolchain, and host-side validation of the compiled model through Ultralytics before board deployment.
+This guide covered the complete workflow to deploy Ultralytics YOLO models on Ambarella CVflow SoCs: compression-aware training with SpongeTorch (`amba_config`/`amba_chipset`), ONNX export of the compressed checkpoint, offline compilation to AmbaPB with the CVflow toolchain, and bit-exact validation of the compiled model through Ultralytics before board deployment.
 
 For other edge AI targets, see the related [Hailo](hailo.md), [Rockchip RKNN](rockchip-rknn.md), [Sony IMX500](sony-imx500.md), [Qualcomm QNN](qnn.md), [DEEPX](deepx.md), and [Axelera](axelera.md) guides. For the full list of export formats, visit the [Export mode](../modes/export.md) documentation and the [integrations page](index.md).
 
@@ -270,12 +272,12 @@ Any CVflow-based SoC supported by your CVflow toolchain may be targeted, includi
 
 ### What is SpongeTorch and do I need it?
 
-SpongeTorch is Ambarella's model compression toolkit, integrated into the Ambarella fork of Ultralytics for pruning and quantization-aware training. It is optional: a plain Ultralytics ONNX export can also be compiled with the CVflow toolchain, with performance and accuracy depending on the model, compiler settings, and target.
+SpongeTorch is Ambarella's model compression toolkit, integrated into the Ambarella fork of Ultralytics for pruning and quantization-aware training. It is optional: a plain Ultralytics ONNX export can also be compiled with the CVflow toolchain using post-training quantization, at some cost in NPU performance and quantized accuracy.
 
 ### Where do I get the Ambarella SDK, SpongeTorch, and the CVflow toolchain?
 
-They are proprietary and not on PyPI. Register on the [Ambarella Developer Zone](https://www.ambarella.com/developer/) to request access, then follow the installation documentation for your SDK release.
+They are proprietary and not on PyPI. Register on the [Ambarella Developer Zone](https://www.ambarella.com/developer/) to request SDK access; the `spongetorch` and `cvflowbackend` wheels and the CVflow compiler ship with the SDK distribution.
 
 ### How do I check the accuracy of the compiled model before deploying?
 
-Run `yolo val model=model.ambapb.ckpt.onnx data=your_data.yaml` with the Ambarella fork installed. The AmbaPB backend validates the compiled model through `cvflowbackend`, so the reported mAP reflects its compiled outputs. Confirm numerical parity on the target device with your Ambarella SDK.
+Run `yolo val model=model.ambapb.ckpt.onnx data=your_data.yaml` with the Ambarella fork installed. The AmbaPB backend executes the compiled model bit-exactly as it runs on the CVflow AI engine, so the reported mAP includes all compiler quantization effects.

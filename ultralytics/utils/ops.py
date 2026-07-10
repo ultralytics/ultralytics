@@ -74,8 +74,8 @@ class Profile(contextlib.ContextDecorator):
 def segment2box(segment: np.ndarray, width: int = 640, height: int = 640) -> np.ndarray:
     """Convert segment coordinates to bounding box coordinates.
 
-    Converts a single segment label to a box label by finding the minimum and maximum x and y coordinates. Applies
-    inside-image constraint and clips coordinates when necessary.
+    Converts a single segment label to a box label by finding the minimum and maximum x and y coordinates of the polygon
+    clipped to the image, so segments crossing the image boundary keep their visible extent.
 
     Args:
         segment (np.ndarray): Segment coordinates in format (N, 2) where N is number of points.
@@ -85,19 +85,26 @@ def segment2box(segment: np.ndarray, width: int = 640, height: int = 640) -> np.
     Returns:
         (np.ndarray): Bounding box coordinates in xyxy format [x1, y1, x2, y2].
     """
-    x, y = segment.T  # segment xy
-    # Clip coordinates if 3 out of 4 sides are outside the image
-    if np.array([x.min() < 0, y.min() < 0, x.max() > width, y.max() > height]).sum() >= 3:
-        x = x.clip(0, width)
-        y = y.clip(0, height)
-    inside = (x >= 0) & (y >= 0) & (x <= width) & (y <= height)
-    x = x[inside]
-    y = y[inside]
+    points = [segment[((segment >= 0) & (segment <= (width, height))).all(1)]]
+    start, delta = segment, np.roll(segment, -1, axis=0) - segment
+    for axis, boundary in ((0, 0), (0, width), (1, 0), (1, height)):
+        with np.errstate(divide="ignore", invalid="ignore"):
+            t = (boundary - start[:, axis]) / delta[:, axis]
+        edge = (t >= 0) & (t <= 1)
+        intersections = start[edge] + t[edge, None] * delta[edge]
+        other = 1 - axis
+        points.append(
+            intersections[(intersections[:, other] >= 0) & (intersections[:, other] <= (height, width)[axis])]
+        )
+    corners = np.array(((0, 0), (width, 0), (0, height), (width, height)), dtype=segment.dtype)
+    contour = segment.astype(np.float32)
+    points.append(corners[[cv2.pointPolygonTest(contour, tuple(map(float, p)), False) >= 0 for p in corners]])
+    points = np.concatenate(points)
     return (
-        np.array([x.min(), y.min(), x.max(), y.max()], dtype=segment.dtype)
-        if len(x)  # avoid any(x) as drops x=0 segments
+        np.array([*points.min(0), *points.max(0)], dtype=segment.dtype)
+        if len(points)
         else np.zeros(4, dtype=segment.dtype)
-    )  # xyxy
+    )
 
 
 def scale_boxes(

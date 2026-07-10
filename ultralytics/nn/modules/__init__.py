@@ -107,9 +107,12 @@ from .transformer import (
     TransformerEncoderLayer,
     TransformerLayer,
 )
+from .vit_blocks import MHSABlock, UltraViTBlock
 
 __all__ = (
     "AIFI",
+    "UltraViTBlock",
+    "MHSABlock",
     "C1",
     "C2",
     "C2PSA",

@@ -1,47 +1,88 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# YOLO27xxl-DETR inference config: DINOv3-ViT-B/16 + STA backbone with DeimDecoder head (ndl=4).
-# Task: detect. See yolo27xxl-detr-ndl6.yaml for the full 6-layer decoder variant.
+# YOLO27xxl-DETR: layer-by-layer YAML for a ViT (embed_dim=768, depth=12, heads=12,
+# ffn_ratio=4, mlp FFN) plus Spatial Tuning Adapter backbone. The ViT depth, STA stem,
+# and per-scale fusion are expressed as individual YAML rows. Task: detect. See
+# yolo27x-detr.yaml for the smaller variant and the same structural template.
+#
+# Requires the four ViT modules in ultralytics/nn/modules/vit_blocks.py:
+#   VITPatchStem, VITBlock, VITTokenToSpatial, VITDownsample2x.
 
 nc: 80 # number of classes
 
 backbone:
   # [from, repeats, module, args]
-  # DINOv3-ViT + STA backbone wrapper. First arg (320) is output channels for the parser.
-  # Args: [out_ch, name, interaction_indexes, patch_size, use_sta, conv_inplane, hidden_dim, split]
-  - [-1, 1, DEIMDINOv3STAs, [320, dinov3_vitb16, [5, 8, 11], 16, True, 96, 320, True]] # 0
-  - [0, 1, Index, [320, 1]] # 1 P3
-  - [0, 1, Index, [320, 2]] # 2 P4
-  - [0, 1, Index, [320, 3]] # 3 P5
+  # Row 0 captures the raw input so the STA branch can reach it via `from: 0`.
+  - [-1, 1, nn.Identity, []] # 0 input capture
+
+  # ── ViT branch (embed_dim=768, depth=12, heads=12, ffn_ratio=4, mlp FFN) ──
+  # Patch embed + prepend 1 cls + 4 register tokens. Emits (B, 1+4+HW, 768).
+  - [-1, 1, VITPatchStem, [768, 16, 4]] # 1
+
+  # 12 transformer blocks, chunked to expose the interaction outputs at 5/8/11.
+  - [-1, 5, VITBlock, [12, 4, "mlp", 1.0e-5]] # 2 vit blocks 0..4
+  - [-1, 1, VITBlock, [12, 4, "mlp", 1.0e-5]] # 3 vit block 5   (snapshot → P3)
+  - [-1, 2, VITBlock, [12, 4, "mlp", 1.0e-5]] # 4 vit blocks 6..7
+  - [-1, 1, VITBlock, [12, 4, "mlp", 1.0e-5]] # 5 vit block 8   (snapshot → P4)
+  - [-1, 2, VITBlock, [12, 4, "mlp", 1.0e-5]] # 6 vit blocks 9..10
+  - [-1, 1, VITBlock, [12, 4, "mlp", 1.0e-5]] # 7 vit block 11  (snapshot → P5)
+
+  # Tokens → spatial: LayerNorm + strip cls/registers + reshape to (B, 768, H/16, W/16).
+  - [3, 1, VITTokenToSpatial, [4]] # 8  vit /16 from block 5
+  - [5, 1, VITTokenToSpatial, [4]] # 9  vit /16 from block 8
+  - [7, 1, VITTokenToSpatial, [4]] # 10 vit /16 from block 11
+
+  # Pyramid resample: ViT is uniformly at /16, produce /8, /16, /32.
+  - [8, 1, nn.Upsample, [None, 2, "bilinear"]] # 11 vit_P3 at /8
+  # row 9 stays at /16 → vit_P4
+  - [10, 1, VITDownsample2x, []] # 12 vit_P5 at /32
+
+  # ── STA branch (Spatial Tuning Adapter, conv_inplane=96) ──
+  - [0, 1, ConvSyncBN, [96, 3, 2, None, 1, 1, False]] # 13 stem conv (act=False)
+  - [-1, 1, nn.GELU, []] # 14
+  - [-1, 1, nn.MaxPool2d, [3, 2, 1]] # 15 stem pool → /4
+  - [-1, 1, ConvSyncBN, [192, 3, 2, None, 1, 1, False]] # 16 c2 → /8
+  - [-1, 1, nn.GELU, []] # 17
+  - [-1, 1, ConvSyncBN, [384, 3, 2, None, 1, 1, False]] # 18 c3 → /16
+  - [-1, 1, nn.GELU, []] # 19
+  - [-1, 1, ConvSyncBN, [384, 3, 2, None, 1, 1, False]] # 20 c4 → /32
+
+  # ── Fusion (Concat ViT + STA per scale, then 1×1 Conv+BN to hidden_dim=320) ──
+  - [[11, 16], 1, Concat, [1]] # 21 concat vit_P3 (768) + spm_c2 (192)
+  - [-1, 1, ConvSyncBN, [320, 1, 1, None, 1, 1, False]] # 22 P3 out (320)
+  - [[9, 18], 1, Concat, [1]] # 23 concat vit_P4 (768) + spm_c3 (384)
+  - [-1, 1, ConvSyncBN, [320, 1, 1, None, 1, 1, False]] # 24 P4 out (320)
+  - [[12, 20], 1, Concat, [1]] # 25 concat vit_P5 (768) + spm_c4 (384)
+  - [-1, 1, ConvSyncBN, [320, 1, 1, None, 1, 1, False]] # 26 P5 out (320)
 
 head:
   # HybridEncoder head: input_proj + AIFI + FPN/PAN. hidden_dim=256.
   # input_proj is Conv (not Identity) because backbone outputs 320, not 256.
-  - [3, 1, Conv, [256, 1, 1, None, 1, 1, False]] # 4 input_proj.2
-  - [-1, 1, AIFI, [1024, 8]]
-  - [-1, 1, Conv, [256, 1, 1, None, 1, 1, False]] # 6 Y5, lateral_convs.0
+  - [26, 1, Conv, [256, 1, 1, None, 1, 1, False]] # 27 input_proj.2 (P5)
+  - [-1, 1, AIFI, [1024, 8]] # 28
+  - [-1, 1, Conv, [256, 1, 1, None, 1, 1, False]] # 29 Y5, lateral_convs.0
 
-  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
-  - [2, 1, Conv, [256, 1, 1, None, 1, 1, False]] # 8 input_proj.1
-  - [[-2, -1], 1, Add, []]
-  - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]] # 10 fpn_blocks.0
-  - [-1, 1, Conv, [256, 1, 1, None, 1, 1, False]] # 11 Y4, lateral_convs.1
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]] # 30
+  - [24, 1, Conv, [256, 1, 1, None, 1, 1, False]] # 31 input_proj.1 (P4)
+  - [[-2, -1], 1, Add, []] # 32
+  - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]] # 33 fpn_blocks.0
+  - [-1, 1, Conv, [256, 1, 1, None, 1, 1, False]] # 34 Y4, lateral_convs.1
 
-  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
-  - [1, 1, Conv, [256, 1, 1, None, 1, 1, False]] # 13 input_proj.0
-  - [[-2, -1], 1, Add, []]
-  - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]] # 15 X3, fpn_blocks.1
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]] # 35
+  - [22, 1, Conv, [256, 1, 1, None, 1, 1, False]] # 36 input_proj.0 (P3)
+  - [[-2, -1], 1, Add, []] # 37
+  - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]] # 38 X3, fpn_blocks.1
 
-  - [-1, 1, SCDown, [256, 3, 2, False]] # 16 downsample_convs.0
-  - [[-1, 11], 1, Add, []]
-  - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]] # 18 F4, pan_blocks.0
+  - [-1, 1, SCDown, [256, 3, 2, False]] # 39 downsample_convs.0
+  - [[-1, 34], 1, Add, []] # 40
+  - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]] # 41 F4, pan_blocks.0
 
-  - [-1, 1, SCDown, [256, 3, 2, False]] # 19 downsample_convs.1
-  - [[-1, 6], 1, Add, []]
-  - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]] # 21 F5, pan_blocks.1
+  - [-1, 1, SCDown, [256, 3, 2, False]] # 42 downsample_convs.1
+  - [[-1, 29], 1, Add, []] # 43
+  - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]] # 44 F5, pan_blocks.1
 
-  # DeimDecoder (defaults explicit). Args:
+  # DeimDecoder (defaults explicit; ndl=4 for xxl, vs ndl=6 for x). Args:
   # [nc, hd, nq, ndp, nh, ndl, d_ffn, dropout, act, eval_idx, nd, label_noise_ratio, box_noise_scale,
   #  learnt_init_query, query_select_method, reg_max, reg_scale, layer_scale, mlp_act,
   #  o2m_topk_mode, use_gateway, share_bbox_head, share_score_head]
-  - [[15, 18, 21], 1, DeimDecoder, [nc, 256, 300, [3, 6, 3], 8, 4, 2048, 0.0, "silu", -1, 100, 0.5, 1.0, False, "default", 32, 4.0, 1.0, "silu", "unshared", True, False, False]]
+  - [[38, 41, 44], 1, DeimDecoder, [nc, 256, 300, [3, 6, 3], 8, 4, 2048, 0.0, "silu", -1, 100, 0.5, 1.0, False, "default", 32, 4.0, 1.0, "silu", "unshared", True, False, False]] # 45

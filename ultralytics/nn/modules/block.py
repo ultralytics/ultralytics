@@ -42,7 +42,6 @@ __all__ = (
     "CBFuse",
     "CBLinear",
     "ContrastiveHead",
-    "DEIMDINOv3STAs",
     "GhostBottleneck",
     "HGBlock",
     "HGStem",
@@ -2143,35 +2142,3 @@ class Add(nn.Module):
         return torch.sum(torch.stack(xs), dim=0)
 
 
-class DEIMDINOv3STAs(nn.Module):
-    """Wrapper for DEIMv2 DINOv3+STA backbone (inference-only build)."""
-
-    def __init__(
-        self,
-        name: str = "dinov3_vits16",
-        interaction_indexes: tuple[int, ...] = (5, 8, 11),
-        patch_size: int = 16,
-        use_sta: bool = True,
-        conv_inplane: int = 32,
-        hidden_dim: int = 224,
-        split: bool = True,
-    ):
-        """Initialize DEIMv2 DINOv3 wrapper for the Ultralytics model parser."""
-        from ultralytics.nn.backbones.dinov3_adapter import DINOv3STAs as _DINOv3STAs
-
-        super().__init__()
-        self.m = _DINOv3STAs(
-            name=name,
-            interaction_indexes=list(interaction_indexes),
-            patch_size=patch_size,
-            use_sta=use_sta,
-            conv_inplane=conv_inplane,
-            hidden_dim=hidden_dim,
-        )
-        self.split = split
-        self.channels = self.m.out_channels
-
-    def forward(self, x: torch.Tensor) -> list[torch.Tensor]:
-        """Forward pass returning [input, P3, P4, P5] when split=True."""
-        y = self.m(x)
-        return [x, *y] if self.split else y

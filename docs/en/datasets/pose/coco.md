@@ -28,7 +28,7 @@ COCO-Pose covers the COCO 2017 images that contain keypoint-annotated people, so
 
 1. **Train2017**: This subset contains 56,599 images from the COCO dataset, annotated for training pose estimation models.
 2. **Val2017**: This subset has 2,346 images used for validation purposes during model training.
-3. **Test2017**: This subset consists of images used for testing and benchmarking the trained models. Ground truth annotations for this subset are not publicly available, and the results are submitted to the [COCO evaluation server](https://cocodataset.org/#upload) for performance evaluation.
+3. **Test-dev2017**: A 20,288-image subset of the full 40,670-image test2017 set. Ground truth annotations are withheld, and results are submitted to the [COCO keypoints evaluation server](https://codalab.lisn.upsaclay.fr/competitions/7403) for scoring.
 
 Training at this scale is where [Ultralytics Platform](https://platform.ultralytics.com/) helps most — it manages the compute so you can launch and monitor runs without provisioning your own GPUs.
 
@@ -118,7 +118,7 @@ The COCO-Pose dataset provides several standardized evaluation metrics for pose 
 
 ### How is the dataset structured and split for the COCO-Pose dataset?
 
-COCO-Pose ships two labeled splits: 56,599 train2017 images and 2,346 val2017 images. A third split, test2017, keeps its ground truth private, so submissions are scored by the [COCO evaluation server](https://cocodataset.org/#upload). See the [Dataset Structure](#dataset-structure) section, or the `coco-pose.yaml` file on [GitHub](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco-pose.yaml) for the exact split paths.
+COCO-Pose ships two labeled splits: 56,599 train2017 images and 2,346 val2017 images. A third split, test-dev2017 (20,288 of the full 40,670 test2017 images), keeps its ground truth private, so submissions are scored via the [COCO keypoints evaluation server](https://codalab.lisn.upsaclay.fr/competitions/7403). See the [Dataset Structure](#dataset-structure) section, or the `coco-pose.yaml` file on [GitHub](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco-pose.yaml) for the exact split paths.
 
 ### What are the key features and applications of the COCO-Pose dataset?
 

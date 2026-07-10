@@ -311,6 +311,10 @@ class AnomalyDetect(Detect):
         self.mask_size = int(mask_size)
         self.heatmap_bias_fusion = HeatmapBiasFusion(num_scales=self.nl, c_mid=c_mid)
         self.heatmap_processor = HeatmapProcessor(mask_size=mask_size) if use_processor else None
+        # Inference-time fusion application. Default 'none' = passthrough (local behavior);
+        # set to 'mul'/'add' (and _fusion_feat) to reproduce sibling-branch checkpoints.
+        self._fusion_apply = "none"
+        self._fusion_feat = False
 
     def forward(
         self,
@@ -349,14 +353,30 @@ class AnomalyDetect(Detect):
                     )
                 else:
                     m_scale = processed_prior
-                delta = self.heatmap_bias_fusion(m_scale, i)
-                # delta = m_scale
-                # if keep is not None:
-                #     delta = delta * keep.to(delta.dtype).view(-1, 1, 1, 1)
-                # feats.append(p + delta)
-                if keep is not None:
-                    delta = torch.where(keep.view(-1, 1, 1, 1), delta, 1.0)
-                feats.append(p * delta)
+                if getattr(self, "_fusion_feat", False):
+                    delta = self.heatmap_bias_fusion(m_scale, i, feat=p.detach())
+                else:
+                    delta = self.heatmap_bias_fusion(m_scale, i)
+                apply = getattr(self, "_fusion_apply", "none")
+                if apply == "mul":
+                    # Bounded multiplicative gate in [0, 2]; delta=0 -> factor=1 (passthrough).
+                    # Dropped samples (keep=0) get delta=0 -> factor=1.
+                    if keep is not None:
+                        delta = torch.where(keep.view(-1, 1, 1, 1), delta, 0.0)
+                    feats.append(p * (1.0 + torch.tanh(delta)))
+                elif apply == "sigmoid":
+                    if keep is not None:
+                        delta = torch.where(keep.view(-1, 1, 1, 1), delta, 0.0)
+                    feats.append(p * (2.0 * torch.sigmoid(delta)))
+                elif apply == "add":
+                    if keep is not None:
+                        delta = torch.where(keep.view(-1, 1, 1, 1), delta, 0.0)
+                    feats.append(p + delta)
+                else:
+                    # 'none' (default): current local behavior (p * delta; keep gates delta to 1.0).
+                    if keep is not None:
+                        delta = torch.where(keep.view(-1, 1, 1, 1), delta, 1.0)
+                    feats.append(p * delta)
 
         # Build the heatmap that will be returned alongside the detections.
         # When no prior is active we still emit a zero heatmap so ONNX graphs

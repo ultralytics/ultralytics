@@ -204,7 +204,7 @@ class BaseValidator:
                 "obb",
                 "semantic",
             }:
-                self.data = check_det_dataset(self.args.data)
+                self.data = check_det_dataset(self.args.data, split=self.args.split)
             else:
                 raise FileNotFoundError(emojis(f"Dataset '{self.args.data}' for task={self.args.task} not found ❌"))
 

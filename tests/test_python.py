@@ -899,8 +899,9 @@ def test_semantic_loss_all_ignore(nc):
     assert torch.isfinite(loss).all() and torch.isfinite(items).all()
 
     # AMP path: large fp16 logits must not overflow the graph-connected zero (sum() -> inf -> 0*inf = NaN)
-    p16 = tuple((p + 5).half() for p in preds) if isinstance(preds, tuple) else (preds + 5).half()
-    loss, items = loss_fn(p16, void)
+    # Same-size logits skip the bilinear resize, which has no fp16 CPU kernel on the torch floor version
+    p16 = (torch.randn(1, nc, 32, 32) + 5).half()
+    loss, items = loss_fn(p16, {"semantic_mask": torch.full((1, 32, 32), 255, dtype=torch.long)})
     assert torch.isfinite(loss).all() and torch.isfinite(items).all()
 
 

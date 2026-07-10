@@ -1,7 +1,7 @@
 ---
 title: COCO8-Pose Estimation Dataset
 comments: true
-description: Explore the compact, versatile COCO8-Pose dataset for testing and debugging pose estimation models. Ideal for quick experiments with YOLO26.
+description: Explore the Ultralytics COCO8-Pose dataset: 8 images (4 train / 4 val) with 17 keypoints per person, for pose estimation sanity checks with YOLO26.
 keywords: COCO8-Pose, Ultralytics, pose estimation dataset, keypoint detection, YOLO26, machine learning, computer vision, training data
 ---
 

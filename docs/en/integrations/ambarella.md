@@ -51,7 +51,7 @@ SpongeTorch training and SpongeTorch-aware export can be replaced by a plain ONN
 
 ### Installation
 
-Install [this Ultralytics fork](https://github.com/Ambarella-Inc/ultralytics/tree/amba_v8.4.46), then install the Ambarella toolchain wheels from the SDK distribution:
+Install [this Ultralytics fork](https://github.com/Ambarella-Inc/ultralytics/tree/amba_v8.4.46), then follow the installation instructions for your Ambarella SDK release:
 
 !!! Tip "Installation"
 
@@ -64,10 +64,9 @@ Install [this Ultralytics fork](https://github.com/Ambarella-Inc/ultralytics/tre
         git checkout amba_v8.4.46
         pip install -e .
 
-        # Install Ambarella toolchain wheels from the SDK
-        pip install /path/to/spongetorch-*.whl
-        pip install /path/to/cvflowbackend-*.whl
         ```
+
+Ambarella toolchain package names and installation methods depend on the SDK release. Follow its documentation to install SpongeTorch, `cvflowbackend`, and the CVflow compiler.
 
 The AmbaPB inference backend locates `cvflowbackend` through the CVflow toolchain's `tv2` command (`tv2 -libpath cvflowbackend`), so the toolchain must be installed and on your `PATH` before running inference or validation with compiled models.
 
@@ -276,7 +275,7 @@ SpongeTorch is Ambarella's model compression toolkit, integrated into the Ambare
 
 ### Where do I get the Ambarella SDK, SpongeTorch, and the CVflow toolchain?
 
-They are proprietary and not on PyPI. Register on the [Ambarella Developer Zone](https://www.ambarella.com/developer/) to request SDK access and obtain the matching SpongeTorch, `cvflowbackend`, and compiler packages for your SDK release.
+They are proprietary and not on PyPI. Register on the [Ambarella Developer Zone](https://www.ambarella.com/developer/) to request access, then follow the installation documentation for your SDK release.
 
 ### How do I check the accuracy of the compiled model before deploying?
 

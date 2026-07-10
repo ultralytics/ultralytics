@@ -1319,7 +1319,7 @@ class SemanticSegmentationLoss(nn.Module):
         flat = masks.reshape(-1)
         valid = flat != 255
         if not valid.any():  # all pixels ignored: mean over 0 elements is NaN
-            return preds.sum() * 0
+            return preds.flatten()[0] * 0  # graph-connected zero; sum() can overflow to inf in fp16
         if self.nc == 1:
             logits = preds.reshape(-1)[valid]
             target = flat[valid].float()
@@ -1335,7 +1335,7 @@ class SemanticSegmentationLoss(nn.Module):
         flat_target = masks.reshape(-1)
         valid = flat_target != 255
         if not valid.any():
-            return preds.sum() * 0
+            return preds.flatten()[0] * 0  # graph-connected zero; sum() can overflow to inf in fp16
 
         pred_soft = F.softmax(preds, dim=1)
         target = flat_target[valid].long()

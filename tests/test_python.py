@@ -894,7 +894,13 @@ def test_semantic_loss_all_ignore(nc):
     model.args = get_cfg()
     loss_fn = SemanticSegmentationLoss(model)
     preds = model(torch.randn(1, 3, 64, 64))
-    loss, items = loss_fn(preds, {"semantic_mask": torch.full((1, 64, 64), 255, dtype=torch.long)})
+    void = {"semantic_mask": torch.full((1, 64, 64), 255, dtype=torch.long)}
+    loss, items = loss_fn(preds, void)
+    assert torch.isfinite(loss).all() and torch.isfinite(items).all()
+
+    # AMP path: large fp16 logits must not overflow the graph-connected zero (sum() -> inf -> 0*inf = NaN)
+    p16 = tuple((p + 5).half() for p in preds) if isinstance(preds, tuple) else (preds + 5).half()
+    loss, items = loss_fn(p16, void)
     assert torch.isfinite(loss).all() and torch.isfinite(items).all()
 
 

@@ -1329,7 +1329,7 @@ class v8DepthLoss:
             )
         loss[1] = grad_loss * self.grad_weight
 
-        return loss.sum() * pred_depth.shape[0], loss.detach()
+        return loss * pred_depth.shape[0], loss.detach()
 
 
 class E2EDetectLoss:

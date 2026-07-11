@@ -23,8 +23,8 @@ Imports start with a preview so you can review exactly what will be transferred 
 
 ## Available Integrations
 
-| Integration                               | What it brings in                                                    |
-| ----------------------------------------- | -------------------------------------------------------------------- |
+| Integration                               | What it brings in                                                     |
+| ----------------------------------------- | --------------------------------------------------------------------- |
 | [**Ultralytics HUB**](ultralytics-hub.md) | Your datasets, projects, models, and account balance                  |
 | [**Roboflow**](roboflow.md)               | Your datasets                                                         |
 | [**Cloud Storage**](cloud-storage.md)     | Datasets indexed in place from GCS, Amazon S3, and Azure Blob Storage |

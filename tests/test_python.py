@@ -1335,3 +1335,86 @@ def test_semantic_polygon_data():
     model = YOLO("yolo26n-sem.pt")
     model.train(data="coco8-seg.yaml", epochs=1, imgsz=32, close_mosaic=1)
     model.val(data="coco8-seg.yaml")
+
+
+def test_ddp_callback_injection_empty():
+    """Test callback injection returns empty string when no custom callbacks exist."""
+    from ultralytics.utils.dist import _get_custom_callback_injection_code
+    from ultralytics.engine.trainer import BaseTrainer
+
+    overrides = {"model": "yolo26n.pt", "data": "coco8.yaml", "imgsz": 32, "epochs": 1}
+    trainer = BaseTrainer(overrides=overrides)
+    result = _get_custom_callback_injection_code(trainer)
+    assert result == "", f"Expected empty string, got: {result!r}"
+
+
+def test_ddp_callback_injection_custom():
+    """Test that a simple named callback is properly injected."""
+    from ultralytics.utils.dist import _get_custom_callback_injection_code
+    from ultralytics.engine.trainer import BaseTrainer
+
+    def my_callback(trainer):
+        pass
+
+    overrides = {"model": "yolo26n.pt", "data": "coco8.yaml", "imgsz": 32, "epochs": 1}
+    trainer = BaseTrainer(overrides=overrides)
+    trainer.add_callback("on_train_start", my_callback)
+    result = _get_custom_callback_injection_code(trainer)
+    assert "def __custom_cb_0" in result
+    assert 'trainer.add_callback("on_train_start", __custom_cb_0)' in result
+
+
+def test_ddp_callback_injection_lambda():
+    """Test that lambda callbacks are skipped with warning."""
+    import logging
+    from ultralytics.utils.dist import _get_custom_callback_injection_code
+    from ultralytics.engine.trainer import BaseTrainer
+
+    overrides = {"model": "yolo26n.pt", "data": "coco8.yaml", "imgsz": 32, "epochs": 1}
+    trainer = BaseTrainer(overrides=overrides)
+    trainer.add_callback("on_train_start", lambda t: None)
+
+    with logging.getLogger("ultralytics")._log_state.get(None):
+        pass
+    result = _get_custom_callback_injection_code(trainer)
+    assert result == "", "Lambda should be skipped, returning empty string"
+
+
+def test_ddp_callback_injection_closure():
+    """Test that closures are skipped."""
+    from ultralytics.utils.dist import _get_custom_callback_injection_code
+    from ultralytics.engine.trainer import BaseTrainer
+
+    def make_cb(threshold):
+        def inner(trainer):
+            if trainer.epoch > threshold:
+                pass
+        return inner
+
+    overrides = {"model": "yolo26n.pt", "data": "coco8.yaml", "imgsz": 32, "epochs": 1}
+    trainer = BaseTrainer(overrides=overrides)
+    trainer.add_callback("on_train_epoch_end", make_cb(10))
+    result = _get_custom_callback_injection_code(trainer)
+    assert result == "", "Closure should be skipped, returning empty string"
+
+
+def test_ddp_callback_injection_multiple():
+    """Test that multiple custom callbacks get unique variable names."""
+    from ultralytics.utils.dist import _get_custom_callback_injection_code
+    from ultralytics.engine.trainer import BaseTrainer
+
+    def cb_a(trainer):
+        pass
+
+    def cb_b(trainer):
+        pass
+
+    overrides = {"model": "yolo26n.pt", "data": "coco8.yaml", "imgsz": 32, "epochs": 1}
+    trainer = BaseTrainer(overrides=overrides)
+    trainer.add_callback("on_train_start", cb_a)
+    trainer.add_callback("on_fit_epoch_end", cb_b)
+    result = _get_custom_callback_injection_code(trainer)
+    assert "__custom_cb_0" in result
+    assert "__custom_cb_1" in result
+    assert 'trainer.add_callback("on_train_start", __custom_cb_0)' in result
+    assert 'trainer.add_callback("on_fit_epoch_end", __custom_cb_1)' in result

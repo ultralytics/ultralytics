@@ -1344,6 +1344,7 @@ def test_ddp_callback_injection_empty():
 
     overrides = {"model": "yolo26n.pt", "data": "coco8.yaml", "imgsz": 32, "epochs": 1}
     trainer = BaseTrainer(overrides=overrides)
+    trainer.callbacks.clear()  # Remove built-in integration callbacks (hub, platform, etc.)
     result = _get_custom_callback_injection_code(trainer)
     assert result == "", f"Expected empty string, got: {result!r}"
 
@@ -1358,6 +1359,7 @@ def test_ddp_callback_injection_custom():
 
     overrides = {"model": "yolo26n.pt", "data": "coco8.yaml", "imgsz": 32, "epochs": 1}
     trainer = BaseTrainer(overrides=overrides)
+    trainer.callbacks.clear()  # Remove built-in integration callbacks (hub, platform, etc.)
     trainer.add_callback("on_train_start", my_callback)
     result = _get_custom_callback_injection_code(trainer)
     assert "def __custom_cb_0" in result
@@ -1366,17 +1368,14 @@ def test_ddp_callback_injection_custom():
 
 def test_ddp_callback_injection_lambda():
     """Test that lambda callbacks are skipped with warning."""
-    import logging
-
-    from ultralytics.engine.trainer import BaseTrainer
     from ultralytics.utils.dist import _get_custom_callback_injection_code
+    from ultralytics.engine.trainer import BaseTrainer
 
     overrides = {"model": "yolo26n.pt", "data": "coco8.yaml", "imgsz": 32, "epochs": 1}
     trainer = BaseTrainer(overrides=overrides)
+    trainer.callbacks.clear()  # Remove built-in integration callbacks (hub, platform, etc.)
     trainer.add_callback("on_train_start", lambda t: None)
 
-    with logging.getLogger("ultralytics")._log_state.get(None):
-        pass
     result = _get_custom_callback_injection_code(trainer)
     assert result == "", "Lambda should be skipped, returning empty string"
 
@@ -1395,6 +1394,7 @@ def test_ddp_callback_injection_closure():
 
     overrides = {"model": "yolo26n.pt", "data": "coco8.yaml", "imgsz": 32, "epochs": 1}
     trainer = BaseTrainer(overrides=overrides)
+    trainer.callbacks.clear()  # Remove built-in integration callbacks (hub, platform, etc.)
     trainer.add_callback("on_train_epoch_end", make_cb(10))
     result = _get_custom_callback_injection_code(trainer)
     assert result == "", "Closure should be skipped, returning empty string"
@@ -1413,6 +1413,7 @@ def test_ddp_callback_injection_multiple():
 
     overrides = {"model": "yolo26n.pt", "data": "coco8.yaml", "imgsz": 32, "epochs": 1}
     trainer = BaseTrainer(overrides=overrides)
+    trainer.callbacks.clear()  # Remove built-in integration callbacks (hub, platform, etc.)
     trainer.add_callback("on_train_start", cb_a)
     trainer.add_callback("on_fit_epoch_end", cb_b)
     result = _get_custom_callback_injection_code(trainer)

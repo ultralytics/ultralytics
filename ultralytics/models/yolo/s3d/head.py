@@ -99,17 +99,19 @@ class Stereo3DDetHead(Detect):
         self.reg_max = 1
         self.no = nc + 4  # 4 direct bbox offsets, no distribution
         c2 = max(16, ch[0] // 4, 4)
-        self.cv2 = nn.ModuleList(
-            nn.Sequential(Conv(x, c2, 3), Conv(c2, c2, 3), nn.Conv2d(c2, 4, 1)) for x in ch
-        )
+        self.cv2 = nn.ModuleList(nn.Sequential(Conv(x, c2, 3), Conv(c2, c2, 3), nn.Conv2d(c2, 4, 1)) for x in ch)
         self.dfl = nn.Identity()
 
         self.aux_specs = dict(AUX_SPECS)  # mutable copy
         self.depth_dfl = DepthDFL(DEPTH_BINS, DEPTH_MIN, DEPTH_MAX)
+        self.use_uncertainty = False
 
         # Hidden size scales with model width (same pattern as Pose.cv4)
         hidden = max(ch[0] // 4, max(self.aux_specs.values()))
         depth_hidden = max(ch[0] // 2, 64)  # wider hidden for depth-critical branches
+        self._hidden = hidden
+        self._depth_hidden = depth_hidden
+        self._ch = ch
 
         # Per-scale aux branches (like Pose.cv4)
         # Depth branches at P3 (scale 0) get cost volume concat → wider input
@@ -130,6 +132,24 @@ class Stereo3DDetHead(Detect):
         for name in list(self.aux.keys()):
             if name not in self.aux_specs:
                 del self.aux[name]
+
+    def enable_proj_center(self) -> None:
+        """Add the projected-3D-center offset branch (2ch: Δu, Δv). Idempotent."""
+        if "proj_offset" in self.aux_specs:
+            return
+        self.aux_specs["proj_offset"] = 2
+        self.aux["proj_offset"] = nn.ModuleList(_branch(x, 2, self._hidden) for x in self._ch)
+
+    def enable_depth_uncertainty(self) -> None:
+        """Widen the lr_distance branch to emit a log-variance channel and flag NLL/decode use. Idempotent."""
+        if getattr(self, "use_uncertainty", False):
+            return
+        self.use_uncertainty = True
+        self.aux_specs["lr_distance"] = 2  # value + log-variance
+        branches = [
+            _deep_branch(x + (self.cv_ch if i == 0 else 0), 2, self._depth_hidden) for i, x in enumerate(self._ch)
+        ]
+        self.aux["lr_distance"] = nn.ModuleList(branches)
 
     @property
     def one2many(self):
@@ -166,6 +186,11 @@ class Stereo3DDetHead(Detect):
                         feat = torch.cat([feat, cost_vol], dim=1)
                     feats.append(branches[i](feat).view(bs, out_c, -1))
                 preds[name] = torch.cat(feats, -1)  # [B, C, HW_total]
+
+        if getattr(self, "use_uncertainty", False) and "lr_distance" in preds:
+            lr = preds["lr_distance"]
+            preds["lr_distance"] = lr[:, :1]  # value
+            preds["lr_logvar"] = lr[:, 1:2]  # log-variance
 
         # Decode depth bins → scalar log-depth (keep raw logits for loss/export)
         if "depth" in preds:

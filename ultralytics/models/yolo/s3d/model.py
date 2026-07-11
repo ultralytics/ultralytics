@@ -43,14 +43,20 @@ class Stereo3DDetModel(DetectionModel):
                     self._siamese = True
                     break
 
-        # Apply depth_mode from YAML (prune unused aux branches)
-        depth_mode = (self.yaml or {}).get("training", {}).get("depth_mode", "both")
-        if depth_mode != "both":
-            from ultralytics.models.yolo.s3d.head import Stereo3DDetHead
+        # Apply training-block flags from YAML: depth_mode (prune aux branches) and
+        # the flag-gated proj-center / depth-uncertainty branches (default off).
+        from ultralytics.models.yolo.s3d.head import Stereo3DDetHead
 
-            head = self.model[-1]
-            if isinstance(head, Stereo3DDetHead):
+        training_cfg = (self.yaml or {}).get("training", {})
+        head = self.model[-1]
+        if isinstance(head, Stereo3DDetHead):
+            depth_mode = training_cfg.get("depth_mode", "both")
+            if depth_mode != "both":
                 head.set_depth_mode(depth_mode)
+            if training_cfg.get("use_proj_center", False):
+                head.enable_proj_center()
+            if training_cfg.get("use_depth_uncertainty", False):
+                head.enable_depth_uncertainty()
 
     def _backbone_to_tap(self, x):
         """Run backbone layers 0..tap_layer on an image, return tap features."""

@@ -71,6 +71,27 @@ def test_export_engine():
     assert path.endswith(".engine")
 
 
+def test_feature_flags_gate_head_branches():
+    """use_proj_center / use_depth_uncertainty in YAML training block add head branches; default off is unchanged."""
+    from ultralytics.models.yolo.s3d.orientation import ORIENT_CHANNELS
+
+    base = YOLO(MODEL).model
+    head = base.model[-1]
+    assert "proj_offset" not in head.aux_specs
+    assert head.aux["lr_distance"][0][-1].out_channels == 1  # scalar disparity
+    assert getattr(head, "use_uncertainty", False) is False
+
+    # Enable both features directly (model.py wires these from the YAML training block).
+    head.enable_proj_center()
+    head.enable_depth_uncertainty()
+    assert head.aux_specs["proj_offset"] == 2
+    assert head.aux["proj_offset"][0][-1].out_channels == 2
+    assert head.aux["lr_distance"][0][-1].out_channels == 2  # value + log-variance
+    assert head.use_uncertainty is True
+    # orientation/depth untouched
+    assert head.aux_specs["orientation"] == ORIENT_CHANNELS
+
+
 def test_3d_iou():
     """Test 3D IoU computation: identical, no overlap, and partial overlap."""
     box = Box3D(center_3d=(10.0, 2.0, 30.0), dimensions=(3.88, 1.63, 1.53), orientation=0.0,

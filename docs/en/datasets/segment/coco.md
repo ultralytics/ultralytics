@@ -17,7 +17,7 @@ The [COCO-Seg](https://cocodataset.org/#home) dataset provides [COCO](https://co
 
 - COCO-Seg provides instance segmentation masks for 123,287 labeled COCO train2017/val2017 images (118,287 train + 5,000 val), out of COCO's broader ~330K-image release.
 - The dataset consists of the same 80 object categories found in the original COCO dataset.
-- Annotations provide a pixel-accurate instance segmentation mask for each object, converted to the YOLO polygon label format.
+- Annotations provide pixel-accurate instance segmentation masks in the YOLO polygon label format.
 - COCO-Seg provides standardized mAP and mAR metrics for evaluating instance segmentation performance, enabling effective comparison of model performance.
 - **Download size**: ~27 GB on first use. The `coco.yaml` header lists 20.1 GB (`train2017.zip` + `val2017.zip` only), but the download script also fetches the 7 GB `test2017.zip` unconditionally, even though that archive is needed only for the optional test-dev2017 submission split.
 
@@ -72,7 +72,7 @@ To train a YOLO26n-seg model on the COCO-Seg dataset for 100 [epochs](https://ww
 
 ## Sample Images and Annotations
 
-COCO-Seg contains the same diverse images, object categories, and complex scenes as COCO, with each object's instance segmentation mask provided in the YOLO label format. Here are some examples of images from the dataset, along with their corresponding instance segmentation masks:
+COCO-Seg contains the same diverse images, object categories, and complex scenes as COCO, with instance segmentation masks provided in the YOLO label format. Here are some examples of images from the dataset, along with their corresponding instance segmentation masks:
 
 ![COCO segmentation dataset mosaic training batch](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/mosaiced-training-batch-3.avif)
 
@@ -136,7 +136,7 @@ The COCO-Seg dataset includes several key features:
 
 - Provides instance segmentation masks for 123,287 labeled COCO train2017/val2017 images (118,287 train + 5,000 val).
 - Annotates the same 80 object categories found in the original COCO.
-- Provides a pixel-accurate instance segmentation mask for each object in the YOLO label format.
+- Provides pixel-accurate instance segmentation masks in the YOLO polygon label format.
 - Uses standardized evaluation metrics such as mean Average [Precision](https://www.ultralytics.com/glossary/precision) (mAP) and mean Average Recall (mAR) for [instance segmentation](../../tasks/segment.md) tasks.
 
 ### What pretrained models are available for COCO-Seg, and what are their performance metrics?

@@ -12,6 +12,7 @@ import torch.nn as nn
 
 from ultralytics.nn.autobackend import check_class_names
 from ultralytics.nn.modules import (
+    MECS,
     AHFIN,
     HybridHead,
     AnchorFreeHead,
@@ -1927,6 +1928,7 @@ def parse_model(d, ch, verbose=True):
     layers, save, c2 = [], [], ch[-1]  # layers, savelist, ch out
     base_modules = frozenset(
         {
+            MECS,
             AHFIN,
             MultiScaleGhost,
             Classify,

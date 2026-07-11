@@ -15,7 +15,7 @@ The [Azure Blob Storage](https://azure.microsoft.com/en-us/products/storage/blob
 
 ## Get a Connection String
 
-Platform only ever reads from your storage — it never writes, modifies, or deletes your blobs. A connection string grants access to one storage account:
+Platform only ever reads from your storage — it never writes, modifies, or deletes your blobs. The current integration requires an account access-key connection string, which grants account-wide privileges even though Platform uses only list and read operations:
 
 1. In the Azure portal, open your storage account.
 2. Go to **Security + networking > Access keys**.
@@ -36,7 +36,7 @@ Reconnecting the same storage account later adds new containers to the existing 
 
 !!! note "Credential security"
 
-    Credentials are encrypted at rest with AES-256-GCM, are never returned to the browser, and never enter training job payloads. To revoke access, rotate the storage account access keys in Azure.
+    An account key can authorize write and delete operations or create SAS tokens if it is exposed outside Platform. Credentials are encrypted at rest with AES-256-GCM, are never returned to the browser, and never enter training job payloads. Use a dedicated storage account where practical. To revoke access, rotate the storage account access keys in Azure.
 
 ## Create a Dataset from a Blob Container
 

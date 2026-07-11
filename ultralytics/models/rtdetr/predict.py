@@ -23,6 +23,7 @@ class RTDETRPredictor(BasePredictor):
     Methods:
         postprocess: Postprocess raw model predictions to generate bounding boxes and confidence scores.
         pre_transform: Pre-transform input images before feeding them into the model for inference.
+        setup_model: Initialize model and propagate max_det to the RT-DETR decoder head.
 
     Examples:
         >>> from ultralytics.utils import ASSETS
@@ -31,6 +32,23 @@ class RTDETRPredictor(BasePredictor):
         >>> predictor = RTDETRPredictor(overrides=args)
         >>> predictor.predict_cli()
     """
+
+    def setup_model(self, model, verbose: bool = True):
+        """Initialize the RT-DETR model and propagate max_det to the decoder head.
+
+        BasePredictor.setup_model only calls set_head_attr(max_det=...) when model.end2end is True.
+        RTDETRDecoder has no end2end attribute (so model.end2end evaluates to False), which means the
+        user-provided max_det is never forwarded to the head and the decoder always selects 300 candidates.
+        This override explicitly wires max_det into the decoder after the base setup completes.
+
+        Args:
+            model (str | Path | torch.nn.Module): Model to load or use.
+            verbose (bool): Whether to print verbose output.
+        """
+        super().setup_model(model, verbose=verbose)
+        # Propagate max_det to the RT-DETR decoder head.  set_head_attr checks hasattr and warns rather
+        # than raising, so this is safe against exported/reloaded models that may lack the attribute.
+        self.model.set_head_attr(max_det=self.args.max_det)
 
     def postprocess(self, preds, img, orig_imgs):
         """Postprocess the raw predictions from the model to generate bounding boxes and confidence scores.

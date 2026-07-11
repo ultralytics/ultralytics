@@ -83,6 +83,7 @@ class RTDETRValidator(DetectionValidator):
 
     Methods:
         build_dataset: Build an RTDETR Dataset for validation.
+        init_metrics: Initialize metrics and propagate max_det to the RT-DETR decoder head.
         postprocess: Apply confidence thresholding to prediction outputs.
 
     Examples:
@@ -119,6 +120,22 @@ class RTDETRValidator(DetectionValidator):
             prefix=colorstr(f"{mode}: "),
             data=self.data,
         )
+
+    def init_metrics(self, model) -> None:
+        """Initialize metrics and propagate max_det to the RT-DETR decoder head.
+
+        BaseValidator.__call__ only sets max_det on the head when model.end2end is True.  RTDETRDecoder
+        has no end2end attribute (so model.end2end evaluates to False), meaning the user-provided max_det
+        is never forwarded to the head during validation.  This override wires max_det into the decoder
+        immediately after the parent initialises metrics.
+
+        Args:
+            model (torch.nn.Module): Unwrapped model passed by BaseValidator.__call__.
+        """
+        super().init_metrics(model)
+        # Propagate max_det to the RT-DETR decoder head.  set_head_attr checks hasattr and warns rather
+        # than raising, so this is safe against exported/reloaded models that may lack the attribute.
+        model.set_head_attr(max_det=self.args.max_det)
 
     def scale_preds(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> dict[str, torch.Tensor]:
         """Return predictions unchanged as RT-DETR handles scaling in postprocessing."""

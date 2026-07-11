@@ -55,6 +55,40 @@ def compute_dimension_offset(
     )
 
 
+def encode_proj_offset(
+    location_3d: tuple[float, float, float],
+    height: float,
+    calib: dict,
+    box_center_norm: tuple[float, float],
+    ratio_pad: tuple[float, float, float],
+    input_wh: tuple[int, int],
+) -> tuple[float, float]:
+    """Encode the offset from the 2D box center to the projected 3D centroid (letterbox-normalized).
+
+    Args:
+        location_3d (tuple): (X, Y, Z) bottom-center in camera frame (meters).
+        height (float): 3D box height (meters); centroid Y = Y - height/2 (camera y-down).
+        calib (dict): fx, fy, cx, cy (original-image pixels).
+        box_center_norm (tuple): (u, v) 2D box center, letterbox-normalized [0,1].
+        ratio_pad (tuple): (scale, pad_left, pad_top) of the letterbox applied to this sample.
+        input_wh (tuple): (input_w, input_h) letterbox canvas size.
+
+    Returns:
+        (du, dv): projected-centroid minus box-center, in letterbox-normalized units.
+    """
+    X, Y, Z = location_3d
+    Yc = Y - height / 2.0
+    scale, pad_left, pad_top = ratio_pad
+    input_w, input_h = input_wh
+    u_orig = calib["fx"] * X / Z + calib["cx"]
+    v_orig = calib["fy"] * Yc / Z + calib["cy"]
+    u_lb = u_orig * scale + pad_left
+    v_lb = v_orig * scale + pad_top
+    u_norm = u_lb / input_w
+    v_norm = v_lb / input_h
+    return u_norm - box_center_norm[0], v_norm - box_center_norm[1]
+
+
 class Stereo3DDetDataset(BaseDataset):
     """Stereo 3D detection dataset (single, unified dataset).
 
@@ -666,6 +700,7 @@ class Stereo3DDetDataset(BaseDataset):
         # Extract from instances and stereo-specific keys
         calibs = [b.get("calibration", b.get("calib", {})) for b in batch]
         ori_shapes = [b.get("ori_shape", b.get("resized_shape", (0, 0))) for b in batch]
+        input_h, input_w = self.imgsz_tuple  # letterbox canvas (H, W), constant across the batch
 
         # ---------------------------------------------------------------------
         # YOLO26-style detection targets (P3-only first)
@@ -689,6 +724,7 @@ class Stereo3DDetDataset(BaseDataset):
             "dimensions": [],
             "orientation": [],
             "is_pseudo": [],  # 0=real, 1=stereo-pseudo (occ>=10), 2=mono-pseudo (occ>=20)
+            "proj_offset": [],  # (du, dv): box-center -> projected-3D-centroid offset
         }
 
         per_image_counts: list[int] = []
@@ -811,11 +847,13 @@ class Stereo3DDetDataset(BaseDataset):
                 continue
 
             # Build per-object aux targets for this image
+            calib_i = calibs[i]
             lr_list = []
             depth_list = []
             dim_list = []
             ori_list = []
             pseudo_list = []
+            proj_list = []
 
             for j in range(n):
                 cls_i = int(cls_array[j])
@@ -850,11 +888,25 @@ class Stereo3DDetDataset(BaseDataset):
                 occ_j = int(occluded[j])
                 pseudo_list.append(torch.tensor([min(occ_j // 10, 2)], dtype=torch.float32))
 
+                # Projected-3D-centroid offset (du, dv), letterbox-normalized. calib_i's fx/fy/cx/cy
+                # are already letterbox-transformed (scaled+padded, see StereoLetterBox/
+                # update_labels_info), so an identity ratio_pad is passed to encode_proj_offset.
+                du, dv = encode_proj_offset(
+                    (float(loc[0]), float(loc[1]), max(z_3d, 1e-6)),
+                    float(dims[2]),
+                    calib_i,
+                    (cx, cy),
+                    (1.0, 0.0, 0.0),
+                    (input_w, input_h),
+                )
+                proj_list.append(torch.tensor([du, dv], dtype=torch.float32))
+
             per_image_aux["lr_distance"].append(torch.stack(lr_list, 0))
             per_image_aux["depth"].append(torch.stack(depth_list, 0))
             per_image_aux["dimensions"].append(torch.stack(dim_list, 0))
             per_image_aux["orientation"].append(torch.stack(ori_list, 0))
             per_image_aux["is_pseudo"].append(torch.stack(pseudo_list, 0))
+            per_image_aux["proj_offset"].append(torch.stack(proj_list, 0))
 
         # Build detection tensors
         if all_bboxes:
@@ -870,7 +922,14 @@ class Stereo3DDetDataset(BaseDataset):
         max_n = max(per_image_counts) if per_image_counts else 0
         aux_targets: dict[str, torch.Tensor] = {}
         for k in per_image_aux.keys():
-            c = {"lr_distance": 1, "depth": 1, "dimensions": 3, "orientation": ORIENT_CHANNELS, "is_pseudo": 1}[k]
+            c = {
+                "lr_distance": 1,
+                "depth": 1,
+                "dimensions": 3,
+                "orientation": ORIENT_CHANNELS,
+                "is_pseudo": 1,
+                "proj_offset": 2,
+            }[k]
             padded = torch.zeros((len(batch), max_n, c), dtype=torch.float32)
             for bi in range(len(batch)):
                 if per_image_counts[bi] == 0:

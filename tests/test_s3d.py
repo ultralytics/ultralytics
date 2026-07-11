@@ -354,3 +354,34 @@ def test_depth_decode_imgsz_invariant():
             assert abs(z_direct - z_true) / z_true < 0.02, f"direct depth imgsz={imgsz} z={z_true}: got {z_direct:.2f}"
             assert abs(z_disp - z_true) / z_true < 0.02, f"stereo depth imgsz={imgsz} z={z_true}: got {z_disp:.2f}"
             assert abs(z_fused - z_true) / z_true < 0.02, f"fused depth imgsz={imgsz} z={z_true}: got {z_fused:.2f}"
+
+
+def test_proj_offset_roundtrip():
+    """Projected-centroid offset must invert: encode (centroid->projected px->offset) then
+    decode (box_center+offset -> back-project at true z) recovers the centroid X/Y."""
+    from ultralytics.models.yolo.s3d.dataset import encode_proj_offset
+
+    fx = fy = 721.5377
+    cx = 609.5593
+    cy = 172.8540
+    calib = {"fx": fx, "fy": fy, "cx": cx, "cy": cy}
+    input_w, input_h = 1248, 384
+    scale, pad_left, pad_top = 1.0048, 0, 3  # aspect-preserving letterbox of 375x1242
+    # A car: bottom-center location (X,Y,Z), height h. Centroid Y = Y - h/2 (camera y-down).
+    X, Y, Z, h = 3.0, 1.65, 20.0, 1.5
+    # 2D box center (letterbox-normalized) — deliberately NOT the projected centroid.
+    box_center_norm = (0.42, 0.55)  # (u,v) normalized in letterbox space
+
+    du, dv = encode_proj_offset((X, Y, Z), h, calib, box_center_norm, (scale, pad_left, pad_top), (input_w, input_h))
+
+    # Decode: recovered projected center in original px, then back-project at Z.
+    u_norm = box_center_norm[0] + du
+    v_norm = box_center_norm[1] + dv
+    u_lb = u_norm * input_w
+    v_lb = v_norm * input_h
+    u_orig = (u_lb - pad_left) / scale
+    v_orig = (v_lb - pad_top) / scale
+    x_rec = (u_orig - cx) * Z / fx
+    y_rec = (v_orig - cy) * Z / fy
+    assert abs(x_rec - X) < 1e-3, f"x {x_rec} != {X}"
+    assert abs(y_rec - (Y - h / 2)) < 1e-3, f"y {y_rec} != centroid {Y - h / 2}"

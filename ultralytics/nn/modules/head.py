@@ -869,7 +869,7 @@ class Depth(nn.Module):
 
         # Depth output (at P3 resolution → upsample 2x in head → P2 resolution = input/4)
         out = self.head(out)  # (B, 1, H/4, W/4)
-        if getattr(self, "mode", "sigmoid") == "log":
+        if self.mode == "log":
             depth = torch.exp(out.clamp(-4.0, 5.0))  # meters, ~0.018-148 m
         else:
             depth = out * self.max_depth  # meters

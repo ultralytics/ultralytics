@@ -1,0 +1,113 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Lane B depth arm: identical to the dinop5 combined bundle, P5 MHSABlock repeats 5 -> 8.
+# Motivation: DINOv3-S+ runs 12 attention layers total; our P5 stage runs 5 (attn2's existing
+# repeat-count experiment, on the OLD plain block, also uses 8). If every per-block flavor knob in
+# the combined bundle loses, the live alternative explanation is insufficient attention depth, not
+# FFN/bias/token detail -- this arm tests that directly, using the new per-block improvements.
+# Repeats here are BEFORE the yaml's own depth-multiplier scaling (n/s 0.20, m 0.25, l/x 0.35), so 5
+# vs 8 round to the same actual layer count at n/s/m/l (round(5*0.35)=round(8*0.35)... no: 1.75->2 vs
+# 2.8->3, +1 actual layer at every scale, matching attn2's own repeat 5->8 = "+1 effective block"
+# convention). Not scale-selective yet -- let the T4 latency gate say where it holds, same as attn2
+# empirically found uniform-repeat only holds at l/x under Lane A's export gate (Lane B has no export
+# gate, only latency vs the per-slot baseline, so the failure mode if any will look different).
+# Model docs: https://docs.ultralytics.com/models/rtdetr
+# Task docs: https://docs.ultralytics.com/tasks/detect
+
+nc: 80
+end2end: True
+reg_max: 1
+scales:
+  n: [0.20, 0.25, 1152]
+  s: [0.20, 0.50, 1152]
+  m: [0.25, 1.00, 512]
+  l: [0.35, 1.00, 512]
+  x: [0.35, 1.50, 512]
+
+backbone:
+  - [-1, 1, Conv, [64, 3, 2]]
+  - [-1, 1, Conv, [96, 3, 2]]
+  - [-1, 5, RepUltraViTBlock, [3, True, 0.00001]]
+  - [-1, 1, Conv, [192, 3, 2]]
+  - [-1, 5, RepUltraViTBlock, [3, True, 0.00001]]
+  - [-1, 1, Conv, [384, 3, 2]]
+  - [-1, 20, RepUltraViTBlock, [3, True, 0.00001]]
+  - [-1, 1, Conv, [1152, 3, 2]]
+  - [-1, 8, MHSABlock, [0, 4, True, 0.00001, False, 64, False, True, True, True, 4]]
+
+head:
+  - [8, 1, Conv, [256, 1, 1, None, 1, 1, False]]
+  - [-1, 1, AIFI, [1024, 8]]
+  - [-1, 1, Conv, [256, 1, 1, None, 1, 1, False]]
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [6, 1, Conv, [256, 1, 1, None, 1, 1, False]]
+  - [[-2, -1], 1, Add, []]
+  - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]]
+  - [-1, 1, Conv, [256, 1, 1, None, 1, 1, False]]
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [4, 1, Conv, [256, 1, 1, None, 1, 1, False]]
+  - [[-2, -1], 1, Add, []]
+  - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]]
+
+  - [-1, 1, SCDown, [256, 3, 2, False]]
+  - [[-1, 16], 1, Add, []]
+  - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]]
+
+  - [-1, 1, SCDown, [256, 3, 2, False]]
+  - [[-1, 11], 1, Add, []]
+  - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]]
+
+  - [
+      [20, 23, 26],
+      1,
+      DeimDecoder,
+      [
+        nc,
+        256,
+        300,
+        [3, 6, 3],
+        8,
+        6,
+        2048,
+        0.0,
+        "silu",
+        -1,
+        100,
+        0.5,
+        1.0,
+        False,
+        False,
+        0,
+        False,
+        False,
+        "default",
+        32,
+        4.0,
+        1.0,
+        "silu",
+        "unshared",
+        True,
+        False,
+        False,
+      ],
+    ]
+
+loss:
+  gamma: 1.5
+  alpha: 0.75
+  use_fl: False
+  use_vfl: False
+  use_mal: True
+  use_union_set: True
+  reg_max: 32
+  loss_gain: { class: 1, bbox: 5, giou: 2, fgl: 0.15, ddf: 1.5 }
+  matcher:
+    cost_gain: { class: 2, bbox: 5, giou: 2 }
+    use_fl: True
+    alpha: 0.25
+    gamma: 2.0
+    change_matcher: True
+    iou_order_alpha: 4.0
+    matcher_change_epoch: 45

@@ -25,12 +25,15 @@ def _args(**over):
 
 
 class _Model(torch.nn.Module):
-    """Tiny stub exposing .parameters() and .args so the loss knobs can be varied per test."""
+    """Tiny stub mirroring a real YOLO model's surface for the loss: .parameters(), .args, and a .model
+    Sequential whose last module is the "head" (no max_depth -> log-mode/unbounded). Detect/depth losses
+    both read the head via model.model[-1] (see v8DetectionLoss), so the stub must expose it too."""
 
     def __init__(self, **over):
         super().__init__()
         self.p = torch.nn.Parameter(torch.zeros(1))
         self.args = _args(**over)
+        self.model = torch.nn.Sequential(torch.nn.Identity())
 
 
 def _loss_for_scaled_pred(lam, scale, l1=0.0):
@@ -38,7 +41,7 @@ def _loss_for_scaled_pred(lam, scale, l1=0.0):
     gt = torch.rand(2, 1, 16, 16) * 5 + 1.0
     pred = (gt * scale).clone().requires_grad_(True)  # perfect structure, wrong global scale
     total, _ = crit({"depth": pred}, {"depth": gt})
-    return float(total.detach())
+    return float(total.sum().detach())
 
 
 def test_lower_lambda_penalizes_scale_error_more():
@@ -69,7 +72,7 @@ def test_grad_scales_1_matches_single_scale():
     pl, gl = torch.log(pred.clamp(min=0.001)), torch.log(gt.clamp(min=0.001))
     ref = F.l1_loss(pl[:, :, :, 1:] - pl[:, :, :, :-1], gl[:, :, :, 1:] - gl[:, :, :, :-1])
     ref = ref + F.l1_loss(pl[:, :, 1:, :] - pl[:, :, :-1, :], gl[:, :, 1:, :] - gl[:, :, :-1, :])
-    assert abs(float(total) - float(ref) * pred.shape[0]) < 1e-5
+    assert abs(float(total.sum()) - float(ref) * pred.shape[0]) < 1e-5
 
 
 def test_multiscale_grad_adds_coarse_levels():
@@ -81,7 +84,7 @@ def test_multiscale_grad_adds_coarse_levels():
     pred = (gt + 0.5 * torch.randn(2, 1, 32, 32)).clamp(min=0.1)
     single, _ = v8DepthLoss(_Model(silog=0.0, silog_grad=1.0, silog_grad_scales=1))({"depth": pred}, {"depth": gt})
     multi, _ = v8DepthLoss(_Model(silog=0.0, silog_grad=1.0, silog_grad_scales=4))({"depth": pred}, {"depth": gt})
-    assert float(multi) > float(single) + 1e-4
+    assert float(multi.sum()) > float(single.sum()) + 1e-4
 
 
 def test_sparsity_guard_collapses_multiscale_on_sparse_gt():
@@ -95,7 +98,7 @@ def test_sparsity_guard_collapses_multiscale_on_sparse_gt():
     pred = torch.rand(1, 1, 32, 32) * 5 + 1.0
     single, _ = v8DepthLoss(_Model(silog=0.0, silog_grad=1.0, silog_grad_scales=1))({"depth": pred}, {"depth": gt})
     multi, _ = v8DepthLoss(_Model(silog=0.0, silog_grad=1.0, silog_grad_scales=4))({"depth": pred}, {"depth": gt})
-    assert abs(float(single) - float(multi)) < 1e-6  # guard collapsed ms to single-scale
+    assert abs(float(single.sum()) - float(multi.sum())) < 1e-6  # guard collapsed ms to single-scale
 
 
 def test_trim_pct_0_is_no_op():
@@ -105,7 +108,7 @@ def test_trim_pct_0_is_no_op():
     pred = (gt + 0.2 * torch.randn(1, 1, 16, 16)).clamp(min=0.1)
     a, _ = v8DepthLoss(_Model(silog_grad=0.0, silog_trim=0.0))({"depth": pred}, {"depth": gt})
     b, _ = v8DepthLoss(_Model(silog_grad=0.0))({"depth": pred}, {"depth": gt})  # default trim 0.0
-    assert abs(float(a) - float(b)) < 1e-6
+    assert abs(float(a.sum()) - float(b.sum())) < 1e-6
 
 
 def test_trimming_drops_outliers():
@@ -115,5 +118,5 @@ def test_trimming_drops_outliers():
     pred[0, 0, 0, :5] = 20.0  # 5 / 256 ≈ 2% gross outliers
     no_trim, _ = v8DepthLoss(_Model(silog_grad=0.0, silog_trim=0.0))({"depth": pred}, {"depth": gt})
     with_trim, _ = v8DepthLoss(_Model(silog_grad=0.0, silog_trim=0.05))({"depth": pred}, {"depth": gt})
-    assert float(no_trim) > 0.1
-    assert float(with_trim) < 0.01
+    assert float(no_trim.sum()) > 0.1
+    assert float(with_trim.sum()) < 0.01

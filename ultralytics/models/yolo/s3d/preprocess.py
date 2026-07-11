@@ -97,6 +97,29 @@ def compute_letterbox_params(
 # =============================================================================
 
 
+def _dfl_variance(outputs: dict[str, torch.Tensor], b: int, idx: int) -> float:
+    """Return the DFL depth-distribution spread Σpᵢ(bᵢ-μ)² at (b, idx), else 1.0 (high variance).
+
+    Args:
+        outputs: Model outputs dictionary, may contain raw "depth_bins" logits [B, n_bins, HW].
+        b: Batch index.
+        idx: Flat spatial index into the aux maps.
+
+    Returns:
+        Variance of the softmax-weighted depth-bin distribution in log-depth space, or 1.0
+        when "depth_bins" is not present in outputs.
+    """
+    if "depth_bins" not in outputs:
+        return 1.0
+    from ultralytics.models.yolo.s3d.head import DEPTH_BINS, DEPTH_MAX, DEPTH_MIN
+
+    logits = outputs["depth_bins"][b, :, idx].float()
+    bin_values = torch.linspace(math.log(DEPTH_MIN), math.log(DEPTH_MAX), DEPTH_BINS)
+    probs = torch.softmax(logits, dim=0)
+    mu = (probs * bin_values).sum()
+    return float((probs * (bin_values - mu) ** 2).sum().item())
+
+
 def decode_stereo3d_outputs(
     outputs: dict[str, torch.Tensor],
     conf_threshold: float = 0.25,
@@ -109,6 +132,9 @@ def decode_stereo3d_outputs(
     std_dims: dict[int, tuple[float, float, float]] | None = None,
     class_names: dict[int, str] | None = None,
     use_proj_center: bool = False,
+    ivw_fusion: bool = False,
+    score_weight: bool = False,
+    score_k: float = 0.5,
 ) -> list[Box3D] | list[list[Box3D]]:
     """Decode s3d outputs to Box3D objects.
 
@@ -128,6 +154,12 @@ def decode_stereo3d_outputs(
         class_names: Mapping from class ID to class name.
         use_proj_center: If True and outputs contain "proj_offset", shift the 2D box center by
             the predicted projected-center offset before un-letterboxing to (u, v).
+        ivw_fusion: If True and outputs contain "lr_logvar", fuse the disparity- and direct-depth
+            cues by inverse-variance weighting in log-space instead of the plain geometric mean.
+            With equal per-cue variance this reduces exactly to the geometric mean.
+        score_weight: If True and outputs contain "lr_logvar", scale confidence by
+            exp(-score_k * sigma) where sigma is the predicted lr-distance std-dev.
+        score_k: Decay rate used by score_weight.
     """
     if "det" not in outputs:
         raise KeyError("decode_stereo3d_outputs expected outputs['det']")
@@ -220,6 +252,9 @@ def decode_stereo3d_outputs(
             has_depth = "depth" in outputs
             lr_log = float(outputs["lr_distance"][b, 0, flat_idx].item()) if has_lr else None
             depth_log = float(outputs["depth"][b, 0, flat_idx].item()) if has_depth else None
+            lr_logvar = float(outputs["lr_logvar"][b, 0, flat_idx].item()) if "lr_logvar" in outputs else None
+            if score_weight and lr_logvar is not None:
+                confidence *= math.exp(-score_k * math.sqrt(math.exp(lr_logvar)))
             dim_off = outputs["dimensions"][b, :, flat_idx].float() if "dimensions" in outputs else torch.zeros(3)
             ori_pred = outputs["orientation"][b, :, flat_idx].float() if "orientation" in outputs else None
 
@@ -238,7 +273,14 @@ def decode_stereo3d_outputs(
 
             # Combine depth sources
             if z_from_disp is not None and z_from_direct is not None:
-                z_3d = math.sqrt(z_from_disp * z_from_direct)  # geometric mean
+                if ivw_fusion and lr_logvar is not None:
+                    var_disp = math.exp(lr_logvar)
+                    var_direct = _dfl_variance(outputs, b, flat_idx)  # spread of depth bins, else 1.0
+                    w_disp, w_direct = 1.0 / max(var_disp, eps), 1.0 / max(var_direct, eps)
+                    log_z = (w_disp * math.log(z_from_disp) + w_direct * math.log(z_from_direct)) / (w_disp + w_direct)
+                    z_3d = math.exp(log_z)
+                else:
+                    z_3d = math.sqrt(z_from_disp * z_from_direct)  # geometric mean (equal-weight IVW)
             elif z_from_disp is not None:
                 z_3d = z_from_disp
             elif z_from_direct is not None:
@@ -409,6 +451,9 @@ def decode_and_refine_predictions(
     std_dims: dict[int, tuple[float, float, float]] | None = None,
     class_names: dict[int, str] | None = None,
     use_proj_center: bool | None = None,
+    ivw_fusion: bool | None = None,
+    score_weight: bool | None = None,
+    score_k: float = 0.5,
 ) -> list[list[Box3D]]:
     """Unified decode + refine pipeline for val and predict.
 
@@ -433,6 +478,11 @@ def decode_and_refine_predictions(
         use_proj_center: If True, decode the 3D center from the 2D box center shifted by the
             predicted projected-center offset instead of the raw box center. If None/False,
             behavior is unchanged (uses the raw box center).
+        ivw_fusion: If True, fuse disparity/direct depth cues by inverse-variance weighting
+            instead of the geometric mean. If None/False, behavior is unchanged.
+        score_weight: If True, scale confidence by predicted uncertainty. If None/False,
+            behavior is unchanged.
+        score_k: Decay rate used by score_weight.
 
     Returns:
         List of Box3D lists (one per batch item).
@@ -483,6 +533,9 @@ def decode_and_refine_predictions(
         std_dims=std_dims,
         class_names=class_names,
         use_proj_center=bool(use_proj_center),
+        ivw_fusion=bool(ivw_fusion),
+        score_weight=bool(score_weight),
+        score_k=score_k,
     )
 
     # Ensure results is list of lists

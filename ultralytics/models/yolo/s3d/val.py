@@ -243,6 +243,8 @@ class Stereo3DDetValidator(BaseValidator):
         use_geometric = getattr(self.args, "use_geometric", None)
         use_dense_alignment = getattr(self.args, "use_dense_alignment", None)
         use_proj_center = getattr(self.args, "use_proj_center", None)
+        ivw_fusion = getattr(self.args, "ivw_fusion", None)
+        score_weight = getattr(self.args, "score_weight", None)
         if self.training:
             use_dense_alignment = False
             use_geometric = False
@@ -261,6 +263,8 @@ class Stereo3DDetValidator(BaseValidator):
             std_dims=self.std_dims if hasattr(self, "std_dims") else None,
             class_names=self.names if hasattr(self, "names") else None,
             use_proj_center=use_proj_center,
+            ivw_fusion=ivw_fusion,
+            score_weight=score_weight,
         )
 
     def init_metrics(self, model: torch.nn.Module) -> None:

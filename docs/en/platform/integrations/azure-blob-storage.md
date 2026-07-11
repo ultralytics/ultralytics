@@ -9,6 +9,10 @@ title: Azure Blob Storage Datasets - Ultralytics Platform
 
 The [Azure Blob Storage](https://azure.microsoft.com/en-us/products/storage/blobs) integration connects your storage account containers to [Ultralytics Platform](https://platform.ultralytics.com). Your images stay in your containers — Platform indexes them in place, so you can browse, annotate, and train YOLO models without uploading a copy.
 
+!!! note "Pro feature"
+
+    Cloud storage datasets require a [Pro or Enterprise plan](../account/billing.md#plans). Free workspaces see the integration and are prompted to upgrade when connecting. Existing cloud datasets stay fully accessible if a subscription ends — only new connections and imports require Pro.
+
 ## Get a Connection String
 
 Platform only ever reads from your storage — it never writes, modifies, or deletes your blobs. A connection string grants access to one storage account:

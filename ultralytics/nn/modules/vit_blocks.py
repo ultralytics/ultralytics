@@ -290,7 +290,7 @@ class MHSABlock(nn.Module):
         n2 = self.ln2(t)
         if getattr(self, "swiglu", False):  # getattr: pre-swiglu checkpoints still load and run
             x1, x2 = self.fc1(n2).chunk(2, dim=-1)
-            f = self.fc2(self.act(x1) * x2)
+            f = self.fc2(F.silu(x1) * x2)  # functional silu: export/fuse can't flip it inplace on the chunk view (block.py SwiGLUFFN)
         else:
             f = self.fc2(self.act(self.fc1(n2)))
         t = t + (f if ls2 is None else ls2 * f)

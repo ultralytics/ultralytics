@@ -2981,36 +2981,47 @@ def classify_augmentations(
     return T.Compose(primary_tfl + secondary_tfl + final_tfl)
 
 
-class DepthFormat:
-    """Format transform for depth estimation: converts images and depth maps to tensors.
+class DepthFormat(Format):
+    """Format transform for monocular depth estimation: image via Format, depth map resized and tensorized.
 
-    Applied after LetterBox, so img is already at target shape. Resizes depth to match img, then converts both to
-    tensors.
+    Mirrors SemanticFormat: the base Format.apply_image converts the image (HWC BGR -> CHW RGB tensor), and the
+    apply_depth hook (run after apply_image in BaseTransform.__call__) resizes the paired depth map to the letterboxed
+    image size and emits it as a (1, H, W) float tensor.
     """
 
-    def __call__(self, labels):
-        """Convert img (HWC BGR uint8 -> CHW RGB tensor) and depth (-> (1, H, W) float tensor) in labels."""
-        img = labels.get("img")
-        if img is not None:
-            # Resize depth to match img shape (LetterBox may have changed img size)
-            depth = labels.get("depth")
-            if depth is not None:
-                img_h, img_w = img.shape[:2]
-                if depth.shape[:2] != (img_h, img_w):
-                    # Nearest, not bilinear: avoid blending sparse GT with the invalid background
-                    # (bilinear creates near-zero pixels that corrupt abs_rel = |p-g|/g at eval).
-                    depth = cv2.resize(depth, (img_w, img_h), interpolation=cv2.INTER_NEAREST)
-                labels["depth"] = torch.from_numpy(np.ascontiguousarray(depth[None])).float()  # (1, H, W)
+    def apply_depth(self, labels: dict[str, Any], params: dict[str, Any] | None = None) -> dict[str, Any]:
+        """Resize depth to the formatted image size (nearest) and emit a (1, H, W) float tensor.
 
-            # Convert image: HWC BGR uint8 → CHW RGB uint8 (trainer handles /255 + float conversion)
-            if img.ndim == 2:
-                img = img[:, :, None]
-            img = np.ascontiguousarray(img.transpose(2, 0, 1)[::-1])  # HWC→CHW, BGR→RGB
-            labels["img"] = torch.from_numpy(img)
+        Args:
+            labels (dict[str, Any]): Dictionary with 'img' (already a CHW tensor) and optionally 'depth'.
+            params (dict[str, Any] | None): Unused parameters for API compatibility.
 
-        # Depth has no box/class targets; drop the detection keys so collate needs no special-casing
-        labels.pop("cls", None)
-        labels.pop("instances", None)
+        Returns:
+            (dict[str, Any]): Updated labels with 'depth' as a (1, H, W) float tensor.
+        """
+        depth = labels.get("depth")
+        if depth is None or "img" not in labels:
+            return labels
+        _, h, w = labels["img"].shape
+        if depth.shape[:2] != (h, w):
+            # Nearest, not bilinear: avoid blending sparse GT with the invalid background
+            # (bilinear creates near-zero pixels that corrupt abs_rel = |p-g|/g at eval).
+            depth = cv2.resize(depth, (w, h), interpolation=cv2.INTER_NEAREST)
+        labels["depth"] = torch.from_numpy(np.ascontiguousarray(depth[None])).float()
+        return labels
+
+    def apply_instances(self, labels: dict[str, Any], params: dict[str, Any] | None = None) -> dict[str, Any]:
+        """Remove instance-level keys not needed for depth estimation.
+
+        Args:
+            labels (dict[str, Any]): Dictionary to clean up.
+            params (dict[str, Any] | None): Unused parameters for API compatibility.
+
+        Returns:
+            (dict[str, Any]): Updated labels with unused keys removed.
+        """
+        for k in ("cls", "instances", "resized_shape", "ori_shape", "ratio_pad"):
+            labels.pop(k, None)
         return labels
 
 

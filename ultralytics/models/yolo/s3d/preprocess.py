@@ -24,6 +24,7 @@ import torch
 
 from ultralytics.data.augment import LetterBox
 from ultralytics.data.stereo.box3d import Box3D
+from ultralytics.models.yolo.s3d.head import DEPTH_BINS, DEPTH_MAX, DEPTH_MIN
 from ultralytics.models.yolo.s3d.orientation import decode_orientation
 from ultralytics.utils import LOGGER
 from ultralytics.utils.nms import non_max_suppression
@@ -111,10 +112,9 @@ def _dfl_variance(outputs: dict[str, torch.Tensor], b: int, idx: int) -> float:
     """
     if "depth_bins" not in outputs:
         return 1.0
-    from ultralytics.models.yolo.s3d.head import DEPTH_BINS, DEPTH_MAX, DEPTH_MIN
 
     logits = outputs["depth_bins"][b, :, idx].float()
-    bin_values = torch.linspace(math.log(DEPTH_MIN), math.log(DEPTH_MAX), DEPTH_BINS)
+    bin_values = torch.linspace(math.log(DEPTH_MIN), math.log(DEPTH_MAX), DEPTH_BINS, device=logits.device)
     probs = torch.softmax(logits, dim=0)
     mu = (probs * bin_values).sum()
     return float((probs * (bin_values - mu) ** 2).sum().item())
@@ -252,7 +252,9 @@ def decode_stereo3d_outputs(
             has_depth = "depth" in outputs
             lr_log = float(outputs["lr_distance"][b, 0, flat_idx].item()) if has_lr else None
             depth_log = float(outputs["depth"][b, 0, flat_idx].item()) if has_depth else None
-            lr_logvar = float(outputs["lr_logvar"][b, 0, flat_idx].item()) if "lr_logvar" in outputs else None
+            lr_logvar = (
+                min(float(outputs["lr_logvar"][b, 0, flat_idx].item()), 20.0) if "lr_logvar" in outputs else None
+            )
             if score_weight and lr_logvar is not None:
                 confidence *= math.exp(-score_k * math.sqrt(math.exp(lr_logvar)))
             dim_off = outputs["dimensions"][b, :, flat_idx].float() if "dimensions" in outputs else torch.zeros(3)

@@ -196,8 +196,7 @@ class Stereo3DDetHead(Detect):
         if "depth" in preds:
             depth_logits = preds["depth"]  # raw logits [B, 16, HW]
             preds["depth"] = self.depth_dfl(depth_logits)  # decoded [B, 1, HW]
-            if self.training or self.export:
-                preds["depth_bins"] = depth_logits  # raw logits for DFLoss / ONNX export
+            preds["depth_bins"] = depth_logits  # raw logits: DFLoss / ONNX export / eval-time DFL variance
 
         return preds
 

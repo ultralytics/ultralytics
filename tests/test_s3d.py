@@ -546,6 +546,90 @@ def test_score_weight_demotes_uncertain():
     assert conf(4.0) < conf(0.0), "higher uncertainty must lower the score"
 
 
+def test_ivw_fusion_uses_dfl_variance():
+    """With depth_bins present, ivw_fusion must weight the direct cue by its DFL spread (not the
+    constant 1.0 fallback), pulling the fused z away from the plain geomean when the DFL
+    distribution is narrow (low variance) while the stereo cue is highly uncertain."""
+    import math
+
+    import torch
+
+    from ultralytics.models.yolo.s3d.head import DEPTH_BINS, DEPTH_MAX, DEPTH_MIN
+    from ultralytics.models.yolo.s3d.orientation import ORIENT_CHANNELS, encode_orientation
+    from ultralytics.models.yolo.s3d.preprocess import decode_stereo3d_outputs
+
+    calib = {"fx": 721.5377, "fy": 721.5377, "cx": 609.5593, "cy": 172.8540, "baseline": 0.54}
+    ori_hw = (375, 1242)
+    imgsz = (384, 1248)
+    nc = 3
+
+    # A depth_bins distribution heavily peaked at one bin => near-zero DFL variance.
+    log_min, log_max = math.log(DEPTH_MIN), math.log(DEPTH_MAX)
+    peak_idx = 13
+    bin_log = log_min + peak_idx * (log_max - log_min) / (DEPTH_BINS - 1)
+    z_direct_true = math.exp(bin_log)
+    logits = torch.full((DEPTH_BINS,), -20.0)
+    logits[peak_idx] = 20.0
+
+    def make_outputs():
+        # non_max_suppression mutates outputs["det"] in place, so build a fresh tensor per call.
+        det = torch.zeros(1, 4 + nc, 1)
+        det[0, :4, 0] = torch.tensor([624.0, 192.0, 20.0, 20.0])
+        det[0, 4, 0] = 0.99
+        return {
+            "det": det,
+            "dimensions": torch.zeros(1, 3, 1),
+            "orientation": torch.tensor(encode_orientation(0.0)).view(1, ORIENT_CHANNELS, 1).float(),
+            "lr_distance": torch.tensor([[[math.log(0.03)]]]),  # z_from_disp ~ 10.5
+            "depth": torch.tensor([[[bin_log]]]),  # z_from_direct == z_direct_true (matches the peak bin)
+            "lr_logvar": torch.tensor([[[3.0]]]),  # high stereo variance (var_disp = exp(3) ~ 20.1)
+            "depth_bins": logits.view(1, DEPTH_BINS, 1),
+        }
+
+    z_geo = decode_stereo3d_outputs(
+        make_outputs(), calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw], ivw_fusion=False
+    )[0].center_3d[2]
+    z_ivw = decode_stereo3d_outputs(
+        make_outputs(), calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw], ivw_fusion=True
+    )[0].center_3d[2]
+
+    # The direct cue is nearly certain (narrow DFL distribution) while the stereo cue is highly
+    # uncertain, so IVW fusion must sit much closer to z_direct than the plain geometric mean.
+    assert abs(z_ivw - z_geo) > 1.0, f"ivw ({z_ivw}) did not diverge from geomean ({z_geo}); depth_bins not used"
+    assert abs(z_ivw - z_direct_true) < abs(z_geo - z_direct_true), "ivw should be pulled toward the direct cue"
+
+
+def test_decode_no_overflow_with_large_lr_logvar():
+    """A pathological lr_logvar must not crash math.exp (Fix A: lr_logvar is clamped at sample time)."""
+    import math
+
+    import torch
+
+    from ultralytics.models.yolo.s3d.orientation import ORIENT_CHANNELS, encode_orientation
+    from ultralytics.models.yolo.s3d.preprocess import decode_stereo3d_outputs
+
+    calib = {"fx": 721.5377, "fy": 721.5377, "cx": 609.5593, "cy": 172.8540, "baseline": 0.54}
+    ori_hw = (375, 1242)
+    imgsz = (384, 1248)
+    nc = 3
+
+    det = torch.zeros(1, 4 + nc, 1)
+    det[0, :4, 0] = torch.tensor([624.0, 192.0, 20.0, 20.0])
+    det[0, 4, 0] = 0.9
+    outputs = {
+        "det": det,
+        "dimensions": torch.zeros(1, 3, 1),
+        "orientation": torch.tensor(encode_orientation(0.0)).view(1, ORIENT_CHANNELS, 1).float(),
+        "lr_distance": torch.tensor([[[math.log(0.03)]]]),
+        "depth": torch.tensor([[[math.log(25.0)]]]),
+        "lr_logvar": torch.tensor([[[1000.0]]]),  # would overflow math.exp without a clamp
+    }
+    boxes = decode_stereo3d_outputs(
+        outputs, calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw], ivw_fusion=True, score_weight=True
+    )
+    assert len(boxes) == 1
+
+
 def test_proj_offset_roundtrip():
     """Projected-centroid offset must invert: encode (centroid->projected px->offset) then
     decode (box_center+offset -> back-project at true z) recovers the centroid X/Y."""

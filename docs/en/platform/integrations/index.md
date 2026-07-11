@@ -23,13 +23,13 @@ Imports start with a preview so you can review exactly what will be transferred 
 
 ## Available Integrations
 
-| Integration                                           | What it brings in                                    |
-| ------------------------------------------------------ | ---------------------------------------------------- |
-| [**Ultralytics HUB**](ultralytics-hub.md)              | Your datasets, projects, models, and account balance |
-| [**Roboflow**](roboflow.md)                            | Your datasets                                        |
-| [**Google Cloud Storage**](google-cloud-storage.md)    | Datasets indexed in place from your GCS buckets      |
-| [**Amazon S3**](amazon-s3.md)                          | Datasets indexed in place from your S3 buckets       |
-| [**Azure Blob Storage**](azure-blob-storage.md)        | Datasets indexed in place from your blob containers  |
+| Integration                                         | What it brings in                                    |
+| --------------------------------------------------- | ---------------------------------------------------- |
+| [**Ultralytics HUB**](ultralytics-hub.md)           | Your datasets, projects, models, and account balance |
+| [**Roboflow**](roboflow.md)                         | Your datasets                                        |
+| [**Google Cloud Storage**](google-cloud-storage.md) | Datasets indexed in place from your GCS buckets      |
+| [**Amazon S3**](amazon-s3.md)                       | Datasets indexed in place from your S3 buckets       |
+| [**Azure Blob Storage**](azure-blob-storage.md)     | Datasets indexed in place from your blob containers  |
 
 Connect once and the matching content lands in your workspace.
 

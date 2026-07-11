@@ -105,13 +105,21 @@ class DFLoss(nn.Module):
 class BboxLoss(nn.Module):
     """Criterion class for computing training losses for bounding boxes."""
 
-    def __init__(self, reg_max: int = 16, l1_feat: bool = False, smooth_l1: bool = False, smooth_l1_beta: float = 1.0):
+    def __init__(
+        self,
+        reg_max: int = 16,
+        l1_feat: bool = False,
+        smooth_l1: bool = False,
+        smooth_l1_beta: float = 1.0,
+        center: float = 0.0,
+    ):
         """Initialize the BboxLoss module with regularization maximum and DFL settings."""
         super().__init__()
         self.dfl_loss = DFLoss(reg_max) if reg_max > 1 else None
         self.l1_feat = l1_feat  # when reg_max==1, compute box L1 in feature-map (grid) scale instead of normalized
         self.smooth_l1 = smooth_l1  # when reg_max==1, use Smooth L1 (Huber) instead of L1 for box regression
         self.smooth_l1_beta = smooth_l1_beta  # transition point between the quadratic and linear regions
+        self.center = center  # when reg_max==1, gain of an auxiliary box-center offset L1 loss (0=off)
 
     def forward(
         self,
@@ -144,13 +152,17 @@ class BboxLoss(nn.Module):
                 pred_dist = pred_dist * stride
                 pred_dist[..., 0::2] /= imgsz[1]
                 pred_dist[..., 1::2] /= imgsz[0]
+            pred_ltrb, tgt_ltrb = pred_dist[fg_mask], target_ltrb[fg_mask]
             if self.smooth_l1:
-                reg = F.smooth_l1_loss(
-                    pred_dist[fg_mask], target_ltrb[fg_mask], reduction="none", beta=self.smooth_l1_beta
-                )
+                reg = F.smooth_l1_loss(pred_ltrb, tgt_ltrb, reduction="none", beta=self.smooth_l1_beta)
             else:
-                reg = F.l1_loss(pred_dist[fg_mask], target_ltrb[fg_mask], reduction="none")
+                reg = F.l1_loss(pred_ltrb, tgt_ltrb, reduction="none")
             loss_dfl = (reg.mean(-1, keepdim=True) * weight).sum() / target_scores_sum
+            if self.center:  # aux box-center offset from ltrb: (dx, dy) = ((r-l)/2, (b-t)/2), L1 on pred vs target
+                pred_c = torch.stack((pred_ltrb[:, 2] - pred_ltrb[:, 0], pred_ltrb[:, 3] - pred_ltrb[:, 1]), 1) / 2
+                tgt_c = torch.stack((tgt_ltrb[:, 2] - tgt_ltrb[:, 0], tgt_ltrb[:, 3] - tgt_ltrb[:, 1]), 1) / 2
+                reg_c = F.l1_loss(pred_c, tgt_c, reduction="none").mean(-1, keepdim=True)
+                self.center_loss = self.center * (reg_c * weight).sum() / target_scores_sum
 
         return loss_iou, loss_dfl
 
@@ -452,6 +464,7 @@ class v8DetectionLoss:
             l1_feat=getattr(h, "l1_feat", False),
             smooth_l1=getattr(h, "smooth_l1", False),
             smooth_l1_beta=getattr(h, "smooth_l1_beta", 1.0),
+            center=getattr(h, "center", 0.0),
         ).to(device)
         self.proj = torch.arange(m.reg_max, dtype=torch.float, device=device)
 
@@ -582,6 +595,8 @@ class v8DetectionLoss:
         loss[0] *= self.hyp.box  # box gain
         loss[1] *= self.hyp.cls  # cls gain
         loss[2] *= self.hyp.dfl  # dfl gain
+        if self.bbox_loss.center and fg_mask.sum():  # fold the (already gain-weighted) box-center aux into the box term
+            loss[0] += self.bbox_loss.center_loss
         if getattr(self, "rank", None) is not None:  # store the o2o ranking loss; E2ELoss reports it as its own term
             self.rank_loss = self.rank(pred_scores, target_scores)
         return (

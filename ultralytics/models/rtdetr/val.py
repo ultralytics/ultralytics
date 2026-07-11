@@ -127,7 +127,7 @@ class RTDETRValidator(DetectionValidator):
         BaseValidator.__call__ only sets max_det on the head when model.end2end is True.  RTDETRDecoder
         has no end2end attribute (so model.end2end evaluates to False), meaning the user-provided max_det
         is never forwarded to the head during validation.  This override wires max_det into the decoder
-        immediately after the parent initialises metrics.
+        immediately after the parent initializes metrics.
 
         Args:
             model (torch.nn.Module): Unwrapped model passed by BaseValidator.__call__.

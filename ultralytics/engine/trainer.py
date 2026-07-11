@@ -28,6 +28,7 @@ from ultralytics import __version__
 from ultralytics.cfg import _YOLO_CLI_COMMAND, get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset, convert_ndjson_to_yolo_if_needed
 from ultralytics.nn.distill_model import DistillationModel
+from ultralytics.nn.modules import Detect
 from ultralytics.nn.tasks import load_checkpoint
 from ultralytics.optim import MuSGD
 from ultralytics.utils import (
@@ -1108,14 +1109,26 @@ class BaseTrainer:
             g[3] = {"params": g[3], **optim_args, "weight_decay": decay, "use_muon": True, "param_group": "muon"}
             import re
 
-            # higher lr for certain parameters in MuSGD when finetuning
-            # proto.semseg is the checkpoint parameter name for YOLO26 semantic auxiliary heads.
-            pattern = re.compile(r"(?=.*23)(?=.*cv3)|proto\.semseg|SemanticSegment")
+            # cls_head (cv3) of any Detect subclass gets a higher lr when finetuning, found by module identity
+            # so it holds at any backbone depth. Previously a literal "23" layer-index match, which silently
+            # never fired for backbones shallower than the conv yolo26 family (e.g. ultravit's 9-layer backbone
+            # puts Detect at layer 21). Reads student_model first so a DistillationModel resolves the trainable
+            # head, not the frozen teacher's. proto.semseg/SemanticSegment is the separate YOLO26 semantic aux head.
+            target = unwrap_model(model)
+            target = getattr(target, "student_model", target)
+            head = target.model[-1] if isinstance(target.model[-1], Detect) else None
+            boosted = set()
+            if head is not None:
+                boosted = {id(p) for p in head.cv3.parameters()}
+                if head.end2end:
+                    boosted.update(id(p) for p in head.one2one_cv3.parameters())
+            pattern = re.compile(r"proto\.semseg|SemanticSegment")
             g_ = []  # new param groups
             for x in g:
                 p = x.pop("params")
-                p1 = [v for k, v in p.items() if pattern.search(k)]
-                p2 = [v for k, v in p.items() if not pattern.search(k)]
+                p1, p2 = [], []
+                for k, v in p.items():
+                    (p1 if id(v) in boosted or pattern.search(k) else p2).append(v)
                 g_.extend([{"params": p1, **x, "lr": lr * 3}, {"params": p2, **x}])
             g = g_
         optimizer = getattr(optim, name, partial(MuSGD, muon=muon, sgd=sgd))(params=g)

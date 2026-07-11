@@ -245,6 +245,19 @@ def test_object_counter_polygon_reversal_at_entry():
     )
 
 
+def test_object_counter_polygon_reentry_after_inside_spawn():
+    """A track spawning inside (uncounted first frame), exiting and re-entering counts by its crossing motion."""
+    counter = solutions.ObjectCounter(region=[(220, 140), (420, 140), (420, 340), (220, 340)], show=False)
+    counter.initialize_region()
+    track = [(230.0, 240.0), (210.0, 240.0), (230.0, 240.0)]  # inside -> out the left edge -> re-enter rightward
+    for i in range(1, len(track) + 1):
+        counter.track_history[1] = track[:i]
+        counter.count_objects(track[i - 1], 1, track[i - 2] if i > 1 else None, 0)
+    assert (counter.in_count, counter.out_count) == (1, 0), (
+        f"re-entered moving right, expected IN, got in={counter.in_count} out={counter.out_count}"
+    )
+
+
 def test_left_click_selection():
     """Test distance calculation left click selection functionality."""
     dc = solutions.DistanceCalculation()

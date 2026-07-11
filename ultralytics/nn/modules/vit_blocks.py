@@ -27,6 +27,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from ultralytics.utils import deprecation_warn
+from ultralytics.utils.ops import make_divisible
 from ultralytics.utils.torch_utils import fuse_conv_and_bn
 
 from .conv import RepConv
@@ -44,15 +45,17 @@ class UltraViTBlock(nn.Module):
     """UltraViT stages 1-3 block: RepMixer (inference form) + ConvFFN. Dim-preserving 4D in/out.
 
     Paper: arXiv:2303.14189 §3 (FastViT, Vasu et al. 2023). Reparameterized inference form collapses the train-time
-    RepMixer to `x + DWConv3x3+BN(x)`. ConvFFN inverted-bottleneck: PW → GELU → DW3x3+BN → PW. No LayerNorm in stages
-    1-3 (FastViT paper §3.2 uses BN here for speed).
+    RepMixer to `x + DWConv3x3+BN(x)`. ConvFFN inverted-bottleneck: PW → GELU → DW3x3+BN → PW (or, with
+    `fastvit_ffn=True`, the paper-exact DW7x7+BN → PW → GELU → PW, at input width instead of hidden width). No LayerNorm
+    in stages 1-3 (FastViT paper §3.2 uses BN here for speed).
 
     Attributes:
         mixer_dw (nn.Conv2d): Depthwise 3x3 mixing conv.
         mixer_bn (nn.BatchNorm2d): BN after mixer.
+        fastvit_ffn (bool): FFN order/kernel switch, see `_ffn`.
         ffn_pw1 (nn.Conv2d): 1x1 PW conv to hidden dim.
-        ffn_dw (nn.Conv2d): 3x3 DW conv at hidden dim.
-        ffn_bn (nn.BatchNorm2d): BN on hidden.
+        ffn_dw (nn.Conv2d): DW mixing conv, 3x3 at hidden dim (default) or 7x7 at c (fastvit_ffn).
+        ffn_bn (nn.BatchNorm2d): BN after ffn_dw.
         ffn_pw2 (nn.Conv2d): 1x1 PW conv back to c.
         act (nn.Module): FFN activation, GELU or SiLU.
         ls1 (nn.Parameter): Optional LayerScale on the mixer residual (timm FastViT trains 1e-5 on every residual).
@@ -60,15 +63,23 @@ class UltraViTBlock(nn.Module):
         ls2 (nn.Parameter): Optional LayerScale on the FFN residual.
     """
 
-    def __init__(self, c: int, mlp_ratio: float = 3.0, silu: bool = False, ls: float = 0.0):
-        """Initialize UltraViTBlock with dim c, FFN expansion ratio, activation choice, and LayerScale init."""
+    def __init__(
+        self, c: int, mlp_ratio: float = 3.0, silu: bool = False, ls: float = 0.0, fastvit_ffn: bool = False
+    ):
+        """Initialize UltraViTBlock with dim c, FFN expansion ratio, activation choice, LayerScale init, and FFN order.
+        """
         super().__init__()
         self.mixer_dw = nn.Conv2d(c, c, 3, padding=1, groups=c, bias=False)
         self.mixer_bn = nn.BatchNorm2d(c)
         hidden = int(c * mlp_ratio)
+        self.fastvit_ffn = fastvit_ffn
+        if fastvit_ffn:  # paper-exact ConvFFN: DW7x7+BN at c width, before the PW expansion
+            self.ffn_dw = nn.Conv2d(c, c, 7, padding=3, groups=c, bias=False)
+            self.ffn_bn = nn.BatchNorm2d(c)
+        else:  # current default: DW3x3+BN at hidden width, after the PW expansion
+            self.ffn_dw = nn.Conv2d(hidden, hidden, 3, padding=1, groups=hidden, bias=False)
+            self.ffn_bn = nn.BatchNorm2d(hidden)
         self.ffn_pw1 = nn.Conv2d(c, hidden, 1, bias=False)
-        self.ffn_dw = nn.Conv2d(hidden, hidden, 3, padding=1, groups=hidden, bias=False)
-        self.ffn_bn = nn.BatchNorm2d(hidden)
         self.ffn_pw2 = nn.Conv2d(hidden, c, 1, bias=False)
         # SiLU fuses into conv epilogues under TensorRT; GELU lowers to standalone fp32 erf+cast kernels
         # (measured 9-26% of engine time). GELU stays the default so pre-silu checkpoints keep their activation.
@@ -77,14 +88,23 @@ class UltraViTBlock(nn.Module):
             self.ls1 = nn.Parameter(ls * torch.ones(c, 1, 1))
             self.ls2 = nn.Parameter(ls * torch.ones(c, 1, 1))
 
+    def _ffn(self, x: torch.Tensor) -> torch.Tensor:
+        """Apply the ConvFFN; `fastvit_ffn` selects pre-expansion DW7x7 (paper-exact) vs post-expansion DW3x3."""
+        if getattr(self, "fastvit_ffn", False):  # getattr: pre-fastvit_ffn checkpoints still load and run
+            h = self.ffn_dw(x)
+            h = self.ffn_bn(h) if hasattr(self, "ffn_bn") else h
+            return self.ffn_pw2(self.act(self.ffn_pw1(h)))
+        h = self.act(self.ffn_pw1(x))
+        h = self.ffn_dw(h)
+        h = self.ffn_bn(h) if hasattr(self, "ffn_bn") else h
+        return self.ffn_pw2(self.act(h))
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Forward pass: residual mixer + residual FFN, each optionally LayerScale-gated."""
         m = self.mixer_bn(self.mixer_dw(x))
         ls1 = getattr(self, "ls1", None)
         x = x + (m if ls1 is None else ls1 * m)
-        h = self.act(self.ffn_pw1(x))
-        h = self.act(self.ffn_bn(self.ffn_dw(h)))
-        f = self.ffn_pw2(h)
+        f = self._ffn(x)
         ls2 = getattr(self, "ls2", None)
         return x + (f if ls2 is None else ls2 * f)
 
@@ -92,9 +112,9 @@ class UltraViTBlock(nn.Module):
 class RepUltraViTBlock(UltraViTBlock):
     """Use a FastViT-style reparameterized token mixer with the UltraViT ConvFFN."""
 
-    def __init__(self, c: int, mlp_ratio: float = 3.0, silu: bool = False, ls: float = 0.0):
+    def __init__(self, c: int, mlp_ratio: float = 3.0, silu: bool = False, ls: float = 0.0, fastvit_ffn: bool = False):
         """Initialize the train-time multi-branch mixer and ConvFFN."""
-        super().__init__(c, mlp_ratio, silu, ls)
+        super().__init__(c, mlp_ratio, silu, ls, fastvit_ffn)
         del self.mixer_dw, self.mixer_bn
         self.mixer = RepConv(c, c, g=c, act=False, bn=True)
 
@@ -106,10 +126,7 @@ class RepUltraViTBlock(UltraViTBlock):
             m = self.mixer(x) - x
             ls1 = getattr(self, "ls1", None)
             x = x + (m if ls1 is None else ls1 * m)
-        h = self.act(self.ffn_pw1(x))
-        h = self.ffn_dw(h)
-        h = self.ffn_bn(h) if hasattr(self, "ffn_bn") else h
-        f = self.ffn_pw2(self.act(h))
+        f = self._ffn(x)
         ls2 = getattr(self, "ls2", None)
         return x + (f if ls2 is None else ls2 * f)
 
@@ -134,13 +151,15 @@ class RepUltraViTBlock(UltraViTBlock):
 
 
 class MHSABlock(nn.Module):
-    """Pre-norm ViT block with SDPA and a token-Linear or NCHW ConvMlp FFN. Dim-preserving 4D in/out.
+    """Pre-norm ViT block with SDPA and a token-Linear, SwiGLU, or NCHW ConvMlp FFN. Dim-preserving 4D in/out.
 
     Uses explicit QKV Linear + `F.scaled_dot_product_attention` instead of `nn.MultiheadAttention` (the AIFI bloat
     source — MHA-based AIFI ViT wraps to ~1327 ONNX nodes @ opset 17). SDPA decomposes in opset 17 to
     `MatMul+Softmax+MatMul+Mul(scale)`; the win is skipping PyTorch's MHA wrapper, not graph fusion.
 
-    Used for UltraViT (and legacy FastViT) stage 4 global attention at the coarsest scale.
+    Used for UltraViT (and legacy FastViT) stage 4 global attention at the coarsest scale. `qkv_bias`, `proj_bias`,
+    `swiglu`, and `n_storage_tokens` are DINOv3-style additions, Lane B only: keep off any Lane A yaml until each is
+    verified against the broad edge-export set.
 
     Attributes:
         num_heads (int): Number of attention heads. c must be divisible by num_heads. YAMLs that pin `head_dim` pass 0
@@ -150,12 +169,20 @@ class MHSABlock(nn.Module):
         temperature (nn.Parameter): Per-head scalar for cross-covariance attention (XCiT), created only when `xca=True`.
             Its presence switches `forward` to channel attention (map is head_dim x head_dim, invariant to token count),
             so a frozen backbone meets no length-coupled softmax when transferred to a larger detection grid.
+        storage_tokens (nn.Parameter): Learnable (1, n, C) tokens providing extra K/V context for SDPA (DINOv3
+            registers), created only when `n_storage_tokens > 0`. Their own query rows are dropped before SDPA (SDPA
+            output for a query row depends only on that row, so the discarded rows are never computed) on the plain
+            path, or from the attention output on the XCA path (there they still contribute to the covariance stats).
+            Scoped to this block only, not carried to the next stage, since each `MHSABlock` repeat is a standalone
+            4D-in/4D-out module rather than one shared token sequence spanning depth like DINOv3's.
         ln1 (nn.LayerNorm): Pre-attention norm.
-        qkv (nn.Linear): Fused QKV projection.
-        proj (nn.Linear): Post-attention projection.
-        ln2 (nn.LayerNorm): Pre-FFN norm (token-Linear FFN only).
-        fc1 (nn.Linear): FFN first layer (token-Linear FFN only).
-        fc2 (nn.Linear): FFN second layer (token-Linear FFN only).
+        qkv (nn.Linear): Fused QKV projection, bias per `qkv_bias`.
+        proj (nn.Linear): Post-attention projection, bias per `proj_bias`.
+        ln2 (nn.LayerNorm): Pre-FFN norm (token-Linear/SwiGLU FFN only).
+        swiglu (bool): FFN form switch (token-Linear vs SwiGLU), set only on the token-FFN path (`conv_ffn=False`).
+        fc1 (nn.Linear): FFN first layer (token FFN), or the fused value+gate projection when `swiglu=True` (one Linear
+            to `2 * swiglu_hidden`, split via `chunk`, matching this block's own `qkv` fusion).
+        fc2 (nn.Linear): FFN second layer (token-Linear or SwiGLU FFN only).
         ffn_dw (nn.Conv2d): 7x7 DW local-mixing conv opening the ConvMlp FFN (timm FastViT AttentionBlock form), created
             only when `conv_ffn=True`; `forward` guards on it for pre-ConvMlp checkpoints.
         ffn_bn (nn.BatchNorm2d): ConvMlp norm after the DW conv.
@@ -177,6 +204,10 @@ class MHSABlock(nn.Module):
         conv_ffn: bool = False,
         head_dim: int = 0,
         xca: bool = False,
+        qkv_bias: bool = False,
+        proj_bias: bool = False,
+        swiglu: bool = False,
+        n_storage_tokens: int = 0,
     ):
         """Initialize MHSABlock."""
         super().__init__()
@@ -184,13 +215,18 @@ class MHSABlock(nn.Module):
             assert c % head_dim == 0, f"MHSABlock: c={c} not divisible by head_dim={head_dim}"
             num_heads = c // head_dim
         assert c % num_heads == 0, f"MHSABlock: c={c} not divisible by num_heads={num_heads}"
+        assert not (swiglu and conv_ffn), "MHSABlock: swiglu is a token-FFN, mutually exclusive with conv_ffn"
         self.num_heads = num_heads
         self.head_dim = c // num_heads
         if xca:  # cross-covariance attention: map is head_dim x head_dim (token-count invariant), learnable per-head temperature (XCiT)
             self.temperature = nn.Parameter(torch.ones(num_heads, 1, 1))
+        self.n_storage_tokens = n_storage_tokens
+        if n_storage_tokens:  # DINOv3-style registers: extra learnable K/V/Q slots for attention to route through
+            self.storage_tokens = nn.Parameter(torch.zeros(1, n_storage_tokens, c))
+            nn.init.normal_(self.storage_tokens, std=0.02)
         self.ln1 = nn.LayerNorm(c)
-        self.qkv = nn.Linear(c, 3 * c, bias=False)
-        self.proj = nn.Linear(c, c, bias=False)
+        self.qkv = nn.Linear(c, 3 * c, bias=qkv_bias)
+        self.proj = nn.Linear(c, c, bias=proj_bias)
         hidden = int(c * mlp_ratio)
         self.act = nn.SiLU() if silu else nn.GELU()
         if conv_ffn:
@@ -200,8 +236,17 @@ class MHSABlock(nn.Module):
             self.ffn_pw2 = nn.Conv2d(hidden, c, 1)
         else:
             self.ln2 = nn.LayerNorm(c)
-            self.fc1 = nn.Linear(c, hidden)
-            self.fc2 = nn.Linear(hidden, c)
+            self.swiglu = swiglu
+            if swiglu:
+                # PaLM-style gated FFN, one fused Linear + chunk (matches this block's own qkv fusion and
+                # nn/modules/block.py's SwiGLUFFN); hidden trimmed by 2/3 and rounded up to a multiple of 8 so the
+                # extra (3rd) projection stays param-matched to the 2-linear MLP it replaces (EUPE/DINOv3 convention).
+                swiglu_hidden = make_divisible(int(hidden * 2 / 3), 8)
+                self.fc1 = nn.Linear(c, 2 * swiglu_hidden)
+                self.fc2 = nn.Linear(swiglu_hidden, c)
+            else:
+                self.fc1 = nn.Linear(c, hidden)
+                self.fc2 = nn.Linear(hidden, c)
         if ls:
             self.ls1 = nn.Parameter(ls * torch.ones(c))
             # ls2 shape follows the FFN form chosen at construction: (C, 1, 1) broadcasts in NCHW for ConvMlp,
@@ -209,17 +254,24 @@ class MHSABlock(nn.Module):
             self.ls2 = nn.Parameter(ls * torch.ones(c, 1, 1) if conv_ffn else ls * torch.ones(c))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Forward pass: 4D → tokens → SA → FFN (token Linear or NCHW ConvMlp) → 4D."""
+        """Forward pass: 4D → tokens (+ storage) → SA → drop storage → FFN (token Linear/SwiGLU or ConvMlp) → 4D."""
         b, c, h, w = x.shape
         t = x.flatten(2).transpose(1, 2)  # (B, N, C)
-        n = self.ln1(t)
+        xca = getattr(self, "temperature", None) is not None
+        n_storage_tokens = getattr(self, "n_storage_tokens", 0)  # getattr: pre-registers checkpoints still load
+        t_kv = torch.cat([self.storage_tokens.expand(b, -1, -1), t], dim=1) if n_storage_tokens else t
+        n = self.ln1(t_kv)
         qkv = self.qkv(n).reshape(b, -1, 3, self.num_heads, self.head_dim).permute(2, 0, 3, 1, 4)
         q, k, v = qkv[0], qkv[1], qkv[2]  # indexed split traces to aten::select, x2paddle maps it but not aten::unbind
-        if getattr(self, "temperature", None) is not None:  # XCA: attention over channels, invariant to token count
+        if n_storage_tokens and not xca:  # storage tokens are K/V-only; SDPA output for their query rows is
+            q = q[:, :, n_storage_tokens:]  # unused, so drop them from q before SDPA instead of after
+        if xca:  # XCA: attention over channels, invariant to token count (needs every token's contribution to the
             qn = F.normalize(q.transpose(-2, -1), dim=-1)  # (B, heads, head_dim, N), L2-normed over tokens
-            kn = F.normalize(k.transpose(-2, -1), dim=-1)
+            kn = F.normalize(k.transpose(-2, -1), dim=-1)  # covariance stats, so q keeps any storage-token rows)
             attn = (qn @ kn.transpose(-2, -1)) * self.temperature  # (B, heads, head_dim, head_dim)
             a = (attn.softmax(dim=-1) @ v.transpose(-2, -1)).permute(0, 3, 1, 2).reshape(b, -1, c)
+            if n_storage_tokens:  # output N follows v (storage+patch); drop storage rows here instead
+                a = a[:, n_storage_tokens:]
         else:
             if _LOGN_ATTN:  # length-aware temperature: sharpen softmax as the grid grows past the 49-token train grid
                 scale = self.head_dim**-0.5 * (math.log(max(int(q.shape[-2]), 2)) * _INV_LOG_REF) ** 0.5
@@ -235,7 +287,12 @@ class MHSABlock(nn.Module):
             x = t.transpose(1, 2).reshape(b, c, h, w)
             f = self.ffn_pw2(self.act(self.ffn_pw1(self.ffn_bn(self.ffn_dw(x)))))
             return x + (f if ls2 is None else ls2 * f)
-        f = self.fc2(self.act(self.fc1(self.ln2(t))))
+        n2 = self.ln2(t)
+        if getattr(self, "swiglu", False):  # getattr: pre-swiglu checkpoints still load and run
+            x1, x2 = self.fc1(n2).chunk(2, dim=-1)
+            f = self.fc2(self.act(x1) * x2)
+        else:
+            f = self.fc2(self.act(self.fc1(n2)))
         t = t + (f if ls2 is None else ls2 * f)
         return t.transpose(1, 2).reshape(b, c, h, w)
 

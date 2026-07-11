@@ -27,6 +27,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from ultralytics.utils import deprecation_warn
+from ultralytics.utils.torch_utils import fuse_conv_and_bn
+
+from .conv import RepConv
 
 # Length-aware SDPA temperature. A P5 token grid trained at ~224px (49 tokens for the /16 stem) but run at 640px
 # (400 tokens) diffuses the fixed 1/sqrt(d) softmax over 8x more keys. Scaling the logits by sqrt(log N / log N_ref)
@@ -84,6 +87,50 @@ class UltraViTBlock(nn.Module):
         f = self.ffn_pw2(h)
         ls2 = getattr(self, "ls2", None)
         return x + (f if ls2 is None else ls2 * f)
+
+
+class RepUltraViTBlock(UltraViTBlock):
+    """Use a FastViT-style reparameterized token mixer with the UltraViT ConvFFN."""
+
+    def __init__(self, c: int, mlp_ratio: float = 3.0, silu: bool = False, ls: float = 0.0):
+        """Initialize the train-time multi-branch mixer and ConvFFN."""
+        super().__init__(c, mlp_ratio, silu, ls)
+        del self.mixer_dw, self.mixer_bn
+        self.mixer = RepConv(c, c, g=c, act=False, bn=True)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Apply the reparameterized mixer followed by the ConvFFN."""
+        if isinstance(self.mixer, nn.Conv2d):
+            x = self.mixer(x)
+        else:
+            m = self.mixer(x) - x
+            ls1 = getattr(self, "ls1", None)
+            x = x + (m if ls1 is None else ls1 * m)
+        h = self.act(self.ffn_pw1(x))
+        h = self.ffn_dw(h)
+        h = self.ffn_bn(h) if hasattr(self, "ffn_bn") else h
+        f = self.ffn_pw2(self.act(h))
+        ls2 = getattr(self, "ls2", None)
+        return x + (f if ls2 is None else ls2 * f)
+
+    @torch.no_grad()
+    def fuse(self):
+        """Fold the token-mixer branches, residual, and ConvFFN normalization for deploy."""
+        if isinstance(self.mixer, nn.Conv2d):
+            return
+        self.mixer.fuse_convs()
+        c = self.mixer.conv
+        scale = getattr(self, "ls1", None)
+        scale = torch.ones(c.out_channels, 1, 1, device=c.weight.device, dtype=c.weight.dtype) if scale is None else scale
+        identity = torch.zeros_like(c.weight)
+        identity[:, :, 1, 1] = 1
+        weight = c.weight * scale[:, None] + identity * (1 - scale[:, None])
+        mixer = nn.Conv2d(c.in_channels, c.out_channels, 3, padding=1, groups=c.groups, bias=True).to(c.weight)
+        mixer.weight.copy_(weight)
+        mixer.bias.copy_(c.bias * scale.flatten())
+        self.mixer = mixer
+        self.ffn_dw = fuse_conv_and_bn(self.ffn_dw, self.ffn_bn)
+        del self.ffn_bn
 
 
 class MHSABlock(nn.Module):

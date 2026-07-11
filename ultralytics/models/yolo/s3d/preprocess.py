@@ -108,6 +108,7 @@ def decode_stereo3d_outputs(
     mean_dims: dict[int, tuple[float, float, float]] | None = None,
     std_dims: dict[int, tuple[float, float, float]] | None = None,
     class_names: dict[int, str] | None = None,
+    use_proj_center: bool = False,
 ) -> list[Box3D] | list[list[Box3D]]:
     """Decode s3d outputs to Box3D objects.
 
@@ -125,6 +126,8 @@ def decode_stereo3d_outputs(
         mean_dims: Mean dimensions per class (class ID -> (H, W, L) in meters).
         std_dims: Standard deviation of dimensions per class.
         class_names: Mapping from class ID to class name.
+        use_proj_center: If True and outputs contain "proj_offset", shift the 2D box center by
+            the predicted projected-center offset before un-letterboxing to (u, v).
     """
     if "det" not in outputs:
         raise KeyError("decode_stereo3d_outputs expected outputs['det']")
@@ -246,6 +249,10 @@ def decode_stereo3d_outputs(
             # Use bbox center as (u,v)
             u_letterbox = float(((x1_l + x2_l) / 2.0).item())
             v_letterbox = float(((y1_l + y2_l) / 2.0).item())
+            if use_proj_center and "proj_offset" in outputs:
+                off = outputs["proj_offset"][b, :, flat_idx].float()
+                u_letterbox += float(off[0]) * input_w
+                v_letterbox += float(off[1]) * input_h
             u_orig = (u_letterbox - pad_left) / letterbox_scale
             v_orig = (v_letterbox - pad_top) / letterbox_scale
 
@@ -401,6 +408,7 @@ def decode_and_refine_predictions(
     mean_dims: dict[int, tuple[float, float, float]] | None = None,
     std_dims: dict[int, tuple[float, float, float]] | None = None,
     class_names: dict[int, str] | None = None,
+    use_proj_center: bool | None = None,
 ) -> list[list[Box3D]]:
     """Unified decode + refine pipeline for val and predict.
 
@@ -422,6 +430,9 @@ def decode_and_refine_predictions(
         mean_dims: Mean dimensions per class (class ID -> (H, W, L) in meters).
         std_dims: Standard deviation of dimensions per class.
         class_names: Mapping from class ID to class name.
+        use_proj_center: If True, decode the 3D center from the 2D box center shifted by the
+            predicted projected-center offset instead of the raw box center. If None/False,
+            behavior is unchanged (uses the raw box center).
 
     Returns:
         List of Box3D lists (one per batch item).
@@ -471,6 +482,7 @@ def decode_and_refine_predictions(
         mean_dims=mean_dims,
         std_dims=std_dims,
         class_names=class_names,
+        use_proj_center=bool(use_proj_center),
     )
 
     # Ensure results is list of lists

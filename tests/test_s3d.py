@@ -374,6 +374,49 @@ def test_depth_decode_imgsz_invariant():
             assert abs(z_fused - z_true) / z_true < 0.02, f"fused depth imgsz={imgsz} z={z_true}: got {z_fused:.2f}"
 
 
+def test_decode_uses_proj_offset():
+    """With use_proj_center, a nonzero proj_offset shifts the recovered x_3d by du*input_w/scale*z/fx."""
+    import math
+
+    import torch
+
+    from ultralytics.models.yolo.s3d.orientation import ORIENT_CHANNELS, encode_orientation
+    from ultralytics.models.yolo.s3d.preprocess import compute_letterbox_params, decode_stereo3d_outputs
+
+    calib = {"fx": 721.5377, "fy": 721.5377, "cx": 609.5593, "cy": 172.8540, "baseline": 0.54}
+    ori_hw = (375, 1242)
+    imgsz = (384, 1248)
+    nc = 3
+    input_h, input_w = imgsz
+    scale, pad_left, _ = compute_letterbox_params(*ori_hw, imgsz)
+    z = 20.0
+    du = 0.01
+
+    def make_outputs():
+        # non_max_suppression converts outputs["det"] xywh->xyxy in place (via a transposed
+        # view aliasing the same storage), so each decode call needs its own fresh det tensor.
+        det = torch.zeros(1, 4 + nc, 1)
+        det[0, :4, 0] = torch.tensor([input_w / 2, input_h / 2, 20.0, 20.0])
+        det[0, 4, 0] = 0.99
+        return {
+            "det": det,
+            "dimensions": torch.zeros(1, 3, 1),
+            "orientation": torch.tensor(encode_orientation(0.0)).view(1, ORIENT_CHANNELS, 1).float(),
+            "depth": torch.tensor([[[math.log(z)]]]),
+            "proj_offset": torch.tensor([[[du], [0.0]]]).float(),
+        }
+
+    # bs=1 -> decode_stereo3d_outputs returns a flat list[Box3D] (unwrapped), so index once.
+    x_off = decode_stereo3d_outputs(
+        make_outputs(), calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw], use_proj_center=True
+    )[0].center_3d[0]
+    x_no = decode_stereo3d_outputs(
+        make_outputs(), calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw], use_proj_center=False
+    )[0].center_3d[0]
+    expected_shift = (du * input_w / scale) * z / calib["fx"]
+    assert abs((x_off - x_no) - expected_shift) < 1e-2, f"{x_off - x_no} != {expected_shift}"
+
+
 def test_proj_offset_roundtrip():
     """Projected-centroid offset must invert: encode (centroid->projected px->offset) then
     decode (box_center+offset -> back-project at true z) recovers the centroid X/Y."""

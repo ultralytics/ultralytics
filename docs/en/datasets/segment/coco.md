@@ -27,7 +27,7 @@ The COCO-Seg dataset is partitioned into three subsets:
 
 1. **Train2017**: 118,287 images for training instance segmentation models.
 2. **Val2017**: 5,000 images used for validation during model development.
-3. **Test2017**: 20,288 of 40,670 images used for benchmarking. Ground-truth annotations for this subset are not publicly available, so predictions must be submitted to the [COCO evaluation server](https://cocodataset.org/#upload) for scoring.
+3. **Test-dev2017**: 20,288 of the 40,670 test2017 images, used for benchmarking. Ground-truth annotations for this subset are not publicly available, so predictions must be submitted to the [COCO evaluation server](https://cocodataset.org/#upload) for scoring.
 
 For smaller experimentation needs, see the [COCO128-Seg](coco128-seg.md) (128 images) and [COCO8-Seg](coco8-seg.md) (8 images) subsets.
 
@@ -153,6 +153,6 @@ The COCO-Seg dataset is partitioned into three subsets for specific training and
 
 1. **Train2017**: Contains 118,287 images used primarily for training instance segmentation models.
 2. **Val2017**: Comprises 5,000 images utilized for validation during the training process.
-3. **Test2017**: Encompasses 20,288 of 40,670 images reserved for testing and benchmarking trained models. Note that ground truth annotations for this subset are not publicly available, and performance results are submitted to the [COCO evaluation server](https://cocodataset.org/#upload) for assessment.
+3. **Test-dev2017**: Encompasses 20,288 of the 40,670 test2017 images reserved for testing and benchmarking trained models. Note that ground truth annotations for this subset are not publicly available, and performance results are submitted to the [COCO evaluation server](https://cocodataset.org/#upload) for assessment.
 
 For smaller experimentation needs, you might also consider the [COCO128-Seg dataset](coco128-seg.md) (128 images) or the [COCO8-Seg dataset](coco8-seg.md), a compact version containing just 8 images from the COCO train 2017 set.

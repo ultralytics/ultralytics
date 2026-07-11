@@ -27,7 +27,8 @@ def _args(**over):
 class _Model(torch.nn.Module):
     """Tiny stub mirroring a real YOLO model's surface for the loss: .parameters(), .args, and a .model
     Sequential whose last module is the "head" (no max_depth -> log-mode/unbounded). Detect/depth losses
-    both read the head via model.model[-1] (see v8DetectionLoss), so the stub must expose it too."""
+    both read the head via model.model[-1] (see v8DetectionLoss), so the stub must expose it too.
+    """
 
     def __init__(self, **over):
         super().__init__()

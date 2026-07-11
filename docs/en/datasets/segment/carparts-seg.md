@@ -29,7 +29,7 @@ The Carparts Segmentation Dataset splits its 3,833 images as follows:
 - **Training set**: 3,156 images used for [training](https://www.ultralytics.com/glossary/training-data) the [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) [model](https://www.ultralytics.com/glossary/foundation-model).
 - **Validation set**: 401 images used during training to tune [hyperparameters](../../guides/hyperparameter-tuning.md) and prevent [overfitting](https://www.ultralytics.com/glossary/overfitting) on [validation data](https://www.ultralytics.com/glossary/validation-data).
 - **Testing set**: 276 images used to evaluate the model on held-out [test data](https://www.ultralytics.com/glossary/test-data) after training.
-- **Classes**: 23 car-part categories — bumpers, doors, lights, glass, mirrors, hood, tailgate, trunk, and wheel — plus a catch-all `object` class for parts outside those categories.
+- **Classes**: 23 in total — 22 named car-part categories (bumpers, doors, lights, glass, mirrors, hood, tailgate, trunk, and wheels) plus a catch-all `object` class for parts outside those categories.
 - **Download size**: ~133 MB.
 
 ## Applications
@@ -133,7 +133,7 @@ The **Carparts Segmentation Dataset** is a curated collection of 3,833 annotated
 
 ### How many images and classes does the Carparts Segmentation Dataset contain?
 
-The dataset totals 3,833 images — 3,156 for training, 401 for validation, and 276 for testing — across 23 car-part classes, plus a catch-all `object` class for parts outside the named categories. The full archive downloads automatically as a ~133 MB `.zip` on first use.
+The dataset totals 3,833 images — 3,156 for training, 401 for validation, and 276 for testing — across 23 classes: 22 named car-part categories plus a catch-all `object` class for parts outside them. The full archive downloads automatically as a ~133 MB `.zip` on first use.
 
 ### How can I train an Ultralytics YOLO26 model on the Carparts Segmentation Dataset?
 

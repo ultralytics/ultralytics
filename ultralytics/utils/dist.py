@@ -83,6 +83,33 @@ def _get_custom_callback_injection_code(trainer: BaseTrainer) -> str:
                     "Lambda and dynamically generated callbacks are not supported."
                 )
                 continue
+            # Closures capture variables from enclosing scope that don't exist in DDP child
+            if getattr(cb, "__closure__", None) is not None:
+                LOGGER.warning(
+                    "WARNING ⚠️ Cannot serialize closure callback "
+                    f"'{name}' for DDP training — captured variables would be undefined - skipping"
+                )
+                continue
+            # Detect callbacks that reference external imports that won't exist in DDP child.
+            # __globals__ contains the module's global namespace; filter to non-builtin names.
+            import builtins as _builtins_module
+            _cb_globals = getattr(cb, "__globals__", {})
+            _builtin_names = set(dir(_builtins_module))
+            _unresolved = set()
+            for _gname, _gval in _cb_globals.items():
+                if _gname.startswith("_") or _gname in _builtin_names:
+                    continue
+                if _gname not in source:
+                    continue
+                if callable(_gval) or isinstance(_gval, type):
+                    _unresolved.add(_gname)
+            if _unresolved:
+                LOGGER.warning(
+                    "WARNING ⚠️ Callback '{}' references external names {} from module '{}' — "
+                    "these must be importable in the DDP child process. The injection will "
+                    "proceed, but the callback will raise NameError if the imports are missing.".format(
+                        name, sorted(_unresolved), getattr(cb, "__module__", "unknown"))
+                )
             # Normalize indentation so the source fits inside the ``if __name__ == "__main__":`` block
             source = textwrap.dedent(source)
             # Skip if the dedented source does not look like a function/async-function definition

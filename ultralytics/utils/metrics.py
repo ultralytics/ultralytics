@@ -1946,8 +1946,9 @@ class DepthMetrics(SimpleClass, DataExportMixin):
         if p.ndim == 2:  # single image (H,W) -> (1,H,W) so alignment is always per-image
             p, g = p[None], g[None]
         for pi, gi in zip(p, g):
-            mask = gi > self.min_depth
-            if mask.sum() == 0:
+            mask = (gi > self.min_depth) & torch.isfinite(pi)  # drop non-finite preds (clamp leaves NaN as NaN)
+            n = int(mask.sum())
+            if n == 0:
                 continue
             pv = pi[mask].float()
             gv = gi[mask].clamp(self.min_depth, self.max_depth).float()
@@ -1971,7 +1972,7 @@ class DepthMetrics(SimpleClass, DataExportMixin):
             if self._totals is None:
                 self._totals = torch.zeros(7, dtype=torch.float64, device=totals.device)
             self._totals += totals
-            self._count += float(mask.sum())
+            self._count += float(n)
 
     def process(self, *args, **kwargs) -> None:
         """Finalize metrics from accumulated sums."""

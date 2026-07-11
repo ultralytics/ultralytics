@@ -126,6 +126,44 @@ def test_lr_nll_attenuates_with_uncertainty():
     assert high > mid, "excessive uncertainty is penalized by the logvar term"
 
 
+def test_lr_nll_loss_wired():
+    """Integration test: with use_uncertainty=True and lr_logvar present, _compute_aux_losses
+    routes lr_distance through the Laplacian-NLL gather-wiring in _lr_nll_loss, not smooth-L1."""
+    import torch
+    from ultralytics import YOLO
+    from ultralytics.models.yolo.s3d.loss import Stereo3DDetLoss
+
+    model = YOLO("yolo26n-s3d.yaml").model
+    model.model[-1].enable_depth_uncertainty()
+    crit = Stereo3DDetLoss(model, loss_weights={"lr_distance": 1.0}, use_uncertainty=True)
+
+    B, HW = 2, 5
+    val = torch.ones(B, 1, HW)  # lr_distance prediction
+    logvar = torch.full((B, 1, HW), 5.0)  # large predicted log-variance (attenuation)
+    preds = {"lr_distance": val, "lr_logvar": logvar}
+    gt = torch.full((B, 3, 1), 3.0)  # [B, max_n, 1] — residual of 2.0 for every anchor
+    idx = torch.zeros(B, HW, dtype=torch.long)
+    fg = torch.ones(B, HW, dtype=torch.bool)
+
+    losses = crit._compute_aux_losses(preds, {"aux_targets": {"lr_distance": gt}}, idx, fg)
+    assert "lr_distance" in losses
+    nll_loss = losses["lr_distance"]
+    assert torch.isfinite(nll_loss)
+    assert nll_loss >= 0
+
+    # With use_uncertainty=False the same inputs fall back to plain smooth-L1 (lr_logvar
+    # ignored). If the NLL routing in _compute_aux_losses were reverted/broken, nll_loss above
+    # would collapse to this same value instead of the attenuated NLL value.
+    crit_no_unc = Stereo3DDetLoss(model, loss_weights={"lr_distance": 1.0}, use_uncertainty=False)
+    smooth_l1_loss = crit_no_unc._compute_aux_losses(
+        preds, {"aux_targets": {"lr_distance": gt}}, idx, fg
+    )["lr_distance"]
+
+    assert not torch.isclose(nll_loss, smooth_l1_loss), (
+        "lr_distance loss should differ from plain smooth-L1, proving it went through the NLL branch"
+    )
+
+
 def test_3d_iou():
     """Test 3D IoU computation: identical, no overlap, and partial overlap."""
     box = Box3D(center_3d=(10.0, 2.0, 30.0), dimensions=(3.88, 1.63, 1.53), orientation=0.0,

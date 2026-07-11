@@ -8,9 +8,19 @@ import torch.nn.functional as F
 from ultralytics.utils.loss import DFLoss, v8DetectionLoss
 
 
-def laplacian_nll(pred: torch.Tensor, target: torch.Tensor, logvar: torch.Tensor) -> torch.Tensor:
-    """Laplacian negative log-likelihood: |pred-target|*exp(-logvar) + logvar. Mean-reduced."""
-    return (torch.abs(pred - target) * torch.exp(-logvar) + logvar).mean()
+def laplacian_nll(
+    pred: torch.Tensor, target: torch.Tensor, logvar: torch.Tensor, reduction: str = "mean"
+) -> torch.Tensor:
+    """Laplacian negative log-likelihood: |pred-target|*exp(-logvar) + logvar.
+
+    Args:
+        pred: Predicted value tensor.
+        target: Target value tensor.
+        logvar: Predicted log-variance tensor.
+        reduction: "mean" collapses to a scalar; "none" returns the elementwise loss.
+    """
+    loss = torch.abs(pred - target) * torch.exp(-logvar) + logvar
+    return loss.mean() if reduction == "mean" else loss
 
 
 class Stereo3DDetLoss(v8DetectionLoss):
@@ -163,7 +173,7 @@ class Stereo3DDetLoss(v8DetectionLoss):
             return pred_val.sum() * 0.0
 
         if aux_weights is not None:
-            raw = torch.abs(val_pos - tgt_pos) * torch.exp(-logvar_pos) + logvar_pos  # [npos, C]
+            raw = laplacian_nll(val_pos, tgt_pos, logvar_pos, reduction="none")  # [npos, C]
             return (raw.mean(-1, keepdim=True) * aux_weights).sum() / aux_weights.sum().clamp(min=1.0)
 
         return laplacian_nll(val_pos, tgt_pos, logvar_pos)

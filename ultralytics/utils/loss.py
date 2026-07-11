@@ -1219,13 +1219,8 @@ class v8DepthLoss:
             loss_items (torch.Tensor): Detached per-component [silog, grad] losses.
         """
         loss = torch.zeros(2, device=self.device)  # [silog_loss, grad_loss]
-        # Handle both training (dict) and validation (tensor) prediction formats
-        if isinstance(preds, dict):
-            pred_depth = preds["depth"]
-        elif isinstance(preds, torch.Tensor):
-            pred_depth = preds
-        else:
-            pred_depth = preds[0] if isinstance(preds[0], torch.Tensor) else preds
+        # Head returns a dict during training and a bare tensor during inference
+        pred_depth = preds["depth"] if isinstance(preds, dict) else preds
         gt_depth = batch["depth"].to(self.device)  # (B, H, W)
 
         if gt_depth.ndim == 3:

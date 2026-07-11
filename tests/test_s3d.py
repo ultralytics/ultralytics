@@ -276,3 +276,60 @@ def test_orientation_multibin_resolves_180():
     bin_a = max(range(NUM_ORIENT_BINS), key=lambda i: enc_a[i])
     bin_b = max(range(NUM_ORIENT_BINS), key=lambda i: enc_b[i])
     assert bin_a != bin_b, f"180-deg-apart headings must differ in bin: {bin_a} vs {bin_b}"
+
+
+def test_depth_decode_imgsz_invariant():
+    """Stereo disparity->depth decode must recover true metric Z independent of imgsz.
+
+    The dataset encodes the lr_distance target as log(disparity) in letterbox-NORMALIZED
+    coordinates (dataset.py: "Normalized xywh (letterboxed input space)", disparity_norm =
+    cx - right_cx). decode_stereo3d_outputs must invert that back to the same metric Z whether
+    the letterbox is aspect-preserving (384x1248 on KITTI 375x1242, scale~=1) or square
+    (640x640 / 384x384, scale<1). This is the regression guard for the bug where the decode
+    scaled focal length by 1/letterbox_scale, yielding z_from_disp = Z_true / scale — correct
+    only at scale~=1 and silently inflating stereo depth ~1.4-3.2x under a square imgsz.
+
+    The direct-depth head (log(z_3d) target) is imgsz-invariant by construction and serves as
+    the control: it must round-trip at every imgsz.
+    """
+    import math
+
+    import torch
+
+    from ultralytics.models.yolo.s3d.orientation import ORIENT_CHANNELS, encode_orientation
+    from ultralytics.models.yolo.s3d.preprocess import compute_letterbox_params, decode_stereo3d_outputs
+
+    calib = {"fx": 721.5377, "fy": 721.5377, "cx": 609.5593, "cy": 172.8540, "baseline": 0.54}
+    ori_hw = (375, 1242)  # KITTI (H, W)
+    nc = 3
+
+    def decode_z(z_true, imgsz, use_disp, use_depth):
+        """Faithfully encode the aux targets for a car at depth z_true, then run the real decode."""
+        input_h, input_w = imgsz
+        scale, _, _ = compute_letterbox_params(ori_hw[0], ori_hw[1], imgsz)
+        # Single-anchor Detect output; the 2D box (hence x,y) is irrelevant to depth.
+        det = torch.zeros(1, 4 + nc, 1)
+        det[0, :4, 0] = torch.tensor([input_w / 2.0, input_h / 2.0, 20.0, 20.0])
+        det[0, 4, 0] = 0.99  # class-0 (Car) score
+        outputs = {"det": det, "dimensions": torch.zeros(1, 3, 1)}
+        outputs["orientation"] = torch.tensor(encode_orientation(0.0)).view(1, ORIENT_CHANNELS, 1).float()
+        if use_disp:
+            disparity_px_orig = calib["fx"] * calib["baseline"] / z_true
+            # dataset.py encoding: disparity normalized by the letterbox canvas width.
+            lr_log = math.log(disparity_px_orig * scale / input_w)
+            outputs["lr_distance"] = torch.tensor([[[lr_log]]], dtype=torch.float32)
+        if use_depth:
+            outputs["depth"] = torch.tensor([[[math.log(z_true)]]], dtype=torch.float32)
+        boxes = decode_stereo3d_outputs(outputs, conf_threshold=0.25, calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw])
+        per_img = boxes[0] if boxes and isinstance(boxes[0], list) else boxes
+        assert len(per_img) == 1, f"expected 1 decoded box, got {len(per_img)}"
+        return float(per_img[0].center_3d[2])
+
+    for imgsz in [(384, 1248), (640, 640), (384, 384)]:
+        for z_true in (8.0, 25.0, 60.0):
+            z_direct = decode_z(z_true, imgsz, use_disp=False, use_depth=True)
+            z_disp = decode_z(z_true, imgsz, use_disp=True, use_depth=False)
+            z_fused = decode_z(z_true, imgsz, use_disp=True, use_depth=True)
+            assert abs(z_direct - z_true) / z_true < 0.02, f"direct depth imgsz={imgsz} z={z_true}: got {z_direct:.2f}"
+            assert abs(z_disp - z_true) / z_true < 0.02, f"stereo depth imgsz={imgsz} z={z_true}: got {z_disp:.2f}"
+            assert abs(z_fused - z_true) / z_true < 0.02, f"fused depth imgsz={imgsz} z={z_true}: got {z_fused:.2f}"

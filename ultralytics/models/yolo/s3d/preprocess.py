@@ -183,9 +183,6 @@ def decode_stereo3d_outputs(
         ori_h, ori_w = ori_shapes[b]
         letterbox_scale, pad_left, pad_top = compute_letterbox_params(ori_h, ori_w, imgsz)
 
-        # Depth branch is predicted in letterbox-normalized space, keep depth scaling behavior unchanged.
-        fx_depth = fx / letterbox_scale
-
         boxes3d: list[Box3D] = []
         det_b = dets[b]
         idx_b = keepi[b].view(-1).long() if keepi is not None else None
@@ -229,8 +226,8 @@ def decode_stereo3d_outputs(
             disparity_orig = None
             if lr_log is not None:
                 disparity_letterbox = math.exp(max(lr_log, -10.0)) * input_w
-                disparity_orig = disparity_letterbox / letterbox_scale
-                z_from_disp = (fx_depth * baseline) / max(disparity_orig, eps)
+                disparity_orig = disparity_letterbox / letterbox_scale  # original-image pixels
+                z_from_disp = (fx * baseline) / max(disparity_orig, eps)  # original-image fx (imgsz-invariant)
 
             z_from_direct = None
             if depth_log is not None:

@@ -319,7 +319,7 @@ class YOLODataset(BaseDataset):
         values = list(zip(*[list(b.values()) for b in batch]))
         for i, k in enumerate(keys):
             value = values[i]
-            if k in {"img", "text_feats", "semantic_mask", "sem_masks"}:
+            if k in {"img", "text_feats", "semantic_mask", "sem_masks", "depth"}:
                 value = torch.stack(value, 0)
             elif k == "visuals":
                 value = torch.nn.utils.rnn.pad_sequence(value, batch_first=True)
@@ -441,17 +441,6 @@ class DepthDataset(YOLODataset):
         # canvas through RandomPerspective's warp, so train and val share the output geometry.
         letterbox = LetterBox(new_shape=(self.imgsz, self.imgsz), auto=False, scale_fill=True)
         return Compose([letterbox, DepthFormat()])
-
-    @staticmethod
-    def collate_fn(batch):
-        """Collate samples into batches, stacking depth maps alongside images.
-
-        DepthFormat drops the detection keys (cls/instances), so the parent collate only needs the
-        extra depth stack.
-        """
-        new_batch = YOLODataset.collate_fn(batch)
-        new_batch["depth"] = torch.stack(new_batch["depth"], 0)
-        return new_batch
 
 
 class YOLOMultiModalDataset(YOLODataset):

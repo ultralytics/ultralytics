@@ -1421,3 +1421,63 @@ def test_ddp_callback_injection_multiple():
     assert "__custom_cb_1" in result
     assert 'trainer.add_callback("on_train_start", __custom_cb_0)' in result
     assert 'trainer.add_callback("on_fit_epoch_end", __custom_cb_1)' in result
+
+
+def test_ddp_callback_injection_oserror():
+    """Test that OSError from inspect.getsource is caught and the callback is skipped."""
+    from unittest.mock import patch
+
+    from ultralytics.engine.trainer import BaseTrainer
+    from ultralytics.utils.dist import _get_custom_callback_injection_code
+
+    def my_callback(trainer):
+        pass
+
+    overrides = {"model": "yolo26n.pt", "data": "coco8.yaml", "imgsz": 32, "epochs": 1}
+    trainer = BaseTrainer(overrides=overrides)
+    trainer.callbacks.clear()
+    trainer.add_callback("on_train_start", my_callback)
+
+    with patch("ultralytics.utils.dist.inspect.getsource", side_effect=OSError("source not available")):
+        result = _get_custom_callback_injection_code(trainer)
+    assert result == "", "OSError should cause callback to be skipped, returning empty"
+
+
+def test_ddp_callback_injection_non_function_source():
+    """Test that source not starting with def/async def/@ is skipped."""
+    from unittest.mock import patch
+
+    from ultralytics.engine.trainer import BaseTrainer
+    from ultralytics.utils.dist import _get_custom_callback_injection_code
+
+    def my_callback(trainer):
+        pass
+
+    overrides = {"model": "yolo26n.pt", "data": "coco8.yaml", "imgsz": 32, "epochs": 1}
+    trainer = BaseTrainer(overrides=overrides)
+    trainer.callbacks.clear()
+    trainer.add_callback("on_train_start", my_callback)
+
+    with patch("ultralytics.utils.dist.inspect.getsource", return_value="x = 1  # not a function definition"):
+        result = _get_custom_callback_injection_code(trainer)
+    assert result == "", "Non-function source should be skipped, returning empty"
+
+
+def test_ddp_callback_injection_import_warning():
+    """Test that callbacks referencing external callable names produce a warning but still inject."""
+    from ultralytics.engine.trainer import BaseTrainer
+    from ultralytics.utils.dist import _get_custom_callback_injection_code
+
+    # YOLO is a class (type) imported at module level, so it appears in __globals__
+    # and is a type — this triggers the unresolved-imports warning path.
+    def my_callback(trainer):
+        _ = YOLO("yolo26n.pt")
+
+    overrides = {"model": "yolo26n.pt", "data": "coco8.yaml", "imgsz": 32, "epochs": 1}
+    trainer = BaseTrainer(overrides=overrides)
+    trainer.callbacks.clear()
+    trainer.add_callback("on_train_start", my_callback)
+    result = _get_custom_callback_injection_code(trainer)
+    # Warning is logged but the callback should still be injected
+    assert "def __custom_cb_0" in result
+    assert 'trainer.add_callback("on_train_start", __custom_cb_0)' in result

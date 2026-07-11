@@ -655,7 +655,6 @@ nav:
           - platform/integrations/index.md
           - Ultralytics HUB: platform/integrations/ultralytics-hub.md
           - Roboflow: platform/integrations/roboflow.md
-          - Cloud Storage: platform/integrations/cloud-storage.md
           - Google Cloud Storage: platform/integrations/google-cloud-storage.md
           - Amazon S3: platform/integrations/amazon-s3.md
           - Azure Blob Storage: platform/integrations/azure-blob-storage.md

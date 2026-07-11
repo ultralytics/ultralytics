@@ -2215,7 +2215,7 @@ class C3k2Rep(C2fRep):
         super().__init__(c1, c2, n, shortcut, g, e, identity)
         if attn:
             attn_block = (
-                (lambda c: SHSABlock(c))
+                (lambda c: SHSABlock(c, qk_dim=32, pdim_ratio=0.5))
                 if attn == 2
                 else (lambda c: PSABlock(c, attn_ratio=0.5, num_heads=max(c // 64, 1)))
             )
@@ -2484,6 +2484,7 @@ class SHSA(nn.Module):
         self.scale = qk_dim**-0.5
         self.pre_norm = nn.GroupNorm(1, self.pdim)
         self.qkv = nn.Conv2d(self.pdim, 2 * qk_dim + self.pdim, 1)
+        self.pe = nn.Conv2d(self.pdim, self.pdim, 3, 1, 1, groups=self.pdim, bias=False)
         self.proj = nn.Sequential(nn.SiLU(), nn.Conv2d(dim, dim, 1))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -2492,9 +2493,8 @@ class SHSA(nn.Module):
         x1, x2 = torch.split(x, [self.pdim, c - self.pdim], dim=1)
         qkv = self.qkv(self.pre_norm(x1))
         q, k, v = qkv.split([self.qk_dim, self.qk_dim, self.pdim], dim=1)
-        q, k, v = q.flatten(2), k.flatten(2), v.flatten(2)
-        attn = (q.transpose(-2, -1) @ k) * self.scale
-        x1 = (v @ attn.softmax(dim=-1).transpose(-2, -1)).reshape(b, self.pdim, h, w)
+        attn = (q.flatten(2).transpose(-2, -1) @ k.flatten(2)) * self.scale
+        x1 = (v.flatten(2) @ attn.softmax(dim=-1).transpose(-2, -1)).reshape(b, self.pdim, h, w) + self.pe(v)
         return self.proj(torch.cat([x1, x2], dim=1))
 
 

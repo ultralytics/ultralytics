@@ -852,8 +852,10 @@ class Depth(nn.Module):
             x: List of feature tensors [P3, P4, P5] from the backbone/neck.
 
         Returns:
-            During training: dict with "depth" key containing (B, 1, H, W) depth map.
-            During inference: (B, 1, H, W) depth map scaled by max_depth.
+            Training: dict {"depth": (B, 1, H/4, W/4)}, the raw head output the loss supervises.
+            Eval: (B, 1, H/4, W/4) with calibration applied; the predictor/validator resize to image/GT size.
+            Export (self.export=True): (B, 1, H, W), upsampled 4x to the input size. Sigmoid mode scales by max_depth;
+            log mode is unbounded.
         """
         # Project all levels to same channel dim
         feats = [self.proj[i](x[i]) for i in range(self.nl)]

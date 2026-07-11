@@ -24,6 +24,7 @@ Data preparation is the foundation of successful [computer vision](https://www.u
 The Data section of Ultralytics Platform helps you:
 
 - **Upload** images, videos, and dataset files (ZIP, TAR including `.tar.gz`/`.tgz`, NDJSON)
+- **Connect** [cloud storage](../integrations/cloud-storage.md) and use data in Google Cloud Storage, Amazon S3, or Azure Blob Storage without uploading a copy
 - **Annotate** with manual drawing tools and SAM-powered smart labeling — choose from [SAM 2.1](../../models/sam-2.md) or the new [SAM 3](../../models/sam-3.md)
 - **Analyze** your data with statistics and visualizations
 - **Export** in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) for local training

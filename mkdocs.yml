@@ -655,6 +655,7 @@ nav:
           - platform/integrations/index.md
           - Ultralytics HUB: platform/integrations/ultralytics-hub.md
           - Roboflow: platform/integrations/roboflow.md
+          - Cloud Storage: platform/integrations/cloud-storage.md
       - Account:
           - platform/account/index.md
           - API Keys: platform/account/api-keys.md

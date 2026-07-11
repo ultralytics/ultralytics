@@ -1339,8 +1339,8 @@ def test_semantic_polygon_data():
 
 def test_ddp_callback_injection_empty():
     """Test callback injection returns empty string when no custom callbacks exist."""
-    from ultralytics.utils.dist import _get_custom_callback_injection_code
     from ultralytics.engine.trainer import BaseTrainer
+    from ultralytics.utils.dist import _get_custom_callback_injection_code
 
     overrides = {"model": "yolo26n.pt", "data": "coco8.yaml", "imgsz": 32, "epochs": 1}
     trainer = BaseTrainer(overrides=overrides)
@@ -1350,8 +1350,8 @@ def test_ddp_callback_injection_empty():
 
 def test_ddp_callback_injection_custom():
     """Test that a simple named callback is properly injected."""
-    from ultralytics.utils.dist import _get_custom_callback_injection_code
     from ultralytics.engine.trainer import BaseTrainer
+    from ultralytics.utils.dist import _get_custom_callback_injection_code
 
     def my_callback(trainer):
         pass
@@ -1367,8 +1367,9 @@ def test_ddp_callback_injection_custom():
 def test_ddp_callback_injection_lambda():
     """Test that lambda callbacks are skipped with warning."""
     import logging
-    from ultralytics.utils.dist import _get_custom_callback_injection_code
+
     from ultralytics.engine.trainer import BaseTrainer
+    from ultralytics.utils.dist import _get_custom_callback_injection_code
 
     overrides = {"model": "yolo26n.pt", "data": "coco8.yaml", "imgsz": 32, "epochs": 1}
     trainer = BaseTrainer(overrides=overrides)
@@ -1382,13 +1383,14 @@ def test_ddp_callback_injection_lambda():
 
 def test_ddp_callback_injection_closure():
     """Test that closures are skipped."""
-    from ultralytics.utils.dist import _get_custom_callback_injection_code
     from ultralytics.engine.trainer import BaseTrainer
+    from ultralytics.utils.dist import _get_custom_callback_injection_code
 
     def make_cb(threshold):
         def inner(trainer):
             if trainer.epoch > threshold:
                 pass
+
         return inner
 
     overrides = {"model": "yolo26n.pt", "data": "coco8.yaml", "imgsz": 32, "epochs": 1}
@@ -1400,8 +1402,8 @@ def test_ddp_callback_injection_closure():
 
 def test_ddp_callback_injection_multiple():
     """Test that multiple custom callbacks get unique variable names."""
-    from ultralytics.utils.dist import _get_custom_callback_injection_code
     from ultralytics.engine.trainer import BaseTrainer
+    from ultralytics.utils.dist import _get_custom_callback_injection_code
 
     def cb_a(trainer):
         pass

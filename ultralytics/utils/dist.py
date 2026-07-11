@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
+import inspect
 import os
+import re
 import shutil
 import sys
 import tempfile
+import textwrap
 from typing import TYPE_CHECKING
 
-from . import USER_CONFIG_DIR
+from . import LOGGER, USER_CONFIG_DIR
 from .torch_utils import TORCH_1_9
 
 if TYPE_CHECKING:
@@ -29,6 +32,84 @@ def find_free_network_port() -> int:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind(("127.0.0.1", 0))
         return s.getsockname()[1]  # port
+
+
+def _get_custom_callback_injection_code(trainer: BaseTrainer) -> str:
+    """Generate Python source code to re-register custom callbacks in DDP child processes.
+
+    When DDP training uses a temporary Python file, user-registered callbacks added via
+    ``model.add_callback()`` are not included because the temp file creates a fresh trainer.
+    This function extracts the source code of user-defined callbacks and generates code to
+    re-define and re-register them in each DDP child process.
+
+    Only callbacks whose function objects are NOT in the built-in ``default_callbacks`` are
+    serialized. Callbacks that fail ``inspect.getsource`` (lambdas, dynamic functions) are
+    skipped with a warning.
+
+    Args:
+        trainer (BaseTrainer): The trainer instance whose callbacks should be serialized.
+
+    Returns:
+        (str): Indented Python source code to inject after the trainer is created in the DDP
+        temp file, or an empty string if there are no custom callbacks to serialize.
+    """
+    from ultralytics.utils.callbacks.base import default_callbacks as _base_defaults
+
+    # Collect built-in callback function objects so we can exclude them
+    builtins: set = set()
+    for cb_list in _base_defaults.values():
+        for cb in cb_list:
+            builtins.add(cb)
+
+    # Walk trainer.callbacks and collect user-registered callbacks not in builtins
+    custom_entries: list[tuple[str, str, str]] = []  # (event, func_name, dedented_source)
+    for event, cb_list in trainer.callbacks.items():
+        for cb in cb_list:
+            if cb in builtins:
+                continue
+            try:
+                source = inspect.getsource(cb)
+                name: str | None = getattr(cb, "__name__", None)
+                if not name or name == "<lambda>":
+                    LOGGER.warning(
+                        "WARNING ⚠️ Cannot serialize anonymous or lambda callback "
+                        f"'{getattr(cb, '__name__', repr(cb))}' for DDP training - skipping"
+                    )
+                    continue
+            except (OSError, TypeError):
+                LOGGER.warning(
+                    "WARNING ⚠️ Cannot serialize callback "
+                    f"'{getattr(cb, '__name__', repr(cb))}' for DDP training - skipping. "
+                    "Lambda and dynamically generated callbacks are not supported."
+                )
+                continue
+            # Normalize indentation so the source fits inside the ``if __name__ == "__main__":`` block
+            source = textwrap.dedent(source)
+            # Skip if the dedented source does not look like a function/async-function definition
+            source_stripped = source.lstrip()
+            if not (source_stripped.startswith(("def ", "async def ", "@"))):
+                LOGGER.warning(
+                    "WARNING ⚠️ Cannot serialize callback "
+                    f"'{name}' for DDP training — source is not a valid function definition - skipping"
+                )
+                continue
+            custom_entries.append((event, name, source))
+
+    if not custom_entries:
+        return ""
+
+    lines: list[str] = ["", "    # === Injected custom callbacks (auto-generated for DDP) ==="]
+    for i, (event, name, source) in enumerate(custom_entries):
+        # Give each callback a unique local variable name to prevent collisions
+        cb_var = f"__custom_cb_{i}"
+        # Rename the function definition in-place so the unique name is used
+        source = re.sub(rf"\bdef\s+{re.escape(name)}\b", f"def {cb_var}", source, count=1)
+        indented = textwrap.indent(source, "    ")
+        lines.append(indented)
+        lines.append(f'    trainer.add_callback("{event}", {cb_var})')
+    lines.append("    # === End injected custom callbacks ===\n")
+
+    return "\n".join(lines)
 
 
 def generate_ddp_file(trainer: BaseTrainer) -> str:
@@ -60,6 +141,9 @@ def generate_ddp_file(trainer: BaseTrainer) -> str:
 
         overrides["augmentations"] = [A.to_dict(t) for t in overrides["augmentations"]]
 
+    # Collect user-registered custom callbacks so they survive the DDP subprocess launch
+    custom_cb_code = _get_custom_callback_injection_code(trainer)
+
     content = f"""
 # Ultralytics Multi-GPU training temp file (should be automatically deleted after use)
 from pathlib import Path, PosixPath  # For model arguments stored as Path instead of str
@@ -78,6 +162,7 @@ if __name__ == "__main__":
     cfg.update(save_dir='')   # handle the extra key 'save_dir'
     trainer = {name}(cfg=cfg, overrides=overrides)
     trainer.args.model = "{getattr(trainer.hub_session, "model_url", trainer.args.model)}"
+{custom_cb_code}
     results = trainer.train()
 """
     (USER_CONFIG_DIR / "DDP").mkdir(exist_ok=True)

@@ -110,6 +110,22 @@ def test_proj_center_loss_present():
     assert "proj_center" in losses and losses["proj_center"] > 0
 
 
+def test_lr_nll_attenuates_with_uncertainty():
+    """Laplacian NLL: for a fixed residual, a larger predicted log-variance lowers the loss
+    (attenuation), but the log-variance penalty prevents collapse — loss is convex in logvar."""
+    import torch
+    from ultralytics.models.yolo.s3d.loss import laplacian_nll
+
+    pred = torch.tensor([1.0])
+    tgt = torch.tensor([3.0])  # residual 2.0 (must exceed 1.0: exp(-logvar) starts at 1, so attenuation
+    # only lowers the loss below the logvar=0 baseline when the residual is large enough to dominate it)
+    low = laplacian_nll(pred, tgt, logvar=torch.tensor([0.0]))
+    mid = laplacian_nll(pred, tgt, logvar=torch.tensor([1.0]))
+    high = laplacian_nll(pred, tgt, logvar=torch.tensor([5.0]))
+    assert mid < low, "some uncertainty should reduce loss vs zero-variance for a nonzero residual"
+    assert high > mid, "excessive uncertainty is penalized by the logvar term"
+
+
 def test_3d_iou():
     """Test 3D IoU computation: identical, no overlap, and partial overlap."""
     box = Box3D(center_3d=(10.0, 2.0, 30.0), dimensions=(3.88, 1.63, 1.53), orientation=0.0,

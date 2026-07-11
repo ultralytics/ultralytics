@@ -8,6 +8,11 @@ import torch.nn.functional as F
 from ultralytics.utils.loss import DFLoss, v8DetectionLoss
 
 
+def laplacian_nll(pred: torch.Tensor, target: torch.Tensor, logvar: torch.Tensor) -> torch.Tensor:
+    """Laplacian negative log-likelihood: |pred-target|*exp(-logvar) + logvar. Mean-reduced."""
+    return (torch.abs(pred - target) * torch.exp(-logvar) + logvar).mean()
+
+
 class Stereo3DDetLoss(v8DetectionLoss):
     """Multi-scale loss for stereo 3D detection using YOLO-style bbox assignment.
 
@@ -120,6 +125,49 @@ class Stereo3DDetLoss(v8DetectionLoss):
 
         return F.smooth_l1_loss(pred_pos, tgt_pos, reduction="mean")
 
+    def _lr_nll_loss(
+        self,
+        pred_val: torch.Tensor,
+        pred_logvar: torch.Tensor,
+        aux_gt: torch.Tensor,
+        gt_idx: torch.Tensor,
+        fg_mask: torch.Tensor,
+        aux_weights: torch.Tensor | None = None,
+    ) -> torch.Tensor:
+        """Laplacian-NLL loss for lr_distance with per-anchor predicted log-variance.
+
+        Args:
+            pred_val: [B, C, HW_total] — lr_distance value predictions.
+            pred_logvar: [B, C, HW_total] — lr_distance log-variance predictions.
+            aux_gt: [B, max_n, C] — padded per-image GT.
+            gt_idx: [B, HW_total] — assignment indices from TAL.
+            fg_mask: [B, HW_total] — boolean foreground mask.
+            aux_weights: [npos, 1] — per-anchor weight (pseudo-label curriculum).
+        """
+        c = pred_val.shape[1]
+        val_flat = pred_val.permute(0, 2, 1)  # [B, HW_total, C]
+        logvar_flat = pred_logvar.permute(0, 2, 1)  # [B, HW_total, C]
+
+        if aux_gt.shape[1] == 0:
+            return pred_val.sum() * 0.0
+
+        if gt_idx.dtype != torch.int64:
+            gt_idx = gt_idx.to(torch.int64)
+        gathered = aux_gt.gather(1, gt_idx.unsqueeze(-1).expand(-1, -1, c))  # [B, HW_total, C]
+
+        val_pos = val_flat[fg_mask]  # [npos, C]
+        logvar_pos = logvar_flat[fg_mask]  # [npos, C]
+        tgt_pos = gathered[fg_mask]  # [npos, C]
+
+        if val_pos.numel() == 0:
+            return pred_val.sum() * 0.0
+
+        if aux_weights is not None:
+            raw = torch.abs(val_pos - tgt_pos) * torch.exp(-logvar_pos) + logvar_pos  # [npos, C]
+            return (raw.mean(-1, keepdim=True) * aux_weights).sum() / aux_weights.sum().clamp(min=1.0)
+
+        return laplacian_nll(val_pos, tgt_pos, logvar_pos)
+
     def _compute_aux_losses(
         self,
         aux_preds: dict[str, torch.Tensor],
@@ -161,6 +209,10 @@ class Stereo3DDetLoss(v8DetectionLoss):
             elif k == "orientation" and k in aux_preds:
                 aux_losses[k] = self._orientation_multibin_loss(
                     aux_preds[k], aux_gt, target_gt_idx, fg_mask, aux_weights
+                )
+            elif k == "lr_distance" and self.use_uncertainty and "lr_logvar" in aux_preds:
+                aux_losses[k] = self._lr_nll_loss(
+                    aux_preds["lr_distance"], aux_preds["lr_logvar"], aux_gt, target_gt_idx, fg_mask, aux_weights
                 )
             elif k in aux_preds:
                 aux_losses[k] = self._aux_loss(aux_preds[k], aux_gt, target_gt_idx, fg_mask, aux_weights)
@@ -279,7 +331,7 @@ class Stereo3DDetLoss(v8DetectionLoss):
             batch: Batch dict with img, batch_idx, cls, bboxes, aux_targets.
         """
         # Separate aux preds from detection preds
-        aux_keys = {"lr_distance", "depth", "depth_bins", "dimensions", "orientation", "proj_offset"}
+        aux_keys = {"lr_distance", "lr_logvar", "depth", "depth_bins", "dimensions", "orientation", "proj_offset"}
         aux_preds = {k: v for k, v in preds.items() if k in aux_keys}
 
         loss = torch.zeros(7, device=self.device)  # box, cls, lr_dist, depth, dims, orient, proj_center

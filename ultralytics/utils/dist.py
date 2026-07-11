@@ -37,10 +37,9 @@ def find_free_network_port() -> int:
 def _get_custom_callback_injection_code(trainer: BaseTrainer) -> str:
     """Generate Python source code to re-register custom callbacks in DDP child processes.
 
-    When DDP training uses a temporary Python file, user-registered callbacks added via
-    ``model.add_callback()`` are not included because the temp file creates a fresh trainer.
-    This function extracts the source code of user-defined callbacks and generates code to
-    re-define and re-register them in each DDP child process.
+    When DDP training uses a temporary Python file, user-registered callbacks added via ``model.add_callback()`` are not
+    included because the temp file creates a fresh trainer. This function extracts the source code of user-defined
+    callbacks and generates code to re-define and re-register them in each DDP child process.
 
     Only callbacks whose function objects are NOT in the built-in ``default_callbacks`` are
     serialized. Callbacks that fail ``inspect.getsource`` (lambdas, dynamic functions) are
@@ -50,8 +49,8 @@ def _get_custom_callback_injection_code(trainer: BaseTrainer) -> str:
         trainer (BaseTrainer): The trainer instance whose callbacks should be serialized.
 
     Returns:
-        (str): Indented Python source code to inject after the trainer is created in the DDP
-        temp file, or an empty string if there are no custom callbacks to serialize.
+        (str): Indented Python source code to inject after the trainer is created in the DDP temp file, or an empty
+            string if there are no custom callbacks to serialize.
     """
     from ultralytics.utils.callbacks.base import default_callbacks as _base_defaults
 
@@ -93,6 +92,7 @@ def _get_custom_callback_injection_code(trainer: BaseTrainer) -> str:
             # Detect callbacks that reference external imports that won't exist in DDP child.
             # __globals__ contains the module's global namespace; filter to non-builtin names.
             import builtins as _builtins_module
+
             _cb_globals = getattr(cb, "__globals__", {})
             _builtin_names = set(dir(_builtins_module))
             _unresolved = set()
@@ -108,7 +108,8 @@ def _get_custom_callback_injection_code(trainer: BaseTrainer) -> str:
                     "WARNING ⚠️ Callback '{}' references external names {} from module '{}' — "
                     "these must be importable in the DDP child process. The injection will "
                     "proceed, but the callback will raise NameError if the imports are missing.".format(
-                        name, sorted(_unresolved), getattr(cb, "__module__", "unknown"))
+                        name, sorted(_unresolved), getattr(cb, "__module__", "unknown")
+                    )
                 )
             # Normalize indentation so the source fits inside the ``if __name__ == "__main__":`` block
             source = textwrap.dedent(source)

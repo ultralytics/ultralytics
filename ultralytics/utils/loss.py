@@ -1190,12 +1190,9 @@ class v8DepthLoss:
         self.grad_min_valid = 0.5 if v is None else float(v)
         # GT beyond the head's representable range (sigmoid x max_depth) is masked out of the
         # loss: supervising unreachable targets saturates the sigmoid and, through SILog's
-        # per-image mean coupling, corrupts gradients on in-range pixels too.
-        self.max_depth = None
-        for m in reversed(list(model.modules())):
-            if getattr(m, "max_depth", None) is not None:  # None on log-mode heads (unbounded)
-                self.max_depth = float(m.max_depth)
-                break
+        # per-image mean coupling, corrupts gradients on in-range pixels too. None on log-mode
+        # heads (unbounded output); read from the Depth head like detect reads model.model[-1].
+        self.max_depth = getattr(model.model[-1], "max_depth", None)
 
     @staticmethod
     def _grad_l1(pred_log, gt_log, valid_f):

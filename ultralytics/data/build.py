@@ -248,6 +248,7 @@ def build_yolo_dataset(
     pad = 0.0 if mode == "train" else 0.5
     if cfg.task == "depth":
         dataset = DepthDataset
+        pad = 0.0  # no pad for depth: val letterbox uses scale_fill=True (stretch), so pad is inert
     elif cfg.task == "semantic":
         data_path = Path(data.get("path", ""))
         if "masks_dir" in data:

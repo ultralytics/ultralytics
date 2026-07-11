@@ -339,11 +339,11 @@ class RankLoss(nn.Module):
     re-ranks rather than globally inflating scores: it lifts lagging positives and leaves already-correct rankings
     untouched, preserving accuracy and the NMS-free property.
 
-    - rank: in logit space, pushes each positive above its class's top-K negatives gathered across the whole batch.
-      Negatives are detached (only positives are lifted; suppressing negatives is left to the cls loss), and the
-      loss is normalized by the total positive count so each class contributes ∝ its instance count.
-    - sort: per (image, class), in probability space, orders positives by IoU so higher-IoU anchors score higher
-      (cross-image ranking is meaningless, so this term stays within an image).
+    - rank: in probability space, pushes each positive above its class's top-K negatives gathered across the whole
+      batch. Negatives are detached (only positives are lifted; suppressing negatives is left to the cls loss), and
+      the loss is normalized by the total positive count so each class contributes ∝ its instance count.
+    - sort: per (image, class), orders positives by IoU so higher-IoU anchors score higher (cross-image ranking is
+      meaningless, so this term stays within an image).
 
     Attributes:
         tau (float): Temperature; smaller approaches hard ranking.
@@ -369,37 +369,37 @@ class RankLoss(nn.Module):
         Returns:
             (torch.Tensor): Scalar ranking loss (0 when no positive/negative pairs exist).
         """
-        B, N, nc = pred_logits.shape
+        scores = pred_logits.sigmoid()  # probability space
+        B, N, nc = scores.shape
         pos = target_scores > 0
         pos_idx = pos.nonzero(as_tuple=False)  # (M, 3): image, anchor, class
         if pos_idx.numel() == 0:
             return pred_logits.new_zeros((), dtype=torch.float32)
         b_id, c_id = pos_idx[:, 0], pos_idx[:, 2]
-        # fp32 for AMP-safe pairwise math (logits are fp16 under autocast)
-        z_pos, iou = pred_logits[pos].float(), target_scores[pos].float()  # (M,) positive logits (grad), IoU targets
-        M = z_pos.numel()
+        # fp32 for AMP-safe pairwise math (scores are fp16 under autocast)
+        s_pos, iou = scores[pos].float(), target_scores[pos].float()  # (M,) positive probs (grad), IoU targets
+        M = s_pos.numel()
 
-        # rank: each positive vs its class's whole-batch top-K negatives (batch-global per class, logit space).
+        # rank: each positive vs its class's whole-batch top-K negatives (batch-global per class, probability space).
         # Negatives are detached, so the loss only lifts positives — suppressing negatives is left to the cls loss.
         k = min(self.k_neg, B * N)
-        z_by_cls = pred_logits.permute(2, 0, 1).reshape(nc, B * N).detach()  # (nc, B*N) all anchors of a class
+        s_by_cls = scores.permute(2, 0, 1).reshape(nc, B * N).detach()  # (nc, B*N) all anchors of a class
         pos_by_cls = pos.permute(2, 0, 1).reshape(nc, B * N)
-        neg = z_by_cls.masked_fill(pos_by_cls, float("-inf")).topk(k, dim=1).values[c_id].float()  # (M, k) detached
+        neg = s_by_cls.masked_fill(pos_by_cls, float("-inf")).topk(k, dim=1).values[c_id].float()  # (M, k) detached
         kcnt = neg.isfinite().sum(1).clamp(min=1)  # valid negatives per positive
-        per_pos = F.softplus((neg - z_pos[:, None]) / self.tau).sum(1) / kcnt  # (M,) mean over K negatives
+        per_pos = F.softplus((neg - s_pos[:, None]) / self.tau).sum(1) / kcnt  # (M,) mean over K negatives
         total_rank = per_pos.sum() / M  # normalize by total positives → each class contributes ∝ its instance count
 
-        # sort: within an (image, class) group, higher-IoU positives must score higher (per-image, probability space)
-        total_sort = z_pos.new_zeros(())
+        # sort: within an (image, class) group, higher-IoU positives must score higher (per-image)
+        total_sort = s_pos.new_zeros(())
         _, inv = torch.unique(b_id * nc + c_id, return_inverse=True)  # (image, class) group ids
         counts = torch.bincount(inv)
         G = counts.numel()
         if counts.max() > 1:
-            s_pos = z_pos.sigmoid()  # sort stays in probability space (baseline behavior)
             pmax = int(counts.max())
             order = torch.argsort(inv, stable=True)  # cluster positives by group
             inv_s = inv[order]
-            within = torch.arange(M, device=pred_logits.device) - (counts.cumsum(0) - counts)[inv_s]
+            within = torch.arange(M, device=scores.device) - (counts.cumsum(0) - counts)[inv_s]
             pad_s, pad_i = s_pos.new_zeros(G, pmax), s_pos.new_zeros(G, pmax)
             valid = torch.zeros(G, pmax, dtype=torch.bool, device=pred_logits.device)
             pad_s[inv_s, within], pad_i[inv_s, within], valid[inv_s, within] = s_pos[order], iou[order], True

@@ -386,7 +386,7 @@ def test_lr_nll_attenuates_with_uncertainty():
     import torch
     from ultralytics.models.yolo.s3d.loss import laplacian_nll
 
-    pred = torch.tensor([1.0]); tgt = torch.tensor([2.0])  # residual 1.0
+    pred = torch.tensor([1.0]); tgt = torch.tensor([3.0])  # residual 2.0 (min at logvar=ln2≈0.69, between probes 0 and 1)
     low = laplacian_nll(pred, tgt, logvar=torch.tensor([0.0]))
     mid = laplacian_nll(pred, tgt, logvar=torch.tensor([1.0]))
     high = laplacian_nll(pred, tgt, logvar=torch.tensor([5.0]))

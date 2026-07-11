@@ -14,7 +14,7 @@ class ChannelAttention(nn.Module):
     def __init__(self, input_channels, internal_neurons):
         super(ChannelAttention, self).__init__()
         # 定义3×3 和 1x1 卷积层，用于减少和恢复特征维度
-        self.fc1 = nn.Conv2d(in_channels=input_channels, out_channels=internal_neurons, kernel_size=3, stride=3,
+        self.fc1 = nn.Conv2d(in_channels=input_channels, out_channels=internal_neurons, kernel_size=1, stride=1,
                              bias=True)
         self.fc2 = nn.Conv2d(in_channels=internal_neurons, out_channels=input_channels, kernel_size=1, stride=1,
                              bias=True)
@@ -61,7 +61,7 @@ class MECS(nn.Module):
                                                   internal_neurons=in_channels // channel_attention_reduce)
 
         # 定义 7x7 深度卷积层
-        self.initial_depth_conv = nn.Conv2d(in_channels, in_channels, kernel_size=7, padding=2, groups=in_channels)
+        self.initial_depth_conv = nn.Conv2d(in_channels, in_channels, kernel_size=7, padding=3, groups=in_channels)
 
         # 定义多个不同尺寸的深度卷积层
         self.depth_convs = nn.ModuleList([

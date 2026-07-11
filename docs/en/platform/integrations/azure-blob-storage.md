@@ -11,7 +11,7 @@ The [Azure Blob Storage](https://azure.microsoft.com/en-us/products/storage/blob
 
 !!! note "Pro feature"
 
-    Cloud storage datasets require a [Pro or Enterprise plan](../account/billing.md#plans). Free workspaces see the integration and are prompted to upgrade when connecting. Existing cloud datasets stay fully accessible if a subscription ends — only new connections and imports require Pro.
+    Azure Blob Storage datasets require a [Pro or Enterprise plan](../account/billing.md#plans). Free workspaces see the integration and are prompted to upgrade when connecting. Existing Azure Blob Storage datasets stay fully accessible if a subscription ends — only new connections and imports require Pro.
 
 ## Get a Connection String
 

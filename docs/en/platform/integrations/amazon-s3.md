@@ -11,7 +11,7 @@ The [Amazon S3](https://aws.amazon.com/s3/) integration connects your S3 buckets
 
 !!! note "Pro feature"
 
-    Cloud storage datasets require a [Pro or Enterprise plan](../account/billing.md#plans). Free workspaces see the integration and are prompted to upgrade when connecting. Existing cloud datasets stay fully accessible if a subscription ends — only new connections and imports require Pro.
+    Amazon S3 datasets require a [Pro or Enterprise plan](../account/billing.md#plans). Free workspaces see the integration and are prompted to upgrade when connecting. Existing Amazon S3 datasets stay fully accessible if a subscription ends — only new connections and imports require Pro.
 
 ## Create a Read-Only IAM User
 

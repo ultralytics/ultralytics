@@ -265,7 +265,6 @@ When your Pro subscription ends (cancelled or expired), your account reverts to 
 | **Monthly Credits**                                        | $30/seat/month grants stop immediately                                           |
 | **Team Members**                                           | Members notified and lose access to team resources                               |
 | **GPU Access**                                             | Standard GPUs remain available. Best GPUs (B200, B300) require Pro or Enterprise |
-| **Cloud Storage Datasets**                                 | Existing cloud datasets stay accessible. New connections and imports require Pro |
 | **Concurrent Trainings**                                   | Limit reduced from 10 to 3                                                       |
 
 !!! tip "No Data Loss"

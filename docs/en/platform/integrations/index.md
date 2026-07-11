@@ -31,6 +31,6 @@ Imports start with a preview so you can review exactly what will be transferred 
 | [**Amazon S3**](amazon-s3.md)                       | Datasets indexed in place from your S3 buckets       |
 | [**Azure Blob Storage**](azure-blob-storage.md)     | Datasets indexed in place from your blob containers  |
 
-Connect once and the matching content lands in your workspace. Cloud storage connections require a [Pro or Enterprise plan](../account/billing.md#plans).
+Connect once and the matching content lands in your workspace. Google Cloud Storage, Amazon S3, and Azure Blob Storage connections require a [Pro or Enterprise plan](../account/billing.md#plans).
 
 A **Weights & Biases** integration is coming soon to sync training runs, metrics, and artifacts with your W&B workspace.

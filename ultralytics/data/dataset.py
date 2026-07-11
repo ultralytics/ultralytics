@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import os
 from collections import defaultdict
 from itertools import repeat
 from multiprocessing.pool import ThreadPool
@@ -370,7 +369,7 @@ class DepthDataset(YOLODataset):
         against all-zero depth.
         """
         labels = super().get_labels()
-        missing = sum(not os.path.exists(self._depth_path_for(lb["im_file"])) for lb in labels)
+        missing = sum(not Path(self._depth_path_for(lb["im_file"])).exists() for lb in labels)
         if missing == len(labels):
             raise FileNotFoundError(
                 f"{self.prefix}No depth maps found for {len(labels)} images. Expected float32-meter .npy files in a "

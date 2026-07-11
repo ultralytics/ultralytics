@@ -296,7 +296,7 @@ class BasePredictor:
             LOGGER.info("")
 
         # Setup model
-        if not self.model:
+        if self.model is None:
             self.setup_model(model)
 
         with self._lock:  # for thread-safe inference

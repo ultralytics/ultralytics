@@ -41,7 +41,7 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
     def get_validator(self):
         """Return a Stereo3DDetValidator, currently extending DetectionValidator."""
         # T204: Determine loss names dynamically from model before creating validator
-        self.loss_names = ("box", "cls", "lr_dist", "depth", "dims", "orient")
+        self.loss_names = ("box", "cls", "lr_dist", "depth", "dims", "orient", "proj_center")
         val = yolo.s3d.Stereo3DDetValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )

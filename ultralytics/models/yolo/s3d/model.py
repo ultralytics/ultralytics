@@ -152,6 +152,8 @@ class Stereo3DDetModel(DetectionModel):
 
         aux_w = None
         use_bbox_loss = True
+        use_proj_center = False
+        use_uncertainty = False
         if hasattr(self, "yaml") and self.yaml is not None:
             training_config = self.yaml.get("training", {})
             if training_config:
@@ -159,6 +161,15 @@ class Stereo3DDetModel(DetectionModel):
                     aux_w = training_config["loss_weights"]
                 if "use_bbox_loss" in training_config:
                     use_bbox_loss = bool(training_config["use_bbox_loss"])
+                use_proj_center = bool(training_config.get("use_proj_center", False))
+                use_uncertainty = bool(training_config.get("use_depth_uncertainty", False))
 
         pseudo_cfg = getattr(self, "pseudo_labels", {})
-        return Stereo3DDetLoss(self, loss_weights=aux_w, use_bbox_loss=use_bbox_loss, pseudo_labels=pseudo_cfg)
+        return Stereo3DDetLoss(
+            self,
+            loss_weights=aux_w,
+            use_bbox_loss=use_bbox_loss,
+            pseudo_labels=pseudo_cfg,
+            use_proj_center=use_proj_center,
+            use_uncertainty=use_uncertainty,
+        )

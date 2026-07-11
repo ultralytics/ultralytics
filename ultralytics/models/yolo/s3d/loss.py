@@ -31,11 +31,15 @@ class Stereo3DDetLoss(v8DetectionLoss):
         use_bbox_loss: bool = True,
         cls_label_smoothing: float = 0.0,
         pseudo_labels: dict | None = None,
+        use_proj_center: bool = False,
+        use_uncertainty: bool = False,
     ):
         super().__init__(model, tal_topk=tal_topk)
         self.aux_w = loss_weights or {}
         self.use_bbox_loss = use_bbox_loss
         self.cls_label_smoothing = cls_label_smoothing
+        self.use_proj_center = use_proj_center
+        self.use_uncertainty = use_uncertainty
 
         # Depth bin classification (DFL-style)
         from ultralytics.models.yolo.s3d.head import DEPTH_BINS, DEPTH_MAX, DEPTH_MIN
@@ -161,6 +165,15 @@ class Stereo3DDetLoss(v8DetectionLoss):
             elif k in aux_preds:
                 aux_losses[k] = self._aux_loss(aux_preds[k], aux_gt, target_gt_idx, fg_mask, aux_weights)
 
+        if self.use_proj_center and "proj_offset" in aux_targets and "proj_offset" in aux_preds:
+            aux_losses["proj_center"] = self._aux_loss(
+                aux_preds["proj_offset"],
+                aux_targets["proj_offset"].to(self.device),
+                target_gt_idx,
+                fg_mask,
+                aux_weights,
+            )
+
         return aux_losses
 
     def _orientation_multibin_loss(
@@ -266,10 +279,10 @@ class Stereo3DDetLoss(v8DetectionLoss):
             batch: Batch dict with img, batch_idx, cls, bboxes, aux_targets.
         """
         # Separate aux preds from detection preds
-        aux_keys = {"lr_distance", "depth", "depth_bins", "dimensions", "orientation"}
+        aux_keys = {"lr_distance", "depth", "depth_bins", "dimensions", "orientation", "proj_offset"}
         aux_preds = {k: v for k, v in preds.items() if k in aux_keys}
 
-        loss = torch.zeros(6, device=self.device)  # box, cls, lr_dist, depth, dims, orient
+        loss = torch.zeros(7, device=self.device)  # box, cls, lr_dist, depth, dims, orient, proj_center
 
         # Get detection losses + TAL assignment results
         (fg_mask, target_gt_idx, _, _, _), det_loss, _ = self.get_assigned_targets_and_loss(preds, batch)
@@ -284,6 +297,8 @@ class Stereo3DDetLoss(v8DetectionLoss):
         for i, k in enumerate(["lr_distance", "depth", "dimensions", "orientation"], 2):
             if k in aux_losses:
                 loss[i] = aux_losses[k] * float(self.aux_w.get(k, 1.0))
+        if "proj_center" in aux_losses:
+            loss[6] = aux_losses["proj_center"] * float(self.aux_w.get("proj_center", 1.0))
 
         batch_size = preds["boxes"].shape[0]
         return loss * batch_size, loss.detach()

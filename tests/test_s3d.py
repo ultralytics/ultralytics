@@ -92,6 +92,24 @@ def test_feature_flags_gate_head_branches():
     assert head.aux_specs["orientation"] == ORIENT_CHANNELS
 
 
+def test_proj_center_loss_present():
+    """When use_proj_center is set, the aux-loss dict gains a smooth-L1 proj_center term."""
+    import torch
+    from ultralytics import YOLO
+    from ultralytics.models.yolo.s3d.loss import Stereo3DDetLoss
+
+    model = YOLO("yolo26n-s3d.yaml").model
+    model.model[-1].enable_proj_center()
+    crit = Stereo3DDetLoss(model, loss_weights={"proj_center": 1.0}, use_proj_center=True)
+    B, HW = 2, 5
+    preds = {"proj_offset": torch.zeros(B, 2, HW)}
+    gt = torch.ones(B, 3, 2)  # [B, max_n, 2]
+    idx = torch.zeros(B, HW, dtype=torch.long)
+    fg = torch.ones(B, HW, dtype=torch.bool)
+    losses = crit._compute_aux_losses(preds, {"aux_targets": {"proj_offset": gt}}, idx, fg)
+    assert "proj_center" in losses and losses["proj_center"] > 0
+
+
 def test_3d_iou():
     """Test 3D IoU computation: identical, no overlap, and partial overlap."""
     box = Box3D(center_3d=(10.0, 2.0, 30.0), dimensions=(3.88, 1.63, 1.53), orientation=0.0,

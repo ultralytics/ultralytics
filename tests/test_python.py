@@ -1368,8 +1368,8 @@ def test_ddp_callback_injection_custom():
 
 def test_ddp_callback_injection_lambda():
     """Test that lambda callbacks are skipped with warning."""
-    from ultralytics.utils.dist import _get_custom_callback_injection_code
     from ultralytics.engine.trainer import BaseTrainer
+    from ultralytics.utils.dist import _get_custom_callback_injection_code
 
     overrides = {"model": "yolo26n.pt", "data": "coco8.yaml", "imgsz": 32, "epochs": 1}
     trainer = BaseTrainer(overrides=overrides)

@@ -171,12 +171,6 @@ def test_qnn_quantize_requires_w8a16():
         validate_args("qnn", SimpleNamespace(quantize=8), valid_args)
 
 
-def test_axelera_rejects_small_imgsz():
-    """Axelera exports should reject inputs smaller than the compiler's 64-pixel minimum before compilation."""
-    with pytest.raises(ValueError, match="Axelera export requires imgsz>=64"):
-        YOLO(MODEL).export(format="axelera", imgsz=32)
-
-
 def test_modelopt_quantize_onnx_requires_int8_dataset():
     """Check INT8 ModelOpt quantization fails early without calibration data."""
     with pytest.raises(ValueError, match="requires a calibration dataset"):

@@ -37,8 +37,8 @@ def generate_ddp_file(trainer: BaseTrainer) -> str:
 
     This function creates a temporary Python file that enables distributed training across multiple GPUs. The file
     contains the necessary configuration to initialize the trainer in a distributed environment. Custom callbacks are
-    serialized via pickle so they survive the subprocess boundary; callbacks that cannot be pickled (lambdas,
-    closures, functions defined in `__main__`) are dropped with a warning (issue #6168).
+    serialized via pickle so they survive the subprocess boundary; callbacks that cannot be pickled (lambdas, closures,
+    functions defined in `__main__`) are dropped with a warning (issue #6168).
 
     Args:
         trainer (ultralytics.engine.trainer.BaseTrainer): The trainer containing training configuration and arguments.

@@ -1,5 +1,4 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-
 """Integration tests for DDP callback serialization (issue #6168).
 
 These tests exercise the real DDP file generation and subprocess execution path,
@@ -18,7 +17,6 @@ from unittest import mock
 
 from ultralytics.utils.callbacks import get_default_callbacks
 from ultralytics.utils.dist import _serialize_callbacks, ddp_cleanup, generate_ddp_file
-
 
 # --- Test helpers ----------------------------------------------------------------------------------------------------
 
@@ -194,9 +192,9 @@ def test_generate_ddp_file_with_lambda_callback(tmp_path, caplog):
 def test_ddp_pickle_loads_in_subprocess(tmp_path):
     """End-to-end: generate DDP file with importable callback, load the pickle in a fresh subprocess.
 
-    This is the critical integration test — it verifies that the pickled callback can actually be
-    unpickled in a fresh Python process (the same way the DDP subprocess does it). This catches the
-    __main__ reference bug that the first PR (#25118) missed.
+    This is the critical integration test — it verifies that the pickled callback can actually be unpickled in a fresh
+    Python process (the same way the DDP subprocess does it). This catches the __main__ reference bug that the first PR
+    (#25118) missed.
     """
     cbs = get_default_callbacks()
     cbs["on_train_start"].append(importable_test_callback)
@@ -251,10 +249,9 @@ else:
 def test_ddp_pickle_main_function_fails_in_subprocess(tmp_path):
     """Verify that a __main__ function in the pickle would fail to load in a subprocess.
 
-    This test documents the bug that the first PR (#25118) had: __main__ functions pickle by
-    reference but fail to unpickle in a subprocess. Our fix prevents this by not pickling
-    __main__ functions in the first place. This test verifies the underlying pickle behavior
-    to ensure our detection logic is correct.
+    This test documents the bug that the first PR (#25118) had: __main__ functions pickle by reference but fail to
+    unpickle in a subprocess. Our fix prevents this by not pickling __main__ functions in the first place. This test
+    verifies the underlying pickle behavior to ensure our detection logic is correct.
     """
     pkl_path = str(tmp_path / "test_main_cb.pkl")
 

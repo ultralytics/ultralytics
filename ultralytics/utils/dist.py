@@ -88,8 +88,9 @@ if __name__ == "__main__":
     # Load custom callbacks pickled by the parent process (#6168)
     _callbacks = None
     if callbacks_file:
+        from collections import defaultdict
         with open(callbacks_file, "rb") as f:
-            _callbacks = pickle.load(f)
+            _callbacks = defaultdict(list, pickle.load(f))
 
     cfg = DEFAULT_CFG_DICT.copy()
     cfg.update(save_dir='')   # handle the extra key 'save_dir'
@@ -130,6 +131,8 @@ def _serialize_callbacks(trainer: BaseTrainer, default_cbs: dict) -> str | None:
         for func in funcs:
             if func in default_funcs:
                 continue  # defaults are re-created in subprocess
+            if getattr(func, "__module__", "").startswith("ultralytics.utils.callbacks."):
+                continue  # integration callbacks are re-added by add_integration_callbacks in subprocess
             try:
                 pickle.dumps(func)
                 if getattr(func, "__module__", "") == "__main__":

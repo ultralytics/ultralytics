@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import cv2
 import torch
-import torchvision.transforms as T
 from PIL import Image
 
 from ultralytics.data.augment import classify_transforms
@@ -53,6 +52,8 @@ class ClassificationPredictor(BasePredictor):
 
     def setup_source(self, source):
         """Set up source and inference mode and classify transforms."""
+        import torchvision.transforms as T
+
         super().setup_source(source)
         updated = (
             self.model.model.transforms.transforms[0].size != max(self.imgsz)

@@ -450,6 +450,20 @@ def test_export_mnn(isolated_model):
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
+@pytest.mark.parametrize(
+    "model,kwargs,error",
+    [
+        ("yolo11n.yaml", {"batch": 2, "dynamic": True, "nms": True}, "combining"),
+        ("yolo11n-seg.yaml", {"nms": True}, "only supports detect and pose"),
+        ("yolo11n-obb.yaml", {"nms": True}, "only supports detect and pose"),
+    ],
+)
+def test_export_mnn_rejects_unsupported_nms(model, kwargs, error):
+    """Test MNN rejects NMS combinations that fail or lose task outputs at runtime."""
+    with pytest.raises(ValueError, match=error):
+        YOLO(model).export(format="mnn", imgsz=32, **kwargs)
+
+
 @pytest.mark.slow
 @pytest.mark.skipif(not TORCH_1_10, reason="MNN export requires torch>=1.10")
 @pytest.mark.parametrize(

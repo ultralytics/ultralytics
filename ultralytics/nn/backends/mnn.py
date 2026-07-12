@@ -59,6 +59,6 @@ class MNNBackend(BaseBackend):
         # NOTE: need this copy(), or it'd get incorrect results on ARM devices
         if output_var:
             return [x.read().copy() for x in output_var]
-        if self.end2end:
+        if self.end2end and self.task in {"detect", "pose"}:
             return [np.empty((im.shape[0], 0, 6))]
         raise RuntimeError("Alibaba MNN inference returned no output tensors.")

@@ -30,9 +30,6 @@ from ultralytics.utils.git import GitRepo
 from ultralytics.utils.patches import imread, imshow, imwrite, torch_save  # for patches
 from ultralytics.utils.tqdm import TQDM  # noqa
 
-# Strings parsed as True by env_bool() (case-insensitive, whitespace-trimmed)
-TRUTHY = frozenset({"1", "true", "yes", "on", "y", "t"})
-
 
 def env_bool(name: str, default: bool = False) -> bool:
     """Parse a boolean environment variable, accepting common truthy strings.
@@ -52,7 +49,7 @@ def env_bool(name: str, default: bool = False) -> bool:
         True
     """
     v = os.environ.get(name)
-    return default if v is None else v.strip().lower() in TRUTHY
+    return default if v is None else v.strip().lower() in {"1", "true", "yes", "on", "y", "t"}
 
 
 # PyTorch Multi-GPU DDP Constants

@@ -996,7 +996,9 @@ def test_process_mask_empty():
     assert ops.scale_masks(torch.zeros(1, 0, 160, 160), (640, 640)).shape == (1, 0, 640, 640)
 
 
-@pytest.mark.skipif(not torch.backends.mps.is_available(), reason="MPS is not available")
+@pytest.mark.skipif(
+    not hasattr(torch.backends, "mps") or not torch.backends.mps.is_available(), reason="MPS is not available"
+)
 def test_task_aligned_assigner_mps_fallback():
     """TaskAlignedAssigner should avoid nondeterministic MPS indexing failures by running on CPU."""
     from ultralytics.utils.tal import TaskAlignedAssigner

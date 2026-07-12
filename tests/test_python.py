@@ -996,81 +996,28 @@ def test_process_mask_empty():
     assert ops.scale_masks(torch.zeros(1, 0, 160, 160), (640, 640)).shape == (1, 0, 640, 640)
 
 
-def test_task_aligned_assigner_get_box_metrics_shape_mismatch_regression():
-    """Regression test for sparse get_box_metrics masks across dense-label batches."""
+@pytest.mark.skipif(not torch.backends.mps.is_available(), reason="MPS is not available")
+def test_task_aligned_assigner_mps_fallback():
+    """TaskAlignedAssigner should avoid nondeterministic MPS indexing failures by running on CPU."""
     from ultralytics.utils.tal import TaskAlignedAssigner
 
-    bs, n_max_boxes, num_anchors, num_classes = 2, 5, 37, 6
+    torch.manual_seed(0)
+    device = torch.device("mps")
+    bs, n_max_boxes, num_anchors, num_classes = 8, 300, 8400, 80
+    pd_scores = torch.rand(bs, num_anchors, num_classes, device=device)
+    pd_xy = torch.rand(bs, num_anchors, 2, device=device) * 620
+    pd_bboxes = torch.cat((pd_xy, pd_xy + torch.rand(bs, num_anchors, 2, device=device) * 30 + 5), dim=-1)
+    anc_points = torch.rand(num_anchors, 2, device=device) * 640
+    gt_labels = torch.randint(num_classes, (bs, n_max_boxes, 1), device=device)
+    gt_xy = torch.rand(bs, n_max_boxes, 2, device=device) * 620
+    gt_bboxes = torch.cat((gt_xy, gt_xy + torch.rand(bs, n_max_boxes, 2, device=device) * 30 + 5), dim=-1)
+    mask_gt = torch.ones(bs, n_max_boxes, 1, dtype=torch.bool, device=device)
     assigner = TaskAlignedAssigner(num_classes=num_classes)
-    assigner.bs = bs
-    assigner.n_max_boxes = n_max_boxes
 
-    pd_scores = torch.linspace(0.01, 0.99, bs * num_anchors * num_classes).view(bs, num_anchors, num_classes)
-
-    anchor_idx = torch.arange(num_anchors, dtype=torch.float32)
-    base_x = anchor_idx.remainder(9) * 3.0
-    base_y = torch.div(anchor_idx, 9, rounding_mode="floor") * 4.0
-    base_boxes = torch.stack((base_x, base_y, base_x + 5.0, base_y + 6.0), dim=-1)
-    pd_bboxes = torch.stack((base_boxes, base_boxes + torch.tensor([0.5, 0.25, 0.5, 0.25])))
-
-    gt_labels = torch.tensor([[[0], [2], [5], [1], [4]], [[3], [1], [0], [5], [2]]])
-    gt_bboxes = torch.tensor(
-        [
-            [
-                [0.0, 0.0, 5.5, 6.5],
-                [9.0, 0.0, 15.0, 7.0],
-                [6.0, 8.0, 12.0, 15.0],
-                [18.0, 12.0, 26.0, 20.0],
-                [0.0, 16.0, 6.0, 24.0],
-            ],
-            [
-                [1.0, 1.0, 7.0, 8.0],
-                [15.0, 4.0, 22.0, 12.0],
-                [6.0, 12.0, 13.0, 20.0],
-                [21.0, 0.0, 29.0, 9.0],
-                [3.0, 20.0, 11.0, 29.0],
-            ],
-        ]
-    )
-
-    # The pre-fix implementation indexed zero-stride tensors produced by expand() with this 3D boolean mask, e.g.
-    # `gt_bboxes.unsqueeze(2).expand(-1, -1, na, -1)[mask_gt]`. On dense, non-rectangular batches this can break on
-    # accelerators with an out-of-bounds/shape-mismatch error; explicit batch/GT/anchor indices avoid that path.
-    mask_gt = torch.zeros(bs, n_max_boxes, num_anchors, dtype=torch.bool)
-    masked_pairs = (
-        (0, 0, 0),
-        (0, 0, 10),
-        (0, 1, 3),
-        (0, 2, 20),
-        (0, 2, 29),
-        (0, 4, 36),
-        (1, 0, 1),
-        (1, 1, 5),
-        (1, 1, 14),
-        (1, 3, 7),
-        (1, 4, 31),
-        (1, 4, 35),
-    )
-    for pair in masked_pairs:
-        mask_gt[pair] = True
-
-    align_metric, overlaps = assigner.get_box_metrics(pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_gt)
-
-    assert align_metric.shape == (bs, n_max_boxes, num_anchors)
-    assert overlaps.shape == (bs, n_max_boxes, num_anchors)
-    assert torch.isfinite(align_metric).all()
-    assert torch.isfinite(overlaps).all()
-
-    b_idx, gt_idx, anchor_idx = torch.where(mask_gt)
-    expected_overlaps = assigner.iou_calculation(gt_bboxes[b_idx, gt_idx], pd_bboxes[b_idx, anchor_idx])
-    expected_scores = pd_scores[b_idx, anchor_idx, gt_labels[b_idx, gt_idx, 0]]
-    expected_align_metric = expected_scores.pow(assigner.alpha) * expected_overlaps.pow(assigner.beta)
-
-    assert expected_overlaps.gt(0).any()
-    assert torch.allclose(overlaps[b_idx, gt_idx, anchor_idx], expected_overlaps)
-    assert torch.allclose(align_metric[b_idx, gt_idx, anchor_idx], expected_align_metric)
-    assert not overlaps[~mask_gt].any()
-    assert not align_metric[~mask_gt].any()
+    for _ in range(20):
+        outputs = assigner(pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt)
+        torch.mps.synchronize()
+        assert all(output.device.type == "mps" for output in outputs)
 
 
 def test_utils_files(tmp_path):

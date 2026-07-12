@@ -94,6 +94,12 @@ class TaskAlignedAssigner(nn.Module):
                 torch.zeros_like(pd_scores[..., 0]),
             )
 
+        if device.type == "mps":
+            result = self._forward(
+                *(t.cpu() for t in (pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt))
+            )
+            return tuple(t.to(device) for t in result)
+
         try:
             return self._forward(pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt)
         except RuntimeError as e:
@@ -188,20 +194,16 @@ class TaskAlignedAssigner(nn.Module):
         overlaps = torch.zeros([self.bs, self.n_max_boxes, na], dtype=pd_bboxes.dtype, device=pd_bboxes.device)
         bbox_scores = torch.zeros([self.bs, self.n_max_boxes, na], dtype=pd_scores.dtype, device=pd_scores.device)
 
-        ind = torch.zeros([2, self.bs, self.n_max_boxes], dtype=torch.long, device=mask_gt.device)
-        ind[0] = torch.arange(self.bs, device=mask_gt.device).view(-1, 1).expand(-1, self.n_max_boxes)
-        ind[1] = gt_labels.squeeze(-1)
+        ind = torch.zeros([2, self.bs, self.n_max_boxes], dtype=torch.long)  # 2, b, max_num_obj
+        ind[0] = torch.arange(end=self.bs).view(-1, 1).expand(-1, self.n_max_boxes)  # b, max_num_obj
+        ind[1] = gt_labels.squeeze(-1)  # b, max_num_obj
+        # Get the scores of each grid for each gt cls
+        bbox_scores[mask_gt] = pd_scores[ind[0], :, ind[1]][mask_gt]  # b, max_num_obj, h*w
 
-        # Avoid boolean masked writes on expanded tensors, which can misalign under newer torch/ultralytics combos.
-        temp_scores = pd_scores[ind[0], :, ind[1]]  # (bs, n_max_boxes, num_anchors)
-        b_idx, box_idx, anch_idx = torch.where(mask_gt)
-        if b_idx.numel():
-            bbox_scores[b_idx, box_idx, anch_idx] = temp_scores[b_idx, box_idx, anch_idx]
-
-            # Preserve the existing CIoU-based overlap metric while avoiding boolean masked writes.
-            pd_pair = pd_bboxes[b_idx, anch_idx]
-            gt_pair = gt_bboxes[b_idx, box_idx]
-            overlaps[b_idx, box_idx, anch_idx] = self.iou_calculation(gt_pair, pd_pair)
+        # (b, max_num_obj, 1, 4), (b, 1, h*w, 4)
+        pd_boxes = pd_bboxes.unsqueeze(1).expand(-1, self.n_max_boxes, -1, -1)[mask_gt]
+        gt_boxes = gt_bboxes.unsqueeze(2).expand(-1, -1, na, -1)[mask_gt]
+        overlaps[mask_gt] = self.iou_calculation(gt_boxes, pd_boxes)
 
         align_metric = bbox_scores.pow(self.alpha) * overlaps.pow(self.beta)
         return align_metric, overlaps

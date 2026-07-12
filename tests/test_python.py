@@ -415,6 +415,22 @@ def test_track_second_association_low_conf_keeps_id(tracker_type):
     assert int(frame2[0, 4]) == tid, f"id switched on low-confidence frame: {tid} -> {int(frame2[0, 4])}\n{frame2}"
 
 
+@pytest.mark.parametrize("tracker_type", ["botsort", "deepocsort", "tracktrack"])
+def test_track_reid_auto_user_detections(tracker_type):
+    """Native ReID (model='auto') must degrade to motion-only with user-supplied detections, not encode the raw frame."""
+    from ultralytics.engine.results import Boxes
+    from ultralytics.trackers.track import TRACKER_MAP
+    from ultralytics.utils import ROOT, YAML, IterableSimpleNamespace
+
+    cfg = {**YAML.load(ROOT / f"cfg/trackers/{tracker_type}.yaml"), "with_reid": True, "model": "auto"}
+    tracker = TRACKER_MAP[tracker_type](IterableSimpleNamespace(**cfg))
+    img = np.full((640, 640, 3), 128, dtype=np.uint8)  # nonzero so bogus frame-derived features would not be dropped
+    data = torch.tensor([[10, 10, 50, 50, 0.9, 0], [200, 200, 260, 260, 0.9, 0]], dtype=torch.float32)
+    for _ in range(3):  # frame 2 used to crash in embedding_distance after storing image rows as track features
+        tracks = tracker.update(Boxes(data, (640, 640)), img)
+    assert len(tracks) == 2, f"native-ReID tracker must keep tracking without feats:\n{tracks}"
+
+
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.parametrize("model", MODELS)
 def test_track_stream(model, tmp_path):
@@ -670,6 +686,12 @@ def test_data_utils(tmp_path):
     autosplit(tmp_path / "coco8/images")
     assert any((tmp_path / "coco8").glob("autosplit_*.txt"))
     assert zip_directory(images_dir).is_file()
+    with pytest.raises(FileNotFoundError, match="'test:' images not found"):
+        check_det_dataset("coco8.yaml", split="test")
+    data_yaml = tmp_path / "coco8.yaml"
+    data_yaml.write_text("train: images/train\nval: images/val\ntest: images/test\nnames: [item]\n")
+    with pytest.raises(FileNotFoundError, match="images not found"):
+        check_det_dataset(data_yaml, split="test")
 
 
 def test_safe_download_unzips_local_path_archive(tmp_path):
@@ -821,8 +843,14 @@ def test_utils_init():
     is_github_action_running()
 
 
-def test_utils_checks():
+def test_utils_checks(monkeypatch):
     """Test various utility checks for filenames, requirements, image sizes, display capabilities, and versions."""
+
+    def package_version(name):
+        if name == "v2":
+            return "1.0"
+        raise checks.metadata.PackageNotFoundError
+
     checks.check_yolov5u_filename("yolov5n.pt")
     checks.check_requirements("numpy")  # check requirements.txt
     checks.check_imgsz([600, 600], max_dim=1)
@@ -831,10 +859,25 @@ def test_utils_checks():
     checks.check_imshow(warn=True)
     checks.check_suffix("https://example.com/model.pt?token=abc", ".pt")
     checks.check_version("ultralytics", "8.0.0")
-    # parse_version must pad to a 3-tuple so shorter version strings compare correctly
+    # parse_version must pad to at least 3 components and keep all segments so any version pair compares correctly
     assert checks.parse_version("2") == (2, 0, 0)
+    assert checks.parse_version("4.13.0.92") == (4, 13, 0, 92)
+    assert checks.parse_version("2.0.1+cu118") == (2, 0, 1)  # numeric local/build suffixes are not release segments
+    assert checks.parse_version("1.0.0rc1") == (1, 0, 0)
+    assert checks.parse_version("v2.1") == (2, 1, 0)
+    assert checks.parse_version("1.0rc1") == (1, 0, 0)  # documented non-PEP-440 tradeoff: pre-releases equal the final
+    monkeypatch.setattr(checks.metadata, "version", package_version)
+    assert not checks.check_version("v2", ">=2.0")  # installed version-shaped package keeps metadata precedence
+    versions = ("v2.1-rc.1", "v2.1-beta1", "v2.1rev1", "v2.1-dev1", "v2.1+cu118")
+    assert all(checks.check_version(v, ">=2.0") for v in versions)
+    with pytest.raises(ModuleNotFoundError):
+        checks.check_version("v2-missing", ">=2.0", hard=True)
+    assert checks.check_version("10.3.0.30", ">=10.3.0,<10.4.0")  # Jetson TensorRT family pin
     assert checks.check_version("6.0", ">=6.0.0")  # 2-component current must satisfy 3-component requirement
     assert checks.check_version("2.1", "==2.1.0")
+    assert checks.check_version("4.13.0.92", "!=4.13.0.90")  # 4-segment pins must not be truncated
+    assert not checks.check_version("4.13.0.90", "!=4.13.0.90")
+    assert checks.check_version("2.0.1", "<2.0.1.5")
     checks.print_args()
 
 
@@ -857,6 +900,24 @@ def test_utils_torchutils():
     profile_ops(x, [m], n=3)
     get_flops_with_torch_profiler(m)
     time_sync()
+
+
+@pytest.mark.parametrize("nc", [1, 3])
+def test_semantic_loss_all_ignore(nc):
+    """SemanticSegmentationLoss must stay finite when the whole batch is ignore (255), e.g. unlabeled/void frames."""
+    from ultralytics.cfg import get_cfg
+    from ultralytics.nn.tasks import SemanticSegmentationModel
+    from ultralytics.utils.loss import SemanticSegmentationLoss
+
+    model = SemanticSegmentationModel(cfg="yolo26-sem.yaml", nc=nc, verbose=False)
+    model.args = get_cfg()
+    loss_fn = SemanticSegmentationLoss(model)
+    preds = torch.randn(1, nc, 64, 64, requires_grad=True)
+    aux = torch.randn(1, nc, 32, 32, requires_grad=True)
+    loss, items = loss_fn((preds, aux), {"semantic_mask": torch.full((1, 64, 64), 255, dtype=torch.long)})
+    assert torch.isfinite(loss).all() and torch.isfinite(items).all()
+    loss.backward()
+    assert preds.grad is not None and aux.grad is not None
 
 
 def test_utils_ops():
@@ -890,6 +951,22 @@ def test_utils_ops():
 
     # segment2box must not drop a polygon lying on the left image edge (all x == 0) to a zero box
     assert segment2box(np.array([[0, 100], [0, 150], [0, 200]]), 640, 640).tolist() == [0, 100, 0, 200]
+
+    # segment2box must keep the visible extent when edge points shift out of frame after augmentation (issue #24935)
+    seg = np.array([[550.0, 100.0], [690.0, 100.0], [690.0, 200.0], [550.0, 200.0]])
+    assert segment2box(seg, 640, 640).tolist() == [550, 100, 640, 200]
+    seg = np.array([[-10.0, 100.0], [650.0, 100.0], [650.0, 200.0], [-10.0, 200.0]])
+    assert segment2box(seg, 640, 640).tolist() == [0, 100, 640, 200]
+    assert segment2box(np.array([[100.0, 100.0], [200.0, 100.0], [700.0, -100.0]]), 640, 640).tolist() == [
+        100,
+        0,
+        450,
+        100,
+    ]
+    assert segment2box(np.array([[700.0, 100.0], [750.0, 150.0]]), 640, 640).tolist() == [0, 0, 0, 0]
+    assert segment2box(np.empty((0, 2)), 640, 640).tolist() == [0, 0, 0, 0]
+    seg = np.array([[-100.0, -100.0], [740.0, -100.0], [740.0, 740.0], [-100.0, 740.0]])  # surrounds the image
+    assert segment2box(seg, 640, 640).tolist() == [0, 0, 640, 640]
 
 
 def test_nms_end2end_classes_before_max_det():

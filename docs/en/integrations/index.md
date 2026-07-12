@@ -63,6 +63,8 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [Axelera](axelera.md): Explore Metis accelerators and the Voyager SDK for running Ultralytics models with efficient edge inference.
 
+- [Core AI](coreai.md): Learn about Apple's new `.aimodel` format, how Core AI compares with Core ML, its current limitations, and the planned Ultralytics integration for the iOS 27 and macOS 27 generation.
+
 - [CoreML](coreml.md): CoreML, developed by [Apple](https://www.apple.com/), is a framework designed for efficiently integrating machine learning models into applications across iOS, macOS, watchOS, and tvOS, using Apple's hardware for effective and secure [model deployment](https://www.ultralytics.com/glossary/model-deployment).
 
 - [DEEPX](deepx.md): Export Ultralytics YOLO models to the DEEPX `.dxnn` format for power-efficient INT8 inference on DEEPX NPU hardware, targeting embedded and edge AI applications.

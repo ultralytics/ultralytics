@@ -11,16 +11,15 @@ def test_check_cfg_bool_or_str_keys_reject_containers():
     This guards issue ultralytics/ultralytics#25056: an invalid CLI value such as `compile={}` previously crashed deep
     inside torch's DistributedSampler with a raw error, instead of failing fast at the cfg layer.
     """
-    with pytest.raises(TypeError, match="'compile='"):
+    with pytest.raises(TypeError, match=r"'compile=\{\}' is of invalid type dict"):
         check_cfg({"compile": {}}, hard=True)
-    with pytest.raises(TypeError, match="'compile='"):
+    with pytest.raises(TypeError, match=r"'compile=\['inductor'\]' is of invalid type list"):
         check_cfg({"compile": ["inductor"]}, hard=True)
-    # Valid bool and str forms pass through untouched; None is allowed (optional arg).
+    # Valid bool and str forms pass through untouched; None is invalid because the default is False.
     check_cfg({"compile": True}, hard=True)
     check_cfg({"compile": "inductor"}, hard=True)
-    cfg = {"compile": None}
-    check_cfg(cfg, hard=True)
-    assert cfg["compile"] is None
+    with pytest.raises(TypeError, match="'compile=None' is invalid"):
+        check_cfg({"compile": None}, hard=True)
 
 
 def test_check_cfg_bool_or_str_keys_soft_convert():

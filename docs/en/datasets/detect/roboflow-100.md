@@ -51,7 +51,7 @@ Dataset [benchmarking](../../modes/benchmark.md) involves evaluating the perform
 
 !!! example "Benchmarking Example"
 
-    The script below downloads the Roboflow 100 datasets listed in `datasets_links.txt` from Roboflow, then fine-tunes a single base model (e.g., YOLO26n) across the whole collection in one `model.train()` call. Passing a list of datasets fine-tunes the base model on each one in series and automatically visualizes the cross-dataset results. A free [Roboflow API key](https://docs.roboflow.com/api-reference/authentication) is required to download the datasets.
+    The script below downloads the Roboflow 100 datasets listed in `datasets_links.txt` from Roboflow, then fine-tunes a single base model (e.g., YOLO26n) across the whole collection in one `model.train()` call. Passing a list of datasets fine-tunes the base model on each one in series and automatically visualizes the cross-dataset results. A free Roboflow API key is required to download the datasets.
 
     === "Python"
 

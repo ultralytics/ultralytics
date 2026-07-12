@@ -117,7 +117,6 @@ If you integrate the Package Segmentation dataset into your research or developm
             title = { factory_package Dataset },
             type = { Open Source Dataset },
             author = { factorypackage },
-            url = { https://universe.roboflow.com/factorypackage/factory_package },
             year = { 2024 },
             month = { jan },
             note = { visited on 2024-01-24 },

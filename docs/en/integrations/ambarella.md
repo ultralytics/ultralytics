@@ -6,11 +6,11 @@ keywords: Ambarella, Ambarella YOLO, deploy YOLO on Ambarella, Ambarella object 
 
 # Ambarella CVflow Export for Ultralytics YOLO Models
 
-!!! warning "Not a direct Ultralytics export format"
+!!! warning "Preview guide — not yet vendor verified"
 
-    There is no `format="ambarella"` export target. The workflow uses the standard ONNX export (`format="onnx"`) combined with the `amba_config`/`amba_chipset` arguments, and the resulting ONNX model is then compiled into the deployable AmbaPB format offline with Ambarella's CVflow toolchain.
+    This guide is an early preview and is not yet complete or verified by Ambarella. Commands, compatibility details, and workflow steps may change as vendor feedback becomes available. There is currently no `format="ambarella"` export target; the workflow uses the standard ONNX export (`format="onnx"`) combined with the `amba_config`/`amba_chipset` arguments, then compiles the resulting ONNX model into the deployable AmbaPB format offline with Ambarella's CVflow toolchain.
 
-Deploying [Ultralytics YOLO](https://github.com/ultralytics/ultralytics) models on [Ambarella](https://www.ambarella.com/) SoCs requires a model format optimized for the CVflow® AI engine. [This fork of Ultralytics](https://github.com/Ambarella-Inc/ultralytics/tree/amba_v8.4.46) integrates Ambarella's **SpongeTorch** compression toolkit directly into the train, validate, and export pipeline, so you can produce pruned and quantization-optimized models that run efficiently on Ambarella hardware. This guide demonstrates the complete [object detection](https://www.ultralytics.com/glossary/object-detection) workflow: compression-aware training, ONNX export, compilation with the CVflow toolchain, and inference with the compiled AmbaPB model.
+Deploying [Ultralytics YOLO](https://github.com/ultralytics/ultralytics) models on [Ambarella](https://www.ambarella.com/) SoCs requires a model format optimized for the CVflow® AI engine. [This fork of Ultralytics](https://github.com/Ambarella-Inc/ultralytics/tree/amba_v8.4.46) integrates Ambarella's **SpongeTorch** compression toolkit directly into the train, validate, and export pipeline, so you can produce pruned and quantization-optimized models that run efficiently on Ambarella hardware. This guide outlines the current [object detection](https://www.ultralytics.com/glossary/object-detection) workflow: compression-aware training, ONNX export, compilation with the CVflow toolchain, and inference with the compiled AmbaPB model.
 
 !!! note
 
@@ -256,7 +256,7 @@ Ultralytics YOLO models on Ambarella CVflow SoCs power always-on vision at the e
 
 ## Summary
 
-This guide covered the complete workflow to deploy Ultralytics YOLO models on Ambarella CVflow SoCs: compression-aware training with SpongeTorch (`amba_config`/`amba_chipset`), ONNX export of the compressed checkpoint, offline compilation to AmbaPB with the CVflow toolchain, and bit-exact validation of the compiled model through Ultralytics before board deployment.
+This preview guide outlined the current workflow to deploy Ultralytics YOLO models on Ambarella CVflow SoCs: compression-aware training with SpongeTorch (`amba_config`/`amba_chipset`), ONNX export of the compressed checkpoint, offline compilation to AmbaPB with the CVflow toolchain, and bit-exact validation of the compiled model through Ultralytics before board deployment.
 
 For other edge AI targets, see the related [Hailo](hailo.md), [Rockchip RKNN](rockchip-rknn.md), [Sony IMX500](sony-imx500.md), [Qualcomm QNN](qnn.md), [DEEPX](deepx.md), and [Axelera](axelera.md) guides. For the full list of export formats, visit the [Export mode](../modes/export.md) documentation and the [integrations page](index.md).
 

@@ -94,6 +94,8 @@ class TaskAlignedAssigner(nn.Module):
                 torch.zeros_like(pd_scores[..., 0]),
             )
 
+        # Work around a nondeterministic PyTorch MPS indexing-kernel bug where boolean indexing can produce different
+        # source and destination element counts (https://github.com/ultralytics/ultralytics/issues/22971).
         if device.type == "mps":
             result = self._forward(
                 *(t.cpu() for t in (pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt))

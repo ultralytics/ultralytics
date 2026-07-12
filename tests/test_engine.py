@@ -457,7 +457,6 @@ def test_ddp_callback_serialization(tmp_path):
 
 def test_ddp_no_callbacks_no_pickle(tmp_path):
     """Verify no callbacks pickle file is created when only default callbacks are registered."""
-
     from ultralytics.utils import callbacks as callback_utils
     from ultralytics.utils.dist import ddp_cleanup, generate_ddp_file
 

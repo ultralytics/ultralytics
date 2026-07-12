@@ -1014,6 +1014,7 @@ def test_task_aligned_assigner_mps_fallback():
     mask_gt = torch.ones(bs, n_max_boxes, 1, dtype=torch.bool, device=device)
     assigner = TaskAlignedAssigner(num_classes=num_classes)
 
+    # Repeat to exercise the nondeterministic PyTorch 2.9.1 MPS indexing failure seen on the pre-fix path.
     for _ in range(20):
         outputs = assigner(pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt)
         torch.mps.synchronize()

@@ -56,6 +56,47 @@ The resulting `.aimodel` is an unspecialized model asset. When an application pr
 
 In Swift, applications load the asset with the Core AI framework, select an inference function, provide typed `NDArray` inputs, and receive named outputs. This is different from wrapping a Core ML model in a Vision request, so adopting Core AI requires an application runtime designed for `.aimodel` assets.
 
+For implementation details, see Apple's documentation for [`AIModel`](https://developer.apple.com/documentation/coreai/aimodel), [model specialization and caching](https://developer.apple.com/documentation/coreai/managing-model-specialization-and-caching), and [ahead-of-time compilation](https://developer.apple.com/documentation/coreai/compiling-core-ai-models-ahead-of-time).
+
+## Future Ultralytics Usage
+
+!!! danger "Planned examples — these commands do not work yet"
+
+    The following examples illustrate the intended integration and are **not available in the current Ultralytics release**. Use [`format=coreml`](coreml.md#exporting-yolo26-models-to-coreml) for a supported Apple export today.
+
+After the planned integration ships, the [Python API](../usage/python.md) is expected to export a [YOLO26](../models/yolo26.md) model to `.aimodel` with a dedicated format value:
+
+```python
+from ultralytics import YOLO
+
+model = YOLO("yolo26n.pt")
+model.export(format="coreai")  # Planned: creates yolo26n.aimodel
+```
+
+The equivalent planned [CLI](../usage/cli.md) command is:
+
+```bash
+yolo export model=yolo26n.pt format=coreai # Planned: not yet available
+```
+
+The final arguments, supported [YOLO tasks](../tasks/index.md), precision options, and dynamic-shape behavior will be documented in [Export mode](../modes/export.md) after the exporter is implemented and validated.
+
+On iOS 27 or macOS 27, an application would then load and run the exported asset through Apple's Core AI Swift API. The function and tensor names below are illustrative; the supported Ultralytics output contract will be published with the exporter:
+
+```swift
+import CoreAI
+
+let modelURL = Bundle.main.url(forResource: "yolo26n", withExtension: "aimodel")!
+let model = try await AIModel(contentsOf: modelURL)
+guard let function = try model.loadFunction(named: "main") else {
+    throw AppError.missingInferenceFunction
+}
+
+let outputs = try await function.run(inputs: ["image": imageTensor])
+```
+
+Unlike the current [Core ML and Vision workflow](coreml.md#deploying-exported-yolo26-coreml-models), the future Core AI path will need to define image preprocessing, `NDArray` construction, model metadata, and output decoding in the [Ultralytics iOS SDK](https://github.com/ultralytics/yolo-ios-app). Apple provides current API details in the [Core AI framework documentation](https://developer.apple.com/documentation/coreai) and working model examples in the [Core AI models repository](https://github.com/apple/coreai-models).
+
 ## Advantages of Core AI
 
 Core AI offers several promising advantages for future Ultralytics deployment:

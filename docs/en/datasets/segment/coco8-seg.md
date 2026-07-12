@@ -119,7 +119,7 @@ For a thorough explanation of available arguments and configuration options, you
 
 ### Why is the COCO8-Seg dataset important for model development and debugging?
 
-Because the ~1 MB download and 8-image train/val loop complete in seconds, COCO8-Seg lets you run a full training-and-validation pass to catch pipeline errors — a broken data loader, a misconfigured loss, a bad augmentation — before committing to a multi-hour run on a larger dataset. Learn more about supported dataset formats in the [Ultralytics segmentation dataset guide](index.md).
+Because the download and train/val loop are much smaller than full COCO, COCO8-Seg lets you run a training-and-validation pass to catch pipeline errors — a broken data loader, a misconfigured loss, or a bad augmentation — before committing to a larger dataset. Learn more about supported dataset formats in the [Ultralytics segmentation dataset guide](index.md).
 
 ### Where can I find the YAML configuration file for the COCO8-Seg dataset?
 

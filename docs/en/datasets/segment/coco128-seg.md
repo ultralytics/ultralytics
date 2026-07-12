@@ -15,7 +15,7 @@ keywords: COCO128-Seg, Ultralytics, segmentation dataset, YOLO26, COCO 2017, mod
 
 - **Images**: 128 total, with train and val split identically (see note below).
 - **Classes**: Same 80 object categories as COCO.
-- **Labels**: YOLO-format polygons saved beside each image inside `labels/{train,val}`.
+- **Labels**: YOLO-format polygons stored in `labels/train2017` for the shared train and val image directory.
 - **Download size**: ~7 MB.
 
 !!! note
@@ -123,7 +123,7 @@ For a thorough explanation of available arguments and configuration options, you
 
 ### Why is the COCO128-Seg dataset important for model development and debugging?
 
-Because the ~7 MB download and 128-image train/val loop complete in minutes, COCO128-Seg lets you run a full 1-epoch sanity check on a new pipeline — verifying the model trains, validates, and saves checkpoints correctly — before committing hours to the full COCO-Seg dataset. Learn more about supported dataset formats in the [Ultralytics segmentation dataset guide](index.md).
+Because the download and train/val loop are much smaller than full COCO, COCO128-Seg lets you run a 1-epoch sanity check on a new pipeline — verifying the model trains, validates, and saves checkpoints correctly — before scaling to the full COCO-Seg dataset. Learn more about supported dataset formats in the [Ultralytics segmentation dataset guide](index.md).
 
 ### Where can I find the YAML configuration file for the COCO128-Seg dataset?
 

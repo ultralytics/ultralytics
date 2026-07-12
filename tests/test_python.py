@@ -96,6 +96,20 @@ def skip_rpi_semantic():
         pytest.skip("Semantic segmentation tests are skipped on Raspberry Pi due to memory constraints.")
 
 
+def test_attempt_compile_falls_back_to_eager(monkeypatch):
+    """A backend failure at the first forward pass of a compiled model must fall back to eager, not raise."""
+    compile_fx = pytest.importorskip("torch._inductor.compile_fx")
+    from ultralytics.utils.torch_utils import attempt_compile
+
+    def broken_backend(*args, **kwargs):
+        raise RuntimeError("simulated missing C++ compiler")  # e.g. InvalidCxxCompiler on Windows CPU
+
+    monkeypatch.setattr(compile_fx, "compile_fx", broken_backend)
+    model = attempt_compile(torch.nn.Sequential(torch.nn.Conv2d(3, 8, 3)), device=torch.device("cpu"), mode=True)
+    assert model(torch.zeros(1, 3, 16, 16)).shape == (1, 8, 14, 14)
+    torch._dynamo.reset()  # clear the poisoned compile cache for other tests
+
+
 def test_select_device(monkeypatch):
     """The same device string must resolve to the same GPU on every call, and the environment is never mutated."""
     from ultralytics.utils import torch_utils

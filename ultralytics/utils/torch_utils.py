@@ -1042,6 +1042,8 @@ def attempt_compile(
 
     Notes:
         - If the current PyTorch build does not provide torch.compile, the function returns the input model immediately.
+        - Compilation is lazy and runs at the first forward pass, so dynamo error suppression is enabled to fall back
+          to eager execution if the backend fails there (e.g. no C++ compiler for inductor on CPU).
         - Warmup runs under torch.inference_mode and may use torch.autocast for CUDA/MPS to align compute precision.
         - CUDA devices are synchronized after warmup to account for asynchronous kernel execution.
     """
@@ -1057,6 +1059,7 @@ def attempt_compile(
         mode = "max-autotune-no-cudagraphs"
     t0 = time.perf_counter()
     try:
+        torch._dynamo.config.suppress_errors = True  # compilation is lazy, so fall back to eager if it fails later
         model = torch.compile(model, mode=mode, backend="inductor")
     except Exception as e:
         LOGGER.warning(f"{prefix} torch.compile failed, continuing uncompiled: {e}")

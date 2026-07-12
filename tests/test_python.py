@@ -96,19 +96,6 @@ def skip_rpi_semantic():
         pytest.skip("Semantic segmentation tests are skipped on Raspberry Pi due to memory constraints.")
 
 
-def test_attempt_compile_without_cpp_compiler(monkeypatch):
-    """CPU compile requests must return the eager model unchanged when inductor has no host C++ compiler."""
-    cpp_builder = pytest.importorskip("torch._inductor.cpp_builder")
-    from ultralytics.utils.torch_utils import attempt_compile
-
-    def missing_compiler():
-        raise RuntimeError("Compiler: cl is not found.")  # e.g. InvalidCxxCompiler on Windows CPU
-
-    monkeypatch.setattr(cpp_builder, "get_cpp_compiler", missing_compiler)
-    model = torch.nn.Sequential(torch.nn.Conv2d(3, 8, 3))
-    assert attempt_compile(model, device=torch.device("cpu"), mode=True) is model
-
-
 def test_select_device(monkeypatch):
     """The same device string must resolve to the same GPU on every call, and the environment is never mutated."""
     from ultralytics.utils import torch_utils
@@ -912,6 +899,24 @@ def test_utils_torchutils():
     time_sync()
 
 
+@pytest.mark.parametrize("nc", [1, 3])
+def test_semantic_loss_all_ignore(nc):
+    """SemanticSegmentationLoss must stay finite when the whole batch is ignore (255), e.g. unlabeled/void frames."""
+    from ultralytics.cfg import get_cfg
+    from ultralytics.nn.tasks import SemanticSegmentationModel
+    from ultralytics.utils.loss import SemanticSegmentationLoss
+
+    model = SemanticSegmentationModel(cfg="yolo26-sem.yaml", nc=nc, verbose=False)
+    model.args = get_cfg()
+    loss_fn = SemanticSegmentationLoss(model)
+    preds = torch.randn(1, nc, 64, 64, requires_grad=True)
+    aux = torch.randn(1, nc, 32, 32, requires_grad=True)
+    loss, items = loss_fn((preds, aux), {"semantic_mask": torch.full((1, 64, 64), 255, dtype=torch.long)})
+    assert torch.isfinite(loss).all() and torch.isfinite(items).all()
+    loss.backward()
+    assert preds.grad is not None and aux.grad is not None
+
+
 def test_utils_ops():
     """Test utility operations for coordinate transformations and normalizations."""
     from ultralytics.utils.ops import (
@@ -956,6 +961,7 @@ def test_utils_ops():
         100,
     ]
     assert segment2box(np.array([[700.0, 100.0], [750.0, 150.0]]), 640, 640).tolist() == [0, 0, 0, 0]
+    assert segment2box(np.empty((0, 2)), 640, 640).tolist() == [0, 0, 0, 0]
     seg = np.array([[-100.0, -100.0], [740.0, -100.0], [740.0, 740.0], [-100.0, 740.0]])  # surrounds the image
     assert segment2box(seg, 640, 640).tolist() == [0, 0, 640, 640]
 

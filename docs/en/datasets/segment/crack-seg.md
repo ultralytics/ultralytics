@@ -102,10 +102,9 @@ If you use the Crack Segmentation dataset in your research or development work, 
             title = { crack Dataset },
             type = { Open Source Dataset },
             author = { University },
-            url = { https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/crack-seg.yaml },
+            publisher = { Roboflow },
             year = { 2022 },
             month = { dec },
-            note = { visited on 2024-01-23 },
         }
         ```
 

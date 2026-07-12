@@ -116,10 +116,9 @@ If you utilize the Carparts Segmentation dataset in your research or development
               title = { car-seg Dataset },
               type = { Open Source Dataset },
               author = { Gianmarco Russo },
-              url = { https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/carparts-seg.yaml },
+              publisher = { Roboflow },
               year = { 2023 },
               month = { nov },
-              note = { visited on 2024-01-24 },
         }
         ```
 

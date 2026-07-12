@@ -117,10 +117,9 @@ If you integrate the Package Segmentation dataset into your research or developm
             title = { factory_package Dataset },
             type = { Open Source Dataset },
             author = { factorypackage },
-            url = { https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/package-seg.yaml },
+            publisher = { Roboflow },
             year = { 2024 },
             month = { jan },
-            note = { visited on 2024-01-24 },
         }
         ```
 

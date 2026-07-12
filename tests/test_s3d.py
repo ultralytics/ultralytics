@@ -428,6 +428,71 @@ def test_depth_decode_imgsz_invariant():
             assert abs(z_fused - z_true) / z_true < 0.02, f"fused depth imgsz={imgsz} z={z_true}: got {z_fused:.2f}"
 
 
+def test_decode_letterbox_calib_imgsz_invariant():
+    """Decode must be imgsz-invariant when fed LETTERBOX-space calib (the real val/predict path).
+
+    Regression guard for the square-imgsz bug: the batch supplies calib in letterbox-input space
+    (fx,cx scaled by letterbox_scale, principal point shifted by padding). decode_stereo3d_outputs is
+    called with calib_letterboxed=True (as decode_and_refine_predictions does) and must reverse it to
+    original coords, so BOTH the stereo depth (uses fx) and the 2D-center back-projection (uses cx,cy)
+    recover the true metric X and Z at any imgsz. The pre-fix decode used letterbox fx/cx directly →
+    z halved and x/y garbage under a square imgsz (scale~=0.5) while dormant at rect (scale~=1).
+    """
+    import math
+
+    import torch
+
+    from ultralytics.models.yolo.s3d.orientation import ORIENT_CHANNELS, encode_orientation
+    from ultralytics.models.yolo.s3d.preprocess import compute_letterbox_params, decode_stereo3d_outputs
+
+    fx0, fy0, cx0, cy0, baseline = 721.5377, 721.5377, 609.5593, 172.8540, 0.54
+    ori_hw = (375, 1242)  # KITTI (H, W)
+    nc = 3
+
+    def decode_xz(z_true, u_orig_true, imgsz):
+        """Encode a car at (u_orig_true, z_true) with LETTERBOX-space calib; return decoded (x, z)."""
+        input_h, input_w = imgsz
+        scale, pad_left, pad_top = compute_letterbox_params(ori_hw[0], ori_hw[1], imgsz)
+        # Calib as the batch provides it: letterbox-input space.
+        calib_lb = {
+            "fx": fx0 * scale,
+            "fy": fy0 * scale,
+            "cx": cx0 * scale + pad_left,
+            "cy": cy0 * scale + pad_top,
+            "baseline": baseline,
+        }
+        # 2D box center in letterbox-input pixels for a feature at original u_orig_true (v at horizon).
+        v_orig_true = cy0
+        u_lb = u_orig_true * scale + pad_left
+        v_lb = v_orig_true * scale + pad_top
+        det = torch.zeros(1, 4 + nc, 1)
+        det[0, :4, 0] = torch.tensor([u_lb, v_lb, 20.0, 20.0])
+        det[0, 4, 0] = 0.99
+        disparity_px_orig = fx0 * baseline / z_true
+        outputs = {
+            "det": det,
+            "dimensions": torch.zeros(1, 3, 1),
+            "orientation": torch.tensor(encode_orientation(0.0)).view(1, ORIENT_CHANNELS, 1).float(),
+            "lr_distance": torch.tensor([[[math.log(disparity_px_orig * scale / input_w)]]], dtype=torch.float32),
+            "depth": torch.tensor([[[math.log(z_true)]]], dtype=torch.float32),
+        }
+        boxes = decode_stereo3d_outputs(
+            outputs, conf_threshold=0.25, calib=[calib_lb], imgsz=imgsz, ori_shapes=[ori_hw],
+            calib_letterboxed=True,
+        )
+        per_img = boxes[0] if boxes and isinstance(boxes[0], list) else boxes
+        assert len(per_img) == 1, f"expected 1 decoded box, got {len(per_img)}"
+        c = per_img[0].center_3d
+        return float(c[0]), float(c[2])
+
+    for imgsz in [(384, 1248), (640, 640), (384, 384)]:
+        for z_true, u_orig_true in [(25.0, 609.5593), (12.0, 300.0), (45.0, 900.0)]:
+            x_true = (u_orig_true - cx0) * z_true / fx0
+            x_dec, z_dec = decode_xz(z_true, u_orig_true, imgsz)
+            assert abs(z_dec - z_true) / z_true < 0.02, f"z imgsz={imgsz} z={z_true}: got {z_dec:.2f}"
+            assert abs(x_dec - x_true) < 0.5, f"x imgsz={imgsz} z={z_true}: got {x_dec:.2f} want {x_true:.2f}"
+
+
 def test_decode_uses_proj_offset():
     """With use_proj_center, a nonzero proj_offset shifts the recovered x_3d by du*input_w/scale*z/fx."""
     import math

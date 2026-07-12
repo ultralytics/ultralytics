@@ -135,6 +135,7 @@ def decode_stereo3d_outputs(
     ivw_fusion: bool = False,
     score_weight: bool = False,
     score_k: float = 0.5,
+    calib_letterboxed: bool = False,
 ) -> list[Box3D] | list[list[Box3D]]:
     """Decode s3d outputs to Box3D objects.
 
@@ -217,6 +218,19 @@ def decode_stereo3d_outputs(
 
         ori_h, ori_w = ori_shapes[b]
         letterbox_scale, pad_left, pad_top = compute_letterbox_params(ori_h, ori_w, imgsz)
+
+        # When the caller supplies calib in letterbox-input space (fx,cx scaled by letterbox_scale,
+        # principal point shifted by padding), reverse it to original-image coords so depth (fx) and the
+        # 2D-center back-projection (cx,cy) are imgsz-invariant. u_orig/v_orig below are already in
+        # original coords, so cx/cy/fx must match. Mirrors val.py's _reverse_letterbox_calib on the GT
+        # side; without this, predictions land in a different frame than GT — correct only at
+        # aspect-preserving imgsz (scale~=1) and badly wrong under a square imgsz. Tests that pass
+        # original-space calib leave this False (the default).
+        if calib_letterboxed:
+            fx = fx / letterbox_scale
+            fy = fy / letterbox_scale
+            cx = (cx - pad_left) / letterbox_scale
+            cy = (cy - pad_top) / letterbox_scale
 
         boxes3d: list[Box3D] = []
         det_b = dets[b]
@@ -538,6 +552,7 @@ def decode_and_refine_predictions(
         ivw_fusion=bool(ivw_fusion),
         score_weight=bool(score_weight),
         score_k=score_k,
+        calib_letterboxed=True,  # batch calib is in letterbox-input space; decode reverses it to original
     )
 
     # Ensure results is list of lists

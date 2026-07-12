@@ -37,6 +37,7 @@ __all__ = (
     "WeightedFusion",
     "StripAttn",
     "GCAttn",
+    "GatedUpsample",
 )
 
 
@@ -1402,6 +1403,35 @@ class GCAttn(nn.Module):
         attn = self.mask(x).flatten(2).softmax(-1)  # (b, 1, hw)
         ctx = (x.flatten(2) @ attn.transpose(-2, -1)).view(b, c, 1, 1)
         return x + self.transform(ctx)
+
+
+class GatedUpsample(nn.Module):
+    """Learned per-pixel blend of nearest and bilinear 2x upsampling (ZipDepth NPU path).
+
+    A lightweight gate (1x1 reduce -> DW 5x5 -> 1x1 -> sigmoid) predicts alpha from the
+    low-resolution input; output = alpha * nearest + (1 - alpha) * bilinear. Uses only
+    standard Conv2d and interpolation ops, so it exports cleanly to NPU/mobile runtimes.
+    """
+
+    def __init__(self, c: int, scale: int = 2, e: float = 0.25):
+        """Initialize GatedUpsample.
+
+        Args:
+            c (int): Number of input/output channels.
+            scale (int): Upsampling factor.
+            e (float): Bottleneck ratio for the gate.
+        """
+        super().__init__()
+        ch = max(int(c * e), 16)
+        self.scale = scale
+        self.gate = nn.Sequential(Conv(c, ch, 1), Conv(ch, ch, 5, g=ch), nn.Conv2d(ch, 1, 1), nn.Sigmoid())
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Upsample with a learned nearest/bilinear blend."""
+        a = F.interpolate(self.gate(x), scale_factor=self.scale, mode="nearest")
+        up_nn = F.interpolate(x, scale_factor=self.scale, mode="nearest")
+        up_bi = F.interpolate(x, scale_factor=self.scale, mode="bilinear", align_corners=False)
+        return a * up_nn + (1 - a) * up_bi
 
 
 class Concat(nn.Module):

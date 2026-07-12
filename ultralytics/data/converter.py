@@ -387,9 +387,7 @@ def convert_segment_masks_to_yolo_seg(masks_dir: str, output_dir: str, classes: 
     for mask_path in Path(masks_dir).iterdir():
         if mask_path.suffix in {".png", ".jpg"}:
             mask = cv2.imread(str(mask_path), cv2.IMREAD_GRAYSCALE)  # Read the mask image in grayscale
-            if mask.ndim == 3:
-                mask = mask[..., 0] if mask.shape[-1] == 1 else cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
-            img_height, img_width = mask.shape  # Get image dimensions
+            img_height, img_width = mask.shape[:2]  # patched Windows imread returns (H, W, 1) for grayscale
             LOGGER.info(f"Processing {mask_path} imgsz = {img_height} x {img_width}")
 
             unique_values = np.unique(mask)  # Get unique pixel values representing different classes

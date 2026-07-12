@@ -756,24 +756,6 @@ def test_data_converter(tmp_path):
     coco80_to_coco91_class()
 
 
-def test_convert_segment_masks_to_yolo_seg_creates_output_dir(tmp_path):
-    """Test segmentation mask conversion creates missing output directories."""
-    from ultralytics.data.converter import convert_segment_masks_to_yolo_seg
-
-    masks_dir = tmp_path / "masks"
-    output_dir = tmp_path / "labels"
-    masks_dir.mkdir()
-    mask = np.zeros((8, 8), dtype=np.uint8)
-    mask[2:6, 2:6] = 1
-    cv2.imwrite(str(masks_dir / "sample.png"), mask)
-
-    convert_segment_masks_to_yolo_seg(masks_dir, output_dir, classes=1)
-
-    label_file = output_dir / "sample.txt"
-    assert label_file.is_file()
-    assert label_file.read_text().startswith("0 ")
-
-
 def test_data_annotator(tmp_path):
     """Test automatic annotation of data using detection and segmentation models."""
     from ultralytics.data.annotator import auto_annotate

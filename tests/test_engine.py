@@ -414,3 +414,64 @@ def test_setup_model_respects_pretrained_arg_for_pt_models(monkeypatch, pretrain
 
     assert captured["cfg"] == checkpoint_model.yaml, "Checkpoint config was not used"
     assert captured["weights"] is (checkpoint_model if uses_weights else None), "Unexpected weights loaded"
+
+
+def test_ddp_callback_serialization(tmp_path):
+    """Verify custom callbacks are pickled into the DDP temp file (issue #6168)."""
+    import os
+    import pickle
+
+    from ultralytics.utils import callbacks as callback_utils
+    from ultralytics.utils.dist import ddp_cleanup, generate_ddp_file
+
+    # Build a minimal trainer-like object with the attributes generate_ddp_file reads
+    trainer = SimpleNamespace(
+        __class__=BaseTrainer,
+        args=SimpleNamespace(augmentations=None, model="yolo26n.pt"),
+        callbacks=callback_utils.get_default_callbacks(),
+        hub_session=None,
+    )
+    # Use module-level test_func (defined at top of file) since pickle can't serialize local closures
+    trainer.callbacks["on_train_end"].append(test_func)
+
+    file = generate_ddp_file(trainer)
+    try:
+        with open(file) as f:
+            content = f.read()
+        # The generated file must reference a callbacks pickle file
+        assert "callbacks_file" in content
+        assert "_callbacks" in content
+        # Extract the pickle path and verify it contains our callback
+        import re
+
+        match = re.search(r"callbacks_file = '([^']+)'", content)
+        assert match, "callbacks_file path not found in generated content"
+        pkl_path = match.group(1)
+        assert os.path.exists(pkl_path), f"Callbacks pickle file not created at {pkl_path}"
+        with open(pkl_path, "rb") as f:
+            loaded = pickle.load(f)
+        assert test_func in loaded["on_train_end"], "Custom callback not in pickled callbacks"
+    finally:
+        ddp_cleanup(trainer, file)
+
+
+def test_ddp_no_callbacks_no_pickle(tmp_path):
+    """Verify no callbacks pickle file is created when only default callbacks are registered."""
+
+    from ultralytics.utils import callbacks as callback_utils
+    from ultralytics.utils.dist import ddp_cleanup, generate_ddp_file
+
+    trainer = SimpleNamespace(
+        __class__=BaseTrainer,
+        args=SimpleNamespace(augmentations=None, model="yolo26n.pt"),
+        callbacks=callback_utils.get_default_callbacks(),
+        hub_session=None,
+    )
+
+    file = generate_ddp_file(trainer)
+    try:
+        with open(file) as f:
+            content = f.read()
+        assert "callbacks_file = None" in content, "Should not create pickle file for default callbacks"
+    finally:
+        ddp_cleanup(trainer, file)

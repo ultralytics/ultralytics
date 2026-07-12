@@ -35,7 +35,8 @@ def generate_ddp_file(trainer: BaseTrainer) -> str:
     """Generate a DDP (Distributed Data Parallel) file for multi-GPU training.
 
     This function creates a temporary Python file that enables distributed training across multiple GPUs. The file
-    contains the necessary configuration to initialize the trainer in a distributed environment.
+    contains the necessary configuration to initialize the trainer in a distributed environment, including custom
+    callbacks serialized via pickle so they survive the subprocess boundary (issue #6168).
 
     Args:
         trainer (ultralytics.engine.trainer.BaseTrainer): The trainer containing training configuration and arguments.
@@ -49,8 +50,13 @@ def generate_ddp_file(trainer: BaseTrainer) -> str:
         - Trainer class import
         - Configuration overrides from the trainer arguments
         - Model path configuration
+        - Custom callbacks (pickled alongside the temp file)
         - Training initialization code
     """
+    import pickle
+
+    from . import callbacks as callback_utils
+
     module, name = f"{trainer.__class__.__module__}.{trainer.__class__.__name__}".rsplit(".", 1)
 
     # Serialize augmentations to JSON-safe dicts to avoid NameError in DDP subprocess
@@ -60,23 +66,46 @@ def generate_ddp_file(trainer: BaseTrainer) -> str:
 
         overrides["augmentations"] = [A.to_dict(t) for t in overrides["augmentations"]]
 
+    # Serialize custom callbacks to a pickle file so they survive the DDP subprocess boundary (#6168)
+    callbacks_file = None
+    if trainer.callbacks != callback_utils.get_default_callbacks():
+        (USER_CONFIG_DIR / "DDP").mkdir(exist_ok=True)
+        callbacks_file = tempfile.NamedTemporaryFile(
+            prefix="_callbacks_",
+            suffix=f"{id(trainer)}.pkl",
+            mode="wb",
+            dir=USER_CONFIG_DIR / "DDP",
+            delete=False,
+        )
+        pickle.dump(trainer.callbacks, callbacks_file)
+        callbacks_file.close()
+        callbacks_file = callbacks_file.name
+
     content = f"""
 # Ultralytics Multi-GPU training temp file (should be automatically deleted after use)
 from pathlib import Path, PosixPath  # For model arguments stored as Path instead of str
 overrides = {overrides}
+callbacks_file = {repr(callbacks_file)}
 
 if __name__ == "__main__":
     from {module} import {name}
     from ultralytics.utils import DEFAULT_CFG_DICT
+    import pickle
 
     # Deserialize augmentations from dicts back to Albumentations transform objects
     if overrides.get("augmentations") is not None:
         import albumentations as A
         overrides["augmentations"] = [A.from_dict(t) for t in overrides["augmentations"]]
 
+    # Load custom callbacks pickled by the parent process (#6168)
+    _callbacks = None
+    if callbacks_file:
+        with open(callbacks_file, "rb") as f:
+            _callbacks = pickle.load(f)
+
     cfg = DEFAULT_CFG_DICT.copy()
     cfg.update(save_dir='')   # handle the extra key 'save_dir'
-    trainer = {name}(cfg=cfg, overrides=overrides)
+    trainer = {name}(cfg=cfg, overrides=overrides, _callbacks=_callbacks)
     trainer.args.model = "{getattr(trainer.hub_session, "model_url", trainer.args.model)}"
     results = trainer.train()
 """
@@ -127,7 +156,7 @@ def ddp_cleanup(trainer: BaseTrainer, file: str) -> None:
     """Delete temporary file if created during distributed data parallel (DDP) training.
 
     This function checks if the provided file contains the trainer's ID in its name, indicating it was created as a
-    temporary file for DDP training, and deletes it if so.
+    temporary file for DDP training, and deletes it if so. Also removes the associated callbacks pickle file.
 
     Args:
         trainer (ultralytics.engine.trainer.BaseTrainer): The trainer used for distributed training.
@@ -140,3 +169,6 @@ def ddp_cleanup(trainer: BaseTrainer, file: str) -> None:
     """
     if f"{id(trainer)}.py" in file:  # if temp_file suffix in file
         os.remove(file)
+        callbacks_file = file.replace("_temp_", "_callbacks_").replace(".py", ".pkl")
+        if os.path.exists(callbacks_file):
+            os.remove(callbacks_file)

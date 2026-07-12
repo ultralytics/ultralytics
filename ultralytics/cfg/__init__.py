@@ -531,7 +531,7 @@ def _handle_deprecation(custom: dict) -> dict:
     # flag maps to None to clear any inherited quantize. An explicit `quantize=` always wins over the legacy flags.
     int8 = custom.pop("int8", None)
     half = custom.pop("half", None)
-    if (int8 is not None or half is not None) and custom.get("quantize") is None:
+    if (int8 is not None or half is not None) and "quantize" not in custom:
         int8_on = int8 is not None and str(int8).strip().lower() not in {"none", "false", "0"}
         half_on = half is not None and str(half).strip().lower() not in {"none", "false", "0"}
         custom["quantize"] = 8 if int8_on else 16 if half_on else None  # False/0 clears precision back to FP32

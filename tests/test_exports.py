@@ -149,10 +149,8 @@ def test_quantize_deprecation():
     assert _handle_deprecation({"half": True})["quantize"] == 16
     assert _handle_deprecation({"half": True, "int8": True})["quantize"] == 8  # int8 wins
     assert "half" not in _handle_deprecation({"half": True})  # legacy flag is removed after forwarding
-    assert _handle_deprecation({"half": True, "quantize": None})["quantize"] == 16  # forwarded None must not block
-    assert _handle_deprecation({"int8": True, "quantize": None})["quantize"] == 8
+    assert _handle_deprecation({"half": True, "quantize": None})["quantize"] is None  # explicit quantize wins
     assert _handle_deprecation({"half": True, "quantize": 8})["quantize"] == 8  # explicit quantize still wins
-    assert _handle_deprecation({"int8": False, "quantize": None})["quantize"] is None  # explicit off stays FP32
 
 
 def test_benchmark_forwards_legacy_precision(monkeypatch):

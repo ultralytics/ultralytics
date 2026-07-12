@@ -1,6 +1,7 @@
 ---
+title: COCO128 Segmentation Dataset
 comments: true
-description: Discover the COCO128-Seg dataset by Ultralytics, a compact yet diverse segmentation dataset ideal for testing and training YOLO26 models.
+description: Discover the COCO128-Seg dataset by Ultralytics, a 128-image, ~7 MB instance segmentation dataset ideal for testing and training YOLO26 models.
 keywords: COCO128-Seg, Ultralytics, segmentation dataset, YOLO26, COCO 2017, model training, computer vision, dataset configuration
 ---
 
@@ -12,9 +13,14 @@ keywords: COCO128-Seg, Ultralytics, segmentation dataset, YOLO26, COCO 2017, mod
 
 ## Dataset Structure
 
-- **Images**: 128 total. The default YAML reuses the same directory for train and val so you can quickly iterate, but you can duplicate or customize the split if desired.
+- **Images**: 128 total, with train and val split identically (see note below).
 - **Classes**: Same 80 object categories as COCO.
-- **Labels**: YOLO-format polygons saved beside each image inside `labels/{train,val}`.
+- **Labels**: YOLO-format polygons stored in `labels/train2017` for the shared train and val image directory.
+- **Download size**: ~7 MB.
+
+!!! note
+
+    The default YAML points train and val at the same 128 images, so validation metrics measure fit on the training set rather than generalization on held-out data. Duplicate or customize the split if you need a true held-out set.
 
 This dataset is intended for use with [Ultralytics Platform](https://platform.ultralytics.com/) and [YOLO26](https://github.com/ultralytics/ultralytics).
 
@@ -60,8 +66,6 @@ Here are some examples of images from the COCO128-Seg dataset, along with their 
 <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/mosaiced-training-batch-2.avif" alt="COCO128-seg instance segmentation dataset mosaic" width="800">
 
 - **Mosaiced Image**: This image demonstrates a training batch composed of mosaiced dataset images. Mosaicing is a technique used during training that combines multiple images into a single image to increase the variety of objects and scenes within each training batch. This helps improve the model's ability to generalize to different object sizes, aspect ratios, and contexts.
-
-The example showcases the variety and complexity of the images in the COCO128-Seg dataset and the benefits of using mosaicing during the training process.
 
 ## Citations and Acknowledgments
 
@@ -119,12 +123,18 @@ For a thorough explanation of available arguments and configuration options, you
 
 ### Why is the COCO128-Seg dataset important for model development and debugging?
 
-The **COCO128-Seg dataset** offers a balanced combination of manageability and diversity with 128 images, making it perfect for quickly testing and debugging segmentation models or experimenting with new detection techniques. Its moderate size allows for fast training iterations while providing enough diversity to validate training pipelines before scaling to larger datasets. Learn more about supported dataset formats in the [Ultralytics segmentation dataset guide](index.md).
+Because the download and train/val loop are much smaller than full COCO, COCO128-Seg lets you run a 1-epoch sanity check on a new pipeline — verifying the model trains, validates, and saves checkpoints correctly — before scaling to the full COCO-Seg dataset. Learn more about supported dataset formats in the [Ultralytics segmentation dataset guide](index.md).
 
 ### Where can I find the YAML configuration file for the COCO128-Seg dataset?
 
 The YAML configuration file for the **COCO128-Seg dataset** is available in the Ultralytics repository. You can access the file directly at <https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco128-seg.yaml>. The YAML file includes essential information about dataset paths, classes, and configuration settings required for model training and validation.
 
-### What are some benefits of using mosaicing during training with the COCO128-Seg dataset?
+### How does COCO128-Seg compare to COCO8-Seg and the full COCO-Seg dataset?
 
-Using **mosaicing** during training helps increase the diversity and variety of objects and scenes in each training batch. This technique combines multiple images into a single composite image, enhancing the model's ability to generalize to different object sizes, aspect ratios, and contexts within the scene. Mosaicing is beneficial for improving a model's robustness and [accuracy](https://www.ultralytics.com/glossary/accuracy), especially when working with moderately-sized datasets like COCO128-Seg. For an example of mosaiced images, see the [Sample Images and Annotations](#sample-images-and-annotations) section.
+COCO128-Seg (128 images) sits between [COCO8-Seg](coco8-seg.md) (8 images) and the full [COCO-Seg](coco.md) dataset (118,287 training images) in terms of size:
+
+- **COCO8-Seg**: 8 images (4 train, 4 val) — ideal for quick sanity checks and debugging.
+- **COCO128-Seg**: 128 images — balanced between size and diversity, with train and val sharing the same directory.
+- **Full COCO-Seg**: 118,287 training images — comprehensive but resource-intensive, requiring ~27 GB on first download.
+
+COCO128-Seg offers more diversity than COCO8-Seg while remaining far more manageable than the full COCO-Seg dataset for experimentation and initial model development.

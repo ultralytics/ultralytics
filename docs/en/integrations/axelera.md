@@ -64,7 +64,7 @@ For turnkey solutions, Axelera partners with manufacturers to provide systems pr
 
 - **Metis Compute Board**: A standalone edge device pairing the Metis AIPU with a Rockchip RK3588 ARM CPU.
 - **Workstations**: Enterprise towers from **Dell** (Precision 3460XE) and **Lenovo** (ThinkStation P360 Ultra).
-- **Industrial PCs**: Ruggedized systems from **Advantech** and **Aetina** designed for [manufacturing automation](https://www.ultralytics.com/solutions/ai-in-manufacturing).
+- **Industrial PCs**: Ruggedized systems from **Advantech** and **Aetina** designed for [manufacturing automation](https://www.ultralytics.com/solutions/computer-vision-in-manufacturing).
 
 ## Supported Tasks
 
@@ -273,7 +273,7 @@ Ultralytics YOLO on Axelera hardware enables advanced edge computing solutions:
 
 - **Smart Retail**: Real-time [object counting](../guides/object-counting.md) and [heatmap analytics](../guides/heatmaps.md) for store optimization.
 - **Industrial Safety**: Low-latency [PPE detection](../datasets/detect/construction-ppe.md) in manufacturing environments.
-- **Drone Analytics**: High-speed [object detection](../tasks/detect.md) on UAVs for [agriculture](https://www.ultralytics.com/solutions/ai-in-agriculture) and search-and-rescue.
+- **Drone Analytics**: High-speed [object detection](../tasks/detect.md) on UAVs for [agriculture](https://www.ultralytics.com/solutions/computer-vision-in-agriculture) and search-and-rescue.
 - **Traffic Systems**: Edge-based [license plate recognition](https://www.ultralytics.com/blog/using-ultralytics-yolo11-for-automatic-number-plate-recognition) and [speed estimation](../guides/speed-estimation.md).
 
 ## Recommended Workflow

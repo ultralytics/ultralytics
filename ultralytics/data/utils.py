@@ -130,7 +130,7 @@ def check_file_speeds(
         avg_speed = float("inf")
         speed_msg = ""
 
-    if avg_ping < threshold_ms or avg_speed < threshold_mb:
+    if avg_ping < threshold_ms and avg_speed > threshold_mb:
         LOGGER.info(f"{prefix}Fast image access ✅ ({ping_msg}{speed_msg}{size_msg})")
     else:
         LOGGER.warning(
@@ -450,7 +450,7 @@ def convert_ndjson_to_yolo_if_needed(data: str | Path) -> str | Path:
     return data
 
 
-def check_det_dataset(dataset: str, autodownload: bool = True) -> dict[str, Any]:
+def check_det_dataset(dataset: str, autodownload: bool = True, split: str = "") -> dict[str, Any]:
     """Download, verify, and/or unzip a dataset if not found locally.
 
     This function checks the availability of a specified dataset, and if not found, it has the option to download and
@@ -460,10 +460,15 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> dict[str, Any]
     Args:
         dataset (str): Path to the dataset or dataset descriptor (like a YAML file).
         autodownload (bool, optional): Whether to automatically download the dataset if not found.
+        split (str, optional): Dataset split required by the caller.
 
     Returns:
         (dict[str, Any]): Parsed dataset information and paths.
     """
+    dataset = str(dataset)
+    if "://" not in dataset and not Path(dataset).exists() and Path(dataset).suffix not in {".yaml", ".yml"}:
+        # allow bare dataset names, e.g. 'coco8' -> 'coco8.yaml', 'DOTAv1.5' -> 'DOTAv1.5.yaml'
+        dataset = next((f"{dataset}{x}" for x in (".yaml", ".yml") if check_file(f"{dataset}{x}", hard=False)), dataset)
     file = Path(check_file(dataset))
     if file.is_dir():
         file = find_dataset_yaml(file)
@@ -487,8 +492,18 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> dict[str, Any]
                 )
             LOGGER.warning("renaming data YAML 'validation' key to 'val' to match YOLO format.")
             data["val"] = data.pop("validation")  # replace 'validation' key with 'val' key
+    if split and not data.get(split):
+        raise FileNotFoundError(f"{dataset} '{split}:' images not found ❌")
     if "names" not in data and "nc" not in data:
         raise SyntaxError(emojis(f"{dataset} key missing ❌.\n either 'names' or 'nc' are required in all data YAMLs."))
+    if "nc" in data and not isinstance(data["nc"], int):
+        try:
+            nc = float(data["nc"])  # accept integer-like values, e.g. '10' or 10.0, but not 1.9 or placeholders
+            if nc != int(nc):
+                raise ValueError
+            data["nc"] = int(nc)
+        except (TypeError, ValueError):
+            raise SyntaxError(emojis(f"{dataset} 'nc: {data['nc']}' must be an integer ❌."))
     if "names" in data and "nc" in data and len(data["names"]) != data["nc"]:
         raise SyntaxError(emojis(f"{dataset} 'names' length {len(data['names'])} and 'nc: {data['nc']}' must match."))
     if "names" not in data:
@@ -517,7 +532,7 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> dict[str, Any]
                 data[k] = [str((path / x).resolve()) for x in data[k]]
 
     # Parse YAML
-    val, s = (data.get(x) for x in ("val", "download"))
+    val, s = (data.get(x) for x in (split or "val", "download"))
     if val:
         val = [Path(x).resolve() for x in (val if isinstance(val, list) else [val])]  # val path
         if not all(x.exists() for x in val):

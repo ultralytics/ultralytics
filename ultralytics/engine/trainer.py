@@ -57,6 +57,7 @@ from ultralytics.utils.torch_utils import (
     convert_optimizer_state_dict_to_fp16,
     init_seeds,
     one_cycle,
+    parse_device,
     select_device,
     strip_optimizer,
     torch_distributed_zero_first,
@@ -126,9 +127,8 @@ class BaseTrainer:
         self.hub_session = overrides.pop("session", None)  # HUB
         self.args = get_cfg(cfg, overrides)
         self.check_resume(overrides)
+        self.args.device = parse_device(self.args.device)  # canonical string, resolves '-1' auto-selection once
         self.device = select_device(self.args.device)
-        # Update "-1" devices so post-training val does not repeat search
-        self.args.device = os.getenv("CUDA_VISIBLE_DEVICES") if "cuda" in str(self.device) else str(self.device)
         self.validator = None
         self.metrics = None
         self.plots = {}
@@ -163,16 +163,10 @@ class BaseTrainer:
         # Callbacks - initialize early so on_pretrain_routine_start can capture original args.data
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
 
-        if isinstance(self.args.device, str) and len(self.args.device):  # i.e. device='0' or device='0,1,2,3'
-            world_size = len(self.args.device.split(","))
-        elif isinstance(self.args.device, (tuple, list)):  # i.e. device=[0, 1, 2, 3] (multi-GPU from CLI is list)
-            world_size = len(self.args.device)
-        elif self.args.device in {"cpu", "mps"}:  # i.e. device='cpu' or 'mps'
+        if self.device.type in {"cpu", "mps"}:
             world_size = 0
-        elif torch.cuda.is_available():  # i.e. device=None or device='' or device=number
-            world_size = 1  # default to device 0
-        else:  # i.e. device=None or device=''
-            world_size = 0
+        else:  # i.e. device='0', '0,1,2,3', 'npu:0', or '' auto-selecting a single GPU
+            world_size = len(self.args.device.split(",")) if self.args.device else 1
 
         self.ddp = world_size > 1 and "LOCAL_RANK" not in os.environ
         self.world_size = world_size
@@ -256,8 +250,9 @@ class BaseTrainer:
 
     def _setup_ddp(self):
         """Initialize and set the DistributedDataParallel parameters for training."""
-        torch.cuda.set_device(RANK)
-        self.device = torch.device("cuda", RANK)
+        index = int(self.args.device.split(",")[LOCAL_RANK])  # world_size > 1 guarantees a multi-device string
+        torch.cuda.set_device(index)
+        self.device = torch.device("cuda", index)
         os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
         dist.init_process_group(
             backend="nccl" if dist.is_nccl_available() else "gloo",
@@ -361,8 +356,9 @@ class BaseTrainer:
             # o2m+o2o pose loss branches) under torch.compile.
             self.model = nn.parallel.DistributedDataParallel(
                 self.model,
-                device_ids=[RANK],
+                device_ids=[self.device.index],
                 static_graph=bool(self.args.compile),
+                broadcast_buffers=False,
                 find_unused_parameters=not bool(self.args.compile),
             )
 
@@ -599,6 +595,9 @@ class BaseTrainer:
                 self.plot_metrics()
             self.run_callbacks("on_train_end")
         self._clear_memory()
+        for loader in (self.train_loader, self.test_loader):
+            if hasattr(loader, "close"):
+                loader.close()  # shut down persistent dataloader workers so none survive to interpreter exit
         unset_deterministic()
         self.run_callbacks("teardown")
 
@@ -663,17 +662,14 @@ class BaseTrainer:
         import io
 
         # A transient NaN/Inf permanently poisons the EMA running average (ema = decay*ema + (1-decay)*model), so
-        # save_model would otherwise skip every epoch and the run would finish with no checkpoint. Resync each
-        # poisoned EMA tensor from the live model (keys are a subset of the model's); skip only if the model tensor
-        # is also non-finite. fp16 overflow on the saved copy is handled below.
+        # save_model would otherwise skip every epoch and the run would finish with no checkpoint on valid input.
+        # Resync each poisoned EMA tensor from the live model where finite; any tensor that is non-finite in both is
+        # left for the nan_to_num_ pass below, so a usable checkpoint is always written.
         ema = unwrap_model(self.ema.ema)
         if not all(torch.isfinite(v).all() for v in ema.state_dict().values() if isinstance(v, torch.Tensor)):
             model_sd = unwrap_model(self.model).state_dict()
             for k, v in ema.state_dict().items():
-                if isinstance(v, torch.Tensor) and not torch.isfinite(v).all():
-                    if not torch.isfinite(model_sd[k]).all():
-                        LOGGER.warning(f"Skipping checkpoint save at epoch {self.epoch}: EMA and model contain NaN/Inf")
-                        return False
+                if isinstance(v, torch.Tensor) and not torch.isfinite(v).all() and torch.isfinite(model_sd[k]).all():
                     v.copy_(model_sd[k])
         ema = deepcopy(ema).half()
         # Clamp fp16 serialization overflow without mutating the live EMA.
@@ -1088,7 +1084,7 @@ class BaseTrainer:
             g = [x.values() for x in g[:3]]  # convert to list of params
 
         optimizers = {"Adam", "Adamax", "AdamW", "NAdam", "RAdam", "RMSProp", "SGD", "MuSGD", "auto"}
-        name = {x.lower(): x for x in optimizers}.get(name.lower())
+        name = {x.lower(): x for x in optimizers}.get(str(name).lower(), str(name))
         if name in {"Adam", "Adamax", "AdamW", "NAdam", "RAdam"}:
             optim_args = dict(lr=lr, betas=(momentum, 0.999), weight_decay=0.0)
         elif name == "RMSProp":

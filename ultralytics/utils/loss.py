@@ -211,6 +211,8 @@ class RLELoss(nn.Module):
 class RotatedBboxLoss(BboxLoss):
     """Criterion class for computing training losses for rotated bounding boxes."""
 
+    floor = 0.01
+
     def __init__(self, reg_max: int):
         """Initialize the RotatedBboxLoss module with regularization maximum and DFL settings."""
         super().__init__(reg_max)
@@ -229,7 +231,7 @@ class RotatedBboxLoss(BboxLoss):
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """Compute IoU and DFL losses for rotated bounding boxes."""
         weight = target_scores.sum(-1)[fg_mask].unsqueeze(-1)
-        iou = probiou(pred_bboxes[fg_mask], target_bboxes[fg_mask])
+        iou = probiou(pred_bboxes[fg_mask], target_bboxes[fg_mask], floor=self.floor)
         loss_iou = ((1.0 - iou) * weight).sum() / target_scores_sum
 
         # DFL loss
@@ -1040,8 +1042,6 @@ class v8OBBLoss(v8DetectionLoss):
             targets = self.preprocess(targets.to(self.device), batch_size, scale_tensor=imgsz[[1, 0, 1, 0]])
             gt_labels, gt_bboxes = targets.split((1, 5), 2)  # cls, xywhr
             mask_gt = gt_bboxes.sum(2, keepdim=True).gt_(0.0)
-            wh = gt_bboxes[..., 2:4]
-            wh.masked_fill_((wh < self.stride[0]) & mask_gt.bool(), self.assigner.stride_val)
         except RuntimeError as e:
             raise TypeError(
                 "ERROR ❌ OBB dataset incorrectly formatted or not a OBB dataset.\n"
@@ -1299,9 +1299,9 @@ class SemanticSegmentationLoss(nn.Module):
             weight = torch.from_numpy(CITYSCAPES_WEIGHT)
         weight = None if weight is None else weight.to(device=self.device, dtype=self.dtype)
         if self.nc == 1:
-            self.ce = nn.BCEWithLogitsLoss()  # binary: class weighting intentionally unsupported
+            self.ce = nn.BCEWithLogitsLoss(reduction="sum")  # binary: class weighting intentionally unsupported
         else:
-            self.ce = nn.CrossEntropyLoss(ignore_index=255).to(device=self.device, dtype=self.dtype)
+            self.ce = nn.CrossEntropyLoss(ignore_index=255, reduction="sum").to(device=self.device, dtype=self.dtype)
             if weight is not None:
                 # Non-persistent: weight is a deterministic constant, no need to serialize into ckpt state_dict.
                 self.ce.register_buffer("weight", weight, persistent=False)
@@ -1314,27 +1314,24 @@ class SemanticSegmentationLoss(nn.Module):
             )
         return masks
 
-    def _ce_loss(self, preds, masks):
+    def _ce_loss(self, preds, masks, valid):
         """Compute cross-entropy on flattened pixels to avoid the CUDA nll_loss2d path."""
+        flat = masks.reshape(-1)
         if self.nc == 1:
-            flat = masks.reshape(-1)
-            valid = flat != 255
             logits = preds.reshape(-1)[valid]
             target = flat[valid].float()
+            denominator = valid.sum()
         else:
             logits = preds.permute(0, 2, 3, 1).reshape(-1, self.nc)
-            target = masks.reshape(-1).long()
-        return self.ce(logits, target)
+            target = flat.long()
+            denominator = valid.sum() if self.ce.weight is None else self.ce.weight[target[valid]].sum()
+        return self.ce(logits, target) / denominator.clamp_min(1)
 
-    def _dice_loss(self, preds, masks):
+    def _dice_loss(self, preds, masks, valid):
         """Compute Dice loss excluding ignore pixels."""
         if self.nc == 1:
-            return self._binary_dice_loss(preds, masks)
+            return self._binary_dice_loss(preds, masks, valid)
         flat_target = masks.reshape(-1)
-        valid = flat_target != 255
-        if not valid.any():
-            return preds.sum() * 0
-
         pred_soft = F.softmax(preds, dim=1)
         target = flat_target[valid].long()
         flat_pred = pred_soft.float().permute(0, 2, 3, 1).reshape(-1, self.nc)[valid]
@@ -1345,12 +1342,12 @@ class SemanticSegmentationLoss(nn.Module):
         cardinality = pred_sum + target_sum
         return (1.0 - (2.0 * intersection + 1.0) / (cardinality + 1.0)).mean()
 
-    def _binary_dice_loss(self, preds, masks):
+    def _binary_dice_loss(self, preds, masks, valid):
         """Compute Dice loss for single-class (binary) segmentation.
 
         Pixels with value 255 are excluded from Dice terms to match BCE valid-pixel filtering.
         """
-        valid = (masks != 255).float()
+        valid = valid.reshape_as(masks).float()
         pred_soft = preds.squeeze(1).sigmoid()
         target = (masks == 1).float()
         intersection = (pred_soft * target * valid).sum()
@@ -1373,12 +1370,13 @@ class SemanticSegmentationLoss(nn.Module):
             preds, aux_logits = preds
 
         masks = batch["semantic_mask"].to(preds.device)
+        valid = masks.reshape(-1) != 255
         if preds.shape[2:] != masks.shape[1:]:
             preds = F.interpolate(preds, size=masks.shape[1:], mode="bilinear", align_corners=False)
 
         # Main cross-entropy and Dice loss.
-        ce_loss = self._ce_loss(preds, masks)
-        dice_loss = self._dice_loss(preds, masks)
+        ce_loss = self._ce_loss(preds, masks, valid)
+        dice_loss = self._dice_loss(preds, masks, valid)
         total = ce_loss + dice_loss
 
         # Auxiliary cross-entropy loss. Match ce_loss dtype so torch.stack below succeeds under AMP.
@@ -1386,7 +1384,7 @@ class SemanticSegmentationLoss(nn.Module):
         if aux_logits is not None:
             if aux_logits.shape[2:] != masks.shape[1:]:
                 aux_logits = F.interpolate(aux_logits, size=masks.shape[1:], mode="bilinear", align_corners=False)
-            aux_loss = self._ce_loss(aux_logits, masks) * 0.4
+            aux_loss = self._ce_loss(aux_logits, masks, valid) * 0.4
             total += aux_loss
 
         loss_items = torch.stack([ce_loss, dice_loss, aux_loss]).detach()

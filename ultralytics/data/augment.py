@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import math
 import random
-import warnings
 from copy import deepcopy
 from typing import Any
 
@@ -15,7 +14,7 @@ from PIL import Image
 from torch.nn import functional as F
 
 from ultralytics.data.utils import polygons2masks, polygons2masks_overlap
-from ultralytics.utils import LOGGER, IterableSimpleNamespace, colorstr
+from ultralytics.utils import LOGGER, IterableSimpleNamespace, colorstr, deprecation_warn
 from ultralytics.utils.checks import check_version
 from ultralytics.utils.instance import Instances
 from ultralytics.utils.metrics import bbox_ioa
@@ -2811,11 +2810,7 @@ def classify_transforms(
     scale_size = size if isinstance(size, (tuple, list)) and len(size) == 2 else (size, size)
 
     if crop_fraction:
-        warnings.warn(
-            "'crop_fraction' arg of classify_transforms is deprecated, will be removed in a future version.",
-            FutureWarning,
-            stacklevel=2,
-        )
+        deprecation_warn("crop_fraction")
 
     # Square target uses the scalar shortest-edge mode (preserves aspect); non-square resizes to the exact (h, w).
     resize = scale_size[0] if scale_size[0] == scale_size[1] else scale_size

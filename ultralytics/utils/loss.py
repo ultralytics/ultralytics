@@ -1299,9 +1299,9 @@ class SemanticSegmentationLoss(nn.Module):
             weight = torch.from_numpy(CITYSCAPES_WEIGHT)
         weight = None if weight is None else weight.to(device=self.device, dtype=self.dtype)
         if self.nc == 1:
-            self.ce = nn.BCEWithLogitsLoss()  # binary: class weighting intentionally unsupported
+            self.ce = nn.BCEWithLogitsLoss(reduction="sum")  # binary: class weighting intentionally unsupported
         else:
-            self.ce = nn.CrossEntropyLoss(ignore_index=255).to(device=self.device, dtype=self.dtype)
+            self.ce = nn.CrossEntropyLoss(ignore_index=255, reduction="sum").to(device=self.device, dtype=self.dtype)
             if weight is not None:
                 # Non-persistent: weight is a deterministic constant, no need to serialize into ckpt state_dict.
                 self.ce.register_buffer("weight", weight, persistent=False)
@@ -1320,10 +1320,12 @@ class SemanticSegmentationLoss(nn.Module):
         if self.nc == 1:
             logits = preds.reshape(-1)[valid]
             target = flat[valid].float()
+            denominator = valid.sum()
         else:
             logits = preds.permute(0, 2, 3, 1).reshape(-1, self.nc)
             target = flat.long()
-        return self.ce(logits, target)
+            denominator = valid.sum() if self.ce.weight is None else self.ce.weight[target[valid]].sum()
+        return self.ce(logits, target) / denominator.clamp_min(1)
 
     def _dice_loss(self, preds, masks, valid):
         """Compute Dice loss excluding ignore pixels."""
@@ -1369,11 +1371,6 @@ class SemanticSegmentationLoss(nn.Module):
 
         masks = batch["semantic_mask"].to(preds.device)
         valid = masks.reshape(-1) != 255
-        if not valid.any():
-            zero = preds.flatten()[0] * 0  # graph-connected zero; sum() can overflow to inf in fp16
-            if aux_logits is not None:
-                zero = zero + aux_logits.flatten()[0] * 0
-            return zero * preds.shape[0], torch.stack([zero, zero, zero]).detach()
         if preds.shape[2:] != masks.shape[1:]:
             preds = F.interpolate(preds, size=masks.shape[1:], mode="bilinear", align_corners=False)
 

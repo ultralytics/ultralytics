@@ -893,9 +893,12 @@ def test_semantic_loss_all_ignore(nc):
     model = SemanticSegmentationModel(cfg="yolo26-sem.yaml", nc=nc, verbose=False)
     model.args = get_cfg()
     loss_fn = SemanticSegmentationLoss(model)
-    preds = model(torch.randn(1, 3, 64, 64))
-    loss, items = loss_fn(preds, {"semantic_mask": torch.full((1, 64, 64), 255, dtype=torch.long)})
+    preds = torch.randn(1, nc, 64, 64, requires_grad=True)
+    aux = torch.randn(1, nc, 32, 32, requires_grad=True)
+    loss, items = loss_fn((preds, aux), {"semantic_mask": torch.full((1, 64, 64), 255, dtype=torch.long)})
     assert torch.isfinite(loss).all() and torch.isfinite(items).all()
+    loss.backward()
+    assert preds.grad is not None and aux.grad is not None
 
 
 def test_utils_ops():

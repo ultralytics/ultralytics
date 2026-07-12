@@ -126,9 +126,11 @@ def test_semantic_loss_all_ignore_amp(nc):
     model = SemanticSegmentationModel(cfg="yolo26-sem.yaml", nc=nc, verbose=False)
     model.args = get_cfg()
     loss_fn = SemanticSegmentationLoss(model)
-    preds = (torch.randn(1, nc, 64, 64, device=f"cuda:{DEVICES[0]}") + 50).half()
+    preds = (torch.randn(1, nc, 64, 64, device=f"cuda:{DEVICES[0]}") + 50).half().requires_grad_()
     loss, items = loss_fn(preds, {"semantic_mask": torch.full((1, 64, 64), 255, dtype=torch.long)})
     assert torch.isfinite(loss).all() and torch.isfinite(items).all()
+    loss.backward()
+    assert preds.grad is not None
 
 
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")

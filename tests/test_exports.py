@@ -61,7 +61,7 @@ def test_export_torchscript_optimize_requires_xnnpack(monkeypatch, isolated_mode
     import torch.backends.xnnpack  # ensure the lazy submodule is registered before patching
 
     monkeypatch.setattr(torch.backends, "xnnpack", SimpleNamespace(enabled=False))
-    with pytest.raises(AssertionError, match="XNNPACK"):
+    with pytest.raises(RuntimeError, match="XNNPACK"):
         YOLO(isolated_model).export(format="torchscript", optimize=True, imgsz=32)
 
 

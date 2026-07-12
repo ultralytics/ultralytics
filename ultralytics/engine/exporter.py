@@ -615,13 +615,6 @@ class Exporter:
         if self.args.optimize:
             assert fmt != "ncnn", "optimize=True not compatible with format='ncnn', i.e. use optimize=False"
             assert self.device.type == "cpu", "optimize=True not compatible with cuda devices, i.e. use device='cpu'"
-            if fmt == "torchscript":
-                from torch.backends import xnnpack
-
-                assert xnnpack.enabled, (
-                    "optimize=True requires a PyTorch build with XNNPACK, but this PyTorch build has XNNPACK disabled "
-                    "(https://github.com/pytorch/pytorch/issues/189532), i.e. use optimize=False"
-                )
         if fmt == "rknn":
             if not self.args.name:
                 LOGGER.warning(

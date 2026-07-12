@@ -15,7 +15,7 @@ Ultralytics Platform accepts multiple upload formats for flexibility.
 
 !!! tip "Already have data elsewhere?"
 
-    If you already have datasets in [Ultralytics HUB](../integrations/ultralytics-hub.md) or [Roboflow](../integrations/roboflow.md), use [Integrations](../integrations/index.md) to import them directly — no manual export or re-upload needed.
+    If you already have datasets in [Ultralytics HUB](../integrations/ultralytics-hub.md) or [Roboflow](../integrations/roboflow.md), use [Integrations](../integrations/index.md) to import them directly — no manual export or re-upload needed. Data in [Google Cloud Storage](../integrations/google-cloud-storage.md), [Amazon S3](../integrations/amazon-s3.md), or [Azure Blob Storage](../integrations/azure-blob-storage.md) can be used in place: the **Cloud storage** tab in **New Dataset** indexes your images and YOLO labels without copying them into Platform.
 
 ### Supported Formats
 

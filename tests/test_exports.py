@@ -17,7 +17,7 @@ if sys.platform == "win32":
 import pytest
 import torch
 
-from tests import SOURCE
+from tests import MODEL, SOURCE
 from tests.conftest import isolated_model_path
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS, _handle_deprecation, get_cfg
@@ -149,6 +149,18 @@ def test_quantize_deprecation():
     assert _handle_deprecation({"half": True})["quantize"] == 16
     assert _handle_deprecation({"half": True, "int8": True})["quantize"] == 8  # int8 wins
     assert "half" not in _handle_deprecation({"half": True})  # legacy flag is removed after forwarding
+    assert _handle_deprecation({"half": True, "quantize": None})["quantize"] is None  # explicit quantize wins
+    assert _handle_deprecation({"half": True, "quantize": 8})["quantize"] == 8  # explicit quantize still wins
+
+
+def test_benchmark_forwards_legacy_precision(monkeypatch):
+    """model.benchmark(half=True) must reach the benchmark call as quantize=16, not silently run FP32."""
+    import ultralytics.utils.benchmarks as bm
+
+    captured = {}
+    monkeypatch.setattr(bm, "benchmark", lambda **kw: captured.update(kw) or {})
+    YOLO(MODEL).benchmark(half=True, format="onnx", data="coco8.yaml")
+    assert captured["quantize"] == 16, f"legacy half was dropped: quantize={captured.get('quantize')}"
 
 
 def test_qnn_quantize_requires_w8a16():

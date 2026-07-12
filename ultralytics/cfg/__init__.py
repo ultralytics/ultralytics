@@ -250,6 +250,13 @@ CFG_INT_KEYS = frozenset(
         "save_period",
     }
 )
+CFG_INT_MIN = {  # minimum valid values for integer arguments used as divisors, sizes or seeds
+    "nbs": 1,
+    "max_det": 1,
+    "mask_ratio": 1,
+    "vid_stride": 1,
+    "seed": 0,
+}
 CFG_BOOL_KEYS = frozenset(
     {  # boolean-only arguments
         "save",
@@ -437,12 +444,15 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                     cfg[k] = v = float(v)
                 if not (0.0 <= v <= 1.0):
                     raise ValueError(f"'{k}={v}' is an invalid value. Valid '{k}' values are between 0.0 and 1.0.")
-            elif k in CFG_INT_KEYS and not isinstance(v, int):
-                if hard:
-                    raise TypeError(
-                        f"'{k}={v}' is of invalid type {type(v).__name__}. '{k}' must be an int (i.e. '{k}=8')"
-                    )
-                cfg[k] = int(v)
+            elif k in CFG_INT_KEYS:
+                if not isinstance(v, int):
+                    if hard:
+                        raise TypeError(
+                            f"'{k}={v}' is of invalid type {type(v).__name__}. '{k}' must be an int (i.e. '{k}=8')"
+                        )
+                    cfg[k] = v = int(v)
+                if k in CFG_INT_MIN and v < CFG_INT_MIN[k]:
+                    raise ValueError(f"'{k}={v}' is an invalid value. '{k}' must be >= {CFG_INT_MIN[k]}.")
             elif k in CFG_BOOL_KEYS and not isinstance(v, bool):
                 if hard:
                     raise TypeError(

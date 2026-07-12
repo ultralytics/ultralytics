@@ -88,6 +88,14 @@ def test_cfg_rejects_fuzzed_scalars():
         get_cfg(overrides={"degrees": None})
     with pytest.raises(ValueError, match="cls_pw"):
         get_cfg(overrides={"cls_pw": 10})
+    with pytest.raises(ValueError, match="nbs"):
+        get_cfg(overrides={"nbs": 0})
+    with pytest.raises(ValueError, match="max_det"):
+        get_cfg(overrides={"max_det": -1})
+    with pytest.raises(ValueError, match="mask_ratio"):
+        get_cfg(overrides={"mask_ratio": 0})
+    with pytest.raises(ValueError, match="seed"):
+        get_cfg(overrides={"seed": -1})
 
 
 def skip_rpi_semantic():

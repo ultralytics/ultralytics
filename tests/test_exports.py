@@ -56,6 +56,15 @@ def test_export_torchscript(end2end, isolated_model):
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
+def test_export_torchscript_optimize_requires_xnnpack(monkeypatch, isolated_model):
+    """optimize=True must fail with a clear error when the installed PyTorch build lacks XNNPACK."""
+    import torch.backends.xnnpack  # ensure the lazy submodule is registered before patching
+
+    monkeypatch.setattr(torch.backends, "xnnpack", SimpleNamespace(enabled=False))
+    with pytest.raises(AssertionError, match="XNNPACK"):
+        YOLO(isolated_model).export(format="torchscript", optimize=True, imgsz=32)
+
+
 @pytest.mark.parametrize("end2end", [False, True])
 def test_export_onnx(end2end, isolated_model):
     """Test YOLO model export to ONNX format with dynamic axes."""

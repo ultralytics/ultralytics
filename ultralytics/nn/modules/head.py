@@ -27,7 +27,7 @@ from .block import (
     SwiGLUFFN,
     SpatialSuppressionGate,
 )
-from .conv import Conv, DWConv, RepConv
+from .conv import Conv, DWConv, RepConv, RepDWConv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init
 
@@ -101,6 +101,7 @@ class Detect(nn.Module):
     no_detach = False  # allow one2one gradients to flow back to backbone
     o2o_grad_scale = 0.0  # gradient scale for one2one features (0=detach, 1=full gradient)
     o2o_residual_head = False  # lightweight residual cls head for one2one (share boxes with o2m)
+    o2o_dilated = False  # multi-dilation RepDWConv in one2one cls branch (fuses to DW 5x5, wider RF for duplicate suppression)
     peak_pool_k = 0  # end2end inference-only local-max suppression kernel (0=off, odd int like 3/5)
     keep_one2many = False  # keep one2many head through fuse() to allow dual-head validation (set by the validator)
     fixed_c3 = 0  # fix cls branch hidden width regardless of nc (0 = auto: min(nc, 100)); keeps head shape stable across datasets for finetuning
@@ -171,6 +172,10 @@ class Detect(nn.Module):
             else:
                 self.one2one_cv2 = copy.deepcopy(self.cv2)
                 self.one2one_cv3 = copy.deepcopy(self.cv3)
+                if self.o2o_dilated and not self.legacy:
+                    for m, x in zip(self.one2one_cv3, ch):
+                        m[0][0] = RepDWConv(x)
+                        m[1][0] = RepDWConv(c3)
             if self.suppress:
                 self.o2o_suppress = nn.ModuleList(SpatialSuppressionGate(nc, k=5) for _ in range(self.nl))
 

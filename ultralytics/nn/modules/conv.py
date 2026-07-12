@@ -38,6 +38,7 @@ __all__ = (
     "StripAttn",
     "GCAttn",
     "GatedUpsample",
+    "RepDWConv",
 )
 
 
@@ -1340,6 +1341,76 @@ class WeightedFusion(nn.Module):
         """
         w = F.softmax(self.weights, dim=0)
         return self.conv(sum(wi * f for wi, f in zip(w, x)))
+
+
+class RepDWConv(nn.Module):
+    """Reparameterizable multi-dilation depthwise conv (ZipDepth-style parallel dilation).
+
+    Trains with parallel DW 3x3 (dilation 1) + DW 3x3 (dilation 2) + BN identity branches,
+    then fuses losslessly into a single DW 5x5 (a dilated 3x3 is a sparse 5x5). Doubles the
+    receptive field of a plain DW 3x3 for the cost of a DW 5x5 at inference.
+    """
+
+    default_act = nn.SiLU()  # default activation
+
+    def __init__(self, c: int, act: bool | nn.Module = True, bn: bool = True):
+        """Initialize RepDWConv.
+
+        Args:
+            c (int): Number of input/output channels.
+            act (bool | nn.Module): Activation function.
+            bn (bool): Use batch normalization identity branch.
+        """
+        super().__init__()
+        self.c = c
+        self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
+        self.conv1 = Conv(c, c, 3, 1, g=c, act=False)
+        self.conv2 = Conv(c, c, 3, 1, p=2, g=c, d=2, act=False)
+        self.bn = nn.BatchNorm2d(c) if bn else None
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Forward pass through parallel branches (training mode)."""
+        id_out = 0 if self.bn is None else self.bn(x)
+        return self.act(self.conv1(x) + self.conv2(x) + id_out)
+
+    def forward_fuse(self, x: torch.Tensor) -> torch.Tensor:
+        """Forward pass through the fused DW 5x5 (deploy mode)."""
+        return self.act(self.conv(x))
+
+    @staticmethod
+    def _fuse_bn(conv: nn.Conv2d, bn: nn.BatchNorm2d):
+        """Fold a BN layer into preceding conv weights."""
+        std = (bn.running_var + bn.eps).sqrt()
+        t = (bn.weight / std).reshape(-1, 1, 1, 1)
+        return conv.weight * t, bn.bias - bn.running_mean * bn.weight / std
+
+    def get_equivalent_kernel_bias(self):
+        """Merge all branches into a single equivalent DW 5x5 kernel and bias."""
+        k1, b1 = self._fuse_bn(self.conv1.conv, self.conv1.bn)
+        k2, b2 = self._fuse_bn(self.conv2.conv, self.conv2.bn)
+        k = F.pad(k1, [1, 1, 1, 1])  # 3x3 d=1 -> 5x5 center
+        kd = torch.zeros(self.c, 1, 5, 5, device=k.device, dtype=k.dtype)
+        kd[:, :, ::2, ::2] = k2  # 3x3 d=2 -> sparse 5x5 taps
+        k, b = k + kd, b1 + b2
+        if self.bn is not None:
+            std = (self.bn.running_var + self.bn.eps).sqrt()
+            k[:, 0, 2, 2] += self.bn.weight / std
+            b = b + self.bn.bias - self.bn.running_mean * self.bn.weight / std
+        return k, b
+
+    def fuse_convs(self):
+        """Fuse branches into a single DW 5x5 convolution for inference."""
+        if hasattr(self, "conv"):
+            return
+        kernel, bias = self.get_equivalent_kernel_bias()
+        self.conv = nn.Conv2d(self.c, self.c, 5, 1, 2, groups=self.c, bias=True).requires_grad_(False)
+        self.conv.weight.data = kernel
+        self.conv.bias.data = bias
+        for para in self.parameters():
+            para.detach_()
+        self.__delattr__("conv1")
+        self.__delattr__("conv2")
+        self.__delattr__("bn")
 
 
 class StripAttn(nn.Module):

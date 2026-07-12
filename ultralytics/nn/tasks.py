@@ -64,6 +64,7 @@ from ultralytics.nn.modules import (
     Concat,
     ScaledAdd,
     GatedUpsample,
+    RepDWConv,
     GCAttn,
     StripAttn,
     WeightedFusion,
@@ -283,7 +284,7 @@ class BaseModel(torch.nn.Module):
                     m.conv_transpose = fuse_deconv_and_bn(m.conv_transpose, m.bn)
                     delattr(m, "bn")  # remove batchnorm
                     m.forward = m.forward_fuse  # update forward
-                if isinstance(m, (RepConv, ACConv, DBBConv, MobileOneConv, MobileOneBlock, ReparamLargeKernelConv, RepGhostConv)):
+                if isinstance(m, (RepConv, RepDWConv, ACConv, DBBConv, MobileOneConv, MobileOneBlock, ReparamLargeKernelConv, RepGhostConv)):
                     m.fuse_convs()
                     m.forward = m.forward_fuse  # update forward
                 if isinstance(m, RepVGGDW):
@@ -1656,6 +1657,7 @@ def parse_model(d, ch, verbose=True):
     reg_max = d.get("reg_max", 16)
     suppress = d.get("suppress", False)
     rep_head = d.get("rep_head", False)
+    o2o_dilated = d.get("o2o_dilated", False)
     no_detach = d.get("no_detach", False)
     o2o_grad_scale = d.get("o2o_grad_scale", 0.0)
     peak_pool_k = d.get("peak_pool_k", 0)
@@ -1876,6 +1878,7 @@ def parse_model(d, ch, verbose=True):
             if m in {Detect, DetectBoxContext, DetectBoxContextFull, DetectBoxContextFullSep, DetectBoxContextSep, DetectNorm, DetectROI, DetectSharedReg}:
                 m.suppress = suppress
                 m.rep_head = rep_head
+                m.o2o_dilated = o2o_dilated
                 m.no_detach = no_detach
                 m.o2o_grad_scale = o2o_grad_scale
                 m.o2o_residual_head = d.get("o2o_residual_head", False)

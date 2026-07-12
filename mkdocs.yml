@@ -598,6 +598,7 @@ nav:
       - Axelera: integrations/axelera.md
       - ClearML: integrations/clearml.md
       - Comet ML: integrations/comet.md
+      - Core AI: integrations/coreai.md
       - CoreML: integrations/coreml.md
       - DEEPX: integrations/deepx.md
       - DVC: integrations/dvc.md

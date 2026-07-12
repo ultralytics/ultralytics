@@ -35,6 +35,7 @@ __all__ = (
     "RepGhostConv",
     "SpatialAttention",
     "WeightedFusion",
+    "StripAttn",
 )
 
 
@@ -1337,6 +1338,36 @@ class WeightedFusion(nn.Module):
         """
         w = F.softmax(self.weights, dim=0)
         return self.conv(sum(wi * f for wi, f in zip(w, x)))
+
+
+class StripAttn(nn.Module):
+    """Strip-pooling attention with a symmetric sigmoid gate (SPNet CVPR 2020, gate per ZipDepth).
+
+    Pools horizontal and vertical strips for global axial context, mixes each strip with a
+    depthwise 1D conv and a pointwise conv, then gates the input with 2*sigmoid so features
+    can be both suppressed (<1) and amplified (>1). Cost is O(C^2 * (H + W)) — near-free.
+    """
+
+    def __init__(self, c: int, k: int = 3):
+        """Initialize StripAttn.
+
+        Args:
+            c (int): Number of input/output channels.
+            k (int): Kernel size of the depthwise 1D strip convs.
+        """
+        super().__init__()
+        self.pool_h = nn.AdaptiveAvgPool2d((None, 1))
+        self.pool_w = nn.AdaptiveAvgPool2d((1, None))
+        self.conv_h = nn.Conv2d(c, c, (k, 1), padding=(k // 2, 0), groups=c, bias=False)
+        self.conv_w = nn.Conv2d(c, c, (1, k), padding=(0, k // 2), groups=c, bias=False)
+        self.fc_h = nn.Conv2d(c, c, 1)
+        self.fc_w = nn.Conv2d(c, c, 1)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Gate input with broadcast sum of horizontal and vertical strip contexts."""
+        gh = self.fc_h(self.conv_h(self.pool_h(x)))
+        gw = self.fc_w(self.conv_w(self.pool_w(x)))
+        return x * (2 * (gh + gw).sigmoid())
 
 
 class Concat(nn.Module):

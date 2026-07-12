@@ -113,8 +113,7 @@ class Analytics(BaseSolution):
         """
         self.extract_tracks(im0)  # Extract tracks
         if self.type == "line":
-            for _ in self.boxes:
-                self.total_counts += 1
+            self.total_counts += len(self.boxes)
             update_required = frame_number % self.update_every == 0 or self.last_plot_im is None
             if update_required:
                 self.last_plot_im = self.update_graph(frame_number=frame_number)

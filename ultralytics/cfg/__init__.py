@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import ast
+import os
 import shutil
 import subprocess
 import sys
@@ -56,13 +57,14 @@ SOLUTION_MAP = {
 
 # Define valid tasks and modes
 MODES = frozenset({"train", "val", "predict", "export", "track", "benchmark"})
-TASKS = frozenset({"detect", "segment", "classify", "pose", "obb"})
+TASKS = frozenset({"detect", "segment", "classify", "pose", "obb", "semantic"})
 TASK2DATA = {
     "detect": "coco8.yaml",
     "segment": "coco8-seg.yaml",
     "classify": "imagenet10",
     "pose": "coco8-pose.yaml",
     "obb": "dota8.yaml",
+    "semantic": "cityscapes8.yaml",
 }
 TASK2CALIBRATIONDATA = {
     "detect": "coco128.yaml",
@@ -70,6 +72,7 @@ TASK2CALIBRATIONDATA = {
     "classify": "imagenet100",
     "pose": "coco8-pose.yaml",
     "obb": "dota128.yaml",
+    "semantic": "cityscapes8.yaml",
 }
 TASK2MODEL = {
     "detect": "yolo26n.pt",
@@ -77,6 +80,7 @@ TASK2MODEL = {
     "classify": "yolo26n-cls.pt",
     "pose": "yolo26n-pose.pt",
     "obb": "yolo26n-obb.pt",
+    "semantic": "yolo26n-sem.pt",
 }
 TASK2METRIC = {
     "detect": "metrics/mAP50-95(B)",
@@ -84,9 +88,11 @@ TASK2METRIC = {
     "classify": "metrics/accuracy_top1",
     "pose": "metrics/mAP50-95(P)",
     "obb": "metrics/mAP50-95(B)",
+    "semantic": "metrics/mIoU",
 }
 
 ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []
+_YOLO_CLI_COMMAND = [sys.executable, "-m", "ultralytics.cfg.__init__"]
 SOLUTIONS_HELP_MSG = f"""
     Arguments received: {["yolo", *ARGV[1:]]!s}. Ultralytics 'yolo solutions' usage overview:
 
@@ -166,14 +172,34 @@ CLI_HELP_MSG = f"""
     GitHub: https://github.com/ultralytics/ultralytics
     """
 
+# Quantization aliases: maps any accepted `quantize` value to its canonical form. The common case is the integer
+# bit-width 8 (INT8) / 16 (FP16) / 32 (FP32); the verbose w<weights>a<activations> strings are accepted too and
+# collapse to the same ints, except the mixed-precision schemes that have no bit-width shorthand: 'w8a16' (INT8
+# weights + FP16 activations) and 'w8a32' (INT8 weights + FP32 activations, i.e. LiteRT dynamic/weight-only INT8).
+QUANTIZE_ALIASES = {
+    "8": 8,
+    "16": 16,
+    "32": 32,
+    "int8": 8,
+    "fp16": 16,
+    "fp32": 32,
+    "w8a8": 8,
+    "w16a16": 16,
+    "w32a32": 32,
+    "w8a16": "w8a16",
+    "w8a32": "w8a32",
+}
+QUANTIZE_DOCS_URL = "https://docs.ultralytics.com/modes/export/#quantization-options"
+QUANTIZE_VALID_VALUES = "8, 16, 32, 'int8', 'fp16', 'fp32', 'w8a8', 'w16a16', 'w8a16', or 'w8a32'"
+
 # Define keys for arg type checks
 CFG_FLOAT_KEYS = frozenset(
     {  # integer or float arguments, i.e. x=2 and x=2.0
         "warmup_epochs",
         "box",
         "cls",
-        "cls_pw",
         "dfl",
+        "dis",
         "degrees",
         "shear",
         "time",
@@ -186,6 +212,7 @@ CFG_FRACTION_KEYS = frozenset(
         "dropout",
         "lr0",
         "lrf",
+        "cls_pw",
         "momentum",
         "weight_decay",
         "warmup_momentum",
@@ -194,7 +221,6 @@ CFG_FRACTION_KEYS = frozenset(
         "hsv_s",
         "hsv_v",
         "translate",
-        "scale",
         "perspective",
         "flipud",
         "fliplr",
@@ -236,7 +262,6 @@ CFG_BOOL_KEYS = frozenset(
         "overlap_mask",
         "val",
         "save_json",
-        "half",
         "dnn",
         "plots",
         "show",
@@ -253,12 +278,18 @@ CFG_BOOL_KEYS = frozenset(
         "show_boxes",
         "keras",
         "optimize",
-        "int8",
         "dynamic",
         "simplify",
         "nms",
         "profile",
         "end2end",
+        "cls_remap",
+    }
+)
+
+CFG_BOOL_OR_STR_KEYS = frozenset(
+    {  # bool-or-str arguments whose valid non-bool values are free-form strings (e.g. compile backend mode)
+        "compile",
     }
 )
 
@@ -313,7 +344,7 @@ def get_cfg(
     Examples:
         >>> from ultralytics.cfg import get_cfg
         >>> config = get_cfg()  # Load default configuration
-        >>> config_with_overrides = get_cfg("path/to/config.yaml", overrides={"epochs": 50, "batch_size": 16})
+        >>> config_with_overrides = get_cfg("path/to/config.yaml", overrides={"epochs": 50, "batch": 16})
 
     Notes:
         - If both `cfg` and `overrides` are provided, the values in `overrides` will take precedence.
@@ -359,19 +390,22 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
         >>> config = {
         ...     "epochs": 50,  # valid integer
         ...     "lr0": 0.01,  # valid float
-        ...     "momentum": 1.2,  # invalid float (out of 0.0-1.0 range)
+        ...     "momentum": 0.937,  # valid float
         ...     "save": "true",  # invalid bool
         ... }
         >>> check_cfg(config, hard=False)
         >>> print(config)
-        {'epochs': 50, 'lr0': 0.01, 'momentum': 1.2, 'save': False}  # corrected 'save' key
+        {'epochs': 50, 'lr0': 0.01, 'momentum': 0.937, 'save': True}
 
     Notes:
         - The function modifies the input dictionary in-place.
         - None values are ignored as they may be from optional arguments.
         - Fraction keys are checked to be within the range [0.0, 1.0].
     """
+    typed_keys = CFG_FLOAT_KEYS | CFG_FRACTION_KEYS | CFG_INT_KEYS | CFG_BOOL_KEYS | CFG_BOOL_OR_STR_KEYS | {"scale"}
     for k, v in cfg.items():
+        if v is None and DEFAULT_CFG_DICT.get(k) is not None and k in typed_keys:
+            raise TypeError(f"'{k}=None' is invalid. '{k}' must not be None.")
         if v is not None:  # None values may be from optional args
             if k in CFG_FLOAT_KEYS and not isinstance(v, FLOAT_OR_INT):
                 if hard:
@@ -380,6 +414,25 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                         f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')"
                     )
                 cfg[k] = float(v)
+            elif k == "scale":
+                if isinstance(v, (list, tuple)):
+                    if len(v) != 2 or not all(isinstance(x, (int, float)) for x in v):
+                        if hard:
+                            raise TypeError(
+                                f"'{k}={v}' is of invalid type {type(v).__name__}. "
+                                f"Valid '{k}' types are int, float, or a tuple/list of two floats (i.e. '{k}=(0.5, 2.0)')"
+                            )
+                        continue
+                    continue
+                elif not isinstance(v, FLOAT_OR_INT):
+                    if hard:
+                        raise TypeError(
+                            f"'{k}={v}' is of invalid type {type(v).__name__}. "
+                            f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')"
+                        )
+                    cfg[k] = v = float(v)
+                if not (0.0 <= v <= 1.0):
+                    raise ValueError(f"'{k}={v}' is an invalid value. Valid '{k}' values are between 0.0 and 1.0.")
             elif k in CFG_FRACTION_KEYS:
                 if not isinstance(v, FLOAT_OR_INT):
                     if hard:
@@ -403,6 +456,23 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                         f"'{k}' must be a bool (i.e. '{k}=True' or '{k}=False')"
                     )
                 cfg[k] = bool(v)
+            elif k in CFG_BOOL_OR_STR_KEYS and not isinstance(v, (bool, str)):
+                if hard:
+                    raise TypeError(
+                        f"'{k}={v}' is of invalid type {type(v).__name__}. '{k}' must be a bool or str "
+                        f"(i.e. '{k}=True' or '{k}=inductor')"
+                    )
+                cfg[k] = bool(v) if isinstance(v, int) and v in (0, 1) else str(v)
+            elif k == "quantize":  # canonicalize 8/16/32 or w-notation to a scheme (unset stays None for FP32)
+                scheme = QUANTIZE_ALIASES.get(str(v).lower())
+                if scheme is None:
+                    if hard:
+                        raise ValueError(
+                            f"'{k}={v}' is invalid. Valid '{k}' values are {QUANTIZE_VALID_VALUES}. "
+                            f"See {QUANTIZE_DOCS_URL}"
+                        )
+                else:
+                    cfg[k] = scheme
 
 
 def get_save_dir(args: SimpleNamespace, name: str | None = None) -> Path:
@@ -431,7 +501,11 @@ def get_save_dir(args: SimpleNamespace, name: str | None = None) -> Path:
 
         project = args.project or ""
         if not Path(project).is_absolute():
-            project = (ROOT.parent / "tests/tmp/runs" if TESTS_RUNNING else RUNS_DIR) / args.task / project
+            base = ROOT.parent / "tests/tmp/runs" if TESTS_RUNNING else RUNS_DIR
+            worker = os.environ.get("PYTEST_XDIST_WORKER")
+            if worker and TESTS_RUNNING:  # isolate parallel pytest-xdist workers
+                base = base / worker
+            project = base / args.task / project
         name = name or args.name or f"{args.mode}"
         save_dir = increment_path(Path(project) / name, exist_ok=args.exist_ok if RANK in {-1, 0} else True)
 
@@ -450,8 +524,7 @@ def _handle_deprecation(custom: dict) -> dict:
     Examples:
         >>> custom_config = {"boxes": True, "hide_labels": "False", "line_thickness": 2}
         >>> _handle_deprecation(custom_config)
-        >>> print(custom_config)
-        {'show_boxes': True, 'show_labels': True, 'line_width': 2}
+        {'show_boxes': True, 'show_labels': False, 'line_width': 2}
 
     Notes:
         This function modifies the input dictionary in-place, replacing deprecated keys with their current
@@ -465,6 +538,17 @@ def _handle_deprecation(custom: dict) -> dict:
         "line_thickness": ("line_width", lambda v: v),
     }
     removed_keys = {"label_smoothing", "save_hybrid", "crop_fraction"}
+
+    # Forward the deprecated precision flags onto the unified `quantize` scheme (int8 wins over half). The value is read
+    # as a bool so quoted/string 'False' disables it while a bare CLI flag (empty string) enables it; an explicit false
+    # flag maps to None to clear any inherited quantize. An explicit `quantize=` always wins over the legacy flags.
+    int8 = custom.pop("int8", None)
+    half = custom.pop("half", None)
+    if (int8 is not None or half is not None) and "quantize" not in custom:
+        int8_on = int8 is not None and str(int8).strip().lower() not in {"none", "false", "0"}
+        half_on = half is not None and str(half).strip().lower() not in {"none", "false", "0"}
+        custom["quantize"] = 8 if int8_on else 16 if half_on else None  # False/0 clears precision back to FP32
+        deprecation_warn("int8" if int8 is not None else "half", "quantize")
 
     for old_key, (new_key, transform) in deprecated_mappings.items():
         if old_key not in custom:
@@ -494,14 +578,14 @@ def check_dict_alignment(
         allowed_custom_keys (set | None): Optional set of additional keys that are allowed in the custom dictionary.
 
     Raises:
-        SystemExit: If mismatched keys are found between the custom and base dictionaries.
+        SyntaxError: If mismatched keys are found between the custom and base dictionaries.
 
     Examples:
-        >>> base_cfg = {"epochs": 50, "lr0": 0.01, "batch_size": 16}
-        >>> custom_cfg = {"epoch": 100, "lr": 0.02, "batch_size": 32}
+        >>> base_cfg = {"epochs": 50, "lr0": 0.01, "batch": 16}
+        >>> custom_cfg = {"epoch": 100, "lr": 0.02, "batch": 32}
         >>> try:
         ...     check_dict_alignment(base_cfg, custom_cfg)
-        ... except SystemExit:
+        ... except SyntaxError:
         ...     print("Mismatched keys found")
 
     Notes:
@@ -625,7 +709,7 @@ def handle_yolo_settings(args: list[str]) -> None:
 
     Examples:
         >>> handle_yolo_settings(["reset"])  # Reset YOLO settings
-        >>> handle_yolo_settings(["default_cfg_path=yolo26n.yaml"])  # Update a specific setting
+        >>> handle_yolo_settings(["runs_dir=path/to/dir"])  # Update a specific setting
 
     Notes:
         - If no arguments are provided, the function will display the current settings.
@@ -676,7 +760,7 @@ def handle_yolo_solutions(args: list[str]) -> None:
         - Arguments can be provided in the format 'key=value' or as boolean flags
         - Available solutions are defined in SOLUTION_MAP with their respective classes and methods
         - If an invalid solution is provided, defaults to 'count' solution
-        - Output videos are saved in 'runs/solution/{solution_name}' directory
+        - Output videos are saved in 'runs/solutions/exp' directory
         - For 'analytics' solution, frame numbers are tracked for generating analytical graphs
         - Video processing can be interrupted by pressing 'q'
         - Processes video frames sequentially and saves output in .avi format
@@ -744,7 +828,7 @@ def handle_yolo_solutions(args: list[str]) -> None:
             w, h, fps = (
                 int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS)
             )
-            if solution_name == "analytics":  # analytical graphs follow fixed shape for output i.e w=1920, h=1080
+            if solution_name == "analytics":  # analytical graphs follow fixed shape for output i.e w=1280, h=720
                 w, h = 1280, 720
             save_dir = get_save_dir(SimpleNamespace(task="solutions", name="exp", exist_ok=False, project=None))
             save_dir.mkdir(parents=True, exist_ok=True)  # create the output directory i.e. runs/solutions/exp
@@ -839,6 +923,11 @@ def smart_value(v: str) -> Any:
         try:
             return ast.literal_eval(v)
         except Exception:
+            name, _, attr = v.rpartition(".")
+            if (module := sys.modules.get(name)) and attr.isupper():
+                value = getattr(module, attr, None)
+                if isinstance(value, (int, float)):
+                    return value
             return v
 
 
@@ -918,6 +1007,8 @@ def entrypoint(debug: str = "") -> None:
             return
         elif a in DEFAULT_CFG_DICT and isinstance(DEFAULT_CFG_DICT[a], bool):
             overrides[a] = True  # auto-True for default bool args, i.e. 'yolo show' sets show=True
+        elif a in {"half", "int8"}:
+            overrides[a] = True  # deprecated bare precision flags, forwarded to quantize by _handle_deprecation
         elif a in DEFAULT_CFG_DICT:
             raise SyntaxError(
                 f"'{colorstr('red', 'bold', a)}' is a valid YOLO argument but is missing an '=' sign "
@@ -977,7 +1068,7 @@ def entrypoint(debug: str = "") -> None:
         if "yoloe" in stem or "world" in stem:
             cls_list = overrides.pop("classes", DEFAULT_CFG.classes)
             if cls_list is not None and isinstance(cls_list, str):
-                model.set_classes(cls_list.split(","))  # convert "person, bus" -> ['person', ' bus'].
+                model.set_classes([c.strip() for c in cls_list.split(",")])  # "person, bus" -> ['person', 'bus']
     # Task Update
     if task != model.task:
         if task:

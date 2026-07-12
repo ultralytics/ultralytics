@@ -6,6 +6,7 @@ from typing import Any
 
 import cv2
 import numpy as np
+import torch
 
 from ultralytics.solutions.object_counter import ObjectCounter
 from ultralytics.solutions.solutions import SolutionAnnotator, SolutionResults
@@ -50,13 +51,15 @@ class Heatmap(ObjectCounter):
         self.colormap = self.CFG["colormap"]
         self.heatmap = None
 
-    def heatmap_effect(self, box: list[float]) -> None:
+    def heatmap_effect(self, box: torch.Tensor) -> None:
         """Efficiently calculate heatmap area and effect location for applying colormap.
 
         Args:
-            box (list[float]): Bounding box coordinates [x0, y0, x1, y1].
+            box (torch.Tensor): Bounding box coordinates [x0, y0, x1, y1] or (4, 2) OBB corner points.
         """
-        x0, y0, x1, y1 = map(int, box)
+        x0, y0, x1, y1 = map(int, self.get_enclosing_box(box))
+        h, w = self.heatmap.shape[:2]
+        x0, y0, x1, y1 = max(x0, 0), max(y0, 0), min(x1, w), min(y1, h)  # clip OBB corners to image bounds
         radius_squared = (min(x1 - x0, y1 - y0) // 2) ** 2
 
         # Create a meshgrid with region of interest (ROI) for vectorized distance calculations
@@ -83,7 +86,7 @@ class Heatmap(ObjectCounter):
                 object count), and 'total_tracks' (int, total number of tracked objects).
         """
         if not self.initialized:
-            self.heatmap = np.zeros_like(im0, dtype=np.float32) * 0.99
+            self.heatmap = np.zeros_like(im0, dtype=np.float32)
             self.initialized = True  # Initialize heatmap only once
 
         self.extract_tracks(im0)  # Extract tracks

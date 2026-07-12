@@ -1,4 +1,5 @@
 ---
+title: YOLO26 Training Logging with Comet ML
 comments: true
 description: Learn to simplify the logging of YOLO26 training with Comet. This guide covers installation, setup, real-time insights, and custom logging.
 keywords: YOLO26, Comet, Comet ML, logging, machine learning, training, model checkpoints, metrics, installation, configuration, real-time insights, custom logging
@@ -140,7 +141,19 @@ Comet logs system metrics to help identify any bottlenecks in the training proce
 
 ## Customizing Comet Logging
 
-Comet offers the flexibility to customize its logging behavior by setting environment variables. These configurations allow you to tailor Comet to your specific needs and preferences. Here are some helpful customization options:
+Comet offers the flexibility to customize its logging behavior by setting environment variables. These configurations allow you to tailor Comet to your specific needs and preferences. The Ultralytics callback reads the following environment variables (set them before training starts):
+
+| Environment Variable                | Default        | Description                                                                                                |
+| ----------------------------------- | -------------- | ---------------------------------------------------------------------------------------------------------- |
+| `COMET_START_ONLINE`                | `1`            | Run the experiment in online (`1`) or offline (`0`) mode.                                                  |
+| `COMET_PROJECT_NAME`                | `args.project` | Comet workspace project. Falls back to the YOLO `project` training argument when unset.                    |
+| `COMET_MODEL_NAME`                  | `Ultralytics`  | Name registered for the logged model artifact.                                                             |
+| `COMET_MAX_IMAGE_PREDICTIONS`       | `100`          | Total number of validation image predictions to log per run.                                               |
+| `COMET_EVAL_BATCH_LOGGING_INTERVAL` | `1`            | Log image predictions every Nth validation batch.                                                          |
+| `COMET_EVAL_LOG_IMAGE_PREDICTIONS`  | `true`         | Toggle image prediction logging on (`true`) or off (`false`).                                              |
+| `COMET_EVAL_LOG_CONFUSION_MATRIX`   | `false`        | Log a confusion matrix on every validation epoch. A final matrix is always logged at end of training.      |
+| `COMET_MAX_CONFIDENCE_SCORE`        | `100.0`        | Multiplier applied to detection confidence scores before logging (Comet's UI expects a percentage scale).  |
+| `COMET_MODE` _(deprecated)_         | `online`       | Legacy alias of `COMET_START_ONLINE` (`"online"` ↔ `1`, `"offline"` ↔ `0`). Emits a deprecation warning. |
 
 ### Logging Image Predictions
 
@@ -150,6 +163,14 @@ You can control the number of image predictions that Comet logs during your expe
 import os
 
 os.environ["COMET_MAX_IMAGE_PREDICTIONS"] = "200"
+```
+
+To disable image prediction logging entirely (for example, to reduce upload volume on slow connections), set `COMET_EVAL_LOG_IMAGE_PREDICTIONS` to `"false"`:
+
+```python
+import os
+
+os.environ["COMET_EVAL_LOG_IMAGE_PREDICTIONS"] = "false"
 ```
 
 ### Batch Logging Interval
@@ -172,14 +193,48 @@ import os
 os.environ["COMET_EVAL_LOG_CONFUSION_MATRIX"] = "false"
 ```
 
-### Offline Logging
+### Online and Offline Mode
 
-If you find yourself in a situation where internet access is limited, Comet provides an offline logging option. You can set the `COMET_MODE` environment variable to "offline" to enable this feature. Your experiment data will be saved locally in a directory that you can later upload to Comet when internet connectivity is available.
+By default, Comet runs in online mode and streams experiment data to the Comet servers. If you need to train without internet access, set `COMET_START_ONLINE=0` before training starts. Experiment data is saved locally and can be uploaded later with the [`comet upload`](https://www.comet.com/docs/v2/api-and-sdk/command-line/reference/) CLI.
 
 ```python
 import os
 
-os.environ["COMET_MODE"] = "offline"
+os.environ["COMET_START_ONLINE"] = "0"  # 1 (default) = online, 0 = offline
+```
+
+!!! note "`COMET_MODE` is deprecated"
+
+    Earlier versions used `COMET_MODE="offline"` for this purpose. The variable is still honored for backward compatibility but emits a deprecation warning. Use `COMET_START_ONLINE` going forward.
+
+### Project Name
+
+By default, the Comet callback passes the YOLO `project` training argument to Comet (or `None` when the argument is unset, in which case Comet uses your workspace default). Override this with `COMET_PROJECT_NAME` to send all experiments to a specific Comet workspace project regardless of the YOLO training argument:
+
+```python
+import os
+
+os.environ["COMET_PROJECT_NAME"] = "my-yolo26-experiments"
+```
+
+### Model Artifact Name
+
+`COMET_MODEL_NAME` sets the name Comet registers for the logged model artifact (defaults to `Ultralytics`). Use it to differentiate model variants in a shared workspace:
+
+```python
+import os
+
+os.environ["COMET_MODEL_NAME"] = "yolo26n-coco128"
+```
+
+### Confidence Score Scaling
+
+Detection confidence scores are emitted in the `[0, 1]` range, but the Comet UI displays them on a percentage scale by default. The callback multiplies each score by `COMET_MAX_CONFIDENCE_SCORE` (default `100.0`) before logging. Adjust this if you prefer raw probabilities or a different scale:
+
+```python
+import os
+
+os.environ["COMET_MAX_CONFIDENCE_SCORE"] = "1.0"  # log raw [0, 1] scores
 ```
 
 ## Summary
@@ -275,7 +330,23 @@ Comet allows for extensive customization of its logging behavior using environme
     os.environ["COMET_EVAL_LOG_CONFUSION_MATRIX"] = "false"
     ```
 
-Refer to the [Customizing Comet Logging](#customizing-comet-logging) section for more customization options.
+- **Set the Comet project name**:
+
+    ```python
+    import os
+
+    os.environ["COMET_PROJECT_NAME"] = "my-yolo26-experiments"
+    ```
+
+- **Set the logged model artifact name**:
+
+    ```python
+    import os
+
+    os.environ["COMET_MODEL_NAME"] = "yolo26n-coco128"
+    ```
+
+See the [Customizing Comet Logging](#customizing-comet-logging) section for the full list, including image prediction toggles, confidence score scaling, and online/offline mode.
 
 ### How do I view detailed metrics and visualizations of my YOLO26 training on Comet?
 
@@ -290,12 +361,12 @@ For a detailed overview of these features, visit the [Understanding Your Model's
 
 ### Can I use Comet for offline logging when training YOLO26 models?
 
-Yes, you can enable offline logging in Comet by setting the `COMET_MODE` environment variable to "offline":
+Yes. Set `COMET_START_ONLINE=0` before training starts to log locally:
 
 ```python
 import os
 
-os.environ["COMET_MODE"] = "offline"
+os.environ["COMET_START_ONLINE"] = "0"
 ```
 
-This feature allows you to log your experiment data locally, which can later be uploaded to Comet when internet connectivity is available. This is particularly useful when working in environments with limited internet access. For more details, refer to the [Offline Logging](#offline-logging) section.
+Experiment data is saved on disk and can be uploaded to Comet later with the [`comet upload`](https://www.comet.com/docs/v2/api-and-sdk/command-line/reference/) CLI when connectivity is available. The earlier `COMET_MODE="offline"` variable still works but emits a deprecation warning. For more details, see the [Online and Offline Mode](#online-and-offline-mode) section.

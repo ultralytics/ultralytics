@@ -58,16 +58,16 @@ def non_max_suppression(
     # Checks
     assert 0 <= conf_thres <= 1, f"Invalid Confidence threshold {conf_thres}, valid values are between 0.0 and 1.0"
     assert 0 <= iou_thres <= 1, f"Invalid IoU {iou_thres}, valid values are between 0.0 and 1.0"
-    if isinstance(prediction, (list, tuple)):  # YOLOv8 model in validation model, output = (inference_out, loss_out)
+    if isinstance(prediction, (list, tuple)):  # YOLOv8 model in validation mode, output = (inference_out, loss_out)
         prediction = prediction[0]  # select only inference output
     if classes is not None:
         classes = torch.tensor(classes, device=prediction.device)
 
     if prediction.shape[-1] == 6 or end2end:  # end-to-end model (BNC, i.e. 1,300,6)
-        output = [pred[pred[:, 4] > conf_thres][:max_det] for pred in prediction]
+        output = [pred[pred[:, 4] > conf_thres] for pred in prediction]
         if classes is not None:
             output = [pred[(pred[:, 5:6] == classes).any(1)] for pred in output]
-        return output
+        return [pred[:max_det] for pred in output]  # apply max_det after classes filter
 
     bs = prediction.shape[0]  # batch size (BCN, i.e. 1,84,6300)
     nc = nc or (prediction.shape[1] - 4)  # number of classes
@@ -147,7 +147,7 @@ def non_max_suppression(
             i = TorchNMS.fast_nms(boxes, scores, iou_thres, iou_func=batch_probiou)
         else:
             boxes = x[:, :4] + c  # boxes (offset by class)
-            # Speed strategy: torchvision for val or already loaded (faster), TorchNMS for predict (lower latency)
+            # Speed strategy: torchvision if already imported (preloaded by warmup/val/streams), else TorchNMS (no slow import)
             if "torchvision" in sys.modules:
                 import torchvision  # scope as slow import
 

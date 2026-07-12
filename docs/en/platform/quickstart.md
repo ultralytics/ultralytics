@@ -23,16 +23,20 @@ The following interactive diagram outlines the four primary stages of the Ultral
 
 ```mermaid
 graph LR
-    A(Sign Up) --> B(Prepare Data) --> C(Train) --> D(Deploy)
-    A -.- A1["<a href='#get-started'>Create account</a><br/><a href='#region-selection'>Select region</a>"]
-    B -.- B1["<a href='#upload-your-first-dataset'>Upload dataset</a><br/><a href='#create-your-first-project'>Create Project</a>"]
-    C -.- C1["<a href='#training-configuration'>Configure training</a><br/><a href='#monitor-training'>Monitor progress</a>"]
-    D -.- D1["<a href='#test-your-model'>Test model</a><br/><a href='#deploy-to-production'>Deploy endpoint</a>"]
+    A(Sign Up):::start --> B(Prepare Data):::proc --> C(Train):::proc --> D(Deploy):::out
+    A -.- A1["<a href='#get-started'>Create account</a><br/><a href='#region-selection'>Select region</a>"]:::proc
+    B -.- B1["<a href='#upload-your-first-dataset'>Upload dataset</a><br/><a href='#create-your-first-project'>Create Project</a>"]:::proc
+    C -.- C1["<a href='#training-configuration'>Configure training</a><br/><a href='#monitor-training'>Monitor progress</a>"]:::proc
+    D -.- D1["<a href='#test-your-model'>Test model</a><br/><a href='#deploy-to-production'>Deploy endpoint</a>"]:::proc
 
     click A "#get-started"
     click B "#upload-your-first-dataset"
     click C "#train-your-first-model"
     click D "#deploy-to-production"
+
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 ## Get Started
@@ -53,9 +57,9 @@ During onboarding, you'll be asked to select your data region. The Platform auto
 | **EU** | Europe, Middle East & Africa | Belgium, Europe      | European users, GDPR compliance         |
 | **AP** | Asia Pacific                 | Taiwan, Asia-Pacific | Asia-Pacific users, lowest APAC latency |
 
-!!! warning "Region is Permanent"
+!!! warning "Choose Your Region Carefully"
 
-    Your region selection cannot be changed after account creation. Choose the region closest to you or your users for best performance.
+    Your data region is set during onboarding and cannot be changed yourself afterward, so choose the region closest to you or your users for best performance. If you need to move regions later, contact support to request a change.
 
 ### Free Credits
 
@@ -176,13 +180,17 @@ Ultralytics Platform supports multiple upload formats (full details in [Datasets
 
 ```mermaid
 graph LR
-    A[Drop Files] --> B[Auto-Package ZIP]
-    B --> C[Upload to Storage]
-    C --> D[Backend Worker]
-    D --> E[Resize & Thumbnail]
-    E --> F[Parse Labels]
-    F --> G[Compute Statistics]
-    G --> H[Dataset Ready]
+    A[Drop Files]:::start --> B[Auto-Package ZIP]:::proc
+    B --> C[Upload to Storage]:::proc
+    C --> D[Backend Worker]:::proc
+    D --> E[Resize & Thumbnail]:::proc
+    E --> F[Parse Labels]:::proc
+    F --> G[Compute Statistics]:::proc
+    G --> H[Dataset Ready]:::out
+
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 After upload, the platform automatically processes your data:
@@ -224,13 +232,12 @@ Projects help you organize related models and experiments. Navigate to Projects 
 Enter a name and optional description for your project. Projects contain:
 
 - **Models**: Trained checkpoints
-- **Activity Log**: History of changes
 
 Read more about [projects](train/projects.md).
 
 ## Train Your First Model
 
-From your project, click `Train Model` to start cloud training.
+From your project, click `New Model` to start cloud training.
 
 ![Ultralytics Platform Quickstart Training Dialog Cloud Tab](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-quickstart-training-dialog-cloud-tab.avif)
 
@@ -239,7 +246,7 @@ From your project, click `Train Model` to start cloud training.
 1. **Select Dataset**: Choose from your uploaded datasets (only datasets with a [`train` split](data/datasets.md#filter-by-split) are shown)
 2. **Choose Model**: Select a base model - official Ultralytics models or your own trained models
 3. **Set Epochs**: Number of training iterations (default: 100)
-4. **Select GPU**: Choose compute resources based on your budget and model size. The default is **RTX PRO 6000** (96 GB Blackwell, $1.69/hr), which handles every YOLO26 variant. See the full [GPU pricing table](index.md#what-gpu-options-are-available-for-cloud-training) or the [Cloud Training GPU step](train/cloud-training.md#step-5-select-gpu-cloud-tab) for the complete list and tier gating.
+4. **Select GPU**: Choose compute resources based on your budget and model size. The default is **RTX PRO 6000** (96 GB Blackwell, $2.09/hr), which handles every YOLO26 variant. See the full [GPU pricing table](index.md#what-gpu-options-are-available-for-cloud-training) or the [Cloud Training GPU step](train/cloud-training.md#step-5-select-gpu-cloud-tab) for the complete list and tier gating.
 
 !!! warning "Credit Balance Required"
 
@@ -319,21 +326,27 @@ Deploy your model to a dedicated endpoint for production use:
 
 1. Navigate to your model's `Deploy` tab
 2. Select a region from the interactive world map (43 available regions)
-3. The map shows real-time latency measurements with traffic light colors (green < 100ms, yellow < 200ms, red > 200ms)
+3. The map shows real-time latency measurements with colors on a green-to-red gradient (lower latency is greener, higher latency is redder)
 4. Click `Deploy` to create your endpoint
 
 ![Ultralytics Platform Deploy Tab Region Map With Latency](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-deploy-tab-region-map-with-latency.avif)
 
 ```mermaid
 graph LR
-    A[Select Region] --> B[Deploy]
-    B --> C[Provisioning ~1 min]
-    C --> D[Running]
-    D --> E{Lifecycle}
-    E --> F[Stop]
-    E --> G[Delete]
-    F --> H[Resume]
+    A[Select Region]:::start --> B[Deploy]:::proc
+    B --> C[Provisioning ~1 min]:::proc
+    C --> D[Running]:::out
+    D --> E{Lifecycle}:::decide
+    E --> F[Stop]:::error
+    E --> G[Delete]:::error
+    F --> H[Resume]:::proc
     H --> D
+
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef decide fill:#FF9800,color:#fff
+    classDef out fill:#9C27B0,color:#fff
+    classDef error fill:#F44336,color:#fff
 ```
 
 Your endpoint will be ready in about a minute with:

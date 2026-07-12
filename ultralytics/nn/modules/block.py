@@ -63,7 +63,7 @@ __all__ = (
 class DFL(nn.Module):
     """Integral module of Distribution Focal Loss (DFL).
 
-    Proposed in Generalized Focal Loss https://ieeexplore.ieee.org/document/9792391
+    Proposed in Generalized Focal Loss https://arxiv.org/abs/2006.04388
     """
 
     def __init__(self, c1: int = 16):
@@ -1326,7 +1326,7 @@ class Attention(nn.Module):
             [self.key_dim, self.key_dim, self.head_dim], dim=2
         )
 
-        attn = (q.transpose(-2, -1) @ k) * self.scale
+        attn = (q * self.scale).transpose(-2, -1) @ k
         attn = attn.softmax(dim=-1)
         x = (v @ attn.transpose(-2, -1)).view(B, C, H, W) + self.pe(v.reshape(B, C, H, W))
         x = self.proj(x)
@@ -2133,7 +2133,7 @@ class AAttn(nn.Module):
             .permute(0, 2, 3, 1)
             .split([self.head_dim, self.head_dim, self.head_dim], dim=2)
         )
-        attn = (q.transpose(-2, -1) @ k) * (self.head_dim**-0.5)
+        attn = (q * (self.head_dim**-0.5)).transpose(-2, -1) @ k
         attn = attn.softmax(dim=-1)
         x = v @ attn.transpose(-2, -1)
         x = x.permute(0, 3, 1, 2)
@@ -2418,7 +2418,7 @@ class Proto26(Proto):
         self.feat_fuse = Conv(ch[0], c_, k=3)
         self.semseg = nn.Sequential(Conv(ch[0], c_, k=3), Conv(c_, c_, k=3), nn.Conv2d(c_, nc, 1))
 
-    def forward(self, x: torch.Tensor, return_semseg: bool = True) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, return_semantic: bool = True) -> torch.Tensor:
         """Perform a forward pass by fusing multi-scale feature maps and generating proto masks."""
         feat = x[0]
         for i, f in enumerate(self.feat_refine):
@@ -2426,9 +2426,9 @@ class Proto26(Proto):
             up_feat = F.interpolate(up_feat, size=feat.shape[2:], mode="nearest")
             feat = feat + up_feat
         p = super().forward(self.feat_fuse(feat))
-        if self.training and return_semseg:
-            semseg = self.semseg(feat)
-            return (p, semseg)
+        if self.training and return_semantic:
+            semantic = self.semseg(feat)
+            return (p, semantic)
         return p
 
     def fuse(self):

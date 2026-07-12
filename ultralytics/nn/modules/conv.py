@@ -36,6 +36,7 @@ __all__ = (
     "SpatialAttention",
     "WeightedFusion",
     "StripAttn",
+    "GCAttn",
 )
 
 
@@ -1368,6 +1369,39 @@ class StripAttn(nn.Module):
         gh = self.fc_h(self.conv_h(self.pool_h(x)))
         gw = self.fc_w(self.conv_w(self.pool_w(x)))
         return x * (2 * (gh + gw).sigmoid())
+
+
+class GCAttn(nn.Module):
+    """Global Context block (GCNet, ICCVW 2019).
+
+    Aggregates a single scene-level context vector via softmax-weighted spatial pooling,
+    transforms it with a bottleneck channel MLP (LayerNorm-stabilized), and broadcast-adds
+    it back. O(C*HW) pooling — near-free global context.
+    """
+
+    def __init__(self, c: int, e: float = 0.25):
+        """Initialize GCAttn.
+
+        Args:
+            c (int): Number of input/output channels.
+            e (float): Bottleneck ratio for the channel transform.
+        """
+        super().__init__()
+        ch = max(int(c * e), 16)
+        self.mask = nn.Conv2d(c, 1, 1)
+        self.transform = nn.Sequential(
+            nn.Conv2d(c, ch, 1),
+            nn.LayerNorm([ch, 1, 1]),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(ch, c, 1),
+        )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Add transformed global context to every position."""
+        b, c = x.shape[:2]
+        attn = self.mask(x).flatten(2).softmax(-1)  # (b, 1, hw)
+        ctx = (x.flatten(2) @ attn.transpose(-2, -1)).view(b, c, 1, 1)
+        return x + self.transform(ctx)
 
 
 class Concat(nn.Module):

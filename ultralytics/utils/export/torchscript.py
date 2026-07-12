@@ -37,6 +37,13 @@ def torch2torchscript(
     ts = torch.jit.trace(model, im, strict=False)
     extra_files = {"config.txt": json.dumps(metadata or {})}  # torch._C.ExtraFilesMap()
     if optimize:  # https://pytorch.org/tutorials/recipes/mobile_interpreter.html
+        from torch.backends import xnnpack
+
+        if not xnnpack.enabled:
+            raise RuntimeError(
+                "optimize=True requires a PyTorch build with XNNPACK, but this PyTorch build has XNNPACK disabled "
+                "(https://github.com/pytorch/pytorch/issues/189532), i.e. use optimize=False"
+            )
         LOGGER.info(f"{prefix} optimizing for mobile...")
         from torch.utils.mobile_optimizer import optimize_for_mobile
 

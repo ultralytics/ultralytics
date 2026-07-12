@@ -302,6 +302,12 @@ CFG_BOOL_KEYS = frozenset(
     }
 )
 
+CFG_BOOL_OR_STR_KEYS = frozenset(
+    {  # bool-or-str arguments whose valid non-bool values are free-form strings (e.g. compile backend mode)
+        "compile",
+    }
+)
+
 
 def cfg2dict(cfg: str | Path | dict | SimpleNamespace) -> dict:
     """Convert a configuration object to a dictionary.
@@ -411,7 +417,7 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
         - None values are ignored as they may be from optional arguments.
         - Fraction keys are checked to be within the range [0.0, 1.0].
     """
-    typed_keys = CFG_FLOAT_KEYS | CFG_FRACTION_KEYS | CFG_INT_KEYS | CFG_BOOL_KEYS | {"scale"}
+    typed_keys = CFG_FLOAT_KEYS | CFG_FRACTION_KEYS | CFG_INT_KEYS | CFG_BOOL_KEYS | CFG_BOOL_OR_STR_KEYS | {"scale"}
     for k, v in cfg.items():
         if v is None and DEFAULT_CFG_DICT.get(k) is not None and k in typed_keys:
             raise TypeError(f"'{k}=None' is invalid. '{k}' must not be None.")
@@ -465,6 +471,13 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                         f"'{k}' must be a bool (i.e. '{k}=True' or '{k}=False')"
                     )
                 cfg[k] = bool(v)
+            elif k in CFG_BOOL_OR_STR_KEYS and not isinstance(v, (bool, str)):
+                if hard:
+                    raise TypeError(
+                        f"'{k}={v}' is of invalid type {type(v).__name__}. '{k}' must be a bool or str "
+                        f"(i.e. '{k}=True' or '{k}=inductor')"
+                    )
+                cfg[k] = bool(v) if isinstance(v, int) and v in (0, 1) else str(v)
             elif k == "quantize":  # canonicalize 8/16/32 or w-notation to a scheme (unset stays None for FP32)
                 scheme = QUANTIZE_ALIASES.get(str(v).lower())
                 if scheme is None:

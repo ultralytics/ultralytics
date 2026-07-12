@@ -67,22 +67,20 @@ def test_serialize_callbacks_importable():
     os.remove(result)
 
 
-def test_serialize_callbacks_lambda(caplog):
+def test_serialize_callbacks_lambda():
     """Lambda callbacks cannot be pickled — should be dropped with a warning."""
-    import logging
-
     cbs = get_default_callbacks()
     cbs["on_train_start"].append(lambda t: None)
     trainer = FakeTrainer(callbacks=cbs)
-    with caplog.at_level(logging.WARNING):
+    with mock.patch("ultralytics.utils.LOGGER") as mock_logger:
         result = _serialize_callbacks(trainer, get_default_callbacks())
     assert result is None, "Should not create pickle file for lambda callback"
-    assert "cannot be serialized" in caplog.text, "Should warn about dropped callback"
+    assert mock_logger.warning.called, "Should warn about dropped callback"
+    assert "cannot be serialized" in mock_logger.warning.call_args[0][0], "Warning message should mention serialization"
 
 
-def test_serialize_callbacks_main_function(caplog):
+def test_serialize_callbacks_main_function():
     """Functions defined in __main__ pickle by reference but fail to unpickle in the subprocess."""
-    import logging
 
     def main_callback(trainer):
         pass
@@ -90,15 +88,15 @@ def test_serialize_callbacks_main_function(caplog):
     cbs = get_default_callbacks()
     cbs["on_train_start"].append(main_callback)
     trainer = FakeTrainer(callbacks=cbs)
-    with caplog.at_level(logging.WARNING):
+    with mock.patch("ultralytics.utils.LOGGER") as mock_logger:
         result = _serialize_callbacks(trainer, get_default_callbacks())
     assert result is None, "Should not create pickle file for __main__ callback"
-    assert "cannot be serialized" in caplog.text, "Should warn about dropped callback"
+    assert mock_logger.warning.called, "Should warn about dropped callback"
+    assert "cannot be serialized" in mock_logger.warning.call_args[0][0], "Warning message should mention serialization"
 
 
-def test_serialize_callbacks_closure(caplog):
+def test_serialize_callbacks_closure():
     """Closures cannot be pickled — should be dropped with a warning."""
-    import logging
 
     def make_closure():
         x = 42
@@ -111,10 +109,11 @@ def test_serialize_callbacks_closure(caplog):
     cbs = get_default_callbacks()
     cbs["on_train_start"].append(make_closure())
     trainer = FakeTrainer(callbacks=cbs)
-    with caplog.at_level(logging.WARNING):
+    with mock.patch("ultralytics.utils.LOGGER") as mock_logger:
         result = _serialize_callbacks(trainer, get_default_callbacks())
     assert result is None, "Should not create pickle file for closure callback"
-    assert "cannot be serialized" in caplog.text, "Should warn about dropped callback"
+    assert mock_logger.warning.called, "Should warn about dropped callback"
+    assert "cannot be serialized" in mock_logger.warning.call_args[0][0], "Warning message should mention serialization"
 
 
 def test_serialize_callbacks_mixed():
@@ -169,21 +168,21 @@ def test_generate_ddp_file_with_importable_callback(tmp_path):
     os.remove(pkl_files[0])
 
 
-def test_generate_ddp_file_with_lambda_callback(tmp_path, caplog):
+def test_generate_ddp_file_with_lambda_callback(tmp_path):
     """generate_ddp_file with a lambda callback should warn and not create a pickle file."""
-    import logging
-
     cbs = get_default_callbacks()
     cbs["on_train_start"].append(lambda t: None)
     trainer = FakeTrainer(callbacks=cbs)
-    with caplog.at_level(logging.WARNING), mock.patch("ultralytics.utils.dist.USER_CONFIG_DIR", tmp_path):
+    with mock.patch("ultralytics.utils.LOGGER") as mock_logger, mock.patch(
+        "ultralytics.utils.dist.USER_CONFIG_DIR", tmp_path
+    ):
         file_path = generate_ddp_file(trainer)
         pkl_files = list(tmp_path.glob("DDP/_callbacks_*.pkl"))
     assert Path(file_path).exists(), "Temp file should be created"
     assert len(pkl_files) == 0, "Should not create pickle file for lambda callback"
     content = Path(file_path).read_text()
     assert "callbacks_file = None" in content, "callbacks_file should be None when callbacks are not serializable"
-    assert "cannot be serialized" in caplog.text, "Should warn about dropped callback"
+    assert mock_logger.warning.called, "Should warn about dropped callback"
     os.remove(file_path)
 
 

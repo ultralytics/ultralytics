@@ -68,13 +68,18 @@ def gen_configs(cfg_dir: Path) -> dict[str, Path]:
     return paths
 
 
-def train_arms(configs: dict[str, Path], data: str, epochs: int, batch: int, devices: list[str], project: str):
-    """Train each arm as a parallel subprocess, one per device (round-robin if fewer devices)."""
+def train_arms(configs: dict[str, Path], data: str, epochs: int, batch: int, imgsz: str, devices: list[str], project: str):
+    """Train each arm as a parallel subprocess, one per device (round-robin if fewer devices).
+
+    imgsz is passed as the raw CLI string (e.g. "384,1248"); the yolo CLI parses it to the
+    rectangular (H, W) tuple. This MUST match the eval imgsz — a train/eval imgsz mismatch
+    silently zeroes every AP3D.
+    """
     procs = []
     for i, (name, cfg) in enumerate(configs.items()):
         dev = devices[i % len(devices)]
         cmd = ["yolo", "train", "task=s3d", f"model={cfg}", f"data={data}", f"epochs={epochs}",
-               f"batch={batch}", "val=False", "amp=False", f"device={dev}",
+               f"batch={batch}", f"imgsz={imgsz}", "val=False", "amp=False", f"device={dev}",
                f"project={project}", f"name={name}"]
         LOGGER.info(f"[tier1] launching train {name} on device {dev}")
         procs.append((name, subprocess.Popen(cmd)))
@@ -138,7 +143,7 @@ def main():
 
     configs = gen_configs(Path(args.project) / "configs")
     if not args.skip_train:
-        train_arms(configs, args.data, args.epochs, args.batch, devices, args.project)
+        train_arms(configs, args.data, args.epochs, args.batch, str(args.imgsz), devices, args.project)
     rows = eval_matrix(args.project, args.data, args.batch, imgsz, devices[0])
     print_table(rows)
 

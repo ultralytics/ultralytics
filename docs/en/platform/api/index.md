@@ -28,15 +28,18 @@ The API is organized around the core platform resources:
 
 ```mermaid
 graph LR
-    A[API Key] --> B[Datasets]
-    A --> C[Projects]
-    A --> D[Models]
-    A --> E[Deployments]
+    A[API Key]:::start --> B[Datasets]:::proc
+    A --> C[Projects]:::proc
+    A --> D[Models]:::proc
+    A --> E[Deployments]:::proc
     B -->|train on| D
     C -->|contains| D
     D -->|deploy to| E
-    D -->|export| F[Exports]
+    D -->|export| F[Exports]:::proc
     B -->|auto-annotate| B
+
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
 ```
 
 | Resource                                   | Description                   | Key Operations                                |
@@ -135,7 +138,7 @@ Rate limits are applied automatically based on the endpoint being called. Expens
 | **Upload**    | 10 requests/min  | File uploads, signed URLs, and dataset ingest                                            |
 | **Predict**   | 20 requests/min  | Shared model inference (`POST /api/models/{id}/predict`)                                 |
 | **Export**    | 20 requests/min  | Model format exports (`POST /api/exports`), dataset NDJSON exports, and version creation |
-| **Download**  | 30 requests/min  | Model weight file downloads (`GET /api/models/{id}/download`)                            |
+| **Download**  | 30 requests/min  | Model weight file downloads (`GET /api/models/{id}/files`)                               |
 | **Dedicated** | **Unlimited**    | [Dedicated endpoints](../deploy/endpoints.md) — your own service, no API limits          |
 
 Each category has an independent counter per API key. For example, making 20 predict requests does not affect your 100 request/min default allowance.
@@ -195,12 +198,12 @@ GET /api/datasets
 
 **Query Parameters:**
 
-| Parameter  | Type   | Description                            |
-| ---------- | ------ | -------------------------------------- |
-| `username` | string | Filter by username                     |
-| `slug`     | string | Fetch single dataset by slug           |
-| `limit`    | int    | Items per page (default: 20, max: 500) |
-| `owner`    | string | Workspace owner username               |
+| Parameter  | Type   | Description                               |
+| ---------- | ------ | ----------------------------------------- |
+| `username` | string | Filter by username                        |
+| `slug`     | string | Fetch single dataset by slug              |
+| `limit`    | int    | Items per page (default: 1000, max: 1000) |
+| `owner`    | string | Workspace owner username                  |
 
 === "cURL"
 
@@ -286,7 +289,17 @@ POST /api/datasets
 
 !!! note "Supported Tasks"
 
-    Valid `task` values: `detect`, `segment`, `classify`, `pose`, `obb`.
+    Valid `task` values: `detect`, `segment`, `semantic`, `classify`, `pose`, `obb`.
+
+**Response:**
+
+```json
+{
+    "datasetId": "dataset_abc123",
+    "slug": "my-dataset",
+    "region": "us"
+}
+```
 
 ### Update Dataset
 
@@ -304,6 +317,22 @@ PATCH /api/datasets/{datasetId}
 }
 ```
 
+### Dataset Icon
+
+Upload a dataset icon (multipart form with image file):
+
+```http
+POST /api/datasets/{datasetId}/icon
+```
+
+Remove the dataset icon:
+
+```http
+DELETE /api/datasets/{datasetId}/icon
+```
+
+Both require an active platform browser session — not available via API key.
+
 ### Delete Dataset
 
 ```http
@@ -318,7 +347,7 @@ Soft-deletes the dataset (moved to [trash](../account/trash.md), recoverable for
 POST /api/datasets/{datasetId}/clone
 ```
 
-Creates a copy of the dataset with all images and labels. Only public datasets can be cloned. Requires an active platform browser session — not available via API key.
+Creates a copy of the dataset with all images and labels. Only public, owned, or editable workspace datasets can be cloned. Requires an active platform browser session — not available via API key.
 
 **Body (all fields optional):**
 
@@ -449,6 +478,46 @@ Returns class distribution, location heatmap, and dimension statistics. Results 
 }
 ```
 
+### Manage Classes
+
+Merge classes (reassign annotations from source classes to a target, then remove the sources):
+
+```http
+POST /api/datasets/{datasetId}/classes/merge
+```
+
+Delete classes:
+
+```http
+POST /api/datasets/{datasetId}/classes/delete
+```
+
+### Redistribute Splits
+
+```http
+POST /api/datasets/{datasetId}/splits/redistribute
+```
+
+Re-assign images across train/val/test splits. All three require an active platform browser session — not available via API key.
+
+### Dataset Embeddings
+
+```http
+GET /api/datasets/{datasetId}/embeddings
+POST /api/datasets/{datasetId}/embeddings
+DELETE /api/datasets/{datasetId}/embeddings
+```
+
+GET returns the current UMAP analysis summary and active job status; POST enqueues an embeddings analysis job; DELETE cancels the active job.
+
+### Image Clustering
+
+```http
+GET /api/datasets/{datasetId}/images/clustering
+```
+
+Returns the UMAP 2D layout and per-image metadata for the clustering scatter view (paged and rate-limited).
+
 ### Get Models Trained on Dataset
 
 ```http
@@ -500,12 +569,12 @@ Run YOLO inference on dataset images to auto-generate annotations. Uses a select
 
 **Body:**
 
-| Field        | Type   | Required | Description                          |
-| ------------ | ------ | -------- | ------------------------------------ |
-| `imageHash`  | string | Yes      | Hash of the image to annotate        |
-| `modelId`    | string | No       | Model ID to use for inference        |
-| `confidence` | float  | No       | Confidence threshold (default: 0.25) |
-| `iou`        | float  | No       | IoU threshold (default: 0.45)        |
+| Field        | Type   | Required | Description                                                                                                                                       |
+| ------------ | ------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `imageHash`  | string | Yes      | Hash of the image to annotate                                                                                                                     |
+| `modelId`    | string | No       | Model to use for inference, as a `ul://` URI (e.g. `ul://username/project/model`). If omitted, the dataset's task-specific default model is used. |
+| `confidence` | float  | No       | Confidence threshold (default: 0.25)                                                                                                              |
+| `iou`        | float  | No       | IoU threshold (default: 0.7)                                                                                                                      |
 
 ### Dataset Ingest
 
@@ -513,16 +582,53 @@ Run YOLO inference on dataset images to auto-generate annotations. Uses a select
 POST /api/datasets/ingest
 ```
 
-Create a dataset ingest job to process uploaded ZIP or TAR files, including `.tar.gz` and `.tgz`, containing images and labels.
+Create a dataset ingest job for an existing dataset. The target dataset is always passed as `datasetId` in the JSON body, not in the URL path.
+
+The request body requires `datasetId` plus exactly one of `sessionId` (an uploaded archive's upload session) or `sourceUrl` (a remote ZIP, TAR, TAR.GZ, TGZ, or NDJSON URL). Add optional `targetSplit` (`train`, `val`, or `test`) to override the archive's split structure.
+
+For uploaded archives, the upload session is already bound to the dataset by the `assetId` passed to `POST /api/upload/signed-url`; ingest validates that `assetId` matches the body `datasetId`. For remote `sourceUrl` imports, create the dataset first, then pass its `datasetId` to ingest.
+
+**Body (uploaded archive):**
+
+```json
+{
+    "datasetId": "dataset_abc123",
+    "sessionId": "session_abc123",
+    "targetSplit": "train"
+}
+```
+
+**Body (remote archive or NDJSON):**
+
+```json
+{
+    "datasetId": "dataset_abc123",
+    "sourceUrl": "https://example.com/my-dataset.zip"
+}
+```
+
+**Response:**
+
+```json
+{
+    "jobId": "job_abc123",
+    "datasetId": "dataset_abc123",
+    "status": "queued"
+}
+```
 
 ```mermaid
 graph LR
-    A[Upload Archive] --> B[POST /api/datasets/ingest]
-    B --> C[Process Archive]
-    C --> D[Extract images]
-    C --> E[Parse labels]
-    C --> F[Generate thumbnails]
-    D & E & F --> G[Dataset ready]
+    A[POST /api/datasets]:::start --> B[POST /api/upload/signed-url]:::proc
+    B --> C[Upload archive to signed URL]:::proc
+    C --> D[POST /api/upload/complete]:::proc
+    D --> E[POST /api/datasets/ingest]:::proc
+    E --> F[Process archive]:::proc
+    F --> G[Dataset ready]:::out
+
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 ### Dataset Images
@@ -544,6 +650,7 @@ GET /api/datasets/{datasetId}/images
 | `hasLabel`          | string | Filter by label status (`true` or `false`)                                                                                                                                                                     |
 | `hasError`          | string | Filter by error status (`true` or `false`)                                                                                                                                                                     |
 | `search`            | string | Search by filename or image hash                                                                                                                                                                               |
+| `classIds`          | string | Comma-separated class IDs; returns images containing any of the specified classes                                                                                                                              |
 | `includeThumbnails` | string | Include signed thumbnail URLs (default: `true`)                                                                                                                                                                |
 | `includeImageUrls`  | string | Include signed full image URLs (default: `false`)                                                                                                                                                              |
 
@@ -739,13 +846,13 @@ POST /api/models
 
 **JSON Body:**
 
-| Field         | Type   | Required | Description                                      |
-| ------------- | ------ | -------- | ------------------------------------------------ |
-| `projectId`   | string | Yes      | Target project ID                                |
-| `slug`        | string | No       | URL slug (lowercase alphanumeric/hyphens)        |
-| `name`        | string | No       | Display name (max 100 chars)                     |
-| `description` | string | No       | Model description (max 1000 chars)               |
-| `task`        | string | No       | Task type (detect, segment, pose, obb, classify) |
+| Field         | Type   | Required | Description                                                |
+| ------------- | ------ | -------- | ---------------------------------------------------------- |
+| `projectId`   | string | Yes      | Target project ID                                          |
+| `slug`        | string | No       | URL slug (lowercase alphanumeric/hyphens)                  |
+| `name`        | string | No       | Display name (max 100 chars)                               |
+| `description` | string | No       | Model description (max 1000 chars)                         |
+| `task`        | string | No       | Task type (detect, segment, semantic, pose, obb, classify) |
 
 !!! note "Model File Upload"
 
@@ -813,12 +920,15 @@ POST /api/models/{modelId}/predict
 
 **Multipart Form:**
 
-| Field   | Type  | Description                          |
-| ------- | ----- | ------------------------------------ |
-| `file`  | file  | Image file (JPEG, PNG, WebP)         |
-| `conf`  | float | Confidence threshold (default: 0.25) |
-| `iou`   | float | IoU threshold (default: 0.7)         |
-| `imgsz` | int   | Image size in pixels (default: 640)  |
+| Field    | Type   | Description                                                         |
+| -------- | ------ | ------------------------------------------------------------------- |
+| `file`   | file   | Image or video file (e.g. JPG, PNG, WebP, BMP, TIFF; MP4, MOV, AVI) |
+| `conf`   | float  | Confidence threshold (default: 0.25)                                |
+| `iou`    | float  | IoU threshold (default: 0.7)                                        |
+| `imgsz`  | int    | Image size in pixels (default: 640)                                 |
+| `source` | string | Image URL or base64-encoded image (alternative to `file`)           |
+
+Maximum upload size is 100 MB.
 
 === "cURL"
 
@@ -890,16 +1000,22 @@ POST /api/models/{modelId}/predict/warmup
 
 ## Training API
 
-Launch YOLO training on cloud GPUs (23 GPU types from RTX 2000 Ada to B200) and monitor progress in real time. See [Cloud Training documentation](../train/cloud-training.md).
+Launch YOLO training on cloud GPUs (26 GPU types from RTX 2000 Ada to B300) and monitor progress in real time. See [Cloud Training documentation](../train/cloud-training.md).
 
 ```mermaid
 graph LR
-    A[POST /training/start] --> B[Job Created]
-    B --> C{Training}
-    C -->|progress| D[GET /models/id/training]
-    C -->|cancel| E[DELETE /models/id/training]
-    C -->|complete| F[Model Ready]
-    F --> G[Deploy or Export]
+    A[POST /training/start]:::start --> B[Job Created]:::proc
+    B --> C{Training}:::decide
+    C -->|progress| D[GET /models/id/training]:::proc
+    C -->|cancel| E[DELETE /models/id/training]:::error
+    C -->|complete| F[Model Ready]:::out
+    F --> G[Deploy or Export]:::proc
+
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef decide fill:#FF9800,color:#fff
+    classDef out fill:#9C27B0,color:#fff
+    classDef error fill:#F44336,color:#fff
 ```
 
 ### Start Training
@@ -952,7 +1068,15 @@ POST /api/training/start
 
 !!! note "GPU Types"
 
-    Available GPU types include `rtx-4090`, `a100-80gb-pcie`, `a100-80gb-sxm`, `h100-sxm`, `rtx-pro-6000`, and others. See [Cloud Training](../train/cloud-training.md) for the full list with pricing.
+    Available GPU types include `rtx-4090`, `a100-80gb-pcie`, `a100-80gb-sxm`, `h100-sxm`, `rtx-pro-6000`, `b300`, and others. See [Cloud Training](../train/cloud-training.md) for the full list with pricing.
+
+### Get GPU Availability
+
+```http
+GET /api/training/gpu-availability
+```
+
+Returns current GPU stock status (`High`, `Medium`, `Low`, or `null`) keyed by GPU type ID. Public, no authentication required; cached for 5 minutes.
 
 ### Get Training Status
 
@@ -982,13 +1106,19 @@ Deploy models to dedicated inference endpoints with health checks and monitoring
 
 ```mermaid
 graph LR
-    A[Create] --> B[Deploying]
-    B --> C[Ready]
-    C -->|stop| D[Stopped]
+    A[Create]:::start --> B[Deploying]:::proc
+    B --> C[Ready]:::out
+    C -->|stop| D[Stopped]:::extern
     D -->|start| C
-    C -->|delete| E[Deleted]
+    C -->|delete| E[Deleted]:::error
     D -->|delete| E
-    C -->|predict| F[Inference Results]
+    C -->|predict| F[Inference Results]:::out
+
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
+    classDef error fill:#F44336,color:#fff
+    classDef extern fill:#607D8B,color:#fff
 ```
 
 ### List Deployments
@@ -1147,7 +1277,7 @@ Returns aggregated metrics across all user deployments: total requests, active d
 
 ## Export API
 
-Convert models to optimized formats like ONNX, TensorRT, CoreML, and TFLite for edge deployment. See [Deploy documentation](../deploy/index.md).
+Convert models to optimized formats like ONNX, TensorRT, CoreML, and LiteRT for edge deployment. See [Deploy documentation](../deploy/index.md).
 
 ### List Exports
 
@@ -1171,12 +1301,12 @@ POST /api/exports
 
 **Body:**
 
-| Field     | Type   | Required    | Description                                         |
-| --------- | ------ | ----------- | --------------------------------------------------- |
-| `modelId` | string | Yes         | Source model ID                                     |
-| `format`  | string | Yes         | Export format (see table below)                     |
-| `gpuType` | string | Conditional | Required when `format` is `engine` (TensorRT)       |
-| `args`    | object | No          | Export arguments (`imgsz`, `half`, `dynamic`, etc.) |
+| Field     | Type   | Required    | Description                                             |
+| --------- | ------ | ----------- | ------------------------------------------------------- |
+| `modelId` | string | Yes         | Source model ID                                         |
+| `format`  | string | Yes         | Export format (see table below)                         |
+| `gpuType` | string | Conditional | Required when `format` is `engine` (TensorRT)           |
+| `args`    | object | No          | Export arguments (`imgsz`, `quantize`, `dynamic`, etc.) |
 
 === "cURL"
 
@@ -1208,18 +1338,19 @@ POST /api/exports
 | OpenVINO      | `openvino`    | Intel hardware           |
 | TensorRT      | `engine`      | NVIDIA GPU optimization  |
 | CoreML        | `coreml`      | Apple devices            |
-| TFLite        | `tflite`      | Mobile and embedded      |
 | TF SavedModel | `saved_model` | TensorFlow Serving       |
 | TF GraphDef   | `pb`          | TensorFlow frozen graph  |
 | PaddlePaddle  | `paddle`      | Baidu PaddlePaddle       |
 | NCNN          | `ncnn`        | Mobile neural network    |
+| LiteRT        | `litert`      | Mobile/edge and browser  |
 | Edge TPU      | `edgetpu`     | Google Coral devices     |
-| TF.js         | `tfjs`        | Browser inference        |
 | MNN           | `mnn`         | Alibaba mobile inference |
 | RKNN          | `rknn`        | Rockchip NPU             |
+| Qualcomm      | `qnn`         | Qualcomm Snapdragon NPU  |
 | IMX           | `imx`         | Sony IMX500 sensor       |
 | Axelera       | `axelera`     | Axelera AI accelerators  |
 | ExecuTorch    | `executorch`  | Meta ExecuTorch runtime  |
+| DeepX         | `deepx`       | DeepX NPU accelerators   |
 
 ### Get Export Status
 
@@ -1404,11 +1535,7 @@ GET /api/billing/balance
 ```json
 {
     "creditsCents": 2500,
-    "plan": "free",
-    "cashBalance": 25,
-    "creditBalance": 0,
-    "reservedAmount": 0,
-    "totalBalance": 25
+    "plan": "free"
 }
 ```
 
@@ -1601,6 +1728,12 @@ Check your storage usage breakdown by category (datasets, models, exports) and s
 GET /api/storage
 ```
 
+**Query Parameters:**
+
+| Parameter | Type    | Description                                                              |
+| --------- | ------- | ------------------------------------------------------------------------ |
+| `details` | boolean | Set to `true` to include `topItems` (largest datasets, models, exports). |
+
 **Response:**
 
 ```json
@@ -1648,7 +1781,7 @@ GET /api/storage
 
 ## Upload API
 
-Upload files directly to cloud storage using signed URLs for fast, reliable transfers. Uses a two-step flow: get a signed URL, then upload the file. See [Data documentation](../data/index.md).
+Upload files directly to cloud storage using signed URLs for fast, reliable transfers. For dataset archives, use the returned `sessionId` with `POST /api/upload/complete`, then `POST /api/datasets/ingest`. See [Data documentation](../data/index.md).
 
 ### Get Signed Upload URL
 
@@ -1662,11 +1795,11 @@ Request a signed URL for uploading a file directly to cloud storage. The signed 
 
 ```json
 {
-    "assetType": "images",
-    "assetId": "abc123",
-    "filename": "my-image.jpg",
-    "contentType": "image/jpeg",
-    "totalBytes": 5242880
+    "assetType": "datasets",
+    "assetId": "dataset_abc123",
+    "filename": "my-dataset.zip",
+    "contentType": "application/zip",
+    "totalBytes": 52428800
 }
 ```
 
@@ -1684,7 +1817,7 @@ Request a signed URL for uploading a file directly to cloud storage. The signed 
 {
     "sessionId": "session_abc123",
     "uploadUrl": "https://storage.example.com/...",
-    "objectPath": "images/abc123/my-image.jpg",
+    "gcsPath": "gs://bucket/users/user123/datasets/dataset_abc123/my-dataset.zip",
     "downloadUrl": "https://cdn.example.com/...",
     "expiresAt": "2026-02-22T12:00:00Z"
 }
@@ -1696,19 +1829,38 @@ Request a signed URL for uploading a file directly to cloud storage. The signed 
 POST /api/upload/complete
 ```
 
-Notify the platform that a file upload is complete so it can begin processing.
+Notify the platform that a file upload is complete. For dataset archives, this verifies and records the upload session; call `POST /api/datasets/ingest` afterward to start dataset processing.
 
 **Body:**
 
 ```json
 {
-    "datasetId": "abc123",
-    "objectPath": "datasets/abc123/images/my-image.jpg",
-    "filename": "my-image.jpg",
-    "contentType": "image/jpeg",
-    "size": 5242880
+    "sessionId": "session_abc123",
+    "checksum": "<optional sha-256 hex>"
 }
 ```
+
+---
+
+## Integrations API
+
+Import datasets from third-party services. See [Integrations documentation](../integrations/index.md).
+
+### Preview Roboflow Import
+
+```http
+POST /api/integrations/roboflow/preview
+```
+
+Resolve a Roboflow API key to a bulk-import plan: workspace info, which projects would be newly imported, count of already-imported versions (skipped), and unsupported project types. The Roboflow API key is passed in the body and is not persisted.
+
+### Import from Roboflow
+
+```http
+POST /api/integrations/roboflow/import
+```
+
+Queue dataset ingest jobs to import the selected Roboflow projects into your workspace. Requires storage headroom, and each dataset must fit your plan's per-import size limit.
 
 ---
 
@@ -1880,12 +2032,13 @@ GET /api/explore/search
 
 **Query Parameters:**
 
-| Parameter | Type   | Description                                                                                           |
-| --------- | ------ | ----------------------------------------------------------------------------------------------------- |
-| `q`       | string | Search query                                                                                          |
-| `type`    | string | Resource type: `all` (default), `projects`, `datasets`                                                |
-| `sort`    | string | Sort order: `stars` (default), `newest`, `oldest`, `name-asc`, `name-desc`, `count-desc`, `count-asc` |
-| `offset`  | int    | Pagination offset (default: 0). Results return 20 items per page.                                     |
+| Parameter | Type   | Description                                                                                                               |
+| --------- | ------ | ------------------------------------------------------------------------------------------------------------------------- |
+| `q`       | string | Search query                                                                                                              |
+| `type`    | string | Resource type: `all` (default), `projects`, `datasets`                                                                    |
+| `sort`    | string | Sort order: `newest` (default), `stars`, `oldest`, `name-asc`, `name-desc`, `count-desc`, `count-asc`                     |
+| `offset`  | int    | Pagination offset (default: 0). Results return 20 items per page.                                                         |
+| `task`    | string | Optional: comma-separated YOLO task types to filter datasets (`detect`, `segment`, `semantic`, `classify`, `pose`, `obb`) |
 
 ### Sidebar Data
 
@@ -2055,7 +2208,7 @@ yolo check
 
 !!! warning "Package Version Requirement"
 
-    Platform integration requires **ultralytics>=8.4.35**. Lower versions will NOT work with Platform.
+    Platform integration requires **ultralytics>=8.4.60**. Lower versions will NOT work with Platform.
 
 ### Authentication
 
@@ -2160,10 +2313,10 @@ for r in results:
 
 ```python
 # Export to ONNX
-model.export(format="onnx", imgsz=640, half=True)
+model.export(format="onnx", imgsz=640, quantize=16)
 
 # Export to TensorRT
-model.export(format="engine", imgsz=640, half=True)
+model.export(format="engine", imgsz=640, quantize=16)
 
 # Export to CoreML
 model.export(format="coreml", imgsz=640)

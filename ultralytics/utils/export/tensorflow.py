@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 from functools import partial
 from pathlib import Path
 
@@ -10,9 +11,14 @@ import torch
 
 from ultralytics.nn.modules import Detect, Pose, Pose26
 from ultralytics.utils import LINUX, LOGGER, MACOS
-from ultralytics.utils.checks import check_apt_requirements, check_requirements, check_version, is_sudo_available
+from ultralytics.utils.checks import (
+    IS_PYTHON_MINIMUM_3_13,
+    check_apt_requirements,
+    check_requirements,
+    check_version,
+    is_sudo_available,
+)
 from ultralytics.utils.downloads import attempt_download_asset
-from ultralytics.utils.files import spaces_in_path
 from ultralytics.utils.tal import make_anchors
 
 
@@ -61,9 +67,10 @@ def _tf_kpts_decode(self, kpts: torch.Tensor, is_pose26: bool = False) -> torch.
 def onnx2saved_model(
     onnx_file: str,
     output_dir: Path | str,
-    int8: bool = False,
+    quantize: int | str | None = None,
     images: np.ndarray | None = None,
     disable_group_convolution: bool = False,
+    cuda: bool = False,
     prefix: str = "",
 ):
     """Convert an ONNX model to TensorFlow SavedModel format using onnx2tf.
@@ -71,9 +78,11 @@ def onnx2saved_model(
     Args:
         onnx_file (str): ONNX file path.
         output_dir (Path | str): Output directory path for the SavedModel.
-        int8 (bool, optional): Enable INT8 quantization. Defaults to False.
+        quantize (int | str | None): Precision scheme, 8 for INT8.
         images (np.ndarray | None, optional): Calibration images for INT8 quantization in BHWC format.
         disable_group_convolution (bool, optional): Disable group convolution optimization. Defaults to False.
+        cuda (bool, optional): True if exporting on a CUDA device; selects GPU onnxruntime and keeps GPUs visible to
+            TensorFlow, which are otherwise hidden so CPU exports never touch GPU memory. Defaults to False.
         prefix (str, optional): Logging prefix. Defaults to "".
 
     Returns:
@@ -84,23 +93,32 @@ def onnx2saved_model(
         - Downloads calibration data if INT8 quantization is enabled.
         - Removes temporary files and renames quantized models after conversion.
     """
-    cuda = torch.cuda.is_available()
     try:
         import tensorflow as tf
     except ImportError:
-        check_requirements("tensorflow>=2.0.0,<=2.19.0")
+        check_requirements("tensorflow>2.19.0" if IS_PYTHON_MINIMUM_3_13 else "tensorflow>=2.0.0,<=2.19.0")
         import tensorflow as tf
+    if not cuda:
+        with contextlib.suppress(Exception):  # fails only if TF GPUs are already initialized by earlier user code
+            tf.config.set_visible_devices([], "GPU")  # hide GPUs so non-CUDA exports never allocate GPU memory
+    check_requirements(
+        f"onnx2tf{'>=2.3.0,<2.3.16' if IS_PYTHON_MINIMUM_3_13 else '>=1.26.3,<1.29.0'}",  # pin to avoid h5py build issues on aarch64
+        cmds="--no-deps",
+    )
     check_requirements(
         (
-            "tf_keras<=2.19.0",  # required by 'onnx2tf' package
+            f"tf_keras{'>2.19.0' if IS_PYTHON_MINIMUM_3_13 else '<=2.19.0'}",  # required by 'onnx2tf' package
             "sng4onnx>=1.0.1",  # required by 'onnx2tf' package
             "onnx_graphsurgeon>=0.3.26",  # required by 'onnx2tf' package
             "ai-edge-litert>=1.2.0" + (",<1.4.0" if MACOS else ""),  # required by 'onnx2tf' package
             "onnx>=1.12.0,<2.0.0",
-            "onnx2tf>=1.26.3,<1.29.0",  # pin to avoid h5py build issues on aarch64
-            "onnxslim>=0.1.71",
-            "onnxruntime-gpu" if cuda else "onnxruntime",
-            "protobuf>=5",
+            f"onnx2tf{'>=2.3.0,<2.3.16' if IS_PYTHON_MINIMUM_3_13 else '>=1.26.3,<1.29.0'}",
+            "onnxslim>=0.1.82",
+            # Interchangeable candidates so an installed variant (e.g. onnxruntime-gpu) is never dual-installed over
+            ("onnxruntime-gpu" if cuda else "onnxruntime", "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn"),
+            "protobuf>=6.31.1,<7.0.0"
+            if IS_PYTHON_MINIMUM_3_13
+            else "protobuf>=5",  # TF>2.19 (Python 3.13) needs protobuf>=6.31.1; cap <7 to match TF gencode and avoid PaddlePaddle segfault
         ),
         cmds="--extra-index-url https://pypi.ngc.nvidia.com",  # onnx_graphsurgeon only on NVIDIA
     )
@@ -115,12 +133,13 @@ def onnx2saved_model(
     )
 
     output_dir = Path(output_dir)
+    use_int8 = quantize == 8
     # Pre-download calibration file to fix https://github.com/PINTO0309/onnx2tf/issues/545
     onnx2tf_file = Path("calibration_image_sample_data_20x128x128x3_float32.npy")
     if not onnx2tf_file.exists():
         attempt_download_asset(f"{onnx2tf_file}.zip", unzip=True, delete=True)
     np_data = None
-    if int8:
+    if use_int8:
         tmp_file = output_dir / "tmp_tflite_int8_calibration_images.npy"  # int8 calibration images file
         if images is not None:
             output_dir.mkdir(parents=True, exist_ok=True)
@@ -141,6 +160,24 @@ def onnx2saved_model(
 
         onnx.helper.float32_to_bfloat16 = float32_to_bfloat16
 
+    import importlib
+    import inspect
+    import pathlib
+
+    import onnx2tf.ops.TopK as _t
+
+    _path = pathlib.Path(inspect.getfile(_t))
+    _text = _path.read_text()
+    _patched = _text.replace(
+        "k_tensor = int(k_tensor)",
+        "k_tensor = int(k_tensor.squeeze()) if hasattr(k_tensor, 'squeeze') else int(k_tensor)",
+    )
+    if _patched != _text:  # write only when unpatched; site-packages may be read-only (pre-patched containers)
+        try:
+            _path.write_text(_patched)
+            importlib.reload(_t)
+        except OSError as e:  # read-only install: continue unpatched, only TopK-containing models are affected
+            LOGGER.warning(f"{prefix} unable to apply onnx2tf TopK patch: {e}")
     import onnx2tf  # scoped for after ONNX export for reduced conflict during import
 
     LOGGER.info(f"{prefix} starting TFLite export with onnx2tf {onnx2tf.__version__}...")
@@ -149,15 +186,15 @@ def onnx2saved_model(
         output_folder_path=str(output_dir),
         not_use_onnxsim=True,
         verbosity="error",  # note INT8-FP16 activation bug https://github.com/ultralytics/ultralytics/issues/15873
-        output_integer_quantized_tflite=int8,
+        output_integer_quantized_tflite=use_int8,
         custom_input_op_name_np_data_path=np_data,
-        enable_batchmatmul_unfold=not int8,  # fix lower no. of detected objects on GPU delegate
+        enable_batchmatmul_unfold=not use_int8,  # fix lower no. of detected objects on GPU delegate
         output_signaturedefs=True,  # fix error with Attention block group convolution
         disable_group_convolution=disable_group_convolution,  # fix error with group convolution
     )
 
     # Remove/rename TFLite models
-    if int8:
+    if use_int8:
         tmp_file.unlink(missing_ok=True)
         for file in output_dir.rglob("*_dynamic_range_quant.tflite"):
             file.rename(file.with_name(file.stem.replace("_dynamic_range_quant", "_int8") + file.suffix))
@@ -210,6 +247,7 @@ def tflite2edgetpu(tflite_file: str | Path, output_dir: str | Path, prefix: str 
         Auto-installs the Edge TPU compiler if not found. The function compiles the TFLite model
         for optimal performance on Google's Edge TPU hardware accelerator.
     """
+    import shlex
     import subprocess
 
     # Install Edge TPU compiler if not found
@@ -230,63 +268,21 @@ def tflite2edgetpu(tflite_file: str | Path, output_dir: str | Path, prefix: str 
     ver = subprocess.run(check_cmd, shell=True, capture_output=True, check=True).stdout.decode().rsplit(maxsplit=1)[-1]
     LOGGER.info(f"\n{prefix} starting export with Edge TPU compiler {ver}...")
 
-    cmd = (
-        "edgetpu_compiler "
-        f'--out_dir "{output_dir}" '
-        "--show_operations "
-        "--search_delegate "
-        "--delegate_search_step 30 "
-        "--timeout_sec 180 "
-        f'"{tflite_file}"'
-    )
-    LOGGER.info(f"{prefix} running '{cmd}'")
-    subprocess.run(cmd, shell=True)
+    cmd = [
+        "edgetpu_compiler",
+        "--out_dir",
+        str(output_dir),
+        "--show_operations",
+        "--search_delegate",
+        "--delegate_search_step",
+        "30",
+        "--timeout_sec",
+        "180",
+        str(tflite_file),
+    ]  # argv list avoids shell metacharacter issues in output_dir/tflite_file paths
+    LOGGER.info(f"{prefix} running '{shlex.join(cmd)}'")
+    subprocess.run(cmd, check=True)
     return str(Path(output_dir) / f"{Path(tflite_file).stem}_edgetpu.tflite")
-
-
-def pb2tfjs(pb_file: str, output_dir: str, half: bool = False, int8: bool = False, prefix: str = "") -> str:
-    """Convert a TensorFlow GraphDef (.pb) model to TensorFlow.js format.
-
-    Args:
-        pb_file (str): Path to the input TensorFlow GraphDef (.pb) model file.
-        output_dir (str): Output directory path for the converted TensorFlow.js model.
-        half (bool, optional): Enable FP16 quantization. Defaults to False.
-        int8 (bool, optional): Enable INT8 quantization. Defaults to False.
-        prefix (str, optional): Logging prefix. Defaults to "".
-
-    Returns:
-        (str): Path to the exported TensorFlow.js model directory.
-
-    Notes:
-        Auto-installs tensorflowjs if not present. Uses tensorflowjs_converter command-line tool for conversion.
-        Handles spaces in file paths and warns if output directory contains spaces.
-    """
-    import subprocess
-
-    check_requirements("tensorflowjs")
-    import tensorflow as tf
-    import tensorflowjs as tfjs
-
-    LOGGER.info(f"\n{prefix} starting export with tensorflowjs {tfjs.__version__}...")
-
-    gd = tf.Graph().as_graph_def()  # TF GraphDef
-    with open(pb_file, "rb") as f:
-        gd.ParseFromString(f.read())
-    outputs = ",".join(gd_outputs(gd))
-    LOGGER.info(f"\n{prefix} output node names: {outputs}")
-
-    quantization = "--quantize_float16" if half else "--quantize_uint8" if int8 else ""
-    with spaces_in_path(pb_file) as fpb_, spaces_in_path(output_dir) as f_:  # exporter cannot handle spaces in paths
-        cmd = (
-            "tensorflowjs_converter "
-            f'--input_format=tf_frozen_model {quantization} --output_node_names={outputs} "{fpb_}" "{f_}"'
-        )
-        LOGGER.info(f"{prefix} running '{cmd}'")
-        subprocess.run(cmd, shell=True)
-
-    if " " in output_dir:
-        LOGGER.warning(f"{prefix} your model may not work correctly with spaces in path '{output_dir}'.")
-    return str(output_dir)
 
 
 def gd_outputs(gd):

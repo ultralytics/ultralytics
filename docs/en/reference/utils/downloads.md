@@ -1,4 +1,5 @@
 ---
+title: utils.downloads API Reference
 description: Explore and utilize the Ultralytics download utilities to handle URLs, zip/unzip files, and manage GitHub assets effectively.
 keywords: Ultralytics, download utilities, URL validation, zip directory, unzip file, check disk space, Google Drive, GitHub assets, YOLO, machine learning
 ---
@@ -7,7 +8,7 @@ keywords: Ultralytics, download utilities, URL validation, zip directory, unzip 
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/downloads.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/downloads.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/downloads.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/downloads.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
 <br>
 

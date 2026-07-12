@@ -1,4 +1,5 @@
 ---
+title: data.split API Reference
 description: Learn how to split datasets into train, validation, and test subsets using Ultralytics utilities for efficient data preparation.
 keywords: dataset splitting, autosplit dataset, training dataset preparation, validation set creation, Ultralytics data tools
 ---
@@ -7,7 +8,7 @@ keywords: dataset splitting, autosplit dataset, training dataset preparation, va
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/split.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/split.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/split.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/split.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
 <br>
 

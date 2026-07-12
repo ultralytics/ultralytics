@@ -4,18 +4,18 @@
 
 <img width="1024" src="https://user-images.githubusercontent.com/26833433/243418637-1d6250fd-1515-4c10-a844-a32818ae6d46.png" alt="Ultralytics YOLO trackers visualization">
 
-[Object tracking](https://www.ultralytics.com/glossary/object-tracking), a key aspect of [video analytics](https://en.wikipedia.org/wiki/Video_content_analysis), involves identifying the location and class of objects within video frames and assigning a unique ID to each detected object as it moves. This capability enables a wide range of applications, from surveillance and security systems to [real-time](https://www.ultralytics.com/glossary/real-time-inference) sports analysis and autonomous vehicle navigation. Learn more about tracking on our [tracking documentation page](https://docs.ultralytics.com/modes/track/).
+[Object tracking](https://www.ultralytics.com/glossary/object-tracking), a key aspect of [video analytics](https://en.wikipedia.org/wiki/Video_content_analysis), involves identifying the location and class of objects within video frames and assigning a unique ID to each detected object as it moves. This capability enables a wide range of applications, from surveillance and security systems to [real-time](https://www.ultralytics.com/glossary/real-time-inference) sports analysis and autonomous vehicle navigation. Learn more about tracking on our [tracking documentation page](https://docs.ultralytics.com/modes/track).
 
 ## 🎯 Why Choose Ultralytics YOLO for Object Tracking?
 
-Ultralytics YOLO trackers provide output consistent with standard [object detection](https://docs.ultralytics.com/tasks/detect/) but add persistent object IDs. This simplifies the process of tracking objects in video streams and performing subsequent analyses. Here’s why Ultralytics YOLO is an excellent choice for your object tracking needs:
+Ultralytics YOLO trackers provide output consistent with standard [object detection](https://docs.ultralytics.com/tasks/detect) but add persistent object IDs. This simplifies the process of tracking objects in video streams and performing subsequent analyses. Here’s why Ultralytics YOLO is an excellent choice for your object tracking needs:
 
 - **Efficiency:** Process video streams in real-time without sacrificing accuracy.
 - **Flexibility:** Supports multiple robust tracking algorithms and configurations.
-- **Ease of Use:** Offers straightforward [Python API](https://docs.ultralytics.com/usage/python/) and [CLI](https://docs.ultralytics.com/usage/cli/) options for rapid integration and deployment.
-- **Customizability:** Easily integrates with [custom-trained YOLO models](https://docs.ultralytics.com/modes/train/), enabling deployment in specialized, domain-specific applications.
+- **Ease of Use:** Offers straightforward [Python API](https://docs.ultralytics.com/usage/python) and [CLI](https://docs.ultralytics.com/usage/cli) options for rapid integration and deployment.
+- **Customizability:** Easily integrates with [custom-trained YOLO models](https://docs.ultralytics.com/modes/train), enabling deployment in specialized, domain-specific applications.
 
-**Watch:** Object Detection and Tracking with Ultralytics YOLOv8.
+**Watch:** Object Detection and Tracking with Ultralytics YOLO26.
 
 [![Watch the video](https://user-images.githubusercontent.com/26833433/244171528-66a4a68d-cb85-466a-984a-34301616b7a3.png)](https://www.youtube.com/watch?v=hHyHmOtmEgs)
 
@@ -29,16 +29,20 @@ Ultralytics YOLO extends its powerful object detection features to deliver robus
 
 ## 🛠️ Available Trackers
 
-Ultralytics YOLO supports the following tracking algorithms. Enable them by passing the relevant YAML configuration file, such as `tracker=tracker_type.yaml`:
+Ultralytics YOLO supports the following tracking algorithms. Enable them by passing the relevant YAML configuration file, such as `tracker=bytetrack.yaml`:
 
 - **BoT-SORT:** Use [`botsort.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/botsort.yaml) to enable this tracker. Based on the [BoT-SORT paper](https://arxiv.org/abs/2206.14651) and its official [code implementation](https://github.com/NirAharon/BoT-SORT).
 - **ByteTrack:** Use [`bytetrack.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/bytetrack.yaml) to enable this tracker. Based on the [ByteTrack paper](https://arxiv.org/abs/2110.06864) and its official [code implementation](https://github.com/FoundationVision/ByteTrack).
+- **OC-SORT:** Use [`ocsort.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/ocsort.yaml) to enable this tracker. Based on the [OC-SORT paper](https://arxiv.org/abs/2203.14360) (observation-centric SORT with ORU/OCM/OCR).
+- **Deep OC-SORT:** Use [`deepocsort.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/deepocsort.yaml) to enable this tracker. Based on the [Deep OC-SORT paper](https://arxiv.org/abs/2302.11813), adding adaptive ReID appearance fusion and camera motion compensation on top of OC-SORT.
+- **FastTracker:** Use [`fasttrack.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/fasttrack.yaml) to enable this tracker. Based on the [FastTracker paper](https://arxiv.org/abs/2508.14370): occlusion-aware ByteTrack variant with Kalman rollback and init-IoU suppression.
+- **TrackTrack:** Use [`tracktrack.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/tracktrack.yaml) to enable this tracker. Based on the [TrackTrack paper](https://openaccess.thecvf.com/content/CVPR2025/papers/Shim_Focusing_on_Tracks_for_Online_Multi-Object_Tracking_CVPR_2025_paper.pdf) (CVPR 2025) — multi-cue iterative association with Track-Aware Initialization.
 
 The default tracker is **BoT-SORT**.
 
 ## ⚙️ Usage
 
-To run the tracker on video streams, use a trained Detect, Segment, or Pose model like [Ultralytics YOLO26n](https://docs.ultralytics.com/models/yolo26/), YOLO26n-seg, or YOLO26n-pose.
+To run the tracker on video streams, use a trained Detect, Segment, Pose, or OBB model like [Ultralytics YOLO26n](https://docs.ultralytics.com/models/yolo26), YOLO26n-seg, YOLO26n-pose, or YOLO26n-obb.
 
 ```python
 # Python
@@ -67,13 +71,13 @@ yolo track model=yolo26n.pt source="https://youtu.be/LNwODJXcvt4" # Official Det
 # yolo track model=path/to/best.pt tracker="bytetrack.yaml"
 ```
 
-As shown above, tracking is available for all [Detect](https://docs.ultralytics.com/tasks/detect/), [Segment](https://docs.ultralytics.com/tasks/segment/), and [Pose](https://docs.ultralytics.com/tasks/pose/) models when run on videos or streaming sources.
+As shown above, tracking is available for all [Detect](https://docs.ultralytics.com/tasks/detect), [Segment](https://docs.ultralytics.com/tasks/segment), and [Pose](https://docs.ultralytics.com/tasks/pose) models when run on videos or streaming sources.
 
 ## 🔧 Configuration
 
 ### Tracking Arguments
 
-Tracking configuration shares properties with the Predict mode, such as `conf` (confidence threshold), `iou` ([Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) threshold), and `show` (display results). For additional configurations, refer to the [Predict mode documentation](https://docs.ultralytics.com/modes/predict/).
+Tracking configuration shares properties with the Predict mode, such as `conf` (confidence threshold), `iou` ([Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) threshold), and `show` (display results). For additional configurations, refer to the [Predict mode documentation](https://docs.ultralytics.com/modes/predict).
 
 ```python
 # Python
@@ -115,7 +119,7 @@ For a comprehensive list of tracking arguments, consult the [Tracking Configurat
 
 ### Persisting Tracks Loop
 
-This Python script uses [OpenCV (`cv2`)](https://opencv.org/) and Ultralytics YOLO26 to perform object tracking on video frames. Ensure you have installed the necessary packages (`opencv-python` and `ultralytics`). The [`persist=True`](https://docs.ultralytics.com/modes/predict/#tracking) argument indicates that the current frame is the next in a sequence, allowing the tracker to maintain track continuity from the previous frame.
+This Python script uses [OpenCV (`cv2`)](https://opencv.org/) and Ultralytics YOLO26 to perform object tracking on video frames. Ensure you have installed the necessary packages (`opencv-python` and `ultralytics`). The [`persist=True`](https://docs.ultralytics.com/modes/predict#tracking) argument indicates that the current frame is the next in a sequence, allowing the tracker to maintain track continuity from the previous frame.
 
 ```python
 # Python
@@ -234,9 +238,9 @@ Multithreaded tracking allows running object tracking on multiple video streams 
 
 This Python script utilizes Python's [`threading`](https://docs.python.org/3/library/threading.html) module for concurrent tracker execution. Each thread manages tracking for a single video file.
 
-The `run_tracker_in_thread` function accepts parameters like the video file path, model, and a unique window index. It contains the main tracking loop, reading frames, running the tracker, and displaying results in a dedicated window.
+The `run_tracker_in_thread` function accepts a model name and a video source. It loads the model and runs the tracker in streaming mode, consuming results as they are produced.
 
-This example uses two models, `yolo26n.pt` and `yolo26n-seg.pt`, tracking objects in `video_file1` and `video_file2`, respectively.
+This example uses two models, `yolo26n.pt` and `yolo26n-seg.pt`, each tracking objects from a different source in the `SOURCES` list.
 
 Setting `daemon=True` in `threading.Thread` ensures threads exit when the main program finishes. Threads are started with `start()` and the main thread waits for their completion using `join()`.
 
@@ -289,6 +293,6 @@ This setup can be easily scaled to handle more video streams by creating additio
 
 Are you experienced in multi-object tracking and have implemented or adapted an algorithm with Ultralytics YOLO? We encourage you to contribute to our Trackers section in [ultralytics/cfg/trackers](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers)! Your contributions can help expand the tracking solutions available within the Ultralytics [ecosystem](https://docs.ultralytics.com/).
 
-To contribute, please review our [Contributing Guide](https://docs.ultralytics.com/help/contributing/) for instructions on submitting a [Pull Request (PR)](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests) 🛠️. We look forward to your contributions!
+To contribute, please review our [Contributing Guide](https://docs.ultralytics.com/help/contributing) for instructions on submitting a [Pull Request (PR)](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests) 🛠️. We look forward to your contributions!
 
 Let's work together to enhance the tracking capabilities of Ultralytics YOLO and provide more powerful tools for the [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) and [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) community 🙏!

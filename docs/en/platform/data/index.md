@@ -24,6 +24,7 @@ Data preparation is the foundation of successful [computer vision](https://www.u
 The Data section of Ultralytics Platform helps you:
 
 - **Upload** images, videos, and dataset files (ZIP, TAR including `.tar.gz`/`.tgz`, NDJSON)
+- **Connect** [Google Cloud Storage](../integrations/google-cloud-storage.md), [Amazon S3](../integrations/amazon-s3.md), or [Azure Blob Storage](../integrations/azure-blob-storage.md) and use your data in place without uploading a copy
 - **Annotate** with manual drawing tools and SAM-powered smart labeling — choose from [SAM 2.1](../../models/sam-2.md) or the new [SAM 3](../../models/sam-3.md)
 - **Analyze** your data with statistics and visualizations
 - **Export** in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) for local training
@@ -34,31 +35,31 @@ The Data section of Ultralytics Platform helps you:
 
 ```mermaid
 graph LR
-    A[Upload] --> B[Annotate]
-    B --> C[Analyze]
-    C --> D[Train]
+    A[Upload]:::start --> B[Annotate]:::proc
+    B --> C[Analyze]:::proc
+    C --> D[Train]:::out
 
-    style A fill:#4CAF50,color:#fff
-    style B fill:#2196F3,color:#fff
-    style C fill:#FF9800,color:#fff
-    style D fill:#9C27B0,color:#fff
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
-| Stage        | Description                                                                                           |
-| ------------ | ----------------------------------------------------------------------------------------------------- |
-| **Upload**   | Import images, videos, or archives with automatic processing                                          |
-| **Annotate** | Label data with manual tools for all 5 task types, or use SAM annotation for detect, segment, and OBB |
-| **Analyze**  | View class distributions, spatial heatmaps, and dimension statistics                                  |
-| **Export**   | Download in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) for offline use |
+| Stage        | Description                                                                                                     |
+| ------------ | --------------------------------------------------------------------------------------------------------------- |
+| **Upload**   | Import images, videos, or archives with automatic processing                                                    |
+| **Annotate** | Label data with manual tools for all 6 task types, or use SAM annotation for detect, segment, semantic, and OBB |
+| **Analyze**  | View class distributions, spatial heatmaps, and dimension statistics                                            |
+| **Export**   | Download in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) for offline use           |
 
 ## Supported Tasks
 
-Ultralytics Platform supports all 5 YOLO task types:
+Ultralytics Platform supports all 6 YOLO task types:
 
 | Task                                             | Description                                                     | Annotation Tool   |
 | ------------------------------------------------ | --------------------------------------------------------------- | ----------------- |
 | **[Detect](../../datasets/detect/index.md)**     | Object detection with bounding boxes                            | Rectangle tool    |
 | **[Segment](../../datasets/segment/index.md)**   | Instance segmentation with pixel masks                          | Polygon tool      |
+| **[Semantic](../../datasets/semantic/index.md)** | Semantic segmentation with per-class pixel regions              | Polygon tool      |
 | **[Pose](../../datasets/pose/index.md)**         | Keypoint estimation with built-in and custom skeleton templates | Keypoint tool     |
 | **[OBB](../../datasets/obb/index.md)**           | Oriented bounding boxes for rotated objects                     | Oriented box tool |
 | **[Classify](../../datasets/classify/index.md)** | Image-level classification                                      | Class selector    |
@@ -125,11 +126,10 @@ The `Charts` tab provides automatic analysis including:
 
 - **Split Distribution**: Donut chart of train/val/test image counts
 - **Top Classes**: Donut chart of most frequent annotation classes
-- **Image Widths**: Histogram of image width distribution
-- **Image Heights**: Histogram of image height distribution
+- **Image Dimensions**: Histogram of image width and height distribution (in pixels)
 - **Points per Instance**: Polygon vertex or keypoint count distribution (segment/pose datasets)
 - **Annotation Locations**: 2D heatmap of bounding box center positions
-- **Image Dimensions**: 2D heatmap of width vs height with aspect ratio guide lines
+- **Image Dimensions 2D**: 2D heatmap of width vs height with aspect ratio guide lines
 
 ## Quick Links
 
@@ -146,7 +146,7 @@ Ultralytics Platform supports:
 
 **Images:** JPEG, PNG, WebP, BMP, TIFF, HEIC, AVIF, JP2, DNG, MPO (max 50MB each)
 
-**Videos:** MP4, WebM, MOV, AVI, MKV, M4V (max 1GB, frames extracted at 1 FPS, max 100 frames)
+**Videos:** MP4, WebM, MOV, MKV, M4V (max 1GB, frames extracted at 1 FPS, max 100 frames)
 
 **Dataset files:** ZIP or TAR archives including `.tar.gz` and `.tgz` (max 10GB on Free, 20GB on Pro, 50GB on Enterprise) containing images with optional [YOLO-format labels](../../datasets/detect/index.md#ultralytics-yolo-format), plus NDJSON exports
 

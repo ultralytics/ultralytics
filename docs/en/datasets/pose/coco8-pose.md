@@ -1,22 +1,24 @@
 ---
+title: COCO8-Pose Estimation Dataset
 comments: true
-description: Explore the compact, versatile COCO8-Pose dataset for testing and debugging object detection models. Ideal for quick experiments with YOLO26.
-keywords: COCO8-Pose, Ultralytics, pose detection dataset, object detection, YOLO26, machine learning, computer vision, training data
+description: "Explore the Ultralytics COCO8-Pose dataset: 8 images (4 train / 4 val) using a 17-keypoint schema, for pose estimation sanity checks with YOLO26."
+keywords: COCO8-Pose, Ultralytics, pose estimation dataset, keypoint detection, YOLO26, machine learning, computer vision, training data
 ---
 
 # COCO8-Pose Dataset
 
 ## Introduction
 
-[Ultralytics](https://www.ultralytics.com/) COCO8-Pose is a small but versatile pose detection dataset composed of the first 8 images of the COCO train 2017 set, 4 for training and 4 for validation. This dataset is ideal for testing and debugging [object detection](https://www.ultralytics.com/glossary/object-detection) models, or for experimenting with new detection approaches. With 8 images, it is small enough to be easily manageable, yet diverse enough to test training pipelines for errors and act as a sanity check before training larger datasets.
+[Ultralytics](https://www.ultralytics.com/) COCO8-Pose is a small but versatile pose estimation dataset composed of the first 8 images of the COCO train 2017 set (4 for training, 4 for validation), using a 17-keypoint schema for the single "person" class. This dataset is ideal for testing and debugging [pose estimation](../../tasks/pose.md) models, or for experimenting with new keypoint-detection approaches. With 8 images, it is small enough to be easily manageable, yet diverse enough to test training pipelines for errors and act as a sanity check before training on the full [COCO-Pose](coco.md) dataset.
 
 ## Dataset Structure
 
 - **Total images**: 8 (4 train / 4 val).
-- **Classes**: 1 (person) with 17 keypoints per annotation.
+- **Classes**: 1 (person) with 17 keypoint types per annotation.
+- **Download size**: ~1 MB.
 - **Recommended directory layout**: `datasets/coco8-pose/images/{train,val}` and `datasets/coco8-pose/labels/{train,val}` with YOLO-format keypoints stored as `.txt` files.
 
-This dataset is intended for use with [Ultralytics Platform](https://platform.ultralytics.com/) and [YOLO26](https://github.com/ultralytics/ultralytics).
+Explore [COCO8-Pose on Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/coco8-pose) to browse every image with its keypoint skeletons, view the keypoint and class distributions in the **Charts** tab, and clone it to train your own model in the cloud.
 
 ## Dataset YAML
 
@@ -61,8 +63,6 @@ Here are some examples of images from the COCO8-Pose dataset, along with their c
 
 - **Mosaiced Image**: This image demonstrates a training batch composed of mosaiced dataset images. Mosaicing is a technique used during training that combines multiple images into a single image to increase the variety of objects and scenes within each training batch. This helps improve the model's ability to generalize to different object sizes, aspect ratios, and contexts.
 
-The example showcases the variety and complexity of the images in the COCO8-Pose dataset and the benefits of using mosaicing during the training process.
-
 ## Citations and Acknowledgments
 
 If you use the COCO dataset in your research or development work, please cite the following paper:
@@ -88,50 +88,22 @@ We would like to acknowledge the COCO Consortium for creating and maintaining th
 
 ### What is the COCO8-Pose dataset, and how is it used with Ultralytics YOLO26?
 
-The COCO8-Pose dataset is a small, versatile pose detection dataset that includes the first 8 images from the COCO train 2017 set, with 4 images for training and 4 for validation. It's designed for testing and debugging object detection models and experimenting with new detection approaches. This dataset is ideal for quick experiments with [Ultralytics YOLO26](../../models/yolo26.md). For more details on dataset configuration, check out the [dataset YAML file](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8-pose.yaml).
+The COCO8-Pose dataset is a small, versatile pose estimation dataset that includes the first 8 images from the COCO train 2017 set, with 4 images for training and 4 for validation. It's designed for testing and debugging pose estimation models and experimenting with new keypoint-detection approaches. This dataset is ideal for quick experiments with [Ultralytics YOLO26](../../models/yolo26.md). For more details on dataset configuration, check out the [dataset YAML file](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8-pose.yaml).
 
 ### How do I train a YOLO26 model using the COCO8-Pose dataset in Ultralytics?
 
-To train a YOLO26n-pose model on the COCO8-Pose dataset for 100 epochs with an image size of 640, follow these examples:
-
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo26n-pose.pt")
-
-        # Train the model
-        results = model.train(data="coco8-pose.yaml", epochs=100, imgsz=640)
-        ```
-
-    === "CLI"
-
-        ```bash
-        yolo pose train data=coco8-pose.yaml model=yolo26n-pose.pt epochs=100 imgsz=640
-        ```
-
-For a comprehensive list of training arguments, refer to the model [Training](../../modes/train.md) page.
+Load `yolo26n-pose.pt` and call `model.train(data="coco8-pose.yaml", epochs=100, imgsz=640)` — see the [Train Example](#usage) above for the full Python and CLI snippets, and the model [Training](../../modes/train.md) page for a comprehensive list of arguments.
 
 ### What are the benefits of using the COCO8-Pose dataset?
 
-The COCO8-Pose dataset offers several benefits:
-
-- **Compact Size**: With only 8 images, it is easy to manage and perfect for quick experiments.
-- **Diverse Data**: Despite its small size, it includes a variety of scenes, useful for thorough pipeline testing.
-- **Error Debugging**: Ideal for identifying training errors and performing sanity checks before scaling up to larger datasets.
-
-For more about its features and usage, see the [Dataset Introduction](#introduction) section.
+With 8 total images (4 train / 4 val), 1 class, a 17-keypoint schema, and a ~1 MB download, COCO8-Pose is small enough to manage in seconds yet diverse enough to sanity-check a pose training pipeline for errors before scaling up to the full [COCO-Pose](coco.md) dataset. For more about its features and usage, see the [Dataset Introduction](#introduction) section.
 
 ### How does mosaicing benefit the YOLO26 training process using the COCO8-Pose dataset?
 
-Mosaicing, demonstrated in the sample images of the COCO8-Pose dataset, combines multiple images into one, increasing the variety of objects and scenes within each training batch. This technique helps improve the model's ability to generalize across various object sizes, aspect ratios, and contexts, ultimately enhancing model performance. See the [Sample Images and Annotations](#sample-images-and-annotations) section for example images.
+Mosaicing combines multiple images into one, increasing the variety of objects and scenes within each training batch, which helps the model generalize across object sizes, aspect ratios, and contexts. See the [Sample Images and Annotations](#sample-images-and-annotations) section for an example.
 
 ### Where can I find the COCO8-Pose dataset YAML file and how do I use it?
 
 The COCO8-Pose dataset YAML file can be found at <https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8-pose.yaml>. This file defines the dataset configuration, including paths, classes, and other relevant information. Use this file with the YOLO26 training scripts as mentioned in the [Train Example](#how-do-i-train-a-yolo26-model-using-the-coco8-pose-dataset-in-ultralytics) section.
 
-For more FAQs and detailed documentation, visit the [Ultralytics Documentation](https://docs.ultralytics.com/).
+For more on keypoint models, see the [Pose Estimation](../../tasks/pose.md) task docs.

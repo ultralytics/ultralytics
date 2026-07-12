@@ -10,12 +10,20 @@ from math import isfinite
 from pathlib import Path
 from time import sleep, time
 
-from ultralytics.utils import ENVIRONMENT, GIT, LOGGER, PYTHON_VERSION, RANK, SETTINGS, TESTS_RUNNING, Retry, colorstr
+from ultralytics.utils import (
+    ENVIRONMENT,
+    GIT,
+    LOGGER,
+    PLATFORM_URL,
+    PYTHON_VERSION,
+    RANK,
+    SETTINGS,
+    TESTS_RUNNING,
+    Retry,
+    colorstr,
+)
 
 PREFIX = colorstr("Platform: ")
-
-# Configurable platform URL for debugging (e.g. ULTRALYTICS_PLATFORM_URL=http://localhost:3000)
-PLATFORM_URL = os.getenv("ULTRALYTICS_PLATFORM_URL", "https://platform.ultralytics.com").rstrip("/")
 PLATFORM_API_URL = f"{PLATFORM_URL}/api/webhooks"
 
 
@@ -304,6 +312,8 @@ def _get_environment_info():
                 env["gitBranch"] = GIT.branch
             if GIT.commit:
                 env["gitCommit"] = GIT.commit[:12]  # Short hash
+            if GIT.message:
+                env["gitCommitMessage"] = GIT.message
     except Exception:
         pass
 
@@ -424,7 +434,7 @@ def on_fit_epoch_end(trainer):
     system = {}
     try:
         if not ctx["system_logger"]:
-            ctx["system_logger"] = SystemLogger()
+            ctx["system_logger"] = SystemLogger(all_drives=True)
         system = ctx["system_logger"].get_metrics(rates=True)
     except Exception:
         pass
@@ -505,12 +515,15 @@ def on_train_end(trainer):
     names = getattr(getattr(trainer, "validator", None), "names", None) or (trainer.data or {}).get("names")
     class_names = list(names.values()) if isinstance(names, dict) else list(names) if names else None
 
+    # stopper.best_epoch is 1-indexed; -1 aligns with the 0-indexed `epoch` field
+    best_epoch = max(0, getattr(getattr(trainer, "stopper", None), "best_epoch", trainer.epoch + 1) - 1)
+
     _send(
         "training_complete",
         {
             "results": {
                 "metrics": {**trainer.metrics, "fitness": trainer.fitness},
-                "bestEpoch": getattr(trainer, "best_epoch", trainer.epoch),
+                "bestEpoch": best_epoch,
                 "bestFitness": trainer.best_fitness,
                 "modelPath": gcs_path,  # Only send GCS path, not local path
                 "modelSize": model_size,

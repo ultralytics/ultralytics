@@ -1,15 +1,16 @@
 ---
+title: YOLO26 MNN Export for Mobile Deployment
 comments: true
-description: Optimize YOLO11 models for mobile and embedded devices by exporting to MNN format. Learn how to convert, deploy, and run inference with MNN.
-keywords: Ultralytics, YOLO11, MNN, model export, machine learning, deployment, mobile, embedded systems, deep learning, AI models, inference, quantization
+description: Optimize YOLO26 models for mobile and embedded devices by exporting to MNN format. Learn how to convert, deploy, and run inference with MNN.
+keywords: Ultralytics, YOLO26, MNN, model export, machine learning, deployment, mobile, embedded systems, deep learning, AI models, inference, quantization
 ---
 
-# MNN Export for YOLO11 Models and Deployment
+# MNN Export for YOLO26 Models and Deployment
 
 ## MNN
 
 <p align="center">
-  <img width="100%" src="https://mnn-docs.readthedocs.io/en/latest/_images/architecture.png" alt="MNN architecture">
+  <img width="100%" src="https://mnn-docs.readthedocs.io/en/latest/_images/architecture.png" alt="MNN mobile neural network inference framework">
 </p>
 
 [MNN](https://github.com/alibaba/MNN) is a highly efficient and lightweight deep learning framework. It supports inference and training of deep learning models and has industry-leading performance for inference and training on-device. At present, MNN has been integrated into more than 30 apps of Alibaba Inc, such as Taobao, Tmall, Youku, DingTalk, Xianyu, etc., covering more than 70 usage scenarios such as live broadcast, short video capture, search recommendation, product searching by image, interactive marketing, equity distribution, security risk control. In addition, MNN is also used on embedded devices, such as IoT.
@@ -22,12 +23,12 @@ keywords: Ultralytics, YOLO11, MNN, model export, machine learning, deployment, 
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Export Ultralytics YOLO11 to MNN Format | Speed up Inference on Mobile Devices📱
+  <strong>Watch:</strong> How to Export Ultralytics YOLO26 to MNN Format | Speed up Inference on Mobile Devices📱
 </p>
 
-## Export to MNN: Converting Your YOLO11 Model
+## Export to MNN: Converting Your YOLO26 Model
 
-You can expand model compatibility and deployment flexibility by converting [Ultralytics YOLO](../models/yolo11.md) models to MNN format. This conversion optimizes your models for mobile and embedded environments, ensuring efficient performance on resource-constrained devices.
+You can expand model compatibility and deployment flexibility by converting [Ultralytics YOLO](../models/yolo26.md) models to MNN format. This conversion optimizes your models for mobile and embedded environments, ensuring efficient performance on resource-constrained devices.
 
 ### Installation
 
@@ -38,61 +39,95 @@ To install the required packages, run:
     === "CLI"
 
         ```bash
-        # Install the required package for YOLO11 and MNN
+        # Install the required package for YOLO26 and MNN
         pip install ultralytics
         pip install MNN
         ```
 
 ### Usage
 
-All [Ultralytics YOLO11 models](../models/index.md) are designed to support export out of the box, making it easy to integrate them into your preferred deployment workflow. You can [view the full list of supported export formats and configuration options](../modes/export.md) to choose the best setup for your application.
+All [Ultralytics YOLO26 models](../models/index.md) are designed to support export out of the box, making it easy to integrate them into your preferred deployment workflow. You can [view the full list of supported export formats and configuration options](../modes/export.md) to choose the best setup for your application.
 
-!!! example "Usage"
+The MNN format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Export your model, then load the exported model to run inference or validate its accuracy.
+
+!!! example "Export"
 
     === "Python"
 
-          ```python
-          from ultralytics import YOLO
+        ```python
+        from ultralytics import YOLO
 
-          # Load the YOLO11 model
-          model = YOLO("yolo11n.pt")
+        # Load a YOLO26 model
+        model = YOLO("yolo26n.pt")
 
-          # Export the model to MNN format
-          model.export(format="mnn")  # creates 'yolo11n.mnn'
-
-          # Load the exported MNN model
-          mnn_model = YOLO("yolo11n.mnn")
-
-          # Run inference
-          results = mnn_model("https://ultralytics.com/images/bus.jpg")
-          ```
+        # Export the model to MNN format
+        model.export(format="mnn")  # creates 'yolo26n.mnn'
+        ```
 
     === "CLI"
 
-          ```bash
-          # Export a YOLO11n PyTorch model to MNN format
-          yolo export model=yolo11n.pt format=mnn # creates 'yolo11n.mnn'
+        ```bash
+        # Export a YOLO26n PyTorch model to MNN format
+        yolo export model=yolo26n.pt format=mnn # creates 'yolo26n.mnn'
+        ```
 
-          # Run inference with the exported model
-          yolo predict model='yolo11n.mnn' source='https://ultralytics.com/images/bus.jpg'
-          ```
+!!! example "Predict"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the exported MNN model
+        model = YOLO("yolo26n.mnn")
+
+        # Run inference
+        results = model("https://ultralytics.com/images/bus.jpg")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Run inference with the exported MNN model
+        yolo predict model=yolo26n.mnn source='https://ultralytics.com/images/bus.jpg'
+        ```
+
+!!! example "Validate"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the exported MNN model
+        model = YOLO("yolo26n.mnn")
+
+        # Validate accuracy on the COCO8 dataset
+        metrics = model.val(data="coco8.yaml")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Validate the exported MNN model
+        yolo val model=yolo26n.mnn data=coco8.yaml
+        ```
 
 ### Export Arguments
 
-| Argument | Type             | Default | Description                                                                                                                                                                                   |
-| -------- | ---------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format` | `str`            | `'mnn'` | Target format for the exported model, defining compatibility with various deployment environments.                                                                                            |
-| `imgsz`  | `int` or `tuple` | `640`   | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                             |
-| `half`   | `bool`           | `False` | Enables FP16 (half-precision) quantization, reducing model size and potentially speeding up inference on supported hardware.                                                                  |
-| `int8`   | `bool`           | `False` | Activates INT8 quantization, further compressing the model and speeding up inference with minimal [accuracy](https://www.ultralytics.com/glossary/accuracy) loss, primarily for edge devices. |
-| `batch`  | `int`            | `1`     | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                       |
-| `device` | `str`            | `None`  | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                                                                               |
+| Argument   | Type             | Default | Description                                                                                                                             |
+| ---------- | ---------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`            | `'mnn'` | Target format for the exported model, defining compatibility with various deployment environments.                                      |
+| `imgsz`    | `int` or `tuple` | `640`   | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.       |
+| `quantize` | `int` or `str`   | `None`  | Quantization precision: `16` (FP16), `8` (INT8 weight quantization), or `32`/unset (FP32). Replaces the deprecated `half`/`int8` flags. |
+| `batch`    | `int`            | `1`     | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
+| `device`   | `str`            | `None`  | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                         |
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
 ### MNN-Only Inference
 
-A function that relies solely on MNN for YOLO11 inference and preprocessing is implemented, providing both Python and C++ versions for easy deployment in any scenario.
+A function that relies solely on MNN for YOLO26 inference and preprocessing is implemented, providing both Python and C++ versions for easy deployment in any scenario.
 
 !!! example "MNN"
 
@@ -123,7 +158,7 @@ A function that relies solely on MNN for YOLO11 inference and preprocessing is i
                 image, (640, 640), 0.0, 0.0, cv2.INTER_LINEAR, -1, [0.0, 0.0, 0.0], [1.0 / 255.0, 1.0 / 255.0, 1.0 / 255.0]
             )
             image = image[..., ::-1]  # BGR to RGB
-            input_var = np.expand_dims(image, 0)
+            input_var = image[None]
             input_var = MNN.expr.convert(input_var, MNN.expr.NC4HW4)
             output_var = net.forward(input_var)
             output_var = MNN.expr.convert(output_var, MNN.expr.NCHW)
@@ -167,7 +202,7 @@ A function that relies solely on MNN for YOLO11 inference and preprocessing is i
 
         if __name__ == "__main__":
             parser = argparse.ArgumentParser()
-            parser.add_argument("--model", type=str, required=True, help="the yolo11 model path")
+            parser.add_argument("--model", type=str, required=True, help="the yolo26 model path")
             parser.add_argument("--img", type=str, required=True, help="the input image path")
             parser.add_argument("--precision", type=str, default="normal", help="inference precision: normal, low, high, lowBF")
             parser.add_argument(
@@ -199,7 +234,7 @@ A function that relies solely on MNN for YOLO11 inference and preprocessing is i
 
         int main(int argc, const char* argv[]) {
             if (argc < 3) {
-                MNN_PRINT("Usage: ./yolo11_demo.out model.mnn input.jpg [forwardType] [precision] [thread]\n");
+                MNN_PRINT("Usage: ./yolo26_demo.out model.mnn input.jpg [forwardType] [precision] [thread]\n");
                 return 0;
             }
             int thread = 4;
@@ -294,15 +329,15 @@ A function that relies solely on MNN for YOLO11 inference and preprocessing is i
 
 ## Summary
 
-In this guide, we introduce how to export the Ultralytics YOLO11 model to MNN and use MNN for inference. The MNN format provides excellent performance for [edge AI](https://www.ultralytics.com/glossary/edge-ai) applications, making it ideal for deploying computer vision models on resource-constrained devices.
+In this guide, we introduce how to export the Ultralytics YOLO26 model to MNN and use MNN for inference. The MNN format provides excellent performance for [edge AI](https://www.ultralytics.com/glossary/edge-ai) applications, making it ideal for deploying computer vision models on resource-constrained devices.
 
 For more usage, please refer to the [MNN documentation](https://mnn-docs.readthedocs.io/en/latest).
 
 ## FAQ
 
-### How do I export Ultralytics YOLO11 models to MNN format?
+### How do I export Ultralytics YOLO26 models to MNN format?
 
-To export your Ultralytics YOLO11 model to MNN format, follow these steps:
+To export your Ultralytics YOLO26 model to MNN format, follow these steps:
 
 !!! example "Export"
 
@@ -311,28 +346,28 @@ To export your Ultralytics YOLO11 model to MNN format, follow these steps:
         ```python
         from ultralytics import YOLO
 
-        # Load the YOLO11 model
-        model = YOLO("yolo11n.pt")
+        # Load a YOLO26 model
+        model = YOLO("yolo26n.pt")
 
         # Export to MNN format
-        model.export(format="mnn")  # creates 'yolo11n.mnn' with fp32 weight
-        model.export(format="mnn", half=True)  # creates 'yolo11n.mnn' with fp16 weight
-        model.export(format="mnn", int8=True)  # creates 'yolo11n.mnn' with int8 weight
+        model.export(format="mnn")  # creates 'yolo26n.mnn' with fp32 weight
+        model.export(format="mnn", quantize=16)  # creates 'yolo26n.mnn' with fp16 weight
+        model.export(format="mnn", quantize=8)  # creates 'yolo26n.mnn' with int8 weight
         ```
 
     === "CLI"
 
         ```bash
-        yolo export model=yolo11n.pt format=mnn           # creates 'yolo11n.mnn' with fp32 weight
-        yolo export model=yolo11n.pt format=mnn half=True # creates 'yolo11n.mnn' with fp16 weight
-        yolo export model=yolo11n.pt format=mnn int8=True # creates 'yolo11n.mnn' with int8 weight
+        yolo export model=yolo26n.pt format=mnn             # creates 'yolo26n.mnn' with fp32 weight
+        yolo export model=yolo26n.pt format=mnn quantize=16 # creates 'yolo26n.mnn' with fp16 weight
+        yolo export model=yolo26n.pt format=mnn quantize=8  # creates 'yolo26n.mnn' with int8 weight
         ```
 
 For detailed export options, check the [Export](../modes/export.md) page in the documentation.
 
-### How do I predict with an exported YOLO11 MNN model?
+### How do I predict with an exported YOLO26 MNN model?
 
-To predict with an exported YOLO11 MNN model, use the `predict` function from the YOLO class.
+To predict with an exported YOLO26 MNN model, use the `predict` function from the YOLO class.
 
 !!! example "Predict"
 
@@ -341,12 +376,12 @@ To predict with an exported YOLO11 MNN model, use the `predict` function from th
         ```python
         from ultralytics import YOLO
 
-        # Load the YOLO11 MNN model
-        model = YOLO("yolo11n.mnn")
+        # Load the YOLO26 MNN model
+        model = YOLO("yolo26n.mnn")
 
-        # Export to MNN format
+        # Run inference
         results = model("https://ultralytics.com/images/bus.jpg")  # predict with `fp32`
-        results = model("https://ultralytics.com/images/bus.jpg", half=True)  # predict with `fp16` if device support
+        results = model("https://ultralytics.com/images/bus.jpg", quantize=16)  # predict with `fp16` if device support
 
         for result in results:
             result.show()  # display to screen
@@ -356,8 +391,8 @@ To predict with an exported YOLO11 MNN model, use the `predict` function from th
     === "CLI"
 
         ```bash
-        yolo predict model='yolo11n.mnn' source='https://ultralytics.com/images/bus.jpg'             # predict with `fp32`
-        yolo predict model='yolo11n.mnn' source='https://ultralytics.com/images/bus.jpg' --half=True # predict with `fp16` if device support
+        yolo predict model='yolo26n.mnn' source='https://ultralytics.com/images/bus.jpg'             # predict with `fp32`
+        yolo predict model='yolo26n.mnn' source='https://ultralytics.com/images/bus.jpg' quantize=16 # predict with `fp16` if device support
         ```
 
 ### What platforms are supported for MNN?
@@ -368,9 +403,9 @@ MNN is versatile and supports various platforms:
 - **Embedded Systems and IoT Devices**: Devices like [Raspberry Pi](../guides/raspberry-pi.md) and NVIDIA Jetson.
 - **Desktop and Servers**: Linux, Windows, and macOS.
 
-### How can I deploy Ultralytics YOLO11 MNN models on Mobile Devices?
+### How can I deploy Ultralytics YOLO26 MNN models on Mobile Devices?
 
-To deploy your YOLO11 models on Mobile devices:
+To deploy your YOLO26 models on Mobile devices:
 
 1. **Build for Android**: Follow the [MNN Android](https://github.com/alibaba/MNN/tree/master/project/android) guide.
 2. **Build for iOS**: Follow the [MNN iOS](https://github.com/alibaba/MNN/tree/master/project/ios) guide.

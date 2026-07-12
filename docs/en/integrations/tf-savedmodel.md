@@ -1,24 +1,25 @@
 ---
+title: Export YOLO26 to TF SavedModel Format
 comments: true
-description: Learn how to export Ultralytics YOLO11 models to TensorFlow SavedModel format for easy deployment across various platforms and environments.
-keywords: YOLO11, TF SavedModel, Ultralytics, TensorFlow, model export, model deployment, machine learning, AI
+description: Learn how to export Ultralytics YOLO26 models to TensorFlow SavedModel format for easy deployment across various platforms and environments.
+keywords: YOLO26, TF SavedModel, Ultralytics, TensorFlow, model export, model deployment, machine learning, AI
 ---
 
-# Understand How to Export to TF SavedModel Format From YOLO11
+# Understand How to Export to TF SavedModel Format From YOLO26
 
 Deploying [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models can be challenging. However, using an efficient and flexible model format can make your job easier. TF SavedModel is an open-source machine-learning framework used by TensorFlow to load machine-learning models in a consistent way. It is like a suitcase for TensorFlow models, making them easy to carry and use on different devices and systems.
 
-Learning how to export to TF SavedModel from [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) models can help you deploy models easily across different platforms and environments. In this guide, we'll walk through how to convert your models to the TF SavedModel format, simplifying the process of running inferences with your models on different devices.
+Learning how to export to TF SavedModel from [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) models can help you deploy models easily across different platforms and environments. In this guide, we'll walk through how to convert your models to the TF SavedModel format, simplifying the process of running inferences with your models on different devices.
 
 ## Why Should You Export to TF SavedModel?
 
 The TensorFlow SavedModel format is part of the TensorFlow ecosystem developed by Google as shown below. It is designed to save and serialize TensorFlow models seamlessly. It encapsulates the complete details of models like the architecture, weights, and even compilation information. This makes it straightforward to share, deploy, and continue training across different environments.
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/tf-savedmodel-overview.avif" alt="TF SavedModel">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/tf-savedmodel-overview.avif" alt="TensorFlow SavedModel export format structure">
 </p>
 
-The TF SavedModel has a key advantage: its compatibility. It works well with [TensorFlow Serving](https://www.tensorflow.org/tfx/guide/serving), TensorFlow Lite, and TensorFlow.js. This compatibility makes it easier to share and deploy models across various platforms, including web and mobile applications. The TF SavedModel format is useful both for research and production. It provides a unified way to manage your models, ensuring they are ready for any application.
+The TF SavedModel has a key advantage: its compatibility. It works well with [TensorFlow Serving](https://www.tensorflow.org/tfx/guide/serving), [LiteRT](litert.md) (formerly TensorFlow Lite), and TensorFlow.js. This compatibility makes it easier to share and deploy models across various platforms, including web and mobile applications. The TF SavedModel format is useful both for research and production. It provides a unified way to manage your models, ensuring they are ready for any application.
 
 ## Key Features of TF SavedModels
 
@@ -32,21 +33,21 @@ Here are the key features that make TF SavedModel a great option for AI develope
 
 ## Deployment Options with TF SavedModel
 
-Before we dive into the process of exporting YOLO11 models to the TF SavedModel format, let's explore some typical deployment scenarios where this format is used.
+Before we dive into the process of exporting YOLO26 models to the TF SavedModel format, let's explore some typical deployment scenarios where this format is used.
 
 TF SavedModel provides a range of options to deploy your machine learning models:
 
-- **TensorFlow Serving:** TensorFlow Serving is a flexible, high-performance serving system designed for production environments. It natively supports TF SavedModels, making it easy to deploy and serve your models on cloud platforms, on-premises servers, or [edge devices](https://docs.ultralytics.com/guides/raspberry-pi/).
+- **TensorFlow Serving:** TensorFlow Serving is a flexible, high-performance serving system designed for production environments. It natively supports TF SavedModels, making it easy to deploy and serve your models on cloud platforms, on-premises servers, or [edge devices](../guides/raspberry-pi.md).
 
-- **Cloud Platforms:** Major cloud providers like [Google Cloud Platform (GCP)](https://cloud.google.com/vertex-ai), [Amazon Web Services (AWS)](https://aws.amazon.com/sagemaker/), and [Microsoft Azure](https://azure.microsoft.com/en-us/services/machine-learning/) offer services for deploying and running TensorFlow models, including TF SavedModels. These services provide scalable and managed infrastructure, allowing you to deploy and scale your models easily.
+- **Cloud Platforms:** Major cloud providers like [Google Cloud Platform (GCP)](https://cloud.google.com/products/gemini-enterprise-agent-platform), [Amazon Web Services (AWS)](https://aws.amazon.com/sagemaker/), and [Microsoft Azure](https://azure.microsoft.com/en-us/services/machine-learning/) offer services for deploying and running TensorFlow models, including TF SavedModels. These services provide scalable and managed infrastructure, allowing you to deploy and scale your models easily.
 
-- **Mobile and Embedded Devices:** [TensorFlow Lite](https://docs.ultralytics.com/integrations/tflite/), a lightweight solution for running machine learning models on mobile, embedded, and IoT devices, supports converting TF SavedModels to the TensorFlow Lite format. This allows you to deploy your models on a wide range of devices, from smartphones and tablets to microcontrollers and edge devices.
+- **Mobile and Embedded Devices:** [LiteRT](litert.md) (formerly TensorFlow Lite), a lightweight solution for running machine learning models on mobile, embedded, and IoT devices, supports converting TF SavedModels to the LiteRT format. This allows you to deploy your models on a wide range of devices, from smartphones and tablets to microcontrollers and edge devices.
 
 - **TensorFlow Runtime:** TensorFlow Runtime (`tfrt`) is a high-performance runtime for executing [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) graphs. It provides lower-level APIs for loading and running TF SavedModels in C++ environments. TensorFlow Runtime offers better performance compared to the standard TensorFlow runtime. It is suitable for deployment scenarios that require low-latency inference and tight integration with existing C++ codebases.
 
-## Exporting YOLO11 Models to TF SavedModel
+## Exporting YOLO26 Models to TF SavedModel
 
-By exporting YOLO11 models to the TF SavedModel format, you enhance their adaptability and ease of deployment across various platforms.
+By exporting YOLO26 models to the TF SavedModel format, you enhance their adaptability and ease of deployment across various platforms.
 
 ### Installation
 
@@ -57,63 +58,100 @@ To install the required package, run:
     === "CLI"
 
         ```bash
-        # Install the required package for YOLO11
+        # Install the required package for YOLO26
         pip install ultralytics
         ```
 
-For detailed instructions and best practices related to the installation process, check our [Ultralytics Installation guide](../quickstart.md). While installing the required packages for YOLO11, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
+For detailed instructions and best practices related to the installation process, check our [Ultralytics Installation guide](../quickstart.md). While installing the required packages for YOLO26, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
 
 ### Usage
 
-All [Ultralytics YOLO11 models](../models/index.md) are designed to support export out of the box, making it easy to integrate them into your preferred deployment workflow. You can [view the full list of supported export formats and configuration options](../modes/export.md) to choose the best setup for your application.
+All [Ultralytics YOLO26 models](../models/index.md) are designed to support export out of the box, making it easy to integrate them into your preferred deployment workflow. You can [view the full list of supported export formats and configuration options](../modes/export.md) to choose the best setup for your application.
 
-!!! example "Usage"
+The TF SavedModel format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Export your model, then load the exported model to run inference or validate its accuracy.
+
+!!! example "Export"
 
     === "Python"
 
         ```python
         from ultralytics import YOLO
 
-        # Load the YOLO11 model
-        model = YOLO("yolo11n.pt")
+        # Load a YOLO26 model
+        model = YOLO("yolo26n.pt")
 
         # Export the model to TF SavedModel format
-        model.export(format="saved_model")  # creates '/yolo11n_saved_model'
-
-        # Load the exported TF SavedModel model
-        tf_savedmodel_model = YOLO("./yolo11n_saved_model")
-
-        # Run inference
-        results = tf_savedmodel_model("https://ultralytics.com/images/bus.jpg")
+        model.export(format="saved_model")  # creates '/yolo26n_saved_model'
         ```
 
     === "CLI"
 
         ```bash
-        # Export a YOLO11n PyTorch model to TF SavedModel format
-        yolo export model=yolo11n.pt format=saved_model # creates '/yolo11n_saved_model'
+        # Export a YOLO26n PyTorch model to TF SavedModel format
+        yolo export model=yolo26n.pt format=saved_model # creates '/yolo26n_saved_model'
+        ```
 
-        # Run inference with the exported model
-        yolo predict model='./yolo11n_saved_model' source='https://ultralytics.com/images/bus.jpg'
+!!! example "Predict"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the exported TF SavedModel model
+        model = YOLO("./yolo26n_saved_model")
+
+        # Run inference
+        results = model("https://ultralytics.com/images/bus.jpg")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Run inference with the exported TF SavedModel model
+        yolo predict model=./yolo26n_saved_model source='https://ultralytics.com/images/bus.jpg'
+        ```
+
+!!! example "Validate"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the exported TF SavedModel model
+        model = YOLO("./yolo26n_saved_model")
+
+        # Validate accuracy on the COCO8 dataset
+        metrics = model.val(data="coco8.yaml")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Validate the exported TF SavedModel model
+        yolo val model=./yolo26n_saved_model data=coco8.yaml
         ```
 
 ### Export Arguments
 
-| Argument | Type             | Default         | Description                                                                                                                                                                                   |
-| -------- | ---------------- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format` | `str`            | `'saved_model'` | Target format for the exported model, defining compatibility with various deployment environments.                                                                                            |
-| `imgsz`  | `int` or `tuple` | `640`           | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                             |
-| `keras`  | `bool`           | `False`         | Enables export to Keras format, providing compatibility with TensorFlow serving and APIs.                                                                                                     |
-| `int8`   | `bool`           | `False`         | Activates INT8 quantization, further compressing the model and speeding up inference with minimal [accuracy](https://www.ultralytics.com/glossary/accuracy) loss, primarily for edge devices. |
-| `nms`    | `bool`           | `False`         | Adds Non-Maximum Suppression (NMS), essential for accurate and efficient detection post-processing.                                                                                           |
-| `batch`  | `int`            | `1`             | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                       |
-| `device` | `str`            | `None`          | Specifies the device for exporting: CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                                                                                                 |
+| Argument   | Type             | Default         | Description                                                                                                                                                                                                                                                      |
+| ---------- | ---------------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`            | `'saved_model'` | Target format for the exported model, defining compatibility with various deployment environments.                                                                                                                                                               |
+| `imgsz`    | `int` or `tuple` | `640`           | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                                                                |
+| `keras`    | `bool`           | `False`         | Enables export to Keras format, providing compatibility with TensorFlow serving and APIs.                                                                                                                                                                        |
+| `quantize` | `int` or `str`   | `None`          | Quantization precision: `8` (INT8/PTQ; needs calibration `data`/`fraction`) or `32`/unset (FP32). FP16 is not supported for SavedModel export. Replaces the deprecated `int8` flag.                                                                              |
+| `nms`      | `bool`           | `False`         | Adds Non-Maximum Suppression (NMS), essential for accurate and efficient detection post-processing.                                                                                                                                                              |
+| `batch`    | `int`            | `1`             | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                                                          |
+| `data`     | `str`            | `'coco8.yaml'`  | Path to the [dataset](../datasets/index.md) configuration file (default: `coco8.yaml`), essential for quantization.                                                                                                                                              |
+| `fraction` | `float`          | `1.0`           | Specifies the fraction of the dataset to use for INT8 quantization calibration. Allows for calibrating on a subset of the full dataset, useful for experiments or when resources are limited. If not specified with INT8 enabled, the full dataset will be used. |
+| `device`   | `str`            | `None`          | Specifies the device for exporting: CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                                                                                                                                                                    |
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
-## Deploying Exported YOLO11 TF SavedModel Models
+## Deploying Exported YOLO26 TF SavedModel Models
 
-Now that you have exported your YOLO11 model to the TF SavedModel format, the next step is to deploy it. The primary and recommended first step for running a TF SavedModel model is to use the `YOLO("yolo11n_saved_model/")` method, as previously shown in the usage code snippet.
+Now that you have exported your YOLO26 model to the TF SavedModel format, the next step is to deploy it. The primary and recommended first step for running a TF SavedModel model is to use the `YOLO("yolo26n_saved_model/")` method, as previously shown in the usage code snippet.
 
 However, for in-depth instructions on deploying your TF SavedModel models, take a look at the following resources:
 
@@ -125,11 +163,11 @@ However, for in-depth instructions on deploying your TF SavedModel models, take 
 
 ## Summary
 
-In this guide, we explored how to export Ultralytics YOLO11 models to the TF SavedModel format. By exporting to TF SavedModel, you gain the flexibility to optimize, deploy, and scale your YOLO11 models on a wide range of platforms.
+In this guide, we explored how to export Ultralytics YOLO26 models to the TF SavedModel format. By exporting to TF SavedModel, you gain the flexibility to optimize, deploy, and scale your YOLO26 models on a wide range of platforms.
 
 For further details on usage, visit the [TF SavedModel official documentation](https://www.tensorflow.org/guide/saved_model).
 
-For more information on integrating Ultralytics YOLO11 with other platforms and frameworks, don't forget to check out our [integration guide page](index.md). It's packed with great resources to help you make the most of YOLO11 in your projects.
+For more information on integrating Ultralytics YOLO26 with other platforms and frameworks, don't forget to check out our [integration guide page](index.md). It's packed with great resources to help you make the most of YOLO26 in your projects.
 
 ## FAQ
 
@@ -137,32 +175,32 @@ For more information on integrating Ultralytics YOLO11 with other platforms and 
 
 Exporting an Ultralytics YOLO model to the TensorFlow SavedModel format is straightforward. You can use either Python or CLI to achieve this:
 
-!!! example "Exporting YOLO11 to TF SavedModel"
+!!! example "Exporting YOLO26 to TF SavedModel"
 
     === "Python"
 
         ```python
         from ultralytics import YOLO
 
-        # Load the YOLO11 model
-        model = YOLO("yolo11n.pt")
+        # Load a YOLO26 model
+        model = YOLO("yolo26n.pt")
 
         # Export the model to TF SavedModel format
-        model.export(format="saved_model")  # creates '/yolo11n_saved_model'
+        model.export(format="saved_model")  # creates '/yolo26n_saved_model'
 
         # Load the exported TF SavedModel for inference
-        tf_savedmodel_model = YOLO("./yolo11n_saved_model")
+        tf_savedmodel_model = YOLO("./yolo26n_saved_model")
         results = tf_savedmodel_model("https://ultralytics.com/images/bus.jpg")
         ```
 
     === "CLI"
 
         ```bash
-        # Export the YOLO11 model to TF SavedModel format
-        yolo export model=yolo11n.pt format=saved_model # creates '/yolo11n_saved_model'
+        # Export the YOLO26 model to TF SavedModel format
+        yolo export model=yolo26n.pt format=saved_model # creates '/yolo26n_saved_model'
 
         # Run inference with the exported model
-        yolo predict model='./yolo11n_saved_model' source='https://ultralytics.com/images/bus.jpg'
+        yolo predict model='./yolo26n_saved_model' source='https://ultralytics.com/images/bus.jpg'
         ```
 
 Refer to the [Ultralytics Export documentation](../modes/export.md) for more details.
@@ -172,7 +210,7 @@ Refer to the [Ultralytics Export documentation](../modes/export.md) for more det
 The TensorFlow SavedModel format offers several advantages for [model deployment](https://www.ultralytics.com/glossary/model-deployment):
 
 - **Portability:** It provides a language-neutral format, making it easy to share and deploy models across different environments.
-- **Compatibility:** Integrates seamlessly with tools like TensorFlow Serving, TensorFlow Lite, and TensorFlow.js, which are essential for deploying models on various platforms, including web and mobile applications.
+- **Compatibility:** Integrates seamlessly with tools like TensorFlow Serving, [LiteRT](litert.md), and TensorFlow.js, which are essential for deploying models on various platforms, including web and mobile applications.
 - **Complete encapsulation:** Encodes the model architecture, weights, and compilation information, allowing for straightforward sharing and training continuation.
 
 For more benefits and deployment options, check out the [Ultralytics YOLO model deployment options](../guides/model-deployment-options.md).
@@ -183,14 +221,14 @@ TF SavedModel can be deployed in various environments, including:
 
 - **TensorFlow Serving:** Ideal for production environments requiring scalable and high-performance model serving.
 - **Cloud Platforms:** Supports major cloud services like Google Cloud Platform (GCP), Amazon Web Services (AWS), and Microsoft Azure for scalable model deployment.
-- **Mobile and Embedded Devices:** Using [TensorFlow Lite](https://docs.ultralytics.com/integrations/tflite/) to convert TF SavedModels allows for deployment on mobile devices, IoT devices, and microcontrollers.
+- **Mobile and Embedded Devices:** Using [LiteRT](litert.md) (formerly TensorFlow Lite) to convert TF SavedModels allows for deployment on mobile devices, IoT devices, and microcontrollers.
 - **TensorFlow Runtime:** For C++ environments needing low-latency inference with better performance.
 
 For detailed deployment options, visit the official guides on [deploying TensorFlow models](https://www.tensorflow.org/tfx/guide/serving).
 
-### How can I install the necessary packages to export YOLO11 models?
+### How can I install the necessary packages to export YOLO26 models?
 
-To export YOLO11 models, you need to install the `ultralytics` package. Run the following command in your terminal:
+To export YOLO26 models, you need to install the `ultralytics` package. Run the following command in your terminal:
 
 ```bash
 pip install ultralytics

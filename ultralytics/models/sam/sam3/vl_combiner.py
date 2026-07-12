@@ -33,8 +33,13 @@ class SAM3VLBackbone(nn.Module):
     ):
         """Initialize the backbone combiner.
 
-        :param visual: The vision backbone to use
-        :param text: The text encoder to use
+        Args:
+            visual (Sam3DualViTDetNeck): The vision backbone to use.
+            text (nn.Module): The text encoder to use.
+            compile_visual (bool): Whether to `torch.compile` the vision backbone.
+            act_ckpt_whole_vision_backbone (bool): Whether to checkpoint activations for the whole vision backbone.
+            act_ckpt_whole_language_backbone (bool): Whether to checkpoint activations for the whole language backbone.
+            scalp (int): Number of trailing (lowest-resolution) feature levels to drop from the backbone output.
         """
         super().__init__()
         self.vision_backbone: Sam3DualViTDetNeck = torch.compile(visual) if compile_visual else visual
@@ -53,21 +58,20 @@ class SAM3VLBackbone(nn.Module):
     ):
         """Forward pass of the backbone combiner.
 
-        :param samples: The input images
-        :param captions: The input captions
-        :param input_boxes: If the text contains place-holders for boxes, this
-            parameter contains the tensor containing their spatial features
-        :param additional_text: This can be used to encode some additional text
-            (different from the captions) in the same forward of the backbone
-        :return: Output dictionary with the following keys:
-            - vision_features: The output of the vision backbone
-            - language_features: The output of the language backbone
-            - language_mask: The attention mask of the language backbone
-            - vision_pos_enc: The positional encoding of the vision backbone
-            - (optional) additional_text_features: The output of the language
-                backbone for the additional text
-            - (optional) additional_text_mask: The attention mask of the
-                language backbone for the additional text
+        Args:
+            samples (torch.Tensor): The input images.
+            captions (list[str]): The input captions.
+            input_boxes (torch.Tensor, optional): When the text contains box place-holders, the tensor containing their
+                spatial features.
+            additional_text (list[str], optional): Extra text (different from the captions) to encode in the same
+                backbone forward pass.
+
+        Returns:
+            (dict): Output dictionary with the following keys: `vision_features` (the output of the vision backbone),
+                `language_features` (the output of the language backbone), `language_mask` (the attention mask of the
+                language backbone), `vision_pos_enc` (the positional encoding of the vision
+                backbone) and, when `additional_text` is provided, `additional_text_features` and
+                `additional_text_mask` (the language backbone output and attention mask for the additional text).
         """
         output = self.forward_image(samples)
         output.update(self.forward_text(captions, input_boxes, additional_text))
@@ -110,15 +114,10 @@ class SAM3VLBackbone(nn.Module):
     def forward_image_sam2(self, samples: torch.Tensor):
         """Forward pass of the vision backbone to get SAM2 features only."""
         xs = self.vision_backbone.trunk(samples)
-        sam2_features, sam2_pos = [], []
         x = xs[-1]  # simpleFPN
 
         assert self.vision_backbone.sam2_convs is not None, "SAM2 neck is not available."
-        for i in range(len(self.vision_backbone.sam2_convs)):
-            sam2_x_out = self.vision_backbone.sam2_convs[i](x)
-            sam2_pos_out = self.vision_backbone.position_encoding(sam2_x_out).to(sam2_x_out.dtype)
-            sam2_features.append(sam2_x_out)
-            sam2_pos.append(sam2_pos_out)
+        sam2_features, sam2_pos = self.vision_backbone.sam_forward_feature_levels(x, self.vision_backbone.sam2_convs)
 
         if self.scalp > 0:
             # Discard the lowest resolution features
@@ -160,6 +159,7 @@ class SAM3VLBackbone(nn.Module):
 
         return output
 
-    def set_imgsz(self, imgsz: list[int] = [1008, 1008]):
+    def set_imgsz(self, imgsz: list[int] | None = None):
         """Set the image size for the vision backbone."""
+        imgsz = imgsz if imgsz is not None else [1008, 1008]
         self.vision_backbone.set_imgsz(imgsz)

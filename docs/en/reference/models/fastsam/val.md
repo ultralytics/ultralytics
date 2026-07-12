@@ -1,5 +1,6 @@
 ---
-description: Discover FastSAM Validator for segmentation in Ultralytics YOLO. Learn how to validate with custom metrics and avoid common errors. Contribute on GitHub!.
+title: models.fastsam.val API Reference
+description: Discover FastSAM Validator for segmentation in Ultralytics YOLO. Learn how to validate with custom metrics and avoid common errors. Contribute on GitHub.
 keywords: FastSAM Validator, Ultralytics, YOLO, segmentation, validation, metrics, GitHub, contribute, documentation
 ---
 
@@ -7,7 +8,7 @@ keywords: FastSAM Validator, Ultralytics, YOLO, segmentation, validation, metric
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/fastsam/val.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/fastsam/val.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/fastsam/val.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/fastsam/val.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
 <br>
 

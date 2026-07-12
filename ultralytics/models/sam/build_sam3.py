@@ -19,7 +19,6 @@ from .sam3.model_misc import DotProductScoring, TransformerWrapper
 from .sam3.necks import Sam3DualViTDetNeck
 from .sam3.sam3_image import SAM3SemanticModel
 from .sam3.text_encoder_ve import VETextEncoder
-from .sam3.tokenizer_ve import SimpleTokenizer
 from .sam3.vitdet import ViT
 from .sam3.vl_combiner import SAM3VLBackbone
 
@@ -133,27 +132,31 @@ def _create_sam3_transformer() -> TransformerWrapper:
     return TransformerWrapper(encoder=encoder, decoder=decoder, d_model=256)
 
 
-def build_sam3_image_model(
-    checkpoint_path: str, bpe_path: str, enable_segmentation: bool = True, compile: bool = False
-):
+def build_sam3_image_model(checkpoint_path: str, enable_segmentation: bool = True, compile: bool = False):
     """Build SAM3 image model.
 
     Args:
         checkpoint_path: Optional path to model checkpoint
-        bpe_path: Path to the BPE tokenizer vocabulary
         enable_segmentation: Whether to enable segmentation head
-        compile: To enable compilation, set to "default"
+        compile: Whether to enable compilation of the model
 
     Returns:
         A SAM3 image model
     """
+    try:
+        import clip
+    except ImportError:
+        from ultralytics.utils.checks import check_requirements
+
+        check_requirements("git+https://github.com/ultralytics/CLIP.git")
+        import clip
     # Create visual components
     compile_mode = "default" if compile else None
     vision_encoder = _create_vision_backbone(compile_mode=compile_mode, enable_inst_interactivity=True)
 
     # Create text components
     text_encoder = VETextEncoder(
-        tokenizer=SimpleTokenizer(bpe_path=bpe_path),
+        tokenizer=clip.simple_tokenizer.SimpleTokenizer(),
         d_model=256,
         width=1024,
         heads=16,
@@ -255,8 +258,13 @@ def build_sam3_image_model(
 def build_interactive_sam3(checkpoint_path: str, compile=None, with_backbone=True) -> SAM3Model:
     """Build the SAM3 Tracker module for video tracking.
 
+    Args:
+        checkpoint_path (str): Path to model checkpoint.
+        compile (str | None): Compilation mode for the vision backbone.
+        with_backbone (bool): Whether to include the vision backbone in the model.
+
     Returns:
-        Sam3TrackerPredictor: Wrapped SAM3 Tracker module
+        (SAM3Model): A configured and initialized SAM3 model.
     """
     # Create model components
     memory_encoder = MemoryEncoder(out_dim=64, interpol_size=[1152, 1152])

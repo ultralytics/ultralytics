@@ -4,7 +4,6 @@
 
 import torch
 import torch.nn as nn
-import torchvision
 
 from ultralytics.nn.modules.utils import _get_clones
 from ultralytics.utils.ops import xywh2xyxy
@@ -18,21 +17,21 @@ def is_right_padded(mask: torch.Tensor):
 
 
 def concat_padded_sequences(seq1, mask1, seq2, mask2, return_index: bool = False):
-    """
-    Concatenates two right-padded sequences, such that the resulting sequence
-    is contiguous and also right-padded.
+    """Concatenate two right-padded sequences into a contiguous, right-padded sequence.
 
-    Following pytorch's convention, tensors are sequence first, and the mask are
-    batch first, with 1s for padded values.
+    Following PyTorch convention, tensors are sequence-first and masks are batch-first, with 1s for padded values.
 
-    :param seq1: A tensor of shape (seq1_length, batch_size, hidden_size).
-    :param mask1: A tensor of shape (batch_size, seq1_length).
-    :param seq2: A tensor of shape (seq2_length, batch_size,  hidden_size).
-    :param mask2: A tensor of shape (batch_size, seq2_length).
-    :param return_index: If True, also returns the index of the ids of the element of seq2
-        in the concatenated sequence. This can be used to retrieve the elements of seq2
-    :return: A tuple (concatenated_sequence, concatenated_mask) if return_index is False,
-        otherwise (concatenated_sequence, concatenated_mask, index).
+    Args:
+        seq1 (torch.Tensor): A tensor of shape (seq1_length, batch_size, hidden_size).
+        mask1 (torch.Tensor): A tensor of shape (batch_size, seq1_length).
+        seq2 (torch.Tensor): A tensor of shape (seq2_length, batch_size, hidden_size).
+        mask2 (torch.Tensor): A tensor of shape (batch_size, seq2_length).
+        return_index (bool): If True, also return the index of the ids of the elements of seq2 in the concatenated
+            sequence, which can be used to retrieve the elements of seq2.
+
+    Returns:
+        (tuple): (concatenated_sequence, concatenated_mask) if return_index is False, otherwise (concatenated_sequence,
+            concatenated_mask, index).
     """
     seq1_length, batch_size, hidden_size = seq1.shape
     seq2_length, batch_size, hidden_size = seq2.shape
@@ -42,8 +41,8 @@ def concat_padded_sequences(seq1, mask1, seq2, mask2, return_index: bool = False
     assert seq1_length == mask1.size(1)
     assert seq2_length == mask2.size(1)
 
-    torch._assert_async(is_right_padded(mask1))
-    torch._assert_async(is_right_padded(mask2))
+    torch._assert(is_right_padded(mask1), "Mask is not right padded")
+    torch._assert(is_right_padded(mask2), "Mask is not right padded")
 
     actual_seq1_lengths = (~mask1).sum(dim=-1)
     actual_seq2_lengths = (~mask2).sum(dim=-1)
@@ -136,9 +135,9 @@ class Prompt:
         """Append box prompts to existing prompts.
 
         Args:
-            boxes: Tensor of shape (N_new_boxes, B, 4) with normalized box coordinates
-            labels: Optional tensor of shape (N_new_boxes, B) with positive/negative labels
-            mask: Optional tensor of shape (B, N_new_boxes) for attention mask
+            boxes (torch.Tensor): Tensor of shape (N_new_boxes, B, 4) with normalized box coordinates.
+            labels (torch.Tensor | None): Optional tensor of shape (N_new_boxes, B) with positive/negative labels.
+            mask (torch.Tensor | None): Optional tensor of shape (B, N_new_boxes) for attention mask.
         """
         if self.box_embeddings is None:
             # First boxes - initialize
@@ -288,12 +287,15 @@ class SequenceGeometryEncoder(nn.Module):
             # Convert boxes to xyxy format and denormalize
             boxes_xyxy = xywh2xyxy(boxes.to(img_feats.dtype))
             scale = torch.tensor([W, H, W, H], dtype=boxes_xyxy.dtype)
-            scale = scale.pin_memory().to(device=boxes_xyxy.device, non_blocking=True)
+            scale = scale.to(device=boxes_xyxy.device, non_blocking=True)
             scale = scale.view(1, 1, 4)
             boxes_xyxy = boxes_xyxy * scale
 
             # RoI align
-            sampled = torchvision.ops.roi_align(img_feats, boxes_xyxy.transpose(0, 1).unbind(0), self.roi_size)
+            # Scoped for import ultralytics speed: ROI align requires optional torchvision ops.
+            from torchvision.ops import roi_align
+
+            sampled = roi_align(img_feats, boxes_xyxy.transpose(0, 1).unbind(0), self.roi_size)
             assert list(sampled.shape) == [
                 bs * n_boxes,
                 self.d_model,
@@ -327,10 +329,10 @@ class SequenceGeometryEncoder(nn.Module):
         """Encode geometric box prompts.
 
         Args:
-            geo_prompt: Prompt object containing box embeddings, masks, and labels
-            img_feats: List of image features from backbone
-            img_sizes: List of (H, W) tuples for each feature level
-            img_pos_embeds: Optional position embeddings for image features
+            geo_prompt (Prompt): Prompt object containing box embeddings, masks, and labels.
+            img_feats (list[torch.Tensor]): List of image features from backbone.
+            img_sizes (list[tuple[int, int]]): List of (H, W) tuples for each feature level.
+            img_pos_embeds (list[torch.Tensor] | None): Optional position embeddings for image features.
 
         Returns:
             Tuple of (encoded_embeddings, attention_mask)

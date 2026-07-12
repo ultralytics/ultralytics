@@ -19,7 +19,7 @@ class YOLOESegTrainer(YOLOETrainer, SegmentationTrainer):
     Attributes:
         cfg (dict): Configuration dictionary with training parameters.
         overrides (dict): Dictionary with parameter overrides.
-        _callbacks (list): List of callback functions for training events.
+        _callbacks (dict): Dictionary of callback functions for training events.
     """
 
     def get_model(self, cfg=None, weights=None, verbose=True):
@@ -79,8 +79,6 @@ class YOLOEPESegTrainer(SegmentationTrainer):
         Returns:
             (YOLOESegModel): Initialized YOLOE segmentation model configured for linear probing.
         """
-        # NOTE: This `nc` here is the max number of different text samples in one image, rather than the actual `nc`.
-        # NOTE: Following the official config, nc hard-coded to 80 for now.
         model = YOLOESegModel(
             cfg["yaml_file"] if isinstance(cfg, dict) else cfg,
             ch=self.data["channels"],
@@ -104,7 +102,12 @@ class YOLOEPESegTrainer(SegmentationTrainer):
         model.model[-1].cv3[0][2] = deepcopy(model.model[-1].cv3[0][2]).requires_grad_(True)
         model.model[-1].cv3[1][2] = deepcopy(model.model[-1].cv3[1][2]).requires_grad_(True)
         model.model[-1].cv3[2][2] = deepcopy(model.model[-1].cv3[2][2]).requires_grad_(True)
-        del model.pe
+
+        if getattr(model.model[-1], "one2one_cv3", None) is not None:
+            model.model[-1].one2one_cv3[0][2] = deepcopy(model.model[-1].cv3[0][2]).requires_grad_(True)
+            model.model[-1].one2one_cv3[1][2] = deepcopy(model.model[-1].cv3[1][2]).requires_grad_(True)
+            model.model[-1].one2one_cv3[2][2] = deepcopy(model.model[-1].cv3[2][2]).requires_grad_(True)
+
         model.train()
 
         return model

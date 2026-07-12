@@ -1,23 +1,25 @@
 ---
+title: Tiger-Pose Estimation Dataset
 comments: true
-description: Explore Ultralytics Tiger-Pose dataset with 263 diverse images. Ideal for testing, training, and refining pose estimation algorithms.
-keywords: Ultralytics, Tiger-Pose, dataset, pose estimation, YOLO11, training data, machine learning, neural networks
+description: "Explore the Ultralytics Tiger-Pose dataset: 263 images (210 train / 53 val) with 12 keypoints per tiger, ideal for testing pose estimation pipelines."
+keywords: Ultralytics, Tiger-Pose, dataset, pose estimation, YOLO26, training data, machine learning, neural networks
 ---
 
 # Tiger-Pose Dataset
 
 ## Introduction
 
-[Ultralytics](https://www.ultralytics.com/) introduces the Tiger-Pose dataset, a versatile collection designed for pose estimation tasks. This dataset comprises 263 images sourced from a [YouTube video](https://www.youtube.com/watch?v=MIBAT6BGE6U&pp=ygUbVGlnZXIgd2Fsa2luZyByZWZlcmVuY2UubXA0), with 210 images allocated for training and 53 for validation. It serves as an excellent resource for testing and troubleshooting pose estimation algorithms.
+[Ultralytics](https://www.ultralytics.com/) introduces the Tiger-Pose dataset, a versatile collection designed for pose estimation tasks. This dataset comprises 263 images sourced from a [YouTube video](https://www.youtube.com/watch?v=MIBAT6BGE6U), with 210 images allocated for training and 53 for validation. It serves as an excellent resource for testing and troubleshooting pose estimation algorithms.
 
-Despite its manageable training split of 210 images, the Tiger-Pose dataset offers diversity, making it suitable for assessing training pipelines, identifying potential errors, and serving as a valuable preliminary step before working with larger datasets for [pose estimation](https://docs.ultralytics.com/tasks/pose/).
+Despite its manageable training split of 210 images, the Tiger-Pose dataset offers diversity, making it suitable for assessing training pipelines, identifying potential errors, and serving as a valuable preliminary step before working with larger datasets for [pose estimation](../../tasks/pose.md).
 
-This dataset is intended for use with [Ultralytics HUB](https://hub.ultralytics.com/) and [YOLO11](https://github.com/ultralytics/ultralytics).
+Once your pipeline trains clean on this small set, swap in your own animal or object keypoints and scale up training on [Ultralytics Platform](https://platform.ultralytics.com/) without leaving the browser.
 
 ## Dataset Structure
 
 - **Total images**: 263 (210 train / 53 val).
 - **Keypoints**: 12 per tiger (no visibility flag).
+- **Download size**: ~49.8 MB.
 - **Directory layout**: YOLO-format keypoints stored under `labels/{train,val}` alongside `images/{train,val}` directories.
 
 <p align="center">
@@ -28,7 +30,7 @@ This dataset is intended for use with [Ultralytics HUB](https://hub.ultralytics.
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Train YOLO11 Pose Model on Tiger-Pose Dataset Using Ultralytics HUB
+  <strong>Watch:</strong> Train an Ultralytics YOLO Pose Model on the Tiger-Pose Dataset
 </p>
 
 ## Dataset YAML
@@ -43,7 +45,7 @@ A YAML (Yet Another Markup Language) file serves as the means to specify the con
 
 ## Usage
 
-To train a YOLO11n-pose model on the Tiger-Pose dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a YOLO26n-pose model on the Tiger-Pose dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -53,7 +55,7 @@ To train a YOLO11n-pose model on the Tiger-Pose dataset for 100 [epochs](https:/
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n-pose.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n-pose.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="tiger-pose.yaml", epochs=100, imgsz=640)
@@ -63,20 +65,22 @@ To train a YOLO11n-pose model on the Tiger-Pose dataset for 100 [epochs](https:/
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo pose train data=tiger-pose.yaml model=yolo11n-pose.pt epochs=100 imgsz=640
+        yolo pose train data=tiger-pose.yaml model=yolo26n-pose.pt epochs=100 imgsz=640
         ```
 
 ## Sample Images and Annotations
 
 Here are some examples of images from the Tiger-Pose dataset, along with their corresponding annotations:
 
-<img src="https://github.com/ultralytics/docs/releases/download/0/mosaiced-training-batch-4.avif" alt="Dataset sample image" width="100%">
+<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/mosaiced-training-batch-4.avif" alt="Tiger pose estimation dataset mosaic training batch" width="100%">
 
 - **Mosaiced Image**: This image demonstrates a training batch composed of mosaiced dataset images. Mosaicing is a technique used during training that combines multiple images into a single image to increase the variety of objects and scenes within each training batch. This helps improve the model's ability to generalize to different object sizes, aspect ratios, and contexts.
 
 The example showcases the variety and complexity of the images in the Tiger-Pose dataset and the benefits of using mosaicing during the training process.
 
 ## Inference Example
+
+After training, load your best checkpoint and run inference on new images or video — see the [Prediction](../../modes/predict.md) page for the full list of arguments.
 
 !!! example "Inference Example"
 
@@ -101,70 +105,26 @@ The example showcases the variety and complexity of the images in the Tiger-Pose
 
 ## Citations and Acknowledgments
 
-The dataset has been released available under the [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE).
+The dataset has been released under the [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE).
 
 ## FAQ
 
 ### What is the Ultralytics Tiger-Pose dataset used for?
 
-The Ultralytics Tiger-Pose dataset is designed for pose estimation tasks, consisting of 263 images sourced from a [YouTube video](https://www.youtube.com/watch?v=MIBAT6BGE6U&pp=ygUbVGlnZXIgd2Fsa2luZyByZWZlcmVuY2UubXA0). The dataset is divided into 210 training images and 53 validation images. It is particularly useful for testing, training, and refining pose estimation algorithms using [Ultralytics HUB](https://hub.ultralytics.com/) and [YOLO11](https://github.com/ultralytics/ultralytics).
+The Ultralytics Tiger-Pose dataset is designed for pose estimation tasks, consisting of 263 images sourced from a [YouTube video](https://www.youtube.com/watch?v=MIBAT6BGE6U). The dataset is divided into 210 training images and 53 validation images, making it well-suited for testing, training, and refining pose estimation algorithms.
 
-### How do I train a YOLO11 model on the Tiger-Pose dataset?
+### How do I train a YOLO26 model on the Tiger-Pose dataset?
 
-To train a YOLO11n-pose model on the Tiger-Pose dataset for 100 epochs with an image size of 640, use the following code snippets. For more details, visit the [Training](../../modes/train.md) page:
-
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n-pose.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="tiger-pose.yaml", epochs=100, imgsz=640)
-        ```
-
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo pose train data=tiger-pose.yaml model=yolo11n-pose.pt epochs=100 imgsz=640
-        ```
+Load `yolo26n-pose.pt` and call `model.train(data="tiger-pose.yaml", epochs=100, imgsz=640)` — see the [Train Example](#usage) above for the full Python and CLI snippets, and the [Training](../../modes/train.md) page for a comprehensive list of arguments.
 
 ### What configurations does the `tiger-pose.yaml` file include?
 
-The `tiger-pose.yaml` file is used to specify the configuration details of the Tiger-Pose dataset. It includes crucial data such as file paths and class definitions. To see the exact configuration, you can check out the [Ultralytics Tiger-Pose Dataset Configuration File](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/tiger-pose.yaml).
+The `tiger-pose.yaml` file defines the dataset path, train/val image directories, a single class (`tiger`), and `kpt_shape: [12, 2]` — 12 keypoints per instance with no visibility flag. See the [Ultralytics Tiger-Pose Dataset Configuration File](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/tiger-pose.yaml) for the exact configuration.
 
-### How can I run inference using a YOLO11 model trained on the Tiger-Pose dataset?
+### How can I run inference using a YOLO26 model trained on the Tiger-Pose dataset?
 
-To perform inference using a YOLO11 model trained on the Tiger-Pose dataset, you can use the following code snippets. For a detailed guide, visit the [Prediction](../../modes/predict.md) page:
-
-!!! example "Inference Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("path/to/best.pt")  # load a tiger-pose trained model
-
-        # Run inference
-        results = model.predict(source="https://youtu.be/MIBAT6BGE6U", show=True)
-        ```
-
-
-    === "CLI"
-
-        ```bash
-        # Run inference using a tiger-pose trained model
-        yolo pose predict source="https://youtu.be/MIBAT6BGE6U" show=True model="path/to/best.pt"
-        ```
+Load your trained checkpoint (e.g., `path/to/best.pt`) and call `model.predict(source=..., show=True)` — see the [Inference Example](#inference-example) above for the full Python and CLI snippets, and the [Prediction](../../modes/predict.md) page for a comprehensive list of arguments.
 
 ### What are the benefits of using the Tiger-Pose dataset for pose estimation?
 
-The Tiger-Pose dataset, despite its manageable size of 210 images for training, provides a diverse collection of images that are ideal for testing pose estimation pipelines. The dataset helps identify potential errors and acts as a preliminary step before working with larger datasets. Additionally, the dataset supports the training and refinement of pose estimation algorithms using advanced tools like [Ultralytics HUB](https://hub.ultralytics.com/) and [YOLO11](https://github.com/ultralytics/ultralytics), enhancing model performance and [accuracy](https://www.ultralytics.com/glossary/accuracy).
+With 263 total images (210 train / 53 val), 1 class, 12 keypoints per instance, and a ~49.8 MB download, Tiger-Pose is small enough to manage quickly yet diverse enough to sanity-check a pose training pipeline and identify errors before working with larger datasets.

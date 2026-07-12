@@ -1,4 +1,5 @@
 ---
+title: data.converter API Reference
 description: Explore comprehensive data conversion tools for YOLO models including COCO, DOTA, and YOLO bbox2segment converters.
 keywords: Ultralytics, data conversion, YOLO models, COCO, DOTA, YOLO bbox2segment, machine learning, annotations
 ---
@@ -7,7 +8,7 @@ keywords: Ultralytics, data conversion, YOLO models, COCO, DOTA, YOLO bbox2segme
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/converter.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/converter.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/converter.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/converter.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
 <br>
 
@@ -48,6 +49,10 @@ keywords: Ultralytics, data conversion, YOLO models, COCO, DOTA, YOLO bbox2segme
 <br><br><hr><br>
 
 ## ::: ultralytics.data.converter.convert_to_multispectral
+
+<br><br><hr><br>
+
+## ::: ultralytics.data.converter._infer_ndjson_kpt_shape
 
 <br><br><hr><br>
 

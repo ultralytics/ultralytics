@@ -9,7 +9,7 @@ from ultralytics import SAM, YOLO
 
 def auto_annotate(
     data: str | Path,
-    det_model: str = "yolo11x.pt",
+    det_model: str = "yolo26x.pt",
     sam_model: str = "sam_b.pt",
     device: str = "",
     conf: float = 0.25,
@@ -39,7 +39,7 @@ def auto_annotate(
 
     Examples:
         >>> from ultralytics.data.annotator import auto_annotate
-        >>> auto_annotate(data="ultralytics/assets", det_model="yolo11n.pt", sam_model="mobile_sam.pt")
+        >>> auto_annotate(data="ultralytics/assets", det_model="yolo26n.pt", sam_model="mobile_sam.pt")
     """
     det_model = YOLO(det_model)
     sam_model = SAM(sam_model)

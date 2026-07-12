@@ -14,7 +14,7 @@ from torch import Tensor, nn
 
 
 class DotProductScoring(torch.nn.Module):
-    """A module that computes dot-product scores between a set of query features and a."""
+    """A module that computes dot-product scores between query features and pooled prompt embeddings."""
 
     def __init__(
         self,
@@ -36,7 +36,8 @@ class DotProductScoring(torch.nn.Module):
         if self.clamp_logits:
             self.clamp_max_val = clamp_max_val
 
-    def mean_pool_text(self, prompt, prompt_mask):
+    @staticmethod
+    def mean_pool_text(prompt, prompt_mask):
         """Mean-pool the prompt embeddings over the valid tokens only."""
         # is_valid has shape (seq, bs, 1), where 1 is valid and 0 is padding
         is_valid = (~prompt_mask).to(prompt.dtype).permute(1, 0)[..., None]
@@ -50,7 +51,7 @@ class DotProductScoring(torch.nn.Module):
         """Compute dot-product scores between hs and prompt."""
         # hs has shape (num_layer, bs, num_query, d_model)
         # prompt has shape (seq, bs, d_model)
-        # prompt_mask has shape (bs, seq), where 1 is valid and 0 is padding
+        # prompt_mask has shape (bs, seq), where 1 is padding and 0 is valid
         assert hs.dim() == 4 and prompt.dim() == 3 and prompt_mask.dim() == 2
 
         # apply MLP on prompt if specified
@@ -76,7 +77,7 @@ class DotProductScoring(torch.nn.Module):
 
 
 class LayerScale(nn.Module):
-    """LayerScale module as introduced in "Meta Pseudo Labels" and used in."""
+    """LayerScale module for per-channel scaling of layer outputs."""
 
     def __init__(
         self,

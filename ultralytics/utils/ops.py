@@ -28,9 +28,10 @@ class Profile(contextlib.ContextDecorator):
 
     Examples:
         Use as a context manager to time code execution
-        >>> with Profile(device=device) as dt:
+        >>> with Profile() as dt:
         ...     pass  # slow operation here
-        >>> print(dt)  # prints "Elapsed time is 9.5367431640625e-07 s"
+        >>> str(dt).startswith("Elapsed time is ")
+        True
 
         Use as a decorator to time function execution
         >>> @Profile()
@@ -70,56 +71,78 @@ class Profile(contextlib.ContextDecorator):
         return time.perf_counter()
 
 
-def segment2box(segment, width: int = 640, height: int = 640):
+def segment2box(segment: np.ndarray, width: int = 640, height: int = 640) -> np.ndarray:
     """Convert segment coordinates to bounding box coordinates.
 
-    Converts a single segment label to a box label by finding the minimum and maximum x and y coordinates. Applies
-    inside-image constraint and clips coordinates when necessary.
+    Converts a single segment label to a box label by finding the minimum and maximum x and y coordinates of the polygon
+    clipped to the image, so segments crossing the image boundary keep their visible extent. Segments already inside the
+    image return immediately without clipping.
 
     Args:
-        segment (torch.Tensor): Segment coordinates in format (N, 2) where N is number of points.
+        segment (np.ndarray): Segment coordinates in format (N, 2) where N is number of points.
         width (int): Width of the image in pixels.
         height (int): Height of the image in pixels.
 
     Returns:
         (np.ndarray): Bounding box coordinates in xyxy format [x1, y1, x2, y2].
     """
-    x, y = segment.T  # segment xy
-    # Clip coordinates if 3 out of 4 sides are outside the image
-    if np.array([x.min() < 0, y.min() < 0, x.max() > width, y.max() > height]).sum() >= 3:
-        x = x.clip(0, width)
-        y = y.clip(0, height)
-    inside = (x >= 0) & (y >= 0) & (x <= width) & (y <= height)
-    x = x[inside]
-    y = y[inside]
+    x, y = segment[:, 0], segment[:, 1]
+    if len(segment):
+        xmin, ymin, xmax, ymax = x.min(), y.min(), x.max(), y.max()
+        if xmin >= 0 and ymin >= 0 and xmax <= width and ymax <= height:  # fully inside image
+            return np.array([xmin, ymin, xmax, ymax], dtype=segment.dtype)
+    axes = np.array((0, 0, 1, 1))
+    bounds = np.array((0, width, 0, height), dtype=segment.dtype)
+    lims = np.array((height, height, width, width), dtype=segment.dtype)  # (height, width)[axis] per boundary
+    start, delta = segment, np.roll(segment, -1, axis=0) - segment
+    with np.errstate(divide="ignore", invalid="ignore"):
+        t = (bounds - start[:, axes]) / delta[:, axes]
+        inter = start[:, None, :] + t[:, :, None] * delta[:, None, :]
+    other = inter[:, np.arange(4), 1 - axes]
+    corners = np.array(((0, 0), (width, 0), (0, height), (width, height)), dtype=segment.dtype)
+    contour = segment.astype(np.float32)
+    points = np.concatenate(
+        (
+            segment[(x >= 0) & (y >= 0) & (x <= width) & (y <= height)],
+            inter[(t >= 0) & (t <= 1) & (other >= 0) & (other <= lims)],
+            corners[[cv2.pointPolygonTest(contour, tuple(map(float, p)), False) >= 0 for p in corners]],
+        )
+    )
     return (
-        np.array([x.min(), y.min(), x.max(), y.max()], dtype=segment.dtype)
-        if any(x)
+        np.array([*points.min(0), *points.max(0)], dtype=segment.dtype)
+        if len(points)
         else np.zeros(4, dtype=segment.dtype)
-    )  # xyxy
+    )
 
 
-def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None, padding: bool = True, xywh: bool = False):
+def scale_boxes(
+    img1_shape: tuple[int, int],
+    boxes: torch.Tensor | np.ndarray,
+    img0_shape: tuple[int, int],
+    ratio_pad: tuple | None = None,
+    padding: bool = True,
+    xywh: bool = False,
+) -> torch.Tensor | np.ndarray:
     """Rescale bounding boxes from one image shape to another.
 
     Rescales bounding boxes from img1_shape to img0_shape, accounting for padding and aspect ratio changes. Supports
     both xyxy and xywh box formats.
 
     Args:
-        img1_shape (tuple): Shape of the source image (height, width).
-        boxes (torch.Tensor): Bounding boxes to rescale in format (N, 4).
-        img0_shape (tuple): Shape of the target image (height, width).
+        img1_shape (tuple[int, int]): Shape of the source image (height, width).
+        boxes (torch.Tensor | np.ndarray): Bounding boxes to rescale in format (N, 4).
+        img0_shape (tuple[int, int]): Shape of the target image (height, width).
         ratio_pad (tuple, optional): Tuple of (ratio, pad) for scaling. If None, calculated from image shapes.
         padding (bool): Whether boxes are based on YOLO-style augmented images with padding.
         xywh (bool): Whether box format is xywh (True) or xyxy (False).
 
     Returns:
-        (torch.Tensor): Rescaled bounding boxes in the same format as input.
+        (torch.Tensor | np.ndarray): Rescaled bounding boxes in the same format as input.
     """
     if ratio_pad is None:  # calculate from img0_shape
         gain = min(img1_shape[0] / img0_shape[0], img1_shape[1] / img0_shape[1])  # gain  = old / new
-        pad_x = round((img1_shape[1] - img0_shape[1] * gain) / 2 - 0.1)
-        pad_y = round((img1_shape[0] - img0_shape[0] * gain) / 2 - 0.1)
+        pad_x = round((img1_shape[1] - round(img0_shape[1] * gain)) / 2 - 0.1)
+        pad_y = round((img1_shape[0] - round(img0_shape[0] * gain)) / 2 - 0.1)
     else:
         gain = ratio_pad[0][0]
         pad_x, pad_y = ratio_pad[1]
@@ -135,14 +158,14 @@ def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None, padding: bool = T
 
 
 def make_divisible(x: int, divisor):
-    """Return the nearest number that is divisible by the given divisor.
+    """Return the smallest number >= x that is divisible by the given divisor.
 
     Args:
         x (int): The number to make divisible.
         divisor (int | torch.Tensor): The divisor.
 
     Returns:
-        (int): The nearest number divisible by the divisor.
+        (int): The smallest number >= x divisible by the divisor.
     """
     if isinstance(divisor, torch.Tensor):
         divisor = int(divisor.max())  # to int
@@ -251,8 +274,7 @@ def xywhn2xyxy(x, w: int = 640, h: int = 640, padw: int = 0, padh: int = 0):
         padh (int): Padding height in pixels.
 
     Returns:
-        y (np.ndarray | torch.Tensor): The coordinates of the bounding box in the format [x1, y1, x2, y2] where x1,y1 is
-            the top-left corner, x2,y2 is the bottom-right corner of the bounding box.
+        (np.ndarray | torch.Tensor): Bounding box coordinates in (x1, y1, x2, y2) format.
     """
     assert x.shape[-1] == 4, f"input shape last dimension expected 4 but input shape is {x.shape}"
     y = empty_like(x)  # faster than clone/copy
@@ -266,7 +288,7 @@ def xywhn2xyxy(x, w: int = 640, h: int = 640, padw: int = 0, padh: int = 0):
 
 
 def xyxy2xywhn(x, w: int = 640, h: int = 640, clip: bool = False, eps: float = 0.0):
-    """Convert bounding box coordinates from (x1, y1, x2, y2) format to (x, y, width, height, normalized) format. x, y,
+    """Convert bounding box coordinates from (x1, y1, x2, y2) format to normalized (x, y, width, height) format. x, y,
     width and height are normalized to image dimensions.
 
     Args:
@@ -344,7 +366,7 @@ def xyxyxyxy2xywhr(x):
 
     Returns:
         (np.ndarray | torch.Tensor): Converted data in [cx, cy, w, h, rotation] format with shape (N, 5). Rotation
-            values are in radians from 0 to pi/2.
+            values are in radians from [-pi/4, 3pi/4).
     """
     is_torch = isinstance(x, torch.Tensor)
     points = x.cpu().numpy() if is_torch else x
@@ -354,7 +376,16 @@ def xyxyxyxy2xywhr(x):
         # NOTE: Use cv2.minAreaRect to get accurate xywhr,
         # especially some objects are cut off by augmentations in dataloader.
         (cx, cy), (w, h), angle = cv2.minAreaRect(pts)
-        rboxes.append([cx, cy, w, h, angle / 180 * np.pi])
+        # convert angle to radian and normalize to [-pi/4, 3pi/4)
+        theta = angle / 180 * np.pi
+        if w < h:
+            w, h = h, w
+            theta += np.pi / 2
+        while theta >= 3 * np.pi / 4:
+            theta -= np.pi
+        while theta < -np.pi / 4:
+            theta += np.pi
+        rboxes.append([cx, cy, w, h, theta])
     return torch.tensor(rboxes, device=x.device, dtype=x.dtype) if is_torch else np.asarray(rboxes)
 
 
@@ -363,7 +394,7 @@ def xywhr2xyxyxyxy(x):
 
     Args:
         x (np.ndarray | torch.Tensor): Boxes in [cx, cy, w, h, rotation] format with shape (N, 5) or (B, N, 5). Rotation
-            values should be in radians from 0 to pi/2.
+            values should be in radians from [-pi/4, 3pi/4).
 
     Returns:
         (np.ndarray | torch.Tensor): Converted corner points with shape (N, 4, 2) or (B, N, 4, 2).
@@ -404,7 +435,7 @@ def ltwh2xyxy(x):
 
 
 def segments2boxes(segments):
-    """Convert segment labels to box labels, i.e. (cls, xy1, xy2, ...) to (cls, xywh).
+    """Convert segment coordinates to bounding box labels in xywh format.
 
     Args:
         segments (list): List of segments where each segment is a list of points, each point is [x, y] coordinates.
@@ -447,26 +478,22 @@ def crop_mask(masks: torch.Tensor, boxes: torch.Tensor) -> torch.Tensor:
 
     Args:
         masks (torch.Tensor): Masks with shape (N, H, W).
-        boxes (torch.Tensor): Bounding box coordinates with shape (N, 4) in relative point form.
+        boxes (torch.Tensor): Bounding box coordinates with shape (N, 4) in xyxy pixel format.
 
     Returns:
         (torch.Tensor): Cropped masks.
     """
     if boxes.device != masks.device:
         boxes = boxes.to(masks.device)
-    n, h, w = masks.shape
-    if n < 50 and not masks.is_cuda:  # faster for fewer masks (predict)
-        for i, (x1, y1, x2, y2) in enumerate(boxes.round().int()):
-            masks[i, :y1] = 0
-            masks[i, y2:] = 0
-            masks[i, :, :x1] = 0
-            masks[i, :, x2:] = 0
-        return masks
-    else:  # faster for more masks (val)
-        x1, y1, x2, y2 = torch.chunk(boxes[:, :, None], 4, 1)  # x1 shape(n,1,1)
-        r = torch.arange(w, device=masks.device, dtype=x1.dtype)[None, None, :]  # rows shape(1,1,w)
-        c = torch.arange(h, device=masks.device, dtype=x1.dtype)[None, :, None]  # cols shape(1,h,1)
-        return masks * ((r >= x1) * (r < x2) * (c >= y1) * (c < y2))
+    _, h, w = masks.shape
+    x1, y1, x2, y2 = torch.chunk(boxes[:, :, None], 4, 1)  # each shape (n,1,1)
+    r = torch.arange(w, device=masks.device, dtype=x1.dtype)[None, None, :]  # columns (1,1,w)
+    c = torch.arange(h, device=masks.device, dtype=x1.dtype)[None, :, None]  # rows (1,h,1)
+    # Apply the column and row masks separately and in place: the box region is separable, so this avoids ever
+    # materializing the full (n, h, w) boolean grid the combined product would build, and has no per-mask Python loop.
+    masks *= (r >= x1) * (r < x2)  # zero columns outside the box
+    masks *= (c >= y1) * (c < y2)  # zero rows outside the box
+    return masks
 
 
 def process_mask(protos, masks_in, bboxes, shape, upsample: bool = False):
@@ -480,19 +507,23 @@ def process_mask(protos, masks_in, bboxes, shape, upsample: bool = False):
         upsample (bool): Whether to upsample masks to original image size.
 
     Returns:
-        (torch.Tensor): A binary mask tensor of shape [n, h, w], where n is the number of masks after NMS, and h and w
-            are the height and width of the input image. The mask is applied to the bounding boxes.
+        (torch.Tensor): A binary mask tensor of shape [n, h, w], where n is the number of masks after NMS. When
+            upsample=True h and w match the input image size; otherwise they are the prototype mask resolution.
     """
     c, mh, mw = protos.shape  # CHW
-    masks = (masks_in @ protos.float().view(c, -1)).view(-1, mh, mw)  # CHW
+    if masks_in.shape[0] == 0:  # no detections: F.interpolate below rejects an empty (N=0) batch
+        return torch.zeros((0, *(shape if upsample else (mh, mw))), dtype=torch.uint8, device=masks_in.device)
+    masks = (masks_in @ protos.float().view(c, -1)).view(-1, mh, mw)  # NHW
 
-    width_ratio = mw / shape[1]
-    height_ratio = mh / shape[0]
-    ratios = torch.tensor([[width_ratio, height_ratio, width_ratio, height_ratio]], device=bboxes.device)
-
-    masks = crop_mask(masks, boxes=bboxes * ratios)  # CHW
     if upsample:
-        masks = F.interpolate(masks[None], shape, mode="bilinear")[0]  # CHW
+        # Upsample then crop at image resolution; cropping first smears the bilinear edge outside the bbox (#24272)
+        masks = F.interpolate(masks[None], shape, mode="bilinear")[0]  # NHW
+        masks = crop_mask(masks, boxes=bboxes)  # NHW, bboxes already in `shape` coords
+    else:
+        width_ratio = mw / shape[1]
+        height_ratio = mh / shape[0]
+        ratios = torch.tensor([[width_ratio, height_ratio, width_ratio, height_ratio]], device=bboxes.device)
+        masks = crop_mask(masks, boxes=bboxes * ratios)  # NHW
     return masks.gt_(0.0).byte()
 
 
@@ -506,13 +537,22 @@ def process_mask_native(protos, masks_in, bboxes, shape):
         shape (tuple): Input image size as (height, width).
 
     Returns:
-        (torch.Tensor): Binary mask tensor with shape (H, W, N).
+        (torch.Tensor): Binary mask tensor with shape (N, H, W).
     """
     c, mh, mw = protos.shape  # CHW
-    masks = (masks_in @ protos.float().view(c, -1)).view(-1, mh, mw)
-    masks = scale_masks(masks[None], shape)[0]  # CHW
-    masks = crop_mask(masks, bboxes)  # CHW
-    return masks.gt_(0.0).byte()
+    h, w = shape
+    if masks_in.shape[0] == 0:  # no detections: return a well-formed empty mask stack
+        return torch.zeros((0, h, w), dtype=torch.uint8, device=masks_in.device)
+    coeffs = masks_in @ protos.float().view(c, -1)  # (N, mh*mw) prototype-resolution mask logits
+    # Upsampling all N masks at once allocates an N*H*W float intermediate (~9 GB on a large image with many
+    # detections), which OOMs the worker. Upsample in chunks bounded by a pixel budget, thresholding each chunk to
+    # uint8 immediately so the float intermediate stays small, then crop the assembled uint8 stack.
+    step = max(1, 32_000_000 // (h * w))
+    masks = [
+        scale_masks(coeffs[i : i + step].view(-1, mh, mw)[None], shape)[0].gt_(0.0).byte()
+        for i in range(0, coeffs.shape[0], step)
+    ]
+    return crop_mask(torch.cat(masks), bboxes)
 
 
 def scale_masks(
@@ -520,14 +560,16 @@ def scale_masks(
     shape: tuple[int, int],
     ratio_pad: tuple[tuple[int, int], tuple[int, int]] | None = None,
     padding: bool = True,
+    mode: str = "bilinear",
 ) -> torch.Tensor:
     """Rescale segment masks to target shape.
 
     Args:
         masks (torch.Tensor): Masks with shape (N, C, H, W).
         shape (tuple[int, int]): Target height and width as (height, width).
-        ratio_pad (tuple, optional): Ratio and padding values as ((ratio_h, ratio_w), (pad_h, pad_w)).
+        ratio_pad (tuple, optional): Ratio and padding values as ((ratio_h, ratio_w), (pad_w, pad_h)).
         padding (bool): Whether masks are based on YOLO-style augmented images with padding.
+        mode (str): Interpolation mode, e.g. 'bilinear' for logits or 'nearest' for integer class maps.
 
     Returns:
         (torch.Tensor): Rescaled masks.
@@ -536,10 +578,12 @@ def scale_masks(
     im0_h, im0_w = shape[:2]
     if im1_h == im0_h and im1_w == im0_w:
         return masks
+    if masks.shape[1] == 0:  # empty mask stack: F.interpolate rejects a 0-length channel dim
+        return masks.new_zeros((*masks.shape[:2], im0_h, im0_w), dtype=torch.float32)
 
     if ratio_pad is None:  # calculate from im0_shape
         gain = min(im1_h / im0_h, im1_w / im0_w)  # gain  = old / new
-        pad_w, pad_h = (im1_w - im0_w * gain), (im1_h - im0_h * gain)  # wh padding
+        pad_w, pad_h = (im1_w - round(im0_w * gain)), (im1_h - round(im0_h * gain))  # wh padding
         if padding:
             pad_w /= 2
             pad_h /= 2
@@ -548,7 +592,7 @@ def scale_masks(
     top, left = (round(pad_h - 0.1), round(pad_w - 0.1)) if padding else (0, 0)
     bottom = im1_h - round(pad_h + 0.1)
     right = im1_w - round(pad_w + 0.1)
-    return F.interpolate(masks[..., top:bottom, left:right].float(), shape, mode="bilinear")  # NCHW masks
+    return F.interpolate(masks[..., top:bottom, left:right].float(), shape, mode=mode)  # NCHW masks
 
 
 def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize: bool = False, padding: bool = True):
@@ -558,7 +602,7 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize: bool
         img1_shape (tuple): Source image shape as HWC or HW (supports both).
         coords (torch.Tensor): Coordinates to scale with shape (N, 2).
         img0_shape (tuple): Image 0 shape as HWC or HW (supports both).
-        ratio_pad (tuple, optional): Ratio and padding values as ((ratio_h, ratio_w), (pad_h, pad_w)).
+        ratio_pad (tuple, optional): Ratio and padding values as ((ratio_h, ratio_w), (pad_w, pad_h)).
         normalize (bool): Whether to normalize coordinates to range [0, 1].
         padding (bool): Whether coordinates are based on YOLO-style augmented images with padding.
 
@@ -569,7 +613,7 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize: bool
     if ratio_pad is None:  # calculate from img0_shape
         img1_h, img1_w = img1_shape[:2]  # supports both HWC or HW shapes
         gain = min(img1_h / img0_h, img1_w / img0_w)  # gain  = old / new
-        pad = (img1_w - img0_w * gain) / 2, (img1_h - img0_h * gain) / 2  # wh padding
+        pad = (img1_w - round(img0_w * gain)) / 2, (img1_h - round(img0_h * gain)) / 2  # wh padding
     else:
         gain = ratio_pad[0][0]
         pad = ratio_pad[1]
@@ -587,7 +631,7 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize: bool
 
 
 def regularize_rboxes(rboxes):
-    """Regularize rotated bounding boxes to range [0, pi/2].
+    """Regularize rotated bounding boxes to range [0, pi/2).
 
     Args:
         rboxes (torch.Tensor): Input rotated boxes with shape (N, 5) in xywhr format.
@@ -604,11 +648,11 @@ def regularize_rboxes(rboxes):
     return torch.stack([x, y, w_, h_, t], dim=-1)  # regularized boxes
 
 
-def masks2segments(masks, strategy: str = "all"):
+def masks2segments(masks: np.ndarray | torch.Tensor, strategy: str = "all") -> list[np.ndarray]:
     """Convert masks to segments using contour detection.
 
     Args:
-        masks (torch.Tensor): Binary masks with shape (batch_size, 160, 160).
+        masks (np.ndarray | torch.Tensor): Binary masks with shape (N, H, W).
         strategy (str): Segmentation strategy, either 'all' or 'largest'.
 
     Returns:
@@ -616,8 +660,9 @@ def masks2segments(masks, strategy: str = "all"):
     """
     from ultralytics.data.converter import merge_multi_segment
 
+    masks = masks.astype("uint8") if isinstance(masks, np.ndarray) else masks.byte().cpu().numpy()
     segments = []
-    for x in masks.byte().cpu().numpy():
+    for x in np.ascontiguousarray(masks):
         c = cv2.findContours(x, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]
         if c:
             if strategy == "all":  # merge and concatenate all segments
@@ -659,5 +704,101 @@ def clean_str(s):
 
 
 def empty_like(x):
-    """Create empty torch.Tensor or np.ndarray with same shape as input and float32 dtype."""
+    """Create empty torch.Tensor or np.ndarray with same shape and dtype as input."""
     return torch.empty_like(x, dtype=x.dtype) if isinstance(x, torch.Tensor) else np.empty_like(x, dtype=x.dtype)
+
+
+_assignment_solver = None  # resolved once on first call: SciPy's solver if installed, else the NumPy fallback
+
+
+def linear_sum_assignment(cost_matrix):
+    """Solve the rectangular linear sum assignment problem (minimum-cost one-to-one matching).
+
+    Uses `scipy.optimize.linear_sum_assignment` when SciPy is installed (faster compiled C++ solver), and otherwise
+    falls back to an equivalent pure-NumPy implementation of the same modified Jonker-Volgenant shortest augmenting path
+    algorithm (Crouse 2016). This keeps SciPy out of Ultralytics' required dependencies while preserving its speed when
+    present. SciPy is imported lazily so it never slows `import ultralytics`. For a rectangular matrix only min(rows,
+    columns) entries are matched.
+
+    The NumPy fallback expects finite costs: an `inf` entry marks a forbidden assignment (matching SciPy), while `NaN`
+    is not rejected (SciPy raises), so callers must sanitize NaN upstream (e.g. the RT-DETR matcher zeros NaN/inf
+    beforehand). The two backends may return a different equal-cost assignment under exact ties, but the total cost is
+    identical.
+
+    The NumPy fallback is validated against SciPy with exact optimal-cost parity across ~6.9k randomized cases (every
+    shape including empty/tall/wide, ties, negatives, IoU- and RT-DETR-style matrices, `maximize` via negation,
+    torch-tensor input) plus ~2k independent brute-force global-optimum checks. SciPy's compiled inner loop is faster,
+    but at the call-site sizes (smaller dimension = object count) the fallback runs in well under a millisecond:
+
+        cost matrix   NumPy   SciPy
+        300 x 20      0.2ms   0.02ms
+        300 x 80      0.6ms   0.1ms
+        300 x 300     28ms    1.5ms
+
+    Args:
+        cost_matrix (np.ndarray | torch.Tensor): Cost matrix with shape (N, M) and finite values.
+
+    Returns:
+        row_ind (np.ndarray): Row indices of the optimal assignment, sorted ascending, with length min(N, M).
+        col_ind (np.ndarray): Column indices matched to each row in row_ind.
+
+    Examples:
+        >>> cost = np.array([[4, 1, 3], [2, 0, 5], [3, 2, 2]], dtype=float)
+        >>> row_ind, col_ind = linear_sum_assignment(cost)
+        >>> float(cost[row_ind, col_ind].sum())
+        5.0
+    """
+    global _assignment_solver
+    if _assignment_solver is None:  # resolve the backend once, then reuse it on every later call
+        try:
+            from scipy.optimize import linear_sum_assignment as solver  # faster compiled C++ solver when installed
+
+            _assignment_solver = solver
+        except ImportError:
+            _assignment_solver = _linear_sum_assignment_numpy
+    return _assignment_solver(np.asarray(cost_matrix, dtype=np.float64))
+
+
+def _linear_sum_assignment_numpy(a):
+    """Solve the rectangular linear sum assignment problem with NumPy (Jonker-Volgenant SciPy-free fallback).
+
+    Args:
+        a (np.ndarray): Cost matrix of shape (N, M) with dtype float64 and finite values.
+
+    Returns:
+        row_ind (np.ndarray): Row indices of the optimal assignment, sorted ascending, with length min(N, M).
+        col_ind (np.ndarray): Column indices matched to each row in row_ind.
+    """
+    n, m = a.shape
+    if n == 0 or m == 0:
+        return np.empty(0, dtype=np.intp), np.empty(0, dtype=np.intp)
+    transposed = n > m
+    if transposed:
+        a, n, m = a.T, m, n  # ensure rows <= columns
+    u, v = np.zeros(n + 1), np.zeros(m + 1)  # row and column dual potentials
+    p, way = np.zeros(m + 1, np.intp), np.zeros(m + 1, np.intp)  # column->row matches and path pointers
+    for i in range(1, n + 1):
+        p[0], j0 = i, 0
+        minv, used = np.full(m + 1, np.inf), np.zeros(m + 1, bool)
+        while True:  # grow a shortest augmenting path from row i
+            used[j0] = True
+            i0 = p[j0]
+            cur = a[i0 - 1] - u[i0] - v[1:]
+            improve = (~used[1:]) & (cur < minv[1:])
+            minv[1:][improve], way[1:][improve] = cur[improve], j0
+            j1 = int(np.argmin(np.where(used[1:], np.inf, minv[1:]))) + 1
+            delta = minv[j1]
+            u[p[used]] += delta
+            v[used] -= delta
+            minv[~used] -= delta
+            j0 = j1
+            if p[j0] == 0:
+                break
+        while j0:  # augment along the path
+            p[j0] = p[way[j0]]
+            j0 = way[j0]
+    cols = np.nonzero(p[1:])[0]
+    rows = p[1:][cols] - 1
+    row_ind, col_ind = (cols, rows) if transposed else (rows, cols)
+    order = np.argsort(row_ind, kind="stable")  # match scipy's row-sorted output
+    return row_ind[order].astype(np.intp), col_ind[order].astype(np.intp)

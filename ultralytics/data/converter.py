@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 import random
 import shutil
@@ -14,8 +15,8 @@ import cv2
 import numpy as np
 from PIL import Image
 
-from ultralytics.utils import ASSETS_URL, DATASETS_DIR, LOGGER, NUM_THREADS, TQDM, YAML
-from ultralytics.utils.checks import check_file, check_requirements
+from ultralytics.utils import ASSETS_URL, DATASETS_DIR, LOGGER, NUM_THREADS, TQDM, YAML, clean_url
+from ultralytics.utils.checks import check_file
 from ultralytics.utils.downloads import download, zip_directory
 from ultralytics.utils.files import increment_path
 
@@ -24,8 +25,8 @@ def coco91_to_coco80_class() -> list[int]:
     """Convert 91-index COCO class IDs to 80-index COCO class IDs.
 
     Returns:
-        (list[int]): A list of 91 class IDs where the index represents the 80-index class ID and the value is the
-            corresponding 91-index class ID.
+        (list[int | None]): A list of 91 elements where the index represents the 91-index class ID and the value is the
+            corresponding 80-index class ID, or None if there is no mapping.
     """
     return [
         0,
@@ -307,23 +308,25 @@ def convert_coco(
                 cls = coco80[ann["category_id"] - 1] if cls91to80 else ann["category_id"] - 1  # class
                 box = [cls, *box.tolist()]
                 if box not in bboxes:
-                    bboxes.append(box)
-                    if use_segments and ann.get("segmentation") is not None:
-                        if len(ann["segmentation"]) == 0:
-                            segments.append([])
+                    if use_keypoints:
+                        if ann.get("keypoints") is None:
                             continue
-                        elif len(ann["segmentation"]) > 1:
-                            s = merge_multi_segment(ann["segmentation"])
-                            s = (np.concatenate(s, axis=0) / np.array([w, h])).reshape(-1).tolist()
-                        else:
-                            s = [j for i in ann["segmentation"] for j in i]  # all segments concatenated
-                            s = (np.array(s).reshape(-1, 2) / np.array([w, h])).reshape(-1).tolist()
-                        s = [cls, *s]
-                        segments.append(s)
-                    if use_keypoints and ann.get("keypoints") is not None:
                         keypoints.append(
                             box + (np.array(ann["keypoints"]).reshape(-1, 3) / np.array([w, h, 1])).reshape(-1).tolist()
                         )
+                    bboxes.append(box)
+                    if use_segments:
+                        seg = ann.get("segmentation")
+                        if seg is None or len(seg) == 0:
+                            segments.append([])
+                        elif len(seg) > 1:
+                            s = merge_multi_segment(seg)
+                            s = (np.concatenate(s, axis=0) / np.array([w, h])).reshape(-1).tolist()
+                            segments.append([cls, *s])
+                        else:
+                            s = [j for i in seg for j in i]  # all segments concatenated
+                            s = (np.array(s).reshape(-1, 2) / np.array([w, h])).reshape(-1).tolist()
+                            segments.append([cls, *s])
 
             # Write
             with open((fn / f).with_suffix(".txt"), "a", encoding="utf-8") as file:
@@ -353,7 +356,7 @@ def convert_segment_masks_to_yolo_seg(masks_dir: str, output_dir: str, classes: 
     Args:
         masks_dir (str): The path to the directory where all mask images (png, jpg) are stored.
         output_dir (str): The path to the directory where the converted YOLO segmentation masks will be stored.
-        classes (int): Total classes in the dataset i.e. for COCO classes=80
+        classes (int): Total number of classes in the dataset, e.g., 80 for COCO.
 
     Examples:
         >>> from ultralytics.data.converter import convert_segment_masks_to_yolo_seg
@@ -379,10 +382,12 @@ def convert_segment_masks_to_yolo_seg(masks_dir: str, output_dir: str, classes: 
                 └─ mask_yolo_04.txt
     """
     pixel_to_class_mapping = {i + 1: i for i in range(classes)}
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
     for mask_path in Path(masks_dir).iterdir():
         if mask_path.suffix in {".png", ".jpg"}:
             mask = cv2.imread(str(mask_path), cv2.IMREAD_GRAYSCALE)  # Read the mask image in grayscale
-            img_height, img_width = mask.shape  # Get image dimensions
+            img_height, img_width = mask.shape[:2]  # patched Windows imread returns (H, W, 1) for grayscale
             LOGGER.info(f"Processing {mask_path} imgsz = {img_height} x {img_width}")
 
             unique_values = np.unique(mask)  # Get unique pixel values representing different classes
@@ -411,7 +416,7 @@ def convert_segment_masks_to_yolo_seg(masks_dir: str, output_dir: str, classes: 
                             yolo_format.append(round(point[1] / img_height, 6))
                         yolo_format_data.append(yolo_format)
             # Save Ultralytics YOLO format data to file
-            output_path = Path(output_dir) / f"{mask_path.stem}.txt"
+            output_path = output_dir / f"{mask_path.stem}.txt"
             with open(output_path, "w", encoding="utf-8") as file:
                 for item in yolo_format_data:
                     line = " ".join(map(str, item))
@@ -519,8 +524,8 @@ def min_index(arr1: np.ndarray, arr2: np.ndarray):
         arr2 (np.ndarray): A NumPy array of shape (M, 2) representing M 2D points.
 
     Returns:
-        idx1 (int): Index of the point in arr1 with the shortest distance.
-        idx2 (int): Index of the point in arr2 with the shortest distance.
+        (tuple[int, int]): A tuple (idx1, idx2) where idx1 is the index in arr1 and idx2 is the index in arr2 of the
+            pair with the shortest distance.
     """
     dis = ((arr1[:, None, :] - arr2[None, :, :]) ** 2).sum(-1)
     return np.unravel_index(np.argmin(dis, axis=None), dis.shape)
@@ -537,7 +542,7 @@ def merge_multi_segment(segments: list[list]):
             [segmentation1, segmentation2,...].
 
     Returns:
-        s (list[np.ndarray]): A list of connected segments represented as NumPy arrays.
+        (list[np.ndarray]): A list of connected segments represented as NumPy arrays.
     """
     s = []
     segments = [np.array(i).reshape(-1, 2) for i in segments]
@@ -578,8 +583,9 @@ def merge_multi_segment(segments: list[list]):
 
 
 def yolo_bbox2segment(im_dir: str | Path, save_dir: str | Path | None = None, sam_model: str = "sam_b.pt", device=None):
-    """Convert existing object detection dataset (bounding boxes) to segmentation dataset or oriented bounding box (OBB)
-    in YOLO format. Generate segmentation data using SAM auto-annotator as needed.
+    """Convert existing object detection dataset (bounding boxes) to segmentation dataset in YOLO format.
+
+    Generates segmentation data using SAM auto-annotator as needed.
 
     Args:
         im_dir (str | Path): Path to image directory to convert.
@@ -659,7 +665,7 @@ def create_synthetic_coco_dataset():
     """
 
     def create_synthetic_image(image_file: Path):
-        """Generate synthetic images with random sizes and colors for dataset augmentation or testing purposes."""
+        """Generate a synthetic image with random size and color for dataset augmentation or testing purposes."""
         if not image_file.exists():
             size = (random.randint(480, 640), random.randint(480, 640))
             Image.new(
@@ -714,8 +720,6 @@ def convert_to_multispectral(path: str | Path, n_channels: int = 10, replace: bo
         Convert a dataset
         >>> convert_to_multispectral("coco8", n_channels=10)
     """
-    from scipy.interpolate import interp1d
-
     from ultralytics.data.utils import IMG_FORMATS
 
     path = Path(path)
@@ -737,47 +741,92 @@ def convert_to_multispectral(path: str | Path, n_channels: int = 10, replace: bo
         output_path = path.with_suffix(".tiff")
         img = cv2.cvtColor(cv2.imread(str(path)), cv2.COLOR_BGR2RGB)
 
-        # Interpolate all pixels at once
+        # Interpolate all pixels at once with linear interpolation and extrapolation across RGB wavelengths
         rgb_wavelengths = np.array([650, 510, 475])  # R, G, B wavelengths (nm)
         target_wavelengths = np.linspace(450, 700, n_channels)
-        f = interp1d(rgb_wavelengths.T, img, kind="linear", bounds_error=False, fill_value="extrapolate")
-        multispectral = f(target_wavelengths)
+        order = np.argsort(rgb_wavelengths)  # ascending wavelengths for segment lookup
+        xp = rgb_wavelengths[order]
+        seg = np.clip(np.searchsorted(xp, target_wavelengths) - 1, 0, len(xp) - 2)  # segment per target
+        w = (target_wavelengths - xp[seg]) / (xp[seg + 1] - xp[seg])  # weights (<0 or >1 -> extrapolation)
+        img = img[..., order]
+        multispectral = img[..., seg] * (1 - w) + img[..., seg + 1] * w
         cv2.imwritemulti(str(output_path), np.clip(multispectral, 0, 255).astype(np.uint8).transpose(2, 0, 1))
         LOGGER.info(f"Converted {output_path}")
 
 
-async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Path | None = None) -> Path:
-    """Convert NDJSON dataset format to Ultralytics YOLO11 dataset structure.
+def _infer_ndjson_kpt_shape(image_records: list) -> list:
+    """Infer kpt_shape [num_keypoints, dims] from NDJSON pose annotations.
 
-    This function converts datasets stored in NDJSON (Newline Delimited JSON) format to the standard YOLO format with
-    separate directories for images and labels. It supports parallel processing for efficient conversion of large
-    datasets and can download images from URLs if they don't exist locally.
+    Scans up to 50 pose annotations across image records. Annotation format is [classId, cx, cy, w, h, kp1_x, kp1_y,
+    kp1_vis, ...] so keypoint values start at index 5.
+
+    Tries dims=3 first (x, y, visibility) with visibility validation ({0, 1, 2}), then falls back to dims=2 (x, y only)
+    when values are unambiguously not divisible by 3.
+    """
+    kpt_lengths = []
+    samples = []  # raw keypoint value slices for visibility checking
+    for record in image_records:
+        for ann in record.get("annotations", {}).get("pose", []):
+            kpt_len = len(ann) - 5  # subtract classId + bbox (4 values)
+            if kpt_len > 0:
+                kpt_lengths.append(kpt_len)
+                samples.append(ann[5:])
+            if len(kpt_lengths) >= 50:
+                break
+        if len(kpt_lengths) >= 50:
+            break
+
+    if not kpt_lengths or len(set(kpt_lengths)) != 1:
+        raise ValueError("Pose dataset missing required 'kpt_shape'. See https://docs.ultralytics.com/datasets/pose/")
+
+    n = kpt_lengths[0]
+
+    # Try dims=3: requires divisible by 3 and every 3rd value (visibility) in {0, 1, 2}
+    if n % 3 == 0 and all(v in (0, 1, 2) for s in samples for v in s[2::3]):
+        return [n // 3, 3]
+
+    # Try dims=2: only when NOT divisible by 3 (avoids misclassifying dims=3 data)
+    if n % 2 == 0 and n % 3 != 0:
+        return [n // 2, 2]
+
+    raise ValueError("Pose dataset missing required 'kpt_shape'. See https://docs.ultralytics.com/datasets/pose/")
+
+
+async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Path | None = None) -> Path:
+    """Convert NDJSON dataset format to Ultralytics YOLO dataset structure.
+
+    This function converts datasets stored in NDJSON (Newline Delimited JSON) format to the standard YOLO format. For
+    detection/segmentation/pose/obb tasks, it creates separate directories for images and labels. For classification
+    tasks, it creates the ImageNet-style {split}/{class_name}/ folder structure. It supports parallel processing for
+    efficient conversion of large datasets and can download images from URLs.
 
     The NDJSON format consists of:
-    - First line: Dataset metadata with class names and configuration
+    - First line: Dataset metadata with class names, task type, and configuration
     - Subsequent lines: Individual image records with annotations and optional URLs
 
     Args:
-        ndjson_path (Union[str, Path]): Path to the input NDJSON file containing dataset information.
-        output_path (Optional[Union[str, Path]], optional): Directory where the converted YOLO dataset will be saved. If
-            None, uses the parent directory of the NDJSON file. Defaults to None.
+        ndjson_path (str | Path): Path to the input NDJSON file containing dataset information.
+        output_path (str | Path | None, optional): Directory where the converted YOLO dataset will be saved. If None,
+            uses the DATASETS_DIR directory. Defaults to None.
 
     Returns:
-        (Path): Path to the generated data.yaml file that can be used for YOLO training.
+        (Path): Path to the generated data.yaml file (detection) or dataset directory (classification).
 
     Examples:
         Convert a local NDJSON file:
-        >>> yaml_path = convert_ndjson_to_yolo("dataset.ndjson")
+        >>> yaml_path = await convert_ndjson_to_yolo("dataset.ndjson")
         >>> print(f"Dataset converted to: {yaml_path}")
 
         Convert with custom output directory:
-        >>> yaml_path = convert_ndjson_to_yolo("dataset.ndjson", output_path="./converted_datasets")
+        >>> yaml_path = await convert_ndjson_to_yolo("dataset.ndjson", output_path="./converted_datasets")
 
         Use with YOLO training
         >>> from ultralytics import YOLO
-        >>> model = YOLO("yolo11n.pt")
+        >>> model = YOLO("yolo26n.pt")
         >>> model.train(data="https://github.com/ultralytics/assets/releases/download/v0.0.0/coco8-ndjson.ndjson")
     """
+    from ultralytics.utils.checks import check_requirements
+
     check_requirements("aiohttp")
     import aiohttp
 
@@ -785,55 +834,168 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     output_path = Path(output_path or DATASETS_DIR)
     with open(ndjson_path) as f:
         lines = [json.loads(line.strip()) for line in f if line.strip()]
-
     dataset_record, image_records = lines[0], lines[1:]
-    dataset_dir = output_path / ndjson_path.stem
+
+    # Hash stable content plus source identity. Query strings are excluded because signed URLs change on every export.
+    _h = hashlib.sha256()
+    for r in lines:
+        hash_record = {k: v for k, v in r.items() if k != "url"}
+        if r.get("file"):
+            hash_record["_source"] = clean_url(r["url"]) if r.get("url") else str(ndjson_path.parent.resolve())
+        _h.update(json.dumps(hash_record, sort_keys=True).encode())
+    _hash = _h.hexdigest()[:8]
+
+    # Hash-qualified dirs allow identical datasets to reuse downloads while preventing changed datasets from mutating
+    # files that another training job may still be reading.
+    dataset_dir = output_path / f"{ndjson_path.stem}-{_hash}"
+    yaml_path = dataset_dir / "data.yaml"
+    if yaml_path.is_file():
+        try:
+            cached = YAML.load(yaml_path)
+            if cached.get("hash") == _hash and all(
+                (dataset_dir / cached[split]).is_dir() and (dataset_dir / "labels" / split).is_dir()
+                for split in ("train", "val", "test")
+                if split in cached
+            ):
+                return yaml_path
+        except Exception:
+            pass
     splits = {record["split"] for record in image_records}
 
-    # Create directories and prepare YAML structure
-    dataset_dir.mkdir(parents=True, exist_ok=True)
-    data_yaml = dict(dataset_record)
-    data_yaml["names"] = {int(k): v for k, v in dataset_record.get("class_names", {}).items()}
-    data_yaml.pop("class_names")
+    # Check if this is a classification dataset
+    is_classification = dataset_record.get("task") == "classify"
+    class_names = {int(k): v for k, v in dataset_record.get("class_names", {}).items()}
+    inferred_nc = None
 
-    for split in sorted(splits):
-        (dataset_dir / "images" / split).mkdir(parents=True, exist_ok=True)
-        (dataset_dir / "labels" / split).mkdir(parents=True, exist_ok=True)
-        data_yaml[split] = f"images/{split}"
+    # Validate required fields before downloading images
+    task = dataset_record.get("task", "detect")
+    if not is_classification:
+        class_ids = {
+            int(label[0])
+            for record in image_records
+            for labels in record.get("annotations", {}).values()
+            for label in labels
+            if label
+        }
+        if class_ids or class_names:
+            max_class_id = max(class_ids | set(class_names))
+            if class_names:
+                for i in range(max_class_id + 1):
+                    class_names.setdefault(i, f"class{i}")
+            else:
+                inferred_nc = max_class_id + 1
+    if not is_classification:
+        if "train" not in splits:
+            raise ValueError(f"Dataset missing required 'train' split. Found splits: {sorted(splits)}")
+        if "val" not in splits:
+            train_records = [r for r in image_records if r.get("split") == "train"]
+            if len(train_records) < 2:
+                raise ValueError(
+                    f"Dataset has only {len(train_records)} image(s) and no 'val' split. "
+                    f"Need at least 2 images to auto-split into train/val."
+                )
+            random.Random(0).shuffle(train_records)  # local RNG to avoid mutating global training seed
+            val_count = max(1, len(train_records) // 10)
+            for r in train_records[:val_count]:
+                r["split"] = "val"
+            splits.add("val")
+            LOGGER.warning(
+                f"WARNING ⚠️ No 'val' split found in dataset. "
+                f"Auto-splitting {len(train_records)} images into {len(train_records) - val_count} train, {val_count} val. "
+                f"For best results, manually assign validation images in Platform dataset page."
+            )
+    if task == "pose" and "kpt_shape" not in dataset_record:
+        dataset_record["kpt_shape"] = _infer_ndjson_kpt_shape(image_records)
+
+    # Check if dataset already exists (enables image reuse across split changes)
+    _reuse = dataset_dir.exists()
+    if _reuse:
+        yaml_path.unlink(missing_ok=True)  # Invalidate hash before destructive ops (crash safety)
+        if not is_classification:
+            shutil.rmtree(dataset_dir / "labels", ignore_errors=True)
+    dataset_dir.mkdir(parents=True, exist_ok=True)
+    data_yaml = None
+
+    if not is_classification:
+        # Detection/segmentation/pose/obb: prepare YAML and create base structure
+        data_yaml = dict(dataset_record)
+        if class_names:
+            data_yaml["names"] = class_names
+        elif inferred_nc is not None:
+            data_yaml["nc"] = inferred_nc
+        data_yaml.pop("class_names", None)
+        data_yaml.pop("type", None)  # Remove NDJSON-specific fields
+        for split in sorted(splits):
+            (dataset_dir / "images" / split).mkdir(parents=True, exist_ok=True)
+            (dataset_dir / "labels" / split).mkdir(parents=True, exist_ok=True)
+            data_yaml[split] = f"images/{split}"
 
     async def process_record(session, semaphore, record):
         """Process single image record with async session."""
         async with semaphore:
             split, original_name = record["split"], record["file"]
-            label_path = dataset_dir / "labels" / split / f"{Path(original_name).stem}.txt"
-            image_path = dataset_dir / "images" / split / original_name
-
             annotations = record.get("annotations", {})
-            lines_to_write = []
-            for key in annotations.keys():
-                lines_to_write = [" ".join(map(str, item)) for item in annotations[key]]
-                break
-            if "classification" in annotations:
-                lines_to_write = [str(cls) for cls in annotations["classification"]]
 
-            label_path.write_text("\n".join(lines_to_write) + "\n" if lines_to_write else "")
+            if is_classification:
+                # Classification: place image in {split}/{class_name}/ folder
+                class_ids = annotations.get("classification", [])
+                class_id = class_ids[0] if class_ids else 0
+                class_name = class_names.get(class_id, str(class_id))
+                image_path = dataset_dir / split / class_name / original_name
+            else:
+                # Detection: write label file and place image in images/{split}/
+                image_path = dataset_dir / "images" / split / original_name
+                label_path = dataset_dir / "labels" / split / f"{Path(original_name).stem}.txt"
+                lines_to_write = []
+                for key in annotations:
+                    lines_to_write = [" ".join(map(str, item)) for item in annotations[key]]
+                    break
+                label_path.write_text("\n".join(lines_to_write) + "\n" if lines_to_write else "")
 
-            if http_url := record.get("url"):
-                if not image_path.exists():
-                    try:
-                        async with session.get(http_url, timeout=aiohttp.ClientTimeout(total=30)) as response:
-                            response.raise_for_status()
-                            with open(image_path, "wb") as f:
-                                async for chunk in response.content.iter_chunked(8192):
-                                    f.write(chunk)
-                        return True
-                    except Exception as e:
-                        LOGGER.warning(f"Failed to download {http_url}: {e}")
-                        return False
+            # Reuse existing image from another split dir (avoids redownload on resplit) or download
+            if not image_path.exists():
+                if _reuse:
+                    for s in ("train", "val", "test"):
+                        if s == split:
+                            continue
+                        candidate = (
+                            (dataset_dir / s / class_name / original_name)
+                            if is_classification
+                            else (dataset_dir / "images" / s / original_name)
+                        )
+                        if candidate.exists():
+                            image_path.parent.mkdir(parents=True, exist_ok=True)
+                            candidate.rename(image_path)
+                            break
+                if not image_path.exists() and (http_url := record.get("url")):
+                    image_path.parent.mkdir(parents=True, exist_ok=True)
+                    # Retry with exponential backoff (3 attempts: 1s, 2s delays before the final attempt)
+                    for attempt in range(3):
+                        error = None
+                        try:
+                            async with session.get(http_url, timeout=aiohttp.ClientTimeout(total=30)) as response:
+                                response.raise_for_status()
+                                image_path.write_bytes(await response.read())
+                            return True
+                        except aiohttp.ClientResponseError as e:
+                            error = e
+                            if e.status not in {408, 429} and e.status < 500:
+                                LOGGER.warning(f"Failed to download {http_url}: {e}")
+                                return False
+                        except (aiohttp.ClientError, asyncio.TimeoutError) as e:
+                            error = e
+                        except Exception as e:  # OSError, disk full, permissions — not transient, don't retry
+                            LOGGER.warning(f"Failed to save {http_url}: {e}")
+                            return False
+                        if attempt < 2:  # Don't sleep after last attempt
+                            await asyncio.sleep(2**attempt)  # 1s, 2s backoff
+                        else:
+                            LOGGER.warning(f"Failed to download {http_url} after 3 attempts: {error}")
+                            return False
             return True
 
-    # Process all images with async downloads
-    semaphore = asyncio.Semaphore(64)
+    # Process all images with async downloads (limit connections for small datasets)
+    semaphore = asyncio.Semaphore(min(128, len(image_records)))
     async with aiohttp.ClientSession() as session:
         pbar = TQDM(
             total=len(image_records),
@@ -845,11 +1007,38 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
             pbar.update(1)
             return result
 
-        await asyncio.gather(*[tracked_process(record) for record in image_records])
+        results = await asyncio.gather(*[tracked_process(record) for record in image_records])
         pbar.close()
 
-    # Write data.yaml
-    yaml_path = dataset_dir / "data.yaml"
-    YAML.save(yaml_path, data_yaml)
+    # Validate images were downloaded successfully
+    success_count = sum(1 for r in results if r)
+    if success_count == 0:
+        raise RuntimeError(f"Failed to download any images from {ndjson_path}. Check network connection and URLs.")
+    if success_count < len(image_records):
+        LOGGER.warning(f"Downloaded {success_count}/{len(image_records)} images from {ndjson_path}")
 
-    return yaml_path
+    # Remove orphaned images no longer in the dataset (prevents stale background images in training)
+    if _reuse:
+        expected_paths = set()
+        for r in image_records:
+            s, name = r["split"], r["file"]
+            if is_classification:
+                ann = r.get("annotations", {})
+                cids = ann.get("classification", [])
+                cid = cids[0] if cids else 0
+                expected_paths.add(dataset_dir / s / class_names.get(cid, str(cid)) / name)
+            else:
+                expected_paths.add(dataset_dir / "images" / s / name)
+        img_root = dataset_dir if is_classification else (dataset_dir / "images")
+        for p in img_root.rglob("*"):
+            if p.is_file() and p not in expected_paths:
+                p.unlink()
+
+    if is_classification:
+        # Classification: return dataset directory (check_cls_dataset expects a directory path)
+        return dataset_dir
+    else:
+        # Detection: write data.yaml with hash for future change detection
+        data_yaml["hash"] = _hash
+        YAML.save(yaml_path, data_yaml)
+        return yaml_path

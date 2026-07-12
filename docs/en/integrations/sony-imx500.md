@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Learn to export Ultralytics YOLO11 models to Sony's IMX500 format for efficient edge AI deployment on Raspberry Pi AI Camera with on-chip processing.
-keywords: Sony, IMX500, IMX 500, Atrios, MCT, model export, quantization, pruning, deep learning optimization, Raspberry Pi AI Camera, edge AI, PyTorch, IMX
+keywords: Sony, IMX500, IMX 500, AITRIOS, MCT, model export, quantization, pruning, deep learning optimization, Raspberry Pi AI Camera, edge AI, PyTorch, IMX
 ---
 
 # Sony IMX500 Export for Ultralytics YOLO11
@@ -13,7 +13,7 @@ Deploying computer vision models on devices with limited computational power, su
 The IMX500 model format is designed to use minimal power while delivering fast performance for neural networks. It allows you to optimize your [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) models for high-speed and low-power inferencing. In this guide, we'll walk you through exporting and deploying your models to the IMX500 format while making it easier for your models to perform well on the [Raspberry Pi AI Camera](https://www.raspberrypi.com/products/ai-camera/).
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/assets/releases/download/v8.3.0/ai-camera.avif" alt="Raspberry Pi AI Camera">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/imx500-ai-camera.avif" alt="Raspberry Pi AI Camera with Sony IMX500 sensor">
 </p>
 
 ## Why Should You Export to IMX500?
@@ -33,20 +33,26 @@ The IMX500 works with quantized models. Quantization makes models smaller and fa
 - **Addresses Privacy Concerns:** By processing data on the device, the IMX500 addresses privacy concerns, ideal for human-centric applications like person counting and occupancy tracking.
 - **Real-time Processing:** Fast, on-sensor processing supports real-time decisions, perfect for edge AI applications such as autonomous systems.
 
-**Before You Begin:** For best results, ensure your YOLO11 model is well-prepared for export by following our [Model Training Guide](https://docs.ultralytics.com/modes/train/), [Data Preparation Guide](https://docs.ultralytics.com/datasets/), and [Hyperparameter Tuning Guide](https://docs.ultralytics.com/guides/hyperparameter-tuning/).
+**Before You Begin:** For best results, ensure your YOLO11 model is well-prepared for export by following our [Model Training Guide](../modes/train.md), [Data Preparation Guide](../datasets/index.md), and [Hyperparameter Tuning Guide](../guides/hyperparameter-tuning.md).
 
 ## Supported Tasks
 
 Currently, you can only export models that include the following tasks to IMX500 format.
 
-- [Object Detection](https://docs.ultralytics.com/tasks/detect/)
-- [Pose Estimation](https://docs.ultralytics.com/tasks/pose/)
-- [Classification](https://docs.ultralytics.com/tasks/classify/)
-- [Instance segmentation](https://docs.ultralytics.com/tasks/segment/)
+- [Object Detection](../tasks/detect.md)
+- [Pose Estimation](../tasks/pose.md)
+- [Classification](../tasks/classify.md)
+- [Instance segmentation](../tasks/segment.md)
+
+!!! note "Supported model variants"
+
+    IMX export is designed and benchmarked for **YOLOv8n** and **YOLO11n** (nano). Other architectures and model scales are not supported.
 
 ## Usage Examples
 
 Export an Ultralytics YOLO11 model to IMX500 format and run inference with the exported model.
+
+The IMX500 format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Inference and validation run on the Raspberry Pi AI Camera (IMX500).
 
 !!! note
 
@@ -172,6 +178,27 @@ Export an Ultralytics YOLO11 model to IMX500 format and run inference with the e
          yolo predict model=yolo11n-seg_imx_model source='https://ultralytics.com/images/bus.jpg'
          ```
 
+!!! example "Validate"
+
+    === "Python"
+
+         ```python
+         from ultralytics import YOLO
+
+         # Load the exported IMX500 model
+         model = YOLO("yolo11n_imx_model")
+
+         # Validate accuracy on the COCO8 dataset
+         metrics = model.val(data="coco8.yaml")
+         ```
+
+    === "CLI"
+
+         ```bash
+         # Validate the exported IMX500 model
+         yolo val model=yolo11n_imx_model data=coco8.yaml
+         ```
+
 !!! warning
 
     The Ultralytics package installs additional export dependencies at runtime. The first time you run the export command, you may need to restart your console to ensure it works correctly.
@@ -182,9 +209,10 @@ Export an Ultralytics YOLO11 model to IMX500 format and run inference with the e
 | ---------- | ---------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `format`   | `str`            | `'imx'`        | Target format for the exported model, defining compatibility with various deployment environments.                                                                                                                                                               |
 | `imgsz`    | `int` or `tuple` | `640`          | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                                                                |
-| `int8`     | `bool`           | `True`         | Activates INT8 quantization, further compressing the model and speeding up inference with minimal [accuracy](https://www.ultralytics.com/glossary/accuracy) loss, primarily for edge devices.                                                                    |
-| `data`     | `str`            | `'coco8.yaml'` | Path to the [dataset](https://docs.ultralytics.com/datasets/) configuration file (default: `coco8.yaml`), essential for quantization.                                                                                                                            |
+| `quantize` | `int` or `str`   | `8`/auto       | Quantization precision. `8` (INT8/PTQ) is auto-enabled for IMX500; `"w8a16"` exports INT8 weights with FP16 activations. FP32 and FP16-only export are not supported. Replaces the deprecated `half`/`int8` flags.                                               |
+| `data`     | `str`            | `'coco8.yaml'` | Path to the [dataset](../datasets/index.md) configuration file (default: `coco8.yaml`), essential for quantization.                                                                                                                                              |
 | `fraction` | `float`          | `1.0`          | Specifies the fraction of the dataset to use for INT8 quantization calibration. Allows for calibrating on a subset of the full dataset, useful for experiments or when resources are limited. If not specified with INT8 enabled, the full dataset will be used. |
+| `nms`      | `bool`           | `False`        | Adds Non-Maximum Suppression (NMS) to the exported model. When `True`, `conf`, `iou`, and `agnostic_nms` are also accepted.                                                                                                                                      |
 | `device`   | `str`            | `None`         | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`).                                                                                                                                                                                        |
 
 !!! tip
@@ -204,9 +232,9 @@ The export process will create an ONNX model for quantization validation, along 
         ├── dnnParams.xml
         ├── labels.txt
         ├── packerOut.zip
-        ├── yolo11n_imx.onnx
-        ├── yolo11n_imx_MemoryReport.json
-        └── yolo11n_imx.pbtxt
+        ├── model_imx.onnx
+        ├── model_imx_MemoryReport.json
+        └── model_imx.pbtxt
         ```
 
     === "Pose Estimation"
@@ -216,9 +244,9 @@ The export process will create an ONNX model for quantization validation, along 
         ├── dnnParams.xml
         ├── labels.txt
         ├── packerOut.zip
-        ├── yolo11n-pose_imx.onnx
-        ├── yolo11n-pose_imx_MemoryReport.json
-        └── yolo11n-pose_imx.pbtxt
+        ├── model_imx.onnx
+        ├── model_imx_MemoryReport.json
+        └── model_imx.pbtxt
         ```
 
     === "Classification"
@@ -228,9 +256,9 @@ The export process will create an ONNX model for quantization validation, along 
         ├── dnnParams.xml
         ├── labels.txt
         ├── packerOut.zip
-        ├── yolo11n-cls_imx.onnx
-        ├── yolo11n-cls_imx_MemoryReport.json
-        └── yolo11n-cls_imx.pbtxt
+        ├── model_imx.onnx
+        ├── model_imx_MemoryReport.json
+        └── model_imx.pbtxt
         ```
 
     === "Instance Segmentation"
@@ -240,9 +268,9 @@ The export process will create an ONNX model for quantization validation, along 
         ├── dnnParams.xml
         ├── labels.txt
         ├── packerOut.zip
-        ├── yolo11n-seg_imx.onnx
-        ├── yolo11n-seg_imx_MemoryReport.json
-        └── yolo11n-seg_imx.pbtxt
+        ├── model_imx.onnx
+        ├── model_imx_MemoryReport.json
+        └── model_imx.pbtxt
         ```
 
 ## Using IMX500 Export in Deployment
@@ -329,7 +357,7 @@ Step 5: Run YOLO11 object detection, pose estimation, classification and segment
                 return pp_od_yolo_ultralytics(output_tensors)
 
 
-        device = AiCamera(frame_rate=16)  # Optimal frame rate for maximum DPS of the YOLO model running on the AI Camera
+        device = AiCamera(frame_rate=16)  # Optimal frame rate for maximum FPS of the YOLO model running on the AI Camera
         model = YOLO()
         device.deploy(model)
 
@@ -370,7 +398,7 @@ Step 5: Run YOLO11 object detection, pose estimation, classification and segment
                 return pp_yolo_pose_ultralytics(output_tensors)
 
 
-        device = AiCamera(frame_rate=17)  # Optimal frame rate for maximum DPS of the YOLO-pose model running on the AI Camera
+        device = AiCamera(frame_rate=17)  # Optimal frame rate for maximum FPS of the YOLO-pose model running on the AI Camera
         model = YOLOPose()
         device.deploy(model)
 
@@ -434,18 +462,17 @@ Step 5: Run YOLO11 object detection, pose estimation, classification and segment
 
         ```python
         import numpy as np
-
         from modlib.apps import Annotator
         from modlib.devices import AiCamera
         from modlib.models import COLOR_FORMAT, MODEL_TYPE, Model
         from modlib.models.post_processors import pp_yolo_segment_ultralytics
 
+
         class YOLOSegment(Model):
-        """YOLO segmentation model for IMX500 deployment."""
+            """YOLO segmentation model for IMX500 deployment."""
 
             def __init__(self):
                 """Initialize the YOLO segmentation model for IMX500 deployment."""
-
                 super().__init__(
                     model_file="yolo11n-seg_imx_model/packerOut.zip",  # replace with proper directory
                     model_type=MODEL_TYPE.CONVERTED,
@@ -463,7 +490,8 @@ Step 5: Run YOLO11 object detection, pose estimation, classification and segment
                 """Post-process the output tensors for instance segmentation."""
                 return pp_yolo_segment_ultralytics(output_tensors)
 
-        device = AiCamera(frame_rate=17) # Optimal frame rate for maximum DPS of the YOLO-seg model running on the AI Camera
+
+        device = AiCamera(frame_rate=17)  # Optimal frame rate for maximum FPS of the YOLO-seg model running on the AI Camera
         model = YOLOSegment()
         device.deploy(model)
 
@@ -502,7 +530,7 @@ YOLOv8n, YOLO11n, YOLOv8n-pose, YOLO11n-pose, YOLOv8n-cls and YOLO11n-cls benchm
 ## What's Under the Hood?
 
 <p align="center">
-  <img width="640" src="https://github.com/ultralytics/assets/releases/download/v8.3.0/imx500-deploy.avif" alt="IMX500 deployment">
+  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/imx500-deploy.avif" alt="Sony IMX500 YOLO model deployment workflow">
 </p>
 
 ### Sony Model Compression Toolkit (MCT)
@@ -610,8 +638,8 @@ Software:
 
 Based on Ultralytics benchmarks on Raspberry Pi AI Camera:
 
-- YOLO11n achieves 62.50ms inference time per image
-- mAP50-95 of 0.492 on COCO128 dataset
-- Model size of only 3.2MB after quantization
+- YOLO11n achieves 58.82ms inference time per image
+- mAP50-95 of 0.517 on COCO128 dataset
+- Model size of only 2.2MB after quantization
 
 This demonstrates that IMX500 format provides efficient real-time inference while maintaining good accuracy for edge AI applications.

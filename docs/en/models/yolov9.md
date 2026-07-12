@@ -1,4 +1,5 @@
 ---
+title: YOLOv9 Object Detection with PGI and GELAN
 comments: true
 description: Explore YOLOv9, a leap in real-time object detection, featuring innovations like PGI and GELAN, and achieving new benchmarks in efficiency and accuracy.
 keywords: YOLOv9, object detection, real-time, PGI, GELAN, deep learning, MS COCO, AI, neural networks, model efficiency, accuracy, Ultralytics
@@ -19,7 +20,7 @@ YOLOv9 marks a significant advancement in real-time object detection, introducin
   <strong>Watch:</strong> YOLOv9 Training on Custom Data using Ultralytics | Industrial Package Dataset
 </p>
 
-![YOLOv9 performance comparison](https://github.com/ultralytics/docs/releases/download/0/yolov9-performance-comparison.avif)
+![YOLOv9 performance comparison](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov9-performance-comparison.avif)
 
 ## Introduction to YOLOv9
 
@@ -61,11 +62,11 @@ PGI is a novel concept introduced in YOLOv9 to combat the information bottleneck
 
 GELAN represents a strategic architectural advancement, enabling YOLOv9 to achieve superior parameter utilization and computational efficiency. Its design allows for flexible integration of various computational blocks, making YOLOv9 adaptable to a wide range of applications without sacrificing speed or accuracy.
 
-![YOLOv9 architecture comparison](https://github.com/ultralytics/docs/releases/download/0/yolov9-architecture-comparison.avif)
+![YOLOv9 architecture comparison](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov9-architecture-comparison.avif)
 
 ## YOLOv9 Benchmarks
 
-Benchmarking in YOLOv9 using [Ultralytics](https://docs.ultralytics.com/modes/benchmark/) involves evaluating the performance of your trained and validated model in real-world scenarios. This process includes:
+Benchmarking in YOLOv9 using [Ultralytics](../modes/benchmark.md) involves evaluating the performance of your trained and validated model in real-world scenarios. This process includes:
 
 - **Performance Evaluation:** Assessing the model's speed and accuracy.
 - **Export Formats:** Testing the model across different export formats to ensure it meets the necessary standards and performs well in various environments.
@@ -99,18 +100,18 @@ The performance of YOLOv9 on the [COCO dataset](../datasets/detect/coco.md) exem
 
         | Model                                                                                 | size<br><sup>(pixels)</sup> | mAP<sup>val<br>50-95</sup> | mAP<sup>val<br>50</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
         |---------------------------------------------------------------------------------------|-----------------------|----------------------|-------------------|--------------------|-------------------|
-        | [YOLOv9t](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov9t.pt)  | 640                   | 38.3                 | 53.1              | 2.0                | 7.7               |
-        | [YOLOv9s](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov9s.pt)  | 640                   | 46.8                 | 63.4              | 7.2                | 26.7              |
-        | [YOLOv9m](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov9m.pt)  | 640                   | 51.4                 | 68.1              | 20.1               | 76.8              |
-        | [YOLOv9c](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov9c.pt)  | 640                   | 53.0                 | 70.2              | 25.5               | 102.8             |
-        | [YOLOv9e](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov9e.pt)  | 640                   | 55.6                 | 72.8              | 58.1               | 192.5             |
+        | [YOLOv9t](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov9t.pt)  | 640                   | 38.3                 | 53.1              | 2.0                | 7.7               |
+        | [YOLOv9s](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov9s.pt)  | 640                   | 46.8                 | 63.4              | 7.2                | 26.7              |
+        | [YOLOv9m](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov9m.pt)  | 640                   | 51.4                 | 68.1              | 20.1               | 76.8              |
+        | [YOLOv9c](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov9c.pt)  | 640                   | 53.0                 | 70.2              | 25.5               | 102.8             |
+        | [YOLOv9e](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov9e.pt)  | 640                   | 55.6                 | 72.8              | 58.1               | 192.5             |
 
     === "Segmentation (COCO)"
 
         | Model                                                                                         | size<br><sup>(pixels)</sup> | mAP<sup>box<br>50-95</sup> | mAP<sup>mask<br>50-95</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
         |-----------------------------------------------------------------------------------------------|-----------------------|----------------------|-----------------------|--------------------|-------------------|
-        | [YOLOv9c-seg](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov9c-seg.pt)  | 640                   | 52.4                 | 42.2                  | 27.9               | 159.4             |
-        | [YOLOv9e-seg](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov9e-seg.pt)  | 640                   | 55.1                 | 44.3                  | 60.5               | 248.4             |
+        | [YOLOv9c-seg](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov9c-seg.pt)  | 640                   | 52.4                 | 42.2                  | 27.9               | 159.4             |
+        | [YOLOv9e-seg](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov9e-seg.pt)  | 640                   | 55.1                 | 44.3                  | 60.5               | 248.4             |
 
 YOLOv9's iterations, ranging from the tiny `t` variant to the extensive `e` model, demonstrate improvements not only in accuracy (mAP metrics) but also in efficiency with a reduced number of parameters and computational needs (FLOPs). This table underscores YOLOv9's ability to deliver high [precision](https://www.ultralytics.com/glossary/precision) while maintaining or reducing the computational overhead compared to prior versions and competing models.
 
@@ -125,7 +126,7 @@ These results showcase YOLOv9's strategic advancements in model design, emphasiz
 
 ## Conclusion
 
-YOLOv9 represents a pivotal development in real-time object detection, offering significant improvements in terms of efficiency, accuracy, and adaptability. By addressing critical challenges through innovative solutions like PGI and GELAN, YOLOv9 sets a new precedent for future research and application in the field. As the AI community continues to evolve, YOLOv9 stands as a testament to the power of collaboration and innovation in driving technological progress.
+YOLOv9, released in February 2024, represented a pivotal development in real-time object detection, offering significant improvements in terms of efficiency, accuracy, and adaptability. By addressing critical challenges through innovative solutions like PGI and GELAN, YOLOv9 set new benchmarks at its time of release. While newer models like [YOLO11](yolo11.md) and [YOLO26](yolo26.md) have since been released with additional improvements, YOLOv9's architectural innovations continue to influence the field.
 
 ## Usage Examples
 
@@ -192,15 +193,17 @@ We would like to acknowledge the YOLOv9 authors for their significant contributi
     === "BibTeX"
 
         ```bibtex
-        @article{wang2024yolov9,
+        @inproceedings{wang2024yolov9,
           title={YOLOv9: Learning What You Want to Learn Using Programmable Gradient Information},
-          author={Wang, Chien-Yao  and Liao, Hong-Yuan Mark},
-          booktitle={arXiv preprint arXiv:2402.13616},
-          year={2024}
+          author={Wang, Chien-Yao and Yeh, I-Hau and Liao, Hong-Yuan Mark},
+          booktitle={Computer Vision -- ECCV 2024},
+          pages={1--21},
+          year={2024},
+          organization={Springer Nature Switzerland}
         }
         ```
 
-The original YOLOv9 paper can be found on [arXiv](https://arxiv.org/pdf/2402.13616). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/WongKinYiu/yolov9). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
+The official YOLOv9 paper was published in the [Springer ECCV 2024 proceedings](https://link.springer.com/chapter/10.1007/978-3-031-72751-1_1), with a preprint on [arXiv](https://arxiv.org/pdf/2402.13616). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/WongKinYiu/yolov9). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
 
 ## FAQ
 

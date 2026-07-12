@@ -199,3 +199,10 @@ calibration_*.npy
 *.heic
 *.ico
 *.raw
+
+# Training logs
+args.yaml
+results.csv
+
+# CI test asset cache
+.ultralytics_cache/

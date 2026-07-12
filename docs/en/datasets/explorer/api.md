@@ -8,7 +8,7 @@ keywords: Ultralytics, Explorer API, dataset exploration, SQL queries, similarit
 
 !!! warning "Community Note ⚠️"
 
-    As of **`ultralytics>=8.3.10`**, Ultralytics Explorer support is deprecated. Similar (and expanded) dataset exploration features are available in [Ultralytics HUB](https://hub.ultralytics.com/).
+    As of **`ultralytics>=8.3.12`**, Ultralytics Explorer has been removed. To use Explorer, install `pip install ultralytics==8.3.11`. Similar (and expanded) dataset exploration features are available in [Ultralytics Platform](https://platform.ultralytics.com/).
 
 ## Introduction
 
@@ -301,7 +301,7 @@ sim_idx["im_file"][sim_count > 30]
 
 ### Visualize Embedding Space
 
-You can also visualize the embedding space using the plotting tool of your choice. For example here is a simple example using matplotlib:
+You can also visualize the embedding space using the plotting tool of your choice. For example here is a simple example using Matplotlib:
 
 ```python
 import matplotlib.pyplot as plt
@@ -330,13 +330,6 @@ Start creating your own CV dataset exploration reports using the Explorer API. F
 ## Apps Built Using Ultralytics Explorer
 
 Try our [GUI Demo](dashboard.md) based on Explorer API
-
-## Coming Soon
-
-- [ ] Merge specific labels from datasets. Example - Import all `person` labels from COCO and `car` labels from Cityscapes
-- [ ] Remove images that have a higher similarity index than the given threshold
-- [ ] Automatically persist new datasets after merging/removing entries
-- [ ] Advanced Dataset Visualizations
 
 ## FAQ
 

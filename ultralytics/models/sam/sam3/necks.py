@@ -23,14 +23,16 @@ class Sam3DualViTDetNeck(nn.Module):
         scale_factors=(4.0, 2.0, 1.0, 0.5),
         add_sam2_neck: bool = False,
     ):
-        """
-        SimpleFPN neck a la ViTDet
-        (From detectron2, very lightly adapted)
-        It supports a "dual neck" setting, where we have two identical necks (for SAM3 and SAM2), with different weights.
+        """SimpleFPN neck a la ViTDet, very lightly adapted from detectron2.
 
-        :param trunk: the backbone
-        :param position_encoding: the positional encoding to use
-        :param d_model: the dimension of the model
+        Supports a "dual neck" setting with two identical necks (for SAM3 and SAM2) that have different weights.
+
+        Args:
+            trunk (nn.Module): The backbone.
+            position_encoding (nn.Module): The positional encoding to use.
+            d_model (int): The dimension of the model.
+            scale_factors (tuple): Scale factors for each FPN level.
+            add_sam2_neck (bool): Whether to add a second neck for SAM2.
         """
         super().__init__()
         self.trunk = trunk
@@ -103,27 +105,28 @@ class Sam3DualViTDetNeck(nn.Module):
 
     def forward(
         self, tensor_list: list[torch.Tensor]
-    ) -> tuple[list[torch.Tensor], list[torch.Tensor], list[torch.Tensor], list[torch.Tensor]]:
-        """Get the feature maps and positional encodings from the neck."""
+    ) -> tuple[list[torch.Tensor], list[torch.Tensor], list[torch.Tensor] | None, list[torch.Tensor] | None]:
+        """Get feature maps and positional encodings from the neck."""
         xs = self.trunk(tensor_list)
-        sam3_out, sam3_pos = [], []
-        sam2_out, sam2_pos = None, None
-        if self.sam2_convs is not None:
-            sam2_out, sam2_pos = [], []
         x = xs[-1]  # simpleFPN
-        for i in range(len(self.convs)):
-            sam3_x_out = self.convs[i](x)
-            sam3_pos_out = self.position_encoding(sam3_x_out).to(sam3_x_out.dtype)
-            sam3_out.append(sam3_x_out)
-            sam3_pos.append(sam3_pos_out)
-
-            if self.sam2_convs is not None:
-                sam2_x_out = self.sam2_convs[i](x)
-                sam2_pos_out = self.position_encoding(sam2_x_out).to(sam2_x_out.dtype)
-                sam2_out.append(sam2_x_out)
-                sam2_pos.append(sam2_pos_out)
+        sam3_out, sam3_pos = self.sam_forward_feature_levels(x, self.convs)
+        if self.sam2_convs is None:
+            return sam3_out, sam3_pos, None, None
+        sam2_out, sam2_pos = self.sam_forward_feature_levels(x, self.sam2_convs)
         return sam3_out, sam3_pos, sam2_out, sam2_pos
 
-    def set_imgsz(self, imgsz: list[int] = [1008, 1008]):
+    def sam_forward_feature_levels(
+        self, x: torch.Tensor, convs: nn.ModuleList
+    ) -> tuple[list[torch.Tensor], list[torch.Tensor]]:
+        """Run neck convolutions and compute positional encodings for each feature level."""
+        outs, poss = [], []
+        for conv in convs:
+            feat = conv(x)
+            outs.append(feat)
+            poss.append(self.position_encoding(feat).to(feat.dtype))
+        return outs, poss
+
+    def set_imgsz(self, imgsz: list[int] | None = None):
         """Set the image size for the trunk backbone."""
+        imgsz = imgsz if imgsz is not None else [1008, 1008]
         self.trunk.set_imgsz(imgsz)

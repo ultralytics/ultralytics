@@ -1,18 +1,23 @@
 ---
+title: VisionEye Object Mapping with YOLO26
 comments: true
-description: Discover VisionEye's object mapping and tracking powered by Ultralytics YOLO11. Simulate human eye precision, track objects, and calculate distances effortlessly.
-keywords: VisionEye, YOLO11, Ultralytics, object mapping, object tracking, distance calculation, computer vision, AI, machine learning, Python, tutorial
+description: Discover VisionEye's object mapping and tracking powered by Ultralytics YOLO26. Simulate human eye precision, track objects, and calculate distances effortlessly.
+keywords: VisionEye, YOLO26, Ultralytics, object mapping, object tracking, distance calculation, computer vision, AI, machine learning, Python, tutorial
 ---
 
-# VisionEye View Object Mapping using Ultralytics YOLO11 🚀
+# VisionEye View Object Mapping using Ultralytics YOLO26 🚀
 
 ## What is VisionEye Object Mapping?
 
-[Ultralytics YOLO11](https://github.com/ultralytics/ultralytics/) VisionEye offers the capability for computers to identify and pinpoint objects, simulating the observational [precision](https://www.ultralytics.com/glossary/precision) of the human eye. This functionality enables computers to discern and focus on specific objects, much like the way the human eye observes details from a particular viewpoint.
+[Ultralytics YOLO26](https://github.com/ultralytics/ultralytics/) VisionEye offers the capability for computers to identify and pinpoint objects, simulating the observational [precision](https://www.ultralytics.com/glossary/precision) of the human eye. This functionality enables computers to discern and focus on specific objects, much like the way the human eye observes details from a particular viewpoint.
 
 <p align="center">
-  <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/visioneye-object-mapping-with-tracking.avif" alt="VisionEye View Object Mapping with Object Tracking using Ultralytics YOLO11">
+  <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/visioneye-object-mapping-with-tracking.avif" alt="VisionEye object mapping with YOLO tracking">
 </p>
+
+## Map Objects with YOLO26
+
+VisionEye fixes a single observation point in the frame and draws a ray from it to every tracked object, so you can visualize how a scene looks from one viewpoint. Set `vision_point` to the observer's pixel coordinates, then run the solution over your video with the Python API or the CLI.
 
 !!! example "VisionEye Mapping using Ultralytics YOLO"
 
@@ -46,7 +51,7 @@ keywords: VisionEye, YOLO11, Ultralytics, object mapping, object tracking, dista
         # Initialize vision eye object
         visioneye = solutions.VisionEye(
             show=True,  # display the output
-            model="yolo11n.pt",  # use any model that Ultralytics supports, e.g., YOLOv10
+            model="yolo26n.pt",  # use any model that Ultralytics supports, e.g., YOLOv10
             classes=[0, 2],  # generate visioneye view for specific classes
             vision_point=(50, 50),  # the point where VisionEye will view objects and draw tracks
         )
@@ -91,7 +96,7 @@ Furthermore, some visualization arguments are supported, as listed below:
 
 ## How VisionEye Works
 
-VisionEye works by establishing a fixed vision point in the frame and drawing lines from this point to detected objects. This simulates how human vision focuses on multiple objects from a single viewpoint. The solution uses [object tracking](https://docs.ultralytics.com/modes/track/) to maintain consistent identification of objects across frames, creating a visual representation of the spatial relationship between the observer (vision point) and the objects in the scene.
+VisionEye works by establishing a fixed vision point in the frame and drawing lines from this point to detected objects. This simulates how human vision focuses on multiple objects from a single viewpoint. The solution uses [object tracking](../modes/track.md) to maintain consistent identification of objects across frames, creating a visual representation of the spatial relationship between the observer (vision point) and the objects in the scene.
 
 The `process` method in the VisionEye class performs several key operations:
 
@@ -112,17 +117,13 @@ VisionEye object mapping has numerous practical applications across various indu
 - **Autonomous Vehicles**: Visualize how a vehicle "sees" and prioritizes objects in its environment
 - **Human-Computer Interaction**: Create more intuitive interfaces that respond to spatial relationships
 
-By combining VisionEye with other Ultralytics solutions like [distance calculation](https://docs.ultralytics.com/guides/distance-calculation/) or [speed estimation](https://docs.ultralytics.com/guides/speed-estimation/), you can build comprehensive systems that not only track objects but also understand their spatial relationships and behaviors.
-
-## Note
-
-For any inquiries, feel free to post your questions in the [Ultralytics Issue Section](https://github.com/ultralytics/ultralytics/issues/new/choose) or the discussion section mentioned below.
+By combining VisionEye with other Ultralytics solutions like [distance calculation](distance-calculation.md) or [speed estimation](speed-estimation.md), you can build comprehensive systems that not only track objects but also understand their spatial relationships and behaviors.
 
 ## FAQ
 
-### How do I start using VisionEye Object Mapping with Ultralytics YOLO11?
+### How do I start using VisionEye Object Mapping with Ultralytics YOLO26?
 
-To start using VisionEye Object Mapping with Ultralytics YOLO11, first, you'll need to install the Ultralytics YOLO package via pip. Then, you can use the sample code provided in the documentation to set up [object detection](https://www.ultralytics.com/glossary/object-detection) with VisionEye. Here's a simple example to get you started:
+To start using VisionEye Object Mapping with Ultralytics YOLO26, first, you'll need to install the Ultralytics YOLO package via pip. Then, you can use the sample code provided in the documentation to set up [object detection](https://www.ultralytics.com/glossary/object-detection) with VisionEye. Here's a simple example to get you started:
 
 ```python
 import cv2
@@ -139,7 +140,7 @@ video_writer = cv2.VideoWriter("vision-eye-mapping.avi", cv2.VideoWriter_fourcc(
 # Init vision eye object
 visioneye = solutions.VisionEye(
     show=True,  # display the output
-    model="yolo11n.pt",  # use any model that Ultralytics supports, e.g., YOLOv10
+    model="yolo26n.pt",  # use any model that Ultralytics supports, e.g., YOLOv10
     classes=[0, 2],  # generate visioneye view for specific classes
 )
 
@@ -162,19 +163,19 @@ video_writer.release()
 cv2.destroyAllWindows()  # destroy all opened windows
 ```
 
-### Why should I use Ultralytics YOLO11 for object mapping and tracking?
+### Why should I use Ultralytics YOLO26 for object mapping and tracking?
 
-Ultralytics YOLO11 is renowned for its speed, [accuracy](https://www.ultralytics.com/glossary/accuracy), and ease of integration, making it a top choice for object mapping and tracking. Key advantages include:
+Ultralytics YOLO26 is renowned for its speed, [accuracy](https://www.ultralytics.com/glossary/accuracy), and ease of integration, making it a top choice for object mapping and tracking. Key advantages include:
 
 1. **State-of-the-art Performance**: Delivers high accuracy in real-time object detection.
 2. **Flexibility**: Supports various tasks such as detection, tracking, and distance calculation.
 3. **Community and Support**: Extensive documentation and active GitHub community for troubleshooting and enhancements.
 4. **Ease of Use**: Intuitive API simplifies complex tasks, allowing for rapid deployment and iteration.
 
-For more information on applications and benefits, check out the [Ultralytics YOLO11 documentation](https://docs.ultralytics.com/models/yolov8/).
+For more information on applications and benefits, check out the [Ultralytics YOLO26 documentation](../models/yolo26.md).
 
 ### How can I integrate VisionEye with other [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) tools like Comet or ClearML?
 
-Ultralytics YOLO11 can integrate seamlessly with various machine learning tools like Comet and ClearML, enhancing experiment tracking, collaboration, and reproducibility. Follow the detailed guides on [how to use YOLOv5 with Comet](https://www.ultralytics.com/blog/how-to-use-yolov5-with-comet) and [integrate YOLO11 with ClearML](https://docs.ultralytics.com/integrations/clearml/) to get started.
+Ultralytics YOLO26 can integrate seamlessly with various machine learning tools like Comet and ClearML, enhancing experiment tracking, collaboration, and reproducibility. Follow the detailed guides on [how to use YOLOv5 with Comet](https://www.ultralytics.com/blog/how-to-use-yolov5-with-comet) and [integrate YOLO26 with ClearML](../integrations/clearml.md) to get started.
 
-For further exploration and integration examples, check our [Ultralytics Integrations Guide](https://docs.ultralytics.com/integrations/).
+For further exploration and integration examples, check our [Ultralytics Integrations Guide](../integrations/index.md).

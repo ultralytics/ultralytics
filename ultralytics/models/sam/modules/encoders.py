@@ -75,8 +75,8 @@ class ImageEncoderViT(nn.Module):
             mlp_ratio (float): Ratio of MLP hidden dimension to embedding dimension.
             out_chans (int): Number of output channels from the neck module.
             qkv_bias (bool): If True, adds learnable bias to query, key, value projections.
-            norm_layer (Type[nn.Module]): Type of normalization layer to use.
-            act_layer (Type[nn.Module]): Type of activation layer to use.
+            norm_layer (type[nn.Module]): Type of normalization layer to use.
+            act_layer (type[nn.Module]): Type of activation layer to use.
             use_abs_pos (bool): If True, uses absolute positional embeddings.
             use_rel_pos (bool): If True, adds relative positional embeddings to attention maps.
             rel_pos_zero_init (bool): If True, initializes relative positional parameters to zero.
@@ -191,7 +191,7 @@ class PromptEncoder(nn.Module):
             image_embedding_size (tuple[int, int]): The spatial size of the image embedding as (H, W).
             input_image_size (tuple[int, int]): The padded size of the input image as (H, W).
             mask_in_chans (int): The number of hidden channels used for encoding input masks.
-            activation (Type[nn.Module]): The activation function to use when encoding input masks.
+            activation (type[nn.Module]): The activation function to use when encoding input masks.
         """
         super().__init__()
         self.embed_dim = embed_dim
@@ -351,10 +351,10 @@ class MemoryEncoder(nn.Module):
         >>> import torch
         >>> encoder = MemoryEncoder(out_dim=256, in_dim=256)
         >>> pix_feat = torch.randn(1, 256, 64, 64)
-        >>> masks = torch.randn(1, 1, 64, 64)
-        >>> encoded_feat, pos = encoder(pix_feat, masks)
-        >>> print(encoded_feat.shape, pos.shape)
-        torch.Size([1, 256, 64, 64]) torch.Size([1, 128, 64, 64])
+        >>> masks = torch.randn(1, 1, 1024, 1024)
+        >>> out = encoder(pix_feat, masks)
+        >>> print(out["vision_features"].shape, out["vision_pos_enc"][0].shape)
+        torch.Size([1, 256, 64, 64]) torch.Size([1, 64, 64, 64])
     """
 
     def __init__(
@@ -475,8 +475,8 @@ class ImageEncoder(nn.Module):
 class FpnNeck(nn.Module):
     """A Feature Pyramid Network (FPN) neck variant for multiscale feature fusion in object detection models.
 
-    This FPN variant removes the output convolution and uses bicubic interpolation for feature resizing, similar to ViT
-    positional embedding interpolation.
+    This FPN variant removes the output convolution and uses configurable interpolation (default bilinear) for feature
+    resizing, similar to ViT positional embedding interpolation.
 
     Attributes:
         position_encoding (PositionEmbeddingSine): Sinusoidal positional encoding module.
@@ -511,8 +511,8 @@ class FpnNeck(nn.Module):
     ):
         """Initialize a modified Feature Pyramid Network (FPN) neck.
 
-        This FPN variant removes the output convolution and uses bicubic interpolation for feature resizing, similar to
-        ViT positional embedding interpolation.
+        This FPN variant removes the output convolution and uses configurable interpolation (default bilinear) for
+        feature resizing, similar to ViT positional embedding interpolation.
 
         Args:
             d_model (int): Dimension of the model.
@@ -522,7 +522,7 @@ class FpnNeck(nn.Module):
             padding (int): Padding for the convolutional layers.
             fpn_interp_model (str): Interpolation mode for FPN feature resizing.
             fuse_type (str): Type of feature fusion, either 'sum' or 'avg'.
-            fpn_top_down_levels (Optional[list[int]]): Levels to have top-down features in outputs.
+            fpn_top_down_levels (list[int] | None): Levels to have top-down features in outputs.
         """
         super().__init__()
         self.position_encoding = PositionEmbeddingSine(num_pos_feats=256)

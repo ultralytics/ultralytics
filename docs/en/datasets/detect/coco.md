@@ -1,4 +1,5 @@
 ---
+title: COCO Detection Dataset
 comments: true
 description: Explore the COCO dataset for object detection and segmentation. Learn about its structure, usage, pretrained models, and key features.
 keywords: COCO dataset, object detection, segmentation, benchmarking, computer vision, pose estimation, YOLO models, COCO annotations
@@ -34,13 +35,13 @@ The [COCO](https://cocodataset.org/#home) (Common Objects in Context) dataset is
 
 The COCO dataset is split into three subsets:
 
-1. **Train2017**: This subset contains 118K images for training object detection, segmentation, and captioning models.
-2. **Val2017**: This subset has 5K images used for validation purposes during model training.
-3. **Test2017**: This subset consists of 20K images used for testing and benchmarking the trained models. Ground truth annotations for this subset are not publicly available, and the results are submitted to the [COCO evaluation server](https://codalab.lisn.upsaclay.fr/competitions/7384) for performance evaluation.
+1. **Train2017**: 118,287 images for training object detection, segmentation, and captioning models.
+2. **Val2017**: 5,000 images used for validation during model training.
+3. **Test2017**: 20,288 test-dev images used for benchmarking trained models. Ground truth annotations for this subset are not publicly available, and results are submitted to the [COCO evaluation server](https://cocodataset.org/#upload) for performance evaluation.
 
 ## Applications
 
-The COCO dataset is widely used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models in object detection (such as [Ultralytics YOLO](../../models/yolo11.md), [Faster R-CNN](https://arxiv.org/abs/1506.01497), and [SSD](https://arxiv.org/abs/1512.02325)), [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) (such as [Mask R-CNN](https://arxiv.org/abs/1703.06870)), and keypoint detection (such as [OpenPose](https://arxiv.org/abs/1812.08008)). The dataset's diverse set of object categories, large number of annotated images, and standardized evaluation metrics make it an essential resource for computer vision researchers and practitioners.
+The COCO dataset is widely used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models in object detection (such as [Ultralytics YOLO](../../models/yolo26.md), [Faster R-CNN](https://arxiv.org/abs/1506.01497), and [SSD](https://arxiv.org/abs/1512.02325)), [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) (such as [Mask R-CNN](https://arxiv.org/abs/1703.06870)), and keypoint detection (such as [OpenPose](https://arxiv.org/abs/1812.08008)). The dataset's diverse set of object categories, large number of annotated images, and standardized evaluation metrics make it an essential resource for computer vision researchers and practitioners.
 
 ## Dataset YAML
 
@@ -54,7 +55,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 ## Usage
 
-To train a YOLO11n model on the COCO dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+The full COCO2017 dataset (20.1 GB) downloads automatically the first time you start training. To train a YOLO26n model on COCO for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page. You can also run COCO training in the cloud with [Ultralytics Platform](https://platform.ultralytics.com/).
 
 !!! example "Train Example"
 
@@ -64,7 +65,7 @@ To train a YOLO11n model on the COCO dataset for 100 [epochs](https://www.ultral
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="coco.yaml", epochs=100, imgsz=640)
@@ -74,14 +75,14 @@ To train a YOLO11n model on the COCO dataset for 100 [epochs](https://www.ultral
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=coco.yaml model=yolo11n.pt epochs=100 imgsz=640
+        yolo detect train data=coco.yaml model=yolo26n.pt epochs=100 imgsz=640
         ```
 
 ## Sample Images and Annotations
 
 The COCO dataset contains a diverse set of images with various object categories and complex scenes. Here are some examples of images from the dataset, along with their corresponding annotations:
 
-![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/mosaiced-coco-dataset-sample.avif)
+![COCO dataset mosaic training batch with object detection](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/mosaiced-coco-dataset-sample.avif)
 
 - **Mosaiced Image**: This image demonstrates a training batch composed of mosaiced dataset images. Mosaicing is a technique used during training that combines multiple images into a single image to increase the variety of objects and scenes within each training batch. This helps improve the model's ability to generalize to different object sizes, aspect ratios, and contexts.
 
@@ -116,7 +117,7 @@ The [COCO dataset](https://cocodataset.org/#home) (Common Objects in Context) is
 
 ### How can I train a YOLO model using the COCO dataset?
 
-To train a YOLO11 model using the COCO dataset, you can use the following code snippets:
+To train a YOLO26 model using the COCO dataset, you can use the following code snippets:
 
 !!! example "Train Example"
 
@@ -126,7 +127,7 @@ To train a YOLO11 model using the COCO dataset, you can use the following code s
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="coco.yaml", epochs=100, imgsz=640)
@@ -136,7 +137,7 @@ To train a YOLO11 model using the COCO dataset, you can use the following code s
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=coco.yaml model=yolo11n.pt epochs=100 imgsz=640
+        yolo detect train data=coco.yaml model=yolo26n.pt epochs=100 imgsz=640
         ```
 
 Refer to the [Training page](../../modes/train.md) for more details on available arguments.
@@ -150,15 +151,15 @@ The COCO dataset includes:
 - Standardized evaluation metrics for object detection (mAP) and segmentation (mean Average Recall, mAR).
 - **Mosaicing** technique in training batches to enhance model generalization across various object sizes and contexts.
 
-### Where can I find pretrained YOLO11 models trained on the COCO dataset?
+### Where can I find pretrained YOLO26 models trained on the COCO dataset?
 
-Pretrained YOLO11 models on the COCO dataset can be downloaded from the links provided in the documentation. Examples include:
+Pretrained YOLO26 models on the COCO dataset can be downloaded from the links provided in the documentation. Examples include:
 
-- [YOLO11n](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt)
-- [YOLO11s](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11s.pt)
-- [YOLO11m](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11m.pt)
-- [YOLO11l](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11l.pt)
-- [YOLO11x](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11x.pt)
+- [YOLO26n](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n.pt)
+- [YOLO26s](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26s.pt)
+- [YOLO26m](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26m.pt)
+- [YOLO26l](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26l.pt)
+- [YOLO26x](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26x.pt)
 
 These models vary in size, mAP, and inference speed, providing options for different performance and resource requirements.
 
@@ -166,8 +167,8 @@ These models vary in size, mAP, and inference speed, providing options for diffe
 
 The COCO dataset is split into three subsets:
 
-1. **Train2017**: 118K images for training.
-2. **Val2017**: 5K images for validation during training.
-3. **Test2017**: 20K images for benchmarking trained models. Results need to be submitted to the [COCO evaluation server](https://codalab.lisn.upsaclay.fr/competitions/7384) for performance evaluation.
+1. **Train2017**: 118,287 images for training.
+2. **Val2017**: 5,000 images for validation during training.
+3. **Test2017**: 20,288 test-dev images for benchmarking trained models. Results need to be submitted to the [COCO evaluation server](https://cocodataset.org/#upload) for performance evaluation.
 
 The dataset's YAML configuration file is available at [coco.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml), which defines paths, classes, and dataset details.

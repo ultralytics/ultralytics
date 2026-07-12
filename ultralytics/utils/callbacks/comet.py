@@ -9,7 +9,7 @@ from typing import Any
 import cv2
 import numpy as np
 
-from ultralytics.utils import LOGGER, RANK, SETTINGS, TESTS_RUNNING, ops
+from ultralytics.utils import LOGGER, RANK, SETTINGS, TESTS_RUNNING, env_bool, ops
 from ultralytics.utils.metrics import ClassifyMetrics, DetMetrics, OBBMetrics, PoseMetrics, SegmentMetrics
 
 try:
@@ -79,12 +79,12 @@ def _scale_confidence_score(score: float) -> float:
 
 def _should_log_confusion_matrix() -> bool:
     """Determine if the confusion matrix should be logged based on environment variable settings."""
-    return os.getenv("COMET_EVAL_LOG_CONFUSION_MATRIX", "false").lower() == "true"
+    return env_bool("COMET_EVAL_LOG_CONFUSION_MATRIX", False)
 
 
 def _should_log_image_predictions() -> bool:
     """Determine whether to log image predictions based on environment variable."""
-    return os.getenv("COMET_EVAL_LOG_IMAGE_PREDICTIONS", "true").lower() == "true"
+    return env_bool("COMET_EVAL_LOG_IMAGE_PREDICTIONS", True)
 
 
 def _resume_or_create_experiment(args: SimpleNamespace) -> None:
@@ -197,11 +197,9 @@ def _format_ground_truth_annotations_for_detection(img_idx, image_path, batch, c
         class_name_map (dict, optional): Mapping from class indices to class names.
 
     Returns:
-        (dict | None): Formatted ground truth annotations with the following structure:
-            - 'boxes': List of box coordinates [x, y, width, height]
-            - 'label': Label string with format "gt_{class_name}"
-            - 'score': Confidence score (always 1.0, scaled by _scale_confidence_score)
-            Returns None if no bounding boxes are found for the image.
+        (dict | None): Formatted ground truth annotations with keys 'name' and 'data', where 'data' is a list of
+            annotation dicts each containing 'boxes', 'label', and 'score' keys. Returns None if no bounding boxes are
+            found for the image.
     """
     indices = batch["batch_idx"] == img_idx
     bboxes = batch["bboxes"][indices]
@@ -255,7 +253,7 @@ def _format_prediction_annotations(image_path, metadata, class_label_map=None, c
     if class_label_map and class_map:
         class_label_map = {class_map[k]: v for k, v in class_label_map.items()}
     try:
-        # import pycotools utilities to decompress annotations for various tasks, e.g. segmentation
+        # import faster_coco_eval utilities to decompress annotations for various tasks, e.g. segmentation
         from faster_coco_eval.core.mask import decode
     except ImportError:
         decode = None
@@ -358,7 +356,7 @@ def _log_images(experiment, image_paths, curr_step: int | None, annotations=None
     Args:
         experiment (comet_ml.CometExperiment): The Comet ML experiment to log images to.
         image_paths (list[Path]): List of paths to images that will be logged.
-        curr_step (int): Current training step/iteration for tracking in the experiment timeline.
+        curr_step (int | None): Current training step/iteration for tracking in the experiment timeline.
         annotations (list[list[dict]], optional): Nested list of annotation dictionaries for each image. Each annotation
             contains visualization data like bounding boxes, labels, and confidence scores.
     """
@@ -372,11 +370,10 @@ def _log_images(experiment, image_paths, curr_step: int | None, annotations=None
 
 
 def _log_image_predictions(experiment, validator, curr_step) -> None:
-    """Log predicted boxes for a single image during training.
+    """Log image predictions to a Comet ML experiment during model validation.
 
-    This function logs image predictions to a Comet ML experiment during model validation. It processes validation data
-    and formats both ground truth and prediction annotations for visualization in the Comet
-    dashboard. The function respects configured limits on the number of images to log.
+    This function processes validation data and formats both ground truth and prediction annotations for visualization
+    in the Comet dashboard. The function respects configured limits on the number of images to log.
 
     Args:
         experiment (comet_ml.CometExperiment): The Comet ML experiment to log to.
@@ -487,7 +484,7 @@ def _log_model(experiment, trainer) -> None:
 
 
 def _log_image_batches(experiment, trainer, curr_step: int) -> None:
-    """Log samples of image batches for train, validation, and test."""
+    """Log samples of image batches for train and validation."""
     _log_images(experiment, trainer.save_dir.glob("train_batch*.jpg"), curr_step)
     _log_images(experiment, trainer.save_dir.glob("val_batch*.jpg"), curr_step)
 

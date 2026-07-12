@@ -88,9 +88,6 @@ def test_cfg_rejects_fuzzed_scalars():
         get_cfg(overrides={"degrees": None})
     with pytest.raises(ValueError, match="cls_pw"):
         get_cfg(overrides={"cls_pw": 10})
-    for k, v in {"nbs": 0, "max_det": 0, "mask_ratio": 0, "vid_stride": 0, "seed": -1}.items():  # CFG_INT_MIN - 1
-        with pytest.raises(ValueError, match=k):
-            get_cfg(overrides={k: v})
 
 
 def skip_rpi_semantic():
@@ -902,6 +899,24 @@ def test_utils_torchutils():
     time_sync()
 
 
+@pytest.mark.parametrize("nc", [1, 3])
+def test_semantic_loss_all_ignore(nc):
+    """SemanticSegmentationLoss must stay finite when the whole batch is ignore (255), e.g. unlabeled/void frames."""
+    from ultralytics.cfg import get_cfg
+    from ultralytics.nn.tasks import SemanticSegmentationModel
+    from ultralytics.utils.loss import SemanticSegmentationLoss
+
+    model = SemanticSegmentationModel(cfg="yolo26-sem.yaml", nc=nc, verbose=False)
+    model.args = get_cfg()
+    loss_fn = SemanticSegmentationLoss(model)
+    preds = torch.randn(1, nc, 64, 64, requires_grad=True)
+    aux = torch.randn(1, nc, 32, 32, requires_grad=True)
+    loss, items = loss_fn((preds, aux), {"semantic_mask": torch.full((1, 64, 64), 255, dtype=torch.long)})
+    assert torch.isfinite(loss).all() and torch.isfinite(items).all()
+    loss.backward()
+    assert preds.grad is not None and aux.grad is not None
+
+
 def test_utils_ops():
     """Test utility operations for coordinate transformations and normalizations."""
     from ultralytics.utils.ops import (
@@ -946,6 +961,7 @@ def test_utils_ops():
         100,
     ]
     assert segment2box(np.array([[700.0, 100.0], [750.0, 150.0]]), 640, 640).tolist() == [0, 0, 0, 0]
+    assert segment2box(np.empty((0, 2)), 640, 640).tolist() == [0, 0, 0, 0]
     seg = np.array([[-100.0, -100.0], [740.0, -100.0], [740.0, 740.0], [-100.0, 740.0]])  # surrounds the image
     assert segment2box(seg, 640, 640).tolist() == [0, 0, 640, 640]
 

@@ -403,7 +403,7 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
         - None values are ignored as they may be from optional arguments.
         - Fraction keys are checked to be within the range [0.0, 1.0].
     """
-    typed_keys = CFG_FLOAT_KEYS | CFG_FRACTION_KEYS | CFG_INT_KEYS | CFG_BOOL_KEYS | {"scale"}
+    typed_keys = CFG_FLOAT_KEYS | CFG_FRACTION_KEYS | CFG_INT_KEYS | CFG_BOOL_KEYS | {"scale", "compile"}
     for k, v in cfg.items():
         if v is None and DEFAULT_CFG_DICT.get(k) is not None and k in typed_keys:
             raise TypeError(f"'{k}=None' is invalid. '{k}' must not be None.")
@@ -458,6 +458,13 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                     raise TypeError(
                         f"'{k}={v}' is of invalid type {type(v).__name__}. "
                         f"'{k}' must be a bool (i.e. '{k}=True' or '{k}=False')"
+                    )
+                cfg[k] = bool(v)
+            elif k == "compile" and not isinstance(v, (bool, str)):  # False=off, True="default", or a mode string
+                if hard:
+                    raise TypeError(
+                        f"'{k}={v}' is of invalid type {type(v).__name__}. "
+                        f"'{k}' must be a bool or str (i.e. '{k}=True' or '{k}=max-autotune')"
                     )
                 cfg[k] = bool(v)
             elif k == "quantize":  # canonicalize 8/16/32 or w-notation to a scheme (unset stays None for FP32)

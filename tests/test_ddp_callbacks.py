@@ -25,6 +25,7 @@ class FakeTrainer:
     """Minimal trainer-like object for testing generate_ddp_file without GPU/torch deps."""
 
     def __init__(self, callbacks=None, model="yolo26n.pt"):
+        """Initialize a fake trainer with the given callbacks and model path."""
         self.callbacks = callbacks or get_default_callbacks()
         self.args = SimpleNamespace(model=model, augmentations=None)
         self.hub_session = None

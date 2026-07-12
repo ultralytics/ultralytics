@@ -1314,12 +1314,9 @@ class SemanticSegmentationLoss(nn.Module):
             )
         return masks
 
-    def _ce_loss(self, preds, masks):
+    def _ce_loss(self, preds, masks, valid):
         """Compute cross-entropy on flattened pixels to avoid the CUDA nll_loss2d path."""
         flat = masks.reshape(-1)
-        valid = flat != 255
-        if not valid.any():  # all pixels ignored: mean over 0 elements is NaN
-            return preds.flatten()[0] * 0  # graph-connected zero; sum() can overflow to inf in fp16
         if self.nc == 1:
             logits = preds.reshape(-1)[valid]
             target = flat[valid].float()
@@ -1328,15 +1325,11 @@ class SemanticSegmentationLoss(nn.Module):
             target = flat.long()
         return self.ce(logits, target)
 
-    def _dice_loss(self, preds, masks):
+    def _dice_loss(self, preds, masks, valid):
         """Compute Dice loss excluding ignore pixels."""
         if self.nc == 1:
-            return self._binary_dice_loss(preds, masks)
+            return self._binary_dice_loss(preds, masks, valid)
         flat_target = masks.reshape(-1)
-        valid = flat_target != 255
-        if not valid.any():
-            return preds.flatten()[0] * 0  # graph-connected zero; sum() can overflow to inf in fp16
-
         pred_soft = F.softmax(preds, dim=1)
         target = flat_target[valid].long()
         flat_pred = pred_soft.float().permute(0, 2, 3, 1).reshape(-1, self.nc)[valid]
@@ -1347,12 +1340,12 @@ class SemanticSegmentationLoss(nn.Module):
         cardinality = pred_sum + target_sum
         return (1.0 - (2.0 * intersection + 1.0) / (cardinality + 1.0)).mean()
 
-    def _binary_dice_loss(self, preds, masks):
+    def _binary_dice_loss(self, preds, masks, valid):
         """Compute Dice loss for single-class (binary) segmentation.
 
         Pixels with value 255 are excluded from Dice terms to match BCE valid-pixel filtering.
         """
-        valid = (masks != 255).float()
+        valid = valid.reshape_as(masks).float()
         pred_soft = preds.squeeze(1).sigmoid()
         target = (masks == 1).float()
         intersection = (pred_soft * target * valid).sum()
@@ -1375,12 +1368,18 @@ class SemanticSegmentationLoss(nn.Module):
             preds, aux_logits = preds
 
         masks = batch["semantic_mask"].to(preds.device)
+        valid = masks.reshape(-1) != 255
+        if not valid.any():
+            zero = preds.flatten()[0] * 0  # graph-connected zero; sum() can overflow to inf in fp16
+            if aux_logits is not None:
+                zero = zero + aux_logits.flatten()[0] * 0
+            return zero * preds.shape[0], torch.stack([zero, zero, zero]).detach()
         if preds.shape[2:] != masks.shape[1:]:
             preds = F.interpolate(preds, size=masks.shape[1:], mode="bilinear", align_corners=False)
 
         # Main cross-entropy and Dice loss.
-        ce_loss = self._ce_loss(preds, masks)
-        dice_loss = self._dice_loss(preds, masks)
+        ce_loss = self._ce_loss(preds, masks, valid)
+        dice_loss = self._dice_loss(preds, masks, valid)
         total = ce_loss + dice_loss
 
         # Auxiliary cross-entropy loss. Match ce_loss dtype so torch.stack below succeeds under AMP.
@@ -1388,7 +1387,7 @@ class SemanticSegmentationLoss(nn.Module):
         if aux_logits is not None:
             if aux_logits.shape[2:] != masks.shape[1:]:
                 aux_logits = F.interpolate(aux_logits, size=masks.shape[1:], mode="bilinear", align_corners=False)
-            aux_loss = self._ce_loss(aux_logits, masks) * 0.4
+            aux_loss = self._ce_loss(aux_logits, masks, valid) * 0.4
             total += aux_loss
 
         loss_items = torch.stack([ce_loss, dice_loss, aux_loss]).detach()

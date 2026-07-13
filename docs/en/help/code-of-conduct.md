@@ -1,4 +1,5 @@
 ---
+title: Contributor Code of Conduct
 comments: true
 description: Join our welcoming community! Learn about the Ultralytics Code of Conduct to ensure a harassment-free experience for all participants.
 keywords: Ultralytics, Contributor Covenant, Code of Conduct, community guidelines, harassment-free, inclusive community, diversity, enforcement policy

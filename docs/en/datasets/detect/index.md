@@ -20,6 +20,28 @@ The Ultralytics YOLO format is a dataset configuration format that allows you to
     --8<-- "ultralytics/cfg/datasets/coco8.yaml"
     ```
 
+Each of `train`, `val`, and `test` accepts a directory, a list of directories, or a `*.txt` file listing one image path per line (paths starting with `./` resolve relative to the `*.txt` file). A `*.txt` file is useful to train on a subset of a directory, skip unlabeled images, or combine images from multiple sources into one split.
+
+!!! example "Image paths as a `*.txt` file"
+
+    === "dataset.yaml"
+
+        ```yaml
+        path: datasets/coco8 # dataset root
+        train: train.txt # a directory, a list e.g. [images/a, images/b], or a *.txt file
+        val: val.txt
+        names:
+          0: person
+        ```
+
+    === "train.txt"
+
+        ```text
+        ./images/im0.jpg
+        ./images/im1.jpg
+        /data/shared/im2.jpg
+        ```
+
 Labels for this format should be exported to YOLO format with one `*.txt` file per image. If there are no objects in an image, no `*.txt` file is required. The `*.txt` file should be formatted with one row per object in `class x_center y_center width height` format. Box coordinates must be in **normalized xywh** format (from 0 to 1). If your boxes are in pixels, you should divide `x_center` and `width` by image width, and `y_center` and `height` by image height. Class numbers should be zero-indexed (start with 0).
 
 <p align="center"><img width="750" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/two-persons-tie.avif" alt="YOLO labeled image with bounding boxes on persons and tie"></p>
@@ -236,6 +258,9 @@ Here is a list of the supported datasets and a brief description for each:
 - [COCO8-Grayscale](coco8-grayscale.md): A grayscale version of COCO8 created by converting RGB to grayscale, useful for single-channel model evaluation.
 - [COCO8-Multispectral](coco8-multispectral.md): A 10-channel multispectral version of COCO8 created by interpolating RGB wavelengths, useful for spectral-aware model evaluation.
 - [COCO12-Formats](coco12-formats.md): A test dataset with 12 images covering 12 supported image formats (AVIF, BMP, DNG, HEIC, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WebP) for validating image loading pipelines.
+- [COCO16](https://github.com/ultralytics/assets/releases/download/v0.0.0/coco16.zip): A subset of the first 16 images from COCO train2017 (8 train + 8 val), suitable for quick tests.
+- [COCO32](https://github.com/ultralytics/assets/releases/download/v0.0.0/coco32.zip): A subset of the first 32 images from COCO train2017 (16 train + 16 val), suitable for quick tests.
+- [COCO64](https://github.com/ultralytics/assets/releases/download/v0.0.0/coco64.zip): A subset of the first 64 images from COCO train2017 (32 train + 32 val), suitable for quick tests.
 - [COCO128](coco128.md): A smaller subset of the first 128 images from COCO train2017, suitable for tests.
 - [Construction-PPE](construction-ppe.md): A dataset featuring construction site workers with labeled safety gear such as helmets, vests, gloves, boots, and goggles, including missing-equipment annotations like no_helmet, no_goggle for real-world compliance monitoring.
 - [Global Wheat 2020](globalwheat2020.md): A dataset containing images of wheat heads for the Global Wheat Challenge 2020.
@@ -248,7 +273,7 @@ Here is a list of the supported datasets and a brief description for each:
 - [Roboflow 100](roboflow-100.md): A diverse object detection benchmark with 100 datasets spanning seven imagery domains for comprehensive model evaluation.
 - [Signature](signature.md): A dataset featuring images of various documents with annotated signatures, supporting document verification and fraud detection research.
 - [SKU-110K](sku-110k.md): A dataset featuring dense object detection in retail environments with over 11K images and 1.7 million [bounding boxes](https://www.ultralytics.com/glossary/bounding-box).
-- [TT100K](tt100k.md): Explore the Tsinghua-Tencent 100K (TT100K) traffic sign dataset with 100,000 street view images and 30,000+ annotated traffic signs for robust detection and classification.
+- [TT100K](tt100k.md): Explore the Tsinghua-Tencent 100K (TT100K) traffic sign dataset with 16,817 street-view images across 221 sign categories for robust detection and classification.
 - [VisDrone](visdrone.md): A dataset containing object detection and multi-object tracking data from drone-captured imagery with over 10K images and video sequences.
 - [VOC](voc.md): The Pascal Visual Object Classes (VOC) dataset for object detection and segmentation with 20 object classes and over 11K images.
 - [xView](xview.md): A dataset for object detection in overhead imagery with 60 object categories and over 1 million annotated objects.

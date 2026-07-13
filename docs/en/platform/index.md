@@ -29,34 +29,38 @@ The Platform provides an end-to-end workflow:
 ```mermaid
 graph LR
     subgraph Data["📁 Data"]
-        A[Upload] --> B[Annotate]
-        B --> C[Analyze]
+        A[Upload]:::start --> B[Annotate]:::proc
+        B --> C[Analyze]:::proc
     end
     subgraph Train["🚀 Train"]
-        D[Configure] --> E[Train on GPU]
-        E --> F[View Metrics]
+        D[Configure]:::proc --> E[Train on GPU]:::proc
+        E --> F[View Metrics]:::out
     end
     subgraph Deploy["🌐 Deploy"]
-        G[Export] --> H[Deploy Endpoint]
-        H --> I[Monitor]
+        G[Export]:::proc --> H[Deploy Endpoint]:::proc
+        H --> I[Monitor]:::out
     end
     Data --> Train --> Deploy
+
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 | Stage        | Features                                                                                                                                                                                                               |
 | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Upload**   | Images (50MB), videos (1GB), and dataset files (ZIP, TAR including `.tar.gz`/`.tgz`, NDJSON) with automatic processing                                                                                                 |
 | **Annotate** | Manual tools for all 6 task types, plus [Smart Annotation](data/annotation.md#smart-annotation) with SAM and YOLO models for detect, segment, semantic, and OBB (see [supported tasks](data/index.md#supported-tasks)) |
-| **Train**    | Cloud GPUs (22 on all plans + 2 Pro/Enterprise-only: B200, B300), real-time metrics, project organization                                                                                                              |
-| **Export**   | [19+ deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, TFLite, etc.; see [supported formats](train/models.md#supported-formats))                                                                        |
+| **Train**    | Cloud GPUs (24 on all plans + 2 Pro/Enterprise-only: B200, B300), real-time metrics, project organization                                                                                                              |
+| **Export**   | [19+ deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, LiteRT, etc.; see [supported formats](train/models.md#supported-formats))                                                                        |
 | **Deploy**   | 43 global regions with dedicated endpoints, scale-to-zero by default (single active instance), and monitoring                                                                                                          |
 
 **What you can do:**
 
 - **Upload** images, videos, and dataset files to create training datasets
 - **Visualize** annotations with interactive overlays for all 6 YOLO task types (see [supported tasks](data/index.md#supported-tasks))
-- **Train** models on cloud GPUs (22 on all plans, 24 with Pro or Enterprise for B200 and B300) with real-time metrics
-- **Export** to [19+ deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, TFLite, etc.)
+- **Train** models on cloud GPUs (24 on all plans, 26 with Pro or Enterprise for B200 and B300) with real-time metrics
+- **Export** to [19+ deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, LiteRT, etc.)
 - **Deploy** to 43 global regions with one-click dedicated endpoints
 - **Monitor** training progress, deployment health, and usage metrics
 - **Collaborate** by making projects and datasets public for the community
@@ -75,7 +79,7 @@ You select your region during onboarding, and all your data, models, and deploym
 
 !!! warning "Region is Permanent"
 
-    Your data region cannot be changed after account creation. During onboarding, the platform measures latency to each region and recommends the closest one. Choose carefully.
+    Your data region cannot be changed after account creation. During onboarding, the platform measures latency to each region and recommends the closest one. Choose carefully. Note: this applies to your dataset and model content. Account-level data (profile, billing, activity logs) is processed globally, as described in our [Privacy Policy](https://www.ultralytics.com/legal/privacy) and [Data Processing Agreement](https://www.ultralytics.com/legal/ultralytics-data-processing-agreement#exhibit-a-details-of-personal-data-processing).
 
 ## Key Features
 
@@ -90,15 +94,20 @@ You select your region during onboarding, and all your data, models, and deploym
 
 ```mermaid
 graph LR
-    A[Upload Dataset/Images/Video] --> B[Auto-Process]
-    B --> C[Browse & Filter]
-    C --> D{Annotate}
-    D --> E[Manual Tools]
-    D --> F[SAM Smart]
-    D --> G[YOLO Auto-Label]
-    E --> H[Train-Ready Dataset]
+    A[Upload Dataset/Images/Video]:::start --> B[Auto-Process]:::proc
+    B --> C[Browse & Filter]:::proc
+    C --> D{Annotate}:::decide
+    D --> E[Manual Tools]:::proc
+    D --> F[SAM Smart]:::proc
+    D --> G[YOLO Auto-Label]:::proc
+    E --> H[Train-Ready Dataset]:::out
     F --> H
     G --> H
+
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef decide fill:#FF9800,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 !!! tip "Supported Task Types"
@@ -107,10 +116,10 @@ graph LR
 
 ### Model Training
 
-- **Cloud Training**: Train on cloud GPUs (22 on all plans, 24 with [Pro or Enterprise](account/billing.md#plans) for B200 and B300) with real-time metrics
+- **Cloud Training**: Train on cloud GPUs (24 on all plans, 26 with [Pro or Enterprise](account/billing.md#plans) for B200 and B300) with real-time metrics
 - **Remote Training**: Train anywhere and stream metrics to the platform (W&B-style)
 - **Project Organization**: Group related models, compare experiments, track activity
-- **19+ Export Formats**: ONNX, TensorRT, CoreML, TFLite, and more (see [supported formats](train/models.md#supported-formats))
+- **19+ Export Formats**: ONNX, TensorRT, CoreML, LiteRT, and more (see [supported formats](train/models.md#supported-formats))
 
 ![Ultralytics Platform Project Screenshot](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/project-screenshot.avif)
 
@@ -163,14 +172,19 @@ You can train models either through the web UI (cloud training) or from your own
 
 ```mermaid
 graph LR
-    A[Trained Model] --> B{Action}
-    B --> C[Browser Predict]
-    B --> D[Export Format]
-    B --> E[Deploy Endpoint]
-    D --> F[ONNX / TensorRT / CoreML / TFLite / ...]
-    E --> G[43 Global Regions]
-    G --> H[API Endpoint URL]
-    H --> I[Monitor & Scale]
+    A[Trained Model]:::start --> B{Action}:::decide
+    B --> C[Browser Predict]:::proc
+    B --> D[Export Format]:::proc
+    B --> E[Deploy Endpoint]:::proc
+    D --> F[ONNX / TensorRT / CoreML / LiteRT / ...]:::out
+    E --> G[43 Global Regions]:::proc
+    G --> H[API Endpoint URL]:::proc
+    H --> I[Monitor & Scale]:::out
+
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef decide fill:#FF9800,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 Once deployed, call your endpoint from any language:
@@ -232,7 +246,7 @@ Once deployed, call your endpoint from any language:
     | Concurrent Trainings | 3              | 10                      | Unlimited      |
     | Deployments          | 3              | 10                      | Unlimited      |
     | Storage              | 100 GB         | 500 GB                  | Unlimited      |
-    | Cloud GPU Types      | 22             | 24 (incl. B200 / B300)  | 24             |
+    | Cloud GPU Types      | 24             | 26 (incl. B200 / B300)  | 26             |
     | Teams                | -              | Up to 5 members         | Up to 50       |
     | Support              | Community      | Priority                | Dedicated      |
 
@@ -374,16 +388,15 @@ The Platform supports 19+ deployment formats:
 | OpenVINO      | `_openvino_model`   | Intel hardware            |
 | TensorRT      | `.engine`           | NVIDIA GPU inference      |
 | CoreML        | `.mlpackage`        | Apple devices             |
-| TFLite        | `.tflite`           | Mobile/edge devices       |
 | TF SavedModel | `_saved_model`      | TensorFlow ecosystem      |
 | TF GraphDef   | `.pb`               | TensorFlow legacy         |
 | PaddlePaddle  | `_paddle_model`     | Baidu ecosystem           |
 | NCNN          | `_ncnn_model`       | Mobile (Android/ARM)      |
+| LiteRT        | `.tflite`           | Mobile/edge and browser   |
 | Edge TPU      | `_edgetpu.tflite`   | Google Coral devices      |
-| TF.js         | `_web_model`        | Browser deployment        |
 | MNN           | `.mnn`              | Alibaba mobile            |
 | RKNN          | `_rknn_model`       | Rockchip NPU              |
-| Qualcomm      | `_qnn_model`        | Qualcomm Snapdragon NPU   |
+| Qualcomm      | `_qnn.onnx`         | Qualcomm Snapdragon NPU   |
 | IMX500        | `_imx_model`        | Sony IMX500 sensor        |
 | Axelera       | `_axelera_model`    | Axelera AI accelerators   |
 | ExecuTorch    | `_executorch_model` | PyTorch mobile            |

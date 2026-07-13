@@ -1,4 +1,5 @@
 ---
+title: COCO Detection Dataset
 comments: true
 description: Explore the COCO dataset for object detection and segmentation. Learn about its structure, usage, pretrained models, and key features.
 keywords: COCO dataset, object detection, segmentation, benchmarking, computer vision, pose estimation, YOLO models, COCO annotations
@@ -34,9 +35,9 @@ The [COCO](https://cocodataset.org/#home) (Common Objects in Context) dataset is
 
 The COCO dataset is split into three subsets:
 
-1. **Train2017**: This subset contains 118K images for training object detection, segmentation, and captioning models.
-2. **Val2017**: This subset has 5K images used for validation purposes during model training.
-3. **Test2017**: This subset consists of 20K images used for testing and benchmarking the trained models. Ground truth annotations for this subset are not publicly available, and the results are submitted to the [COCO evaluation server](https://codalab.lisn.upsaclay.fr/competitions/7384) for performance evaluation.
+1. **Train2017**: 118,287 images for training object detection, segmentation, and captioning models.
+2. **Val2017**: 5,000 images used for validation during model training.
+3. **Test2017**: 20,288 test-dev images used for benchmarking trained models. Ground truth annotations for this subset are not publicly available, and results are submitted to the [COCO evaluation server](https://cocodataset.org/#upload) for performance evaluation.
 
 ## Applications
 
@@ -44,7 +45,7 @@ The COCO dataset is widely used for training and evaluating [deep learning](http
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the COCO dataset, the `coco.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml).
+A YAML file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the COCO dataset, the `coco.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml).
 
 !!! example "ultralytics/cfg/datasets/coco.yaml"
 
@@ -54,7 +55,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 ## Usage
 
-To train a YOLO26n model on the COCO dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+The COCO2017 training and validation data (20.3 GB) downloads automatically the first time you start training. To train a YOLO26n model on COCO for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page. You can also run COCO training in the cloud with [Ultralytics Platform](https://platform.ultralytics.com/).
 
 !!! example "Train Example"
 
@@ -166,8 +167,8 @@ These models vary in size, mAP, and inference speed, providing options for diffe
 
 The COCO dataset is split into three subsets:
 
-1. **Train2017**: 118K images for training.
-2. **Val2017**: 5K images for validation during training.
-3. **Test2017**: 20K images for benchmarking trained models. Results need to be submitted to the [COCO evaluation server](https://codalab.lisn.upsaclay.fr/competitions/7384) for performance evaluation.
+1. **Train2017**: 118,287 images for training.
+2. **Val2017**: 5,000 images for validation during training.
+3. **Test2017**: 20,288 test-dev images for benchmarking trained models. Results need to be submitted to the [COCO evaluation server](https://cocodataset.org/#upload) for performance evaluation.
 
 The dataset's YAML configuration file is available at [coco.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml), which defines paths, classes, and dataset details.

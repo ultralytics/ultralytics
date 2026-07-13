@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # Lane A detector counterpart of yolo26-ultravit-repmixer-fastvitffn-attn2-cls.yaml. P1-P3 use
-# FastViT-FFN/RepMixer; P5 keeps standard head_dim 32 and uses the Attn2 repeat 5 -> 8.
+# FastViT-FFN/RepMixer. P5 keeps standard head_dim 32 and uses the Attn2 repeat 5 -> 8.
 
 nc: 80
 end2end: True

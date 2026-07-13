@@ -360,13 +360,18 @@ def test_predict_gray_and_4ch(tmp_path):
         f.unlink()  # cleanup
 
 
-def test_predict_grayscale_ndarray():
-    """Test that a 2D grayscale NumPy array is accepted by a color model, consistent with PIL/file inputs."""
+def test_predict_ndarray_channels():
+    """Test NumPy channel normalization for grayscale and color models."""
+    from ultralytics.data.loaders import LoadPilAndNumpy
+
     model = YOLO(MODEL)  # default 3-channel model
     gray = np.asarray(Image.open(SOURCE).convert("L"))  # genuine 2D (H, W) uint8 array
     assert gray.ndim == 2, "Expected a 2D grayscale array for this test"
     assert len(model(source=gray, imgsz=32, verbose=False)) == 1  # 2D ndarray auto-expanded to 3 channels
     assert len(model(source=gray.astype("float64"), imgsz=32, verbose=False)) == 1  # non-OpenCV dtype also works
+    for source_channels, model_channels in ((1, 3), (2, 1), (2, 3), (3, 1), (4, 1), (4, 3)):
+        im = np.zeros((8, 8, source_channels), dtype=np.uint8)
+        assert LoadPilAndNumpy(im, channels=model_channels).im0[0].shape == (8, 8, model_channels)
 
 
 @pytest.mark.slow

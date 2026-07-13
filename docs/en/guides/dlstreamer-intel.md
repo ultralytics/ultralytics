@@ -85,7 +85,13 @@ Make sure you followed [YOLO26 Model Preparation](#yolo26-model-preparation) ste
 curl -L https://videos.pexels.com/video-files/1192116/1192116-sd_640_360_30fps.mp4 --output ~/intel/dlstreamer_demo/video1.mp4
 ```
 
-Run DL Streamer docker image in the interactive mode.
+Run DL Streamer docker image in the interactive mode. 
+
+!!! note
+
+    This command is intended for systems equipped with Intel Core Ultra Series 3 processors with integrated GPU (iGPU) and NPU onboard.
+
+
 
 ```bash
 docker run -it --rm \
@@ -114,10 +120,10 @@ gst-launch-1.0 filesrc location=/home/dlstreamer/demo/video1.mp4 ! decodebin3 ! 
 
 <img width="70%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/dlstreamer-intel-yolo26-detect-gpu.avif" alt="Intel DL Streamer GPU">
 
-### Run YOLO26s with INT8 on GPU, save output to video file (yolo_video1_yolo26s_INT8_GPU.mp4)
+### Run YOLO26s with INT8 on GPU, save output to video file (~/intel/dlstreamer_demo/yolo_video1_yolo26s_INT8_GPU.mp4)
 
 ```bash
-gst-launch-1.0 filesrc location=/home/dlstreamer/demo/video1.mp4 ! decodebin3 ! gvadetect model=/home/dlstreamer/demo/yolo26s_int8_openvino_model/yolo26s.xml device=GPU ! queue ! vapostproc ! gvawatermark ! gvafpscounter ! vah264enc ! h264parse ! mp4mux ! filesink location=/home/dlstreamer/yolo_video1_yolo26s_INT8_GPU.mp4
+gst-launch-1.0 filesrc location=/home/dlstreamer/demo/video1.mp4 ! decodebin3 ! gvadetect model=/home/dlstreamer/demo/yolo26s_int8_openvino_model/yolo26s.xml device=GPU ! queue ! vapostproc ! gvawatermark ! gvafpscounter ! vah264enc ! h264parse ! mp4mux ! filesink location=/home/dlstreamer/demo/yolo_video1_yolo26s_INT8_GPU.mp4
 ```
 
 ### Run YOLO26s with INT8 on NPU
@@ -148,7 +154,7 @@ gst-launch-1.0 vacompositor name=comp sink_0::xpos=0 sink_0::ypos=0 sink_1::xpos
 
 ### How do I set up Ultralytics YOLO26 on an Intel platform with DL Streamer?
 
-Install DL Streamer following the [Installation Guide](https://github.com/open-edge-platform/dlstreamer/blob/main/docs/user-guide/get_started/install/install_guide_ubuntu.md), set up the environment with `source /opt/intel/dlstreamer/scripts/setup_dls_env.sh`, install Ultralytics and OpenVINO™, download models using `download_ultralytics_models.sh`. Then run inference with the `yolo_detect.sh` sample script.
+Install DL Streamer following the [Installation Guide](https://github.com/open-edge-platform/dlstreamer/blob/main/docs/user-guide/get_started/install/install_guide_ubuntu.md), set up the environment with `source /opt/intel/dlstreamer/scripts/setup_dls_env.sh`, install Ultralytics and OpenVINO™, download models using `download_ultralytics_models.sh`. Then run inference with the DL Streamer sample application `yolo_detect.sh` that provides a ready-to-use script for running YOLO26 inference pipelines. Check the [short tutorial](https://github.com/open-edge-platform/dlstreamer/tree/main/samples/gstreamer/gst_launch/detection_with_yolo) how to run it.
 
 ### What is the benefit of using OpenVINO™ with YOLO26 on Intel hardware?
 

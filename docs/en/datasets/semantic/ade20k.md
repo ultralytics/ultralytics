@@ -134,7 +134,7 @@ The ADE20K dataset follows the official ADEChallengeData2016 layout, with images
 
 ### Do I need to download ADE20K manually?
 
-Yes. Download the [`ADEChallengeData2016.zip`](http://data.csail.mit.edu/places/ADEchallenge/ADEChallengeData2016.zip) archive (~1 GB) and extract it into the `ADEChallengeData2016` dataset root before training. Unlike Cityscapes, no additional reorganization step is needed — the archive already matches the `images/` and `annotations/` layout that `ade20k.yaml` expects.
+Yes. Download the [`ADEChallengeData2016.zip`](http://data.csail.mit.edu/places/ADEchallenge/ADEChallengeData2016.zip) archive (~1 GB) and extract it directly into your `datasets/` folder before training — the archive's own top-level folder is already named `ADEChallengeData2016/`, so extracting it there (not into a separate `ADEChallengeData2016` folder you create yourself) produces the `images/` and `annotations/` layout that `ade20k.yaml` expects.
 
 ### Why does ADE20K use `label_mapping`?
 

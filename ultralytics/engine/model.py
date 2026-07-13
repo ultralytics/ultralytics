@@ -452,7 +452,7 @@ class Model(torch.nn.Module):
         source: str | Path | int | list | tuple | np.ndarray | torch.Tensor = None,
         stream: bool = False,
         **kwargs: Any,
-    ) -> list:
+    ) -> Iterator[torch.Tensor] | list[torch.Tensor]:
         """Generate image embeddings based on the provided source.
 
         This method is a wrapper around the 'predict()' method, returning feature embeddings from image sources. By
@@ -466,7 +466,7 @@ class Model(torch.nn.Module):
             **kwargs (Any): Additional keyword arguments for configuring the embedding process.
 
         Returns:
-            (list[torch.Tensor]): A list containing the image embeddings.
+            (Iterator[torch.Tensor] | list[torch.Tensor]): Image embeddings, streamed when `stream=True`.
 
         Examples:
             >>> model = YOLO("yolo26n.pt")

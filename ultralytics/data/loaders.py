@@ -543,6 +543,8 @@ class LoadPilAndNumpy:
         c = im.shape[2]
         if c == channels:
             return im  # already correct: 3 -> 3, 1 -> 1, multispectral 10 -> 10
+        if c == 2:  # gray + alpha (PIL 'LA') -> drop alpha, leaving a single gray channel
+            im, c = im[..., :1], 1
         if c == 1:  # single channel -> replicate to model channels (dtype-agnostic, mirrors gray file/PIL inputs)
             return np.repeat(im, channels, axis=2)
         if channels == 1:  # BGR/RGBA -> gray via cvtColor (uint8/uint16/float32), matching IMREAD_GRAYSCALE

@@ -391,6 +391,26 @@ def test_predict_ndarray_channel_mismatch(tmp_path, model_name, mode, lossless):
         assert box_iou(xa, xp).diag().min() >= 0.9, "boxes must overlap the path route (grayscale differs slightly)"
 
 
+@pytest.mark.parametrize("model_name", ["yolo11n.pt", "yolo11n-grayscale.pt"])
+def test_predict_ndarray_gray_alpha(model_name):
+    """A 2-channel gray+alpha ndarray (PIL 'LA') normalizes by dropping alpha, matching the gray-only image.
+
+    Neither OpenCV nor a PNG round-trip carries a 2-channel image, so the reference is the alpha-stripped gray
+    array rather than a path route: dropping alpha is lossless, so the two must produce identical detections.
+    """
+    gray = cv2.cvtColor(cv2.imread(str(SOURCE)), cv2.COLOR_BGR2GRAY)[..., None]  # (H, W, 1)
+    la = np.concatenate([gray, np.full_like(gray, 255)], axis=2)  # (H, W, 2) gray + opaque alpha
+
+    model = YOLO(WEIGHTS_DIR / model_name)
+    from_la = model.predict(la, imgsz=640, verbose=False)[0].boxes  # crashed in conv2d / cvtColor before the fix
+    from_gray = model.predict(gray, imgsz=640, verbose=False)[0].boxes  # alpha-stripped reference
+
+    assert len(from_la) == len(from_gray) > 0, "gray+alpha and gray-only must detect the same objects"
+    order_la, order_gray = from_la.xywh[:, 0].argsort(), from_gray.xywh[:, 0].argsort()
+    assert (from_la.cls[order_la] == from_gray.cls[order_gray]).all(), "class labels must match the gray reference"
+    assert (from_la.xyxy[order_la] - from_gray.xyxy[order_gray]).abs().max() <= 0.01, "boxes must match exactly"
+
+
 @pytest.mark.slow
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 def test_predict_all_image_formats():

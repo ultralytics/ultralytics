@@ -9,7 +9,7 @@ keywords: Ultralytics, YOLO26, Intel, Intel Core Ultra, DL Streamer, OpenVINO, d
 
 This comprehensive guide provides a detailed walkthrough for deploying [Ultralytics YOLO26](https://www.ultralytics.com/yolo/yolo26) on Intel Core Ultra Series 3 platforms using [DL Streamer Pipeline Framework](https://github.com/open-edge-platform/dlstreamer) and [OpenVINO™ toolkit](https://docs.openvino.ai/). Here we use OpenVINO™ to maximize inference performance on Intel CPUs, integrated and discrete GPUs, and NPUs.
 
-<img width="70%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/dlstreamer-intel.avif" alt="Intel DL Streamer">
+<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/dlstreamer-intel.avif" alt="Intel DL Streamer">
 
 **Contents:** [What is Intel DL Streamer?](#what-is-intel-dl-streamer) • [Prerequisites](#prerequisites) • [YOLO26 Model Preparation](#yolo26-model-preparation) • [Running Inference with YOLO26](#running-inference-with-yolo26) • [Multi-Stream Setup](#multi-stream-setup) • [FAQ](#faq)
 
@@ -116,7 +116,7 @@ INT8 quantization delivers the highest throughput by reducing model weights to 8
 gst-launch-1.0 filesrc location=/home/dlstreamer/demo/video1.mp4 ! decodebin3 ! gvadetect model=/home/dlstreamer/demo/yolo26s_int8_openvino_model/yolo26s.xml device=GPU ! queue ! vapostproc ! gvawatermark ! gvafpscounter ! autovideosink sync=false
 ```
 
-<img width="70%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/dlstreamer-intel-yolo26-detect-gpu.avif" alt="Intel DL Streamer GPU">
+<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/dlstreamer-intel-yolo26-detect-gpu.avif" alt="Intel DL Streamer GPU">
 
 ### Run YOLO26s with INT8 on GPU, save output to video file (~/intel/dlstreamer_demo/yolo_video1_yolo26s_INT8_GPU.mp4)
 
@@ -130,7 +130,7 @@ gst-launch-1.0 filesrc location=/home/dlstreamer/demo/video1.mp4 ! decodebin3 ! 
 gst-launch-1.0 filesrc location=/home/dlstreamer/demo/video1.mp4 ! decodebin3 ! gvadetect model=/home/dlstreamer/demo/yolo26s_int8_openvino_model/yolo26s.xml device=NPU ! queue ! vapostproc ! gvawatermark ! gvafpscounter ! autovideosink sync=false
 ```
 
-<img width="70%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/dlstreamer-intel-yolo26-detect-npu.avif" alt="Intel DL Streamer NPU">
+<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/dlstreamer-intel-yolo26-detect-npu.avif" alt="Intel DL Streamer NPU">
 
 ## Multi-Stream Setup
 
@@ -146,7 +146,7 @@ gst-launch-1.0 vacompositor name=comp sink_0::xpos=0 sink_0::ypos=0 sink_1::xpos
   filesrc location=/home/dlstreamer/demo/video1.mp4 ! decodebin3 ! gvadetect model=/home/dlstreamer/demo/yolo26s_int8_openvino_model/yolo26s.xml device=GPU model-instance-id=inf0 scheduling-policy="latency" ! queue ! gvawatermark ! gvafpscounter ! comp.sink_3
 ```
 
-<img width="70%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/dlstreamer-intel-yolo26-detect-multistream-gpu.avif" alt="Intel DL Streamer Multistream GPU">
+<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/dlstreamer-intel-yolo26-detect-multistream-gpu.avif" alt="Intel DL Streamer Multistream GPU">
 
 ## FAQ
 

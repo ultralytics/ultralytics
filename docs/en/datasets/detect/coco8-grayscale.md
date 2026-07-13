@@ -40,7 +40,7 @@ Explore [COCO8-Grayscale on Ultralytics Platform](https://platform.ultralytics.c
 
 ## Dataset YAML
 
-The COCO8-Grayscale dataset configuration is defined in a YAML (Yet Another Markup Language) file, which specifies dataset paths, class names, and other essential metadata. You can review the official `coco8-grayscale.yaml` file in the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8-grayscale.yaml).
+The COCO8-Grayscale dataset configuration is defined in a YAML file, which specifies dataset paths, class names, and other essential metadata. You can review the official `coco8-grayscale.yaml` file in the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8-grayscale.yaml).
 
 !!! note
 

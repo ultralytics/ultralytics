@@ -1458,8 +1458,6 @@ class RTDETRDecoder(nn.Module):
 
     export = False  # export mode
     max_det = 300  # max detections per image
-    agnostic_nms = False
-    end2end = True
     shapes = []
     anchors = torch.empty(0)
     valid_mask = torch.empty(0)

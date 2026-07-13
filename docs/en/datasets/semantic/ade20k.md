@@ -1,19 +1,19 @@
 ---
 title: ADE20K Segmentation Dataset
 comments: true
-description: Explore the ADE20K semantic segmentation dataset with Ultralytics YOLO. Learn about its structure, 150 scene-parsing classes, YAML configuration, and training examples.
+description: Train Ultralytics YOLO on the ADE20K dataset — 20,210 training and 2,000 validation images across 150 scene-parsing classes for semantic segmentation.
 keywords: ADE20K dataset, semantic segmentation, scene parsing, Ultralytics YOLO, YOLO26, ADEChallengeData2016, computer vision, deep learning
 ---
 
 # ADE20K Dataset
 
-The [ADE20K](http://sceneparsing.csail.mit.edu/) dataset is a large-scale [semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation) and scene parsing benchmark released by MIT CSAIL. It provides densely annotated images covering a wide variety of indoor, outdoor, object, and stuff categories, making it an essential resource for researchers and developers working on dense scene understanding tasks with [Ultralytics YOLO](../../models/index.md) models.
+The [ADE20K](http://sceneparsing.csail.mit.edu/) dataset is a large-scale [semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation) benchmark from MIT CSAIL with 20,210 training and 2,000 validation images densely annotated across 150 indoor, outdoor, object, and stuff categories. It is a standard resource for training and evaluating dense scene-understanding models with [Ultralytics YOLO](../../models/index.md).
 
 ## Key Features
 
-- ADE20K contains 20,210 training images, 2,000 validation images, and 3,352 test images.
+- ADE20K's full SceneParsing benchmark totals 25,562 images: 20,210 for training, 2,000 for validation, and 3,352 for testing. Test-image annotations are not publicly released, so the downloadable `ADEChallengeData2016` archive and the Ultralytics `ade20k.yaml` config use only the training and validation splits.
 - The dataset covers 150 semantic classes spanning indoor, outdoor, object, and stuff categories.
-- Annotations are pixel-level segmentation masks suitable for dense scene parsing.
+- Annotations are dense pixel-level segmentation masks suitable for scene parsing.
 
 ## Dataset Structure
 
@@ -29,13 +29,17 @@ ADEChallengeData2016/
     └── validation/
 ```
 
+!!! warning "Manual Download Required"
+
+    ADE20K has no automatic download script. Download the ~1 GB [`ADEChallengeData2016.zip`](http://data.csail.mit.edu/places/ADEchallenge/ADEChallengeData2016.zip) archive and extract it into the `datasets/ADEChallengeData2016` root — no reorganization is needed, since the archive already matches the layout above.
+
 The `masks_dir` field is set to `annotations`, so each image under `images/` is paired with its corresponding mask under `annotations/`. The original ADE20K masks use source label IDs where `0` is ignored, and the `label_mapping` section converts valid labels `1` through `150` to contiguous train IDs `0` through `149`, mapping ignored pixels to `255`.
 
 ## Applications
 
 ADE20K is widely used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models in semantic segmentation and scene parsing. Its diverse set of categories and complex scenes make it valuable for applications such as autonomous navigation, robotics, augmented reality, and image editing.
 
-The breadth of indoor and outdoor scenes also makes ADE20K a strong benchmark for evaluating model generalization across domains.
+The breadth of indoor and outdoor scenes also makes ADE20K a strong benchmark for evaluating model generalization across domains. Pretrained YOLO26 semantic segmentation models reach up to 51.5 mIoU on the ADE20K validation set — see the [semantic segmentation models](../../tasks/semantic.md) page for the full benchmark table. ADE20K-format datasets are also fully compatible with [Ultralytics Platform](https://platform.ultralytics.com/) for dataset management and training.
 
 ## Dataset YAML
 
@@ -95,7 +99,7 @@ We would like to acknowledge the MIT CSAIL Computer Vision Group for creating an
 
 ### What is the ADE20K dataset and why is it important for computer vision?
 
-The [ADE20K](http://sceneparsing.csail.mit.edu/) dataset is a large-scale scene parsing benchmark used for [semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation). It contains 25,562 densely annotated images across 150 categories covering indoor, outdoor, object, and stuff classes. Researchers use ADE20K because of its diverse scenes, fine-grained category set, and standardized evaluation metrics like mean Intersection over Union (mIoU), which make it ideal for benchmarking dense prediction models.
+The [ADE20K](http://sceneparsing.csail.mit.edu/) dataset is a large-scale scene parsing benchmark used for [semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation), with 20,210 training and 2,000 validation images publicly released across 150 categories covering indoor, outdoor, object, and stuff classes. Researchers use ADE20K because of its diverse scenes, fine-grained category set, and standardized evaluation metrics like mean Intersection over Union (mIoU), which make it ideal for benchmarking dense prediction models.
 
 ### How can I train a YOLO model using the ADE20K dataset?
 
@@ -125,6 +129,10 @@ To train a YOLO26n-sem model on the ADE20K dataset for 100 epochs with an image 
 ### How is the ADE20K dataset structured?
 
 The ADE20K dataset follows the official ADEChallengeData2016 layout, with images organized under `images/training/` and `images/validation/`, and corresponding masks under `annotations/training/` and `annotations/validation/`. The Ultralytics YAML file pairs each image with its mask via the `masks_dir: annotations` field, and uses `label_mapping` to convert source label IDs `1`–`150` into contiguous train IDs `0`–`149`, mapping the ignore label to `255`.
+
+### Do I need to download ADE20K manually?
+
+Yes. Download the [`ADEChallengeData2016.zip`](http://data.csail.mit.edu/places/ADEchallenge/ADEChallengeData2016.zip) archive (~1 GB) and extract it into the `ADEChallengeData2016` dataset root before training. Unlike Cityscapes, no additional reorganization step is needed — the archive already matches the `images/` and `annotations/` layout that `ade20k.yaml` expects.
 
 ### Why does ADE20K use `label_mapping`?
 

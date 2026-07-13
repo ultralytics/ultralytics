@@ -156,28 +156,24 @@ class BasePredictor:
         """Prepare input image before inference.
 
         Args:
-            im (torch.Tensor | list[np.ndarray]): Images as a (N, 3, H, W) tensor (expected RGB, normalized 0.0-1.0)
-                or a [(H, W, 3) x N] list of ndarrays (expected BGR, uint8 0-255). See
-                ultralytics.data.loaders.LoadTensor._single_check() for tensor input expectations.
+            im (torch.Tensor | list[np.ndarray]): Images of shape (N, 3, H, W) for tensor, [(H, W, 3) x N] for list.
 
         Returns:
             (torch.Tensor): Preprocessed image tensor of shape (N, 3, H, W).
         """
         not_tensor = not isinstance(im, torch.Tensor)
         if not_tensor:
-            im = self.pre_transform(im)
-            # Single-frame inputs skip the costly np.stack and use unsqueeze instead
-            im = torch.from_numpy(im[0]).unsqueeze(0) if len(im) == 1 else torch.from_numpy(np.stack(im))
-            im = im.to(self.device, non_blocking=True)
-            im = im.permute(0, 3, 1, 2)  # BHWC to BCHW
-            if im.shape[1] == 3:
-                im = im.flip(1)  # BGR to RGB
-            im = im.contiguous()
-            im = (im.half() if self.model.fp16 else im.float()).div_(255.0)  # uint8 to fp16/32, 0-255 to 0.0-1.0
-        else:
-            # Tensor inputs are expected to already be RGB and normalized 0.0-1.0 (see LoadTensor._single_check)
-            im = im.to(self.device, non_blocking=True)
-            im = im.half() if self.model.fp16 else im.float()
+            im = np.stack(self.pre_transform(im))
+            if im.shape[-1] == 3:
+                im = im[..., ::-1]  # BGR to RGB
+            im = im.transpose((0, 3, 1, 2))  # BHWC to BCHW, (n, 3, h, w)
+            im = np.ascontiguousarray(im)  # contiguous
+            im = torch.from_numpy(im)
+
+        im = im.to(self.device)
+        im = im.half() if self.model.fp16 else im.float()  # uint8 to fp16/32
+        if not_tensor:
+            im /= 255  # 0 - 255 to 0.0 - 1.0
         return im
 
     def inference(self, im: torch.Tensor, *args, **kwargs):

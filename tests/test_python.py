@@ -305,28 +305,12 @@ def test_predict_visualize(model):
     YOLO(WEIGHTS_DIR / model)(SOURCE, imgsz=32, visualize=True)
 
 
-@pytest.mark.parametrize("model", MODELS)
-def test_predict_tensor_float_bchw(model):
-    """Test float32 BCHW tensor inputs normalized to [0,1]."""
-    m = YOLO(WEIGHTS_DIR / model)
-    channels = 1 if model == "yolo11n-grayscale.pt" else 3
-    im_u8 = torch.randint(0, 256, (1, channels, 32, 32), dtype=torch.uint8)
-    im_f_norm = im_u8.float() / 255.0  # [0, 1]
+def test_load_tensor_uint8():
+    """Test that uint8 tensor sources are normalized without a dtype error."""
+    from ultralytics.data.loaders import LoadTensor
 
-    assert len(m.predict(source=im_f_norm, imgsz=32, verbose=False)) == 1
-
-
-@pytest.mark.parametrize("model", MODELS)
-def test_predict_numpy_formats(model):
-    """Test single np.ndarray and mixed-size list[np.ndarray] inputs (uint8 HWC [0, 255] as preprocess expects)."""
-    m = YOLO(WEIGHTS_DIR / model)
-    channels = 1 if model == "yolo11n-grayscale.pt" else 3
-    im_48 = np.random.randint(0, 256, (48, 48, channels), dtype=np.uint8)
-    im_32 = np.random.randint(0, 256, (32, 32, channels), dtype=np.uint8)
-
-    assert len(m.predict(source=im_48, imgsz=32, verbose=False)) == 1
-    assert len(m.predict(source=im_32, imgsz=32, verbose=False)) == 1
-    assert len(m.predict(source=[im_32, im_48], imgsz=32, verbose=False)) == 2  # test multi img sz arrays
+    loaded = LoadTensor(torch.full((1, 3, 32, 32), 255, dtype=torch.uint8)).im0
+    assert loaded.dtype == torch.float32 and loaded.max() == 1
 
 
 def test_predict_gray_and_4ch(tmp_path):

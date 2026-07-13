@@ -535,20 +535,10 @@ def check_det_dataset(dataset: str, autodownload: bool = True, split: str = "") 
     val, s = (data.get(x) for x in (split or "val", "download"))
     if val:
         val = [Path(x).resolve() for x in (val if isinstance(val, list) else [val])]  # val path
-        missing = next((x for x in val if not x.exists()), None)
-        if missing is None and split:
-            # an existing manifest file is not proof the images it lists were ever downloaded
-            for x in val:
-                if x.suffix == ".txt":
-                    line = next(iter(x.read_text(encoding="utf-8").strip().splitlines()), "")
-                    img = Path(line.replace("./", f"{x.parent}{os.sep}", 1) if line.startswith("./") else line)
-                    if line and not img.exists():
-                        missing = img
-                        break
-        if missing is not None:
+        if not all(x.exists() for x in val):
             name = clean_url(dataset)  # dataset name with URL auth stripped
             LOGGER.info("")
-            m = f"Dataset '{name}' images not found, missing path '{missing}'"
+            m = f"Dataset '{name}' images not found, missing path '{next(x for x in val if not x.exists())}'"
             if s and autodownload:
                 LOGGER.warning(m)
             else:
@@ -562,7 +552,7 @@ def check_det_dataset(dataset: str, autodownload: bool = True, split: str = "") 
                 LOGGER.info(f"Running {s} ...")
                 subprocess.run(s.split(), check=True)
             else:  # python script
-                exec(s, {"yaml": data, "split": split or "val"})
+                exec(s, {"yaml": data})
             dt = f"({round(time.time() - t, 1)}s)"
             s = f"success ✅ {dt}, saved to {colorstr('bold', DATASETS_DIR)}" if r in {0, None} else f"failure {dt} ❌"
             LOGGER.info(f"Dataset download {s}\n")

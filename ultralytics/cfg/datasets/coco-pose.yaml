@@ -45,7 +45,6 @@ kpt_names:
 
 # Download script/URL (optional)
 download: |
-  import os
   from pathlib import Path
 
   from ultralytics.utils import ASSETS_URL
@@ -57,19 +56,9 @@ download: |
   urls = [f"{ASSETS_URL}/coco2017labels-pose.zip"]
   download(urls, dir=dir.parent)
 
-  if split == "test":
-      line = next(iter((dir / "test-dev2017.txt").read_text(encoding="utf-8").strip().splitlines()), "")
-      img = Path(line.replace("./", f"{dir}{os.sep}", 1) if line.startswith("./") else line)
-      if not img.exists():
-          raise FileNotFoundError(
-              "coco-pose.yaml 'test:' images are not downloaded automatically: test2017 ground truth is withheld "
-              "and only used for the CodaLab test-dev split. Download manually: "
-              "http://images.cocodataset.org/zips/test2017.zip"
-          )
-  else:
-      # Download data (test2017.zip excluded: ground truth is withheld, only used for the CodaLab test-dev split)
-      urls = [
-          "http://images.cocodataset.org/zips/train2017.zip",  # 19G, 118k images
-          "http://images.cocodataset.org/zips/val2017.zip",  # 1G, 5k images
-      ]
-      download(urls, dir=dir / "images", threads=3)
+  # Download data (test2017.zip excluded: ground truth is withheld, only used for the CodaLab test-dev split)
+  urls = [
+      "http://images.cocodataset.org/zips/train2017.zip",  # 19G, 118k images
+      "http://images.cocodataset.org/zips/val2017.zip",  # 1G, 5k images
+  ]
+  download(urls, dir=dir / "images", threads=3)

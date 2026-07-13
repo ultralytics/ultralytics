@@ -312,7 +312,7 @@ def test_yolo_predict_tensor_preprocess(task):
     """Test that on-device raw-tensor preprocessing matches the numpy path within tolerance across YOLO tasks."""
     model = YOLO(WEIGHTS_DIR / TASK2MODEL[task])
     im = cv2.imread(str(SOURCE))  # BGR HWC uint8 at original resolution
-    tensor = torch.from_numpy(cv2.cvtColor(im, cv2.COLOR_BGR2RGB)).permute(2, 0, 1)[None].float()
+    tensor = torch.from_numpy(cv2.cvtColor(im, cv2.COLOR_BGR2RGB)).permute(2, 0, 1)[None].float()  # (1,3,H,W) uint8 RGB
 
     np_res = model.predict(im, imgsz=640)[0]  # numpy path preprocesses on CPU
     pt_res = model.predict(tensor, imgsz=640, preprocess_tensor=True)[0]  # raw tensor preprocessed on-device

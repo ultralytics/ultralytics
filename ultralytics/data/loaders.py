@@ -586,9 +586,9 @@ class LoadTensor:
 
         Args:
             im0 (torch.Tensor): Input tensor with shape (B, C, H, W).
-            preprocess (bool): Whether letterboxing is deferred to the predictor. If False, the tensor is
-                treated as already preprocessed and at the model input size. If True, a raw tensor at original
-                resolution is accepted and only normalization to 0.0-1.0 is applied here.
+            preprocess (bool): Whether letterboxing is deferred to the predictor. If False, the tensor is treated as
+                already preprocessed and at the model input size. If True, a raw tensor at original resolution is
+                accepted and only normalization to 0.0-1.0 is applied here.
         """
         self.im0 = self._single_check(im0, preprocess=preprocess)
         self.bs = self.im0.shape[0]

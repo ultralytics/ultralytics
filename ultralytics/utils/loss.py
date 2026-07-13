@@ -14,6 +14,7 @@ from ultralytics.utils.metrics import CITYSCAPES_WEIGHT, OKS_SIGMA, RLE_WEIGHT
 from ultralytics.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh
 from ultralytics.utils.tal import RotatedTaskAlignedAssigner, TaskAlignedAssigner, dist2bbox, dist2rbox, make_anchors
 from ultralytics.utils.torch_utils import autocast
+from .nwd_loss import wasserstein_distance
 
 from .metrics import bbox_iou, probiou
 from .tal import bbox2dist, rbox2dist
@@ -129,8 +130,12 @@ class BboxLoss(nn.Module):
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """Compute IoU and DFL losses for bounding boxes."""
         weight = target_scores.sum(-1)[fg_mask].unsqueeze(-1)
+        pred_xywh = xyxy2xywh(pred_bboxes[fg_mask])
+        target_xywh = xyxy2xywh(target_bboxes[fg_mask])
+        loss_nwd = wasserstein_distance(pred_xywh, target_xywh).unsqueeze(-1)
         iou = bbox_iou(pred_bboxes[fg_mask], target_bboxes[fg_mask], xywh=False, CIoU=True)
-        loss_iou = ((1.0 - iou) * weight).sum() / target_scores_sum
+        loss_iou = 0.5 * (1 - iou) + 0.5 * loss_nwd
+        loss_iou = (loss_iou * weight).sum() / target_scores_sum
 
         # DFL loss
         if self.dfl_loss:
@@ -1391,3 +1396,4 @@ class SemanticSegmentationLoss(nn.Module):
 
         loss_items = torch.stack([ce_loss, dice_loss, aux_loss]).detach()
         return total * preds.shape[0], loss_items
+    

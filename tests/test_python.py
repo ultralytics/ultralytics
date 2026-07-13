@@ -395,8 +395,8 @@ def test_predict_ndarray_channel_mismatch(tmp_path, model_name, mode, lossless):
 def test_predict_ndarray_gray_alpha(model_name):
     """A 2-channel gray+alpha ndarray (PIL 'LA') normalizes by dropping alpha, matching the gray-only image.
 
-    Neither OpenCV nor a PNG round-trip carries a 2-channel image, so the reference is the alpha-stripped gray
-    array rather than a path route: dropping alpha is lossless, so the two must produce identical detections.
+    Neither OpenCV nor a PNG round-trip carries a 2-channel image, so the reference is the alpha-stripped gray array
+    rather than a path route: dropping alpha is lossless, so the two must produce identical detections.
     """
     gray = cv2.cvtColor(cv2.imread(str(SOURCE)), cv2.COLOR_BGR2GRAY)[..., None]  # (H, W, 1)
     la = np.concatenate([gray, np.full_like(gray, 255)], axis=2)  # (H, W, 2) gray + opaque alpha

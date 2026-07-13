@@ -245,7 +245,7 @@ def colorize_depth(
     if vmin is None or vmax is None:
         pool = v[valid]
         if mode == "disparity":
-            lo, hi = (np.percentile(pool, (2, 98)) if pool.size else (0.0, 1.0))
+            lo, hi = np.percentile(pool, (2, 98)) if pool.size else (0.0, 1.0)
         else:
             lo, hi = (float(pool.min()), float(pool.max())) if pool.size else (0.0, 1.0)
         vmin = lo if vmin is None else vmin

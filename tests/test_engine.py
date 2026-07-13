@@ -16,7 +16,8 @@ from ultralytics.engine.exporter import Exporter
 from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models.yolo import classify, detect, obb, pose, segment, semantic
 from ultralytics.nn.distill_model import DistillationModel
-from ultralytics.nn.tasks import DetectionModel, load_checkpoint
+from ultralytics.nn.tasks import DetectionModel, load_checkpoint, torch_safe_load
+from ultralytics.utils.loss import E2ELoss
 from ultralytics.utils import ASSETS, DEFAULT_CFG, IS_RASPBERRYPI, WEIGHTS_DIR
 from ultralytics.utils.torch_utils import unwrap_model
 
@@ -229,6 +230,28 @@ def test_load_checkpoint_state_dict_rejected(ckpt, tmp_path):
     torch.save(ckpt, weight)
     with pytest.raises(TypeError, match="supported Ultralytics checkpoint format"):
         load_checkpoint(weight)
+
+
+def test_checkpoint_drops_ema_criterion(tmp_path):
+    """Test raw training checkpoints omit the EMA criterion without mutating the live EMA."""
+    trainer = detect.DetectionTrainer(
+        overrides={
+            "data": "coco8.yaml",
+            "model": "yolo26n.yaml",
+            "imgsz": 32,
+            "epochs": 1,
+            "workers": 0,
+            "plots": False,
+            "project": tmp_path,
+        }
+    )
+    trainer.final_eval = lambda: None
+    trainer.train()
+
+    checkpoint, _ = torch_safe_load(trainer.last, safe_only=True)
+
+    assert isinstance(trainer.ema.ema.criterion, E2ELoss)
+    assert checkpoint["ema"].criterion is None
 
 
 def test_nan_recovery():

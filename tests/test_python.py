@@ -305,6 +305,17 @@ def test_predict_visualize(model):
     YOLO(WEIGHTS_DIR / model)(SOURCE, imgsz=32, visualize=True)
 
 
+def test_load_tensor_uint8():
+    """Test that tensor normalization supports uint8 while preserving floating-point epsilon tolerance."""
+    from ultralytics.data.loaders import LoadTensor
+
+    loaded = LoadTensor(torch.full((1, 3, 32, 32), 255, dtype=torch.uint8)).im0
+    assert loaded.dtype == torch.float32 and loaded.max() == 1
+    normalized = torch.ones((1, 3, 32, 32), dtype=torch.float32)
+    normalized[..., 0, 0] += torch.finfo(normalized.dtype).eps
+    assert LoadTensor(normalized).im0.max() > 1
+
+
 def test_predict_gray_and_4ch(tmp_path):
     """Test YOLO prediction on SOURCE converted to grayscale and 4-channel images with various filenames."""
     im = Image.open(SOURCE)

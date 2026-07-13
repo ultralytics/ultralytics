@@ -76,7 +76,9 @@ To train a YOLO26n-sem model on the ADE20K dataset for 100 [epochs](https://www.
         yolo semantic train data=ade20k.yaml model=yolo26n-sem.pt epochs=100 imgsz=512
         ```
 
-## Citations and Acknowledgments
+## Citations, License and Acknowledgments
+
+ADE20K images are released for [non-commercial research and educational use only](https://ade20k.csail.mit.edu/terms); the dataset's annotation software is separately licensed under BSD-3. Commercial use requires permission from MIT CSAIL.
 
 If you use the ADE20K dataset in your research or development work, please cite the following paper:
 
@@ -137,3 +139,7 @@ Yes. Download the [`ADEChallengeData2016.zip`](http://data.csail.mit.edu/places/
 ### Why does ADE20K use `label_mapping`?
 
 ADE20K annotation masks store source label IDs where `0` denotes the ignore or background class. The `label_mapping` section maps valid labels `1` through `150` to contiguous train IDs `0` through `149`, and assigns `255` to ignored pixels so they are excluded from the loss and metrics during training and validation.
+
+### Is the ADE20K dataset free for commercial use?
+
+No. ADE20K images are released under [terms restricting use to non-commercial research and education](https://ade20k.csail.mit.edu/terms); the accompanying annotation software is separately licensed under BSD-3. Contact MIT CSAIL for commercial licensing options.

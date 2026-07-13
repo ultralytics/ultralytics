@@ -401,7 +401,7 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
     Notes:
         - The function modifies the input dictionary in-place.
         - None values are ignored as they may be from optional arguments.
-        - Fraction keys are checked to be within the range [0.0, 1.0].
+        - Fraction keys use [0.0, 1.0], except dataset fraction, which uses (0.0, 1.0].
     """
     typed_keys = CFG_FLOAT_KEYS | CFG_FRACTION_KEYS | CFG_INT_KEYS | CFG_BOOL_KEYS | {"scale", "compile"}
     for k, v in cfg.items():
@@ -443,7 +443,8 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                         )
                     cfg[k] = v = float(v)
                 if not (0.0 <= v <= 1.0) or (k == "fraction" and v == 0.0):
-                    raise ValueError(f"'{k}={v}' is an invalid value. Valid '{k}' values are between 0.0 and 1.0.")
+                    bounds = "(0.0, 1.0]" if k == "fraction" else "[0.0, 1.0]"
+                    raise ValueError(f"'{k}={v}' is an invalid value. Valid '{k}' values are in {bounds}.")
             elif k in CFG_INT_KEYS:
                 if not isinstance(v, int):
                     if hard:

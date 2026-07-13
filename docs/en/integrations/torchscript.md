@@ -47,7 +47,9 @@ Before we look at the code for exporting YOLO26 models to the TorchScript format
 
 TorchScript offers various deployment options for [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models, such as:
 
-- **C++ API**: The most common use case for TorchScript is its C++ API, which allows you to load and execute optimized TorchScript models directly within C++ applications. This is ideal for production environments where Python may not be suitable or available. The C++ API offers low-overhead and efficient execution of TorchScript models, maximizing performance potential.
+- **C++ API**: The most common use case for TorchScript is its [LibTorch C++ API](https://docs.pytorch.org/cppdocs/), which allows you to load and execute optimized TorchScript models directly within C++ applications. This is ideal for production environments where Python may not be suitable or available. The C++ API offers low-overhead and efficient execution of TorchScript models, maximizing performance potential.
+
+- **Mobile Deployment**: For low-latency, offline inference and [data privacy](https://www.ultralytics.com/glossary/data-privacy) on mobile devices, use [ExecuTorch](executorch.md), PyTorch's replacement for TorchScript Mobile.
 
 - **Cloud Deployment**: TorchScript models can be deployed to cloud-based servers using solutions like TorchServe. It provides features like model versioning, batching, and metrics monitoring for scalable deployment in production environments. Cloud deployment with TorchScript can make your models accessible via APIs or other web services.
 
@@ -157,6 +159,8 @@ For more details about the export process, visit the [Ultralytics documentation 
 
 After successfully exporting your Ultralytics YOLO26 models to TorchScript format, you can now deploy them. The primary and recommended first step for running a TorchScript model is to use the `YOLO("model.torchscript")` method, as outlined in the previous usage code snippet. For in-depth instructions on deploying your TorchScript models in other settings, take a look at the following resources:
 
+- **[Explore Mobile Deployment](https://docs.pytorch.org/executorch/)**: Use ExecuTorch's separate `torch.export()` → `.pte` pipeline for current PyTorch mobile deployment.
+
 - **[Master Server-Side Deployment](https://docs.pytorch.org/serve/getting_started.html)**: Learn how to deploy models server-side with TorchServe, offering a step-by-step tutorial for scalable, efficient model serving.
 
 - **[Implement C++ Deployment](https://docs.pytorch.org/tutorials/advanced/cpp_export.html)**: Dive into the Tutorial on Loading a TorchScript Model in C++, facilitating the integration of your TorchScript models into C++ applications for enhanced performance and versatility.
@@ -241,7 +245,8 @@ For detailed instructions, visit the [Ultralytics Installation guide](../quickst
 
 After exporting YOLO26 models to the TorchScript format, you can deploy them across a variety of platforms:
 
-- **C++ API**: Ideal for low-overhead, highly efficient production environments.
+- **C++ API**: Use [LibTorch](https://docs.pytorch.org/cppdocs/) for low-overhead, highly efficient production environments.
+- **Mobile Deployment**: Use [ExecuTorch](executorch.md), PyTorch's supported replacement with a separate `.pte` export pipeline.
 - **Cloud Deployment**: Utilize services like [TorchServe](https://docs.pytorch.org/serve/getting_started.html) for scalable server-side deployment.
 
 Explore comprehensive guidelines for deploying models in these settings to take full advantage of TorchScript's capabilities.

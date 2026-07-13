@@ -104,6 +104,12 @@ download: |
   from ultralytics.utils import ASSETS_URL
   from ultralytics.utils.downloads import download
 
+  # Download labels
+  segments = True  # segment or box labels
+  dir = Path(yaml["path"])  # dataset root dir
+  urls = [ASSETS_URL + ("/coco2017labels-segments.zip" if segments else "/coco2017labels.zip")]  # labels
+  download(urls, dir=dir.parent)
+
   if split == "test":
       raise FileNotFoundError(
           "coco.yaml 'test:' images are not downloaded automatically: test2017 ground truth is withheld and only "
@@ -111,11 +117,6 @@ download: |
           "http://images.cocodataset.org/zips/test2017.zip"
       )
 
-  # Download labels
-  segments = True  # segment or box labels
-  dir = Path(yaml["path"])  # dataset root dir
-  urls = [ASSETS_URL + ("/coco2017labels-segments.zip" if segments else "/coco2017labels.zip")]  # labels
-  download(urls, dir=dir.parent)
   # Download data (test2017.zip excluded: ground truth is withheld, only used for the eval-server test-dev split)
   urls = [
       "http://images.cocodataset.org/zips/train2017.zip",  # 19G, 118k images

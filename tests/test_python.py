@@ -530,6 +530,14 @@ def test_val_save_txt_pose(tmp_path):
                 assert abs(cx - x) < w / 2 + 0.05 and abs(cy - y) < h / 2 + 0.05, "keypoints misaligned with box"
 
 
+def test_pose_metrics_curves():
+    """Test that pose curve labels contain four unique box and pose series."""
+    from ultralytics.utils.metrics import PoseMetrics
+
+    curves = PoseMetrics().curves
+    assert len(curves) == len(set(curves)) == 8
+
+
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_train_multi():

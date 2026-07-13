@@ -428,6 +428,30 @@ def test_track_reid_auto_user_detections(tracker_type):
     assert len(tracks) == 2, f"native-ReID tracker must keep tracking without feats:\n{tracks}"
 
 
+@pytest.mark.parametrize("tracker_type", ["botsort", "deepocsort", "tracktrack"])
+def test_track_reid_invalid_crops(tracker_type):
+    """Test ReID trackers handle out-of-bounds custom detections gracefully without PyTorch crash."""
+    from ultralytics.engine.results import Boxes
+    from ultralytics.trackers.track import TRACKER_MAP
+    from ultralytics.utils import ROOT, YAML, IterableSimpleNamespace
+
+    cfg = {**YAML.load(ROOT / f"cfg/trackers/{tracker_type}.yaml"), "with_reid": True, "model": "yolo11n.pt"}
+    tracker = TRACKER_MAP[tracker_type](IterableSimpleNamespace(**cfg))
+
+    img = np.full((640, 640, 3), 128, dtype=np.uint8)
+    data = torch.tensor([[10, 10, 50, 50, 0.9, 0], [1000, 1000, 1200, 1200, 0.9, 0]], dtype=torch.float32)
+
+    tracks_out = tracker.update(Boxes(data, (640, 640)), img)
+    assert len(tracks_out) == 2, f"Tracker must not drop invalid bounding boxes:\n{tracks_out}"
+
+    tracks = tracker.tracked_stracks
+    valid_track = next((t for t in tracks if t.xywh[0] < 640), None)
+    invalid_track = next((t for t in tracks if t.xywh[0] >= 640), None)
+
+    assert valid_track is not None and invalid_track is not None, "Missing tracks"
+    assert valid_track.curr_feat is not None, "Valid detection did not receive ReID features"
+    assert invalid_track.curr_feat is None, "Invalid detection incorrectly received ReID features"
+
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.parametrize("model", MODELS)
 def test_track_stream(model, tmp_path):

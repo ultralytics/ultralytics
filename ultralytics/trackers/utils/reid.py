@@ -80,9 +80,8 @@ class ReID:
         """
         return [save_one_box(det, img, save=False) for det in xywh2xyxy(torch.from_numpy(dets[:, :4]))]
 
-    def _crops_to_tensor(self, img: np.ndarray, dets: np.ndarray) -> torch.Tensor:
-        """Crop detections from img and stack into a normalized BCHW float tensor at self.imgsz."""
-        crops = self._crop_detections(img, dets)
+    def _crops_to_tensor(self, crops: list[np.ndarray]) -> torch.Tensor:
+        """Stack a list of valid image crops into a normalized BCHW float tensor at self.imgsz."""
         batch = torch.empty(len(crops), 3, self.imgsz, self.imgsz, dtype=torch.float32)
         for i, c in enumerate(crops):
             t = torch.from_numpy(np.ascontiguousarray(c[..., ::-1])).permute(2, 0, 1).unsqueeze(0).float() / 255.0
@@ -93,27 +92,39 @@ class ReID:
         return batch.half() if self.fp16 else batch
 
     @torch.no_grad()
-    def __call__(self, img: np.ndarray, dets: np.ndarray) -> list[np.ndarray]:
+    def __call__(self, img: np.ndarray, dets: np.ndarray) -> list[np.ndarray | None]:
         """Extract embeddings for detected objects."""
+        crops = self._crop_detections(img, dets)
+        valid_idx = [i for i, c in enumerate(crops) if c.shape[0] > 0 and c.shape[1] > 0]
+        valid_crops = [crops[i] for i in valid_idx]
+        
+        result: list[np.ndarray | None] = [None] * len(crops)
+        if not valid_crops:
+            return result
+
         if self.is_pt:
-            crops = self._crop_detections(img, dets)
-            feats = self.model.predictor(crops)
-            if len(feats) != dets.shape[0] and feats[0].shape[0] == dets.shape[0]:
+            feats = self.model.predictor(valid_crops)
+            if len(feats) == 1 and isinstance(feats[0], torch.Tensor) and feats[0].shape[0] == len(valid_crops):
                 feats = feats[0]  # batched prediction with non-PyTorch backend
-            return [f.cpu().numpy() for f in feats]
-        batch = self._crops_to_tensor(img, dets)
-        bs, n = self.batch_size, batch.shape[0]
-        if bs is None or n == bs:
-            feats = self.model(batch)
-        else:  # fixed-batch model (e.g. static ONNX): run in chunks of bs, padding the last partial chunk
-            outs = []
-            for s in range(0, n, bs):
-                chunk = batch[s : s + bs]
-                if chunk.shape[0] < bs:
-                    chunk = torch.cat([chunk, chunk[-1:].expand(bs - chunk.shape[0], *chunk.shape[1:])], 0)
-                outs.append(self.model(chunk))
-            feats = torch.cat(outs, 0)[:n]
-        return [f.cpu().numpy() for f in feats]
+            valid_feats = [f.cpu().numpy() for f in feats]
+        else:
+            batch = self._crops_to_tensor(valid_crops)
+            bs, n = self.batch_size, batch.shape[0]
+            if bs is None or n == bs:
+                feats = self.model(batch)
+            else:  # fixed-batch model (e.g. static ONNX): run in chunks of bs, padding the last partial chunk
+                outs = []
+                for s in range(0, n, bs):
+                    chunk = batch[s : s + bs]
+                    if chunk.shape[0] < bs:
+                        chunk = torch.cat([chunk, chunk[-1:].expand(bs - chunk.shape[0], *chunk.shape[1:])], 0)
+                    outs.append(self.model(chunk))
+                feats = torch.cat(outs, 0)[:n]
+            valid_feats = [f.cpu().numpy() for f in feats]
+
+        for idx, feat in zip(valid_idx, valid_feats):
+            result[idx] = feat
+        return result
 
 
 def build_encoder(with_reid: bool, model: str | None, device: str | torch.device | None = None):
@@ -126,7 +137,7 @@ def build_encoder(with_reid: bool, model: str | None, device: str | torch.device
         device (str | torch.device | None): Inference device for the ReID model; defaults to CUDA if available.
 
     Returns:
-        (Callable | None): A `(img, dets) -> list[np.ndarray]` encoder, or None when ReID is disabled.
+        (Callable | None): A `(img, dets) -> list[np.ndarray | None]` encoder, or None when ReID is disabled.
     """
     if not with_reid:
         return None

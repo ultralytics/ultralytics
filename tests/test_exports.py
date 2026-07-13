@@ -418,7 +418,7 @@ def test_export_coreml_rtdetr():
         file = YOLO(WEIGHTS_DIR / "rtdetr-l.pt").export(format="coreml", imgsz=160)
         import coremltools as ct
 
-        shape = ct.models.MLModel(file).get_spec().description.output[0].type.multiArrayType.shape
+        shape = ct.models.MLModel(str(file)).get_spec().description.output[0].type.multiArrayType.shape
         assert shape[-2] == 300
         if MACOS:
             YOLO(file)(SOURCE, imgsz=160)

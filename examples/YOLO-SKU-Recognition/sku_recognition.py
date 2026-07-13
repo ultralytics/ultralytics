@@ -8,7 +8,7 @@ embedding retraining. Retrieval is a pure in-memory NumPy dot product over L2-no
 fast and light for a few hundred SKUs (e.g. 400 SKUs x 20 references x 512-d float32 is ~16 MB).
 
 Example:
-    python sku_recognition.py --detector yolo26l-sku.pt --reid yolo26l-reid.pt --gallery gallery/ --source shelf.jpg
+    python sku_recognition.py --gallery gallery/ --source shelf.jpg  # detector and reid default to platform models
 """
 
 from __future__ import annotations
@@ -132,8 +132,16 @@ def recognize(args) -> None:
 def parse_args():
     """Parse command-line arguments for the SKU recognition pipeline."""
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("--detector", default="yolo26l.pt", help="single-class SKU detector weights (train on SKU-110K)")
-    p.add_argument("--reid", default="yolo26l-reid.pt", help="YOLO ReID embedding model weights")
+    p.add_argument(
+        "--detector",
+        default="ul://fatih-enterprise/yolo26-sku-detection/yolo26l-sku-detector-sku-110k",
+        help="SKU detector, a local .pt or a platform id/url (auto-downloads, needs ULTRALYTICS_API_KEY)",
+    )
+    p.add_argument(
+        "--reid",
+        default="ul://fatih-enterprise/yolo26-reid-sku-feature-extraction/yolo26l-reid-rp2k-pretrain",
+        help="YOLO ReID model, a local .pt or a platform id/url (auto-downloads, needs ULTRALYTICS_API_KEY)",
+    )
     p.add_argument("--gallery", required=True, help="gallery root; each subfolder is one SKU with reference images")
     p.add_argument("--source", required=True, help="shelf image to recognize")
     p.add_argument("--imgsz", type=int, default=256, help="reid embedding image size")

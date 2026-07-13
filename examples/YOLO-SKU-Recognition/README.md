@@ -29,12 +29,18 @@ cd ultralytics/examples/YOLO-SKU-Recognition
 pip install ultralytics
 ```
 
-The example needs two model weights:
+The example needs two model weights. Both default to published models on the [Ultralytics Platform](https://platform.ultralytics.com) that auto-download on first run, so you can try it with no weights of your own:
 
-| Model        | What                                        | Where to get it                                                                      |
-| ------------ | ------------------------------------------- | ------------------------------------------------------------------------------------ |
-| `--detector` | single-class product detector (`0: object`) | fine-tune on [SKU-110K](https://docs.ultralytics.com/datasets/detect/sku-110k)       |
-| `--reid`     | YOLO ReID embedding model                   | `yolo26l-reid.pt` / `yolo26x-reid.pt` (RP2K-pretrained), then fine-tune on your SKUs |
+| Model        | What                                        | Default (auto-downloads)                                                                               |
+| ------------ | ------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `--detector` | single-class product detector (`0: object`) | `ul://fatih-enterprise/yolo26-sku-detection/yolo26l-sku-detector-sku-110k`, trained on SKU-110K        |
+| `--reid`     | YOLO ReID embedding model                   | `ul://fatih-enterprise/yolo26-reid-sku-feature-extraction/yolo26l-reid-rp2k-pretrain`, RP2K-pretrained |
+
+Platform downloads need an API key. Set it once, or pass your own local `.pt` to `--detector`/`--reid` to skip the platform entirely:
+
+```bash
+yolo settings api_key=YOUR_API_KEY # or export ULTRALYTICS_API_KEY=YOUR_API_KEY, key from https://platform.ultralytics.com/settings
+```
 
 ### Train the SKU detector
 
@@ -65,12 +71,16 @@ gallery/
 └── camel_blue/        img0.jpg img1.jpg ...
 ```
 
+With no `--detector`/`--reid`, the platform defaults are used, so a gallery and a source image are enough:
+
 ```bash
-python sku_recognition.py \
-  --detector yolo26l-sku.pt \
-  --reid yolo26l-reid.pt \
-  --gallery gallery/ \
-  --source shelf.jpg
+python sku_recognition.py --gallery gallery/ --source shelf.jpg
+```
+
+To use your own weights, pass a local `.pt` or another platform id/url:
+
+```bash
+python sku_recognition.py --detector yolo26l-sku.pt --reid yolo26l-reid.pt --gallery gallery/ --source shelf.jpg
 ```
 
 The script writes `shelf_sku.jpg` with each detected package boxed and labeled `SKU-name confidence`, and logs the same per box.

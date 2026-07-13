@@ -505,8 +505,8 @@ class Model(torch.nn.Module):
 
         Returns:
             (Iterator[ultralytics.engine.results.Results] | list[ultralytics.engine.results.Results] |
-                list[torch.Tensor]): Prediction results, streamed when `stream=True`, or embedding tensors when `embed`
-                is set.
+            list[torch.Tensor]): Prediction results, streamed when `stream=True`, or embedding tensors when `embed` is
+                set.
 
         Examples:
             >>> model = YOLO("yolo26n.pt")

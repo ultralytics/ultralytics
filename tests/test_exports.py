@@ -17,7 +17,7 @@ if sys.platform == "win32":
 import pytest
 import torch
 
-from tests import SOURCE
+from tests import MODEL, SOURCE
 from tests.conftest import isolated_model_path
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS, _handle_deprecation, get_cfg
@@ -149,6 +149,18 @@ def test_quantize_deprecation():
     assert _handle_deprecation({"half": True})["quantize"] == 16
     assert _handle_deprecation({"half": True, "int8": True})["quantize"] == 8  # int8 wins
     assert "half" not in _handle_deprecation({"half": True})  # legacy flag is removed after forwarding
+    assert _handle_deprecation({"half": True, "quantize": None})["quantize"] is None  # explicit quantize wins
+    assert _handle_deprecation({"half": True, "quantize": 8})["quantize"] == 8  # explicit quantize still wins
+
+
+def test_benchmark_forwards_legacy_precision(monkeypatch):
+    """model.benchmark(half=True) must reach the benchmark call as quantize=16, not silently run FP32."""
+    import ultralytics.utils.benchmarks as bm
+
+    captured = {}
+    monkeypatch.setattr(bm, "benchmark", lambda **kw: captured.update(kw) or {})
+    YOLO(MODEL).benchmark(half=True, format="onnx", data="coco8.yaml")
+    assert captured["quantize"] == 16, f"legacy half was dropped: quantize={captured.get('quantize')}"
 
 
 def test_qnn_quantize_requires_w8a16():
@@ -436,6 +448,37 @@ def test_export_mnn(isolated_model):
     """Test YOLO export to MNN format (WARNING: MNN test must precede NCNN test or CI error on Windows)."""
     file = YOLO(isolated_model).export(format="mnn", imgsz=32)
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
+
+
+@pytest.mark.parametrize(
+    "model,kwargs,error",
+    [
+        ("yolo11n.yaml", {"batch": 2, "dynamic": True, "nms": True}, "combining"),
+        ("yolo11n-seg.yaml", {"nms": True}, "only supports detect and pose"),
+        ("yolo11n-obb.yaml", {"nms": True}, "only supports detect and pose"),
+    ],
+)
+def test_export_mnn_rejects_unsupported_nms(model, kwargs, error):
+    """Test MNN rejects NMS combinations that fail or lose task outputs at runtime."""
+    with pytest.raises(ValueError, match=error):
+        YOLO(model).export(format="mnn", imgsz=32, **kwargs)
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize(
+    "model,task,kwargs",
+    [
+        ("yolo11n.yaml", "detect", {"batch": 2, "dynamic": True}),
+        ("yolo11n.yaml", "detect", {"nms": True}),
+        ("yolo11n-pose.yaml", "pose", {"nms": True}),
+    ],
+)
+def test_export_mnn_options(model, task, kwargs):
+    """Test MNN dynamic shapes and supported embedded NMS tasks through inference."""
+    batch = kwargs.get("batch", 1)
+    file = YOLO(model).export(format="mnn", imgsz=32, **kwargs)
+    assert len(YOLO(file, task=task)([SOURCE] * batch, imgsz=64 if kwargs.get("dynamic") else 32)) == batch
+    Path(file).unlink()
 
 
 @pytest.mark.slow

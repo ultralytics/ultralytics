@@ -47,11 +47,33 @@ The Ultralytics framework uses a YAML file format to define the dataset and mode
     --8<-- "ultralytics/cfg/datasets/coco8-pose.yaml"
     ```
 
-The `train` and `val` fields specify the paths to the directories containing the training and validation images, respectively.
+The `train`, `val`, and `test` fields point to the training, validation, and test images. Each accepts a directory, a list of directories, or a `*.txt` file listing one image path per line (paths starting with `./` resolve relative to the `*.txt` file). A `*.txt` file is useful to train on a subset of a directory, skip unlabeled images, or combine images from multiple sources into one split.
+
+!!! example "Image paths as a `*.txt` file"
+
+    === "dataset.yaml"
+
+        ```yaml
+        path: datasets/coco8-pose # dataset root
+        train: train.txt # a directory, a list e.g. [images/a, images/b], or a *.txt file
+        val: val.txt
+        names:
+          0: person
+        ```
+
+    === "train.txt"
+
+        ```text
+        ./images/im0.jpg
+        ./images/im1.jpg
+        /data/shared/im2.jpg
+        ```
 
 `names` is a dictionary of class names. The order of the names should match the order of the object class indices in the YOLO dataset files.
 
 (Optional) `flip_idx` maps each keypoint to its mirror image, so horizontal-flip augmentation keeps left and right consistent on symmetric skeletons such as a human body or face. For five facial landmarks indexed as [left eye, right eye, nose, left mouth, right mouth] = [0, 1, 2, 3, 4], `flip_idx` is [1, 0, 2, 4, 3]: the left-right pairs 0-1 and 3-4 swap, and the nose keeps its own index.
+
+(Optional) `kpt_oks_sigmas` sets custom per-keypoint [OKS](https://docs.ultralytics.com/guides/yolo-performance-metrics/) sigmas used during validation, e.g. `[0.26, 0.25, 0.25, ...]`. The list length must equal the number of keypoints `N` from `kpt_shape`, and every value must be positive. When omitted, the COCO 17-keypoint sigmas are used for `kpt_shape: [17, 3]` and a uniform `1/N` otherwise.
 
 ## Usage
 

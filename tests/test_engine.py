@@ -17,8 +17,8 @@ from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models.yolo import classify, detect, obb, pose, segment, semantic
 from ultralytics.nn.distill_model import DistillationModel
 from ultralytics.nn.tasks import DetectionModel, load_checkpoint, torch_safe_load
-from ultralytics.utils.loss import E2ELoss
 from ultralytics.utils import ASSETS, DEFAULT_CFG, IS_RASPBERRYPI, WEIGHTS_DIR
+from ultralytics.utils.loss import E2ELoss
 from ultralytics.utils.torch_utils import unwrap_model
 
 

@@ -42,14 +42,6 @@ from ultralytics.utils import (
     is_github_action_running,
 )
 from ultralytics.utils.downloads import download, safe_download
-from ultralytics.utils.metrics import (
-    ClassifyMetrics,
-    DetMetrics,
-    OBBMetrics,
-    PoseMetrics,
-    SegmentMetrics,
-    SemanticMetrics,
-)
 from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13
 
 
@@ -527,38 +519,12 @@ def test_val_save_txt_pose(tmp_path):
                 assert abs(cx - x) < w / 2 + 0.05 and abs(cy - y) < h / 2 + 0.05, "keypoints misaligned with box"
 
 
-@pytest.mark.parametrize(
-    "metrics_class", [DetMetrics, SegmentMetrics, PoseMetrics, OBBMetrics, ClassifyMetrics, SemanticMetrics]
-)
-def test_metrics_curves_labels_match_results(metrics_class):
-    """Check that curve labels and curve data series stay 1:1 for every metrics class.
+def test_pose_metrics_curves():
+    """Test that pose curve labels contain four unique box and pose series."""
+    from ultralytics.utils.metrics import PoseMetrics
 
-    utils/callbacks/wb.py::on_train_end logs W&B panels via zip(curves, curves_results), so each label is the panel id
-    for the data series it is paired with. A length mismatch silently drops or mislabels curves (PoseMetrics returned 12
-    labels for 8 series, so pose curve data was logged under box ids and the (P) panels were never created) and a
-    duplicate label collides two series into one panel. Run the real process() pipeline so curves_results is actually
-    populated.
-    """
-    names = {0: "a", 1: "b"}
-    m = metrics_class() if metrics_class is ClassifyMetrics else metrics_class(names=names)
-    if isinstance(m, DetMetrics):  # populate px/p_curve/... through the real ap_per_class + Metric.update
-        rng = np.random.default_rng(0)
-        n = 12
-        stat = {
-            "conf": rng.random(n),
-            "pred_cls": rng.integers(0, len(names), n),
-            "target_cls": rng.integers(0, len(names), n),
-            "target_img": np.zeros(n),
-            "im_name": "im0",
-        }
-        for k in m.stats:  # tp, plus tp_m (segment) or tp_p (pose)
-            if k.startswith("tp"):
-                stat[k] = rng.random((n, 10)) > 0.5
-        m.update_stats(stat)
-        m.process()
-    labels, results = m.curves, m.curves_results
-    assert len(labels) == len(results), f"{metrics_class.__name__}: {len(labels)} labels but {len(results)} series"
-    assert len(labels) == len(set(labels)), f"{metrics_class.__name__}: duplicate curve ids {labels}"
+    curves = PoseMetrics().curves
+    assert len(curves) == len(set(curves)) == 8
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")

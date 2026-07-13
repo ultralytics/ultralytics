@@ -358,14 +358,16 @@ class RankLoss(nn.Module):
         tau (float): Temperature; smaller approaches hard ranking.
         k_neg (int): Per image/class, keep only the top-K highest-scoring negatives (the real ranking threats).
         w_sort (float): Weight of the sort term relative to the rank term.
+        w_rank (float): Weight of the rank term (set to 0 to train the sort term alone).
     """
 
-    def __init__(self, tau: float = 0.5, k_neg: int = 100, w_sort: float = 0.5):
-        """Initialize the ranking loss with temperature, hard-negative count and sort-term weight."""
+    def __init__(self, tau: float = 0.5, k_neg: int = 100, w_sort: float = 0.5, w_rank: float = 1.0):
+        """Initialize the ranking loss with temperature, hard-negative count and rank/sort term weights."""
         super().__init__()
         self.tau = tau
         self.k_neg = k_neg
         self.w_sort = w_sort
+        self.w_rank = w_rank
 
     def forward(self, pred_logits: torch.Tensor, target_scores: torch.Tensor) -> torch.Tensor:
         """Compute the ranking loss over one2one positives against same-class negatives.
@@ -417,7 +419,7 @@ class RankLoss(nn.Module):
             wi = (pad_i[:, :, None] - pad_i[:, None, :]).clamp(min=0) * (valid[:, :, None] & valid[:, None, :])
             total_sort = ((wi * F.softplus(di)).sum((1, 2)) / wi.sum((1, 2)).clamp(min=1)).sum()
 
-        return (total_rank + self.w_sort * total_sort) / G
+        return (self.w_rank * total_rank + self.w_sort * total_sort) / G
 
 
 class v8DetectionLoss:
@@ -1377,6 +1379,7 @@ class E2ELoss:
                 tau=getattr(model.args, "rank_tau", 0.5),
                 k_neg=getattr(model.args, "rank_k_neg", 100),
                 w_sort=getattr(model.args, "rank_w_sort", 0.5),
+                w_rank=getattr(model.args, "rank_w_rank", 1.0),
             )
             self.one2one.rank_gain = model.args.rank
 

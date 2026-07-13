@@ -1,14 +1,15 @@
 ---
+title: Brain Tumor Detection Dataset
 comments: true
-description: Explore the brain tumor detection dataset with MRI/CT images. Essential for training AI models for early diagnosis and treatment planning.
-keywords: brain tumor dataset, MRI scans, CT scans, brain tumor detection, medical imaging, AI in healthcare, computer vision, early diagnosis, treatment planning
+description: Train YOLO26 object detection on the Ultralytics Brain Tumor dataset — 1,116 MRI/CT scans across 2 classes for medical imaging and early diagnosis.
+keywords: brain tumor dataset, MRI scans, CT scans, brain tumor detection, medical imaging, AI in healthcare, computer vision, object detection, YOLO26, early diagnosis
 ---
 
 # Brain Tumor Dataset
 
 <a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-train-ultralytics-yolo-on-brain-tumor-detection-dataset.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open Brain Tumor Dataset In Colab"></a>
 
-A brain tumor detection dataset consists of medical images from MRI or CT scans, containing information about brain tumor presence, location, and characteristics. This dataset is essential for training [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) algorithms to automate brain tumor identification, aiding in early diagnosis and treatment planning in [healthcare applications](https://www.ultralytics.com/solutions/ai-in-healthcare).
+The Ultralytics Brain Tumor dataset is an [object detection](https://www.ultralytics.com/glossary/object-detection) dataset of 1,116 medical images (893 for training and 223 for validation) from MRI and CT scans, labeled across 2 classes: `negative` (no tumor) and `positive` (tumor present). It lets you train [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models to locate brain tumors in scans, supporting early diagnosis and treatment planning in [healthcare applications](https://www.ultralytics.com/solutions/computer-vision-in-healthcare).
 
 <p align="center">
   <br>
@@ -23,19 +24,25 @@ A brain tumor detection dataset consists of medical images from MRI or CT scans,
 
 ## Dataset Structure
 
-The brain tumor dataset is divided into two subsets:
+The brain tumor dataset contains 1,116 images split into two predefined subsets, defined by the `brain-tumor.yaml` configuration:
 
-- **Training set**: Consisting of 893 images, each accompanied by corresponding annotations.
-- **Testing set**: Comprising 223 images, with annotations paired for each one.
+| Split      | Images | Annotations |
+| ---------- | ------ | ----------- |
+| Train      | 893    | Yes         |
+| Validation | 223    | Yes         |
 
-The dataset contains two classes:
+Every image is labeled with one of 2 classes:
 
-- **Negative**: Images without brain tumors
-- **Positive**: Images with brain tumors
+- **`negative`**: images without a brain tumor
+- **`positive`**: images showing a brain tumor
+
+The dataset downloads automatically (4.21 MB) from Ultralytics GitHub assets the first time you train, so no manual setup is required.
+
+Explore [Brain Tumor on Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/brain-tumor) to browse the images with their annotation overlays, view the class distribution and bounding-box heatmaps in the **Charts** tab, and clone it to train your own model in the cloud.
 
 ## Applications
 
-The application of brain tumor detection using computer vision enables [early diagnosis](https://www.ultralytics.com/blog/ai-and-radiology-a-new-era-of-precision-and-efficiency), treatment planning, and monitoring of tumor progression. By analyzing medical imaging data like MRI or CT scans, [computer vision systems](../../tasks/detect.md) assist in accurately identifying brain tumors, aiding in timely medical intervention and personalized treatment strategies.
+Brain tumor detection with [computer vision](../../tasks/detect.md) enables [early diagnosis](https://www.ultralytics.com/blog/ai-and-radiology-a-new-era-of-precision-and-efficiency), treatment planning, and tumor-progression monitoring. By analyzing MRI or CT scans, detection models accurately locate tumors, supporting timely medical intervention and personalized treatment.
 
 Medical professionals can leverage this technology to:
 
@@ -46,7 +53,7 @@ Medical professionals can leverage this technology to:
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the brain tumor dataset, the `brain-tumor.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/brain-tumor.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/brain-tumor.yaml).
+A YAML file defines the dataset configuration, including paths, classes, and other relevant information. For the brain tumor dataset, the `brain-tumor.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/brain-tumor.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/brain-tumor.yaml).
 
 !!! example "ultralytics/cfg/datasets/brain-tumor.yaml"
 
@@ -102,13 +109,11 @@ To train a [YOLO26](../../models/yolo26.md) model on the brain tumor dataset for
 
 ## Sample Images and Annotations
 
-The brain tumor dataset encompasses a wide array of medical images featuring brain scans with and without tumors. Presented below are examples of images from the dataset, accompanied by their respective annotations.
+The brain tumor dataset contains MRI and CT brain scans with and without tumors. Below is an example image from the dataset with its annotations.
 
 ![Brain tumor dataset sample image](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/brain-tumor-dataset-sample-image.avif)
 
-- **Mosaiced Image**: Displayed here is a training batch comprising mosaiced dataset images. Mosaicing, a training technique, consolidates multiple images into one, enhancing batch diversity. This approach aids in improving the model's capacity to generalize across various tumor sizes, shapes, and locations within brain scans.
-
-This example highlights the diversity and intricacy of images within the brain tumor dataset, underscoring the advantages of incorporating mosaicing during the training phase for [medical image analysis](https://www.ultralytics.com/blog/using-yolo11-for-tumor-detection-in-medical-imaging).
+- **Mosaiced Image**: This training batch shows mosaiced dataset images. Mosaicing combines multiple images into one during training, increasing batch diversity so the model generalizes better across tumor sizes, shapes, and locations for [medical image analysis](https://www.ultralytics.com/blog/using-yolo11-for-tumor-detection-in-medical-imaging).
 
 ## Citations and Acknowledgments
 
@@ -134,7 +139,15 @@ If you use this dataset in your research or development work, please cite it app
 
 ### What is the structure of the brain tumor dataset available in Ultralytics documentation?
 
-The brain tumor dataset is divided into two subsets: the **training set** consists of 893 images with corresponding annotations, while the **testing set** comprises 223 images with paired annotations. This structured division aids in developing robust and accurate computer vision models for detecting brain tumors. For more information on the dataset structure, visit the [Dataset Structure](#dataset-structure) section.
+The brain tumor dataset contains 1,116 images divided into two subsets: a **training set** of 893 images and a **validation set** of 223 images, each with paired annotations. This structured division supports developing robust and accurate computer vision models for detecting brain tumors. For more information, see the [Dataset Structure](#dataset-structure) section.
+
+### What classes does the brain tumor dataset contain?
+
+The brain tumor dataset has 2 classes: `negative` (images without a brain tumor) and `positive` (images showing a brain tumor). This binary labeling lets a detection model both locate a tumor and flag scans where none is present.
+
+### How do I download the brain tumor dataset?
+
+The brain tumor dataset (4.21 MB) downloads automatically from Ultralytics GitHub assets the first time you train with `data="brain-tumor.yaml"` — no manual download is required. You can browse related datasets in the [detection datasets overview](index.md).
 
 ### How can I train a YOLO26 model on the brain tumor dataset using Ultralytics?
 
@@ -166,7 +179,7 @@ For a detailed list of available arguments, refer to the [Training](../../modes/
 
 ### What are the benefits of using the brain tumor dataset for AI in healthcare?
 
-Using the brain tumor dataset in AI projects enables early diagnosis and treatment planning for brain tumors. It helps in automating brain tumor identification through computer vision, facilitating accurate and timely medical interventions, and supporting personalized treatment strategies. This application holds significant potential in improving patient outcomes and medical efficiencies. For more insights on AI applications in healthcare, see [Ultralytics' healthcare solutions](https://www.ultralytics.com/solutions/ai-in-healthcare).
+Using the brain tumor dataset in AI projects enables early diagnosis and treatment planning for brain tumors. It helps in automating brain tumor identification through computer vision, facilitating accurate and timely medical interventions, and supporting personalized treatment strategies. This application holds significant potential in improving patient outcomes and medical efficiencies. For more insights on AI applications in healthcare, see [Ultralytics' healthcare solutions](https://www.ultralytics.com/solutions/computer-vision-in-healthcare).
 
 ### How do I perform inference using a fine-tuned YOLO26 model on the brain tumor dataset?
 

@@ -22,11 +22,23 @@ keywords: COCO128, Ultralytics, dataset, object detection, YOLO26, training, val
   <strong>Watch:</strong> Ultralytics COCO Dataset Overview
 </p>
 
-This dataset is intended for use with [Ultralytics Platform](https://platform.ultralytics.com/) and [YOLO26](https://github.com/ultralytics/ultralytics).
+This dataset is intended for use with [Ultralytics Platform](https://platform.ultralytics.com/) and [YOLO26](../../models/yolo26.md).
+
+## Dataset Structure
+
+COCO128 contains the first 128 images from the COCO train 2017 set, covering all 80 COCO object classes in [YOLO label format](../index.md). The same 128 images serve as both the training and validation split, keeping it lightweight for quick sanity checks:
+
+```
+coco128/
+├── images/
+│   └── train2017/   # 128 images (used for both train and val)
+└── labels/
+    └── train2017/
+```
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the COCO128 dataset, the `coco128.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco128.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco128.yaml).
+A YAML file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the COCO128 dataset, the `coco128.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco128.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco128.yaml).
 
 !!! example "ultralytics/cfg/datasets/coco128.yaml"
 
@@ -36,7 +48,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 ## Usage
 
-To train a YOLO26n model on the COCO128 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+The COCO128 dataset (7 MB) downloads automatically the first time you start training. To train a YOLO26n model on COCO128 for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -136,7 +148,7 @@ This technique is particularly valuable for smaller datasets like COCO128, helpi
 
 ### How does COCO128 compare to other COCO dataset variants?
 
-COCO128 (128 images) sits between [COCO8](../detect/coco8.md) (8 images) and the full [COCO](../detect/coco.md) dataset (118K+ images) in terms of size:
+COCO128 (128 images) sits between [COCO8](coco8.md) (8 images) and the full [COCO](coco.md) dataset (118K+ images) in terms of size:
 
 - **COCO8**: Contains just 8 images (4 train, 4 val) - ideal for quick tests and debugging
 - **COCO128**: Contains 128 images - balanced between size and diversity

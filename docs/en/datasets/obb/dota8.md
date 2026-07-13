@@ -16,6 +16,7 @@ keywords: DOTA8 dataset, Ultralytics, YOLO26, object detection, debugging, train
 - **Images**: 8 aerial tiles (4 train, 4 val) sourced from DOTAv1.
 - **Classes**: Inherits the 15 DOTAv1 categories such as plane, ship, and large vehicle.
 - **Labels**: YOLO-format oriented bounding boxes saved as `.txt` files beside each image.
+- **Download**: 1 MB, fetched automatically from Ultralytics GitHub assets the first time you train.
 - **Recommended layout**:
 
     ```
@@ -28,11 +29,11 @@ keywords: DOTA8 dataset, Ultralytics, YOLO26, object detection, debugging, train
         └── val/
     ```
 
-This dataset is intended for use with [Ultralytics Platform](https://platform.ultralytics.com/) and [YOLO26](https://github.com/ultralytics/ultralytics).
+Explore [DOTA8 on Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/dota8) to browse the aerial tiles with their oriented-box overlays, view the class distribution and annotation heatmaps in the **Charts** tab, and clone it to train your own model in the cloud.
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the DOTA8 dataset, the `dota8.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/dota8.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/dota8.yaml).
+A YAML file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the DOTA8 dataset, the `dota8.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/dota8.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/dota8.yaml).
 
 !!! example "ultralytics/cfg/datasets/dota8.yaml"
 
@@ -88,10 +89,10 @@ If you use the DOTA dataset in your research or development work, please cite th
           author={Ding, Jian and Xue, Nan and Xia, Gui-Song and Bai, Xiang and Yang, Wen and Yang, Michael and Belongie, Serge and Luo, Jiebo and Datcu, Mihai and Pelillo, Marcello and Zhang, Liangpei},
           journal={IEEE Transactions on Pattern Analysis and Machine Intelligence},
           title={Object Detection in Aerial Images: A Large-Scale Benchmark and Challenges},
-          year={2021},
-          volume={},
-          number={},
-          pages={1-1},
+          year={2022},
+          volume={44},
+          number={11},
+          pages={7778-7796},
           doi={10.1109/TPAMI.2021.3117983}
         }
         ```

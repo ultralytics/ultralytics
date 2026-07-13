@@ -97,7 +97,7 @@ class ReID:
         crops = self._crop_detections(img, dets)
         valid_idx = [i for i, c in enumerate(crops) if c.shape[0] > 0 and c.shape[1] > 0]
         valid_crops = [crops[i] for i in valid_idx]
-        
+
         result: list[np.ndarray | None] = [None] * len(crops)
         if not valid_crops:
             return result

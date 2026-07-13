@@ -452,6 +452,7 @@ def test_track_reid_invalid_crops(tracker_type):
     assert valid_track.curr_feat is not None, "Valid detection did not receive ReID features"
     assert invalid_track.curr_feat is None, "Invalid detection incorrectly received ReID features"
 
+
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.parametrize("model", MODELS)
 def test_track_stream(model, tmp_path):

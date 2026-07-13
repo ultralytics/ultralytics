@@ -1,4 +1,5 @@
 ---
+title: YOLO26 MNN Export for Mobile Deployment
 comments: true
 description: Optimize YOLO26 models for mobile and embedded devices by exporting to MNN format. Learn how to convert, deploy, and run inference with MNN.
 keywords: Ultralytics, YOLO26, MNN, model export, machine learning, deployment, mobile, embedded systems, deep learning, AI models, inference, quantization
@@ -114,14 +115,15 @@ The MNN format supports the [Export](../modes/export.md), [Predict](../modes/pre
 
 ### Export Arguments
 
-| Argument | Type             | Default | Description                                                                                                                                                                                   |
-| -------- | ---------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format` | `str`            | `'mnn'` | Target format for the exported model, defining compatibility with various deployment environments.                                                                                            |
-| `imgsz`  | `int` or `tuple` | `640`   | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                             |
-| `half`   | `bool`           | `False` | Enables FP16 (half-precision) quantization, reducing model size and potentially speeding up inference on supported hardware.                                                                  |
-| `int8`   | `bool`           | `False` | Activates INT8 quantization, further compressing the model and speeding up inference with minimal [accuracy](https://www.ultralytics.com/glossary/accuracy) loss, primarily for edge devices. |
-| `batch`  | `int`            | `1`     | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                       |
-| `device` | `str`            | `None`  | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                                                                               |
+| Argument   | Type             | Default | Description                                                                                                                             |
+| ---------- | ---------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`            | `'mnn'` | Target format for the exported model, defining compatibility with various deployment environments.                                      |
+| `imgsz`    | `int` or `tuple` | `640`   | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.       |
+| `quantize` | `int` or `str`   | `None`  | Quantization precision: `16` (FP16), `8` (INT8 weight quantization), or `32`/unset (FP32). Replaces the deprecated `half`/`int8` flags. |
+| `batch`    | `int`            | `1`     | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
+| `dynamic`  | `bool`           | `False` | Enables dynamic input image dimensions. Cannot be combined with `nms=True`.                                                             |
+| `nms`      | `bool`           | `False` | Adds NMS for detect and pose models. Cannot be combined with `dynamic=True`.                                                            |
+| `device`   | `str`            | `None`  | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                         |
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
@@ -351,16 +353,16 @@ To export your Ultralytics YOLO26 model to MNN format, follow these steps:
 
         # Export to MNN format
         model.export(format="mnn")  # creates 'yolo26n.mnn' with fp32 weight
-        model.export(format="mnn", half=True)  # creates 'yolo26n.mnn' with fp16 weight
-        model.export(format="mnn", int8=True)  # creates 'yolo26n.mnn' with int8 weight
+        model.export(format="mnn", quantize=16)  # creates 'yolo26n.mnn' with fp16 weight
+        model.export(format="mnn", quantize=8)  # creates 'yolo26n.mnn' with int8 weight
         ```
 
     === "CLI"
 
         ```bash
-        yolo export model=yolo26n.pt format=mnn           # creates 'yolo26n.mnn' with fp32 weight
-        yolo export model=yolo26n.pt format=mnn half=True # creates 'yolo26n.mnn' with fp16 weight
-        yolo export model=yolo26n.pt format=mnn int8=True # creates 'yolo26n.mnn' with int8 weight
+        yolo export model=yolo26n.pt format=mnn             # creates 'yolo26n.mnn' with fp32 weight
+        yolo export model=yolo26n.pt format=mnn quantize=16 # creates 'yolo26n.mnn' with fp16 weight
+        yolo export model=yolo26n.pt format=mnn quantize=8  # creates 'yolo26n.mnn' with int8 weight
         ```
 
 For detailed export options, check the [Export](../modes/export.md) page in the documentation.
@@ -379,9 +381,9 @@ To predict with an exported YOLO26 MNN model, use the `predict` function from th
         # Load the YOLO26 MNN model
         model = YOLO("yolo26n.mnn")
 
-        # Export to MNN format
+        # Run inference
         results = model("https://ultralytics.com/images/bus.jpg")  # predict with `fp32`
-        results = model("https://ultralytics.com/images/bus.jpg", half=True)  # predict with `fp16` if device support
+        results = model("https://ultralytics.com/images/bus.jpg", quantize=16)  # predict with `fp16` if device support
 
         for result in results:
             result.show()  # display to screen
@@ -392,7 +394,7 @@ To predict with an exported YOLO26 MNN model, use the `predict` function from th
 
         ```bash
         yolo predict model='yolo26n.mnn' source='https://ultralytics.com/images/bus.jpg'             # predict with `fp32`
-        yolo predict model='yolo26n.mnn' source='https://ultralytics.com/images/bus.jpg' --half=True # predict with `fp16` if device support
+        yolo predict model='yolo26n.mnn' source='https://ultralytics.com/images/bus.jpg' quantize=16 # predict with `fp16` if device support
         ```
 
 ### What platforms are supported for MNN?

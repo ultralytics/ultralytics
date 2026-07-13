@@ -54,6 +54,7 @@ class Bboxes:
         >>> bboxes = Bboxes(np.array([[100, 50, 150, 100]]), format="xywh")
         >>> bboxes.convert("xyxy")
         >>> print(bboxes.areas())
+        [15000]
 
     Notes:
         This class does not handle normalization or denormalization of bounding boxes.
@@ -386,8 +387,8 @@ class Instances:
         self.bboxes[:, [1, 3]] = self.bboxes[:, [1, 3]].clip(0, h)
         if ori_format != "xyxy":
             self.convert_bbox(format=ori_format)
-        # self.segments[..., 0] = self.segments[..., 0].clip(0, w)
-        # self.segments[..., 1] = self.segments[..., 1].clip(0, h)
+        self.segments[..., 0] = self.segments[..., 0].clip(0, w)
+        self.segments[..., 1] = self.segments[..., 1].clip(0, h)
         if self.keypoints is not None:
             # Set out of bounds visibility to zero
             self.keypoints[..., 2][

@@ -81,7 +81,7 @@ This section details the models available with their specific pretrained weights
 
 !!! tip "YOLOE-26 Performance"
 
-    For detailed performance benchmarks of YOLOE-26 models, see the [YOLO26 Documentation](yolo26.md#yoloe-26-open-vocabulary-instance-segmentation).
+    For detailed performance benchmarks of YOLOE-26 models, see the [YOLO26 Documentation](yolo26.md#yoloe-26-open-vocabulary-detection-and-segmentation).
 
 ## Usage Examples
 
@@ -358,6 +358,35 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
         model.export(format="onnx")
         ```
 
+        You can also use PyTorch tensors directly as both the source and `refer_image`, which is useful when images are already in tensor format from an existing pipeline:
+
+        ```python
+        import numpy as np
+        import torch
+
+        from ultralytics import YOLOE
+        from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
+
+        model = YOLOE("yoloe-11l-seg.pt")
+
+        # (1, 3, H, W) float tensor in [0, 1], e.g. from an existing preprocessing pipeline
+        img_tensor = torch.rand(1, 3, 480, 480)
+
+        # Visual prompts in the tensor's pixel coordinates
+        visual_prompts = dict(
+            bboxes=np.array([[10, 10, 50, 50]]),
+            cls=np.array([0]),
+        )
+
+        results = model.predict(
+            img_tensor,
+            refer_image=img_tensor,
+            visual_prompts=visual_prompts,
+            predictor=YOLOEVPSegPredictor,
+            imgsz=640,
+        )
+        ```
+
         You can also pass multiple target images to run prediction on:
 
         ```python
@@ -517,11 +546,11 @@ The export process is similar to other YOLO models, with the added flexibility o
 
 - Train data
 
-| Dataset                                                           | Type                                                        | Samples | Boxes | Raw Detection Annotations                                                                                                                  | Processed Segment Annotations                                                                                                                |
-| ----------------------------------------------------------------- | ----------------------------------------------------------- | ------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| [Objects365v1](https://opendatalab.com/OpenDataLab/Objects365_v1) | Detection                                                   | 609k    | 9621k | [objects365_train.json](https://opendatalab.com/OpenDataLab/Objects365_v1)                                                                 | [objects365_train_segm.json](https://huggingface.co/datasets/jameslahm/yoloe/blob/main/objects365_train_segm.json)                           |
-| [GQA](https://cs.stanford.edu/people/dorarad/gqa/about.html)      | [Grounding](https://www.ultralytics.com/glossary/grounding) | 621k    | 3681k | [final_mixed_train_no_coco.json](https://huggingface.co/GLIPModel/GLIP/blob/main/mdetr_annotations/final_mixed_train_no_coco.json)         | [final_mixed_train_no_coco_segm.json](https://huggingface.co/datasets/jameslahm/yoloe/blob/main/final_mixed_train_no_coco_segm.json)         |
-| [Flickr30k](https://shannon.cs.illinois.edu/DenotationGraph/)     | Grounding                                                   | 149k    | 641k  | [final_flickr_separateGT_train.json](https://huggingface.co/GLIPModel/GLIP/blob/main/mdetr_annotations/final_flickr_separateGT_train.json) | [final_flickr_separateGT_train_segm.json](https://huggingface.co/datasets/jameslahm/yoloe/blob/main/final_flickr_separateGT_train_segm.json) |
+| Dataset                                                           | Type                                                        | Samples | Boxes | Raw Detection Annotations                                                                                                                     | Processed Segment Annotations                                                                                                                   |
+| ----------------------------------------------------------------- | ----------------------------------------------------------- | ------- | ----- | --------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Objects365v1](https://opendatalab.com/OpenDataLab/Objects365_v1) | Detection                                                   | 609k    | 9621k | [objects365_train.json](https://opendatalab.com/OpenDataLab/Objects365_v1)                                                                    | [objects365_train_segm.json](https://huggingface.co/datasets/jameslahm/yoloe/resolve/main/objects365_train_segm.json)                           |
+| [GQA](https://cs.stanford.edu/people/dorarad/gqa/about.html)      | [Grounding](https://www.ultralytics.com/glossary/grounding) | 621k    | 3681k | [final_mixed_train_no_coco.json](https://huggingface.co/GLIPModel/GLIP/resolve/main/mdetr_annotations/final_mixed_train_no_coco.json)         | [final_mixed_train_no_coco_segm.json](https://huggingface.co/datasets/jameslahm/yoloe/resolve/main/final_mixed_train_no_coco_segm.json)         |
+| [Flickr30k](https://shannon.cs.illinois.edu/DenotationGraph/)     | Grounding                                                   | 149k    | 641k  | [final_flickr_separateGT_train.json](https://huggingface.co/GLIPModel/GLIP/resolve/main/mdetr_annotations/final_flickr_separateGT_train.json) | [final_flickr_separateGT_train_segm.json](https://huggingface.co/datasets/jameslahm/yoloe/resolve/main/final_flickr_separateGT_train_segm.json) |
 
 - Val data
 
@@ -937,7 +966,7 @@ Quickly set up YOLOE with Ultralytics by following these steps:
     - **NMS behavior**: YOLOE automatically uses `agnostic_nms=True` during prediction, merging overlapping boxes across classes. This prevents duplicate detections when the same object matches multiple categories in YOLOE's large vocabulary (1200+ LVIS classes). You can override this by passing `agnostic_nms=False` explicitly.
     - **Batch inference**: Supported directly (`model.predict([img1, img2])`). For image-specific prompts, run images individually.
 
-The [Ultralytics documentation](https://docs.ultralytics.com/) provides further resources. YOLOE lets you easily explore powerful open-world capabilities within the familiar YOLO ecosystem.
+The [Ultralytics documentation](../index.md) provides further resources. YOLOE lets you easily explore powerful open-world capabilities within the familiar YOLO ecosystem.
 
 !!! tip
 

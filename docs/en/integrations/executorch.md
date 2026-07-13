@@ -1,4 +1,5 @@
 ---
+title: YOLO26 ExecuTorch for Mobile & Edge
 comments: true
 description: Export YOLO26 models to ExecuTorch format for efficient on-device inference on mobile and edge devices. Optimize your AI models for iOS, Android, and embedded systems.
 keywords: Ultralytics, YOLO26, ExecuTorch, model export, PyTorch, edge AI, mobile deployment, on-device inference, XNNPACK, embedded systems
@@ -26,7 +27,7 @@ ExecuTorch provides several powerful features for deploying Ultralytics YOLO mod
 
 - **XNNPACK Backend**: Default integration with XNNPACK provides highly optimized inference on mobile CPUs, delivering excellent performance without requiring specialized hardware.
 
-- **Quantization Support**: Built-in support for quantization techniques to reduce model size and improve inference speed while maintaining accuracy.
+- **Quantization Ready**: The ExecuTorch ecosystem supports quantization techniques to reduce model size and improve inference speed; Ultralytics currently exports FP32 models via the XNNPACK backend.
 
 - **Memory Efficiency**: Optimized memory management reduces runtime memory footprint, making it suitable for devices with limited RAM.
 
@@ -50,7 +51,7 @@ Converting Ultralytics YOLO26 models to ExecuTorch format enables efficient depl
 
 ### Installation
 
-ExecuTorch export requires Python 3.10 or higher and specific dependencies:
+ExecuTorch export requires Python 3.10-3.13 and PyTorch >= 2.9.0 along with the `executorch` package:
 
 !!! tip "Installation"
 
@@ -138,12 +139,13 @@ The ExecuTorch format supports the [Export](../modes/export.md), [Predict](../mo
 
 When exporting to ExecuTorch format, you can specify the following arguments:
 
-| Argument | Type             | Default        | Description                                                                                                                             |
-| -------- | ---------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `format` | `str`            | `'executorch'` | Target format for the exported model, defining compatibility with various deployment environments.                                      |
-| `imgsz`  | `int` or `tuple` | `640`          | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.       |
-| `batch`  | `int`            | `1`            | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
-| `device` | `str`            | `None`         | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                         |
+| Argument   | Type             | Default        | Description                                                                                                                             |
+| ---------- | ---------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`            | `'executorch'` | Target format for the exported model, defining compatibility with various deployment environments.                                      |
+| `imgsz`    | `int` or `tuple` | `640`          | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.       |
+| `quantize` | `int` or `str`   | `None`         | Fixed FP32 export. ExecuTorch export does not support export-time FP16, INT8, or W8A16 precision conversion.                            |
+| `batch`    | `int`            | `1`            | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
+| `device`   | `str`            | `None`         | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                         |
 
 ### Output Structure
 
@@ -151,8 +153,8 @@ The ExecuTorch export creates a directory containing the model and metadata:
 
 ```
 yolo26n_executorch_model/
-├── yolo26n.pte              # ExecuTorch model file
-└── metadata.yaml            # Model metadata (classes, image size, etc.)
+├── model.pte               # ExecuTorch model file
+└── metadata.yaml           # Model metadata (classes, image size, etc.)
 ```
 
 ## Using Exported ExecuTorch Models
@@ -178,7 +180,7 @@ Example iOS integration (Objective-C/C++):
 using namespace ::executorch::extension;
 
 // Load the model
-Module module("/path/to/yolo26n.pte");
+Module module("/path/to/model.pte");
 
 // Create input tensor
 float input[1 * 3 * 640 * 640];
@@ -196,7 +198,7 @@ import org.pytorch.executorch.Module
 import org.pytorch.executorch.Tensor
 
 // Load the model
-val module = Module.load("/path/to/yolo26n.pte")
+val module = Module.load("/path/to/model.pte")
 
 // Prepare input tensor
 val inputTensor = Tensor.fromBlob(floatData, longArrayOf(1, 3, 640, 640))
@@ -213,16 +215,19 @@ For embedded Linux systems, use the ExecuTorch C++ API:
 
 ```cpp
 #include <executorch/extension/module/module.h>
+#include <executorch/extension/tensor/tensor.h>
+
+using namespace ::executorch::extension;
 
 // Load model
-auto module = torch::executor::Module("yolo26n.pte");
+Module module("model.pte");
 
 // Prepare input
 std::vector<float> input_data = preprocessImage(image);
-auto input_tensor = torch::executor::Tensor(input_data, {1, 3, 640, 640});
+auto input_tensor = from_blob(input_data.data(), {1, 3, 640, 640});
 
 // Run inference
-auto outputs = module.forward({input_tensor});
+const auto outputs = module.forward(input_tensor);
 ```
 
 For more details on integrating ExecuTorch into your applications, visit the [ExecuTorch Documentation](https://docs.pytorch.org/executorch/).
@@ -284,7 +289,7 @@ conda activate executorch
 
 **Issue**: `Export fails during first run`
 
-**Solution**: ExecuTorch may need to download and compile components on first use. Ensure you have:
+**Solution**: Ensure you have the latest prebuilt `executorch` wheel installed:
 
 ```bash
 pip install --upgrade executorch
@@ -310,7 +315,7 @@ Key takeaways:
 - Export is simple with `format='executorch'` parameter
 - Models are optimized for mobile CPUs via XNNPACK backend
 - Supports iOS, Android, and embedded Linux platforms
-- Requires Python 3.10+ and FlatBuffers compiler
+- Requires Python 3.10-3.13 and PyTorch >= 2.9.0
 
 ## FAQ
 
@@ -339,11 +344,11 @@ ExecuTorch export requires:
 - `executorch` package (install via `pip install executorch`)
 - PyTorch (installed automatically with ultralytics)
 
-Note: During the first export, ExecuTorch will download and compile necessary components including the FlatBuffers compiler automatically.
+Note: The `executorch` package ships prebuilt wheels (with the XNNPACK backend), so no extra compilation step is required during export.
 
 ### Can I run inference with ExecuTorch models directly in Python?
 
-ExecuTorch models (`.pte` files) are designed for deployment on mobile and edge devices using the ExecuTorch runtime. They cannot be directly loaded with `YOLO()` for inference in Python. You need to integrate them into your target application using the ExecuTorch runtime libraries.
+ExecuTorch models can be loaded directly with `YOLO()` for inference and validation in Python (see the Predict/Validate examples above), and they can also be deployed on mobile and edge devices using the ExecuTorch runtime libraries.
 
 ### What platforms are supported by ExecuTorch?
 
@@ -353,14 +358,14 @@ ExecuTorch supports:
 - **Embedded Linux**: Raspberry Pi, NVIDIA Jetson, and other ARM devices
 - **Desktop**: Linux, macOS, and Windows (for development)
 
-### How does ExecuTorch compare to TFLite for mobile deployment?
+### How does ExecuTorch compare to LiteRT for mobile deployment?
 
-Both ExecuTorch and TFLite are excellent for mobile deployment:
+Both ExecuTorch and [LiteRT](litert.md) are excellent for mobile deployment:
 
 - **ExecuTorch**: Better PyTorch integration, native PyTorch workflow, growing ecosystem
-- **TFLite**: More mature, wider hardware support, more deployment examples
+- **LiteRT**: More mature, wider hardware support, more deployment examples, and runs the same model on Android, iOS, and the browser
 
-Choose ExecuTorch if you're already using PyTorch and want a native deployment path. Choose TFLite for maximum compatibility and mature tooling.
+Choose ExecuTorch if you're already using PyTorch and want a native deployment path. Choose LiteRT for maximum compatibility and mature tooling.
 
 ### Can I use ExecuTorch models with GPU acceleration?
 

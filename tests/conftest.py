@@ -29,6 +29,27 @@ def solution_assets():
 def pytest_addoption(parser):
     """Add custom command-line options to pytest."""
     parser.addoption("--slow", action="store_true", default=False, help="Run slow tests")
+    parser.addoption(
+        "--export-env",
+        default=None,
+        help="Run only export tests assigned to this export environment id.",
+    )
+
+
+def _export_format_from_item(item, formats):
+    """Infer the export format covered by a tests/test_exports.py item."""
+    if Path(str(item.fspath)).name != "test_exports.py":
+        return None
+    name = getattr(item, "originalname", None) or item.name.split("[", 1)[0]
+    if name == "test_torch2onnx_serializes_concurrent_exports":
+        return "onnx"
+    if not name.startswith("test_export_"):
+        return None
+
+    suffix = name[len("test_export_") :]
+    return next(
+        (fmt for fmt in sorted(formats, key=len, reverse=True) if suffix == fmt or suffix.startswith(f"{fmt}_")), None
+    )
 
 
 def pytest_collection_modifyitems(config, items):
@@ -41,6 +62,32 @@ def pytest_collection_modifyitems(config, items):
     if not config.getoption("--slow"):
         # Remove the item entirely from the list of test items if it's marked as 'slow'
         items[:] = [item for item in items if "slow" not in item.keywords]
+
+    export_env = config.getoption("--export-env")
+    if not export_env:
+        return
+
+    from ultralytics.engine.exporter import export_formats
+
+    env_by_format = dict(zip(export_formats()["Argument"], export_formats()["Env"]))
+    for item in items:
+        fmt = _export_format_from_item(item, env_by_format)
+        if fmt and env_by_format.get(fmt) != export_env:
+            item.add_marker(pytest.mark.skip(reason=f"export format '{fmt}' belongs to env '{env_by_format[fmt]}'"))
+
+
+def isolated_model_path(tmp_path, model):
+    """Copy a model to a per-test path to prevent export file races under pytest-xdist."""
+    model = Path(model)
+    if not model.exists():
+        from ultralytics.utils.downloads import attempt_download_asset
+
+        model.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(attempt_download_asset(model.name), model)
+
+    dst = tmp_path / model.name
+    shutil.copy(model, dst)
+    return str(dst)
 
 
 def pytest_sessionstart(session):
@@ -68,15 +115,7 @@ def isolated_model(tmp_path):
     """
     from tests import MODEL
 
-    if not Path(MODEL).exists():
-        from ultralytics.utils.downloads import attempt_download_asset
-
-        MODEL.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy(attempt_download_asset("yolo26n.pt"), MODEL)
-
-    dst = tmp_path / "model.pt"
-    shutil.copy(MODEL, dst)
-    return str(dst)
+    return isolated_model_path(tmp_path, MODEL)
 
 
 def pytest_sessionfinish(session, exitstatus):

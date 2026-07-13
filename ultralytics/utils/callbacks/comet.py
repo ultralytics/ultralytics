@@ -9,7 +9,7 @@ from typing import Any
 import cv2
 import numpy as np
 
-from ultralytics.utils import LOGGER, RANK, SETTINGS, TESTS_RUNNING, ops
+from ultralytics.utils import LOGGER, RANK, SETTINGS, TESTS_RUNNING, env_bool, ops
 from ultralytics.utils.metrics import ClassifyMetrics, DetMetrics, OBBMetrics, PoseMetrics, SegmentMetrics
 
 try:
@@ -79,12 +79,12 @@ def _scale_confidence_score(score: float) -> float:
 
 def _should_log_confusion_matrix() -> bool:
     """Determine if the confusion matrix should be logged based on environment variable settings."""
-    return os.getenv("COMET_EVAL_LOG_CONFUSION_MATRIX", "false").lower() == "true"
+    return env_bool("COMET_EVAL_LOG_CONFUSION_MATRIX", False)
 
 
 def _should_log_image_predictions() -> bool:
     """Determine whether to log image predictions based on environment variable."""
-    return os.getenv("COMET_EVAL_LOG_IMAGE_PREDICTIONS", "true").lower() == "true"
+    return env_bool("COMET_EVAL_LOG_IMAGE_PREDICTIONS", True)
 
 
 def _resume_or_create_experiment(args: SimpleNamespace) -> None:
@@ -253,7 +253,7 @@ def _format_prediction_annotations(image_path, metadata, class_label_map=None, c
     if class_label_map and class_map:
         class_label_map = {class_map[k]: v for k, v in class_label_map.items()}
     try:
-        # import pycotools utilities to decompress annotations for various tasks, e.g. segmentation
+        # import faster_coco_eval utilities to decompress annotations for various tasks, e.g. segmentation
         from faster_coco_eval.core.mask import decode
     except ImportError:
         decode = None

@@ -116,6 +116,8 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
     === "Prompt inference"
 
         ```python
+        import cv2
+
         from ultralytics.models.sam import Predictor as SAMPredictor
 
         # Create SAMPredictor
@@ -273,7 +275,7 @@ model("ultralytics/assets/zidane.jpg", bboxes=[439, 437, 524, 709])
 model("ultralytics/assets/zidane.jpg", points=[900, 370], labels=[1])
 
 # Segment with multiple points prompt
-model("ultralytics/assets/zidane.jpg", points=[[400, 370], [900, 370]], labels=[[1, 1]])
+model("ultralytics/assets/zidane.jpg", points=[[400, 370], [900, 370]], labels=[1, 1])
 
 # Segment with multiple points prompt per object
 model("ultralytics/assets/zidane.jpg", points=[[[400, 370], [900, 370]]], labels=[[1, 1]])

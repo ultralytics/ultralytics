@@ -29,34 +29,38 @@ The Platform provides an end-to-end workflow:
 ```mermaid
 graph LR
     subgraph Data["📁 Data"]
-        A[Upload] --> B[Annotate]
-        B --> C[Analyze]
+        A[Upload]:::start --> B[Annotate]:::proc
+        B --> C[Analyze]:::proc
     end
     subgraph Train["🚀 Train"]
-        D[Configure] --> E[Train on GPU]
-        E --> F[View Metrics]
+        D[Configure]:::proc --> E[Train on GPU]:::proc
+        E --> F[View Metrics]:::out
     end
     subgraph Deploy["🌐 Deploy"]
-        G[Export] --> H[Deploy Endpoint]
-        H --> I[Monitor]
+        G[Export]:::proc --> H[Deploy Endpoint]:::proc
+        H --> I[Monitor]:::out
     end
     Data --> Train --> Deploy
+
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
-| Stage        | Features                                                                                                                                                                                                     |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Upload**   | Images (50MB), videos (1GB), and dataset files (ZIP, TAR including `.tar.gz`/`.tgz`, NDJSON) with automatic processing                                                                                       |
-| **Annotate** | Manual tools for all 5 task types, plus [Smart Annotation](data/annotation.md#smart-annotation) with SAM and YOLO models for detect, segment, and OBB (see [supported tasks](data/index.md#supported-tasks)) |
-| **Train**    | Cloud GPUs (22 on all plans + 2 Pro/Enterprise-only: B200, B300), real-time metrics, project organization                                                                                                    |
-| **Export**   | [17 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, TFLite, etc.; see [supported formats](train/models.md#supported-formats))                                                               |
-| **Deploy**   | 43 global regions with dedicated endpoints, scale-to-zero by default (single active instance), and monitoring                                                                                                |
+| Stage        | Features                                                                                                                                                                                                               |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Upload**   | Images (50MB), videos (1GB), and dataset files (ZIP, TAR including `.tar.gz`/`.tgz`, NDJSON) with automatic processing                                                                                                 |
+| **Annotate** | Manual tools for all 6 task types, plus [Smart Annotation](data/annotation.md#smart-annotation) with SAM and YOLO models for detect, segment, semantic, and OBB (see [supported tasks](data/index.md#supported-tasks)) |
+| **Train**    | Cloud GPUs (24 on all plans + 2 Pro/Enterprise-only: B200, B300), real-time metrics, project organization                                                                                                              |
+| **Export**   | [19+ deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, LiteRT, etc.; see [supported formats](train/models.md#supported-formats))                                                                        |
+| **Deploy**   | 43 global regions with dedicated endpoints, scale-to-zero by default (single active instance), and monitoring                                                                                                          |
 
 **What you can do:**
 
 - **Upload** images, videos, and dataset files to create training datasets
-- **Visualize** annotations with interactive overlays for all 5 YOLO task types (see [supported tasks](data/index.md#supported-tasks))
-- **Train** models on cloud GPUs (22 on all plans, 24 with Pro or Enterprise for B200 and B300) with real-time metrics
-- **Export** to [17 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, TFLite, etc.)
+- **Visualize** annotations with interactive overlays for all 6 YOLO task types (see [supported tasks](data/index.md#supported-tasks))
+- **Train** models on cloud GPUs (24 on all plans, 26 with Pro or Enterprise for B200 and B300) with real-time metrics
+- **Export** to [19+ deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, LiteRT, etc.)
 - **Deploy** to 43 global regions with one-click dedicated endpoints
 - **Monitor** training progress, deployment health, and usage metrics
 - **Collaborate** by making projects and datasets public for the community
@@ -75,42 +79,47 @@ You select your region during onboarding, and all your data, models, and deploym
 
 !!! warning "Region is Permanent"
 
-    Your data region cannot be changed after account creation. During onboarding, the platform measures latency to each region and recommends the closest one. Choose carefully.
+    Your data region cannot be changed after account creation. During onboarding, the platform measures latency to each region and recommends the closest one. Choose carefully. Note: this applies to your dataset and model content. Account-level data (profile, billing, activity logs) is processed globally, as described in our [Privacy Policy](https://www.ultralytics.com/legal/privacy) and [Data Processing Agreement](https://www.ultralytics.com/legal/ultralytics-data-processing-agreement#exhibit-a-details-of-personal-data-processing).
 
 ## Key Features
 
 ### Data Preparation
 
 - **Dataset Management**: Upload images, videos, or dataset files with automatic processing
-- **[Annotation Editor](https://www.ultralytics.com/annotate)**: Manual annotation for all 5 YOLO task types (detect, segment, pose, OBB, classify; see [supported tasks](data/index.md#supported-tasks))
+- **[Annotation Editor](https://www.ultralytics.com/annotate)**: Manual annotation for all 6 YOLO task types (detect, segment, semantic, pose, OBB, classify; see [supported tasks](data/index.md#supported-tasks))
 - **Skeleton Templates**: Built-in (Person, Hand, Face, Dog, Box) and custom skeleton templates for one-click pose annotation
-- **Smart Annotation**: Use [SAM 2.1](../models/sam-2.md) (Tiny, Small, Base, Large), [SAM 3](../models/sam-3.md), pretrained Ultralytics YOLO models, or your own fine-tuned YOLO models from the annotation toolbar for detect, segment, and OBB tasks
+- **Smart Annotation**: Use [SAM 2.1](../models/sam-2.md) (Tiny, Small, Base, Large), [SAM 3](../models/sam-3.md), pretrained Ultralytics YOLO models, or your own fine-tuned YOLO models from the annotation toolbar for detect, segment, semantic, and OBB tasks
 - **Dataset Versioning**: Create numbered NDJSON snapshots with descriptions for reproducible training
 - **Statistics**: Class distribution, location heatmaps, and dimension analysis
 
 ```mermaid
 graph LR
-    A[Upload Dataset/Images/Video] --> B[Auto-Process]
-    B --> C[Browse & Filter]
-    C --> D{Annotate}
-    D --> E[Manual Tools]
-    D --> F[SAM Smart]
-    D --> G[YOLO Auto-Label]
-    E --> H[Train-Ready Dataset]
+    A[Upload Dataset/Images/Video]:::start --> B[Auto-Process]:::proc
+    B --> C[Browse & Filter]:::proc
+    C --> D{Annotate}:::decide
+    D --> E[Manual Tools]:::proc
+    D --> F[SAM Smart]:::proc
+    D --> G[YOLO Auto-Label]:::proc
+    E --> H[Train-Ready Dataset]:::out
     F --> H
     G --> H
+
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef decide fill:#FF9800,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 !!! tip "Supported Task Types"
 
-    The annotation editor supports all 5 YOLO task types: **[detect](../datasets/detect/index.md)** (bounding boxes), **[segment](../datasets/segment/index.md)** (polygons), **[pose](../datasets/pose/index.md)** (keypoints), **[OBB](../datasets/obb/index.md)** (oriented boxes), and **[classify](../datasets/classify/index.md)** (image-level labels). Each task type has dedicated drawing tools and keyboard shortcuts.
+    The annotation editor supports all 6 YOLO task types: **[detect](../datasets/detect/index.md)** (bounding boxes), **[segment](../datasets/segment/index.md)** (polygons), **[semantic](../datasets/semantic/index.md)** (per-class regions), **[pose](../datasets/pose/index.md)** (keypoints), **[OBB](../datasets/obb/index.md)** (oriented boxes), and **[classify](../datasets/classify/index.md)** (image-level labels). Each task type has dedicated drawing tools and keyboard shortcuts.
 
 ### Model Training
 
-- **Cloud Training**: Train on cloud GPUs (22 on all plans, 24 with [Pro or Enterprise](account/billing.md#plans) for B200 and B300) with real-time metrics
+- **Cloud Training**: Train on cloud GPUs (24 on all plans, 26 with [Pro or Enterprise](account/billing.md#plans) for B200 and B300) with real-time metrics
 - **Remote Training**: Train anywhere and stream metrics to the platform (W&B-style)
 - **Project Organization**: Group related models, compare experiments, track activity
-- **17 Export Formats**: ONNX, TensorRT, CoreML, TFLite, and more (see [supported formats](train/models.md#supported-formats))
+- **19+ Export Formats**: ONNX, TensorRT, CoreML, LiteRT, and more (see [supported formats](train/models.md#supported-formats))
 
 ![Ultralytics Platform Project Screenshot](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/project-screenshot.avif)
 
@@ -127,7 +136,7 @@ You can train models either through the web UI (cloud training) or from your own
 
     ```bash
     # Install ultralytics
-    pip install "ultralytics>=8.4.35"
+    pip install "ultralytics>=8.4.60"
 
     # Set your API key
     export ULTRALYTICS_API_KEY="YOUR_API_KEY"
@@ -163,14 +172,19 @@ You can train models either through the web UI (cloud training) or from your own
 
 ```mermaid
 graph LR
-    A[Trained Model] --> B{Action}
-    B --> C[Browser Predict]
-    B --> D[Export Format]
-    B --> E[Deploy Endpoint]
-    D --> F[ONNX / TensorRT / CoreML / TFLite / ...]
-    E --> G[43 Global Regions]
-    G --> H[API Endpoint URL]
-    H --> I[Monitor & Scale]
+    A[Trained Model]:::start --> B{Action}:::decide
+    B --> C[Browser Predict]:::proc
+    B --> D[Export Format]:::proc
+    B --> E[Deploy Endpoint]:::proc
+    D --> F[ONNX / TensorRT / CoreML / LiteRT / ...]:::out
+    E --> G[43 Global Regions]:::proc
+    G --> H[API Endpoint URL]:::proc
+    H --> I[Monitor & Scale]:::out
+
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef decide fill:#FF9800,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 Once deployed, call your endpoint from any language:
@@ -232,7 +246,7 @@ Once deployed, call your endpoint from any language:
     | Concurrent Trainings | 3              | 10                      | Unlimited      |
     | Deployments          | 3              | 10                      | Unlimited      |
     | Storage              | 100 GB         | 500 GB                  | Unlimited      |
-    | Cloud GPU Types      | 22             | 24 (incl. B200 / B300)  | 24             |
+    | Cloud GPU Types      | 24             | 26 (incl. B200 / B300)  | 26             |
     | Teams                | -              | Up to 5 members         | Up to 50       |
     | Support              | Community      | Priority                | Dedicated      |
 
@@ -296,10 +310,10 @@ You can train models on your own hardware and stream real-time metrics to the pl
 
 !!! warning "Package Version Requirement"
 
-    Platform integration requires **ultralytics>=8.4.35**. Lower versions will NOT work with Platform.
+    Platform integration requires **ultralytics>=8.4.60**. Lower versions will NOT work with Platform.
 
     ```bash
-    pip install "ultralytics>=8.4.35"
+    pip install "ultralytics>=8.4.60"
     ```
 
 === "CLI"
@@ -347,7 +361,7 @@ The Platform includes a full-featured annotation editor supporting:
 
 - **Manual Tools**: Bounding boxes, polygons, keypoints with skeleton templates, oriented boxes, classification
 - **Skeleton Templates**: Place all keypoints at once using built-in (Person, Hand, Face, Dog, Box) or custom templates
-- **Smart Annotation**: Use [SAM 2.1](../models/sam-2.md) or [SAM 3](../models/sam-3.md) for click-based annotation, or run pretrained Ultralytics YOLO models and your own fine-tuned YOLO models from the toolbar for detect, segment, and OBB
+- **Smart Annotation**: Use [SAM 2.1](../models/sam-2.md) or [SAM 3](../models/sam-3.md) for click-based annotation, or run pretrained Ultralytics YOLO models and your own fine-tuned YOLO models from the toolbar for detect, segment, semantic, and OBB
 - **Keyboard Shortcuts**: Efficient workflows with hotkeys
 
 | Shortcut  | Action                            |
@@ -365,7 +379,7 @@ See [Annotation](data/annotation.md) for the complete guide.
 
 ### What export formats are supported?
 
-The Platform supports 17 deployment formats:
+The Platform supports 19+ deployment formats:
 
 | Format        | File Extension      | Use Case                  |
 | ------------- | ------------------- | ------------------------- |
@@ -374,18 +388,19 @@ The Platform supports 17 deployment formats:
 | OpenVINO      | `_openvino_model`   | Intel hardware            |
 | TensorRT      | `.engine`           | NVIDIA GPU inference      |
 | CoreML        | `.mlpackage`        | Apple devices             |
-| TFLite        | `.tflite`           | Mobile/edge devices       |
 | TF SavedModel | `_saved_model`      | TensorFlow ecosystem      |
 | TF GraphDef   | `.pb`               | TensorFlow legacy         |
 | PaddlePaddle  | `_paddle_model`     | Baidu ecosystem           |
 | NCNN          | `_ncnn_model`       | Mobile (Android/ARM)      |
+| LiteRT        | `.tflite`           | Mobile/edge and browser   |
 | Edge TPU      | `_edgetpu.tflite`   | Google Coral devices      |
-| TF.js         | `_web_model`        | Browser deployment        |
 | MNN           | `.mnn`              | Alibaba mobile            |
 | RKNN          | `_rknn_model`       | Rockchip NPU              |
+| Qualcomm      | `_qnn.onnx`         | Qualcomm Snapdragon NPU   |
 | IMX500        | `_imx_model`        | Sony IMX500 sensor        |
 | Axelera       | `_axelera_model`    | Axelera AI accelerators   |
 | ExecuTorch    | `_executorch_model` | PyTorch mobile            |
+| DeepX         | `_deepx_model`      | DeepX NPU accelerators    |
 
 See [Models Export](train/models.md#export-model), the [Export mode guide](../modes/export.md), and the [Integrations index](../integrations/index.md) for format-specific options.
 
@@ -426,7 +441,7 @@ See [Models Export](train/models.md#export-model), the [Export mode guide](../mo
 
 ??? question "Can I change my data region?"
 
-    No, data region is selected during signup and cannot be changed. To switch regions, create a new account and re-upload your data.
+    Your data region is selected during onboarding and can't be changed yourself. To switch regions, contact support to request a region change.
 
 ??? question "How do I get more credits?"
 

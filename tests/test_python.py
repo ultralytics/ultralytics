@@ -17,7 +17,7 @@ import torch
 from PIL import Image
 
 import ultralytics.data.build as data_build
-from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA, TASK2MODEL
+from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK2MODEL, TASK_MODEL_DATA
 from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.data.build import build_dataloader, load_inference_source
@@ -287,20 +287,98 @@ def test_predict_img(model_name):
     assert len(model(batch, imgsz=32, classes=0)) == len(batch)  # multiple sources in a batch
 
 
-@pytest.mark.parametrize("task", ["detect", "segment"])
-def test_predict_tensor_preprocess(task):
-    """Test that on-device raw-tensor preprocessing matches the numpy path within tolerance, detect and segment tasks."""
+def compare_boxes_matching(np_boxes, pt_boxes):
+    """Assert two Boxes hold the same detections, matching by IoU."""
+    from ultralytics.utils.metrics import box_iou
+
+    assert len(np_boxes) == len(pt_boxes) > 0, f"box count mismatch: {len(np_boxes)} vs {len(pt_boxes)}"
+    iou = box_iou(np_boxes.xyxy, pt_boxes.xyxy)
+    match = iou.argmax(1)
+    assert iou.max(1).values.min() > 0.95, "boxes differ beyond tolerance"
+    assert (np_boxes.cls == pt_boxes.cls[match]).all(), "class predictions differ"
+
+
+def compare_masks_matching(np_masks, pt_masks, np_boxes, pt_boxes):
+    """Assert two Masks hold the same segmentations, aligned by box IoU to ignore ordering differences."""
+    from ultralytics.utils.metrics import box_iou
+
+    match = box_iou(np_boxes.xyxy, pt_boxes.xyxy).argmax(1)
+    agree = (np_masks.data == pt_masks.data[match]).float().mean().item()
+    assert agree > 0.99, f"masks differ beyond tolerance ({agree:.4f})"
+
+
+@pytest.mark.parametrize("task", ["detect", "segment", "pose", "classify"])
+def test_yolo_predict_tensor_preprocess(task):
+    """Test that on-device raw-tensor preprocessing matches the numpy path within tolerance across YOLO tasks."""
     model = YOLO(WEIGHTS_DIR / TASK2MODEL[task])
     im = cv2.imread(str(SOURCE))  # BGR HWC uint8 at original resolution
-    tensor = torch.from_numpy(cv2.cvtColor(im, cv2.COLOR_BGR2RGB)).permute(2, 0, 1)[None].float() # (1,3,H,W) uint8 RGB
+    tensor = torch.from_numpy(cv2.cvtColor(im, cv2.COLOR_BGR2RGB)).permute(2, 0, 1)[None].float()
 
+    np_res = model.predict(im, imgsz=640)[0]  # numpy path preprocesses on CPU
+    pt_res = model.predict(tensor, imgsz=640, preprocess_tensor=True)[0]  # raw tensor preprocessed on-device
+
+    if task == "classify":
+        assert np_res.probs.top5 == pt_res.probs.top5, "top-5 classes differ"
+        assert torch.allclose(np_res.probs.data, pt_res.probs.data, atol=0.05), "probabilities differ beyond tolerance"
+    else:
+        compare_boxes_matching(np_res.boxes, pt_res.boxes)
+        if pt_res.masks is not None:
+            compare_masks_matching(np_res.masks, pt_res.masks, np_res.boxes, pt_res.boxes)
+
+
+def test_rtdetr_predict_tensor_preprocess():
+    """Test that RT-DETR on-device raw-tensor preprocessing matches the numpy path within tolerance."""
+    model = RTDETR(WEIGHTS_DIR / "rtdetr-l.pt")
+    im = cv2.imread(str(SOURCE))  # BGR HWC uint8 at original resolution
+    tensor = torch.from_numpy(cv2.cvtColor(im, cv2.COLOR_BGR2RGB)).permute(2, 0, 1)[None].float()
     np_boxes = model.predict(im, imgsz=640)[0].boxes  # numpy path letterboxes on CPU
-    pt_boxes = model.predict(tensor, imgsz=640, preprocess_tensor=True)[0].boxes  # raw tensor letterboxed on-device
+    pt_boxes = model.predict(tensor, imgsz=640, preprocess_tensor=True)[0].boxes  # letterboxed on-device
+    compare_boxes_matching(np_boxes, pt_boxes)
 
-    assert len(np_boxes) == len(pt_boxes), f"box count mismatch: {len(np_boxes)} vs {len(pt_boxes)}"
-    np_order, pt_order = np_boxes.xyxy[:, 0].argsort(), pt_boxes.xyxy[:, 0].argsort()  # align by x1 to avoid tie swaps
-    assert torch.allclose(np_boxes.xyxy[np_order], pt_boxes.xyxy[pt_order], atol=1.0), "boxes differ beyond tolerance"
-    assert (np_boxes.cls[np_order] == pt_boxes.cls[pt_order]).all(), "class predictions differ"
+
+def test_fastsam_predict_tensor_preprocess():
+    """Test that FastSAM on-device raw-tensor preprocessing matches the numpy path within tolerance."""
+    from ultralytics import FastSAM
+
+    model = FastSAM(WEIGHTS_DIR / "FastSAM-s.pt")
+    im = cv2.imread(str(SOURCE))  # BGR HWC uint8 at original resolution
+    tensor = torch.from_numpy(cv2.cvtColor(im, cv2.COLOR_BGR2RGB)).permute(2, 0, 1)[None].float()
+    np_boxes = model.predict(im, imgsz=640)[0].boxes  # numpy path letterboxes on CPU
+    pt_boxes = model.predict(tensor, imgsz=640, preprocess_tensor=True)[0].boxes  # letterboxed on-device
+    compare_boxes_matching(np_boxes, pt_boxes)
+
+
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for heavy CLIP-based models")
+@pytest.mark.skipif(not TORCH_1_13, reason="YOLOE with CLIP requires torch>=1.13")
+@pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="YOLOE with CLIP is not supported in Python 3.12")
+@pytest.mark.skipif(
+    checks.IS_PYTHON_3_8 and LINUX and ARM64,
+    reason="YOLOE with CLIP is not supported in Python 3.8 and aarch64 Linux",
+)
+def test_yoloe_predict_tensor_preprocess():
+    """Test YOLOE raw-tensor preprocessing against the numpy path for prompt-free and text prompts, and visual reject."""
+    from ultralytics import YOLOE
+
+    im = cv2.imread(str(SOURCE))  # BGR HWC uint8 at original resolution
+    tensor = torch.from_numpy(cv2.cvtColor(im, cv2.COLOR_BGR2RGB)).permute(2, 0, 1)[None].float()
+
+    # Prompt-free prediction should match the numpy path within tolerance
+    model = YOLOE(WEIGHTS_DIR / "yoloe-11s-seg-pf.pt")
+    np_boxes = model.predict(im, imgsz=640)[0].boxes  # numpy path letterboxes on CPU
+    pt_boxes = model.predict(tensor, imgsz=640, preprocess_tensor=True)[0].boxes  # letterboxed on-device
+    compare_boxes_matching(np_boxes, pt_boxes)
+
+    # Text-prompt prediction (CLIP embeddings) should match the numpy path within tolerance
+    model = YOLOE(WEIGHTS_DIR / "yoloe-11s-seg.pt")
+    model.set_classes(["person", "bus"])
+    np_boxes = model.predict(im, imgsz=640)[0].boxes
+    pt_boxes = model.predict(tensor, imgsz=640, preprocess_tensor=True)[0].boxes
+    compare_boxes_matching(np_boxes, pt_boxes)
+
+    # Visual-prompt prediction is unsupported for on-device tensor preprocessing and should raise
+    prompts = {"bboxes": np.array([[100.0, 100.0, 300.0, 400.0]]), "cls": np.array([0])}
+    with pytest.raises(NotImplementedError):
+        model.predict(tensor, preprocess_tensor=True, visual_prompts=prompts, verbose=False)
 
 
 @pytest.mark.parametrize("model_name", ["yolo26n.pt", "yolo11n.pt"])  # end2end and NMS-based models

@@ -349,13 +349,13 @@ def test_predict_grayscale_ndarray():
 def test_predict_ndarray_channel_mismatch(tmp_path, model_name, mode, atol):
     """Test that an ndarray whose channel count differs from the model matches the same image read from a path.
 
-    A NumPy image with a channel count that does not match the model (grayscale/RGBA into a color model, or
-    color/RGBA into a grayscale model) used to crash in conv2d. It must now normalize to the model channels and
-    return the same detections as the identical image read from disk, which OpenCV normalizes at decode time. The
-    1-channel cases allow up to 1px since decode-time and cvtColor grayscale differ by at most one gray level.
+    A NumPy image with a channel count that does not match the model (grayscale/RGBA into a color model, or color/RGBA
+    into a grayscale model) used to crash in conv2d. It must now normalize to the model channels and return the same
+    detections as the identical image read from disk, which OpenCV normalizes at decode time. The 1-channel cases allow
+    up to 1px since decode-time and cvtColor grayscale differ by at most one gray level.
 
-    Channel order is out of scope (ndarrays are BGR by pre-existing convention), so BGRA (not the RGB-order RGBA
-    from the issue MRE) is used to isolate the channel-count fix from the color-order assumption.
+    Channel order is out of scope (ndarrays are BGR by pre-existing convention), so BGRA (not the RGB-order RGBA from
+    the issue MRE) is used to isolate the channel-count fix from the color-order assumption.
     """
     bgr = cv2.imread(str(SOURCE))  # (H, W, 3) BGR, OpenCV order (ndarrays are treated as BGR downstream)
     im = {

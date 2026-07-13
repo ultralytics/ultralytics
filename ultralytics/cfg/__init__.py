@@ -443,8 +443,9 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                         )
                     cfg[k] = v = float(v)
                 if not (0.0 <= v <= 1.0) or (k == "fraction" and v == 0.0):
-                    bounds = "(0.0, 1.0]" if k == "fraction" else "[0.0, 1.0]"
-                    raise ValueError(f"'{k}={v}' is an invalid value. Valid '{k}' values are in {bounds}.")
+                    raise ValueError(
+                        f"'{k}={v}' is invalid. Use [0.0, 1.0]; dataset fraction must be greater than 0.0."
+                    )
             elif k in CFG_INT_KEYS:
                 if not isinstance(v, int):
                     if hard:

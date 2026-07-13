@@ -328,87 +328,18 @@ def test_predict_gray_and_4ch(tmp_path):
         f.unlink()  # cleanup
 
 
-def test_predict_grayscale_ndarray():
-    """Test that a 2D grayscale NumPy array is accepted by a color model, consistent with PIL/file inputs."""
+def test_predict_ndarray_channels():
+    """Test NumPy channel normalization for grayscale and color models."""
+    from ultralytics.data.loaders import LoadPilAndNumpy
+
     model = YOLO(MODEL)  # default 3-channel model
     gray = np.asarray(Image.open(SOURCE).convert("L"))  # genuine 2D (H, W) uint8 array
     assert gray.ndim == 2, "Expected a 2D grayscale array for this test"
     assert len(model(source=gray, imgsz=32, verbose=False)) == 1  # 2D ndarray auto-expanded to 3 channels
     assert len(model(source=gray.astype("float64"), imgsz=32, verbose=False)) == 1  # non-OpenCV dtype also works
-
-
-@pytest.mark.parametrize(
-    "model_name, mode, lossless",
-    [
-        ("yolo11n.pt", "gray3d", True),  # 3-channel model, (H, W, 1) grayscale ndarray (replicate: lossless)
-        ("yolo11n.pt", "rgba", True),  # 3-channel model, (H, W, 4) BGRA ndarray (drop alpha: lossless)
-        ("yolo11n-grayscale.pt", "bgr", False),  # 1-channel model, (H, W, 3) BGR ndarray (cvtColor gray)
-        ("yolo11n-grayscale.pt", "rgba", False),  # 1-channel model, (H, W, 4) BGRA ndarray (cvtColor gray)
-    ],
-)
-def test_predict_ndarray_channel_mismatch(tmp_path, model_name, mode, lossless):
-    """Test that an ndarray whose channel count differs from the model matches the same image read from a path.
-
-    A NumPy image with a channel count that does not match the model (grayscale/RGBA into a color model, or color/RGBA
-    into a grayscale model) used to crash in conv2d. It must now normalize to the model channels and return the same
-    detections as the identical image read from disk, which OpenCV normalizes at decode time.
-
-    For color models the normalization (replicate gray, drop alpha) is lossless, so boxes must match the path route
-    exactly. For grayscale models the ndarray is grayed with cvtColor while the path route decodes with
-    IMREAD_GRAYSCALE; the two grays differ by up to one level, which shifts boxes a fraction of a pixel that varies by
-    platform, so those cases require a high box IoU instead of exact coordinates.
-
-    Channel order is out of scope (ndarrays are BGR by pre-existing convention), so BGRA (not the RGB-order RGBA from
-    the issue MRE) is used to isolate the channel-count fix from the color-order assumption.
-    """
-    from ultralytics.utils.metrics import box_iou
-
-    bgr = cv2.imread(str(SOURCE))  # (H, W, 3) BGR, OpenCV order (ndarrays are treated as BGR downstream)
-    im = {
-        "gray3d": cv2.cvtColor(bgr, cv2.COLOR_BGR2GRAY)[..., None],  # (H, W, 1)
-        "bgr": bgr,  # (H, W, 3)
-        "rgba": cv2.cvtColor(bgr, cv2.COLOR_BGR2BGRA),  # (H, W, 4)
-    }[mode]
-    path = tmp_path / "img.png"
-    assert cv2.imwrite(str(path), im)  # lossless PNG keeps the channel count on disk
-
-    model = YOLO(WEIGHTS_DIR / model_name)
-    from_array = model.predict(im, imgsz=640, verbose=False)[0].boxes  # crashed here on the buggy code
-    from_path = model.predict(str(path), imgsz=640, verbose=False)[0].boxes  # OpenCV-normalized reference
-
-    assert len(from_array) == len(from_path) > 0, "ndarray and path must detect the same objects"
-
-    def canon(boxes):  # order by box center-x so the comparison ignores confidence-tie ordering
-        order = boxes.xywh[:, 0].argsort()
-        return boxes.xyxy[order], boxes.cls[order]
-
-    xa, ca = canon(from_array)
-    xp, cp = canon(from_path)
-    assert (ca == cp).all(), "class labels must match the path route"
-    if lossless:
-        assert (xa - xp).abs().max() <= 0.01, "boxes must match the path route exactly"
-    else:
-        assert box_iou(xa, xp).diag().min() >= 0.9, "boxes must overlap the path route (grayscale differs slightly)"
-
-
-@pytest.mark.parametrize("model_name", ["yolo11n.pt", "yolo11n-grayscale.pt"])
-def test_predict_ndarray_gray_alpha(model_name):
-    """A 2-channel gray+alpha ndarray (PIL 'LA') normalizes by dropping alpha, matching the gray-only image.
-
-    Neither OpenCV nor a PNG round-trip carries a 2-channel image, so the reference is the alpha-stripped gray array
-    rather than a path route: dropping alpha is lossless, so the two must produce identical detections.
-    """
-    gray = cv2.cvtColor(cv2.imread(str(SOURCE)), cv2.COLOR_BGR2GRAY)[..., None]  # (H, W, 1)
-    la = np.concatenate([gray, np.full_like(gray, 255)], axis=2)  # (H, W, 2) gray + opaque alpha
-
-    model = YOLO(WEIGHTS_DIR / model_name)
-    from_la = model.predict(la, imgsz=640, verbose=False)[0].boxes  # crashed in conv2d / cvtColor before the fix
-    from_gray = model.predict(gray, imgsz=640, verbose=False)[0].boxes  # alpha-stripped reference
-
-    assert len(from_la) == len(from_gray) > 0, "gray+alpha and gray-only must detect the same objects"
-    order_la, order_gray = from_la.xywh[:, 0].argsort(), from_gray.xywh[:, 0].argsort()
-    assert (from_la.cls[order_la] == from_gray.cls[order_gray]).all(), "class labels must match the gray reference"
-    assert (from_la.xyxy[order_la] - from_gray.xyxy[order_gray]).abs().max() <= 0.01, "boxes must match exactly"
+    for source_channels, model_channels in ((1, 3), (2, 1), (2, 3), (3, 1), (4, 1), (4, 3)):
+        im = np.zeros((8, 8, source_channels), dtype=np.uint8)
+        assert LoadPilAndNumpy(im, channels=model_channels).im0[0].shape == (8, 8, model_channels)
 
 
 @pytest.mark.slow

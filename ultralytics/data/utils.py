@@ -535,10 +535,20 @@ def check_det_dataset(dataset: str, autodownload: bool = True, split: str = "") 
     val, s = (data.get(x) for x in (split or "val", "download"))
     if val:
         val = [Path(x).resolve() for x in (val if isinstance(val, list) else [val])]  # val path
-        if not all(x.exists() for x in val):
+        missing = next((x for x in val if not x.exists()), None)
+        if missing is None and split:
+            # an existing manifest file is not proof the images it lists were ever downloaded
+            for x in val:
+                if x.suffix == ".txt":
+                    line = next(iter(x.read_text().strip().splitlines()), "")
+                    img = x.parent / (line[2:] if line.startswith("./") else line)
+                    if line and not img.exists():
+                        missing = img
+                        break
+        if missing is not None:
             name = clean_url(dataset)  # dataset name with URL auth stripped
             LOGGER.info("")
-            m = f"Dataset '{name}' images not found, missing path '{next(x for x in val if not x.exists())}'"
+            m = f"Dataset '{name}' images not found, missing path '{missing}'"
             if s and autodownload:
                 LOGGER.warning(m)
             else:

@@ -450,6 +450,37 @@ def test_export_mnn(isolated_model):
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
+@pytest.mark.parametrize(
+    "model,kwargs,error",
+    [
+        ("yolo11n.yaml", {"batch": 2, "dynamic": True, "nms": True}, "combining"),
+        ("yolo11n-seg.yaml", {"nms": True}, "only supports detect and pose"),
+        ("yolo11n-obb.yaml", {"nms": True}, "only supports detect and pose"),
+    ],
+)
+def test_export_mnn_rejects_unsupported_nms(model, kwargs, error):
+    """Test MNN rejects NMS combinations that fail or lose task outputs at runtime."""
+    with pytest.raises(ValueError, match=error):
+        YOLO(model).export(format="mnn", imgsz=32, **kwargs)
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize(
+    "model,task,kwargs",
+    [
+        ("yolo11n.yaml", "detect", {"batch": 2, "dynamic": True}),
+        ("yolo11n.yaml", "detect", {"nms": True}),
+        ("yolo11n-pose.yaml", "pose", {"nms": True}),
+    ],
+)
+def test_export_mnn_options(model, task, kwargs):
+    """Test MNN dynamic shapes and supported embedded NMS tasks through inference."""
+    batch = kwargs.get("batch", 1)
+    file = YOLO(model).export(format="mnn", imgsz=32, **kwargs)
+    assert len(YOLO(file, task=task)([SOURCE] * batch, imgsz=64 if kwargs.get("dynamic") else 32)) == batch
+    Path(file).unlink()
+
+
 @pytest.mark.slow
 @pytest.mark.skipif(not TORCH_1_10, reason="MNN export requires torch>=1.10")
 @pytest.mark.parametrize(

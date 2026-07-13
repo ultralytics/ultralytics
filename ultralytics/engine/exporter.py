@@ -186,7 +186,7 @@ def export_formats():
             "tensorflow",
         ],
         ["PaddlePaddle", "paddle", "_paddle_model", True, True, ["batch"], "base"],
-        ["MNN", "mnn", ".mnn", True, True, ["batch", "quantize"], "mnn"],
+        ["MNN", "mnn", ".mnn", True, True, ["batch", "dynamic", "quantize", "nms"], "mnn"],
         ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "quantize"], "ncnn"],
         ["IMX", "imx", "_imx_model", True, True, ["data", "quantize", "fraction", "nms"], "isolated-imx"],
         [
@@ -614,6 +614,8 @@ class Exporter:
         if self.args.quantize == 16 and fmt == "torchscript" and self.device.type == "cpu":
             raise ValueError("FP16 TorchScript export is only supported on GPU, i.e. use device=0.")
         self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size
+        if fmt == "axelera" and min(self.imgsz) < 64:
+            raise ValueError(f"Axelera export requires imgsz>=64, but got imgsz={self.imgsz}.")
         if self.args.optimize:
             assert fmt != "ncnn", "optimize=True not compatible with format='ncnn', i.e. use optimize=False"
             assert self.device.type == "cpu", "optimize=True not compatible with cuda devices, i.e. use device='cpu'"
@@ -664,6 +666,11 @@ class Exporter:
                 LOGGER.warning("'nms=True' is not available for end2end models. Forcing 'nms=False'.")
                 self.args.nms = False
             self.args.conf = self.args.conf or 0.25  # set conf default value for nms export
+        if fmt == "mnn" and self.args.nms:
+            if self.args.dynamic:
+                raise ValueError("Alibaba MNN export does not support combining 'dynamic=True' with 'nms=True'.")
+            if model.task not in {"detect", "pose"}:
+                raise ValueError("Alibaba MNN export with 'nms=True' only supports detect and pose models.")
         if (fmt in {"engine", "coreml"} or self.args.nms) and self.args.dynamic and self.args.batch == 1:
             LOGGER.warning(
                 f"'dynamic=True' model with '{'nms=True' if self.args.nms else f'format={self.args.format}'}' requires max batch size, i.e. 'batch=16'"

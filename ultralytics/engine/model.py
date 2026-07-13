@@ -167,7 +167,7 @@ class Model(torch.nn.Module):
 
         Returns:
             (Iterator[ultralytics.engine.results.Results | torch.Tensor] | list[ultralytics.engine.results.Results] |
-                list[torch.Tensor]): Prediction results or embeddings, streamed when `stream=True`.
+            list[torch.Tensor]): Prediction results or embeddings, streamed when `stream=True`.
 
         Examples:
             >>> model = YOLO("yolo26n.pt")
@@ -505,7 +505,7 @@ class Model(torch.nn.Module):
 
         Returns:
             (Iterator[ultralytics.engine.results.Results | torch.Tensor] | list[ultralytics.engine.results.Results] |
-                list[torch.Tensor]): Prediction results or embeddings, streamed when `stream=True`.
+            list[torch.Tensor]): Prediction results or embeddings, streamed when `stream=True`.
 
         Examples:
             >>> model = YOLO("yolo26n.pt")

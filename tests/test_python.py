@@ -596,6 +596,7 @@ def test_train_pretrained(scls):
     model(SOURCE)
 
 
+@pytest.mark.skipif(not ONLINE, reason="environment is offline")
 def test_rtdetr_val_single_cls_and_classes():
     """Test that RTDETRValidator.build_dataset honors single_cls and classes like the trainer (standalone val)."""
     from ultralytics.cfg import get_cfg

@@ -178,6 +178,7 @@ class MHSABlock(nn.Module):
         ln1 (nn.LayerNorm): Pre-attention norm.
         qkv (nn.Linear): Fused QKV projection, bias per `qkv_bias`.
         proj (nn.Linear): Post-attention projection, bias per `proj_bias`.
+        pe (nn.Conv2d): Optional zero-initialized depthwise 7x7 conditional positional encoding.
         ln2 (nn.LayerNorm): Pre-FFN norm (token-Linear/SwiGLU FFN only).
         swiglu (bool): FFN form switch (token-Linear vs SwiGLU), set only on the token-FFN path (`conv_ffn=False`).
         fc1 (nn.Linear): FFN first layer (token FFN), or the fused value+gate projection when `swiglu=True` (one Linear
@@ -208,6 +209,7 @@ class MHSABlock(nn.Module):
         proj_bias: bool = False,
         swiglu: bool = False,
         n_storage_tokens: int = 0,
+        cpe: bool = False,
     ):
         """Initialize MHSABlock."""
         super().__init__()
@@ -218,6 +220,10 @@ class MHSABlock(nn.Module):
         assert not (swiglu and conv_ffn), "MHSABlock: swiglu is a token-FFN, mutually exclusive with conv_ffn"
         self.num_heads = num_heads
         self.head_dim = c // num_heads
+        if cpe:
+            self.pe = nn.Conv2d(c, c, 7, padding=3, groups=c, bias=True)
+            nn.init.zeros_(self.pe.weight)
+            nn.init.zeros_(self.pe.bias)
         if xca:  # cross-covariance attention: map is head_dim x head_dim (token-count invariant), learnable per-head temperature (XCiT)
             self.temperature = nn.Parameter(torch.ones(num_heads, 1, 1))
         self.n_storage_tokens = n_storage_tokens
@@ -256,6 +262,9 @@ class MHSABlock(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Forward pass: 4D → tokens (+ storage) → SA → drop storage → FFN (token Linear/SwiGLU or ConvMlp) → 4D."""
         b, c, h, w = x.shape
+        pe = getattr(self, "pe", None)
+        if pe is not None:
+            x = x + pe(x)
         t = x.flatten(2).transpose(1, 2)  # (B, N, C)
         xca = getattr(self, "temperature", None) is not None
         n_storage_tokens = getattr(self, "n_storage_tokens", 0)  # getattr: pre-registers checkpoints still load

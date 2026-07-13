@@ -407,7 +407,7 @@ def validate_args(format, passed_args, valid_args):
         elif passed_args.quantize == 32:  # FP32
             assert format not in FP32_UNSUPPORTED_FORMATS, f"ERROR ❌️ quantize=32 (FP32) is not supported; {hint}"
     for arg in export_args:
-        not_default = getattr(passed_args, arg, None) != getattr(default_args, arg, None)
+        not_default = getattr(passed_args, arg, getattr(default_args, arg, None)) != getattr(default_args, arg, None)
         if not_default:
             assert arg in valid_args, f"ERROR ❌️ argument '{arg}' is not supported for format='{format}'"
 

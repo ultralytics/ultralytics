@@ -147,18 +147,42 @@ def test_lr_nll_loss_wired():
 
 def test_3d_iou():
     """Test 3D IoU computation: identical, no overlap, and partial overlap."""
-    box = Box3D(center_3d=(10.0, 2.0, 30.0), dimensions=(3.88, 1.63, 1.53), orientation=0.0,
-                class_label="Car", class_id=0, confidence=0.95)
+    box = Box3D(
+        center_3d=(10.0, 2.0, 30.0),
+        dimensions=(3.88, 1.63, 1.53),
+        orientation=0.0,
+        class_label="Car",
+        class_id=0,
+        confidence=0.95,
+    )
     assert abs(compute_3d_iou(box, box) - 1.0) < 1e-6
 
-    far_box = Box3D(center_3d=(100.0, 2.0, 30.0), dimensions=(3.88, 1.63, 1.53), orientation=0.0,
-                    class_label="Car", class_id=0, confidence=0.95)
+    far_box = Box3D(
+        center_3d=(100.0, 2.0, 30.0),
+        dimensions=(3.88, 1.63, 1.53),
+        orientation=0.0,
+        class_label="Car",
+        class_id=0,
+        confidence=0.95,
+    )
     assert compute_3d_iou(box, far_box) == 0.0
 
-    near_box = Box3D(center_3d=(11.0, 2.0, 30.0), dimensions=(4.0, 2.0, 2.0), orientation=0.0,
-                     class_label="Car", class_id=0, confidence=0.95)
-    box2 = Box3D(center_3d=(10.0, 2.0, 30.0), dimensions=(4.0, 2.0, 2.0), orientation=0.0,
-                 class_label="Car", class_id=0, confidence=0.95)
+    near_box = Box3D(
+        center_3d=(11.0, 2.0, 30.0),
+        dimensions=(4.0, 2.0, 2.0),
+        orientation=0.0,
+        class_label="Car",
+        class_id=0,
+        confidence=0.95,
+    )
+    box2 = Box3D(
+        center_3d=(10.0, 2.0, 30.0),
+        dimensions=(4.0, 2.0, 2.0),
+        orientation=0.0,
+        class_label="Car",
+        class_id=0,
+        confidence=0.95,
+    )
     assert 0.0 < compute_3d_iou(box2, near_box) < 1.0
 
 
@@ -170,10 +194,22 @@ def test_3d_iou_rotated_45deg():
     approximation returns ~1.0 here because the 45 deg box's AABB fully contains
     the other box, so this case discriminates true rotated IoU from the AABB hack.
     """
-    a = Box3D(center_3d=(0.0, 0.0, 10.0), dimensions=(2.0, 2.0, 2.0), orientation=0.0,
-              class_label="Car", class_id=0, confidence=0.95)
-    b = Box3D(center_3d=(0.0, 0.0, 10.0), dimensions=(2.0, 2.0, 2.0), orientation=np.pi / 4,
-              class_label="Car", class_id=0, confidence=0.95)
+    a = Box3D(
+        center_3d=(0.0, 0.0, 10.0),
+        dimensions=(2.0, 2.0, 2.0),
+        orientation=0.0,
+        class_label="Car",
+        class_id=0,
+        confidence=0.95,
+    )
+    b = Box3D(
+        center_3d=(0.0, 0.0, 10.0),
+        dimensions=(2.0, 2.0, 2.0),
+        orientation=np.pi / 4,
+        class_label="Car",
+        class_id=0,
+        confidence=0.95,
+    )
     assert abs(compute_3d_iou(a, b) - (1.0 / np.sqrt(2))) < 1e-3
 
 
@@ -186,10 +222,22 @@ def test_3d_iou_rotated_no_overlap():
     boxes (side 2*sqrt(2)) still overlap, so the old AABB approximation reports a
     spurious positive IoU.
     """
-    a = Box3D(center_3d=(0.0, 0.0, 10.0), dimensions=(2.0, 2.0, 2.0), orientation=np.pi / 4,
-              class_label="Car", class_id=0, confidence=0.95)
-    b = Box3D(center_3d=(2.0, 0.0, 12.0), dimensions=(2.0, 2.0, 2.0), orientation=np.pi / 4,
-              class_label="Car", class_id=0, confidence=0.95)
+    a = Box3D(
+        center_3d=(0.0, 0.0, 10.0),
+        dimensions=(2.0, 2.0, 2.0),
+        orientation=np.pi / 4,
+        class_label="Car",
+        class_id=0,
+        confidence=0.95,
+    )
+    b = Box3D(
+        center_3d=(2.0, 0.0, 12.0),
+        dimensions=(2.0, 2.0, 2.0),
+        orientation=np.pi / 4,
+        class_label="Car",
+        class_id=0,
+        confidence=0.95,
+    )
     assert compute_3d_iou(a, b) == 0.0
 
 
@@ -201,10 +249,22 @@ def test_3d_iou_rotated_90deg():
     The old AABB approximation returns 1.0 here (the 90 deg box's AABB grows),
     so this is a clean analytic regression guard.
     """
-    a = Box3D(center_3d=(0.0, 0.0, 20.0), dimensions=(4.0, 2.0, 2.0), orientation=0.0,
-              class_label="Car", class_id=0, confidence=0.95)
-    b = Box3D(center_3d=(0.0, 0.0, 20.0), dimensions=(4.0, 2.0, 2.0), orientation=np.pi / 2,
-              class_label="Car", class_id=0, confidence=0.95)
+    a = Box3D(
+        center_3d=(0.0, 0.0, 20.0),
+        dimensions=(4.0, 2.0, 2.0),
+        orientation=0.0,
+        class_label="Car",
+        class_id=0,
+        confidence=0.95,
+    )
+    b = Box3D(
+        center_3d=(0.0, 0.0, 20.0),
+        dimensions=(4.0, 2.0, 2.0),
+        orientation=np.pi / 2,
+        class_label="Car",
+        class_id=0,
+        confidence=0.95,
+    )
     assert abs(compute_3d_iou(a, b) - 1.0 / 3.0) < 1e-3
 
 
@@ -215,34 +275,72 @@ def test_bev_iou_ignores_height():
     offset) share no 3D volume (3D IoU ~= 0) yet have identical bird's-eye-view
     footprints (BEV IoU == 1.0). This pins BEV down as a distinct metric.
     """
-    low = Box3D(center_3d=(0.0, 0.0, 15.0), dimensions=(4.0, 1.8, 1.6), orientation=0.3,
-                class_label="Car", class_id=0, confidence=0.9)
-    high = Box3D(center_3d=(0.0, -1.6, 15.0), dimensions=(4.0, 1.8, 1.6), orientation=0.3,
-                 class_label="Car", class_id=0, confidence=0.9)
+    low = Box3D(
+        center_3d=(0.0, 0.0, 15.0),
+        dimensions=(4.0, 1.8, 1.6),
+        orientation=0.3,
+        class_label="Car",
+        class_id=0,
+        confidence=0.9,
+    )
+    high = Box3D(
+        center_3d=(0.0, -1.6, 15.0),
+        dimensions=(4.0, 1.8, 1.6),
+        orientation=0.3,
+        class_label="Car",
+        class_id=0,
+        confidence=0.9,
+    )
     assert abs(compute_bev_iou(low, high) - 1.0) < 1e-6
     assert compute_3d_iou(low, high) < 0.05  # stacked: ~no vertical overlap
 
     # BEV of the 45deg square case equals its 3D IoU (heights coincide): 1/sqrt(2).
-    a = Box3D(center_3d=(0.0, 0.0, 10.0), dimensions=(2.0, 2.0, 2.0), orientation=0.0,
-              class_label="Car", class_id=0, confidence=0.9)
-    b = Box3D(center_3d=(0.0, 0.0, 10.0), dimensions=(2.0, 2.0, 2.0), orientation=np.pi / 4,
-              class_label="Car", class_id=0, confidence=0.9)
+    a = Box3D(
+        center_3d=(0.0, 0.0, 10.0),
+        dimensions=(2.0, 2.0, 2.0),
+        orientation=0.0,
+        class_label="Car",
+        class_id=0,
+        confidence=0.9,
+    )
+    b = Box3D(
+        center_3d=(0.0, 0.0, 10.0),
+        dimensions=(2.0, 2.0, 2.0),
+        orientation=np.pi / 4,
+        class_label="Car",
+        class_id=0,
+        confidence=0.9,
+    )
     assert abs(compute_bev_iou(a, b) - 1.0 / np.sqrt(2)) < 1e-3
 
 
 def _single_image_stat(gt_ori, pred_ori):
     """Build a one-image, one-Car stat: a perfectly localised pred at given headings."""
-    gt = Box3D(center_3d=(0.0, 0.0, 10.0), dimensions=(4.0, 1.6, 1.5), orientation=gt_ori,
-               class_label="Car", class_id=0, confidence=1.0, truncated=0.0, occluded=0)
-    pred = Box3D(center_3d=(0.0, 0.0, 10.0), dimensions=(4.0, 1.6, 1.5), orientation=pred_ori,
-                 class_label="Car", class_id=0, confidence=0.9)
+    gt = Box3D(
+        center_3d=(0.0, 0.0, 10.0),
+        dimensions=(4.0, 1.6, 1.5),
+        orientation=gt_ori,
+        class_label="Car",
+        class_id=0,
+        confidence=1.0,
+        truncated=0.0,
+        occluded=0,
+    )
+    pred = Box3D(
+        center_3d=(0.0, 0.0, 10.0),
+        dimensions=(4.0, 1.6, 1.5),
+        orientation=pred_ori,
+        class_label="Car",
+        class_id=0,
+        confidence=0.9,
+    )
     return {
         "gt_boxes": [gt],
         "pred_boxes": [pred],
-        "iou_matrix": np.array([[1.0]]),       # perfect 3D localisation (given)
-        "bev_iou_matrix": np.array([[1.0]]),   # perfect BEV localisation (given)
-        "gt_difficulties": np.array([0]),      # Easy
-        "pred_heights_2d": np.array([50.0]),   # above 25px min
+        "iou_matrix": np.array([[1.0]]),  # perfect 3D localisation (given)
+        "bev_iou_matrix": np.array([[1.0]]),  # perfect BEV localisation (given)
+        "gt_difficulties": np.array([0]),  # Easy
+        "pred_heights_2d": np.array([50.0]),  # above 25px min
     }
 
 
@@ -458,7 +556,11 @@ def test_decode_letterbox_calib_imgsz_invariant():
             "depth": torch.tensor([[[math.log(z_true)]]], dtype=torch.float32),
         }
         boxes = decode_stereo3d_outputs(
-            outputs, conf_threshold=0.25, calib=[calib_lb], imgsz=imgsz, ori_shapes=[ori_hw],
+            outputs,
+            conf_threshold=0.25,
+            calib=[calib_lb],
+            imgsz=imgsz,
+            ori_shapes=[ori_hw],
             calib_letterboxed=True,
         )
         per_img = boxes[0] if boxes and isinstance(boxes[0], list) else boxes
@@ -549,7 +651,9 @@ def test_ivw_fusion_equal_sigma_matches_geomean():
 
     # bs=1 -> decode_stereo3d_outputs returns a flat list[Box3D] (unwrapped), so index once.
     # No lr_logvar -> geometric-mean fallback; equal-variance lr_logvar -> IVW. They must coincide.
-    z_geo = decode_stereo3d_outputs(make_outputs(False), calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw])[0].center_3d[2]
+    z_geo = decode_stereo3d_outputs(make_outputs(False), calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw])[0].center_3d[
+        2
+    ]
     z_ivw = decode_stereo3d_outputs(make_outputs(True), calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw])[0].center_3d[2]
     assert abs(z_ivw - z_geo) < 1e-2, f"ivw {z_ivw} != geomean {z_geo}"
 
@@ -632,7 +736,9 @@ def test_ivw_fusion_uses_dfl_variance():
         return out
 
     # No lr_logvar -> geometric-mean fallback; with lr_logvar -> IVW using the DFL spread.
-    z_geo = decode_stereo3d_outputs(make_outputs(False), calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw])[0].center_3d[2]
+    z_geo = decode_stereo3d_outputs(make_outputs(False), calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw])[0].center_3d[
+        2
+    ]
     z_ivw = decode_stereo3d_outputs(make_outputs(True), calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw])[0].center_3d[2]
 
     # The direct cue is nearly certain (narrow DFL distribution) while the stereo cue is highly
@@ -699,3 +805,57 @@ def test_proj_offset_roundtrip():
     y_rec = (v_orig - cy) * Z / fy
     assert abs(x_rec - X) < 1e-3, f"x {x_rec} != {X}"
     assert abs(y_rec - (Y - h / 2)) < 1e-3, f"y {y_rec} != centroid {Y - h / 2}"
+
+
+# Simplified fx/fy/cx/cy calib format that convert_kitti_3d.py emits and datasets (kitti-stereo8) ship.
+SIMPLE_CALIB = (
+    "fx: 721.537700\nfy: 721.537700\ncx: 609.559300\ncy: 172.854000\n"
+    "right_cx: 609.559300\nright_cy: 172.854000\nbaseline: 0.532725\n"
+    "image_width: 1242\nimage_height: 375\n"
+)
+# Raw KITTI P0..P3 projection-matrix format.
+KITTI_CALIB = (
+    "P0: 721.5377 0 609.5593 0 0 721.5377 172.854 0 0 0 1 0\n"
+    "P1: 721.5377 0 609.5593 -387.5744 0 721.5377 172.854 0 0 0 1 0\n"
+    "P2: 721.5377 0 609.5593 44.85728 0 721.5377 172.854 0.2163791 0 0 1 0.002745884\n"
+    "P3: 721.5377 0 609.5593 -339.5242 0 721.5377 172.854 2.199936 0 0 1 0.002729905\n"
+)
+
+
+@pytest.mark.parametrize("content", [SIMPLE_CALIB, KITTI_CALIB])
+def test_calib_dual_format(tmp_path, content):
+    """load_kitti_calibration must parse BOTH the simplified fx/fy format and raw KITTI P-matrices."""
+    from ultralytics.data.stereo.calib import load_kitti_calibration
+
+    f = tmp_path / "000000.txt"
+    f.write_text(content)
+    calib = load_kitti_calibration(f)
+    assert abs(calib.fx - 721.5377) < 1e-2
+    assert abs(calib.cx - 609.5593) < 1e-2
+    assert abs(calib.cy - 172.854) < 1e-2
+    # Both formats encode the same stereo baseline (P2/P3 -> (44.857 - -339.524)/721.54 ~= 0.5327 m).
+    assert abs(calib.baseline - 0.532725) < 1e-3, f"baseline {calib.baseline} != 0.5327"
+
+
+def test_predict_resolves_dataset_calib(tmp_path):
+    """Predictor must find + parse per-image calib in the dataset `calib/<split>/` layout,
+    not silently fall back to default calibration."""
+    import cv2
+
+    root = tmp_path / "ds"
+    left_dir = root / "images" / "val" / "left"
+    right_dir = root / "images" / "val" / "right"
+    calib_dir = root / "calib" / "val"
+    for d in (left_dir, right_dir, calib_dir):
+        d.mkdir(parents=True)
+    img = np.zeros((375, 1242, 3), dtype=np.uint8)
+    cv2.imwrite(str(left_dir / "000000.png"), img)
+    cv2.imwrite(str(right_dir / "000000.png"), img)
+    (calib_dir / "000000.txt").write_text(SIMPLE_CALIB)
+
+    model = YOLO(MODEL)
+    results = model.predict(source=[(str(left_dir / "000000.png"), str(right_dir / "000000.png"))], imgsz=[384, 1248])
+    calib = getattr(results[0], "_calib", None)
+    assert calib is not None, "predictor did not attach calibration"
+    # Real baseline is 0.532725; the default fallback is 0.54 — must be the real one.
+    assert abs(calib["baseline"] - 0.532725) < 1e-3, f"got baseline {calib['baseline']} (default fallback?)"

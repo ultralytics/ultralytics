@@ -9,6 +9,7 @@ import torch
 
 from ultralytics.data.augment import Compose, Format
 from ultralytics.data.base import BaseDataset
+from ultralytics.data.stereo.calib import load_kitti_calibration
 from ultralytics.data.utils import load_dataset_cache_file, save_dataset_cache_file
 from ultralytics.models.yolo.s3d.augment import (
     StereoHFlip,
@@ -525,79 +526,11 @@ class Stereo3DDetDataset(BaseDataset):
         return label
 
     def _parse_calibration(self, calib_file: Path) -> dict[str, Any]:
-        """Parse calibration file into a structured dictionary.
+        """Parse a stereo calibration file into fx/fy/cx/cy/baseline/image_width/image_height.
 
-        Supports both original KITTI format (P0..P3, R0_rect, Tr_*) and the simplified converted
-        format (fx, fy, cx, cy, right_cx, right_cy, baseline, image_width, image_height).
+        Delegates to the shared dual-format loader (raw KITTI P-matrices or simplified fx/fy keys).
         """
-        with open(calib_file, "r") as f:
-            lines = f.readlines()
-
-        calib_dict: dict[str, Any] = {}
-        for line in lines:
-            line = line.strip()
-            if not line:
-                continue
-            parts = line.split(":")
-            if len(parts) != 2:
-                continue
-            key = parts[0].strip()
-            value_str = parts[1].strip()
-
-            if key in {"fx", "fy", "cx", "cy", "right_cx", "right_cy", "baseline"}:
-                try:
-                    calib_dict[key] = float(value_str)
-                except ValueError:
-                    continue
-                continue
-            if key in {"image_width", "image_height"}:
-                try:
-                    calib_dict[key] = int(float(value_str))
-                except ValueError:
-                    continue
-                continue
-
-            try:
-                values = [float(x) for x in value_str.split()]
-            except ValueError:
-                continue
-
-            if key == "P0":
-                calib_dict["P0"] = np.array(values).reshape(3, 4)
-            elif key == "P1":
-                calib_dict["P1"] = np.array(values).reshape(3, 4)
-            elif key == "P2":
-                calib_dict["P2"] = np.array(values).reshape(3, 4)
-            elif key == "P3":
-                calib_dict["P3"] = np.array(values).reshape(3, 4)
-            elif key == "R0_rect":
-                calib_dict["R0_rect"] = np.array(values).reshape(3, 3)
-            elif key == "Tr_velo_to_cam":
-                calib_dict["Tr_velo_to_cam"] = np.array(values).reshape(3, 4)
-            elif key == "Tr_imu_to_velo":
-                calib_dict["Tr_imu_to_velo"] = np.array(values).reshape(3, 4)
-
-        # Derive intrinsics from P2 if needed
-        if "P2" in calib_dict and not all(k in calib_dict for k in ("fx", "fy", "cx", "cy")):
-            P2 = calib_dict["P2"]
-            calib_dict["fx"] = P2[0, 0]
-            calib_dict["fy"] = P2[1, 1]
-            calib_dict["cx"] = P2[0, 2]
-            calib_dict["cy"] = P2[1, 2]
-
-        if "P3" in calib_dict and not all(k in calib_dict for k in ("right_cx", "right_cy")):
-            P3 = calib_dict["P3"]
-            calib_dict["right_cx"] = P3[0, 2]
-            calib_dict["right_cy"] = P3[1, 2]
-
-        if "P2" in calib_dict and "P3" in calib_dict and "fx" in calib_dict and "baseline" not in calib_dict:
-            P2 = calib_dict["P2"]
-            P3 = calib_dict["P3"]
-            fx = calib_dict["fx"]
-            baseline = (P2[0, 3] - P3[0, 3]) / fx
-            calib_dict["baseline"] = abs(baseline)
-
-        return calib_dict
+        return load_kitti_calibration(calib_file).to_dict()
 
     def _parse_labels(self, label_file: Path) -> list[dict[str, Any]]:
         """Parse YOLO 3D label file (18-value format, with backward-compat for legacy 26-value)."""

@@ -15,6 +15,7 @@ from ultralytics.engine.results import Results
 from ultralytics.models.yolo.detect import DetectionPredictor
 
 from ultralytics.models.yolo.s3d.preprocess import decode_and_refine_predictions, preprocess_stereo_images
+from ultralytics.utils import LOGGER
 from ultralytics.utils.checks import check_imgsz
 
 
@@ -125,15 +126,25 @@ class Stereo3DDetPredictor(DetectionPredictor):
             stereo_img = np.concatenate([left_img, right_img], axis=2)
             self.stereo_pairs.append((stereo_img, str(left_path)))
 
-            # Load calibration with fallback to defaults
-            calib_path = Path(left_path).parent / f"{Path(left_path).stem}.txt"
-            if not calib_path.exists():
-                calib_path = calib_path.parent / "calib.txt"
-            try:
-                calib = load_kitti_calibration(calib_path) if calib_path.exists() else None
-            except Exception:
-                calib = None
+            # Resolve the calibration file from the usual locations, including the dataset layout
+            # <root>/images/<split>/left/<stem>.png -> <root>/calib/<split>/<stem>.txt.
+            left = Path(left_path)
+            candidates = [left.with_suffix(".txt"), left.parent / "calib.txt"]
+            if left.parent.name == "left" and len(left.parents) >= 4:
+                candidates.append(left.parents[3] / "calib" / left.parents[1].name / f"{left.stem}.txt")
+            calib = None
+            for calib_path in candidates:
+                if calib_path.exists():
+                    try:
+                        calib = load_kitti_calibration(calib_path)
+                        break
+                    except Exception as exc:  # noqa: BLE001
+                        LOGGER.warning(f"Failed to parse calibration {calib_path}: {exc}")
             if calib is None:
+                LOGGER.warning(
+                    f"No calibration found for {left_path}; using default KITTI calibration — "
+                    f"3D predictions will be inaccurate for cameras with different intrinsics."
+                )
                 calib = CalibrationParameters(
                     fx=721.5377,
                     fy=721.5377,

@@ -25,10 +25,13 @@ Retrieval is a plain in-RAM matrix multiply, so a few hundred SKUs are trivial: 
 
 ## Setup
 
+The reid task and this example currently live on the `ultravit-reid` branch, not `main`, so clone that branch and install it from source (the published `ultralytics` package does not include the reid task yet):
+
 ```bash
-git clone https://github.com/ultralytics/ultralytics
-cd ultralytics/examples/YOLO-SKU-Recognition
-pip install ultralytics
+git clone -b ultravit-reid https://github.com/ultralytics/ultralytics
+cd ultralytics
+pip install -e .
+cd examples/YOLO-SKU-Recognition
 ```
 
 The example needs two model weights. Both default to published models on the [Ultralytics Platform](https://platform.ultralytics.com) that auto-download on first run, so you can try it with no weights of your own:
@@ -121,48 +124,25 @@ Exactly one of `--source` or `--crops` is required. Folders are expanded the sam
 
 ## On-device deployment (CoreML / TFLite)
 
-Both models export to CoreML and TFLite/LiteRT, so the whole detect, embed, and retrieve pipeline can run on a phone. The ReID model emits an L2-normalized `(1, 512)` embedding. Pass a local `.pt` or a `ul://` platform id:
+Both models export to CoreML and TFLite/LiteRT, so the whole detect, embed, and retrieve pipeline can run on a phone. The ReID model emits an L2-normalized `(1, 512)` embedding. Export FP16 with `quantize=16`, which halves the file over the FP32 default with essentially no accuracy loss (the FP16 embeddings match FP32 at cosine 0.9998):
 
 ```bash
 # CoreML for iOS. Use format=tflite for TFLite/LiteRT on Android.
-yolo export model=yolo26l-sku.pt format=coreml imgsz=640  # detector -> yolo26l-sku.mlpackage
-yolo export model=yolo26l-reid.pt format=coreml imgsz=256 # reid     -> yolo26l-reid.mlpackage
+yolo export model=yolo26l-sku.pt format=coreml imgsz=640 quantize=16  # detector -> yolo26l-sku.mlpackage
+yolo export model=yolo26l-reid.pt format=coreml imgsz=256 quantize=16 # reid     -> yolo26l-reid.mlpackage (~29 MB)
 ```
 
 CoreML export is lightweight, TFLite/LiteRT pulls a larger TensorFlow and ONNX toolchain on first export.
 
-On device only the models are heavy. The gallery, retrieval, and vote are a few lines of plain code. This Swift mirrors the Python `assign()`:
+[`sku_recognition.swift`](sku_recognition.swift) is a complete, runnable counterpart to the Python `--source` pipeline in one file. It runs the detector on a shelf photo and decodes YOLO26's end2end `[1, 300, 6]` output, so no NMS is needed. It then crops each product, embeds it with Vision (the model bakes in the `1/255` scale, and the `.centerCrop` option reproduces the reid resize), and assigns each crop against the folder-per-SKU gallery by the same top-k similarity-weighted vote, writing an annotated `<name>_sku.jpg`:
 
-```swift
-import Foundation
-
-/// In-memory reference gallery: one SKU label per L2-normalized (512) embedding from the ReID CoreML model.
-struct SKUGallery {
-    let labels: [String]
-    let embeddings: [[Float]]  // built once by running the ReID model over each reference crop
-
-    /// Assign an SKU to a query embedding by a top-k similarity-weighted vote.
-    func assign(_ query: [Float], topK: Int = 5, simThresh: Float = 0.5) -> (sku: String, confidence: Float) {
-        // cosine similarity == dot product, because every vector is already unit length
-        let scores = embeddings.map { dot($0, query) }
-        let neighbors = scores.indices.sorted { scores[$0] > scores[$1] }.prefix(topK)
-
-        var total = [String: Float](), count = [String: Int]()
-        for i in neighbors {
-            total[labels[i], default: 0] += scores[i]
-            count[labels[i], default: 0] += 1
-        }
-        guard let best = total.max(by: { $0.value < $1.value })?.key else { return ("unknown", 0) }
-        let confidence = total[best]! / Float(count[best]!)  // mean similarity of the winning SKU's neighbors
-        return (confidence >= simThresh ? best : "unknown", confidence)
-    }
-}
-
-/// Dot product. For large galleries use Accelerate's vDSP_dotpr instead of this loop.
-func dot(_ a: [Float], _ b: [Float]) -> Float { zip(a, b).reduce(0) { $0 + $1.0 * $1.1 } }
+```bash
+swift sku_recognition.swift yolo26l-sku.mlpackage yolo26l-reid.mlpackage gallery/ shelf.jpg
 ```
 
-Wire it up like the Python script: run the CoreML detector on the frame, crop each box, run the ReID model on each crop to get its `(512)` embedding, then call `gallery.assign(embedding)`. Adding an SKU is still just appending its reference embeddings to `labels` and `embeddings`, with no retraining.
+The sample runs on the Neural Engine via `MLModelConfiguration.computeUnits = .cpuAndNeuralEngine`, the Ultralytics iOS SDK default. See the [CoreML integration guide](https://docs.ultralytics.com/integrations/coreml/) for compute-unit and precision guidance.
+
+The CoreML path matches the server path: on a test shelf the detector reproduces the Python boxes (184 of 185 align at IoU above 0.5, the rest are FP16 threshold borderline cases) and the reid embeddings reproduce the Python reference at cosine 0.995 on a fixed-size input, picking the identical SKU on every crop we tested. Adding an SKU is still just appending its reference embeddings to `labels` and `embeddings`, with no retraining.
 
 ## Labeling Tip
 

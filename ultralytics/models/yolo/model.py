@@ -2,15 +2,14 @@
 
 from __future__ import annotations
 
-from collections.abc import Generator
 from pathlib import Path
-from typing import Any, Literal, overload
+from typing import Any
 
 import torch
 
+from ultralytics.cfg import get_cfg
 from ultralytics.data.build import load_inference_source
 from ultralytics.engine.model import Model
-from ultralytics.engine.results import Results
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import (
     ClassificationModel,
@@ -175,7 +174,7 @@ class YOLOWorld(Model):
         return {
             "detect": {
                 "model": WorldModel,
-                "validator": yolo.detect.DetectionValidator,
+                "validator": yolo.world.WorldValidator,
                 "predictor": yolo.detect.DetectionPredictor,
                 "trainer": yolo.world.WorldTrainer,
             }
@@ -261,7 +260,7 @@ class YOLOE(Model):
             },
         }
 
-    def get_text_pe(self, texts) -> torch.Tensor | None:
+    def get_text_pe(self, texts):
         """Get text positional embeddings for the given texts."""
         assert isinstance(self.model, YOLOEModel)
         return self.model.get_text_pe(texts)
@@ -308,7 +307,7 @@ class YOLOE(Model):
         assert isinstance(self.model, YOLOEModel)
         self.model.set_vocab(vocab, names=names)
 
-    def get_vocab(self, names) -> torch.nn.ModuleList:
+    def get_vocab(self, names):
         """Get vocabulary for the given class names."""
         assert isinstance(self.model, YOLOEModel)
         return self.model.get_vocab(names)
@@ -358,59 +357,15 @@ class YOLOE(Model):
         self.metrics = validator.metrics
         return validator.metrics
 
-    @overload
-    def predict(
-        self,
-        source: Any,
-        stream: Literal[True],
-        visual_prompts: dict[str, list] = {},
-        refer_image=None,
-        predictor=yolo.yoloe.YOLOEVPDetectPredictor,
-        **kwargs: Any,
-    ) -> Generator[Results, None, None]: ...
-
-    @overload
-    def predict(
-        self,
-        *,
-        stream: Literal[True],
-        visual_prompts: dict[str, list] = {},
-        refer_image=None,
-        predictor=yolo.yoloe.YOLOEVPDetectPredictor,
-        **kwargs: Any,
-    ) -> Generator[Results, None, None]: ...
-
-    @overload
-    def predict(
-        self,
-        source: Any = None,
-        stream: Literal[False] = False,
-        visual_prompts: dict[str, list] = {},
-        refer_image=None,
-        predictor=yolo.yoloe.YOLOEVPDetectPredictor,
-        **kwargs: Any,
-    ) -> list[Results]: ...
-
-    @overload
-    def predict(
-        self,
-        source: Any = None,
-        stream: bool = False,
-        visual_prompts: dict[str, list] = {},
-        refer_image=None,
-        predictor=yolo.yoloe.YOLOEVPDetectPredictor,
-        **kwargs: Any,
-    ) -> Generator[Results, None, None] | list[Results]: ...
-
     def predict(
         self,
         source=None,
         stream: bool = False,
-        visual_prompts: dict[str, list] = {},
+        visual_prompts: dict[str, list] | None = None,
         refer_image=None,
         predictor=yolo.yoloe.YOLOEVPDetectPredictor,
         **kwargs,
-    ) -> Generator[Results, None, None] | list[Results]:
+    ):
         """Run prediction on images, videos, directories, streams, etc.
 
         Args:
@@ -435,6 +390,7 @@ class YOLOE(Model):
             >>> prompts = {"bboxes": [[10, 20, 100, 200]], "cls": ["person"]}
             >>> results = model.predict("path/to/image.jpg", visual_prompts=prompts)
         """
+        visual_prompts = visual_prompts if visual_prompts is not None else {}
         if len(visual_prompts):
             assert "bboxes" in visual_prompts and "cls" in visual_prompts, (
                 f"Expected 'bboxes' and 'cls' in visual prompts, but got {visual_prompts.keys()}"
@@ -444,16 +400,17 @@ class YOLOE(Model):
                 f"{len(visual_prompts['cls'])} respectively"
             )
             if type(self.predictor) is not predictor:
+                args = get_cfg(overrides={**self.overrides, **kwargs})
                 self.predictor = predictor(
                     overrides={
                         "task": self.model.task,
                         "mode": "predict",
                         "save": False,
-                        "verbose": refer_image is None,
+                        "verbose": kwargs.get("verbose", self.overrides.get("verbose", refer_image is None)),
                         "batch": 1,
-                        "device": kwargs.get("device"),
-                        "half": kwargs.get("half", False),
-                        "imgsz": kwargs.get("imgsz", self.overrides.get("imgsz", 640)),
+                        "device": args.device,
+                        "quantize": args.quantize,
+                        "imgsz": args.imgsz,
                     },
                     _callbacks=self.callbacks,
                 )
@@ -466,7 +423,7 @@ class YOLOE(Model):
             self.model.model[-1].nc = num_cls
             self.model.names = [f"object{i}" for i in range(num_cls)]
             self.predictor.set_prompts(visual_prompts.copy())
-            self.predictor.setup_model(model=self.model)
+            self.predictor.setup_model(model=self.model, verbose=self.predictor.args.verbose)
 
             if refer_image is None and source is not None:
                 dataset = load_inference_source(source)

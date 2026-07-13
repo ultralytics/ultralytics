@@ -240,6 +240,7 @@ def test_checkpoint_drops_ema_criterion(tmp_path):
             "model": "yolo26n.yaml",
             "imgsz": 32,
             "epochs": 1,
+            "optimizer": "SGD",
             "workers": 0,
             "plots": False,
             "project": tmp_path,

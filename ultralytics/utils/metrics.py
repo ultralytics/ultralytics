@@ -1528,10 +1528,6 @@ class PoseMetrics(DetMetrics):
         """Return a list of curves for accessing specific metrics curves."""
         return [
             *DetMetrics.curves.fget(self),
-            "Precision-Recall(B)",
-            "F1-Confidence(B)",
-            "Precision-Confidence(B)",
-            "Recall-Confidence(B)",
             "Precision-Recall(P)",
             "F1-Confidence(P)",
             "Precision-Confidence(P)",

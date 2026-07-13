@@ -552,7 +552,7 @@ def check_det_dataset(dataset: str, autodownload: bool = True, split: str = "") 
                 LOGGER.info(f"Running {s} ...")
                 subprocess.run(s.split(), check=True)
             else:  # python script
-                exec(s, {"yaml": data})
+                exec(s, {"yaml": data, "split": split or "val"})
             dt = f"({round(time.time() - t, 1)}s)"
             s = f"success ✅ {dt}, saved to {colorstr('bold', DATASETS_DIR)}" if r in {0, None} else f"failure {dt} ❌"
             LOGGER.info(f"Dataset download {s}\n")

@@ -50,13 +50,19 @@ download: |
   from ultralytics.utils import ASSETS_URL
   from ultralytics.utils.downloads import download
 
+  if split == "test":
+      raise FileNotFoundError(
+          "coco-pose.yaml 'test:' images are not downloaded automatically: test2017 ground truth is withheld and "
+          "only used for the CodaLab test-dev split. Download manually: "
+          "http://images.cocodataset.org/zips/test2017.zip"
+      )
+
   # Download labels
   dir = Path(yaml["path"])  # dataset root dir
 
   urls = [f"{ASSETS_URL}/coco2017labels-pose.zip"]
   download(urls, dir=dir.parent)
-  # Download data (test2017.zip excluded: ground truth is withheld, only used for the CodaLab test-dev split;
-  # fetch it manually before running split=test on a directory that has never downloaded train/val images)
+  # Download data (test2017.zip excluded: ground truth is withheld, only used for the CodaLab test-dev split)
   urls = [
       "http://images.cocodataset.org/zips/train2017.zip",  # 19G, 118k images
       "http://images.cocodataset.org/zips/val2017.zip",  # 1G, 5k images

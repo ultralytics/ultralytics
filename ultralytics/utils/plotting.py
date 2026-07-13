@@ -184,27 +184,78 @@ class Colors:
 colors = Colors()  # create instance for 'from utils.plots import colors'
 
 
-def colorize_depth(depth: np.ndarray, vmin: float | None = None, vmax: float | None = None) -> np.ndarray:
-    """Map a (H, W) metric-depth array to a BGR uint8 INFERNO image, invalid (<= 0) pixels black.
+# Matplotlib Spectral_r anchors (RGB, far→near), baked into a 256-entry LUT so colorize_depth needs no
+# matplotlib import per call. This is the DepthAnything-style palette (near = warm) OpenCV lacks.
+_SPECTRAL_R_ANCHORS = np.array(
+    [
+        [94, 79, 162],
+        [51, 135, 188],
+        [102, 194, 165],
+        [170, 220, 164],
+        [230, 245, 152],
+        [255, 254, 190],
+        [254, 224, 139],
+        [253, 173, 96],
+        [244, 109, 67],
+        [212, 61, 79],
+        [158, 1, 66],
+    ],
+    dtype=np.float32,
+)
+
+
+def _spectral_lut() -> np.ndarray:
+    """Build the 256x1x3 BGR uint8 Spectral_r LUT for cv2.applyColorMap by linearly interpolating the anchors."""
+    xs = np.linspace(0.0, 10.0, 256)
+    i = np.clip(xs.astype(int), 0, 9)
+    f = (xs - i)[:, None]
+    rgb = _SPECTRAL_R_ANCHORS[i] * (1.0 - f) + _SPECTRAL_R_ANCHORS[i + 1] * f
+    return rgb.round().astype(np.uint8)[:, ::-1].reshape(256, 1, 3)  # RGB→BGR for cv2 convention
+
+
+_SPECTRAL_LUT = _spectral_lut()
+_DEPTH_CMAPS = {"inferno": cv2.COLORMAP_INFERNO, "jet": cv2.COLORMAP_JET, "spectral": None}
+
+
+def colorize_depth(
+    depth: np.ndarray,
+    vmin: float | None = None,
+    vmax: float | None = None,
+    cmap: str = "inferno",
+    mode: str = "metric",
+) -> np.ndarray:
+    """Map a (H, W) metric-depth array to a BGR uint8 colorized image, invalid (<= 0) pixels black.
 
     Args:
         depth (np.ndarray): (H, W) depth in meters.
-        vmin (float, optional): Lower bound of the color range; defaults to the valid-pixel minimum.
-        vmax (float, optional): Upper bound of the color range; defaults to the valid-pixel maximum.
+        vmin (float, optional): Lower bound of the color range; defaults to the valid-pixel minimum (metric mode)
+            or the 2nd disparity percentile (disparity mode).
+        vmax (float, optional): Upper bound of the color range; defaults to the valid-pixel maximum (metric mode)
+            or the 98th disparity percentile (disparity mode).
+        cmap (str): Colormap, one of "inferno", "jet", "spectral" (matplotlib Spectral_r, near = warm).
+        mode (str): "metric" normalizes depth linearly; "disparity" normalizes inverse depth (1/d) between the
+            2nd and 98th percentiles for the DepthAnything look (near objects warm, robust to far outliers).
 
     Returns:
         (np.ndarray): (H, W, 3) BGR uint8 colorized depth.
     """
     d = np.asarray(depth, dtype=np.float32)
     valid = d > 0
-    if vmin is None:
-        vmin = float(d[valid].min()) if valid.any() else 0.0
-    if vmax is None:
-        vmax = float(d[valid].max()) if valid.any() else 1.0
+    v = np.where(valid, 1.0 / np.where(valid, d, 1.0), 0.0) if mode == "disparity" else d
+    if vmin is None or vmax is None:
+        pool = v[valid]
+        if mode == "disparity":
+            lo, hi = np.percentile(pool, (2, 98)) if pool.size else (0.0, 1.0)
+        else:
+            lo, hi = (float(pool.min()), float(pool.max())) if pool.size else (0.0, 1.0)
+        vmin = lo if vmin is None else vmin
+        vmax = hi if vmax is None else vmax
     if vmax <= vmin:
         vmax = vmin + 1e-6
-    dn = np.clip((d - vmin) / (vmax - vmin), 0.0, 1.0)
-    color = cv2.applyColorMap((dn * 255).astype(np.uint8), cv2.COLORMAP_INFERNO)  # BGR
+    dn = np.clip((v - vmin) / (vmax - vmin), 0.0, 1.0)
+    idx = (dn * 255).astype(np.uint8)
+    lut = _SPECTRAL_LUT if cmap == "spectral" else None
+    color = cv2.applyColorMap(idx, lut) if lut is not None else cv2.applyColorMap(idx, _DEPTH_CMAPS[cmap])  # BGR
     color[~valid] = 0
     return color
 
@@ -475,18 +526,22 @@ class Annotator:
             # Convert im back to PIL and update draw
             self.fromarray(self.im)
 
-    def depth_map(self, depth, alpha: float = 0.6, side_by_side: bool = False):
-        """Render a colorized depth map (normalized min-max) for the image.
+    def depth_map(
+        self, depth, alpha: float = 0.6, side_by_side: bool = False, cmap: str = "inferno", mode: str = "metric"
+    ):
+        """Render a colorized depth map for the image.
 
         Args:
             depth (np.ndarray): (H, W) depth in meters.
             alpha (float): Blend factor for the heatmap overlay (ignored when side_by_side).
             side_by_side (bool): If True, place the colorized depth next to the image (image | depth) instead of
                 blending on top. Clearer for depth predictions.
+            cmap (str): Colormap, one of "inferno", "jet", "spectral". See `colorize_depth`.
+            mode (str): "metric" or "disparity" normalization. See `colorize_depth`.
         """
         if self.pil:
             self.im = np.asarray(self.im).copy()
-        heat = colorize_depth(depth)
+        heat = colorize_depth(depth, cmap=cmap, mode=mode)
         if heat.shape[:2] != self.im.shape[:2]:
             heat = cv2.resize(heat, (self.im.shape[1], self.im.shape[0]))
         self.im = np.hstack([self.im, heat]) if side_by_side else cv2.addWeighted(self.im, 1 - alpha, heat, alpha, 0)

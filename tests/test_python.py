@@ -533,11 +533,11 @@ def test_val_save_txt_pose(tmp_path):
 def test_metrics_curves_labels_match_results(metrics_class):
     """Check that curve labels and curve data series stay 1:1 for every metrics class.
 
-    utils/callbacks/wb.py::on_train_end logs W&B panels via zip(curves, curves_results), so each
-    label is the panel id for the data series it is paired with. A length mismatch silently drops or
-    mislabels curves (PoseMetrics returned 12 labels for 8 series, so pose curve data was logged
-    under box ids and the (P) panels were never created) and a duplicate label collides two series
-    into one panel. Run the real process() pipeline so curves_results is actually populated.
+    utils/callbacks/wb.py::on_train_end logs W&B panels via zip(curves, curves_results), so each label is the panel id
+    for the data series it is paired with. A length mismatch silently drops or mislabels curves (PoseMetrics returned 12
+    labels for 8 series, so pose curve data was logged under box ids and the (P) panels were never created) and a
+    duplicate label collides two series into one panel. Run the real process() pipeline so curves_results is actually
+    populated.
     """
     names = {0: "a", 1: "b"}
     m = metrics_class() if metrics_class is ClassifyMetrics else metrics_class(names=names)

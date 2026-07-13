@@ -85,13 +85,11 @@ Make sure you followed [YOLO26 Model Preparation](#yolo26-model-preparation) ste
 curl -L https://videos.pexels.com/video-files/1192116/1192116-sd_640_360_30fps.mp4 --output ~/intel/dlstreamer_demo/video1.mp4
 ```
 
-Run DL Streamer docker image in the interactive mode. 
+Run DL Streamer docker image in the interactive mode.
 
 !!! note
 
     This command is intended for systems equipped with Intel Core Ultra Series 3 processors with integrated GPU (iGPU) and NPU onboard.
-
-
 
 ```bash
 docker run -it --rm \

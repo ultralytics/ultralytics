@@ -208,7 +208,7 @@ CFG_FLOAT_KEYS = frozenset(
     }
 )
 CFG_FRACTION_KEYS = frozenset(
-    {  # fractional float arguments with 0.0<=values<=1.0
+    {  # fractional floats use [0.0, 1.0], except dataset fraction uses (0.0, 1.0]
         "dropout",
         "lr0",
         "lrf",
@@ -250,6 +250,13 @@ CFG_INT_KEYS = frozenset(
         "save_period",
     }
 )
+CFG_INT_MIN = {  # minimum valid values for integer arguments used as divisors, sizes or seeds
+    "nbs": 1,
+    "max_det": 1,
+    "mask_ratio": 1,
+    "vid_stride": 1,
+    "seed": 0,
+}
 CFG_BOOL_KEYS = frozenset(
     {  # boolean-only arguments
         "save",
@@ -394,9 +401,9 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
     Notes:
         - The function modifies the input dictionary in-place.
         - None values are ignored as they may be from optional arguments.
-        - Fraction keys are checked to be within the range [0.0, 1.0].
+        - Fraction keys use [0.0, 1.0], except dataset fraction, which uses (0.0, 1.0].
     """
-    typed_keys = CFG_FLOAT_KEYS | CFG_FRACTION_KEYS | CFG_INT_KEYS | CFG_BOOL_KEYS | {"scale"}
+    typed_keys = CFG_FLOAT_KEYS | CFG_FRACTION_KEYS | CFG_INT_KEYS | CFG_BOOL_KEYS | {"scale", "compile"}
     for k, v in cfg.items():
         if v is None and DEFAULT_CFG_DICT.get(k) is not None and k in typed_keys:
             raise TypeError(f"'{k}=None' is invalid. '{k}' must not be None.")
@@ -435,19 +442,29 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                             f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')"
                         )
                     cfg[k] = v = float(v)
-                if not (0.0 <= v <= 1.0):
-                    raise ValueError(f"'{k}={v}' is an invalid value. Valid '{k}' values are between 0.0 and 1.0.")
-            elif k in CFG_INT_KEYS and not isinstance(v, int):
-                if hard:
-                    raise TypeError(
-                        f"'{k}={v}' is of invalid type {type(v).__name__}. '{k}' must be an int (i.e. '{k}=8')"
-                    )
-                cfg[k] = int(v)
+                if not (0.0 <= v <= 1.0) or (k == "fraction" and v == 0.0):
+                    raise ValueError(f"'{k}={v}' is invalid. Use (0.0, 1.0] for fraction; [0.0, 1.0] otherwise.")
+            elif k in CFG_INT_KEYS:
+                if not isinstance(v, int):
+                    if hard:
+                        raise TypeError(
+                            f"'{k}={v}' is of invalid type {type(v).__name__}. '{k}' must be an int (i.e. '{k}=8')"
+                        )
+                    cfg[k] = v = int(v)
+                if k in CFG_INT_MIN and v < CFG_INT_MIN[k]:
+                    raise ValueError(f"'{k}={v}' is an invalid value. '{k}' must be >= {CFG_INT_MIN[k]}.")
             elif k in CFG_BOOL_KEYS and not isinstance(v, bool):
                 if hard:
                     raise TypeError(
                         f"'{k}={v}' is of invalid type {type(v).__name__}. "
                         f"'{k}' must be a bool (i.e. '{k}=True' or '{k}=False')"
+                    )
+                cfg[k] = bool(v)
+            elif k == "compile" and not isinstance(v, (bool, str)):  # False=off, True="default", or a mode string
+                if hard:
+                    raise TypeError(
+                        f"'{k}={v}' is of invalid type {type(v).__name__}. "
+                        f"'{k}' must be a bool or str (i.e. '{k}=True' or '{k}=max-autotune')"
                     )
                 cfg[k] = bool(v)
             elif k == "quantize":  # canonicalize 8/16/32 or w-notation to a scheme (unset stays None for FP32)

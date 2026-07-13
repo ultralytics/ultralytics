@@ -70,7 +70,7 @@ DOTA serves as a benchmark for training and evaluating models specifically tailo
 
 ## Dataset YAML
 
-A dataset YAML (Yet Another Markup Language) file specifies image/label roots, class names, and other important metadata. Ultralytics maintains official YAML files for the two most commonly used releases:
+A dataset YAML file specifies image/label roots, class names, and other important metadata. Ultralytics maintains official YAML files for the two most commonly used releases:
 
 - [`DOTAv1.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/DOTAv1.yaml)
 - [`DOTAv1.5.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/DOTAv1.5.yaml)

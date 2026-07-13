@@ -412,6 +412,36 @@ def test_track_second_association_low_conf_keeps_id(tracker_type):
     assert int(frame2[0, 4]) == tid, f"id switched on low-confidence frame: {tid} -> {int(frame2[0, 4])}\n{frame2}"
 
 
+@pytest.mark.parametrize("tracker_type", ["botsort", "deepocsort", "tracktrack"])
+def test_track_reid_auto_user_detections(tracker_type):
+    """Native ReID (model='auto') must degrade to motion-only with user-supplied detections, not encode the raw frame."""
+    from ultralytics.engine.results import Boxes
+    from ultralytics.trackers.track import TRACKER_MAP
+    from ultralytics.utils import ROOT, YAML, IterableSimpleNamespace
+
+    cfg = {**YAML.load(ROOT / f"cfg/trackers/{tracker_type}.yaml"), "with_reid": True, "model": "auto"}
+    tracker = TRACKER_MAP[tracker_type](IterableSimpleNamespace(**cfg))
+    img = np.full((640, 640, 3), 128, dtype=np.uint8)  # nonzero so bogus frame-derived features would not be dropped
+    data = torch.tensor([[10, 10, 50, 50, 0.9, 0], [200, 200, 260, 260, 0.9, 0]], dtype=torch.float32)
+    for _ in range(3):  # frame 2 used to crash in embedding_distance after storing image rows as track features
+        tracks = tracker.update(Boxes(data, (640, 640)), img)
+    assert len(tracks) == 2, f"native-ReID tracker must keep tracking without feats:\n{tracks}"
+
+
+def test_reid_invalid_crops():
+    """Test ReID skips out-of-bounds detection crops while preserving feature alignment."""
+    from types import SimpleNamespace
+
+    from ultralytics.trackers.utils.reid import ReID
+
+    encoder = ReID.__new__(ReID)
+    encoder.is_pt = True
+    encoder.model = SimpleNamespace(predictor=lambda crops: [torch.ones(4) for _ in crops])
+    img = np.full((640, 640, 3), 128, dtype=np.uint8)
+    feats = encoder(img, np.array([[30, 30, 40, 40], [1100, 1100, 200, 200]], dtype=np.float32))
+    assert feats[0] is not None and feats[1] is None
+
+
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.parametrize("model", MODELS)
 def test_track_stream(model, tmp_path):
@@ -667,6 +697,12 @@ def test_data_utils(tmp_path):
     autosplit(tmp_path / "coco8/images")
     assert any((tmp_path / "coco8").glob("autosplit_*.txt"))
     assert zip_directory(images_dir).is_file()
+    with pytest.raises(FileNotFoundError, match="'test:' images not found"):
+        check_det_dataset("coco8.yaml", split="test")
+    data_yaml = tmp_path / "coco8.yaml"
+    data_yaml.write_text("train: images/train\nval: images/val\ntest: images/test\nnames: [item]\n")
+    with pytest.raises(FileNotFoundError, match="images not found"):
+        check_det_dataset(data_yaml, split="test")
 
 
 def test_safe_download_unzips_local_path_archive(tmp_path):
@@ -877,6 +913,24 @@ def test_utils_torchutils():
     time_sync()
 
 
+@pytest.mark.parametrize("nc", [1, 3])
+def test_semantic_loss_all_ignore(nc):
+    """SemanticSegmentationLoss must stay finite when the whole batch is ignore (255), e.g. unlabeled/void frames."""
+    from ultralytics.cfg import get_cfg
+    from ultralytics.nn.tasks import SemanticSegmentationModel
+    from ultralytics.utils.loss import SemanticSegmentationLoss
+
+    model = SemanticSegmentationModel(cfg="yolo26-sem.yaml", nc=nc, verbose=False)
+    model.args = get_cfg()
+    loss_fn = SemanticSegmentationLoss(model)
+    preds = torch.randn(1, nc, 64, 64, requires_grad=True)
+    aux = torch.randn(1, nc, 32, 32, requires_grad=True)
+    loss, items = loss_fn((preds, aux), {"semantic_mask": torch.full((1, 64, 64), 255, dtype=torch.long)})
+    assert torch.isfinite(loss).all() and torch.isfinite(items).all()
+    loss.backward()
+    assert preds.grad is not None and aux.grad is not None
+
+
 def test_utils_ops():
     """Test utility operations for coordinate transformations and normalizations."""
     from ultralytics.utils.ops import (
@@ -908,6 +962,22 @@ def test_utils_ops():
 
     # segment2box must not drop a polygon lying on the left image edge (all x == 0) to a zero box
     assert segment2box(np.array([[0, 100], [0, 150], [0, 200]]), 640, 640).tolist() == [0, 100, 0, 200]
+
+    # segment2box must keep the visible extent when edge points shift out of frame after augmentation (issue #24935)
+    seg = np.array([[550.0, 100.0], [690.0, 100.0], [690.0, 200.0], [550.0, 200.0]])
+    assert segment2box(seg, 640, 640).tolist() == [550, 100, 640, 200]
+    seg = np.array([[-10.0, 100.0], [650.0, 100.0], [650.0, 200.0], [-10.0, 200.0]])
+    assert segment2box(seg, 640, 640).tolist() == [0, 100, 640, 200]
+    assert segment2box(np.array([[100.0, 100.0], [200.0, 100.0], [700.0, -100.0]]), 640, 640).tolist() == [
+        100,
+        0,
+        450,
+        100,
+    ]
+    assert segment2box(np.array([[700.0, 100.0], [750.0, 150.0]]), 640, 640).tolist() == [0, 0, 0, 0]
+    assert segment2box(np.empty((0, 2)), 640, 640).tolist() == [0, 0, 0, 0]
+    seg = np.array([[-100.0, -100.0], [740.0, -100.0], [740.0, 740.0], [-100.0, 740.0]])  # surrounds the image
+    assert segment2box(seg, 640, 640).tolist() == [0, 0, 640, 640]
 
 
 def test_nms_end2end_classes_before_max_det():

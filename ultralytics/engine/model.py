@@ -11,7 +11,7 @@ import numpy as np
 import torch
 from PIL import Image
 
-from ultralytics.cfg import TASK2DATA, get_cfg, get_save_dir
+from ultralytics.cfg import TASK2DATA, _handle_deprecation, get_cfg, get_save_dir
 from ultralytics.engine.results import Results
 from ultralytics.nn.tasks import guess_model_task, load_checkpoint, yaml_model_load
 from ultralytics.utils import (
@@ -707,6 +707,7 @@ class Model(torch.nn.Module):
         from .exporter import export_formats
 
         custom = {"verbose": False}  # method defaults
+        kwargs = _handle_deprecation(kwargs)  # forward legacy flags (e.g. half/int8 -> quantize) before merging
         args = {**DEFAULT_CFG_DICT, **self.model.args, **custom, **kwargs, "mode": "benchmark"}
         fmts = export_formats()
         export_args = set(dict(zip(fmts["Argument"], fmts["Arguments"])).get(format.lower(), [])) - {

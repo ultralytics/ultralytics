@@ -4,7 +4,7 @@ This example implements open-vocabulary retail SKU recognition by pairing an [Ul
 
 This is the practical alternative to a closed-set classifier when the catalog changes often (new products, seasonal items, near-identical package variants), which is common for retail shelf and cigarette-pack recognition.
 
-## 🧭 How It Works
+## How It Works
 
 ```
 shelf.jpg ─► [YOLO detector] ─► product boxes ─► crops ─┐
@@ -21,7 +21,7 @@ shelf.jpg ─► [YOLO detector] ─► product boxes ─► crops ─┐
 
 Retrieval is a plain in-RAM matrix multiply, so a few hundred SKUs are trivial: 400 SKUs x 20 reference crops x 512-d float32 is about 16 MB. No vector database is needed at this scale.
 
-## ⚙️ Setup
+## Setup
 
 ```bash
 git clone https://github.com/ultralytics/ultralytics
@@ -72,7 +72,7 @@ yolo reid train data=your-skus.yaml imgsz=256 \
 
 See the [custom ReID dataset guide](https://docs.ultralytics.com/guides/reid-custom-dataset/) for the folder-per-SKU dataset schema, and the [ReID fine-tuning guide](https://docs.ultralytics.com/guides/reid-finetuning/) for image-size and model-size guidance and mAP / Rank-1 evaluation. This example trains at `imgsz=256` to match the deployed RP2K seed and the on-device export, while the guides default to 448 for best standalone accuracy.
 
-## 🚀 Run
+## Run
 
 Arrange a gallery where each immediate subfolder is one SKU holding a handful of reference crops:
 
@@ -109,11 +109,11 @@ The script writes `shelf_sku.jpg` with each detected package boxed and labeled `
 | `--cache`      | `None`  | `.pt` gallery-embedding cache, reused when gallery/model/imgsz match |
 | `--device`     | `None`  | inference device, e.g. `0` or `cpu`                                  |
 
-## 🖼️ Building a gallery from RP2K
+## Building a gallery from RP2K
 
 [RP2K](https://www.pinlandata.com/rp2k_dataset) is a public retail-product dataset of about 384K **already-cropped** single-product images across roughly 2388 SKUs (folder-per-SKU). It has no bounding boxes, so it cannot train the detector, but it is ideal for the gallery and is what the published ReID weights were trained on. After downloading via the `rp2k-full-closedset.yaml` recipe, any subset of `datasets/rp2k_full_closedset/train/<sku>/` already has the folder-per-SKU layout this example expects, so you can point `--gallery` straight at it to prototype before collecting your own reference crops.
 
-## 📦 On-device deployment (CoreML / TFLite)
+## On-device deployment (CoreML / TFLite)
 
 Both models export to CoreML and TFLite/LiteRT, so the whole detect, embed, and retrieve pipeline can run on a phone. The ReID model emits an L2-normalized `(1, 512)` embedding. Pass a local `.pt` or a `ul://` platform id:
 
@@ -158,6 +158,6 @@ func dot(_ a: [Float], _ b: [Float]) -> Float { zip(a, b).reduce(0) { $0 + $1.0 
 
 Wire it up like the Python script: run the CoreML detector on the frame, crop each box, run the ReID model on each crop to get its `(512)` embedding, then call `gallery.assign(embedding)`. Adding an SKU is still just appending its reference embeddings to `labels` and `embeddings`, with no retraining.
 
-## 💡 Labeling Tip
+## Labeling Tip
 
 For both detector training and gallery crops, each box should contain a **single** package instance. A box that mixes two packages produces a blended embedding that hurts both detector recall and retrieval accuracy, which matters most for near-identical variants where small text or color differences carry the identity.

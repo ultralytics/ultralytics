@@ -540,8 +540,8 @@ def check_det_dataset(dataset: str, autodownload: bool = True, split: str = "") 
             # an existing manifest file is not proof the images it lists were ever downloaded
             for x in val:
                 if x.suffix == ".txt":
-                    line = next(iter(x.read_text().strip().splitlines()), "")
-                    img = x.parent / (line[2:] if line.startswith("./") else line)
+                    line = next(iter(x.read_text(encoding="utf-8").strip().splitlines()), "")
+                    img = Path(line.replace("./", f"{x.parent}{os.sep}", 1) if line.startswith("./") else line)
                     if line and not img.exists():
                         missing = img
                         break

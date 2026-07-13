@@ -45,6 +45,7 @@ kpt_names:
 
 # Download script/URL (optional)
 download: |
+  import os
   from pathlib import Path
 
   from ultralytics.utils import ASSETS_URL
@@ -57,8 +58,8 @@ download: |
   download(urls, dir=dir.parent)
 
   if split == "test":
-      line = next(iter((dir / "test-dev2017.txt").read_text().strip().splitlines()), "")
-      img = dir / (line[2:] if line.startswith("./") else line)
+      line = next(iter((dir / "test-dev2017.txt").read_text(encoding="utf-8").strip().splitlines()), "")
+      img = Path(line.replace("./", f"{dir}{os.sep}", 1) if line.startswith("./") else line)
       if not img.exists():
           raise FileNotFoundError(
               "coco-pose.yaml 'test:' images are not downloaded automatically: test2017 ground truth is withheld "

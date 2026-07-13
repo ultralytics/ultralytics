@@ -438,16 +438,18 @@ class BaseTrainer:
                     self.accumulate = max(1, int(np.interp(ni, xi, [1, self.args.nbs / self.batch_size]).round()))
                     for x in self.optimizer.param_groups:
                         # Bias lr falls from 0.1 to lr0, all other lrs rise from 0.0 to lr0
-                        x["lr"] = np.interp(
-                            ni,
-                            xi,
-                            [
-                                self.args.warmup_bias_lr if x.get("param_group") == "bias" else 0.0,
-                                x["initial_lr"] * self.lf(epoch),
-                            ],
+                        x["lr"] = float(
+                            np.interp(
+                                ni,
+                                xi,
+                                [
+                                    self.args.warmup_bias_lr if x.get("param_group") == "bias" else 0.0,
+                                    x["initial_lr"] * self.lf(epoch),
+                                ],
+                            )
                         )
                         if "momentum" in x:
-                            x["momentum"] = np.interp(ni, xi, [self.args.warmup_momentum, self.args.momentum])
+                            x["momentum"] = float(np.interp(ni, xi, [self.args.warmup_momentum, self.args.momentum]))
 
                 # Forward
                 try:
@@ -673,6 +675,8 @@ class BaseTrainer:
                 if isinstance(v, torch.Tensor) and not torch.isfinite(v).all() and torch.isfinite(model_sd[k]).all():
                     v.copy_(model_sd[k])
         ema = deepcopy(ema).half()
+        if hasattr(ema, "criterion"):
+            ema.criterion = None  # strip training-only state from the serialization snapshot
         # Clamp fp16 serialization overflow without mutating the live EMA.
         for v in ema.state_dict().values():
             if isinstance(v, torch.Tensor) and v.is_floating_point():

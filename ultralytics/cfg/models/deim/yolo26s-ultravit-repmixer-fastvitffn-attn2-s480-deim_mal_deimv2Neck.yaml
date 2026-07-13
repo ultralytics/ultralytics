@@ -1,0 +1,109 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Small FastViT-FFN plus Attn2 DEIM model matching the tested Lane A s480 backbone.
+# It caps P5 at 480 channels and uses the validated P1 and P2 repeat pattern.
+# Model docs: https://docs.ultralytics.com/models/rtdetr
+# Task docs: https://docs.ultralytics.com/tasks/detect
+
+nc: 80 # number of classes
+end2end: True # whether to use end-to-end mode
+reg_max: 1 # DFL bins
+scales: # model compound scaling constants
+  # [depth, width, max_channels]
+  s: [0.20, 0.50, 960]
+
+# RepMixer FastViT-FFN stages 1-3 + Attn2 stage 4, strides 4/8/16/32
+backbone:
+  # [from, repeats, module, args]
+  - [-1, 1, Conv, [64, 3, 2]] # 0 P1/2 stem
+  - [-1, 1, Conv, [96, 3, 2]] # 1 P2/4 stem
+  - [-1, 4, RepUltraViTBlock, [3, True, 0.00001, True]] # 2 stage1 P2/4
+  - [-1, 1, Conv, [192, 3, 2]] # 3 P3/8 downsample
+  - [-1, 8, RepUltraViTBlock, [3, True, 0.00001, True]] # 4 stage2 P3/8 feature
+  - [-1, 1, Conv, [384, 3, 2]] # 5 P4/16 downsample
+  - [-1, 20, RepUltraViTBlock, [3, True, 0.00001, True]] # 6 stage3 P4/16 feature
+  - [-1, 1, Conv, [1152, 3, 2]] # 7 P5/32 downsample
+  - [-1, 8, MHSABlock, [0, 4, True, 0.00001, True, 32]] # 8 stage4 P5/32 feature
+
+head:
+  # DEIMv2-X HybridEncoder neck from deim_dinov3splus_sta_l6_xl.yaml.
+  # Backbone P3/P4/P5 features are projected from layers 4/6/8.
+  - [8, 1, Conv, [256, 1, 1, None, 1, 1, False]] # 9 input_proj.2
+  - [-1, 1, AIFI, [1024, 8]]
+  - [-1, 1, Conv, [256, 1, 1, None, 1, 1, False]] # 11 Y5, lateral_convs.0
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [6, 1, Conv, [256, 1, 1, None, 1, 1, False]] # 13 input_proj.1
+  - [[-2, -1], 1, Add, []]
+  - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]] # 15 fpn_blocks.0
+  - [-1, 1, Conv, [256, 1, 1, None, 1, 1, False]] # 16 Y4, lateral_convs.1
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [4, 1, Conv, [256, 1, 1, None, 1, 1, False]] # 18 input_proj.0
+  - [[-2, -1], 1, Add, []]
+  - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]] # 20 X3, fpn_blocks.1
+
+  - [-1, 1, SCDown, [256, 3, 2, False]] # 21 downsample_convs.0
+  - [[-1, 16], 1, Add, []]
+  - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]] # 23 F4, pan_blocks.0
+
+  - [-1, 1, SCDown, [256, 3, 2, False]] # 24 downsample_convs.1
+  - [[-1, 11], 1, Add, []]
+  - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]] # 26 F5, pan_blocks.1
+
+  # Args: [nc, hd, nq, ndp, nh, ndl, d_ffn, dropout, act, eval_idx, nd, label_noise_ratio, box_noise_scale,
+  #        learnt_init_query, enable_cuda_acceleration, one_to_many_groups, dab_sine_embedding,
+  #        efficient_msdeformable_attn, query_select_method, reg_max, reg_scale, layer_scale, mlp_act,
+  #        o2m_topk_mode, use_gateway, share_bbox_head, share_score_head]
+  - [
+      [20, 23, 26],
+      1,
+      DeimDecoder,
+      [
+        nc,
+        256,
+        300,
+        [3, 6, 3],
+        8,
+        6,
+        2048,
+        0.0,
+        "silu",
+        -1,
+        100,
+        0.5,
+        1.0,
+        False,
+        False,
+        0,
+        False,
+        False,
+        "default",
+        32,
+        4.0,
+        1.0,
+        "silu",
+        "unshared",
+        True,
+        False,
+        False,
+      ],
+    ]
+
+loss:
+  gamma: 1.5
+  alpha: 0.75
+  use_fl: False
+  use_vfl: False
+  use_mal: True
+  use_union_set: True
+  reg_max: 32
+  loss_gain: { class: 1, bbox: 5, giou: 2, fgl: 0.15, ddf: 1.5 }
+  matcher:
+    cost_gain: { class: 2, bbox: 5, giou: 2 }
+    use_fl: True
+    alpha: 0.25
+    gamma: 2.0
+    change_matcher: True
+    iou_order_alpha: 4.0
+    matcher_change_epoch: 45

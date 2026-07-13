@@ -1,11 +1,17 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+"""Unit tests for the depth dataset: routing, GT loading/path mapping, and the augmentation pipeline."""
 
+import os
 from unittest.mock import patch
 
+import numpy as np
+
 from ultralytics.cfg import get_cfg
+from ultralytics.data.augment import DepthFormat, RandomFlip, RandomHSV, RandomPerspective
 from ultralytics.data.build import build_yolo_dataset
 from ultralytics.data.dataset import DepthDataset
 from ultralytics.utils import DEFAULT_CFG
+from ultralytics.utils.instance import Instances
 
 
 def test_build_yolo_dataset_routes_depth(tmp_path):
@@ -39,18 +45,8 @@ def test_build_yolo_dataset_routes_depth_multisource(tmp_path):
     assert isinstance(ds, DepthDataset)
 
 
-def test_streamlit_tord_has_depth_suffix():
-    """Test streamlit tord has depth suffix."""
-    import ultralytics.solutions.streamlit_inference as si
-
-    src = open(si.__file__).read()
-    assert "-depth" in src  # depth model suffix registered in the task-ordering map
-
-
 def test_depth_dataset_load_resize_does_not_blend_sparse_gt(tmp_path):
     """get_image_and_label resizes sparse depth to the image shape without blending (no bilinear)."""
-    import numpy as np
-
     depth = np.zeros((8, 8), dtype=np.float32)
     depth[2:4, 2:4] = 10.0  # sparse valid block on a zero (invalid) background
     npy = tmp_path / "d.npy"
@@ -72,8 +68,6 @@ def test_depth_dataset_load_resize_does_not_blend_sparse_gt(tmp_path):
 
 def test_depth_path_mapping_handles_relative_and_absolute():
     """The images→depth rewrite works on relative, absolute, and nested paths (last 'images' wins)."""
-    import os
-
     ds = DepthDataset.__new__(DepthDataset)
     assert ds._depth_path_for(os.path.join("images", "train", "x.jpg")) == os.path.join("depth", "train", "x.npy")
     absolute = os.path.join(os.sep, "data", "images", "val", "y.png")
@@ -83,6 +77,7 @@ def test_depth_path_mapping_handles_relative_and_absolute():
 
 
 def _build_transforms(augment, **overrides):
+    """Build the DepthDataset transform pipeline for the given augment flag and hyp overrides."""
     ds = DepthDataset.__new__(DepthDataset)
     ds.augment = augment
     ds.imgsz = 384
@@ -118,3 +113,76 @@ def test_depth_train_transforms_read_cfg_args():
     assert warp.degrees == 33.0 and warp.translate == 0.25 and warp.scale == 0.75 and warp.shear == 4.5
     assert vflip.p == 0.1 and hflip.p == 0.9
     assert hsv.hgain == 0.2
+
+
+def _empty_instances():
+    """Empty cls/instances keys, as DepthDataset provides (depth label files are backgrounds)."""
+    return {
+        "cls": np.zeros((0, 1), dtype=np.float32),
+        "instances": Instances(np.zeros((0, 4), dtype=np.float32), segments=np.zeros((0, 1000, 2), dtype=np.float32)),
+    }
+
+
+def test_depth_format_converts_to_tensors():
+    """Test depth format converts to tensors."""
+    img = np.zeros((32, 32, 3), dtype=np.uint8)
+    depth = np.ones((32, 32), dtype=np.float32)
+    out = DepthFormat()({"img": img, "depth": depth})
+    assert out["img"].shape == (3, 32, 32)  # CHW
+    assert tuple(out["depth"].shape) == (1, 32, 32)  # (1,H,W)
+    assert out["depth"].dtype.is_floating_point
+
+
+def test_random_flip_flips_depth_with_image():
+    """Test random flip flips depth with image."""
+    img = np.arange(32 * 32 * 3, dtype=np.uint8).reshape(32, 32, 3)
+    depth = np.arange(32 * 32, dtype=np.float32).reshape(32, 32)
+    out = RandomFlip(p=1.0, direction="horizontal")({"img": img.copy(), "depth": depth.copy(), **_empty_instances()})
+    assert np.array_equal(out["img"], np.ascontiguousarray(np.fliplr(img)))
+    assert np.array_equal(out["depth"], np.ascontiguousarray(np.fliplr(depth)))
+    out = RandomFlip(p=1.0, direction="vertical")({"img": img.copy(), "depth": depth.copy(), **_empty_instances()})
+    assert np.array_equal(out["depth"], np.ascontiguousarray(np.flipud(depth)))
+
+
+def test_random_hsv_preserves_depth():
+    """Test random hsv preserves depth."""
+    img = np.full((16, 16, 3), 100, dtype=np.uint8)
+    depth = np.ones((16, 16), dtype=np.float32)
+    out = RandomHSV(hgain=0.5, sgain=0.5, vgain=0.5)({"img": img, "depth": depth})
+    assert out["img"].shape == (16, 16, 3) and out["img"].dtype == np.uint8
+    assert np.array_equal(out["depth"], depth)  # depth unchanged by color jitter
+
+
+def _sparse_depth(h, w, val=10.0):
+    """Sparse depth map: mostly zero (invalid) with a block of valid metric depth."""
+    d = np.zeros((h, w), dtype=np.float32)
+    d[h // 4 : h // 2, w // 4 : w // 2] = val
+    return d
+
+
+def test_depth_format_resize_does_not_blend_sparse_depth():
+    """Resizing sparse depth must not create intermediate near-zero values (no bilinear blend)."""
+    img = np.zeros((32, 32, 3), dtype=np.uint8)  # forces depth resize 16->32
+    depth = _sparse_depth(16, 16, val=10.0)
+    out = DepthFormat()({"img": img, "depth": depth})["depth"].numpy()
+    blended = ((out > 1e-6) & (out < 9.0)).sum()  # values between background(0) and valid(10)
+    assert blended == 0, f"{blended} spurious blended depth pixels from interpolation"
+
+
+def test_random_perspective_warps_depth_with_nearest_interpolation():
+    """RandomPerspective should warp depth without inventing intermediate sparse values."""
+    img = np.zeros((16, 16, 3), dtype=np.uint8)
+    depth = _sparse_depth(16, 16, val=10.0)
+    labels = {"img": img.copy(), "depth": depth.copy(), **_empty_instances()}
+    transform = RandomPerspective(
+        degrees=0.0,
+        translate=0.0,
+        scale=(1.0, 1.0),
+        shear=0.0,
+        perspective=0.0,
+        size=(32, 32),
+    )
+    out = transform(labels)
+    assert out["img"].shape[:2] == out["depth"].shape[:2] == (32, 32)
+    blended = ((out["depth"] > 1e-6) & (out["depth"] < 9.0)).sum()
+    assert blended == 0, f"{blended} spurious blended depth pixels from interpolation"

@@ -228,13 +228,13 @@ def colorize_depth(
 
     Args:
         depth (np.ndarray): (H, W) depth in meters.
-        vmin (float, optional): Lower bound of the color range; defaults to the valid-pixel minimum (metric mode)
-            or the 2nd disparity percentile (disparity mode).
-        vmax (float, optional): Upper bound of the color range; defaults to the valid-pixel maximum (metric mode)
-            or the 98th disparity percentile (disparity mode).
+        vmin (float, optional): Lower bound of the color range; defaults to the valid-pixel minimum (metric mode) or the
+            2nd disparity percentile (disparity mode).
+        vmax (float, optional): Upper bound of the color range; defaults to the valid-pixel maximum (metric mode) or the
+            98th disparity percentile (disparity mode).
         cmap (str): Colormap, one of "inferno", "jet", "spectral" (matplotlib Spectral_r, near = warm).
-        mode (str): "metric" normalizes depth linearly; "disparity" normalizes inverse depth (1/d) between the
-            2nd and 98th percentiles for the DepthAnything look (near objects warm, robust to far outliers).
+        mode (str): "metric" normalizes depth linearly; "disparity" normalizes inverse depth (1/d) between the 2nd and
+            98th percentiles for the DepthAnything look (near objects warm, robust to far outliers).
 
     Returns:
         (np.ndarray): (H, W, 3) BGR uint8 colorized depth.

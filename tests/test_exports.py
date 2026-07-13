@@ -325,6 +325,18 @@ def test_export_onnx_semantic_dnn():
     Path(file).unlink()
 
 
+def test_export_onnx_depth_output_names_and_dynamic_dims():
+    """Depth ONNX export emits a single 'depth' output with dynamic batch/height/width; nms=True is forced off."""
+    import onnx
+
+    file = YOLO("ultralytics/cfg/models/26/yolo26-depth.yaml").export(format="onnx", imgsz=128, dynamic=True, nms=True)
+    model = onnx.load(file)
+    assert [o.name for o in model.graph.output] == ["depth"]
+    dims = model.graph.output[0].type.tensor_type.shape.dim
+    assert any(d.dim_param for d in dims)  # at least one symbolic (dynamic) dim
+    Path(file).unlink()
+
+
 @pytest.mark.slow
 @pytest.mark.parametrize(
     "task, dynamic, batch, nms, end2end",
@@ -527,6 +539,12 @@ def test_export_imx():
     model = YOLO("yolo11n.pt")  # IMX export only supports YOLO11
     file = model.export(format="imx", imgsz=32, data="coco8.yaml")
     YOLO(file)(SOURCE, imgsz=32)
+
+
+def test_export_imx_rejects_depth():
+    """IMX export is not supported for depth models and must fail fast."""
+    with pytest.raises(ValueError, match="IMX"):
+        YOLO("ultralytics/cfg/models/26/yolo26-depth.yaml").export(format="imx", imgsz=128)
 
 
 @pytest.mark.slow

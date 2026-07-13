@@ -6,6 +6,8 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
+import cv2
+import numpy as np
 import pytest
 import torch
 
@@ -17,7 +19,7 @@ from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models.yolo import classify, detect, obb, pose, segment, semantic
 from ultralytics.nn.distill_model import DistillationModel
 from ultralytics.nn.tasks import DetectionModel, load_checkpoint
-from ultralytics.utils import ASSETS, DEFAULT_CFG, IS_RASPBERRYPI, WEIGHTS_DIR
+from ultralytics.utils import ASSETS, DEFAULT_CFG, IS_JETSON, IS_RASPBERRYPI, WEIGHTS_DIR, YAML
 from ultralytics.utils.torch_utils import unwrap_model
 
 
@@ -122,6 +124,43 @@ def test_task(trainer_cls, validator_cls, predictor_cls, data, model, weights):
     # Test resume functionality
     with pytest.raises(AssertionError):
         trainer_cls(overrides={**overrides, "resume": trainer.last}).train()
+
+
+def _make_depth_dataset(root):
+    """Build a tiny hermetic depth dataset under *root* and return the YAML path.
+
+    Layout mirrors what DepthDataset expects:
+        <root>/images/<split>/*.jpg   — RGB images
+        <root>/depth/<split>/*.npy    — float32 (H, W) depth maps
+
+    DepthDataset._depth_path_for() maps image → depth paths by renaming the last 'images' path component to 'depth' and
+    swapping the suffix to .npy, so basenames must match exactly.
+    """
+    root = Path(root)
+    for split in ("train", "val"):
+        (root / "images" / split).mkdir(parents=True, exist_ok=True)
+        (root / "depth" / split).mkdir(parents=True, exist_ok=True)
+        for i in range(4):
+            img = (np.random.rand(64, 64, 3) * 255).astype("uint8")
+            cv2.imwrite(str(root / "images" / split / f"{i}.jpg"), img)
+            np.save(root / "depth" / split / f"{i}.npy", (np.random.rand(64, 64) * 10).astype("float32"))
+
+    yaml_path = root / "depth8.yaml"
+    YAML.save(
+        yaml_path, {"path": str(root), "train": "images/train", "val": "images/val", "nc": 1, "names": {0: "depth"}}
+    )
+    return str(yaml_path)
+
+
+@pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
+def test_depth_engine_cycle(tmp_path):
+    """Test depth estimation train / val / predict cycle using a hermetic synthetic dataset."""
+    data = _make_depth_dataset(tmp_path)
+    m = YOLO("ultralytics/cfg/models/26/yolo26-depth.yaml")
+    m.train(data=data, epochs=1, imgsz=32, batch=2, device="cpu", cache=False, plots=False, workers=0)
+    m.val(data=data, imgsz=32, batch=2, device="cpu", plots=False)
+    r = m.predict(str(tmp_path / "images" / "val" / "0.jpg"), imgsz=32, device="cpu")
+    assert r[0].depth is not None, "predict() should return a result with a depth map"
 
 
 @pytest.mark.parametrize("task,weight,data", TASK_MODEL_DATA)

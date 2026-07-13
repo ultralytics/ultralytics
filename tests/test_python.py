@@ -42,7 +42,7 @@ from ultralytics.utils import (
     is_github_action_running,
 )
 from ultralytics.utils.downloads import download, safe_download
-from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13
+from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13, TORCH_2_0
 
 
 def test_dataloader_caps_workers_to_batches():
@@ -80,6 +80,55 @@ def test_dataloader_empty_dataset_uses_dataloader_validation():
     """Test empty datasets fail through DataLoader validation instead of worker-cap math."""
     with pytest.raises(ValueError, match="positive integer"):
         build_dataloader([], batch=4, workers=2)
+
+
+class _ZerosDataset(torch.utils.data.Dataset):
+    """Minimal dataset for InfiniteDataLoader worker-shutdown tests."""
+
+    def __len__(self):
+        return 64
+
+    def __getitem__(self, i):
+        return torch.zeros(4)
+
+
+def _live_workers(dl):
+    """Return the loader's persistent-iterator workers that are still alive."""
+    return [w for w in getattr(dl.iterator, "_workers", []) if w.is_alive()]
+
+
+@pytest.mark.skipif(not TORCH_2_0, reason="torch<2.0 dataloader workers segfault in this synthetic harness")
+def test_dataloader_close_drains_workers():
+    """close() joins all persistent-iterator workers so none are alive (or registered) at exit.
+
+    At interpreter exit, multiprocessing's _exit_function SIGTERMs any still-alive daemon child; torch's SIGCHLD
+    watchdog then raises "DataLoader worker (pid N) is killed by signal: Terminated" for workers that were never
+    unregistered — the noisy end-of-training atexit traceback. close() drains the persistent iterator gracefully,
+    leaving nothing for multiprocessing to SIGTERM.
+    """
+    dl = data_build.InfiniteDataLoader(_ZerosDataset(), batch_size=4, num_workers=2, shuffle=False)
+    for _ in zip(range(2), dl):  # partial epoch: persistent iterator keeps workers alive, prefetching
+        pass
+    assert _live_workers(dl)
+    dl.close()
+    assert not _live_workers(dl)
+    dl.close()  # idempotent: second call must not raise on an already-drained iterator
+
+
+@pytest.mark.skipif(not TORCH_2_0, reason="torch<2.0 dataloader workers segfault in this synthetic harness")
+def test_dataloader_reset_shuts_down_previous_worker_generation():
+    """reset() drains the old iterator's workers deterministically and the loader stays usable."""
+    dl = data_build.InfiniteDataLoader(_ZerosDataset(), batch_size=4, num_workers=2, shuffle=False)
+    for _ in zip(range(2), dl):
+        pass
+    old = list(dl.iterator._workers)
+    dl.reset()
+    for w in old:
+        w.join(timeout=10)
+    assert not any(w.is_alive() for w in old)
+    for _ in zip(range(2), dl):  # new iterator works after reset
+        pass
+    dl.close()
 
 
 def test_cfg_rejects_fuzzed_scalars():
@@ -660,6 +709,77 @@ def test_results_plot_without_boxes():
         assert r.plot(color_mode=color_mode).shape == orig_img.shape
 
 
+def test_results_depth_field():
+    """A depth array becomes a DepthMap that survives the .cpu().numpy() chain."""
+    from ultralytics.engine.results import DepthMap, Results
+
+    img = np.zeros((20, 24, 3), dtype=np.uint8)
+    depth = np.random.rand(20, 24).astype(np.float32)
+    r = Results(orig_img=img, path="x.jpg", names={0: "depth"}, depth=depth)
+    assert isinstance(r.depth, DepthMap)
+    assert r.depth.data.shape == (20, 24)
+    rc = r.cpu().numpy()  # exercises BaseTensor _keys plumbing (.cpu()/.numpy())
+    assert rc.depth is not None
+    assert rc.depth.data.shape == (20, 24)  # shape survives the .cpu().numpy() chain
+
+
+def test_results_depth_none_summary_len_and_update():
+    """Depth-only Results: None passthrough, empty summary, __len__ counts the map, update() wraps arrays."""
+    from ultralytics.engine.results import DepthMap, Results
+
+    img = np.zeros((8, 8, 3), dtype=np.uint8)
+    assert Results(orig_img=img, path="x.jpg", names={}, depth=None).depth is None
+    r = Results(orig_img=img, path="x.jpg", names={0: "depth"}, depth=np.ones((8, 8), dtype=np.float32))
+    assert r.summary() == []  # depth-only Results has no per-instance summary
+    assert len(r) == 1  # __len__ returns the depth map count
+    r = Results(orig_img=img, path="x.jpg", names={0: "depth"})
+    r.update(depth=np.ones((8, 8), dtype=np.float32))
+    assert isinstance(r.depth, DepthMap)
+
+
+def test_depth_predictor_postprocess_sets_depthmap():
+    """DepthPredictor.postprocess wraps raw predictions into a DepthMap resized to the original image."""
+    from ultralytics.engine.results import DepthMap
+    from ultralytics.models.yolo.depth.predict import DepthPredictor
+
+    p = DepthPredictor.__new__(DepthPredictor)  # bypass __init__
+    p.batch = None
+
+    class _M:  # minimal stand-in for self.model
+        names = {0: "depth"}
+
+    p.model = _M()
+    img = torch.zeros(1, 3, 32, 32)
+    orig = np.zeros((40, 48, 3), dtype=np.uint8)
+    preds = torch.rand(1, 1, 32, 32)
+    res = p.postprocess(preds, img, [orig])
+    assert isinstance(res[0].depth, DepthMap)
+    assert res[0].depth.data.shape == (40, 48)  # resized to original image size
+
+
+def test_results_plot_with_depth():
+    """Results.plot() with a depth map places RGB and colorized depth side-by-side (width doubled)."""
+    from ultralytics.engine.results import Results
+
+    img = np.zeros((24, 24, 3), dtype=np.uint8)
+    depth = np.random.rand(24, 24).astype(np.float32)
+    r = Results(orig_img=img, path="x.jpg", names={0: "depth"}, depth=depth)
+    out = r.plot()  # must not raise; returns an annotated image (masks=True by default)
+    assert out.shape[:2] == (24, 48)  # RGB + colorized depth placed side-by-side (width doubled)
+
+
+def test_annotator_depth_map():
+    """Annotator.depth_map colorizes a depth array, including the all-zero (no valid pixels) case."""
+    from ultralytics.utils.plotting import Annotator
+
+    ann = Annotator(np.zeros((32, 32, 3), dtype=np.uint8))
+    ann.depth_map(np.random.rand(32, 32).astype(np.float32))
+    assert ann.result().shape == (32, 32, 3)
+    ann = Annotator(np.zeros((16, 16, 3), dtype=np.uint8))
+    ann.depth_map(np.zeros((16, 16), dtype=np.float32))  # no valid pixels → must not divide-by-zero
+    assert ann.result().shape == (16, 16, 3)
+
+
 def test_labels_and_crops():
     """Test output from prediction args for saving YOLO detection labels and crops."""
     imgs = [SOURCE, ASSETS / "zidane.jpg"]
@@ -850,6 +970,51 @@ def test_cfg_init():
     assert smart_value("zipfile.Path") == "zipfile.Path"
 
 
+def test_cfg_depth_task_registered():
+    """Depth is registered in the task tables with the documented data/metric/model defaults."""
+    from ultralytics.cfg import TASK2CALIBRATIONDATA, TASK2DATA, TASK2METRIC, TASK2MODEL, TASKS
+
+    assert "depth" in TASKS
+    assert TASK2DATA["depth"] == "nyu-depth.yaml"
+    assert TASK2CALIBRATIONDATA["depth"] == "nyu-depth.yaml"
+    assert TASK2METRIC["depth"] == "metrics/delta1"
+    assert TASK2MODEL["depth"] == "yolo26n-depth.pt"
+
+
+def test_cfg_depth_hyperparameter_defaults():
+    """Depth loss/calibration knobs are real cfg args with the documented defaults."""
+    args = get_cfg()
+    assert args.silog == 1.0
+    assert args.silog_grad == 0.5
+    assert args.silog_lambda == 0.5
+    assert args.silog_l1 == 0.0
+    assert args.dist_pw == 0.0
+    assert args.cal_dist_pw == 0.0
+    assert args.auto_calibrate is True
+
+
+def test_cfg_depth_hyp_recipe_yaml_reproduces_release_training():
+    """depth-hyp.yaml resolves by name, contains only valid cfg args, and carries the release recipe."""
+    recipe = YAML.load(checks.check_yaml("depth-hyp.yaml"))
+    args = get_cfg(overrides=recipe)  # raises on any key not in default.yaml
+    assert (args.degrees, args.translate, args.scale, args.shear) == (8.0, 0.08, 0.15, 2.0)
+    assert (args.fliplr, args.flipud, args.perspective) == (0.5, 0.0, 0.0)
+    assert (args.hsv_h, args.hsv_s, args.hsv_v) == (0.05, 0.3, 0.3)
+
+
+def test_no_depth_env_reads_in_source():
+    """All DEPTH_* knobs are cfg args now; no os.environ reads of them may remain."""
+    import re
+
+    offenders = []
+    pattern = re.compile(r"(environ|getenv).*DEPTH_|DEPTH_.*(environ|getenv)")
+    for path in ROOT.rglob("*.py"):
+        for i, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+            if pattern.search(line):
+                offenders.append(f"{path.relative_to(ROOT)}:{i}: {line.strip()}")
+    assert not offenders, "Found DEPTH_* env reads:\n" + "\n".join(offenders)
+
+
 def test_utils_init():
     """Test initialization utilities in the Ultralytics library."""
     from ultralytics.utils import get_ubuntu_version, is_github_action_running
@@ -933,6 +1098,141 @@ def test_semantic_loss_all_ignore(nc):
     assert torch.isfinite(loss).all() and torch.isfinite(items).all()
     loss.backward()
     assert preds.grad is not None and aux.grad is not None
+
+
+class _DepthLossModel(torch.nn.Module):
+    """Tiny stub mirroring a real YOLO model's surface for v8DepthLoss: .parameters(), .args, and a .model Sequential
+    whose last module is the "head" (no max_depth -> log-mode/unbounded). Detect/depth losses both read the head via
+    model.model[-1] (see v8DetectionLoss), so the stub must expose it too.
+    """
+
+    def __init__(self, **over):
+        super().__init__()
+        from types import SimpleNamespace
+
+        self.p = torch.nn.Parameter(torch.zeros(1))
+        hyp = dict(
+            silog=1.0,
+            silog_grad=0.5,
+            silog_lambda=0.5,
+            silog_l1=0.0,
+            dist_pw=0.0,
+            silog_grad_scales=4,
+            silog_grad_min_valid=0.5,
+            silog_trim=0.0,
+        )
+        hyp.update(over)
+        self.args = SimpleNamespace(**hyp)
+        self.model = torch.nn.Sequential(torch.nn.Identity())
+
+
+def _depth_loss_for_scaled_pred(lam, scale, l1=0.0):
+    """Return the silog-only depth loss for a prediction with perfect structure but wrong global scale."""
+    from ultralytics.utils.loss import v8DepthLoss
+
+    crit = v8DepthLoss(_DepthLossModel(silog_lambda=lam, silog_l1=l1, silog_grad=0.0))  # silog only
+    gt = torch.rand(2, 1, 16, 16) * 5 + 1.0
+    pred = (gt * scale).clone().requires_grad_(True)
+    total, _ = crit({"depth": pred}, {"depth": gt})
+    return float(total.sum().detach())
+
+
+def test_depth_loss_lower_lambda_penalizes_scale_error_more():
+    """A globally scale-shifted prediction is ~free under scale-invariant silog (lambda=1) but must be heavily penalized
+    as lambda drops (loss becomes scale-dependent).
+    """
+    loss_invariant = _depth_loss_for_scaled_pred(lam=1.0, scale=2.0)
+    loss_anchored = _depth_loss_for_scaled_pred(lam=0.15, scale=2.0)
+    assert loss_invariant < 0.05
+    assert loss_anchored > 5 * max(loss_invariant, 1e-6)
+
+
+def test_depth_loss_l1_weight_adds_scale_penalty():
+    """The scale-anchored L1 term penalizes a scale shift even when silog is scale-invariant."""
+    no_l1 = _depth_loss_for_scaled_pred(lam=1.0, scale=2.0, l1=0.0)
+    with_l1 = _depth_loss_for_scaled_pred(lam=1.0, scale=2.0, l1=1.0)
+    assert with_l1 > no_l1 + 0.1
+
+
+def test_depth_loss_grad_scales_1_matches_single_scale():
+    """silog_grad_scales=1 must reproduce the original single-scale gradient loss byte-for-byte."""
+    import torch.nn.functional as F
+
+    from ultralytics.utils.loss import v8DepthLoss
+
+    torch.manual_seed(0)
+    gt = torch.rand(2, 1, 16, 16) * 5 + 1.0
+    pred = (gt + 0.3 * torch.randn(2, 1, 16, 16)).clamp(min=0.1)
+    crit = v8DepthLoss(_DepthLossModel(silog=0.0, silog_grad=1.0, silog_grad_scales=1))
+    total, _ = crit({"depth": pred}, {"depth": gt})
+
+    pl, gl = torch.log(pred.clamp(min=0.001)), torch.log(gt.clamp(min=0.001))
+    ref = F.l1_loss(pl[:, :, :, 1:] - pl[:, :, :, :-1], gl[:, :, :, 1:] - gl[:, :, :, :-1])
+    ref = ref + F.l1_loss(pl[:, :, 1:, :] - pl[:, :, :-1, :], gl[:, :, 1:, :] - gl[:, :, :-1, :])
+    assert abs(float(total.sum()) - float(ref) * pred.shape[0]) < 1e-5
+
+
+def test_depth_loss_multiscale_grad_adds_coarse_levels():
+    """silog_grad_scales>1 sums non-negative coarse-level terms, so it exceeds the single-scale loss whenever the
+    prediction mismatches GT at coarse scales (generic random case).
+    """
+    from ultralytics.utils.loss import v8DepthLoss
+
+    torch.manual_seed(1)
+    gt = torch.rand(2, 1, 32, 32) * 5 + 1.0
+    pred = (gt + 0.5 * torch.randn(2, 1, 32, 32)).clamp(min=0.1)
+    single, _ = v8DepthLoss(_DepthLossModel(silog=0.0, silog_grad=1.0, silog_grad_scales=1))(
+        {"depth": pred}, {"depth": gt}
+    )
+    multi, _ = v8DepthLoss(_DepthLossModel(silog=0.0, silog_grad=1.0, silog_grad_scales=4))(
+        {"depth": pred}, {"depth": gt}
+    )
+    assert float(multi.sum()) > float(single.sum()) + 1e-4
+
+
+def test_depth_loss_sparsity_guard_collapses_multiscale_on_sparse_gt():
+    """On sparse GT (valid fraction < silog_grad_min_valid), multi-scale must self-disable and match single-scale — the
+    guard blocks unreliable coarse gradients (the KITTI failure mode).
+    """
+    from ultralytics.utils.loss import v8DepthLoss
+
+    torch.manual_seed(3)
+    gt = torch.zeros(1, 1, 32, 32)
+    mask = torch.rand(1, 1, 32, 32) < 0.15  # ~15% valid, below the 0.5 threshold
+    gt[mask] = torch.rand(int(mask.sum())) * 5 + 1.0
+    pred = torch.rand(1, 1, 32, 32) * 5 + 1.0
+    single, _ = v8DepthLoss(_DepthLossModel(silog=0.0, silog_grad=1.0, silog_grad_scales=1))(
+        {"depth": pred}, {"depth": gt}
+    )
+    multi, _ = v8DepthLoss(_DepthLossModel(silog=0.0, silog_grad=1.0, silog_grad_scales=4))(
+        {"depth": pred}, {"depth": gt}
+    )
+    assert abs(float(single.sum()) - float(multi.sum())) < 1e-6  # guard collapsed ms to single-scale
+
+
+def test_depth_loss_trim_pct_0_is_no_op():
+    """silog_trim=0.0 leaves the SILog term unchanged (regression against pre-trim behavior)."""
+    from ultralytics.utils.loss import v8DepthLoss
+
+    torch.manual_seed(2)
+    gt = torch.rand(1, 1, 16, 16) * 5 + 1.0
+    pred = (gt + 0.2 * torch.randn(1, 1, 16, 16)).clamp(min=0.1)
+    a, _ = v8DepthLoss(_DepthLossModel(silog_grad=0.0, silog_trim=0.0))({"depth": pred}, {"depth": gt})
+    b, _ = v8DepthLoss(_DepthLossModel(silog_grad=0.0))({"depth": pred}, {"depth": gt})  # default trim 0.0
+    assert abs(float(a.sum()) - float(b.sum())) < 1e-6
+
+
+def test_depth_loss_trimming_drops_outliers():
+    """A handful of gross-error pixels blow up scale-invariant SILog; trimming removes them."""
+    from ultralytics.utils.loss import v8DepthLoss
+
+    gt = torch.full((1, 1, 16, 16), 2.0)
+    pred = gt.clone()
+    pred[0, 0, 0, :5] = 20.0  # 5 / 256 ≈ 2% gross outliers
+    no_trim, _ = v8DepthLoss(_DepthLossModel(silog_grad=0.0, silog_trim=0.0))({"depth": pred}, {"depth": gt})
+    with_trim, _ = v8DepthLoss(_DepthLossModel(silog_grad=0.0, silog_trim=0.05))({"depth": pred}, {"depth": gt})
+    assert float(no_trim.sum()) > 0.1
+    assert float(with_trim.sum()) < 0.01
 
 
 def test_utils_ops():
@@ -1084,6 +1384,42 @@ def test_nn_modules_block():
     C3TR(c1, c2)(x)
     C3Ghost(c1, c2)(x)
     BottleneckCSP(c1, c2)(x)
+
+
+def _depth_head_feats():
+    """Return a small Depth head constructor kwargs-matched P3/P4/P5 feature pyramid."""
+    return [torch.randn(1, 32, 32, 32), torch.randn(1, 64, 16, 16), torch.randn(1, 128, 8, 8)]
+
+
+def test_nn_depth_head_export_upsamples_to_input():
+    """In export mode (onnx/coreml) the Depth head upsamples x4 from P2 back to the input resolution."""
+    from ultralytics.nn.modules.head import Depth
+
+    head = Depth(c_mid=32, ch=(32, 64, 128)).eval()
+    for fmt in ("onnx", "coreml"):
+        head.export, head.format = True, fmt
+        assert head(_depth_head_feats()).shape[-2:] == (256, 256)
+    head.export = False
+    assert head(_depth_head_feats()).shape[-2:] != (256, 256)  # inference returns native head resolution
+
+
+def test_nn_depth_head_training_returns_dict():
+    """In training mode the Depth head returns a dict with the raw depth map."""
+    from ultralytics.nn.modules.head import Depth
+
+    head = Depth(c_mid=32, ch=(32, 64, 128)).train()
+    out = head(_depth_head_feats())
+    assert isinstance(out, dict) and "depth" in out
+
+
+def test_nn_depth_head_no_dead_parameters():
+    """Every head parameter receives gradient — DDP then needs no find_unused_parameters."""
+    from ultralytics.nn.modules.head import Depth
+
+    head = Depth(c_mid=32, ch=(32, 64, 128)).train()
+    head(_depth_head_feats())["depth"].sum().backward()
+    unused = [n for n, p in head.named_parameters() if p.grad is None]
+    assert not unused, f"parameters with no gradient: {unused}"
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")

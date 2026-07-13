@@ -270,7 +270,7 @@ def sample_mutation(rng, uni, chaos=False):
         key = rng.choice(uni[f"{family}_keys"])
         pool = PROBES[family]
     value = rng.choice(pool["valid"] + pool["invalid"] + (CHAOS_PROBES if chaos else []))
-    return key, value, value in pool["valid"]
+    return key, value, value in pool["valid"] and not (key == "fraction" and value == "0.0")
 
 
 def run_trial(trial, timeout=None):

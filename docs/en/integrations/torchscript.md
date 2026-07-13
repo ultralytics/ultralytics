@@ -11,7 +11,7 @@ keywords: YOLO26, TorchScript, model export, Ultralytics, PyTorch, deep learning
 
     PyTorch has [deprecated TorchScript](https://docs.pytorch.org/docs/stable/jit.html) and is gradually removing its features. For new mobile and edge deployments, use the supported [ExecuTorch integration](executorch.md). Ultralytics retains regular TorchScript export for legacy C++ compatibility.
 
-Deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models across different environments, including embedded systems, web browsers, or platforms with limited Python support, requires a flexible and portable solution. TorchScript focuses on portability and the ability to run models in environments where the entire Python framework is unavailable. This makes it ideal for scenarios where you need to deploy your computer vision capabilities across various devices or platforms.
+Deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models in C++ environments without Python requires a portable serialized representation. TorchScript provides that compatibility for legacy LibTorch applications.
 
 Export to TorchScript to serialize your [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) models for cross-platform compatibility and streamlined deployment. In this guide, we'll show you how to export your YOLO26 models to the TorchScript format, making it easier for you to use them across a wider range of applications.
 
@@ -40,8 +40,6 @@ Here are the key features that make TorchScript a valuable tool for developers:
 - **Model Serialization**: TorchScript allows you to serialize PyTorch models into a platform-independent format. Serialized models can be loaded without requiring the original Python code, enabling deployment in different runtime environments.
 
 - **JIT Compilation**: TorchScript uses Just-In-Time (JIT) compilation to convert PyTorch models into an optimized intermediate representation. JIT compiles the model's computational graph, enabling efficient execution on target devices.
-
-- **Cross-Language Integration**: With TorchScript, you can export PyTorch models to other languages such as C++, Java, and JavaScript. This makes it easier to integrate PyTorch models into existing software systems written in different languages.
 
 - **Gradual Conversion**: TorchScript provides a gradual conversion approach, allowing you to incrementally convert parts of your PyTorch model into TorchScript. This flexibility is particularly useful when dealing with complex models or when you want to optimize specific portions of the code.
 

@@ -129,7 +129,7 @@ This section outlines the datasets that are compatible with Ultralytics YOLO for
 - **Number of Classes**: 1 (dog).
 - **Keypoints**: 24 keypoints, each with a visibility dimension, tailored to dog poses such as limbs, joints, and head positions.
 - **Usage**: Ideal for training models to estimate dog poses in various scenarios, from research to [real-world applications](https://www.ultralytics.com/blog/custom-training-ultralytics-yolo11-for-dog-pose-estimation).
-- **Additional Notes**: Images and annotations are sourced from the [Stanford Dogs Dataset](http://vision.stanford.edu/aditya86/ImageNetDogs/).
+- **Additional Notes**: Source images are drawn from the [Stanford Dogs Dataset](http://vision.stanford.edu/aditya86/ImageNetDogs/).
 - [Read more about Dog-Pose](dog-pose.md)
 
 ### Hand Keypoints

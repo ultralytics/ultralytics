@@ -1,4 +1,5 @@
 ---
+title: COCO8-Grayscale Detection Dataset
 comments: true
 description: Explore the Ultralytics COCO8-Grayscale dataset, a versatile and manageable set of 8 images perfect for testing object detection models and training pipelines.
 keywords: COCO8-Grayscale, Ultralytics, dataset, object detection, YOLO26, training, validation, machine learning, computer vision
@@ -18,14 +19,28 @@ The [Ultralytics](https://www.ultralytics.com/) COCO8-Grayscale dataset is a com
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Train Ultralytics YOLO26 on Grayscale Datasets 🚀
+  <strong>Watch:</strong> How to Train Ultralytics YOLO on Grayscale and Multispectral Datasets | Multi-Channel VisionAI 🚀
 </p>
 
-COCO8-Grayscale is fully compatible with [Ultralytics Platform](https://platform.ultralytics.com/) and [YOLO26](../../models/yolo26.md), enabling seamless integration into your computer vision workflows.
+## Dataset Structure
+
+COCO8-Grayscale mirrors [COCO8](coco8.md)—the first 8 images from the COCO train 2017 set, split into 4 for training and 4 for validation across all 80 COCO object classes—but each image is stored as a single-channel (`channels: 1`) grayscale image in [YOLO label format](../index.md):
+
+```
+coco8-grayscale/
+├── images/
+│   ├── train/   # 4 images
+│   └── val/     # 4 images
+└── labels/
+    ├── train/
+    └── val/
+```
+
+Explore [COCO8-Grayscale on Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/coco8-grayscale) to browse every image with its annotation overlays, view the class distribution and bounding-box heatmaps in the **Charts** tab, and clone it to train your own model in the cloud.
 
 ## Dataset YAML
 
-The COCO8-Grayscale dataset configuration is defined in a YAML (Yet Another Markup Language) file, which specifies dataset paths, class names, and other essential metadata. You can review the official `coco8-grayscale.yaml` file in the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8-grayscale.yaml).
+The COCO8-Grayscale dataset configuration is defined in a YAML file, which specifies dataset paths, class names, and other essential metadata. You can review the official `coco8-grayscale.yaml` file in the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8-grayscale.yaml).
 
 !!! note
 
@@ -39,7 +54,7 @@ The COCO8-Grayscale dataset configuration is defined in a YAML (Yet Another Mark
 
 ## Usage
 
-To train a YOLO26n model on the COCO8-Grayscale dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following examples. For a full list of training options, see the [YOLO Training documentation](../../modes/train.md).
+The COCO8-Grayscale dataset (1 MB) downloads automatically the first time you start training. To train a YOLO26n model on COCO8-Grayscale for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following examples. For a full list of training options, see the [YOLO Training documentation](../../modes/train.md).
 
 !!! example "Train Example"
 
@@ -124,10 +139,6 @@ You can train a YOLO26 model on COCO8-Grayscale using either Python or the CLI:
         ```
 
 For additional training options, refer to the [YOLO Training documentation](../../modes/train.md).
-
-### Why Should I Use Ultralytics Platform for Managing My COCO8-Grayscale Training?
-
-[Ultralytics Platform](https://platform.ultralytics.com/) streamlines dataset management, training, and deployment for [YOLO](../../models/yolo26.md) models—including COCO8-Grayscale. With features like cloud training, real-time monitoring, and intuitive dataset handling, HUB enables you to launch experiments with a single click and eliminates manual setup hassles. Learn more about [Ultralytics Platform](https://platform.ultralytics.com/) and how it can accelerate your computer vision projects.
 
 ### What Are the Benefits of Using Mosaic Augmentation in Training With the COCO8-Grayscale Dataset?
 

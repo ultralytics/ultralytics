@@ -100,13 +100,16 @@ class ObjectCounter(BaseSolution):
 
         elif len(self.region) > 2:  # Polygonal region
             if self.r_s.contains(self.Point(current_centroid)):
-                # Determine motion direction for vertical or horizontal polygons
-                region_width = max(p[0] for p in self.region) - min(p[0] for p in self.region)
-                region_height = max(p[1] for p in self.region) - min(p[1] for p in self.region)
-
-                if (region_width < region_height and current_centroid[0] > prev_position[0]) or (
-                    region_width >= region_height and current_centroid[1] > prev_position[1]
-                ):  # Moving right or downward
+                # Judge direction by the object's dominant motion axis over its recent track, not by the
+                # region's shape; a ~5-frame baseline is robust to tracker jitter where a 1-frame delta is not.
+                # The baseline is the oldest recent point OUTSIDE the region, so the entry vector is not
+                # polluted by an uncounted first frame that spawned inside (quick exit and re-entry).
+                window = self.track_history[track_id][-5:] or [prev_position]
+                baseline = next((p for p in window if not self.r_s.contains(self.Point(p))), window[0])
+                dx = current_centroid[0] - baseline[0]
+                dy = current_centroid[1] - baseline[1]
+                moving_in = dx > 0 if abs(dx) > abs(dy) else dy > 0  # moving right or downward
+                if moving_in:
                     self.in_count += 1
                     self.classwise_count[self.names[cls]]["IN"] += 1
                 else:  # Moving left or upward

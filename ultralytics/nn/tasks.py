@@ -183,7 +183,7 @@ class BaseModel(torch.nn.Module):
             (torch.Tensor): The last output of the model.
         """
         y, dt, embeddings = [], [], []  # outputs
-        embed = frozenset(embed) if embed is not None else {-1}
+        embed = frozenset(embed) if embed else {-1}
         max_idx = max(embed)
         for m in self.model:
             if m.f != -1:  # if not from previous layer
@@ -316,9 +316,13 @@ class BaseModel(torch.nn.Module):
         """
         model = weights["model"] if isinstance(weights, dict) else weights  # torchvision models are not dicts
         csd = model.float().state_dict()  # checkpoint state_dict as FP32
+
+        # Remap classification head rows by class-name when nc differs (e.g. Obj365 -> COCO fine-tune)
+        cls_remapped = self._remap_cls_by_names(csd, model, verbose=verbose)
+
         updated_csd = intersect_dicts(csd, self.state_dict())  # intersect
         self.load_state_dict(updated_csd, strict=False)  # load
-        len_updated_csd = len(updated_csd)
+        len_updated_csd = len(updated_csd) + cls_remapped
         first_conv = "model.0.conv.weight"  # hard-coded to yolo models for now
         # mostly used to boost multi-channel training
         state_dict = self.state_dict()
@@ -331,6 +335,68 @@ class BaseModel(torch.nn.Module):
                 len_updated_csd += 1
         if verbose:
             LOGGER.info(f"Transferred {len_updated_csd}/{len(self.model.state_dict())} items from pretrained weights")
+
+    def _remap_cls_by_names(self, csd, src_model, verbose=True):
+        """Remap pretrained classification head rows to current class order by name.
+
+        Copies rows from pretrained cls layers into the current model's state_dict where the destination class name
+        matches a source class name (case-insensitive, whitespace-stripped). Useful when fine-tuning across datasets
+        with overlapping classes, whether the class counts differ (e.g. Objects365 -> COCO) or match but the class
+        order differs. Mutates the destination tensors in-place via state_dict references; matched cls tensors are
+        removed from `csd` so the subsequent intersect_dicts skips them.
+
+        Args:
+            csd (dict): Pretrained checkpoint state_dict (will be mutated).
+            src_model (torch.nn.Module): Pretrained module, used to read `.names` and `.nc`.
+            verbose (bool): Log mapping summary.
+
+        Returns:
+            (int): Number of cls tensors remapped (counted toward "Transferred" log line).
+        """
+        src_names = getattr(src_model, "names", None)
+        tgt_names = getattr(self, "names", None)
+        if not (isinstance(src_names, dict) and isinstance(tgt_names, dict)):
+            return 0
+        src_nc, tgt_nc = len(src_names), len(tgt_names)
+
+        def _norm(s):
+            return str(s).strip().lower()
+
+        # Skip default placeholder names {0:"0", 1:"1", ...} (also catches empty dicts) — nothing to match on
+        if any(all(str(k) == str(v) for k, v in n.items()) for n in (src_names, tgt_names)):
+            return 0
+
+        src_lookup = {_norm(v): k for k, v in src_names.items()}
+        idx = torch.tensor([src_lookup.get(_norm(tgt_names.get(k)), -1) for k in range(tgt_nc)], dtype=torch.long)
+        n_match = int((idx >= 0).sum())
+        # Skip if nothing matches, or class names already share order and count (intersect_dicts copies directly)
+        if n_match == 0 or (src_nc == tgt_nc and torch.equal(idx, torch.arange(tgt_nc))):
+            return 0
+
+        valid = idx >= 0
+        state_dict = self.state_dict()
+        # Exact class-logit conv weight/bias keys from the detection head(s) — restricting to these avoids
+        # class-ordering tensors that merely share the nc dimension (backbone blocks, box/mask/pose branches).
+        cls_keys = {
+            f"{name}.{attr}.{i}.{len(seq) - 1}.{p}"
+            for name, m in self.named_modules()
+            if isinstance(m, Detect)
+            for attr in ("cv3", "one2one_cv3")
+            for i, seq in enumerate(getattr(m, attr, ()))
+            if getattr(seq[-1], "out_channels", None) == tgt_nc
+            for p in ("weight", "bias")
+        }
+        remapped = 0
+        for k in cls_keys & csd.keys():
+            v_src, v_tgt = csd[k], state_dict[k]
+            if v_src.shape[1:] != v_tgt.shape[1:]:  # cls-conv weight input width (c3) differs across nc; copy bias only
+                continue
+            v_tgt[valid] = v_src[idx[valid]].to(v_tgt.dtype)
+            csd.pop(k)  # prevent intersect_dicts from copying these rows in the wrong (source) order
+            remapped += 1
+        if verbose and remapped:
+            LOGGER.info(f"Remapped {n_match}/{tgt_nc} cls head rows from pretrained weights by class name")
+        return remapped
 
     def loss(self, batch, preds=None):
         """Compute loss.
@@ -704,7 +770,8 @@ class PoseModel(DetectionModel):
 
     def init_criterion(self):
         """Initialize the loss criterion for the PoseModel."""
-        return E2ELoss(self, PoseLoss26) if getattr(self, "end2end", False) else v8PoseLoss(self)
+        loss = PoseLoss26 if self.end2end or isinstance(self.model[-1], Pose26) else v8PoseLoss
+        return E2ELoss(self, loss) if self.end2end else loss(self)
 
 
 class ClassificationModel(BaseModel):
@@ -915,7 +982,7 @@ class RTDETRDetectionModel(DetectionModel):
             (torch.Tensor): Model's output tensor.
         """
         y, dt, embeddings = [], [], []  # outputs
-        embed = frozenset(embed) if embed is not None else {-1}
+        embed = frozenset(embed) if embed else {-1}
         max_idx = max(embed)
         for m in self.model[:-1]:  # except the head part
             if m.f != -1:  # if not from previous layer
@@ -1025,7 +1092,7 @@ class WorldModel(DetectionModel):
             txt_feats = txt_feats.expand(x.shape[0], -1, -1)
         ori_txt_feats = txt_feats.clone()
         y, dt, embeddings = [], [], []  # outputs
-        embed = frozenset(embed) if embed is not None else {-1}
+        embed = frozenset(embed) if embed else {-1}
         max_idx = max(embed)
         for m in self.model:  # except the head part
             if m.f != -1:  # if not from previous layer
@@ -1265,7 +1332,7 @@ class YOLOEModel(DetectionModel):
         """
         y, dt, embeddings = [], [], []  # outputs
         b = x.shape[0]
-        embed = frozenset(embed) if embed is not None else {-1}
+        embed = frozenset(embed) if embed else {-1}
         max_idx = max(embed)
         for m in self.model:  # except the head part
             if m.f != -1:  # if not from previous layer
@@ -1622,7 +1689,6 @@ def torch_safe_load(weight, safe_only=None):
     if safe_only is None:
         safe_only = SAFE_LOAD
     if safe_only and not _SafeLoad.SUPPORTED:
-        LOGGER.warning("Restricted model loading requires torch>=2.5; loading without restriction.")
         safe_only = False
     check_suffix(file=weight, suffix=".pt")
     file = attempt_download_asset(weight)  # search online if missing locally

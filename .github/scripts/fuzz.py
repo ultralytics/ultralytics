@@ -135,7 +135,6 @@ COMBO_POOL = [
     ("export", "dynamic=True"),
     ("export", "nms=True"),
     ("export", "simplify=False"),
-    ("export", "optimize=True"),
     ("export", "opset=12"),
     ("export", "quantize=fp16"),
     ("export", "end2end=True max_det=10"),

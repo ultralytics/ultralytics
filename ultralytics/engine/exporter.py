@@ -135,7 +135,7 @@ def export_formats():
             ".torchscript",
             True,
             True,
-            ["batch", "optimize", "quantize", "nms", "dynamic"],
+            ["batch", "quantize", "nms", "dynamic"],
             "base",
         ],
         [
@@ -386,7 +386,7 @@ def validate_args(format, passed_args, valid_args):
     Raises:
         AssertionError: If an unsupported argument is used, or if the format lacks supported argument listings.
     """
-    export_args = ["dynamic", "keras", "nms", "batch", "fraction", "data"]
+    export_args = ["dynamic", "keras", "nms", "batch", "fraction", "data", "optimize"]
 
     assert valid_args is not None, f"ERROR ❌️ valid arguments for '{format}' not listed."
     custom = {"batch": 1, "data": None, "device": None}  # exporter defaults
@@ -614,9 +614,6 @@ class Exporter:
         self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size
         if fmt == "axelera" and min(self.imgsz) < 64:
             raise ValueError(f"Axelera export requires imgsz>=64, but got imgsz={self.imgsz}.")
-        if self.args.optimize:
-            assert fmt != "ncnn", "optimize=True not compatible with format='ncnn', i.e. use optimize=False"
-            assert self.device.type == "cpu", "optimize=True not compatible with cuda devices, i.e. use device='cpu'"
         if fmt == "rknn":
             if not self.args.name:
                 LOGGER.warning(
@@ -889,7 +886,6 @@ class Exporter:
             model=NMSModel(self.model, self.args) if self.args.nms else self.model,
             im=self.im,
             output_file=self.file.with_suffix(".torchscript"),
-            optimize=self.args.optimize,
             metadata=self.metadata,
             prefix=prefix,
         )

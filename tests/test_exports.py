@@ -52,7 +52,7 @@ def skip_rpi_semantic(task):
 @pytest.mark.parametrize("end2end", [False, True])
 def test_export_torchscript(end2end, isolated_model):
     """Test YOLO model export to TorchScript format for compatibility and correctness."""
-    file = YOLO(isolated_model).export(format="torchscript", optimize=False, imgsz=32, end2end=end2end)
+    file = YOLO(isolated_model).export(format="torchscript", imgsz=32, end2end=end2end)
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 

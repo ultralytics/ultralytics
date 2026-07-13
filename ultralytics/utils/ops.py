@@ -614,7 +614,7 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize: bool
     if ratio_pad is None:  # calculate from img0_shape
         img1_h, img1_w = img1_shape[:2]  # supports both HWC or HW shapes
         gain = min(img1_h / img0_h, img1_w / img0_w)  # gain  = old / new
-        pad = (img1_w - round(img0_w * gain)) / 2, (img1_h - round(img0_h * gain)) / 2  # wh padding
+        pad = round((img1_w - round(img0_w * gain)) / 2 - 0.1), round((img1_h - round(img0_h * gain)) / 2 - 0.1)
     else:
         gain = ratio_pad[0][0]
         pad = ratio_pad[1]

@@ -1034,6 +1034,29 @@ def test_process_mask_empty():
     assert ops.scale_masks(torch.zeros(1, 0, 160, 160), (640, 640)).shape == (1, 0, 640, 640)
 
 
+def test_scale_coords_letterbox_pad():
+    """scale_coords must invert the integer LetterBox pad so keypoints/mask polygons stay aligned with their box.
+
+    scale_boxes/scale_masks subtract the rounded integer pad that LetterBox actually applies (round(pad - 0.1)); a
+    non-square image gives an odd wh-pad, so a float pad shifts scale_coords outputs by ~0.5/gain px vs the box.
+    """
+    from ultralytics.data.augment import LetterBox
+    from ultralytics.utils import ops
+
+    h0, w0, imgsz = 998, 483, 320  # non-square -> odd wh-pad exposes the fractional-pad bug
+    letterboxed = LetterBox((imgsz, imgsz), auto=False, scaleup=True)(image=np.zeros((h0, w0, 3), np.uint8))
+    h1, w1 = letterboxed.shape[:2]
+    gain = min(imgsz / h0, imgsz / w0)
+    left = round((imgsz - round(w0 * gain)) / 2 - 0.1)  # integer pad actually applied by LetterBox
+    top = round((imgsz - round(h0 * gain)) / 2 - 0.1)
+    x, y = 200.0, 500.0
+    lx, ly = x * gain + left, y * gain + top  # forward exactly as LetterBox does
+    kpt = ops.scale_coords((h1, w1), torch.tensor([[[lx, ly]]]), (h0, w0))[0, 0]
+    box = ops.scale_boxes((h1, w1), torch.tensor([[lx, ly, lx, ly]]), (h0, w0))[0]
+    assert torch.allclose(kpt, torch.tensor([x, y]), atol=1e-4)  # recovers the original coordinate
+    assert torch.allclose(kpt, box[:2], atol=1e-4)  # and stays aligned with its box
+
+
 def test_utils_files(tmp_path):
     """Test file handling utilities including file age, date, and paths with spaces."""
     from ultralytics.utils.files import file_age, file_date, get_latest_run, increment_path, spaces_in_path

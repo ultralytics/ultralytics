@@ -514,32 +514,40 @@ class LoadPilAndNumpy:
             im0 = [im0]
         # use `image{i}.jpg` when Image.filename returns an empty path.
         self.paths = [getattr(im, "filename", "") or f"image{i}.jpg" for i, im in enumerate(im0)]
-        pil_flag = "L" if channels == 1 else "RGB"  # grayscale or RGB
-        self.im0 = [self._single_check(im, pil_flag) for im in im0]
+        self.im0 = [self._single_check(im, channels) for im in im0]
         self.mode = "image"
         self.bs = len(self.im0)
         self.count = 0
 
     @staticmethod
-    def _single_check(im: Image.Image | np.ndarray, flag: str = "RGB") -> np.ndarray:
-        """Validate and format an image to a NumPy array.
+    def _single_check(im: Image.Image | np.ndarray, channels: int = 3) -> np.ndarray:
+        """Validate an image and normalize it to a NumPy array with the model's channel count.
+
+        NumPy inputs are treated as BGR (OpenCV order); only the channel count is matched to the model, using
+        the same conversions as the file path (`RGBA`/gray -> `BGR`, `BGR`/`RGBA` -> gray), so an ndarray behaves
+        like the same image read from a path or PIL. Channel order is never touched. The `-> gray` step uses
+        `cv2.cvtColor`, so it needs uint8/uint16/float32, which the file path always satisfies (it decodes uint8).
 
         Notes:
             - PIL inputs are converted to NumPy and returned in OpenCV-compatible BGR order for color images.
-            - NumPy color inputs are returned as-is (no channel-order conversion is applied).
-            - 2D grayscale NumPy inputs are expanded to match the model channels (3 for color, 1 for grayscale),
-              mirroring how PIL and file inputs are handled.
+            - NumPy arrays already matching the model channels are returned as-is (covers 3 -> 3 and 10 -> 10).
         """
         assert isinstance(im, (Image.Image, np.ndarray)), f"Expected PIL/np.ndarray image type, but got {type(im)}"
         if isinstance(im, Image.Image):
+            flag = "L" if channels == 1 else "RGB"  # grayscale or RGB
             im = np.asarray(im.convert(flag))
             # Add a new axis if grayscale; convert RGB -> BGR for OpenCV compatibility.
             im = im[..., None] if flag == "L" else im[..., ::-1]
-            im = np.ascontiguousarray(im)  # contiguous
-        elif im.ndim == 2:  # grayscale in numpy form
-            # Expand 2D grayscale to 3 channels for color models (like PIL/file inputs); np.repeat preserves dtype
-            im = im[..., None] if flag == "L" else np.repeat(im[..., None], 3, axis=2)
-        return im
+            return np.ascontiguousarray(im)  # contiguous
+        im = np.atleast_3d(im)  # (H, W) -> (H, W, 1); leaves (H, W, C) untouched
+        c = im.shape[2]
+        if c == channels:
+            return im  # already correct: 3 -> 3, 1 -> 1, multispectral 10 -> 10
+        if c == 1:  # single channel -> replicate to model channels (dtype-agnostic, mirrors gray file/PIL inputs)
+            return np.repeat(im, channels, axis=2)
+        if channels == 1:  # BGR/RGBA -> gray via cvtColor (uint8/uint16/float32), matching IMREAD_GRAYSCALE
+            return cv2.cvtColor(im, cv2.COLOR_BGRA2GRAY if c == 4 else cv2.COLOR_BGR2GRAY)[..., None]
+        return np.ascontiguousarray(im[..., :3])  # drop extra channels -> BGR (RGBA case), matching IMREAD_COLOR
 
     def __len__(self) -> int:
         """Return the length of the 'im0' attribute, representing the number of loaded images."""

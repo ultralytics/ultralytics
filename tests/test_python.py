@@ -337,6 +337,51 @@ def test_predict_grayscale_ndarray():
     assert len(model(source=gray.astype("float64"), imgsz=32, verbose=False)) == 1  # non-OpenCV dtype also works
 
 
+@pytest.mark.parametrize(
+    "model_name, mode, atol",
+    [
+        ("yolo11n.pt", "gray3d", 0.01),  # 3-channel model, (H, W, 1) grayscale ndarray
+        ("yolo11n.pt", "rgba", 0.01),  # 3-channel model, (H, W, 4) BGRA ndarray
+        ("yolo11n-grayscale.pt", "bgr", 1.0),  # 1-channel model, (H, W, 3) BGR ndarray
+        ("yolo11n-grayscale.pt", "rgba", 1.0),  # 1-channel model, (H, W, 4) BGRA ndarray
+    ],
+)
+def test_predict_ndarray_channel_mismatch(tmp_path, model_name, mode, atol):
+    """Test that an ndarray whose channel count differs from the model matches the same image read from a path.
+
+    A NumPy image with a channel count that does not match the model (grayscale/RGBA into a color model, or
+    color/RGBA into a grayscale model) used to crash in conv2d. It must now normalize to the model channels and
+    return the same detections as the identical image read from disk, which OpenCV normalizes at decode time. The
+    1-channel cases allow up to 1px since decode-time and cvtColor grayscale differ by at most one gray level.
+
+    Channel order is out of scope (ndarrays are BGR by pre-existing convention), so BGRA (not the RGB-order RGBA
+    from the issue MRE) is used to isolate the channel-count fix from the color-order assumption.
+    """
+    bgr = cv2.imread(str(SOURCE))  # (H, W, 3) BGR, OpenCV order (ndarrays are treated as BGR downstream)
+    im = {
+        "gray3d": cv2.cvtColor(bgr, cv2.COLOR_BGR2GRAY)[..., None],  # (H, W, 1)
+        "bgr": bgr,  # (H, W, 3)
+        "rgba": cv2.cvtColor(bgr, cv2.COLOR_BGR2BGRA),  # (H, W, 4)
+    }[mode]
+    path = tmp_path / "img.png"
+    assert cv2.imwrite(str(path), im)  # lossless PNG keeps the channel count on disk
+
+    model = YOLO(WEIGHTS_DIR / model_name)
+    from_array = model.predict(im, imgsz=640, verbose=False)[0].boxes  # crashed here on the buggy code
+    from_path = model.predict(str(path), imgsz=640, verbose=False)[0].boxes  # OpenCV-normalized reference
+
+    assert len(from_array) == len(from_path) > 0, "ndarray and path must detect the same objects"
+
+    def canon(boxes):  # order by box center-x so the comparison ignores confidence-tie ordering
+        order = boxes.xywh[:, 0].argsort()
+        return boxes.xyxy[order], boxes.cls[order]
+
+    xa, ca = canon(from_array)
+    xp, cp = canon(from_path)
+    assert (ca == cp).all(), "class labels must match the path route"
+    assert (xa - xp).abs().max() <= atol, "boxes must match the path route within tolerance"
+
+
 @pytest.mark.slow
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 def test_predict_all_image_formats():

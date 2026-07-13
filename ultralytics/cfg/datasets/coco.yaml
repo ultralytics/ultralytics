@@ -111,7 +111,9 @@ download: |
   download(urls, dir=dir.parent)
 
   if split == "test":
-      if not (dir / "images" / "test2017").exists():
+      line = next(iter((dir / "test-dev2017.txt").read_text().strip().splitlines()), "")
+      img = dir / (line[2:] if line.startswith("./") else line)
+      if not img.exists():
           raise FileNotFoundError(
               "coco.yaml 'test:' images are not downloaded automatically: test2017 ground truth is withheld and "
               "only used for the eval-server test-dev split. Download manually: "

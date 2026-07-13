@@ -49,7 +49,7 @@ The complete Carparts Segmentation Dataset can also be browsed and managed on [U
 
 ## Dataset YAML
 
-A [YAML](https://www.ultralytics.com/glossary/yaml) (Yet Another Markup Language) file defines the dataset configuration, including paths, class names, and other essential details. For the Carparts Segmentation dataset, the `carparts-seg.yaml` file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/carparts-seg.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/carparts-seg.yaml). You can learn more about the YAML format at [yaml.org](https://yaml.org/).
+A [YAML](https://www.ultralytics.com/glossary/yaml) file defines the dataset configuration, including paths, class names, and other essential details. For the Carparts Segmentation dataset, the `carparts-seg.yaml` file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/carparts-seg.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/carparts-seg.yaml). You can learn more about the YAML format at [yaml.org](https://yaml.org/).
 
 !!! example "ultralytics/cfg/datasets/carparts-seg.yaml"
 

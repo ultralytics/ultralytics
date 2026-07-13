@@ -43,7 +43,7 @@ For a specific breed or a different animal altogether, [Ultralytics Platform](ht
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It includes paths, keypoint details, and other relevant information. In the case of the Dog-Pose dataset, the `dog-pose.yaml` file is available at <https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/dog-pose.yaml>.
+A YAML file is used to define the dataset configuration. It includes paths, keypoint details, and other relevant information. In the case of the Dog-Pose dataset, the `dog-pose.yaml` file is available at <https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/dog-pose.yaml>.
 
 !!! example "ultralytics/cfg/datasets/dog-pose.yaml"
 

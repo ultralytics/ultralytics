@@ -47,7 +47,7 @@ The Argoverse-HD dataset supports a range of [object detection](../../tasks/dete
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file defines the dataset configuration, including paths, classes, and other relevant details. For the Argoverse dataset, the `Argoverse.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/Argoverse.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/Argoverse.yaml).
+A YAML file defines the dataset configuration, including paths, classes, and other relevant details. For the Argoverse dataset, the `Argoverse.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/Argoverse.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/Argoverse.yaml).
 
 !!! example "ultralytics/cfg/datasets/Argoverse.yaml"
 

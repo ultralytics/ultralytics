@@ -152,7 +152,7 @@ class Model(torch.nn.Module):
         source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor = None,
         stream: bool = False,
         **kwargs: Any,
-    ) -> Iterator[Results] | list[Results]:
+    ) -> Iterator[Results | torch.Tensor] | list[Results] | list[torch.Tensor]:
         """Alias for the predict method, enabling the model instance to be callable for predictions.
 
         This method simplifies the process of making predictions by allowing the model instance to be called directly
@@ -166,8 +166,8 @@ class Model(torch.nn.Module):
             **kwargs (Any): Additional keyword arguments to configure the prediction process.
 
         Returns:
-            (Iterator[ultralytics.engine.results.Results] | list[ultralytics.engine.results.Results]): Prediction
-                results, streamed when `stream=True`.
+            (Iterator[ultralytics.engine.results.Results | torch.Tensor] | list[ultralytics.engine.results.Results] |
+                list[torch.Tensor]): Prediction results or embeddings, streamed when `stream=True`.
 
         Examples:
             >>> model = YOLO("yolo26n.pt")
@@ -486,7 +486,7 @@ class Model(torch.nn.Module):
         stream: bool = False,
         predictor=None,
         **kwargs: Any,
-    ) -> Iterator[Results] | list[Results]:
+    ) -> Iterator[Results | torch.Tensor] | list[Results] | list[torch.Tensor]:
         """Perform predictions on the given image source using the YOLO model.
 
         This method facilitates the prediction process, allowing various configurations through keyword arguments. It
@@ -504,9 +504,8 @@ class Model(torch.nn.Module):
                 for returning feature embeddings from specified layers.
 
         Returns:
-            (Iterator[ultralytics.engine.results.Results] | list[ultralytics.engine.results.Results] |
-            list[torch.Tensor]): Prediction results, streamed when `stream=True`, or embedding tensors when `embed` is
-                set.
+            (Iterator[ultralytics.engine.results.Results | torch.Tensor] | list[ultralytics.engine.results.Results] |
+                list[torch.Tensor]): Prediction results or embeddings, streamed when `stream=True`.
 
         Examples:
             >>> model = YOLO("yolo26n.pt")

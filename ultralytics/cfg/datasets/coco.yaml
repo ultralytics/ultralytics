@@ -110,7 +110,7 @@ download: |
   urls = [ASSETS_URL + ("/coco2017labels-segments.zip" if segments else "/coco2017labels.zip")]  # labels
   download(urls, dir=dir.parent)
 
-  if split == "test":
+  if split == "test" and not (dir / "images" / "test2017").exists():
       raise FileNotFoundError(
           "coco.yaml 'test:' images are not downloaded automatically: test2017 ground truth is withheld and only "
           "used for the eval-server test-dev split. Download manually: "

@@ -56,7 +56,7 @@ download: |
   urls = [f"{ASSETS_URL}/coco2017labels-pose.zip"]
   download(urls, dir=dir.parent)
 
-  if split == "test":
+  if split == "test" and not (dir / "images" / "test2017").exists():
       raise FileNotFoundError(
           "coco-pose.yaml 'test:' images are not downloaded automatically: test2017 ground truth is withheld and "
           "only used for the CodaLab test-dev split. Download manually: "

@@ -1601,10 +1601,10 @@ class RTDETRDecoder(nn.Module):
             scores (torch.Tensor): Class scores with shape (batch_size, num_queries, nc).
 
         Returns:
-            (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_queries), 6) and last
-                dimension format [cx, cy, w, h, max_class_prob, class_index].
+            (torch.Tensor): Processed predictions with shape (batch_size, num_queries, 6), limited to max_det during
+                export, and last dimension format [cx, cy, w, h, max_class_prob, class_index].
         """
-        k = min(self.num_queries, self.max_det)
+        k = min(self.num_queries, self.max_det) if self.export else self.num_queries
         scores, index = scores.flatten(1).topk(k)
         # CoreML MIL lacks integer floor-div and mod lowering: use torch.div(rounding_mode="floor") and (index - q*nc).
         query_idx = torch.div(index, self.nc, rounding_mode="floor")

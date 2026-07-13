@@ -19,6 +19,8 @@ shelf.jpg ─► [YOLO detector] ─► product boxes ─► crops ─┐
 3. **Embed** every crop and every gallery image with the ReID model (L2-normalized embeddings).
 4. **Retrieve** the top-k nearest gallery neighbors per crop with an in-memory NumPy dot product and assign the SKU by a similarity-weighted vote. Crops whose best confidence falls below `--sim-thresh` are labeled `unknown`.
 
+If your products are already cropped (a prior detector, a planogram export, or manual crops), pass `--crops` instead of `--source` to skip steps 1-2 and identify each crop directly.
+
 Retrieval is a plain in-RAM matrix multiply, so a few hundred SKUs are trivial: 400 SKUs x 20 reference crops x 512-d float32 is about 16 MB. No vector database is needed at this scale.
 
 ## Setup
@@ -83,10 +85,11 @@ gallery/
 └── camel_blue/        img0.jpg img1.jpg ...
 ```
 
-With no `--detector`/`--reid`, the platform defaults are used, so a gallery and a source image are enough:
+The detector and ReID default to the platform models, so a gallery plus an input is enough. Give it either a full shelf image with `--source` (the detector finds each product) or pre-cropped products with `--crops` (the detector is skipped). Each accepts a single image or a folder:
 
 ```bash
-python sku_recognition.py --gallery gallery/ --source shelf.jpg
+python sku_recognition.py --gallery gallery/ --source shelf.jpg # full shelf: detect, then identify
+python sku_recognition.py --gallery gallery/ --crops crops/     # pre-cropped products: identify directly
 ```
 
 To use your own weights, pass a local `.pt` or another platform id/url:
@@ -95,19 +98,22 @@ To use your own weights, pass a local `.pt` or another platform id/url:
 python sku_recognition.py --detector yolo26l-sku.pt --reid yolo26l-reid.pt --gallery gallery/ --source shelf.jpg
 ```
 
-The script writes `shelf_sku.jpg` with each detected package boxed and labeled `SKU-name confidence`, and logs the same per box.
+For each input image the script writes an annotated `<name>_sku.jpg` into `sku_out/` (kept separate from the inputs so a folder is never re-scanning its own results), every product boxed and labeled `SKU-name confidence`, and logs the same per box.
 
 ### Useful options
 
-| Flag           | Default | Description                                                          |
-| -------------- | ------- | -------------------------------------------------------------------- |
-| `--imgsz`      | `256`   | ReID embedding image size (match how the ReID model was trained)     |
-| `--det-imgsz`  | `640`   | detector image size                                                  |
-| `--conf`       | `0.25`  | detector confidence threshold                                        |
-| `--topk`       | `5`     | gallery neighbors per crop for the vote                              |
-| `--sim-thresh` | `0.5`   | minimum confidence to accept a SKU, else `unknown`                   |
-| `--cache`      | `None`  | `.pt` gallery-embedding cache, reused when gallery/model/imgsz match |
-| `--device`     | `None`  | inference device, e.g. `0` or `cpu`                                  |
+Exactly one of `--source` or `--crops` is required. Folders are expanded the same way `yolo predict source=` is.
+
+| Flag           | Default    | Description                                                          |
+| -------------- | ---------- | -------------------------------------------------------------------- |
+| `--imgsz`      | `256`      | ReID embedding image size (match how the ReID model was trained)     |
+| `--det-imgsz`  | `640`      | detector image size                                                  |
+| `--conf`       | `0.25`     | detector confidence threshold                                        |
+| `--topk`       | `5`        | gallery neighbors per crop for the vote                              |
+| `--sim-thresh` | `0.5`      | minimum confidence to accept a SKU, else `unknown`                   |
+| `--cache`      | `None`     | `.pt` gallery-embedding cache, reused when gallery/model/imgsz match |
+| `--device`     | `None`     | inference device, e.g. `0` or `cpu`                                  |
+| `--out`        | `sku_out/` | output directory for annotated `<name>_sku.jpg` results              |
 
 ## Building a gallery from RP2K
 

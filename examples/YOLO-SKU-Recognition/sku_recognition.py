@@ -5,10 +5,13 @@ Pipeline: a single-class product detector finds package instances, each detectio
 ReID model, and the crop is labeled by a nearest-neighbor vote against a folder-per-SKU gallery of reference
 images. Adding a new SKU means dropping a folder of reference images into the gallery, with no detector or
 embedding retraining. Retrieval is a pure in-memory NumPy dot product over L2-normalized embeddings, which is
-fast and light for a few hundred SKUs (e.g. 400 SKUs x 20 references x 512-d float32 is ~16 MB).
+fast and light for a few hundred SKUs (e.g. 400 SKUs x 20 references x 512-d float32 is ~16 MB). Pass ``--source``
+for full shelf images (the detector finds each product) or ``--crops`` for pre-cropped products (the detector is
+skipped and each crop is identified directly). Both accept a single image or a folder, expanded by Ultralytics.
 
 Example:
-    python sku_recognition.py --gallery gallery/ --source shelf.jpg  # detector and reid default to platform models
+    python sku_recognition.py --gallery gallery/ --source shelf.jpg    # detect, then identify each product
+    python sku_recognition.py --gallery gallery/ --crops test_crops/   # skip the detector, identify crops directly
 """
 
 from __future__ import annotations
@@ -25,25 +28,28 @@ from ultralytics.utils import LOGGER
 from ultralytics.utils.plotting import Annotator, colors
 
 
+def result_embedding(result) -> np.ndarray:
+    """Read the (D,) float32 embedding from a ReID ``Results`` object."""
+    import torch
+
+    if result.embeddings is None:
+        raise RuntimeError("reid model produced no embedding, is this a reid-task checkpoint?")
+    data = result.embeddings.data
+    data = data.detach().cpu().numpy() if isinstance(data, torch.Tensor) else np.asarray(data)
+    return data.reshape(-1).astype(np.float32)
+
+
 def embed_fn(reid_model, imgsz, device):
     """Return a callable that embeds image paths or BGR crops into an (N, D) float32 array.
 
-    The callable batches one ``reid_model.predict`` call and reads the L2-normalized embedding from each
-    ``Results.embeddings``. It accepts both file paths (gallery) and NumPy BGR crops (detections).
+    The callable batches one ``reid_model.predict`` call and reads the embedding from each ``Results.embeddings``. It
+    accepts both file paths (gallery) and NumPy BGR crops (detections).
     """
-    import torch
 
     def _embed(images):
         images = [str(im) if isinstance(im, (str, Path)) else im for im in images]  # paths -> str, crops as-is
         results = reid_model.predict(images, imgsz=imgsz, task="reid", device=device, verbose=False)
-        embs = []
-        for r in results:
-            if r.embeddings is None:
-                raise RuntimeError("reid model produced no embedding, is this a reid-task checkpoint?")
-            data = r.embeddings.data
-            data = data.detach().cpu().numpy() if isinstance(data, torch.Tensor) else np.asarray(data)
-            embs.append(data.reshape(-1).astype(np.float32))
-        return np.stack(embs, axis=0)
+        return np.stack([result_embedding(r) for r in results], axis=0)
 
     return _embed
 
@@ -101,49 +107,71 @@ class SKUGallery:
 
 
 def recognize(args) -> None:
-    """Run detect -> crop -> embed -> gallery-assign over one image and save the annotated result."""
-    detector = YOLO(args.detector)  # load first so a bad --detector path fails before the gallery embed
+    """Identify products against the gallery, from full shelf images (--source) or pre-cropped images (--crops)."""
     reid = YOLO(args.reid, task="reid")
     embed = embed_fn(reid, args.imgsz, args.device)
     gallery = SKUGallery(embed, args.gallery, args.imgsz, model_id=args.reid, cache=args.cache)
+    Path(args.out).mkdir(parents=True, exist_ok=True)  # results go here, never back into a --source/--crops folder
+    if args.crops:
+        identify_crops(args, reid, gallery)
+    else:
+        identify_shelves(args, embed, gallery)
 
-    result = detector.predict(args.source, imgsz=args.det_imgsz, conf=args.conf, device=args.device, verbose=False)[0]
-    boxes = result.boxes.xyxy.cpu().numpy().astype(int)
-    if not len(boxes):
-        LOGGER.warning("detector found no products, nothing to assign")
-        return
 
-    image = result.orig_img  # BGR HWC
-    crops = [image[y1:y2, x1:x2] for x1, y1, x2, y2 in boxes]
-    assignments = gallery.assign(retrieval.l2_normalize(embed(crops)), args.topk, args.sim_thresh)
+def identify_shelves(args, embed, gallery) -> None:
+    """Detect products in each shelf image, embed every crop, and save an annotated copy per image."""
+    detector = YOLO(args.detector)
+    for result in detector.predict(args.source, imgsz=args.det_imgsz, conf=args.conf, device=args.device, verbose=False):
+        src = Path(result.path)
+        boxes = result.boxes.xyxy.cpu().numpy().astype(int)
+        if not len(boxes):
+            LOGGER.warning(f"{src.name}: detector found no products")
+            continue
+        image = result.orig_img  # BGR HWC
+        crops = [image[y1:y2, x1:x2] for x1, y1, x2, y2 in boxes]
+        assignments = gallery.assign(retrieval.l2_normalize(embed(crops)), args.topk, args.sim_thresh)
+        annotator = Annotator(image.copy())
+        for (x1, y1, x2, y2), (sku, conf) in zip(boxes, assignments):
+            color = colors(0 if sku == "unknown" else gallery.classes.index(sku) + 1, True)
+            annotator.box_label((x1, y1, x2, y2), f"{sku} {conf:.2f}", color=color)
+            LOGGER.info(f"{src.name} [{x1},{y1},{x2},{y2}] -> {sku} ({conf:.3f})")
+        out_path = Path(args.out) / f"{src.stem}_sku.jpg"
+        annotator.save(str(out_path))
+        LOGGER.info(f"saved {len(boxes)} labeled detections to {out_path}")
 
-    annotator = Annotator(image.copy())
-    for (x1, y1, x2, y2), (name, conf) in zip(boxes, assignments):
-        color = colors(0 if name == "unknown" else gallery.classes.index(name) + 1, True)
-        annotator.box_label((x1, y1, x2, y2), f"{name} {conf:.2f}", color=color)
-        LOGGER.info(f"[{x1},{y1},{x2},{y2}] -> {name} ({conf:.3f})")
 
-    src = Path(args.source)
-    out_path = src.with_name(f"{src.stem}_sku.jpg")
-    annotator.save(str(out_path))
-    LOGGER.info(f"saved {len(boxes)} labeled detections to {out_path}")
+def identify_crops(args, reid, gallery) -> None:
+    """Embed each pre-cropped product image and assign it to a gallery SKU, skipping the detector."""
+    results = reid.predict(args.crops, imgsz=args.imgsz, task="reid", device=args.device, verbose=False)
+    embs = retrieval.l2_normalize(np.stack([result_embedding(r) for r in results]))
+    for result, (sku, conf) in zip(results, gallery.assign(embs, args.topk, args.sim_thresh)):
+        src = Path(result.path)
+        image = result.orig_img  # BGR HWC
+        color = colors(0 if sku == "unknown" else gallery.classes.index(sku) + 1, True)
+        annotator = Annotator(image.copy())
+        annotator.box_label((0, 0, image.shape[1] - 1, image.shape[0] - 1), f"{sku} {conf:.2f}", color=color)
+        annotator.save(str(Path(args.out) / f"{src.stem}_sku.jpg"))
+        LOGGER.info(f"{src.name} -> {sku} ({conf:.3f})")
+    LOGGER.info(f"identified {len(results)} crops")
 
 
 def parse_args():
     """Parse command-line arguments for the SKU recognition pipeline."""
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    io = p.add_mutually_exclusive_group(required=True)
+    io.add_argument("--source", help="full shelf image or folder, runs the detector then identifies each crop")
+    io.add_argument("--crops", help="pre-cropped product image or folder, skips the detector and identifies each directly")
     p.add_argument(
         "--detector",
         default="ul://fatih-enterprise/yolo26-sku-detection/yolo26l-sku-detector-sku-110k",
-        help="SKU detector, a local .pt or a platform id/url (auto-downloads, needs ULTRALYTICS_API_KEY)",
+        help="SKU detector, a local .pt or a platform id/url (only used with --source, auto-downloads, needs ULTRALYTICS_API_KEY)",
     )
     p.add_argument(
         "--reid",
         default="ul://fatih-enterprise/yolo26-reid-sku-feature-extraction/yolo26l-reid-rp2k-pretrain",
         help="YOLO ReID model, a local .pt or a platform id/url (auto-downloads, needs ULTRALYTICS_API_KEY)",
     )
-    p.add_argument("--gallery", required=True, help="gallery root; each subfolder is one SKU with reference images")
-    p.add_argument("--source", required=True, help="shelf image to recognize")
+    p.add_argument("--gallery", required=True, help="gallery root, each subfolder is one SKU with reference images")
     p.add_argument("--imgsz", type=int, default=256, help="reid embedding image size")
     p.add_argument("--det-imgsz", type=int, default=640, help="detector image size")
     p.add_argument("--conf", type=float, default=0.25, help="detector confidence threshold")
@@ -151,6 +179,7 @@ def parse_args():
     p.add_argument("--sim-thresh", type=float, default=0.5, help="min confidence to accept a SKU, else 'unknown'")
     p.add_argument("--cache", default=None, help="optional .pt gallery-embedding cache to reuse across runs")
     p.add_argument("--device", default=None, help="inference device, e.g. 0 or cpu")
+    p.add_argument("--out", default="sku_out", help="output directory for annotated <name>_sku.jpg results")
     return p.parse_args()
 
 

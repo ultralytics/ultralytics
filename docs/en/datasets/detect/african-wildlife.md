@@ -45,7 +45,7 @@ The Ultralytics African Wildlife Dataset supports a range of [object detection](
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file defines the dataset configuration, including paths, classes, and other pertinent details. For the African Wildlife Dataset, the `african-wildlife.yaml` file is located at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/african-wildlife.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/african-wildlife.yaml).
+A YAML file defines the dataset configuration, including paths, classes, and other pertinent details. For the African Wildlife Dataset, the `african-wildlife.yaml` file is located at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/african-wildlife.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/african-wildlife.yaml).
 
 !!! example "ultralytics/cfg/datasets/african-wildlife.yaml"
 

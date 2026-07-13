@@ -95,16 +95,14 @@ class ReID:
     def __call__(self, img: np.ndarray, dets: np.ndarray) -> list[np.ndarray | None]:
         """Extract embeddings for detected objects."""
         crops = self._crop_detections(img, dets)
-        valid_idx = [i for i, c in enumerate(crops) if c.shape[0] > 0 and c.shape[1] > 0]
-        valid_crops = [crops[i] for i in valid_idx]
-
-        result: list[np.ndarray | None] = [None] * len(crops)
+        valid = [bool(c.size) for c in crops]
+        valid_crops = [crop for crop, keep in zip(crops, valid) if keep]
         if not valid_crops:
-            return result
+            return [None] * len(crops)
 
         if self.is_pt:
             feats = self.model.predictor(valid_crops)
-            if len(feats) == 1 and isinstance(feats[0], torch.Tensor) and feats[0].shape[0] == len(valid_crops):
+            if len(feats) != len(valid_crops) and feats[0].shape[0] == len(valid_crops):
                 feats = feats[0]  # batched prediction with non-PyTorch backend
             valid_feats = [f.cpu().numpy() for f in feats]
         else:
@@ -122,9 +120,8 @@ class ReID:
                 feats = torch.cat(outs, 0)[:n]
             valid_feats = [f.cpu().numpy() for f in feats]
 
-        for idx, feat in zip(valid_idx, valid_feats):
-            result[idx] = feat
-        return result
+        valid_feats = iter(valid_feats)
+        return [next(valid_feats) if keep else None for keep in valid]
 
 
 def build_encoder(with_reid: bool, model: str | None, device: str | torch.device | None = None):

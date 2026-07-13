@@ -131,9 +131,6 @@ def decode_stereo3d_outputs(
     mean_dims: dict[int, tuple[float, float, float]] | None = None,
     std_dims: dict[int, tuple[float, float, float]] | None = None,
     class_names: dict[int, str] | None = None,
-    use_proj_center: bool = False,
-    ivw_fusion: bool = False,
-    score_weight: bool = False,
     score_k: float = 0.5,
     calib_letterboxed: bool = False,
 ) -> list[Box3D] | list[list[Box3D]]:
@@ -153,14 +150,16 @@ def decode_stereo3d_outputs(
         mean_dims: Mean dimensions per class (class ID -> (H, W, L) in meters).
         std_dims: Standard deviation of dimensions per class.
         class_names: Mapping from class ID to class name.
-        use_proj_center: If True and outputs contain "proj_offset", shift the 2D box center by
-            the predicted projected-center offset before un-letterboxing to (u, v).
-        ivw_fusion: If True and outputs contain "lr_logvar", fuse the disparity- and direct-depth
-            cues by inverse-variance weighting in log-space instead of the plain geometric mean.
-            With equal per-cue variance this reduces exactly to the geometric mean.
-        score_weight: If True and outputs contain "lr_logvar", scale confidence by
-            exp(-score_k * sigma) where sigma is the predicted lr-distance std-dev.
-        score_k: Decay rate used by score_weight.
+        score_k: Decay rate for the uncertainty-based confidence weighting (confidence is scaled by
+            exp(-score_k * sigma), sigma = predicted lr-distance std-dev, when "lr_logvar" is present).
+        calib_letterboxed: If True, reverse-letterbox the per-sample calib (fx/fy/cx/cy) to
+            original-image coords before back-projection (the production caller sets this).
+
+    Notes:
+        The projected-center offset ("proj_offset"), inverse-variance depth fusion, and
+        uncertainty score-weighting are applied unconditionally whenever the corresponding
+        head outputs ("proj_offset"/"lr_logvar") are present; a checkpoint lacking them
+        degrades gracefully to the 2D-box-center / geometric-mean path.
     """
     if "det" not in outputs:
         raise KeyError("decode_stereo3d_outputs expected outputs['det']")
@@ -269,7 +268,7 @@ def decode_stereo3d_outputs(
             lr_logvar = (
                 min(float(outputs["lr_logvar"][b, 0, flat_idx].item()), 20.0) if "lr_logvar" in outputs else None
             )
-            if score_weight and lr_logvar is not None:
+            if lr_logvar is not None:
                 confidence *= math.exp(-score_k * math.sqrt(math.exp(lr_logvar)))
             dim_off = outputs["dimensions"][b, :, flat_idx].float() if "dimensions" in outputs else torch.zeros(3)
             ori_pred = outputs["orientation"][b, :, flat_idx].float() if "orientation" in outputs else None
@@ -289,14 +288,14 @@ def decode_stereo3d_outputs(
 
             # Combine depth sources
             if z_from_disp is not None and z_from_direct is not None:
-                if ivw_fusion and lr_logvar is not None:
+                if lr_logvar is not None:  # inverse-variance fusion of the two depth cues
                     var_disp = math.exp(lr_logvar)
                     var_direct = _dfl_variance(outputs, b, flat_idx)  # spread of depth bins, else 1.0
                     w_disp, w_direct = 1.0 / max(var_disp, eps), 1.0 / max(var_direct, eps)
                     log_z = (w_disp * math.log(z_from_disp) + w_direct * math.log(z_from_direct)) / (w_disp + w_direct)
                     z_3d = math.exp(log_z)
                 else:
-                    z_3d = math.sqrt(z_from_disp * z_from_direct)  # geometric mean (equal-weight IVW)
+                    z_3d = math.sqrt(z_from_disp * z_from_direct)  # geometric mean (no-uncertainty fallback)
             elif z_from_disp is not None:
                 z_3d = z_from_disp
             elif z_from_direct is not None:
@@ -307,7 +306,7 @@ def decode_stereo3d_outputs(
             # Use bbox center as (u,v)
             u_letterbox = float(((x1_l + x2_l) / 2.0).item())
             v_letterbox = float(((y1_l + y2_l) / 2.0).item())
-            if use_proj_center and "proj_offset" in outputs:
+            if "proj_offset" in outputs:  # decode the 3D center from the projected-center offset
                 off = outputs["proj_offset"][b, :, flat_idx].float()
                 u_letterbox += float(off[0]) * input_w
                 v_letterbox += float(off[1]) * input_h
@@ -466,9 +465,6 @@ def decode_and_refine_predictions(
     mean_dims: dict[int, tuple[float, float, float]] | None = None,
     std_dims: dict[int, tuple[float, float, float]] | None = None,
     class_names: dict[int, str] | None = None,
-    use_proj_center: bool | None = None,
-    ivw_fusion: bool | None = None,
-    score_weight: bool | None = None,
     score_k: float = 0.5,
 ) -> list[list[Box3D]]:
     """Unified decode + refine pipeline for val and predict.
@@ -491,14 +487,7 @@ def decode_and_refine_predictions(
         mean_dims: Mean dimensions per class (class ID -> (H, W, L) in meters).
         std_dims: Standard deviation of dimensions per class.
         class_names: Mapping from class ID to class name.
-        use_proj_center: If True, decode the 3D center from the 2D box center shifted by the
-            predicted projected-center offset instead of the raw box center. If None/False,
-            behavior is unchanged (uses the raw box center).
-        ivw_fusion: If True, fuse disparity/direct depth cues by inverse-variance weighting
-            instead of the geometric mean. If None/False, behavior is unchanged.
-        score_weight: If True, scale confidence by predicted uncertainty. If None/False,
-            behavior is unchanged.
-        score_k: Decay rate used by score_weight.
+        score_k: Decay rate for the uncertainty-based confidence weighting (see decode_stereo3d_outputs).
 
     Returns:
         List of Box3D lists (one per batch item).
@@ -548,9 +537,6 @@ def decode_and_refine_predictions(
         mean_dims=mean_dims,
         std_dims=std_dims,
         class_names=class_names,
-        use_proj_center=bool(use_proj_center),
-        ivw_fusion=bool(ivw_fusion),
-        score_weight=bool(score_weight),
         score_k=score_k,
         calib_letterboxed=True,  # batch calib is in letterbox-input space; decode reverses it to original
     )

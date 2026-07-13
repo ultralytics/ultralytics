@@ -71,36 +71,25 @@ def test_export_engine():
     assert path.endswith(".engine")
 
 
-def test_feature_flags_gate_head_branches():
-    """use_proj_center / use_depth_uncertainty in YAML training block add head branches; default off is unchanged."""
+def test_head_localization_branches_unconditional():
+    """The promoted head always builds the projected-center (2ch) and uncertainty (2ch lr) branches."""
     from ultralytics.models.yolo.s3d.orientation import ORIENT_CHANNELS
 
-    base = YOLO(MODEL).model
-    head = base.model[-1]
-    assert "proj_offset" not in head.aux_specs
-    assert head.aux["lr_distance"][0][-1].out_channels == 1  # scalar disparity
-    assert getattr(head, "use_uncertainty", False) is False
-
-    # Enable both features directly (model.py wires these from the YAML training block).
-    head.enable_proj_center()
-    head.enable_depth_uncertainty()
+    head = YOLO(MODEL).model.model[-1]
     assert head.aux_specs["proj_offset"] == 2
-    assert head.aux["proj_offset"][0][-1].out_channels == 2
+    assert head.aux["proj_offset"][0][-1].out_channels == 2  # (Δu, Δv)
     assert head.aux["lr_distance"][0][-1].out_channels == 2  # value + log-variance
-    assert head.use_uncertainty is True
-    # orientation/depth untouched
-    assert head.aux_specs["orientation"] == ORIENT_CHANNELS
+    assert head.aux_specs["orientation"] == ORIENT_CHANNELS  # unchanged
 
 
 def test_proj_center_loss_present():
-    """When use_proj_center is set, the aux-loss dict gains a smooth-L1 proj_center term."""
+    """The proj_center smooth-L1 term is always computed when proj_offset targets/preds are present."""
     import torch
     from ultralytics import YOLO
     from ultralytics.models.yolo.s3d.loss import Stereo3DDetLoss
 
     model = YOLO("yolo26n-s3d.yaml").model
-    model.model[-1].enable_proj_center()
-    crit = Stereo3DDetLoss(model, loss_weights={"proj_center": 1.0}, use_proj_center=True)
+    crit = Stereo3DDetLoss(model, loss_weights={"proj_center": 1.0})
     B, HW = 2, 5
     preds = {"proj_offset": torch.zeros(B, 2, HW)}
     gt = torch.ones(B, 3, 2)  # [B, max_n, 2]
@@ -127,15 +116,16 @@ def test_lr_nll_attenuates_with_uncertainty():
 
 
 def test_lr_nll_loss_wired():
-    """Integration test: with use_uncertainty=True and lr_logvar present, _compute_aux_losses
-    routes lr_distance through the Laplacian-NLL gather-wiring in _lr_nll_loss, not smooth-L1."""
+    """Integration test: when lr_logvar is present, _compute_aux_losses routes lr_distance through
+    the Laplacian-NLL gather-wiring in _lr_nll_loss (the promoted, always-on path), not smooth-L1."""
+    import math
+
     import torch
     from ultralytics import YOLO
     from ultralytics.models.yolo.s3d.loss import Stereo3DDetLoss
 
     model = YOLO("yolo26n-s3d.yaml").model
-    model.model[-1].enable_depth_uncertainty()
-    crit = Stereo3DDetLoss(model, loss_weights={"lr_distance": 1.0}, use_uncertainty=True)
+    crit = Stereo3DDetLoss(model, loss_weights={"lr_distance": 1.0})
 
     B, HW = 2, 5
     val = torch.ones(B, 1, HW)  # lr_distance prediction
@@ -145,23 +135,14 @@ def test_lr_nll_loss_wired():
     idx = torch.zeros(B, HW, dtype=torch.long)
     fg = torch.ones(B, HW, dtype=torch.bool)
 
-    losses = crit._compute_aux_losses(preds, {"aux_targets": {"lr_distance": gt}}, idx, fg)
-    assert "lr_distance" in losses
-    nll_loss = losses["lr_distance"]
-    assert torch.isfinite(nll_loss)
-    assert nll_loss >= 0
+    nll_loss = crit._compute_aux_losses(preds, {"aux_targets": {"lr_distance": gt}}, idx, fg)["lr_distance"]
+    assert torch.isfinite(nll_loss) and nll_loss >= 0
 
-    # With use_uncertainty=False the same inputs fall back to plain smooth-L1 (lr_logvar
-    # ignored). If the NLL routing in _compute_aux_losses were reverted/broken, nll_loss above
-    # would collapse to this same value instead of the attenuated NLL value.
-    crit_no_unc = Stereo3DDetLoss(model, loss_weights={"lr_distance": 1.0}, use_uncertainty=False)
-    smooth_l1_loss = crit_no_unc._compute_aux_losses(
-        preds, {"aux_targets": {"lr_distance": gt}}, idx, fg
-    )["lr_distance"]
-
-    assert not torch.isclose(nll_loss, smooth_l1_loss), (
-        "lr_distance loss should differ from plain smooth-L1, proving it went through the NLL branch"
-    )
+    # It must equal the Laplacian NLL (|2|*exp(-5)+5 ≈ 5.013), NOT the plain smooth-L1 value (1.5) —
+    # proving lr_distance went through the NLL branch, not the generic _aux_loss.
+    expected_nll = 2.0 * math.exp(-5.0) + 5.0
+    assert torch.isclose(nll_loss, torch.tensor(expected_nll), atol=1e-3), f"{nll_loss} != NLL {expected_nll}"
+    assert not torch.isclose(nll_loss, torch.tensor(1.5), atol=1e-2), "collapsed to smooth-L1 — NLL routing broken"
 
 
 def test_3d_iou():
@@ -511,27 +492,25 @@ def test_decode_uses_proj_offset():
     z = 20.0
     du = 0.01
 
-    def make_outputs():
+    def make_outputs(with_proj):
         # non_max_suppression converts outputs["det"] xywh->xyxy in place (via a transposed
         # view aliasing the same storage), so each decode call needs its own fresh det tensor.
         det = torch.zeros(1, 4 + nc, 1)
         det[0, :4, 0] = torch.tensor([input_w / 2, input_h / 2, 20.0, 20.0])
         det[0, 4, 0] = 0.99
-        return {
+        out = {
             "det": det,
             "dimensions": torch.zeros(1, 3, 1),
             "orientation": torch.tensor(encode_orientation(0.0)).view(1, ORIENT_CHANNELS, 1).float(),
             "depth": torch.tensor([[[math.log(z)]]]),
-            "proj_offset": torch.tensor([[[du], [0.0]]]).float(),
         }
+        if with_proj:  # promoted decode applies proj_offset unconditionally when present
+            out["proj_offset"] = torch.tensor([[[du], [0.0]]]).float()
+        return out
 
     # bs=1 -> decode_stereo3d_outputs returns a flat list[Box3D] (unwrapped), so index once.
-    x_off = decode_stereo3d_outputs(
-        make_outputs(), calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw], use_proj_center=True
-    )[0].center_3d[0]
-    x_no = decode_stereo3d_outputs(
-        make_outputs(), calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw], use_proj_center=False
-    )[0].center_3d[0]
+    x_off = decode_stereo3d_outputs(make_outputs(True), calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw])[0].center_3d[0]
+    x_no = decode_stereo3d_outputs(make_outputs(False), calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw])[0].center_3d[0]
     expected_shift = (du * input_w / scale) * z / calib["fx"]
     assert abs((x_off - x_no) - expected_shift) < 1e-2, f"{x_off - x_no} != {expected_shift}"
 
@@ -550,30 +529,28 @@ def test_ivw_fusion_equal_sigma_matches_geomean():
     imgsz = (384, 1248)
     nc = 3
 
-    def make_outputs():
+    def make_outputs(with_logvar):
         # non_max_suppression converts outputs["det"] xywh->xyxy in place (via a transposed
         # view aliasing the same storage), so each decode call needs its own fresh det tensor.
         det = torch.zeros(1, 4 + nc, 1)
         det[0, :4, 0] = torch.tensor([624.0, 192.0, 20.0, 20.0])
         det[0, 4, 0] = 0.99
         # disparity cue and direct cue encode different depths so the mean is nontrivial.
-        return {
+        out = {
             "det": det,
             "dimensions": torch.zeros(1, 3, 1),
             "orientation": torch.tensor(encode_orientation(0.0)).view(1, ORIENT_CHANNELS, 1).float(),
             "lr_distance": torch.tensor([[[math.log(0.03)]]]),
             "depth": torch.tensor([[[math.log(25.0)]]]),
-            "lr_logvar": torch.tensor([[[0.0]]]),
         }
+        if with_logvar:  # equal per-cue variance (logvar=0 -> var_disp=1; no depth_bins -> var_direct=1.0)
+            out["lr_logvar"] = torch.tensor([[[0.0]]])
+        return out
 
     # bs=1 -> decode_stereo3d_outputs returns a flat list[Box3D] (unwrapped), so index once.
-    z_geo = decode_stereo3d_outputs(
-        make_outputs(), calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw], ivw_fusion=False
-    )[0].center_3d[2]
-    z_ivw = decode_stereo3d_outputs(
-        make_outputs(), calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw], ivw_fusion=True
-    )[0].center_3d[2]
-    # equal-variance IVW reduces to the geometric mean
+    # No lr_logvar -> geometric-mean fallback; equal-variance lr_logvar -> IVW. They must coincide.
+    z_geo = decode_stereo3d_outputs(make_outputs(False), calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw])[0].center_3d[2]
+    z_ivw = decode_stereo3d_outputs(make_outputs(True), calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw])[0].center_3d[2]
     assert abs(z_ivw - z_geo) < 1e-2, f"ivw {z_ivw} != geomean {z_geo}"
 
 
@@ -604,9 +581,10 @@ def test_score_weight_demotes_uncertain():
             "lr_logvar": torch.tensor([[[logvar]]]),
         }
         # bs=1 -> decode_stereo3d_outputs returns a flat list[Box3D] (unwrapped), so index once.
-        return decode_stereo3d_outputs(
-            outputs, calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw], score_weight=True, score_k=0.5
-        )[0].confidence
+        # score-weighting is applied unconditionally when lr_logvar is present.
+        return decode_stereo3d_outputs(outputs, calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw], score_k=0.5)[
+            0
+        ].confidence
 
     assert conf(4.0) < conf(0.0), "higher uncertainty must lower the score"
 
@@ -636,27 +614,26 @@ def test_ivw_fusion_uses_dfl_variance():
     logits = torch.full((DEPTH_BINS,), -20.0)
     logits[peak_idx] = 20.0
 
-    def make_outputs():
+    def make_outputs(with_logvar):
         # non_max_suppression mutates outputs["det"] in place, so build a fresh tensor per call.
         det = torch.zeros(1, 4 + nc, 1)
         det[0, :4, 0] = torch.tensor([624.0, 192.0, 20.0, 20.0])
         det[0, 4, 0] = 0.99
-        return {
+        out = {
             "det": det,
             "dimensions": torch.zeros(1, 3, 1),
             "orientation": torch.tensor(encode_orientation(0.0)).view(1, ORIENT_CHANNELS, 1).float(),
             "lr_distance": torch.tensor([[[math.log(0.03)]]]),  # z_from_disp ~ 10.5
             "depth": torch.tensor([[[bin_log]]]),  # z_from_direct == z_direct_true (matches the peak bin)
-            "lr_logvar": torch.tensor([[[3.0]]]),  # high stereo variance (var_disp = exp(3) ~ 20.1)
             "depth_bins": logits.view(1, DEPTH_BINS, 1),
         }
+        if with_logvar:  # high stereo variance (var_disp = exp(3) ~ 20.1) -> IVW leans on the direct cue
+            out["lr_logvar"] = torch.tensor([[[3.0]]])
+        return out
 
-    z_geo = decode_stereo3d_outputs(
-        make_outputs(), calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw], ivw_fusion=False
-    )[0].center_3d[2]
-    z_ivw = decode_stereo3d_outputs(
-        make_outputs(), calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw], ivw_fusion=True
-    )[0].center_3d[2]
+    # No lr_logvar -> geometric-mean fallback; with lr_logvar -> IVW using the DFL spread.
+    z_geo = decode_stereo3d_outputs(make_outputs(False), calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw])[0].center_3d[2]
+    z_ivw = decode_stereo3d_outputs(make_outputs(True), calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw])[0].center_3d[2]
 
     # The direct cue is nearly certain (narrow DFL distribution) while the stereo cue is highly
     # uncertain, so IVW fusion must sit much closer to z_direct than the plain geometric mean.
@@ -689,9 +666,7 @@ def test_decode_no_overflow_with_large_lr_logvar():
         "depth": torch.tensor([[[math.log(25.0)]]]),
         "lr_logvar": torch.tensor([[[1000.0]]]),  # would overflow math.exp without a clamp
     }
-    boxes = decode_stereo3d_outputs(
-        outputs, calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw], ivw_fusion=True, score_weight=True
-    )
+    boxes = decode_stereo3d_outputs(outputs, calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw])
     assert len(boxes) == 1
 
 

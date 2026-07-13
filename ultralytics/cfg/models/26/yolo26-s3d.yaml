@@ -24,6 +24,7 @@ training:
     depth: 3.0
     dimensions: 1.0
     orientation: 1.0
+    proj_center: 1.0
 
 mean_dims:
   Car: [3.88, 1.63, 1.53]

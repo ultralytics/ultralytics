@@ -59,10 +59,7 @@ quantize: # (int|str, optional) precision: predict/val use 16/fp16 for FP16 or 3
 dnn: False # (bool) use OpenCV DNN for ONNX inference
 plots: True # (bool) save plots and images during train/val
 end2end: # (bool, optional) whether to use end2end head (YOLO26, YOLOv10) for predict/val/export
-use_proj_center: # (bool, optional) s3d: decode 3D center from the predicted projected-center offset
-ivw_fusion: # (bool, optional) s3d: inverse-variance fusion of stereo (lr_distance) and direct depth cues
-score_weight: # (bool, optional) s3d: scale detection confidence by exp(-score_k * depth_sigma)
-score_k: 0.5 # (float) s3d: temperature for score_weight confidence scaling
+score_k: 0.5 # (float) s3d: temperature for uncertainty-based confidence weighting (exp(-score_k * depth_sigma))
 
 # Predict settings -----------------------------------------------------------------------------------------------------
 source: # (str, optional) path/dir/URL/stream for images or videos; e.g. 'ultralytics/assets' or '0' for webcam

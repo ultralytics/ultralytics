@@ -43,8 +43,8 @@ class Stereo3DDetModel(DetectionModel):
                     self._siamese = True
                     break
 
-        # Apply training-block flags from YAML: depth_mode (prune aux branches) and
-        # the flag-gated proj-center / depth-uncertainty branches (default off).
+        # Apply depth_mode from the YAML training block (prune aux branches). The projected-center
+        # and depth-uncertainty branches are always built (the promoted Tier-1 localization path).
         from ultralytics.models.yolo.s3d.head import Stereo3DDetHead
 
         training_cfg = (self.yaml or {}).get("training", {})
@@ -53,10 +53,6 @@ class Stereo3DDetModel(DetectionModel):
             depth_mode = training_cfg.get("depth_mode", "both")
             if depth_mode != "both":
                 head.set_depth_mode(depth_mode)
-            if training_cfg.get("use_proj_center", False):
-                head.enable_proj_center()
-            if training_cfg.get("use_depth_uncertainty", False):
-                head.enable_depth_uncertainty()
 
     def _backbone_to_tap(self, x):
         """Run backbone layers 0..tap_layer on an image, return tap features."""
@@ -152,8 +148,6 @@ class Stereo3DDetModel(DetectionModel):
 
         aux_w = None
         use_bbox_loss = True
-        use_proj_center = False
-        use_uncertainty = False
         if hasattr(self, "yaml") and self.yaml is not None:
             training_config = self.yaml.get("training", {})
             if training_config:
@@ -161,15 +155,6 @@ class Stereo3DDetModel(DetectionModel):
                     aux_w = training_config["loss_weights"]
                 if "use_bbox_loss" in training_config:
                     use_bbox_loss = bool(training_config["use_bbox_loss"])
-                use_proj_center = bool(training_config.get("use_proj_center", False))
-                use_uncertainty = bool(training_config.get("use_depth_uncertainty", False))
 
         pseudo_cfg = getattr(self, "pseudo_labels", {})
-        return Stereo3DDetLoss(
-            self,
-            loss_weights=aux_w,
-            use_bbox_loss=use_bbox_loss,
-            pseudo_labels=pseudo_cfg,
-            use_proj_center=use_proj_center,
-            use_uncertainty=use_uncertainty,
-        )
+        return Stereo3DDetLoss(self, loss_weights=aux_w, use_bbox_loss=use_bbox_loss, pseudo_labels=pseudo_cfg)

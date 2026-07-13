@@ -46,15 +46,11 @@ class Stereo3DDetLoss(v8DetectionLoss):
         use_bbox_loss: bool = True,
         cls_label_smoothing: float = 0.0,
         pseudo_labels: dict | None = None,
-        use_proj_center: bool = False,
-        use_uncertainty: bool = False,
     ):
         super().__init__(model, tal_topk=tal_topk)
         self.aux_w = loss_weights or {}
         self.use_bbox_loss = use_bbox_loss
         self.cls_label_smoothing = cls_label_smoothing
-        self.use_proj_center = use_proj_center
-        self.use_uncertainty = use_uncertainty
 
         # Depth bin classification (DFL-style)
         from ultralytics.models.yolo.s3d.head import DEPTH_BINS, DEPTH_MAX, DEPTH_MIN
@@ -220,14 +216,14 @@ class Stereo3DDetLoss(v8DetectionLoss):
                 aux_losses[k] = self._orientation_multibin_loss(
                     aux_preds[k], aux_gt, target_gt_idx, fg_mask, aux_weights
                 )
-            elif k == "lr_distance" and self.use_uncertainty and "lr_logvar" in aux_preds:
+            elif k == "lr_distance" and "lr_logvar" in aux_preds:
                 aux_losses[k] = self._lr_nll_loss(
                     aux_preds["lr_distance"], aux_preds["lr_logvar"], aux_gt, target_gt_idx, fg_mask, aux_weights
                 )
             elif k in aux_preds:
                 aux_losses[k] = self._aux_loss(aux_preds[k], aux_gt, target_gt_idx, fg_mask, aux_weights)
 
-        if self.use_proj_center and "proj_offset" in aux_targets and "proj_offset" in aux_preds:
+        if "proj_offset" in aux_targets and "proj_offset" in aux_preds:
             aux_losses["proj_center"] = self._aux_loss(
                 aux_preds["proj_offset"],
                 aux_targets["proj_offset"].to(self.device),

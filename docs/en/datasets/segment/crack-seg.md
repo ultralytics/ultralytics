@@ -42,7 +42,7 @@ The complete Crack Segmentation Dataset can also be browsed and managed on [Ultr
 
 ## Dataset YAML
 
-A [YAML](https://www.ultralytics.com/glossary/yaml) (Yet Another Markup Language) file defines the dataset configuration. It includes details about the dataset's paths, classes, and other relevant information. For the Crack Segmentation dataset, the `crack-seg.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/crack-seg.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/crack-seg.yaml).
+A [YAML](https://www.ultralytics.com/glossary/yaml) file defines the dataset configuration. It includes details about the dataset's paths, classes, and other relevant information. For the Crack Segmentation dataset, the `crack-seg.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/crack-seg.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/crack-seg.yaml).
 
 !!! example "ultralytics/cfg/datasets/crack-seg.yaml"
 

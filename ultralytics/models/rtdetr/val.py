@@ -116,7 +116,9 @@ class RTDETRValidator(DetectionValidator):
             hyp=self.args,
             rect=False,  # no rect
             cache=self.args.cache or None,
+            single_cls=self.args.single_cls or False,
             prefix=colorstr(f"{mode}: "),
+            classes=self.args.classes,
             data=self.data,
         )
 

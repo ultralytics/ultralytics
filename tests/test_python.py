@@ -596,6 +596,25 @@ def test_train_pretrained(scls):
     model(SOURCE)
 
 
+def test_rtdetr_val_single_cls_and_classes():
+    """Test that RTDETRValidator.build_dataset honors single_cls and classes like the trainer (standalone val)."""
+    from ultralytics.cfg import get_cfg
+    from ultralytics.data.utils import check_det_dataset
+    from ultralytics.models.rtdetr.val import RTDETRValidator
+
+    data = check_det_dataset("coco8.yaml")
+
+    def build(**kw):
+        v = RTDETRValidator(args=get_cfg(overrides={"data": "coco8.yaml", "imgsz": 320, **kw}))
+        v.data = data
+        return v.build_dataset(data["val"]).labels
+
+    labels = build(single_cls=True)
+    assert all(int(x["cls"].max()) == 0 for x in labels if len(x["cls"])), "single_cls must collapse GT classes to 0"
+    labels = build(classes=[0])
+    assert all(int(c) == 0 for x in labels for c in x["cls"].flatten()), "classes=[0] must filter GT to class 0"
+
+
 def test_all_model_yamls():
     """Test YOLO model creation for all available YAML configurations in the `cfg/models` directory."""
     for m in (ROOT / "cfg" / "models").rglob("*.yaml"):

@@ -86,11 +86,12 @@ def segment2box(segment: np.ndarray, width: int = 640, height: int = 640) -> np.
     Returns:
         (np.ndarray): Bounding box coordinates in xyxy format [x1, y1, x2, y2].
     """
+    if not len(segment):
+        return np.zeros(4, dtype=segment.dtype)
     x, y = segment[:, 0], segment[:, 1]
-    if len(segment):
-        xmin, ymin, xmax, ymax = x.min(), y.min(), x.max(), y.max()
-        if xmin >= 0 and ymin >= 0 and xmax <= width and ymax <= height:  # fully inside image
-            return np.array([xmin, ymin, xmax, ymax], dtype=segment.dtype)
+    xmin, ymin, xmax, ymax = x.min(), y.min(), x.max(), y.max()
+    if xmin >= 0 and ymin >= 0 and xmax <= width and ymax <= height:  # fully inside image
+        return np.array([xmin, ymin, xmax, ymax], dtype=segment.dtype)
     axes = np.array((0, 0, 1, 1))
     bounds = np.array((0, width, 0, height), dtype=segment.dtype)
     lims = np.array((height, height, width, width), dtype=segment.dtype)  # (height, width)[axis] per boundary

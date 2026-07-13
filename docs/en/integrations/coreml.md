@@ -6,11 +6,15 @@ keywords: CoreML export, Core ML, YOLO26 CoreML, Apple Neural Engine, ANE, mlpac
 
 # CoreML Export for YOLO26 Models
 
-Apple ships dedicated AI silicon — the Neural Engine — in every modern iPhone, iPad, and Mac, and [CoreML](https://developer.apple.com/documentation/coreml) is the only way to program it. Exporting [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) models to CoreML turns a trained `.pt` checkpoint into a native `.mlpackage` that runs all six YOLO tasks on-device at single-digit milliseconds, with no network connection and no data leaving the device.
+Apple ships dedicated AI silicon — the Neural Engine — in every modern iPhone, iPad, and Mac, and [CoreML](https://developer.apple.com/documentation/coreml) is Ultralytics' supported path for deploying models to it today. Exporting [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) models to CoreML turns a trained `.pt` checkpoint into a native `.mlpackage` that runs all six YOLO tasks on-device at single-digit milliseconds, with no network connection and no data leaving the device.
 
 !!! tip "Run YOLO on the Apple Neural Engine today with the official mobile apps"
 
     The official [Ultralytics YOLO iOS SDK](https://github.com/ultralytics/yolo-ios-app) and [Flutter plugin](https://github.com/ultralytics/yolo-flutter-app) run CoreML exports on the Apple Neural Engine out of the box — real-time camera inference, single-image prediction, and automatic model download for all six YOLO26 tasks. For Android NPU deployment, see the [Qualcomm QNN integration](qnn.md).
+
+!!! note "Apple's future Core AI format"
+
+    Apple has introduced the new [Core AI framework and `.aimodel` format](coreai.md) for the iOS 27 and macOS 27 generation. Ultralytics Core AI export is planned for Q4 2026 but is not available yet. CoreML remains the supported format for current Ultralytics releases and broader Apple device compatibility.
 
 <p align="center">
   <br>

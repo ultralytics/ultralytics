@@ -133,8 +133,8 @@ def _make_depth_dataset(root):
         <root>/images/<split>/*.jpg   — RGB images
         <root>/depth/<split>/*.npy    — float32 (H, W) depth maps
 
-    DepthDataset._depth_path_for() maps image → depth paths by renaming the last 'images' path component to 'depth'
-    and swapping the suffix to .npy, so basenames must match exactly.
+    DepthDataset._depth_path_for() maps image → depth paths by renaming the last 'images' path component to 'depth' and
+    swapping the suffix to .npy, so basenames must match exactly.
     """
     root = Path(root)
     for split in ("train", "val"):

@@ -288,8 +288,7 @@ def test_predict_img(model_name):
 
 
 def compare_boxes_matching(np_boxes, pt_boxes, min_iou=0.9):
-    """Assert two Boxes hold the same detections, matching by IoU and tolerating borderline count differences.
-    """
+    """Assert two Boxes hold the same detections, matching by IoU and tolerating borderline count differences."""
     from ultralytics.utils.metrics import box_iou
 
     iou = box_iou(np_boxes.xyxy, pt_boxes.xyxy)

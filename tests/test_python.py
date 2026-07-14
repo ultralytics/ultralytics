@@ -1378,6 +1378,16 @@ def test_yoloe_visual_prompt_verbose_false(capfd):
     assert "Ultralytics" not in output
 
 
+def test_yoloe_seg_default_visual_prompt_predictor():
+    """YOLOE seg checkpoints auto-select the seg visual-prompt predictor instead of crashing in NMS postprocess."""
+    model = YOLO(WEIGHTS_DIR / "yoloe-11s-seg.pt")
+    visuals = {"bboxes": np.array([[221.52, 405.8, 344.98, 857.54]]), "cls": np.array([0])}
+    results = model.predict(SOURCE, refer_image=SOURCE, visual_prompts=visuals, verbose=False)
+    assert results[0].masks is not None  # seg outputs unpacked by the seg predictor, not the detect default
+    results = model.predict(SOURCE, visual_prompts=visuals, verbose=False)  # without refer_image
+    assert results[0].masks is not None
+
+
 def test_yolov10():
     """Test YOLOv10 model training, validation, and prediction functionality."""
     model = YOLO("yolov10n.yaml")

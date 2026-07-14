@@ -377,7 +377,7 @@ class YOLOE(Model):
                 and 'cls' keys when non-empty.
             refer_image (str | PIL.Image | np.ndarray, optional): Reference image for visual prompts.
             predictor (callable): Custom predictor class for visual prompt predictions. Defaults to
-                YOLOEVPDetectPredictor.
+                YOLOEVPDetectPredictor (YOLOEVPSegPredictor for segmentation checkpoints).
             **kwargs (Any): Additional keyword arguments passed to the predictor.
 
         Returns:
@@ -390,6 +390,8 @@ class YOLOE(Model):
             >>> prompts = {"bboxes": [[10, 20, 100, 200]], "cls": ["person"]}
             >>> results = model.predict("path/to/image.jpg", visual_prompts=prompts)
         """
+        if predictor is yolo.yoloe.YOLOEVPDetectPredictor and self.model.task == "segment":
+            predictor = yolo.yoloe.YOLOEVPSegPredictor  # detect predictor cannot unpack seg outputs
         visual_prompts = visual_prompts if visual_prompts is not None else {}
         if len(visual_prompts):
             assert "bboxes" in visual_prompts and "cls" in visual_prompts, (

@@ -61,7 +61,7 @@ Platform fills in the folders and temporary setup code before you copy the comma
     Open **Terminal** and paste:
 
     ```bash
-    curl -fsSL 'https://platform.ultralytics.com/api/workers/install?os=linux' | sudo sh -s -- "/datasets" "/models" "YOUR_ENROLLMENT_TOKEN"
+    curl -fsSL 'https://platform.ultralytics.com/api/workers/install?os=linux' | sudo sh -s -- "/datasets" "/models" "••••••••"
     ```
 
 === "macOS"
@@ -69,7 +69,7 @@ Platform fills in the folders and temporary setup code before you copy the comma
     Open **Terminal** and paste:
 
     ```bash
-    curl -fsSL 'https://platform.ultralytics.com/api/workers/install?os=macos' | sh -s -- "$HOME/Ultralytics/datasets" "$HOME/Ultralytics/models" "YOUR_ENROLLMENT_TOKEN"
+    curl -fsSL 'https://platform.ultralytics.com/api/workers/install?os=macos' | sh -s -- "$HOME/Ultralytics/datasets" "$HOME/Ultralytics/models" "••••••••"
     ```
 
 === "Windows"
@@ -77,12 +77,12 @@ Platform fills in the folders and temporary setup code before you copy the comma
     Open **PowerShell** and paste:
 
     ```powershell
-    & ([scriptblock]::Create((Invoke-RestMethod 'https://platform.ultralytics.com/api/workers/install?os=windows'))) -DataPath "$HOME\Ultralytics\datasets" -ModelsPath "$HOME\Ultralytics\models" -EnrollmentToken "YOUR_ENROLLMENT_TOKEN"
+    & ([scriptblock]::Create((Invoke-RestMethod 'https://platform.ultralytics.com/api/workers/install?os=windows'))) -DataPath "$HOME\Ultralytics\datasets" -ModelsPath "$HOME\Ultralytics\models" -SetupCode "••••••••"
     ```
 
 !!! warning "Copy your command from Platform"
 
-    The examples show what to expect, but the placeholder will not work. Select **Create install command** in Platform to receive your complete command.
+    The masked setup value is included automatically. You never need to create, copy, or enter it separately. Select **Create install command** in Platform to receive your complete command.
 
 The defaults work without editing:
 

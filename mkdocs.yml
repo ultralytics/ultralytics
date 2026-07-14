@@ -660,6 +660,7 @@ nav:
           - Google Cloud Storage: platform/integrations/google-cloud-storage.md
           - Amazon S3: platform/integrations/amazon-s3.md
           - Azure Blob Storage: platform/integrations/azure-blob-storage.md
+          - On Premise: platform/integrations/on-premise.md
       - Account:
           - platform/account/index.md
           - API Keys: platform/account/api-keys.md

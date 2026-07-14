@@ -214,7 +214,7 @@ def _spectral_lut() -> np.ndarray:
 
 
 _SPECTRAL_LUT = _spectral_lut()
-_DEPTH_CMAPS = {"inferno": cv2.COLORMAP_INFERNO, "jet": cv2.COLORMAP_JET, "spectral": None}
+_DEPTH_CMAPS = {"inferno": cv2.COLORMAP_INFERNO, "jet": cv2.COLORMAP_JET}
 
 
 def colorize_depth(
@@ -232,7 +232,8 @@ def colorize_depth(
             2nd disparity percentile (disparity mode).
         vmax (float, optional): Upper bound of the color range; defaults to the valid-pixel maximum (metric mode) or the
             98th disparity percentile (disparity mode).
-        cmap (str): Colormap, one of "inferno", "jet", "spectral" (matplotlib Spectral_r, near = warm).
+        cmap (str): Colormap, one of "inferno", "jet", "spectral" (matplotlib Spectral_r, near = warm), or "gray"
+            (raw normalized depth, no color).
         mode (str): "metric" normalizes depth linearly; "disparity" normalizes inverse depth (1/d) between the 2nd and
             98th percentiles for the DepthAnything look (near objects warm, robust to far outliers).
 
@@ -254,8 +255,12 @@ def colorize_depth(
         vmax = vmin + 1e-6
     dn = np.clip((v - vmin) / (vmax - vmin), 0.0, 1.0)
     idx = (dn * 255).astype(np.uint8)
-    lut = _SPECTRAL_LUT if cmap == "spectral" else None
-    color = cv2.applyColorMap(idx, lut) if lut is not None else cv2.applyColorMap(idx, _DEPTH_CMAPS[cmap])  # BGR
+    if cmap == "gray":
+        color = cv2.cvtColor(idx, cv2.COLOR_GRAY2BGR)
+    elif cmap == "spectral":
+        color = cv2.applyColorMap(idx, _SPECTRAL_LUT)  # BGR
+    else:
+        color = cv2.applyColorMap(idx, _DEPTH_CMAPS[cmap])  # BGR
     color[~valid] = 0
     return color
 
@@ -536,7 +541,7 @@ class Annotator:
             alpha (float): Blend factor for the heatmap overlay (ignored when side_by_side).
             side_by_side (bool): If True, place the colorized depth next to the image (image | depth) instead of
                 blending on top. Clearer for depth predictions.
-            cmap (str): Colormap, one of "inferno", "jet", "spectral". See `colorize_depth`.
+            cmap (str): Colormap, one of "inferno", "jet", "spectral", "gray". See `colorize_depth`.
             mode (str): "metric" or "disparity" normalization. See `colorize_depth`.
         """
         if self.pil:

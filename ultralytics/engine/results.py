@@ -518,7 +518,7 @@ class Results(SimpleClass, DataExportMixin):
             filename (str | None): Filename to save image if save is True.
             color_mode (str): Specify the color mode, e.g., 'instance' or 'class'.
             txt_color (tuple[int, int, int]): Text color in BGR format for classification output.
-            depth_cmap (str): Depth colormap, one of 'inferno', 'jet', 'spectral'. See `colorize_depth`.
+            depth_cmap (str): Depth colormap, one of 'inferno', 'jet', 'spectral', 'gray'. See `colorize_depth`.
             depth_mode (str): Depth normalization, 'metric' or 'disparity'. See `colorize_depth`.
 
         Returns:

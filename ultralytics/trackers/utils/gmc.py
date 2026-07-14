@@ -143,6 +143,10 @@ class GMC:
         # Run the ECC algorithm to find transformation matrix
         try:
             (_, H) = cv2.findTransformECC(self.prevFrame, frame, H, self.warp_mode, self.criteria, None, 1)
+            # Scale translation components back to original resolution
+            if self.downscale > 1.0:
+                H[0, 2] *= self.downscale
+                H[1, 2] *= self.downscale
         except Exception as e:
             LOGGER.warning(f"findTransformECC failed; using identity warp. {e}")
 

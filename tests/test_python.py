@@ -506,6 +506,10 @@ def test_val(task: str, weight: str, data: str) -> None:
         metrics.confusion_matrix.to_df()
         metrics.confusion_matrix.to_csv()
         metrics.confusion_matrix.to_json()
+        cm = metrics.confusion_matrix
+        expected = cm.nc if task in {"classify", "semantic"} else cm.nc + 1  # detection-style tasks include background
+        assert cm.matrix.shape == (expected, expected), f"{task} confusion matrix is {cm.matrix.shape}"
+        assert len(cm.tp_fp()[0]) == cm.nc  # per-class TP/FP never include background
 
 
 def test_val_save_txt_pose(tmp_path):

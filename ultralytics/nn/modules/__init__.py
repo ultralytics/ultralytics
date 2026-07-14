@@ -121,10 +121,11 @@ from .transformer import (
     TransformerEncoderLayer,
     TransformerLayer,
 )
-from .vit_blocks import FastViTBlock, FracRoPE2D, MHSABlock, RepUltraViTBlock, UltraViTBlock
+from .vit_blocks import AnchorPoolQueryMix, FastViTBlock, FracRoPE2D, MHSABlock, RepUltraViTBlock, UltraViTBlock
 
 __all__ = (
     "AIFI",
+    "AnchorPoolQueryMix",
     "C1",
     "C2",
     "C2PSA",

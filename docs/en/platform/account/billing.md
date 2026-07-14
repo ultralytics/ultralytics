@@ -82,8 +82,8 @@ For organizations with advanced needs:
 - Enterprise License (commercial use, non-AGPL)
 - SSO / SAML authentication
 - [On Premise](../integrations/on-premise.md) data and compute
-- ISO/SOC compliance (coming soon)
-- SLA guarantees (coming soon)
+- [ISO/IEC 27001:2022 and SOC 2 Type I compliance](https://www.ultralytics.com/security)
+- Enterprise SLA guarantees
 - Enterprise support
 
 See [Ultralytics Licensing](https://www.ultralytics.com/license) for Enterprise plan details.

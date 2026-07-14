@@ -17,13 +17,14 @@
 }
 .platform-plan-badge--free {
   background: var(--md-default-fg-color--lightest);
-  color: var(--md-default-fg-color--light);
+  color: var(--md-default-fg-color);
 }
 .platform-plan-badge--pro {
   background: var(--md-primary-fg-color);
 }
 .platform-plan-badge--enterprise {
-  background: var(--md-accent-fg-color);
+  background: var(--md-default-fg-color);
+  color: var(--md-default-bg-color);
 }
 /* Platform plan badges -------------------------------------------------------------------------------------------- */
 

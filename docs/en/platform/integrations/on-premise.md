@@ -60,7 +60,7 @@ On Premise uses the same CPU ingest code as hosted uploads. It supports:
 - YOLO datasets and classification folder layouts; and
 - detect, segment, pose, OBB, and classify tasks, including the same class mapping, task inference, validation, and split handling.
 
-The storage output is the only difference. Hosted ingestion may resize or normalize images and create thumbnails in Platform storage. On Premise never resizes, re-encodes, edits, or deletes mounted originals. Archive contents, remote NDJSON assets, and 1 FPS video frames are written only to a Docker volume on the host.
+The storage output is the only difference. Hosted ingestion may resize or normalize images and create thumbnails in Platform storage. On Premise never resizes, re-encodes, edits, or deletes mounted originals. Archive contents, remote NDJSON assets, and video frames sampled at 1 FPS up to 100 frames, then evenly across longer videos, are written only to a Docker volume on the host.
 
 ## Preview and Annotate
 

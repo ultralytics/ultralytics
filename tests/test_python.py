@@ -1023,10 +1023,8 @@ def test_cfg_depth_hyperparameter_defaults():
     args = get_cfg()
     assert args.silog == 1.0
     assert args.silog_grad == 0.5
-    assert args.silog_lambda == 0.5
-    assert args.silog_l1 == 0.0
-    assert args.dist_pw == 0.0
-    assert args.cal_dist_pw == 0.0
+    assert args.silog_grad_scales == 4
+    assert args.silog_lambda == 1.0  # released yolo26*-depth.pt weights are pretrained with this value
     assert args.auto_calibrate is True
 
 
@@ -1148,26 +1146,17 @@ class _DepthLossModel(torch.nn.Module):
         from types import SimpleNamespace
 
         self.p = torch.nn.Parameter(torch.zeros(1))
-        hyp = dict(
-            silog=1.0,
-            silog_grad=0.5,
-            silog_lambda=0.5,
-            silog_l1=0.0,
-            dist_pw=0.0,
-            silog_grad_scales=4,
-            silog_grad_min_valid=0.5,
-            silog_trim=0.0,
-        )
+        hyp = dict(silog=1.0, silog_grad=0.5, silog_lambda=1.0, silog_grad_scales=4)
         hyp.update(over)
         self.args = SimpleNamespace(**hyp)
         self.model = torch.nn.Sequential(torch.nn.Identity())
 
 
-def _depth_loss_for_scaled_pred(lam, scale, l1=0.0):
+def _depth_loss_for_scaled_pred(lam, scale):
     """Return the silog-only depth loss for a prediction with perfect structure but wrong global scale."""
     from ultralytics.utils.loss import v8DepthLoss
 
-    crit = v8DepthLoss(_DepthLossModel(silog_lambda=lam, silog_l1=l1, silog_grad=0.0))  # silog only
+    crit = v8DepthLoss(_DepthLossModel(silog_lambda=lam, silog_grad=0.0))  # silog only
     gt = torch.rand(2, 1, 16, 16) * 5 + 1.0
     pred = (gt * scale).clone().requires_grad_(True)
     total, _ = crit({"depth": pred}, {"depth": gt})
@@ -1182,13 +1171,6 @@ def test_depth_loss_lower_lambda_penalizes_scale_error_more():
     loss_anchored = _depth_loss_for_scaled_pred(lam=0.15, scale=2.0)
     assert loss_invariant < 0.05
     assert loss_anchored > 5 * max(loss_invariant, 1e-6)
-
-
-def test_depth_loss_l1_weight_adds_scale_penalty():
-    """The scale-anchored L1 term penalizes a scale shift even when silog is scale-invariant."""
-    no_l1 = _depth_loss_for_scaled_pred(lam=1.0, scale=2.0, l1=0.0)
-    with_l1 = _depth_loss_for_scaled_pred(lam=1.0, scale=2.0, l1=1.0)
-    assert with_l1 > no_l1 + 0.1
 
 
 def test_depth_loss_grad_scales_1_matches_single_scale():
@@ -1228,8 +1210,8 @@ def test_depth_loss_multiscale_grad_adds_coarse_levels():
 
 
 def test_depth_loss_sparsity_guard_collapses_multiscale_on_sparse_gt():
-    """On sparse GT (valid fraction < silog_grad_min_valid), multi-scale must self-disable and match single-scale — the
-    guard blocks unreliable coarse gradients (the KITTI failure mode).
+    """On sparse GT (valid fraction < 0.5), multi-scale must self-disable and match single-scale — the guard blocks
+    unreliable coarse gradients (the KITTI failure mode).
     """
     from ultralytics.utils.loss import v8DepthLoss
 
@@ -1245,31 +1227,6 @@ def test_depth_loss_sparsity_guard_collapses_multiscale_on_sparse_gt():
         {"depth": pred}, {"depth": gt}
     )
     assert abs(float(single.sum()) - float(multi.sum())) < 1e-6  # guard collapsed ms to single-scale
-
-
-def test_depth_loss_trim_pct_0_is_no_op():
-    """silog_trim=0.0 leaves the SILog term unchanged (regression against pre-trim behavior)."""
-    from ultralytics.utils.loss import v8DepthLoss
-
-    torch.manual_seed(2)
-    gt = torch.rand(1, 1, 16, 16) * 5 + 1.0
-    pred = (gt + 0.2 * torch.randn(1, 1, 16, 16)).clamp(min=0.1)
-    a, _ = v8DepthLoss(_DepthLossModel(silog_grad=0.0, silog_trim=0.0))({"depth": pred}, {"depth": gt})
-    b, _ = v8DepthLoss(_DepthLossModel(silog_grad=0.0))({"depth": pred}, {"depth": gt})  # default trim 0.0
-    assert abs(float(a.sum()) - float(b.sum())) < 1e-6
-
-
-def test_depth_loss_trimming_drops_outliers():
-    """A handful of gross-error pixels blow up scale-invariant SILog; trimming removes them."""
-    from ultralytics.utils.loss import v8DepthLoss
-
-    gt = torch.full((1, 1, 16, 16), 2.0)
-    pred = gt.clone()
-    pred[0, 0, 0, :5] = 20.0  # 5 / 256 ≈ 2% gross outliers
-    no_trim, _ = v8DepthLoss(_DepthLossModel(silog_grad=0.0, silog_trim=0.0))({"depth": pred}, {"depth": gt})
-    with_trim, _ = v8DepthLoss(_DepthLossModel(silog_grad=0.0, silog_trim=0.05))({"depth": pred}, {"depth": gt})
-    assert float(no_trim.sum()) > 0.1
-    assert float(with_trim.sum()) < 0.01
 
 
 def test_utils_ops():

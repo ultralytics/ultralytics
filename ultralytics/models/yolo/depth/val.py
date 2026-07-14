@@ -116,9 +116,7 @@ class DepthValidator(DetectionValidator):
 
             # Reuse auto-calibration's "only if it helps" CV policy so an unhelpful fit is rejected;
             # each collected pair is one image, so held-out folds have no pixel leakage.
-            res = select_calibration_cv(
-                list(zip(self._cal_logp, self._cal_logg)), dist_power=self.args.cal_dist_pw, margin=0.002
-            )
+            res = select_calibration_cv(list(zip(self._cal_logp, self._cal_logg)), margin=0.002)
             self.calib = (res["a"], res["b"])
             LOGGER.info(
                 f"Depth calibration selected '{res['name']}' on {self._cal_pts} pixels: "

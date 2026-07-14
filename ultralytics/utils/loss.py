@@ -1169,25 +1169,10 @@ class v8DepthLoss:
         self.grad_weight = h.silog_grad
         # SILog variance-focus: 1.0 = fully scale-invariant, 0.0 = plain log-RMSE (scale-dependent).
         self.silog_lambda = h.silog_lambda
-        # Optional scale-anchored L1 term on the log-depth residual (penalizes absolute offset).
-        self.l1_weight = h.silog_l1
-        # Depth-distance weighting: weight each valid pixel by gt**dist_power (normalized to mean 1).
-        self.dist_power = h.dist_pw
-        # Density gate: when >0, images whose valid-GT fraction >= dense_gate get the dense-only
-        # loss extras (dist_pw far-weighting; MiDaS-normalized coarse gradient levels). Sparse
-        # images (e.g. LiDAR) keep the exact ungated single-scale loss - non-regression by design.
-        self.dense_gate = float(getattr(h, "dense_gate", 0.0) or 0.0)
-        # Gradient-matching pyramid levels and SILog residual trimming. getattr fallbacks keep this
-        # working for models whose args predate these keys / lack them (inference builds, stubs).
-        # grad_scales=1 reproduces the single-scale gradient loss; trim=0.0 disables trimming.
+        # Gradient-matching pyramid levels; the getattr fallback keeps this working for models
+        # whose args predate the key / lack it (inference builds, stubs). grad_scales=1
+        # reproduces the single-scale gradient loss exactly.
         self.grad_scales = int(getattr(h, "silog_grad_scales", 4) or 4)
-        self.trim_pct = float(getattr(h, "silog_trim", 0.0) or 0.0)
-        # Sparsity guard for multi-scale gradient matching: coarse pooled cells over sparse GT
-        # (e.g. LiDAR) aggregate too few real pixels, so their gradients are noise (empirically
-        # degrades KITTI). Stop descending the pyramid once the valid fraction < this threshold;
-        # dense indoor GT stays well above it and keeps all levels. None -> default 0.5.
-        v = getattr(h, "silog_grad_min_valid", 0.5)
-        self.grad_min_valid = 0.5 if v is None else float(v)
         # GT beyond the head's representable range (sigmoid x max_depth) is masked out of the
         # loss: supervising unreachable targets saturates the sigmoid and, through SILog's
         # per-image mean coupling, corrupts gradients on in-range pixels too. None on log-mode
@@ -1248,44 +1233,10 @@ class v8DepthLoss:
         # Clamp predictions to avoid log(0)
         pred_valid = pred_valid.clamp(min=0.001)
 
-        # SILog loss (scale-invariant log error), optionally depth-distance weighted.
+        # SILog loss (scale-invariant log error)
         log_diff = torch.log(pred_valid) - torch.log(gt_valid)
-        if self.dist_power > 0 and self.dense_gate > 0:
-            # Per-image gating: dense images get gt**p far-weighting; sparse keep uniform.
-            # Per-image mean-1 normalization keeps each image's total weight equal to its
-            # valid-pixel count, so sparse images are exactly invariant vs dist_pw=0.
-            b = gt_depth.shape[0]
-            img_idx = torch.arange(b, device=gt_depth.device).view(-1, 1, 1, 1).expand_as(gt_depth)[valid]
-            vfrac = valid.float().mean(dim=(1, 2, 3))  # (B,) per-image valid fraction
-            dense_px = (vfrac >= self.dense_gate).float()[img_idx]  # per-valid-pixel flag
-            w = torch.where(dense_px > 0, gt_valid.clamp(min=0.001) ** self.dist_power, torch.ones_like(gt_valid))
-            sums = torch.zeros(b, device=w.device, dtype=w.dtype).scatter_add_(0, img_idx, w)
-            cnts = torch.zeros(b, device=w.device, dtype=w.dtype).scatter_add_(0, img_idx, torch.ones_like(w))
-            w = w * (cnts / sums.clamp(min=1e-12))[img_idx]  # per-image mean-1
-        elif self.dist_power > 0:
-            w = gt_valid.clamp(min=0.001) ** self.dist_power
-            w = w / w.mean()  # mean 1 → weighted-mean is just mean(w * x), magnitude preserved
-        else:
-            w = 1.0  # scalar broadcasts; mean(w * x) == mean(x), i.e. uniform (unchanged)
-        # Trim the largest-residual pixels before reducing: presumed-noisy labels (transparent/
-        # reflective surfaces, sparse-LiDAR bleed, sky) otherwise dominate the scale-invariant fit.
-        if self.trim_pct > 0 and log_diff.numel() > 1:
-            # kthvalue, not torch.quantile: quantile hard-fails above 2^24 elements, which dense GT
-            # reaches from batch≈41 at 640x640.
-            k = max(1, round(log_diff.numel() * (1.0 - self.trim_pct)))
-            keep = log_diff.abs() <= log_diff.abs().kthvalue(k).values
-            log_diff = log_diff[keep]
-            if torch.is_tensor(w):
-                w = w[keep]
-                w = w / w.mean()  # renormalize to mean 1 over the kept set (proper weighted mean)
-
-        def wmean(x):
-            return (w * x).mean()
-
-        silog = torch.sqrt(wmean(log_diff**2) - self.silog_lambda * wmean(log_diff) ** 2 + 1e-6)
+        silog = torch.sqrt((log_diff**2).mean() - self.silog_lambda * log_diff.mean() ** 2 + 1e-6)
         loss[0] = silog * self.silog_weight
-        if self.l1_weight > 0:
-            loss[0] = loss[0] + self.l1_weight * wmean(log_diff.abs())  # scale-anchored term
 
         # Gradient-matching loss (edge-aware): penalize differences in spatial gradients.
         # Run it over a pyramid (grad_scales levels, x2 masked-avg-pool per level) so coarse
@@ -1295,30 +1246,23 @@ class v8DepthLoss:
         pred_log = torch.log(pred_depth.clamp(min=0.001))
         gt_log = torch.log(gt_depth.clamp(min=0.001))
         valid_f = valid.float()
-        n_scales = max(self.grad_scales, 1)
-        # Density-gated MiDaS-style pyramid: coarse levels (s>=1) apply only to dense images and
-        # carry 4**-s level weights (MiDaS L_reg), so full-res dominates and total magnitude stays
-        # within ~1.33x single-scale. Sparse images: level 0 only. Ungated: uniform level weights
-        # with the grad_min_valid sparsity guard instead.
-        gated = self.dense_gate > 0 and n_scales > 1
-        dense_b = (valid_f.mean(dim=(1, 2, 3)) >= self.dense_gate).float().view(-1, 1, 1, 1) if gated else None
         grad_loss = self._grad_l1(pred_log, gt_log, valid_f)  # level 0: all images, full resolution
-        for s in range(1, n_scales):
+        for _ in range(1, max(self.grad_scales, 1)):
             if pred_log.shape[-1] < 4 or pred_log.shape[-2] < 4:
                 break  # too small to pool and still differentiate
             # Masked x2 average-pool: aggregate only valid pixels so invalid zeros never bleed
             # into valid neighbors (same rationale as never resizing sparse GT above).
             vp = F.avg_pool2d(valid_f, 2)
-            if not gated and vp.mean() < self.grad_min_valid:
-                break  # sparsity guard: GT too sparse for reliable coarse gradients
+            if vp.mean() < 0.5:
+                # Sparsity guard: coarse pooled cells over sparse GT (e.g. LiDAR) aggregate too
+                # few real pixels, so their gradients are noise (empirically degrades KITTI).
+                # Dense GT stays well above 0.5 valid fraction and keeps all levels.
+                break
             denom = vp.clamp(min=1e-6)
             pred_log = F.avg_pool2d(pred_log * valid_f, 2) / denom
             gt_log = F.avg_pool2d(gt_log * valid_f, 2) / denom
             valid_f = (vp > 0).float()
-            # Gated: sparse images' gradient pairs zero out at coarse levels via the dense_b mask.
-            grad_loss = grad_loss + (4.0**-s if gated else 1.0) * self._grad_l1(
-                pred_log, gt_log, valid_f * dense_b if gated else valid_f
-            )
+            grad_loss = grad_loss + self._grad_l1(pred_log, gt_log, valid_f)
         loss[1] = grad_loss * self.grad_weight
 
         return loss * pred_depth.shape[0], loss.detach()

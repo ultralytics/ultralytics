@@ -45,7 +45,7 @@ After creation, the key is displayed once:
 
 API keys follow this format:
 
-```
+```text
 ul_a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4
 ```
 
@@ -200,7 +200,7 @@ Rotate keys periodically for security:
 
 ### Invalid Key Error
 
-```
+```text
 Error: Invalid API key
 ```
 
@@ -213,7 +213,7 @@ Solutions:
 
 ### Permission Denied
 
-```
+```text
 Error: Permission denied for this operation
 ```
 
@@ -225,7 +225,7 @@ Solutions:
 
 ### Rate Limited
 
-```
+```text
 Error: Rate limit exceeded
 ```
 

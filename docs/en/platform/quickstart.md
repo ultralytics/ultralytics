@@ -205,7 +205,7 @@ After upload, the platform automatically processes your data:
 
     For best results, upload a ZIP or TAR archive (including `.tar.gz` and `.tgz`) with the standard YOLO structure:
 
-    ```
+    ```text
     my-dataset.zip
     ├── data.yaml          # Class names and splits
     ├── train/
@@ -374,7 +374,8 @@ If you prefer to train on your own hardware, you can stream metrics to the platf
 ```bash
 export ULTRALYTICS_API_KEY="YOUR_API_KEY"
 
-yolo train model=yolo26n.pt data=coco.yaml epochs=100 project=username/my-project name=exp1
+yolo train model=yolo26n.pt data=coco.yaml epochs=100 \
+  project=username/my-project name=exp1
 ```
 
 !!! note "API Key Format"

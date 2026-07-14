@@ -113,7 +113,7 @@ Authorization: Bearer YOUR_API_KEY
 
 All API endpoints use:
 
-```
+```text
 https://platform.ultralytics.com/api
 ```
 
@@ -751,7 +751,11 @@ POST /api/projects
     curl -X POST \
       -H "Authorization: Bearer YOUR_API_KEY" \
       -H "Content-Type: application/json" \
-      -d '{"name": "my-project", "slug": "my-project", "description": "Detection experiments"}' \
+      -d '{
+        "name": "my-project",
+        "slug": "my-project",
+        "description": "Detection experiments"
+      }' \
       https://platform.ultralytics.com/api/projects
     ```
 
@@ -761,7 +765,11 @@ POST /api/projects
     resp = requests.post(
         "https://platform.ultralytics.com/api/projects",
         headers={"Authorization": f"Bearer {API_KEY}"},
-        json={"name": "my-project", "slug": "my-project", "description": "Detection experiments"},
+        json={
+            "name": "my-project",
+            "slug": "my-project",
+            "description": "Detection experiments",
+        },
     )
     project_id = resp.json()["projectId"]
     ```
@@ -2367,7 +2375,10 @@ curl -H "Authorization: Bearer YOUR_API_KEY" \
 The Explore Search endpoint uses `offset` instead of `page`, with a fixed page size of 20:
 
 ```bash
-curl "https://platform.ultralytics.com/api/explore/search?type=datasets&offset=20&sort=stars"
+curl --get https://platform.ultralytics.com/api/explore/search \
+  --data-urlencode type=datasets \
+  --data-urlencode offset=20 \
+  --data-urlencode sort=stars
 ```
 
 ### Can I use the API without an SDK?
@@ -2402,7 +2413,7 @@ def api_request_with_retry(url, headers, max_retries=3):
 
 Resource IDs are returned when you create resources via the API. You can also find them in the platform URL:
 
-```
+```text
 https://platform.ultralytics.com/username/project/model-name
                                   ^^^^^^^^ ^^^^^^^ ^^^^^^^^^^
                                   username project   model

@@ -61,7 +61,11 @@ Platform fills in the folders and one-time connection token before you copy the 
     Open **Terminal** and paste:
 
     ```bash
-    curl -fsSL 'https://platform.ultralytics.com/api/workers/install?os=linux' | sudo sh -s -- "/datasets" "/models" "YOUR_CONNECTION_TOKEN"
+    curl -fsSL 'https://platform.ultralytics.com/api/workers/install?os=linux' |
+      sudo sh -s -- \
+        "/datasets" \
+        "/models" \
+        "YOUR_CONNECTION_TOKEN"
     ```
 
 === "macOS"
@@ -69,7 +73,11 @@ Platform fills in the folders and one-time connection token before you copy the 
     Open **Terminal** and paste:
 
     ```bash
-    curl -fsSL 'https://platform.ultralytics.com/api/workers/install?os=macos' | sh -s -- "$HOME/Ultralytics/datasets" "$HOME/Ultralytics/models" "YOUR_CONNECTION_TOKEN"
+    curl -fsSL 'https://platform.ultralytics.com/api/workers/install?os=macos' |
+      sh -s -- \
+        "$HOME/Ultralytics/datasets" \
+        "$HOME/Ultralytics/models" \
+        "YOUR_CONNECTION_TOKEN"
     ```
 
 === "Windows"
@@ -77,7 +85,12 @@ Platform fills in the folders and one-time connection token before you copy the 
     Open **PowerShell** and paste:
 
     ```powershell
-    & ([scriptblock]::Create((Invoke-RestMethod 'https://platform.ultralytics.com/api/workers/install?os=windows'))) -DataPath "$HOME\Ultralytics\datasets" -ModelsPath "$HOME\Ultralytics\models" -ConnectionToken "YOUR_CONNECTION_TOKEN"
+    $installer = Invoke-RestMethod `
+      'https://platform.ultralytics.com/api/workers/install?os=windows'
+    & ([scriptblock]::Create($installer)) `
+      -DataPath "$HOME\Ultralytics\datasets" `
+      -ModelsPath "$HOME\Ultralytics\models" `
+      -ConnectionToken "YOUR_CONNECTION_TOKEN"
     ```
 
 !!! warning "Copy your command from Platform"

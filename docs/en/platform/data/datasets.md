@@ -70,7 +70,10 @@ The file extension alone isn't enough: a video can still fail if its container o
     H.264 video in an MP4 container has the broadest support across major browsers and is the safest choice. If a video won't upload, re-encode it with [FFmpeg](https://ffmpeg.org/):
 
     ```bash
-    ffmpeg -i input.mov -c:v libx264 -pix_fmt yuv420p -c:a aac -movflags +faststart output.mp4
+    ffmpeg -i input.mov \
+      -c:v libx264 -pix_fmt yuv420p \
+      -c:a aac -movflags +faststart \
+      output.mp4
     ```
 
 ??? info "Which video codecs work"
@@ -92,7 +95,7 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 
     Use the standard YOLO directory structure with a `data.yaml` file:
 
-    ```
+    ```text
     my-dataset/
     ├── images/
     │   ├── train/
@@ -129,7 +132,7 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 
     Use JSON annotation files with the standard [COCO structure](https://cocodataset.org/#format-data):
 
-    ```
+    ```text
     my-coco-dataset/
     ├── train/
     │   ├── _annotations.coco.json
@@ -146,7 +149,9 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
     ```json
     {
         "images": [{ "id": 1, "file_name": "img001.jpg", "width": 640, "height": 480 }],
-        "annotations": [{ "id": 1, "image_id": 1, "category_id": 0, "bbox": [100, 50, 200, 300] }],
+        "annotations": [
+            { "id": 1, "image_id": 1, "category_id": 0, "bbox": [100, 50, 200, 300] }
+        ],
         "categories": [{ "id": 0, "name": "person" }]
     }
     ```
@@ -157,7 +162,7 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 
     Classification uploads are auto-detected from common folder layouts:
 
-    ```
+    ```text
     split/class/image.jpg
     class/split/image.jpg
     class/image.jpg
@@ -165,7 +170,7 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 
     Example:
 
-    ```
+    ```text
     my-classify-dataset/
     ├── train/
     │   ├── cats/
@@ -520,9 +525,9 @@ To export:
 The NDJSON format stores one JSON object per line. The first line contains dataset metadata, followed by one line per image:
 
 ```json
-{"type": "dataset", "task": "detect", "name": "my-dataset", "description": "...", "bytes": 12345678, "url": "https://platform.ultralytics.com/...", "class_names": {"0": "person", "1": "car"}, "version": 1, "created_at": "2026-01-15T10:00:00Z", "updated_at": "2026-02-20T14:30:00Z"}
-{"type": "image", "file": "img001.jpg", "url": "https://...", "width": 640, "height": 480, "split": "train", "annotations": {"boxes": [[0, 0.5, 0.5, 0.2, 0.3]]}}
-{"type": "image", "file": "img002.jpg", "url": "https://...", "width": 1280, "height": 720, "split": "val"}
+{"type":"dataset","task":"detect","name":"my-dataset","class_names":{"0":"person"}}
+{"type":"image","file":"img001.jpg","annotations":{"boxes":[[0,0.5,0.5,0.2,0.3]]}}
+{"type":"image","file":"img002.jpg","split":"val"}
 ```
 
 !!! note "Signed URLs"
@@ -601,7 +606,7 @@ Delete multiple images at once:
 
 Reference Platform datasets using the `ul://` URI format (see [Using Platform Datasets](../api/index.md#using-platform-datasets)):
 
-```
+```text
 ul://username/datasets/dataset-slug
 ```
 

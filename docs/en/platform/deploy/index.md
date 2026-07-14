@@ -168,7 +168,7 @@ Deploy a model in under 2 minutes:
 
 !!! example "Quick Deploy"
 
-    ```
+    ```text
     Model → Deploy tab → Select region → Click Deploy → Endpoint URL ready
     ```
 

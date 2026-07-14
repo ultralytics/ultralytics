@@ -143,7 +143,8 @@ You can train models either through the web UI (cloud training) or from your own
     export ULTRALYTICS_API_KEY="YOUR_API_KEY"
 
     # Train and stream metrics to the platform
-    yolo train model=yolo26n.pt data=coco.yaml epochs=100 project=username/my-project name=exp1
+    yolo train model=yolo26n.pt data=coco.yaml epochs=100 \
+      project=username/my-project name=exp1
     ```
 
 === "Remote Training (Python)"
@@ -324,7 +325,8 @@ You can train models on your own hardware and stream real-time metrics to the pl
     export ULTRALYTICS_API_KEY="YOUR_API_KEY"
 
     # Train with project/name to stream metrics
-    yolo train model=yolo26n.pt data=coco.yaml epochs=100 project=username/my-project name=exp1
+    yolo train model=yolo26n.pt data=coco.yaml epochs=100 \
+      project=username/my-project name=exp1
     ```
 
 === "Python"
@@ -351,7 +353,9 @@ You can train models on your own hardware and stream real-time metrics to the pl
     # Train using a Platform dataset directly
     export ULTRALYTICS_API_KEY="YOUR_API_KEY"
 
-    yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset epochs=100 project=username/my-project name=exp1
+    yolo train model=yolo26n.pt \
+      data=ul://username/datasets/my-dataset epochs=100 \
+      project=username/my-project name=exp1
     ```
 
 See [Cloud Training](train/cloud-training.md#remote-training) for more details on remote training.

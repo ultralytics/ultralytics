@@ -270,7 +270,7 @@ The Ultralytics team benchmarked YOLO26 models, comparing speed and accuracy bet
 
     Add the following lines at the end of the file:
 
-    ```
+    ```text
     dtparam=pciex1
     dtparam=pciex1_gen=3
     ```

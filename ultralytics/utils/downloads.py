@@ -418,7 +418,7 @@ def safe_download(
                         with source, open(target, "wb") as out:  # 'f' is the archive path, deleted below
                             shutil.copyfileobj(source, out)
         if delete:
-            f.unlink()  # remove zip
+            f.unlink()  # remove archive
         return unzip_dir
     return f
 

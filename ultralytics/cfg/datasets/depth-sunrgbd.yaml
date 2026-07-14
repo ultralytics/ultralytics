@@ -48,5 +48,5 @@ download: |
       d = cv2.imread(str(next((scene / "depth_bfx").glob("*.png"))), cv2.IMREAD_ANYDEPTH)
       d = (((d >> 3) | (d << 13)) / 1000.0).clip(max=10).astype(np.float32)  # bit-rotated mm -> m
       np.save(dir / "depth" / split / f"{name}.npy", d)
-      cv2.imwrite(str(dir / "images" / split / f"{name}.jpg"), cv2.imread(str(next((scene / "image").glob("*.jpg")))))
+      next((scene / "image").glob("*.jpg")).rename(dir / "images" / split / f"{name}.jpg")
   shutil.rmtree(dir / "source")

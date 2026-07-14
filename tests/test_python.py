@@ -971,8 +971,9 @@ def test_semantic_loss_all_ignore(nc):
 
 
 def test_seg_loss_sparse_batch_overlap_false():
-    """v8SegmentationLoss must score every image's masks with overlap_mask=False, even when the batch has
-    fewer instances than images (the per-instance masks tensor must not truncate the per-image loop)."""
+    """v8SegmentationLoss must score every image's masks with overlap_mask=False, even when the batch has fewer
+    instances than images (the per-instance masks tensor must not truncate the per-image loop).
+    """
     from ultralytics.utils.loss import v8SegmentationLoss
 
     obj = v8SegmentationLoss.__new__(v8SegmentationLoss)

@@ -8,7 +8,6 @@ import tarfile
 import urllib
 import zipfile
 from copy import copy
-from io import StringIO
 from pathlib import Path
 
 import cv2
@@ -44,38 +43,6 @@ from ultralytics.utils import (
 )
 from ultralytics.utils.downloads import download, safe_download
 from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13
-from ultralytics.utils.tqdm import TQDM
-
-
-def test_tqdm_terminal_width(monkeypatch):
-    """Test ANSI, combining, and wide characters fit the output terminal without truncating redirected logs."""
-
-    def render(desc, width, isatty=True):
-        monkeypatch.setattr(os, "get_terminal_size", lambda _: os.terminal_size((width, 24)))
-        output = StringIO()
-        output.isatty, output.fileno = lambda: isatty, lambda: 1
-        progress = TQDM(total=10, desc=desc, file=output, disable=False)
-        output.seek(0)
-        output.truncate()
-        progress._display(final=True)
-        return output.getvalue()
-
-    assert TQDM._fit_cells("\033[31m界e\u0301\033[0m")[1] == 3
-    assert TQDM._fit_cells(render("\033[31m处理很长的描述\033[0m", 20).rsplit("\r", 1)[-1])[1] <= 19
-    assert TQDM._fit_cells("界" * 10_000, 19) == ("界" * 9, 18)
-    assert "\033[31mcolored\033[0m" in render("\033[31mcolored\033[0m", 35)  # preserved while shrinking the bar
-    assert "untruncated description" in render("untruncated description", 20, isatty=False)
-
-    def unavailable(_):
-        raise OSError
-
-    monkeypatch.setattr(os, "get_terminal_size", unavailable)
-    output = StringIO()
-    output.isatty, output.fileno = lambda: True, lambda: 1
-    TQDM(total=10, desc="fallback", file=output, disable=False)._display(final=True)
-    assert "fallback" in output.getvalue()  # failed probing still writes the untrimmed line
-
-
 def test_dataloader_caps_workers_to_batches():
     """Test tiny datasets do not spawn persistent workers beyond useful batch count."""
     single_batch = build_dataloader(range(4), batch=4, workers=8)

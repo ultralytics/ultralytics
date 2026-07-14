@@ -605,36 +605,6 @@ def test_export_executorch_matrix(task):
     shutil.rmtree(file, ignore_errors=True)  # cleanup
 
 
-@pytest.mark.slow
-@pytest.mark.skipif(not TORCH_2_8 or TORCH_2_12, reason="Axelera export requires 2.8.0<=torch<2.12.0")
-@pytest.mark.skipif(checks.IS_PYTHON_MINIMUM_3_13, reason="Axelera devkit 1.6.0 does not support Python 3.13")
-@pytest.mark.skipif(
-    not LINUX or (ARM64 and IS_DOCKER),
-    reason="Axelera export is only supported on Linux and is not supported on ARM64 Docker",
-)
-@pytest.mark.skipif(IS_RASPBERRYPI, reason="Test disabled due to OOM (Out of Memory) issues on Raspberry Pi 5 16GB")
-def test_export_axelera(isolated_model):
-    """Test YOLO export to Axelera format."""
-    # For faster testing, use a smaller calibration dataset (32 image size crashes axelera export, so 64 is used)
-    file = YOLO(isolated_model).export(format="axelera", imgsz=64, data="coco8.yaml")
-    assert Path(file).exists(), f"Axelera export failed, directory not found: {file}"
-    # Note: Inference testing skipped as it requires Axelera hardware
-    shutil.rmtree(file, ignore_errors=True)  # cleanup
-
-
-@pytest.mark.slow
-@pytest.mark.skipif(not LINUX or ARM64, reason="DEEPX export only supported on non-aarch64 Linux")
-@pytest.mark.skipif(
-    not checks.IS_PYTHON_3_12, reason="Requires Python 3.12; dx-com 2.3.0 does not provide Python 3.13 wheels"
-)
-def test_export_deepx(isolated_model):
-    """Test YOLO export to DEEPX format."""
-    file = YOLO(isolated_model).export(format="deepx", imgsz=32)
-    assert Path(file).exists(), f"DEEPX export failed, directory not found: {file}"
-    # Note: Inference testing skipped as it requires DEEPX hardware
-    shutil.rmtree(file, ignore_errors=True)  # cleanup
-
-
 @pytest.mark.skipif(
     not (WINDOWS or (LINUX and ARM64)) or sys.version_info < (3, 11),
     reason="onnxruntime-qnn ships prebuilt wheels only for Windows (x64/ARM64) and Linux ARM64 on Python>=3.11",

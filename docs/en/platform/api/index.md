@@ -1,4 +1,5 @@
 ---
+plans: [free, pro, enterprise]
 comments: true
 description: Complete REST API reference for Ultralytics Platform including authentication, endpoints, and examples for datasets, models, and deployments.
 keywords: Ultralytics Platform, REST API, API reference, authentication, endpoints, YOLO, programmatic access

@@ -1,4 +1,6 @@
 ---
+plans: [free, pro, enterprise]
+title: Trained Model Management
 comments: true
 description: Learn how to manage, analyze, and export trained models in Ultralytics Platform with support for 19+ deployment formats.
 keywords: Ultralytics Platform, models, model management, export, ONNX, TensorRT, CoreML, YOLO
@@ -53,18 +55,17 @@ See [Cloud Training](cloud-training.md) for detailed instructions.
 
 ```mermaid
 graph LR
-    A[Upload .pt] --> B[Overview]
-    C[Train] --> B
-    B --> D[Predict]
-    B --> E[Export]
-    B --> F[Deploy]
-    E --> G[19+ Formats]
-    F --> H[Endpoint]
+    A[Upload .pt]:::start --> B[Overview]:::proc
+    C[Train]:::start --> B
+    B --> D[Predict]:::proc
+    B --> E[Export]:::proc
+    B --> F[Deploy]:::proc
+    E --> G[19+ Formats]:::out
+    F --> H[Endpoint]:::out
 
-    style A fill:#4CAF50,color:#fff
-    style C fill:#FF9800,color:#fff
-    style E fill:#2196F3,color:#fff
-    style F fill:#9C27B0,color:#fff
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 ## Model Page Tabs
@@ -183,17 +184,18 @@ Performance curves at different confidence thresholds:
 
 ```mermaid
 graph LR
-    A[Select Format] --> B[Configure Args]
-    B --> C[Export]
-    C --> D{GPU Required?}
-    D -->|Yes| E[Cloud GPU Export]
-    D -->|No| F[CPU Export]
-    E --> G[Download]
+    A[Select Format]:::start --> B[Configure Args]:::proc
+    B --> C[Export]:::proc
+    C --> D{GPU Required?}:::decide
+    D -->|Yes| E[Cloud GPU Export]:::proc
+    D -->|No| F[CPU Export]:::proc
+    E --> G[Download]:::out
     F --> G
 
-    style A fill:#2196F3,color:#fff
-    style C fill:#FF9800,color:#fff
-    style G fill:#4CAF50,color:#fff
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef decide fill:#FF9800,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 Export your model to 19+ deployment formats:
@@ -209,7 +211,7 @@ Export your model to 19+ deployment formats:
 
 ### Supported Formats
 
-The Platform supports export to [19+ deployment formats](../../modes/export.md#export-formats): ONNX, TorchScript, OpenVINO, TensorRT, CoreML, TF SavedModel, TF GraphDef, TF Lite, TF Edge TPU, TF.js, PaddlePaddle, NCNN, MNN, RKNN, Qualcomm (QNN), IMX500, Axelera, ExecuTorch, and DeepX.
+The Platform supports export to [19+ deployment formats](../../modes/export.md#export-formats): ONNX, TorchScript, OpenVINO, TensorRT, CoreML, TF SavedModel, TF GraphDef, LiteRT, TF Edge TPU, PaddlePaddle, NCNN, MNN, RKNN, Qualcomm (QNN), IMX500, Axelera, ExecuTorch, and DeepX.
 
 ### Format Selection Guide
 
@@ -217,9 +219,9 @@ The Platform supports export to [19+ deployment formats](../../modes/export.md#e
 | ------------------ | ------------------- | -------------------------------------------------------------- |
 | **NVIDIA GPUs**    | TensorRT            | Maximum inference speed                                        |
 | **Intel Hardware** | OpenVINO            | CPUs, GPUs, and VPUs                                           |
-| **Apple Devices**  | CoreML              | iOS, macOS, Apple Silicon                                      |
-| **Android**        | TF Lite or NCNN     | Best mobile performance                                        |
-| **Web Browsers**   | TF.js or ONNX       | ONNX via ONNX Runtime Web                                      |
+| **Apple Devices**  | CoreML or LiteRT    | iOS, macOS, Apple Silicon                                      |
+| **Android**        | LiteRT or NCNN      | LiteRT (Google's on-device runtime) or NCNN for ARM            |
+| **Web Browsers**   | LiteRT.js or ONNX   | LiteRT.js or ONNX via ONNX Runtime Web                         |
 | **Edge Devices**   | TF Edge TPU or RKNN | Coral and Rockchip (see [supported chips](#rknn-chip-support)) |
 | **General**        | ONNX                | Works with most runtimes                                       |
 

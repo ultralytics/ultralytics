@@ -37,14 +37,10 @@ Here are some compelling reasons to opt for YOLO26's Train mode:
 
 The following are some notable features of YOLO26's Train mode:
 
-- **Automatic Dataset Download:** Standard datasets like COCO, VOC, and ImageNet are downloaded automatically on first use.
+- **Automatic Dataset Download:** Dataset configurations with a download source are downloaded automatically on first use, e.g., `yolo train data=coco8.yaml`. See the [Datasets overview](../datasets/index.md) for supported formats and datasets.
 - **Multi-GPU Support:** Scale your training efforts seamlessly across multiple GPUs to expedite the process.
 - **Hyperparameter Configuration:** The option to modify hyperparameters through YAML configuration files or CLI arguments.
 - **Visualization and Monitoring:** Real-time tracking of training metrics and visualization of the learning process for better insights.
-
-!!! tip
-
-    * YOLO26 datasets like COCO, VOC, ImageNet, and many others automatically download on first use, i.e., `yolo train data=coco.yaml`
 
 ## Usage Examples
 
@@ -305,7 +301,7 @@ Remember to sign in to your Comet account on their website and get your API key.
 
 ### ClearML
 
-[ClearML](https://www.clear.ml/) is an open-source platform that automates tracking of experiments and helps with efficient sharing of resources. It is designed to help teams manage, execute, and reproduce their ML work more efficiently.
+[ClearML](https://clear.ml/) is an open-source platform that automates tracking of experiments and helps with efficient sharing of resources. It is designed to help teams manage, execute, and reproduce their ML work more efficiently.
 
 To use ClearML:
 

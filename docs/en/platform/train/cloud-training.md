@@ -1,4 +1,6 @@
 ---
+plans: [free, pro, enterprise]
+title: Cloud GPU Training
 comments: true
 description: Learn how to train YOLO models on cloud GPUs with Ultralytics Platform, including remote training and real-time metrics streaming.
 keywords: Ultralytics Platform, cloud training, GPU training, remote training, YOLO, model training, machine learning
@@ -10,18 +12,17 @@ keywords: Ultralytics Platform, cloud training, GPU training, remote training, Y
 
 ```mermaid
 graph LR
-    A[Configure] --> B[Start Training]
-    B --> C[Provision GPU]
-    C --> D[Download Dataset]
-    D --> E[Train]
-    E --> F[Stream Metrics]
-    F --> G[Save Checkpoints]
-    G --> H[Complete]
+    A[Configure]:::start --> B[Start Training]:::proc
+    B --> C[Provision GPU]:::proc
+    C --> D[Download Dataset]:::proc
+    D --> E[Train]:::proc
+    E --> F[Stream Metrics]:::proc
+    F --> G[Save Checkpoints]:::proc
+    G --> H[Complete]:::out
 
-    style A fill:#2196F3,color:#fff
-    style B fill:#FF9800,color:#fff
-    style E fill:#9C27B0,color:#fff
-    style H fill:#4CAF50,color:#fff
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 ## Training Dialog
@@ -184,14 +185,14 @@ Click **Cancel Training** on the model page to stop a running job:
 
 ```mermaid
 graph LR
-    A[Local GPU] --> B[Train]
-    B --> C[ultralytics Package]
-    C --> D[Stream Metrics]
-    D --> E[Platform Dashboard]
+    A[Local GPU]:::start --> B[Train]:::proc
+    B --> C[ultralytics Package]:::proc
+    C --> D[Stream Metrics]:::proc
+    D --> E[Platform Dashboard]:::out
 
-    style A fill:#FF9800,color:#fff
-    style C fill:#2196F3,color:#fff
-    style E fill:#4CAF50,color:#fff
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 Train on your own hardware while streaming metrics to the platform.
@@ -301,21 +302,21 @@ Before training starts, the platform estimates total cost by:
 | Scenario                         | GPU          | Estimated Cost |
 | -------------------------------- | ------------ | -------------- |
 | 500 images, YOLO26n, 50 epochs   | RTX 4090     | ~$0.03         |
-| 1000 images, YOLO26n, 100 epochs | RTX PRO 6000 | ~$0.27         |
-| 5000 images, YOLO26s, 100 epochs | H100 SXM     | ~$1.75         |
+| 1000 images, YOLO26n, 100 epochs | RTX PRO 6000 | ~$0.30         |
+| 5000 images, YOLO26s, 100 epochs | H100 SXM     | ~$1.93         |
 
 ### Billing Flow
 
 ```mermaid
 graph LR
-    A[Estimate Cost] --> B[Balance Check]
-    B --> C[Train]
-    C --> D[Charge Actual Runtime]
+    A[Estimate Cost]:::start --> B[Balance Check]:::decide
+    B --> C[Train]:::proc
+    C --> D[Charge Actual Runtime]:::out
 
-    style A fill:#2196F3,color:#fff
-    style B fill:#FF9800,color:#fff
-    style C fill:#9C27B0,color:#fff
-    style D fill:#4CAF50,color:#fff
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef decide fill:#FF9800,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 Cloud training billing flow:

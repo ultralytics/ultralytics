@@ -78,12 +78,12 @@ class ClassificationValidator(BaseValidator):
         self.nc = len(model.names)
         self.pred = []
         self.targets = []
-        self.confusion_matrix = ConfusionMatrix(names=model.names)
+        self.confusion_matrix = ConfusionMatrix(names=model.names, task="classify")
 
     def preprocess(self, batch: dict[str, Any]) -> dict[str, Any]:
         """Preprocess input batch by moving data to device and converting to appropriate dtype."""
         batch["img"] = batch["img"].to(self.device, non_blocking=self.device.type == "cuda")
-        batch["img"] = batch["img"].half() if self.args.half else batch["img"].float()
+        batch["img"] = batch["img"].half() if self.args.quantize == 16 else batch["img"].float()
         batch["cls"] = batch["cls"].to(self.device, non_blocking=self.device.type == "cuda")
         return batch
 

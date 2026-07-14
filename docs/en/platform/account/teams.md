@@ -1,4 +1,6 @@
 ---
+plans: [pro, enterprise]
+title: Team Management & Roles
 comments: true
 description: Create and manage teams on Ultralytics Platform with role-based access control, shared resources, and enterprise features for collaborative computer vision workflows.
 keywords: Ultralytics Platform, teams, collaboration, enterprise, roles, permissions, RBAC, workspace, team management

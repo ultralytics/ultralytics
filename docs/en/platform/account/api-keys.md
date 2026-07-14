@@ -1,4 +1,6 @@
 ---
+plans: [free, pro, enterprise]
+title: API Key Management
 comments: true
 description: Create and manage API keys for Ultralytics Platform with secure AES-256-GCM encryption for remote training and programmatic access.
 keywords: Ultralytics Platform, API keys, authentication, remote training, security, access control

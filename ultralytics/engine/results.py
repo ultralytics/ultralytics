@@ -345,7 +345,7 @@ class Results(SimpleClass, DataExportMixin):
         if masks is not None:
             self.masks = Masks(masks, self.orig_shape)
         if probs is not None:
-            self.probs = probs
+            self.probs = Probs(probs)
         if obb is not None:
             self.obb = OBB(obb, self.orig_shape)
         if keypoints is not None:
@@ -541,7 +541,7 @@ class Results(SimpleClass, DataExportMixin):
                 )
             idx = (
                 pred_boxes.id
-                if pred_boxes.is_track and color_mode == "instance"
+                if pred_boxes and pred_boxes.is_track and color_mode == "instance"
                 else pred_boxes.cls
                 if pred_boxes and color_mode == "class"
                 else reversed(range(len(pred_masks)))

@@ -21,20 +21,17 @@ Commands:
         ps aux | grep 'mlflow' | grep -v 'grep' | awk '{print $2}' | xargs kill -9
 """
 
-from ultralytics.utils import LOGGER, RUNS_DIR, SETTINGS, TESTS_RUNNING, colorstr
+import os
+from pathlib import Path
+
+from ultralytics.utils import LOGGER, RUNS_DIR, SETTINGS, TESTS_RUNNING, colorstr, env_bool
+
+PREFIX = colorstr("MLflow: ")
 
 try:
-    import os
-
-    assert not TESTS_RUNNING or "test_mlflow" in os.environ.get("PYTEST_CURRENT_TEST", "")  # do not log pytest
-    assert SETTINGS["mlflow"] is True  # verify integration is enabled
     import mlflow
 
-    assert hasattr(mlflow, "__version__")  # verify package is not directory
-    from pathlib import Path
-
-    PREFIX = colorstr("MLflow: ")
-
+    assert hasattr(mlflow, "__version__")  # verify package is not a local directory
 except (ImportError, AssertionError):
     mlflow = None
 
@@ -58,9 +55,15 @@ def on_pretrain_routine_end(trainer):
         MLFLOW_TRACKING_URI: The URI for MLflow tracking. If not set, defaults to 'runs/mlflow'.
         MLFLOW_EXPERIMENT_NAME: The name of the MLflow experiment. If not set, defaults to trainer.args.project.
         MLFLOW_RUN: The name of the MLflow run. If not set, defaults to trainer.args.name.
-        MLFLOW_KEEP_RUN_ACTIVE: Boolean indicating whether to keep the MLflow run active after training ends.
+        MLFLOW_KEEP_RUN_ACTIVE: Whether to keep the MLflow run active after training ends. Truthy values are
+            "1", "true", "yes", "on", "y", "t" (case-insensitive); anything else is False.
     """
-    global mlflow
+    # Resolve enablement at call time (not import time) so test/training order can never permanently disable MLflow:
+    # `add_integration_callbacks` imports this module on the first training, which may run with mlflow off.
+    if not mlflow or SETTINGS["mlflow"] is not True:
+        return
+    if TESTS_RUNNING and "test_mlflow" not in os.environ.get("PYTEST_CURRENT_TEST", ""):
+        return  # do not log during unrelated pytest tests
 
     uri = os.environ.get("MLFLOW_TRACKING_URI") or str(RUNS_DIR / "mlflow")
     LOGGER.debug(f"{PREFIX} tracking uri: {uri}")
@@ -138,7 +141,7 @@ def on_train_end(trainer):
         except Exception as e:
             LOGGER.warning(f"{PREFIX}failed to log artifacts: {e}")
     if getattr(trainer, "_mlflow_started_run", False):  # only close a run we created
-        if os.environ.get("MLFLOW_KEEP_RUN_ACTIVE", "False").lower() == "true":
+        if env_bool("MLFLOW_KEEP_RUN_ACTIVE"):
             LOGGER.info(f"{PREFIX}mlflow run still alive, remember to close it using mlflow.end_run()")
         else:
             try:

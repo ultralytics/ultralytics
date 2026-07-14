@@ -4,6 +4,8 @@ import contextlib
 import csv
 import os
 import shutil
+import subprocess
+import sys
 import tarfile
 import urllib
 import zipfile
@@ -38,10 +40,25 @@ from ultralytics.utils import (
     WINDOWS,
     YAML,
     checks,
+    get_pythonpath_env,
     is_github_action_running,
 )
 from ultralytics.utils.downloads import download, safe_download
 from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13
+
+
+def test_pythonpath_env(tmp_path, monkeypatch):
+    """Verify Python subprocesses import modules available only on the parent runtime path."""
+    (tmp_path / "parent_only.py").write_text("VALUE = 'ok'")
+    monkeypatch.syspath_prepend(tmp_path)
+    result = subprocess.run(
+        [sys.executable, "-c", "import parent_only; print(parent_only.VALUE)"],
+        check=True,
+        capture_output=True,
+        text=True,
+        env=get_pythonpath_env(),
+    )
+    assert result.stdout.strip() == "ok"
 
 
 def test_dataloader_caps_workers_to_batches():

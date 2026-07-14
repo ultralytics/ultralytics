@@ -18,11 +18,9 @@ from __future__ import annotations
 
 import gc
 import json
-import os
 import random
 import shutil
 import subprocess
-import sys
 import time
 from collections import Counter
 from datetime import datetime
@@ -32,7 +30,7 @@ import numpy as np
 import torch
 
 from ultralytics.cfg import _YOLO_CLI_COMMAND, CFG_INT_KEYS, get_cfg, get_save_dir
-from ultralytics.utils import DEFAULT_CFG, LOGGER, YAML, callbacks, colorstr, remove_colorstr
+from ultralytics.utils import DEFAULT_CFG, LOGGER, YAML, callbacks, colorstr, get_pythonpath_env, remove_colorstr
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.patches import torch_load
 from ultralytics.utils.plotting import plot_tune_results
@@ -507,10 +505,7 @@ class Tuner:
                     train_args["save_dir"] = str(save_dir[j])  # pass save_dir to subprocess to ensure same path is used
                     # Train YOLO model with mutated hyperparameters (run in subprocess to avoid dataloader hang)
                     cmd = [*_YOLO_CLI_COMMAND, "train", *(f"{k}={v}" for k, v in train_args.items())]
-                    # Propagate parent sys.path so subprocess imports the same ultralytics version as the parent,
-                    # avoiding a stale site-packages copy when running from an editable install or local working tree
-                    env = {**os.environ, "PYTHONPATH": os.pathsep.join(p for p in sys.path if p)}
-                    subprocess.run(cmd, check=True, env=env)
+                    subprocess.run(cmd, check=True, env=get_pythonpath_env())
                     ckpt_file = weights_dir[j] / ("best.pt" if (weights_dir[j] / "best.pt").exists() else "last.pt")
                     metrics_i = torch_load(ckpt_file)["train_metrics"]
                     metrics = metrics_i

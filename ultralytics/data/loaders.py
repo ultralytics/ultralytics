@@ -616,6 +616,7 @@ class LoadTensor:
                 f"torch.Tensor inputs should be normalized 0.0-1.0 but max value is {im.max()}. Dividing input by 255."
             )
             im = im.float() / 255.0
+
         return im
 
     def __iter__(self):

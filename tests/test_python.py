@@ -316,6 +316,15 @@ def test_load_tensor_uint8():
     assert LoadTensor(normalized).im0.max() > 1
 
 
+def test_load_tensor_channels():
+    """Test tensor channel normalization for grayscale and color models."""
+    from ultralytics.data.loaders import LoadTensor
+
+    for source_channels, model_channels in ((1, 3), (2, 1), (2, 3), (3, 1), (4, 1), (4, 3)):
+        im = torch.zeros((1, source_channels, 32, 32))
+        assert LoadTensor(im, channels=model_channels).im0.shape == (1, model_channels, 32, 32)
+
+
 def test_predict_gray_and_4ch(tmp_path):
     """Test YOLO prediction on SOURCE converted to grayscale and 4-channel images with various filenames."""
     im = Image.open(SOURCE)

@@ -585,20 +585,21 @@ class LoadTensor:
         >>> print(f"Processed {len(images)} images")
     """
 
-    def __init__(self, im0: torch.Tensor) -> None:
+    def __init__(self, im0: torch.Tensor, channels: int = 3) -> None:
         """Initialize LoadTensor object for processing torch.Tensor image data.
 
         Args:
             im0 (torch.Tensor): Input tensor with shape (B, C, H, W).
+            channels (int): Number of image channels (1 for grayscale, 3 for color).
         """
-        self.im0 = self._single_check(im0)
+        self.im0 = self._single_check(im0, channels)
         self.bs = self.im0.shape[0]
         self.mode = "image"
         self.paths = [f"image{i}.jpg" for i in range(self.bs)]
         self.count = 0
 
     @staticmethod
-    def _single_check(im: torch.Tensor, stride: int = 32) -> torch.Tensor:
+    def _single_check(im: torch.Tensor, channels: int = 3, stride: int = 32) -> torch.Tensor:
         """Validate and format a single image tensor, ensuring correct shape and normalization."""
         s = (
             f"torch.Tensor inputs should be BCHW i.e. shape(1, 3, 640, 640) "
@@ -616,6 +617,16 @@ class LoadTensor:
                 f"torch.Tensor inputs should be normalized 0.0-1.0 but max value is {im.max()}. Dividing input by 255."
             )
             im = im.float() / 255.0
+        c = im.shape[1]
+        if c != channels:
+            if c == 2:  # gray + alpha
+                im, c = im[:, :1], 1
+            if c == 1:
+                im = im.repeat(1, channels, 1, 1)
+            elif channels == 1:  # BGR(A) to grayscale with the cv2.cvtColor luminance weights
+                im = (im[:, :3] * im.new_tensor([0.114, 0.587, 0.299])[None, :, None, None]).sum(1, keepdim=True)
+            else:
+                im = im[:, :3]
 
         return im
 

@@ -20,7 +20,7 @@ keywords: Ultralytics, YOLO, depth estimation, DIODE, dense depth, indoor outdoo
 
 The DIODE depth dataset is split into two subsets:
 
-1. **Train**: 18,660 images with paired depth maps for training.
+1. **Train**: 25,458 images with paired depth maps for training.
 2. **Val**: 771 images with paired depth maps for validation during model training.
 
 Each sample consists of one RGB image and one paired `.npy` float32 depth map storing per-pixel distances in meters, following the [Ultralytics depth dataset format](index.md).

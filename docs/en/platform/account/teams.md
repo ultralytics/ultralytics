@@ -1,4 +1,5 @@
 ---
+plans: [pro, enterprise]
 title: Team Management & Roles
 comments: true
 description: Create and manage teams on Ultralytics Platform with role-based access control, shared resources, and enterprise features for collaborative computer vision workflows.
@@ -6,8 +7,6 @@ keywords: Ultralytics Platform, teams, collaboration, enterprise, roles, permiss
 ---
 
 # Teams
-
-{% from "macros/platform-plans.md" import plan_badges %} {{ plan_badges(["Pro", "Enterprise"]) }}
 
 [Ultralytics Platform](https://platform.ultralytics.com) team features enable collaborative computer vision workflows. Create a team workspace to share datasets, projects, models, and deployments with your colleagues using role-based access control.
 

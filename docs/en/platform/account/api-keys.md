@@ -1,4 +1,5 @@
 ---
+plans: [free, pro, enterprise]
 title: API Key Management
 comments: true
 description: Create and manage API keys for Ultralytics Platform with secure AES-256-GCM encryption for remote training and programmatic access.
@@ -6,8 +7,6 @@ keywords: Ultralytics Platform, API keys, authentication, remote training, secur
 ---
 
 # API Keys
-
-{% from "macros/platform-plans.md" import plan_badges %} {{ plan_badges(["Free", "Pro", "Enterprise"]) }}
 
 [Ultralytics Platform](https://platform.ultralytics.com) API keys enable secure programmatic access for remote training, inference, and automation. Create named keys with AES-256-GCM encryption for different use cases.
 

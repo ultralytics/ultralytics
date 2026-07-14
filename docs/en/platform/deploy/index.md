@@ -1,4 +1,5 @@
 ---
+plans: [free, pro, enterprise]
 title: Model Deployment Options
 comments: true
 description: Learn about model deployment options in Ultralytics Platform including inference testing, dedicated endpoints, and monitoring dashboards.
@@ -6,8 +7,6 @@ keywords: Ultralytics Platform, deployment, inference, endpoints, monitoring, YO
 ---
 
 # Deployment
-
-{% from "macros/platform-plans.md" import plan_badges %} {{ plan_badges(["Free", "Pro", "Enterprise"]) }}
 
 [Ultralytics Platform](https://platform.ultralytics.com) provides comprehensive deployment options for putting your YOLO models into production. Test models with browser-based inference, deploy to dedicated endpoints across 43 global regions, and monitor performance in real-time.
 

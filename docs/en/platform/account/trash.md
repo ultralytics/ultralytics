@@ -1,12 +1,11 @@
 ---
+plans: [free, pro, enterprise]
 comments: true
 description: Learn how to recover deleted projects, datasets, and models from Trash on Ultralytics Platform with the 30-day soft delete policy.
 keywords: Ultralytics Platform, trash, restore, soft delete, recover, deleted items, data recovery
 ---
 
 # Trash and Restore
-
-{% from "macros/platform-plans.md" import plan_badges %} {{ plan_badges(["Free", "Pro", "Enterprise"]) }}
 
 [Ultralytics Platform](https://platform.ultralytics.com) implements a 30-day soft delete policy, allowing you to recover accidentally deleted projects, datasets, and models. Deleted items are moved to Trash where they can be restored before permanent deletion.
 

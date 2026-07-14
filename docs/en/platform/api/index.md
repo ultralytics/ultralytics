@@ -1,12 +1,11 @@
 ---
+plans: [free, pro, enterprise]
 comments: true
 description: Complete REST API reference for Ultralytics Platform including authentication, endpoints, and examples for datasets, models, and deployments.
 keywords: Ultralytics Platform, REST API, API reference, authentication, endpoints, YOLO, programmatic access
 ---
 
 # REST API Reference
-
-{% from "macros/platform-plans.md" import plan_badges %} {{ plan_badges(["Free", "Pro", "Enterprise"]) }}
 
 [Ultralytics Platform](https://platform.ultralytics.com) provides a comprehensive REST API for programmatic access to datasets, models, training, and deployments.
 

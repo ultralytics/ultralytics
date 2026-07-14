@@ -1,4 +1,5 @@
 ---
+plans: [free, pro, enterprise]
 title: Billing & Credits
 comments: true
 description: Manage credits, payments, and subscriptions on Ultralytics Platform with transparent pricing for cloud training and deployments.
@@ -6,8 +7,6 @@ keywords: Ultralytics Platform, billing, credits, pricing, subscription, payment
 ---
 
 # Billing
-
-{% from "macros/platform-plans.md" import plan_badges %} {{ plan_badges(["Free", "Pro", "Enterprise"]) }}
 
 [Ultralytics Platform](https://platform.ultralytics.com) uses a credit-based billing system for cloud training and dedicated endpoints. Add credits, track usage, and manage your subscription from `Settings > Billing`.
 

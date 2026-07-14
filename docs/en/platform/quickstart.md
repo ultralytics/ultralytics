@@ -1,12 +1,11 @@
 ---
+plans: [free, pro, enterprise]
 comments: true
 description: Get started with Ultralytics Platform in minutes. Learn to create an account, upload datasets, train YOLO models, and deploy to production.
 keywords: Ultralytics Platform, Quickstart, YOLO models, dataset upload, model training, cloud deployment, machine learning
 ---
 
 # Ultralytics Platform Quickstart
-
-{% from "macros/platform-plans.md" import plan_badges %} {{ plan_badges(["Free", "Pro", "Enterprise"]) }}
 
 [Ultralytics Platform](https://platform.ultralytics.com) is designed to be user-friendly and intuitive, allowing users to quickly upload their datasets and train new YOLO models. It offers a range of pretrained models to choose from, making it easy for users to get started. Once a model is trained, it can be tested directly in the browser and deployed to production with a single click.
 

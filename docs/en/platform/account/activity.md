@@ -1,4 +1,5 @@
 ---
+plans: [free, pro, enterprise]
 title: Account Activity Feed
 comments: true
 description: Track all account activity and events on Ultralytics Platform with the activity feed, including training, uploads, and system events.
@@ -6,8 +7,6 @@ keywords: Ultralytics Platform, activity feed, audit log, notifications, event t
 ---
 
 # Activity Feed
-
-{% from "macros/platform-plans.md" import plan_badges %} {{ plan_badges(["Free", "Pro", "Enterprise"]) }}
 
 [Ultralytics Platform](https://platform.ultralytics.com) provides a comprehensive activity feed that tracks all events and actions across your account. Monitor training progress and system events in one centralized location.
 

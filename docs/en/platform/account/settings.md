@@ -1,4 +1,5 @@
 ---
+plans: [free, pro, enterprise]
 comments: true
 description: Configure your Ultralytics Platform profile, preferences, and data settings with GDPR-compliant data export and deletion options.
 keywords: Ultralytics Platform, settings, profile, preferences, GDPR, data export, privacy
@@ -6,8 +7,6 @@ title: Account Settings
 ---
 
 # Settings
-
-{% from "macros/platform-plans.md" import plan_badges %} {{ plan_badges(["Free", "Pro", "Enterprise"]) }}
 
 [Ultralytics Platform](https://platform.ultralytics.com) settings allow you to configure your profile, social links, workspace preferences, and manage your data with GDPR-compliant export and deletion options.
 

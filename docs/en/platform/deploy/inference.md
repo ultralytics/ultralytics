@@ -1,4 +1,5 @@
 ---
+plans: [free, pro, enterprise]
 title: Inference API Testing
 comments: true
 description: Learn how to test YOLO models with the Ultralytics Platform inference API including browser testing and programmatic access.
@@ -6,8 +7,6 @@ keywords: Ultralytics Platform, inference, API, YOLO, object detection, predicti
 ---
 
 # Inference
-
-{% from "macros/platform-plans.md" import plan_badges %} {{ plan_badges(["Free", "Pro", "Enterprise"]) }}
 
 [Ultralytics Platform](https://platform.ultralytics.com) provides an inference API for testing trained models. Use the browser-based `Predict` tab for quick validation or the [REST API](../api/index.md#models-api) for programmatic access.
 

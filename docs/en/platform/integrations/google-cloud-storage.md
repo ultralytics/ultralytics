@@ -1,4 +1,5 @@
 ---
+plans: [pro, enterprise]
 comments: true
 description: Connect Google Cloud Storage to Ultralytics Platform and train YOLO models on images in your GCS buckets without uploading a copy.
 keywords: Ultralytics Platform, Google Cloud Storage, GCS, GCS bucket, service account, dataset import, YOLO, computer vision, cloud storage
@@ -7,11 +8,11 @@ title: Google Cloud Storage Datasets - Ultralytics Platform
 
 # Google Cloud Storage Integration
 
-{% from "macros/platform-plans.md" import plan_badges %} {{ plan_badges(["Pro", "Enterprise"]) }}
-
 The [Google Cloud Storage](https://cloud.google.com/storage) integration connects your GCS buckets to [Ultralytics Platform](https://platform.ultralytics.com). Your images stay in your buckets — Platform indexes them in place, so you can browse, annotate, and train YOLO models without uploading a copy.
 
-Existing Google Cloud Storage datasets stay fully accessible if a subscription ends; only new connections and imports require Pro.
+!!! note "Pro feature"
+
+    Google Cloud Storage datasets require a [Pro or Enterprise plan](../account/billing.md#plans). Free workspaces see the integration and are prompted to upgrade when connecting. Existing Google Cloud Storage datasets stay fully accessible if a subscription ends — only new connections and imports require Pro.
 
 ## Create a Read-Only Service Account
 

@@ -1,4 +1,5 @@
 ---
+plans: [free, pro, enterprise]
 title: Explore Datasets & Projects
 comments: true
 description: Discover public datasets and projects on the Ultralytics Platform Explore page. Browse, search, and clone community content for computer vision and YOLO.
@@ -6,8 +7,6 @@ keywords: Ultralytics Platform, explore, public datasets, public projects, compu
 ---
 
 # Explore
-
-{% from "macros/platform-plans.md" import plan_badges %} {{ plan_badges(["Free", "Pro", "Enterprise"]) }}
 
 [Ultralytics Platform](https://platform.ultralytics.com) Explore page showcases public content from the community. Discover [datasets](data/datasets.md) and [projects](train/projects.md) for inspiration and learning. The Explore page is accessible to everyone — even without signing in.
 

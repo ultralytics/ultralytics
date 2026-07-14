@@ -1,4 +1,5 @@
 ---
+plans: [free, pro, enterprise]
 title: Cloud Model Training
 comments: true
 description: Learn about model training in Ultralytics Platform including project organization, cloud training, and real-time metrics streaming.
@@ -6,8 +7,6 @@ keywords: Ultralytics Platform, model training, cloud training, YOLO, GPU traini
 ---
 
 # Model Training
-
-{% from "macros/platform-plans.md" import plan_badges %} {{ plan_badges(["Free", "Pro", "Enterprise"]) }}
 
 [Ultralytics Platform](https://platform.ultralytics.com) provides comprehensive tools for training YOLO models, from organizing experiments to running cloud training jobs with real-time metrics streaming.
 

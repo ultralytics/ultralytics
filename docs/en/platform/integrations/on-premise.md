@@ -1,12 +1,11 @@
 ---
+plans: [enterprise]
 title: On Premise - Ultralytics Platform
 description: Connect an Enterprise host to Ultralytics Platform for local dataset ingest, previews, and NVIDIA GPU training without sending pixels to the cloud.
 keywords: Ultralytics Platform, On Premise, on-premise computer vision, private datasets, local GPU training, data residency, YOLO
 ---
 
 # On Premise
-
-{% from "macros/platform-plans.md" import plan_badges %} {{ plan_badges(["Enterprise"]) }}
 
 [On Premise](https://platform.ultralytics.com) connects CPU and optional NVIDIA GPU workers on your own Linux host to Ultralytics Platform. Platform remains the hosted control plane for the UI, authentication, metadata, annotations, and job orchestration, while every pixel and trained model artifact stays on your premises.
 

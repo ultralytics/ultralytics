@@ -1,4 +1,5 @@
 ---
+plans: [free, pro, enterprise]
 title: Deployment Monitoring
 comments: true
 description: Monitor deployed YOLO models on Ultralytics Platform with real-time metrics, request logs, and performance dashboards.
@@ -6,8 +7,6 @@ keywords: Ultralytics Platform, monitoring, metrics, logs, deployment, performan
 ---
 
 # Monitoring
-
-{% from "macros/platform-plans.md" import plan_badges %} {{ plan_badges(["Free", "Pro", "Enterprise"]) }}
 
 [Ultralytics Platform](https://platform.ultralytics.com) provides monitoring for deployed endpoints. Track request metrics, view logs, and check health status with automatic polling.
 

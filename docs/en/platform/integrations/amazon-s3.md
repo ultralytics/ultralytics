@@ -1,4 +1,5 @@
 ---
+plans: [pro, enterprise]
 comments: true
 description: Connect Amazon S3 to Ultralytics Platform and train YOLO models on images in your S3 buckets without uploading a copy.
 keywords: Ultralytics Platform, Amazon S3, AWS S3, S3 bucket, IAM access key, dataset import, YOLO, computer vision, cloud storage
@@ -7,11 +8,11 @@ title: Amazon S3 Datasets - Ultralytics Platform
 
 # Amazon S3 Integration
 
-{% from "macros/platform-plans.md" import plan_badges %} {{ plan_badges(["Pro", "Enterprise"]) }}
-
 The [Amazon S3](https://aws.amazon.com/s3/) integration connects your S3 buckets to [Ultralytics Platform](https://platform.ultralytics.com). Your images stay in your buckets — Platform indexes them in place, so you can browse, annotate, and train YOLO models without uploading a copy.
 
-Existing Amazon S3 datasets stay fully accessible if a subscription ends; only new connections and imports require Pro.
+!!! note "Pro feature"
+
+    Amazon S3 datasets require a [Pro or Enterprise plan](../account/billing.md#plans). Free workspaces see the integration and are prompted to upgrade when connecting. Existing Amazon S3 datasets stay fully accessible if a subscription ends — only new connections and imports require Pro.
 
 ## Create a Read-Only IAM User
 

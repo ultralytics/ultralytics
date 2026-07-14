@@ -1,12 +1,11 @@
 ---
+plans: [free, pro, enterprise]
 comments: true
 description: Learn about data management in Ultralytics Platform including dataset upload, annotation tools, and statistics visualization for YOLO model training.
 keywords: Ultralytics Platform, data management, datasets, annotation, YOLO, computer vision, data preparation, labeling
 ---
 
 # Data Preparation
-
-{% from "macros/platform-plans.md" import plan_badges %} {{ plan_badges(["Free", "Pro", "Enterprise"]) }}
 
 Data preparation is the foundation of successful [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models. [Ultralytics Platform](https://platform.ultralytics.com) provides comprehensive tools for managing your training data, from upload through annotation to analysis.
 

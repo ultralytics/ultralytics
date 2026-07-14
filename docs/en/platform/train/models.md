@@ -1,4 +1,5 @@
 ---
+plans: [free, pro, enterprise]
 title: Trained Model Management
 comments: true
 description: Learn how to manage, analyze, and export trained models in Ultralytics Platform with support for 19+ deployment formats.
@@ -6,8 +7,6 @@ keywords: Ultralytics Platform, models, model management, export, ONNX, TensorRT
 ---
 
 # Models
-
-{% from "macros/platform-plans.md" import plan_badges %} {{ plan_badges(["Free", "Pro", "Enterprise"]) }}
 
 [Ultralytics Platform](https://platform.ultralytics.com) provides comprehensive model management for training, analyzing, and deploying YOLO models. Upload pretrained models or train new ones directly on the platform.
 

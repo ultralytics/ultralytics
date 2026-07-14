@@ -1,4 +1,5 @@
 ---
+plans: [free, pro, enterprise]
 comments: true
 description: Import every dataset from your Roboflow workspace into Ultralytics Platform with a single API key.
 keywords: Ultralytics Platform, Roboflow, Roboflow import, dataset import, integrations, YOLO, computer vision
@@ -6,8 +7,6 @@ title: Roboflow Dataset Import - Ultralytics Platform
 ---
 
 # Roboflow Integration
-
-{% from "macros/platform-plans.md" import plan_badges %} {{ plan_badges(["Free", "Pro", "Enterprise"]) }}
 
 The Roboflow integration imports every supported dataset in your Roboflow workspace into [Ultralytics Platform](https://platform.ultralytics.com) at its latest version. Re-run it any time to pull in datasets you've added since your last import.
 

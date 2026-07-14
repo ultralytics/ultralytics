@@ -1,4 +1,5 @@
 ---
+plans: [pro, enterprise]
 comments: true
 description: Connect Azure Blob Storage to Ultralytics Platform and train YOLO models on images in your Azure containers without uploading a copy.
 keywords: Ultralytics Platform, Azure Blob Storage, Azure storage account, blob container, connection string, dataset import, YOLO, computer vision, cloud storage
@@ -7,11 +8,11 @@ title: Azure Blob Storage Datasets - Ultralytics Platform
 
 # Azure Blob Storage Integration
 
-{% from "macros/platform-plans.md" import plan_badges %} {{ plan_badges(["Pro", "Enterprise"]) }}
-
 The [Azure Blob Storage](https://azure.microsoft.com/en-us/products/storage/blobs) integration connects your storage account containers to [Ultralytics Platform](https://platform.ultralytics.com). Your images stay in your containers — Platform indexes them in place, so you can browse, annotate, and train YOLO models without uploading a copy.
 
-Existing Azure Blob Storage datasets stay fully accessible if a subscription ends; only new connections and imports require Pro.
+!!! note "Pro feature"
+
+    Azure Blob Storage datasets require a [Pro or Enterprise plan](../account/billing.md#plans). Free workspaces see the integration and are prompted to upgrade when connecting. Existing Azure Blob Storage datasets stay fully accessible if a subscription ends — only new connections and imports require Pro.
 
 ## Get a Connection String
 

@@ -156,12 +156,8 @@ The Activity feed is powered by browser-authenticated routes — it is not expos
 === "Filter and Search"
 
     ```bash
-    curl --get https://platform.ultralytics.com/api/activity \
-      -H "Authorization: Bearer YOUR_API_KEY" \
-      --data-urlencode archived=false \
-      --data-urlencode search=model \
-      --data-urlencode page=1 \
-      --data-urlencode limit=20
+    curl -H "Authorization: Bearer YOUR_API_KEY" \
+      "https://platform.ultralytics.com/api/activity?archived=false&search=model&page=1&limit=20"
     ```
 
 === "Mark Seen"

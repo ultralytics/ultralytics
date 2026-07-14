@@ -2375,10 +2375,7 @@ curl -H "Authorization: Bearer YOUR_API_KEY" \
 The Explore Search endpoint uses `offset` instead of `page`, with a fixed page size of 20:
 
 ```bash
-curl --get https://platform.ultralytics.com/api/explore/search \
-  --data-urlencode type=datasets \
-  --data-urlencode offset=20 \
-  --data-urlencode sort=stars
+curl "https://platform.ultralytics.com/api/explore/search?type=datasets&offset=20&sort=stars"
 ```
 
 ### Can I use the API without an SDK?

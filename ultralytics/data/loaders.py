@@ -541,6 +541,8 @@ class LoadPilAndNumpy:
             im, c = im[..., :1], 1
         if c == 1:
             return np.repeat(im, channels, axis=2)
+        if c > 4:
+            raise ValueError(f"Expected image with 1-4 channels, but got {c}")
         if channels == 1:
             return cv2.cvtColor(im, cv2.COLOR_BGRA2GRAY if c == 4 else cv2.COLOR_BGR2GRAY)[..., None]
         return np.ascontiguousarray(im[..., :3])

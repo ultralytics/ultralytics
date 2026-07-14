@@ -351,6 +351,8 @@ def test_predict_ndarray_channels():
     for source_channels, model_channels in ((1, 3), (2, 1), (2, 3), (3, 1), (4, 1), (4, 3)):
         im = np.zeros((8, 8, source_channels), dtype=np.uint8)
         assert LoadPilAndNumpy(im, channels=model_channels).im0[0].shape == (8, 8, model_channels)
+    with pytest.raises(ValueError, match="channels"):  # multi-spectral inputs must not be silently truncated
+        LoadPilAndNumpy(np.zeros((8, 8, 5), dtype=np.uint8), channels=3)
 
 
 @pytest.mark.slow

@@ -202,6 +202,11 @@ def test_model_load_remaps_cls_head_by_names():
     tgt.load(src, verbose=False)
     assert all(seq[-1].bias.tolist() == [20.0, 10.0] for seq in tgt.model[-1].cv3)
 
+    tgt_fused = DetectionModel("yolo26n.yaml", nc=2, verbose=False)
+    tgt_fused.names = {0: "dog", 1: "cat"}
+    tgt_fused.fuse()  # fused Detect heads set cv3=None
+    tgt_fused.load(src, verbose=False)  # loading into a fused model must not crash the remap
+
     src = YOLOEModel("yoloe-26n.yaml", nc=3, verbose=False)
     tgt = YOLOEModel("yoloe-26n.yaml", nc=2, verbose=False)
     src.names, tgt.names = {0: "cat", 1: "dog", 2: "car"}, {0: "dog", 1: "cat"}

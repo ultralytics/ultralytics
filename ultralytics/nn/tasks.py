@@ -382,7 +382,7 @@ class BaseModel(torch.nn.Module):
             for name, m in self.named_modules()
             if isinstance(m, Detect)
             for attr in ("cv3", "one2one_cv3")
-            for i, seq in enumerate(getattr(m, attr, ()))
+            for i, seq in enumerate(getattr(m, attr, None) or ())  # cv3 is None after Detect.fuse()
             if getattr(seq[-1], "out_channels", None) == tgt_nc
             for p in ("weight", "bias")
         }

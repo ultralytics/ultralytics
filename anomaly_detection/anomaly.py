@@ -91,9 +91,7 @@ _FUSE_CHOICES = ("concat", "sum", "avg", "patchcore", "concat_pool")
 _SCORE_CHUNK_ELEMS = 1 << 27  # max [query, bank] elements per similarity slice (scoring memory knob)
 
 # ---------------------------------------------------------------------------
-# Memory-bank helpers — k-center coreset, compactness + hold-out calibration,
-# cos-space sigmoid Noisy-OR scoring.
-# (ported from YOLOA BackboneMemoryBank, ultralytics_worktree @ yoloa_clean_louis)
+# Memory-bank helpers — k-center coreset + pluggable scoring/calibration.
 # ---------------------------------------------------------------------------
 
 
@@ -131,33 +129,15 @@ def _coreset_kcenter(mem: torch.Tensor, max_size: int, return_indices: bool = Fa
     return (mem[sel], sel) if return_indices else mem[sel]
 
 
-@torch.inference_mode()
-def _measure_compactness(mem: torch.Tensor, K: int) -> float:
-    """Mean local cosine density of the bank (self-match masked) ∈ [0, 1).
-
-    A tight normal manifold → high compactness. Sampled (≤512) and seeded for
-    reproducible calibration.
-    """
-    k = min(K, mem.shape[0])
-    n_sample = min(512, mem.shape[0])
-    g = torch.Generator().manual_seed(0)
-    idx = torch.randperm(mem.shape[0], generator=g)[:n_sample].to(mem.device)
-    sim = mem[idx] @ mem.t()
-    sim[torch.arange(n_sample, device=mem.device), idx] = -1.0  # mask self-match
-    topk = sim.topk(k=k, dim=1).values
-    return topk.mean(dim=1).mean().clamp(0.0, 1.0 - 1e-4).item()
-
+# ── Scoring: Noisy-OR ──────────────────────────────────────────────────
 
 @torch.inference_mode()
-def _score_bank(features: torch.Tensor, bank: torch.Tensor, beta: float,
-                threshold: float, K: int) -> torch.Tensor:
-    """Cos-space sigmoid Noisy-OR anomaly scores ∈ [0, 1] per query position.
-
-    ψ(x) = sigmoid(β·(cos − threshold));  score = geom_mean over top-K of (1 − ψ).
-    A normal query (cos ≈ compactness ≈ threshold) → ψ ≈ 0.5·... → low anomaly score.
-    """
+def _score_noisy_or(features: torch.Tensor, bank: torch.Tensor, K: int,
+                    state: dict) -> torch.Tensor:
+    """Cos-space sigmoid Noisy-OR anomaly scores ∈ [0, 1] per query position."""
     if bank.numel() == 0 or bank.shape[0] == 0:
         return torch.full((features.shape[0],), 0.5, device=features.device, dtype=features.dtype)
+    beta, threshold = state["beta"], state["threshold"]
     k = min(K, bank.shape[0])
     n, m = features.shape[0], bank.shape[0]
     chunk = max(1, _SCORE_CHUNK_ELEMS // max(m, 1))
@@ -171,17 +151,35 @@ def _score_bank(features: torch.Tensor, bank: torch.Tensor, beta: float,
     return torch.cat(out).clamp(0.0, 1.0).to(features.dtype)
 
 
-@torch.inference_mode()
-def _calibrate_holdout(holdout: torch.Tensor, bank: torch.Tensor, K: int,
-                            compactness: float, beta0: float, target: float,
-                            target_q: float) -> tuple[float, float]:
-    """Gaussian-tail hold-out calibration → ``(best_beta, best_threshold)``.
+def _calibrate_noisy_or(bank: torch.Tensor, holdout: torch.Tensor | None,
+                        K: int, temperature: float, target_score: float,
+                        target_quantile: float, device: str) -> dict:
+    """Compactness + hold-out calibration → ``{beta, threshold}``."""
+    # Compactness
+    k = min(K, bank.shape[0])
+    n_sample = min(512, bank.shape[0])
+    g = torch.Generator().manual_seed(0)
+    idx = torch.randperm(bank.shape[0], generator=g)[:n_sample].to(bank.device)
+    sim = bank[idx] @ bank.t()
+    sim[torch.arange(n_sample, device=bank.device), idx] = -1.0
+    compactness = sim.topk(k=k, dim=1).values.mean().clamp(0.0, 1.0 - 1e-4).item()
 
-    The user β is a sensitivity floor (never lowered). For each candidate β (β0
-    log-spaced upward), binary-searches ``threshold`` so the ``target_q`` Gaussian
-    tail-stat (μ + z·σ) of hold-out normal scores hits ``target``, then keeps the β
-    giving the tightest normal-score spread (smallest σ).
-    """
+    beta = float(temperature)
+    logit = math.log(max((1.0 - target_score) / max(target_score, 1e-6), 1e-6))
+    threshold = compactness - logit / max(beta, 0.1)
+
+    if holdout is not None and holdout.shape[0] > 0:
+        holdout = holdout[:5000].to(device)
+        beta, threshold = _refine_noisy_or(holdout, bank, k, compactness,
+                                           beta, target_score, target_quantile)
+    return {"beta": beta, "threshold": threshold}
+
+
+@torch.inference_mode()
+def _refine_noisy_or(holdout: torch.Tensor, bank: torch.Tensor, K: int,
+                     compactness: float, beta0: float, target: float,
+                     target_q: float) -> tuple[float, float]:
+    """Gaussian-tail hold-out refinement → ``(best_beta, best_threshold)``."""
     k = min(K, bank.shape[0])
     topk_cos = (F.normalize(holdout, p=2, dim=1) @ bank.t()).topk(k=k, dim=1).values
     z_q = math.sqrt(2) * torch.erfinv(torch.tensor(2.0 * target_q - 1.0)).item()
@@ -228,6 +226,31 @@ def _calibrate_holdout(holdout: torch.Tensor, bank: torch.Tensor, K: int,
         if th is not None and spread < best_spread:
             best_spread, best_beta, best_thresh = spread, beta, th
     return best_beta, best_thresh
+
+
+# ── Scoring: 1-NN ──────────────────────────────────────────────────────
+
+@torch.inference_mode()
+def _score_1nn(features: torch.Tensor, bank: torch.Tensor, K: int,
+               state: dict) -> torch.Tensor:
+    """1-NN anomaly scores: 1 − max cosine similarity to the bank."""
+    if bank.numel() == 0 or bank.shape[0] == 0:
+        return torch.full((features.shape[0],), 0.5, device=features.device, dtype=features.dtype)
+    cos = features @ bank.t()
+    return (1.0 - cos.max(dim=1).values).clamp(0.0, 1.0).to(features.dtype)
+
+
+def _calibrate_1nn(bank: torch.Tensor, holdout: torch.Tensor | None,
+                   K: int, temperature: float, target_score: float,
+                   target_quantile: float, device: str) -> dict:
+    """1-NN is calibration-free."""
+    return {}
+
+
+_SCORERS = {
+    "noisy_or": (_score_noisy_or, _calibrate_noisy_or),
+    "1nn":      (_score_1nn,      _calibrate_1nn),
+}
 
 
 def _tokens_to_bchw(tok: torch.Tensor) -> torch.Tensor:
@@ -283,6 +306,7 @@ class AnomalyBase:
         target_dim: int = 1024,
         coreset_size: int | None = 10000,
         K: int = 5,
+        scoring: str = "noisy_or",
         temperature: float = 3.0,
         target_score: float = 0.2,
         target_quantile: float = 0.95,
@@ -291,6 +315,8 @@ class AnomalyBase:
             raise ValueError(f"fuse must be in {_FUSE_CHOICES}, got {fuse!r}")
         if patchsize % 2 == 0:
             raise ValueError(f"patchsize must be odd, got {patchsize}")
+        if scoring not in _SCORERS:
+            raise ValueError(f"scoring must be in {list(_SCORERS)}, got {scoring!r}")
         self.imgsz = imgsz
         # Feature-extraction config (consumed by the shared _extract / fusion below).
         self.layers = None if layers is None else ([layers] if isinstance(layers, str) else list(layers))
@@ -301,13 +327,12 @@ class AnomalyBase:
         self._cached: dict[str, torch.Tensor] = {}      # hooks write BCHW maps here
         # Bank / scoring config.
         self.coreset_size = coreset_size                # k-center bank cap (None = keep all patches)
-        self.K = K                                      # top-K neighbours per query for Noisy-OR
-        self.temperature = float(temperature)           # β floor / starting point
+        self.K = K                                      # top-K neighbours per query
+        self.scoring = scoring                          # "noisy_or" | "1nn"
+        self.temperature = float(temperature)           # β floor / starting point (noisy_or only)
         self.target_score = float(target_score)         # a typical-normal query scores here
         self.target_quantile = float(target_quantile)   # hold-out quantile placed at target_score
-        self._beta = float(temperature)                 # calibrated β (mutated on build)
-        self._threshold: float | None = None            # cos-space sigmoid threshold
-        self._compactness: float | None = None          # normal-manifold tightness
+        self._score_state: dict = {}                    # opaque state set by calibration
         self.device = device or ("cuda" if torch.cuda.is_available() else
                                  "mps" if torch.backends.mps.is_available() else "cpu")
         self.bank: torch.Tensor | None = None
@@ -430,16 +455,7 @@ class AnomalyBase:
     # ── 2. Bank construction + calibration ──────────────────────────────
     @torch.inference_mode()
     def load_support_set(self, image_paths: list[str], batch: int = 8) -> None:
-        """Build the memory bank from normal images, then calibrate the scorer.
-
-        Dumps every (filtered) support patch, k-center coresets to ``coreset_size``
-        (dropped rows become a normal hold-out), measures normal-manifold compactness for a
-        closed-form cos-space sigmoid threshold, then — if a hold-out exists — refines β and
-        threshold so the ``target_quantile`` of hold-out normal scores hits ``target_score``.
-        Ported from YOLOA ``BackboneMemoryBank``.
-        """
-        self._beta = self.temperature  # reset β floor per build (bank is reused across categories)
-
+        """Build the memory bank from normal images, then calibrate the scorer."""
         feats: list[torch.Tensor] = []
         for i in range(0, len(image_paths), batch):
             xs = torch.stack([self._load(p) for p in image_paths[i:i + batch]], dim=0)
@@ -458,21 +474,14 @@ class AnomalyBase:
             mem = bank
         self.bank = mem.to(self.device)
 
-        # Compactness → closed-form threshold (single-entry inversion of the sigmoid score).
-        self._compactness = _measure_compactness(self.bank, self.K)
-        logit = math.log(max((1.0 - self.target_score) / max(self.target_score, 1e-6), 1e-6))
-        self._threshold = self._compactness - logit / max(self._beta, 0.1)
-
-        # Hold-out refinement of β + threshold (Gaussian tail at the target quantile).
-        if holdout is not None and holdout.shape[0] > 0:
-            holdout = holdout[:5000].to(self.device)
-            self._beta, self._threshold = _calibrate_holdout(
-                holdout, self.bank, self.K, self._compactness,
-                self._beta, self.target_score, self.target_quantile,
-            )
-        print(f"  bank={self.bank.shape[0]} compactness={self._compactness:.4f} "
-              f"β={self._beta:.3f} threshold_cos={self._threshold:.4f} "
-              f"target={self.target_score:g}(q{self.target_quantile:g})", flush=True)
+        _, calibrate = _SCORERS[self.scoring]
+        self._score_state = calibrate(
+            self.bank, holdout, self.K,
+            self.temperature, self.target_score, self.target_quantile, self.device,
+        )
+        print(f"  bank={self.bank.shape[0]} scoring={self.scoring} "
+              f"state={ {k: f'{v:.4f}' if isinstance(v, float) else v for k, v in self._score_state.items()} }",
+              flush=True)
 
     def _filter_tokens(self, tokens: torch.Tensor) -> torch.Tensor:
         """Hook: drop / reweight patch tokens before banking. Default = identity.
@@ -485,17 +494,13 @@ class AnomalyBase:
     # ── 3. Scoring ──────────────────────────────────────────────────────
     @torch.inference_mode()
     def predict_one(self, image_path: str, eval_size: int = 256) -> tuple[float, np.ndarray]:
-        """Score one test image → ``(image_score, pixel_map[eval_size, eval_size])``.
-
-        Per-patch cos-space sigmoid Noisy-OR probability ∈ [0, 1]; image score = max over
-        positions; pixel map = bilinear upsample of the patch grid.
-        """
+        """Score one test image → ``(image_score, pixel_map[eval_size, eval_size])``."""
         if self.bank is None:
             raise RuntimeError("call load_support_set() before predict_one()")
-        assert self._threshold is not None, "bank not calibrated (call load_support_set first)"
+        score_fn, _ = _SCORERS[self.scoring]
         x = self._load(image_path).unsqueeze(0)
         feats = F.normalize(self._extract(x).squeeze(0), dim=-1)   # [N, D]
-        probs = _score_bank(feats, self.bank, self._beta, self._threshold, self.K)  # [N] ∈ [0,1]
+        probs = score_fn(feats, self.bank, self.K, self._score_state)  # [N] ∈ [0,1]
         image_score = float(probs.max().item())
         amap = self._upsample_pixel_map(probs, eval_size)
         return image_score, amap
@@ -745,8 +750,8 @@ class AnomalyValidator:
     Pixel metrics use anomaly images only (same population as the legacy pixel-AUROC).
     """
 
-    METRIC_KEYS = ["image_auroc", "image_ap", "image_f1max",
-                   "pixel_auroc", "pixel_ap", "pixel_f1max", "pixel_aupro"]
+    METRIC_KEYS = ["image_auroc", "image_ap", "image_f1max", "image_f1max_thresh",
+                   "pixel_auroc", "pixel_ap", "pixel_f1max", "pixel_f1max_thresh", "pixel_aupro"]
 
     def __init__(self, eval_size: int = 256, save_vis_dir: Path | None = None,
                  save_vis_samples_dir: Path | None = None, vis_thresh: float = 0.4) -> None:
@@ -806,11 +811,13 @@ class AnomalyValidator:
 
     # ── Metrics (anomalib) ──────────────────────────────────────────────
     @staticmethod
-    def _anomalib_metric(cls, fields: list[str], batch) -> float:
-        """Instantiate an anomalib metric, feed one batch (fields read off ``batch``), compute."""
+    def _anomalib_metric(cls, fields: list[str], batch) -> "tuple[float, float | None]":
+        """Instantiate an anomalib metric, feed one batch, compute → ``(value, threshold_or_None)``."""
         m = cls(fields=fields)
         m.update(batch)
-        return float(m.compute())
+        val = float(m.compute())
+        thresh = float(m.threshold) if hasattr(m, "threshold") else None
+        return val, thresh
 
     @classmethod
     def _compute_metrics(cls, img_s: list[float], img_y: list[int],
@@ -824,18 +831,18 @@ class AnomalyValidator:
         if len(set(img_y)) > 1:
             b = SimpleNamespace(pred_score=torch.tensor(img_s, dtype=torch.float32),
                                 gt_label=torch.tensor(img_y, dtype=torch.int32))
-            out["image_auroc"] = cls._anomalib_metric(AUROC, ["pred_score", "gt_label"], b)
-            out["image_ap"] = cls._anomalib_metric(AUPR, ["pred_score", "gt_label"], b)
-            out["image_f1max"] = cls._anomalib_metric(F1Max, ["pred_score", "gt_label"], b)
+            out["image_auroc"], _ = cls._anomalib_metric(AUROC, ["pred_score", "gt_label"], b)
+            out["image_ap"], _ = cls._anomalib_metric(AUPR, ["pred_score", "gt_label"], b)
+            out["image_f1max"], out["image_f1max_thresh"] = cls._anomalib_metric(F1Max, ["pred_score", "gt_label"], b)
         if pro_maps:
             amap = torch.from_numpy(np.stack(pro_maps)).float()               # [N, H, W]
             gtm = torch.from_numpy(np.stack(pro_gts).astype(np.int32))        # [N, H, W]
             if bool(gtm.any()) and not bool(gtm.all()):
                 b = SimpleNamespace(anomaly_map=amap, gt_mask=gtm)
-                out["pixel_auroc"] = cls._anomalib_metric(AUROC, ["anomaly_map", "gt_mask"], b)
-                out["pixel_ap"] = cls._anomalib_metric(AUPR, ["anomaly_map", "gt_mask"], b)
-                out["pixel_f1max"] = cls._anomalib_metric(F1Max, ["anomaly_map", "gt_mask"], b)
-                out["pixel_aupro"] = cls._anomalib_metric(AUPRO, ["anomaly_map", "gt_mask"], b)
+                out["pixel_auroc"], _ = cls._anomalib_metric(AUROC, ["anomaly_map", "gt_mask"], b)
+                out["pixel_ap"], _ = cls._anomalib_metric(AUPR, ["anomaly_map", "gt_mask"], b)
+                out["pixel_f1max"], out["pixel_f1max_thresh"] = cls._anomalib_metric(F1Max, ["anomaly_map", "gt_mask"], b)
+                out["pixel_aupro"], _ = cls._anomalib_metric(AUPRO, ["anomaly_map", "gt_mask"], b)
         return out
 
     # ── Visualization ───────────────────────────────────────────────────
@@ -959,8 +966,10 @@ class AnomalyValidator:
                 row = {"category": cat, **{k: float("nan") for k in self.METRIC_KEYS},
                        "n_support": 0, "n_test": 0, "n_anom_with_gt": 0, "build_s": 0.0, "val_s": 0.0}
             rows.append(row)
-            print(f"[{cat}] img AUROC={row['image_auroc']:.4f} AP={row['image_ap']:.4f} | "
-                  f"pix AUROC={row['pixel_auroc']:.4f} AP={row['pixel_ap']:.4f} AUPRO={row['pixel_aupro']:.4f} "
+            print(f"[{cat}] img AUROC={row['image_auroc']:.4f} AP={row['image_ap']:.4f} "
+                  f"F1={row['image_f1max']:.4f}@{row['image_f1max_thresh']:.4f} | "
+                  f"pix AUROC={row['pixel_auroc']:.4f} AP={row['pixel_ap']:.4f} "
+                  f"F1={row['pixel_f1max']:.4f}@{row['pixel_f1max_thresh']:.4f} AUPRO={row['pixel_aupro']:.4f} "
                   f"| build={row['build_s']:.1f}s val={row['val_s']:.1f}s "
                   f"(test={row['n_test']}, anom_w_gt={row['n_anom_with_gt']})", flush=True)
 
@@ -985,11 +994,11 @@ class AnomalyValidator:
             for r in rows + [avg_row]:
                 w.writerow({k: (f"{r[k]:.4f}" if isinstance(r[k], float) else r[k]) for k in fields})
         print(f"\nSaved {len(rows) + 1} rows ({len(rows)} categories + 1 AVERAGE) → {out_csv}")
-        print("\n=== summary (i=image p=pixel · AUROC/AP/F1max, pixel adds AUPRO) ===")
+        print("\n=== summary (i=image p=pixel · AUROC/AP/F1max@thresh, pixel adds AUPRO) ===")
         for r in rows + [avg_row]:
             print(f"  {r['category']:>12s}  "
-                  f"i:{r['image_auroc']:.4f}/{r['image_ap']:.4f}/{r['image_f1max']:.4f}  "
-                  f"p:{r['pixel_auroc']:.4f}/{r['pixel_ap']:.4f}/{r['pixel_f1max']:.4f}/{r['pixel_aupro']:.4f}")
+                  f"i:{r['image_auroc']:.4f}/{r['image_ap']:.4f}/{r['image_f1max']:.4f}@{r['image_f1max_thresh']:.4f}  "
+                  f"p:{r['pixel_auroc']:.4f}/{r['pixel_ap']:.4f}/{r['pixel_f1max']:.4f}@{r['pixel_f1max_thresh']:.4f}/{r['pixel_aupro']:.4f}")
         return rows
 
 
@@ -1008,9 +1017,9 @@ def _build(args: argparse.Namespace) -> tuple[AnomalyBase, Path]:
     """Construct the requested model + return its default CSV path."""
     bb = args.backbone
     kw = dict(
-        coreset_size=args.coreset, K=args.K, temperature=args.temperature,
-        target_score=args.target_score, target_quantile=args.target_quantile,
-        device=args.device,
+        coreset_size=args.coreset, K=args.K, scoring=args.scoring,
+        temperature=args.temperature, target_score=args.target_score,
+        target_quantile=args.target_quantile, device=args.device,
     )
     if bb.startswith("dino_"):
         short = bb.removeprefix("dino_")
@@ -1065,7 +1074,7 @@ def _build(args: argparse.Namespace) -> tuple[AnomalyBase, Path]:
 
     if args.coreset:
         tag += f"_cs{args.coreset}"
-    tag += f"_K{args.K}_T{args.temperature:g}_ts{args.target_score:g}_q{args.target_quantile:g}"
+    tag += f"_sc{args.scoring}_K{args.K}_T{args.temperature:g}_ts{args.target_score:g}_q{args.target_quantile:g}"
     return ad, Path(f"./runs/temp/anomaly_{tag}_mvtec_metrics.csv")
 
 
@@ -1107,7 +1116,9 @@ def main() -> None:
                    help="k-center coreset bank cap (default 10000; 0 = keep all patches). "
                         "Dropped features become the calibration hold-out.")
     p.add_argument("--K", type=int, default=5,
-                   help="Top-K nearest bank entries per query for Noisy-OR scoring (default 5).")
+                   help="Top-K nearest bank entries per query (default 5; ignored by 1nn).")
+    p.add_argument("--scoring", default="noisy_or", choices=list(_SCORERS),
+                   help="Scoring method: noisy_or (sigmoid Noisy-OR) or 1nn (1 − max cos).")
     p.add_argument("--temperature", type=float, default=3.0,
                    help="β floor / starting point (default 3.0); hold-out calibration only raises it.")
     p.add_argument("--target-score", type=float, default=0.2,

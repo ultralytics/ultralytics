@@ -153,7 +153,7 @@ class YOLODataset(BaseDataset):
                     )
                 if msg:
                     msgs.append(msg)
-                pbar.desc = f"{desc} {nf} images, {nm + ne} backgrounds, {nc} corrupt"
+                pbar.desc = f"{desc} {self._scan_summary(nf, nm, ne, nc)}"
             pbar.close()
 
         if msgs:
@@ -168,6 +168,10 @@ class YOLODataset(BaseDataset):
         if x["labels"]:
             save_dataset_cache_file(self.prefix, path, x, DATASET_CACHE_VERSION)
         return x
+
+    def _scan_summary(self, nf: int, nm: int, ne: int, nc: int) -> str:
+        """Format label-scan counts for progress display (task subclasses may reword)."""
+        return f"{nf} images, {nm + ne} backgrounds, {nc} corrupt"
 
     @property
     def cache_path(self) -> Path:
@@ -194,7 +198,7 @@ class YOLODataset(BaseDataset):
         # Display cache
         nf, nm, ne, nc, n = cache.pop("results")  # found, missing, empty, corrupt, total
         if exists and LOCAL_RANK in {-1, 0}:
-            d = f"Scanning {cache_path}... {nf} images, {nm + ne} backgrounds, {nc} corrupt"
+            d = f"Scanning {cache_path}... {self._scan_summary(nf, nm, ne, nc)}"
             TQDM(None, desc=self.prefix + d, total=n, initial=n)  # display results
             if cache["msgs"]:
                 LOGGER.info("\n".join(cache["msgs"]))  # display warnings
@@ -355,6 +359,10 @@ class DepthDataset(YOLODataset):
                 parts[i] = "depth"
                 break
         return str(Path(*parts).with_suffix(".npy"))
+
+    def _scan_summary(self, nf: int, nm: int, ne: int, nc: int) -> str:
+        """Count valid images, not found label files — the detection counts would read '0 images'."""
+        return f"{nf + nm} images, {nc} corrupt"
 
     @property
     def cache_path(self) -> Path:

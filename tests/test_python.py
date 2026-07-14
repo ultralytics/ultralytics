@@ -54,7 +54,10 @@ def test_tqdm_terminal_width(monkeypatch):
         monkeypatch.setattr(os, "get_terminal_size", lambda _: os.terminal_size((width, 24)))
         output = StringIO()
         output.isatty, output.fileno = lambda: isatty, lambda: 1
-        TQDM(total=10, desc=desc, file=output, disable=False)._display(final=True)
+        progress = TQDM(total=10, desc=desc, file=output, disable=False)
+        output.seek(0)
+        output.truncate()
+        progress._display(final=True)
         return output.getvalue()
 
     assert TQDM._fit_cells("\033[31m界e\u0301\033[0m")[1] == 3

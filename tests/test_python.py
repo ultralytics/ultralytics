@@ -20,8 +20,8 @@ import ultralytics.data.build as data_build
 from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
 from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import get_cfg
-from ultralytics.data.build import build_dataloader, load_inference_source
 from ultralytics.data.augment import CopyPaste
+from ultralytics.data.build import build_dataloader, load_inference_source
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.utils import (
     ARM64,

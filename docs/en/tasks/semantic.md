@@ -260,7 +260,7 @@ Semantic segmentation is best suited for scene understanding tasks like autonomo
 
 ### Can I use instance segmentation data to train semantic segmentation?
 
-Yes. If your dataset uses Ultralytics YOLO polygon labels (one `.txt` per image), **omit** `masks_dir` from the dataset YAML and the loader will convert polygons to per-image semantic masks on the fly. For multi-class datasets (`N > 1`) an extra `background` class is appended to `names` automatically. For single-class datasets (`N == 1`) training stays at 1 class — your declared class becomes `1` in the mask and uncovered pixels become `0`. See the [Semantic Segmentation Dataset Guide](../datasets/semantic/index.md#yolo-polygon-label-format) for details.
+Yes. If your dataset uses Ultralytics YOLO polygon labels (one `.txt` per image), **omit** `masks_dir` from the dataset YAML, and make sure no `masks/` folder exists next to your images at the dataset root (its presence alone triggers PNG-mask mode even without `masks_dir` set). The loader then converts polygons to per-image semantic masks on the fly. For multi-class datasets (`N > 1`) an extra `background` class is appended to `names` automatically. For single-class datasets (`N == 1`) training stays at 1 class — your declared class becomes `1` in the mask and uncovered pixels become `0`. See the [Semantic Segmentation Dataset Guide](../datasets/semantic/index.md#yolo-polygon-label-format) for details.
 
 ### What datasets are supported for semantic segmentation?
 

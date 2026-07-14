@@ -214,14 +214,18 @@ class Detect(nn.Module):
     def bias_init(self):
         """Initialize Detect() biases, WARNING: requires stride availability."""
         for i, (a, b) in enumerate(zip(self.one2many["box_head"], self.one2many["cls_head"])):  # from
-            if not self.sigmoid_box:
+            if self.sigmoid_box:
+                a[-2].bias.data[:] = math.log(0.1 / 0.8)  # sigmoid -> 0.1, bias toward smaller boxes
+            else:
                 a[-1].bias.data[:] = 2.0  # box
             b[-1].bias.data[: self.nc] = math.log(
                 5 / self.nc / (640 / self.stride[i]) ** 2
             )  # cls (.01 objects, 80 classes, 640 img)
         if self.end2end:
             for i, (a, b) in enumerate(zip(self.one2one["box_head"], self.one2one["cls_head"])):  # from
-                if not self.sigmoid_box:
+                if self.sigmoid_box:
+                    a[-2].bias.data[:] = math.log(0.1 / 0.8)  # sigmoid -> 0.1
+                else:
                     a[-1].bias.data[:] = 2.0  # box
                 b[-1].bias.data[: self.nc] = math.log(
                     5 / self.nc / (640 / self.stride[i]) ** 2

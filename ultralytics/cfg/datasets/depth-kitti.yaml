@@ -46,7 +46,7 @@ download: |
   # Download the improved sparse GT (~14 GB) and the raw recordings it covers (~175 GB)
   dir = Path(yaml["path"])  # dataset root dir
   base = "https://s3.eu-central-1.amazonaws.com/avg-kitti"
-  download([f"{base}/data_depth_annotated.zip"], dir=dir / "source", delete=True)
+  download([f"{base}/data_depth_annotated.zip"], dir=dir / "source", delete=True, exist_ok=True)
   gt_drives = sorted(p for p in (dir / "source" / "data_depth_annotated").glob("*/*_sync") if p.name[:-5] not in SKIP_DRIVES)
   urls = [f"{base}/raw_data/{p.name[:-5]}/{p.name}.zip" for p in gt_drives]
   download(urls, dir=dir / "source" / "raw", delete=True, exist_ok=True, threads=4)

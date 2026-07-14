@@ -35,7 +35,7 @@ download: |
   # flatten <split>/<scene>/<scan>/*.png into images/<split>/ and save the paired *_depth.npy
   # (masked invalid -> 0, clipped at 80 m) as depth/<split>/*.npy
   dir = Path(yaml["path"])  # dataset root dir
-  download([f"http://diode-dataset.s3.amazonaws.com/{s}.tar.gz" for s in ("train", "val")], dir=dir / "source", delete=True)
+  download([f"https://diode-dataset.s3.amazonaws.com/{s}.tar.gz" for s in ("train", "val")], dir=dir / "source", delete=True)
   for split in ("train", "val"):
       (dir / "images" / split).mkdir(parents=True, exist_ok=True)
       (dir / "depth" / split).mkdir(parents=True, exist_ok=True)

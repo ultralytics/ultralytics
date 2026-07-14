@@ -167,6 +167,7 @@ def main(argv: list[str]) -> None:
             epochs (DINOv3 high-resolution adaptation) so its frozen P5 attention meets the larger token count it
             will see at detection resolution. DINOv3 and EUPE teachers use the same size in that tail.
             ``--hires_tail`` is the legacy alias. Unset = student runs at ``imgsz`` throughout.
+        --knn_every <epochs>: run ImageNet kNN every N epochs. Default 5.
     """
     args = argv[1:]
     args, resume = _pop_flag(args, "--resume")
@@ -186,6 +187,7 @@ def main(argv: list[str]) -> None:
     args, gram_weight_str = _pop_flag(args, "--gram_weight")
     args, high_res_final_epochs = _pop_flag(args, "--high_res_final_epochs")  # "<imgsz>:<epochs>" e.g. "384:12"
     args, _hires_legacy = _pop_flag(args, "--hires_tail")  # legacy alias for --high_res_final_epochs
+    args, knn_every_str = _pop_flag(args, "--knn_every")
 
     cos_weight = float(cos_w) if cos_w else 0.9
     l1_weight = float(l1_w) if l1_w else 0.1
@@ -202,6 +204,9 @@ def main(argv: list[str]) -> None:
     if resume:
         resume = paths.patch_resume(resume)
     resume_args = _load_train_args(resume) if resume else {}
+    knn_every = int(knn_every_str) if knn_every_str else int(resume_args.get("knn_every", 5))
+    if knn_every < 1:
+        raise ValueError(f"--knn_every must be positive, got {knn_every}")
 
     # Bool flags are presence-only: ``_pop_flag(is_bool=True)`` returns ``""`` when absent, so there's no way for a
     # resume to express "stay True". Inherit from the checkpoint when the CLI didn't re-pass the flag, so the drift
@@ -233,6 +238,7 @@ def main(argv: list[str]) -> None:
             ("loss_type", loss_type, "cos_l1"),
             ("gram_weight", gram_weight, 0.0),
             ("high_res_final_epochs", high_res_final_epochs, None),
+            ("knn_every", knn_every, 5),
         ):
             prev = resume_args.get(key, default)
             if now != prev:
@@ -286,6 +292,7 @@ def main(argv: list[str]) -> None:
             loss_type=loss_type,
             gram_weight=gram_weight,
             high_res_final_epochs=high_res_final_epochs,
+            knn_every=knn_every,
             grad_clip=r["grad_clip"],
             beta2=r["beta2"],
             wandb_group="distill",
@@ -296,6 +303,7 @@ def main(argv: list[str]) -> None:
         teachers=teachers,
         data=data,
         knn_eval="/data/shared-datasets/imagenet",
+        knn_every=knn_every,
         normalize_teacher_input=normalize_teacher_input,
         cos_weight=cos_weight,
         l1_weight=l1_weight,

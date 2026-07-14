@@ -616,7 +616,7 @@ class ImageEncoderTrainer(ClassificationTrainer):
         self._sync_validator_sizes(self.validator)
         metrics, fitness = super().validate()
         if metrics is not None and "path" in self._knn_state:
-            knn_top1 = self._knn_eval()
+            knn_top1 = self._knn_eval(getattr(self.args, "knn_every", 5))
             metrics["knn/top1"] = round(knn_top1, 4) if knn_top1 is not None else float("nan")
         return metrics, fitness
 

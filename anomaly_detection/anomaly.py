@@ -58,64 +58,6 @@ from mvtec_yolo import CATEGORIES as MVTEC_CATEGORIES, get_mvtec_yolo_data
 
 
 # ---------------------------------------------------------------------------
-# Pixel-AUROC GT mask helper (copied from YOLOA fork's AnomalyValidator so this
-# script does not depend on the fork's ultralytics package).
-# ---------------------------------------------------------------------------
-
-
-class AnomalyValidator:
-    """Minimal stand-in exposing only the GT-mask rasterizer used by the eval driver."""
-
-    @staticmethod
-    def _label_path(im_file: str) -> Path | None:
-        """Resolve YOLO label .txt for an image. Tries ``labels/`` mirror first, then sibling."""
-        p = Path(im_file)
-        parts = p.parts
-        if "images" in parts:
-            idx = parts.index("images")
-            mirrored = Path(*parts[:idx], "labels", *parts[idx + 1:]).with_suffix(".txt")
-            if mirrored.exists():
-                return mirrored
-        sibling = p.with_suffix(".txt")
-        return sibling if sibling.exists() else None
-
-    @classmethod
-    def _gt_mask_from_polygons(cls, im_file: str, mask_size: int) -> "np.ndarray | None":
-        """Rasterize all instance polygons from the YOLO label file into a binary mask.
-
-        Returns ``None`` if no label file or no polygons are found.
-        Output shape: (mask_size, mask_size), uint8, values in {0, 1}.
-        """
-        import cv2
-
-        label_path = cls._label_path(im_file)
-        if label_path is None:
-            return None
-        try:
-            text = label_path.read_text().strip()
-        except OSError:
-            return None
-        if not text:
-            return None
-
-        mask = np.zeros((mask_size, mask_size), dtype=np.uint8)
-        any_drawn = False
-        for line in text.splitlines():
-            tokens = line.strip().split()
-            # YOLO seg polygon line: cls x1 y1 x2 y2 ... xn yn  (normalized, pairs of points)
-            if len(tokens) < 7 or (len(tokens) - 1) % 2 != 0:
-                continue
-            try:
-                coords = np.array(tokens[1:], dtype=np.float32)
-            except ValueError:
-                continue
-            pts = (coords.reshape(-1, 2) * mask_size).astype(np.int32)
-            cv2.fillPoly(mask, [pts], 1)
-            any_drawn = True
-        return mask if any_drawn else None
-
-
-# ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
 
@@ -747,8 +689,6 @@ class AnomalyConvNeXt(AnomalyBase):
         return {"tok": _tokens_to_bchw(tok)}
 
 
-
-
 # ---------------------------------------------------------------------------
 # YOLO backbone
 # ---------------------------------------------------------------------------
@@ -914,140 +854,268 @@ class AnomalyPatchCore(AnomalyBase):
 
 
 # ---------------------------------------------------------------------------
-# Visualization
-# ---------------------------------------------------------------------------
-
-
-def save_visualization(image_path: str, amap: np.ndarray, score: float, save_path: Path,
-                       eval_size: int = 256, gt_mask: np.ndarray | None = None) -> None:
-    """Save side-by-side viz: [original | heatmap | overlay (+ GT contour if given)]."""
-    import cv2
-
-    orig = cv2.imread(str(image_path))
-    if orig is None:
-        return
-    orig = cv2.resize(orig, (eval_size, eval_size))
-
-    # Normalize heatmap to [0, 255] uint8 then colorize (JET: blue=low, red=high).
-    amap_n = amap - amap.min()
-    if amap_n.max() > 0:
-        amap_n = amap_n / amap_n.max()
-    heatmap = cv2.applyColorMap((amap_n * 255).astype(np.uint8), cv2.COLORMAP_JET)
-
-    # Overlay: original × 0.5 + heatmap × 0.5.
-    overlay = cv2.addWeighted(orig, 0.5, heatmap, 0.5, 0)
-
-    # If GT mask provided, draw its outline on the overlay in green.
-    if gt_mask is not None:
-        contours, _ = cv2.findContours(gt_mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        cv2.drawContours(overlay, contours, -1, (0, 255, 0), 1)
-
-    # Score label (white text with black outline for visibility on any background).
-    txt = f"score={score:.4f}"
-    cv2.putText(overlay, txt, (5, eval_size - 8), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 3, cv2.LINE_AA)
-    cv2.putText(overlay, txt, (5, eval_size - 8), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
-
-    combined = cv2.hconcat([orig, heatmap, overlay])
-    save_path.parent.mkdir(parents=True, exist_ok=True)
-    cv2.imwrite(str(save_path), combined)
-
-
-# ---------------------------------------------------------------------------
 # Eval driver
 # ---------------------------------------------------------------------------
 
+class AnomalyValidator:
+    """MVTec-style evaluator for an :class:`AnomalyBase` model.
 
-def val_one_category(category: str, ad: AnomalyBase, eval_size: int = 256,
-                     save_vis_dir: Path | None = None,
-                     save_vis_samples_dir: Path | None = None,
-                     vis_thresh: float = 0.4) -> dict:
-    """Build bank from train/good, score every test image, compute image/pixel AUROC.
+    Owns the whole validation path: build the bank from ``train/good``, score every test
+    image, rasterize GT masks, compute image/pixel metrics via anomalib, optionally save
+    visualizations, aggregate across categories, and write the CSV + summary.
 
-    If ``save_vis_dir`` is given, also dump per-image [orig|heatmap|overlay] triptychs to
-    ``<save_vis_dir>/<category>/<good|anom>/<stem>.jpg``.
-
-    If ``save_vis_samples_dir`` is given, dump exactly ONE normal + ONE anomaly viz per
-    category to ``<save_vis_samples_dir>/<category>/{normal,anomaly}.jpg``:
-      * normal  = the *good* test image with the lowest score (cleanest example)
-      * anomaly = the *anomalous* test image with the highest score, only if > ``vis_thresh``
-        (skipped if no anomaly crosses the threshold)
+    Metrics per category (all via anomalib; AP = AUPR, F1Max = F1-at-best-threshold):
+      image  — AUROC, AP, F1Max
+      pixel  — AUROC, AP, F1Max, AUPRO (region localization)
+    Pixel metrics use anomaly images only (same population as the legacy pixel-AUROC).
     """
-    from sklearn.metrics import roc_auc_score
 
-    # MPS allocator state from previous category can silently corrupt downstream ops.
-    if torch.backends.mps.is_available():
-        torch.mps.empty_cache()
+    METRIC_KEYS = ["image_auroc", "image_ap", "image_f1max",
+                   "pixel_auroc", "pixel_ap", "pixel_f1max", "pixel_aupro"]
 
-    data = get_mvtec_yolo_data(category)
-    ad.bank = None
-    t0 = time.perf_counter()
-    ad.load_support_set(data["train_im_list"])
-    build_s = time.perf_counter() - t0
-    print(f"[{category}] bank built in {build_s:.1f}s  "
-          f"(support={len(data['train_im_list'])}, bank_size={ad.bank.shape[0]})", flush=True)
+    def __init__(self, eval_size: int = 256, save_vis_dir: Path | None = None,
+                 save_vis_samples_dir: Path | None = None, vis_thresh: float = 0.4) -> None:
+        self.eval_size = eval_size
+        self.save_vis_dir = save_vis_dir
+        self.save_vis_samples_dir = save_vis_samples_dir
+        self.vis_thresh = vis_thresh
 
-    t1 = time.perf_counter()
-    img_s, img_y, pix_s, pix_y = [], [], [], []
-    # Track best normal (lowest-score good) and best anomaly (highest-score anom > thresh)
-    # for the sample-export mode.
-    best_normal: tuple[float, str, np.ndarray] | None = None        # (score, im, hm)
-    best_anomaly: tuple[float, str, np.ndarray, np.ndarray | None] | None = None  # (score, im, hm, gt)
-    for im in data["test_im_list"]:
-        score, hm = ad.predict_one(im, eval_size=eval_size)
-        is_anom = im not in data["test_good_im_list"]
-        img_s.append(score)
-        img_y.append(int(is_anom))
-        gt = None
-        if is_anom:
-            gt = AnomalyValidator._gt_mask_from_polygons(im, eval_size)
-            if gt is not None:
-                pix_s.append(hm.flatten())
-                pix_y.append(gt.flatten())
-        if save_vis_dir is not None:
-            sub = "anom" if is_anom else "good"
-            out = save_vis_dir / category / sub / f"{Path(im).stem}.jpg"
-            save_visualization(im, hm, score, out, eval_size=eval_size, gt_mask=gt)
-        # Track best representatives for the sample export.
-        if save_vis_samples_dir is not None:
+    # ── GT mask rasterization ───────────────────────────────────────────
+    @staticmethod
+    def _label_path(im_file: str) -> Path | None:
+        """Resolve YOLO label .txt for an image. Tries ``labels/`` mirror first, then sibling."""
+        p = Path(im_file)
+        parts = p.parts
+        if "images" in parts:
+            idx = parts.index("images")
+            mirrored = Path(*parts[:idx], "labels", *parts[idx + 1:]).with_suffix(".txt")
+            if mirrored.exists():
+                return mirrored
+        sibling = p.with_suffix(".txt")
+        return sibling if sibling.exists() else None
+
+    @classmethod
+    def _gt_mask_from_polygons(cls, im_file: str, mask_size: int) -> "np.ndarray | None":
+        """Rasterize all instance polygons from the YOLO label file into a binary mask.
+
+        Returns ``None`` if no label file or no polygons are found.
+        Output shape: (mask_size, mask_size), uint8, values in {0, 1}.
+        """
+        import cv2
+
+        label_path = cls._label_path(im_file)
+        if label_path is None:
+            return None
+        try:
+            text = label_path.read_text().strip()
+        except OSError:
+            return None
+        if not text:
+            return None
+
+        mask = np.zeros((mask_size, mask_size), dtype=np.uint8)
+        any_drawn = False
+        for line in text.splitlines():
+            tokens = line.strip().split()
+            # YOLO seg polygon line: cls x1 y1 x2 y2 ... xn yn  (normalized, pairs of points)
+            if len(tokens) < 7 or (len(tokens) - 1) % 2 != 0:
+                continue
+            try:
+                coords = np.array(tokens[1:], dtype=np.float32)
+            except ValueError:
+                continue
+            pts = (coords.reshape(-1, 2) * mask_size).astype(np.int32)
+            cv2.fillPoly(mask, [pts], 1)
+            any_drawn = True
+        return mask if any_drawn else None
+
+    # ── Metrics (anomalib) ──────────────────────────────────────────────
+    @staticmethod
+    def _anomalib_metric(cls, fields: list[str], batch) -> float:
+        """Instantiate an anomalib metric, feed one batch (fields read off ``batch``), compute."""
+        m = cls(fields=fields)
+        m.update(batch)
+        return float(m.compute())
+
+    @classmethod
+    def _compute_metrics(cls, img_s: list[float], img_y: list[int],
+                         pro_maps: list[np.ndarray], pro_gts: list[np.ndarray]) -> dict:
+        """Image- and pixel-level metrics via anomalib (see class docstring)."""
+        from types import SimpleNamespace
+
+        from anomalib.metrics import AUPR, AUPRO, AUROC, F1Max
+
+        out = {k: float("nan") for k in cls.METRIC_KEYS}
+        if len(set(img_y)) > 1:
+            b = SimpleNamespace(pred_score=torch.tensor(img_s, dtype=torch.float32),
+                                gt_label=torch.tensor(img_y, dtype=torch.int32))
+            out["image_auroc"] = cls._anomalib_metric(AUROC, ["pred_score", "gt_label"], b)
+            out["image_ap"] = cls._anomalib_metric(AUPR, ["pred_score", "gt_label"], b)
+            out["image_f1max"] = cls._anomalib_metric(F1Max, ["pred_score", "gt_label"], b)
+        if pro_maps:
+            amap = torch.from_numpy(np.stack(pro_maps)).float()               # [N, H, W]
+            gtm = torch.from_numpy(np.stack(pro_gts).astype(np.int32))        # [N, H, W]
+            if bool(gtm.any()) and not bool(gtm.all()):
+                b = SimpleNamespace(anomaly_map=amap, gt_mask=gtm)
+                out["pixel_auroc"] = cls._anomalib_metric(AUROC, ["anomaly_map", "gt_mask"], b)
+                out["pixel_ap"] = cls._anomalib_metric(AUPR, ["anomaly_map", "gt_mask"], b)
+                out["pixel_f1max"] = cls._anomalib_metric(F1Max, ["anomaly_map", "gt_mask"], b)
+                out["pixel_aupro"] = cls._anomalib_metric(AUPRO, ["anomaly_map", "gt_mask"], b)
+        return out
+
+    # ── Visualization ───────────────────────────────────────────────────
+    @staticmethod
+    def _save_visualization(image_path: str, amap: np.ndarray, score: float, save_path: Path,
+                            eval_size: int = 256, gt_mask: np.ndarray | None = None) -> None:
+        """Save side-by-side viz: [original | heatmap | overlay (+ GT contour if given)]."""
+        import cv2
+
+        orig = cv2.imread(str(image_path))
+        if orig is None:
+            return
+        orig = cv2.resize(orig, (eval_size, eval_size))
+
+        # Normalize heatmap to [0, 255] uint8 then colorize (JET: blue=low, red=high).
+        amap_n = amap - amap.min()
+        if amap_n.max() > 0:
+            amap_n = amap_n / amap_n.max()
+        heatmap = cv2.applyColorMap((amap_n * 255).astype(np.uint8), cv2.COLORMAP_JET)
+
+        # Overlay: original × 0.5 + heatmap × 0.5.
+        overlay = cv2.addWeighted(orig, 0.5, heatmap, 0.5, 0)
+
+        # If GT mask provided, draw its outline on the overlay in green.
+        if gt_mask is not None:
+            contours, _ = cv2.findContours(gt_mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            cv2.drawContours(overlay, contours, -1, (0, 255, 0), 1)
+
+        # Score label (white text with black outline for visibility on any background).
+        txt = f"score={score:.4f}"
+        cv2.putText(overlay, txt, (5, eval_size - 8), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 3, cv2.LINE_AA)
+        cv2.putText(overlay, txt, (5, eval_size - 8), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
+
+        combined = cv2.hconcat([orig, heatmap, overlay])
+        save_path.parent.mkdir(parents=True, exist_ok=True)
+        cv2.imwrite(str(save_path), combined)
+
+    # ── Per-category validation ─────────────────────────────────────────
+    def val_category(self, category: str, ad: "AnomalyBase") -> dict:
+        """Build bank from train/good, score every test image, return the metrics row.
+
+        Honors ``save_vis_dir`` (per-image triptychs) and ``save_vis_samples_dir`` (one
+        normal + one anomaly exemplar per category, anomaly only if score > ``vis_thresh``).
+        """
+        eval_size = self.eval_size
+        # MPS allocator state from previous category can silently corrupt downstream ops.
+        if torch.backends.mps.is_available():
+            torch.mps.empty_cache()
+
+        data = get_mvtec_yolo_data(category)
+        ad.bank = None
+        t0 = time.perf_counter()
+        ad.load_support_set(data["train_im_list"])
+        build_s = time.perf_counter() - t0
+        print(f"[{category}] bank built in {build_s:.1f}s  "
+              f"(support={len(data['train_im_list'])}, bank_size={ad.bank.shape[0]})", flush=True)
+
+        t1 = time.perf_counter()
+        img_s, img_y, pro_maps, pro_gts = [], [], [], []  # image scores/labels + anomaly-image 2D maps/masks
+        # Best normal (lowest-score good) / best anomaly (highest-score anom > thresh) for sample export.
+        best_normal: tuple[float, str, np.ndarray] | None = None
+        best_anomaly: tuple[float, str, np.ndarray, np.ndarray | None] | None = None
+        for im in data["test_im_list"]:
+            score, hm = ad.predict_one(im, eval_size=eval_size)
+            is_anom = im not in data["test_good_im_list"]
+            img_s.append(score)
+            img_y.append(int(is_anom))
+            gt = None
             if is_anom:
-                if score > vis_thresh and (best_anomaly is None or score > best_anomaly[0]):
-                    best_anomaly = (score, im, hm, gt)
-            else:
-                if best_normal is None or score < best_normal[0]:
+                gt = self._gt_mask_from_polygons(im, eval_size)
+                if gt is not None:
+                    pro_maps.append(hm)   # 2D [H, W] anomaly map
+                    pro_gts.append(gt)    # 2D [H, W] binary GT
+            if self.save_vis_dir is not None:
+                sub = "anom" if is_anom else "good"
+                out = self.save_vis_dir / category / sub / f"{Path(im).stem}.jpg"
+                self._save_visualization(im, hm, score, out, eval_size=eval_size, gt_mask=gt)
+            if self.save_vis_samples_dir is not None:
+                if is_anom:
+                    if score > self.vis_thresh and (best_anomaly is None or score > best_anomaly[0]):
+                        best_anomaly = (score, im, hm, gt)
+                elif best_normal is None or score < best_normal[0]:
                     best_normal = (score, im, hm)
-    val_s = time.perf_counter() - t1
+        val_s = time.perf_counter() - t1
 
-    # Dump the chosen normal + anomaly exemplars after the full pass.
-    if save_vis_samples_dir is not None:
-        cat_dir = save_vis_samples_dir / category
-        if best_normal is not None:
-            s, im, hm = best_normal
-            save_visualization(im, hm, s, cat_dir / "normal.jpg", eval_size=eval_size, gt_mask=None)
-            print(f"  vis-samples: normal  score={s:.4f}  {Path(im).name}", flush=True)
-        if best_anomaly is not None:
-            s, im, hm, gt = best_anomaly
-            save_visualization(im, hm, s, cat_dir / "anomaly.jpg", eval_size=eval_size, gt_mask=gt)
-            print(f"  vis-samples: anomaly score={s:.4f}  {Path(im).name}", flush=True)
-        elif save_vis_samples_dir is not None:
-            print(f"  vis-samples: anomaly SKIPPED — no test image scored > {vis_thresh}", flush=True)
+        # Dump the chosen normal + anomaly exemplars after the full pass.
+        if self.save_vis_samples_dir is not None:
+            cat_dir = self.save_vis_samples_dir / category
+            if best_normal is not None:
+                s, im, hm = best_normal
+                self._save_visualization(im, hm, s, cat_dir / "normal.jpg", eval_size=eval_size, gt_mask=None)
+                print(f"  vis-samples: normal  score={s:.4f}  {Path(im).name}", flush=True)
+            if best_anomaly is not None:
+                s, im, hm, gt = best_anomaly
+                self._save_visualization(im, hm, s, cat_dir / "anomaly.jpg", eval_size=eval_size, gt_mask=gt)
+                print(f"  vis-samples: anomaly score={s:.4f}  {Path(im).name}", flush=True)
+            else:
+                print(f"  vis-samples: anomaly SKIPPED — no test image scored > {self.vis_thresh}", flush=True)
 
-    image_auroc = float(roc_auc_score(img_y, img_s)) if len(set(img_y)) > 1 else float("nan")
-    pixel_auroc = float("nan")
-    if pix_s:
-        ps, pl = np.concatenate(pix_s), np.concatenate(pix_y)
-        if pl.any() and not pl.all():
-            pixel_auroc = float(roc_auc_score(pl, ps))
+        metrics = self._compute_metrics(img_s, img_y, pro_maps, pro_gts)
+        return {
+            "category": category,
+            **metrics,
+            "n_support": len(data["train_im_list"]),
+            "n_test": len(data["test_im_list"]),
+            "n_anom_with_gt": len(pro_maps),
+            "build_s": round(build_s, 1),
+            "val_s": round(val_s, 1),
+        }
 
-    return {
-        "category": category,
-        "image_auroc": image_auroc,
-        "pixel_auroc": pixel_auroc,
-        "n_support": len(data["train_im_list"]),
-        "n_test": len(data["test_im_list"]),
-        "n_anom_with_gt": len(pix_s),
-        "build_s": round(build_s, 1),
-        "val_s":   round(val_s, 1),
-    }
+    # ── Full sweep across categories ────────────────────────────────────
+    def run(self, ad: "AnomalyBase", categories: list[str], out_csv: Path) -> list[dict]:
+        """Validate every category, aggregate an AVERAGE row, write the CSV, print a summary."""
+        rows: list[dict] = []
+        for cat in categories:
+            print(f"\n{'=' * 60}\n[{cat}] starting\n{'=' * 60}", flush=True)
+            try:
+                row = self.val_category(cat, ad)
+            except Exception as e:
+                print(f"[{cat}] FAILED: {e!r}", flush=True)
+                row = {"category": cat, **{k: float("nan") for k in self.METRIC_KEYS},
+                       "n_support": 0, "n_test": 0, "n_anom_with_gt": 0, "build_s": 0.0, "val_s": 0.0}
+            rows.append(row)
+            print(f"[{cat}] img AUROC={row['image_auroc']:.4f} AP={row['image_ap']:.4f} | "
+                  f"pix AUROC={row['pixel_auroc']:.4f} AP={row['pixel_ap']:.4f} AUPRO={row['pixel_aupro']:.4f} "
+                  f"| build={row['build_s']:.1f}s val={row['val_s']:.1f}s "
+                  f"(test={row['n_test']}, anom_w_gt={row['n_anom_with_gt']})", flush=True)
+
+        def _avg(key: str) -> float:
+            vals = [r[key] for r in rows if isinstance(r[key], float) and r[key] == r[key]]
+            return statistics.fmean(vals) if vals else float("nan")
+
+        avg_row = {
+            "category": "AVERAGE",
+            **{k: _avg(k) for k in self.METRIC_KEYS},
+            "n_support": sum(r["n_support"] for r in rows),
+            "n_test": sum(r["n_test"] for r in rows),
+            "n_anom_with_gt": sum(r["n_anom_with_gt"] for r in rows),
+            "build_s": round(sum(r["build_s"] for r in rows), 1),
+            "val_s": round(sum(r["val_s"] for r in rows), 1),
+        }
+
+        fields = ["category", *self.METRIC_KEYS, "build_s", "val_s", "n_support", "n_test", "n_anom_with_gt"]
+        with open(out_csv, "w", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=fields)
+            w.writeheader()
+            for r in rows + [avg_row]:
+                w.writerow({k: (f"{r[k]:.4f}" if isinstance(r[k], float) else r[k]) for k in fields})
+        print(f"\nSaved {len(rows) + 1} rows ({len(rows)} categories + 1 AVERAGE) → {out_csv}")
+        print("\n=== summary (i=image p=pixel · AUROC/AP/F1max, pixel adds AUPRO) ===")
+        for r in rows + [avg_row]:
+            print(f"  {r['category']:>12s}  "
+                  f"i:{r['image_auroc']:.4f}/{r['image_ap']:.4f}/{r['image_f1max']:.4f}  "
+                  f"p:{r['pixel_auroc']:.4f}/{r['pixel_ap']:.4f}/{r['pixel_f1max']:.4f}/{r['pixel_aupro']:.4f}")
+        return rows
 
 
 # ---------------------------------------------------------------------------
@@ -1067,6 +1135,7 @@ def _build(args: argparse.Namespace) -> tuple[AnomalyBase, Path]:
     kw = dict(
         coreset_size=args.coreset, K=args.K, temperature=args.temperature,
         target_score=args.target_score, target_quantile=args.target_quantile,
+        device=args.device,
     )
     if bb.startswith("dino_"):
         short = bb.removeprefix("dino_")
@@ -1181,6 +1250,8 @@ def main() -> None:
     p.add_argument("--vis-thresh", type=float, default=0.4,
                    help="Minimum score for an anomaly to be eligible as the per-category exemplar "
                         "(default 0.4 — matches OBMA's accumulate_thresh default).")
+    p.add_argument("--device", default=None,
+                   help="Device override (e.g. 'mps', 'cuda', 'cpu'). Default: auto-detect.")
     args = p.parse_args()
 
     if args.category:
@@ -1201,52 +1272,13 @@ def main() -> None:
           f"feat_dim={ad.feat_dim} grid={ad.grid} K={ad.K} target_score={ad.target_score}"
           + (f" coreset={args.coreset}" if args.coreset else ""))
 
-    rows: list[dict] = []
-    for cat in cats:
-        print(f"\n{'=' * 60}\n[{cat}] starting\n{'=' * 60}", flush=True)
-        try:
-            row = val_one_category(cat, ad,
-                                   save_vis_dir=args.save_vis,
-                                   save_vis_samples_dir=args.save_vis_samples,
-                                   vis_thresh=args.vis_thresh)
-        except Exception as e:
-            print(f"[{cat}] FAILED: {e!r}", flush=True)
-            row = {"category": cat, "image_auroc": float("nan"), "pixel_auroc": float("nan"),
-                   "n_support": 0, "n_test": 0, "n_anom_with_gt": 0,
-                   "build_s": 0.0, "val_s": 0.0}
-        rows.append(row)
-        print(f"[{cat}] image={row['image_auroc']:.4f} pixel={row['pixel_auroc']:.4f} "
-              f"build={row['build_s']:.1f}s val={row['val_s']:.1f}s "
-              f"(support={row['n_support']}, test={row['n_test']}, anom_w_gt={row['n_anom_with_gt']})",
-              flush=True)
-
-    def _avg(key: str) -> float:
-        vals = [r[key] for r in rows if isinstance(r[key], float) and r[key] == r[key]]
-        return statistics.fmean(vals) if vals else float("nan")
-
-    avg_row = {
-        "category": "AVERAGE",
-        "image_auroc": _avg("image_auroc"),
-        "pixel_auroc": _avg("pixel_auroc"),
-        "n_support": sum(r["n_support"] for r in rows),
-        "n_test": sum(r["n_test"] for r in rows),
-        "n_anom_with_gt": sum(r["n_anom_with_gt"] for r in rows),
-        "build_s": round(sum(r["build_s"] for r in rows), 1),
-        "val_s":   round(sum(r["val_s"]   for r in rows), 1),
-    }
-
-    fields = ["category", "image_auroc", "pixel_auroc", "build_s", "val_s",
-              "n_support", "n_test", "n_anom_with_gt"]
-    with open(out_csv, "w", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=fields)
-        w.writeheader()
-        for r in rows + [avg_row]:
-            w.writerow({k: (f"{r[k]:.4f}" if isinstance(r[k], float) else r[k]) for k in fields})
-    print(f"\nSaved {len(rows) + 1} rows ({len(rows)} categories + 1 AVERAGE) → {out_csv}")
-    print("\n=== summary ===")
-    for r in rows + [avg_row]:
-        print(f"  {r['category']:>12s}  img={r['image_auroc']:.4f}  pix={r['pixel_auroc']:.4f}  "
-              f"build={r['build_s']:>6.1f}s  val={r['val_s']:>6.1f}s")
+    validator = AnomalyValidator(
+        eval_size=256,
+        save_vis_dir=args.save_vis,
+        save_vis_samples_dir=args.save_vis_samples,
+        vis_thresh=args.vis_thresh,
+    )
+    validator.run(ad, cats, out_csv)
 
 
 if __name__ == "__main__":

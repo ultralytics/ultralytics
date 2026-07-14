@@ -31,9 +31,9 @@ Dataset folders are mounted read-only. Platform and its hosted workers never rec
 1. Open [Ultralytics Platform](https://platform.ultralytics.com) on the Linux host that can access your datasets.
 2. Go to `Settings > Integrations` and select **Connect** on the **On Premise** card.
 3. Keep the prefilled values or change them:
-   - **Machine name:** `On Premise host`
-   - **Dataset folder:** `/datasets`
-   - **Models folder:** `/models`
+    - **Machine name:** `On Premise host`
+    - **Dataset folder:** `/datasets`
+    - **Models folder:** `/models`
 4. Select **Create install command**.
 5. Copy and run the generated command on the host. It installs Docker Compose when needed and creates the selected folders.
 6. Paste the one-time enrollment token when prompted. The installer starts the CPU worker and starts the GPU worker automatically when Docker's NVIDIA runtime is available.

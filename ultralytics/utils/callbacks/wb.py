@@ -138,9 +138,10 @@ def on_pretrain_routine_start(trainer):
             project=str(trainer.args.project).replace("/", "-") if trainer.args.project else "Ultralytics",
             name=name,
             config=vars(trainer.args),
+            # cap name in the run id so wandb's "run-{id}-{plot}" artifact names stay under its 128-char limit
             id=latest_run.resolve().name.split("-", 2)[2]
             if resuming
-            else f"{name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            else f"{name[:50]}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
             resume="allow" if resuming else None,
             dir=str(trainer.save_dir),
         )

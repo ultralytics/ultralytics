@@ -326,6 +326,7 @@ def test_yolo_predict_tensor_preprocess(task):
             compare_masks_matching(np_res.masks, pt_res.masks, np_res.boxes, pt_res.boxes)
 
 
+@pytest.mark.skipif(not TORCH_1_11, reason="RTDETR requires torch>=1.11")
 def test_rtdetr_predict_tensor_preprocess():
     """Test that RT-DETR on-device raw-tensor preprocessing matches the numpy path within tolerance."""
     model = RTDETR(WEIGHTS_DIR / "rtdetr-l.pt")

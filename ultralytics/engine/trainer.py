@@ -38,11 +38,11 @@ from ultralytics.utils import (
     RANK,
     TQDM,
     YAML,
-    _get_pythonpath_env,
     callbacks,
     clean_url,
     colorstr,
     emojis,
+    get_pythonpath_env,
 )
 from ultralytics.utils.autobatch import check_train_batch_size
 from ultralytics.utils.checks import check_amp, check_file, check_imgsz, check_model_file_from_stem, print_args
@@ -231,7 +231,7 @@ class BaseTrainer:
             try:
                 cmd, file = generate_ddp_command(self)
                 LOGGER.info(f"{colorstr('DDP:')} debug command {' '.join(cmd)}")
-                subprocess.run(cmd, check=True, env=_get_pythonpath_env())
+                subprocess.run(cmd, check=True, env=get_pythonpath_env())
             except Exception as e:
                 raise e
             finally:
@@ -1230,7 +1230,7 @@ class MultiTrainer:
                                 *(f"{k}={v}" for k, v in overrides.items() if k != "session"),
                             ],
                             check=True,
-                            env=_get_pythonpath_env(),
+                            env=get_pythonpath_env(),
                         )
                     else:
                         trainer = self.trainer(overrides=overrides, _callbacks=self.callbacks)

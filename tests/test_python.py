@@ -39,8 +39,8 @@ from ultralytics.utils import (
     WEIGHTS_DIR,
     WINDOWS,
     YAML,
-    _get_pythonpath_env,
     checks,
+    get_pythonpath_env,
     is_github_action_running,
 )
 from ultralytics.utils.downloads import download, safe_download
@@ -56,7 +56,7 @@ def test_pythonpath_env(tmp_path, monkeypatch):
         check=True,
         capture_output=True,
         text=True,
-        env=_get_pythonpath_env(),
+        env=get_pythonpath_env(),
     )
     assert result.stdout.strip() == "ok"
 

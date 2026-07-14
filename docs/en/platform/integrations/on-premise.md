@@ -28,15 +28,19 @@ Images, videos, and model files travel directly between your browser and your co
 
 Choose a computer that can access your datasets and remain powered on while Platform is using them.
 
-|                  | Minimum                                  | Recommended                                    |
-| ---------------- | ---------------------------------------- | ---------------------------------------------- |
-| Operating system | Current Linux, macOS, or Windows         | Latest operating system updates                |
-| CPU              | 4 cores                                  | 8 or more cores for training                   |
-| Memory           | 8 GB RAM                                 | 16 GB or more                                  |
-| Storage          | 20 GB plus space for datasets and models | SSD with twice your working dataset size free  |
-| Network          | Internet connection for setup and status | Stable broadband for the first Docker download |
+|                  | Minimum                                                               | Recommended                                    |
+| ---------------- | --------------------------------------------------------------------- | ---------------------------------------------- |
+| Operating system | 64-bit Linux, Mac with an M-series chip, or 64-bit Windows with WSL 2 | Current OS and Docker releases                 |
+| CPU              | 4 cores                                                               | 8 or more cores for training                   |
+| Memory           | 8 GB RAM                                                              | 16 GB or more                                  |
+| Storage          | 20 GB plus space for datasets and models                              | SSD with twice your working dataset size free  |
+| Network          | Outbound HTTPS                                                        | Stable broadband for the first Docker download |
 
 A GPU is optional. Every computer can ingest datasets and train models on its CPU. A compatible NVIDIA GPU can accelerate larger training jobs.
+
+!!! note "Corporate networks"
+
+    If your company restricts outbound traffic, allow HTTPS access to Ultralytics Platform, Docker registries, and Python package downloads before setup.
 
 ## Connect Your Computer
 

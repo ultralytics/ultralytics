@@ -1,4 +1,5 @@
 ---
+title: YOLOv9 Object Detection with PGI and GELAN
 comments: true
 description: Explore YOLOv9, a leap in real-time object detection, featuring innovations like PGI and GELAN, and achieving new benchmarks in efficiency and accuracy.
 keywords: YOLOv9, object detection, real-time, PGI, GELAN, deep learning, MS COCO, AI, neural networks, model efficiency, accuracy, Ultralytics
@@ -65,7 +66,7 @@ GELAN represents a strategic architectural advancement, enabling YOLOv9 to achie
 
 ## YOLOv9 Benchmarks
 
-Benchmarking in YOLOv9 using [Ultralytics](https://docs.ultralytics.com/modes/benchmark) involves evaluating the performance of your trained and validated model in real-world scenarios. This process includes:
+Benchmarking in YOLOv9 using [Ultralytics](../modes/benchmark.md) involves evaluating the performance of your trained and validated model in real-world scenarios. This process includes:
 
 - **Performance Evaluation:** Assessing the model's speed and accuracy.
 - **Export Formats:** Testing the model across different export formats to ensure it meets the necessary standards and performs well in various environments.
@@ -192,15 +193,17 @@ We would like to acknowledge the YOLOv9 authors for their significant contributi
     === "BibTeX"
 
         ```bibtex
-        @article{wang2024yolov9,
+        @inproceedings{wang2024yolov9,
           title={YOLOv9: Learning What You Want to Learn Using Programmable Gradient Information},
-          author={Wang, Chien-Yao  and Liao, Hong-Yuan Mark},
-          booktitle={arXiv preprint arXiv:2402.13616},
-          year={2024}
+          author={Wang, Chien-Yao and Yeh, I-Hau and Liao, Hong-Yuan Mark},
+          booktitle={Computer Vision -- ECCV 2024},
+          pages={1--21},
+          year={2024},
+          organization={Springer Nature Switzerland}
         }
         ```
 
-The original YOLOv9 paper can be found on [arXiv](https://arxiv.org/pdf/2402.13616). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/WongKinYiu/yolov9). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
+The official YOLOv9 paper was published in the [Springer ECCV 2024 proceedings](https://link.springer.com/chapter/10.1007/978-3-031-72751-1_1), with a preprint on [arXiv](https://arxiv.org/pdf/2402.13616). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/WongKinYiu/yolov9). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
 
 ## FAQ
 

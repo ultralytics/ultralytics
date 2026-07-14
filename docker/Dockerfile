@@ -43,8 +43,7 @@ RUN sed -i '/^\[http "https:\/\/github\.com\/"\]/,+1d' .git/config && \
 ADD https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n.pt .
 
 # Install pip packages (uv already installed in base image)
-RUN uv pip install --system -e "." albumentations faster-coco-eval nvidia-ml-py && \
-    # Remove extra build files \
+RUN uv pip install --system --no-cache -e "." albumentations faster-coco-eval && \
     rm -rf tmp /root/.config/Ultralytics/persistent_cache.json
 
 # Usage --------------------------------------------------------------------------------------------------------------
@@ -53,8 +52,8 @@ RUN uv pip install --system -e "." albumentations faster-coco-eval nvidia-ml-py 
 # Example (build): t=ultralytics/ultralytics:latest && docker build -f docker/Dockerfile -t $t .
 # Example (push): docker push $t
 # Example (pull): t=ultralytics/ultralytics:latest && docker pull $t
-# Example (run-gpu): docker run -it --ipc=host --runtime=nvidia --gpus all $t
-# Example (run-gpu-subset): docker run -it --ipc=host --runtime=nvidia --gpus "device=2,3" $t
-# Note: device=2,3 maps to CUDA 0,1 inside the container.
-# Example (run-with-volume): docker run -it --ipc=host --runtime=nvidia --gpus all -v "$PWD/shared/datasets:/datasets" $t
+# Example (run-gpu): docker run -it --ipc=host --device nvidia.com/gpu=all $t
+# Example (run-gpu-subset): docker run -it --ipc=host --device nvidia.com/gpu=2 --device nvidia.com/gpu=3 $t
+# Note: CDI devices 2,3 appear as cuda:0,1 inside the container.
+# Example (run-with-volume): docker run -it --ipc=host --device nvidia.com/gpu=all -v "$PWD/shared/datasets:/datasets" $t
 # Example (tag-release): t=ultralytics/ultralytics:latest tnew=ultralytics/ultralytics:vX.Y && docker tag $t $tnew && docker push $tnew

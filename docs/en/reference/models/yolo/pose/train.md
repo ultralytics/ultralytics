@@ -1,4 +1,5 @@
 ---
+title: models.yolo.pose.train API Reference
 description: Explore the PoseTrainer class for training pose models using YOLO from Ultralytics. Includes initialization, model configuration, and plotting methods.
 keywords: PoseTrainer, YOLO, Ultralytics, pose models, training, model configuration, deep learning, machine learning, pose estimation
 ---

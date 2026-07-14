@@ -722,6 +722,15 @@ def test_labels_and_crops():
         # Same number of crops as detections
         crop_count = len([f for f in crop_files if im_name in f.name])
         assert crop_count == len(r.boxes.data), f"Crop count {crop_count} != detection count {len(r.boxes.data)}"
+    # save_one_box must return the crop in the requested BGR format regardless of the save flag
+    from ultralytics.utils.plotting import save_one_box
+
+    im = np.zeros((50, 50, 3), dtype=np.uint8)
+    im[..., 0], im[..., 1], im[..., 2] = 10, 20, 30  # distinct B, G, R channel values
+    xyxy = torch.tensor([10.0, 10.0, 40.0, 40.0])
+    for save in (True, False):
+        crop = save_one_box(xyxy, im.copy(), file=save_path / "b.jpg", save=save, BGR=True)
+        assert tuple(crop[0, 0]) == (10, 20, 30), f"BGR crop return has swapped channels with save={save}"
 
 
 def test_data_utils(tmp_path):

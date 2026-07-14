@@ -54,14 +54,14 @@ A GPU is optional. Every computer can ingest datasets and train models on its CP
 5. Open the terminal named in the dialog, copy the command, paste it, and press Enter.
 6. Leave the dialog open until the progress indicator shows **Connected**.
 
-Platform fills in the folders and temporary setup code before you copy the command. The generated command follows the format below:
+Platform fills in the folders and one-time connection token before you copy the command. The generated command follows the format below:
 
 === "Linux"
 
     Open **Terminal** and paste:
 
     ```bash
-    curl -fsSL 'https://platform.ultralytics.com/api/workers/install?os=linux' | sudo sh -s -- "/datasets" "/models" "••••••••"
+    curl -fsSL 'https://platform.ultralytics.com/api/workers/install?os=linux' | sudo sh -s -- "/datasets" "/models" "YOUR_CONNECTION_TOKEN"
     ```
 
 === "macOS"
@@ -69,7 +69,7 @@ Platform fills in the folders and temporary setup code before you copy the comma
     Open **Terminal** and paste:
 
     ```bash
-    curl -fsSL 'https://platform.ultralytics.com/api/workers/install?os=macos' | sh -s -- "$HOME/Ultralytics/datasets" "$HOME/Ultralytics/models" "••••••••"
+    curl -fsSL 'https://platform.ultralytics.com/api/workers/install?os=macos' | sh -s -- "$HOME/Ultralytics/datasets" "$HOME/Ultralytics/models" "YOUR_CONNECTION_TOKEN"
     ```
 
 === "Windows"
@@ -77,12 +77,12 @@ Platform fills in the folders and temporary setup code before you copy the comma
     Open **PowerShell** and paste:
 
     ```powershell
-    & ([scriptblock]::Create((Invoke-RestMethod 'https://platform.ultralytics.com/api/workers/install?os=windows'))) -DataPath "$HOME\Ultralytics\datasets" -ModelsPath "$HOME\Ultralytics\models" -SetupCode "••••••••"
+    & ([scriptblock]::Create((Invoke-RestMethod 'https://platform.ultralytics.com/api/workers/install?os=windows'))) -DataPath "$HOME\Ultralytics\datasets" -ModelsPath "$HOME\Ultralytics\models" -ConnectionToken "YOUR_CONNECTION_TOKEN"
     ```
 
 !!! warning "Copy your command from Platform"
 
-    The masked setup value is included automatically. You never need to create, copy, or enter it separately. Select **Create install command** in Platform to receive your complete command.
+    Platform includes the connection token automatically. It proves this computer is allowed to connect to your workspace, expires after 10 minutes, and works once. You never enter it separately. Do not share the generated command while it is valid.
 
 The defaults work without editing:
 

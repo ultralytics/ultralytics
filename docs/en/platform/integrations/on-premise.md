@@ -61,7 +61,7 @@ Platform fills in the folders and temporary setup code before you copy the comma
     Open **Terminal** and paste:
 
     ```bash
-    curl -fsSL https://platform.ultralytics.com/api/workers/install?os=linux | sudo sh -s -- "/datasets" "/models" "YOUR_ENROLLMENT_TOKEN"
+    curl -fsSL 'https://platform.ultralytics.com/api/workers/install?os=linux' | sudo sh -s -- "/datasets" "/models" "YOUR_ENROLLMENT_TOKEN"
     ```
 
 === "macOS"
@@ -69,7 +69,7 @@ Platform fills in the folders and temporary setup code before you copy the comma
     Open **Terminal** and paste:
 
     ```bash
-    curl -fsSL https://platform.ultralytics.com/api/workers/install?os=macos | sh -s -- "$HOME/Ultralytics/datasets" "$HOME/Ultralytics/models" "YOUR_ENROLLMENT_TOKEN"
+    curl -fsSL 'https://platform.ultralytics.com/api/workers/install?os=macos' | sh -s -- "$HOME/Ultralytics/datasets" "$HOME/Ultralytics/models" "YOUR_ENROLLMENT_TOKEN"
     ```
 
 === "Windows"

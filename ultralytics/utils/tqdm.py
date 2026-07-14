@@ -287,31 +287,31 @@ class TQDM:
         progress_str = compose(desc, 12)
 
         try:
-            # Fit real terminals only; redirected logs preserve the full line.
-            if self.file.isatty():
-                from ultralytics.utils import remove_colorstr
+            try:
+                # Fit real terminals only; redirected logs preserve the full line.
+                if self.file.isatty():
+                    from ultralytics.utils import remove_colorstr
 
-                term_width = max(1, os.get_terminal_size(self.file.fileno()).columns - 1)
-                bar_width = 12
-                while self._cell_width(progress_str) > term_width and bar_width:
-                    bar_width -= 1
-                    progress_str = compose(desc, bar_width)
-                if self._cell_width(progress_str) > term_width:
-                    desc = remove_colorstr(desc)
-                    while desc and self._cell_width(progress_str) > term_width:
-                        desc = desc[:-1]
-                        progress_str = compose(f"{desc}…" if desc else "", bar_width)
-                    while self._cell_width(progress_str) > term_width:
-                        progress_str = progress_str[:-1]
-
-            # Write to output
-            if self.noninteractive:
-                # In non-interactive environments, avoid carriage return which creates empty lines
-                self.file.write(progress_str)
-            else:
-                # In interactive terminals, use carriage return and clear line for updating display
-                self.file.write(f"\r\033[K{progress_str}")
-            self.file.flush()
+                    term_width = max(1, os.get_terminal_size(self.file.fileno()).columns - 1)
+                    bar_width = 12
+                    while self._cell_width(progress_str) > term_width and bar_width:
+                        bar_width -= 1
+                        progress_str = compose(desc, bar_width)
+                    if self._cell_width(progress_str) > term_width:
+                        desc = remove_colorstr(desc)
+                        while desc and self._cell_width(progress_str) > term_width:
+                            desc = desc[:-1]
+                            progress_str = compose(f"{desc}…" if desc else "", bar_width)
+                        while self._cell_width(progress_str) > term_width:
+                            progress_str = progress_str[:-1]
+            finally:
+                if self.noninteractive:
+                    # In non-interactive environments, avoid carriage return which creates empty lines
+                    self.file.write(progress_str)
+                else:
+                    # In interactive terminals, use carriage return and clear line for updating display
+                    self.file.write(f"\r\033[K{progress_str}")
+                self.file.flush()
         except Exception:
             pass
 

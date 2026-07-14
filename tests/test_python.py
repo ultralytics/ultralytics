@@ -68,7 +68,8 @@ def test_tqdm_terminal_width(monkeypatch):
     monkeypatch.setattr(os, "get_terminal_size", unavailable)
     output = StringIO()
     output.isatty, output.fileno = lambda: True, lambda: 1
-    TQDM(total=10, file=output, disable=False)._display(final=True)  # best-effort output must not raise
+    TQDM(total=10, desc="fallback", file=output, disable=False)._display(final=True)
+    assert "fallback" in output.getvalue()  # failed probing still writes the untrimmed line
 
 
 def test_dataloader_caps_workers_to_batches():

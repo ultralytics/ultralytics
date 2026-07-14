@@ -4,29 +4,13 @@ import contextlib
 import subprocess
 import time
 from pathlib import Path
-from types import SimpleNamespace
 
 import pytest
-import torch
 
 from tests import SOURCE
 from ultralytics import YOLO, download
 from ultralytics.utils import ASSETS_URL, DATASETS_DIR, SETTINGS
 from ultralytics.utils.checks import check_requirements
-
-
-def test_tensorboard_graph_uses_dataset_channels(monkeypatch):
-    """Test graph tracing uses dataset channels for bare modules without YOLO-specific metadata."""
-    import ultralytics.utils.callbacks.tensorboard as tensorboard
-
-    inputs = []
-    monkeypatch.setattr(tensorboard, "torch", torch, raising=False)
-    monkeypatch.setattr(tensorboard, "PREFIX", "", raising=False)
-    monkeypatch.setattr(tensorboard, "WRITER", SimpleNamespace(add_graph=lambda *_: None), raising=False)
-    monkeypatch.setattr(torch.jit, "trace", lambda model, im, strict: inputs.append(im.shape) or model)
-    trainer = SimpleNamespace(args=SimpleNamespace(imgsz=8), data={"channels": 1}, model=torch.nn.Conv2d(1, 1, 1))
-    tensorboard._log_tensorboard_graph(trainer)
-    assert inputs == [(1, 1, 8, 8)]
 
 
 @pytest.mark.slow

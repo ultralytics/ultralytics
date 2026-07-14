@@ -1,4 +1,5 @@
 ---
+plans: [free, pro, enterprise]
 title: Billing & Credits
 comments: true
 description: Manage credits, payments, and subscriptions on Ultralytics Platform with transparent pricing for cloud training and deployments.
@@ -79,9 +80,9 @@ For organizations with advanced needs:
 - Unlimited models, storage, trainings, and deployments · 50 GB dataset upload limit
 - Enterprise License (commercial use, non-AGPL)
 - SSO / SAML authentication
-- On-premise deployment (coming soon)
-- ISO/SOC compliance (coming soon)
-- SLA guarantees (coming soon)
+- [On Premise](../integrations/on-premise.md) data and compute
+- [ISO/IEC 27001:2022 and SOC 2 Type I compliance](https://www.ultralytics.com/security)
+- Enterprise SLA guarantees
 - Enterprise support
 
 See [Ultralytics Licensing](https://www.ultralytics.com/license) for Enterprise plan details.

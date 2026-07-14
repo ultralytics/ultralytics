@@ -560,6 +560,10 @@ def test_val(task: str, weight: str, data: str) -> None:
             metrics.confusion_matrix.to_df()
             metrics.confusion_matrix.to_csv()
             metrics.confusion_matrix.to_json()
+            cm = metrics.confusion_matrix
+            expected = cm.nc if task in {"classify", "semantic"} else cm.nc + 1  # background for detection tasks
+            assert cm.matrix.shape == (expected, expected), f"{task} confusion matrix is {cm.matrix.shape}"
+            assert len(cm.tp_fp()[0]) == cm.nc  # per-class TP/FP never include background
 
 
 def test_val_save_txt_pose(tmp_path):
@@ -802,6 +806,17 @@ def test_annotator_depth_map():
     ann = Annotator(np.zeros((16, 16, 3), dtype=np.uint8))
     ann.depth_map(np.zeros((16, 16), dtype=np.float32))  # no valid pixels → must not divide-by-zero
     assert ann.result().shape == (16, 16, 3)
+
+
+def test_results_update_probs():
+    """Test that Results.update(probs=...) wraps the tensor in Probs like the sibling attributes."""
+    from ultralytics.engine.results import Probs, Results
+
+    orig_img = np.zeros((32, 32, 3), dtype=np.uint8)
+    r = Results(orig_img, path="image.jpg", names={i: f"c{i}" for i in range(5)}, probs=torch.rand(5))
+    r.update(probs=torch.rand(5))
+    assert isinstance(r.probs, Probs), "update(probs=) should wrap the tensor in Probs, not store a raw Tensor"
+    assert r.verbose() and r.summary(), "verbose()/summary() raise AttributeError on a raw Tensor probs"
 
 
 def test_labels_and_crops():

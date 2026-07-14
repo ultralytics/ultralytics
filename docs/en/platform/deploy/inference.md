@@ -1,4 +1,5 @@
 ---
+plans: [free, pro, enterprise]
 title: Inference API Testing
 comments: true
 description: Learn how to test YOLO models with the Ultralytics Platform inference API including browser testing and programmatic access.

@@ -39,8 +39,8 @@ from ultralytics.utils import (
     WEIGHTS_DIR,
     WINDOWS,
     YAML,
-    checks,
     _get_pythonpath_env,
+    checks,
     is_github_action_running,
 )
 from ultralytics.utils.downloads import download, safe_download

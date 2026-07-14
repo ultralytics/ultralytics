@@ -38,11 +38,11 @@ from ultralytics.utils import (
     RANK,
     TQDM,
     YAML,
+    _get_pythonpath_env,
     callbacks,
     clean_url,
     colorstr,
     emojis,
-    _get_pythonpath_env,
 )
 from ultralytics.utils.autobatch import check_train_batch_size
 from ultralytics.utils.checks import check_amp, check_file, check_imgsz, check_model_file_from_stem, print_args

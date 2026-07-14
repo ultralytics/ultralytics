@@ -641,7 +641,7 @@ def test_export_ethos(isolated_model):
     assert pte_file.exists(), f"Ethos .pte file not found: {pte_file}"
     metadata_file = Path(file) / "metadata.yaml"
     assert metadata_file.exists(), f"Ethos metadata.yaml not found: {metadata_file}"
-    # Note: Inference testing skipped as it requires Ethos-U hardware    
+    # Note: Inference testing skipped as it requires Ethos-U hardware
 
 
 @pytest.mark.parametrize("env", [k for k, v in EXPORT_ENVS.items() if k != "base" or v["smoke"]])

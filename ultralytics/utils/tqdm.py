@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import re
 import sys
 import time
 import unicodedata
@@ -16,19 +17,21 @@ def is_noninteractive_console() -> bool:
     return "GITHUB_ACTIONS" in os.environ or "RUNPOD_POD_ID" in os.environ
 
 
-def cell_len(text: str) -> int:
-    """Return display width of text in terminal cells, counting wide CJK/emoji characters as two."""
-    return sum(2 if unicodedata.east_asian_width(c) in "WF" else 1 for c in text)
+_ANSI_ESCAPE = re.compile(r"\x1B\[[0-9;]*[A-Za-z]")
 
 
-def cell_trim(text: str, width: int) -> str:
-    """Trim text to at most width terminal cells."""
-    w = 0
-    for i, c in enumerate(text):
-        w += 2 if unicodedata.east_asian_width(c) in "WF" else 1
-        if w > width:
-            return text[:i]
-    return text
+def _fit_cells(text: str, width: int | None = None) -> tuple[str, int]:
+    """Strip ANSI escapes and fit text to a conservative terminal-cell width."""
+    text, cells = _ANSI_ESCAPE.sub("", text), 0
+    for i, char in enumerate(text):
+        if unicodedata.combining(char) or unicodedata.category(char) in {"Cc", "Cf"}:
+            char_cells = 0
+        else:
+            char_cells = 2 if unicodedata.east_asian_width(char) in "WF" else 1
+        if width is not None and cells + char_cells > width:
+            return text[:i], cells
+        cells += char_cells
+    return text, cells
 
 
 class TQDM:
@@ -286,24 +289,21 @@ class TQDM:
                 return f"{desc}: {percent:.0f}% {bar} {n_str}/{t_str} {rate_str} {elapsed_str}{remaining_str}"
             return f"{desc}: {bar} {n_str} {rate_str} {elapsed_str}"
 
-        desc = self.desc or ""
+        desc = self.desc
         progress_str = compose(desc, 12)
 
-        # Fit to width of the output terminal only, to avoid truncating file/StringIO/log output
-        try:
-            is_tty = self.file.isatty()
+        # Fit real terminals only; redirected logs preserve the full line.
+        if self.file.isatty():
             term_width = os.get_terminal_size(self.file.fileno()).columns - 1
-        except Exception:
-            is_tty, term_width = False, 79
-
-        if is_tty and cell_len(progress_str) > term_width:
-            progress_str = compose(desc, max(4, min(12, term_width - cell_len(compose(desc, 0)))))
-            if cell_len(progress_str) > term_width:
-                room = term_width - cell_len(compose("", 4))  # cells left for the description
-                if room > 3:
-                    progress_str = compose(cell_trim(desc, room - 3) + "...", 4)
-                else:
-                    progress_str = cell_trim(progress_str, term_width - 1) + "…"
+            _, cells = _fit_cells(progress_str)
+            bar_width = max(0, 12 - max(0, cells - term_width))
+            progress_str = compose(desc, bar_width)
+            _, cells = _fit_cells(progress_str)
+            if cells > term_width and desc:
+                desc, desc_cells = _fit_cells(desc)
+                desc, _ = _fit_cells(desc, max(0, desc_cells - (cells - term_width) - 1))
+                progress_str = compose(f"{desc}…" if desc else "", bar_width)
+            progress_str, _ = _fit_cells(progress_str, term_width)
 
         # Write to output
         try:

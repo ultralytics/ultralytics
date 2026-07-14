@@ -352,6 +352,7 @@ def test_predict_ndarray_channels():
         im = np.zeros((8, 8, source_channels), dtype=np.uint8)
         assert LoadPilAndNumpy(im, channels=model_channels).im0[0].shape == (8, 8, model_channels)
 
+
 @pytest.mark.slow
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 def test_predict_all_image_formats():

@@ -41,7 +41,7 @@ Dataset folders are mounted read-only. Platform and its hosted workers never rec
 
 1. Open [Ultralytics Platform](https://platform.ultralytics.com) on the Linux, Apple Silicon macOS, or Windows host that can access your datasets.
 2. Go to `Settings > Integrations` and select **Connect** on the **On Premise** card.
-3. Platform selects the detected Linux, Apple Silicon macOS, or Windows command. Keep the prefilled values or change them:
+3. Platform selects the detected Linux, macOS, or Windows command. Apple Silicon is required on macOS. Keep the prefilled values or change them:
     - **Machine name:** `On Premise host`
     - **Dataset folder:** `/datasets` on Linux or `~/Ultralytics/datasets` on macOS and Windows
     - **Models folder:** `/models` on Linux or `~/Ultralytics/models` on macOS and Windows

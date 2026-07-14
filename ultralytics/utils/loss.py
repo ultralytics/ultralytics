@@ -1233,9 +1233,11 @@ class v8DepthLoss:
         # Clamp predictions to avoid log(0)
         pred_valid = pred_valid.clamp(min=0.001)
 
-        # SILog loss (scale-invariant log error)
+        # SILog loss (scale-invariant log error). At silog_lambda=1.0 the variance term fully
+        # cancels for a near-constant residual, and float rounding can push it slightly negative:
+        # clamp the mathematically non-negative variance so sqrt never returns NaN.
         log_diff = torch.log(pred_valid) - torch.log(gt_valid)
-        silog = torch.sqrt((log_diff**2).mean() - self.silog_lambda * log_diff.mean() ** 2 + 1e-6)
+        silog = torch.sqrt(((log_diff**2).mean() - self.silog_lambda * log_diff.mean() ** 2).clamp_min(0) + 1e-6)
         loss[0] = silog * self.silog_weight
 
         # Gradient-matching loss (edge-aware): penalize differences in spatial gradients.

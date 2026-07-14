@@ -204,11 +204,12 @@ def fit_calibration_selective(model, dataloader, device, max_images: int = 200, 
     """Select and apply calibration via "calibrate only if it helps" (see :func:`select_calibration_cv`).
 
     Collects per-image ``(log_pred, log_gt)`` over the loader, splits images into independent fit/score folds (no
-    leakage), chooses identity / scale-only / affine by cross-validated raw-scale δ1, and writes the winner into the
-    head's ``cal_a``/``cal_b``.
+    leakage), chooses identity / scale-only by cross-validated raw-scale δ1 (affine is opt-in via
+    :func:`select_calibration_cv`'s ``allow_affine`` and not offered here), and writes the winner into the head's
+    ``cal_a``/``cal_b``.
 
     Returns:
-        The: func:`select_calibration_cv` result dict, or None if no Depth head / too few images.
+        The :func:`select_calibration_cv` result dict, or None if no Depth head / too few images.
     """
     head = _depth_head(model)
     if head is None:

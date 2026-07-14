@@ -35,7 +35,7 @@ Dataset folders are mounted read-only. Platform and its hosted workers never rec
     - **Dataset folder:** `/datasets`
     - **Models folder:** `/models`
 4. Select **Create install command**.
-5. Copy and run the generated command on the host. It installs Docker Compose when needed, creates the selected folders, starts the CPU worker, and starts the GPU worker automatically when `nvidia-smi` is available.
+5. Copy and run the generated command on the host. It installs Docker Compose when needed, creates the selected folders, starts the CPU worker, and starts the GPU worker automatically when Docker's NVIDIA runtime is available.
 6. Close the dialog when the host shows as connected.
 
 The command contains a one-time enrollment token that expires after 10 minutes. The installed worker exchanges it for a revocable worker key stored in a mode-`0600` environment file. It never receives Platform MongoDB or cloud-storage credentials.

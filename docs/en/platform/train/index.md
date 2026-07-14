@@ -7,6 +7,8 @@ keywords: Ultralytics Platform, model training, cloud training, YOLO, GPU traini
 
 # Model Training
 
+{% from "macros/platform-plans.md" import plan_badges %} {{ plan_badges(["Free", "Pro", "Enterprise"]) }}
+
 [Ultralytics Platform](https://platform.ultralytics.com) provides comprehensive tools for training YOLO models, from organizing experiments to running cloud training jobs with real-time metrics streaming.
 
 <p align="center">

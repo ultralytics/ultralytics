@@ -7,6 +7,8 @@ keywords: Ultralytics Platform, models, model management, export, ONNX, TensorRT
 
 # Models
 
+{% from "macros/platform-plans.md" import plan_badges %} {{ plan_badges(["Free", "Pro", "Enterprise"]) }}
+
 [Ultralytics Platform](https://platform.ultralytics.com) provides comprehensive model management for training, analyzing, and deploying YOLO models. Upload pretrained models or train new ones directly on the platform.
 
 ![Ultralytics Platform Model Page Overview Tab](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-page-overview-tab.avif)

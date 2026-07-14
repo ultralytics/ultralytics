@@ -7,6 +7,8 @@ keywords: Ultralytics Platform, monitoring, metrics, logs, deployment, performan
 
 # Monitoring
 
+{% from "macros/platform-plans.md" import plan_badges %} {{ plan_badges(["Free", "Pro", "Enterprise"]) }}
+
 [Ultralytics Platform](https://platform.ultralytics.com) provides monitoring for deployed endpoints. Track request metrics, view logs, and check health status with automatic polling.
 
 ![Ultralytics Platform Deploy Page Overview Cards And World Map](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deploy-page-overview-cards-and-world-map.avif)

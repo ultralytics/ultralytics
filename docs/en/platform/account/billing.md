@@ -7,6 +7,8 @@ keywords: Ultralytics Platform, billing, credits, pricing, subscription, payment
 
 # Billing
 
+{% from "macros/platform-plans.md" import plan_badges %} {{ plan_badges(["Free", "Pro", "Enterprise"]) }}
+
 [Ultralytics Platform](https://platform.ultralytics.com) uses a credit-based billing system for cloud training and dedicated endpoints. Add credits, track usage, and manage your subscription from `Settings > Billing`.
 
 ![Ultralytics Platform Settings Billing Tab Credit Balance And Plan Card](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-billing-tab-credit-balance-and-plan-card.avif)
@@ -79,7 +81,7 @@ For organizations with advanced needs:
 - Unlimited models, storage, trainings, and deployments · 50 GB dataset upload limit
 - Enterprise License (commercial use, non-AGPL)
 - SSO / SAML authentication
-- On-premise deployment (coming soon)
+- [On Premise](../integrations/on-premise.md) data and compute
 - ISO/SOC compliance (coming soon)
 - SLA guarantees (coming soon)
 - Enterprise support

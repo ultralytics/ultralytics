@@ -1,5 +1,32 @@
 /* Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license */
 
+/* Platform plan badges -------------------------------------------------------------------------------------------- */
+.platform-plan-badges {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: -0.5rem 0 1rem;
+  color: var(--md-default-fg-color--light);
+  font-size: 0.7rem;
+}
+.platform-plan-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  color: var(--md-primary-bg-color);
+  line-height: 1;
+}
+.platform-plan-badge--free {
+  background: var(--md-default-fg-color--lightest);
+  color: var(--md-default-fg-color--light);
+}
+.platform-plan-badge--pro {
+  background: var(--md-primary-fg-color);
+}
+.platform-plan-badge--enterprise {
+  background: var(--md-accent-fg-color);
+}
+/* Platform plan badges -------------------------------------------------------------------------------------------- */
+
 /* Table format like GitHub ----------------------------------------------------------------------------------------- */
 th,
 td {
@@ -217,7 +244,13 @@ div.highlight {
   font-weight: 600;
   text-align: center;
   color: #fff;
-  background-image: linear-gradient(93deg, #b8fff2, #e3fffa 24%, #eef1fe 70%, #a1b0f3);
+  background-image: linear-gradient(
+    93deg,
+    #b8fff2,
+    #e3fffa 24%,
+    #eef1fe 70%,
+    #a1b0f3
+  );
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;

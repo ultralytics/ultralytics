@@ -7,6 +7,8 @@ keywords: Ultralytics Platform, teams, collaboration, enterprise, roles, permiss
 
 # Teams
 
+{% from "macros/platform-plans.md" import plan_badges %} {{ plan_badges(["Pro", "Enterprise"]) }}
+
 [Ultralytics Platform](https://platform.ultralytics.com) team features enable collaborative computer vision workflows. Create a team workspace to share datasets, projects, models, and deployments with your colleagues using role-based access control.
 
 ![Ultralytics Platform Teams Member List With Roles](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-teams-tab-member-list-with-roles.avif)

@@ -6,6 +6,8 @@ keywords: Ultralytics Platform, REST API, API reference, authentication, endpoin
 
 # REST API Reference
 
+{% from "macros/platform-plans.md" import plan_badges %} {{ plan_badges(["Free", "Pro", "Enterprise"]) }}
+
 [Ultralytics Platform](https://platform.ultralytics.com) provides a comprehensive REST API for programmatic access to datasets, models, training, and deployments.
 
 ![Ultralytics Platform Api Overview](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-api-overview.avif)

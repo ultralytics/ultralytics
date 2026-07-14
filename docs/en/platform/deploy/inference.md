@@ -7,6 +7,8 @@ keywords: Ultralytics Platform, inference, API, YOLO, object detection, predicti
 
 # Inference
 
+{% from "macros/platform-plans.md" import plan_badges %} {{ plan_badges(["Free", "Pro", "Enterprise"]) }}
+
 [Ultralytics Platform](https://platform.ultralytics.com) provides an inference API for testing trained models. Use the browser-based `Predict` tab for quick validation or the [REST API](../api/index.md#models-api) for programmatic access.
 
 ![Ultralytics Platform Model Predict Tab With Detections Overlay](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/model-predict-tab-with-detections-overlay.avif)

@@ -7,6 +7,8 @@ keywords: Ultralytics Platform, API keys, authentication, remote training, secur
 
 # API Keys
 
+{% from "macros/platform-plans.md" import plan_badges %} {{ plan_badges(["Free", "Pro", "Enterprise"]) }}
+
 [Ultralytics Platform](https://platform.ultralytics.com) API keys enable secure programmatic access for remote training, inference, and automation. Create named keys with AES-256-GCM encryption for different use cases.
 
 ![Ultralytics Platform Settings Profile Tab Api Keys Section With Key List](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-profile-tab-api-keys-section-with-key-list.avif)

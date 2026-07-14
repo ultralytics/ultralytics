@@ -7,6 +7,8 @@ title: Account Settings
 
 # Settings
 
+{% from "macros/platform-plans.md" import plan_badges %} {{ plan_badges(["Free", "Pro", "Enterprise"]) }}
+
 [Ultralytics Platform](https://platform.ultralytics.com) settings allow you to configure your profile, social links, workspace preferences, and manage your data with GDPR-compliant export and deletion options.
 
 Settings is organized into seven tabs (in order): `Profile`, `API Keys`, `Plans`, `Billing`, `Teams`, `Integrations`, and `Trash`.
@@ -304,6 +306,7 @@ The `Integrations` tab lets you import datasets and projects from external servi
 
 - **Ultralytics HUB** — import your existing datasets and projects from [Ultralytics HUB](../integrations/ultralytics-hub.md).
 - **Roboflow** — import annotated datasets from a [Roboflow](../integrations/roboflow.md) workspace using a Roboflow API key.
+- **On Premise** — connect Enterprise CPU/GPU workers and keep dataset pixels on your own host. See [On Premise](../integrations/on-premise.md).
 - **Weights & Biases** — experiment-tracking sync (coming soon).
 
 See [Integrations](../integrations/index.md) for the full list of supported services.

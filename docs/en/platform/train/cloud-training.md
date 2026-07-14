@@ -7,6 +7,8 @@ keywords: Ultralytics Platform, cloud training, GPU training, remote training, Y
 
 # Cloud Training
 
+{% from "macros/platform-plans.md" import plan_badges %} {{ plan_badges(["Free", "Pro", "Enterprise"]) }}
+
 [Ultralytics Platform](https://platform.ultralytics.com) Cloud Training offers single-click training on cloud GPUs, making model training accessible without complex setup. Train YOLO models with real-time metrics streaming and automatic checkpoint saving.
 
 ```mermaid

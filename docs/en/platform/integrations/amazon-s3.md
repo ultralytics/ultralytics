@@ -7,6 +7,8 @@ title: Amazon S3 Datasets - Ultralytics Platform
 
 # Amazon S3 Integration
 
+{% from "macros/platform-plans.md" import plan_badges %} {{ plan_badges(["Pro", "Enterprise"]) }}
+
 The [Amazon S3](https://aws.amazon.com/s3/) integration connects your S3 buckets to [Ultralytics Platform](https://platform.ultralytics.com). Your images stay in your buckets — Platform indexes them in place, so you can browse, annotate, and train YOLO models without uploading a copy.
 
 !!! note "Pro feature"

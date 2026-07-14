@@ -7,6 +7,8 @@ keywords: Ultralytics Platform, activity feed, audit log, notifications, event t
 
 # Activity Feed
 
+{% from "macros/platform-plans.md" import plan_badges %} {{ plan_badges(["Free", "Pro", "Enterprise"]) }}
+
 [Ultralytics Platform](https://platform.ultralytics.com) provides a comprehensive activity feed that tracks all events and actions across your account. Monitor training progress and system events in one centralized location.
 
 ![Ultralytics Platform Activity Page Inbox Tab With Event List](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/activity-page-inbox-tab-with-event-list.avif)

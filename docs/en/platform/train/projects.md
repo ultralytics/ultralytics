@@ -7,6 +7,8 @@ keywords: Ultralytics Platform, projects, model management, experiment tracking,
 
 # Projects
 
+{% from "macros/platform-plans.md" import plan_badges %} {{ plan_badges(["Free", "Pro", "Enterprise"]) }}
+
 [Ultralytics Platform](https://platform.ultralytics.com) projects provide an effective solution for organizing and managing your models. Group related models together to facilitate easier management, comparison, and development.
 
 ```mermaid

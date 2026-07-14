@@ -7,6 +7,8 @@ keywords: Ultralytics Platform, datasets, dataset management, dataset versioning
 
 # Datasets
 
+{% from "macros/platform-plans.md" import plan_badges %} {{ plan_badges(["Free", "Pro", "Enterprise"]) }}
+
 [Ultralytics Platform](https://platform.ultralytics.com) datasets provide a streamlined solution for managing your training data. After upload, the platform processes images, labels, and statistics automatically. A dataset is ready to train once processing has completed and it has at least one image in the `train` split, at least one image in either the `val` or `test` split, at least one labeled image, and a total of at least two images.
 
 ## Upload Dataset
@@ -15,7 +17,7 @@ Ultralytics Platform accepts multiple upload formats for flexibility.
 
 !!! tip "Already have data elsewhere?"
 
-    If you already have datasets in [Ultralytics HUB](../integrations/ultralytics-hub.md) or [Roboflow](../integrations/roboflow.md), use [Integrations](../integrations/index.md) to import them directly — no manual export or re-upload needed. Data in [Google Cloud Storage](../integrations/google-cloud-storage.md), [Amazon S3](../integrations/amazon-s3.md), or [Azure Blob Storage](../integrations/azure-blob-storage.md) can be used in place: the **Cloud storage** tab in **New Dataset** indexes your images and YOLO labels without copying them into Platform.
+    If you already have datasets in [Ultralytics HUB](../integrations/ultralytics-hub.md) or [Roboflow](../integrations/roboflow.md), use [Integrations](../integrations/index.md) to import them directly — no manual export or re-upload needed. Data in [Google Cloud Storage](../integrations/google-cloud-storage.md), [Amazon S3](../integrations/amazon-s3.md), or [Azure Blob Storage](../integrations/azure-blob-storage.md) can be used in place through **Cloud storage**. Enterprise workspaces can use [On Premise](../integrations/on-premise.md) to index and train on local data without sending pixels to Platform.
 
 ### Supported Formats
 

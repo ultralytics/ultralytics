@@ -6,6 +6,8 @@ keywords: Ultralytics Platform, deployment, endpoints, YOLO, production, scaling
 
 # Dedicated Endpoints
 
+{% from "macros/platform-plans.md" import plan_badges %} {{ plan_badges(["Free", "Pro", "Enterprise"]) }}
+
 [Ultralytics Platform](https://platform.ultralytics.com) enables deployment of YOLO models to dedicated endpoints in 43 global regions. Each endpoint is a single-tenant service with scale-to-zero behavior, a unique endpoint URL, and independent monitoring.
 
 ![Ultralytics Platform Model Deploy Tab With Region Map And Table](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/model-deploy-tab-with-region-map-and-table.avif)

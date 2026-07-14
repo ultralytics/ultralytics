@@ -7,6 +7,8 @@ keywords: Ultralytics Platform, explore, public datasets, public projects, compu
 
 # Explore
 
+{% from "macros/platform-plans.md" import plan_badges %} {{ plan_badges(["Free", "Pro", "Enterprise"]) }}
+
 [Ultralytics Platform](https://platform.ultralytics.com) Explore page showcases public content from the community. Discover [datasets](data/datasets.md) and [projects](train/projects.md) for inspiration and learning. The Explore page is accessible to everyone — even without signing in.
 
 ![Ultralytics Platform Explore Datasets Tab Cards View](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-explore-datasets-tab-cards-view.avif)

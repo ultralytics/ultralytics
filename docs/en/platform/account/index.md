@@ -6,6 +6,8 @@ keywords: Ultralytics Platform, account, settings, API keys, billing, security, 
 
 # Account Management
 
+{% from "macros/platform-plans.md" import plan_badges %} {{ plan_badges(["Free", "Pro", "Enterprise"]) }}
+
 [Ultralytics Platform](https://platform.ultralytics.com) provides comprehensive account management for API keys, billing, teams, and user settings. Manage your account securely with GDPR-compliant data handling.
 
 <p align="center">

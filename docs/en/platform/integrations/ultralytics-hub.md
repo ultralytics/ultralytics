@@ -6,6 +6,8 @@ keywords: Ultralytics Platform, Ultralytics HUB, HUB import, dataset migration, 
 
 # Ultralytics HUB Integration
 
+{% from "macros/platform-plans.md" import plan_badges %} {{ plan_badges(["Free", "Pro", "Enterprise"]) }}
+
 The Ultralytics HUB integration transfers everything from your [Ultralytics HUB](https://hub.ultralytics.com) account into [Ultralytics Platform](https://platform.ultralytics.com) in one step — your datasets, projects, models, and account balance.
 
 ## Import from Ultralytics HUB

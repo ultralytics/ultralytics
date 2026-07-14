@@ -7,6 +7,8 @@ title: Google Cloud Storage Datasets - Ultralytics Platform
 
 # Google Cloud Storage Integration
 
+{% from "macros/platform-plans.md" import plan_badges %} {{ plan_badges(["Pro", "Enterprise"]) }}
+
 The [Google Cloud Storage](https://cloud.google.com/storage) integration connects your GCS buckets to [Ultralytics Platform](https://platform.ultralytics.com). Your images stay in your buckets — Platform indexes them in place, so you can browse, annotate, and train YOLO models without uploading a copy.
 
 !!! note "Pro feature"

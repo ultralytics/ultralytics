@@ -909,6 +909,7 @@ class DeformableTransformerDecoder(nn.Module):
         self.eval_idx = eval_idx if eval_idx >= 0 else num_layers + eval_idx
         self.dab_sine_embedding = dab_sine_embedding
         self.efficient_ms = efficient_ms
+        self.fixed_query_pos = False
 
     def __setstate__(self, state):
         """Handle loading from older checkpoints without enable_cuda_acceleration."""
@@ -918,6 +919,8 @@ class DeformableTransformerDecoder(nn.Module):
             self.dab_sine_embedding = False
         if 'efficient_ms' not in self.__dict__:
             self.efficient_ms = False
+        if 'fixed_query_pos' not in self.__dict__:
+            self.fixed_query_pos = False
 
     def forward(
         self,
@@ -965,11 +968,21 @@ class DeformableTransformerDecoder(nn.Module):
                 level_start_index.append(level_start_index[-1] + size)
             order = sorted(range(n_levels), key=lambda i: level_sizes[i])  # small -> large
             shift = (n_levels - 1 - (self.num_layers - 1) % n_levels) % n_levels
+        # DEIM-style hoist: compute query_pos once from the initial refer_bbox and reuse across layers.
+        query_pos_fixed = (
+            pos_mlp(refer_bbox.flatten(0, -2)).unflatten(0, refer_bbox.shape[:-1])
+            if self.fixed_query_pos and not self.dab_sine_embedding
+            else None
+        )
         for i, layer in enumerate(self.layers):
             if not self.dab_sine_embedding:
                 # Flatten to 2D before MLP to ensure ONNX exports as valid Gemm nodes
                 # (prevents onnxslim from incorrectly fusing 3D MatMul+Add into 2D-only Gemm)
-                query_pos = pos_mlp(refer_bbox.flatten(0, -2)).unflatten(0, refer_bbox.shape[:-1])
+                query_pos = (
+                    query_pos_fixed
+                    if query_pos_fixed is not None
+                    else pos_mlp(refer_bbox.flatten(0, -2)).unflatten(0, refer_bbox.shape[:-1])
+                )
             else:
                 sine_embedded_position = gen_sineembed_for_position(refer_bbox, self.hidden_dim // 2)
                 query_pos_unscaled = pos_mlp(sine_embedded_position)

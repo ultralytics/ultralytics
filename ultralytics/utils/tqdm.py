@@ -294,16 +294,17 @@ class TQDM:
 
         # Fit real terminals only; redirected logs preserve the full line.
         if self.file.isatty():
-            term_width = os.get_terminal_size(self.file.fileno()).columns - 1
+            term_width = max(1, os.get_terminal_size(self.file.fileno()).columns - 1)
             _, cells = _fit_cells(progress_str)
-            bar_width = max(0, 12 - max(0, cells - term_width))
-            progress_str = compose(desc, bar_width)
-            _, cells = _fit_cells(progress_str)
-            if cells > term_width and desc:
-                desc, desc_cells = _fit_cells(desc)
-                desc, _ = _fit_cells(desc, max(0, desc_cells - (cells - term_width) - 1))
-                progress_str = compose(f"{desc}…" if desc else "", bar_width)
-            progress_str, _ = _fit_cells(progress_str, term_width)
+            if cells > term_width:
+                bar_width = max(0, 12 - (cells - term_width))
+                progress_str = compose(desc, bar_width)
+                _, cells = _fit_cells(progress_str)
+                if cells > term_width and desc:
+                    desc, desc_cells = _fit_cells(desc)
+                    desc, _ = _fit_cells(desc, max(0, desc_cells - (cells - term_width) - 1))
+                    progress_str = compose(f"{desc}…" if desc else "", bar_width)
+                progress_str, _ = _fit_cells(progress_str, term_width)
 
         # Write to output
         try:

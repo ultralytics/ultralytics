@@ -65,6 +65,11 @@ def test_tqdm_terminal_width(monkeypatch):
     TQDM(total=10, desc="\033[31m处理很长的描述\033[0m", file=terminal, disable=False)._display(final=True)
     assert _fit_cells(terminal.getvalue().rsplit("\r", 1)[-1])[1] <= 19
 
+    monkeypatch.setattr(os, "get_terminal_size", lambda _: os.terminal_size((100, 24)))
+    terminal = Terminal()
+    TQDM(total=10, desc="\033[31mcolored\033[0m", file=terminal, disable=False)._display(final=True)
+    assert "\033[31mcolored\033[0m" in terminal.getvalue()
+
     redirected = StringIO()
     TQDM(total=10, desc="untruncated description", file=redirected, disable=False)._display(final=True)
     assert "untruncated description" in redirected.getvalue()

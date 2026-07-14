@@ -5,48 +5,18 @@ description: Integrate Ultralytics YOLO with ROS1 (Noetic, rospy) and ROS2 (rclp
 keywords: Ultralytics, YOLO, object detection, deep learning, machine learning, guide, ROS, ROS2, Robot Operating System, robotics, rclpy, rospy, ROS Noetic, Python, Ubuntu, simulation, visualization, communication, middleware, hardware abstraction, tools, utilities, ecosystem, Noetic Ninjemys, autonomous vehicle, AMV
 ---
 
-# ROS (Robot Operating System) quickstart guide
+# Use Ultralytics YOLO with ROS for Robot Perception
 
-This guide shows you how to integrate [Ultralytics YOLO](../models/yolo26.md) with a robot running [ROS](https://www.ros.org/), either ROS1 (Noetic, via `rospy`) or ROS2 (via `rclpy`), to run real-time [object detection](../tasks/detect.md) and [segmentation](../tasks/segment.md) on RGB images, depth images, and point clouds.
+This guide shows you how to integrate [Ultralytics YOLO](../models/yolo26.md) with a robot running [ROS (Robot Operating System)](https://www.ros.org/), either ROS1 (Noetic, via `rospy`) or ROS2 (via `rclpy`), to run real-time [object detection](../tasks/detect.md) and [segmentation](../tasks/segment.md) on RGB images, depth images, and point clouds.
 
-Jump to [setting up YOLO with ROS](#setting-up-ultralytics-yolo-with-ros), then work with [RGB images](#use-ultralytics-with-ros-sensor_msgsimage), [depth images](#use-ultralytics-with-ros-depth-images), or [point clouds](#use-ultralytics-with-ros-sensor_msgspointcloud2).
+Jump to [setting up YOLO with ROS](#setting-up-ultralytics-yolo-with-ros), then work with [RGB images](#use-ultralytics-with-ros-sensor_msgsimage), [depth images](#use-ultralytics-with-ros-depth-images), or [point clouds](#use-ultralytics-with-ros-sensor_msgspointcloud2) — or start with the [background on ROS](#background-about-ros) if you're new to the framework.
 
 <p align="center"> <iframe src="https://player.vimeo.com/video/639236696?h=740f412ce5" width="640" height="360" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></p>
 <p align="center"><a href="https://vimeo.com/639236696">ROS Introduction (captioned)</a> from <a href="https://vimeo.com/osrfoundation">Open Robotics</a> on <a href="https://vimeo.com/">Vimeo</a>.</p>
 
-## What is ROS?
+## Why Use Ultralytics YOLO with ROS?
 
-The [Robot Operating System (ROS)](https://www.ros.org/) is an open-source framework widely used in robotics research and industry. ROS provides a collection of [libraries and tools](https://www.ros.org/blog/ecosystem/) to help developers create robot applications. ROS is designed to work with various [robotic platforms](https://robots.ros.org/), making it a flexible and powerful tool for roboticists.
-
-### Key Features of ROS
-
-1. **Modular Architecture**: ROS has a modular architecture, allowing developers to build complex systems by combining smaller, reusable components called [nodes](https://wiki.ros.org/ROS/Tutorials/UnderstandingNodes). Each node typically performs a specific function, and nodes communicate with each other using messages over [topics](https://wiki.ros.org/ROS/Tutorials/UnderstandingTopics) or [services](https://wiki.ros.org/ROS/Tutorials/UnderstandingServicesParams).
-
-2. **Communication Middleware**: ROS offers a robust communication infrastructure that supports inter-process communication and distributed computing. This is achieved through a publish-subscribe model for data streams (topics) and a request-reply model for service calls.
-
-3. **Hardware Abstraction**: ROS provides a layer of abstraction over the hardware, enabling developers to write device-agnostic code. This allows the same code to be used with different hardware setups, facilitating easier integration and experimentation.
-
-4. **Tools and Utilities**: ROS comes with a rich set of tools and utilities for visualization, debugging, and simulation. For instance, RViz is used for visualizing sensor data and robot state information, while Gazebo provides a powerful simulation environment for testing algorithms and robot designs.
-
-5. **Extensive Ecosystem**: The ROS ecosystem is vast and continually growing, with numerous packages available for different robotic applications, including navigation, manipulation, perception, and more. The community actively contributes to the development and maintenance of these packages.
-
-???+ note "Evolution of ROS Versions"
-
-    Since its development in 2007, ROS has evolved through [multiple versions](https://wiki.ros.org/Distributions), each introducing new features and improvements to meet the growing needs of the robotics community. The development of ROS can be categorized into two main series: ROS 1 and ROS 2. This guide covers both: the ROS 1 examples target the Long Term Support (LTS) release ROS Noetic Ninjemys (the code should also work with earlier ROS 1 versions), and the ROS 2 examples target current LTS releases such as Humble and Jazzy. Each code example below includes a `ROS1` and a `ROS2` tab so you can pick the one that matches your setup.
-
-    ### ROS 1 vs. ROS 2
-
-    While ROS 1 provided a solid foundation for robotic development, ROS 2 addresses its shortcomings by offering:
-
-    - **Real-time Performance**: Improved support for real-time systems and deterministic behavior.
-    - **Security**: Enhanced security features for safe and reliable operation in various environments.
-    - **Scalability**: Better support for multi-robot systems and large-scale deployments.
-    - **Cross-platform Support**: Expanded compatibility with various operating systems beyond Linux, including Windows and macOS.
-    - **Flexible Communication**: Use of DDS for more flexible and efficient inter-process communication.
-
-### ROS Messages and Topics
-
-In ROS, communication between nodes is facilitated through [messages](https://wiki.ros.org/Messages) and [topics](https://wiki.ros.org/Topics). A message is a data structure that defines the information exchanged between nodes, while a topic is a named channel over which messages are sent and received. Nodes can publish messages to a topic or subscribe to messages from a topic, enabling them to communicate with each other. This publish-subscribe model allows for asynchronous communication and decoupling between nodes. Each sensor or actuator in a robotic system typically publishes data to a topic, which can then be consumed by other nodes for processing or control. For the purpose of this guide, we will focus on Image, Depth and PointCloud messages and camera topics.
+Integrating YOLO into a ROS pipeline turns raw camera and point-cloud topics into structured detections, segmentation masks, and 3D object positions that other ROS nodes — navigation, manipulation, monitoring — can consume directly, without a custom perception stack. The same YOLO models work across all three sensor modalities covered in this guide (RGB images, depth images, point clouds), and every example below ships both a ROS1 (`rospy`) and a ROS2 (`rclpy`) tab. If you're new to ROS itself, see the [background section](#background-about-ros) at the end of this guide.
 
 ## Setting Up Ultralytics YOLO with ROS
 
@@ -64,10 +34,10 @@ Apart from the ROS environment, you will need to install the following dependenc
 
     === "ROS1"
 
-        - **[ROS NumPy package](https://github.com/eric-wieser/ros_numpy)**: This is required for fast conversion between ROS Image messages and NumPy arrays.
+        - **[ROS NumPy package](https://github.com/eric-wieser/ros_numpy)**: This is required for fast conversion between ROS Image messages and NumPy arrays. It ships as a ROS package rather than a PyPI package, so install it through the ROS package manager instead of `pip`:
 
             ```bash
-            pip install ros_numpy
+            sudo apt install ros-noetic-ros-numpy
             ```
 
         - **Ultralytics package**:
@@ -192,8 +162,7 @@ Finally, subscribe to the `/camera/color/image_raw` topic and process every inco
 
         rospy.Subscriber("/camera/color/image_raw", Image, callback)
 
-        while True:
-            rospy.spin()
+        rospy.spin()
         ```
 
     === "ROS2"
@@ -268,8 +237,7 @@ Finally, subscribe to the `/camera/color/image_raw` topic and process every inco
 
         rospy.Subscriber("/camera/color/image_raw", Image, callback)
 
-        while True:
-            rospy.spin()
+        rospy.spin()
         ```
 
     === "ROS2"
@@ -323,7 +291,7 @@ Finally, subscribe to the `/camera/color/image_raw` topic and process every inco
             main()
         ```
 
-???+ tip "Debugging"
+!!! tip "Debugging"
 
     Debugging ROS (Robot Operating System) nodes can be challenging due to the system's distributed nature. Several tools can assist with this process:
 
@@ -338,7 +306,7 @@ Standard ROS messages also include `std_msgs/String` messages. In many applicati
 
 #### Example Use Case
 
-Consider a warehouse robot equipped with a camera and object [detection model](../tasks/detect.md). Instead of sending large annotated images over the network, the robot can publish a list of detected classes as `std_msgs/String` messages. For instance, when the robot detects objects like "box", "pallet" and "forklift" it publishes these classes to the `/ultralytics/detection/classes` topic. This information can then be used by a central monitoring system to track the inventory in real-time, optimize the robot's path planning to avoid obstacles, or trigger specific actions such as picking up a detected box. This approach reduces the bandwidth required for communication and focuses on transmitting critical data.
+Consider a warehouse robot equipped with a camera and object [detection model](../tasks/detect.md). Instead of sending large annotated images over the network, the robot can publish a list of detected classes as `std_msgs/String` messages. For instance, when the robot detects objects like "box", "pallet" and "forklift" it publishes these classes to the `/ultralytics/detection/classes` topic. This information can then be used by a central monitoring system to track the inventory in real-time, optimize the robot's path planning to avoid obstacles, or trigger specific actions such as picking up a detected box. This approach reduces the bandwidth required for communication and focuses on transmitting critical data. To detect warehouse-specific classes like these, train a custom YOLO model — for example with [Ultralytics Platform](https://platform.ultralytics.com) handling dataset management and cloud training — then swap the resulting weights in place of `yolo26m.pt` above.
 
 ### String Step-by-Step Usage
 
@@ -371,8 +339,7 @@ def callback(data):
 
 
 rospy.Subscriber("/camera/color/image_raw", Image, callback)
-while True:
-    rospy.spin()
+rospy.spin()
 ```
 
 ## Use Ultralytics with ROS Depth Images
@@ -398,6 +365,8 @@ Using YOLO, it is possible to extract and combine information from both RGB and 
 !!! warning "RGB-D Cameras"
 
     When working with depth images, it is essential to ensure that the RGB and depth images are correctly aligned. RGB-D cameras, such as the [Intel RealSense](https://www.realsenseai.com/) series, provide synchronized RGB and depth images, making it easier to combine information from both sources. If using separate RGB and depth cameras, it is crucial to calibrate them to ensure accurate alignment.
+
+    In the ROS1 tab below, `rospy.wait_for_message()` also has no timeout by default — if the named topic stops publishing, the callback blocks indefinitely. Pass a `timeout` argument (e.g., `rospy.wait_for_message(topic, Image, timeout=1.0)`) and handle the resulting `rospy.ROSException` to fail fast instead.
 
 #### Depth Step-by-Step Usage
 
@@ -444,7 +413,7 @@ In this example, we use YOLO to segment an image and apply the extracted mask to
                 self.classes_pub = self.create_publisher(String, "/ultralytics/detection/distance", 5)
         ```
 
-Next, define the callbacks that process the incoming RGB and depth messages. Most sensors have a maximum distance, known as the clip distance, beyond which values are represented as inf (`np.inf`); before processing, it is important to filter out these null values and assign them a value of `0`.
+Next, define the callbacks that process the incoming RGB and depth messages. Most sensors report out-of-range pixels as `NaN`; the code filters these out before averaging, and falls back to `np.inf` — rather than a misleading `0` — if every pixel under the mask turns out to be invalid.
 
 !!! example "Callbacks"
 
@@ -480,8 +449,7 @@ Next, define the callbacks that process the incoming RGB and depth messages. Mos
 
         rospy.Subscriber("/camera/depth/image_raw", Image, callback)
 
-        while True:
-            rospy.spin()
+        rospy.spin()
         ```
 
     === "ROS2"
@@ -574,8 +542,7 @@ Next, define the callbacks that process the incoming RGB and depth messages. Mos
 
         rospy.Subscriber("/camera/depth/image_raw", Image, callback)
 
-        while True:
-            rospy.spin()
+        rospy.spin()
         ```
 
     === "ROS2"
@@ -666,9 +633,13 @@ A point cloud is a collection of data points defined within a three-dimensional 
 
 ### Using YOLO with Point Clouds
 
-To integrate YOLO with `sensor_msgs/PointCloud2` type messages, we can employ a method similar to the one used for depth maps. By leveraging the color information embedded in the point cloud, we can extract a 2D image, perform segmentation on this image using YOLO, and then apply the resulting mask to the three-dimensional points to isolate the 3D object of interest.
+To integrate YOLO with `sensor_msgs/PointCloud2` type messages, extract a 2D image from the color information embedded in the point cloud, perform segmentation on this image using YOLO, and then apply the resulting mask to the three-dimensional points to isolate the 3D object of interest.
 
-For handling point clouds, we recommend using Open3D (`pip install open3d`), a user-friendly Python library. Open3D provides robust tools for managing point cloud data structures, visualizing them, and executing complex operations seamlessly. This library can significantly simplify the process and enhance our ability to manipulate and analyze point clouds in conjunction with YOLO-based segmentation.
+For handling point clouds, we recommend using Open3D, a user-friendly Python library that provides robust tools for managing point cloud data structures, visualizing them, and executing complex operations seamlessly. This library can significantly simplify the process and enhance our ability to manipulate and analyze point clouds in conjunction with YOLO-based segmentation.
+
+```bash
+pip install open3d
+```
 
 #### Point Clouds Step-by-Step Usage
 
@@ -718,7 +689,7 @@ Import the necessary libraries and instantiate the YOLO model for segmentation.
 
 Create a function `pointcloud2_to_array`, which transforms a `sensor_msgs/PointCloud2` message into two NumPy arrays. The `sensor_msgs/PointCloud2` messages contain `n` points based on the `width` and `height` of the acquired image. For instance, a `480 x 640` image will have `307,200` points. Each point includes three spatial coordinates (`xyz`) and the corresponding color in `RGB` format. These can be considered as two separate channels of information.
 
-The function returns the `xyz` coordinates and `RGB` values in the format of the original camera resolution (`width x height`). Most sensors have a maximum distance, known as the clip distance, beyond which values are represented as inf (`np.inf`). Before processing, it is important to filter out these null values and assign them a value of `0`.
+The function returns the `xyz` coordinates and `RGB` values in the format of the original camera resolution (`width x height`). Most sensors report out-of-range points as `NaN`; the function zeroes out both the coordinates and color of these invalid points so they don't distort downstream processing.
 
 !!! example "Point cloud conversion"
 
@@ -727,6 +698,7 @@ The function returns the `xyz` coordinates and `RGB` values in the format of the
         ```python
         import numpy as np
         import ros_numpy
+        from sensor_msgs.msg import PointCloud2
 
 
         def pointcloud2_to_array(pointcloud2: PointCloud2) -> tuple:
@@ -1016,22 +988,47 @@ Processing the mask is straightforward since it consists of binary values, with 
   <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/point-cloud-segmentation-ultralytics.avif" alt="Point Cloud Segmentation with Ultralytics ">
 </p>
 
+## Background: About ROS
+
+The [Robot Operating System (ROS)](https://www.ros.org/) is an open-source framework widely used in robotics research and industry. ROS provides a collection of [libraries and tools](https://www.ros.org/blog/ecosystem/) to help developers create robot applications, and is designed to work with various [robotic platforms](https://robots.ros.org/).
+
+| Feature                      | Description                                                                                                                                                                                                                                                                                                       |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Modular Architecture**     | Complex systems are built by combining smaller, reusable components called [nodes](https://wiki.ros.org/ROS/Tutorials/UnderstandingNodes), which communicate over [topics](https://wiki.ros.org/ROS/Tutorials/UnderstandingTopics) or [services](https://wiki.ros.org/ROS/Tutorials/UnderstandingServicesParams). |
+| **Communication Middleware** | A publish-subscribe model handles data streams (topics) and a request-reply model handles service calls, supporting inter-process communication and distributed computing.                                                                                                                                        |
+| **Hardware Abstraction**     | A layer of abstraction over the hardware lets the same code run across different hardware setups.                                                                                                                                                                                                                 |
+| **Tools and Utilities**      | RViz visualizes sensor data and robot state; Gazebo provides a simulation environment for testing algorithms and robot designs.                                                                                                                                                                                   |
+| **Extensive Ecosystem**      | Community-maintained packages cover navigation, manipulation, perception, and more.                                                                                                                                                                                                                               |
+
+Since its development in 2007, ROS has evolved through [multiple versions](https://wiki.ros.org/Distributions), split into two main series: ROS 1 and ROS 2. This guide covers both — the ROS1 tabs target the Long Term Support release ROS Noetic Ninjemys (the code should also work with earlier ROS 1 versions), and the ROS2 tabs target current LTS releases such as Humble and Jazzy.
+
+| Aspect                     | ROS 1                                       | ROS 2                                                              |
+| -------------------------- | ------------------------------------------- | ------------------------------------------------------------------ |
+| **Real-time Performance**  | Limited support                             | Improved support for real-time systems and deterministic behavior  |
+| **Security**               | Minimal built-in security                   | Enhanced security features for safe, reliable operation            |
+| **Scalability**            | Single ROS Master limits multi-robot setups | Better support for multi-robot systems and large-scale deployments |
+| **Cross-platform Support** | Primarily Linux                             | Expanded support for Linux, Windows, and macOS                     |
+| **Communication**          | Custom TCPROS/UDPROS middleware             | DDS for more flexible and efficient inter-process communication    |
+
+Communication between nodes is built on [messages](https://wiki.ros.org/Messages) and [topics](https://wiki.ros.org/Topics): a message defines the data exchanged between nodes, and a topic is the named channel over which messages are published and subscribed, enabling asynchronous, decoupled communication. Each sensor or actuator in a robotic system typically publishes to a topic that other nodes consume for processing or control. This guide focuses on Image, Depth, and PointCloud2 messages carried over camera topics.
+
 ## Conclusion
 
 With Ultralytics YOLO integrated into ROS, your robot can run [object detection](../tasks/detect.md) and [segmentation](../tasks/segment.md) across RGB images, depth images, and point clouds, turning raw sensor streams into actionable perception. From here, explore the [Predict mode](../modes/predict.md) for more inference options, or follow the [steps of a computer vision project](steps-of-a-cv-project.md) to take your robotics application from prototype to production.
 
 ## FAQ
 
-### What is the Robot Operating System (ROS)?
+### Should I use ROS 1 or ROS 2 with Ultralytics YOLO?
 
-The [Robot Operating System (ROS)](https://www.ros.org/) is an open-source framework commonly used in robotics to help developers create robust robot applications. It provides a collection of [libraries and tools](https://www.ros.org/blog/ecosystem/) for building and interfacing with robotic systems, enabling easier development of complex applications. ROS supports communication between nodes using messages over [topics](https://wiki.ros.org/ROS/Tutorials/UnderstandingTopics) or [services](https://wiki.ros.org/ROS/Tutorials/UnderstandingServicesParams).
+Use whichever your robot or simulation environment already runs — every code example in this guide ships a ROS1 (`rospy`, tested on Noetic) tab and a ROS2 (`rclpy`, targeting current LTS releases like Humble and Jazzy) tab. If you have a free choice, prefer ROS2: it is the actively developed line, with better real-time performance, security, and multi-robot support (see the [ROS 1 vs. ROS 2 comparison](#background-about-ros)).
 
 ### How do I integrate Ultralytics YOLO with ROS for real-time object detection?
 
-Integrating Ultralytics YOLO with ROS involves setting up a ROS environment and using YOLO for processing sensor data. Begin by installing the required dependencies like `ros_numpy` and Ultralytics YOLO:
+Integrating Ultralytics YOLO with ROS involves setting up a ROS environment and using YOLO for processing sensor data. Begin by installing the required dependencies — `ros_numpy` through the ROS package manager, and Ultralytics YOLO through pip:
 
 ```bash
-pip install ros_numpy ultralytics
+sudo apt install ros-noetic-ros-numpy
+pip install ultralytics
 ```
 
 Next, create a ROS node and subscribe to an image topic to process the incoming data for [object detection](../tasks/detect.md). Here is a minimal example:
@@ -1075,60 +1072,6 @@ Depth images in ROS, represented by `sensor_msgs/Image`, provide the distance of
 
 With YOLO, you can extract [segmentation masks](https://www.ultralytics.com/glossary/image-segmentation) from RGB images and apply these masks to depth images to obtain precise 3D object information, improving the robot's ability to navigate and interact with its surroundings.
 
-### How can I visualize 3D point clouds with YOLO in ROS?
+### What hardware do I need to run Ultralytics YOLO with ROS?
 
-To visualize 3D point clouds in ROS with YOLO:
-
-1. Convert `sensor_msgs/PointCloud2` messages to NumPy arrays.
-2. Use YOLO to segment RGB images.
-3. Apply the segmentation mask to the point cloud.
-
-Here's an example using [Open3D](https://www.open3d.org/) for visualization:
-
-```python
-import sys
-
-import numpy as np
-import open3d as o3d
-import ros_numpy
-import rospy
-from sensor_msgs.msg import PointCloud2
-
-from ultralytics import YOLO
-
-rospy.init_node("ultralytics")
-segmentation_model = YOLO("yolo26m-seg.pt")
-
-
-def pointcloud2_to_array(pointcloud2):
-    pc_array = ros_numpy.point_cloud2.pointcloud2_to_array(pointcloud2)
-    split = ros_numpy.point_cloud2.split_rgb_field(pc_array)
-    rgb = np.stack([split["b"], split["g"], split["r"]], axis=2)
-    xyz = ros_numpy.point_cloud2.get_xyz_points(pc_array, remove_nans=False)
-    xyz = np.array(xyz).reshape((pointcloud2.height, pointcloud2.width, 3))
-    return xyz, rgb
-
-
-ros_cloud = rospy.wait_for_message("/camera/depth/points", PointCloud2)
-xyz, rgb = pointcloud2_to_array(ros_cloud)
-result = segmentation_model(rgb)
-
-if not len(result[0].boxes.cls):
-    print("No objects detected")
-    sys.exit()
-
-classes = result[0].boxes.cls.cpu().numpy().astype(int)
-for index, class_id in enumerate(classes):
-    mask = result[0].masks.data.cpu().numpy()[index, :, :].astype(int)
-    mask_expanded = np.stack([mask, mask, mask], axis=2)
-
-    obj_rgb = rgb * mask_expanded
-    obj_xyz = xyz * mask_expanded
-
-    pcd = o3d.geometry.PointCloud()
-    pcd.points = o3d.utility.Vector3dVector(obj_xyz.reshape((-1, 3)))
-    pcd.colors = o3d.utility.Vector3dVector(obj_rgb.reshape((-1, 3)) / 255)
-    o3d.visualization.draw_geometries([pcd])
-```
-
-This approach provides a 3D visualization of segmented objects, useful for tasks like navigation and manipulation in [robotics applications](steps-of-a-cv-project.md).
+Any machine capable of running [Ultralytics YOLO inference](../modes/predict.md) works — a GPU speeds up inference but isn't required for smaller models like `yolo26n.pt`. On the ROS side, you need any RGB camera for [image detection](#use-ultralytics-with-ros-sensor_msgsimage), a depth-capable sensor such as an [Intel RealSense](https://www.realsenseai.com/) for [depth workflows](#use-ultralytics-with-ros-depth-images), or a LIDAR or depth camera publishing `sensor_msgs/PointCloud2` for [point cloud workflows](#use-ultralytics-with-ros-sensor_msgspointcloud2). This guide was tested on the [Husarion ROSbot 2 PRO](https://husarion.com/manuals/rosbot/), but the code works with any ROS Noetic- or ROS2-compatible robot or simulation.

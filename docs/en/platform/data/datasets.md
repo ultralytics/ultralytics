@@ -525,9 +525,9 @@ To export:
 The NDJSON format stores one JSON object per line. The first line contains dataset metadata, followed by one line per image:
 
 ```json
-{"type":"dataset","task":"detect","name":"my-dataset","class_names":{"0":"person"}}
-{"type":"image","file":"img001.jpg","annotations":{"boxes":[[0,0.5,0.5,0.2,0.3]]}}
-{"type":"image","file":"img002.jpg","split":"val"}
+{"type": "dataset", "task": "detect", "name": "my-dataset", "description": "...", "bytes": 12345678, "url": "https://platform.ultralytics.com/...", "class_names": {"0": "person", "1": "car"}, "version": 1, "created_at": "2026-01-15T10:00:00Z", "updated_at": "2026-02-20T14:30:00Z"}
+{"type": "image", "file": "img001.jpg", "url": "https://...", "width": 640, "height": 480, "split": "train", "annotations": {"boxes": [[0, 0.5, 0.5, 0.2, 0.3]]}}
+{"type": "image", "file": "img002.jpg", "url": "https://...", "width": 1280, "height": 720, "split": "val"}
 ```
 
 !!! note "Signed URLs"

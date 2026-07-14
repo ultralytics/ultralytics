@@ -62,6 +62,14 @@ def test_tqdm_terminal_width(monkeypatch):
     assert "\033[31mcolored\033[0m" in render("\033[31mcolored\033[0m", 100)
     assert "untruncated description" in render("untruncated description", 20, isatty=False)
 
+    def unavailable(_):
+        raise OSError
+
+    monkeypatch.setattr(os, "get_terminal_size", unavailable)
+    output = StringIO()
+    output.isatty, output.fileno = lambda: True, lambda: 1
+    TQDM(total=10, file=output, disable=False)._display(final=True)  # best-effort output must not raise
+
 
 def test_dataloader_caps_workers_to_batches():
     """Test tiny datasets do not spawn persistent workers beyond useful batch count."""

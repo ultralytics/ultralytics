@@ -281,16 +281,20 @@ class TQDM:
         elapsed_str = self._format_time(elapsed)
         rate_str = self._format_rate(rate) or (self._format_rate(self.n / elapsed) if elapsed > 0 else "")
 
-        # Fit to terminal width
+        desc = self.desc or ""
+        progress_str = self._compose(desc, percent, n_str, t_str, rate_str, elapsed_str, remaining_str, 12)
+
+        # Fit to terminal width only for real terminals to avoid truncating file/StringIO/log output
+        try:
+            is_tty = self.file.isatty()
+        except Exception:
+            is_tty = False
         try:
             term_width = shutil.get_terminal_size().columns - 1
         except Exception:
             term_width = 79
 
-        desc = self.desc or ""
-        progress_str = self._compose(desc, percent, n_str, t_str, rate_str, elapsed_str, remaining_str, 12)
-
-        if len(progress_str) > term_width:
+        if is_tty and len(progress_str) > term_width:
             fixed_len = len(self._compose(desc, percent, n_str, t_str, rate_str, elapsed_str, remaining_str, 0))
             bar_width = max(4, term_width - fixed_len)
             progress_str = self._compose(

@@ -3,11 +3,10 @@
 # Virtual KITTI 2 dataset for monocular depth estimation — photorealistic synthetic outdoor driving, dense per-pixel depth
 # Documentation: https://docs.ultralytics.com/datasets/depth/vkitti2
 # Example usage: yolo depth train data=depth-vkitti2.yaml model=yolo26n-depth.pt
-# No autodownload — obtain the source data (see docs) and arrange it as below.
 # parent
 # ├── ultralytics
 # └── datasets
-#     └── depth-vkitti2
+#     └── depth-vkitti2  ← downloads here (15 GB archives, ~85 GB converted)
 #         ├── images/{train,val}  # RGB images
 #         └── depth/{train,val}   # paired *.npy, float32 meters (images/ -> depth/)
 
@@ -20,3 +19,31 @@ names:
   0: depth
 
 channels: 3
+
+# Download script/URL (optional)
+download: |
+  import shutil
+  from pathlib import Path
+
+  import cv2
+  import numpy as np
+
+  from ultralytics.utils import TQDM
+  from ultralytics.utils.downloads import download
+
+  # Download and extract the official RGB + depth tars (~15 GB), then convert: Scene20 -> val, all
+  # other scenes -> train; depth PNGs are uint16 centimeters (sky = 655.35 m), clipped at 80 m
+  dir = Path(yaml["path"])  # dataset root dir
+  urls = [f"https://download.europe.naverlabs.com/virtual_kitti_2.0.3/vkitti_2.0.3_{s}.tar" for s in ("rgb", "depth")]
+  download(urls, dir=dir / "source", delete=True)
+  for split in ("train", "val"):
+      (dir / "images" / split).mkdir(parents=True, exist_ok=True)
+      (dir / "depth" / split).mkdir(parents=True, exist_ok=True)
+  for im in TQDM(sorted((dir / "source").rglob("rgb_*.jpg")), desc="Converting"):
+      scene, variation, camera = im.parts[-6], im.parts[-5], im.parts[-2]  # Scene01/clone/frames/rgb/Camera_0/rgb_00000.jpg
+      split = "val" if scene == "Scene20" else "train"
+      name = f"{scene}_{variation}_{camera}_{im.stem[4:]}"
+      depth = cv2.imread(str(im.parents[2] / "depth" / camera / f"depth_{im.stem[4:]}.png"), cv2.IMREAD_ANYDEPTH)
+      np.save(dir / "depth" / split / f"{name}.npy", (depth.astype(np.float32) / 100.0).clip(max=80))  # cm -> m
+      im.rename(dir / "images" / split / f"{name}.jpg")
+  shutil.rmtree(dir / "source")

@@ -415,8 +415,8 @@ def safe_download(
                         target.mkdir(parents=True, exist_ok=True)
                     elif source := tar.extractfile(m):
                         target.parent.mkdir(parents=True, exist_ok=True)
-                        with source, open(target, "wb") as f:
-                            shutil.copyfileobj(source, f)
+                        with source, open(target, "wb") as out:  # 'f' is the archive path, deleted below
+                            shutil.copyfileobj(source, out)
         if delete:
             f.unlink()  # remove zip
         return unzip_dir

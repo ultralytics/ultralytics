@@ -3,11 +3,10 @@
 # SUN RGB-D dataset for monocular depth estimation — real indoor, multi-sensor RGB-D (RealSense/Xtion/Kinect), up to ~10 m
 # Documentation: https://docs.ultralytics.com/datasets/depth/sunrgbd
 # Example usage: yolo depth train data=depth-sunrgbd.yaml model=yolo26n-depth.pt
-# No autodownload — obtain the source data (see docs) and arrange it as below.
 # parent
 # ├── ultralytics
 # └── datasets
-#     └── depth-sunrgbd
+#     └── depth-sunrgbd  ← downloads here (6.5 GB archive, ~14 GB converted)
 #         ├── images/{train,val}  # RGB images
 #         └── depth/{train,val}   # paired *.npy, float32 meters (images/ -> depth/)
 
@@ -20,3 +19,34 @@ names:
   0: depth
 
 channels: 3
+
+# Download script/URL (optional)
+download: |
+  import random
+  import shutil
+  from pathlib import Path
+
+  import cv2
+  import numpy as np
+
+  from ultralytics.utils import TQDM
+  from ultralytics.utils.downloads import download
+
+  # Download and extract the official archive (~6.5 GB), then convert each of the 10335 scenes:
+  # refined depth_bfx PNGs decode via the SUN RGB-D bit-rotation (d>>3 | d<<13) to millimeters,
+  # clipped at 10 m; a deterministic random 1090-scene subset (seed 0) forms the val split
+  dir = Path(yaml["path"])  # dataset root dir
+  download(["https://rgbd.cs.princeton.edu/data/SUNRGBD.zip"], dir=dir / "source", delete=True)
+  for split in ("train", "val"):
+      (dir / "images" / split).mkdir(parents=True, exist_ok=True)
+      (dir / "depth" / split).mkdir(parents=True, exist_ok=True)
+  scenes = sorted(p.parent for p in (dir / "source" / "SUNRGBD").rglob("depth_bfx"))
+  names = ["_".join(s.relative_to(dir / "source" / "SUNRGBD").parts) for s in scenes]
+  val = set(random.Random(0).sample(names, k=1090))
+  for scene, name in TQDM(zip(scenes, names), total=len(scenes), desc="Converting"):
+      split = "val" if name in val else "train"
+      d = cv2.imread(str(next((scene / "depth_bfx").glob("*.png"))), cv2.IMREAD_ANYDEPTH)
+      d = (((d >> 3) | (d << 13)) / 1000.0).clip(max=10).astype(np.float32)  # bit-rotated mm -> m
+      np.save(dir / "depth" / split / f"{name}.npy", d)
+      cv2.imwrite(str(dir / "images" / split / f"{name}.jpg"), cv2.imread(str(next((scene / "image").glob("*.jpg")))))
+  shutil.rmtree(dir / "source")

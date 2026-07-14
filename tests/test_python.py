@@ -850,6 +850,19 @@ def test_safe_download_unzips_local_path_archive(tmp_path):
     assert (extracted / "images" / "val").is_dir(), f"images/val not found in {extracted}"
 
 
+def test_safe_download_tar_delete(tmp_path):
+    """Test safe_download() extracts a .tar.gz and deletes the archive (regression: extraction shadowed the path)."""
+    archive = tmp_path / "data.tar.gz"
+    (tmp_path / "src").mkdir()
+    (tmp_path / "src" / "a.txt").write_text("hello")
+    with tarfile.open(archive, "w:gz") as tar:
+        tar.add(tmp_path / "src" / "a.txt", arcname="data/a.txt")
+
+    extracted = safe_download(archive, dir=tmp_path / "out", unzip=True, delete=True, progress=False)
+    assert (Path(extracted) / "data" / "a.txt").read_text() == "hello"
+    assert not archive.exists(), "archive should be deleted after extraction"
+
+
 def test_safe_download_skips_unsafe_archive_members(tmp_path):
     """Test safe_download() skips archive members that would extract outside the target directory."""
     archive = tmp_path / "unsafe.zip"

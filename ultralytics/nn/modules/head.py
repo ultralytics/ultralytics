@@ -86,7 +86,7 @@ class Detect(nn.Module):
     legacy = False  # backward compatibility for v3/v5/v8/v9 models
     xyxy = False  # xyxy or xywh output
 
-    def __init__(self, nc: int = 80, reg_max=16, end2end=False, ch: tuple = ()):
+    def __init__(self, nc: int = 80, reg_max=16, end2end=False, ch: tuple = (), sigmoid_box=False):
         """Initialize the YOLO detection layer with specified number of classes and channels.
 
         Args:
@@ -94,16 +94,24 @@ class Detect(nn.Module):
             reg_max (int): Maximum number of DFL channels.
             end2end (bool): Whether to use end-to-end NMS-free detection.
             ch (tuple): Tuple of channel sizes from backbone feature maps.
+            sigmoid_box (bool): Whether to apply sigmoid to box regression outputs in 0-1 space.
         """
         super().__init__()
         self.nc = nc  # number of classes
         self.nl = len(ch)  # number of detection layers
-        self.reg_max = reg_max  # DFL channels
+        self.sigmoid_box = sigmoid_box
+        self.reg_max = 1 if sigmoid_box else reg_max  # DFL channels
         self.no = nc + self.reg_max * 4  # number of outputs per anchor
         self.stride = torch.zeros(self.nl)  # strides computed during build
         c2, c3 = max((16, ch[0] // 4, self.reg_max * 4)), max(ch[0], min(self.nc, 100))  # channels
         self.cv2 = nn.ModuleList(
-            nn.Sequential(Conv(x, c2, 3), Conv(c2, c2, 3), nn.Conv2d(c2, 4 * self.reg_max, 1)) for x in ch
+            nn.Sequential(
+                Conv(x, c2, 3),
+                Conv(c2, c2, 3),
+                nn.Conv2d(c2, 4 * self.reg_max, 1),
+                *(nn.Sigmoid(),) if self.sigmoid_box else (),
+            )
+            for x in ch
         )
         self.cv3 = (
             nn.ModuleList(nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3), nn.Conv2d(c3, self.nc, 1)) for x in ch)
@@ -187,22 +195,34 @@ class Detect(nn.Module):
         """Get decoded boxes based on anchors and strides."""
         shape = x["feats"][0].shape  # BCHW
         if self.dynamic or self.shape != shape:
-            self.anchors, self.strides = (a.transpose(0, 1) for a in make_anchors(x["feats"], self.stride, 0.5))
+            self.anchors, self.strides = (
+                a.transpose(0, 1) for a in make_anchors(x["feats"], self.stride, 0.5, normalize=self.sigmoid_box)
+            )
             self.shape = shape
 
-        dbox = self.decode_bboxes(self.dfl(x["boxes"]), self.anchors.unsqueeze(0)) * self.strides
+        dbox = self.decode_bboxes(self.dfl(x["boxes"]), self.anchors.unsqueeze(0))
+        if self.sigmoid_box:
+            new_shape = [s * self.stride[0] for s in self.shape[2:]]
+            dbox[:, 0] *= new_shape[1]
+            dbox[:, 1] *= new_shape[0]
+            dbox[:, 2] *= new_shape[1]
+            dbox[:, 3] *= new_shape[0]
+        else:
+            dbox *= self.strides
         return dbox
 
     def bias_init(self):
         """Initialize Detect() biases, WARNING: requires stride availability."""
         for i, (a, b) in enumerate(zip(self.one2many["box_head"], self.one2many["cls_head"])):  # from
-            a[-1].bias.data[:] = 2.0  # box
+            if not self.sigmoid_box:
+                a[-1].bias.data[:] = 2.0  # box
             b[-1].bias.data[: self.nc] = math.log(
                 5 / self.nc / (640 / self.stride[i]) ** 2
             )  # cls (.01 objects, 80 classes, 640 img)
         if self.end2end:
             for i, (a, b) in enumerate(zip(self.one2one["box_head"], self.one2one["cls_head"])):  # from
-                a[-1].bias.data[:] = 2.0  # box
+                if not self.sigmoid_box:
+                    a[-1].bias.data[:] = 2.0  # box
                 b[-1].bias.data[: self.nc] = math.log(
                     5 / self.nc / (640 / self.stride[i]) ** 2
                 )  # cls (.01 objects, 80 classes, 640 img)

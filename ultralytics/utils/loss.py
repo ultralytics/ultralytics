@@ -110,9 +110,10 @@ class DFLoss(nn.Module):
 class BboxLoss(nn.Module):
     """Criterion class for computing training losses for bounding boxes."""
 
-    def __init__(self, reg_max: int = 16):
+    def __init__(self, reg_max: int = 16, sigmoid_box: bool = False):
         """Initialize the BboxLoss module with regularization maximum and DFL settings."""
         super().__init__()
+        self.sigmoid_box = sigmoid_box
         self.dfl_loss = DFLoss(reg_max) if reg_max > 1 else None
 
     def forward(
@@ -136,6 +137,12 @@ class BboxLoss(nn.Module):
         if self.dfl_loss:
             target_ltrb = bbox2dist(anchor_points, target_bboxes, self.dfl_loss.reg_max - 1)
             loss_dfl = self.dfl_loss(pred_dist[fg_mask].view(-1, self.dfl_loss.reg_max), target_ltrb[fg_mask]) * weight
+            loss_dfl = loss_dfl.sum() / target_scores_sum
+        elif self.sigmoid_box:
+            target_ltrb = bbox2dist(anchor_points, target_bboxes)
+            loss_dfl = (
+                F.l1_loss(pred_dist[fg_mask], target_ltrb[fg_mask], reduction="none").sum(-1, keepdim=True) * weight
+            )
             loss_dfl = loss_dfl.sum() / target_scores_sum
         else:
             target_ltrb = bbox2dist(anchor_points, target_bboxes)
@@ -350,6 +357,7 @@ class v8DetectionLoss:
         self.nc = m.nc  # number of classes
         self.no = m.nc + m.reg_max * 4
         self.reg_max = m.reg_max
+        self.sigmoid_box = getattr(m, "sigmoid_box", False)
         self.device = device
 
         self.use_dfl = m.reg_max > 1
@@ -367,7 +375,7 @@ class v8DetectionLoss:
             stride=self.stride.tolist(),
             topk2=tal_topk2,
         )
-        self.bbox_loss = BboxLoss(m.reg_max).to(device)
+        self.bbox_loss = BboxLoss(m.reg_max, self.sigmoid_box).to(device)
         self.proj = torch.arange(m.reg_max, dtype=torch.float, device=device)
 
     def preprocess(self, targets: torch.Tensor, batch_size: int, scale_tensor: torch.Tensor) -> torch.Tensor:
@@ -406,7 +414,7 @@ class v8DetectionLoss:
             preds["boxes"].permute(0, 2, 1).contiguous(),
             preds["scores"].permute(0, 2, 1).contiguous(),
         )
-        anchor_points, stride_tensor = make_anchors(preds["feats"], self.stride, 0.5)
+        anchor_points, stride_tensor = make_anchors(preds["feats"], self.stride, 0.5, normalize=self.sigmoid_box)
 
         dtype = pred_scores.dtype
         batch_size = pred_scores.shape[0]
@@ -421,10 +429,12 @@ class v8DetectionLoss:
         # Pboxes
         pred_bboxes = self.bbox_decode(anchor_points, pred_distri)  # xyxy, (b, h*w, 4)
 
+        box_scale = imgsz[[1, 0, 1, 0]] if self.sigmoid_box else stride_tensor
+        anc_scale = imgsz[[1, 0]] if self.sigmoid_box else stride_tensor
         _, target_bboxes, target_scores, fg_mask, target_gt_idx = self.assigner(
             pred_scores.detach().sigmoid(),
-            (pred_bboxes.detach() * stride_tensor).type(gt_bboxes.dtype),
-            anchor_points * stride_tensor,
+            (pred_bboxes.detach() * box_scale).type(gt_bboxes.dtype),
+            anchor_points * anc_scale,
             gt_labels,
             gt_bboxes,
             mask_gt,
@@ -444,7 +454,7 @@ class v8DetectionLoss:
                 pred_distri,
                 pred_bboxes,
                 anchor_points,
-                target_bboxes / stride_tensor,
+                target_bboxes / box_scale,
                 target_scores,
                 target_scores_sum,
                 fg_mask,

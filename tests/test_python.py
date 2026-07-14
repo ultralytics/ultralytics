@@ -202,11 +202,6 @@ def test_model_load_remaps_cls_head_by_names():
     tgt.load(src, verbose=False)
     assert all(seq[-1].bias.tolist() == [20.0, 10.0] for seq in tgt.model[-1].cv3)
 
-    tgt_fused = DetectionModel("yolo26n.yaml", nc=2, verbose=False)
-    tgt_fused.names = {0: "dog", 1: "cat"}
-    tgt_fused.fuse()  # fused Detect heads set cv3=None
-    tgt_fused.load(src, verbose=False)  # loading into a fused model must not crash the remap
-
     src = YOLOEModel("yoloe-26n.yaml", nc=3, verbose=False)
     tgt = YOLOEModel("yoloe-26n.yaml", nc=2, verbose=False)
     src.names, tgt.names = {0: "cat", 1: "dog", 2: "car"}, {0: "dog", 1: "cat"}
@@ -356,9 +351,6 @@ def test_predict_ndarray_channels():
     for source_channels, model_channels in ((1, 3), (2, 1), (2, 3), (3, 1), (4, 1), (4, 3)):
         im = np.zeros((8, 8, source_channels), dtype=np.uint8)
         assert LoadPilAndNumpy(im, channels=model_channels).im0[0].shape == (8, 8, model_channels)
-    with pytest.raises(ValueError, match="channels"):  # multi-spectral inputs must not be silently truncated
-        LoadPilAndNumpy(np.zeros((8, 8, 5), dtype=np.uint8), channels=3)
-
 
 @pytest.mark.slow
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")

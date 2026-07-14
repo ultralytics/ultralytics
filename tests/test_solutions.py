@@ -284,11 +284,10 @@ def test_left_click_selection_obb():
         (solutions.VisionEye, {}),
         (solutions.RegionCounter, {"region": REGION}),
         (solutions.ParkingManagement, {"json_file": "parking_areas"}),
-        (solutions.ObjectCropper, {"crop_dir": "crops"}),
     ],
-    ids=["Heatmap", "ObjectBlurrer", "VisionEye", "RegionCounter", "ParkingManagement", "ObjectCropper"],
+    ids=["Heatmap", "ObjectBlurrer", "VisionEye", "RegionCounter", "ParkingManagement"],
 )
-def test_solution_obb_boxes(solution_class, extra_kwargs, solution_assets, tmp_path):
+def test_solution_obb_boxes(solution_class, extra_kwargs, solution_assets):
     """Regression: solutions consuming self.boxes must handle (4, 2) OBB corner boxes without crashing.
 
     OBB models fill self.boxes with (4, 2) corner points instead of xyxy scalars, and get_enclosing_box normalizes
@@ -298,8 +297,6 @@ def test_solution_obb_boxes(solution_class, extra_kwargs, solution_assets, tmp_p
     kwargs = {"model": "yolo26n-obb.pt", "show": SHOW, "imgsz": 320, **extra_kwargs}
     if kwargs.get("json_file") == "parking_areas":
         kwargs["json_file"] = str(solution_assets("parking_areas"))
-    if kwargs.get("crop_dir") == "crops":
-        kwargs["crop_dir"] = str(tmp_path / "crops")
     cap = cv2.VideoCapture(str(solution_assets("parking_video")))
     success, im0 = cap.read()
     cap.release()

@@ -244,13 +244,7 @@ div.highlight {
   font-weight: 600;
   text-align: center;
   color: #fff;
-  background-image: linear-gradient(
-    93deg,
-    #b8fff2,
-    #e3fffa 24%,
-    #eef1fe 70%,
-    #a1b0f3
-  );
+  background-image: linear-gradient(93deg, #b8fff2, #e3fffa 24%, #eef1fe 70%, #a1b0f3);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;

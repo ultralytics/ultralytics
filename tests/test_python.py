@@ -43,8 +43,8 @@ from ultralytics.utils import (
     is_github_action_running,
 )
 from ultralytics.utils.downloads import download, safe_download
-from ultralytics.utils.tqdm import TQDM, _cell_width
 from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13
+from ultralytics.utils.tqdm import TQDM, _cell_width
 
 
 def test_tqdm_terminal_width(monkeypatch):

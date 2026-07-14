@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import os
-import re
 import sys
 import time
 import unicodedata
@@ -17,21 +16,18 @@ def is_noninteractive_console() -> bool:
     return "GITHUB_ACTIONS" in os.environ or "RUNPOD_POD_ID" in os.environ
 
 
-_ANSI_ESCAPE = re.compile(r"\x1B\[[0-9;]*[A-Za-z]")
+def _cell_width(text: str) -> int:
+    """Return a conservative terminal-cell width for ANSI-colored Unicode text."""
+    from ultralytics.utils import remove_colorstr
 
-
-def _fit_cells(text: str, width: int | None = None) -> tuple[str, int]:
-    """Strip ANSI escapes and fit text to a conservative terminal-cell width."""
-    text, cells = _ANSI_ESCAPE.sub("", text), 0
-    for i, char in enumerate(text):
-        if unicodedata.combining(char) or unicodedata.category(char) in {"Cc", "Cf"}:
-            char_cells = 0
-        else:
-            char_cells = 2 if unicodedata.east_asian_width(char) in "WF" else 1
-        if width is not None and cells + char_cells > width:
-            return text[:i], cells
-        cells += char_cells
-    return text, cells
+    return sum(
+        0
+        if unicodedata.combining(char) or unicodedata.category(char) in {"Cc", "Cf"}
+        else 2
+        if unicodedata.east_asian_width(char) in "WF"
+        else 1
+        for char in remove_colorstr(text)
+    )
 
 
 class TQDM:
@@ -294,17 +290,20 @@ class TQDM:
 
         # Fit real terminals only; redirected logs preserve the full line.
         if self.file.isatty():
+            from ultralytics.utils import remove_colorstr
+
             term_width = max(1, os.get_terminal_size(self.file.fileno()).columns - 1)
-            _, cells = _fit_cells(progress_str)
-            if cells > term_width:
-                bar_width = max(0, 12 - (cells - term_width))
+            bar_width = 12
+            while _cell_width(progress_str) > term_width and bar_width:
+                bar_width -= 1
                 progress_str = compose(desc, bar_width)
-                _, cells = _fit_cells(progress_str)
-                if cells > term_width and desc:
-                    desc, desc_cells = _fit_cells(desc)
-                    desc, _ = _fit_cells(desc, max(0, desc_cells - (cells - term_width) - 1))
+            if _cell_width(progress_str) > term_width:
+                desc = remove_colorstr(desc)
+                while desc and _cell_width(progress_str) > term_width:
+                    desc = desc[:-1]
                     progress_str = compose(f"{desc}…" if desc else "", bar_width)
-                progress_str, _ = _fit_cells(progress_str, term_width)
+                while _cell_width(progress_str) > term_width:
+                    progress_str = progress_str[:-1]
 
         # Write to output
         try:

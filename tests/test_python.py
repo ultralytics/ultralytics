@@ -43,13 +43,13 @@ from ultralytics.utils import (
     is_github_action_running,
 )
 from ultralytics.utils.downloads import download, safe_download
-from ultralytics.utils.tqdm import TQDM, _fit_cells
+from ultralytics.utils.tqdm import TQDM, _cell_width
 from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13
 
 
 def test_tqdm_terminal_width(monkeypatch):
     """Test ANSI, combining, and wide characters fit the output terminal without truncating redirected logs."""
-    assert _fit_cells("\033[31m界e\u0301\033[0m")[1] == 3
+    assert _cell_width("\033[31m界e\u0301\033[0m") == 3
 
     class Terminal(StringIO):
         """In-memory terminal stream."""
@@ -63,7 +63,7 @@ def test_tqdm_terminal_width(monkeypatch):
     monkeypatch.setattr(os, "get_terminal_size", lambda _: os.terminal_size((20, 24)))
     terminal = Terminal()
     TQDM(total=10, desc="\033[31m处理很长的描述\033[0m", file=terminal, disable=False)._display(final=True)
-    assert _fit_cells(terminal.getvalue().rsplit("\r", 1)[-1])[1] <= 19
+    assert _cell_width(terminal.getvalue().rsplit("\r", 1)[-1]) <= 19
 
     monkeypatch.setattr(os, "get_terminal_size", lambda _: os.terminal_size((100, 24)))
     terminal = Terminal()

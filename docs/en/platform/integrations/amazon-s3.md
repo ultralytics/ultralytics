@@ -1,4 +1,5 @@
 ---
+plans: [pro, enterprise]
 comments: true
 description: Connect Amazon S3 to Ultralytics Platform and train YOLO models on images in your S3 buckets without uploading a copy.
 keywords: Ultralytics Platform, Amazon S3, AWS S3, S3 bucket, IAM access key, dataset import, YOLO, computer vision, cloud storage

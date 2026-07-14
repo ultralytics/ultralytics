@@ -39,7 +39,6 @@ from ultralytics.utils import (
     ONLINE,
     PLATFORM_URL,
     PYTHON_VERSION,
-    ROCM_EXTRA_INDEX,
     RKNN_CHIPS,
     ROOT,
     TORCH_VERSION,
@@ -1069,8 +1068,8 @@ def resolve_onnxruntime_package(cuda: bool, is_migraphx: bool, is_rocm: bool) ->
         is_rocm (bool): True if running on a ROCm/HIP-enabled system.
 
     Returns:
-        (str | tuple[str, ...]): A single package name when one variant is required, or a tuple of
-            interchangeable package names when any installed variant is acceptable.
+        (str | tuple[str, ...]): A single package name when one variant is required, or a tuple of interchangeable
+            package names when any installed variant is acceptable.
     """
     # Pin to the MIGraphX wheel only when a GPU path is requested; CPU inference should not require
     # importing onnxruntime-migraphx (may be absent on ROCm hosts without MIGraphX runtime libs).

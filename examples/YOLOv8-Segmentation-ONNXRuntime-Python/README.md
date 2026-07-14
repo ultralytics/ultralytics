@@ -15,7 +15,7 @@ Install the required packages using pip. You will need [`ultralytics`](https://g
 
 ```bash
 pip install ultralytics
-pip install onnxruntime-gpu    # For NVIDIA GPU support
+pip install onnxruntime-gpu # For NVIDIA GPU support
 # pip install onnxruntime-migraphx --extra-index-url https://repo.radeon.com/rocm/manylinux/rocm-rel-7.2/  # For AMD GPU support (Linux with ROCm)
 # pip install onnxruntime      # For CPU-only support
 pip install numpy opencv-python

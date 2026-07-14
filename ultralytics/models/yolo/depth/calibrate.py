@@ -209,7 +209,7 @@ def fit_calibration_selective(model, dataloader, device, max_images: int = 200, 
     ``cal_a``/``cal_b``.
 
     Returns:
-        The :func:`select_calibration_cv` result dict, or None if no Depth head / too few images.
+        The: func:`select_calibration_cv` result dict, or None if no Depth head / too few images.
     """
     head = _depth_head(model)
     if head is None:

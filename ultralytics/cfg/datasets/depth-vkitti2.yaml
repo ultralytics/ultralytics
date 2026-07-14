@@ -9,6 +9,7 @@
 #     └── depth-vkitti2  ← downloads here (15 GB archives, ~85 GB converted)
 #         ├── images/{train,val}  # RGB images
 #         └── depth/{train,val}   # paired *.npy, float32 meters (images/ -> depth/)
+# If an interrupted download leaves a partial dataset, delete the depth-vkitti2 dir and re-run to rebuild it.
 
 path: depth-vkitti2 # dataset root dir (relative to Ultralytics settings 'datasets_dir')
 train: images/train # train images (relative to 'path') 25780 images
@@ -45,5 +46,5 @@ download: |
       name = f"{scene}_{variation}_{camera}_{im.stem[4:]}"
       depth = cv2.imread(str(im.parents[2] / "depth" / camera / f"depth_{im.stem[4:]}.png"), cv2.IMREAD_ANYDEPTH)
       np.save(dir / "depth" / split / f"{name}.npy", (depth.astype(np.float32) / 100.0).clip(max=80))  # cm -> m
-      im.rename(dir / "images" / split / f"{name}.jpg")
+      im.replace(dir / "images" / split / f"{name}.jpg")
   shutil.rmtree(dir / "source")

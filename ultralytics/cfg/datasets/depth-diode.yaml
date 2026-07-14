@@ -9,6 +9,7 @@
 #     └── depth-diode  ← downloads here (84 GB archives, ~90 GB converted)
 #         ├── images/{train,val}  # RGB images
 #         └── depth/{train,val}   # paired *.npy, float32 meters (images/ -> depth/)
+# If an interrupted download leaves a partial dataset, delete the depth-diode dir and re-run to rebuild it.
 
 path: depth-diode # dataset root dir (relative to Ultralytics settings 'datasets_dir')
 train: images/train # train images (relative to 'path') 25458 images
@@ -43,5 +44,5 @@ download: |
           depth = np.load(im.with_name(f"{im.stem}_depth.npy")).squeeze().astype(np.float32)
           depth[np.load(im.with_name(f"{im.stem}_depth_mask.npy")) == 0] = 0.0  # zero out invalid pixels
           np.save(dir / "depth" / split / f"{name[:-4]}.npy", depth.clip(max=80))
-          im.rename(dir / "images" / split / name)
+          im.replace(dir / "images" / split / name)
   shutil.rmtree(dir / "source")

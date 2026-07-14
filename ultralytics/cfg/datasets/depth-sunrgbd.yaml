@@ -9,6 +9,7 @@
 #     └── depth-sunrgbd  ← downloads here (6.5 GB archive, ~14 GB converted)
 #         ├── images/{train,val}  # RGB images
 #         └── depth/{train,val}   # paired *.npy, float32 meters (images/ -> depth/)
+# If an interrupted download leaves a partial dataset, delete the depth-sunrgbd dir and re-run to rebuild it.
 
 path: depth-sunrgbd # dataset root dir (relative to Ultralytics settings 'datasets_dir')
 train: images/train # train images (relative to 'path') 9245 images
@@ -36,7 +37,7 @@ download: |
   # refined depth_bfx PNGs decode via the SUN RGB-D bit-rotation (d>>3 | d<<13) to millimeters,
   # clipped at 10 m; a deterministic random 1090-scene subset (seed 0) forms the val split
   dir = Path(yaml["path"])  # dataset root dir
-  download(["https://rgbd.cs.princeton.edu/data/SUNRGBD.zip"], dir=dir / "source", delete=True)
+  download(["https://rgbd.cs.princeton.edu/data/SUNRGBD.zip"], dir=dir / "source", delete=True, exist_ok=True)
   for split in ("train", "val"):
       (dir / "images" / split).mkdir(parents=True, exist_ok=True)
       (dir / "depth" / split).mkdir(parents=True, exist_ok=True)
@@ -48,5 +49,5 @@ download: |
       d = cv2.imread(str(next((scene / "depth_bfx").glob("*.png"))), cv2.IMREAD_ANYDEPTH)
       d = (((d >> 3) | (d << 13)) / 1000.0).clip(max=10).astype(np.float32)  # bit-rotated mm -> m
       np.save(dir / "depth" / split / f"{name}.npy", d)
-      next((scene / "image").glob("*.jpg")).rename(dir / "images" / split / f"{name}.jpg")
+      next((scene / "image").glob("*.jpg")).replace(dir / "images" / split / f"{name}.jpg")
   shutil.rmtree(dir / "source")

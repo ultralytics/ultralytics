@@ -5,22 +5,24 @@ Architecture
 
 ::
 
-    AnomalyBase                            # Pipeline contract (constructor + 4 standard modules below).
-     ├── AnomalyDINO                       # DINOv2 ViT, single layer (no fusion).
-     └── _MultiLayerAnomaly                # Adds: hooks → self._cached dict, multi-layer fuse.
-          ├── AnomalyYOLO                  # YOLO backbone (Ultralytics ckpt), taps {bb, neck, cv3}.
-          └── AnomalyPatchCore             # torchvision ResNet/WideResNet, layer1..4.
+    AnomalyBase                 # Full pipeline: feature extraction + fusion, bank, calibration, scoring.
+     ├── AnomalyDINO            # DINOv2 ViT tokens.
+     ├── AnomalyConvNeXt        # DINOv3-distilled ConvNeXt tokens (single stage).
+     ├── AnomalyConvNeXtMulti   # ConvNeXt multi-stage hooks (s2/s3) + fusion.
+     ├── AnomalyYOLO            # YOLO/YOLOE backbone, taps {bb, neck, cv3}.
+     └── AnomalyPatchCore       # torchvision ResNet/WideResNet, layer1..4.
 
-The four standard modules every subclass plugs into (see ``AnomalyBase`` docstring for full
-contract). Override what you need:
+Every backbone inherits ``AnomalyBase`` directly and overrides just the section-1 hooks
+(see ``AnomalyBase`` docstring). The rest is shared:
 
-1. **Backbone**          — ``_build_model`` / ``_build_preprocess`` / ``_extract``.
-2. **Bank construction** — ``load_support_set`` is the for-loop; subclasses can override
-   ``_filter_tokens`` to drop irrelevant patches (e.g. PCA foreground mask) before banking.
-3. **Compaction**        — ``_compact``; default = PatchCore-style greedy FPS coreset (with optional
-   random pre-sample). Override for KMeans / random / no-op.
-4. **Scoring**           — ``_score_patches`` (cosine 1-NN or L2 1-NN) + ``_aggregate_image_score``
-   (top-k% mean) + ``_upsample_pixel_map``.
+1. **Backbone + extraction** — ``_build_backbone`` (build model + register hooks); token
+   backbones also override ``_forward_features`` (reshape ViT tokens to BCHW). Layer choice,
+   multi-layer fusion (``fuse=``), grid/dim probing, and ``_build_preprocess`` are shared.
+2. **Bank construction + calibration** — ``load_support_set``: dump every patch, k-center
+   coreset (dropped rows = normal hold-out), then compactness + hold-out calibration of the
+   cos-space sigmoid Noisy-OR scorer. Ported from YOLOA BackboneMemoryBank.
+3. **Scoring**           — ``_score_bank`` (cos-space sigmoid Noisy-OR, ∈ [0,1], max over
+   positions as image score) + ``_upsample_pixel_map`` (bilinear grid → pixel map).
 
 Usage
 =====
@@ -28,7 +30,7 @@ Usage
 ::
 
     python tools/anomaly_dino.py --backbone dino_vits14
-    python tools/anomaly_dino.py --backbone yolo_p4_bb --weight yoloe-26l-seg.pt --coreset 10000 --coreset_presample 100000
+    python tools/anomaly_dino.py --backbone yolo_p4_bb --weight yoloe-26l-seg.pt --coreset 10000
     python tools/anomaly_dino.py --backbone wrn50_l23 --fuse patchcore --patchsize 3
 
 Caveats
@@ -144,315 +146,391 @@ _RESNET_LAYERS = ("l1", "l2", "l3", "l4")
 _RESNET_LAYER_ATTR = {"l1": "layer1", "l2": "layer2", "l3": "layer3", "l4": "layer4"}
 
 _FUSE_CHOICES = ("concat", "sum", "avg", "patchcore", "concat_pool")
-_SCORE_CHOICES = ("cosine", "l2")
-_BANK_MODES = ("flat", "obma")  # flat = dump everything (optional FPS), obma = OBMA accept/reject
+_SCORE_CHUNK_ELEMS = 1 << 27  # max [query, bank] elements per similarity slice (scoring memory knob)
 
 # ---------------------------------------------------------------------------
-# OBMA + Noisy-OR helpers
+# Memory-bank helpers — k-center coreset, compactness + hold-out calibration,
+# cos-space sigmoid Noisy-OR scoring.
+# (ported from YOLOA BackboneMemoryBank, ultralytics_worktree @ yoloa_clean_louis)
 # ---------------------------------------------------------------------------
 
 
 @torch.inference_mode()
-def _noisy_or_score(features: torch.Tensor, bank: torch.Tensor,
-                    temperature: float, K: int) -> torch.Tensor:
-    """Per-position Noisy-OR anomaly probability ∈ [0, 1].
+def _coreset_kcenter(mem: torch.Tensor, max_size: int, return_indices: bool = False):
+    """Batched greedy k-center coreset on L2-normalised features (cosine distance).
 
-    Args:
-        features: [N, D] L2-normalised query features.
-        bank: [M, D] L2-normalised memory bank.
-        temperature: β — Noisy-OR sharpening factor (set by auto-calibration).
-        K: top-K nearest bank entries used per query position.
+    Selects ``BATCH`` farthest points per iteration and updates min-distances against
+    all of them in one GEMM, amortising the bank read — a small greediness/speed
+    trade that wins on memory-bandwidth-limited devices. Returns the coreset, or
+    ``(coreset, indices)`` when ``return_indices``.
+    """
+    M = mem.shape[0]
+    if M <= max_size:
+        idx = torch.arange(M, device=mem.device)
+        return (mem, idx) if return_indices else mem
+    device = mem.device
+    BATCH = 64  # centres per GEMM call
+    selected: list[int] = []
+    mean = mem.mean(dim=0)
+    mean = mean / mean.norm().clamp(min=1e-8)
+    seed = int((mem @ mean).argmax().item())
+    selected.append(seed)
+    dist = (1.0 - (mem @ mem[seed])).clamp(min=0.0)  # seed distance so first top-k isn't all-inf
+    t0 = time.perf_counter()
+    while len(selected) < max_size:
+        k = min(BATCH, max_size - len(selected))
+        _, top_idx = dist.topk(k)
+        selected.extend(top_idx.tolist())
+        new_dist = (1.0 - mem @ mem[top_idx].t()).clamp(min=0.0).min(dim=1).values
+        dist = torch.minimum(dist, new_dist)
+        if len(selected) % 2000 < BATCH:
+            print(f"  coreset: {len(selected)}/{max_size}  elapsed={time.perf_counter() - t0:.1f}s")
+    sel = torch.tensor(selected, device=device)
+    return (mem[sel], sel) if return_indices else mem[sel]
 
-    Returns:
-        [N] tensor, higher = more anomalous. 0.5 fallback if bank is empty.
 
-    Formula:
-        ψ(x) = exp(-β·(1-x))                       # cos-sim → "match probability"
-        score = geom_mean(1 - ψ(top-K cos-sim))    # ≈ 1 - P(any top-K matches)
+@torch.inference_mode()
+def _measure_compactness(mem: torch.Tensor, K: int) -> float:
+    """Mean local cosine density of the bank (self-match masked) ∈ [0, 1).
+
+    A tight normal manifold → high compactness. Sampled (≤512) and seeded for
+    reproducible calibration.
+    """
+    k = min(K, mem.shape[0])
+    n_sample = min(512, mem.shape[0])
+    g = torch.Generator().manual_seed(0)
+    idx = torch.randperm(mem.shape[0], generator=g)[:n_sample].to(mem.device)
+    sim = mem[idx] @ mem.t()
+    sim[torch.arange(n_sample, device=mem.device), idx] = -1.0  # mask self-match
+    topk = sim.topk(k=k, dim=1).values
+    return topk.mean(dim=1).mean().clamp(0.0, 1.0 - 1e-4).item()
+
+
+@torch.inference_mode()
+def _score_bank(features: torch.Tensor, bank: torch.Tensor, beta: float,
+                threshold: float, K: int) -> torch.Tensor:
+    """Cos-space sigmoid Noisy-OR anomaly scores ∈ [0, 1] per query position.
+
+    ψ(x) = sigmoid(β·(cos − threshold));  score = geom_mean over top-K of (1 − ψ).
+    A normal query (cos ≈ compactness ≈ threshold) → ψ ≈ 0.5·... → low anomaly score.
     """
     if bank.numel() == 0 or bank.shape[0] == 0:
-        return torch.full((features.shape[0],), 0.5,
-                          device=features.device, dtype=features.dtype)
-    sim = features @ bank.t()                                       # [N, M] cos sim
-    sim_t = torch.exp(-temperature * (1.0 - sim))                   # ψ(x) ∈ [0, 1]
+        return torch.full((features.shape[0],), 0.5, device=features.device, dtype=features.dtype)
     k = min(K, bank.shape[0])
-    topk = sim_t.topk(k=k, dim=1).values                            # [N, k]
-    log_complement = torch.log((1.0 - topk).clamp(min=1e-8))        # [N, k]
-    return torch.exp(log_complement.mean(dim=1)).clamp(0.0, 1.0)    # [N]
+    n, m = features.shape[0], bank.shape[0]
+    chunk = max(1, _SCORE_CHUNK_ELEMS // max(m, 1))
+    out: list[torch.Tensor] = []
+    for i in range(0, n, chunk):
+        cos = features[i:i + chunk] @ bank.t()
+        psi = torch.sigmoid(beta * (cos - threshold))
+        topk = psi.topk(k=k, dim=1).values
+        log_prob = torch.log((1.0 - topk).clamp(min=1e-8)).mean(dim=1)
+        out.append(torch.exp(log_prob))
+    return torch.cat(out).clamp(0.0, 1.0).to(features.dtype)
 
 
 @torch.inference_mode()
-def _calibrate_obma_temperature(sample: torch.Tensor, bank: torch.Tensor,
-                                K: int, target_score: float) -> float:
-    """Solve for β so a 'typical normal' position scores at ``target_score``.
+def _calibrate_holdout(holdout: torch.Tensor, bank: torch.Tensor, K: int,
+                            compactness: float, beta0: float, target: float,
+                            target_q: float) -> tuple[float, float]:
+    """Gaussian-tail hold-out calibration → ``(best_beta, best_threshold)``.
 
-    Derivation (single-entry approximation, see AnomalyDINO/PatchCore literature):
-        score ≈ 1 - exp(-β·(1 - s_typical))
-        ⇒  β = -ln(1 - target_score) / (1 - s_typical)
-
-    where s_typical = 90th percentile of mean-top-K cosine similarity for normal
-    features queried against the bank. Capped to [0.1, 20.0] for safety.
-
-    Args:
-        sample: [N, D] L2-normalised normal features (subset of support set).
-        bank: [M, D] L2-normalised memory bank.
-        K: top-K nearest bank entries.
-        target_score: desired score for typical-normal (default 0.2).
+    The user β is a sensitivity floor (never lowered). For each candidate β (β0
+    log-spaced upward), binary-searches ``threshold`` so the ``target_q`` Gaussian
+    tail-stat (μ + z·σ) of hold-out normal scores hits ``target``, then keeps the β
+    giving the tightest normal-score spread (smallest σ).
     """
     k = min(K, bank.shape[0])
-    sim = sample @ bank.t()                                  # [N, M]
-    topk_sim = sim.topk(k=k, dim=1).values                   # [N, k]
-    mean_topk = topk_sim.mean(dim=1)                         # [N]
-    s_typical = float(mean_topk.quantile(0.90).clamp(0.0, 1.0 - 1e-4).item())
-    beta = -math.log(1.0 - target_score) / (1.0 - s_typical)
-    return max(0.1, min(20.0, beta))
+    topk_cos = (F.normalize(holdout, p=2, dim=1) @ bank.t()).topk(k=k, dim=1).values
+    z_q = math.sqrt(2) * torch.erfinv(torch.tensor(2.0 * target_q - 1.0)).item()
 
+    def scores_for(beta: float, thresh: float) -> torch.Tensor:
+        psi = torch.sigmoid(beta * (topk_cos - thresh))
+        return torch.exp(torch.log((1.0 - psi).clamp(min=1e-8)).mean(dim=1)).clamp(0.0, 1.0)
 
-@torch.inference_mode()
-def _obma_accept_one_image(bank: torch.Tensor, cand_feats: torch.Tensor,
-                           accumulate_thresh: float, temperature: float,
-                           K: int) -> torch.Tensor:
-    """Sequentially append novel features from one image's candidates to the bank.
+    def tail(s: torch.Tensor) -> float:
+        return s.mean().item() + z_q * s.std().item()
 
-    Greedy dedup within the image: candidates are sorted by initial novelty (highest
-    Noisy-OR score first); the first is always accepted, then subsequent candidates
-    are re-scored against the *growing* bank before accept/reject. This guarantees
-    no two features contributed by the same image are mutually redundant.
-
-    Optimisation: a single [N, cur+N] sim matrix is built once and a new column is
-    appended per accept (instead of recomputing the full matmul each step).
-
-    Args:
-        bank: [M, D] current bank (on device, L2-normalised).
-        cand_feats: [N, D] candidate features sorted descending by initial novelty.
-        accumulate_thresh: minimum Noisy-OR score to accept.
-        temperature: β for Noisy-OR scoring.
-        K: top-K nearest bank entries.
-
-    Returns:
-        [M+k, D] updated bank with the k accepted candidates appended.
-    """
-    M0 = bank.shape[0]
-    N = cand_feats.shape[0]
-    if N == 0:
-        return bank
-    D = cand_feats.shape[1]
-    device = cand_feats.device
-    dtype = bank.dtype if M0 > 0 else cand_feats.dtype
-
-    buf = torch.empty((M0 + N, D), device=device, dtype=dtype)
-    if M0 > 0:
-        buf[:M0] = bank.to(device=device, dtype=dtype)
-    cur = M0
-
-    # Sim cache: cols 0..cur = sim against existing bank; appended cols = sim against accepts.
-    S = torch.empty((N, M0 + N), device=device, dtype=dtype)
-    if M0 > 0:
-        S[:, :M0] = cand_feats @ bank.t()
-    M_view = M0
-
-    # Always accept the most novel candidate first.
-    buf[cur] = cand_feats[0]
-    S[:, M_view] = cand_feats @ cand_feats[0]
-    M_view += 1
-    cur += 1
-    pos = 1
-
-    while pos < N:
-        # Inline Noisy-OR over the already-cached sim sub-matrix.
-        sim_sub = S[pos:, :M_view]                                # [N-pos, M_view]
-        sim_t = torch.exp(-temperature * (1.0 - sim_sub))
-        k = min(K, M_view)
-        topk = sim_t.topk(k=k, dim=1).values
-        log_comp = torch.log((1.0 - topk).clamp(min=1e-8))
-        scores = torch.exp(log_comp.mean(dim=1)).clamp(0.0, 1.0)  # [N-pos]
-        passing = (scores > accumulate_thresh).nonzero(as_tuple=True)[0]
-        if passing.numel() == 0:
+    beta_candidates = [beta0]
+    for i in range(1, 9):
+        b = beta0 * (10 ** (i / 8))
+        if b > 100:
             break
-        j = pos + int(passing[0].item())
-        buf[cur] = cand_feats[j]
-        S[:, M_view] = cand_feats @ cand_feats[j]
-        M_view += 1
-        cur += 1
-        pos = j + 1
+        beta_candidates.append(round(b, 4))
 
-    return buf[:cur].clone()
+    def find_thresh(beta: float):
+        hr = 3.0 / max(beta, 0.1)
+        lo, hi = compactness - hr, compactness + hr
+        s_lo, s_hi = tail(scores_for(beta, lo)), tail(scores_for(beta, hi))
+        for _ in range(5):
+            if s_lo > target and lo > compactness - 5.0:
+                lo -= hr
+                s_lo = tail(scores_for(beta, lo))
+            if s_hi < target and hi < compactness + 5.0:
+                hi += hr
+                s_hi = tail(scores_for(beta, hi))
+        if not (s_lo <= target <= s_hi):
+            return None, float("inf")
+        for _ in range(20):
+            mid = (lo + hi) / 2.0
+            if tail(scores_for(beta, mid)) > target:
+                hi = mid
+            else:
+                lo = mid
+        th = (lo + hi) / 2.0
+        return th, scores_for(beta, th).std().item()
+
+    best_beta, best_thresh, best_spread = beta0, compactness, float("inf")
+    for beta in beta_candidates:
+        th, spread = find_thresh(beta)
+        if th is not None and spread < best_spread:
+            best_spread, best_beta, best_thresh = spread, beta, th
+    return best_beta, best_thresh
+
+
+def _tokens_to_bchw(tok: torch.Tensor) -> torch.Tensor:
+    """Square-grid patch tokens ``[B, N, D]`` → feature map ``[B, D, h, w]`` (h=w=√N)."""
+    B, N, D = tok.shape
+    h = int(round(N ** 0.5))
+    if h * h != N:
+        raise ValueError(f"non-square token grid: N={N}")
+    return tok.transpose(1, 2).reshape(B, D, h, h)
 
 
 # ---------------------------------------------------------------------------
-# Base class — defines the contract for the 4 standard modules
+# Base class — backbone-agnostic pipeline: extraction+fusion + bank + scoring
 # ---------------------------------------------------------------------------
 
 
 class AnomalyBase:
     """Training-free patch-NN anomaly detector. Subclass to plug in a backbone.
 
-    Standard modules (override as needed):
+    A backbone is plugged in by overriding just the two hooks in section 1; everything
+    else (layer selection, multi-layer fusion, grid/dim probing, preprocessing, bank
+    construction, calibration, scoring) is shared here.
 
-    * **Backbone** (``_build_model``, ``_build_preprocess``, ``_extract``):
-      ``_extract(x: [B, 3, H, W]) → [B, N, D]`` returns L2-normalize-ready patch tokens.
+    * **Backbone + feature extraction**:
+      - ``_build_backbone`` (required): build ``self.model``, register any hooks into
+        ``self._cached``, set ``self.backbone`` tag.
+      - ``_forward_features`` (optional): run the model → ``{name: [B, C, H, W]}``. Default
+        returns the hook-cached maps; token backbones (ViT) override it to reshape their
+        ``[B, N, D]`` tokens to BCHW via ``_tokens_to_bchw``.
+      - ``_build_preprocess`` (optional): default = ImageNet norm; override for e.g. YOLO.
+      Layer choice / single-vs-multi / fusion is config: ``layers=``, ``fuse=`` (concat /
+      sum / avg / patchcore / concat_pool), ``patchsize/pretrain_dim/target_dim``.
 
-    * **Bank construction** (``load_support_set`` for-loop, ``_filter_tokens`` hook):
-      iterate over support images in batches, run ``_extract``, flatten to ``[N, D]``,
-      optionally drop tokens via ``_filter_tokens``, concat all, L2-normalize, then compact.
+    * **Bank construction + calibration** (``load_support_set``, ``_filter_tokens`` hook):
+      dump every support patch, k-center coreset to ``coreset_size`` (keeping the dropped
+      features as a normal hold-out), then calibrate the cos-space sigmoid Noisy-OR scorer
+      (compactness threshold, refined on the hold-out). Ported from YOLOA BackboneMemoryBank.
 
-    * **Compaction** (``_compact``): default = PatchCore greedy FPS coreset (with optional
-      random pre-sample). Triggered iff ``self.coreset_size`` is set and smaller than bank.
-
-    * **Scoring** (``_score_patches``, ``_aggregate_image_score``, ``_upsample_pixel_map``):
-      1-NN against bank under the chosen metric, top-k% mean as image score, bilinear
-      upsample of patch grid as pixel map.
-
-    Common state set by subclass ``__init__``:
-        ``self.model``, ``self.tf`` (PIL → tensor), ``self.grid``, ``self.feat_dim``,
-        ``self.device``, ``self.backbone`` (descriptive tag).
+    * **Scoring** (``_score_bank``, ``_upsample_pixel_map``): per-patch cos-space sigmoid
+      Noisy-OR probability ∈ [0, 1], max over positions as the image score, bilinear
+      upsample of the patch grid as the pixel map.
     """
 
     def __init__(
         self,
         imgsz: int,
         device: str | None = None,
-        top_pct: float = 0.01,
-        sim_chunk: int = 4096,
-        score_metric: str = "cosine",
-        coreset_size: int | None = None,
-        coreset_presample: int | None = None,
-        bank_mode: str = "flat",
-        obma_thresh: float = 0.4,
-        obma_K: int = 15,
-        obma_target_score: float = 0.2,
-        obma_temperature: float | None = None,
+        *,
+        layers: str | list[str] | None = None,
+        fuse: str = "concat",
+        patchsize: int = 1,
+        pretrain_dim: int = 1024,
+        target_dim: int = 1024,
+        coreset_size: int | None = 10000,
+        K: int = 5,
+        temperature: float = 3.0,
+        target_score: float = 0.2,
+        target_quantile: float = 0.95,
     ) -> None:
-        if score_metric not in _SCORE_CHOICES:
-            raise ValueError(f"score_metric must be in {_SCORE_CHOICES}, got {score_metric!r}")
-        if bank_mode not in _BANK_MODES:
-            raise ValueError(f"bank_mode must be in {_BANK_MODES}, got {bank_mode!r}")
+        if fuse not in _FUSE_CHOICES:
+            raise ValueError(f"fuse must be in {_FUSE_CHOICES}, got {fuse!r}")
+        if patchsize % 2 == 0:
+            raise ValueError(f"patchsize must be odd, got {patchsize}")
         self.imgsz = imgsz
-        self.top_pct = top_pct
-        self.sim_chunk = sim_chunk
-        self.score_metric = score_metric
-        self.coreset_size = coreset_size
-        self.coreset_presample = coreset_presample
-        # OBMA + Noisy-OR config.
-        self.bank_mode = bank_mode
-        self.obma_thresh = obma_thresh
-        self.obma_K = obma_K
-        self.obma_target_score = obma_target_score
-        # User-set temperature; auto-calibrated to ``self._obma_temperature`` if None.
-        self.obma_temperature = obma_temperature
-        self._obma_temperature: float | None = obma_temperature  # filled by calibration
+        # Feature-extraction config (consumed by the shared _extract / fusion below).
+        self.layers = None if layers is None else ([layers] if isinstance(layers, str) else list(layers))
+        self.fuse = fuse                                # concat / sum / avg / patchcore / concat_pool
+        self.patchsize = patchsize                      # spatial unfold for patchcore / concat_pool
+        self.pretrain_dim = pretrain_dim
+        self.target_dim = target_dim
+        self._cached: dict[str, torch.Tensor] = {}      # hooks write BCHW maps here
+        # Bank / scoring config.
+        self.coreset_size = coreset_size                # k-center bank cap (None = keep all patches)
+        self.K = K                                      # top-K neighbours per query for Noisy-OR
+        self.temperature = float(temperature)           # β floor / starting point
+        self.target_score = float(target_score)         # a typical-normal query scores here
+        self.target_quantile = float(target_quantile)   # hold-out quantile placed at target_score
+        self._beta = float(temperature)                 # calibrated β (mutated on build)
+        self._threshold: float | None = None            # cos-space sigmoid threshold
+        self._compactness: float | None = None          # normal-manifold tightness
         self.device = device or ("cuda" if torch.cuda.is_available() else
                                  "mps" if torch.backends.mps.is_available() else "cpu")
-        # Subclass must set: model, tf, grid (H, W), feat_dim, backbone (tag).
         self.bank: torch.Tensor | None = None
+        # Setup is orchestrated here; subclasses only fill the backbone hooks below.
+        self._build_backbone()      # build self.model (+ hooks), set self.backbone
+        self._build_preprocess()    # set self.tf
+        self._probe_and_set_dims()  # discover self.grid / self.feat_dim (and default self.layers)
 
-    # ── 1. Backbone ─────────────────────────────────────────────────────
-    def _build_model(self) -> None:  # subclass: assign self.model, register hooks
+    # ── 1. Backbone + feature extraction ────────────────────────────────
+    # Subclass MUST implement _build_backbone; MAY override _forward_features (token backbones)
+    # and _build_preprocess. Layer selection, multi-layer fusion, grid/dim probing are all shared.
+    def _build_backbone(self) -> None:
+        """Subclass: construct ``self.model``, register any hooks into ``self._cached``, set ``self.backbone``."""
         raise NotImplementedError
 
-    def _build_preprocess(self) -> None:  # subclass: assign self.tf
-        raise NotImplementedError
+    def _forward_features(self, x: torch.Tensor) -> dict[str, torch.Tensor]:
+        """Run the backbone → tapped feature maps ``{name: [B, C, H, W]}``.
 
-    @torch.inference_mode()
-    def _extract(self, x: torch.Tensor) -> torch.Tensor:  # → [B, N, D]
-        raise NotImplementedError
+        Default = hook-based: run the model and return whatever the registered hooks cached.
+        Token backbones (ViT) override this to reshape their ``[B, N, D]`` tokens to BCHW.
+        """
+        self._cached = {}
+        self.model(x.to(self.device))
+        return self._cached
+
+    def _build_preprocess(self) -> None:
+        """Default: resize + ImageNet normalisation. Override for e.g. YOLO (/255, no norm)."""
+        self.tf = transforms.Compose([
+            transforms.Resize((self.imgsz, self.imgsz), interpolation=transforms.InterpolationMode.BICUBIC),
+            transforms.ToTensor(),
+            transforms.Normalize(_IMAGENET_MEAN, _IMAGENET_STD),
+        ])
 
     def _load(self, path: str) -> torch.Tensor:
         return self.tf(Image.open(path).convert("RGB"))
 
-    # ── 2. Bank construction ────────────────────────────────────────────
+    def _probe_and_set_dims(self) -> None:
+        """Dummy forward to discover ``self.grid``, ``self.feat_dim`` (and default ``self.layers``)."""
+        with torch.inference_mode():
+            maps = self._forward_features(torch.zeros(1, 3, self.imgsz, self.imgsz, device=self.device))
+        if self.layers is None:
+            self.layers = list(maps.keys())
+        missing = [l for l in self.layers if l not in maps]
+        assert not missing, f"feature maps missing for {missing} (got {list(maps.keys())})"
+        ref = maps[self.layers[0]]
+        self.grid = (ref.shape[2], ref.shape[3])
+        dims = [maps[l].shape[1] for l in self.layers]
+        if self.fuse == "concat":
+            self.feat_dim = sum(dims)
+        elif self.fuse in ("patchcore", "concat_pool"):
+            self.feat_dim = self.target_dim
+        else:  # sum / avg need matching dims
+            if len(set(dims)) > 1:
+                raise ValueError(f"fuse={self.fuse!r} needs equal channel dims, got {dict(zip(self.layers, dims))}")
+            self.feat_dim = dims[0]
+
+    @torch.inference_mode()
+    def _extract(self, x: torch.Tensor) -> torch.Tensor:
+        """Backbone features → fused patch tokens ``[B, H*W, D]`` (shared by every backbone)."""
+        maps = self._forward_features(x.to(self.device))
+        H, W = self.grid
+        B = x.shape[0]
+        if self.fuse == "patchcore":
+            return self._fuse_patchcore(maps, B, H, W)
+        if self.fuse == "concat_pool":
+            return self._fuse_concat_pool(maps, B, H, W)
+        return self._fuse_simple(maps, B, H, W)
+
+    def _fuse_simple(self, maps: dict, B: int, H: int, W: int) -> torch.Tensor:
+        """concat / sum / avg over upsampled, channel-aligned feature maps."""
+        feats = []
+        for lname in self.layers:
+            f = maps[lname]
+            if f.shape[-2:] != (H, W):
+                f = F.interpolate(f, size=(H, W), mode="bilinear", align_corners=False)
+            feats.append(f)
+        if len(feats) == 1:
+            fused = feats[0]
+        elif self.fuse == "concat":
+            fused = torch.cat(feats, dim=1)
+        elif self.fuse == "sum":
+            fused = torch.stack(feats, dim=0).sum(dim=0)
+        else:  # avg
+            fused = torch.stack(feats, dim=0).mean(dim=0)
+        return fused.flatten(2).transpose(1, 2).contiguous()  # [B, H*W, D]
+
+    def _fuse_patchcore(self, maps: dict, B: int, H: int, W: int) -> torch.Tensor:
+        """unfold + per-layer adaptive_avg_pool → concat → adaptive_avg_pool to target_dim (PatchCore)."""
+        ps, pad = self.patchsize, self.patchsize // 2
+        pool_dev = "cpu" if self.device == "mps" else self.device
+        per_layer = []
+        for lname in self.layers:
+            f = maps[lname]
+            if f.shape[-2:] != (H, W):
+                f = F.interpolate(f, size=(H, W), mode="bilinear", align_corners=False)
+            patches = F.unfold(f, kernel_size=ps, stride=1, padding=pad)        # [B, C*ps^2, H*W]
+            patches = patches.transpose(1, 2).reshape(B * H * W, -1)            # [B*N, C*ps^2]
+            pooled = F.adaptive_avg_pool1d(patches.to(pool_dev).unsqueeze(1), self.pretrain_dim).squeeze(1)
+            per_layer.append(pooled)
+        merged = torch.cat(per_layer, dim=-1) if len(per_layer) > 1 else per_layer[0]
+        final = F.adaptive_avg_pool1d(merged.unsqueeze(1), self.target_dim).squeeze(1)
+        return final.to(self.device).reshape(B, H * W, self.target_dim)
+
+    def _fuse_concat_pool(self, maps: dict, B: int, H: int, W: int) -> torch.Tensor:
+        """unfold + concat across layers + single adaptive_avg_pool to target_dim (no per-layer pool)."""
+        ps, pad = self.patchsize, self.patchsize // 2
+        pool_dev = "cpu" if self.device == "mps" else self.device
+        feats_list = []
+        for lname in self.layers:
+            f = maps[lname]
+            if f.shape[-2:] != (H, W):
+                f = F.interpolate(f, size=(H, W), mode="bilinear", align_corners=False)
+            patches = F.unfold(f, kernel_size=ps, stride=1, padding=pad)
+            patches = patches.transpose(1, 2).reshape(B * H * W, -1)
+            feats_list.append(patches)
+        merged = torch.cat(feats_list, dim=-1) if len(feats_list) > 1 else feats_list[0]
+        final = F.adaptive_avg_pool1d(merged.to(pool_dev).unsqueeze(1), self.target_dim).squeeze(1)
+        return final.to(self.device).reshape(B, H * W, self.target_dim)
+
+    # ── 2. Bank construction + calibration ──────────────────────────────
+    @torch.inference_mode()
     def load_support_set(self, image_paths: list[str], batch: int = 8) -> None:
-        """Build memory bank. Dispatches on ``self.bank_mode``."""
-        if self.bank_mode == "obma":
-            return self._load_support_obma(image_paths)
-        # Default = flat: dump all tokens, optional FPS coreset.
+        """Build the memory bank from normal images, then calibrate the scorer.
+
+        Dumps every (filtered) support patch, k-center coresets to ``coreset_size``
+        (dropped rows become a normal hold-out), measures normal-manifold compactness for a
+        closed-form cos-space sigmoid threshold, then — if a hold-out exists — refines β and
+        threshold so the ``target_quantile`` of hold-out normal scores hits ``target_score``.
+        Ported from YOLOA ``BackboneMemoryBank``.
+        """
+        self._beta = self.temperature  # reset β floor per build (bank is reused across categories)
+
         feats: list[torch.Tensor] = []
         for i in range(0, len(image_paths), batch):
             xs = torch.stack([self._load(p) for p in image_paths[i:i + batch]], dim=0)
             tokens = self._extract(xs).reshape(-1, self.feat_dim).cpu()  # keep big intermediate on CPU
             tokens = self._filter_tokens(tokens)
             feats.append(tokens)
-        bank = F.normalize(torch.cat(feats, dim=0), dim=-1)
-        bank = self._compact(bank)
-        self.bank = bank.to(self.device)
+        mem = F.normalize(torch.cat(feats, dim=0), dim=-1)  # [M, D] on CPU
 
-    @torch.inference_mode()
-    def _load_support_obma(self, image_paths: list[str], initial_temp: float = 3.0,
-                           calib_sample_per_img: int = 200) -> None:
-        """OBMA bank construction: per-image accept/reject + sequential dedup.
+        # Coreset on CPU (MPS argmin is unreliable on large banks); keep dropped rows as hold-out.
+        holdout: torch.Tensor | None = None
+        if self.coreset_size and self.coreset_size < mem.shape[0]:
+            bank, sel = _coreset_kcenter(mem, self.coreset_size, return_indices=True)
+            mask = torch.ones(mem.shape[0], dtype=torch.bool)
+            mask[sel] = False
+            holdout = mem[mask]
+            mem = bank
+        self.bank = mem.to(self.device)
 
-        Iterates images one-by-one. Image 0 seeds the bank with all its (filtered)
-        features. From image 1 onwards, only positions whose Noisy-OR score against
-        the current bank exceeds ``self.obma_thresh`` are eligible; eligible candidates
-        are then deduped sequentially against the *growing* bank within that image.
+        # Compactness → closed-form threshold (single-entry inversion of the sigmoid score).
+        self._compactness = _measure_compactness(self.bank, self.K)
+        logit = math.log(max((1.0 - self.target_score) / max(self.target_score, 1e-6), 1e-6))
+        self._threshold = self._compactness - logit / max(self._beta, 0.1)
 
-        After the full sweep, auto-calibrate β so a typical-normal position scores at
-        ``self.obma_target_score``. Skipped if ``self.obma_temperature`` was set explicitly.
-
-        **MPS note:** the sequential dedup loop is run on CPU. Per-iteration ``.item()``
-        synchronisations are ~1000× cheaper on CPU than MPS, and tensor sizes are
-        small (N ≲ 400 candidates × bank ≲ 100k rows) so CPU matmul wins overall.
-        """
-        bank_cpu: torch.Tensor | None = None    # OBMA build runs on CPU (see docstring)
-        calib_sample: list[torch.Tensor] = []   # for post-build β calibration
-
-        t_start = time.perf_counter()
-        log_every = max(1, len(image_paths) // 10)
-        for idx, path in enumerate(image_paths):
-            x = self._load(path).unsqueeze(0)
-            # Extract on device, immediately move to CPU for the OBMA loop.
-            tokens = self._extract(x).reshape(-1, self.feat_dim).cpu()
-            tokens = self._filter_tokens(tokens)
-            normed = F.normalize(tokens, p=2, dim=-1).contiguous()      # [N, D] on CPU
-
-            # Sub-sample for calibration (cap memory ~ N_images × cap × D).
-            n_keep = min(calib_sample_per_img, normed.shape[0])
-            calib_sample.append(normed[:n_keep])
-
-            # Bootstrap: image 0 dumps everything.
-            if bank_cpu is None or bank_cpu.shape[0] == 0:
-                bank_cpu = normed
-                print(f"  obma: img {idx + 1}/{len(image_paths)} bank={bank_cpu.shape[0]} "
-                      f"(seed) elapsed={time.perf_counter() - t_start:.1f}s", flush=True)
-                continue
-
-            # Score all positions, take candidates above threshold.
-            scores = _noisy_or_score(normed, bank_cpu, initial_temp, self.obma_K)
-            cand_mask = scores > self.obma_thresh
-            if not cand_mask.any():
-                if (idx % log_every) == 0 or idx == len(image_paths) - 1:
-                    print(f"  obma: img {idx + 1}/{len(image_paths)} bank={bank_cpu.shape[0]} "
-                          f"added=0 elapsed={time.perf_counter() - t_start:.1f}s", flush=True)
-                continue
-            cand_idx = cand_mask.nonzero(as_tuple=True)[0]
-            cand_idx = cand_idx[scores[cand_idx].argsort(descending=True)]
-            cand_feats = normed[cand_idx]
-
-            new_bank = _obma_accept_one_image(bank_cpu, cand_feats, self.obma_thresh,
-                                              initial_temp, self.obma_K)
-            added = new_bank.shape[0] - bank_cpu.shape[0]
-            bank_cpu = new_bank
-            if (idx % log_every) == 0 or idx == len(image_paths) - 1:
-                print(f"  obma: img {idx + 1}/{len(image_paths)} bank={bank_cpu.shape[0]} "
-                      f"added={added} elapsed={time.perf_counter() - t_start:.1f}s", flush=True)
-
-        assert bank_cpu is not None, "OBMA: empty support set"
-
-        # Calibrate β on CPU using the support feature sample, then move bank to device.
-        if self.obma_temperature is None:
-            sample = torch.cat(calib_sample, dim=0)
-            self._obma_temperature = _calibrate_obma_temperature(
-                sample, bank_cpu, self.obma_K, self.obma_target_score,
+        # Hold-out refinement of β + threshold (Gaussian tail at the target quantile).
+        if holdout is not None and holdout.shape[0] > 0:
+            holdout = holdout[:5000].to(self.device)
+            self._beta, self._threshold = _calibrate_holdout(
+                holdout, self.bank, self.K, self._compactness,
+                self._beta, self.target_score, self.target_quantile,
             )
-            print(f"  obma: auto-calibrated β={self._obma_temperature:.3f} "
-                  f"(target_score={self.obma_target_score}, |sample|={sample.shape[0]})",
-                  flush=True)
-        else:
-            self._obma_temperature = self.obma_temperature
-            print(f"  obma: using user-specified β={self._obma_temperature:.3f}", flush=True)
-
-        # Final bank moves to device for fast Noisy-OR scoring at inference time.
-        self.bank = bank_cpu.contiguous().to(self.device)
+        print(f"  bank={self.bank.shape[0]} compactness={self._compactness:.4f} "
+              f"β={self._beta:.3f} threshold_cos={self._threshold:.4f} "
+              f"target={self.target_score:g}(q{self.target_quantile:g})", flush=True)
 
     def _filter_tokens(self, tokens: torch.Tensor) -> torch.Tensor:
         """Hook: drop / reweight patch tokens before banking. Default = identity.
@@ -462,109 +540,29 @@ class AnomalyBase:
         """
         return tokens
 
-    # ── 3. Compaction ───────────────────────────────────────────────────
-    def _compact(self, bank: torch.Tensor) -> torch.Tensor:
-        """Default = greedy FPS coreset with optional random pre-sample (PatchCore)."""
-        if not (self.coreset_size and self.coreset_size < bank.shape[0]):
-            return bank
-        if self.coreset_presample and self.coreset_presample < bank.shape[0]:
-            g = torch.Generator(device="cpu").manual_seed(0)
-            pre_idx = torch.randperm(bank.shape[0], generator=g)[: self.coreset_presample]
-            print(f"  coreset: pre-sample {bank.shape[0]} → {self.coreset_presample} before FPS")
-            bank = bank[pre_idx].contiguous()
-        return _greedy_fps(bank, self.coreset_size, sim_chunk=self.sim_chunk)
-
-    # ── 4. Scoring ──────────────────────────────────────────────────────
+    # ── 3. Scoring ──────────────────────────────────────────────────────
     @torch.inference_mode()
     def predict_one(self, image_path: str, eval_size: int = 256) -> tuple[float, np.ndarray]:
-        """Score one test image. Return ``(image_score, pixel_map[eval_size, eval_size])``.
+        """Score one test image → ``(image_score, pixel_map[eval_size, eval_size])``.
 
-        Dispatches by ``self.bank_mode``:
-          * ``flat`` — per-patch 1-NN distance (cosine or L2) → top-k% mean.
-          * ``obma`` — per-patch Noisy-OR probability ∈ [0,1] → max over positions.
+        Per-patch cos-space sigmoid Noisy-OR probability ∈ [0, 1]; image score = max over
+        positions; pixel map = bilinear upsample of the patch grid.
         """
         if self.bank is None:
             raise RuntimeError("call load_support_set() before predict_one()")
+        assert self._threshold is not None, "bank not calibrated (call load_support_set first)"
         x = self._load(image_path).unsqueeze(0)
         feats = F.normalize(self._extract(x).squeeze(0), dim=-1)   # [N, D]
-
-        if self.bank_mode == "obma":
-            assert self._obma_temperature is not None
-            probs = _noisy_or_score(feats, self.bank,
-                                    self._obma_temperature, self.obma_K)  # [N] ∈ [0,1]
-            image_score = float(probs.max().item())
-            amap = self._upsample_pixel_map(probs, eval_size)
-            return image_score, amap
-
-        dists = self._score_patches(feats)                         # [N]
-        image_score = self._aggregate_image_score(dists)
-        amap = self._upsample_pixel_map(dists, eval_size)
+        probs = _score_bank(feats, self.bank, self._beta, self._threshold, self.K)  # [N] ∈ [0,1]
+        image_score = float(probs.max().item())
+        amap = self._upsample_pixel_map(probs, eval_size)
         return image_score, amap
 
-    def _score_patches(self, feats: torch.Tensor) -> torch.Tensor:
-        """1-NN distance per patch against the bank. Chunked over bank dim to bound memory."""
-        if self.score_metric == "cosine":
-            # For L2-normalized bank+query, cosine sim == dot product. Distance = 1 - sim.
-            max_sim = torch.full((feats.shape[0],), -1.0, device=feats.device, dtype=feats.dtype)
-            for s in range(0, self.bank.shape[0], self.sim_chunk):
-                sims = feats @ self.bank[s:s + self.sim_chunk].T  # [N, chunk]
-                max_sim = torch.maximum(max_sim, sims.max(dim=-1).values)
-            return 1.0 - max_sim
-        # L2 distance (squared, since monotonic ordering is what matters for top-k and AUROC).
-        min_d2 = torch.full((feats.shape[0],), float("inf"), device=feats.device, dtype=feats.dtype)
-        for s in range(0, self.bank.shape[0], self.sim_chunk):
-            d2 = torch.cdist(feats, self.bank[s:s + self.sim_chunk]).pow(2)
-            min_d2 = torch.minimum(min_d2, d2.min(dim=-1).values)
-        return min_d2
-
-    def _aggregate_image_score(self, dists: torch.Tensor) -> float:
-        """Top-``top_pct`` mean of per-patch distances. ``top_pct=0.01`` ≈ PatchCore/AnomalyDINO default."""
-        n = dists.numel()
-        k = max(1, int(round(n * self.top_pct)))
-        return float(dists.topk(k).values.mean())
-
-    def _upsample_pixel_map(self, dists: torch.Tensor, eval_size: int) -> np.ndarray:
+    def _upsample_pixel_map(self, scores: torch.Tensor, eval_size: int) -> np.ndarray:
         H, W = self.grid
-        amap = dists.reshape(1, 1, H, W).float()
+        amap = scores.reshape(1, 1, H, W).float()
         amap = F.interpolate(amap, size=(eval_size, eval_size), mode="bilinear", align_corners=False)
         return amap.squeeze().cpu().numpy()
-
-
-# ---------------------------------------------------------------------------
-# Coreset helper (module-level so subclasses can swap _compact entirely without inheriting it)
-# ---------------------------------------------------------------------------
-
-
-@torch.inference_mode()
-def _greedy_fps(bank: torch.Tensor, n_keep: int, sim_chunk: int = 4096, seed: int = 0) -> torch.Tensor:
-    """Greedy farthest-point sampling over L2-normalized features (cosine metric).
-
-    Runs on CPU: MPS argmin gives wrong results on large/duplicate-heavy banks (silently
-    corrupts grid-like patterns), and MPS sync overhead per-iter dominates the matmul cost
-    anyway. Pass a CUDA bank explicitly to get GPU speedup.
-    """
-    orig_device = bank.device
-    if orig_device.type == "mps":
-        bank = bank.cpu()
-    M, _ = bank.shape
-    device = bank.device
-    g = torch.Generator(device="cpu").manual_seed(seed)
-    start = int(torch.randint(M, (1,), generator=g).item())
-
-    max_sim = torch.full((M,), -1.0, device=device, dtype=bank.dtype)
-    selected = torch.empty(n_keep, dtype=torch.long, device=device)
-    selected[0] = start
-    cur = bank[start]
-    t0 = time.perf_counter()
-    for i in range(1, n_keep):
-        sims = bank @ cur
-        max_sim = torch.maximum(max_sim, sims)
-        nxt = torch.argmin(max_sim)
-        selected[i] = nxt
-        cur = bank[nxt]
-        if i % 2000 == 0:
-            print(f"  coreset: {i}/{n_keep}  elapsed={time.perf_counter() - t0:.1f}s")
-    return bank[selected].contiguous().to(orig_device)
 
 
 # ---------------------------------------------------------------------------
@@ -579,54 +577,22 @@ class AnomalyDINO(AnomalyBase):
     omitted for minimal baseline — override ``_filter_tokens`` to add it back.
     """
 
-    def __init__(
-        self,
-        backbone: str = "vits14",
-        imgsz: int = 448,
-        device: str | None = None,
-        top_pct: float = 0.01,
-        sim_chunk: int = 4096,
-        score_metric: str = "cosine",
-        coreset_size: int | None = None,
-        coreset_presample: int | None = None,
-        bank_mode: str = "flat",
-        obma_thresh: float = 0.4,
-        obma_K: int = 15,
-        obma_target_score: float = 0.2,
-        obma_temperature: float | None = None,
-    ) -> None:
+    def __init__(self, backbone: str = "vits14", imgsz: int = 448, **kw) -> None:
         if backbone not in _DINOV2_HUB:
             raise ValueError(f"backbone must be in {list(_DINOV2_HUB)}, got {backbone!r}")
         if imgsz % _DINO_PATCH != 0:
             raise ValueError(f"imgsz must be divisible by {_DINO_PATCH}, got {imgsz}")
-        super().__init__(imgsz=imgsz, device=device, top_pct=top_pct, sim_chunk=sim_chunk,
-                         score_metric=score_metric, coreset_size=coreset_size,
-                         coreset_presample=coreset_presample,
-                         bank_mode=bank_mode, obma_thresh=obma_thresh, obma_K=obma_K,
-                         obma_target_score=obma_target_score, obma_temperature=obma_temperature)
         self.dino_short = backbone
-        self.backbone = f"dino_{backbone}"
-        self._build_model()
-        self._build_preprocess()
-        n = imgsz // _DINO_PATCH
-        self.grid = (n, n)
-        # feat_dim set in _build_model from the hub registry.
+        super().__init__(imgsz=imgsz, **kw)
 
-    def _build_model(self) -> None:
-        hub_name, self.feat_dim = _DINOV2_HUB[self.dino_short]
+    def _build_backbone(self) -> None:
+        hub_name, _ = _DINOV2_HUB[self.dino_short]
         self.model = torch.hub.load("facebookresearch/dinov2", hub_name).to(self.device).eval()
+        self.backbone = f"dino_{self.dino_short}"
 
-    def _build_preprocess(self) -> None:
-        self.tf = transforms.Compose([
-            transforms.Resize((self.imgsz, self.imgsz), interpolation=transforms.InterpolationMode.BICUBIC),
-            transforms.ToTensor(),
-            transforms.Normalize(_IMAGENET_MEAN, _IMAGENET_STD),
-        ])
-
-    @torch.inference_mode()
-    def _extract(self, x: torch.Tensor) -> torch.Tensor:
-        out = self.model.forward_features(x.to(self.device))
-        return out["x_norm_patchtokens"]  # [B, N, D]
+    def _forward_features(self, x: torch.Tensor) -> dict[str, torch.Tensor]:
+        tok = self.model.forward_features(x.to(self.device))["x_norm_patchtokens"]  # [B, N, D]
+        return {"tok": _tokens_to_bchw(tok)}
 
 
 # ---------------------------------------------------------------------------
@@ -742,203 +708,45 @@ class DINOv3ConvNeXt(nn.Module):
         return self.forward(x)
 
 
+def _load_convnext_sd(name: str, weight: str | Path | None) -> dict:
+    """Load a DINOv3-ConvNeXt state dict: explicit ``weight`` path, else glob the bundled ckpt."""
+    if weight:
+        ckpt_path = Path(weight)
+    else:
+        matches = sorted(_CONVNEXT_WEIGHTS.glob(f"dinov3_convnext_{name}_pretrain_lvd1689m-*.pth"))
+        if not matches:
+            raise FileNotFoundError(f"No checkpoint for {name} in {_CONVNEXT_WEIGHTS}")
+        ckpt_path = matches[0]
+    return torch.load(ckpt_path, map_location="cpu", weights_only=True)
+
+
 class AnomalyConvNeXt(AnomalyBase):
     """DINOv3-distilled ConvNeXt + memory-bank anomaly detector.
 
     Single layer (stage 3, stride 32), same scoring as AnomalyDINO.
     """
 
-    def __init__(
-        self,
-        backbone: str = "small",
-        imgsz: int = 448,
-        device: str | None = None,
-        top_pct: float = 0.01,
-        sim_chunk: int = 4096,
-        score_metric: str = "cosine",
-        coreset_size: int | None = None,
-        coreset_presample: int | None = None,
-        bank_mode: str = "flat",
-        obma_thresh: float = 0.4,
-        obma_K: int = 15,
-        obma_target_score: float = 0.2,
-        obma_temperature: float | None = None,
-        weight: str | Path | None = None,
-    ) -> None:
+    def __init__(self, backbone: str = "small", imgsz: int = 448,
+                 weight: str | Path | None = None, **kw) -> None:
         if backbone not in _CONVNEXT_CONFIGS:
             raise ValueError(f"backbone must be in {list(_CONVNEXT_CONFIGS)}, got {backbone!r}")
         if imgsz % 32 != 0:
             raise ValueError(f"imgsz must be divisible by 32, got {imgsz}")
-        super().__init__(imgsz=imgsz, device=device, top_pct=top_pct, sim_chunk=sim_chunk,
-                         score_metric=score_metric, coreset_size=coreset_size,
-                         coreset_presample=coreset_presample,
-                         bank_mode=bank_mode, obma_thresh=obma_thresh, obma_K=obma_K,
-                         obma_target_score=obma_target_score, obma_temperature=obma_temperature)
         self.convnext_name = backbone
-        self.backbone = f"convnext_{backbone}"
         self._weight = weight
-        self._build_model()
-        self._build_preprocess()
-        n = imgsz // 32
-        self.grid = (n, n)
+        super().__init__(imgsz=imgsz, **kw)
 
-    def _build_model(self) -> None:
+    def _build_backbone(self) -> None:
         depths, dims = _CONVNEXT_CONFIGS[self.convnext_name]
-        self.feat_dim = dims[3]
         self.model = DINOv3ConvNeXt(depths, dims).to(self.device).eval()
-        if self._weight:
-            ckpt_path = Path(self._weight)
-        else:
-            matches = sorted(_CONVNEXT_WEIGHTS.glob(
-                f"dinov3_convnext_{self.convnext_name}_pretrain_lvd1689m-*.pth"))
-            if not matches:
-                raise FileNotFoundError(f"No checkpoint for {self.convnext_name} in {_CONVNEXT_WEIGHTS}")
-            ckpt_path = matches[0]
-        sd = torch.load(ckpt_path, map_location="cpu", weights_only=True)
-        self.model.load_state_dict(sd, strict=True)
+        self.model.load_state_dict(_load_convnext_sd(self.convnext_name, self._weight), strict=True)
+        self.backbone = f"convnext_{self.convnext_name}"
 
-    def _build_preprocess(self) -> None:
-        self.tf = transforms.Compose([
-            transforms.Resize((self.imgsz, self.imgsz), interpolation=transforms.InterpolationMode.BICUBIC),
-            transforms.ToTensor(),
-            transforms.Normalize(_IMAGENET_MEAN, _IMAGENET_STD),
-        ])
-
-    @torch.inference_mode()
-    def _extract(self, x: torch.Tensor) -> torch.Tensor:
-        out = self.model.forward_features(x.to(self.device))
-        return out["x_norm_patchtokens"]  # [B, N, D]
+    def _forward_features(self, x: torch.Tensor) -> dict[str, torch.Tensor]:
+        tok = self.model.forward_features(x.to(self.device))["x_norm_patchtokens"]  # [B, N, D]
+        return {"tok": _tokens_to_bchw(tok)}
 
 
-class _MultiLayerAnomaly(AnomalyBase):
-    """Adds hooks → ``self._cached: dict[lname → BCHW]`` + multi-layer fuse to ``_extract``.
-
-    Subclasses provide ``_register_hooks(layers)`` and set ``self.layers`` (highest-res first).
-    """
-
-    fuse: str
-    layers: list[str]
-    patchsize: int
-    pretrain_dim: int
-    target_dim: int
-    _cached: dict[str, torch.Tensor]
-
-    def __init__(
-        self,
-        imgsz: int,
-        layers: list[str],
-        fuse: str = "concat",
-        patchsize: int = 1,
-        pretrain_dim: int = 1024,
-        target_dim: int = 1024,
-        device: str | None = None,
-        top_pct: float = 0.01,
-        sim_chunk: int = 4096,
-        score_metric: str = "cosine",
-        coreset_size: int | None = None,
-        coreset_presample: int | None = None,
-        bank_mode: str = "flat",
-        obma_thresh: float = 0.4,
-        obma_K: int = 15,
-        obma_target_score: float = 0.2,
-        obma_temperature: float | None = None,
-    ) -> None:
-        if fuse not in _FUSE_CHOICES:
-            raise ValueError(f"fuse must be in {_FUSE_CHOICES}, got {fuse!r}")
-        if patchsize % 2 == 0:
-            raise ValueError(f"patchsize must be odd, got {patchsize}")
-        super().__init__(imgsz=imgsz, device=device, top_pct=top_pct, sim_chunk=sim_chunk,
-                         score_metric=score_metric, coreset_size=coreset_size,
-                         coreset_presample=coreset_presample,
-                         bank_mode=bank_mode, obma_thresh=obma_thresh, obma_K=obma_K,
-                         obma_target_score=obma_target_score, obma_temperature=obma_temperature)
-        self.layers = layers
-        self.fuse = fuse
-        self.patchsize = patchsize
-        self.pretrain_dim = pretrain_dim
-        self.target_dim = target_dim
-        self._cached = {}
-
-    def _probe_and_set_dims(self) -> None:
-        """Run a dummy forward to discover ``self.grid`` and ``self.feat_dim`` from cached features."""
-        with torch.inference_mode():
-            self.model(torch.zeros(1, 3, self.imgsz, self.imgsz, device=self.device))
-        missing = [l for l in self.layers if l not in self._cached]
-        assert not missing, f"hooks didn't fire for {missing}"
-        ref = self._cached[self.layers[0]]
-        self.grid = (ref.shape[2], ref.shape[3])
-        dims = [self._cached[l].shape[1] for l in self.layers]
-        if self.fuse == "concat":
-            self.feat_dim = sum(dims)
-        elif self.fuse in ("patchcore", "concat_pool"):
-            self.feat_dim = self.target_dim
-        else:  # sum / avg need matching dims
-            if len(set(dims)) > 1:
-                raise ValueError(f"fuse={self.fuse!r} needs equal channel dims, got {dict(zip(self.layers, dims))}")
-            self.feat_dim = dims[0]
-
-    @torch.inference_mode()
-    def _extract(self, x: torch.Tensor) -> torch.Tensor:
-        self._cached = {}
-        self.model(x.to(self.device))
-        H, W = self.grid
-        B = x.shape[0]
-        if self.fuse == "patchcore":
-            return self._fuse_patchcore(B, H, W)
-        if self.fuse == "concat_pool":
-            return self._fuse_concat_pool(B, H, W)
-        return self._fuse_simple(B, H, W)
-
-    def _fuse_simple(self, B: int, H: int, W: int) -> torch.Tensor:
-        """concat / sum / avg over upsampled channel-aligned feature maps."""
-        feats = []
-        for lname in self.layers:
-            f = self._cached[lname]
-            if f.shape[-2:] != (H, W):
-                f = F.interpolate(f, size=(H, W), mode="bilinear", align_corners=False)
-            feats.append(f)
-        if len(feats) == 1:
-            fused = feats[0]
-        elif self.fuse == "concat":
-            fused = torch.cat(feats, dim=1)
-        elif self.fuse == "sum":
-            fused = torch.stack(feats, dim=0).sum(dim=0)
-        else:  # avg
-            fused = torch.stack(feats, dim=0).mean(dim=0)
-        return fused.flatten(2).transpose(1, 2).contiguous()  # [B, H*W, D]
-
-    def _fuse_patchcore(self, B: int, H: int, W: int) -> torch.Tensor:
-        """3x3 unfold + per-layer adaptive_avg_pool → concat → adaptive_avg_pool to target_dim."""
-        ps, pad = self.patchsize, self.patchsize // 2
-        pool_dev = "cpu" if self.device == "mps" else self.device
-        per_layer = []
-        for lname in self.layers:
-            f = self._cached[lname]
-            if f.shape[-2:] != (H, W):
-                f = F.interpolate(f, size=(H, W), mode="bilinear", align_corners=False)
-            patches = F.unfold(f, kernel_size=ps, stride=1, padding=pad)        # [B, C*ps^2, H*W]
-            patches = patches.transpose(1, 2).reshape(B * H * W, -1)            # [B*N, C*ps^2]
-            pooled = F.adaptive_avg_pool1d(patches.to(pool_dev).unsqueeze(1), self.pretrain_dim).squeeze(1)
-            per_layer.append(pooled)
-        merged = torch.cat(per_layer, dim=-1) if len(per_layer) > 1 else per_layer[0]
-        final = F.adaptive_avg_pool1d(merged.unsqueeze(1), self.target_dim).squeeze(1)
-        return final.to(self.device).reshape(B, H * W, self.target_dim)
-
-    def _fuse_concat_pool(self, B: int, H: int, W: int) -> torch.Tensor:
-        """unfold + concat across layers + single adaptive_avg_pool to target_dim (no per-layer pool)."""
-        ps, pad = self.patchsize, self.patchsize // 2
-        pool_dev = "cpu" if self.device == "mps" else self.device
-        feats_list = []
-        for lname in self.layers:
-            f = self._cached[lname]
-            if f.shape[-2:] != (H, W):
-                f = F.interpolate(f, size=(H, W), mode="bilinear", align_corners=False)
-            patches = F.unfold(f, kernel_size=ps, stride=1, padding=pad)
-            patches = patches.transpose(1, 2).reshape(B * H * W, -1)
-            feats_list.append(patches)
-        merged = torch.cat(feats_list, dim=-1) if len(feats_list) > 1 else feats_list[0]
-        final = F.adaptive_avg_pool1d(merged.to(pool_dev).unsqueeze(1), self.target_dim).squeeze(1)
-        return final.to(self.device).reshape(B, H * W, self.target_dim)
 
 
 # ---------------------------------------------------------------------------
@@ -950,56 +758,25 @@ class _MultiLayerAnomaly(AnomalyBase):
 # ConvNeXt multi-layer — hooks on stage 2+3, PatchCore fusion
 # ---------------------------------------------------------------------------
 
-class AnomalyConvNeXtMulti(_MultiLayerAnomaly):
+class AnomalyConvNeXtMulti(AnomalyBase):
     """DINOv3 ConvNeXt with multi-layer fusion (PatchCore-style).
 
     Hooks stage 2 (stride 16) and stage 3 (stride 32). Layer names are "s2", "s3".
     """
 
-    def __init__(
-        self,
-        backbone: str = "small",
-        imgsz: int = 320,
-        layers: str | list[str] = "s2",
-        fuse: str = "patchcore",
-        patchsize: int = 3,
-        pretrain_dim: int = 1024,
-        target_dim: int = 1024,
-        device: str | None = None,
-        top_pct: float = 0.01,
-        sim_chunk: int = 4096,
-        score_metric: str = "cosine",
-        coreset_size: int | None = None,
-        coreset_presample: int | None = None,
-        bank_mode: str = "flat",
-        obma_thresh: float = 0.4,
-        obma_K: int = 15,
-        obma_target_score: float = 0.2,
-        obma_temperature: float | None = None,
-        weight: str | Path | None = None,
-    ) -> None:
+    def __init__(self, backbone: str = "small", imgsz: int = 320, layers: str | list[str] = "s2",
+                 fuse: str = "patchcore", patchsize: int = 3,
+                 weight: str | Path | None = None, **kw) -> None:
         if backbone not in _CONVNEXT_CONFIGS:
             raise ValueError(f"backbone must be in {list(_CONVNEXT_CONFIGS)}, got {backbone!r}")
         if imgsz % 32 != 0:
             raise ValueError(f"imgsz must be divisible by 32, got {imgsz}")
-        if isinstance(layers, str):
-            layers = [layers]
-        valid = {"s2", "s3"}
-        if not all(l in valid for l in layers):
-            raise ValueError(f"layers must be subset of {valid}, got {layers}")
-        layers = sorted(set(layers))
-        super().__init__(imgsz=imgsz, layers=layers, fuse=fuse, patchsize=patchsize,
-                         pretrain_dim=pretrain_dim, target_dim=target_dim, device=device,
-                         top_pct=top_pct, sim_chunk=sim_chunk, score_metric=score_metric,
-                         coreset_size=coreset_size, coreset_presample=coreset_presample,
-                         bank_mode=bank_mode, obma_thresh=obma_thresh, obma_K=obma_K,
-                         obma_target_score=obma_target_score, obma_temperature=obma_temperature)
+        layers = [layers] if isinstance(layers, str) else list(layers)
+        if not all(l in {"s2", "s3"} for l in layers):
+            raise ValueError(f"layers must be subset of {{'s2','s3'}}, got {layers}")
         self.convnext_name = backbone
-        self.backbone = self._make_tag()
         self._weight = weight
-        self._build_model()
-        self._build_preprocess()
-        self._probe_and_set_dims()
+        super().__init__(imgsz=imgsz, layers=sorted(set(layers)), fuse=fuse, patchsize=patchsize, **kw)
 
     def _make_tag(self) -> str:
         digits = "".join(l[-1] for l in self.layers)
@@ -1009,19 +786,10 @@ class AnomalyConvNeXtMulti(_MultiLayerAnomaly):
             suf = f"_{self.fuse}" if len(self.layers) > 1 else ""
         return f"convnext_{self.convnext_name}_s{digits}{suf}"
 
-    def _build_model(self) -> None:
+    def _build_backbone(self) -> None:
         depths, dims = _CONVNEXT_CONFIGS[self.convnext_name]
         self.model = DINOv3ConvNeXt(depths, dims).to(self.device).eval()
-        if self._weight:
-            ckpt_path = Path(self._weight)
-        else:
-            matches = sorted(_CONVNEXT_WEIGHTS.glob(
-                f"dinov3_convnext_{self.convnext_name}_pretrain_lvd1689m-*.pth"))
-            if not matches:
-                raise FileNotFoundError(f"No checkpoint for {self.convnext_name} in {_CONVNEXT_WEIGHTS}")
-            ckpt_path = matches[0]
-        sd = torch.load(ckpt_path, map_location="cpu", weights_only=True)
-        self.model.load_state_dict(sd, strict=True)
+        self.model.load_state_dict(_load_convnext_sd(self.convnext_name, self._weight), strict=True)
         _STAGE_IDX = {"s2": 2, "s3": 3}
         for lname in self.layers:
             def _make(k=lname):
@@ -1029,61 +797,24 @@ class AnomalyConvNeXtMulti(_MultiLayerAnomaly):
                     self._cached[k] = output
                 return h
             self.model.stages[_STAGE_IDX[lname]].register_forward_hook(_make())
-
-    def _build_preprocess(self) -> None:
-        self.tf = transforms.Compose([
-            transforms.Resize((self.imgsz, self.imgsz), interpolation=transforms.InterpolationMode.BICUBIC),
-            transforms.ToTensor(),
-            transforms.Normalize(_IMAGENET_MEAN, _IMAGENET_STD),
-        ])
+        self.backbone = self._make_tag()
 
 
-class AnomalyYOLO(_MultiLayerAnomaly):
+class AnomalyYOLO(AnomalyBase):
     """YOLO/YOLOE backbone, hooked at one of three taps (see ``_YOLO_TAPS``)."""
 
-    def __init__(
-        self,
-        weight: str = "yolo26l.pt",
-        imgsz: int = 640,
-        layers: str | list[str] = "P3",
-        tap: str = "neck",
-        fuse: str = "concat",
-        patchsize: int = 1,
-        pretrain_dim: int = 1024,
-        target_dim: int = 1024,
-        device: str | None = None,
-        top_pct: float = 0.01,
-        sim_chunk: int = 4096,
-        score_metric: str = "cosine",
-        coreset_size: int | None = None,
-        coreset_presample: int | None = None,
-        bank_mode: str = "flat",
-        obma_thresh: float = 0.4,
-        obma_K: int = 15,
-        obma_target_score: float = 0.2,
-        obma_temperature: float | None = None,
-    ) -> None:
-        if isinstance(layers, str):
-            layers = [layers]
+    def __init__(self, weight: str = "yolo26l.pt", imgsz: int = 640,
+                 layers: str | list[str] = "P3", tap: str = "neck", **kw) -> None:
+        layers = [layers] if isinstance(layers, str) else list(layers)
         if not all(l in _YOLO_LAYER_IDX for l in layers):
             raise ValueError(f"each layer must be in {list(_YOLO_LAYER_IDX)}, got {layers}")
         if tap not in _YOLO_TAPS:
             raise ValueError(f"tap must be in {_YOLO_TAPS}, got {tap!r}")
         if imgsz % 32 != 0:
             raise ValueError(f"imgsz must be divisible by 32 (YOLO stride), got {imgsz}")
-        layers = sorted(set(layers), key=lambda l: _YOLO_LAYER_IDX[l])
-        super().__init__(imgsz=imgsz, layers=layers, fuse=fuse, patchsize=patchsize,
-                         pretrain_dim=pretrain_dim, target_dim=target_dim, device=device,
-                         top_pct=top_pct, sim_chunk=sim_chunk, score_metric=score_metric,
-                         coreset_size=coreset_size, coreset_presample=coreset_presample,
-                         bank_mode=bank_mode, obma_thresh=obma_thresh, obma_K=obma_K,
-                         obma_target_score=obma_target_score, obma_temperature=obma_temperature)
         self.weight = weight
         self.tap = tap
-        self.backbone = self._make_tag()
-        self._build_model()
-        self._build_preprocess()
-        self._probe_and_set_dims()
+        super().__init__(imgsz=imgsz, layers=sorted(set(layers), key=lambda l: _YOLO_LAYER_IDX[l]), **kw)
 
     def _make_tag(self) -> str:
         digits = "".join(l[-1] for l in self.layers)
@@ -1095,7 +826,7 @@ class AnomalyYOLO(_MultiLayerAnomaly):
             suf = f"_{self.fuse}" if (len(self.layers) > 1 and self.fuse != "concat") else ""
         return f"yolo_p{digits}_{self.tap}" + suf
 
-    def _build_model(self) -> None:
+    def _build_backbone(self) -> None:
         from ultralytics import YOLO
         from ultralytics.nn.modules.head import Detect
 
@@ -1128,6 +859,7 @@ class AnomalyYOLO(_MultiLayerAnomaly):
                         self._cached[k] = output
                     return h
                 det.cv3[idx][1].register_forward_hook(_make_cv3())
+        self.backbone = self._make_tag()
 
     def _build_preprocess(self) -> None:
         # YOLO: simple resize + /255, no ImageNet norm.
@@ -1142,50 +874,20 @@ class AnomalyYOLO(_MultiLayerAnomaly):
 # ---------------------------------------------------------------------------
 
 
-class AnomalyPatchCore(_MultiLayerAnomaly):
+class AnomalyPatchCore(AnomalyBase):
     """torchvision ResNet/WideResNet, ImageNet-pretrained, hooks on layer1..4 stages.
 
-    Paper PatchCore config: ``arch=wide_resnet50_2, layers=['l2','l3'], fuse='patchcore',
-    patchsize=3, pretrain_dim=1024, target_dim=1024, score_metric='l2'``.
+    Paper-style PatchCore config: ``arch=wide_resnet50_2, layers=['l2','l3'], fuse='patchcore',
+    patchsize=3, pretrain_dim=1024, target_dim=1024`` (scoring here is cos-space Noisy-OR, not 1-NN L2).
     """
 
-    def __init__(
-        self,
-        arch: str = "wide_resnet50_2",
-        imgsz: int = 224,
-        layers: str | list[str] = "l2",
-        fuse: str = "concat",
-        patchsize: int = 1,
-        pretrain_dim: int = 1024,
-        target_dim: int = 1024,
-        device: str | None = None,
-        top_pct: float = 0.01,
-        sim_chunk: int = 4096,
-        score_metric: str = "cosine",
-        coreset_size: int | None = None,
-        coreset_presample: int | None = None,
-        bank_mode: str = "flat",
-        obma_thresh: float = 0.4,
-        obma_K: int = 15,
-        obma_target_score: float = 0.2,
-        obma_temperature: float | None = None,
-    ) -> None:
-        if isinstance(layers, str):
-            layers = [layers]
+    def __init__(self, arch: str = "wide_resnet50_2", imgsz: int = 224,
+                 layers: str | list[str] = "l2", **kw) -> None:
+        layers = [layers] if isinstance(layers, str) else list(layers)
         if not all(l in _RESNET_LAYER_ATTR for l in layers):
             raise ValueError(f"each layer must be in {_RESNET_LAYERS}, got {layers}")
-        layers = sorted(set(layers), key=lambda l: _RESNET_LAYERS.index(l))
-        super().__init__(imgsz=imgsz, layers=layers, fuse=fuse, patchsize=patchsize,
-                         pretrain_dim=pretrain_dim, target_dim=target_dim, device=device,
-                         top_pct=top_pct, sim_chunk=sim_chunk, score_metric=score_metric,
-                         coreset_size=coreset_size, coreset_presample=coreset_presample,
-                         bank_mode=bank_mode, obma_thresh=obma_thresh, obma_K=obma_K,
-                         obma_target_score=obma_target_score, obma_temperature=obma_temperature)
         self.arch = arch
-        self.backbone = self._make_tag()
-        self._build_model()
-        self._build_preprocess()
-        self._probe_and_set_dims()
+        super().__init__(imgsz=imgsz, layers=sorted(set(layers), key=lambda l: _RESNET_LAYERS.index(l)), **kw)
 
     def _make_tag(self) -> str:
         digits = "".join(l[-1] for l in self.layers)
@@ -1197,7 +899,7 @@ class AnomalyPatchCore(_MultiLayerAnomaly):
             suf = f"_{self.fuse}" if (len(self.layers) > 1 and self.fuse != "concat") else ""
         return f"{self.arch}_l{digits}{suf}"
 
-    def _build_model(self) -> None:
+    def _build_backbone(self) -> None:
         from torchvision import models
         ctor = getattr(models, self.arch)
         self.model = ctor(weights="DEFAULT").to(self.device).eval()
@@ -1208,13 +910,7 @@ class AnomalyPatchCore(_MultiLayerAnomaly):
                     self._cached[k] = output
                 return h
             stage.register_forward_hook(_make())
-
-    def _build_preprocess(self) -> None:
-        self.tf = transforms.Compose([
-            transforms.Resize((self.imgsz, self.imgsz), interpolation=transforms.InterpolationMode.BICUBIC),
-            transforms.ToTensor(),
-            transforms.Normalize(_IMAGENET_MEAN, _IMAGENET_STD),
-        ])
+        self.backbone = self._make_tag()
 
 
 # ---------------------------------------------------------------------------
@@ -1369,11 +1065,8 @@ def _build(args: argparse.Namespace) -> tuple[AnomalyBase, Path]:
     """Construct the requested model + return its default CSV path."""
     bb = args.backbone
     kw = dict(
-        score_metric=args.score_metric,
-        coreset_size=args.coreset, coreset_presample=args.coreset_presample,
-        bank_mode=args.bank_mode,
-        obma_thresh=args.obma_thresh, obma_K=args.obma_K,
-        obma_target_score=args.obma_target_score, obma_temperature=args.obma_temp,
+        coreset_size=args.coreset, K=args.K, temperature=args.temperature,
+        target_score=args.target_score, target_quantile=args.target_quantile,
     )
     if bb.startswith("dino_"):
         short = bb.removeprefix("dino_")
@@ -1427,15 +1120,8 @@ def _build(args: argparse.Namespace) -> tuple[AnomalyBase, Path]:
         tag = f"{tag}_imgsz{ad.imgsz}"
 
     if args.coreset:
-        tag += f"_cs{args.coreset}" + (f"_pre{args.coreset_presample}" if args.coreset_presample else "")
-    if args.score_metric != "cosine":
-        tag += f"_{args.score_metric}"
-    if args.bank_mode != "flat":
-        tag += f"_{args.bank_mode}"
-        if args.bank_mode == "obma":
-            tag += f"_t{args.obma_thresh:g}_K{args.obma_K}_ts{args.obma_target_score:g}"
-            if args.obma_temp is not None:
-                tag += f"_T{args.obma_temp:g}"
+        tag += f"_cs{args.coreset}"
+    tag += f"_K{args.K}_T{args.temperature:g}_ts{args.target_score:g}_q{args.target_quantile:g}"
     return ad, Path(f"./runs/temp/anomaly_{tag}_mvtec_metrics.csv")
 
 
@@ -1473,27 +1159,17 @@ def main() -> None:
                    help="Per-layer adaptive_avg_pool target (patchcore only). Paper default = 1024.")
     p.add_argument("--target_dim", type=int, default=1024,
                    help="Final per-patch dim after cross-layer adaptive_avg_pool. Paper default = 1024.")
-    p.add_argument("--score_metric", choices=_SCORE_CHOICES, default="cosine",
-                   help="1-NN metric: cosine (default) or l2 (PatchCore paper).")
-    p.add_argument("--coreset", type=int, default=None,
-                   help="Compact bank to N points via greedy FPS (PatchCore-style coreset).")
-    p.add_argument("--coreset_presample", type=int, default=None,
-                   help="Random pre-sample to this size BEFORE FPS. Only with --coreset.")
-    p.add_argument("--bank-mode", choices=_BANK_MODES, default="flat",
-                   help="Bank construction & scoring: 'flat' = dump-all + 1-NN cosine top-k%% mean "
-                        "(default). 'obma' = OBMA accept/reject + Noisy-OR max scoring "
-                        "(scores ∈ [0,1], auto-calibrated so typical-normal ≈ target_score).")
-    p.add_argument("--obma-thresh", type=float, default=0.4,
-                   help="OBMA accumulation threshold: features scored above this against the "
-                        "current bank are accepted (default 0.4). Only used with --bank-mode obma.")
-    p.add_argument("--obma-K", type=int, default=15,
-                   help="Top-K nearest bank entries used for Noisy-OR scoring (default 15).")
-    p.add_argument("--obma-target-score", type=float, default=0.2,
-                   help="Auto-calibration target: solve β so a typical-normal position scores at this "
-                        "value (default 0.2). Must be < --obma-thresh.")
-    p.add_argument("--obma-temp", type=float, default=None,
-                   help="Manually set Noisy-OR temperature β (skips auto-calibration). Useful for "
-                        "reproducibility or tuning. Reasonable range: 1–10.")
+    p.add_argument("--coreset", type=int, default=10000,
+                   help="k-center coreset bank cap (default 10000; 0 = keep all patches). "
+                        "Dropped features become the calibration hold-out.")
+    p.add_argument("--K", type=int, default=5,
+                   help="Top-K nearest bank entries per query for Noisy-OR scoring (default 5).")
+    p.add_argument("--temperature", type=float, default=3.0,
+                   help="β floor / starting point (default 3.0); hold-out calibration only raises it.")
+    p.add_argument("--target-score", type=float, default=0.2,
+                   help="Calibration target: a typical-normal query scores at this value (default 0.2).")
+    p.add_argument("--target-quantile", type=float, default=0.95,
+                   help="Hold-out quantile placed at --target-score (default 0.95).")
     p.add_argument("--out", type=Path, default=None, help="Output CSV path.")
     p.add_argument("--save-vis", type=Path, default=None,
                    help="If set, save per-image [orig|heatmap|overlay] triptych to this dir "
@@ -1522,7 +1198,7 @@ def main() -> None:
         out_csv = out_csv.with_name(out_csv.stem + f"_{'_'.join(cats)}.csv")
     out_csv.parent.mkdir(parents=True, exist_ok=True)
     print(f"ready: backbone={ad.backbone} imgsz={ad.imgsz} device={ad.device} "
-          f"feat_dim={ad.feat_dim} grid={ad.grid} score={ad.score_metric}"
+          f"feat_dim={ad.feat_dim} grid={ad.grid} K={ad.K} target_score={ad.target_score}"
           + (f" coreset={args.coreset}" if args.coreset else ""))
 
     rows: list[dict] = []

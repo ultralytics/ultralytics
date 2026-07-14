@@ -1,4 +1,5 @@
 ---
+plans: [free, pro, enterprise]
 title: Model Deployment Options
 comments: true
 description: Learn about model deployment options in Ultralytics Platform including inference testing, dedicated endpoints, and monitoring dashboards.

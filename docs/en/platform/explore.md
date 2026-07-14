@@ -1,4 +1,5 @@
 ---
+plans: [free, pro, enterprise]
 title: Explore Datasets & Projects
 comments: true
 description: Discover public datasets and projects on the Ultralytics Platform Explore page. Browse, search, and clone community content for computer vision and YOLO.

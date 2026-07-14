@@ -48,7 +48,7 @@ from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13
 
 def test_copy_paste_mode_validation():
     """Test CopyPaste rejects invalid and unhashable modes with explicit input validation."""
-    with pytest.raises(ValueError, match="flip.*mixup"):
+    with pytest.raises(ValueError, match=r"flip.*mixup"):
         CopyPaste(mode=[])
 
 

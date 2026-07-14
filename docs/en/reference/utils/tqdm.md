@@ -20,10 +20,10 @@ keywords: TQDM, progress bar, Ultralytics, GitHub Actions, zero dependencies, ri
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.tqdm._cell_len
+## ::: ultralytics.utils.tqdm.cell_len
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.tqdm._cell_trim
+## ::: ultralytics.utils.tqdm.cell_trim
 
 <br><br>

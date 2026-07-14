@@ -9,6 +9,7 @@ from typing import Any
 
 import cv2
 import numpy as np
+import torch
 
 from ultralytics import YOLO
 from ultralytics.solutions.config import SolutionConfig
@@ -115,7 +116,7 @@ class BaseSolution:
         self.device = self.CFG["device"]
 
         self.track_add_args = {  # Tracker additional arguments for advance configuration
-            k: self.CFG[k] for k in {"iou", "conf", "device", "max_det", "half", "tracker", "imgsz"}
+            k: self.CFG[k] for k in {"iou", "conf", "device", "max_det", "quantize", "tracker", "imgsz"}
         }  # verbose must be passed to track method; setting it False in YOLO still logs the track information.
 
         if is_cli and self.CFG["source"] is None:
@@ -199,6 +200,27 @@ class BaseSolution:
         self.track_line.append(tuple(box.mean(dim=0)) if box.numel() > 4 else (box[:4:2].mean(), box[1:4:2].mean()))
         if len(self.track_line) > 30:
             self.track_line.pop(0)
+
+    @staticmethod
+    def get_enclosing_box(box: torch.Tensor | list[float]) -> torch.Tensor | list[float]:
+        """Return the axis-aligned box [x1, y1, x2, y2] enclosing a box extracted by `extract_tracks`.
+
+        Boxes from OBB models are (4, 2) xyxyxyxy corner points, while boxes from detection models are already
+        axis-aligned [x1, y1, x2, y2]. This method normalizes both formats to [x1, y1, x2, y2] for solutions that
+        require axis-aligned coordinates, e.g. for image slicing or box centers.
+
+        Args:
+            box (torch.Tensor | list[float]): Bounding box in [x1, y1, x2, y2] format or (4, 2) OBB corner points.
+
+        Returns:
+            (torch.Tensor | list[float]): Axis-aligned bounding box in [x1, y1, x2, y2] format.
+
+        Examples:
+            >>> import torch
+            >>> BaseSolution.get_enclosing_box(torch.tensor([[2.0, 1.0], [4.0, 3.0], [2.0, 5.0], [0.0, 3.0]]))
+            tensor([0., 1., 4., 5.])
+        """
+        return torch.cat([box.amin(0), box.amax(0)]) if isinstance(box, torch.Tensor) and box.numel() > 4 else box
 
     def initialize_region(self) -> None:
         """Initialize the counting region and line segment based on configuration settings."""
@@ -784,9 +806,9 @@ class SolutionResults:
         out_count (int): The total number of "out" counts in a video stream.
         classwise_count (dict[str, int]): A dictionary containing counts of objects categorized by class.
         queue_count (int): The count of objects in a queue or waiting area.
-        workout_count (int): The count of workout repetitions.
-        workout_angle (float): The angle calculated during a workout exercise.
-        workout_stage (str): The current stage of the workout.
+        workout_count (list[int]): Per-track workout repetition counts (one entry per currently tracked individual).
+        workout_angle (list[float]): Per-track exercise angles for currently tracked individuals.
+        workout_stage (list[str]): Per-track current exercise stage for currently tracked individuals.
         pixels_distance (float): The calculated distance in pixels between two points or objects.
         available_slots (int): The number of available slots in a monitored area.
         filled_slots (int): The number of filled slots in a monitored area.
@@ -809,9 +831,9 @@ class SolutionResults:
         self.out_count = 0
         self.classwise_count = {}
         self.queue_count = 0
-        self.workout_count = 0
-        self.workout_angle = 0.0
-        self.workout_stage = None
+        self.workout_count = []
+        self.workout_angle = []
+        self.workout_stage = []
         self.pixels_distance = 0.0
         self.available_slots = 0
         self.filled_slots = 0

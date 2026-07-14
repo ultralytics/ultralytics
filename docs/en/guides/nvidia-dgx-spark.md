@@ -1,4 +1,5 @@
 ---
+title: YOLO26 on NVIDIA DGX Spark
 comments: true
 description: Learn to deploy Ultralytics YOLO26 on NVIDIA DGX Spark with our detailed guide. Explore performance benchmarks and maximize AI capabilities on this compact desktop AI supercomputer.
 keywords: Ultralytics, YOLO26, NVIDIA DGX Spark, AI deployment, performance benchmarks, deep learning, TensorRT, computer vision, GB10 Grace Blackwell
@@ -98,8 +99,10 @@ The fastest way to get started with Ultralytics YOLO26 on NVIDIA DGX Spark is to
 
 ```bash
 t=ultralytics/ultralytics:latest-nvidia-arm64
-sudo docker pull $t && sudo docker run -it --ipc=host --runtime=nvidia --gpus all $t
+sudo docker pull $t && sudo docker run -it --ipc=host --device nvidia.com/gpu=all $t
 ```
+
+The CDI device request above applies to DGX Spark running DGX OS. On Jetson AGX Thor, launch the same image with `--runtime=nvidia` instead, as shown in the [NVIDIA Jetson guide](nvidia-jetson.md).
 
 After this is done, skip to [Use TensorRT on NVIDIA DGX Spark section](#use-tensorrt-on-nvidia-dgx-spark).
 
@@ -359,8 +362,8 @@ When using NVIDIA DGX Spark, there are a couple of best practices to follow in o
     For best performance, export models with FP16 or INT8 precision:
 
     ```bash
-    yolo export model=yolo26n.pt format=engine half=True # FP16
-    yolo export model=yolo26n.pt format=engine int8=True # INT8
+    yolo export model=yolo26n.pt format=engine quantize=16 # FP16
+    yolo export model=yolo26n.pt format=engine quantize=8  # INT8
     ```
 
 ## System Updates (Founders Edition)

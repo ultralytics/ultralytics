@@ -1,22 +1,22 @@
 ---
 comments: true
-description: Convert Ultralytics YOLO detection models from ONNX to Hailo HEF for Hailo-8, Hailo-8L, Raspberry Pi AI Kit, AI HAT+, and Hailo-15 devices.
-keywords: Hailo export, Hailo HEF, export YOLO to Hailo, YOLO Hailo, Hailo-8, Hailo-8L, Hailo-15, Raspberry Pi AI Kit, Raspberry Pi AI HAT+, Hailo Dataflow Compiler, Hailo DFC, HailoRT, Hailo Model Zoo, Hailo AI accelerator, edge AI deployment, embedded AI, model quantization, INT8 quantization, ONNX to HEF, Ultralytics YOLO, YOLO11, YOLOv8, object detection
+description: Convert selected Ultralytics YOLO models from ONNX to Hailo HEF for Hailo-8, Hailo-8L, Raspberry Pi AI Kit, AI HAT+, Hailo-10, and Hailo-15 devices.
+keywords: Hailo export, Hailo HEF, export YOLO to Hailo, YOLO Hailo, Hailo-8, Hailo-8L, Hailo-10, Hailo-15, Raspberry Pi AI Kit, Raspberry Pi AI HAT+, Hailo Dataflow Compiler, Hailo DFC, HailoRT, Hailo AI accelerator, edge AI deployment, embedded AI, model quantization, INT8 quantization, ONNX to HEF, Ultralytics YOLO, YOLO26, YOLO11, YOLOv8, object detection, instance segmentation, OBB
 ---
 
 # Hailo Export for Ultralytics YOLO Models
 
 !!! warning "Not a direct Ultralytics export format"
 
-    Hailo HEF is **not officially supported** as a direct Ultralytics `model.export(format="hailo")` target. The workflow below exports to ONNX first, then uses Hailo's external Dataflow Compiler toolchain to produce a `.hef` file. For better performance per watt than older Hailo HEF deployments, use newer direct Ultralytics export formats such as [Axelera AI](axelera.md) or [DeepX](deepx.md) instead.
+    Hailo HEF is **not currently supported** as a direct Ultralytics `model.export(format="hailo")` target. The workflow below is a manual fallback that exports to ONNX first, then uses Hailo's external Dataflow Compiler toolchain to produce a `.hef` file. A seamless Ultralytics workflow should expose Hailo through the same Python and CLI export API as other hardware formats.
 
 The [Hailo](https://hailo.ai/) toolchain uses HEF files for embedded platforms including the [Raspberry Pi AI Kit](https://www.raspberrypi.com/products/ai-kit/) and [AI HAT+](https://www.raspberrypi.com/documentation/accessories/ai-hat-plus.html), industrial cameras, edge gateways, and AI PCs.
 
-This guide walks through exporting [Ultralytics YOLO](https://github.com/ultralytics/ultralytics) detection models to Hailo's **HEF (Hailo Executable Format)** using the **Hailo Dataflow Compiler (DFC)** SDK. The workflow starts from a YOLO `.pt` model, exports to [ONNX](onnx.md), compiles with Hailo tools, and produces a `.hef` file ready for Hailo-8, Hailo-8L, and Hailo-15 accelerators.
+This guide walks through exporting selected [Ultralytics YOLO](https://github.com/ultralytics/ultralytics) models to Hailo's **HEF (Hailo Executable Format)** using the **Hailo Dataflow Compiler (DFC)** SDK. The workflow starts from a YOLO `.pt` model, exports to [ONNX](onnx.md), compiles with Hailo tools, and produces a `.hef` file ready for supported Hailo accelerators.
 
 ## When to Use Hailo HEF
 
-HEF is the compiled artifact consumed by HailoRT on Hailo target devices. Use this guide only when your deployment hardware specifically requires Hailo HEF. If you are still choosing edge hardware or export targets, start with newer direct Ultralytics export formats such as [Axelera AI](axelera.md) or [DeepX](deepx.md), which provide a supported `model.export(...)` workflow and better performance-per-watt options than older Hailo deployments.
+HEF is the compiled artifact consumed by HailoRT on Hailo target devices. Use this manual guide only when your deployment hardware specifically requires Hailo HEF before direct Ultralytics Hailo export support is available.
 
 HEF is similar in deployment role to hardware-specific formats such as [RKNN](rockchip-rknn.md) for Rockchip NPUs, [IMX500](sony-imx500.md) for Raspberry Pi AI Cameras, and [Qualcomm QNN](qnn.md) for Snapdragon NPUs, but it is not currently generated directly by Ultralytics.
 
@@ -47,30 +47,40 @@ YOLO (.pt) -> ONNX -> HAR (parse) -> HAR (optimize/quantize) -> HEF (compile)
 
 ## Supported Tasks
 
-This guide focuses on Ultralytics YOLO **object detection** models, because the Hailo model script and NMS configuration are detection-head specific.
+The current manual example focuses on YOLO11 object detection because the Hailo model script and post-processing configuration are detection-head specific. A future direct `model.export(format="hailo")` implementation should make Hailo export feel like every other Ultralytics export format, with task support gated by the model head and Hailo compiler compatibility rather than by external workflow steps.
 
-| Task                                          | Supported |
-| :-------------------------------------------- | :-------- |
-| [Object Detection](../tasks/detect.md)        | ✅ Yes    |
-| [Instance Segmentation](../tasks/segment.md)  | ❌ No     |
-| [Semantic Segmentation](../tasks/semantic.md) | ❌ No     |
-| [Pose Estimation](../tasks/pose.md)           | ❌ No     |
-| [OBB Detection](../tasks/obb.md)              | ❌ No     |
-| [Classification](../tasks/classify.md)        | ❌ No     |
+| Task                                          | Direct Hailo Export Target | Notes                                                                                              |
+| :-------------------------------------------- | :------------------------- | :------------------------------------------------------------------------------------------------- |
+| [Object Detection](../tasks/detect.md)        | ✅ Primary target          | YOLOv8, YOLO11, and YOLO26 detection should be the first direct-export path.                       |
+| [Instance Segmentation](../tasks/segment.md)  | ✅ Target                  | YOLOv8, YOLO11, and YOLO26 segmentation require task-specific mask output handling and validation. |
+| [Semantic Segmentation](../tasks/semantic.md) | ⚠️ Validate                | YOLO26 semantic segmentation needs a dedicated compiler and output validation path.                |
+| [Pose Estimation](../tasks/pose.md)           | ⚠️ Validate                | Pose requires keypoint output handling beyond the detection NMS path.                              |
+| [OBB Detection](../tasks/obb.md)              | ⚠️ Validate                | OBB requires rotated-box output handling beyond the standard detection NMS path.                   |
+| [Classification](../tasks/classify.md)        | ⚠️ Validate                | Classification has a simpler output head, but still needs Hailo compile and runtime validation.    |
 
-For instance segmentation, semantic segmentation, pose, OBB, and classification deployments, compare other edge formats in the [Export mode](../modes/export.md) table or use a generic ONNX pipeline where your target runtime supports the task.
+Until direct Hailo export is implemented in Ultralytics, only the manual ONNX-to-HEF workflow below is documented.
+
+### Hailo SDK Versions
+
+Direct Hailo export must account for Hailo's hardware and SDK generation split:
+
+- **Hailo-8 and Hailo-8L**: use Hailo Dataflow Compiler v3.x. This is the relevant path for Raspberry Pi AI Kit and 13 TOPS AI HAT+ deployments.
+- **Hailo-10 and Hailo-15**: use Hailo Dataflow Compiler v5.x.
+
+This version split affects compiler APIs, supported architectures, generated HEF compatibility, and which `hw_arch` values a direct exporter should expose. Task support on one Hailo hardware generation should not be treated as support on another without validating the target DFC version and `hw_arch`.
 
 ### Compatibility Notes
 
-Hailo export compatibility depends on the model head, input image size, class count, Hailo architecture, model script (`.alls`), and NMS configuration. Static files from the [Hailo Model Zoo](https://github.com/hailo-ai/hailo_model_zoo) are useful references, but they are not universal templates. For example, an NMS JSON created for a COCO 80-class YOLO11n model is not correct for a custom 3-class model or for a different fixed `imgsz`.
+Hailo export compatibility depends on the model head, input image size, class count, Hailo architecture, generated model script (`.alls`), and post-processing configuration. Static configs are not universal templates. For example, an NMS JSON created for a COCO 80-class YOLO11n model is not correct for a custom 3-class model or for a different fixed `imgsz`.
 
-| Scope                                   | Expected Support | Notes                                                                                                                                      |
-| :-------------------------------------- | :--------------- | :----------------------------------------------------------------------------------------------------------------------------------------- |
-| YOLOv8 / YOLO11 detection, stock models | ✅ Good          | Shared decoupled detection head; `.alls`, end nodes, and NMS config still need to match the exported graph and fixed `imgsz`.              |
-| Custom YOLOv8 / YOLO11 detection        | ✅ Possible      | Requires per-model NMS configuration generated from class count, strides, and detection-head layout; static Model Zoo JSON will not match. |
-| YOLOv9 detection                        | ⚠️ Validate      | Similar detection-head pattern, but compile and output parsing should be tested before treating it as supported.                           |
-| YOLOv10 / YOLO26 end-to-end detection   | ❌ Not supported | End-to-end/NMS-free exports do not match the Hailo NMS post-processing path; use a traditional detection head if testing manually.         |
-| Dynamic or arbitrary image sizes        | ❌ Not supported | Hailo compilation uses a fixed input shape; `.alls` and NMS settings must match the exported `imgsz`.                                      |
+| Scope                                      | Expected Support | Notes                                                                                                                                    |
+| :----------------------------------------- | :--------------- | :--------------------------------------------------------------------------------------------------------------------------------------- |
+| YOLOv8 / YOLO11 detection                  | ✅ Good          | Shared decoupled detection head; `.alls` directives, end nodes, and NMS config still need to match the exported graph and fixed `imgsz`. |
+| Custom YOLOv8 / YOLO11 detection           | ✅ Possible      | Requires per-model NMS configuration generated from class count, strides, and detection-head layout; static JSON will not match.         |
+| YOLO26 detection                           | ✅ Target        | NMS-free architecture needs a separate compiler/post-processing path; do not reuse the YOLO11/YOLOv8 NMS workflow below for YOLO26.      |
+| YOLO26 instance segmentation               | ✅ Target        | Needs YOLO26 segmentation-specific mask output handling and accuracy validation.                                                         |
+| YOLO26 semantic, pose, OBB, classification | ⚠️ Research      | These tasks need dedicated compiler and runtime validation before they can be advertised as directly supported.                          |
+| Dynamic or arbitrary image sizes           | ❌ Not supported | Hailo compilation uses a fixed input shape; `.alls` and post-processing settings must match the exported `imgsz`.                        |
 
 ## Installation
 
@@ -85,7 +95,7 @@ pip install ultralytics
 The Hailo DFC is required for parsing, optimization, and compilation. Download the Python wheel from the [Hailo Developer Zone](https://hailo.ai/developer-zone/) (free registration required) and install it:
 
 ```bash
-pip install /path/to/hailo_sdk_client-*.whl
+pip install /path/to/hailo_dataflow_compiler-*.whl
 ```
 
 !!! note
@@ -96,20 +106,27 @@ pip install /path/to/hailo_sdk_client-*.whl
 
 The script below compiles a YOLO11n detection model from `.pt` to `.hef` at a fixed 640-pixel input size. It exports to ONNX using Ultralytics, then compiles with Hailo DFC using COCO128 as a small calibration dataset.
 
-Before running the script, download the matching YOLO11n NMS config file from the [Hailo Model Zoo](https://github.com/hailo-ai/hailo_model_zoo) or create your own Hailo NMS JSON for the model. Reuse this script as a known YOLO11n starting point; custom models need matching end nodes, `.alls` directives, and NMS settings.
+Before running the script, provide a Hailo NMS JSON that matches the exact YOLO11n export graph, class count, strides, and fixed input size. Reuse this script as a known YOLO11n starting point; custom models need matching end nodes, `.alls` directives, and NMS settings.
+
+!!! note "YOLO26 uses a different Hailo path"
+
+    YOLO26 models are NMS-free. A direct Ultralytics Hailo exporter needs a dedicated YOLO26 compile and post-processing path for detection or instance segmentation instead of the YOLO11 NMS example below.
 
 !!! example "Full Pipeline"
 
     ```python
+    import ast
     import random
+    from pathlib import Path
 
     import numpy as np
+    import onnx
     from hailo_sdk_client import ClientRunner
     from PIL import Image
 
     from ultralytics import YOLO
     from ultralytics.data.utils import check_det_dataset
-    from ultralytics.utils import DATASETS_DIR
+    from ultralytics.utils import DATASETS_DIR, YAML
 
     # Configuration
     MODEL = "yolo11n"
@@ -117,6 +134,8 @@ Before running the script, download the matching YOLO11n NMS config file from th
     IMGSZ = 640
     CALIB_IMAGES = 128
     NMS_CONFIG = "yolo11n_nms_config.json"  # Download or generate for your exact model.
+    OUT_DIR = Path(f"{MODEL}_hailo_model")  # deploy folder (mirrors Ultralytics <model>_<format>_model exports)
+    OUT_DIR.mkdir(exist_ok=True)
 
     # YOLO11 detection head end nodes. See "Supported Models and End Nodes" for YOLOv8 and other families.
     END_NODES = [
@@ -128,18 +147,30 @@ Before running the script, download the matching YOLO11n NMS config file from th
         "/model.23/cv3.2/cv3.2.2/Conv",
     ]
 
-    # Step 1: Export to ONNX
+    # Step 1: Export to ONNX, then move it into the deploy folder to keep the working directory tidy
     model = YOLO(f"{MODEL}.pt")
-    model.export(format="onnx", imgsz=IMGSZ, opset=11)  # creates an ONNX file named after MODEL
+    onnx_path = Path(model.export(format="onnx", imgsz=IMGSZ, opset=11))
+    onnx_path = onnx_path.rename(OUT_DIR / onnx_path.name)
+
+    # Copy the metadata Ultralytics embedded in the ONNX into the standard metadata.yaml sidecar.
+    # The HEF stores no class names, so inference reads them from this file.
+    meta = {p.key: p.value for p in onnx.load(onnx_path, load_external_data=False).metadata_props}
+    for k in ("stride", "batch", "channels"):
+        if k in meta:
+            meta[k] = int(meta[k])
+    for k in ("imgsz", "names", "args", "end2end"):
+        if k in meta:
+            meta[k] = ast.literal_eval(meta[k])
+    YAML.save(OUT_DIR / "metadata.yaml", meta)
 
     # Step 2: Parse ONNX with Hailo DFC
     # The DFC prints the detected end nodes after parsing; use them if unsure.
     runner = ClientRunner(hw_arch=HW_ARCH)
-    runner.translate_onnx_model(f"{MODEL}.onnx", end_node_names=END_NODES)
+    runner.translate_onnx_model(str(onnx_path), end_node_names=END_NODES)
 
     # Step 3: Load model script (normalization + HailoRT NMS)
     # The conv layer names are generated by DFC and can change for other model sizes/families.
-    alls = (
+    model_script = (
         "normalization1 = normalization([0.0, 0.0, 0.0], [255.0, 255.0, 255.0])\n"
         "change_output_activation(conv54, sigmoid)\n"
         "change_output_activation(conv65, sigmoid)\n"
@@ -147,7 +178,7 @@ Before running the script, download the matching YOLO11n NMS config file from th
         f'nms_postprocess("{NMS_CONFIG}", meta_arch=yolov8, engine=cpu)\n'
         "allocator_param(width_splitter_defuse=disabled)"
     )
-    runner.load_model_script(alls)
+    runner.load_model_script(model_script)
 
     # Step 4: Build calibration dataset (auto-downloads COCO128)
     check_det_dataset("coco128.yaml")
@@ -163,42 +194,41 @@ Before running the script, download the matching YOLO11n NMS config file from th
 
     # Step 5: Optimize and quantize
     runner.optimize(calibset)
-    runner.save_har(f"{MODEL}.o.har")  # optional intermediate HAR
+    runner.save_har(str(OUT_DIR / f"{MODEL}.o.har"))  # optional intermediate HAR
 
     # Step 6: Compile to HEF
     hef = runner.compile()
-    with open(f"{MODEL}.hef", "wb") as f:
+    hef_path = OUT_DIR / f"{MODEL}.hef"
+    with open(hef_path, "wb") as f:
         f.write(hef)
 
-    print(f"Compiled HEF saved to: {MODEL}.hef")
+    # Note: the Hailo SDK writes *.log files (acceleras.log, allocator.log, hailo_sdk.client.log,
+    # hailo_sdk.core.log) to the working directory. They are diagnostic scratch, safe to ignore or delete.
+    print(f"Compiled HEF saved to: {hef_path}")
     ```
 
-The resulting HEF file, such as `yolo11n.hef`, is ready to deploy on a compatible Hailo device. If you are compiling for Raspberry Pi AI Kit, set `HW_ARCH = "hailo8l"` before running the compile step.
+The export script organizes artifacts and logs as follows:
+
+- **Deployment Folder**: Artifacts are saved to `yolo11n_hailo_model/`, mirroring the standard `<model>_<format>_model/` layout used by other Ultralytics exports.
+- **Required Files**: The two files needed for deployment are the compiled `yolo11n.hef` and the `metadata.yaml` sidecar.
+- **Metadata**: The `metadata.yaml` contains essential fields (`names`, `imgsz`, `task`, `stride`, etc.) extracted from the ONNX metadata. Inference scripts load class names from this file since the HEF format does not store them.
+- **Intermediate Files**: The export folder also contains the intermediate `yolo11n.onnx` and `yolo11n.o.har` checkpoints.
+- **Log Files**: The Hailo SDK generates several diagnostic logs (e.g., `acceleras.log`, `allocator.log`, `hailo_sdk.client.log`, and `hailo_sdk.core.log`) in the working directory; these can be safely ignored or deleted.
+- **Raspberry Pi AI Kit**: For this specific hardware, ensure you set `HW_ARCH = "hailo8l"` before running the compilation step.
 
 ## Step-by-Step Breakdown
 
-### Step 1: Export to ONNX
+The full script above runs end to end. This section explains what each stage does and the model-specific details to watch when adapting it to your own model.
 
-Ultralytics exports your trained model to ONNX format, which the Hailo DFC ingests as input. Set `opset=11` for broad DFC compatibility.
+### Step 1: Export to ONNX and Save Metadata
 
-```python
-from ultralytics import YOLO
+Ultralytics exports your trained model to ONNX format, which the Hailo DFC ingests as input. `opset=11` gives broad DFC compatibility, and the ONNX is moved into a `yolo11n_hailo_model/` deploy folder (mirroring the `<model>_<format>_model/` layout of other Ultralytics exports) to keep the working directory tidy.
 
-MODEL = "yolo11n"
-model = YOLO(f"{MODEL}.pt")
-model.export(format="onnx", imgsz=640, opset=11)
-```
+The HEF stores no class names, so the metadata Ultralytics embeds in the ONNX is copied into a standard `metadata.yaml` sidecar next to it. This is the same `metadata.yaml` other export formats produce (`names`, `imgsz`, `task`, `stride`, and more), and inference reads the class names from it, so the workflow works for custom models without hardcoding any labels.
 
 ### Step 2: Parse the ONNX Model
 
-The `translate_onnx_model` call converts the ONNX graph into Hailo's intermediate HAR representation. The `end_node_names` list tells the DFC where to cut the graph before NMS so Hailo can attach its own hardware post-processing.
-
-```python
-from hailo_sdk_client import ClientRunner
-
-runner = ClientRunner(hw_arch="hailo8")
-runner.translate_onnx_model(f"{MODEL}.onnx", end_node_names=END_NODES)
-```
+`runner.translate_onnx_model(...)` converts the ONNX graph into Hailo's intermediate HAR representation. The `end_node_names` list tells the DFC where to cut the graph before NMS so Hailo can attach its own hardware post-processing.
 
 !!! tip "Finding end nodes"
 
@@ -217,7 +247,7 @@ The model script (`.alls`) configures input normalization, output activation, an
 ```python
 MODEL = "yolo11n"
 NMS_CONFIG = "yolo11n_nms_config.json"
-alls = (
+model_script = (
     "normalization1 = normalization([0.0, 0.0, 0.0], [255.0, 255.0, 255.0])\n"
     "change_output_activation(conv54, sigmoid)\n"
     "change_output_activation(conv65, sigmoid)\n"
@@ -225,14 +255,14 @@ alls = (
     f'nms_postprocess("{NMS_CONFIG}", meta_arch=yolov8, engine=cpu)\n'
     "allocator_param(width_splitter_defuse=disabled)"
 )
-runner.load_model_script(alls)
+runner.load_model_script(model_script)
 ```
 
 !!! note
 
-    The `change_output_activation` layer names (`conv54`, `conv65`, `conv80`) are assigned by the DFC during parsing and are **model-specific**. If you are compiling a different model size or architecture, check the DFC output for the correct names, or use a predefined `.alls` file from the [Hailo Model Zoo](https://github.com/hailo-ai/hailo_model_zoo).
+    The `change_output_activation` layer names (`conv54`, `conv65`, `conv80`) are assigned by the DFC during parsing and are **model-specific**. If you are compiling a different model size or architecture, check the DFC output for the correct names or generate the `.alls` directives from the exported graph.
 
-    The `NMS_CONFIG` file is also model-specific. Use the config that matches your exported model, or start from the [Hailo Model Zoo](https://github.com/hailo-ai/hailo_model_zoo) configuration for the closest YOLO variant.
+    The `NMS_CONFIG` file is also model-specific. Use a config that matches your exported model exactly.
 
     `engine=cpu` runs NMS through HailoRT on the host CPU. Use `engine=nn_core` only for model/script combinations that Hailo documents as supported by the target hardware and SDK version.
 
@@ -240,15 +270,7 @@ runner.load_model_script(alls)
 
 ### Step 4: Build the Calibration Dataset
 
-INT8 quantization requires a representative set of images. The script below uses COCO128, which Ultralytics downloads automatically via `check_det_dataset`:
-
-```python
-from ultralytics.data.utils import check_det_dataset
-from ultralytics.utils import DATASETS_DIR
-
-check_det_dataset("coco128.yaml")  # downloads to DATASETS_DIR if not present
-calib_dir = DATASETS_DIR / "coco128" / "images" / "train2017"
-```
+INT8 quantization requires a representative set of images stacked into a `(N, imgsz, imgsz, 3)` float32 array. The script uses COCO128, which Ultralytics downloads automatically via `check_det_dataset`.
 
 !!! tip
 
@@ -256,24 +278,17 @@ calib_dir = DATASETS_DIR / "coco128" / "images" / "train2017"
 
 ### Step 5: Optimize and Quantize
 
-```python
-runner.optimize(calibset)
-runner.save_har(f"{MODEL}.o.har")  # optional intermediate checkpoint
-```
-
-This step applies quantization-aware fine-tuning and layer noise analysis. A GPU is strongly recommended; without one, this step can take several hours.
+`runner.optimize(calibset)` applies quantization-aware fine-tuning and layer noise analysis, then `runner.save_har(...)` writes an optional intermediate checkpoint. A GPU is strongly recommended; without one, this step can take several hours.
 
 ### Step 6: Compile to HEF
 
-```python
-hef = runner.compile()
-with open(f"{MODEL}.hef", "wb") as f:
-    f.write(hef)
-```
+`runner.compile()` produces the final HEF, written to `yolo11n_hailo_model/yolo11n.hef`. It now sits alongside its `metadata.yaml`, ready to copy to the device for inference.
 
 ## Supported Models and End Nodes
 
 For detection models, `end_node_names` identifies the ONNX detection-head outputs that Hailo should compile before attaching its NMS post-processing. These names vary by architecture and can change when the exported graph changes.
+
+The end-node examples below apply to YOLOv8 and YOLO11 detection models that use Hailo's YOLOv8-style NMS post-processing. YOLO26 is NMS-free and does not use this YOLO11 NMS configuration.
 
 ### YOLO11 and YOLOv8
 
@@ -321,7 +336,7 @@ runner.translate_onnx_model(f"{MODEL}.onnx")
 # Check the printed log for: "[info] In order to use HailoRT post-processing..."
 ```
 
-Predefined `.alls` scripts and NMS config files for many YOLO variants are available in the [Hailo Model Zoo](https://github.com/hailo-ai/hailo_model_zoo).
+For direct Ultralytics support, these `.alls` directives and post-processing settings should be generated or selected by the exporter instead of requiring users to assemble them manually.
 
 ## Supported Hardware Architectures
 
@@ -335,7 +350,7 @@ Set `HW_ARCH` in the script to match your target device before compiling.
 
 ## Running Inference on Hailo Hardware
 
-Once you have the `.hef` file, copy it to your Hailo-powered device and run inference using the **HailoRT** Python API (`hailo_platform` package). Unlike the DFC export steps, inference runs directly on the edge device.
+Once compilation finishes, copy the whole `yolo11n_hailo_model/` folder (the `.hef` plus its `metadata.yaml`) to your Hailo-powered device and run inference using either the **HailoRT** Python API (`hailo_platform` package) or, on Raspberry Pi, the **[picamera2](https://github.com/raspberrypi/picamera2)** `Hailo` helper (a HailoRT wrapper). Both are shown in the tabs below. Keeping the two files together lets the scripts below read the class names from `metadata.yaml` next to the HEF. Unlike the DFC export steps, inference runs directly on the edge device.
 
 !!! note
 
@@ -348,6 +363,7 @@ On the target device, install HailoRT and the Python bindings. For Raspberry Pi 
 ```bash
 sudo apt install dkms
 sudo apt install hailo-all
+sudo reboot
 ```
 
 For non-Raspberry Pi Hailo devices, install the HailoRT package that matches your device, driver, and SDK version from the [Hailo Developer Zone](https://hailo.ai/developer-zone/).
@@ -364,14 +380,31 @@ hailortcli fw-control identify
 
 You should see the device type, firmware version, and serial number printed.
 
+```text
+Executing on device: 0001:01:00.0
+Identifying board
+Control Protocol Version: 2
+Firmware Version: 4.23.0 (release,app,extended context switch buffer)
+Logger Version: 0
+Board Name: Hailo-8
+Device Architecture: HAILO8
+```
+
 ### Step 3: Run Inference
 
-The script below runs object detection on a single image using the compiled HEF file and the `hailo_platform` Python API. It handles preprocessing, inference, and drawing bounding boxes from the HailoRT NMS output.
+The scripts below run object detection with the compiled HEF file. Both tabs accept the same `--source` inputs (an image, a video, a USB webcam index, or `csi` for the Raspberry Pi Camera Module) and differ only in the inference API: the **Hailo SDK** tab uses the low-level `hailo_platform` API (portable, minimal dependencies), while the **picamera2** tab uses the Raspberry Pi `picamera2` `Hailo` helper. Images and videos are written to an annotated file; webcam and CSI streams display in a live window.
 
-!!! example "Inference Script"
+=== "Hailo SDK (`hailo_platform`)"
+
+    The vendor-native [HailoRT](https://hailo.ai/developer-zone/) path runs on any platform with a Hailo device and needs no extra dependencies. Pass `--source` an image path, a video path, a webcam index (e.g. `0`) for live USB/V4L2 capture, or `csi` for the Raspberry Pi Camera Module. The CSI option requires `picamera2` to be installed, since modern Raspberry Pi OS routes the camera through libcamera rather than a plain V4L2 device.
 
     ```python
+    import argparse
+    from pathlib import Path
+
+    import cv2
     import numpy as np
+    import yaml
     from hailo_platform import (
         HEF,
         ConfigureParams,
@@ -382,169 +415,209 @@ The script below runs object detection on a single image using the compiled HEF 
         OutputVStreamParams,
         VDevice,
     )
-    from PIL import Image, ImageDraw
+    from tqdm import tqdm
 
-    # Configuration
-    MODEL = "yolo11n"
-    HEF_PATH = f"{MODEL}.hef"  # path to your compiled HEF file
-    SOURCE = "bus.jpg"  # image path
-    IMGSZ = 640
-    CONF = 0.25
+    IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".bmp", ".webp", ".tif", ".tiff"}
 
-    COCO_NAMES = [
-        "person",
-        "bicycle",
-        "car",
-        "motorcycle",
-        "airplane",
-        "bus",
-        "train",
-        "truck",
-        "boat",
-        "traffic light",
-        "fire hydrant",
-        "stop sign",
-        "parking meter",
-        "bench",
-        "bird",
-        "cat",
-        "dog",
-        "horse",
-        "sheep",
-        "cow",
-        "elephant",
-        "bear",
-        "zebra",
-        "giraffe",
-        "backpack",
-        "umbrella",
-        "handbag",
-        "tie",
-        "suitcase",
-        "frisbee",
-        "skis",
-        "snowboard",
-        "sports ball",
-        "kite",
-        "baseball bat",
-        "baseball glove",
-        "skateboard",
-        "surfboard",
-        "tennis racket",
-        "bottle",
-        "wine glass",
-        "cup",
-        "fork",
-        "knife",
-        "spoon",
-        "bowl",
-        "banana",
-        "apple",
-        "sandwich",
-        "orange",
-        "broccoli",
-        "carrot",
-        "hot dog",
-        "pizza",
-        "donut",
-        "cake",
-        "chair",
-        "couch",
-        "potted plant",
-        "bed",
-        "dining table",
-        "toilet",
-        "tv",
-        "laptop",
-        "mouse",
-        "remote",
-        "keyboard",
-        "cell phone",
-        "microwave",
-        "oven",
-        "toaster",
-        "sink",
-        "refrigerator",
-        "book",
-        "clock",
-        "vase",
-        "scissors",
-        "teddy bear",
-        "hair drier",
-        "toothbrush",
-    ]
 
-    # Load HEF and connect to device
-    hef = HEF(HEF_PATH)
-    params = VDevice.create_params()
-    target = VDevice(params)
+    def parse_and_draw(per_class, frame, conf, names):
+        """Draw HailoRT NMS detections (grouped by class, normalized [0, 1] coords) onto a BGR frame."""
+        h, w = frame.shape[:2]
+        for cls_idx, cls_dets in enumerate(per_class):
+            for det in cls_dets:
+                score = float(det[4])
+                if score < conf:
+                    continue
+                # HailoRT NMS returns normalized [0, 1] coords as (y1, x1, y2, x2)
+                y1, x1, y2, x2 = det[:4]
+                x1, y1, x2, y2 = int(x1 * w), int(y1 * h), int(x2 * w), int(y2 * h)
+                label = f"{names[cls_idx]} {score:.2f}"
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                cv2.putText(frame, label, (x1 + 2, y1 + 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1, cv2.LINE_AA)
 
-    configure_params = ConfigureParams.create_from_hef(hef, interface=HailoStreamInterface.PCIe)
-    network_groups = target.configure(hef, configure_params)
-    network_group = network_groups[0]
-    network_group_params = network_group.create_params()
 
-    # Setup I/O virtual streams
-    input_vstreams_params = InputVStreamParams.make(network_group, quantized=False, format_type=FormatType.FLOAT32)
-    output_vstreams_params = OutputVStreamParams.make(network_group, quantized=False, format_type=FormatType.FLOAT32)
+    def preprocess(frame, imgsz):
+        """BGR frame -> (1, imgsz, imgsz, 3) float32 in 0-255 (HEF normalizes internally)."""
+        rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        resized = cv2.resize(rgb, (imgsz, imgsz))
+        return np.expand_dims(resized.astype(np.float32), axis=0)
 
-    # Preprocess
-    orig = Image.open(SOURCE).convert("RGB")
-    ow, oh = orig.size
-    resized = orig.resize((IMGSZ, IMGSZ))
-    input_data = np.expand_dims(np.array(resized, dtype=np.float32), axis=0)  # (1,640,640,3)
-    input_name = hef.get_input_vstream_infos()[0].name
 
-    # Inference
-    with InferVStreams(network_group, input_vstreams_params, output_vstreams_params) as pipeline:
-        with network_group.activate(network_group_params):
-            pipeline.send({input_name: input_data})
-            raw = pipeline.recv()
+    def csi_frames(width=1280, height=720):
+        """Yield BGR frames from the Pi CSI Camera Module via picamera2."""
+        from picamera2 import Picamera2
 
-    # Parse HailoRT NMS output and draw results
-    # When compiled with nms_postprocess the HEF outputs detections grouped by
-    # class: shape (batch, num_classes, max_dets, 5) where 5 = [y1,x1,y2,x2,score]
-    draw = ImageDraw.Draw(orig)
-    output_key = next(iter(raw.keys()))
-    batch_dets = raw[output_key][0]  # shape: (num_classes, max_dets, 5)
+        picam2 = Picamera2()
+        # picamera2 "RGB888" is BGR-ordered in memory, so it drops straight into OpenCV
+        picam2.configure(picam2.create_preview_configuration(main={"size": (width, height), "format": "RGB888"}))
+        picam2.start()
+        try:
+            while True:
+                yield picam2.capture_array("main")  # BGR
+        finally:
+            picam2.stop()
+            picam2.close()
 
-    for cls_idx, cls_dets in enumerate(batch_dets):
-        for det in cls_dets:
-            score = float(det[4])
-            if score < CONF:
-                continue
-            y1, x1, y2, x2 = det[:4]
-            # Scale from model coords (0-640) back to original image size
-            x1 = int(x1 * ow / IMGSZ)
-            y1 = int(y1 * oh / IMGSZ)
-            x2 = int(x2 * ow / IMGSZ)
-            y2 = int(y2 * oh / IMGSZ)
-            label = f"{COCO_NAMES[cls_idx]} {score:.2f}"
-            draw.rectangle([x1, y1, x2, y2], outline="red", width=2)
-            draw.text((x1 + 2, y1 + 2), label, fill="red")
 
-    orig.save("output.jpg")
-    print("Saved output.jpg")
+    def cv2_frames(src):
+        """Yield BGR frames from a video file or USB/V4L2 webcam via OpenCV."""
+        cap = cv2.VideoCapture(src)
+        if not cap.isOpened():
+            raise RuntimeError(f"Could not open source {src}")
+        total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))  # 0 for live webcams
+        pbar = tqdm(total=total, desc="Processing video", unit="frame") if total > 0 else None
+        try:
+            while True:
+                ok, frame = cap.read()  # BGR
+                if not ok:
+                    break
+                yield frame
+                if pbar is not None:
+                    pbar.update(1)
+        finally:
+            if pbar is not None:
+                pbar.close()
+            cap.release()
+
+
+    def open_source(source):
+        """Yield (frame, kind) pairs where kind is 'image', 'video', or 'stream'."""
+        if source == "csi":
+            yield from ((f, "stream") for f in csi_frames())
+        elif source.isdigit():
+            yield from ((f, "stream") for f in cv2_frames(int(source)))
+        elif Path(source).suffix.lower() in IMAGE_EXTS:
+            frame = cv2.imread(source)
+            if frame is None:
+                raise FileNotFoundError(f"Could not read image {source}")
+            yield frame, "image"
+        else:
+            yield from ((f, "video") for f in cv2_frames(source))
+
+
+    if __name__ == "__main__":
+        parser = argparse.ArgumentParser(description="Hailo YOLO inference (image, video, webcam, or CSI camera)")
+        parser.add_argument("-m", "--model", default="yolo11n_hailo_model/yolo11n.hef", help="Path to the HEF model.")
+        parser.add_argument("--source", default="0", help="Image/video path, webcam index (e.g. 0), or 'csi'.")
+        parser.add_argument("--imgsz", type=int, default=640)
+        parser.add_argument("--conf", type=float, default=0.25)
+        args = parser.parse_args()
+
+        # Load class names from metadata.yaml saved next to the HEF during compilation (keyed by class index)
+        with open(Path(args.model).parent / "metadata.yaml") as f:
+            names = yaml.safe_load(f)["names"]
+
+        # Configure the device and network group ONCE
+        hef = HEF(args.model)
+        target = VDevice(VDevice.create_params())
+        configure_params = ConfigureParams.create_from_hef(hef, interface=HailoStreamInterface.PCIe)
+        network_group = target.configure(hef, configure_params)[0]
+        network_group_params = network_group.create_params()
+        input_vstreams_params = InputVStreamParams.make(network_group, quantized=False, format_type=FormatType.FLOAT32)
+        output_vstreams_params = OutputVStreamParams.make(network_group, quantized=False, format_type=FormatType.FLOAT32)
+        input_name = hef.get_input_vstream_infos()[0].name
+
+        writer = None  # lazily created for video output
+
+        # Keep the pipeline and activation OPEN across frames (re-opening per frame is slow)
+        with InferVStreams(network_group, input_vstreams_params, output_vstreams_params) as pipeline:
+            with network_group.activate(network_group_params):
+                try:
+                    for frame, kind in open_source(args.source):
+                        raw = pipeline.infer({input_name: preprocess(frame, args.imgsz)})
+                        parse_and_draw(raw[next(iter(raw.keys()))][0], frame, args.conf, names)
+
+                        if kind == "image":
+                            cv2.imwrite("output.jpg", frame)
+                            print("Saved output.jpg")
+                        elif kind == "video":
+                            if writer is None:
+                                h, w = frame.shape[:2]
+                                writer = cv2.VideoWriter("output.mp4", cv2.VideoWriter_fourcc(*"mp4v"), 30, (w, h))
+                            writer.write(frame)
+                        else:  # live stream
+                            cv2.imshow("Hailo YOLO", frame)
+                            if cv2.waitKey(1) & 0xFF == ord("q"):
+                                break
+                finally:
+                    if writer is not None:
+                        writer.release()
+                        print("Saved output.mp4")
+                    cv2.destroyAllWindows()
     ```
+
+=== "picamera2"
+
+    The [picamera2](https://github.com/raspberrypi/picamera2) path is the Raspberry Pi option that uses its lightweight `Hailo` device class (a HailoRT wrapper) for inference. It accepts the same `--source` inputs as the Hailo SDK tab: an image path, a video path, a webcam index, or `csi` for the **Camera Module**. CSI capture works here because modern Raspberry Pi OS routes the camera through libcamera rather than a plain V4L2 device. It reuses the `IMAGE_EXTS`, `parse_and_draw`, `csi_frames`, `cv2_frames`, and `open_source` helpers from the Hailo SDK tab above; only the imports and the inference loop differ.
+
+    ```python
+    import argparse
+    from pathlib import Path
+
+    import cv2
+    import yaml
+    from picamera2.devices import Hailo
+
+    # Reuse IMAGE_EXTS, parse_and_draw, csi_frames, cv2_frames, and open_source from the Hailo SDK tab above.
+
+
+    if __name__ == "__main__":
+        parser = argparse.ArgumentParser(description="Hailo YOLO inference (image, video, webcam, or CSI camera)")
+        parser.add_argument("-m", "--model", default="yolo11n_hailo_model/yolo11n.hef", help="Path to the HEF model.")
+        parser.add_argument("--source", default="0", help="Image/video path, webcam index (e.g. 0), or 'csi'.")
+        parser.add_argument("--conf", type=float, default=0.25)
+        args = parser.parse_args()
+
+        # Load class names from metadata.yaml saved next to the HEF during compilation (keyed by class index)
+        with open(Path(args.model).parent / "metadata.yaml") as f:
+            names = yaml.safe_load(f)["names"]
+
+        writer = None  # lazily created for video output
+
+        with Hailo(args.model) as hailo:
+            model_h, model_w, _ = hailo.get_input_shape()
+            try:
+                for frame, kind in open_source(args.source):
+                    rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                    model_in = cv2.resize(rgb, (model_w, model_h))  # model expects RGB at this size
+                    per_class = hailo.run(model_in)
+                    parse_and_draw(per_class, frame, args.conf, names)
+
+                    if kind == "image":
+                        cv2.imwrite("output.jpg", frame)
+                        print("Saved output.jpg")
+                    elif kind == "video":
+                        if writer is None:
+                            h, w = frame.shape[:2]
+                            writer = cv2.VideoWriter("output.mp4", cv2.VideoWriter_fourcc(*"mp4v"), 30, (w, h))
+                        writer.write(frame)
+                    else:  # live stream
+                        cv2.imshow("Hailo YOLO", frame)
+                        if cv2.waitKey(1) & 0xFF == ord("q"):
+                            break
+            finally:
+                if writer is not None:
+                    writer.release()
+                    print("Saved output.mp4")
+                cv2.destroyAllWindows()
+    ```
+
+Run it against any source (images save `output.jpg`, videos save `output.mp4`, live streams display in a window, press **q** to quit):
+
+```bash
+python hailo_infer.py --source bus.jpg  # single image
+python hailo_infer.py --source clip.mp4 # video file
+python hailo_infer.py --source 0        # USB webcam, live
+python hailo_infer.py --source csi      # Raspberry Pi Camera Module
+```
 
 !!! tip
 
     The detection output format assumes the HEF was compiled with `nms_postprocess` in the `.alls` script. If you compiled **without** NMS, the raw outputs are the 6 detection head tensors and you must run NMS in your application separately.
 
-### Raspberry Pi AI Kit and AI HAT+
-
-The Raspberry Pi AI Kit and 13 TOPS AI HAT+ use Hailo-8L. To use either device:
-
-1. Set `HW_ARCH = "hailo8l"` before compiling your HEF on the x86 machine.
-2. Copy the `.hef` to your Raspberry Pi.
-3. Install HailoRT by following the [official Raspberry Pi AI software guide](https://www.raspberrypi.com/documentation/computers/ai.html).
-4. Run the inference script above.
-
-For camera-based inference on Raspberry Pi, the [picamera2 Hailo examples](https://github.com/raspberrypi/picamera2/tree/main/examples/hailo) provide ready-to-use scripts for live detection with the Camera Module. You can also compare Raspberry Pi deployment paths in the [Coral Edge TPU on Raspberry Pi guide](../guides/coral-edge-tpu-on-raspberry-pi.md) and [Sony IMX500 integration guide](sony-imx500.md).
-
 ### Video Inference with TAPPAS
 
-For high-throughput video pipelines, [TAPPAS](https://github.com/hailo-ai/tappas) provides GStreamer elements that stream video through the Hailo chip in real time:
+For high-throughput video pipelines, [TAPPAS](https://github.com/hailo-ai/hailo-apps-core) provides GStreamer elements that stream video through the Hailo chip in real time:
 
 ```bash
 MODEL=yolo11n
@@ -554,7 +627,7 @@ gst-launch-1.0 filesrc location=video.mp4 ! decodebin ! \
   hailooverlay ! autovideosink
 ```
 
-See the [TAPPAS documentation](https://github.com/hailo-ai/tappas) for full pipeline configuration options.
+See the [TAPPAS documentation](https://github.com/hailo-ai/hailo-apps-core) for full pipeline configuration options.
 
 ## Summary
 
@@ -566,7 +639,7 @@ This guide covered the complete workflow to export Ultralytics YOLO detection mo
 4. Quantize with a calibration dataset (COCO128 via Ultralytics).
 5. Compile to a `.hef` file ready for Hailo-8, Hailo-8L, or Hailo-15.
 
-For further details, see the [Hailo Developer Zone](https://hailo.ai/developer-zone/), [Hailo documentation](https://hailo.ai/developer-zone/documentation/), and the [Hailo Model Zoo](https://github.com/hailo-ai/hailo_model_zoo). For other Ultralytics export targets, see the related [ONNX](onnx.md), [OpenVINO](openvino.md), [TensorRT](tensorrt.md), [NCNN](ncnn.md), [TFLite Edge TPU](edge-tpu.md), [RKNN](rockchip-rknn.md), [Sony IMX500](sony-imx500.md), and [Qualcomm QNN](qnn.md) guides. To compare exported model speed and accuracy across formats, use [Benchmark mode](../modes/benchmark.md). For the full list of formats and options, visit the [Export mode](../modes/export.md) documentation and the [integrations guide page](index.md).
+For further details, see the [Hailo Developer Zone](https://hailo.ai/developer-zone/) and [Hailo documentation](https://hailo.ai/developer-zone/documentation/). For other Ultralytics export targets, see the related [ONNX](onnx.md), [OpenVINO](openvino.md), [TensorRT](tensorrt.md), [NCNN](ncnn.md), [TFLite Edge TPU](edge-tpu.md), [RKNN](rockchip-rknn.md), [Sony IMX500](sony-imx500.md), and [Qualcomm QNN](qnn.md) guides. To compare exported model speed and accuracy across formats, use [Benchmark mode](../modes/benchmark.md). For the full list of formats and options, visit the [Export mode](../modes/export.md) documentation and the [integrations guide page](index.md).
 
 ## FAQ
 
@@ -590,6 +663,6 @@ A GPU is strongly recommended for the quantization-aware fine-tuning in `runner.
 
 Run `runner.translate_onnx_model(...)` without specifying `end_node_names`, then use the suggested detection-head nodes printed by the DFC. See [Other Architectures](#other-architectures) for the example command.
 
-### Where can I get the Hailo DFC SDK and NMS config files?
+### Where can I get the Hailo DFC SDK?
 
-The Hailo DFC SDK Python wheel is available from the [Hailo Developer Zone](https://hailo.ai/developer-zone/), while predefined `.alls` scripts and NMS config files are available from the [Hailo Model Zoo](https://github.com/hailo-ai/hailo_model_zoo).
+The Hailo DFC SDK Python wheel is available from the [Hailo Developer Zone](https://hailo.ai/developer-zone/). For a direct Ultralytics Hailo exporter, the model script and post-processing configuration should be generated or selected inside the export workflow.

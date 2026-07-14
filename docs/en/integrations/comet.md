@@ -1,4 +1,5 @@
 ---
+title: YOLO26 Training Logging with Comet ML
 comments: true
 description: Learn to simplify the logging of YOLO26 training with Comet. This guide covers installation, setup, real-time insights, and custom logging.
 keywords: YOLO26, Comet, Comet ML, logging, machine learning, training, model checkpoints, metrics, installation, configuration, real-time insights, custom logging
@@ -153,6 +154,8 @@ Comet offers the flexibility to customize its logging behavior by setting enviro
 | `COMET_EVAL_LOG_CONFUSION_MATRIX`   | `false`        | Log a confusion matrix on every validation epoch. A final matrix is always logged at end of training.      |
 | `COMET_MAX_CONFIDENCE_SCORE`        | `100.0`        | Multiplier applied to detection confidence scores before logging (Comet's UI expects a percentage scale).  |
 | `COMET_MODE` _(deprecated)_         | `online`       | Legacy alias of `COMET_START_ONLINE` (`"online"` ↔ `1`, `"offline"` ↔ `0`). Emits a deprecation warning. |
+
+For the boolean toggles (`COMET_EVAL_LOG_IMAGE_PREDICTIONS` and `COMET_EVAL_LOG_CONFUSION_MATRIX`), the values `1`, `true`, `yes`, `on`, `y`, and `t` are parsed as `True` (case-insensitive). Any other value is `False`.
 
 ### Logging Image Predictions
 

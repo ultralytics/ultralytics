@@ -267,9 +267,9 @@ class TQDM:
             est_rate = rate or (self.n / elapsed)
             remaining_str = f"<{self._format_time((self.total - self.n) / est_rate)}"
 
-        # Numbers and percent
+        # Numbers and percent (floor so 100% only shows at true completion)
         if self.total:
-            percent = (self.n / self.total) * 100
+            percent = int(self.n / self.total * 100)
             n_str = self._format_num(self.n)
             t_str = self._format_num(self.total)
             if self.is_bytes and n_str[-2] == t_str[-2]:  # Collapse suffix only when identical (e.g. "5.4/5.4MB")

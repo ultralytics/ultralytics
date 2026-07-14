@@ -2,6 +2,7 @@
 comments: true
 description: Explore the supported dataset formats for Ultralytics YOLO and learn how to prepare and use datasets for training object segmentation models.
 keywords: Ultralytics, YOLO, instance segmentation, dataset formats, auto-annotation, COCO, segmentation models, training data
+title: Instance Segmentation Datasets
 ---
 
 # Instance Segmentation Datasets Overview
@@ -50,7 +51,27 @@ The Ultralytics framework uses a YAML file format to define the dataset and mode
     --8<-- "ultralytics/cfg/datasets/coco8-seg.yaml"
     ```
 
-The `train` and `val` fields specify the paths to the directories containing the training and validation images, respectively.
+The `train`, `val`, and `test` fields point to the training, validation, and test images. Each accepts a directory, a list of directories, or a `*.txt` file listing one image path per line (paths starting with `./` resolve relative to the `*.txt` file). A `*.txt` file is useful to train on a subset of a directory, skip unlabeled images, or combine images from multiple sources into one split.
+
+!!! example "Image paths as a `*.txt` file"
+
+    === "dataset.yaml"
+
+        ```yaml
+        path: datasets/coco8-seg # dataset root
+        train: train.txt # a directory, a list e.g. [images/a, images/b], or a *.txt file
+        val: val.txt
+        names:
+          0: person
+        ```
+
+    === "train.txt"
+
+        ```text
+        ./images/im0.jpg
+        ./images/im1.jpg
+        /data/shared/im2.jpg
+        ```
 
 `names` is a dictionary of class names. The order of the names should match the order of the object class indices in the YOLO dataset files.
 
@@ -209,4 +230,4 @@ from ultralytics.data.annotator import auto_annotate
 auto_annotate(data="path/to/images", det_model="yolo26x.pt", sam_model="sam_b.pt")  # or sam_model="mobile_sam.pt"
 ```
 
-This function automates the annotation process, making it faster and more efficient. For more details, explore the [Auto-Annotate Reference](https://docs.ultralytics.com/reference/data/annotator#ultralytics.data.annotator.auto_annotate).
+This function automates the annotation process, making it faster and more efficient. For more details, explore the [Auto-Annotate Reference](../../reference/data/annotator.md#ultralytics.data.annotator.auto_annotate).

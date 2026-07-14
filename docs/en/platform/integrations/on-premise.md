@@ -61,8 +61,8 @@ Platform fills in the folders and one-time connection token before you copy the 
     Open **Terminal** and paste:
 
     ```bash
-    curl -fsSL 'https://platform.ultralytics.com/api/workers/install?os=linux' |
-      sudo sh -s -- \
+    curl -fsSL 'https://platform.ultralytics.com/api/workers/install?os=linux' \
+      | sudo sh -s -- \
         "/datasets" \
         "/models" \
         "YOUR_CONNECTION_TOKEN"
@@ -73,8 +73,8 @@ Platform fills in the folders and one-time connection token before you copy the 
     Open **Terminal** and paste:
 
     ```bash
-    curl -fsSL 'https://platform.ultralytics.com/api/workers/install?os=macos' |
-      sh -s -- \
+    curl -fsSL 'https://platform.ultralytics.com/api/workers/install?os=macos' \
+      | sh -s -- \
         "$HOME/Ultralytics/datasets" \
         "$HOME/Ultralytics/models" \
         "YOUR_CONNECTION_TOKEN"

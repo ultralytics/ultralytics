@@ -35,10 +35,11 @@ Dataset folders are mounted read-only. Platform and its hosted workers never rec
     - **Dataset folder:** `/datasets`
     - **Models folder:** `/models`
 4. Select **Create install command**.
-5. Copy and run the generated command on the host. It installs Docker Compose when needed, creates the selected folders, starts the CPU worker, and starts the GPU worker automatically when Docker's NVIDIA runtime is available.
-6. Close the dialog when the host shows as connected.
+5. Copy and run the generated command on the host. It installs Docker Compose when needed and creates the selected folders.
+6. Paste the one-time enrollment token when prompted. The installer starts the CPU worker and starts the GPU worker automatically when Docker's NVIDIA runtime is available.
+7. Close the dialog when the host shows as connected.
 
-The command contains a one-time enrollment token that expires after 10 minutes. The installed worker exchanges it for a revocable worker key stored in a mode-`0600` environment file. It never receives Platform MongoDB or cloud-storage credentials.
+The enrollment token expires after 10 minutes and is not stored in shell history. The installed worker exchanges it for a revocable worker key stored in a mode-`0600` environment file. It never receives Platform MongoDB or cloud-storage credentials.
 
 !!! info "NVIDIA training"
 
@@ -48,7 +49,7 @@ The command contains a one-time enrollment token that expires after 10 minutes. 
 
 1. Put the dataset beneath the connected dataset folder. For example, `/datasets/warehouse` is `warehouse` inside the default root.
 2. In Platform, select **New Dataset > On Premise**.
-3. Select the connected host, enter the relative dataset path, choose the task and visibility, and create the dataset.
+3. Select the connected host, enter the relative dataset path, choose the task, and create the private dataset.
 4. The host indexes the dataset and reports metadata. Platform never uploads the images.
 
 On Premise uses the same CPU ingest code as hosted uploads. It supports:

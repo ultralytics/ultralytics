@@ -151,9 +151,9 @@ def modelopt_quantize_onnx(
             # scales are EP-independent, so the INT8 engine is equivalent and only this one-time step is slower.
             calibration_eps=["cpu"],
             output_path=out_file,
-            # Keep Sigmoid unquantized (it runs in FP16) to preserve confidence-score calibration,
+            # Keep Sigmoid/Softmax unquantized (they run in FP16) to preserve confidence-score calibration,
             # mirroring the OpenVINO IgnoredScope https://github.com/ultralytics/ultralytics/issues/24668
-            op_types_to_exclude=["Sigmoid"],
+            op_types_to_exclude=["Sigmoid", "Softmax"],
             **kwargs,
         )
         return out_file
@@ -383,13 +383,15 @@ def onnx2engine(
         )
 
         # Implicit quantization cannot exclude op types like ModelOpt on TRT 11, so keep Sigmoid (an ACTIVATION
-        # layer named after its ONNX node) in FP32 via per-layer precision constraints to preserve confidence-score
-        # calibration, mirroring the OpenVINO IgnoredScope
+        # layer named after its ONNX node) and Softmax in FP32 via per-layer precision constraints to preserve
+        # confidence-score calibration, mirroring the OpenVINO IgnoredScope
         # https://github.com/ultralytics/ultralytics/issues/24668
         count = 0
         for i in range(network.num_layers):
             layer = network.get_layer(i)
-            if layer.type == trt.LayerType.ACTIVATION and "sigmoid" in layer.name.lower():
+            if layer.type == trt.LayerType.SOFTMAX or (
+                layer.type == trt.LayerType.ACTIVATION and "sigmoid" in layer.name.lower()
+            ):
                 layer.precision = trt.float32
                 for j in range(layer.num_outputs):
                     layer.set_output_type(j, trt.float32)
@@ -401,7 +403,7 @@ def onnx2engine(
                 else trt.BuilderFlag.STRICT_TYPES
             )
             config.set_flag(flag)  # OBEY_PRECISION_CONSTRAINTS replaced STRICT_TYPES in TensorRT 8.2
-            LOGGER.info(f"{prefix} keeping {count} Sigmoid layers in FP32 for INT8 accuracy")
+            LOGGER.info(f"{prefix} keeping {count} Sigmoid/Softmax layers in FP32 for INT8 accuracy")
 
     elif use_fp16 and not is_trt11:
         config.set_flag(trt.BuilderFlag.FP16)

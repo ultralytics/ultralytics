@@ -7,7 +7,7 @@ keywords: Ultralytics Platform, On Premise, on-premise computer vision, private 
 
 # On Premise
 
-[On Premise](https://platform.ultralytics.com) connects CPU and optional NVIDIA GPU workers on your own Linux, macOS, or Windows host to Ultralytics Platform. Platform remains the hosted control plane for the UI, authentication, metadata, annotations, and job orchestration, while every pixel and trained model artifact stays on your premises.
+[On Premise](https://platform.ultralytics.com) connects CPU and optional NVIDIA GPU workers on your own Linux, Apple Silicon macOS, or Windows host to Ultralytics Platform. Platform remains the hosted control plane for the UI, authentication, metadata, annotations, and job orchestration, while every pixel and trained model artifact stays on your premises.
 
 Your host needs Docker and outbound HTTPS access to Platform. The installer adds Docker automatically when it is missing, so the normal setup is one command.
 
@@ -39,9 +39,9 @@ Dataset folders are mounted read-only. Platform and its hosted workers never rec
 
 ## Connect a Host
 
-1. Open [Ultralytics Platform](https://platform.ultralytics.com) on the Linux, macOS, or Windows host that can access your datasets.
+1. Open [Ultralytics Platform](https://platform.ultralytics.com) on the Linux, Apple Silicon macOS, or Windows host that can access your datasets.
 2. Go to `Settings > Integrations` and select **Connect** on the **On Premise** card.
-3. Platform selects the detected Linux, macOS, or Windows command. Keep the prefilled values or change them:
+3. Platform selects the detected Linux, Apple Silicon macOS, or Windows command. Keep the prefilled values or change them:
     - **Machine name:** `On Premise host`
     - **Dataset folder:** `/datasets` on Linux or `~/Ultralytics/datasets` on macOS and Windows
     - **Models folder:** `/models` on Linux or `~/Ultralytics/models` on macOS and Windows

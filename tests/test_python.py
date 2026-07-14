@@ -82,12 +82,22 @@ def test_dataloader_empty_dataset_uses_dataloader_validation():
         build_dataloader([], batch=4, workers=2)
 
 
-def test_cfg_rejects_fuzzed_scalars():
-    """Test invalid scalar overrides fail in config validation."""
+def test_cfg_rejects_fuzzed_values():
+    """Test invalid overrides fail in config validation."""
     with pytest.raises(TypeError, match="degrees"):
         get_cfg(overrides={"degrees": None})
     with pytest.raises(ValueError, match="cls_pw"):
         get_cfg(overrides={"cls_pw": 10})
+    for key, value in (
+        ("split", []),
+        ("split", -0.0),
+        ("split", "🚀"),
+        ("optimizer", []),
+        ("auto_augment", "randaug"),
+        ("copy_paste_mode", {}),
+    ):
+        with pytest.raises(ValueError, match=key):
+            get_cfg(overrides={key: value})
 
 
 def skip_rpi_semantic():

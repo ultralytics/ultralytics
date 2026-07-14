@@ -293,6 +293,12 @@ CFG_BOOL_KEYS = frozenset(
         "cls_remap",
     }
 )
+CFG_CHOICES = {
+    "optimizer": frozenset({"Adam", "Adamax", "AdamW", "MuSGD", "NAdam", "RAdam", "RMSProp", "SGD", "auto"}),
+    "split": frozenset({"train", "val", "test", "minival"}),
+    "copy_paste_mode": frozenset({"flip", "mixup"}),
+    "auto_augment": frozenset({"randaugment", "autoaugment", "augmix"}),
+}
 
 
 def cfg2dict(cfg: str | Path | dict | SimpleNamespace) -> dict:
@@ -460,6 +466,13 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                         f"'{k}' must be a bool (i.e. '{k}=True' or '{k}=False')"
                     )
                 cfg[k] = bool(v)
+            elif k in CFG_CHOICES:
+                choices = CFG_CHOICES[k]
+                valid = isinstance(v, str) and (
+                    v in choices or (k == "optimizer" and v.lower() in {x.lower() for x in choices})
+                )
+                if not valid:
+                    raise ValueError(f"'{k}={v}' is invalid. Valid '{k}' values are {sorted(choices)}.")
             elif k == "compile" and not isinstance(v, (bool, str)):  # False=off, True="default", or a mode string
                 if hard:
                     raise TypeError(

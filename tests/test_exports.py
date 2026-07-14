@@ -63,6 +63,13 @@ def test_export_onnx(end2end, isolated_model):
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
+def test_export_end2end_max_det_floor(isolated_model):
+    """End2end exports keep head top-k >= 300 so `classes` filtering sees all candidates, mirroring Python inference."""
+    file = YOLO(isolated_model).export(format="torchscript", imgsz=640, max_det=5, end2end=True)
+    out = torch.jit.load(file)(torch.zeros(1, 3, 640, 640))
+    assert out.shape[-2] == 300  # max(max_det, 300) candidates baked into the graph, not max_det=5
+
+
 @pytest.mark.slow
 @pytest.mark.parametrize("precision", [{"int8": True}, {"quantize": 8}])
 def test_export_onnx_int8(isolated_model, precision):

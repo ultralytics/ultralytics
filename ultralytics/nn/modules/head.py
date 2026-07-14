@@ -102,6 +102,7 @@ class Detect(nn.Module):
     o2o_grad_scale = 0.0  # gradient scale for one2one features (0=detach, 1=full gradient)
     o2o_residual_head = False  # lightweight residual cls head for one2one (share boxes with o2m)
     o2o_dilated = False  # multi-dilation RepDWConv in one2one cls branch (fuses to DW 5x5, wider RF for duplicate suppression)
+    head_dilated = False  # multi-dilation RepDWConv in BOTH o2m and o2o cls branches (swapped before deepcopy)
     peak_pool_k = 0  # end2end inference-only local-max suppression kernel (0=off, odd int like 3/5)
     keep_one2many = False  # keep one2many head through fuse() to allow dual-head validation (set by the validator)
     fixed_c3 = 0  # fix cls branch hidden width regardless of nc (0 = auto: min(nc, 100)); keeps head shape stable across datasets for finetuning
@@ -156,6 +157,10 @@ class Detect(nn.Module):
                     for x in ch
                 )
             )
+        if self.head_dilated and not self.legacy and not self.rep_head:
+            for m, x in zip(self.cv3, ch):
+                m[0][0] = RepDWConv(x)
+                m[1][0] = RepDWConv(c3)
         self.dfl = DFL(self.reg_max) if self.reg_max > 1 else nn.Identity()
 
         if end2end:

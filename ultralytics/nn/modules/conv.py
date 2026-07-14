@@ -1447,8 +1447,11 @@ class GCAttn(nn.Module):
     """Global Context block (GCNet, ICCVW 2019).
 
     Aggregates a single scene-level context vector via softmax-weighted spatial pooling,
-    transforms it with a bottleneck channel MLP (LayerNorm-stabilized), and broadcast-adds
-    it back. O(C*HW) pooling — near-free global context.
+    transforms it with a bottleneck channel MLP (norm-stabilized), and broadcast-adds
+    it back. O(C*HW) pooling — near-free global context. Uses GroupNorm(1, ch) instead of
+    the paper's LayerNorm([ch, 1, 1]) — identical normalization on a (b, ch, 1, 1) tensor,
+    but with 1D affine params so optimizers that route >=2D weights to matrix-based updates
+    (e.g. MuSGD/Muon) treat them as norm params.
     """
 
     def __init__(self, c: int, e: float = 0.25):
@@ -1463,7 +1466,7 @@ class GCAttn(nn.Module):
         self.mask = nn.Conv2d(c, 1, 1)
         self.transform = nn.Sequential(
             nn.Conv2d(c, ch, 1),
-            nn.LayerNorm([ch, 1, 1]),
+            nn.GroupNorm(1, ch),
             nn.ReLU(inplace=True),
             nn.Conv2d(ch, c, 1),
         )

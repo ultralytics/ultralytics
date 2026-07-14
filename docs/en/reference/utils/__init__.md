@@ -60,6 +60,10 @@ keywords: Ultralytics, utils, TQDM, Python, ML, Machine Learning utilities, YOLO
 
 <br><br><hr><br>
 
+## ::: ultralytics.utils.__init__.get_pythonpath_env
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.__init__.read_device_model
 
 <br><br><hr><br>

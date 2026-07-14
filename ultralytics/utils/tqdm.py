@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import os
-import shutil
 import sys
 import time
+import unicodedata
 from functools import lru_cache
 from typing import IO, Any
 
@@ -14,6 +14,21 @@ from typing import IO, Any
 def is_noninteractive_console() -> bool:
     """Check for known non-interactive console environments."""
     return "GITHUB_ACTIONS" in os.environ or "RUNPOD_POD_ID" in os.environ
+
+
+def cell_len(text: str) -> int:
+    """Return display width of text in terminal cells, counting wide CJK/emoji characters as two."""
+    return sum(2 if unicodedata.east_asian_width(c) in "WF" else 1 for c in text)
+
+
+def cell_trim(text: str, width: int) -> str:
+    """Trim text to at most width terminal cells."""
+    w = 0
+    for i, c in enumerate(text):
+        w += 2 if unicodedata.east_asian_width(c) in "WF" else 1
+        if w > width:
+            return text[:i]
+    return text
 
 
 class TQDM:
@@ -274,21 +289,21 @@ class TQDM:
         desc = self.desc or ""
         progress_str = compose(desc, 12)
 
-        # Fit to terminal width only for real terminals to avoid truncating file/StringIO/log output
+        # Fit to width of the output terminal only, to avoid truncating file/StringIO/log output
         try:
             is_tty = self.file.isatty()
-            term_width = shutil.get_terminal_size().columns - 1
+            term_width = os.get_terminal_size(self.file.fileno()).columns - 1
         except Exception:
             is_tty, term_width = False, 79
 
-        if is_tty and len(progress_str) > term_width:
-            progress_str = compose(desc, max(4, min(12, term_width - len(compose(desc, 0)))))
-            if len(progress_str) > term_width:
-                overflow = len(progress_str) - term_width
-                if len(desc) > overflow + 3:
-                    progress_str = compose(desc[: len(desc) - overflow - 3] + "...", 4)
+        if is_tty and cell_len(progress_str) > term_width:
+            progress_str = compose(desc, max(4, min(12, term_width - cell_len(compose(desc, 0)))))
+            if cell_len(progress_str) > term_width:
+                room = term_width - cell_len(compose("", 4))  # cells left for the description
+                if room > 3:
+                    progress_str = compose(cell_trim(desc, room - 3) + "...", 4)
                 else:
-                    progress_str = progress_str[: term_width - 1] + "…"
+                    progress_str = cell_trim(progress_str, term_width - 1) + "…"
 
         # Write to output
         try:

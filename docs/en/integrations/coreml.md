@@ -6,11 +6,11 @@ keywords: CoreML export, Core ML, YOLO26 CoreML, Apple Neural Engine, ANE, mlpac
 
 # CoreML Export for YOLO26 Models
 
-Apple ships dedicated AI silicon — the Neural Engine — in every modern iPhone, iPad, and Mac, and [CoreML](https://developer.apple.com/documentation/coreml) is Ultralytics' supported path for deploying models to it today. Exporting [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) models to CoreML turns a trained `.pt` checkpoint into a native `.mlpackage` that runs all six YOLO tasks on-device at single-digit milliseconds, with no network connection and no data leaving the device.
+Apple ships dedicated AI silicon — the Neural Engine — in every modern iPhone, iPad, and Mac, and [CoreML](https://developer.apple.com/documentation/coreml) is Ultralytics' supported path for deploying models to it today. Exporting [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) models to CoreML turns a trained `.pt` checkpoint into a native `.mlpackage` that runs all seven YOLO tasks on-device at low latency, with no network connection and no data leaving the device.
 
 !!! tip "Run YOLO on the Apple Neural Engine today with the official mobile apps"
 
-    The official [Ultralytics YOLO iOS SDK](https://github.com/ultralytics/yolo-ios-app) and [Flutter plugin](https://github.com/ultralytics/yolo-flutter-app) run CoreML exports on the Apple Neural Engine out of the box — real-time camera inference, single-image prediction, and automatic model download for all six YOLO26 tasks. For Android NPU deployment, see the [Qualcomm QNN integration](qnn.md).
+    The official [Ultralytics YOLO iOS SDK](https://github.com/ultralytics/yolo-ios-app) and [Flutter plugin](https://github.com/ultralytics/yolo-flutter-app) run CoreML exports on the Apple Neural Engine out of the box — real-time camera inference, single-image prediction, and automatic model download for all seven YOLO26 tasks, including Depth. For Android NPU deployment, see the [Qualcomm QNN integration](qnn.md).
 
 !!! note "Apple's future Core AI format"
 
@@ -39,26 +39,27 @@ CoreML integrates directly with Apple's [Vision framework](https://developer.app
 
 ## Why Export YOLO26 to CoreML?
 
-- **Neural Engine speed**: YOLO26n detection runs end-to-end in **3.8 ms** on an iPhone 17 Pro for single images, and ~16 ms/frame in sustained real-time camera use (see the table and notes below) — comfortably real-time with headroom for the rest of your app.
+- **Neural Engine speed**: YOLO26n detection runs end-to-end in **3.8 ms** on an iPhone 17 Pro for single images and 11.3 ms/frame in sustained real-time camera use; YOLO26n Depth takes **5.5 ms** for a single image and 16.5 ms/frame in the live camera (see the table and notes below).
 - **NMS-free by design**: YOLO26 is [end-to-end](https://www.ultralytics.com/glossary/non-maximum-suppression-nms), so the exported graph needs no NMS pipeline and decode is sub-millisecond. Older models like YOLO11 can embed a CoreML NMS pipeline with `nms=True`.
 - **Private and offline**: All computation stays on the device — no cloud round-trips, no API keys, full [data privacy](https://www.ultralytics.com/glossary/data-privacy).
 - **One export, the whole ecosystem**: The same `.mlpackage` runs on iOS, iPadOS, macOS, watchOS, tvOS, and visionOS, and powers the official Ultralytics [iOS SDK](https://github.com/ultralytics/yolo-ios-app) and [Flutter plugin](https://github.com/ultralytics/yolo-flutter-app).
 
 ## Measured Performance
 
-End-to-end single-image inference for the official YOLO26n INT8 CoreML models on an iPhone 17 Pro (Apple A19, iOS 26.5). Each cell shows the **total time** (preprocessing + inference + postprocessing, excluding annotation) with the per-stage split beneath it. On iOS, Vision performs input scaling inside the inference request, so preprocessing is reported as 0 and its cost is included in inference.
+End-to-end single-image inference for the official YOLO26n INT8 CoreML models on an iPhone 17 Pro (Apple A19, iOS 26.5.2). Each cell shows the **total time** (preprocessing + inference + postprocessing, excluding annotation) with the per-stage split beneath it. On iOS, Vision performs input scaling inside the inference request, so preprocessing is reported as 0 and its cost is included in inference.
 
-| Model        | Task     | size<br><sup>(pixels)</sup> | CPU<br><sup>`.cpuOnly`<br>(ms)</sup> | Neural Engine<br><sup>`.cpuAndNeuralEngine`<br>(ms)</sup> |
-| ------------ | -------- | --------------------------- | ------------------------------------ | --------------------------------------------------------- |
-| YOLO26n      | Detect   | 640                         | 9.1<br><sup>0.0 / 9.1 / 0.0</sup>    | **3.8**<br><sup>0.0 / 3.8 / 0.0</sup>                     |
-| YOLO26n-seg  | Segment  | 640                         | 12.3<br><sup>0.0 / 12.1 / 0.2</sup>  | **4.8**<br><sup>0.0 / 4.5 / 0.3</sup>                     |
-| YOLO26n-sem  | Semantic | 1024<sup>1</sup>            | 21.8<br><sup>0.0 / 21.0 / 0.8</sup>  | **12.1**<br><sup>0.0 / 11.3 / 0.8</sup>                   |
-| YOLO26n-cls  | Classify | 224                         | 2.2<br><sup>0.0 / 2.2 / 0.0</sup>    | **2.0**<br><sup>0.0 / 2.0 / 0.0</sup>                     |
-| YOLO26n-pose | Pose     | 640                         | 12.0<br><sup>0.0 / 11.9 / 0.0</sup>  | **3.8**<br><sup>0.0 / 3.8 / 0.0</sup>                     |
-| YOLO26n-obb  | OBB      | 1024                        | 21.7<br><sup>0.0 / 21.7 / 0.0</sup>  | **7.2**<br><sup>0.0 / 7.2 / 0.0</sup>                     |
+| Model         | Task     | size<br><sup>(pixels)</sup> | CPU<br><sup>`.cpuOnly`<br>(ms)</sup> | Neural Engine<br><sup>`.cpuAndNeuralEngine`<br>(ms)</sup> |
+| ------------- | -------- | --------------------------- | ------------------------------------ | --------------------------------------------------------- |
+| YOLO26n       | Detect   | 640                         | 9.1<br><sup>0.0 / 9.1 / 0.0</sup>    | **3.8**<br><sup>0.0 / 3.8 / 0.0</sup>                     |
+| YOLO26n-seg   | Segment  | 640                         | 12.3<br><sup>0.0 / 12.1 / 0.2</sup>  | **4.8**<br><sup>0.0 / 4.5 / 0.3</sup>                     |
+| YOLO26n-sem   | Semantic | 1024<sup>1</sup>            | 21.8<br><sup>0.0 / 21.0 / 0.8</sup>  | **12.1**<br><sup>0.0 / 11.3 / 0.8</sup>                   |
+| YOLO26n-depth | Depth    | 640                         | 24.8<br><sup>0.0 / 23.9 / 0.9</sup>  | **5.5**<br><sup>0.0 / 4.7 / 0.9</sup>                     |
+| YOLO26n-cls   | Classify | 224                         | 2.2<br><sup>0.0 / 2.2 / 0.0</sup>    | **2.0**<br><sup>0.0 / 2.0 / 0.0</sup>                     |
+| YOLO26n-pose  | Pose     | 640                         | 12.0<br><sup>0.0 / 11.9 / 0.0</sup>  | **3.8**<br><sup>0.0 / 3.8 / 0.0</sup>                     |
+| YOLO26n-obb   | OBB      | 1024                        | 21.7<br><sup>0.0 / 21.7 / 0.0</sup>  | **7.2**<br><sup>0.0 / 7.2 / 0.0</sup>                     |
 
 - <sup>1</sup> Semantic CoreML exports embed the ArgMax in the graph and return a compact full-resolution class map (`[1, 1024, 1024]`) instead of float logits, so the postprocess is a sub-millisecond color sweep and masks render pixel-sharp.
-- **Speed** values are **single-image burst latencies** — the mean of 15 runs after 3 warmup runs on `bus.jpg`, measured through the [iOS SDK's](https://github.com/ultralytics/yolo-ios-app) per-stage timing via the [Flutter plugin's](https://github.com/ultralytics/yolo-flutter-app) benchmark harness in profile mode (optimized native code). Sustained real-time camera operation runs higher (full-sensor letterboxing every frame plus thermal settling): YOLO26n detect measures ~16 ms/frame in the live camera app on the same device — see the [iOS SDK performance doc](https://github.com/ultralytics/yolo-ios-app/blob/main/docs/performance.md) for steady-state profiling.
+- **Speed** values are **single-image burst latencies** — the mean of 15 runs after 3 warmup runs on `bus.jpg`, measured through the [iOS SDK's](https://github.com/ultralytics/yolo-ios-app) per-stage timing via the [Flutter plugin's](https://github.com/ultralytics/yolo-flutter-app) benchmark harness in profile mode (optimized native code). Sustained real-time camera operation runs higher because it includes the capture and scaling pipeline plus thermal settling: YOLO26n detect measures 11.3 ms/frame and YOLO26n Depth 16.5 ms/frame in the live camera app on the same device — see the [iOS SDK performance doc](https://github.com/ultralytics/yolo-ios-app/blob/main/docs/performance.md) for steady-state profiling.
 - The matching Snapdragon CPU/GPU/NPU table is in the [Qualcomm QNN integration](qnn.md).
 
 ## Exporting YOLO26 Models to CoreML

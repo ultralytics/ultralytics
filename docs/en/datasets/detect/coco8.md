@@ -40,7 +40,7 @@ Explore [COCO8 on Ultralytics Platform](https://platform.ultralytics.com/ultraly
 
 ## Dataset YAML
 
-The COCO8 dataset configuration is defined in a YAML (Yet Another Markup Language) file, which specifies dataset paths, class names, and other essential metadata. You can review the official `coco8.yaml` file in the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8.yaml).
+The COCO8 dataset configuration is defined in a YAML file, which specifies dataset paths, class names, and other essential metadata. You can review the official `coco8.yaml` file in the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8.yaml).
 
 !!! example "ultralytics/cfg/datasets/coco8.yaml"
 

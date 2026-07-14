@@ -16,12 +16,12 @@ def is_noninteractive_console() -> bool:
     return "GITHUB_ACTIONS" in os.environ or "RUNPOD_POD_ID" in os.environ
 
 
-def cell_len(text: str) -> int:
+def _cell_len(text: str) -> int:
     """Return display width of text in terminal cells, counting wide CJK/emoji characters as two."""
     return sum(2 if unicodedata.east_asian_width(c) in "WF" else 1 for c in text)
 
 
-def cell_trim(text: str, width: int) -> str:
+def _cell_trim(text: str, width: int) -> str:
     """Trim text to at most width terminal cells."""
     w = 0
     for i, c in enumerate(text):
@@ -296,14 +296,14 @@ class TQDM:
         except Exception:
             is_tty, term_width = False, 79
 
-        if is_tty and cell_len(progress_str) > term_width:
-            progress_str = compose(desc, max(4, min(12, term_width - cell_len(compose(desc, 0)))))
-            if cell_len(progress_str) > term_width:
-                room = term_width - cell_len(compose("", 4))  # cells left for the description
+        if is_tty and _cell_len(progress_str) > term_width:
+            progress_str = compose(desc, max(4, min(12, term_width - _cell_len(compose(desc, 0)))))
+            if _cell_len(progress_str) > term_width:
+                room = term_width - _cell_len(compose("", 4))  # cells left for the description
                 if room > 3:
-                    progress_str = compose(cell_trim(desc, room - 3) + "...", 4)
+                    progress_str = compose(_cell_trim(desc, room - 3) + "...", 4)
                 else:
-                    progress_str = cell_trim(progress_str, term_width - 1) + "…"
+                    progress_str = _cell_trim(progress_str, term_width - 1) + "…"
 
         # Write to output
         try:

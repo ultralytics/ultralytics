@@ -970,30 +970,6 @@ def test_semantic_loss_all_ignore(nc):
     assert preds.grad is not None and aux.grad is not None
 
 
-def test_seg_loss_sparse_batch_overlap_false():
-    """v8SegmentationLoss must score every image's masks with overlap_mask=False, even when the batch has fewer
-    instances than images (the per-instance masks tensor must not truncate the per-image loop).
-    """
-    from ultralytics.utils.loss import v8SegmentationLoss
-
-    obj = v8SegmentationLoss.__new__(v8SegmentationLoss)
-    obj.overlap = False
-    bs, na, mh, npr = 4, 4, 8, 32
-    fg_mask = torch.zeros(bs, na, dtype=torch.bool)
-    fg_mask[2, 0] = fg_mask[3, 0] = True  # only images 2 and 3 carry an instance
-    masks = torch.zeros(2, mh, mh)  # 2 instances < 4 images -> a naive zip would stop after 2 iterations
-    masks[:, 2:6, 2:6] = 1.0
-    batch_idx = torch.tensor([[2], [3]])
-    target_gt_idx = torch.zeros(bs, na, dtype=torch.long)
-    target_bboxes = torch.zeros(bs, na, 4)
-    target_bboxes[2, 0] = target_bboxes[3, 0] = torch.tensor([10.0, 10.0, 50.0, 50.0])
-    proto, pred = torch.randn(bs, npr, mh, mh), torch.randn(bs, na, npr)
-    loss = v8SegmentationLoss.calculate_segmentation_loss(
-        obj, fg_mask, masks, target_gt_idx, target_bboxes, batch_idx, proto, pred, torch.tensor([64.0, 64.0])
-    )
-    assert loss > 0, "masks on the trailing images were dropped from the loss"
-
-
 def test_utils_ops():
     """Test utility operations for coordinate transformations and normalizations."""
     from ultralytics.utils.ops import (

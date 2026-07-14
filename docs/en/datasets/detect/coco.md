@@ -30,6 +30,7 @@ The [COCO](https://cocodataset.org/#home) (Common Objects in Context) dataset is
 - The dataset comprises 80 object categories, including common objects like cars, bicycles, and animals, as well as more specific categories such as umbrellas, handbags, and sports equipment.
 - Annotations include object bounding boxes, segmentation masks, and captions for each image.
 - COCO provides standardized evaluation metrics like [mean Average Precision](https://www.ultralytics.com/glossary/mean-average-precision-map) (mAP) for object detection, and mean Average [Recall](https://www.ultralytics.com/glossary/recall) (mAR) for segmentation tasks, making it suitable for comparing model performance.
+- **Download size**: ~20.3 GB on first use (`train2017.zip` + `val2017.zip` + labels). The 7 GB `test2017.zip` is not fetched automatically, since those images have withheld ground truth and are only needed for a [test-dev2017 submission](https://cocodataset.org/#upload).
 
 ## Dataset Structure
 

@@ -22,10 +22,8 @@ def _cell_width(text: str) -> int:
 
     return sum(
         0
-        if unicodedata.combining(char) or unicodedata.category(char) in {"Cc", "Cf"}
-        else 2
-        if unicodedata.east_asian_width(char) in "WF"
-        else 1
+        if unicodedata.combining(char) or unicodedata.category(char).startswith("C")
+        else 1 + (unicodedata.east_asian_width(char) in "WF")
         for char in remove_colorstr(text)
     )
 

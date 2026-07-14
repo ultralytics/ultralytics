@@ -49,30 +49,18 @@ from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13
 
 def test_tqdm_terminal_width(monkeypatch):
     """Test ANSI, combining, and wide characters fit the output terminal without truncating redirected logs."""
+
+    def render(desc, width, isatty=True):
+        monkeypatch.setattr(os, "get_terminal_size", lambda _: os.terminal_size((width, 24)))
+        output = StringIO()
+        output.isatty, output.fileno = lambda: isatty, lambda: 1
+        TQDM(total=10, desc=desc, file=output, disable=False)._display(final=True)
+        return output.getvalue()
+
     assert _cell_width("\033[31m界e\u0301\033[0m") == 3
-
-    class Terminal(StringIO):
-        """In-memory terminal stream."""
-
-        def isatty(self):
-            return True
-
-        def fileno(self):
-            return 1
-
-    monkeypatch.setattr(os, "get_terminal_size", lambda _: os.terminal_size((20, 24)))
-    terminal = Terminal()
-    TQDM(total=10, desc="\033[31m处理很长的描述\033[0m", file=terminal, disable=False)._display(final=True)
-    assert _cell_width(terminal.getvalue().rsplit("\r", 1)[-1]) <= 19
-
-    monkeypatch.setattr(os, "get_terminal_size", lambda _: os.terminal_size((100, 24)))
-    terminal = Terminal()
-    TQDM(total=10, desc="\033[31mcolored\033[0m", file=terminal, disable=False)._display(final=True)
-    assert "\033[31mcolored\033[0m" in terminal.getvalue()
-
-    redirected = StringIO()
-    TQDM(total=10, desc="untruncated description", file=redirected, disable=False)._display(final=True)
-    assert "untruncated description" in redirected.getvalue()
+    assert _cell_width(render("\033[31m处理很长的描述\033[0m", 20).rsplit("\r", 1)[-1]) <= 19
+    assert "\033[31mcolored\033[0m" in render("\033[31mcolored\033[0m", 100)
+    assert "untruncated description" in render("untruncated description", 20, isatty=False)
 
 
 def test_dataloader_caps_workers_to_batches():

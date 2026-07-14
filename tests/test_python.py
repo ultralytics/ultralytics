@@ -509,6 +509,20 @@ def test_val(task: str, weight: str, data: str) -> None:
         metrics.confusion_matrix.to_json()
 
 
+def test_val_compile_mode(monkeypatch, tmp_path):
+    """Test that standalone validation forwards the user's compile mode to attempt_compile."""
+    import ultralytics.engine.validator as validator_module
+
+    modes = []
+    monkeypatch.setattr(
+        validator_module,
+        "attempt_compile",
+        lambda model, device=None, mode="default", **kwargs: modes.append(mode) or model,
+    )
+    YOLO(MODEL).val(data="coco8.yaml", imgsz=32, compile="max-autotune-no-cudagraphs", project=tmp_path, name="val")
+    assert modes == ["max-autotune-no-cudagraphs"]
+
+
 def test_val_save_txt_pose(tmp_path):
     """Test that pose keypoints saved by val(save_txt=True) and val(save_json=True) are in the original image space."""
     model = YOLO(WEIGHTS_DIR / "yolo26n-pose.pt")

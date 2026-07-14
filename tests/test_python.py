@@ -44,7 +44,7 @@ from ultralytics.utils import (
 )
 from ultralytics.utils.downloads import download, safe_download
 from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13
-from ultralytics.utils.tqdm import TQDM, _cell_width
+from ultralytics.utils.tqdm import TQDM
 
 
 def test_tqdm_terminal_width(monkeypatch):
@@ -57,8 +57,8 @@ def test_tqdm_terminal_width(monkeypatch):
         TQDM(total=10, desc=desc, file=output, disable=False)._display(final=True)
         return output.getvalue()
 
-    assert _cell_width("\033[31m界e\u0301\033[0m") == 3
-    assert _cell_width(render("\033[31m处理很长的描述\033[0m", 20).rsplit("\r", 1)[-1]) <= 19
+    assert TQDM._cell_width("\033[31m界e\u0301\033[0m") == 3
+    assert TQDM._cell_width(render("\033[31m处理很长的描述\033[0m", 20).rsplit("\r", 1)[-1]) <= 19
     assert "\033[31mcolored\033[0m" in render("\033[31mcolored\033[0m", 100)
     assert "untruncated description" in render("untruncated description", 20, isatty=False)
 

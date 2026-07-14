@@ -16,18 +16,6 @@ def is_noninteractive_console() -> bool:
     return "GITHUB_ACTIONS" in os.environ or "RUNPOD_POD_ID" in os.environ
 
 
-def _cell_width(text: str) -> int:
-    """Return a conservative terminal-cell width for ANSI-colored Unicode text."""
-    from ultralytics.utils import remove_colorstr
-
-    return sum(
-        0
-        if unicodedata.combining(char) or unicodedata.category(char).startswith("C")
-        else 1 + (unicodedata.east_asian_width(char) in "WF")
-        for char in remove_colorstr(text)
-    )
-
-
 class TQDM:
     """Lightweight zero-dependency progress bar for Ultralytics.
 
@@ -89,6 +77,18 @@ class TQDM:
     RATE_SMOOTHING_FACTOR = 0.3  # Factor for exponential smoothing of rates
     MAX_SMOOTHED_RATE = 1000000  # Maximum rate to apply smoothing to
     NONINTERACTIVE_MIN_INTERVAL = 60.0  # Minimum interval for non-interactive environments
+
+    @staticmethod
+    def _cell_width(text: str) -> int:
+        """Return a conservative terminal-cell width for ANSI-colored Unicode text."""
+        from ultralytics.utils import remove_colorstr
+
+        return sum(
+            0
+            if unicodedata.combining(char) or unicodedata.category(char).startswith("C")
+            else 1 + (unicodedata.east_asian_width(char) in "WF")
+            for char in remove_colorstr(text)
+        )
 
     def __init__(
         self,
@@ -292,15 +292,15 @@ class TQDM:
 
             term_width = max(1, os.get_terminal_size(self.file.fileno()).columns - 1)
             bar_width = 12
-            while _cell_width(progress_str) > term_width and bar_width:
+            while self._cell_width(progress_str) > term_width and bar_width:
                 bar_width -= 1
                 progress_str = compose(desc, bar_width)
-            if _cell_width(progress_str) > term_width:
+            if self._cell_width(progress_str) > term_width:
                 desc = remove_colorstr(desc)
-                while desc and _cell_width(progress_str) > term_width:
+                while desc and self._cell_width(progress_str) > term_width:
                     desc = desc[:-1]
                     progress_str = compose(f"{desc}…" if desc else "", bar_width)
-                while _cell_width(progress_str) > term_width:
+                while self._cell_width(progress_str) > term_width:
                     progress_str = progress_str[:-1]
 
         # Write to output

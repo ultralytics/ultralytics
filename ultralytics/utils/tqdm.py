@@ -209,25 +209,6 @@ class TQDM:
             return False
         return (self.total is not None and self.n >= self.total) or (dt >= self.mininterval)
 
-    def _compose(
-        self,
-        desc: str,
-        percent: float,
-        n_str: str,
-        t_str: str,
-        rate_str: str,
-        elapsed_str: str,
-        remaining_str: str,
-        bar_width: int,
-    ) -> str:
-        """Compose progress string with given bar width."""
-        bar = self._generate_bar(bar_width)
-        if self.total:
-            if self.is_bytes and self.n >= self.total:
-                return f"{desc}: {percent:.0f}% {bar} {t_str} {rate_str} {elapsed_str}"
-            return f"{desc}: {percent:.0f}% {bar} {n_str}/{t_str} {rate_str} {elapsed_str}{remaining_str}"
-        return f"{desc}: {bar} {n_str} {rate_str} {elapsed_str}"
-
     def _display(self, final: bool = False) -> None:
         """Display progress bar."""
         if self.disable or (self.closed and not final):
@@ -281,31 +262,31 @@ class TQDM:
         elapsed_str = self._format_time(elapsed)
         rate_str = self._format_rate(rate) or (self._format_rate(self.n / elapsed) if elapsed > 0 else "")
 
+        def compose(desc: str, bar_width: int) -> str:
+            """Compose progress line with the given description and bar width."""
+            bar = self._generate_bar(bar_width)
+            if self.total:
+                if self.is_bytes and self.n >= self.total:
+                    return f"{desc}: {percent:.0f}% {bar} {t_str} {rate_str} {elapsed_str}"
+                return f"{desc}: {percent:.0f}% {bar} {n_str}/{t_str} {rate_str} {elapsed_str}{remaining_str}"
+            return f"{desc}: {bar} {n_str} {rate_str} {elapsed_str}"
+
         desc = self.desc or ""
-        progress_str = self._compose(desc, percent, n_str, t_str, rate_str, elapsed_str, remaining_str, 12)
+        progress_str = compose(desc, 12)
 
         # Fit to terminal width only for real terminals to avoid truncating file/StringIO/log output
         try:
             is_tty = self.file.isatty()
-        except Exception:
-            is_tty = False
-        try:
             term_width = shutil.get_terminal_size().columns - 1
         except Exception:
-            term_width = 79
+            is_tty, term_width = False, 79
 
         if is_tty and len(progress_str) > term_width:
-            fixed_len = len(self._compose(desc, percent, n_str, t_str, rate_str, elapsed_str, remaining_str, 0))
-            bar_width = max(4, term_width - fixed_len)
-            progress_str = self._compose(
-                desc, percent, n_str, t_str, rate_str, elapsed_str, remaining_str, min(12, bar_width)
-            )
-
+            progress_str = compose(desc, max(4, min(12, term_width - len(compose(desc, 0)))))
             if len(progress_str) > term_width:
                 overflow = len(progress_str) - term_width
                 if len(desc) > overflow + 3:
-                    desc = desc[: len(desc) - overflow - 3] + "..."
-                    progress_str = self._compose(desc, percent, n_str, t_str, rate_str, elapsed_str, remaining_str, 4)
+                    progress_str = compose(desc[: len(desc) - overflow - 3] + "...", 4)
                 else:
                     progress_str = progress_str[: term_width - 1] + "…"
 

@@ -305,7 +305,9 @@ class TQDM:
                             desc, desc_cells = self._fit_cells(desc)
                             desc, _ = self._fit_cells(desc, max(0, desc_cells - (cells - term_width) - 1))
                             progress_str = compose(f"{desc}…" if desc else "", bar_width)
-                        progress_str, _ = self._fit_cells(progress_str, term_width)
+                            _, cells = self._fit_cells(progress_str)
+                        if cells > term_width:
+                            progress_str, _ = self._fit_cells(progress_str, term_width)
             finally:
                 if self.noninteractive:
                     # In non-interactive environments, avoid carriage return which creates empty lines

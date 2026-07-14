@@ -82,6 +82,10 @@ Train a YOLO26 depth estimation model with Python or CLI:
 
 The YOLO26 depth models are pretrained on a broad multi-dataset mix (~2.19M images) spanning indoor (≤10 m) to outdoor (~80 m) ranges, then evaluated zero-shot across five benchmarks. Each dataset has a dedicated page:
 
+**Debugging**
+
+- [Depth8](depth8.md) — 8 SUN RGB-D images in a 1.5 MB auto-downloading archive, for rapid pipeline testing
+
 **Pretraining sources**
 
 - [ARKitScenes](arkitscenes.md) — real indoor, Apple ARKit LiDAR (largest real source)

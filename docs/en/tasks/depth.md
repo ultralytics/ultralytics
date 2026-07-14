@@ -84,7 +84,7 @@ The largest gains are on the longer-range outdoor benchmarks (KITTI, ETH3D) — 
 
 ## Train
 
-Train YOLO26n-depth on the NYU Depth V2 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 640. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
+Train YOLO26n-depth on the [Depth8](../datasets/depth/depth8.md) dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 640. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
 
 !!! example
 
@@ -99,20 +99,20 @@ Train YOLO26n-depth on the NYU Depth V2 dataset for 100 [epochs](https://www.ult
         model = YOLO("yolo26n-depth.yaml").load("yolo26n-depth.pt")  # build from YAML and transfer weights
 
         # Train the model
-        results = model.train(data="nyu-depth.yaml", epochs=100, imgsz=640)
+        results = model.train(data="depth8.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"
 
         ```bash
         # Build a new model from YAML and start training from scratch
-        yolo depth train data=nyu-depth.yaml model=yolo26n-depth.yaml epochs=100 imgsz=640
+        yolo depth train data=depth8.yaml model=yolo26n-depth.yaml epochs=100 imgsz=640
 
         # Start training from a pretrained *.pt model
-        yolo depth train data=nyu-depth.yaml model=yolo26n-depth.pt epochs=100 imgsz=640
+        yolo depth train data=depth8.yaml model=yolo26n-depth.pt epochs=100 imgsz=640
 
         # Build a new model from YAML, transfer pretrained weights to it and start training
-        yolo depth train data=nyu-depth.yaml model=yolo26n-depth.yaml pretrained=yolo26n-depth.pt epochs=100 imgsz=640
+        yolo depth train data=depth8.yaml model=yolo26n-depth.yaml pretrained=yolo26n-depth.pt epochs=100 imgsz=640
         ```
 
 See full `train` mode details in the [Train](../modes/train.md) page.

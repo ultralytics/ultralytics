@@ -121,7 +121,7 @@ from .transformer import (
     TransformerEncoderLayer,
     TransformerLayer,
 )
-from .vit_blocks import FastViTBlock, FracRoPE2D, MHSABlock, UltraViTBlock
+from .vit_blocks import FastViTBlock, FracRoPE2D, MHSABlock, RepUltraViTBlock, UltraViTBlock
 
 __all__ = (
     "AIFI",
@@ -205,6 +205,7 @@ __all__ = (
     "RepConv",
     "RepNCSPELAN4",
     "RepNCSPELAN5",
+    "RepUltraViTBlock",
     "RepVGGDW",
     "ResNetLayer",
     "SCDown",

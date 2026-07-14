@@ -76,6 +76,7 @@ from ultralytics.nn.modules import (
     RepConv,
     RepNCSPELAN4,
     RepNCSPELAN5,
+    RepUltraViTBlock,
     RepVGGDW,
     ResNetLayer,
     RTDETRDecoder,
@@ -1976,7 +1977,7 @@ def parse_model(d, ch, verbose=True):
                     args.extend((True, 1.2))
             if m is C2fCIB:
                 legacy = False
-        elif m in frozenset({AIFI, UltraViTBlock, FastViTBlock, MHSABlock, FracRoPE2D}):
+        elif m in frozenset({AIFI, UltraViTBlock, RepUltraViTBlock, FastViTBlock, MHSABlock, FracRoPE2D}):
             args = [ch[f], *args]
         elif m in frozenset({HGStem, HGBlock}):
             c1, cm, c2 = ch[f], args[0], args[1]

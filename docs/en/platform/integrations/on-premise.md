@@ -31,9 +31,9 @@ Dataset folders are mounted read-only. Platform and its hosted workers never rec
 1. Open [Ultralytics Platform](https://platform.ultralytics.com) on the Linux host that can access your datasets.
 2. Go to `Settings > Integrations` and select **Connect** on the **On Premise** card.
 3. Keep the prefilled values or change them:
-    - **Machine name:** `On Premise host`
-    - **Dataset folder:** `/datasets`
-    - **Models folder:** `/models`
+   - **Machine name:** `On Premise host`
+   - **Dataset folder:** `/datasets`
+   - **Models folder:** `/models`
 4. Select **Create install command**.
 5. Copy and run the generated command on the host. It installs Docker Compose when needed and creates the selected folders.
 6. Paste the one-time enrollment token when prompted. The installer starts the CPU worker and starts the GPU worker automatically when Docker's NVIDIA runtime is available.
@@ -49,7 +49,7 @@ The enrollment token expires after 10 minutes and is not stored in shell history
 
 1. Put the dataset beneath the connected dataset folder. For example, `/datasets/warehouse` is `warehouse` inside the default root.
 2. In Platform, select **New Dataset > On Premise**.
-3. Select the connected host, enter the relative dataset path, choose the task, and create the private dataset.
+3. Select the connected host, optionally narrow it to a relative dataset path, choose the task, and create the private dataset.
 4. The host indexes the dataset and reports metadata. Platform never uploads the images.
 
 On Premise uses the same CPU ingest code as hosted uploads. It supports:

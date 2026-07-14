@@ -169,21 +169,23 @@ Finally, subscribe to the `/camera/color/image_raw` topic and process every inco
 
         The callback converts the incoming `sensor_msgs/Image` message with `cv_bridge` instead of `ros_numpy`. `rclpy.spin(node)` replaces the `rospy.spin()` loop, and the node must be created and torn down explicitly in a `main()` entry point. Camera drivers typically publish with "best effort" reliability, so the subscription uses `qos_profile_sensor_data` instead of the default "reliable" queue depth. Add `import rclpy` and `from rclpy.qos import qos_profile_sensor_data` to the imports at the top of the file.
 
+        `cv_bridge` is requested to decode into `bgr8`, matching the channel order YOLO's NumPy preprocessing expects; requesting `rgb8` here would feed the model a channel-swapped image.
+
         ```python
                 self.create_subscription(Image, "/camera/color/image_raw", self.callback, qos_profile_sensor_data)
 
             def callback(self, data):
                 """Callback function to process image and publish annotated images."""
-                array = self.bridge.imgmsg_to_cv2(data, desired_encoding="rgb8")
+                array = self.bridge.imgmsg_to_cv2(data, desired_encoding="bgr8")
                 if self.det_image_pub.get_subscription_count():
                     det_result = self.detection_model(array)
                     det_annotated = det_result[0].plot(show=False)
-                    self.det_image_pub.publish(self.bridge.cv2_to_imgmsg(det_annotated, encoding="rgb8"))
+                    self.det_image_pub.publish(self.bridge.cv2_to_imgmsg(det_annotated, encoding="bgr8"))
 
                 if self.seg_image_pub.get_subscription_count():
                     seg_result = self.segmentation_model(array)
                     seg_annotated = seg_result[0].plot(show=False)
-                    self.seg_image_pub.publish(self.bridge.cv2_to_imgmsg(seg_annotated, encoding="rgb8"))
+                    self.seg_image_pub.publish(self.bridge.cv2_to_imgmsg(seg_annotated, encoding="bgr8"))
 
 
         def main(args=None):
@@ -266,16 +268,16 @@ Finally, subscribe to the `/camera/color/image_raw` topic and process every inco
 
             def callback(self, data):
                 """Callback function to process image and publish annotated images."""
-                array = self.bridge.imgmsg_to_cv2(data, desired_encoding="rgb8")
+                array = self.bridge.imgmsg_to_cv2(data, desired_encoding="bgr8")
                 if self.det_image_pub.get_subscription_count():
                     det_result = self.detection_model(array)
                     det_annotated = det_result[0].plot(show=False)
-                    self.det_image_pub.publish(self.bridge.cv2_to_imgmsg(det_annotated, encoding="rgb8"))
+                    self.det_image_pub.publish(self.bridge.cv2_to_imgmsg(det_annotated, encoding="bgr8"))
 
                 if self.seg_image_pub.get_subscription_count():
                     seg_result = self.segmentation_model(array)
                     seg_annotated = seg_result[0].plot(show=False)
-                    self.seg_image_pub.publish(self.bridge.cv2_to_imgmsg(seg_annotated, encoding="rgb8"))
+                    self.seg_image_pub.publish(self.bridge.cv2_to_imgmsg(seg_annotated, encoding="bgr8"))
 
 
         def main(args=None):
@@ -368,6 +370,8 @@ Using YOLO, it is possible to extract and combine information from both RGB and 
 
     In the ROS1 tab below, `rospy.wait_for_message()` also has no timeout by default — if the named topic stops publishing, the callback blocks indefinitely. Pass a `timeout` argument (e.g., `rospy.wait_for_message(topic, Image, timeout=1.0)`) and handle the resulting `rospy.ROSException` to fail fast instead.
 
+    Depth pixel values are only in meters when the topic publishes `32FC1`. A `16UC1` topic (common on RealSense and similar drivers) reports millimeters as integers, with `0` marking invalid pixels instead of `NaN` — the code below converts `16UC1` to meters and remaps `0` to `NaN` before averaging.
+
 #### Depth Step-by-Step Usage
 
 In this example, we use YOLO to segment an image and apply the extracted mask to segment the object in the depth image. This allows us to determine the distance of each pixel of the object of interest from the camera's focal center. By obtaining this distance information, we can calculate the distance between the camera and the specific object in the scene. Begin by importing the necessary libraries, creating a ROS node, and instantiating a segmentation model and a ROS topic.
@@ -413,7 +417,7 @@ In this example, we use YOLO to segment an image and apply the extracted mask to
                 self.classes_pub = self.create_publisher(String, "/ultralytics/detection/distance", 5)
         ```
 
-Next, define the callbacks that process the incoming RGB and depth messages. Most sensors report out-of-range pixels as `NaN`; the code filters these out before averaging, and falls back to `np.inf` — rather than a misleading `0` — if every pixel under the mask turns out to be invalid.
+Next, define the callbacks that process the incoming RGB and depth messages. Most sensors report out-of-range pixels as `NaN`; the code filters these out before averaging, and falls back to `np.inf` — rather than a misleading `0` — if every pixel under the mask turns out to be invalid. Pass `retina_masks=True` to the model so the returned mask matches the depth image's native resolution instead of the smaller, letterboxed size used for inference — without it, indexing `depth` with the mask raises a shape mismatch on most camera resolutions.
 
 !!! example "Callbacks"
 
@@ -432,7 +436,9 @@ Next, define the callbacks that process the incoming RGB and depth messages. Mos
             image = rospy.wait_for_message("/camera/color/image_raw", Image)
             image = ros_numpy.numpify(image)
             depth = ros_numpy.numpify(data)
-            result = segmentation_model(image)
+            if data.encoding == "16UC1":  # millimeters with 0 = invalid; convert to meters with NaN = invalid
+                depth = np.where(depth == 0, np.nan, depth.astype(np.float32) / 1000)
+            result = segmentation_model(image, retina_masks=True)
 
             all_objects = []
             for index, cls in enumerate(result[0].boxes.cls):
@@ -454,7 +460,7 @@ Next, define the callbacks that process the incoming RGB and depth messages. Mos
 
     === "ROS2"
 
-        Instead of blocking on a matching RGB message, the ROS2 node subscribes to both topics independently and caches the latest RGB frame; the depth callback reuses whatever frame is most recently available. This is an approximate pairing, adequate for a quickstart — for hard timestamp-based synchronization use [`message_filters.ApproximateTimeSynchronizer`](https://github.com/ros2/message_filters) instead. Add `import rclpy`, `from sensor_msgs.msg import Image`, and `from rclpy.qos import qos_profile_sensor_data` to the imports at the top of the file.
+        Instead of blocking on a matching RGB message, the ROS2 node subscribes to both topics independently and caches the latest RGB frame; the depth callback reuses whatever frame is most recently available. This is an approximate pairing, adequate for a quickstart — for hard timestamp-based synchronization use [`message_filters.ApproximateTimeSynchronizer`](https://github.com/ros2/message_filters) instead. Add `import numpy as np`, `import rclpy`, `from sensor_msgs.msg import Image`, and `from rclpy.qos import qos_profile_sensor_data` to the imports at the top of the file.
 
         ```python
                 self.create_subscription(Image, "/camera/color/image_raw", self.image_callback, qos_profile_sensor_data)
@@ -462,14 +468,16 @@ Next, define the callbacks that process the incoming RGB and depth messages. Mos
 
             def image_callback(self, data):
                 """Cache the latest RGB frame for pairing with the next depth callback."""
-                self.latest_image = self.bridge.imgmsg_to_cv2(data, desired_encoding="rgb8")
+                self.latest_image = self.bridge.imgmsg_to_cv2(data, desired_encoding="bgr8")
 
             def depth_callback(self, data):
                 """Callback function to process depth image using the latest cached RGB image."""
                 if self.latest_image is None:
                     return
                 depth = self.bridge.imgmsg_to_cv2(data, desired_encoding="passthrough")
-                result = self.segmentation_model(self.latest_image)
+                if data.encoding == "16UC1":  # millimeters with 0 = invalid; convert to meters with NaN = invalid
+                    depth = np.where(depth == 0, np.nan, depth.astype(np.float32) / 1000)
+                result = self.segmentation_model(self.latest_image, retina_masks=True)
 
                 all_objects = []
                 for index, cls in enumerate(result[0].boxes.cls):
@@ -525,7 +533,9 @@ Next, define the callbacks that process the incoming RGB and depth messages. Mos
             image = rospy.wait_for_message("/camera/color/image_raw", Image)
             image = ros_numpy.numpify(image)
             depth = ros_numpy.numpify(data)
-            result = segmentation_model(image)
+            if data.encoding == "16UC1":  # millimeters with 0 = invalid; convert to meters with NaN = invalid
+                depth = np.where(depth == 0, np.nan, depth.astype(np.float32) / 1000)
+            result = segmentation_model(image, retina_masks=True)
 
             all_objects = []
             for index, cls in enumerate(result[0].boxes.cls):
@@ -573,14 +583,16 @@ Next, define the callbacks that process the incoming RGB and depth messages. Mos
 
             def image_callback(self, data):
                 """Cache the latest RGB frame for pairing with the next depth callback."""
-                self.latest_image = self.bridge.imgmsg_to_cv2(data, desired_encoding="rgb8")
+                self.latest_image = self.bridge.imgmsg_to_cv2(data, desired_encoding="bgr8")
 
             def depth_callback(self, data):
                 """Callback function to process depth image using the latest cached RGB image."""
                 if self.latest_image is None:
                     return
                 depth = self.bridge.imgmsg_to_cv2(data, desired_encoding="passthrough")
-                result = self.segmentation_model(self.latest_image)
+                if data.encoding == "16UC1":  # millimeters with 0 = invalid; convert to meters with NaN = invalid
+                    depth = np.where(depth == 0, np.nan, depth.astype(np.float32) / 1000)
+                result = self.segmentation_model(self.latest_image, retina_masks=True)
 
                 all_objects = []
                 for index, cls in enumerate(result[0].boxes.cls):
@@ -750,7 +762,7 @@ The function returns the `xyz` coordinates and `RGB` values in the format of the
             return xyz, rgb
         ```
 
-Next, wait for a point cloud message and convert it into NumPy arrays containing the XYZ coordinates and RGB values (using the `pointcloud2_to_array` function). Process the RGB image using the YOLO model to extract segmented objects. For each detected object, extract the segmentation mask and apply it to both the RGB image and the XYZ coordinates to isolate the object in 3D space.
+Next, wait for a point cloud message and convert it into NumPy arrays containing the XYZ coordinates and RGB values (using the `pointcloud2_to_array` function). Process the RGB image using the YOLO model to extract segmented objects, passing `retina_masks=True` so each mask matches the cloud's native resolution rather than the smaller size used for inference. For each detected object, extract the segmentation mask and apply it to both the RGB image and the XYZ coordinates to isolate the object in 3D space.
 
 Processing the mask is straightforward since it consists of binary values, with `1` indicating the presence of the object and `0` indicating the absence. To apply the mask, simply multiply the original channels by the mask. This operation effectively isolates the object of interest within the image. Finally, create an Open3D point cloud object and visualize the segmented object in 3D space with associated colors.
 
@@ -765,7 +777,7 @@ Processing the mask is straightforward since it consists of binary values, with 
 
         ros_cloud = rospy.wait_for_message("/camera/depth/points", PointCloud2)
         xyz, rgb = pointcloud2_to_array(ros_cloud)
-        result = segmentation_model(rgb)
+        result = segmentation_model(rgb, retina_masks=True)
 
         if not len(result[0].boxes.cls):
             print("No objects detected")
@@ -804,7 +816,7 @@ Processing the mask is straightforward since it consists of binary values, with 
             ros_cloud = node.cloud
 
             xyz, rgb = pointcloud2_to_array(ros_cloud)
-            result = node.segmentation_model(rgb)
+            result = node.segmentation_model(rgb, retina_masks=True)
 
             if not len(result[0].boxes.cls):
                 print("No objects detected")
@@ -876,7 +888,7 @@ Processing the mask is straightforward since it consists of binary values, with 
 
         ros_cloud = rospy.wait_for_message("/camera/depth/points", PointCloud2)
         xyz, rgb = pointcloud2_to_array(ros_cloud)
-        result = segmentation_model(rgb)
+        result = segmentation_model(rgb, retina_masks=True)
 
         if not len(result[0].boxes.cls):
             print("No objects detected")
@@ -955,7 +967,7 @@ Processing the mask is straightforward since it consists of binary values, with 
             ros_cloud = node.cloud
 
             xyz, rgb = pointcloud2_to_array(ros_cloud)
-            result = node.segmentation_model(rgb)
+            result = node.segmentation_model(rgb, retina_masks=True)
 
             if not len(result[0].boxes.cls):
                 print("No objects detected")

@@ -21,6 +21,7 @@ from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
 from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.data.build import build_dataloader, load_inference_source
+from ultralytics.data.augment import CopyPaste
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.utils import (
     ARM64,
@@ -43,6 +44,12 @@ from ultralytics.utils import (
 )
 from ultralytics.utils.downloads import download, safe_download
 from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13
+
+
+def test_copy_paste_mode_validation():
+    """Test CopyPaste rejects invalid and unhashable modes with explicit input validation."""
+    with pytest.raises(ValueError, match="flip.*mixup"):
+        CopyPaste(mode=[])
 
 
 def test_dataloader_caps_workers_to_batches():

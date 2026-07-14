@@ -12,6 +12,7 @@ import torch
 import torch.distributed as dist
 
 from ultralytics.data.augment import LetterBox
+from ultralytics.models.yolo.anomaly.predict import AnomalyPredictorHM
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.nn.modules import AnomalyDetect
 from ultralytics.utils import LOGGER, ops, TryExcept
@@ -98,21 +99,6 @@ class YOLOAnomalyValidator(DetectionValidator):
         Returns:
             (list[dict[str, torch.Tensor]]): Processed predictions after NMS.
         """
-        # heatmap = preds[0][1]
-        # h, w = heatmap.shape[2], heatmap.shape[3]
-        # outputs = []
-        # for i in range(len(heatmap)):
-        #     boxes = heatmap_to_boxes(heatmap[i].squeeze())
-        #     outputs.append(boxes.to(preds[0][0].device))
-        # return [
-        #     {
-        #         "bboxes": ops.scale_boxes((h, w), x[:, :4], (self.args.imgsz, self.args.imgsz)),
-        #         "conf": x[:, 4],
-        #         "cls": x[:, 5],
-        #         "extra": x[:, 6:],
-        #     }
-        #     for x in outputs
-        # ]
         preds = super().postprocess(preds[0])
         return preds
 
@@ -346,3 +332,30 @@ class YOLOAnomalyValidator(DetectionValidator):
         if not self.training or not dist.is_initialized():
             return  # no DDP collectives when running standalone (e.g. OOD eval)
         super().gather_stats()
+
+
+class YOLOAnomalyValidatorHM(YOLOAnomalyValidator):
+    """YOLOA validator that scores heatmap-derived boxes instead of the detection head's NMS output.
+
+    Validation counterpart of ``AnomalyPredictorHM``: ``postprocess`` thresholds the
+    ``AnomalyDetect`` heatmap and fits connected-component boxes via the shared
+    ``AnomalyPredictorHM._heatmap_to_boxes`` helper, so predict and val agree box-for-box.
+    Falls back to the detection head when the model emits no heatmap.
+    """
+
+    def postprocess(self, preds: list[torch.Tensor]) -> list[dict[str, torch.Tensor]]:
+        """Threshold the AnomalyDetect heatmap and fit connected-component boxes."""
+        if not (isinstance(preds, (list, tuple)) and isinstance(preds[0], (list, tuple))):
+            return super().postprocess(preds)  # no heatmap tuple — head boxes
+
+        heatmap = preds[0][1]  # (B, 1, mH, mW)
+        mh, mw = heatmap.shape[2], heatmap.shape[3]
+        sx, sy = self.args.imgsz / mw, self.args.imgsz / mh  # heatmap px -> imgsz space
+        outputs = []
+        for i in range(heatmap.shape[0]):
+            b = AnomalyPredictorHM._heatmap_to_boxes(heatmap[i, 0]).to(heatmap.device)  # (N, 6)
+            if b.shape[0]:
+                b[:, [0, 2]] *= sx  # x1, x2
+                b[:, [1, 3]] *= sy  # y1, y2
+            outputs.append({"bboxes": b[:, :4], "conf": b[:, 4], "cls": b[:, 5], "extra": b[:, 6:]})
+        return outputs

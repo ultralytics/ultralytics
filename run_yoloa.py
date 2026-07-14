@@ -24,6 +24,8 @@ import cv2
 import numpy as np
 import torch
 
+from ultralytics.models.yolo.anomaly.predict import AnomalyPredictorHM
+from ultralytics.models.yolo.anomaly.val import YOLOAnomalyValidatorHM
 from ultralytics.models.yolo.anomaly.train_rnd import MVTEC_CATEGORIES
 from ultralytics.utils import LOGGER
 from ultralytics import YOLOA
@@ -115,6 +117,15 @@ def main():
     ap.add_argument("--mvtec-root", default=None, help="MVTec-YOLO root (default: MVTEC_ROOT env or built-in)")
     ap.add_argument("--bank-cache", default=None, help="bank cache dir (default: <out>/banks)")
     ap.add_argument("--out", default=None, help="output root (default: runs/temp/yoloa_new/<model_id>)")
+
+    ap.add_argument("--rebuild", action="store_true", help="rebuild memory bank even if cache exists")
+
+    ap.add_argument(
+        "--hm-boxes",
+        action="store_true",
+        help="derive boxes from the heatmap via connected components (AnomalyPredictorHM) instead of the detection head",
+    )
+
     args = ap.parse_args()
 
     # -- Resolve paths / device ------------------------------------------------
@@ -158,6 +169,7 @@ def main():
                 model.set_memory(source=str(good_dir(root, cat)), batch=args.batch, imgsz=args.imgsz)
 
             metrics = model.val(
+                validator=YOLOAnomalyValidatorHM if args.hm_boxes else None,
                 data=str(yaml),
                 imgsz=args.imgsz,
                 iou=args.iou,
@@ -223,6 +235,9 @@ def main():
             device=device,
             end2end=args.e2e,
         )
+        if args.hm_boxes:
+            pkw["predictor"] = AnomalyPredictorHM
+            print("  predictor -> AnomalyPredictorHM (heatmap connected-component boxes)", flush=True)
         for ci, cat in enumerate(cats, 1):
             if not (root / cat).is_dir():
                 LOGGER.warning(f"[{ci}/{len(cats)}] {cat}: missing category dir; skipping")

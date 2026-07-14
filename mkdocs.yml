@@ -537,6 +537,7 @@ nav:
       - Export Non-YOLO Models: guides/export-non-yolo-models.md
       - Fine-Tuning YOLO on Custom Data: guides/finetuning-guide.md
       - Hyperparameter Tuning: guides/hyperparameter-tuning.md
+      - Image Property Analysis: guides/analysis.md
       - Model Evaluation and Fine-Tuning: guides/model-evaluation-insights.md
       - Isolating Segmentation Objects: guides/isolating-segmentation-objects.md
       - K-Fold Cross Validation: guides/kfold-cross-validation.md
@@ -855,6 +856,7 @@ nav:
               - stracks: reference/trackers/utils/stracks.md
       - utils:
           - __init__: reference/utils/__init__.md
+          - analysis: reference/utils/analysis.md
           - autobatch: reference/utils/autobatch.md
           - autodevice: reference/utils/autodevice.md
           - benchmarks: reference/utils/benchmarks.md

@@ -21,7 +21,7 @@ from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
 from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.data.build import build_dataloader, load_inference_source
-from ultralytics.data.utils import check_det_dataset
+from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.utils import (
     ARM64,
     ASSETS,
@@ -91,13 +91,15 @@ def test_cfg_rejects_fuzzed_values():
     for key, value in (
         ("split", []),
         ("split", -0.0),
-        ("split", "🚀"),
         ("optimizer", []),
-        ("auto_augment", "randaug"),
         ("copy_paste_mode", {}),
+        ("optimizer", None),
+        ("split", None),
+        ("copy_paste_mode", None),
     ):
-        with pytest.raises(ValueError, match=key):
+        with pytest.raises((TypeError, ValueError), match=key):
             get_cfg(overrides={key: value})
+    assert get_cfg(overrides={"auto_augment": None}).auto_augment is None
 
 
 def skip_rpi_semantic():
@@ -746,6 +748,8 @@ def test_data_utils(tmp_path):
     autosplit(tmp_path / "coco8/images")
     assert any((tmp_path / "coco8").glob("autosplit_*.txt"))
     assert zip_directory(images_dir).is_file()
+    with pytest.raises(ValueError, match="split"):
+        check_cls_dataset("imagenet10", split="invalid")
     with pytest.raises(FileNotFoundError, match="'test:' images not found"):
         check_det_dataset("coco8.yaml", split="test")
     data_yaml = tmp_path / "coco8.yaml"

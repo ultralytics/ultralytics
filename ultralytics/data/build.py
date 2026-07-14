@@ -454,7 +454,7 @@ def load_inference_source(
 
     # DataLoader
     if tensor:
-        dataset = LoadTensor(source, channels=channels)
+        dataset = LoadTensor(source)
     elif in_memory:
         dataset = source
     elif stream:

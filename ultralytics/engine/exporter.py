@@ -746,10 +746,7 @@ class Exporter:
                     if isinstance(m, RTDETRDecoder)
                     else sum(int(self.imgsz[0] / s) * int(self.imgsz[1] / s) for s in model.stride.tolist())
                 )
-                # Keep Detect head top-k >= 300 so `classes` filtering in NMS sees all candidates before `max_det`
-                # truncation, mirroring the Python inference path; RTDETRDecoder honors max_det exactly
-                max_det = self.args.max_det if isinstance(m, RTDETRDecoder) else max(self.args.max_det, 300)
-                m.max_det = min(max_det, available)
+                m.max_det = min(self.args.max_det, available)
                 m.agnostic_nms = self.args.agnostic_nms
                 m.xyxy = self.args.nms and fmt != "coreml"
                 m.shape = None  # reset cached shape for new export input size

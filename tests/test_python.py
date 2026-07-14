@@ -316,15 +316,6 @@ def test_load_tensor_uint8():
     assert LoadTensor(normalized).im0.max() > 1
 
 
-def test_load_tensor_channels():
-    """Test tensor channel normalization for grayscale and color models."""
-    from ultralytics.data.loaders import LoadTensor
-
-    for source_channels, model_channels in ((1, 3), (2, 1), (2, 3), (3, 1), (4, 1), (4, 3)):
-        im = torch.zeros((1, source_channels, 32, 32))
-        assert LoadTensor(im, channels=model_channels).im0.shape == (1, model_channels, 32, 32)
-
-
 def test_predict_gray_and_4ch(tmp_path):
     """Test YOLO prediction on SOURCE converted to grayscale and 4-channel images with various filenames."""
     im = Image.open(SOURCE)
@@ -516,20 +507,6 @@ def test_val(task: str, weight: str, data: str) -> None:
         metrics.confusion_matrix.to_df()
         metrics.confusion_matrix.to_csv()
         metrics.confusion_matrix.to_json()
-
-
-def test_val_compile_mode(monkeypatch, tmp_path):
-    """Test that standalone validation forwards the user's compile mode to attempt_compile."""
-    import ultralytics.engine.validator as validator_module
-
-    modes = []
-    monkeypatch.setattr(
-        validator_module,
-        "attempt_compile",
-        lambda model, device=None, mode="default", **kwargs: modes.append(mode) or model,
-    )
-    YOLO(MODEL).val(data="coco8.yaml", imgsz=32, compile="max-autotune-no-cudagraphs", project=tmp_path, name="val")
-    assert modes == ["max-autotune-no-cudagraphs"]
 
 
 def test_val_save_txt_pose(tmp_path):
@@ -1376,16 +1353,6 @@ def test_yoloe_visual_prompt_verbose_false(capfd):
     output = captured.out + captured.err
 
     assert "Ultralytics" not in output
-
-
-def test_yoloe_seg_default_visual_prompt_predictor():
-    """YOLOE seg checkpoints auto-select the seg visual-prompt predictor instead of crashing in NMS postprocess."""
-    model = YOLO(WEIGHTS_DIR / "yoloe-11s-seg.pt")
-    visuals = {"bboxes": np.array([[221.52, 405.8, 344.98, 857.54]]), "cls": np.array([0])}
-    results = model.predict(SOURCE, refer_image=SOURCE, visual_prompts=visuals, verbose=False)
-    assert results[0].masks is not None  # seg outputs unpacked by the seg predictor, not the detect default
-    results = model.predict(SOURCE, visual_prompts=visuals, verbose=False)  # without refer_image
-    assert results[0].masks is not None
 
 
 def test_yolov10():

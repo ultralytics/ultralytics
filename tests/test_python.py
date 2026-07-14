@@ -57,8 +57,9 @@ def test_tqdm_terminal_width(monkeypatch):
         TQDM(total=10, desc=desc, file=output, disable=False)._display(final=True)
         return output.getvalue()
 
-    assert TQDM._cell_width("\033[31m界e\u0301\033[0m") == 3
-    assert TQDM._cell_width(render("\033[31m处理很长的描述\033[0m", 20).rsplit("\r", 1)[-1]) <= 19
+    assert TQDM._fit_cells("\033[31m界e\u0301\033[0m")[1] == 3
+    assert TQDM._fit_cells(render("\033[31m处理很长的描述\033[0m", 20).rsplit("\r", 1)[-1])[1] <= 19
+    assert TQDM._fit_cells("界" * 10_000, 19) == ("界" * 9, 18)
     assert "\033[31mcolored\033[0m" in render("\033[31mcolored\033[0m", 100)
     assert "untruncated description" in render("untruncated description", 20, isatty=False)
 

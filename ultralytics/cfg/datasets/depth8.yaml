@@ -1,0 +1,24 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Depth8 dataset (8 images from SUN RGB-D, one per RGB-D sensor per split) by Ultralytics
+# Documentation: https://docs.ultralytics.com/datasets/depth/depth8
+# Example usage: yolo depth train data=depth8.yaml model=yolo26n-depth.pt
+# parent
+# ├── ultralytics
+# └── datasets
+#     └── depth8 ← downloads here (1.5 MB)
+#         ├── images/{train,val}  # RGB images
+#         └── depth/{train,val}   # paired *.npy, float32 meters (images/ -> depth/)
+
+path: depth8 # dataset root dir (relative to Ultralytics settings 'datasets_dir')
+train: images/train # train images (relative to 'path') 4 images
+val: images/val # val images (relative to 'path') 4 images
+
+nc: 1
+names:
+  0: depth
+
+channels: 3
+
+# Download script/URL (optional)
+download: https://github.com/ultralytics/assets/releases/download/v0.0.0/depth8.zip

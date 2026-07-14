@@ -125,11 +125,12 @@ def test_task(trainer_cls, validator_cls, predictor_cls, data, model, weights):
 
 
 @pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
-def test_depth_engine_cycle():
+def test_depth_engine_cycle(tmp_path):
     """Test depth estimation train / val / predict cycle on the auto-downloading depth8 dataset."""
+    args = {"data": "depth8.yaml", "imgsz": 32, "batch": 2, "device": "cpu", "plots": False, "project": str(tmp_path)}
     m = YOLO("ultralytics/cfg/models/26/yolo26-depth.yaml")
-    m.train(data="depth8.yaml", epochs=1, imgsz=32, batch=2, device="cpu", cache=False, plots=False, workers=0)
-    m.val(data="depth8.yaml", imgsz=32, batch=2, device="cpu", plots=False)
+    m.train(epochs=1, cache=False, workers=0, **args)
+    m.val(**args)
     r = m.predict(SOURCE, imgsz=32, device="cpu")
     assert r[0].depth is not None, "predict() should return a result with a depth map"
 

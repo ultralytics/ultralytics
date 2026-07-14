@@ -29,7 +29,7 @@ Dataset folders are mounted read-only. Platform and its hosted workers never rec
 ## Connect a Host
 
 1. Open [Ultralytics Platform](https://platform.ultralytics.com) on the Linux host that can access your datasets.
-2. Go to `Settings > Integrations` and select **Connect** on the **On premise** card.
+2. Go to `Settings > Integrations` and select **Connect** on the **On Premise** card.
 3. Keep the prefilled values or change them:
     - **Machine name:** `On Premise host`
     - **Dataset folder:** `/datasets`
@@ -42,12 +42,12 @@ The command contains a one-time enrollment token that expires after 10 minutes. 
 
 !!! info "NVIDIA training"
 
-    CPU ingest only needs Docker. On-premise GPU training also requires a supported NVIDIA driver and NVIDIA Container Toolkit on the host.
+    CPU ingest only needs Docker. On Premise GPU training also requires a supported NVIDIA driver and NVIDIA Container Toolkit on the host.
 
-## Create an On-Premise Dataset
+## Create an On Premise Dataset
 
 1. Put the dataset beneath the connected dataset folder. For example, `/datasets/warehouse` is `warehouse` inside the default root.
-2. In Platform, select **New Dataset > On premise**.
+2. In Platform, select **New Dataset > On Premise**.
 3. Select the connected host, enter the relative dataset path, choose the task and visibility, and create the dataset.
 4. The host indexes the dataset and reports metadata. Platform never uploads the images.
 
@@ -69,13 +69,13 @@ Annotations are stored as Platform metadata. Editing or deleting an image in Pla
 
 ## Train on a Local GPU
 
-Start training from the normal project training dialog. A dataset bound to an On Premise host is claimable only by that host's GPU worker. Training reads the mounted files, writes checkpoints and weights beneath the configured models folder, and returns job state and scalar metrics to Platform.
+Start training from the normal project training dialog. A dataset bound to an On Premise host is claimable only by that host's GPU worker. Training reads the mounted files, writes checkpoints and weights beneath the configured models folder, and returns job state, scalar metrics, and the immutable checkpoint reference to Platform. Model downloads use the same signed `localhost` connection as previews, so the weights move directly from your host to your browser.
 
-On-premise training does not consume Platform compute credits. Ultralytics hosted workers and RunPod cannot claim the job or read its pixels or artifacts.
+On Premise training does not consume Platform compute credits. Ultralytics hosted workers and RunPod cannot claim the job or read its pixels or artifacts.
 
 ## Manage the Worker
 
-Use the **On premise** card in `Settings > Integrations` to view CPU/GPU availability, reconnect a host, or disconnect it. Reconnecting rotates the worker secret without changing existing dataset identity. Disconnecting revokes future claims and preview access; it does not delete datasets, source files, cached pixels, or model artifacts from the host.
+Use the **On Premise** card in `Settings > Integrations` to view CPU/GPU availability, reconnect a host, or disconnect it. Reconnecting rotates the worker secret without changing existing dataset identity. Disconnecting revokes future claims and preview access; it does not delete datasets, source files, cached pixels, or model artifacts from the host.
 
 To inspect or stop the installation on the host:
 

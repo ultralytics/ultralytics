@@ -21,7 +21,7 @@ from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
 from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.data.build import build_dataloader, load_inference_source
-from ultralytics.data.utils import check_det_dataset
+from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.utils import (
     ARM64,
     ASSETS,
@@ -82,12 +82,24 @@ def test_dataloader_empty_dataset_uses_dataloader_validation():
         build_dataloader([], batch=4, workers=2)
 
 
-def test_cfg_rejects_fuzzed_scalars():
-    """Test invalid scalar overrides fail in config validation."""
+def test_cfg_rejects_fuzzed_values():
+    """Test invalid overrides fail in config validation."""
     with pytest.raises(TypeError, match="degrees"):
         get_cfg(overrides={"degrees": None})
     with pytest.raises(ValueError, match="cls_pw"):
         get_cfg(overrides={"cls_pw": 10})
+    for key, value in (
+        ("split", []),
+        ("split", -0.0),
+        ("optimizer", []),
+        ("copy_paste_mode", {}),
+        ("optimizer", None),
+        ("split", None),
+        ("copy_paste_mode", None),
+    ):
+        with pytest.raises((TypeError, ValueError), match=key):
+            get_cfg(overrides={key: value})
+    assert get_cfg(overrides={"auto_augment": None}).auto_augment is None
 
 
 def skip_rpi_semantic():
@@ -736,12 +748,25 @@ def test_data_utils(tmp_path):
     autosplit(tmp_path / "coco8/images")
     assert any((tmp_path / "coco8").glob("autosplit_*.txt"))
     assert zip_directory(images_dir).is_file()
+    with pytest.raises(ValueError, match="split"):
+        check_cls_dataset("imagenet10", split="invalid")
     with pytest.raises(FileNotFoundError, match="'test:' images not found"):
         check_det_dataset("coco8.yaml", split="test")
     data_yaml = tmp_path / "coco8.yaml"
     data_yaml.write_text("train: images/train\nval: images/val\ntest: images/test\nnames: [item]\n")
     with pytest.raises(FileNotFoundError, match="images not found"):
         check_det_dataset(data_yaml, split="test")
+
+    # polygons2masks_overlap must not overflow uint8 on the transient `masks + mask` sum (reaches 2 * i + 1):
+    # with more than 128 overlapping instances every instance must keep a distinct index in the overlap mask
+    from ultralytics.data.utils import polygons2masks_overlap
+
+    segments = [
+        np.array([[150 - s, 150 - s], [150 + s, 150 - s], [150 + s, 150 + s], [150 - s, 150 + s]], dtype=np.float32)
+        for s in range(140, 10, -1)  # 130 concentric squares, all overlapping the center
+    ]
+    overlap, _ = polygons2masks_overlap((300, 300), segments)
+    assert len(np.unique(overlap)) == len(segments) + 1  # background + 130 instances, no uint8 wraparound
 
 
 def test_safe_download_unzips_local_path_archive(tmp_path):
@@ -1031,9 +1056,11 @@ def test_nms_end2end_classes_before_max_det():
         ],
         dtype=torch.float32,
     )
-    for out, confs in zip(non_max_suppression(pred, conf_thres=0.25, classes=[0], max_det=2), ([0.8, 0.7], [0.9, 0.6])):
+    outputs, indices = non_max_suppression(pred, conf_thres=0.25, classes=[0], max_det=2, return_idxs=True)
+    for out, idx, confs, expected in zip(outputs, indices, ([0.8, 0.7], [0.9, 0.6]), ([1, 2], [0, 3])):
         assert out.shape[0] == 2 and (out[:, 5] == 0).all()  # top-2 class-0 boxes kept, not truncated away
         assert torch.allclose(out[:, 4], torch.tensor(confs))
+        assert idx.tolist() == expected
     out = non_max_suppression(pred, conf_thres=0.25, max_det=2)[0]  # without classes, top-2 overall unchanged
     assert torch.allclose(out[:, 4], torch.tensor([0.9, 0.8]))
 

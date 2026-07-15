@@ -1,4 +1,5 @@
 ---
+plans: [free, pro, enterprise]
 comments: true
 description: Manage your Ultralytics Platform account including API keys, billing, and user settings with security and GDPR compliance.
 keywords: Ultralytics Platform, account, settings, API keys, billing, security, GDPR

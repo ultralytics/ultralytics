@@ -1,4 +1,5 @@
 ---
+plans: [free, pro, enterprise]
 title: Deployment Monitoring
 comments: true
 description: Monitor deployed YOLO models on Ultralytics Platform with real-time metrics, request logs, and performance dashboards.

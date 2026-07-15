@@ -55,7 +55,7 @@ Rust 1.89 or newer is required. The [video](#cargo-features) feature additionall
     ```toml
     # Or add it manually to Cargo.toml
     [dependencies]
-    ultralytics-inference = "0.0.28"
+    ultralytics-inference = "0.0.29"
     ```
 
 ## CLI quickstart
@@ -78,8 +78,11 @@ ultralytics-inference predict --task pose --source video.mp4 --show
 # Depth estimation (auto-downloads yolo26n-depth.onnx)
 ultralytics-inference predict --task depth --source image.jpg
 
-# Depth with the DepthAnything-style look (near objects warm, outlier-robust)
-ultralytics-inference predict --task depth --source image.jpg --colormap spectral --depth-viz disparity
+# Depth with the DepthAnything-style palette (disparity is already the default)
+ultralytics-inference predict --task depth --source image.jpg --colormap spectral
+
+# Depth colored by absolute distance instead (near = dark, far = bright)
+ultralytics-inference predict --task depth --source image.jpg --depth-viz metric
 
 # Tune thresholds and filter to specific classes
 ultralytics-inference predict --source image.jpg --conf 0.5 --iou 0.45 --classes "0,1,2"
@@ -103,8 +106,8 @@ Common flags:
 | `--save`         | `true`         | Save annotated results to `runs/<task>/predict`.                            |
 | `--show`         | `false`        | Display results in a window.                                                |
 | `--classes`      | all            | Filter detections by class IDs, for example `"0,1,2"`.                      |
-| `--colormap`     | `inferno`      | Depth colormap: `inferno`, `jet`, `spectral`, or `gray` (depth only).       |
-| `--depth-viz`    | `metric`       | Depth normalization: `metric` or `disparity` (depth only).                  |
+| `--colormap`     | `jet`          | Depth colormap: `jet`, `inferno`, `spectral`, or `gray` (depth only).       |
+| `--depth-viz`    | `disparity`    | Depth normalization: `disparity` (near = warm) or `metric` (depth only).    |
 
 ## Library quickstart
 
@@ -446,7 +449,7 @@ cargo install ultralytics-inference --features cuda,tensorrt
 
 ```toml
 [dependencies]
-ultralytics-inference = { version = "0.0.28", features = ["video"] }
+ultralytics-inference = { version = "0.0.29", features = ["video"] }
 ```
 
 ## Output and saving

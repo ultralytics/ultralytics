@@ -199,6 +199,10 @@ Export a YOLO26n-seg model to a different format like ONNX, CoreML, etc.
 
 Available YOLO26-seg export formats are in the table below. You can export to any format using the `format` argument, i.e., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e., `yolo predict model=yolo26n-seg.onnx`. Usage examples are shown for your model after export completes.
 
+!!! note
+
+    CoreML embedded NMS pipelines (`nms=True`) only support object detection models. Segmentation exports to CoreML warn and force `nms=False`, producing a raw model without NMS.
+
 {% include "macros/export-table.md" %}
 
 See full `export` details in the [Export](../modes/export.md) page.

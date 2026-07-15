@@ -1,4 +1,5 @@
 ---
+plans: [free, pro, enterprise]
 title: Cloud Model Training
 comments: true
 description: Learn about model training in Ultralytics Platform including project organization, cloud training, and real-time metrics streaming.

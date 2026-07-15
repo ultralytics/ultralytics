@@ -8,10 +8,11 @@ import json
 import os
 import random
 import shutil
-import time
+import unicodedata
 from collections import defaultdict
+from contextlib import contextmanager
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 from tempfile import TemporaryDirectory
 
 import cv2
@@ -841,6 +842,27 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         lines = [json.loads(line.strip()) for line in f if line.strip()]
     dataset_record, image_records = lines[0], lines[1:]
 
+    def relative_record_path(value: str, field: str) -> PurePosixPath:
+        """Validate a portable relative NDJSON output path before any filesystem access."""
+        if not isinstance(value, str) or not value or "\\" in value:
+            raise ValueError(f"NDJSON {field} must be a non-empty POSIX relative path")
+        path = PurePosixPath(value)
+        windows_path = PureWindowsPath(value)
+        if (
+            path.is_absolute()
+            or windows_path.is_absolute()
+            or windows_path.drive
+            or path.as_posix() != value
+            or any(part in {"", ".", ".."} for part in path.parts)
+        ):
+            raise ValueError(f"NDJSON {field} must be a canonical POSIX relative path: {value}")
+        return path
+
+    for record in image_records:
+        if record.get("split") not in {"train", "val", "test"}:
+            raise ValueError(f"NDJSON image split must be train, val, or test: {record.get('split')}")
+        relative_record_path(record.get("file"), "image file")
+
     def stable_record(record: dict, include_split: bool = True) -> str:
         """Serialize a record without ephemeral signed URL query strings or export ordering."""
         hash_record = {k: v for k, v in record.items() if k != "url" and (include_split or k != "split")}
@@ -872,7 +894,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
 
     def depth_relative_path(record: dict) -> Path:
         """Return the depth target path matching DepthDataset's images-to-depth mapping."""
-        return Path(record["file"]).with_suffix(".npy")
+        return Path(relative_record_path(record["file"], "image file").with_suffix(".npy"))
 
     def validate_image_file(path: Path, record: dict) -> bool:
         """Validate a cached image against its manifest identity and decoder."""
@@ -922,6 +944,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
 
     # Validate required fields before consulting a cached conversion.
     if is_depth:
+        image_paths = set()
         depth_paths = set()
         for record in image_records:
             depth = record.get("depth")
@@ -936,11 +959,15 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
             shape = depth.get("shape")
             if not isinstance(shape, list) or len(shape) != 2 or not all(isinstance(x, int) and x > 0 for x in shape):
                 raise ValueError("Depth records require a positive [height, width] shape")
-            depth_path = (record["split"], depth_relative_path(record))
+            image_path = unicodedata.normalize("NFC", f"{record['split']}/{record['file']}").casefold()
+            depth_path = unicodedata.normalize(
+                "NFC", f"{record['split']}/{depth_relative_path(record).as_posix()}"
+            ).casefold()
+            if image_path in image_paths:
+                raise ValueError(f"Depth records contain a duplicate output path: images/{record['split']}/{record['file']}")
             if depth_path in depth_paths:
-                raise ValueError(
-                    f"Depth records contain a duplicate output path: depth/{depth_path[0]}/{depth_path[1]}"
-                )
+                raise ValueError(f"Depth records contain a duplicate output path: depth/{record['split']}/{depth_relative_path(record)}")
+            image_paths.add(image_path)
             depth_paths.add(depth_path)
 
     splits = {record["split"] for record in image_records}
@@ -991,6 +1018,10 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
 
     if yaml_path.is_file() and cached_conversion_valid(dataset_dir):
         return yaml_path
+    invalid_final_identity = None
+    if dataset_dir.exists():
+        stat = dataset_dir.stat()
+        invalid_final_identity = (stat.st_dev, stat.st_ino, stat.st_mtime_ns)
 
     final_dataset_dir = dataset_dir
     staging = None
@@ -1195,29 +1226,58 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         if not is_depth:
             return yaml_path
 
-        lock_dir = output_path / f".{final_dataset_dir.name}.lock"
-        while True:
+        @contextmanager
+        def commit_lock(path: Path):
+            """Hold a crash-safe cross-process lock; the OS releases it when the process exits."""
+            descriptor = os.open(path, os.O_CREAT | os.O_RDWR, 0o600)
+            locked = False
             try:
-                lock_dir.mkdir()
-                break
-            except FileExistsError:
-                if time.time() - lock_dir.stat().st_mtime > 300:
-                    shutil.rmtree(lock_dir, ignore_errors=True)
+                if os.name == "nt":
+                    import msvcrt
+                    import time as lock_time
+
+                    if os.fstat(descriptor).st_size == 0:
+                        os.write(descriptor, b"\0")
+                    while True:
+                        try:
+                            os.lseek(descriptor, 0, os.SEEK_SET)
+                            msvcrt.locking(descriptor, msvcrt.LK_NBLCK, 1)
+                            break
+                        except OSError:
+                            lock_time.sleep(0.05)
                 else:
-                    await asyncio.sleep(0.05)
+                    import fcntl
+
+                    fcntl.flock(descriptor, fcntl.LOCK_EX)
+                locked = True
+                yield
+            finally:
+                if locked:
+                    if os.name == "nt":
+                        os.lseek(descriptor, 0, os.SEEK_SET)
+                        msvcrt.locking(descriptor, msvcrt.LK_UNLCK, 1)
+                    else:
+                        fcntl.flock(descriptor, fcntl.LOCK_UN)
+                os.close(descriptor)
+
+        lock_path = output_path / f".{final_dataset_dir.name}.lock"
         invalid_dir = None
-        try:
-            final_yaml = final_dataset_dir / "data.yaml"
-            if final_yaml.is_file() and cached_conversion_valid(final_dataset_dir):
-                return final_yaml
-            if final_dataset_dir.exists():
-                invalid_dir = output_path / f".{final_dataset_dir.name}.invalid-{os.getpid()}-{time.time_ns()}"
-                final_dataset_dir.replace(invalid_dir)
-            dataset_dir.replace(final_dataset_dir)
-        finally:
-            lock_dir.rmdir()
-            if invalid_dir:
-                shutil.rmtree(invalid_dir, ignore_errors=True)
-            if staging:
-                staging.cleanup()
+        with commit_lock(lock_path):
+            try:
+                final_yaml = final_dataset_dir / "data.yaml"
+                if final_dataset_dir.exists():
+                    stat = final_dataset_dir.stat()
+                    current_identity = (stat.st_dev, stat.st_ino, stat.st_mtime_ns)
+                    replaced_by_winner = invalid_final_identity is None or current_identity != invalid_final_identity
+                    if replaced_by_winner and final_yaml.is_file() and YAML.load(final_yaml).get("hash") == manifest_hash:
+                        return final_yaml
+                if final_dataset_dir.exists():
+                    invalid_dir = output_path / f".{final_dataset_dir.name}.invalid-{os.getpid()}"
+                    final_dataset_dir.replace(invalid_dir)
+                dataset_dir.replace(final_dataset_dir)
+            finally:
+                if invalid_dir:
+                    shutil.rmtree(invalid_dir, ignore_errors=True)
+                if staging:
+                    staging.cleanup()
         return final_dataset_dir / "data.yaml"

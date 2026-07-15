@@ -255,6 +255,45 @@ def test_convert_depth_ndjson_rejects_incomplete_descriptor_before_download(tmp_
         asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets"))
 
 
+@pytest.mark.parametrize(
+    ("file", "split"),
+    [
+        ("../../victim.jpg", "train"),
+        ("/tmp/victim.jpg", "train"),
+        ("C:/victim.jpg", "train"),
+        ("camera\\victim.jpg", "train"),
+        ("train.jpg", "../train"),
+    ],
+)
+def test_convert_depth_ndjson_rejects_unsafe_output_paths(tmp_path, file, split):
+    """Reject manifest paths that can escape or vary across host filesystems before downloading."""
+    manifest = tmp_path / "unsafe.ndjson"
+    _write_depth_ndjson(manifest, "http://127.0.0.1:1", "0" * 32, ("0" * 32, "1" * 32))
+    records = [json.loads(line) for line in manifest.read_text().splitlines()]
+    records[1]["file"] = file
+    records[1]["split"] = split
+    manifest.write_text("\n".join(json.dumps(record) for record in records))
+
+    with pytest.raises(ValueError, match="relative path|split must"):
+        asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets"))
+
+
+def test_convert_depth_ndjson_rejects_casefolded_output_collisions(tmp_path):
+    """Reject output names that alias on case-insensitive filesystems."""
+    manifest = tmp_path / "collision.ndjson"
+    _write_depth_ndjson(
+        manifest,
+        "http://127.0.0.1:1",
+        "0" * 32,
+        ("0" * 32, "1" * 32),
+        splits=("train", "train"),
+        files=("Frame.jpg", "frame.jpg"),
+    )
+
+    with pytest.raises(ValueError, match="duplicate output path"):
+        asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets"))
+
+
 @pytest.mark.parametrize("invalid_field", ["hash", "shape"])
 def test_convert_depth_ndjson_rejects_invalid_npy_payload(tmp_path, invalid_field):
     """Reject depth targets whose payload does not match declared integrity metadata."""

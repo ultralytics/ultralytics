@@ -81,7 +81,7 @@ ultralytics-inference predict --task depth --source image.jpg
 # Depth with the DepthAnything-style palette (disparity is already the default)
 ultralytics-inference predict --task depth --source image.jpg --colormap spectral
 
-# Depth colored by absolute distance instead (near = dark, far = bright)
+# Depth normalized by depth value instead (near = low color, far = high color)
 ultralytics-inference predict --task depth --source image.jpg --depth-viz metric
 
 # Tune thresholds and filter to specific classes
@@ -93,21 +93,21 @@ ultralytics-inference predict --source images/ --device cuda:0 --half
 
 Common flags:
 
-| Flag             | Default        | Description                                                                 |
-| ---------------- | -------------- | --------------------------------------------------------------------------- |
-| `--model`, `-m`  | `yolo26n.onnx` | Path to an ONNX model; a known YOLO name is downloaded automatically.       |
-| `--task`         | `detect`       | One of `detect`, `segment`, `pose`, `obb`, `classify`, `semantic`, `depth`. |
-| `--source`, `-s` | sample         | Image, directory, glob, video, webcam index, or URL.                        |
-| `--conf`         | `0.25`         | Confidence threshold.                                                       |
-| `--iou`          | `0.7`          | IoU threshold for non-maximum suppression.                                  |
-| `--imgsz`        | model metadata | Inference image size.                                                       |
-| `--device`       | `cpu`          | Execution device, for example `cuda:0`, `coreml`, `tensorrt:0`.             |
-| `--half`         | `false`        | FP16 half-precision inference.                                              |
-| `--save`         | `true`         | Save annotated results to `runs/<task>/predict`.                            |
-| `--show`         | `false`        | Display results in a window.                                                |
-| `--classes`      | all            | Filter detections by class IDs, for example `"0,1,2"`.                      |
-| `--colormap`     | `jet`          | Depth colormap: `jet`, `inferno`, `spectral`, or `gray` (depth only).       |
-| `--depth-viz`    | `disparity`    | Depth normalization: `disparity` (near = warm) or `metric` (depth only).    |
+| Flag             | Default        | Description                                                                                   |
+| ---------------- | -------------- | --------------------------------------------------------------------------------------------- |
+| `--model`, `-m`  | `yolo26n.onnx` | Path to an ONNX model; a known YOLO name is downloaded automatically.                         |
+| `--task`         | `detect`       | One of `detect`, `segment`, `pose`, `obb`, `classify`, `semantic`, `depth`.                   |
+| `--source`, `-s` | sample         | Image, directory, glob, video, webcam index, or URL.                                          |
+| `--conf`         | `0.25`         | Confidence threshold.                                                                         |
+| `--iou`          | `0.7`          | IoU threshold for non-maximum suppression.                                                    |
+| `--imgsz`        | model metadata | Inference image size.                                                                         |
+| `--device`       | `cpu`          | Execution device, for example `cuda:0`, `coreml`, `tensorrt:0`.                               |
+| `--half`         | `false`        | FP16 half-precision inference.                                                                |
+| `--save`         | `true`         | Save annotated results to `runs/<task>/predict`.                                              |
+| `--show`         | `false`        | Display results in a window.                                                                  |
+| `--classes`      | all            | Filter detections by class IDs, for example `"0,1,2"`.                                        |
+| `--colormap`     | `jet`          | Depth colormap: `jet`, `inferno`, `spectral`, or `gray` (depth only).                         |
+| `--depth-viz`    | `disparity`    | Depth normalization: `disparity` (inverse depth, near = high color) or `metric` (depth only). |
 
 ## Library quickstart
 

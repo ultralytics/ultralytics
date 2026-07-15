@@ -42,6 +42,7 @@ Caveats
 """
 import argparse
 import csv
+import json
 import math
 import statistics
 import time
@@ -503,8 +504,12 @@ class AnomalyBase:
 
     # ── 3. Scoring ──────────────────────────────────────────────────────
     @torch.inference_mode()
-    def predict_one(self, image_path: str, eval_size: int = 256) -> tuple[float, np.ndarray]:
-        """Score one test image → ``(image_score, pixel_map[eval_size, eval_size])``."""
+    def predict_one(self, image_path: str, eval_size: int | tuple[int, int] = 256) -> tuple[float, np.ndarray]:
+        """Score one test image → ``(image_score, pixel_map)``.
+
+        If ``eval_size`` is an int the pixel map is square; a ``(H, W)`` tuple
+        gives the exact output dimensions (used by bbox evaluation).
+        """
         if self.bank is None:
             raise RuntimeError("call load_support_set() before predict_one()")
         score_fn, _ = _SCORERS[self.scoring]
@@ -515,10 +520,11 @@ class AnomalyBase:
         amap = self._upsample_pixel_map(probs, eval_size)
         return image_score, amap
 
-    def _upsample_pixel_map(self, scores: torch.Tensor, eval_size: int) -> np.ndarray:
+    def _upsample_pixel_map(self, scores: torch.Tensor, eval_size: int | tuple[int, int]) -> np.ndarray:
         H, W = self.grid
         amap = scores.reshape(1, 1, H, W).float()
-        amap = F.interpolate(amap, size=(eval_size, eval_size), mode="bilinear", align_corners=False)
+        size = (eval_size, eval_size) if isinstance(eval_size, int) else eval_size
+        amap = F.interpolate(amap, size=size, mode="bilinear", align_corners=False)
         return amap.squeeze().cpu().numpy()
 
 
@@ -1050,6 +1056,353 @@ class AnomalyValidator:
 
 
 # ---------------------------------------------------------------------------
+# Bbox mAP evaluator — heatmap → connected components → COCO eval
+# ---------------------------------------------------------------------------
+
+
+_BBOX_THRESHOLDS = np.arange(0.05, 1.0, 0.05)  # 19 thresholds
+_BBOX_IOU_THRESHOLDS = np.linspace(0.5, 0.95, 10)
+
+
+class AnomalyBboxValidator:
+    """Heatmap → bbox mAP evaluator via COCO JSON + :mod:`faster_coco_eval`.
+
+    Heatmaps are computed once per image at original resolution.  Connected-
+    components is re-run per threshold (cheap) and each threshold's predictions
+    are saved as a flat COCO-results JSON.  GT is derived from YOLO-seg polygon
+    labels (min/max of polygon vertices → bounding box) and written once as a
+    standard COCO annotation file.
+
+    Parameters
+    ----------
+    min_area : int
+        Minimum connected-component area (pixels) for a blob to produce a bbox.
+    save_dir : Path or None
+        Directory for per-category ``gt.json`` / ``pred_t0.XX.json`` files.
+    """
+
+    def __init__(self, min_area: int = 5, save_dir: Path | None = None):
+        self.min_area = min_area
+        self.save_dir = save_dir
+
+    # ── Label file resolution ──────────────────────────────────────────
+
+    @staticmethod
+    def _label_path(im_file: str) -> Path | None:
+        """Resolve YOLO label .txt for an image. Tries ``labels/`` mirror first, then sibling."""
+        p = Path(im_file)
+        parts = p.parts
+        if "images" in parts:
+            idx = parts.index("images")
+            mirrored = Path(*parts[:idx], "labels", *parts[idx + 1:]).with_suffix(".txt")
+            if mirrored.exists():
+                return mirrored
+        sibling = p.with_suffix(".txt")
+        return sibling if sibling.exists() else None
+
+    # ── GT: polygon → bbox ─────────────────────────────────────────────
+
+    @staticmethod
+    def _polygons_to_gt_annotations(
+        label_path: Path, ori_w: int, ori_h: int
+    ) -> list[dict]:
+        """Parse YOLO seg label file → COCO annotation dicts (xywh pixel coords)."""
+        try:
+            text = label_path.read_text().strip()
+        except OSError:
+            return []
+        if not text:
+            return []
+        anns = []
+        for line in text.splitlines():
+            tokens = line.strip().split()
+            if len(tokens) < 7 or (len(tokens) - 1) % 2 != 0:
+                continue
+            try:
+                coords = np.array(tokens[1:], dtype=np.float32).reshape(-1, 2)
+            except ValueError:
+                continue
+            x1 = max(float(coords[:, 0].min()) * ori_w, 0)
+            y1 = max(float(coords[:, 1].min()) * ori_h, 0)
+            x2 = min(float(coords[:, 0].max()) * ori_w, ori_w)
+            y2 = min(float(coords[:, 1].max()) * ori_h, ori_h)
+            w, h = x2 - x1, y2 - y1
+            if w <= 0 or h <= 0:
+                continue
+            anns.append({"bbox": [round(x1, 2), round(y1, 2), round(w, 2), round(h, 2)],
+                         "area": round(w * h, 2)})
+        return anns
+
+    # ── Pred: heatmap → connected components → bboxes ──────────────────
+
+    @staticmethod
+    def _heatmap_to_boxes(
+        heatmap: np.ndarray, threshold: float, min_area: int
+    ) -> np.ndarray:
+        """Connected-components on thresholded heatmap → ``(N, 5)`` [x1, y1, x2, y2, score].
+
+        Returns empty ``(0, 5)`` array when no components survive filtering.
+        """
+        import cv2
+
+        mask = (heatmap >= threshold).astype(np.uint8)
+        if mask.sum() == 0:
+            return np.empty((0, 5), dtype=np.float32)
+        _, labels, stats, _ = cv2.connectedComponentsWithStats(mask, connectivity=8)
+        boxes: list[list[float]] = []
+        for lbl in range(1, stats.shape[0]):
+            x, y, w, h, area = stats[lbl]
+            if area < min_area:
+                continue
+            score = float(heatmap[labels == lbl].mean())
+            boxes.append([float(x), float(y), float(x + w), float(y + h), score])
+        if not boxes:
+            return np.empty((0, 5), dtype=np.float32)
+        boxes_arr = np.array(boxes, dtype=np.float32)
+        boxes_arr = boxes_arr[boxes_arr[:, 4].argsort()[::-1]]
+        return boxes_arr
+
+    # ── COCO JSON builders ─────────────────────────────────────────────
+
+    @staticmethod
+    def _build_gt_coco(
+        image_entries: list[dict],
+    ) -> dict:
+        """Build a standard COCO GT dict from pre-collected image metadata.
+
+        *image_entries* is a list of dicts with keys ``image_id`` (int),
+        ``file_name``, ``width``, ``height``, and ``annotations`` (list of
+        ``{"bbox": [x,y,w,h], "area": float}``).
+        """
+        images = []
+        annotations = []
+        ann_id = 0
+        for entry in image_entries:
+            images.append({
+                "id": entry["image_id"],
+                "file_name": entry["file_name"],
+                "width": entry["width"],
+                "height": entry["height"],
+            })
+            for ann in entry["annotations"]:
+                annotations.append({
+                    "id": ann_id,
+                    "image_id": entry["image_id"],
+                    "category_id": 0,
+                    "bbox": ann["bbox"],
+                    "area": ann["area"],
+                    "iscrowd": 0,
+                })
+                ann_id += 1
+        return {
+            "images": images,
+            "annotations": annotations,
+            "categories": [{"id": 0, "name": "anomaly"}],
+        }
+
+    @staticmethod
+    def _build_pred_json(
+        image_ids: list[int],
+        per_image_boxes: list[np.ndarray],
+    ) -> list[dict]:
+        """Build flat COCO-results list from per-image bbox arrays.
+
+        Each bbox array is ``(N, 5)`` [x1, y1, x2, y2, score] in pixel coords.
+        Output bbox is ``[x, y, w, h]`` (xywh).
+        """
+        preds: list[dict] = []
+        for img_id, boxes in zip(image_ids, per_image_boxes):
+            for b in boxes:
+                x1, y1, x2, y2, score = b
+                w = max(x2 - x1, 0)
+                h = max(y2 - y1, 0)
+                if w <= 0 or h <= 0:
+                    continue
+                preds.append({
+                    "image_id": img_id,
+                    "category_id": 0,
+                    "bbox": [round(float(x1), 2), round(float(y1), 2),
+                             round(float(w), 2), round(float(h), 2)],
+                    "score": round(float(score), 5),
+                })
+        return preds
+
+    # ── COCO eval via faster-coco-eval ─────────────────────────────────
+
+    @staticmethod
+    def _eval_coco(gt_path: str, pred_path: str) -> dict[str, float]:
+        """Run :class:`COCOeval_faster` on the given GT and prediction JSON files.
+
+        Returns dict with keys ``map50, map, map75``.
+        """
+        from faster_coco_eval import COCO, COCOeval_faster
+
+        anno = COCO(gt_path)
+        pred = anno.loadRes(pred_path)
+        val = COCOeval_faster(anno, pred, iouType="bbox")
+        val.evaluate()
+        val.accumulate()
+        val.summarize()
+        stats = val.stats_as_dict
+        return {
+            "map50": round(float(stats.get("AP_50", 0.0)), 4),
+            "map": round(float(stats.get("AP_all", 0.0)), 4),
+            "map75": round(float(stats.get("AP_75", 0.0)), 4),
+        }
+
+    # ── Per-category evaluation ────────────────────────────────────────
+
+    def val_category(self, category: str, ad: "AnomalyBase") -> list[dict]:
+        """Build bank, score all test images, compute mAP across 19 thresholds.
+
+        Returns 19 rows — one per threshold in ``_BBOX_THRESHOLDS``.
+        """
+        if torch.backends.mps.is_available():
+            torch.mps.empty_cache()
+
+        data = get_mvtec_yolo_data(category)
+        test_good_set = set(data["test_good_im_list"])
+        test_imgs = data["test_im_list"]
+
+        # ── Build bank ─────────────────────────────────────────────────
+        ad.bank = None
+        t0 = time.perf_counter()
+        ad.load_support_set(data["train_im_list"])
+        build_s = time.perf_counter() - t0
+        print(f"[{category}] bank built in {build_s:.1f}s  "
+              f"(support={len(data['train_im_list'])}, bank_size={ad.bank.shape[0]})", flush=True)
+
+        # ── Score all test images (once) + collect metadata ─────────────
+        t1 = time.perf_counter()
+        image_entries: list[dict] = []
+        heatmaps: list[np.ndarray] = []
+        image_ids: list[int] = []
+
+        for img_id, im in enumerate(test_imgs):
+            # original image size
+            with Image.open(im) as pil:
+                ori_w, ori_h = pil.size
+            _, hm = ad.predict_one(im, eval_size=(ori_h, ori_w))
+
+            label_path = self._label_path(im)
+            is_good = im in test_good_set
+            annotations: list[dict] = []
+            if label_path is not None and not is_good:
+                annotations = self._polygons_to_gt_annotations(label_path, ori_w, ori_h)
+
+            image_entries.append({
+                "image_id": img_id,
+                "file_name": Path(im).name,
+                "width": ori_w,
+                "height": ori_h,
+                "annotations": annotations,
+            })
+            heatmaps.append(hm)
+            image_ids.append(img_id)
+
+        val_s = time.perf_counter() - t1
+
+        # ── GT COCO JSON (once) ─────────────────────────────────────────
+        gt_json = self._build_gt_coco(image_entries)
+        save_dir = self.save_dir / category
+        save_dir.mkdir(parents=True, exist_ok=True)
+        gt_path = str(save_dir / "gt.json")
+        with open(gt_path, "w") as f:
+            json.dump(gt_json, f, indent=2)
+
+        # ── Per-threshold: CC → pred JSON → COCO eval ──────────────────
+        rows: list[dict] = []
+        for threshold in _BBOX_THRESHOLDS:
+            threshold = round(float(threshold), 2)
+            per_image_boxes = [
+                self._heatmap_to_boxes(hm, threshold, self.min_area)
+                for hm in heatmaps
+            ]
+            pred_list = self._build_pred_json(image_ids, per_image_boxes)
+            n_pred = len(pred_list)
+
+            pred_path = str(save_dir / f"pred_t{threshold:.2f}.json")
+            with open(pred_path, "w") as f:
+                json.dump(pred_list, f, indent=2)
+
+            try:
+                coco_metrics = self._eval_coco(gt_path, pred_path)
+            except Exception:
+                coco_metrics = {"map50": float("nan"), "map": float("nan"), "map75": float("nan")}
+
+            n_gt = sum(len(e["annotations"]) for e in image_entries)
+            rows.append({
+                "category": category,
+                "threshold": threshold,
+                **coco_metrics,
+                "n_pred": n_pred,
+                "n_gt": n_gt,
+            })
+
+        print(f"[{category}] {val_s:.1f}s val  "
+              f"(test={len(test_imgs)}, anom_w_gt="
+              f"{sum(1 for e in image_entries if e['annotations'])}  "
+              f"t={_BBOX_THRESHOLDS[0]:.2f}..{_BBOX_THRESHOLDS[-1]:.2f})", flush=True)
+        return rows
+
+    # ── Full sweep ─────────────────────────────────────────────────────
+
+    def run(self, ad: "AnomalyBase", categories: list[str], out_csv: Path) -> list[dict]:
+        """Validate every category, compute AVERAGE per threshold, write CSV."""
+        rows: list[dict] = []
+        for cat in categories:
+            print(f"\n{'=' * 60}\n[{cat}] starting\n{'=' * 60}", flush=True)
+            try:
+                cat_rows = self.val_category(cat, ad)
+            except Exception as e:
+                print(f"[{cat}] FAILED: {e!r}", flush=True)
+                cat_rows = [{
+                    "category": cat, "threshold": round(float(t), 2),
+                    "map50": float("nan"), "map": float("nan"), "map75": float("nan"),
+                    "n_pred": 0, "n_gt": 0,
+                } for t in _BBOX_THRESHOLDS]
+            rows.extend(cat_rows)
+            # Print best threshold for this category
+            valid = [r for r in cat_rows if r["map50"] == r["map50"]]
+            if valid:
+                best = max(valid, key=lambda r: r["map50"])
+                print(f"[{cat}] best mAP50={best['map50']:.4f} @ t={best['threshold']:.2f}", flush=True)
+
+        # AVERAGE per threshold
+        fields = ["category", "threshold", "map50", "map", "map75", "n_pred", "n_gt"]
+        avg_rows: list[dict] = []
+        for t in _BBOX_THRESHOLDS:
+            t = round(float(t), 2)
+            t_rows = [r for r in rows if r["threshold"] == t]
+            avg = {"category": "AVERAGE", "threshold": t}
+            for k in ["map50", "map", "map75"]:
+                vals = [r[k] for r in t_rows if isinstance(r[k], float) and r[k] == r[k]]
+                avg[k] = round(statistics.fmean(vals), 4) if vals else float("nan")
+            avg["n_pred"] = sum(r["n_pred"] for r in t_rows)
+            avg["n_gt"] = sum(r["n_gt"] for r in t_rows)
+            avg_rows.append(avg)
+
+        with open(out_csv, "w", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=fields)
+            w.writeheader()
+            for r in rows + avg_rows:
+                w.writerow({k: (f"{r[k]:.4f}" if isinstance(r[k], float) else r[k])
+                            for k in fields})
+        print(f"\nSaved {len(rows) + len(avg_rows)} rows → {out_csv}")
+
+        # Print summary: best threshold per category
+        print("\n=== bbox mAP summary (best mAP50 per category) ===")
+        for cat in categories:
+            cat_rows = [r for r in rows if r["category"] == cat]
+            valid = [r for r in cat_rows if r["map50"] == r["map50"]]
+            if valid:
+                best = max(valid, key=lambda r: r["map50"])
+                print(f"  {cat:>12s}  mAP50={best['map50']:.4f}  mAP={best['map']:.4f}  "
+                      f"mAP75={best['map75']:.4f}  @ t={best['threshold']:.2f}")
+        return rows
+
+
+# ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
@@ -1191,6 +1544,10 @@ def main() -> None:
                         "(default 0.4 — matches OBMA's accumulate_thresh default).")
     p.add_argument("--device", default=None,
                    help="Device override (e.g. 'mps', 'cuda', 'cpu'). Default: auto-detect.")
+    p.add_argument("--bbox", action="store_true",
+                   help="Also run bbox mAP evaluation (heatmap -> connected components -> COCO mAP).")
+    p.add_argument("--bbox-min-area", type=int, default=5,
+                   help="Min connected-component area for heatmap->bbox (default 5).")
     args = p.parse_args()
 
     if args.category:
@@ -1225,6 +1582,14 @@ def main() -> None:
         vis_thresh=args.vis_thresh,
     )
     validator.run(ad, cats, out_csv)
+
+    if args.bbox:
+        bbox_out = run_dir / f"bbox_{out_csv.stem}.csv"
+        bbox_validator = AnomalyBboxValidator(
+            min_area=args.bbox_min_area,
+            save_dir=run_dir / "bbox_eval",
+        )
+        bbox_validator.run(ad, cats, bbox_out)
 
 
 if __name__ == "__main__":

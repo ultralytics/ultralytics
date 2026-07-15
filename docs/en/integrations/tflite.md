@@ -119,7 +119,7 @@ For detailed instructions and best practices related to the installation process
 
 All [Ultralytics YOLO26 models](../models/index.md) are designed to support export out of the box, making it easy to integrate them into your preferred deployment workflow. You can [view the full list of supported export formats and configuration options](../modes/export.md) to choose the best setup for your application.
 
-The TFLite format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Export your model, then load the exported model to run inference or validate its accuracy.
+The LiteRT format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Export your model, then load the exported model to run inference or validate its accuracy.
 
 !!! example "Export"
 
@@ -131,14 +131,14 @@ The TFLite format supports the [Export](../modes/export.md), [Predict](../modes/
         # Load a YOLO26 model
         model = YOLO("yolo26n.pt")
 
-        # Export the model to TFLite format
+        # Export the model to LiteRT format
         model.export(format="litert")  # creates 'yolo26n.tflite'
         ```
 
     === "CLI"
 
         ```bash
-        # Export a YOLO26n PyTorch model to TFLite format
+        # Export a YOLO26n PyTorch model to LiteRT format
         yolo export model=yolo26n.pt format=litert # creates 'yolo26n.tflite'
         ```
 
@@ -149,7 +149,7 @@ The TFLite format supports the [Export](../modes/export.md), [Predict](../modes/
         ```python
         from ultralytics import YOLO
 
-        # Load the exported TFLite model
+        # Load the exported LiteRT model
         model = YOLO("yolo26n.tflite")
 
         # Run inference
@@ -159,7 +159,7 @@ The TFLite format supports the [Export](../modes/export.md), [Predict](../modes/
     === "CLI"
 
         ```bash
-        # Run inference with the exported TFLite model
+        # Run inference with the exported LiteRT model
         yolo predict model=yolo26n.tflite source='https://ultralytics.com/images/bus.jpg'
         ```
 
@@ -170,7 +170,7 @@ The TFLite format supports the [Export](../modes/export.md), [Predict](../modes/
         ```python
         from ultralytics import YOLO
 
-        # Load the exported TFLite model
+        # Load the exported LiteRT model
         model = YOLO("yolo26n.tflite")
 
         # Validate accuracy on the COCO8 dataset
@@ -180,7 +180,7 @@ The TFLite format supports the [Export](../modes/export.md), [Predict](../modes/
     === "CLI"
 
         ```bash
-        # Validate the exported TFLite model
+        # Validate the exported LiteRT model
         yolo val model=yolo26n.tflite data=coco8.yaml
         ```
 
@@ -188,7 +188,7 @@ The TFLite format supports the [Export](../modes/export.md), [Predict](../modes/
 
 | Argument   | Type             | Default        | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | ---------- | ---------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`   | `str`            | `'tflite'`     | Target format for the exported model, defining compatibility with various deployment environments.                                                                                                                                                                                                                                                                                                                                                            |
+| `format`   | `str`            | `'litert'`     | Target format for the exported model, defining compatibility with various deployment environments.                                                                                                                                                                                                                                                                                                                                                            |
 | `imgsz`    | `int` or `tuple` | `640`          | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                                                                                                                                                                                                                                                             |
 | `quantize` | `int` or `str`   | `None`         | Quantization precision: `8` (static INT8, int8 weights + int8 activations; needs calibration `data`/`fraction`), `'w8a16'` (static, int8 weights + int16 activations; needs calibration `data`/`fraction`), `'w8a32'` (dynamic INT8, int8 weights + FP32 activations; no calibration needed), or `32`/unset (FP32). FP16 is not exported separately — an FP32 model runs in FP16 automatically on GPU delegates. Replaces the deprecated `half`/`int8` flags. |
 | `batch`    | `int`            | `1`            | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                                                                                                                                                                                                                                                       |

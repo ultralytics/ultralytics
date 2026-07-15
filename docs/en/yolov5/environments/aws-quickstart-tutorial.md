@@ -80,9 +80,9 @@ python val.py --weights yolov5s.pt --data coco128.yaml --img 640
 # Run inference (object detection) on images or videos using a trained model
 python detect.py --weights yolov5s.pt --source path/to/your/images_or_videos/ --img 640
 
-# Export the trained model to various formats like ONNX, CoreML, TFLite for deployment
+# Export the trained model to LiteRT for deployment
 # See https://docs.ultralytics.com/modes/export/ for more details
-python export.py --weights yolov5s.pt --include onnx coreml tflite --img 640
+yolo export model=yolov5s.pt format=litert imgsz=640
 ```
 
 Refer to the Ultralytics documentation for detailed guides on [Training](../../modes/train.md), [Validation](../../modes/val.md), [Prediction (Inference)](../../modes/predict.md), and [Exporting](../../modes/export.md).

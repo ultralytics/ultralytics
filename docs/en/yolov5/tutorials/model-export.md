@@ -1,10 +1,10 @@
 ---
 comments: true
-description: Learn to export YOLOv5 models to various formats like TFLite, ONNX, CoreML and TensorRT. Increase model efficiency and deployment flexibility with our step-by-step guide.
-keywords: YOLOv5 export, TFLite, ONNX, CoreML, TensorRT, model conversion, YOLOv5 tutorial, PyTorch export
+description: Learn to export YOLOv5 models to various formats like LiteRT, ONNX, CoreML and TensorRT. Increase model efficiency and deployment flexibility with our step-by-step guide.
+keywords: YOLOv5 export, LiteRT, ONNX, CoreML, TensorRT, model conversion, YOLOv5 tutorial, PyTorch export
 ---
 
-# TFLite, ONNX, CoreML, TensorRT Export
+# LiteRT, ONNX, CoreML, TensorRT Export
 
 📚 This guide explains how to export a trained YOLOv5 🚀 model from [PyTorch](https://www.ultralytics.com/glossary/pytorch) to various deployment formats including ONNX, TensorRT, CoreML and more.
 
@@ -39,7 +39,7 @@ YOLOv5 inference is officially supported in 12 formats:
 | [CoreML](../../integrations/coreml.md)                       | `coreml`              | `yolov5s.mlmodel`         |
 | [TensorFlow SavedModel](../../integrations/tf-savedmodel.md) | `saved_model`         | `yolov5s_saved_model/`    |
 | [TensorFlow GraphDef](../../integrations/tf-graphdef.md)     | `pb`                  | `yolov5s.pb`              |
-| [TensorFlow Lite](../../integrations/tflite.md)              | `tflite`              | `yolov5s.tflite`          |
+| [LiteRT](../../integrations/litert.md)                       | `litert`              | `yolov5s.tflite`          |
 | [TensorFlow Edge TPU](../../integrations/edge-tpu.md)        | `edgetpu`             | `yolov5s_edgetpu.tflite`  |
 | [TensorFlow.js](../../integrations/tfjs.md)                  | `tfjs`                | `yolov5s_web_model/`      |
 | [PaddlePaddle](../../integrations/paddlepaddle.md)           | `paddle`              | `yolov5s_paddle_model/`   |
@@ -159,7 +159,7 @@ python detect.py --weights yolov5s.engine         # TensorRT
 python detect.py --weights yolov5s.mlmodel        # CoreML (macOS only)
 python detect.py --weights yolov5s_saved_model    # TensorFlow SavedModel
 python detect.py --weights yolov5s.pb             # TensorFlow GraphDef
-python detect.py --weights yolov5s.tflite         # TensorFlow Lite
+yolo predict model=yolov5s.tflite source=https://ultralytics.com/images/bus.jpg # LiteRT
 python detect.py --weights yolov5s_edgetpu.tflite # TensorFlow Edge TPU
 python detect.py --weights yolov5s_paddle_model   # PaddlePaddle
 ```
@@ -175,7 +175,7 @@ python val.py --weights yolov5s.engine         # TensorRT
 python val.py --weights yolov5s.mlmodel        # CoreML (macOS Only)
 python val.py --weights yolov5s_saved_model    # TensorFlow SavedModel
 python val.py --weights yolov5s.pb             # TensorFlow GraphDef
-python val.py --weights yolov5s.tflite         # TensorFlow Lite
+yolo val model=yolov5s.tflite data=coco8.yaml # LiteRT
 python val.py --weights yolov5s_edgetpu.tflite # TensorFlow Edge TPU
 python val.py --weights yolov5s_paddle_model   # PaddlePaddle
 ```
@@ -194,7 +194,6 @@ model = torch.hub.load("ultralytics/yolov5", "custom", "yolov5s.engine")  # Tens
 model = torch.hub.load("ultralytics/yolov5", "custom", "yolov5s.mlmodel")  # CoreML (macOS Only)
 model = torch.hub.load("ultralytics/yolov5", "custom", "yolov5s_saved_model")  # TensorFlow SavedModel
 model = torch.hub.load("ultralytics/yolov5", "custom", "yolov5s.pb")  # TensorFlow GraphDef
-model = torch.hub.load("ultralytics/yolov5", "custom", "yolov5s.tflite")  # TensorFlow Lite
 model = torch.hub.load("ultralytics/yolov5", "custom", "yolov5s_edgetpu.tflite")  # TensorFlow Edge TPU
 model = torch.hub.load("ultralytics/yolov5", "custom", "yolov5s_paddle_model")  # PaddlePaddle
 

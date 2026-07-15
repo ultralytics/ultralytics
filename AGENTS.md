@@ -28,7 +28,7 @@ The most common agent failure in this repo is reaching for the locally-safest ed
 After opening a PR:
 
 1. Wait for the automated PR review and auto-format commit from Ultralytics Actions (`format.yml`), then pull and address every finding.
-2. Record the pulled live PR-head SHA. Inside the implementation session, run three focused reviewers—Core Principles/deduplication/minimalism, production readiness, and performance—on the full diff; collect all findings, batch fixes, then reuse the same reviewers for `<recorded-sha>..HEAD` and affected invariants. After automation, pull and repeat delta review until local and live heads match. Run one final cold full-diff review, require LGTM with no findings, record its SHA, and hand off or merge only while it remains the live head.
+2. Record the pulled live PR-head SHA. Inside the implementation session, run one reviewer covering Core Principles/deduplication/minimalism, production readiness, and performance on the full diff; collect all findings, batch fixes, then reuse it for `<recorded-sha>..HEAD` and affected invariants. After automation, pull and repeat delta review until local and live heads match. Run one final cold full-diff review, require LGTM with no findings, record its SHA, and hand off or merge only while it remains the live head.
 3. Never fight other commits: Ultralytics Actions pushes auto-format and header commits, and multiple users may work on the same PR. `git pull --rebase` before pushing; never force-push, reset, or revert commits you did not author.
 4. After the PR merges, clean up: remove local worktrees and branches for it, then `git checkout main && git pull`.
 

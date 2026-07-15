@@ -15,8 +15,8 @@ from .dataset import (
 
 __all__ = (
     "BaseDataset",
-    "ClassificationDataset",
     "ClassRegistry",
+    "ClassificationDataset",
     "GroundingDataset",
     "PolygonSemanticDataset",
     "SemanticDataset",

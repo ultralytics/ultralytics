@@ -9,7 +9,7 @@ keywords: multi-dataset training, semantic class resolution, class ID remapping,
 
 ## Introduction
 
-Fine-tuning or pre-training vision models on multiple distinct datasets simultaneously is a powerful way to enhance model generalization and robustness. However, different datasets often map the same semantic objects to different numeric class IDs. 
+Fine-tuning or pre-training vision models on multiple distinct datasets simultaneously is a powerful way to enhance model generalization and robustness. However, different datasets often map the same semantic objects to different numeric class IDs.
 
 For instance, consider two independent datasets:
 
@@ -172,10 +172,13 @@ model.train(data="coco8.yaml")
 ## FAQ
 
 ### Do I need to modify my annotation label files?
+
 No. All class remapping is executed dynamically inside PyTorch dataloading memory during training and validation. The original annotation files are never touched.
 
 ### Do all sub-datasets need to have the same class IDs?
+
 No. Sub-datasets can define classes in different orders or map classes to different IDs. They only need matching semantic class names (e.g., `"blood"` matching `"blood"` case-sensitively).
 
 ### Are dataset cache files affected?
+
 No. Cache files (`.cache` files) store the original dataset-local IDs. Because resolution is applied after cache loading, the same local dataset caches can be safely shared and reused between single-dataset and multi-dataset training runs without rebuilding.

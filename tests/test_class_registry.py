@@ -1,11 +1,13 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import shutil
+
+import numpy as np
 import pytest
 import yaml
-import numpy as np
-from ultralytics.data.class_registry import ClassRegistry
+
 from ultralytics import YOLO
+from ultralytics.data.class_registry import ClassRegistry
 
 
 def test_class_registry_logic():

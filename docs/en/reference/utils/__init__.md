@@ -48,6 +48,10 @@ keywords: Ultralytics, utils, TQDM, Python, ML, Machine Learning utilities, YOLO
 
 <br><br><hr><br>
 
+## ::: ultralytics.utils.__init__.env_bool
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.__init__.plt_settings
 
 <br><br><hr><br>
@@ -57,6 +61,14 @@ keywords: Ultralytics, utils, TQDM, Python, ML, Machine Learning utilities, YOLO
 <br><br><hr><br>
 
 ## ::: ultralytics.utils.__init__.emojis
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.__init__.get_pythonpath_env
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.__init__.get_python_command
 
 <br><br><hr><br>
 

@@ -4,11 +4,10 @@ from __future__ import annotations
 
 import os
 import shutil
-import sys
 import tempfile
 from typing import TYPE_CHECKING
 
-from . import USER_CONFIG_DIR
+from . import USER_CONFIG_DIR, get_python_command
 from .torch_utils import TORCH_1_9
 
 if TYPE_CHECKING:
@@ -111,9 +110,7 @@ def generate_ddp_command(trainer: BaseTrainer) -> tuple[list[str], str]:
     dist_cmd = "torch.distributed.run" if TORCH_1_9 else "torch.distributed.launch"
     port = find_free_network_port()
     cmd = [
-        sys.executable,
-        "-m",
-        dist_cmd,
+        *get_python_command(dist_cmd),
         "--nproc_per_node",
         f"{trainer.world_size}",
         "--master_port",

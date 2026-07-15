@@ -342,7 +342,7 @@ EXPORT_ENVS = {
         "env": {},
         "smoke": ["yolo export format=litert model=yolo26n.pt imgsz=32"],
     },
-        "ethos": {
+    "ethos": {
         "python": "3.13",
         "extras": ["export-base", "export-ethos"],
         "torch": ">=2.12,<2.13",

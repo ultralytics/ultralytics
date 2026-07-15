@@ -4,6 +4,8 @@ import contextlib
 import csv
 import os
 import shutil
+import subprocess
+import sys
 import tarfile
 import urllib
 import zipfile
@@ -41,7 +43,7 @@ from ultralytics.utils import (
     checks,
     is_github_action_running,
 )
-from ultralytics.utils.analysis import ImagePropertyExtractor
+from ultralytics.utils.analysis import CorrelationAnalysis, ImagePropertyExtractor
 from ultralytics.utils.downloads import download, safe_download
 from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13
 
@@ -1464,3 +1466,34 @@ def test_image_property_extractor():
     for key in ("brightness", "blurriness", "num_small", "num_medium", "num_large", "max_pairwise_iou"):
         assert key in props, f"missing property {key!r}"
     assert 0.0 <= props["brightness"] <= 1.0
+
+
+def test_correlation_rank_top_problematic():
+    """_rank_and_score.top_3_problematic flags only F1-lowering extremes, not F1-raising ones."""
+    corr = {"mean_pairwise_iou": {"pearson_r": 0.9}, "num_small": {"pearson_r": -0.9}}
+    per_image = {
+        "clean.jpg": {"mean_pairwise_iou": 0.0, "num_small": 0.0},
+        "mid.jpg": {"mean_pairwise_iou": 1.0, "num_small": 1.0},
+        "worst.jpg": {"mean_pairwise_iou": 9.0, "num_small": 4.0},
+    }
+    CorrelationAnalysis._rank_and_score(per_image, corr)
+    flagged = per_image["worst.jpg"]["top_3_problematic"]
+    assert "num_small" in flagged and "mean_pairwise_iou" not in flagged
+
+
+def test_correlation_analysis(tmp_path):
+    """CorrelationAnalysis joins extractor labels with validator metrics and writes the full report."""
+    model = YOLO(MODEL)
+    metrics = model.val(data="coco8.yaml", imgsz=32, plots=False, save_json=False, verbose=False, device="cpu")
+    labels = ImagePropertyExtractor(model.validator.dataloader.dataset).labels
+    out_dir = tmp_path / "corr"
+    report = CorrelationAnalysis(labels, metrics).run(save_dir=out_dir)
+    assert next(iter(report.per_image.values())).get("f1") is not None
+    for fname in ("per_image_analysis.csv", "correlations.json", "summary.md", "correlation_scatter.png"):
+        assert (out_dir / fname).stat().st_size > 0, fname
+
+
+def test_analysis_lazy_matplotlib_import():
+    """Importing the analysis module must not import matplotlib (lazy-loaded inside plot)."""
+    code = "import sys; import ultralytics.utils.analysis; assert 'matplotlib' not in sys.modules"
+    subprocess.run([sys.executable, "-c", code], check=True)

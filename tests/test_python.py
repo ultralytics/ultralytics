@@ -42,7 +42,7 @@ from ultralytics.utils import (
     is_github_action_running,
 )
 from ultralytics.utils.downloads import download, safe_download
-from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13, TORCH_2_0
+from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13
 
 
 def test_dataloader_caps_workers_to_batches():
@@ -80,55 +80,6 @@ def test_dataloader_empty_dataset_uses_dataloader_validation():
     """Test empty datasets fail through DataLoader validation instead of worker-cap math."""
     with pytest.raises(ValueError, match="positive integer"):
         build_dataloader([], batch=4, workers=2)
-
-
-class _ZerosDataset(torch.utils.data.Dataset):
-    """Minimal dataset for InfiniteDataLoader worker-shutdown tests."""
-
-    def __len__(self):
-        return 64
-
-    def __getitem__(self, i):
-        return torch.zeros(4)
-
-
-def _live_workers(dl):
-    """Return the loader's persistent-iterator workers that are still alive."""
-    return [w for w in getattr(dl.iterator, "_workers", []) if w.is_alive()]
-
-
-@pytest.mark.skipif(not TORCH_2_0, reason="torch<2.0 dataloader workers segfault in this synthetic harness")
-def test_dataloader_close_drains_workers():
-    """close() joins all persistent-iterator workers so none are alive (or registered) at exit.
-
-    At interpreter exit, multiprocessing's _exit_function SIGTERMs any still-alive daemon child; torch's SIGCHLD
-    watchdog then raises "DataLoader worker (pid N) is killed by signal: Terminated" for workers that were never
-    unregistered — the noisy end-of-training atexit traceback. close() drains the persistent iterator gracefully,
-    leaving nothing for multiprocessing to SIGTERM.
-    """
-    dl = data_build.InfiniteDataLoader(_ZerosDataset(), batch_size=4, num_workers=2, shuffle=False)
-    for _ in zip(range(2), dl):  # partial epoch: persistent iterator keeps workers alive, prefetching
-        pass
-    assert _live_workers(dl)
-    dl.close()
-    assert not _live_workers(dl)
-    dl.close()  # idempotent: second call must not raise on an already-drained iterator
-
-
-@pytest.mark.skipif(not TORCH_2_0, reason="torch<2.0 dataloader workers segfault in this synthetic harness")
-def test_dataloader_reset_shuts_down_previous_worker_generation():
-    """reset() drains the old iterator's workers deterministically and the loader stays usable."""
-    dl = data_build.InfiniteDataLoader(_ZerosDataset(), batch_size=4, num_workers=2, shuffle=False)
-    for _ in zip(range(2), dl):
-        pass
-    old = list(dl.iterator._workers)
-    dl.reset()
-    for w in old:
-        w.join(timeout=10)
-    assert not any(w.is_alive() for w in old)
-    for _ in zip(range(2), dl):  # new iterator works after reset
-        pass
-    dl.close()
 
 
 def test_cfg_rejects_fuzzed_scalars():

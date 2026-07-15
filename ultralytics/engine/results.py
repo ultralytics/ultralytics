@@ -494,8 +494,8 @@ class Results(SimpleClass, DataExportMixin):
         filename: str | None = None,
         color_mode: str = "class",
         txt_color: tuple[int, int, int] = (255, 255, 255),
-        depth_cmap: str = "inferno",
-        depth_mode: str = "metric",
+        depth_cmap: str = "jet",
+        depth_mode: str = "disparity",
     ) -> np.ndarray:
         """Plot detection results on an input BGR image.
 

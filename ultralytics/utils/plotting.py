@@ -221,8 +221,8 @@ def colorize_depth(
     depth: np.ndarray,
     vmin: float | None = None,
     vmax: float | None = None,
-    cmap: str = "inferno",
-    mode: str = "metric",
+    cmap: str = "jet",
+    mode: str = "disparity",
 ) -> np.ndarray:
     """Map a (H, W) metric-depth array to a BGR uint8 colorized image, invalid (<= 0) pixels black.
 
@@ -527,7 +527,7 @@ class Annotator:
             self.fromarray(self.im)
 
     def depth_map(
-        self, depth, alpha: float = 0.6, side_by_side: bool = False, cmap: str = "inferno", mode: str = "metric"
+        self, depth, alpha: float = 0.6, side_by_side: bool = False, cmap: str = "jet", mode: str = "disparity"
     ):
         """Render a colorized depth map for the image.
 

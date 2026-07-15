@@ -148,6 +148,12 @@ class DetectionTrainer(BaseTrainer):
         if getattr(self.model, "end2end", False):
             self.model.set_head_attr(max_det=self.args.max_det)
 
+    def set_model_names_for_load(self, model):
+        """Set target dataset names before loading weights so cls heads can remap by name."""
+        if getattr(self.args, "cls_remap", True) and self.data.get("names"):
+            model.names = self.data["names"]
+        return model
+
     def get_class_counts(self):
         """Return per-class instance counts from the training dataset labels."""
         classes = np.concatenate([lb["cls"].flatten() for lb in self.train_loader.dataset.labels], 0)
@@ -190,7 +196,9 @@ class DetectionTrainer(BaseTrainer):
         Returns:
             (DetectionModel): YOLO detection model.
         """
-        model = DetectionModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
+        model = self.set_model_names_for_load(
+            DetectionModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
+        )
         if weights:
             model.load(weights)
         return model

@@ -1,4 +1,5 @@
 ---
+plans: [free, pro, enterprise]
 title: Account Activity Feed
 comments: true
 description: Track all account activity and events on Ultralytics Platform with the activity feed, including training, uploads, and system events.

@@ -1159,8 +1159,8 @@ def plot_depth_panels(imgs, preds, fname, gt=None, titles=None, max_images: int 
         imgs (torch.Tensor): (B,3,H,W) float image tensor in [0,1].
         preds (list): List of (B,1,H,W) or (B,H,W) predicted depth tensors; each adds one column.
         fname (str | Path): Output image path.
-        gt (torch.Tensor, optional): (B,1,H,W) or (B,H,W) ground-truth depth in meters (pixels <= 0 invalid, drawn black).
-            Used for the GT column and to set the shared color scale.
+        gt (torch.Tensor, optional): (B,1,H,W) or (B,H,W) ground-truth depth in meters (pixels <= 0 invalid, drawn
+            black). Used for the GT column and to set the shared color scale.
         titles (list, optional): List of column labels, drawn in a 24 px header strip. None keeps the strip-free layout.
         max_images (int): Maximum number of rows.
     """

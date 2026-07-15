@@ -203,13 +203,13 @@ See [Cloud Training](../train/cloud-training.md) for complete GPU options and pr
 
 ### Cost Calculation
 
-```
+```text
 Total Cost = GPU Rate x Training Time (hours)
 ```
 
 Example: Training for 2.5 hours on RTX PRO 6000
 
-```
+```text
 $2.09 x 2.5 = $5.23
 ```
 

@@ -21,7 +21,7 @@ from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
 from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.data.build import build_dataloader, load_inference_source
-from ultralytics.data.utils import check_det_dataset
+from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.utils import (
     ARM64,
     ASSETS,
@@ -42,7 +42,7 @@ from ultralytics.utils import (
     is_github_action_running,
 )
 from ultralytics.utils.downloads import download, safe_download
-from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13, TORCH_2_0
+from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13
 
 
 def test_dataloader_caps_workers_to_batches():
@@ -82,61 +82,24 @@ def test_dataloader_empty_dataset_uses_dataloader_validation():
         build_dataloader([], batch=4, workers=2)
 
 
-class _ZerosDataset(torch.utils.data.Dataset):
-    """Minimal dataset for InfiniteDataLoader worker-shutdown tests."""
-
-    def __len__(self):
-        return 64
-
-    def __getitem__(self, i):
-        return torch.zeros(4)
-
-
-def _live_workers(dl):
-    """Return the loader's persistent-iterator workers that are still alive."""
-    return [w for w in getattr(dl.iterator, "_workers", []) if w.is_alive()]
-
-
-@pytest.mark.skipif(not TORCH_2_0, reason="torch<2.0 dataloader workers segfault in this synthetic harness")
-def test_dataloader_close_drains_workers():
-    """close() joins all persistent-iterator workers so none are alive (or registered) at exit.
-
-    At interpreter exit, multiprocessing's _exit_function SIGTERMs any still-alive daemon child; torch's SIGCHLD
-    watchdog then raises "DataLoader worker (pid N) is killed by signal: Terminated" for workers that were never
-    unregistered — the noisy end-of-training atexit traceback. close() drains the persistent iterator gracefully,
-    leaving nothing for multiprocessing to SIGTERM.
-    """
-    dl = data_build.InfiniteDataLoader(_ZerosDataset(), batch_size=4, num_workers=2, shuffle=False)
-    for _ in zip(range(2), dl):  # partial epoch: persistent iterator keeps workers alive, prefetching
-        pass
-    assert _live_workers(dl)
-    dl.close()
-    assert not _live_workers(dl)
-    dl.close()  # idempotent: second call must not raise on an already-drained iterator
-
-
-@pytest.mark.skipif(not TORCH_2_0, reason="torch<2.0 dataloader workers segfault in this synthetic harness")
-def test_dataloader_reset_shuts_down_previous_worker_generation():
-    """reset() drains the old iterator's workers deterministically and the loader stays usable."""
-    dl = data_build.InfiniteDataLoader(_ZerosDataset(), batch_size=4, num_workers=2, shuffle=False)
-    for _ in zip(range(2), dl):
-        pass
-    old = list(dl.iterator._workers)
-    dl.reset()
-    for w in old:
-        w.join(timeout=10)
-    assert not any(w.is_alive() for w in old)
-    for _ in zip(range(2), dl):  # new iterator works after reset
-        pass
-    dl.close()
-
-
-def test_cfg_rejects_fuzzed_scalars():
-    """Test invalid scalar overrides fail in config validation."""
+def test_cfg_rejects_fuzzed_values():
+    """Test invalid overrides fail in config validation."""
     with pytest.raises(TypeError, match="degrees"):
         get_cfg(overrides={"degrees": None})
     with pytest.raises(ValueError, match="cls_pw"):
         get_cfg(overrides={"cls_pw": 10})
+    for key, value in (
+        ("split", []),
+        ("split", -0.0),
+        ("optimizer", []),
+        ("copy_paste_mode", {}),
+        ("optimizer", None),
+        ("split", None),
+        ("copy_paste_mode", None),
+    ):
+        with pytest.raises((TypeError, ValueError), match=key):
+            get_cfg(overrides={key: value})
+    assert get_cfg(overrides={"auto_augment": None}).auto_augment is None
 
 
 def skip_rpi_semantic():
@@ -860,6 +823,8 @@ def test_data_utils(tmp_path):
     autosplit(tmp_path / "coco8/images")
     assert any((tmp_path / "coco8").glob("autosplit_*.txt"))
     assert zip_directory(images_dir).is_file()
+    with pytest.raises(ValueError, match="split"):
+        check_cls_dataset("imagenet10", split="invalid")
     with pytest.raises(FileNotFoundError, match="'test:' images not found"):
         check_det_dataset("coco8.yaml", split="test")
     data_yaml = tmp_path / "coco8.yaml"

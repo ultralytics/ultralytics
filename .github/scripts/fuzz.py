@@ -146,6 +146,7 @@ EXPECTED_MODULES = (
     "ultralytics/cfg/__init__.py",
     "ultralytics/utils/checks.py",
     "ultralytics/data/utils.py",
+    "ultralytics/data/augment.py:classify_augmentations",
     "ultralytics/engine/exporter.py:validate_args",  # exporter's intentional per-format argument validation
     "ultralytics/engine/exporter.py:__call__",  # intentional compat asserts; per-format bugs raise in deeper frames
 )

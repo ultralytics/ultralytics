@@ -223,7 +223,7 @@ The `Logs` tab shows recent log entries with severity filtering (All / Errors). 
 
 Each endpoint has a unique URL, for example:
 
-```
+```text
 https://predict-abc123.run.app
 ```
 

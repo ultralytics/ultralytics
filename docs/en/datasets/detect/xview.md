@@ -22,7 +22,7 @@ Building on benchmarks like [COCO](coco.md), xView targets overhead imagery, whe
 
     The xView dataset is **not** downloaded automatically. Register at the [DIUx xView 2018 Challenge](https://challenge.xviewdataset.org/) website to download `train_images.zip` (~15 GB), `train_labels.zip`, and `val_images.zip` (~5 GB), then extract them under `datasets/xView/` so that it contains:
 
-    ```
+    ```text
     datasets/xView/
     ├── train_images/          # 847 TIF satellite images
     ├── val_images/            # 282 TIF images (no public labels)

@@ -133,7 +133,10 @@ def test_serialize_callbacks_mixed():
 
 def test_serialize_callbacks_skips_integration_callbacks():
     """Callbacks from ultralytics.utils.callbacks.* are skipped — they're re-added in the subprocess."""
-    integration_cb = lambda t: None
+
+    def integration_cb(t):
+        return None
+
     integration_cb.__module__ = "ultralytics.utils.callbacks.hub"  # simulate integration callback
     cbs = get_default_callbacks()
     cbs["on_train_start"].append(integration_cb)

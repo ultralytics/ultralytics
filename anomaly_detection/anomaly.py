@@ -1064,6 +1064,34 @@ _BBOX_THRESHOLDS = np.arange(0.05, 1.0, 0.05)  # 19 thresholds
 _BBOX_IOU_THRESHOLDS = np.linspace(0.5, 0.95, 10)
 
 
+def _nms(boxes: "np.ndarray", iou_threshold: float) -> list[int]:
+    """Score-sorted NMS. ``boxes`` is ``(N, 5)`` [x1, y1, x2, y2, score]. Returns kept indices."""
+    if len(boxes) == 0:
+        return []
+    x1, y1, x2, y2 = boxes[:, 0], boxes[:, 1], boxes[:, 2], boxes[:, 3]
+    areas = (x2 - x1) * (y2 - y1)
+    keep: list[int] = []
+    for i in range(len(boxes)):
+        if areas[i] <= 0:
+            continue
+        keep.append(i)
+        # Compute IoU of box i with all boxes j > i
+        ix1, iy1, ix2, iy2 = x1[i], y1[i], x2[i], y2[i]
+        ox1 = np.maximum(ix1, x1[i + 1:])
+        oy1 = np.maximum(iy1, y1[i + 1:])
+        ox2 = np.minimum(ix2, x2[i + 1:])
+        oy2 = np.minimum(iy2, y2[i + 1:])
+        inter_w = np.maximum(0, ox2 - ox1)
+        inter_h = np.maximum(0, oy2 - oy1)
+        inter = inter_w * inter_h
+        iou = inter / (areas[i] + areas[i + 1:] - inter + 1e-8)
+        # Suppress boxes j > i that overlap too much
+        for j_idx, v in enumerate(iou):
+            if v > iou_threshold:
+                areas[i + 1 + j_idx] = 0  # mark suppressed
+    return keep
+
+
 class AnomalyBboxValidator:
     """Heatmap → bbox mAP evaluator via COCO JSON + :mod:`faster_coco_eval`.
 
@@ -1081,8 +1109,10 @@ class AnomalyBboxValidator:
         Directory for per-category ``gt.json`` / ``pred_t0.XX.json`` files.
     """
 
-    def __init__(self, min_area: int = 5, save_dir: Path | None = None):
+    def __init__(self, min_area: int = 5, nms_iou: float = 0.5,
+                 save_dir: Path | None = None):
         self.min_area = min_area
+        self.nms_iou = nms_iou
         self.save_dir = save_dir
 
     # ── Label file resolution ──────────────────────────────────────────
@@ -1177,11 +1207,13 @@ class AnomalyBboxValidator:
 
     @staticmethod
     def _heatmap_to_boxes(
-        heatmap: np.ndarray, threshold: float, min_area: int
+        heatmap: np.ndarray, threshold: float, min_area: int,
+        nms_iou: float = 0.5,
     ) -> np.ndarray:
         """Connected-components on thresholded heatmap → ``(N, 5)`` [x1, y1, x2, y2, score].
 
         Returns empty ``(0, 5)`` array when no components survive filtering.
+        After CC extraction, score-based NMS is applied to suppress duplicate overlapping boxes.
         """
         import cv2
 
@@ -1199,8 +1231,17 @@ class AnomalyBboxValidator:
         if not boxes:
             return np.empty((0, 5), dtype=np.float32)
         boxes_arr = np.array(boxes, dtype=np.float32)
+        # Sort by score descending then NMS
         boxes_arr = boxes_arr[boxes_arr[:, 4].argsort()[::-1]]
-        return boxes_arr
+        keep = _nms(boxes_arr, nms_iou)
+        return boxes_arr[keep]
+
+    @staticmethod
+    def _heatmap_to_boxes_no_nms(
+        heatmap: np.ndarray, threshold: float, min_area: int
+    ) -> np.ndarray:
+        """Same as ``_heatmap_to_boxes`` but without NMS — for diagnostics / visualization."""
+        return AnomalyBboxValidator._heatmap_to_boxes(heatmap, threshold, min_area, nms_iou=1.0)
 
     # ── COCO JSON builders ─────────────────────────────────────────────
 
@@ -1369,7 +1410,7 @@ class AnomalyBboxValidator:
         for threshold in _BBOX_THRESHOLDS:
             threshold = round(float(threshold), 2)
             per_image_boxes = [
-                self._heatmap_to_boxes(hm, threshold, self.min_area)
+                self._heatmap_to_boxes(hm, threshold, self.min_area, self.nms_iou)
                 for hm in heatmaps
             ]
             pred_list = self._build_pred_json(image_ids, per_image_boxes)
@@ -1609,6 +1650,8 @@ def main() -> None:
                    help="Also run bbox mAP evaluation (heatmap -> connected components -> COCO mAP).")
     p.add_argument("--bbox-min-area", type=int, default=5,
                    help="Min connected-component area for heatmap->bbox (default 5).")
+    p.add_argument("--nms-iou", type=float, default=0.5,
+                   help="NMS IoU threshold for bbox dedup (default 0.5).")
     args = p.parse_args()
 
     if args.category:
@@ -1649,6 +1692,7 @@ def main() -> None:
         bbox_out = run_dir / f"bbox_{out_csv.stem}.csv"
         bbox_validator = AnomalyBboxValidator(
             min_area=args.bbox_min_area,
+            nms_iou=args.nms_iou,
             save_dir=run_dir / "bbox_eval",
         )
         bbox_validator.run(ad, cats, bbox_out)

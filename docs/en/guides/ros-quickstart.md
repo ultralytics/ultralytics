@@ -140,7 +140,7 @@ Finally, subscribe to the `/camera/color/image_raw` topic and process every inco
 
     === "ROS1"
 
-        This callback receives messages of type `sensor_msgs/Image`, converts them into a NumPy array using `ros_numpy`, processes the images with the previously instantiated YOLO models, annotates the images, and then publishes them back to the respective topics.
+        This callback receives messages of type `sensor_msgs/Image`, converts them into a NumPy array using `ros_numpy`, processes the images with the previously instantiated YOLO models, annotates the images, and then publishes them back to the respective topics. Unlike `cv_bridge`, `ros_numpy.numpify()` has no `desired_encoding` argument — it preserves whatever encoding the camera driver publishes, so the callback normalizes an `rgb8` frame to `bgr8` before inference, matching the channel order YOLO expects and what `plot()` returns for the published annotated image.
 
         ```python
         import ros_numpy
@@ -149,15 +149,17 @@ Finally, subscribe to the `/camera/color/image_raw` topic and process every inco
         def callback(data):
             """Callback function to process image and publish annotated images."""
             array = ros_numpy.numpify(data)
+            if data.encoding == "rgb8":
+                array = array[..., ::-1]  # normalize to bgr8, the channel order YOLO expects
             if det_image_pub.get_num_connections():
                 det_result = detection_model(array)
                 det_annotated = det_result[0].plot(show=False)
-                det_image_pub.publish(ros_numpy.msgify(Image, det_annotated, encoding="rgb8"))
+                det_image_pub.publish(ros_numpy.msgify(Image, det_annotated, encoding="bgr8"))
 
             if seg_image_pub.get_num_connections():
                 seg_result = segmentation_model(array)
                 seg_annotated = seg_result[0].plot(show=False)
-                seg_image_pub.publish(ros_numpy.msgify(Image, seg_annotated, encoding="rgb8"))
+                seg_image_pub.publish(ros_numpy.msgify(Image, seg_annotated, encoding="bgr8"))
 
 
         rospy.Subscriber("/camera/color/image_raw", Image, callback)
@@ -226,15 +228,17 @@ Finally, subscribe to the `/camera/color/image_raw` topic and process every inco
         def callback(data):
             """Callback function to process image and publish annotated images."""
             array = ros_numpy.numpify(data)
+            if data.encoding == "rgb8":
+                array = array[..., ::-1]  # normalize to bgr8, the channel order YOLO expects
             if det_image_pub.get_num_connections():
                 det_result = detection_model(array)
                 det_annotated = det_result[0].plot(show=False)
-                det_image_pub.publish(ros_numpy.msgify(Image, det_annotated, encoding="rgb8"))
+                det_image_pub.publish(ros_numpy.msgify(Image, det_annotated, encoding="bgr8"))
 
             if seg_image_pub.get_num_connections():
                 seg_result = segmentation_model(array)
                 seg_annotated = seg_result[0].plot(show=False)
-                seg_image_pub.publish(ros_numpy.msgify(Image, seg_annotated, encoding="rgb8"))
+                seg_image_pub.publish(ros_numpy.msgify(Image, seg_annotated, encoding="bgr8"))
 
 
         rospy.Subscriber("/camera/color/image_raw", Image, callback)
@@ -333,6 +337,8 @@ classes_pub = rospy.Publisher("/ultralytics/detection/classes", String, queue_si
 def callback(data):
     """Callback function to process image and publish detected classes."""
     array = ros_numpy.numpify(data)
+    if data.encoding == "rgb8":
+        array = array[..., ::-1]  # normalize to bgr8, the channel order YOLO expects
     if classes_pub.get_num_connections():
         det_result = detection_model(array)
         classes = det_result[0].boxes.cls.cpu().numpy().astype(int)
@@ -435,8 +441,13 @@ Next, define the callbacks that process the incoming RGB and depth messages. Mos
 
         def callback(data):
             """Callback function to process depth image and RGB image."""
-            image = rospy.wait_for_message("/camera/color/image_raw", Image)
-            image = ros_numpy.numpify(image)
+            try:
+                image_msg = rospy.wait_for_message("/camera/color/image_raw", Image, timeout=1.0)
+            except rospy.ROSException:
+                return
+            image = ros_numpy.numpify(image_msg)
+            if image_msg.encoding == "rgb8":
+                image = image[..., ::-1]  # normalize to bgr8, the channel order YOLO expects
             depth = ros_numpy.numpify(data)
             if data.encoding == "16UC1":  # millimeters with 0 = invalid; convert to meters with NaN = invalid
                 depth = np.where(depth == 0, np.nan, depth.astype(np.float32) / 1000)
@@ -534,8 +545,13 @@ Next, define the callbacks that process the incoming RGB and depth messages. Mos
 
         def callback(data):
             """Callback function to process depth image and RGB image."""
-            image = rospy.wait_for_message("/camera/color/image_raw", Image)
-            image = ros_numpy.numpify(image)
+            try:
+                image_msg = rospy.wait_for_message("/camera/color/image_raw", Image, timeout=1.0)
+            except rospy.ROSException:
+                return
+            image = ros_numpy.numpify(image_msg)
+            if image_msg.encoding == "rgb8":
+                image = image[..., ::-1]  # normalize to bgr8, the channel order YOLO expects
             depth = ros_numpy.numpify(data)
             if data.encoding == "16UC1":  # millimeters with 0 = invalid; convert to meters with NaN = invalid
                 depth = np.where(depth == 0, np.nan, depth.astype(np.float32) / 1000)
@@ -1065,9 +1081,11 @@ det_image_pub = rospy.Publisher("/ultralytics/detection/image", Image, queue_siz
 
 def callback(data):
     array = ros_numpy.numpify(data)
+    if data.encoding == "rgb8":
+        array = array[..., ::-1]  # normalize to bgr8, the channel order YOLO expects
     det_result = detection_model(array)
     det_annotated = det_result[0].plot(show=False)
-    det_image_pub.publish(ros_numpy.msgify(Image, det_annotated, encoding="rgb8"))
+    det_image_pub.publish(ros_numpy.msgify(Image, det_annotated, encoding="bgr8"))
 
 
 rospy.Subscriber("/camera/color/image_raw", Image, callback)

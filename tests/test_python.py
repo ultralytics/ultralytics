@@ -479,8 +479,7 @@ def test_track_second_association_low_conf_keeps_id(tracker_type):
 
 @pytest.mark.parametrize("tracker_type", ["botsort", "deepocsort", "tracktrack"])
 def test_track_reid_auto_user_detections(tracker_type):
-    """Native ReID (model='auto') must degrade to motion-only with user-supplied detections, not encode the raw frame.
-    """
+    """Native ReID (model='auto') must degrade to motion-only with user-supplied detections, not encode the raw frame."""
     from ultralytics.engine.results import Boxes
     from ultralytics.trackers.track import TRACKER_MAP
     from ultralytics.utils import ROOT, YAML, IterableSimpleNamespace

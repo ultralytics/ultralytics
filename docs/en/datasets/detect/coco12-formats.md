@@ -41,7 +41,7 @@ The dataset includes one image for each of 12 supported format extensions define
 
 ## Dataset Structure
 
-```
+```text
 coco12-formats/
 ├── images/
 │   ├── train/          # 6 images (avif, bmp, dng, heic, jpeg, jpg)

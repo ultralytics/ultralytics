@@ -32,6 +32,8 @@ from ultralytics.utils import (
     checks,
     colorstr,
     deprecation_warn,
+    get_python_command,
+    get_pythonpath_env,
     vscode_msg,
 )
 
@@ -92,7 +94,7 @@ TASK2METRIC = {
 }
 
 ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []
-_YOLO_CLI_COMMAND = [sys.executable, "-m", "ultralytics.cfg.__init__"]
+_YOLO_CLI_COMMAND = get_python_command("ultralytics.cfg.__init__")
 SOLUTIONS_HELP_MSG = f"""
     Arguments received: {["yolo", *ARGV[1:]]!s}. Ultralytics 'yolo solutions' usage overview:
 
@@ -293,6 +295,7 @@ CFG_BOOL_KEYS = frozenset(
         "cls_remap",
     }
 )
+CFG_STR_KEYS = frozenset({"optimizer", "split", "copy_paste_mode", "auto_augment"})
 
 
 def cfg2dict(cfg: str | Path | dict | SimpleNamespace) -> dict:
@@ -403,9 +406,9 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
         - None values are ignored as they may be from optional arguments.
         - Fraction keys use [0.0, 1.0], except dataset fraction, which uses (0.0, 1.0].
     """
-    typed_keys = CFG_FLOAT_KEYS | CFG_FRACTION_KEYS | CFG_INT_KEYS | CFG_BOOL_KEYS | {"scale", "compile"}
+    typed_keys = CFG_FLOAT_KEYS | CFG_FRACTION_KEYS | CFG_INT_KEYS | CFG_BOOL_KEYS | CFG_STR_KEYS | {"scale", "compile"}
     for k, v in cfg.items():
-        if v is None and DEFAULT_CFG_DICT.get(k) is not None and k in typed_keys:
+        if v is None and DEFAULT_CFG_DICT.get(k) is not None and k in typed_keys and k != "auto_augment":
             raise TypeError(f"'{k}=None' is invalid. '{k}' must not be None.")
         if v is not None:  # None values may be from optional args
             if k in CFG_FLOAT_KEYS and not isinstance(v, FLOAT_OR_INT):
@@ -460,6 +463,10 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                         f"'{k}' must be a bool (i.e. '{k}=True' or '{k}=False')"
                     )
                 cfg[k] = bool(v)
+            elif k in CFG_STR_KEYS and not isinstance(v, str):
+                if hard:
+                    raise TypeError(f"'{k}={v}' is of invalid type {type(v).__name__}. '{k}' must be a str.")
+                cfg[k] = str(v)
             elif k == "compile" and not isinstance(v, (bool, str)):  # False=off, True="default", or a mode string
                 if hard:
                     raise TypeError(
@@ -810,14 +817,15 @@ def handle_yolo_solutions(args: list[str]) -> None:
         checks.check_requirements("streamlit>=1.29.0")
         LOGGER.info("💡 Loading Ultralytics live inference app...")
         subprocess.run(
-            [  # Run subprocess with Streamlit custom argument
-                "streamlit",
+            [
+                *get_python_command("streamlit"),
                 "run",
                 str(ROOT / "solutions/streamlit_inference.py"),
                 "--server.headless",
                 "true",
                 overrides.pop("model", "yolo26n.pt"),
-            ]
+            ],
+            env=get_pythonpath_env(),
         )
     else:
         import cv2  # Only needed for cap and vw functionality

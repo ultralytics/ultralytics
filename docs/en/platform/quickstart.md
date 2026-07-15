@@ -205,7 +205,7 @@ After upload, the platform automatically processes your data:
 
     For best results, upload a ZIP or TAR archive (including `.tar.gz` and `.tgz`) with the standard YOLO structure:
 
-    ```
+    ```text
     my-dataset.zip
     ├── data.yaml          # Class names and splits
     ├── train/

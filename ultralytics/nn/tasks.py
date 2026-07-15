@@ -1429,9 +1429,7 @@ class YOLOESegModel(YOLOEModel, SegmentationModel):
                 else self.init_criterion()
             )
 
-        if preds is None:
-            preds = self.forward(batch["img"], tpe=batch.get("txt_feats", None), vpe=batch.get("visuals", None))
-        return self.criterion(preds, batch)
+        return super().loss(batch, preds)
 
 
 class Ensemble(torch.nn.ModuleList):

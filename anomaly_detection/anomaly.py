@@ -62,9 +62,9 @@ from mvtec_yolo import CATEGORIES as MVTEC_CATEGORIES, get_mvtec_yolo_data
 # ---------------------------------------------------------------------------
 
 _DINOV2_HUB = {  # short → (torch.hub entry, feat_dim)
-    "vits14": ("dinov2_vits14_reg", 384),
-    "vitb14": ("dinov2_vitb14_reg", 768),
-    "vitl14": ("dinov2_vitl14_reg", 1024),
+    "dinov2_vits14": ("dinov2_vits14_reg", 384),
+    "dinov2_vitb14": ("dinov2_vitb14_reg", 768),
+    "dinov2_vitl14": ("dinov2_vitl14_reg", 1024),
 }
 _DINO_PATCH = 14
 _DINOV3_PATCH = 16
@@ -534,7 +534,7 @@ class AnomalyDINO(AnomalyBase):
     omitted for minimal baseline — override ``_filter_tokens`` to add it back.
     """
 
-    def __init__(self, backbone: str = "vits14", imgsz: int = 448, **kw) -> None:
+    def __init__(self, backbone: str = "dinov2_vits14", imgsz: int = 448, **kw) -> None:
         if backbone not in _DINOV2_HUB:
             raise ValueError(f"backbone must be in {list(_DINOV2_HUB)}, got {backbone!r}")
         if imgsz % _DINO_PATCH != 0:
@@ -545,7 +545,7 @@ class AnomalyDINO(AnomalyBase):
     def _build_backbone(self) -> None:
         hub_name, _ = _DINOV2_HUB[self.dino_short]
         self.model = torch.hub.load("facebookresearch/dinov2", hub_name).to(self.device).eval()
-        self.backbone = f"dino_{self.dino_short}"
+        self.backbone = self.dino_short
 
     def _forward_features(self, x: torch.Tensor) -> dict[str, torch.Tensor]:
         tok = self.model.forward_features(x.to(self.device))["x_norm_patchtokens"]  # [B, N, D]
@@ -1061,16 +1061,15 @@ _RESNET_ARCH_MAP = {
 
 
 def _build(args: argparse.Namespace) -> tuple[AnomalyBase, Path]:
-    """Construct the requested model + return its default CSV path."""
+    """Construct the requested model + return its default run directory."""
     bb = args.backbone
     kw = dict(
         coreset_size=args.coreset, K=args.K, scoring=args.scoring,
         temperature=args.temperature, target_score=args.target_score,
         target_quantile=args.target_quantile, device=args.device,
     )
-    if bb.startswith("dino_"):
-        short = bb.removeprefix("dino_")
-        ad = AnomalyDINO(backbone=short, imgsz=args.imgsz or 448, **kw)
+    if bb.startswith("dinov2_"):
+        ad = AnomalyDINO(backbone=bb, imgsz=args.imgsz or 448, **kw)
     elif bb.startswith("dinov3_"):
         short = bb.removeprefix("dinov3_")
         ad = AnomalyDINOv3(backbone=short, imgsz=args.imgsz or 448, **kw)
@@ -1125,7 +1124,7 @@ def _build(args: argparse.Namespace) -> tuple[AnomalyBase, Path]:
     if args.coreset:
         tag += f"_cs{args.coreset}"
     tag += f"_sc{args.scoring}_K{args.K}_T{args.temperature:g}_ts{args.target_score:g}_q{args.target_quantile:g}"
-    return ad, Path(f"./runs/temp/anomaly_{tag}_mvtec_metrics.csv")
+    return ad, Path(f"./runs/{tag}")
 
 
 def main() -> None:
@@ -1140,12 +1139,12 @@ def main() -> None:
     convnext_choices = [f"convnext_{k}" for k in _cn_sizes] + \
                        [f"convnext_{k}_s{s}" for k in _cn_sizes for s in _cn_stages]
 
-    dino_choices = [f"dino_{k}" for k in _DINOV2_HUB]
+    dinov2_choices = list(_DINOV2_HUB)
     dinov3_choices = [f"dinov3_{k}" for k in _DINOV3_HUB]
 
-    p.add_argument("--backbone", default="dino_vits14",
-                   choices=dino_choices + dinov3_choices + convnext_choices + yolo_choices + resnet_choices,
-                   help="Feature extractor. dino_*: DINOv2. dinov3_*: DINOv3 ViT. "
+    p.add_argument("--backbone", default="dinov2_vits14",
+                   choices=dinov2_choices + dinov3_choices + convnext_choices + yolo_choices + resnet_choices,
+                   help="Feature extractor. dinov2_*: DINOv2. dinov3_*: DINOv3 ViT. "
                         "convnext_*[_s<digits>]: DINOv3-distilled ConvNeXt "
                         "(single or multi-stage). yolo_p<digits>[_<tap>]: YOLO. "
                         "{wrn50,rn18,rn34,rn50,rn101,rn152}_l<digits>: torchvision ResNet.")
@@ -1180,13 +1179,12 @@ def main() -> None:
     p.add_argument("--target-quantile", type=float, default=0.95,
                    help="Hold-out quantile placed at --target-score (default 0.95).")
     p.add_argument("--out", type=Path, default=None, help="Output CSV path.")
-    p.add_argument("--save-vis", type=Path, default=None,
-                   help="If set, save per-image [orig|heatmap|overlay] triptych to this dir "
-                        "(grouped by <category>/<good|anom>/). GT polygon outline drawn in green on overlay.")
-    p.add_argument("--save-vis-samples", type=Path, default=None,
+    p.add_argument("--save-vis", action="store_true",
+                   help="If set, save per-image [orig|heatmap|overlay] triptych to "
+                        "runs/<tag>/vis/ (grouped by <category>/<good|anom>/).")
+    p.add_argument("--save-vis-samples", action="store_true",
                    help="If set, save exactly ONE normal + ONE anomaly viz per category to "
-                        "<dir>/<category>/{normal,anomaly}.jpg. Normal = good with lowest score; "
-                        "anomaly = anomalous with highest score > --vis-thresh (skipped if none).")
+                        "runs/<tag>/vis/samples/<category>/{normal,anomaly}.jpg.")
     p.add_argument("--vis-thresh", type=float, default=0.4,
                    help="Minimum score for an anomaly to be eligible as the per-category exemplar "
                         "(default 0.4 — matches OBMA's accumulate_thresh default).")
@@ -1202,20 +1200,27 @@ def main() -> None:
     else:
         cats = list(MVTEC_CATEGORIES)
 
-    ad, out_csv = _build(args)
+    ad, run_dir = _build(args)
     if args.out is not None:
         out_csv = args.out
-    elif len(cats) < len(MVTEC_CATEGORIES):
-        out_csv = out_csv.with_name(out_csv.stem + f"_{'_'.join(cats)}.csv")
+    else:
+        stem = "metrics"
+        if len(cats) < len(MVTEC_CATEGORIES):
+            stem += f"_{'_'.join(cats)}"
+        out_csv = run_dir / f"{stem}.csv"
     out_csv.parent.mkdir(parents=True, exist_ok=True)
-    print(f"ready: backbone={ad.backbone} imgsz={ad.imgsz} device={ad.device} "
+
+    save_vis_dir = run_dir / "vis" if args.save_vis else None
+    save_vis_samples_dir = run_dir / "vis" / "samples" if args.save_vis_samples else None
+
+    print(f"run_dir={run_dir}  backbone={ad.backbone} imgsz={ad.imgsz} device={ad.device} "
           f"feat_dim={ad.feat_dim} grid={ad.grid} K={ad.K} target_score={ad.target_score}"
           + (f" coreset={args.coreset}" if args.coreset else ""))
 
     validator = AnomalyValidator(
         eval_size=256,
-        save_vis_dir=args.save_vis,
-        save_vis_samples_dir=args.save_vis_samples,
+        save_vis_dir=save_vis_dir,
+        save_vis_samples_dir=save_vis_samples_dir,
         vis_thresh=args.vis_thresh,
     )
     validator.run(ad, cats, out_csv)

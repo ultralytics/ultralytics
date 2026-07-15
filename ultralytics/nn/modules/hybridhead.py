@@ -1,6 +1,9 @@
-from .head import Detect
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 import torch.nn as nn
+
 from .anchor_free import AnchorFreeHead
+from .head import Detect
 
 
 class HybridHead(nn.Module):
@@ -9,29 +12,16 @@ class HybridHead(nn.Module):
 
         self.anchor_head = Detect(nc, ch=ch)
 
-        self.af_head = nn.ModuleList(
-            [
-                AnchorFreeHead(
-                    c,
-                    nc
-                )
-                for c in ch
-            ]
-        )
-    
+        self.af_head = nn.ModuleList([AnchorFreeHead(c, nc) for c in ch])
+
     def forward(self, x):
         anchor_output = self.anchor_head(x)
         if self.training:
             # Training: return combined dict so DetectionModel.loss() can extract anchor preds
             af_output = []
             for i, f in enumerate(x):
-                af_output.append(
-                    self.af_head[i](f)
-                )
-            return {
-                "anchor": anchor_output,
-                "anchor_free": af_output
-            }
+                af_output.append(self.af_head[i](f))
+            return {"anchor": anchor_output, "anchor_free": af_output}
         else:
             # Inference: return anchor output directly (same format as Detect: (decoded_tensor, preds_dict))
             # This ensures validator/NMS receives the tensor it expects

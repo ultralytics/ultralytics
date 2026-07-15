@@ -16,11 +16,9 @@ Examples:
     >>> torch.onnx.export(m, x, f)
     >>> subprocess.run(f"onnxslim {f} {f} && open {f}", shell=True, check=True)  # pip install onnxslim
 """
-from .multiscaleghost import MultiScaleGhost
-from .anchor_free import AnchorFreeHead
-from .hybridhead import HybridHead
-from .MECS import MECS
+
 from .AHFIN import AHFIN
+from .anchor_free import AnchorFreeHead
 from .block import (
     C1,
     C2,
@@ -98,6 +96,9 @@ from .head import (
     YOLOESegment26,
     v10Detect,
 )
+from .hybridhead import HybridHead
+from .MECS import MECS
+from .multiscaleghost import MultiScaleGhost
 from .transformer import (
     AIFI,
     MLP,
@@ -112,6 +113,7 @@ from .transformer import (
 )
 
 __all__ = (
+    "AHFIN",
     "AIFI",
     "C1",
     "C2",
@@ -122,6 +124,7 @@ __all__ = (
     "CIB",
     "DFL",
     "ELAN1",
+    "MECS",
     "MLP",
     "OBB",
     "OBB26",
@@ -132,6 +135,7 @@ __all__ = (
     "A2C2f",
     "AConv",
     "ADown",
+    "AnchorFreeHead",
     "Attention",
     "BNContrastiveHead",
     "Bottleneck",
@@ -162,6 +166,7 @@ __all__ = (
     "GhostConv",
     "HGBlock",
     "HGStem",
+    "HybridHead",
     "ImagePoolingAttn",
     "Index",
     "LRPCHead",
@@ -170,6 +175,7 @@ __all__ = (
     "MLPBlock",
     "MSDeformAttn",
     "MaxSigmoidAttnBlock",
+    "MultiScaleGhost",
     "Pose",
     "Pose26",
     "Proto",
@@ -193,9 +199,4 @@ __all__ = (
     "YOLOESegment",
     "YOLOESegment26",
     "v10Detect",
-    "MultiScaleGhost",
-    "HybridHead",
-    "AnchorFreeHead",
-    "AHFIN",
-    "MECS"
 )

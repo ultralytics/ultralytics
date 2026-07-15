@@ -62,7 +62,7 @@ The `lvis.yaml` file defines the dataset configuration — the dataset paths, cl
 
 ## Usage
 
-To train a YOLO26n model on the LVIS dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. The dataset (20.1 GB) downloads automatically on first use. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a YOLO26n model on the LVIS dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. The dataset (20.7 GB) downloads automatically on first use. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 

@@ -26,7 +26,7 @@ The [Ultralytics](https://www.ultralytics.com/) COCO8 dataset is a compact yet p
 
 COCO8 comprises the first 8 images from the COCO train 2017 set—4 for training and 4 for validation—covering the full set of 80 COCO object classes in [YOLO label format](../index.md):
 
-```
+```text
 coco8/
 ├── images/
 │   ├── train/   # 4 images
@@ -40,7 +40,7 @@ Explore [COCO8 on Ultralytics Platform](https://platform.ultralytics.com/ultraly
 
 ## Dataset YAML
 
-The COCO8 dataset configuration is defined in a YAML (Yet Another Markup Language) file, which specifies dataset paths, class names, and other essential metadata. You can review the official `coco8.yaml` file in the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8.yaml).
+The COCO8 dataset configuration is defined in a YAML file, which specifies dataset paths, class names, and other essential metadata. You can review the official `coco8.yaml` file in the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8.yaml).
 
 !!! example "ultralytics/cfg/datasets/coco8.yaml"
 

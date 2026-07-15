@@ -1,6 +1,7 @@
 ---
+title: Carparts-Seg Dataset
 comments: true
-description: Explore the Carparts Segmentation Dataset for automotive AI applications. Enhance your segmentation models with rich, annotated data using Ultralytics YOLO.
+description: Train Ultralytics YOLO segmentation models on Carparts-Seg — 3,833 annotated images across 23 car-part classes for automotive AI applications.
 keywords: Carparts Segmentation Dataset, computer vision, automotive AI, vehicle maintenance, Ultralytics, YOLO, segmentation models, deep learning, object segmentation
 ---
 
@@ -8,9 +9,7 @@ keywords: Carparts Segmentation Dataset, computer vision, automotive AI, vehicle
 
 <a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-train-ultralytics-yolo-on-carparts-segmentation-dataset.ipynb" target="_blank"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open Carparts Segmentation Dataset In Colab"></a>
 
-The Carparts Segmentation Dataset is a curated collection of images and videos designed for [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) applications, specifically focusing on [segmentation tasks](../../tasks/segment.md). This dataset provides a diverse set of visuals captured from multiple perspectives, offering valuable [annotated](https://www.ultralytics.com/glossary/data-labeling) examples for training and testing segmentation models.
-
-Whether you're working on [automotive research](https://www.ultralytics.com/solutions/computer-vision-in-automotive), developing AI solutions for vehicle maintenance, or exploring computer vision applications, the Carparts Segmentation Dataset serves as a valuable resource for enhancing the [accuracy](https://www.ultralytics.com/glossary/accuracy) and efficiency of your projects using models like [Ultralytics YOLO](../../models/yolo26.md).
+The [Ultralytics](https://www.ultralytics.com/) Carparts Segmentation Dataset provides 3,833 annotated images across 23 car-part classes — including bumpers, doors, lights, mirrors, hood, and trunk — for training [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) models on automotive [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks. Captured from multiple perspectives and [annotated](https://www.ultralytics.com/glossary/data-labeling) with pixel-level masks, it pairs directly with [Ultralytics YOLO](../../models/yolo26.md) for use cases ranging from automotive quality control and auto repair to insurance-claim damage assessment and autonomous-vehicle perception.
 
 <p align="center">
   <br>
@@ -25,11 +24,13 @@ Whether you're working on [automotive research](https://www.ultralytics.com/solu
 
 ## Dataset Structure
 
-The data distribution within the Carparts Segmentation Dataset is organized as follows:
+The Carparts Segmentation Dataset splits its 3,833 images as follows:
 
-- **Training set**: Includes 3516 images, each accompanied by its corresponding annotations. This set is used for [training](https://www.ultralytics.com/glossary/training-data) the [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) [model](https://www.ultralytics.com/glossary/foundation-model).
-- **Testing set**: Comprises 401 images, with each one paired with its respective annotations. This set is used to evaluate the model's performance after training using [test data](https://www.ultralytics.com/glossary/test-data).
-- **Validation set**: Consists of 276 images, each having corresponding annotations. This set is used during training to tune [hyperparameters](../../guides/hyperparameter-tuning.md) and prevent [overfitting](https://www.ultralytics.com/glossary/overfitting) using [validation data](https://www.ultralytics.com/glossary/validation-data).
+- **Training set**: 3,156 images used for [training](https://www.ultralytics.com/glossary/training-data) the [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) [model](https://www.ultralytics.com/glossary/foundation-model).
+- **Validation set**: 401 images used during training to tune [hyperparameters](../../guides/hyperparameter-tuning.md) and prevent [overfitting](https://www.ultralytics.com/glossary/overfitting) on [validation data](https://www.ultralytics.com/glossary/validation-data).
+- **Testing set**: 276 images used to evaluate the model on held-out [test data](https://www.ultralytics.com/glossary/test-data) after training.
+- **Classes**: 23 in total — 22 named car-part categories (bumpers, doors, lights, glass, mirrors, hood, tailgate, trunk, and wheels) plus a catch-all `object` class for parts outside those categories.
+- **Download size**: ~133 MB.
 
 ## Applications
 
@@ -44,11 +45,11 @@ Carparts Segmentation finds applications in various domains including:
 - **Recycling**: Sorting vehicle components for efficient recycling processes.
 - **Smart City Initiatives**: Contributing data for urban planning and traffic management systems within [Smart Cities](https://en.wikipedia.org/wiki/Smart_city).
 
-By accurately identifying and categorizing different vehicle components, carparts segmentation streamlines processes and contributes to increased efficiency and automation across these industries.
+The complete Carparts Segmentation Dataset can also be browsed and managed on [Ultralytics Platform](https://platform.ultralytics.com/).
 
 ## Dataset YAML
 
-A [YAML](https://www.ultralytics.com/glossary/yaml) (Yet Another Markup Language) file defines the dataset configuration, including paths, class names, and other essential details. For the Carparts Segmentation dataset, the `carparts-seg.yaml` file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/carparts-seg.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/carparts-seg.yaml). You can learn more about the YAML format at [yaml.org](https://yaml.org/).
+A [YAML](https://www.ultralytics.com/glossary/yaml) file defines the dataset configuration, including paths, class names, and other essential details. For the Carparts Segmentation dataset, the `carparts-seg.yaml` file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/carparts-seg.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/carparts-seg.yaml). You can learn more about the YAML format at [yaml.org](https://yaml.org/).
 
 !!! example "ultralytics/cfg/datasets/carparts-seg.yaml"
 
@@ -96,13 +97,11 @@ To train an [Ultralytics YOLO26](../../models/yolo26.md) model on the Carparts S
 
 ## Sample Data and Annotations
 
-The Carparts Segmentation dataset includes a diverse array of images and videos captured from various perspectives. Below are examples showcasing the data and its corresponding annotations:
+Below is an example image from the Carparts Segmentation Dataset with its [object segmentation](../../tasks/segment.md) masks overlaid, showing how individual car parts are outlined and labeled:
 
 ![Car parts segmentation dataset sample image](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/carparts-seg-sample.avif)
 
-- The image demonstrates [object segmentation](../../tasks/segment.md) within a car image sample. Annotated [bounding boxes](https://www.ultralytics.com/glossary/bounding-box) with masks highlight the identified car parts (e.g., headlights, grille).
-- The dataset features a variety of images captured under different conditions (locations, lighting, object densities), providing a comprehensive resource for training robust car part segmentation models.
-- This example underscores the dataset's complexity and the importance of [high-quality data](https://www.ultralytics.com/blog/the-importance-of-high-quality-computer-vision-datasets) for computer vision tasks, especially in specialized domains like automotive component analysis. Techniques like [data augmentation](https://www.ultralytics.com/glossary/data-augmentation) can further enhance model generalization.
+The dataset spans varied locations, lighting conditions, and object densities, giving models trained on it exposure to the range of real-world scenes they'll need to generalize across.
 
 ## Citations and Acknowledgments
 
@@ -113,59 +112,36 @@ If you utilize the Carparts Segmentation dataset in your research or development
     === "BibTeX"
 
         ```bibtex
-           @misc{ car-seg-un1pm_dataset,
-                title = { car-seg Dataset },
-                type = { Open Source Dataset },
-                author = { Gianmarco Russo },
-                url = { https://universe.roboflow.com/gianmarco-russo-vt9xr/car-seg-un1pm },
-                year = { 2023 },
-                month = { nov },
-                note = { visited on 2024-01-24 },
-            }
+        @misc{car-seg-un1pm_dataset,
+              title = { car-seg Dataset },
+              type = { Open Source Dataset },
+              author = { Gianmarco Russo },
+              url = { https://universe.roboflow.com/gianmarco-russo-vt9xr/car-seg-un1pm },
+              year = { 2023 },
+              month = { nov },
+              note = { visited on 2024-01-24 },
+        }
         ```
 
 We acknowledge the contribution of Gianmarco Russo and the Roboflow team in creating and maintaining this valuable dataset for the computer vision community. For more datasets, visit the [Ultralytics Datasets collection](../index.md).
 
 ## FAQ
 
-### What is the Carparts Segmentation Dataset?
+### What is the Carparts Segmentation Dataset, and how is it used in Ultralytics YOLO26?
 
-The Carparts Segmentation Dataset is a specialized collection of images and videos for training computer vision models to perform [segmentation](../../tasks/segment.md) on car parts. It includes diverse visuals with detailed annotations, suitable for automotive AI applications.
+The **Carparts Segmentation Dataset** is a curated collection of 3,833 annotated images spanning 23 car-part classes — bumpers, doors, lights, mirrors, hood, trunk, and more — for training and evaluating [instance segmentation](../../tasks/segment.md) models. It's built for automotive computer vision applications like quality control, auto repair, and damage assessment, and is used directly with Ultralytics [YOLO26](../../models/yolo26.md) via the `carparts-seg.yaml` configuration file.
 
-### How can I use the Carparts Segmentation Dataset with Ultralytics YOLO26?
+### How many images and classes does the Carparts Segmentation Dataset contain?
 
-You can train an [Ultralytics YOLO26](../../models/yolo26.md) segmentation model using this dataset. Load a pretrained model (e.g., `yolo26n-seg.pt`) and initiate training using the provided Python or CLI examples, referencing the `carparts-seg.yaml` configuration file. Check the [Training Guide](../../modes/train.md) for detailed instructions.
+The dataset totals 3,833 images — 3,156 for training, 401 for validation, and 276 for testing — across 23 classes: 22 named car-part categories plus a catch-all `object` class for parts outside them. The full archive downloads automatically as a ~133 MB `.zip` on first use.
 
-!!! example "Train Example Snippet"
+### How can I train an Ultralytics YOLO26 model on the Carparts Segmentation Dataset?
 
-    === "Python"
+Load a pretrained segmentation model (e.g., `yolo26n-seg.pt`) and train it with the `carparts-seg.yaml` configuration using the Python or CLI snippets in the [Usage](#usage) section above. See the [Training guide](../../modes/train.md) for the full list of available arguments.
 
-        ```python
-        from ultralytics import YOLO
+### What are some applications of the Carparts Segmentation Dataset?
 
-        # Load a model
-        model = YOLO("yolo26n-seg.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="carparts-seg.yaml", epochs=100, imgsz=640)
-        ```
-
-    === "CLI"
-
-        ```bash
-        yolo segment train data=carparts-seg.yaml model=yolo26n-seg.pt epochs=100 imgsz=640
-        ```
-
-### What are some applications of Carparts Segmentation?
-
-Carparts Segmentation is useful in:
-
-- **Automotive Quality Control**: Ensuring parts meet standards ([AI in Manufacturing](https://www.ultralytics.com/solutions/computer-vision-in-manufacturing)).
-- **Auto Repair**: Identifying parts needing service.
-- **E-commerce**: Cataloging parts online.
-- **Autonomous Vehicles**: Improving vehicle perception ([AI in Automotive](https://www.ultralytics.com/solutions/computer-vision-in-automotive)).
-- **Insurance**: Assessing vehicle damage automatically.
-- **Recycling**: Sorting parts efficiently.
+Carparts segmentation supports automotive quality control, auto repair, e-commerce cataloging, traffic monitoring, autonomous-vehicle perception, insurance damage assessment, recycling, and smart-city initiatives — see the [Applications](#applications) section above for details on each use case.
 
 ### Where can I find the dataset configuration file for Carparts Segmentation?
 

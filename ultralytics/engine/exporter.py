@@ -120,6 +120,7 @@ from ultralytics.utils.torch_utils import (
     TORCH_2_3,
     TORCH_2_8,
     TORCH_2_9,
+    TORCH_2_13,
     select_device,
 )
 
@@ -211,7 +212,15 @@ def export_formats():
         ["DEEPX", "deepx", "_deepx_model", False, False, ["data", "quantize", "optimize"], "isolated-deepx"],
         ["Qualcomm QNN", "qnn", "_qnn.onnx", False, False, ["batch", "name", "quantize", "fraction", "data"], "base"],
         ["LiteRT", "litert", ".tflite", True, False, ["batch", "quantize", "data", "fraction"], "litert"],
-        ["Ethos", "ethos", "_ethos_model", False, False, ["data", "quantize", "target"]],
+        [
+            "Ethos",
+            "ethos",
+            "_ethos_model",
+            False,
+            False,
+            ["data", "quantize", "fraction", "name"],
+            "executorch",
+        ],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments", "Env"], zip(*x)))
 
@@ -279,7 +288,10 @@ EXPORT_ENVS = {
         "requirements": [],
         "indexes": [],
         "env": {},
-        "smoke": ["yolo export format=executorch model=yolo26n.pt imgsz=32"],
+        "smoke": [
+            "yolo export format=executorch model=yolo26n.pt imgsz=32",
+            "yolo export format=ethos model=yolo26n.pt imgsz=32 data=coco8.yaml",
+        ],
     },
     "isolated-imx": {
         "python": "3.11",
@@ -360,13 +372,14 @@ INT8_FORMATS = frozenset(
         "axelera",
         "deepx",
         "litert",
+        "ethos",
     }
 )
 W8A16_FORMATS = frozenset(
     {"coreml", "imx", "qnn", "litert"}
 )  # INT8 weights + 16-bit activations (FP16; INT16 on LiteRT)
 W8A32_FORMATS = frozenset({"litert"})  # INT8 weights + FP32 activations (dynamic/weight-only INT8, no calibration)
-FP32_UNSUPPORTED_FORMATS = frozenset({"edgetpu", "imx", "rknn", "axelera", "deepx", "qnn"})
+FP32_UNSUPPORTED_FORMATS = frozenset({"edgetpu", "imx", "rknn", "axelera", "deepx", "qnn", "ethos"})
 # (label, supporting formats) per quantize precision, used to list valid options in errors. 32/None (FP32) is universal except FP32_UNSUPPORTED_FORMATS.
 QUANTIZE_PRECISIONS = (
     ("16 (FP16)", FP16_FORMATS),
@@ -387,7 +400,7 @@ def validate_args(format, passed_args, valid_args):
     Raises:
         AssertionError: If an unsupported argument is used, or if the format lacks supported argument listings.
     """
-    export_args = ["dynamic", "keras", "nms", "batch", "fraction", "data", "optimize", "target"]
+    export_args = ["dynamic", "keras", "nms", "batch", "fraction", "data", "optimize"]
 
     assert valid_args is not None, f"ERROR ❌️ valid arguments for '{format}' not listed."
     custom = {"batch": 1, "data": None, "device": None}  # exporter defaults
@@ -563,7 +576,13 @@ class Exporter:
             if not self.args.data:
                 self.args.data = TASK2CALIBRATIONDATA.get(model.task)
         if fmt == "ethos":
-            self.args.target = self.args.target or "ethos-u85-256"
+            if not self.args.name:
+                LOGGER.warning(
+                    "Arm Ethos-U export requires a missing 'name' arg for the target NPU. "
+                    "Using default name='ethos-u85-256'."
+                )
+                self.args.name = "ethos-u85-256"
+            self.args.name = self.args.name.lower()
         if fmt == "imx":
             if not self.args.nms and model.task in {"detect", "pose", "segment"}:
                 LOGGER.warning("IMX export requires nms=True, setting nms=True.")
@@ -1322,7 +1341,7 @@ class Exporter:
     @try_export
     def export_ethos(self, prefix=colorstr("Ethos:")):
         """Export YOLO model to Arm Ethos-U NPU ExecuTorch *.pte format."""
-        assert TORCH_2_9, f"ExecuTorch requires torch>=2.9.0 but torch=={TORCH_VERSION} is installed"
+        assert not TORCH_2_13, f"Ethos export requires torch<2.13 but torch=={TORCH_VERSION} is installed"
         from ultralytics.utils.export.ethos import torch2ethos
 
         return torch2ethos(
@@ -1330,7 +1349,7 @@ class Exporter:
             self.file,
             self.im,
             dataset=self.get_int8_calibration_dataloader(prefix),
-            target=self.args.target,
+            target=self.args.name,
             metadata=self.metadata,
             prefix=prefix,
         )

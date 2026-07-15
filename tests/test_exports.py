@@ -631,19 +631,6 @@ def test_export_qnn(isolated_model):
     Path(file).unlink(missing_ok=True)  # cleanup
 
 
-# @pytest.mark.skipif(not TORCH_2_9 or TORCH_2_12, reason="Ethos export requires 2.9.0<=torch<2.12.0")
-@pytest.mark.skipif(IS_RASPBERRYPI, reason="Test disabled due to OOM (Out of Memory) issues on Raspberry Pi 5 16GB")
-def test_export_ethos(isolated_model):
-    """Test YOLO model export to Arm Ethos-U NPU ExecuTorch format."""
-    file = YOLO(isolated_model).export(format="ethos", imgsz=32)
-    assert Path(file).exists(), f"Ethos export failed, directory not found: {file}"
-    pte_file = Path(file) / f"{Path(isolated_model).stem}.pte"
-    assert pte_file.exists(), f"Ethos .pte file not found: {pte_file}"
-    metadata_file = Path(file) / "metadata.yaml"
-    assert metadata_file.exists(), f"Ethos metadata.yaml not found: {metadata_file}"
-    # Note: Inference testing skipped as it requires Ethos-U hardware
-
-
 @pytest.mark.parametrize("env", [k for k, v in EXPORT_ENVS.items() if k != "base" or v["smoke"]])
 def test_export_env_has_smoke(env):
     """Ensure every non-base export environment declares a build-time smoke export."""

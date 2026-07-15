@@ -82,7 +82,7 @@ The corresponding **LiteRT w8a32** numbers (the format now shipped) are on the [
 
 ## Deployment Options in TFLite
 
-Before we look at the code for exporting YOLO26 models to the TFLite format, let's understand how TFLite models are normally used.
+Before we look at the LiteRT replacement export example, let's understand how TFLite models are normally used.
 
 TFLite offers various on-device deployment options for machine learning models, including:
 
@@ -200,7 +200,7 @@ For more details about the export process, visit the [Ultralytics documentation 
 
 ## Deploying Exported YOLO26 TFLite Models
 
-After successfully exporting your Ultralytics YOLO26 models to TFLite format, you can now deploy them. The primary and recommended first step for running a TFLite model is to use the `YOLO("model.tflite")` method, as outlined in the previous usage code snippet. However, for in-depth instructions on deploying your TFLite models in various other settings, take a look at the following resources:
+After exporting your Ultralytics YOLO26 model to LiteRT format, you can deploy the resulting `.tflite` model. The primary and recommended first step for running a TFLite model is to use the `YOLO("model.tflite")` method, as outlined in the previous usage code snippet. However, for in-depth instructions on deploying your TFLite models in various other settings, take a look at the following resources:
 
 - **[Android](https://developers.google.com/edge/litert/android)**: A quick start guide for integrating [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) Lite into Android applications, providing easy-to-follow steps for setting up and running [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models.
 
@@ -210,7 +210,7 @@ After successfully exporting your Ultralytics YOLO26 models to TFLite format, yo
 
 ## Summary
 
-In this guide, we focused on how to export to TFLite format. By converting your Ultralytics YOLO26 models to TFLite model format, you can improve the efficiency and speed of YOLO26 models, making them more effective and suitable for edge computing environments.
+This guide preserves the legacy TFLite deployment workflow. For new exports, use LiteRT to create `.tflite` models for edge computing environments.
 
 For further details on usage, visit the [TFLite official documentation](https://developers.google.com/edge/litert).
 
@@ -278,12 +278,12 @@ TensorFlow Lite provides extensive platform compatibility, allowing you to deplo
 
 For more information on deployment options, see our detailed [deployment guide](#deploying-exported-yolo26-tflite-models).
 
-### How do I troubleshoot common issues during YOLO26 model export to TFLite?
+### How do I troubleshoot common issues during YOLO26 model export to LiteRT?
 
-If you encounter errors while exporting YOLO26 models to TFLite, common solutions include:
+If you encounter errors while exporting YOLO26 models to LiteRT, common solutions include:
 
-- **Check package compatibility**: Ensure you're using compatible versions of Ultralytics and TensorFlow. Refer to our [installation guide](../quickstart.md).
-- **Model support**: Verify that the specific YOLO26 model supports TFLite export by checking the Ultralytics [export documentation page](../modes/export.md).
+- **Check package compatibility**: Ensure you're using compatible versions of Ultralytics, `litert-torch`, and `ai-edge-litert`. Refer to our [installation guide](../quickstart.md).
+- **Model support**: Verify that the specific YOLO26 model supports LiteRT export by checking the Ultralytics [export documentation page](../modes/export.md).
 - **Quantization issues**: When using INT8 quantization, make sure your dataset path is correctly specified in the `data` parameter.
 
 For additional troubleshooting tips, visit our [Common Issues guide](../guides/yolo-common-issues.md).

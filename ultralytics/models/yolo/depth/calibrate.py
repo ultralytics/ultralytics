@@ -262,9 +262,9 @@ def _plot_calibrated_batches(
             cal = torch.exp(a * torch.log(raw.clamp(min=1e-3)) + b)
             plot_depth_panels(
                 img,
-                gt,
                 [raw, cal],
                 plot_dir / f"val_batch{ni}_calibrated.jpg",
+                gt=gt,
                 titles=titles,
                 max_images=max_images,
             )

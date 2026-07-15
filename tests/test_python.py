@@ -749,14 +749,14 @@ def test_depth_predictor_postprocess_sets_depthmap():
 
 
 def test_results_plot_with_depth():
-    """Results.plot() with a depth map places RGB and colorized depth side-by-side (width doubled)."""
+    """Results.plot() with a depth map blends the colorized depth heatmap over the image."""
     from ultralytics.engine.results import Results
 
     img = np.zeros((24, 24, 3), dtype=np.uint8)
     depth = np.random.rand(24, 24).astype(np.float32)
     r = Results(orig_img=img, path="x.jpg", names={0: "depth"}, depth=depth)
     out = r.plot()  # must not raise; returns an annotated image (masks=True by default)
-    assert out.shape[:2] == (24, 48)  # RGB + colorized depth placed side-by-side (width doubled)
+    assert out.shape[:2] == (24, 24)  # heatmap overlaid, same size as input
 
 
 def test_annotator_depth_map():

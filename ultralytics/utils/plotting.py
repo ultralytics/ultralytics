@@ -856,7 +856,7 @@ def plot_images(
         - 3 channels: Used as-is (standard RGB)
         - 4+ channels: Cropped to first 3 channels
     """
-    for k in {"cls", "bboxes", "conf", "masks", "keypoints", "batch_idx", "images", "semantic_mask"}:
+    for k in {"cls", "bboxes", "conf", "masks", "keypoints", "batch_idx", "images", "semantic_mask", "depth"}:
         if k not in labels:
             continue
         if k == "cls" and labels[k].ndim == 2:
@@ -871,6 +871,7 @@ def plot_images(
     masks = labels.get("masks", np.zeros(0, dtype=np.uint8))
     kpts = labels.get("keypoints", np.zeros(0, dtype=np.float32))
     semantic_masks = labels.get("semantic_mask", np.zeros(0, dtype=np.int64))
+    depth_maps = labels.get("depth", np.zeros(0, dtype=np.float32))
     images = labels.get("img", images)  # default to input images
 
     if len(images) and isinstance(images, torch.Tensor):
@@ -1000,6 +1001,20 @@ def plot_images(
             im = np.asarray(annotator.im).copy()
             sub_annotator = Annotator(np.ascontiguousarray(im[y : y + h, x : x + w]), line_width=1, pil=False)
             sub_annotator.semantic_mask(mask, alpha=0.4)
+            im[y : y + h, x : x + w] = sub_annotator.im
+            annotator.fromarray(im)
+
+        # Plot depth maps
+        if len(depth_maps) and i < len(depth_maps):
+            d = depth_maps[i]
+            if d.ndim == 3:
+                d = d.squeeze(0)
+            dh, dw = d.shape
+            if dh != h or dw != w:
+                d = cv2.resize(d.astype(np.float32), (w, h), interpolation=cv2.INTER_NEAREST)
+            im = np.asarray(annotator.im).copy()
+            sub_annotator = Annotator(np.ascontiguousarray(im[y : y + h, x : x + w]), line_width=1, pil=False)
+            sub_annotator.depth_map(d, side_by_side=False, alpha=0.6)
             im[y : y + h, x : x + w] = sub_annotator.im
             annotator.fromarray(im)
 

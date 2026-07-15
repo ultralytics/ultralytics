@@ -20,6 +20,7 @@ from ultralytics.cfg import DEFAULT_CFG
 from ultralytics.data.augment import Compose, Format, v8_transforms
 from ultralytics.models.rtdetr.train import RTDETRTrainer
 from ultralytics.models.rtdetr.val import RTDETRDataset, RTDETRValidator
+from ultralytics.nn.modules.head import DeimDecoder
 from ultralytics.nn.tasks import YOLODETRDetectionModel
 from ultralytics.utils import LOGGER, RANK, colorstr
 from ultralytics.utils.torch_utils import unwrap_model
@@ -206,6 +207,15 @@ class YOLODETRTrainer(RTDETRTrainer):
                 imgs = nn.functional.interpolate(imgs, size=ns, mode="bilinear", align_corners=False)
             batch["img"] = imgs
         return batch
+
+    def setup_model(self):
+        """Build model, then force amp=False if a DeimDecoder is present (FP16 numerical stability)."""
+        ckpt = super().setup_model()
+        if self.args.amp and any(isinstance(m, DeimDecoder) for m in self.model.modules()):
+            self.args.amp = False
+            if RANK in {-1, 0}:
+                LOGGER.info("YOLODETRTrainer: DeimDecoder detected, forcing amp=False for numerical stability")
+        return ckpt
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Build YOLODETRDetectionModel and optionally load weights with class-row remapping."""

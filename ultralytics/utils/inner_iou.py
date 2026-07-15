@@ -3,6 +3,7 @@ import math
 # code reference:https://github.com/malagoutou/Inner-IoU/blob/main/innerciou.py
 
 def inner_ciou(box1, box2, ratio = 1.0, xywh=True, eps=1e-7): 
+    print("using inner-ciou")
     (x1, y1, w1, h1), (x2, y2, w2, h2) = box1.chunk(4, -1), box2.chunk(4, -1)
     w1_, h1_, w2_, h2_ = w1 / 2, h1 / 2, w2 / 2, h2 / 2
     b1_x1, b1_x2, b1_y1, b1_y2 = x1 - w1_, x1 + w1_, y1 - h1_, y1 + h1_

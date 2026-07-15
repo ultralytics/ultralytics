@@ -964,9 +964,13 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                 "NFC", f"{record['split']}/{depth_relative_path(record).as_posix()}"
             ).casefold()
             if image_path in image_paths:
-                raise ValueError(f"Depth records contain a duplicate output path: images/{record['split']}/{record['file']}")
+                raise ValueError(
+                    f"Depth records contain a duplicate output path: images/{record['split']}/{record['file']}"
+                )
             if depth_path in depth_paths:
-                raise ValueError(f"Depth records contain a duplicate output path: depth/{record['split']}/{depth_relative_path(record)}")
+                raise ValueError(
+                    f"Depth records contain a duplicate output path: depth/{record['split']}/{depth_relative_path(record)}"
+                )
             image_paths.add(image_path)
             depth_paths.add(depth_path)
 
@@ -1269,7 +1273,11 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                     stat = final_dataset_dir.stat()
                     current_identity = (stat.st_dev, stat.st_ino, stat.st_mtime_ns)
                     replaced_by_winner = invalid_final_identity is None or current_identity != invalid_final_identity
-                    if replaced_by_winner and final_yaml.is_file() and YAML.load(final_yaml).get("hash") == manifest_hash:
+                    if (
+                        replaced_by_winner
+                        and final_yaml.is_file()
+                        and YAML.load(final_yaml).get("hash") == manifest_hash
+                    ):
                         return final_yaml
                 if final_dataset_dir.exists():
                     invalid_dir = output_path / f".{final_dataset_dir.name}.invalid-{os.getpid()}"

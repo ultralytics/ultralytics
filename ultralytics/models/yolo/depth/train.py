@@ -58,8 +58,7 @@ class DepthTrainer(yolo.detect.DetectionTrainer):
     def preprocess_batch(self, batch):
         """Preprocess batch: normalize images and keep depth as float32."""
         batch = super().preprocess_batch(batch)
-        if "depth" in batch:
-            batch["depth"] = batch["depth"].float()
+        batch["depth"] = batch["depth"].float()
         return batch
 
     def get_validator(self):

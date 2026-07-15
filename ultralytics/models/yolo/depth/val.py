@@ -50,8 +50,7 @@ class DepthValidator(DetectionValidator):
     def preprocess(self, batch):
         """Preprocess batch — move to device, normalize images, and keep depth as float32."""
         batch = super().preprocess(batch)
-        if "depth" in batch:
-            batch["depth"] = batch["depth"].float()  # depth always float32
+        batch["depth"] = batch["depth"].float()  # depth always float32
         return batch
 
     def postprocess(self, preds):
@@ -180,19 +179,14 @@ class DepthValidator(DetectionValidator):
         Follows the detection/segmentation pattern: ground truth is rendered in the labels plot.
         The depth heatmap is blended over the RGB image using the shared ``plot_images`` path.
         """
-        if "depth" not in batch:
-            return
-        try:
-            plot_images(
-                labels={"depth": batch["depth"]},
-                images=batch["img"],
-                paths=batch["im_file"],
-                fname=self.save_dir / f"val_batch{ni}_labels.jpg",
-                names=self.names,
-                on_plot=self.on_plot,
-            )
-        except Exception as e:
-            LOGGER.warning(f"DepthValidator: failed to plot val_batch{ni}_labels: {e}")
+        plot_images(
+            labels={"depth": batch["depth"]},
+            images=batch["img"],
+            paths=batch["im_file"],
+            fname=self.save_dir / f"val_batch{ni}_labels.jpg",
+            names=self.names,
+            on_plot=self.on_plot,
+        )
 
     def plot_predictions(self, batch, preds, ni):
         """Save predicted depth overlays to val_batch{ni}_pred.jpg.
@@ -200,69 +194,14 @@ class DepthValidator(DetectionValidator):
         Depth has no boxes/classes, so the detection-style plotter is replaced with a depth heatmap overlay
         through the shared ``plot_images`` path, matching the semantic-segmentation visualization style.
         """
-        if "depth" not in batch:
-            return
-        try:
-            pred = self._extract_pred(preds)
-            plot_images(
-                labels={"depth": pred},
-                images=batch["img"],
-                paths=batch["im_file"],
-                fname=self.save_dir / f"val_batch{ni}_pred.jpg",
-                names=self.names,
-                on_plot=self.on_plot,
-            )
-        except Exception as e:
-            LOGGER.warning(f"DepthValidator: failed to plot val_batch{ni}_pred: {e}")
+        pred = self._extract_pred(preds)
+        plot_images(
+            labels={"depth": pred},
+            images=batch["img"],
+            paths=batch["im_file"],
+            fname=self.save_dir / f"val_batch{ni}_pred.jpg",
+            names=self.names,
+            on_plot=self.on_plot,
+        )
 
 
-def plot_depth_panels(imgs, preds, fname, gt=None, titles=None, max_images: int = 4):
-    """Write a depth panel grid: one row per image, columns RGB | GT (if provided) | one per entry of ``preds``.
-
-    All depth columns share the GT valid-pixel range per row, so a scale error between GT and any prediction shows up
-    directly as a color mismatch. Panels are resized to the RGB image size, so predictions at head stride need no prior
-    interpolation.
-
-    Args:
-        imgs (torch.Tensor): (B,3,H,W) float image tensor in [0,1].
-        preds (list): List of (B,1,H,W) or (B,H,W) predicted depth tensors; each adds one column.
-        fname (str | Path): Output image path.
-        gt (torch.Tensor, optional): (B,1,H,W) or (B,H,W) ground-truth depth in meters (pixels <= 0 invalid, drawn black).
-            Used for the GT column and to set the shared color scale.
-        titles (list, optional): List of column labels, drawn in a 24 px header strip. None keeps the strip-free layout.
-        max_images (int): Maximum number of rows.
-    """
-    preds = [p.unsqueeze(1) if p.ndim == 3 else p for p in preds]
-    h, w = imgs.shape[-2:]
-    rows = []
-    for i in range(min(imgs.shape[0], max_images)):
-        rgb = (imgs[i].detach().float().cpu().clamp(0, 1).numpy() * 255).astype(np.uint8).transpose(1, 2, 0)
-        panels = [cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)]
-
-        if gt is not None:
-            g = gt[i, 0] if gt.ndim == 4 else gt[i]
-            gv = g[g > 0]
-            vmin = float(gv.min()) if gv.numel() else 0.0
-            vmax = float(gv.max()) if gv.numel() else 1.0
-            d = g.detach().float().cpu().numpy() if isinstance(g, torch.Tensor) else np.asarray(g, np.float32)
-            panels.append(cv2.resize(colorize_depth(d, vmin, vmax), (w, h), interpolation=cv2.INTER_NEAREST))
-        else:
-            # No GT: scale each prediction by its own valid range.
-            vmin = vmax = None
-
-        for p in preds:
-            d = p[i, 0] if p.ndim == 4 else p[i]
-            d = d.detach().float().cpu().numpy() if isinstance(d, torch.Tensor) else np.asarray(d, np.float32)
-            if vmin is None or vmax is None:
-                dv = d[d > 0]
-                vmin, vmax = (float(dv.min()), float(dv.max())) if dv.size else (0.0, 1.0)
-            panels.append(cv2.resize(colorize_depth(d, vmin, vmax), (w, h), interpolation=cv2.INTER_NEAREST))
-
-        rows.append(np.hstack(panels))
-    grid = np.vstack(rows)
-    if titles:
-        strip = np.full((24, grid.shape[1], 3), 255, dtype=np.uint8)
-        for j, t in enumerate(titles):
-            cv2.putText(strip, str(t), (j * w + 4, 17), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-        grid = np.vstack([strip, grid])
-    cv2.imwrite(str(fname), grid)

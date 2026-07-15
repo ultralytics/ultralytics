@@ -241,7 +241,7 @@ def _plot_calibrated_batches(
     comparable. With the "only if it helps" policy the selected ``name`` may be ``identity``; the panels are still
     written (raw == calibrated), which documents that calibration was a no-op. Buffers are restored afterwards.
     """
-    from .val import plot_depth_panels
+    from ultralytics.utils.plotting import plot_depth_panels
 
     head = _depth_head(model)
     a0, b0 = float(head.cal_a), float(head.cal_b)

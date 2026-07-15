@@ -837,17 +837,6 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     dataset_record, image_records = lines[0], lines[1:]
     is_classification = dataset_record.get("task") == "classify"
     class_names = {int(k): v for k, v in dataset_record.get("class_names", {}).items()}
-    # Preserve nested legacy class names, but reject components that can escape the dataset root.
-    if is_classification and any(
-        not isinstance(v, str)
-        or not v
-        or v.startswith(("/", "\\"))
-        or (len(v) > 1 and v[0].isalpha() and v[1] == ":")
-        or ".." in v.replace("\\", "/").split("/")
-        or any(not part.rstrip(" .") and part.count(".") >= 2 for part in v.replace("\\", "/").split("/"))
-        for v in class_names.values()
-    ):
-        raise ValueError("Invalid NDJSON classification name")
     classification_ids = set()
 
     # Hash stable content plus source identity. Query strings are excluded because signed URLs change on every export.
@@ -873,7 +862,8 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
             hash_record["_source"] = clean_url(r["url"]) if r.get("url") else str(ndjson_path.parent.resolve())
         _h.update(json.dumps(hash_record, sort_keys=True).encode())
     _hash = _h.hexdigest()[:8]
-    class_dirs = {k: class_names.get(k, str(k)) for k in classification_ids}
+    class_dirs = {class_id: f"{i:06d}" for i, class_id in enumerate(sorted(classification_ids))}
+    classification_names = {i: class_names.get(class_id, str(class_id)) for i, class_id in enumerate(class_dirs)}
 
     # Hash-qualified dirs allow identical datasets to reuse downloads while preventing changed datasets from mutating
     # files that another training job may still be reading.
@@ -1066,6 +1056,8 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
 
     if is_classification:
         # Classification: return dataset directory (check_cls_dataset expects a directory path)
+        # Keep class paths safe while check_cls_dataset restores the original display names.
+        YAML.save(dataset_dir / ".ndjson.yaml", {"names": classification_names})
         return dataset_dir
     else:
         # Detection: write data.yaml with hash for future change detection

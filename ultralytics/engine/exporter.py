@@ -212,15 +212,7 @@ def export_formats():
         ["DEEPX", "deepx", "_deepx_model", False, False, ["data", "quantize", "optimize"], "isolated-deepx"],
         ["Qualcomm QNN", "qnn", "_qnn.onnx", False, False, ["batch", "name", "quantize", "fraction", "data"], "base"],
         ["LiteRT", "litert", ".tflite", True, False, ["batch", "quantize", "data", "fraction"], "litert"],
-        [
-            "Ethos",
-            "ethos",
-            "_ethos_model",
-            False,
-            False,
-            ["data", "quantize", "fraction", "name"],
-            "executorch",
-        ],
+        ["Ethos", "ethos", "_ethos_model", False, False, ["data", "quantize", "fraction", "name"], "ethos"],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments", "Env"], zip(*x)))
 
@@ -288,10 +280,7 @@ EXPORT_ENVS = {
         "requirements": [],
         "indexes": [],
         "env": {},
-        "smoke": [
-            "yolo export format=executorch model=yolo26n.pt imgsz=32",
-            "yolo export format=ethos model=yolo26n.pt imgsz=32 data=coco8.yaml",
-        ],
+        "smoke": ["yolo export format=executorch model=yolo26n.pt imgsz=32"],
     },
     "isolated-imx": {
         "python": "3.11",
@@ -352,6 +341,15 @@ EXPORT_ENVS = {
         "indexes": [],
         "env": {},
         "smoke": ["yolo export format=litert model=yolo26n.pt imgsz=32"],
+    },
+        "ethos": {
+        "python": "3.13",
+        "extras": ["export-base", "export-ethos"],
+        "torch": ">=2.12,<2.13",
+        "requirements": [],
+        "indexes": [],
+        "env": {},
+        "smoke": ["yolo export format=ethos model=yolo26n.pt imgsz=32 data=coco8.yaml"],
     },
 }
 

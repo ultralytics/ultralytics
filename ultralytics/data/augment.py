@@ -2143,6 +2143,7 @@ class Albumentations(BaseTransform):
                 - 'img': np.ndarray representing the image
                 - 'cls': np.ndarray of class labels
                 - 'instances': object containing bounding boxes and other instance information
+                - 'semantic_mask': optional np.ndarray of semantic class IDs
 
         Returns:
             (dict[str, Any]): The input dictionary with augmented image and updated annotations.
@@ -2177,9 +2178,7 @@ class Albumentations(BaseTransform):
                 labels["instances"].normalize(*im.shape[:2][::-1])
                 bboxes = labels["instances"].bboxes
                 # TODO: add supports of segments and keypoints
-                new = self.transform(
-                    image=im, bboxes=bboxes, class_labels=cls, **({"mask": mask} if mask is not None else {})
-                )
+                new = self.transform(image=im, bboxes=bboxes, class_labels=cls, mask=mask)
                 if len(new["class_labels"]) > 0 or mask is not None:  # only box-only samples skip on losing all boxes
                     labels["img"] = new["image"]
                     labels["cls"] = np.array(new["class_labels"]).reshape(-1, 1)

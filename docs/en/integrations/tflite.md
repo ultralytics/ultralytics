@@ -82,7 +82,7 @@ The corresponding **LiteRT w8a32** numbers (the format now shipped) are on the [
 
 ## Deployment Options in TFLite
 
-Before the LiteRT replacement export example, let's understand how legacy TFLite models were normally used.
+Before we look at the code for exporting YOLO26 models to the TFLite format, let's understand how TFLite models are normally used.
 
 TFLite offers various on-device deployment options for machine learning models, including:
 
@@ -258,7 +258,7 @@ To learn more, check out the [TFLite guide](https://developers.google.com/edge/l
 
 ### Is it possible to run YOLO26 TFLite models on Raspberry Pi?
 
-Yes, you can run existing YOLO26 TFLite models on Raspberry Pi. For a new export, use LiteRT as explained above; the exported model retains the `.tflite` extension.
+Yes, you can run YOLO26 TFLite models on Raspberry Pi to improve inference speeds. First, export your model to LiteRT format as explained above. Then, use a tool like TensorFlow Lite Interpreter to execute the model on your Raspberry Pi.
 
 For further optimizations, you might consider using [Coral Edge TPU](https://developers.google.com/coral). For detailed steps, refer to our [Raspberry Pi deployment guide](../guides/raspberry-pi.md) and the [Edge TPU integration guide](../integrations/edge-tpu.md).
 

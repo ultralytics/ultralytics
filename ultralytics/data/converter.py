@@ -837,17 +837,25 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         lines = [json.loads(line.strip()) for line in f if line.strip()]
     dataset_record, image_records = lines[0], lines[1:]
 
-    # Hash stable content plus source identity. Query strings are excluded because signed URLs change on every export.
+    def stable_record(record: dict, include_split: bool = True) -> str:
+        """Serialize a record without ephemeral signed URL query strings or export ordering."""
+        hash_record = {k: v for k, v in record.items() if k != "url" and (include_split or k != "split")}
+        if isinstance(record.get("depth"), dict):
+            hash_record["depth"] = {k: v for k, v in record["depth"].items() if k != "url"}
+            if record["depth"].get("url"):
+                hash_record["depth"]["_source"] = clean_url(record["depth"]["url"])
+        if record.get("file"):
+            hash_record["_source"] = (
+                clean_url(record["url"]) if record.get("url") else str(ndjson_path.parent.resolve())
+            )
+        return json.dumps(hash_record, sort_keys=True, separators=(",", ":"))
+
+    # Hash stable content plus source identity. Query strings and record order are excluded because signed URLs and
+    # Platform export order can change without changing the dataset.
     manifest_hasher = hashlib.sha256()
-    for r in lines:
-        hash_record = {k: v for k, v in r.items() if k != "url"}
-        if isinstance(r.get("depth"), dict):
-            hash_record["depth"] = {k: v for k, v in r["depth"].items() if k != "url"}
-            if r["depth"].get("url"):
-                hash_record["depth"]["_source"] = clean_url(r["depth"]["url"])
-        if r.get("file"):
-            hash_record["_source"] = clean_url(r["url"]) if r.get("url") else str(ndjson_path.parent.resolve())
-        manifest_hasher.update(json.dumps(hash_record, sort_keys=True).encode())
+    manifest_hasher.update(stable_record(dataset_record).encode())
+    for record in sorted(stable_record(record) for record in image_records):
+        manifest_hasher.update(record.encode())
     manifest_hash = manifest_hasher.hexdigest()[:8]
 
     # Hash-qualified dirs allow identical datasets to reuse downloads while preventing changed datasets from mutating
@@ -861,6 +869,15 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     def depth_relative_path(record: dict) -> Path:
         """Return the depth target path matching DepthDataset's images-to-depth mapping."""
         return Path(record["file"]).with_suffix(".npy")
+
+    def validate_image_file(path: Path) -> bool:
+        """Return whether an image is complete and decodable."""
+        try:
+            with Image.open(path) as image:
+                image.verify()
+            return True
+        except (OSError, SyntaxError):
+            return False
 
     def validate_depth_file(path: Path, descriptor: dict) -> bool:
         """Validate a downloaded or reused canonical depth target against its manifest descriptor."""
@@ -917,7 +934,9 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                     f"Dataset has only {len(train_records)} image(s) and no 'val' split. "
                     f"Need at least 2 images to auto-split into train/val."
                 )
-            random.Random(0).shuffle(train_records)  # local RNG to avoid mutating global training seed
+            train_records.sort(
+                key=lambda record: hashlib.sha256(stable_record(record, include_split=False).encode()).digest()
+            )
             val_count = max(1, len(train_records) // 10)
             for r in train_records[:val_count]:
                 r["split"] = "val"
@@ -941,7 +960,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                 if split in cached
             )
             depth_files_valid = not is_depth or all(
-                (dataset_dir / "images" / r["split"] / r["file"]).is_file()
+                validate_image_file(dataset_dir / "images" / r["split"] / r["file"])
                 and validate_depth_file(dataset_dir / "depth" / r["split"] / depth_relative_path(r), r["depth"])
                 for r in image_records
             )
@@ -1006,17 +1025,21 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         for candidate in candidates:
             if candidate.exists():
                 path.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(candidate, path)
+                partial_path = path.with_name(f".{path.name}.part")
+                shutil.copy2(candidate, partial_path)
+                partial_path.replace(path)
                 return True
         if not url:
             return False
         path.parent.mkdir(parents=True, exist_ok=True)
         for attempt in range(3):
             error = None
+            partial_path = path.with_name(f".{path.name}.part")
             try:
                 async with session.get(url, timeout=aiohttp.ClientTimeout(total=30)) as response:
                     response.raise_for_status()
-                    path.write_bytes(await response.read())
+                    partial_path.write_bytes(await response.read())
+                partial_path.replace(path)
                 return True
             except aiohttp.ClientResponseError as e:
                 error = e
@@ -1028,6 +1051,8 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
             except Exception as e:  # OSError, disk full, permissions — not transient, don't retry
                 LOGGER.warning(f"Failed to save {url}: {e}")
                 return False
+            finally:
+                partial_path.unlink(missing_ok=True)
             if attempt < 2:
                 await asyncio.sleep(2**attempt)
             else:
@@ -1056,7 +1081,11 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                         break
                     label_path.write_text("\n".join(lines_to_write) + "\n" if lines_to_write else "")
 
+            if is_depth and image_path.exists() and not validate_image_file(image_path):
+                image_path.unlink()
             image_ok = await ensure_file(session, image_path, record.get("url"))
+            if is_depth:
+                image_ok = image_ok and validate_image_file(image_path)
             if not is_depth:
                 return image_ok
 

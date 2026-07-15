@@ -300,12 +300,14 @@ def calibrate_checkpoint(ckpt_path, dataloader, device, plot_dir=None) -> dict |
     if res is None:
         return
     a, b = res["a"], res["b"]
-    provenance = {"candidate": res["name"], "images": res["images"], "a": a, "b": b}
     for key in ("ema", "model"):
         m = ckpt.get(key)
         if m is not None and _depth_head(m) is not None:
             _depth_head(m).cal_a.fill_(a)
             _depth_head(m).cal_b.fill_(b)
+    stored_head = _depth_head(ckpt.get("ema") or ckpt.get("model"))
+    a, b = float(stored_head.cal_a), float(stored_head.cal_b)
+    provenance = {"candidate": res["name"], "images": res["images"], "a": a, "b": b}
     ckpt["depth_calibration"] = provenance
     torch.save(ckpt, ckpt_path)
     LOGGER.info(

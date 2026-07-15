@@ -1021,7 +1021,7 @@ def test_depth_calibration_checkpoint_provenance(tmp_path):
         for _ in range(4)
     ]
     path = tmp_path / "depth.pt"
-    torch.save({"model": deepcopy(model)}, path)
+    torch.save({"model": deepcopy(model).half()}, path)
 
     provenance = calibrate_checkpoint(path, batches, device="cpu")
     checkpoint = torch_load(path)
@@ -1030,8 +1030,8 @@ def test_depth_calibration_checkpoint_provenance(tmp_path):
     assert provenance == checkpoint["depth_calibration"]
     assert provenance["candidate"] in {"identity", "scale-only", "affine"}
     assert provenance["images"] == 8
-    assert float(head.cal_a) == pytest.approx(provenance["a"])
-    assert float(head.cal_b) == pytest.approx(provenance["b"])
+    assert float(head.cal_a) == provenance["a"]
+    assert float(head.cal_b) == provenance["b"]
 
 
 def test_cfg_depth_hyp_recipe_yaml_reproduces_release_training():

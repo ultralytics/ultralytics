@@ -79,6 +79,11 @@ def test_convert_depth_ndjson_downloads_pairs_and_reuses_cache(tmp_path, monkeyp
             cached_depth.write_bytes(invalid_cache)
             assert asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets")) == yaml_path
             np.testing.assert_array_equal(np.load(cached_depth), depth)
+        cached_image = yaml_path.parent / "images" / "train" / "camera" / "train.jpg"
+        for invalid_cache in (b"truncated image", b""):
+            cached_image.write_bytes(invalid_cache)
+            assert asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets")) == yaml_path
+            assert cv2.imread(str(cached_image)) is not None
 
         train_only_manifest = tmp_path / "train-only.ndjson"
         _write_depth_ndjson(
@@ -88,6 +93,8 @@ def test_convert_depth_ndjson_downloads_pairs_and_reuses_cache(tmp_path, monkeyp
             splits=("train", "train"),
         )
         train_only_yaml = asyncio.run(convert_ndjson_to_yolo(train_only_manifest, tmp_path / "datasets"))
+        records = train_only_manifest.read_text().splitlines()
+        train_only_manifest.write_text("\n".join([records[0], *reversed(records[1:])]))
         with monkeypatch.context() as cache_guard:
             cache_guard.setattr(YAML, "save", lambda *_args, **_kwargs: pytest.fail("train-only cache missed"))
             assert asyncio.run(convert_ndjson_to_yolo(train_only_manifest, tmp_path / "datasets")) == train_only_yaml

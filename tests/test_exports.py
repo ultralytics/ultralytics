@@ -389,8 +389,17 @@ def test_export_coreml_matrix(task, dynamic, quantize, nms, batch, end2end):
     reason="coremltools deadlocks after OpenVINO on macOS Python 3.13 (conflicting OpenMP runtimes)",
 )
 @pytest.mark.parametrize("format", ["coreml", "mlmodel"])
-def test_export_coreml(isolated_model, format, tmp_path):
+def test_export_coreml(isolated_model, format, monkeypatch, tmp_path):
     """Test YOLO export to CoreML format and check for errors."""
+    from ultralytics.utils.export import coreml
+
+    quantize, torch2coreml = [], coreml.torch2coreml
+
+    def capture_quantize(*args, **kwargs):
+        quantize.append(kwargs["quantize"])
+        return torch2coreml(*args, **kwargs)
+
+    monkeypatch.setattr(coreml, "torch2coreml", capture_quantize)
     # Capture stdout and stderr
     stdout, stderr = io.StringIO(), io.StringIO()
     with redirect_stdout(stdout), redirect_stderr(stderr):
@@ -413,6 +422,7 @@ def test_export_coreml(isolated_model, format, tmp_path):
 
     # Check captured output for errors
     output = stdout.getvalue() + stderr.getvalue()
+    assert quantize[0] == (16 if format == "coreml" else None)
     assert "Error" not in output, f"CoreML export produced errors: {output}"
     assert "You will not be able to run predict()" not in output, "CoreML export has predict() error"
 

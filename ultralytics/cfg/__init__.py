@@ -203,8 +203,8 @@ CFG_FLOAT_KEYS = frozenset(
         "box",
         "cls",
         "dfl",
-        "silog",
-        "silog_grad",
+        "dlog",
+        "dgrad",
         "dis",
         "degrees",
         "shear",
@@ -239,7 +239,7 @@ CFG_FRACTION_KEYS = frozenset(
         "iou",
         "fraction",
         "multi_scale",
-        "silog_lambda",
+        "dlam",
     }
 )
 CFG_INT_KEYS = frozenset(
@@ -255,7 +255,6 @@ CFG_INT_KEYS = frozenset(
         "line_width",
         "nbs",
         "save_period",
-        "silog_grad_scales",
     }
 )
 CFG_INT_MIN = {  # minimum valid values for integer arguments used as divisors, sizes or seeds
@@ -298,7 +297,6 @@ CFG_BOOL_KEYS = frozenset(
         "nms",
         "profile",
         "end2end",
-        "auto_calibrate",
         "cls_remap",
     }
 )
@@ -554,8 +552,22 @@ def _handle_deprecation(custom: dict) -> dict:
         "hide_labels": ("show_labels", lambda v: not bool(v)),
         "hide_conf": ("show_conf", lambda v: not bool(v)),
         "line_thickness": ("line_width", lambda v: v),
+        "silog": ("dlog", lambda v: v),
+        "silog_grad": ("dgrad", lambda v: v),
+        "silog_lambda": ("dlam", lambda v: v),
     }
-    removed_keys = {"label_smoothing", "save_hybrid", "crop_fraction"}
+    removed_keys = {
+        "label_smoothing",
+        "save_hybrid",
+        "crop_fraction",
+        "auto_calibrate",
+        "silog_grad_scales",
+        "silog_grad_min_valid",
+        "silog_l1",
+        "silog_trim",
+        "dist_pw",
+        "cal_dist_pw",
+    }
 
     # Forward the deprecated precision flags onto the unified `quantize` scheme (int8 wins over half). The value is read
     # as a bool so quoted/string 'False' disables it while a bare CLI flag (empty string) enables it; an explicit false

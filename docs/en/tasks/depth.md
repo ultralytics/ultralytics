@@ -174,7 +174,7 @@ The depth head separates **shape** (relative scene structure) from **scale** (ab
 
 Calibration needs ground-truth depth to fit against, so it runs on a labeled split — it is not something that can happen at blind inference. Use it when relative depth is already good and only the scale/range is wrong; if the relative structure itself needs to change for your domain, [fine-tune](#fine-tuning-on-your-own-data) instead.
 
-Training does this for you automatically: after `model.train(...)` completes, the best and last checkpoints are calibrated on the validation set so they output metric-scaled depth out of the box. Disable with `auto_calibrate=False`.
+Training does this for you automatically: after `model.train(...)` completes, the best and last checkpoints are calibrated on the validation set so they output metric-scaled depth out of the box.
 
 The released `yolo26*-depth.pt` checkpoints ship with this calibration already baked in, fit on the pretraining validation mix. It is a single global scale across all domains, so for the most accurate absolute depth on a specific camera or scene type, run `model.calibrate()` on a small labeled split from your own data — it replaces the baked-in fit.
 

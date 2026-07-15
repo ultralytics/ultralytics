@@ -92,7 +92,7 @@ from ultralytics.utils.loss import (
     PoseLoss26,
     SemanticSegmentationLoss,
     v8ClassificationLoss,
-    v8DepthLoss,
+    v26DepthLoss,
     v8DetectionLoss,
     v8OBBLoss,
     v8PoseLoss,
@@ -793,7 +793,7 @@ class DepthModel(DetectionModel):
 
     def init_criterion(self):
         """Initialize the depth loss criterion."""
-        return v8DepthLoss(self)
+        return v26DepthLoss(self)
 
 
 class ClassificationModel(BaseModel):

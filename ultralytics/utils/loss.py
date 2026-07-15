@@ -1153,7 +1153,7 @@ class v8OBBLoss(v8DetectionLoss):
         return ang_loss.sum() / target_scores_sum
 
 
-class v8DepthLoss:
+class v26DepthLoss:
     """Criterion class for computing training losses for YOLO depth estimation.
 
     Uses scale-invariant log loss (SILog) + gradient-matching loss, following the Depth Anything approach. SILog handles
@@ -1161,18 +1161,16 @@ class v8DepthLoss:
     """
 
     def __init__(self, model):
-        """Initialize v8DepthLoss."""
+        """Initialize v26DepthLoss."""
         device = next(model.parameters()).device
         self.device = device
         h = model.args  # hyperparameters
-        self.silog_weight = h.silog
-        self.grad_weight = h.silog_grad
+        self.silog_weight = getattr(h, "dlog", getattr(h, "silog", 1.0))
+        self.grad_weight = getattr(h, "dgrad", getattr(h, "silog_grad", 0.5))
         # SILog variance-focus: 1.0 = fully scale-invariant, 0.0 = plain log-RMSE (scale-dependent).
-        self.silog_lambda = h.silog_lambda
-        # Gradient-matching pyramid levels; the getattr fallback keeps this working for models
-        # whose args predate the key / lack it (inference builds, stubs). grad_scales=1
-        # reproduces the single-scale gradient loss exactly.
-        self.grad_scales = int(getattr(h, "silog_grad_scales", 4) or 4)
+        self.silog_lambda = getattr(h, "dlam", getattr(h, "silog_lambda", 1.0))
+        # Gradient-matching pyramid levels (fixed at 4; matches Depth Anything V2).
+        self.grad_scales = 4
         # GT beyond the head's representable range (sigmoid x max_depth) is masked out of the
         # loss: supervising unreachable targets saturates the sigmoid and, through SILog's
         # per-image mean coupling, corrupts gradients on in-range pixels too. None on log-mode
@@ -1233,7 +1231,7 @@ class v8DepthLoss:
         # Clamp predictions to avoid log(0)
         pred_valid = pred_valid.clamp(min=0.001)
 
-        # SILog loss (scale-invariant log error). At silog_lambda=1.0 the variance term fully
+        # SILog loss (scale-invariant log error). At dlam=1.0 the variance term fully
         # cancels for a near-constant residual, and float rounding can push it slightly negative:
         # clamp the mathematically non-negative variance so sqrt never returns NaN.
         log_diff = torch.log(pred_valid) - torch.log(gt_valid)

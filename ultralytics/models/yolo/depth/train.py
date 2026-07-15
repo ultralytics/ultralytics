@@ -64,7 +64,7 @@ class DepthTrainer(yolo.detect.DetectionTrainer):
 
     def get_validator(self):
         """Return a DepthValidator for model validation."""
-        self.loss_names = "silog", "grad"
+        self.loss_names = "dlog_loss", "dgrad_loss"
         return yolo.depth.DepthValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
@@ -164,20 +164,20 @@ class DepthTrainer(yolo.detect.DetectionTrainer):
             self.on_plot(fname)
 
     def final_eval(self):
-        """Run the standard final evaluation, then auto-calibrate the saved checkpoints.
+        """Run the standard final evaluation, then calibrate the saved checkpoints.
 
         After training, fits the scale-only log-affine (``cal_a``/``cal_b``) on the validation
         set and writes it into best.pt/last.pt, so the model outputs metric-scaled depth out of
-        the box. Disable with ``auto_calibrate=False``. When ``plots`` is set, also writes
-        ``val_batch{ni}_calibrated.jpg`` (RGB | GT | raw | calibrated) comparison panels.
+        the box. When ``plots`` is set, also writes ``val_batch{ni}_calibrated.jpg``
+        (RGB | GT | raw | calibrated) comparison panels.
         """
         super().final_eval()
-        if RANK not in {-1, 0} or not self.args.auto_calibrate:
+        if RANK not in {-1, 0}:
             return
         try:
             from .calibrate import calibrate_checkpoint
 
-            LOGGER.info("Auto-calibrating depth output scale on the validation set...")
+            LOGGER.info("Calibrating depth output scale on the validation set...")
             # Calibrated comparison plots come from the checkpoint that represents the run:
             # best.pt, or last.pt when best was never saved. Each checkpoint is fitted separately.
             plot_ckpt = self.best if self.best.exists() else self.last
@@ -186,4 +186,4 @@ class DepthTrainer(yolo.detect.DetectionTrainer):
                     plot_dir = self.save_dir if self.args.plots and ckpt == plot_ckpt else None
                     calibrate_checkpoint(ckpt, self.test_loader, self.device, plot_dir=plot_dir)
         except Exception as e:
-            LOGGER.warning(f"Auto-calibration skipped ({type(e).__name__}: {e}); checkpoints left uncalibrated.")
+            LOGGER.warning(f"Calibration skipped ({type(e).__name__}: {e}); checkpoints left uncalibrated.")

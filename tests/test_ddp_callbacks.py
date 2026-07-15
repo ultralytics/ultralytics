@@ -131,6 +131,17 @@ def test_serialize_callbacks_mixed():
     os.remove(result)
 
 
+def test_serialize_callbacks_skips_integration_callbacks():
+    """Callbacks from ultralytics.utils.callbacks.* are skipped — they're re-added in the subprocess."""
+    integration_cb = lambda t: None
+    integration_cb.__module__ = "ultralytics.utils.callbacks.hub"  # simulate integration callback
+    cbs = get_default_callbacks()
+    cbs["on_train_start"].append(integration_cb)
+    trainer = FakeTrainer(callbacks=cbs)
+    result = _serialize_callbacks(trainer, get_default_callbacks())
+    assert result is None, "Integration callbacks should be skipped, not serialized"
+
+
 # --- Integration tests: generate_ddp_file -----------------------------------------------------------------------------
 
 

@@ -9,7 +9,7 @@ import random
 import shutil
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from pathlib import Path, PureWindowsPath
+from pathlib import Path
 
 import cv2
 import numpy as np
@@ -836,31 +836,6 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         lines = [json.loads(line.strip()) for line in f if line.strip()]
     dataset_record, image_records = lines[0], lines[1:]
 
-    # Validate all NDJSON values used to construct output paths before checking the cache or writing files.
-    is_classification = dataset_record.get("task") == "classify"
-    class_names = {int(k): v for k, v in dataset_record.get("class_names", {}).items()}
-
-    def classification_class_name(record):
-        """Return classification directory name for an image record."""
-        class_ids = record.get("annotations", {}).get("classification", [])
-        class_id = class_ids[0] if class_ids else 0
-        return class_names.get(class_id, str(class_id))
-
-    for i, record in enumerate(image_records, start=1):
-        split, file = record.get("split"), record.get("file")
-        if not isinstance(split, str) or split not in {"train", "val", "test"}:
-            raise ValueError(f"Unsafe NDJSON split in record {i}: {split!r}")
-        if not isinstance(file, str) or PureWindowsPath(file).name != file or file.rstrip(" .") in {"", ".", ".."}:
-            raise ValueError(f"Unsafe NDJSON file path in record {i}: {file!r}")
-        if is_classification:
-            class_name = classification_class_name(record)
-            if (
-                not isinstance(class_name, str)
-                or PureWindowsPath(class_name).name != class_name
-                or class_name.rstrip(" .") in {"", ".", ".."}
-            ):
-                raise ValueError(f"Unsafe NDJSON class name in record {i}: {class_name!r}")
-
     # Hash stable content plus source identity. Query strings are excluded because signed URLs change on every export.
     _h = hashlib.sha256()
     for r in lines:
@@ -887,6 +862,9 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
             pass
     splits = {record["split"] for record in image_records}
 
+    # Check if this is a classification dataset
+    is_classification = dataset_record.get("task") == "classify"
+    class_names = {int(k): v for k, v in dataset_record.get("class_names", {}).items()}
     inferred_nc = None
 
     # Validate required fields before downloading images
@@ -960,7 +938,9 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
 
             if is_classification:
                 # Classification: place image in {split}/{class_name}/ folder
-                class_name = classification_class_name(record)
+                class_ids = annotations.get("classification", [])
+                class_id = class_ids[0] if class_ids else 0
+                class_name = class_names.get(class_id, str(class_id))
                 image_path = dataset_dir / split / class_name / original_name
             else:
                 # Detection: write label file and place image in images/{split}/
@@ -1043,7 +1023,10 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         for r in image_records:
             s, name = r["split"], r["file"]
             if is_classification:
-                expected_paths.add(dataset_dir / s / classification_class_name(r) / name)
+                ann = r.get("annotations", {})
+                cids = ann.get("classification", [])
+                cid = cids[0] if cids else 0
+                expected_paths.add(dataset_dir / s / class_names.get(cid, str(cid)) / name)
             else:
                 expected_paths.add(dataset_dir / "images" / s / name)
         img_root = dataset_dir if is_classification else (dataset_dir / "images")

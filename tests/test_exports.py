@@ -388,12 +388,23 @@ def test_export_coreml_matrix(task, dynamic, quantize, nms, batch, end2end):
     MACOS and checks.IS_PYTHON_MINIMUM_3_13,
     reason="coremltools deadlocks after OpenVINO on macOS Python 3.13 (conflicting OpenMP runtimes)",
 )
-def test_export_coreml(isolated_model):
+@pytest.mark.parametrize("format", ["coreml", "mlmodel"])
+def test_export_coreml(isolated_model, format):
     """Test YOLO export to CoreML format and check for errors."""
     # Capture stdout and stderr
     stdout, stderr = io.StringIO(), io.StringIO()
     with redirect_stdout(stdout), redirect_stderr(stderr):
-        YOLO(isolated_model).export(format="coreml", nms=True, imgsz=32)
+        file = YOLO(isolated_model).export(format=format, nms=True, imgsz=32, iou=0.42, conf=0.24)
+        import coremltools as ct
+
+        spec = ct.utils.load_spec(str(file))
+        metadata = spec.description.metadata
+        assert metadata.author and metadata.shortDescription and metadata.license and metadata.versionString
+        assert metadata.userDefined["IoU threshold"] == "0.42"
+        assert metadata.userDefined["Confidence threshold"] == "0.24"
+        assert all(key in metadata.userDefined for key in ("names", "stride", "task"))
+        assert list(spec.pipeline.models[1].nonMaximumSuppression.stringClassLabels.vector)[0] == "person"
+        assert [output.name for output in spec.description.output] == ["confidence", "coordinates"]
         if MACOS:
             file = YOLO(isolated_model).export(format="coreml", imgsz=32)
             YOLO(file)(SOURCE, imgsz=32)  # model prediction only supported on macOS for nms=False models

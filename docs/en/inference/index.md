@@ -55,7 +55,7 @@ Rust 1.89 or newer is required. The [video](#cargo-features) feature additionall
     ```toml
     # Or add it manually to Cargo.toml
     [dependencies]
-    ultralytics-inference = "0.0.27"
+    ultralytics-inference = "0.0.28"
     ```
 
 ## CLI quickstart
@@ -409,7 +409,7 @@ cargo install ultralytics-inference --features cuda,tensorrt
 
 ```toml
 [dependencies]
-ultralytics-inference = { version = "0.0.27", features = ["video"] }
+ultralytics-inference = { version = "0.0.28", features = ["video"] }
 ```
 
 ## Output and saving

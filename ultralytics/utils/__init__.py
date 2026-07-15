@@ -30,6 +30,28 @@ from ultralytics.utils.git import GitRepo
 from ultralytics.utils.patches import imread, imshow, imwrite, torch_save  # for patches
 from ultralytics.utils.tqdm import TQDM  # noqa
 
+
+def env_bool(name: str, default: bool = False) -> bool:
+    """Parse a boolean environment variable, accepting common truthy strings.
+
+    Accepts "1", "true", "yes", "on", "y", "t" (case-insensitive, whitespace-trimmed) as True; any other set value is
+    False. The default is returned only when the variable is unset, not when it is set to an empty string.
+
+    Args:
+        name (str): Environment variable name.
+        default (bool): Value returned when the variable is unset.
+
+    Returns:
+        (bool): Parsed boolean value.
+
+    Examples:
+        >>> env_bool("YOLO_UNSET_EXAMPLE_VAR", True)  # returns the default when the variable is unset
+        True
+    """
+    v = os.environ.get(name)
+    return default if v is None else v.strip().lower() in {"1", "true", "yes", "on", "y", "t"}
+
+
 # PyTorch Multi-GPU DDP Constants
 RANK = int(os.getenv("RANK", -1))
 LOCAL_RANK = int(os.getenv("LOCAL_RANK", -1))  # https://pytorch.org/docs/stable/elastic/run.html
@@ -44,9 +66,9 @@ ASSETS_URL = "https://github.com/ultralytics/assets/releases/download/v0.0.0"  #
 PLATFORM_URL = os.getenv("ULTRALYTICS_PLATFORM_URL", "https://platform.ultralytics.com").rstrip("/")
 DEFAULT_CFG_PATH = ROOT / "cfg/default.yaml"
 NUM_THREADS = min(8, max(1, os.cpu_count() - 1))  # number of YOLO multiprocessing threads
-AUTOINSTALL = str(os.getenv("YOLO_AUTOINSTALL", True)).lower() == "true"  # global auto-install mode
-VERBOSE = str(os.getenv("YOLO_VERBOSE", True)).lower() == "true"  # global verbose mode
-SAFE_LOAD = str(os.getenv("ULTRALYTICS_SAFE_LOAD", False)).lower() == "true"  # opt-in weights_only model loading
+AUTOINSTALL = env_bool("YOLO_AUTOINSTALL", True)  # global auto-install mode
+VERBOSE = env_bool("YOLO_VERBOSE", True)  # global verbose mode
+SAFE_LOAD = env_bool("ULTRALYTICS_SAFE_LOAD")  # opt-in weights_only model loading
 LOGGING_NAME = "ultralytics"
 MACOS, LINUX, WINDOWS = (platform.system() == x for x in ["Darwin", "Linux", "Windows"])  # environment booleans
 MACOS_VERSION = platform.mac_ver()[0] if MACOS else None
@@ -501,6 +523,24 @@ def emojis(string=""):
     return string.encode().decode("ascii", "ignore") if WINDOWS else string
 
 
+def get_pythonpath_env():
+    """Return an environment that preserves the current Python import path in subprocesses."""
+    pythonpath = os.pathsep.join(os.getcwd() if path == "" else path for path in sys.path)
+    if inherited := os.getenv("PYTHONPATH"):
+        pythonpath = f"{pythonpath}{os.pathsep}{inherited}"
+    return {**os.environ, "PYTHONPATH": pythonpath}
+
+
+def get_python_command(module: str) -> list[str]:
+    """Return a command that runs a module with the parent import path ahead of the child working directory."""
+    code = (
+        "import os, runpy, sys; "
+        "sys.path[:0] = filter(None, os.environ.get('PYTHONPATH', '').split(os.pathsep)); "
+        "runpy.run_module(sys.argv.pop(1), run_name='__main__', alter_sys=True)"
+    )
+    return [sys.executable, "-c", code, module]
+
+
 class ThreadingLocked:
     """A decorator class for ensuring thread-safe execution of a function or method.
 
@@ -831,7 +871,7 @@ def is_online() -> bool:
     Returns:
         (bool): True if connection is successful, False otherwise.
     """
-    if str(os.getenv("YOLO_OFFLINE", "")).lower() == "true":
+    if env_bool("YOLO_OFFLINE"):
         return False
 
     for host in ("one.one.one.one", "dns.google"):

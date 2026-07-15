@@ -135,7 +135,7 @@ def export_formats():
             ".torchscript",
             True,
             True,
-            ["batch", "optimize", "quantize", "nms", "dynamic"],
+            ["batch", "quantize", "nms", "dynamic"],
             "base",
         ],
         [
@@ -186,7 +186,7 @@ def export_formats():
             "tensorflow",
         ],
         ["PaddlePaddle", "paddle", "_paddle_model", True, True, ["batch"], "base"],
-        ["MNN", "mnn", ".mnn", True, True, ["batch", "quantize"], "mnn"],
+        ["MNN", "mnn", ".mnn", True, True, ["batch", "dynamic", "quantize", "nms"], "mnn"],
         ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "quantize"], "ncnn"],
         ["IMX", "imx", "_imx_model", True, True, ["data", "quantize", "fraction", "nms"], "isolated-imx"],
         [
@@ -386,7 +386,7 @@ def validate_args(format, passed_args, valid_args):
     Raises:
         AssertionError: If an unsupported argument is used, or if the format lacks supported argument listings.
     """
-    export_args = ["dynamic", "keras", "nms", "batch", "fraction", "data"]
+    export_args = ["dynamic", "keras", "nms", "batch", "fraction", "data", "optimize"]
 
     assert valid_args is not None, f"ERROR ❌️ valid arguments for '{format}' not listed."
     custom = {"batch": 1, "data": None, "device": None}  # exporter defaults
@@ -407,7 +407,7 @@ def validate_args(format, passed_args, valid_args):
         elif passed_args.quantize == 32:  # FP32
             assert format not in FP32_UNSUPPORTED_FORMATS, f"ERROR ❌️ quantize=32 (FP32) is not supported; {hint}"
     for arg in export_args:
-        not_default = getattr(passed_args, arg, None) != getattr(default_args, arg, None)
+        not_default = getattr(passed_args, arg, getattr(default_args, arg, None)) != getattr(default_args, arg, None)
         if not_default:
             assert arg in valid_args, f"ERROR ❌️ argument '{arg}' is not supported for format='{format}'"
 
@@ -595,7 +595,11 @@ class Exporter:
                             "Please upgrade TensorRT to 8.5.0 or later to enable end2end export."
                         )
 
-                    if self.args.quantize == 8 and check_version(trt.__version__, "==10.3.0") and is_jetson(jetpack=6):
+                    if (
+                        self.args.quantize == 8
+                        and check_version(trt.__version__, ">=10.3.0,<10.4.0")  # JetPack 6 builds report 10.3.0.x
+                        and is_jetson(jetpack=6)
+                    ):
                         # https://github.com/ultralytics/ultralytics/issues/23841
                         model.end2end = False
                         LOGGER.warning(
@@ -608,9 +612,8 @@ class Exporter:
         if self.args.quantize == 16 and fmt == "torchscript" and self.device.type == "cpu":
             raise ValueError("FP16 TorchScript export is only supported on GPU, i.e. use device=0.")
         self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size
-        if self.args.optimize:
-            assert fmt != "ncnn", "optimize=True not compatible with format='ncnn', i.e. use optimize=False"
-            assert self.device.type == "cpu", "optimize=True not compatible with cuda devices, i.e. use device='cpu'"
+        if fmt == "axelera" and min(self.imgsz) < 64:
+            raise ValueError(f"Axelera export requires imgsz>=64, but got imgsz={self.imgsz}.")
         if fmt == "rknn":
             if not self.args.name:
                 LOGGER.warning(
@@ -655,6 +658,11 @@ class Exporter:
                 LOGGER.warning("'nms=True' is not available for end2end models. Forcing 'nms=False'.")
                 self.args.nms = False
             self.args.conf = self.args.conf or 0.25  # set conf default value for nms export
+        if fmt == "mnn" and self.args.nms:
+            if self.args.dynamic:
+                raise ValueError("Alibaba MNN export does not support combining 'dynamic=True' with 'nms=True'.")
+            if model.task not in {"detect", "pose"}:
+                raise ValueError("Alibaba MNN export with 'nms=True' only supports detect and pose models.")
         if (fmt in {"engine", "coreml"} or self.args.nms) and self.args.dynamic and self.args.batch == 1:
             LOGGER.warning(
                 f"'dynamic=True' model with '{'nms=True' if self.args.nms else f'format={self.args.format}'}' requires max batch size, i.e. 'batch=16'"
@@ -732,9 +740,13 @@ class Exporter:
                 m.dynamic = self.args.dynamic
                 m.export = True
                 m.format = self.args.format
-                # Clamp max_det to anchor count for small image sizes (required for TensorRT compatibility)
-                anchors = sum(int(self.imgsz[0] / s) * int(self.imgsz[1] / s) for s in model.stride.tolist())
-                m.max_det = min(self.args.max_det, anchors)
+                # Clamp max_det to available queries/anchors (required for TensorRT compatibility)
+                available = (
+                    m.num_queries
+                    if isinstance(m, RTDETRDecoder)
+                    else sum(int(self.imgsz[0] / s) * int(self.imgsz[1] / s) for s in model.stride.tolist())
+                )
+                m.max_det = min(self.args.max_det, available)
                 m.agnostic_nms = self.args.agnostic_nms
                 m.xyxy = self.args.nms and fmt != "coreml"
                 m.shape = None  # reset cached shape for new export input size
@@ -878,7 +890,6 @@ class Exporter:
             model=NMSModel(self.model, self.args) if self.args.nms else self.model,
             im=self.im,
             output_file=self.file.with_suffix(".torchscript"),
-            optimize=self.args.optimize,
             metadata=self.metadata,
             prefix=prefix,
         )
@@ -1320,6 +1331,7 @@ class Exporter:
         from ultralytics.utils.export.rknn import onnx2rknn
 
         self.args.opset = min(self.args.opset or 19, 19)  # rknn-toolkit expects opset<=19
+        self.im = self.im[:1]  # RKNN Toolkit expands the batch after calibrating the batch-1 ONNX model
         f_onnx = self.export_onnx()
         output_dir = Path(str(self.file).replace(self.file.suffix, f"_rknn_model{os.sep}"))
         rknn_dataset = None
@@ -1338,6 +1350,7 @@ class Exporter:
             output_dir=output_dir,
             name=self.args.name,
             quantize=self.args.quantize,
+            batch=self.args.batch,
             dataset=rknn_dataset,
             metadata=self.metadata,
             prefix=prefix,

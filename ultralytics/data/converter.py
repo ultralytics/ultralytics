@@ -866,11 +866,10 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
 
     # Check if this is a classification dataset
     is_classification = dataset_record.get("task") == "classify"
+    class_names = {int(k): v.rstrip(" .") for k, v in dataset_record.get("class_names", {}).items()}
     class_names = {
-        int(k): v[max(v.rfind("/"), v.rfind("\\")) + 1 :].rstrip(" .")
-        for k, v in dataset_record.get("class_names", {}).items()
+        k: v if v and max(v.rfind("/"), v.rfind("\\"), v.rfind(":")) < 0 else str(k) for k, v in class_names.items()
     }
-    class_names = {k: v if v not in {"", ".", ".."} else str(k) for k, v in class_names.items()}
     inferred_nc = None
 
     # Validate required fields before downloading images
@@ -940,8 +939,8 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         """Process single image record with async session."""
         async with semaphore:
             split, source_name = record["split"], record["file"]
-            original_name = source_name[max(source_name.rfind("/"), source_name.rfind("\\")) + 1 :].rstrip(" .")
-            if not original_name:
+            original_name = source_name.rstrip(" .")
+            if not original_name or max(source_name.rfind("/"), source_name.rfind("\\"), source_name.rfind(":")) >= 0:
                 raise ValueError(f"Invalid NDJSON image name: {source_name!r}")
             record["file"] = original_name
             annotations = record.get("annotations", {})

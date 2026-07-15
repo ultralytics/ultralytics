@@ -14,10 +14,10 @@ from ultralytics import YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.engine.exporter import Exporter
 from ultralytics.engine.trainer import BaseTrainer
-from ultralytics.models.yolo import classify, detect, obb, pose, segment, semantic
+from ultralytics.models.yolo import classify, depth, detect, obb, pose, segment, semantic
 from ultralytics.nn.distill_model import DistillationModel
 from ultralytics.nn.tasks import DetectionModel, load_checkpoint
-from ultralytics.utils import ASSETS, DEFAULT_CFG, IS_JETSON, IS_RASPBERRYPI, WEIGHTS_DIR
+from ultralytics.utils import ASSETS, DEFAULT_CFG, IS_RASPBERRYPI, WEIGHTS_DIR
 from ultralytics.utils.torch_utils import unwrap_model
 
 
@@ -73,6 +73,7 @@ def test_export(monkeypatch, tmp_path):
             "yolo26n-sem.yaml",
             None,
         ),
+        (depth.DepthTrainer, depth.DepthValidator, depth.DepthPredictor, "depth8.yaml", "yolo26-depth.yaml", None),
     ],
 )
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for training")
@@ -122,17 +123,6 @@ def test_task(trainer_cls, validator_cls, predictor_cls, data, model, weights):
     # Test resume functionality
     with pytest.raises(AssertionError):
         trainer_cls(overrides={**overrides, "resume": trainer.last}).train()
-
-
-@pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
-def test_depth_engine_cycle(tmp_path):
-    """Test depth estimation train / val / predict cycle on the auto-downloading depth8 dataset."""
-    args = {"data": "depth8.yaml", "imgsz": 32, "batch": 2, "device": "cpu", "plots": False, "project": str(tmp_path)}
-    m = YOLO("ultralytics/cfg/models/26/yolo26-depth.yaml")
-    m.train(epochs=1, cache=False, workers=0, **args)
-    m.val(**args)
-    r = m.predict(SOURCE, imgsz=32, device="cpu")
-    assert r[0].depth is not None, "predict() should return a result with a depth map"
 
 
 @pytest.mark.parametrize("task,weight,data", TASK_MODEL_DATA)

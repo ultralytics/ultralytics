@@ -482,6 +482,113 @@ def check_det_dataset(dataset: str, autodownload: bool = True, split: str = "") 
     # Read YAML
     data = YAML.load(file, append_filename=True)  # dictionary
 
+    # Handle multi-dataset if 'datasets' key is present
+    if "datasets" in data:
+        child_datasets = []
+        for child in data["datasets"]:
+            child_yaml_path = (Path(file).parent / child).resolve()
+            child_data = YAML.load(child_yaml_path, append_filename=True)
+            child_yaml_dir = Path(child_yaml_path).parent
+
+            c_path = child_data.get("path", "")
+            if c_path:
+                c_path = Path(c_path)
+                if not c_path.is_absolute():
+                    c_path = (child_yaml_dir / c_path).resolve()
+                else:
+                    c_path = c_path.resolve()
+            else:
+                c_path = child_yaml_dir.resolve()
+            child_data["path"] = c_path
+
+            # Now resolve train/val/test splits relative to c_path
+            for k in "train", "val", "test", "minival":
+                if child_data.get(k):
+                    if isinstance(child_data[k], str):
+                        x = (c_path / child_data[k]).resolve()
+                        if not x.exists() and child_data[k].startswith("../"):
+                            x = (c_path / child_data[k][3:]).resolve()
+                        child_data[k] = str(x)
+                    else:
+                        child_data[k] = [str((c_path / val_x).resolve()) for val_x in child_data[k]]
+
+            # Ensure child names and nc are present and valid
+            if "names" not in child_data and "nc" not in child_data:
+                raise SyntaxError(emojis(f"{child} key missing ❌.\n either 'names' or 'nc' are required in all data YAMLs."))
+            if "names" not in child_data:
+                child_data["names"] = {i: f"class_{i}" for i in range(child_data["nc"])}
+            else:
+                child_data["names"] = check_class_names(child_data["names"])
+                child_data["nc"] = len(child_data["names"])
+
+            # Check if validation split exists. If not, trigger download if available.
+            val_split = child_data.get(split or "val")
+            if val_split:
+                val_paths = [Path(x).resolve() for x in (val_split if isinstance(val_split, list) else [val_split])]
+                if not all(x.exists() for x in val_paths):
+                    download_script = child_data.get("download")
+                    if download_script and autodownload:
+                        LOGGER.warning(f"Downloading child dataset {child}...")
+                        if download_script.startswith("http") and download_script.endswith(".zip"):
+                            safe_download(url=download_script, dir=DATASETS_DIR, delete=True)
+                        elif download_script.startswith("bash "):
+                            subprocess.run(download_script.split(), check=True)
+                        else:
+                            exec(download_script, {"yaml": child_data})
+
+            child_datasets.append(child_data)
+
+        # Merge unique class names to compute global names mapping
+        global_names = {}
+        for child_data in child_datasets:
+            for name in child_data["names"].values():
+                if name not in global_names:
+                    global_names[name] = len(global_names)
+
+        # Construct merged names dict and class maps
+        merged_names = {i: name for name, i in global_names.items()}
+        class_maps = {}
+        for child_data in child_datasets:
+            local_to_global = {}
+            for local_id, name in child_data["names"].items():
+                local_to_global[local_id] = global_names[name]
+            class_maps[str(child_data["path"])] = local_to_global
+
+        # Merge splits
+        merged_train = []
+        merged_val = []
+        merged_test = []
+        for child_data in child_datasets:
+            for k, target in [("train", merged_train), ("val", merged_val), ("test", merged_test)]:
+                if child_data.get(k):
+                    val = child_data[k]
+                    if isinstance(val, list):
+                        target.extend(val)
+                    else:
+                        target.append(val)
+
+        # Update the parent data dict with merged/resolved values
+        data["path"] = Path(file).parent.resolve()
+        data["train"] = merged_train
+        if merged_val:
+            data["val"] = merged_val
+        if merged_test:
+            data["test"] = merged_test
+        data["names"] = merged_names
+        data["nc"] = len(merged_names)
+        data["class_maps"] = class_maps
+
+        # Maintain other metadata (e.g. kpt_shape) from child datasets
+        for child_data in child_datasets:
+            if "kpt_shape" in child_data:
+                data["kpt_shape"] = child_data["kpt_shape"]
+                break
+
+        # Check fonts and return
+        data["channels"] = data.get("channels", 3)
+        check_font("Arial.ttf" if is_ascii(data["names"]) else "Arial.Unicode.ttf")
+        return data
+
     # Checks
     for k in "train", "val":
         if k not in data:

@@ -187,6 +187,20 @@ class YOLODataset(BaseDataset):
 
         # Read cache
         labels = cache["labels"]
+        class_maps = self.data.get("class_maps") if self.data else None
+        if class_maps:
+            for lb in labels:
+                im_file_str = str(Path(lb["im_file"]).resolve())
+                for child_path, class_map in class_maps.items():
+                    if im_file_str.startswith(str(Path(child_path).resolve())):
+                        if "cls" in lb:
+                            for idx in range(len(lb["cls"])):
+                                local_cls = int(lb["cls"][idx, 0])
+                                if local_cls in class_map:
+                                    lb["cls"][idx, 0] = class_map[local_cls]
+                                elif str(local_cls) in class_map:
+                                    lb["cls"][idx, 0] = class_map[str(local_cls)]
+                        break
         if not labels:
             issues = "\n  ".join(sorted(set(cache["msgs"]))) or "no error details"
             raise RuntimeError(f"No valid images found in {cache_path}.\n  {issues}\n{HELP_URL}")

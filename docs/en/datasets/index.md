@@ -168,6 +168,27 @@ Contributing a new dataset involves several steps to ensure that it aligns well 
 
 By following these steps, you can contribute a new dataset that integrates well with Ultralytics' existing structure.
 
+## Multi-Dataset Training
+
+You can train models on multiple datasets simultaneously by defining a parent dataset YAML file that lists the child dataset YAML paths under the `datasets` key.
+
+Example:
+```yaml
+# parent.yaml
+datasets:
+  - dataset1.yaml
+  - dataset2.yaml
+```
+
+Relative paths inside each child YAML are resolved relative to the directory containing that child YAML file.
+
+### Semantic Class Merging
+When multiple datasets are specified, classes with identical names across different datasets are merged into a single class ID automatically during training.
+For example, if Dataset A has classes `[person, car]` and Dataset B has classes `[car, dog]`, the final merged mapping will be:
+- `person` -> 0
+- `car` -> 1
+- `dog` -> 2
+
 ## FAQ
 
 ### What datasets does Ultralytics support for object detection?

@@ -181,8 +181,6 @@ class DepthTrainer(yolo.detect.DetectionTrainer):
             from .calibrate import calibrate_checkpoint
 
             LOGGER.info("Calibrating depth output scale on the validation set...")
-            # Calibrated comparison plots come from the checkpoint that represents the run:
-            # best.pt, or last.pt when best was never saved. Each checkpoint is fitted separately.
             plot_ckpt = self.best if self.best.exists() else self.last
             for ckpt in (self.best, self.last):
                 if ckpt.exists():

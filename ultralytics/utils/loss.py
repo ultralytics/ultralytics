@@ -1167,14 +1167,9 @@ class DepthLoss26:
         h = model.args  # hyperparameters
         self.silog_weight = h.dlog
         self.grad_weight = h.dgrad
-        # SILog variance-focus: 1.0 = fully scale-invariant, 0.0 = plain log-RMSE (scale-dependent).
-        self.silog_lambda = h.dlam
-        # Gradient-matching pyramid levels (fixed at 4; matches Depth Anything V2).
+        self.silog_lambda = h.dlam  # 1.0 = scale-invariant, 0.0 = log-RMSE
         self.grad_scales = 4
-        # GT beyond the head's representable range (sigmoid x max_depth) is masked out of the
-        # loss: supervising unreachable targets saturates the sigmoid and, through SILog's
-        # per-image mean coupling, corrupts gradients on in-range pixels too. None on log-mode
-        # heads (unbounded output); read from the Depth head like detect reads model.model[-1].
+        # Mask GT outside the head's range so unreachable targets do not corrupt in-range gradients.
         self.max_depth = getattr(model.model[-1], "max_depth", None)
 
     @staticmethod
@@ -1201,62 +1196,43 @@ class DepthLoss26:
             loss_sum (torch.Tensor): Total loss scaled by batch size.
             loss_items (torch.Tensor): Detached per-component [silog, grad] losses.
         """
-        loss = torch.zeros(2, device=self.device)  # [silog_loss, grad_loss]
-        # Head returns a dict during training and a bare tensor during inference
+        loss = torch.zeros(2, device=self.device)
         pred_depth = preds["depth"] if isinstance(preds, dict) else preds
-        gt_depth = batch["depth"].to(self.device)  # (B, H, W)
+        gt_depth = batch["depth"].to(self.device)
 
         if gt_depth.ndim == 3:
-            gt_depth = gt_depth.unsqueeze(1)  # (B, 1, H, W)
+            gt_depth = gt_depth.unsqueeze(1)
 
-        # Upsample prediction to GT resolution (matches DepthValidator). Never resize GT:
-        # bilinear blends invalid zeros into valid sparse GT (e.g. LiDAR), and nearest
-        # decimation discards supervision; pred is dense/smooth so interpolating it is safe.
         if gt_depth.shape[-2:] != pred_depth.shape[-2:]:
-            # align_corners=True matches the head's internal fusion convention (baked into trained weights)
             pred_depth = F.interpolate(pred_depth, size=gt_depth.shape[-2:], mode="bilinear", align_corners=True)
 
-        # Valid mask: positive depth values within the head's representable range
         valid = gt_depth > 0.001
         if self.max_depth is not None:
             valid &= gt_depth <= self.max_depth
         if valid.sum() < 10:
-            # Zero loss for GT-less batches, kept attached to the graph: BaseTrainer calls
-            # backward() unconditionally and a plain zeros tensor has no grad_fn.
+            # Keep the result attached so BaseTrainer's unconditional backward() works.
             return pred_depth.sum() * 0.0, loss.detach()
 
         pred_valid = pred_depth[valid]
         gt_valid = gt_depth[valid]
 
-        # Clamp predictions to avoid log(0)
         pred_valid = pred_valid.clamp(min=0.001)
 
-        # SILog loss (scale-invariant log error). At dlam=1.0 the variance term fully
-        # cancels for a near-constant residual, and float rounding can push it slightly negative:
-        # clamp the mathematically non-negative variance so sqrt never returns NaN.
         log_diff = torch.log(pred_valid) - torch.log(gt_valid)
+        # Clamp variance to keep sqrt non-negative at dlam=1.0.
         silog = torch.sqrt(((log_diff**2).mean() - self.silog_lambda * log_diff.mean() ** 2).clamp_min(0) + 1e-6)
         loss[0] = silog * self.silog_weight
 
-        # Gradient-matching loss (edge-aware): penalize differences in spatial gradients.
-        # Run it over a pyramid (grad_scales levels, x2 masked-avg-pool per level) so coarse
-        # depth discontinuities are matched too, not just full-resolution edges — the dominant
-        # sharpness lever in MiDaS (L_reg) / Depth Anything V2 (L_gm). grad_scales=1 reproduces
-        # the original single-scale term exactly.
+        # Multi-scale gradient-matching loss.
         pred_log = torch.log(pred_depth.clamp(min=0.001))
         gt_log = torch.log(gt_depth.clamp(min=0.001))
         valid_f = valid.float()
-        grad_loss = self._grad_l1(pred_log, gt_log, valid_f)  # level 0: all images, full resolution
+        grad_loss = self._grad_l1(pred_log, gt_log, valid_f)
         for _ in range(1, max(self.grad_scales, 1)):
             if pred_log.shape[-1] < 4 or pred_log.shape[-2] < 4:
-                break  # too small to pool and still differentiate
-            # Masked x2 average-pool: aggregate only valid pixels so invalid zeros never bleed
-            # into valid neighbors (same rationale as never resizing sparse GT above).
+                break
             vp = F.avg_pool2d(valid_f, 2)
-            if vp.mean() < 0.5:
-                # Sparsity guard: coarse pooled cells over sparse GT (e.g. LiDAR) aggregate too
-                # few real pixels, so their gradients are noise (empirically degrades KITTI).
-                # Dense GT stays well above 0.5 valid fraction and keeps all levels.
+            if vp.mean() < 0.5:  # skip sparse GT (LiDAR)
                 break
             denom = vp.clamp(min=1e-6)
             pred_log = F.avg_pool2d(pred_log * valid_f, 2) / denom

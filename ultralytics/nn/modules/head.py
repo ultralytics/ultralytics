@@ -820,7 +820,6 @@ class Depth(nn.Module):
         # Refinement blocks after each of the nl-1 fusion steps (the coarsest level is not refined)
         self.refine = nn.ModuleList(nn.Sequential(Conv(c_mid, c_mid, k=3), Conv(c_mid, c_mid, k=3)) for _ in ch[:-1])
 
-        # Output head: features → 1-channel depth (or log-depth)
         layers = [
             Conv(c_mid, c_mid // 2, k=3),
             nn.ConvTranspose2d(c_mid // 2, c_mid // 2, kernel_size=2, stride=2, bias=True),
@@ -834,14 +833,10 @@ class Depth(nn.Module):
             self.max_depth = None  # unbounded output; loss applies no range mask
         self.head = nn.Sequential(*layers)
         if mode == "log":
-            # Bias the final conv so the initial output is exp(0.182) ≈ 1.2 m — a plausible
-            # indoor depth that keeps early exp() outputs and gradients well-conditioned
-            # (the DINOv2 saturated-init lesson, commit 390c6c9).
+            # Initialize to ~1.2 m so early exp() outputs stay well-conditioned.
             self.head[-1].bias.data.fill_(0.182)
 
-        # Scale-only adaptation: global log-space affine d' = exp(a·log d + b), fitted
-        # closed-form on a handful of user images (see DepthTrainer docs). Identity by
-        # default; buffers so calibration persists through state_dict/checkpoints.
+        # Scale-only log-affine calibration d' = exp(a·log d + b); identity by default.
         self.register_buffer("cal_a", torch.ones(1))
         self.register_buffer("cal_b", torch.zeros(1))
 
@@ -860,30 +855,23 @@ class Depth(nn.Module):
         # Project all levels to same channel dim
         feats = [self.proj[i](x[i]) for i in range(self.nl)]
 
-        # Bottom-up fusion: start from coarsest (P5), upsample and add finer levels
         out = feats[-1]
         for i in range(self.nl - 2, -1, -1):
-            # align_corners=True is baked into the released depth weights (they were trained with it);
-            # changing it would silently shift published-model outputs.
+            # align_corners=True is baked into the released depth weights.
             out = F.interpolate(out, size=feats[i].shape[2:], mode="bilinear", align_corners=True)
             out = out + feats[i]
             out = self.refine[i](out)
 
-        # Depth output (at P3 resolution → upsample 2x in head → P2 resolution = input/4)
         out = self.head(out)  # (B, 1, H/4, W/4)
         if self.mode == "log":
-            depth = torch.exp(out.clamp(-4.0, 5.0))  # meters, ~0.018-148 m
+            depth = torch.exp(out.clamp(-4.0, 5.0))
         else:
-            depth = out * self.max_depth  # meters
+            depth = out * self.max_depth
 
         if self.training:
-            # Loss always supervises the raw head output (calibration is refit on raw after training).
             return {"depth": depth}
 
-        # Scale-only calibration (identity unless fitted)
         depth = depth.pow(self.cal_a) * self.cal_b.exp()
-        # Upsample P2-resolution output to the input size. scale_factor (not a fixed size) keeps the
-        # exported graph valid for dynamic input shapes; align_corners=False matches SemanticSegment.
         if self.export:
             depth = F.interpolate(depth, scale_factor=4.0, mode="bilinear", align_corners=False)
         return depth

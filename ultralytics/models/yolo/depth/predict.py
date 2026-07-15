@@ -35,10 +35,7 @@ class DepthPredictor(BasePredictor):
 
         results = []
         for i, orig_img in enumerate(orig_imgs):
-            # Remove letterbox padding and rescale to the original image size. The model output is
-            # padded to a (square) inference shape, so the padding must be cropped before resizing
-            # or the depth map ends up stretched relative to the RGB image (e.g. on ONNX/TorchScript
-            # exports that run at a fixed square imgsz instead of rectangular inference).
+            # Crop letterbox padding and rescale to the original image size.
             depth = ops.scale_masks(depth_maps[i : i + 1].float(), orig_img.shape[:2])
             depth = depth.squeeze().cpu().numpy()
 

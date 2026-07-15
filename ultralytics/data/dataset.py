@@ -78,9 +78,6 @@ class YOLODataset(BaseDataset):
         >>> dataset.get_labels()
     """
 
-    # Whether this task is driven by per-image bbox/cls label files under a ``labels/`` tree.
-    # Tasks whose GT lives elsewhere (e.g. depth estimation, GT is a paired ``depth/*.npy`` map)
-    # set this False to skip the "no labels found" / "labels missing" warnings, which are expected.
     uses_label_files = True
 
     def __init__(self, *args, data: dict | None = None, task: str = "detect", **kwargs):
@@ -347,8 +344,6 @@ class DepthDataset(YOLODataset):
         >>> dataset = DepthDataset(img_path="/data/nyu/images/train", data={"nc": 1})
     """
 
-    # Depth GT is the paired .npy depth map, not per-image bbox/cls labels under a labels/ tree,
-    # so the detection label scan finds every image a "background" (expected, don't warn).
     uses_label_files = False
 
     def _depth_path_for(self, im_file: str) -> str:
@@ -370,12 +365,7 @@ class DepthDataset(YOLODataset):
         return Path(self._depth_path_for(self.im_files[0])).parent.with_suffix(".cache")
 
     def get_labels(self) -> list[dict]:
-        """Load labels, then verify the paired depth maps actually exist.
-
-        Depth GT lives outside the labels/ tree the detection scan checks, so without this check a
-        wrong directory layout (e.g. 'depths/' instead of 'depth/') would train/validate silently
-        against all-zero depth.
-        """
+        """Load labels and verify paired depth maps exist."""
         labels = super().get_labels()
         missing = sum(not Path(self._depth_path_for(lb["im_file"])).exists() for lb in labels)
         if missing == len(labels):
@@ -390,12 +380,7 @@ class DepthDataset(YOLODataset):
         return labels
 
     def _load_depth(self, index):
-        """Return the native-resolution depth map for an image (non-finite -> 0 = invalid), or None if missing.
-
-        Sole owner of depth-map loading + sanitization, shared by get_image_and_label (GT for
-        loss/metrics/calibration) and DepthTrainer.plot_training_labels (histogram), so non-finite
-        (+inf/NaN for sky/invalid in some .npy) handling lives in exactly one place.
-        """
+        """Return the native-resolution depth map for an image, or None if missing."""
         depth_file = self._depth_path_for(self.im_files[index])
         if not Path(depth_file).exists():
             return None
@@ -410,23 +395,12 @@ class DepthDataset(YOLODataset):
         if depth is None:
             depth = np.zeros((h, w), dtype=np.float32)
         if depth.shape[:2] != (h, w):
-            # Nearest, not bilinear: sparse (e.g. LiDAR) GT must not blend valid depth with the
-            # zero/invalid background — bilinear creates near-zero "valid" pixels that corrupt
-            # eval metrics (abs_rel = |p-g|/g) and depress delta1. Mirrors SemanticDataset masks.
             depth = cv2.resize(depth, (w, h), interpolation=cv2.INTER_NEAREST)
         label["depth"] = depth
         return label
 
     def build_transforms(self, hyp=None):
-        """Build transforms for depth estimation from the standard augmentation hyperparameters.
-
-        Training reads the cfg augmentation args: ``degrees``/``translate``/``scale``/``shear``/
-        ``perspective`` (geometric warp, applied identically to the paired depth map),
-        ``flipud``/``fliplr`` (flips, also applied to the depth map), and ``hsv_h``/``hsv_s``/``hsv_v``
-        (image-only color jitter). Mixing augmentations (mosaic/mixup/cutmix/copy_paste) do not apply
-        to dense metric depth and are ignored. Validation (augment=False) is deterministic — only
-        LetterBox + DepthFormat, no random transforms.
-        """
+        """Build transforms for depth estimation."""
         if self.augment:
             return Compose(
                 [
@@ -444,8 +418,6 @@ class DepthDataset(YOLODataset):
                     DepthFormat(),
                 ]
             )
-        # scale_fill stretch matches the released-weights eval protocol; training reaches the same square
-        # canvas through RandomPerspective's warp, so train and val share the output geometry.
         letterbox = LetterBox(new_shape=(self.imgsz, self.imgsz), auto=False, scale_fill=True)
         return Compose([letterbox, DepthFormat()])
 

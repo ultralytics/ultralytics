@@ -184,8 +184,7 @@ class Colors:
 colors = Colors()  # create instance for 'from utils.plots import colors'
 
 
-# Matplotlib Spectral_r anchors (RGB, far→near), baked into a 256-entry LUT so colorize_depth needs no
-# matplotlib import per call. This is the DepthAnything-style palette (near = warm) OpenCV lacks.
+# Spectral_r anchors (RGB, far→near) baked into a LUT so colorize_depth needs no matplotlib import.
 _SPECTRAL_R_ANCHORS = np.array(
     [
         [94, 79, 162],

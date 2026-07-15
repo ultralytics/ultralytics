@@ -24,9 +24,6 @@ class DepthValidator(DetectionValidator):
         """Initialize DepthValidator."""
         super().__init__(dataloader, save_dir, args, _callbacks)
         self.args.task = "depth"
-        # Scale-only calibration: when enabled (by Model.calibrate), collect per-batch (log pred,
-        # log gt) arrays during the val pass and fit the log-affine in get_stats() via the same
-        # "calibrate only if it helps" selective policy used by auto-calibration.
         self.calibrating = False
 
     def init_metrics(self, model):
@@ -39,8 +36,6 @@ class DepthValidator(DetectionValidator):
         self.metrics.clear_stats()
         self.calib = None
         self._cal_logp, self._cal_logg, self._cal_pts = [], [], 0
-        # Baked calibration of the model under validation, for the standalone-val comparison plot
-        # (the head applies cal_a/cal_b in its forward, so predictions arrive already calibrated).
         from .calibrate import _depth_head
 
         head = _depth_head(model)
@@ -49,7 +44,7 @@ class DepthValidator(DetectionValidator):
     def preprocess(self, batch):
         """Preprocess batch — move to device, normalize images, and keep depth as float32."""
         batch = super().preprocess(batch)
-        batch["depth"] = batch["depth"].float()  # depth always float32
+        batch["depth"] = batch["depth"].float()
         return batch
 
     def postprocess(self, preds):
@@ -76,22 +71,19 @@ class DepthValidator(DetectionValidator):
         if pred_depth.ndim == 3:
             pred_depth = pred_depth.unsqueeze(1)
         if pred_depth.shape[-2:] != gt_depth.shape[-2:]:
-            # align_corners=True matches the loss upsample, so val scores the same alignment training optimized
             pred_depth = F.interpolate(
                 pred_depth.float(), size=gt_depth.shape[-2:], mode="bilinear", align_corners=True
             )
         self.metrics.update_stats(pred_depth, gt_depth)
 
         if self.calibrating and self._cal_pts < 500_000:
-            # One (log pred, log gt) pair per image so select_calibration_cv folds by image (no
-            # pixel leakage) and a batch=N run yields N calibration samples, not a single pair.
             for pi, gi in zip(pred_depth, gt_depth):
                 valid = (gi > 1e-3) & (pi > 1e-3) & torch.isfinite(pi)
                 if not valid.any():
                     continue
                 lp = torch.log(pi[valid]).cpu().numpy()
                 lg = torch.log(gi[valid]).cpu().numpy()
-                if lp.size > 20_000:  # subsample per image — calibration is only a 2-parameter fit
+                if lp.size > 20_000:  # 2-parameter fit does not need all pixels
                     idx = np.random.default_rng(self._cal_pts).choice(lp.size, 20_000, replace=False)
                     lp, lg = lp[idx], lg[idx]
                 self._cal_logp.append(lp)
@@ -112,8 +104,6 @@ class DepthValidator(DetectionValidator):
         if self.calibrating and len(self._cal_logp) >= 2:
             from .calibrate import select_calibration_cv
 
-            # Reuse auto-calibration's "only if it helps" CV policy so an unhelpful fit is rejected;
-            # each collected pair is one image, so held-out folds have no pixel leakage.
             res = select_calibration_cv(list(zip(self._cal_logp, self._cal_logg)), margin=0.002)
             self.calib = (res["a"], res["b"])
             LOGGER.info(
@@ -202,5 +192,3 @@ class DepthValidator(DetectionValidator):
             names=self.names,
             on_plot=self.on_plot,
         )
-
-

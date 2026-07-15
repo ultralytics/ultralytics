@@ -188,7 +188,7 @@ python val.py --weights path/to/your/best.pt --data your_dataset.yaml # Validate
 python detect.py --weights yolov5s.pt --source path/to/your/images_or_videos # Perform detection
 
 # Export the trained model to LiteRT for deployment
-yolo export model=yolov5s.pt format=litert
+pip install ultralytics && yolo export model=yolov5s.pt format=litert
 ```
 
 Explore the documentation for detailed usage of different modes:

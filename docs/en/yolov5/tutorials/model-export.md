@@ -22,7 +22,7 @@ For [TensorRT](https://developer.nvidia.com/tensorrt) export example (requires G
 
 ## Supported Export Formats
 
-YOLOv5 inference is officially supported in 12 formats:
+YOLOv5 inference supports the following formats:
 
 !!! tip "Performance Tips"
 
@@ -39,10 +39,16 @@ YOLOv5 inference is officially supported in 12 formats:
 | [CoreML](../../integrations/coreml.md)                       | `coreml`              | `yolov5s.mlmodel`         |
 | [TensorFlow SavedModel](../../integrations/tf-savedmodel.md) | `saved_model`         | `yolov5s_saved_model/`    |
 | [TensorFlow GraphDef](../../integrations/tf-graphdef.md)     | `pb`                  | `yolov5s.pb`              |
-| [LiteRT](../../integrations/litert.md)                       | `litert`              | `yolov5s.tflite`          |
 | [TensorFlow Edge TPU](../../integrations/edge-tpu.md)        | `edgetpu`             | `yolov5s_edgetpu.tflite`  |
 | [TensorFlow.js](../../integrations/tfjs.md)                  | `tfjs`                | `yolov5s_web_model/`      |
 | [PaddlePaddle](../../integrations/paddlepaddle.md)           | `paddle`              | `yolov5s_paddle_model/`   |
+
+LiteRT export uses the current Ultralytics CLI rather than the legacy YOLOv5 `export.py` script:
+
+```bash
+pip install ultralytics
+yolo export model=yolov5s.pt format=litert # creates 'yolov5s.tflite'
+```
 
 ## Benchmarks
 
@@ -148,23 +154,22 @@ The 3 exported models will be saved alongside the original PyTorch model:
 
 ## Exported Model Usage Examples
 
-`detect.py` runs inference on exported models:
+`detect.py` runs inference on legacy YOLOv5 exported models:
 
 ```bash
-python detect.py --weights yolov5s.pt                                           # PyTorch
-python detect.py --weights yolov5s.torchscript                                  # TorchScript
-python detect.py --weights yolov5s.onnx                                         # ONNX Runtime or OpenCV DNN with dnn=True
-python detect.py --weights yolov5s_openvino_model                               # OpenVINO
-python detect.py --weights yolov5s.engine                                       # TensorRT
-python detect.py --weights yolov5s.mlmodel                                      # CoreML (macOS only)
-python detect.py --weights yolov5s_saved_model                                  # TensorFlow SavedModel
-python detect.py --weights yolov5s.pb                                           # TensorFlow GraphDef
-yolo predict model=yolov5s.tflite source=https://ultralytics.com/images/bus.jpg # LiteRT
-python detect.py --weights yolov5s_edgetpu.tflite                               # TensorFlow Edge TPU
-python detect.py --weights yolov5s_paddle_model                                 # PaddlePaddle
+python detect.py --weights yolov5s.pt                           # PyTorch
+python detect.py --weights yolov5s.torchscript                  # TorchScript
+python detect.py --weights yolov5s.onnx                         # ONNX Runtime or OpenCV DNN with dnn=True
+python detect.py --weights yolov5s_openvino_model               # OpenVINO
+python detect.py --weights yolov5s.engine                       # TensorRT
+python detect.py --weights yolov5s.mlmodel                      # CoreML (macOS only)
+python detect.py --weights yolov5s_saved_model                  # TensorFlow SavedModel
+python detect.py --weights yolov5s.pb                           # TensorFlow GraphDef
+python detect.py --weights yolov5s_edgetpu.tflite               # TensorFlow Edge TPU
+python detect.py --weights yolov5s_paddle_model                 # PaddlePaddle
 ```
 
-`val.py` runs validation on exported models:
+`val.py` runs validation on legacy YOLOv5 exported models:
 
 ```bash
 python val.py --weights yolov5s.pt             # PyTorch
@@ -175,9 +180,15 @@ python val.py --weights yolov5s.engine         # TensorRT
 python val.py --weights yolov5s.mlmodel        # CoreML (macOS Only)
 python val.py --weights yolov5s_saved_model    # TensorFlow SavedModel
 python val.py --weights yolov5s.pb             # TensorFlow GraphDef
-yolo val model=yolov5s.tflite data=coco8.yaml  # LiteRT
 python val.py --weights yolov5s_edgetpu.tflite # TensorFlow Edge TPU
 python val.py --weights yolov5s_paddle_model   # PaddlePaddle
+```
+
+Use the current Ultralytics CLI for LiteRT inference and validation:
+
+```bash
+yolo predict model=yolov5s.tflite source=https://ultralytics.com/images/bus.jpg
+yolo val model=yolov5s.tflite data=coco8.yaml
 ```
 
 Use PyTorch Hub with exported YOLOv5 models:

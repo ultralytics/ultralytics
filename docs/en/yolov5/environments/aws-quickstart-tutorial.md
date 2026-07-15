@@ -82,7 +82,7 @@ python detect.py --weights yolov5s.pt --source path/to/your/images_or_videos/ --
 
 # Export the trained model to LiteRT for deployment
 # See https://docs.ultralytics.com/modes/export/ for more details
-yolo export model=yolov5s.pt format=litert imgsz=640
+pip install ultralytics && yolo export model=yolov5s.pt format=litert imgsz=640
 ```
 
 Refer to the Ultralytics documentation for detailed guides on [Training](../../modes/train.md), [Validation](../../modes/val.md), [Prediction (Inference)](../../modes/predict.md), and [Exporting](../../modes/export.md).

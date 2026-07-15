@@ -58,7 +58,7 @@ python val.py --weights yolov5s.pt --data coco128.yaml
 python detect.py --weights yolov5s.pt --source path/to/your/images_or_videos
 
 # Export the trained model to LiteRT for deployment
-yolo export model=yolov5s.pt format=litert
+pip install ultralytics && yolo export model=yolov5s.pt format=litert
 ```
 
 Using just a few commands, YOLOv5 enables you to train custom [object detection](../../tasks/detect.md) models tailored to your specific needs or utilize pretrained weights for rapid results across various tasks. Explore different [model deployment options](../../guides/model-deployment-options.md) after exporting.

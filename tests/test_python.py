@@ -647,9 +647,13 @@ def test_train_ndjson():
         ("detect", "split", "/tmp/escaped"),
         ("detect", "file", "../escaped.jpg"),
         ("detect", "file", "/tmp/escaped.jpg"),
+        ("classify", "file", "."),
+        ("classify", "file", "./"),
+        ("classify", "class_name", ".."),
         ("classify", "class_name", "../escaped"),
         ("classify", "class_name", "/tmp/escaped"),
         ("classify", "class_name", "nested/class"),
+        ("classify", "class_id", "../../escaped"),
     ],
 )
 def test_convert_ndjson_rejects_unsafe_output_paths(tmp_path, task, field, value):
@@ -660,6 +664,8 @@ def test_convert_ndjson_rejects_unsafe_output_paths(tmp_path, task, field, value
     record = {"type": "image", "split": "train", "file": "image.jpg", "annotations": {}}
     if field == "class_name":
         dataset["class_names"]["0"] = value
+    elif field == "class_id":
+        record["annotations"] = {"classification": [value]}
     else:
         record[field] = value
     records = [record] if task == "classify" else [record, {**record, "split": "val", "file": "val.jpg"}]

@@ -839,15 +839,36 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     # Validate all NDJSON values used to construct output paths before checking the cache or writing files.
     is_classification = dataset_record.get("task") == "classify"
     class_names = {int(k): v for k, v in dataset_record.get("class_names", {}).items()}
+
+    def classification_class_name(record):
+        """Return classification directory name for an image record."""
+        class_ids = record.get("annotations", {}).get("classification", [])
+        class_id = class_ids[0] if class_ids else 0
+        return class_names.get(class_id, str(class_id))
+
     for i, record in enumerate(image_records, start=1):
         split, file = record.get("split"), record.get("file")
         if not isinstance(split, str) or split not in {"train", "val", "test"}:
             raise ValueError(f"Unsafe NDJSON split in record {i}: {split!r}")
-        if not isinstance(file, str) or not file or (path := Path(file)).is_absolute() or ".." in path.parts:
+        if not isinstance(file, str) or not (path := Path(file)).name or path.is_absolute() or ".." in path.parts:
             raise ValueError(f"Unsafe NDJSON file path in record {i}: {file!r}")
+        if is_classification:
+            class_name = classification_class_name(record)
+            if (
+                not isinstance(class_name, str)
+                or (path := Path(class_name)).is_absolute()
+                or ".." in path.parts
+                or len(path.parts) != 1
+            ):
+                raise ValueError(f"Unsafe NDJSON class name in record {i}: {class_name!r}")
     if is_classification:
         for class_name in class_names.values():
-            if not isinstance(class_name, str) or (path := Path(class_name)).is_absolute() or len(path.parts) != 1:
+            if (
+                not isinstance(class_name, str)
+                or (path := Path(class_name)).is_absolute()
+                or ".." in path.parts
+                or len(path.parts) != 1
+            ):
                 raise ValueError(f"Unsafe NDJSON class name: {class_name!r}")
 
     # Hash stable content plus source identity. Query strings are excluded because signed URLs change on every export.
@@ -949,9 +970,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
 
             if is_classification:
                 # Classification: place image in {split}/{class_name}/ folder
-                class_ids = annotations.get("classification", [])
-                class_id = class_ids[0] if class_ids else 0
-                class_name = class_names.get(class_id, str(class_id))
+                class_name = classification_class_name(record)
                 image_path = dataset_dir / split / class_name / original_name
             else:
                 # Detection: write label file and place image in images/{split}/
@@ -1034,10 +1053,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         for r in image_records:
             s, name = r["split"], r["file"]
             if is_classification:
-                ann = r.get("annotations", {})
-                cids = ann.get("classification", [])
-                cid = cids[0] if cids else 0
-                expected_paths.add(dataset_dir / s / class_names.get(cid, str(cid)) / name)
+                expected_paths.add(dataset_dir / s / classification_class_name(r) / name)
             else:
                 expected_paths.add(dataset_dir / "images" / s / name)
         img_root = dataset_dir if is_classification else (dataset_dir / "images")

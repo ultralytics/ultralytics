@@ -341,7 +341,7 @@ model = torch.hub.load("path/to/yolov5", "custom", path="path/to/best.pt", sourc
 
 ## TensorRT, ONNX and OpenVINO Models
 
-PyTorch Hub supports inference on most YOLOv5 export formats, including custom-trained models. See the [LiteRT, ONNX, CoreML, TensorRT Export tutorial](./model-export.md) for details on exporting models.
+PyTorch Hub supports inference on most YOLOv5 export formats, including custom-trained models. See [TFLite, ONNX, CoreML, TensorRT Export tutorial](./model-export.md) for details on exporting models.
 
 !!! tip
 
@@ -357,6 +357,7 @@ model = torch.hub.load("ultralytics/yolov5", "custom", path="yolov5s.onnx")  # O
 model = torch.hub.load("ultralytics/yolov5", "custom", path="yolov5s_openvino_model/")  # OpenVINO
 model = torch.hub.load("ultralytics/yolov5", "custom", path="yolov5s.engine")  # TensorRT
 model = torch.hub.load("ultralytics/yolov5", "custom", path="yolov5s.mlmodel")  # CoreML (macOS-only)
+model = torch.hub.load("ultralytics/yolov5", "custom", path="yolov5s.tflite")  # TFLite
 model = torch.hub.load("ultralytics/yolov5", "custom", path="yolov5s_paddle_model/")  # PaddlePaddle
 ```
 

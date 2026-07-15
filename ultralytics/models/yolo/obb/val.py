@@ -126,12 +126,12 @@ class OBBValidator(DetectionValidator):
         """
         idx = batch["batch_idx"] == si
         cls = batch["cls"][idx].squeeze(-1)
-        bbox = batch["bboxes"][idx]
+        bbox = batch["bboxes"][idx].clone()
         ori_shape = batch["ori_shape"][si]
         imgsz = batch["img"].shape[2:]
         ratio_pad = batch["ratio_pad"][si]
         if cls.shape[0]:
-            bbox[..., :4].mul_(torch.tensor(imgsz, device=self.device)[[1, 0, 1, 0]])  # target boxes
+            bbox[..., :4] *= torch.tensor(imgsz, device=self.device)[[1, 0, 1, 0]]  # target boxes
         return {
             "cls": cls,
             "bboxes": bbox,

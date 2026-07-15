@@ -47,7 +47,7 @@ LiteRT export uses the current Ultralytics CLI rather than the legacy YOLOv5 `ex
 
 ```bash
 pip install ultralytics
-yolo export model=yolov5s.pt format=litert # creates 'yolov5s.tflite'
+yolo export model=yolov5su.pt format=litert # creates 'yolov5su.tflite'
 ```
 
 ## Benchmarks
@@ -187,8 +187,8 @@ python val.py --weights yolov5s_paddle_model   # PaddlePaddle
 Use the current Ultralytics CLI for LiteRT inference and validation:
 
 ```bash
-yolo predict model=yolov5s.tflite source=https://ultralytics.com/images/bus.jpg
-yolo val model=yolov5s.tflite data=coco8.yaml
+yolo predict model=yolov5su.tflite source=https://ultralytics.com/images/bus.jpg
+yolo val model=yolov5su.tflite data=coco8.yaml
 ```
 
 Use PyTorch Hub with exported YOLOv5 models:

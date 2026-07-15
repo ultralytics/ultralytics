@@ -76,7 +76,7 @@ _DINOV3_HUB = {  # short → (hub entry, feat_dim, checksum)
     "vith16plus":  ("dinov3_vith16plus",  1280, "7c1da9a5"),
 }
 _DINOV3_REPO = str(Path(__file__).parent / "dinov3")
-_DINOV3_WEIGHTS_DIR = Path("/Users/louis/workspace/ultra_louis_work/buffer/dinov3_weight")
+_DINOV3_WEIGHTS_DIR = Path(__file__).parent / "dinov3_weights"
 _IMAGENET_MEAN = (0.485, 0.456, 0.406)
 _IMAGENET_STD = (0.229, 0.224, 0.225)
 
@@ -1113,7 +1113,8 @@ def _build(args: argparse.Namespace) -> tuple[AnomalyBase, Path]:
 
     tag = ad.backbone
     if isinstance(ad, AnomalyYOLO):
-        tag = f"{tag}_{Path(args.weight).stem}_imgsz{ad.imgsz}"
+        wp = Path(args.weight)
+        tag = f"{tag}_{wp.parent.name}_{wp.stem}_imgsz{ad.imgsz}"
     elif isinstance(ad, AnomalyPatchCore):
         tag = f"{tag}_imgsz{ad.imgsz}"
     elif isinstance(ad, (AnomalyConvNeXt, AnomalyConvNeXtMulti)):

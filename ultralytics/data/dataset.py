@@ -189,18 +189,35 @@ class YOLODataset(BaseDataset):
         labels = cache["labels"]
         class_maps = self.data.get("class_maps") if self.data else None
         if class_maps:
+            resolved_class_maps = {str(Path(cp).resolve()): cmap for cp, cmap in class_maps.items()}
             for lb in labels:
                 im_file_str = str(Path(lb["im_file"]).resolve())
-                for child_path, class_map in class_maps.items():
-                    if im_file_str.startswith(str(Path(child_path).resolve())):
-                        if "cls" in lb:
-                            for idx in range(len(lb["cls"])):
-                                local_cls = int(lb["cls"][idx, 0])
-                                if local_cls in class_map:
-                                    lb["cls"][idx, 0] = class_map[local_cls]
-                                elif str(local_cls) in class_map:
-                                    lb["cls"][idx, 0] = class_map[str(local_cls)]
-                        break
+                img_path_obj = Path(im_file_str)
+                class_map = None
+
+                # Check exact match first (if split was a list of files)
+                if im_file_str in resolved_class_maps:
+                    class_map = resolved_class_maps[im_file_str]
+                else:
+                    # Check if any parent matches a split path key
+                    for parent in img_path_obj.parents:
+                        parent_str = str(parent)
+                        if parent_str in resolved_class_maps:
+                            class_map = resolved_class_maps[parent_str]
+                            break
+
+                if class_map:
+                    if "cls" in lb:
+                        for idx in range(len(lb["cls"])):
+                            local_cls = int(lb["cls"][idx, 0])
+                            if local_cls in class_map:
+                                lb["cls"][idx, 0] = class_map[local_cls]
+                            elif str(local_cls) in class_map:
+                                lb["cls"][idx, 0] = class_map[str(local_cls)]
+                            else:
+                                raise ValueError(
+                                    f"Label class {local_cls} in {im_file_str} is not defined in child dataset's names."
+                                )
         if not labels:
             issues = "\n  ".join(sorted(set(cache["msgs"]))) or "no error details"
             raise RuntimeError(f"No valid images found in {cache_path}.\n  {issues}\n{HELP_URL}")

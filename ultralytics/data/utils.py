@@ -501,6 +501,15 @@ def check_det_dataset(dataset: str, autodownload: bool = True, split: str = "") 
                 c_path = child_yaml_dir.resolve()
             child_data["path"] = c_path
 
+            # Validate required child splits keys
+            for k in "train", "val":
+                if k not in child_data:
+                    if k != "val" or "validation" not in child_data:
+                        raise SyntaxError(
+                            emojis(f"{child} '{k}:' key missing ❌.\n'train' and 'val' are required in all data YAMLs.")
+                        )
+                    child_data["val"] = child_data.pop("validation")
+
             # Now resolve train/val/test splits relative to c_path
             for k in "train", "val", "test", "minival":
                 if child_data.get(k):
@@ -516,6 +525,22 @@ def check_det_dataset(dataset: str, autodownload: bool = True, split: str = "") 
             if "names" not in child_data and "nc" not in child_data:
                 raise SyntaxError(
                     emojis(f"{child} key missing ❌.\n either 'names' or 'nc' are required in all data YAMLs.")
+                )
+            if "nc" in child_data and not isinstance(child_data["nc"], int):
+                try:
+                    nc = float(
+                        child_data["nc"]
+                    )  # accept integer-like values, e.g. '10' or 10.0, but not 1.9 or placeholders
+                    if nc != int(nc):
+                        raise ValueError
+                    child_data["nc"] = int(nc)
+                except (TypeError, ValueError):
+                    raise SyntaxError(emojis(f"{child} 'nc: {child_data['nc']}' must be an integer ❌."))
+            if "names" in child_data and "nc" in child_data and len(child_data["names"]) != child_data["nc"]:
+                raise SyntaxError(
+                    emojis(
+                        f"{child} 'names' length {len(child_data['names'])} and 'nc: {child_data['nc']}' must match."
+                    )
                 )
             if "names" not in child_data:
                 child_data["names"] = {i: f"class_{i}" for i in range(child_data["nc"])}
@@ -537,6 +562,19 @@ def check_det_dataset(dataset: str, autodownload: bool = True, split: str = "") 
                             subprocess.run(download_script.split(), check=True)
                         else:
                             exec(download_script, {"yaml": child_data})
+                        # Re-verify existence after download
+                        if not all(x.exists() for x in val_paths):
+                            missing_path = next(x for x in val_paths if not x.exists())
+                            raise FileNotFoundError(
+                                emojis(
+                                    f"Dataset '{child}' images not found after download, missing path '{missing_path}'"
+                                )
+                            )
+                    else:
+                        missing_path = next(x for x in val_paths if not x.exists())
+                        raise FileNotFoundError(
+                            emojis(f"Dataset '{child}' images not found, missing path '{missing_path}'")
+                        )
 
             child_datasets.append(child_data)
 
@@ -554,7 +592,16 @@ def check_det_dataset(dataset: str, autodownload: bool = True, split: str = "") 
             local_to_global = {}
             for local_id, name in child_data["names"].items():
                 local_to_global[local_id] = global_names[name]
-            class_maps[str(child_data["path"])] = local_to_global
+
+            # Map resolved split/image sources of this child to local_to_global map
+            for k in "train", "val", "test", "minival":
+                if child_data.get(k):
+                    val = child_data[k]
+                    if isinstance(val, list):
+                        for x in val:
+                            class_maps[str(Path(x).resolve())] = local_to_global
+                    else:
+                        class_maps[str(Path(val).resolve())] = local_to_global
 
         # Merge splits
         merged_train = []

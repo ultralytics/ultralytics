@@ -16,6 +16,10 @@ def test_multi_dataset_parsing(tmp_path):
     child2_dir = tmp_path / "child2"
     child1_dir.mkdir()
     child2_dir.mkdir()
+    (child1_dir / "train_imgs").mkdir()
+    (child1_dir / "val_imgs").mkdir()
+    (child2_dir / "train_imgs").mkdir()
+    (child2_dir / "val_imgs").mkdir()
 
     # Write class configs
     child1_yaml = child1_dir / "child1.yaml"
@@ -67,24 +71,24 @@ datasets:
 
     # 2. Verify class maps
     class_maps = data["class_maps"]
-    c1_resolved_path = str(child1_dir.resolve())
-    c2_resolved_path = str(child2_dir.resolve())
-    assert c1_resolved_path in class_maps
-    assert c2_resolved_path in class_maps
+    c1_train_path = str(Path(child1_dir / "train_imgs").resolve())
+    c2_train_path = str(Path(child2_dir / "train_imgs").resolve())
+    assert c1_train_path in class_maps
+    assert c2_train_path in class_maps
 
     # child1 class map: 0 (person) -> 0, 1 (car) -> 1
-    assert class_maps[c1_resolved_path][0] == 0
-    assert class_maps[c1_resolved_path][1] == 1
+    assert class_maps[c1_train_path][0] == 0
+    assert class_maps[c1_train_path][1] == 1
 
     # child2 class map: 0 (car) -> 1, 1 (dog) -> 2
-    assert class_maps[c2_resolved_path][0] == 1
-    assert class_maps[c2_resolved_path][1] == 2
+    assert class_maps[c2_train_path][0] == 1
+    assert class_maps[c2_train_path][1] == 2
 
     # 3. Verify path resolution (child train/val paths should be merged and absolute)
     assert len(data["train"]) == 2
     assert len(data["val"]) == 2
-    assert data["train"][0] == str((child1_dir / "train_imgs").resolve())
-    assert data["train"][1] == str((child2_dir / "train_imgs").resolve())
+    assert Path(data["train"][0]).resolve() == Path(child1_dir / "train_imgs").resolve()
+    assert Path(data["train"][1]).resolve() == Path(child2_dir / "train_imgs").resolve()
 
 
 def test_multi_dataset_label_mapping(tmp_path):
@@ -282,3 +286,99 @@ def test_multi_dataset_no_names_autogen(tmp_path):
     data = check_det_dataset(str(parent_yaml), autodownload=False)
     assert data["nc"] == 3
     assert data["names"] == {0: "class_0", 1: "class_1", 2: "class_2"}
+
+
+def test_multi_dataset_overlapping_root_provenance(tmp_path):
+    """Test that multiple child datasets sharing the same dataset root can coexist and resolve correctly."""
+    common_dir = tmp_path / "common_root"
+    child1_train = common_dir / "c1_train"
+    child2_train = common_dir / "c2_train"
+    child1_train.mkdir(parents=True)
+    child2_train.mkdir(parents=True)
+
+    child1_yaml = common_dir / "child1.yaml"
+    child1_yaml.write_text("path: .\ntrain: c1_train\nval: c1_train\nnc: 1\nnames: [cat]", encoding="utf-8")
+
+    child2_yaml = common_dir / "child2.yaml"
+    child2_yaml.write_text("path: .\ntrain: c2_train\nval: c2_train\nnc: 1\nnames: [dog]", encoding="utf-8")
+
+    parent_yaml = tmp_path / "parent.yaml"
+    parent_yaml.write_text("datasets:\n  - common_root/child1.yaml\n  - common_root/child2.yaml", encoding="utf-8")
+
+    data = check_det_dataset(str(parent_yaml), autodownload=False)
+    assert data["nc"] == 2
+    assert data["names"] == {0: "cat", 1: "dog"}
+
+    # Assert that class maps are keyed by the resolved split paths, not the common root
+    c1_resolved_train = str(child1_train.resolve())
+    c2_resolved_train = str(child2_train.resolve())
+    assert c1_resolved_train in data["class_maps"]
+    assert c2_resolved_train in data["class_maps"]
+    assert data["class_maps"][c1_resolved_train][0] == 0
+    assert data["class_maps"][c2_resolved_train][0] == 1
+
+
+def test_multi_dataset_out_of_bounds_cls_id(tmp_path):
+    """Test that an out-of-bounds local class ID in a child dataset raises ValueError."""
+    child1_dir = tmp_path / "child1"
+    child2_dir = tmp_path / "child2"
+    child1_dir.mkdir()
+    child2_dir.mkdir()
+
+    (child1_dir / "images").mkdir()
+    (child1_dir / "labels").mkdir()
+    (child2_dir / "images").mkdir()
+    (child2_dir / "labels").mkdir()
+
+    # Images and labels
+    im = Image.new("RGB", (10, 10))
+    im.save(child1_dir / "images/img1.jpg")
+    # Child 1 only has 1 class (index 0), but label uses class 1
+    (child1_dir / "labels/img1.txt").write_text("1 0.5 0.5 0.2 0.2\n")
+
+    im.save(child2_dir / "images/img2.jpg")
+    (child2_dir / "labels/img2.txt").write_text("0 0.5 0.5 0.2 0.2\n")
+
+    child1_yaml = child1_dir / "child1.yaml"
+    child1_yaml.write_text("path: .\ntrain: images\nval: images\nnc: 1\nnames: [cat]", encoding="utf-8")
+
+    child2_yaml = child2_dir / "child2.yaml"
+    # Child 2 introduces a second class "dog", making global nc = 2
+    child2_yaml.write_text("path: .\ntrain: images\nval: images\nnc: 2\nnames: [cat, dog]", encoding="utf-8")
+
+    parent_yaml = tmp_path / "parent.yaml"
+    parent_yaml.write_text("datasets:\n  - child1/child1.yaml\n  - child2/child2.yaml", encoding="utf-8")
+
+    data = check_det_dataset(str(parent_yaml), autodownload=False)
+    with pytest.raises(ValueError, match="not defined in child dataset's names"):
+        YOLODataset(img_path=data["train"], data=data, task="detect", augment=False)
+
+
+def test_multi_dataset_nc_names_inconsistency(tmp_path):
+    """Test that string-like and float nc are normalized, and mismatch with names raises SyntaxError."""
+    # 1. Test float/string-like nc normalization
+    child_yaml = tmp_path / "child.yaml"
+    child_yaml.write_text("path: .\ntrain: .\nval: .\nnc: 2.0\nnames: [cat, dog]", encoding="utf-8")
+    parent_yaml = tmp_path / "parent.yaml"
+    parent_yaml.write_text("datasets:\n  - child.yaml", encoding="utf-8")
+    data = check_det_dataset(str(parent_yaml), autodownload=False)
+    assert data["nc"] == 2
+
+    # 2. Inconsistent nc/names length
+    child_yaml.write_text("path: .\ntrain: .\nval: .\nnc: 3\nnames: [cat, dog]", encoding="utf-8")
+    with pytest.raises(SyntaxError, match="names' length .* and 'nc: .*' must match"):
+        check_det_dataset(str(parent_yaml), autodownload=False)
+
+
+def test_multi_dataset_missing_child_split(tmp_path):
+    """Test that missing child split paths raise FileNotFoundError immediately when autodownload=False."""
+    child_yaml = tmp_path / "child.yaml"
+    child_yaml.write_text(
+        "path: .\ntrain: non_existent_train_folder\nval: non_existent_val_folder\nnc: 1\nnames: [cat]", encoding="utf-8"
+    )
+
+    parent_yaml = tmp_path / "parent.yaml"
+    parent_yaml.write_text("datasets:\n  - child.yaml", encoding="utf-8")
+
+    with pytest.raises(FileNotFoundError, match="images not found, missing path"):
+        check_det_dataset(str(parent_yaml), autodownload=False)

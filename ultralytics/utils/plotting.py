@@ -708,8 +708,8 @@ def save_one_box(
         file.parent.mkdir(parents=True, exist_ok=True)  # make directory
         f = str(increment_path(file).with_suffix(".jpg"))
         # cv2.imwrite(f, crop)  # save BGR, https://github.com/ultralytics/yolov5/issues/7007 chroma subsampling issue
-        crop = crop.squeeze(-1) if grayscale else crop[..., ::-1] if BGR else crop
-        Image.fromarray(crop).save(f, quality=95, subsampling=0)  # save RGB
+        im_save = crop.squeeze(-1) if grayscale else crop[..., ::-1] if BGR else crop
+        Image.fromarray(im_save).save(f, quality=95, subsampling=0)  # save RGB
     return crop
 
 
@@ -1022,8 +1022,8 @@ def plt_color_scatter(v, f, bins: int = 20, cmap: str = "viridis", alpha: float 
     hist, xedges, yedges = np.histogram2d(v, f, bins=bins)
     colors = [
         hist[
-            min(np.digitize(v[i], xedges, right=True) - 1, hist.shape[0] - 1),
-            min(np.digitize(f[i], yedges, right=True) - 1, hist.shape[1] - 1),
+            np.clip(np.digitize(v[i], xedges, right=False) - 1, 0, hist.shape[0] - 1),
+            np.clip(np.digitize(f[i], yedges, right=False) - 1, 0, hist.shape[1] - 1),
         ]
         for i in range(len(v))
     ]

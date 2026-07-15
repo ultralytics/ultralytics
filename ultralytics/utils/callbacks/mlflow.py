@@ -24,7 +24,7 @@ Commands:
 import os
 from pathlib import Path
 
-from ultralytics.utils import LOGGER, RUNS_DIR, SETTINGS, TESTS_RUNNING, colorstr
+from ultralytics.utils import LOGGER, RUNS_DIR, SETTINGS, TESTS_RUNNING, colorstr, env_bool
 
 PREFIX = colorstr("MLflow: ")
 
@@ -55,7 +55,8 @@ def on_pretrain_routine_end(trainer):
         MLFLOW_TRACKING_URI: The URI for MLflow tracking. If not set, defaults to 'runs/mlflow'.
         MLFLOW_EXPERIMENT_NAME: The name of the MLflow experiment. If not set, defaults to trainer.args.project.
         MLFLOW_RUN: The name of the MLflow run. If not set, defaults to trainer.args.name.
-        MLFLOW_KEEP_RUN_ACTIVE: Boolean indicating whether to keep the MLflow run active after training ends.
+        MLFLOW_KEEP_RUN_ACTIVE: Whether to keep the MLflow run active after training ends. Truthy values are
+            "1", "true", "yes", "on", "y", "t" (case-insensitive); anything else is False.
     """
     # Resolve enablement at call time (not import time) so test/training order can never permanently disable MLflow:
     # `add_integration_callbacks` imports this module on the first training, which may run with mlflow off.
@@ -140,7 +141,7 @@ def on_train_end(trainer):
         except Exception as e:
             LOGGER.warning(f"{PREFIX}failed to log artifacts: {e}")
     if getattr(trainer, "_mlflow_started_run", False):  # only close a run we created
-        if os.environ.get("MLFLOW_KEEP_RUN_ACTIVE", "False").lower() == "true":
+        if env_bool("MLFLOW_KEEP_RUN_ACTIVE"):
             LOGGER.info(f"{PREFIX}mlflow run still alive, remember to close it using mlflow.end_run()")
         else:
             try:

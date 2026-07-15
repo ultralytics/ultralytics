@@ -1,4 +1,5 @@
 ---
+plans: [free, pro, enterprise]
 comments: true
 description: Deploy YOLO models to dedicated endpoints in 43 global regions with scale-to-zero behavior and monitoring on Ultralytics Platform.
 keywords: Ultralytics Platform, deployment, endpoints, YOLO, production, scaling, global regions
@@ -222,7 +223,7 @@ The `Logs` tab shows recent log entries with severity filtering (All / Errors). 
 
 Each endpoint has a unique URL, for example:
 
-```
+```text
 https://predict-abc123.run.app
 ```
 

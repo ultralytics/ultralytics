@@ -67,6 +67,16 @@ _DINOV2_HUB = {  # short → (torch.hub entry, feat_dim)
     "vitl14": ("dinov2_vitl14_reg", 1024),
 }
 _DINO_PATCH = 14
+_DINOV3_PATCH = 16
+_DINOV3_CONFIGS = {
+    # short → (dim, depth, heads)
+    "vits16":      (384,  12, 6),
+    "vits16plus":  (384,  12, 6),
+    "vitb16":      (768,  12, 12),
+    "vitl16":      (1024, 24, 16),
+    "vith16plus":  (1280, 32, 20),
+}
+_DINOV3_WEIGHTS_DIR = Path("/Users/louis/workspace/ultra_louis_work/buffer/dinov3_weight")
 _IMAGENET_MEAN = (0.485, 0.456, 0.406)
 _IMAGENET_STD = (0.229, 0.224, 0.225)
 
@@ -570,8 +580,209 @@ class AnomalyConvNeXt(AnomalyBase):
 
 
 # ---------------------------------------------------------------------------
-# YOLO backbone
+# DINOv3 ViT — from-scratch ViT that loads official DINOv3 pretrained weights.
 # ---------------------------------------------------------------------------
+
+_DINOV3_CHECKSUMS = {
+    "vits16": "08c60483", "vits16plus": "4057cbaa", "vitb16": "73cec8be",
+    "vitl16": "8aa4cbdd", "vith16plus": "7c1da9a5",
+}
+
+
+def _rename_dinov3_state_dict(sd: dict, num_registers: int = 4) -> dict:
+    """Rename DINOv3 official keys → our model keys so we can keep the model clean."""
+    out = {}
+    for k, v in sd.items():
+        # patch_embed.proj.* → patch_embed.*
+        k = k.replace("patch_embed.proj.", "patch_embed.")
+        # blocks.N.ls{1,2}.gamma → blocks.N.ls{1,2}
+        k = k.replace("ls1.gamma", "ls1").replace("ls2.gamma", "ls2")
+        # blocks.N.mlp.fc1.* → blocks.N.mlp.0.*
+        k = k.replace("mlp.fc1.", "mlp.0.").replace("mlp.fc2.", "mlp.2.")
+        out[k] = v
+    # mask_token and storage_tokens are not needed at inference; pop them.
+    out.pop("mask_token", None)
+    return out
+
+
+class _LinearWithBiasMask(torch.nn.Linear):
+    """nn.Linear + a zero-filled ``bias_mask`` buffer for DINOv3 key compatibility."""
+    def __init__(self, in_features: int, out_features: int) -> None:
+        super().__init__(in_features, out_features, bias=True)
+        self.register_buffer("bias_mask", torch.zeros(out_features))
+
+
+class _DINOv3Attention(torch.nn.Module):
+    """MHA whose ``qkv`` is a ``_LinearWithBiasMask`` (matches DINOv3 state-dict keys)."""
+
+    def __init__(self, dim: int, heads: int) -> None:
+        super().__init__()
+        self.heads = heads
+        self.head_dim = dim // heads
+        self.qkv = _LinearWithBiasMask(dim, 3 * dim)
+        self.proj = torch.nn.Linear(dim, dim, bias=True)
+
+    def forward(self, x: torch.Tensor, rope_periods: torch.Tensor,
+                pos_h: torch.Tensor, pos_w: torch.Tensor) -> torch.Tensor:
+        B, N, D = x.shape
+        qkv = torch.nn.functional.linear(x, self.qkv.weight, self.qkv.bias + self.qkv.bias_mask)
+        q, k, v = qkv.chunk(3, dim=-1)
+        q = q.reshape(B, N, self.heads, self.head_dim).transpose(1, 2)
+        k = k.reshape(B, N, self.heads, self.head_dim).transpose(1, 2)
+        v = v.reshape(B, N, self.heads, self.head_dim).transpose(1, 2)
+        q, k = _apply_2d_rope(q, k, pos_h, pos_w, rope_periods)
+        y = torch.nn.functional.scaled_dot_product_attention(q, k, v)
+        y = y.transpose(1, 2).reshape(B, N, D)
+        return self.proj(y)
+
+
+class _DINOv3Block(torch.nn.Module):
+    """DINOv3 transformer block: norm1→attn→ls1 + norm2→mlp→ls2."""
+
+    def __init__(self, dim: int, heads: int, mlp_ratio: float = 4.0) -> None:
+        super().__init__()
+        mlp_dim = int(dim * mlp_ratio)
+        self.norm1 = torch.nn.LayerNorm(dim)
+        self.attn = _DINOv3Attention(dim, heads)
+        self.ls1 = torch.nn.Parameter(torch.empty(dim))
+        self.norm2 = torch.nn.LayerNorm(dim)
+        self.mlp = torch.nn.Sequential(
+            torch.nn.Linear(dim, mlp_dim),
+            torch.nn.GELU(),
+            torch.nn.Linear(mlp_dim, dim),
+        )
+        self.ls2 = torch.nn.Parameter(torch.empty(dim))
+
+    def forward(self, x: torch.Tensor, rope_periods: torch.Tensor,
+                pos_h: torch.Tensor, pos_w: torch.Tensor) -> torch.Tensor:
+        x = x + self.ls1 * self.attn(self.norm1(x), rope_periods, pos_h, pos_w)
+        x = x + self.ls2 * self.mlp(self.norm2(x))
+        return x
+
+
+class DINOv3ViT(torch.nn.Module):
+    """Minimal DINOv3 ViT backbone.
+
+    ``forward_features(x)`` returns ``{"x_norm_patchtokens": [B, N, dim]}``
+    (same interface as DINOv2).
+
+    Official weights are loaded via ``load_matched_state_dict(filepath)``, which
+    handles the DINOv3→our-model key remapping.
+    """
+
+    def __init__(self, dim: int, depth: int, heads: int, num_registers: int = 4,
+                 mlp_ratio: float = 4.0) -> None:
+        super().__init__()
+        self.num_registers = num_registers
+        self.dim = dim
+
+        self.patch_embed = torch.nn.Conv2d(3, dim, kernel_size=_DINOV3_PATCH, stride=_DINOV3_PATCH)
+        self.cls_token = torch.nn.Parameter(torch.empty(1, 1, dim))
+        self.storage_tokens = torch.nn.Parameter(torch.empty(1, num_registers, dim))
+        self.rope_embed = _RopePeriods(dim // heads // 4)  # half the rotary dim = head_dim//2, periods = that//2
+        self.blocks = torch.nn.ModuleList([_DINOv3Block(dim, heads, mlp_ratio) for _ in range(depth)])
+        self.norm = torch.nn.LayerNorm(dim)
+
+    def forward_features(self, x: torch.Tensor) -> dict[str, torch.Tensor]:
+        B = x.shape[0]
+        x = self.patch_embed(x)                                    # [B, dim, h, w]
+        H, W = x.shape[2], x.shape[3]
+        x = x.flatten(2).transpose(1, 2)                           # [B, N, dim]
+
+        cls = self.cls_token.expand(B, -1, -1)
+        stg = self.storage_tokens.expand(B, -1, -1)
+        x = torch.cat([cls, stg, x], dim=1)                        # [B, 1+reg+N, dim]
+
+        pos_h = torch.cat([
+            torch.zeros(1 + self.num_registers, device=x.device),
+            torch.arange(H, device=x.device).repeat_interleave(W).float(),
+        ])
+        pos_w = torch.cat([
+            torch.zeros(1 + self.num_registers, device=x.device),
+            torch.arange(W, device=x.device).repeat(H).float(),
+        ])
+        periods = self.rope_embed.periods
+        for blk in self.blocks:
+            x = blk(x, periods, pos_h, pos_w)
+
+        x = self.norm(x)
+        return {"x_norm_patchtokens": x[:, 1 + self.num_registers:]}
+
+    def load_matched_state_dict(self, filepath: str | Path) -> None:
+        sd = torch.load(str(filepath), map_location="cpu", weights_only=True)
+        sd = _rename_dinov3_state_dict(sd)
+        self.load_state_dict(sd, strict=True)
+
+
+class _RopePeriods(torch.nn.Module):
+    """Buffer holder at ``rope_embed.periods`` to match DINOv3 state-dict key."""
+    def __init__(self, half_rot_dim: int) -> None:
+        super().__init__()
+        self.register_buffer("periods", torch.empty(half_rot_dim))
+
+
+@torch.inference_mode()
+def _apply_2d_rope(q: torch.Tensor, k: torch.Tensor, pos_h: torch.Tensor,
+                   pos_w: torch.Tensor, periods: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+    """2-D partial RoPE: first ``rot_dim`` entries of head_dim, split row/col.
+
+    ``periods``: [nr] where rot_dim = nr * 2.  First nr//2 → row, second nr//2 → col.
+    """
+    head_dim = q.shape[-1]
+    nr = periods.shape[0]
+    rot_dim = nr * 2
+    if rot_dim >= head_dim:
+        return q, k
+
+    freqs = 2 * math.pi / periods.float()
+    nr2 = nr // 2
+    theta_h = pos_h.unsqueeze(-1).float() * freqs[:nr2]            # [N, nr//2]
+    theta_w = pos_w.unsqueeze(-1).float() * freqs[nr2:]            # [N, nr//2]
+    theta = torch.cat([theta_h, theta_w], dim=-1)                  # [N, nr]
+    cos = theta.cos().unsqueeze(0).unsqueeze(0)                    # [1, 1, N, nr]
+    sin = theta.sin().unsqueeze(0).unsqueeze(0)
+    def _rot(t: torch.Tensor) -> torch.Tensor:
+        t_rot, t_pass = t[..., :rot_dim], t[..., rot_dim:]
+        t_2d = t_rot.unflatten(-1, (-1, 2))                       # [B, heads, N, nr, 2]
+        t1, t2 = t_2d[..., 0], t_2d[..., 1]                       # each [B, heads, N, nr]
+        o1 = t1 * cos - t2 * sin
+        o2 = t2 * cos + t1 * sin
+        t_rot = torch.stack([o1, o2], dim=-1).flatten(-2)         # [B, heads, N, rot_dim]
+        return torch.cat([t_rot, t_pass], dim=-1)
+
+    return _rot(q), _rot(k)
+
+
+# ---------------------------------------------------------------------------
+# AnomalyDINOv3
+# ---------------------------------------------------------------------------
+
+class AnomalyDINOv3(AnomalyBase):
+    """DINOv3 ViT + memory-bank anomaly detector.
+
+    Single layer (last block patch tokens), same scoring as AnomalyDINO.
+    Supports vits16 / vits16plus / vitb16 / vitl16 / vith16plus.
+    """
+
+    def __init__(self, backbone: str = "vits16", imgsz: int = 448, **kw) -> None:
+        if backbone not in _DINOV3_CONFIGS:
+            raise ValueError(f"backbone must be in {list(_DINOV3_CONFIGS)}, got {backbone!r}")
+        if imgsz % _DINOV3_PATCH != 0:
+            raise ValueError(f"imgsz must be divisible by {_DINOV3_PATCH}, got {imgsz}")
+        self.dinov3_short = backbone
+        super().__init__(imgsz=imgsz, **kw)
+
+    def _build_backbone(self) -> None:
+        dim, depth, heads = _DINOV3_CONFIGS[self.dinov3_short]
+        self.model = DINOv3ViT(dim=dim, depth=depth, heads=heads).to(self.device).eval()
+        path = (_DINOV3_WEIGHTS_DIR
+                / f"dinov3_{self.dinov3_short}_pretrain_lvd1689m-{_DINOV3_CHECKSUMS[self.dinov3_short]}.pth")
+        self.model.load_matched_state_dict(path)
+        self.backbone = f"dinov3_{self.dinov3_short}"
+
+    def _forward_features(self, x: torch.Tensor) -> dict[str, torch.Tensor]:
+        tok = self.model.forward_features(x.to(self.device))["x_norm_patchtokens"]  # [B, N, D]
+        return {"tok": _tokens_to_bchw(tok)}
 
 
 # ---------------------------------------------------------------------------
@@ -1032,6 +1243,9 @@ def _build(args: argparse.Namespace) -> tuple[AnomalyBase, Path]:
     if bb.startswith("dino_"):
         short = bb.removeprefix("dino_")
         ad = AnomalyDINO(backbone=short, imgsz=args.imgsz or 448, **kw)
+    elif bb.startswith("dinov3_"):
+        short = bb.removeprefix("dinov3_")
+        ad = AnomalyDINOv3(backbone=short, imgsz=args.imgsz or 448, **kw)
     elif bb.startswith("convnext_"):
         rest = bb.removeprefix("convnext_")
         if "_s" in rest:
@@ -1098,9 +1312,13 @@ def main() -> None:
     convnext_choices = [f"convnext_{k}" for k in _cn_sizes] + \
                        [f"convnext_{k}_s{s}" for k in _cn_sizes for s in _cn_stages]
 
+    dino_choices = [f"dino_{k}" for k in _DINOV2_HUB]
+    dinov3_choices = [f"dinov3_{k}" for k in _DINOV3_CONFIGS]
+
     p.add_argument("--backbone", default="dino_vits14",
-                   choices=[f"dino_{k}" for k in _DINOV2_HUB] + convnext_choices + yolo_choices + resnet_choices,
-                   help="Feature extractor. dino_*: DINOv2. convnext_*[_s<digits>]: DINOv3-distilled ConvNeXt "
+                   choices=dino_choices + dinov3_choices + convnext_choices + yolo_choices + resnet_choices,
+                   help="Feature extractor. dino_*: DINOv2. dinov3_*: DINOv3 ViT. "
+                        "convnext_*[_s<digits>]: DINOv3-distilled ConvNeXt "
                         "(single or multi-stage). yolo_p<digits>[_<tap>]: YOLO. "
                         "{wrn50,rn18,rn34,rn50,rn101,rn152}_l<digits>: torchvision ResNet.")
     p.add_argument("--imgsz", type=int, default=None,

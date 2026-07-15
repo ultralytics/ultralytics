@@ -233,6 +233,7 @@ def fit_calibration_selective(
         LOGGER.warning("calibrate: fewer than 2 valid images for fit/score split; calibration skipped.")
         return None
     res = select_calibration_cv(pairs, dist_power=dist_power, margin=margin)
+    res["images"] = len(pairs)
     head.cal_a.fill_(res["a"])
     head.cal_b.fill_(res["b"])
     scores = " ".join(f"{n}={v:.4f}" for n, v in res["cv_scores"].items())
@@ -284,7 +285,7 @@ def _plot_calibrated_batches(
     head.cal_b.fill_(b0)
 
 
-def calibrate_checkpoint(ckpt_path, dataloader, device, dist_power: float = 0.0, plot_dir=None) -> None:
+def calibrate_checkpoint(ckpt_path, dataloader, device, dist_power: float = 0.0, plot_dir=None):
     """Fit calibration for a saved checkpoint in place (used by automatic post-training calibration).
 
     Loads the checkpoint, selects calibration with the "calibrate only if it helps" policy
@@ -312,11 +313,13 @@ def calibrate_checkpoint(ckpt_path, dataloader, device, dist_power: float = 0.0,
     if res is None:
         return
     a, b = res["a"], res["b"]
+    provenance = {"candidate": res["name"], "images": res["images"], "a": a, "b": b}
     for key in ("ema", "model"):
         m = ckpt.get(key)
         if m is not None and _depth_head(m) is not None:
             _depth_head(m).cal_a.fill_(a)
             _depth_head(m).cal_b.fill_(b)
+    ckpt["depth_calibration"] = provenance
     torch.save(ckpt, ckpt_path)
     LOGGER.info(
         f"Auto-calibration written to {getattr(ckpt_path, 'name', ckpt_path)}: '{res['name']}' a={a:.4f} b={b:.4f}"
@@ -327,3 +330,4 @@ def calibrate_checkpoint(ckpt_path, dataloader, device, dist_power: float = 0.0,
             LOGGER.info(f"Calibrated val_batch plots written to {plot_dir}")
         except Exception as e:
             LOGGER.warning(f"Calibrated val plots skipped ({type(e).__name__}: {e})")
+    return provenance

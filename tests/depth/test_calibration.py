@@ -182,12 +182,20 @@ def test_calibrate_checkpoint_applies_selective_policy(tmp_path):
 
     path = tmp_path / "ckpt.pt"
     torch.save({"model": copy.deepcopy(model)}, path)
-    calibrate_checkpoint(path, batches, device="cpu")
+    provenance = calibrate_checkpoint(path, batches, device="cpu")
 
     from ultralytics.utils.patches import torch_load
 
-    head = _depth_head(torch_load(path)["model"])
+    checkpoint = torch_load(path)
+    head = _depth_head(checkpoint["model"])
     assert abs(float(head.cal_a) - expected["a"]) < 1e-6 and abs(float(head.cal_b) - expected["b"]) < 1e-6
+    assert provenance == checkpoint["depth_calibration"]
+    assert provenance == {
+        "candidate": expected["name"],
+        "images": expected["images"],
+        "a": expected["a"],
+        "b": expected["b"],
+    }
 
 
 def test_fit_calibration_selective_runs_and_sets_buffers():
@@ -200,6 +208,7 @@ def test_fit_calibration_selective_runs_and_sets_buffers():
     res = fit_calibration_selective(model, batches, device="cpu", max_images=8)
     assert res is not None
     assert res["name"] in {"identity", "scale-only", "affine"}
+    assert res["images"] == 8
     head = model.model[-1]
     assert math.isfinite(float(head.cal_a)) and math.isfinite(float(head.cal_b))
     assert abs(float(head.cal_a) - res["a"]) < 1e-4 and abs(float(head.cal_b) - res["b"]) < 1e-4

@@ -796,9 +796,9 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     """Convert NDJSON dataset format to Ultralytics YOLO dataset structure.
 
     This function converts datasets stored in NDJSON (Newline Delimited JSON) format to the standard YOLO format. For
-    detection/segmentation/pose/obb tasks, it creates separate directories for images and labels. For classification
-    tasks, it creates the ImageNet-style {split}/{class_name}/ folder structure. It supports parallel processing for
-    efficient conversion of large datasets and can download images from URLs.
+    detection/segmentation/pose/obb tasks, it creates separate directories for images and labels. Depth datasets use
+    parallel images/ and depth/ trees with float32 NPY targets. Classification tasks use the ImageNet-style
+    {split}/{class_name}/ folder structure. Downloads run concurrently.
 
     The NDJSON format consists of:
     - First line: Dataset metadata with class names, task type, and configuration
@@ -837,38 +837,83 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     dataset_record, image_records = lines[0], lines[1:]
 
     # Hash stable content plus source identity. Query strings are excluded because signed URLs change on every export.
-    _h = hashlib.sha256()
+    manifest_hasher = hashlib.sha256()
+    content_hasher = hashlib.sha256()
     for r in lines:
         hash_record = {k: v for k, v in r.items() if k != "url"}
+        if isinstance(r.get("depth"), dict):
+            hash_record["depth"] = {k: v for k, v in r["depth"].items() if k != "url"}
+            if r["depth"].get("url"):
+                hash_record["depth"]["_source"] = clean_url(r["depth"]["url"])
         if r.get("file"):
             hash_record["_source"] = clean_url(r["url"]) if r.get("url") else str(ndjson_path.parent.resolve())
-        _h.update(json.dumps(hash_record, sort_keys=True).encode())
-    _hash = _h.hexdigest()[:8]
+        manifest_hasher.update(json.dumps(hash_record, sort_keys=True).encode())
+        if r.get("file"):
+            asset_record = {"file": r["file"], "_source": hash_record["_source"]}
+            if "depth" in hash_record:
+                asset_record["depth"] = hash_record["depth"]
+            content_hasher.update(json.dumps(asset_record, sort_keys=True).encode())
+    manifest_hash = manifest_hasher.hexdigest()[:8]
+    content_hash = content_hasher.hexdigest()[:8]
 
     # Hash-qualified dirs allow identical datasets to reuse downloads while preventing changed datasets from mutating
     # files that another training job may still be reading.
-    dataset_dir = output_path / f"{ndjson_path.stem}-{_hash}"
+    dataset_dir = output_path / f"{ndjson_path.stem}-{manifest_hash}"
     yaml_path = dataset_dir / "data.yaml"
+    task = dataset_record.get("task", "detect")
+    is_classification = task == "classify"
+    is_depth = task == "depth"
     if yaml_path.is_file():
         try:
             cached = YAML.load(yaml_path)
-            if cached.get("hash") == _hash and all(
-                (dataset_dir / cached[split]).is_dir() and (dataset_dir / "labels" / split).is_dir()
+            cache_dirs_valid = all(
+                (dataset_dir / cached[split]).is_dir()
+                and (
+                    is_classification
+                    or (dataset_dir / ("depth" if is_depth else "labels") / Path(cached[split]).name).is_dir()
+                )
                 for split in ("train", "val", "test")
                 if split in cached
+            )
+            depth_files_valid = not is_depth or all(
+                (dataset_dir / "images" / r["split"] / r["file"]).is_file()
+                and (dataset_dir / "depth" / r["split"] / f"{Path(r['file']).stem}.npy").is_file()
+                for r in image_records
+            )
+            if (
+                cached.get("hash") == manifest_hash
+                and cached.get("content_hash") == content_hash
+                and cache_dirs_valid
+                and depth_files_valid
             ):
                 return yaml_path
         except Exception:
             pass
     splits = {record["split"] for record in image_records}
 
-    # Check if this is a classification dataset
-    is_classification = dataset_record.get("task") == "classify"
     class_names = {int(k): v for k, v in dataset_record.get("class_names", {}).items()}
     inferred_nc = None
 
     # Validate required fields before downloading images
-    task = dataset_record.get("task", "detect")
+    if is_depth:
+        depth_paths = set()
+        for record in image_records:
+            depth = record.get("depth")
+            if not isinstance(depth, dict) or not depth.get("url"):
+                raise ValueError(f"Depth record '{record.get('file', '<unknown>')}' is missing depth.url")
+            if not isinstance(depth.get("hash"), str) or not depth["hash"]:
+                raise ValueError("Depth records require a content hash")
+            if depth.get("encoding") != "npy-f32" or depth.get("unit") != "m":
+                raise ValueError("Depth records require encoding='npy-f32' and unit='m'")
+            shape = depth.get("shape")
+            if not isinstance(shape, list) or len(shape) != 2 or not all(isinstance(x, int) and x > 0 for x in shape):
+                raise ValueError("Depth records require a positive [height, width] shape")
+            depth_path = (record["split"], Path(record["file"]).stem)
+            if depth_path in depth_paths:
+                raise ValueError(
+                    f"Depth records contain a duplicate output path: depth/{depth_path[0]}/{depth_path[1]}.npy"
+                )
+            depth_paths.add(depth_path)
     if not is_classification:
         class_ids = {
             int(label[0])
@@ -887,7 +932,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     if not is_classification:
         if "train" not in splits:
             raise ValueError(f"Dataset missing required 'train' split. Found splits: {sorted(splits)}")
-        if "val" not in splits:
+        if "val" not in splits and not (is_depth and "test" in splits):
             train_records = [r for r in image_records if r.get("split") == "train"]
             if len(train_records) < 2:
                 raise ValueError(
@@ -907,19 +952,31 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     if task == "pose" and "kpt_shape" not in dataset_record:
         dataset_record["kpt_shape"] = _infer_ndjson_kpt_shape(image_records)
 
-    # Check if dataset already exists (enables image reuse across split changes)
+    # Reuse identical assets from another immutable manifest directory when only split assignments changed.
+    reuse_dirs = []
+    for candidate_yaml in output_path.glob(f"{ndjson_path.stem}-*/data.yaml"):
+        try:
+            if candidate_yaml.parent != dataset_dir and YAML.load(candidate_yaml).get("content_hash") == content_hash:
+                reuse_dirs.append(candidate_yaml.parent)
+        except Exception:
+            pass
+
+    # Check if this exact manifest directory already exists (e.g. an interrupted conversion).
     _reuse = dataset_dir.exists()
     if _reuse:
         yaml_path.unlink(missing_ok=True)  # Invalidate hash before destructive ops (crash safety)
-        if not is_classification:
+        if not is_classification and not is_depth:
             shutil.rmtree(dataset_dir / "labels", ignore_errors=True)
     dataset_dir.mkdir(parents=True, exist_ok=True)
     data_yaml = None
 
     if not is_classification:
-        # Detection/segmentation/pose/obb: prepare YAML and create base structure
+        # Detection/segmentation/pose/obb/depth: prepare YAML and create base structure
         data_yaml = dict(dataset_record)
-        if class_names:
+        if is_depth:
+            data_yaml["nc"] = 1
+            data_yaml["names"] = {0: "depth"}
+        elif class_names:
             data_yaml["names"] = class_names
         elif inferred_nc is not None:
             data_yaml["nc"] = inferred_nc
@@ -927,8 +984,45 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         data_yaml.pop("type", None)  # Remove NDJSON-specific fields
         for split in sorted(splits):
             (dataset_dir / "images" / split).mkdir(parents=True, exist_ok=True)
-            (dataset_dir / "labels" / split).mkdir(parents=True, exist_ok=True)
+            (dataset_dir / ("depth" if is_depth else "labels") / split).mkdir(parents=True, exist_ok=True)
             data_yaml[split] = f"images/{split}"
+        if is_depth and "val" not in data_yaml and "test" in data_yaml:
+            data_yaml["val"] = data_yaml["test"]
+
+    async def ensure_file(session, path, url, candidates=()):
+        """Reuse a local split copy or download a file with bounded retries."""
+        if path.exists():
+            return True
+        for candidate in candidates:
+            if candidate.exists():
+                path.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(candidate, path)
+                return True
+        if not url:
+            return False
+        path.parent.mkdir(parents=True, exist_ok=True)
+        for attempt in range(3):
+            error = None
+            try:
+                async with session.get(url, timeout=aiohttp.ClientTimeout(total=30)) as response:
+                    response.raise_for_status()
+                    path.write_bytes(await response.read())
+                return True
+            except aiohttp.ClientResponseError as e:
+                error = e
+                if e.status not in {408, 429} and e.status < 500:
+                    LOGGER.warning(f"Failed to download {url}: {e}")
+                    return False
+            except (aiohttp.ClientError, asyncio.TimeoutError) as e:
+                error = e
+            except Exception as e:  # OSError, disk full, permissions — not transient, don't retry
+                LOGGER.warning(f"Failed to save {url}: {e}")
+                return False
+            if attempt < 2:
+                await asyncio.sleep(2**attempt)
+            else:
+                LOGGER.warning(f"Failed to download {url} after 3 attempts: {error}")
+        return False
 
     async def process_record(session, semaphore, record):
         """Process single image record with async session."""
@@ -943,55 +1037,45 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                 class_name = class_names.get(class_id, str(class_id))
                 image_path = dataset_dir / split / class_name / original_name
             else:
-                # Detection: write label file and place image in images/{split}/
                 image_path = dataset_dir / "images" / split / original_name
-                label_path = dataset_dir / "labels" / split / f"{Path(original_name).stem}.txt"
-                lines_to_write = []
-                for key in annotations:
-                    lines_to_write = [" ".join(map(str, item)) for item in annotations[key]]
-                    break
-                label_path.write_text("\n".join(lines_to_write) + "\n" if lines_to_write else "")
+                if not is_depth:
+                    label_path = dataset_dir / "labels" / split / f"{Path(original_name).stem}.txt"
+                    lines_to_write = []
+                    for key in annotations:
+                        lines_to_write = [" ".join(map(str, item)) for item in annotations[key]]
+                        break
+                    label_path.write_text("\n".join(lines_to_write) + "\n" if lines_to_write else "")
 
             # Reuse existing image from another split dir (avoids redownload on resplit) or download
-            if not image_path.exists():
-                if _reuse:
-                    for s in ("train", "val", "test"):
-                        if s == split:
-                            continue
-                        candidate = (
-                            (dataset_dir / s / class_name / original_name)
-                            if is_classification
-                            else (dataset_dir / "images" / s / original_name)
-                        )
-                        if candidate.exists():
-                            image_path.parent.mkdir(parents=True, exist_ok=True)
-                            candidate.rename(image_path)
-                            break
-                if not image_path.exists() and (http_url := record.get("url")):
-                    image_path.parent.mkdir(parents=True, exist_ok=True)
-                    # Retry with exponential backoff (3 attempts: 1s, 2s delays before the final attempt)
-                    for attempt in range(3):
-                        error = None
-                        try:
-                            async with session.get(http_url, timeout=aiohttp.ClientTimeout(total=30)) as response:
-                                response.raise_for_status()
-                                image_path.write_bytes(await response.read())
-                            return True
-                        except aiohttp.ClientResponseError as e:
-                            error = e
-                            if e.status not in {408, 429} and e.status < 500:
-                                LOGGER.warning(f"Failed to download {http_url}: {e}")
-                                return False
-                        except (aiohttp.ClientError, asyncio.TimeoutError) as e:
-                            error = e
-                        except Exception as e:  # OSError, disk full, permissions — not transient, don't retry
-                            LOGGER.warning(f"Failed to save {http_url}: {e}")
-                            return False
-                        if attempt < 2:  # Don't sleep after last attempt
-                            await asyncio.sleep(2**attempt)  # 1s, 2s backoff
-                        else:
-                            LOGGER.warning(f"Failed to download {http_url} after 3 attempts: {error}")
-                            return False
+            image_candidates = []
+            if _reuse or reuse_dirs:
+                image_candidates = [
+                    (root / s / class_name / original_name)
+                    if is_classification
+                    else (root / "images" / s / original_name)
+                    for root in ([dataset_dir] if _reuse else []) + reuse_dirs
+                    for s in ("train", "val", "test")
+                ]
+            image_ok = await ensure_file(session, image_path, record.get("url"), image_candidates)
+            if not is_depth:
+                return image_ok
+
+            depth_name = f"{Path(original_name).stem}.npy"
+            depth_path = dataset_dir / "depth" / split / depth_name
+            depth_candidates = (
+                [
+                    root / "depth" / s / depth_name
+                    for root in ([dataset_dir] if _reuse else []) + reuse_dirs
+                    for s in ("train", "val", "test")
+                ]
+                if _reuse or reuse_dirs
+                else []
+            )
+            depth_ok = await ensure_file(session, depth_path, record["depth"]["url"], depth_candidates)
+            if not image_ok or not depth_ok:
+                image_path.unlink(missing_ok=True)
+                depth_path.unlink(missing_ok=True)
+                return False
             return True
 
     # Process all images with async downloads (limit connections for small datasets)
@@ -1033,12 +1117,18 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         for p in img_root.rglob("*"):
             if p.is_file() and p not in expected_paths:
                 p.unlink()
+        if is_depth:
+            expected_depth = {dataset_dir / "depth" / r["split"] / f"{Path(r['file']).stem}.npy" for r in image_records}
+            for p in (dataset_dir / "depth").rglob("*"):
+                if p.is_file() and p not in expected_depth:
+                    p.unlink()
 
     if is_classification:
         # Classification: return dataset directory (check_cls_dataset expects a directory path)
         return dataset_dir
     else:
         # Detection: write data.yaml with hash for future change detection
-        data_yaml["hash"] = _hash
+        data_yaml["hash"] = manifest_hash
+        data_yaml["content_hash"] = content_hash
         YAML.save(yaml_path, data_yaml)
         return yaml_path

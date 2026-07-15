@@ -866,7 +866,10 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
 
     # Check if this is a classification dataset
     is_classification = dataset_record.get("task") == "classify"
-    class_names = {int(k): Path(v).name.rstrip(" .") for k, v in dataset_record.get("class_names", {}).items()}
+    class_names = {
+        int(k): v[max(v.rfind("/"), v.rfind("\\")) + 1 :].rstrip(" .")
+        for k, v in dataset_record.get("class_names", {}).items()
+    }
     class_names = {k: v if v not in {"", ".", ".."} else str(k) for k, v in class_names.items()}
     inferred_nc = None
 
@@ -936,9 +939,10 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     async def process_record(session, semaphore, record):
         """Process single image record with async session."""
         async with semaphore:
-            split, source_path = record["split"], Path(record["file"])
-            if (original_name := source_path.name.rstrip(" .")) in {"", ".", ".."}:
-                raise ValueError(f"Invalid NDJSON image name: {record['file']!r}")
+            split, source_name = record["split"], record["file"]
+            original_name = source_name[max(source_name.rfind("/"), source_name.rfind("\\")) + 1 :].rstrip(" .")
+            if not original_name:
+                raise ValueError(f"Invalid NDJSON image name: {source_name!r}")
             record["file"] = original_name
             annotations = record.get("annotations", {})
 
@@ -953,7 +957,8 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
             else:
                 # Detection: write label file and place image in images/{split}/
                 image_path = dataset_dir / "images" / split / original_name
-                label_path = dataset_dir / "labels" / split / f"{source_path.stem.rstrip(' .')}.txt"
+                stem = original_name.rsplit(".", 1)[0].rstrip(" .") or original_name
+                label_path = dataset_dir / "labels" / split / f"{stem}.txt"
                 lines_to_write = []
                 for key in annotations:
                     lines_to_write = [" ".join(map(str, item)) for item in annotations[key]]

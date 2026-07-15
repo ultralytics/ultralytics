@@ -839,7 +839,6 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
 
     # Hash stable content plus source identity. Query strings are excluded because signed URLs change on every export.
     manifest_hasher = hashlib.sha256()
-    content_hasher = hashlib.sha256()
     for r in lines:
         hash_record = {k: v for k, v in r.items() if k != "url"}
         if isinstance(r.get("depth"), dict):
@@ -849,13 +848,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         if r.get("file"):
             hash_record["_source"] = clean_url(r["url"]) if r.get("url") else str(ndjson_path.parent.resolve())
         manifest_hasher.update(json.dumps(hash_record, sort_keys=True).encode())
-        if r.get("file"):
-            asset_record = {"file": r["file"], "_source": hash_record["_source"]}
-            if "depth" in hash_record:
-                asset_record["depth"] = hash_record["depth"]
-            content_hasher.update(json.dumps(asset_record, sort_keys=True).encode())
     manifest_hash = manifest_hasher.hexdigest()[:8]
-    content_hash = content_hasher.hexdigest()[:8]
 
     # Hash-qualified dirs allow identical datasets to reuse downloads while preventing changed datasets from mutating
     # files that another training job may still be reading.
@@ -889,7 +882,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                 and depth.ndim == 2
                 and list(depth.shape) == descriptor["shape"]
             )
-        except (KeyError, OSError, TypeError, ValueError):
+        except (EOFError, KeyError, OSError, TypeError, ValueError):
             return False
 
     # Validate required fields before consulting a cached conversion.
@@ -952,12 +945,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                 and validate_depth_file(dataset_dir / "depth" / r["split"] / depth_relative_path(r), r["depth"])
                 for r in image_records
             )
-            if (
-                cached.get("hash") == manifest_hash
-                and cached.get("content_hash") == content_hash
-                and cache_dirs_valid
-                and depth_files_valid
-            ):
+            if cached.get("hash") == manifest_hash and cache_dirs_valid and depth_files_valid:
                 return yaml_path
         except Exception:
             pass
@@ -982,15 +970,6 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                 inferred_nc = max_class_id + 1
     if task == "pose" and "kpt_shape" not in dataset_record:
         dataset_record["kpt_shape"] = _infer_ndjson_kpt_shape(image_records)
-
-    # Reuse identical assets from another immutable manifest directory when only split assignments changed.
-    reuse_dirs = []
-    for candidate_yaml in output_path.glob(f"{ndjson_path.stem}-*/data.yaml"):
-        try:
-            if candidate_yaml.parent != dataset_dir and YAML.load(candidate_yaml).get("content_hash") == content_hash:
-                reuse_dirs.append(candidate_yaml.parent)
-        except Exception:
-            pass
 
     # Check if this exact manifest directory already exists (e.g. an interrupted conversion).
     _reuse = dataset_dir.exists()
@@ -1077,17 +1056,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                         break
                     label_path.write_text("\n".join(lines_to_write) + "\n" if lines_to_write else "")
 
-            # Reuse existing image from another split dir (avoids redownload on resplit) or download
-            image_candidates = []
-            if _reuse or reuse_dirs:
-                image_candidates = [
-                    (root / s / class_name / original_name)
-                    if is_classification
-                    else (root / "images" / s / original_name)
-                    for root in ([dataset_dir] if _reuse else []) + reuse_dirs
-                    for s in ("train", "val", "test")
-                ]
-            image_ok = await ensure_file(session, image_path, record.get("url"), image_candidates)
+            image_ok = await ensure_file(session, image_path, record.get("url"))
             if not is_depth:
                 return image_ok
 
@@ -1098,12 +1067,11 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                 depth_path.unlink()
             depth_candidates = (
                 [
-                    root / "depth" / s / depth_name
-                    for root in ([dataset_dir] if _reuse else []) + reuse_dirs
+                    dataset_dir / "depth" / s / depth_name
                     for s in ("train", "val", "test")
-                    if validate_depth_file(root / "depth" / s / depth_name, descriptor)
+                    if validate_depth_file(dataset_dir / "depth" / s / depth_name, descriptor)
                 ]
-                if _reuse or reuse_dirs
+                if _reuse
                 else []
             )
             depth_ok = await ensure_file(session, depth_path, descriptor["url"], depth_candidates)
@@ -1169,6 +1137,5 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     else:
         # Detection: write data.yaml with hash for future change detection
         data_yaml["hash"] = manifest_hash
-        data_yaml["content_hash"] = content_hash
         YAML.save(yaml_path, data_yaml)
         return yaml_path

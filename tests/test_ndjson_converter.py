@@ -23,12 +23,12 @@ class _QuietHandler(SimpleHTTPRequestHandler):
         pass
 
 
-def _write_depth_ndjson(path, base_url, depth_hash, splits=("train", "test")):
+def _write_depth_ndjson(path, base_url, depth_hash, splits=("train", "test"), files=("camera/train.jpg", "test.jpg")):
     records = [
         {"type": "dataset", "task": "depth"},
         {
             "type": "image",
-            "file": "camera/train.jpg",
+            "file": files[0],
             "url": f"{base_url}/train.jpg?signature=image",
             "split": splits[0],
             "depth": {
@@ -41,7 +41,7 @@ def _write_depth_ndjson(path, base_url, depth_hash, splits=("train", "test")):
         },
         {
             "type": "image",
-            "file": "test.jpg",
+            "file": files[1],
             "url": f"{base_url}/test.jpg?signature=image",
             "split": splits[1],
             "depth": {
@@ -75,9 +75,10 @@ def test_convert_depth_ndjson_downloads_pairs_and_reuses_cache(tmp_path, monkeyp
     try:
         yaml_path = asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets"))
         cached_depth = yaml_path.parent / "depth" / "train" / "camera" / "train.npy"
-        cached_depth.write_bytes(b"corrupt cache")
-        assert asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets")) == yaml_path
-        np.testing.assert_array_equal(np.load(cached_depth), depth)
+        for invalid_cache in (b"corrupt cache", b""):
+            cached_depth.write_bytes(invalid_cache)
+            assert asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets")) == yaml_path
+            np.testing.assert_array_equal(np.load(cached_depth), depth)
 
         train_only_manifest = tmp_path / "train-only.ndjson"
         _write_depth_ndjson(
@@ -90,6 +91,21 @@ def test_convert_depth_ndjson_downloads_pairs_and_reuses_cache(tmp_path, monkeyp
         with monkeypatch.context() as cache_guard:
             cache_guard.setattr(YAML, "save", lambda *_args, **_kwargs: pytest.fail("train-only cache missed"))
             assert asyncio.run(convert_ndjson_to_yolo(train_only_manifest, tmp_path / "datasets")) == train_only_yaml
+
+        _write_depth_ndjson(
+            manifest,
+            f"http://127.0.0.1:{server.server_port}",
+            depth_hash,
+            splits=("test", "train"),
+        )
+        resplit_yaml_path = asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets"))
+        assert resplit_yaml_path != yaml_path
+        assert (resplit_yaml_path.parent / "images" / "test" / "camera" / "train.jpg").is_file()
+        assert (resplit_yaml_path.parent / "depth" / "test" / "camera" / "train.npy").is_file()
+        assert (resplit_yaml_path.parent / "images" / "train" / "test.jpg").is_file()
+        assert (resplit_yaml_path.parent / "depth" / "train" / "test.npy").is_file()
+        assert (yaml_path.parent / "images" / "train" / "camera" / "train.jpg").is_file()
+        assert asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets")) == resplit_yaml_path
     finally:
         server.shutdown()
         server.server_close()
@@ -108,20 +124,42 @@ def test_convert_depth_ndjson_downloads_pairs_and_reuses_cache(tmp_path, monkeyp
             np.load(yaml_path.parent / "depth" / split / relative_path.with_suffix(".npy")), depth
         )
 
-    _write_depth_ndjson(
-        manifest,
-        f"http://127.0.0.1:{server.server_port}",
-        depth_hash,
-        splits=("test", "train"),
-    )
-    resplit_yaml_path = asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets"))
-    assert resplit_yaml_path != yaml_path
-    assert (resplit_yaml_path.parent / "images" / "test" / "camera" / "train.jpg").is_file()
-    assert (resplit_yaml_path.parent / "depth" / "test" / "camera" / "train.npy").is_file()
-    assert (resplit_yaml_path.parent / "images" / "train" / "test.jpg").is_file()
-    assert (resplit_yaml_path.parent / "depth" / "train" / "test.npy").is_file()
-    assert (yaml_path.parent / "images" / "train" / "camera" / "train.jpg").is_file()
-    assert asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets")) == resplit_yaml_path
+
+def test_convert_depth_ndjson_does_not_reuse_images_by_filename(tmp_path):
+    """Keep the record URL authoritative when different assets share an output filename."""
+    source = tmp_path / "source"
+    source.mkdir()
+    depth = np.arange(12, dtype=np.float32).reshape(3, 4)
+    cv2.imwrite(str(source / "train.jpg"), np.zeros((3, 4, 3), dtype=np.uint8))
+    cv2.imwrite(str(source / "test.jpg"), np.full((3, 4, 3), 255, dtype=np.uint8))
+    for split in ("train", "test"):
+        np.save(source / f"{split}.npy", depth)
+    depth_hash = xxhash.xxh3_128_hexdigest((source / "train.npy").read_bytes())
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), partial(_QuietHandler, directory=source))
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    manifest = tmp_path / "same-name.ndjson"
+    base_url = f"http://127.0.0.1:{server.server_port}"
+    try:
+        _write_depth_ndjson(manifest, base_url, depth_hash, files=("frame.jpg", "frame.jpg"))
+        asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets"))
+
+        _write_depth_ndjson(
+            manifest,
+            base_url,
+            depth_hash,
+            splits=("test", "train"),
+            files=("frame.jpg", "frame.jpg"),
+        )
+        yaml_path = asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets"))
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join()
+
+    assert cv2.imread(str(yaml_path.parent / "images" / "test" / "frame.jpg")).mean() < 1
+    assert cv2.imread(str(yaml_path.parent / "images" / "train" / "frame.jpg")).mean() > 254
 
 
 def test_convert_depth_ndjson_rejects_incomplete_descriptor_before_download(tmp_path):

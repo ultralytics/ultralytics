@@ -5,11 +5,14 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import os
 import random
 import shutil
+import time
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 import cv2
 import numpy as np
@@ -20,6 +23,7 @@ from ultralytics.utils import ASSETS_URL, DATASETS_DIR, LOGGER, NUM_THREADS, TQD
 from ultralytics.utils.checks import check_file
 from ultralytics.utils.downloads import download, zip_directory
 from ultralytics.utils.files import increment_path
+from ultralytics.utils.patches import imread
 
 
 def coco91_to_coco80_class() -> list[int]:
@@ -870,13 +874,27 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         """Return the depth target path matching DepthDataset's images-to-depth mapping."""
         return Path(record["file"]).with_suffix(".npy")
 
-    def validate_image_file(path: Path) -> bool:
-        """Return whether an image is complete and decodable."""
+    def validate_image_file(path: Path, record: dict) -> bool:
+        """Validate a cached image against its manifest identity and decoder."""
         try:
-            with Image.open(path) as image:
-                image.verify()
-            return True
-        except (OSError, SyntaxError):
+            expected_hash = record["hash"].lower()
+            if len(expected_hash) == 32:
+                hasher = xxhash.xxh3_128()
+            elif len(expected_hash) == 64:
+                hasher = hashlib.sha256()
+            else:
+                raise ValueError("Image content hashes must be XXH3-128 or SHA-256 hex digests")
+            with path.open("rb") as file:
+                for chunk in iter(lambda: file.read(1024 * 1024), b""):
+                    hasher.update(chunk)
+            image = imread(str(path))
+            return (
+                hasher.hexdigest() == expected_hash
+                and image is not None
+                and (record.get("width") is None or image.shape[1] == record["width"])
+                and (record.get("height") is None or image.shape[0] == record["height"])
+            )
+        except (KeyError, OSError, TypeError, ValueError):
             return False
 
     def validate_depth_file(path: Path, descriptor: dict) -> bool:
@@ -911,6 +929,8 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                 raise ValueError(f"Depth record '{record.get('file', '<unknown>')}' is missing depth.url")
             if not isinstance(depth.get("hash"), str) or not depth["hash"]:
                 raise ValueError("Depth records require a content hash")
+            if not isinstance(record.get("hash"), str) or not record["hash"]:
+                raise ValueError("Depth records require an image content hash")
             if depth.get("encoding") != "npy-f32" or depth.get("unit") != "m":
                 raise ValueError("Depth records require encoding='npy-f32' and unit='m'")
             shape = depth.get("shape")
@@ -947,27 +967,38 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                 f"For best results, manually assign validation images in Platform dataset page."
             )
 
-    if yaml_path.is_file():
+    def cached_conversion_valid(root: Path) -> bool:
+        """Return whether a completed conversion matches this manifest and all depth identities."""
         try:
-            cached = YAML.load(yaml_path)
+            cached = YAML.load(root / "data.yaml")
             cache_dirs_valid = all(
-                (dataset_dir / cached[split]).is_dir()
+                (root / cached[split]).is_dir()
                 and (
                     is_classification
-                    or (dataset_dir / ("depth" if is_depth else "labels") / Path(cached[split]).name).is_dir()
+                    or (root / ("depth" if is_depth else "labels") / Path(cached[split]).name).is_dir()
                 )
                 for split in ("train", "val", "test")
                 if split in cached
             )
             depth_files_valid = not is_depth or all(
-                validate_image_file(dataset_dir / "images" / r["split"] / r["file"])
-                and validate_depth_file(dataset_dir / "depth" / r["split"] / depth_relative_path(r), r["depth"])
+                validate_image_file(root / "images" / r["split"] / r["file"], r)
+                and validate_depth_file(root / "depth" / r["split"] / depth_relative_path(r), r["depth"])
                 for r in image_records
             )
-            if cached.get("hash") == manifest_hash and cache_dirs_valid and depth_files_valid:
-                return yaml_path
+            return cached.get("hash") == manifest_hash and cache_dirs_valid and depth_files_valid
         except Exception:
-            pass
+            return False
+
+    if yaml_path.is_file() and cached_conversion_valid(dataset_dir):
+        return yaml_path
+
+    final_dataset_dir = dataset_dir
+    staging = None
+    if is_depth:
+        output_path.mkdir(parents=True, exist_ok=True)
+        staging = TemporaryDirectory(prefix=f".{dataset_dir.name}-", dir=output_path)
+        dataset_dir = Path(staging.name)
+        yaml_path = dataset_dir / "data.yaml"
 
     class_names = {int(k): v for k, v in dataset_record.get("class_names", {}).items()}
     inferred_nc = None
@@ -1025,21 +1056,17 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         for candidate in candidates:
             if candidate.exists():
                 path.parent.mkdir(parents=True, exist_ok=True)
-                partial_path = path.with_name(f".{path.name}.part")
-                shutil.copy2(candidate, partial_path)
-                partial_path.replace(path)
+                shutil.copy2(candidate, path)
                 return True
         if not url:
             return False
         path.parent.mkdir(parents=True, exist_ok=True)
         for attempt in range(3):
             error = None
-            partial_path = path.with_name(f".{path.name}.part")
             try:
                 async with session.get(url, timeout=aiohttp.ClientTimeout(total=30)) as response:
                     response.raise_for_status()
-                    partial_path.write_bytes(await response.read())
-                partial_path.replace(path)
+                    path.write_bytes(await response.read())
                 return True
             except aiohttp.ClientResponseError as e:
                 error = e
@@ -1051,8 +1078,6 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
             except Exception as e:  # OSError, disk full, permissions — not transient, don't retry
                 LOGGER.warning(f"Failed to save {url}: {e}")
                 return False
-            finally:
-                partial_path.unlink(missing_ok=True)
             if attempt < 2:
                 await asyncio.sleep(2**attempt)
             else:
@@ -1081,11 +1106,11 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                         break
                     label_path.write_text("\n".join(lines_to_write) + "\n" if lines_to_write else "")
 
-            if is_depth and image_path.exists() and not validate_image_file(image_path):
+            if is_depth and image_path.exists() and not validate_image_file(image_path, record):
                 image_path.unlink()
             image_ok = await ensure_file(session, image_path, record.get("url"))
             if is_depth:
-                image_ok = image_ok and validate_image_file(image_path)
+                image_ok = image_ok and validate_image_file(image_path, record)
             if not is_depth:
                 return image_ok
 
@@ -1167,4 +1192,32 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         # Detection: write data.yaml with hash for future change detection
         data_yaml["hash"] = manifest_hash
         YAML.save(yaml_path, data_yaml)
-        return yaml_path
+        if not is_depth:
+            return yaml_path
+
+        lock_dir = output_path / f".{final_dataset_dir.name}.lock"
+        while True:
+            try:
+                lock_dir.mkdir()
+                break
+            except FileExistsError:
+                if time.time() - lock_dir.stat().st_mtime > 300:
+                    shutil.rmtree(lock_dir, ignore_errors=True)
+                else:
+                    await asyncio.sleep(0.05)
+        invalid_dir = None
+        try:
+            final_yaml = final_dataset_dir / "data.yaml"
+            if final_yaml.is_file() and cached_conversion_valid(final_dataset_dir):
+                return final_yaml
+            if final_dataset_dir.exists():
+                invalid_dir = output_path / f".{final_dataset_dir.name}.invalid-{os.getpid()}-{time.time_ns()}"
+                final_dataset_dir.replace(invalid_dir)
+            dataset_dir.replace(final_dataset_dir)
+        finally:
+            lock_dir.rmdir()
+            if invalid_dir:
+                shutil.rmtree(invalid_dir, ignore_errors=True)
+            if staging:
+                staging.cleanup()
+        return final_dataset_dir / "data.yaml"

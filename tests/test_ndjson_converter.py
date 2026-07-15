@@ -23,13 +23,23 @@ class _QuietHandler(SimpleHTTPRequestHandler):
         pass
 
 
-def _write_depth_ndjson(path, base_url, depth_hash, splits=("train", "test"), files=("camera/train.jpg", "test.jpg")):
+def _write_depth_ndjson(
+    path,
+    base_url,
+    depth_hash,
+    image_hashes,
+    splits=("train", "test"),
+    files=("camera/train.jpg", "test.jpg"),
+):
     records = [
         {"type": "dataset", "task": "depth"},
         {
             "type": "image",
             "file": files[0],
             "url": f"{base_url}/train.jpg?signature=image",
+            "hash": image_hashes[0],
+            "width": 4,
+            "height": 3,
             "split": splits[0],
             "depth": {
                 "url": f"{base_url}/train.npy?signature=depth",
@@ -43,6 +53,9 @@ def _write_depth_ndjson(path, base_url, depth_hash, splits=("train", "test"), fi
             "type": "image",
             "file": files[1],
             "url": f"{base_url}/test.jpg?signature=image",
+            "hash": image_hashes[1],
+            "width": 4,
+            "height": 3,
             "split": splits[1],
             "depth": {
                 "url": f"{base_url}/test.npy?signature=depth",
@@ -61,16 +74,19 @@ def test_convert_depth_ndjson_downloads_pairs_and_reuses_cache(tmp_path, monkeyp
     source = tmp_path / "source"
     source.mkdir()
     depth = np.arange(12, dtype=np.float32).reshape(3, 4)
-    for split in ("train", "test"):
-        cv2.imwrite(str(source / f"{split}.jpg"), np.zeros((3, 4, 3), dtype=np.uint8))
+    for split, value in (("train", 0), ("test", 255)):
+        cv2.imwrite(str(source / f"{split}.jpg"), np.full((3, 4, 3), value, dtype=np.uint8))
         np.save(source / f"{split}.npy", depth)
     depth_hash = xxhash.xxh3_128_hexdigest((source / "train.npy").read_bytes())
+    image_hashes = tuple(
+        xxhash.xxh3_128_hexdigest((source / f"{split}.jpg").read_bytes()) for split in ("train", "test")
+    )
 
     server = ThreadingHTTPServer(("127.0.0.1", 0), partial(_QuietHandler, directory=source))
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     manifest = tmp_path / "depth.ndjson"
-    _write_depth_ndjson(manifest, f"http://127.0.0.1:{server.server_port}", depth_hash)
+    _write_depth_ndjson(manifest, f"http://127.0.0.1:{server.server_port}", depth_hash, image_hashes)
 
     try:
         yaml_path = asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets"))
@@ -84,12 +100,16 @@ def test_convert_depth_ndjson_downloads_pairs_and_reuses_cache(tmp_path, monkeyp
             cached_image.write_bytes(invalid_cache)
             assert asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets")) == yaml_path
             assert cv2.imread(str(cached_image)) is not None
+        cached_image.write_bytes((source / "test.jpg").read_bytes())
+        assert asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets")) == yaml_path
+        assert cv2.imread(str(cached_image)).mean() < 1
 
         train_only_manifest = tmp_path / "train-only.ndjson"
         _write_depth_ndjson(
             train_only_manifest,
             f"http://127.0.0.1:{server.server_port}",
             depth_hash,
+            image_hashes,
             splits=("train", "train"),
         )
         train_only_yaml = asyncio.run(convert_ndjson_to_yolo(train_only_manifest, tmp_path / "datasets"))
@@ -103,6 +123,7 @@ def test_convert_depth_ndjson_downloads_pairs_and_reuses_cache(tmp_path, monkeyp
             manifest,
             f"http://127.0.0.1:{server.server_port}",
             depth_hash,
+            image_hashes,
             splits=("test", "train"),
         )
         resplit_yaml_path = asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets"))
@@ -142,6 +163,9 @@ def test_convert_depth_ndjson_does_not_reuse_images_by_filename(tmp_path):
     for split in ("train", "test"):
         np.save(source / f"{split}.npy", depth)
     depth_hash = xxhash.xxh3_128_hexdigest((source / "train.npy").read_bytes())
+    image_hashes = tuple(
+        xxhash.xxh3_128_hexdigest((source / f"{split}.jpg").read_bytes()) for split in ("train", "test")
+    )
 
     server = ThreadingHTTPServer(("127.0.0.1", 0), partial(_QuietHandler, directory=source))
     thread = threading.Thread(target=server.serve_forever, daemon=True)
@@ -149,13 +173,14 @@ def test_convert_depth_ndjson_does_not_reuse_images_by_filename(tmp_path):
     manifest = tmp_path / "same-name.ndjson"
     base_url = f"http://127.0.0.1:{server.server_port}"
     try:
-        _write_depth_ndjson(manifest, base_url, depth_hash, files=("frame.jpg", "frame.jpg"))
+        _write_depth_ndjson(manifest, base_url, depth_hash, image_hashes, files=("frame.jpg", "frame.jpg"))
         asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets"))
 
         _write_depth_ndjson(
             manifest,
             base_url,
             depth_hash,
+            image_hashes,
             splits=("test", "train"),
             files=("frame.jpg", "frame.jpg"),
         )
@@ -167,6 +192,43 @@ def test_convert_depth_ndjson_does_not_reuse_images_by_filename(tmp_path):
 
     assert cv2.imread(str(yaml_path.parent / "images" / "test" / "frame.jpg")).mean() < 1
     assert cv2.imread(str(yaml_path.parent / "images" / "train" / "frame.jpg")).mean() > 254
+
+
+def test_convert_depth_ndjson_commits_concurrent_conversions_atomically(tmp_path):
+    """Allow concurrent first conversions to share one complete immutable manifest directory."""
+    source = tmp_path / "source"
+    source.mkdir()
+    depth = np.arange(12, dtype=np.float32).reshape(3, 4)
+    for split in ("train", "test"):
+        cv2.imwrite(str(source / f"{split}.jpg"), np.zeros((3, 4, 3), dtype=np.uint8))
+        np.save(source / f"{split}.npy", depth)
+    depth_hash = xxhash.xxh3_128_hexdigest((source / "train.npy").read_bytes())
+    image_hashes = tuple(
+        xxhash.xxh3_128_hexdigest((source / f"{split}.jpg").read_bytes()) for split in ("train", "test")
+    )
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), partial(_QuietHandler, directory=source))
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    manifest = tmp_path / "concurrent.ndjson"
+    _write_depth_ndjson(manifest, f"http://127.0.0.1:{server.server_port}", depth_hash, image_hashes)
+
+    async def convert_twice():
+        return await asyncio.gather(
+            convert_ndjson_to_yolo(manifest, tmp_path / "datasets"),
+            convert_ndjson_to_yolo(manifest, tmp_path / "datasets"),
+        )
+
+    try:
+        yaml_paths = asyncio.run(convert_twice())
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join()
+
+    assert yaml_paths[0] == yaml_paths[1]
+    assert YAML.load(yaml_paths[0])["hash"]
+    assert len(list((tmp_path / "datasets").glob("concurrent-*/data.yaml"))) == 1
 
 
 def test_convert_depth_ndjson_rejects_incomplete_descriptor_before_download(tmp_path):
@@ -203,12 +265,15 @@ def test_convert_depth_ndjson_rejects_invalid_npy_payload(tmp_path, invalid_fiel
         cv2.imwrite(str(source / f"{split}.jpg"), np.zeros((3, 4, 3), dtype=np.uint8))
         np.save(source / f"{split}.npy", depth)
     depth_hash = xxhash.xxh3_128_hexdigest((source / "train.npy").read_bytes())
+    image_hashes = tuple(
+        xxhash.xxh3_128_hexdigest((source / f"{split}.jpg").read_bytes()) for split in ("train", "test")
+    )
 
     server = ThreadingHTTPServer(("127.0.0.1", 0), partial(_QuietHandler, directory=source))
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     manifest = tmp_path / "invalid-payload.ndjson"
-    _write_depth_ndjson(manifest, f"http://127.0.0.1:{server.server_port}", depth_hash)
+    _write_depth_ndjson(manifest, f"http://127.0.0.1:{server.server_port}", depth_hash, image_hashes)
     records = [json.loads(line) for line in manifest.read_text().splitlines()]
     records[2]["depth"][invalid_field] = "0" * 32 if invalid_field == "hash" else [2, 6]
     manifest.write_text("\n".join(json.dumps(record) for record in records))

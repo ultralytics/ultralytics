@@ -837,6 +837,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     dataset_record, image_records = lines[0], lines[1:]
     is_classification = dataset_record.get("task") == "classify"
     class_names = {int(k): v for k, v in dataset_record.get("class_names", {}).items()}
+    # Preserve nested legacy class names, but reject components that can escape the dataset root.
     if is_classification and any(
         not isinstance(v, str)
         or not v
@@ -857,9 +858,9 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                 raise ValueError(f"Invalid NDJSON split: {split!r}")
             if not isinstance(source_name, str) or not source_name:
                 raise ValueError(f"Invalid NDJSON image name: {source_name!r}")
-            if "/" in source_name or "\\" in source_name or (len(source_name) > 1 and source_name[1] == ":"):
-                suffix = source_name.rsplit(".", 1)[-1]
-                r["file"] = f"{i}.{suffix}" if suffix.isalnum() and len(suffix) <= 10 else f"{i}.jpg"
+            # Record indexes provide collision-free output stems without trusting source paths.
+            suffix = source_name.rsplit(".", 1)[-1]
+            r["file"] = f"{i}.{suffix}" if suffix.isalnum() and len(suffix) <= 10 else f"{i}.jpg"
             if is_classification:
                 ids = r.get("annotations", {}).get("classification", [])
                 class_id = ids[0] if ids else 0

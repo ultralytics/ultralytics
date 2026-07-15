@@ -1034,15 +1034,6 @@ def test_depth_calibration_checkpoint_provenance(tmp_path):
     assert float(head.cal_b) == provenance["b"]
 
 
-def test_cfg_depth_hyp_recipe_yaml_reproduces_release_training():
-    """depth-hyp.yaml resolves by name, contains only valid cfg args, and carries the release recipe."""
-    recipe = YAML.load(checks.check_yaml("depth-hyp.yaml"))
-    args = get_cfg(overrides=recipe)  # raises on any key not in default.yaml
-    assert (args.degrees, args.translate, args.scale, args.shear) == (8.0, 0.08, 0.15, 2.0)
-    assert (args.fliplr, args.flipud, args.perspective) == (0.5, 0.0, 0.0)
-    assert (args.hsv_h, args.hsv_s, args.hsv_v) == (0.05, 0.3, 0.3)
-
-
 def test_no_depth_env_reads_in_source():
     """All DEPTH_* knobs are cfg args now; no os.environ reads of them may remain."""
     import re

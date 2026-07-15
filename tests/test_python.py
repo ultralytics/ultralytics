@@ -1,7 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+import asyncio
 import contextlib
 import csv
+import json
 import os
 import shutil
 import tarfile
@@ -599,6 +601,25 @@ def test_train_ndjson():
     """Test training the YOLO model using NDJSON format dataset."""
     model = YOLO(WEIGHTS_DIR / "yolo26n.pt")
     model.train(data=f"{ASSETS_URL}/coco8-ndjson.ndjson", epochs=1, imgsz=32)
+
+
+def test_convert_ndjson_rejects_unsafe_output_paths(tmp_path):
+    """Verify NDJSON output paths cannot escape the converted dataset directory."""
+    from ultralytics.data.converter import convert_ndjson_to_yolo
+
+    ndjson = tmp_path / "dataset.ndjson"
+    records = [
+        {"type": "dataset", "task": "detect", "class_names": {"0": "class0"}},
+        {"type": "image", "split": "train", "file": "../escaped.jpg", "annotations": {}},
+        {"type": "image", "split": "val", "file": "val.jpg", "annotations": {}},
+    ]
+    ndjson.write_text("\n".join(json.dumps(x) for x in records))
+    output_path = tmp_path / "output"
+
+    with pytest.raises(ValueError, match="Unsafe NDJSON"):
+        asyncio.run(convert_ndjson_to_yolo(ndjson, output_path))
+
+    assert not output_path.exists()
 
 
 @pytest.mark.parametrize("scls", [False, True])

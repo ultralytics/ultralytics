@@ -20,8 +20,8 @@ from PIL import Image
 
 import ultralytics.data.build as data_build
 from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
-from ultralytics import RTDETR, YOLO
-from ultralytics.cfg import get_cfg
+from ultralytics import RTDETR, YOLO, __version__
+from ultralytics.cfg import _YOLO_CLI_COMMAND, get_cfg
 from ultralytics.data.build import build_dataloader, load_inference_source
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.utils import (
@@ -64,6 +64,22 @@ def test_pythonpath_env(tmp_path, monkeypatch):
         env=get_pythonpath_env(),
     )
     assert result.stdout.strip() == "ok ok"
+
+
+def test_python_command_prefers_parent_path(tmp_path):
+    """Verify the real CLI subprocess imports the parent package ahead of a conflicting child working directory."""
+    stale_package = tmp_path / "ultralytics"
+    stale_package.mkdir()
+    (stale_package / "__init__.py").write_text("__version__ = 'stale'")
+    result = subprocess.run(
+        [*_YOLO_CLI_COMMAND, "version"],
+        check=True,
+        capture_output=True,
+        cwd=tmp_path,
+        text=True,
+        env=get_pythonpath_env(),
+    )
+    assert __version__ in result.stdout
 
 
 def test_dataloader_caps_workers_to_batches():

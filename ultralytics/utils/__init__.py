@@ -531,6 +531,16 @@ def get_pythonpath_env():
     return {**os.environ, "PYTHONPATH": pythonpath}
 
 
+def get_python_command(module: str) -> list[str]:
+    """Return a command that runs a module with the parent import path ahead of the child working directory."""
+    code = (
+        "import os, runpy, sys; "
+        "sys.path[:0] = filter(None, os.environ.get('PYTHONPATH', '').split(os.pathsep)); "
+        "runpy.run_module(sys.argv.pop(1), run_name='__main__', alter_sys=True)"
+    )
+    return [sys.executable, "-c", code, module]
+
+
 class ThreadingLocked:
     """A decorator class for ensuring thread-safe execution of a function or method.
 

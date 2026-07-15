@@ -434,6 +434,7 @@ nav:
           - EfficientDet vs YOLOX: compare/efficientdet-vs-yolox.md
   - Datasets:
       - Datasets: datasets/index.md
+      - Multi-Dataset: datasets/multi-dataset.md
       - Detection:
           - datasets/detect/index.md
           - African-wildlife: datasets/detect/african-wildlife.md

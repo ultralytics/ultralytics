@@ -21,6 +21,7 @@ from ultralytics.data.dataset import (
     GroundingDataset,
     PolygonSemanticDataset,
     SemanticDataset,
+    YOLOConcatDataset,
     YOLODataset,
     YOLOMultiModalDataset,
 )
@@ -244,6 +245,70 @@ def build_yolo_dataset(
     fraction: float | None = None,
 ) -> Dataset:
     """Build and return a YOLO dataset based on configuration parameters."""
+    if "_class_registry" in data:
+        # Determine which split we are loading
+        split = "train"
+        for s in ("train", "val", "test", "minival"):
+            if data.get(s) is not None:
+                if data.get(s) == img_path:
+                    split = s
+                    break
+
+        registry = data["_class_registry"]
+        datasets_list = []
+        for i, sub_data in enumerate(data["_datasets"]):
+            sub_img_path = sub_data.get(split)
+            if sub_img_path is None:
+                continue
+
+            sub_data = sub_data.copy()
+            sub_data["_cls_remap"] = registry.get_remap(i)
+
+            pad = 0.0 if mode == "train" else 0.5
+            if cfg.task == "semantic":
+                data_path = Path(sub_data.get("path", ""))
+                if "masks_dir" in sub_data:
+                    dataset_cls = SemanticDataset
+                elif (data_path / "masks").exists():
+                    dataset_cls = SemanticDataset
+                else:
+                    dataset_cls = PolygonSemanticDataset
+                pad = 0.0  # no pad for semantic
+            elif multi_modal:
+                dataset_cls = YOLOMultiModalDataset
+            else:
+                dataset_cls = YOLODataset
+
+            sub_fraction = fraction
+            if sub_fraction is None:
+                sub_fraction = cfg.fraction if mode == "train" else 1.0
+
+            datasets_list.append(
+                dataset_cls(
+                    img_path=sub_img_path,
+                    imgsz=cfg.imgsz,
+                    batch_size=batch,
+                    augment=mode == "train",
+                    hyp=cfg,
+                    rect=cfg.rect or rect,
+                    cache=cfg.cache or None,
+                    single_cls=cfg.single_cls or False,
+                    stride=stride,
+                    pad=pad,
+                    prefix=colorstr(f"{mode}: (ds{i}) "),
+                    task=cfg.task,
+                    classes=cfg.classes,
+                    data=sub_data,
+                    fraction=sub_fraction,
+                )
+            )
+        if len(datasets_list) > 1:
+            return YOLOConcatDataset(datasets_list)
+        elif len(datasets_list) == 1:
+            return datasets_list[0]
+        else:
+            raise ValueError(f"No valid datasets found for split {split}")
+
     pad = 0.0 if mode == "train" else 0.5
     if cfg.task == "semantic":
         data_path = Path(data.get("path", ""))

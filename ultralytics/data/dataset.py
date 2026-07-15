@@ -211,6 +211,10 @@ class YOLODataset(BaseDataset):
                 lb["segments"] = []
         if len_cls == 0:
             LOGGER.warning(f"Labels are missing or empty in {cache_path}, training may not work correctly. {HELP_URL}")
+        if self.data and "_cls_remap" in self.data:
+            from ultralytics.data.class_registry import ClassRegistry
+
+            labels = ClassRegistry.remap_labels(labels, self.data["_cls_remap"])
         return labels
 
     def build_transforms(self, hyp: dict | None = None) -> Compose:

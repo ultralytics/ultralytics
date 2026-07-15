@@ -106,6 +106,12 @@ Multi-object tracking is a computer vision technique that involves detecting and
 - [Argoverse](detect/argoverse.md): A dataset containing 3D tracking and motion forecasting data from urban environments with rich annotations for multi-object tracking tasks.
 - [VisDrone](detect/visdrone.md): A dataset containing object detection and multi-object tracking data from drone-captured imagery with over 10K images and video sequences.
 
+## [Multi-Dataset Training](multi-dataset.md)
+
+Ultralytics supports training models on multiple independent datasets simultaneously using **Semantic Class Resolution**. The framework automatically resolves class IDs dynamically based on class name strings, preventing class ID mismatch conflicts between datasets with different class orderings.
+
+- [Multi-Dataset Training Guide](multi-dataset.md): Learn how to configure joint training across multiple datasets with auto-discovery or user-defined class ordering.
+
 ## Contribute New Datasets
 
 Contributing a new dataset involves several steps to ensure that it aligns well with the existing infrastructure. Below are the necessary steps:

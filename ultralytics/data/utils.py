@@ -483,6 +483,53 @@ def check_det_dataset(dataset: str, autodownload: bool = True, split: str = "") 
     # Read YAML
     data = YAML.load(file, append_filename=True)  # dictionary
 
+    if "datasets" in data and isinstance(data["datasets"], list):
+        from ultralytics.data.class_registry import ClassRegistry
+
+        global_names = data.get("names")
+        if global_names is not None:
+            global_names = check_class_names(global_names)
+
+        sub_dicts = []
+        for ds in data["datasets"]:
+            if isinstance(ds, dict):
+                ds_yaml = ds.get("data") or ds.get("path")
+                if not ds_yaml:
+                    raise ValueError(
+                        f"Each dataset entry dictionary in '{dataset}' must contain a 'data' or 'path' key. Got: {ds}"
+                    )
+                sub = check_det_dataset(str(ds_yaml), autodownload, split)
+                for k, v in ds.items():
+                    if k not in ("data", "path"):
+                        sub[f"_ds_opt_{k}"] = v
+            else:
+                sub = check_det_dataset(str(ds), autodownload, split)
+            sub_dicts.append(sub)
+
+        registry = ClassRegistry(sub_dicts, global_names=global_names)
+        merged = {
+            "names": registry.global_names,
+            "nc": registry.global_nc,
+            "_class_registry": registry,
+            "_datasets": sub_dicts,
+            "yaml_file": str(file),
+            "path": Path(file).parent,
+            "channels": sub_dicts[0].get("channels", 3),
+        }
+        for s in ("train", "val", "test", "minival"):
+            paths = []
+            for sub in sub_dicts:
+                v = sub.get(s)
+                if v is None:
+                    continue
+                if isinstance(v, list):
+                    paths.extend(v)
+                else:
+                    paths.append(v)
+            if paths:
+                merged[s] = paths if len(paths) > 1 else paths[0]
+        return merged
+
     # Checks
     for k in "train", "val":
         if k not in data:

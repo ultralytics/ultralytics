@@ -8,7 +8,7 @@ from copy import copy
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import DepthModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
-from ultralytics.utils.plotting import plt_settings
+from ultralytics.utils.plotting import plot_images, plt_settings
 
 
 class DepthTrainer(yolo.detect.DetectionTrainer):
@@ -80,15 +80,19 @@ class DepthTrainer(yolo.detect.DetectionTrainer):
         )
 
     def plot_training_samples(self, batch, ni):
-        """Plot training samples as RGB | GT-depth panels (consistent with val_batch plots).
+        """Plot training samples with GT depth overlays to ``train_batch{ni}.jpg``.
 
-        The inherited DetectionTrainer version routes the batch through ``plot_images``, which has
-        no depth rendering. Batch is already preprocessed here (img in [0,1]).
+        Follows the same ``plot_images`` path used by validation labels/predictions so the depth
+        heatmap is blended over the RGB image, consistent with the semantic-segmentation style.
         """
         try:
-            from .val import plot_depth_panels
-
-            plot_depth_panels(batch["img"], batch["depth"], [], self.save_dir / f"train_batch{ni}.jpg", max_images=8)
+            plot_images(
+                labels={"depth": batch["depth"]},
+                images=batch["img"],
+                paths=batch["im_file"],
+                fname=self.save_dir / f"train_batch{ni}.jpg",
+                on_plot=self.on_plot,
+            )
         except Exception as e:
             LOGGER.warning(f"DepthTrainer: failed to plot train_batch{ni}: {e}")
 

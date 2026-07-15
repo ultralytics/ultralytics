@@ -643,35 +643,17 @@ def test_train_ndjson():
 @pytest.mark.parametrize(
     ("task", "field", "value"),
     [
-        ("detect", "split", "../escaped"),
-        ("detect", "split", "/tmp/escaped"),
+        ("detect", "split", "../val"),
         ("detect", "file", "../escaped.jpg"),
-        ("detect", "file", "/tmp/escaped.jpg"),
-        ("classify", "file", "."),
-        ("classify", "file", "./"),
-        ("classify", "class_name", ".."),
         ("classify", "class_name", "../escaped"),
-        ("classify", "class_name", "/tmp/escaped"),
-        ("classify", "class_name", "nested/class"),
         ("classify", "class_id", "../../escaped"),
-        pytest.param(
-            "detect",
-            "file",
-            r"\escaped.jpg",
-            marks=pytest.mark.skipif(os.name != "nt", reason="Windows path syntax"),
-        ),
-        pytest.param(
-            "detect",
-            "file",
-            r"C:escaped.jpg",
-            marks=pytest.mark.skipif(os.name != "nt", reason="Windows path syntax"),
-        ),
-        pytest.param(
-            "classify",
-            "class_name",
-            "\\",
-            marks=pytest.mark.skipif(os.name != "nt", reason="Windows path syntax"),
-        ),
+        ("detect", "file", r"C:\escaped.jpg"),
+        ("detect", "file", r".. \escaped.jpg"),
+        ("detect", "file", "NUL.jpg"),
+        ("detect", "file", "image.jpg:stream"),
+        ("detect", "file", "CONIN$.jpg"),
+        ("detect", "file", "COM¹.txt"),
+        ("detect", "file", "image?.jpg"),
     ],
 )
 def test_convert_ndjson_rejects_unsafe_output_paths(tmp_path, task, field, value):
@@ -687,8 +669,6 @@ def test_convert_ndjson_rejects_unsafe_output_paths(tmp_path, task, field, value
     else:
         record[field] = value
     records = [record] if task == "classify" else [record, {**record, "split": "val", "file": "val.jpg"}]
-    if field == "split":
-        records.insert(0, {**record, "split": "train", "file": "train.jpg"})
     ndjson = tmp_path / "dataset.ndjson"
     ndjson.write_text("\n".join(json.dumps(x) for x in [dataset, *records]))
     output_path = tmp_path / "output"

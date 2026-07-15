@@ -93,7 +93,7 @@ The CoreML format supports the [Export](../modes/export.md), [Predict](../modes/
         # Load a YOLO26 model
         model = YOLO("yolo26n.pt")
 
-        # Export to CoreML (FP16 by default); quantize=8 matches the official app models
+        # Export to CoreML with INT8 weight quantization, matching the official app models
         model.export(format="coreml", quantize=8)  # creates 'yolo26n.mlpackage'
         ```
 

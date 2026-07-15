@@ -710,7 +710,8 @@ def test_results_update_probs():
 def test_labels_and_crops(tmp_path):
     """Test output from prediction args for saving YOLO detection labels and crops."""
     imgs = [SOURCE, ASSETS / "zidane.jpg"]
-    results = YOLO(WEIGHTS_DIR / "yolo26n.pt")(imgs, imgsz=160, save_txt=True, save_crop=True)
+    model = YOLO(WEIGHTS_DIR / "yolo26n.pt")
+    results = model(imgs, imgsz=160, save_txt=True, save_crop=True)
     save_path = Path(results[0].save_dir)
     for r in results:
         im_name = Path(r.path).stem
@@ -735,15 +736,8 @@ def test_labels_and_crops(tmp_path):
         crop_count = len([f for f in crop_files if im_name in f.name])
         assert crop_count == len(r.boxes.data), f"Crop count {crop_count} != detection count {len(r.boxes.data)}"
 
-    # save_crop=True on its own (no save/save_txt/show) must still write crops, e.g. verbose=False batch harvesting
-    crop_dir = tmp_path / "crop_only"
-    YOLO(WEIGHTS_DIR / "yolo26n.pt")(
-        imgs, imgsz=160, save_crop=True, verbose=False, project=crop_dir, name="p", exist_ok=True
-    )
-    crops = crop_dir / "p" / "crops"
-    assert crops.is_dir() and any(crops.iterdir()), (
-        "save_crop=True alone must write crops even without save/save_txt/show"
-    )
+    model(SOURCE, imgsz=160, save_crop=True, verbose=False, project=tmp_path, name="crop", exist_ok=True)
+    assert any((tmp_path / "crop/crops").rglob("*.jpg")), "save_crop=True alone must write crop files"
 
 
 def test_data_utils(tmp_path):

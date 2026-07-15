@@ -92,7 +92,7 @@ We're excited to see the innovative ways you'll use YOLOv5. Dive in, experiment,
 
 ### What are the key features of Ultralytics YOLOv5?
 
-Ultralytics YOLOv5 is renowned for its high-speed and high-[accuracy](https://www.ultralytics.com/glossary/accuracy) object detection capabilities. Built on [PyTorch](https://www.ultralytics.com/glossary/pytorch), it is versatile and user-friendly, making it suitable for various computer vision projects. Key features include real-time inference, support for multiple training tricks like Test-Time Augmentation (TTA) and Model Ensembling, and compatibility with export formats such as LiteRT, ONNX, CoreML, and TensorRT. To delve deeper into how Ultralytics YOLOv5 can elevate your project, explore our [LiteRT, ONNX, CoreML, TensorRT Export guide](tutorials/model-export.md).
+Ultralytics YOLOv5 is renowned for its high-speed and high-[accuracy](https://www.ultralytics.com/glossary/accuracy) object detection capabilities. Built on [PyTorch](https://www.ultralytics.com/glossary/pytorch), it is versatile and user-friendly, making it suitable for various computer vision projects. Key features include real-time inference, support for multiple training tricks like Test-Time Augmentation (TTA) and Model Ensembling, and compatibility with export formats such as ONNX, CoreML, and TensorRT, plus LiteRT for YOLOv5u models. To delve deeper into how Ultralytics YOLOv5 can elevate your project, explore our [LiteRT, ONNX, CoreML, TensorRT Export guide](tutorials/model-export.md).
 
 ### How can I train a custom YOLOv5 model on my dataset?
 

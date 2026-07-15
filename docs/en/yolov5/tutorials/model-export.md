@@ -43,7 +43,8 @@ YOLOv5 inference supports the following formats:
 | [TensorFlow.js](../../integrations/tfjs.md)                  | `tfjs`                | `yolov5s_web_model/`      |
 | [PaddlePaddle](../../integrations/paddlepaddle.md)           | `paddle`              | `yolov5s_paddle_model/`   |
 
-LiteRT export uses the current Ultralytics CLI rather than the legacy YOLOv5 `export.py` script:
+LiteRT export uses the current Ultralytics CLI and YOLOv5u. Original YOLOv5 repository checkpoints, including custom
+`best.pt` files, are not compatible with this workflow; see the [YOLOv5u model guide](../../models/yolov5.md).
 
 ```bash
 pip install ultralytics

@@ -187,8 +187,8 @@ python val.py --weights path/to/your/best.pt --data your_dataset.yaml # Validate
 # Run inference on images or videos using a trained model
 python detect.py --weights yolov5s.pt --source path/to/your/images_or_videos # Perform detection
 
-# Export a current YOLOv5u model to LiteRT for deployment
-pip install ultralytics && yolo export model=yolov5su.pt format=litert
+# Export the trained model to ONNX and CoreML
+python export.py --weights yolov5s.pt --include onnx coreml
 ```
 
 Explore the documentation for detailed usage of different modes:

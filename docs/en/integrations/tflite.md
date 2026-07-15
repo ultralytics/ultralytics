@@ -38,8 +38,8 @@ Same-device YOLO26n detect on the Adreno GPU of a [Xiaomi 17](https://www.mi.com
 
 | Android format                    | GPU inference (ms) | GPU-compiles |
 | --------------------------------- | ------------------ | ------------ |
-| onnx2tf INT8 (legacy TFLite)      | **8.6**            | yes          |
-| LiteRT w8a32 (new official)       | 8.4                | yes          |
+| onnx2tf INT8 (legacy TFLite)      | 8.6                | yes          |
+| LiteRT w8a32 (new official)       | **8.4**            | yes          |
 | LiteRT INT8 (`quantize=8`)        | 11.0               | yes          |
 | LiteRT FP32                       | 8.8                | yes          |
 | LiteRT w8a16 (`quantize="w8a16"`) | (CPU fallback)     | no — fails   |

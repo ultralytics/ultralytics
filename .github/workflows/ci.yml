@@ -115,10 +115,11 @@ jobs:
           coverage xml -o coverage-benchmarks.xml
       - name: Upload Coverage Reports to CodeCov
         if: github.repository == 'ultralytics/ultralytics'
+        continue-on-error: true
         uses: codecov/codecov-action@v7
         with:
           flags: Benchmarks
-          fail_ci_if_error: true
+          fail_ci_if_error: false
           use_oidc: true
       - name: Prune uv Cache
         run: uv cache prune --ci
@@ -198,10 +199,11 @@ jobs:
           YOLO_AUTOINSTALL: "false"
       - name: Upload Coverage Reports to CodeCov
         if: github.repository == 'ultralytics/ultralytics' # && matrix.os == 'ubuntu-latest' && matrix.python == '3.13'
+        continue-on-error: true
         uses: codecov/codecov-action@v7
         with:
           flags: Tests
-          fail_ci_if_error: true
+          fail_ci_if_error: false
           use_oidc: true
       - name: Prune uv Cache
         run: uv cache prune --ci
@@ -267,6 +269,7 @@ jobs:
             python: "3.12"
             torch: "2.3.0"
             torchvision: "0.18.0"
+            numpy_extra: export-legacy-torch # torchvision 0.18.0 adjust_hue casts negative hue via np.uint8(), rejected by NumPy 2 (fixed in torchvision 0.19.0)
           - os: ubuntu-latest
             python: "3.12"
             torch: "2.4.0"
@@ -432,7 +435,7 @@ jobs:
       - name: Install requirements
         run: |
           # Install TensorRT into the job venv so uv can reuse the runner image cache.
-          uv pip install -e ".[export-base]" pytest-cov onnxruntime-gpu "torch<2.11" "tensorrt-cu12>=7.0.0,!=10.2.0" "nvidia-modelopt[onnx]>=0.44"  # TODO: remove torch pin after GPU runner driver update to CUDA 13.0
+          uv pip install -e ".[export-base]" pytest-cov onnxruntime-gpu "torch<2.11" "tensorrt-cu12>=7.0.0,!=10.2.0" "nvidia-modelopt[onnx]>=0.44" lap  # TODO: remove torch pin after GPU runner driver update to CUDA 13.0
         env:
           PIP_BREAK_SYSTEM_PACKAGES: 1
       - name: Check environment
@@ -449,10 +452,11 @@ jobs:
         env:
           PIP_BREAK_SYSTEM_PACKAGES: 1
       - name: Upload Coverage Reports to CodeCov
+        continue-on-error: true
         uses: codecov/codecov-action@v7
         with:
           flags: GPU
-          fail_ci_if_error: true
+          fail_ci_if_error: false
           use_oidc: true
 
   # Raspberry Pi stays separate because it is a long-tail self-hosted runner with its own setup and cleanup flow.
@@ -659,7 +663,7 @@ jobs:
     steps:
       - name: Check for failure and notify
         if: (needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure' || needs.SlowTests.result == 'failure' || needs.IsolatedExports.result == 'failure' || needs.GPU.result == 'failure' || needs.RaspberryPi.result == 'failure' || needs.NVIDIA_Jetson.result == 'failure' || needs.Conda.result == 'failure' ) && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push') && github.run_attempt == '1'
-        uses: slackapi/slack-github-action@v3.0.3
+        uses: slackapi/slack-github-action@v3.0.5
         with:
           webhook-type: incoming-webhook
           webhook: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}

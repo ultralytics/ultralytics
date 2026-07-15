@@ -199,11 +199,6 @@ class DepthValidator(DetectionValidator):
 
         Depth has no boxes/classes, so the detection-style plotter is replaced with a depth heatmap overlay
         through the shared ``plot_images`` path, matching the semantic-segmentation visualization style.
-
-        Standalone val (``yolo val``) additionally writes ``val_batch{ni}_calibrated.jpg`` comparing raw vs the
-        checkpoint's baked calibration. The head already applies ``cal_a``/``cal_b`` in its forward, so the
-        prediction here IS the calibrated output; raw is recovered by inverting the log-affine. Training-epoch
-        validation skips this (buffers are identity until final_eval fits them, so the comparison says nothing).
         """
         if "depth" not in batch:
             return
@@ -217,18 +212,6 @@ class DepthValidator(DetectionValidator):
                 names=self.names,
                 on_plot=self.on_plot,
             )
-            cal = getattr(self, "_cal_ab", None)
-            if cal is not None and not getattr(self, "training", True):
-                a, b = cal
-                raw = torch.exp((torch.log(pred.float().clamp(min=1e-3)) - b) / a)
-                name = "identity" if (a, b) == (1.0, 0.0) else "baked"
-                plot_depth_panels(
-                    batch["img"],
-                    [raw, pred],
-                    self.save_dir / f"val_batch{ni}_calibrated.jpg",
-                    gt=batch["depth"],
-                    titles=["RGB", "GT", "raw", f"calibrated ({name} x{np.exp(b):.2f})"],
-                )
         except Exception as e:
             LOGGER.warning(f"DepthValidator: failed to plot val_batch{ni}_pred: {e}")
 

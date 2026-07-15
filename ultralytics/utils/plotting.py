@@ -1013,9 +1013,12 @@ def plot_images(
             if dh != h or dw != w:
                 d = cv2.resize(d.astype(np.float32), (w, h), interpolation=cv2.INTER_NEAREST)
             im = np.asarray(annotator.im).copy()
-            sub_annotator = Annotator(np.ascontiguousarray(im[y : y + h, x : x + w]), line_width=1, pil=False)
+            # The main mosaic is RGB (pil=True), but depth_map emits a BGR heatmap and uses cv2 addWeighted.
+            # Convert the patch to BGR for the overlay, then convert back to RGB for the mosaic.
+            sub_bgr = cv2.cvtColor(np.ascontiguousarray(im[y : y + h, x : x + w]), cv2.COLOR_RGB2BGR)
+            sub_annotator = Annotator(sub_bgr, line_width=1, pil=False)
             sub_annotator.depth_map(d, side_by_side=False, alpha=0.6)
-            im[y : y + h, x : x + w] = sub_annotator.im
+            im[y : y + h, x : x + w] = cv2.cvtColor(sub_annotator.im, cv2.COLOR_BGR2RGB)
             annotator.fromarray(im)
 
     if not save:

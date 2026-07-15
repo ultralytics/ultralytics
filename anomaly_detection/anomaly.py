@@ -857,10 +857,8 @@ class AnomalyValidator:
             return
         orig = cv2.resize(orig, (eval_size, eval_size))
 
-        # Normalize heatmap to [0, 255] uint8 then colorize (JET: blue=low, red=high).
-        amap_n = amap - amap.min()
-        if amap_n.max() > 0:
-            amap_n = amap_n / amap_n.max()
+        # Colorize with absolute score values (0→blue, 1→red), no per-image normalization.
+        amap_n = np.clip(amap, 0.0, 1.0)
         heatmap = cv2.applyColorMap((amap_n * 255).astype(np.uint8), cv2.COLORMAP_JET)
 
         # Overlay: original × 0.5 + heatmap × 0.5.
@@ -879,6 +877,16 @@ class AnomalyValidator:
         combined = cv2.hconcat([orig, heatmap, overlay])
         save_path.parent.mkdir(parents=True, exist_ok=True)
         cv2.imwrite(str(save_path), combined)
+        # Also save standalone heatmap with min/max labels.
+        heatmap_path = save_path.with_stem(save_path.stem + "_heatmap")
+        hm_min, hm_max = float(amap.min()), float(amap.max())
+        heatmap_labeled = heatmap.copy()
+        for i, (text, pos) in enumerate(
+            [(f"min={hm_min:.4f}", (4, 14)), (f"max={hm_max:.4f}", (4, 30))]
+        ):
+            cv2.putText(heatmap_labeled, text, pos, cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 0, 0), 2, cv2.LINE_AA)
+            cv2.putText(heatmap_labeled, text, pos, cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 255), 1, cv2.LINE_AA)
+        cv2.imwrite(str(heatmap_path), heatmap_labeled)
 
     # ── Per-category validation ─────────────────────────────────────────
     def val_category(self, category: str, ad: "AnomalyBase") -> dict:
@@ -1119,9 +1127,9 @@ def main() -> None:
                    help="Top-K nearest bank entries per query (default 5; ignored by 1nn).")
     p.add_argument("--scoring", default="noisy_or", choices=list(_SCORERS),
                    help="Scoring method: noisy_or (sigmoid Noisy-OR) or 1nn (1 − max cos).")
-    p.add_argument("--temperature", type=float, default=3.0,
+    p.add_argument("--temperature", type=float, default=5.0,
                    help="β floor / starting point (default 3.0); hold-out calibration only raises it.")
-    p.add_argument("--target-score", type=float, default=0.2,
+    p.add_argument("--target-score", type=float, default=0.4,
                    help="Calibration target: a typical-normal query scores at this value (default 0.2).")
     p.add_argument("--target-quantile", type=float, default=0.95,
                    help="Hold-out quantile placed at --target-score (default 0.95).")

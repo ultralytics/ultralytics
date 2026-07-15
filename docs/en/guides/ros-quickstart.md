@@ -37,7 +37,7 @@ Apart from the ROS environment, you will need to install the following dependenc
         - **[ROS NumPy package](https://github.com/eric-wieser/ros_numpy)**: This is required for fast conversion between ROS Image messages and NumPy arrays. It ships as a ROS package rather than a PyPI package, so install it through the ROS package manager instead of `pip`:
 
             ```bash
-            sudo apt install ros-noetic-ros-numpy
+            sudo apt install ros-$ROS_DISTRO-ros-numpy
             ```
 
         - **Ultralytics package**:
@@ -1053,7 +1053,7 @@ Use whichever your robot or simulation environment already runs — every code e
 Integrating Ultralytics YOLO with ROS involves setting up a ROS environment and using YOLO for processing sensor data. Begin by installing the required dependencies — `ros_numpy` through the ROS package manager, and Ultralytics YOLO through pip:
 
 ```bash
-sudo apt install ros-noetic-ros-numpy
+sudo apt install ros-$ROS_DISTRO-ros-numpy
 pip install ultralytics
 ```
 

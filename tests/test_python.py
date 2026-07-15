@@ -43,7 +43,12 @@ from ultralytics.utils import (
     checks,
     is_github_action_running,
 )
-from ultralytics.utils.analysis import CorrelationAnalysis, ImagePropertyExtractor
+from ultralytics.utils.analysis import (
+    CorrelationAnalysis,
+    ImagePropertyExtractor,
+    _softmin1d,
+    compute_objectlab_scores,
+)
 from ultralytics.utils.downloads import download, safe_download
 from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13
 
@@ -1482,13 +1487,16 @@ def test_correlation_rank_top_problematic():
 
 
 def test_correlation_analysis(tmp_path):
-    """CorrelationAnalysis joins extractor labels with validator metrics and writes the full report."""
+    """CorrelationAnalysis joins extractor labels with validator metrics + ObjectLab and writes the report."""
     model = YOLO(MODEL)
-    metrics = model.val(data="coco8.yaml", imgsz=32, plots=False, save_json=False, verbose=False, device="cpu")
+    metrics = model.val(
+        data="coco8.yaml", imgsz=32, plots=False, save_json=False, verbose=False, score_labels=True, device="cpu"
+    )
     labels = ImagePropertyExtractor(model.validator.dataloader.dataset).labels
     out_dir = tmp_path / "corr"
     report = CorrelationAnalysis(labels, metrics).run(save_dir=out_dir)
-    assert next(iter(report.per_image.values())).get("f1") is not None
+    sample = next(iter(report.per_image.values()))
+    assert sample.get("f1") is not None and "overlooked_score" in sample
     for fname in ("per_image_analysis.csv", "correlations.json", "summary.md", "correlation_scatter.png"):
         assert (out_dir / fname).stat().st_size > 0, fname
 
@@ -1497,3 +1505,53 @@ def test_analysis_lazy_matplotlib_import():
     """Importing the analysis module must not import matplotlib (lazy-loaded inside plot)."""
     code = "import sys; import ultralytics.utils.analysis; assert 'matplotlib' not in sys.modules"
     subprocess.run([sys.executable, "-c", code], check=True)
+
+
+def test_softmin1d():
+    """Softmin1d stays within input min/max, nears the min at low T, and collapses to a constant when uniform."""
+    scores = np.array([0.2, 0.5, 0.8])
+    result = _softmin1d(scores, T=0.1)
+    assert scores.min() <= result <= scores.max()
+    assert result == pytest.approx(scores.min(), abs=0.05)  # low T -> near min
+    assert _softmin1d(np.array([0.7, 0.7, 0.7]), T=0.1) == pytest.approx(0.7)
+
+
+def test_objectlab_clean_image_returns_high_quality():
+    """An image where every GT has a matched same-class high-conf prediction returns near-1.0 quality."""
+    out = compute_objectlab_scores(
+        iou=np.array([[1.0, 0.0], [0.0, 1.0]]),
+        pred_bb=np.array([[0, 0, 10, 10], [50, 50, 60, 60]], dtype=np.float32),
+        pred_cls=np.array([0, 1]),
+        pred_conf=np.array([0.99, 0.99]),
+        gt_bb=np.array([[0, 0, 10, 10], [50, 50, 60, 60]], dtype=np.float32),
+        gt_cls=np.array([0, 1]),
+    )
+    assert all(v == pytest.approx(1.0, abs=0.05) for v in out.values())
+
+
+def test_objectlab_swap_drops_quality():
+    """A high-confidence different-class prediction overlapping a GT triggers a low swap score."""
+    out = compute_objectlab_scores(
+        iou=np.array([[1.0]]),
+        pred_bb=np.array([[0, 0, 10, 10]], dtype=np.float32),
+        pred_cls=np.array([1]),
+        pred_conf=np.array([0.99]),
+        gt_bb=np.array([[0, 0, 10, 10]], dtype=np.float32),
+        gt_cls=np.array([0]),
+    )
+    assert out["swap_score"] < 0.1
+
+
+def test_objectlab_empty_labels_flag_overlooked():
+    """An empty-label image with a high-confidence prediction scores as likely-overlooked (low quality)."""
+    out = compute_objectlab_scores(
+        iou=None,
+        pred_bb=np.array([[10, 10, 50, 50]], dtype=np.float32),
+        pred_cls=np.array([0]),
+        pred_conf=np.array([0.99]),
+        gt_bb=np.zeros((0, 4), dtype=np.float32),
+        gt_cls=np.zeros(0),
+    )
+    assert out["overlooked_score"] < 0.1
+    assert out["badloc_score"] == 1.0 and out["swap_score"] == 1.0
+    assert out["label_quality_score"] < 0.5

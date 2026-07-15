@@ -271,6 +271,7 @@ CFG_BOOL_KEYS = frozenset(
         "save_json",
         "dnn",
         "plots",
+        "score_labels",
         "show",
         "save_txt",
         "save_conf",

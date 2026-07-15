@@ -592,7 +592,7 @@ class v8SegmentationLoss(v8DetectionLoss):
 
         Args:
             fg_mask (torch.Tensor): A binary tensor of shape (BS, N_anchors) indicating which anchors are positive.
-            masks (torch.Tensor): Ground truth masks of shape (BS, H, W) if `overlap` is False, otherwise (BS, ?, H, W).
+            masks (torch.Tensor): Ground truth masks, shape (BS, H, W) if `overlap` else (N_instances_in_batch, H, W).
             target_gt_idx (torch.Tensor): Indexes of ground truth objects for each anchor of shape (BS, N_anchors).
             target_bboxes (torch.Tensor): Ground truth bounding boxes for each anchor of shape (BS, N_anchors, 4).
             batch_idx (torch.Tensor): Batch indices of shape (N_labels_in_batch, 1).
@@ -620,12 +620,12 @@ class v8SegmentationLoss(v8DetectionLoss):
         # Normalize to mask size
         mxyxy = target_bboxes_normalized * torch.tensor([mask_w, mask_h, mask_w, mask_h], device=proto.device)
 
-        for i, single_i in enumerate(zip(fg_mask, target_gt_idx, pred_masks, proto, mxyxy, marea, masks)):
-            fg_mask_i, target_gt_idx_i, pred_masks_i, proto_i, mxyxy_i, marea_i, masks_i = single_i
+        for i, single_i in enumerate(zip(fg_mask, target_gt_idx, pred_masks, proto, mxyxy, marea)):
+            fg_mask_i, target_gt_idx_i, pred_masks_i, proto_i, mxyxy_i, marea_i = single_i
             if fg_mask_i.any():
                 mask_idx = target_gt_idx_i[fg_mask_i]
                 if self.overlap:
-                    gt_mask = masks_i == (mask_idx + 1).view(-1, 1, 1)
+                    gt_mask = masks[i] == (mask_idx + 1).view(-1, 1, 1)
                     gt_mask = gt_mask.float()
                 else:
                     gt_mask = masks[batch_idx.view(-1) == i][mask_idx]

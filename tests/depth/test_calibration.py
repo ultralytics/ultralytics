@@ -27,15 +27,6 @@ def test_lstsq_affine_recovers_known_affine():
     assert abs(a - a0) < 1e-6 and abs(b - b0) < 1e-6
 
 
-def test_lstsq_affine_distance_weighted_runs():
-    """The optional gt-weighted fit (dist_power>0) returns a finite result."""
-    rng = np.random.default_rng(1)
-    log_pred = rng.normal(size=5000)
-    log_gt = 1.1 * log_pred - 0.4 + rng.normal(scale=0.05, size=5000)
-    a, b = lstsq_affine(log_pred, log_gt, dist_power=1.0)
-    assert math.isfinite(a) and math.isfinite(b)
-
-
 def test_calibration_identity_by_default():
     """A fresh log head carries identity calibration buffers (no-op)."""
     head = Depth(c_mid=16, mode="log", ch=(16, 32, 64))

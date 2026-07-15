@@ -157,16 +157,16 @@ The 3 exported models will be saved alongside the original PyTorch model:
 `detect.py` runs inference on legacy YOLOv5 exported models:
 
 ```bash
-python detect.py --weights yolov5s.pt                           # PyTorch
-python detect.py --weights yolov5s.torchscript                  # TorchScript
-python detect.py --weights yolov5s.onnx                         # ONNX Runtime or OpenCV DNN with dnn=True
-python detect.py --weights yolov5s_openvino_model               # OpenVINO
-python detect.py --weights yolov5s.engine                       # TensorRT
-python detect.py --weights yolov5s.mlmodel                      # CoreML (macOS only)
-python detect.py --weights yolov5s_saved_model                  # TensorFlow SavedModel
-python detect.py --weights yolov5s.pb                           # TensorFlow GraphDef
-python detect.py --weights yolov5s_edgetpu.tflite               # TensorFlow Edge TPU
-python detect.py --weights yolov5s_paddle_model                 # PaddlePaddle
+python detect.py --weights yolov5s.pt             # PyTorch
+python detect.py --weights yolov5s.torchscript    # TorchScript
+python detect.py --weights yolov5s.onnx           # ONNX Runtime or OpenCV DNN with dnn=True
+python detect.py --weights yolov5s_openvino_model # OpenVINO
+python detect.py --weights yolov5s.engine         # TensorRT
+python detect.py --weights yolov5s.mlmodel        # CoreML (macOS only)
+python detect.py --weights yolov5s_saved_model    # TensorFlow SavedModel
+python detect.py --weights yolov5s.pb             # TensorFlow GraphDef
+python detect.py --weights yolov5s_edgetpu.tflite # TensorFlow Edge TPU
+python detect.py --weights yolov5s_paddle_model   # PaddlePaddle
 ```
 
 `val.py` runs validation on legacy YOLOv5 exported models:

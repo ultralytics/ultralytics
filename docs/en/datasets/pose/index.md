@@ -25,13 +25,13 @@ Here is an example of the label format for a pose estimation task:
 
 Format with 2D keypoints
 
-```
+```text
 <class-index> <x> <y> <width> <height> <px1> <py1> <px2> <py2> ... <pxn> <pyn>
 ```
 
 Format with keypoint visibility (includes visibility per point)
 
-```
+```text
 <class-index> <x> <y> <width> <height> <px1> <py1> <p1-visibility> <px2> <py2> <p2-visibility> <pxn> <pyn> <pn-visibility>
 ```
 

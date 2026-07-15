@@ -87,7 +87,7 @@ modal run modal_yolo.py
 
 Expected output:
 
-```
+```text
 ✓ Initialized. View run at https://modal.com/apps/your-username/main/ap-xxxxxxxx
 ✓ Created objects.
 ├── 🔨 Created mount modal_yolo.py

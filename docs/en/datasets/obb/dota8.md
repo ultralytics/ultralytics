@@ -19,7 +19,7 @@ keywords: DOTA8 dataset, Ultralytics, YOLO26, object detection, debugging, train
 - **Download**: 1 MB, fetched automatically from Ultralytics GitHub assets the first time you train.
 - **Recommended layout**:
 
-    ```
+    ```text
     datasets/dota8/
     ├── images/
     │   ├── train/

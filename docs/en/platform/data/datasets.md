@@ -70,7 +70,10 @@ The file extension alone isn't enough: a video can still fail if its container o
     H.264 video in an MP4 container has the broadest support across major browsers and is the safest choice. If a video won't upload, re-encode it with [FFmpeg](https://ffmpeg.org/):
 
     ```bash
-    ffmpeg -i input.mov -c:v libx264 -pix_fmt yuv420p -c:a aac -movflags +faststart output.mp4
+    ffmpeg -i input.mov \
+      -c:v libx264 -pix_fmt yuv420p \
+      -c:a aac -movflags +faststart \
+      output.mp4
     ```
 
 ??? info "Which video codecs work"
@@ -92,7 +95,7 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 
     Use the standard YOLO directory structure with a `data.yaml` file:
 
-    ```
+    ```text
     my-dataset/
     ├── images/
     │   ├── train/
@@ -129,7 +132,7 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 
     Use JSON annotation files with the standard [COCO structure](https://cocodataset.org/#format-data):
 
-    ```
+    ```text
     my-coco-dataset/
     ├── train/
     │   ├── _annotations.coco.json
@@ -157,7 +160,7 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 
     Classification uploads are auto-detected from common folder layouts:
 
-    ```
+    ```text
     split/class/image.jpg
     class/split/image.jpg
     class/image.jpg
@@ -165,7 +168,7 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 
     Example:
 
-    ```
+    ```text
     my-classify-dataset/
     ├── train/
     │   ├── cats/
@@ -601,7 +604,7 @@ Delete multiple images at once:
 
 Reference Platform datasets using the `ul://` URI format (see [Using Platform Datasets](../api/index.md#using-platform-datasets)):
 
-```
+```text
 ul://username/datasets/dataset-slug
 ```
 

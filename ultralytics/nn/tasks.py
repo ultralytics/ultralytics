@@ -92,11 +92,11 @@ from ultralytics.utils.loss import (
     PoseLoss26,
     SemanticSegmentationLoss,
     v8ClassificationLoss,
-    v26DepthLoss,
     v8DetectionLoss,
     v8OBBLoss,
     v8PoseLoss,
     v8SegmentationLoss,
+    v26DepthLoss,
 )
 from ultralytics.utils.ops import make_divisible
 from ultralytics.utils.patches import torch_load

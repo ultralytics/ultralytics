@@ -1,4 +1,5 @@
 ---
+plans: [free, pro, enterprise]
 comments: true
 description: Get started with Ultralytics Platform in minutes. Learn to create an account, upload datasets, train YOLO models, and deploy to production.
 keywords: Ultralytics Platform, Quickstart, YOLO models, dataset upload, model training, cloud deployment, machine learning
@@ -204,7 +205,7 @@ After upload, the platform automatically processes your data:
 
     For best results, upload a ZIP or TAR archive (including `.tar.gz` and `.tgz`) with the standard YOLO structure:
 
-    ```
+    ```text
     my-dataset.zip
     ├── data.yaml          # Class names and splits
     ├── train/

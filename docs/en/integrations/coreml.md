@@ -40,7 +40,7 @@ CoreML integrates directly with Apple's [Vision framework](https://developer.app
 ## Why Export YOLO26 to CoreML?
 
 - **Neural Engine speed**: YOLO26n detection runs end-to-end in **3.8 ms** on an iPhone 17 Pro for single images and 11.3 ms/frame in sustained real-time camera use; YOLO26n Depth takes **5.5 ms** for a single image and 16.5 ms/frame in the live camera (see the table and notes below).
-- **NMS-free by design**: YOLO26 is [end-to-end](https://www.ultralytics.com/glossary/non-maximum-suppression-nms), so the exported graph needs no NMS pipeline and decode is sub-millisecond. Older models like YOLO11 can embed a CoreML NMS pipeline with `nms=True`.
+- **NMS-free by design**: YOLO26 is [end-to-end](https://www.ultralytics.com/glossary/non-maximum-suppression-nms), so the exported graph needs no NMS pipeline and decode is sub-millisecond. Older detection models like YOLO11 can embed a CoreML NMS pipeline with `nms=True`.
 - **Private and offline**: All computation stays on the device — no cloud round-trips, no API keys, full [data privacy](https://www.ultralytics.com/glossary/data-privacy).
 - **One export, the whole ecosystem**: The same `.mlpackage` runs on iOS, iPadOS, macOS, watchOS, tvOS, and visionOS, and powers the official Ultralytics [iOS SDK](https://github.com/ultralytics/yolo-ios-app) and [Flutter plugin](https://github.com/ultralytics/yolo-flutter-app).
 
@@ -153,7 +153,7 @@ The CoreML format supports the [Export](../modes/export.md), [Predict](../modes/
 | `format`   | `str`            | `'coreml'` | Target format for the exported model, defining compatibility with various deployment environments.                                                                                           |
 | `imgsz`    | `int` or `tuple` | `640`      | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                            |
 | `quantize` | `int` or `str`   | `None`     | Quantization precision (weight-only for CoreML): `16` (FP16), `8` (INT8), `"w8a16"` (INT8 weights with FP16 activations), or `32`/unset (FP32). Replaces the deprecated `half`/`int8` flags. |
-| `nms`      | `bool`           | `False`    | Embeds a CoreML NMS pipeline. Not needed for NMS-free YOLO26; use for earlier models like YOLO11.                                                                                            |
+| `nms`      | `bool`           | `False`    | Embeds a CoreML NMS pipeline. Detection models only (ignored with a warning for other tasks); not needed for NMS-free YOLO26, use for earlier models like YOLO11.                            |
 | `dynamic`  | `bool`           | `False`    | Allows dynamic input sizes, enhancing flexibility in handling varying image dimensions.                                                                                                      |
 | `batch`    | `int`            | `1`        | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                      |
 | `device`   | `str`            | `None`     | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                                                                              |
@@ -210,7 +210,7 @@ Run `model.export(format="coreml")` in Python or `yolo export model=yolo26n.pt f
 
 ### Do I need `nms=True` when exporting YOLO26?
 
-No. YOLO26 is NMS-free end-to-end, so the exported graph already emits final detections and decode costs well under a millisecond. The `nms=True` option exists for earlier models such as YOLO11, where it embeds a CoreML NMS pipeline so your app does not have to implement suppression.
+No. YOLO26 is NMS-free end-to-end, so the exported graph already emits final detections and decode costs well under a millisecond. The `nms=True` option exists for earlier detection models such as YOLO11, where it embeds a CoreML NMS pipeline so your app does not have to implement suppression. CoreML NMS pipelines only support object detection, so `nms=True` is ignored with a warning for other tasks like segmentation and pose.
 
 ### Which precision should I use — FP16 or INT8?
 

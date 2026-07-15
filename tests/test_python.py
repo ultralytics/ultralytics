@@ -757,6 +757,17 @@ def test_data_utils(tmp_path):
     with pytest.raises(FileNotFoundError, match="images not found"):
         check_det_dataset(data_yaml, split="test")
 
+    # polygons2masks_overlap must not overflow uint8 on the transient `masks + mask` sum (reaches 2 * i + 1):
+    # with more than 128 overlapping instances every instance must keep a distinct index in the overlap mask
+    from ultralytics.data.utils import polygons2masks_overlap
+
+    segments = [
+        np.array([[150 - s, 150 - s], [150 + s, 150 - s], [150 + s, 150 + s], [150 - s, 150 + s]], dtype=np.float32)
+        for s in range(140, 10, -1)  # 130 concentric squares, all overlapping the center
+    ]
+    overlap, _ = polygons2masks_overlap((300, 300), segments)
+    assert len(np.unique(overlap)) == len(segments) + 1  # background + 130 instances, no uint8 wraparound
+
 
 def test_safe_download_unzips_local_path_archive(tmp_path):
     """Test safe_download() unzips local archive paths without treating them like remote URLs."""
@@ -1045,9 +1056,11 @@ def test_nms_end2end_classes_before_max_det():
         ],
         dtype=torch.float32,
     )
-    for out, confs in zip(non_max_suppression(pred, conf_thres=0.25, classes=[0], max_det=2), ([0.8, 0.7], [0.9, 0.6])):
+    outputs, indices = non_max_suppression(pred, conf_thres=0.25, classes=[0], max_det=2, return_idxs=True)
+    for out, idx, confs, expected in zip(outputs, indices, ([0.8, 0.7], [0.9, 0.6]), ([1, 2], [0, 3])):
         assert out.shape[0] == 2 and (out[:, 5] == 0).all()  # top-2 class-0 boxes kept, not truncated away
         assert torch.allclose(out[:, 4], torch.tensor(confs))
+        assert idx.tolist() == expected
     out = non_max_suppression(pred, conf_thres=0.25, max_det=2)[0]  # without classes, top-2 overall unchanged
     assert torch.allclose(out[:, 4], torch.tensor([0.9, 0.8]))
 

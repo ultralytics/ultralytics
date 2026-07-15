@@ -50,15 +50,19 @@ from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13
 def test_pythonpath_env(tmp_path, monkeypatch):
     """Verify Python subprocesses import modules available only on the parent runtime path."""
     (tmp_path / "parent_only.py").write_text("VALUE = 'ok'")
+    child_path = tmp_path / "child"
+    child_path.mkdir()
+    (child_path / "child_only.py").write_text("VALUE = 'ok'")
     monkeypatch.syspath_prepend(tmp_path)
+    monkeypatch.setenv("PYTHONPATH", str(child_path))
     result = subprocess.run(
-        [sys.executable, "-c", "import parent_only; print(parent_only.VALUE)"],
+        [sys.executable, "-c", "import child_only, parent_only; print(child_only.VALUE, parent_only.VALUE)"],
         check=True,
         capture_output=True,
         text=True,
         env=get_pythonpath_env(),
     )
-    assert result.stdout.strip() == "ok"
+    assert result.stdout.strip() == "ok ok"
 
 
 def test_dataloader_caps_workers_to_batches():

@@ -503,7 +503,10 @@ def emojis(string=""):
 
 def get_pythonpath_env():
     """Return an environment that preserves the current Python import path in subprocesses."""
-    return {**os.environ, "PYTHONPATH": os.pathsep.join(os.getcwd() if path == "" else path for path in sys.path)}
+    pythonpath = os.pathsep.join(os.getcwd() if path == "" else path for path in sys.path)
+    if inherited := os.getenv("PYTHONPATH"):
+        pythonpath = f"{pythonpath}{os.pathsep}{inherited}"
+    return {**os.environ, "PYTHONPATH": pythonpath}
 
 
 class ThreadingLocked:

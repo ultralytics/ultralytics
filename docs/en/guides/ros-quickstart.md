@@ -667,7 +667,11 @@ A point cloud is a collection of data points defined within a three-dimensional 
 
 ### Using YOLO with Point Clouds
 
-To integrate YOLO with `sensor_msgs/PointCloud2` type messages, extract a 2D image from the color information embedded in the point cloud, perform segmentation on this image using YOLO, and then apply the resulting mask to the three-dimensional points to isolate the 3D object of interest. This workflow needs an organized, colorized point cloud — the `height x width` grid with a packed `rgb` field that RGB-D cameras like the Intel RealSense publish. A raw LIDAR cloud is normally unorganized (`height == 1`) and reports intensity instead of color, so it needs a separate projection and colorization step before it fits this pipeline.
+To integrate YOLO with `sensor_msgs/PointCloud2` type messages, extract a 2D image from the color information embedded in the point cloud, perform segmentation on this image using YOLO, and then apply the resulting mask to the three-dimensional points to isolate the 3D object of interest. This workflow needs an organized, colorized point cloud — the `height x width` grid with a packed `rgb` field that RGB-D cameras like the Intel RealSense can publish when configured to do so (see the warning below). A raw LIDAR cloud is normally unorganized (`height == 1`) and reports intensity instead of color, so it needs a separate projection and colorization step before it fits this pipeline.
+
+!!! warning "Organized Point Clouds"
+
+    This workflow needs an organized cloud — a real `height x width` grid — to reshape into the 2D image YOLO segments. The RealSense ROS driver publishes an *unordered* cloud (`height == 1`) by default; launch it with `pointcloud.ordered_pc:=true` to get an organized cloud instead. Feeding an unordered cloud through this pipeline doesn't raise an error: `reshape((height, width, 3))` still succeeds since the point count matches, but it silently produces a `1 x N` image whose masks no longer correspond to real camera pixels.
 
 For handling point clouds, we recommend using Open3D, a user-friendly Python library that provides robust tools for managing point cloud data structures, visualizing them, and executing complex operations seamlessly. This library can significantly simplify the process and enhance our ability to manipulate and analyze point clouds in conjunction with YOLO-based segmentation.
 
@@ -721,9 +725,9 @@ Import the necessary libraries and instantiate the YOLO model for segmentation.
                 self.cloud = data
         ```
 
-Create a function `pointcloud2_to_array`, which transforms a `sensor_msgs/PointCloud2` message into two NumPy arrays. The `sensor_msgs/PointCloud2` messages contain `n` points based on the `width` and `height` of the acquired image. For instance, a `480 x 640` image will have `307,200` points. Each point includes three spatial coordinates (`xyz`) and the corresponding color in `RGB` format. These can be considered as two separate channels of information.
+Create a function `pointcloud2_to_array`, which transforms a `sensor_msgs/PointCloud2` message into NumPy arrays. The `sensor_msgs/PointCloud2` messages contain `n` points based on the `width` and `height` of the acquired image. For instance, a `480 x 640` image will have `307,200` points. Each point includes three spatial coordinates (`xyz`) and the corresponding color in `RGB` format. These can be considered as two separate channels of information.
 
-The function returns the `xyz` coordinates and `RGB` values in the format of the original camera resolution (`width x height`). Most sensors report out-of-range points as `NaN`; the function zeroes out both the coordinates and color of these invalid points so they don't distort downstream processing.
+The function returns the `xyz` coordinates and `RGB` values in the format of the original camera resolution (`width x height`), plus a `valid` boolean array. Most sensors report out-of-range points as `NaN`; the function zeroes out both the coordinates and color of these invalid points so they don't distort downstream processing, and `valid` records which points were real so they can be excluded even after being zeroed out.
 
 !!! example "Point cloud conversion"
 
@@ -742,17 +746,17 @@ The function returns the `xyz` coordinates and `RGB` values in the format of the
                 pointcloud2 (PointCloud2): the PointCloud2 message
 
             Returns:
-                (tuple): tuple containing (xyz, rgb)
+                (tuple): tuple containing (xyz, rgb, valid)
             """
             pc_array = ros_numpy.point_cloud2.pointcloud2_to_array(pointcloud2)
             split = ros_numpy.point_cloud2.split_rgb_field(pc_array)
             rgb = np.stack([split["b"], split["g"], split["r"]], axis=2)
             xyz = ros_numpy.point_cloud2.get_xyz_points(pc_array, remove_nans=False)
             xyz = np.array(xyz).reshape((pointcloud2.height, pointcloud2.width, 3))
-            nan_rows = np.isnan(xyz).all(axis=2)
-            xyz[nan_rows] = [0, 0, 0]
-            rgb[nan_rows] = [0, 0, 0]
-            return xyz, rgb
+            valid = ~np.isnan(xyz).all(axis=2)
+            xyz[~valid] = [0, 0, 0]
+            rgb[~valid] = [0, 0, 0]
+            return xyz, rgb, valid
         ```
 
     === "ROS2"
@@ -771,22 +775,22 @@ The function returns the `xyz` coordinates and `RGB` values in the format of the
                 pointcloud2 (PointCloud2): the PointCloud2 message
 
             Returns:
-                (tuple): tuple containing (xyz, rgb)
+                (tuple): tuple containing (xyz, rgb, valid)
             """
             points = point_cloud2.read_points_numpy(pointcloud2, field_names=("x", "y", "z", "rgb"))
             xyz = points[:, :3].reshape((pointcloud2.height, pointcloud2.width, 3))
             packed = points[:, 3].copy().view(np.uint32)
             b, g, r = packed & 0xFF, (packed >> 8) & 0xFF, (packed >> 16) & 0xFF
             rgb = np.stack([b, g, r], axis=1).reshape((pointcloud2.height, pointcloud2.width, 3)).astype(np.uint8)
-            nan_rows = np.isnan(xyz).all(axis=2)
-            xyz[nan_rows] = [0, 0, 0]
-            rgb[nan_rows] = [0, 0, 0]
-            return xyz, rgb
+            valid = ~np.isnan(xyz).all(axis=2)
+            xyz[~valid] = [0, 0, 0]
+            rgb[~valid] = [0, 0, 0]
+            return xyz, rgb, valid
         ```
 
 Next, wait for a point cloud message and convert it into NumPy arrays containing the XYZ coordinates and RGB values (using the `pointcloud2_to_array` function). Process the RGB image using the YOLO model to extract segmented objects, passing `retina_masks=True` so each mask matches the cloud's native resolution rather than the smaller size used for inference. For each detected object, extract the segmentation mask and apply it to both the RGB image and the XYZ coordinates to isolate the object in 3D space.
 
-The mask is a binary array, with `1` indicating the presence of the object and `0` indicating the absence. Boolean-index `xyz` and `rgb` with `mask == 1` to keep only the object's points — multiplying by the mask instead would leave every background point in the cloud at coordinate `(0, 0, 0)`, rendering as a dense artificial cluster at the origin rather than an isolated object. Finally, create an Open3D point cloud object and visualize the segmented object in 3D space with associated colors — `pointcloud2_to_array` packs `rgb` in the BGR channel order YOLO expects, so reverse the channel axis when assigning `pcd.colors`, since Open3D expects colors in RGB order.
+The mask is a binary array, with `1` indicating the presence of the object and `0` indicating the absence. Combine it with `valid` (`(mask == 1) & valid`) before indexing `xyz` and `rgb`, since a segmentation mask can cover pixels with no valid depth — those were zeroed out by `pointcloud2_to_array`, and without excluding them via `valid` they'd still show up as points at `(0, 0, 0)`. Multiplying by the mask instead of boolean-indexing would make this worse, putting every background point at that same coordinate and rendering a dense artificial cluster at the origin rather than an isolated object. Finally, create an Open3D point cloud object and visualize the segmented object in 3D space with associated colors — `pointcloud2_to_array` packs `rgb` in the BGR channel order YOLO expects, so reverse the channel axis when assigning `pcd.colors`, since Open3D expects colors in RGB order.
 
 !!! example "Segment and visualize"
 
@@ -798,7 +802,7 @@ The mask is a binary array, with `1` indicating the presence of the object and `
         import open3d as o3d
 
         ros_cloud = rospy.wait_for_message("/camera/depth/points", PointCloud2)
-        xyz, rgb = pointcloud2_to_array(ros_cloud)
+        xyz, rgb, valid = pointcloud2_to_array(ros_cloud)
         result = segmentation_model(rgb, retina_masks=True)
 
         if not len(result[0].boxes.cls):
@@ -808,10 +812,11 @@ The mask is a binary array, with `1` indicating the presence of the object and `
         classes = result[0].boxes.cls.cpu().numpy().astype(int)
         for index, class_id in enumerate(classes):
             mask = result[0].masks.data.cpu().numpy()[index, :, :].astype(int)
+            keep = (mask == 1) & valid
 
             pcd = o3d.geometry.PointCloud()
-            pcd.points = o3d.utility.Vector3dVector(xyz[mask == 1])
-            pcd.colors = o3d.utility.Vector3dVector(rgb[mask == 1][:, ::-1] / 255)
+            pcd.points = o3d.utility.Vector3dVector(xyz[keep])
+            pcd.colors = o3d.utility.Vector3dVector(rgb[keep][:, ::-1] / 255)
             o3d.visualization.draw_geometries([pcd])
         ```
 
@@ -833,7 +838,7 @@ The mask is a binary array, with `1` indicating the presence of the object and `
                 rclpy.spin_once(node)
             ros_cloud = node.cloud
 
-            xyz, rgb = pointcloud2_to_array(ros_cloud)
+            xyz, rgb, valid = pointcloud2_to_array(ros_cloud)
             result = node.segmentation_model(rgb, retina_masks=True)
 
             if not len(result[0].boxes.cls):
@@ -845,10 +850,11 @@ The mask is a binary array, with `1` indicating the presence of the object and `
             classes = result[0].boxes.cls.cpu().numpy().astype(int)
             for index, class_id in enumerate(classes):
                 mask = result[0].masks.data.cpu().numpy()[index, :, :].astype(int)
+                keep = (mask == 1) & valid
 
                 pcd = o3d.geometry.PointCloud()
-                pcd.points = o3d.utility.Vector3dVector(xyz[mask == 1])
-                pcd.colors = o3d.utility.Vector3dVector(rgb[mask == 1][:, ::-1] / 255)
+                pcd.points = o3d.utility.Vector3dVector(xyz[keep])
+                pcd.colors = o3d.utility.Vector3dVector(rgb[keep][:, ::-1] / 255)
                 o3d.visualization.draw_geometries([pcd])
 
             node.destroy_node()
@@ -887,21 +893,21 @@ The mask is a binary array, with `1` indicating the presence of the object and `
                 pointcloud2 (PointCloud2): the PointCloud2 message
 
             Returns:
-                (tuple): tuple containing (xyz, rgb)
+                (tuple): tuple containing (xyz, rgb, valid)
             """
             pc_array = ros_numpy.point_cloud2.pointcloud2_to_array(pointcloud2)
             split = ros_numpy.point_cloud2.split_rgb_field(pc_array)
             rgb = np.stack([split["b"], split["g"], split["r"]], axis=2)
             xyz = ros_numpy.point_cloud2.get_xyz_points(pc_array, remove_nans=False)
             xyz = np.array(xyz).reshape((pointcloud2.height, pointcloud2.width, 3))
-            nan_rows = np.isnan(xyz).all(axis=2)
-            xyz[nan_rows] = [0, 0, 0]
-            rgb[nan_rows] = [0, 0, 0]
-            return xyz, rgb
+            valid = ~np.isnan(xyz).all(axis=2)
+            xyz[~valid] = [0, 0, 0]
+            rgb[~valid] = [0, 0, 0]
+            return xyz, rgb, valid
 
 
         ros_cloud = rospy.wait_for_message("/camera/depth/points", PointCloud2)
-        xyz, rgb = pointcloud2_to_array(ros_cloud)
+        xyz, rgb, valid = pointcloud2_to_array(ros_cloud)
         result = segmentation_model(rgb, retina_masks=True)
 
         if not len(result[0].boxes.cls):
@@ -911,10 +917,11 @@ The mask is a binary array, with `1` indicating the presence of the object and `
         classes = result[0].boxes.cls.cpu().numpy().astype(int)
         for index, class_id in enumerate(classes):
             mask = result[0].masks.data.cpu().numpy()[index, :, :].astype(int)
+            keep = (mask == 1) & valid
 
             pcd = o3d.geometry.PointCloud()
-            pcd.points = o3d.utility.Vector3dVector(xyz[mask == 1])
-            pcd.colors = o3d.utility.Vector3dVector(rgb[mask == 1][:, ::-1] / 255)
+            pcd.points = o3d.utility.Vector3dVector(xyz[keep])
+            pcd.colors = o3d.utility.Vector3dVector(rgb[keep][:, ::-1] / 255)
             o3d.visualization.draw_geometries([pcd])
         ```
 
@@ -955,17 +962,17 @@ The mask is a binary array, with `1` indicating the presence of the object and `
                 pointcloud2 (PointCloud2): the PointCloud2 message
 
             Returns:
-                (tuple): tuple containing (xyz, rgb)
+                (tuple): tuple containing (xyz, rgb, valid)
             """
             points = point_cloud2.read_points_numpy(pointcloud2, field_names=("x", "y", "z", "rgb"))
             xyz = points[:, :3].reshape((pointcloud2.height, pointcloud2.width, 3))
             packed = points[:, 3].copy().view(np.uint32)
             b, g, r = packed & 0xFF, (packed >> 8) & 0xFF, (packed >> 16) & 0xFF
             rgb = np.stack([b, g, r], axis=1).reshape((pointcloud2.height, pointcloud2.width, 3)).astype(np.uint8)
-            nan_rows = np.isnan(xyz).all(axis=2)
-            xyz[nan_rows] = [0, 0, 0]
-            rgb[nan_rows] = [0, 0, 0]
-            return xyz, rgb
+            valid = ~np.isnan(xyz).all(axis=2)
+            xyz[~valid] = [0, 0, 0]
+            rgb[~valid] = [0, 0, 0]
+            return xyz, rgb, valid
 
 
         def main(args=None):
@@ -976,7 +983,7 @@ The mask is a binary array, with `1` indicating the presence of the object and `
                 rclpy.spin_once(node)
             ros_cloud = node.cloud
 
-            xyz, rgb = pointcloud2_to_array(ros_cloud)
+            xyz, rgb, valid = pointcloud2_to_array(ros_cloud)
             result = node.segmentation_model(rgb, retina_masks=True)
 
             if not len(result[0].boxes.cls):
@@ -988,10 +995,11 @@ The mask is a binary array, with `1` indicating the presence of the object and `
             classes = result[0].boxes.cls.cpu().numpy().astype(int)
             for index, class_id in enumerate(classes):
                 mask = result[0].masks.data.cpu().numpy()[index, :, :].astype(int)
+                keep = (mask == 1) & valid
 
                 pcd = o3d.geometry.PointCloud()
-                pcd.points = o3d.utility.Vector3dVector(xyz[mask == 1])
-                pcd.colors = o3d.utility.Vector3dVector(rgb[mask == 1][:, ::-1] / 255)
+                pcd.points = o3d.utility.Vector3dVector(xyz[keep])
+                pcd.colors = o3d.utility.Vector3dVector(rgb[keep][:, ::-1] / 255)
                 o3d.visualization.draw_geometries([pcd])
 
             node.destroy_node()

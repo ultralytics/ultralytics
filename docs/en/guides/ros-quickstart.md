@@ -431,7 +431,7 @@ Next, define the callbacks that process the incoming RGB and depth messages. Mos
 
     === "ROS1"
 
-        The callback waits for the matching RGB image message, converts both images into NumPy arrays, and applies the segmentation model to the RGB image. It then extracts the segmentation mask for each detected object and calculates the average distance of the object from the camera using the depth image, finally publishing the detected objects along with their average distances.
+        The callback waits for the next available RGB image message — `rospy.wait_for_message()` returns whatever frame arrives next on the topic, not one matched to the depth frame's timestamp, so this is an approximate pairing like the ROS2 flow below (for hard timestamp-based synchronization use `message_filters.ApproximateTimeSynchronizer`). It converts both images into NumPy arrays and applies the segmentation model to the RGB image, then extracts the segmentation mask for each detected object and calculates the average distance of the object from the camera using the depth image, finally publishing the detected objects along with their average distances.
 
         ```python
         import numpy as np

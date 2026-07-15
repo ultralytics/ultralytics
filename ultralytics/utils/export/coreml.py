@@ -148,10 +148,15 @@ def pipeline_coreml(
     # Update metadata
     pipeline.spec.specificationVersion = spec.specificationVersion
     pipeline.spec.description.metadata.userDefined.update(
-        {"IoU threshold": str(nms.iouThreshold), "Confidence threshold": str(nms.confidenceThreshold)}
+        {
+            **model.user_defined_metadata,
+            "IoU threshold": str(nms.iouThreshold),
+            "Confidence threshold": str(nms.confidenceThreshold),
+        }
     )
 
-    # Save the model
+    # Save the model, restoring top-level metadata fields lost when rebuilt from pipeline.spec
+    mdict = {k: getattr(model, k) for k in ("author", "short_description", "license", "version")}
     model = ct.models.MLModel(pipeline.spec, weights_dir=weights_dir, skip_model_load=True)
     model.input_description["image"] = "Input image"
     model.input_description["iouThreshold"] = f"(optional) IoU threshold override (default: {nms.iouThreshold})"
@@ -160,6 +165,8 @@ def pipeline_coreml(
     )
     model.output_description["confidence"] = 'Boxes × Class confidence (see user-defined metadata "classes")'
     model.output_description["coordinates"] = "Boxes × [x, y, width, height] (relative to image size)"
+    for k, v in mdict.items():
+        setattr(model, k, v)
     LOGGER.info(f"{prefix} pipeline success")
     return model
 

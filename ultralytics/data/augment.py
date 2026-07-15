@@ -2179,7 +2179,7 @@ class Albumentations(BaseTransform):
                 new = self.transform(
                     image=im, bboxes=bboxes, class_labels=cls, **({"mask": mask} if mask is not None else {})
                 )
-                if len(new["class_labels"]) > 0 or not len(cls):  # skip update if all bboxes were removed
+                if len(new["class_labels"]) > 0 or mask is not None:  # only box-only samples skip on losing all boxes
                     labels["img"] = new["image"]
                     labels["cls"] = np.array(new["class_labels"]).reshape(-1, 1)
                     bboxes = np.array(new["bboxes"], dtype=np.float32).reshape(-1, 4)

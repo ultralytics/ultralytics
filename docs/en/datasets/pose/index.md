@@ -25,13 +25,13 @@ Here is an example of the label format for a pose estimation task:
 
 Format with 2D keypoints
 
-```
+```text
 <class-index> <x> <y> <width> <height> <px1> <py1> <px2> <py2> ... <pxn> <pyn>
 ```
 
 Format with keypoint visibility (includes visibility per point)
 
-```
+```text
 <class-index> <x> <y> <width> <height> <px1> <py1> <p1-visibility> <px2> <py2> <p2-visibility> <pxn> <pyn> <pn-visibility>
 ```
 
@@ -47,11 +47,33 @@ The Ultralytics framework uses a YAML file format to define the dataset and mode
     --8<-- "ultralytics/cfg/datasets/coco8-pose.yaml"
     ```
 
-The `train` and `val` fields specify the paths to the directories containing the training and validation images, respectively.
+The `train`, `val`, and `test` fields point to the training, validation, and test images. Each accepts a directory, a list of directories, or a `*.txt` file listing one image path per line (paths starting with `./` resolve relative to the `*.txt` file). A `*.txt` file is useful to train on a subset of a directory, skip unlabeled images, or combine images from multiple sources into one split.
+
+!!! example "Image paths as a `*.txt` file"
+
+    === "dataset.yaml"
+
+        ```yaml
+        path: datasets/coco8-pose # dataset root
+        train: train.txt # a directory, a list e.g. [images/a, images/b], or a *.txt file
+        val: val.txt
+        names:
+          0: person
+        ```
+
+    === "train.txt"
+
+        ```text
+        ./images/im0.jpg
+        ./images/im1.jpg
+        /data/shared/im2.jpg
+        ```
 
 `names` is a dictionary of class names. The order of the names should match the order of the object class indices in the YOLO dataset files.
 
 (Optional) `flip_idx` maps each keypoint to its mirror image, so horizontal-flip augmentation keeps left and right consistent on symmetric skeletons such as a human body or face. For five facial landmarks indexed as [left eye, right eye, nose, left mouth, right mouth] = [0, 1, 2, 3, 4], `flip_idx` is [1, 0, 2, 4, 3]: the left-right pairs 0-1 and 3-4 swap, and the nose keeps its own index.
+
+(Optional) `kpt_oks_sigmas` sets custom per-keypoint [OKS](https://docs.ultralytics.com/guides/yolo-performance-metrics/) sigmas used during validation, e.g. `[0.26, 0.25, 0.25, ...]`. The list length must equal the number of keypoints `N` from `kpt_shape`, and every value must be positive. When omitted, the COCO 17-keypoint sigmas are used for `kpt_shape: [17, 3]` and a uniform `1/N` otherwise.
 
 ## Usage
 
@@ -107,6 +129,7 @@ This section outlines the datasets that are compatible with Ultralytics YOLO for
 - **Number of Classes**: 1 (dog).
 - **Keypoints**: 24 keypoints, each with a visibility dimension, tailored to dog poses such as limbs, joints, and head positions.
 - **Usage**: Ideal for training models to estimate dog poses in various scenarios, from research to [real-world applications](https://www.ultralytics.com/blog/custom-training-ultralytics-yolo11-for-dog-pose-estimation).
+- **Additional Notes**: Source images are drawn from the [Stanford Dogs Dataset](http://vision.stanford.edu/aditya86/ImageNetDogs/).
 - [Read more about Dog-Pose](dog-pose.md)
 
 ### Hand Keypoints
@@ -116,6 +139,7 @@ This section outlines the datasets that are compatible with Ultralytics YOLO for
 - **Number of Classes**: 1 (hand).
 - **Keypoints**: 21 keypoints.
 - **Usage**: Great for human hand pose estimation and [gesture recognition](https://www.ultralytics.com/blog/enhancing-hand-keypoints-estimation-with-ultralytics-yolo11).
+- **Additional Notes**: Keypoint annotations are generated using [Google MediaPipe](https://developers.google.com/mediapipe/solutions/vision/hand_landmarker) for consistent labeling.
 - [Read more about Hand Keypoints](hand-keypoints.md)
 
 ### Tiger-Pose
@@ -125,6 +149,7 @@ This section outlines the datasets that are compatible with Ultralytics YOLO for
 - **Number of Classes**: 1 (tiger).
 - **Keypoints**: 12 keypoints.
 - **Usage**: Great for animal pose or any other pose that is not human-based.
+- **Additional Notes**: Released under the [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE).
 - [Read more about Tiger-Pose](tiger-pose.md)
 
 ### Adding your own dataset

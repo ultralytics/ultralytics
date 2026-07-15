@@ -28,7 +28,7 @@ This dataset is intended for use with [Ultralytics Platform](https://platform.ul
 
 COCO128 contains the first 128 images from the COCO train 2017 set, covering all 80 COCO object classes in [YOLO label format](../index.md). The same 128 images serve as both the training and validation split, keeping it lightweight for quick sanity checks:
 
-```
+```text
 coco128/
 ├── images/
 │   └── train2017/   # 128 images (used for both train and val)
@@ -38,7 +38,7 @@ coco128/
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the COCO128 dataset, the `coco128.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco128.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco128.yaml).
+A YAML file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the COCO128 dataset, the `coco128.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco128.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco128.yaml).
 
 !!! example "ultralytics/cfg/datasets/coco128.yaml"
 

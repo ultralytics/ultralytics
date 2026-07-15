@@ -844,6 +844,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         or v.startswith(("/", "\\"))
         or (len(v) > 1 and v[0].isalpha() and v[1] == ":")
         or ".." in v.replace("\\", "/").split("/")
+        or any(not part.rstrip(" .") and part.count(".") >= 2 for part in v.replace("\\", "/").split("/"))
         for v in class_names.values()
     ):
         raise ValueError("Invalid NDJSON classification name")

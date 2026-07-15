@@ -147,12 +147,12 @@ class BboxLoss(nn.Module):
         else:
             target_ltrb = bbox2dist(anchor_points, target_bboxes)
             # normalize ltrb by image size
-            target_ltrb = target_ltrb * stride
-            target_ltrb[..., 0::2] /= imgsz[1]
-            target_ltrb[..., 1::2] /= imgsz[0]
-            pred_dist = pred_dist * stride
-            pred_dist[..., 0::2] /= imgsz[1]
-            pred_dist[..., 1::2] /= imgsz[0]
+            # target_ltrb = target_ltrb * stride
+            # target_ltrb[..., 0::2] /= imgsz[1]
+            # target_ltrb[..., 1::2] /= imgsz[0]
+            # pred_dist = pred_dist * stride
+            # pred_dist[..., 0::2] /= imgsz[1]
+            # pred_dist[..., 1::2] /= imgsz[0]
             loss_dfl = (
                 F.l1_loss(pred_dist[fg_mask], target_ltrb[fg_mask], reduction="none").mean(-1, keepdim=True) * weight
             )

@@ -410,10 +410,9 @@ def polygons2masks_overlap(
     areas = np.asarray(areas)
     index = np.argsort(-areas)
     ms = np.array(ms)[index]
+    # Running max: the old `masks + mask` sum hit 2 * i + 1 and overflowed uint8 past 128 overlapping instances
     for i in range(len(segments)):
-        mask = ms[i] * (i + 1)
-        masks = masks + mask
-        masks = np.clip(masks, a_min=0, a_max=i + 1)
+        np.maximum(masks, ms[i] * (i + 1), out=masks)
     return masks, index
 
 
@@ -580,6 +579,9 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
             - 'nc' (int): The number of classes in the dataset.
             - 'names' (dict[int, str]): A dictionary of class names in the dataset.
     """
+    if split and split not in {"train", "val", "test"}:
+        raise ValueError(f"Invalid classification dataset split '{split}'. Use 'train', 'val', or 'test'.")
+
     # Download (optional if dataset=https://file.zip is passed directly)
     if str(dataset).startswith(("http:/", "https:/")):
         dataset = safe_download(dataset, dir=DATASETS_DIR, unzip=True, delete=False)
@@ -634,6 +636,10 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
     nc = len([x for x in (data_dir / "train").glob("*") if x.is_dir()])  # number of classes
     names = [x.name for x in (data_dir / "train").iterdir() if x.is_dir()]  # class names list
     names = dict(enumerate(sorted(names)))
+    if (ndjson_names := data_dir / ".ndjson.yaml").is_file():
+        names = YAML.load(ndjson_names)["names"]
+        if len(names) != nc:
+            raise ValueError(f"NDJSON class names length {len(names)} does not match directory count {nc}")
 
     # Print to console
     for k, v in {"train": train_set, "val": val_set, "test": test_set}.items():

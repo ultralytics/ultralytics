@@ -19,7 +19,7 @@ The [COCO-Seg](https://cocodataset.org/#home) dataset provides [COCO](https://co
 - The dataset consists of the same 80 object categories found in the original COCO dataset.
 - Annotations provide instance segmentation masks in the YOLO polygon label format.
 - COCO-Seg provides standardized mAP and mAR metrics for evaluating instance segmentation performance, enabling effective comparison of model performance.
-- **Download size**: ~27 GB on first use. The `coco.yaml` header lists 20.1 GB (`train2017.zip` + `val2017.zip` only), but the download script also fetches the 7 GB `test2017.zip` unconditionally, even though that archive is needed only for the optional test-dev2017 submission split.
+- **Download size**: ~20.3 GB on first use (`train2017.zip` + `val2017.zip` + labels). The 7 GB `test2017.zip` is not fetched automatically, since those images have withheld ground truth and are only needed for a [test-dev2017 submission](https://cocodataset.org/#detection-eval).
 
 ## Dataset Structure
 
@@ -37,7 +37,7 @@ COCO-Seg is widely used for training and evaluating [deep learning](https://www.
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the COCO-Seg dataset, the `coco.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml).
+A YAML file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the COCO-Seg dataset, the `coco.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml).
 
 !!! example "ultralytics/cfg/datasets/coco.yaml"
 

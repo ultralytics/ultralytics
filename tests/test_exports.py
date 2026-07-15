@@ -52,7 +52,7 @@ def skip_rpi_semantic(task):
 @pytest.mark.parametrize("end2end", [False, True])
 def test_export_torchscript(end2end, isolated_model):
     """Test YOLO model export to TorchScript format for compatibility and correctness."""
-    file = YOLO(isolated_model).export(format="torchscript", optimize=False, imgsz=32, end2end=end2end)
+    file = YOLO(isolated_model).export(format="torchscript", imgsz=32, end2end=end2end)
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
@@ -416,12 +416,37 @@ def test_export_coreml_rtdetr():
     stdout, stderr = io.StringIO(), io.StringIO()
     with redirect_stdout(stdout), redirect_stderr(stderr):
         file = YOLO(WEIGHTS_DIR / "rtdetr-l.pt").export(format="coreml", imgsz=160)
+        import coremltools as ct
+
+        shape = ct.models.MLModel(str(file)).get_spec().description.output[0].type.multiArrayType.shape
+        assert shape[-2] == 300
         if MACOS:
             YOLO(file)(SOURCE, imgsz=160)
 
     output = stdout.getvalue() + stderr.getvalue()
     assert "Error" not in output, f"RTDETR CoreML export produced errors: {output}"
     assert "You will not be able to run predict()" not in output, "RTDETR CoreML export has predict() error"
+
+
+@pytest.mark.parametrize(
+    "model, expected_nms",
+    [("yolo11n.yaml", True), ("yolo11n-seg.yaml", False), ("yolo11n-pose.yaml", False)],
+)
+def test_export_coreml_nms_detect_only(model, expected_nms, monkeypatch):
+    """Test CoreML 'nms=True' stays enabled for detect but warns and is forced off for other tasks."""
+    captured = {}
+    warnings = []
+
+    def stub(self):
+        captured["nms"] = self.args.nms
+        captured["metadata_nms"] = self.metadata["args"]["nms"]
+
+    monkeypatch.setattr(Exporter, "export_coreml", stub)  # skip the actual CoreML export
+    monkeypatch.setattr("ultralytics.engine.exporter.LOGGER.warning", warnings.append)
+    YOLO(model).export(format="coreml", nms=True, imgsz=32)
+    assert captured["nms"] is expected_nms
+    assert captured["metadata_nms"] is expected_nms
+    assert any("only supported for detect models" in warning for warning in warnings) is not expected_nms
 
 
 @pytest.mark.skipif(True, reason="Test disabled")
@@ -448,6 +473,37 @@ def test_export_mnn(isolated_model):
     """Test YOLO export to MNN format (WARNING: MNN test must precede NCNN test or CI error on Windows)."""
     file = YOLO(isolated_model).export(format="mnn", imgsz=32)
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
+
+
+@pytest.mark.parametrize(
+    "model,kwargs,error",
+    [
+        ("yolo11n.yaml", {"batch": 2, "dynamic": True, "nms": True}, "combining"),
+        ("yolo11n-seg.yaml", {"nms": True}, "only supports detect and pose"),
+        ("yolo11n-obb.yaml", {"nms": True}, "only supports detect and pose"),
+    ],
+)
+def test_export_mnn_rejects_unsupported_nms(model, kwargs, error):
+    """Test MNN rejects NMS combinations that fail or lose task outputs at runtime."""
+    with pytest.raises(ValueError, match=error):
+        YOLO(model).export(format="mnn", imgsz=32, **kwargs)
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize(
+    "model,task,kwargs",
+    [
+        ("yolo11n.yaml", "detect", {"batch": 2, "dynamic": True}),
+        ("yolo11n.yaml", "detect", {"nms": True}),
+        ("yolo11n-pose.yaml", "pose", {"nms": True}),
+    ],
+)
+def test_export_mnn_options(model, task, kwargs):
+    """Test MNN dynamic shapes and supported embedded NMS tasks through inference."""
+    batch = kwargs.get("batch", 1)
+    file = YOLO(model).export(format="mnn", imgsz=32, **kwargs)
+    assert len(YOLO(file, task=task)([SOURCE] * batch, imgsz=64 if kwargs.get("dynamic") else 32)) == batch
+    Path(file).unlink()
 
 
 @pytest.mark.slow

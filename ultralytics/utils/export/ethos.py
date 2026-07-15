@@ -18,8 +18,6 @@ def torch2ethos(
     sample_input: torch.Tensor,
     dataset: Iterable[Any],
     target: str = "ethos-u85-256",
-    memory_mode: str = "Shared_Sram",
-    config_ini: str | None = None,
     metadata: dict | None = None,
     prefix: str = "",
 ) -> str:
@@ -32,8 +30,6 @@ def torch2ethos(
         dataset (Iterable[Any]): Representative calibration dataset for PTQ. Each item may be a tensor batch or a batch
             dictionary containing an ``img`` tensor.
         target (str, optional): Ethos target to compile for.
-        memory_mode (str, optional): Vela SRAM allocation mode (Shared_Sram, Sram_Only, or Dedicated_Sram).
-        config_ini (str | None, optional): Path to a custom Vela config .ini; None uses the built-in Arm/vela.ini.
         metadata (dict | None, optional): Optional metadata to save as YAML.
         prefix (str, optional): Prefix for log messages.
 
@@ -65,13 +61,9 @@ def torch2ethos(
     exported_program = torch.export.export(torch_model, (sample_input,))
     graph_module = exported_program.module(check_guards=False)
 
-    # memory_mode defaults to Shared_Sram, which permits system DRAM; the U65/U85 default Sram_Only requires
-    # the whole model to fit in on-chip SRAM and fails for YOLO. config_ini is unset by default so ExecuTorch
-    # uses its built-in Arm/vela.ini; pass a path to override with a custom Vela config.
-    compile_kwargs = {"target": target, "memory_mode": memory_mode}
-    if config_ini:
-        compile_kwargs["config_ini"] = config_ini
-    compile_spec = EthosUCompileSpec(**compile_kwargs)
+    # Shared_Sram permits system DRAM; the U65/U85 default Sram_Only requires the whole model to fit in
+    # on-chip SRAM and fails for YOLO. config_ini is left at ExecuTorch's built-in Arm/vela.ini default.
+    compile_spec = EthosUCompileSpec(target=target, memory_mode="Shared_Sram")
 
     # Keep final YOLO cat and model IO in FP32 (mixed precision). set_node_name(None) requires the
     # composable quantizer and leaves the cat outside the Ethos-U delegate on the CPU, matching Arm's

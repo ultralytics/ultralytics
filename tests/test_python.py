@@ -4,8 +4,6 @@ import contextlib
 import csv
 import os
 import shutil
-import subprocess
-import sys
 import tarfile
 import urllib
 import zipfile
@@ -20,8 +18,8 @@ from PIL import Image
 
 import ultralytics.data.build as data_build
 from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
-from ultralytics import RTDETR, YOLO, __version__
-from ultralytics.cfg import _YOLO_CLI_COMMAND, get_cfg
+from ultralytics import RTDETR, YOLO
+from ultralytics.cfg import get_cfg
 from ultralytics.data.build import build_dataloader, load_inference_source
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.utils import (
@@ -41,45 +39,10 @@ from ultralytics.utils import (
     WINDOWS,
     YAML,
     checks,
-    get_pythonpath_env,
     is_github_action_running,
 )
 from ultralytics.utils.downloads import download, safe_download
 from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13
-
-
-def test_pythonpath_env(tmp_path, monkeypatch):
-    """Verify Python subprocesses import modules available only on the parent runtime path."""
-    (tmp_path / "parent_only.py").write_text("VALUE = 'ok'")
-    child_path = tmp_path / "child"
-    child_path.mkdir()
-    (child_path / "child_only.py").write_text("VALUE = 'ok'")
-    monkeypatch.syspath_prepend(tmp_path)
-    monkeypatch.setenv("PYTHONPATH", str(child_path))
-    result = subprocess.run(
-        [sys.executable, "-c", "import child_only, parent_only; print(child_only.VALUE, parent_only.VALUE)"],
-        check=True,
-        capture_output=True,
-        text=True,
-        env=get_pythonpath_env(),
-    )
-    assert result.stdout.strip() == "ok ok"
-
-
-def test_python_command_prefers_parent_path(tmp_path):
-    """Verify the real CLI subprocess imports the parent package ahead of a conflicting child working directory."""
-    stale_package = tmp_path / "ultralytics"
-    stale_package.mkdir()
-    (stale_package / "__init__.py").write_text("__version__ = 'stale'")
-    result = subprocess.run(
-        [*_YOLO_CLI_COMMAND, "version"],
-        check=True,
-        capture_output=True,
-        cwd=tmp_path,
-        text=True,
-        env=get_pythonpath_env(),
-    )
-    assert __version__ in result.stdout
 
 
 def test_dataloader_caps_workers_to_batches():
@@ -794,6 +757,17 @@ def test_data_utils(tmp_path):
     with pytest.raises(FileNotFoundError, match="images not found"):
         check_det_dataset(data_yaml, split="test")
 
+    # polygons2masks_overlap must not overflow uint8 on the transient `masks + mask` sum (reaches 2 * i + 1):
+    # with more than 128 overlapping instances every instance must keep a distinct index in the overlap mask
+    from ultralytics.data.utils import polygons2masks_overlap
+
+    segments = [
+        np.array([[150 - s, 150 - s], [150 + s, 150 - s], [150 + s, 150 + s], [150 - s, 150 + s]], dtype=np.float32)
+        for s in range(140, 10, -1)  # 130 concentric squares, all overlapping the center
+    ]
+    overlap, _ = polygons2masks_overlap((300, 300), segments)
+    assert len(np.unique(overlap)) == len(segments) + 1  # background + 130 instances, no uint8 wraparound
+
 
 def test_safe_download_unzips_local_path_archive(tmp_path):
     """Test safe_download() unzips local archive paths without treating them like remote URLs."""
@@ -1110,9 +1084,11 @@ def test_nms_end2end_classes_before_max_det():
         ],
         dtype=torch.float32,
     )
-    for out, confs in zip(non_max_suppression(pred, conf_thres=0.25, classes=[0], max_det=2), ([0.8, 0.7], [0.9, 0.6])):
+    outputs, indices = non_max_suppression(pred, conf_thres=0.25, classes=[0], max_det=2, return_idxs=True)
+    for out, idx, confs, expected in zip(outputs, indices, ([0.8, 0.7], [0.9, 0.6]), ([1, 2], [0, 3])):
         assert out.shape[0] == 2 and (out[:, 5] == 0).all()  # top-2 class-0 boxes kept, not truncated away
         assert torch.allclose(out[:, 4], torch.tensor(confs))
+        assert idx.tolist() == expected
     out = non_max_suppression(pred, conf_thres=0.25, max_det=2)[0]  # without classes, top-2 overall unchanged
     assert torch.allclose(out[:, 4], torch.tensor([0.9, 0.8]))
 

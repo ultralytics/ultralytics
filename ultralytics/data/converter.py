@@ -836,6 +836,20 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         lines = [json.loads(line.strip()) for line in f if line.strip()]
     dataset_record, image_records = lines[0], lines[1:]
 
+    # Validate all NDJSON values used to construct output paths before checking the cache or writing files.
+    is_classification = dataset_record.get("task") == "classify"
+    class_names = {int(k): v for k, v in dataset_record.get("class_names", {}).items()}
+    for i, record in enumerate(image_records, start=1):
+        split, file = record.get("split"), record.get("file")
+        if not isinstance(split, str) or split not in {"train", "val", "test"}:
+            raise ValueError(f"Unsafe NDJSON split in record {i}: {split!r}")
+        if not isinstance(file, str) or not file or (path := Path(file)).is_absolute() or ".." in path.parts:
+            raise ValueError(f"Unsafe NDJSON file path in record {i}: {file!r}")
+    if is_classification:
+        for class_name in class_names.values():
+            if not isinstance(class_name, str) or (path := Path(class_name)).is_absolute() or len(path.parts) != 1:
+                raise ValueError(f"Unsafe NDJSON class name: {class_name!r}")
+
     # Hash stable content plus source identity. Query strings are excluded because signed URLs change on every export.
     _h = hashlib.sha256()
     for r in lines:
@@ -862,9 +876,6 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
             pass
     splits = {record["split"] for record in image_records}
 
-    # Check if this is a classification dataset
-    is_classification = dataset_record.get("task") == "classify"
-    class_names = {int(k): v for k, v in dataset_record.get("class_names", {}).items()}
     inferred_nc = None
 
     # Validate required fields before downloading images

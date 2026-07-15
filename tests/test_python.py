@@ -1,7 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+import asyncio
 import contextlib
 import csv
+import json
 import os
 import shutil
 import subprocess
@@ -636,6 +638,41 @@ def test_train_ndjson():
     """Test training the YOLO model using NDJSON format dataset."""
     model = YOLO(WEIGHTS_DIR / "yolo26n.pt")
     model.train(data=f"{ASSETS_URL}/coco8-ndjson.ndjson", epochs=1, imgsz=32)
+
+
+@pytest.mark.parametrize(
+    ("task", "field", "value"),
+    [
+        ("detect", "split", "../escaped"),
+        ("detect", "split", "/tmp/escaped"),
+        ("detect", "file", "../escaped.jpg"),
+        ("detect", "file", "/tmp/escaped.jpg"),
+        ("classify", "class_name", "../escaped"),
+        ("classify", "class_name", "/tmp/escaped"),
+        ("classify", "class_name", "nested/class"),
+    ],
+)
+def test_convert_ndjson_rejects_unsafe_output_paths(tmp_path, task, field, value):
+    """Verify NDJSON output paths cannot escape the converted dataset directory."""
+    from ultralytics.data.converter import convert_ndjson_to_yolo
+
+    dataset = {"type": "dataset", "task": task, "class_names": {"0": "class0"}}
+    record = {"type": "image", "split": "train", "file": "image.jpg", "annotations": {}}
+    if field == "class_name":
+        dataset["class_names"]["0"] = value
+    else:
+        record[field] = value
+    records = [record] if task == "classify" else [record, {**record, "split": "val", "file": "val.jpg"}]
+    if field == "split":
+        records.insert(0, {**record, "split": "train", "file": "train.jpg"})
+    ndjson = tmp_path / "dataset.ndjson"
+    ndjson.write_text("\n".join(json.dumps(x) for x in [dataset, *records]))
+    output_path = tmp_path / "output"
+
+    with pytest.raises(ValueError, match="Unsafe NDJSON"):
+        asyncio.run(convert_ndjson_to_yolo(ndjson, output_path))
+
+    assert not output_path.exists()
 
 
 @pytest.mark.parametrize("scls", [False, True])

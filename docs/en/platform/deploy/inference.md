@@ -1,4 +1,5 @@
 ---
+plans: [free, pro, enterprise]
 title: Inference API Testing
 comments: true
 description: Learn how to test YOLO models with the Ultralytics Platform inference API including browser testing and programmatic access.
@@ -355,7 +356,16 @@ Response format varies by task:
       "class": 0,
       "name": "ship",
       "confidence": 0.89,
-      "box": {"x1": 105, "y1": 48, "x2": 295, "y2": 55, "x3": 290, "y3": 395, "x4": 110, "y4": 402}
+      "box": {
+        "x1": 105,
+        "y1": 48,
+        "x2": 295,
+        "y2": 55,
+        "x3": 290,
+        "y3": 395,
+        "x4": 110,
+        "y4": 402
+      }
     }
     ```
 

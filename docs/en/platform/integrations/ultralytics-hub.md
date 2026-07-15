@@ -1,4 +1,5 @@
 ---
+plans: [free, pro, enterprise]
 comments: true
 description: Import your datasets, projects, models, and account balance from Ultralytics HUB into Ultralytics Platform with a single API key.
 keywords: Ultralytics Platform, Ultralytics HUB, HUB import, dataset migration, integrations, YOLO, computer vision

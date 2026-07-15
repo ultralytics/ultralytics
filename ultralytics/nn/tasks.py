@@ -96,7 +96,7 @@ from ultralytics.utils.loss import (
     v8OBBLoss,
     v8PoseLoss,
     v8SegmentationLoss,
-    v26DepthLoss,
+    DepthLoss26,
 )
 from ultralytics.utils.ops import make_divisible
 from ultralytics.utils.patches import torch_load
@@ -793,7 +793,7 @@ class DepthModel(DetectionModel):
 
     def init_criterion(self):
         """Initialize the depth loss criterion."""
-        return v26DepthLoss(self)
+        return DepthLoss26(self)
 
 
 class ClassificationModel(BaseModel):

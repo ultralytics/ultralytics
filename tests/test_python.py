@@ -1114,7 +1114,7 @@ def test_semantic_loss_all_ignore(nc):
 
 
 class _DepthLossModel(torch.nn.Module):
-    """Tiny stub mirroring a real YOLO model's surface for v26DepthLoss: .parameters(), .args, and a .model Sequential
+    """Tiny stub mirroring a real YOLO model's surface for DepthLoss26: .parameters(), .args, and a .model Sequential
     whose last module is the "head" (no max_depth -> log-mode/unbounded). Detect/depth losses both read the head via
     model.model[-1] (see v8DetectionLoss), so the stub must expose it too.
     """
@@ -1132,9 +1132,9 @@ class _DepthLossModel(torch.nn.Module):
 
 def _depth_loss_for_scaled_pred(lam, scale):
     """Return the SILog-only depth loss for a prediction with perfect structure but wrong global scale."""
-    from ultralytics.utils.loss import v26DepthLoss
+    from ultralytics.utils.loss import DepthLoss26
 
-    crit = v26DepthLoss(_DepthLossModel(dlam=lam, dgrad=0.0))  # SILog only
+    crit = DepthLoss26(_DepthLossModel(dlam=lam, dgrad=0.0))  # SILog only
     gt = torch.rand(2, 1, 16, 16) * 5 + 1.0
     pred = (gt * scale).clone().requires_grad_(True)
     total, _ = crit({"depth": pred}, {"depth": gt})

@@ -552,22 +552,8 @@ def _handle_deprecation(custom: dict) -> dict:
         "hide_labels": ("show_labels", lambda v: not bool(v)),
         "hide_conf": ("show_conf", lambda v: not bool(v)),
         "line_thickness": ("line_width", lambda v: v),
-        "silog": ("dlog", lambda v: v),
-        "silog_grad": ("dgrad", lambda v: v),
-        "silog_lambda": ("dlam", lambda v: v),
     }
-    removed_keys = {
-        "label_smoothing",
-        "save_hybrid",
-        "crop_fraction",
-        "auto_calibrate",
-        "silog_grad_scales",
-        "silog_grad_min_valid",
-        "silog_l1",
-        "silog_trim",
-        "dist_pw",
-        "cal_dist_pw",
-    }
+    removed_keys = {"label_smoothing", "save_hybrid", "crop_fraction"}
 
     # Forward the deprecated precision flags onto the unified `quantize` scheme (int8 wins over half). The value is read
     # as a bool so quoted/string 'False' disables it while a bare CLI flag (empty string) enables it; an explicit false

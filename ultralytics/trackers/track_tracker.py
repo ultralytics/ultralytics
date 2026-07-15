@@ -137,8 +137,8 @@ def attach_raw_preds_hook(predictor) -> None:
 
     @wraps(orig)
     def _wrapped(preds, img, orig_imgs, *args, **kwargs):
-        # copy=True so the in-place NMS xywh->xyxy conversion can't mutate this captured tensor (CPU aliasing)
-        predictor._raw_preds = preds.detach().to("cpu", copy=True) if isinstance(preds, torch.Tensor) else preds
+        # clone() so the in-place NMS xywh->xyxy conversion can't mutate this capture; keep source device for box_iou
+        predictor._raw_preds = preds.detach().clone() if isinstance(preds, torch.Tensor) else preds
         predictor._postprocess_im = img
         predictor._postprocess_im0s = orig_imgs
         return orig(preds, img, orig_imgs, *args, **kwargs)

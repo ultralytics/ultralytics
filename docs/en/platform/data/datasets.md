@@ -1,4 +1,5 @@
 ---
+plans: [free, pro, enterprise]
 title: Dataset Management
 comments: true
 description: Learn how to upload, manage, and organize datasets in Ultralytics Platform for YOLO model training with automatic processing and statistics.
@@ -15,7 +16,7 @@ Ultralytics Platform accepts multiple upload formats for flexibility.
 
 !!! tip "Already have data elsewhere?"
 
-    If you already have datasets in [Ultralytics HUB](../integrations/ultralytics-hub.md) or [Roboflow](../integrations/roboflow.md), use [Integrations](../integrations/index.md) to import them directly — no manual export or re-upload needed.
+    If you already have datasets in [Ultralytics HUB](../integrations/ultralytics-hub.md) or [Roboflow](../integrations/roboflow.md), use [Integrations](../integrations/index.md) to import them directly — no manual export or re-upload needed. Data in [Google Cloud Storage](../integrations/google-cloud-storage.md), [Amazon S3](../integrations/amazon-s3.md), or [Azure Blob Storage](../integrations/azure-blob-storage.md) can be used in place through **Cloud storage**. Enterprise workspaces can use [On Premise](../integrations/on-premise.md) to index and train on local data without sending pixels to Platform.
 
 ### Supported Formats
 
@@ -69,7 +70,10 @@ The file extension alone isn't enough: a video can still fail if its container o
     H.264 video in an MP4 container has the broadest support across major browsers and is the safest choice. If a video won't upload, re-encode it with [FFmpeg](https://ffmpeg.org/):
 
     ```bash
-    ffmpeg -i input.mov -c:v libx264 -pix_fmt yuv420p -c:a aac -movflags +faststart output.mp4
+    ffmpeg -i input.mov \
+      -c:v libx264 -pix_fmt yuv420p \
+      -c:a aac -movflags +faststart \
+      output.mp4
     ```
 
 ??? info "Which video codecs work"
@@ -91,7 +95,7 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 
     Use the standard YOLO directory structure with a `data.yaml` file:
 
-    ```
+    ```text
     my-dataset/
     ├── images/
     │   ├── train/
@@ -128,7 +132,7 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 
     Use JSON annotation files with the standard [COCO structure](https://cocodataset.org/#format-data):
 
-    ```
+    ```text
     my-coco-dataset/
     ├── train/
     │   ├── _annotations.coco.json
@@ -156,7 +160,7 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 
     Classification uploads are auto-detected from common folder layouts:
 
-    ```
+    ```text
     split/class/image.jpg
     class/split/image.jpg
     class/image.jpg
@@ -164,7 +168,7 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 
     Example:
 
-    ```
+    ```text
     my-classify-dataset/
     ├── train/
     │   ├── cats/
@@ -600,7 +604,7 @@ Delete multiple images at once:
 
 Reference Platform datasets using the `ul://` URI format (see [Using Platform Datasets](../api/index.md#using-platform-datasets)):
 
-```
+```text
 ul://username/datasets/dataset-slug
 ```
 

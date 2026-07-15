@@ -1042,6 +1042,8 @@ def attempt_compile(
 
     Notes:
         - If the current PyTorch build does not provide torch.compile, the function returns the input model immediately.
+        - Compilation is lazy and runs at the first forward pass, so the inductor CPU prerequisite of a host C++
+          compiler is verified up front and the original model is returned if none is available.
         - Warmup runs under torch.inference_mode and may use torch.autocast for CUDA/MPS to align compute precision.
         - CUDA devices are synchronized after warmup to account for asynchronous kernel execution.
     """
@@ -1051,6 +1053,16 @@ def attempt_compile(
     if mode is True:
         mode = "default"
     prefix = colorstr("compile:")
+    if device.type == "cpu":
+        try:  # compilation is lazy, so verify the inductor CPU requirement of a host C++ compiler before compiling
+            from torch._inductor.cpp_builder import get_cpp_compiler
+
+            get_cpp_compiler()
+        except ImportError:
+            pass  # older torch without cpp_builder, defer to torch.compile
+        except Exception as e:
+            LOGGER.warning(f"{prefix} no C++ compiler found for the inductor backend, continuing uncompiled: {e}")
+            return model
     LOGGER.info(f"{prefix} starting torch.compile with '{mode}' mode...")
     if mode == "max-autotune":
         LOGGER.warning(f"{prefix} mode='{mode}' not recommended, using mode='max-autotune-no-cudagraphs' instead")

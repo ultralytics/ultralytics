@@ -366,7 +366,7 @@ def test_multi_dataset_nc_names_inconsistency(tmp_path):
 
     # 2. Inconsistent nc/names length
     child_yaml.write_text("path: .\ntrain: .\nval: .\nnc: 3\nnames: [cat, dog]", encoding="utf-8")
-    with pytest.raises(SyntaxError, match="names' length .* and 'nc: .*' must match"):
+    with pytest.raises(SyntaxError, match=r"names' length .* and 'nc: .*' must match"):
         check_det_dataset(str(parent_yaml), autodownload=False)
 
 

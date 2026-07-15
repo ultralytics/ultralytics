@@ -88,6 +88,7 @@ from ultralytics.utils import (
 )
 from ultralytics.utils.checks import REMOTE_FILE_PREFIXES, check_file, check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (
+    DepthLoss26,
     E2ELoss,
     PoseLoss26,
     SemanticSegmentationLoss,
@@ -96,7 +97,6 @@ from ultralytics.utils.loss import (
     v8OBBLoss,
     v8PoseLoss,
     v8SegmentationLoss,
-    DepthLoss26,
 )
 from ultralytics.utils.ops import make_divisible
 from ultralytics.utils.patches import torch_load

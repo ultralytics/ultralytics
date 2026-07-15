@@ -846,30 +846,20 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         class_id = class_ids[0] if class_ids else 0
         return class_names.get(class_id, str(class_id))
 
-    def is_safe_path(value, nested=True):
-        """Return whether a path is contained and portable to Windows."""
-        if not isinstance(value, str) or (path := PureWindowsPath(value)).anchor or not path.name:
-            return False
-        for part in path.parts:
-            base = part.partition(".")[0].rstrip(" ").upper()
-            if (
-                part == ".."
-                or part != part.rstrip(" .")
-                or any(ord(char) < 32 or char in '<>:"|?*' for char in part)
-                or base in {"CON", "PRN", "AUX", "NUL", "CONIN$", "CONOUT$"}
-                or (len(base) == 4 and base[:3] in {"COM", "LPT"} and base[3] in "123456789¹²³")
-            ):
-                return False
-        return nested or len(path.parts) == 1
-
     for i, record in enumerate(image_records, start=1):
         split, file = record.get("split"), record.get("file")
         if not isinstance(split, str) or split not in {"train", "val", "test"}:
             raise ValueError(f"Unsafe NDJSON split in record {i}: {split!r}")
-        if not is_safe_path(file):
+        if not isinstance(file, str) or PureWindowsPath(file).name != file or file.rstrip(" .") in {"", ".", ".."}:
             raise ValueError(f"Unsafe NDJSON file path in record {i}: {file!r}")
-        if is_classification and not is_safe_path(class_name := classification_class_name(record), nested=False):
-            raise ValueError(f"Unsafe NDJSON class name in record {i}: {class_name!r}")
+        if is_classification:
+            class_name = classification_class_name(record)
+            if (
+                not isinstance(class_name, str)
+                or PureWindowsPath(class_name).name != class_name
+                or class_name.rstrip(" .") in {"", ".", ".."}
+            ):
+                raise ValueError(f"Unsafe NDJSON class name in record {i}: {class_name!r}")
 
     # Hash stable content plus source identity. Query strings are excluded because signed URLs change on every export.
     _h = hashlib.sha256()

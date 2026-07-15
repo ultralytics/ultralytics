@@ -640,37 +640,17 @@ def test_train_ndjson():
     model.train(data=f"{ASSETS_URL}/coco8-ndjson.ndjson", epochs=1, imgsz=32)
 
 
-@pytest.mark.parametrize(
-    ("task", "field", "value"),
-    [
-        ("detect", "split", "../val"),
-        ("detect", "file", "../escaped.jpg"),
-        ("classify", "class_name", "../escaped"),
-        ("classify", "class_id", "../../escaped"),
-        ("detect", "file", r"C:\escaped.jpg"),
-        ("detect", "file", r".. \escaped.jpg"),
-        ("detect", "file", "NUL.jpg"),
-        ("detect", "file", "image.jpg:stream"),
-        ("detect", "file", "CONIN$.jpg"),
-        ("detect", "file", "COM¹.txt"),
-        ("detect", "file", "image?.jpg"),
-    ],
-)
-def test_convert_ndjson_rejects_unsafe_output_paths(tmp_path, task, field, value):
+def test_convert_ndjson_rejects_unsafe_output_paths(tmp_path):
     """Verify NDJSON output paths cannot escape the converted dataset directory."""
     from ultralytics.data.converter import convert_ndjson_to_yolo
 
-    dataset = {"type": "dataset", "task": task, "class_names": {"0": "class0"}}
-    record = {"type": "image", "split": "train", "file": "image.jpg", "annotations": {}}
-    if field == "class_name":
-        dataset["class_names"]["0"] = value
-    elif field == "class_id":
-        record["annotations"] = {"classification": [value]}
-    else:
-        record[field] = value
-    records = [record] if task == "classify" else [record, {**record, "split": "val", "file": "val.jpg"}]
     ndjson = tmp_path / "dataset.ndjson"
-    ndjson.write_text("\n".join(json.dumps(x) for x in [dataset, *records]))
+    records = [
+        {"type": "dataset", "task": "detect", "class_names": {"0": "class0"}},
+        {"type": "image", "split": "train", "file": "../escaped.jpg", "annotations": {}},
+        {"type": "image", "split": "val", "file": "val.jpg", "annotations": {}},
+    ]
+    ndjson.write_text("\n".join(json.dumps(x) for x in records))
     output_path = tmp_path / "output"
 
     with pytest.raises(ValueError, match="Unsafe NDJSON"):

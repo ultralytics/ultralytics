@@ -425,7 +425,7 @@ In this example, we use YOLO to segment an image and apply the extracted mask to
                 self.classes_pub = self.create_publisher(String, "/ultralytics/detection/distance", 5)
         ```
 
-Next, define the callbacks that process the incoming RGB and depth messages. Most sensors report out-of-range pixels as `NaN`; the code filters these out before averaging, and falls back to `np.inf` — rather than a misleading `0` — if every pixel under the mask turns out to be invalid. Pass `retina_masks=True` to the model so the returned mask matches the color image's full resolution instead of the smaller, letterboxed size used for inference; because the depth topic is aligned to the color frame (see the warning above), this makes the mask line up with `depth` pixel-for-pixel. Without `retina_masks=True`, indexing `depth` with the mask raises a shape mismatch on most camera resolutions.
+Next, define the callbacks that process the incoming RGB and depth messages. Sensors report out-of-range pixels as either `NaN` or `inf` depending on the driver; the code filters both out with `np.isfinite` before averaging, and falls back to `np.inf` — rather than a misleading `0` — if every pixel under the mask turns out to be invalid. Pass `retina_masks=True` to the model so the returned mask matches the color image's full resolution instead of the smaller, letterboxed size used for inference; because the depth topic is aligned to the color frame (see the warning above), this makes the mask line up with `depth` pixel-for-pixel. Without `retina_masks=True`, indexing `depth` with the mask raises a shape mismatch on most camera resolutions.
 
 !!! example "Callbacks"
 
@@ -459,7 +459,7 @@ Next, define the callbacks that process the incoming RGB and depth messages. Mos
                 name = result[0].names[class_index]
                 mask = result[0].masks.data.cpu().numpy()[index, :, :].astype(int)
                 obj = depth[mask == 1]
-                obj = obj[~np.isnan(obj)]
+                obj = obj[np.isfinite(obj)]
                 avg_distance = np.mean(obj) if len(obj) else np.inf
                 all_objects.append(f"{name}: {avg_distance:.2f}m")
 
@@ -500,7 +500,7 @@ Next, define the callbacks that process the incoming RGB and depth messages. Mos
                     name = result[0].names[class_index]
                     mask = result[0].masks.data.cpu().numpy()[index, :, :].astype(int)
                     obj = depth[mask == 1]
-                    obj = obj[~np.isnan(obj)]
+                    obj = obj[np.isfinite(obj)]
                     avg_distance = np.mean(obj) if len(obj) else np.inf
                     all_objects.append(f"{name}: {avg_distance:.2f}m")
 
@@ -563,7 +563,7 @@ Next, define the callbacks that process the incoming RGB and depth messages. Mos
                 name = result[0].names[class_index]
                 mask = result[0].masks.data.cpu().numpy()[index, :, :].astype(int)
                 obj = depth[mask == 1]
-                obj = obj[~np.isnan(obj)]
+                obj = obj[np.isfinite(obj)]
                 avg_distance = np.mean(obj) if len(obj) else np.inf
                 all_objects.append(f"{name}: {avg_distance:.2f}m")
 
@@ -622,7 +622,7 @@ Next, define the callbacks that process the incoming RGB and depth messages. Mos
                     name = result[0].names[class_index]
                     mask = result[0].masks.data.cpu().numpy()[index, :, :].astype(int)
                     obj = depth[mask == 1]
-                    obj = obj[~np.isnan(obj)]
+                    obj = obj[np.isfinite(obj)]
                     avg_distance = np.mean(obj) if len(obj) else np.inf
                     all_objects.append(f"{name}: {avg_distance:.2f}m")
 
@@ -786,7 +786,7 @@ The function returns the `xyz` coordinates and `RGB` values in the format of the
 
 Next, wait for a point cloud message and convert it into NumPy arrays containing the XYZ coordinates and RGB values (using the `pointcloud2_to_array` function). Process the RGB image using the YOLO model to extract segmented objects, passing `retina_masks=True` so each mask matches the cloud's native resolution rather than the smaller size used for inference. For each detected object, extract the segmentation mask and apply it to both the RGB image and the XYZ coordinates to isolate the object in 3D space.
 
-Processing the mask is straightforward since it consists of binary values, with `1` indicating the presence of the object and `0` indicating the absence. To apply the mask, simply multiply the original channels by the mask. This operation effectively isolates the object of interest within the image. Finally, create an Open3D point cloud object and visualize the segmented object in 3D space with associated colors — `pointcloud2_to_array` packs `rgb` in the BGR channel order YOLO expects, so reverse the channel axis when assigning `pcd.colors`, since Open3D expects colors in RGB order.
+The mask is a binary array, with `1` indicating the presence of the object and `0` indicating the absence. Boolean-index `xyz` and `rgb` with `mask == 1` to keep only the object's points — multiplying by the mask instead would leave every background point in the cloud at coordinate `(0, 0, 0)`, rendering as a dense artificial cluster at the origin rather than an isolated object. Finally, create an Open3D point cloud object and visualize the segmented object in 3D space with associated colors — `pointcloud2_to_array` packs `rgb` in the BGR channel order YOLO expects, so reverse the channel axis when assigning `pcd.colors`, since Open3D expects colors in RGB order.
 
 !!! example "Segment and visualize"
 
@@ -808,14 +808,10 @@ Processing the mask is straightforward since it consists of binary values, with 
         classes = result[0].boxes.cls.cpu().numpy().astype(int)
         for index, class_id in enumerate(classes):
             mask = result[0].masks.data.cpu().numpy()[index, :, :].astype(int)
-            mask_expanded = np.stack([mask, mask, mask], axis=2)
-
-            obj_rgb = rgb * mask_expanded
-            obj_xyz = xyz * mask_expanded
 
             pcd = o3d.geometry.PointCloud()
-            pcd.points = o3d.utility.Vector3dVector(obj_xyz.reshape((ros_cloud.height * ros_cloud.width, 3)))
-            pcd.colors = o3d.utility.Vector3dVector(obj_rgb.reshape((ros_cloud.height * ros_cloud.width, 3))[:, ::-1] / 255)
+            pcd.points = o3d.utility.Vector3dVector(xyz[mask == 1])
+            pcd.colors = o3d.utility.Vector3dVector(rgb[mask == 1][:, ::-1] / 255)
             o3d.visualization.draw_geometries([pcd])
         ```
 
@@ -849,14 +845,10 @@ Processing the mask is straightforward since it consists of binary values, with 
             classes = result[0].boxes.cls.cpu().numpy().astype(int)
             for index, class_id in enumerate(classes):
                 mask = result[0].masks.data.cpu().numpy()[index, :, :].astype(int)
-                mask_expanded = np.stack([mask, mask, mask], axis=2)
-
-                obj_rgb = rgb * mask_expanded
-                obj_xyz = xyz * mask_expanded
 
                 pcd = o3d.geometry.PointCloud()
-                pcd.points = o3d.utility.Vector3dVector(obj_xyz.reshape((ros_cloud.height * ros_cloud.width, 3)))
-                pcd.colors = o3d.utility.Vector3dVector(obj_rgb.reshape((ros_cloud.height * ros_cloud.width, 3))[:, ::-1] / 255)
+                pcd.points = o3d.utility.Vector3dVector(xyz[mask == 1])
+                pcd.colors = o3d.utility.Vector3dVector(rgb[mask == 1][:, ::-1] / 255)
                 o3d.visualization.draw_geometries([pcd])
 
             node.destroy_node()
@@ -919,14 +911,10 @@ Processing the mask is straightforward since it consists of binary values, with 
         classes = result[0].boxes.cls.cpu().numpy().astype(int)
         for index, class_id in enumerate(classes):
             mask = result[0].masks.data.cpu().numpy()[index, :, :].astype(int)
-            mask_expanded = np.stack([mask, mask, mask], axis=2)
-
-            obj_rgb = rgb * mask_expanded
-            obj_xyz = xyz * mask_expanded
 
             pcd = o3d.geometry.PointCloud()
-            pcd.points = o3d.utility.Vector3dVector(obj_xyz.reshape((ros_cloud.height * ros_cloud.width, 3)))
-            pcd.colors = o3d.utility.Vector3dVector(obj_rgb.reshape((ros_cloud.height * ros_cloud.width, 3))[:, ::-1] / 255)
+            pcd.points = o3d.utility.Vector3dVector(xyz[mask == 1])
+            pcd.colors = o3d.utility.Vector3dVector(rgb[mask == 1][:, ::-1] / 255)
             o3d.visualization.draw_geometries([pcd])
         ```
 
@@ -1000,14 +988,10 @@ Processing the mask is straightforward since it consists of binary values, with 
             classes = result[0].boxes.cls.cpu().numpy().astype(int)
             for index, class_id in enumerate(classes):
                 mask = result[0].masks.data.cpu().numpy()[index, :, :].astype(int)
-                mask_expanded = np.stack([mask, mask, mask], axis=2)
-
-                obj_rgb = rgb * mask_expanded
-                obj_xyz = xyz * mask_expanded
 
                 pcd = o3d.geometry.PointCloud()
-                pcd.points = o3d.utility.Vector3dVector(obj_xyz.reshape((ros_cloud.height * ros_cloud.width, 3)))
-                pcd.colors = o3d.utility.Vector3dVector(obj_rgb.reshape((ros_cloud.height * ros_cloud.width, 3))[:, ::-1] / 255)
+                pcd.points = o3d.utility.Vector3dVector(xyz[mask == 1])
+                pcd.colors = o3d.utility.Vector3dVector(rgb[mask == 1][:, ::-1] / 255)
                 o3d.visualization.draw_geometries([pcd])
 
             node.destroy_node()

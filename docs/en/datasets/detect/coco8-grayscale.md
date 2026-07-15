@@ -26,7 +26,7 @@ The [Ultralytics](https://www.ultralytics.com/) COCO8-Grayscale dataset is a com
 
 COCO8-Grayscale mirrors [COCO8](coco8.md)—the first 8 images from the COCO train 2017 set, split into 4 for training and 4 for validation across all 80 COCO object classes—but each image is stored as a single-channel (`channels: 1`) grayscale image in [YOLO label format](../index.md):
 
-```
+```text
 coco8-grayscale/
 ├── images/
 │   ├── train/   # 4 images
@@ -40,7 +40,7 @@ Explore [COCO8-Grayscale on Ultralytics Platform](https://platform.ultralytics.c
 
 ## Dataset YAML
 
-The COCO8-Grayscale dataset configuration is defined in a YAML (Yet Another Markup Language) file, which specifies dataset paths, class names, and other essential metadata. You can review the official `coco8-grayscale.yaml` file in the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8-grayscale.yaml).
+The COCO8-Grayscale dataset configuration is defined in a YAML file, which specifies dataset paths, class names, and other essential metadata. You can review the official `coco8-grayscale.yaml` file in the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8-grayscale.yaml).
 
 !!! note
 

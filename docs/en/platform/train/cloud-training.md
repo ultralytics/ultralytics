@@ -1,4 +1,5 @@
 ---
+plans: [free, pro, enterprise]
 title: Cloud GPU Training
 comments: true
 description: Learn how to train YOLO models on cloud GPUs with Ultralytics Platform, including remote training and real-time metrics streaming.

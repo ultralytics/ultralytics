@@ -838,7 +838,11 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     is_classification = dataset_record.get("task") == "classify"
     class_names = {int(k): v for k, v in dataset_record.get("class_names", {}).items()}
     if is_classification and any(
-        not isinstance(v, str) or not v or v != v.rstrip(" .") or max(v.rfind("/"), v.rfind("\\"), v.rfind(":")) >= 0
+        not isinstance(v, str)
+        or not v
+        or v.startswith(("/", "\\"))
+        or (len(v) > 1 and v[0].isalpha() and v[1] == ":")
+        or ".." in v.replace("\\", "/").split("/")
         for v in class_names.values()
     ):
         raise ValueError("Invalid NDJSON classification name")
@@ -851,13 +855,11 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
             split, source_name = r.get("split"), r.get("file")
             if split not in {"train", "val", "test"}:
                 raise ValueError(f"Invalid NDJSON split: {split!r}")
-            if (
-                not isinstance(source_name, str)
-                or not source_name
-                or source_name != source_name.rstrip(" .")
-                or max(source_name.rfind("/"), source_name.rfind("\\"), source_name.rfind(":")) >= 0
-            ):
+            if not isinstance(source_name, str) or not source_name:
                 raise ValueError(f"Invalid NDJSON image name: {source_name!r}")
+            if "/" in source_name or "\\" in source_name or (len(source_name) > 1 and source_name[1] == ":"):
+                suffix = source_name.rsplit(".", 1)[-1]
+                r["file"] = f"{i}.{suffix}" if suffix.isalnum() and len(suffix) <= 10 else f"{i}.jpg"
             if is_classification:
                 ids = r.get("annotations", {}).get("classification", [])
                 class_id = ids[0] if ids else 0
@@ -870,8 +872,6 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         _h.update(json.dumps(hash_record, sort_keys=True).encode())
     _hash = _h.hexdigest()[:8]
     class_dirs = {k: class_names.get(k, str(k)) for k in classification_ids}
-    if len(set(class_dirs.values())) != len(class_dirs):
-        raise ValueError("Duplicate NDJSON classification directory")
 
     # Hash-qualified dirs allow identical datasets to reuse downloads while preventing changed datasets from mutating
     # files that another training job may still be reading.

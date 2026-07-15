@@ -274,7 +274,7 @@ def test_convert_depth_ndjson_rejects_unsafe_output_paths(tmp_path, file, split)
     records[1]["split"] = split
     manifest.write_text("\n".join(json.dumps(record) for record in records))
 
-    with pytest.raises(ValueError, match="relative path|split must"):
+    with pytest.raises(ValueError, match=r"relative path|split must"):
         asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets"))
 
 

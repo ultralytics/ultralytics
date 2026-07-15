@@ -1169,7 +1169,7 @@ class Exporter:
             im=self.im,
             classifier_names=list(self.model.names.values()) if self.model.task == "classify" else None,
             mlmodel=mlmodel,
-            quantize=self.args.quantize,
+            quantize=16 if self.args.nms and not mlmodel and self.args.quantize is None else self.args.quantize,
             metadata=self.metadata,
             prefix=prefix,
         )

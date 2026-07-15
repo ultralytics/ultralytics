@@ -92,7 +92,7 @@ Use the `quantize` argument to request the export precision. String values are c
 | ---------------------------------- | --------------- | ------------------------------------------------------------------------------- |
 | `8`, `"8"`, `"int8"`, `"w8a8"`     | `8`             | INT8 weights and activations                                                    |
 | `16`, `"16"`, `"fp16"`, `"w16a16"` | `16`            | FP16 weights and activations                                                    |
-| `32`, `"32"`, `"fp32"`, `"w32a32"` | `32`            | FP32 export; same precision as leaving `quantize` unset                         |
+| `32`, `"32"`, `"fp32"`, `"w32a32"` | `32`            | FP32 export; same as unset except CoreML NMS ML Programs, which default to FP16 |
 | `"w8a16"`                          | `"w8a16"`       | INT8 weights with 16-bit activations (FP16; INT16 on LiteRT)                    |
 | `"w8a32"`                          | `"w8a32"`       | INT8 weights with FP32 activations (LiteRT dynamic INT8, no calibration needed) |
 

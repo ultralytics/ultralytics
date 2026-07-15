@@ -212,7 +212,7 @@ def torch2coreml(
         # ML Program conversion defaults to FP16. Pin FP32 unless FP16/INT8 was requested.
         from ultralytics.nn.modules.head import RTDETRDecoder
 
-        if not (fp16 or weight_int8 or isinstance(model, IOSDetectModel)):  # XCode preview breaks if set to FLOAT32
+        if not (fp16 or weight_int8):
             convert_kwargs["compute_precision"] = ct.precision.FLOAT32
         elif any(isinstance(m, RTDETRDecoder) for m in model.modules()):
             # RT-DETR decoder class logits and deformable-sampling indices drift in fp16; pin those op types to fp32.

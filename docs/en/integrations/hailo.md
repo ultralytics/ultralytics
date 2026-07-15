@@ -234,7 +234,7 @@ The HEF stores no class names, so the metadata Ultralytics embeds in the ONNX is
 
     The DFC prints a suggestion after parsing:
 
-    ```
+    ```text
     [info] In order to use HailoRT post-processing capabilities, these end node names should be used: ...
     ```
 

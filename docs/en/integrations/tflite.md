@@ -1,11 +1,11 @@
 ---
-title: Export YOLO to TFLite for Edge Devices
+title: TFLite Model Export for Edge Devices (Deprecated)
 comments: true
-description: Learn how to convert YOLO26 models to TFLite for edge device deployment. Optimize performance and ensure seamless execution on various platforms.
+description: Historical guide to legacy YOLO TFLite model export and edge deployment. Use LiteRT for new exports.
 keywords: YOLO26, TFLite, model export, TensorFlow Lite, edge devices, deployment, Ultralytics, machine learning, on-device inference, model optimization
 ---
 
-# A Guide on YOLO26 Model Export to TFLite for Deployment
+# TFLite Model Export for Deployment (Deprecated)
 
 !!! warning "Deprecated — replaced by LiteRT"
 
@@ -19,13 +19,13 @@ keywords: YOLO26, TFLite, model export, TensorFlow Lite, edge devices, deploymen
 
 Deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models on edge devices or embedded devices requires a format that can ensure seamless performance.
 
-The TensorFlow Lite or TFLite export format allows you to optimize your [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) models for tasks like [object detection](https://www.ultralytics.com/glossary/object-detection) and [image classification](https://www.ultralytics.com/glossary/image-classification) in edge device-based applications. In this guide, we'll walk through the steps for converting your models to the TFLite format, making it easier for your models to perform well on various edge devices.
+The former TensorFlow Lite or TFLite export format optimized [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) models for tasks like [object detection](https://www.ultralytics.com/glossary/object-detection) and [image classification](https://www.ultralytics.com/glossary/image-classification) in edge applications. This guide preserves the legacy TFLite deployment context; use [LiteRT](litert.md) for new exports.
 
-## Why Should You Export to TFLite?
+## Why Was TFLite Used for Export?
 
-Introduced by Google in May 2017 as part of their TensorFlow framework, [TensorFlow Lite](https://developers.google.com/edge/litert), or TFLite for short, is an open-source deep learning framework designed for on-device inference, also known as [edge computing](https://www.ultralytics.com/glossary/edge-computing). It gives developers the necessary tools to execute their trained models on mobile, embedded, and IoT devices, as well as traditional computers.
+Introduced by Google in May 2017 as part of their TensorFlow framework, [TensorFlow Lite](https://developers.google.com/edge/litert), or TFLite for short, was an open-source deep learning framework designed for on-device inference, also known as [edge computing](https://www.ultralytics.com/glossary/edge-computing). It gave developers tools to execute trained models on mobile, embedded, and IoT devices, as well as traditional computers.
 
-TensorFlow Lite is compatible with a wide range of platforms, including embedded Linux, Android, iOS, and microcontrollers (MCUs). Exporting your model to TFLite makes your applications faster, more reliable, and capable of running offline.
+TensorFlow Lite supported a wide range of platforms, including embedded Linux, Android, iOS, and microcontrollers (MCUs). TFLite exports enabled applications to run models locally and offline.
 
 ## Key Features of TFLite Models
 

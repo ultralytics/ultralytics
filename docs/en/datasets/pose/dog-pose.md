@@ -35,7 +35,7 @@ For a specific breed or a different animal altogether, [Ultralytics Platform](ht
 - **Download size**: ~337 MB.
 - **Layout**:
 
-    ```
+    ```text
     datasets/dog-pose/
     ├── images/{train,val}
     └── labels/{train,val}

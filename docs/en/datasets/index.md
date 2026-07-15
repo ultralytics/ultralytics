@@ -128,7 +128,7 @@ Contributing a new dataset involves several steps to ensure that it aligns well 
 3. **Export Annotations**: Convert these annotations into the YOLO `*.txt` file format which Ultralytics supports.
 4. **Organize Dataset**: Arrange your dataset into the correct folder structure. You should have `images/` and `labels/` top-level directories, and within each, a `train/` and `val/` subdirectory.
 
-    ```
+    ```text
     dataset/
     ├── images/
     │   ├── train/

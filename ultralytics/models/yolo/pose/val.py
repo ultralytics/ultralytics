@@ -102,7 +102,12 @@ class PoseValidator(DetectionValidator):
         self.kpt_shape = self.data["kpt_shape"]
         is_pose = self.kpt_shape == [17, 3]
         nkpt = self.kpt_shape[0]
-        self.sigma = OKS_SIGMA if is_pose else np.ones(nkpt) / nkpt
+        if sigmas := self.data.get("kpt_oks_sigmas"):  # optional custom OKS sigmas from the dataset YAML
+            self.sigma = np.array(sigmas, dtype=np.float32).flatten()
+            if len(self.sigma) != nkpt or not np.all(self.sigma > 0):
+                raise ValueError(f"'kpt_oks_sigmas' must be {nkpt} positive values, got {sigmas}")
+        else:
+            self.sigma = OKS_SIGMA if is_pose else np.ones(nkpt) / nkpt
 
     def postprocess(self, preds: torch.Tensor) -> list[dict[str, torch.Tensor]]:
         """Postprocess YOLO predictions to extract and reshape keypoints for pose estimation.
@@ -219,7 +224,7 @@ class PoseValidator(DetectionValidator):
         format, and appends the results with keypoints to the internal JSON dictionary (self.jdict).
 
         Args:
-            predn (dict[str, torch.Tensor]): Prediction dictionary containing 'bboxes', 'conf', 'cls', and 'kpts'
+            predn (dict[str, torch.Tensor]): Prediction dictionary containing 'bboxes', 'conf', 'cls', and 'keypoints'
                 tensors.
             pbatch (dict[str, Any]): Batch dictionary containing 'imgsz', 'ori_shape', 'ratio_pad', and 'im_file'.
 
@@ -229,7 +234,7 @@ class PoseValidator(DetectionValidator):
             before saving to the JSON dictionary.
         """
         super().pred_to_json(predn, pbatch)
-        kpts = predn["kpts"]
+        kpts = predn["keypoints"]
         for i, k in enumerate(kpts.flatten(1, 2).tolist()):
             self.jdict[-len(kpts) + i]["keypoints"] = k  # keypoints
 
@@ -237,7 +242,7 @@ class PoseValidator(DetectionValidator):
         """Scales predictions to the original image size."""
         return {
             **super().scale_preds(predn, pbatch),
-            "kpts": ops.scale_coords(
+            "keypoints": ops.scale_coords(
                 pbatch["imgsz"],
                 predn["keypoints"].clone(),
                 pbatch["ori_shape"],

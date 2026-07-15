@@ -88,11 +88,11 @@ from ultralytics.utils import (
 )
 from ultralytics.utils.checks import REMOTE_FILE_PREFIXES, check_file, check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (
+    DepthLoss26,
     E2ELoss,
     PoseLoss26,
     SemanticSegmentationLoss,
     v8ClassificationLoss,
-    v8DepthLoss,
     v8DetectionLoss,
     v8OBBLoss,
     v8PoseLoss,
@@ -793,7 +793,7 @@ class DepthModel(DetectionModel):
 
     def init_criterion(self):
         """Initialize the depth loss criterion."""
-        return v8DepthLoss(self)
+        return DepthLoss26(self)
 
 
 class ClassificationModel(BaseModel):

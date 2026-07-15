@@ -149,7 +149,7 @@ When adapting a pretrained depth model to a custom dataset, **lower the learning
 
 Additional tips:
 
-- **Augmentation is controlled by the standard args** (`degrees`, `translate`, `scale`, `shear`, `perspective`, `flipud`, `fliplr`, `hsv_h`, `hsv_s`, `hsv_v`); the geometric warp and flips are applied identically to the paired depth map. To train with the same augmentation recipe used for the released YOLO26-Depth weights, pass the bundled config: `yolo cfg=depth-hyp.yaml depth train data=your_dataset.yaml model=yolo26s-depth.pt` (on the CLI, `cfg=` must come before other arguments) or `model.train(..., cfg="depth-hyp.yaml")`.
+- **Augmentation is controlled by the standard args** (`degrees`, `translate`, `scale`, `shear`, `perspective`, `flipud`, `fliplr`, `hsv_h`, `hsv_s`, `hsv_v`); the geometric warp and flips are applied identically to the paired depth map. To see the exact recipe used for the released YOLO26-Depth weights, inspect the `train_args` stored in the checkpoint — see [Inspecting YOLO26 Checkpoint Training Args](../guides/yolo26-training-recipe.md#inspecting-yolo26-checkpoint-training-args).
 - **Any depth range works out of the box.** The default `log`-head models predict unbounded depth, so they adapt to short-range (macro) or long-range (outdoor/driving) data without changes. If you use the bounded `yolo26-depth-sigmoid.yaml` variant instead, set `max_depth:` in your dataset YAML to your scene's maximum depth (in meters).
 - **Retain general performance.** If you need the model to stay accurate on scenes beyond your training set, mix a small fraction (~5–10%) of diverse general-purpose images into your training data; this substantially reduces forgetting during fine-tuning.
 - **Train from scratch** (`model=yolo26s-depth.yaml`) only if your domain is very different and you have a large dataset — there the default SGD `lr0=0.01` is appropriate, since there are no pretrained weights to preserve.
@@ -174,7 +174,7 @@ The depth head separates **shape** (relative scene structure) from **scale** (ab
 
 Calibration needs ground-truth depth to fit against, so it runs on a labeled split — it is not something that can happen at blind inference. Use it when relative depth is already good and only the scale/range is wrong; if the relative structure itself needs to change for your domain, [fine-tune](#fine-tuning-on-your-own-data) instead.
 
-Training does this for you automatically: after `model.train(...)` completes, the best and last checkpoints are calibrated on the validation set so they output metric-scaled depth out of the box. Disable with `auto_calibrate=False`.
+Training does this for you automatically: after `model.train(...)` completes, the best and last checkpoints are calibrated on the validation set so they output metric-scaled depth out of the box.
 
 The released `yolo26*-depth.pt` checkpoints ship with this calibration already baked in, fit on the pretraining validation mix. It is a single global scale across all domains, so for the most accurate absolute depth on a specific camera or scene type, run `model.calibrate()` on a small labeled split from your own data — it replaces the baked-in fit.
 

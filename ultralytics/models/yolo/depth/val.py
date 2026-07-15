@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import cv2
 import numpy as np
 import torch
 import torch.distributed as dist
@@ -12,7 +11,7 @@ import torch.nn.functional as F
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER, RANK
 from ultralytics.utils.metrics import DepthMetrics
-from ultralytics.utils.plotting import colorize_depth
+from ultralytics.utils.plotting import plot_images
 
 
 class DepthValidator(DetectionValidator):
@@ -25,9 +24,6 @@ class DepthValidator(DetectionValidator):
         """Initialize DepthValidator."""
         super().__init__(dataloader, save_dir, args, _callbacks)
         self.args.task = "depth"
-        # Scale-only calibration: when enabled (by Model.calibrate), collect per-batch (log pred,
-        # log gt) arrays during the val pass and fit the log-affine in get_stats() via the same
-        # "calibrate only if it helps" selective policy used by auto-calibration.
         self.calibrating = False
 
     def init_metrics(self, model):
@@ -40,8 +36,6 @@ class DepthValidator(DetectionValidator):
         self.metrics.clear_stats()
         self.calib = None
         self._cal_logp, self._cal_logg, self._cal_pts = [], [], 0
-        # Baked calibration of the model under validation, for the standalone-val comparison plot
-        # (the head applies cal_a/cal_b in its forward, so predictions arrive already calibrated).
         from .calibrate import _depth_head
 
         head = _depth_head(model)
@@ -50,8 +44,7 @@ class DepthValidator(DetectionValidator):
     def preprocess(self, batch):
         """Preprocess batch — move to device, normalize images, and keep depth as float32."""
         batch = super().preprocess(batch)
-        if "depth" in batch:
-            batch["depth"] = batch["depth"].float()  # depth always float32
+        batch["depth"] = batch["depth"].float()
         return batch
 
     def postprocess(self, preds):
@@ -78,22 +71,19 @@ class DepthValidator(DetectionValidator):
         if pred_depth.ndim == 3:
             pred_depth = pred_depth.unsqueeze(1)
         if pred_depth.shape[-2:] != gt_depth.shape[-2:]:
-            # align_corners=True matches the loss upsample, so val scores the same alignment training optimized
             pred_depth = F.interpolate(
                 pred_depth.float(), size=gt_depth.shape[-2:], mode="bilinear", align_corners=True
             )
         self.metrics.update_stats(pred_depth, gt_depth)
 
         if self.calibrating and self._cal_pts < 500_000:
-            # One (log pred, log gt) pair per image so select_calibration_cv folds by image (no
-            # pixel leakage) and a batch=N run yields N calibration samples, not a single pair.
             for pi, gi in zip(pred_depth, gt_depth):
                 valid = (gi > 1e-3) & (pi > 1e-3) & torch.isfinite(pi)
                 if not valid.any():
                     continue
                 lp = torch.log(pi[valid]).cpu().numpy()
                 lg = torch.log(gi[valid]).cpu().numpy()
-                if lp.size > 20_000:  # subsample per image — calibration is only a 2-parameter fit
+                if lp.size > 20_000:  # 2-parameter fit does not need all pixels
                     idx = np.random.default_rng(self._cal_pts).choice(lp.size, 20_000, replace=False)
                     lp, lg = lp[idx], lg[idx]
                 self._cal_logp.append(lp)
@@ -114,8 +104,6 @@ class DepthValidator(DetectionValidator):
         if self.calibrating and len(self._cal_logp) >= 2:
             from .calibrate import select_calibration_cv
 
-            # Reuse auto-calibration's "only if it helps" CV policy so an unhelpful fit is rejected;
-            # each collected pair is one image, so held-out folds have no pixel leakage.
             res = select_calibration_cv(list(zip(self._cal_logp, self._cal_logg)), margin=0.002)
             self.calib = (res["a"], res["b"])
             LOGGER.info(
@@ -174,87 +162,33 @@ class DepthValidator(DetectionValidator):
         """Return description for progress bar."""
         return f"{'Class':>22}{'Images':>11}{'delta1':>11}{'abs_rel':>11}{'rmse':>11}{'silog':>11}"
 
-    def plot_predictions(self, batch, preds, ni, max_images: int = 4):
-        """Save a RGB | GT depth | predicted depth panel for the batch to val_batch{ni}.jpg.
-
-        Depth has no boxes/classes, so the detection-style plotters are replaced with a
-        side-by-side depth visualization (see plot_depth_panels). Called by BaseValidator
-        for the first few batches when args.plots is set.
-
-        Standalone val (``yolo val``) additionally writes ``val_batch{ni}_calibrated.jpg``
-        comparing raw vs the checkpoint's baked calibration. The head already applies
-        ``cal_a``/``cal_b`` in its forward, so the prediction here IS the calibrated output;
-        raw is recovered by inverting the log-affine. Training-epoch validation skips this
-        (buffers are identity until final_eval fits them, so the comparison says nothing).
-        """
-        if "depth" not in batch:
-            return
-        try:
-            pred = self._extract_pred(preds)
-            plot_depth_panels(
-                batch["img"],
-                batch["depth"],
-                [pred],
-                self.save_dir / f"val_batch{ni}.jpg",
-                max_images=max_images,
-            )
-            cal = getattr(self, "_cal_ab", None)
-            if cal is not None and not getattr(self, "training", True):
-                a, b = cal
-                raw = torch.exp((torch.log(pred.float().clamp(min=1e-3)) - b) / a)
-                name = "identity" if (a, b) == (1.0, 0.0) else "baked"
-                plot_depth_panels(
-                    batch["img"],
-                    batch["depth"],
-                    [raw, pred],
-                    self.save_dir / f"val_batch{ni}_calibrated.jpg",
-                    titles=["RGB", "GT", "raw", f"calibrated ({name} x{np.exp(b):.2f})"],
-                    max_images=max_images,
-                )
-        except Exception as e:
-            LOGGER.warning(f"DepthValidator: failed to plot val_batch{ni}: {e}")
-
     def plot_val_samples(self, batch, ni):
-        """No-op: GT depth is shown alongside predictions in plot_predictions()."""
-        pass
+        """Save validation GT depth overlays to val_batch{ni}_labels.jpg.
 
+        Follows the detection/segmentation pattern: ground truth is rendered in the labels plot.
+        The depth heatmap is blended over the RGB image using the shared ``plot_images`` path.
+        """
+        plot_images(
+            labels={"depth": batch["depth"]},
+            images=batch["img"],
+            paths=batch["im_file"],
+            fname=self.save_dir / f"val_batch{ni}_labels.jpg",
+            names=self.names,
+            on_plot=self.on_plot,
+        )
 
-def plot_depth_panels(imgs, gt, preds, fname, titles=None, max_images: int = 4):
-    """Write a depth panel grid: one row per image, columns RGB | GT | one per entry of ``preds``.
+    def plot_predictions(self, batch, preds, ni):
+        """Save predicted depth overlays to val_batch{ni}_pred.jpg.
 
-    All depth columns share the GT valid-pixel range per row, so a scale error between GT and any prediction shows up
-    directly as a color mismatch. Panels are resized to the RGB image size, so predictions at head stride need no prior
-    interpolation.
-
-    Args:
-        imgs (torch.Tensor): (B,3,H,W) float image tensor in [0,1].
-        gt (torch.Tensor): (B,1,H,W) or (B,H,W) ground-truth depth in meters (pixels <= 0 invalid, drawn black).
-        preds (list): List of (B,1,H,W) or (B,H,W) predicted depth tensors; each adds one column.
-        fname (str | Path): Output image path.
-        titles (list, optional): List of ``2 + len(preds)`` column labels, drawn in a 24 px header strip. None (the
-            val_batch{ni}.jpg default) keeps the historical strip-free layout.
-        max_images: Maximum number of rows.
-    """
-    if gt.ndim == 3:
-        gt = gt.unsqueeze(1)
-    preds = [p.unsqueeze(1) if p.ndim == 3 else p for p in preds]
-    h, w = imgs.shape[-2:]
-    rows = []
-    for i in range(min(imgs.shape[0], max_images)):
-        rgb = (imgs[i].detach().float().cpu().clamp(0, 1).numpy() * 255).astype(np.uint8).transpose(1, 2, 0)
-        panels = [cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)]
-        g = gt[i, 0]
-        gv = g[g > 0]
-        vmin = float(gv.min()) if gv.numel() else 0.0
-        vmax = float(gv.max()) if gv.numel() else 1.0
-        for d in [g] + [p[i, 0] for p in preds]:
-            d = d.detach().float().cpu().numpy() if isinstance(d, torch.Tensor) else np.asarray(d, np.float32)
-            panels.append(cv2.resize(colorize_depth(d, vmin, vmax), (w, h), interpolation=cv2.INTER_NEAREST))
-        rows.append(np.hstack(panels))
-    grid = np.vstack(rows)
-    if titles:
-        strip = np.full((24, grid.shape[1], 3), 255, dtype=np.uint8)
-        for j, t in enumerate(titles):
-            cv2.putText(strip, str(t), (j * w + 4, 17), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-        grid = np.vstack([strip, grid])
-    cv2.imwrite(str(fname), grid)
+        Depth has no boxes/classes, so the detection-style plotter is replaced with a depth heatmap overlay
+        through the shared ``plot_images`` path, matching the semantic-segmentation visualization style.
+        """
+        pred = self._extract_pred(preds)
+        plot_images(
+            labels={"depth": pred},
+            images=batch["img"],
+            paths=batch["im_file"],
+            fname=self.save_dir / f"val_batch{ni}_pred.jpg",
+            names=self.names,
+            on_plot=self.on_plot,
+        )

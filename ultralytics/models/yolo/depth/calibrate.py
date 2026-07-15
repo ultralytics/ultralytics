@@ -21,6 +21,7 @@ import torch
 import torch.nn.functional as F
 
 from ultralytics.utils import LOGGER
+from ultralytics.utils.torch_utils import smart_inference_mode
 
 
 def _depth_head(model):
@@ -28,7 +29,7 @@ def _depth_head(model):
     m = model.module if hasattr(model, "module") else model  # unwrap DDP
     seq = getattr(m, "model", None)
     if seq is not None and not isinstance(seq, torch.nn.Sequential):
-        seq = getattr(seq, "model", None)  # unwrap AutoBackend-style wrappers (wrapper.model = DepthModel)
+        seq = getattr(seq, "model", None)
     head = seq[-1] if isinstance(seq, torch.nn.Sequential) else m
     return head if hasattr(head, "cal_a") else None
 
@@ -156,6 +157,7 @@ def select_calibration_cv(pairs, margin: float = 0.0, folds: int = 2, allow_affi
     return {"a": a, "b": b, "name": best, "cv_scores": cv}
 
 
+@smart_inference_mode()
 def _collect_logpairs(model, dataloader, device, max_images: int):
     """Run the model over the loader and return a list of per-image ``(log_pred, log_gt)`` arrays.
 
@@ -171,30 +173,29 @@ def _collect_logpairs(model, dataloader, device, max_images: int):
     rng = np.random.default_rng(0)
     pairs = []
     seen = 0
-    with torch.no_grad():
-        for batch in dataloader:
-            img = batch["img"].to(device).float() / 255
-            gt = batch["depth"].to(device).float()
-            if gt.ndim == 3:
-                gt = gt.unsqueeze(1)
-            pred = _extract(model(img)).float()
-            if pred.ndim == 3:
-                pred = pred.unsqueeze(1)
-            if pred.shape[-2:] != gt.shape[-2:]:
-                pred = F.interpolate(pred, size=gt.shape[-2:], mode="bilinear", align_corners=True)
-            for pi, gi in zip(pred, gt):
-                valid = (gi > 1e-3) & (pi > 1e-3) & torch.isfinite(pi)
-                if not valid.any():
-                    continue
-                lp = torch.log(pi[valid]).cpu().numpy()
-                lg = torch.log(gi[valid]).cpu().numpy()
-                if lp.size > 20_000:
-                    idx = rng.choice(lp.size, 20_000, replace=False)
-                    lp, lg = lp[idx], lg[idx]
-                pairs.append((lp, lg))
-            seen += img.shape[0]
-            if seen >= max_images:
-                break
+    for batch in dataloader:
+        img = batch["img"].to(device).float() / 255
+        gt = batch["depth"].to(device).float()
+        if gt.ndim == 3:
+            gt = gt.unsqueeze(1)
+        pred = _extract(model(img)).float()
+        if pred.ndim == 3:
+            pred = pred.unsqueeze(1)
+        if pred.shape[-2:] != gt.shape[-2:]:
+            pred = F.interpolate(pred, size=gt.shape[-2:], mode="bilinear", align_corners=True)
+        for pi, gi in zip(pred, gt):
+            valid = (gi > 1e-3) & (pi > 1e-3) & torch.isfinite(pi)
+            if not valid.any():
+                continue
+            lp = torch.log(pi[valid]).cpu().numpy()
+            lg = torch.log(gi[valid]).cpu().numpy()
+            if lp.size > 20_000:
+                idx = rng.choice(lp.size, 20_000, replace=False)
+                lp, lg = lp[idx], lg[idx]
+            pairs.append((lp, lg))
+        seen += img.shape[0]
+        if seen >= max_images:
+            break
     head.cal_a.fill_(a0)
     head.cal_b.fill_(b0)  # restore; callers set the chosen value explicitly
     return pairs
@@ -241,7 +242,7 @@ def _plot_calibrated_batches(
     comparable. With the "only if it helps" policy the selected ``name`` may be ``identity``; the panels are still
     written (raw == calibrated), which documents that calibration was a no-op. Buffers are restored afterwards.
     """
-    from .val import plot_depth_panels
+    from ultralytics.utils.plotting import plot_depth_panels
 
     head = _depth_head(model)
     a0, b0 = float(head.cal_a), float(head.cal_b)
@@ -262,9 +263,9 @@ def _plot_calibrated_batches(
             cal = torch.exp(a * torch.log(raw.clamp(min=1e-3)) + b)
             plot_depth_panels(
                 img,
-                gt,
                 [raw, cal],
                 plot_dir / f"val_batch{ni}_calibrated.jpg",
+                gt=gt,
                 titles=titles,
                 max_images=max_images,
             )

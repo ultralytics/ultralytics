@@ -109,11 +109,9 @@ pose: 12.0 # (float) pose loss gain (pose tasks)
 kobj: 1.0 # (float) keypoint objectness loss gain (pose tasks)
 rle: 1.0 # (float) rle loss gain (pose tasks)
 angle: 1.0 # (float) oriented angle loss gain (obb tasks)
-silog: 1.0 # (float) SILog depth loss gain (depth tasks)
-silog_grad: 0.5 # (float) gradient/edge depth loss gain (depth tasks)
-silog_grad_scales: 4 # (int) depth: pyramid levels for gradient-matching loss (1=single-scale) (depth tasks)
-silog_lambda: 1.0 # (float) SILog variance focus: 1.0=scale-invariant, 0.0=log-RMSE (depth tasks)
-auto_calibrate: True # (bool) auto-calibrate depth output scale after training (depth tasks)
+dlog: 1.0 # (float) depth log (SILog) loss gain (depth tasks)
+dgrad: 0.5 # (float) depth gradient loss gain (depth tasks)
+dlam: 1.0 # (float) depth SILog variance focus: 1.0=scale-invariant, 0.0=log-RMSE (depth tasks)
 nbs: 64 # (int) nominal batch size used for loss normalization
 hsv_h: 0.015 # (float) HSV hue augmentation fraction
 hsv_s: 0.7 # (float) HSV saturation augmentation fraction

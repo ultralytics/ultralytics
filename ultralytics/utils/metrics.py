@@ -1926,8 +1926,8 @@ class DepthMetrics(SimpleClass, DataExportMixin):
         self.max_depth = max_depth
         self.align = align
         self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
-        self._totals = None  # running sums (7,): [d1,d2,d3,abs_rel,rmse_sq,silog_a,silog_b]
-        self._count = 0.0  # total valid pixels
+        self._totals = None
+        self._count = 0.0
         self._results = {}
 
     def update_stats(self, preds: torch.Tensor, targets: torch.Tensor) -> None:

@@ -494,8 +494,8 @@ class Results(SimpleClass, DataExportMixin):
         filename: str | None = None,
         color_mode: str = "class",
         txt_color: tuple[int, int, int] = (255, 255, 255),
-        depth_cmap: str = "inferno",
-        depth_mode: str = "metric",
+        depth_cmap: str = "jet",
+        depth_mode: str = "disparity",
     ) -> np.ndarray:
         """Plot detection results on an input BGR image.
 
@@ -603,11 +603,11 @@ class Results(SimpleClass, DataExportMixin):
                 sem_mask = sem_mask.cpu().numpy()
             annotator.semantic_mask(sem_mask, alpha=0.5)
 
-        # Plot Depth results — show RGB and colorized depth side-by-side (not blended)
+        # Plot Depth results — blend colorized depth heatmap over the image
         if self.depth is not None and show_masks:
             d = self.depth.data
             d = d.cpu().numpy() if hasattr(d, "cpu") else np.asarray(d)
-            annotator.depth_map(d, side_by_side=True, cmap=depth_cmap, mode=depth_mode)
+            annotator.depth_map(d, side_by_side=False, cmap=depth_cmap, mode=depth_mode)
 
         # Plot Pose results
         if self.keypoints is not None:

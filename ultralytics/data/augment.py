@@ -3003,8 +3003,6 @@ class DepthFormat(Format):
             return labels
         _, h, w = labels["img"].shape
         if depth.shape[:2] != (h, w):
-            # Nearest, not bilinear: avoid blending sparse GT with the invalid background
-            # (bilinear creates near-zero pixels that corrupt abs_rel = |p-g|/g at eval).
             depth = cv2.resize(depth, (w, h), interpolation=cv2.INTER_NEAREST)
         labels["depth"] = torch.from_numpy(np.ascontiguousarray(depth[None])).float()
         return labels

@@ -8,7 +8,7 @@ from copy import copy
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import DepthModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
-from ultralytics.utils.plotting import plt_settings
+from ultralytics.utils.plotting import plot_images, plt_settings
 
 
 class DepthTrainer(yolo.detect.DetectionTrainer):
@@ -58,13 +58,12 @@ class DepthTrainer(yolo.detect.DetectionTrainer):
     def preprocess_batch(self, batch):
         """Preprocess batch: normalize images and keep depth as float32."""
         batch = super().preprocess_batch(batch)
-        if "depth" in batch:
-            batch["depth"] = batch["depth"].float()
+        batch["depth"] = batch["depth"].float()
         return batch
 
     def get_validator(self):
         """Return a DepthValidator for model validation."""
-        self.loss_names = "silog", "grad"
+        self.loss_names = "dlog_loss", "dgrad_loss"
         return yolo.depth.DepthValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
@@ -80,15 +79,19 @@ class DepthTrainer(yolo.detect.DetectionTrainer):
         )
 
     def plot_training_samples(self, batch, ni):
-        """Plot training samples as RGB | GT-depth panels (consistent with val_batch plots).
+        """Plot training samples with GT depth overlays to ``train_batch{ni}.jpg``.
 
-        The inherited DetectionTrainer version routes the batch through ``plot_images``, which has
-        no depth rendering. Batch is already preprocessed here (img in [0,1]).
+        Follows the same ``plot_images`` path used by validation labels/predictions so the depth
+        heatmap is blended over the RGB image, consistent with the semantic-segmentation style.
         """
         try:
-            from .val import plot_depth_panels
-
-            plot_depth_panels(batch["img"], batch["depth"], [], self.save_dir / f"train_batch{ni}.jpg", max_images=8)
+            plot_images(
+                labels={"depth": batch["depth"]},
+                images=batch["img"],
+                paths=batch["im_file"],
+                fname=self.save_dir / f"train_batch{ni}.jpg",
+                on_plot=self.on_plot,
+            )
         except Exception as e:
             LOGGER.warning(f"DepthTrainer: failed to plot train_batch{ni}: {e}")
 
@@ -164,22 +167,20 @@ class DepthTrainer(yolo.detect.DetectionTrainer):
             self.on_plot(fname)
 
     def final_eval(self):
-        """Run the standard final evaluation, then auto-calibrate the saved checkpoints.
+        """Run the standard final evaluation, then calibrate the saved checkpoints.
 
         After training, fits the scale-only log-affine (``cal_a``/``cal_b``) on the validation
         set and writes it into best.pt/last.pt, so the model outputs metric-scaled depth out of
-        the box. Disable with ``auto_calibrate=False``. When ``plots`` is set, also writes
-        ``val_batch{ni}_calibrated.jpg`` (RGB | GT | raw | calibrated) comparison panels.
+        the box. When ``plots`` is set, also writes ``val_batch{ni}_calibrated.jpg``
+        (RGB | GT | raw | calibrated) comparison panels.
         """
         super().final_eval()
-        if RANK not in {-1, 0} or not self.args.auto_calibrate:
+        if RANK not in {-1, 0}:
             return
         try:
             from .calibrate import calibrate_checkpoint
 
-            LOGGER.info("Auto-calibrating depth output scale on the validation set...")
-            # Calibrated comparison plots come from the checkpoint that represents the run:
-            # best.pt, or last.pt when best was never saved. Each checkpoint is fitted separately.
+            LOGGER.info("Calibrating depth output scale on the validation set...")
             plot_ckpt = self.best if self.best.exists() else self.last
             for ckpt in (self.best, self.last):
                 if ckpt.exists():
@@ -188,4 +189,4 @@ class DepthTrainer(yolo.detect.DetectionTrainer):
                     if ckpt == plot_ckpt and provenance is not None:
                         self.depth_calibration = provenance
         except Exception as e:
-            LOGGER.warning(f"Auto-calibration skipped ({type(e).__name__}: {e}); checkpoints left uncalibrated.")
+            LOGGER.warning(f"Calibration skipped ({type(e).__name__}: {e}); checkpoints left uncalibrated.")

@@ -749,14 +749,14 @@ def test_depth_predictor_postprocess_sets_depthmap():
 
 
 def test_results_plot_with_depth():
-    """Results.plot() with a depth map places RGB and colorized depth side-by-side (width doubled)."""
+    """Results.plot() with a depth map blends the colorized depth heatmap over the image."""
     from ultralytics.engine.results import Results
 
     img = np.zeros((24, 24, 3), dtype=np.uint8)
     depth = np.random.rand(24, 24).astype(np.float32)
     r = Results(orig_img=img, path="x.jpg", names={0: "depth"}, depth=depth)
     out = r.plot()  # must not raise; returns an annotated image (masks=True by default)
-    assert out.shape[:2] == (24, 48)  # RGB + colorized depth placed side-by-side (width doubled)
+    assert out.shape[:2] == (24, 24)  # heatmap overlaid, same size as input
 
 
 def test_annotator_depth_map():
@@ -999,13 +999,39 @@ def test_cfg_depth_task_registered():
 
 
 def test_cfg_depth_hyperparameter_defaults():
-    """Depth loss/calibration knobs are real cfg args with the documented defaults."""
+    """Depth loss knobs are real cfg args with the documented defaults."""
     args = get_cfg()
-    assert args.silog == 1.0
-    assert args.silog_grad == 0.5
-    assert args.silog_grad_scales == 4
-    assert args.silog_lambda == 1.0  # released yolo26*-depth.pt weights are pretrained with this value
-    assert args.auto_calibrate is True
+    assert args.dlog == 1.0
+    assert args.dgrad == 0.5
+    assert args.dlam == 1.0  # released yolo26*-depth.pt weights are pretrained with this value
+
+
+def test_depth_calibration_checkpoint_provenance(tmp_path):
+    """Depth calibration persists the selected transform and sample count with the checkpoint."""
+    from copy import deepcopy
+
+    from ultralytics.models.yolo.depth.calibrate import _depth_head, calibrate_checkpoint
+    from ultralytics.nn.tasks import DepthModel
+    from ultralytics.utils.patches import torch_load
+
+    torch.manual_seed(0)
+    model = DepthModel("yolo26n-depth.yaml", verbose=False)
+    batches = [
+        {"img": (torch.rand(2, 3, 64, 64) * 255).to(torch.uint8), "depth": torch.rand(2, 64, 64) * 5 + 0.5}
+        for _ in range(4)
+    ]
+    path = tmp_path / "depth.pt"
+    torch.save({"model": deepcopy(model)}, path)
+
+    provenance = calibrate_checkpoint(path, batches, device="cpu")
+    checkpoint = torch_load(path)
+    head = _depth_head(checkpoint["model"])
+
+    assert provenance == checkpoint["depth_calibration"]
+    assert provenance["candidate"] in {"identity", "scale-only", "affine"}
+    assert provenance["images"] == 8
+    assert float(head.cal_a) == pytest.approx(provenance["a"])
+    assert float(head.cal_b) == pytest.approx(provenance["b"])
 
 
 def test_cfg_depth_hyp_recipe_yaml_reproduces_release_training():
@@ -1116,7 +1142,7 @@ def test_semantic_loss_all_ignore(nc):
 
 
 class _DepthLossModel(torch.nn.Module):
-    """Tiny stub mirroring a real YOLO model's surface for v8DepthLoss: .parameters(), .args, and a .model Sequential
+    """Tiny stub mirroring a real YOLO model's surface for DepthLoss26: .parameters(), .args, and a .model Sequential
     whose last module is the "head" (no max_depth -> log-mode/unbounded). Detect/depth losses both read the head via
     model.model[-1] (see v8DetectionLoss), so the stub must expose it too.
     """
@@ -1126,87 +1152,31 @@ class _DepthLossModel(torch.nn.Module):
         from types import SimpleNamespace
 
         self.p = torch.nn.Parameter(torch.zeros(1))
-        hyp = dict(silog=1.0, silog_grad=0.5, silog_lambda=1.0, silog_grad_scales=4)
+        hyp = dict(dlog=1.0, dgrad=0.5, dlam=1.0)
         hyp.update(over)
         self.args = SimpleNamespace(**hyp)
         self.model = torch.nn.Sequential(torch.nn.Identity())
 
 
 def _depth_loss_for_scaled_pred(lam, scale):
-    """Return the silog-only depth loss for a prediction with perfect structure but wrong global scale."""
-    from ultralytics.utils.loss import v8DepthLoss
+    """Return the SILog-only depth loss for a prediction with perfect structure but wrong global scale."""
+    from ultralytics.utils.loss import DepthLoss26
 
-    crit = v8DepthLoss(_DepthLossModel(silog_lambda=lam, silog_grad=0.0))  # silog only
+    crit = DepthLoss26(_DepthLossModel(dlam=lam, dgrad=0.0))  # SILog only
     gt = torch.rand(2, 1, 16, 16) * 5 + 1.0
     pred = (gt * scale).clone().requires_grad_(True)
     total, _ = crit({"depth": pred}, {"depth": gt})
     return float(total.sum().detach())
 
 
-def test_depth_loss_lower_lambda_penalizes_scale_error_more():
-    """A globally scale-shifted prediction is ~free under scale-invariant silog (lambda=1) but must be heavily penalized
-    as lambda drops (loss becomes scale-dependent).
+def test_v26_depth_loss_lower_lambda_penalizes_scale_error_more():
+    """A globally scale-shifted prediction is ~free under scale-invariant SILog (dlam=1) but must be heavily penalized
+    as dlam drops (loss becomes scale-dependent).
     """
     loss_invariant = _depth_loss_for_scaled_pred(lam=1.0, scale=2.0)
     loss_anchored = _depth_loss_for_scaled_pred(lam=0.15, scale=2.0)
     assert loss_invariant < 0.05
     assert loss_anchored > 5 * max(loss_invariant, 1e-6)
-
-
-def test_depth_loss_grad_scales_1_matches_single_scale():
-    """silog_grad_scales=1 must reproduce the original single-scale gradient loss byte-for-byte."""
-    import torch.nn.functional as F
-
-    from ultralytics.utils.loss import v8DepthLoss
-
-    torch.manual_seed(0)
-    gt = torch.rand(2, 1, 16, 16) * 5 + 1.0
-    pred = (gt + 0.3 * torch.randn(2, 1, 16, 16)).clamp(min=0.1)
-    crit = v8DepthLoss(_DepthLossModel(silog=0.0, silog_grad=1.0, silog_grad_scales=1))
-    total, _ = crit({"depth": pred}, {"depth": gt})
-
-    pl, gl = torch.log(pred.clamp(min=0.001)), torch.log(gt.clamp(min=0.001))
-    ref = F.l1_loss(pl[:, :, :, 1:] - pl[:, :, :, :-1], gl[:, :, :, 1:] - gl[:, :, :, :-1])
-    ref = ref + F.l1_loss(pl[:, :, 1:, :] - pl[:, :, :-1, :], gl[:, :, 1:, :] - gl[:, :, :-1, :])
-    assert abs(float(total.sum()) - float(ref) * pred.shape[0]) < 1e-5
-
-
-def test_depth_loss_multiscale_grad_adds_coarse_levels():
-    """silog_grad_scales>1 sums non-negative coarse-level terms, so it exceeds the single-scale loss whenever the
-    prediction mismatches GT at coarse scales (generic random case).
-    """
-    from ultralytics.utils.loss import v8DepthLoss
-
-    torch.manual_seed(1)
-    gt = torch.rand(2, 1, 32, 32) * 5 + 1.0
-    pred = (gt + 0.5 * torch.randn(2, 1, 32, 32)).clamp(min=0.1)
-    single, _ = v8DepthLoss(_DepthLossModel(silog=0.0, silog_grad=1.0, silog_grad_scales=1))(
-        {"depth": pred}, {"depth": gt}
-    )
-    multi, _ = v8DepthLoss(_DepthLossModel(silog=0.0, silog_grad=1.0, silog_grad_scales=4))(
-        {"depth": pred}, {"depth": gt}
-    )
-    assert float(multi.sum()) > float(single.sum()) + 1e-4
-
-
-def test_depth_loss_sparsity_guard_collapses_multiscale_on_sparse_gt():
-    """On sparse GT (valid fraction < 0.5), multi-scale must self-disable and match single-scale — the guard blocks
-    unreliable coarse gradients (the KITTI failure mode).
-    """
-    from ultralytics.utils.loss import v8DepthLoss
-
-    torch.manual_seed(3)
-    gt = torch.zeros(1, 1, 32, 32)
-    mask = torch.rand(1, 1, 32, 32) < 0.15  # ~15% valid, below the 0.5 threshold
-    gt[mask] = torch.rand(int(mask.sum())) * 5 + 1.0
-    pred = torch.rand(1, 1, 32, 32) * 5 + 1.0
-    single, _ = v8DepthLoss(_DepthLossModel(silog=0.0, silog_grad=1.0, silog_grad_scales=1))(
-        {"depth": pred}, {"depth": gt}
-    )
-    multi, _ = v8DepthLoss(_DepthLossModel(silog=0.0, silog_grad=1.0, silog_grad_scales=4))(
-        {"depth": pred}, {"depth": gt}
-    )
-    assert abs(float(single.sum()) - float(multi.sum())) < 1e-6  # guard collapsed ms to single-scale
 
 
 def test_utils_ops():

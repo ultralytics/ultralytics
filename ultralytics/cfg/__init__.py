@@ -203,8 +203,8 @@ CFG_FLOAT_KEYS = frozenset(
         "box",
         "cls",
         "dfl",
-        "silog",
-        "silog_grad",
+        "dlog",
+        "dgrad",
         "dis",
         "degrees",
         "shear",
@@ -239,7 +239,7 @@ CFG_FRACTION_KEYS = frozenset(
         "iou",
         "fraction",
         "multi_scale",
-        "silog_lambda",
+        "dlam",
     }
 )
 CFG_INT_KEYS = frozenset(
@@ -255,7 +255,6 @@ CFG_INT_KEYS = frozenset(
         "line_width",
         "nbs",
         "save_period",
-        "silog_grad_scales",
     }
 )
 CFG_INT_MIN = {  # minimum valid values for integer arguments used as divisors, sizes or seeds
@@ -298,7 +297,6 @@ CFG_BOOL_KEYS = frozenset(
         "nms",
         "profile",
         "end2end",
-        "auto_calibrate",
         "cls_remap",
     }
 )

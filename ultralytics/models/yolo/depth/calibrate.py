@@ -187,8 +187,8 @@ def _collect_logpairs(model, dataloader, device, max_images: int):
             valid = (gi > 1e-3) & (pi > 1e-3) & torch.isfinite(pi)
             if not valid.any():
                 continue
-            lp = torch.log(pi[valid]).cpu().numpy()
-            lg = torch.log(gi[valid]).cpu().numpy()
+            lp = torch.log(pi[valid]).detach().cpu().numpy()
+            lg = torch.log(gi[valid]).detach().cpu().numpy()
             if lp.size > 20_000:
                 idx = rng.choice(lp.size, 20_000, replace=False)
                 lp, lg = lp[idx], lg[idx]

@@ -56,7 +56,7 @@ def _write_depth_ndjson(path, base_url, depth_hash, splits=("train", "test")):
     path.write_text("\n".join(json.dumps(record) for record in records))
 
 
-def test_convert_depth_ndjson_downloads_pairs_and_reuses_cache(tmp_path):
+def test_convert_depth_ndjson_downloads_pairs_and_reuses_cache(tmp_path, monkeypatch):
     """Preserve nested image-depth pairs and reuse validated cached targets."""
     source = tmp_path / "source"
     source.mkdir()
@@ -78,6 +78,18 @@ def test_convert_depth_ndjson_downloads_pairs_and_reuses_cache(tmp_path):
         cached_depth.write_bytes(b"corrupt cache")
         assert asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets")) == yaml_path
         np.testing.assert_array_equal(np.load(cached_depth), depth)
+
+        train_only_manifest = tmp_path / "train-only.ndjson"
+        _write_depth_ndjson(
+            train_only_manifest,
+            f"http://127.0.0.1:{server.server_port}",
+            depth_hash,
+            splits=("train", "train"),
+        )
+        train_only_yaml = asyncio.run(convert_ndjson_to_yolo(train_only_manifest, tmp_path / "datasets"))
+        with monkeypatch.context() as cache_guard:
+            cache_guard.setattr(YAML, "save", lambda *_args, **_kwargs: pytest.fail("train-only cache missed"))
+            assert asyncio.run(convert_ndjson_to_yolo(train_only_manifest, tmp_path / "datasets")) == train_only_yaml
     finally:
         server.shutdown()
         server.server_close()

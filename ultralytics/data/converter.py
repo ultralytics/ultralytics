@@ -846,29 +846,23 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         class_id = class_ids[0] if class_ids else 0
         return class_names.get(class_id, str(class_id))
 
+    def is_unsafe_path(path):
+        """Check path for anchors or parent traversal."""
+        return bool(path.anchor) or ".." in path.parts
+
     for i, record in enumerate(image_records, start=1):
         split, file = record.get("split"), record.get("file")
         if not isinstance(split, str) or split not in {"train", "val", "test"}:
             raise ValueError(f"Unsafe NDJSON split in record {i}: {split!r}")
-        if not isinstance(file, str) or not (path := Path(file)).name or path.is_absolute() or ".." in path.parts:
+        if not isinstance(file, str) or not (path := Path(file)).name or is_unsafe_path(path):
             raise ValueError(f"Unsafe NDJSON file path in record {i}: {file!r}")
         if is_classification:
             class_name = classification_class_name(record)
-            if (
-                not isinstance(class_name, str)
-                or (path := Path(class_name)).is_absolute()
-                or ".." in path.parts
-                or len(path.parts) != 1
-            ):
+            if not isinstance(class_name, str) or is_unsafe_path(path := Path(class_name)) or len(path.parts) != 1:
                 raise ValueError(f"Unsafe NDJSON class name in record {i}: {class_name!r}")
     if is_classification:
         for class_name in class_names.values():
-            if (
-                not isinstance(class_name, str)
-                or (path := Path(class_name)).is_absolute()
-                or ".." in path.parts
-                or len(path.parts) != 1
-            ):
+            if not isinstance(class_name, str) or is_unsafe_path(path := Path(class_name)) or len(path.parts) != 1:
                 raise ValueError(f"Unsafe NDJSON class name: {class_name!r}")
 
     # Hash stable content plus source identity. Query strings are excluded because signed URLs change on every export.

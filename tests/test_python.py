@@ -654,6 +654,24 @@ def test_train_ndjson():
         ("classify", "class_name", "/tmp/escaped"),
         ("classify", "class_name", "nested/class"),
         ("classify", "class_id", "../../escaped"),
+        pytest.param(
+            "detect",
+            "file",
+            r"\escaped.jpg",
+            marks=pytest.mark.skipif(os.name != "nt", reason="Windows path syntax"),
+        ),
+        pytest.param(
+            "detect",
+            "file",
+            r"C:escaped.jpg",
+            marks=pytest.mark.skipif(os.name != "nt", reason="Windows path syntax"),
+        ),
+        pytest.param(
+            "classify",
+            "class_name",
+            "\\",
+            marks=pytest.mark.skipif(os.name != "nt", reason="Windows path syntax"),
+        ),
     ],
 )
 def test_convert_ndjson_rejects_unsafe_output_paths(tmp_path, task, field, value):

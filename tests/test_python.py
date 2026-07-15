@@ -4,6 +4,8 @@ import contextlib
 import csv
 import os
 import shutil
+import subprocess
+import sys
 import tarfile
 import urllib
 import zipfile
@@ -18,8 +20,8 @@ from PIL import Image
 
 import ultralytics.data.build as data_build
 from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
-from ultralytics import RTDETR, YOLO
-from ultralytics.cfg import get_cfg
+from ultralytics import RTDETR, YOLO, __version__
+from ultralytics.cfg import _YOLO_CLI_COMMAND, get_cfg
 from ultralytics.data.build import build_dataloader, load_inference_source
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.utils import (
@@ -39,10 +41,45 @@ from ultralytics.utils import (
     WINDOWS,
     YAML,
     checks,
+    get_pythonpath_env,
     is_github_action_running,
 )
 from ultralytics.utils.downloads import download, safe_download
 from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13
+
+
+def test_pythonpath_env(tmp_path, monkeypatch):
+    """Verify Python subprocesses import modules available only on the parent runtime path."""
+    (tmp_path / "parent_only.py").write_text("VALUE = 'ok'")
+    child_path = tmp_path / "child"
+    child_path.mkdir()
+    (child_path / "child_only.py").write_text("VALUE = 'ok'")
+    monkeypatch.syspath_prepend(tmp_path)
+    monkeypatch.setenv("PYTHONPATH", str(child_path))
+    result = subprocess.run(
+        [sys.executable, "-c", "import child_only, parent_only; print(child_only.VALUE, parent_only.VALUE)"],
+        check=True,
+        capture_output=True,
+        text=True,
+        env=get_pythonpath_env(),
+    )
+    assert result.stdout.strip() == "ok ok"
+
+
+def test_python_command_prefers_parent_path(tmp_path):
+    """Verify the real CLI subprocess imports the parent package ahead of a conflicting child working directory."""
+    stale_package = tmp_path / "ultralytics"
+    stale_package.mkdir()
+    (stale_package / "__init__.py").write_text("__version__ = 'stale'")
+    result = subprocess.run(
+        [*_YOLO_CLI_COMMAND, "version"],
+        check=True,
+        capture_output=True,
+        cwd=tmp_path,
+        text=True,
+        env=get_pythonpath_env(),
+    )
+    assert __version__ in result.stdout
 
 
 def test_dataloader_caps_workers_to_batches():

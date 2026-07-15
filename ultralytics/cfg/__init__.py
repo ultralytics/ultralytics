@@ -32,6 +32,8 @@ from ultralytics.utils import (
     checks,
     colorstr,
     deprecation_warn,
+    get_python_command,
+    get_pythonpath_env,
     vscode_msg,
 )
 
@@ -92,7 +94,7 @@ TASK2METRIC = {
 }
 
 ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []
-_YOLO_CLI_COMMAND = [sys.executable, "-m", "ultralytics.cfg.__init__"]
+_YOLO_CLI_COMMAND = get_python_command("ultralytics.cfg.__init__")
 SOLUTIONS_HELP_MSG = f"""
     Arguments received: {["yolo", *ARGV[1:]]!s}. Ultralytics 'yolo solutions' usage overview:
 
@@ -815,14 +817,15 @@ def handle_yolo_solutions(args: list[str]) -> None:
         checks.check_requirements("streamlit>=1.29.0")
         LOGGER.info("💡 Loading Ultralytics live inference app...")
         subprocess.run(
-            [  # Run subprocess with Streamlit custom argument
-                "streamlit",
+            [
+                *get_python_command("streamlit"),
                 "run",
                 str(ROOT / "solutions/streamlit_inference.py"),
                 "--server.headless",
                 "true",
                 overrides.pop("model", "yolo26n.pt"),
-            ]
+            ],
+            env=get_pythonpath_env(),
         )
     else:
         import cv2  # Only needed for cap and vw functionality

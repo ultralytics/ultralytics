@@ -403,7 +403,7 @@ def test_export_coreml(isolated_model, format):
         assert metadata.userDefined["IoU threshold"] == "0.42"
         assert metadata.userDefined["Confidence threshold"] == "0.24"
         assert all(key in metadata.userDefined for key in ("names", "stride", "task"))
-        assert list(spec.pipeline.models[1].nonMaximumSuppression.stringClassLabels.vector)[0] == "person"
+        assert next(iter(spec.pipeline.models[1].nonMaximumSuppression.stringClassLabels.vector)) == "person"
         assert [output.name for output in spec.description.output] == ["confidence", "coordinates"]
         if MACOS:
             file = YOLO(isolated_model).export(format="coreml", imgsz=32)

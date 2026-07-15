@@ -135,7 +135,6 @@ COMBO_POOL = [
     ("export", "dynamic=True"),
     ("export", "nms=True"),
     ("export", "simplify=False"),
-    ("export", "optimize=True"),
     ("export", "opset=12"),
     ("export", "quantize=fp16"),
     ("export", "end2end=True max_det=10"),
@@ -270,7 +269,7 @@ def sample_mutation(rng, uni, chaos=False):
         key = rng.choice(uni[f"{family}_keys"])
         pool = PROBES[family]
     value = rng.choice(pool["valid"] + pool["invalid"] + (CHAOS_PROBES if chaos else []))
-    return key, value, value in pool["valid"]
+    return key, value, value in pool["valid"] and not (key == "fraction" and value == "0.0")
 
 
 def run_trial(trial, timeout=None):

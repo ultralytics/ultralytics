@@ -52,7 +52,7 @@ def skip_rpi_semantic(task):
 @pytest.mark.parametrize("end2end", [False, True])
 def test_export_torchscript(end2end, isolated_model):
     """Test YOLO model export to TorchScript format for compatibility and correctness."""
-    file = YOLO(isolated_model).export(format="torchscript", optimize=False, imgsz=32, end2end=end2end)
+    file = YOLO(isolated_model).export(format="torchscript", imgsz=32, end2end=end2end)
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
@@ -416,6 +416,10 @@ def test_export_coreml_rtdetr():
     stdout, stderr = io.StringIO(), io.StringIO()
     with redirect_stdout(stdout), redirect_stderr(stderr):
         file = YOLO(WEIGHTS_DIR / "rtdetr-l.pt").export(format="coreml", imgsz=160)
+        import coremltools as ct
+
+        shape = ct.models.MLModel(str(file)).get_spec().description.output[0].type.multiArrayType.shape
+        assert shape[-2] == 300
         if MACOS:
             YOLO(file)(SOURCE, imgsz=160)
 
@@ -448,6 +452,37 @@ def test_export_mnn(isolated_model):
     """Test YOLO export to MNN format (WARNING: MNN test must precede NCNN test or CI error on Windows)."""
     file = YOLO(isolated_model).export(format="mnn", imgsz=32)
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
+
+
+@pytest.mark.parametrize(
+    "model,kwargs,error",
+    [
+        ("yolo11n.yaml", {"batch": 2, "dynamic": True, "nms": True}, "combining"),
+        ("yolo11n-seg.yaml", {"nms": True}, "only supports detect and pose"),
+        ("yolo11n-obb.yaml", {"nms": True}, "only supports detect and pose"),
+    ],
+)
+def test_export_mnn_rejects_unsupported_nms(model, kwargs, error):
+    """Test MNN rejects NMS combinations that fail or lose task outputs at runtime."""
+    with pytest.raises(ValueError, match=error):
+        YOLO(model).export(format="mnn", imgsz=32, **kwargs)
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize(
+    "model,task,kwargs",
+    [
+        ("yolo11n.yaml", "detect", {"batch": 2, "dynamic": True}),
+        ("yolo11n.yaml", "detect", {"nms": True}),
+        ("yolo11n-pose.yaml", "pose", {"nms": True}),
+    ],
+)
+def test_export_mnn_options(model, task, kwargs):
+    """Test MNN dynamic shapes and supported embedded NMS tasks through inference."""
+    batch = kwargs.get("batch", 1)
+    file = YOLO(model).export(format="mnn", imgsz=32, **kwargs)
+    assert len(YOLO(file, task=task)([SOURCE] * batch, imgsz=64 if kwargs.get("dynamic") else 32)) == batch
+    Path(file).unlink()
 
 
 @pytest.mark.slow

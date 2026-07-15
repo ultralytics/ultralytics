@@ -34,7 +34,7 @@ class ObjectCounter(BaseSolution):
         >>> counter = ObjectCounter()
         >>> frame = cv2.imread("frame.jpg")
         >>> results = counter.process(frame)
-        >>> print(f"Inward count: {counter.in_count}, Outward count: {counter.out_count}")
+        >>> print(f"Inward count: {results.in_count}, Outward count: {results.out_count}")
     """
 
     def __init__(self, **kwargs: Any) -> None:

@@ -1100,13 +1100,13 @@ class AnomalyBboxValidator:
         sibling = p.with_suffix(".txt")
         return sibling if sibling.exists() else None
 
-    # ── GT: polygon → bbox ─────────────────────────────────────────────
+    # ── GT: polygon → bbox + segmentation ──────────────────────────────
 
     @staticmethod
     def _polygons_to_gt_annotations(
         label_path: Path, ori_w: int, ori_h: int
     ) -> list[dict]:
-        """Parse YOLO seg label file → COCO annotation dicts (xywh pixel coords)."""
+        """Parse YOLO seg label file → COCO annotation dicts with bbox, segmentation, area."""
         try:
             text = label_path.read_text().strip()
         except OSError:
@@ -1122,6 +1122,10 @@ class AnomalyBboxValidator:
                 coords = np.array(tokens[1:], dtype=np.float32).reshape(-1, 2)
             except ValueError:
                 continue
+            # Denormalise polygon to pixel coordinates (COCO segmentation format: flat list)
+            seg_px = (coords * [ori_w, ori_h]).flatten().tolist()
+            seg_px = [round(float(v), 2) for v in seg_px]
+
             x1 = max(float(coords[:, 0].min()) * ori_w, 0)
             y1 = max(float(coords[:, 1].min()) * ori_h, 0)
             x2 = min(float(coords[:, 0].max()) * ori_w, ori_w)
@@ -1130,8 +1134,44 @@ class AnomalyBboxValidator:
             if w <= 0 or h <= 0:
                 continue
             anns.append({"bbox": [round(x1, 2), round(y1, 2), round(w, 2), round(h, 2)],
+                         "segmentation": [seg_px],
                          "area": round(w * h, 2)})
         return anns
+
+    # ── GT mask rasterization (for per-image calibration metrics) ───────
+    @staticmethod
+    def _gt_mask_at_resolution(im_file: str, ori_h: int, ori_w: int) -> "np.ndarray | None":
+        """Rasterize YOLO-seg polygon labels into a binary mask at the given resolution.
+
+        Returns ``None`` if no label file or no polygons are found.
+        Output shape: (ori_h, ori_w), uint8, values in {0, 1}.
+        """
+        import cv2
+
+        label_path = AnomalyBboxValidator._label_path(im_file)
+        if label_path is None:
+            return None
+        try:
+            text = label_path.read_text().strip()
+        except OSError:
+            return None
+        if not text:
+            return None
+
+        mask = np.zeros((ori_h, ori_w), dtype=np.uint8)
+        any_drawn = False
+        for line in text.splitlines():
+            tokens = line.strip().split()
+            if len(tokens) < 7 or (len(tokens) - 1) % 2 != 0:
+                continue
+            try:
+                coords = np.array(tokens[1:], dtype=np.float32)
+            except ValueError:
+                continue
+            pts = (coords.reshape(-1, 2) * [ori_w, ori_h]).astype(np.int32)
+            cv2.fillPoly(mask, [pts], 1)
+            any_drawn = True
+        return mask if any_drawn else None
 
     # ── Pred: heatmap → connected components → bboxes ──────────────────
 
@@ -1190,6 +1230,7 @@ class AnomalyBboxValidator:
                     "image_id": entry["image_id"],
                     "category_id": 0,
                     "bbox": ann["bbox"],
+                    "segmentation": ann["segmentation"],
                     "area": ann["area"],
                     "iscrowd": 0,
                 })
@@ -1277,6 +1318,8 @@ class AnomalyBboxValidator:
         image_entries: list[dict] = []
         heatmaps: list[np.ndarray] = []
         image_ids: list[int] = []
+        per_img_ard: list[float] = []   # per-image anomaly region deviation
+        per_img_nrd: list[float] = []   # per-image normal region deviation
 
         for img_id, im in enumerate(test_imgs):
             # original image size
@@ -1289,6 +1332,15 @@ class AnomalyBboxValidator:
             annotations: list[dict] = []
             if label_path is not None and not is_good:
                 annotations = self._polygons_to_gt_annotations(label_path, ori_w, ori_h)
+                # Per-image calibration metrics: deviation from ideal (1=anomaly, 0=normal)
+                gt_mask = self._gt_mask_at_resolution(im, ori_h, ori_w)
+                if gt_mask is not None:
+                    anom_mask = gt_mask == 1
+                    norm_mask = gt_mask == 0
+                    if anom_mask.sum() > 0:
+                        per_img_ard.append(float((1.0 - hm[anom_mask]).mean()))
+                    if norm_mask.sum() > 0:
+                        per_img_nrd.append(float(hm[norm_mask].mean()))
 
             image_entries.append({
                 "image_id": img_id,
@@ -1299,6 +1351,9 @@ class AnomalyBboxValidator:
             })
             heatmaps.append(hm)
             image_ids.append(img_id)
+
+        ard_mean = statistics.fmean(per_img_ard) if per_img_ard else float("nan")
+        nrd_mean = statistics.fmean(per_img_nrd) if per_img_nrd else float("nan")
 
         val_s = time.perf_counter() - t1
 
@@ -1335,6 +1390,8 @@ class AnomalyBboxValidator:
                 "category": category,
                 "threshold": threshold,
                 **coco_metrics,
+                "anomaly_deviation": round(ard_mean, 4) if ard_mean == ard_mean else float("nan"),
+                "normal_deviation": round(nrd_mean, 4) if nrd_mean == nrd_mean else float("nan"),
                 "n_pred": n_pred,
                 "n_gt": n_gt,
             })
@@ -1342,6 +1399,7 @@ class AnomalyBboxValidator:
         print(f"[{category}] {val_s:.1f}s val  "
               f"(test={len(test_imgs)}, anom_w_gt="
               f"{sum(1 for e in image_entries if e['annotations'])}  "
+              f"aDev={ard_mean:.4f} nDev={nrd_mean:.4f}  "
               f"t={_BBOX_THRESHOLDS[0]:.2f}..{_BBOX_THRESHOLDS[-1]:.2f})", flush=True)
         return rows
 
@@ -1359,6 +1417,7 @@ class AnomalyBboxValidator:
                 cat_rows = [{
                     "category": cat, "threshold": round(float(t), 2),
                     "map50": float("nan"), "map": float("nan"), "map75": float("nan"),
+                    "anomaly_deviation": float("nan"), "normal_deviation": float("nan"),
                     "n_pred": 0, "n_gt": 0,
                 } for t in _BBOX_THRESHOLDS]
             rows.extend(cat_rows)
@@ -1369,13 +1428,14 @@ class AnomalyBboxValidator:
                 print(f"[{cat}] best mAP50={best['map50']:.4f} @ t={best['threshold']:.2f}", flush=True)
 
         # AVERAGE per threshold
-        fields = ["category", "threshold", "map50", "map", "map75", "n_pred", "n_gt"]
+        fields = ["category", "threshold", "map50", "map", "map75",
+                   "anomaly_deviation", "normal_deviation", "n_pred", "n_gt"]
         avg_rows: list[dict] = []
         for t in _BBOX_THRESHOLDS:
             t = round(float(t), 2)
             t_rows = [r for r in rows if r["threshold"] == t]
             avg = {"category": "AVERAGE", "threshold": t}
-            for k in ["map50", "map", "map75"]:
+            for k in ["map50", "map", "map75", "anomaly_deviation", "normal_deviation"]:
                 vals = [r[k] for r in t_rows if isinstance(r[k], float) and r[k] == r[k]]
                 avg[k] = round(statistics.fmean(vals), 4) if vals else float("nan")
             avg["n_pred"] = sum(r["n_pred"] for r in t_rows)
@@ -1397,8 +1457,10 @@ class AnomalyBboxValidator:
             valid = [r for r in cat_rows if r["map50"] == r["map50"]]
             if valid:
                 best = max(valid, key=lambda r: r["map50"])
+                aDev = best.get("anomaly_deviation", float("nan"))
+                nDev = best.get("normal_deviation", float("nan"))
                 print(f"  {cat:>12s}  mAP50={best['map50']:.4f}  mAP={best['map']:.4f}  "
-                      f"mAP75={best['map75']:.4f}  @ t={best['threshold']:.2f}")
+                      f"mAP75={best['map75']:.4f}  aDev={aDev:.4f}  nDev={nDev:.4f}  @ t={best['threshold']:.2f}")
         return rows
 
 
@@ -1575,13 +1637,14 @@ def main() -> None:
           f"feat_dim={ad.feat_dim} grid={ad.grid} K={ad.K} target_score={ad.target_score}"
           + (f" coreset={args.coreset}" if args.coreset else ""))
 
-    validator = AnomalyValidator(
-        eval_size=256,
-        save_vis_dir=save_vis_dir,
-        save_vis_samples_dir=save_vis_samples_dir,
-        vis_thresh=args.vis_thresh,
-    )
-    validator.run(ad, cats, out_csv)
+    if not args.bbox:
+        validator = AnomalyValidator(
+            eval_size=256,
+            save_vis_dir=save_vis_dir,
+            save_vis_samples_dir=save_vis_samples_dir,
+            vis_thresh=args.vis_thresh,
+        )
+        validator.run(ad, cats, out_csv)
 
     if args.bbox:
         bbox_out = run_dir / f"bbox_{out_csv.stem}.csv"

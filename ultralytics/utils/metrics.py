@@ -478,10 +478,6 @@ class ConfusionMatrix(DataExportMixin):
                 self.matrix[dc, self.nc] += 1  # FP
                 self._append_matches("FP", detections, i)
 
-    def matrix(self):
-        """Return the confusion matrix."""
-        return self.matrix
-
     def tp_fp(self) -> tuple[np.ndarray, np.ndarray]:
         """Return true positives and false positives.
 
@@ -492,7 +488,7 @@ class ConfusionMatrix(DataExportMixin):
         tp = self.matrix.diagonal()  # true positives
         fp = self.matrix.sum(1) - tp  # false positives
         # fn = self.matrix.sum(0) - tp  # false negatives (missed detections)
-        return (tp, fp) if self.task == "classify" else (tp[:-1], fp[:-1])  # remove background class if task=detect
+        return (tp, fp) if self.task in {"classify", "semantic"} else (tp[:-1], fp[:-1])  # remove background row/col
 
     def plot_matches(
         self, img: torch.Tensor, im_file: str, save_dir: Path, show_labels: bool = True, show_conf: bool = True
@@ -560,7 +556,7 @@ class ConfusionMatrix(DataExportMixin):
             names = names[keep_idx]  # slice class names
             array = array[keep_idx, :][:, keep_idx]  # slice matrix rows and cols
             n = (self.nc + k - 1) // k  # number of retained classes
-        nc = n if self.task == "classify" else n + 1  # adjust for background if needed
+        nc = n if self.task in {"classify", "semantic"} else n + 1  # adjust for background if needed
         ticklabels = "auto"
         if 0 < nc < 99:
             ticklabels = names if self.task in {"classify", "semantic"} else [*names, "background"]
@@ -1528,10 +1524,6 @@ class PoseMetrics(DetMetrics):
         """Return a list of curves for accessing specific metrics curves."""
         return [
             *DetMetrics.curves.fget(self),
-            "Precision-Recall(B)",
-            "F1-Confidence(B)",
-            "Precision-Confidence(B)",
-            "Recall-Confidence(B)",
             "Precision-Recall(P)",
             "F1-Confidence(P)",
             "Precision-Confidence(P)",

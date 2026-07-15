@@ -1,4 +1,5 @@
 ---
+plans: [free, pro, enterprise]
 comments: true
 description: Complete REST API reference for Ultralytics Platform including authentication, endpoints, and examples for datasets, models, and deployments.
 keywords: Ultralytics Platform, REST API, API reference, authentication, endpoints, YOLO, programmatic access
@@ -112,7 +113,7 @@ Authorization: Bearer YOUR_API_KEY
 
 All API endpoints use:
 
-```
+```text
 https://platform.ultralytics.com/api
 ```
 
@@ -750,7 +751,11 @@ POST /api/projects
     curl -X POST \
       -H "Authorization: Bearer YOUR_API_KEY" \
       -H "Content-Type: application/json" \
-      -d '{"name": "my-project", "slug": "my-project", "description": "Detection experiments"}' \
+      -d '{
+        "name": "my-project",
+        "slug": "my-project",
+        "description": "Detection experiments"
+      }' \
       https://platform.ultralytics.com/api/projects
     ```
 
@@ -760,7 +765,11 @@ POST /api/projects
     resp = requests.post(
         "https://platform.ultralytics.com/api/projects",
         headers={"Authorization": f"Bearer {API_KEY}"},
-        json={"name": "my-project", "slug": "my-project", "description": "Detection experiments"},
+        json={
+            "name": "my-project",
+            "slug": "my-project",
+            "description": "Detection experiments",
+        },
     )
     project_id = resp.json()["projectId"]
     ```
@@ -2401,7 +2410,7 @@ def api_request_with_retry(url, headers, max_retries=3):
 
 Resource IDs are returned when you create resources via the API. You can also find them in the platform URL:
 
-```
+```text
 https://platform.ultralytics.com/username/project/model-name
                                   ^^^^^^^^ ^^^^^^^ ^^^^^^^^^^
                                   username project   model

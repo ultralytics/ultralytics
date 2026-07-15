@@ -86,11 +86,12 @@ def segment2box(segment: np.ndarray, width: int = 640, height: int = 640) -> np.
     Returns:
         (np.ndarray): Bounding box coordinates in xyxy format [x1, y1, x2, y2].
     """
+    if not len(segment):
+        return np.zeros(4, dtype=segment.dtype)
     x, y = segment[:, 0], segment[:, 1]
-    if len(segment):
-        xmin, ymin, xmax, ymax = x.min(), y.min(), x.max(), y.max()
-        if xmin >= 0 and ymin >= 0 and xmax <= width and ymax <= height:  # fully inside image
-            return np.array([xmin, ymin, xmax, ymax], dtype=segment.dtype)
+    xmin, ymin, xmax, ymax = x.min(), y.min(), x.max(), y.max()
+    if xmin >= 0 and ymin >= 0 and xmax <= width and ymax <= height:  # fully inside image
+        return np.array([xmin, ymin, xmax, ymax], dtype=segment.dtype)
     axes = np.array((0, 0, 1, 1))
     bounds = np.array((0, width, 0, height), dtype=segment.dtype)
     lims = np.array((height, height, width, width), dtype=segment.dtype)  # (height, width)[axis] per boundary
@@ -613,7 +614,7 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize: bool
     if ratio_pad is None:  # calculate from img0_shape
         img1_h, img1_w = img1_shape[:2]  # supports both HWC or HW shapes
         gain = min(img1_h / img0_h, img1_w / img0_w)  # gain  = old / new
-        pad = (img1_w - round(img0_w * gain)) / 2, (img1_h - round(img0_h * gain)) / 2  # wh padding
+        pad = round((img1_w - round(img0_w * gain)) / 2 - 0.1), round((img1_h - round(img0_h * gain)) / 2 - 0.1)
     else:
         gain = ratio_pad[0][0]
         pad = ratio_pad[1]

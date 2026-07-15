@@ -205,9 +205,6 @@ CFG_FLOAT_KEYS = frozenset(
         "dfl",
         "silog",
         "silog_grad",
-        "silog_l1",
-        "dist_pw",
-        "cal_dist_pw",
         "dis",
         "degrees",
         "shear",
@@ -243,9 +240,6 @@ CFG_FRACTION_KEYS = frozenset(
         "fraction",
         "multi_scale",
         "silog_lambda",
-        "silog_trim",
-        "silog_grad_min_valid",
-        "dense_gate",
     }
 )
 CFG_INT_KEYS = frozenset(

@@ -195,10 +195,10 @@ def test_final_eval_plots_only_representative_checkpoint(tmp_path, monkeypatch):
     monkeypatch.setattr(
         calibrate,
         "calibrate_checkpoint",
-        lambda ckpt, dl, dev, dist_power=0.0, plot_dir=None: calls.append((ckpt.name, plot_dir)),
+        lambda ckpt, dl, dev, plot_dir=None: calls.append((ckpt.name, plot_dir)),
     )
     t = DepthTrainer.__new__(DepthTrainer)  # skip __init__ (needs data/model); final_eval uses only these attrs
-    t.args = SimpleNamespace(auto_calibrate=True, plots=True, cal_dist_pw=0.0)
+    t.args = SimpleNamespace(auto_calibrate=True, plots=True)
     t.best, t.last = tmp_path / "best.pt", tmp_path / "last.pt"
     t.best.touch()
     t.last.touch()

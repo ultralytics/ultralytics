@@ -368,6 +368,8 @@ Using YOLO, it is possible to extract and combine information from both RGB and 
 
     When working with depth images, it is essential to ensure that the RGB and depth images are correctly aligned. RGB-D cameras, such as the [Intel RealSense](https://www.realsenseai.com/) series, provide synchronized RGB and depth images, making it easier to combine information from both sources. If using separate RGB and depth cameras, it is crucial to calibrate them to ensure accurate alignment.
 
+    The examples below subscribe to `/camera/aligned_depth_to_color/image_raw`, a depth stream already registered to the color frame (on RealSense, enable it with the `align_depth.enable:=true` launch argument) — not the raw `/camera/depth/image_rect_raw` stream. A raw depth topic can differ from the color image in both resolution and viewpoint, so a mask computed from the color image would index the wrong depth pixels even when the array shapes happen to match.
+
     In the ROS1 tab below, `rospy.wait_for_message()` also has no timeout by default — if the named topic stops publishing, the callback blocks indefinitely. Pass a `timeout` argument (e.g., `rospy.wait_for_message(topic, Image, timeout=1.0)`) and handle the resulting `rospy.ROSException` to fail fast instead.
 
     Depth pixel values are only in meters when the topic publishes `32FC1`. A `16UC1` topic (common on RealSense and similar drivers) reports millimeters as integers, with `0` marking invalid pixels instead of `NaN` — the code below converts `16UC1` to meters and remaps `0` to `NaN` before averaging.
@@ -417,7 +419,7 @@ In this example, we use YOLO to segment an image and apply the extracted mask to
                 self.classes_pub = self.create_publisher(String, "/ultralytics/detection/distance", 5)
         ```
 
-Next, define the callbacks that process the incoming RGB and depth messages. Most sensors report out-of-range pixels as `NaN`; the code filters these out before averaging, and falls back to `np.inf` — rather than a misleading `0` — if every pixel under the mask turns out to be invalid. Pass `retina_masks=True` to the model so the returned mask matches the depth image's native resolution instead of the smaller, letterboxed size used for inference — without it, indexing `depth` with the mask raises a shape mismatch on most camera resolutions.
+Next, define the callbacks that process the incoming RGB and depth messages. Most sensors report out-of-range pixels as `NaN`; the code filters these out before averaging, and falls back to `np.inf` — rather than a misleading `0` — if every pixel under the mask turns out to be invalid. Pass `retina_masks=True` to the model so the returned mask matches the color image's full resolution instead of the smaller, letterboxed size used for inference; because the depth topic is aligned to the color frame (see the warning above), this makes the mask line up with `depth` pixel-for-pixel. Without `retina_masks=True`, indexing `depth` with the mask raises a shape mismatch on most camera resolutions.
 
 !!! example "Callbacks"
 
@@ -453,7 +455,7 @@ Next, define the callbacks that process the incoming RGB and depth messages. Mos
             classes_pub.publish(String(data=str(all_objects)))
 
 
-        rospy.Subscriber("/camera/depth/image_raw", Image, callback)
+        rospy.Subscriber("/camera/aligned_depth_to_color/image_raw", Image, callback)
 
         rospy.spin()
         ```
@@ -464,7 +466,9 @@ Next, define the callbacks that process the incoming RGB and depth messages. Mos
 
         ```python
                 self.create_subscription(Image, "/camera/color/image_raw", self.image_callback, qos_profile_sensor_data)
-                self.create_subscription(Image, "/camera/depth/image_raw", self.depth_callback, qos_profile_sensor_data)
+                self.create_subscription(
+                    Image, "/camera/aligned_depth_to_color/image_raw", self.depth_callback, qos_profile_sensor_data
+                )
 
             def image_callback(self, data):
                 """Cache the latest RGB frame for pairing with the next depth callback."""
@@ -550,7 +554,7 @@ Next, define the callbacks that process the incoming RGB and depth messages. Mos
             classes_pub.publish(String(data=str(all_objects)))
 
 
-        rospy.Subscriber("/camera/depth/image_raw", Image, callback)
+        rospy.Subscriber("/camera/aligned_depth_to_color/image_raw", Image, callback)
 
         rospy.spin()
         ```
@@ -579,7 +583,9 @@ Next, define the callbacks that process the incoming RGB and depth messages. Mos
                 self.latest_image = None
                 self.classes_pub = self.create_publisher(String, "/ultralytics/detection/distance", 5)
                 self.create_subscription(Image, "/camera/color/image_raw", self.image_callback, qos_profile_sensor_data)
-                self.create_subscription(Image, "/camera/depth/image_raw", self.depth_callback, qos_profile_sensor_data)
+                self.create_subscription(
+                    Image, "/camera/aligned_depth_to_color/image_raw", self.depth_callback, qos_profile_sensor_data
+                )
 
             def image_callback(self, data):
                 """Cache the latest RGB frame for pairing with the next depth callback."""
@@ -645,7 +651,7 @@ A point cloud is a collection of data points defined within a three-dimensional 
 
 ### Using YOLO with Point Clouds
 
-To integrate YOLO with `sensor_msgs/PointCloud2` type messages, extract a 2D image from the color information embedded in the point cloud, perform segmentation on this image using YOLO, and then apply the resulting mask to the three-dimensional points to isolate the 3D object of interest.
+To integrate YOLO with `sensor_msgs/PointCloud2` type messages, extract a 2D image from the color information embedded in the point cloud, perform segmentation on this image using YOLO, and then apply the resulting mask to the three-dimensional points to isolate the 3D object of interest. This workflow needs an organized, colorized point cloud — the `height x width` grid with a packed `rgb` field that RGB-D cameras like the Intel RealSense publish. A raw LIDAR cloud is normally unorganized (`height == 1`) and reports intensity instead of color, so it needs a separate projection and colorization step before it fits this pipeline.
 
 For handling point clouds, we recommend using Open3D, a user-friendly Python library that provides robust tools for managing point cloud data structures, visualizing them, and executing complex operations seamlessly. This library can significantly simplify the process and enhance our ability to manipulate and analyze point clouds in conjunction with YOLO-based segmentation.
 
@@ -764,7 +770,7 @@ The function returns the `xyz` coordinates and `RGB` values in the format of the
 
 Next, wait for a point cloud message and convert it into NumPy arrays containing the XYZ coordinates and RGB values (using the `pointcloud2_to_array` function). Process the RGB image using the YOLO model to extract segmented objects, passing `retina_masks=True` so each mask matches the cloud's native resolution rather than the smaller size used for inference. For each detected object, extract the segmentation mask and apply it to both the RGB image and the XYZ coordinates to isolate the object in 3D space.
 
-Processing the mask is straightforward since it consists of binary values, with `1` indicating the presence of the object and `0` indicating the absence. To apply the mask, simply multiply the original channels by the mask. This operation effectively isolates the object of interest within the image. Finally, create an Open3D point cloud object and visualize the segmented object in 3D space with associated colors.
+Processing the mask is straightforward since it consists of binary values, with `1` indicating the presence of the object and `0` indicating the absence. To apply the mask, simply multiply the original channels by the mask. This operation effectively isolates the object of interest within the image. Finally, create an Open3D point cloud object and visualize the segmented object in 3D space with associated colors — `pointcloud2_to_array` packs `rgb` in the BGR channel order YOLO expects, so reverse the channel axis when assigning `pcd.colors`, since Open3D expects colors in RGB order.
 
 !!! example "Segment and visualize"
 
@@ -793,7 +799,7 @@ Processing the mask is straightforward since it consists of binary values, with 
 
             pcd = o3d.geometry.PointCloud()
             pcd.points = o3d.utility.Vector3dVector(obj_xyz.reshape((ros_cloud.height * ros_cloud.width, 3)))
-            pcd.colors = o3d.utility.Vector3dVector(obj_rgb.reshape((ros_cloud.height * ros_cloud.width, 3)) / 255)
+            pcd.colors = o3d.utility.Vector3dVector(obj_rgb.reshape((ros_cloud.height * ros_cloud.width, 3))[:, ::-1] / 255)
             o3d.visualization.draw_geometries([pcd])
         ```
 
@@ -834,7 +840,7 @@ Processing the mask is straightforward since it consists of binary values, with 
 
                 pcd = o3d.geometry.PointCloud()
                 pcd.points = o3d.utility.Vector3dVector(obj_xyz.reshape((ros_cloud.height * ros_cloud.width, 3)))
-                pcd.colors = o3d.utility.Vector3dVector(obj_rgb.reshape((ros_cloud.height * ros_cloud.width, 3)) / 255)
+                pcd.colors = o3d.utility.Vector3dVector(obj_rgb.reshape((ros_cloud.height * ros_cloud.width, 3))[:, ::-1] / 255)
                 o3d.visualization.draw_geometries([pcd])
 
             node.destroy_node()
@@ -904,7 +910,7 @@ Processing the mask is straightforward since it consists of binary values, with 
 
             pcd = o3d.geometry.PointCloud()
             pcd.points = o3d.utility.Vector3dVector(obj_xyz.reshape((ros_cloud.height * ros_cloud.width, 3)))
-            pcd.colors = o3d.utility.Vector3dVector(obj_rgb.reshape((ros_cloud.height * ros_cloud.width, 3)) / 255)
+            pcd.colors = o3d.utility.Vector3dVector(obj_rgb.reshape((ros_cloud.height * ros_cloud.width, 3))[:, ::-1] / 255)
             o3d.visualization.draw_geometries([pcd])
         ```
 
@@ -985,7 +991,7 @@ Processing the mask is straightforward since it consists of binary values, with 
 
                 pcd = o3d.geometry.PointCloud()
                 pcd.points = o3d.utility.Vector3dVector(obj_xyz.reshape((ros_cloud.height * ros_cloud.width, 3)))
-                pcd.colors = o3d.utility.Vector3dVector(obj_rgb.reshape((ros_cloud.height * ros_cloud.width, 3)) / 255)
+                pcd.colors = o3d.utility.Vector3dVector(obj_rgb.reshape((ros_cloud.height * ros_cloud.width, 3))[:, ::-1] / 255)
                 o3d.visualization.draw_geometries([pcd])
 
             node.destroy_node()
@@ -1086,4 +1092,4 @@ With YOLO, you can extract [segmentation masks](https://www.ultralytics.com/glos
 
 ### What hardware do I need to run Ultralytics YOLO with ROS?
 
-Any machine capable of running [Ultralytics YOLO inference](../modes/predict.md) works — a GPU speeds up inference but isn't required for smaller models like `yolo26n.pt`. On the ROS side, you need any RGB camera for [image detection](#use-ultralytics-with-ros-sensor_msgsimage), a depth-capable sensor such as an [Intel RealSense](https://www.realsenseai.com/) for [depth workflows](#use-ultralytics-with-ros-depth-images), or a LIDAR or depth camera publishing `sensor_msgs/PointCloud2` for [point cloud workflows](#use-ultralytics-with-ros-sensor_msgspointcloud2). This guide was tested on the [Husarion ROSbot 2 PRO](https://husarion.com/manuals/rosbot/), but the code works with any ROS Noetic- or ROS2-compatible robot or simulation.
+Any machine capable of running [Ultralytics YOLO inference](../modes/predict.md) works — a GPU speeds up inference but isn't required for smaller models like `yolo26n.pt`. On the ROS side, you need any RGB camera for [image detection](#use-ultralytics-with-ros-sensor_msgsimage), a depth-capable sensor such as an [Intel RealSense](https://www.realsenseai.com/) for [depth workflows](#use-ultralytics-with-ros-depth-images), or an RGB-D camera publishing an organized, colorized `sensor_msgs/PointCloud2` for [point cloud workflows](#use-ultralytics-with-ros-sensor_msgspointcloud2) — a raw LIDAR cloud lacks the `rgb` field and organized grid this workflow assumes. This guide was tested on the [Husarion ROSbot 2 PRO](https://husarion.com/manuals/rosbot/), but the code works with any ROS Noetic- or ROS2-compatible robot or simulation.

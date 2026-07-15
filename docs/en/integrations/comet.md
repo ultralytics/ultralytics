@@ -155,6 +155,8 @@ Comet offers the flexibility to customize its logging behavior by setting enviro
 | `COMET_MAX_CONFIDENCE_SCORE`        | `100.0`        | Multiplier applied to detection confidence scores before logging (Comet's UI expects a percentage scale).  |
 | `COMET_MODE` _(deprecated)_         | `online`       | Legacy alias of `COMET_START_ONLINE` (`"online"` ↔ `1`, `"offline"` ↔ `0`). Emits a deprecation warning. |
 
+For the boolean toggles (`COMET_EVAL_LOG_IMAGE_PREDICTIONS` and `COMET_EVAL_LOG_CONFUSION_MATRIX`), the values `1`, `true`, `yes`, `on`, `y`, and `t` are parsed as `True` (case-insensitive). Any other value is `False`.
+
 ### Logging Image Predictions
 
 You can control the number of image predictions that Comet logs during your experiments. By default, Comet logs 100 image predictions from the validation set. However, you can change this number to better suit your requirements. For example, to log 200 image predictions, use the following code:

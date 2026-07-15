@@ -46,6 +46,29 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         """
         self.prompts = prompts
 
+    def preprocess(self, im):
+        """Preprocess images, converting dict prompts for tensor sources that never pass through pre_transform."""
+        if isinstance(im, torch.Tensor) and isinstance(self.prompts, dict):
+            h, w = im.shape[2:]  # tensor sources skip letterboxing, so src and dst shapes are identical
+            self.prompts = self._prompts_to_tensor((h, w), (h, w))
+        return super().preprocess(im)
+
+    def _prompts_to_tensor(self, dst_shape, src_shape):
+        """Convert the single-image prompts dict to a batched visuals tensor on the model device.
+
+        Args:
+            dst_shape (tuple): The target (height, width) after any letterboxing.
+            src_shape (tuple): The original (height, width) the prompts refer to.
+
+        Returns:
+            (torch.Tensor): Visual prompts tensor of shape (1, N, H, W) in model precision.
+        """
+        bboxes = self.prompts.get("bboxes", None)
+        masks = self.prompts.get("masks", None)
+        visuals = self._process_single_image(dst_shape, src_shape, self.prompts["cls"], bboxes, masks)
+        prompts = visuals.unsqueeze(0).to(self.device)  # (1, N, H, W)
+        return prompts.half() if self.model.fp16 else prompts.float()
+
     def pre_transform(self, im):
         """Preprocess images and prompts before inference.
 
@@ -62,13 +85,13 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
             ValueError: If neither valid bounding boxes nor masks are provided in the prompts.
         """
         img = super().pre_transform(im)
-        bboxes = self.prompts.pop("bboxes", None)
-        masks = self.prompts.pop("masks", None)
-        category = self.prompts["cls"]
+        if not isinstance(self.prompts, dict):  # already converted (tensor source, or re-entry at batch=1)
+            return img
         if len(img) == 1:
-            visuals = self._process_single_image(img[0].shape[:2], im[0].shape[:2], category, bboxes, masks)
-            prompts = visuals.unsqueeze(0).to(self.device)  # (1, N, H, W)
+            self.prompts = self._prompts_to_tensor(img[0].shape[:2], im[0].shape[:2])
         else:
+            bboxes = self.prompts.get("bboxes", None)
+            category = self.prompts["cls"]
             # NOTE: only supports bboxes as prompts for now
             assert bboxes is not None, f"Expected bboxes, but got {bboxes}!"
             # NOTE: needs list[np.ndarray]
@@ -86,7 +109,7 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
                 for i in range(len(img))
             ]
             prompts = torch.nn.utils.rnn.pad_sequence(visuals, batch_first=True).to(self.device)  # (B, N, H, W)
-        self.prompts = prompts.half() if self.model.fp16 else prompts.float()
+            self.prompts = prompts.half() if self.model.fp16 else prompts.float()
         return img
 
     def _process_single_image(self, dst_shape, src_shape, category, bboxes=None, masks=None):
@@ -141,13 +164,19 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
     def get_vpe(self, source):
         """Process the source to get the visual prompt embeddings (VPE).
 
+        Preprocesses a single image via preprocess(), which converts the visual prompts to tensor format (and
+        letterboxes array inputs), then extracts the VPE from the model.
+
         Args:
             source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | list | tuple): The source of the image to
                 make predictions on. Accepts various types including file paths, URLs, PIL images, numpy arrays, and
-                torch tensors.
+                torch tensors. Only single images are supported.
 
         Returns:
             (torch.Tensor): The visual prompt embeddings (VPE) from the model.
+
+        Raises:
+            AssertionError: If the source contains more than one image.
         """
         self.setup_source(source)
         assert len(self.dataset) == 1, "get_vpe only supports one image!"

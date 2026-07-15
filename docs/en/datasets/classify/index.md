@@ -16,7 +16,7 @@ Each of these directories should contain one subdirectory for each class in the 
 
 Consider the [CIFAR-10](cifar10.md) dataset as an example. The folder structure should look like this:
 
-```
+```text
 cifar-10-/
 |
 |-- train/
@@ -129,7 +129,7 @@ If you have your own dataset and would like to use it for training classificatio
 
 To structure your dataset for Ultralytics YOLO classification tasks, you should follow a specific split-directory format. Organize your dataset into separate directories for `train`, `test`, and optionally `val`. Each of these directories should contain subdirectories named after each class, with the corresponding images inside. This facilitates smooth training and evaluation processes. For an example, consider the [CIFAR-10](cifar10.md) dataset format:
 
-```
+```text
 cifar-10-/
 |-- train/
 |   |-- airplane/

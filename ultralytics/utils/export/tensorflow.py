@@ -281,7 +281,7 @@ def tflite2edgetpu(tflite_file: str | Path, output_dir: str | Path, prefix: str 
         str(tflite_file),
     ]  # argv list avoids shell metacharacter issues in output_dir/tflite_file paths
     LOGGER.info(f"{prefix} running '{shlex.join(cmd)}'")
-    subprocess.run(cmd)
+    subprocess.run(cmd, check=True)
     return str(Path(output_dir) / f"{Path(tflite_file).stem}_edgetpu.tflite")
 
 

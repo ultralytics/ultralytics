@@ -99,8 +99,10 @@ The fastest way to get started with Ultralytics YOLO26 on NVIDIA DGX Spark is to
 
 ```bash
 t=ultralytics/ultralytics:latest-nvidia-arm64
-sudo docker pull $t && sudo docker run -it --ipc=host --runtime=nvidia --gpus all $t
+sudo docker pull $t && sudo docker run -it --ipc=host --device nvidia.com/gpu=all $t
 ```
+
+The CDI device request above applies to DGX Spark running DGX OS. On Jetson AGX Thor, launch the same image with `--runtime=nvidia` instead, as shown in the [NVIDIA Jetson guide](nvidia-jetson.md).
 
 After this is done, skip to [Use TensorRT on NVIDIA DGX Spark section](#use-tensorrt-on-nvidia-dgx-spark).
 
@@ -144,7 +146,7 @@ pip install torch torchvision --index-url https://download.pytorch.org/whl/cu130
 
     When running PyTorch 2.9.1 on NVIDIA DGX Spark, you may encounter the following `UserWarning` when initializing CUDA (e.g. running `yolo checks`, `yolo predict`, etc.):
 
-    ```
+    ```text
     UserWarning: Found GPU0 NVIDIA GB10 which is of cuda capability 12.1.
     Minimum and Maximum cuda capability supported by this version of PyTorch is (8.0) - (12.0)
     ```

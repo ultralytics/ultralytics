@@ -99,7 +99,9 @@ class RTDETR:
 
         # Set up the ONNX runtime session with available execution providers
         available = ort.get_available_providers()
-        providers = [p for p in ("CUDAExecutionProvider", "CPUExecutionProvider") if p in available]
+        providers = [
+            p for p in ("MIGraphXExecutionProvider", "CUDAExecutionProvider", "CPUExecutionProvider") if p in available
+        ]
         self.session = ort.InferenceSession(model_path, providers=providers or available)
 
         self.model_input = self.session.get_inputs()

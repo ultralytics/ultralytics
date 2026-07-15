@@ -5,6 +5,7 @@ import csv
 import os
 import shutil
 import tarfile
+import types
 import urllib
 import zipfile
 from copy import copy
@@ -954,6 +955,138 @@ def test_utils_checks(monkeypatch):
     assert not checks.check_version("4.13.0.90", "!=4.13.0.90")
     assert checks.check_version("2.0.1", "<2.0.1.5")
     checks.print_args()
+
+
+@pytest.mark.parametrize(
+    ("hip_version", "version_info", "machine", "expected"),
+    (
+        (None, (3, 10, 0, "final", 0), "x86_64", False),
+        ("7.2.0", (3, 10, 0, "final", 0), "x86_64", True),
+        ("7.2.0", (3, 12, 0, "final", 0), "x86_64", True),
+        ("7.3.0", (3, 10, 0, "final", 0), "x86_64", True),
+        ("7.3.0", (3, 12, 0, "final", 0), "x86_64", True),
+        ("7.2.0", (3, 11, 0, "final", 0), "x86_64", False),
+        ("7.2.0", (3, 13, 0, "final", 0), "x86_64", False),
+        ("7.3.0", (3, 11, 0, "final", 0), "x86_64", False),
+        ("7.2.0", (3, 10, 0, "final", 0), "amd64", True),
+        ("7.2.0", (3, 10, 0, "final", 0), "aarch64", False),
+    ),
+)
+def test_utils_migraphx_is_available(monkeypatch, hip_version, version_info, machine, expected):
+    """Test MIGraphX availability check against ROCm state, Python version, and CPU architecture."""
+    monkeypatch.setattr(checks.sys, "platform", "linux")
+    monkeypatch.setattr(checks.torch.version, "hip", hip_version)
+    monkeypatch.setattr(checks.sys, "version_info", version_info)
+    monkeypatch.setattr(checks.platform, "machine", lambda: machine)
+    assert checks.migraphx_is_available() is expected
+
+
+@pytest.mark.parametrize(
+    ("cuda", "is_migraphx", "is_rocm", "expected_pkg"),
+    (
+        (False, False, False, ("onnxruntime", "onnxruntime-gpu", "onnxruntime-migraphx")),
+        (True, False, False, "onnxruntime-gpu"),
+        (False, True, True, ("onnxruntime", "onnxruntime-gpu", "onnxruntime-migraphx")),
+        (True, True, True, "onnxruntime-migraphx"),
+        (True, False, True, ("onnxruntime", "onnxruntime-gpu", "onnxruntime-migraphx")),
+    ),
+)
+def test_onnxruntime_package_resolution(cuda, is_migraphx, is_rocm, expected_pkg):
+    """Ensure ORT package selection avoids ROCm mixed-package installs on CPU fallback paths."""
+    from ultralytics.utils.checks import resolve_onnxruntime_package
+
+    assert resolve_onnxruntime_package(cuda=cuda, is_migraphx=is_migraphx, is_rocm=is_rocm) == expected_pkg
+
+
+@pytest.mark.parametrize(
+    ("use_gpu", "is_migraphx", "device_index", "available", "expected"),
+    (
+        (
+            True,
+            True,
+            0,
+            ["MIGraphXExecutionProvider", "CPUExecutionProvider"],
+            [("MIGraphXExecutionProvider", {"device_id": 0}), "CPUExecutionProvider"],
+        ),
+        (
+            True,
+            False,
+            1,
+            ["CUDAExecutionProvider", "CPUExecutionProvider"],
+            [("CUDAExecutionProvider", {"device_id": 1}), "CPUExecutionProvider"],
+        ),
+        (True, True, 0, ["CPUExecutionProvider"], ["CPUExecutionProvider"]),
+        (False, False, None, ["CPUExecutionProvider"], ["CPUExecutionProvider"]),
+    ),
+)
+def test_benchmark_ort_provider_selection(use_gpu, is_migraphx, device_index, available, expected):
+    """Ensure benchmark path picks providers in the intended ROCm/CUDA/CPU order."""
+    from ultralytics.utils.benchmarks import _select_benchmark_ort_providers
+
+    assert (
+        _select_benchmark_ort_providers(
+            use_gpu=use_gpu,
+            is_migraphx=is_migraphx,
+            device_index=device_index,
+            available=available,
+        )
+        == expected
+    )
+
+
+def test_rocm_device_count_respects_torch_visibility(monkeypatch):
+    """Ensure ROCm device count does not exceed torch-visible devices."""
+
+    class _AmdSmiModule:
+        @staticmethod
+        def amdsmi_init():
+            return None
+
+        @staticmethod
+        def amdsmi_get_processor_handles():
+            return [object()] * 8
+
+        @staticmethod
+        def amdsmi_shut_down():
+            return None
+
+    monkeypatch.setattr(checks, "rocm_is_available", lambda: True)
+    monkeypatch.setattr(checks.torch.cuda, "device_count", lambda: 2)
+    monkeypatch.setitem(checks.sys.modules, "amdsmi", _AmdSmiModule)
+
+    assert checks.rocm_device_count() == 2
+
+
+def test_rocm_device_count_without_rocm(monkeypatch):
+    """Ensure ROCm count returns zero when ROCm is unavailable."""
+    monkeypatch.setattr(checks, "rocm_is_available", lambda: False)
+    monkeypatch.setattr(checks.torch.cuda, "device_count", lambda: 4)
+    monkeypatch.setitem(checks.sys.modules, "amdsmi", types.SimpleNamespace())
+
+    assert checks.rocm_device_count() == 0
+
+
+def test_rocm_device_count_respects_visibility_mask(monkeypatch):
+    """Ensure ROCm count stays zero when CUDA visibility mask hides all devices."""
+
+    class _AmdSmiModule:
+        @staticmethod
+        def amdsmi_init():
+            return None
+
+        @staticmethod
+        def amdsmi_get_processor_handles():
+            return [object()] * 8
+
+        @staticmethod
+        def amdsmi_shut_down():
+            return None
+
+    monkeypatch.setattr(checks, "rocm_is_available", lambda: True)
+    monkeypatch.setattr(checks.torch.cuda, "device_count", lambda: 0)
+    monkeypatch.setitem(checks.sys.modules, "amdsmi", _AmdSmiModule)
+
+    assert checks.rocm_device_count() == 0
 
 
 @pytest.mark.skipif(WINDOWS, reason="Windows profiling is extremely slow (cause unknown)")

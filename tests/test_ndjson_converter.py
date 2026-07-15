@@ -57,6 +57,7 @@ def _write_depth_ndjson(path, base_url, depth_hash, splits=("train", "test")):
 
 
 def test_convert_depth_ndjson_downloads_pairs_and_reuses_cache(tmp_path):
+    """Preserve nested image-depth pairs and reuse validated cached targets."""
     source = tmp_path / "source"
     source.mkdir()
     depth = np.arange(12, dtype=np.float32).reshape(3, 4)
@@ -112,6 +113,7 @@ def test_convert_depth_ndjson_downloads_pairs_and_reuses_cache(tmp_path):
 
 
 def test_convert_depth_ndjson_rejects_incomplete_descriptor_before_download(tmp_path):
+    """Reject incomplete depth descriptors before issuing downloads."""
     manifest = tmp_path / "invalid.ndjson"
     records = [
         {"type": "dataset", "task": "depth"},
@@ -136,6 +138,7 @@ def test_convert_depth_ndjson_rejects_incomplete_descriptor_before_download(tmp_
 
 @pytest.mark.parametrize("invalid_field", ["hash", "shape"])
 def test_convert_depth_ndjson_rejects_invalid_npy_payload(tmp_path, invalid_field):
+    """Reject depth targets whose payload does not match declared integrity metadata."""
     source = tmp_path / "source"
     source.mkdir()
     depth = np.arange(12, dtype=np.float32).reshape(3, 4)

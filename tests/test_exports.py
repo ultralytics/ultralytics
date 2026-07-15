@@ -388,18 +388,28 @@ def test_export_coreml_matrix(task, dynamic, quantize, nms, batch, end2end):
     MACOS and checks.IS_PYTHON_MINIMUM_3_13,
     reason="coremltools deadlocks after OpenVINO on macOS Python 3.13 (conflicting OpenMP runtimes)",
 )
-def test_export_coreml(isolated_model):
+def test_export_coreml(isolated_model, monkeypatch, tmp_path):
     """Test YOLO export to CoreML format and check for errors."""
+    from ultralytics.utils.export import coreml
+
+    quantize, torch2coreml = [], coreml.torch2coreml
+
+    def capture_quantize(*args, **kwargs):
+        quantize.append(kwargs["quantize"])
+        return torch2coreml(*args, **kwargs)
+
+    monkeypatch.setattr(coreml, "torch2coreml", capture_quantize)
     # Capture stdout and stderr
     stdout, stderr = io.StringIO(), io.StringIO()
     with redirect_stdout(stdout), redirect_stderr(stderr):
-        YOLO(isolated_model).export(format="coreml", nms=True, imgsz=32)
+        YOLO(isolated_model_path(tmp_path, WEIGHTS_DIR / "yolo11n.pt")).export(format="coreml", nms=True, imgsz=32)
         if MACOS:
             file = YOLO(isolated_model).export(format="coreml", imgsz=32)
             YOLO(file)(SOURCE, imgsz=32)  # model prediction only supported on macOS for nms=False models
 
     # Check captured output for errors
     output = stdout.getvalue() + stderr.getvalue()
+    assert quantize[0] == 16, "CoreML NMS ML Programs should default to FP16"
     assert "Error" not in output, f"CoreML export produced errors: {output}"
     assert "You will not be able to run predict()" not in output, "CoreML export has predict() error"
 

@@ -354,7 +354,7 @@ EXPORT_ENVS = {
         "python": "3.13",
         "extras": ["export-base", "export-executorch"],
         "torch": ">=2.12,<2.13",
-        "requirements": ["executorch[ethos-u]>=1.3.1"],
+        "requirements": ["tosa-tools", "ethos-u-vela"],
         "indexes": [],
         "env": {},
         "smoke": ["yolo export format=ethos model=yolo26n.pt imgsz=32 data=coco8.yaml"],

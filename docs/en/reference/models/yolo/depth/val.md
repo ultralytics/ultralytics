@@ -14,8 +14,4 @@ keywords: Ultralytics, ultralytics.models.yolo.depth.val, API reference, YOLO, P
 
 ## ::: ultralytics.models.yolo.depth.val.DepthValidator
 
-<br><br><hr><br>
-
-## ::: ultralytics.models.yolo.depth.val.plot_depth_panels
-
 <br><br>

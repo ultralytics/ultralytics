@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import cv2
 import numpy as np
 import torch
 import torch.distributed as dist
@@ -12,7 +11,7 @@ import torch.nn.functional as F
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER, RANK
 from ultralytics.utils.metrics import DepthMetrics
-from ultralytics.utils.plotting import colorize_depth, plot_images
+from ultralytics.utils.plotting import plot_images
 
 
 class DepthValidator(DetectionValidator):

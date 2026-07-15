@@ -389,12 +389,14 @@ def test_export_coreml_matrix(task, dynamic, quantize, nms, batch, end2end):
     reason="coremltools deadlocks after OpenVINO on macOS Python 3.13 (conflicting OpenMP runtimes)",
 )
 @pytest.mark.parametrize("format", ["coreml", "mlmodel"])
-def test_export_coreml(isolated_model, format):
+def test_export_coreml(isolated_model, format, tmp_path):
     """Test YOLO export to CoreML format and check for errors."""
     # Capture stdout and stderr
     stdout, stderr = io.StringIO(), io.StringIO()
     with redirect_stdout(stdout), redirect_stderr(stderr):
-        file = YOLO(isolated_model).export(format=format, nms=True, imgsz=32, iou=0.42, conf=0.24)
+        file = YOLO(isolated_model_path(tmp_path, WEIGHTS_DIR / "yolo11n.pt")).export(
+            format=format, nms=True, imgsz=32, iou=0.42, conf=0.24
+        )
         import coremltools as ct
 
         spec = ct.utils.load_spec(str(file))

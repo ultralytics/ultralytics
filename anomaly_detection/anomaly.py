@@ -1274,7 +1274,7 @@ class AnomalyBboxValidator:
     def _eval_coco(gt_path: str, pred_path: str) -> dict[str, float]:
         """Run :class:`COCOeval_faster` on the given GT and prediction JSON files.
 
-        Returns dict with keys ``map50, map, map75``.
+        Returns dict with keys ``map50`` (AP@IoU=0.50) and ``map`` (AP@[0.50:0.95], COCO primary).
         """
         from faster_coco_eval import COCO, COCOeval_faster
 
@@ -1288,7 +1288,6 @@ class AnomalyBboxValidator:
         return {
             "map50": round(float(stats.get("AP_50", 0.0)), 4),
             "map": round(float(stats.get("AP_all", 0.0)), 4),
-            "map75": round(float(stats.get("AP_75", 0.0)), 4),
         }
 
     # ── Per-category evaluation ────────────────────────────────────────
@@ -1383,7 +1382,7 @@ class AnomalyBboxValidator:
             try:
                 coco_metrics = self._eval_coco(gt_path, pred_path)
             except Exception:
-                coco_metrics = {"map50": float("nan"), "map": float("nan"), "map75": float("nan")}
+                coco_metrics = {"map50": float("nan"), "map": float("nan")}
 
             n_gt = sum(len(e["annotations"]) for e in image_entries)
             rows.append({
@@ -1416,7 +1415,7 @@ class AnomalyBboxValidator:
                 print(f"[{cat}] FAILED: {e!r}", flush=True)
                 cat_rows = [{
                     "category": cat, "threshold": round(float(t), 2),
-                    "map50": float("nan"), "map": float("nan"), "map75": float("nan"),
+                    "map50": float("nan"), "map": float("nan"),
                     "anomaly_deviation": float("nan"), "normal_deviation": float("nan"),
                     "n_pred": 0, "n_gt": 0,
                 } for t in _BBOX_THRESHOLDS]
@@ -1428,14 +1427,14 @@ class AnomalyBboxValidator:
                 print(f"[{cat}] best mAP50={best['map50']:.4f} @ t={best['threshold']:.2f}", flush=True)
 
         # AVERAGE per threshold
-        fields = ["category", "threshold", "map50", "map", "map75",
+        fields = ["category", "threshold", "map50", "map",
                    "anomaly_deviation", "normal_deviation", "n_pred", "n_gt"]
         avg_rows: list[dict] = []
         for t in _BBOX_THRESHOLDS:
             t = round(float(t), 2)
             t_rows = [r for r in rows if r["threshold"] == t]
             avg = {"category": "AVERAGE", "threshold": t}
-            for k in ["map50", "map", "map75", "anomaly_deviation", "normal_deviation"]:
+            for k in ["map50", "map", "anomaly_deviation", "normal_deviation"]:
                 vals = [r[k] for r in t_rows if isinstance(r[k], float) and r[k] == r[k]]
                 avg[k] = round(statistics.fmean(vals), 4) if vals else float("nan")
             avg["n_pred"] = sum(r["n_pred"] for r in t_rows)
@@ -1460,7 +1459,7 @@ class AnomalyBboxValidator:
                 aDev = best.get("anomaly_deviation", float("nan"))
                 nDev = best.get("normal_deviation", float("nan"))
                 print(f"  {cat:>12s}  mAP50={best['map50']:.4f}  mAP={best['map']:.4f}  "
-                      f"mAP75={best['map75']:.4f}  aDev={aDev:.4f}  nDev={nDev:.4f}  @ t={best['threshold']:.2f}")
+                      f"aDev={aDev:.4f}  nDev={nDev:.4f}  @ t={best['threshold']:.2f}")
         return rows
 
 

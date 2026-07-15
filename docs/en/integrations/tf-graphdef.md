@@ -45,7 +45,7 @@ Here's how you can deploy with TF GraphDef efficiently across various platforms.
 
 - **TensorFlow Serving:** This framework is designed to deploy TensorFlow models in production environments. TensorFlow Serving offers model management, versioning, and the infrastructure for efficient model serving at scale. It's a seamless way to integrate your GraphDef-based models into production web services or APIs.
 
-- **Mobile and Embedded Devices:** With tools like [TensorFlow Lite](https://www.tensorflow.org/lite), you can convert TF GraphDef models into formats optimized for smartphones, tablets, and various embedded devices. Your models can then be used for on-device inference, where execution is done locally, often providing performance gains and offline capabilities.
+- **Mobile and Embedded Devices:** With tools like [LiteRT](https://developers.google.com/edge/litert), you can convert TF GraphDef models into formats optimized for smartphones, tablets, and various embedded devices. Your models can then be used for on-device inference, where execution is done locally, often providing performance gains and offline capabilities.
 
 - **Web Browsers:** [TensorFlow.js](https://www.tensorflow.org/js) enables the deployment of TF GraphDef models directly within web browsers. It paves the way for real-time object detection applications running on the client side, using the capabilities of YOLO26 through JavaScript.
 

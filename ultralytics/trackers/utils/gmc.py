@@ -143,6 +143,7 @@ class GMC:
         # Run the ECC algorithm to find transformation matrix
         try:
             (_, H) = cv2.findTransformECC(self.prevFrame, frame, H, self.warp_mode, self.criteria, None, 1)
+            H[:, 2] *= (width / frame.shape[1], height / frame.shape[0])
         except Exception as e:
             LOGGER.warning(f"findTransformECC failed; using identity warp. {e}")
 

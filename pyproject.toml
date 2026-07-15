@@ -75,6 +75,7 @@ dependencies = [
     "polars>=0.20.0",
     "nvidia-ml-py>=12.0.0", # NVIDIA GPU monitoring https://pypi.org/project/nvidia-ml-py
     "ultralytics-thop>=2.0.18", # FLOPs computation https://github.com/ultralytics/thop
+    "xxhash>=3.6.0", # content-addressed dataset assets
 ]
 
 # Optional dependencies ------------------------------------------------------------------------------------------------

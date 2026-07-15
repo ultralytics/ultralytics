@@ -13,6 +13,7 @@ from pathlib import Path
 
 import cv2
 import numpy as np
+import xxhash
 from PIL import Image
 
 from ultralytics.utils import ASSETS_URL, DATASETS_DIR, LOGGER, NUM_THREADS, TQDM, YAML, clean_url
@@ -863,6 +864,55 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     task = dataset_record.get("task", "detect")
     is_classification = task == "classify"
     is_depth = task == "depth"
+
+    def depth_relative_path(record: dict) -> Path:
+        """Return the depth target path matching DepthDataset's images-to-depth mapping."""
+        return Path(record["file"]).with_suffix(".npy")
+
+    def validate_depth_file(path: Path, descriptor: dict) -> bool:
+        """Validate a downloaded or reused canonical depth target against its manifest descriptor."""
+        try:
+            expected_hash = descriptor["hash"].lower()
+            if len(expected_hash) == 32:
+                hasher = xxhash.xxh3_128()
+            elif len(expected_hash) == 64:
+                hasher = hashlib.sha256()
+            else:
+                raise ValueError("Depth content hashes must be XXH3-128 or SHA-256 hex digests")
+            with path.open("rb") as file:
+                for chunk in iter(lambda: file.read(1024 * 1024), b""):
+                    hasher.update(chunk)
+            depth = np.load(path, allow_pickle=False, mmap_mode="r")
+            return (
+                hasher.hexdigest() == expected_hash
+                and depth.dtype == np.float32
+                and depth.ndim == 2
+                and list(depth.shape) == descriptor["shape"]
+            )
+        except (KeyError, OSError, TypeError, ValueError):
+            return False
+
+    # Validate required fields before consulting a cached conversion.
+    if is_depth:
+        depth_paths = set()
+        for record in image_records:
+            depth = record.get("depth")
+            if not isinstance(depth, dict) or not depth.get("url"):
+                raise ValueError(f"Depth record '{record.get('file', '<unknown>')}' is missing depth.url")
+            if not isinstance(depth.get("hash"), str) or not depth["hash"]:
+                raise ValueError("Depth records require a content hash")
+            if depth.get("encoding") != "npy-f32" or depth.get("unit") != "m":
+                raise ValueError("Depth records require encoding='npy-f32' and unit='m'")
+            shape = depth.get("shape")
+            if not isinstance(shape, list) or len(shape) != 2 or not all(isinstance(x, int) and x > 0 for x in shape):
+                raise ValueError("Depth records require a positive [height, width] shape")
+            depth_path = (record["split"], depth_relative_path(record))
+            if depth_path in depth_paths:
+                raise ValueError(
+                    f"Depth records contain a duplicate output path: depth/{depth_path[0]}/{depth_path[1]}"
+                )
+            depth_paths.add(depth_path)
+
     if yaml_path.is_file():
         try:
             cached = YAML.load(yaml_path)
@@ -877,7 +927,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
             )
             depth_files_valid = not is_depth or all(
                 (dataset_dir / "images" / r["split"] / r["file"]).is_file()
-                and (dataset_dir / "depth" / r["split"] / f"{Path(r['file']).stem}.npy").is_file()
+                and validate_depth_file(dataset_dir / "depth" / r["split"] / depth_relative_path(r), r["depth"])
                 for r in image_records
             )
             if (
@@ -894,26 +944,6 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     class_names = {int(k): v for k, v in dataset_record.get("class_names", {}).items()}
     inferred_nc = None
 
-    # Validate required fields before downloading images
-    if is_depth:
-        depth_paths = set()
-        for record in image_records:
-            depth = record.get("depth")
-            if not isinstance(depth, dict) or not depth.get("url"):
-                raise ValueError(f"Depth record '{record.get('file', '<unknown>')}' is missing depth.url")
-            if not isinstance(depth.get("hash"), str) or not depth["hash"]:
-                raise ValueError("Depth records require a content hash")
-            if depth.get("encoding") != "npy-f32" or depth.get("unit") != "m":
-                raise ValueError("Depth records require encoding='npy-f32' and unit='m'")
-            shape = depth.get("shape")
-            if not isinstance(shape, list) or len(shape) != 2 or not all(isinstance(x, int) and x > 0 for x in shape):
-                raise ValueError("Depth records require a positive [height, width] shape")
-            depth_path = (record["split"], Path(record["file"]).stem)
-            if depth_path in depth_paths:
-                raise ValueError(
-                    f"Depth records contain a duplicate output path: depth/{depth_path[0]}/{depth_path[1]}.npy"
-                )
-            depth_paths.add(depth_path)
     if not is_classification:
         class_ids = {
             int(label[0])
@@ -1060,18 +1090,25 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
             if not is_depth:
                 return image_ok
 
-            depth_name = f"{Path(original_name).stem}.npy"
+            depth_name = depth_relative_path(record)
             depth_path = dataset_dir / "depth" / split / depth_name
+            descriptor = record["depth"]
+            if depth_path.exists() and not validate_depth_file(depth_path, descriptor):
+                depth_path.unlink()
             depth_candidates = (
                 [
                     root / "depth" / s / depth_name
                     for root in ([dataset_dir] if _reuse else []) + reuse_dirs
                     for s in ("train", "val", "test")
+                    if validate_depth_file(root / "depth" / s / depth_name, descriptor)
                 ]
                 if _reuse or reuse_dirs
                 else []
             )
-            depth_ok = await ensure_file(session, depth_path, record["depth"]["url"], depth_candidates)
+            depth_ok = await ensure_file(session, depth_path, descriptor["url"], depth_candidates)
+            if depth_ok and not validate_depth_file(depth_path, descriptor):
+                LOGGER.warning(f"Depth target failed descriptor validation: {depth_path}")
+                depth_ok = False
             if not image_ok or not depth_ok:
                 image_path.unlink(missing_ok=True)
                 depth_path.unlink(missing_ok=True)
@@ -1098,6 +1135,8 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     success_count = sum(1 for r in results if r)
     if success_count == 0:
         raise RuntimeError(f"Failed to download any images from {ndjson_path}. Check network connection and URLs.")
+    if is_depth and success_count < len(image_records):
+        raise RuntimeError(f"Failed to download and validate all depth pairs from {ndjson_path}.")
     if success_count < len(image_records):
         LOGGER.warning(f"Downloaded {success_count}/{len(image_records)} images from {ndjson_path}")
 
@@ -1118,7 +1157,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
             if p.is_file() and p not in expected_paths:
                 p.unlink()
         if is_depth:
-            expected_depth = {dataset_dir / "depth" / r["split"] / f"{Path(r['file']).stem}.npy" for r in image_records}
+            expected_depth = {dataset_dir / "depth" / r["split"] / depth_relative_path(r) for r in image_records}
             for p in (dataset_dir / "depth").rglob("*"):
                 if p.is_file() and p not in expected_depth:
                     p.unlink()

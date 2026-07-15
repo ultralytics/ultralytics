@@ -478,8 +478,6 @@ class ConfusionMatrix(DataExportMixin):
                 self.matrix[dc, self.nc] += 1  # FP
                 self._append_matches("FP", detections, i)
 
-    
-
     def tp_fp(self) -> tuple[np.ndarray, np.ndarray]:
         """Return true positives and false positives.
 

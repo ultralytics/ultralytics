@@ -270,7 +270,7 @@ The Ultralytics team benchmarked YOLO26 models, comparing speed and accuracy bet
 
     Add the following lines at the end of the file:
 
-    ```
+    ```text
     dtparam=pciex1
     dtparam=pciex1_gen=3
     ```
@@ -302,7 +302,7 @@ YOLO models deployed on DEEPX NPU hardware are well suited for a wide range of [
 - **Smart Surveillance**: Real-time [object detection](https://www.ultralytics.com/glossary/object-detection) for security and monitoring systems with low power consumption and no cloud dependency.
 - **Industrial Automation**: On-device quality control, defect detection, and process monitoring in factory environments.
 - **Robotics**: Vision-based navigation, obstacle avoidance, and object recognition on autonomous robots and drones.
-- **Smart Agriculture**: Crop health monitoring, pest detection, and yield estimation using [computer vision in agriculture](https://www.ultralytics.com/solutions/ai-in-agriculture).
+- **Smart Agriculture**: Crop health monitoring, pest detection, and yield estimation using [computer vision in agriculture](https://www.ultralytics.com/solutions/computer-vision-in-agriculture).
 - **Retail Analytics**: Customer flow analysis, shelf monitoring, and inventory tracking with real-time edge inference.
 
 ## Summary

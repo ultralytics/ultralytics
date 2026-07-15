@@ -1,4 +1,5 @@
 ---
+plans: [free, pro, enterprise]
 comments: true
 description: Ultralytics Platform is an end-to-end computer vision platform for data preparation, model training, and deployment with multi-region infrastructure.
 keywords: Ultralytics Platform, YOLO, computer vision, model training, cloud deployment, annotation, inference, YOLO11, YOLO26, machine learning
@@ -79,7 +80,7 @@ You select your region during onboarding, and all your data, models, and deploym
 
 !!! warning "Region is Permanent"
 
-    Your data region cannot be changed after account creation. During onboarding, the platform measures latency to each region and recommends the closest one. Choose carefully.
+    Your data region cannot be changed after account creation. During onboarding, the platform measures latency to each region and recommends the closest one. Choose carefully. Note: this applies to your dataset and model content. Account-level data (profile, billing, activity logs) is processed globally, as described in our [Privacy Policy](https://www.ultralytics.com/legal/privacy) and [Data Processing Agreement](https://www.ultralytics.com/legal/ultralytics-data-processing-agreement#exhibit-a-details-of-personal-data-processing).
 
 ## Key Features
 

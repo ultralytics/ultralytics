@@ -388,7 +388,7 @@ def test_export_coreml_matrix(task, dynamic, quantize, nms, batch, end2end):
     MACOS and checks.IS_PYTHON_MINIMUM_3_13,
     reason="coremltools deadlocks after OpenVINO on macOS Python 3.13 (conflicting OpenMP runtimes)",
 )
-def test_export_coreml(isolated_model, monkeypatch):
+def test_export_coreml(isolated_model, monkeypatch, tmp_path):
     """Test YOLO export to CoreML format and check for errors."""
     from ultralytics.utils.export import coreml
 
@@ -402,7 +402,7 @@ def test_export_coreml(isolated_model, monkeypatch):
     # Capture stdout and stderr
     stdout, stderr = io.StringIO(), io.StringIO()
     with redirect_stdout(stdout), redirect_stderr(stderr):
-        YOLO(isolated_model).export(format="coreml", nms=True, imgsz=32)
+        YOLO(isolated_model_path(tmp_path, WEIGHTS_DIR / "yolo11n.pt")).export(format="coreml", nms=True, imgsz=32)
         if MACOS:
             file = YOLO(isolated_model).export(format="coreml", imgsz=32)
             YOLO(file)(SOURCE, imgsz=32)  # model prediction only supported on macOS for nms=False models

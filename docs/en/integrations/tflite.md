@@ -86,7 +86,7 @@ Before we look at the code for exporting YOLO26 models to the LiteRT format, let
 
 LiteRT offers various on-device deployment options for machine learning models, including:
 
-- **Deploying with Android and iOS**: Both Android and iOS applications with LiteRT can analyze edge-based camera feeds and sensors to detect and identify objects. LiteRT also offers native iOS libraries written in [Swift](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/lite/swift) and [Objective-C](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/lite/objc). The architecture diagram below shows the process of deploying a trained model onto Android and iOS platforms using LiteRT.
+- **Deploying with Android and iOS**: Both Android and iOS applications with LiteRT can analyze edge-based camera feeds and sensors to detect and identify objects. LiteRT also offers [native iOS APIs](https://developers.google.com/edge/litert/ios/quickstart) for Swift and Objective-C. The architecture diagram below shows the process of deploying a trained model onto Android and iOS platforms using LiteRT.
 
  <p align="center">
   <img width="75%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/architecture-diagram-tflite-deployment.avif" alt="LiteRT deployment architecture for mobile">
@@ -94,7 +94,7 @@ LiteRT offers various on-device deployment options for machine learning models, 
 
 - **Implementing with Embedded Linux**: If running inferences on a [Raspberry Pi](https://www.raspberrypi.com/) using the [Ultralytics Guide](../guides/raspberry-pi.md) does not meet the speed requirements for your use case, you can use an exported LiteRT model to accelerate inference times. Additionally, it's possible to further improve performance by utilizing a [Coral Edge TPU device](https://developers.google.com/coral).
 
-- **Deploying with Microcontrollers**: LiteRT models can also be deployed on microcontrollers and other devices with only a few kilobytes of memory. The core runtime just fits in 16 KB on an Arm Cortex M3 and can run many basic models. It doesn't require operating system support, any standard C or C++ libraries, or dynamic memory allocation.
+- **Deploying with Microcontrollers**: LiteRT models can also be deployed on microcontrollers and other resource-constrained devices. The runtime is designed for limited memory environments, but the model weights, tensor arena, and application code must also fit the target hardware.
 
 ## Export to LiteRT: Converting Your YOLO26 Model
 
@@ -206,7 +206,7 @@ After successfully exporting your Ultralytics YOLO26 models to LiteRT format, yo
 
 - **[iOS](https://developers.google.com/edge/litert/ios/quickstart)**: Check out this detailed guide for developers on integrating and deploying LiteRT models in iOS applications, offering step-by-step instructions and resources.
 
-- **[End-To-End Examples](https://github.com/tensorflow/examples/tree/master/lite/examples)**: This page provides an overview of various LiteRT examples, showcasing practical applications and tutorials designed to help developers implement LiteRT in their machine learning projects on mobile and edge devices.
+- **[End-To-End Examples](https://github.com/google-ai-edge/litert-samples)**: This repository provides LiteRT examples for implementing machine learning projects on mobile and edge devices.
 
 ## Summary
 
@@ -264,7 +264,7 @@ For further optimizations, you might consider using [Coral Edge TPU](https://dev
 
 ### Can I use LiteRT models on microcontrollers for YOLO26 predictions?
 
-Yes, LiteRT supports deployment on microcontrollers with limited resources. LiteRT's core runtime requires only 16 KB of memory on an Arm Cortex M3 and can run basic YOLO26 models. This makes it suitable for deployment on devices with minimal computational power and memory.
+LiteRT supports deployment on microcontrollers with limited resources, but a YOLO26 model can run only when its weights, tensor arena, runtime, and application code fit the target hardware. Evaluate the complete memory and compute requirements for your device before deployment.
 
 To get started, visit the [LiteRT Micro for Microcontrollers guide](https://developers.google.com/edge/litert/microcontrollers/overview).
 

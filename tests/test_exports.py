@@ -388,7 +388,8 @@ def test_export_coreml_matrix(task, dynamic, quantize, nms, batch, end2end):
     MACOS and checks.IS_PYTHON_MINIMUM_3_13,
     reason="coremltools deadlocks after OpenVINO on macOS Python 3.13 (conflicting OpenMP runtimes)",
 )
-def test_export_coreml(isolated_model, monkeypatch, tmp_path):
+@pytest.mark.parametrize("format", ["coreml", "mlmodel"])
+def test_export_coreml(isolated_model, format, monkeypatch, tmp_path):
     """Test YOLO export to CoreML format and check for errors."""
     from ultralytics.utils.export import coreml
 
@@ -402,14 +403,26 @@ def test_export_coreml(isolated_model, monkeypatch, tmp_path):
     # Capture stdout and stderr
     stdout, stderr = io.StringIO(), io.StringIO()
     with redirect_stdout(stdout), redirect_stderr(stderr):
-        YOLO(isolated_model_path(tmp_path, WEIGHTS_DIR / "yolo11n.pt")).export(format="coreml", nms=True, imgsz=32)
+        file = YOLO(isolated_model_path(tmp_path, WEIGHTS_DIR / "yolo11n.pt")).export(
+            format=format, nms=True, imgsz=32, iou=0.42, conf=0.24
+        )
+        import coremltools as ct
+
+        spec = ct.utils.load_spec(str(file))
+        metadata = spec.description.metadata
+        assert metadata.author and metadata.shortDescription and metadata.license and metadata.versionString
+        assert metadata.userDefined["IoU threshold"] == "0.42"
+        assert metadata.userDefined["Confidence threshold"] == "0.24"
+        assert all(key in metadata.userDefined for key in ("names", "stride", "task"))
+        assert next(iter(spec.pipeline.models[1].nonMaximumSuppression.stringClassLabels.vector)) == "person"
+        assert [output.name for output in spec.description.output] == ["confidence", "coordinates"]
         if MACOS:
             file = YOLO(isolated_model).export(format="coreml", imgsz=32)
             YOLO(file)(SOURCE, imgsz=32)  # model prediction only supported on macOS for nms=False models
 
     # Check captured output for errors
     output = stdout.getvalue() + stderr.getvalue()
-    assert quantize[0] == 16, "CoreML NMS ML Programs should default to FP16"
+    assert quantize[0] == (16 if format == "coreml" else None)
     assert "Error" not in output, f"CoreML export produced errors: {output}"
     assert "You will not be able to run predict()" not in output, "CoreML export has predict() error"
 

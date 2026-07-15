@@ -212,7 +212,15 @@ def export_formats():
         ["DEEPX", "deepx", "_deepx_model", False, False, ["data", "quantize", "optimize"], "isolated-deepx"],
         ["Qualcomm QNN", "qnn", "_qnn.onnx", False, False, ["batch", "name", "quantize", "fraction", "data"], "base"],
         ["LiteRT", "litert", ".tflite", True, False, ["batch", "quantize", "data", "fraction"], "litert"],
-        ["Ethos", "ethos", "_ethos_model", False, False, ["data", "quantize", "fraction", "name"], "ethos"],
+        [
+            "Ethos",
+            "ethos",
+            "_ethos_model",
+            False,
+            False,
+            ["data", "quantize", "fraction", "name", "memory_mode", "config_ini"],
+            "ethos",
+        ],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments", "Env"], zip(*x)))
 
@@ -398,7 +406,7 @@ def validate_args(format, passed_args, valid_args):
     Raises:
         AssertionError: If an unsupported argument is used, or if the format lacks supported argument listings.
     """
-    export_args = ["dynamic", "keras", "nms", "batch", "fraction", "data", "optimize"]
+    export_args = ["dynamic", "keras", "nms", "batch", "fraction", "data", "optimize", "memory_mode", "config_ini"]
 
     assert valid_args is not None, f"ERROR ❌️ valid arguments for '{format}' not listed."
     custom = {"batch": 1, "data": None, "device": None}  # exporter defaults
@@ -1348,6 +1356,8 @@ class Exporter:
             self.im,
             dataset=self.get_int8_calibration_dataloader(prefix),
             target=self.args.name,
+            memory_mode=self.args.memory_mode,
+            config_ini=self.args.config_ini,
             metadata=self.metadata,
             prefix=prefix,
         )

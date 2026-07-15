@@ -10,8 +10,8 @@ import random
 import shutil
 import unicodedata
 from collections import defaultdict
-from contextlib import contextmanager
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from contextlib import contextmanager
 from pathlib import Path, PurePosixPath, PureWindowsPath
 from tempfile import TemporaryDirectory
 

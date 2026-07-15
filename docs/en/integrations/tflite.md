@@ -115,6 +115,10 @@ To install the required packages, run:
 
 For detailed instructions and best practices related to the installation process, check our [Ultralytics Installation guide](../quickstart.md). While installing the required packages for YOLO26, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
 
+!!! note "Platform support"
+
+    LiteRT **export** is currently supported on **Linux x86_64** and **macOS**. The exported `.tflite` model itself runs on all LiteRT-supported platforms (mobile, embedded, edge, and the browser).
+
 ### Usage
 
 All [Ultralytics YOLO26 models](../models/index.md) are designed to support export out of the box, making it easy to integrate them into your preferred deployment workflow. You can [view the full list of supported export formats and configuration options](../modes/export.md) to choose the best setup for your application.
@@ -220,31 +224,7 @@ Also, if you're curious about other Ultralytics YOLO26 integrations, check out o
 
 ### How do I export a YOLO26 model to LiteRT format?
 
-To export a YOLO26 model to LiteRT format, you can use the Ultralytics library. First, install the required package using:
-
-```bash
-pip install ultralytics
-```
-
-Then, use the following code snippet to export your model:
-
-```python
-from ultralytics import YOLO
-
-# Load a YOLO26 model
-model = YOLO("yolo26n.pt")
-
-# Export the model to LiteRT format
-model.export(format="litert")  # creates 'yolo26n.tflite'
-```
-
-For CLI users, you can achieve this with:
-
-```bash
-yolo export model=yolo26n.pt format=litert # creates 'yolo26n.tflite'
-```
-
-For more details, visit the [Ultralytics export guide](../modes/export.md).
+Follow the [Python or CLI export example](#usage) above. For all available options, visit the [Ultralytics export guide](../modes/export.md).
 
 ### What are the benefits of using LiteRT for YOLO26 model deployment?
 
@@ -282,8 +262,8 @@ For more information on deployment options, see our detailed [deployment guide](
 
 If you encounter errors while exporting YOLO26 models to LiteRT, common solutions include:
 
-- **Check package compatibility**: Ensure you're using compatible versions of Ultralytics and TensorFlow. Refer to our [installation guide](../quickstart.md).
+- **Check package compatibility**: Ensure you're using compatible versions of Ultralytics, `litert-torch`, and `ai-edge-litert`. Refer to our [installation guide](../quickstart.md).
 - **Model support**: Verify that the specific YOLO26 model supports LiteRT export by checking the Ultralytics [export documentation page](../modes/export.md).
-- **Quantization issues**: When using INT8 quantization, make sure your dataset path is correctly specified in the `data` parameter.
+- **Quantization issues**: Static `quantize=8` and `quantize="w8a16"` exports use calibration data, so verify any custom dataset path specified with `data`. The weight-only `quantize="w8a32"` export does not require calibration data.
 
 For additional troubleshooting tips, visit our [Common Issues guide](../guides/yolo-common-issues.md).

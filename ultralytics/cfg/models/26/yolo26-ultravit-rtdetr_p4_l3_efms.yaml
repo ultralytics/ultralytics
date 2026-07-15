@@ -1,0 +1,55 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# UltraViT backbone with the exact YOLO26 neck, RTDETR l3 decoder, and loss from yolo26-rtdetr_p4_l3_efms.yaml.
+
+# Parameters
+nc: 80
+end2end: True
+reg_max: 1
+scales:
+  # [depth, width, max_channels]
+  n: [0.20, 0.25, 1152]
+  s: [0.20, 0.50, 1152]
+  m: [0.25, 1.00, 512]
+  l: [0.35, 1.00, 512]
+  x: [0.35, 1.50, 512]
+
+# UltraViT backbone: RepMixer stages 1-3 + MHSA stage 4, strides 4/8/16/32
+backbone:
+  # [from, repeats, module, args]
+  - [-1, 1, Conv, [64, 3, 2]]
+  - [-1, 1, Conv, [96, 3, 2]]
+  - [-1, 5, UltraViTBlock, [3, True, 0.00001]]
+  - [-1, 1, Conv, [192, 3, 2]]
+  - [-1, 5, UltraViTBlock, [3, True, 0.00001]]
+  - [-1, 1, Conv, [384, 3, 2]]
+  - [-1, 20, UltraViTBlock, [3, True, 0.00001]]
+  - [-1, 1, Conv, [1152, 3, 2]]
+  - [-1, 5, MHSABlock, [0, 4, True, 0.00001, True, 32]]
+
+# Exact YOLO26 neck and RTDETR l3 decoder, rewired only to UltraViT P3/P4/P5.
+head:
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 6], 1, Concat, [1]]
+  - [-1, 2, C3k2, [512, True]]
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 4], 1, Concat, [1]]
+  - [-1, 2, C3k2, [256, True]]
+
+  - [-1, 1, Conv, [256, 3, 2]]
+  - [[-1, 11], 1, Concat, [1]]
+  - [-1, 2, C3k2, [512, True]]
+
+  - [-1, 1, Conv, [512, 3, 2]]
+  - [[-1, 8], 1, Concat, [1]]
+  - [-1, 1, C3k2, [1024, True, 0.5, True]]
+
+  - [[14, 17, 20], 1, RTDETRDecoder, [nc, 256, 300, 4, 8, 3, 1024, 0.0, "relu", -1, 100, 0.5, 1.0, False, True, 0, False, True]]
+
+loss:
+  gamma: 2.0
+  alpha: 0.75
+  loss_gain: {class: 1, bbox: 5, giou: 2}
+  matcher:
+    cost_gain: {class: 2, bbox: 5, giou: 2}

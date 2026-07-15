@@ -650,6 +650,9 @@ class Exporter:
         if self.args.nms and model.task == "semantic":
             LOGGER.warning("'nms=True' is not valid for semantic segmentation models. Forcing 'nms=False'.")
             self.args.nms = False
+        if fmt == "coreml" and self.args.nms and model.task != "detect":
+            LOGGER.warning("CoreML 'nms=True' is only supported for detect models. Forcing 'nms=False'.")
+            self.args.nms = False
         if self.args.nms:
             assert not isinstance(model, ClassificationModel), "'nms=True' is not valid for classification models."
             assert not is_tf_format or TORCH_1_13, "TensorFlow exports with NMS require torch>=1.13"
@@ -740,9 +743,13 @@ class Exporter:
                 m.dynamic = self.args.dynamic
                 m.export = True
                 m.format = self.args.format
-                # Clamp max_det to anchor count for small image sizes (required for TensorRT compatibility)
-                anchors = sum(int(self.imgsz[0] / s) * int(self.imgsz[1] / s) for s in model.stride.tolist())
-                m.max_det = min(self.args.max_det, anchors)
+                # Clamp max_det to available queries/anchors (required for TensorRT compatibility)
+                available = (
+                    m.num_queries
+                    if isinstance(m, RTDETRDecoder)
+                    else sum(int(self.imgsz[0] / s) * int(self.imgsz[1] / s) for s in model.stride.tolist())
+                )
+                m.max_det = min(self.args.max_det, available)
                 m.agnostic_nms = self.args.agnostic_nms
                 m.xyxy = self.args.nms and fmt != "coreml"
                 m.shape = None  # reset cached shape for new export input size
@@ -1140,13 +1147,8 @@ class Exporter:
         if f.is_dir():
             shutil.rmtree(f)
 
-        if self.model.task == "detect":
-            model = IOSDetectModel(self.model, self.im, mlprogram=not mlmodel) if self.args.nms else self.model
-        else:
-            if self.args.nms:
-                LOGGER.warning(f"{prefix} 'nms=True' is only available for Detect models like 'yolo26n.pt'.")
-                # TODO CoreML Segment and Pose model pipelining
-            model = self.model
+        # TODO CoreML Segment and Pose model pipelining; 'nms=True' is forced off for non-detect tasks upstream
+        model = IOSDetectModel(self.model, self.im, mlprogram=not mlmodel) if self.args.nms else self.model
 
         if self.args.dynamic:
             input_shape = ct.Shape(
@@ -1172,7 +1174,7 @@ class Exporter:
             prefix=prefix,
         )
 
-        if self.args.nms and self.model.task == "detect":
+        if self.args.nms:
             ct_model = pipeline_coreml(
                 ct_model,
                 self.output_shape,

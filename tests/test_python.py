@@ -21,7 +21,7 @@ from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
 from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.data.build import build_dataloader, load_inference_source
-from ultralytics.data.utils import check_det_dataset
+from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.utils import (
     ARM64,
     ASSETS,
@@ -82,12 +82,24 @@ def test_dataloader_empty_dataset_uses_dataloader_validation():
         build_dataloader([], batch=4, workers=2)
 
 
-def test_cfg_rejects_fuzzed_scalars():
-    """Test invalid scalar overrides fail in config validation."""
+def test_cfg_rejects_fuzzed_values():
+    """Test invalid overrides fail in config validation."""
     with pytest.raises(TypeError, match="degrees"):
         get_cfg(overrides={"degrees": None})
     with pytest.raises(ValueError, match="cls_pw"):
         get_cfg(overrides={"cls_pw": 10})
+    for key, value in (
+        ("split", []),
+        ("split", -0.0),
+        ("optimizer", []),
+        ("copy_paste_mode", {}),
+        ("optimizer", None),
+        ("split", None),
+        ("copy_paste_mode", None),
+    ):
+        with pytest.raises((TypeError, ValueError), match=key):
+            get_cfg(overrides={key: value})
+    assert get_cfg(overrides={"auto_augment": None}).auto_augment is None
 
 
 def skip_rpi_semantic():
@@ -339,13 +351,18 @@ def test_predict_gray_and_4ch(tmp_path):
         f.unlink()  # cleanup
 
 
-def test_predict_grayscale_ndarray():
-    """Test that a 2D grayscale NumPy array is accepted by a color model, consistent with PIL/file inputs."""
+def test_predict_ndarray_channels():
+    """Test NumPy channel normalization for grayscale and color models."""
+    from ultralytics.data.loaders import LoadPilAndNumpy
+
     model = YOLO(MODEL)  # default 3-channel model
     gray = np.asarray(Image.open(SOURCE).convert("L"))  # genuine 2D (H, W) uint8 array
     assert gray.ndim == 2, "Expected a 2D grayscale array for this test"
     assert len(model(source=gray, imgsz=32, verbose=False)) == 1  # 2D ndarray auto-expanded to 3 channels
     assert len(model(source=gray.astype("float64"), imgsz=32, verbose=False)) == 1  # non-OpenCV dtype also works
+    for source_channels, model_channels in ((1, 3), (2, 1), (2, 3), (3, 1), (4, 1), (4, 3)):
+        im = np.zeros((8, 8, source_channels), dtype=np.uint8)
+        assert LoadPilAndNumpy(im, channels=model_channels).im0[0].shape == (8, 8, model_channels)
 
 
 @pytest.mark.slow
@@ -502,6 +519,10 @@ def test_val(task: str, weight: str, data: str) -> None:
         metrics.confusion_matrix.to_df()
         metrics.confusion_matrix.to_csv()
         metrics.confusion_matrix.to_json()
+        cm = metrics.confusion_matrix
+        expected = cm.nc if task in {"classify", "semantic"} else cm.nc + 1  # detection-style tasks include background
+        assert cm.matrix.shape == (expected, expected), f"{task} confusion matrix is {cm.matrix.shape}"
+        assert len(cm.tp_fp()[0]) == cm.nc  # per-class TP/FP never include background
 
 
 def test_val_save_txt_pose(tmp_path):
@@ -528,6 +549,14 @@ def test_val_save_txt_pose(tmp_path):
             if len(visible):
                 cx, cy = visible.mean(0)
                 assert abs(cx - x) < w / 2 + 0.05 and abs(cy - y) < h / 2 + 0.05, "keypoints misaligned with box"
+
+
+def test_pose_metrics_curves():
+    """Test that pose curve labels contain four unique box and pose series."""
+    from ultralytics.utils.metrics import PoseMetrics
+
+    curves = PoseMetrics().curves
+    assert len(curves) == len(set(curves)) == 8
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
@@ -667,6 +696,17 @@ def test_results_plot_without_boxes():
         assert r.plot(color_mode=color_mode).shape == orig_img.shape
 
 
+def test_results_update_probs():
+    """Test that Results.update(probs=...) wraps the tensor in Probs like the sibling attributes."""
+    from ultralytics.engine.results import Probs, Results
+
+    orig_img = np.zeros((32, 32, 3), dtype=np.uint8)
+    r = Results(orig_img, path="image.jpg", names={i: f"c{i}" for i in range(5)}, probs=torch.rand(5))
+    r.update(probs=torch.rand(5))
+    assert isinstance(r.probs, Probs), "update(probs=) should wrap the tensor in Probs, not store a raw Tensor"
+    assert r.verbose() and r.summary(), "verbose()/summary() raise AttributeError on a raw Tensor probs"
+
+
 def test_labels_and_crops():
     """Test output from prediction args for saving YOLO detection labels and crops."""
     imgs = [SOURCE, ASSETS / "zidane.jpg"]
@@ -708,12 +748,25 @@ def test_data_utils(tmp_path):
     autosplit(tmp_path / "coco8/images")
     assert any((tmp_path / "coco8").glob("autosplit_*.txt"))
     assert zip_directory(images_dir).is_file()
+    with pytest.raises(ValueError, match="split"):
+        check_cls_dataset("imagenet10", split="invalid")
     with pytest.raises(FileNotFoundError, match="'test:' images not found"):
         check_det_dataset("coco8.yaml", split="test")
     data_yaml = tmp_path / "coco8.yaml"
     data_yaml.write_text("train: images/train\nval: images/val\ntest: images/test\nnames: [item]\n")
     with pytest.raises(FileNotFoundError, match="images not found"):
         check_det_dataset(data_yaml, split="test")
+
+    # polygons2masks_overlap must not overflow uint8 on the transient `masks + mask` sum (reaches 2 * i + 1):
+    # with more than 128 overlapping instances every instance must keep a distinct index in the overlap mask
+    from ultralytics.data.utils import polygons2masks_overlap
+
+    segments = [
+        np.array([[150 - s, 150 - s], [150 + s, 150 - s], [150 + s, 150 + s], [150 - s, 150 + s]], dtype=np.float32)
+        for s in range(140, 10, -1)  # 130 concentric squares, all overlapping the center
+    ]
+    overlap, _ = polygons2masks_overlap((300, 300), segments)
+    assert len(np.unique(overlap)) == len(segments) + 1  # background + 130 instances, no uint8 wraparound
 
 
 def test_safe_download_unzips_local_path_archive(tmp_path):
@@ -1003,9 +1056,11 @@ def test_nms_end2end_classes_before_max_det():
         ],
         dtype=torch.float32,
     )
-    for out, confs in zip(non_max_suppression(pred, conf_thres=0.25, classes=[0], max_det=2), ([0.8, 0.7], [0.9, 0.6])):
+    outputs, indices = non_max_suppression(pred, conf_thres=0.25, classes=[0], max_det=2, return_idxs=True)
+    for out, idx, confs, expected in zip(outputs, indices, ([0.8, 0.7], [0.9, 0.6]), ([1, 2], [0, 3])):
         assert out.shape[0] == 2 and (out[:, 5] == 0).all()  # top-2 class-0 boxes kept, not truncated away
         assert torch.allclose(out[:, 4], torch.tensor(confs))
+        assert idx.tolist() == expected
     out = non_max_suppression(pred, conf_thres=0.25, max_det=2)[0]  # without classes, top-2 overall unchanged
     assert torch.allclose(out[:, 4], torch.tensor([0.9, 0.8]))
 

@@ -1,13 +1,12 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from pathlib import Path
-import numpy as np
-from PIL import Image
-import pytest
 
-from ultralytics.data.utils import check_det_dataset
+import pytest
+from PIL import Image
+
 from ultralytics.data.dataset import YOLODataset
-from ultralytics.cfg import get_cfg
+from ultralytics.data.utils import check_det_dataset
 
 
 def test_multi_dataset_parsing(tmp_path):
@@ -50,7 +49,7 @@ names:
     # Parent configuration specifying multiple child dataset configs
     parent_yaml = tmp_path / "parent.yaml"
     parent_yaml.write_text(
-        f"""
+        """
 datasets:
   - child1/child1.yaml
   - child2/child2.yaml
@@ -140,7 +139,7 @@ names:
 
     parent_yaml = tmp_path / "parent.yaml"
     parent_yaml.write_text(
-        f"""
+        """
 datasets:
   - child1/child1.yaml
   - child2/child2.yaml

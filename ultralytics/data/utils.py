@@ -514,7 +514,9 @@ def check_det_dataset(dataset: str, autodownload: bool = True, split: str = "") 
 
             # Ensure child names and nc are present and valid
             if "names" not in child_data and "nc" not in child_data:
-                raise SyntaxError(emojis(f"{child} key missing ❌.\n either 'names' or 'nc' are required in all data YAMLs."))
+                raise SyntaxError(
+                    emojis(f"{child} key missing ❌.\n either 'names' or 'nc' are required in all data YAMLs.")
+                )
             if "names" not in child_data:
                 child_data["names"] = {i: f"class_{i}" for i in range(child_data["nc"])}
             else:

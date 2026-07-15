@@ -349,7 +349,7 @@ class Results(SimpleClass, DataExportMixin):
         if masks is not None:
             self.masks = Masks(masks, self.orig_shape)
         if probs is not None:
-            self.probs = probs
+            self.probs = Probs(probs)
         if obb is not None:
             self.obb = OBB(obb, self.orig_shape)
         if keypoints is not None:

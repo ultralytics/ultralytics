@@ -54,7 +54,7 @@ python benchmarks.py --weights yolov5s.pt --imgsz 640 --device 0
 
 ### Colab Pro V100 GPU
 
-```
+```text
 benchmarks: weights=/content/yolov5/yolov5s.pt, imgsz=640, batch_size=1, data=/content/yolov5/data/coco128.yaml, device=0, half=False, test=False
 Checking setup...
 YOLOv5 🚀 v6.1-135-g7926afc torch 1.10.0+cu111 CUDA:0 (Tesla V100-SXM2-16GB, 16160MiB)
@@ -77,7 +77,7 @@ Benchmarks complete (458.07s)
 
 ### Colab Pro CPU
 
-```
+```text
 benchmarks: weights=/content/yolov5/yolov5s.pt, imgsz=640, batch_size=1, data=/content/yolov5/data/coco128.yaml, device=cpu, half=False, test=False
 Checking setup...
 YOLOv5 🚀 v6.1-135-g7926afc torch 1.10.0+cu111 CPU
@@ -112,7 +112,7 @@ python export.py --weights yolov5s.pt --include torchscript onnx
 
 Output:
 
-```
+```text
 export: data=data/coco128.yaml, weights=['yolov5s.pt'], imgsz=[640, 640], batch_size=1, device=cpu, half=False, inplace=False, train=False, keras=False, optimize=False, int8=False, dynamic=False, simplify=False, opset=12, verbose=False, workspace=4, nms=False, agnostic_nms=False, topk_per_class=100, topk_all=100, iou_thres=0.45, conf_thres=0.25, include=['torchscript', 'onnx']
 YOLOv5 🚀 v6.2-104-ge3e5122 Python-3.8.0 torch-1.12.1+cu113 CPU
 

@@ -16,7 +16,7 @@ from ultralytics.engine.exporter import Exporter
 from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models.yolo import classify, detect, obb, pose, segment, semantic
 from ultralytics.nn.distill_model import DistillationModel
-from ultralytics.nn.tasks import load_checkpoint
+from ultralytics.nn.tasks import DetectionModel, load_checkpoint
 from ultralytics.utils import ASSETS, DEFAULT_CFG, IS_RASPBERRYPI, WEIGHTS_DIR
 from ultralytics.utils.torch_utils import unwrap_model
 
@@ -201,6 +201,18 @@ def test_distill_resume(tmp_path: Path):
     assert isinstance(model, DistillationModel), "resume should rebuild the DistillationModel"
     assert model.teacher_model is not None, "resume should rebuild the teacher from the distill_model path"
     assert trainer.start_epoch == trainer.epoch == 1, "resume test failed"
+
+
+def test_distill_grayscale(tmp_path: Path):
+    """Test knowledge distillation on a single-channel dataset (https://github.com/ultralytics/ultralytics/issues/25066)."""
+    teacher = DetectionModel("yolo26n.yaml", ch=3, nc=80, verbose=False)
+    teacher_path = tmp_path / "teacher.pt"
+    torch.save({"model": teacher}, teacher_path)
+    student = DetectionModel("yolo26n.yaml", ch=1, nc=80, verbose=False)
+    student.args = SimpleNamespace(imgsz=32, dis=1.0)
+    model = DistillationModel(teacher_model=teacher_path, student_model=student)
+    assert isinstance(model, DistillationModel)
+    assert model.teacher_model.yaml["channels"] == 1
 
 
 @pytest.mark.parametrize(

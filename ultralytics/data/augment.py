@@ -14,7 +14,7 @@ from PIL import Image
 from torch.nn import functional as F
 
 from ultralytics.data.utils import polygons2masks, polygons2masks_overlap
-from ultralytics.utils import LOGGER, IterableSimpleNamespace, colorstr
+from ultralytics.utils import LOGGER, IterableSimpleNamespace, colorstr, deprecation_warn
 from ultralytics.utils.checks import check_version
 from ultralytics.utils.instance import Instances
 from ultralytics.utils.metrics import bbox_ioa
@@ -1880,7 +1880,8 @@ class CopyPaste(BaseMixTransform):
     def __init__(self, dataset=None, pre_transform=None, p: float = 0.5, mode: str = "flip") -> None:
         """Initialize CopyPaste object with dataset, pre_transform, and probability of applying CopyPaste."""
         super().__init__(dataset=dataset, pre_transform=pre_transform, p=p)
-        assert mode in ("flip", "mixup"), f"Expected `mode` to be `flip` or `mixup`, but got {mode}."
+        if mode not in ("flip", "mixup"):
+            raise ValueError(f"Expected `mode` to be `flip` or `mixup`, but got {mode}.")
         self.mode = mode
 
     def __call__(self, labels: dict[str, Any]) -> dict[str, Any]:
@@ -2810,9 +2811,7 @@ def classify_transforms(
     scale_size = size if isinstance(size, (tuple, list)) and len(size) == 2 else (size, size)
 
     if crop_fraction:
-        raise DeprecationWarning(
-            "'crop_fraction' arg of classify_transforms is deprecated, will be removed in a future version."
-        )
+        deprecation_warn("crop_fraction")
 
     # Square target uses the scalar shortest-edge mode (preserves aspect); non-square resizes to the exact (h, w).
     resize = scale_size[0] if scale_size[0] == scale_size[1] else scale_size

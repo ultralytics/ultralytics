@@ -5,7 +5,7 @@ creator:
     name: COCO Consortium
     url: https://cocodataset.org/
 license:
-    name: Other
+    name: CC-BY-4.0
     url: https://cocodataset.org/#termsofuse
 description: "Explore the Ultralytics COCO-Pose dataset: 58,945 images with 156K+ annotated people and a 17-keypoint schema, for training YOLO26 pose estimation models."
 keywords: COCO-Pose, pose estimation, dataset, keypoints, COCO Keypoints 2017, YOLO, deep learning, computer vision

@@ -5,7 +5,7 @@ creator:
     name: COCO Consortium
     url: https://cocodataset.org/
 license:
-    name: Other
+    name: CC-BY-4.0
     url: https://cocodataset.org/#termsofuse
 description: Explore the COCO-Seg dataset, an extension of COCO with 123,287 segmentation-labeled images across 80 classes. Learn how to train YOLO models with COCO-Seg.
 keywords: COCO-Seg, dataset, YOLO models, instance segmentation, object detection, COCO dataset, YOLO26, computer vision, Ultralytics, machine learning

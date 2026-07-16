@@ -850,7 +850,9 @@ class Exporter:
     def get_int8_calibration_dataloader(self, prefix=""):
         """Build and return a dataloader for calibration of INT8 models."""
         LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
-        data = (check_cls_dataset if self.model.task == "classify" else check_det_dataset)(self.args.data)
+        data = (check_cls_dataset if self.model.task == "classify" else check_det_dataset)(
+            self.args.data, split=self.args.split
+        )
         cfg = deepcopy(self.args)
         cfg.imgsz = max(self.imgsz)
         if self.model.task == "classify":

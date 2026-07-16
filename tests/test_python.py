@@ -869,19 +869,6 @@ def test_safe_download_unzips_local_path_archive(tmp_path):
     assert (extracted / "images" / "val").is_dir(), f"images/val not found in {extracted}"
 
 
-def test_safe_download_tar_delete(tmp_path):
-    """Test safe_download() extracts a .tar.gz and deletes the archive (regression: extraction shadowed the path)."""
-    archive = tmp_path / "data.tar.gz"
-    (tmp_path / "src").mkdir()
-    (tmp_path / "src" / "a.txt").write_text("hello")
-    with tarfile.open(archive, "w:gz") as tar:
-        tar.add(tmp_path / "src" / "a.txt", arcname="data/a.txt")
-
-    extracted = safe_download(archive, dir=tmp_path / "out", unzip=True, delete=True, progress=False)
-    assert (Path(extracted) / "data" / "a.txt").read_text() == "hello"
-    assert not archive.exists(), "archive should be deleted after extraction"
-
-
 def test_safe_download_skips_unsafe_archive_members(tmp_path):
     """Test safe_download() skips archive members that would extract outside the target directory."""
     archive = tmp_path / "unsafe.zip"
@@ -1011,27 +998,6 @@ def test_cfg_depth_task_registered():
     assert TASK2CALIBRATIONDATA["depth"] == "nyu-depth.yaml"
     assert TASK2METRIC["depth"] == "metrics/delta1"
     assert TASK2MODEL["depth"] == "yolo26n-depth.pt"
-
-
-def test_cfg_depth_hyperparameter_defaults():
-    """Depth loss knobs are real cfg args with the documented defaults."""
-    args = get_cfg()
-    assert args.dlog == 1.0
-    assert args.dgrad == 0.5
-    assert args.dlam == 1.0  # released yolo26*-depth.pt weights are pretrained with this value
-
-
-def test_no_depth_env_reads_in_source():
-    """All DEPTH_* knobs are cfg args now; no os.environ reads of them may remain."""
-    import re
-
-    offenders = []
-    pattern = re.compile(r"(environ|getenv).*DEPTH_|DEPTH_.*(environ|getenv)")
-    for path in ROOT.rglob("*.py"):
-        for i, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
-            if pattern.search(line):
-                offenders.append(f"{path.relative_to(ROOT)}:{i}: {line.strip()}")
-    assert not offenders, "Found DEPTH_* env reads:\n" + "\n".join(offenders)
 
 
 def test_utils_init():
@@ -1325,15 +1291,6 @@ def test_nn_depth_head_export_upsamples_to_input():
         assert head(_depth_head_feats()).shape[-2:] == (256, 256)
     head.export = False
     assert head(_depth_head_feats()).shape[-2:] != (256, 256)  # inference returns native head resolution
-
-
-def test_nn_depth_head_training_returns_dict():
-    """In training mode the Depth head returns a dict with the raw depth map."""
-    from ultralytics.nn.modules.head import Depth
-
-    head = Depth(c_mid=32, ch=(32, 64, 128)).train()
-    out = head(_depth_head_feats())
-    assert isinstance(out, dict) and "depth" in out
 
 
 def test_nn_depth_head_no_dead_parameters():

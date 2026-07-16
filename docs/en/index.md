@@ -42,9 +42,17 @@ keywords: Ultralytics, YOLO, YOLO26, YOLO11, object detection, image segmentatio
 
 # Ultralytics YOLO Docs
 
-Ultralytics YOLO is one Python package and CLI for building [computer vision](https://www.ultralytics.com/blog/everything-you-need-to-know-about-computer-vision-in-2025) applications: train, validate, and deploy models for [object detection](https://www.ultralytics.com/glossary/object-detection), [instance segmentation](https://www.ultralytics.com/glossary/image-segmentation), pose estimation, classification, and object tracking. The latest model, [YOLO26](models/yolo26.md), features end-to-end NMS-free inference and optimized edge deployment; for stable production workloads, both YOLO26 and [YOLO11](models/yolo11.md) are recommended.
+[Ultralytics](https://www.ultralytics.com) YOLO is a family of real-time computer vision models for object detection, instance segmentation, semantic segmentation, classification, pose estimation, oriented bounding boxes, and tracking, available through one Python package and CLI. YOLO26 is built on deep learning and computer vision advancements, featuring end-to-end NMS-free inference and optimized edge deployment. Its streamlined design makes it suitable for various applications and easily adaptable to different hardware platforms, from edge devices to cloud APIs. For stable production workloads, both [YOLO26](models/yolo26.md) and [YOLO11](models/yolo11.md) are recommended.
+
+Explore the Ultralytics Docs, a comprehensive resource covering the YOLO package and CLI as well as the [Ultralytics Platform](platform/index.md), which adds data annotation, cloud training, and deployment on top of the same models. Whether you are a seasoned machine learning practitioner or new to the field, this hub aims to help you get the most out of YOLO in your projects.
 
 Request an Enterprise License for commercial use at [Ultralytics Licensing](https://www.ultralytics.com/license?utm_source=docs.ultralytics.com&utm_medium=referral&utm_content=license_inline_link).
+
+!!! tip "🚀 New: Knowledge Distillation"
+
+    Train smaller YOLO models with guidance from a larger teacher model — no extra inference cost, just better accuracy.
+
+    [:octicons-arrow-right-24: Learn more](guides/knowledge-distillation.md)
 
 ## Get Started in Two Commands
 
@@ -56,11 +64,23 @@ pip install ultralytics
 yolo predict model=yolo26n.pt source='https://github.com/ultralytics/assets/releases/download/v0.0.0/bus.jpg'
 ```
 
-The model weights and the example image download automatically, and the annotated result is saved to `runs/detect/predict`. For conda, Docker, GPU setup, or installation from source, see the [Quickstart](quickstart.md).
+The model weights and the example image download automatically, and the annotated result is saved to `runs/detect/predict`.
+
+See the [Quickstart](quickstart.md) guide for the full installation and usage reference.
 
 ## What Do You Want to Do?
 
 <div class="grid cards" markdown>
+
+- :fontawesome-solid-brain:{ .lg .middle } &nbsp; **Train a model on your own dataset**
+
+    ***
+
+    Fine-tune a pretrained YOLO26 model on your own dataset, tuning augmentation and hyperparameters for multi-GPU training
+
+    ***
+
+    [:octicons-arrow-right-24: Train a custom model](modes/train.md)
 
 - :material-image:{ .lg .middle } &nbsp; **Run a model on your images or video**
 
@@ -72,21 +92,21 @@ The model weights and the example image download automatically, and the annotate
 
     [:octicons-arrow-right-24: Predict on new data](modes/predict.md)
 
-- :fontawesome-solid-brain:{ .lg .middle } &nbsp; **Train a model on your own dataset**
+- :material-play-circle:{ .lg .middle } &nbsp; **Track objects across video frames**
 
     ***
 
-    Prepare your images and labels, fine-tune a pretrained model, and evaluate the results <br /> &nbsp;
+    Track objects across video frames with a persistent ID using BoT-SORT or ByteTrack, built into YOLO26's predict pipeline
 
     ***
 
-    [:octicons-arrow-right-24: Train a custom model](modes/train.md)
+    [:octicons-arrow-right-24: Multi-object tracking](modes/track.md)
 
-- :material-play-circle:{ .lg .middle } &nbsp; **Track or count objects in video**
+- :material-apps:{ .lg .middle } &nbsp; **Run a ready-made vision application**
 
     ***
 
-    Ready-made applications for object counting, tracking, heatmaps, queue management, and more
+    Ready-made vision apps for object counting, heatmaps, queue management, security alarms, and workouts, no training required
 
     ***
 
@@ -96,7 +116,7 @@ The model weights and the example image download automatically, and the annotate
 
     ***
 
-    Export trained models to ONNX, TensorRT, CoreML, and other formats for edge devices or cloud servers
+    Export trained models to ONNX, TensorRT, or OpenVINO for fast inference on edge devices, mobile hardware, and cloud servers
 
     ***
 
@@ -106,7 +126,7 @@ The model weights and the example image download automatically, and the annotate
 
     ***
 
-    Compare YOLO26, YOLO11, SAM 3, RT-DETR, and every other supported model family <br /> &nbsp;
+    Compare YOLO26, YOLO11, SAM 3, RT-DETR, and every other supported architecture by speed, accuracy, and use case
 
     ***
 
@@ -116,7 +136,7 @@ The model weights and the example image download automatically, and the annotate
 
     ***
 
-    Find classes, functions, and method signatures, auto-generated from the package source <br /> &nbsp;
+    Look up classes, functions, and method signatures for the Python API, auto-generated from source on every new release
 
     ***
 
@@ -126,7 +146,7 @@ The model weights and the example image download automatically, and the annotate
 
     ***
 
-    Discover Ultralytics' latest YOLO26 models with NMS-free inference and edge optimization <br /> &nbsp;
+    Ultralytics' newest model family delivers NMS-free, end-to-end inference with higher accuracy and lower latency than YOLO11
 
     ***
 
@@ -136,14 +156,16 @@ The model weights and the example image download automatically, and the annotate
 
 ## How These Docs Are Organized
 
-Four words appear everywhere in these docs, and each one is a top-level section:
+Every `yolo` command follows one grammar, `yolo TASK MODE ARGS`, and these docs are organized around the same three parts, plus one shortcut:
 
-- **[Tasks](tasks/index.md)** are what you want from an image: [detection](tasks/detect.md), [segmentation](tasks/segment.md), [semantic segmentation](tasks/semantic.md), [classification](tasks/classify.md), [pose estimation](tasks/pose.md), or [oriented boxes](tasks/obb.md).
-- **[Modes](modes/index.md)** are what you do with a model: [train](modes/train.md), [validate](modes/val.md), [predict](modes/predict.md), [export](modes/export.md), [track](modes/track.md), or [benchmark](modes/benchmark.md).
-- **[Models](models/index.md)** are the networks themselves: YOLO26, YOLO11, SAM 3, RT-DETR, and more.
-- **[Solutions](solutions/index.md)** are packaged applications built on top, like object counting and security alarms.
+- **[Task](tasks/index.md)** answers _what_ you want from an image: [detection](tasks/detect.md), [instance segmentation](tasks/segment.md), [semantic segmentation](tasks/semantic.md), [classification](tasks/classify.md), [pose estimation](tasks/pose.md), or [oriented boxes](tasks/obb.md).
+- **[Mode](modes/index.md)** answers _how_ you use a model: [train](modes/train.md), [validate](modes/val.md), [predict](modes/predict.md), [export](modes/export.md), [track](modes/track.md), or [benchmark](modes/benchmark.md).
+- **[Models](models/index.md)** answers _which_ network runs it: YOLO26, YOLO11, SAM 3, RT-DETR, and every other supported architecture.
+- **[Solutions](solutions/index.md)** is the shortcut: a finished application, like object counting or a security alarm, that skips Task and Mode entirely.
 
-[Datasets](datasets/index.md) lists ready-to-train datasets for every task, [Guides](guides/index.md) collects how-to articles from hyperparameter tuning to Raspberry Pi deployment, and [Integrations](integrations/index.md) covers third-party tools for training, tracking experiments, and deployment.
+Everything else supports that grammar: [Datasets](datasets/index.md) supplies what each Task trains on, [Guides](guides/index.md) is a broad collection of in-depth how-tos spanning hardware deployment, hyperparameter tuning, dataset conversion, and full project walkthroughs, [Integrations](integrations/index.md) connects the pipeline to the training and deployment tools you already use, and the [Reference](reference/index.md) section documents every class and function in the Python API.
+
+Beyond the Python package, two more surfaces run on the same models: the [Ultralytics Platform](platform/index.md) for cloud annotation, training, and deployment, and [Ultralytics Inference](inference/index.md), a standalone Rust library and CLI for running exported models without a Python runtime.
 
 <p align="center">
   <br>
@@ -167,23 +189,6 @@ Ultralytics offers two licensing options to accommodate diverse use cases:
 - **Enterprise License**: For development and production use, this license enables seamless integration of Ultralytics software and AI models into business products and services, including internal tools, automated workflows, and production deployments, bypassing the open-source requirements of AGPL-3.0. To get started, please contact us via [Ultralytics Licensing](https://www.ultralytics.com/license).
 
 Our licensing strategy is designed to ensure that any improvements to our open-source projects are returned to the community. We believe in open source, and our mission is to ensure that our contributions can be used and expanded in ways that benefit everyone.
-
-<div align="center">
-  <br>
-  <a href="https://github.com/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-github.png" width="3%" alt="Ultralytics GitHub"></a>
-  <img width="3%" src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" alt="">
-  <a href="https://www.linkedin.com/company/ultralytics/"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-linkedin.png" width="3%" alt="Ultralytics LinkedIn"></a>
-  <img width="3%" src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" alt="">
-  <a href="https://twitter.com/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-twitter.png" width="3%" alt="Ultralytics Twitter"></a>
-  <img width="3%" src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" alt="">
-  <a href="https://www.youtube.com/ultralytics?sub_confirmation=1"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-youtube.png" width="3%" alt="Ultralytics YouTube"></a>
-  <img width="3%" src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" alt="">
-  <a href="https://www.tiktok.com/@ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-tiktok.png" width="3%" alt="Ultralytics TikTok"></a>
-  <img width="3%" src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" alt="">
-  <a href="https://ultralytics.com/bilibili"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-bilibili.png" width="3%" alt="Ultralytics BiliBili"></a>
-  <img width="3%" src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" alt="">
-  <a href="https://discord.com/invite/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-discord.png" width="3%" alt="Ultralytics Discord"></a>
-</div>
 
 ## FAQ
 
@@ -217,3 +222,20 @@ For more details, visit our [Licensing](https://www.ultralytics.com/license) pag
 ### How can Ultralytics YOLO be used for real-time object tracking?
 
 Ultralytics YOLO supports efficient and customizable multi-object tracking. Call `model.track(source="path/to/video.mp4")` in Python, or run `yolo track source=path/to/video.mp4` from the command line — both work with video files, live streams, and webcam input. For a detailed guide on setting up and running object tracking, check our [Track Mode](modes/track.md) documentation, which explains the configuration and practical applications in real-time scenarios.
+
+<div align="center">
+  <br>
+  <a href="https://github.com/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-github.png" width="3%" alt="Ultralytics GitHub"></a>
+  <img width="3%" src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" alt="">
+  <a href="https://www.linkedin.com/company/ultralytics/"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-linkedin.png" width="3%" alt="Ultralytics LinkedIn"></a>
+  <img width="3%" src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" alt="">
+  <a href="https://twitter.com/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-twitter.png" width="3%" alt="Ultralytics Twitter"></a>
+  <img width="3%" src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" alt="">
+  <a href="https://www.youtube.com/ultralytics?sub_confirmation=1"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-youtube.png" width="3%" alt="Ultralytics YouTube"></a>
+  <img width="3%" src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" alt="">
+  <a href="https://www.tiktok.com/@ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-tiktok.png" width="3%" alt="Ultralytics TikTok"></a>
+  <img width="3%" src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" alt="">
+  <a href="https://ultralytics.com/bilibili"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-bilibili.png" width="3%" alt="Ultralytics BiliBili"></a>
+  <img width="3%" src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" alt="">
+  <a href="https://discord.com/invite/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-discord.png" width="3%" alt="Ultralytics Discord"></a>
+</div>

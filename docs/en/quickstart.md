@@ -58,7 +58,7 @@ pip install -U ultralytics
     pip install -e .
     ```
 
-    For persistent custom modifications or contributing back, see [Development Installation](help/contributing.md#-development-installation).
+    For persistent custom modifications or contributing back, see [Development Installation](help/contributing.md#development-installation).
 
     **Headless servers**
 

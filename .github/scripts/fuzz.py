@@ -366,9 +366,10 @@ def classify(trial, rc, stderr):
     if any(marker in stderr for marker in NETWORK_MARKERS):
         return "flake", None, None
     if trial.get("mutated") and (
-        # "'X' is not supported" rejections are intentional wherever raised; "not implemented" abstract gaps and
-        # "not found ... Request support" lookups are bugs or validation gaps and must keep their signatures
+        # Intentional unsupported-choice errors are expected; abstract "not implemented" gaps keep their signatures
         (exc == "NotImplementedError" and re.search(r"not supported|(?:doesn't|does not) support", stderr))
+        or (exc == "NotImplementedError" and "not found in list of available optimizers" in stderr)
+        or (exc == "ValueError" and "Expected `mode` to be `flip` or `mixup`" in stderr)
         or (exc in EXPECTED_TYPES and frames and frames[-1].startswith(EXPECTED_MODULES))
     ):
         return "expected", None, None  # clean validation errors are expected only for trials we actually mutated
@@ -695,7 +696,7 @@ def cmd_report(args):
     summary = (
         f"## Fuzz — {total} trials\n\n"
         + "\n".join(table)
-        + f"\n\nNew issues filed: {created} (cap {args.max_issues})"
+        + f"\n\nNew issue threads created: {created} (cap {args.max_issues})"
         + (f" · ⚠️ shards with >20% canary failures: {', '.join(flagged)}" if flagged else "")
     )
     if step_summary := os.environ.get("GITHUB_STEP_SUMMARY"):

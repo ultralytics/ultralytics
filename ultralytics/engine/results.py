@@ -519,6 +519,8 @@ class Results(SimpleClass, DataExportMixin):
         pred_boxes, show_boxes = self.obb if is_obb else self.boxes, boxes
         pred_masks, show_masks = self.masks, masks
         pred_probs, show_probs = self.probs, probs
+        if pred_boxes is not None and (show_boxes or (pred_masks and show_masks)):
+            pred_boxes = pred_boxes.cpu()  # one host transfer avoids per-box GPU syncs in the color and label loops
         annotator = Annotator(
             deepcopy(self.orig_img if img is None else img),
             line_width,
@@ -585,7 +587,7 @@ class Results(SimpleClass, DataExportMixin):
 
         # Plot Pose results
         if self.keypoints is not None:
-            for i, k in enumerate(reversed(self.keypoints.data)):
+            for i, k in enumerate(reversed(self.keypoints.cpu().numpy().data)):  # one host transfer, no per-kpt syncs
                 annotator.kpts(
                     k,
                     self.orig_shape,

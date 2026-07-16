@@ -243,20 +243,22 @@ def test_export_hailo_compiles_hef(monkeypatch, tmp_path, one2one):
     (output_dir / "stale.txt").touch()
     head = SimpleNamespace(cv2=[None] * 3, one2one_cv2=[None] * 3, stride=(8, 16, 32))
     exporter = SimpleNamespace(
-        args=SimpleNamespace(name="hailo15h", opset=None, conf=None, iou=0.7),
+        args=SimpleNamespace(name="hailo15h", opset=None, conf=0, iou=0.7),
         model=SimpleNamespace(model=[None, head], names={0: "item"}, end2end=one2one),
         file=tmp_path / "model.pt",
         imgsz=[32, 32],
         metadata={"task": "detect"},
         export_onnx=lambda: onnx_file,
-        get_int8_calibration_dataloader=lambda prefix: [{"img": torch.zeros(2, 3, 32, 32, dtype=torch.uint8)}],
+        get_int8_calibration_dataloader=lambda prefix: [
+            {"img": torch.zeros(32, 3, 32, 32, dtype=torch.uint8)} for _ in range(3)
+        ],
     )
 
     output_dir = Path(Exporter.export_hailo(exporter))
 
     assert calls["hw_arch"] == "hailo15h"
     assert calls["name"] == "model"
-    assert calls["calibration"].shape == (2, 32, 32, 3)
+    assert calls["calibration"].shape == (64, 32, 32, 3)
     expected_nodes = (
         ["/model.1/one2one_cv2.0/one2one_cv2.0.2/Conv", "/model.1/one2one_cv2.1/one2one_cv2.1.2/Conv"]
         if one2one
@@ -274,6 +276,7 @@ def test_export_hailo_compiles_hef(monkeypatch, tmp_path, one2one):
         assert "nms_postprocess" in calls["script"]
         assert "allocator_param(width_splitter_defuse=disabled)" in calls["script"]
         assert '"classes": 1' in (output_dir / "nms_config.json").read_text()
+        assert '"nms_scores_th": 0' in (output_dir / "nms_config.json").read_text()
     assert (output_dir / "metadata.yaml").is_file()
     assert not onnx_file.exists()
 

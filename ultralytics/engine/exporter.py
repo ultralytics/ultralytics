@@ -1476,7 +1476,7 @@ class Exporter:
                 nms_config.write_text(
                     json.dumps(
                         {
-                            "nms_scores_th": self.args.conf or 0.25,
+                            "nms_scores_th": self.args.conf if self.args.conf is not None else 0.25,
                             "nms_iou_th": self.args.iou,
                             "image_dims": self.imgsz,
                             "max_proposals_per_class": 100,
@@ -1503,12 +1503,12 @@ class Exporter:
                 model_script.append(f'nms_postprocess("{nms_config}", meta_arch=yolov8, engine=cpu)')
                 model_script.append("allocator_param(width_splitter_defuse=disabled)")
             runner.load_model_script("\n".join(model_script))
-            calibration = np.concatenate(
-                [
-                    batch["img"].permute(0, 2, 3, 1).numpy().astype(np.float32)
-                    for batch in self.get_int8_calibration_dataloader(prefix)
-                ]
-            )
+            calibration = []
+            for batch in self.get_int8_calibration_dataloader(prefix):
+                calibration.append(batch["img"].permute(0, 2, 3, 1).numpy().astype(np.float32))
+                if sum(len(images) for images in calibration) >= 64:
+                    break
+            calibration = np.concatenate(calibration)[:64]
             runner.optimize(calibration)
             (output_dir / f"{self.file.stem}.hef").write_bytes(runner.compile())
             YAML.save(output_dir / "metadata.yaml", {**self.metadata, "hailo_arch": self.args.name, "nms": not one2one})

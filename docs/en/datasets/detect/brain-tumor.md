@@ -1,6 +1,12 @@
 ---
 title: Brain Tumor Detection Dataset
 comments: true
+creator:
+    name: Ultralytics
+    url: https://www.ultralytics.com/
+license:
+    name: AGPL-3.0
+    url: https://github.com/ultralytics/ultralytics/blob/main/LICENSE
 description: Train YOLO26 object detection on the Ultralytics Brain Tumor dataset — 1,116 MRI/CT scans across 2 classes for medical imaging and early diagnosis.
 keywords: brain tumor dataset, MRI scans, CT scans, brain tumor detection, medical imaging, AI in healthcare, computer vision, object detection, YOLO26, early diagnosis
 ---

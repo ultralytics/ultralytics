@@ -1,6 +1,12 @@
 ---
 title: Signature Detection Dataset
 comments: true
+creator:
+    name: Ultralytics
+    url: https://www.ultralytics.com/
+license:
+    name: AGPL-3.0
+    url: https://github.com/ultralytics/ultralytics/blob/main/LICENSE
 description: The Ultralytics Signature Detection Dataset provides 143 training and 35 validation document images with one signature class for YOLO object detection models.
 keywords: Signature Detection Dataset, signature detection, document verification, fraud detection, object detection, computer vision, YOLO26, Ultralytics, annotated signatures, document analysis
 ---

@@ -1,6 +1,12 @@
 ---
 title: COCO8-Pose Estimation Dataset
 comments: true
+creator:
+    name: Ultralytics
+    url: https://www.ultralytics.com/
+license:
+    name: Other
+    url: https://cocodataset.org/#termsofuse
 description: "Explore the Ultralytics COCO8-Pose dataset: 8 images (4 train / 4 val) using a 17-keypoint schema, for pose estimation sanity checks with YOLO26."
 keywords: COCO8-Pose, Ultralytics, pose estimation dataset, keypoint detection, YOLO26, machine learning, computer vision, training data
 ---

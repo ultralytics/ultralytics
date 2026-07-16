@@ -1,6 +1,12 @@
 ---
 title: Tiger-Pose Estimation Dataset
 comments: true
+creator:
+    name: Ultralytics
+    url: https://www.ultralytics.com/
+license:
+    name: None
+    url: https://www.youtube.com/watch?v=MIBAT6BGE6U
 description: "Explore the Ultralytics Tiger-Pose dataset: 263 images (210 train / 53 val) with 12 keypoints per tiger, ideal for testing pose estimation pipelines."
 keywords: Ultralytics, Tiger-Pose, dataset, pose estimation, YOLO26, training data, machine learning, neural networks
 ---
@@ -105,7 +111,7 @@ After training, load your best checkpoint and run inference on new images or vid
 
 ## Citations and Acknowledgments
 
-The dataset has been released under the [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE).
+The source video does not specify a separate dataset license. Review the [original video](https://www.youtube.com/watch?v=MIBAT6BGE6U) and its applicable terms before using or redistributing extracted frames.
 
 ## FAQ
 

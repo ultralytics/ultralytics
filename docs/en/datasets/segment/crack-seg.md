@@ -1,6 +1,12 @@
 ---
 title: Crack-Seg Dataset
 comments: true
+creator:
+    name: University
+    url: https://universe.roboflow.com/university-bswxt/crack-bphdr
+license:
+    name: Other
+    url: https://creativecommons.org/publicdomain/mark/1.0/
 description: Train Ultralytics YOLO segmentation models on the Crack Segmentation Dataset — 4,029 annotated road and wall images for a single crack class.
 keywords: Crack Segmentation Dataset, Ultralytics, transportation safety, public safety, self-driving cars, computer vision, road safety, infrastructure maintenance, dataset, YOLO, segmentation, deep learning
 ---

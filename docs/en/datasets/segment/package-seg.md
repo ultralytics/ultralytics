@@ -1,6 +1,12 @@
 ---
 title: Package-Seg Dataset
 comments: true
+creator:
+    name: factorypackage
+    url: https://universe.roboflow.com/factorypackage/factory_package
+license:
+    name: None
+    url: https://universe.roboflow.com/factorypackage/factory_package
 description: Train Ultralytics YOLO segmentation models on the Package Segmentation Dataset — 2,197 annotated images across a single package class for logistics AI.
 keywords: Package Segmentation Dataset, Ultralytics, computer vision, package identification, logistics, warehouse automation, segmentation models, YOLO, deep learning
 ---

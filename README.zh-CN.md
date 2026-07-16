@@ -194,6 +194,7 @@ Ultralytics 支持广泛的 YOLO 模型，从早期的版本如 [YOLOv3](https:/
 | [YOLO26x-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26x-depth.pt) | 768                 | 0.933                | 0.080                 | 0.344              | 57.0                | 302.0                |
 
 - **delta1<sup>NYU</sup>** 是在 NYU Depth V2 Eigen 测试集（654 张图像）上，通过多尺度 + 水平翻转 TTA 和对数最小二乘对齐后，预测深度在真实深度 1.25 倍范围内的像素比例。
+- 不使用 TTA 的单尺度准确率可通过 `yolo depth val model=yolo26n-depth.pt data=nyu-depth.yaml imgsz=768 device=0`（为每个模型尺寸替换 `model=` 参数）复现，该方法采用中值（仅尺度）对齐，得分较低：delta1 0.785 (n), 0.786 (s), 0.827 (m), 0.839 (l), 0.843 (x)。
 - **abs_rel** 是预测深度与真实深度之间的平均绝对相对误差。
 - **rmse** 是均方根误差（单位为米）。
 - **参数** 和 **FLOPs** 在 768×768 下测量。<br>使用 `yolo depth val data=nyu-depth.yaml device=0 imgsz=768` 复现结果。

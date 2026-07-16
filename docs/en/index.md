@@ -167,17 +167,6 @@ Everything else supports that grammar: [Datasets](datasets/index.md) supplies wh
 
 Beyond the Python package, two more surfaces run on the same models: the [Ultralytics Platform](platform/index.md) for cloud annotation, training, and deployment, and [Ultralytics Inference](inference/index.md), a standalone Rust library and CLI for running exported models without a Python runtime.
 
-<p align="center">
-  <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/7lZa3Yi2kbo"
-    title="YouTube video player" frameborder="0"
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-    allowfullscreen>
-  </iframe>
-  <br>
-  <strong>Watch:</strong> How to Train a YOLO26 model on Your Custom Dataset in <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb" target="_blank">Google Colab</a>.
-</p>
-
 ## YOLO Licenses: How is Ultralytics YOLO licensed?
 
 <a href="https://www.ultralytics.com/license?utm_source=docs.ultralytics.com&utm_medium=referral&utm_content=license_banner" target="_blank" rel="noopener noreferrer">

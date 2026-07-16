@@ -160,10 +160,10 @@ Every `yolo` command follows one grammar, `yolo [TASK] MODE ARGS`, where Task is
 
 - **[Task](tasks/index.md)** answers _what_ you want from an image: [detection](tasks/detect.md), [instance segmentation](tasks/segment.md), [semantic segmentation](tasks/semantic.md), [classification](tasks/classify.md), [pose estimation](tasks/pose.md), or [oriented boxes](tasks/obb.md).
 - **[Mode](modes/index.md)** answers _how_ you use a model: [train](modes/train.md), [validate](modes/val.md), [predict](modes/predict.md), [export](modes/export.md), [track](modes/track.md), or [benchmark](modes/benchmark.md).
-- **[Models](models/index.md)** answers _which_ network runs it: YOLO26, YOLO11, SAM 3, RT-DETR, and every other supported architecture.
+- **[Args](usage/cfg.md)** configures the command, from which [model](models/index.md) to run with `model=` to hyperparameters like `epochs` and `imgsz`.
 - **[Solutions](solutions/index.md)** is the shortcut: a finished application, like object counting or a security alarm, that skips Task and Mode entirely.
 
-Everything else supports that grammar: [Datasets](datasets/index.md) supplies what each Task trains on, [Guides](guides/index.md) is a broad collection of in-depth how-tos spanning hardware deployment, hyperparameter tuning, dataset conversion, and full project walkthroughs, [Integrations](integrations/index.md) connects the pipeline to the training and deployment tools you already use, and the [Reference](reference/index.md) section documents every class and function in the Python API.
+Everything else supports that grammar: [Models](models/index.md) lists every architecture you can pass to `model=` — YOLO26, YOLO11, SAM 3, RT-DETR, and more — [Datasets](datasets/index.md) supplies what each Task trains on, [Guides](guides/index.md) is a broad collection of in-depth how-tos spanning hardware deployment, hyperparameter tuning, dataset conversion, and full project walkthroughs, [Integrations](integrations/index.md) connects the pipeline to the training and deployment tools you already use, and the [Reference](reference/index.md) section documents every class and function in the Python API.
 
 Beyond the Python package, two more surfaces run on the same models: the [Ultralytics Platform](platform/index.md) for cloud annotation, training, and deployment, and [Ultralytics Inference](inference/index.md), a standalone Rust library and CLI for running exported models without a Python runtime.
 

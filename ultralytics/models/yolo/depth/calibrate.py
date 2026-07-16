@@ -296,7 +296,7 @@ def calibrate_checkpoint(
         plot_dir (str | Path, optional): If set, also write ``val_batch{ni}_calibrated.jpg`` comparison panels (RGB | GT
             | raw | calibrated) for the first val batches into this directory.
         dataset_hash (str, optional): Immutable dataset manifest identity used for calibration.
-        validation_split (str, optional): Dataset split or path used to collect calibration images.
+        validation_split (str, optional): Dataset-root-relative split used to collect calibration images.
     """
     from copy import deepcopy
 

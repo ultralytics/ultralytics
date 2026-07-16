@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 from copy import copy
+from pathlib import Path
 
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import DepthModel
@@ -185,14 +186,22 @@ class DepthTrainer(yolo.detect.DetectionTrainer):
             for ckpt in (self.best, self.last):
                 if ckpt.exists():
                     plot_dir = self.save_dir if self.args.plots and ckpt == plot_ckpt else None
-                    validation_split = self.data.get("val") or self.data.get("test")
+                    validation_path = self.data.get("val") or self.data.get("test")
+                    validation_split = (
+                        Path(validation_path)
+                        .resolve()
+                        .relative_to(Path(self.data["path"]).resolve())
+                        .as_posix()
+                        if isinstance(validation_path, (str, Path))
+                        else None
+                    )
                     provenance = calibrate_checkpoint(
                         ckpt,
                         self.test_loader,
                         self.device,
                         plot_dir=plot_dir,
                         dataset_hash=self.data.get("hash"),
-                        validation_split=str(validation_split) if validation_split is not None else None,
+                        validation_split=validation_split,
                     )
                     if ckpt == plot_ckpt and provenance is not None:
                         self.depth_calibration = provenance

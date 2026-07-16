@@ -1112,6 +1112,41 @@ def test_depth_calibration_rejects_divergent_checkpoint_provenance(tmp_path, mon
     assert provenance["dataset_hash"] == "new-manifest"
 
 
+def test_depth_trainer_records_portable_calibration_split(tmp_path, monkeypatch):
+    """Calibration provenance must not expose the resolved dataset path."""
+    from types import SimpleNamespace
+
+    from ultralytics.models.yolo import detect
+    from ultralytics.models.yolo.depth import calibrate
+    from ultralytics.models.yolo.depth.train import DepthTrainer
+
+    dataset_root = tmp_path / "private" / "dataset"
+    validation_path = dataset_root / "images" / "val"
+    validation_path.mkdir(parents=True)
+    checkpoint = tmp_path / "best.pt"
+    checkpoint.touch()
+    captured = {}
+    monkeypatch.setattr(detect.DetectionTrainer, "final_eval", lambda _self: None)
+    monkeypatch.setattr(
+        calibrate,
+        "calibrate_checkpoint",
+        lambda *_args, **kwargs: captured.update(kwargs) or {"status": "selected"},
+    )
+    trainer = DepthTrainer.__new__(DepthTrainer)
+    trainer.best = checkpoint
+    trainer.last = tmp_path / "last.pt"
+    trainer.save_dir = tmp_path
+    trainer.args = SimpleNamespace(plots=False)
+    trainer.test_loader = []
+    trainer.device = "cpu"
+    trainer.data = {"path": dataset_root, "val": str(validation_path), "hash": "manifest-sha256"}
+
+    trainer.final_eval()
+
+    assert captured["validation_split"] == "images/val"
+    assert str(tmp_path) not in captured["validation_split"]
+
+
 def test_no_depth_env_reads_in_source():
     """All DEPTH_* knobs are cfg args now; no os.environ reads of them may remain."""
     import re

@@ -1066,18 +1066,7 @@ def attempt_compile(
     LOGGER.info(f"{prefix} starting torch.compile with '{mode}' mode...")
     t0 = time.perf_counter()
     try:
-        from torch import _dynamo, _inductor  # load lazy submodules (lazy in torch 2.0)
-
-        _dynamo.reset()  # reset cache
-        if hasattr(_inductor, "list_mode_options"):  # torch>=2.1
-            options = {
-                **_inductor.list_mode_options(mode),
-                "coordinate_descent_tuning": False,
-                "triton.cudagraph_trees": False,
-            }  # override non-reproducible/slow opts
-            model = torch.compile(model, backend="inductor", options=options)
-        else:
-            model = torch.compile(model, mode=mode, backend="inductor")
+        model = torch.compile(model, mode=mode, backend="inductor")
     except Exception as e:
         LOGGER.warning(f"{prefix} torch.compile failed, continuing uncompiled: {e}")
         return model

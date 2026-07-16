@@ -578,7 +578,7 @@ class Exporter:
             self.args.data = TASK2CALIBRATIONDATA.get(model.task)
         if fmt == "hailo":
             assert LINUX and not ARM64, "Hailo export is only supported on Linux x86_64."
-            family = Path(model.yaml.get("yaml_file", "")).stem.lower()
+            family = Path(getattr(model, "yaml_file", None) or model.yaml.get("yaml_file", "")).stem.lower()
             if (
                 model.task != "detect"
                 or type(model.model[-1]) is not Detect
@@ -595,6 +595,11 @@ class Exporter:
             hailo_archs = ("hailo8", "hailo8l", "hailo10h", "hailo15h", "hailo15l")
             if self.args.name not in hailo_archs:
                 raise ValueError(f"Invalid Hailo architecture '{self.args.name}'. Valid names are {hailo_archs}.")
+            LOGGER.warning(
+                "\nHailo DFC requires at least 1,024 representative calibration images for production HEF exports. "
+                "The default COCO128 dataset is for quick testing only and can severely degrade box accuracy. "
+                "Set data=<dataset.yaml>. See https://docs.ultralytics.com/integrations/hailo/#export-a-hailo-hef-model"
+            )
         if fmt == "axelera":
             if model.task == "segment" and any(isinstance(m, Segment26) for m in model.modules()):
                 raise ValueError("Axelera export does not currently support YOLO26 segmentation models.")

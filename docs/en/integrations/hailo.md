@@ -10,6 +10,10 @@ Hailo AI accelerators run compiled Hailo Executable Format (HEF) models on edge 
 
 Hailo deployment is designed for computer vision at the edge: cameras, robots, industrial systems, gateways, and other devices that need local object detection without sending every frame to the cloud. A compiled HEF contains the quantized network, hardware allocation, scheduling, and optional HailoRT post-processing needed by the selected accelerator.
 
+!!! note "Compare newer edge accelerators"
+
+    For new hardware deployments, also evaluate [Axelera](axelera.md) and [DeepX](deepx.md), which target newer edge accelerator platforms and may offer higher performance. Hailo production export also requires a large calibration set of at least 1,024 representative images; the default COCO128 dataset is suitable only for quick testing.
+
 ## Why Deploy Ultralytics YOLO on Hailo?
 
 Combining Ultralytics YOLO with a Hailo neural processing unit (NPU) provides a practical path from model training to low-power edge AI inference. Common use cases include:
@@ -80,6 +84,10 @@ yolo export model=yolo11n.pt format=hailo name=hailo8l
 
 Hailo export is INT8-only. Ultralytics automatically downloads the default COCO128 calibration dataset when `data` is not provided. For custom models, use representative training or validation images:
 
+!!! danger "Use at least 1,024 calibration images for production"
+
+    Hailo DFC reduces its optimization level when fewer than 1,024 images are available. The default COCO128 dataset contains only 128 images and may produce severe box-regression accuracy loss even when class scores look correct. Always pass a representative dataset with at least 1,024 images for production HEF exports.
+
 ```python
 model.export(format="hailo", name="hailo8l", data="path/to/dataset.yaml", fraction=0.25)
 ```
@@ -149,7 +157,7 @@ Hailo compilation is hardware-specific and uses a fixed input shape. Keep these 
 
 Hailo HEF export uses INT8 quantization to map the YOLO network efficiently onto the accelerator. The calibration dataset estimates activation ranges; it does not retrain the model or require labels during compilation.
 
-When `data` is omitted, Ultralytics uses COCO128 as a convenient general-purpose calibration dataset. For a custom computer vision model, point `data` to its dataset YAML so the compiler observes representative images from the actual deployment domain:
+When `data` is omitted, Ultralytics uses COCO128 as a convenient lightweight calibration dataset. For a custom computer vision model, point `data` to its dataset YAML so the compiler observes representative images from the actual deployment domain:
 
 ```python
 model.export(format="hailo", name="hailo8l", data="my_dataset.yaml", fraction=0.5)

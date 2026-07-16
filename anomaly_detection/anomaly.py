@@ -43,6 +43,7 @@ Caveats
 import argparse
 import csv
 import json
+from collections import deque
 import math
 import statistics
 import tempfile
@@ -1226,11 +1227,11 @@ class AnomalyBboxValidator:
         """BFS flood-fill. Returns a boolean mask of the filled region."""
         h, w = heatmap.shape
         region = np.zeros((h, w), dtype=bool)
-        queue = [(start_r, start_c)]
+        queue = deque([(start_r, start_c)])
         region[start_r, start_c] = True
         visited[start_r, start_c] = True
         while queue:
-            r, c = queue.pop(0)
+            r, c = queue.popleft()
             for dr, dc in _NEIGHBORS_8:
                 nr, nc = r + dr, c + dc
                 if 0 <= nr < h and 0 <= nc < w:

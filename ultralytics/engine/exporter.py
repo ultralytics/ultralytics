@@ -442,7 +442,8 @@ def try_export(inner_func):
             return f
         except Exception as e:
             dependency_help = (
-                " Instead, export in the cloud with Ultralytics Platform at https://platform.ultralytics.com."
+                " Ultralytics Platform runs exports in the cloud with no local dependencies required. "
+                "Visit https://platform.ultralytics.com."
                 if isinstance(e, ImportError)
                 else ""
             )

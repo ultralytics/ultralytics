@@ -654,6 +654,7 @@ class Exporter:
             self.args.nms = False
         if self.args.nms and model.task == "depth":
             LOGGER.warning("'nms=True' is not valid for depth models. Forcing 'nms=False'.")
+            self.args.nms = False
         if fmt == "coreml" and self.args.nms and model.task != "detect":
             LOGGER.warning("CoreML 'nms=True' is only supported for detect models. Forcing 'nms=False'.")
             self.args.nms = False

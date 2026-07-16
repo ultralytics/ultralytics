@@ -1365,18 +1365,36 @@ class AnomalyBboxValidator:
     def _eval_coco(gt_path: str, pred_path: str) -> dict[str, float]:
         """Run :class:`COCOeval_faster` on the given GT and prediction JSON files.
 
-        Returns dict with keys ``map50`` (AP@IoU=0.50) and ``map`` (AP@[0.50:0.95], COCO primary).
+        Returns dict with keys ``map25`` (AP@IoU=0.25), ``map50`` (AP@IoU=0.50),
+        and ``map`` (AP@[0.50:0.95], COCO primary).
         """
         from faster_coco_eval import COCO, COCOeval_faster
 
         anno = COCO(gt_path)
         pred = anno.loadRes(pred_path)
+
+        # Standard eval: mAP, mAP50
         val = COCOeval_faster(anno, pred, iouType="bbox")
         val.evaluate()
         val.accumulate()
         val.summarize()
         stats = val.stats_as_dict
+
+        # mAP25 — run a second eval with IoU=0.25 only
+        try:
+            val25 = COCOeval_faster(anno, pred, iouType="bbox")
+            val25.params.iouThrs = np.array([0.25])
+            val25.evaluate()
+            val25.accumulate()
+            prec25 = val25.eval["precision"]          # [1, R, K, 4, 3]
+            ap25_vals = prec25[0, :, 0, 0, 2]         # IoU=0.25, all recalls, cat 0, all areas, maxDets=100
+            valid25 = ap25_vals[ap25_vals > -1]
+            map25 = round(float(valid25.mean()), 4) if len(valid25) > 0 else float("nan")
+        except Exception:
+            map25 = float("nan")
+
         return {
+            "map25": map25,
             "map50": round(float(stats.get("AP_50", 0.0)), 4),
             "map": round(float(stats.get("AP_all", 0.0)), 4),
         }
@@ -1475,7 +1493,7 @@ class AnomalyBboxValidator:
         n_anom_w_gt = sum(1 for e in image_entries if e["annotations"])
         print(f"[{category}] {val_s:.1f}s val  "
               f"(test={len(test_imgs)}, anom_w_gt={n_anom_w_gt}  "
-              f"mAP50={row['map50']:.4f}  mAP={row['map']:.4f}  "
+              f"mAP25={row['map25']:.4f}  mAP50={row['map50']:.4f}  mAP={row['map']:.4f}  "
               f"preds={row['n_pred']})", flush=True)
         print(f"[{category}] calibration  aDev={ard_mean:.4f}  nDev={nrd_mean:.4f}", flush=True)
         return row
@@ -1507,7 +1525,7 @@ class AnomalyBboxValidator:
         try:
             coco_metrics = self._eval_coco(str(save_dir / "gt.json"), pred_path)
         except Exception:
-            coco_metrics = {"map50": float("nan"), "map": float("nan")}
+            coco_metrics = {"map25": float("nan"), "map50": float("nan"), "map": float("nan")}
         finally:
             Path(pred_path).unlink(missing_ok=True)
 
@@ -1522,6 +1540,7 @@ class AnomalyBboxValidator:
         n_img_preds_good = sum(1 for im, boxes in zip(test_imgs, per_image_boxes) if im in test_good_set and len(boxes) > 0)
         return {
             "category": category,
+            "map25": coco_metrics["map25"],
             "map50": coco_metrics["map50"],
             "map": coco_metrics["map"],
             "n_images": n_images,
@@ -1608,7 +1627,7 @@ class AnomalyBboxValidator:
                                       heatmaps, image_ids, ms, save_dir)
             row["min_score"] = round(ms, 4)
             rows.append(row)
-            print(f"  min_score={ms:.3f}  mAP50={row['map50']:.4f}  mAP={row['map']:.4f}  "
+            print(f"  min_score={ms:.3f}  mAP25={row['map25']:.4f}  mAP50={row['map50']:.4f}  mAP={row['map']:.4f}  "
                   f"preds={row['n_pred']} (def={row['n_pred_defect']} good={row['n_pred_good']})  "
                   f"imgs_w_preds=D{row['n_img_preds_defect']}/{row['n_defect']} G{row['n_img_preds_good']}/{row['n_good']}  "
                   f"gt={row['n_gt']}", flush=True)
@@ -1653,7 +1672,7 @@ class AnomalyBboxValidator:
                                           heatmaps, image_ids, ms, save_dir, all_boxes=all_boxes)
                 row["min_score"] = round(ms, 4)
                 all_rows.append(row)
-                print(f"  min_score={ms:.3f}  mAP50={row['map50']:.4f}  mAP={row['map']:.4f}  "
+                print(f"  min_score={ms:.3f}  mAP25={row['map25']:.4f}  mAP50={row['map50']:.4f}  mAP={row['map']:.4f}  "
                       f"preds={row['n_pred']} (def={row['n_pred_defect']} good={row['n_pred_good']})  "
                       f"imgs_w_preds=D{row['n_img_preds_defect']}/{row['n_defect']} G{row['n_img_preds_good']}/{row['n_good']}  "
                       f"gt={row['n_gt']}", flush=True)
@@ -1668,7 +1687,7 @@ class AnomalyBboxValidator:
             ms_rows = [r for r in all_rows
                        if isinstance(r.get("min_score"), float) and abs(r["min_score"] - ms) < 1e-6]
             avg = {"category": "AVERAGE", "min_score": round(ms, 4)}
-            for k in ["map50", "map"]:
+            for k in ["map25", "map50", "map"]:
                 vals = [r[k] for r in ms_rows if isinstance(r.get(k), float) and r[k] == r[k]]
                 avg[k] = round(statistics.fmean(vals), 4) if vals else float("nan")
             for k in ["n_images", "n_defect", "n_good", "n_gt", "n_pred",
@@ -1677,7 +1696,7 @@ class AnomalyBboxValidator:
             avg_rows.append(avg)
 
         # ── Sweep CSV ──────────────────────────────────────────
-        sweep_fields = ["category", "min_score", "map50", "map",
+        sweep_fields = ["category", "min_score", "map25", "map50", "map",
                          "n_images", "n_defect", "n_good", "n_gt",
                          "n_pred", "n_pred_defect", "n_pred_good",
                          "n_img_preds_defect", "n_img_preds_good"]
@@ -1691,19 +1710,21 @@ class AnomalyBboxValidator:
 
         # ── Console summary ───────────────────────────────────
         print(f"\n=== min_score sweep ===")
-        header = (f"  {'min_score':>10s}  {'mAP50':>8s}  {'mAP':>8s}  "
+        header = (f"  {'min_score':>10s}  {'mAP25':>8s}  {'mAP50':>8s}  {'mAP':>8s}  "
                   f"{'preds':>5s}  {'def':>4s}  {'good':>4s}  "
                   f"{'img_det':>10s}  {'n_def':>5s}  {'n_good':>5s}  {'n_gt':>5s}")
         print(header)
         for r in avg_rows:
-            print(f"  {r['min_score']:10.4f}  {r['map50']:8.4f}  {r['map']:8.4f}  "
+            print(f"  {r['min_score']:10.4f}  {r['map25']:8.4f}  {r['map50']:8.4f}  {r['map']:8.4f}  "
                   f"{r['n_pred']:5d}  {r['n_pred_defect']:4d}  {r['n_pred_good']:4d}  "
                   f"D{r['n_img_preds_defect']}/{r['n_defect']} G{r['n_img_preds_good']}/{r['n_good']}  "
                   f"{r['n_defect']:5d}  {r['n_good']:5d}  {r['n_gt']:5d}")
 
+        best_map25 = max(avg_rows, key=lambda r: r["map25"] if r["map25"] == r["map25"] else -1)
         best_map50 = max(avg_rows, key=lambda r: r["map50"] if r["map50"] == r["map50"] else -1)
         best_map = max(avg_rows, key=lambda r: r["map"] if r["map"] == r["map"] else -1)
-        print(f"\n  Best mAP50: {best_map50['map50']:.4f} @ min_score={best_map50['min_score']:.4f}")
+        print(f"\n  Best mAP25: {best_map25['map25']:.4f} @ min_score={best_map25['min_score']:.4f}")
+        print(f"  Best mAP50: {best_map50['map50']:.4f} @ min_score={best_map50['min_score']:.4f}")
         print(f"  Best mAP:   {best_map['map']:.4f} @ min_score={best_map['min_score']:.4f}")
 
         return all_rows
@@ -1747,19 +1768,19 @@ class AnomalyBboxValidator:
                 self._save_bbox_vis(cat, test_imgs, heatmaps, per_image_boxes, image_entries)
 
             n_anom_w_gt = sum(1 for e in image_entries if e["annotations"])
-            print(f"[{cat}] mAP50={row['map50']:.4f}  mAP={row['map']:.4f}  "
+            print(f"[{cat}] mAP25={row['map25']:.4f}  mAP50={row['map50']:.4f}  mAP={row['map']:.4f}  "
                   f"(test={len(test_imgs)}, anom_w_gt={n_anom_w_gt}  "
                   f"preds={row['n_pred']})", flush=True)
             print(f"[{cat}] aDev={aDev:.4f}  nDev={nDev:.4f}", flush=True)
 
         avg = {"category": "AVERAGE"}
-        for k in ["map50", "map", "anomaly_deviation", "normal_deviation"]:
+        for k in ["map25", "map50", "map", "anomaly_deviation", "normal_deviation"]:
             vals = [r[k] for r in rows if isinstance(r.get(k), float) and r[k] == r[k]]
             avg[k] = round(statistics.fmean(vals), 4) if vals else float("nan")
         avg["n_pred"] = sum(r["n_pred"] for r in rows)
         avg["n_gt"] = sum(r["n_gt"] for r in rows)
 
-        map_fields = ["category", "map50", "map", "n_pred", "n_gt"]
+        map_fields = ["category", "map25", "map50", "map", "n_pred", "n_gt"]
         with open(out_csv, "w", newline="") as f:
             w = csv.DictWriter(f, fieldnames=map_fields)
             w.writeheader()
@@ -1770,8 +1791,8 @@ class AnomalyBboxValidator:
 
         print(f"\n=== bbox mAP ===")
         for r in rows:
-            print(f"  {r['category']:>12s}  mAP50={r['map50']:.4f}  mAP={r['map']:.4f}  preds={r['n_pred']}")
-        print(f"  {'AVERAGE':>12s}  mAP50={avg['map50']:.4f}  mAP={avg['map']:.4f}  preds={avg['n_pred']}")
+            print(f"  {r['category']:>12s}  mAP25={r['map25']:.4f}  mAP50={r['map50']:.4f}  mAP={r['map']:.4f}  preds={r['n_pred']}")
+        print(f"  {'AVERAGE':>12s}  mAP25={avg['map25']:.4f}  mAP50={avg['map50']:.4f}  mAP={avg['map']:.4f}  preds={avg['n_pred']}")
         return rows
 
 

@@ -7,7 +7,6 @@ creator:
     url: https://www.cs.toronto.edu/~kriz/cifar.html
 license:
     name: None
-    url: https://www.cs.toronto.edu/~kriz/cifar.html
 description: Train YOLO image classification models on CIFAR-100, a benchmark of 60,000 32x32 color images in 100 classes grouped into 20 superclasses, split 50k/10k.
 keywords: CIFAR-100, dataset, image classification, object recognition, machine learning, computer vision, YOLO, deep learning, neural networks, AI
 ---

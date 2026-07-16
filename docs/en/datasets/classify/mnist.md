@@ -7,7 +7,6 @@ creator:
     url: https://yann.lecun.com/exdb/mnist/
 license:
     name: None
-    url: https://yann.lecun.com/exdb/mnist/
 description: Train YOLO image classification models on MNIST, a benchmark of 70,000 28x28 grayscale handwritten digit images in 10 classes, split 60k/10k.
 keywords: MNIST, dataset, handwritten digits, image classification, deep learning, machine learning, training set, testing set, NIST
 ---

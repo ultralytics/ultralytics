@@ -7,7 +7,6 @@ creator:
     url: https://www.kaggle.com/datasets/biancaferreira/african-wildlife
 license:
     name: None
-    url: https://www.kaggle.com/datasets/biancaferreira/african-wildlife
 description: Train YOLO object detection models on the African Wildlife Dataset — 1,504 images across 4 classes (buffalo, elephant, rhino, zebra) with automatic download.
 keywords: African Wildlife Dataset, object detection, computer vision, YOLO26, buffalo, elephant, rhino, zebra, wildlife conservation, animal detection
 ---

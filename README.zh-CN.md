@@ -187,16 +187,16 @@ Ultralytics 支持广泛的 YOLO 模型，从早期的版本如 [YOLOv3](https:/
 
 | 模型                                                                                             | 尺寸<br><sup>(像素) | delta1<sup>NYU</sup> | abs_rel<sup>NYU</sup> | rmse<sup>NYU</sup> | 参数<br><sup>(百万) | FLOPs<br><sup>(十亿) |
 | ------------------------------------------------------------------------------------------------ | ------------------- | -------------------- | --------------------- | ------------------ | ------------------- | -------------------- |
-| [YOLO26n-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n-depth.pt) | 640                 | 0.882                | 0.109                 | 0.414              | 6.4                 | 32.6                 |
-| [YOLO26s-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26s-depth.pt) | 640                 | 0.896                | 0.104                 | 0.399              | 13.2                | 47.1                 |
-| [YOLO26m-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26m-depth.pt) | 640                 | 0.921                | 0.089                 | 0.364              | 23.3                | 90.8                 |
-| [YOLO26l-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26l-depth.pt) | 640                 | 0.930                | 0.083                 | 0.351              | 27.7                | 109.2                |
-| [YOLO26x-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26x-depth.pt) | 640                 | 0.933                | 0.080                 | 0.344              | 57.0                | 209.7                |
+| [YOLO26n-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n-depth.pt) | 768                 | 0.882                | 0.109                 | 0.414              | 6.4                 | 32.6                 |
+| [YOLO26s-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26s-depth.pt) | 768                 | 0.896                | 0.104                 | 0.399              | 13.2                | 47.1                 |
+| [YOLO26m-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26m-depth.pt) | 768                 | 0.921                | 0.089                 | 0.364              | 23.3                | 90.8                 |
+| [YOLO26l-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26l-depth.pt) | 768                 | 0.930                | 0.083                 | 0.351              | 27.7                | 109.2                |
+| [YOLO26x-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26x-depth.pt) | 768                 | 0.933                | 0.080                 | 0.344              | 57.0                | 209.7                |
 
 - **delta1<sup>NYU</sup>** 是在 NYU Depth V2 Eigen 测试集（654 张图像）上，通过多尺度 + 水平翻转 TTA 和对数最小二乘对齐后，预测深度在真实深度 1.25 倍范围内的像素比例。
 - **abs_rel** 是预测深度与真实深度之间的平均绝对相对误差。
 - **rmse** 是均方根误差（单位为米）。
-- **参数** 和 **FLOPs** 在 640×640 下测量。<br>使用 `yolo depth val data=nyu-depth.yaml device=0 imgsz=640` 复现结果。
+- **参数** 和 **FLOPs** 在 768×768 下测量。<br>使用 `yolo depth val data=nyu-depth.yaml device=0 imgsz=768` 复现结果。
 
 </details>
 

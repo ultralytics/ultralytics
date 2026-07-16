@@ -1,6 +1,12 @@
 ---
 title: Caltech-101 Image Classification Dataset
 comments: true
+creator:
+    name: California Institute of Technology
+    url: https://data.caltech.edu/records/mzrjq-6wc02
+license:
+    name: CC-BY-4.0
+    url: https://creativecommons.org/licenses/by/4.0/
 description: Train YOLO image classification models on Caltech-101, a benchmark of 9,144 images across 101 object categories plus a background class, with automatic 80/20 splitting.
 keywords: Caltech-101, dataset, image classification, object recognition, machine learning, computer vision, YOLO, deep learning, AI
 ---

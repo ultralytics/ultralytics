@@ -707,10 +707,11 @@ def test_results_update_probs():
     assert r.verbose() and r.summary(), "verbose()/summary() raise AttributeError on a raw Tensor probs"
 
 
-def test_labels_and_crops():
+def test_labels_and_crops(tmp_path):
     """Test output from prediction args for saving YOLO detection labels and crops."""
     imgs = [SOURCE, ASSETS / "zidane.jpg"]
-    results = YOLO(WEIGHTS_DIR / "yolo26n.pt")(imgs, imgsz=160, save_txt=True, save_crop=True)
+    model = YOLO(WEIGHTS_DIR / "yolo26n.pt")
+    results = model(imgs, imgsz=160, save_txt=True, save_crop=True)
     save_path = Path(results[0].save_dir)
     for r in results:
         im_name = Path(r.path).stem
@@ -734,6 +735,9 @@ def test_labels_and_crops():
         # Same number of crops as detections
         crop_count = len([f for f in crop_files if im_name in f.name])
         assert crop_count == len(r.boxes.data), f"Crop count {crop_count} != detection count {len(r.boxes.data)}"
+
+    model(SOURCE, imgsz=160, save_crop=True, verbose=False, project=tmp_path, name="crop", exist_ok=True)
+    assert any((tmp_path / "crop/crops").rglob("*.jpg")), "save_crop=True alone must write crop files"
 
 
 def test_data_utils(tmp_path):

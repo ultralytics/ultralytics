@@ -182,6 +182,7 @@ def test_int8_calibration_validates_split():
     exporter = object.__new__(Exporter)
     exporter.model = SimpleNamespace(task="obb")
     exporter.args = SimpleNamespace(data="coco8.yaml", split="trainval")
+    exporter.imgsz = [32]
     with pytest.raises(FileNotFoundError, match="trainval"):
         exporter.get_int8_calibration_dataloader()
 

@@ -239,7 +239,7 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
             model.load(weights)
             if verbose and RANK == -1:
                 LOGGER.info(f"Loaded weights from {weights}")
-        model.model[-1].depth_dfl.set_range(float(self.data["depth_min"]), float(self.data["depth_max"]))
+        model.model[-1].depth_dfl._set_range(float(self.data["depth_min"]), float(self.data["depth_max"]))
 
         return model
 

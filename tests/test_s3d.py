@@ -876,6 +876,6 @@ def test_configurable_depth_range():
     from ultralytics.models.yolo.s3d.head import DepthDFL
 
     dfl = DepthDFL()
-    dfl.set_range(0.2, 2.5)
+    dfl._set_range(0.2, 2.5)
     assert math.exp(dfl.bin_values[0].item()) == pytest.approx(0.2)
     assert math.exp(dfl.bin_values[-1].item()) == pytest.approx(2.5)

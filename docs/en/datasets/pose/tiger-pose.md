@@ -5,8 +5,8 @@ creator:
     name: Ultralytics
     url: https://www.ultralytics.com/
 license:
-    name: None
-    url: https://www.youtube.com/watch?v=MIBAT6BGE6U
+    name: AGPL-3.0
+    url: https://github.com/ultralytics/ultralytics/blob/main/LICENSE
 description: "Explore the Ultralytics Tiger-Pose dataset: 263 images (210 train / 53 val) with 12 keypoints per tiger, ideal for testing pose estimation pipelines."
 keywords: Ultralytics, Tiger-Pose, dataset, pose estimation, YOLO26, training data, machine learning, neural networks
 ---
@@ -111,7 +111,7 @@ After training, load your best checkpoint and run inference on new images or vid
 
 ## Citations and Acknowledgments
 
-The source video does not specify a separate dataset license. Review the [original video](https://www.youtube.com/watch?v=MIBAT6BGE6U) and its applicable terms before using or redistributing extracted frames.
+Ultralytics releases the Tiger-Pose dataset annotations under the [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE). The source video remains subject to its [original terms](https://www.youtube.com/watch?v=MIBAT6BGE6U), which should be reviewed before using or redistributing extracted frames.
 
 ## FAQ
 

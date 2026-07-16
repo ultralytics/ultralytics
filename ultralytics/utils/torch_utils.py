@@ -1066,6 +1066,8 @@ def attempt_compile(
     LOGGER.info(f"{prefix} starting torch.compile with '{mode}' mode...")
     t0 = time.perf_counter()
     try:
+        import torch._inductor  # ensure lazy submodule is loaded before access (lazy in torch 2.0)
+
         torch._dynamo.reset()  # reset cache
         if hasattr(torch._inductor, "list_mode_options"):  # torch>=2.1
             options = {

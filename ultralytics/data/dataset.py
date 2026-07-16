@@ -362,19 +362,37 @@ class DepthDataset(YOLODataset):
         return Path(self._depth_path_for(self.im_files[0])).parent.with_suffix(".cache")
 
     def get_labels(self) -> list[dict]:
-        """Load labels and verify paired depth maps exist."""
+        """Load labels and verify paired depth maps exist and are readable."""
         labels = super().get_labels()
-        missing = sum(not Path(self._depth_path_for(lb["im_file"])).exists() for lb in labels)
-        if missing == len(labels):
+        valid, missing, corrupt = [], 0, []
+        for label in labels:
+            depth_file = Path(self._depth_path_for(label["im_file"]))
+            if not depth_file.exists():
+                missing += 1
+                valid.append(label)  # Preserve the existing all-invalid fallback for partially labeled datasets.
+                continue
+            try:
+                depth = np.load(depth_file, mmap_mode="r", allow_pickle=False)
+                if depth.ndim != 2:
+                    raise ValueError(f"expected a 2D array, got shape {depth.shape}")
+                valid.append(label)
+            except Exception as e:
+                corrupt.append(f"{depth_file}: {e}")
+        if missing + len(corrupt) == len(labels):
             raise FileNotFoundError(
-                f"{self.prefix}No depth maps found for {len(labels)} images. Expected float32-meter .npy files in a "
+                f"{self.prefix}No valid depth maps found for {len(labels)} images. Expected readable 2D .npy files in a "
                 f"'depth/' tree parallel to 'images/' (images/train/x.jpg → depth/train/x.npy). {HELP_URL}"
             )
         if missing:
             LOGGER.warning(
                 f"{self.prefix}{missing}/{len(labels)} depth maps missing; those images load all-invalid (zero) depth."
             )
-        return labels
+        if corrupt:
+            LOGGER.warning(
+                f"{self.prefix}Ignoring {len(corrupt)} image(s) with corrupt depth maps:\n" + "\n".join(corrupt)
+            )
+        self.im_files = [label["im_file"] for label in valid]
+        return valid
 
     def _load_depth(self, index):
         """Return the native-resolution depth map for an image, or None if missing."""

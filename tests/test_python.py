@@ -969,6 +969,97 @@ def test_cfg_init():
     assert smart_value("zipfile.Path") == "zipfile.Path"
 
 
+def test_depth_calibration_checkpoint_provenance(tmp_path):
+    """Depth calibration persists the selected transform and sample count with the checkpoint."""
+    from copy import deepcopy
+
+    from ultralytics.models.yolo.depth.calibrate import _depth_head, calibrate_checkpoint
+    from ultralytics.nn.tasks import DepthModel
+    from ultralytics.utils.patches import torch_load
+
+    torch.manual_seed(0)
+    model = DepthModel("yolo26n-depth.yaml", verbose=False)
+    batches = [
+        {"img": (torch.rand(2, 3, 64, 64) * 255).to(torch.uint8), "depth": torch.rand(2, 64, 64) * 5 + 0.5}
+        for _ in range(4)
+    ]
+    path = tmp_path / "depth.pt"
+    torch.save({"model": deepcopy(model).half()}, path)
+
+    provenance = calibrate_checkpoint(
+        path, batches, device="cpu", dataset_hash="manifest-sha256", validation_split="images/val"
+    )
+    checkpoint = torch_load(path)
+    head = _depth_head(checkpoint["model"])
+
+    assert provenance == checkpoint["depth_calibration"]
+    assert provenance["candidate"] in {"identity", "scale-only", "affine"}
+    assert provenance["images"] == 8
+    assert provenance["status"] == "selected"
+    assert provenance["dataset_hash"] == "manifest-sha256"
+    assert provenance["validation_split"] == "images/val"
+    assert provenance["strategy"] == "two-fold-held-out-delta1"
+    assert set(provenance["scores"]) == {"identity", "scale-only"}
+    assert float(head.cal_a) == provenance["a"]
+    assert float(head.cal_b) == provenance["b"]
+
+
+@pytest.mark.parametrize("external", [False, True])
+def test_depth_trainer_records_portable_calibration_split(tmp_path, monkeypatch, external):
+    """Calibration provenance records local splits without rejecting external validation paths."""
+    from types import SimpleNamespace
+
+    from ultralytics.models.yolo import detect
+    from ultralytics.models.yolo.depth import calibrate
+    from ultralytics.models.yolo.depth.train import DepthTrainer
+
+    dataset_root = tmp_path / "private" / "dataset"
+    validation_path = (tmp_path / "shared" if external else dataset_root) / "images" / "val"
+    validation_path.mkdir(parents=True)
+    checkpoint = tmp_path / "best.pt"
+    checkpoint.touch()
+    captured = {}
+    monkeypatch.setattr(detect.DetectionTrainer, "final_eval", lambda _self: None)
+    monkeypatch.setattr(
+        calibrate,
+        "calibrate_checkpoint",
+        lambda *_args, **kwargs: captured.update(kwargs) or {"status": "selected"},
+    )
+    trainer = DepthTrainer.__new__(DepthTrainer)
+    trainer.best = checkpoint
+    trainer.last = tmp_path / "last.pt"
+    trainer.save_dir = tmp_path
+    trainer.args = SimpleNamespace(plots=False)
+    trainer.test_loader = []
+    trainer.device = "cpu"
+    trainer.data = {"path": dataset_root, "val": str(validation_path), "hash": "manifest-sha256"}
+
+    trainer.final_eval()
+
+    assert captured["validation_split"] == (None if external else "images/val")
+    if captured["validation_split"] is not None:
+        assert str(tmp_path) not in captured["validation_split"]
+
+
+def test_depth_dataset_ignores_unreadable_targets(tmp_path, monkeypatch):
+    """Filter corrupt depth targets during dataset scanning instead of failing during training."""
+    from ultralytics.data.dataset import DepthDataset, YOLODataset
+
+    images = tmp_path / "images" / "train"
+    depth = tmp_path / "depth" / "train"
+    images.mkdir(parents=True)
+    depth.mkdir(parents=True)
+    labels = [{"im_file": str(images / f"{name}.jpg")} for name in ("valid", "corrupt")]
+    np.save(depth / "valid.npy", np.ones((2, 3), dtype=np.float32))
+    (depth / "corrupt.npy").write_text("not an npy file")
+    monkeypatch.setattr(YOLODataset, "get_labels", lambda _self: labels)
+    dataset = DepthDataset.__new__(DepthDataset)
+    dataset.prefix = "train: "
+
+    assert dataset.get_labels() == labels[:1]
+    assert dataset.im_files == [labels[0]["im_file"]]
+
+
 def test_utils_init():
     """Test initialization utilities in the Ultralytics library."""
     from ultralytics.utils import get_ubuntu_version, is_github_action_running

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 from copy import copy
+from pathlib import Path
 from typing import Any
 
 from ultralytics.models import yolo
@@ -161,6 +162,27 @@ class DepthTrainer(yolo.detect.DetectionTrainer):
             for ckpt in (self.best, self.last):
                 if ckpt.exists():
                     plot_dir = self.save_dir if self.args.plots and ckpt == plot_ckpt else None
-                    calibrate_checkpoint(ckpt, self.test_loader, self.device, plot_dir=plot_dir)
+                    validation_path = self.data.get("val") or self.data.get("test")
+                    validation_split = None
+                    if isinstance(validation_path, (str, Path)):
+                        try:
+                            validation_split = (
+                                Path(validation_path)
+                                .resolve()
+                                .relative_to(Path(self.data["path"]).resolve())
+                                .as_posix()
+                            )
+                        except ValueError:
+                            pass  # External validation paths have no portable dataset-root-relative identifier.
+                    provenance = calibrate_checkpoint(
+                        ckpt,
+                        self.test_loader,
+                        self.device,
+                        plot_dir=plot_dir,
+                        dataset_hash=self.data.get("hash"),
+                        validation_split=validation_split,
+                    )
+                    if ckpt == plot_ckpt and provenance is not None:
+                        self.depth_calibration = provenance
         except Exception as e:
             LOGGER.warning(f"Calibration skipped ({type(e).__name__}: {e}); checkpoints left uncalibrated.")

@@ -192,8 +192,8 @@ def _collect_logpairs(
             valid = (gi > 1e-3) & (pi > 1e-3) & torch.isfinite(pi)
             if not valid.any():
                 continue
-            lp = torch.log(pi[valid]).cpu().numpy()
-            lg = torch.log(gi[valid]).cpu().numpy()
+            lp = torch.log(pi[valid]).detach().cpu().numpy()
+            lg = torch.log(gi[valid]).detach().cpu().numpy()
             if lp.size > 20_000:
                 idx = rng.choice(lp.size, 20_000, replace=False)
                 lp, lg = lp[idx], lg[idx]
@@ -232,6 +232,7 @@ def fit_calibration_selective(
         LOGGER.warning("calibrate: fewer than 2 valid images for fit/score split; calibration skipped.")
         return None
     res = select_calibration_cv(pairs, margin=margin)
+    res["images"] = len(pairs)
     head.cal_a.fill_(res["a"])
     head.cal_b.fill_(res["b"])
     scores = " ".join(f"{n}={v:.4f}" for n, v in res["cv_scores"].items())
@@ -292,8 +293,14 @@ def _plot_calibrated_batches(
 
 
 def calibrate_checkpoint(
-    ckpt_path: str | Path, dataloader, device: torch.device | str, plot_dir: str | Path | None = None
-) -> None:
+    ckpt_path: str | Path,
+    dataloader,
+    device: torch.device | str,
+    plot_dir: str | Path | None = None,
+    *,
+    dataset_hash: str | None = None,
+    validation_split: str | None = None,
+) -> dict | None:
     """Fit calibration for a saved checkpoint in place (used by automatic post-training calibration).
 
     Loads the checkpoint, selects calibration with the "calibrate only if it helps" policy
@@ -306,6 +313,8 @@ def calibrate_checkpoint(
         device (str | torch.device): Torch device to run inference on.
         plot_dir (str | Path, optional): If set, also write ``val_batch{ni}_calibrated.jpg`` comparison panels (RGB | GT
             | raw | calibrated) for the first val batches into this directory.
+        dataset_hash (str, optional): Immutable dataset manifest identity used for calibration.
+        validation_split (str, optional): Dataset-root-relative split used to collect calibration images.
     """
     from copy import deepcopy
 
@@ -318,13 +327,27 @@ def calibrate_checkpoint(
     work = deepcopy(saved).float()
     res = fit_calibration_selective(work, dataloader, device)
     if res is None:
-        return
+        return None
     a, b = res["a"], res["b"]
     for key in ("ema", "model"):
         m = ckpt.get(key)
         if m is not None and _depth_head(m) is not None:
             _depth_head(m).cal_a.fill_(a)
             _depth_head(m).cal_b.fill_(b)
+    stored_head = _depth_head(ckpt.get("ema") or ckpt.get("model"))
+    a, b = float(stored_head.cal_a), float(stored_head.cal_b)
+    provenance = {
+        "status": "selected",
+        "candidate": res["name"],
+        "images": res["images"],
+        "a": a,
+        "b": b,
+        "dataset_hash": dataset_hash,
+        "validation_split": validation_split,
+        "strategy": "two-fold-held-out-delta1",
+        "scores": res["cv_scores"],
+    }
+    ckpt["depth_calibration"] = provenance
     torch.save(ckpt, ckpt_path)
     LOGGER.info(
         f"Auto-calibration written to {getattr(ckpt_path, 'name', ckpt_path)}: '{res['name']}' a={a:.4f} b={b:.4f}"
@@ -335,3 +358,4 @@ def calibrate_checkpoint(
             LOGGER.info(f"Calibrated val_batch plots written to {plot_dir}")
         except Exception as e:
             LOGGER.warning(f"Calibrated val plots skipped ({type(e).__name__}: {e})")
+    return provenance

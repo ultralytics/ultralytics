@@ -527,6 +527,7 @@ def on_train_end(trainer):
                 "bestFitness": trainer.best_fitness,
                 "modelPath": gcs_path,  # Only send GCS path, not local path
                 "modelSize": model_size,
+                "calibration": getattr(trainer, "depth_calibration", None),
             },
             "classNames": class_names,
             "plots": plots,

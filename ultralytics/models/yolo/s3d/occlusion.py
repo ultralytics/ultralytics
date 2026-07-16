@@ -1,7 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-
 """
-Occlusion Classification Module
+Occlusion Classification Module.
 
 This module implements occlusion classification using the depth-line algorithm as described
 in the Stereo CenterNet paper. The algorithm determines which objects are occluded by
@@ -41,9 +40,8 @@ import numpy as np
 def _build_depth_line(detections: list[dict[str, Any]], image_width: int = 1242) -> np.ndarray:
     """Build depth line from bounding boxes (Algorithm 1, First Pass).
 
-    The depth line is a 1D array where each element represents the depth of the
-    closest (frontmost) object at that horizontal pixel position. This serves as
-    a visibility buffer for occlusion classification.
+    The depth line is a 1D array where each element represents the depth of the closest (frontmost) object at that
+    horizontal pixel position. This serves as a visibility buffer for occlusion classification.
 
     Paper Reference: Algorithm 1, lines 1-7
         "For each column j from 0 to image_width:
@@ -56,11 +54,10 @@ def _build_depth_line(detections: list[dict[str, Any]], image_width: int = 1242)
         image_width: Width of the image in pixels (default: 1242 for KITTI).
 
     Returns:
-        np.ndarray: Depth line array of shape (image_width,) where each element
-            contains the depth of the closest object at that column. Zero values
-            indicate no object coverage at that position.
+        np.ndarray: Depth line array of shape (image_width,) where each element contains the depth of the closest object
+            at that column. Zero values indicate no object coverage at that position.
 
-    Note:
+    Notes:
         - Objects with invalid bbox_2d or center_3d are skipped
         - Depth blending is used when multiple objects overlap at similar depths
     """
@@ -77,7 +74,7 @@ def _build_depth_line(detections: list[dict[str, Any]], image_width: int = 1242)
         # Handle different bbox_2d formats
         if hasattr(bbox_2d, "__iter__") and not isinstance(bbox_2d, str):
             if len(bbox_2d) >= 4:
-                x1, y1, x2, y2 = bbox_2d[:4]
+                x1, _y1, x2, _y2 = bbox_2d[:4]
             else:
                 continue
         else:
@@ -128,9 +125,8 @@ def _classify_by_boundary_visibility(
 ) -> tuple[list[int], list[int]]:
     """Classify objects by boundary visibility (Algorithm 1, Second Pass).
 
-    Determines which objects are occluded by checking if their left and right
-    boundaries are visible in the depth line. An object is considered occluded
-    if BOTH boundaries are hidden by closer objects.
+    Determines which objects are occluded by checking if their left and right boundaries are visible in the depth line.
+    An object is considered occluded if BOTH boundaries are hidden by closer objects.
 
     Paper Reference: Algorithm 1, lines 8-14
         "For each object k:
@@ -142,16 +138,15 @@ def _classify_by_boundary_visibility(
         detections: List of detection dicts with bbox_2d and center_3d keys.
         depth_line: Pre-computed depth line array from _build_depth_line().
         image_width: Width of the image in pixels.
-        depth_tolerance: Tolerance in meters for depth comparison. Objects within
-            this tolerance of the depth line value are considered visible.
-            Default is 1.0 meter to handle depth estimation errors.
+        depth_tolerance: Tolerance in meters for depth comparison. Objects within this tolerance of the depth line value
+            are considered visible. Default is 1.0 meter to handle depth estimation errors.
 
     Returns:
         Tuple of (occluded_indices, unoccluded_indices):
             - occluded_indices: List of detection indices that are occluded
             - unoccluded_indices: List of detection indices that are unoccluded
 
-    Note:
+    Notes:
         - Objects with zero or missing depth_line coverage are treated as visible
         - The depth_tolerance helps handle noisy depth estimates
     """
@@ -169,7 +164,7 @@ def _classify_by_boundary_visibility(
         # Handle different bbox_2d formats
         if hasattr(bbox_2d, "__iter__") and not isinstance(bbox_2d, str):
             if len(bbox_2d) >= 4:
-                x1, y1, x2, y2 = bbox_2d[:4]
+                x1, _y1, x2, _y2 = bbox_2d[:4]
             else:
                 unoccluded.append(k)
                 continue
@@ -235,15 +230,14 @@ def classify_occlusion(
 ) -> tuple[list[int], list[int]]:
     """Classify objects as occluded or unoccluded using depth-line algorithm.
 
-    This is the main entry point for occlusion classification. It implements
-    Algorithm 1 from the Stereo CenterNet paper using a two-pass approach:
+    This is the main entry point for occlusion classification. It implements Algorithm 1 from the Stereo CenterNet paper
+    using a two-pass approach:
 
     1. First pass: Build a depth line that tracks the closest object at each
-       horizontal pixel position across the image width.
+    horizontal pixel position across the image width.
 
     2. Second pass: For each object, check if its left and right boundaries
-       are visible in the depth line. Objects with both boundaries hidden
-       are classified as occluded.
+    are visible in the depth line. Objects with both boundaries hidden are classified as occluded.
 
     Paper Reference: Algorithm 1 "3D Object Classification Strategy"
 
@@ -254,9 +248,8 @@ def classify_occlusion(
             - center_3d: (x, y, z) 3D center coordinates where z is depth in meters.
                          Can also be a Box3D object with center_3d attribute.
         image_width: Width of the image in pixels. Default is 1242 (KITTI standard).
-        depth_tolerance: Tolerance in meters for depth visibility comparison.
-            Objects within this tolerance of the depth line are considered visible.
-            Default is 1.0 meter to handle depth estimation uncertainty.
+        depth_tolerance: Tolerance in meters for depth visibility comparison. Objects within this tolerance of the depth
+            line are considered visible. Default is 1.0 meter to handle depth estimation uncertainty.
 
     Returns:
         tuple[list[int], list[int]]: Two lists of detection indices:
@@ -265,7 +258,7 @@ def classify_occlusion(
             - unoccluded_indices: Indices of detections that are not occluded
               (at least one boundary is visible)
 
-    Example:
+    Examples:
         >>> detections = [
         ...     {"bbox_2d": (100, 50, 200, 150), "center_3d": (1.0, 1.0, 20.0)},
         ...     {"bbox_2d": (150, 60, 250, 160), "center_3d": (1.5, 1.0, 30.0)},
@@ -273,7 +266,7 @@ def classify_occlusion(
         >>> occluded, unoccluded = classify_occlusion(detections)
         >>> print(f"Occluded: {occluded}, Unoccluded: {unoccluded}")
 
-    Note:
+    Notes:
         - Empty detection lists return ([], [])
         - Detections with missing or invalid data are classified as unoccluded
         - The algorithm assumes all detections are from the same image

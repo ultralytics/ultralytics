@@ -95,7 +95,6 @@ from .head import (
     YOLOESegment26,
     v10Detect,
 )
-
 from .transformer import (
     AIFI,
     MLP,
@@ -108,7 +107,6 @@ from .transformer import (
     TransformerEncoderLayer,
     TransformerLayer,
 )
-
 
 __all__ = (
     "AIFI",

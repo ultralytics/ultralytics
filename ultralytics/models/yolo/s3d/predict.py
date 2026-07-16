@@ -13,7 +13,6 @@ from ultralytics.data.augment import LetterBox
 from ultralytics.data.stereo.calib import CalibrationParameters, load_kitti_calibration
 from ultralytics.engine.results import Results
 from ultralytics.models.yolo.detect import DetectionPredictor
-
 from ultralytics.models.yolo.s3d.preprocess import decode_and_refine_predictions, preprocess_stereo_images
 from ultralytics.utils import LOGGER
 from ultralytics.utils.checks import check_imgsz
@@ -22,8 +21,8 @@ from ultralytics.utils.checks import check_imgsz
 class Stereo3DDetPredictor(DetectionPredictor):
     """Stereo 3D Detection predictor.
 
-    Extends DetectionPredictor to handle stereo image pairs (6-channel input)
-    and decode 3D bounding boxes from 10-branch model outputs.
+    Extends DetectionPredictor to handle stereo image pairs (6-channel input) and decode 3D bounding boxes from
+    10-branch model outputs.
     """
 
     def __init__(self, cfg=None, overrides: dict[str, Any] | None = None, _callbacks=None):
@@ -138,7 +137,7 @@ class Stereo3DDetPredictor(DetectionPredictor):
                     try:
                         calib = load_kitti_calibration(calib_path)
                         break
-                    except Exception as exc:  # noqa: BLE001
+                    except Exception as exc:
                         LOGGER.warning(f"Failed to parse calibration {calib_path}: {exc}")
             if calib is None:
                 LOGGER.warning(

@@ -1,5 +1,4 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-
 """3D bounding box data structure for stereo vision."""
 
 from __future__ import annotations
@@ -19,7 +18,7 @@ class Box3D:
         center_3d (tuple[float, float, float]): 3D center position (x, y, z) in meters.
             Coordinate system: Camera coordinate system (x: right, y: down, z: forward).
         dimensions (tuple[float, float, float]): Object dimensions (length, width, height) in meters.
-            length: forward, width: right, height: up.
+        length: forward, width: right, height: up.
         orientation (float): Rotation angle around vertical (Y) axis in radians, range [-π, π].
         class_label (str): Object class name ("Car", "Pedestrian", "Cyclist").
         class_id (int): Numeric class identifier (0=Car, 1=Pedestrian, 2=Cyclist).
@@ -110,8 +109,8 @@ class Box3D:
         disparity-based 3D fallback when location_3d is missing.
 
         Args:
-            label: Label dict with keys: class_id, left_box, dimensions,
-                rotation_y, and optionally location_3d, right_box, truncated, occluded.
+            label: Label dict with keys: class_id, left_box, dimensions, rotation_y, and optionally location_3d,
+                right_box, truncated, occluded.
             calib: Calibration dict with fx, fy, cx, cy, baseline.
             class_names: Class name mapping (dict {id: name}, list, or None).
             image_hw: (H, W) used for disparity-based 3D fallback when location_3d is missing.

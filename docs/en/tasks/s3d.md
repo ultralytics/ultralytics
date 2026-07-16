@@ -22,13 +22,13 @@ The output of a stereo 3D detection model includes a 3D center location `[x, y, 
 
 Ultralytics YOLO26 pretrained Stereo 3D Detection models are shown here. All models are trained on the [KITTI Stereo](../datasets/detect/kitti-stereo.md) dataset with SGD for 1000 epochs.
 
-| Model | Params | AP3D@0.5 (Mod) | AP3D@0.7 (Mod) |
-|-------|--------|----------------|----------------|
-| [YOLO26n-s3d](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26/yolo26-s3d.yaml) | 3.6M | 48.1% | 29.9% |
-| [YOLO26s-s3d](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26/yolo26-s3d.yaml) | 11.6M | 48.3% | 29.4% |
-| [YOLO26m-s3d](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26/yolo26-s3d.yaml) | 26.8M | 49.0% | 29.1% |
-| [YOLO26l-s3d](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26/yolo26-s3d.yaml) | 31.2M | 50.9% | 31.6% |
-| [YOLO26x-s3d](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26/yolo26-s3d.yaml) | 69.9M | 43.4% | 24.5% |
+| Model                                                                                                         | Params | AP3D@0.5 (Mod) | AP3D@0.7 (Mod) |
+| ------------------------------------------------------------------------------------------------------------- | ------ | -------------- | -------------- |
+| [YOLO26n-s3d](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26/yolo26-s3d.yaml) | 3.6M   | 48.1%          | 29.9%          |
+| [YOLO26s-s3d](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26/yolo26-s3d.yaml) | 11.6M  | 48.3%          | 29.4%          |
+| [YOLO26m-s3d](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26/yolo26-s3d.yaml) | 26.8M  | 49.0%          | 29.1%          |
+| [YOLO26l-s3d](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26/yolo26-s3d.yaml) | 31.2M  | 50.9%          | 31.6%          |
+| [YOLO26x-s3d](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26/yolo26-s3d.yaml) | 69.9M  | 43.4%          | 24.5%          |
 
 - **AP3D** values are KITTI R40 Moderate mean across Car/Pedestrian/Cyclist classes.
 - All models trained with `imgsz=[384, 1248]`, SGD optimizer, cosine LR schedule for 1000 epochs.
@@ -99,7 +99,7 @@ Validate a trained stereo 3D detection model using KITTI R40 evaluation protocol
 
         ```bash
         yolo s3d val model=yolo26s-s3d.pt  # val pretrained model
-        yolo s3d val model=path/to/best.pt  # val custom model
+        yolo s3d val model=path/to/best.pt # val custom model
         ```
 
 The KITTI R40 evaluation uses 40-point interpolated precision-recall curves with three difficulty levels:
@@ -207,9 +207,9 @@ Pseudo-labels are marked with occlusion values to distinguish them: `occ=10` for
 
 ```yaml
 pseudo_labels:
-  weight: 0.5  # loss weight for stereo-matched pseudo-labels
-  mono_weight: 0.0  # loss weight for mono-only pseudo-labels (0 = ignore)
-  cutoff: 0.9  # minimum 2D detection confidence
+    weight: 0.5 # loss weight for stereo-matched pseudo-labels
+    mono_weight: 0.0 # loss weight for mono-only pseudo-labels (0 = ignore)
+    cutoff: 0.9 # minimum 2D detection confidence
 ```
 
 ## FAQ

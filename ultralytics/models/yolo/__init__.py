@@ -4,4 +4,17 @@ from ultralytics.models.yolo import classify, detect, obb, pose, s3d, segment, s
 
 from .model import YOLO, YOLOE, YOLOWorld
 
-__all__ = "YOLO", "YOLOE", "YOLOWorld", "classify", "detect", "obb", "pose", "s3d", "segment", "semantic", "world", "yoloe"
+__all__ = (
+    "YOLO",
+    "YOLOE",
+    "YOLOWorld",
+    "classify",
+    "detect",
+    "obb",
+    "pose",
+    "s3d",
+    "segment",
+    "semantic",
+    "world",
+    "yoloe",
+)

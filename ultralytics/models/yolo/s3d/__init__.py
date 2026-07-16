@@ -1,5 +1,4 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-
 """Stereo 3D Object Detection module for YOLO.
 
 This module implements stereo-based 3D object detection with CenterNet-style outputs,
@@ -13,13 +12,13 @@ Key Components:
 """
 
 from .model import Stereo3DDetModel
+from .predict import Stereo3DDetPredictor
 from .train import Stereo3DDetTrainer
 from .val import Stereo3DDetValidator
-from .predict import Stereo3DDetPredictor
 
 __all__ = [
     "Stereo3DDetModel",
+    "Stereo3DDetPredictor",
     "Stereo3DDetTrainer",
     "Stereo3DDetValidator",
-    "Stereo3DDetPredictor",
 ]

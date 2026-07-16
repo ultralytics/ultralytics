@@ -271,7 +271,7 @@ class Instances:
         """
         old_format = self._bboxes.format
         self._bboxes.convert(format=format)
-        
+
         # Also convert right_bboxes if present (stereo 3D detection)
         if self.right_bboxes is not None and len(self.right_bboxes) > 0 and old_format != format:
             if old_format == "xyxy":
@@ -389,7 +389,8 @@ class Instances:
             index (int | slice | np.ndarray): The index, slice, or boolean array to select the desired instances.
 
         Returns:
-            (Instances): A new Instances object containing the selected boxes, segments, keypoints, and 3D data if present.
+            (Instances): A new Instances object containing the selected boxes, segments, keypoints, and 3D data if
+                present.
 
         Notes:
             When using boolean indexing, make sure to provide a boolean array with the same length as the number of
@@ -573,8 +574,8 @@ class Instances:
             axis (int, optional): The axis along which the arrays will be concatenated.
 
         Returns:
-            (Instances): A new Instances object containing the concatenated bounding boxes, segments, keypoints,
-                and 3D data if present.
+            (Instances): A new Instances object containing the concatenated bounding boxes, segments, keypoints, and 3D
+                data if present.
 
         Notes:
             The `Instances` objects in the list should have the same properties, such as the format of the bounding
@@ -594,7 +595,7 @@ class Instances:
         normalized = instances_list[0].normalized
 
         cat_boxes = np.concatenate([ins.bboxes for ins in instances_list], axis=axis)
-        
+
         # Handle segments (can be None)
         if use_segments:
             seg_len = [b.segments.shape[1] if b.segments is not None and len(b.segments) else 0 for b in instances_list]
@@ -614,34 +615,24 @@ class Instances:
         else:
             cat_segments = None
         cat_keypoints = np.concatenate([b.keypoints for b in instances_list], axis=axis) if use_keypoint else None
-        
+
         # Handle 3D attributes
         use_right_bboxes = instances_list[0].right_bboxes is not None
         use_dimensions_3d = instances_list[0].dimensions_3d is not None
         use_location_3d = instances_list[0].location_3d is not None
         use_rotation_y = instances_list[0].rotation_y is not None
-        
+
         cat_right_bboxes = (
-            np.concatenate([b.right_bboxes for b in instances_list], axis=axis)
-            if use_right_bboxes
-            else None
+            np.concatenate([b.right_bboxes for b in instances_list], axis=axis) if use_right_bboxes else None
         )
         cat_dimensions_3d = (
-            np.concatenate([b.dimensions_3d for b in instances_list], axis=axis)
-            if use_dimensions_3d
-            else None
+            np.concatenate([b.dimensions_3d for b in instances_list], axis=axis) if use_dimensions_3d else None
         )
         cat_location_3d = (
-            np.concatenate([b.location_3d for b in instances_list], axis=axis)
-            if use_location_3d
-            else None
+            np.concatenate([b.location_3d for b in instances_list], axis=axis) if use_location_3d else None
         )
-        cat_rotation_y = (
-            np.concatenate([b.rotation_y for b in instances_list], axis=axis)
-            if use_rotation_y
-            else None
-        )
-        
+        cat_rotation_y = np.concatenate([b.rotation_y for b in instances_list], axis=axis) if use_rotation_y else None
+
         return cls(
             cat_boxes,
             cat_segments,

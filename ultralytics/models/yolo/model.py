@@ -78,7 +78,11 @@ class YOLO(Model):
             # Continue with default YOLO initialization
             super().__init__(model=model, task=task, verbose=verbose)
             # Check if model has a subscriptable 'model' attribute before accessing with [-1]
-            if hasattr(self.model, "model") and isinstance(self.model.model, (list, tuple)) and len(self.model.model) > 0:
+            if (
+                hasattr(self.model, "model")
+                and isinstance(self.model.model, (list, tuple))
+                and len(self.model.model) > 0
+            ):
                 if "RTDETR" in self.model.model[-1]._get_name():  # if RTDETR head
                     from ultralytics import RTDETR
 

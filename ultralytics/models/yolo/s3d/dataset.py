@@ -1,5 +1,8 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 from __future__ import annotations
 
+import math
 from pathlib import Path
 from typing import Any
 
@@ -12,16 +15,15 @@ from ultralytics.data.base import BaseDataset
 from ultralytics.data.stereo.calib import load_kitti_calibration
 from ultralytics.data.utils import load_dataset_cache_file, save_dataset_cache_file
 from ultralytics.models.yolo.s3d.augment import (
+    StereoCrop,
     StereoHFlip,
     StereoHSV,
-    StereoScale,
-    StereoCrop,
     StereoLetterBox,
+    StereoScale,
 )
 from ultralytics.models.yolo.s3d.orientation import ORIENT_CHANNELS, encode_orientation
 from ultralytics.utils import DEFAULT_CFG, LOGGER
 from ultralytics.utils.checks import check_imgsz
-import math
 
 
 def compute_dimension_offset(
@@ -32,8 +34,7 @@ def compute_dimension_offset(
 ) -> torch.Tensor:
     """Compute normalized dimension offset [ΔH, ΔW, ΔL] for 3D detection.
 
-    The offset is computed as (dim - mean) / std for each dimension,
-    following the paper's approach for stable training.
+    The offset is computed as (dim - mean) / std for each dimension, following the paper's approach for stable training.
 
     Args:
         dims: Object dimensions as (length, width, height) in meters.
@@ -123,13 +124,12 @@ class Stereo3DDetDataset(BaseDataset):
             split (str): Dataset split ('train' or 'val').
             imgsz (int): Target image size for letterboxing.
             names (dict[int, str] | list[str] | None): Class names mapping. If None, uses default.
-            mean_dims (dict[str, list[float]] | None): Mean dimensions per class [L, W, H] in meters.
-                If None, uses default KITTI values.
+            mean_dims (dict[str, list[float]] | None): Mean dimensions per class [L, W, H] in meters. If None, uses
+                default KITTI values.
             std_dims (dict[str, list[float]] | None): Standard deviation of dimensions per class [L, W, H] in meters.
                 Used for normalized offset prediction. If None, defaults to reasonable estimates.
-            filter_occluded (bool): Whether to filter out heavily occluded objects during training.
-                If True, objects with occlusion level > max_occlusion_level are excluded from training.
-                Defaults to False.
+            filter_occluded (bool): Whether to filter out heavily occluded objects during training. If True, objects
+                with occlusion level > max_occlusion_level are excluded from training. Defaults to False.
             max_occlusion_level (int): Maximum occlusion level to include when filter_occluded is True.
                 KITTI occlusion levels: 0=fully visible, 1=partially occluded, 2=heavily occluded, 3=unknown.
                 Default is 1 (exclude heavily occluded and unknown objects).
@@ -411,8 +411,8 @@ class Stereo3DDetDataset(BaseDataset):
         """Convert stereo labels to Instances format with 3D data included.
 
         Args:
-            label: Label dict from BaseDataset.get_image_and_label().
-                  The 'img' key already contains the 6-channel stereo image from load_image().
+            label: Label dict from BaseDataset.get_image_and_label(). The 'img' key already contains the 6-channel
+                stereo image from load_image().
 
         Returns:
             Updated label dict with Instances containing 3D data.
@@ -538,7 +538,7 @@ class Stereo3DDetDataset(BaseDataset):
             raise FileNotFoundError(f"Label file not found: {label_file}")
 
         labels: list[dict[str, Any]] = []
-        with open(label_file, "r") as f:
+        with open(label_file) as f:
             for line in f:
                 line = line.strip()
                 if not line:

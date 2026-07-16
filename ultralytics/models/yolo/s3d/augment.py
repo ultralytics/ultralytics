@@ -1,10 +1,13 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
+
 import cv2
 import numpy as np
-from ultralytics.utils.instance import Bboxes, Instances
 
+from ultralytics.utils.instance import Bboxes, Instances
 
 # ============================================================================
 # 3D to 2D Projection Functions
@@ -18,13 +21,12 @@ def project_3d_box_to_2d(
     calibration: dict[str, float],
     camera: str = "left",
     clip: bool = True,
-    image_size: Optional[tuple[int, int]] = None,
+    image_size: tuple[int, int] | None = None,
 ) -> np.ndarray:
     """Project a 3D bounding box to 2D image coordinates.
 
-    Uses KITTI convention where location is at bottom-center of the object,
-    Y points down, and dimensions are (length, width, height) where length
-    is along Z (forward) and width is along X (right).
+    Uses KITTI convention where location is at bottom-center of the object, Y points down, and dimensions are (length,
+    width, height) where length is along Z (forward) and width is along X (right).
 
     Args:
         location_3d: (3,) array [X, Y, Z] in camera coordinates (meters).
@@ -104,7 +106,7 @@ def project_3d_boxes_to_2d(
     calibration: dict[str, float],
     camera: str = "left",
     clip: bool = True,
-    image_size: Optional[tuple[int, int]] = None,
+    image_size: tuple[int, int] | None = None,
 ) -> np.ndarray:
     """Project multiple 3D bboxes to 2D for a batch of instances.
 
@@ -143,8 +145,8 @@ def project_3d_boxes_to_2d(
 class StereoLabels:
     """Container that synchronizes Instances and calibration during transforms.
 
-    This class ensures that when geometric transformations (scale, flip, crop, pad)
-    are applied to instances, the corresponding calibration parameters are updated
+    This class ensures that when geometric transformations (scale, flip, crop, pad) are applied to instances, the
+    corresponding calibration parameters are updated
     automatically. This eliminates the fragile pattern of manually updating both
     in each transform.
 
@@ -152,14 +154,14 @@ class StereoLabels:
         instances (Instances): Object annotations (bboxes, 3D attributes, etc.).
         calibration (dict[str, float]): Camera calibration parameters.
 
-    Example:
+    Examples:
         >>> labels = StereoLabels.from_labels(labels_dict)
         >>> labels.scale(0.5, 0.5)  # Scales both instances AND calibration
         >>> labels.fliplr(width)  # Flips both instances AND calibration
         >>> labels.to_labels(labels_dict)  # Write back to dict
     """
 
-    def __init__(self, instances: Optional[Instances], calibration: Optional[dict[str, Any]]):
+    def __init__(self, instances: Instances | None, calibration: dict[str, Any] | None):
         """Initialize StereoLabels.
 
         Args:
@@ -170,7 +172,7 @@ class StereoLabels:
         self.calibration = calibration or {}
 
     @classmethod
-    def from_labels(cls, labels: dict[str, Any]) -> "StereoLabels":
+    def from_labels(cls, labels: dict[str, Any]) -> StereoLabels:
         """Create StereoLabels from a labels dict.
 
         Args:
@@ -209,7 +211,7 @@ class StereoLabels:
     # Synchronized transform methods
     # -------------------------------------------------------------------------
 
-    def scale(self, scale_w: float, scale_h: float, bbox_only: bool = False) -> "StereoLabels":
+    def scale(self, scale_w: float, scale_h: float, bbox_only: bool = False) -> StereoLabels:
         """Scale coordinates and calibration by given factors.
 
         Args:
@@ -229,7 +231,7 @@ class StereoLabels:
 
         return self
 
-    def scale_calibration(self, scale_w: float, scale_h: float) -> "StereoLabels":
+    def scale_calibration(self, scale_w: float, scale_h: float) -> StereoLabels:
         """Scale only calibration parameters (fx, fy, cx, cy), leaving instances unchanged.
 
         Use this instead of scale() when instances are in normalized coordinates,
@@ -250,7 +252,7 @@ class StereoLabels:
 
         return self
 
-    def fliplr(self, w: int) -> "StereoLabels":
+    def fliplr(self, w: int) -> StereoLabels:
         """Flip coordinates horizontally.
 
         Note: This flips coordinates but does NOT swap left/right bboxes or
@@ -273,7 +275,7 @@ class StereoLabels:
 
         return self
 
-    def flipud(self, h: int) -> "StereoLabels":
+    def flipud(self, h: int) -> StereoLabels:
         """Flip coordinates vertically.
 
         Args:
@@ -292,7 +294,7 @@ class StereoLabels:
 
         return self
 
-    def add_padding(self, padw: int, padh: int) -> "StereoLabels":
+    def add_padding(self, padw: int, padh: int) -> StereoLabels:
         """Add padding offset to coordinates and calibration.
 
         Args:
@@ -313,7 +315,7 @@ class StereoLabels:
 
         return self
 
-    def clip(self, w: int, h: int) -> "StereoLabels":
+    def clip(self, w: int, h: int) -> StereoLabels:
         """Clip coordinates to image boundaries.
 
         Args:
@@ -334,7 +336,7 @@ class StereoLabels:
 
         return self
 
-    def denormalize(self, w: int, h: int) -> "StereoLabels":
+    def denormalize(self, w: int, h: int) -> StereoLabels:
         """Convert normalized coordinates to absolute coordinates.
 
         Args:
@@ -349,7 +351,7 @@ class StereoLabels:
         # Calibration is always in absolute coordinates, no change needed
         return self
 
-    def normalize(self, w: int, h: int) -> "StereoLabels":
+    def normalize(self, w: int, h: int) -> StereoLabels:
         """Convert absolute coordinates to normalized coordinates.
 
         Args:
@@ -364,7 +366,7 @@ class StereoLabels:
         # Calibration stays in absolute coordinates
         return self
 
-    def update_size(self, new_w: int, new_h: int) -> "StereoLabels":
+    def update_size(self, new_w: int, new_h: int) -> StereoLabels:
         """Update calibration image size.
 
         Args:
@@ -379,7 +381,7 @@ class StereoLabels:
             self.calibration["height"] = new_h
         return self
 
-    def regenerate_2d_bboxes_from_3d(self, image_size: tuple[int, int]) -> "StereoLabels":
+    def regenerate_2d_bboxes_from_3d(self, image_size: tuple[int, int]) -> StereoLabels:
         """Regenerate 2D bboxes by projecting 3D boxes to both cameras.
 
         This is useful after geometric transforms that modify 3D attributes
@@ -450,8 +452,8 @@ class StereoLabels:
 class StereoHSV:
     """HSV augmentation for stereo images.
 
-    Applies identical HSV augmentation to both left and right views to preserve stereo correspondence.
-    Works with 6-channel stereo images (H, W, 6) in labels dict.
+    Applies identical HSV augmentation to both left and right views to preserve stereo correspondence. Works with
+    6-channel stereo images (H, W, 6) in labels dict.
     """
 
     def __init__(self, hgain: float = 0.015, sgain: float = 0.7, vgain: float = 0.4, p: float = 0.5):
@@ -514,8 +516,8 @@ class StereoHSV:
 class StereoHFlip:
     """Horizontal flip for stereo images.
 
-    Flips both views horizontally and swaps left/right to preserve stereo geometry.
-    Updates instances (bboxes, right_bboxes, rotation_y) and calibration via StereoLabels.
+    Flips both views horizontally and swaps left/right to preserve stereo geometry. Updates instances (bboxes,
+    right_bboxes, rotation_y) and calibration via StereoLabels.
     """
 
     def __init__(self, p: float = 0.5):
@@ -588,8 +590,8 @@ class StereoHFlip:
 class StereoScale:
     """Random scale augmentation for stereo images.
 
-    Scales both views by the same factor. Normalized labels remain unchanged
-    since the scale operation preserves relative coordinates.
+    Scales both views by the same factor. Normalized labels remain unchanged since the scale operation preserves
+    relative coordinates.
     """
 
     def __init__(self, scale_range: tuple[float, float] = (0.8, 1.2), p: float = 0.5):
@@ -620,8 +622,8 @@ class StereoScale:
 
         h, w = img.shape[:2]
         s = float(np.random.uniform(*self.scale_range))
-        new_w = max(1, int(round(w * s)))
-        new_h = max(1, int(round(h * s)))
+        new_w = max(1, round(w * s))
+        new_h = max(1, round(h * s))
 
         # Resize 6-channel image
         img_scaled = cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_LINEAR)
@@ -701,8 +703,8 @@ class StereoCrop:
 class StereoLetterBox:
     """Letterbox transform for stereo images.
 
-    Resizes and pads a 6-channel stereo image to the target size while preserving aspect ratio.
-    Updates both instances and calibration via StereoLabels.
+    Resizes and pads a 6-channel stereo image to the target size while preserving aspect ratio. Updates both instances
+    and calibration via StereoLabels.
     """
 
     def __init__(self, new_shape: tuple[int, int] = (640, 640), scaleup: bool = True, stride: int = 32):
@@ -742,8 +744,8 @@ class StereoLetterBox:
             r = min(r, 1.0)
 
         # Compute new size
-        new_unpad_h = int(round(h * r))
-        new_unpad_w = int(round(w * r))
+        new_unpad_h = round(h * r)
+        new_unpad_w = round(w * r)
 
         # Compute padding
         dh = new_h - new_unpad_h

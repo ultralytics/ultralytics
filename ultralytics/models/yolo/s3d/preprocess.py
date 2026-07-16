@@ -1,5 +1,4 @@
-# Ultralytics AGPL-3.0 License - https://ultralytics.com/license
-
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """Unified preprocessing and postprocessing utilities for s3d.
 
 This module provides shared preprocessing and postprocessing functions used by
@@ -28,7 +27,6 @@ from ultralytics.models.yolo.s3d.head import DEPTH_BINS, DEPTH_MAX, DEPTH_MIN
 from ultralytics.models.yolo.s3d.orientation import decode_orientation
 from ultralytics.utils import LOGGER
 from ultralytics.utils.nms import non_max_suppression
-
 
 # =============================================================================
 # Configuration Defaults
@@ -84,8 +82,8 @@ def compute_letterbox_params(
     else:
         out_h, out_w = int(imgsz[0]), int(imgsz[1])
     scale = min(out_h / ori_h, out_w / ori_w)
-    new_unpad_w = int(round(ori_w * scale))
-    new_unpad_h = int(round(ori_h * scale))
+    new_unpad_w = round(ori_w * scale)
+    new_unpad_h = round(ori_h * scale)
     dw = out_w - new_unpad_w
     dh = out_h - new_unpad_h
     pad_left = dw // 2
@@ -136,8 +134,8 @@ def decode_stereo3d_outputs(
 ) -> list[Box3D] | list[list[Box3D]]:
     """Decode s3d outputs to Box3D objects.
 
-    Uses Detect inference output for candidate 2D boxes and class scores, then samples
-    the auxiliary stereo/3D maps at the kept P3 indices to estimate depth/dimensions/orientation.
+    Uses Detect inference output for candidate 2D boxes and class scores, then samples the auxiliary stereo/3D maps at
+    the kept P3 indices to estimate depth/dimensions/orientation.
 
     Args:
         outputs: Model outputs dictionary.
@@ -150,10 +148,10 @@ def decode_stereo3d_outputs(
         mean_dims: Mean dimensions per class (class ID -> (H, W, L) in meters).
         std_dims: Standard deviation of dimensions per class.
         class_names: Mapping from class ID to class name.
-        score_k: Decay rate for the uncertainty-based confidence weighting (confidence is scaled by
-            exp(-score_k * sigma), sigma = predicted lr-distance std-dev, when "lr_logvar" is present).
-        calib_letterboxed: If True, reverse-letterbox the per-sample calib (fx/fy/cx/cy) to
-            original-image coords before back-projection (the production caller sets this).
+        score_k: Decay rate for the uncertainty-based confidence weighting (confidence is scaled by exp(-score_k *
+            sigma), sigma = predicted lr-distance std-dev, when "lr_logvar" is present).
+        calib_letterboxed: If True, reverse-letterbox the per-sample calib (fx/fy/cx/cy) to original-image coords before
+            back-projection (the production caller sets this).
 
     Notes:
         The projected-center offset ("proj_offset"), inverse-variance depth fusion, and
@@ -362,9 +360,8 @@ def preprocess_stereo_batch(
 ) -> dict[str, Any]:
     """Unified preprocessing for train/val batches from dataset.
 
-    Normalizes 6-channel images to float [0,1] and moves targets to device.
-    Targets are generated in the dataset's collate_fn, so this just moves
-    them to the device if they're not already there.
+    Normalizes 6-channel images to float [0,1] and moves targets to device. Targets are generated in the dataset's
+    collate_fn, so this just moves them to the device if they're not already there.
 
     Args:
         batch: Batch dictionary from dataloader containing 'img' tensor and targets.
@@ -398,8 +395,8 @@ def preprocess_stereo_images(
 ) -> torch.Tensor:
     """Unified preprocessing for prediction (raw images).
 
-    Applies letterbox resizing, BGR to RGB conversion, normalization, and
-    converts numpy arrays to tensors on the target device.
+    Applies letterbox resizing, BGR to RGB conversion, normalization, and converts numpy arrays to tensors on the target
+    device.
 
     Args:
         images: List of 6-channel stereo images [H, W, 6] in BGR format, or tensor.
@@ -469,17 +466,15 @@ def decode_and_refine_predictions(
 ) -> list[list[Box3D]]:
     """Unified decode + refine pipeline for val and predict.
 
-    Decodes raw model outputs to Box3D objects and optionally applies
-    geometric construction and dense alignment refinements.
+    Decodes raw model outputs to Box3D objects and optionally applies geometric construction and dense alignment
+    refinements.
 
     Args:
         preds: Dictionary of model outputs.
         batch: Optional batch dictionary with calibration, images, and original shapes.
         args: Optional args object with configuration (conf, iou, imgsz, etc.).
-        use_geometric: If True, apply geometric construction refinement.
-            If None, uses config default (enabled).
-        use_dense_alignment: If True, apply dense alignment refinement.
-            If None, uses config default (enabled).
+        use_geometric: If True, apply geometric construction refinement. If None, uses config default (enabled).
+        use_dense_alignment: If True, apply dense alignment refinement. If None, uses config default (enabled).
         conf_threshold: Confidence threshold for filtering detections.
         top_k: Maximum number of detections to extract.
         iou_thres: IoU threshold for NMS.
@@ -574,8 +569,7 @@ def _apply_geometric_construction(
 ) -> list[list[Box3D]]:
     """Apply geometric construction to refine initial 3D estimates.
 
-    Refines 3D box center (x, y, z) and orientation using Gauss-Newton
-    optimization with geometric constraint equations.
+    Refines 3D box center (x, y, z) and orientation using Gauss-Newton optimization with geometric constraint equations.
 
     Args:
         results: List of Box3D lists (one per batch item).
@@ -683,8 +677,7 @@ def _apply_dense_alignment(
 ) -> list[list[Box3D]]:
     """Apply dense photometric alignment to refine depth estimates.
 
-    Refines the depth estimates of detected 3D boxes using photometric
-    matching between left and right stereo images.
+    Refines the depth estimates of detected 3D boxes using photometric matching between left and right stereo images.
 
     Args:
         results: List of Box3D lists (one per batch item).

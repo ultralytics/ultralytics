@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-
 """
-KITTI to YOLO 3D Stereo Format Converter
+KITTI to YOLO 3D Stereo Format Converter.
 
 This script converts KITTI dataset to YOLO 3D stereo format with 18 values per object:
 class x_l y_l w_l h_l x_r y_r w_r h_r dim_l dim_w dim_h loc_x loc_y loc_z rot_y truncated occluded
@@ -50,7 +49,7 @@ SPLIT_MAP = {"training": "train", "testing": "val"}
 
 
 class KITTIToYOLO3D:
-    """Convert KITTI dataset to YOLO 3D Stereo format with directory layout:
+    """Convert KITTI dataset to YOLO 3D Stereo format with directory layout:.
 
     root/
         images/{train|val}/left/*.png
@@ -62,14 +61,22 @@ class KITTIToYOLO3D:
         val.txt   (image index list for validation/testing split if created)
     """
 
-    def __init__(self, kitti_root, output_root, filter_classes=None, split_strategy="single", filter_occluded=False, max_occlusion_level=1):
+    def __init__(
+        self,
+        kitti_root,
+        output_root,
+        filter_classes=None,
+        split_strategy="single",
+        filter_occluded=False,
+        max_occlusion_level=1,
+    ):
         """
         Args:
             kitti_root: Path to KITTI dataset root
             output_root: Path to output directory
             filter_classes: List of class names to include (None = include all)
             filter_occluded: Whether to filter out heavily occluded objects (default: False)
-            max_occlusion_level: Maximum occlusion level to include (default: 1, excludes heavy/unknown)
+            max_occlusion_level: Maximum occlusion level to include (default: 1, excludes heavy/unknown).
         """
         self.kitti_root = Path(kitti_root)
         self.output_root = Path(output_root)
@@ -93,14 +100,16 @@ class KITTIToYOLO3D:
         # Split strategy: 'single' (original behavior) or '3dop' (fixed train/val split on training set indices)
         self.split_strategy = split_strategy
 
-    # Filter classes (if specified)
+        # Filter classes (if specified)
         self.filter_classes = filter_classes
         # Occlusion filtering settings
         self.filter_occluded = filter_occluded
         self.max_occlusion_level = max_occlusion_level
         if filter_occluded:
-            LOGGER.info(f"Occlusion filtering enabled: excluding objects with occlusion level > {max_occlusion_level} "
-                       f"(0=visible, 1=partial, 2=heavy, 3=unknown)")
+            LOGGER.info(
+                f"Occlusion filtering enabled: excluding objects with occlusion level > {max_occlusion_level} "
+                f"(0=visible, 1=partial, 2=heavy, 3=unknown)"
+            )
         self.class_id_remap = None  # Will store remapping from original to new IDs
         if self.filter_classes is not None:
             # Convert to set for faster lookup
@@ -126,7 +135,7 @@ class KITTIToYOLO3D:
 
         # Create base output directories (split-specific subfolders created during conversion)
         self._setup_output_dirs()
-        
+
         # Mean dimensions will be computed during conversion and stored here
         self.mean_dims = None
 
@@ -136,13 +145,12 @@ class KITTIToYOLO3D:
             (self.output_root / parent).mkdir(parents=True, exist_ok=True)
 
     def parse_calibration(self, calib_file):
-        """
-        Parse KITTI calibration file.
+        """Parse KITTI calibration file.
 
         Returns:
             dict with fx, fy, cx, cy, baseline, P2, P3
         """
-        with open(calib_file, "r") as f:
+        with open(calib_file) as f:
             lines = f.readlines()
 
         # Parse projection matrices
@@ -176,8 +184,7 @@ class KITTIToYOLO3D:
         }
 
     def compute_right_box(self, X, Y, Z, h, w, l, ry, calib, left_box_2d):
-        """
-        Compute right image 2D box center and width.
+        """Compute right image 2D box center and width.
 
         Uses disparity-based formula for center (geometrically correct) and
         corner projection for width estimation.
@@ -185,7 +192,7 @@ class KITTIToYOLO3D:
         Returns:
             center_x_r, width_r (in pixels)
         """
-        x1_l, y1_l, x2_l, y2_l = left_box_2d
+        x1_l, _y1_l, x2_l, _y2_l = left_box_2d
         center_x_l = (x1_l + x2_l) / 2
         width_l = x2_l - x1_l
 
@@ -253,8 +260,7 @@ class KITTIToYOLO3D:
         return center_x_r, width_r
 
     def convert_label(self, label_file, calib_file):
-        """
-        Convert single KITTI label file to YOLO 3D format.
+        """Convert single KITTI label file to YOLO 3D format.
 
         Returns:
             List of label strings
@@ -264,7 +270,7 @@ class KITTIToYOLO3D:
 
         calib = self.parse_calibration(calib_file)
 
-        with open(label_file, "r") as f:
+        with open(label_file) as f:
             lines = f.readlines()
 
         yolo_labels = []
@@ -293,7 +299,7 @@ class KITTIToYOLO3D:
             # Parse KITTI label fields
             truncated = float(parts[1])
             occluded = int(parts[2])
-            alpha = float(parts[3])
+            float(parts[3])
 
             # Filter heavily occluded objects if enabled
             if self.filter_occluded and occluded > self.max_occlusion_level:
@@ -332,7 +338,9 @@ class KITTIToYOLO3D:
             height_l_norm = height_l / self.img_height
 
             # ===== Right 2D Box (normalized) =====
-            center_x_r, width_r = self.compute_right_box(X, Y, Z, h, w, l, rotation_y, calib, left_box_2d=[x1, y1, x2, y2])
+            center_x_r, width_r = self.compute_right_box(
+                X, Y, Z, h, w, l, rotation_y, calib, left_box_2d=[x1, y1, x2, y2]
+            )
 
             center_x_r_norm = center_x_r / self.img_width
             center_y_r_norm = center_y_l_norm  # Same y due to epipolar constraint
@@ -388,10 +396,10 @@ class KITTIToYOLO3D:
 
     def _compute_mean_dimensions(self, split_name="train"):
         """Compute mean dimensions from converted label files.
-        
+
         Args:
             split_name: Split name to compute means from (typically "train")
-        
+
         Returns:
             dict: Mapping from class name to mean dimensions [L, W, H] in meters
         """
@@ -399,11 +407,11 @@ class KITTIToYOLO3D:
         if not label_dir.exists():
             LOGGER.warning(f"Label directory {label_dir} does not exist. Cannot compute mean dimensions.")
             return None
-        
+
         # Collect dimensions per class
         # Format: {class_name: [[l, w, h], ...]}
         class_dimensions = {}
-        
+
         # Get reverse class mapping (class_id -> class_name)
         # Handle filtered classes and remapping
         if self.filter_classes is not None:
@@ -415,28 +423,28 @@ class KITTIToYOLO3D:
                     id_to_name[new_id] = class_name
         else:
             id_to_name = {v: k for k, v in self.class_map.items()}
-        
+
         # Iterate through all label files
         label_files = sorted(label_dir.glob("*.txt"))
         total_labels = 0
-        
+
         for label_file in TQDM(label_files, desc="Computing mean dimensions"):
-            with open(label_file, "r") as f:
+            with open(label_file) as f:
                 for line in f:
                     line = line.strip()
                     if not line:
                         continue
-                    
+
                     parts = line.split()
                     if len(parts) < 10:
                         continue
-                    
+
                     try:
                         class_id = int(float(parts[0]))
                         # Extract 3D dimensions from converted label format:
                         # Format: class x_l y_l w_l h_l x_r y_r w_r h_r dim_l dim_w dim_h ...
                         # Indices:   0    1   2   3   4   5   6   7   8    9    10    11
-                        dim_l = float(parts[9])   # Length in meters
+                        dim_l = float(parts[9])  # Length in meters
                         dim_w = float(parts[10])  # Width in meters
                         dim_h = float(parts[11])  # Height in meters
 
@@ -453,36 +461,38 @@ class KITTIToYOLO3D:
                     except (ValueError, IndexError) as e:
                         LOGGER.debug(f"Error parsing label line in {label_file}: {e}")
                         continue
-        
+
         # Compute mean dimensions for each class
         mean_dims = {}
         for class_name, dims_list in class_dimensions.items():
             if len(dims_list) == 0:
                 continue
-            
+
             # Compute mean for each dimension
             dims_array = np.array(dims_list)
             mean_l = float(np.mean(dims_array[:, 0]))
             mean_w = float(np.mean(dims_array[:, 1]))
             mean_h = float(np.mean(dims_array[:, 2]))
-            
+
             # Also compute standard deviation for each dimension
             std_l = float(np.std(dims_array[:, 0]))
             std_w = float(np.std(dims_array[:, 1]))
             std_h = float(np.std(dims_array[:, 2]))
-            
+
             mean_dims[class_name] = [mean_l, mean_w, mean_h]
-            LOGGER.info(f"  {class_name}: mean_dims = [L={mean_l:.2f}, W={mean_w:.2f}, H={mean_h:.2f}], std_dims = [L={std_l:.2f}, W={std_w:.2f}, H={std_h:.2f}] (from {len(dims_list)} samples)")
-        
+            LOGGER.info(
+                f"  {class_name}: mean_dims = [L={mean_l:.2f}, W={mean_w:.2f}, H={mean_h:.2f}], std_dims = [L={std_l:.2f}, W={std_w:.2f}, H={std_h:.2f}] (from {len(dims_list)} samples)"
+            )
+
         LOGGER.info(f"Computed mean dimensions from {total_labels} labels across {len(mean_dims)} classes")
         return mean_dims if mean_dims else None
 
     def _compute_std_dimensions(self, split_name="train"):
         """Compute standard deviation of dimensions from converted label files.
-        
+
         Args:
             split_name: Split name to compute std from (typically "train")
-        
+
         Returns:
             dict: Mapping from class name to std dimensions [L, W, H] in meters
         """
@@ -490,11 +500,11 @@ class KITTIToYOLO3D:
         if not label_dir.exists():
             LOGGER.warning(f"Label directory {label_dir} does not exist. Cannot compute std dimensions.")
             return None
-        
+
         # Collect dimensions per class
         # Format: {class_name: [[l, w, h], ...]}
         class_dimensions = {}
-        
+
         # Get reverse class mapping (class_id -> class_name)
         # Handle filtered classes and remapping
         if self.filter_classes is not None:
@@ -506,28 +516,28 @@ class KITTIToYOLO3D:
                     id_to_name[new_id] = class_name
         else:
             id_to_name = {v: k for k, v in self.class_map.items()}
-        
+
         # Iterate through all label files
         label_files = sorted(label_dir.glob("*.txt"))
         total_labels = 0
-        
+
         for label_file in TQDM(label_files, desc="Computing std dimensions"):
-            with open(label_file, "r") as f:
+            with open(label_file) as f:
                 for line in f:
                     line = line.strip()
                     if not line:
                         continue
-                    
+
                     parts = line.split()
                     if len(parts) < 10:
                         continue
-                    
+
                     try:
                         class_id = int(float(parts[0]))
                         # Extract 3D dimensions from converted label format:
                         # Format: class x_l y_l w_l h_l x_r y_r w_r h_r dim_l dim_w dim_h ...
                         # Indices:   0    1   2   3   4   5   6   7   8    9    10    11
-                        dim_l = float(parts[9])   # Length in meters
+                        dim_l = float(parts[9])  # Length in meters
                         dim_w = float(parts[10])  # Width in meters
                         dim_h = float(parts[11])  # Height in meters
 
@@ -544,22 +554,24 @@ class KITTIToYOLO3D:
                     except (ValueError, IndexError) as e:
                         LOGGER.debug(f"Error parsing label line in {label_file}: {e}")
                         continue
-        
+
         # Compute std for each class
         std_dims = {}
         for class_name, dims_list in class_dimensions.items():
             if len(dims_list) == 0:
                 continue
-            
+
             # Compute std for each dimension
             dims_array = np.array(dims_list)
             std_l = float(np.std(dims_array[:, 0]))
             std_w = float(np.std(dims_array[:, 1]))
             std_h = float(np.std(dims_array[:, 2]))
-            
+
             std_dims[class_name] = [std_l, std_w, std_h]
-            LOGGER.info(f" {class_name}: std_dims = [L={std_l:.2f}, W={std_w:.2f}, H={std_h:.2f}] (from {len(dims_list)} samples)")
-        
+            LOGGER.info(
+                f" {class_name}: std_dims = [L={std_l:.2f}, W={std_w:.2f}, H={std_h:.2f}] (from {len(dims_list)} samples)"
+            )
+
         LOGGER.info(f"Computed std dimensions from {total_labels} labels across {len(std_dims)} classes")
         return std_dims if std_dims else None
 
@@ -568,13 +580,13 @@ class KITTIToYOLO3D:
 
         Args:
             split: 'training' or 'testing'
-        Behavior:
+            Behavior:
             - 'single' strategy: mirrors KITTI splits to train/val.
             - '3dop' strategy: when split=='training', internally slices indices 0-3711 -> train, 3712-end -> val.
         """
-        LOGGER.info(f"\n{'='*60}")
+        LOGGER.info(f"\n{'=' * 60}")
         LOGGER.info(f"Converting KITTI {split} split (strategy={self.split_strategy})")
-        LOGGER.info(f"{'='*60}\n")
+        LOGGER.info(f"{'=' * 60}\n")
 
         # Paths
         image_2_dir = self.kitti_root / split / "image_2"
@@ -642,7 +654,7 @@ class KITTIToYOLO3D:
                 f.write("\n".join(val_index))
 
             LOGGER.info(f"3DOP conversion complete: train={len(train_index)} val={len(val_index)}")
-            
+
             # Compute mean and std dimensions from training split
             LOGGER.info("\nComputing mean dimensions from training split...")
             self.mean_dims = self._compute_mean_dimensions("train")
@@ -654,7 +666,12 @@ class KITTIToYOLO3D:
         split_name = SPLIT_MAP.get(split, split)
 
         # Ensure directories exist
-        for d in [f"images/{split_name}/left", f"images/{split_name}/right", f"labels/{split_name}", f"calib/{split_name}"]:
+        for d in [
+            f"images/{split_name}/left",
+            f"images/{split_name}/right",
+            f"labels/{split_name}",
+            f"calib/{split_name}",
+        ]:
             (self.output_root / d).mkdir(parents=True, exist_ok=True)
 
         index_list = []
@@ -696,7 +713,7 @@ class KITTIToYOLO3D:
 
         LOGGER.info(f"Conversion complete for split '{split_name}'")
         LOGGER.info(f"Output directory: {self.output_root}")
-        
+
         # Compute mean dimensions from training split if this is the training split
         if split_name == "train" and self.mean_dims is None:
             LOGGER.info("\nComputing mean dimensions from training split...")
@@ -745,20 +762,22 @@ class KITTIToYOLO3D:
             yaml_lines.append(f"train: {train_ref}")
         if val_ref:
             yaml_lines.append(f"val: {val_ref}")
-        yaml_lines.extend([
-            "# Classes",
-            "names:",
-            names_section,
-            "# Dataset info",
-            f"nc: {num_classes}  # number of classes",
-            "stereo: true",
-            "image_size: [375, 1242]  # height, width",
-            "# Calibration",
-            "baseline: 0.54  # meters (approximate)",
-            "focal_length: 721.5  # pixels (approximate)",
-            "channels: 6",
-        ])
-        
+        yaml_lines.extend(
+            [
+                "# Classes",
+                "names:",
+                names_section,
+                "# Dataset info",
+                f"nc: {num_classes}  # number of classes",
+                "stereo: true",
+                "image_size: [375, 1242]  # height, width",
+                "# Calibration",
+                "baseline: 0.54  # meters (approximate)",
+                "focal_length: 721.5  # pixels (approximate)",
+                "channels: 6",
+            ]
+        )
+
         # Add mean dimensions if computed - use integer keys to match class IDs
         if self.mean_dims is not None and len(self.mean_dims) > 0:
             yaml_lines.append("# Mean dimensions per class [L, W, H] in meters")
@@ -768,12 +787,14 @@ class KITTIToYOLO3D:
                 if class_name in self.mean_dims:
                     dims = self.mean_dims[class_name]
                     yaml_lines.append(f"  {class_id}: [{dims[0]:.2f}, {dims[1]:.2f}, {dims[2]:.2f}]  # {class_name}")
-                    LOGGER.info(f"  Class {class_id} ({class_name}): mean_dims = [L={dims[0]:.2f}, W={dims[1]:.2f}, H={dims[2]:.2f}]")
+                    LOGGER.info(
+                        f"  Class {class_id} ({class_name}): mean_dims = [L={dims[0]:.2f}, W={dims[1]:.2f}, H={dims[2]:.2f}]"
+                    )
                 else:
                     LOGGER.warning(f"  Missing mean_dims for class {class_id} ({class_name})")
 
         # Add std dimensions if computed - use integer keys to match class IDs
-        if hasattr(self, 'std_dims') and self.std_dims is not None and len(self.std_dims) > 0:
+        if hasattr(self, "std_dims") and self.std_dims is not None and len(self.std_dims) > 0:
             yaml_lines.append("# Standard deviation dimensions per class [L, W, H] in meters")
             yaml_lines.append("std_dims:")
             # Use the same order as class_names to ensure 1-to-1 correspondence
@@ -781,7 +802,9 @@ class KITTIToYOLO3D:
                 if class_name in self.std_dims:
                     dims = self.std_dims[class_name]
                     yaml_lines.append(f"  {class_id}: [{dims[0]:.2f}, {dims[1]:.2f}, {dims[2]:.2f}]  # {class_name}")
-                    LOGGER.info(f"  Class {class_id} ({class_name}): std_dims = [L={dims[0]:.2f}, W={dims[1]:.2f}, H={dims[2]:.2f}]")
+                    LOGGER.info(
+                        f"  Class {class_id} ({class_name}): std_dims = [L={dims[0]:.2f}, W={dims[1]:.2f}, H={dims[2]:.2f}]"
+                    )
                 else:
                     LOGGER.warning(f"  Missing std_dims for class {class_id} ({class_name})")
 

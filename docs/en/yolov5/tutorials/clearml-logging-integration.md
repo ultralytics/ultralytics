@@ -22,7 +22,7 @@ Use as many or as few of these tools as you need — start with the experiment m
 
 ![ClearML scalars dashboard showing YOLOv5 training metrics](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/clearml-scalars-dashboard.avif)
 
-## 🦾 Setting Things Up
+## Setting Things Up
 
 ClearML needs to communicate with a server to track your experiments and data. You have two options:
 
@@ -43,7 +43,7 @@ clearml-init
 
 Follow the prompts. That's it — setup is complete.
 
-## 🚀 Training YOLOv5 With ClearML
+## Training YOLOv5 With ClearML
 
 To enable experiment tracking, install the ClearML pip package if you haven't already:
 
@@ -83,7 +83,7 @@ Everything appears in the ClearML UI so you can monitor training in one place. A
 
 Keep reading for [hyperparameter optimization](https://www.ultralytics.com/glossary/hyperparameter-tuning) and remote execution.
 
-### 🔗 Dataset Version Management
+### Dataset Version Management
 
 Versioning data separately from code makes it easy to pull the latest version and ensures full reproducibility. This repository accepts a dataset version ID, fetches the data automatically if it is missing, and records the ID as a task parameter so you always know which data was used in which experiment.
 
@@ -147,7 +147,7 @@ With the dataset registered, point training at it by ID:
 python train.py --img 640 --batch 16 --epochs 3 --data clearml://YOUR_DATASET_ID --weights yolov5s.pt --cache
 ```
 
-### 👀 Hyperparameter Optimization
+### Hyperparameter Optimization
 
 With experiments and data versioned, you can build on top of them. Because each tracked experiment captures the full environment — code, installed packages, and configuration — runs are **fully reproducible**. ClearML lets you clone an experiment, change its parameters, and rerun it automatically, which is the foundation of hyperparameter optimization (HPO).
 
@@ -165,7 +165,7 @@ Switch `task.execute_locally()` to `task.execute()` to push the job to a ClearML
 
 ![ClearML HPO dashboard with YOLOv5 metrics](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/hpo-clearml-experiment.avif)
 
-## 🤯 Remote Execution (Advanced)
+## Remote Execution (Advanced)
 
 Running HPO locally is convenient, but you'll often want experiments on more powerful hardware — an on-prem GPU machine or a cloud instance. That's the role of the [ClearML Agent](https://docs.clear.ml/docs/latest/docs/clearml_agent):
 

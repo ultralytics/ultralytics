@@ -131,7 +131,7 @@ jobs:
         run: python .github/scripts/fuzz.py report --in fuzz-out --max-issues 3
       - name: Notify on new issues
         if: steps.report.outputs.new_issues > 0 && github.event_name == 'schedule' && github.run_attempt == '1'
-        uses: slackapi/slack-github-action@v3.0.5
+        uses: slackapi/slack-github-action@v4.0.0
         with:
           webhook-type: incoming-webhook
           webhook: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}

@@ -1127,6 +1127,7 @@ class AnomalyBboxValidator:
         self.zero_mode = zero_mode
         self.save_dir = Path(save_dir) if save_dir is not None else None
         self.save_vis = save_vis
+        self._vis_tag = f"bbox_d{max_det}_ms{min_score}_{zero_mode}"
 
     # ── Label file resolution ──────────────────────────────────────────
 
@@ -1485,7 +1486,7 @@ class AnomalyBboxValidator:
         per_image_boxes = [self._heatmap_to_boxes(hm, min_score=min_score) for hm in heatmaps]
         pred_list = self._build_pred_json(image_ids, per_image_boxes)
 
-        pred_path = str(save_dir / f"pred_ms{min_score:.3f}.json")
+        pred_path = str(save_dir / "pred.json")  # temp, overwritten each eval
         with open(pred_path, "w") as f:
             json.dump(pred_list, f, indent=2)
 
@@ -1690,33 +1691,12 @@ class AnomalyBboxValidator:
             for r in rows + [avg]:
                 w.writerow({k: (f"{r[k]:.4f}" if isinstance(r.get(k), float) and r[k] == r[k] else r[k])
                             for k in map_fields})
-        print(f"\nSaved bbox mAP → {out_csv}")
-
-        cal_csv = out_csv.parent / f"calibration_{out_csv.stem}.csv"
-        cal_fields = ["category", "anomaly_deviation", "normal_deviation"]
-        with open(cal_csv, "w", newline="") as f:
-            w = csv.DictWriter(f, fieldnames=cal_fields)
-            w.writeheader()
-            for r in rows + [avg]:
-                w.writerow({
-                    "category": r["category"],
-                    "anomaly_deviation": f"{r['anomaly_deviation']:.4f}" if isinstance(r.get("anomaly_deviation"), float) and r["anomaly_deviation"] == r["anomaly_deviation"] else "nan",
-                    "normal_deviation": f"{r['normal_deviation']:.4f}" if isinstance(r.get("normal_deviation"), float) and r["normal_deviation"] == r["normal_deviation"] else "nan",
-                })
-        print(f"Saved calibration → {cal_csv}")
+        print(f"\nSaved bbox → {out_csv}")
 
         print(f"\n=== bbox mAP ===")
         for r in rows:
             print(f"  {r['category']:>12s}  mAP50={r['map50']:.4f}  mAP={r['map']:.4f}  preds={r['n_pred']}")
         print(f"  {'AVERAGE':>12s}  mAP50={avg['map50']:.4f}  mAP={avg['map']:.4f}  preds={avg['n_pred']}")
-
-        print(f"\n=== calibration ===")
-        print(f"  {'category':>12s}  {'aDev':>8s}  {'nDev':>8s}")
-        for r in rows:
-            aDev = r.get("anomaly_deviation", float("nan"))
-            nDev = r.get("normal_deviation", float("nan"))
-            print(f"  {r['category']:>12s}  {aDev:8.4f}  {nDev:8.4f}")
-        print(f"  {'AVERAGE':>12s}  {avg['anomaly_deviation']:8.4f}  {avg['normal_deviation']:8.4f}")
         return rows
 
 
@@ -1867,7 +1847,8 @@ class DeviationValidator:
 
 
 @torch.inference_mode()
-def predict_category(ad: "AnomalyBase", category: str) -> dict:
+def predict_category(ad: "AnomalyBase", category: str,
+                     out_dir: Path | None = None) -> dict:
     """Build bank + predict all test images for one category.
 
     Returns a cache dict with heatmaps at original resolution and all
@@ -1931,6 +1912,13 @@ def predict_category(ad: "AnomalyBase", category: str) -> dict:
 
     def _fmean(vals):
         return statistics.fmean(vals) if vals else float("nan")
+
+    # Save heatmaps to disk if out_dir is given
+    if out_dir is not None:
+        hm_dir = out_dir / category / "heatmaps"
+        hm_dir.mkdir(parents=True, exist_ok=True)
+        for im, hm in zip(test_imgs, heatmaps):
+            np.save(hm_dir / f"{Path(im).stem}.npy", hm)
 
     return {
         "category": category,
@@ -2119,67 +2107,57 @@ def main() -> None:
         cats = list(MVTEC_CATEGORIES)
 
     ad, run_dir = _build(args)
-    if args.out is not None:
-        out_csv = args.out
-    else:
-        stem = "metrics"
-        if len(cats) < len(MVTEC_CATEGORIES):
-            stem += f"_{'_'.join(cats)}"
-        out_csv = run_dir / f"{stem}.csv"
-    out_csv.parent.mkdir(parents=True, exist_ok=True)
-
-    save_vis_dir = run_dir / "vis" if args.save_vis else None
-    save_vis_samples_dir = run_dir / "vis" / "samples" if args.save_vis_samples else None
+    run_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"run_dir={run_dir}  backbone={ad.backbone} imgsz={ad.imgsz} device={ad.device} "
           f"feat_dim={ad.feat_dim} grid={ad.grid} K={ad.K} target_score={ad.target_score}"
           + (f" coreset={args.coreset}" if args.coreset else ""))
 
+    # Phase 1 — predict
+    print(f"\n{'#' * 60}\n# Phase 1 — predict ({len(cats)} categories)\n{'#' * 60}", flush=True)
+    caches = [predict_category(ad, cat, out_dir=run_dir) for cat in cats]
+
+    # Phase 2 — eval
     if not args.bbox and not args.deviation:
-        # Default: AUROC only, predict + eval in one shot.
+        # AUROC only
         validator = AnomalyValidator(
             eval_size=256,
-            save_vis_dir=save_vis_dir,
-            save_vis_samples_dir=save_vis_samples_dir,
+            save_vis_dir=run_dir / "vis" / "anomaly" if args.save_vis else None,
+            save_vis_samples_dir=run_dir / "vis" / "anomaly_samples" if args.save_vis_samples else None,
             vis_thresh=args.vis_thresh,
         )
-        validator.run(ad, cats, out_csv)
-    else:
-        # Predict once, dispatch to all requested validators.
-        print(f"\n{'#' * 60}\n# Phase 1 — predict ({len(cats)} categories)\n{'#' * 60}", flush=True)
-        caches = [predict_category(ad, cat) for cat in cats]
+        print(f"\n{'#' * 60}\n# Phase 2 — anomaly eval\n{'#' * 60}", flush=True)
+        validator.run_from_caches(caches, run_dir / "metrics.csv")
 
-        if args.bbox:
-            bbox_out = run_dir / f"bbox_{out_csv.stem}.csv"
-            bbox_validator = AnomalyBboxValidator(
-                max_det=args.max_det,
-                min_area=args.bbox_min_area,
-                min_score=args.bbox_min_score,
-                zero_mode=args.zero_mode,
-                save_dir=run_dir / "bbox_eval",
-                save_vis=args.bbox_vis,
-            )
+    if args.bbox:
+        bbox_validator = AnomalyBboxValidator(
+            max_det=args.max_det,
+            min_area=args.bbox_min_area,
+            min_score=args.bbox_min_score,
+            zero_mode=args.zero_mode,
+            save_dir=run_dir,
+            save_vis=args.bbox_vis,
+        )
+        if args.bbox_min_score_sweep is not None:
+            parts = [float(x.strip()) for x in args.bbox_min_score_sweep.split(",")]
+            if len(parts) != 3:
+                raise SystemExit("--bbox-min-score-sweep must be 'start,end,step' (e.g. '0.1,0.8,0.05')")
+            start, end, step = parts
+            ms = start
+            min_scores: list[float] = []
+            while ms <= end + 1e-9:
+                min_scores.append(round(ms, 4))
+                ms += step
+            print(f"\n{'#' * 60}\n# Phase 2 — bbox sweep ({len(min_scores)} steps)\n{'#' * 60}", flush=True)
+            bbox_validator.run_sweep_from_caches(caches, min_scores, run_dir / "bbox_sweep.csv")
+        else:
             print(f"\n{'#' * 60}\n# Phase 2 — bbox eval\n{'#' * 60}", flush=True)
-            if args.bbox_min_score_sweep is not None:
-                parts = [float(x.strip()) for x in args.bbox_min_score_sweep.split(",")]
-                if len(parts) != 3:
-                    raise SystemExit("--bbox-min-score-sweep must be 'start,end,step' (e.g. '0.1,0.8,0.05')")
-                start, end, step = parts
-                ms = start
-                min_scores: list[float] = []
-                while ms <= end + 1e-9:
-                    min_scores.append(round(ms, 4))
-                    ms += step
-                sweep_out = run_dir / f"bbox_sweep_{out_csv.stem}.csv"
-                bbox_validator.run_sweep_from_caches(caches, min_scores, sweep_out)
-            else:
-                bbox_validator.run_from_caches(caches, bbox_out)
+            bbox_validator.run_from_caches(caches, run_dir / "bbox.csv")
 
-        if args.deviation:
-            print(f"\n{'#' * 60}\n# Phase 2 — deviation eval\n{'#' * 60}", flush=True)
-            dev_out = run_dir / f"deviation_{out_csv.stem}.csv"
-            dev_validator = DeviationValidator(save_dir=run_dir / "deviation")
-            dev_validator.run_from_caches(caches, dev_out)
+    if args.deviation:
+        print(f"\n{'#' * 60}\n# Phase 2 — deviation eval\n{'#' * 60}", flush=True)
+        dev_validator = DeviationValidator()
+        dev_validator.run_from_caches(caches, run_dir / "deviation.csv")
 
 
 if __name__ == "__main__":

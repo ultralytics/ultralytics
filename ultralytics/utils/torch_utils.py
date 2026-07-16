@@ -1067,12 +1067,15 @@ def attempt_compile(
     t0 = time.perf_counter()
     try:
         torch._dynamo.reset()  # reset cache
-        options = {
-            **torch._inductor.list_mode_options()[mode],
-            "coordinate_descent_tuning": False,
-            "triton.cudagraph_trees": False,
-        }  # override non-reproducible/slow opts
-        model = torch.compile(model, backend="inductor", options=options)
+        if hasattr(torch._inductor, "list_mode_options"):  # torch>=2.1
+            options = {
+                **torch._inductor.list_mode_options(mode),
+                "coordinate_descent_tuning": False,
+                "triton.cudagraph_trees": False,
+            }  # override non-reproducible/slow opts
+            model = torch.compile(model, backend="inductor", options=options)
+        else:
+            model = torch.compile(model, mode=mode, backend="inductor")
     except Exception as e:
         LOGGER.warning(f"{prefix} torch.compile failed, continuing uncompiled: {e}")
         return model

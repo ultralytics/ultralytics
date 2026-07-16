@@ -3,7 +3,6 @@ title: Crack-Seg Dataset
 comments: true
 creator:
     name: University
-    url: https://universe.roboflow.com/university-bswxt/crack-bphdr
 license:
     name: PDM-1.0
     url: https://creativecommons.org/publicdomain/mark/1.0/

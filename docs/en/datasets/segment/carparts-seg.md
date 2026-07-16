@@ -4,7 +4,7 @@ comments: true
 creator:
     name: Gianmarco Russo
     type: Person
-    url: https://universe.roboflow.com/gianmarco-russo-vt9xr/car-seg-un1pm
+    url: https://github.com/grusso98
 license:
     name: CC-BY-4.0
     url: https://creativecommons.org/licenses/by/4.0/

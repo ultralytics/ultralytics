@@ -45,6 +45,7 @@ import csv
 import json
 import math
 import statistics
+import tempfile
 import time
 from pathlib import Path
 
@@ -1486,14 +1487,17 @@ class AnomalyBboxValidator:
         per_image_boxes = [self._heatmap_to_boxes(hm, min_score=min_score) for hm in heatmaps]
         pred_list = self._build_pred_json(image_ids, per_image_boxes)
 
-        pred_path = str(save_dir / "pred.json")  # temp, overwritten each eval
-        with open(pred_path, "w") as f:
-            json.dump(pred_list, f, indent=2)
-
+        # COCO eval needs files on disk; use temp file for pred.
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as tf:
+            json.dump(pred_list, tf)
+            pred_path = tf.name
         try:
             coco_metrics = self._eval_coco(str(save_dir / "gt.json"), pred_path)
         except Exception:
             coco_metrics = {"map50": float("nan"), "map": float("nan")}
+        finally:
+            Path(pred_path).unlink(missing_ok=True)
+
 
         n_images = len(image_entries)
         n_defect = sum(1 for im in test_imgs if im not in test_good_set)
@@ -1517,6 +1521,57 @@ class AnomalyBboxValidator:
             "n_img_preds_defect": n_img_preds_defect,
             "n_img_preds_good": n_img_preds_good,
         }
+
+    # ── Bbox visualization ────────────────────────────────────────
+
+    def _save_bbox_vis(self, category: str, test_imgs: list[str],
+                       heatmaps: list[np.ndarray],
+                       per_image_boxes: list[np.ndarray],
+                       image_entries: list[dict]):
+        """Save side-by-side [original | heatmap | bbox overlay] images."""
+        import cv2
+        vis_dir = self.save_dir / "vis" / self._vis_tag / category
+        vis_dir.mkdir(parents=True, exist_ok=True)
+        S = 512
+        for i, (im, hm, boxes) in enumerate(zip(test_imgs, heatmaps, per_image_boxes)):
+            im_name = Path(im).stem
+            orig = cv2.imread(im)
+            if orig is None:
+                continue
+            ori_h, ori_w = orig.shape[:2]
+            orig_r = cv2.resize(orig, (S, S))
+
+            hm_viz = np.clip(hm, 0, 1)
+            if hm_viz.shape[:2] != (S, S):
+                hm_viz = cv2.resize(hm_viz, (S, S))
+            hm_color = cv2.applyColorMap((hm_viz * 255).astype(np.uint8), cv2.COLORMAP_JET)
+
+            box_img = orig_r.copy()
+            sx, sy = S / ori_w, S / ori_h
+            # GT (red)
+            for ann in image_entries[i]["annotations"]:
+                bx, by, bw, bh = ann["bbox"]
+                cv2.rectangle(box_img,
+                              (int(bx * sx), int(by * sy)),
+                              (int((bx + bw) * sx), int((by + bh) * sy)),
+                              (0, 0, 255), 2)
+            # Pred (green)
+            for b in boxes:
+                bx, by, bw, bh = b[0], b[1], b[2] - b[0], b[3] - b[1]
+                cv2.rectangle(box_img,
+                              (int(bx * sx), int(by * sy)),
+                              (int((bx + bw) * sx), int((by + bh) * sy)),
+                              (0, 255, 0), 2)
+                score = float(b[4])
+                label = f" {score:.2f} "
+                (tw, th), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.45, 1)
+                cv2.rectangle(box_img, (int(bx * sx), max(0, int(by * sy) - th - 2)),
+                              (int(bx * sx) + tw, int(by * sy)), (0, 0, 0), -1)
+                cv2.putText(box_img, label, (int(bx * sx), max(th, int(by * sy) - 2)),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 255), 1, cv2.LINE_AA)
+
+            side = np.hstack([orig_r, hm_color, box_img])
+            cv2.imwrite(str(vis_dir / f"{im_name}.jpg"), side, [cv2.IMWRITE_JPEG_QUALITY, 90])
 
     # ── min_score sweep ────────────────────────────────────────────────
 
@@ -1670,6 +1725,11 @@ class AnomalyBboxValidator:
             row["anomaly_deviation"] = round(aDev, 4) if aDev == aDev else float("nan")
             row["normal_deviation"] = round(nDev, 4) if nDev == nDev else float("nan")
             rows.append(row)
+
+            if self.save_vis:
+                per_image_boxes = [self._heatmap_to_boxes(hm, min_score=self.min_score)
+                                   for hm in heatmaps]
+                self._save_bbox_vis(cat, test_imgs, heatmaps, per_image_boxes, image_entries)
 
             n_anom_w_gt = sum(1 for e in image_entries if e["annotations"])
             print(f"[{cat}] mAP50={row['map50']:.4f}  mAP={row['map']:.4f}  "

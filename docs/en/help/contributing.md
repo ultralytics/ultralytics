@@ -37,6 +37,60 @@ We greatly appreciate contributions in the form of [pull requests (PRs)](https:/
 5. **[Commit your changes](https://docs.github.com/en/desktop/making-changes-in-a-branch/committing-and-reviewing-changes-to-your-project-in-github-desktop):** Commit your changes with concise and descriptive commit messages. If your changes address a specific issue, include the issue number (e.g., `Fix #123: Corrected calculation error.`).
 6. **[Create a pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request):** Submit a pull request from your branch to the `main` branch of the original Ultralytics repository. Provide a clear title and a detailed description explaining the purpose and scope of your changes.
 
+### 💻 Development Installation
+
+Install your fork or clone in editable mode (`-e`) so Python picks up your local changes without reinstalling:
+
+!!! example "Install for Development"
+
+    === "From Your Fork"
+
+        1.  **Clone** your fork locally:
+            ```bash
+            git clone https://github.com/YOUR_USERNAME/ultralytics.git
+            cd ultralytics
+            ```
+        2.  **Create a branch** for your changes:
+            ```bash
+            git checkout -b my-custom-branch
+            ```
+        3.  **Install** the package in editable mode. Pip uses your local `pyproject.toml` to resolve dependencies:
+            ```bash
+            pip install -e .
+            ```
+        4.  **Commit and push** your changes, then [open a pull request](#-contributing-via-pull-requests):
+            ```bash
+            git add .
+            git commit -m "My custom changes"
+            git push origin my-custom-branch
+            ```
+
+    === "Direct Clone (No Fork)"
+
+        Clone the repository directly if you have push access, or just want to experiment with the latest source:
+
+        ```bash
+        git clone https://github.com/ultralytics/ultralytics
+        cd ultralytics
+        pip install -e .
+        ```
+
+    === "Pin a Fork in requirements.txt"
+
+        To depend on a custom fork instead of PyPI — for example, to share persistent modifications across a team — point `requirements.txt` at your fork's branch:
+
+        ```text title="requirements.txt"
+        # Install ultralytics from a specific git branch
+        git+https://github.com/YOUR_USERNAME/ultralytics.git@my-custom-branch
+
+        # Other project dependencies
+        flask
+        ```
+
+        ```bash
+        pip install -r requirements.txt
+        ```
+
 ### 📝 CLA Signing
 
 Before we can merge your pull request, you must sign our [Contributor License Agreement (CLA)](CLA.md). This legal agreement ensures that your contributions are properly licensed, allowing the project to continue being distributed under the [AGPL-3.0 license](https://www.ultralytics.com/legal/agpl-3-0-software-license).

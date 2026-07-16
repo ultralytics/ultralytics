@@ -1064,15 +1064,14 @@ def attempt_compile(
             LOGGER.warning(f"{prefix} no C++ compiler found for the inductor backend, continuing uncompiled: {e}")
             return model
     LOGGER.info(f"{prefix} starting torch.compile with '{mode}' mode...")
-    torch._dynamo.reset()  # reset cache
-    default_opts = torch._inductor.list_mode_options()[mode]
-    options = {
-        **default_opts,
-        "coordinate_descent_tuning": False,
-        "triton.cudagraph_trees": False,
-    }  # override non-reproducible/slow opts
     t0 = time.perf_counter()
     try:
+        torch._dynamo.reset()  # reset cache
+        options = {
+            **torch._inductor.list_mode_options()[mode],
+            "coordinate_descent_tuning": False,
+            "triton.cudagraph_trees": False,
+        }  # override non-reproducible/slow opts
         model = torch.compile(model, backend="inductor", options=options)
     except Exception as e:
         LOGGER.warning(f"{prefix} torch.compile failed, continuing uncompiled: {e}")

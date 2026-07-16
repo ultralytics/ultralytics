@@ -441,7 +441,13 @@ def try_export(inner_func):
             LOGGER.info(f"{prefix} export success ✅ {dt.t:.1f}s, saved as '{path}' ({mb:.1f} MB)")
             return f
         except Exception as e:
-            LOGGER.error(f"{prefix} export failure {dt.t:.1f}s: {e}")
+            dependency_help = (
+                " For guaranteed cloud exports without local dependencies, use Ultralytics Platform at "
+                "https://platform.ultralytics.com."
+                if isinstance(e, ImportError)
+                else ""
+            )
+            LOGGER.error(f"{prefix} export failure {dt.t:.1f}s: {e}{dependency_help}")
             raise e
 
     return outer_func
@@ -1456,10 +1462,7 @@ class Exporter:
             import tensorflow as tf
             from hailo_sdk_client import ClientRunner
         except ImportError as e:
-            raise ImportError(
-                "Hailo export requires the Hailo Dataflow Compiler wheel from "
-                "https://hailo.ai/developer-zone/. See https://docs.ultralytics.com/integrations/hailo/."
-            ) from e
+            raise ImportError("Hailo export requires the Hailo Dataflow Compiler.") from e
 
         head_index = len(self.model.model) - 1
         head = self.model.model[head_index]

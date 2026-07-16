@@ -6,7 +6,7 @@ keywords: Hailo export, Hailo HEF, export YOLO to Hailo, YOLO Hailo, Hailo-8, Ha
 
 # Hailo Export for Ultralytics YOLO Models
 
-[Hailo](https://hailo.ai/) AI accelerators run compiled Hailo Executable Format (HEF) models on edge devices such as the [Raspberry Pi AI Kit](https://www.raspberrypi.com/products/ai-kit/) and [AI HAT+](https://www.raspberrypi.com/documentation/accessories/ai-hat-plus.html). Ultralytics exports YOLO detection models directly to HEF with the Hailo Dataflow Compiler (DFC).
+Hailo AI accelerators run compiled Hailo Executable Format (HEF) models on edge devices such as the [Raspberry Pi AI Kit](https://www.raspberrypi.com/products/ai-kit/) and [AI HAT+](https://www.raspberrypi.com/documentation/accessories/ai-hat-plus.html). Ultralytics exports YOLO detection models directly to HEF with the Hailo Dataflow Compiler (DFC).
 
 Hailo deployment is designed for computer vision at the edge: cameras, robots, industrial systems, gateways, and other devices that need local object detection without sending every frame to the cloud. A compiled HEF contains the quantized network, hardware allocation, scheduling, and optional HailoRT post-processing needed by the selected accelerator.
 
@@ -43,7 +43,7 @@ YOLOv8 and YOLO11 use HailoRT YOLO NMS in the compiled pipeline. YOLO26 uses its
 
 ## Installation
 
-Install Ultralytics and download the DFC wheel for your target hardware from the [Hailo Developer Zone](https://hailo.ai/developer-zone/) (free registration required):
+Install Ultralytics and download the DFC wheel for your target hardware from the Hailo Developer Zone (free registration required):
 
 ```bash
 pip install ultralytics
@@ -92,7 +92,7 @@ model.export(format="hailo", name="hailo8l", imgsz=640)
 
 ## Supported Models and Hardware
 
-The [Hailo Model Zoo](https://github.com/hailo-ai/hailo_model_zoo) and [application examples](https://github.com/hailo-ai/Hailo-Application-Code-Examples) cover a broad range of computer vision workloads, but the Ultralytics `format="hailo"` exporter currently validates only standard YOLO object detection heads. The table below describes this direct integration, not every workload the Hailo ecosystem can run.
+The Hailo ecosystem covers a broad range of computer vision workloads, but the Ultralytics `format="hailo"` exporter currently validates only standard YOLO object detection heads. The table below describes this direct integration, not every workload the Hailo ecosystem can run.
 
 | Ultralytics task          | Direct Hailo export | Supported model families | Notes                                                        |
 | :------------------------ | :-----------------: | :----------------------- | :----------------------------------------------------------- |
@@ -194,8 +194,6 @@ gst-launch-1.0 filesrc location=video.mp4 ! decodebin ! videoconvert ! \
   hailonet hef-path=yolo11n_hailo_model/yolo11n.hef ! \
   hailofilter function-name=yolov8 ! hailooverlay ! autovideosink
 ```
-
-See the [Hailo applications repository](https://github.com/hailo-ai/hailo-apps) for current HailoRT and GStreamer examples.
 
 ### Hailo Deployment Options
 
@@ -328,7 +326,7 @@ Deploy the compiled HEF to the Hailo runtime. ONNX is an intermediate representa
 
 ### Where can I get the Hailo DFC?
 
-Download the compiler wheel for your hardware generation from the [Hailo Developer Zone](https://hailo.ai/developer-zone/). The compiler is required only to create the HEF; HailoRT runs it on the target accelerator.
+Download the compiler wheel for your hardware generation from the Hailo Developer Zone. The compiler is required only to create the HEF; HailoRT runs it on the target accelerator.
 
 ## Summary
 

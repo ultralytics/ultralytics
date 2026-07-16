@@ -799,6 +799,9 @@ class Depth(nn.Module):
 
     export = False  # export mode
     format = None  # export format
+    # Class-attribute fallbacks so checkpoints pickled before these options existed still forward correctly.
+    upsample = "bilinear"
+    skip = False
 
     def __init__(self, c_mid: int = 256, mode: str = "log", upsample: str = "bilinear", skip: bool = False, ch: tuple = ()):
         """Initialize Depth head.

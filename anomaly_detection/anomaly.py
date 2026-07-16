@@ -1480,12 +1480,24 @@ class AnomalyBboxValidator:
         print(f"[{category}] calibration  aDev={ard_mean:.4f}  nDev={nrd_mean:.4f}", flush=True)
         return row
 
+    def _extract_boxes_all(self, heatmaps: list[np.ndarray]) -> list[np.ndarray]:
+        """Region-growing at min_score=0 for every heatmap — once, sweep-ready."""
+        return [self._heatmap_to_boxes(hm, min_score=0.0) for hm in heatmaps]
+
     def _eval_at_score(self, category: str, test_imgs: list[str],
                        test_good_set: set, image_entries: list[dict],
                        heatmaps: list[np.ndarray], image_ids: list[int],
-                       min_score: float, save_dir: Path) -> dict:
-        """Region-growing + COCO eval at a single *min_score*. Cheap — no bank/heatmap rebuild."""
-        per_image_boxes = [self._heatmap_to_boxes(hm, min_score=min_score) for hm in heatmaps]
+                       min_score: float, save_dir: Path,
+                       all_boxes: list[np.ndarray] | None = None) -> dict:
+        """Region-growing + COCO eval at a single *min_score*.
+
+        If *all_boxes* is given (sweep mode), only score-filtering is done
+        per threshold — no repeated flood-fill.
+        """
+        if all_boxes is not None:
+            per_image_boxes = [boxes[boxes[:, 4] >= min_score] for boxes in all_boxes]
+        else:
+            per_image_boxes = [self._heatmap_to_boxes(hm, min_score=min_score) for hm in heatmaps]
         pred_list = self._build_pred_json(image_ids, per_image_boxes)
 
         # COCO eval needs files on disk; use temp file for pred.
@@ -1634,9 +1646,11 @@ class AnomalyBboxValidator:
             with open(str(save_dir / "gt.json"), "w") as f:
                 json.dump(gt_json, f, indent=2)
 
+            # Extract boxes once at min_score=0, then only score-filter each threshold.
+            all_boxes = self._extract_boxes_all(heatmaps)
             for ms in min_scores:
                 row = self._eval_at_score(cat, test_imgs, test_good_set, image_entries,
-                                          heatmaps, image_ids, ms, save_dir)
+                                          heatmaps, image_ids, ms, save_dir, all_boxes=all_boxes)
                 row["min_score"] = round(ms, 4)
                 all_rows.append(row)
                 print(f"  min_score={ms:.3f}  mAP50={row['map50']:.4f}  mAP={row['map']:.4f}  "

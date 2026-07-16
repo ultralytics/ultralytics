@@ -1,6 +1,12 @@
 ---
 title: Fashion-MNIST Image Classification Dataset
 comments: true
+creator:
+    name: Zalando Research
+    url: https://github.com/zalandoresearch/fashion-mnist
+license:
+    name: MIT
+    url: https://github.com/zalandoresearch/fashion-mnist/blob/master/LICENSE
 description: Train YOLO image classification models on Fashion-MNIST, a benchmark of 70,000 28x28 grayscale Zalando clothing images in 10 balanced classes, split 60k/10k.
 keywords: Fashion-MNIST, image classification, Zalando dataset, machine learning, deep learning, CNN, YOLO, computer vision, dataset overview
 ---

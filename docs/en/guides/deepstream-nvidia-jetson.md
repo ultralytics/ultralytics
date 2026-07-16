@@ -58,9 +58,9 @@ Before you start to follow this guide:
 
 Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo) GitHub repository which includes NVIDIA DeepStream SDK support for YOLO models. We appreciate the efforts of marcoslucianops for his contributions!
 
-!!! note
+!!! warning "Supported DeepStream versions for this workflow"
 
-    The [DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo) build and configuration steps below are validated by its maintainer through DeepStream 8.0. For DeepStream 9.0 and 9.1, NVIDIA also provides an official YOLO integration under [tools/yolo_deepstream](https://github.com/NVIDIA/DeepStream/tree/main/tools/yolo_deepstream) in the DeepStream monorepo. Check the target repository for the YOLO and DeepStream versions it supports before deploying.
+    The [DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo) clone, `export_yolo26.py`, and `make` steps below provide build configurations for DeepStream 8.0 and earlier (JetPack 7.0 and earlier), not for DeepStream 9.0 or 9.1. On DeepStream 9.0/9.1 (JetPack 7.1/7.2), use NVIDIA's official YOLO integration under [tools/yolo_deepstream](https://github.com/NVIDIA/DeepStream/tree/main/tools/yolo_deepstream) in the DeepStream monorepo, and check that repository for the YOLO versions it supports.
 
 1.  Install Ultralytics with necessary dependencies
 
@@ -172,7 +172,7 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
     export CUDA_VER=12.6
     ```
 
-    For JetPack 7.0:
+    For JetPack 7.0 and 7.1:
 
     ```bash
     export CUDA_VER=13.0

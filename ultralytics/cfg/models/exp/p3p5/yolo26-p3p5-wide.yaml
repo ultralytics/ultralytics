@@ -3,6 +3,8 @@
 # Ultralytics YOLO26 object detection model with P3/8 - P5/32 outputs
 # P4 detection head is removed; neck channels are widened to improve
 # representational capacity for the P3 and P5 detection heads.
+# This variant keeps the aggressive p3p5 style: no second P4 intermediate,
+# P5 is built directly from the single P4 intermediate.
 # Model docs: https://docs.ultralytics.com/models/yolo26
 # Task docs: https://docs.ultralytics.com/tasks/detect
 
@@ -43,12 +45,8 @@ head:
   - [[-1, 4], 1, Concat, [1]] # cat backbone P3
   - [-1, 2, C3k2, [384, True]] # 16 widened P3/8-small
 
-  - [-1, 1, Conv, [384, 3, 2]]
-  - [[-1, 13], 1, Concat, [1]] # cat intermediate P4
-  - [-1, 2, C3k2, [768, True]] # 19 widened intermediate P4/16
-
-  - [-1, 1, Conv, [768, 3, 2]]
+  - [13, 1, Conv, [768, 3, 2]] # downsample widened P4 intermediate to P5 stride
   - [[-1, 10], 1, Concat, [1]] # cat backbone P5
-  - [-1, 1, C3k2, [1024, True, 0.5, True]] # 22 (P5/32-large)
+  - [-1, 1, C3k2, [1024, True, 0.5, True]] # 19 (P5/32-large)
 
-  - [[16, 22], 1, Detect, [nc]] # Detect(P3, P5)
+  - [[16, 19], 1, Detect, [nc]] # Detect(P3, P5)

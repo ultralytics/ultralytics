@@ -22,6 +22,10 @@ This toolkit optimizes deep learning models for NVIDIA GPUs and results in faste
 
 TensorRT is known for its compatibility with various model formats, including TensorFlow, [PyTorch](https://www.ultralytics.com/glossary/pytorch), and ONNX, providing developers with a flexible solution for integrating and optimizing models from different frameworks. This versatility enables efficient [model deployment](https://www.ultralytics.com/glossary/model-deployment) across diverse hardware and software environments.
 
+!!! warning "TensorRT engines are hardware- and runtime-specific"
+
+    TensorRT profiles and tunes an engine on its build GPU. Build for the deployment GPU architecture and match the TensorRT/CUDA runtime; do not treat an `.engine` file as a portable model format. For edge deployment, [Ultralytics Platform](../platform/train/models.md#nvidia-jetson-tensorrt-targets) can build directly for eight Jetson targets, or you can export locally on the destination device.
+
 ## Key Features of TensorRT Models
 
 TensorRT models offer a range of key features that contribute to their efficiency and effectiveness in high-speed deep learning inference:

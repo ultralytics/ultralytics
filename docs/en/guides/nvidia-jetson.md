@@ -28,7 +28,7 @@ This comprehensive guide provides a detailed walkthrough for deploying Ultralyti
 
 !!! note
 
-    This guide has been tested with [NVIDIA Jetson AGX Thor Developer Kit (Jetson T5000)](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-thor) running the latest stable JetPack release of [JP7.0](https://developer.nvidia.com/embedded/jetpack/downloads), [NVIDIA Jetson AGX Orin Developer Kit (64GB)](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-orin) running JetPack release of [JP6.2](https://developer.nvidia.com/embedded/jetpack-sdk-62), [NVIDIA Jetson Orin Nano Super Developer Kit](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-orin/nano-super-developer-kit) running JetPack release of [JP6.1](https://developer.nvidia.com/embedded/jetpack-sdk-61), [Seeed Studio reComputer J4012](https://www.seeedstudio.com/reComputer-J4012-p-5586.html) which is based on NVIDIA Jetson Orin NX 16GB running JetPack release of [JP6.0](https://developer.nvidia.com/embedded/jetpack-sdk-60)/ JetPack release of [JP5.1.3](https://developer.nvidia.com/embedded/jetpack-sdk-513) and [Seeed Studio reComputer J1020 v2](https://www.seeedstudio.com/reComputer-J1020-v2-p-5498.html) which is based on NVIDIA Jetson Nano 4GB running JetPack release of [JP4.6.1](https://developer.nvidia.com/embedded/jetpack-sdk-461). It is expected to work across all the NVIDIA Jetson hardware lineup, including the latest and legacy devices.
+    This guide has been tested with [NVIDIA Jetson AGX Thor Developer Kit (Jetson T5000)](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-thor) and [NVIDIA Jetson AGX Orin Developer Kit (64GB)](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-orin) running the latest stable [JetPack 7.2](https://developer.nvidia.com/embedded/jetpack/downloads), [NVIDIA Jetson Orin Nano Super Developer Kit](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-orin/nano-super-developer-kit) running JetPack release of [JP6.1](https://developer.nvidia.com/embedded/jetpack-sdk-61), [Seeed Studio reComputer J4012](https://www.seeedstudio.com/reComputer-J4012-p-5586.html) which is based on NVIDIA Jetson Orin NX 16GB running JetPack release of [JP6.0](https://developer.nvidia.com/embedded/jetpack-sdk-60)/ JetPack release of [JP5.1.3](https://developer.nvidia.com/embedded/jetpack-sdk-513) and [Seeed Studio reComputer J1020 v2](https://www.seeedstudio.com/reComputer-J1020-v2-p-5498.html) which is based on NVIDIA Jetson Nano 4GB running JetPack release of [JP4.6.1](https://developer.nvidia.com/embedded/jetpack-sdk-461). It is expected to work across all the NVIDIA Jetson hardware lineup, including the latest and legacy devices.
 
 ## What is NVIDIA Jetson?
 
@@ -77,9 +77,9 @@ The below table highlights NVIDIA JetPack versions supported by different NVIDIA
 | Jetson TX2        | ✅        | ❌        | ❌        | ❌        |
 | Jetson Xavier NX  | ✅        | ✅        | ❌        | ❌        |
 | Jetson AGX Xavier | ✅        | ✅        | ❌        | ❌        |
-| Jetson AGX Orin   | ❌        | ✅        | ✅        | ❌        |
-| Jetson Orin NX    | ❌        | ✅        | ✅        | ❌        |
-| Jetson Orin Nano  | ❌        | ✅        | ✅        | ❌        |
+| Jetson AGX Orin   | ❌        | ✅        | ✅        | ✅        |
+| Jetson Orin NX    | ❌        | ✅        | ✅        | ✅        |
+| Jetson Orin Nano  | ❌        | ✅        | ✅        | ✅        |
 | Jetson AGX Thor   | ❌        | ❌        | ❌        | ✅        |
 
 ## Quick Start with Docker
@@ -120,7 +120,7 @@ After this is done, skip to [Use TensorRT on NVIDIA Jetson section](#use-tensorr
 
 For a native installation without Docker, please refer to the steps below.
 
-### Run on JetPack 7.0
+### Run on JetPack 7.2
 
 #### Install Ultralytics Package
 
@@ -148,9 +148,9 @@ Here we will install Ultralytics package on the Jetson with optional dependencie
 
 #### Install PyTorch and Torchvision
 
-The above ultralytics installation will install Torch and Torchvision. However, these 2 packages installed via pip are not compatible to run on Jetson AGX Thor which comes with JetPack 7.0 and CUDA 13. Therefore, we need to manually install them.
+The above ultralytics installation will install Torch and Torchvision. However, these 2 packages installed via pip are not compatible to run on JetPack 7.2 devices with CUDA 13. Therefore, we need to manually install them.
 
-Install `torch` and `torchvision` according to JP7.0
+Install `torch` and `torchvision` according to JP7.2
 
 ```bash
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu130
@@ -302,6 +302,12 @@ pip install onnxruntime_gpu-1.17.0-cp38-cp38-linux_aarch64.whl
 ## Use TensorRT on NVIDIA Jetson
 
 Among all the model export formats supported by Ultralytics, TensorRT offers the highest inference performance on NVIDIA Jetson devices, making it our top recommendation for Jetson deployments. For setup instructions and advanced usage, see our [dedicated TensorRT integration guide](../integrations/tensorrt.md).
+
+You can also export from the browser without configuring the build environment locally. In the [Ultralytics Platform model Export tab](../platform/train/models.md#nvidia-jetson-tensorrt-targets), select TensorRT and the exact Jetson target to build and download a device-targeted `.engine` file.
+
+!!! warning "TensorRT engines are device-specific"
+
+    TensorRT profiles and tunes an engine on its build GPU. Match the target's GPU architecture and TensorRT/CUDA runtime, and validate the downloaded engine on the deployment device. INT8 calibration should use the target device for best results.
 
 ### Convert Model to TensorRT and Run Inference
 

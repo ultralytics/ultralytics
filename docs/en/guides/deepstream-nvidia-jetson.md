@@ -43,10 +43,15 @@ Before you start to follow this guide:
     - For JetPack 5.1.3, install [DeepStream 6.3](https://archive.docs.nvidia.com/metropolis/deepstream/6.3/dev-guide/text/DS_Quickstart.html)
     - For JetPack 6.1, install [DeepStream 7.1](https://docs.nvidia.com/metropolis/deepstream/7.1/text/DS_Overview.html)
     - For JetPack 7.1, install [DeepStream 9.0](https://docs.nvidia.com/metropolis/deepstream/9.0/text/DS_Overview.html)
+    - For JetPack 7.2, install [DeepStream 9.1](https://docs.nvidia.com/metropolis/deepstream/9.1/text/DS_Overview.html)
 
 !!! tip
 
     In this guide we have used the Debian package method of installing DeepStream SDK to the Jetson device. You can also visit the [DeepStream SDK on Jetson (Archived)](https://developer.nvidia.com/embedded/deepstream-on-jetson-downloads-archived) to access legacy versions of DeepStream.
+
+!!! note "DeepStream is now open source"
+
+    Starting with DeepStream 9.1, the SDK is open-sourced on the [NVIDIA/DeepStream](https://github.com/NVIDIA/DeepStream) GitHub monorepo (Apache-2.0 source, CC-BY-4.0 docs). Release packages are published as GitHub Release assets (`.deb` and `.tar.gz` archives plus Python wheels) instead of NGC only, and you can alternatively build DeepStream from source with `bash build/build.sh`. The Debian package method described below remains the recommended path.
 
 ## DeepStream Configuration for YOLO26
 
@@ -160,6 +165,12 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
 
     ```bash
     export CUDA_VER=12.6
+    ```
+
+    For JetPack 7.2:
+
+    ```bash
+    export CUDA_VER=13.2
     ```
 
 8.  Compile the library

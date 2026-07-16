@@ -5,8 +5,7 @@ creator:
     name: PASCAL Visual Object Classes
     url: http://host.robots.ox.ac.uk/pascal/VOC/
 license:
-    name: Other
-    url: http://host.robots.ox.ac.uk/pascal/VOC/
+    name: None
 description: Train YOLO26 on the PASCAL VOC detection dataset - 16,551 training and 4,952 validation images across 20 object classes with automatic download.
 keywords: PASCAL VOC, VOC dataset, VOC2007, VOC2012, object detection dataset, YOLO26, download PASCAL VOC, computer vision benchmark
 ---

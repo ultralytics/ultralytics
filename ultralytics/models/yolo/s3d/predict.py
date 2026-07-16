@@ -13,7 +13,6 @@ from ultralytics.data.augment import LetterBox
 from ultralytics.data.stereo.calib import CalibrationParameters, load_kitti_calibration
 from ultralytics.engine.results import Results
 from ultralytics.models.yolo.detect import DetectionPredictor
-
 from ultralytics.models.yolo.s3d.head import DEPTH_MAX, DEPTH_MIN
 from ultralytics.models.yolo.s3d.preprocess import decode_and_refine_predictions, preprocess_stereo_images
 from ultralytics.utils import LOGGER
@@ -144,7 +143,7 @@ class Stereo3DDetPredictor(DetectionPredictor):
                     try:
                         calib = load_kitti_calibration(calib_path)
                         break
-                    except Exception as exc:  # noqa: BLE001
+                    except Exception as exc:
                         LOGGER.warning(f"Failed to parse calibration {calib_path}: {exc}")
             if calib is None:
                 LOGGER.warning(

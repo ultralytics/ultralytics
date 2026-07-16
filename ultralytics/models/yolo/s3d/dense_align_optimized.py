@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 """
-Dense Photometric Alignment Module (GAP-002) - Optimized Version
+Dense Photometric Alignment Module (GAP-002) - Optimized Version.
 
 This module implements dense photometric alignment for depth refinement from
 Stereo CenterNet paper. This optimized version includes performance
@@ -19,7 +19,7 @@ Paper Reference: Section 3.2 "Dense Alignment"
 
 from __future__ import annotations
 
-from typing import Literal, Optional
+from typing import Literal
 
 import cv2
 import numpy as np
@@ -288,8 +288,8 @@ class DenseAlignmentOptimized:
         x1, y1, x2, y2 = roi_left
 
         # Shift ROI horizontally by disparity
-        x1_right = int(round(x1 - disparity))
-        x2_right = int(round(x2 - disparity))
+        x1_right = round(x1 - disparity)
+        x2_right = round(x2 - disparity)
 
         # Extract patch using cv2.getRectSubPix
         # ROI format: (x1, y1, x2, y2)
@@ -426,7 +426,7 @@ class DenseAlignmentOptimized:
         return float(best_z)
 
 
-def create_dense_alignment_optimized(config: dict) -> Optional[DenseAlignmentOptimized]:
+def create_dense_alignment_optimized(config: dict) -> DenseAlignmentOptimized | None:
     """Create DenseAlignmentOptimized instance from configuration dictionary.
 
     Factory function for creating optimized DenseAlignment from YAML config.

@@ -16,6 +16,10 @@ keywords: ultralytics, plotting, utilities, documentation, data visualization, a
 
 <br><br><hr><br>
 
+## ::: ultralytics.utils.plotting.VisualizationConfig
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.plotting.Annotator
 
 <br><br><hr><br>
@@ -53,5 +57,33 @@ keywords: ultralytics, plotting, utilities, documentation, data visualization, a
 <br><br><hr><br>
 
 ## ::: ultralytics.utils.plotting.feature_visualization
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.plotting.project_3d_to_2d
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.plotting.project_box3d_corners
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.plotting._select_color
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.plotting.plot_boxes3d
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.plotting.plot_boxes2d
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.plotting.plot_stereo3d_boxes
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.plotting.combine_stereo_views
 
 <br><br>

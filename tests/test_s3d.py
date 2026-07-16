@@ -85,6 +85,7 @@ def test_head_localization_branches_unconditional():
 def test_proj_center_loss_present():
     """The proj_center smooth-L1 term is always computed when proj_offset targets/preds are present."""
     import torch
+
     from ultralytics import YOLO
     from ultralytics.models.yolo.s3d.loss import Stereo3DDetLoss
 
@@ -101,8 +102,10 @@ def test_proj_center_loss_present():
 
 def test_lr_nll_attenuates_with_uncertainty():
     """Laplacian NLL: for a fixed residual, a larger predicted log-variance lowers the loss
-    (attenuation), but the log-variance penalty prevents collapse — loss is convex in logvar."""
+    (attenuation), but the log-variance penalty prevents collapse — loss is convex in logvar.
+    """
     import torch
+
     from ultralytics.models.yolo.s3d.loss import laplacian_nll
 
     pred = torch.tensor([1.0])
@@ -117,10 +120,12 @@ def test_lr_nll_attenuates_with_uncertainty():
 
 def test_lr_nll_loss_wired():
     """Integration test: when lr_logvar is present, _compute_aux_losses routes lr_distance through
-    the Laplacian-NLL gather-wiring in _lr_nll_loss (the promoted, always-on path), not smooth-L1."""
+    the Laplacian-NLL gather-wiring in _lr_nll_loss (the promoted, always-on path), not smooth-L1.
+    """
     import math
 
     import torch
+
     from ultralytics import YOLO
     from ultralytics.models.yolo.s3d.loss import Stereo3DDetLoss
 
@@ -530,7 +535,7 @@ def test_decode_letterbox_calib_imgsz_invariant():
 
     def decode_xz(z_true, u_orig_true, imgsz):
         """Encode a car at (u_orig_true, z_true) with LETTERBOX-space calib; return decoded (x, z)."""
-        input_h, input_w = imgsz
+        _input_h, input_w = imgsz
         scale, pad_left, pad_top = compute_letterbox_params(ori_hw[0], ori_hw[1], imgsz)
         # Calib as the batch provides it: letterbox-input space.
         calib_lb = {
@@ -590,7 +595,7 @@ def test_decode_uses_proj_offset():
     imgsz = (384, 1248)
     nc = 3
     input_h, input_w = imgsz
-    scale, pad_left, _ = compute_letterbox_params(*ori_hw, imgsz)
+    scale, _pad_left, _ = compute_letterbox_params(*ori_hw, imgsz)
     z = 20.0
     du = 0.01
 
@@ -696,7 +701,8 @@ def test_score_weight_demotes_uncertain():
 def test_ivw_fusion_uses_dfl_variance():
     """With depth_bins present, ivw_fusion must weight the direct cue by its DFL spread (not the
     constant 1.0 fallback), pulling the fused z away from the plain geomean when the DFL
-    distribution is narrow (low variance) while the stereo cue is highly uncertain."""
+    distribution is narrow (low variance) while the stereo cue is highly uncertain.
+    """
     import math
 
     import torch
@@ -778,7 +784,8 @@ def test_decode_no_overflow_with_large_lr_logvar():
 
 def test_proj_offset_roundtrip():
     """Projected-centroid offset must invert: encode (centroid->projected px->offset) then
-    decode (box_center+offset -> back-project at true z) recovers the centroid X/Y."""
+    decode (box_center+offset -> back-project at true z) recovers the centroid X/Y.
+    """
     from ultralytics.models.yolo.s3d.dataset import encode_proj_offset
 
     fx = fy = 721.5377
@@ -839,7 +846,8 @@ def test_calib_dual_format(tmp_path, content):
 
 def test_predict_resolves_dataset_calib(tmp_path):
     """Predictor must find + parse per-image calib in the dataset `calib/<split>/` layout,
-    not silently fall back to default calibration."""
+    not silently fall back to default calibration.
+    """
     import cv2
 
     root = tmp_path / "ds"

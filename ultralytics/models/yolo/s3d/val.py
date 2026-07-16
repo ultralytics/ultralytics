@@ -10,12 +10,8 @@ import torch
 
 from ultralytics.data.stereo.box3d import Box3D
 from ultralytics.data.stereo.calib import CalibrationParameters
+from ultralytics.engine.validator import BaseValidator
 from ultralytics.models.yolo.s3d.head import DEPTH_MAX, DEPTH_MIN
-from ultralytics.models.yolo.s3d.preprocess import (
-    compute_letterbox_params,
-    decode_and_refine_predictions,
-    preprocess_stereo_batch,
-)
 from ultralytics.models.yolo.s3d.metrics import (
     DIFFICULTY_EASY,
     DIFFICULTY_HARD,
@@ -23,11 +19,15 @@ from ultralytics.models.yolo.s3d.metrics import (
     Stereo3DDetMetrics,
     classify_difficulty,
 )
+from ultralytics.models.yolo.s3d.preprocess import (
+    compute_letterbox_params,
+    decode_and_refine_predictions,
+    preprocess_stereo_batch,
+)
 from ultralytics.utils import LOGGER, RANK
 from ultralytics.utils.metrics import DetMetrics, box_iou, compute_3d_iou, compute_bev_iou
-from ultralytics.utils.torch_utils import unwrap_model
 from ultralytics.utils.plotting import plot_stereo3d_boxes
-from ultralytics.engine.validator import BaseValidator
+from ultralytics.utils.torch_utils import unwrap_model
 
 
 def _reverse_letterbox_calib(
@@ -802,7 +802,6 @@ class Stereo3DDetValidator(BaseValidator):
 
     def print_results(self) -> None:
         """Print training/validation set metrics per class with KITTI difficulty splits."""
-
         if not self.metrics.stats:
             LOGGER.warning(f"no labels found in {self.args.task} set, can not compute metrics without labels")
             return
@@ -881,7 +880,6 @@ class Stereo3DDetValidator(BaseValidator):
 
     def _format_progress_metrics(self) -> str:
         """Format current metrics for progress bar display."""
-
         if not hasattr(self.metrics, "stats") or len(self.metrics.stats) == 0:
             return ("%11i" + "%11s" * 6) % (int(self.seen), "-", "-", "-", "-", "-", "-")
 

@@ -864,8 +864,9 @@ class ClassificationModel(BaseModel):
 
     def init_criterion(self):
         """Initialize the loss criterion for the ClassificationModel."""
-        if getattr(self, "args", {}).get("multi_label", False):
-            return v8MultiLabelClassificationLoss()
+        for m in self.model.modules():
+            if isinstance(m, Classify) and getattr(m, "multi_label", False):
+                return v8MultiLabelClassificationLoss()
         return v8ClassificationLoss()
 
 

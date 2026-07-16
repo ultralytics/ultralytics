@@ -8,7 +8,7 @@ keywords: Ultralytics, YOLO26, YOLO11, quickstart, install Ultralytics, pip, con
 
 Install Ultralytics and run your first prediction in under a minute — no dataset or training required.
 
-## Install
+## Install Ultralytics
 
 Install the `ultralytics` package with [pip](https://pypi.org/project/ultralytics/):
 

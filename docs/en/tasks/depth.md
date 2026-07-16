@@ -25,16 +25,16 @@ YOLO26 depth models pretrained on a broad multi-dataset mix (indoor + outdoor, ~
 
 | Model                                                                                            | size<br><sup>(pixels)</sup> | delta1<sup>NYU</sup> | abs_rel<sup>NYU</sup> | rmse<sup>NYU</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
 | ------------------------------------------------------------------------------------------------ | --------------------------- | -------------------- | --------------------- | ------------------ | ------------------------ | ----------------------- |
-| [YOLO26n-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n-depth.pt) | 640                         | 0.882                | 0.109                 | 0.414              | 6.4                      | 32.6                    |
-| [YOLO26s-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26s-depth.pt) | 640                         | 0.896                | 0.104                 | 0.399              | 13.2                     | 47.1                    |
-| [YOLO26m-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26m-depth.pt) | 640                         | 0.921                | 0.089                 | 0.364              | 23.3                     | 90.8                    |
-| [YOLO26l-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26l-depth.pt) | 640                         | 0.930                | 0.083                 | 0.351              | 27.7                     | 109.2                   |
-| [YOLO26x-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26x-depth.pt) | 640                         | 0.933                | 0.080                 | 0.344              | 57.0                     | 209.7                   |
+| [YOLO26n-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n-depth.pt) | 768                         | 0.882                | 0.109                 | 0.414              | 6.4                      | 46.9                    |
+| [YOLO26s-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26s-depth.pt) | 768                         | 0.896                | 0.104                 | 0.399              | 13.2                     | 67.9                    |
+| [YOLO26m-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26m-depth.pt) | 768                         | 0.921                | 0.089                 | 0.364              | 23.3                     | 130.7                   |
+| [YOLO26l-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26l-depth.pt) | 768                         | 0.930                | 0.083                 | 0.351              | 27.7                     | 157.2                   |
+| [YOLO26x-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26x-depth.pt) | 768                         | 0.933                | 0.080                 | 0.344              | 57.0                     | 302.0                   |
 
 - **delta1<sup>NYU</sup>** is the percentage of pixels where the predicted depth is within a factor of 1.25 of the ground truth, on the NYU Depth V2 Eigen test split (654 images) with multi-scale + horizontal-flip TTA and log-least-squares alignment.
 - **abs_rel** is the mean absolute relative error between predicted and ground-truth depth values.
 - **rmse** is the root mean squared error in meters.
-- **params** and **FLOPs** are measured at 640×640.
+- **params** and **FLOPs** are measured at 768×768, the training resolution of the released weights.
 
 ## Depth range and the log-depth head
 
@@ -196,7 +196,7 @@ For example, an image at `images/train/scene_001.jpg` is paired with a depth map
 
 ## Val
 
-Validate a trained YOLO26n-depth model [accuracy](https://www.ultralytics.com/glossary/accuracy) on a depth estimation dataset. Pass `data` explicitly so validation uses the intended dataset YAML.
+Validate a trained YOLO26n-depth model [accuracy](https://www.ultralytics.com/glossary/accuracy) on a depth estimation dataset. Pass `data` explicitly so validation uses the intended dataset YAML. The released weights are trained at `imgsz=768`, so validate and predict at that size for best accuracy.
 
 !!! example
 

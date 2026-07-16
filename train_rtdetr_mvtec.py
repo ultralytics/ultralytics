@@ -69,6 +69,7 @@ def prepare_ood_yaml(category: str) -> Path:
 def train(args: argparse.Namespace) -> Path:
     """Train RT-DETR on merge_data_v8.2_binary."""
     print(f"Training data: {V82_DATA_YAML}")
+    project = f"runs/{args.project}"
     model = RTDETR("rtdetr-l.pt")
     results = model.train(
         data=V82_DATA_YAML,
@@ -77,7 +78,7 @@ def train(args: argparse.Namespace) -> Path:
         batch=args.batch,
         device=args.device,
         workers=args.workers,
-        project="runs/rtdetr_mvtec",
+        project=project,
         name=args.name,
         exist_ok=True,
         optimizer=args.optimizer,
@@ -97,6 +98,7 @@ def train(args: argparse.Namespace) -> Path:
 def ood_eval(weights_path: Path, args: argparse.Namespace) -> dict:
     """Run OOD evaluation on all 15 MVTec categories."""
     metrics = {}
+    project = f"runs/{args.project}"
     for cat in MVTEC_CATEGORIES:
         data_yaml = prepare_ood_yaml(cat)
         model = RTDETR(str(weights_path))
@@ -106,7 +108,7 @@ def ood_eval(weights_path: Path, args: argparse.Namespace) -> dict:
             batch=args.batch,
             device=args.device,
             workers=args.workers,
-            project="runs/rtdetr_mvtec",
+            project=project,
             name=f"ood_{cat}",
             exist_ok=True,
             split="val",
@@ -125,7 +127,7 @@ def ood_eval(weights_path: Path, args: argparse.Namespace) -> dict:
     print(f"  mAP50-95:   mean={sum(map_vals)/len(map_vals):.4f}  "
           f"range=[{min(map_vals):.4f}, {max(map_vals):.4f}]")
 
-    out_path = Path("runs/rtdetr_mvtec") / "ood_metrics.json"
+    out_path = Path(f"runs/{args.project}") / "ood_metrics.json"
     out_path.write_text(json.dumps(metrics, indent=2))
     print(f"Saved: {out_path}")
     return metrics
@@ -146,6 +148,7 @@ def main():
     parser.add_argument("--close_mosaic", type=int, default=10)
     parser.add_argument("--amp", action="store_true", default=True)
     parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--project", type=str, default="rtdetr_mvtec", help="Project name")
     parser.add_argument("--name", type=str, default="v1", help="Experiment name")
     parser.add_argument("--skip_train", action="store_true")
     parser.add_argument("--weights", type=str, default=None, help="Weights path for --skip_train")

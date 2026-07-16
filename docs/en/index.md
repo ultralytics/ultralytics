@@ -158,8 +158,8 @@ See the [Quickstart](quickstart.md) guide for the full installation and usage re
 
 Most model workflow `yolo` commands follow one grammar, `yolo [TASK] MODE ARGS`, where Task is optional, and these docs are organized around the same three parts, plus one shortcut:
 
-- **[Task](tasks/index.md)** answers _what_ you want from an image: [detection](tasks/detect.md), [instance segmentation](tasks/segment.md), [semantic segmentation](tasks/semantic.md), [classification](tasks/classify.md), [pose estimation](tasks/pose.md), or [oriented boxes](tasks/obb.md).
-- **[Mode](modes/index.md)** answers _how_ you use a model: [train](modes/train.md), [validate](modes/val.md), [predict](modes/predict.md), [export](modes/export.md), [track](modes/track.md), or [benchmark](modes/benchmark.md).
+- **[Task](tasks/index.md)** answers **what** you want from an image: [detection](tasks/detect.md), [instance segmentation](tasks/segment.md), [semantic segmentation](tasks/semantic.md), [classification](tasks/classify.md), [pose estimation](tasks/pose.md), or [oriented boxes](tasks/obb.md).
+- **[Mode](modes/index.md)** answers **how** you use a model: [train](modes/train.md), [validate](modes/val.md), [predict](modes/predict.md), [export](modes/export.md), [track](modes/track.md), or [benchmark](modes/benchmark.md).
 - **[Args](usage/cfg.md)** configures the command, from which [model](models/index.md) to run with `model=` to hyperparameters like `epochs` and `imgsz`.
 - **[Solutions](solutions/index.md)** is the shortcut: a finished application, like object counting or a security alarm, that skips Task and Mode entirely.
 

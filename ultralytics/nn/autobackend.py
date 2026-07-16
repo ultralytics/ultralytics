@@ -252,7 +252,7 @@ class AutoBackend(nn.Module):
         visualize: bool = False,
         embed: list | None = None,
         **kwargs: Any,
-    ) -> torch.Tensor | list[torch.Tensor]:
+    ) -> Any:
         """Run inference on an AutoBackend model.
 
         Args:
@@ -263,7 +263,7 @@ class AutoBackend(nn.Module):
             **kwargs (Any): Additional keyword arguments for model configuration.
 
         Returns:
-            (torch.Tensor | list[torch.Tensor]): The raw output tensor(s) from the model.
+            (Any): The raw model output, with NumPy arrays converted to tensors on `self.device`.
         """
         if self.nhwc:
             im = im.permute(0, 2, 3, 1)  # torch BCHW to numpy BHWC shape(1,320,192,3)
@@ -285,16 +285,17 @@ class AutoBackend(nn.Module):
         else:
             return self.from_numpy(y)
 
-    def from_numpy(self, x: np.ndarray | torch.Tensor) -> torch.Tensor:
-        """Convert a NumPy array to a torch tensor on the model device.
+    def from_numpy(self, x: Any) -> Any:
+        """Normalize a backend output to the model device when possible.
 
         Args:
-            x (np.ndarray | torch.Tensor): Input array or tensor.
+            x (Any): Backend output to normalize.
 
         Returns:
-            (torch.Tensor): Tensor on `self.device`.
+            (Any): Tensor on `self.device`, or the unchanged non-tensor output.
         """
-        return torch.tensor(x).to(self.device) if isinstance(x, np.ndarray) else x
+        x = torch.tensor(x) if isinstance(x, np.ndarray) else x
+        return x.to(self.device) if isinstance(x, torch.Tensor) else x
 
     def warmup(self, imgsz: tuple[int, int, int, int] = (1, 3, 640, 640)) -> None:
         """Warm up the model by running forward pass(es) with a dummy input.

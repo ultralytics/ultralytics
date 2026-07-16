@@ -562,8 +562,8 @@ class Exporter:
             self.args.quantize = "w8a16" if fmt == "qnn" else 8
         if fmt == "hailo":
             assert LINUX and not ARM64, "Hailo export is only supported on Linux x86_64."
-            if model.task != "detect" or isinstance(model.model[-1], RTDETRDecoder):
-                raise ValueError("Hailo export currently supports YOLO detection models only.")
+            if model.task != "detect" or type(model.model[-1]) is not Detect:
+                raise ValueError("Hailo export currently supports YOLOv8, YOLO11, and YOLO26 detection models only.")
             self.args.name = str(self.args.name or "hailo8l").lower()
             hailo_archs = ("hailo8", "hailo8l", "hailo10h", "hailo15h", "hailo15l")
             if self.args.name not in hailo_archs:
@@ -1437,6 +1437,7 @@ class Exporter:
         """Export a YOLO detection model to Hailo Executable Format (HEF)."""
         try:
             from hailo_sdk_client import ClientRunner
+            import tensorflow as tf
         except ImportError as e:
             raise ImportError(
                 "Hailo export requires the Hailo Dataflow Compiler wheel from "
@@ -1503,13 +1504,17 @@ class Exporter:
                 model_script.append(f'nms_postprocess("{nms_config}", meta_arch=yolov8, engine=cpu)')
                 model_script.append("allocator_param(width_splitter_defuse=disabled)")
             runner.load_model_script("\n".join(model_script))
-            calibration = []
-            for batch in self.get_int8_calibration_dataloader(prefix):
-                calibration.append(batch["img"].permute(0, 2, 3, 1).numpy().astype(np.float32))
-                if sum(len(images) for images in calibration) >= 64:
-                    break
-            calibration = np.concatenate(calibration)[:64]
-            runner.optimize(calibration)
+
+            def calibration_dataset():
+                for batch in self.get_int8_calibration_dataloader(prefix):
+                    yield from batch["img"].permute(0, 2, 3, 1).numpy().astype(np.float32)
+
+            runner.optimize(
+                lambda: tf.data.Dataset.from_generator(
+                    calibration_dataset,
+                    output_signature=tf.TensorSpec(shape=(*self.imgsz, 3), dtype=tf.float32),
+                )
+            )
             (output_dir / f"{self.file.stem}.hef").write_bytes(runner.compile())
             YAML.save(output_dir / "metadata.yaml", {**self.metadata, "hailo_arch": self.args.name, "nms": not one2one})
             return str(output_dir)

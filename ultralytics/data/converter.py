@@ -5,32 +5,20 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
-import os
 import random
-import re
 import shutil
-import unicodedata
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from contextlib import contextmanager
-from pathlib import Path, PurePosixPath, PureWindowsPath
-from tempfile import TemporaryDirectory
+from pathlib import Path
 
 import cv2
 import numpy as np
-import xxhash
 from PIL import Image
 
 from ultralytics.utils import ASSETS_URL, DATASETS_DIR, LOGGER, NUM_THREADS, TQDM, YAML, clean_url
 from ultralytics.utils.checks import check_file
 from ultralytics.utils.downloads import download, zip_directory
 from ultralytics.utils.files import increment_path
-from ultralytics.utils.patches import imread
-
-NDJSON_DEPTH_CONTRACT_VERSION = 1
-MAX_NDJSON_IMAGE_BYTES = 100 * 1024 * 1024
-MAX_NDJSON_IMAGE_PIXELS = 64_000_000
-MAX_NDJSON_DEPTH_BYTES = 512 * 1024 * 1024
 
 
 def coco91_to_coco80_class() -> list[int]:
@@ -854,7 +842,6 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     classification_ids = set()
 
     # Hash stable content plus source identity. Query strings are excluded because signed URLs change on every export.
-    # Depth identity is derived separately below from a sorted, contract-versioned manifest digest.
     _h = hashlib.sha256()
     for i, r in enumerate(lines):
         if i:
@@ -863,11 +850,10 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                 raise ValueError(f"Invalid NDJSON split: {split!r}")
             if not isinstance(source_name, str) or not source_name:
                 raise ValueError(f"Invalid NDJSON image name: {source_name!r}")
-            if not is_depth:
-                # Record indexes provide collision-free output stems without trusting source paths. Depth keeps the
-                # manifest paths so image/depth pairs stay aligned; they are strictly validated before any file I/O.
-                suffix = source_name.rsplit(".", 1)[-1]
-                r["file"] = f"{i}.{suffix}" if suffix.isalnum() and len(suffix) <= 10 else f"{i}.jpg"
+            # Record indexes provide collision-free output stems without trusting source paths. Depth targets use the
+            # same stem, so image and target URLs follow the same output mechanics.
+            suffix = source_name.rsplit(".", 1)[-1]
+            r["file"] = f"{i}.{suffix}" if suffix.isalnum() and len(suffix) <= 10 else f"{i}.jpg"
             if is_classification:
                 ids = r.get("annotations", {}).get("classification", [])
                 class_id = ids[0] if ids else 0
@@ -875,6 +861,10 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                     raise ValueError(f"Invalid NDJSON classification ID: {class_id!r}")
                 classification_ids.add(class_id)
         hash_record = {k: v for k, v in r.items() if k != "url"}
+        if isinstance(r.get("depth"), dict):
+            hash_record["depth"] = {k: v for k, v in r["depth"].items() if k != "url"}
+            if r["depth"].get("url"):
+                hash_record["depth"]["_source"] = clean_url(r["depth"]["url"])
         if r.get("file"):
             hash_record["_source"] = clean_url(r["url"]) if r.get("url") else str(ndjson_path.parent.resolve())
         _h.update(json.dumps(hash_record, sort_keys=True).encode())
@@ -882,180 +872,30 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     class_dirs = {class_id: f"{i:06d}" for i, class_id in enumerate(sorted(classification_ids))}
     classification_names = {i: class_names.get(class_id, str(class_id)) for i, class_id in enumerate(class_dirs)}
 
-    def relative_record_path(value: str, field: str) -> PurePosixPath:
-        """Validate a portable relative NDJSON output path before any filesystem access."""
-        if not isinstance(value, str) or not value or "\\" in value:
-            raise ValueError(f"NDJSON {field} must be a non-empty POSIX relative path")
-        path = PurePosixPath(value)
-        windows_path = PureWindowsPath(value)
-        windows_reserved = {
-            "CON",
-            "PRN",
-            "AUX",
-            "NUL",
-            *(f"COM{i}" for i in range(1, 10)),
-            *(f"LPT{i}" for i in range(1, 10)),
-        }
-        windows_invalid = any(
-            part.rstrip(" .") != part
-            or any(char in part for char in '<>:"|?*')
-            or any(unicodedata.category(char) == "Cc" for char in part)
-            or part.split(".", 1)[0].upper() in windows_reserved
-            for part in path.parts
-        )
-        if (
-            path.is_absolute()
-            or windows_path.is_absolute()
-            or windows_path.drive
-            or windows_invalid
-            or path.as_posix() != value
-            or any(part in {"", ".", ".."} for part in path.parts)
-        ):
-            raise ValueError(f"NDJSON {field} must be a canonical POSIX relative path: {value}")
-        return path
-
-    def stable_record(record: dict, include_split: bool = True) -> str:
-        """Serialize a record without ephemeral signed URL query strings or export ordering."""
-        hash_record = {k: v for k, v in record.items() if k != "url" and (include_split or k != "split")}
-        if isinstance(record.get("depth"), dict):
-            hash_record["depth"] = {k: v for k, v in record["depth"].items() if k != "url"}
-            if record["depth"].get("url"):
-                hash_record["depth"]["_source"] = clean_url(record["depth"]["url"])
-        if record.get("file"):
-            hash_record["_source"] = (
-                clean_url(record["url"]) if record.get("url") else str(ndjson_path.parent.resolve())
-            )
-        return json.dumps(hash_record, sort_keys=True, separators=(",", ":"))
-
-    def manifest_digest(contract_version: int | None = None) -> str:
-        """Hash stable records, optionally namespaced by an output contract version."""
-        manifest_hasher = hashlib.sha256()
-        if contract_version is not None:
-            manifest_hasher.update(f"depth-ndjson-v{contract_version}\0".encode())
-        manifest_hasher.update(stable_record(dataset_record).encode())
-        for record in sorted(stable_record(record) for record in image_records):
-            manifest_hasher.update(record.encode())
-        return manifest_hasher.hexdigest()
-
-    def depth_relative_path(record: dict) -> Path:
-        """Return the depth target path matching DepthDataset's images-to-depth mapping."""
-        return Path(relative_record_path(record["file"], "image file").with_suffix(".npy"))
-
-    def content_hasher(expected_hash: str, field: str):
-        """Return the declared content hasher after validating its digest syntax."""
-        if not isinstance(expected_hash, str) or not re.fullmatch(
-            r"(?:[0-9a-fA-F]{32}|[0-9a-fA-F]{64})", expected_hash
-        ):
-            raise ValueError(f"{field} must be an XXH3-128 or SHA-256 hex digest")
-        return xxhash.xxh3_128() if len(expected_hash) == 32 else hashlib.sha256()
-
-    def validate_image_file(path: Path, record: dict, verify_hash: bool = True) -> bool:
-        """Validate a cached image against its manifest identity and decoder."""
-        try:
-            if verify_hash:
-                expected_hash = record["hash"].lower()
-                hasher = content_hasher(expected_hash, "Image content hash")
-                with path.open("rb") as file:
-                    for chunk in iter(lambda: file.read(1024 * 1024), b""):
-                        hasher.update(chunk)
-                if hasher.hexdigest() != expected_hash:
-                    return False
-            image = imread(str(path))
-            return (
-                image is not None
-                and (record.get("width") is None or image.shape[1] == record["width"])
-                and (record.get("height") is None or image.shape[0] == record["height"])
-            )
-        except (KeyError, OSError, TypeError, ValueError):
-            return False
-
-    def validate_depth_file(path: Path, descriptor: dict, verify_hash: bool = True) -> bool:
-        """Validate a downloaded or reused canonical depth target against its manifest descriptor."""
-        try:
-            if verify_hash:
-                expected_hash = descriptor["hash"].lower()
-                hasher = content_hasher(expected_hash, "Depth content hash")
-                with path.open("rb") as file:
-                    for chunk in iter(lambda: file.read(1024 * 1024), b""):
-                        hasher.update(chunk)
-                if hasher.hexdigest() != expected_hash:
-                    return False
-            depth = np.load(path, allow_pickle=False, mmap_mode="r")
-            return depth.dtype == np.float32 and depth.ndim == 2 and list(depth.shape) == descriptor["shape"]
-        except (EOFError, KeyError, OSError, TypeError, ValueError):
-            return False
-
-    # Validate required fields before consulting a cached conversion.
+    # Depth adds one sibling URL per image record; file naming, caching, retries, and split reuse remain shared.
     if is_depth:
-        from ultralytics.data.utils import IMG_FORMATS
-
-        if dataset_record.get("type") != "dataset" or task != "depth":
-            raise ValueError("Depth NDJSON must start with a depth dataset record")
-        image_paths = set()
-        depth_paths = set()
         for record in image_records:
-            if record.get("type") != "image":
-                raise ValueError("Depth NDJSON entries must be image records")
-            relative_record_path(record.get("file"), "image file")
-            if not isinstance(record.get("url"), str) or not record["url"]:
-                raise ValueError("Depth records require a non-empty image URL")
             depth = record.get("depth")
-            if not isinstance(depth, dict) or not depth.get("url"):
+            if not isinstance(depth, dict) or not isinstance(depth.get("url"), str) or not depth["url"]:
                 raise ValueError(f"Depth record '{record.get('file', '<unknown>')}' is missing depth.url")
-            content_hasher(depth.get("hash"), "Depth content hash")
-            content_hasher(record.get("hash"), "Image content hash")
-            depth["hash"] = depth["hash"].lower()
-            record["hash"] = record["hash"].lower()
             if depth.get("encoding") != "npy-f32" or depth.get("unit") != "m":
                 raise ValueError("Depth records require encoding='npy-f32' and unit='m'")
             shape = depth.get("shape")
             if not isinstance(shape, list) or len(shape) != 2 or not all(type(x) is int and x > 0 for x in shape):
                 raise ValueError("Depth records require a positive [height, width] shape")
-            width, height = record.get("width"), record.get("height")
-            if type(width) is not int or width <= 0 or type(height) is not int or height <= 0:
-                raise ValueError("Depth records require positive integer image dimensions")
-            if width * height > MAX_NDJSON_IMAGE_PIXELS:
-                raise ValueError(f"Depth images may not exceed {MAX_NDJSON_IMAGE_PIXELS} pixels")
-            if shape != [height, width]:
-                raise ValueError("Depth shape must match the declared image dimensions")
-            if Path(record["file"]).suffix[1:].lower() not in IMG_FORMATS:
-                raise ValueError(f"Unsupported depth image format: {record['file']}")
-            if "bytes" in depth and (type(depth["bytes"]) is not int or depth["bytes"] <= 0):
-                raise ValueError("Depth bytes must be a positive integer")
-            if "bytes" in record and (type(record["bytes"]) is not int or record["bytes"] <= 0):
-                raise ValueError("Image bytes must be a positive integer")
-            image_path = unicodedata.normalize("NFC", f"{record['split']}/{record['file']}").casefold()
-            depth_path = unicodedata.normalize(
-                "NFC", f"{record['split']}/{depth_relative_path(record).as_posix()}"
-            ).casefold()
-            if image_path in image_paths:
-                raise ValueError(
-                    f"Depth records contain a duplicate output path: images/{record['split']}/{record['file']}"
-                )
-            if depth_path in depth_paths:
-                raise ValueError(
-                    f"Depth records contain a duplicate output path: depth/{record['split']}/{depth_relative_path(record)}"
-                )
-            image_paths.add(image_path)
-            depth_paths.add(depth_path)
 
     splits = {record["split"] for record in image_records}
     if not is_classification:
         if "train" not in splits:
             raise ValueError(f"Dataset missing required 'train' split. Found splits: {sorted(splits)}")
-        if "val" not in splits and not (is_depth and "test" in splits):
+        if "val" not in splits:
             train_records = [r for r in image_records if r.get("split") == "train"]
             if len(train_records) < 2:
                 raise ValueError(
                     f"Dataset has only {len(train_records)} image(s) and no 'val' split. "
                     f"Need at least 2 images to auto-split into train/val."
                 )
-            if is_depth:
-                train_records.sort(
-                    key=lambda record: hashlib.sha256(stable_record(record, include_split=False).encode()).digest()
-                )
-            else:
-                random.Random(0).shuffle(train_records)  # Preserve the established non-Depth split ordering.
+            random.Random(0).shuffle(train_records)  # local RNG to avoid mutating global training seed
             val_count = max(1, len(train_records) // 10)
             for r in train_records[:val_count]:
                 r["split"] = "val"
@@ -1066,64 +906,24 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                 f"For best results, manually assign validation images in Platform dataset page."
             )
 
-    # Depth identity includes the deterministic output split and a converter contract version. Other tasks preserve
-    # their existing pre-conversion identity semantics.
-    manifest_hash = manifest_digest(NDJSON_DEPTH_CONTRACT_VERSION) if is_depth else _hash
-    dataset_dir = output_path / f"{ndjson_path.stem}-{manifest_hash}"
+    dataset_dir = output_path / f"{ndjson_path.stem}-{_hash}"
     yaml_path = dataset_dir / "data.yaml"
 
-    expected_split_paths = {split: f"images/{split}" for split in sorted(splits)}
-    if is_depth and "val" not in expected_split_paths and "test" in expected_split_paths:
-        expected_split_paths["val"] = expected_split_paths["test"]
-
-    def cached_conversion_valid(root: Path) -> bool:
-        """Return whether a completed conversion matches this manifest and all depth identities."""
+    if yaml_path.is_file():
         try:
-            cached = YAML.load(root / "data.yaml")
-            if cached.get("hash") != manifest_hash:
-                return False
-            if is_depth:
-                expected_images = {root / "images" / r["split"] / r["file"] for r in image_records}
-                expected_depth = {root / "depth" / r["split"] / depth_relative_path(r) for r in image_records}
-                actual_images = {path for path in (root / "images").rglob("*") if path.is_file()}
-                actual_depth = {path for path in (root / "depth").rglob("*") if path.is_file()}
-                return (
-                    cached
-                    == {
-                        "task": "depth",
-                        "nc": 1,
-                        "names": {0: "depth"},
-                        **expected_split_paths,
-                        "hash": manifest_hash,
-                    }
-                    and actual_images == expected_images
-                    and actual_depth == expected_depth
-                    and all(
-                        validate_image_file(root / "images" / record["split"] / record["file"], record)
-                        and validate_depth_file(
-                            root / "depth" / record["split"] / depth_relative_path(record), record["depth"]
-                        )
-                        for record in image_records
-                    )
+            cached = YAML.load(yaml_path)
+            if cached.get("hash") == _hash and all(
+                (dataset_dir / cached[split]).is_dir()
+                and (
+                    is_classification
+                    or (dataset_dir / ("depth" if is_depth else "labels") / Path(cached[split]).name).is_dir()
                 )
-            return all(
-                (root / cached[split]).is_dir()
-                and (is_classification or (root / "labels" / Path(cached[split]).name).is_dir())
                 for split in ("train", "val", "test")
                 if split in cached
-            )
+            ):
+                return yaml_path
         except Exception:
-            return False
-
-    if yaml_path.is_file() and cached_conversion_valid(dataset_dir):
-        return yaml_path
-    final_dataset_dir = dataset_dir
-    staging = None
-    if is_depth:
-        output_path.mkdir(parents=True, exist_ok=True)
-        staging = TemporaryDirectory(prefix=f".{dataset_dir.name}-", dir=output_path)
-        dataset_dir = Path(staging.name)
-        yaml_path = dataset_dir / "data.yaml"
+            pass
 
     inferred_nc = None
 
@@ -1145,7 +945,6 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     if task == "pose" and "kpt_shape" not in dataset_record:
         dataset_record["kpt_shape"] = _infer_ndjson_kpt_shape(image_records)
 
-    # Check if this exact manifest directory already exists (e.g. an interrupted conversion).
     _reuse = dataset_dir.exists()
     if _reuse:
         yaml_path.unlink(missing_ok=True)  # Invalidate hash before destructive ops (crash safety)
@@ -1170,56 +969,25 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
             (dataset_dir / "images" / split).mkdir(parents=True, exist_ok=True)
             (dataset_dir / ("depth" if is_depth else "labels") / split).mkdir(parents=True, exist_ok=True)
             data_yaml[split] = f"images/{split}"
-        if is_depth and "val" not in data_yaml and "test" in data_yaml:
-            data_yaml["val"] = data_yaml["test"]
 
-    async def ensure_file(
-        session,
-        path,
-        url,
-        candidates=(),
-        expected_hash=None,
-        max_bytes=None,
-        expected_bytes=None,
-        validator=None,
-    ):
-        """Reuse a local split copy or download a file with bounded retries."""
+    async def ensure_file(session, path, url, candidates=()):
+        """Reuse an existing split copy or download one URL with the established retry policy."""
         if path.exists():
             return True
         for candidate in candidates:
             if candidate.exists():
                 path.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(candidate, path)
+                candidate.rename(path)
                 return True
         if not url:
             return False
         path.parent.mkdir(parents=True, exist_ok=True)
         for attempt in range(3):
             error = None
-            temporary = path.with_name(f".{path.name}.{os.getpid()}.{id(asyncio.current_task())}.part")
             try:
                 async with session.get(url, timeout=aiohttp.ClientTimeout(total=30)) as response:
                     response.raise_for_status()
-                    content_length = response.content_length
-                    if max_bytes and content_length and content_length > max_bytes:
-                        raise ValueError(f"Download exceeds the {max_bytes}-byte limit")
-                    hasher = content_hasher(expected_hash, "Downloaded content hash") if expected_hash else None
-                    received = 0
-                    with temporary.open("wb") as file:
-                        async for chunk in response.content.iter_chunked(1024 * 1024):
-                            received += len(chunk)
-                            if max_bytes and received > max_bytes:
-                                raise ValueError(f"Download exceeds the {max_bytes}-byte limit")
-                            file.write(chunk)
-                            if hasher:
-                                hasher.update(chunk)
-                    if expected_bytes is not None and received != expected_bytes:
-                        raise ValueError(f"Downloaded {received} bytes, expected {expected_bytes}")
-                    if hasher and hasher.hexdigest() != expected_hash.lower():
-                        raise ValueError("Downloaded content hash does not match the manifest")
-                    if validator and not validator(temporary):
-                        raise ValueError("Downloaded content does not match the manifest structure")
-                    temporary.replace(path)
+                    path.write_bytes(await response.read())
                 return True
             except aiohttp.ClientResponseError as e:
                 error = e
@@ -1228,11 +996,9 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                     return False
             except (aiohttp.ClientError, asyncio.TimeoutError) as e:
                 error = e
-            except Exception as e:  # OSError, validation, disk full, permissions — not transient, don't retry
+            except Exception as e:  # OSError, disk full, permissions — not transient, don't retry
                 LOGGER.warning(f"Failed to save {clean_url(url)}: {e}")
                 return False
-            finally:
-                temporary.unlink(missing_ok=True)
             if attempt < 2:
                 await asyncio.sleep(2**attempt)
             else:
@@ -1264,46 +1030,31 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                         break
                     label_path.write_text("\n".join(lines_to_write) + "\n" if lines_to_write else "")
 
-            if is_depth and image_path.exists() and not validate_image_file(image_path, record):
-                image_path.unlink()
-            image_ok = await ensure_file(
-                session,
-                image_path,
-                record.get("url"),
-                expected_hash=record.get("hash") if is_depth else None,
-                max_bytes=(
-                    min(record.get("bytes", MAX_NDJSON_IMAGE_BYTES), MAX_NDJSON_IMAGE_BYTES) if is_depth else None
-                ),
-                expected_bytes=record.get("bytes") if is_depth else None,
-                validator=(lambda path: validate_image_file(path, record, verify_hash=False)) if is_depth else None,
-            )
-            if not is_depth:
-                return image_ok
-
-            depth_name = depth_relative_path(record)
-            depth_path = dataset_dir / "depth" / split / depth_name
-            descriptor = record["depth"]
-            if depth_path.exists() and not validate_depth_file(depth_path, descriptor):
-                depth_path.unlink()
-            depth_candidates = (
+            image_candidates = (
                 [
-                    dataset_dir / "depth" / s / depth_name
+                    (dataset_dir / s / class_name / original_name)
+                    if is_classification
+                    else (dataset_dir / "images" / s / original_name)
                     for s in ("train", "val", "test")
-                    if validate_depth_file(dataset_dir / "depth" / s / depth_name, descriptor)
+                    if s != split
                 ]
                 if _reuse
                 else []
             )
-            depth_ok = await ensure_file(
-                session,
-                depth_path,
-                descriptor["url"],
-                depth_candidates,
-                expected_hash=descriptor["hash"],
-                max_bytes=min(descriptor.get("bytes", MAX_NDJSON_DEPTH_BYTES), MAX_NDJSON_DEPTH_BYTES),
-                expected_bytes=descriptor.get("bytes"),
-                validator=lambda path: validate_depth_file(path, descriptor, verify_hash=False),
+            image_ok = await ensure_file(session, image_path, record.get("url"), image_candidates)
+            if not is_depth:
+                return image_ok
+
+            stem = original_name.rsplit(".", 1)[0] or original_name
+            depth_name = f"{stem}.npy"
+            depth_path = dataset_dir / "depth" / split / depth_name
+            descriptor = record["depth"]
+            depth_candidates = (
+                [dataset_dir / "depth" / s / depth_name for s in ("train", "val", "test") if s != split]
+                if _reuse
+                else []
             )
+            depth_ok = await ensure_file(session, depth_path, descriptor["url"], depth_candidates)
             if not image_ok or not depth_ok:
                 image_path.unlink(missing_ok=True)
                 depth_path.unlink(missing_ok=True)
@@ -1311,7 +1062,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
             return True
 
     # Process all images with async downloads (limit connections for small datasets)
-    semaphore = asyncio.Semaphore(min(32 if is_depth else 128, len(image_records)))
+    semaphore = asyncio.Semaphore(min(128, len(image_records)))
     async with aiohttp.ClientSession(trust_env=True) as session:
         pbar = TQDM(
             total=len(image_records),
@@ -1331,7 +1082,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     if success_count == 0:
         raise RuntimeError(f"Failed to download any images from {ndjson_path}. Check network connection and URLs.")
     if is_depth and success_count < len(image_records):
-        raise RuntimeError(f"Failed to download and validate all depth pairs from {ndjson_path}.")
+        raise RuntimeError(f"Failed to download all depth pairs from {ndjson_path}.")
     if success_count < len(image_records):
         LOGGER.warning(f"Downloaded {success_count}/{len(image_records)} images from {ndjson_path}")
 
@@ -1353,7 +1104,10 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
             if p.is_file() and p not in expected_paths:
                 p.unlink()
         if is_depth:
-            expected_depth = {dataset_dir / "depth" / r["split"] / depth_relative_path(r) for r in image_records}
+            expected_depth = {
+                dataset_dir / "depth" / r["split"] / f"{r['file'].rsplit('.', 1)[0] or r['file']}.npy"
+                for r in image_records
+            }
             for p in (dataset_dir / "depth").rglob("*"):
                 if p.is_file() and p not in expected_depth:
                     p.unlink()
@@ -1365,59 +1119,6 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         return dataset_dir
     else:
         # Detection: write data.yaml with hash for future change detection
-        data_yaml["hash"] = manifest_hash
+        data_yaml["hash"] = _hash
         YAML.save(yaml_path, data_yaml)
-        if not is_depth:
-            return yaml_path
-
-        @contextmanager
-        def commit_lock(path: Path):
-            """Hold a crash-safe cross-process lock; the OS releases it when the process exits."""
-            descriptor = os.open(path, os.O_CREAT | os.O_RDWR, 0o600)
-            locked = False
-            try:
-                if os.name == "nt":
-                    import msvcrt
-                    import time as lock_time
-
-                    if os.fstat(descriptor).st_size == 0:
-                        os.write(descriptor, b"\0")
-                    while True:
-                        try:
-                            os.lseek(descriptor, 0, os.SEEK_SET)
-                            msvcrt.locking(descriptor, msvcrt.LK_NBLCK, 1)
-                            break
-                        except OSError:
-                            lock_time.sleep(0.05)
-                else:
-                    import fcntl
-
-                    fcntl.flock(descriptor, fcntl.LOCK_EX)
-                locked = True
-                yield
-            finally:
-                if locked:
-                    if os.name == "nt":
-                        os.lseek(descriptor, 0, os.SEEK_SET)
-                        msvcrt.locking(descriptor, msvcrt.LK_UNLCK, 1)
-                    else:
-                        fcntl.flock(descriptor, fcntl.LOCK_UN)
-                os.close(descriptor)
-
-        lock_path = output_path / f".{final_dataset_dir.name}.lock"
-        invalid_dir = None
-        with commit_lock(lock_path):
-            try:
-                if final_dataset_dir.exists():
-                    if cached_conversion_valid(final_dataset_dir):
-                        return final_dataset_dir / "data.yaml"
-                if final_dataset_dir.exists():
-                    invalid_dir = output_path / f".{final_dataset_dir.name}.invalid-{os.getpid()}"
-                    final_dataset_dir.replace(invalid_dir)
-                dataset_dir.replace(final_dataset_dir)
-            finally:
-                if invalid_dir:
-                    shutil.rmtree(invalid_dir, ignore_errors=True)
-                if staging:
-                    staging.cleanup()
-        return final_dataset_dir / "data.yaml"
+        return yaml_path

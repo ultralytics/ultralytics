@@ -4,7 +4,6 @@
 # Includes all solutions except DistanceCalculation and the Security Alarm System.
 
 import os
-from pathlib import Path
 from unittest.mock import patch
 
 import cv2

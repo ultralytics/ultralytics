@@ -8,7 +8,7 @@ from copy import copy
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import DepthModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
-from ultralytics.utils.plotting import plot_images, plt_settings
+from ultralytics.utils.plotting import plt_settings
 
 
 class DepthTrainer(yolo.detect.DetectionTrainer):

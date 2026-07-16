@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Export Ultralytics YOLO detection models directly to Hailo HEF for Hailo-8, Hailo-8L, Hailo-10, and Hailo-15 accelerators.
+description: Export Ultralytics YOLO object detection models directly to Hailo HEF for computer vision and edge AI on Hailo-8, Hailo-8L, Hailo-10, and Hailo-15 accelerators.
 keywords: Hailo export, Hailo HEF, export YOLO to Hailo, YOLO Hailo, Hailo-8, Hailo-8L, Hailo-10, Hailo-15, Raspberry Pi AI Kit, Raspberry Pi AI HAT+, Hailo Dataflow Compiler, Hailo DFC, HailoRT, Hailo AI accelerator, edge AI, embedded AI, computer vision, object detection, model quantization, INT8 quantization, Ultralytics YOLO, YOLO26, YOLO11, YOLOv8
 ---
 

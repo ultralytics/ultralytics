@@ -572,7 +572,12 @@ class Exporter:
             self.args.data = TASK2CALIBRATIONDATA.get(model.task)
         if fmt == "hailo":
             assert LINUX and not ARM64, "Hailo export is only supported on Linux x86_64."
-            if model.task != "detect" or type(model.model[-1]) is not Detect:
+            family = Path(model.yaml.get("yaml_file", "")).stem.lower()
+            if (
+                model.task != "detect"
+                or type(model.model[-1]) is not Detect
+                or not family.startswith(("yolov8", "yolo11", "yolo26"))
+            ):
                 raise ValueError("Hailo export currently supports YOLOv8, YOLO11, and YOLO26 detection models only.")
             if self.args.end2end is not None:
                 raise ValueError(

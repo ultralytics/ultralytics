@@ -293,6 +293,7 @@ def test_export_hailo_compiles_hef(monkeypatch, tmp_path, one2one):
     "model,kwargs,error",
     [
         ("yolov10n.yaml", {}, "YOLOv8, YOLO11, and YOLO26"),
+        ("yolo12n.yaml", {}, "YOLOv8, YOLO11, and YOLO26"),
         ("yolo11n.yaml", {"end2end": True}, "remove the end2end argument"),
         ("yolo26n.yaml", {"end2end": False}, "remove the end2end argument"),
         ("yolo11n.yaml", {"opset": 12}, "requires opset=11"),

@@ -149,7 +149,7 @@ def main():
     parser.add_argument("--name", type=str, default="v1", help="Experiment name")
     parser.add_argument("--skip_train", action="store_true")
     parser.add_argument("--weights", type=str, default=None, help="Weights path for --skip_train")
-    args = parser.parse_args()
+    args, _ = parser.parse_known_args()
 
     # DDP guard: only rank 0 runs OOD eval
     import os as _os

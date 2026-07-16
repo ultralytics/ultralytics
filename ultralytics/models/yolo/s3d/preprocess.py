@@ -29,7 +29,6 @@ from ultralytics.models.yolo.s3d.orientation import decode_orientation
 from ultralytics.utils import LOGGER
 from ultralytics.utils.nms import non_max_suppression
 
-
 # =============================================================================
 # Configuration Defaults
 # =============================================================================
@@ -84,8 +83,8 @@ def compute_letterbox_params(
     else:
         out_h, out_w = int(imgsz[0]), int(imgsz[1])
     scale = min(out_h / ori_h, out_w / ori_w)
-    new_unpad_w = int(round(ori_w * scale))
-    new_unpad_h = int(round(ori_h * scale))
+    new_unpad_w = round(ori_w * scale)
+    new_unpad_h = round(ori_h * scale)
     dw = out_w - new_unpad_w
     dh = out_h - new_unpad_h
     pad_left = dw // 2

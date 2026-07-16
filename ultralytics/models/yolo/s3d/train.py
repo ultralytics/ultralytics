@@ -17,7 +17,6 @@ from ultralytics.models.yolo.s3d.head import DEPTH_MAX, DEPTH_MIN
 from ultralytics.models.yolo.s3d.model import Stereo3DDetModel
 from ultralytics.models.yolo.s3d.preprocess import preprocess_stereo_batch
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
-
 from ultralytics.utils.plotting import Annotator, VisualizationConfig, colors, plot_labels, plot_stereo3d_boxes
 from ultralytics.utils.torch_utils import unwrap_model
 
@@ -72,7 +71,6 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         Returns:
             dict: Dataset dictionary with fields used by the trainer and model.
         """
-
         # Use check_det_dataset for path resolution, validation, and automatic download
         # This handles: finding default configs, executing download scripts, resolving paths
         from ultralytics.data.utils import check_det_dataset

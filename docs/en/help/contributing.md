@@ -28,46 +28,38 @@ To ensure a welcoming and inclusive environment for everyone, all contributors m
 
 ## 🚀 Contributing via Pull Requests
 
-We greatly appreciate contributions in the form of [pull requests (PRs)](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests). To make the review process as smooth as possible, please follow these steps:
+We greatly appreciate contributions in the form of [pull requests (PRs)](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests). If this is your first time, follow these steps in order:
 
-1. **[Fork the repository](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo):** Start by forking the relevant Ultralytics repository (e.g., [ultralytics/ultralytics](https://github.com/ultralytics/ultralytics)) to your GitHub account.
-2. **[Create a branch](https://docs.github.com/en/desktop/making-changes-in-a-branch/managing-branches-in-github-desktop):** Create a new branch in your forked repository with a clear, descriptive name reflecting your changes (e.g., `fix-issue-123`, `add-feature-xyz`).
-3. **Make your changes:** Implement your improvements or fixes. Ensure your code adheres to the project's style guidelines and doesn't introduce new errors or warnings.
-4. **Test your changes:** Before submitting, test your changes locally to confirm they work as expected and don't cause [regressions](https://en.wikipedia.org/wiki/Software_regression). Add tests if you're introducing new functionality.
-5. **[Commit your changes](https://docs.github.com/en/desktop/making-changes-in-a-branch/committing-and-reviewing-changes-to-your-project-in-github-desktop):** Commit your changes with concise and descriptive commit messages. If your changes address a specific issue, include the issue number (e.g., `Fix #123: Corrected calculation error.`).
-6. **[Create a pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request):** Submit a pull request from your branch to the `main` branch of the original Ultralytics repository. Provide a clear title and a detailed description explaining the purpose and scope of your changes.
+1. **[Fork the repository](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo):** Click "Fork" on the [ultralytics/ultralytics](https://github.com/ultralytics/ultralytics) GitHub page. This creates your own copy of the repository under your GitHub account.
+2. **Clone your fork and install it:** Download your fork to your computer and install it in **editable mode** (`-e`), so Python runs your local files directly and picks up every change you make without reinstalling:
+    ```bash
+    git clone https://github.com/YOUR_USERNAME/ultralytics.git
+    cd ultralytics
+    pip install -e .
+    ```
+3. **[Create a branch](https://docs.github.com/en/desktop/making-changes-in-a-branch/managing-branches-in-github-desktop):** Give it a short, descriptive name reflecting your change (e.g., `fix-issue-123`, `add-feature-xyz`):
+    ```bash
+    git checkout -b fix-issue-123
+    ```
+4. **Make your changes:** Implement your improvements or fixes. Ensure your code adheres to the project's style guidelines and doesn't introduce new errors or warnings.
+5. **Test your changes:** Before submitting, test your changes locally to confirm they work as expected and don't cause [regressions](https://en.wikipedia.org/wiki/Software_regression). Add tests if you're introducing new functionality.
+6. **[Commit and push your changes](https://docs.github.com/en/desktop/making-changes-in-a-branch/committing-and-reviewing-changes-to-your-project-in-github-desktop):** Write a concise, descriptive commit message. If your change addresses a specific issue, include its number (e.g., `Fix #123: Corrected calculation error.`):
+    ```bash
+    git add .
+    git commit -m "Fix #123: Corrected calculation error."
+    git push origin fix-issue-123
+    ```
+7. **[Create a pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request):** Open your fork on GitHub — it shows a banner prompting you to open a pull request from your new branch. Submit it against the `main` branch of the original Ultralytics repository, with a clear title and a description explaining the purpose and scope of your change.
 
 ### 💻 Development Installation
 
-Install your fork or clone in editable mode (`-e`) so Python picks up your local changes without reinstalling:
+The steps above cover the most common case: forking the repository to contribute back. A couple of other situations call for a different setup:
 
-!!! example "Install for Development"
-
-    === "From Your Fork"
-
-        1.  **Clone** your fork locally:
-            ```bash
-            git clone https://github.com/YOUR_USERNAME/ultralytics.git
-            cd ultralytics
-            ```
-        2.  **Create a branch** for your changes:
-            ```bash
-            git checkout -b my-custom-branch
-            ```
-        3.  **Install** the package in editable mode. Pip uses your local `pyproject.toml` to resolve dependencies:
-            ```bash
-            pip install -e .
-            ```
-        4.  **Commit and push** your changes, then [open a pull request](#-contributing-via-pull-requests):
-            ```bash
-            git add .
-            git commit -m "My custom changes"
-            git push origin my-custom-branch
-            ```
+!!! example "Other Ways to Install From Source"
 
     === "Direct Clone (No Fork)"
 
-        Clone the repository directly if you have push access, or just want to experiment with the latest source:
+        If you have push access to the main repository, or just want to experiment with the latest source without contributing back, clone it directly:
 
         ```bash
         git clone https://github.com/ultralytics/ultralytics
@@ -77,7 +69,7 @@ Install your fork or clone in editable mode (`-e`) so Python picks up your local
 
     === "Pin a Fork in requirements.txt"
 
-        To depend on a custom fork instead of PyPI — for example, to share persistent modifications across a team — point `requirements.txt` at your fork's branch:
+        To make a project depend on your custom fork instead of the PyPI package — for example, to share persistent modifications across a team — point `requirements.txt` at your fork's branch:
 
         ```text title="requirements.txt"
         # Install ultralytics from a specific git branch

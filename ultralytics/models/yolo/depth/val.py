@@ -51,33 +51,19 @@ class DepthValidator(DetectionValidator):
         """No NMS needed for depth — return predictions as-is."""
         return preds
 
-    def _extract_pred(self, preds):
-        """Return the (B,1,H,W) predicted depth tensor from any model output container."""
-        if isinstance(preds, dict):
-            return preds.get("depth", preds.get("proto"))
-        if isinstance(preds, (tuple, list)):
-            return preds[0] if isinstance(preds[0], torch.Tensor) else preds
-        return preds
-
     def update_metrics(self, preds, batch):
         """Accumulate depth metrics for a batch."""
-        if "depth" not in batch:
-            return
-
-        pred_depth = self._extract_pred(preds)
         gt_depth = batch["depth"]
         if gt_depth.ndim == 3:
             gt_depth = gt_depth.unsqueeze(1)
-        if pred_depth.ndim == 3:
-            pred_depth = pred_depth.unsqueeze(1)
-        if pred_depth.shape[-2:] != gt_depth.shape[-2:]:
-            pred_depth = F.interpolate(
-                pred_depth.float(), size=gt_depth.shape[-2:], mode="bilinear", align_corners=True
-            )
-        self.metrics.update_stats(pred_depth, gt_depth)
+        if preds.ndim == 3:
+            preds = preds.unsqueeze(1)
+        if preds.shape[-2:] != gt_depth.shape[-2:]:
+            preds = F.interpolate(preds.float(), size=gt_depth.shape[-2:], mode="bilinear", align_corners=True)
+        self.metrics.update_stats(preds, gt_depth)
 
         if self.calibrating and self._cal_pts < 500_000:
-            for pi, gi in zip(pred_depth, gt_depth):
+            for pi, gi in zip(preds, gt_depth):
                 valid = (gi > 1e-3) & (pi > 1e-3) & torch.isfinite(pi)
                 if not valid.any():
                     continue
@@ -154,28 +140,14 @@ class DepthValidator(DetectionValidator):
             )
         )
 
-    def finalize_metrics(self, *args, **kwargs):
-        """No-op; metrics finalized in get_stats()."""
-        pass
+    def finalize_metrics(self):
+        """Set final values for metrics speed."""
+        self.metrics.speed = self.speed
+        self.metrics.save_dir = self.save_dir
 
     def get_desc(self):
         """Return description for progress bar."""
-        return f"{'Class':>22}{'Images':>11}{'delta1':>11}{'abs_rel':>11}{'rmse':>11}{'silog':>11}"
-
-    def plot_val_samples(self, batch, ni):
-        """Save validation GT depth overlays to val_batch{ni}_labels.jpg.
-
-        Follows the detection/segmentation pattern: ground truth is rendered in the labels plot.
-        The depth heatmap is blended over the RGB image using the shared ``plot_images`` path.
-        """
-        plot_images(
-            labels={"depth": batch["depth"]},
-            images=batch["img"],
-            paths=batch["im_file"],
-            fname=self.save_dir / f"val_batch{ni}_labels.jpg",
-            names=self.names,
-            on_plot=self.on_plot,
-        )
+        return ("%22s" + "%11s" * 5) % ("Class", "Images", "delta1", "abs_rel", "rmse", "silog")
 
     def plot_predictions(self, batch, preds, ni):
         """Save predicted depth overlays to val_batch{ni}_pred.jpg.
@@ -183,9 +155,8 @@ class DepthValidator(DetectionValidator):
         Depth has no boxes/classes, so the detection-style plotter is replaced with a depth heatmap overlay
         through the shared ``plot_images`` path, matching the semantic-segmentation visualization style.
         """
-        pred = self._extract_pred(preds)
         plot_images(
-            labels={"depth": pred},
+            labels={"depth": preds},
             images=batch["img"],
             paths=batch["im_file"],
             fname=self.save_dir / f"val_batch{ni}_pred.jpg",

@@ -2196,6 +2196,7 @@ class Albumentations(BaseTransform):
                 - 'img': np.ndarray representing the image
                 - 'cls': np.ndarray of class labels
                 - 'instances': object containing bounding boxes and other instance information
+                - 'semantic_mask': optional np.ndarray of semantic class IDs
 
         Returns:
             (dict[str, Any]): The input dictionary with augmented image and updated annotations.
@@ -2224,16 +2225,21 @@ class Albumentations(BaseTransform):
 
         if self.contains_spatial:
             cls = labels["cls"]
-            if len(cls):
+            mask = labels.get("semantic_mask")
+            if len(cls) or mask is not None:
                 labels["instances"].convert_bbox("xywh")
                 labels["instances"].normalize(*im.shape[:2][::-1])
                 bboxes = labels["instances"].bboxes
                 # TODO: add supports of segments and keypoints
-                new = self.transform(image=im, bboxes=bboxes, class_labels=cls)  # transformed
-                if len(new["class_labels"]) > 0:  # skip update if no bbox in new im
+                new = self.transform(
+                    image=im, bboxes=bboxes, class_labels=cls, **({"mask": mask} if mask is not None else {})
+                )
+                if len(new["class_labels"]) > 0 or mask is not None:  # only box-only samples skip on losing all boxes
                     labels["img"] = new["image"]
                     labels["cls"] = np.array(new["class_labels"]).reshape(-1, 1)
-                    bboxes = np.array(new["bboxes"], dtype=np.float32)
+                    bboxes = np.array(new["bboxes"], dtype=np.float32).reshape(-1, 4)
+                    if mask is not None:
+                        labels["semantic_mask"] = new["mask"]
                 labels["instances"].update(bboxes=bboxes)
         else:
             labels["img"] = self.transform(image=labels["img"])["image"]  # transformed

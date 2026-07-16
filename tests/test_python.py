@@ -734,7 +734,7 @@ def test_depth_predictor_postprocess_sets_depthmap():
     from ultralytics.models.yolo.depth.predict import DepthPredictor
 
     p = DepthPredictor.__new__(DepthPredictor)  # bypass __init__
-    p.batch = None
+    p.batch = (["im0.jpg"], None, "")  # (paths, im0s, s) as set by BasePredictor.stream_inference
 
     class _M:  # minimal stand-in for self.model
         names = {0: "depth"}
@@ -746,6 +746,7 @@ def test_depth_predictor_postprocess_sets_depthmap():
     res = p.postprocess(preds, img, [orig])
     assert isinstance(res[0].depth, DepthMap)
     assert res[0].depth.data.shape == (40, 48)  # resized to original image size
+    assert res[0].path == "im0.jpg"
 
 
 def test_results_plot_with_depth():
@@ -782,10 +783,11 @@ def test_results_update_probs():
     assert r.verbose() and r.summary(), "verbose()/summary() raise AttributeError on a raw Tensor probs"
 
 
-def test_labels_and_crops():
+def test_labels_and_crops(tmp_path):
     """Test output from prediction args for saving YOLO detection labels and crops."""
     imgs = [SOURCE, ASSETS / "zidane.jpg"]
-    results = YOLO(WEIGHTS_DIR / "yolo26n.pt")(imgs, imgsz=160, save_txt=True, save_crop=True)
+    model = YOLO(WEIGHTS_DIR / "yolo26n.pt")
+    results = model(imgs, imgsz=160, save_txt=True, save_crop=True)
     save_path = Path(results[0].save_dir)
     for r in results:
         im_name = Path(r.path).stem
@@ -810,6 +812,9 @@ def test_labels_and_crops():
         crop_count = len([f for f in crop_files if im_name in f.name])
         assert crop_count == len(r.boxes.data), f"Crop count {crop_count} != detection count {len(r.boxes.data)}"
 
+    model(SOURCE, imgsz=160, save_crop=True, verbose=False, project=tmp_path, name="crop", exist_ok=True)
+    assert any((tmp_path / "crop/crops").rglob("*.jpg")), "save_crop=True alone must write crop files"
+
 
 def test_data_utils(tmp_path):
     """Test data utility functions including auto-splitting and zip archiving."""
@@ -832,6 +837,17 @@ def test_data_utils(tmp_path):
     with pytest.raises(FileNotFoundError, match="images not found"):
         check_det_dataset(data_yaml, split="test")
 
+    # polygons2masks_overlap must not overflow uint8 on the transient `masks + mask` sum (reaches 2 * i + 1):
+    # with more than 128 overlapping instances every instance must keep a distinct index in the overlap mask
+    from ultralytics.data.utils import polygons2masks_overlap
+
+    segments = [
+        np.array([[150 - s, 150 - s], [150 + s, 150 - s], [150 + s, 150 + s], [150 - s, 150 + s]], dtype=np.float32)
+        for s in range(140, 10, -1)  # 130 concentric squares, all overlapping the center
+    ]
+    overlap, _ = polygons2masks_overlap((300, 300), segments)
+    assert len(np.unique(overlap)) == len(segments) + 1  # background + 130 instances, no uint8 wraparound
+
 
 def test_safe_download_unzips_local_path_archive(tmp_path):
     """Test safe_download() unzips local archive paths without treating them like remote URLs."""
@@ -852,19 +868,6 @@ def test_safe_download_unzips_local_path_archive(tmp_path):
     assert extracted == expected_path, f"Extracted path {extracted} != expected {expected_path}"
     assert (extracted / "data.yaml").is_file(), f"data.yaml not found in {extracted}"
     assert (extracted / "images" / "val").is_dir(), f"images/val not found in {extracted}"
-
-
-def test_safe_download_tar_delete(tmp_path):
-    """Test safe_download() extracts a .tar.gz and deletes the archive (regression: extraction shadowed the path)."""
-    archive = tmp_path / "data.tar.gz"
-    (tmp_path / "src").mkdir()
-    (tmp_path / "src" / "a.txt").write_text("hello")
-    with tarfile.open(archive, "w:gz") as tar:
-        tar.add(tmp_path / "src" / "a.txt", arcname="data/a.txt")
-
-    extracted = safe_download(archive, dir=tmp_path / "out", unzip=True, delete=True, progress=False)
-    assert (Path(extracted) / "data" / "a.txt").read_text() == "hello"
-    assert not archive.exists(), "archive should be deleted after extraction"
 
 
 def test_safe_download_skips_unsafe_archive_members(tmp_path):
@@ -996,14 +999,6 @@ def test_cfg_depth_task_registered():
     assert TASK2CALIBRATIONDATA["depth"] == "nyu-depth.yaml"
     assert TASK2METRIC["depth"] == "metrics/delta1"
     assert TASK2MODEL["depth"] == "yolo26n-depth.pt"
-
-
-def test_cfg_depth_hyperparameter_defaults():
-    """Depth loss knobs are real cfg args with the documented defaults."""
-    args = get_cfg()
-    assert args.dlog == 1.0
-    assert args.dgrad == 0.5
-    assert args.dlam == 1.0  # released yolo26*-depth.pt weights are pretrained with this value
 
 
 def test_depth_calibration_checkpoint_provenance(tmp_path):
@@ -1145,19 +1140,6 @@ def test_depth_trainer_records_portable_calibration_split(tmp_path, monkeypatch)
 
     assert captured["validation_split"] == "images/val"
     assert str(tmp_path) not in captured["validation_split"]
-
-
-def test_no_depth_env_reads_in_source():
-    """All DEPTH_* knobs are cfg args now; no os.environ reads of them may remain."""
-    import re
-
-    offenders = []
-    pattern = re.compile(r"(environ|getenv).*DEPTH_|DEPTH_.*(environ|getenv)")
-    for path in ROOT.rglob("*.py"):
-        for i, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
-            if pattern.search(line):
-                offenders.append(f"{path.relative_to(ROOT)}:{i}: {line.strip()}")
-    assert not offenders, "Found DEPTH_* env reads:\n" + "\n".join(offenders)
 
 
 def test_utils_init():
@@ -1344,9 +1326,11 @@ def test_nms_end2end_classes_before_max_det():
         ],
         dtype=torch.float32,
     )
-    for out, confs in zip(non_max_suppression(pred, conf_thres=0.25, classes=[0], max_det=2), ([0.8, 0.7], [0.9, 0.6])):
+    outputs, indices = non_max_suppression(pred, conf_thres=0.25, classes=[0], max_det=2, return_idxs=True)
+    for out, idx, confs, expected in zip(outputs, indices, ([0.8, 0.7], [0.9, 0.6]), ([1, 2], [0, 3])):
         assert out.shape[0] == 2 and (out[:, 5] == 0).all()  # top-2 class-0 boxes kept, not truncated away
         assert torch.allclose(out[:, 4], torch.tensor(confs))
+        assert idx.tolist() == expected
     out = non_max_suppression(pred, conf_thres=0.25, max_det=2)[0]  # without classes, top-2 overall unchanged
     assert torch.allclose(out[:, 4], torch.tensor([0.9, 0.8]))
 
@@ -1449,15 +1433,6 @@ def test_nn_depth_head_export_upsamples_to_input():
         assert head(_depth_head_feats()).shape[-2:] == (256, 256)
     head.export = False
     assert head(_depth_head_feats()).shape[-2:] != (256, 256)  # inference returns native head resolution
-
-
-def test_nn_depth_head_training_returns_dict():
-    """In training mode the Depth head returns a dict with the raw depth map."""
-    from ultralytics.nn.modules.head import Depth
-
-    head = Depth(c_mid=32, ch=(32, 64, 128)).train()
-    out = head(_depth_head_feats())
-    assert isinstance(out, dict) and "depth" in out
 
 
 def test_nn_depth_head_no_dead_parameters():

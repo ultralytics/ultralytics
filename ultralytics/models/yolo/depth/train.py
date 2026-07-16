@@ -9,7 +9,7 @@ from pathlib import Path
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import DepthModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
-from ultralytics.utils.plotting import plot_images, plt_settings
+from ultralytics.utils.plotting import plt_settings
 
 
 class DepthTrainer(yolo.detect.DetectionTrainer):
@@ -68,33 +68,6 @@ class DepthTrainer(yolo.detect.DetectionTrainer):
         return yolo.depth.DepthValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
-
-    def progress_string(self):
-        """Progress string with an Images column: depth has no instances, so that slot shows the batch image count."""
-        return ("\n" + "%11s" * (4 + len(self.loss_names))) % (
-            "Epoch",
-            "GPU_mem",
-            *self.loss_names,
-            "Images",
-            "Size",
-        )
-
-    def plot_training_samples(self, batch, ni):
-        """Plot training samples with GT depth overlays to ``train_batch{ni}.jpg``.
-
-        Follows the same ``plot_images`` path used by validation labels/predictions so the depth
-        heatmap is blended over the RGB image, consistent with the semantic-segmentation style.
-        """
-        try:
-            plot_images(
-                labels={"depth": batch["depth"]},
-                images=batch["img"],
-                paths=batch["im_file"],
-                fname=self.save_dir / f"train_batch{ni}.jpg",
-                on_plot=self.on_plot,
-            )
-        except Exception as e:
-            LOGGER.warning(f"DepthTrainer: failed to plot train_batch{ni}: {e}")
 
     @plt_settings()
     def plot_training_labels(self):

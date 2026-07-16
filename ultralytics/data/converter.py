@@ -850,17 +850,37 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     task = dataset_record.get("task", "detect")
     is_classification = task == "classify"
     is_depth = task == "depth"
+    class_names = {int(k): v for k, v in dataset_record.get("class_names", {}).items()}
+    classification_ids = set()
 
-    # Preserve the established cache ABI for every non-Depth task.
-    legacy_hasher = hashlib.sha256()
-    for record in lines:
-        hash_record = {k: v for k, v in record.items() if k != "url"}
-        if record.get("file"):
-            hash_record["_source"] = (
-                clean_url(record["url"]) if record.get("url") else str(ndjson_path.parent.resolve())
-            )
-        legacy_hasher.update(json.dumps(hash_record, sort_keys=True).encode())
-    legacy_manifest_hash = legacy_hasher.hexdigest()[:8]
+    # Hash stable content plus source identity. Query strings are excluded because signed URLs change on every export.
+    # Depth identity is derived separately below from a sorted, contract-versioned manifest digest.
+    _h = hashlib.sha256()
+    for i, r in enumerate(lines):
+        if i:
+            split, source_name = r.get("split"), r.get("file")
+            if split not in {"train", "val", "test"}:
+                raise ValueError(f"Invalid NDJSON split: {split!r}")
+            if not isinstance(source_name, str) or not source_name:
+                raise ValueError(f"Invalid NDJSON image name: {source_name!r}")
+            if not is_depth:
+                # Record indexes provide collision-free output stems without trusting source paths. Depth keeps the
+                # manifest paths so image/depth pairs stay aligned; they are strictly validated before any file I/O.
+                suffix = source_name.rsplit(".", 1)[-1]
+                r["file"] = f"{i}.{suffix}" if suffix.isalnum() and len(suffix) <= 10 else f"{i}.jpg"
+            if is_classification:
+                ids = r.get("annotations", {}).get("classification", [])
+                class_id = ids[0] if ids else 0
+                if not isinstance(class_id, int):
+                    raise ValueError(f"Invalid NDJSON classification ID: {class_id!r}")
+                classification_ids.add(class_id)
+        hash_record = {k: v for k, v in r.items() if k != "url"}
+        if r.get("file"):
+            hash_record["_source"] = clean_url(r["url"]) if r.get("url") else str(ndjson_path.parent.resolve())
+        _h.update(json.dumps(hash_record, sort_keys=True).encode())
+    _hash = _h.hexdigest()[:8]
+    class_dirs = {class_id: f"{i:06d}" for i, class_id in enumerate(sorted(classification_ids))}
+    classification_names = {i: class_names.get(class_id, str(class_id)) for i, class_id in enumerate(class_dirs)}
 
     def relative_record_path(value: str, field: str) -> PurePosixPath:
         """Validate a portable relative NDJSON output path before any filesystem access."""
@@ -893,11 +913,6 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         ):
             raise ValueError(f"NDJSON {field} must be a canonical POSIX relative path: {value}")
         return path
-
-    for record in image_records:
-        if record.get("split") not in {"train", "val", "test"}:
-            raise ValueError(f"NDJSON image split must be train, val, or test: {record.get('split')}")
-        relative_record_path(record.get("file"), "image file")
 
     def stable_record(record: dict, include_split: bool = True) -> str:
         """Serialize a record without ephemeral signed URL query strings or export ordering."""
@@ -981,6 +996,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         for record in image_records:
             if record.get("type") != "image":
                 raise ValueError("Depth NDJSON entries must be image records")
+            relative_record_path(record.get("file"), "image file")
             if not isinstance(record.get("url"), str) or not record["url"]:
                 raise ValueError("Depth records require a non-empty image URL")
             depth = record.get("depth")
@@ -1052,7 +1068,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
 
     # Depth identity includes the deterministic output split and a converter contract version. Other tasks preserve
     # their existing pre-conversion identity semantics.
-    manifest_hash = manifest_digest(NDJSON_DEPTH_CONTRACT_VERSION) if is_depth else legacy_manifest_hash
+    manifest_hash = manifest_digest(NDJSON_DEPTH_CONTRACT_VERSION) if is_depth else _hash
     dataset_dir = output_path / f"{ndjson_path.stem}-{manifest_hash}"
     yaml_path = dataset_dir / "data.yaml"
 
@@ -1109,7 +1125,6 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         dataset_dir = Path(staging.name)
         yaml_path = dataset_dir / "data.yaml"
 
-    class_names = {int(k): v for k, v in dataset_record.get("class_names", {}).items()}
     inferred_nc = None
 
     if not is_classification:
@@ -1236,12 +1251,13 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                 # Classification: place image in {split}/{class_name}/ folder
                 class_ids = annotations.get("classification", [])
                 class_id = class_ids[0] if class_ids else 0
-                class_name = class_names.get(class_id, str(class_id))
+                class_name = class_dirs[class_id]
                 image_path = dataset_dir / split / class_name / original_name
             else:
                 image_path = dataset_dir / "images" / split / original_name
                 if not is_depth:
-                    label_path = dataset_dir / "labels" / split / f"{Path(original_name).stem}.txt"
+                    stem = original_name.rsplit(".", 1)[0] or original_name
+                    label_path = dataset_dir / "labels" / split / f"{stem}.txt"
                     lines_to_write = []
                     for key in annotations:
                         lines_to_write = [" ".join(map(str, item)) for item in annotations[key]]
@@ -1296,7 +1312,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
 
     # Process all images with async downloads (limit connections for small datasets)
     semaphore = asyncio.Semaphore(min(32 if is_depth else 128, len(image_records)))
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(trust_env=True) as session:
         pbar = TQDM(
             total=len(image_records),
             desc=f"Converting {ndjson_path.name} → {dataset_dir} ({len(image_records)} images)",
@@ -1328,7 +1344,8 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                 ann = r.get("annotations", {})
                 cids = ann.get("classification", [])
                 cid = cids[0] if cids else 0
-                expected_paths.add(dataset_dir / s / class_names.get(cid, str(cid)) / name)
+                class_name = class_dirs[cid]
+                expected_paths.add(dataset_dir / s / class_name / name)
             else:
                 expected_paths.add(dataset_dir / "images" / s / name)
         img_root = dataset_dir if is_classification else (dataset_dir / "images")
@@ -1343,6 +1360,8 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
 
     if is_classification:
         # Classification: return dataset directory (check_cls_dataset expects a directory path)
+        # Keep class paths safe while check_cls_dataset restores the original display names.
+        YAML.save(dataset_dir / ".ndjson.yaml", {"names": classification_names})
         return dataset_dir
     else:
         # Detection: write data.yaml with hash for future change detection

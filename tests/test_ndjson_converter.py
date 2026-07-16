@@ -3,6 +3,7 @@
 import asyncio
 import hashlib
 import json
+import random
 import threading
 from functools import partial
 from http.server import BaseHTTPRequestHandler, SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -91,7 +92,7 @@ def _write_depth_ndjson(
 
 
 def test_convert_ndjson_preserves_non_depth_cache_identity(tmp_path):
-    """Keep the established cache identity and automatic split ordering for non-Depth tasks."""
+    """Keep the sanitized-rename cache identity and automatic split ordering for non-Depth tasks."""
     source = tmp_path / "source"
     source.mkdir()
     for index in range(10):
@@ -115,9 +116,10 @@ def test_convert_ndjson_preserves_non_depth_cache_identity(tmp_path):
     manifest = tmp_path / "detect.ndjson"
     manifest.write_text("\n".join(json.dumps(record) for record in records))
     hasher = hashlib.sha256()
-    for record in records:
+    for index, record in enumerate(records):
         stable = {key: value for key, value in record.items() if key != "url"}
-        if record.get("file"):
+        if index:
+            stable["file"] = f"{index}.jpg"  # converter renames outputs to collision-free record indexes
             stable["_source"] = clean_url(record["url"])
         hasher.update(json.dumps(stable, sort_keys=True).encode())
 
@@ -131,7 +133,9 @@ def test_convert_ndjson_preserves_non_depth_cache_identity(tmp_path):
     expected = hasher.hexdigest()[:8]
     assert yaml_path.parent.name == f"detect-{expected}"
     assert YAML.load(yaml_path)["hash"] == expected
-    assert (yaml_path.parent / "images" / "val" / "7.jpg").is_file()
+    order = list(range(1, len(records)))
+    random.Random(0).shuffle(order)  # mirrors the converter's deterministic auto-split
+    assert (yaml_path.parent / "images" / "val" / f"{order[0]}.jpg").is_file()
 
 
 def test_convert_depth_ndjson_bounds_chunked_images_and_redacts_urls(tmp_path, monkeypatch):
@@ -409,7 +413,7 @@ def test_convert_depth_ndjson_rejects_unsafe_output_paths(tmp_path, file, split)
     records[1]["split"] = split
     manifest.write_text("\n".join(json.dumps(record) for record in records))
 
-    with pytest.raises(ValueError, match=r"relative path|split must"):
+    with pytest.raises(ValueError, match=r"relative path|Invalid NDJSON split"):
         asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets"))
 
 

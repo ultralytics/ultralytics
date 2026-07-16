@@ -35,15 +35,6 @@ def _depth_head(model):
     return head if hasattr(head, "cal_a") else None
 
 
-def _extract(preds):
-    """Pull the (B,1,H,W) depth tensor out of any forward-output container."""
-    if isinstance(preds, dict):
-        return preds.get("depth")
-    if isinstance(preds, (tuple, list)):
-        return preds[0]
-    return preds
-
-
 def _rewind(dataloader):
     """Rewind a stateful loader to the epoch start before a partial pass.
 
@@ -179,7 +170,7 @@ def _collect_logpairs(model, dataloader, device, max_images: int):
         gt = batch["depth"].to(device).float()
         if gt.ndim == 3:
             gt = gt.unsqueeze(1)
-        pred = _extract(model(img)).float()
+        pred = model(img).float()
         if pred.ndim == 3:
             pred = pred.unsqueeze(1)
         if pred.shape[-2:] != gt.shape[-2:]:
@@ -258,7 +249,7 @@ def _plot_calibrated_batches(
         for ni, batch in zip(range(max_batches), dataloader):
             img = batch["img"].to(device).float() / 255
             gt = batch["depth"].to(device).float()
-            raw = _extract(model(img)).float()
+            raw = model(img).float()
             if raw.ndim == 3:
                 raw = raw.unsqueeze(1)
             cal = torch.exp(a * torch.log(raw.clamp(min=1e-3)) + b)

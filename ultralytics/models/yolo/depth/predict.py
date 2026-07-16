@@ -36,16 +36,8 @@ class DepthPredictor(BasePredictor):
         results = []
         for i, orig_img in enumerate(orig_imgs):
             # Crop letterbox padding and rescale to the original image size.
+            img_path = self.batch[0][i] if isinstance(self.batch[0], list) else self.batch[0]
             depth = ops.scale_masks(depth_maps[i : i + 1].float(), orig_img.shape[:2])
-            depth = depth.squeeze().cpu().numpy()
-
-            results.append(
-                Results(
-                    orig_img=orig_img,
-                    path=self.batch[0][i] if self.batch else "",
-                    names=self.model.names,
-                    depth=depth,
-                )
-            )
+            results.append(Results(orig_img=orig_img, path=img_path, names=self.model.names, depth=depth.squeeze()))
 
         return results

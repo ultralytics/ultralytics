@@ -654,6 +654,8 @@ class Exporter:
             self.args.nms = False
         if self.args.nms and model.task == "depth":
             LOGGER.warning("'nms=True' is not valid for depth models. Forcing 'nms=False'.")
+        if fmt == "coreml" and self.args.nms and model.task != "detect":
+            LOGGER.warning("CoreML 'nms=True' is only supported for detect models. Forcing 'nms=False'.")
             self.args.nms = False
         if self.args.nms:
             assert not isinstance(model, ClassificationModel), "'nms=True' is not valid for classification models."
@@ -731,7 +733,7 @@ class Exporter:
 
             model = executorch_wrapper(model)
         for m in model.modules():
-            if isinstance(m, (Classify, SemanticSegment)):
+            if isinstance(m, (Classify, SemanticSegment, Depth)):
                 m.export = True
                 m.format = self.args.format
                 # Semantic argmax bake needs an integer graph output; TensorRT supports uint8 outputs only on TRT>=10
@@ -741,8 +743,6 @@ class Exporter:
                     m.bake_argmax = check_version(f"tensorrt-cu{cuda_major}", ">=10.0.0") or check_version(
                         "tensorrt", ">=10.0.0"
                     )
-            if isinstance(m, Depth):
-                m.export = True
                 m.format = self.args.format
             if isinstance(m, (Detect, RTDETRDecoder)):  # includes all Detect subclasses like Segment, Pose, OBB
                 m.dynamic = self.args.dynamic
@@ -925,14 +925,10 @@ class Exporter:
 
         f = str(self.file.with_suffix(".onnx"))
         output_names = ["output0", "output1"] if self.model.task == "segment" else ["output0"]
-        if self.model.task == "depth":
-            output_names = ["depth"]
         dynamic = self.args.dynamic
         if dynamic:
             dynamic = {"images": {0: "batch", 2: "height", 3: "width"}}  # shape(1,3,640,640)
-            if self.model.task == "depth":
-                dynamic["depth"] = {0: "batch", 2: "height", 3: "width"}  # shape(1,1,H,W)
-            elif isinstance(self.model, SegmentationModel):
+            if isinstance(self.model, SegmentationModel):
                 dynamic["output0"] = {0: "batch", 2: "anchors"}  # shape(1, 116, 8400)
                 dynamic["output1"] = {0: "batch", 2: "mask_height", 3: "mask_width"}  # shape(1,32,160,160)
             elif isinstance(self.model, DetectionModel):
@@ -1156,13 +1152,8 @@ class Exporter:
         if f.is_dir():
             shutil.rmtree(f)
 
-        if self.model.task == "detect":
-            model = IOSDetectModel(self.model, self.im, mlprogram=not mlmodel) if self.args.nms else self.model
-        else:
-            if self.args.nms:
-                LOGGER.warning(f"{prefix} 'nms=True' is only available for Detect models like 'yolo26n.pt'.")
-                # TODO CoreML Segment and Pose model pipelining
-            model = self.model
+        # TODO CoreML Segment and Pose model pipelining; 'nms=True' is forced off for non-detect tasks upstream
+        model = IOSDetectModel(self.model, self.im, mlprogram=not mlmodel) if self.args.nms else self.model
 
         if self.args.dynamic:
             input_shape = ct.Shape(
@@ -1183,12 +1174,12 @@ class Exporter:
             im=self.im,
             classifier_names=list(self.model.names.values()) if self.model.task == "classify" else None,
             mlmodel=mlmodel,
-            quantize=self.args.quantize,
+            quantize=16 if self.args.nms and not mlmodel and self.args.quantize is None else self.args.quantize,
             metadata=self.metadata,
             prefix=prefix,
         )
 
-        if self.args.nms and self.model.task == "detect":
+        if self.args.nms:
             ct_model = pipeline_coreml(
                 ct_model,
                 self.output_shape,

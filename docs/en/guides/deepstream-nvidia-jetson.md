@@ -60,7 +60,7 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
 
 !!! warning "Supported DeepStream versions for this workflow"
 
-    The [DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo) clone, `export_yolo26.py`, and `make` steps below provide build configurations for DeepStream 8.0 and earlier (JetPack 7.0 and earlier), not for DeepStream 9.0 or 9.1. On DeepStream 9.0/9.1 (JetPack 7.1/7.2), use NVIDIA's official YOLO integration under [tools/yolo_deepstream](https://github.com/NVIDIA/DeepStream/tree/main/tools/yolo_deepstream) in the DeepStream monorepo, and check that repository for the YOLO versions it supports.
+    The [DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo) clone, `export_yolo26.py`, and `make` steps below provide build configurations for DeepStream 8.0 and earlier (JetPack 7.0 and earlier), not for DeepStream 9.0 or 9.1. A validated YOLO26 export and configuration workflow for DeepStream 9.0/9.1 is not yet available, so run YOLO26 with DeepStream 8.0 on JetPack 7.0 or earlier. NVIDIA's [tools/yolo_deepstream](https://github.com/NVIDIA/DeepStream/tree/main/tools/yolo_deepstream) integration in the DeepStream monorepo currently ships parsers and configs through YOLO11 only and does not yet cover YOLO26.
 
 1.  Install Ultralytics with necessary dependencies
 

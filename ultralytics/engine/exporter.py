@@ -1436,8 +1436,8 @@ class Exporter:
     def export_hailo(self, prefix=colorstr("Hailo:")):
         """Export a YOLO detection model to Hailo Executable Format (HEF)."""
         try:
-            from hailo_sdk_client import ClientRunner
             import tensorflow as tf
+            from hailo_sdk_client import ClientRunner
         except ImportError as e:
             raise ImportError(
                 "Hailo export requires the Hailo Dataflow Compiler wheel from "

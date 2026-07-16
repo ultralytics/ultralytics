@@ -284,9 +284,8 @@ def probiou(
 def _bev_corners(cx: float, cz: float, length: float, width: float, rot: float) -> np.ndarray:
     """Return the 4 ground-plane (x, z) corners of a yaw-rotated 3D box footprint.
 
-    Uses the same rotation convention as the rest of the s3d code (rotation about
-    the camera y-axis): width extends along the local x-axis, length along the
-    local z-axis. Corners are returned counter-clockwise.
+    Uses the same rotation convention as the rest of the s3d code (rotation about the camera y-axis): width extends
+    along the local x-axis, length along the local z-axis. Corners are returned counter-clockwise.
 
     Args:
         cx: Box center x (lateral) in meters.
@@ -385,9 +384,8 @@ def compute_bev_iou(
 ) -> float:
     """Compute the bird's-eye-view (BEV) IoU between two 3D boxes.
 
-    Projects both boxes onto the ground plane and computes the exact rotated
-    2D IoU of their footprints, ignoring the vertical (height) extent. This is
-    the standard KITTI AP_BEV overlap measure.
+    Projects both boxes onto the ground plane and computes the exact rotated 2D IoU of their footprints, ignoring the
+    vertical (height) extent. This is the standard KITTI AP_BEV overlap measure.
 
     Args:
         box1: First 3D box (Box3D object or array [x, y, z, l, w, h, orientation]).
@@ -414,11 +412,10 @@ def compute_3d_iou(
 ) -> float:
     """Compute the true rotated 3D Intersection over Union (IoU) between two 3D boxes.
 
-    Follows the KITTI evaluation convention: the bird's-eye-view (BEV) intersection
-    of the two yaw-rotated footprints is computed exactly via convex polygon
-    clipping, then multiplied by the overlap of the vertical (height) extents to
-    obtain the intersection volume. Unlike an axis-aligned-bbox approximation, this
-    does not overestimate overlap for rotated boxes.
+    Follows the KITTI evaluation convention: the bird's-eye-view (BEV) intersection of the two yaw-rotated footprints is
+    computed exactly via convex polygon clipping, then multiplied by the overlap of the vertical (height) extents to
+    obtain the intersection volume. Unlike an axis-aligned-bbox approximation, this does not overestimate overlap for
+    rotated boxes.
 
     Args:
         box1: First 3D box (Box3D object or array [x, y, z, l, w, h, orientation]).

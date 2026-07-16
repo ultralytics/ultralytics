@@ -1,5 +1,4 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-
 """
 Dense Photometric Alignment Module (GAP-002) - Optimized Version.
 
@@ -37,7 +36,7 @@ class DenseAlignmentOptimized:
 
     Expected speedup: ~200-500x vs original implementation.
 
-    Example:
+    Examples:
         >>> aligner = DenseAlignmentOptimized(
         ...     depth_search_range=2.0,
         ...     depth_steps=32,
@@ -442,7 +441,7 @@ def create_dense_alignment_optimized(config: dict) -> DenseAlignmentOptimized | 
     Returns:
         DenseAlignmentOptimized instance, or None if enabled=False.
 
-    Example:
+    Examples:
         >>> config = {
         ...     "enabled": True,
         ...     "method": "ncc",

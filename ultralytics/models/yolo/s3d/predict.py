@@ -21,8 +21,8 @@ from ultralytics.utils.checks import check_imgsz
 class Stereo3DDetPredictor(DetectionPredictor):
     """Stereo 3D Detection predictor.
 
-    Extends DetectionPredictor to handle stereo image pairs (6-channel input)
-    and decode 3D bounding boxes from 10-branch model outputs.
+    Extends DetectionPredictor to handle stereo image pairs (6-channel input) and decode 3D bounding boxes from
+    10-branch model outputs.
     """
 
     def __init__(self, cfg=None, overrides: dict[str, Any] | None = None, _callbacks=None):

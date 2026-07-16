@@ -12,7 +12,7 @@ class Stereo3DDetModel(DetectionModel):
     Supports two backbone modes:
     - groups=2 stem (default): 6ch input with groups=2 in first conv layers
     - siamese (siamese: true in YAML): standard 3ch backbone runs on L/R images
-      separately via batch trick, features split at tap point for cost volume
+    separately via batch trick, features split at tap point for cost volume
     """
 
     def __init__(self, cfg, ch=None, nc=None, verbose=True):

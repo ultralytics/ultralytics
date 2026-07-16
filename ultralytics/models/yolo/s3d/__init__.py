@@ -1,5 +1,4 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-
 """Stereo 3D Object Detection module for YOLO.
 
 This module implements stereo-based 3D object detection with CenterNet-style outputs,

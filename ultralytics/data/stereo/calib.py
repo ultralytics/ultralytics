@@ -1,5 +1,4 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-
 """Calibration parameter handling for stereo vision."""
 
 from __future__ import annotations
@@ -82,10 +81,10 @@ class CalibrationParameters:
 def load_kitti_calibration(calib_file: str | Path) -> CalibrationParameters:
     """Load stereo calibration parameters from a KITTI-format file.
 
-    Supports both the raw KITTI projection matrices (``P2``/``P3``) and the simplified
-    ``fx/fy/cx/cy/baseline`` key-value format produced by ``convert_kitti_3d.py`` and shipped with the
-    kitti-stereo datasets. Intrinsics are taken from the explicit keys when present, otherwise derived
-    from ``P2``; the stereo baseline is derived from the ``P2``/``P3`` horizontal offset when needed.
+    Supports both the raw KITTI projection matrices (``P2``/``P3``) and the simplified ``fx/fy/cx/cy/baseline``
+    key-value format produced by ``convert_kitti_3d.py`` and shipped with the kitti-stereo datasets. Intrinsics are
+    taken from the explicit keys when present, otherwise derived from ``P2``; the stereo baseline is derived from the
+    ``P2``/``P3`` horizontal offset when needed.
 
     Args:
         calib_file: Path to the calibration file.

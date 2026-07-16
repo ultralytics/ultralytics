@@ -1,5 +1,4 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-
 """
 Geometric Construction Module (GAP-001).
 
@@ -85,9 +84,8 @@ class CalibParams(NamedTuple):
 class GeometricConstruction:
     """Solve 3D box parameters from 2D stereo observations using Gauss-Newton.
 
-    This class implements the geometric construction algorithm from Section 3.2 of
-    the Stereo CenterNet paper. Given 2D observations from stereo detection, it
-    solves for the 3D box center (x, y, z) and orientation (θ) using 7 geometric
+    This class implements the geometric construction algorithm from Section 3.2 of the Stereo CenterNet paper. Given 2D
+    observations from stereo detection, it solves for the 3D box center (x, y, z) and orientation (θ) using 7 geometric
     constraint equations and Gauss-Newton optimization.
 
     The constraint equations relate:
@@ -103,7 +101,7 @@ class GeometricConstruction:
         tolerance: Convergence tolerance on residual norm (default: 1e-6)
         damping: Levenberg-Marquardt damping factor for numerical stability (default: 1e-3)
 
-    Example:
+    Examples:
         >>> solver = GeometricConstruction(max_iterations=10, tolerance=1e-6)
         >>> calib = CalibParams(fx=721.5, fy=721.5, cx=609.5, cy=172.8, baseline=0.54)
         >>> obs = GeometricObservations(ul=500, vl=180, ur=480, vr=180, ul_prime=450, ur_prime=430, up=520, vp=200)
@@ -120,13 +118,12 @@ class GeometricConstruction:
         """Initialize the geometric construction solver.
 
         Args:
-            max_iterations: Maximum number of Gauss-Newton iterations.
-                           Higher values may improve accuracy but increase computation.
-            tolerance: Convergence threshold on residual L2 norm.
-                      Solver stops when ||residuals|| < tolerance.
-            damping: Levenberg-Marquardt damping factor λ for numerical stability.
-                    Larger values make updates more conservative (like gradient descent).
-                    Smaller values approach pure Gauss-Newton (faster convergence near optimum).
+            max_iterations: Maximum number of Gauss-Newton iterations. Higher values may improve accuracy but increase
+                computation.
+            tolerance: Convergence threshold on residual L2 norm. Solver stops when ||residuals|| < tolerance.
+            damping: Levenberg-Marquardt damping factor λ for numerical stability. Larger values make updates more
+                conservative (like gradient descent). Smaller values approach pure Gauss-Newton (faster convergence
+                near optimum).
         """
         self.max_iterations = max_iterations
         self.tolerance = tolerance
@@ -163,14 +160,11 @@ class GeometricConstruction:
 
         Args:
             observations: 2D observations from stereo detection pipeline.
-            dimensions: (length, width, height) of 3D box in meters.
-                       Length is along the forward direction, width is lateral,
-                       height is vertical.
-            theta_init: Initial orientation estimate (yaw angle in radians).
-                       Usually from Multi-Bin orientation decoder.
+            dimensions: (length, width, height) of 3D box in meters. Length is along the forward direction, width is
+                lateral, height is vertical.
+            theta_init: Initial orientation estimate (yaw angle in radians). Usually from Multi-Bin orientation decoder.
             calib: Camera calibration parameters.
-            z_init: Optional initial depth estimate. If None, computed from
-                   simple stereo triangulation using disparity.
+            z_init: Optional initial depth estimate. If None, computed from simple stereo triangulation using disparity.
 
         Returns:
             Tuple of (x, y, z, theta, converged):
@@ -180,7 +174,7 @@ class GeometricConstruction:
             - theta: Refined orientation/yaw angle (radians)
             - converged: True if solver converged within tolerance
 
-        Note:
+        Notes:
             If the solver fails to converge, it returns the best estimate found
             and sets converged=False. The caller can then fall back to simple
             triangulation using the fallback_simple_triangulation() function.
@@ -407,8 +401,7 @@ def fallback_simple_triangulation(
 ) -> tuple[float, float, float, float]:
     """Simple triangulation fallback when geometric solver fails.
 
-    This provides a basic 3D estimate using only stereo disparity,
-    without the full geometric constraint optimization.
+    This provides a basic 3D estimate using only stereo disparity, without the full geometric constraint optimization.
 
     Args:
         center_2d: (u, v) center coordinates in left image (pixels)
@@ -445,9 +438,8 @@ def solve_geometric_batch(
 ) -> tuple[list[dict], float]:
     """Apply geometric construction to a batch of detections.
 
-    This is a convenience function that processes multiple detections,
-    applying the geometric solver to each and optionally falling back
-    to simple triangulation for failed cases.
+    This is a convenience function that processes multiple detections, applying the geometric solver to each and
+    optionally falling back to simple triangulation for failed cases.
 
     Args:
         detections: List of detection dicts with keys:

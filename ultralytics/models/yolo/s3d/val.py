@@ -108,8 +108,8 @@ def compute_3d_iou_batch(pred_boxes: list[Box3D], gt_boxes: list[Box3D], eps: fl
 def compute_bev_iou_batch(pred_boxes: list[Box3D], gt_boxes: list[Box3D], eps: float = 1e-7) -> np.ndarray:
     """Compute the bird's-eye-view (BEV) IoU matrix between prediction and GT boxes.
 
-    Mirrors :func:`compute_3d_iou_batch` but uses ground-plane footprint overlap
-    (ignoring height) for KITTI AP_BEV. Only matching-class pairs are filled.
+    Mirrors :func:`compute_3d_iou_batch` but uses ground-plane footprint overlap (ignoring height) for KITTI AP_BEV.
+    Only matching-class pairs are filled.
 
     Args:
         pred_boxes: List of predicted Box3D objects.
@@ -139,8 +139,8 @@ def compute_bev_iou_batch(pred_boxes: list[Box3D], gt_boxes: list[Box3D], eps: f
 class Stereo3DDetValidator(BaseValidator):
     """Stereo 3D Detection Validator.
 
-    Extends BaseValidator to implement 3D detection validation with AP3D metrics.
-    Computes 3D IoU, matches predictions to ground truth, and calculates AP3D at IoU 0.5 and 0.7.
+    Extends BaseValidator to implement 3D detection validation with AP3D metrics. Computes 3D IoU, matches predictions
+    to ground truth, and calculates AP3D at IoU 0.5 and 0.7.
     """
 
     def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None) -> None:

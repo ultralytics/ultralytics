@@ -38,14 +38,14 @@ download: https://github.com/ultralytics/assets/releases/download/v0.0.0/kitti-s
 
 # Stereo calibration parameters
 # baseline is used as fallback when per-image calib files are missing
-baseline: 0.54  # distance between left and right cameras (meters)
-depth_min: 2.0  # minimum direct-depth prediction (meters)
-depth_max: 80.0  # maximum direct-depth prediction (meters)
+baseline: 0.54 # distance between left and right cameras (meters)
+depth_min: 2.0 # minimum direct-depth prediction (meters)
+depth_max: 80.0 # maximum direct-depth prediction (meters)
 
 # Mean dimensions per class [length, width, height] in meters
 # Internally converted to (H, W, L) order by val.py:_parse_dims() for training
 mean_dims:
-  Car: [3.9, 1.6, 1.5]        # [length, width, height] in meters
+  Car: [3.9, 1.6, 1.5] # [length, width, height] in meters
   Van: [4.8, 2.0, 2.0]
   Truck: [10.0, 2.8, 3.5]
   Pedestrian: [0.8, 0.6, 1.7]
@@ -58,7 +58,7 @@ mean_dims:
 # Used for normalized offset prediction: (dim - mean) / std
 # Same [L, W, H] order as mean_dims; also converted to (H, W, L) internally
 std_dims:
-  Car: [0.42, 0.10, 0.15]     # [std_length, std_width, std_height]
+  Car: [0.42, 0.10, 0.15] # [std_length, std_width, std_height]
   Van: [0.50, 0.15, 0.20]
   Truck: [0.80, 0.30, 0.50]
   Pedestrian: [0.20, 0.08, 0.12]
@@ -75,6 +75,6 @@ channels: 6
 # Controls how much pseudo-labels contribute to 3D aux losses (depth, dims, orient, lr_dist).
 # Detection losses (cls, box) always use full weight regardless of these settings.
 pseudo_labels:
-  weight: 0.5       # aux loss weight for stereo-matched pseudo-labels (occ=10)
-  mono_weight: 0.0  # aux loss weight for mono-only pseudo-labels (occ=20)
-  cutoff: 0.9       # epoch fraction after which pseudo-labels contribute 0 to aux losses
+  weight: 0.5 # aux loss weight for stereo-matched pseudo-labels (occ=10)
+  mono_weight: 0.0 # aux loss weight for mono-only pseudo-labels (occ=20)
+  cutoff: 0.9 # epoch fraction after which pseudo-labels contribute 0 to aux losses

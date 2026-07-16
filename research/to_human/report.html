@@ -1,70 +1,265 @@
+<!-- Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license -->
+
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><title>s3d Research Findings</title>
-<style>
- body{font:15px/1.5 -apple-system,Segoe UI,Roboto,sans-serif;max-width:920px;margin:32px auto;padding:0 20px;color:#1a1a2e}
- h1{font-size:26px;margin:0 0 4px} .sub{color:#666;margin:0 0 24px}
- h2{margin-top:34px;border-bottom:2px solid #eee;padding-bottom:6px}
- table{border-collapse:collapse;width:100%;margin:14px 0;font-size:14px}
- th,td{border:1px solid #ddd;padding:7px 10px;text-align:center} th{background:#f5f6fa}
- td.l,th.l{text-align:left}
- .win{background:#e8f8ee;font-weight:600} .bad{background:#fdeaea} .pend{background:#fff7e6;color:#a06700}
- .bar{height:18px;background:#3b6cf6;border-radius:3px;display:inline-block;vertical-align:middle}
- .barwrap{display:flex;align-items:center;gap:10px;margin:5px 0}
- .barlbl{width:230px;font-size:13px} .barval{font-weight:600;width:48px}
- code{background:#f0f0f5;padding:1px 5px;border-radius:4px;font-size:13px}
- .tag{display:inline-block;padding:1px 8px;border-radius:10px;font-size:12px;font-weight:600}
- .ok{background:#d6f5e0;color:#0a7d3c} .no{background:#fad9d9;color:#b02020} .wait{background:#ffe9bf;color:#a06700}
- .note{color:#555;font-size:13px}
-</style></head><body>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>s3d Research Findings</title>
+    <style>
+      body {
+        font:
+          15px/1.5 -apple-system,
+          Segoe UI,
+          Roboto,
+          sans-serif;
+        max-width: 920px;
+        margin: 32px auto;
+        padding: 0 20px;
+        color: #1a1a2e;
+      }
+      h1 {
+        font-size: 26px;
+        margin: 0 0 4px;
+      }
+      .sub {
+        color: #666;
+        margin: 0 0 24px;
+      }
+      h2 {
+        margin-top: 34px;
+        border-bottom: 2px solid #eee;
+        padding-bottom: 6px;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 14px 0;
+        font-size: 14px;
+      }
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 7px 10px;
+        text-align: center;
+      }
+      th {
+        background: #f5f6fa;
+      }
+      td.l,
+      th.l {
+        text-align: left;
+      }
+      .win {
+        background: #e8f8ee;
+        font-weight: 600;
+      }
+      .bad {
+        background: #fdeaea;
+      }
+      .pend {
+        background: #fff7e6;
+        color: #a06700;
+      }
+      .bar {
+        height: 18px;
+        background: #3b6cf6;
+        border-radius: 3px;
+        display: inline-block;
+        vertical-align: middle;
+      }
+      .barwrap {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 5px 0;
+      }
+      .barlbl {
+        width: 230px;
+        font-size: 13px;
+      }
+      .barval {
+        font-weight: 600;
+        width: 48px;
+      }
+      code {
+        background: #f0f0f5;
+        padding: 1px 5px;
+        border-radius: 4px;
+        font-size: 13px;
+      }
+      .tag {
+        display: inline-block;
+        padding: 1px 8px;
+        border-radius: 10px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .ok {
+        background: #d6f5e0;
+        color: #0a7d3c;
+      }
+      .no {
+        background: #fad9d9;
+        color: #b02020;
+      }
+      .wait {
+        background: #ffe9bf;
+        color: #a06700;
+      }
+      .note {
+        color: #555;
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Stereo 3D Detection — capability &amp; improvement</h1>
+    <p class="sub">
+      branch <code>001-stereo-centernet-gaps</code> · KITTI R40, Car @ Moderate, <b>true rotated 3D IoU</b> · updated
+      2026-06-01
+    </p>
 
-<h1>Stereo 3D Detection — capability &amp; improvement</h1>
-<p class="sub">branch <code>001-stereo-centernet-gaps</code> · KITTI R40, Car @ Moderate, <b>true rotated 3D IoU</b> · updated 2026-06-01</p>
+    <h2>TL;DR</h2>
+    <ul>
+      <li>
+        The task looked like it had <b>zero capability (AP3D≈0)</b> — but that was <b>two eval/target bugs</b>, not the
+        model. The model's 2D detection &amp; metric depth were accurate all along.
+      </li>
+      <li>
+        Fixed → real, trustworthy capability: <b>52.0% AP3D@0.5 (Car)</b> with the documented recipe (replaces the docs'
+        stale/un-reproducible 48%).
+      </li>
+      <li><b>Cost-volume stereo depth (Phase 1): REFUTED</b> — regressed ~2.7×, reverted.</li>
+      <li>
+        <b>MultiBin orientation (Phase 2): small but consistent win, KEPT</b> — beats sin/cos on all 6 metrics (Car
+        AP3D@0.5 +0.6, mean +1.5). But orientation wasn't the bottleneck (sin/cos already AOS≈AP). The real ceiling:
+        <b>tight-IoU vertical (height/Y) precision</b> (BEV@0.7 25.9 ≫ 3D@0.7 10.4).
+      </li>
+    </ul>
 
-<h2>TL;DR</h2>
-<ul>
-<li>The task looked like it had <b>zero capability (AP3D≈0)</b> — but that was <b>two eval/target bugs</b>, not the model. The model's 2D detection &amp; metric depth were accurate all along.</li>
-<li>Fixed → real, trustworthy capability: <b>52.0% AP3D@0.5 (Car)</b> with the documented recipe (replaces the docs' stale/un-reproducible 48%).</li>
-<li><b>Cost-volume stereo depth (Phase 1): REFUTED</b> — regressed ~2.7×, reverted.</li>
-<li><b>MultiBin orientation (Phase 2): small but consistent win, KEPT</b> — beats sin/cos on all 6 metrics (Car AP3D@0.5 +0.6, mean +1.5). But orientation wasn't the bottleneck (sin/cos already AOS≈AP). The real ceiling: <b>tight-IoU vertical (height/Y) precision</b> (BEV@0.7 25.9 ≫ 3D@0.7 10.4).</li>
-</ul>
+    <h2>Capability trajectory — Car AP3D@0.5</h2>
+    <div class="barwrap">
+      <span class="barlbl">pre-fix (buggy IoU+dims)</span><span class="bar" style="width: 2px"></span
+      ><span class="barval">~0</span>
+    </div>
+    <div class="barwrap">
+      <span class="barlbl">corrected baseline · scratch 200ep</span><span class="bar" style="width: 137px"></span
+      ><span class="barval">34.3</span>
+    </div>
+    <div class="barwrap">
+      <span class="barlbl">Phase 1 cost-disp · scratch 200ep</span
+      ><span class="bar" style="width: 52px; background: #d9534f"></span><span class="barval">12.9</span>
+    </div>
+    <div class="barwrap">
+      <span class="barlbl">B · MultiBin · pretrained 1000ep</span
+      ><span class="bar" style="width: 208px; background: #0a7d3c"></span><span class="barval">52.0</span>
+    </div>
+    <div class="barwrap">
+      <span class="barlbl">A · sin/cos · pretrained 1000ep</span
+      ><span class="bar" style="width: 206px; background: #e0a73c"></span><span class="barval">51.4</span>
+    </div>
+    <p class="note">
+      Bars scaled to %. A (sin/cos) 51.4 vs B (MultiBin) 52.0 — MultiBin +0.6 on Car, +1.5 on mean, wins 6/6 metrics.
+    </p>
 
-<h2>Capability trajectory — Car AP3D@0.5</h2>
-<div class="barwrap"><span class="barlbl">pre-fix (buggy IoU+dims)</span><span class="bar" style="width:2px"></span><span class="barval">~0</span></div>
-<div class="barwrap"><span class="barlbl">corrected baseline · scratch 200ep</span><span class="bar" style="width:137px"></span><span class="barval">34.3</span></div>
-<div class="barwrap"><span class="barlbl">Phase 1 cost-disp · scratch 200ep</span><span class="bar" style="width:52px;background:#d9534f"></span><span class="barval">12.9</span></div>
-<div class="barwrap"><span class="barlbl">B · MultiBin · pretrained 1000ep</span><span class="bar" style="width:208px;background:#0a7d3c"></span><span class="barval">52.0</span></div>
-<div class="barwrap"><span class="barlbl">A · sin/cos · pretrained 1000ep</span><span class="bar" style="width:206px;background:#e0a73c"></span><span class="barval">51.4</span></div>
-<p class="note">Bars scaled to %. A (sin/cos) 51.4 vs B (MultiBin) 52.0 — MultiBin +0.6 on Car, +1.5 on mean, wins 6/6 metrics.</p>
+    <h2>Results (Car, Moderate)</h2>
+    <table>
+      <tr>
+        <th class="l">Config</th>
+        <th>Orient</th>
+        <th>Recipe</th>
+        <th>AP3D@.5</th>
+        <th>AP3D@.7</th>
+        <th>AP_BEV@.5</th>
+        <th>AOS@.5</th>
+      </tr>
+      <tr>
+        <td class="l">corrected baseline</td>
+        <td>sin/cos</td>
+        <td>scratch 200ep</td>
+        <td>34.3</td>
+        <td>4.2</td>
+        <td>46.1</td>
+        <td>34.0</td>
+      </tr>
+      <tr class="bad">
+        <td class="l">Phase 1 (cost-volume disparity)</td>
+        <td>sin/cos</td>
+        <td>scratch 200ep</td>
+        <td>12.9</td>
+        <td>1.3</td>
+        <td>16.8</td>
+        <td>12.8</td>
+      </tr>
+      <tr>
+        <td class="l">A — sin/cos baseline</td>
+        <td>sin/cos</td>
+        <td>pretrained 1000ep</td>
+        <td>51.4</td>
+        <td>10.4</td>
+        <td>62.5</td>
+        <td>51.3</td>
+      </tr>
+      <tr class="win">
+        <td class="l">B — MultiBin orientation (kept)</td>
+        <td>multibin</td>
+        <td>pretrained 1000ep</td>
+        <td>52.0</td>
+        <td>10.7</td>
+        <td>63.0</td>
+        <td>51.9</td>
+      </tr>
+    </table>
 
-<h2>Results (Car, Moderate)</h2>
-<table>
-<tr><th class="l">Config</th><th>Orient</th><th>Recipe</th><th>AP3D@.5</th><th>AP3D@.7</th><th>AP_BEV@.5</th><th>AOS@.5</th></tr>
-<tr><td class="l">corrected baseline</td><td>sin/cos</td><td>scratch 200ep</td><td>34.3</td><td>4.2</td><td>46.1</td><td>34.0</td></tr>
-<tr class="bad"><td class="l">Phase 1 (cost-volume disparity)</td><td>sin/cos</td><td>scratch 200ep</td><td>12.9</td><td>1.3</td><td>16.8</td><td>12.8</td></tr>
-<tr><td class="l">A — sin/cos baseline</td><td>sin/cos</td><td>pretrained 1000ep</td><td>51.4</td><td>10.4</td><td>62.5</td><td>51.3</td></tr>
-<tr class="win"><td class="l">B — MultiBin orientation (kept)</td><td>multibin</td><td>pretrained 1000ep</td><td>52.0</td><td>10.7</td><td>63.0</td><td>51.9</td></tr>
-</table>
+    <h2>The two bugs (why AP3D was 0)</h2>
+    <ol>
+      <li>
+        <b>3D IoU was an axis-aligned approximation</b> of rotated boxes → inflated overlap (45°-apart identical boxes
+        scored IoU 1.0; true 0.707). Replaced with exact rotated BEV×height IoU. <code>da9eece4</code>
+      </li>
+      <li>
+        <b>Dimension priors keyed by name, looked up by int id</b> → every lookup missed → garbage size <i>targets</i> →
+        model learned them → decoder produced <b>~10.8 m cars</b> (GT ~4 m) → IoU&lt;0.5 → AP3D=0. Fixed by rekeying
+        name→int; decoded length round-trips exactly. <code>e8d5501d</code>
+      </li>
+    </ol>
 
-<h2>The two bugs (why AP3D was 0)</h2>
-<ol>
-<li><b>3D IoU was an axis-aligned approximation</b> of rotated boxes → inflated overlap (45°-apart identical boxes scored IoU 1.0; true 0.707). Replaced with exact rotated BEV×height IoU. <code>da9eece4</code></li>
-<li><b>Dimension priors keyed by name, looked up by int id</b> → every lookup missed → garbage size <i>targets</i> → model learned them → decoder produced <b>~10.8 m cars</b> (GT ~4 m) → IoU&lt;0.5 → AP3D=0. Fixed by rekeying name→int; decoded length round-trips exactly. <code>e8d5501d</code></li>
-</ol>
+    <h2>Hypotheses</h2>
+    <table>
+      <tr>
+        <th class="l">Hypothesis</th>
+        <th>Status</th>
+      </tr>
+      <tr>
+        <td class="l">H0 — AP3D≈0 is an eval/target bug, not the model</td>
+        <td><span class="tag ok">CONFIRMED</span></td>
+      </tr>
+      <tr>
+        <td class="l">R0 — pretrained + 1000ep ≫ scratch 200ep</td>
+        <td><span class="tag ok">CONFIRMED (34→52)</span></td>
+      </tr>
+      <tr>
+        <td class="l">H1 — cost-volume disparity improves depth/AP3D</td>
+        <td><span class="tag no">REFUTED (2.7× worse)</span></td>
+      </tr>
+      <tr>
+        <td class="l">H2 — MultiBin orientation beats sin/cos</td>
+        <td><span class="tag ok">SUPPORTED, small (6/6 metrics, +0.6/+1.5)</span></td>
+      </tr>
+    </table>
 
-<h2>Hypotheses</h2>
-<table>
-<tr><th class="l">Hypothesis</th><th>Status</th></tr>
-<tr><td class="l">H0 — AP3D≈0 is an eval/target bug, not the model</td><td><span class="tag ok">CONFIRMED</span></td></tr>
-<tr><td class="l">R0 — pretrained + 1000ep ≫ scratch 200ep</td><td><span class="tag ok">CONFIRMED (34→52)</span></td></tr>
-<tr><td class="l">H1 — cost-volume disparity improves depth/AP3D</td><td><span class="tag no">REFUTED (2.7× worse)</span></td></tr>
-<tr><td class="l">H2 — MultiBin orientation beats sin/cos</td><td><span class="tag ok">SUPPORTED, small (6/6 metrics, +0.6/+1.5)</span></td></tr>
-</table>
-
-<h2>Open questions / next</h2>
-<ul>
-<li><b>Top lever — height/Y precision:</b> AP_BEV@0.7 (25.9) ≫ AP3D@0.7 (10.4) → vertical extent is what fails at tight IoU. Improve box-bottom/height supervision.</li>
-<li>Pedestrian/Cyclist far below Car (mean@0.5 ~17 vs 52) — small/rare classes.</li>
-<li>Confirm the small MultiBin gain with multiple seeds (single-seed +0.6 Car ≈ noise; +1.5 mean &amp; 6/6 consistency are the support).</li>
-<li>Phase 3 (strip hardcoded KITTI constants → portability) untested.</li>
-</ul>
-</body></html>
+    <h2>Open questions / next</h2>
+    <ul>
+      <li>
+        <b>Top lever — height/Y precision:</b> AP_BEV@0.7 (25.9) ≫ AP3D@0.7 (10.4) → vertical extent is what fails at
+        tight IoU. Improve box-bottom/height supervision.
+      </li>
+      <li>Pedestrian/Cyclist far below Car (mean@0.5 ~17 vs 52) — small/rare classes.</li>
+      <li>
+        Confirm the small MultiBin gain with multiple seeds (single-seed +0.6 Car ≈ noise; +1.5 mean &amp; 6/6
+        consistency are the support).
+      </li>
+      <li>Phase 3 (strip hardcoded KITTI constants → portability) untested.</li>
+    </ul>
+  </body>
+</html>

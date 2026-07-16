@@ -255,8 +255,8 @@ class Results(SimpleClass, DataExportMixin):
             keypoints (torch.Tensor | None): A 2D tensor of keypoint coordinates for each detection.
             obb (torch.Tensor | None): A 2D tensor of oriented bounding box coordinates for each detection.
             semantic_mask (torch.Tensor | None): A 2D tensor of class IDs for semantic segmentation results.
-            boxes3d (list | None): A list of Box3D objects for 3D detection results (stereo 3D detection),
-                which will be wrapped in a Boxes3D object.
+            boxes3d (list | None): A list of Box3D objects for 3D detection results (stereo 3D detection), which will be
+                wrapped in a Boxes3D object.
             speed (dict | None): A dictionary containing preprocess, inference, and postprocess speeds (ms/image).
 
         Notes:
@@ -616,6 +616,7 @@ class Results(SimpleClass, DataExportMixin):
                     annotator.im = canvas
                 else:
                     import cv2
+
                     annotator.fromarray(cv2.cvtColor(canvas, cv2.COLOR_BGR2RGB))
 
         # Plot Classify results
@@ -1649,8 +1650,8 @@ class OBB(BaseTensor):
 class Boxes3D(SimpleClass):
     """3D bounding box container for stereo 3D detection results.
 
-    Stores a list of Box3D dataclass objects (not tensors). The cpu/numpy/cuda/to methods are
-    no-ops returning shallow copies, for API compatibility with Results._apply().
+    Stores a list of Box3D dataclass objects (not tensors). The cpu/numpy/cuda/to methods are no-ops returning shallow
+    copies, for API compatibility with Results._apply().
 
     Attributes:
         data (list[Box3D]): List of 3D bounding box objects.

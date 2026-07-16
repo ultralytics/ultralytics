@@ -2188,7 +2188,8 @@ class Albumentations(BaseTransform):
 
 
 class Format(BaseTransform):
-    """A class for formatting image annotations for object detection, instance segmentation, pose estimation, and stereo 3D detection tasks.
+    """A class for formatting image annotations for object detection, instance segmentation, pose estimation, and stereo
+    3D detection tasks.
 
     This class standardizes image and instance annotations to be used by the `collate_fn` in PyTorch DataLoader.
 
@@ -2241,8 +2242,8 @@ class Format(BaseTransform):
             return_mask (bool): If True, returns instance masks for segmentation tasks.
             return_keypoint (bool): If True, returns keypoints for pose estimation tasks.
             return_obb (bool): If True, returns oriented bounding boxes.
-            return_stereo (bool): If True, returns stereo 3D detection data including right_bboxes,
-                dimensions_3d, location_3d, rotation_y, and optionally vertices, truncated, occluded.
+            return_stereo (bool): If True, returns stereo 3D detection data including right_bboxes, dimensions_3d,
+                location_3d, rotation_y, and optionally vertices, truncated, occluded.
             mask_ratio (int): Downsample ratio for masks.
             mask_overlap (bool): If True, allows mask overlap.
             batch_idx (bool): If True, keeps batch indexes.
@@ -2362,16 +2363,17 @@ class Format(BaseTransform):
 
             # 3D geometry (absolute units, not normalized)
             labels["dimensions_3d"] = (
-                torch.from_numpy(instances.dimensions_3d) if instances.dimensions_3d is not None and nl
+                torch.from_numpy(instances.dimensions_3d)
+                if instances.dimensions_3d is not None and nl
                 else torch.zeros((nl, 3))
             )
             labels["location_3d"] = (
-                torch.from_numpy(instances.location_3d) if instances.location_3d is not None and nl
+                torch.from_numpy(instances.location_3d)
+                if instances.location_3d is not None and nl
                 else torch.zeros((nl, 3))
             )
             labels["rotation_y"] = (
-                torch.from_numpy(instances.rotation_y) if instances.rotation_y is not None and nl
-                else torch.zeros(nl)
+                torch.from_numpy(instances.rotation_y) if instances.rotation_y is not None and nl else torch.zeros(nl)
             )
 
             # Optional metadata passthrough

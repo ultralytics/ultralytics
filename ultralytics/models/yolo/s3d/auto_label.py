@@ -1,5 +1,4 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-
 """Auto-generate auxiliary class pseudo-labels for stereo 3D detection.
 
 When training with few classes, the depth branch can collapse because the backbone
@@ -138,9 +137,8 @@ def auto_label_stereo3d(
 ) -> int:
     """Generate pseudo-3D labels for COCO classes and append to label files.
 
-    Runs a pretrained YOLO detector on left and right stereo images. Stereo-matched
-    detections get triangulated depth (occ=10). Unmatched left detections get
-    monocular depth from bbox height (occ=20). This maximizes label count.
+    Runs a pretrained YOLO detector on left and right stereo images. Stereo-matched detections get triangulated depth
+    (occ=10). Unmatched left detections get monocular depth from bbox height (occ=20). This maximizes label count.
 
     Args:
         label_dir: Path to label directory containing *.txt files.
@@ -150,12 +148,12 @@ def auto_label_stereo3d(
         detector: Pretrained YOLO 2D model for detection.
         conf: Minimum detection confidence.
         iou: NMS IoU threshold.
-        class_offset: Starting class ID for pseudo-labels. For nc=1, use 1 (default).
-            For nc>1, use nc so pseudo IDs don't collide with real class IDs.
-        skip_coco_ids: Set of COCO class IDs to skip (overlap with real classes).
-            E.g., {0, 1, 2} skips Person/Bicycle/Car when real labels have Ped/Cyc/Car.
-        keep_coco_ids: If set, ONLY these COCO class IDs are used (allowlist).
-            Overrides skip_coco_ids. E.g., {3, 5, 7} keeps only Motorcycle/Bus/Truck.
+        class_offset: Starting class ID for pseudo-labels. For nc=1, use 1 (default). For nc>1, use nc so pseudo IDs
+            don't collide with real class IDs.
+        skip_coco_ids: Set of COCO class IDs to skip (overlap with real classes). E.g., {0, 1, 2} skips
+            Person/Bicycle/Car when real labels have Ped/Cyc/Car.
+        keep_coco_ids: If set, ONLY these COCO class IDs are used (allowlist). Overrides skip_coco_ids. E.g., {3, 5, 7}
+            keeps only Motorcycle/Bus/Truck.
 
     Returns:
         Number of pseudo-labels generated.
@@ -316,8 +314,8 @@ def _generate_pseudo_labels(left_result, right_result, calib, img_w, img_h, coco
     """Generate pseudo-labels from L/R detections: stereo-matched + mono-only fallback.
 
     Args:
-        coco_to_kitti: Dict mapping COCO class ID → kitti class ID. Classes not in
-            this dict are skipped (either out of range or in skip_coco_ids).
+        coco_to_kitti: Dict mapping COCO class ID → kitti class ID. Classes not in this dict are skipped (either out of
+            range or in skip_coco_ids).
 
     Returns:
         (stereo_lines, mono_lines): Two lists of 18-value label strings.

@@ -1219,13 +1219,12 @@ def project_3d_to_2d(
 ) -> tuple[float, float, float, float]:
     """Project 3D bounding box to 2D bounding box using camera calibration.
 
-    Projects the 8 corners of a 3D box to the 2D image plane and computes
-    the axis-aligned bounding box that contains all projected corners.
+    Projects the 8 corners of a 3D box to the 2D image plane and computes the axis-aligned bounding box that contains
+    all projected corners.
 
     Args:
         box3d: 3D bounding box (Box3D object).
-        calib: Camera calibration parameters dict with keys:
-            fx, fy, cx, cy (focal lengths and principal point).
+        calib: Camera calibration parameters dict with keys: fx, fy, cx, cy (focal lengths and principal point).
 
     Returns:
         tuple: 2D bounding box (x_min, y_min, x_max, y_max) in pixels.
@@ -1243,7 +1242,7 @@ def project_3d_to_2d(
         cx = calib.get("cx", 609.5593)
         cy = calib.get("cy", 172.8540)
         calib.get("image_width", 1242)
-        calib.get("image_height", 375)       
+        calib.get("image_height", 375)
 
     # Generate 8 corners in object coordinate system
     # KITTI convention: rotation_y=0 means object faces camera X direction
@@ -1255,8 +1254,26 @@ def project_3d_to_2d(
         [
             # Bottom face corners (y = +height/2): 0, 1, 2, 3
             # Top face corners (y = -height/2): 4, 5, 6, 7
-            [-length / 2, length / 2, length / 2, -length / 2, -length / 2, length / 2, length / 2, -length / 2],  # x (length)
-            [height / 2, height / 2, height / 2, height / 2, -height / 2, -height / 2, -height / 2, -height / 2],  # y (height) - bottom first, then top
+            [
+                -length / 2,
+                length / 2,
+                length / 2,
+                -length / 2,
+                -length / 2,
+                length / 2,
+                length / 2,
+                -length / 2,
+            ],  # x (length)
+            [
+                height / 2,
+                height / 2,
+                height / 2,
+                height / 2,
+                -height / 2,
+                -height / 2,
+                -height / 2,
+                -height / 2,
+            ],  # y (height) - bottom first, then top
             [width / 2, width / 2, -width / 2, -width / 2, width / 2, width / 2, -width / 2, -width / 2],  # z (width)
         ]
     )
@@ -1297,14 +1314,14 @@ def project_box3d_corners(
     letterbox_pad_top: float | None = None,
 ) -> np.ndarray:
     """Project the eight corners of a 3D bounding box to 2D pixel coordinates.
-    
+
     Args:
         box3d: 3D bounding box to project
         calib: Camera calibration parameters (for original image size)
         letterbox_scale: Scale factor from letterboxing (if images were letterboxed)
         letterbox_pad_left: Left padding from letterboxing (if images were letterboxed)
         letterbox_pad_top: Top padding from letterboxing (if images were letterboxed)
-    
+
     Returns:
         Array of 2D pixel coordinates [8, 2] with shape (u, v) for each corner
     """
@@ -1339,8 +1356,26 @@ def project_box3d_corners(
         [
             # Bottom face corners (y = +height/2): 0, 1, 2, 3
             # Top face corners (y = -height/2): 4, 5, 6, 7
-            [-length / 2, length / 2, length / 2, -length / 2, -length / 2, length / 2, length / 2, -length / 2],  # x (length)
-            [height / 2, height / 2, height / 2, height / 2, -height / 2, -height / 2, -height / 2, -height / 2],  # y (height) - bottom first, then top
+            [
+                -length / 2,
+                length / 2,
+                length / 2,
+                -length / 2,
+                -length / 2,
+                length / 2,
+                length / 2,
+                -length / 2,
+            ],  # x (length)
+            [
+                height / 2,
+                height / 2,
+                height / 2,
+                height / 2,
+                -height / 2,
+                -height / 2,
+                -height / 2,
+                -height / 2,
+            ],  # y (height) - bottom first, then top
             [width / 2, width / 2, -width / 2, -width / 2, width / 2, width / 2, -width / 2, -width / 2],  # z (width)
         ]
     )
@@ -1356,11 +1391,11 @@ def project_box3d_corners(
 
     X, Y, Z = corners_world
     Z = np.maximum(Z, 1e-6)
-    
+
     # Project to original image coordinates
     u_orig = fx * X / Z + cx
     v_orig = fy * Y / Z + cy
-    
+
     # Adjust for letterboxing if provided
     if letterbox_scale is not None and letterbox_pad_left is not None and letterbox_pad_top is not None:
         u = u_orig * letterbox_scale + letterbox_pad_left
@@ -1395,7 +1430,7 @@ def plot_boxes3d(
     letterbox_pad_top: float | None = None,
 ) -> np.ndarray:
     """Draw wireframe representations of Box3D objects onto an image.
-    
+
     Args:
         img: Image to draw on (may be letterboxed)
         boxes3d: List of 3D bounding boxes to draw
@@ -1407,14 +1442,14 @@ def plot_boxes3d(
         letterbox_pad_top: Top padding from letterboxing (if images were letterboxed)
     """
     config = config or VisualizationConfig()
-    
+
     # Ensure input image is uint8 and properly initialized
     if img.dtype != np.uint8:
         img = np.clip(img, 0, 255).astype(np.uint8)
-    
+
     # Create a properly initialized copy of the image
     canvas = img.copy().astype(np.uint8)
-    
+
     if not boxes3d:
         return canvas
 
@@ -1426,7 +1461,7 @@ def plot_boxes3d(
     for box in boxes3d:
         try:
             corners = project_box3d_corners(
-                box, 
+                box,
                 calib,
                 letterbox_scale=letterbox_scale,
                 letterbox_pad_left=letterbox_pad_left,
@@ -1435,7 +1470,7 @@ def plot_boxes3d(
         except Exception as exc:
             LOGGER.warning("Skipping invalid Box3D during visualization: %s", exc)
             continue
-        
+
         # Skip if corners are invalid (all zeros from Z < MIN_VALID_Z)
         if np.allclose(corners, 0.0, atol=1e-6):
             LOGGER.debug("Skipping Box3D with invalid Z depth (corners all zero)")
@@ -1524,7 +1559,7 @@ def plot_stereo3d_boxes(
     letterbox_pad_top: float | None = None,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Draw predictions and ground truth on stereo image pairs.
-    
+
     Args:
         left_img: Left camera image (may be letterboxed)
         right_img: Right camera image (may be letterboxed)
@@ -1543,22 +1578,30 @@ def plot_stereo3d_boxes(
     right_calib = right_calib or left_calib
 
     left_canvas = plot_boxes3d(
-        left_img, pred_boxes3d, left_calib, config, is_ground_truth=False,
-        letterbox_scale=letterbox_scale, letterbox_pad_left=letterbox_pad_left, letterbox_pad_top=letterbox_pad_top
+        left_img,
+        pred_boxes3d,
+        left_calib,
+        config,
+        is_ground_truth=False,
+        letterbox_scale=letterbox_scale,
+        letterbox_pad_left=letterbox_pad_left,
+        letterbox_pad_top=letterbox_pad_top,
     )
     left_canvas = plot_boxes3d(
-        left_canvas, gt_boxes3d, left_calib, config, is_ground_truth=True,
-        letterbox_scale=letterbox_scale, letterbox_pad_left=letterbox_pad_left, letterbox_pad_top=letterbox_pad_top
+        left_canvas,
+        gt_boxes3d,
+        left_calib,
+        config,
+        is_ground_truth=True,
+        letterbox_scale=letterbox_scale,
+        letterbox_pad_left=letterbox_pad_left,
+        letterbox_pad_top=letterbox_pad_top,
     )
 
     # Convert calib to dict if needed for project_to_2d
     calib_dict = left_calib.to_dict() if hasattr(left_calib, "to_dict") else left_calib
-    right_canvas = plot_boxes2d(
-        right_img, pred_boxes3d, config, calib=calib_dict
-    )
-    right_canvas = plot_boxes2d(
-        right_canvas, gt_boxes3d, config, calib=calib_dict
-    )
+    right_canvas = plot_boxes2d(right_img, pred_boxes3d, config, calib=calib_dict)
+    right_canvas = plot_boxes2d(right_canvas, gt_boxes3d, config, calib=calib_dict)
 
     combined = combine_stereo_views(left_canvas, right_canvas)
     return left_canvas, right_canvas, combined
@@ -1587,7 +1630,7 @@ def combine_stereo_views(
         max_height - img.shape[0]
         # Create a new array with proper initialization
         padded = np.full((max_height, img.shape[1], img.shape[2]), pad_value, dtype=np.uint8)
-        padded[:img.shape[0], :, :] = img
+        padded[: img.shape[0], :, :] = img
         return padded
 
     left_padded = _pad_to_height(left_img)

@@ -202,7 +202,9 @@ class BaseValidator:
                         f"Setting batch={self.args.batch} input of shape ({self.args.batch}, 3, {imgsz[0]}, {imgsz[1]})"
                     )
                 else:
-                    LOGGER.info(f"Setting batch={self.args.batch} input of shape ({self.args.batch}, 3, {imgsz}, {imgsz})")
+                    LOGGER.info(
+                        f"Setting batch={self.args.batch} input of shape ({self.args.batch}, 3, {imgsz}, {imgsz})"
+                    )
 
             if self.args.task == "s3d" and str(self.args.data).rsplit(".", 1)[-1] in {"yaml", "yml"}:
                 # For s3d, use task-specific get_dataset() to handle stereo paths/metadata

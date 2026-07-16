@@ -58,8 +58,8 @@ def decode_orientation(pred: list[float]) -> float:
     """Decode a MultiBin prediction vector back to an observation angle alpha.
 
     Args:
-        pred: Length-ORIENT_CHANNELS values [conf_0..conf_{N-1}, sin_0, cos_0, ...].
-            Confidences may be raw logits or probabilities (argmax is used).
+        pred: Length-ORIENT_CHANNELS values [conf_0..conf_{N-1}, sin_0, cos_0, ...]. Confidences may be raw logits or
+            probabilities (argmax is used).
 
     Returns:
         Observation angle alpha in radians, wrapped to [-pi, pi).

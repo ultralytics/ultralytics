@@ -22,11 +22,13 @@
 ### Task 1: Config-flag plumbing + head feature-enable methods
 
 **Files:**
+
 - Modify: `ultralytics/models/yolo/s3d/head.py` (add `enable_proj_center`, `enable_depth_uncertainty` to `Stereo3DDetHead`)
 - Modify: `ultralytics/models/yolo/s3d/model.py:46-53` (read new flags, call head methods)
 - Test: `tests/test_s3d.py`
 
 **Interfaces:**
+
 - Produces: `Stereo3DDetHead.enable_proj_center()` — adds `"proj_offset": 2` to `self.aux_specs` and builds `self.aux["proj_offset"]` as a per-scale `nn.ModuleList` of `_branch(x, 2, hidden)`. `Stereo3DDetHead.enable_depth_uncertainty()` — sets `self.use_uncertainty = True` and rebuilds the `lr_distance` branch list to output 2 channels (value + log-variance) via `_deep_branch(in_ch, 2, depth_hidden)`; `forward_head` splits the 2nd channel into `preds["lr_logvar"]`.
 - Consumes: nothing (first task).
 
@@ -126,10 +128,12 @@ Deleted: nothing (additive scaffolding; branches default off, baseline byte-iden
 ### Task 2: Projected-3D-center target encoding
 
 **Files:**
+
 - Modify: `ultralytics/models/yolo/s3d/dataset.py` (aux-target assembly loop, ~lines 813-855; per-image stack ~856+)
 - Test: `tests/test_s3d.py`
 
 **Interfaces:**
+
 - Consumes: per-object `location_3d` (bottom-center x,y,z, camera frame), `dimensions_3d` (height), the sample calib (fx, fy, cx, cy), the 2D box center `cx,cy` (letterbox-normalized), and the sample letterbox `ratio_pad` (scale, pad_left, pad_top) already applied to labels.
 - Produces: `aux_targets["proj_offset"]` shape `[B, max_n, 2]` = (Δu, Δv) in letterbox-normalized units; a module helper `encode_proj_offset(location_3d, height, calib, box_center_norm, ratio_pad, input_wh) -> (du, dv)`.
 
@@ -137,12 +141,14 @@ Deleted: nothing (additive scaffolding; branches default off, baseline byte-iden
 
 ```python
 def test_proj_offset_roundtrip():
-    """Projected-centroid offset must invert: encode (centroid->projected px->offset) then
-    decode (box_center+offset -> back-project at true z) recovers the centroid X/Y."""
-    import numpy as np
+    """Projected-centroid offset must invert: encode (centroid->projected px->offset) then decode (box_center+offset ->
+    back-project at true z) recovers the centroid X/Y.
+    """
     from ultralytics.models.yolo.s3d.dataset import encode_proj_offset
 
-    fx = fy = 721.5377; cx = 609.5593; cy = 172.8540
+    fx = fy = 721.5377
+    cx = 609.5593
+    cy = 172.8540
     calib = {"fx": fx, "fy": fy, "cx": cx, "cy": cy}
     input_w, input_h = 1248, 384
     scale, pad_left, pad_top = 1.0048, 0, 3  # aspect-preserving letterbox of 375x1242
@@ -157,12 +163,14 @@ def test_proj_offset_roundtrip():
     # Decode: recovered projected center in original px, then back-project at Z.
     u_norm = box_center_norm[0] + du
     v_norm = box_center_norm[1] + dv
-    u_lb = u_norm * input_w; v_lb = v_norm * input_h
-    u_orig = (u_lb - pad_left) / scale; v_orig = (v_lb - pad_top) / scale
+    u_lb = u_norm * input_w
+    v_lb = v_norm * input_h
+    u_orig = (u_lb - pad_left) / scale
+    v_orig = (v_lb - pad_top) / scale
     x_rec = (u_orig - cx) * Z / fx
     y_rec = (v_orig - cy) * Z / fy
     assert abs(x_rec - X) < 1e-3, f"x {x_rec} != {X}"
-    assert abs(y_rec - (Y - h / 2)) < 1e-3, f"y {y_rec} != centroid {Y - h/2}"
+    assert abs(y_rec - (Y - h / 2)) < 1e-3, f"y {y_rec} != centroid {Y - h / 2}"
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
@@ -224,11 +232,13 @@ Deleted: nothing (new aux target, gated by use_proj_center; baseline unchanged).
 ### Task 3: Projected-center loss term
 
 **Files:**
+
 - Modify: `ultralytics/models/yolo/s3d/loss.py` (`__init__` flags, `_compute_aux_losses` loop ~line 145, `loss` tally ~line 272-289)
 - Modify: `ultralytics/models/yolo/s3d/model.py:143-158` (`init_criterion` passes `use_proj_center`)
 - Test: `tests/test_s3d.py`
 
 **Interfaces:**
+
 - Consumes: `aux_targets["proj_offset"]` (Task 2), `preds["proj_offset"]` (Task 1 head).
 - Produces: a `proj_center` entry in the loss dict, weighted by `loss_weights.proj_center`.
 
@@ -238,6 +248,7 @@ Deleted: nothing (new aux target, gated by use_proj_center; baseline unchanged).
 def test_proj_center_loss_present():
     """When use_proj_center is set, the aux-loss dict gains a smooth-L1 proj_center term."""
     import torch
+
     from ultralytics import YOLO
     from ultralytics.models.yolo.s3d.loss import Stereo3DDetLoss
 
@@ -292,11 +303,13 @@ Deleted: nothing (new gated loss term; off by default)."
 ### Task 4: Projected-center decode
 
 **Files:**
+
 - Modify: `ultralytics/models/yolo/s3d/preprocess.py` (`decode_stereo3d_outputs` signature + the u,v computation ~lines 249-256; `decode_and_refine_predictions` pass-through)
 - Modify: `ultralytics/models/yolo/s3d/val.py:249-258` (pass `use_proj_center` from `self.args`)
 - Test: `tests/test_s3d.py`
 
 **Interfaces:**
+
 - Consumes: `preds["proj_offset"]` sampled at the anchor; the `use_proj_center` decode flag.
 - Produces: corrected `(x_3d, y_3d)` and `ray_angle`.
 
@@ -305,25 +318,37 @@ Deleted: nothing (new gated loss term; off by default)."
 ```python
 def test_decode_uses_proj_offset():
     """With use_proj_center, a nonzero proj_offset shifts the recovered x_3d by du*input_w/scale*z/fx."""
-    import math, torch
+    import math
+
+    import torch
+
     from ultralytics.models.yolo.s3d.orientation import ORIENT_CHANNELS, encode_orientation
     from ultralytics.models.yolo.s3d.preprocess import compute_letterbox_params, decode_stereo3d_outputs
 
     calib = {"fx": 721.5377, "fy": 721.5377, "cx": 609.5593, "cy": 172.8540, "baseline": 0.54}
-    ori_hw = (375, 1242); imgsz = (384, 1248); nc = 3
+    ori_hw = (375, 1242)
+    imgsz = (384, 1248)
+    nc = 3
     input_h, input_w = imgsz
-    scale, pad_left, _ = compute_letterbox_params(*ori_hw, imgsz)
+    scale, _pad_left, _ = compute_letterbox_params(*ori_hw, imgsz)
     z = 20.0
     det = torch.zeros(1, 4 + nc, 1)
-    det[0, :4, 0] = torch.tensor([input_w / 2, input_h / 2, 20.0, 20.0]); det[0, 4, 0] = 0.99
+    det[0, :4, 0] = torch.tensor([input_w / 2, input_h / 2, 20.0, 20.0])
+    det[0, 4, 0] = 0.99
     du = 0.01
     outputs = {
-        "det": det, "dimensions": torch.zeros(1, 3, 1),
+        "det": det,
+        "dimensions": torch.zeros(1, 3, 1),
         "orientation": torch.tensor(encode_orientation(0.0)).view(1, ORIENT_CHANNELS, 1).float(),
-        "depth": torch.tensor([[[math.log(z)]]]), "proj_offset": torch.tensor([[[du], [0.0]]]).float(),
+        "depth": torch.tensor([[[math.log(z)]]]),
+        "proj_offset": torch.tensor([[[du], [0.0]]]).float(),
     }
-    x_off = decode_stereo3d_outputs(outputs, calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw], use_proj_center=True)[0][0].center_3d[0]
-    x_no = decode_stereo3d_outputs(outputs, calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw], use_proj_center=False)[0][0].center_3d[0]
+    x_off = decode_stereo3d_outputs(outputs, calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw], use_proj_center=True)[0][
+        0
+    ].center_3d[0]
+    x_no = decode_stereo3d_outputs(outputs, calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw], use_proj_center=False)[0][
+        0
+    ].center_3d[0]
     expected_shift = (du * input_w / scale) * z / calib["fx"]
     assert abs((x_off - x_no) - expected_shift) < 1e-2, f"{x_off - x_no} != {expected_shift}"
 ```
@@ -370,10 +395,12 @@ Deleted: nothing (gated decode path; off by default)."
 ### Task 5: Depth-uncertainty NLL loss
 
 **Files:**
+
 - Modify: `ultralytics/models/yolo/s3d/loss.py` (add `_lr_nll_loss`; switch lr_distance term when `use_uncertainty`)
 - Test: `tests/test_s3d.py`
 
 **Interfaces:**
+
 - Consumes: `preds["lr_distance"]` (value) + `preds["lr_logvar"]` (Task 1), `aux_targets["lr_distance"]`.
 - Produces: a Laplacian-NLL lr_distance loss.
 
@@ -381,12 +408,15 @@ Deleted: nothing (gated decode path; off by default)."
 
 ```python
 def test_lr_nll_attenuates_with_uncertainty():
-    """Laplacian NLL: for a fixed residual, a larger predicted log-variance lowers the loss
-    (attenuation), but the log-variance penalty prevents collapse — loss is convex in logvar."""
+    """Laplacian NLL: for a fixed residual, a larger predicted log-variance lowers the loss (attenuation), but the
+    log-variance penalty prevents collapse — loss is convex in logvar.
+    """
     import torch
+
     from ultralytics.models.yolo.s3d.loss import laplacian_nll
 
-    pred = torch.tensor([1.0]); tgt = torch.tensor([3.0])  # residual 2.0 (min at logvar=ln2≈0.69, between probes 0 and 1)
+    pred = torch.tensor([1.0])
+    tgt = torch.tensor([3.0])  # residual 2.0 (min at logvar=ln2≈0.69, between probes 0 and 1)
     low = laplacian_nll(pred, tgt, logvar=torch.tensor([0.0]))
     mid = laplacian_nll(pred, tgt, logvar=torch.tensor([1.0]))
     high = laplacian_nll(pred, tgt, logvar=torch.tensor([5.0]))
@@ -431,11 +461,13 @@ Deleted: nothing (gated loss path; plain smooth-L1 retained when off)."
 ### Task 6: Decode uncertainty knobs — inverse-variance fusion + score-weighting
 
 **Files:**
+
 - Modify: `ultralytics/models/yolo/s3d/preprocess.py` (`decode_stereo3d_outputs`: `ivw_fusion`, `score_weight`, `score_k` params; fusion block ~lines 226-247; confidence ~line 199/280)
 - Modify: `ultralytics/models/yolo/s3d/val.py` (pass `ivw_fusion`, `score_weight` from `self.args`)
 - Test: `tests/test_s3d.py`
 
 **Interfaces:**
+
 - Consumes: `preds["lr_logvar"]` and the DFL depth distribution spread (recompute `σ_direct²` from the raw `depth_bins` if present, else treat as high variance).
 - Produces: inverse-variance-fused `z_3d`; optionally score scaled by `exp(-score_k * σ_total)`.
 
@@ -444,36 +476,69 @@ Deleted: nothing (gated loss path; plain smooth-L1 retained when off)."
 ```python
 def test_ivw_fusion_equal_sigma_matches_geomean():
     """With equal per-cue variance, inverse-variance fusion in log-space == geometric mean (A0 continuity)."""
-    import math, torch
+    import math
+
+    import torch
+
     from ultralytics.models.yolo.s3d.orientation import ORIENT_CHANNELS, encode_orientation
     from ultralytics.models.yolo.s3d.preprocess import decode_stereo3d_outputs
+
     calib = {"fx": 721.5377, "fy": 721.5377, "cx": 609.5593, "cy": 172.8540, "baseline": 0.54}
-    ori_hw = (375, 1242); imgsz = (384, 1248); nc = 3
-    det = torch.zeros(1, 4 + nc, 1); det[0, :4, 0] = torch.tensor([624.0, 192.0, 20.0, 20.0]); det[0, 4, 0] = 0.99
+    ori_hw = (375, 1242)
+    imgsz = (384, 1248)
+    nc = 3
+    det = torch.zeros(1, 4 + nc, 1)
+    det[0, :4, 0] = torch.tensor([624.0, 192.0, 20.0, 20.0])
+    det[0, 4, 0] = 0.99
     # disparity cue and direct cue encode different depths so the mean is nontrivial.
-    outputs = {"det": det, "dimensions": torch.zeros(1, 3, 1),
-               "orientation": torch.tensor(encode_orientation(0.0)).view(1, ORIENT_CHANNELS, 1).float(),
-               "lr_distance": torch.tensor([[[math.log(0.03)]]]), "depth": torch.tensor([[[math.log(25.0)]]]),
-               "lr_logvar": torch.tensor([[[0.0]]])}
-    z_geo = decode_stereo3d_outputs(outputs, calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw], ivw_fusion=False)[0][0].center_3d[2]
-    z_ivw = decode_stereo3d_outputs(outputs, calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw], ivw_fusion=True)[0][0].center_3d[2]
+    outputs = {
+        "det": det,
+        "dimensions": torch.zeros(1, 3, 1),
+        "orientation": torch.tensor(encode_orientation(0.0)).view(1, ORIENT_CHANNELS, 1).float(),
+        "lr_distance": torch.tensor([[[math.log(0.03)]]]),
+        "depth": torch.tensor([[[math.log(25.0)]]]),
+        "lr_logvar": torch.tensor([[[0.0]]]),
+    }
+    z_geo = decode_stereo3d_outputs(outputs, calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw], ivw_fusion=False)[0][
+        0
+    ].center_3d[2]
+    z_ivw = decode_stereo3d_outputs(outputs, calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw], ivw_fusion=True)[0][
+        0
+    ].center_3d[2]
     # equal-variance IVW reduces to the geometric mean
     assert abs(z_ivw - z_geo) < 1e-2, f"ivw {z_ivw} != geomean {z_geo}"
 
+
 def test_score_weight_demotes_uncertain():
     """score_weight multiplies confidence by exp(-k*sigma): higher lr_logvar => lower final score."""
-    import math, torch
+    import math
+
+    import torch
+
     from ultralytics.models.yolo.s3d.orientation import ORIENT_CHANNELS, encode_orientation
     from ultralytics.models.yolo.s3d.preprocess import decode_stereo3d_outputs
+
     calib = {"fx": 721.5377, "fy": 721.5377, "cx": 609.5593, "cy": 172.8540, "baseline": 0.54}
-    ori_hw = (375, 1242); imgsz = (384, 1248); nc = 3
+    ori_hw = (375, 1242)
+    imgsz = (384, 1248)
+    nc = 3
+
     def conf(logvar):
-        det = torch.zeros(1, 4 + nc, 1); det[0, :4, 0] = torch.tensor([624.0, 192.0, 20.0, 20.0]); det[0, 4, 0] = 0.9
-        outputs = {"det": det, "dimensions": torch.zeros(1, 3, 1),
-                   "orientation": torch.tensor(encode_orientation(0.0)).view(1, ORIENT_CHANNELS, 1).float(),
-                   "lr_distance": torch.tensor([[[math.log(0.03)]]]), "depth": torch.tensor([[[math.log(25.0)]]]),
-                   "lr_logvar": torch.tensor([[[logvar]]])}
-        return decode_stereo3d_outputs(outputs, calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw], score_weight=True, score_k=0.5)[0][0].confidence
+        det = torch.zeros(1, 4 + nc, 1)
+        det[0, :4, 0] = torch.tensor([624.0, 192.0, 20.0, 20.0])
+        det[0, 4, 0] = 0.9
+        outputs = {
+            "det": det,
+            "dimensions": torch.zeros(1, 3, 1),
+            "orientation": torch.tensor(encode_orientation(0.0)).view(1, ORIENT_CHANNELS, 1).float(),
+            "lr_distance": torch.tensor([[[math.log(0.03)]]]),
+            "depth": torch.tensor([[[math.log(25.0)]]]),
+            "lr_logvar": torch.tensor([[[logvar]]]),
+        }
+        return decode_stereo3d_outputs(
+            outputs, calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw], score_weight=True, score_k=0.5
+        )[0][0].confidence
+
     assert conf(4.0) < conf(0.0), "higher uncertainty must lower the score"
 ```
 
@@ -523,49 +588,56 @@ Deleted: nothing (decode knobs default off; geometric-mean path is the equal-var
 ### Task 7: A/B harness — 4 training configs + launch/eval matrix
 
 **Files:**
+
 - Create: `ultralytics/cfg/models/26/yolo26-s3d-T0.yaml`, `-Tc.yaml`, `-Tsigma.yaml`, `-Tcsigma.yaml` (each = base yaml + the relevant `training:` flags)
 - Create: `ultralytics/data/scripts/run_tier1_ab.sh` (train 4 runs, then val 8 arms)
 - Test: manual smoke on kitti-stereo8 (2-epoch), then full run on weste
 
 **Interfaces:**
+
 - Consumes: the flags/knobs from Tasks 1-6.
 - Produces: an 8-row results table (Car Easy/Mod/Hard AP3D@{0.5,0.7}, AP_BEV, AOS).
 
 - [ ] **Step 1: Create the four configs**
 
 Each config is the current `yolo26-s3d.yaml` with an added `training:` block. Example `yolo26-s3d-Tcsigma.yaml` overlay:
+
 ```yaml
 training:
-  use_proj_center: true
-  use_depth_uncertainty: true
-  loss_weights: {lr_distance: 2.0, depth: 3.0, dimensions: 1.0, orientation: 1.0, proj_center: 1.0}
+    use_proj_center: true
+    use_depth_uncertainty: true
+    loss_weights: { lr_distance: 2.0, depth: 3.0, dimensions: 1.0, orientation: 1.0, proj_center: 1.0 }
 ```
+
 T0 = no new flags; Tc = `use_proj_center: true` (+ proj_center weight); Tsigma = `use_depth_uncertainty: true`.
 
 - [ ] **Step 2: Write the launch/eval script**
 
 `run_tier1_ab.sh` (parameterized by `DATA`, `EPOCHS=200`, `BATCH=32`, `DEVICE`):
+
 ```bash
 #!/usr/bin/env bash
 set -euo pipefail
-DATA=${DATA:?}; EP=${EPOCHS:-200}; B=${BATCH:-32}
+DATA=${DATA:?}
+EP=${EPOCHS:-200}
+B=${BATCH:-32}
 for run in T0 Tc Tsigma Tcsigma; do
   yolo train task=s3d model=yolo26-s3d-$run.yaml data=$DATA epochs=$EP batch=$B val=False amp=False \
     project=runs/tier1_ab name=$run
 done
 # Eval matrix: model, and decode flags. Columns: use_proj_center ivw_fusion score_weight
-eval_arm () { # $1=name $2=run $3=proj $4=ivw $5=score
+eval_arm() { # $1=name $2=run $3=proj $4=ivw $5=score
   yolo val task=s3d model=runs/tier1_ab/$2/weights/best.pt data=$DATA \
     use_proj_center=$3 ivw_fusion=$4 score_weight=$5 project=runs/tier1_ab/eval name=$1
 }
-eval_arm A0_baseline       T0      False False False
-eval_arm A1_center         Tc      True  False False
-eval_arm A2_fusion         Tsigma  False True  False
-eval_arm A3_score          Tsigma  False False True
-eval_arm A4_fusion_score   Tsigma  False True  True
-eval_arm A5_full           Tcsigma True  True  True
-eval_arm A6_center_fusion  Tcsigma True  True  False
-eval_arm A7_center_score   Tcsigma True  False True
+eval_arm A0_baseline T0 False False False
+eval_arm A1_center Tc True False False
+eval_arm A2_fusion Tsigma False True False
+eval_arm A3_score Tsigma False False True
+eval_arm A4_fusion_score Tsigma False True True
+eval_arm A5_full Tcsigma True True True
+eval_arm A6_center_fusion Tcsigma True True False
+eval_arm A7_center_score Tcsigma True False True
 ```
 
 - [ ] **Step 3: Smoke test on kitti-stereo8 (2 epochs, CPU/1-GPU)**

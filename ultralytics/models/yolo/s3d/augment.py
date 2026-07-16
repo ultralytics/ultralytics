@@ -1,3 +1,5 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 from __future__ import annotations
 
 from typing import Any
@@ -23,9 +25,8 @@ def project_3d_box_to_2d(
 ) -> np.ndarray:
     """Project a 3D bounding box to 2D image coordinates.
 
-    Uses KITTI convention where location is at bottom-center of the object,
-    Y points down, and dimensions are (length, width, height) where length
-    is along Z (forward) and width is along X (right).
+    Uses KITTI convention where location is at bottom-center of the object, Y points down, and dimensions are (length,
+    width, height) where length is along Z (forward) and width is along X (right).
 
     Args:
         location_3d: (3,) array [X, Y, Z] in camera coordinates (meters).
@@ -144,8 +145,8 @@ def project_3d_boxes_to_2d(
 class StereoLabels:
     """Container that synchronizes Instances and calibration during transforms.
 
-    This class ensures that when geometric transformations (scale, flip, crop, pad)
-    are applied to instances, the corresponding calibration parameters are updated
+    This class ensures that when geometric transformations (scale, flip, crop, pad) are applied to instances, the
+    corresponding calibration parameters are updated
     automatically. This eliminates the fragile pattern of manually updating both
     in each transform.
 
@@ -153,7 +154,7 @@ class StereoLabels:
         instances (Instances): Object annotations (bboxes, 3D attributes, etc.).
         calibration (dict[str, float]): Camera calibration parameters.
 
-    Example:
+    Examples:
         >>> labels = StereoLabels.from_labels(labels_dict)
         >>> labels.scale(0.5, 0.5)  # Scales both instances AND calibration
         >>> labels.fliplr(width)  # Flips both instances AND calibration
@@ -451,8 +452,8 @@ class StereoLabels:
 class StereoHSV:
     """HSV augmentation for stereo images.
 
-    Applies identical HSV augmentation to both left and right views to preserve stereo correspondence.
-    Works with 6-channel stereo images (H, W, 6) in labels dict.
+    Applies identical HSV augmentation to both left and right views to preserve stereo correspondence. Works with
+    6-channel stereo images (H, W, 6) in labels dict.
     """
 
     def __init__(self, hgain: float = 0.015, sgain: float = 0.7, vgain: float = 0.4, p: float = 0.5):
@@ -515,8 +516,8 @@ class StereoHSV:
 class StereoHFlip:
     """Horizontal flip for stereo images.
 
-    Flips both views horizontally and swaps left/right to preserve stereo geometry.
-    Updates instances (bboxes, right_bboxes, rotation_y) and calibration via StereoLabels.
+    Flips both views horizontally and swaps left/right to preserve stereo geometry. Updates instances (bboxes,
+    right_bboxes, rotation_y) and calibration via StereoLabels.
     """
 
     def __init__(self, p: float = 0.5):
@@ -589,8 +590,8 @@ class StereoHFlip:
 class StereoScale:
     """Random scale augmentation for stereo images.
 
-    Scales both views by the same factor. Normalized labels remain unchanged
-    since the scale operation preserves relative coordinates.
+    Scales both views by the same factor. Normalized labels remain unchanged since the scale operation preserves
+    relative coordinates.
     """
 
     def __init__(self, scale_range: tuple[float, float] = (0.8, 1.2), p: float = 0.5):
@@ -702,8 +703,8 @@ class StereoCrop:
 class StereoLetterBox:
     """Letterbox transform for stereo images.
 
-    Resizes and pads a 6-channel stereo image to the target size while preserving aspect ratio.
-    Updates both instances and calibration via StereoLabels.
+    Resizes and pads a 6-channel stereo image to the target size while preserving aspect ratio. Updates both instances
+    and calibration via StereoLabels.
     """
 
     def __init__(self, new_shape: tuple[int, int] = (640, 640), scaleup: bool = True, stride: int = 32):

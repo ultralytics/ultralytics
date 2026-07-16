@@ -894,6 +894,9 @@ class Depth(nn.Module):
 
         if self.upsample == "convex":
             depth = self._convex_up(feat, depth)  # (B, 1, H, W)
+        elif self.upsample == "bilinearx4":
+            # Ablation control for "convex": identical full-res supervision, fixed instead of learned upsampling.
+            depth = F.interpolate(depth, scale_factor=4.0, mode="bilinear", align_corners=False)
 
         if self.training:
             return {"depth": depth}

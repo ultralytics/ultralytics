@@ -1168,9 +1168,27 @@ class DepthLoss26:
         self.silog_weight = h.dlog
         self.grad_weight = h.dgrad
         self.silog_lambda = h.dlam  # 1.0 = scale-invariant, 0.0 = log-RMSE
+        self.ssi_weight = getattr(h, "dssi", 0.0)  # > 0 replaces SILog with median/MAD SSI L1 (MiDaS/ZipDepth style)
         self.grad_scales = 4
         # Mask GT outside the head's range so unreachable targets do not corrupt in-range gradients.
         self.max_depth = getattr(model.model[-1], "max_depth", None)
+
+    @staticmethod
+    def _mad_ssi(pred, gt, valid):
+        """Masked L1 between per-image median/MAD-normalized pred and GT (MiDaS/ZipDepth-style SSI loss).
+
+        Median/MAD alignment in linear depth is outlier-robust and matches the median-aligned val protocol. Computed
+        in float32: normalized values on near-empty masks can exceed the fp16 range before the mask zeros them.
+        """
+        p, g, m = pred.flatten(1).float(), gt.flatten(1).float(), valid.flatten(1).float()
+        n = m.sum(1, keepdim=True).clamp(min=1)
+        p_med = torch.where(m.bool(), p, torch.nan).nanmedian(1, keepdim=True).values.nan_to_num(0)
+        g_med = torch.where(m.bool(), g, torch.nan).nanmedian(1, keepdim=True).values.nan_to_num(0)
+        p_mad = ((p - p_med).abs() * m).sum(1, keepdim=True) / n
+        g_mad = ((g - g_med).abs() * m).sum(1, keepdim=True) / n
+        p_hat = (p - p_med) / p_mad.clamp(min=1e-6)
+        g_hat = (g - g_med) / g_mad.clamp(min=1e-6)
+        return ((p_hat - g_hat).abs() * m).sum() / m.sum().clamp(min=1)
 
     @staticmethod
     def _grad_l1(pred_log, gt_log, valid_f):
@@ -1213,15 +1231,18 @@ class DepthLoss26:
             # Keep the result attached so BaseTrainer's unconditional backward() works.
             return pred_depth.sum() * 0.0, loss.detach()
 
-        pred_valid = pred_depth[valid]
-        gt_valid = gt_depth[valid]
+        if self.ssi_weight > 0:
+            loss[0] = self._mad_ssi(pred_depth, gt_depth, valid) * self.ssi_weight
+        else:
+            pred_valid = pred_depth[valid]
+            gt_valid = gt_depth[valid]
 
-        pred_valid = pred_valid.clamp(min=0.001)
+            pred_valid = pred_valid.clamp(min=0.001)
 
-        log_diff = torch.log(pred_valid) - torch.log(gt_valid)
-        # Clamp variance to keep sqrt non-negative at dlam=1.0.
-        silog = torch.sqrt(((log_diff**2).mean() - self.silog_lambda * log_diff.mean() ** 2).clamp_min(0) + 1e-6)
-        loss[0] = silog * self.silog_weight
+            log_diff = torch.log(pred_valid) - torch.log(gt_valid)
+            # Clamp variance to keep sqrt non-negative at dlam=1.0.
+            silog = torch.sqrt(((log_diff**2).mean() - self.silog_lambda * log_diff.mean() ** 2).clamp_min(0) + 1e-6)
+            loss[0] = silog * self.silog_weight
 
         # Multi-scale gradient-matching loss.
         pred_log = torch.log(pred_depth.clamp(min=0.001))

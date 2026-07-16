@@ -605,6 +605,7 @@ nav:
       - DEEPX: integrations/deepx.md
       - DVC: integrations/dvc.md
       - ExecuTorch: integrations/executorch.md
+      - ExportedProgram: integrations/exported-program.md
       - Google Colab: integrations/google-colab.md
       - Gradio: integrations/gradio.md
       - Hailo: integrations/hailo.md
@@ -882,6 +883,7 @@ nav:
               - deepx: reference/utils/export/deepx.md
               - engine: reference/utils/export/engine.md
               - executorch: reference/utils/export/executorch.md
+              - exported_program: reference/utils/export/exported_program.md
               - imx: reference/utils/export/imx.md
               - litert: reference/utils/export/litert.md
               - mnn: reference/utils/export/mnn.md

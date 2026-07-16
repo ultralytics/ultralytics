@@ -23,6 +23,7 @@ Axelera AI              | `axelera`                 | yolo26n_axelera_model/
 DEEPX                   | `deepx`                   | yolo26n_deepx_model/
 Qualcomm QNN            | `qnn`                     | yolo26n_qnn.onnx
 LiteRT                  | `litert`                  | yolo26n.tflite
+Hailo                    | `hailo`                   | yolo26n_hailo_model/
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -57,6 +58,7 @@ Inference:
                          yolo26n_deepx_model        # DEEPX
                          yolo26n_qnn.onnx           # Qualcomm QNN
                          yolo26n.tflite             # LiteRT
+                         yolo26n_hailo_model         # Hailo HEF
 """
 
 from __future__ import annotations
@@ -211,6 +213,7 @@ def export_formats():
         ["DEEPX", "deepx", "_deepx_model", False, False, ["data", "quantize", "optimize"], "isolated-deepx"],
         ["Qualcomm QNN", "qnn", "_qnn.onnx", False, False, ["batch", "name", "quantize", "fraction", "data"], "base"],
         ["LiteRT", "litert", ".tflite", True, False, ["batch", "quantize", "data", "fraction"], "litert"],
+        ["Hailo", "hailo", "_hailo_model", False, False, ["name", "quantize", "data", "fraction", "end2end"], "base"],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments", "Env"], zip(*x)))
 
@@ -358,6 +361,7 @@ INT8_FORMATS = frozenset(
         "rknn",
         "axelera",
         "deepx",
+        "hailo",
         "litert",
     }
 )
@@ -365,7 +369,7 @@ W8A16_FORMATS = frozenset(
     {"coreml", "imx", "qnn", "litert"}
 )  # INT8 weights + 16-bit activations (FP16; INT16 on LiteRT)
 W8A32_FORMATS = frozenset({"litert"})  # INT8 weights + FP32 activations (dynamic/weight-only INT8, no calibration)
-FP32_UNSUPPORTED_FORMATS = frozenset({"edgetpu", "imx", "rknn", "axelera", "deepx", "qnn"})
+FP32_UNSUPPORTED_FORMATS = frozenset({"edgetpu", "imx", "rknn", "axelera", "deepx", "qnn", "hailo"})
 # (label, supporting formats) per quantize precision, used to list valid options in errors. 32/None (FP32) is universal except FP32_UNSUPPORTED_FORMATS.
 QUANTIZE_PRECISIONS = (
     ("16 (FP16)", FP16_FORMATS),
@@ -548,7 +552,7 @@ class Exporter:
         # Argument compatibility checks
         fmt_keys = dict(zip(fmts_dict["Argument"], fmts_dict["Arguments"]))[fmt]
         validate_args(fmt, self.args, fmt_keys)
-        if fmt in {"deepx", "axelera", "imx", "edgetpu", "qnn"} and self.args.quantize not in {8, "w8a16"}:
+        if fmt in {"deepx", "axelera", "imx", "edgetpu", "qnn", "hailo"} and self.args.quantize not in {8, "w8a16"}:
             if self.args.quantize == 32:
                 raise ValueError(
                     f"{fmt} export only supports INT8, but got an explicit quantize=32 (FP32) request. "
@@ -556,6 +560,16 @@ class Exporter:
                 )
             LOGGER.warning(f"{fmt} export requires INT8 quantization, enabling it.")
             self.args.quantize = "w8a16" if fmt == "qnn" else 8
+        if fmt == "hailo":
+            assert LINUX and not ARM64, "Hailo export is only supported on Linux x86_64."
+            if model.task != "detect" or isinstance(model.model[-1], RTDETRDecoder):
+                raise ValueError("Hailo export currently supports YOLO detection models only.")
+            self.args.name = str(self.args.name or "hailo8l").lower()
+            hailo_archs = ("hailo8", "hailo8l", "hailo10h", "hailo15h", "hailo15l")
+            if self.args.name not in hailo_archs:
+                raise ValueError(f"Invalid Hailo architecture '{self.args.name}'. Valid names are {hailo_archs}.")
+            if not self.args.data:
+                self.args.data = TASK2CALIBRATIONDATA[model.task]
         if fmt == "axelera":
             if model.task == "segment" and any(isinstance(m, Segment26) for m in model.modules()):
                 raise ValueError("Axelera export does not currently support YOLO26 segmentation models.")
@@ -1417,6 +1431,90 @@ class Exporter:
             batch=0 if self.args.dynamic else self.args.batch,
             prefix=prefix,
         )
+
+    @try_export
+    def export_hailo(self, prefix=colorstr("Hailo:")):
+        """Export a YOLO detection model to Hailo Executable Format (HEF)."""
+        try:
+            from hailo_sdk_client import ClientRunner
+        except ImportError as e:
+            raise ImportError(
+                "Hailo export requires the Hailo Dataflow Compiler wheel from "
+                "https://hailo.ai/developer-zone/. See https://docs.ultralytics.com/integrations/hailo/."
+            ) from e
+
+        head_index = len(self.model.model) - 1
+        head = self.model.model[head_index]
+        one2one = getattr(self.model, "end2end", False)
+        scales = range(len(head.one2one_cv2 if one2one else head.cv2))
+        if one2one:
+            end_nodes = [
+                f"/model.{head_index}/one2one_cv{branch}.{i}/one2one_cv{branch}.{i}.2/Conv"
+                for branch in (2, 3)
+                for i in scales
+            ]
+        else:
+            end_nodes = [
+                f"/model.{head_index}/cv{branch}.{i}/cv{branch}.{i}.2/Conv" for i in scales for branch in (2, 3)
+            ]
+        self.args.opset = 11
+        f_onnx = Path(self.export_onnx())
+        output_dir = self.file.parent / f"{self.file.stem}_hailo_model"
+        if output_dir.exists():
+            shutil.rmtree(output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
+        try:
+            runner = ClientRunner(hw_arch=self.args.name)
+            runner.translate_onnx_model(str(f_onnx), self.file.stem, end_node_names=end_nodes)
+            model_script = ["normalization1 = normalization([0, 0, 0], [255, 255, 255])"]
+            if one2one:
+                outputs = ", ".join(f"output_layer{i + 1}" for i in range(len(end_nodes)))
+                model_script.append(f"quantization_param([{outputs}], precision_mode=a16_w16)")
+            else:
+                outputs = [layer.name.rsplit("/", 1)[-1] for layer in runner.get_hn_model().get_output_layers()]
+                nms_config = output_dir / "nms_config.json"
+                nms_config.write_text(
+                    json.dumps(
+                        {
+                            "nms_scores_th": self.args.conf or 0.25,
+                            "nms_iou_th": self.args.iou,
+                            "image_dims": self.imgsz,
+                            "max_proposals_per_class": 100,
+                            "classes": len(self.model.names),
+                            "regression_length": 16,
+                            "background_removal": False,
+                            "background_removal_index": 0,
+                            "bbox_decoders": [
+                                {
+                                    "name": f"bbox_decoder_{stride}",
+                                    "stride": stride,
+                                    "reg_layer": outputs[i * 2],
+                                    "cls_layer": outputs[i * 2 + 1],
+                                }
+                                for i, stride in enumerate(int(x) for x in head.stride)
+                            ],
+                        },
+                        indent=2,
+                    )
+                )
+                model_script.extend(
+                    f"change_output_activation({outputs[i]}, sigmoid)" for i in range(1, len(outputs), 2)
+                )
+                model_script.append(f'nms_postprocess("{nms_config}", meta_arch=yolov8, engine=cpu)')
+                model_script.append("allocator_param(width_splitter_defuse=disabled)")
+            runner.load_model_script("\n".join(model_script))
+            calibration = np.concatenate(
+                [
+                    batch["img"].permute(0, 2, 3, 1).numpy().astype(np.float32)
+                    for batch in self.get_int8_calibration_dataloader(prefix)
+                ]
+            )
+            runner.optimize(calibration)
+            (output_dir / f"{self.file.stem}.hef").write_bytes(runner.compile())
+            YAML.save(output_dir / "metadata.yaml", {**self.metadata, "hailo_arch": self.args.name, "nms": not one2one})
+            return str(output_dir)
+        finally:
+            f_onnx.unlink(missing_ok=True)
 
     def _add_tflite_metadata(self, file):
         """Add metadata to *.tflite models per https://ai.google.dev/edge/litert/models/metadata."""

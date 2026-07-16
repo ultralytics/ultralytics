@@ -800,7 +800,7 @@ class Depth(nn.Module):
     export = False  # export mode
     format = None  # export format
 
-    def __init__(self, c_mid: int = 256, mode: str = "log", ch: tuple = ()):
+    def __init__(self, c_mid: int = 256, mode: str = "log", upsample: str = "bilinear", ch: tuple = ()):
         """Initialize Depth head.
 
         Args:
@@ -808,11 +808,15 @@ class Depth(nn.Module):
             mode (str): Output parameterization. "sigmoid" is sigmoid x max_depth (bounded metric output); "log" is
                 exp(logit) (unbounded), keeping shape and scale decoupled for scale-invariant pretraining, with eval
                 recovering scale via log-LS alignment.
+            upsample (str): Output upsampling. "bilinear" keeps the head output at 1/4 resolution (loss/predictor
+                upsample outside the head); "convex" learns a RAFT-style 9-neighbor convex combination that upsamples
+                4x to input resolution inside the head, so supervision and inference share sub-pixel edges.
             ch (tuple): Input channel sizes from backbone feature maps (P3, P4, P5).
         """
         super().__init__()
         self.nl = len(ch)  # number of detection layers (pyramid levels)
         self.mode = mode
+        self.upsample = upsample
 
         # Project each pyramid level to c_mid channels
         self.proj = nn.ModuleList(Conv(c, c_mid, k=1) for c in ch)
@@ -835,6 +839,14 @@ class Depth(nn.Module):
         if mode == "log":
             # Initialize to ~1.2 m so early exp() outputs stay well-conditioned.
             self.head[-1].bias.data.fill_(0.182)
+
+        if upsample == "convex":
+            # Predict 9 softmax weights per 4x4 output sub-pixel from the pre-logit features; zero-init the final
+            # conv so training starts from a uniform (mean-of-neighbors) upsampling.
+            c_feat = c_mid // 4
+            self.up_mask = nn.Sequential(Conv(c_feat, c_feat, k=3), nn.Conv2d(c_feat, 9 * 16, kernel_size=1))
+            nn.init.zeros_(self.up_mask[-1].weight)
+            nn.init.zeros_(self.up_mask[-1].bias)
 
         # Scale-only log-affine calibration d' = exp(a·log d + b); identity by default.
         self.register_buffer("cal_a", torch.ones(1))
@@ -862,19 +874,34 @@ class Depth(nn.Module):
             out = out + feats[i]
             out = self.refine[i](out)
 
-        out = self.head(out)  # (B, 1, H/4, W/4)
+        feat = self.head[:3](out)  # (B, c_mid/4, H/4, W/4) pre-logit features
+        out = self.head[3:](feat)  # (B, 1, H/4, W/4)
         if self.mode == "log":
             depth = torch.exp(out.clamp(-4.0, 5.0))
         else:
             depth = out * self.max_depth
 
+        if self.upsample == "convex":
+            depth = self._convex_up(feat, depth)  # (B, 1, H, W)
+
         if self.training:
             return {"depth": depth}
 
         depth = depth.pow(self.cal_a) * self.cal_b.exp()
-        if self.export:
+        if self.export and self.upsample == "bilinear":
             depth = F.interpolate(depth, scale_factor=4.0, mode="bilinear", align_corners=False)
         return depth
+
+    def _convex_up(self, feat: torch.Tensor, depth: torch.Tensor) -> torch.Tensor:
+        """Upsample depth 4x as a per-pixel convex combination of its 3x3 neighborhood (RAFT-style).
+
+        Convexity (softmax weights over positive depths) keeps the output positive, so log/sigmoid range guarantees
+        are preserved.
+        """
+        b, _, h, w = depth.shape
+        mask = self.up_mask(feat).view(b, 9, 16, h, w).softmax(dim=1)
+        neighbors = F.unfold(F.pad(depth, (1, 1, 1, 1), mode="replicate"), 3).view(b, 9, 1, h, w)
+        return F.pixel_shuffle((mask * neighbors).sum(1), 4)
 
 
 class Classify(nn.Module):

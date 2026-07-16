@@ -696,7 +696,7 @@ def cmd_report(args):
     summary = (
         f"## Fuzz — {total} trials\n\n"
         + "\n".join(table)
-        + f"\n\nNew standalone issues filed: {created} (cap {args.max_issues})"
+        + f"\n\nNew issue threads created: {created} (cap {args.max_issues})"
         + (f" · ⚠️ shards with >20% canary failures: {', '.join(flagged)}" if flagged else "")
     )
     if step_summary := os.environ.get("GITHUB_STEP_SUMMARY"):

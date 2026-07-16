@@ -1,26 +1,56 @@
 ---
 title: YOLO with ROS Quickstart
 comments: true
-description: Integrate Ultralytics YOLO with ROS1 (Noetic, rospy) and ROS2 (rclpy) to run object detection and segmentation on RGB images, depth images, and point clouds for robotic perception.
+description: Integrate Ultralytics YOLO with ROS1 or ROS2 to run object detection and segmentation on RGB images, depth images, and point clouds for robotic perception.
 keywords: Ultralytics, YOLO, object detection, deep learning, machine learning, guide, ROS, ROS2, Robot Operating System, robotics, rclpy, rospy, ROS Noetic, Python, Ubuntu, simulation, visualization, communication, middleware, hardware abstraction, tools, utilities, ecosystem, Noetic Ninjemys, autonomous vehicle, AMV
 ---
 
-# Use Ultralytics YOLO with ROS for Robot Perception
+# ROS (Robot Operating System) quickstart guide
 
-This guide shows you how to integrate [Ultralytics YOLO](../models/yolo26.md) with a robot running [ROS (Robot Operating System)](https://www.ros.org/), either ROS1 (Noetic, via `rospy`) or ROS2 (via `rclpy`), to run real-time [object detection](../tasks/detect.md) and [segmentation](../tasks/segment.md) on RGB images, depth images, and point clouds.
+This guide shows you how to integrate [Ultralytics YOLO](../models/yolo26.md) with ROS1 (`rospy`) or ROS2 (`rclpy`) to run real-time [object detection](../tasks/detect.md) and [segmentation](../tasks/segment.md) on RGB images, depth images, and point clouds.
 
-Jump to [setting up YOLO with ROS](#setting-up-ultralytics-yolo-with-ros), then work with [RGB images](#use-ultralytics-with-ros-sensor_msgsimage), [depth images](#use-ultralytics-with-ros-depth-images), or [point clouds](#use-ultralytics-with-ros-sensor_msgspointcloud2) — or start with the [background on ROS](#background-about-ros) if you're new to the framework.
+Jump to [setting up YOLO with ROS](#setting-up-ultralytics-yolo-with-ros), then work with [RGB images](#use-ultralytics-with-ros-sensor_msgsimage), [depth images](#use-ultralytics-with-ros-depth-images), or [point clouds](#use-ultralytics-with-ros-sensor_msgspointcloud2).
 
 <p align="center"> <iframe src="https://player.vimeo.com/video/639236696?h=740f412ce5" width="640" height="360" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></p>
 <p align="center"><a href="https://vimeo.com/639236696">ROS Introduction (captioned)</a> from <a href="https://vimeo.com/osrfoundation">Open Robotics</a> on <a href="https://vimeo.com/">Vimeo</a>.</p>
 
-## Why Use Ultralytics YOLO with ROS?
+## What is ROS?
 
-Integrating YOLO into a ROS pipeline turns raw camera and point-cloud topics into structured detections, segmentation masks, and 3D object positions that other ROS nodes — navigation, manipulation, monitoring — can consume directly, without a custom perception stack. The same YOLO models work across all three sensor modalities covered in this guide (RGB images, depth images, point clouds), and every example below ships both a ROS1 (`rospy`) and a ROS2 (`rclpy`) tab. If you're new to ROS itself, see the [background section](#background-about-ros) at the end of this guide.
+The [Robot Operating System (ROS)](https://www.ros.org/) is an open-source framework widely used in robotics research and industry. ROS provides a collection of [libraries and tools](https://www.ros.org/blog/ecosystem/) to help developers create robot applications. ROS is designed to work with various [robotic platforms](https://robots.ros.org/), making it a flexible and powerful tool for roboticists.
+
+### Key Features of ROS
+
+1. **Modular Architecture**: ROS has a modular architecture, allowing developers to build complex systems by combining smaller, reusable components called [nodes](https://wiki.ros.org/ROS/Tutorials/UnderstandingNodes). Each node typically performs a specific function, and nodes communicate with each other using messages over [topics](https://wiki.ros.org/ROS/Tutorials/UnderstandingTopics) or [services](https://wiki.ros.org/ROS/Tutorials/UnderstandingServicesParams).
+
+2. **Communication Middleware**: ROS offers a robust communication infrastructure that supports inter-process communication and distributed computing. This is achieved through a publish-subscribe model for data streams (topics) and a request-reply model for service calls.
+
+3. **Hardware Abstraction**: ROS provides a layer of abstraction over the hardware, enabling developers to write device-agnostic code. This allows the same code to be used with different hardware setups, facilitating easier integration and experimentation.
+
+4. **Tools and Utilities**: ROS comes with a rich set of tools and utilities for visualization, debugging, and simulation. For instance, RViz is used for visualizing sensor data and robot state information, while Gazebo provides a powerful simulation environment for testing algorithms and robot designs.
+
+5. **Extensive Ecosystem**: The ROS ecosystem is vast and continually growing, with numerous packages available for different robotic applications, including navigation, manipulation, perception, and more. The community actively contributes to the development and maintenance of these packages.
+
+???+ note "Evolution of ROS Versions"
+
+    Since its development in 2007, ROS has evolved through [multiple versions](https://wiki.ros.org/Distributions), split into ROS 1 and ROS 2. The existing examples below use ROS1 Noetic; the compact adapters in [Using ROS2](#using-ros2) show the corresponding `rclpy` interfaces for current ROS2 releases.
+
+    ### ROS 1 vs. ROS 2
+
+    While ROS 1 provided a solid foundation for robotic development, ROS 2 addresses its shortcomings by offering:
+
+    - **Real-time Performance**: Improved support for real-time systems and deterministic behavior.
+    - **Security**: Enhanced security features for safe and reliable operation in various environments.
+    - **Scalability**: Better support for multi-robot systems and large-scale deployments.
+    - **Cross-platform Support**: Expanded compatibility with various operating systems beyond Linux, including Windows and macOS.
+    - **Flexible Communication**: Use of DDS for more flexible and efficient inter-process communication.
+
+### ROS Messages and Topics
+
+In ROS, communication between nodes is facilitated through [messages](https://wiki.ros.org/Messages) and [topics](https://wiki.ros.org/Topics). A message is a data structure that defines the information exchanged between nodes, while a topic is a named channel over which messages are sent and received. Nodes can publish messages to a topic or subscribe to messages from a topic, enabling them to communicate with each other. This publish-subscribe model allows for asynchronous communication and decoupling between nodes. Each sensor or actuator in a robotic system typically publishes data to a topic, which can then be consumed by other nodes for processing or control. For the purpose of this guide, we will focus on Image, Depth and PointCloud messages and camera topics.
 
 ## Setting Up Ultralytics YOLO with ROS
 
-This guide has been tested using [this ROS environment](https://github.com/ambitious-octopus/rosbot_ros/tree/noetic), which is a fork of the [ROSbot ROS repository](https://github.com/husarion/rosbot_ros). This environment includes the Ultralytics YOLO package, a Docker container for easy setup, comprehensive ROS packages, and Gazebo worlds for rapid testing. It is designed to work with the [Husarion ROSbot 2 PRO](https://husarion.com/manuals/rosbot/). The code examples provided will work in any ROS Noetic/Melodic environment, including both simulation and real-world.
+The ROS1 examples were tested using [this ROS environment](https://github.com/ambitious-octopus/rosbot_ros/tree/noetic), a fork of the [ROSbot ROS repository](https://github.com/husarion/rosbot_ros). The same YOLO and NumPy processing applies in ROS2; only the node lifecycle and message conversion differ.
 
 <p align="center">
   <img width="50%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/husarion-rosbot-2-pro.avif" alt="Husarion ROSbot 2 PRO autonomous robot platform">
@@ -30,33 +60,84 @@ This guide has been tested using [this ROS environment](https://github.com/ambit
 
 Apart from the ROS environment, you will need to install the following dependencies:
 
-!!! example "Installing dependencies"
+- **[ROS NumPy package](https://github.com/eric-wieser/ros_numpy)**: This is required for fast conversion between ROS Image messages and NumPy arrays.
 
-    === "ROS1"
+    ```bash
+    pip install ros_numpy
+    ```
 
-        - **[ROS NumPy package](https://github.com/eric-wieser/ros_numpy)**: This is required for fast conversion between ROS Image messages and NumPy arrays. It ships as a ROS package rather than a PyPI package, so install it through the ROS package manager instead of `pip`:
+- **Ultralytics package**:
 
-            ```bash
-            sudo apt install ros-$ROS_DISTRO-ros-numpy
-            ```
+    ```bash
+    pip install ultralytics
+    ```
 
-        - **Ultralytics package**:
+## Using ROS2
 
-            ```bash
-            pip install ultralytics
-            ```
+ROS2 replaces `rospy` with `rclpy` and `ros_numpy` image conversion with `cv_bridge`. The following node is the complete ROS2 equivalent of the RGB detection flow below; instantiate models once and reuse them across callbacks.
 
-    === "ROS2"
+```python
+import cv_bridge
+import rclpy
+from rclpy.node import Node
+from rclpy.qos import qos_profile_sensor_data
+from sensor_msgs.msg import Image
 
-        - **[cv_bridge](https://github.com/ros-perception/vision_opencv)**: Converts between ROS `sensor_msgs/Image` messages and OpenCV/NumPy arrays. It ships with a standard ROS2 desktop install; if it's missing, install it through your distro's package manager (`sudo apt install ros-$ROS_DISTRO-cv-bridge` on Ubuntu).
+from ultralytics import YOLO
 
-        - **Ultralytics package**:
 
-            ```bash
-            pip install ultralytics
-            ```
+class UltralyticsNode(Node):
+    """Run YOLO detection on ROS2 image messages."""
 
-        Point cloud conversion uses `sensor_msgs_py`, which ships with the core ROS2 install, so no extra package is required for the [`sensor_msgs/PointCloud2`](#use-ultralytics-with-ros-sensor_msgspointcloud2) example below.
+    def __init__(self):
+        super().__init__("ultralytics")
+        self.bridge = cv_bridge.CvBridge()
+        self.model = YOLO("yolo26m.pt")
+        self.publisher = self.create_publisher(Image, "/ultralytics/detection/image", 5)
+        self.create_subscription(Image, "/camera/color/image_raw", self.callback, qos_profile_sensor_data)
+
+    def callback(self, message):
+        """Publish the annotated camera frame."""
+        image = self.bridge.imgmsg_to_cv2(message, desired_encoding="bgr8")
+        annotated = self.model(image)[0].plot(show=False)
+        self.publisher.publish(self.bridge.cv2_to_imgmsg(annotated, encoding="bgr8"))
+
+
+def main(args=None):
+    """Start the ROS2 node."""
+    rclpy.init(args=args)
+    node = UltralyticsNode()
+    rclpy.spin(node)
+    node.destroy_node()
+    rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()
+```
+
+For depth images, reuse the depth-processing code below and replace only message acquisition and conversion:
+
+```python
+self.create_subscription(Image, "/camera/color/image_raw", self.rgb_callback, qos_profile_sensor_data)
+self.create_subscription(Image, "/camera/depth/image_raw", self.depth_callback, qos_profile_sensor_data)
+
+def rgb_callback(self, message):
+    self.rgb_image = self.bridge.imgmsg_to_cv2(message, desired_encoding="bgr8")
+
+def depth_callback(self, message):
+    depth_image = self.bridge.imgmsg_to_cv2(message, desired_encoding="passthrough")
+    # Apply the NumPy mask and distance calculation from the depth example below.
+```
+
+For point clouds, ROS2 provides `sensor_msgs_py.point_cloud2`; convert the organized cloud once, then reuse the NumPy segmentation and 3D mapping below:
+
+```python
+from sensor_msgs_py import point_cloud2
+
+points = point_cloud2.read_points_numpy(message, field_names=("x", "y", "z", "rgb"))
+points = points.reshape(message.height, message.width, 4)
+```
 
 ## Use Ultralytics with ROS `sensor_msgs/Image`
 
@@ -68,236 +149,99 @@ The `sensor_msgs/Image` [message type](https://docs.ros.org/en/api/sensor_msgs/h
 
 ### Image Step-by-Step Usage
 
-The following code snippet demonstrates how to use the Ultralytics YOLO package with ROS. In this example, we subscribe to a camera topic, process the incoming image using YOLO, and publish the detected objects to new topics for [detection](../tasks/detect.md) and [segmentation](../tasks/segment.md). ROS1 (`rospy`) uses a linear script with a global node, while ROS2 (`rclpy`) wraps the same logic in a `Node` subclass.
+The following code snippet demonstrates how to use the Ultralytics YOLO package with ROS. In this example, we subscribe to a camera topic, process the incoming image using YOLO, and publish the detected objects to new topics for [detection](../tasks/detect.md) and [segmentation](../tasks/segment.md).
 
-First, import the necessary libraries and instantiate two models: one for [segmentation](../tasks/segment.md) and one for [detection](../tasks/detect.md).
+First, import the necessary libraries and instantiate two models: one for [segmentation](../tasks/segment.md) and one for [detection](../tasks/detect.md). Initialize a ROS node (with the name `ultralytics`) to enable communication with the ROS master. To ensure a stable connection, we include a brief pause, giving the node sufficient time to establish the connection before proceeding.
 
-!!! example "Imports and model setup"
+```python
+import time
 
-    === "ROS1"
+import rospy
 
-        Initialize a ROS node (with the name `ultralytics`) to enable communication with the ROS master. To ensure a stable connection, we include a brief pause, giving the node sufficient time to establish the connection before proceeding.
+from ultralytics import YOLO
 
-        ```python
-        import time
+detection_model = YOLO("yolo26m.pt")
+segmentation_model = YOLO("yolo26m-seg.pt")
+rospy.init_node("ultralytics")
+time.sleep(1)
+```
 
-        import rospy
+Initialize two ROS topics: one for [detection](../tasks/detect.md) and one for [segmentation](../tasks/segment.md). These topics will be used to publish the annotated images, making them accessible for further processing. The communication between nodes is facilitated using `sensor_msgs/Image` messages.
 
-        from ultralytics import YOLO
+```python
+from sensor_msgs.msg import Image
 
-        detection_model = YOLO("yolo26m.pt")
-        segmentation_model = YOLO("yolo26m-seg.pt")
-        rospy.init_node("ultralytics")
-        time.sleep(1)
-        ```
+det_image_pub = rospy.Publisher("/ultralytics/detection/image", Image, queue_size=5)
+seg_image_pub = rospy.Publisher("/ultralytics/segmentation/image", Image, queue_size=5)
+```
 
-    === "ROS2"
+Finally, create a subscriber that listens to messages on the `/camera/color/image_raw` topic and calls a callback function for each new message. This callback function receives messages of type `sensor_msgs/Image`, converts them into a NumPy array using `ros_numpy`, processes the images with the previously instantiated YOLO models, annotates the images, and then publishes them back to the respective topics: `/ultralytics/detection/image` for detection and `/ultralytics/segmentation/image` for segmentation.
 
-        A ROS2 node is a class that inherits from `rclpy.node.Node`; models are instantiated once in `__init__` and reused across every callback.
-
-        ```python
-        import cv_bridge
-        from rclpy.node import Node
-
-        from ultralytics import YOLO
+```python
+import ros_numpy
 
 
-        class UltralyticsNode(Node):
-            """ROS2 node that runs Ultralytics YOLO detection and segmentation on incoming images."""
+def callback(data):
+    """Callback function to process image and publish annotated images."""
+    array = ros_numpy.numpify(data)
+    if det_image_pub.get_num_connections():
+        det_result = detection_model(array)
+        det_annotated = det_result[0].plot(show=False)
+        det_image_pub.publish(ros_numpy.msgify(Image, det_annotated, encoding="rgb8"))
 
-            def __init__(self):
-                super().__init__("ultralytics")
-                self.bridge = cv_bridge.CvBridge()
-                self.detection_model = YOLO("yolo26m.pt")
-                self.segmentation_model = YOLO("yolo26m-seg.pt")
-        ```
-
-Next, create two topics: one for [detection](../tasks/detect.md) and one for [segmentation](../tasks/segment.md). These topics will be used to publish the annotated images, making them accessible for further processing. The communication is facilitated using `sensor_msgs/Image` messages.
-
-!!! example "Publishers"
-
-    === "ROS1"
-
-        ```python
-        from sensor_msgs.msg import Image
-
-        det_image_pub = rospy.Publisher("/ultralytics/detection/image", Image, queue_size=5)
-        seg_image_pub = rospy.Publisher("/ultralytics/segmentation/image", Image, queue_size=5)
-        ```
-
-    === "ROS2"
-
-        Publishers are created inside `__init__` with `self.create_publisher(msg_type, topic, queue_size)`, rather than as free-standing objects. Add `from sensor_msgs.msg import Image` to the imports at the top of the file.
-
-        ```python
-                self.det_image_pub = self.create_publisher(Image, "/ultralytics/detection/image", 5)
-                self.seg_image_pub = self.create_publisher(Image, "/ultralytics/segmentation/image", 5)
-        ```
-
-Finally, subscribe to the `/camera/color/image_raw` topic and process every incoming frame with the previously instantiated YOLO models, then publish the annotated results back to the respective topics: `/ultralytics/detection/image` for detection and `/ultralytics/segmentation/image` for segmentation.
-
-!!! example "Subscriber and callback"
-
-    === "ROS1"
-
-        This callback receives messages of type `sensor_msgs/Image`, converts them into a NumPy array using `ros_numpy`, processes the images with the previously instantiated YOLO models, annotates the images, and then publishes them back to the respective topics. Unlike `cv_bridge`, `ros_numpy.numpify()` has no `desired_encoding` argument — it preserves whatever encoding the camera driver publishes, so the callback normalizes an `rgb8` frame to `bgr8` before inference, matching the channel order YOLO expects and what `plot()` returns for the published annotated image.
-
-        ```python
-        import ros_numpy
+    if seg_image_pub.get_num_connections():
+        seg_result = segmentation_model(array)
+        seg_annotated = seg_result[0].plot(show=False)
+        seg_image_pub.publish(ros_numpy.msgify(Image, seg_annotated, encoding="rgb8"))
 
 
-        def callback(data):
-            """Callback function to process image and publish annotated images."""
-            array = ros_numpy.numpify(data)
-            if data.encoding == "rgb8":
-                array = array[..., ::-1]  # normalize to bgr8, the channel order YOLO expects
-            if det_image_pub.get_num_connections():
-                det_result = detection_model(array)
-                det_annotated = det_result[0].plot(show=False)
-                det_image_pub.publish(ros_numpy.msgify(Image, det_annotated, encoding="bgr8"))
+rospy.Subscriber("/camera/color/image_raw", Image, callback)
 
-            if seg_image_pub.get_num_connections():
-                seg_result = segmentation_model(array)
-                seg_annotated = seg_result[0].plot(show=False)
-                seg_image_pub.publish(ros_numpy.msgify(Image, seg_annotated, encoding="bgr8"))
-
-
-        rospy.Subscriber("/camera/color/image_raw", Image, callback)
-
-        rospy.spin()
-        ```
-
-    === "ROS2"
-
-        The callback converts the incoming `sensor_msgs/Image` message with `cv_bridge` instead of `ros_numpy`. `rclpy.spin(node)` replaces the `rospy.spin()` loop, and the node must be created and torn down explicitly in a `main()` entry point. Camera drivers typically publish with "best effort" reliability, so the subscription uses `qos_profile_sensor_data` instead of the default "reliable" queue depth. Add `import rclpy` and `from rclpy.qos import qos_profile_sensor_data` to the imports at the top of the file.
-
-        `cv_bridge` is requested to decode into `bgr8`, matching the channel order YOLO's NumPy preprocessing expects; requesting `rgb8` here would feed the model a channel-swapped image.
-
-        ```python
-                self.create_subscription(Image, "/camera/color/image_raw", self.callback, qos_profile_sensor_data)
-
-            def callback(self, data):
-                """Callback function to process image and publish annotated images."""
-                array = self.bridge.imgmsg_to_cv2(data, desired_encoding="bgr8")
-                if self.det_image_pub.get_subscription_count():
-                    det_result = self.detection_model(array)
-                    det_annotated = det_result[0].plot(show=False)
-                    self.det_image_pub.publish(self.bridge.cv2_to_imgmsg(det_annotated, encoding="bgr8"))
-
-                if self.seg_image_pub.get_subscription_count():
-                    seg_result = self.segmentation_model(array)
-                    seg_annotated = seg_result[0].plot(show=False)
-                    self.seg_image_pub.publish(self.bridge.cv2_to_imgmsg(seg_annotated, encoding="bgr8"))
-
-
-        def main(args=None):
-            """Entry point for the ultralytics ROS2 node."""
-            rclpy.init(args=args)
-            node = UltralyticsNode()
-            rclpy.spin(node)
-            node.destroy_node()
-            rclpy.shutdown()
-
-
-        if __name__ == "__main__":
-            main()
-        ```
+while True:
+    rospy.spin()
+```
 
 ??? example "Complete code"
 
-    === "ROS1"
+    ```python
+    import time
 
-        ```python
-        import time
+    import ros_numpy
+    import rospy
+    from sensor_msgs.msg import Image
 
-        import ros_numpy
-        import rospy
-        from sensor_msgs.msg import Image
+    from ultralytics import YOLO
 
-        from ultralytics import YOLO
+    detection_model = YOLO("yolo26m.pt")
+    segmentation_model = YOLO("yolo26m-seg.pt")
+    rospy.init_node("ultralytics")
+    time.sleep(1)
 
-        detection_model = YOLO("yolo26m.pt")
-        segmentation_model = YOLO("yolo26m-seg.pt")
-        rospy.init_node("ultralytics")
-        time.sleep(1)
-
-        det_image_pub = rospy.Publisher("/ultralytics/detection/image", Image, queue_size=5)
-        seg_image_pub = rospy.Publisher("/ultralytics/segmentation/image", Image, queue_size=5)
+    det_image_pub = rospy.Publisher("/ultralytics/detection/image", Image, queue_size=5)
+    seg_image_pub = rospy.Publisher("/ultralytics/segmentation/image", Image, queue_size=5)
 
 
-        def callback(data):
-            """Callback function to process image and publish annotated images."""
-            array = ros_numpy.numpify(data)
-            if data.encoding == "rgb8":
-                array = array[..., ::-1]  # normalize to bgr8, the channel order YOLO expects
-            if det_image_pub.get_num_connections():
-                det_result = detection_model(array)
-                det_annotated = det_result[0].plot(show=False)
-                det_image_pub.publish(ros_numpy.msgify(Image, det_annotated, encoding="bgr8"))
+    def callback(data):
+        """Callback function to process image and publish annotated images."""
+        array = ros_numpy.numpify(data)
+        if det_image_pub.get_num_connections():
+            det_result = detection_model(array)
+            det_annotated = det_result[0].plot(show=False)
+            det_image_pub.publish(ros_numpy.msgify(Image, det_annotated, encoding="rgb8"))
 
-            if seg_image_pub.get_num_connections():
-                seg_result = segmentation_model(array)
-                seg_annotated = seg_result[0].plot(show=False)
-                seg_image_pub.publish(ros_numpy.msgify(Image, seg_annotated, encoding="bgr8"))
+        if seg_image_pub.get_num_connections():
+            seg_result = segmentation_model(array)
+            seg_annotated = seg_result[0].plot(show=False)
+            seg_image_pub.publish(ros_numpy.msgify(Image, seg_annotated, encoding="rgb8"))
 
 
-        rospy.Subscriber("/camera/color/image_raw", Image, callback)
+    rospy.Subscriber("/camera/color/image_raw", Image, callback)
 
+    while True:
         rospy.spin()
-        ```
+    ```
 
-    === "ROS2"
-
-        ```python
-        import cv_bridge
-        import rclpy
-        from rclpy.node import Node
-        from rclpy.qos import qos_profile_sensor_data
-        from sensor_msgs.msg import Image
-
-        from ultralytics import YOLO
-
-
-        class UltralyticsNode(Node):
-            """ROS2 node that runs Ultralytics YOLO detection and segmentation on incoming images."""
-
-            def __init__(self):
-                super().__init__("ultralytics")
-                self.bridge = cv_bridge.CvBridge()
-                self.detection_model = YOLO("yolo26m.pt")
-                self.segmentation_model = YOLO("yolo26m-seg.pt")
-                self.det_image_pub = self.create_publisher(Image, "/ultralytics/detection/image", 5)
-                self.seg_image_pub = self.create_publisher(Image, "/ultralytics/segmentation/image", 5)
-                self.create_subscription(Image, "/camera/color/image_raw", self.callback, qos_profile_sensor_data)
-
-            def callback(self, data):
-                """Callback function to process image and publish annotated images."""
-                array = self.bridge.imgmsg_to_cv2(data, desired_encoding="bgr8")
-                if self.det_image_pub.get_subscription_count():
-                    det_result = self.detection_model(array)
-                    det_annotated = det_result[0].plot(show=False)
-                    self.det_image_pub.publish(self.bridge.cv2_to_imgmsg(det_annotated, encoding="bgr8"))
-
-                if self.seg_image_pub.get_subscription_count():
-                    seg_result = self.segmentation_model(array)
-                    seg_annotated = seg_result[0].plot(show=False)
-                    self.seg_image_pub.publish(self.bridge.cv2_to_imgmsg(seg_annotated, encoding="bgr8"))
-
-
-        def main(args=None):
-            """Entry point for the ultralytics ROS2 node."""
-            rclpy.init(args=args)
-            node = UltralyticsNode()
-            rclpy.spin(node)
-            node.destroy_node()
-            rclpy.shutdown()
-
-
-        if __name__ == "__main__":
-            main()
-        ```
-
-!!! tip "Debugging"
+???+ tip "Debugging"
 
     Debugging ROS (Robot Operating System) nodes can be challenging due to the system's distributed nature. Several tools can assist with this process:
 
@@ -312,7 +256,7 @@ Standard ROS messages also include `std_msgs/String` messages. In many applicati
 
 #### Example Use Case
 
-Consider a warehouse robot equipped with a camera and object [detection model](../tasks/detect.md). Instead of sending large annotated images over the network, the robot can publish a list of detected classes as `std_msgs/String` messages. For instance, when the robot detects objects like "box", "pallet" and "forklift" it publishes these classes to the `/ultralytics/detection/classes` topic. This information can then be used by a central monitoring system to track the inventory in real-time, optimize the robot's path planning to avoid obstacles, or trigger specific actions such as picking up a detected box. This approach reduces the bandwidth required for communication and focuses on transmitting critical data. To detect warehouse-specific classes like these, train a custom YOLO model — for example with [Ultralytics Platform](https://platform.ultralytics.com) handling dataset management and cloud training — then swap the resulting weights in place of `yolo26m.pt` above.
+Consider a warehouse robot equipped with a camera and object [detection model](../tasks/detect.md). Instead of sending large annotated images over the network, the robot can publish a list of detected classes as `std_msgs/String` messages. For instance, when the robot detects objects like "box", "pallet" and "forklift" it publishes these classes to the `/ultralytics/detection/classes` topic. This information can then be used by a central monitoring system to track the inventory in real-time, optimize the robot's path planning to avoid obstacles, or trigger specific actions such as picking up a detected box. This approach reduces the bandwidth required for communication and focuses on transmitting critical data.
 
 ### String Step-by-Step Usage
 
@@ -337,8 +281,6 @@ classes_pub = rospy.Publisher("/ultralytics/detection/classes", String, queue_si
 def callback(data):
     """Callback function to process image and publish detected classes."""
     array = ros_numpy.numpify(data)
-    if data.encoding == "rgb8":
-        array = array[..., ::-1]  # normalize to bgr8, the channel order YOLO expects
     if classes_pub.get_num_connections():
         det_result = detection_model(array)
         classes = det_result[0].boxes.cls.cpu().numpy().astype(int)
@@ -347,7 +289,8 @@ def callback(data):
 
 
 rospy.Subscriber("/camera/color/image_raw", Image, callback)
-rospy.spin()
+while True:
+    rospy.spin()
 ```
 
 ## Use Ultralytics with ROS Depth Images
@@ -374,273 +317,106 @@ Using YOLO, it is possible to extract and combine information from both RGB and 
 
     When working with depth images, it is essential to ensure that the RGB and depth images are correctly aligned. RGB-D cameras, such as the [Intel RealSense](https://www.realsenseai.com/) series, provide synchronized RGB and depth images, making it easier to combine information from both sources. If using separate RGB and depth cameras, it is crucial to calibrate them to ensure accurate alignment.
 
-    The examples below subscribe to `/camera/aligned_depth_to_color/image_raw`, a depth stream already registered to the color frame (on RealSense, enable it with the `align_depth.enable:=true` launch argument) — not the raw `/camera/depth/image_rect_raw` stream. A raw depth topic can differ from the color image in both resolution and viewpoint, so a mask computed from the color image would index the wrong depth pixels even when the array shapes happen to match.
-
-    In the ROS1 tab below, `rospy.wait_for_message()` also has no timeout by default — if the named topic stops publishing, the callback blocks indefinitely. Pass a `timeout` argument (e.g., `rospy.wait_for_message(topic, Image, timeout=1.0)`) and handle the resulting `rospy.ROSException` to fail fast instead.
-
-    Depth pixel values are only in meters when the topic publishes `32FC1`. A `16UC1` topic (common on RealSense and similar drivers) reports millimeters as integers, with `0` marking invalid pixels instead of `NaN` — the code below converts `16UC1` to meters and remaps `0` to `NaN` before averaging.
-
 #### Depth Step-by-Step Usage
 
 In this example, we use YOLO to segment an image and apply the extracted mask to segment the object in the depth image. This allows us to determine the distance of each pixel of the object of interest from the camera's focal center. By obtaining this distance information, we can calculate the distance between the camera and the specific object in the scene. Begin by importing the necessary libraries, creating a ROS node, and instantiating a segmentation model and a ROS topic.
 
-!!! example "Node setup"
+```python
+import time
 
-    === "ROS1"
+import rospy
+from std_msgs.msg import String
 
-        ```python
-        import time
+from ultralytics import YOLO
 
-        import rospy
-        from std_msgs.msg import String
+rospy.init_node("ultralytics")
+time.sleep(1)
 
-        from ultralytics import YOLO
+segmentation_model = YOLO("yolo26m-seg.pt")
 
-        rospy.init_node("ultralytics")
-        time.sleep(1)
+classes_pub = rospy.Publisher("/ultralytics/detection/distance", String, queue_size=5)
+```
 
-        segmentation_model = YOLO("yolo26m-seg.pt")
+Next, define a callback function that processes the incoming depth image message. The function waits for the depth image and RGB image messages, converts them into NumPy arrays, and applies the segmentation model to the RGB image. It then extracts the segmentation mask for each detected object and calculates the average distance of the object from the camera using the depth image. Most sensors have a maximum distance, known as the clip distance, beyond which values are represented as inf (`np.inf`). Before processing, it is important to filter out these null values and assign them a value of `0`. Finally, it publishes the detected objects along with their average distances to the `/ultralytics/detection/distance` topic.
 
-        classes_pub = rospy.Publisher("/ultralytics/detection/distance", String, queue_size=5)
-        ```
-
-    === "ROS2"
-
-        ```python
-        import cv_bridge
-        from rclpy.node import Node
-        from std_msgs.msg import String
-
-        from ultralytics import YOLO
+```python
+import numpy as np
+import ros_numpy
+from sensor_msgs.msg import Image
 
 
-        class UltralyticsNode(Node):
-            """ROS2 node that pairs depth images with the latest RGB frame to estimate object distance."""
+def callback(data):
+    """Callback function to process depth image and RGB image."""
+    image = rospy.wait_for_message("/camera/color/image_raw", Image)
+    image = ros_numpy.numpify(image)
+    depth = ros_numpy.numpify(data)
+    result = segmentation_model(image)
 
-            def __init__(self):
-                super().__init__("ultralytics")
-                self.bridge = cv_bridge.CvBridge()
-                self.segmentation_model = YOLO("yolo26m-seg.pt")
-                self.latest_image = None
-                self.classes_pub = self.create_publisher(String, "/ultralytics/detection/distance", 5)
-        ```
+    all_objects = []
+    for index, cls in enumerate(result[0].boxes.cls):
+        class_index = int(cls.cpu().numpy())
+        name = result[0].names[class_index]
+        mask = result[0].masks.data.cpu().numpy()[index, :, :].astype(int)
+        obj = depth[mask == 1]
+        obj = obj[~np.isnan(obj)]
+        avg_distance = np.mean(obj) if len(obj) else np.inf
+        all_objects.append(f"{name}: {avg_distance:.2f}m")
 
-Next, define the callbacks that process the incoming RGB and depth messages. Sensors report out-of-range pixels as either `NaN` or `inf` depending on the driver; the code filters both out with `np.isfinite` before averaging, and falls back to `np.inf` — rather than a misleading `0` — if every pixel under the mask turns out to be invalid. Pass `retina_masks=True` to the model so the returned mask matches the color image's full resolution instead of the smaller, letterboxed size used for inference; because the depth topic is aligned to the color frame (see the warning above), this makes the mask line up with `depth` pixel-for-pixel. Without `retina_masks=True`, indexing `depth` with the mask raises a shape mismatch on most camera resolutions.
-
-!!! example "Callbacks"
-
-    === "ROS1"
-
-        The callback waits for the next available RGB image message — `rospy.wait_for_message()` returns whatever frame arrives next on the topic, not one matched to the depth frame's timestamp, so this is an approximate pairing like the ROS2 flow below (for hard timestamp-based synchronization use `message_filters.ApproximateTimeSynchronizer`). It converts both images into NumPy arrays and applies the segmentation model to the RGB image, then extracts the segmentation mask for each detected object and calculates the average distance of the object from the camera using the depth image, finally publishing the detected objects along with their average distances.
-
-        ```python
-        import numpy as np
-        import ros_numpy
-        from sensor_msgs.msg import Image
+    classes_pub.publish(String(data=str(all_objects)))
 
 
-        def callback(data):
-            """Callback function to process depth image and RGB image."""
-            try:
-                image_msg = rospy.wait_for_message("/camera/color/image_raw", Image, timeout=1.0)
-            except rospy.ROSException:
-                return
-            image = ros_numpy.numpify(image_msg)
-            if image_msg.encoding == "rgb8":
-                image = image[..., ::-1]  # normalize to bgr8, the channel order YOLO expects
-            depth = ros_numpy.numpify(data)
-            if data.encoding == "16UC1":  # millimeters with 0 = invalid; convert to meters with NaN = invalid
-                depth = np.where(depth == 0, np.nan, depth.astype(np.float32) / 1000)
-            result = segmentation_model(image, retina_masks=True)
+rospy.Subscriber("/camera/depth/image_raw", Image, callback)
 
-            all_objects = []
-            for index, cls in enumerate(result[0].boxes.cls):
-                class_index = int(cls.cpu().numpy())
-                name = result[0].names[class_index]
-                mask = result[0].masks.data.cpu().numpy()[index, :, :].astype(int)
-                obj = depth[mask == 1]
-                obj = obj[np.isfinite(obj)]
-                avg_distance = np.mean(obj) if len(obj) else np.inf
-                all_objects.append(f"{name}: {avg_distance:.2f}m")
-
-            classes_pub.publish(String(data=str(all_objects)))
-
-
-        rospy.Subscriber("/camera/aligned_depth_to_color/image_raw", Image, callback)
-
-        rospy.spin()
-        ```
-
-    === "ROS2"
-
-        Instead of blocking on a matching RGB message, the ROS2 node subscribes to both topics independently and caches the latest RGB frame; the depth callback reuses whatever frame is most recently available. This is an approximate pairing, adequate for a quickstart — for hard timestamp-based synchronization use [`message_filters.ApproximateTimeSynchronizer`](https://github.com/ros2/message_filters) instead. Add `import numpy as np`, `import rclpy`, `from sensor_msgs.msg import Image`, and `from rclpy.qos import qos_profile_sensor_data` to the imports at the top of the file.
-
-        ```python
-                self.create_subscription(Image, "/camera/color/image_raw", self.image_callback, qos_profile_sensor_data)
-                self.create_subscription(
-                    Image, "/camera/aligned_depth_to_color/image_raw", self.depth_callback, qos_profile_sensor_data
-                )
-
-            def image_callback(self, data):
-                """Cache the latest RGB frame for pairing with the next depth callback."""
-                self.latest_image = self.bridge.imgmsg_to_cv2(data, desired_encoding="bgr8")
-
-            def depth_callback(self, data):
-                """Callback function to process depth image using the latest cached RGB image."""
-                if self.latest_image is None:
-                    return
-                depth = self.bridge.imgmsg_to_cv2(data, desired_encoding="passthrough")
-                if data.encoding == "16UC1":  # millimeters with 0 = invalid; convert to meters with NaN = invalid
-                    depth = np.where(depth == 0, np.nan, depth.astype(np.float32) / 1000)
-                result = self.segmentation_model(self.latest_image, retina_masks=True)
-
-                all_objects = []
-                for index, cls in enumerate(result[0].boxes.cls):
-                    class_index = int(cls.cpu().numpy())
-                    name = result[0].names[class_index]
-                    mask = result[0].masks.data.cpu().numpy()[index, :, :].astype(int)
-                    obj = depth[mask == 1]
-                    obj = obj[np.isfinite(obj)]
-                    avg_distance = np.mean(obj) if len(obj) else np.inf
-                    all_objects.append(f"{name}: {avg_distance:.2f}m")
-
-                self.classes_pub.publish(String(data=str(all_objects)))
-
-
-        def main(args=None):
-            """Entry point for the ultralytics ROS2 node."""
-            rclpy.init(args=args)
-            node = UltralyticsNode()
-            rclpy.spin(node)
-            node.destroy_node()
-            rclpy.shutdown()
-
-
-        if __name__ == "__main__":
-            main()
-        ```
+while True:
+    rospy.spin()
+```
 
 ??? example "Complete code"
 
-    === "ROS1"
+    ```python
+    import time
 
-        ```python
-        import time
+    import numpy as np
+    import ros_numpy
+    import rospy
+    from sensor_msgs.msg import Image
+    from std_msgs.msg import String
 
-        import numpy as np
-        import ros_numpy
-        import rospy
-        from sensor_msgs.msg import Image
-        from std_msgs.msg import String
+    from ultralytics import YOLO
 
-        from ultralytics import YOLO
+    rospy.init_node("ultralytics")
+    time.sleep(1)
 
-        rospy.init_node("ultralytics")
-        time.sleep(1)
+    segmentation_model = YOLO("yolo26m-seg.pt")
 
-        segmentation_model = YOLO("yolo26m-seg.pt")
-
-        classes_pub = rospy.Publisher("/ultralytics/detection/distance", String, queue_size=5)
+    classes_pub = rospy.Publisher("/ultralytics/detection/distance", String, queue_size=5)
 
 
-        def callback(data):
-            """Callback function to process depth image and RGB image."""
-            try:
-                image_msg = rospy.wait_for_message("/camera/color/image_raw", Image, timeout=1.0)
-            except rospy.ROSException:
-                return
-            image = ros_numpy.numpify(image_msg)
-            if image_msg.encoding == "rgb8":
-                image = image[..., ::-1]  # normalize to bgr8, the channel order YOLO expects
-            depth = ros_numpy.numpify(data)
-            if data.encoding == "16UC1":  # millimeters with 0 = invalid; convert to meters with NaN = invalid
-                depth = np.where(depth == 0, np.nan, depth.astype(np.float32) / 1000)
-            result = segmentation_model(image, retina_masks=True)
+    def callback(data):
+        """Callback function to process depth image and RGB image."""
+        image = rospy.wait_for_message("/camera/color/image_raw", Image)
+        image = ros_numpy.numpify(image)
+        depth = ros_numpy.numpify(data)
+        result = segmentation_model(image)
 
-            all_objects = []
-            for index, cls in enumerate(result[0].boxes.cls):
-                class_index = int(cls.cpu().numpy())
-                name = result[0].names[class_index]
-                mask = result[0].masks.data.cpu().numpy()[index, :, :].astype(int)
-                obj = depth[mask == 1]
-                obj = obj[np.isfinite(obj)]
-                avg_distance = np.mean(obj) if len(obj) else np.inf
-                all_objects.append(f"{name}: {avg_distance:.2f}m")
+        all_objects = []
+        for index, cls in enumerate(result[0].boxes.cls):
+            class_index = int(cls.cpu().numpy())
+            name = result[0].names[class_index]
+            mask = result[0].masks.data.cpu().numpy()[index, :, :].astype(int)
+            obj = depth[mask == 1]
+            obj = obj[~np.isnan(obj)]
+            avg_distance = np.mean(obj) if len(obj) else np.inf
+            all_objects.append(f"{name}: {avg_distance:.2f}m")
 
-            classes_pub.publish(String(data=str(all_objects)))
+        classes_pub.publish(String(data=str(all_objects)))
 
 
-        rospy.Subscriber("/camera/aligned_depth_to_color/image_raw", Image, callback)
+    rospy.Subscriber("/camera/depth/image_raw", Image, callback)
 
+    while True:
         rospy.spin()
-        ```
-
-    === "ROS2"
-
-        ```python
-        import cv_bridge
-        import numpy as np
-        import rclpy
-        from rclpy.node import Node
-        from rclpy.qos import qos_profile_sensor_data
-        from sensor_msgs.msg import Image
-        from std_msgs.msg import String
-
-        from ultralytics import YOLO
-
-
-        class UltralyticsNode(Node):
-            """ROS2 node that pairs depth images with the latest RGB frame to estimate object distance."""
-
-            def __init__(self):
-                super().__init__("ultralytics")
-                self.bridge = cv_bridge.CvBridge()
-                self.segmentation_model = YOLO("yolo26m-seg.pt")
-                self.latest_image = None
-                self.classes_pub = self.create_publisher(String, "/ultralytics/detection/distance", 5)
-                self.create_subscription(Image, "/camera/color/image_raw", self.image_callback, qos_profile_sensor_data)
-                self.create_subscription(
-                    Image, "/camera/aligned_depth_to_color/image_raw", self.depth_callback, qos_profile_sensor_data
-                )
-
-            def image_callback(self, data):
-                """Cache the latest RGB frame for pairing with the next depth callback."""
-                self.latest_image = self.bridge.imgmsg_to_cv2(data, desired_encoding="bgr8")
-
-            def depth_callback(self, data):
-                """Callback function to process depth image using the latest cached RGB image."""
-                if self.latest_image is None:
-                    return
-                depth = self.bridge.imgmsg_to_cv2(data, desired_encoding="passthrough")
-                if data.encoding == "16UC1":  # millimeters with 0 = invalid; convert to meters with NaN = invalid
-                    depth = np.where(depth == 0, np.nan, depth.astype(np.float32) / 1000)
-                result = self.segmentation_model(self.latest_image, retina_masks=True)
-
-                all_objects = []
-                for index, cls in enumerate(result[0].boxes.cls):
-                    class_index = int(cls.cpu().numpy())
-                    name = result[0].names[class_index]
-                    mask = result[0].masks.data.cpu().numpy()[index, :, :].astype(int)
-                    obj = depth[mask == 1]
-                    obj = obj[np.isfinite(obj)]
-                    avg_distance = np.mean(obj) if len(obj) else np.inf
-                    all_objects.append(f"{name}: {avg_distance:.2f}m")
-
-                self.classes_pub.publish(String(data=str(all_objects)))
-
-
-        def main(args=None):
-            """Entry point for the ultralytics ROS2 node."""
-            rclpy.init(args=args)
-            node = UltralyticsNode()
-            rclpy.spin(node)
-            node.destroy_node()
-            rclpy.shutdown()
-
-
-        if __name__ == "__main__":
-            main()
-        ```
+    ```
 
 ## Use Ultralytics with ROS `sensor_msgs/PointCloud2`
 
@@ -667,376 +443,150 @@ A point cloud is a collection of data points defined within a three-dimensional 
 
 ### Using YOLO with Point Clouds
 
-To integrate YOLO with `sensor_msgs/PointCloud2` type messages, extract a 2D image from the color information embedded in the point cloud, perform segmentation on this image using YOLO, and then apply the resulting mask to the three-dimensional points to isolate the 3D object of interest. This workflow needs an organized, colorized point cloud — the `height x width` grid with a packed `rgb` field that RGB-D cameras like the Intel RealSense can publish when configured to do so (see the warning below). A raw LIDAR cloud is normally unorganized (`height == 1`) and reports intensity instead of color, so it needs a separate projection and colorization step before it fits this pipeline.
+To integrate YOLO with `sensor_msgs/PointCloud2` type messages, we can employ a method similar to the one used for depth maps. By leveraging the color information embedded in the point cloud, we can extract a 2D image, perform segmentation on this image using YOLO, and then apply the resulting mask to the three-dimensional points to isolate the 3D object of interest.
 
-!!! warning "Organized Point Clouds"
-
-    This workflow needs an organized cloud — a real `height x width` grid — to reshape into the 2D image YOLO segments. The RealSense ROS driver publishes an *unordered* cloud (`height == 1`) by default; launch it with `pointcloud.ordered_pc:=true` to get an organized cloud instead. Feeding an unordered cloud through this pipeline doesn't raise an error: `reshape((height, width, 3))` still succeeds since the point count matches, but it silently produces a `1 x N` image whose masks no longer correspond to real camera pixels.
-
-For handling point clouds, we recommend using Open3D, a user-friendly Python library that provides robust tools for managing point cloud data structures, visualizing them, and executing complex operations seamlessly. This library can significantly simplify the process and enhance our ability to manipulate and analyze point clouds in conjunction with YOLO-based segmentation.
-
-```bash
-pip install open3d
-```
+For handling point clouds, we recommend using Open3D (`pip install open3d`), a user-friendly Python library. Open3D provides robust tools for managing point cloud data structures, visualizing them, and executing complex operations seamlessly. This library can significantly simplify the process and enhance our ability to manipulate and analyze point clouds in conjunction with YOLO-based segmentation.
 
 #### Point Clouds Step-by-Step Usage
 
 Import the necessary libraries and instantiate the YOLO model for segmentation.
 
-!!! example "Node setup"
+```python
+import time
 
-    === "ROS1"
+import rospy
 
-        ```python
-        import time
+from ultralytics import YOLO
 
-        import rospy
+rospy.init_node("ultralytics")
+time.sleep(1)
+segmentation_model = YOLO("yolo26m-seg.pt")
+```
 
-        from ultralytics import YOLO
+Create a function `pointcloud2_to_array`, which transforms a `sensor_msgs/PointCloud2` message into two NumPy arrays. The `sensor_msgs/PointCloud2` messages contain `n` points based on the `width` and `height` of the acquired image. For instance, a `480 x 640` image will have `307,200` points. Each point includes three spatial coordinates (`xyz`) and the corresponding color in `RGB` format. These can be considered as two separate channels of information.
 
-        rospy.init_node("ultralytics")
-        time.sleep(1)
-        segmentation_model = YOLO("yolo26m-seg.pt")
-        ```
+The function returns the `xyz` coordinates and `RGB` values in the format of the original camera resolution (`width x height`). Most sensors have a maximum distance, known as the clip distance, beyond which values are represented as inf (`np.inf`). Before processing, it is important to filter out these null values and assign them a value of `0`.
 
-    === "ROS2"
-
-        This example is a one-shot script that waits for a single point cloud, so the subscriber callback just stores the message on the node for the main function to pick up.
-
-        ```python
-        from rclpy.node import Node
-        from rclpy.qos import qos_profile_sensor_data
-        from sensor_msgs.msg import PointCloud2
-
-        from ultralytics import YOLO
+```python
+import numpy as np
+import ros_numpy
 
 
-        class UltralyticsNode(Node):
-            """ROS2 node that segments a single incoming PointCloud2 message with YOLO."""
+def pointcloud2_to_array(pointcloud2: PointCloud2) -> tuple:
+    """Convert a ROS PointCloud2 message to a numpy array.
 
-            def __init__(self):
-                super().__init__("ultralytics")
-                self.segmentation_model = YOLO("yolo26m-seg.pt")
-                self.cloud = None
-                self.create_subscription(PointCloud2, "/camera/depth/points", self.callback, qos_profile_sensor_data)
+    Args:
+        pointcloud2 (PointCloud2): the PointCloud2 message
 
-            def callback(self, data):
-                """Store the incoming point cloud for the main loop to process."""
-                self.cloud = data
-        ```
+    Returns:
+        (tuple): tuple containing (xyz, rgb)
+    """
+    pc_array = ros_numpy.point_cloud2.pointcloud2_to_array(pointcloud2)
+    split = ros_numpy.point_cloud2.split_rgb_field(pc_array)
+    rgb = np.stack([split["b"], split["g"], split["r"]], axis=2)
+    xyz = ros_numpy.point_cloud2.get_xyz_points(pc_array, remove_nans=False)
+    xyz = np.array(xyz).reshape((pointcloud2.height, pointcloud2.width, 3))
+    nan_rows = np.isnan(xyz).all(axis=2)
+    xyz[nan_rows] = [0, 0, 0]
+    rgb[nan_rows] = [0, 0, 0]
+    return xyz, rgb
+```
 
-Create a function `pointcloud2_to_array`, which transforms a `sensor_msgs/PointCloud2` message into NumPy arrays. The `sensor_msgs/PointCloud2` messages contain `n` points based on the `width` and `height` of the acquired image. For instance, a `480 x 640` image will have `307,200` points. Each point includes three spatial coordinates (`xyz`) and the corresponding color in `RGB` format. These can be considered as two separate channels of information.
+Next, subscribe to the `/camera/depth/points` topic to receive the point cloud message and convert the `sensor_msgs/PointCloud2` message into NumPy arrays containing the XYZ coordinates and RGB values (using the `pointcloud2_to_array` function). Process the RGB image using the YOLO model to extract segmented objects. For each detected object, extract the segmentation mask and apply it to both the RGB image and the XYZ coordinates to isolate the object in 3D space.
 
-The function returns the `xyz` coordinates and `RGB` values in the format of the original camera resolution (`width x height`), plus a `valid` boolean array. Most sensors report out-of-range points as `NaN`; the function zeroes out both the coordinates and color of these invalid points so they don't distort downstream processing, and `valid` records which points were real so they can be excluded even after being zeroed out.
+Processing the mask is straightforward since it consists of binary values, with `1` indicating the presence of the object and `0` indicating the absence. To apply the mask, simply multiply the original channels by the mask. This operation effectively isolates the object of interest within the image. Finally, create an Open3D point cloud object and visualize the segmented object in 3D space with associated colors.
 
-!!! example "Point cloud conversion"
+```python
+import sys
 
-    === "ROS1"
+import open3d as o3d
 
-        ```python
-        import numpy as np
-        import ros_numpy
-        from sensor_msgs.msg import PointCloud2
+ros_cloud = rospy.wait_for_message("/camera/depth/points", PointCloud2)
+xyz, rgb = pointcloud2_to_array(ros_cloud)
+result = segmentation_model(rgb)
 
+if not len(result[0].boxes.cls):
+    print("No objects detected")
+    sys.exit()
 
-        def pointcloud2_to_array(pointcloud2: PointCloud2) -> tuple:
-            """Convert a ROS PointCloud2 message to a numpy array.
+classes = result[0].boxes.cls.cpu().numpy().astype(int)
+for index, class_id in enumerate(classes):
+    mask = result[0].masks.data.cpu().numpy()[index, :, :].astype(int)
+    mask_expanded = np.stack([mask, mask, mask], axis=2)
 
-            Args:
-                pointcloud2 (PointCloud2): the PointCloud2 message
+    obj_rgb = rgb * mask_expanded
+    obj_xyz = xyz * mask_expanded
 
-            Returns:
-                (tuple): tuple containing (xyz, rgb, valid)
-            """
-            pc_array = ros_numpy.point_cloud2.pointcloud2_to_array(pointcloud2)
-            split = ros_numpy.point_cloud2.split_rgb_field(pc_array)
-            rgb = np.stack([split["b"], split["g"], split["r"]], axis=2)
-            xyz = ros_numpy.point_cloud2.get_xyz_points(pc_array, remove_nans=False)
-            xyz = np.array(xyz).reshape((pointcloud2.height, pointcloud2.width, 3))
-            valid = ~np.isnan(xyz).all(axis=2)
-            xyz[~valid] = [0, 0, 0]
-            rgb[~valid] = [0, 0, 0]
-            return xyz, rgb, valid
-        ```
-
-    === "ROS2"
-
-        ROS2 ships `sensor_msgs_py.point_cloud2` as part of the core install, so no third-party point cloud package is required. The packed `rgb` field is a single float32 that encodes three bytes; unpack it by viewing it as `uint32` and bit-shifting.
-
-        ```python
-        import numpy as np
-        from sensor_msgs_py import point_cloud2
-
-
-        def pointcloud2_to_array(pointcloud2: PointCloud2) -> tuple:
-            """Convert a ROS2 PointCloud2 message to a numpy array.
-
-            Args:
-                pointcloud2 (PointCloud2): the PointCloud2 message
-
-            Returns:
-                (tuple): tuple containing (xyz, rgb, valid)
-            """
-            points = point_cloud2.read_points_numpy(pointcloud2, field_names=("x", "y", "z", "rgb"))
-            xyz = points[:, :3].reshape((pointcloud2.height, pointcloud2.width, 3))
-            packed = points[:, 3].copy().view(np.uint32)
-            b, g, r = packed & 0xFF, (packed >> 8) & 0xFF, (packed >> 16) & 0xFF
-            rgb = np.stack([b, g, r], axis=1).reshape((pointcloud2.height, pointcloud2.width, 3)).astype(np.uint8)
-            valid = ~np.isnan(xyz).all(axis=2)
-            xyz[~valid] = [0, 0, 0]
-            rgb[~valid] = [0, 0, 0]
-            return xyz, rgb, valid
-        ```
-
-Next, wait for a point cloud message and convert it into NumPy arrays containing the XYZ coordinates and RGB values (using the `pointcloud2_to_array` function). Process the RGB image using the YOLO model to extract segmented objects, passing `retina_masks=True` so each mask matches the cloud's native resolution rather than the smaller size used for inference. For each detected object, extract the segmentation mask and apply it to both the RGB image and the XYZ coordinates to isolate the object in 3D space.
-
-The mask is a binary array, with `1` indicating the presence of the object and `0` indicating the absence. Combine it with `valid` (`(mask == 1) & valid`) before indexing `xyz` and `rgb`, since a segmentation mask can cover pixels with no valid depth — those were zeroed out by `pointcloud2_to_array`, and without excluding them via `valid` they'd still show up as points at `(0, 0, 0)`. Multiplying by the mask instead of boolean-indexing would make this worse, putting every background point at that same coordinate and rendering a dense artificial cluster at the origin rather than an isolated object. Finally, create an Open3D point cloud object and visualize the segmented object in 3D space with associated colors — `pointcloud2_to_array` packs `rgb` in the BGR channel order YOLO expects, so reverse the channel axis when assigning `pcd.colors`, since Open3D expects colors in RGB order.
-
-!!! example "Segment and visualize"
-
-    === "ROS1"
-
-        ```python
-        import sys
-
-        import open3d as o3d
-
-        ros_cloud = rospy.wait_for_message("/camera/depth/points", PointCloud2)
-        xyz, rgb, valid = pointcloud2_to_array(ros_cloud)
-        result = segmentation_model(rgb, retina_masks=True)
-
-        if not len(result[0].boxes.cls):
-            print("No objects detected")
-            sys.exit()
-
-        classes = result[0].boxes.cls.cpu().numpy().astype(int)
-        for index, class_id in enumerate(classes):
-            mask = result[0].masks.data.cpu().numpy()[index, :, :].astype(int)
-            keep = (mask == 1) & valid
-
-            pcd = o3d.geometry.PointCloud()
-            pcd.points = o3d.utility.Vector3dVector(xyz[keep])
-            pcd.colors = o3d.utility.Vector3dVector(rgb[keep][:, ::-1] / 255)
-            o3d.visualization.draw_geometries([pcd])
-        ```
-
-    === "ROS2"
-
-        The node spins with `rclpy.spin_once` until the subscriber callback stores a message, then the rest of the pipeline is identical to ROS1. Add `import rclpy` to the imports at the top of the file.
-
-        ```python
-        import sys
-
-        import open3d as o3d
-
-
-        def main(args=None):
-            """Entry point for the ultralytics ROS2 node."""
-            rclpy.init(args=args)
-            node = UltralyticsNode()
-            while node.cloud is None:
-                rclpy.spin_once(node)
-            ros_cloud = node.cloud
-
-            xyz, rgb, valid = pointcloud2_to_array(ros_cloud)
-            result = node.segmentation_model(rgb, retina_masks=True)
-
-            if not len(result[0].boxes.cls):
-                print("No objects detected")
-                node.destroy_node()
-                rclpy.shutdown()
-                sys.exit()
-
-            classes = result[0].boxes.cls.cpu().numpy().astype(int)
-            for index, class_id in enumerate(classes):
-                mask = result[0].masks.data.cpu().numpy()[index, :, :].astype(int)
-                keep = (mask == 1) & valid
-
-                pcd = o3d.geometry.PointCloud()
-                pcd.points = o3d.utility.Vector3dVector(xyz[keep])
-                pcd.colors = o3d.utility.Vector3dVector(rgb[keep][:, ::-1] / 255)
-                o3d.visualization.draw_geometries([pcd])
-
-            node.destroy_node()
-            rclpy.shutdown()
-
-
-        if __name__ == "__main__":
-            main()
-        ```
+    pcd = o3d.geometry.PointCloud()
+    pcd.points = o3d.utility.Vector3dVector(obj_xyz.reshape((ros_cloud.height * ros_cloud.width, 3)))
+    pcd.colors = o3d.utility.Vector3dVector(obj_rgb.reshape((ros_cloud.height * ros_cloud.width, 3)) / 255)
+    o3d.visualization.draw_geometries([pcd])
+```
 
 ??? example "Complete code"
 
-    === "ROS1"
+    ```python
+    import sys
+    import time
 
-        ```python
-        import sys
-        import time
+    import numpy as np
+    import open3d as o3d
+    import ros_numpy
+    import rospy
+    from sensor_msgs.msg import PointCloud2
 
-        import numpy as np
-        import open3d as o3d
-        import ros_numpy
-        import rospy
-        from sensor_msgs.msg import PointCloud2
+    from ultralytics import YOLO
 
-        from ultralytics import YOLO
-
-        rospy.init_node("ultralytics")
-        time.sleep(1)
-        segmentation_model = YOLO("yolo26m-seg.pt")
+    rospy.init_node("ultralytics")
+    time.sleep(1)
+    segmentation_model = YOLO("yolo26m-seg.pt")
 
 
-        def pointcloud2_to_array(pointcloud2: PointCloud2) -> tuple:
-            """Convert a ROS PointCloud2 message to a numpy array.
+    def pointcloud2_to_array(pointcloud2: PointCloud2) -> tuple:
+        """Convert a ROS PointCloud2 message to a numpy array.
 
-            Args:
-                pointcloud2 (PointCloud2): the PointCloud2 message
+        Args:
+            pointcloud2 (PointCloud2): the PointCloud2 message
 
-            Returns:
-                (tuple): tuple containing (xyz, rgb, valid)
-            """
-            pc_array = ros_numpy.point_cloud2.pointcloud2_to_array(pointcloud2)
-            split = ros_numpy.point_cloud2.split_rgb_field(pc_array)
-            rgb = np.stack([split["b"], split["g"], split["r"]], axis=2)
-            xyz = ros_numpy.point_cloud2.get_xyz_points(pc_array, remove_nans=False)
-            xyz = np.array(xyz).reshape((pointcloud2.height, pointcloud2.width, 3))
-            valid = ~np.isnan(xyz).all(axis=2)
-            xyz[~valid] = [0, 0, 0]
-            rgb[~valid] = [0, 0, 0]
-            return xyz, rgb, valid
-
-
-        ros_cloud = rospy.wait_for_message("/camera/depth/points", PointCloud2)
-        xyz, rgb, valid = pointcloud2_to_array(ros_cloud)
-        result = segmentation_model(rgb, retina_masks=True)
-
-        if not len(result[0].boxes.cls):
-            print("No objects detected")
-            sys.exit()
-
-        classes = result[0].boxes.cls.cpu().numpy().astype(int)
-        for index, class_id in enumerate(classes):
-            mask = result[0].masks.data.cpu().numpy()[index, :, :].astype(int)
-            keep = (mask == 1) & valid
-
-            pcd = o3d.geometry.PointCloud()
-            pcd.points = o3d.utility.Vector3dVector(xyz[keep])
-            pcd.colors = o3d.utility.Vector3dVector(rgb[keep][:, ::-1] / 255)
-            o3d.visualization.draw_geometries([pcd])
-        ```
-
-    === "ROS2"
-
-        ```python
-        import sys
-
-        import numpy as np
-        import open3d as o3d
-        import rclpy
-        from rclpy.node import Node
-        from rclpy.qos import qos_profile_sensor_data
-        from sensor_msgs.msg import PointCloud2
-        from sensor_msgs_py import point_cloud2
-
-        from ultralytics import YOLO
+        Returns:
+            (tuple): tuple containing (xyz, rgb)
+        """
+        pc_array = ros_numpy.point_cloud2.pointcloud2_to_array(pointcloud2)
+        split = ros_numpy.point_cloud2.split_rgb_field(pc_array)
+        rgb = np.stack([split["b"], split["g"], split["r"]], axis=2)
+        xyz = ros_numpy.point_cloud2.get_xyz_points(pc_array, remove_nans=False)
+        xyz = np.array(xyz).reshape((pointcloud2.height, pointcloud2.width, 3))
+        nan_rows = np.isnan(xyz).all(axis=2)
+        xyz[nan_rows] = [0, 0, 0]
+        rgb[nan_rows] = [0, 0, 0]
+        return xyz, rgb
 
 
-        class UltralyticsNode(Node):
-            """ROS2 node that segments a single incoming PointCloud2 message with YOLO."""
+    ros_cloud = rospy.wait_for_message("/camera/depth/points", PointCloud2)
+    xyz, rgb = pointcloud2_to_array(ros_cloud)
+    result = segmentation_model(rgb)
 
-            def __init__(self):
-                super().__init__("ultralytics")
-                self.segmentation_model = YOLO("yolo26m-seg.pt")
-                self.cloud = None
-                self.create_subscription(PointCloud2, "/camera/depth/points", self.callback, qos_profile_sensor_data)
+    if not len(result[0].boxes.cls):
+        print("No objects detected")
+        sys.exit()
 
-            def callback(self, data):
-                """Store the incoming point cloud for the main loop to process."""
-                self.cloud = data
+    classes = result[0].boxes.cls.cpu().numpy().astype(int)
+    for index, class_id in enumerate(classes):
+        mask = result[0].masks.data.cpu().numpy()[index, :, :].astype(int)
+        mask_expanded = np.stack([mask, mask, mask], axis=2)
 
+        obj_rgb = rgb * mask_expanded
+        obj_xyz = xyz * mask_expanded
 
-        def pointcloud2_to_array(pointcloud2: PointCloud2) -> tuple:
-            """Convert a ROS2 PointCloud2 message to a numpy array.
-
-            Args:
-                pointcloud2 (PointCloud2): the PointCloud2 message
-
-            Returns:
-                (tuple): tuple containing (xyz, rgb, valid)
-            """
-            points = point_cloud2.read_points_numpy(pointcloud2, field_names=("x", "y", "z", "rgb"))
-            xyz = points[:, :3].reshape((pointcloud2.height, pointcloud2.width, 3))
-            packed = points[:, 3].copy().view(np.uint32)
-            b, g, r = packed & 0xFF, (packed >> 8) & 0xFF, (packed >> 16) & 0xFF
-            rgb = np.stack([b, g, r], axis=1).reshape((pointcloud2.height, pointcloud2.width, 3)).astype(np.uint8)
-            valid = ~np.isnan(xyz).all(axis=2)
-            xyz[~valid] = [0, 0, 0]
-            rgb[~valid] = [0, 0, 0]
-            return xyz, rgb, valid
-
-
-        def main(args=None):
-            """Entry point for the ultralytics ROS2 node."""
-            rclpy.init(args=args)
-            node = UltralyticsNode()
-            while node.cloud is None:
-                rclpy.spin_once(node)
-            ros_cloud = node.cloud
-
-            xyz, rgb, valid = pointcloud2_to_array(ros_cloud)
-            result = node.segmentation_model(rgb, retina_masks=True)
-
-            if not len(result[0].boxes.cls):
-                print("No objects detected")
-                node.destroy_node()
-                rclpy.shutdown()
-                sys.exit()
-
-            classes = result[0].boxes.cls.cpu().numpy().astype(int)
-            for index, class_id in enumerate(classes):
-                mask = result[0].masks.data.cpu().numpy()[index, :, :].astype(int)
-                keep = (mask == 1) & valid
-
-                pcd = o3d.geometry.PointCloud()
-                pcd.points = o3d.utility.Vector3dVector(xyz[keep])
-                pcd.colors = o3d.utility.Vector3dVector(rgb[keep][:, ::-1] / 255)
-                o3d.visualization.draw_geometries([pcd])
-
-            node.destroy_node()
-            rclpy.shutdown()
-
-
-        if __name__ == "__main__":
-            main()
-        ```
+        pcd = o3d.geometry.PointCloud()
+        pcd.points = o3d.utility.Vector3dVector(obj_xyz.reshape((ros_cloud.height * ros_cloud.width, 3)))
+        pcd.colors = o3d.utility.Vector3dVector(obj_rgb.reshape((ros_cloud.height * ros_cloud.width, 3)) / 255)
+        o3d.visualization.draw_geometries([pcd])
+    ```
 
 <p align="center">
   <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/point-cloud-segmentation-ultralytics.avif" alt="Point Cloud Segmentation with Ultralytics ">
 </p>
-
-## Background: About ROS
-
-The [Robot Operating System (ROS)](https://www.ros.org/) is an open-source framework widely used in robotics research and industry. ROS provides a collection of [libraries and tools](https://www.ros.org/blog/ecosystem/) to help developers create robot applications, and is designed to work with various [robotic platforms](https://robots.ros.org/).
-
-| Feature                      | Description                                                                                                                                                                                                                                                                                                       |
-| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Modular Architecture**     | Complex systems are built by combining smaller, reusable components called [nodes](https://wiki.ros.org/ROS/Tutorials/UnderstandingNodes), which communicate over [topics](https://wiki.ros.org/ROS/Tutorials/UnderstandingTopics) or [services](https://wiki.ros.org/ROS/Tutorials/UnderstandingServicesParams). |
-| **Communication Middleware** | A publish-subscribe model handles data streams (topics) and a request-reply model handles service calls, supporting inter-process communication and distributed computing.                                                                                                                                        |
-| **Hardware Abstraction**     | A layer of abstraction over the hardware lets the same code run across different hardware setups.                                                                                                                                                                                                                 |
-| **Tools and Utilities**      | RViz visualizes sensor data and robot state; Gazebo provides a simulation environment for testing algorithms and robot designs.                                                                                                                                                                                   |
-| **Extensive Ecosystem**      | Community-maintained packages cover navigation, manipulation, perception, and more.                                                                                                                                                                                                                               |
-
-Since its development in 2007, ROS has evolved through [multiple versions](https://wiki.ros.org/Distributions), split into two main series: ROS 1 and ROS 2. This guide covers both — the ROS1 tabs target the Long Term Support release ROS Noetic Ninjemys (the code should also work with earlier ROS 1 versions), and the ROS2 tabs target current LTS releases such as Humble and Jazzy.
-
-| Aspect                     | ROS 1                                       | ROS 2                                                              |
-| -------------------------- | ------------------------------------------- | ------------------------------------------------------------------ |
-| **Real-time Performance**  | Limited support                             | Improved support for real-time systems and deterministic behavior  |
-| **Security**               | Minimal built-in security                   | Enhanced security features for safe, reliable operation            |
-| **Scalability**            | Single ROS Master limits multi-robot setups | Better support for multi-robot systems and large-scale deployments |
-| **Cross-platform Support** | Primarily Linux                             | Expanded support for Linux, Windows, and macOS                     |
-| **Communication**          | Custom TCPROS/UDPROS middleware             | DDS for more flexible and efficient inter-process communication    |
-
-Communication between nodes is built on [messages](https://wiki.ros.org/Messages) and [topics](https://wiki.ros.org/Topics): a message defines the data exchanged between nodes, and a topic is the named channel over which messages are published and subscribed, enabling asynchronous, decoupled communication. Each sensor or actuator in a robotic system typically publishes to a topic that other nodes consume for processing or control. This guide focuses on Image, Depth, and PointCloud2 messages carried over camera topics.
 
 ## Conclusion
 
@@ -1044,17 +594,16 @@ With Ultralytics YOLO integrated into ROS, your robot can run [object detection]
 
 ## FAQ
 
-### Should I use ROS 1 or ROS 2 with Ultralytics YOLO?
+### What is the Robot Operating System (ROS)?
 
-Use whichever your robot or simulation environment already runs — every code example in this guide ships a ROS1 (`rospy`, tested on Noetic) tab and a ROS2 (`rclpy`, targeting current LTS releases like Humble and Jazzy) tab. If you have a free choice, prefer ROS2: it is the actively developed line, with better real-time performance, security, and multi-robot support (see the [ROS 1 vs. ROS 2 comparison](#background-about-ros)).
+The [Robot Operating System (ROS)](https://www.ros.org/) is an open-source framework commonly used in robotics to help developers create robust robot applications. It provides a collection of [libraries and tools](https://www.ros.org/blog/ecosystem/) for building and interfacing with robotic systems, enabling easier development of complex applications. ROS supports communication between nodes using messages over [topics](https://wiki.ros.org/ROS/Tutorials/UnderstandingTopics) or [services](https://wiki.ros.org/ROS/Tutorials/UnderstandingServicesParams).
 
 ### How do I integrate Ultralytics YOLO with ROS for real-time object detection?
 
-Integrating Ultralytics YOLO with ROS involves setting up a ROS environment and using YOLO for processing sensor data. Begin by installing the required dependencies — `ros_numpy` through the ROS package manager, and Ultralytics YOLO through pip:
+Integrating Ultralytics YOLO with ROS involves setting up a ROS environment and using YOLO for processing sensor data. Begin by installing the required dependencies like `ros_numpy` and Ultralytics YOLO:
 
 ```bash
-sudo apt install ros-$ROS_DISTRO-ros-numpy
-pip install ultralytics
+pip install ros_numpy ultralytics
 ```
 
 Next, create a ROS node and subscribe to an image topic to process the incoming data for [object detection](../tasks/detect.md). Here is a minimal example:
@@ -1073,11 +622,9 @@ det_image_pub = rospy.Publisher("/ultralytics/detection/image", Image, queue_siz
 
 def callback(data):
     array = ros_numpy.numpify(data)
-    if data.encoding == "rgb8":
-        array = array[..., ::-1]  # normalize to bgr8, the channel order YOLO expects
     det_result = detection_model(array)
     det_annotated = det_result[0].plot(show=False)
-    det_image_pub.publish(ros_numpy.msgify(Image, det_annotated, encoding="bgr8"))
+    det_image_pub.publish(ros_numpy.msgify(Image, det_annotated, encoding="rgb8"))
 
 
 rospy.Subscriber("/camera/color/image_raw", Image, callback)
@@ -1100,6 +647,60 @@ Depth images in ROS, represented by `sensor_msgs/Image`, provide the distance of
 
 With YOLO, you can extract [segmentation masks](https://www.ultralytics.com/glossary/image-segmentation) from RGB images and apply these masks to depth images to obtain precise 3D object information, improving the robot's ability to navigate and interact with its surroundings.
 
-### What hardware do I need to run Ultralytics YOLO with ROS?
+### How can I visualize 3D point clouds with YOLO in ROS?
 
-Any machine capable of running [Ultralytics YOLO inference](../modes/predict.md) works — a GPU speeds up inference but isn't required for smaller models like `yolo26n.pt`. On the ROS side, you need any RGB camera for [image detection](#use-ultralytics-with-ros-sensor_msgsimage), a depth-capable sensor such as an [Intel RealSense](https://www.realsenseai.com/) for [depth workflows](#use-ultralytics-with-ros-depth-images), or an RGB-D camera publishing an organized, colorized `sensor_msgs/PointCloud2` for [point cloud workflows](#use-ultralytics-with-ros-sensor_msgspointcloud2) — a raw LIDAR cloud lacks the `rgb` field and organized grid this workflow assumes. This guide was tested on the [Husarion ROSbot 2 PRO](https://husarion.com/manuals/rosbot/), but the code works with any ROS Noetic- or ROS2-compatible robot or simulation.
+To visualize 3D point clouds in ROS with YOLO:
+
+1. Convert `sensor_msgs/PointCloud2` messages to NumPy arrays.
+2. Use YOLO to segment RGB images.
+3. Apply the segmentation mask to the point cloud.
+
+Here's an example using [Open3D](https://www.open3d.org/) for visualization:
+
+```python
+import sys
+
+import numpy as np
+import open3d as o3d
+import ros_numpy
+import rospy
+from sensor_msgs.msg import PointCloud2
+
+from ultralytics import YOLO
+
+rospy.init_node("ultralytics")
+segmentation_model = YOLO("yolo26m-seg.pt")
+
+
+def pointcloud2_to_array(pointcloud2):
+    pc_array = ros_numpy.point_cloud2.pointcloud2_to_array(pointcloud2)
+    split = ros_numpy.point_cloud2.split_rgb_field(pc_array)
+    rgb = np.stack([split["b"], split["g"], split["r"]], axis=2)
+    xyz = ros_numpy.point_cloud2.get_xyz_points(pc_array, remove_nans=False)
+    xyz = np.array(xyz).reshape((pointcloud2.height, pointcloud2.width, 3))
+    return xyz, rgb
+
+
+ros_cloud = rospy.wait_for_message("/camera/depth/points", PointCloud2)
+xyz, rgb = pointcloud2_to_array(ros_cloud)
+result = segmentation_model(rgb)
+
+if not len(result[0].boxes.cls):
+    print("No objects detected")
+    sys.exit()
+
+classes = result[0].boxes.cls.cpu().numpy().astype(int)
+for index, class_id in enumerate(classes):
+    mask = result[0].masks.data.cpu().numpy()[index, :, :].astype(int)
+    mask_expanded = np.stack([mask, mask, mask], axis=2)
+
+    obj_rgb = rgb * mask_expanded
+    obj_xyz = xyz * mask_expanded
+
+    pcd = o3d.geometry.PointCloud()
+    pcd.points = o3d.utility.Vector3dVector(obj_xyz.reshape((-1, 3)))
+    pcd.colors = o3d.utility.Vector3dVector(obj_rgb.reshape((-1, 3)) / 255)
+    o3d.visualization.draw_geometries([pcd])
+```
+
+This approach provides a 3D visualization of segmented objects, useful for tasks like navigation and manipulation in [robotics applications](steps-of-a-cv-project.md).

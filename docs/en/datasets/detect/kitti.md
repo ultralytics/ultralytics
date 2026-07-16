@@ -5,7 +5,7 @@ creator:
     name: KITTI
     url: https://www.cvlibs.net/datasets/kitti/
 license:
-    name: Other
+    name: CC-BY-NC-SA-3.0
     url: https://creativecommons.org/licenses/by-nc-sa/3.0/
 description: Ultralytics KITTI is a 2D object detection dataset for autonomous driving with 7,481 annotated images across 8 classes like car, pedestrian, and cyclist.
 keywords: KITTI dataset, autonomous driving, 2D object detection, self-driving cars, YOLO26, computer vision, vehicle detection, pedestrian detection

@@ -6,7 +6,7 @@ creator:
     url: https://www.ultralytics.com/
 license:
     name: AGPL-3.0
-    url: https://github.com/ultralytics/ultralytics/blob/main/LICENSE
+    url: https://www.ultralytics.com/license
 description: The Medical Pills dataset provides 115 labeled images across one class (pill) for training Ultralytics YOLO object detection models in pharmaceutical automation.
 keywords: Medical Pills dataset, pill detection, pharmaceutical imaging, AI in healthcare, computer vision, object detection, YOLO26, medical automation
 ---

@@ -5,7 +5,7 @@ creator:
     name: Google
     url: https://storage.googleapis.com/openimages/web/index.html
 license:
-    name: Other
+    name: CC-BY-4.0
     url: https://storage.googleapis.com/openimages/web/factsfigures_v7.html#licenses
 description: Open Images V7 is a Google object detection dataset with 1,743,042 training and 41,620 validation images across 601 classes. Train Ultralytics YOLO on it.
 keywords: Open Images V7, Google dataset, object detection, 601 classes, YOLOv8 oiv7, pretrained models, computer vision, image segmentation, visual relationships, Ultralytics

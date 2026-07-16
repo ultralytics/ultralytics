@@ -1,6 +1,6 @@
-from __future__ import annotations
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-import math
+from __future__ import annotations
 
 import torch
 import torch.nn.functional as F

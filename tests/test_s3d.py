@@ -1,5 +1,4 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-
 """Tests for Stereo 3D Detection (s3d) task."""
 
 import numpy as np
@@ -85,6 +84,7 @@ def test_head_localization_branches_unconditional():
 def test_proj_center_loss_present():
     """The proj_center smooth-L1 term is always computed when proj_offset targets/preds are present."""
     import torch
+
     from ultralytics import YOLO
     from ultralytics.models.yolo.s3d.loss import Stereo3DDetLoss
 
@@ -100,9 +100,11 @@ def test_proj_center_loss_present():
 
 
 def test_lr_nll_attenuates_with_uncertainty():
-    """Laplacian NLL: for a fixed residual, a larger predicted log-variance lowers the loss
-    (attenuation), but the log-variance penalty prevents collapse — loss is convex in logvar."""
+    """Laplacian NLL: for a fixed residual, a larger predicted log-variance lowers the loss (attenuation), but the
+    log-variance penalty prevents collapse — loss is convex in logvar.
+    """
     import torch
+
     from ultralytics.models.yolo.s3d.loss import laplacian_nll
 
     pred = torch.tensor([1.0])
@@ -116,11 +118,13 @@ def test_lr_nll_attenuates_with_uncertainty():
 
 
 def test_lr_nll_loss_wired():
-    """Integration test: when lr_logvar is present, _compute_aux_losses routes lr_distance through
-    the Laplacian-NLL gather-wiring in _lr_nll_loss (the promoted, always-on path), not smooth-L1."""
+    """Integration test: when lr_logvar is present, _compute_aux_losses routes lr_distance through the Laplacian-NLL
+    gather-wiring in _lr_nll_loss (the promoted, always-on path), not smooth-L1.
+    """
     import math
 
     import torch
+
     from ultralytics import YOLO
     from ultralytics.models.yolo.s3d.loss import Stereo3DDetLoss
 
@@ -189,10 +193,9 @@ def test_3d_iou():
 def test_3d_iou_rotated_45deg():
     """Two identical square-footprint boxes offset by 45 deg of yaw.
 
-    True 3D IoU of a unit square and the same square rotated 45 deg (shared
-    center/dims) is exactly 1/sqrt(2) ~= 0.7071. The old axis-aligned-bbox
-    approximation returns ~1.0 here because the 45 deg box's AABB fully contains
-    the other box, so this case discriminates true rotated IoU from the AABB hack.
+    True 3D IoU of a unit square and the same square rotated 45 deg (shared center/dims) is exactly 1/sqrt(2) ~= 0.7071.
+    The old axis-aligned-bbox approximation returns ~1.0 here because the 45 deg box's AABB fully contains the other
+    box, so this case discriminates true rotated IoU from the AABB hack.
     """
     a = Box3D(
         center_3d=(0.0, 0.0, 10.0),
@@ -216,11 +219,9 @@ def test_3d_iou_rotated_45deg():
 def test_3d_iou_rotated_no_overlap():
     """Two 45 deg boxes whose AABBs overlap but whose true rotated footprints do not.
 
-    Both boxes are unit-ish square footprints rotated 45 deg (diamonds), offset
-    diagonally by (2, 2) in the x-z plane. The diamonds are disjoint (L1 center
-    distance 4 > 2*sqrt(2)), so true 3D IoU is 0. But their axis-aligned bounding
-    boxes (side 2*sqrt(2)) still overlap, so the old AABB approximation reports a
-    spurious positive IoU.
+    Both boxes are unit-ish square footprints rotated 45 deg (diamonds), offset diagonally by (2, 2) in the x-z plane.
+    The diamonds are disjoint (L1 center distance 4 > 2*sqrt(2)), so true 3D IoU is 0. But their axis-aligned bounding
+    boxes (side 2*sqrt(2)) still overlap, so the old AABB approximation reports a spurious positive IoU.
     """
     a = Box3D(
         center_3d=(0.0, 0.0, 10.0),
@@ -244,10 +245,9 @@ def test_3d_iou_rotated_no_overlap():
 def test_3d_iou_rotated_90deg():
     """Two identical (L=4, W=2) boxes offset by 90 deg of yaw, shared center/dims.
 
-    The rot-0 footprint is 2x4 and the rot-90 footprint is 4x2; their BEV
-    intersection is the 2x2 square, giving true 3D IoU = 4 / (16 - 4) = 1/3.
-    The old AABB approximation returns 1.0 here (the 90 deg box's AABB grows),
-    so this is a clean analytic regression guard.
+    The rot-0 footprint is 2x4 and the rot-90 footprint is 4x2; their BEV intersection is the 2x2 square, giving true 3D
+    IoU = 4 / (16 - 4) = 1/3. The old AABB approximation returns 1.0 here (the 90 deg box's AABB grows), so this is a
+    clean analytic regression guard.
     """
     a = Box3D(
         center_3d=(0.0, 0.0, 20.0),
@@ -315,7 +315,7 @@ def test_bev_iou_ignores_height():
 
 
 def _single_image_stat(gt_ori, pred_ori):
-    """Build a one-image, one-Car stat: a perfectly localised pred at given headings."""
+    """Build a one-image, one-Car stat: a perfectly localized pred at given headings."""
     gt = Box3D(
         center_3d=(0.0, 0.0, 10.0),
         dimensions=(4.0, 1.6, 1.5),
@@ -337,8 +337,8 @@ def _single_image_stat(gt_ori, pred_ori):
     return {
         "gt_boxes": [gt],
         "pred_boxes": [pred],
-        "iou_matrix": np.array([[1.0]]),  # perfect 3D localisation (given)
-        "bev_iou_matrix": np.array([[1.0]]),  # perfect BEV localisation (given)
+        "iou_matrix": np.array([[1.0]]),  # perfect 3D localization (given)
+        "bev_iou_matrix": np.array([[1.0]]),  # perfect BEV localization (given)
         "gt_difficulties": np.array([0]),  # Easy
         "pred_heights_2d": np.array([50.0]),  # above 25px min
     }
@@ -356,7 +356,7 @@ def test_metrics_aos_independent_of_ap():
     assert abs(m.apbev[0.7][0][0] - 1.0) < 1e-6
     assert abs(m.aos[0.7][0][0] - 1.0) < 1e-6
 
-    # Flipped heading (pi): still a localisation TP (AP3D=1.0) but AOS collapses to 0.
+    # Flipped heading (pi): still a localization TP (AP3D=1.0) but AOS collapses to 0.
     m2 = Stereo3DDetMetrics(names={0: "Car"})
     m2.update_stats(_single_image_stat(gt_ori=0.0, pred_ori=np.pi))
     m2.process()
@@ -371,14 +371,13 @@ def test_metrics_aos_independent_of_ap():
 
 
 def test_dimension_target_decode_roundtrip():
-    """Dimension encode->decode round-trip must recover GT dims (regression for the
-    string-vs-int keyed mean/std bug that inflated 3D box dimensions / length).
+    """Dimension encode->decode round-trip must recover GT dims (regression for the string-vs-int keyed mean/std bug
+    that inflated 3D box dimensions / length).
 
-    The dataset encodes the SmoothL1 dimension target with compute_dimension_offset(),
-    looking up per-class mean/std priors by INTEGER class_id. The dataset YAML keys those
-    priors by class NAME ("Car"). If the dataset does not rekey name->int, every lookup
-    misses and falls back to a generic mean/std, so the trained target is huge and the
-    decoder (which uses correct int-keyed (H,W,L) priors) mis-expands dimensions.
+    The dataset encodes the SmoothL1 dimension target with compute_dimension_offset(), looking up per-class mean/std
+    priors by INTEGER class_id. The dataset YAML keys those priors by class NAME ("Car"). If the dataset does not rekey
+    name->int, every lookup misses and falls back to a generic mean/std, so the trained target is huge and the decoder
+    (which uses correct int-keyed (H,W,L) priors) mis-expands dimensions.
     """
     from ultralytics.models.yolo.s3d.dataset import Stereo3DDetDataset, compute_dimension_offset
 
@@ -418,9 +417,9 @@ def test_dimension_target_decode_roundtrip():
 def test_orientation_multibin_roundtrip():
     """MultiBin encode->decode must recover the observation angle across the full circle.
 
-    This is the guard against the encode/decode mismatch class of bug (cf. the
-    dimension-prior bug). The decoder argmaxes the (one-hot) confidence and adds the
-    residual to the chosen bin center; it must invert the encoder exactly.
+    This is the guard against the encode/decode mismatch class of bug (cf. the dimension-prior bug). The decoder
+    argmaxes the (one-hot) confidence and adds the residual to the chosen bin center; it must invert the encoder
+    exactly.
     """
     import numpy as np
 
@@ -438,8 +437,8 @@ def test_orientation_multibin_roundtrip():
 def test_orientation_multibin_resolves_180():
     """Headings ~180 deg apart land in different bins, so a confident bin disambiguates them.
 
-    A single sin/cos regressor that smears toward 0 cannot distinguish front/back;
-    MultiBin assigns alpha and alpha+pi to different argmax bins.
+    A single sin/cos regressor that smears toward 0 cannot distinguish front/back; MultiBin assigns alpha and alpha+pi
+    to different argmax bins.
     """
     from ultralytics.models.yolo.s3d.orientation import NUM_ORIENT_BINS, encode_orientation
 
@@ -453,16 +452,15 @@ def test_orientation_multibin_resolves_180():
 def test_depth_decode_imgsz_invariant():
     """Stereo disparity->depth decode must recover true metric Z independent of imgsz.
 
-    The dataset encodes the lr_distance target as log(disparity) in letterbox-NORMALIZED
-    coordinates (dataset.py: "Normalized xywh (letterboxed input space)", disparity_norm =
-    cx - right_cx). decode_stereo3d_outputs must invert that back to the same metric Z whether
-    the letterbox is aspect-preserving (384x1248 on KITTI 375x1242, scale~=1) or square
-    (640x640 / 384x384, scale<1). This is the regression guard for the bug where the decode
-    scaled focal length by 1/letterbox_scale, yielding z_from_disp = Z_true / scale — correct
-    only at scale~=1 and silently inflating stereo depth ~1.4-3.2x under a square imgsz.
+    The dataset encodes the lr_distance target as log(disparity) in letterbox-NORMALIZED coordinates (dataset.py:
+    "Normalized xywh (letterboxed input space)", disparity_norm = cx - right_cx). decode_stereo3d_outputs must invert
+    that back to the same metric Z whether the letterbox is aspect-preserving (384x1248 on KITTI 375x1242, scale~=1) or
+    square (640x640 / 384x384, scale<1). This is the regression guard for the bug where the decode scaled focal length
+    by 1/letterbox_scale, yielding z_from_disp = Z_true / scale — correct only at scale~=1 and silently inflating stereo
+    depth ~1.4-3.2x under a square imgsz.
 
-    The direct-depth head (log(z_3d) target) is imgsz-invariant by construction and serves as
-    the control: it must round-trip at every imgsz.
+    The direct-depth head (log(z_3d) target) is imgsz-invariant by construction and serves as the control: it must
+    round-trip at every imgsz.
     """
     import math
 
@@ -510,12 +508,12 @@ def test_depth_decode_imgsz_invariant():
 def test_decode_letterbox_calib_imgsz_invariant():
     """Decode must be imgsz-invariant when fed LETTERBOX-space calib (the real val/predict path).
 
-    Regression guard for the square-imgsz bug: the batch supplies calib in letterbox-input space
-    (fx,cx scaled by letterbox_scale, principal point shifted by padding). decode_stereo3d_outputs is
-    called with calib_letterboxed=True (as decode_and_refine_predictions does) and must reverse it to
-    original coords, so BOTH the stereo depth (uses fx) and the 2D-center back-projection (uses cx,cy)
-    recover the true metric X and Z at any imgsz. The pre-fix decode used letterbox fx/cx directly →
-    z halved and x/y garbage under a square imgsz (scale~=0.5) while dormant at rect (scale~=1).
+    Regression guard for the square-imgsz bug: the batch supplies calib in letterbox-input space (fx,cx scaled by
+    letterbox_scale, principal point shifted by padding). decode_stereo3d_outputs is called with calib_letterboxed=True
+    (as decode_and_refine_predictions does) and must reverse it to original coords, so BOTH the stereo depth (uses fx)
+    and the 2D-center back-projection (uses cx,cy) recover the true metric X and Z at any imgsz. The pre-fix decode used
+    letterbox fx/cx directly → z halved and x/y garbage under a square imgsz (scale~=0.5) while dormant at rect
+    (scale~=1).
     """
     import math
 
@@ -530,7 +528,7 @@ def test_decode_letterbox_calib_imgsz_invariant():
 
     def decode_xz(z_true, u_orig_true, imgsz):
         """Encode a car at (u_orig_true, z_true) with LETTERBOX-space calib; return decoded (x, z)."""
-        input_h, input_w = imgsz
+        _input_h, input_w = imgsz
         scale, pad_left, pad_top = compute_letterbox_params(ori_hw[0], ori_hw[1], imgsz)
         # Calib as the batch provides it: letterbox-input space.
         calib_lb = {
@@ -590,7 +588,7 @@ def test_decode_uses_proj_offset():
     imgsz = (384, 1248)
     nc = 3
     input_h, input_w = imgsz
-    scale, pad_left, _ = compute_letterbox_params(*ori_hw, imgsz)
+    scale, _pad_left, _ = compute_letterbox_params(*ori_hw, imgsz)
     z = 20.0
     du = 0.01
 
@@ -694,9 +692,10 @@ def test_score_weight_demotes_uncertain():
 
 
 def test_ivw_fusion_uses_dfl_variance():
-    """With depth_bins present, ivw_fusion must weight the direct cue by its DFL spread (not the
-    constant 1.0 fallback), pulling the fused z away from the plain geomean when the DFL
-    distribution is narrow (low variance) while the stereo cue is highly uncertain."""
+    """With depth_bins present, ivw_fusion must weight the direct cue by its DFL spread (not the constant 1.0 fallback),
+    pulling the fused z away from the plain geomean when the DFL distribution is narrow (low variance) while the
+    stereo cue is highly uncertain.
+    """
     import math
 
     import torch
@@ -777,8 +776,9 @@ def test_decode_no_overflow_with_large_lr_logvar():
 
 
 def test_proj_offset_roundtrip():
-    """Projected-centroid offset must invert: encode (centroid->projected px->offset) then
-    decode (box_center+offset -> back-project at true z) recovers the centroid X/Y."""
+    """Projected-centroid offset must invert: encode (centroid->projected px->offset) then decode (box_center+offset ->
+    back-project at true z) recovers the centroid X/Y.
+    """
     from ultralytics.models.yolo.s3d.dataset import encode_proj_offset
 
     fx = fy = 721.5377
@@ -838,8 +838,9 @@ def test_calib_dual_format(tmp_path, content):
 
 
 def test_predict_resolves_dataset_calib(tmp_path):
-    """Predictor must find + parse per-image calib in the dataset `calib/<split>/` layout,
-    not silently fall back to default calibration."""
+    """Predictor must find + parse per-image calib in the dataset `calib/<split>/` layout, not silently fall back to
+    default calibration.
+    """
     import cv2
 
     root = tmp_path / "ds"
@@ -859,3 +860,4 @@ def test_predict_resolves_dataset_calib(tmp_path):
     assert calib is not None, "predictor did not attach calibration"
     # Real baseline is 0.532725; the default fallback is 0.54 — must be the real one.
     assert abs(calib["baseline"] - 0.532725) < 1e-3, f"got baseline {calib['baseline']} (default fallback?)"
+

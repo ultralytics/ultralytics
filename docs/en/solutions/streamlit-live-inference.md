@@ -155,7 +155,7 @@ Real-time object detection using Streamlit and Ultralytics YOLO26 can be applied
 - **Retail**: Customer counting, shelf management, and [inventory tracking](https://www.ultralytics.com/blog/from-shelves-to-sales-exploring-yolov8s-impact-on-inventory-management).
 - **Wildlife and Agriculture**: Monitoring animals and crop conditions for [conservation efforts](https://www.ultralytics.com/blog/ai-in-wildlife-conservation).
 
-For more in-depth use cases and examples, explore [Ultralytics Solutions](../solutions/index.md).
+For more in-depth use cases and examples, explore [Ultralytics Solutions](index.md).
 
 ### How does Ultralytics YOLO26 compare to other object detection models like YOLOv5 and RCNNs?
 

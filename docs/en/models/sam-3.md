@@ -84,7 +84,7 @@ SAM 3 consists of a **detector** and **tracker** that share a Perception Encoder
 1. **Decoupled Recognition and Localization**: The presence head predicts concept presence globally, while proposal queries focus only on localization, avoiding conflicting objectives.
 2. **Unified Concept and Visual Prompts**: Supports both PCS (concept prompts) and PVS (visual prompts like SAM 2's clicks/boxes) in a single model.
 3. **Interactive Exemplar Refinement**: Users can add positive or negative image exemplars to iteratively refine results, with the model generalizing to similar objects rather than just correcting individual instances.
-4. **Temporal Disambiguation**: Uses masklet detection scores and periodic re-prompting to handle occlusions, crowded scenes, and tracking failures in video, aligning with [instance segmentation and tracking](../guides/instance-segmentation-and-tracking.md) best practices.
+4. **Temporal Disambiguation**: Uses masklet detection scores and periodic re-prompting to handle occlusions, crowded scenes, and tracking failures in video, aligning with [instance segmentation and tracking](../solutions/instance-segmentation-and-tracking.md) best practices.
 
 ## SA-Co Dataset
 
@@ -394,7 +394,7 @@ SAM 3's concept-based prompting with exemplars converges much faster than visual
 
 ### Object Counting Accuracy
 
-SAM 3 provides accurate counting by segmenting all instances, a common requirement in [object counting](../guides/object-counting.md):
+SAM 3 provides accurate counting by segmenting all instances, a common requirement in [object counting](../solutions/object-counting.md):
 
 | Benchmark       | Accuracy  | MAE  | vs Best MLLM       |
 | --------------- | --------- | ---- | ------------------ |

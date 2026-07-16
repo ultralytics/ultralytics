@@ -187,7 +187,7 @@ Intersection over Union (IoU) measures the overlap between the predicted and gro
 
 ### Why is the F1 Score important for evaluating YOLO26 models in object detection?
 
-The F1 Score is important for evaluating YOLO26 models because it provides a harmonic mean of precision and recall, balancing both false positives and false negatives. It is particularly valuable when dealing with imbalanced datasets or applications where either precision or recall alone is insufficient. A high F1 Score indicates that the model effectively detects objects while minimizing both missed detections and false alarms, making it suitable for critical applications like [security systems](security-alarm-system.md) and [medical imaging](https://www.ultralytics.com/solutions/computer-vision-in-healthcare).
+The F1 Score is important for evaluating YOLO26 models because it provides a harmonic mean of precision and recall, balancing both false positives and false negatives. It is particularly valuable when dealing with imbalanced datasets or applications where either precision or recall alone is insufficient. A high F1 Score indicates that the model effectively detects objects while minimizing both missed detections and false alarms, making it suitable for critical applications like [security systems](../solutions/security-alarm-system.md) and [medical imaging](https://www.ultralytics.com/solutions/computer-vision-in-healthcare).
 
 ### What are the key advantages of using Ultralytics YOLO26 for real-time object detection?
 
@@ -198,7 +198,7 @@ Ultralytics YOLO26 offers multiple advantages for real-time object detection:
 - **Flexibility**: Supports various tasks including [object detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), and [classification](../tasks/classify.md).
 - **Ease of Use**: User-friendly interfaces, extensive documentation, and seamless integration with tools like Ultralytics Platform ([Platform Quickstart](../platform/quickstart.md)).
 
-This makes YOLO26 ideal for diverse applications from autonomous vehicles to [smart city solutions](queue-management.md).
+This makes YOLO26 ideal for diverse applications from autonomous vehicles to [smart city solutions](../solutions/queue-management.md).
 
 ### How can validation metrics from YOLO26 help improve model performance?
 

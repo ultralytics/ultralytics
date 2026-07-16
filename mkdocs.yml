@@ -501,23 +501,23 @@ nav:
           - datasets/track/index.md
   - Solutions:
       - Solutions: solutions/index.md
-      - Analytics: guides/analytics.md
-      - Distance Calculation: guides/distance-calculation.md
-      - Heatmaps: guides/heatmaps.md
-      - Instance Segmentation Tracking: guides/instance-segmentation-and-tracking.md
-      - Live Inference: guides/streamlit-live-inference.md
-      - Object Blurring: guides/object-blurring.md
-      - Object Counting: guides/object-counting.md
-      - Object Counting in Regions: guides/region-counting.md
-      - Object Cropping: guides/object-cropping.md
-      - Parking Management: guides/parking-management.md
-      - Queue Management: guides/queue-management.md
-      - Security Alarm System: guides/security-alarm-system.md
-      - Similarity Search: guides/similarity-search.md
-      - Speed Estimation: guides/speed-estimation.md
-      - Track Objects in Zone: guides/trackzone.md
-      - VisionEye View Objects Mapping: guides/vision-eye.md
-      - Workouts Monitoring: guides/workouts-monitoring.md
+      - Analytics: solutions/analytics.md
+      - Distance Calculation: solutions/distance-calculation.md
+      - Heatmaps: solutions/heatmaps.md
+      - Instance Segmentation Tracking: solutions/instance-segmentation-and-tracking.md
+      - Live Inference: solutions/streamlit-live-inference.md
+      - Object Blurring: solutions/object-blurring.md
+      - Object Counting: solutions/object-counting.md
+      - Object Counting in Regions: solutions/region-counting.md
+      - Object Cropping: solutions/object-cropping.md
+      - Parking Management: solutions/parking-management.md
+      - Queue Management: solutions/queue-management.md
+      - Security Alarm System: solutions/security-alarm-system.md
+      - Similarity Search: solutions/similarity-search.md
+      - Speed Estimation: solutions/speed-estimation.md
+      - Track Objects in Zone: solutions/trackzone.md
+      - VisionEye View Objects Mapping: solutions/vision-eye.md
+      - Workouts Monitoring: solutions/workouts-monitoring.md
   - Guides:
       - Guides: guides/index.md
       - AzureML Quickstart: guides/azureml-quickstart.md

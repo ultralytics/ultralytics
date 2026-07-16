@@ -92,7 +92,7 @@ Below is an example from the Crack Segmentation Dataset with its [instance segme
 
 ![Crack segmentation dataset sample for infrastructure inspection](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/crack-segmentation-sample.avif)
 
-The dataset spans varied locations, surfaces, and lighting conditions, so models trained on it see the range of real-world scenes they need to generalize across. [Data augmentation](https://www.ultralytics.com/glossary/data-augmentation) can broaden that variety further — see our [instance segmentation and tracking guide](../../guides/instance-segmentation-and-tracking.md) for related workflows.
+The dataset spans varied locations, surfaces, and lighting conditions, so models trained on it see the range of real-world scenes they need to generalize across. [Data augmentation](https://www.ultralytics.com/glossary/data-augmentation) can broaden that variety further — see our [instance segmentation and tracking guide](../../solutions/instance-segmentation-and-tracking.md) for related workflows.
 
 ## Citations and Acknowledgments
 

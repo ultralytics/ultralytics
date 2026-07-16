@@ -223,7 +223,7 @@ Ultralytics YOLO26 provides several advantages over other object detection model
 
 1. **Speed and Efficiency:** YOLO26 offers real-time processing capabilities, making it ideal for applications requiring high-speed inference, such as surveillance and [autonomous driving](https://www.ultralytics.com/blog/ai-in-self-driving-cars).
 2. **[Accuracy](https://www.ultralytics.com/glossary/accuracy):** It provides state-of-the-art accuracy for object detection and tracking tasks, reducing the number of false positives and improving overall system reliability.
-3. **Ease of Integration:** YOLO26 offers seamless integration with various platforms and devices, including mobile and [edge devices](nvidia-jetson.md), which is crucial for modern AI applications.
+3. **Ease of Integration:** YOLO26 offers seamless integration with various platforms and devices, including mobile and [edge devices](../guides/nvidia-jetson.md), which is crucial for modern AI applications.
 4. **Flexibility:** Supports various tasks like object detection, [segmentation](../tasks/segment.md), and tracking with configurable models to meet specific use-case requirements.
 
 Check out Ultralytics [YOLO26 Documentation](../models/yolo26.md) for a deeper dive into its features and performance comparisons.
@@ -237,4 +237,4 @@ Yes, Ultralytics YOLO26 is perfectly suited for advanced applications like crowd
 - **Retail Analytics:** Analyze customer movement patterns and product interactions to optimize store layouts and improve customer experience.
 - **Industrial Automation:** Count products on conveyor belts and monitor production lines for quality control and efficiency improvements.
 
-For more specialized applications, explore [Ultralytics Solutions](../solutions/index.md) for a comprehensive set of tools designed for real-world computer vision challenges.
+For more specialized applications, explore [Ultralytics Solutions](index.md) for a comprehensive set of tools designed for real-world computer vision challenges.

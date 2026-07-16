@@ -1009,23 +1009,54 @@ class AnomalyValidator:
     # ── Full sweep across categories ────────────────────────────────────
     def run(self, ad: "AnomalyBase", categories: list[str], out_csv: Path) -> list[dict]:
         """Validate every category, aggregate an AVERAGE row, write the CSV, print a summary."""
+        caches = [predict_category(ad, cat) for cat in categories]
+        return self.run_from_caches(caches, out_csv)
+
+    def run_from_caches(self, caches: list[dict], out_csv: Path) -> list[dict]:
+        """Validate from pre-computed prediction caches (no bank rebuild)."""
+        eval_size = self.eval_size
         rows: list[dict] = []
-        for cat in categories:
+        for cache in caches:
+            cat = cache["category"]
             print(f"\n{'=' * 60}\n[{cat}] starting\n{'=' * 60}", flush=True)
-            try:
-                row = self.val_category(cat, ad)
-            except Exception as e:
-                print(f"[{cat}] FAILED: {e!r}", flush=True)
-                row = {"category": cat, **{k: float("nan") for k in self.METRIC_KEYS},
-                       "n_support": 0, "n_test": 0, "n_anom_with_gt": 0, "build_s": 0.0, "val_s": 0.0}
+            test_imgs = cache["test_imgs"]
+            test_good_set = cache["test_good_set"]
+            heatmaps = cache["heatmaps"]
+            image_scores = cache["image_scores"]
+
+            img_s = image_scores
+            img_y = [0 if im in test_good_set else 1 for im in test_imgs]
+            pro_maps, pro_gts = [], []
+
+            for im, hm in zip(test_imgs, heatmaps):
+                if im in test_good_set:
+                    continue
+                if hm.shape[:2] != (eval_size, eval_size):
+                    import cv2
+                    hm = cv2.resize(hm, (eval_size, eval_size))
+                gt = self._gt_mask_from_polygons(im, eval_size)
+                if gt is not None:
+                    pro_maps.append(hm)
+                    pro_gts.append(gt)
+
+            metrics = self._compute_metrics(img_s, img_y, pro_maps, pro_gts)
+            row = {
+                "category": cat,
+                **metrics,
+                "n_support": cache["n_support"],
+                "n_test": len(test_imgs),
+                "n_anom_with_gt": len(pro_maps),
+                "build_s": cache["build_s"],
+                "val_s": 0.0,
+            }
             rows.append(row)
             print(f"[{cat}] img AUROC={row['image_auroc']:.4f} AP={row['image_ap']:.4f} "
                   f"F1={row['image_f1max']:.4f}@{row['image_f1max_thresh']:.4f} | "
                   f"pix AUROC={row['pixel_auroc']:.4f} AP={row['pixel_ap']:.4f} "
-                  f"F1={row['pixel_f1max']:.4f}@{row['pixel_f1max_thresh']:.4f} AUPRO={row['pixel_aupro']:.4f} "
-                  f"| build={row['build_s']:.1f}s val={row['val_s']:.1f}s "
+                  f"F1={row['pixel_f1max']:.4f}@{row['pixel_f1max_thresh']:.4f} AUPRO={row['pixel_aupro']:.4f}  "
                   f"(test={row['n_test']}, anom_w_gt={row['n_anom_with_gt']})", flush=True)
 
+        # Average
         def _avg(key: str) -> float:
             vals = [r[key] for r in rows if isinstance(r[key], float) and r[key] == r[key]]
             return statistics.fmean(vals) if vals else float("nan")
@@ -1036,8 +1067,8 @@ class AnomalyValidator:
             "n_support": sum(r["n_support"] for r in rows),
             "n_test": sum(r["n_test"] for r in rows),
             "n_anom_with_gt": sum(r["n_anom_with_gt"] for r in rows),
-            "build_s": round(sum(r["build_s"] for r in rows), 1),
-            "val_s": round(sum(r["val_s"] for r in rows), 1),
+            "build_s": sum(r["build_s"] for r in rows),
+            "val_s": 0.0,
         }
 
         fields = ["category", *self.METRIC_KEYS, "build_s", "val_s", "n_support", "n_test", "n_anom_with_gt"]
@@ -1047,7 +1078,7 @@ class AnomalyValidator:
             for r in rows + [avg_row]:
                 w.writerow({k: (f"{r[k]:.4f}" if isinstance(r[k], float) else r[k]) for k in fields})
         print(f"\nSaved {len(rows) + 1} rows ({len(rows)} categories + 1 AVERAGE) → {out_csv}")
-        print("\n=== summary (i=image p=pixel · AUROC/AP/F1max@thresh, pixel adds AUPRO) ===")
+        print("\n=== summary ===")
         for r in rows + [avg_row]:
             print(f"  {r['category']:>12s}  "
                   f"i:{r['image_auroc']:.4f}/{r['image_ap']:.4f}/{r['image_f1max']:.4f}@{r['image_f1max_thresh']:.4f}  "
@@ -1521,23 +1552,46 @@ class AnomalyBboxValidator:
     def run_sweep(self, ad: "AnomalyBase", categories: list[str],
                   min_scores: list[float], out_csv: Path) -> list[dict]:
         """Sweep min_score per category — one bank build, N COCO evals per category."""
-        all_rows: list[dict] = []
-        for cat in categories:
-            print(f"\n{'=' * 60}\n[{cat}] starting sweep ({len(min_scores)} steps)\n{'=' * 60}", flush=True)
-            try:
-                cat_rows = self.val_category_sweep(cat, ad, min_scores)
-            except Exception as e:
-                print(f"[{cat}] FAILED: {e!r}", flush=True)
-                cat_rows = [{
-                    "category": cat, "min_score": round(ms, 4),
-                    "map50": float("nan"), "map": float("nan"),
-                    "n_images": 0, "n_defect": 0, "n_good": 0, "n_gt": 0,
-                    "n_pred": 0, "n_pred_defect": 0, "n_pred_good": 0,
-                    "n_img_preds_defect": 0, "n_img_preds_good": 0,
-                } for ms in min_scores]
-            all_rows.extend(cat_rows)
+        caches = [predict_category(ad, cat) for cat in categories]
+        return self.run_sweep_from_caches(caches, min_scores, out_csv)
 
-        # ── Per-ms AVERAGE across categories ────────────────────────
+    def run_sweep_from_caches(self, caches: list[dict],
+                              min_scores: list[float], out_csv: Path) -> list[dict]:
+        """Sweep min_score from pre-computed caches (no bank rebuild)."""
+        all_rows: list[dict] = []
+        for cache in caches:
+            cat = cache["category"]
+            test_imgs = cache["test_imgs"]
+            test_good_set = cache["test_good_set"]
+            image_entries = cache["image_entries"]
+            heatmaps = cache["heatmaps"]
+            image_ids = list(range(len(test_imgs)))
+
+            n_anom_w_gt = sum(1 for e in image_entries if e["annotations"])
+            print(f"\n{'=' * 60}\n[{cat}] starting sweep ({len(min_scores)} steps)\n{'=' * 60}", flush=True)
+            print(f"[{cat}] (test={len(test_imgs)}, anom_w_gt={n_anom_w_gt})", flush=True)
+
+            save_dir = self.save_dir / cat
+            save_dir.mkdir(parents=True, exist_ok=True)
+            gt_json = self._build_gt_coco(image_entries)
+            with open(str(save_dir / "gt.json"), "w") as f:
+                json.dump(gt_json, f, indent=2)
+
+            for ms in min_scores:
+                row = self._eval_at_score(cat, test_imgs, test_good_set, image_entries,
+                                          heatmaps, image_ids, ms, save_dir)
+                row["min_score"] = round(ms, 4)
+                all_rows.append(row)
+                print(f"  min_score={ms:.3f}  mAP50={row['map50']:.4f}  mAP={row['map']:.4f}  "
+                      f"preds={row['n_pred']} (def={row['n_pred_defect']} good={row['n_pred_good']})  "
+                      f"imgs_w_preds=D{row['n_img_preds_defect']}/{row['n_defect']} G{row['n_img_preds_good']}/{row['n_good']}  "
+                      f"gt={row['n_gt']}", flush=True)
+
+            aDev = cache["aDev"]
+            nDev = cache["nDev"]
+            print(f"[{cat}] aDev={aDev:.4f}  nDev={nDev:.4f}", flush=True)
+
+        # ── Per-ms AVERAGE ──────────────────────────────────────
         avg_rows: list[dict] = []
         for ms in min_scores:
             ms_rows = [r for r in all_rows
@@ -1551,7 +1605,7 @@ class AnomalyBboxValidator:
                 avg[k] = sum(r.get(k, 0) for r in ms_rows)
             avg_rows.append(avg)
 
-        # ── Sweep CSV ────────────────────────────────────────────
+        # ── Sweep CSV ──────────────────────────────────────────
         sweep_fields = ["category", "min_score", "map50", "map",
                          "n_images", "n_defect", "n_good", "n_gt",
                          "n_pred", "n_pred_defect", "n_pred_good",
@@ -1564,7 +1618,7 @@ class AnomalyBboxValidator:
                             for k in sweep_fields})
         print(f"\nSaved min_score sweep → {out_csv}")
 
-        # ── Console summary ─────────────────────────────────────
+        # ── Console summary ───────────────────────────────────
         print(f"\n=== min_score sweep ===")
         header = (f"  {'min_score':>10s}  {'mAP50':>8s}  {'mAP':>8s}  "
                   f"{'preds':>5s}  {'def':>4s}  {'good':>4s}  "
@@ -1576,7 +1630,6 @@ class AnomalyBboxValidator:
                   f"D{r['n_img_preds_defect']}/{r['n_defect']} G{r['n_img_preds_good']}/{r['n_good']}  "
                   f"{r['n_defect']:5d}  {r['n_good']:5d}  {r['n_gt']:5d}")
 
-        # ── Best-per-metric summary ─────────────────────────────
         best_map50 = max(avg_rows, key=lambda r: r["map50"] if r["map50"] == r["map50"] else -1)
         best_map = max(avg_rows, key=lambda r: r["map"] if r["map"] == r["map"] else -1)
         print(f"\n  Best mAP50: {best_map50['map50']:.4f} @ min_score={best_map50['min_score']:.4f}")
@@ -1588,20 +1641,40 @@ class AnomalyBboxValidator:
 
     def run(self, ad: "AnomalyBase", categories: list[str], out_csv: Path) -> list[dict]:
         """Validate every category, write CSV, print summary."""
+        caches = [predict_category(ad, cat) for cat in categories]
+        return self.run_from_caches(caches, out_csv)
+
+    def run_from_caches(self, caches: list[dict], out_csv: Path) -> list[dict]:
+        """Validate from pre-computed caches (no bank rebuild)."""
         rows: list[dict] = []
-        for cat in categories:
+        for cache in caches:
+            cat = cache["category"]
             print(f"\n{'=' * 60}\n[{cat}] starting\n{'=' * 60}", flush=True)
-            try:
-                cat_row = self.val_category(cat, ad)
-            except Exception as e:
-                print(f"[{cat}] FAILED: {e!r}", flush=True)
-                cat_row = {
-                    "category": cat,
-                    "map50": float("nan"), "map": float("nan"),
-                    "anomaly_deviation": float("nan"), "normal_deviation": float("nan"),
-                    "n_pred": 0, "n_gt": 0,
-                }
-            rows.append(cat_row)
+            test_imgs = cache["test_imgs"]
+            test_good_set = cache["test_good_set"]
+            image_entries = cache["image_entries"]
+            heatmaps = cache["heatmaps"]
+            image_ids = list(range(len(test_imgs)))
+            aDev = cache["aDev"]
+            nDev = cache["nDev"]
+
+            save_dir = self.save_dir / cat
+            save_dir.mkdir(parents=True, exist_ok=True)
+            gt_json = self._build_gt_coco(image_entries)
+            with open(str(save_dir / "gt.json"), "w") as f:
+                json.dump(gt_json, f, indent=2)
+
+            row = self._eval_at_score(cat, test_imgs, test_good_set, image_entries,
+                                      heatmaps, image_ids, self.min_score, save_dir)
+            row["anomaly_deviation"] = round(aDev, 4) if aDev == aDev else float("nan")
+            row["normal_deviation"] = round(nDev, 4) if nDev == nDev else float("nan")
+            rows.append(row)
+
+            n_anom_w_gt = sum(1 for e in image_entries if e["annotations"])
+            print(f"[{cat}] mAP50={row['map50']:.4f}  mAP={row['map']:.4f}  "
+                  f"(test={len(test_imgs)}, anom_w_gt={n_anom_w_gt}  "
+                  f"preds={row['n_pred']})", flush=True)
+            print(f"[{cat}] aDev={aDev:.4f}  nDev={nDev:.4f}", flush=True)
 
         avg = {"category": "AVERAGE"}
         for k in ["map50", "map", "anomaly_deviation", "normal_deviation"]:
@@ -1610,7 +1683,6 @@ class AnomalyBboxValidator:
         avg["n_pred"] = sum(r["n_pred"] for r in rows)
         avg["n_gt"] = sum(r["n_gt"] for r in rows)
 
-        # ── mAP CSV ──────────────────────────────────────────
         map_fields = ["category", "map50", "map", "n_pred", "n_gt"]
         with open(out_csv, "w", newline="") as f:
             w = csv.DictWriter(f, fieldnames=map_fields)
@@ -1620,7 +1692,6 @@ class AnomalyBboxValidator:
                             for k in map_fields})
         print(f"\nSaved bbox mAP → {out_csv}")
 
-        # ── Calibration CSV ──────────────────────────────────
         cal_csv = out_csv.parent / f"calibration_{out_csv.stem}.csv"
         cal_fields = ["category", "anomaly_deviation", "normal_deviation"]
         with open(cal_csv, "w", newline="") as f:
@@ -1634,14 +1705,12 @@ class AnomalyBboxValidator:
                 })
         print(f"Saved calibration → {cal_csv}")
 
-        # ── Console: mAP table ──────────────────────────────
         print(f"\n=== bbox mAP ===")
         for r in rows:
             print(f"  {r['category']:>12s}  mAP50={r['map50']:.4f}  mAP={r['map']:.4f}  preds={r['n_pred']}")
         print(f"  {'AVERAGE':>12s}  mAP50={avg['map50']:.4f}  mAP={avg['map']:.4f}  preds={avg['n_pred']}")
 
-        # ── Console: calibration table ──────────────────────
-        print(f"\n=== calibration (per-image, lower is better) ===")
+        print(f"\n=== calibration ===")
         print(f"  {'category':>12s}  {'aDev':>8s}  {'nDev':>8s}")
         for r in rows:
             aDev = r.get("anomaly_deviation", float("nan"))
@@ -1649,6 +1718,234 @@ class AnomalyBboxValidator:
             print(f"  {r['category']:>12s}  {aDev:8.4f}  {nDev:8.4f}")
         print(f"  {'AVERAGE':>12s}  {avg['anomaly_deviation']:8.4f}  {avg['normal_deviation']:8.4f}")
         return rows
+
+
+# ---------------------------------------------------------------------------
+# Standalone deviation validator — aDev / nDev + region mean scores
+# ---------------------------------------------------------------------------
+
+
+class DeviationValidator:
+    """Per-image deviation evaluator: anomaly / normal region deviations and mean scores.
+
+    Computes aDev (1 − heatmap over anomaly regions), nDev (heatmap
+    over normal regions), anom_mean (mean heatmap over anomaly regions),
+    norm_mean (mean heatmap over normal regions) on anomaly images that
+    have GT masks.  Lower aDev/nDev is better; anom_mean should be ~1,
+    norm_mean should be ~0.
+    """
+
+    def __init__(self, save_dir: Path | str | None = None):
+        self.save_dir = Path(save_dir) if save_dir is not None else None
+
+    @staticmethod
+    def _label_path(im_file: str) -> Path | None:
+        p = Path(im_file)
+        parts = p.parts
+        if "images" in parts:
+            idx = parts.index("images")
+            mirrored = Path(*parts[:idx], "labels", *parts[idx + 1:]).with_suffix(".txt")
+            if mirrored.exists():
+                return mirrored
+        sibling = p.with_suffix(".txt")
+        return sibling if sibling.exists() else None
+
+    @staticmethod
+    def _gt_mask_at_resolution(im_file: str, ori_h: int, ori_w: int) -> "np.ndarray | None":
+        import cv2
+        label_path = DeviationValidator._label_path(im_file)
+        if label_path is None:
+            return None
+        try:
+            text = label_path.read_text().strip()
+        except OSError:
+            return None
+        if not text:
+            return None
+        mask = np.zeros((ori_h, ori_w), dtype=np.uint8)
+        any_drawn = False
+        for line in text.splitlines():
+            tokens = line.strip().split()
+            if len(tokens) < 7 or (len(tokens) - 1) % 2 != 0:
+                continue
+            try:
+                coords = np.array(tokens[1:], dtype=np.float32)
+            except ValueError:
+                continue
+            pts = (coords.reshape(-1, 2) * [ori_w, ori_h]).astype(np.int32)
+            cv2.fillPoly(mask, [pts], 1)
+            any_drawn = True
+        return mask if any_drawn else None
+
+    def val_category(self, category: str, ad: "AnomalyBase") -> dict:
+        """Build bank, score all test images, compute per-image aDev/nDev."""
+        cache = predict_category(ad, category)
+        return self._eval_cached(cache)
+
+    def _eval_cached(self, cache: dict) -> dict:
+        cat = cache["category"]
+        test_imgs = cache["test_imgs"]
+        test_good_set = cache["test_good_set"]
+        image_scores = cache["image_scores"]
+
+        n_defect = sum(1 for im in test_imgs if im not in test_good_set)
+        n_good = len(test_imgs) - n_defect
+        n_defect_with_gt = sum(1 for e in cache["image_entries"] if e["annotations"])
+
+        def _v(k):
+            v = cache[k]
+            return v if v == v else float("nan")
+
+        row = {
+            "category": cat,
+            "aDev": round(_v("aDev"), 4),
+            "nDev": round(_v("nDev"), 4),
+            "anom_mean": round(_v("anom_mean"), 4),
+            "norm_mean": round(_v("norm_mean"), 4),
+            "score_mean": round(statistics.fmean(image_scores) if image_scores else float("nan"), 4),
+            "n_defect": n_defect,
+            "n_defect_with_gt": n_defect_with_gt,
+            "n_good": n_good,
+            "n_support": cache["n_support"],
+            "build_s": cache["build_s"],
+            "val_s": 0.0,
+        }
+
+        print(f"[{cat}] aDev={row['aDev']:.4f}  nDev={row['nDev']:.4f}  "
+              f"anom_mean={row['anom_mean']:.4f}  norm_mean={row['norm_mean']:.4f}  "
+              f"score_mean={row['score_mean']:.4f}  "
+              f"defect={n_defect}(gt={n_defect_with_gt})  good={n_good}", flush=True)
+        return row
+
+    def run(self, ad: "AnomalyBase", categories: list[str], out_csv: Path) -> list[dict]:
+        """Validate every category, write CSV, print summary."""
+        caches = [predict_category(ad, cat) for cat in categories]
+        return self.run_from_caches(caches, out_csv)
+
+    def run_from_caches(self, caches: list[dict], out_csv: Path) -> list[dict]:
+        rows: list[dict] = []
+        for cache in caches:
+            print(f"\n{'=' * 60}\n[{cache['category']}] starting deviation\n{'=' * 60}", flush=True)
+            row = self._eval_cached(cache)
+            rows.append(row)
+
+        avg = {"category": "AVERAGE"}
+        for k in ["aDev", "nDev", "anom_mean", "norm_mean", "score_mean"]:
+            vals = [r[k] for r in rows if isinstance(r.get(k), float) and r[k] == r[k]]
+            avg[k] = round(statistics.fmean(vals), 4) if vals else float("nan")
+        for k in ["n_defect", "n_defect_with_gt", "n_good", "n_support"]:
+            avg[k] = sum(r[k] for r in rows)
+        avg["build_s"] = sum(r["build_s"] for r in rows)
+        avg["val_s"] = 0.0
+
+        fields = ["category", "aDev", "nDev", "anom_mean", "norm_mean", "score_mean",
+                  "n_defect", "n_defect_with_gt", "n_good", "n_support", "build_s", "val_s"]
+        with open(out_csv, "w", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=fields)
+            w.writeheader()
+            for r in rows + [avg]:
+                w.writerow({k: (f"{r[k]:.4f}" if isinstance(r.get(k), float) and r[k] == r[k] else r[k])
+                            for k in fields})
+        print(f"\nSaved deviation → {out_csv}")
+
+        print(f"\n=== deviation ===")
+        print(f"  {'category':>12s}  {'aDev':>8s}  {'nDev':>8s}  {'anom_m':>8s}  {'norm_m':>8s}  "
+              f"{'score_m':>8s}  {'defect':>6s}  {'gt':>6s}  {'good':>6s}")
+        for r in rows:
+            print(f"  {r['category']:>12s}  {r['aDev']:8.4f}  {r['nDev']:8.4f}  "
+                  f"{r['anom_mean']:8.4f}  {r['norm_mean']:8.4f}  "
+                  f"{r['score_mean']:8.4f}  {r['n_defect']:6d}  {r['n_defect_with_gt']:6d}  {r['n_good']:6d}")
+        print(f"  {'AVERAGE':>12s}  {avg['aDev']:8.4f}  {avg['nDev']:8.4f}  "
+              f"{avg['anom_mean']:8.4f}  {avg['norm_mean']:8.4f}  "
+              f"{avg['score_mean']:8.4f}  {avg['n_defect']:6d}  {avg['n_defect_with_gt']:6d}  {avg['n_good']:6d}")
+        return rows
+
+
+# ---------------------------------------------------------------------------
+# Shared prediction — build bank + predict once, reuse across validators
+# ---------------------------------------------------------------------------
+
+
+@torch.inference_mode()
+def predict_category(ad: "AnomalyBase", category: str) -> dict:
+    """Build bank + predict all test images for one category.
+
+    Returns a cache dict with heatmaps at original resolution and all
+    metadata needed by downstream validators (AUROC, bbox, deviation).
+    """
+    if torch.backends.mps.is_available():
+        torch.mps.empty_cache()
+
+    data = get_mvtec_yolo_data(category)
+    test_good_set = set(data["test_good_im_list"])
+    test_imgs = data["test_im_list"]
+
+    # Build bank
+    ad.bank = None
+    t0 = time.perf_counter()
+    ad.load_support_set(data["train_im_list"])
+    build_s = time.perf_counter() - t0
+    print(f"[{category}] bank built in {build_s:.1f}s  "
+          f"(support={len(data['train_im_list'])}, bank_size={ad.bank.shape[0]})", flush=True)
+
+    # Predict all test images at original resolution
+    heatmaps: list[np.ndarray] = []
+    image_scores: list[float] = []
+    image_entries: list[dict] = []
+    per_img_ard: list[float] = []
+    per_img_nrd: list[float] = []
+    per_img_anom_mean: list[float] = []
+    per_img_norm_mean: list[float] = []
+
+    for img_id, im in enumerate(test_imgs):
+        with Image.open(im) as pil:
+            ori_w, ori_h = pil.size
+        score, hm = ad.predict_one(im, eval_size=(ori_h, ori_w))
+        heatmaps.append(hm)
+        image_scores.append(score)
+
+        is_good = im in test_good_set
+        annotations: list[dict] = []
+        if not is_good:
+            label_path = AnomalyBboxValidator._label_path(im)
+            if label_path is not None:
+                annotations = AnomalyBboxValidator._polygons_to_gt_annotations(label_path, ori_w, ori_h)
+            gt_mask = AnomalyBboxValidator._gt_mask_at_resolution(im, ori_h, ori_w)
+            if gt_mask is not None:
+                anom_mask = gt_mask == 1
+                norm_mask = gt_mask == 0
+                if anom_mask.sum() > 0:
+                    per_img_ard.append(float((1.0 - hm[anom_mask]).mean()))
+                    per_img_anom_mean.append(float(hm[anom_mask].mean()))
+                if norm_mask.sum() > 0:
+                    per_img_nrd.append(float(hm[norm_mask].mean()))
+                    per_img_norm_mean.append(float(hm[norm_mask].mean()))
+
+        image_entries.append({
+            "image_id": img_id,
+            "file_name": Path(im).name,
+            "width": ori_w,
+            "height": ori_h,
+            "annotations": annotations,
+        })
+
+    def _fmean(vals):
+        return statistics.fmean(vals) if vals else float("nan")
+
+    return {
+        "category": category,
+        "test_imgs": test_imgs,
+        "test_good_set": test_good_set,
+        "heatmaps": heatmaps,
+        "image_scores": image_scores,
+        "image_entries": image_entries,
+        "n_support": len(data["train_im_list"]),
+        "build_s": round(build_s, 1),
+        "aDev": _fmean(per_img_ard),
+        "nDev": _fmean(per_img_nrd),
+        "anom_mean": _fmean(per_img_anom_mean),
+        "norm_mean": _fmean(per_img_norm_mean),
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -1795,6 +2092,8 @@ def main() -> None:
                    help="Device override (e.g. 'mps', 'cuda', 'cpu'). Default: auto-detect.")
     p.add_argument("--bbox", action="store_true",
                    help="Also run bbox mAP evaluation (heatmap -> region-growing -> COCO mAP).")
+    p.add_argument("--deviation", action="store_true",
+                   help="Run standalone deviation evaluation (aDev/nDev/anom_mean/norm_mean).")
     p.add_argument("--max-det", type=int, default=1,
                    help="Max detections per image for region-growing (default 5).")
     p.add_argument("--bbox-min-area", type=int, default=20,
@@ -1836,7 +2135,8 @@ def main() -> None:
           f"feat_dim={ad.feat_dim} grid={ad.grid} K={ad.K} target_score={ad.target_score}"
           + (f" coreset={args.coreset}" if args.coreset else ""))
 
-    if not args.bbox:
+    if not args.bbox and not args.deviation:
+        # Default: AUROC only, predict + eval in one shot.
         validator = AnomalyValidator(
             eval_size=256,
             save_vis_dir=save_vis_dir,
@@ -1844,31 +2144,42 @@ def main() -> None:
             vis_thresh=args.vis_thresh,
         )
         validator.run(ad, cats, out_csv)
+    else:
+        # Predict once, dispatch to all requested validators.
+        print(f"\n{'#' * 60}\n# Phase 1 — predict ({len(cats)} categories)\n{'#' * 60}", flush=True)
+        caches = [predict_category(ad, cat) for cat in cats]
 
-    if args.bbox:
-        bbox_out = run_dir / f"bbox_{out_csv.stem}.csv"
-        bbox_validator = AnomalyBboxValidator(
-            max_det=args.max_det,
-            min_area=args.bbox_min_area,
-            min_score=args.bbox_min_score,
-            zero_mode=args.zero_mode,
-            save_dir=run_dir / "bbox_eval",
-            save_vis=args.bbox_vis,
-        )
-        if args.bbox_min_score_sweep is not None:
-            parts = [float(x.strip()) for x in args.bbox_min_score_sweep.split(",")]
-            if len(parts) != 3:
-                raise SystemExit("--bbox-min-score-sweep must be 'start,end,step' (e.g. '0.1,0.8,0.05')")
-            start, end, step = parts
-            ms = start
-            min_scores: list[float] = []
-            while ms <= end + 1e-9:
-                min_scores.append(round(ms, 4))
-                ms += step
-            sweep_out = run_dir / f"bbox_sweep_{out_csv.stem}.csv"
-            bbox_validator.run_sweep(ad, cats, min_scores, sweep_out)
-        else:
-            bbox_validator.run(ad, cats, bbox_out)
+        if args.bbox:
+            bbox_out = run_dir / f"bbox_{out_csv.stem}.csv"
+            bbox_validator = AnomalyBboxValidator(
+                max_det=args.max_det,
+                min_area=args.bbox_min_area,
+                min_score=args.bbox_min_score,
+                zero_mode=args.zero_mode,
+                save_dir=run_dir / "bbox_eval",
+                save_vis=args.bbox_vis,
+            )
+            print(f"\n{'#' * 60}\n# Phase 2 — bbox eval\n{'#' * 60}", flush=True)
+            if args.bbox_min_score_sweep is not None:
+                parts = [float(x.strip()) for x in args.bbox_min_score_sweep.split(",")]
+                if len(parts) != 3:
+                    raise SystemExit("--bbox-min-score-sweep must be 'start,end,step' (e.g. '0.1,0.8,0.05')")
+                start, end, step = parts
+                ms = start
+                min_scores: list[float] = []
+                while ms <= end + 1e-9:
+                    min_scores.append(round(ms, 4))
+                    ms += step
+                sweep_out = run_dir / f"bbox_sweep_{out_csv.stem}.csv"
+                bbox_validator.run_sweep_from_caches(caches, min_scores, sweep_out)
+            else:
+                bbox_validator.run_from_caches(caches, bbox_out)
+
+        if args.deviation:
+            print(f"\n{'#' * 60}\n# Phase 2 — deviation eval\n{'#' * 60}", flush=True)
+            dev_out = run_dir / f"deviation_{out_csv.stem}.csv"
+            dev_validator = DeviationValidator(save_dir=run_dir / "deviation")
+            dev_validator.run_from_caches(caches, dev_out)
 
 
 if __name__ == "__main__":

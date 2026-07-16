@@ -57,6 +57,7 @@ def _write_manifest(path, base_url, *, missing_depth=False):
 
 @pytest.fixture
 def depth_server(tmp_path):
+    """Serve paired image and depth fixtures over HTTP."""
     source = tmp_path / "source"
     source.mkdir()
     depth = np.arange(12, dtype=np.float32).reshape(3, 4)

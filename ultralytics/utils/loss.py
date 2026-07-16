@@ -477,6 +477,7 @@ class v8DetectionLoss:
         m = model.model[-1]  # Detect() module
         self.bce = nn.BCEWithLogitsLoss(reduction="none")
         self.vfl = VarifocalLoss() if getattr(h, "vfl", False) else None
+        self.neg_focal_gamma = 0.0
         self.vfl_norm = getattr(h, "vfl_norm", False)  # normalize VFL by positive count instead of target score sum
         self.vfl_hard = getattr(h, "vfl_hard", False)  # regress VFL positives toward hard 1.0 instead of IoU target
         self.hyp = h
@@ -553,6 +554,9 @@ class v8DetectionLoss:
         With ``vfl_hard=True`` positives regress toward a hard 1.0 target with unit weight instead of the IoU-aware
         soft target q, leaving only the background focal weighting from Varifocal Loss.
 
+        With ``neg_focal_gamma>0`` the BCE path downweights only negative classes by detached ``p**gamma`` while
+        preserving the original BCE gradients and soft targets for positives.
+
         Args:
             pred_scores (torch.Tensor): Predicted class logits with shape (bs, num_anchors, nc).
             target_scores (torch.Tensor): Task-aligned soft targets with shape (bs, num_anchors, nc).
@@ -570,6 +574,9 @@ class v8DetectionLoss:
                 target_scores_sum = max(label.sum(), 1)
         else:
             cls = self.bce(pred_scores, target_scores.to(pred_scores.dtype))  # (bs, num_anchors, nc)
+            if self.neg_focal_gamma:
+                neg_weight = pred_scores.detach().sigmoid().pow(self.neg_focal_gamma)
+                cls *= torch.where(target_scores > 0, 1.0, neg_weight)
         if target_scores_weight is not None:
             cls *= target_scores_weight
         if self.class_weights is not None:
@@ -1345,6 +1352,7 @@ class E2EDetectLoss:
         self.o2f = getattr(model.args, "o2f", False)
         self.one2many = v8DetectionLoss(model, tal_topk=10)
         self.one2one = v8DetectionLoss(model, tal_topk=7 if self.o2f else 1)
+        self.one2one.neg_focal_gamma = getattr(model.args, "o2o_neg_focal_gamma", 0.0)
         self.one2one.assigner.o2f = self.o2f
         self.one2one.assigner.o2f_iou = getattr(model.args, "o2f_iou", "amb_max")
         self.one2one.assigner.o2f_norm = getattr(model.args, "o2f_norm", "align")
@@ -1393,6 +1401,7 @@ class E2ELoss:
         else:
             self.one2many = loss_fn(model, tal_topk=10)
         self.one2one = loss_fn(model, tal_topk=7, tal_topk2=1)
+        self.one2one.neg_focal_gamma = getattr(model.args, "o2o_neg_focal_gamma", 0.0)
         self.one2one.assigner.o2f = self.o2f
         self.one2one.assigner.o2f_iou = getattr(model.args, "o2f_iou", "amb_max")
         self.one2one.assigner.o2f_norm = getattr(model.args, "o2f_norm", "align")

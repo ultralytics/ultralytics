@@ -146,7 +146,7 @@ See the [Quickstart](quickstart.md) guide for the full installation and usage re
 
     ***
 
-    Ultralytics' newest model family delivers NMS-free, end-to-end inference with higher accuracy and lower latency than YOLO11
+    Ultralytics' newest model family delivers NMS-free, end-to-end inference with an improved accuracy-latency tradeoff over YOLO11
 
     ***
 

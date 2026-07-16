@@ -364,6 +364,7 @@ class RankLoss(nn.Module):
             leaves the coarser P4/P5 anchors untouched.
         in_gt (bool): Draw each positive's rank negatives from the anchors inside its own matched GT box (the
             same-object duplicates) instead of the top-K highest-scoring same-class anchors across the image.
+        logits (bool): Rank on raw classification logits instead of sigmoid probabilities.
     """
 
     def __init__(
@@ -374,6 +375,7 @@ class RankLoss(nn.Module):
         w_rank: float = 1.0,
         p3_only: bool = False,
         in_gt: bool = False,
+        logits: bool = False,
     ):
         """Initialize the ranking loss with temperature, hard-negative count, rank/sort weights and pool scope."""
         super().__init__()
@@ -383,6 +385,7 @@ class RankLoss(nn.Module):
         self.w_rank = w_rank
         self.p3_only = p3_only
         self.in_gt = in_gt
+        self.logits = logits
 
     def forward(
         self,
@@ -412,7 +415,7 @@ class RankLoss(nn.Module):
             pred_logits, target_scores = pred_logits[:, m], target_scores[:, m]
             if mask_in_gts is not None:
                 mask_in_gts, target_gt_idx = mask_in_gts[:, :, m], target_gt_idx[:, m]
-        scores = pred_logits.sigmoid()
+        scores = pred_logits if self.logits else pred_logits.sigmoid()  # rank in logit or probability space
         _, N, nc = scores.shape
         pos = target_scores > 0
         pos_idx = pos.nonzero(as_tuple=False)  # (M, 3): image, anchor, class
@@ -1424,6 +1427,7 @@ class E2ELoss:
                 w_rank=getattr(model.args, "rank_w_rank", 1.0),
                 p3_only=getattr(model.args, "rank_p3_only", False),
                 in_gt=in_gt,
+                logits=getattr(model.args, "rank_logits", False),
             )
             if in_gt:  # o2o assigner must cache the in-GT-box mask for the rank loss
                 self.one2one.assigner.rank_pool = True

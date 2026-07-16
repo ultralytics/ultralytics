@@ -58,7 +58,7 @@ Inference:
                          yolo26n_deepx_model        # DEEPX
                          yolo26n_qnn.onnx           # Qualcomm QNN
                          yolo26n.tflite             # LiteRT
-                         yolo26n_hailo_model         # Hailo HEF
+                         yolo26n_hailo_model        # Hailo HEF
 """
 
 from __future__ import annotations

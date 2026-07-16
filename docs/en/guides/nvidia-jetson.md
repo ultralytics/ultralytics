@@ -107,7 +107,7 @@ The fastest way to get started with Ultralytics YOLO26 on NVIDIA Jetson is to ru
     sudo docker pull $t && sudo docker run -it --ipc=host --runtime=nvidia $t
     ```
 
-=== "JetPack 7 (Thor/DGX Spark)"
+=== "JetPack 7.0 (Thor/DGX Spark)"
 
     ```bash
     t=ultralytics/ultralytics:latest-nvidia-arm64
@@ -116,7 +116,7 @@ The fastest way to get started with Ultralytics YOLO26 on NVIDIA Jetson is to ru
 
 !!! note "JetPack 7 Docker scope"
 
-    The public `latest-nvidia-arm64` image currently owns the JetPack 7.0 Thor/DGX Spark path. For JetPack 7.2 on Orin, use the native installation below until the public image is explicitly validated and updated for that combination.
+    The public `latest-nvidia-arm64` image currently owns only the JetPack 7.0 Thor/DGX Spark path. For JetPack 7.2 on Thor or Orin, use the native installation below until the public image is explicitly validated and updated for those combinations.
 
 After this is done, skip to [Use TensorRT on NVIDIA Jetson section](#use-tensorrt-on-nvidia-jetson).
 

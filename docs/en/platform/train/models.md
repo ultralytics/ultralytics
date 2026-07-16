@@ -278,7 +278,7 @@ Export jobs progress through the following statuses:
 
 !!! tip "Export Time"
 
-    Export time varies by format and target. TensorRT exports run on the selected NVIDIA GPU or Jetson target and may take several minutes because TensorRT profiles and tunes the engine for that hardware.
+    Export time varies by format and build host. TensorRT exports may take several minutes because TensorRT profiles and tunes the engine on the physical GPU shown in the [Jetson validation table](#nvidia-jetson-tensorrt-targets) or the selected cloud GPU.
 
 ### Bulk Export Actions
 

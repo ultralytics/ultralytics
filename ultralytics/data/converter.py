@@ -848,10 +848,25 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
             raise ValueError(f"NDJSON {field} must be a non-empty POSIX relative path")
         path = PurePosixPath(value)
         windows_path = PureWindowsPath(value)
+        windows_reserved = {
+            "CON",
+            "PRN",
+            "AUX",
+            "NUL",
+            *(f"COM{i}" for i in range(1, 10)),
+            *(f"LPT{i}" for i in range(1, 10)),
+        }
+        windows_invalid = any(
+            part.rstrip(" .") != part
+            or any(char in part for char in '<>:"|?*')
+            or part.split(".", 1)[0].upper() in windows_reserved
+            for part in path.parts
+        )
         if (
             path.is_absolute()
             or windows_path.is_absolute()
             or windows_path.drive
+            or windows_invalid
             or path.as_posix() != value
             or any(part in {"", ".", ".."} for part in path.parts)
         ):
@@ -882,7 +897,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     manifest_hasher.update(stable_record(dataset_record).encode())
     for record in sorted(stable_record(record) for record in image_records):
         manifest_hasher.update(record.encode())
-    manifest_hash = manifest_hasher.hexdigest()[:8]
+    manifest_hash = manifest_hasher.hexdigest()
 
     # Hash-qualified dirs allow identical datasets to reuse downloads while preventing changed datasets from mutating
     # files that another training job may still be reading.
@@ -1268,17 +1283,12 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         invalid_dir = None
         with commit_lock(lock_path):
             try:
-                final_yaml = final_dataset_dir / "data.yaml"
                 if final_dataset_dir.exists():
                     stat = final_dataset_dir.stat()
                     current_identity = (stat.st_dev, stat.st_ino, stat.st_mtime_ns)
                     replaced_by_winner = invalid_final_identity is None or current_identity != invalid_final_identity
-                    if (
-                        replaced_by_winner
-                        and final_yaml.is_file()
-                        and YAML.load(final_yaml).get("hash") == manifest_hash
-                    ):
-                        return final_yaml
+                    if replaced_by_winner and cached_conversion_valid(final_dataset_dir):
+                        return final_dataset_dir / "data.yaml"
                 if final_dataset_dir.exists():
                     invalid_dir = output_path / f".{final_dataset_dir.name}.invalid-{os.getpid()}"
                     final_dataset_dir.replace(invalid_dir)

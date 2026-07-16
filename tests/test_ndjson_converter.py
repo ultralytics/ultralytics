@@ -262,6 +262,10 @@ def test_convert_depth_ndjson_rejects_incomplete_descriptor_before_download(tmp_
         ("/tmp/victim.jpg", "train"),
         ("C:/victim.jpg", "train"),
         ("camera\\victim.jpg", "train"),
+        ("CON.jpg", "train"),
+        ("aux/frame.jpg", "train"),
+        ("frame. ", "train"),
+        ("frame?.jpg", "train"),
         ("train.jpg", "../train"),
     ],
 )

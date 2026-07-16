@@ -2031,6 +2031,8 @@ def parse_model(d, ch, verbose=True):
                 args.append("log")  # default output mode when YAML omits it (log = unbounded, scale-decoupled)
             if len(args) == 2:
                 args.append("bilinear")  # default upsampling when YAML omits it (bilinear x4 outside the head)
+            if len(args) == 3:
+                args.append(False)  # default: no high-res skip input (inputs are pyramid levels only)
             args.append([ch[x] for x in f])  # ch tuple
         elif m is SemanticSegment:
             args.append([ch[x] for x in f])  # nc, ch tuple

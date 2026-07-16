@@ -800,7 +800,7 @@ class Depth(nn.Module):
     export = False  # export mode
     format = None  # export format
 
-    def __init__(self, c_mid: int = 256, mode: str = "log", upsample: str = "bilinear", ch: tuple = ()):
+    def __init__(self, c_mid: int = 256, mode: str = "log", upsample: str = "bilinear", skip: bool = False, ch: tuple = ()):
         """Initialize Depth head.
 
         Args:
@@ -811,9 +811,15 @@ class Depth(nn.Module):
             upsample (str): Output upsampling. "bilinear" keeps the head output at 1/4 resolution (loss/predictor
                 upsample outside the head); "convex" learns a RAFT-style 9-neighbor convex combination that upsamples
                 4x to input resolution inside the head, so supervision and inference share sub-pixel edges.
-            ch (tuple): Input channel sizes from backbone feature maps (P3, P4, P5).
+            skip (bool): If True, the FIRST input is a high-resolution (1/4, P2) skip feature fused into the head
+                after its deconv, injecting real high-frequency evidence; remaining inputs are the pyramid levels.
+            ch (tuple): Input channel sizes from backbone feature maps ([P2,] P3, P4, P5).
         """
         super().__init__()
+        self.skip = skip
+        if skip:
+            self.skip_proj = Conv(ch[0], c_mid // 2, k=1)
+            ch = ch[1:]
         self.nl = len(ch)  # number of detection layers (pyramid levels)
         self.mode = mode
         self.upsample = upsample
@@ -864,6 +870,8 @@ class Depth(nn.Module):
             Export (self.export=True): (B, 1, H, W), upsampled 4x to the input size. Sigmoid mode scales by max_depth;
                 log mode is unbounded.
         """
+        x_skip, x = (x[0], x[1:]) if self.skip else (None, x)
+
         # Project all levels to same channel dim
         feats = [self.proj[i](x[i]) for i in range(self.nl)]
 
@@ -874,7 +882,10 @@ class Depth(nn.Module):
             out = out + feats[i]
             out = self.refine[i](out)
 
-        feat = self.head[:3](out)  # (B, c_mid/4, H/4, W/4) pre-logit features
+        out = self.head[1](self.head[0](out))  # deconv to (B, c_mid/2, H/4, W/4)
+        if self.skip:
+            out = out + self.skip_proj(x_skip)  # inject P2 high-frequency evidence at matching resolution
+        feat = self.head[2](out)  # (B, c_mid/4, H/4, W/4) pre-logit features
         out = self.head[3:](feat)  # (B, 1, H/4, W/4)
         if self.mode == "log":
             depth = torch.exp(out.clamp(-4.0, 5.0))

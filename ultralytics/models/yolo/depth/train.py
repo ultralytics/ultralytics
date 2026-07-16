@@ -185,7 +185,15 @@ class DepthTrainer(yolo.detect.DetectionTrainer):
             for ckpt in (self.best, self.last):
                 if ckpt.exists():
                     plot_dir = self.save_dir if self.args.plots and ckpt == plot_ckpt else None
-                    provenance = calibrate_checkpoint(ckpt, self.test_loader, self.device, plot_dir=plot_dir)
+                    validation_split = self.data.get("val") or self.data.get("test")
+                    provenance = calibrate_checkpoint(
+                        ckpt,
+                        self.test_loader,
+                        self.device,
+                        plot_dir=plot_dir,
+                        dataset_hash=self.data.get("hash"),
+                        validation_split=str(validation_split) if validation_split is not None else None,
+                    )
                     if ckpt == plot_ckpt and provenance is not None:
                         self.depth_calibration = provenance
         except Exception as e:

@@ -1023,15 +1023,53 @@ def test_depth_calibration_checkpoint_provenance(tmp_path):
     path = tmp_path / "depth.pt"
     torch.save({"model": deepcopy(model).half()}, path)
 
-    provenance = calibrate_checkpoint(path, batches, device="cpu")
+    provenance = calibrate_checkpoint(
+        path, batches, device="cpu", dataset_hash="manifest-sha256", validation_split="images/val"
+    )
     checkpoint = torch_load(path)
     head = _depth_head(checkpoint["model"])
 
     assert provenance == checkpoint["depth_calibration"]
     assert provenance["candidate"] in {"identity", "scale-only", "affine"}
     assert provenance["images"] == 8
+    assert provenance["status"] == "selected"
+    assert provenance["dataset_hash"] == "manifest-sha256"
+    assert provenance["validation_split"] == "images/val"
+    assert provenance["strategy"] == "two-fold-held-out-delta1"
+    assert set(provenance["scores"]) == {"identity", "scale-only"}
     assert float(head.cal_a) == provenance["a"]
     assert float(head.cal_b) == provenance["b"]
+
+
+def test_depth_calibration_preserves_inherited_provenance(tmp_path, monkeypatch):
+    """A skipped calibration attempt retains the source checkpoint's verified lineage."""
+    from copy import deepcopy
+
+    from ultralytics.models.yolo.depth import calibrate
+    from ultralytics.nn.tasks import DepthModel
+    from ultralytics.utils.patches import torch_load
+
+    source = {
+        "status": "selected",
+        "candidate": "scale-only",
+        "images": 8,
+        "a": 1.0,
+        "b": 0.25,
+        "dataset_hash": "source-manifest",
+        "validation_split": "images/val",
+        "strategy": "two-fold-held-out-delta1",
+        "scores": {"identity": 0.5, "scale-only": 0.8},
+    }
+    path = tmp_path / "inherited.pt"
+    torch.save(
+        {"model": deepcopy(DepthModel("yolo26n-depth.yaml", verbose=False)).half(), "depth_calibration": source}, path
+    )
+    monkeypatch.setattr(calibrate, "fit_calibration_selective", lambda *_args, **_kwargs: None)
+
+    provenance = calibrate.calibrate_checkpoint(path, [], device="cpu", dataset_hash="new-manifest")
+
+    assert provenance == {**source, "status": "inherited"}
+    assert torch_load(path)["depth_calibration"] == provenance
 
 
 def test_no_depth_env_reads_in_source():

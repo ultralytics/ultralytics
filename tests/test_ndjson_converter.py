@@ -32,7 +32,7 @@ def _write_depth_ndjson(
     files=("camera/train.jpg", "test.jpg"),
 ):
     records = [
-        {"type": "dataset", "task": "depth"},
+        {"type": "dataset", "task": "depth", "path": "../../escape", "download": "malicious.py"},
         {
             "type": "image",
             "file": files[0],
@@ -103,6 +103,24 @@ def test_convert_depth_ndjson_downloads_pairs_and_reuses_cache(tmp_path, monkeyp
         cached_image.write_bytes((source / "test.jpg").read_bytes())
         assert asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets")) == yaml_path
         assert cv2.imread(str(cached_image)).mean() < 1
+        (yaml_path.parent / "images" / "train" / "orphan.jpg").write_bytes((source / "train.jpg").read_bytes())
+        (yaml_path.parent / "depth" / "train" / "orphan.npy").write_bytes((source / "train.npy").read_bytes())
+        assert asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets")) == yaml_path
+        assert not (yaml_path.parent / "images" / "train" / "orphan.jpg").exists()
+        assert not (yaml_path.parent / "depth" / "train" / "orphan.npy").exists()
+
+        cached_yaml = YAML.load(yaml_path)
+        cached_yaml["train"] = "images/test"
+        YAML.save(yaml_path, cached_yaml)
+        assert asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets")) == yaml_path
+        assert YAML.load(yaml_path)["train"] == "images/train"
+
+        records = [json.loads(line) for line in manifest.read_text().splitlines()]
+        for record in records[1:]:
+            record["hash"] = record["hash"].upper()
+            record["depth"]["hash"] = record["depth"]["hash"].upper()
+        manifest.write_text("\n".join(json.dumps(record) for record in records))
+        assert asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets")) == yaml_path
 
         train_only_manifest = tmp_path / "train-only.ndjson"
         _write_depth_ndjson(
@@ -144,6 +162,8 @@ def test_convert_depth_ndjson_downloads_pairs_and_reuses_cache(tmp_path, monkeyp
     assert data["nc"] == 1
     assert data["names"] == {0: "depth"}
     assert data["val"] == "images/test"
+    assert "path" not in data
+    assert "download" not in data
     assert not (yaml_path.parent / "labels").exists()
     for split in ("train", "test"):
         relative_path = Path("camera/train.jpg") if split == "train" else Path("test.jpg")
@@ -322,7 +342,9 @@ def test_convert_depth_ndjson_rejects_invalid_npy_payload(tmp_path, invalid_fiel
     manifest.write_text("\n".join(json.dumps(record) for record in records))
 
     try:
-        with pytest.raises(RuntimeError, match="validate all depth pairs"):
+        error = ValueError if invalid_field == "shape" else RuntimeError
+        message = "declared image dimensions" if invalid_field == "shape" else "validate all depth pairs"
+        with pytest.raises(error, match=message):
             asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets"))
     finally:
         server.shutdown()

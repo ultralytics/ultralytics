@@ -273,7 +273,15 @@ def _plot_calibrated_batches(
     head.cal_b.fill_(b0)
 
 
-def calibrate_checkpoint(ckpt_path, dataloader, device, plot_dir=None) -> dict | None:
+def calibrate_checkpoint(
+    ckpt_path,
+    dataloader,
+    device,
+    plot_dir=None,
+    *,
+    dataset_hash: str | None = None,
+    validation_split: str | None = None,
+) -> dict | None:
     """Fit calibration for a saved checkpoint in place (used by automatic post-training calibration).
 
     Loads the checkpoint, selects calibration with the "calibrate only if it helps" policy
@@ -286,6 +294,8 @@ def calibrate_checkpoint(ckpt_path, dataloader, device, plot_dir=None) -> dict |
         device (str | torch.device): Torch device to run inference on.
         plot_dir (str | Path, optional): If set, also write ``val_batch{ni}_calibrated.jpg`` comparison panels (RGB | GT
             | raw | calibrated) for the first val batches into this directory.
+        dataset_hash (str, optional): Immutable dataset manifest identity used for calibration.
+        validation_split (str, optional): Dataset split or path used to collect calibration images.
     """
     from copy import deepcopy
 
@@ -295,10 +305,30 @@ def calibrate_checkpoint(ckpt_path, dataloader, device, plot_dir=None) -> dict |
     saved = ckpt.get("ema") or ckpt.get("model")
     if saved is None or _depth_head(saved) is None:
         return
+    saved_head = _depth_head(saved)
     work = deepcopy(saved).float()
     res = fit_calibration_selective(work, dataloader, device)
     if res is None:
-        return
+        a, b = float(saved_head.cal_a), float(saved_head.cal_b)
+        inherited = ckpt.get("depth_calibration")
+        provenance = (
+            {**inherited, "status": "inherited"}
+            if isinstance(inherited, dict)
+            else {
+                "status": "inherited" if (a, b) != (1.0, 0.0) else "skipped",
+                "candidate": "unknown" if (a, b) != (1.0, 0.0) else "identity",
+                "images": 0,
+                "a": a,
+                "b": b,
+                "dataset_hash": dataset_hash,
+                "validation_split": validation_split,
+                "strategy": "two-fold-held-out-delta1",
+                "scores": {},
+            }
+        )
+        ckpt["depth_calibration"] = provenance
+        torch.save(ckpt, ckpt_path)
+        return provenance
     a, b = res["a"], res["b"]
     for key in ("ema", "model"):
         m = ckpt.get(key)
@@ -307,7 +337,17 @@ def calibrate_checkpoint(ckpt_path, dataloader, device, plot_dir=None) -> dict |
             _depth_head(m).cal_b.fill_(b)
     stored_head = _depth_head(ckpt.get("ema") or ckpt.get("model"))
     a, b = float(stored_head.cal_a), float(stored_head.cal_b)
-    provenance = {"candidate": res["name"], "images": res["images"], "a": a, "b": b}
+    provenance = {
+        "status": "selected",
+        "candidate": res["name"],
+        "images": res["images"],
+        "a": a,
+        "b": b,
+        "dataset_hash": dataset_hash,
+        "validation_split": validation_split,
+        "strategy": "two-fold-held-out-delta1",
+        "scores": res["cv_scores"],
+    }
     ckpt["depth_calibration"] = provenance
     torch.save(ckpt, ckpt_path)
     LOGGER.info(

@@ -222,7 +222,7 @@ def test_export_hailo_compiles_hef(monkeypatch, tmp_path, one2one):
             calls.update(path=path, name=name, end_nodes=end_node_names)
 
         def get_hn_model(self):
-            layers = [SimpleNamespace(name=f"model/conv{i}") for i in range(6)]
+            layers = [SimpleNamespace(inputs=[f"model/conv{i}"]) for i in range(6)]
             return SimpleNamespace(get_output_layers=lambda: layers)
 
         def load_model_script(self, script):
@@ -266,7 +266,7 @@ def test_export_hailo_compiles_hef(monkeypatch, tmp_path, one2one):
     assert calls["hw_arch"] == "hailo15h"
     assert calls["name"] == "model"
     assert len(calls["calibration"]) == 2
-    assert calls["calibration"][0].shape == (32, 32, 3)
+    assert calls["calibration"][0][0].shape == (32, 32, 3)
     expected_nodes = (
         ["/model.1/one2one_cv2.0/one2one_cv2.0.2/Conv", "/model.1/one2one_cv2.1/one2one_cv2.1.2/Conv"]
         if one2one

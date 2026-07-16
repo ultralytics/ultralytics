@@ -1489,7 +1489,7 @@ class Exporter:
                 outputs = ", ".join(f"output_layer{i + 1}" for i in range(len(end_nodes)))
                 model_script.append(f"quantization_param([{outputs}], precision_mode=a16_w16)")
             else:
-                outputs = [layer.name.rsplit("/", 1)[-1] for layer in runner.get_hn_model().get_output_layers()]
+                outputs = [layer.inputs[0].rsplit("/", 1)[-1] for layer in runner.get_hn_model().get_output_layers()]
                 nms_config = output_dir / "nms_config.json"
                 nms_config.write_text(
                     json.dumps(
@@ -1524,12 +1524,13 @@ class Exporter:
 
             def calibration_dataset():
                 for batch in self.get_int8_calibration_dataloader(prefix):
-                    yield from batch["img"].permute(0, 2, 3, 1).numpy().astype(np.float32)
+                    for image in batch["img"].permute(0, 2, 3, 1).numpy().astype(np.float32):
+                        yield image, {}
 
             runner.optimize(
                 lambda: tf.data.Dataset.from_generator(
                     calibration_dataset,
-                    output_signature=tf.TensorSpec(shape=(*self.imgsz, 3), dtype=tf.float32),
+                    output_signature=(tf.TensorSpec(shape=(*self.imgsz, 3), dtype=tf.float32), {}),
                 )
             )
             (output_dir / f"{self.file.stem}.hef").write_bytes(runner.compile())

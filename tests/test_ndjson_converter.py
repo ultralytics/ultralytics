@@ -91,30 +91,26 @@ def _write_depth_ndjson(
 
 
 def test_convert_ndjson_preserves_non_depth_cache_identity(tmp_path):
-    """Keep the established ordered, eight-character cache identity for non-Depth tasks."""
+    """Keep the established cache identity and automatic split ordering for non-Depth tasks."""
     source = tmp_path / "source"
     source.mkdir()
-    for split in ("train", "val"):
-        cv2.imwrite(str(source / f"{split}.jpg"), np.zeros((3, 4, 3), dtype=np.uint8))
+    for index in range(10):
+        cv2.imwrite(str(source / f"{index}.jpg"), np.zeros((3, 4, 3), dtype=np.uint8))
     server = ThreadingHTTPServer(("127.0.0.1", 0), partial(_QuietHandler, directory=source))
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     records = [
         {"type": "dataset", "task": "detect", "class_names": {"0": "object"}},
-        {
-            "type": "image",
-            "file": "train.jpg",
-            "url": f"http://127.0.0.1:{server.server_port}/train.jpg?signature=train",
-            "split": "train",
-            "annotations": {"boxes": [[0, 0.5, 0.5, 1, 1]]},
-        },
-        {
-            "type": "image",
-            "file": "val.jpg",
-            "url": f"http://127.0.0.1:{server.server_port}/val.jpg?signature=val",
-            "split": "val",
-            "annotations": {"boxes": [[0, 0.5, 0.5, 1, 1]]},
-        },
+        *[
+            {
+                "type": "image",
+                "file": f"{index}.jpg",
+                "url": f"http://127.0.0.1:{server.server_port}/{index}.jpg?signature={index}",
+                "split": "train",
+                "annotations": {"boxes": [[0, 0.5, 0.5, 1, 1]]},
+            }
+            for index in range(10)
+        ],
     ]
     manifest = tmp_path / "detect.ndjson"
     manifest.write_text("\n".join(json.dumps(record) for record in records))
@@ -135,6 +131,7 @@ def test_convert_ndjson_preserves_non_depth_cache_identity(tmp_path):
     expected = hasher.hexdigest()[:8]
     assert yaml_path.parent.name == f"detect-{expected}"
     assert YAML.load(yaml_path)["hash"] == expected
+    assert (yaml_path.parent / "images" / "val" / "7.jpg").is_file()
 
 
 def test_convert_depth_ndjson_bounds_chunked_images_and_redacts_urls(tmp_path, monkeypatch):
@@ -219,6 +216,12 @@ def test_convert_depth_ndjson_downloads_pairs_and_reuses_cache(tmp_path, monkeyp
         YAML.save(yaml_path, cached_yaml)
         assert asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets")) == yaml_path
         assert YAML.load(yaml_path)["train"] == "images/train"
+
+        cached_yaml = YAML.load(yaml_path)
+        cached_yaml["download"] = "https://example.com/untrusted.zip"
+        YAML.save(yaml_path, cached_yaml)
+        assert asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets")) == yaml_path
+        assert "download" not in YAML.load(yaml_path)
 
         records = [json.loads(line) for line in manifest.read_text().splitlines()]
         for record in records[1:]:

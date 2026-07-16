@@ -1034,9 +1034,12 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                     f"Dataset has only {len(train_records)} image(s) and no 'val' split. "
                     f"Need at least 2 images to auto-split into train/val."
                 )
-            train_records.sort(
-                key=lambda record: hashlib.sha256(stable_record(record, include_split=False).encode()).digest()
-            )
+            if is_depth:
+                train_records.sort(
+                    key=lambda record: hashlib.sha256(stable_record(record, include_split=False).encode()).digest()
+                )
+            else:
+                random.Random(0).shuffle(train_records)  # Preserve the established non-Depth split ordering.
             val_count = max(1, len(train_records) // 10)
             for r in train_records[:val_count]:
                 r["split"] = "val"
@@ -1069,11 +1072,14 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                 actual_images = {path for path in (root / "images").rglob("*") if path.is_file()}
                 actual_depth = {path for path in (root / "depth").rglob("*") if path.is_file()}
                 return (
-                    cached.get("task") == "depth"
-                    and cached.get("nc") == 1
-                    and cached.get("names") == {0: "depth"}
-                    and all(cached.get(split) == path for split, path in expected_split_paths.items())
-                    and not ({"train", "val", "test"} - expected_split_paths.keys()) & cached.keys()
+                    cached
+                    == {
+                        "task": "depth",
+                        "nc": 1,
+                        "names": {0: "depth"},
+                        **expected_split_paths,
+                        "hash": manifest_hash,
+                    }
                     and actual_images == expected_images
                     and actual_depth == expected_depth
                     and all(

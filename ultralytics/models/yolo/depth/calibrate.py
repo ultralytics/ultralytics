@@ -307,6 +307,11 @@ def calibrate_checkpoint(
     if saved is None or _depth_head(saved) is None:
         return
     saved_head = _depth_head(saved)
+    stored_heads = [
+        head
+        for key in ("ema", "model")
+        if (model := ckpt.get(key)) is not None and (head := _depth_head(model)) is not None
+    ]
     work = deepcopy(saved).float()
     res = fit_calibration_selective(work, dataloader, device)
     if res is None:
@@ -317,8 +322,11 @@ def calibrate_checkpoint(
             and inherited.get("status") in {"selected", "inherited"}
             and isinstance(inherited.get("a"), (int, float))
             and isinstance(inherited.get("b"), (int, float))
-            and math.isclose(float(inherited["a"]), a, rel_tol=1e-6, abs_tol=1e-6)
-            and math.isclose(float(inherited["b"]), b, rel_tol=1e-6, abs_tol=1e-6)
+            and all(
+                math.isclose(float(inherited["a"]), float(head.cal_a), rel_tol=1e-6, abs_tol=1e-6)
+                and math.isclose(float(inherited["b"]), float(head.cal_b), rel_tol=1e-6, abs_tol=1e-6)
+                for head in stored_heads
+            )
         )
         provenance = (
             {**inherited, "status": "inherited"}

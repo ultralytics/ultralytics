@@ -1080,6 +1080,38 @@ def test_depth_calibration_preserves_only_matching_provenance(tmp_path, monkeypa
     assert torch_load(path)["depth_calibration"] == provenance
 
 
+def test_depth_calibration_rejects_divergent_checkpoint_provenance(tmp_path, monkeypatch):
+    """Regenerate lineage when model and EMA calibration buffers disagree."""
+    from copy import deepcopy
+
+    from ultralytics.models.yolo.depth import calibrate
+    from ultralytics.nn.tasks import DepthModel
+
+    source = {
+        "status": "selected",
+        "candidate": "scale-only",
+        "images": 8,
+        "a": 1.0,
+        "b": 0.25,
+        "dataset_hash": "source-manifest",
+        "validation_split": "images/val",
+        "strategy": "two-fold-held-out-delta1",
+        "scores": {"identity": 0.5, "scale-only": 0.8},
+    }
+    path = tmp_path / "divergent.pt"
+    model = deepcopy(DepthModel("yolo26n-depth.yaml", verbose=False)).half()
+    ema = deepcopy(model)
+    calibrate._depth_head(ema).cal_b.fill_(0.25)
+    torch.save({"ema": ema, "model": model, "depth_calibration": source}, path)
+    monkeypatch.setattr(calibrate, "fit_calibration_selective", lambda *_args, **_kwargs: None)
+
+    provenance = calibrate.calibrate_checkpoint(path, [], device="cpu", dataset_hash="new-manifest")
+
+    assert provenance != source
+    assert provenance["candidate"] == "unknown"
+    assert provenance["dataset_hash"] == "new-manifest"
+
+
 def test_no_depth_env_reads_in_source():
     """All DEPTH_* knobs are cfg args now; no os.environ reads of them may remain."""
     import re

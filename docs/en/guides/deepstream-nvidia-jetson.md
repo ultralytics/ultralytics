@@ -60,7 +60,7 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
 
 !!! note
 
-    The `DeepStream-Yolo` build and configuration steps below are validated by its maintainer through DeepStream 8.0. For DeepStream 9.0 and 9.1, NVIDIA also provides an official YOLO integration under [tools/yolo_deepstream](https://github.com/NVIDIA/DeepStream/tree/main/tools/yolo_deepstream) in the DeepStream monorepo. Check the target repository for the YOLO and DeepStream versions it supports before deploying.
+    The [DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo) build and configuration steps below are validated by its maintainer through DeepStream 8.0. For DeepStream 9.0 and 9.1, NVIDIA also provides an official YOLO integration under [tools/yolo_deepstream](https://github.com/NVIDIA/DeepStream/tree/main/tools/yolo_deepstream) in the DeepStream monorepo. Check the target repository for the YOLO and DeepStream versions it supports before deploying.
 
 1.  Install Ultralytics with necessary dependencies
 

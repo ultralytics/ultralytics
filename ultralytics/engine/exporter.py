@@ -23,7 +23,7 @@ Axelera AI              | `axelera`                 | yolo26n_axelera_model/
 DEEPX                   | `deepx`                   | yolo26n_deepx_model/
 Qualcomm QNN            | `qnn`                     | yolo26n_qnn.onnx
 LiteRT                  | `litert`                  | yolo26n.tflite
-Hailo                    | `hailo`                   | yolo26n_hailo_model/
+Hailo                   | `hailo`                   | yolo26n_hailo_model/
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -560,21 +560,21 @@ class Exporter:
                 )
             LOGGER.warning(f"{fmt} export requires INT8 quantization, enabling it.")
             self.args.quantize = "w8a16" if fmt == "qnn" else 8
+        if fmt in {"axelera", "hailo"} and not self.args.data:
+            self.args.data = TASK2CALIBRATIONDATA.get(model.task)
         if fmt == "hailo":
             assert LINUX and not ARM64, "Hailo export is only supported on Linux x86_64."
             if model.task != "detect" or type(model.model[-1]) is not Detect:
                 raise ValueError("Hailo export currently supports YOLOv8, YOLO11, and YOLO26 detection models only.")
+            if self.args.end2end is False and model.model[-1].reg_max == 1:
+                raise ValueError("YOLO26 Hailo export requires end2end=True.")
             self.args.name = str(self.args.name or "hailo8l").lower()
             hailo_archs = ("hailo8", "hailo8l", "hailo10h", "hailo15h", "hailo15l")
             if self.args.name not in hailo_archs:
                 raise ValueError(f"Invalid Hailo architecture '{self.args.name}'. Valid names are {hailo_archs}.")
-            if not self.args.data:
-                self.args.data = TASK2CALIBRATIONDATA[model.task]
         if fmt == "axelera":
             if model.task == "segment" and any(isinstance(m, Segment26) for m in model.modules()):
                 raise ValueError("Axelera export does not currently support YOLO26 segmentation models.")
-            if not self.args.data:
-                self.args.data = TASK2CALIBRATIONDATA.get(model.task)
         if fmt == "imx":
             if not self.args.nms and model.task in {"detect", "pose", "segment"}:
                 LOGGER.warning("IMX export requires nms=True, setting nms=True.")

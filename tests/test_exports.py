@@ -289,12 +289,19 @@ def test_export_hailo_compiles_hef(monkeypatch, tmp_path, one2one):
     assert not onnx_file.exists()
 
 
-def test_export_hailo_rejects_detect_subclasses(monkeypatch):
-    """Check Hailo export rejects detection heads outside the supported YOLO families."""
+@pytest.mark.parametrize(
+    "model,kwargs,error",
+    [
+        ("yolov10n.yaml", {}, "YOLOv8, YOLO11, and YOLO26"),
+        ("yolo26n.yaml", {"end2end": False}, "requires end2end=True"),
+    ],
+)
+def test_export_hailo_rejects_unsupported_configurations(monkeypatch, model, kwargs, error):
+    """Check Hailo export rejects unsupported detection heads and YOLO26 output paths."""
     monkeypatch.setattr("ultralytics.engine.exporter.LINUX", True)
     monkeypatch.setattr("ultralytics.engine.exporter.ARM64", False)
-    with pytest.raises(ValueError, match="YOLOv8, YOLO11, and YOLO26"):
-        YOLO("yolov10n.yaml").export(format="hailo", imgsz=32)
+    with pytest.raises(ValueError, match=error):
+        YOLO(model).export(format="hailo", imgsz=32, **kwargs)
 
 
 def test_modelopt_quantize_onnx_excludes_sigmoid(monkeypatch):

@@ -1,6 +1,13 @@
 ---
 title: Carparts-Seg Dataset
 comments: true
+creator:
+    name: Gianmarco Russo
+    type: Person
+    url: https://github.com/grusso98
+license:
+    name: CC-BY-4.0
+    url: https://creativecommons.org/licenses/by/4.0/
 description: Train Ultralytics YOLO segmentation models on Carparts-Seg — 3,833 annotated images across 23 car-part classes for automotive AI applications.
 keywords: Carparts Segmentation Dataset, computer vision, automotive AI, vehicle maintenance, Ultralytics, YOLO, segmentation models, deep learning, object segmentation
 ---

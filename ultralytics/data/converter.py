@@ -1015,7 +1015,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
 
     # Process all images with async downloads (limit connections for small datasets)
     semaphore = asyncio.Semaphore(min(128, len(image_records)))
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(trust_env=True) as session:
         pbar = TQDM(
             total=len(image_records),
             desc=f"Converting {ndjson_path.name} → {dataset_dir} ({len(image_records)} images)",

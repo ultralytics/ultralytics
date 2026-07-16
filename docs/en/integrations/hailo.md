@@ -86,7 +86,7 @@ Hailo export is INT8-only. Ultralytics automatically downloads the default COCO1
 
 !!! danger "Use at least 1,024 calibration images for production"
 
-    Hailo DFC reduces its optimization level when fewer than 1,024 images are available. The default COCO128 dataset contains only 128 images and may produce severe box-regression accuracy loss even when class scores look correct. Always pass a representative dataset with at least 1,024 images for production HEF exports.
+    Hailo DFC reduces its optimization level when fewer than 1,024 images are available. The default COCO128 dataset contains only 128 images and may produce severe box-regression accuracy loss even when class scores look correct. For production HEF exports, pass a representative dataset with at least 1,024 images using `data="path/to/dataset.yaml"` in Python or `data=path/to/dataset.yaml` in the CLI.
 
 ```python
 model.export(format="hailo", name="hailo8l", data="path/to/dataset.yaml")

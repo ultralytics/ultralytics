@@ -1479,7 +1479,7 @@ def multilabel_dataset():
             Image.fromarray(img).save(img_path)
             num_labels = (i % 3) + 1
             class_indices = sorted(set(j % nc for j in range(i, i + num_labels)))
-            labels.append([img_path.name] + class_indices)
+            labels.append([img_path.name, *class_indices])
         labels_file = img_dir / "labels.csv"
         with open(labels_file, "w", newline="") as f:
             csv.writer(f).writerows(labels)
@@ -1496,7 +1496,7 @@ def test_multilabel_classify_dataset(multilabel_dataset):
 
     from ultralytics.data.dataset import MultiLabelClassificationDataset
 
-    yaml_path, nc, _, tmpdir = multilabel_dataset
+    _yaml_path, nc, _, tmpdir = multilabel_dataset
     args = SimpleNamespace(
         imgsz=32,
         cache=False,
@@ -1611,7 +1611,7 @@ def test_multilabel_classify_config_validation():
 )
 def test_multilabel_classify_end_to_end(multilabel_dataset):
     """Test full multi-label pipeline: train, validate, and predict."""
-    yaml_path, nc, names, tmpdir = multilabel_dataset
+    yaml_path, _nc, _names, tmpdir = multilabel_dataset
 
     model = YOLO("yolo26n-cls.pt")
     model.train(data=yaml_path, epochs=2, imgsz=32, batch=4, multi_label=True, plots=False, verbose=False)
@@ -1634,7 +1634,7 @@ def test_multilabel_classify_end_to_end(multilabel_dataset):
 )
 def test_multilabel_classify_reload_consistency(multilabel_dataset):
     """Test that predict and val both read multi_label from self.args after model reload."""
-    yaml_path, nc, names, tmpdir = multilabel_dataset
+    yaml_path, _nc, _names, tmpdir = multilabel_dataset
     test_imgs = list((tmpdir / "images" / "val").glob("*.jpg"))[:2]
 
     # Train and save checkpoint

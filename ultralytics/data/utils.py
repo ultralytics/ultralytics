@@ -666,8 +666,8 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
 def check_multilabel_cls_dataset(dataset: str | Path) -> dict[str, Any]:
     """Check and validate a multi-label classification dataset from a YAML config.
 
-    Expects a dataset.yaml with keys: path, train, val, nc, names, and a labels.csv file in each split directory
-    mapping image filenames to comma-separated class indices.
+    Expects a dataset.yaml with keys: path, train, val, nc, names, and a labels.csv file in each split directory mapping
+    image filenames to comma-separated class indices.
 
     Args:
         dataset (str | Path): Path to the dataset YAML config file.

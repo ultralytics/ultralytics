@@ -1645,9 +1645,9 @@ class ClassifyMetrics(SimpleClass, DataExportMixin):
 class MultiLabelClassifyMetrics(SimpleClass, DataExportMixin):
     """Class for computing multi-label classification metrics including mAP, precision, recall, and F1.
 
-    Uses macro-averaged metrics (mean of per-class values). The primary fitness metric is mAP
-    (mean Average Precision), which is the standard ranking metric for multi-label classification.
-    Precision, recall, and F1 are computed at a fixed threshold (default 0.5).
+    Uses macro-averaged metrics (mean of per-class values). The primary fitness metric is mAP (mean Average Precision),
+    which is the standard ranking metric for multi-label classification. Precision, recall, and F1 are computed at a
+    fixed threshold (default 0.5).
 
     Attributes:
         map (float): Mean Average Precision across all classes.

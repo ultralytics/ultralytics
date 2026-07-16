@@ -1144,8 +1144,8 @@ class ClassificationDataset:
 class MultiLabelClassificationDataset:
     """Dataset class for multi-label image classification tasks.
 
-    Loads images and their multi-label targets from a CSV file where each row maps an image path to one or more
-    class indices. Returns multi-hot encoded label vectors for use with BCEWithLogitsLoss.
+    Loads images and their multi-label targets from a CSV file where each row maps an image path to one or more class
+    indices. Returns multi-hot encoded label vectors for use with BCEWithLogitsLoss.
 
     Attributes:
         nc (int): Number of classes.

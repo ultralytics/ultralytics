@@ -109,9 +109,9 @@ train: images/train
 val: images/val
 nc: 10
 names:
-  0: class_a
-  1: class_b
-  # ...
+    0: class_a
+    1: class_b
+    # ...
 ```
 
 Train with `multi_label=True`:

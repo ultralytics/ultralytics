@@ -988,8 +988,8 @@ class v8ClassificationLoss:
 class v8MultiLabelClassificationLoss:
     """Criterion class for computing multi-label classification training losses using BCE with logits.
 
-    Uses ``F.binary_cross_entropy_with_logits`` which applies sigmoid internally for numerical stability.
-    Expects multi-hot encoded targets of shape (B, nc) instead of integer class indices.
+    Uses ``F.binary_cross_entropy_with_logits`` which applies sigmoid internally for numerical stability. Expects
+    multi-hot encoded targets of shape (B, nc) instead of integer class indices.
 
     Examples:
         >>> criterion = v8MultiLabelClassificationLoss()

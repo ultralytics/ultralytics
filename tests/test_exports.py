@@ -324,12 +324,7 @@ def test_export_rdk_requires_data_for_calibration(tmp_path, monkeypatch):
 
 
 @pytest.mark.skipif(
-    not (
-        LINUX
-        and not ARM64
-        and shutil.which("hb_mapper")
-        and os.environ.get("ULTRALYTICS_RUN_RDK_TESTS") == "1"
-    ),
+    not (LINUX and not ARM64 and shutil.which("hb_mapper") and os.environ.get("ULTRALYTICS_RUN_RDK_TESTS") == "1"),
     reason="Requires x86_64 Linux with hb_mapper available and ULTRALYTICS_RUN_RDK_TESTS=1.",
 )
 def test_export_rdk_real_environment():

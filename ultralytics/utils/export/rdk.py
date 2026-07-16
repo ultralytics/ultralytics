@@ -28,7 +28,7 @@ def bpu_detect_forward(self, x):
 
 def apply_rdk_patches(model):
     """Apply export-time patches for the detection-only RDK export path."""
-    from ultralytics.nn.modules import Detect, OBB, Pose, Segment, v10Detect
+    from ultralytics.nn.modules import OBB, Detect, Pose, Segment, v10Detect
 
     if getattr(model, "task", None) != "detect":
         raise NotImplementedError("RDK export currently supports detection models only.")

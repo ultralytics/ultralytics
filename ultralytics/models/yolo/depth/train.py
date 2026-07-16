@@ -188,10 +188,7 @@ class DepthTrainer(yolo.detect.DetectionTrainer):
                     plot_dir = self.save_dir if self.args.plots and ckpt == plot_ckpt else None
                     validation_path = self.data.get("val") or self.data.get("test")
                     validation_split = (
-                        Path(validation_path)
-                        .resolve()
-                        .relative_to(Path(self.data["path"]).resolve())
-                        .as_posix()
+                        Path(validation_path).resolve().relative_to(Path(self.data["path"]).resolve()).as_posix()
                         if isinstance(validation_path, (str, Path))
                         else None
                     )

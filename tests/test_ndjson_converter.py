@@ -1,10 +1,11 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import asyncio
+import hashlib
 import json
 import threading
 from functools import partial
-from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from http.server import BaseHTTPRequestHandler, SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 import cv2
@@ -12,12 +13,32 @@ import numpy as np
 import pytest
 import xxhash
 
+from ultralytics.data import converter
 from ultralytics.data.converter import convert_ndjson_to_yolo
-from ultralytics.utils import YAML
+from ultralytics.utils import YAML, clean_url
 
 
 class _QuietHandler(SimpleHTTPRequestHandler):
     """Serve converter fixtures without writing requests to the test log."""
+
+    def log_message(self, _format, *args):
+        pass
+
+
+class _NoLengthHandler(BaseHTTPRequestHandler):
+    """Serve fixture bytes without Content-Length to exercise streaming limits."""
+
+    image = b""
+    depth = b""
+
+    def do_GET(self):
+        if self.path.split("?", 1)[0].endswith("test.jpg"):
+            self.send_response(404)
+            self.end_headers()
+            return
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(self.depth if self.path.split("?", 1)[0].endswith(".npy") else self.image)
 
     def log_message(self, _format, *args):
         pass
@@ -67,6 +88,90 @@ def _write_depth_ndjson(
         },
     ]
     path.write_text("\n".join(json.dumps(record) for record in records))
+
+
+def test_convert_ndjson_preserves_non_depth_cache_identity(tmp_path):
+    """Keep the established ordered, eight-character cache identity for non-Depth tasks."""
+    source = tmp_path / "source"
+    source.mkdir()
+    for split in ("train", "val"):
+        cv2.imwrite(str(source / f"{split}.jpg"), np.zeros((3, 4, 3), dtype=np.uint8))
+    server = ThreadingHTTPServer(("127.0.0.1", 0), partial(_QuietHandler, directory=source))
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    records = [
+        {"type": "dataset", "task": "detect", "class_names": {"0": "object"}},
+        {
+            "type": "image",
+            "file": "train.jpg",
+            "url": f"http://127.0.0.1:{server.server_port}/train.jpg?signature=train",
+            "split": "train",
+            "annotations": {"boxes": [[0, 0.5, 0.5, 1, 1]]},
+        },
+        {
+            "type": "image",
+            "file": "val.jpg",
+            "url": f"http://127.0.0.1:{server.server_port}/val.jpg?signature=val",
+            "split": "val",
+            "annotations": {"boxes": [[0, 0.5, 0.5, 1, 1]]},
+        },
+    ]
+    manifest = tmp_path / "detect.ndjson"
+    manifest.write_text("\n".join(json.dumps(record) for record in records))
+    hasher = hashlib.sha256()
+    for record in records:
+        stable = {key: value for key, value in record.items() if key != "url"}
+        if record.get("file"):
+            stable["_source"] = clean_url(record["url"])
+        hasher.update(json.dumps(stable, sort_keys=True).encode())
+
+    try:
+        yaml_path = asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets"))
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join()
+
+    expected = hasher.hexdigest()[:8]
+    assert yaml_path.parent.name == f"detect-{expected}"
+    assert YAML.load(yaml_path)["hash"] == expected
+
+
+def test_convert_depth_ndjson_bounds_chunked_images_and_redacts_urls(tmp_path, monkeypatch):
+    """Enforce streamed RGB limits without exposing signed URL query strings in failures."""
+    source = tmp_path / "source"
+    source.mkdir()
+    image_path = source / "image.jpg"
+    depth_path = source / "depth.npy"
+    cv2.imwrite(str(image_path), np.zeros((3, 4, 3), dtype=np.uint8))
+    np.save(depth_path, np.arange(12, dtype=np.float32).reshape(3, 4))
+    _NoLengthHandler.image = image_path.read_bytes()
+    _NoLengthHandler.depth = depth_path.read_bytes()
+    server = ThreadingHTTPServer(("127.0.0.1", 0), _NoLengthHandler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    manifest = tmp_path / "bounded.ndjson"
+    image_hash = xxhash.xxh3_128_hexdigest(_NoLengthHandler.image)
+    depth_hash = xxhash.xxh3_128_hexdigest(_NoLengthHandler.depth)
+    _write_depth_ndjson(manifest, f"http://127.0.0.1:{server.server_port}", depth_hash, (image_hash, image_hash))
+    records = [json.loads(line) for line in manifest.read_text().splitlines()]
+    for record in records[1:]:
+        record["bytes"] = 1
+        record["url"] = f"{record['url']}&token=super-secret"
+    manifest.write_text("\n".join(json.dumps(record) for record in records))
+    warnings = []
+    monkeypatch.setattr(converter.LOGGER, "warning", warnings.append)
+
+    try:
+        with pytest.raises(RuntimeError, match="Failed to download any images"):
+            asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets"))
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join()
+
+    assert warnings
+    assert all("super-secret" not in warning for warning in warnings)
 
 
 def test_convert_depth_ndjson_downloads_pairs_and_reuses_cache(tmp_path, monkeypatch):
@@ -286,6 +391,9 @@ def test_convert_depth_ndjson_rejects_incomplete_descriptor_before_download(tmp_
         ("aux/frame.jpg", "train"),
         ("frame. ", "train"),
         ("frame?.jpg", "train"),
+        ("frame\0.jpg", "train"),
+        ("camera/\x1f.jpg", "train"),
+        ("camera/\x7f.jpg", "train"),
         ("train.jpg", "../train"),
     ],
 )
@@ -299,6 +407,20 @@ def test_convert_depth_ndjson_rejects_unsafe_output_paths(tmp_path, file, split)
     manifest.write_text("\n".join(json.dumps(record) for record in records))
 
     with pytest.raises(ValueError, match=r"relative path|split must"):
+        asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets"))
+
+
+def test_convert_depth_ndjson_rejects_oversized_declared_images(tmp_path):
+    """Reject excessive decoded dimensions before issuing downloads."""
+    manifest = tmp_path / "oversized.ndjson"
+    _write_depth_ndjson(manifest, "http://127.0.0.1:1", "0" * 32, ("0" * 32, "1" * 32))
+    records = [json.loads(line) for line in manifest.read_text().splitlines()]
+    records[1]["width"] = 8_001
+    records[1]["height"] = 8_000
+    records[1]["depth"]["shape"] = [8_000, 8_001]
+    manifest.write_text("\n".join(json.dumps(record) for record in records))
+
+    with pytest.raises(ValueError, match="may not exceed"):
         asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets"))
 
 

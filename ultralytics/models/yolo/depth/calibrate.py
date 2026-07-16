@@ -14,6 +14,7 @@ output, so the absolute scale is fixed for cross-domain models without harming i
 
 from __future__ import annotations
 
+import math
 from pathlib import Path
 
 import numpy as np
@@ -311,9 +312,17 @@ def calibrate_checkpoint(
     if res is None:
         a, b = float(saved_head.cal_a), float(saved_head.cal_b)
         inherited = ckpt.get("depth_calibration")
+        inherited_matches = (
+            isinstance(inherited, dict)
+            and inherited.get("status") in {"selected", "inherited"}
+            and isinstance(inherited.get("a"), (int, float))
+            and isinstance(inherited.get("b"), (int, float))
+            and math.isclose(float(inherited["a"]), a, rel_tol=1e-6, abs_tol=1e-6)
+            and math.isclose(float(inherited["b"]), b, rel_tol=1e-6, abs_tol=1e-6)
+        )
         provenance = (
             {**inherited, "status": "inherited"}
-            if isinstance(inherited, dict)
+            if inherited_matches
             else {
                 "status": "inherited" if (a, b) != (1.0, 0.0) else "skipped",
                 "candidate": "unknown" if (a, b) != (1.0, 0.0) else "identity",

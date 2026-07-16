@@ -28,6 +28,8 @@ from ultralytics.utils.files import increment_path
 from ultralytics.utils.patches import imread
 
 NDJSON_DEPTH_CONTRACT_VERSION = 1
+MAX_NDJSON_IMAGE_BYTES = 100 * 1024 * 1024
+MAX_NDJSON_IMAGE_PIXELS = 64_000_000
 MAX_NDJSON_DEPTH_BYTES = 512 * 1024 * 1024
 
 
@@ -849,6 +851,17 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     is_classification = task == "classify"
     is_depth = task == "depth"
 
+    # Preserve the established cache ABI for every non-Depth task.
+    legacy_hasher = hashlib.sha256()
+    for record in lines:
+        hash_record = {k: v for k, v in record.items() if k != "url"}
+        if record.get("file"):
+            hash_record["_source"] = (
+                clean_url(record["url"]) if record.get("url") else str(ndjson_path.parent.resolve())
+            )
+        legacy_hasher.update(json.dumps(hash_record, sort_keys=True).encode())
+    legacy_manifest_hash = legacy_hasher.hexdigest()[:8]
+
     def relative_record_path(value: str, field: str) -> PurePosixPath:
         """Validate a portable relative NDJSON output path before any filesystem access."""
         if not isinstance(value, str) or not value or "\\" in value:
@@ -866,6 +879,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         windows_invalid = any(
             part.rstrip(" .") != part
             or any(char in part for char in '<>:"|?*')
+            or any(unicodedata.category(char) == "Cc" for char in part)
             or part.split(".", 1)[0].upper() in windows_reserved
             for part in path.parts
         )
@@ -920,51 +934,45 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
             raise ValueError(f"{field} must be an XXH3-128 or SHA-256 hex digest")
         return xxhash.xxh3_128() if len(expected_hash) == 32 else hashlib.sha256()
 
-    def validate_image_file(path: Path, record: dict) -> bool:
+    def validate_image_file(path: Path, record: dict, verify_hash: bool = True) -> bool:
         """Validate a cached image against its manifest identity and decoder."""
         try:
-            expected_hash = record["hash"].lower()
-            hasher = content_hasher(expected_hash, "Image content hash")
-            with path.open("rb") as file:
-                for chunk in iter(lambda: file.read(1024 * 1024), b""):
-                    hasher.update(chunk)
+            if verify_hash:
+                expected_hash = record["hash"].lower()
+                hasher = content_hasher(expected_hash, "Image content hash")
+                with path.open("rb") as file:
+                    for chunk in iter(lambda: file.read(1024 * 1024), b""):
+                        hasher.update(chunk)
+                if hasher.hexdigest() != expected_hash:
+                    return False
             image = imread(str(path))
             return (
-                hasher.hexdigest() == expected_hash
-                and image is not None
+                image is not None
                 and (record.get("width") is None or image.shape[1] == record["width"])
                 and (record.get("height") is None or image.shape[0] == record["height"])
             )
         except (KeyError, OSError, TypeError, ValueError):
             return False
 
-    def validate_depth_file(path: Path, descriptor: dict) -> bool:
+    def validate_depth_file(path: Path, descriptor: dict, verify_hash: bool = True) -> bool:
         """Validate a downloaded or reused canonical depth target against its manifest descriptor."""
         try:
-            expected_hash = descriptor["hash"].lower()
-            hasher = content_hasher(expected_hash, "Depth content hash")
-            with path.open("rb") as file:
-                for chunk in iter(lambda: file.read(1024 * 1024), b""):
-                    hasher.update(chunk)
+            if verify_hash:
+                expected_hash = descriptor["hash"].lower()
+                hasher = content_hasher(expected_hash, "Depth content hash")
+                with path.open("rb") as file:
+                    for chunk in iter(lambda: file.read(1024 * 1024), b""):
+                        hasher.update(chunk)
+                if hasher.hexdigest() != expected_hash:
+                    return False
             depth = np.load(path, allow_pickle=False, mmap_mode="r")
             return (
-                hasher.hexdigest() == expected_hash
-                and depth.dtype == np.float32
+                depth.dtype == np.float32
                 and depth.ndim == 2
                 and list(depth.shape) == descriptor["shape"]
             )
         except (EOFError, KeyError, OSError, TypeError, ValueError):
             return False
-
-    def validate_depth_pair(root: Path, record: dict) -> bool:
-        """Validate both identities and require the decoded RGB and depth geometry to match."""
-        image_path = root / "images" / record["split"] / record["file"]
-        depth_path = root / "depth" / record["split"] / depth_relative_path(record)
-        if not validate_image_file(image_path, record) or not validate_depth_file(depth_path, record["depth"]):
-            return False
-        image = imread(str(image_path))
-        depth = np.load(depth_path, allow_pickle=False, mmap_mode="r")
-        return image is not None and tuple(image.shape[:2]) == tuple(depth.shape)
 
     # Validate required fields before consulting a cached conversion.
     if is_depth:
@@ -994,12 +1002,16 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
             width, height = record.get("width"), record.get("height")
             if type(width) is not int or width <= 0 or type(height) is not int or height <= 0:
                 raise ValueError("Depth records require positive integer image dimensions")
+            if width * height > MAX_NDJSON_IMAGE_PIXELS:
+                raise ValueError(f"Depth images may not exceed {MAX_NDJSON_IMAGE_PIXELS} pixels")
             if shape != [height, width]:
                 raise ValueError("Depth shape must match the declared image dimensions")
             if Path(record["file"]).suffix[1:].lower() not in IMG_FORMATS:
                 raise ValueError(f"Unsupported depth image format: {record['file']}")
             if "bytes" in depth and (type(depth["bytes"]) is not int or depth["bytes"] <= 0):
                 raise ValueError("Depth bytes must be a positive integer")
+            if "bytes" in record and (type(record["bytes"]) is not int or record["bytes"] <= 0):
+                raise ValueError("Image bytes must be a positive integer")
             image_path = unicodedata.normalize("NFC", f"{record['split']}/{record['file']}").casefold()
             depth_path = unicodedata.normalize(
                 "NFC", f"{record['split']}/{depth_relative_path(record).as_posix()}"
@@ -1014,8 +1026,6 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                 )
             image_paths.add(image_path)
             depth_paths.add(depth_path)
-
-    pre_split_manifest_hash = manifest_digest()
 
     splits = {record["split"] for record in image_records}
     if not is_classification:
@@ -1043,7 +1053,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
 
     # Depth identity includes the deterministic output split and a converter contract version. Other tasks preserve
     # their existing pre-conversion identity semantics.
-    manifest_hash = manifest_digest(NDJSON_DEPTH_CONTRACT_VERSION) if is_depth else pre_split_manifest_hash
+    manifest_hash = manifest_digest(NDJSON_DEPTH_CONTRACT_VERSION) if is_depth else legacy_manifest_hash
     dataset_dir = output_path / f"{ndjson_path.stem}-{manifest_hash}"
     yaml_path = dataset_dir / "data.yaml"
 
@@ -1070,7 +1080,13 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                     and not ({"train", "val", "test"} - expected_split_paths.keys()) & cached.keys()
                     and actual_images == expected_images
                     and actual_depth == expected_depth
-                    and all(validate_depth_pair(root, record) for record in image_records)
+                    and all(
+                        validate_image_file(root / "images" / record["split"] / record["file"], record)
+                        and validate_depth_file(
+                            root / "depth" / record["split"] / depth_relative_path(record), record["depth"]
+                        )
+                        for record in image_records
+                    )
                 )
             return all(
                 (root / cached[split]).is_dir()
@@ -1140,7 +1156,16 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         if is_depth and "val" not in data_yaml and "test" in data_yaml:
             data_yaml["val"] = data_yaml["test"]
 
-    async def ensure_file(session, path, url, candidates=(), expected_hash=None, max_bytes=None, expected_bytes=None):
+    async def ensure_file(
+        session,
+        path,
+        url,
+        candidates=(),
+        expected_hash=None,
+        max_bytes=None,
+        expected_bytes=None,
+        validator=None,
+    ):
         """Reuse a local split copy or download a file with bounded retries."""
         if path.exists():
             return True
@@ -1175,24 +1200,28 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                         raise ValueError(f"Downloaded {received} bytes, expected {expected_bytes}")
                     if hasher and hasher.hexdigest() != expected_hash.lower():
                         raise ValueError("Downloaded content hash does not match the manifest")
+                    if validator and not validator(temporary):
+                        raise ValueError("Downloaded content does not match the manifest structure")
                     temporary.replace(path)
                 return True
             except aiohttp.ClientResponseError as e:
                 error = e
                 if e.status not in {408, 429} and e.status < 500:
-                    LOGGER.warning(f"Failed to download {url}: {e}")
+                    LOGGER.warning(f"Failed to download {clean_url(url)}: HTTP {e.status}")
                     return False
             except (aiohttp.ClientError, asyncio.TimeoutError) as e:
                 error = e
             except Exception as e:  # OSError, validation, disk full, permissions — not transient, don't retry
-                LOGGER.warning(f"Failed to save {url}: {e}")
+                LOGGER.warning(f"Failed to save {clean_url(url)}: {e}")
                 return False
             finally:
                 temporary.unlink(missing_ok=True)
             if attempt < 2:
                 await asyncio.sleep(2**attempt)
             else:
-                LOGGER.warning(f"Failed to download {url} after 3 attempts: {error}")
+                LOGGER.warning(
+                    f"Failed to download {clean_url(url)} after 3 attempts: {type(error).__name__ if error else 'unknown'}"
+                )
         return False
 
     async def process_record(session, semaphore, record):
@@ -1219,9 +1248,17 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
 
             if is_depth and image_path.exists() and not validate_image_file(image_path, record):
                 image_path.unlink()
-            image_ok = await ensure_file(session, image_path, record.get("url"))
-            if is_depth:
-                image_ok = image_ok and validate_image_file(image_path, record)
+            image_ok = await ensure_file(
+                session,
+                image_path,
+                record.get("url"),
+                expected_hash=record.get("hash") if is_depth else None,
+                max_bytes=(
+                    min(record.get("bytes", MAX_NDJSON_IMAGE_BYTES), MAX_NDJSON_IMAGE_BYTES) if is_depth else None
+                ),
+                expected_bytes=record.get("bytes") if is_depth else None,
+                validator=(lambda path: validate_image_file(path, record, verify_hash=False)) if is_depth else None,
+            )
             if not is_depth:
                 return image_ok
 
@@ -1247,10 +1284,8 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                 expected_hash=descriptor["hash"],
                 max_bytes=min(descriptor.get("bytes", MAX_NDJSON_DEPTH_BYTES), MAX_NDJSON_DEPTH_BYTES),
                 expected_bytes=descriptor.get("bytes"),
+                validator=lambda path: validate_depth_file(path, descriptor, verify_hash=False),
             )
-            if depth_ok and not validate_depth_pair(dataset_dir, record):
-                LOGGER.warning(f"Depth target failed descriptor validation: {depth_path}")
-                depth_ok = False
             if not image_ok or not depth_ok:
                 image_path.unlink(missing_ok=True)
                 depth_path.unlink(missing_ok=True)

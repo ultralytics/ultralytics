@@ -1041,8 +1041,9 @@ def test_depth_calibration_checkpoint_provenance(tmp_path):
     assert float(head.cal_b) == provenance["b"]
 
 
-def test_depth_calibration_preserves_inherited_provenance(tmp_path, monkeypatch):
-    """A skipped calibration attempt retains the source checkpoint's verified lineage."""
+@pytest.mark.parametrize(("buffer_b", "expected_status"), [(0.25, "inherited"), (0.0, "skipped")])
+def test_depth_calibration_preserves_only_matching_provenance(tmp_path, monkeypatch, buffer_b, expected_status):
+    """A skipped calibration attempt retains only lineage matching the stored model buffers."""
     from copy import deepcopy
 
     from ultralytics.models.yolo.depth import calibrate
@@ -1061,14 +1062,21 @@ def test_depth_calibration_preserves_inherited_provenance(tmp_path, monkeypatch)
         "scores": {"identity": 0.5, "scale-only": 0.8},
     }
     path = tmp_path / "inherited.pt"
-    torch.save(
-        {"model": deepcopy(DepthModel("yolo26n-depth.yaml", verbose=False)).half(), "depth_calibration": source}, path
-    )
+    model = deepcopy(DepthModel("yolo26n-depth.yaml", verbose=False)).half()
+    calibrate._depth_head(model).cal_b.fill_(buffer_b)
+    torch.save({"model": model, "depth_calibration": source}, path)
     monkeypatch.setattr(calibrate, "fit_calibration_selective", lambda *_args, **_kwargs: None)
 
     provenance = calibrate.calibrate_checkpoint(path, [], device="cpu", dataset_hash="new-manifest")
 
-    assert provenance == {**source, "status": "inherited"}
+    assert provenance["status"] == expected_status
+    assert provenance["a"] == float(calibrate._depth_head(torch_load(path)["model"]).cal_a)
+    assert provenance["b"] == float(calibrate._depth_head(torch_load(path)["model"]).cal_b)
+    if expected_status == "inherited":
+        assert provenance == {**source, "status": "inherited"}
+    else:
+        assert provenance["candidate"] == "identity"
+        assert provenance["dataset_hash"] == "new-manifest"
     assert torch_load(path)["depth_calibration"] == provenance
 
 

@@ -57,8 +57,8 @@ For a more detailed comparison table, please visit the **Compare Specifications*
 
 The first step after getting your hands on an NVIDIA Jetson device is to flash NVIDIA JetPack to the device. There are several different ways of flashing NVIDIA Jetson devices.
 
-1. If you own an official NVIDIA Development Kit such as the Jetson AGX Thor Developer Kit, you can [download an image and prepare a bootable USB stick to flash JetPack to the included SSD](https://docs.nvidia.com/jetson/agx-thor-devkit/user-guide/latest/quick_start.html).
-2. If you own an official NVIDIA Development Kit such as the Jetson Orin Nano Developer Kit, you can [download an image and prepare an SD card with JetPack for booting the device](https://developer.nvidia.com/embedded/learn/get-started-jetson-orin-nano-devkit).
+1. For JetPack 7.2 on an official Jetson AGX Thor, AGX Orin, or Orin Nano Developer Kit, download the unified Jetson ISO, write it to a USB flash drive, and follow the device-specific quick start for [AGX Thor](https://docs.nvidia.com/jetson/agx-thor-devkit/user-guide/latest/quick_start.html), [AGX Orin](https://docs.nvidia.com/jetson/agx-orin-devkit/user-guide/latest/quick_start.html), or [Orin Nano](https://docs.nvidia.com/jetson/orin-nano-devkit/user-guide/latest/quick_start.html). Starting with JetPack 7.2, Orin Nano no longer uses a downloadable SD-card image; the ISO USB installs Jetson Linux onto the device's microSD card or NVMe SSD.
+2. If you intentionally use JetPack 6 on a Jetson Orin Nano Developer Kit, follow NVIDIA's [JetPack 6.x update and SD-card instructions](https://docs.nvidia.com/jetson/orin-nano-devkit/user-guide/latest/update_firmware.html).
 3. If you own any other NVIDIA Development Kit, you can [flash JetPack to the device using SDK Manager](https://docs.nvidia.com/sdk-manager/install-with-sdkm-jetson/index.html).
 4. If you own a Seeed Studio reComputer J4012 device, you can [flash JetPack to the included SSD](https://wiki.seeedstudio.com/reComputer_J4012_Flash_Jetpack/) and if you own a Seeed Studio reComputer J1020 v2 device, you can [flash JetPack to the eMMC/ SSD](https://wiki.seeedstudio.com/reComputer_J2021_J202_Flash_Jetpack/).
 5. If you own any other third-party device powered by the NVIDIA Jetson module, it is recommended to follow [command-line flashing](https://docs.nvidia.com/jetson/archives/r35.5.0/DeveloperGuide/IN/QuickStart.html).
@@ -107,12 +107,16 @@ The fastest way to get started with Ultralytics YOLO26 on NVIDIA Jetson is to ru
     sudo docker pull $t && sudo docker run -it --ipc=host --runtime=nvidia $t
     ```
 
-=== "JetPack 7"
+=== "JetPack 7 (Thor/DGX Spark)"
 
     ```bash
     t=ultralytics/ultralytics:latest-nvidia-arm64
     sudo docker pull $t && sudo docker run -it --ipc=host --runtime=nvidia $t
     ```
+
+!!! note "JetPack 7 Docker scope"
+
+    The public `latest-nvidia-arm64` image currently owns the JetPack 7.0 Thor/DGX Spark path. For JetPack 7.2 on Orin, use the native installation below until the public image is explicitly validated and updated for that combination.
 
 After this is done, skip to [Use TensorRT on NVIDIA Jetson section](#use-tensorrt-on-nvidia-jetson).
 
@@ -303,11 +307,11 @@ pip install onnxruntime_gpu-1.17.0-cp38-cp38-linux_aarch64.whl
 
 Among all the model export formats supported by Ultralytics, TensorRT offers the highest inference performance on NVIDIA Jetson devices, making it our top recommendation for Jetson deployments. For setup instructions and advanced usage, see our [dedicated TensorRT integration guide](../integrations/tensorrt.md).
 
-You can also export from the browser without configuring the build environment locally. In the [Ultralytics Platform model Export tab](../platform/train/models.md#nvidia-jetson-tensorrt-targets), select TensorRT and the exact Jetson target to build and download a device-targeted `.engine` file.
+You can also export from the browser without configuring the build environment locally. In the [Ultralytics Platform model Export tab](../platform/train/models.md#nvidia-jetson-tensorrt-targets), select TensorRT and the intended Jetson target. Thor selections are validated on physical Thor hardware. The six Orin selections currently produce AGX-Orin-built candidate engines; validate them on the intended Orin SKU before deployment.
 
 !!! warning "TensorRT engines are device-specific"
 
-    TensorRT profiles and tunes an engine on its build GPU. Match the target's GPU architecture and TensorRT/CUDA runtime, and validate the downloaded engine on the deployment device. INT8 calibration should use the target device for best results.
+    TensorRT profiles and tunes an engine on its build GPU. Match the target's GPU architecture and TensorRT/CUDA runtime, and validate every downloaded engine on the deployment device. Same-architecture Orin SKUs are not an automatic portability guarantee, and INT8 calibration should use the target device for best results.
 
 ### Convert Model to TensorRT and Run Inference
 

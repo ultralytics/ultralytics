@@ -24,7 +24,7 @@ TensorRT is known for its compatibility with various model formats, including Te
 
 !!! warning "TensorRT engines are hardware- and runtime-specific"
 
-    TensorRT profiles and tunes an engine on its build GPU. Build for the deployment GPU architecture and match the TensorRT/CUDA runtime; do not treat an `.engine` file as a portable model format. For edge deployment, [Ultralytics Platform](../platform/train/models.md#nvidia-jetson-tensorrt-targets) can build directly for eight Jetson targets, or you can export locally on the destination device.
+    TensorRT profiles and tunes an engine on its build GPU. Build for the deployment GPU architecture and match the TensorRT/CUDA runtime; do not treat an `.engine` file as a portable model format. For edge deployment, [Ultralytics Platform](../platform/train/models.md#nvidia-jetson-tensorrt-targets) offers eight Jetson target selections, with physical build and validation status documented for each, or you can export locally on the destination device.
 
 ## Key Features of TensorRT Models
 

@@ -163,11 +163,17 @@ class DepthTrainer(yolo.detect.DetectionTrainer):
                 if ckpt.exists():
                     plot_dir = self.save_dir if self.args.plots and ckpt == plot_ckpt else None
                     validation_path = self.data.get("val") or self.data.get("test")
-                    validation_split = (
-                        Path(validation_path).resolve().relative_to(Path(self.data["path"]).resolve()).as_posix()
-                        if isinstance(validation_path, (str, Path))
-                        else None
-                    )
+                    validation_split = None
+                    if isinstance(validation_path, (str, Path)):
+                        try:
+                            validation_split = (
+                                Path(validation_path)
+                                .resolve()
+                                .relative_to(Path(self.data["path"]).resolve())
+                                .as_posix()
+                            )
+                        except ValueError:
+                            pass  # External validation paths have no portable dataset-root-relative identifier.
                     provenance = calibrate_checkpoint(
                         ckpt,
                         self.test_loader,

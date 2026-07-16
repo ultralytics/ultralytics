@@ -1075,8 +1075,9 @@ def test_depth_calibration_rejects_divergent_checkpoint_provenance(tmp_path, mon
     assert provenance["dataset_hash"] == "new-manifest"
 
 
-def test_depth_trainer_records_portable_calibration_split(tmp_path, monkeypatch):
-    """Calibration provenance must not expose the resolved dataset path."""
+@pytest.mark.parametrize("external", [False, True])
+def test_depth_trainer_records_portable_calibration_split(tmp_path, monkeypatch, external):
+    """Calibration provenance records local splits without rejecting external validation paths."""
     from types import SimpleNamespace
 
     from ultralytics.models.yolo import detect
@@ -1084,7 +1085,7 @@ def test_depth_trainer_records_portable_calibration_split(tmp_path, monkeypatch)
     from ultralytics.models.yolo.depth.train import DepthTrainer
 
     dataset_root = tmp_path / "private" / "dataset"
-    validation_path = dataset_root / "images" / "val"
+    validation_path = (tmp_path / "shared" if external else dataset_root) / "images" / "val"
     validation_path.mkdir(parents=True)
     checkpoint = tmp_path / "best.pt"
     checkpoint.touch()
@@ -1106,8 +1107,28 @@ def test_depth_trainer_records_portable_calibration_split(tmp_path, monkeypatch)
 
     trainer.final_eval()
 
-    assert captured["validation_split"] == "images/val"
-    assert str(tmp_path) not in captured["validation_split"]
+    assert captured["validation_split"] == (None if external else "images/val")
+    if captured["validation_split"] is not None:
+        assert str(tmp_path) not in captured["validation_split"]
+
+
+def test_depth_dataset_ignores_unreadable_targets(tmp_path, monkeypatch):
+    """Filter corrupt depth targets during dataset scanning instead of failing during training."""
+    from ultralytics.data.dataset import DepthDataset, YOLODataset
+
+    images = tmp_path / "images" / "train"
+    depth = tmp_path / "depth" / "train"
+    images.mkdir(parents=True)
+    depth.mkdir(parents=True)
+    labels = [{"im_file": str(images / f"{name}.jpg")} for name in ("valid", "corrupt")]
+    np.save(depth / "valid.npy", np.ones((2, 3), dtype=np.float32))
+    (depth / "corrupt.npy").write_text("not an npy file")
+    monkeypatch.setattr(YOLODataset, "get_labels", lambda _self: labels)
+    dataset = DepthDataset.__new__(DepthDataset)
+    dataset.prefix = "train: "
+
+    assert dataset.get_labels() == labels[:1]
+    assert dataset.im_files == [labels[0]["im_file"]]
 
 
 def test_utils_init():

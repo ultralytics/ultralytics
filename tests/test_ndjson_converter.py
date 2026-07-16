@@ -96,7 +96,7 @@ def test_convert_depth_ndjson_downloads_image_target_pairs(tmp_path, depth_serve
 
 
 def test_convert_depth_ndjson_reuses_existing_conversion(tmp_path, depth_server, monkeypatch):
-    """Reuse a completed depth conversion with the same directory-level cache check as images."""
+    """Reuse complete depth conversions and repair a missing member of an expected pair."""
     base_url, _ = depth_server
     manifest = tmp_path / "depth.ndjson"
     _write_manifest(manifest, base_url)
@@ -104,6 +104,12 @@ def test_convert_depth_ndjson_reuses_existing_conversion(tmp_path, depth_server,
 
     monkeypatch.setattr(YAML, "save", lambda *_args, **_kwargs: pytest.fail("cache missed"))
     assert asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets")) == yaml_path
+
+    monkeypatch.undo()
+    depth_path = yaml_path.parent / "depth" / "val" / "2.npy"
+    depth_path.unlink()
+    assert asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets")) == yaml_path
+    assert depth_path.is_file()
 
 
 def test_convert_depth_ndjson_removes_incomplete_pair(tmp_path, depth_server):

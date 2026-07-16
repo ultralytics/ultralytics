@@ -91,7 +91,7 @@ model = YOLO("yolo26n.pt")  # load a pretrained detection model
 results = model("https://ultralytics.com/images/bus.jpg")  # run inference
 ```
 
-## Get a Taste of Training
+## Run Your First Training
 
 Train the same model on the bundled [COCO8](datasets/detect/coco8.md) dataset for 3 epochs:
 
@@ -111,6 +111,10 @@ Swap `coco8.yaml` for your own dataset's YAML to train on your data — see [Tra
   <br>
   <strong>Watch:</strong> Ultralytics YOLO Quick Start Guide
 </p>
+
+## Next Steps
+
+Check out [YOLO26](models/yolo26.md) for benchmarks and every model variant, or browse [Tasks](tasks/index.md) to find the one that matches your problem — detection, segmentation, pose, OBB, or classification. To train on your own data, format it with the [Datasets guide](datasets/index.md) and run [Train mode](modes/train.md). For deeper API coverage beyond this page, see the [Python Guide](usage/python.md) and [CLI Guide](usage/cli.md), or skip straight to a ready-made pipeline with [Solutions](solutions/index.md).
 
 ## FAQ
 
@@ -169,13 +173,3 @@ yolo train data=coco8.yaml model=yolo26n.pt epochs=10 lr0=0.01
 ```
 
 Explore the full grammar and every mode's arguments in the [CLI Guide](usage/cli.md).
-
-## What's Next
-
-- **Train on your own data:** [Train mode](modes/train.md) and [Datasets](datasets/index.md) cover custom training end to end.
-- **Go deeper with Python:** the [Python Guide](usage/python.md) covers loading, training, validating, and exporting models.
-- **Master the CLI:** the [CLI Guide](usage/cli.md) covers every `yolo` command and argument.
-- **Tune a run:** the [Configuration Guide](usage/cfg.md) lists every training, validation, and prediction argument.
-- **Change persistent settings:** the [Settings Guide](usage/settings.md) covers dataset/weights/run directories and integration toggles.
-- **Build an application:** [Solutions](solutions/index.md) are ready-made pipelines for counting, tracking, heatmaps, and more.
-- **Deploy your model:** [Export mode](modes/export.md) converts a trained model to ONNX, TensorRT, CoreML, and 15+ other formats.

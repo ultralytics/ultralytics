@@ -347,43 +347,62 @@ class KeypointLoss(nn.Module):
 class RankLoss(nn.Module):
     """RS-style ranking loss (pairwise surrogate) for the one2one classification head.
 
-    Two terms, both active only where the ranking is violated, so healthy positives contribute ~0 loss. This
-    re-ranks rather than globally inflating scores: it lifts lagging positives, keeps suppressing runner-up negatives,
-    and leaves already-correct rankings untouched, preserving accuracy and the NMS-free property.
+    Two terms, both active only where the ranking is violated, so healthy positives contribute ~0 loss. This re-ranks
+    rather than globally inflating scores: it lifts lagging positives, keeps suppressing runner-up negatives, and leaves
+    already-correct rankings untouched, preserving accuracy and the NMS-free property.
 
     - rank: pushes each positive (TP) above the same-class negatives — directly rescues the "dead tail".
     - sort: orders positives by IoU so higher-IoU anchors score higher.
 
     Attributes:
         tau (float): Temperature; smaller approaches hard ranking.
-        k_neg (int): Per image/class, keep only the top-K highest-scoring negatives (the real ranking threats).
+        k_neg (int): Per image/class, keep only the top-K highest-scoring negatives (the real ranking threats). Ignored
+            when ``in_gt`` is set (the GT box defines the pool instead).
         w_sort (float): Weight of the sort term relative to the rank term.
         w_rank (float): Weight of the rank term (set to 0 to train the sort term alone).
-        p3_only (bool): Restrict the loss to the finest (smallest-stride, i.e. P3) level only, where small objects
-            live; leaves the coarser P4/P5 anchors untouched.
+        p3_only (bool): Restrict the loss to the finest (smallest-stride, i.e. P3) level only, where small objects live;
+            leaves the coarser P4/P5 anchors untouched.
+        in_gt (bool): Draw each positive's rank negatives from the anchors inside its own matched GT box (the
+            same-object duplicates) instead of the top-K highest-scoring same-class anchors across the image.
     """
 
     def __init__(
-        self, tau: float = 0.5, k_neg: int = 100, w_sort: float = 0.5, w_rank: float = 1.0, p3_only: bool = False
+        self,
+        tau: float = 0.5,
+        k_neg: int = 100,
+        w_sort: float = 0.5,
+        w_rank: float = 1.0,
+        p3_only: bool = False,
+        in_gt: bool = False,
     ):
-        """Initialize the ranking loss with temperature, hard-negative count, rank/sort weights and level scope."""
+        """Initialize the ranking loss with temperature, hard-negative count, rank/sort weights and pool scope."""
         super().__init__()
         self.tau = tau
         self.k_neg = k_neg
         self.w_sort = w_sort
         self.w_rank = w_rank
         self.p3_only = p3_only
+        self.in_gt = in_gt
 
     def forward(
-        self, pred_logits: torch.Tensor, target_scores: torch.Tensor, strides: torch.Tensor | None = None
+        self,
+        pred_logits: torch.Tensor,
+        target_scores: torch.Tensor,
+        strides: torch.Tensor | None = None,
+        mask_in_gts: torch.Tensor | None = None,
+        target_gt_idx: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """Compute the ranking loss over one2one positives against same-class negatives.
 
         Args:
             pred_logits (torch.Tensor): Classification logits with shape (bs, num_anchors, nc).
-            target_scores (torch.Tensor): One2one soft targets with shape (bs, num_anchors, nc); each positive holds
-                its GT-class IoU in the GT-class channel and 0 elsewhere.
+            target_scores (torch.Tensor): One2one soft targets with shape (bs, num_anchors, nc); each positive holds its
+                GT-class IoU in the GT-class channel and 0 elsewhere.
             strides (torch.Tensor | None): Per-anchor stride with shape (num_anchors, 1); required when ``p3_only``.
+            mask_in_gts (torch.Tensor | None): Anchor-in-GT-box mask with shape (bs, n_max_boxes, num_anchors); required
+                when ``in_gt``.
+            target_gt_idx (torch.Tensor | None): Per-anchor matched GT index with shape (bs, num_anchors); required when
+                ``in_gt``.
 
         Returns:
             (torch.Tensor): Scalar ranking loss (0 when no positive/negative pairs exist).
@@ -391,6 +410,8 @@ class RankLoss(nn.Module):
         if self.p3_only and strides is not None:  # keep only the finest (smallest-stride, P3) level
             m = strides.flatten() == strides.min()
             pred_logits, target_scores = pred_logits[:, m], target_scores[:, m]
+            if mask_in_gts is not None:
+                mask_in_gts, target_gt_idx = mask_in_gts[:, :, m], target_gt_idx[:, m]
         scores = pred_logits.sigmoid()
         _, N, nc = scores.shape
         pos = target_scores > 0
@@ -407,12 +428,19 @@ class RankLoss(nn.Module):
         counts = torch.bincount(inv)  # (G,)
         G = counts.numel()
 
-        # rank: each positive vs its group's top-K same-class negatives (one batched topk over all groups)
-        k = min(self.k_neg, N)
-        neg_topk = scores.masked_fill(pos, float("-inf")).topk(k, dim=1).values  # (B, k, nc)
-        neg = neg_topk[b_id, :, c_id].float()  # (M, k) each positive's hard negatives
-        kcnt = neg.isfinite().sum(1).clamp(min=1)  # valid negatives per positive
-        per_pos = F.softplus((neg - s_pos[:, None]) / self.tau).sum(1) / kcnt  # (M,) mean over negatives
+        # rank: push each positive above its same-class negatives (softplus surrogate); pool depends on in_gt
+        if self.in_gt:  # negatives = anchors inside the positive's own GT box (same-object duplicates)
+            gt_of_pos = target_gt_idx[b_id, pos_idx[:, 1]]  # (M,) GT each positive is matched to
+            neg_mask = mask_in_gts[b_id, gt_of_pos].bool() & ~pos[b_id, :, c_id]  # (M, N) in-box, non-positive
+            neg = scores[b_id, :, c_id].float()  # (M, N) each positive's same-class scores
+            kcnt = neg_mask.sum(1).clamp(min=1)  # valid negatives per positive
+            per_pos = (F.softplus((neg - s_pos[:, None]) / self.tau) * neg_mask).sum(1) / kcnt  # (M,) mean over in-box
+        else:  # negatives = the top-K highest-scoring same-class anchors in the image (one batched topk over groups)
+            k = min(self.k_neg, N)
+            neg_topk = scores.masked_fill(pos, float("-inf")).topk(k, dim=1).values  # (B, k, nc)
+            neg = neg_topk[b_id, :, c_id].float()  # (M, k) each positive's hard negatives
+            kcnt = neg.isfinite().sum(1).clamp(min=1)  # valid negatives per positive
+            per_pos = F.softplus((neg - s_pos[:, None]) / self.tau).sum(1) / kcnt  # (M,) mean over negatives
         group_rank = per_pos.new_zeros(G).scatter_add_(0, inv, per_pos) / counts  # (G,) per-group mean
         total_rank = group_rank.sum()
 
@@ -609,7 +637,9 @@ class v8DetectionLoss:
         if self.bbox_loss.center and fg_mask.sum():  # fold the (already gain-weighted) box-center aux into the box term
             loss[0] += self.bbox_loss.center_loss
         if getattr(self, "rank", None) is not None:  # store the o2o ranking loss; E2ELoss reports it as its own term
-            self.rank_loss = self.rank(pred_scores, target_scores, stride_tensor)
+            self.rank_loss = self.rank(
+                pred_scores, target_scores, stride_tensor, self.assigner.rank_in_gts, target_gt_idx
+            )
         return (
             (fg_mask, target_gt_idx, target_bboxes, anchor_points, stride_tensor),
             loss,
@@ -1386,13 +1416,17 @@ class E2ELoss:
             self.one2one.assigner.distill = True  # cache the positive x GT-class mask during assignment
         # one2one-only ranking regularizer (RS-style pairwise surrogate), folded into the o2o cls loss
         if getattr(model.args, "rank", 0.0):
+            in_gt = getattr(model.args, "rank_in_gt", False)
             self.one2one.rank = RankLoss(
                 tau=getattr(model.args, "rank_tau", 0.5),
                 k_neg=getattr(model.args, "rank_k_neg", 100),
                 w_sort=getattr(model.args, "rank_w_sort", 0.5),
                 w_rank=getattr(model.args, "rank_w_rank", 1.0),
                 p3_only=getattr(model.args, "rank_p3_only", False),
+                in_gt=in_gt,
             )
+            if in_gt:  # o2o assigner must cache the in-GT-box mask for the rank loss
+                self.one2one.assigner.rank_pool = True
             self.one2one.rank_gain = model.args.rank
 
     def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:

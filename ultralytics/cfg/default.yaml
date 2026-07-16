@@ -122,6 +122,7 @@ rank_k_neg: 100 # (int) when rank>0, per image/class keep only the top-K highest
 rank_w_sort: 0.5 # (float) when rank>0, weight of the IoU-sort term relative to the rank term
 rank_w_rank: 1.0 # (float) when rank>0, weight of the rank term (set 0 to train the sort term alone)
 rank_p3_only: False # (bool) when rank>0, apply the ranking loss only to the finest (P3, smallest-stride) level
+rank_in_gt: False # (bool) when rank>0, draw rank negatives from each positive's own GT box instead of top-K image scores
 dfl: 1.5 # (float) distribution focal loss gain
 l1_feat: False # (bool) when reg_max=1, compute box L1 loss in feature-map (grid) scale instead of image-normalized
 smooth_l1: False # (bool) when reg_max=1, use Smooth L1 (Huber) loss for box regression instead of L1

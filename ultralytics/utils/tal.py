@@ -65,6 +65,8 @@ class TaskAlignedAssigner(nn.Module):
         self.share_pos = False  # o2m head: cache its positive set + align metric for the o2o head to reuse
         self.shared_metric = self.shared_mask = None
         self.o2m_metric = self.o2m_mask = None  # o2o head: when set, take topk candidates from the o2m positive set
+        self.rank_pool = False  # o2o head: cache the in-GT-box mask so the rank loss draws negatives from each GT box
+        self.rank_in_gts = None
         self.num_classes = num_classes
         self.alpha = alpha
         self.beta = beta
@@ -97,6 +99,7 @@ class TaskAlignedAssigner(nn.Module):
         self.bs = pd_scores.shape[0]
         self.o2f_cls_score = self.o2f_cls_weight = self.distill_pos_mask = self.distill_norm = None
         self.shared_metric = self.shared_mask = None
+        self.rank_in_gts = None
         self.n_max_boxes = gt_bboxes.shape[1]
         device = gt_bboxes.device
 
@@ -126,6 +129,8 @@ class TaskAlignedAssigner(nn.Module):
                 if self.shared_metric is not None:
                     self.shared_metric = self.shared_metric.to(device)
                     self.shared_mask = self.shared_mask.to(device)
+                if self.rank_in_gts is not None:
+                    self.rank_in_gts = self.rank_in_gts.to(device)
                 return tuple(t.to(device) for t in result)
             raise
 
@@ -167,7 +172,9 @@ class TaskAlignedAssigner(nn.Module):
             pos_overlaps = (overlaps * mask_pos).amax(dim=-1, keepdim=True)  # b, max_num_obj
             norm_align_metric = (align_metric * pos_overlaps / (pos_align_metrics + self.eps)).amax(-2).unsqueeze(-1)
         target_scores = target_scores * norm_align_metric
-        if self.distill:  # cache positive x GT-class locations + score sum for online cls distillation (read by E2ELoss)
+        if (
+            self.distill
+        ):  # cache positive x GT-class locations + score sum for online cls distillation (read by E2ELoss)
             self.distill_pos_mask = target_scores > 0
             self.distill_norm = target_scores.sum().clamp_(min=1)  # == the loss's target_scores_sum
         # O2F overrides only the ambiguous-anchor cls target (applied in the loss); box/dfl keep the full target_scores
@@ -198,6 +205,8 @@ class TaskAlignedAssigner(nn.Module):
             overlaps (torch.Tensor): Overlaps between predicted vs ground truth boxes with shape (bs, max_num_obj, h*w).
         """
         mask_in_gts = self.select_candidates_in_gts(anc_points, gt_bboxes, mask_gt)
+        if self.rank_pool:  # cache the in-GT-box mask; the o2o rank loss pulls negatives from each positive's GT box
+            self.rank_in_gts = mask_in_gts
         # Get anchor_align metric, (b, max_num_obj, h*w)
         align_metric, overlaps = self.get_box_metrics(pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_in_gts * mask_gt)
         # Get topk_metric mask, (b, max_num_obj, h*w). When o2m_metric is set the o2o head reuses the o2m positive set:

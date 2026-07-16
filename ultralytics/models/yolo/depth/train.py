@@ -6,7 +6,6 @@ from __future__ import annotations
 from copy import copy
 from typing import Any
 
-
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import DepthModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK

@@ -13,10 +13,11 @@ from ultralytics.data import build_dataloader
 from ultralytics.data.stereo.box3d import Box3D
 from ultralytics.models import yolo
 from ultralytics.models.yolo.s3d.dataset import Stereo3DDetDataset
-from ultralytics.models.yolo.s3d.head import resolve_s3d_head
+from ultralytics.models.yolo.s3d.head import DEPTH_MAX, DEPTH_MIN
 from ultralytics.models.yolo.s3d.model import Stereo3DDetModel
 from ultralytics.models.yolo.s3d.preprocess import preprocess_stereo_batch
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
+
 from ultralytics.utils.plotting import Annotator, VisualizationConfig, colors, plot_labels, plot_stereo3d_boxes
 from ultralytics.utils.torch_utils import unwrap_model
 
@@ -30,7 +31,6 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         overrides["task"] = "s3d"
         super().__init__(cfg, overrides, _callbacks)
         self.add_callback("on_train_epoch_start", Stereo3DDetTrainer._set_loss_epoch_frac)
-        self.add_callback("on_pretrain_routine_end", Stereo3DDetTrainer._set_depth_range)
 
     @staticmethod
     def _set_loss_epoch_frac(trainer):
@@ -38,27 +38,6 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         criterion = getattr(unwrap_model(trainer.model), "criterion", None)
         if criterion is not None:
             criterion.epoch_frac = trainer.epoch / max(trainer.epochs, 1)
-
-    @staticmethod
-    def _set_depth_range(trainer):
-        """Retarget the head's direct-depth DFL bins from the dataset config before the criterion is built.
-
-        Fires after model+data+EMA setup and before the first forward (which lazily builds the loss). Both
-        the live model (drives the loss target normalization) and the EMA model (what the checkpoint is
-        saved from) are retargeted, so the head bins, the loss, and the saved weights share one range.
-        """
-        d_min, d_max = trainer.data.get("depth_min"), trainer.data.get("depth_max")
-        if d_min is None or d_max is None:
-            return
-        ema = getattr(getattr(trainer, "ema", None), "ema", None)
-        applied = False
-        for mdl in (trainer.model, ema):
-            head = resolve_s3d_head(mdl) if mdl is not None else None
-            if head is not None:
-                head.set_depth_range(float(d_min), float(d_max))
-                applied = True
-        if applied:
-            LOGGER.info("s3d: direct-depth range set to [%.3f, %.3f] m from dataset config", float(d_min), float(d_max))
 
     def get_validator(self):
         """Return a Stereo3DDetValidator, currently extending DetectionValidator."""
@@ -93,6 +72,7 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         Returns:
             dict: Dataset dictionary with fields used by the trainer and model.
         """
+
         # Use check_det_dataset for path resolution, validation, and automatic download
         # This handles: finding default configs, executing download scripts, resolving paths
         from ultralytics.data.utils import check_det_dataset
@@ -179,10 +159,10 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
             # carry over optional stereo metadata if present
             "stereo": data_cfg.get("stereo", True),
             "baseline": data_cfg.get("baseline"),
+            "depth_min": data_cfg.get("depth_min", DEPTH_MIN),
+            "depth_max": data_cfg.get("depth_max", DEPTH_MAX),
             "mean_dims": mean_dims,
             "std_dims": std_dims,
-            "depth_min": data_cfg.get("depth_min"),
-            "depth_max": data_cfg.get("depth_max"),
             "pseudo_labels": data_cfg.get("pseudo_labels", {}),
         }
 
@@ -261,6 +241,7 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
             model.load(weights)
             if verbose and RANK == -1:
                 LOGGER.info(f"Loaded weights from {weights}")
+        model.model[-1].depth_dfl.set_range(float(self.data["depth_min"]), float(self.data["depth_max"]))
 
         return model
 

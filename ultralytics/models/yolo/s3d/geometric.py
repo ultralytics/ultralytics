@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 """
-Geometric Construction Module (GAP-001).
+Geometric Construction Module (GAP-001)
 
 This module implements the Gauss-Newton geometric construction solver from the Stereo CenterNet paper.
 The solver estimates 3D bounding box parameters (x, y, z, θ) from 2D stereo observations using
@@ -24,7 +24,7 @@ Algorithm Overview:
 from __future__ import annotations
 
 import math
-from typing import NamedTuple
+from typing import NamedTuple, Union, Optional
 
 import numpy as np
 
@@ -153,7 +153,7 @@ class GeometricConstruction:
         dimensions: tuple[float, float, float],  # (length, width, height)
         theta_init: float,
         calib: CalibParams,
-        z_init: float | None = None,
+        z_init: Optional[float] = None,
     ) -> tuple[float, float, float, float, bool]:
         """Solve for 3D box center and orientation using Gauss-Newton optimization.
 
@@ -290,7 +290,7 @@ class GeometricConstruction:
             Residual vector [7] with prediction errors
         """
         x, y, z, theta = state
-        l, w, _h = dims
+        l, w, h = dims
         fx, fy, cx, cy, b = calib
 
         # Prevent division by zero
@@ -437,7 +437,7 @@ def fallback_simple_triangulation(
 
 def solve_geometric_batch(
     detections: list[dict],
-    calib: CalibParams | dict,
+    calib: Union[CalibParams, dict],
     max_iterations: int = 10,
     tolerance: float = 1e-6,
     damping: float = 1e-3,

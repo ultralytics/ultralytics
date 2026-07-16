@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 """
-Occlusion Classification Module.
+Occlusion Classification Module
 
 This module implements occlusion classification using the depth-line algorithm as described
 in the Stereo CenterNet paper. The algorithm determines which objects are occluded by
@@ -77,7 +77,7 @@ def _build_depth_line(detections: list[dict[str, Any]], image_width: int = 1242)
         # Handle different bbox_2d formats
         if hasattr(bbox_2d, "__iter__") and not isinstance(bbox_2d, str):
             if len(bbox_2d) >= 4:
-                x1, _y1, x2, _y2 = bbox_2d[:4]
+                x1, y1, x2, y2 = bbox_2d[:4]
             else:
                 continue
         else:
@@ -169,7 +169,7 @@ def _classify_by_boundary_visibility(
         # Handle different bbox_2d formats
         if hasattr(bbox_2d, "__iter__") and not isinstance(bbox_2d, str):
             if len(bbox_2d) >= 4:
-                x1, _y1, x2, _y2 = bbox_2d[:4]
+                x1, y1, x2, y2 = bbox_2d[:4]
             else:
                 unoccluded.append(k)
                 continue

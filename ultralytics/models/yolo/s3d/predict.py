@@ -13,7 +13,7 @@ from ultralytics.data.augment import LetterBox
 from ultralytics.data.stereo.calib import CalibrationParameters, load_kitti_calibration
 from ultralytics.engine.results import Results
 from ultralytics.models.yolo.detect import DetectionPredictor
-from ultralytics.models.yolo.s3d.head import DEPTH_MAX, DEPTH_MIN, resolve_s3d_head
+
 from ultralytics.models.yolo.s3d.preprocess import decode_and_refine_predictions, preprocess_stereo_images
 from ultralytics.utils import LOGGER
 from ultralytics.utils.checks import check_imgsz
@@ -65,10 +65,6 @@ class Stereo3DDetPredictor(DetectionPredictor):
         # Prefer dims stored on the model (saved during training); fall back to data YAML
         self.mean_dims = getattr(self.model.model, "mean_dims", None)
         self.std_dims = getattr(self.model.model, "std_dims", None)
-        # Depth range travels with the checkpoint via the head's DepthDFL bin buffer.
-        head = resolve_s3d_head(self.model)
-        self.depth_min = head.depth_min if head is not None else DEPTH_MIN
-        self.depth_max = head.depth_max if head is not None else DEPTH_MAX
 
     def setup_source(self, source=None):
         """Set up input source for stereo prediction.
@@ -142,7 +138,7 @@ class Stereo3DDetPredictor(DetectionPredictor):
                     try:
                         calib = load_kitti_calibration(calib_path)
                         break
-                    except Exception as exc:
+                    except Exception as exc:  # noqa: BLE001
                         LOGGER.warning(f"Failed to parse calibration {calib_path}: {exc}")
             if calib is None:
                 LOGGER.warning(
@@ -283,8 +279,6 @@ class Stereo3DDetPredictor(DetectionPredictor):
             mean_dims=self.mean_dims,
             std_dims=self.std_dims,
             class_names=class_names,
-            depth_min=getattr(self, "depth_min", DEPTH_MIN),
-            depth_max=getattr(self, "depth_max", DEPTH_MAX),
         )
 
         # Create Results objects (one per input image; decode may return fewer when no detections)

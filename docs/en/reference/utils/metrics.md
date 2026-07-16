@@ -72,30 +72,6 @@ keywords: Ultralytics, metrics, model validation, performance analysis, IoU, con
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.metrics._bev_corners
-
-<br><br><hr><br>
-
-## ::: ultralytics.utils.metrics._polygon_area
-
-<br><br><hr><br>
-
-## ::: ultralytics.utils.metrics._convex_intersection_area
-
-<br><br><hr><br>
-
-## ::: ultralytics.utils.metrics._box_to_params
-
-<br><br><hr><br>
-
-## ::: ultralytics.utils.metrics.compute_bev_iou
-
-<br><br><hr><br>
-
-## ::: ultralytics.utils.metrics.compute_3d_iou
-
-<br><br><hr><br>
-
 ## ::: ultralytics.utils.metrics.batch_probiou
 
 <br><br><hr><br>

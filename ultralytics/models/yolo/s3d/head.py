@@ -29,20 +29,10 @@ class DepthDFL(nn.Module):
         log_min, log_max = math.log(d_min), math.log(d_max)
         self.register_buffer("bin_values", torch.linspace(log_min, log_max, n_bins))
 
-    @property
-    def d_min(self) -> float:
-        """Minimum decodable depth (meters), derived from the bin buffer so it survives checkpoint load."""
-        return float(self.bin_values[0].exp())
-
-    @property
-    def d_max(self) -> float:
-        """Maximum decodable depth (meters), derived from the bin buffer."""
-        return float(self.bin_values[-1].exp())
-
     def set_range(self, d_min: float, d_max: float) -> None:
-        """Rebuild the log-depth bin centers for a new [d_min, d_max] range (meters), in place on-device."""
-        if not (d_min > 0 and d_max > d_min):
-            raise ValueError(f"Depth range must satisfy 0 < d_min < d_max, got ({d_min}, {d_max})")
+        """Set the decodable depth range in meters."""
+        if not 0 < d_min < d_max:
+            raise ValueError(f"Depth range must satisfy 0 < depth_min < depth_max, got ({d_min}, {d_max})")
         self.bin_values = torch.linspace(
             math.log(d_min), math.log(d_max), self.n_bins, device=self.bin_values.device, dtype=self.bin_values.dtype
         )
@@ -67,27 +57,6 @@ def get_aux_specs(depth_mode: str = "both") -> dict[str, int]:
     elif depth_mode != "both":
         raise ValueError(f"Unknown depth_mode: {depth_mode!r}. Expected 'both', 'lr_only', or 'depth_only'.")
     return specs
-
-
-def resolve_s3d_head(model):
-    """Return the Stereo3DDetHead from any wrapper (raw model, DDP/EMA, or AutoBackend), else None.
-
-    Standalone val/predict pass an AutoBackend whose ``.model`` is the full detection model, while the
-    training path passes the raw model whose ``.model`` is the layer ``Sequential``. Walk ``.model``
-    (unwrapping DDP/EMA at each level) until the last layer exposes ``set_depth_range``.
-    """
-    from ultralytics.utils.torch_utils import unwrap_model
-
-    node = unwrap_model(model)
-    for _ in range(4):
-        layers = getattr(node, "model", None)
-        if isinstance(layers, (nn.Sequential, nn.ModuleList)):
-            head = layers[-1]
-            return head if hasattr(head, "set_depth_range") else None
-        if layers is None:
-            return node if hasattr(node, "set_depth_range") else None
-        node = unwrap_model(layers)
-    return None
 
 
 def _branch(in_ch: int, out_ch: int, hidden: int = 256) -> nn.Sequential:
@@ -169,25 +138,6 @@ class Stereo3DDetHead(Detect):
         for name in list(self.aux.keys()):
             if name not in self.aux_specs:
                 del self.aux[name]
-
-    @property
-    def depth_min(self) -> float:
-        """Minimum decodable direct-depth (meters); matches the dataset's near range."""
-        return self.depth_dfl.d_min
-
-    @property
-    def depth_max(self) -> float:
-        """Maximum decodable direct-depth (meters); matches the dataset's far range."""
-        return self.depth_dfl.d_max
-
-    def set_depth_range(self, d_min: float, d_max: float) -> None:
-        """Retarget the direct-depth DFL bins to [d_min, d_max] meters (default KITTI 2.0-80.0).
-
-        Close-range datasets (e.g. tabletop stereo at <2 m) fall below the KITTI floor and would
-        otherwise clamp every depth to the nearest bin; call this from the dataset config so the
-        head, loss target normalization, and decode all share one range.
-        """
-        self.depth_dfl.set_range(d_min, d_max)
 
     @property
     def one2many(self):

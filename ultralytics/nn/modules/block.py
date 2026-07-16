@@ -1606,7 +1606,7 @@ class TorchVision(nn.Module):
     """
 
     def __init__(
-        self, model: str, weights: str = "DEFAULT", unwrap: bool = True, truncate: int = 2, split: bool = False, in_channels: int | None = None
+        self, model: str, weights: str = "DEFAULT", unwrap: bool = True, truncate: int = 2, split: bool = False, in_channels: int = None
     ):
         """Load the model and weights from torchvision.
 
@@ -2228,7 +2228,7 @@ class StereoCostVolume(nn.Module):
             left, right = x
             B, C, H, W = left.shape
         else:
-            B, _C, H, W = x.shape
+            B, C, H, W = x.shape
             c = self.c_half
             left, right = x[:, :c], x[:, c:]
 

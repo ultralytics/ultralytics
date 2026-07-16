@@ -10,8 +10,11 @@ import torch
 
 from ultralytics.data.stereo.box3d import Box3D
 from ultralytics.data.stereo.calib import CalibrationParameters
-from ultralytics.engine.validator import BaseValidator
-from ultralytics.models.yolo.s3d.head import DEPTH_MAX, DEPTH_MIN, resolve_s3d_head
+from ultralytics.models.yolo.s3d.preprocess import (
+    compute_letterbox_params,
+    decode_and_refine_predictions,
+    preprocess_stereo_batch,
+)
 from ultralytics.models.yolo.s3d.metrics import (
     DIFFICULTY_EASY,
     DIFFICULTY_HARD,
@@ -19,14 +22,10 @@ from ultralytics.models.yolo.s3d.metrics import (
     Stereo3DDetMetrics,
     classify_difficulty,
 )
-from ultralytics.models.yolo.s3d.preprocess import (
-    compute_letterbox_params,
-    decode_and_refine_predictions,
-    preprocess_stereo_batch,
-)
 from ultralytics.utils import LOGGER, RANK
 from ultralytics.utils.metrics import DetMetrics, box_iou, compute_3d_iou, compute_bev_iou
 from ultralytics.utils.plotting import plot_stereo3d_boxes
+from ultralytics.engine.validator import BaseValidator
 
 
 def _reverse_letterbox_calib(
@@ -261,8 +260,6 @@ class Stereo3DDetValidator(BaseValidator):
             std_dims=self.std_dims if hasattr(self, "std_dims") else None,
             class_names=self.names if hasattr(self, "names") else None,
             score_k=getattr(self.args, "score_k", 0.5),
-            depth_min=getattr(self, "depth_min", None) or DEPTH_MIN,
-            depth_max=getattr(self, "depth_max", None) or DEPTH_MAX,
         )
 
     def init_metrics(self, model: torch.nn.Module) -> None:
@@ -325,14 +322,6 @@ class Stereo3DDetValidator(BaseValidator):
             LOGGER.info("No mean_dims in dataset config, will use defaults")
         if self.std_dims is None:
             LOGGER.info("No std_dims in dataset config, will use defaults")
-
-        # Depth range for the decode: read it from the model head, which carries the effective range
-        # (the training callback retargets it from the dataset config, and a loaded checkpoint restores
-        # its trained bins). We trust the head's bins rather than re-applying the YAML here, so valing a
-        # checkpoint never silently retargets its depth range.
-        head = resolve_s3d_head(model)
-        self.depth_min = head.depth_min if head is not None else DEPTH_MIN
-        self.depth_max = head.depth_max if head is not None else DEPTH_MAX
 
         # Build dataset→model class ID mapping when dataset has more classes than model.
         # E.g., dataset {0:Car, 1:Van, 3:Pedestrian} + model {0:Car, 1:Pedestrian}
@@ -798,6 +787,7 @@ class Stereo3DDetValidator(BaseValidator):
 
     def print_results(self) -> None:
         """Print training/validation set metrics per class with KITTI difficulty splits."""
+
         if not self.metrics.stats:
             LOGGER.warning(f"no labels found in {self.args.task} set, can not compute metrics without labels")
             return
@@ -876,6 +866,7 @@ class Stereo3DDetValidator(BaseValidator):
 
     def _format_progress_metrics(self) -> str:
         """Format current metrics for progress bar display."""
+
         if not hasattr(self.metrics, "stats") or len(self.metrics.stats) == 0:
             return ("%11i" + "%11s" * 6) % (int(self.seen), "-", "-", "-", "-", "-", "-")
 

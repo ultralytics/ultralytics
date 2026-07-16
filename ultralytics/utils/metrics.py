@@ -339,12 +339,12 @@ def _convex_intersection_area(subject: np.ndarray, clip: np.ndarray) -> float:
         ex, ey = edge[1][0] - edge[0][0], edge[1][1] - edge[0][1]
 
         def inside(p):
-            return ex * (p[1] - edge[0][1]) - ey * (p[0] - edge[0][0]) >= 0
+            return ex * (p[1] - edge[0][1]) - ey * (p[0] - edge[0][0]) >= 0  # noqa: B023
 
         def intersect(a, b):
             # Intersection of segment a-b with the infinite line through `edge`.
-            x1, y1, x2, y2 = a[0], a[1], b[0], b[1]
-            x3, y3, x4, y4 = edge[0][0], edge[0][1], edge[1][0], edge[1][1]
+            x1, y1, x2, y2 = a[0], a[1], b[0], b[1]  # noqa: B023
+            x3, y3, x4, y4 = edge[0][0], edge[0][1], edge[1][0], edge[1][1]  # noqa: B023
             denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
             if abs(denom) < 1e-12:
                 return b

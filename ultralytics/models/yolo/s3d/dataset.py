@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import math
 from pathlib import Path
 from typing import Any
 
@@ -13,15 +12,16 @@ from ultralytics.data.base import BaseDataset
 from ultralytics.data.stereo.calib import load_kitti_calibration
 from ultralytics.data.utils import load_dataset_cache_file, save_dataset_cache_file
 from ultralytics.models.yolo.s3d.augment import (
-    StereoCrop,
     StereoHFlip,
     StereoHSV,
-    StereoLetterBox,
     StereoScale,
+    StereoCrop,
+    StereoLetterBox,
 )
 from ultralytics.models.yolo.s3d.orientation import ORIENT_CHANNELS, encode_orientation
 from ultralytics.utils import DEFAULT_CFG, LOGGER
 from ultralytics.utils.checks import check_imgsz
+import math
 
 
 def compute_dimension_offset(
@@ -538,7 +538,7 @@ class Stereo3DDetDataset(BaseDataset):
             raise FileNotFoundError(f"Label file not found: {label_file}")
 
         labels: list[dict[str, Any]] = []
-        with open(label_file) as f:
+        with open(label_file, "r") as f:
             for line in f:
                 line = line.strip()
                 if not line:

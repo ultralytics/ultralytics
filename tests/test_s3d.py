@@ -85,7 +85,6 @@ def test_head_localization_branches_unconditional():
 def test_proj_center_loss_present():
     """The proj_center smooth-L1 term is always computed when proj_offset targets/preds are present."""
     import torch
-
     from ultralytics import YOLO
     from ultralytics.models.yolo.s3d.loss import Stereo3DDetLoss
 
@@ -102,10 +101,8 @@ def test_proj_center_loss_present():
 
 def test_lr_nll_attenuates_with_uncertainty():
     """Laplacian NLL: for a fixed residual, a larger predicted log-variance lowers the loss
-    (attenuation), but the log-variance penalty prevents collapse — loss is convex in logvar.
-    """
+    (attenuation), but the log-variance penalty prevents collapse — loss is convex in logvar."""
     import torch
-
     from ultralytics.models.yolo.s3d.loss import laplacian_nll
 
     pred = torch.tensor([1.0])
@@ -120,12 +117,10 @@ def test_lr_nll_attenuates_with_uncertainty():
 
 def test_lr_nll_loss_wired():
     """Integration test: when lr_logvar is present, _compute_aux_losses routes lr_distance through
-    the Laplacian-NLL gather-wiring in _lr_nll_loss (the promoted, always-on path), not smooth-L1.
-    """
+    the Laplacian-NLL gather-wiring in _lr_nll_loss (the promoted, always-on path), not smooth-L1."""
     import math
 
     import torch
-
     from ultralytics import YOLO
     from ultralytics.models.yolo.s3d.loss import Stereo3DDetLoss
 
@@ -535,7 +530,7 @@ def test_decode_letterbox_calib_imgsz_invariant():
 
     def decode_xz(z_true, u_orig_true, imgsz):
         """Encode a car at (u_orig_true, z_true) with LETTERBOX-space calib; return decoded (x, z)."""
-        _input_h, input_w = imgsz
+        input_h, input_w = imgsz
         scale, pad_left, pad_top = compute_letterbox_params(ori_hw[0], ori_hw[1], imgsz)
         # Calib as the batch provides it: letterbox-input space.
         calib_lb = {
@@ -595,7 +590,7 @@ def test_decode_uses_proj_offset():
     imgsz = (384, 1248)
     nc = 3
     input_h, input_w = imgsz
-    scale, _pad_left, _ = compute_letterbox_params(*ori_hw, imgsz)
+    scale, pad_left, _ = compute_letterbox_params(*ori_hw, imgsz)
     z = 20.0
     du = 0.01
 
@@ -701,8 +696,7 @@ def test_score_weight_demotes_uncertain():
 def test_ivw_fusion_uses_dfl_variance():
     """With depth_bins present, ivw_fusion must weight the direct cue by its DFL spread (not the
     constant 1.0 fallback), pulling the fused z away from the plain geomean when the DFL
-    distribution is narrow (low variance) while the stereo cue is highly uncertain.
-    """
+    distribution is narrow (low variance) while the stereo cue is highly uncertain."""
     import math
 
     import torch
@@ -784,8 +778,7 @@ def test_decode_no_overflow_with_large_lr_logvar():
 
 def test_proj_offset_roundtrip():
     """Projected-centroid offset must invert: encode (centroid->projected px->offset) then
-    decode (box_center+offset -> back-project at true z) recovers the centroid X/Y.
-    """
+    decode (box_center+offset -> back-project at true z) recovers the centroid X/Y."""
     from ultralytics.models.yolo.s3d.dataset import encode_proj_offset
 
     fx = fy = 721.5377
@@ -846,8 +839,7 @@ def test_calib_dual_format(tmp_path, content):
 
 def test_predict_resolves_dataset_calib(tmp_path):
     """Predictor must find + parse per-image calib in the dataset `calib/<split>/` layout,
-    not silently fall back to default calibration.
-    """
+    not silently fall back to default calibration."""
     import cv2
 
     root = tmp_path / "ds"
@@ -869,68 +861,13 @@ def test_predict_resolves_dataset_calib(tmp_path):
     assert abs(calib["baseline"] - 0.532725) < 1e-3, f"got baseline {calib['baseline']} (default fallback?)"
 
 
-def test_depth_dfl_configurable_range():
-    """DepthDFL.set_range retargets the bins and survives a checkpoint (state_dict) round-trip."""
+def test_configurable_depth_range():
+    """Depth bins and loss normalization use the configured range."""
     import math
 
-    import torch
-
-    from ultralytics.models.yolo.s3d.head import DEPTH_MAX, DEPTH_MIN, DepthDFL
+    from ultralytics.models.yolo.s3d.head import DepthDFL
 
     dfl = DepthDFL()
-    assert abs(dfl.d_min - DEPTH_MIN) < 1e-4 and abs(dfl.d_max - DEPTH_MAX) < 1e-4
-
-    dfl.set_range(0.3, 2.5)
-    assert abs(dfl.d_min - 0.3) < 1e-4 and abs(dfl.d_max - 2.5) < 1e-4
-
-    # Range is stored in the bin buffer, so it is restored from a checkpoint.
-    reloaded = DepthDFL()
-    reloaded.load_state_dict(dfl.state_dict())
-    assert abs(reloaded.d_min - 0.3) < 1e-4 and abs(reloaded.d_max - 2.5) < 1e-4
-
-    # A one-hot on the lowest bin now decodes near 0.3 m instead of clamping to the KITTI floor 2.0 m.
-    logits = torch.full((1, dfl.n_bins, 1), -10.0)
-    logits[0, 0, 0] = 10.0
-    z = math.exp(float(dfl(logits)[0, 0, 0]))
-    assert abs(z - 0.3) < 0.05, z
-
-    with pytest.raises(ValueError):
-        dfl.set_range(2.0, 1.0)  # d_max must exceed d_min
-
-
-def test_head_depth_range_propagates_to_loss():
-    """Retargeting the head's depth range flows into the loss target normalization."""
-    import math
-
-    model = YOLO(MODEL).model
-    head = model.model[-1]
-    assert abs(head.depth_min - 2.0) < 1e-4 and abs(head.depth_max - 80.0) < 1e-4
-
-    head.set_depth_range(0.3, 2.5)
-    assert abs(head.depth_min - 0.3) < 1e-4 and abs(head.depth_max - 2.5) < 1e-4
-
-    criterion = model.init_criterion()
-    assert abs(criterion.depth_log_min - math.log(0.3)) < 1e-4
-    assert abs(criterion.depth_log_range - (math.log(2.5) - math.log(0.3))) < 1e-4
-
-
-def test_resolve_s3d_head_through_wrappers():
-    """resolve_s3d_head must find the head on a raw model AND through an AutoBackend-style .model nest.
-
-    Standalone .val()/.predict() wrap the model in AutoBackend, whose .model is the full detection model
-    (not the layer Sequential); this guards the val/predict depth-range lookup against that extra hop.
-    """
-    import torch.nn as nn
-
-    from ultralytics.models.yolo.s3d.head import Stereo3DDetHead, resolve_s3d_head
-
-    model = YOLO(MODEL).model  # raw Stereo3DDetModel
-    assert isinstance(resolve_s3d_head(model), Stereo3DDetHead)
-
-    class _Backend(nn.Module):  # mimics AutoBackend: .model holds the full detection model
-        def __init__(self, m):
-            super().__init__()
-            self.model = m
-
-    assert isinstance(resolve_s3d_head(_Backend(model)), Stereo3DDetHead)
-    assert resolve_s3d_head(nn.Identity()) is None  # non-s3d module -> None, no crash
+    dfl.set_range(0.2, 2.5)
+    assert math.exp(dfl.bin_values[0].item()) == pytest.approx(0.2)
+    assert math.exp(dfl.bin_values[-1].item()) == pytest.approx(2.5)

@@ -103,7 +103,7 @@ def load_kitti_calibration(calib_file: str | Path) -> CalibrationParameters:
 
     scalars: dict[str, float] = {}  # fx, fy, cx, cy, baseline, image_width, image_height
     mats: dict[str, np.ndarray] = {}  # P0..P3
-    with open(calib_file) as f:
+    with open(calib_file, "r") as f:
         for line in f:
             key, sep, value_str = line.strip().partition(":")
             key, value_str = key.strip(), value_str.strip()

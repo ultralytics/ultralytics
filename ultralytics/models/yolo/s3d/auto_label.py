@@ -24,10 +24,9 @@ Usage:
 from __future__ import annotations
 
 from pathlib import Path
+from ultralytics.utils import LOGGER
 
 import numpy as np
-
-from ultralytics.utils import LOGGER
 
 # Pseudo-label quality markers (stored in the `occluded` field, index 17)
 OCC_PSEUDO_STEREO = 10  # stereo-matched: triangulated depth (higher quality)

@@ -2,7 +2,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 """
-KITTI to YOLO 3D Stereo Format Converter.
+KITTI to YOLO 3D Stereo Format Converter
 
 This script converts KITTI dataset to YOLO 3D stereo format with 18 values per object:
 class x_l y_l w_l h_l x_r y_r w_r h_r dim_l dim_w dim_h loc_x loc_y loc_z rot_y truncated occluded
@@ -69,7 +69,7 @@ class KITTIToYOLO3D:
             output_root: Path to output directory
             filter_classes: List of class names to include (None = include all)
             filter_occluded: Whether to filter out heavily occluded objects (default: False)
-            max_occlusion_level: Maximum occlusion level to include (default: 1, excludes heavy/unknown).
+            max_occlusion_level: Maximum occlusion level to include (default: 1, excludes heavy/unknown)
         """
         self.kitti_root = Path(kitti_root)
         self.output_root = Path(output_root)
@@ -142,7 +142,7 @@ class KITTIToYOLO3D:
         Returns:
             dict with fx, fy, cx, cy, baseline, P2, P3
         """
-        with open(calib_file) as f:
+        with open(calib_file, "r") as f:
             lines = f.readlines()
 
         # Parse projection matrices
@@ -185,7 +185,7 @@ class KITTIToYOLO3D:
         Returns:
             center_x_r, width_r (in pixels)
         """
-        x1_l, _y1_l, x2_l, _y2_l = left_box_2d
+        x1_l, y1_l, x2_l, y2_l = left_box_2d
         center_x_l = (x1_l + x2_l) / 2
         width_l = x2_l - x1_l
 
@@ -264,7 +264,7 @@ class KITTIToYOLO3D:
 
         calib = self.parse_calibration(calib_file)
 
-        with open(label_file) as f:
+        with open(label_file, "r") as f:
             lines = f.readlines()
 
         yolo_labels = []
@@ -293,7 +293,7 @@ class KITTIToYOLO3D:
             # Parse KITTI label fields
             truncated = float(parts[1])
             occluded = int(parts[2])
-            float(parts[3])
+            alpha = float(parts[3])
 
             # Filter heavily occluded objects if enabled
             if self.filter_occluded and occluded > self.max_occlusion_level:
@@ -421,7 +421,7 @@ class KITTIToYOLO3D:
         total_labels = 0
         
         for label_file in TQDM(label_files, desc="Computing mean dimensions"):
-            with open(label_file) as f:
+            with open(label_file, "r") as f:
                 for line in f:
                     line = line.strip()
                     if not line:
@@ -512,7 +512,7 @@ class KITTIToYOLO3D:
         total_labels = 0
         
         for label_file in TQDM(label_files, desc="Computing std dimensions"):
-            with open(label_file) as f:
+            with open(label_file, "r") as f:
                 for line in f:
                     line = line.strip()
                     if not line:

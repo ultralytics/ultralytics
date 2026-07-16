@@ -51,6 +51,7 @@ from ultralytics.utils import (
     clean_url,
     colorstr,
     downloads,
+    env_bool,
     is_github_action_running,
     url2file,
 )
@@ -113,17 +114,20 @@ def get_distribution_name(import_name: str) -> str:
 
 @functools.lru_cache
 def parse_version(version="0.0.0") -> tuple:
-    """Convert a version string to a tuple of integers, ignoring any extra non-numeric string attached to the version.
+    """Convert a version string to a tuple of integers from its release segments, ignoring prefixes and suffixes.
+
+    Not PEP 440: pre-release/dev/post/local suffixes are dropped, so '1.0rc1', '1.0.post1', and '1.0+cu118' all compare
+    equal to '1.0'. Use the `packaging` library where exact pre-release ordering matters.
 
     Args:
-        version (str): Version string, i.e. '2.0.1+cpu'
+        version (str): Version string, i.e. '2.0.1+cpu', '4.13.0.92', or 'v2.1'
 
     Returns:
-        (tuple): Tuple of integers representing the numeric part of the version, i.e. (2, 0, 1)
+        (tuple): Tuple of integers representing the release segments, at least 3 long, i.e. (2, 0, 1)
     """
     try:
-        nums = [int(x) for x in re.findall(r"\d+", version)[:3]]
-        return tuple(nums + [0] * (3 - len(nums)))  # pad to 3, i.e. '2.0.1+cpu' -> (2, 0, 1), '2' -> (2, 0, 0)
+        nums = [int(x) for x in re.search(r"\d+(?:\.\d+)*", version).group(0).split(".")]
+        return tuple(nums + [0] * (3 - len(nums)))  # keep all release segments, ignore 'v' prefix and '+cu118'/'rc1'
     except Exception as e:
         LOGGER.warning(f"failure for parse_version({version}), returning (0, 0, 0): {e}")
         return 0, 0, 0
@@ -164,7 +168,13 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
     elif isinstance(imgsz, (list, tuple)):
         imgsz = list(imgsz)
     elif isinstance(imgsz, str):  # i.e. '640' or '[640,640]'
-        imgsz = [int(imgsz)] if imgsz.isnumeric() else ast.literal_eval(imgsz)
+        try:
+            imgsz = [int(imgsz)] if imgsz.isnumeric() else ast.literal_eval(imgsz)
+        except (ValueError, SyntaxError):
+            raise ValueError(
+                f"'imgsz={imgsz}' is not a valid image size. "
+                f"Valid imgsz values are int i.e. 'imgsz=640' or list i.e. 'imgsz=[640,640]'"
+            ) from None
     else:
         raise TypeError(
             f"'imgsz={imgsz}' is of invalid type {type(imgsz).__name__}. "
@@ -246,7 +256,14 @@ def check_version(
             name = current  # assigned package name to 'name' arg
             current = metadata.version(current)  # get version string from package name
         except metadata.PackageNotFoundError as e:
-            if hard:
+            if re.fullmatch(
+                r"v\d+(\.\d+)*([-_.]?(a|b|c|rc|alpha|beta|pre|preview)[-_.]?\d*)?"
+                r"([-_.]?(post|rev|r)[-_.]?\d*)?([-_.]?dev[-_.]?\d*)?(\+[\w.-]+)?",
+                current,
+                re.I,
+            ):
+                pass
+            elif hard:
                 raise ModuleNotFoundError(f"{current} package is required but not installed") from e
             else:
                 return False
@@ -261,8 +278,6 @@ def check_version(
     ):
         return True
 
-    op = ""
-    version = ""
     result = True
     c = parse_version(current)  # '1.2.3' -> (1, 2, 3)
     for r in required.strip(",").split(","):
@@ -270,17 +285,19 @@ def check_version(
         if not op:
             op = ">="  # assume >= if no op passed
         v = parse_version(version)  # '1.2.3' -> (1, 2, 3)
-        if op == "==" and c != v:
+        n = max(len(c), len(v))  # pad to equal length so 4-segment pins like '!=4.13.0.90' compare exactly
+        cn, vn = c + (0,) * (n - len(c)), v + (0,) * (n - len(v))
+        if op == "==" and cn != vn:
             result = False
-        elif op == "!=" and c == v:
+        elif op == "!=" and cn == vn:
             result = False
-        elif op == ">=" and not (c >= v):
+        elif op == ">=" and not (cn >= vn):
             result = False
-        elif op == "<=" and not (c <= v):
+        elif op == "<=" and not (cn <= vn):
             result = False
-        elif op == ">" and not (c > v):
+        elif op == ">" and not (cn > vn):
             result = False
-        elif op == "<" and not (c < v):
+        elif op == "<" and not (cn < vn):
             result = False
     if not result:
         warning = f"{name}{required} is required, but {name}=={current} is currently installed {msg}"
@@ -449,8 +466,8 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
     """
     prefix = colorstr("red", "bold", "requirements:")
 
-    if os.environ.get("ULTRALYTICS_SKIP_REQUIREMENTS_CHECKS", "0") == "1":
-        LOGGER.info(f"{prefix} ULTRALYTICS_SKIP_REQUIREMENTS_CHECKS=1 detected, skipping requirements check.")
+    if env_bool("ULTRALYTICS_SKIP_REQUIREMENTS_CHECKS"):
+        LOGGER.info(f"{prefix} ULTRALYTICS_SKIP_REQUIREMENTS_CHECKS detected, skipping requirements check.")
         return True
 
     if isinstance(requirements, Path):  # requirements.txt file
@@ -601,7 +618,7 @@ def check_suffix(file="yolo26n.pt", suffix=".pt", msg=""):
         if isinstance(suffix, str):
             suffix = {suffix}
         for f in file if isinstance(file, (list, tuple)) else [file]:
-            if s := str(f).rpartition(".")[-1].lower().strip():  # file suffix
+            if s := clean_url(f).rpartition(".")[-1].lower().strip():  # file suffix
                 assert f".{s}" in suffix, f"{msg}{f} acceptable suffix is {suffix}, not .{s}"
 
 
@@ -836,7 +853,7 @@ def collect_system_info():
     for r in parse_requirements(package=get_distribution_name("ultralytics")):
         try:
             current = metadata.version(r.name)
-            is_met = "✅ " if check_version(current, str(r.specifier), name=r.name, hard=True) else "❌ "
+            is_met = "✅ " if check_version(current, str(r.specifier), name=r.name) else "❌ "
         except metadata.PackageNotFoundError:
             current = "(not installed)"
             is_met = "❌ "

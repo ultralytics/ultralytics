@@ -74,8 +74,9 @@ class Profile(contextlib.ContextDecorator):
 def segment2box(segment: np.ndarray, width: int = 640, height: int = 640) -> np.ndarray:
     """Convert segment coordinates to bounding box coordinates.
 
-    Converts a single segment label to a box label by finding the minimum and maximum x and y coordinates. Applies
-    inside-image constraint and clips coordinates when necessary.
+    Converts a single segment label to a box label by finding the minimum and maximum x and y coordinates of the polygon
+    clipped to the image, so segments crossing the image boundary keep their visible extent. Segments already inside the
+    image return immediately without clipping.
 
     Args:
         segment (np.ndarray): Segment coordinates in format (N, 2) where N is number of points.
@@ -85,19 +86,34 @@ def segment2box(segment: np.ndarray, width: int = 640, height: int = 640) -> np.
     Returns:
         (np.ndarray): Bounding box coordinates in xyxy format [x1, y1, x2, y2].
     """
-    x, y = segment.T  # segment xy
-    # Clip coordinates if 3 out of 4 sides are outside the image
-    if np.array([x.min() < 0, y.min() < 0, x.max() > width, y.max() > height]).sum() >= 3:
-        x = x.clip(0, width)
-        y = y.clip(0, height)
-    inside = (x >= 0) & (y >= 0) & (x <= width) & (y <= height)
-    x = x[inside]
-    y = y[inside]
+    if not len(segment):
+        return np.zeros(4, dtype=segment.dtype)
+    x, y = segment[:, 0], segment[:, 1]
+    xmin, ymin, xmax, ymax = x.min(), y.min(), x.max(), y.max()
+    if xmin >= 0 and ymin >= 0 and xmax <= width and ymax <= height:  # fully inside image
+        return np.array([xmin, ymin, xmax, ymax], dtype=segment.dtype)
+    axes = np.array((0, 0, 1, 1))
+    bounds = np.array((0, width, 0, height), dtype=segment.dtype)
+    lims = np.array((height, height, width, width), dtype=segment.dtype)  # (height, width)[axis] per boundary
+    start, delta = segment, np.roll(segment, -1, axis=0) - segment
+    with np.errstate(divide="ignore", invalid="ignore"):
+        t = (bounds - start[:, axes]) / delta[:, axes]
+        inter = start[:, None, :] + t[:, :, None] * delta[:, None, :]
+    other = inter[:, np.arange(4), 1 - axes]
+    corners = np.array(((0, 0), (width, 0), (0, height), (width, height)), dtype=segment.dtype)
+    contour = segment.astype(np.float32)
+    points = np.concatenate(
+        (
+            segment[(x >= 0) & (y >= 0) & (x <= width) & (y <= height)],
+            inter[(t >= 0) & (t <= 1) & (other >= 0) & (other <= lims)],
+            corners[[cv2.pointPolygonTest(contour, tuple(map(float, p)), False) >= 0 for p in corners]],
+        )
+    )
     return (
-        np.array([x.min(), y.min(), x.max(), y.max()], dtype=segment.dtype)
-        if any(x)
+        np.array([*points.min(0), *points.max(0)], dtype=segment.dtype)
+        if len(points)
         else np.zeros(4, dtype=segment.dtype)
-    )  # xyxy
+    )
 
 
 def scale_boxes(
@@ -496,15 +512,19 @@ def process_mask(protos, masks_in, bboxes, shape, upsample: bool = False):
             upsample=True h and w match the input image size; otherwise they are the prototype mask resolution.
     """
     c, mh, mw = protos.shape  # CHW
+    if masks_in.shape[0] == 0:  # no detections: F.interpolate below rejects an empty (N=0) batch
+        return torch.zeros((0, *(shape if upsample else (mh, mw))), dtype=torch.uint8, device=masks_in.device)
     masks = (masks_in @ protos.float().view(c, -1)).view(-1, mh, mw)  # NHW
 
-    width_ratio = mw / shape[1]
-    height_ratio = mh / shape[0]
-    ratios = torch.tensor([[width_ratio, height_ratio, width_ratio, height_ratio]], device=bboxes.device)
-
-    masks = crop_mask(masks, boxes=bboxes * ratios)  # NHW
     if upsample:
+        # Upsample then crop at image resolution; cropping first smears the bilinear edge outside the bbox (#24272)
         masks = F.interpolate(masks[None], shape, mode="bilinear")[0]  # NHW
+        masks = crop_mask(masks, boxes=bboxes)  # NHW, bboxes already in `shape` coords
+    else:
+        width_ratio = mw / shape[1]
+        height_ratio = mh / shape[0]
+        ratios = torch.tensor([[width_ratio, height_ratio, width_ratio, height_ratio]], device=bboxes.device)
+        masks = crop_mask(masks, boxes=bboxes * ratios)  # NHW
     return masks.gt_(0.0).byte()
 
 
@@ -521,8 +541,10 @@ def process_mask_native(protos, masks_in, bboxes, shape):
         (torch.Tensor): Binary mask tensor with shape (N, H, W).
     """
     c, mh, mw = protos.shape  # CHW
-    coeffs = masks_in @ protos.float().view(c, -1)  # (N, mh*mw) prototype-resolution mask logits
     h, w = shape
+    if masks_in.shape[0] == 0:  # no detections: return a well-formed empty mask stack
+        return torch.zeros((0, h, w), dtype=torch.uint8, device=masks_in.device)
+    coeffs = masks_in @ protos.float().view(c, -1)  # (N, mh*mw) prototype-resolution mask logits
     # Upsampling all N masks at once allocates an N*H*W float intermediate (~9 GB on a large image with many
     # detections), which OOMs the worker. Upsample in chunks bounded by a pixel budget, thresholding each chunk to
     # uint8 immediately so the float intermediate stays small, then crop the assembled uint8 stack.
@@ -557,6 +579,8 @@ def scale_masks(
     im0_h, im0_w = shape[:2]
     if im1_h == im0_h and im1_w == im0_w:
         return masks
+    if masks.shape[1] == 0:  # empty mask stack: F.interpolate rejects a 0-length channel dim
+        return masks.new_zeros((*masks.shape[:2], im0_h, im0_w), dtype=torch.float32)
 
     if ratio_pad is None:  # calculate from im0_shape
         gain = min(im1_h / im0_h, im1_w / im0_w)  # gain  = old / new
@@ -590,7 +614,7 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize: bool
     if ratio_pad is None:  # calculate from img0_shape
         img1_h, img1_w = img1_shape[:2]  # supports both HWC or HW shapes
         gain = min(img1_h / img0_h, img1_w / img0_w)  # gain  = old / new
-        pad = (img1_w - round(img0_w * gain)) / 2, (img1_h - round(img0_h * gain)) / 2  # wh padding
+        pad = round((img1_w - round(img0_w * gain)) / 2 - 0.1), round((img1_h - round(img0_h * gain)) / 2 - 0.1)
     else:
         gain = ratio_pad[0][0]
         pad = ratio_pad[1]

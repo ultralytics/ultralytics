@@ -2,8 +2,9 @@
 title: Hand Keypoints Pose Estimation Dataset
 comments: true
 creator:
-    name: Ultralytics
-    url: https://www.ultralytics.com/
+    name: Rion Dsilva
+    type: Person
+    url: https://www.linkedin.com/in/rion-dsilva-043464229/
 license:
     name: CC-BY-NC-SA-4.0
     url: https://creativecommons.org/licenses/by-nc-sa/4.0/

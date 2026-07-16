@@ -2,7 +2,8 @@
 title: CIFAR-10 Image Classification Dataset
 comments: true
 creator:
-    name: University of Toronto
+    name: Alex Krizhevsky, Vinod Nair, and Geoffrey Hinton
+    type: Person
     url: https://www.cs.toronto.edu/~kriz/cifar.html
 license:
     name: None

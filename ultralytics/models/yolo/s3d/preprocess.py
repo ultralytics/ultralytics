@@ -98,13 +98,17 @@ def compute_letterbox_params(
 # =============================================================================
 
 
-def _dfl_variance(outputs: dict[str, torch.Tensor], b: int, idx: int) -> float:
+def _dfl_variance(
+    outputs: dict[str, torch.Tensor], b: int, idx: int, depth_min: float = DEPTH_MIN, depth_max: float = DEPTH_MAX
+) -> float:
     """Return the DFL depth-distribution spread Σpᵢ(bᵢ-μ)² at (b, idx), else 1.0 (high variance).
 
     Args:
         outputs: Model outputs dictionary, may contain raw "depth_bins" logits [B, n_bins, HW].
         b: Batch index.
         idx: Flat spatial index into the aux maps.
+        depth_min: Minimum decodable depth (meters); must match the head's DepthDFL bins.
+        depth_max: Maximum decodable depth (meters); must match the head's DepthDFL bins.
 
     Returns:
         Variance of the softmax-weighted depth-bin distribution in log-depth space, or 1.0
@@ -114,7 +118,7 @@ def _dfl_variance(outputs: dict[str, torch.Tensor], b: int, idx: int) -> float:
         return 1.0
 
     logits = outputs["depth_bins"][b, :, idx].float()
-    bin_values = torch.linspace(math.log(DEPTH_MIN), math.log(DEPTH_MAX), DEPTH_BINS, device=logits.device)
+    bin_values = torch.linspace(math.log(depth_min), math.log(depth_max), DEPTH_BINS, device=logits.device)
     probs = torch.softmax(logits, dim=0)
     mu = (probs * bin_values).sum()
     return float((probs * (bin_values - mu) ** 2).sum().item())
@@ -133,6 +137,8 @@ def decode_stereo3d_outputs(
     class_names: dict[int, str] | None = None,
     score_k: float = 0.5,
     calib_letterboxed: bool = False,
+    depth_min: float = DEPTH_MIN,
+    depth_max: float = DEPTH_MAX,
 ) -> list[Box3D] | list[list[Box3D]]:
     """Decode s3d outputs to Box3D objects.
 
@@ -154,6 +160,10 @@ def decode_stereo3d_outputs(
             exp(-score_k * sigma), sigma = predicted lr-distance std-dev, when "lr_logvar" is present).
         calib_letterboxed: If True, reverse-letterbox the per-sample calib (fx/fy/cx/cy) to
             original-image coords before back-projection (the production caller sets this).
+        depth_min: Minimum decodable depth (meters) for the direct-depth DFL variance; must match
+            the head's DepthDFL range (default KITTI 2.0).
+        depth_max: Maximum decodable depth (meters) for the direct-depth DFL variance; must match
+            the head's DepthDFL range (default KITTI 80.0).
 
     Notes:
         The projected-center offset ("proj_offset"), inverse-variance depth fusion, and
@@ -290,7 +300,7 @@ def decode_stereo3d_outputs(
             if z_from_disp is not None and z_from_direct is not None:
                 if lr_logvar is not None:  # inverse-variance fusion of the two depth cues
                     var_disp = math.exp(lr_logvar)
-                    var_direct = _dfl_variance(outputs, b, flat_idx)  # spread of depth bins, else 1.0
+                    var_direct = _dfl_variance(outputs, b, flat_idx, depth_min, depth_max)  # spread of depth bins
                     w_disp, w_direct = 1.0 / max(var_disp, eps), 1.0 / max(var_direct, eps)
                     log_z = (w_disp * math.log(z_from_disp) + w_direct * math.log(z_from_direct)) / (w_disp + w_direct)
                     z_3d = math.exp(log_z)
@@ -466,6 +476,8 @@ def decode_and_refine_predictions(
     std_dims: dict[int, tuple[float, float, float]] | None = None,
     class_names: dict[int, str] | None = None,
     score_k: float = 0.5,
+    depth_min: float = DEPTH_MIN,
+    depth_max: float = DEPTH_MAX,
 ) -> list[list[Box3D]]:
     """Unified decode + refine pipeline for val and predict.
 
@@ -488,6 +500,8 @@ def decode_and_refine_predictions(
         std_dims: Standard deviation of dimensions per class.
         class_names: Mapping from class ID to class name.
         score_k: Decay rate for the uncertainty-based confidence weighting (see decode_stereo3d_outputs).
+        depth_min: Minimum decodable depth (meters); must match the head's DepthDFL range (default KITTI 2.0).
+        depth_max: Maximum decodable depth (meters); must match the head's DepthDFL range (default KITTI 80.0).
 
     Returns:
         List of Box3D lists (one per batch item).
@@ -539,6 +553,8 @@ def decode_and_refine_predictions(
         class_names=class_names,
         score_k=score_k,
         calib_letterboxed=True,  # batch calib is in letterbox-input space; decode reverses it to original
+        depth_min=depth_min,
+        depth_max=depth_max,
     )
 
     # Ensure results is list of lists

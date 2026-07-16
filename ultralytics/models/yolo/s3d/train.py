@@ -30,6 +30,7 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         overrides["task"] = "s3d"
         super().__init__(cfg, overrides, _callbacks)
         self.add_callback("on_train_epoch_start", Stereo3DDetTrainer._set_loss_epoch_frac)
+        self.add_callback("on_pretrain_routine_end", Stereo3DDetTrainer._set_depth_range)
 
     @staticmethod
     def _set_loss_epoch_frac(trainer):
@@ -37,6 +38,21 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         criterion = getattr(unwrap_model(trainer.model), "criterion", None)
         if criterion is not None:
             criterion.epoch_frac = trainer.epoch / max(trainer.epochs, 1)
+
+    @staticmethod
+    def _set_depth_range(trainer):
+        """Retarget the head's direct-depth DFL bins from the dataset config before the criterion is built.
+
+        Fires after model+data setup and before the first forward (which lazily builds the loss), so the
+        head bins, the loss target normalization, and the saved checkpoint all share the dataset's range.
+        """
+        d_min, d_max = trainer.data.get("depth_min"), trainer.data.get("depth_max")
+        if d_min is None or d_max is None:
+            return
+        head = unwrap_model(trainer.model).model[-1]
+        if hasattr(head, "set_depth_range"):
+            head.set_depth_range(float(d_min), float(d_max))
+            LOGGER.info("s3d: direct-depth range set to [%.3f, %.3f] m from dataset config", float(d_min), float(d_max))
 
     def get_validator(self):
         """Return a Stereo3DDetValidator, currently extending DetectionValidator."""
@@ -160,6 +176,8 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
             "baseline": data_cfg.get("baseline"),
             "mean_dims": mean_dims,
             "std_dims": std_dims,
+            "depth_min": data_cfg.get("depth_min"),
+            "depth_max": data_cfg.get("depth_max"),
             "pseudo_labels": data_cfg.get("pseudo_labels", {}),
         }
 

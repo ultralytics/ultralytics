@@ -10,6 +10,7 @@ import torch
 
 from ultralytics.data.stereo.box3d import Box3D
 from ultralytics.data.stereo.calib import CalibrationParameters
+from ultralytics.models.yolo.s3d.head import DEPTH_MAX, DEPTH_MIN
 from ultralytics.models.yolo.s3d.preprocess import (
     compute_letterbox_params,
     decode_and_refine_predictions,
@@ -24,6 +25,7 @@ from ultralytics.models.yolo.s3d.metrics import (
 )
 from ultralytics.utils import LOGGER, RANK
 from ultralytics.utils.metrics import DetMetrics, box_iou, compute_3d_iou, compute_bev_iou
+from ultralytics.utils.torch_utils import unwrap_model
 from ultralytics.utils.plotting import plot_stereo3d_boxes
 from ultralytics.engine.validator import BaseValidator
 
@@ -260,6 +262,8 @@ class Stereo3DDetValidator(BaseValidator):
             std_dims=self.std_dims if hasattr(self, "std_dims") else None,
             class_names=self.names if hasattr(self, "names") else None,
             score_k=getattr(self.args, "score_k", 0.5),
+            depth_min=getattr(self, "depth_min", None) or DEPTH_MIN,
+            depth_max=getattr(self, "depth_max", None) or DEPTH_MAX,
         )
 
     def init_metrics(self, model: torch.nn.Module) -> None:
@@ -322,6 +326,17 @@ class Stereo3DDetValidator(BaseValidator):
             LOGGER.info("No mean_dims in dataset config, will use defaults")
         if self.std_dims is None:
             LOGGER.info("No std_dims in dataset config, will use defaults")
+
+        # Depth range: dataset YAML may retarget the direct-depth head for close-range scenes.
+        # Apply it to the head so its DepthDFL bins and the decode's variance term share one range,
+        # then read back the effective range (a loaded checkpoint already carries its trained bins).
+        head = unwrap_model(model).model[-1]
+        d_min = self.data.get("depth_min") if hasattr(self, "data") and self.data else None
+        d_max = self.data.get("depth_max") if hasattr(self, "data") and self.data else None
+        if d_min is not None and d_max is not None and hasattr(head, "set_depth_range"):
+            head.set_depth_range(float(d_min), float(d_max))
+        self.depth_min = head.depth_min if hasattr(head, "depth_min") else None
+        self.depth_max = head.depth_max if hasattr(head, "depth_max") else None
 
         # Build dataset→model class ID mapping when dataset has more classes than model.
         # E.g., dataset {0:Car, 1:Van, 3:Pedestrian} + model {0:Car, 1:Pedestrian}

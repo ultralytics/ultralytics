@@ -29,6 +29,22 @@ class DepthDFL(nn.Module):
         log_min, log_max = math.log(d_min), math.log(d_max)
         self.register_buffer("bin_values", torch.linspace(log_min, log_max, n_bins))
 
+    @property
+    def d_min(self) -> float:
+        """Minimum decodable depth (meters), derived from the bin buffer so it survives checkpoint load."""
+        return float(self.bin_values[0].exp())
+
+    @property
+    def d_max(self) -> float:
+        """Maximum decodable depth (meters), derived from the bin buffer."""
+        return float(self.bin_values[-1].exp())
+
+    def set_range(self, d_min: float, d_max: float) -> None:
+        """Rebuild the log-depth bin centers for a new [d_min, d_max] range (meters), in place on-device."""
+        if not (d_min > 0 and d_max > d_min):
+            raise ValueError(f"Depth range must satisfy 0 < d_min < d_max, got ({d_min}, {d_max})")
+        self.bin_values = torch.linspace(math.log(d_min), math.log(d_max), self.n_bins, device=self.bin_values.device)
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Decode bin logits [B, n_bins, HW] → log-depth [B, 1, HW]."""
         weights = x.softmax(dim=1)  # [B, n_bins, HW]
@@ -130,6 +146,25 @@ class Stereo3DDetHead(Detect):
         for name in list(self.aux.keys()):
             if name not in self.aux_specs:
                 del self.aux[name]
+
+    @property
+    def depth_min(self) -> float:
+        """Minimum decodable direct-depth (meters); matches the dataset's near range."""
+        return self.depth_dfl.d_min
+
+    @property
+    def depth_max(self) -> float:
+        """Maximum decodable direct-depth (meters); matches the dataset's far range."""
+        return self.depth_dfl.d_max
+
+    def set_depth_range(self, d_min: float, d_max: float) -> None:
+        """Retarget the direct-depth DFL bins to [d_min, d_max] meters (default KITTI 2.0-80.0).
+
+        Close-range datasets (e.g. tabletop stereo at <2 m) fall below the KITTI floor and would
+        otherwise clamp every depth to the nearest bin; call this from the dataset config so the
+        head, loss target normalization, and decode all share one range.
+        """
+        self.depth_dfl.set_range(d_min, d_max)
 
     @property
     def one2many(self):

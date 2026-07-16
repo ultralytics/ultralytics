@@ -859,3 +859,48 @@ def test_predict_resolves_dataset_calib(tmp_path):
     assert calib is not None, "predictor did not attach calibration"
     # Real baseline is 0.532725; the default fallback is 0.54 — must be the real one.
     assert abs(calib["baseline"] - 0.532725) < 1e-3, f"got baseline {calib['baseline']} (default fallback?)"
+
+
+def test_depth_dfl_configurable_range():
+    """DepthDFL.set_range retargets the bins and survives a checkpoint (state_dict) round-trip."""
+    import math
+
+    import torch
+
+    from ultralytics.models.yolo.s3d.head import DEPTH_MAX, DEPTH_MIN, DepthDFL
+
+    dfl = DepthDFL()
+    assert abs(dfl.d_min - DEPTH_MIN) < 1e-4 and abs(dfl.d_max - DEPTH_MAX) < 1e-4
+
+    dfl.set_range(0.3, 2.5)
+    assert abs(dfl.d_min - 0.3) < 1e-4 and abs(dfl.d_max - 2.5) < 1e-4
+
+    # Range is stored in the bin buffer, so it is restored from a checkpoint.
+    reloaded = DepthDFL()
+    reloaded.load_state_dict(dfl.state_dict())
+    assert abs(reloaded.d_min - 0.3) < 1e-4 and abs(reloaded.d_max - 2.5) < 1e-4
+
+    # A one-hot on the lowest bin now decodes near 0.3 m instead of clamping to the KITTI floor 2.0 m.
+    logits = torch.full((1, dfl.n_bins, 1), -10.0)
+    logits[0, 0, 0] = 10.0
+    z = math.exp(float(dfl(logits)[0, 0, 0]))
+    assert abs(z - 0.3) < 0.05, z
+
+    with pytest.raises(ValueError):
+        dfl.set_range(2.0, 1.0)  # d_max must exceed d_min
+
+
+def test_head_depth_range_propagates_to_loss():
+    """Retargeting the head's depth range flows into the loss target normalization."""
+    import math
+
+    model = YOLO(MODEL).model
+    head = model.model[-1]
+    assert abs(head.depth_min - 2.0) < 1e-4 and abs(head.depth_max - 80.0) < 1e-4
+
+    head.set_depth_range(0.3, 2.5)
+    assert abs(head.depth_min - 0.3) < 1e-4 and abs(head.depth_max - 2.5) < 1e-4
+
+    criterion = model.init_criterion()
+    assert abs(criterion.depth_log_min - math.log(0.3)) < 1e-4
+    assert abs(criterion.depth_log_range - (math.log(2.5) - math.log(0.3))) < 1e-4

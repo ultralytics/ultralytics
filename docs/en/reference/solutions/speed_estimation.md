@@ -1,4 +1,5 @@
 ---
+title: solutions.speed_estimation API Reference
 description: Explore the Ultralytics YOLO-based speed estimation script for real-time object tracking and speed measurement, optimized for accuracy and performance.
 keywords: Ultralytics, speed estimation, YOLO, real-time tracking, object tracking, python
 ---

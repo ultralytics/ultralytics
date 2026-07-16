@@ -17,6 +17,7 @@ from .backends import (
     CoreMLBackend,
     DeepXBackend,
     ExecuTorchBackend,
+    LiteRTBackend,
     MNNBackend,
     NCNNBackend,
     ONNXBackend,
@@ -102,7 +103,6 @@ class AutoBackend(nn.Module):
             | TensorRT              | *.engine          |
             | TensorFlow SavedModel | *_saved_model/    |
             | TensorFlow GraphDef   | *.pb              |
-            | TensorFlow Lite       | *.tflite          |
             | TensorFlow Edge TPU   | *_edgetpu.tflite  |
             | PaddlePaddle          | *_paddle_model/   |
             | MNN                   | *.mnn             |
@@ -113,7 +113,8 @@ class AutoBackend(nn.Module):
             | ExecuTorch            | *.pte             |
             | Axelera AI            | *_axelera_model/  |
             | DEEPX                 | *_deepx_model/    |
-            | Qualcomm QNN          | *_qnn_model/      |
+            | Qualcomm QNN          | *_qnn.onnx        |
+            | LiteRT                | *.tflite          |
 
     Attributes:
         backend (BaseBackend): The loaded inference backend instance.
@@ -147,7 +148,6 @@ class AutoBackend(nn.Module):
         "coreml": CoreMLBackend,
         "saved_model": TensorFlowBackend,
         "pb": TensorFlowBackend,
-        "tflite": TensorFlowBackend,
         "edgetpu": TensorFlowBackend,
         "paddle": PaddleBackend,
         "mnn": MNNBackend,
@@ -159,6 +159,7 @@ class AutoBackend(nn.Module):
         "axelera": AxeleraBackend,
         "deepx": DeepXBackend,
         "qnn": QNNBackend,
+        "litert": LiteRTBackend,
     }
 
     @torch.no_grad()
@@ -202,8 +203,6 @@ class AutoBackend(nn.Module):
         # Select and initialize the appropriate backend
         backend_kwargs = {"device": device, "fp16": fp16}
 
-        if format == "tfjs":
-            raise NotImplementedError("Ultralytics TF.js inference is not currently supported.")
         if format not in self._BACKEND_MAP:
             from ultralytics.engine.exporter import export_formats
 
@@ -215,11 +214,11 @@ class AutoBackend(nn.Module):
         if format == "pt":
             backend_kwargs["fuse"] = fuse
             backend_kwargs["verbose"] = verbose
-        elif format in {"saved_model", "pb", "tflite", "edgetpu", "dnn"}:
+        elif format in {"saved_model", "pb", "edgetpu", "dnn"}:
             backend_kwargs["format"] = format
         self.backend = self._BACKEND_MAP[format](model, **backend_kwargs)
 
-        self.nhwc = format in {"coreml", "saved_model", "pb", "tflite", "edgetpu", "rknn"}
+        self.nhwc = format in {"coreml", "saved_model", "pb", "edgetpu", "rknn"}
         self.format = format
 
         # Ensure backend has names (fallback to default if not set by metadata)
@@ -253,7 +252,7 @@ class AutoBackend(nn.Module):
         visualize: bool = False,
         embed: list | None = None,
         **kwargs: Any,
-    ) -> torch.Tensor | list[torch.Tensor]:
+    ) -> Any:
         """Run inference on an AutoBackend model.
 
         Args:
@@ -264,7 +263,7 @@ class AutoBackend(nn.Module):
             **kwargs (Any): Additional keyword arguments for model configuration.
 
         Returns:
-            (torch.Tensor | list[torch.Tensor]): The raw output tensor(s) from the model.
+            (Any): The raw model output, with NumPy arrays converted to tensors on `self.device`.
         """
         if self.nhwc:
             im = im.permute(0, 2, 3, 1)  # torch BCHW to numpy BHWC shape(1,320,192,3)
@@ -286,16 +285,17 @@ class AutoBackend(nn.Module):
         else:
             return self.from_numpy(y)
 
-    def from_numpy(self, x: np.ndarray | torch.Tensor) -> torch.Tensor:
-        """Convert a NumPy array to a torch tensor on the model device.
+    def from_numpy(self, x: Any) -> Any:
+        """Normalize a backend output to the model device when possible.
 
         Args:
-            x (np.ndarray | torch.Tensor): Input array or tensor.
+            x (Any): Backend output to normalize.
 
         Returns:
-            (torch.Tensor): Tensor on `self.device`.
+            (Any): Tensor on `self.device`, or the unchanged non-tensor output.
         """
-        return torch.tensor(x).to(self.device) if isinstance(x, np.ndarray) else x
+        x = torch.tensor(x) if isinstance(x, np.ndarray) else x
+        return x.to(self.device) if isinstance(x, torch.Tensor) else x
 
     def warmup(self, imgsz: tuple[int, int, int, int] = (1, 3, 640, 640)) -> None:
         """Warm up the model by running forward pass(es) with a dummy input.
@@ -305,6 +305,8 @@ class AutoBackend(nn.Module):
         """
         from ultralytics.utils.nms import non_max_suppression
 
+        if not self.end2end:
+            import torchvision  # noqa (import here triggers torchvision NMS use in nms.py)
         if self.format in {"pt", "torchscript", "onnx", "engine", "saved_model", "pb", "triton"} and (
             self.device.type != "cpu" or self.format == "triton"
         ):
@@ -338,10 +340,11 @@ class AutoBackend(nn.Module):
         name = Path(p).name
         types = [s in name for s in sf]
         types[5] |= name.endswith(".mlmodel")
-        types[8] &= not types[9]
         format = next((f for i, f in enumerate(export_formats()["Argument"]) if types[i]), None)
         if name.endswith("_qnn.onnx"):  # QNN context-binary file otherwise matches the plain '.onnx' suffix
             format = "qnn"
+        elif name.endswith(".tflite") and not name.endswith("_edgetpu.tflite"):
+            format = "litert"  # bare .tflite files (incl. legacy TFLite exports) load via LiteRT
         elif format == "-":
             format = "pt"
         elif format == "onnx" and dnn:

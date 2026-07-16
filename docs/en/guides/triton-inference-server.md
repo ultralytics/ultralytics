@@ -1,4 +1,5 @@
 ---
+title: YOLO26 with NVIDIA Triton Inference Server
 comments: true
 description: Learn how to integrate Ultralytics YOLO26 with NVIDIA Triton Inference Server for scalable, high-performance AI model deployment.
 keywords: Triton Inference Server, YOLO26, Ultralytics, NVIDIA, deep learning, AI model deployment, ONNX, scalable inference
@@ -42,7 +43,7 @@ Using Triton Inference Server with [Ultralytics YOLO26](../models/yolo26.md) pro
 
 Ensure you have the following prerequisites before proceeding:
 
-- Docker or Podman installed on your machine
+- Docker (>= 28.2.0, with [NVIDIA Container Toolkit](docker-quickstart.md) >= 1.18 for CDI GPU access) or Podman installed on your machine
 - Install `ultralytics`:
     ```bash
     pip install ultralytics
@@ -119,8 +120,8 @@ parameters {
   }
 }
 
-# (Optional) Enable TensorRT for GPU inference
-# First run will be slow due to TensorRT engine conversion
+# Enable TensorRT acceleration (requires a GPU and TensorRT-enabled Triton; remove this block for CPU-only serving)
+# The first run will be slow due to TensorRT engine conversion
 optimization {
   execution_accelerators {
     gpu_execution_accelerator {
@@ -156,8 +157,8 @@ tag = "nvcr.io/nvidia/tritonserver:26.02-py3"  # 16.17 GB (Compressed Size)
 
 subprocess.call(f"{runtime} pull {tag}", shell=True)
 
-# GPU flags differ between Docker and Podman
-gpu_flags = "--device nvidia.com/gpu=all" if runtime == "podman" else "--runtime=nvidia --gpus all"
+# CDI GPU request works identically on Docker and Podman
+gpu_flags = "--device nvidia.com/gpu=all"
 
 container_name = "triton_server"
 
@@ -192,7 +193,7 @@ model = YOLO("http://127.0.0.1:8000/yolo", task="detect")
 results = model("path/to/image.jpg")
 ```
 
-Cleanup the container (`runtime` and `container_name` are defined in the setup block above):
+Cleanup the container:
 
 ```python
 import subprocess
@@ -227,9 +228,7 @@ model.export(format="engine")  # creates 'yolo26n.engine'
 
 For more information on TensorRT optimization, see the [TensorRT integration guide](../integrations/tensorrt.md).
 
----
-
-By following the above steps, you can deploy and run [Ultralytics YOLO26](../models/yolo26.md) models efficiently on Triton Inference Server, providing a scalable and high-performance solution for deep learning inference tasks. If you face any issues or have further queries, refer to the [official Triton documentation](https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/index.html) or reach out to the Ultralytics community for support.
+You can now deploy and run [Ultralytics YOLO26](../models/yolo26.md) models on Triton Inference Server for scalable, high-performance inference. For more detail, see the [official Triton documentation](https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/index.html) or ask the [Ultralytics community](https://community.ultralytics.com/) for help.
 
 ## FAQ
 
@@ -280,8 +279,8 @@ Setting up [Ultralytics YOLO26](../models/yolo26.md) with [NVIDIA Triton Inferen
     runtime = "docker"  # set to "podman" to use Podman
     subprocess.call(f"{runtime} pull {tag}", shell=True)
 
-    # GPU flags differ between Docker and Podman
-    gpu_flags = "--device nvidia.com/gpu=all" if runtime == "podman" else "--runtime=nvidia --gpus all"
+    # CDI GPU request works identically on Docker and Podman
+    gpu_flags = "--device nvidia.com/gpu=all"
 
     container_name = "triton_server"
     subprocess.call(
@@ -310,7 +309,7 @@ Integrating [Ultralytics YOLO26](../models/yolo26.md) with [NVIDIA Triton Infere
 - **Automatic Batching**: Triton automatically groups multiple inference requests together, significantly improving throughput and reducing latency.
 - **Simplified Deployment**: Gradual optimization of AI workflows without requiring complete system overhauls, making it easier to scale efficiently.
 
-For detailed instructions on setting up and running [Ultralytics YOLO26](../models/yolo26.md) with Triton, refer to **Setting Up Triton Inference Server** and **Running Inference**.
+For detailed instructions on setting up and running [Ultralytics YOLO26](../models/yolo26.md) with Triton, see [Setting Up Triton Inference Server](#setting-up-triton-inference-server) and [Running Inference](#running-inference).
 
 ### Why should I export my YOLO26 model to ONNX format before using Triton Inference Server?
 
@@ -331,7 +330,7 @@ model = YOLO("yolo26n.pt")
 onnx_file = model.export(format="onnx", dynamic=True)
 ```
 
-You can follow the steps in the [ONNX integration guide](https://docs.ultralytics.com/integrations/onnx) to complete the process.
+You can follow the steps in the [ONNX integration guide](../integrations/onnx.md) to complete the process.
 
 ### Can I run inference using the Ultralytics YOLO26 model on Triton Inference Server?
 

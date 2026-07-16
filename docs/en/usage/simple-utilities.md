@@ -84,7 +84,7 @@ convert_segment_masks_to_yolo_seg(masks_dir="path/to/masks_dir", output_dir="pat
 
 ### Convert COCO into YOLO Format
 
-Use this to convert [COCO](https://docs.ultralytics.com/datasets/detect/coco) JSON annotations into the YOLO format. For object detection (bounding box) datasets, set both `use_segments` and `use_keypoints` to `False`.
+Use this to convert [COCO](../datasets/detect/coco.md) JSON annotations into the YOLO format. For object detection (bounding box) datasets, set both `use_segments` and `use_keypoints` to `False`.
 
 ```python
 from ultralytics.data.converter import convert_coco
@@ -125,7 +125,7 @@ for box in results[0].boxes.xyxy.cpu():
 
 With existing `x y w h` bounding box data, convert to segments using the `yolo_bbox2segment` function. Organize the files for images and annotations as follows:
 
-```
+```text
 data
 |__ images
     ├─ 001.jpg
@@ -162,16 +162,17 @@ from ultralytics.utils.ops import segments2boxes
 
 segments = np.array(
     [
-        [805, 392, 797, 400, ..., 808, 714, 808, 392],
-        [115, 398, 113, 400, ..., 150, 400, 149, 298],
-        [267, 412, 265, 413, ..., 300, 413, 299, 412],
-    ]
+        [805, 392, 797, 400, 812, 402, 808, 714, 808, 392],
+        [115, 398, 113, 400, 150, 410, 150, 400, 149, 298],
+        [267, 412, 265, 413, 300, 420, 300, 413, 299, 412],
+    ],
+    dtype=np.float32,
 )
 
 segments2boxes([s.reshape(-1, 2) for s in segments])
-# >>> array([[ 741.66, 631.12, 133.31, 479.25],
-#           [ 146.81, 649.69, 185.62, 502.88],
-#           [ 281.81, 636.19, 118.12, 448.88]],
+# >>> array([[804.5, 553. ,  15. , 322. ],
+#           [131.5, 354. ,  37. , 112. ],
+#           [282.5, 416. ,  35. ,   8. ]],
 #           dtype=float32) # xywh bounding boxes
 ```
 
@@ -585,7 +586,7 @@ Find additional details about the `sweep_annotator` method in our reference sect
 
 !!! example "Adaptive label Annotation using Ultralytics Utilities"
 
-    === "[Circle Annotation](https://docs.ultralytics.com/reference/solutions/solutions#ultralytics.solutions.solutions.SolutionAnnotator.adaptive_label)"
+    === "[Circle Annotation](../reference/solutions/solutions.md#ultralytics.solutions.solutions.SolutionAnnotator.adaptive_label)"
 
         ```python
         import cv2
@@ -624,7 +625,7 @@ Find additional details about the `sweep_annotator` method in our reference sect
         cv2.destroyAllWindows()
         ```
 
-    === "[Text Annotation](https://docs.ultralytics.com/reference/solutions/solutions#ultralytics.solutions.solutions.SolutionAnnotator.adaptive_label)"
+    === "[Text Annotation](../reference/solutions/solutions.md#ultralytics.solutions.solutions.SolutionAnnotator.adaptive_label)"
 
         ```python
         import cv2
@@ -690,7 +691,7 @@ Need to programmatically use the supported [image or video formats](../modes/pre
 from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS
 
 print(IMG_FORMATS)
-# {'avif', 'bmp', 'dng', 'heic', 'heif', 'jp2', 'jpeg', 'jpeg2000', 'jpg', 'mpo', 'png', 'tif', 'tiff', 'webp'}
+# {'avif', 'bmp', 'dng', 'heic', 'heif', 'jp2', 'jpeg', 'jpg', 'mpo', 'png', 'tif', 'tiff', 'webp'}
 
 print(VID_FORMATS)
 # {'asf', 'avi', 'gif', 'm4v', 'mkv', 'mov', 'mp4', 'mpeg', 'mpg', 'ts', 'wmv', 'webm'}
@@ -713,7 +714,7 @@ make_divisible(7, 2)
 
 ### What utilities are included in the Ultralytics package to enhance machine learning workflows?
 
-The Ultralytics package includes utilities designed to streamline and optimize machine learning workflows. Key utilities include [auto-annotation](../reference/data/annotator.md#ultralytics.data.annotator.auto_annotate) for labeling datasets, converting [COCO](https://docs.ultralytics.com/datasets/detect/coco) to YOLO format with [convert_coco](../reference/data/converter.md#ultralytics.data.converter.convert_coco), compressing images, and dataset auto-splitting. These tools reduce manual effort, ensure consistency, and enhance data processing efficiency.
+The Ultralytics package includes utilities designed to streamline and optimize machine learning workflows. Key utilities include [auto-annotation](../reference/data/annotator.md#ultralytics.data.annotator.auto_annotate) for labeling datasets, converting [COCO](../datasets/detect/coco.md) to YOLO format with [convert_coco](../reference/data/converter.md#ultralytics.data.converter.convert_coco), compressing images, and dataset auto-splitting. These tools reduce manual effort, ensure consistency, and enhance data processing efficiency.
 
 ### How can I use Ultralytics to auto-label my dataset?
 

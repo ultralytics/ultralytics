@@ -1,4 +1,5 @@
 ---
+title: Minimum Reproducible Example (MRE)
 comments: true
 description: Learn how to create effective Minimum Reproducible Examples (MRE) for bug reports in Ultralytics YOLO repositories. Follow our guide for efficient issue resolution.
 keywords: Ultralytics, YOLO, Minimum Reproducible Example, MRE, bug report, issue resolution, machine learning, deep learning
@@ -6,7 +7,7 @@ keywords: Ultralytics, YOLO, Minimum Reproducible Example, MRE, bug report, issu
 
 # Creating a Minimum Reproducible Example for Bug Reports
 
-When submitting a bug report for [Ultralytics](https://www.ultralytics.com/) [YOLO](https://github.com/ultralytics) repositories, it's essential to provide a [Minimum Reproducible Example (MRE)](https://stackoverflow.com/help/minimal-reproducible-example). An MRE is a small, self-contained piece of code that demonstrates the problem you're experiencing. Providing an MRE helps maintainers and contributors understand the issue and work on a fix more efficiently. This guide explains how to create an MRE when submitting bug reports to Ultralytics YOLO repositories.
+When submitting a bug report for [Ultralytics](https://www.ultralytics.com/) [YOLO](https://github.com/ultralytics) repositories, it's essential to provide a [Minimum Reproducible Example (MRE)](https://en.wikipedia.org/wiki/Minimal_reproducible_example). An MRE is a small, self-contained piece of code that demonstrates the problem you're experiencing. Providing an MRE helps maintainers and contributors understand the issue and work on a fix more efficiently. This guide explains how to create an MRE when submitting bug reports to Ultralytics YOLO repositories.
 
 ## 1. Isolate the Problem
 
@@ -65,7 +66,7 @@ results = model(image)
 
 **Error message:**
 
-```
+```text
 RuntimeError: Expected input[1, 0, 640, 640] to have 3 channels, but got 0 channels instead
 ```
 

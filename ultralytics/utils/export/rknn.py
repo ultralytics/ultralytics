@@ -17,10 +17,11 @@ def onnx2rknn(
     onnx_file: str,
     output_dir: Path | str,
     name: str = "rk3588",
-    int8: bool = False,
+    quantize: int | str | None = None,
     dataset: Path | str | None = None,
     metadata: dict | None = None,
     prefix: str = "",
+    batch: int = 1,
 ) -> str:
     """Export an ONNX model to RKNN format for Rockchip NPUs with optional INT8 quantization.
 
@@ -28,23 +29,24 @@ def onnx2rknn(
         onnx_file (str): Path to the source ONNX file (already exported, opset <=19).
         output_dir (Path | str): Directory to save the exported RKNN model.
         name (str): Target platform name (e.g. ``"rk3588"``).
-        int8 (bool): Whether to enable INT8 quantization. When False, RKNN Toolkit builds a floating-point model for
-            FP16-capable targets.
+        quantize (int | str | None): Precision scheme, 8 for INT8 or 16/None for floating-point builds.
         dataset (Path | str | None): Path to the generated RKNN Toolkit calibration image-list file, required when
-            ``int8=True``. Users should pass YOLO dataset YAMLs to ``export(data=...)``; ``export_rknn()`` converts them
-            to this internal image-path list.
+            ``quantize=8``. Users should pass YOLO dataset YAMLs to ``export(data=...)``; ``export_rknn()`` converts
+            them to this internal image-path list.
         metadata (dict | None): Metadata saved as ``metadata.yaml``.
         prefix (str): Prefix for log messages.
+        batch (int): Inference batch size applied by RKNN Toolkit after loading the batch-1 ONNX model.
 
     Returns:
         (str): Path to the exported ``_rknn_model`` directory.
     """
-    if name in {"rv1103", "rv1106", "rv1103b", "rv1106b"} and not int8:
+    use_int8 = quantize == 8
+    if name in {"rv1103", "rv1106", "rv1103b", "rv1106b"} and not use_int8:
         raise ValueError(
-            f"Rockchip target '{name}' requires int8=True. Use a target that supports floating-point builds "
-            f"(e.g. rk2118, rk3562, rk3566, rk3568, rk3576, rk3588, rv1126b) or export with int8=True."
+            f"Rockchip target '{name}' requires quantize=8. Use a target that supports floating-point builds "
+            f"(e.g. rk2118, rk3562, rk3566, rk3568, rk3576, rk3588, rv1126b) or export with quantize=8."
         )
-    if int8:
+    if use_int8:
         if not dataset:
             raise ValueError("RKNN INT8 export requires a generated calibration image-list file.")
         dataset = Path(dataset)
@@ -72,10 +74,10 @@ def onnx2rknn(
     config = {"mean_values": [[0, 0, 0]], "std_values": [[255, 255, 255]], "target_platform": name}
     _check_rknn_return(rknn.config(**config), "config")
     _check_rknn_return(rknn.load_onnx(model=onnx_file), "load_onnx")
-    build_kwargs = {"do_quantization": int8}
-    if int8:
+    build_kwargs = {"do_quantization": use_int8}
+    if use_int8:
         build_kwargs["dataset"] = str(dataset)
-    _check_rknn_return(rknn.build(**build_kwargs), "build")
+    _check_rknn_return(rknn.build(**build_kwargs, rknn_batch_size=batch), "build")
     _check_rknn_return(rknn.export_rknn(str(output_dir / f"{Path(onnx_file).stem}-{name}.rknn")), "export_rknn")
     if metadata:
         YAML.save(output_dir / "metadata.yaml", metadata)

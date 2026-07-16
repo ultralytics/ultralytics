@@ -7,7 +7,6 @@ from functools import wraps
 from typing import Any
 
 import numpy as np
-import scipy.linalg
 import torch
 
 from ultralytics.utils.metrics import bbox_ioa
@@ -26,25 +25,6 @@ _CORNER_DY_IDX = np.array([1, 3, 1, 3])
 
 _LOOSE_NMS_IOU = 0.95  # looser NMS IoU used to recover detections the tight NMS dropped
 _LOOSE_NMS_DEDUP_IOU = 0.97  # IoU threshold to consider duplicate detections as "new"
-
-
-def _nsa_kalman_update(
-    kf: KalmanFilterXYWH, mean: np.ndarray, covariance: np.ndarray, measurement: np.ndarray, confidence: float
-) -> tuple[np.ndarray, np.ndarray]:
-    """Run a NSA-Kalman update (StrongSORT) that scales the measurement noise by (1 - confidence)."""
-    w = max(1.0 - float(confidence), 0.05)
-    std = kf._std_weight_position * mean[2:4]
-    R = np.diag(np.square(np.r_[std, std])) * w
-    H = kf._update_mat
-    projected_mean = H @ mean
-    projected_cov = np.linalg.multi_dot((H, covariance, H.T)) + R
-
-    chol, low = scipy.linalg.cho_factor(projected_cov, lower=True, check_finite=False)
-    gain = scipy.linalg.cho_solve((chol, low), np.dot(covariance, H.T).T, check_finite=False).T
-    innovation = measurement - projected_mean
-    new_mean = mean + innovation @ gain.T
-    new_cov = covariance - np.linalg.multi_dot((gain, projected_cov, gain.T))
-    return new_mean, new_cov
 
 
 def _hmiou_distance(tracks_a: list[TTSTrack], tracks_b: list[TTSTrack]) -> tuple[np.ndarray, np.ndarray]:
@@ -157,8 +137,8 @@ def attach_raw_preds_hook(predictor) -> None:
 
     @wraps(orig)
     def _wrapped(preds, img, orig_imgs, *args, **kwargs):
-        # copy=True so the in-place NMS xywh->xyxy conversion can't mutate this captured tensor (CPU aliasing)
-        predictor._raw_preds = preds.detach().to("cpu", copy=True) if isinstance(preds, torch.Tensor) else preds
+        # clone() so the in-place NMS xywh->xyxy conversion can't mutate this capture; keep source device for box_iou
+        predictor._raw_preds = preds.detach().clone() if isinstance(preds, torch.Tensor) else preds
         predictor._postprocess_im = img
         predictor._postprocess_im0s = orig_imgs
         return orig(preds, img, orig_imgs, *args, **kwargs)
@@ -205,21 +185,21 @@ def compute_dets_del(predictor) -> list | None:
 
 
 def _cosine_distance(tracks: list[TTSTrack], dets: list[TTSTrack]) -> np.ndarray:
-    """Return cosine distance in `[0, 1]` between track smoothed embeddings and detection current embeddings."""
-    if len(tracks) == 0 or len(dets) == 0:
+    """Cosine distance in `[0, 1]` between track and detection embeddings; NaN where either side has no feature.
+
+    A NaN entry signals "no appearance evidence for this pair" so the caller falls back to motion rather than treating a
+    missing/occlusion-suppressed embedding as maximally dissimilar (which would penalize true matches).
+    """
+    if not tracks or not dets:
         return np.ones((len(tracks), len(dets)), dtype=np.float32)
-    dim = 128
-    for obj in (*tracks, *dets):
-        feat = obj.smooth_feat if obj.smooth_feat is not None else obj.curr_feat
-        if feat is not None:
-            dim = feat.shape[0]
-            break
-    else:
-        LOGGER.warning("TRACKTRACK ReID enabled but all features are None; falling back to zero embeddings.")
+    tfeat = [t.smooth_feat if t.smooth_feat is not None else t.curr_feat for t in tracks]
+    dfeat = [d.curr_feat for d in dets]
+    dim = next((f.shape[0] for f in (*tfeat, *dfeat) if f is not None), 128)
     zeros = np.zeros(dim, dtype=np.float32)
-    track_feats = np.stack([t.smooth_feat if t.smooth_feat is not None else zeros for t in tracks])
-    det_feats = np.stack([d.curr_feat if d.curr_feat is not None else zeros for d in dets])
-    return np.clip(1 - track_feats @ det_feats.T, 0, 1)
+    T = np.stack([f if f is not None else zeros for f in tfeat])
+    D = np.stack([f if f is not None else zeros for f in dfeat])
+    valid = np.array([f is not None for f in tfeat])[:, None] & np.array([f is not None for f in dfeat])[None, :]
+    return np.where(valid, np.clip(1 - T @ D.T, 0, 1), np.nan).astype(np.float32)
 
 
 class TTSTrack(BOTrack):
@@ -298,8 +278,8 @@ class TTSTrack(BOTrack):
     def re_activate(self, new_track, frame_id: int, new_id: bool = False) -> None:
         """Rebind a lost track to a fresh detection via NSA-Kalman."""
         self.prev_score = self.score
-        self.mean, self.covariance = _nsa_kalman_update(
-            self.kalman_filter, self.mean, self.covariance, self.convert_coords(new_track.tlwh), new_track.score
+        self.mean, self.covariance = self.kalman_filter.update(
+            self.mean, self.covariance, self.convert_coords(new_track.tlwh), confidence=new_track.score
         )
         self._history.append((frame_id, self.xyxy.copy()))
         self.score = new_track.score  # set before update_features so the EMA weight uses the current confidence
@@ -318,8 +298,8 @@ class TTSTrack(BOTrack):
         self.frame_id = frame_id
         self.tracklet_len += 1
         self.prev_score = self.score
-        self.mean, self.covariance = _nsa_kalman_update(
-            self.kalman_filter, self.mean, self.covariance, self.convert_coords(new_track.tlwh), new_track.score
+        self.mean, self.covariance = self.kalman_filter.update(
+            self.mean, self.covariance, self.convert_coords(new_track.tlwh), confidence=new_track.score
         )
         self._history.append((frame_id, new_track.xyxy.copy()))
 
@@ -408,7 +388,9 @@ class TRACKTRACK:
 
         from .utils.reid import build_encoder
 
-        self.encoder = build_encoder(getattr(args, "with_reid", False), getattr(args, "model", "auto"))
+        self.encoder = build_encoder(
+            getattr(args, "with_reid", False), getattr(args, "model", "auto"), getattr(args, "device", None)
+        )
 
     @classmethod
     def setup_predictor(cls, predictor):
@@ -430,7 +412,10 @@ class TRACKTRACK:
         """Return the multi-cue cost matrix (HMIoU + ReID + confidence + angle), gated by IoU support."""
         iou_sim, hmiou_dist = _hmiou_distance(tracks, dets)
         if self.encoder is not None:
-            cost = self.iou_weight * hmiou_dist + self.reid_weight * _cosine_distance(tracks, dets)
+            cos = _cosine_distance(tracks, dets)
+            # Where appearance is missing (NaN: new track, or occlusion-suppressed detection), fall back to
+            # pure motion cost for that pair so the embedding neither helps nor penalizes it.
+            cost = np.where(np.isnan(cos), hmiou_dist, self.iou_weight * hmiou_dist + self.reid_weight * cos)
         else:
             cost = hmiou_dist
         cost += self.conf_weight * _confidence_distance(tracks, dets)

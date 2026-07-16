@@ -382,10 +382,12 @@ def convert_segment_masks_to_yolo_seg(masks_dir: str, output_dir: str, classes: 
                 └─ mask_yolo_04.txt
     """
     pixel_to_class_mapping = {i + 1: i for i in range(classes)}
-    for mask_path in Path(masks_dir).iterdir():
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    for mask_path in sorted(Path(masks_dir).iterdir()):
         if mask_path.suffix in {".png", ".jpg"}:
             mask = cv2.imread(str(mask_path), cv2.IMREAD_GRAYSCALE)  # Read the mask image in grayscale
-            img_height, img_width = mask.shape  # Get image dimensions
+            img_height, img_width = mask.shape[:2]  # patched Windows imread returns (H, W, 1) for grayscale
             LOGGER.info(f"Processing {mask_path} imgsz = {img_height} x {img_width}")
 
             unique_values = np.unique(mask)  # Get unique pixel values representing different classes
@@ -414,7 +416,7 @@ def convert_segment_masks_to_yolo_seg(masks_dir: str, output_dir: str, classes: 
                             yolo_format.append(round(point[1] / img_height, 6))
                         yolo_format_data.append(yolo_format)
             # Save Ultralytics YOLO format data to file
-            output_path = Path(output_dir) / f"{mask_path.stem}.txt"
+            output_path = output_dir / f"{mask_path.stem}.txt"
             with open(output_path, "w", encoding="utf-8") as file:
                 for item in yolo_format_data:
                     line = " ".join(map(str, item))
@@ -718,8 +720,6 @@ def convert_to_multispectral(path: str | Path, n_channels: int = 10, replace: bo
         Convert a dataset
         >>> convert_to_multispectral("coco8", n_channels=10)
     """
-    from scipy.interpolate import interp1d
-
     from ultralytics.data.utils import IMG_FORMATS
 
     path = Path(path)
@@ -741,11 +741,15 @@ def convert_to_multispectral(path: str | Path, n_channels: int = 10, replace: bo
         output_path = path.with_suffix(".tiff")
         img = cv2.cvtColor(cv2.imread(str(path)), cv2.COLOR_BGR2RGB)
 
-        # Interpolate all pixels at once
+        # Interpolate all pixels at once with linear interpolation and extrapolation across RGB wavelengths
         rgb_wavelengths = np.array([650, 510, 475])  # R, G, B wavelengths (nm)
         target_wavelengths = np.linspace(450, 700, n_channels)
-        f = interp1d(rgb_wavelengths.T, img, kind="linear", bounds_error=False, fill_value="extrapolate")
-        multispectral = f(target_wavelengths)
+        order = np.argsort(rgb_wavelengths)  # ascending wavelengths for segment lookup
+        xp = rgb_wavelengths[order]
+        seg = np.clip(np.searchsorted(xp, target_wavelengths) - 1, 0, len(xp) - 2)  # segment per target
+        w = (target_wavelengths - xp[seg]) / (xp[seg + 1] - xp[seg])  # weights (<0 or >1 -> extrapolation)
+        img = img[..., order]
+        multispectral = img[..., seg] * (1 - w) + img[..., seg + 1] * w
         cv2.imwritemulti(str(output_path), np.clip(multispectral, 0, 255).astype(np.uint8).transpose(2, 0, 1))
         LOGGER.info(f"Converted {output_path}")
 
@@ -831,15 +835,35 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     with open(ndjson_path) as f:
         lines = [json.loads(line.strip()) for line in f if line.strip()]
     dataset_record, image_records = lines[0], lines[1:]
+    is_classification = dataset_record.get("task") == "classify"
+    class_names = {int(k): v for k, v in dataset_record.get("class_names", {}).items()}
+    classification_ids = set()
 
     # Hash stable content plus source identity. Query strings are excluded because signed URLs change on every export.
     _h = hashlib.sha256()
-    for r in lines:
+    for i, r in enumerate(lines):
+        if i:
+            split, source_name = r.get("split"), r.get("file")
+            if split not in {"train", "val", "test"}:
+                raise ValueError(f"Invalid NDJSON split: {split!r}")
+            if not isinstance(source_name, str) or not source_name:
+                raise ValueError(f"Invalid NDJSON image name: {source_name!r}")
+            # Record indexes provide collision-free output stems without trusting source paths.
+            suffix = source_name.rsplit(".", 1)[-1]
+            r["file"] = f"{i}.{suffix}" if suffix.isalnum() and len(suffix) <= 10 else f"{i}.jpg"
+            if is_classification:
+                ids = r.get("annotations", {}).get("classification", [])
+                class_id = ids[0] if ids else 0
+                if not isinstance(class_id, int):
+                    raise ValueError(f"Invalid NDJSON classification ID: {class_id!r}")
+                classification_ids.add(class_id)
         hash_record = {k: v for k, v in r.items() if k != "url"}
         if r.get("file"):
             hash_record["_source"] = clean_url(r["url"]) if r.get("url") else str(ndjson_path.parent.resolve())
         _h.update(json.dumps(hash_record, sort_keys=True).encode())
     _hash = _h.hexdigest()[:8]
+    class_dirs = {class_id: f"{i:06d}" for i, class_id in enumerate(sorted(classification_ids))}
+    classification_names = {i: class_names.get(class_id, str(class_id)) for i, class_id in enumerate(class_dirs)}
 
     # Hash-qualified dirs allow identical datasets to reuse downloads while preventing changed datasets from mutating
     # files that another training job may still be reading.
@@ -859,8 +883,6 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     splits = {record["split"] for record in image_records}
 
     # Check if this is a classification dataset
-    is_classification = dataset_record.get("task") == "classify"
-    class_names = {int(k): v for k, v in dataset_record.get("class_names", {}).items()}
     inferred_nc = None
 
     # Validate required fields before downloading images
@@ -936,12 +958,13 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                 # Classification: place image in {split}/{class_name}/ folder
                 class_ids = annotations.get("classification", [])
                 class_id = class_ids[0] if class_ids else 0
-                class_name = class_names.get(class_id, str(class_id))
+                class_name = class_dirs[class_id]
                 image_path = dataset_dir / split / class_name / original_name
             else:
                 # Detection: write label file and place image in images/{split}/
                 image_path = dataset_dir / "images" / split / original_name
-                label_path = dataset_dir / "labels" / split / f"{Path(original_name).stem}.txt"
+                stem = original_name.rsplit(".", 1)[0] or original_name
+                label_path = dataset_dir / "labels" / split / f"{stem}.txt"
                 lines_to_write = []
                 for key in annotations:
                     lines_to_write = [" ".join(map(str, item)) for item in annotations[key]]
@@ -992,7 +1015,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
 
     # Process all images with async downloads (limit connections for small datasets)
     semaphore = asyncio.Semaphore(min(128, len(image_records)))
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(trust_env=True) as session:
         pbar = TQDM(
             total=len(image_records),
             desc=f"Converting {ndjson_path.name} → {dataset_dir} ({len(image_records)} images)",
@@ -1022,7 +1045,8 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                 ann = r.get("annotations", {})
                 cids = ann.get("classification", [])
                 cid = cids[0] if cids else 0
-                expected_paths.add(dataset_dir / s / class_names.get(cid, str(cid)) / name)
+                class_name = class_dirs[cid]
+                expected_paths.add(dataset_dir / s / class_name / name)
             else:
                 expected_paths.add(dataset_dir / "images" / s / name)
         img_root = dataset_dir if is_classification else (dataset_dir / "images")
@@ -1032,6 +1056,8 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
 
     if is_classification:
         # Classification: return dataset directory (check_cls_dataset expects a directory path)
+        # Keep class paths safe while check_cls_dataset restores the original display names.
+        YAML.save(dataset_dir / ".ndjson.yaml", {"names": classification_names})
         return dataset_dir
     else:
         # Detection: write data.yaml with hash for future change detection

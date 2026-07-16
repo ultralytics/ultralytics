@@ -12,7 +12,6 @@ from datetime import datetime
 from pathlib import Path
 
 from ultralytics.utils import LINUX, LOGGER, MACOS, RANK, WINDOWS
-from ultralytics.utils.checks import check_requirements
 
 
 class ConsoleLogger:
@@ -54,6 +53,8 @@ class ConsoleLogger:
             flush_interval (float): Max seconds between flushes when batching.
             on_flush (callable | None): Callback(content: str, line_count: int, chunk_id: int) for custom handling.
         """
+        if isinstance(destination, str) and destination.startswith("http://"):
+            LOGGER.warning("ConsoleLogger destination uses plaintext HTTP; captured logs are sent unencrypted.")
         self.destination = destination
         self.is_api = isinstance(destination, str) and destination.startswith(("http://", "https://"))
         if destination is not None and not self.is_api:
@@ -134,9 +135,10 @@ class ConsoleLogger:
 
         current_time = time.time()
 
-        # Handle carriage returns and process lines
+        # Handle carriage returns and strip ANSI clear-line codes (TQDM writes "\r\033[K<line>" interactively)
         if "\r" in text:
             text = text.split("\r")[-1]
+        text = text.replace("\x1b[K", "")
 
         lines = text.split("\n")
         if lines and lines[-1] == "":
@@ -333,8 +335,9 @@ class _DriveInfo:
 
     @staticmethod
     def _sort(mounts):
-        """Sort mounted paths with root first."""
-        return sorted(set(mounts), key=lambda mount: (mount != "/", mount))
+        """Sort mounted paths with root first, excluding boot/firmware partitions like /boot and /boot/efi."""
+        mounts = {m for m in mounts if not (m + "/").startswith(("/boot/", "/efi/"))}
+        return sorted(mounts, key=lambda mount: (mount != "/", mount))
 
     @staticmethod
     def _current_mount(partitions):
@@ -483,9 +486,10 @@ class SystemLogger:
             return False
 
         try:
-            check_requirements("nvidia-ml-py>=12.0.0")
-            self.pynvml = __import__("pynvml")
-            self.pynvml.nvmlInit()
+            import pynvml  # scoped as slow import
+
+            self.pynvml = pynvml
+            pynvml.nvmlInit()
             return True
         except Exception as e:
             import torch

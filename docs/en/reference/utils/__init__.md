@@ -1,4 +1,5 @@
 ---
+title: utils.__init__ API Reference
 description: Explore the comprehensive reference for ultralytics.utils in the Ultralytics library. Enhance your ML workflow with these utility functions.
 keywords: Ultralytics, utils, TQDM, Python, ML, Machine Learning utilities, YOLO, threading, logging, yaml, settings
 ---
@@ -44,6 +45,10 @@ keywords: Ultralytics, utils, TQDM, Python, ML, Machine Learning utilities, YOLO
 <br><br><hr><br>
 
 ## ::: ultralytics.utils.__init__.SettingsManager
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.__init__.env_bool
 
 <br><br><hr><br>
 

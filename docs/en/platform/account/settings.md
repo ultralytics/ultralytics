@@ -1,7 +1,9 @@
 ---
+plans: [free, pro, enterprise]
 comments: true
 description: Configure your Ultralytics Platform profile, preferences, and data settings with GDPR-compliant data export and deletion options.
 keywords: Ultralytics Platform, settings, profile, preferences, GDPR, data export, privacy
+title: Account Settings
 ---
 
 # Settings
@@ -65,15 +67,15 @@ Connect your professional profiles:
 
 ![Ultralytics Platform Settings Profile Tab Social Links Grid](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-profile-tab-social-links-grid.avif)
 
-| Platform           | Format               |
-| ------------------ | -------------------- |
-| **GitHub**         | username             |
-| **LinkedIn**       | profile-slug         |
-| **X (Twitter)**    | username             |
-| **YouTube**        | channel-handle       |
-| **Google Scholar** | user-id              |
-| **Discord**        | username             |
-| **Website**        | https://yoursite.com |
+| Platform           | Format         |
+| ------------------ | -------------- |
+| **GitHub**         | username       |
+| **LinkedIn**       | profile-slug   |
+| **X (Twitter)**    | username       |
+| **YouTube**        | channel-handle |
+| **Google Scholar** | user-id        |
+| **Discord**        | username       |
+| **Website**        | `example.com`  |
 
 Social links appear on your public profile page.
 
@@ -227,7 +229,7 @@ The `Plans` tab lets you compare available plans and upgrade or downgrade your s
 | -------------- | --------- | --------- | ----------- | -------------------- | ---------- |
 | **Free**       | 100 GB    | 100       | 3           | 3                    | —          |
 | **Pro**        | 500 GB    | 500       | 10          | 10                   | Up to 5    |
-| **Enterprise** | Unlimited | Unlimited | Unlimited   | Unlimited            | 50+        |
+| **Enterprise** | Unlimited | Unlimited | Unlimited   | Unlimited            | Custom     |
 
 From this tab you can:
 
@@ -303,6 +305,7 @@ The `Integrations` tab lets you import datasets and projects from external servi
 
 - **Ultralytics HUB** — import your existing datasets and projects from [Ultralytics HUB](../integrations/ultralytics-hub.md).
 - **Roboflow** — import annotated datasets from a [Roboflow](../integrations/roboflow.md) workspace using a Roboflow API key.
+- **On Premise** — connect Enterprise CPU/GPU workers and keep dataset pixels on your own host. See [On Premise](../integrations/on-premise.md).
 - **Weights & Biases** — experiment-tracking sync (coming soon).
 
 See [Integrations](../integrations/index.md) for the full list of supported services.

@@ -1,4 +1,5 @@
 ---
+plans: [free, pro, enterprise]
 comments: true
 description: Complete REST API reference for Ultralytics Platform including authentication, endpoints, and examples for datasets, models, and deployments.
 keywords: Ultralytics Platform, REST API, API reference, authentication, endpoints, YOLO, programmatic access
@@ -28,15 +29,18 @@ The API is organized around the core platform resources:
 
 ```mermaid
 graph LR
-    A[API Key] --> B[Datasets]
-    A --> C[Projects]
-    A --> D[Models]
-    A --> E[Deployments]
+    A[API Key]:::start --> B[Datasets]:::proc
+    A --> C[Projects]:::proc
+    A --> D[Models]:::proc
+    A --> E[Deployments]:::proc
     B -->|train on| D
     C -->|contains| D
     D -->|deploy to| E
-    D -->|export| F[Exports]
+    D -->|export| F[Exports]:::proc
     B -->|auto-annotate| B
+
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
 ```
 
 | Resource                                   | Description                   | Key Operations                                |
@@ -109,7 +113,7 @@ Authorization: Bearer YOUR_API_KEY
 
 All API endpoints use:
 
-```
+```text
 https://platform.ultralytics.com/api
 ```
 
@@ -287,6 +291,16 @@ POST /api/datasets
 !!! note "Supported Tasks"
 
     Valid `task` values: `detect`, `segment`, `semantic`, `classify`, `pose`, `obb`.
+
+**Response:**
+
+```json
+{
+    "datasetId": "dataset_abc123",
+    "slug": "my-dataset",
+    "region": "us"
+}
+```
 
 ### Update Dataset
 
@@ -569,18 +583,53 @@ Run YOLO inference on dataset images to auto-generate annotations. Uses a select
 POST /api/datasets/ingest
 ```
 
-Create a dataset ingest job to process uploaded ZIP or TAR files, including `.tar.gz` and `.tgz`, containing images and labels.
+Create a dataset ingest job for an existing dataset. The target dataset is always passed as `datasetId` in the JSON body, not in the URL path.
 
-The request body takes exactly one of `sessionId` (an uploaded archive's upload session) or `sourceUrl` (a remote ZIP, TAR, TAR.GZ, TGZ, or NDJSON URL), plus an optional `targetSplit` (`train`, `val`, or `test`) to override the archive's split structure.
+The request body requires `datasetId` plus exactly one of `sessionId` (an uploaded archive's upload session) or `sourceUrl` (a remote ZIP, TAR, TAR.GZ, TGZ, or NDJSON URL). Add optional `targetSplit` (`train`, `val`, or `test`) to override the archive's split structure.
+
+For uploaded archives, the upload session is already bound to the dataset by the `assetId` passed to `POST /api/upload/signed-url`; ingest validates that `assetId` matches the body `datasetId`. For remote `sourceUrl` imports, create the dataset first, then pass its `datasetId` to ingest.
+
+**Body (uploaded archive):**
+
+```json
+{
+    "datasetId": "dataset_abc123",
+    "sessionId": "session_abc123",
+    "targetSplit": "train"
+}
+```
+
+**Body (remote archive or NDJSON):**
+
+```json
+{
+    "datasetId": "dataset_abc123",
+    "sourceUrl": "https://example.com/my-dataset.zip"
+}
+```
+
+**Response:**
+
+```json
+{
+    "jobId": "job_abc123",
+    "datasetId": "dataset_abc123",
+    "status": "queued"
+}
+```
 
 ```mermaid
 graph LR
-    A[Upload Archive] --> B[POST /api/datasets/ingest]
-    B --> C[Process Archive]
-    C --> D[Extract images]
-    C --> E[Parse labels]
-    C --> F[Generate thumbnails]
-    D & E & F --> G[Dataset ready]
+    A[POST /api/datasets]:::start --> B[POST /api/upload/signed-url]:::proc
+    B --> C[Upload archive to signed URL]:::proc
+    C --> D[POST /api/upload/complete]:::proc
+    D --> E[POST /api/datasets/ingest]:::proc
+    E --> F[Process archive]:::proc
+    F --> G[Dataset ready]:::out
+
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 ### Dataset Images
@@ -702,7 +751,11 @@ POST /api/projects
     curl -X POST \
       -H "Authorization: Bearer YOUR_API_KEY" \
       -H "Content-Type: application/json" \
-      -d '{"name": "my-project", "slug": "my-project", "description": "Detection experiments"}' \
+      -d '{
+        "name": "my-project",
+        "slug": "my-project",
+        "description": "Detection experiments"
+      }' \
       https://platform.ultralytics.com/api/projects
     ```
 
@@ -712,7 +765,11 @@ POST /api/projects
     resp = requests.post(
         "https://platform.ultralytics.com/api/projects",
         headers={"Authorization": f"Bearer {API_KEY}"},
-        json={"name": "my-project", "slug": "my-project", "description": "Detection experiments"},
+        json={
+            "name": "my-project",
+            "slug": "my-project",
+            "description": "Detection experiments",
+        },
     )
     project_id = resp.json()["projectId"]
     ```
@@ -952,16 +1009,22 @@ POST /api/models/{modelId}/predict/warmup
 
 ## Training API
 
-Launch YOLO training on cloud GPUs (24 GPU types from RTX 2000 Ada to B300) and monitor progress in real time. See [Cloud Training documentation](../train/cloud-training.md).
+Launch YOLO training on cloud GPUs (26 GPU types from RTX 2000 Ada to B300) and monitor progress in real time. See [Cloud Training documentation](../train/cloud-training.md).
 
 ```mermaid
 graph LR
-    A[POST /training/start] --> B[Job Created]
-    B --> C{Training}
-    C -->|progress| D[GET /models/id/training]
-    C -->|cancel| E[DELETE /models/id/training]
-    C -->|complete| F[Model Ready]
-    F --> G[Deploy or Export]
+    A[POST /training/start]:::start --> B[Job Created]:::proc
+    B --> C{Training}:::decide
+    C -->|progress| D[GET /models/id/training]:::proc
+    C -->|cancel| E[DELETE /models/id/training]:::error
+    C -->|complete| F[Model Ready]:::out
+    F --> G[Deploy or Export]:::proc
+
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef decide fill:#FF9800,color:#fff
+    classDef out fill:#9C27B0,color:#fff
+    classDef error fill:#F44336,color:#fff
 ```
 
 ### Start Training
@@ -1052,13 +1115,19 @@ Deploy models to dedicated inference endpoints with health checks and monitoring
 
 ```mermaid
 graph LR
-    A[Create] --> B[Deploying]
-    B --> C[Ready]
-    C -->|stop| D[Stopped]
+    A[Create]:::start --> B[Deploying]:::proc
+    B --> C[Ready]:::out
+    C -->|stop| D[Stopped]:::extern
     D -->|start| C
-    C -->|delete| E[Deleted]
+    C -->|delete| E[Deleted]:::error
     D -->|delete| E
-    C -->|predict| F[Inference Results]
+    C -->|predict| F[Inference Results]:::out
+
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
+    classDef error fill:#F44336,color:#fff
+    classDef extern fill:#607D8B,color:#fff
 ```
 
 ### List Deployments
@@ -1217,7 +1286,7 @@ Returns aggregated metrics across all user deployments: total requests, active d
 
 ## Export API
 
-Convert models to optimized formats like ONNX, TensorRT, CoreML, and TFLite for edge deployment. See [Deploy documentation](../deploy/index.md).
+Convert models to optimized formats like ONNX, TensorRT, CoreML, and LiteRT for edge deployment. See [Deploy documentation](../deploy/index.md).
 
 ### List Exports
 
@@ -1241,12 +1310,12 @@ POST /api/exports
 
 **Body:**
 
-| Field     | Type   | Required    | Description                                         |
-| --------- | ------ | ----------- | --------------------------------------------------- |
-| `modelId` | string | Yes         | Source model ID                                     |
-| `format`  | string | Yes         | Export format (see table below)                     |
-| `gpuType` | string | Conditional | Required when `format` is `engine` (TensorRT)       |
-| `args`    | object | No          | Export arguments (`imgsz`, `half`, `dynamic`, etc.) |
+| Field     | Type   | Required    | Description                                             |
+| --------- | ------ | ----------- | ------------------------------------------------------- |
+| `modelId` | string | Yes         | Source model ID                                         |
+| `format`  | string | Yes         | Export format (see table below)                         |
+| `gpuType` | string | Conditional | Required when `format` is `engine` (TensorRT)           |
+| `args`    | object | No          | Export arguments (`imgsz`, `quantize`, `dynamic`, etc.) |
 
 === "cURL"
 
@@ -1278,13 +1347,12 @@ POST /api/exports
 | OpenVINO      | `openvino`    | Intel hardware           |
 | TensorRT      | `engine`      | NVIDIA GPU optimization  |
 | CoreML        | `coreml`      | Apple devices            |
-| TFLite        | `tflite`      | Mobile and embedded      |
 | TF SavedModel | `saved_model` | TensorFlow Serving       |
 | TF GraphDef   | `pb`          | TensorFlow frozen graph  |
 | PaddlePaddle  | `paddle`      | Baidu PaddlePaddle       |
 | NCNN          | `ncnn`        | Mobile neural network    |
+| LiteRT        | `litert`      | Mobile/edge and browser  |
 | Edge TPU      | `edgetpu`     | Google Coral devices     |
-| TF.js         | `tfjs`        | Browser inference        |
 | MNN           | `mnn`         | Alibaba mobile inference |
 | RKNN          | `rknn`        | Rockchip NPU             |
 | Qualcomm      | `qnn`         | Qualcomm Snapdragon NPU  |
@@ -1722,7 +1790,7 @@ GET /api/storage
 
 ## Upload API
 
-Upload files directly to cloud storage using signed URLs for fast, reliable transfers. Uses a two-step flow: get a signed URL, then upload the file. See [Data documentation](../data/index.md).
+Upload files directly to cloud storage using signed URLs for fast, reliable transfers. For dataset archives, use the returned `sessionId` with `POST /api/upload/complete`, then `POST /api/datasets/ingest`. See [Data documentation](../data/index.md).
 
 ### Get Signed Upload URL
 
@@ -1736,11 +1804,11 @@ Request a signed URL for uploading a file directly to cloud storage. The signed 
 
 ```json
 {
-    "assetType": "images",
-    "assetId": "abc123",
-    "filename": "my-image.jpg",
-    "contentType": "image/jpeg",
-    "totalBytes": 5242880
+    "assetType": "datasets",
+    "assetId": "dataset_abc123",
+    "filename": "my-dataset.zip",
+    "contentType": "application/zip",
+    "totalBytes": 52428800
 }
 ```
 
@@ -1758,7 +1826,7 @@ Request a signed URL for uploading a file directly to cloud storage. The signed 
 {
     "sessionId": "session_abc123",
     "uploadUrl": "https://storage.example.com/...",
-    "gcsPath": "gs://bucket/users/user123/images/abc123/my-image.jpg",
+    "gcsPath": "gs://bucket/users/user123/datasets/dataset_abc123/my-dataset.zip",
     "downloadUrl": "https://cdn.example.com/...",
     "expiresAt": "2026-02-22T12:00:00Z"
 }
@@ -1770,7 +1838,7 @@ Request a signed URL for uploading a file directly to cloud storage. The signed 
 POST /api/upload/complete
 ```
 
-Notify the platform that a file upload is complete so it can begin processing.
+Notify the platform that a file upload is complete. For dataset archives, this verifies and records the upload session; call `POST /api/datasets/ingest` afterward to start dataset processing.
 
 **Body:**
 
@@ -2254,10 +2322,10 @@ for r in results:
 
 ```python
 # Export to ONNX
-model.export(format="onnx", imgsz=640, half=True)
+model.export(format="onnx", imgsz=640, quantize=16)
 
 # Export to TensorRT
-model.export(format="engine", imgsz=640, half=True)
+model.export(format="engine", imgsz=640, quantize=16)
 
 # Export to CoreML
 model.export(format="coreml", imgsz=640)
@@ -2342,7 +2410,7 @@ def api_request_with_retry(url, headers, max_retries=3):
 
 Resource IDs are returned when you create resources via the API. You can also find them in the platform URL:
 
-```
+```text
 https://platform.ultralytics.com/username/project/model-name
                                   ^^^^^^^^ ^^^^^^^ ^^^^^^^^^^
                                   username project   model

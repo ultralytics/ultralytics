@@ -1,4 +1,5 @@
 ---
+title: COCO12-Formats Detection Dataset
 comments: true
 description: Explore the Ultralytics COCO12-Formats dataset, a test dataset featuring 12 supported image formats (AVIF, BMP, DNG, HEIC, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WebP) for validating image loading pipelines.
 keywords: COCO12-Formats, Ultralytics, dataset, image formats, object detection, YOLO, AVIF, BMP, DNG, HEIC, JP2, JPEG, PNG, TIFF, WebP, MPO
@@ -16,6 +17,8 @@ This dataset is invaluable for:
 - **CI/CD pipelines**: Automated testing of format compatibility
 - **Debugging**: Isolate format-specific issues in training pipelines
 - **Development**: Validate new format additions or changes
+
+When you manage datasets on [Ultralytics Platform](https://platform.ultralytics.com/), images in any of these formats are handled automatically—no manual conversion required.
 
 ## Supported Formats
 
@@ -38,7 +41,7 @@ The dataset includes one image for each of 12 supported format extensions define
 
 ## Dataset Structure
 
-```
+```text
 coco12-formats/
 ├── images/
 │   ├── train/          # 6 images (avif, bmp, dng, heic, jpeg, jpg)
@@ -99,7 +102,7 @@ For OpenCV to read AVIF files directly, `libavif` must be installed **before** b
 
 ## Usage
 
-To train a YOLO model on the COCO12-Formats dataset, use the following examples:
+The COCO12-Formats dataset (1 MB) downloads automatically the first time you start training. To train a YOLO model on the COCO12-Formats dataset, use the following examples:
 
 !!! example "Train Example"
 
@@ -144,9 +147,11 @@ JPEG 2000 is a wavelet-based image compression standard offering better compress
 
 MPO files are used for stereoscopic (3D) images. The dataset stores standard JPEG data with the `.mpo` extension for format testing.
 
-### HEIC (High Efficiency Image Coding)
+### HEIC / HEIF (High Efficiency Image File Format)
 
-HEIC requires the `pillow-heif` package for proper encoding:
+Both `.heic` and `.heif` extensions reference the same ISO/IEC 23008-12 container. By convention, `.heic` denotes HEVC-encoded HEIF files (the variant produced by Apple devices), while `.heif` is the broader umbrella extension.
+
+Ultralytics decodes both via the OpenCV → Pillow fallback in `ultralytics/utils/patches.py`, which auto-installs `pi-heif` (lightweight, decode-only) on first use — no manual setup required for reading. To produce HEIC/HEIF files yourself (e.g., re-encoding sample images), install the full `pillow-heif` package, which includes encoders:
 
 ```bash
 pip install pillow-heif

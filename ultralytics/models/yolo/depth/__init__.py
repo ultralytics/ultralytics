@@ -7,7 +7,8 @@ from .predict import DepthPredictor
 from .val import DepthValidator
 
 
-def __getattr__(name):
+def __getattr__(name: str):
+    """Lazy-load DepthTrainer on first access to avoid a circular import with yolo.detect."""
     if name == "DepthTrainer":
         return _importlib.import_module(".train", __name__).DepthTrainer
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

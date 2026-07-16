@@ -3,6 +3,11 @@
 
 from __future__ import annotations
 
+from typing import Any
+
+import numpy as np
+import torch
+
 from ultralytics.engine.predictor import BasePredictor
 from ultralytics.engine.results import Results
 from ultralytics.utils import DEFAULT_CFG, ops
@@ -19,12 +24,16 @@ class DepthPredictor(BasePredictor):
         >>> results = predictor("image.jpg")
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+    def __init__(
+        self, cfg=DEFAULT_CFG, overrides: dict[str, Any] | None = None, _callbacks: dict | None = None
+    ) -> None:
         """Initialize DepthPredictor."""
         super().__init__(cfg, overrides, _callbacks)
         self.args.task = "depth"
 
-    def postprocess(self, preds, img, orig_imgs):
+    def postprocess(
+        self, preds: torch.Tensor | tuple | list, img: torch.Tensor, orig_imgs: list[np.ndarray] | torch.Tensor
+    ) -> list[Results]:
         """Post-process depth predictions to Results objects."""
         depth_maps = preds[0] if isinstance(preds, (tuple, list)) else preds  # (B, 1, H, W)
         if depth_maps.ndim == 3:

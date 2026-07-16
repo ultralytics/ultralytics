@@ -526,8 +526,13 @@ class Annotator:
             self.fromarray(self.im)
 
     def depth_map(
-        self, depth, alpha: float = 0.6, side_by_side: bool = False, cmap: str = "jet", mode: str = "disparity"
-    ):
+        self,
+        depth: np.ndarray,
+        alpha: float = 0.6,
+        side_by_side: bool = False,
+        cmap: str = "jet",
+        mode: str = "disparity",
+    ) -> None:
         """Render a colorized depth map for the image.
 
         Args:
@@ -1148,7 +1153,14 @@ def plt_color_scatter(v, f, bins: int = 20, cmap: str = "viridis", alpha: float 
     plt.scatter(v, f, c=colors, cmap=cmap, alpha=alpha, edgecolors=edgecolors)
 
 
-def plot_depth_panels(imgs, preds, fname, gt=None, titles=None, max_images: int = 4):
+def plot_depth_panels(
+    imgs: torch.Tensor,
+    preds: list[torch.Tensor],
+    fname: str | Path,
+    gt: torch.Tensor | None = None,
+    titles: list[str] | None = None,
+    max_images: int = 4,
+) -> None:
     """Write a depth panel grid: one row per image, columns RGB | GT (if provided) | one per entry of ``preds``.
 
     All depth columns share the GT valid-pixel range per row, so a scale error between GT and any prediction shows up

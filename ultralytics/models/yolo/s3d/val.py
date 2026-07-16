@@ -11,7 +11,7 @@ import torch
 from ultralytics.data.stereo.box3d import Box3D
 from ultralytics.data.stereo.calib import CalibrationParameters
 from ultralytics.engine.validator import BaseValidator
-from ultralytics.models.yolo.s3d.head import DEPTH_MAX, DEPTH_MIN
+from ultralytics.models.yolo.s3d.head import DEPTH_MAX, DEPTH_MIN, resolve_s3d_head
 from ultralytics.models.yolo.s3d.metrics import (
     DIFFICULTY_EASY,
     DIFFICULTY_HARD,
@@ -27,7 +27,6 @@ from ultralytics.models.yolo.s3d.preprocess import (
 from ultralytics.utils import LOGGER, RANK
 from ultralytics.utils.metrics import DetMetrics, box_iou, compute_3d_iou, compute_bev_iou
 from ultralytics.utils.plotting import plot_stereo3d_boxes
-from ultralytics.utils.torch_utils import unwrap_model
 
 
 def _reverse_letterbox_calib(
@@ -327,16 +326,13 @@ class Stereo3DDetValidator(BaseValidator):
         if self.std_dims is None:
             LOGGER.info("No std_dims in dataset config, will use defaults")
 
-        # Depth range: dataset YAML may retarget the direct-depth head for close-range scenes.
-        # Apply it to the head so its DepthDFL bins and the decode's variance term share one range,
-        # then read back the effective range (a loaded checkpoint already carries its trained bins).
-        head = unwrap_model(model).model[-1]
-        d_min = self.data.get("depth_min") if hasattr(self, "data") and self.data else None
-        d_max = self.data.get("depth_max") if hasattr(self, "data") and self.data else None
-        if d_min is not None and d_max is not None and hasattr(head, "set_depth_range"):
-            head.set_depth_range(float(d_min), float(d_max))
-        self.depth_min = head.depth_min if hasattr(head, "depth_min") else None
-        self.depth_max = head.depth_max if hasattr(head, "depth_max") else None
+        # Depth range for the decode: read it from the model head, which carries the effective range
+        # (the training callback retargets it from the dataset config, and a loaded checkpoint restores
+        # its trained bins). We trust the head's bins rather than re-applying the YAML here, so valing a
+        # checkpoint never silently retargets its depth range.
+        head = resolve_s3d_head(model)
+        self.depth_min = head.depth_min if head is not None else DEPTH_MIN
+        self.depth_max = head.depth_max if head is not None else DEPTH_MAX
 
         # Build dataset→model class ID mapping when dataset has more classes than model.
         # E.g., dataset {0:Car, 1:Van, 3:Pedestrian} + model {0:Car, 1:Pedestrian}

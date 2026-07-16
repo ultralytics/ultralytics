@@ -43,7 +43,9 @@ class DepthDFL(nn.Module):
         """Rebuild the log-depth bin centers for a new [d_min, d_max] range (meters), in place on-device."""
         if not (d_min > 0 and d_max > d_min):
             raise ValueError(f"Depth range must satisfy 0 < d_min < d_max, got ({d_min}, {d_max})")
-        self.bin_values = torch.linspace(math.log(d_min), math.log(d_max), self.n_bins, device=self.bin_values.device)
+        self.bin_values = torch.linspace(
+            math.log(d_min), math.log(d_max), self.n_bins, device=self.bin_values.device, dtype=self.bin_values.dtype
+        )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Decode bin logits [B, n_bins, HW] → log-depth [B, 1, HW]."""
@@ -65,6 +67,27 @@ def get_aux_specs(depth_mode: str = "both") -> dict[str, int]:
     elif depth_mode != "both":
         raise ValueError(f"Unknown depth_mode: {depth_mode!r}. Expected 'both', 'lr_only', or 'depth_only'.")
     return specs
+
+
+def resolve_s3d_head(model):
+    """Return the Stereo3DDetHead from any wrapper (raw model, DDP/EMA, or AutoBackend), else None.
+
+    Standalone val/predict pass an AutoBackend whose ``.model`` is the full detection model, while the
+    training path passes the raw model whose ``.model`` is the layer ``Sequential``. Walk ``.model``
+    (unwrapping DDP/EMA at each level) until the last layer exposes ``set_depth_range``.
+    """
+    from ultralytics.utils.torch_utils import unwrap_model
+
+    node = unwrap_model(model)
+    for _ in range(4):
+        layers = getattr(node, "model", None)
+        if isinstance(layers, (nn.Sequential, nn.ModuleList)):
+            head = layers[-1]
+            return head if hasattr(head, "set_depth_range") else None
+        if layers is None:
+            return node if hasattr(node, "set_depth_range") else None
+        node = unwrap_model(layers)
+    return None
 
 
 def _branch(in_ch: int, out_ch: int, hidden: int = 256) -> nn.Sequential:

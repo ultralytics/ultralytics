@@ -912,3 +912,25 @@ def test_head_depth_range_propagates_to_loss():
     criterion = model.init_criterion()
     assert abs(criterion.depth_log_min - math.log(0.3)) < 1e-4
     assert abs(criterion.depth_log_range - (math.log(2.5) - math.log(0.3))) < 1e-4
+
+
+def test_resolve_s3d_head_through_wrappers():
+    """resolve_s3d_head must find the head on a raw model AND through an AutoBackend-style .model nest.
+
+    Standalone .val()/.predict() wrap the model in AutoBackend, whose .model is the full detection model
+    (not the layer Sequential); this guards the val/predict depth-range lookup against that extra hop.
+    """
+    import torch.nn as nn
+
+    from ultralytics.models.yolo.s3d.head import Stereo3DDetHead, resolve_s3d_head
+
+    model = YOLO(MODEL).model  # raw Stereo3DDetModel
+    assert isinstance(resolve_s3d_head(model), Stereo3DDetHead)
+
+    class _Backend(nn.Module):  # mimics AutoBackend: .model holds the full detection model
+        def __init__(self, m):
+            super().__init__()
+            self.model = m
+
+    assert isinstance(resolve_s3d_head(_Backend(model)), Stereo3DDetHead)
+    assert resolve_s3d_head(nn.Identity()) is None  # non-s3d module -> None, no crash

@@ -13,6 +13,7 @@ from ultralytics.data import build_dataloader
 from ultralytics.data.stereo.box3d import Box3D
 from ultralytics.models import yolo
 from ultralytics.models.yolo.s3d.dataset import Stereo3DDetDataset
+from ultralytics.models.yolo.s3d.head import resolve_s3d_head
 from ultralytics.models.yolo.s3d.model import Stereo3DDetModel
 from ultralytics.models.yolo.s3d.preprocess import preprocess_stereo_batch
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
@@ -42,15 +43,21 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
     def _set_depth_range(trainer):
         """Retarget the head's direct-depth DFL bins from the dataset config before the criterion is built.
 
-        Fires after model+data setup and before the first forward (which lazily builds the loss), so the
-        head bins, the loss target normalization, and the saved checkpoint all share the dataset's range.
+        Fires after model+data+EMA setup and before the first forward (which lazily builds the loss). Both
+        the live model (drives the loss target normalization) and the EMA model (what the checkpoint is
+        saved from) are retargeted, so the head bins, the loss, and the saved weights share one range.
         """
         d_min, d_max = trainer.data.get("depth_min"), trainer.data.get("depth_max")
         if d_min is None or d_max is None:
             return
-        head = unwrap_model(trainer.model).model[-1]
-        if hasattr(head, "set_depth_range"):
-            head.set_depth_range(float(d_min), float(d_max))
+        ema = getattr(getattr(trainer, "ema", None), "ema", None)
+        applied = False
+        for mdl in (trainer.model, ema):
+            head = resolve_s3d_head(mdl) if mdl is not None else None
+            if head is not None:
+                head.set_depth_range(float(d_min), float(d_max))
+                applied = True
+        if applied:
             LOGGER.info("s3d: direct-depth range set to [%.3f, %.3f] m from dataset config", float(d_min), float(d_max))
 
     def get_validator(self):

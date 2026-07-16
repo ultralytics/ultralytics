@@ -13,11 +13,10 @@ from ultralytics.data.augment import LetterBox
 from ultralytics.data.stereo.calib import CalibrationParameters, load_kitti_calibration
 from ultralytics.engine.results import Results
 from ultralytics.models.yolo.detect import DetectionPredictor
-from ultralytics.models.yolo.s3d.head import DEPTH_MAX, DEPTH_MIN
+from ultralytics.models.yolo.s3d.head import DEPTH_MAX, DEPTH_MIN, resolve_s3d_head
 from ultralytics.models.yolo.s3d.preprocess import decode_and_refine_predictions, preprocess_stereo_images
 from ultralytics.utils import LOGGER
 from ultralytics.utils.checks import check_imgsz
-from ultralytics.utils.torch_utils import unwrap_model
 
 
 class Stereo3DDetPredictor(DetectionPredictor):
@@ -67,9 +66,9 @@ class Stereo3DDetPredictor(DetectionPredictor):
         self.mean_dims = getattr(self.model.model, "mean_dims", None)
         self.std_dims = getattr(self.model.model, "std_dims", None)
         # Depth range travels with the checkpoint via the head's DepthDFL bin buffer.
-        head = getattr(unwrap_model(self.model.model), "model", [None])[-1]
-        self.depth_min = getattr(head, "depth_min", DEPTH_MIN)
-        self.depth_max = getattr(head, "depth_max", DEPTH_MAX)
+        head = resolve_s3d_head(self.model)
+        self.depth_min = head.depth_min if head is not None else DEPTH_MIN
+        self.depth_max = head.depth_max if head is not None else DEPTH_MAX
 
     def setup_source(self, source=None):
         """Set up input source for stereo prediction.

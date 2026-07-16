@@ -42,6 +42,7 @@ Before you start to follow this guide:
     - For JetPack 4.6.4, install [DeepStream 6.0.1](https://archive.docs.nvidia.com/metropolis/deepstream/6.0.1/dev-guide/text/DS_Quickstart.html)
     - For JetPack 5.1.3, install [DeepStream 6.3](https://archive.docs.nvidia.com/metropolis/deepstream/6.3/dev-guide/text/DS_Quickstart.html)
     - For JetPack 6.1, install [DeepStream 7.1](https://docs.nvidia.com/metropolis/deepstream/7.1/text/DS_Overview.html)
+    - For JetPack 7.0, install [DeepStream 8.0](https://docs.nvidia.com/metropolis/deepstream/8.0/text/DS_Overview.html)
     - For JetPack 7.1, install [DeepStream 9.0](https://docs.nvidia.com/metropolis/deepstream/9.0/text/DS_Overview.html)
     - For JetPack 7.2, install [DeepStream 9.1](https://docs.nvidia.com/metropolis/deepstream/9.1/text/DS_Overview.html)
 
@@ -49,13 +50,17 @@ Before you start to follow this guide:
 
     In this guide we have used the Debian package method of installing DeepStream SDK to the Jetson device. You can also visit the [DeepStream SDK on Jetson (Archived)](https://developer.nvidia.com/embedded/deepstream-on-jetson-downloads-archived) to access legacy versions of DeepStream.
 
-!!! note "DeepStream is now open source"
+!!! note "DeepStream source on GitHub"
 
-    Starting with DeepStream 9.1, the SDK is open-sourced on the [NVIDIA/DeepStream](https://github.com/NVIDIA/DeepStream) GitHub monorepo (Apache-2.0 source, CC-BY-4.0 docs). Release packages are published as GitHub Release assets (`.deb` and `.tar.gz` archives plus Python wheels) instead of NGC only, and you can alternatively build DeepStream from source with `bash build/build.sh`. The Debian package method described below remains the recommended path.
+    NVIDIA hosts the DeepStream SDK source on the [NVIDIA/DeepStream](https://github.com/NVIDIA/DeepStream) GitHub monorepo (the unified source home since DeepStream 9.0), and from DeepStream 9.1 the release packages (`.deb` and `.tar.gz` archives plus Python wheels) are published as GitHub Release assets rather than through NGC only. The SDK is not fully open source: the open-source components still require proprietary NVIDIA runtime libraries, which the source build (`bash build/build.sh`) downloads as release assets. The Debian package method described below remains the recommended path.
 
 ## DeepStream Configuration for YOLO26
 
 Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo) GitHub repository which includes NVIDIA DeepStream SDK support for YOLO models. We appreciate the efforts of marcoslucianops for his contributions!
+
+!!! note
+
+    The `DeepStream-Yolo` build and configuration steps below are validated by its maintainer through DeepStream 8.0. For DeepStream 9.0 and 9.1, NVIDIA also provides an official YOLO integration under [tools/yolo_deepstream](https://github.com/NVIDIA/DeepStream/tree/main/tools/yolo_deepstream) in the DeepStream monorepo. Check the target repository for the YOLO and DeepStream versions it supports before deploying.
 
 1.  Install Ultralytics with necessary dependencies
 
@@ -165,6 +170,12 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
 
     ```bash
     export CUDA_VER=12.6
+    ```
+
+    For JetPack 7.0:
+
+    ```bash
+    export CUDA_VER=13.0
     ```
 
     For JetPack 7.2:

@@ -92,7 +92,18 @@ model.export(format="hailo", name="hailo8l", imgsz=640)
 
 ## Supported Models and Hardware
 
-Direct Hailo export currently supports YOLO object detection models. Other tasks fail with a clear error instead of producing an unvalidated HEF.
+Hailo hardware and SDK examples cover a broad range of computer vision workloads, but the Ultralytics `format="hailo"` exporter currently validates only standard YOLO object detection heads. The table below describes this direct integration, not every workload the Hailo ecosystem can run.
+
+| Ultralytics task          | Direct Hailo export | Supported model families | Notes                                                        |
+| :------------------------ | :-----------------: | :----------------------- | :----------------------------------------------------------- |
+| Object detection          |         ✅          | YOLOv8, YOLO11, YOLO26   | Standard Ultralytics `Detect` heads, including custom models |
+| Instance segmentation     |         ❌          | —                        | Not yet supported by the direct exporter                     |
+| Image classification      |         ❌          | —                        | Not yet supported by the direct exporter                     |
+| Pose estimation           |         ❌          | —                        | Not yet supported by the direct exporter                     |
+| Oriented object detection |         ❌          | —                        | OBB heads are not yet supported                              |
+| Semantic segmentation     |         ❌          | —                        | Not yet supported by the direct exporter                     |
+
+Specialized detection families such as YOLOv10, YOLO-World, YOLOE, and RT-DETR are also ❌ unsupported. Ultralytics rejects these tasks and model families before compilation instead of producing an unvalidated HEF.
 
 | Model family    | Hailo-8 / Hailo-8L | Hailo-10 / Hailo-15 | Output                                                 |
 | :-------------- | :----------------: | :-----------------: | :----------------------------------------------------- |
@@ -241,14 +252,19 @@ Model and pipeline choices often matter more than compiler flags:
 
 ## Export Arguments
 
-| Argument   | Type          | Default   | Description                           |
-| :--------- | :------------ | :-------- | :------------------------------------ |
-| `name`     | `str`         | `hailo8l` | Target Hailo accelerator architecture |
-| `imgsz`    | `int`, `list` | `640`     | Fixed model input size                |
-| `data`     | `str`         | `coco128` | Calibration dataset YAML              |
-| `fraction` | `float`       | `1.0`     | Fraction of calibration images to use |
-| `quantize` | `int`         | `8`       | Hailo export uses INT8 quantization   |
-| `end2end`  | `bool`        | model     | Select the NMS-free YOLO26 head       |
+| Argument   | Type          | Default   | Description                                        |
+| :--------- | :------------ | :-------- | :------------------------------------------------- |
+| `name`     | `str`         | `hailo8l` | Target Hailo accelerator architecture              |
+| `imgsz`    | `int`, `list` | `640`     | Fixed model input size                             |
+| `data`     | `str`         | `coco128` | Calibration dataset YAML                           |
+| `fraction` | `float`       | `1.0`     | Fraction of calibration images to use              |
+| `quantize` | `int`         | `8`       | Hailo export uses INT8 quantization                |
+| `opset`    | `int`         | `11`      | Fixed ONNX opset required by the Hailo translation |
+| `simplify` | `bool`        | `True`    | Simplify the intermediate ONNX graph               |
+| `conf`     | `float`       | `0.25`    | YOLOv8/YOLO11 HailoRT NMS confidence threshold     |
+| `iou`      | `float`       | `0.7`     | YOLOv8/YOLO11 HailoRT NMS IoU threshold            |
+
+The exporter selects the correct output path from the model family: YOLOv8 and YOLO11 receive HailoRT NMS, while YOLO26 keeps its NMS-free one-to-one outputs. Do not pass `end2end`; explicit overrides are rejected. Dynamic shapes, batches larger than one, embedded Ultralytics NMS, FP16, and FP32 are also unsupported.
 
 ## Troubleshooting Hailo Export
 
@@ -288,7 +304,7 @@ A supported GPU greatly reduces DFC optimization time. CPU compilation is possib
 
 ### Which YOLO models support Hailo export?
 
-Direct export supports object detection models with the standard YOLOv8, YOLO11, or YOLO26 detection head. Other computer vision tasks and specialized detection heads are rejected rather than producing an unvalidated HEF.
+Direct export supports object detection models with the standard YOLOv8, YOLO11, or YOLO26 detection head. This includes custom-trained models built from those standard detection architectures. Classification, segmentation, pose, OBB, YOLOv10, YOLO-World, YOLOE, and RT-DETR are rejected rather than producing an unvalidated HEF.
 
 ### Can I export a custom-trained YOLO model?
 

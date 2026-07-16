@@ -213,7 +213,15 @@ def export_formats():
         ["DEEPX", "deepx", "_deepx_model", False, False, ["data", "quantize", "optimize"], "isolated-deepx"],
         ["Qualcomm QNN", "qnn", "_qnn.onnx", False, False, ["batch", "name", "quantize", "fraction", "data"], "base"],
         ["LiteRT", "litert", ".tflite", True, False, ["batch", "quantize", "data", "fraction"], "litert"],
-        ["Hailo", "hailo", "_hailo_model", False, False, ["name", "quantize", "data", "fraction", "end2end"], "base"],
+        [
+            "Hailo",
+            "hailo",
+            "_hailo_model",
+            False,
+            False,
+            ["name", "quantize", "data", "fraction", "opset", "simplify", "conf", "iou"],
+            "base",
+        ],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments", "Env"], zip(*x)))
 
@@ -566,8 +574,12 @@ class Exporter:
             assert LINUX and not ARM64, "Hailo export is only supported on Linux x86_64."
             if model.task != "detect" or type(model.model[-1]) is not Detect:
                 raise ValueError("Hailo export currently supports YOLOv8, YOLO11, and YOLO26 detection models only.")
-            if self.args.end2end is False and model.model[-1].reg_max == 1:
-                raise ValueError("YOLO26 Hailo export requires end2end=True.")
+            if self.args.end2end is not None:
+                raise ValueError(
+                    "Hailo export selects the model output path automatically; remove the end2end argument."
+                )
+            if self.args.opset not in {None, 11}:
+                raise ValueError("Hailo export requires opset=11.")
             self.args.name = str(self.args.name or "hailo8l").lower()
             hailo_archs = ("hailo8", "hailo8l", "hailo10h", "hailo15h", "hailo15l")
             if self.args.name not in hailo_archs:

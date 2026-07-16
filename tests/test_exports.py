@@ -293,11 +293,13 @@ def test_export_hailo_compiles_hef(monkeypatch, tmp_path, one2one):
     "model,kwargs,error",
     [
         ("yolov10n.yaml", {}, "YOLOv8, YOLO11, and YOLO26"),
-        ("yolo26n.yaml", {"end2end": False}, "requires end2end=True"),
+        ("yolo11n.yaml", {"end2end": True}, "remove the end2end argument"),
+        ("yolo26n.yaml", {"end2end": False}, "remove the end2end argument"),
+        ("yolo11n.yaml", {"opset": 12}, "requires opset=11"),
     ],
 )
 def test_export_hailo_rejects_unsupported_configurations(monkeypatch, model, kwargs, error):
-    """Check Hailo export rejects unsupported detection heads and YOLO26 output paths."""
+    """Check Hailo export rejects unsupported detection heads and arguments."""
     monkeypatch.setattr("ultralytics.engine.exporter.LINUX", True)
     monkeypatch.setattr("ultralytics.engine.exporter.ARM64", False)
     with pytest.raises(ValueError, match=error):

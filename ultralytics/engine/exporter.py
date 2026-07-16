@@ -598,7 +598,7 @@ class Exporter:
             LOGGER.warning(
                 "\nHailo DFC requires at least 1,024 representative calibration images for production HEF exports. "
                 "The default COCO128 dataset is for quick testing only and can severely degrade box accuracy. "
-                "Pass data=path/to/dataset.yaml. "
+                'Pass data="path/to/dataset.yaml". '
                 "See https://docs.ultralytics.com/integrations/hailo/#export-a-hailo-hef-model"
             )
         if fmt == "axelera":

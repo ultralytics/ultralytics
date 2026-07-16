@@ -14,7 +14,6 @@ output, so the absolute scale is fixed for cross-domain models without harming i
 
 from __future__ import annotations
 
-import math
 from pathlib import Path
 from typing import Any
 
@@ -325,46 +324,10 @@ def calibrate_checkpoint(
     saved = ckpt.get("ema") or ckpt.get("model")
     if saved is None or _depth_head(saved) is None:
         return
-    saved_head = _depth_head(saved)
-    stored_heads = [
-        head
-        for key in ("ema", "model")
-        if (model := ckpt.get(key)) is not None and (head := _depth_head(model)) is not None
-    ]
     work = deepcopy(saved).float()
     res = fit_calibration_selective(work, dataloader, device)
     if res is None:
-        a, b = float(saved_head.cal_a), float(saved_head.cal_b)
-        inherited = ckpt.get("depth_calibration")
-        inherited_matches = (
-            isinstance(inherited, dict)
-            and inherited.get("status") in {"selected", "inherited"}
-            and isinstance(inherited.get("a"), (int, float))
-            and isinstance(inherited.get("b"), (int, float))
-            and all(
-                math.isclose(float(inherited["a"]), float(head.cal_a), rel_tol=1e-6, abs_tol=1e-6)
-                and math.isclose(float(inherited["b"]), float(head.cal_b), rel_tol=1e-6, abs_tol=1e-6)
-                for head in stored_heads
-            )
-        )
-        provenance = (
-            {**inherited, "status": "inherited"}
-            if inherited_matches
-            else {
-                "status": "inherited" if (a, b) != (1.0, 0.0) else "skipped",
-                "candidate": "unknown" if (a, b) != (1.0, 0.0) else "identity",
-                "images": 0,
-                "a": a,
-                "b": b,
-                "dataset_hash": dataset_hash,
-                "validation_split": validation_split,
-                "strategy": "two-fold-held-out-delta1",
-                "scores": {},
-            }
-        )
-        ckpt["depth_calibration"] = provenance
-        torch.save(ckpt, ckpt_path)
-        return provenance
+        return None
     a, b = res["a"], res["b"]
     for key in ("ema", "model"):
         m = ckpt.get(key)

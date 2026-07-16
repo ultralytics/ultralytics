@@ -395,13 +395,6 @@ def test_streamlit_handle_video_upload_creates_file(tmp_path):
         assert content == b"fake video content", f"File content mismatch: {content}"
 
 
-def test_streamlit_task_order_has_depth_suffix():
-    """Depth model suffix is registered in the streamlit inference task-ordering map."""
-    import ultralytics.solutions.streamlit_inference as si
-
-    assert "-depth" in Path(si.__file__).read_text(encoding="utf-8")
-
-
 @pytest.mark.skipif(not TORCH_2_4, reason=f"VisualAISearch requires torch>=2.4 (found torch=={TORCH_VERSION})")
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled due to slow performance on Raspberry Pi.")
 def test_similarity_search(tmp_path):

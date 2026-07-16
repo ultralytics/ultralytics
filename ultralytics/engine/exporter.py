@@ -733,7 +733,7 @@ class Exporter:
 
             model = executorch_wrapper(model)
         for m in model.modules():
-            if isinstance(m, (Classify, SemanticSegment)):
+            if isinstance(m, (Classify, SemanticSegment, Depth)):
                 m.export = True
                 m.format = self.args.format
                 # Semantic argmax bake needs an integer graph output; TensorRT supports uint8 outputs only on TRT>=10
@@ -743,8 +743,6 @@ class Exporter:
                     m.bake_argmax = check_version(f"tensorrt-cu{cuda_major}", ">=10.0.0") or check_version(
                         "tensorrt", ">=10.0.0"
                     )
-            if isinstance(m, Depth):
-                m.export = True
                 m.format = self.args.format
             if isinstance(m, (Detect, RTDETRDecoder)):  # includes all Detect subclasses like Segment, Pose, OBB
                 m.dynamic = self.args.dynamic
@@ -927,14 +925,10 @@ class Exporter:
 
         f = str(self.file.with_suffix(".onnx"))
         output_names = ["output0", "output1"] if self.model.task == "segment" else ["output0"]
-        if self.model.task == "depth":
-            output_names = ["depth"]
         dynamic = self.args.dynamic
         if dynamic:
             dynamic = {"images": {0: "batch", 2: "height", 3: "width"}}  # shape(1,3,640,640)
-            if self.model.task == "depth":
-                dynamic["depth"] = {0: "batch", 2: "height", 3: "width"}  # shape(1,1,H,W)
-            elif isinstance(self.model, SegmentationModel):
+            if isinstance(self.model, SegmentationModel):
                 dynamic["output0"] = {0: "batch", 2: "anchors"}  # shape(1, 116, 8400)
                 dynamic["output1"] = {0: "batch", 2: "mask_height", 3: "mask_width"}  # shape(1,32,160,160)
             elif isinstance(self.model, DetectionModel):

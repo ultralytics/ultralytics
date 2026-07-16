@@ -1984,14 +1984,14 @@ class DepthMetrics(SimpleClass, DataExportMixin):
             "metrics/silog": silog,
         }
 
-    def clear_stats(self):
+    def clear_stats(self) -> None:
         """Reset accumulators."""
         self._totals = None
         self._count = 0.0
         self._results = {}
 
     @property
-    def keys(self):
+    def keys(self) -> list[str]:
         """Metric keys for logging."""
         return [
             "metrics/delta1",
@@ -2002,57 +2002,57 @@ class DepthMetrics(SimpleClass, DataExportMixin):
             "metrics/silog",
         ]
 
-    def mean_results(self):
+    def mean_results(self) -> list[float]:
         """Return metric values in `keys` order."""
         return [self._results.get(k, 0.0) for k in self.keys]
 
     @property
-    def delta1(self):
+    def delta1(self) -> float:
         """Fraction of pixels with max(p/g, g/p) < 1.25."""
         return self._results.get("metrics/delta1", 0.0)
 
     @property
-    def delta2(self):
+    def delta2(self) -> float:
         """Fraction of pixels with max(p/g, g/p) < 1.25**2."""
         return self._results.get("metrics/delta2", 0.0)
 
     @property
-    def delta3(self):
+    def delta3(self) -> float:
         """Fraction of pixels with max(p/g, g/p) < 1.25**3."""
         return self._results.get("metrics/delta3", 0.0)
 
     @property
-    def abs_rel(self):
+    def abs_rel(self) -> float:
         """Mean absolute relative error."""
         return self._results.get("metrics/abs_rel", 0.0)
 
     @property
-    def rmse(self):
+    def rmse(self) -> float:
         """Root mean squared error (meters)."""
         return self._results.get("metrics/rmse", 0.0)
 
     @property
-    def silog(self):
+    def silog(self) -> float:
         """Scale-invariant logarithmic error (x100)."""
         return self._results.get("metrics/silog", 0.0)
 
     @property
-    def fitness(self):
+    def fitness(self) -> float:
         """Fitness = delta1 (higher is better)."""
         return self._results.get("metrics/delta1", 0.0)
 
     @property
-    def results_dict(self):
+    def results_dict(self) -> dict[str, float]:
         """Results dict including fitness."""
         return dict(zip([*self.keys, "fitness"], [*self.mean_results(), self.fitness]))
 
     @property
-    def curves(self):
+    def curves(self) -> list:
         """No PR curves for depth."""
         return []
 
     @property
-    def curves_results(self):
+    def curves_results(self) -> list:
         """No PR curve results for depth."""
         return []
 

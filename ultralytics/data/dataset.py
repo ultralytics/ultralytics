@@ -25,10 +25,7 @@ from .augment import (
     DepthFormat,
     Format,
     LetterBox,
-    RandomFlip,
-    RandomHSV,
     RandomLoadText,
-    RandomPerspective,
     SemanticFormat,
     classify_augmentations,
     classify_transforms,
@@ -400,26 +397,22 @@ class DepthDataset(YOLODataset):
         return label
 
     def build_transforms(self, hyp=None):
-        """Build transforms for depth estimation."""
-        if self.augment:
-            return Compose(
-                [
-                    RandomPerspective(
-                        degrees=hyp.degrees,
-                        translate=hyp.translate,
-                        scale=hyp.scale,
-                        shear=hyp.shear,
-                        perspective=hyp.perspective,
-                        size=(self.imgsz, self.imgsz),
-                    ),
-                    RandomFlip(direction="vertical", p=hyp.flipud),
-                    RandomFlip(direction="horizontal", p=hyp.fliplr),
-                    RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v),
-                    DepthFormat(),
-                ]
-            )
-        letterbox = LetterBox(new_shape=(self.imgsz, self.imgsz), auto=False, scale_fill=True)
-        return Compose([letterbox, DepthFormat()])
+        """Build transforms for semantic segmentation.
+
+        Args:
+            hyp (dict): Hyperparameters.
+
+        Returns:
+            (Compose): Composed transforms.
+        """
+        # NOTE: For now following arguments are not supported
+        hyp.mosaic = hyp.mixup = hyp.cutmix = hyp.copy_paste = 0.0
+        transforms = super().build_transforms(hyp)
+        if not self.augment:
+            # stretch the image instead of padding
+            transforms[-2] = LetterBox(new_shape=(self.imgsz, self.imgsz), scale_fill=True)
+        transforms[-1] = DepthFormat()  # replace the last transform with SemanticFormat
+        return transforms
 
 
 class YOLOMultiModalDataset(YOLODataset):

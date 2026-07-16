@@ -3,6 +3,9 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+from typing import Any
+
 import numpy as np
 import torch
 import torch.distributed as dist
@@ -20,13 +23,19 @@ class DepthValidator(DetectionValidator):
     Computes standard depth metrics: delta1, abs_rel, rmse, silog. Uses validation loss as the primary training signal.
     """
 
-    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None):
+    def __init__(
+        self,
+        dataloader=None,
+        save_dir: str | Path | None = None,
+        args=None,
+        _callbacks: dict | None = None,
+    ) -> None:
         """Initialize DepthValidator."""
         super().__init__(dataloader, save_dir, args, _callbacks)
         self.args.task = "depth"
         self.calibrating = False
 
-    def init_metrics(self, model):
+    def init_metrics(self, model: torch.nn.Module) -> None:
         """Initialize the DepthMetrics accumulator and reset per-pass calibration state.
 
         The calibrating flag is not reset here: Model.calibrate() sets it after construction,
@@ -41,17 +50,17 @@ class DepthValidator(DetectionValidator):
         head = _depth_head(model)
         self._cal_ab = (float(head.cal_a), float(head.cal_b)) if head is not None else None
 
-    def preprocess(self, batch):
+    def preprocess(self, batch: dict[str, Any]) -> dict[str, Any]:
         """Preprocess batch — move to device, normalize images, and keep depth as float32."""
         batch = super().preprocess(batch)
         batch["depth"] = batch["depth"].float()
         return batch
 
-    def postprocess(self, preds):
+    def postprocess(self, preds: torch.Tensor) -> torch.Tensor:
         """No NMS needed for depth — return predictions as-is."""
         return preds
 
-    def update_metrics(self, preds, batch):
+    def update_metrics(self, preds: torch.Tensor, batch: dict[str, Any]) -> None:
         """Accumulate depth metrics for a batch."""
         gt_depth = batch["depth"]
         if gt_depth.ndim == 3:
@@ -78,7 +87,7 @@ class DepthValidator(DetectionValidator):
                 if self._cal_pts >= 500_000:
                     break
 
-    def get_stats(self):
+    def get_stats(self) -> dict[str, float]:
         """Finalize and return the metrics dict.
 
         Cross-rank metric reduction is handled by gather_stats() (called before this on all ranks);
@@ -119,7 +128,7 @@ class DepthValidator(DetectionValidator):
         self.metrics._totals = totals
         self.metrics._count = float(count.item())
 
-    def print_results(self):
+    def print_results(self) -> None:
         """Log the headline depth metrics in the detection-style aligned table format.
 
         Columns line up with get_desc(): Class, Images, delta1, abs_rel, rmse, silog.
@@ -140,16 +149,16 @@ class DepthValidator(DetectionValidator):
             )
         )
 
-    def finalize_metrics(self):
+    def finalize_metrics(self) -> None:
         """Set final values for metrics speed."""
         self.metrics.speed = self.speed
         self.metrics.save_dir = self.save_dir
 
-    def get_desc(self):
+    def get_desc(self) -> str:
         """Return description for progress bar."""
         return ("%22s" + "%11s" * 5) % ("Class", "Images", "delta1", "abs_rel", "rmse", "silog")
 
-    def plot_predictions(self, batch, preds, ni):
+    def plot_predictions(self, batch: dict[str, Any], preds: torch.Tensor, ni: int) -> None:
         """Save predicted depth overlays to val_batch{ni}_pred.jpg.
 
         Depth has no boxes/classes, so the detection-style plotter is replaced with a depth heatmap overlay

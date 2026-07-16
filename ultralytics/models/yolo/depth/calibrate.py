@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import math
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import torch
@@ -25,7 +26,7 @@ from ultralytics.utils import LOGGER
 from ultralytics.utils.torch_utils import smart_inference_mode
 
 
-def _depth_head(model):
+def _depth_head(model: torch.nn.Module) -> torch.nn.Module | None:
     """Return the Depth head module that carries ``cal_a``/``cal_b`` buffers, or None."""
     m = model.module if hasattr(model, "module") else model  # unwrap DDP
     seq = getattr(m, "model", None)
@@ -35,7 +36,7 @@ def _depth_head(model):
     return head if hasattr(head, "cal_a") else None
 
 
-def _rewind(dataloader):
+def _rewind(dataloader) -> None:
     """Rewind a stateful loader to the epoch start before a partial pass.
 
     The trainer's InfiniteDataLoader keeps one persistent iterator across ``for`` loops, so a previous pass that broke
@@ -49,7 +50,7 @@ def _rewind(dataloader):
         reset()
 
 
-def lstsq_affine(log_pred, log_gt):
+def lstsq_affine(log_pred: np.ndarray, log_gt: np.ndarray) -> tuple[float, float]:
     """Closed-form least-squares fit of (a, b) minimizing ||a·log_pred + b − log_gt||."""
     log_pred = np.asarray(log_pred, dtype=np.float64)
     log_gt = np.asarray(log_gt, dtype=np.float64)
@@ -58,7 +59,7 @@ def lstsq_affine(log_pred, log_gt):
     return float(a), float(b)
 
 
-def _delta1_none(log_pred, log_gt, a: float, b: float) -> float:
+def _delta1_none(log_pred: np.ndarray, log_gt: np.ndarray, a: float, b: float) -> float:
     """δ1 under no per-image alignment after applying ``d' = exp(a·log_pred + b)``.
 
     δ1 is the fraction of pixels with ``max(d'/gt, gt/d') < 1.25``; in log space that is ``|a·log_pred + b − log_gt| <
@@ -69,7 +70,13 @@ def _delta1_none(log_pred, log_gt, a: float, b: float) -> float:
     return float(np.mean(np.abs(ld) < np.log(1.25)))
 
 
-def select_calibration(lp_fit, lg_fit, lp_score, lg_score, margin: float = 0.0):
+def select_calibration(
+    lp_fit: np.ndarray,
+    lg_fit: np.ndarray,
+    lp_score: np.ndarray,
+    lg_score: np.ndarray,
+    margin: float = 0.0,
+) -> dict[str, Any]:
     """Pick the calibration that best improves *held-out* raw-scale δ1 — "calibrate only if it helps".
 
     Three candidates are fit on the ``*_fit`` log-pixel arrays and scored on the independent ``*_score`` arrays under
@@ -99,7 +106,12 @@ def select_calibration(lp_fit, lg_fit, lp_score, lg_score, margin: float = 0.0):
     return {"a": best[1], "b": best[2], "name": best[0], "scores": {s[0]: s[3] for s in scored}}
 
 
-def select_calibration_cv(pairs, margin: float = 0.0, folds: int = 2, allow_affine: bool = False):
+def select_calibration_cv(
+    pairs: list[tuple[np.ndarray, np.ndarray]],
+    margin: float = 0.0,
+    folds: int = 2,
+    allow_affine: bool = False,
+) -> dict[str, Any]:
     """Cross-validated "calibrate only if it helps": choose a candidate by K-fold held-out δ1.
 
     ``pairs`` is a list of per-image ``(log_pred, log_gt)`` arrays. Each candidate type is scored on every fold while
@@ -150,7 +162,9 @@ def select_calibration_cv(pairs, margin: float = 0.0, folds: int = 2, allow_affi
 
 
 @smart_inference_mode()
-def _collect_logpairs(model, dataloader, device, max_images: int):
+def _collect_logpairs(
+    model: torch.nn.Module, dataloader, device: torch.device | str, max_images: int
+) -> list[tuple[np.ndarray, np.ndarray]]:
     """Run the model over the loader and return a list of per-image ``(log_pred, log_gt)`` arrays.
 
     One entry per image (each subsampled to ≤20k valid pixels) so callers can split images into independent fit/score
@@ -193,7 +207,13 @@ def _collect_logpairs(model, dataloader, device, max_images: int):
     return pairs
 
 
-def fit_calibration_selective(model, dataloader, device, max_images: int = 200, margin: float = 0.002):
+def fit_calibration_selective(
+    model: torch.nn.Module,
+    dataloader,
+    device: torch.device | str,
+    max_images: int = 200,
+    margin: float = 0.002,
+) -> dict[str, Any] | None:
     """Select and apply calibration via "calibrate only if it helps" (see :func:`select_calibration_cv`).
 
     Collects per-image ``(log_pred, log_gt)`` over the loader, splits images into independent fit/score folds (no
@@ -224,8 +244,16 @@ def fit_calibration_selective(model, dataloader, device, max_images: int = 200, 
 
 
 def _plot_calibrated_batches(
-    model, dataloader, device, a, b, name, plot_dir, max_batches: int = 3, max_images: int = 4
-):
+    model: torch.nn.Module,
+    dataloader,
+    device: torch.device | str,
+    a: float,
+    b: float,
+    name: str,
+    plot_dir: str | Path,
+    max_batches: int = 3,
+    max_images: int = 4,
+) -> None:
     """Write ``val_batch{ni}_calibrated.jpg`` panels (RGB | GT | raw | calibrated) to ``plot_dir``.
 
     Runs the model with calibration buffers at identity to get the raw prediction; the calibrated column is its
@@ -266,10 +294,10 @@ def _plot_calibrated_batches(
 
 
 def calibrate_checkpoint(
-    ckpt_path,
+    ckpt_path: str | Path,
     dataloader,
-    device,
-    plot_dir=None,
+    device: torch.device | str,
+    plot_dir: str | Path | None = None,
     *,
     dataset_hash: str | None = None,
     validation_split: str | None = None,

@@ -1160,7 +1160,7 @@ class DepthLoss26:
     scale ambiguity while gradient loss preserves edges.
     """
 
-    def __init__(self, model):
+    def __init__(self, model: torch.nn.Module):
         """Initialize DepthLoss26."""
         device = next(model.parameters()).device
         self.device = device
@@ -1173,7 +1173,7 @@ class DepthLoss26:
         self.max_depth = getattr(model.model[-1], "max_depth", None)
 
     @staticmethod
-    def _grad_l1(pred_log, gt_log, valid_f):
+    def _grad_l1(pred_log: torch.Tensor, gt_log: torch.Tensor, valid_f: torch.Tensor) -> torch.Tensor:
         """L1 between predicted and GT log-depth spatial gradients (dx, dy), gated by the valid mask.
 
         Each gradient is zeroed unless both contributing pixels are valid, so edges are only
@@ -1185,7 +1185,9 @@ class DepthLoss26:
         gt_dy = (gt_log[:, :, 1:, :] - gt_log[:, :, :-1, :]) * valid_f[:, :, 1:, :] * valid_f[:, :, :-1, :]
         return F.l1_loss(pred_dx, gt_dx) + F.l1_loss(pred_dy, gt_dy)
 
-    def __call__(self, preds, batch):
+    def __call__(
+        self, preds: dict[str, torch.Tensor] | torch.Tensor, batch: dict[str, torch.Tensor]
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """Calculate depth estimation loss.
 
         Args:

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from copy import copy
 from pathlib import Path
+from typing import Any
 
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import DepthModel
@@ -24,14 +25,16 @@ class DepthTrainer(yolo.detect.DetectionTrainer):
         >>> trainer.train()
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+    def __init__(
+        self, cfg=DEFAULT_CFG, overrides: dict[str, Any] | None = None, _callbacks: dict | None = None
+    ) -> None:
         """Initialize DepthTrainer."""
         if overrides is None:
             overrides = {}
         overrides["task"] = "depth"
         super().__init__(cfg, overrides, _callbacks)
 
-    def get_model(self, cfg=None, weights=None, verbose=True):
+    def get_model(self, cfg: str | None = None, weights: str | None = None, verbose: bool = True) -> DepthModel:
         """Return a DepthModel initialized with the given config and weights.
 
         If the dataset YAML declares ``max_depth`` (meters), it overrides the head's output
@@ -56,13 +59,13 @@ class DepthTrainer(yolo.detect.DetectionTrainer):
                 head.max_depth = float(max_depth)
         return model
 
-    def preprocess_batch(self, batch):
+    def preprocess_batch(self, batch: dict[str, Any]) -> dict[str, Any]:
         """Preprocess batch: normalize images and keep depth as float32."""
         batch = super().preprocess_batch(batch)
         batch["depth"] = batch["depth"].float()
         return batch
 
-    def get_validator(self):
+    def get_validator(self) -> yolo.depth.DepthValidator:
         """Return a DepthValidator for model validation."""
         self.loss_names = "dlog_loss", "dgrad_loss"
         return yolo.depth.DepthValidator(
@@ -70,7 +73,7 @@ class DepthTrainer(yolo.detect.DetectionTrainer):
         )
 
     @plt_settings()
-    def plot_training_labels(self):
+    def plot_training_labels(self) -> None:
         """Plot the training-set GT depth distribution to ``labels.jpg``.
 
         The depth analog of the detection/semantic label plots. The inherited DetectionTrainer
@@ -140,7 +143,7 @@ class DepthTrainer(yolo.detect.DetectionTrainer):
         if self.on_plot:
             self.on_plot(fname)
 
-    def final_eval(self):
+    def final_eval(self) -> None:
         """Run the standard final evaluation, then calibrate the saved checkpoints.
 
         After training, fits the scale-only log-affine (``cal_a``/``cal_b``) on the validation

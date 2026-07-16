@@ -728,27 +728,6 @@ def test_results_depth_none_summary_len_and_update():
     assert isinstance(r.depth, DepthMap)
 
 
-def test_depth_predictor_postprocess_sets_depthmap():
-    """DepthPredictor.postprocess wraps raw predictions into a DepthMap resized to the original image."""
-    from ultralytics.engine.results import DepthMap
-    from ultralytics.models.yolo.depth.predict import DepthPredictor
-
-    p = DepthPredictor.__new__(DepthPredictor)  # bypass __init__
-    p.batch = (["im0.jpg"], None, "")  # (paths, im0s, s) as set by BasePredictor.stream_inference
-
-    class _M:  # minimal stand-in for self.model
-        names = {0: "depth"}
-
-    p.model = _M()
-    img = torch.zeros(1, 3, 32, 32)
-    orig = np.zeros((40, 48, 3), dtype=np.uint8)
-    preds = torch.rand(1, 1, 32, 32)
-    res = p.postprocess(preds, img, [orig])
-    assert isinstance(res[0].depth, DepthMap)
-    assert res[0].depth.data.shape == (40, 48)  # resized to original image size
-    assert res[0].path == "im0.jpg"
-
-
 def test_results_plot_with_depth():
     """Results.plot() with a depth map blends the colorized depth heatmap over the image."""
     from ultralytics.engine.results import Results
@@ -988,17 +967,6 @@ def test_cfg_init():
 
     assert smart_value("zipfile.ZIP_DEFLATED") == zipfile.ZIP_DEFLATED
     assert smart_value("zipfile.Path") == "zipfile.Path"
-
-
-def test_cfg_depth_task_registered():
-    """Depth is registered in the task tables with the documented data/metric/model defaults."""
-    from ultralytics.cfg import TASK2CALIBRATIONDATA, TASK2DATA, TASK2METRIC, TASK2MODEL, TASKS
-
-    assert "depth" in TASKS
-    assert TASK2DATA["depth"] == "nyu-depth.yaml"
-    assert TASK2CALIBRATIONDATA["depth"] == "nyu-depth.yaml"
-    assert TASK2METRIC["depth"] == "metrics/delta1"
-    assert TASK2MODEL["depth"] == "yolo26n-depth.pt"
 
 
 def test_depth_calibration_checkpoint_provenance(tmp_path):

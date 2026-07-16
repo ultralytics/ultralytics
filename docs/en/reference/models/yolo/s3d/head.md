@@ -24,6 +24,10 @@ keywords: Ultralytics, ultralytics.models.yolo.s3d.head, API reference, YOLO, Py
 
 <br><br><hr><br>
 
+## ::: ultralytics.models.yolo.s3d.head.resolve_s3d_head
+
+<br><br><hr><br>
+
 ## ::: ultralytics.models.yolo.s3d.head._branch
 
 <br><br><hr><br>

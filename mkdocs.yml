@@ -881,6 +881,7 @@ nav:
               - coreml: reference/utils/export/coreml.md
               - deepx: reference/utils/export/deepx.md
               - engine: reference/utils/export/engine.md
+              - ethos: reference/utils/export/ethos.md
               - executorch: reference/utils/export/executorch.md
               - imx: reference/utils/export/imx.md
               - litert: reference/utils/export/litert.md

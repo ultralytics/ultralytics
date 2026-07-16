@@ -4,6 +4,7 @@ from .axelera import torch2axelera
 from .coreml import torch2coreml
 from .deepx import onnx2deepx
 from .engine import onnx2engine, torch2onnx
+from .ethos import torch2ethos
 from .executorch import torch2executorch
 from .imx import torch2imx
 from .mnn import onnx2mnn
@@ -26,6 +27,7 @@ __all__ = [
     "tflite2edgetpu",
     "torch2axelera",
     "torch2coreml",
+    "torch2ethos",
     "torch2executorch",
     "torch2imx",
     "torch2ncnn",

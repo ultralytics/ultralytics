@@ -966,11 +966,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                 if hasher.hexdigest() != expected_hash:
                     return False
             depth = np.load(path, allow_pickle=False, mmap_mode="r")
-            return (
-                depth.dtype == np.float32
-                and depth.ndim == 2
-                and list(depth.shape) == descriptor["shape"]
-            )
+            return depth.dtype == np.float32 and depth.ndim == 2 and list(depth.shape) == descriptor["shape"]
         except (EOFError, KeyError, OSError, TypeError, ValueError):
             return False
 

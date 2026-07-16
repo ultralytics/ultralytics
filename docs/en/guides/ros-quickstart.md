@@ -122,8 +122,10 @@ For depth images, reuse the depth-processing code below and replace only message
 self.create_subscription(Image, "/camera/color/image_raw", self.rgb_callback, qos_profile_sensor_data)
 self.create_subscription(Image, "/camera/depth/image_raw", self.depth_callback, qos_profile_sensor_data)
 
+
 def rgb_callback(self, message):
     self.rgb_image = self.bridge.imgmsg_to_cv2(message, desired_encoding="bgr8")
+
 
 def depth_callback(self, message):
     depth_image = self.bridge.imgmsg_to_cv2(message, desired_encoding="passthrough")

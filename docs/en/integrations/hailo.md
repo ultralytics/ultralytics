@@ -92,7 +92,7 @@ model.export(format="hailo", name="hailo8l", imgsz=640)
 
 ## Supported Models and Hardware
 
-Hailo hardware and SDK examples cover a broad range of computer vision workloads, but the Ultralytics `format="hailo"` exporter currently validates only standard YOLO object detection heads. The table below describes this direct integration, not every workload the Hailo ecosystem can run.
+The [Hailo Model Zoo](https://github.com/hailo-ai/hailo_model_zoo) and [application examples](https://github.com/hailo-ai/Hailo-Application-Code-Examples) cover a broad range of computer vision workloads, but the Ultralytics `format="hailo"` exporter currently validates only standard YOLO object detection heads. The table below describes this direct integration, not every workload the Hailo ecosystem can run.
 
 | Ultralytics task          | Direct Hailo export | Supported model families | Notes                                                        |
 | :------------------------ | :-----------------: | :----------------------- | :----------------------------------------------------------- |

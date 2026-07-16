@@ -196,7 +196,7 @@ See the [Depth Estimation Docs](https://docs.ultralytics.com/tasks/depth) for us
 - **delta1<sup>NYU</sup>** is the percentage of pixels where the predicted depth is within a factor of 1.25 of the ground truth, on the NYU Depth V2 Eigen test split (654 images) with multi-scale + horizontal-flip TTA and log-least-squares alignment.
 - **abs_rel** is the mean absolute relative error between predicted and ground-truth depth values.
 - **rmse** is the root mean squared error in meters.
-- **params** and **FLOPs** are measured at 768×768, the training resolution of the released weights.
+- **params** and **FLOPs** are measured at 768×768. <br>Reproduce with `yolo depth val data=nyu-depth.yaml device=0 imgsz=768`
 
 </details>
 

@@ -64,7 +64,7 @@ TASK2DATA = {
     "classify": "imagenet10",
     "pose": "coco8-pose.yaml",
     "obb": "dota8.yaml",
-    "depth": "nyu-depth.yaml",
+    "depth": "depth8.yaml",
     "semantic": "cityscapes8.yaml",
 }
 TASK2CALIBRATIONDATA = {
@@ -73,7 +73,7 @@ TASK2CALIBRATIONDATA = {
     "classify": "imagenet100",
     "pose": "coco8-pose.yaml",
     "obb": "dota128.yaml",
-    "depth": "nyu-depth.yaml",
+    "depth": "depth8.yaml",
     "semantic": "cityscapes8.yaml",
 }
 TASK2MODEL = {

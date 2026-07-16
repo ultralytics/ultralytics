@@ -100,7 +100,7 @@ _YOLO_BB_LAYER = {"P3": 4, "P4": 6, "P5": 10}
 _RESNET_LAYERS = ("l1", "l2", "l3", "l4")
 _RESNET_LAYER_ATTR = {"l1": "layer1", "l2": "layer2", "l3": "layer3", "l4": "layer4"}
 
-_FUSE_CHOICES = ("concat", "sum", "avg", "patchcore", "concat_pool", "concat_rp")
+_FUSE_CHOICES = ("concat", "sum", "avg", "patchcore", "concat_pool")
 _SCORE_CHUNK_ELEMS = 1 << 27  # max [query, bank] elements per similarity slice (scoring memory knob)
 
 # ---------------------------------------------------------------------------
@@ -395,18 +395,12 @@ class AnomalyBase:
         dims = [maps[l].shape[1] for l in self.layers]
         if self.fuse == "concat":
             self.feat_dim = sum(dims)
-        elif self.fuse in ("patchcore", "concat_pool", "concat_rp"):
+        elif self.fuse in ("patchcore", "concat_pool"):
             self.feat_dim = self.target_dim
         else:  # sum / avg need matching dims
             if len(set(dims)) > 1:
                 raise ValueError(f"fuse={self.fuse!r} needs equal channel dims, got {dict(zip(self.layers, dims))}")
             self.feat_dim = dims[0]
-        if self.fuse == "concat_rp":
-            input_dim = sum(dims)
-            g = torch.Generator()
-            g.manual_seed(42)
-            R = torch.randn(input_dim, self.target_dim, generator=g)
-            self._rp_matrix = (R / (self.target_dim ** 0.5)).to(self.device)
 
     @torch.inference_mode()
     def _extract(self, x: torch.Tensor) -> torch.Tensor:
@@ -418,8 +412,6 @@ class AnomalyBase:
             return self._fuse_patchcore(maps, B, H, W)
         if self.fuse == "concat_pool":
             return self._fuse_concat_pool(maps, B, H, W)
-        if self.fuse == "concat_rp":
-            return self._fuse_concat_rp(maps, B, H, W)
         return self._fuse_simple(maps, B, H, W)
 
     def _fuse_simple(self, maps: dict, B: int, H: int, W: int) -> torch.Tensor:
@@ -472,18 +464,6 @@ class AnomalyBase:
         merged = torch.cat(feats_list, dim=-1) if len(feats_list) > 1 else feats_list[0]
         final = F.adaptive_avg_pool1d(merged.to(pool_dev).unsqueeze(1), self.target_dim).squeeze(1)
         return final.to(self.device).reshape(B, H * W, self.target_dim)
-
-    def _fuse_concat_rp(self, maps: dict, B: int, H: int, W: int) -> torch.Tensor:
-        """concat over layers + fixed random Gaussian projection + L2 norm (JL lemma)."""
-        feats = []
-        for lname in self.layers:
-            f = maps[lname]
-            if f.shape[-2:] != (H, W):
-                f = F.interpolate(f, size=(H, W), mode="bilinear", align_corners=False)
-            feats.append(f.flatten(2).transpose(1, 2))  # [B, H*W, D_i]
-        fused = torch.cat(feats, dim=-1)                # [B, H*W, sum(D_i)]
-        projected = fused @ self._rp_matrix               # [B, H*W, target_dim]
-        return F.normalize(projected, p=2, dim=-1)
 
     # ── 2. Bank construction + calibration ──────────────────────────────
     @torch.inference_mode()
@@ -637,12 +617,6 @@ class AnomalyDINOv3(AnomalyBase):
         self.backbone = f"dinov3_{self.dinov3_short}"
 
     def _forward_features(self, x: torch.Tensor) -> dict[str, torch.Tensor]:
-        # Multi-layer: interpret layer names as 0-indexed block indices → get_intermediate_layers.
-        if self.layers is not None and all(str(l).isdigit() for l in self.layers):
-            indices = [int(l) for l in self.layers]
-            outputs = self.model.get_intermediate_layers(x.to(self.device), n=indices, norm=True)
-            return {l: _tokens_to_bchw(t) for l, t in zip(self.layers, outputs)}
-        # Default: last block only (backward-compatible).
         tok = self.model.forward_features(x.to(self.device))["x_norm_patchtokens"]  # [B, N, D]
         return {"tok": _tokens_to_bchw(tok)}
 
@@ -1653,7 +1627,7 @@ class AnomalyBboxValidator:
                                       heatmaps, image_ids, ms, save_dir)
             row["min_score"] = round(ms, 4)
             rows.append(row)
-            print(f"  min_score={ms:.3f}  mAP50={row['map50']:.4f}  mAP={row['map']:.4f}  "
+            print(f"  min_score={ms:.3f}  mAP25={row['map25']:.4f}  mAP50={row['map50']:.4f}  mAP={row['map']:.4f}  "
                   f"preds={row['n_pred']} (def={row['n_pred_defect']} good={row['n_pred_good']})  "
                   f"imgs_w_preds=D{row['n_img_preds_defect']}/{row['n_defect']} G{row['n_img_preds_good']}/{row['n_good']}  "
                   f"gt={row['n_gt']}", flush=True)
@@ -2078,18 +2052,10 @@ def _build(args: argparse.Namespace) -> tuple[AnomalyBase, Path]:
         target_quantile=args.target_quantile, device=args.device,
     )
     if bb.startswith("dinov2_"):
-        layers = None if args.layers is None else [l.strip() for l in args.layers.split(",")]
-        ad = AnomalyDINO(backbone=bb, imgsz=args.imgsz or 448,
-                         layers=layers, fuse=args.fuse,
-                         patchsize=args.patchsize, pretrain_dim=args.pretrain_dim,
-                         target_dim=args.target_dim, **kw)
+        ad = AnomalyDINO(backbone=bb, imgsz=args.imgsz or 448, **kw)
     elif bb.startswith("dinov3_"):
         short = bb.removeprefix("dinov3_")
-        layers = None if args.layers is None else [l.strip() for l in args.layers.split(",")]
-        ad = AnomalyDINOv3(backbone=short, imgsz=args.imgsz or 448,
-                           layers=layers, fuse=args.fuse,
-                           patchsize=args.patchsize, pretrain_dim=args.pretrain_dim,
-                           target_dim=args.target_dim, **kw)
+        ad = AnomalyDINOv3(backbone=short, imgsz=args.imgsz or 448, **kw)
     elif bb.startswith("convnext_"):
         rest = bb.removeprefix("convnext_")
         if "_s" in rest:
@@ -2176,11 +2142,7 @@ def main() -> None:
     p.add_argument("--fuse", choices=_FUSE_CHOICES, default="concat",
                    help="Multi-layer fusion. concat=channel-cat (dim grows); sum/avg=elementwise "
                         "(equal-dim layers); patchcore=2-stage adaptive pool (paper); "
-                        "concat_pool=1-stage adaptive pool; concat_rp=concat+random-project+L2-norm.")
-    p.add_argument("--layers", default=None,
-                   help="Comma-separated layer names. DINOv3 ViT: 0-indexed block indices "
-                        "(e.g. '11,14,17,20,23' for ViT-L blocks 12-15-18-21-24). "
-                        "Default: last block only.")
+                        "concat_pool=1-stage adaptive pool.")
     p.add_argument("--patchsize", type=int, default=3,
                    help="Spatial unfold (PatchCore paper default = 3). Only used with patchcore/concat_pool.")
     p.add_argument("--pretrain_dim", type=int, default=1024,

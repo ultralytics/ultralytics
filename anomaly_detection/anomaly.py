@@ -1207,18 +1207,20 @@ class AnomalyBboxValidator:
                         queue.append((nr, nc))
         return region
 
-    def _heatmap_to_boxes(self, heatmap: np.ndarray) -> np.ndarray:
+    def _heatmap_to_boxes(self, heatmap: np.ndarray,
+                          min_score: float | None = None) -> np.ndarray:
         """Greedy region-growing heatmap → bbox.
 
         Iteratively finds the global maximum, flood-fills with stop condition
         ``heatmap >= max(peak * 0.8, global_mean)``, extracts the bbox, zeroes
         the region (or bbox, per ``self.zero_mode``), and repeats up to
         ``self.max_det`` times.  Stops early when the remaining peak falls
-        below ``self.min_score``.
+        below *min_score* (defaults to ``self.min_score``).
 
         Returns ``(N, 5)`` [x1, y1, x2, y2, score] sorted by score desc.
         Empty ``(0, 5)`` when nothing found.
         """
+        ms = self.min_score if min_score is None else min_score
         global_mean = float(heatmap.mean())
         h, w = heatmap.shape
         hm_work = heatmap.copy()
@@ -1229,7 +1231,7 @@ class AnomalyBboxValidator:
             if visited.all():
                 break
             peak_val = hm_work.max()
-            if peak_val < self.min_score:
+            if peak_val < ms:
                 break
             peak_r, peak_c = np.unravel_index(hm_work.argmax(), heatmap.shape)
             stop_t = max(float(peak_val) * 0.8, global_mean)
@@ -1254,7 +1256,7 @@ class AnomalyBboxValidator:
         boxes_arr = np.array(boxes, dtype=np.float32)
         boxes_arr = boxes_arr[boxes_arr[:, 4].argsort()[::-1]]
         # Filter by min_score (score may be lower than peak due to bbox mean)
-        boxes_arr = boxes_arr[boxes_arr[:, 4] >= self.min_score]
+        boxes_arr = boxes_arr[boxes_arr[:, 4] >= ms]
         return boxes_arr
 
     # ── COCO JSON builders ─────────────────────────────────────────────
@@ -1345,13 +1347,14 @@ class AnomalyBboxValidator:
             "map": round(float(stats.get("AP_all", 0.0)), 4),
         }
 
-    # ── Per-category evaluation ────────────────────────────────────────
+    # ── Shared: build bank + heatmaps once (expensive, min_score-independent) ─
 
-    def val_category(self, category: str, ad: "AnomalyBase") -> dict:
-        """Build bank, score all test images, run region-growing → COCO eval.
+    def _prepare_category(self, category: str, ad: "AnomalyBase") -> tuple:
+        """Build bank, score every test image, save GT JSON.
 
-        Returns a single row dict with keys ``map50``, ``map``,
-        ``anomaly_deviation``, ``normal_deviation``, ``n_pred``, ``n_gt``.
+        Returns ``(data, test_imgs, test_good_set, image_entries, heatmaps,
+        image_ids, ard_mean, nrd_mean, save_dir, build_s)`` — everything
+        needed to re-run region-growing + COCO eval at any min_score.
         """
         if torch.backends.mps.is_available():
             torch.mps.empty_cache()
@@ -1360,7 +1363,7 @@ class AnomalyBboxValidator:
         test_good_set = set(data["test_good_im_list"])
         test_imgs = data["test_im_list"]
 
-        # ── Build bank ─────────────────────────────────────────────────
+        # ── Build bank
         ad.bank = None
         t0 = time.perf_counter()
         ad.load_support_set(data["train_im_list"])
@@ -1368,8 +1371,7 @@ class AnomalyBboxValidator:
         print(f"[{category}] bank built in {build_s:.1f}s  "
               f"(support={len(data['train_im_list'])}, bank_size={ad.bank.shape[0]})", flush=True)
 
-        # ── Score all test images (once) + collect metadata ─────────────
-        t1 = time.perf_counter()
+        # ── Score all test images + collect metadata
         image_entries: list[dict] = []
         heatmaps: list[np.ndarray] = []
         image_ids: list[int] = []
@@ -1408,120 +1410,181 @@ class AnomalyBboxValidator:
         ard_mean = statistics.fmean(per_img_ard) if per_img_ard else float("nan")
         nrd_mean = statistics.fmean(per_img_nrd) if per_img_nrd else float("nan")
 
-        val_s = time.perf_counter() - t1
-
-        # ── GT COCO JSON ─────────────────────────────────────────────────
-        gt_json = self._build_gt_coco(image_entries)
+        # ── GT COCO JSON (once — same for all min_score values)
         save_dir = self.save_dir / category
         save_dir.mkdir(parents=True, exist_ok=True)
-        gt_path = str(save_dir / "gt.json")
-        with open(gt_path, "w") as f:
+        gt_json = self._build_gt_coco(image_entries)
+        with open(str(save_dir / "gt.json"), "w") as f:
             json.dump(gt_json, f, indent=2)
 
-        # ── Region-growing → pred JSON → COCO eval ───────────────────────
-        per_image_boxes = [self._heatmap_to_boxes(hm) for hm in heatmaps]
-        pred_list = self._build_pred_json(image_ids, per_image_boxes)
+        return (data, test_imgs, test_good_set, image_entries, heatmaps,
+                image_ids, ard_mean, nrd_mean, save_dir, build_s)
 
-        pred_path = str(save_dir / "pred.json")
-        with open(pred_path, "w") as f:
-            json.dump(pred_list, f, indent=2)
+    # ── Per-category evaluation ────────────────────────────────────────
 
-        # Per-detection CSV (one row per bbox)
-        det_csv_path = str(save_dir / "detections.csv")
-        with open(det_csv_path, "w", newline="") as f:
-            w = csv.DictWriter(f, fieldnames=["image", "label", "x", "y", "w", "h", "score", "area"])
-            w.writeheader()
-            for im, boxes in zip(test_imgs, per_image_boxes):
-                im_name = Path(im).name
-                label = "good" if im in test_good_set else "defect"
-                for b in boxes:
-                    x, y, x2, y2, score = b
-                    bw, bh = x2 - x, y2 - y
-                    w.writerow({
-                        "image": im_name,
-                        "label": label,
-                        "x": round(float(x), 2),
-                        "y": round(float(y), 2),
-                        "w": round(float(bw), 2),
-                        "h": round(float(bh), 2),
-                        "score": round(float(score), 5),
-                        "area": round(float(bw * bh), 2),
-                    })
+    def val_category(self, category: str, ad: "AnomalyBase") -> dict:
+        """Build bank, score all test images, run region-growing → COCO eval.
 
-        # ── Optional: save per-image visualisations ───────────────────
-        if self.save_vis:
-            import cv2
-            vis_dir = save_dir / "vis"
-            vis_dir.mkdir(parents=True, exist_ok=True)
-            S = 512
-            for i, (im, hm, boxes) in enumerate(zip(test_imgs, heatmaps, per_image_boxes)):
-                im_name = Path(im).stem
-                orig = cv2.imread(im)
-                ori_h, ori_w = orig.shape[:2]
-                orig_r = cv2.resize(orig, (S, S))
+        Returns a single row dict with keys ``map50``, ``map``,
+        ``anomaly_deviation``, ``normal_deviation``, ``n_pred``, ``n_gt``.
+        """
+        (data, test_imgs, test_good_set, image_entries, heatmaps,
+         image_ids, ard_mean, nrd_mean, save_dir, build_s) = self._prepare_category(category, ad)
 
-                # Heatmap
-                hm_viz = np.clip(hm, 0, 1)
-                if hm_viz.shape[:2] != (S, S):
-                    hm_viz = cv2.resize(hm_viz, (S, S))
-                hm_color = cv2.applyColorMap((hm_viz * 255).astype(np.uint8), cv2.COLORMAP_JET)
+        t1 = time.perf_counter()
+        row = self._eval_at_score(category, test_imgs, test_good_set, image_entries,
+                                  heatmaps, image_ids, self.min_score, save_dir)
+        row["anomaly_deviation"] = round(ard_mean, 4) if ard_mean == ard_mean else float("nan")
+        row["normal_deviation"] = round(nrd_mean, 4) if nrd_mean == nrd_mean else float("nan")
 
-                # Bbox overlay
-                box_img = orig_r.copy()
-                label_path = self._label_path(im)
-                sx, sy = S / ori_w, S / ori_h
-                # GT (red)
-                if label_path is not None and label_path.exists():
-                    for ann in self._polygons_to_gt_annotations(label_path, ori_w, ori_h):
-                        bx, by, bw, bh = ann["bbox"]
-                        cv2.rectangle(box_img,
-                                      (int(bx * sx), int(by * sy)),
-                                      (int((bx + bw) * sx), int((by + bh) * sy)),
-                                      (0, 0, 255), 2)
-                # Pred (green)
-                for b in boxes:
-                    bx, by, bw, bh = b[0], b[1], b[2] - b[0], b[3] - b[1]
-                    cv2.rectangle(box_img,
-                                  (int(bx * sx), int(by * sy)),
-                                  (int((bx + bw) * sx), int((by + bh) * sy)),
-                                  (0, 255, 0), 2)
-                    score = float(b[4])
-                    label = f" {score:.2f} "
-                    (tw, th), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.45, 1)
-                    cv2.rectangle(box_img, (int(bx * sx), max(0, int(by * sy) - th - 2)),
-                                  (int(bx * sx) + tw, int(by * sy)), (0, 0, 0), -1)
-                    cv2.putText(box_img, label, (int(bx * sx), max(th, int(by * sy) - 2)),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 255), 1, cv2.LINE_AA)
-
-                # Side-by-side: original | heatmap | bbox
-                side = np.hstack([orig_r, hm_color, box_img])
-                cv2.imwrite(str(vis_dir / f"{im_name}.jpg"), side, [cv2.IMWRITE_JPEG_QUALITY, 90])
-
-        try:
-            coco_metrics = self._eval_coco(gt_path, pred_path)
-        except Exception:
-            coco_metrics = {"map50": float("nan"), "map": float("nan")}
-
-        n_gt = sum(len(e["annotations"]) for e in image_entries)
+        val_s = time.perf_counter() - t1
         n_anom_w_gt = sum(1 for e in image_entries if e["annotations"])
-        row = {
-            "category": category,
-            "map50": coco_metrics["map50"],
-            "map": coco_metrics["map"],
-            "anomaly_deviation": round(ard_mean, 4) if ard_mean == ard_mean else float("nan"),
-            "normal_deviation": round(nrd_mean, 4) if nrd_mean == nrd_mean else float("nan"),
-            "n_pred": len(pred_list),
-            "n_gt": n_gt,
-        }
-
         print(f"[{category}] {val_s:.1f}s val  "
               f"(test={len(test_imgs)}, anom_w_gt={n_anom_w_gt}  "
               f"mAP50={row['map50']:.4f}  mAP={row['map']:.4f}  "
-              f"aDev={ard_mean:.4f}  nDev={nrd_mean:.4f}  "
               f"preds={row['n_pred']})", flush=True)
+        print(f"[{category}] calibration  aDev={ard_mean:.4f}  nDev={nrd_mean:.4f}", flush=True)
         return row
 
+    def _eval_at_score(self, category: str, test_imgs: list[str],
+                       test_good_set: set, image_entries: list[dict],
+                       heatmaps: list[np.ndarray], image_ids: list[int],
+                       min_score: float, save_dir: Path) -> dict:
+        """Region-growing + COCO eval at a single *min_score*. Cheap — no bank/heatmap rebuild."""
+        per_image_boxes = [self._heatmap_to_boxes(hm, min_score=min_score) for hm in heatmaps]
+        pred_list = self._build_pred_json(image_ids, per_image_boxes)
+
+        pred_path = str(save_dir / f"pred_ms{min_score:.3f}.json")
+        with open(pred_path, "w") as f:
+            json.dump(pred_list, f, indent=2)
+
+        try:
+            coco_metrics = self._eval_coco(str(save_dir / "gt.json"), pred_path)
+        except Exception:
+            coco_metrics = {"map50": float("nan"), "map": float("nan")}
+
+        n_images = len(image_entries)
+        n_defect = sum(1 for im in test_imgs if im not in test_good_set)
+        n_good = n_images - n_defect
+        n_gt = sum(len(e["annotations"]) for e in image_entries)
+        n_pred_defect = sum(len(boxes) for im, boxes in zip(test_imgs, per_image_boxes) if im not in test_good_set)
+        n_pred_good = sum(len(boxes) for im, boxes in zip(test_imgs, per_image_boxes) if im in test_good_set)
+        n_img_preds_defect = sum(1 for im, boxes in zip(test_imgs, per_image_boxes) if im not in test_good_set and len(boxes) > 0)
+        n_img_preds_good = sum(1 for im, boxes in zip(test_imgs, per_image_boxes) if im in test_good_set and len(boxes) > 0)
+        return {
+            "category": category,
+            "map50": coco_metrics["map50"],
+            "map": coco_metrics["map"],
+            "n_images": n_images,
+            "n_defect": n_defect,
+            "n_good": n_good,
+            "n_gt": n_gt,
+            "n_pred": len(pred_list),
+            "n_pred_defect": n_pred_defect,
+            "n_pred_good": n_pred_good,
+            "n_img_preds_defect": n_img_preds_defect,
+            "n_img_preds_good": n_img_preds_good,
+        }
+
+    # ── min_score sweep ────────────────────────────────────────────────
+
+    def val_category_sweep(self, category: str, ad: "AnomalyBase",
+                           min_scores: list[float]) -> list[dict]:
+        """Build bank once, then sweep *min_score* → one COCO eval per value.
+
+        Returns one row per min_score (no calibration columns — those are
+        min_score-independent and not repeated).
+        """
+        (data, test_imgs, test_good_set, image_entries, heatmaps,
+         image_ids, ard_mean, nrd_mean, save_dir, build_s) = self._prepare_category(category, ad)
+
+        n_anom_w_gt = sum(1 for e in image_entries if e["annotations"])
+        print(f"[{category}] {len(min_scores)} min_score steps  "
+              f"(test={len(test_imgs)}, anom_w_gt={n_anom_w_gt})", flush=True)
+
+        rows: list[dict] = []
+        for ms in min_scores:
+            row = self._eval_at_score(category, test_imgs, test_good_set, image_entries,
+                                      heatmaps, image_ids, ms, save_dir)
+            row["min_score"] = round(ms, 4)
+            rows.append(row)
+            print(f"  min_score={ms:.3f}  mAP50={row['map50']:.4f}  mAP={row['map']:.4f}  "
+                  f"preds={row['n_pred']} (def={row['n_pred_defect']} good={row['n_pred_good']})  "
+                  f"imgs_w_preds=D{row['n_img_preds_defect']}/{row['n_defect']} G{row['n_img_preds_good']}/{row['n_good']}  "
+                  f"gt={row['n_gt']}", flush=True)
+
+        print(f"[{category}] calibration  aDev={ard_mean:.4f}  nDev={nrd_mean:.4f}", flush=True)
+        return rows
+
     # ── Full sweep ─────────────────────────────────────────────────────
+
+    def run_sweep(self, ad: "AnomalyBase", categories: list[str],
+                  min_scores: list[float], out_csv: Path) -> list[dict]:
+        """Sweep min_score per category — one bank build, N COCO evals per category."""
+        all_rows: list[dict] = []
+        for cat in categories:
+            print(f"\n{'=' * 60}\n[{cat}] starting sweep ({len(min_scores)} steps)\n{'=' * 60}", flush=True)
+            try:
+                cat_rows = self.val_category_sweep(cat, ad, min_scores)
+            except Exception as e:
+                print(f"[{cat}] FAILED: {e!r}", flush=True)
+                cat_rows = [{
+                    "category": cat, "min_score": round(ms, 4),
+                    "map50": float("nan"), "map": float("nan"),
+                    "n_images": 0, "n_defect": 0, "n_good": 0, "n_gt": 0,
+                    "n_pred": 0, "n_pred_defect": 0, "n_pred_good": 0,
+                    "n_img_preds_defect": 0, "n_img_preds_good": 0,
+                } for ms in min_scores]
+            all_rows.extend(cat_rows)
+
+        # ── Per-ms AVERAGE across categories ────────────────────────
+        avg_rows: list[dict] = []
+        for ms in min_scores:
+            ms_rows = [r for r in all_rows
+                       if isinstance(r.get("min_score"), float) and abs(r["min_score"] - ms) < 1e-6]
+            avg = {"category": "AVERAGE", "min_score": round(ms, 4)}
+            for k in ["map50", "map"]:
+                vals = [r[k] for r in ms_rows if isinstance(r.get(k), float) and r[k] == r[k]]
+                avg[k] = round(statistics.fmean(vals), 4) if vals else float("nan")
+            for k in ["n_images", "n_defect", "n_good", "n_gt", "n_pred",
+                       "n_pred_defect", "n_pred_good", "n_img_preds_defect", "n_img_preds_good"]:
+                avg[k] = sum(r.get(k, 0) for r in ms_rows)
+            avg_rows.append(avg)
+
+        # ── Sweep CSV ────────────────────────────────────────────
+        sweep_fields = ["category", "min_score", "map50", "map",
+                         "n_images", "n_defect", "n_good", "n_gt",
+                         "n_pred", "n_pred_defect", "n_pred_good",
+                         "n_img_preds_defect", "n_img_preds_good"]
+        with open(out_csv, "w", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=sweep_fields)
+            w.writeheader()
+            for r in all_rows + avg_rows:
+                w.writerow({k: (f"{r[k]:.4f}" if isinstance(r.get(k), float) and r[k] == r[k] else r[k])
+                            for k in sweep_fields})
+        print(f"\nSaved min_score sweep → {out_csv}")
+
+        # ── Console summary ─────────────────────────────────────
+        print(f"\n=== min_score sweep ===")
+        header = (f"  {'min_score':>10s}  {'mAP50':>8s}  {'mAP':>8s}  "
+                  f"{'preds':>5s}  {'def':>4s}  {'good':>4s}  "
+                  f"{'img_det':>10s}  {'n_def':>5s}  {'n_good':>5s}  {'n_gt':>5s}")
+        print(header)
+        for r in avg_rows:
+            print(f"  {r['min_score']:10.4f}  {r['map50']:8.4f}  {r['map']:8.4f}  "
+                  f"{r['n_pred']:5d}  {r['n_pred_defect']:4d}  {r['n_pred_good']:4d}  "
+                  f"D{r['n_img_preds_defect']}/{r['n_defect']} G{r['n_img_preds_good']}/{r['n_good']}  "
+                  f"{r['n_defect']:5d}  {r['n_good']:5d}  {r['n_gt']:5d}")
+
+        # ── Best-per-metric summary ─────────────────────────────
+        best_map50 = max(avg_rows, key=lambda r: r["map50"] if r["map50"] == r["map50"] else -1)
+        best_map = max(avg_rows, key=lambda r: r["map"] if r["map"] == r["map"] else -1)
+        print(f"\n  Best mAP50: {best_map50['map50']:.4f} @ min_score={best_map50['min_score']:.4f}")
+        print(f"  Best mAP:   {best_map['map']:.4f} @ min_score={best_map['min_score']:.4f}")
+
+        return all_rows
+
+    # ── Full sweep (single score) ───────────────────────────────────────
 
     def run(self, ad: "AnomalyBase", categories: list[str], out_csv: Path) -> list[dict]:
         """Validate every category, write CSV, print summary."""
@@ -1540,7 +1603,6 @@ class AnomalyBboxValidator:
                 }
             rows.append(cat_row)
 
-        # AVERAGE row
         avg = {"category": "AVERAGE"}
         for k in ["map50", "map", "anomaly_deviation", "normal_deviation"]:
             vals = [r[k] for r in rows if isinstance(r.get(k), float) and r[k] == r[k]]
@@ -1548,26 +1610,44 @@ class AnomalyBboxValidator:
         avg["n_pred"] = sum(r["n_pred"] for r in rows)
         avg["n_gt"] = sum(r["n_gt"] for r in rows)
 
-        fields = ["category", "map50", "map",
-                   "anomaly_deviation", "normal_deviation", "n_pred", "n_gt"]
+        # ── mAP CSV ──────────────────────────────────────────
+        map_fields = ["category", "map50", "map", "n_pred", "n_gt"]
         with open(out_csv, "w", newline="") as f:
-            w = csv.DictWriter(f, fieldnames=fields)
+            w = csv.DictWriter(f, fieldnames=map_fields)
             w.writeheader()
             for r in rows + [avg]:
                 w.writerow({k: (f"{r[k]:.4f}" if isinstance(r.get(k), float) and r[k] == r[k] else r[k])
-                            for k in fields})
-        print(f"\nSaved {len(rows) + 1} rows → {out_csv}")
+                            for k in map_fields})
+        print(f"\nSaved bbox mAP → {out_csv}")
 
-        # Summary
-        print(f"\n=== bbox mAP summary ===")
+        # ── Calibration CSV ──────────────────────────────────
+        cal_csv = out_csv.parent / f"calibration_{out_csv.stem}.csv"
+        cal_fields = ["category", "anomaly_deviation", "normal_deviation"]
+        with open(cal_csv, "w", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=cal_fields)
+            w.writeheader()
+            for r in rows + [avg]:
+                w.writerow({
+                    "category": r["category"],
+                    "anomaly_deviation": f"{r['anomaly_deviation']:.4f}" if isinstance(r.get("anomaly_deviation"), float) and r["anomaly_deviation"] == r["anomaly_deviation"] else "nan",
+                    "normal_deviation": f"{r['normal_deviation']:.4f}" if isinstance(r.get("normal_deviation"), float) and r["normal_deviation"] == r["normal_deviation"] else "nan",
+                })
+        print(f"Saved calibration → {cal_csv}")
+
+        # ── Console: mAP table ──────────────────────────────
+        print(f"\n=== bbox mAP ===")
+        for r in rows:
+            print(f"  {r['category']:>12s}  mAP50={r['map50']:.4f}  mAP={r['map']:.4f}  preds={r['n_pred']}")
+        print(f"  {'AVERAGE':>12s}  mAP50={avg['map50']:.4f}  mAP={avg['map']:.4f}  preds={avg['n_pred']}")
+
+        # ── Console: calibration table ──────────────────────
+        print(f"\n=== calibration (per-image, lower is better) ===")
+        print(f"  {'category':>12s}  {'aDev':>8s}  {'nDev':>8s}")
         for r in rows:
             aDev = r.get("anomaly_deviation", float("nan"))
             nDev = r.get("normal_deviation", float("nan"))
-            print(f"  {r['category']:>12s}  mAP50={r['map50']:.4f}  mAP={r['map']:.4f}  "
-                  f"aDev={aDev:.4f}  nDev={nDev:.4f}  preds={r['n_pred']}")
-        print(f"  {'AVERAGE':>12s}  mAP50={avg['map50']:.4f}  mAP={avg['map']:.4f}  "
-              f"aDev={avg['anomaly_deviation']:.4f}  nDev={avg['normal_deviation']:.4f}  "
-              f"preds={avg['n_pred']}")
+            print(f"  {r['category']:>12s}  {aDev:8.4f}  {nDev:8.4f}")
+        print(f"  {'AVERAGE':>12s}  {avg['anomaly_deviation']:8.4f}  {avg['normal_deviation']:8.4f}")
         return rows
 
 
@@ -1721,6 +1801,9 @@ def main() -> None:
                    help="Min region area (pixels) for region-growing heatmap->bbox (default 20).")
     p.add_argument("--bbox-min-score", type=float, default=0.0,
                    help="Min confidence score to keep a detection (default 0.0).")
+    p.add_argument("--bbox-min-score-sweep", type=str, default=None,
+                   help="Sweep min_score: 'start,end,step' e.g. '0.1,0.8,0.05'. "
+                        "Bank + heatmaps computed once, only region-growing re-run per value.")
     p.add_argument("--bbox-vis", action="store_true",
                    help="Save per-image visualisations (original|heatmap|bbox) in bbox_eval/<cat>/vis/.")
     p.add_argument("--zero-mode", choices=["bbox", "poly"], default="poly",
@@ -1772,7 +1855,20 @@ def main() -> None:
             save_dir=run_dir / "bbox_eval",
             save_vis=args.bbox_vis,
         )
-        bbox_validator.run(ad, cats, bbox_out)
+        if args.bbox_min_score_sweep is not None:
+            parts = [float(x.strip()) for x in args.bbox_min_score_sweep.split(",")]
+            if len(parts) != 3:
+                raise SystemExit("--bbox-min-score-sweep must be 'start,end,step' (e.g. '0.1,0.8,0.05')")
+            start, end, step = parts
+            ms = start
+            min_scores: list[float] = []
+            while ms <= end + 1e-9:
+                min_scores.append(round(ms, 4))
+                ms += step
+            sweep_out = run_dir / f"bbox_sweep_{out_csv.stem}.csv"
+            bbox_validator.run_sweep(ad, cats, min_scores, sweep_out)
+        else:
+            bbox_validator.run(ad, cats, bbox_out)
 
 
 if __name__ == "__main__":

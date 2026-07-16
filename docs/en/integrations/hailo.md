@@ -89,7 +89,7 @@ Hailo export is INT8-only. Ultralytics automatically downloads the default COCO1
     Hailo DFC reduces its optimization level when fewer than 1,024 images are available. The default COCO128 dataset contains only 128 images and may produce severe box-regression accuracy loss even when class scores look correct. Always pass a representative dataset with at least 1,024 images for production HEF exports.
 
 ```python
-model.export(format="hailo", name="hailo8l", data="path/to/dataset.yaml", fraction=0.25)
+model.export(format="hailo", name="hailo8l", data="path/to/dataset.yaml")
 ```
 
 Compilation uses a fixed input shape. Set `imgsz` to the resolution used on the device:
@@ -160,7 +160,7 @@ Hailo HEF export uses INT8 quantization to map the YOLO network efficiently onto
 When `data` is omitted, Ultralytics uses COCO128 as a convenient lightweight calibration dataset. For a custom computer vision model, point `data` to its dataset YAML so the compiler observes representative images from the actual deployment domain:
 
 ```python
-model.export(format="hailo", name="hailo8l", data="my_dataset.yaml", fraction=0.5)
+model.export(format="hailo", name="hailo8l", data="my_dataset.yaml")
 ```
 
 `fraction` selects the portion of the dataset used for calibration. More representative data can improve quantized accuracy but increases optimization time. If the INT8 HEF loses accuracy relative to the original PyTorch model, first improve the calibration data before changing model or runtime settings.

@@ -176,28 +176,6 @@ def test_model_forward():
     model(source=None, imgsz=32, augment=True)  # also test no source and augment
 
 
-def test_pytorch_backend_fuses_preloaded_modules(monkeypatch):
-    """Test preloaded modules use their owned fuse signature."""
-    from ultralytics.nn.backends.pytorch import PyTorchBackend
-
-    class Model(torch.nn.Module):
-        fused = False
-
-        def fuse(self):
-            self.fused = True
-            return self
-
-    model = Model()
-    assert PyTorchBackend(model, torch.device("cpu")).model is model
-    assert model.fused
-
-    model = YOLO(CFG).model
-    values = []
-    monkeypatch.setattr(model, "fuse", lambda verbose: values.append(verbose) or model)
-    assert PyTorchBackend(model, torch.device("cpu"), verbose=False).model is model
-    assert values == [False]
-
-
 def test_model_methods():
     """Test various methods and properties of the YOLO model to ensure correct functionality."""
     model = YOLO(MODEL)

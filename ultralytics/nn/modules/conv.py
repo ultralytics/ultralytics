@@ -448,7 +448,7 @@ class RepConv(nn.Module):
         """Fuse batch normalization with convolution weights.
 
         Args:
-            branch (Conv | nn.BatchNorm2d | None): Branch to fuse.
+            branch (Conv | nn.BatchNorm2d | nn.SyncBatchNorm | None): Branch to fuse.
 
         Returns:
             kernel (torch.Tensor): Fused kernel.
@@ -463,7 +463,7 @@ class RepConv(nn.Module):
             gamma = branch.bn.weight
             beta = branch.bn.bias
             eps = branch.bn.eps
-        elif isinstance(branch, nn.BatchNorm2d):
+        elif isinstance(branch, (nn.BatchNorm2d, nn.SyncBatchNorm)):
             if not hasattr(self, "id_tensor"):
                 input_dim = self.c1 // self.g
                 kernel_value = np.zeros((self.c1, input_dim, 3, 3), dtype=np.float32)
@@ -476,6 +476,8 @@ class RepConv(nn.Module):
             gamma = branch.weight
             beta = branch.bias
             eps = branch.eps
+        else:
+            raise TypeError(f"Unsupported RepConv branch type for fusion: {type(branch).__name__}")
         std = (running_var + eps).sqrt()
         t = (gamma / std).reshape(-1, 1, 1, 1)
         return kernel * t, beta - running_mean * gamma / std

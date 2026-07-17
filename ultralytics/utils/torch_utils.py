@@ -1066,9 +1066,8 @@ def attempt_compile(
     LOGGER.info(f"{prefix} starting torch.compile with '{mode}' mode...")
     t0 = time.perf_counter()
     try:
-        from torch import _dynamo, _inductor  # load lazy submodules (lazy in torch 2.0)
+        from torch import _inductor  # lazy submodule, force import before access on torch 2.0
 
-        _dynamo.reset()  # clear stale compilation cache so the options below actually take effect
         if mode.startswith("max-autotune") and hasattr(_inductor, "list_mode_options"):  # torch>=2.1
             # max-autotune defaults enable CUDA graph trees and coordinate descent tuning, which give
             # nondeterministic results (see cudagraph skip warnings) and slow compiles. Keep the mode's

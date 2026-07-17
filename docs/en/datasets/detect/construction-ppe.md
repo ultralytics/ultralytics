@@ -6,6 +6,7 @@ creator:
     url: https://www.ultralytics.com/
 license:
     name: AGPL-3.0
+    url: https://www.ultralytics.com/license
 description: Train YOLO26 on the Construction-PPE dataset — 1,416 images across 11 classes for detecting helmets, gloves, vests, boots, goggles, and missing safety gear.
 keywords: Construction-PPE, PPE dataset, PPE detection, safety compliance, construction workers, object detection, YOLO26, workplace safety, computer vision
 ---

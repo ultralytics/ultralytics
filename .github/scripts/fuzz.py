@@ -86,10 +86,11 @@ CLAMPS = {
 EXPORT_POOL = ["torchscript", "onnx", "openvino"]  # CPU-friendly formats installed on every shard
 
 # Additional pretrained families with ordinary CLI contracts. Keep modes narrow to avoid prompt-only training paths.
+# The last field overrides CLAMPS: RT-DETR's 300-query decoder needs >=160px of anchors (below that is a T2 gap).
 ALTERNATE_CORPUS = (
-    ("detect", "rtdetr-l.pt", "coco8.yaml", {"val", "predict", "export"}),
-    ("detect", "yolov8s-worldv2.pt", "coco8.yaml", {"predict", "export"}),
-    ("segment", "yoloe-11s-seg-pf.pt", "coco8-seg.yaml", {"predict", "export"}),
+    ("detect", "rtdetr-l.pt", "coco8.yaml", {"val", "predict", "export"}, "imgsz=160"),
+    ("detect", "yolov8s-worldv2.pt", "coco8.yaml", {"predict", "export"}, ""),
+    ("segment", "yoloe-11s-seg-pf.pt", "coco8-seg.yaml", {"predict", "export"}, ""),
 )
 
 # Controlled variations for cost-sensitive keys excluded from arbitrary mutation.
@@ -225,7 +226,7 @@ def precache_assets(uni):
         attempt_download_asset(WEIGHTS_DIR / uni["task2model"][task])
         data = uni["task2data"][task]
         check_cls_dataset(data) if str(data).startswith("imagenet") else check_det_dataset(data, autodownload=True)
-    for _task, model, _data, _modes in ALTERNATE_CORPUS:
+    for _task, model, *_ in ALTERNATE_CORPUS:
         attempt_download_asset(WEIGHTS_DIR / model)
 
     prepare_sources(uni)
@@ -290,9 +291,9 @@ def build_corpus(uni):
             elif mode == "track":
                 argv.append(f"source={uni['video']}")
             corpus.append({"mode": mode, "task": task, "argv": argv})  # export: default torchscript stays implicit
-    for task, model, data, modes in ALTERNATE_CORPUS:
+    for task, model, data, modes, clamp in ALTERNATE_CORPUS:
         for mode in modes:
-            argv = [mode, task, f"model={model}", *strip_defaults(CLAMPS[mode].split(), uni["defaults"])]
+            argv = [mode, task, f"model={model}", *strip_defaults((clamp or CLAMPS[mode]).split(), uni["defaults"])]
             if mode == "val":
                 argv.append(f"data={data}")
             elif mode == "predict":
@@ -316,12 +317,13 @@ def sample_trial(rng, uni, corpus, personality):
         """Append the non-default k=v pairs to argv and record their keys as mutated."""
         for a in pairs:
             key, _, value = a.partition("=")
-            argv[:] = [x for x in argv if x.partition("=")[0] != key]  # canonical last-value-wins CLI semantics
-            if value.lower() != str(uni["defaults"].get(key)).lower():
+            argv[2:] = [x for x in argv[2:] if x.partition("=")[0] != key]  # last-value-wins; argv[:2] is mode/task
+            changed = value.lower() != str(uni["defaults"].get(key)).lower()
+            if changed:
                 argv.append(a)
             if key not in mutated:
                 mutated.append(key)
-            validity[key] = valid
+            validity[key] = valid or not changed  # a stripped default-valued arg leaves a supported effective value
 
     def mutate_combos(max_groups=4):
         """Combine compatible mode-specific argument groups without repeating keys."""
@@ -621,7 +623,6 @@ def cmd_repro(args):
     argv = shlex.split(args.command)
     if argv and argv[0] == "yolo":  # issue bodies quote full `yolo ...` commands; accept them verbatim
         argv = argv[1:]
-    mode = next((a for a in argv if a in MODES), "predict")
 
     def portable(arg):
         """Remap runner-local absolute model/source paths from issue commands to this machine's copies."""
@@ -635,12 +636,13 @@ def cmd_repro(args):
             else:
                 prepare_sources(uni)
                 candidates = [ASSETS / PureWindowsPath(v).name]
-                candidates.extend(Path(p) for p, _valid in uni["sources"][mode])
+                candidates.extend(Path(p) for pool in uni["sources"].values() for p, _valid in pool)
             if local := next((p for p in candidates if p.name == PureWindowsPath(v).name and p.exists()), None):
                 return f"{k}={local}"
         return arg
 
     argv = [portable(a) for a in argv]
+    mode = next((a for a in argv if a in MODES), "predict")
     task = next((a for a in argv if a in uni["tasks"]), "detect")
     trial = {"mode": mode, "task": task, "argv": argv, "mutated": ["repro"]}  # replayed commands were fuzz-mutated
     outcomes = []

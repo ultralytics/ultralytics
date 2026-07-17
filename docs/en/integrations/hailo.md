@@ -181,7 +181,7 @@ Three practical rules follow from device measurements:
 
 1. **Calibrate in-domain, always.** Fine-tuning with out-of-domain images is equivalent to disabling fine-tuning entirely: a YOLO26n calibrated with 1,238 out-of-domain images retains the same accuracy (85.7%) as one compiled without fine-tuning. A small in-domain set beats a large out-of-domain one.
 2. **Lower `conf` by about 0.05 for YOLO26 deployments.** Quantization shifts YOLO26 scores down by roughly 0.05 on average, so a threshold tuned in PyTorch drops valid detections on the HEF. Using `conf=0.20` on device matches the detection count of PyTorch at `conf=0.25` and recovers about half of the accuracy gap; the remainder is ranking noise that no threshold recovers.
-3. **The attention penalty is structural on Hailo-8/8L.** The Dataflow Compiler only supports 8-bit inputs for `matmul` layers on this hardware generation, so attention products cannot run at higher precision. When accuracy is the top priority and the model choice is flexible, YOLO11 currently quantizes better than YOLO26 on Hailo-8/8L.
+3. **The attention penalty is structural on Hailo-8/8L (DFC 3.33).** The attention blocks compile to `matmul` operations that keep INT8 activation inputs in every mode the compiler offers for them; the 16-bit-output mode fails allocation for this graph, and raising the precision of the surrounding layers does not help because the matmul requantizes its inputs to INT8 anyway (protecting the depthwise and output convolutions at 16-bit left mAP unchanged in our tests). When accuracy is the priority and the model is interchangeable, YOLO11 currently quantizes better than YOLO26 here; newer Hailo generations (DFC 5.x) expose more mixed-precision options and may differ.
 
 ## Exported Artifacts
 

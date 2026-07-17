@@ -1,0 +1,37 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# X-only Lane B P4 attention arm. Two effective windowed P4 attention blocks preserve local spatial routing.
+
+nc: 80
+end2end: True
+reg_max: 1
+
+scales:
+  x: [0.35, 1.50, 512]
+
+backbone:
+  - [-1, 1, Conv, [64, 3, 2]]
+  - [-1, 1, Conv, [96, 3, 2]]
+  - [-1, 5, RepUltraViTBlock, [3, True, 0.00001, True]]
+  - [-1, 1, Conv, [192, 3, 2]]
+  - [-1, 5, RepUltraViTBlock, [3, True, 0.00001, True]]
+  - [-1, 1, Conv, [384, 3, 2]]
+  - [-1, 20, RepUltraViTBlock, [3, True, 0.00001, True]]
+  - [-1, 5, WindowMHSABlock, [0, 4, True, 0.00001, True, 32, 2]]
+  - [-1, 1, Conv, [1152, 3, 2]]
+  - [-1, 8, MHSABlock, [0, 4, True, 0.00001, True, 32]]
+
+head:
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 7], 1, Concat, [1]]
+  - [-1, 2, C3k2, [512, True]]
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 4], 1, Concat, [1]]
+  - [-1, 2, C3k2, [256, True]]
+  - [-1, 1, Conv, [256, 3, 2]]
+  - [[-1, 12], 1, Concat, [1]]
+  - [-1, 2, C3k2, [512, True]]
+  - [-1, 1, Conv, [512, 3, 2]]
+  - [[-1, 9], 1, Concat, [1]]
+  - [-1, 1, C3k2, [1024, True, 0.5, True]]
+  - [[15, 18, 21], 1, Detect, [nc]]

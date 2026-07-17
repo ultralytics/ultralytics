@@ -184,7 +184,7 @@ def _sanitize_json_value(value):
     return value
 
 
-def _send(event, data, project, name, model_id=None, retry=2):
+def _send(event, data, project, name, model_id=None, retry=2, timeout=30):
     """Send event to Platform endpoint with retry logic."""
     payload = {"event": event, "project": project, "name": name, "data": _sanitize_json_value(data)}
     if model_id:
@@ -196,7 +196,7 @@ def _send(event, data, project, name, model_id=None, retry=2):
             f"{PLATFORM_API_URL}/training/metrics",
             json=payload,
             headers={"Authorization": f"Bearer {_api_key}"},
-            timeout=30,
+            timeout=timeout,
         )
         if 400 <= r.status_code < 500 and r.status_code not in {408, 429}:
             try:
@@ -280,6 +280,7 @@ def _upload_model(model_path, project, name, progress=False, retry=1, model_id=N
                 project,
                 name,
                 model_id,
+                timeout=90,
             )
             return gcs_path if saved else None
         return gcs_path

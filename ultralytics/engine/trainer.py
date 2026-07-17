@@ -470,7 +470,7 @@ class BaseTrainer:
                     # Backward
                     self.scaler.scale(self.loss).backward()
                 except RuntimeError as e:
-                    is_oom = isinstance(e, torch.cuda.OutOfMemoryError)
+                    is_oom = "out of memory" in str(e).lower()  # torch.cuda.OutOfMemoryError requires torch>=1.13
                     if not is_oom and not any(
                         s in str(e) for s in ("CUDNN_STATUS_INTERNAL_ERROR", "unable to find an engine")
                     ):

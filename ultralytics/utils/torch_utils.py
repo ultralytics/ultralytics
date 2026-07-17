@@ -937,7 +937,7 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
                             # Envelope of the detect-loss memory peaks: TaskAlignedAssigner.get_box_metrics holds ~6
                             # simultaneous (bs, max_num_obj, anchors) fp32 buffers (mask_in_gts, overlaps, bbox_scores,
                             # gathered pd_scores, pow temps + align_metric); the cls path holds ~6 (bs, anchors, nc)
-                            # fp32-equivalents (int64 target_scores + torch.where output, fg_scores_mask, then
+                            # fp32-equivalents (int64 target_scores + torch.where output, then
                             # pred/target/unreduced-BCE in v8DetectionLoss)
                             sim = (
                                 torch.randn(x.shape[0], 6 * max_num_obj, anchors, device=device, dtype=torch.float32),

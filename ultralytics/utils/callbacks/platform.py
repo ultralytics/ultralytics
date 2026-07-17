@@ -287,11 +287,6 @@ def _upload_model(model_path, project, name, progress=False, retry=1, model_id=N
     return None
 
 
-def _upload_model_async(model_path, project, name, model_id=None, run_id=None):
-    """Upload model asynchronously using bounded thread pool."""
-    return _executor.submit(_upload_model, model_path, project, name, model_id=model_id, run_id=run_id)
-
-
 def _get_environment_info():
     """Collect comprehensive environment info using existing ultralytics utilities."""
     import shutil
@@ -500,8 +495,8 @@ def on_model_save(trainer):
         return
 
     project, name = _get_project_name(trainer)
-    ctx["checkpoint_upload"] = _upload_model_async(
-        model_path, project, name, model_id=ctx["model_id"], run_id=ctx["run_id"]
+    ctx["checkpoint_upload"] = _executor.submit(
+        _upload_model, model_path, project, name, model_id=ctx["model_id"], run_id=ctx["run_id"]
     )
     ctx["last_upload"] = time()
 

@@ -347,7 +347,7 @@ def safe_download(
                         r = subprocess.run(["curl", "-#", f"-{s}L", url, "-o", f, "--retry", "3", "-C", "-"]).returncode
                         assert r == 0, f"Curl return value {r}"
                     else:  # requests download
-                        with requests.get(url, stream=True) as response:
+                        with requests.get(url, stream=True, headers={"Accept-Encoding": "identity"}) as response:
                             response.raise_for_status()
                             expected_size = int(response.headers.get("Content-Length", 0))
                             if i == 0 and expected_size > 1048576:

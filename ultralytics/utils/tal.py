@@ -311,7 +311,7 @@ class TaskAlignedAssigner(nn.Module):
         gt_bboxes = xywh2xyxy(gt_bboxes_xywh)
 
         lt, rb = gt_bboxes.unsqueeze(2).chunk(2, 3)  # (b, n_boxes, 1, 2) left-top, right-bottom
-        return ((xy_centers > lt + eps) & (xy_centers < rb - eps)).all(3)
+        return ((xy_centers - lt > eps) & (rb - xy_centers > eps)).all(3)
 
     def select_highest_overlaps(self, mask_pos, overlaps, n_max_boxes, align_metric):
         """Select anchor boxes with highest IoU when assigned to multiple ground truths.

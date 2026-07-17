@@ -6,7 +6,6 @@ creator:
     url: https://www.ultralytics.com/
 license:
     name: AGPL-3.0
-    url: https://www.ultralytics.com/license
 description: Train YOLO26 on HomeObjects-3K — 2,689 indoor images across 12 household classes like bed, sofa, TV, and laptop for smart home, robotics, and AR detection.
 keywords: HomeObjects-3K, indoor dataset, household items, object detection, computer vision, YOLO26, smart home AI, robotics dataset
 ---

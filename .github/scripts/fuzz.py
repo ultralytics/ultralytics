@@ -171,6 +171,7 @@ EXPECTED_MODULES = (
     "ultralytics/utils/checks.py",
     "ultralytics/data/utils.py",
     "ultralytics/data/augment.py:classify_augmentations",
+    "ultralytics/data/loaders.py:__init__",  # source loaders ARE the source-validation layer; their raises are clean
     "ultralytics/engine/exporter.py:validate_args",  # exporter's intentional per-format argument validation
     "ultralytics/engine/exporter.py:__call__",  # intentional compat asserts; per-format bugs raise in deeper frames
 )
@@ -371,6 +372,15 @@ def sample_trial(rng, uni, corpus, personality):
     }
 
 
+def probe_supported(key, value):
+    """Range floors where an otherwise-valid probe value is degenerate on the clamped fuzz corpora."""
+    if key == "fraction":  # below 0.25 the 4-image coco8 train splits select zero images
+        return float(value) >= 0.25
+    if key == "mask_ratio":  # the mask downsample ratio must stay within the clamped train imgsz
+        return 1 <= float(value) <= 16
+    return True
+
+
 def sample_mutation(rng, uni, chaos=False):
     """Pick one fuzzable key, a probe value, and whether that value is documented-valid for the key."""
     family = rng.choices(["enum", "fraction", "int", "bool", "float"], weights=[4, 2, 2, 1, 1])[0]
@@ -388,10 +398,9 @@ def sample_mutation(rng, uni, chaos=False):
             value = str(rng.randint(1, 4096)) if valid else f"{rng.randint(0, 4096)}.5"
         else:
             value = f"{rng.uniform(0, 180):.8g}" if valid else rng.choice(["nan", "1e309"])
-        return key, value, valid and not (key == "fraction" and float(value) < 0.25)
+        return key, value, valid and probe_supported(key, value)
     value = rng.choice(pool["valid"] + pool["invalid"] + (CHAOS_PROBES if chaos else []))
-    # dataset fraction below 0.25 selects zero images of the 4-image coco8 train splits: degenerate, not supported
-    return key, value, value in pool["valid"] and not (key == "fraction" and float(value) < 0.25)
+    return key, value, value in pool["valid"] and probe_supported(key, value)
 
 
 def run_trial(trial, timeout=None):

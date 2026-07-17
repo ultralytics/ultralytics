@@ -39,10 +39,17 @@ _opener = None  # lazily built on first use, matching urllib.request.urlopen()'s
 
 
 def _urlopen(*args, **kwargs):
-    """Open a URL like `urllib.request.urlopen`, backporting HTTP 308 Permanent Redirect support."""
+    """Open a URL like `urllib.request.urlopen`, backporting HTTP 308 Permanent Redirect support.
+
+    Extends whichever opener is in effect (the one installed via `urllib.request.install_opener`, or
+    urllib's default) instead of replacing it, so any custom proxy, auth, or TLS handlers the caller
+    configured keep working.
+    """
     global _opener
     if _opener is None:
-        _opener = request.build_opener(_Http308RedirectHandler)
+        _opener = request._opener or request.build_opener()
+        if not any(isinstance(h, _Http308RedirectHandler) for h in _opener.handlers):
+            _opener.add_handler(_Http308RedirectHandler())
     return _opener.open(*args, **kwargs)
 
 

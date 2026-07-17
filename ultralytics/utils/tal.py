@@ -276,13 +276,12 @@ class TaskAlignedAssigner(nn.Module):
         # 10x faster than F.one_hot()
         target_scores = torch.zeros(
             (target_labels.shape[0], target_labels.shape[1], self.num_classes),
-            dtype=torch.int64,
+            dtype=torch.int8,
             device=target_labels.device,
         )  # (b, h*w, 80)
         target_scores.scatter_(2, target_labels.unsqueeze(-1), 1)
 
-        fg_scores_mask = fg_mask[:, :, None].repeat(1, 1, self.num_classes)  # (b, h*w, 80)
-        target_scores = torch.where(fg_scores_mask > 0, target_scores, 0)
+        target_scores = torch.where(fg_mask[:, :, None] > 0, target_scores, 0)
 
         return target_labels, target_bboxes, target_scores
 
@@ -311,11 +310,8 @@ class TaskAlignedAssigner(nn.Module):
         )
         gt_bboxes = xywh2xyxy(gt_bboxes_xywh)
 
-        n_anchors = xy_centers.shape[0]
-        bs, n_boxes, _ = gt_bboxes.shape
-        lt, rb = gt_bboxes.view(-1, 1, 4).chunk(2, 2)  # left-top, right-bottom
-        bbox_deltas = torch.cat((xy_centers[None] - lt, rb - xy_centers[None]), dim=2).view(bs, n_boxes, n_anchors, -1)
-        return bbox_deltas.amin(3).gt_(eps)
+        lt, rb = gt_bboxes.unsqueeze(2).chunk(2, 3)  # (b, n_boxes, 1, 2) left-top, right-bottom
+        return ((xy_centers > lt + eps) & (xy_centers < rb - eps)).all(3)
 
     def select_highest_overlaps(self, mask_pos, overlaps, n_max_boxes, align_metric):
         """Select anchor boxes with highest IoU when assigned to multiple ground truths.

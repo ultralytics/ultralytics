@@ -365,6 +365,11 @@ class BaseTrainer:
         # Batch size
         if self.batch_size < 1 and RANK == -1:  # single-GPU only, estimate best batch size
             self.args.batch = self.batch_size = self.auto_batch()
+        if self.batch_size // max(self.world_size, 1) == 1 and self.args.imgsz < 2 * gs:
+            raise ValueError(
+                f"batch=1 training at imgsz={self.args.imgsz} gives BatchNorm a single value per channel; "
+                f"increase batch or use imgsz >= {2 * gs}"
+            )
 
         self._build_train_pipeline()
         self.validator = self.get_validator()

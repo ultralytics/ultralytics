@@ -983,6 +983,27 @@ class v8ClassificationLoss:
         return loss, loss.detach()
 
 
+def subcenter_arcface_logits(cosine, labels, scale=30.0, margin=0.5):
+    """Apply an additive angular margin to the target-identity cosine and scale it (ArcFace).
+
+    Args:
+        cosine (torch.Tensor): Per-identity cosine similarity (B, nc), already reduced over sub-centers.
+        labels (torch.Tensor): Ground-truth identity indices (B,).
+        scale (float): Logit scale.
+        margin (float): Additive angular margin in radians.
+
+    Returns:
+        (torch.Tensor): Scaled logits (B, nc) with the margin applied to the target identity.
+    """
+    cos_m, sin_m = math.cos(margin), math.sin(margin)
+    threshold, offset = math.cos(math.pi - margin), math.sin(math.pi - margin) * margin
+    sine = (1.0 - cosine * cosine).clamp_(min=0).sqrt()
+    phi = cosine * cos_m - sine * sin_m  # cos(theta + margin)
+    phi = torch.where(cosine > threshold, phi, cosine - offset)  # stay monotonic past the margin
+    onehot = torch.zeros_like(cosine).scatter_(1, labels.long().view(-1, 1), 1.0)
+    return scale * (onehot * phi + (1.0 - onehot) * cosine)
+
+
 class ReIDLoss:
     """Criterion class for computing ReID training losses (cross-entropy + batch-hard triplet + center)."""
 
@@ -997,6 +1018,7 @@ class ReIDLoss:
         center_momentum: float = 0.9,
         focal_gamma: float = 0.0,
         supcon_temp: float = 0.0,
+        arcface: bool = False,
     ):
         """Initialize ReID loss with label-smoothed CE, batch-hard triplet, and center loss.
 
@@ -1010,6 +1032,7 @@ class ReIDLoss:
             center_momentum (float): EMA momentum for updating class centers.
             focal_gamma (float): Focal loss gamma (0 = standard CE, >0 = focal).
             supcon_temp (float): Supervised contrastive loss temperature (0 = use triplet instead).
+            arcface (bool): Apply sub-center ArcFace angular margin to the identity logits.
         """
         self.nc = nc
         self.triplet_margin = triplet_margin
@@ -1020,6 +1043,7 @@ class ReIDLoss:
         self.center_momentum = center_momentum
         self.focal_gamma = focal_gamma
         self.supcon_temp = supcon_temp
+        self.arcface = arcface
         self.centers = None  # lazily initialized (nc, feat_dim)
 
     def __call__(self, preds, batch):
@@ -1041,6 +1065,8 @@ class ReIDLoss:
 
         cls_logits, bn_feat, raw_feat = preds
         labels = batch["cls"]
+        if self.arcface:  # cls_logits are per-identity cosines; add the angular margin before CE
+            cls_logits = subcenter_arcface_logits(cls_logits, labels)
 
         # Cross-entropy with label smoothing (optionally focal). label_smoothing requires torch>=1.10;
         # drop it on older torch so the minimum-supported environment still trains (smoothing is a refinement).

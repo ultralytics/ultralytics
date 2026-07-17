@@ -875,6 +875,8 @@ class ReID(nn.Module):
         self.bottleneck.bias.requires_grad_(False)  # no shift per BoT paper
         self.classifier = nn.Linear(embed_dim, c2, bias=False)
         self.embed_dim = embed_dim
+        self.cosine = False  # ArcFace mode: classify by cosine similarity, angular margin applied in the loss
+        self.sub_centers = 1  # sub-center ArcFace prototypes per identity (>1 only in ArcFace mode)
 
     def _pool(self, x):
         """Pool feature map to (B, C) via summed global average and max pooling."""
@@ -887,7 +889,15 @@ class ReID(nn.Module):
         feat = self.embed(self.drop(self._pool(self.conv(x))))
         feat_bn = self.bottleneck(feat)  # BNNeck feature
         if self.training:
-            return self.classifier(feat_bn), feat_bn, feat  # (logits, bn_feat, raw_feat)
+            if self.cosine:
+                cos = torch.nn.functional.linear(
+                    torch.nn.functional.normalize(feat_bn, dim=1),
+                    torch.nn.functional.normalize(self.classifier.weight, dim=1),
+                )  # (B, nc * sub_centers) per-identity cosine; take the max sub-center, margin applied in the loss
+                logits = cos.view(cos.size(0), -1, self.sub_centers).amax(-1)
+            else:
+                logits = self.classifier(feat_bn)
+            return logits, feat_bn, feat  # (logits, bn_feat, raw_feat)
         emb = torch.nn.functional.normalize(feat_bn, dim=1)
         return emb if self.export else (emb, feat_bn)
 

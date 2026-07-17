@@ -78,6 +78,7 @@ class ReidTrainer(ClassificationTrainer):
                 "center_momentum",
                 "focal_gamma",
                 "supcon_temp",
+                "reid_arcface",
             )
             if hasattr(self.args, k)
         }
@@ -103,7 +104,7 @@ class ReidTrainer(ClassificationTrainer):
     def setup_model(self):
         """Load or create model for ReID tasks, then resize the classifier to the dataset identity count."""
         ckpt = super().setup_model()
-        ReidModel.reshape_outputs(self.model, self.data["nc"])
+        ReidModel.reshape_outputs(self.model, self.data["nc"], arcface=getattr(self.args, "reid_arcface", False))
         return ckpt
 
     def build_dataset(self, img_path: str, mode: str = "train", batch=None):

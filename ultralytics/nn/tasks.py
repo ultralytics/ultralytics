@@ -829,6 +829,7 @@ class ReidModel(BaseModel):
         center_momentum: float = 0.9,
         focal_gamma: float = 0.0,
         supcon_temp: float = 0.0,
+        reid_arcface: bool = False,
     ):
         """Initialize ReidModel with YAML, channels, number of identities, verbose flag.
 
@@ -845,6 +846,7 @@ class ReidModel(BaseModel):
             center_momentum (float): EMA momentum for updating class centers.
             focal_gamma (float): Focal loss gamma (0 = standard CE).
             supcon_temp (float): SupCon temperature (0 = use triplet).
+            reid_arcface (bool): Use sub-center ArcFace angular-margin identity loss instead of plain CE.
         """
         super().__init__()
         self._from_yaml(cfg, ch, nc, verbose)
@@ -857,6 +859,7 @@ class ReidModel(BaseModel):
         self.center_momentum = center_momentum
         self.focal_gamma = focal_gamma
         self.supcon_temp = supcon_temp
+        self.reid_arcface = reid_arcface
 
     def _from_yaml(self, cfg, ch, nc, verbose):
         """Set model configurations and define the model architecture.
@@ -882,17 +885,22 @@ class ReidModel(BaseModel):
         self.info()
 
     @staticmethod
-    def reshape_outputs(model, nc):
+    def reshape_outputs(model, nc, arcface=False, sub_centers=3):
         """Update ReID model to specified identity count.
 
         Args:
             model (torch.nn.Module): Model to update.
             nc (int): New number of identity classes.
+            arcface (bool): Size the classifier for sub-center ArcFace (nc * sub_centers) and enable cosine logits.
+            sub_centers (int): ArcFace prototypes per identity (used only when arcface is True).
         """
         _, m = list((model.model if hasattr(model, "model") else model).named_children())[-1]
         if isinstance(m, ReID):
-            if m.classifier.out_features != nc:
-                m.classifier = torch.nn.Linear(m.embed_dim, nc, bias=False)
+            out = nc * sub_centers if arcface else nc
+            if m.classifier.out_features != out:
+                m.classifier = torch.nn.Linear(m.embed_dim, out, bias=False)
+            m.cosine = arcface
+            m.sub_centers = sub_centers if arcface else 1
         elif isinstance(m, Classify):  # fallback
             if m.linear.out_features != nc:
                 m.linear = torch.nn.Linear(m.linear.in_features, nc)
@@ -915,6 +923,7 @@ class ReidModel(BaseModel):
             center_momentum=getattr(src, "center_momentum", self.center_momentum),
             focal_gamma=getattr(src, "focal_gamma", self.focal_gamma),
             supcon_temp=getattr(src, "supcon_temp", self.supcon_temp),
+            arcface=getattr(src, "reid_arcface", self.reid_arcface),
         )
 
 

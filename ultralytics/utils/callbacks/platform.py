@@ -367,23 +367,31 @@ def serialize_validation_results(validator):
     result = summarize_platform_validation(
         metrics.box.image_metrics, task_metric.image_metrics if task_metric else None
     )
-    if not result.pop("identityCount"):
+    population = result.pop("population")
+    if not population or result.pop("identityCount") != population:
         return {"state": "unsupported", "reason": "identity_unavailable", "task": task}
 
     pending = result.pop("rows")
     omitted = result.pop("detailOmitted")
-    population = result.pop("population")
     buckets = []
+    oversized = False
     offset = 0
     while offset < len(pending):
         size = min(4096, len(pending) - offset)
         rows = pending[offset : offset + size]
-        while len(dumps(rows, separators=(",", ":")).encode()) > 900_000:
+        while size > 1 and len(dumps(rows, separators=(",", ":")).encode()) > 900_000:
             size //= 2
             rows = pending[offset : offset + size]
         body = dumps(rows, sort_keys=True, separators=(",", ":"))
+        if len(body.encode()) > 900_000:
+            buckets.clear()
+            oversized = True
+            break
         buckets.append({"bucketIndex": len(buckets), "rows": rows, "checksum": sha256(body.encode()).hexdigest()})
         offset += size
+
+    captured = sum(len(bucket["rows"]) for bucket in buckets)
+    omitted_reason = "run_limit" if omitted else "row_limit" if oversized else None
 
     return {
         "state": "complete",
@@ -401,10 +409,10 @@ def serialize_validation_results(validator):
         "coverage": {
             "population": population,
             "detail": {
-                "state": "omitted" if omitted else "full",
-                "captured": sum(len(bucket["rows"]) for bucket in buckets),
-                "omitted": population if omitted else 0,
-                **({"reason": "run_limit"} if omitted else {}),
+                "state": "omitted" if omitted_reason else "full",
+                "captured": captured,
+                "omitted": population if omitted_reason else 0,
+                **({"reason": omitted_reason} if omitted_reason else {}),
             },
             "perTrait": result.pop("traitCoverage"),
         },

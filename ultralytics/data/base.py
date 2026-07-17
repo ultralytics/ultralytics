@@ -418,8 +418,8 @@ class BaseDataset(Dataset):
         label = deepcopy(self.labels[index])  # requires deepcopy() https://github.com/ultralytics/ultralytics/pull/1948
         label.pop("shape", None)  # shape is for rect, remove it
         label["img"], label["ori_shape"], label["resized_shape"] = self.load_image(index)
-        if platform := self.labels[index].get("platform"):
-            label["platform"] = deepcopy(platform)
+        if "platform" in self.labels[index]:
+            label["platform"] = deepcopy(self.labels[index]["platform"])
         label["ratio_pad"] = (
             label["resized_shape"][0] / label["ori_shape"][0],
             label["resized_shape"][1] / label["ori_shape"][1],

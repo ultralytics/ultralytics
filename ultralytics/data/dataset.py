@@ -195,8 +195,7 @@ class YOLODataset(BaseDataset):
         if metadata_file := self.data.get("platform_metadata"):
             metadata = json.loads((Path(self.data["path"]) / metadata_file).read_text())
             for label in labels:
-                if platform := metadata.get(Path(label["im_file"]).name):
-                    label["platform"] = platform
+                label["platform"] = metadata.get(Path(label["im_file"]).name, {})
 
         # Check if the dataset is all boxes or all segments
         lengths = ((len(lb["cls"]), len(lb["bboxes"]), len(lb["segments"])) for lb in labels)

@@ -584,8 +584,12 @@ def test_normalize_platform_uri():
     assert normalize_platform_uri("coco8.yaml") == "coco8.yaml"  # non-Platform inputs unchanged
 
 
-def test_platform_validation_contract():
+def test_platform_validation_contract(monkeypatch):
     """Test packed image traits and bounded Platform validation summaries."""
+    from types import SimpleNamespace
+
+    from ultralytics.data.base import BaseDataset
+    from ultralytics.data.dataset import YOLODataset
     from ultralytics.data.utils import image_quality_fingerprint
     from ultralytics.utils.metrics import Metric, summarize_platform_validation
 
@@ -598,6 +602,18 @@ def test_platform_validation_contract():
         small, (round(small.shape[1] * scale), round(small.shape[0] * scale)), interpolation=cv2.INTER_AREA
     )
     assert image_quality_fingerprint(small) == image_quality_fingerprint(thumbnail)
+
+    dataset = SimpleNamespace(
+        labels=[{"platform": {}}],
+        load_image=lambda _index: (image, image.shape[:2], image.shape[:2]),
+        rect=False,
+        update_labels_info=lambda label: label,
+    )
+    assert BaseDataset.get_image_and_label(dataset, 0)["platform"] == {}
+    batch = YOLODataset.collate_fn(
+        [{"img": torch.zeros(3, 1, 1), "platform": {}}, {"img": torch.zeros(3, 1, 1), "platform": {"id": "1"}}]
+    )
+    assert batch["platform"] == ({}, {"id": "1"})
 
     metric = Metric()
     tp = np.array([[True] * 10, [False] * 10])
@@ -640,28 +656,71 @@ def test_platform_validation_contract():
             "data": {"platform_fingerprint": "dataset-sha256"},
         },
     )()
+    image_metrics = metric.image_metrics
+    metric.image_metrics = {}
+    assert serialize_validation_results(validator) == {
+        "state": "unsupported",
+        "reason": "identity_unavailable",
+        "task": "detect",
+    }
+    metric.image_metrics = image_metrics
     payload = serialize_validation_results(validator)
     assert payload["state"] == "complete"
     assert payload["bucketCount"] == 1
     assert payload["coverage"]["detail"] == {"state": "full", "captured": 1, "omitted": 0}
-    metric.image_metrics = LargeDataset(metric.image_metrics)
+    metric.image_metrics["missing.jpg"] = {}
     payload = serialize_validation_results(validator)
-    assert payload["state"] == "complete" and payload["bucketCount"] == 0
-    assert payload["rankings"]["overall"][0]["imageId"] == "0123456789abcdef01234567"
-    assert payload["coverage"]["detail"] == {
-        "state": "omitted",
-        "captured": 0,
-        "omitted": 100_001,
-        "reason": "run_limit",
-    }
-    metric.image_metrics = dict(metric.image_metrics)
+    assert payload == {"state": "unsupported", "reason": "identity_unavailable", "task": "detect"}
+    metric.image_metrics.pop("missing.jpg")
     validator.args.task = "obb"
     validator.args.conf = 0.5
     payload = serialize_validation_results(validator)
     assert payload["task"] == "obb"
     assert payload["evaluator"]["analysisConfidence"] == 0.5
 
-    from types import SimpleNamespace
+    summary = {
+        "identityCount": 100_001,
+        "rows": [],
+        "detailOmitted": True,
+        "population": 100_001,
+        "traitCoverage": {},
+        "summary": {},
+        "cohorts": [],
+        "rankings": {"overall": [{"imageId": "0123456789abcdef01234567"}]},
+    }
+    monkeypatch.setattr(
+        "ultralytics.utils.callbacks.platform.summarize_platform_validation", lambda *_args: summary.copy()
+    )
+    payload = serialize_validation_results(validator)
+    assert payload["coverage"]["detail"] == {
+        "state": "omitted",
+        "captured": 0,
+        "omitted": 100_001,
+        "reason": "run_limit",
+    }
+    assert payload["rankings"]["overall"][0]["imageId"] == "0123456789abcdef01234567"
+
+    monkeypatch.setattr(
+        "ultralytics.utils.callbacks.platform.summarize_platform_validation",
+        lambda *_args: {
+            "identityCount": 2,
+            "rows": [{"id": "0" * 24}, {"id": "1" * 24, "value": "x" * 900_001}],
+            "detailOmitted": False,
+            "population": 2,
+            "traitCoverage": {},
+            "summary": {},
+            "cohorts": [],
+            "rankings": {},
+        },
+    )
+    payload = serialize_validation_results(validator)
+    assert payload["bucketCount"] == 0
+    assert payload["coverage"]["detail"] == {
+        "state": "omitted",
+        "captured": 0,
+        "omitted": 2,
+        "reason": "row_limit",
+    }
 
     from ultralytics.models.yolo.detect.val import DetectionValidator
 

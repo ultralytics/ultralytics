@@ -2217,6 +2217,15 @@ class SAM3SemanticPredictor(SAM3Predictor):
 
     def get_model(self):
         """Retrieve and initialize the Segment Anything Model 3 (SAM3) for image segmentation tasks."""
+        from pathlib import Path
+
+        model_path = Path(self.args.model)
+        # Support ONNX/TensorRT directory backends
+        if model_path.is_dir() and (model_path.name.endswith("_onnx") or model_path.name.endswith("_engine")):
+            from ultralytics.nn.backends.sam3 import SAM3Backend
+
+            return SAM3Backend(model_path, device=self.args.device or "cpu")
+
         from .build_sam3 import build_sam3_image_model  # slow import
 
         return build_sam3_image_model(self.args.model, compile=self.args.compile)
@@ -2292,21 +2301,27 @@ class SAM3SemanticPredictor(SAM3Predictor):
         )
         return outputs
 
-    def postprocess(self, preds, img, orig_imgs):
-        """Post-process the predictions to apply non-overlapping constraints if required."""
+    def _decode_grounding(self, preds):
+        """Score, confidence-filter, and NMS the grounding decoder outputs.
+
+        Applies sigmoid times presence scoring, keeps queries above ``conf``, converts
+        boxes to xyxy, and runs class-offset NMS. Shared by ``postprocess`` and
+        ``inference_features``.
+
+        Returns:
+            (pred_masks, pred_boxes): surviving masks and boxes, where each box row is
+            [x1, y1, x2, y2, score, cls] in normalized coordinates (pre-interpolation).
+        """
         import torchvision
 
         pred_boxes = preds["pred_boxes"]  # (nc, num_query, 4)
-        pred_logits = preds["pred_logits"]
         pred_masks = preds["pred_masks"]
-        pred_scores = pred_logits.sigmoid()
+        pred_scores = preds["pred_logits"].sigmoid()
         presence_score = preds["presence_logit_dec"].sigmoid().unsqueeze(1)
         pred_scores = (pred_scores * presence_score).squeeze(-1)
-        pred_cls = torch.tensor(
-            list(range(pred_scores.shape[0])),
-            dtype=pred_scores.dtype,
-            device=pred_scores.device,
-        )[:, None].expand_as(pred_scores)
+        pred_cls = torch.arange(pred_scores.shape[0], dtype=pred_scores.dtype, device=pred_scores.device)[
+            :, None
+        ].expand_as(pred_scores)
         pred_boxes = torch.cat([pred_boxes, pred_scores[..., None], pred_cls[..., None]], dim=-1)
 
         keep = pred_scores > self.args.conf
@@ -2316,11 +2331,20 @@ class SAM3SemanticPredictor(SAM3Predictor):
         c = pred_boxes[:, 5:6] * (0 if self.args.agnostic_nms else 7680)  # classes
         nms_boxes = pred_boxes[:, :4] + c  # boxes (offset by class)
         keep = torchvision.ops.nms(nms_boxes, pred_boxes[:, 4], self.args.iou)  # NMS
-        pred_boxes, pred_masks = pred_boxes[keep], pred_masks[keep]
+        return pred_masks[keep], pred_boxes[keep]
 
-        names = getattr(self.model, "names", [str(i) for i in range(pred_scores.shape[0])])
-        if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
+    def postprocess(self, preds, img, orig_imgs):
+        """Post-process the predictions to apply non-overlapping constraints if required."""
+        if not isinstance(orig_imgs, list):
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
+
+        # Point prompt mode: masks + iou_scores from prompt encoder + mask decoder
+        if isinstance(preds, dict) and preds.get("_point_mode"):
+            return self._postprocess_points(preds, img, orig_imgs)
+
+        pred_masks, pred_boxes = self._decode_grounding(preds)
+
+        names = getattr(self.model, "names", [str(i) for i in range(preds["pred_logits"].shape[0])])
         results = []
         for masks, boxes, orig_img, img_path in zip([pred_masks], [pred_boxes], orig_imgs, self.batch[0]):
             if masks.shape[0] == 0:
@@ -2332,14 +2356,108 @@ class SAM3SemanticPredictor(SAM3Predictor):
             results.append(Results(orig_img, path=img_path, names=names, masks=masks, boxes=boxes))
         return results
 
-    def inference(self, im, bboxes=None, labels=None, text: list[str] | None = None, *args, **kwargs):
+    def _postprocess_points(self, preds, img, orig_imgs):
+        """Post-process point prompt predictions (one mask per point, matching PyTorch)."""
+        masks = preds["masks"].squeeze(0)  # [N, H, W] — one best mask per point
+        scores = preds["iou_scores"].squeeze(0)  # [N]
+
+        names = dict(enumerate(str(i) for i in range(masks.shape[0])))
+        results = []
+        for orig_img, img_path in zip(orig_imgs, self.batch[0]):
+            # Filter by confidence
+            keep = scores > self.args.conf
+            kept_masks = masks[keep]
+            kept_scores = scores[keep]
+
+            if kept_masks.shape[0] == 0:
+                result_masks = None
+                boxes_out = torch.zeros((0, 6), device=masks.device)
+            else:
+                # Masks are raw logits — threshold at 0.0 (matching PyTorch SAM mask_threshold)
+                result_masks = F.interpolate(kept_masks.float()[None], orig_img.shape[:2], mode="bilinear")[0] > 0.0
+                boxes_out = batched_mask_to_box(result_masks)
+                cls = torch.arange(kept_masks.shape[0], dtype=torch.int32, device=masks.device)
+                boxes_out = torch.cat([boxes_out, kept_scores[:, None], cls[:, None].float()], dim=-1)
+            results.append(Results(orig_img, path=img_path, names=names, masks=result_masks, boxes=boxes_out))
+        return results
+
+    def inference(self, im, bboxes=None, labels=None, text: list[str] | None = None, points=None, *args, **kwargs):
         """Perform inference on a single image with optional prompts."""
         bboxes = self.prompts.pop("bboxes", bboxes)
         labels = self.prompts.pop("labels", labels)
         text = self.prompts.pop("text", text)
+        points = self.prompts.pop("points", points)
         features = self.get_im_features(im) if self.features is None else self.features
+
+        # Point prompt path: route through prompt encoder + mask decoder
+        if points is not None and hasattr(self.model, "forward_points") and self.model.has_point_modules:
+            return self._inference_points(im, features, points, labels)
+
         prompts = self._prepare_geometric_prompts(self.batch[1][0].shape[:2], bboxes, labels)
         return self._inference_features(features, *prompts, text=text)
+
+    def _inference_points(self, im, features, points, labels):
+        """Run point-based segmentation through prompt encoder + mask decoder.
+
+        Point grouping (how many objects/masks are produced) depends on the input:
+
+        - ``points`` shape ``(num_obj, num_pts, 2)`` with ``labels`` shape
+          ``(num_obj, num_pts)``: one object per group, each refined by all of its
+          (positive + negative) points. Explicit, unambiguous grouping.
+        - ``points`` shape ``(N, 2)`` with all-positive ``labels``: each point is a
+          separate object (one mask per click), matching the PyTorch SAM3 path.
+        - ``points`` shape ``(N, 2)`` with any negative label: all points describe a
+          single object, so the negative points actually refine the mask (a lone
+          negative point is meaningless on its own).
+
+        Args:
+            im: Preprocessed image tensor.
+            features: Vision encoder output from forward_image.
+            points: Point coordinates [N, 2] or [num_obj, num_pts, 2] in original-image pixels.
+            labels: Point labels, 1=foreground, 0=background. None defaults to all-foreground.
+
+        Returns:
+            dict with "_point_mode" flag, masks, and iou_scores for postprocess.
+        """
+        points = torch.as_tensor(points, dtype=self.torch_dtype, device=self.device)
+        if points.ndim == 1:
+            points = points.unsqueeze(0)  # [2] -> [1, 2]
+
+        if labels is None:
+            labels = np.ones(points.shape[:-1])
+        labels = torch.as_tensor(labels, dtype=torch.int32, device=self.device)
+
+        # Scale points from original image coords to model input coords (scale_fill stretch)
+        src_shape = self.batch[1][0].shape[:2]  # (H, W)
+        dst_h, dst_w = im.shape[2:]
+        point_coords = points.clone().float()
+        point_coords[..., 0] *= dst_w / src_shape[1]
+        point_coords[..., 1] *= dst_h / src_shape[0]
+
+        # Build per-object groups of (coords [num_pts, 2], labels [num_pts]).
+        if point_coords.ndim == 3:  # explicit [num_obj, num_pts, 2]
+            groups = [(point_coords[i], labels[i]) for i in range(point_coords.shape[0])]
+        elif (labels == 0).any():  # negatives present -> one object refined by all points
+            groups = [(point_coords, labels)]
+        else:  # all-positive flat points -> one object per point
+            groups = [(point_coords[i : i + 1], labels[i : i + 1]) for i in range(point_coords.shape[0])]
+
+        all_masks, all_scores = [], []
+        for coords, lbls in groups:
+            masks_i, scores_i = self.model.forward_points(
+                img_out=features,
+                point_coords=coords.unsqueeze(0).cpu().numpy(),  # [1, num_pts, 2]
+                point_labels=lbls.unsqueeze(0).cpu().numpy(),  # [1, num_pts]
+            )
+            # masks_i: [1, num_masks, H, W], scores_i: [1, num_masks] — pick best mask
+            best_idx = scores_i.squeeze(0).argmax()
+            all_masks.append(masks_i[0, best_idx])  # [H, W]
+            all_scores.append(scores_i[0, best_idx])  # scalar
+
+        masks = torch.stack(all_masks, dim=0).unsqueeze(0)  # [1, num_obj, H, W]
+        iou_scores = torch.stack(all_scores, dim=0).unsqueeze(0)  # [1, num_obj]
+
+        return {"_point_mode": True, "masks": masks, "iou_scores": iou_scores}
 
     @smart_inference_mode()
     def inference_features(
@@ -2367,31 +2485,9 @@ class SAM3SemanticPredictor(SAM3Predictor):
         Notes:
             - The input features is a torch.Tensor of shape (B, C, H, W) if performing on SAM, or a dict[str, Any] if performing on SAM2.
         """
-        import torchvision
-
         prompts = self._prepare_geometric_prompts(src_shape[:2], bboxes, labels)
         preds = self._inference_features(features, *prompts, text=text)
-        pred_boxes = preds["pred_boxes"]  # (nc, num_query, 4)
-        pred_logits = preds["pred_logits"]
-        pred_masks = preds["pred_masks"]
-        pred_scores = pred_logits.sigmoid()
-        presence_score = preds["presence_logit_dec"].sigmoid().unsqueeze(1)
-        pred_scores = (pred_scores * presence_score).squeeze(-1)
-        pred_cls = torch.tensor(
-            list(range(pred_scores.shape[0])),
-            dtype=pred_scores.dtype,
-            device=pred_scores.device,
-        )[:, None].expand_as(pred_scores)
-        pred_boxes = torch.cat([pred_boxes, pred_scores[..., None], pred_cls[..., None]], dim=-1)
-
-        keep = pred_scores > self.args.conf
-        pred_masks, pred_boxes = pred_masks[keep], pred_boxes[keep]
-        pred_boxes[:, :4] = ops.xywh2xyxy(pred_boxes[:, :4])
-
-        c = pred_boxes[:, 5:6] * (0 if self.args.agnostic_nms else 7680)  # classes
-        nms_boxes = pred_boxes[:, :4] + c  # boxes (offset by class)
-        keep = torchvision.ops.nms(nms_boxes, pred_boxes[:, 4], self.args.iou)  # NMS
-        pred_boxes, pred_masks = pred_boxes[keep], pred_masks[keep]
+        pred_masks, pred_boxes = self._decode_grounding(preds)
 
         if pred_masks.shape[0] == 0:
             pred_masks, pred_boxes = None, torch.zeros((0, 6), device=pred_masks.device)
@@ -2485,12 +2581,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
     UNCONFIRMED = 1  # newly added masklet, not confirmed by any detection yet
     CONFIRMED = 2  # confirmed by at least one detection
-    _bb_feat_sizes = [
-        (288, 288),
-        (144, 144),
-        (72, 72),
-    ]
-    stride = 14
+    # _bb_feat_sizes and stride are inherited unchanged from SAM3Predictor
 
     def __init__(
         self,

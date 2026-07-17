@@ -1661,12 +1661,14 @@ class _SafeLoad:
                 pathlib.WindowsPath,
                 (pathlib.WindowsPath, "pathlib.WindowsPath"),
                 (pathlib.WindowsPath, "pathlib.PosixPath"),
+                (pathlib.WindowsPath, f"{pathlib.PosixPath.__module__}.{pathlib.PosixPath.__qualname__}"),
             ]
         else:
             allow += [
                 pathlib.PosixPath,
                 (pathlib.PosixPath, "pathlib.PosixPath"),
                 (pathlib.PosixPath, "pathlib.WindowsPath"),
+                (pathlib.PosixPath, f"{pathlib.WindowsPath.__module__}.{pathlib.WindowsPath.__qualname__}"),
             ]
         return allow
 

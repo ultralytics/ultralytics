@@ -595,12 +595,6 @@ class Exporter:
             hailo_archs = ("hailo8", "hailo8l", "hailo10h", "hailo15h", "hailo15l")
             if self.args.name not in hailo_archs:
                 raise ValueError(f"Invalid Hailo architecture '{self.args.name}'. Valid names are {hailo_archs}.")
-            LOGGER.warning(
-                "\nHailo DFC requires at least 1,024 representative calibration images for production HEF exports. "
-                "The default COCO128 dataset is for quick testing only and can severely degrade box accuracy. "
-                'Pass data="path/to/dataset.yaml". '
-                "See https://docs.ultralytics.com/integrations/hailo/#export-a-hailo-hef-model"
-            )
         if fmt == "axelera":
             if model.task == "segment" and any(isinstance(m, Segment26) for m in model.modules()):
                 raise ValueError("Axelera export does not currently support YOLO26 segmentation models.")
@@ -1470,6 +1464,14 @@ class Exporter:
         except ImportError as e:
             raise ImportError("Hailo export requires the Hailo Dataflow Compiler.") from e
 
+        calibration_dataloader = self.get_int8_calibration_dataloader(prefix)
+        calibration_size = len(calibration_dataloader.dataset)
+        LOGGER.warning(
+            f"\nHailo level-2 optimization will use {calibration_size} calibration images. "
+            "Hailo recommends at least 1,024 representative images for best accuracy. "
+            'Pass data="path/to/dataset.yaml". '
+            "See https://docs.ultralytics.com/integrations/hailo/#export-a-hailo-hef-model"
+        )
         head_index = len(self.model.model) - 1
         head = self.model.model[head_index]
         one2one = getattr(self.model, "end2end", False)
@@ -1493,7 +1495,11 @@ class Exporter:
         try:
             runner = ClientRunner(hw_arch=self.args.name)
             runner.translate_onnx_model(str(f_onnx), self.file.stem, end_node_names=end_nodes)
-            model_script = ["normalization1 = normalization([0, 0, 0], [255, 255, 255])"]
+            model_script = [
+                "normalization1 = normalization([0, 0, 0], [255, 255, 255])",
+                "model_optimization_flavor(optimization_level=2)",
+                f"post_quantization_optimization(finetune, policy=enabled, dataset_size={calibration_size})",
+            ]
             if one2one:
                 outputs = ", ".join(f"output_layer{i + 1}" for i in range(len(end_nodes)))
                 model_script.append(f"quantization_param([{outputs}], precision_mode=a16_w16)")
@@ -1532,7 +1538,7 @@ class Exporter:
             runner.load_model_script("\n".join(model_script))
 
             def calibration_dataset():
-                for batch in self.get_int8_calibration_dataloader(prefix):
+                for batch in calibration_dataloader:
                     for image in batch["img"].permute(0, 2, 3, 1).numpy().astype(np.float32):
                         yield image, {}
 

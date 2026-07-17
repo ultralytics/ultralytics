@@ -12,7 +12,7 @@ Hailo deployment is designed for computer vision at the edge: cameras, robots, i
 
 !!! note "Compare newer edge accelerators"
 
-    For new hardware deployments, also evaluate [Axelera](axelera.md) and [DeepX](deepx.md), which target newer edge accelerator platforms and may offer higher performance. Hailo production export also requires a large calibration set of at least 1,024 representative images; the default COCO128 dataset is suitable only for quick testing.
+    For new hardware deployments, also evaluate [Axelera](axelera.md) and [DeepX](deepx.md), which target newer edge accelerator platforms and may offer higher performance. Hailo recommends at least 1,024 representative calibration images for best accuracy; the default COCO128 dataset is suitable only for quick testing.
 
 ## Why Deploy Ultralytics YOLO on Hailo?
 
@@ -84,9 +84,9 @@ yolo export model=yolo11n.pt format=hailo name=hailo8l
 
 Hailo export is INT8-only. Ultralytics automatically downloads the default COCO128 calibration dataset when `data` is not provided. For custom models, use representative training or validation images:
 
-!!! danger "Use at least 1,024 calibration images for production"
+!!! danger "Use at least 1,024 calibration images for best accuracy"
 
-    Hailo DFC reduces its optimization level when fewer than 1,024 images are available. The default COCO128 dataset contains only 128 images and may produce severe box-regression accuracy loss even when class scores look correct. For production HEF exports, pass a representative dataset with at least 1,024 images using `data="path/to/dataset.yaml"`.
+    Ultralytics forces DFC optimization level 2 and configures fine-tuning to use the actual calibration dataset size. Hailo recommends at least 1,024 diverse images; the default COCO128 dataset compiles at level 2 but may produce box-regression accuracy loss. For production HEF exports, pass a representative dataset using `data="path/to/dataset.yaml"`.
 
 ```python
 model.export(format="hailo", name="hailo8l", data="path/to/dataset.yaml")

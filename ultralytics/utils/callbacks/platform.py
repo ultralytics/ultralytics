@@ -271,8 +271,20 @@ def _upload_model(model_path, project, name, progress=False, retry=1, model_id=N
 
 
 def _upload_model_async(model_path, project, name, model_id=None):
-    """Upload model asynchronously using bounded thread pool."""
-    _executor.submit(_upload_model, model_path, project, name, model_id=model_id)
+    """Upload model asynchronously and record the successful checkpoint on Platform."""
+
+    def upload_and_record():
+        model_size = Path(model_path).stat().st_size
+        if gcs_path := _upload_model(model_path, project, name, model_id=model_id):
+            _send(
+                "checkpoint_saved",
+                {"modelPath": gcs_path, "modelSize": model_size},
+                project,
+                name,
+                model_id,
+            )
+
+    _executor.submit(upload_and_record)
 
 
 def _get_environment_info():

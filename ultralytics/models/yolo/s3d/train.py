@@ -13,6 +13,7 @@ from ultralytics.data import build_dataloader
 from ultralytics.data.stereo.box3d import Box3D
 from ultralytics.models import yolo
 from ultralytics.models.yolo.s3d.dataset import Stereo3DDetDataset
+from ultralytics.models.yolo.s3d.head import DEPTH_MAX, DEPTH_MIN
 from ultralytics.models.yolo.s3d.model import Stereo3DDetModel
 from ultralytics.models.yolo.s3d.preprocess import preprocess_stereo_batch
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
@@ -156,6 +157,8 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
             # carry over optional stereo metadata if present
             "stereo": data_cfg.get("stereo", True),
             "baseline": data_cfg.get("baseline"),
+            "depth_min": data_cfg.get("depth_min", DEPTH_MIN),
+            "depth_max": data_cfg.get("depth_max", DEPTH_MAX),
             "mean_dims": mean_dims,
             "std_dims": std_dims,
             "pseudo_labels": data_cfg.get("pseudo_labels", {}),
@@ -236,6 +239,8 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
             model.load(weights)
             if verbose and RANK == -1:
                 LOGGER.info(f"Loaded weights from {weights}")
+        model.model[-1].depth_dfl._set_range(float(self.data["depth_min"]), float(self.data["depth_max"]))
+
         return model
 
     def set_model_attributes(self):

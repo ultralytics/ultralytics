@@ -39,6 +39,8 @@ download: https://github.com/ultralytics/assets/releases/download/v0.0.0/kitti-s
 # Stereo calibration parameters
 # baseline is used as fallback when per-image calib files are missing
 baseline: 0.54 # distance between left and right cameras (meters)
+depth_min: 2.0 # minimum direct-depth prediction (meters)
+depth_max: 80.0 # maximum direct-depth prediction (meters)
 
 # Mean dimensions per class [length, width, height] in meters
 # Internally converted to (H, W, L) order by val.py:_parse_dims() for training

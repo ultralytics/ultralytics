@@ -861,3 +861,20 @@ def test_predict_resolves_dataset_calib(tmp_path):
     # Real baseline is 0.532725; the default fallback is 0.54 — must be the real one.
     assert abs(calib["baseline"] - 0.532725) < 1e-3, f"got baseline {calib['baseline']} (default fallback?)"
 
+
+def test_configurable_depth_range():
+    """Depth bins and loss normalization use the configured range."""
+    import math
+
+    from ultralytics.models.yolo.s3d.head import DepthDFL
+
+    dfl = DepthDFL()
+    dfl._set_range(0.2, 2.5)
+    assert math.exp(dfl.bin_values[0].item()) == pytest.approx(0.2)
+    assert math.exp(dfl.bin_values[-1].item()) == pytest.approx(2.5)
+
+    model = YOLO(MODEL).model
+    model.model[-1].depth_dfl._set_range(0.2, 2.5)
+    criterion = model.init_criterion()
+    assert criterion.depth_log_min == pytest.approx(math.log(0.2))
+    assert criterion.depth_log_range == pytest.approx(math.log(2.5 / 0.2))

@@ -31,6 +31,14 @@ class DepthDFL(nn.Module):
         log_min, log_max = math.log(d_min), math.log(d_max)
         self.register_buffer("bin_values", torch.linspace(log_min, log_max, n_bins))
 
+    def _set_range(self, d_min: float, d_max: float) -> None:
+        """Set the decodable depth range in meters."""
+        if not 0 < d_min < d_max:
+            raise ValueError(f"Depth range must satisfy 0 < depth_min < depth_max, got ({d_min}, {d_max})")
+        self.bin_values = torch.linspace(
+            math.log(d_min), math.log(d_max), self.n_bins, device=self.bin_values.device, dtype=self.bin_values.dtype
+        )
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Decode bin logits [B, n_bins, HW] → log-depth [B, 1, HW]."""
         weights = x.softmax(dim=1)  # [B, n_bins, HW]

@@ -53,11 +53,12 @@ class Stereo3DDetLoss(v8DetectionLoss):
         self.cls_label_smoothing = cls_label_smoothing
 
         # Depth bin classification (DFL-style)
-        from ultralytics.models.yolo.s3d.head import DEPTH_BINS, DEPTH_MAX, DEPTH_MIN
+        from ultralytics.models.yolo.s3d.head import DEPTH_BINS
 
         self.depth_dfl_loss = DFLoss(reg_max=DEPTH_BINS)
-        self.depth_log_min = math.log(DEPTH_MIN)
-        self.depth_log_range = math.log(DEPTH_MAX) - math.log(DEPTH_MIN)
+        bins = model.model[-1].depth_dfl.bin_values
+        self.depth_log_min = bins[0].item()
+        self.depth_log_range = (bins[-1] - bins[0]).item()
 
         # Pseudo-label curriculum from dataset YAML
         self.epoch_frac = 0.0  # 0.0 = start, 1.0 = end of training

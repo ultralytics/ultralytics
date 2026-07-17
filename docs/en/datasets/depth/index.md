@@ -84,7 +84,7 @@ The YOLO26 depth models are pretrained on a broad multi-dataset mix (~2.19M imag
 
 **Debugging**
 
-- [Depth8](depth8.md) — 8 SUN RGB-D images in a 1.5 MB auto-downloading archive, for rapid pipeline testing
+- [Depth8](depth8.md) — 8 SUN RGB-D images in a 1.3 MB auto-downloading archive, for rapid pipeline testing
 
 **Pretraining sources**
 

@@ -6,7 +6,7 @@
 # parent
 # ├── ultralytics
 # └── datasets
-#     └── depth8 ← downloads here (1.5 MB)
+#     └── depth8 ← downloads here (1.3 MB)
 #         ├── images/{train,val}  # RGB images
 #         └── depth/{train,val}   # paired *.npy, float32 meters (images/ -> depth/)
 

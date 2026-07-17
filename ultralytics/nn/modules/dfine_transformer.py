@@ -52,8 +52,6 @@ class MSDeformableAttention(nn.Module):
         self.sampling_offsets = nn.Linear(embed_dim, self.total_points * 2)
         self.attention_weights = nn.Linear(embed_dim, self.total_points)
 
-        self.ms_deformable_attn_core = multi_scale_deformable_attn_pytorch
-
         self._reset_parameters()
 
         if method == 'discrete':
@@ -115,7 +113,9 @@ class MSDeformableAttention(nn.Module):
                 format(reference_points.shape[-1]))
 
         value = value.reshape(value.shape[0], value.shape[1], self.num_heads, self.head_dim)
-        output = self.ms_deformable_attn_core(value, value_spatial_shapes, sampling_locations, attention_weights, self.num_points_list)
+        output = multi_scale_deformable_attn_pytorch(
+            value, value_spatial_shapes, sampling_locations, attention_weights, self.num_points_list
+        )
 
         return output
 

@@ -95,7 +95,7 @@ ALTERNATE_CORPUS = (
 
 # Controlled variations for cost-sensitive keys excluded from arbitrary mutation.
 SAFE_BOUNDARIES = {
-    "train": ["imgsz=48", "imgsz=64", "batch=1", "batch=2", "workers=0", "workers=1"],
+    "train": ["imgsz=48", "imgsz=64", "batch=2", "workers=0", "workers=1"],  # batch=1 starves BatchNorm at 1x1 maps
     "val": ["imgsz=48", "imgsz=64", "batch=1", "batch=2", "workers=0", "workers=1"],
     "predict": ["imgsz=48", "imgsz=64"],
     "track": ["imgsz=128", "imgsz=192", "vid_stride=2"],

@@ -13,7 +13,7 @@ keywords: Luxonis, OAK camera, DepthAI, RVC2, RVC4, Luxonis Hub, hubai-sdk, Tool
 
 Luxonis [OAK cameras](https://www.luxonis.com/) are [edge AI](https://www.ultralytics.com/glossary/edge-ai) vision devices that combine image sensors with on-device compute for real-time perception tasks such as [object detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), [pose estimation](../tasks/pose.md) and others. They are designed for embedded and robotic vision workloads where running inference directly on the camera reduces latency, bandwidth usage, and dependence on cloud processing.
 
-**TODO: BANNER IMAGE**
+![Luxonis banner](images/luxonis_banner.png)
 
 This guide focuses on deploying Ultralytics YOLO models on OAK cameras using the Luxonis software stack. It covers the relevant OAK hardware generations, explains why YOLO models must be converted into Luxonis device-specific artifacts, and walks through both cloud conversion with [Luxonis Hub](https://hub.luxonis.com/) and local conversion with Luxonis tooling before running inference on-device.
 
@@ -231,6 +231,8 @@ The final output of the local workflow is a device-specific NN Archive ready for
 Once you have a converted model, inference on OAK cameras is done with [DepthAI v3](https://docs.luxonis.com/software-v3/depthai). For YOLO models specifically, the most important detail is that they are supported directly by [`dai.node.DetectionNetwork`](https://docs.luxonis.com/software-v3/depthai/depthai-components/nodes/detection_network), which performs both inference and on-device decoding of YOLO outputs into [ImgDetections](https://docs.luxonis.com/software-v3/depthai/depthai-components/messages/img_detections/).
 
 For the broader pipeline concepts, examples, and advanced patterns, see the Luxonis [AI Inference documentation](https://docs.luxonis.com/software-v3/ai-inference/inference/).
+
+![Luxonis deployments](images/luxonis_deployment_examples_with_brand_tagline.png)
 
 ### Prerequisites
 

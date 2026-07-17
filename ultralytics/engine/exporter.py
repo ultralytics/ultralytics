@@ -578,7 +578,10 @@ class Exporter:
             self.args.data = TASK2CALIBRATIONDATA.get(model.task)
         if fmt == "hailo":
             assert LINUX and not ARM64, "Hailo export is only supported on Linux x86_64."
-            family = Path(getattr(model, "yaml_file", None) or model.yaml.get("yaml_file", "")).stem.lower()
+            blocks = {str(x[2]) for x in model.yaml.get("backbone", []) + model.yaml.get("head", [])}
+            family = Path(getattr(model, "yaml_file", None) or model.yaml.get("yaml_file", "")).stem.lower() or (
+                "yolov8" if "C2f" in blocks else "yolo11" if {"C3k2", "C2PSA"} <= blocks else ""
+            )
             if (
                 model.task != "detect"
                 or type(model.model[-1]) is not Detect

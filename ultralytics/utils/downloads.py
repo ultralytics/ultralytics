@@ -36,20 +36,14 @@ class _Http308RedirectHandler(request.HTTPRedirectHandler):
 
 
 def _urlopen(*args, **kwargs):
-    """Open a URL like `urllib.request.urlopen`, backporting HTTP 308 Permanent Redirect support.
-
-    Extends whichever opener is in effect (the one installed via `urllib.request.install_opener`, or urllib's default)
-    instead of replacing it, so any custom proxy, auth, or TLS handlers the caller configured keep working. Reads and,
-    if newly built, installs into urllib's own global opener slot, so a lazily built default is reused/reset exactly
-    like `urlopen()`'s and a later `install_opener()`/`urlcleanup()` call is picked up rather than left
-    stale. Openers that don't expose handler management (anything with just an `open()` method is a valid
-    installed opener) are left untouched; their owner is responsible for redirect behavior.
-    """
+    """Open a URL like `urllib.request.urlopen`, backporting HTTP 308 support when no handler provides it."""
     opener = request._opener
     if opener is None:
         opener = request.build_opener()
         request.install_opener(opener)
-    if hasattr(opener, "handlers") and not any(isinstance(h, _Http308RedirectHandler) for h in opener.handlers):
+    if any(type(h) is request.HTTPRedirectHandler for h in opener.handlers) and not any(
+        hasattr(h, "http_error_308") for h in opener.handlers
+    ):
         opener.add_handler(_Http308RedirectHandler())
     return opener.open(*args, **kwargs)
 

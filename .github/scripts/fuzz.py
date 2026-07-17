@@ -298,7 +298,8 @@ def build_corpus(uni):
                 argv.append(f"data={data}")
             elif mode == "predict":
                 argv.append(f"source={uni['source']}")
-            corpus.append({"mode": mode, "task": task, "argv": argv})
+            pinned = {a.partition("=")[0] for a in clamp.split()}  # overridden keys are family floors: never varied
+            corpus.append({"mode": mode, "task": task, "argv": argv, "pinned": pinned})
     return corpus
 
 
@@ -325,6 +326,12 @@ def sample_trial(rng, uni, corpus, personality):
                 mutated.append(key)
             validity[key] = valid or not changed  # a stripped default-valued arg leaves a supported effective value
 
+    def mutate_boundary():
+        """Vary one cost-sensitive key within its safe envelope, honoring the base entry's pinned family floors."""
+        pool = [b for b in SAFE_BOUNDARIES[mode] if b.partition("=")[0] not in base.get("pinned", ())]
+        if pool:
+            mutate([rng.choice(pool)])
+
     def mutate_combos(max_groups=4):
         """Combine compatible mode-specific argument groups without repeating keys."""
         options = [c.split() for m, c in COMBO_POOL if m == mode]
@@ -343,7 +350,7 @@ def sample_trial(rng, uni, corpus, personality):
         mutate([f"format={rng.choice(uni['export_pool'])}"])
     if strategy == "combo":
         mutate_combos()
-        mutate([rng.choice(SAFE_BOUNDARIES[mode])])
+        mutate_boundary()
     elif strategy == "invalid":
         n_keys = rng.randint(1, 4 if personality == "chaos" else 3)
         for _ in range(n_keys):
@@ -353,7 +360,7 @@ def sample_trial(rng, uni, corpus, personality):
         source, valid = rng.choice(uni["sources"][mode])
         mutate([f"source={source}"], valid=valid)
         mutate_combos(max_groups=2)
-        mutate([rng.choice(SAFE_BOUNDARIES[mode])])
+        mutate_boundary()
     return {
         "mode": mode,
         "task": base["task"],
@@ -381,9 +388,10 @@ def sample_mutation(rng, uni, chaos=False):
             value = str(rng.randint(1, 4096)) if valid else f"{rng.randint(0, 4096)}.5"
         else:
             value = f"{rng.uniform(0, 180):.8g}" if valid else rng.choice(["nan", "1e309"])
-        return key, value, valid
+        return key, value, valid and not (key == "fraction" and float(value) < 0.25)
     value = rng.choice(pool["valid"] + pool["invalid"] + (CHAOS_PROBES if chaos else []))
-    return key, value, value in pool["valid"] and not (family == "fraction" and value == "0.0")
+    # dataset fraction below 0.25 selects zero images of the 4-image coco8 train splits: degenerate, not supported
+    return key, value, value in pool["valid"] and not (key == "fraction" and float(value) < 0.25)
 
 
 def run_trial(trial, timeout=None):
@@ -635,7 +643,7 @@ def cmd_repro(args):
                 candidates = [WEIGHTS_DIR / PureWindowsPath(v).name]
             else:
                 prepare_sources(uni)
-                candidates = [ASSETS / PureWindowsPath(v).name]
+                candidates = [ASSETS, ASSETS / PureWindowsPath(v).name]
                 candidates.extend(Path(p) for pool in uni["sources"].values() for p, _valid in pool)
             if local := next((p for p in candidates if p.name == PureWindowsPath(v).name and p.exists()), None):
                 return f"{k}={local}"

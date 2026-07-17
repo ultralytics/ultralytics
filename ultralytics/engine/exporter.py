@@ -58,7 +58,6 @@ Inference:
                          yolo26n_deepx_model        # DEEPX
                          yolo26n_qnn.onnx           # Qualcomm QNN
                          yolo26n.tflite             # LiteRT
-                         yolo26n_hailo_model        # Hailo HEF
 """
 
 from __future__ import annotations
@@ -80,7 +79,7 @@ from ultralytics.cfg import QUANTIZE_DOCS_URL, TASK2CALIBRATIONDATA, TASK2DATA, 
 from ultralytics.data import build_dataloader, build_yolo_dataset
 from ultralytics.data.dataset import ClassificationDataset
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
-from ultralytics.nn.autobackend import check_class_names, default_class_names
+from ultralytics.nn.autobackend import AutoBackend, check_class_names, default_class_names
 from ultralytics.nn.modules import C2f, Classify, Detect, RTDETRDecoder, Segment26, SemanticSegment
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, WorldModel
 from ultralytics.utils import (
@@ -578,7 +577,10 @@ class Exporter:
             self.args.data = TASK2CALIBRATIONDATA.get(model.task)
         if fmt == "hailo":
             assert LINUX and not ARM64, "Hailo export is only supported on Linux x86_64."
-            family = Path(getattr(model, "yaml_file", None) or model.yaml.get("yaml_file", "")).stem.lower()
+            blocks = {str(x[2]) for x in model.yaml.get("backbone", []) + model.yaml.get("head", [])}
+            family = Path(getattr(model, "yaml_file", None) or model.yaml.get("yaml_file", "")).stem.lower() or (
+                "yolov8" if "C2f" in blocks else "yolo11" if {"C3k2", "C2PSA"} <= blocks else ""
+            )
             if (
                 model.task != "detect"
                 or type(model.model[-1]) is not Detect
@@ -873,11 +875,16 @@ class Exporter:
             )
             imgsz = self.imgsz[0] if square else str(self.imgsz)[1:-1].replace(" ", "")
             q = "quantize=16" if self.args.quantize == 16 else ""  # FP16 inference flag for the val/predict hint
+            inference_commands = (
+                f"\nPredict:         yolo predict task={model.task} model={f} imgsz={imgsz} {q}"
+                f"\nValidate:        yolo val task={model.task} model={f} imgsz={imgsz} data={data} {q} {s}"
+                if fmt in AutoBackend._BACKEND_MAP
+                else ""
+            )
             LOGGER.info(
                 f"\nExport complete ({time.time() - t:.1f}s)"
                 f"\nResults saved to {colorstr('bold', Path(f).resolve())}"
-                f"\nPredict:         yolo predict task={model.task} model={f} imgsz={imgsz} {q}"
-                f"\nValidate:        yolo val task={model.task} model={f} imgsz={imgsz} data={data} {q} {s}"
+                f"{inference_commands}"
                 f"\nVisualize:       https://netron.app"
             )
 

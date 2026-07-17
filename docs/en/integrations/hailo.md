@@ -163,7 +163,7 @@ When `data` is omitted, Ultralytics uses COCO128 as a convenient lightweight cal
 model.export(format="hailo", name="hailo8l", data="my_dataset.yaml")
 ```
 
-`fraction` selects the portion of the dataset used for calibration. More representative data can improve quantized accuracy but increases optimization time. If the INT8 HEF loses accuracy relative to the original PyTorch model, first improve the calibration data before changing model or runtime settings.
+`fraction` selects the portion of the dataset used for calibration. More images help only when they represent the deployment domain; out-of-domain images can reduce quantized accuracy and increase optimization time. If the INT8 HEF loses accuracy relative to the original PyTorch model, first improve the calibration data before changing model or runtime settings.
 
 ## Exported Artifacts
 
@@ -184,6 +184,10 @@ The intermediate ONNX graph is removed after compilation.
 
 ## Run Inference on Hailo Hardware
 
+!!! note "Inference support"
+
+    Ultralytics exports Hailo HEF files but does not currently run `predict` or `val` on them. Use HailoRT, TAPPAS, GStreamer, or the Raspberry Pi Hailo helper for inference.
+
 Install HailoRT on the target device. Raspberry Pi AI Kit and AI HAT+ users can follow the [Raspberry Pi AI software guide](https://www.raspberrypi.com/documentation/computers/ai.html):
 
 ```bash
@@ -193,7 +197,7 @@ hailortcli fw-control identify
 
 Copy the complete export directory to the device so `metadata.yaml` remains next to the HEF. Load the `*.hef` with HailoRT, TAPPAS, or the Raspberry Pi `picamera2.devices.Hailo` helper.
 
-YOLOv8 and YOLO11 exports include HailoRT NMS and return detections grouped by class. YOLO26 exports expose the six NMS-free detection-head tensors; use a runtime pipeline that supports YOLO26 post-processing.
+YOLOv8 and YOLO11 exports include HailoRT NMS and return detections grouped by class. YOLO26 exports expose six NMS-free one-to-one tensors ordered by branch: three regression tensors followed by three classification tensors. The classification outputs are logits, so apply sigmoid before decoding them with a YOLO26 end-to-end post-processing pipeline.
 
 For a GStreamer deployment, pass the HEF to `hailonet`:
 

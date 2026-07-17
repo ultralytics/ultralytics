@@ -55,7 +55,7 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.13"
-      - uses: astral-sh/setup-uv@v7
+      - uses: ultralytics/actions/setup-uv@main
         with:
           python-version: "3.13"
           activate-environment: true

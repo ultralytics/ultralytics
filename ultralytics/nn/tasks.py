@@ -272,6 +272,8 @@ class BaseModel(torch.nn.Module):
                     m.forward = m.forward_fuse
                 if isinstance(m, FracRoPE2D):
                     m.switch_to_deploy(m.rope_hw[0])  # rebake RoPE buffers at the current grid for deploy
+                if isinstance(m, RepUltraViTBlock):
+                    m.fuse()  # collapse RepConv mixer + residual + LayerScale + ffn_bn for deploy
                 if isinstance(m, Detect) and getattr(m, "end2end", False):
                     m.fuse()  # remove one2many head
             self.info(verbose=verbose)

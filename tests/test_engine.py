@@ -427,7 +427,7 @@ def test_match_predictions_iou_priority():
     # det0 must be matched (TP) and det1 must not (FP).
     pred_classes = torch.tensor([0, 0])
     true_classes = torch.tensor([0])
-    iou = torch.tensor([[0.9], [0.8]])  # shape (2 detections, 1 gt)
+    iou = torch.tensor([[0.9, 0.8]])  # shape (1 gt, 2 detections) = (M, N)
 
     correct = validator.match_predictions(pred_classes, true_classes, iou)
 

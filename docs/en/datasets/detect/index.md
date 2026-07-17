@@ -280,7 +280,7 @@ Here is a list of the supported datasets and a brief description for each:
 
 ### Adding your own dataset
 
-If you have your own dataset and would like to use it for training detection models with Ultralytics YOLO format, ensure that it follows the format specified above under "Ultralytics YOLO format". Convert your annotations to the required format and specify the paths, number of classes, and class names in the YAML configuration file.
+If you have your own dataset and would like to use it for training detection models with Ultralytics YOLO format, ensure that it follows the format specified above under "Ultralytics YOLO format". Convert your annotations to the required format and specify the paths, number of classes, and class names in the YAML configuration file. Once that YAML file is ready, you're set to [train on your own data](../../modes/train.md).
 
 ## Port or Convert Label Formats
 
@@ -301,6 +301,10 @@ You can easily convert labels from the popular [COCO dataset](coco.md) format to
 This conversion tool can be used to convert the COCO dataset or any dataset in the COCO format to the Ultralytics YOLO format. The process transforms the JSON-based COCO annotations into the simpler text-based YOLO format, making it compatible with [Ultralytics YOLO models](../../models/yolo26.md).
 
 Remember to double-check if the dataset you want to use is compatible with your model and follows the necessary format conventions. Properly formatted datasets are crucial for training successful object detection models.
+
+## What's Next
+
+With your dataset formatted, [start training your model](../../modes/train.md). Not sure which pretrained model to start from? Compare options in the [YOLO26 model family](../../models/yolo26.md).
 
 ## FAQ
 

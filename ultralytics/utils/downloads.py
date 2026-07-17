@@ -39,9 +39,9 @@ def _urlopen(*args, **kwargs):
     """Open a URL like `urllib.request.urlopen`, backporting HTTP 308 Permanent Redirect support.
 
     Extends whichever opener is in effect (the one installed via `urllib.request.install_opener`, or urllib's default)
-    instead of replacing it, so any custom proxy, auth, or TLS handlers the caller configured keep working. Reads
-    and, if newly built, installs into urllib's own global opener slot, so a lazily built default is reused/reset
-    exactly like `urlopen()`'s and a later `install_opener()`/`urlcleanup()` call is picked up rather than left
+    instead of replacing it, so any custom proxy, auth, or TLS handlers the caller configured keep working. Reads and,
+    if newly built, installs into urllib's own global opener slot, so a lazily built default is reused/reset exactly
+    like `urlopen()`'s and a later `install_opener()`/`urlcleanup()` call is picked up rather than left
     stale. Openers that don't expose handler management (anything with just an `open()` method is a valid
     installed opener) are left untouched; their owner is responsible for redirect behavior.
     """

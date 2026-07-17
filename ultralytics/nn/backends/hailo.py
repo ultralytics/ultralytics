@@ -49,19 +49,25 @@ class HailoBackend(BaseBackend):
         if self.task and self.task != "detect":
             raise ValueError(f"Hailo inference only supports detection models, not task='{self.task}'.")
 
-        self._stack = ExitStack()
         self.hef = HEF(str(hef_file))
         self.input_info = self.hef.get_input_vstream_infos()[0]
         self.output_infos = self.hef.get_output_vstream_infos()
-        target = self._stack.enter_context(VDevice())
-        configure_params = ConfigureParams.create_from_hef(self.hef, interface=HailoStreamInterface.PCIe)
-        network_group = target.configure(self.hef, configure_params)[0]
-        self._activation = network_group.create_params()
-        input_params = InputVStreamParams.make(network_group, format_type=FormatType.UINT8)
-        output_params = OutputVStreamParams.make(network_group, format_type=FormatType.FLOAT32)
-        self.model = self._stack.enter_context(InferVStreams(network_group, input_params, output_params))
+        with ExitStack() as stack:
+            target = stack.enter_context(VDevice())
+            configure_params = ConfigureParams.create_from_hef(self.hef, interface=HailoStreamInterface.PCIe)
+            network_group = target.configure(self.hef, configure_params)[0]
+            self._activation = network_group.create_params()
+            input_params = InputVStreamParams.make(network_group, format_type=FormatType.UINT8)
+            output_params = OutputVStreamParams.make(network_group, format_type=FormatType.FLOAT32)
+            self.model = stack.enter_context(InferVStreams(network_group, input_params, output_params))
+            self._stack = stack.pop_all()
         self._network_group = network_group
         self.end2end = True
+
+    def __del__(self):
+        """Release the Hailo pipeline and device."""
+        if stack := getattr(self, "_stack", None):
+            stack.close()
 
     def forward(self, im: torch.Tensor) -> np.ndarray:
         """Run Hailo inference and return detections in ``xyxy, confidence, class`` format."""

@@ -1,0 +1,111 @@
+from __future__ import annotations
+
+from contextlib import ExitStack
+from pathlib import Path
+
+import numpy as np
+import torch
+
+from ultralytics.utils import LOGGER
+
+from .base import BaseBackend
+
+
+class HailoBackend(BaseBackend):
+    """HailoRT inference backend for Ultralytics Hailo HEF models."""
+
+    def load_model(self, weight: str | Path) -> None:
+        """Load a Hailo HEF model and its Ultralytics metadata."""
+        try:
+            from hailo_platform import (
+                HEF,
+                ConfigureParams,
+                FormatType,
+                HailoStreamInterface,
+                InferVStreams,
+                InputVStreamParams,
+                OutputVStreamParams,
+                VDevice,
+            )
+        except ImportError as e:
+            raise ImportError(
+                "Hailo inference requires HailoRT. "
+                "See https://docs.ultralytics.com/integrations/hailo/#run-hailo-inference"
+            ) from e
+
+        w = Path(weight)
+        hef_file = w if w.suffix == ".hef" else next(w.rglob("*.hef"), None)
+        if hef_file is None or not hef_file.is_file():
+            raise FileNotFoundError(f"No .hef file found in: {w}")
+
+        LOGGER.info(f"Loading {hef_file} for Hailo inference...")
+        metadata_file = hef_file.parent / "metadata.yaml"
+        if metadata_file.exists():
+            from ultralytics.utils import YAML
+
+            self.apply_metadata(YAML.load(metadata_file))
+        if self.task and self.task != "detect":
+            raise ValueError(f"Hailo inference only supports detection models, not task='{self.task}'.")
+
+        self._stack = ExitStack()
+        self.hef = HEF(str(hef_file))
+        self.input_info = self.hef.get_input_vstream_infos()[0]
+        self.output_infos = self.hef.get_output_vstream_infos()
+        target = self._stack.enter_context(VDevice())
+        configure_params = ConfigureParams.create_from_hef(self.hef, interface=HailoStreamInterface.PCIe)
+        network_group = target.configure(self.hef, configure_params)[0]
+        self._activation = network_group.create_params()
+        input_params = InputVStreamParams.make(network_group, format_type=FormatType.UINT8)
+        output_params = OutputVStreamParams.make(network_group, format_type=FormatType.FLOAT32)
+        self.model = self._stack.enter_context(InferVStreams(network_group, input_params, output_params))
+        self._network_group = network_group
+        self.end2end = True
+
+    def forward(self, im: torch.Tensor) -> np.ndarray:
+        """Run Hailo inference and return detections in ``xyxy, confidence, class`` format."""
+        im = np.ascontiguousarray(np.clip(im.permute(0, 2, 3, 1).cpu().numpy() * 255, 0, 255).astype(np.uint8))
+        with self._network_group.activate(self._activation):
+            results = self.model.infer({self.input_info.name: im})
+        outputs = [results[x.name] for x in self.output_infos]
+        return self._decode_raw(outputs) if not self.metadata.get("nms", False) else self._decode_nms(outputs[0])
+
+    def _decode_nms(self, output: list) -> np.ndarray:
+        """Convert Hailo per-class NMS output from normalized ``yxyx`` to pixel ``xyxy`` coordinates."""
+        height, width = self.input_info.shape[:2]
+        scale = np.array([width, height, width, height], dtype=np.float32)
+        frames = []
+        for detections in output:
+            rows = []
+            for class_id, class_detections in enumerate(detections):
+                if len(class_detections):
+                    class_detections = np.asarray(class_detections)
+                    boxes = class_detections[:, [1, 0, 3, 2]] * scale
+                    classes = np.full((len(boxes), 1), class_id, dtype=np.float32)
+                    rows.append(np.concatenate((boxes, class_detections[:, 4:5], classes), axis=1))
+            frame = np.concatenate(rows) if rows else np.empty((0, 6), dtype=np.float32)
+            frames.append(frame[np.argsort(-frame[:, 4])[:300]])
+        count = max(map(len, frames), default=0)
+        predictions = np.zeros((len(frames), count, 6), dtype=np.float32)
+        for i, frame in enumerate(frames):
+            predictions[i, : len(frame)] = frame
+        return predictions
+
+    def _decode_raw(self, outputs: list[np.ndarray]) -> np.ndarray:
+        """Decode branch-first YOLO26 regression and class outputs."""
+        from ultralytics.utils.tal import dist2bbox, make_anchors
+
+        split = len(outputs) // 2
+        box_maps = [torch.from_numpy(x).permute(0, 3, 1, 2) for x in outputs[:split]]
+        cls_maps = [torch.from_numpy(x).permute(0, 3, 1, 2) for x in outputs[split:]]
+        strides = [self.input_info.shape[0] / x.shape[2] for x in box_maps]
+        anchors, stride_tensor = make_anchors(box_maps, strides)
+        boxes = torch.cat([x.flatten(2) for x in box_maps], 2).transpose(1, 2)
+        boxes = dist2bbox(boxes, anchors, xywh=False) * stride_tensor
+        scores = torch.cat([x.flatten(2) for x in cls_maps], 2).transpose(1, 2).sigmoid()
+        classes = scores.shape[2]
+        anchor_index = scores.amax(-1).topk(min(300, scores.shape[1]), dim=1).indices[..., None]
+        boxes = boxes.gather(1, anchor_index.repeat(1, 1, 4))
+        scores = scores.gather(1, anchor_index.repeat(1, 1, classes))
+        scores, index = scores.flatten(1).topk(min(300, scores.shape[1] * classes), dim=1)
+        boxes = boxes.gather(1, (index // classes)[..., None].repeat(1, 1, 4))
+        return torch.cat((boxes, scores[..., None], (index % classes)[..., None].float()), 2).numpy()

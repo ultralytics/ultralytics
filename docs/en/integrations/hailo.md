@@ -184,10 +184,6 @@ The intermediate ONNX graph is removed after compilation.
 
 ## Run Inference on Hailo Hardware
 
-!!! note "Inference support"
-
-    Ultralytics exports Hailo HEF files but does not currently run `predict` or `val` on them. Use HailoRT, TAPPAS, GStreamer, or the Raspberry Pi Hailo helper for inference.
-
 Install HailoRT on the target device. Raspberry Pi AI Kit and AI HAT+ users can follow the [Raspberry Pi AI software guide](https://www.raspberrypi.com/documentation/computers/ai.html):
 
 ```bash
@@ -195,9 +191,16 @@ sudo apt install hailo-all
 hailortcli fw-control identify
 ```
 
-Copy the complete export directory to the device so `metadata.yaml` remains next to the HEF. Load the `*.hef` with HailoRT, TAPPAS, or the Raspberry Pi `picamera2.devices.Hailo` helper.
+Copy the complete export directory to the device so `metadata.yaml` remains next to the HEF. Ultralytics uses HailoRT to run `predict` and `val` directly on the exported directory:
 
-YOLOv8 and YOLO11 exports include HailoRT NMS and return detections grouped by class. YOLO26 exports expose six NMS-free one-to-one tensors ordered by branch: three regression tensors followed by three classification tensors. The classification outputs are logits, so apply sigmoid before decoding them with a YOLO26 end-to-end post-processing pipeline.
+```python
+from ultralytics import YOLO
+
+model = YOLO("yolo11n_hailo_model")
+results = model.predict("path/to/image.jpg")
+```
+
+The backend converts YOLOv8 and YOLO11 HailoRT NMS output and decodes YOLO26 one-to-one outputs automatically. TAPPAS, GStreamer, and the Raspberry Pi `picamera2.devices.Hailo` helper remain available for application-specific pipelines.
 
 For a GStreamer deployment, pass the HEF to `hailonet`:
 
@@ -300,7 +303,7 @@ Confirm that `name` matched the physical Hailo architecture and that the device 
 
 ### Output Parsing Looks Incorrect
 
-YOLOv8 and YOLO11 HEFs include HailoRT NMS and return detections grouped by class. YOLO26 exports raw one-to-one detection-head outputs for an NMS-free runtime path. Use post-processing that matches the exported model family.
+Keep `metadata.yaml` beside the HEF so Ultralytics can select the matching YOLOv8, YOLO11, or YOLO26 post-processing path. Custom HailoRT applications must likewise match post-processing to the exported model family.
 
 ## FAQ
 

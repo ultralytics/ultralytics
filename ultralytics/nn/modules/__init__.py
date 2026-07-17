@@ -121,7 +121,16 @@ from .transformer import (
     TransformerEncoderLayer,
     TransformerLayer,
 )
-from .vit_blocks import AnchorPoolQueryMix, FastViTBlock, FracRoPE2D, MHSABlock, RepUltraViTBlock, UltraViTBlock
+from .vit_blocks import (
+    AnchorPoolQueryMix,
+    FastViTBlock,
+    FracRoPE2D,
+    MHSABlock,
+    PooledMHSABlock,
+    RepUltraViTBlock,
+    UltraViTBlock,
+    WindowMHSABlock,
+)
 
 __all__ = (
     "AIFI",
@@ -192,6 +201,7 @@ __all__ = (
     "LRPCHead",
     "LayerNorm2d",
     "LightConv",
+    "PooledMHSABlock",
     "MLPBlock",
     "MHSABlock",
     "MSDeformAttn",
@@ -221,6 +231,7 @@ __all__ = (
     "TransformerLayer",
     "UltraViTBlock",
     "WorldDetect",
+    "WindowMHSABlock",
     "YOLOEDetect",
     "YOLOESegment",
     "YOLOESegment26",

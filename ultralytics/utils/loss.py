@@ -478,6 +478,7 @@ class v8DetectionLoss:
         self.bce = nn.BCEWithLogitsLoss(reduction="none")
         self.vfl = VarifocalLoss() if getattr(h, "vfl", False) else None
         self.neg_focal_gamma = 0.0
+        self.cls_hard = False
         self.vfl_norm = getattr(h, "vfl_norm", False)  # normalize VFL by positive count instead of target score sum
         self.vfl_hard = getattr(h, "vfl_hard", False)  # regress VFL positives toward hard 1.0 instead of IoU target
         self.hyp = h
@@ -557,6 +558,9 @@ class v8DetectionLoss:
         With ``neg_focal_gamma>0`` the BCE path downweights only negative classes by detached ``p**gamma`` while
         preserving the original BCE gradients and soft targets for positives.
 
+        With ``cls_hard=True`` positive classification targets are binarized to 1.0 and the loss is normalized by the
+        positive count. Box and DFL targets are unaffected.
+
         Args:
             pred_scores (torch.Tensor): Predicted class logits with shape (bs, num_anchors, nc).
             target_scores (torch.Tensor): Task-aligned soft targets with shape (bs, num_anchors, nc).
@@ -566,6 +570,9 @@ class v8DetectionLoss:
         Returns:
             (torch.Tensor): Scalar classification loss.
         """
+        if self.cls_hard:
+            target_scores = (target_scores > 0).to(pred_scores.dtype)
+            target_scores_sum = max(target_scores.sum(), 1)
         if self.vfl is not None:
             label = (target_scores > 0).to(pred_scores.dtype)  # positive-class one-hot from soft targets
             gt_score = label if self.vfl_hard else target_scores.to(pred_scores.dtype)  # hard 1.0 vs IoU soft target
@@ -1402,6 +1409,7 @@ class E2ELoss:
             self.one2many = loss_fn(model, tal_topk=10)
         self.one2one = loss_fn(model, tal_topk=7, tal_topk2=1)
         self.one2one.neg_focal_gamma = getattr(model.args, "o2o_neg_focal_gamma", 0.0)
+        self.one2one.cls_hard = getattr(model.args, "o2o_cls_hard", False)
         self.one2one.assigner.o2f = self.o2f
         self.one2one.assigner.o2f_iou = getattr(model.args, "o2f_iou", "amb_max")
         self.one2one.assigner.o2f_norm = getattr(model.args, "o2f_norm", "align")

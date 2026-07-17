@@ -268,6 +268,7 @@ CFG_BOOL_KEYS = frozenset(
         "end2end",
         "vfl",
         "vfl_o2m",
+        "o2o_cls_hard",
         "o2f",
         "o2m",
         "o24",

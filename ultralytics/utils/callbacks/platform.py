@@ -391,7 +391,7 @@ def serialize_validation_results(validator):
         offset += size
 
     captured = sum(len(bucket["rows"]) for bucket in buckets)
-    omitted_reason = "run_limit" if omitted else "row_limit" if oversized else None
+    omitted_reason = "run_limit" if omitted else "transport_limit" if oversized else None
 
     return {
         "state": "complete",

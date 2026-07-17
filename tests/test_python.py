@@ -617,6 +617,8 @@ def test_platform_validation_contract(monkeypatch):
 
     metric = Metric()
     tp = np.array([[True] * 10, [False] * 10])
+    platform_quality = bytearray(quality)
+    platform_quality[3:5] = (0x4000).to_bytes(2, "big")
     metric.update_image_metrics(
         tp,
         np.array([0, 1]),
@@ -625,7 +627,7 @@ def test_platform_validation_contract(monkeypatch):
         {"tp": tp, "pred_cls": np.array([0, 1])},
         {
             "imageId": "0123456789abcdef01234567",
-            "quality": quality.hex(),
+            "quality": bytes(platform_quality).hex(),
             "width": 256,
             "height": 256,
             "bytes": 100,
@@ -637,6 +639,7 @@ def test_platform_validation_contract(monkeypatch):
     result = summarize_platform_validation(metric.image_metrics)
     assert result["summary"]["box"] == {"tp": 1, "fp": 1, "fn": 1}
     assert result["rows"][0]["id"] == "0123456789abcdef01234567"
+    assert any(cohort["trait"] == "sharpness" and cohort["bin"] == "mid" for cohort in result["cohorts"])
 
     class LargeDataset(dict):
         def __len__(self):
@@ -678,6 +681,38 @@ def test_platform_validation_contract(monkeypatch):
     assert payload["task"] == "obb"
     assert payload["evaluator"]["analysisConfidence"] == 0.5
 
+    import hashlib
+    import json
+
+    fixture_path = Path(__file__).parent / "fixtures/platform-validation_v1.json"
+    assert (
+        hashlib.sha256(fixture_path.read_bytes()).hexdigest()
+        == "8636c7c1328068f96979201ff83fb1c84d43f345aa767edbe60efa13e4bf74f6"
+    )
+    fixture = json.loads(fixture_path.read_text())
+    validator.args.task = "detect"
+    validator.args.conf = 0.001
+    validator.data["platform_fingerprint"] = "dataset:1"
+    complete = fixture["complete"]
+    monkeypatch.setattr(
+        "ultralytics.utils.callbacks.platform.summarize_platform_validation",
+        lambda *_args: {
+            "identityCount": 1,
+            "rows": fixture["bucket"]["rows"],
+            "detailOmitted": False,
+            "population": 1,
+            "traitCoverage": complete["coverage"]["perTrait"],
+            "summary": complete["summary"],
+            "cohorts": complete["cohorts"],
+            "rankings": complete["rankings"],
+        },
+    )
+    payload = serialize_validation_results(validator)
+    bucket = {"runId": 1, "schemaVersion": payload["schemaVersion"], "task": payload["task"], **payload["buckets"][0]}
+    manifest = {key: value for key, value in payload.items() if key not in {"state", "buckets"}}
+    assert bucket == fixture["bucket"]
+    assert {"runId": 1, **manifest} == complete
+
     summary = {
         "identityCount": 100_001,
         "rows": [],
@@ -707,20 +742,16 @@ def test_platform_validation_contract(monkeypatch):
             "rows": [{"id": "0" * 24}, {"id": "1" * 24, "value": "x" * 900_001}],
             "detailOmitted": False,
             "population": 2,
-            "traitCoverage": {},
-            "summary": {},
-            "cohorts": [],
-            "rankings": {},
+            "traitCoverage": fixture["omitted"]["coverage"]["perTrait"],
+            "summary": fixture["omitted"]["summary"],
+            "cohorts": fixture["omitted"]["cohorts"],
+            "rankings": fixture["omitted"]["rankings"],
         },
     )
     payload = serialize_validation_results(validator)
     assert payload["bucketCount"] == 0
-    assert payload["coverage"]["detail"] == {
-        "state": "omitted",
-        "captured": 0,
-        "omitted": 2,
-        "reason": "row_limit",
-    }
+    manifest = {key: value for key, value in payload.items() if key not in {"state", "buckets"}}
+    assert {"runId": 2, **manifest} == fixture["omitted"]
 
     from ultralytics.models.yolo.detect.val import DetectionValidator
 

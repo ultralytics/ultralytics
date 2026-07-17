@@ -928,7 +928,7 @@ def summarize_platform_validation(image_metrics: dict, task_metrics: dict | None
         if quality and quality[0] == 1:
             yield "brightness", "dark" if quality[1] < 64 else "bright" if quality[1] >= 192 else "mid"
             yield "contrast", "low" if quality[2] < 64 else "high" if quality[2] >= 160 else "mid"
-            sharpness = int.from_bytes(quality[3:5])
+            sharpness = int.from_bytes(quality[3:5], "big")
             yield "sharpness", "low" if sharpness < 16000 else "high" if sharpness >= 32000 else "mid"
             yield "darkPixels", "low" if quality[5] < 13 else "high" if quality[5] >= 64 else "mid"
             yield "lightPixels", "low" if quality[6] < 13 else "high" if quality[6] >= 64 else "mid"

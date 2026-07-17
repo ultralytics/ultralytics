@@ -57,7 +57,7 @@ head:
   - [-1, 2, C3k2, [256, True]] # 16 (P3/8, clean — no cost vol)
 
   # Stereo cost volume (separate, NOT merged into P3)
-  - [1, 1, StereoCostVolume, [64, 48, 48]] # 17: [B, 64, H/8, W/8] (48 disparity samples = every integer over max_disp; finer depth)
+  - [1, 1, StereoCostVolume, [64, 48, 48]] # 17: [B, 64, H/8, W/8] (48 disparity samples over max_disp, ~1px step vs 24's ~2px; finer depth)
 
   # Bottom-up PAN from clean P3
   - [16, 1, Conv, [256, 3, 2]]

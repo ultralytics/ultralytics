@@ -270,20 +270,25 @@ def _upload_model(model_path, project, name, progress=False, retry=1, model_id=N
     if safe_upload(file=model_path, url=data["uploadUrl"], retry=retry, progress=progress):
         gcs_path = data.get("gcsPath")
         if gcs_path and run_id:
-            _send(
+            saved = _send(
                 "checkpoint_saved",
-                {"modelPath": gcs_path, "modelSize": model_path.stat().st_size, "runId": run_id},
+                {
+                    "modelPath": gcs_path,
+                    "runId": run_id,
+                    "uploadPath": data.get("uploadPath"),
+                },
                 project,
                 name,
                 model_id,
             )
+            return gcs_path if saved else None
         return gcs_path
     return None
 
 
 def _upload_model_async(model_path, project, name, model_id=None, run_id=None):
     """Upload model asynchronously using bounded thread pool."""
-    _executor.submit(_upload_model, model_path, project, name, model_id=model_id, run_id=run_id)
+    return _executor.submit(_upload_model, model_path, project, name, model_id=model_id, run_id=run_id)
 
 
 def _get_environment_info():
@@ -359,7 +364,8 @@ def on_pretrain_routine_start(trainer):
     ctx = {
         "model_id": None,
         "run_id": None,
-        "last_upload": 0,
+        "last_upload": time(),
+        "checkpoint_upload": None,
         "cancelled": False,
         "console_logger": None,
         "system_logger": None,
@@ -485,13 +491,17 @@ def on_model_save(trainer):
     # Rate limit to every 15 minutes (900 seconds)
     if time() - ctx["last_upload"] < 900:
         return
+    if ctx["checkpoint_upload"] and not ctx["checkpoint_upload"].done():
+        return
 
     model_path = trainer.best if trainer.best and Path(trainer.best).exists() else trainer.last
     if not model_path:
         return
 
     project, name = _get_project_name(trainer)
-    _upload_model_async(model_path, project, name, model_id=ctx["model_id"], run_id=ctx["run_id"])
+    ctx["checkpoint_upload"] = _upload_model_async(
+        model_path, project, name, model_id=ctx["model_id"], run_id=ctx["run_id"]
+    )
     ctx["last_upload"] = time()
 
 
@@ -515,6 +525,8 @@ def on_train_end(trainer):
     gcs_path = None
     model_size = None
     if trainer.best and Path(trainer.best).exists():
+        if ctx["checkpoint_upload"]:
+            ctx["checkpoint_upload"].result()
         model_size = Path(trainer.best).stat().st_size
         gcs_path = _upload_model(
             trainer.best,
@@ -557,6 +569,7 @@ def on_train_end(trainer):
             },
             "classNames": class_names,
             "plots": plots,
+            "runId": ctx["run_id"],
         },
         project,
         name,

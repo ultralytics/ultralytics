@@ -1472,6 +1472,7 @@ class RTDETRDecoder(nn.Module):
     """
 
     export = False  # export mode
+    max_det = 300  # max detections per image
     shapes = []
     anchors = torch.empty(0)
     valid_mask = torch.empty(0)
@@ -1733,10 +1734,12 @@ class RTDETRDecoder(nn.Module):
         if self.disable_topk:
             scores, class_idx = scores.max(dim=-1, keepdim=True)  # (bs, nq, 1), (bs, nq, 1)
             return torch.cat([boxes, scores, class_idx.float()], dim=-1)  # (bs, nq, 6)
-        scores, index = scores.flatten(1).topk(self.num_queries)
-        query_idx = index // self.nc
-        boxes = boxes.gather(dim=1, index=query_idx.unsqueeze(-1).expand(-1, -1, 4))
-        return torch.cat([boxes, scores[..., None], (index % self.nc)[..., None].float()], dim=-1)
+        k = min(self.num_queries, self.max_det) if self.export else self.num_queries
+        scores, index = scores.flatten(1).topk(k)
+        # CoreML MIL lacks integer floor-div and mod lowering: use torch.div(rounding_mode="floor") and (index - q*nc).
+        query_idx = torch.div(index, self.nc, rounding_mode="floor")
+        boxes = boxes.gather(dim=1, index=query_idx.unsqueeze(-1).expand(-1, -1, 4).long())
+        return torch.cat([boxes, scores[..., None], (index - query_idx * self.nc)[..., None].float()], dim=-1)
 
     def _extend_attn_mask_for_o2m(
         self,

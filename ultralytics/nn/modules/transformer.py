@@ -553,8 +553,8 @@ class MSDeformAttn(nn.Module):
 
         Args:
             query (torch.Tensor): Query tensor with shape [bs, query_length, C].
-            refer_bbox (torch.Tensor): Reference bounding boxes with shape [bs, query_length, n_levels, 2 or 4], range
-                in [0, 1], top-left (0,0), bottom-right (1, 1), including padding area.
+            refer_bbox (torch.Tensor): Reference bounding boxes with shape [bs, query_length, 1, 2 or 4], range in [0,
+                1], top-left (0,0), bottom-right (1, 1). The size-1 axis broadcasts across n_levels.
             value (torch.Tensor): Value tensor with shape [bs, value_length, C].
             value_shapes (list): List with shape [n_levels, 2], [(H_0, W_0), (H_1, W_1), ..., (H_{L-1}, W_{L-1})].
             value_mask (torch.Tensor, optional): Mask tensor with shape [bs, value_length], True for padding elements,
@@ -574,18 +574,21 @@ class MSDeformAttn(nn.Module):
         if value_mask is not None:
             value = value.masked_fill(value_mask[..., None], float(0))
         value = value.view(bs, len_v, self.n_heads, self.d_model // self.n_heads)
-        sampling_offsets = self.sampling_offsets(query).view(bs, len_q, self.n_heads, self.n_levels, self.n_points, 2)
-        attention_weights = self.attention_weights(query).view(bs, len_q, self.n_heads, self.n_levels * self.n_points)
-        attention_weights = F.softmax(attention_weights, -1).view(bs, len_q, self.n_heads, self.n_levels, self.n_points)
-        # N, Len_q, n_heads, n_levels, n_points, 2
+        # Fold (n_levels, n_points) into one axis so every traced tensor stays at rank <= 5 (required for CoreML
+        # export); refer_bbox arrives as (bs, len_q, 1, 2 or 4) and its size-1 axis broadcasts implicitly.
+        n_total_points = self.n_levels * self.n_points
+        sampling_offsets = self.sampling_offsets(query).view(bs, len_q, self.n_heads, n_total_points, 2)
+        attention_weights = self.attention_weights(query).view(bs, len_q, self.n_heads, n_total_points)
+        attention_weights = F.softmax(attention_weights, -1)
         num_points = refer_bbox.shape[-1]
         if num_points == 2:
             offset_normalizer = torch.as_tensor(value_shapes, dtype=query.dtype, device=query.device).flip(-1)
-            add = sampling_offsets / offset_normalizer[None, None, None, :, None, :]
-            sampling_locations = refer_bbox[:, :, None, :, None, :] + add
+            offset_normalizer = offset_normalizer[:, None, :].expand(-1, self.n_points, -1).reshape(n_total_points, 2)
+            sampling_locations = refer_bbox[:, :, None, :, :] + sampling_offsets / offset_normalizer
         elif num_points == 4:
-            add = sampling_offsets / self.n_points * refer_bbox[:, :, None, :, None, 2:] * 0.5
-            sampling_locations = refer_bbox[:, :, None, :, None, :2] + add
+            sampling_locations = (
+                refer_bbox[:, :, None, :, :2] + sampling_offsets / self.n_points * refer_bbox[:, :, None, :, 2:] * 0.5
+            )
         else:
             raise ValueError(f"Last dim of reference_points must be 2 or 4, but got {num_points}.")
 
@@ -598,7 +601,12 @@ class MSDeformAttn(nn.Module):
                 (input_spatial_shapes.new_zeros((1,)), input_spatial_shapes.prod(1).cumsum(0)[:-1])
             )
             output = MSDeformAttnFunction.apply(
-                value, input_spatial_shapes, input_level_start_index, sampling_locations, attention_weights, self.im2col_step
+                value,
+                input_spatial_shapes,
+                input_level_start_index,
+                sampling_locations.view(bs, len_q, self.n_heads, self.n_levels, self.n_points, 2),
+                attention_weights.view(bs, len_q, self.n_heads, self.n_levels, self.n_points),
+                self.im2col_step,
             )
         return self.output_proj(output)
 

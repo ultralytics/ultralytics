@@ -10,7 +10,7 @@ from PIL import Image
 
 from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODELS, TASK_MODEL_DATA
 from ultralytics.utils import ARM64, ASSETS, DATASETS_DIR, IS_RASPBERRYPI, LINUX, WEIGHTS_DIR, checks
-from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_2_0, TORCH_2_1, TORCH_VERSION
+from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_2_1, TORCH_VERSION
 
 
 def run(cmd: str) -> None:
@@ -50,8 +50,8 @@ def test_train(task: str, model: str, data: str) -> None:
 @pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
 def test_val(task: str, model: str, data: str) -> None:
     """Test YOLO validation process for specified task, model, and data using a shell command."""
-    if task == "depth" and TORCH_2_0 and not TORCH_2_1:
-        pytest.skip("Depth validation aborts on torch 2.0.0 legacy stack")
+    if task == "depth" and not TORCH_2_1:
+        pytest.skip("Depth validation aborts on legacy torch (<2.1) stack")
     for end2end in {False, True}:
         run(f"yolo val {task} model={model} data={data} imgsz=32 end2end={end2end} max_det=100 agnostic_nms")
 

@@ -1,0 +1,33 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+# cube_s3d — close-range stereo-3D dataset (single class "cubetto", fixed-head stereo rig)
+# Label format (18 values): class x_l y_l w_l h_l x_r y_r w_r h_r dim_l dim_w dim_h loc_x loc_y loc_z rot_y truncated occluded
+# Images 960x600, baseline ~0.063 m, per-frame KITTI-style calib in calib/<split>/<stem>.txt
+
+path: /path/to/cube_s3d # <-- EDIT: dataset root
+train: images/train/left
+val: images/val/left
+train_right: images/train/right
+val_right: images/val/right
+
+names:
+  0: cubetto
+
+# Fallback baseline (meters) when a per-frame calib file is missing
+baseline: 0.063
+
+# Mean dimensions [length, width, height] in meters (cubes are a constant 5x5x10 cm)
+mean_dims:
+  cubetto: [0.05, 0.05, 0.10]
+
+# Std of dimensions [length, width, height]; real std is 0 (identical cubes),
+# a small positive value avoids divide-by-zero in the (dim - mean) / std normalization.
+std_dims:
+  cubetto: [0.01, 0.01, 0.01]
+
+# 6 = left RGB + right RGB (siamese backbone processes L/R via the batch trick)
+channels: 6
+
+# Direct-depth head range (meters); cube depth is ~0.45-1.66 m (below the KITTI 2.0 floor),
+# so the range is retargeted from this config (requires the depth-range fix on branch 001).
+depth_min: 0.2
+depth_max: 2.5

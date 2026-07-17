@@ -19,12 +19,13 @@ scales:
   x: [1.00, 1.50, 512]
 
 training:
+  # Cube_s3d close-range tune (branch cube-s3d-client): reweighted toward the localization/depth heads.
   loss_weights:
-    lr_distance: 2.0
-    depth: 3.0
-    dimensions: 1.0
-    orientation: 1.0
-    proj_center: 1.0
+    lr_distance: 4.0
+    depth: 4.0
+    dimensions: 0.5
+    orientation: 0.5
+    proj_center: 3.0
 
 mean_dims:
   Car: [3.88, 1.63, 1.53]
@@ -57,7 +58,7 @@ head:
   - [-1, 2, C3k2, [256, True]] # 16 (P3/8, clean — no cost vol)
 
   # Stereo cost volume (separate, NOT merged into P3)
-  - [1, 1, StereoCostVolume, [64, 48, 24]] # 17: [B, 64, H/8, W/8]
+  - [1, 1, StereoCostVolume, [64, 48, 48]] # 17: [B, 64, H/8, W/8] — 48 disparity samples (finer close-range depth; cube tune)
 
   # Bottom-up PAN from clean P3
   - [16, 1, Conv, [256, 3, 2]]

@@ -247,7 +247,7 @@ The timings are single observed end-to-end production routing tests from July 20
 
 !!! warning "Match the TensorRT and CUDA versions on your device"
 
-    Before loading a downloaded engine, confirm your deployment device runs the same TensorRT and CUDA versions the engine was built with, whether that device is an x86 NVIDIA GPU or a Jetson. You can refer to the versions shown in the table above. On a version mismatch the engine fails to deserialize, so export locally on the target device instead.
+    Before loading a downloaded engine, confirm your deployment device runs the same TensorRT and CUDA versions the engine was built with, whether that device is an x86 NVIDIA GPU or a Jetson. For Jetson targets, those versions are shown in the table above. On a version mismatch the engine fails to deserialize, so export locally on the target device instead.
 
 ### RKNN Chip Support
 

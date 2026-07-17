@@ -59,6 +59,7 @@ from ultralytics.nn.modules import (
     Index,
     LRPCHead,
     MHSABlock,
+    PooledMHSABlock,
     Pose,
     Pose26,
     RepC3,
@@ -74,6 +75,7 @@ from ultralytics.nn.modules import (
     SemanticSegment,
     TorchVision,
     UltraViTBlock,
+    WindowMHSABlock,
     WorldDetect,
     YOLOEDetect,
     YOLOESegment,
@@ -2106,7 +2108,19 @@ def parse_model(d, ch, verbose=True):
                     args.extend((True, 1.2))
             if m is C2fCIB:
                 legacy = False
-        elif m in frozenset({AIFI, UltraViTBlock, RepUltraViTBlock, FastViTBlock, MHSABlock, FracRoPE2D, AnchorPoolQueryMix}):
+        elif m in frozenset(
+            {
+                AIFI,
+                UltraViTBlock,
+                RepUltraViTBlock,
+                FastViTBlock,
+                MHSABlock,
+                FracRoPE2D,
+                WindowMHSABlock,
+                PooledMHSABlock,
+                AnchorPoolQueryMix,
+            }
+        ):
             args = [ch[f], *args]
         elif m is TeacherDetBackbone:
             # Frozen-teacher detection backbone: layer-0 module that maps a 3-channel image to embed_dim feature channels.

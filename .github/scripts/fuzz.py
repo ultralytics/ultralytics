@@ -209,7 +209,6 @@ def load_universe():
         "bool_keys": sorted(CFG_BOOL_KEYS - NEVER_MUTATE),
         "float_keys": sorted(CFG_FLOAT_KEYS - NEVER_MUTATE - CFG_FRACTION_KEYS),
         "enum_keys": sorted(set(ENUM_POOLS) - NEVER_MUTATE),
-        "assets": ASSETS,
         "source": str(ASSETS / "bus.jpg"),
         "export_pool": [*EXPORT_POOL, *(["coreml"] if importlib.util.find_spec("coremltools") else [])],
         "logger": LOGGER,
@@ -234,18 +233,13 @@ def precache_assets(uni):
 
 def prepare_sources(uni):
     """Create cached valid and malformed media sources used by predict and track trials."""
-    from ultralytics.utils import ASSETS_URL, WEIGHTS_DIR
+    from ultralytics.utils import ASSETS, ASSETS_URL, WEIGHTS_DIR
     from ultralytics.utils.downloads import safe_download
 
     source_dir = WEIGHTS_DIR.parent / "fuzz-sources"
-    image_dir = source_dir / "image directory"
-    unicode_dir = source_dir / "path with spaces"
-    image_dir.mkdir(parents=True, exist_ok=True)
-    unicode_dir.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(uni["assets"] / "bus.jpg", image_dir / "bus.jpg")
-    shutil.copy2(uni["assets"] / "zidane.jpg", image_dir / "zidane.jpg")
-    unicode_image = unicode_dir / "fuzz-🚀.jpg"
-    shutil.copy2(uni["assets"] / "bus.jpg", unicode_image)
+    source_dir.mkdir(parents=True, exist_ok=True)
+    unicode_image = source_dir / "path with spaces 🚀.jpg"
+    shutil.copy2(ASSETS / "bus.jpg", unicode_image)
     empty_image, corrupt_image, empty_dir = source_dir / "empty.jpg", source_dir / "corrupt.jpg", source_dir / "empty"
     empty_image.touch()
     corrupt_image.write_bytes(b"not an image")
@@ -254,9 +248,9 @@ def prepare_sources(uni):
     safe_download(f"{ASSETS_URL}/{video.name}", file=video)
     uni["sources"] = {
         "predict": [
-            (str(uni["assets"] / "bus.jpg"), True),
-            (str(uni["assets"] / "zidane.jpg"), True),
-            (str(image_dir), True),
+            (str(ASSETS / "bus.jpg"), True),
+            (str(ASSETS / "zidane.jpg"), True),
+            (str(ASSETS), True),
             (str(unicode_image), True),
             (str(video), True),
             (str(empty_image), False),
@@ -499,11 +493,6 @@ def stderr_tail(stderr, lines=30):
     return "\n".join(stderr.strip().splitlines()[-lines:])
 
 
-def format_command(argv):
-    """Return a shell-safe, round-trippable yolo command for logs and issue reproduction."""
-    return "yolo " + shlex.join(argv)
-
-
 def cmd_fuzz(args):
     """Run the budgeted fuzzing loop and write trials JSONL + findings JSON for the report job."""
     uni = load_universe()
@@ -543,7 +532,7 @@ def cmd_fuzz(args):
                 "mode": trial["mode"],
                 "task": trial["task"],
                 "strategy": trial.get("strategy", "corpus"),
-                "command": format_command(trial["argv"]),
+                "command": "yolo " + shlex.join(trial["argv"]),
                 "stderr_tail": stderr_tail(stderr),
                 "duration_s": duration,
             }
@@ -632,6 +621,7 @@ def cmd_repro(args):
     argv = shlex.split(args.command)
     if argv and argv[0] == "yolo":  # issue bodies quote full `yolo ...` commands; accept them verbatim
         argv = argv[1:]
+    mode = next((a for a in argv if a in MODES), "predict")
 
     def portable(arg):
         """Remap runner-local absolute model/source paths from issue commands to this machine's copies."""
@@ -651,7 +641,6 @@ def cmd_repro(args):
         return arg
 
     argv = [portable(a) for a in argv]
-    mode = next((a for a in argv if a in MODES), "predict")
     task = next((a for a in argv if a in uni["tasks"]), "detect")
     trial = {"mode": mode, "task": task, "argv": argv, "mutated": ["repro"]}  # replayed commands were fuzz-mutated
     outcomes = []

@@ -15,7 +15,7 @@ on:
     inputs:
       minutes:
         description: "Fuzzing budget per runner in minutes"
-        default: "285"
+        default: "300"
         type: string
       repro_command:
         description: "Reproduce one exact command from a fuzz issue instead of fuzzing, e.g. 'train detect model=yolo26n.pt data=coco8.yaml epochs=abc'"
@@ -34,19 +34,23 @@ jobs:
   Fuzz:
     if: github.repository == 'ultralytics/ultralytics' || github.event_name == 'workflow_dispatch'
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 330
+    timeout-minutes: 345
     strategy:
       fail-fast: false
       matrix:
         include: # one OS per personality: exports are the most platform-sensitive, predict/val exercise macOS spawn multiprocessing
           - personality: train
             os: ubuntu-latest
+            extras: export-base,solutions
           - personality: export
             os: windows-latest
+            extras: export-base,solutions
           - personality: predict-val
             os: macos-26
+            extras: export-base,export-coreml,solutions
           - personality: chaos
             os: ubuntu-latest
+            extras: export-base,solutions
     defaults:
       run:
         shell: bash # multi-line run blocks and ${GITHUB_WORKSPACE} expansion on all three OSes
@@ -55,7 +59,7 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.13"
-      - uses: astral-sh/setup-uv@v7
+      - uses: ultralytics/actions/setup-uv@main
         with:
           python-version: "3.13"
           activate-environment: true
@@ -64,7 +68,7 @@ jobs:
         with:
           retries: 3
           retry_delay_seconds: 30
-          run: uv pip install -e ".[export-base,solutions]" --torch-backend cpu
+          run: uv pip install -e ".[${{ matrix.extras }}]" --torch-backend cpu
       - name: Check environment
         run: yolo checks
       - name: Configure Ultralytics cache paths
@@ -87,7 +91,7 @@ jobs:
       - name: Fuzz
         if: github.event.inputs.repro_command == ''
         env:
-          MINUTES: ${{ github.event.inputs.minutes || '285' }} # via env, never interpolated into shell
+          MINUTES: ${{ github.event.inputs.minutes || '300' }} # via env, never interpolated into shell
         run: |
           python .github/scripts/fuzz.py fuzz \
             --budget-minutes "$MINUTES" \

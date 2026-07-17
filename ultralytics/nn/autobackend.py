@@ -17,6 +17,7 @@ from .backends import (
     CoreMLBackend,
     DeepXBackend,
     ExecuTorchBackend,
+    HailoBackend,
     LiteRTBackend,
     MNNBackend,
     NCNNBackend,
@@ -115,6 +116,7 @@ class AutoBackend(nn.Module):
             | DEEPX                 | *_deepx_model/    |
             | Qualcomm QNN          | *_qnn.onnx        |
             | LiteRT                | *.tflite          |
+            | Hailo                 | *_hailo_model/    |
 
     Attributes:
         backend (BaseBackend): The loaded inference backend instance.
@@ -160,6 +162,7 @@ class AutoBackend(nn.Module):
         "deepx": DeepXBackend,
         "qnn": QNNBackend,
         "litert": LiteRTBackend,
+        "hailo": HailoBackend,
     }
 
     @torch.no_grad()

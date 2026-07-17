@@ -8,7 +8,7 @@ keywords: Depth8, Ultralytics, dataset, depth estimation, monocular depth, YOLO2
 
 ## Introduction
 
-The [Ultralytics](https://www.ultralytics.com/) Depth8 dataset is a compact [monocular depth estimation](index.md) dataset with 8 images sampled from the [SUN RGB-D](sunrgbd.md) dataset: 4 for training and 4 for validation, one per RGB-D sensor (Kinect v1, Kinect v2, Intel RealSense, Asus Xtion) in each split. It is designed for rapid testing, debugging, and experimentation with [YOLO26](../../models/yolo26.md) depth estimation models and training pipelines — the 1.5 MB archive auto-downloads on first use, so `yolo depth train data=depth8.yaml` starts training within seconds.
+The [Ultralytics](https://www.ultralytics.com/) Depth8 dataset is a compact [monocular depth estimation](index.md) dataset with 8 images sampled from the [SUN RGB-D](sunrgbd.md) dataset: 4 for training and 4 for validation, drawn from its Kinect v1 and Kinect v2 captures (two per sensor in each split) for dense, artifact-free ground-truth depth maps. It is designed for rapid testing, debugging, and experimentation with [YOLO26](../../models/yolo26.md) depth estimation models and training pipelines — the 1.5 MB archive auto-downloads on first use, so `yolo depth train data=depth8.yaml` starts training within seconds.
 
 !!! note
 
@@ -28,7 +28,7 @@ depth8/
     └── val/    # 4 float32 .npy depth maps
 ```
 
-Depth values are real indoor sensor captures ranging from roughly 0.6 m to 9 m, matching the ≤10 m range of the full SUN RGB-D dataset.
+Depth values are real indoor sensor captures ranging from roughly 0.5 m to 4 m, well within the ≤10 m range of the full SUN RGB-D dataset.
 
 ## Dataset YAML
 
@@ -92,7 +92,7 @@ The Ultralytics Depth8 dataset is designed for rapid testing and debugging of [m
 
 ### How does Depth8 differ from the full SUN RGB-D dataset?
 
-Depth8 samples 8 images from SUN RGB-D's 9,245-train/1,090-val split, keeping one image per RGB-D sensor per split. It uses the identical directory layout and `.npy` depth format, so a pipeline that runs on Depth8 runs unmodified on the full dataset — just point `data=` at `depth-sunrgbd.yaml` instead of `depth8.yaml`. Unlike the full dataset, Depth8 downloads in seconds and needs no conversion step.
+Depth8 samples 8 images from SUN RGB-D's 9,245-train/1,090-val split, favoring Kinect v1/v2 captures with clean, dense depth maps. It uses the identical directory layout and `.npy` depth format, so a pipeline that runs on Depth8 runs unmodified on the full dataset — just point `data=` at `depth-sunrgbd.yaml` instead of `depth8.yaml`. Unlike the full dataset, Depth8 downloads in seconds and needs no conversion step.
 
 ### Should I use Depth8 for benchmarking?
 

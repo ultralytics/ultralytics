@@ -1657,9 +1657,9 @@ class _SafeLoad:
             (_getattr, "builtins.getattr"),  # non-det YOLOv8, YOLO11 ckpts (restrict to nn.Module attrs)
         ]
         if WINDOWS:
-            allow += [pathlib.WindowsPath, (pathlib.WindowsPath, "pathlib.PosixPath")]
+            allow += [(pathlib.WindowsPath, "pathlib.WindowsPath"), (pathlib.WindowsPath, "pathlib.PosixPath")]
         else:
-            allow += [pathlib.PosixPath, (pathlib.PosixPath, "pathlib.WindowsPath")]
+            allow += [(pathlib.PosixPath, "pathlib.PosixPath"), (pathlib.PosixPath, "pathlib.WindowsPath")]
         return allow
 
 

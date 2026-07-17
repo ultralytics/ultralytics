@@ -5,8 +5,10 @@
 # P4 (new) and P5 (after C2PSA). Global axial context via H/W strip pooling + symmetric
 # sigmoid gate; near-zero cost (O(C^2*(H+W))).
 # Rep-block expansion `rep_e` scales per model size (4th scales entry): dense RepConv
-# cost grows as (c2*width*rep_e)^2, so wider scales use smaller rep_e. Benched b16 fp16:
-# m 1070 (base 987), l 870 (base 783), x 499 (base 436) img/s — larger AND faster.
+# cost grows as (c2*width*rep_e)^2, so wider scales use smaller rep_e. Values chosen as
+# max capacity subject to speed >= same-scale yolo26 baseline (b16 fp16, A100-class):
+# m 1012 (base 987), l 819 (base 783), x 450 (base 436) img/s. Keep rep width (c2*width*rep_e)
+# a multiple of 16 — x at 216ch benched SLOWER than 240ch from tensor-core misalignment.
 
 # Parameters
 nc: 80 # number of classes
@@ -17,9 +19,9 @@ scales: # model compound scaling constants, i.e. 'model=yolo26n.yaml' will call 
   # [depth, width, max_channels, rep_e]
   n: [0.50, 0.25, 1024, 0.5]
   s: [0.50, 0.50, 1024, 0.5]
-  m: [0.50, 1.00, 512, 0.375]
-  l: [1.00, 1.00, 512, 0.25]
-  x: [1.00, 1.50, 512, 0.25]
+  m: [0.50, 1.00, 512, 0.28125] # 144ch rep width, 1012 img/s vs base 987
+  l: [1.00, 1.00, 512, 0.28125] # 144ch rep width, 819 img/s vs base 783
+  x: [1.00, 1.50, 512, 0.3125] # 240ch rep width (tensor-core aligned), 450 img/s vs base 436
 
 # YOLO26n backbone
 backbone:

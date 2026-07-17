@@ -190,21 +190,6 @@ def modelopt_quantize_onnx(
     return out_file
 
 
-def write_engine(output_file: Path | str, serialized: bytes, metadata: dict | None = None) -> str:
-    """Write a serialized TensorRT engine, optionally prefixed with length-framed JSON metadata.
-
-    The metadata is written as a 4-byte little-endian length followed by the UTF-8 JSON, matching
-    the header that ``TensorRTBackend`` reads back at load time.
-    """
-    with open(output_file, "wb") as f:
-        if metadata is not None:
-            meta = json.dumps(metadata)
-            f.write(len(meta).to_bytes(4, byteorder="little", signed=True))
-            f.write(meta.encode())
-        f.write(serialized)
-    return str(output_file)
-
-
 def onnx2engine(
     onnx_file: str,
     output_file: Path | str | None = None,
@@ -311,9 +296,6 @@ def onnx2engine(
     # precision must be baked into the ONNX graph with NVIDIA ModelOpt before parsing (FP16 AutoCast, INT8 Q/DQ)
     if is_trt11 and (use_fp16 or use_int8):
         onnx_file = modelopt_quantize_onnx(onnx_file, quantize, dataset, shape, dynamic, prefix)
-
-    # Register TensorRT plugins (e.g. ROIAlign_TRT) before parsing
-    trt.init_libnvinfer_plugins(logger, "")
 
     # Read ONNX file
     parser = trt.OnnxParser(network, logger)
@@ -448,4 +430,10 @@ def onnx2engine(
         engine = None if engine is None else engine.serialize()
     if engine is None:
         raise RuntimeError("TensorRT engine build failed, check logs for errors")
-    return write_engine(output_file, engine, metadata)
+    with open(output_file, "wb") as t:
+        if metadata is not None:
+            meta = json.dumps(metadata)
+            t.write(len(meta).to_bytes(4, byteorder="little", signed=True))
+            t.write(meta.encode())
+        t.write(engine)
+    return str(output_file)

@@ -149,7 +149,6 @@ class SAM3Backend:
             self.device = torch.device("cuda:0")
 
         logger = trt.Logger(trt.Logger.ERROR)
-        trt.init_libnvinfer_plugins(logger, "")
 
         paths = {s: self._model_dir / f"{s}.engine" for s in self._FILE_STEMS}
         for s, p in paths.items():

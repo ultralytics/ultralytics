@@ -1090,15 +1090,14 @@ def _build_decoder_engine_dynamic(
     strongly-typed network, so the per-node precision is honored identically on TensorRT 10 and 11
     (the FP16 builder flag was removed in TensorRT 11). Without ``half`` the engine is FP32.
     """
-    import tensorrt as trt
+    import json
 
-    from ultralytics.utils.export.engine import write_engine
+    import tensorrt as trt
 
     if half:
         onnx_file = _autocast_fp16_onnx(onnx_file, opt_dynamic, prefix)
 
     logger = trt.Logger(trt.Logger.INFO if verbose else trt.Logger.WARNING)
-    trt.init_libnvinfer_plugins(logger, "")
     builder = trt.Builder(logger)
     config = builder.create_builder_config()
     if workspace:
@@ -1134,4 +1133,9 @@ def _build_decoder_engine_dynamic(
     serialized = builder.build_serialized_network(network, config)
     if serialized is None:
         raise RuntimeError("TensorRT engine build failed")
-    write_engine(engine_file, serialized, metadata)
+    with open(engine_file, "wb") as f:
+        if metadata is not None:
+            meta = json.dumps(metadata)
+            f.write(len(meta).to_bytes(4, byteorder="little", signed=True))
+            f.write(meta.encode())
+        f.write(serialized)

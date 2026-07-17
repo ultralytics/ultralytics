@@ -281,7 +281,7 @@ class TaskAlignedAssigner(nn.Module):
         )  # (b, h*w, 80)
         target_scores.scatter_(2, target_labels.unsqueeze(-1), 1)
 
-        target_scores = torch.where(fg_mask[:, :, None] > 0, target_scores, 0)
+        target_scores = target_scores * (fg_mask[:, :, None] > 0)
 
         return target_labels, target_bboxes, target_scores
 

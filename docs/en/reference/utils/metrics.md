@@ -98,4 +98,8 @@ keywords: Ultralytics, metrics, model validation, performance analysis, IoU, con
 
 ## ::: ultralytics.utils.metrics.ap_per_class
 
+<br><br><hr><br>
+
+## ::: ultralytics.utils.metrics.summarize_platform_validation
+
 <br><br>

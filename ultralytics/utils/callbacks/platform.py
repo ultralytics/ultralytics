@@ -5,9 +5,9 @@ import platform
 import re
 import socket
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from hashlib import sha256
 from json import dumps
-from concurrent.futures import ThreadPoolExecutor
 from math import isfinite
 from pathlib import Path
 from time import sleep, time

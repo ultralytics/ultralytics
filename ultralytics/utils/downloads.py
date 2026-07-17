@@ -41,8 +41,9 @@ def _urlopen(*args, **kwargs):
     if opener is None:
         opener = request.build_opener()
         request.install_opener(opener)
-    if any(type(h) is request.HTTPRedirectHandler for h in opener.handlers) and not any(
-        hasattr(h, "http_error_308") for h in opener.handlers
+    handlers = getattr(opener, "handlers", ())
+    if any(type(h) is request.HTTPRedirectHandler for h in handlers) and not any(
+        hasattr(h, "http_error_308") for h in handlers
     ):
         opener.add_handler(_Http308RedirectHandler())
     return opener.open(*args, **kwargs)

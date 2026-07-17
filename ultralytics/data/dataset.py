@@ -240,6 +240,10 @@ class YOLODataset(BaseDataset):
     def close_mosaic(self, hyp: dict) -> None:
         """Disable mosaic, copy_paste, mixup and cutmix augmentations by setting their probabilities to 0.0.
 
+        When hyp.lsj is set, the RandomPerspective scale is widened to the large scale jittering range (0.5-2.0)
+        and translation to 0.5 so the final epochs train on single images with LSJ instead of the default small
+        scale jittering.
+
         Args:
             hyp (dict): Hyperparameters for transforms.
         """
@@ -247,6 +251,9 @@ class YOLODataset(BaseDataset):
         hyp.copy_paste = 0.0
         hyp.mixup = 0.0
         hyp.cutmix = 0.0
+        if hyp.lsj:
+            hyp.scale = (0.5, 2.0)  # large scale jittering
+            hyp.translate = 0.5
         self.transforms = self.build_transforms(hyp)
 
     def update_labels_info(self, label: dict) -> dict:

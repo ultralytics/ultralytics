@@ -31,6 +31,7 @@ single_cls: False # (bool) treat all classes as a single class
 rect: False # (bool) rectangular batches for train; rectangular batching for val when mode='val'
 cos_lr: False # (bool) cosine learning rate scheduler
 close_mosaic: 10 # (int) disable mosaic augmentation for final N epochs (0 to keep enabled)
+lsj: False # (bool) use large scale jittering (scale 0.5-2.0, translate 0.5) during the close_mosaic epochs
 resume: False # (bool) resume training from last checkpoint in the run dir
 amp: True # (bool) Automatic Mixed Precision (AMP) training; True runs AMP capability check
 fraction: 1.0 # (float) fraction of training dataset to use (1.0 = all)

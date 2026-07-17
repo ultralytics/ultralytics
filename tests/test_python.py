@@ -584,6 +584,110 @@ def test_normalize_platform_uri():
     assert normalize_platform_uri("coco8.yaml") == "coco8.yaml"  # non-Platform inputs unchanged
 
 
+def test_platform_validation_contract():
+    """Test packed image traits and bounded Platform validation summaries."""
+    from ultralytics.data.utils import image_quality_fingerprint
+    from ultralytics.utils.metrics import Metric, summarize_platform_validation
+
+    image = np.zeros((256, 256, 3), dtype=np.uint8)
+    quality = image_quality_fingerprint(image)
+    assert quality == bytes((1, 0, 0, 0, 0, 255, 0, 0))
+    small = np.random.default_rng(0).integers(0, 256, (37, 53, 3), dtype=np.uint8)
+    scale = 256 / max(small.shape[:2])
+    thumbnail = cv2.resize(
+        small, (round(small.shape[1] * scale), round(small.shape[0] * scale)), interpolation=cv2.INTER_AREA
+    )
+    assert image_quality_fingerprint(small) == image_quality_fingerprint(thumbnail)
+
+    metric = Metric()
+    tp = np.array([[True] * 10, [False] * 10])
+    metric.update_image_metrics(
+        tp,
+        np.array([0, 1]),
+        np.array([0, 1]),
+        "1.jpg",
+        {"tp": tp, "pred_cls": np.array([0, 1])},
+        {
+            "imageId": "0123456789abcdef01234567",
+            "quality": quality.hex(),
+            "width": 256,
+            "height": 256,
+            "bytes": 100,
+            "objectCount": 2,
+            "meanObjectArea": 0.1,
+            "minObjectArea": 0.01,
+        },
+    )
+    result = summarize_platform_validation(metric.image_metrics)
+    assert result["summary"]["box"] == {"tp": 1, "fp": 1, "fn": 1}
+    assert result["rows"][0]["id"] == "0123456789abcdef01234567"
+
+    class LargeDataset(dict):
+        def __len__(self):
+            return 100_001
+
+    omitted = summarize_platform_validation(LargeDataset(metric.image_metrics))
+    assert omitted["detailOmitted"] and not omitted["rows"]
+
+    from ultralytics.utils.callbacks.platform import serialize_validation_results
+
+    validator = type(
+        "Validator",
+        (),
+        {
+            "args": type("Args", (), {"task": "detect", "conf": 0.001, "iou": 0.7, "max_det": 300})(),
+            "metrics": type("Metrics", (), {"box": metric})(),
+            "data": {"platform_fingerprint": "dataset-sha256"},
+        },
+    )()
+    payload = serialize_validation_results(validator)
+    assert payload["state"] == "complete"
+    assert payload["bucketCount"] == 1
+    assert payload["coverage"]["detail"] == {"state": "full", "captured": 1, "omitted": 0}
+    metric.image_metrics = LargeDataset(metric.image_metrics)
+    payload = serialize_validation_results(validator)
+    assert payload["state"] == "complete" and payload["bucketCount"] == 0
+    assert payload["rankings"]["overall"][0]["imageId"] == "0123456789abcdef01234567"
+    assert payload["coverage"]["detail"] == {
+        "state": "omitted",
+        "captured": 0,
+        "omitted": 100_001,
+        "reason": "run_limit",
+    }
+    metric.image_metrics = dict(metric.image_metrics)
+    validator.args.task = "obb"
+    validator.args.conf = 0.5
+    payload = serialize_validation_results(validator)
+    assert payload["task"] == "obb"
+    assert payload["evaluator"]["analysisConfidence"] == 0.5
+
+    from types import SimpleNamespace
+
+    from ultralytics.models.yolo.detect.val import DetectionValidator
+
+    captured = {}
+    fake = SimpleNamespace(
+        seen=0,
+        args=SimpleNamespace(task="obb", single_cls=False, plots=False, save_json=False, save_txt=False, conf=0.01),
+        metrics=SimpleNamespace(update_stats=lambda value: captured.update(value)),
+        _prepare_batch=lambda _index, _batch: {
+            "cls": torch.tensor([0.0]),
+            "bboxes": torch.tensor([[100.0, 100.0, 20.0, 10.0, 0.0]]),
+            "ori_shape": (200, 200),
+            "imgsz": (200, 200),
+            "im_file": "obb.jpg",
+        },
+        _prepare_pred=lambda value: value,
+        _process_batch=lambda pred, _batch: {"tp": torch.zeros((len(pred["cls"]), 10), dtype=torch.bool)},
+    )
+    DetectionValidator.update_metrics(
+        fake,
+        [{"bboxes": torch.zeros((1, 5)), "conf": torch.tensor([0.5]), "cls": torch.tensor([0.0])}],
+        {"platform": [{"imageId": "0123456789abcdef01234567"}]},
+    )
+    assert captured["image"]["meanObjectArea"] == pytest.approx(0.005)
+
+
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_train_scratch():

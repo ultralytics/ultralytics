@@ -6,6 +6,7 @@ from __future__ import annotations
 import math
 import warnings
 from collections import defaultdict
+from heapq import heappush, heapreplace
 from pathlib import Path
 from typing import Any
 
@@ -14,6 +15,10 @@ import torch
 
 from ultralytics.utils import LOGGER, DataExportMixin, SimpleClass, TryExcept, checks, plt_settings
 from ultralytics.utils.plotting import colors
+
+PLATFORM_ANALYSIS_CONFIDENCE = 0.25
+PLATFORM_MAX_DETAIL_IMAGES = 100_000
+PLATFORM_VALIDATION_SCHEMA_VERSION = 1
 
 OKS_SIGMA = (
     np.array(
@@ -885,6 +890,154 @@ def ap_per_class(
     return tp, fp, p, r, f1, ap, unique_classes.astype(int), p_curve, r_curve, f1_curve, x, prec_values
 
 
+def summarize_platform_validation(image_metrics: dict, task_metrics: dict | None = None) -> dict:
+    """Build bounded Platform rows and full-population summaries from final image metrics."""
+    retain_detail = len(image_metrics) <= PLATFORM_MAX_DETAIL_IMAGES
+    identity_count = 0
+    counts = {"tp": 0, "fp": 0, "fn": 0}
+    task_counts = {"tp": 0, "fp": 0, "fn": 0}
+    trait_coverage = {key: {"available": 0, "missing": 0} for key in ("quality", "bytes", "objectArea")}
+    classes, cohorts, class_rankings, rankings, rows = (
+        defaultdict(lambda: {"tp": 0, "fp": 0, "fn": 0}),
+        defaultdict(lambda: {"images": 0, "tp": 0, "fp": 0, "fn": 0}),
+        defaultdict(list),
+        {"overall": [], "fp": [], "fn": []},
+        [],
+    )
+
+    def keep_top(heap, value, row, limit):
+        item = (value, identity_count, row)
+        if len(heap) < limit:
+            heappush(heap, item)
+        elif item[:2] > heap[0][:2]:
+            heapreplace(heap, item)
+
+    def add(target, source):
+        for key in counts:
+            target[key] += source[key]
+
+    def trait_bins(image):
+        quality = image.get("quality", "")
+        quality = (
+            bytes.fromhex(quality)
+            if isinstance(quality, str)
+            and len(quality) == 16
+            and all(char in "0123456789abcdefABCDEF" for char in quality)
+            else b""
+        )
+        if quality and quality[0] == 1:
+            yield "brightness", "dark" if quality[1] < 64 else "bright" if quality[1] >= 192 else "mid"
+            yield "contrast", "low" if quality[2] < 64 else "high" if quality[2] >= 160 else "mid"
+            sharpness = int.from_bytes(quality[3:5])
+            yield "sharpness", "low" if sharpness < 16000 else "high" if sharpness >= 32000 else "mid"
+            yield "darkPixels", "low" if quality[5] < 13 else "high" if quality[5] >= 64 else "mid"
+            yield "lightPixels", "low" if quality[6] < 13 else "high" if quality[6] >= 64 else "mid"
+            yield "saturation", "low" if quality[7] < 64 else "high" if quality[7] >= 160 else "mid"
+        pixels = image.get("width", 0) * image.get("height", 0)
+        yield "pixels", "small" if pixels < 500_000 else "large" if pixels >= 2_000_000 else "mid"
+        objects = image.get("objectCount", 0)
+        yield "objects", "empty" if not objects else "single" if objects == 1 else "dense" if objects > 5 else "few"
+        if objects:
+            area = image.get("minObjectArea", 0)
+            yield "objectScale", "small" if area < 0.01 else "large" if area >= 0.1 else "mid"
+
+    for name, metric in image_metrics.items():
+        analysis, image = metric.get("analysis"), metric.get("image", {})
+        if not analysis:
+            continue
+        add(counts, analysis)
+        for trait, available in {
+            "quality": isinstance(image.get("quality"), str) and len(image["quality"]) == 16,
+            "bytes": image.get("bytes") is not None,
+            "objectArea": bool(image.get("objectCount")),
+        }.items():
+            trait_coverage[trait]["available" if available else "missing"] += 1
+        task_analysis = (task_metrics or {}).get(name, {}).get("analysis")
+        if task_analysis:
+            add(task_counts, task_analysis)
+        for class_id, class_counts in analysis["classes"].items():
+            add(classes[class_id], dict(zip(counts, class_counts)))
+        bins = tuple(trait_bins(image))
+        for trait, bin_name in bins:
+            cohort = cohorts[(trait, bin_name)]
+            cohort["images"] += 1
+            add(cohort, analysis)
+            for class_id, class_counts in analysis["classes"].items():
+                class_cohort = cohorts[(trait, bin_name, class_id)]
+                class_cohort["images"] += 1
+                add(class_cohort, dict(zip(counts, class_counts)))
+        image_id = image.get("imageId")
+        identity_count += isinstance(image_id, str) and len(image_id) == 24
+        if isinstance(image_id, str) and len(image_id) == 24:
+            row = {
+                "id": image_id,
+                "box": [analysis[key] for key in counts],
+                **({"task": [task_analysis[key] for key in counts]} if task_analysis else {}),
+                "q": image.get("quality"),
+                "w": image.get("width"),
+                "h": image.get("height"),
+                "b": image.get("bytes"),
+                "n": image.get("objectCount"),
+                "a": round(image.get("meanObjectArea", 0) * 65535),
+                "z": round(image.get("minObjectArea", 0) * 65535),
+            }
+            if retain_detail:
+                rows.append(row)
+            keep_top(rankings["overall"], row["box"][1] + row["box"][2], row, 25)
+            keep_top(rankings["fp"], row["box"][1], row, 25)
+            keep_top(rankings["fn"], row["box"][2], row, 25)
+            for class_id, class_counts in analysis["classes"].items():
+                class_row = {**row, "box": class_counts}
+                keep_top(class_rankings[class_id], class_counts[1] + class_counts[2], class_row, 5)
+
+    top_class_items = sorted(classes.items(), key=lambda item: item[1]["tp"] + item[1]["fn"], reverse=True)[:20]
+    top_classes = {class_id for class_id, _ in top_class_items}
+    cohort_summary = sorted(
+        (
+            {"trait": key[0], "bin": key[1], **({"classId": int(key[2])} if len(key) == 3 else {}), **value}
+            for key, value in cohorts.items()
+            if len(key) == 2 or key[2] in top_classes
+        ),
+        key=lambda cohort: ("classId" in cohort, -cohort["images"]),
+    )[:200]
+
+    def evidence(row):
+        return {
+            "imageId": row["id"],
+            "box": row["box"],
+            "q": row["q"],
+            "w": row["w"],
+            "h": row["h"],
+            "b": row["b"],
+            "n": row["n"],
+            "a": row["a"],
+            "z": row["z"],
+        }
+
+    rankings = {view: [evidence(item[2]) for item in sorted(heap, reverse=True)] for view, heap in rankings.items()}
+    rankings["classes"] = [
+        {
+            "classId": int(class_id),
+            "images": [evidence(row) for _, _, row in sorted(class_rankings[class_id], reverse=True)],
+        }
+        for class_id, _ in top_class_items
+    ]
+    return {
+        "rows": rows,
+        "summary": {
+            "box": counts,
+            **({"task": task_counts} if task_metrics else {}),
+            "classes": [{"classId": int(class_id), **value} for class_id, value in top_class_items],
+        },
+        "cohorts": cohort_summary,
+        "rankings": rankings,
+        "population": len(image_metrics),
+        "identityCount": identity_count,
+        "detailOmitted": not retain_detail,
+        "traitCoverage": trait_coverage,
+    }
+
+
 class Metric(SimpleClass):
     """Class for computing evaluation metrics for Ultralytics YOLO models.
 
@@ -1055,7 +1208,15 @@ class Metric(SimpleClass):
             [self.px, self.r_curve, "Confidence", "Recall"],
         ]
 
-    def update_image_metrics(self, tp: np.ndarray, target_cls: np.ndarray, pred_cls: np.ndarray, im_name: str) -> None:
+    def update_image_metrics(
+        self,
+        tp: np.ndarray,
+        target_cls: np.ndarray,
+        pred_cls: np.ndarray,
+        im_name: str,
+        analysis: dict[str, Any] | None = None,
+        image_info: dict[str, Any] | None = None,
+    ) -> None:
         """Update per-image precision, recall, F1, TP, FP, and FN at IoU threshold 0.5.
 
         Args:
@@ -1080,7 +1241,7 @@ class Metric(SimpleClass):
             recall = tp / num_targets if num_targets else 0.0
             denom = precision + recall
             f1 = 2 * precision * recall / denom if denom else 0.0
-        self.image_metrics[im_name] = {
+        result = {
             "precision": float(precision),
             "recall": float(recall),
             "f1": float(f1),
@@ -1088,6 +1249,27 @@ class Metric(SimpleClass):
             "fp": int(fp),
             "fn": int(fn),
         }
+        if analysis is not None:
+            analysis_tp = analysis["tp"][:, 0]
+            analysis_pred_cls = analysis["pred_cls"].astype(int)
+            target_cls = target_cls.astype(int)
+            class_ids = np.union1d(analysis_pred_cls, target_cls)
+            result["analysis"] = {
+                "tp": int(analysis_tp.sum()),
+                "fp": int((~analysis_tp).sum()),
+                "fn": int(len(target_cls) - analysis_tp.sum()),
+                "classes": {
+                    str(class_id): [
+                        int(analysis_tp[analysis_pred_cls == class_id].sum()),
+                        int((~analysis_tp[analysis_pred_cls == class_id]).sum()),
+                        int((target_cls == class_id).sum() - analysis_tp[analysis_pred_cls == class_id].sum()),
+                    ]
+                    for class_id in class_ids
+                },
+            }
+        if image_info:
+            result["image"] = image_info
+        self.image_metrics[im_name] = result
 
 
 class DetMetrics(SimpleClass, DataExportMixin):
@@ -1140,7 +1322,9 @@ class DetMetrics(SimpleClass, DataExportMixin):
         """
         for k in self.stats.keys():
             self.stats[k].append(stat[k])
-        self.box.update_image_metrics(stat["tp"], stat["target_cls"], stat["pred_cls"], stat["im_name"])
+        self.box.update_image_metrics(
+            stat["tp"], stat["target_cls"], stat["pred_cls"], stat["im_name"], stat.get("analysis"), stat.get("image")
+        )
 
     def process(self, save_dir: Path = Path("."), plot: bool = False, on_plot=None) -> dict[str, np.ndarray]:
         """Process predicted results for object detection and update metrics.
@@ -1305,7 +1489,15 @@ class SegmentMetrics(DetMetrics):
                 keys in self.stats.
         """
         super().update_stats(stat)  # update box stats
-        self.seg.update_image_metrics(stat["tp_m"], stat["target_cls"], stat["pred_cls"], stat["im_name"])
+        analysis = stat.get("analysis")
+        self.seg.update_image_metrics(
+            stat["tp_m"],
+            stat["target_cls"],
+            stat["pred_cls"],
+            stat["im_name"],
+            {**analysis, "tp": analysis["tp_m"]} if analysis else None,
+            stat.get("image"),
+        )
 
     def clear_image_metrics(self) -> None:
         """Clear stored per-image metrics."""
@@ -1456,7 +1648,15 @@ class PoseMetrics(DetMetrics):
                 keys in self.stats.
         """
         super().update_stats(stat)  # update box stats
-        self.pose.update_image_metrics(stat["tp_p"], stat["target_cls"], stat["pred_cls"], stat["im_name"])
+        analysis = stat.get("analysis")
+        self.pose.update_image_metrics(
+            stat["tp_p"],
+            stat["target_cls"],
+            stat["pred_cls"],
+            stat["im_name"],
+            {**analysis, "tp": analysis["tp_p"]} if analysis else None,
+            stat.get("image"),
+        )
 
     def clear_image_metrics(self) -> None:
         """Clear stored per-image metrics."""

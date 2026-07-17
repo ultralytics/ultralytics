@@ -54,6 +54,31 @@ IMG_FORMATS = {
 }
 VID_FORMATS = {"asf", "avi", "gif", "m4v", "mkv", "mov", "mp4", "mpeg", "mpg", "ts", "wmv", "webm"}  # videos
 FORMATS_HELP_MSG = f"Supported formats are:\nimages: {IMG_FORMATS}\nvideos: {VID_FORMATS}"
+PLATFORM_TRAIT_VERSION = 1
+
+
+def image_quality_fingerprint(image: np.ndarray) -> bytes:
+    """Return the versioned 8-byte Platform quality fingerprint for a BGR or grayscale image."""
+    if max(image.shape[:2]) != 256:
+        scale = 256 / max(image.shape[:2])
+        size = round(image.shape[1] * scale), round(image.shape[0] * scale)
+        image = cv2.resize(image, size, interpolation=cv2.INTER_AREA)
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY) if image.ndim == 3 else image
+    luminance = gray.astype(np.float32)
+    sharpness = min(65535, round(float(np.log1p(cv2.Laplacian(gray, cv2.CV_32F).var())) * 4096))
+    saturation = 0 if image.ndim == 2 else round(float(cv2.cvtColor(image, cv2.COLOR_BGR2HSV)[..., 1].mean()))
+    return bytes(
+        (
+            PLATFORM_TRAIT_VERSION,
+            round(float(luminance.mean())),
+            min(255, round(float(luminance.std()) * 2)),
+            sharpness >> 8,
+            sharpness & 255,
+            round(float((luminance <= 16).mean()) * 255),
+            round(float((luminance >= 240).mean()) * 255),
+            saturation,
+        )
+    )
 
 
 def img2label_paths(img_paths: list[str], label_dir: str = "labels", suffix: str = ".txt") -> list[str]:

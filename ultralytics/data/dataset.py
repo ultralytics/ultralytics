@@ -192,6 +192,11 @@ class YOLODataset(BaseDataset):
             raise RuntimeError(f"No valid images found in {cache_path}.\n  {issues}\n{HELP_URL}")
         [cache.pop(k) for k in ("hash", "version", "msgs")]  # remove items
         self.im_files = [lb["im_file"] for lb in labels]  # update im_files
+        if metadata_file := self.data.get("platform_metadata"):
+            metadata = json.loads((Path(self.data["path"]) / metadata_file).read_text())
+            for label in labels:
+                if platform := metadata.get(Path(label["im_file"]).name):
+                    label["platform"] = platform
 
         # Check if the dataset is all boxes or all segments
         lengths = ((len(lb["cls"]), len(lb["bboxes"]), len(lb["segments"])) for lb in labels)

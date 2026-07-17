@@ -57,25 +57,43 @@ yolo detect train data=SKU-110K.yaml model=yolo26l.pt imgsz=640 epochs=100
 
 `model=yolo26l.pt` starts from COCO weights. If you have a domain-pretrained YOLO26l backbone (for example a product/retail-pretrained checkpoint), pass it as `model=<backbone>.pt` instead for a stronger starting point on dense shelf imagery.
 
+### If your detector has multiple classes
+
+This example assumes a single-class detector (`0: object`) and identifies every detection. If your detector predicts multiple classes (for example a `product` class alongside a `shelf_gap` or `background` class), keep only the classes you want to identify before cropping, so non-product boxes are not sent to the ReID model. Edit the box-collection line in `identify_shelves` (`sku_recognition.py`):
+
+```python
+boxes = result.boxes.xyxy.cpu().numpy().astype(int)  # single-class: every detection
+```
+
+Replace it with a class filter listing the product class ids to keep:
+
+```python
+b = result.boxes
+keep = [i for i, c in enumerate(b.cls.tolist()) if int(c) in {0, 1}]  # product class ids to identify
+boxes = b.xyxy[keep].cpu().numpy().astype(int)
+```
+
 ### Fine-tune the ReID model on your SKUs
 
-The default ReID model is pretrained on RP2K product crops, so it already embeds retail packaging well and is a strong seed for your own catalog. Arrange your labeled crops into folder-per-SKU `train/query/gallery` splits (the same layout the gallery uses):
+The default conv-L ReID model is pretrained on RP2K product crops, a strong seed for retail packaging. Off the shelf it does not separate near-identical variants (same product, different size or flavor), so fine-tune it on your own crops.
+
+Your labeled crops are a classification-style set, one folder per SKU. Split them into `train/query/gallery`:
 
 ```yaml
 # your-skus.yaml
-path: your_skus # dataset root, relative to your Ultralytics datasets dir
+path: your_skus # dataset root under your Ultralytics datasets dir
 train: train # folder-per-SKU training crops
-val: query # held-out query crops, one or more per SKU
+val: query # held-out query crops, 1+ per SKU
 gallery: gallery # reference crops each query is matched against
 nc: 1200 # number of training SKU identities
 ```
 
 ```bash
-yolo reid train data=your-skus.yaml imgsz=256 \
+yolo reid train data=your-skus.yaml imgsz=448 \
   model=ul://fatih-enterprise/yolo26-reid-sku-feature-extraction/yolo26l-reid-rp2k-pretrain
 ```
 
-See the [custom ReID dataset guide](https://docs.ultralytics.com/guides/reid-custom-dataset/) for the folder-per-SKU dataset schema, and the [ReID fine-tuning guide](https://docs.ultralytics.com/guides/reid-finetuning/) for image-size and model-size guidance and mAP / Rank-1 evaluation. This example trains at `imgsz=256` to match the deployed RP2K seed and the on-device export, while the guides default to 448 for best standalone accuracy.
+Train at `imgsz=448` so small on-pack text that separates variants stays legible. See the [custom ReID dataset guide](https://docs.ultralytics.com/guides/reid-custom-dataset/) and [ReID fine-tuning guide](https://docs.ultralytics.com/guides/reid-finetuning/) for the dataset schema and mAP / Rank-1 evaluation.
 
 ## Run
 
@@ -109,7 +127,7 @@ Exactly one of `--source` or `--crops` is required. Folders are expanded the sam
 
 | Flag           | Default    | Description                                                          |
 | -------------- | ---------- | -------------------------------------------------------------------- |
-| `--imgsz`      | `256`      | ReID embedding image size (match how the ReID model was trained)     |
+| `--imgsz`      | `448`      | ReID embedding image size (match how the ReID model was trained)     |
 | `--det-imgsz`  | `640`      | detector image size                                                  |
 | `--conf`       | `0.25`     | detector confidence threshold                                        |
 | `--topk`       | `5`        | gallery neighbors per crop for the vote                              |
@@ -129,7 +147,7 @@ Both models export to CoreML and TFLite/LiteRT, so the whole detect, embed, and 
 ```bash
 # CoreML for iOS. Use format=tflite for TFLite/LiteRT on Android.
 yolo export model=yolo26l-sku.pt format=coreml imgsz=640 quantize=16  # detector -> yolo26l-sku.mlpackage
-yolo export model=yolo26l-reid.pt format=coreml imgsz=256 quantize=16 # reid     -> yolo26l-reid.mlpackage (~29 MB)
+yolo export model=yolo26l-reid.pt format=coreml imgsz=448 quantize=16 # reid     -> yolo26l-reid.mlpackage
 ```
 
 CoreML export is lightweight, TFLite/LiteRT pulls a larger TensorFlow and ONNX toolchain on first export.

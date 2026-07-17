@@ -12,14 +12,6 @@ keywords: Ultralytics, download utilities, URL validation, zip directory, unzip 
 
 <br>
 
-## ::: ultralytics.utils.downloads._Http308RedirectHandler
-
-<br><br><hr><br>
-
-## ::: ultralytics.utils.downloads._urlopen
-
-<br><br><hr><br>
-
 ## ::: ultralytics.utils.downloads.is_url
 
 <br><br><hr><br>

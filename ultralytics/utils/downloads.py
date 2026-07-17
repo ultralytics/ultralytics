@@ -13,42 +13,6 @@ from urllib import parse, request
 
 from ultralytics.utils import ASSETS_URL, LOGGER, TQDM, checks, clean_url, emojis, is_online, url2file
 
-
-class _Http308RedirectHandler(request.HTTPRedirectHandler):
-    """Follow HTTP 308 Permanent Redirect responses, unsupported by urllib's opener before Python 3.11."""
-
-    http_error_308 = request.HTTPRedirectHandler.http_error_301
-
-    def redirect_request(self, req, fp, code, msg, headers, newurl):
-        """Allow 308 alongside the redirect codes urllib recognizes natively on this Python version."""
-        m = req.get_method()
-        if code == 308 and m in ("GET", "HEAD"):
-            content_headers = ("content-length", "content-type")
-            newheaders = {k: v for k, v in req.headers.items() if k.lower() not in content_headers}
-            return request.Request(
-                newurl.replace(" ", "%20"),
-                method=m,
-                headers=newheaders,
-                origin_req_host=req.origin_req_host,
-                unverifiable=True,
-            )
-        return super().redirect_request(req, fp, code, msg, headers, newurl)
-
-
-def _urlopen(*args, **kwargs):
-    """Open a URL like `urllib.request.urlopen`, backporting HTTP 308 support when no handler provides it."""
-    opener = request._opener
-    if opener is None:
-        opener = request.build_opener()
-        request.install_opener(opener)
-    handlers = getattr(opener, "handlers", ())
-    if any(type(h) is request.HTTPRedirectHandler for h in handlers) and not any(
-        hasattr(h, "http_error_308") for h in handlers
-    ):
-        opener.add_handler(_Http308RedirectHandler())
-    return opener.open(*args, **kwargs)
-
-
 # Define Ultralytics GitHub assets maintained at https://github.com/ultralytics/assets
 GITHUB_ASSETS_REPO = "ultralytics/assets"
 GITHUB_ASSETS_NAMES = frozenset(
@@ -101,7 +65,7 @@ def is_url(url: str | Path, check: bool = False) -> bool:
         if not (result.scheme and result.netloc):
             return False
         if check:
-            r = _urlopen(request.Request(url, method="HEAD"), timeout=3)
+            r = request.urlopen(request.Request(url, method="HEAD"), timeout=3)
             return 200 <= r.getcode() < 400
         return True
     except Exception:
@@ -380,7 +344,7 @@ def safe_download(
                         r = subprocess.run(["curl", "-#", f"-{s}L", url, "-o", f, "--retry", "3", "-C", "-"]).returncode
                         assert r == 0, f"Curl return value {r}"
                     else:  # urllib download
-                        with _urlopen(url) as response:
+                        with request.urlopen(url) as response:
                             expected_size = int(response.getheader("Content-Length", 0))
                             if i == 0 and expected_size > 1048576:
                                 check_disk_space(expected_size, path=f.parent)

@@ -35,7 +35,7 @@ class _Http308RedirectHandler(request.HTTPRedirectHandler):
         return super().redirect_request(req, fp, code, msg, headers, newurl)
 
 
-_opener = None  # lazily built on first use, matching urllib.request.urlopen()'s own opener timing
+_fallback_opener = None  # lazily built default opener, reused only while nothing has been installed
 
 
 def _urlopen(*args, **kwargs):
@@ -43,13 +43,18 @@ def _urlopen(*args, **kwargs):
 
     Extends whichever opener is in effect (the one installed via `urllib.request.install_opener`, or urllib's default)
     instead of replacing it, so any custom proxy, auth, or TLS handlers the caller configured keep working.
+    Re-checks the installed opener on every call, matching `urlopen()`'s own behavior, so a later
+    `install_opener()` call is picked up rather than left stale.
     """
-    global _opener
-    if _opener is None:
-        _opener = request._opener or request.build_opener()
-        if not any(isinstance(h, _Http308RedirectHandler) for h in _opener.handlers):
-            _opener.add_handler(_Http308RedirectHandler())
-    return _opener.open(*args, **kwargs)
+    global _fallback_opener
+    opener = request._opener
+    if opener is None:
+        if _fallback_opener is None:
+            _fallback_opener = request.build_opener()
+        opener = _fallback_opener
+    if not any(isinstance(h, _Http308RedirectHandler) for h in opener.handlers):
+        opener.add_handler(_Http308RedirectHandler())
+    return opener.open(*args, **kwargs)
 
 
 # Define Ultralytics GitHub assets maintained at https://github.com/ultralytics/assets

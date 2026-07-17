@@ -6,9 +6,20 @@
 # sigmoid gate; near-zero cost (O(C^2*(H+W))).
 # Rep-block expansion `rep_e` scales per model size (4th scales entry): dense RepConv
 # cost grows as (c2*width*rep_e)^2, so wider scales use smaller rep_e. Values = max
-# capacity with speed >= same-scale yolo26 baseline (interleaved median-of-3, b16 fp16):
-# next step up fails at every scale (m 0.3125: 967<985; x 0.334: 433<437). Prefer rep
-# widths that are multiples of 16 (tensor-core alignment; x 264ch was catastrophic).
+# capacity with speed >= same-scale yolo26 baseline (interleaved median-of-3, b16 fp16,
+# fused, GPU 3). NOTE: this config also has FPN head depth 3 vs baseline's 2 (layers
+# 15/18) — the sweep varied only rep_e with that extra depth held fixed, so speed
+# margins are net of the deeper head. Next rep_e step up fails at every scale
+# (m 0.3125: 967<985; x 0.334: 433<437). Prefer rep widths (c2*width*rep_e) that are
+# multiples of 16 — tensor-core alignment; x at 264ch collapsed to 375 img/s.
+#
+# Benchmarks (b16 fp16, img/s, vs same-scale yolo26 baseline):
+#   scale  rep_e    params(fused)  GFLOPs   this   base   margin
+#   n      0.5       2.8M           n/a     3457   3694   -6.4%  <- see note below
+#   s      0.5      11.0M          28.4     (trained champion, mAP 0.4788 vs 0.4755)
+#   m      0.28125  19.5M          68.3     1013    985   +2.8%
+#   l      0.3125   24.8M          96.8      774    754   +2.7%
+#   x      0.3125   55.7M         217.2      448    437   +2.5%
 
 # Parameters
 nc: 80 # number of classes
@@ -17,7 +28,7 @@ reg_max: 1 # DFL bins
 scale_args: [rep_e] # names for scales entries beyond [depth, width, max_channels]
 scales: # model compound scaling constants, i.e. 'model=yolo26n.yaml' will call yolo26.yaml with scale 'n'
   # [depth, width, max_channels, rep_e]
-  n: [0.50, 0.25, 1024, 0.5] # NOTE: n is ~6% slower than yolo26n at any rep_e (fixed extras dominate)
+  n: [0.50, 0.25, 1024, 0.5] # ~6% slower than yolo26n at any rep_e — fixed extras (strip convs, head depth 3) dominate at this width; consider reducing head depth to 2 at n to reach parity
   s: [0.50, 0.50, 1024, 0.5]
   m: [0.50, 1.00, 512, 0.28125] # 1013 vs base 985 img/s
   l: [1.00, 1.00, 512, 0.3125] # 774 vs base 754 img/s

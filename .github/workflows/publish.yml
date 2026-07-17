@@ -28,7 +28,7 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.x"
-      - uses: astral-sh/setup-uv@v7
+      - uses: ultralytics/actions/setup-uv@main
       - run: uv pip install --system --no-cache ultralytics-actions
       - id: check_pypi
         shell: python
@@ -76,7 +76,7 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.x"
-      - uses: astral-sh/setup-uv@v7
+      - uses: ultralytics/actions/setup-uv@main
       - run: uv pip install --system --no-cache build
       - name: Build ultralytics
         run: python -m build --outdir dist/
@@ -136,7 +136,7 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.x"
-      - uses: astral-sh/setup-uv@v7
+      - uses: ultralytics/actions/setup-uv@main
       - run: |
           uv venv sbom-env
           uv pip install -e .

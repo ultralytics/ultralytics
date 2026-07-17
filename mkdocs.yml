@@ -816,6 +816,7 @@ nav:
               - coreml: reference/nn/backends/coreml.md
               - deepx: reference/nn/backends/deepx.md
               - executorch: reference/nn/backends/executorch.md
+              - hailo: reference/nn/backends/hailo.md
               - litert: reference/nn/backends/litert.md
               - mnn: reference/nn/backends/mnn.md
               - ncnn: reference/nn/backends/ncnn.md

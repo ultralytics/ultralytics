@@ -184,7 +184,7 @@ def _sanitize_json_value(value):
     return value
 
 
-def _send(event, data, project, name, model_id=None, retry=2):
+def _send(event, data, project, name, model_id=None, retry=2, timeout=30):
     """Send event to Platform endpoint with retry logic."""
     payload = {"event": event, "project": project, "name": name, "data": _sanitize_json_value(data)}
     if model_id:
@@ -196,7 +196,7 @@ def _send(event, data, project, name, model_id=None, retry=2):
             f"{PLATFORM_API_URL}/training/metrics",
             json=payload,
             headers={"Authorization": f"Bearer {_api_key}"},
-            timeout=30,
+            timeout=timeout,
         )
         if 400 <= r.status_code < 500 and r.status_code not in {408, 429}:
             try:
@@ -234,7 +234,7 @@ def _handle_control_response(trainer, ctx, response):
         LOGGER.info(f"{PREFIX}Training cancelled from Platform ⚠️")
 
 
-def _upload_model(model_path, project, name, progress=False, retry=1, model_id=None):
+def _upload_model(model_path, project, name, progress=False, retry=1, model_id=None, run_id=None):
     """Upload model checkpoint to Platform via signed URL."""
     from ultralytics.utils.uploads import safe_upload
 
@@ -249,6 +249,8 @@ def _upload_model(model_path, project, name, progress=False, retry=1, model_id=N
         payload = {"project": project, "name": name, "filename": model_path.name}
         if model_id:
             payload["modelId"] = model_id  # Direct lookup avoids slug mismatch from auto-increment
+        if run_id:
+            payload["runId"] = run_id
         r = requests.post(
             f"{PLATFORM_API_URL}/models/upload",
             json=payload,
@@ -266,13 +268,23 @@ def _upload_model(model_path, project, name, progress=False, retry=1, model_id=N
 
     # Upload to GCS using safe_upload with retry logic and optional progress bar
     if safe_upload(file=model_path, url=data["uploadUrl"], retry=retry, progress=progress):
-        return data.get("gcsPath")
+        gcs_path = data.get("gcsPath")
+        if gcs_path and run_id:
+            saved = _send(
+                "checkpoint_saved",
+                {
+                    "modelPath": gcs_path,
+                    "runId": run_id,
+                    "uploadPath": data.get("uploadPath"),
+                },
+                project,
+                name,
+                model_id,
+                timeout=90,
+            )
+            return gcs_path if saved else None
+        return gcs_path
     return None
-
-
-def _upload_model_async(model_path, project, name, model_id=None):
-    """Upload model asynchronously using bounded thread pool."""
-    _executor.submit(_upload_model, model_path, project, name, model_id=model_id)
 
 
 def _get_environment_info():
@@ -345,7 +357,15 @@ def on_pretrain_routine_start(trainer):
     LOGGER.info(f"{PREFIX}Streaming training metrics to Platform")
 
     # Single dict for all platform callback state (like trainer.hub_session for HUB callbacks)
-    ctx = {"model_id": None, "last_upload": time(), "cancelled": False, "console_logger": None, "system_logger": None}
+    ctx = {
+        "model_id": None,
+        "run_id": None,
+        "last_upload": time(),
+        "checkpoint_upload": None,
+        "cancelled": False,
+        "console_logger": None,
+        "system_logger": None,
+    }
     trainer.platform = ctx
 
     # Create callback to send console output to Platform
@@ -385,6 +405,7 @@ def on_pretrain_routine_start(trainer):
     )
     if response and response.get("modelId"):
         ctx["model_id"] = response["modelId"]
+        ctx["run_id"] = response.get("runId")
         # Server returns actual slug (may differ from requested name due to auto-increment, e.g. "train" → "train-2")
         if response.get("modelSlug"):
             ctx["model_slug"] = response["modelSlug"]
@@ -466,13 +487,17 @@ def on_model_save(trainer):
     # Rate limit to every 15 minutes (900 seconds)
     if time() - ctx["last_upload"] < 900:
         return
+    if ctx["checkpoint_upload"] and not ctx["checkpoint_upload"].done():
+        return
 
     model_path = trainer.best if trainer.best and Path(trainer.best).exists() else trainer.last
     if not model_path:
         return
 
     project, name = _get_project_name(trainer)
-    _upload_model_async(model_path, project, name, model_id=ctx["model_id"])
+    ctx["checkpoint_upload"] = _executor.submit(
+        _upload_model, model_path, project, name, model_id=ctx["model_id"], run_id=ctx["run_id"]
+    )
     ctx["last_upload"] = time()
 
 
@@ -496,8 +521,18 @@ def on_train_end(trainer):
     gcs_path = None
     model_size = None
     if trainer.best and Path(trainer.best).exists():
+        if ctx["checkpoint_upload"]:
+            ctx["checkpoint_upload"].result()
         model_size = Path(trainer.best).stat().st_size
-        gcs_path = _upload_model(trainer.best, project, name, progress=True, retry=3, model_id=ctx["model_id"])
+        gcs_path = _upload_model(
+            trainer.best,
+            project,
+            name,
+            progress=True,
+            retry=3,
+            model_id=ctx["model_id"],
+            run_id=ctx["run_id"],
+        )
         if not gcs_path:
             LOGGER.warning(f"{PREFIX}Model will not be available for download on Platform (upload failed)")
 
@@ -531,6 +566,7 @@ def on_train_end(trainer):
             },
             "classNames": class_names,
             "plots": plots,
+            "runId": ctx["run_id"],
         },
         project,
         name,

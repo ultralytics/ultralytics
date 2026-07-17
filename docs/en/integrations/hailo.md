@@ -165,6 +165,24 @@ model.export(format="hailo", name="hailo8l", data="my_dataset.yaml")
 
 `fraction` selects the portion of the dataset used for calibration. More images help only when they represent the deployment domain; out-of-domain images can reduce quantized accuracy and increase optimization time. If the INT8 HEF loses accuracy relative to the original PyTorch model, first improve the calibration data before changing model or runtime settings.
 
+### Accuracy Expectations by Model Family
+
+Measured on a Hailo-8L with in-domain calibration (COCO128, 128 images), INT8 HEF exports retain the following share of their PyTorch mAP50 under the same evaluation protocol:
+
+| Model   | mAP50 retention | Notes                                                    |
+| :------ | :-------------- | :------------------------------------------------------- |
+| YOLOv8n | ~100%           | DFL head with on-chip NMS                                |
+| YOLO11n | ~96%            | Attention blocks in the backbone are more INT8-sensitive |
+| YOLO26n | ~93%            | End-to-end head plus attention; see the confidence note  |
+
+Retention compares both models at the same confidence threshold. YOLOv8 and YOLO11 HEFs bake the export-time `conf` (default 0.25) into the on-chip NMS, so validating against a PyTorch baseline at its default low threshold integrates a larger part of the precision-recall curve and overstates the quantization gap.
+
+Three practical rules follow from device measurements:
+
+1. **Calibrate in-domain, always.** Fine-tuning with out-of-domain images is equivalent to disabling fine-tuning entirely: a YOLO26n calibrated with 1,238 out-of-domain images retains the same accuracy (85.7%) as one compiled without fine-tuning. A small in-domain set beats a large out-of-domain one.
+2. **Lower `conf` by about 0.05 for YOLO26 deployments.** Quantization shifts YOLO26 scores down by roughly 0.05 on average, so a threshold tuned in PyTorch drops valid detections on the HEF. Using `conf=0.20` on device matches the detection count of PyTorch at `conf=0.25` and recovers about half of the accuracy gap; the remainder is ranking noise that no threshold recovers.
+3. **The attention penalty is structural on Hailo-8/8L (DFC 3.33).** The attention blocks compile to `matmul` operations that keep INT8 activation inputs in every mode the compiler offers for them; the 16-bit-output mode fails allocation for this graph, and raising the precision of the surrounding layers does not help because the matmul requantizes its inputs to INT8 anyway (protecting the depthwise and output convolutions at 16-bit left mAP unchanged in our tests). When accuracy is the priority and the model is interchangeable, YOLO11 currently quantizes better than YOLO26 here; newer Hailo generations (DFC 5.x) expose more mixed-precision options and may differ.
+
 ## Exported Artifacts
 
 Export creates a directory containing the deployable HEF and Ultralytics metadata:
@@ -184,10 +202,6 @@ The intermediate ONNX graph is removed after compilation.
 
 ## Run Inference on Hailo Hardware
 
-!!! note "Inference support"
-
-    Ultralytics exports Hailo HEF files but does not currently run `predict` or `val` on them. Use HailoRT, TAPPAS, GStreamer, or the Raspberry Pi Hailo helper for inference.
-
 Install HailoRT on the target device. Raspberry Pi AI Kit and AI HAT+ users can follow the [Raspberry Pi AI software guide](https://www.raspberrypi.com/documentation/computers/ai.html):
 
 ```bash
@@ -195,9 +209,16 @@ sudo apt install hailo-all
 hailortcli fw-control identify
 ```
 
-Copy the complete export directory to the device so `metadata.yaml` remains next to the HEF. Load the `*.hef` with HailoRT, TAPPAS, or the Raspberry Pi `picamera2.devices.Hailo` helper.
+Copy the complete export directory to the device so `metadata.yaml` remains next to the HEF. Ultralytics uses HailoRT to run `predict` and `val` directly on the exported directory:
 
-YOLOv8 and YOLO11 exports include HailoRT NMS and return detections grouped by class. YOLO26 exports expose six NMS-free one-to-one tensors ordered by branch: three regression tensors followed by three classification tensors. The classification outputs are logits, so apply sigmoid before decoding them with a YOLO26 end-to-end post-processing pipeline.
+```python
+from ultralytics import YOLO
+
+model = YOLO("yolo11n_hailo_model")
+results = model.predict("path/to/image.jpg")
+```
+
+The backend converts YOLOv8 and YOLO11 HailoRT NMS output and decodes YOLO26 one-to-one outputs automatically. TAPPAS, GStreamer, and the Raspberry Pi `picamera2.devices.Hailo` helper remain available for application-specific pipelines.
 
 For a GStreamer deployment, pass the HEF to `hailonet`:
 
@@ -292,7 +313,7 @@ DFC optimization is the most expensive stage. Compilation time increases with mo
 
 ### Quantized Model Accuracy Drops
 
-Use calibration images that resemble production inputs and include the important objects, scales, lighting conditions, and backgrounds. Compare the original PyTorch model and exported HEF on the same validation set before deployment.
+Use calibration images that resemble production inputs and include the important objects, scales, lighting conditions, and backgrounds. Compare the original PyTorch model and exported HEF on the same validation set before deployment. A moderate family-dependent gap remains even with good calibration; see [Accuracy Expectations by Model Family](#accuracy-expectations-by-model-family) for the measured baselines.
 
 ### HEF Does Not Load on the Device
 
@@ -300,7 +321,7 @@ Confirm that `name` matched the physical Hailo architecture and that the device 
 
 ### Output Parsing Looks Incorrect
 
-YOLOv8 and YOLO11 HEFs include HailoRT NMS and return detections grouped by class. YOLO26 exports raw one-to-one detection-head outputs for an NMS-free runtime path. Use post-processing that matches the exported model family.
+Keep `metadata.yaml` beside the HEF so Ultralytics can select the matching YOLOv8, YOLO11, or YOLO26 post-processing path. Custom HailoRT applications must likewise match post-processing to the exported model family.
 
 ## FAQ
 

@@ -245,6 +245,10 @@ Ultralytics Platform offers the following Jetson target selections for TensorRT 
 
 The timings are single observed end-to-end production routing tests from July 2026, rounded to the nearest second; they are reference measurements, not an SLA or per-SKU performance benchmark. Both Thor selections are built on a T5000 Developer Kit in NVIDIA's T4000 compatibility profile. The six Orin routes are built on an AGX Orin 64GB, where every resulting engine was loaded and run. Because TensorRT engines are tied to the build GPU and software stack, the smaller-Orin artifacts are candidates until they load and infer on their listed SKUs. Test memory fit on smaller Orin SKUs and perform INT8 calibration on the target device for best results. See the [NVIDIA Jetson guide](../../guides/nvidia-jetson.md) and [TensorRT integration guide](../../integrations/tensorrt.md) for local deployment details.
 
+!!! warning "Match the TensorRT and CUDA versions on your device"
+
+    Before loading a downloaded engine, confirm your deployment device runs the same TensorRT and CUDA versions the engine was built with, whether that device is an x86 NVIDIA GPU or a Jetson. You can refer to the versions shown in the table above. On a version mismatch the engine fails to deserialize, so export locally on the target device instead.
+
 ### RKNN Chip Support
 
 When exporting to RKNN format, select your target Rockchip device:

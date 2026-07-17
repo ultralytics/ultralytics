@@ -1069,17 +1069,18 @@ def attempt_compile(
         from torch import _dynamo, _inductor  # load lazy submodules (lazy in torch 2.0)
 
         _dynamo.reset()  # clear stale compilation cache so the options below actually take effect
-        if hasattr(_inductor, "list_mode_options"):  # torch>=2.1
+        if mode.startswith("max-autotune") and hasattr(_inductor, "list_mode_options"):  # torch>=2.1
             # max-autotune defaults enable CUDA graph trees and coordinate descent tuning, which give
             # nondeterministic results (see cudagraph skip warnings) and slow compiles. Keep the mode's
-            # other options but force these off so max-autotune stays reproducible.
+            # other options but force these off so max-autotune stays reproducible. Other modes are left
+            # untouched, e.g. reduce-overhead keeps its CUDA graphs.
             options = {
                 **_inductor.list_mode_options(mode),
                 "coordinate_descent_tuning": False,
                 "triton.cudagraph_trees": False,
             }
             model = torch.compile(model, backend="inductor", options=options)
-        else:  # torch 2.0 has no list_mode_options, fall back to plain mode
+        else:
             model = torch.compile(model, mode=mode, backend="inductor")
     except Exception as e:
         LOGGER.warning(f"{prefix} torch.compile failed, continuing uncompiled: {e}")

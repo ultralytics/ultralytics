@@ -209,6 +209,9 @@ Default settings include:
 - **Confidence Threshold (`conf=0.25`)**: Minimum confidence for detections.
 - **IoU Threshold (`iou=0.7`)**: For [Non-Maximum Suppression (NMS)](https://www.ultralytics.com/glossary/non-maximum-suppression-nms).
 - **Image Size (`imgsz=640`)**: Resizes input images.
+
+    !!! note "imgsz must be a multiple of max stride"
+        The `imgsz` argument must be divisible by the model's maximum stride (typically 32). If you pass a value that is not a multiple, Ultralytics will automatically adjust it to the nearest valid size.
 - **Device (`device=None`)**: Selects CPU, GPU, Apple MPS or Huawei Ascend NPU (`npu`).
 
 For a full overview, see [Predict Settings](#predict-settings) and the [Predict Guide](../modes/predict.md).

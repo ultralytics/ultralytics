@@ -17,7 +17,7 @@ class HailoBackend(BaseBackend):
     """HailoRT inference backend for Ultralytics Hailo HEF models."""
 
     def load_model(self, weight: str | Path) -> None:
-        """Load a Hailo HEF model and its Ultralytics metadata."""
+        """Load a Hailo export directory and its Ultralytics metadata."""
         try:
             from hailo_platform import (
                 HEF,
@@ -36,7 +36,7 @@ class HailoBackend(BaseBackend):
             ) from e
 
         w = Path(weight)
-        hef_file = w if w.suffix == ".hef" else next(w.rglob("*.hef"), None)
+        hef_file = next(w.rglob("*.hef"), None)
         if hef_file is None or not hef_file.is_file():
             raise FileNotFoundError(f"No .hef file found in: {w}")
 

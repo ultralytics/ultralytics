@@ -1665,11 +1665,16 @@ def parse_model(d, ch, verbose=True):
     fixed_c3 = d.get("fixed_c3", 0)
     depth, width, kpt_shape = (d.get(x, 1.0) for x in ("depth_multiple", "width_multiple", "kpt_shape"))
     scale = d.get("scale")
+    scale_consts = {}  # named per-scale constants beyond [depth, width, max_channels], see `scale_args`
     if scales:
         if not scale:
             scale = next(iter(scales.keys()))
             LOGGER.warning(f"no model scale passed. Assuming scale='{scale}'.")
-        depth, width, max_channels = scales[scale]
+        vals = scales[scale]
+        depth, width, max_channels = vals[:3]
+        # Optional extra scaling constants: `scale_args: [rep_e, ...]` names scales entries 4+, and
+        # module args may reference them by name, e.g. [-1, 2, C3k2Rep, [256, False, rep_e]]
+        scale_consts = dict(zip(d.get("scale_args", []), vals[3:]))
 
     if act:
         Conv.default_act = eval(act)  # redefine default activation, i.e. Conv.default_act = torch.nn.SiLU()
@@ -1781,7 +1786,7 @@ def parse_model(d, ch, verbose=True):
         for j, a in enumerate(args):
             if isinstance(a, str):
                 with contextlib.suppress(ValueError):
-                    args[j] = locals()[a] if a in locals() else ast.literal_eval(a)
+                    args[j] = scale_consts[a] if a in scale_consts else locals()[a] if a in locals() else ast.literal_eval(a)
         n = n_ = max(round(n * depth), 1) if n > 1 else n  # depth gain
         if m in base_modules:
             c1, c2 = ch[f], args[0]

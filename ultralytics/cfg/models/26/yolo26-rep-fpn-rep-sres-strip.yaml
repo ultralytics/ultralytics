@@ -4,27 +4,31 @@
 # Variant: rep-fpn-rep-sres with strip-pooling attention (SPNet/ZipDepth) at backbone
 # P4 (new) and P5 (after C2PSA). Global axial context via H/W strip pooling + symmetric
 # sigmoid gate; near-zero cost (O(C^2*(H+W))).
+# Rep-block expansion `rep_e` scales per model size (4th scales entry): dense RepConv
+# cost grows as (c2*width*rep_e)^2, so wider scales use smaller rep_e. Benched b16 fp16:
+# m 1070 (base 987), l 870 (base 783), x 499 (base 436) img/s — larger AND faster.
 
 # Parameters
 nc: 80 # number of classes
 end2end: True # whether to use end-to-end mode
 reg_max: 1 # DFL bins
+scale_args: [rep_e] # names for scales entries beyond [depth, width, max_channels]
 scales: # model compound scaling constants, i.e. 'model=yolo26n.yaml' will call yolo26.yaml with scale 'n'
-  # [depth, width, max_channels]
-  n: [0.50, 0.25, 1024]
-  s: [0.50, 0.50, 1024]
-  m: [0.50, 1.00, 512]
-  l: [1.00, 1.00, 512]
-  x: [1.00, 1.50, 512]
+  # [depth, width, max_channels, rep_e]
+  n: [0.50, 0.25, 1024, 0.5]
+  s: [0.50, 0.50, 1024, 0.5]
+  m: [0.50, 1.00, 512, 0.375]
+  l: [1.00, 1.00, 512, 0.25]
+  x: [1.00, 1.50, 512, 0.25]
 
 # YOLO26n backbone
 backbone:
   # [from, repeats, module, args]
   - [-1, 1, Conv, [64, 3, 2]] # 0-P1/2
   - [-1, 1, Conv, [128, 3, 2]] # 1-P2/4
-  - [-1, 2, C3k2Rep, [256, False, 0.5]] # 2 - rep block, e=0.5
+  - [-1, 2, C3k2Rep, [256, False, rep_e]] # 2 - rep block
   - [-1, 1, Conv, [256, 3, 2]] # 3-P3/8
-  - [-1, 2, C3k2Rep, [512, False, 0.5]] # 4 - rep block, e=0.5
+  - [-1, 2, C3k2Rep, [512, False, rep_e]] # 4 - rep block
   - [-1, 1, Conv, [512, 3, 2]] # 5-P4/16
   - [-1, 2, C3k2, [512, True]]
   - [-1, 1, StripAttn, []] # 7 - strip gate at P4
@@ -38,19 +42,19 @@ backbone:
 head:
   - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
   - [[-1, 7], 1, Concat, [1]]
-  - [-1, 3, C3k2Rep, [512, True]] # 15 - increase depth
+  - [-1, 3, C3k2Rep, [512, True, rep_e]] # 15 - increase depth
 
   - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
   - [[-1, 4], 1, Concat, [1]]
-  - [-1, 3, C3k2Rep, [256, True]] # 18 - increase depth
+  - [-1, 3, C3k2Rep, [256, True, rep_e]] # 18 - increase depth
 
   - [-1, 1, Conv, [256, 3, 2]]
   - [[-1, 15], 1, Concat, [1]]
-  - [-1, 2, C3k2Rep, [512, True]] # 21
+  - [-1, 2, C3k2Rep, [512, True, rep_e]] # 21
 
   - [-1, 1, Conv, [512, 3, 2]]
   - [[-1, 12], 1, Concat, [1]]
-  - [-1, 2, C3k2Rep, [1024, True, 0.5, True]] # 24
+  - [-1, 2, C3k2Rep, [1024, True, rep_e, True]] # 24
   - [[-1, 12], 1, ScaledAdd, []] # 25: scaled residual from backbone P5
 
   - [[18, 21, 25], 1, Detect, [nc]]

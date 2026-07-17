@@ -1225,6 +1225,8 @@ class Metric(SimpleClass):
             target_cls (np.ndarray): Ground truth class labels for the image.
             pred_cls (np.ndarray): Predicted class labels for the image.
             im_name (str): The image filename used as the per-image key.
+            analysis (dict[str, Any] | None): Platform operating-point match data.
+            image_info (dict[str, Any] | None): Platform image identity and trait data.
         """
         # Use the default IoU=0.5 column to match the validator's image-level matching policy.
         tp = int(tp[:, 0].sum())

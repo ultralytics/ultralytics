@@ -4,35 +4,38 @@
 # Variant: rep-fpn-rep-sres with strip-pooling attention (SPNet/ZipDepth) at backbone
 # P4 (new) and P5 (after C2PSA). Global axial context via H/W strip pooling + symmetric
 # sigmoid gate; near-zero cost (O(C^2*(H+W))).
-# Rep-block expansion `rep_e` scales per model size (4th scales entry): dense RepConv
-# cost grows as (c2*width*rep_e)^2, so wider scales use smaller rep_e. Values = max
-# capacity with speed >= same-scale yolo26 baseline (interleaved median-of-3, b16 fp16,
-# fused, GPU 3). NOTE: this config also has FPN head depth 3 vs baseline's 2 (layers
-# 15/18) — the sweep varied only rep_e with that extra depth held fixed, so speed
-# margins are net of the deeper head. Next rep_e step up fails at every scale
-# (m 0.3125: 967<985; x 0.334: 433<437). Prefer rep widths (c2*width*rep_e) that are
-# multiples of 16 — tensor-core alignment; x at 264ch collapsed to 375 img/s.
+# Per-scale constants (scale_args): `rep_e` = rep-block expansion (dense RepConv cost
+# grows as (c2*width*rep_e)^2, so wider scales use smaller rep_e) and `head_n` = FPN
+# head repeats for layers 15/18 (baseline yolo26 uses 2). Values from a joint
+# head_n x rep_e sweep = max capacity with speed >= same-scale yolo26 baseline
+# (interleaved median-of-3+, b16 fp16, fused, GPU 3). Constraints found:
+# - rep width (c2*width*rep_e) should be a multiple of 16 (tensor-core alignment;
+#   x at 264ch collapsed to 375 img/s)
+# - head attn channels must divide PSABlock num_heads=c//64 (e=0.4375 at l/x -> 336ch,
+#   5 heads, crash)
 #
-# Benchmarks (b16 fp16, img/s, vs same-scale yolo26 baseline):
-#   scale  rep_e    params(fused)  GFLOPs   this   base   margin
-#   n      0.5       2.8M           n/a     3457   3694   -6.4%  <- see note below
-#   s      0.5      11.0M          28.4     (trained champion, mAP 0.4788 vs 0.4755)
-#   m      0.28125  19.5M          68.3     1013    985   +2.8%
-#   l      0.3125   24.8M          96.8      774    754   +2.7%
-#   x      0.3125   55.7M         217.2      448    437   +2.5%
+# Joint sweep results (b16 fp16, img/s, vs same-scale yolo26 baseline):
+#   scale  pick            params(fused)  GFLOPs   this   base   margin  runner-up
+#   n      d2 e0.5          2.7M            6.8    3633   3736   -2.8%   d3 e0.5: 3458
+#   s      d3 e0.5         11.0M           28.4    (trained champion, mAP 0.4788 vs 0.4755)
+#   m      d3 e0.28125     19.5M           68.3    1016    987   +2.9%   d2 e0.3125: 1008
+#   l      d2 e0.3125      24.1M           93.3     801    780   +2.7%   d3 e0.3125: 773 (fails)
+#   x      d3 e0.3125      55.7M          217.2     450    438   +2.7%   d2 e0.375: 397 (fails)
+# n still cannot reach baseline: depth-2 head recovers 5% of the 7.4% gap, the last
+# -2.8% is the strip convs + non-bottleneck rep blocks at tiny width.
 
 # Parameters
 nc: 80 # number of classes
 end2end: True # whether to use end-to-end mode
 reg_max: 1 # DFL bins
-scale_args: [rep_e] # names for scales entries beyond [depth, width, max_channels]
+scale_args: [rep_e, head_n] # names for scales entries beyond [depth, width, max_channels]
 scales: # model compound scaling constants, i.e. 'model=yolo26n.yaml' will call yolo26.yaml with scale 'n'
-  # [depth, width, max_channels, rep_e]
-  n: [0.50, 0.25, 1024, 0.5] # ~6% slower than yolo26n at any rep_e — fixed extras (strip convs, head depth 3) dominate at this width; consider reducing head depth to 2 at n to reach parity
-  s: [0.50, 0.50, 1024, 0.5]
-  m: [0.50, 1.00, 512, 0.28125] # 1013 vs base 985 img/s
-  l: [1.00, 1.00, 512, 0.3125] # 774 vs base 754 img/s
-  x: [1.00, 1.50, 512, 0.3125] # 448 vs base 437 img/s
+  # [depth, width, max_channels, rep_e, head_n]
+  n: [0.50, 0.25, 1024, 0.5, 2] # best available; still -2.8% vs yolo26n (strip convs + rep blocks dominate at tiny width)
+  s: [0.50, 0.50, 1024, 0.5, 3] # trained champion, do not change
+  m: [0.50, 1.00, 512, 0.28125, 3] # 1016 vs base 987 img/s
+  l: [1.00, 1.00, 512, 0.3125, 2] # 801 vs base 780 img/s
+  x: [1.00, 1.50, 512, 0.3125, 3] # 450 vs base 438 img/s
 
 # YOLO26n backbone
 backbone:
@@ -55,11 +58,11 @@ backbone:
 head:
   - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
   - [[-1, 7], 1, Concat, [1]]
-  - [-1, 3, C3k2Rep, [512, True, rep_e]] # 15 - increase depth
+  - [-1, head_n, C3k2Rep, [512, True, rep_e]] # 15
 
   - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
   - [[-1, 4], 1, Concat, [1]]
-  - [-1, 3, C3k2Rep, [256, True, rep_e]] # 18 - increase depth
+  - [-1, head_n, C3k2Rep, [256, True, rep_e]] # 18
 
   - [-1, 1, Conv, [256, 3, 2]]
   - [[-1, 15], 1, Concat, [1]]

@@ -1787,6 +1787,8 @@ def parse_model(d, ch, verbose=True):
             if isinstance(a, str):
                 with contextlib.suppress(ValueError):
                     args[j] = scale_consts[a] if a in scale_consts else locals()[a] if a in locals() else ast.literal_eval(a)
+        if isinstance(n, str):  # named per-scale repeats, e.g. head_n from scale_args
+            n = scale_consts[n]
         n = n_ = max(round(n * depth), 1) if n > 1 else n  # depth gain
         if m in base_modules:
             c1, c2 = ch[f], args[0]

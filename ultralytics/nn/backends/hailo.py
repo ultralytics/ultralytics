@@ -56,12 +56,12 @@ class HailoBackend(BaseBackend):
             target = stack.enter_context(VDevice())
             configure_params = ConfigureParams.create_from_hef(self.hef, interface=HailoStreamInterface.PCIe)
             network_group = target.configure(self.hef, configure_params)[0]
-            self._activation = network_group.create_params()
+            stack.enter_context(network_group.activate(network_group.create_params()))
             input_params = InputVStreamParams.make(network_group, format_type=FormatType.UINT8)
             output_params = OutputVStreamParams.make(network_group, format_type=FormatType.FLOAT32)
             self.model = stack.enter_context(InferVStreams(network_group, input_params, output_params))
             self._stack = stack.pop_all()
-        self._network_group = network_group
+        self._anchors = None
         self.end2end = True
 
     def __del__(self):
@@ -72,8 +72,7 @@ class HailoBackend(BaseBackend):
     def forward(self, im: torch.Tensor) -> np.ndarray:
         """Run Hailo inference and return detections in ``xyxy, confidence, class`` format."""
         im = np.ascontiguousarray(np.clip(im.permute(0, 2, 3, 1).cpu().numpy() * 255, 0, 255).astype(np.uint8))
-        with self._network_group.activate(self._activation):
-            results = self.model.infer({self.input_info.name: im})
+        results = self.model.infer({self.input_info.name: im})
         outputs = [results[x.name] for x in self.output_infos]
         return self._decode_raw(outputs) if not self.metadata.get("nms", False) else self._decode_nms(outputs[0])
 
@@ -105,8 +104,10 @@ class HailoBackend(BaseBackend):
         split = len(outputs) // 2
         box_maps = [torch.from_numpy(x).permute(0, 3, 1, 2) for x in outputs[:split]]
         cls_maps = [torch.from_numpy(x).permute(0, 3, 1, 2) for x in outputs[split:]]
-        strides = [self.input_info.shape[0] / x.shape[2] for x in box_maps]
-        anchors, stride_tensor = make_anchors(box_maps, strides)
+        if self._anchors is None:
+            strides = [self.input_info.shape[0] / x.shape[2] for x in box_maps]
+            self._anchors = make_anchors(box_maps, strides)
+        anchors, stride_tensor = self._anchors
         boxes = torch.cat([x.flatten(2) for x in box_maps], 2).transpose(1, 2)
         boxes = dist2bbox(boxes, anchors, xywh=False) * stride_tensor
         scores = torch.cat([x.flatten(2) for x in cls_maps], 2).transpose(1, 2).sigmoid()

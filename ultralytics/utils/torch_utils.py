@@ -935,8 +935,8 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
                         with cuda_memory_usage(device) as cuda_info:
                             anchors = int(sum((x.shape[-1] / s) * (x.shape[-2] / s) for s in m.stride.tolist()))
                             # Envelope of the detect-loss memory peaks: TaskAlignedAssigner.get_box_metrics holds ~6
-                            # simultaneous (bs, max_num_obj, anchors) fp32 buffers (mask_in_gts, overlaps, bbox_scores,
-                            # gathered pd_scores, pow temps + align_metric); the cls path holds ~6 (bs, anchors, nc)
+                            # simultaneous (bs, max_num_obj, anchors) fp32 buffers (overlaps, bbox_scores, gathered
+                            # pd_scores, two pow temps + align_metric); the cls path holds ~6 (bs, anchors, nc)
                             # fp32-equivalents (pred/target + two op temps of the unreduced BCE in v8DetectionLoss:
                             # ~4 in pure fp32, ~6 under AMP where autocast upcasts both BCE inputs to fp32 copies)
                             sim = (

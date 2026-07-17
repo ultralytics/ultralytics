@@ -73,6 +73,7 @@ class SAM(Model):
             >>> sam = SAM("sam_b.pt")
             >>> sam._load("path/to/custom_weights.pt")
         """
+        self.ckpt_path = weights
         if self.is_sam3:
             from .build_sam3 import build_interactive_sam3
 
@@ -132,6 +133,65 @@ class SAM(Model):
             >>> print(f"Detected {len(results[0].masks)} masks")
         """
         return self.predict(source, stream, bboxes, points, labels, **kwargs)
+
+    def export(self, **kwargs):
+        """Export SAM3 model to ONNX or TensorRT format.
+
+        For SAM3 models, this exports 3 separate files (image encoder, language encoder, decoder)
+        into a directory. Other SAM variants are not currently supported for export.
+
+        Args:
+            **kwargs: Export arguments. Key options:
+                format (str): ``"onnx"`` or ``"engine"`` (TensorRT).
+                imgsz (int): Image size (must be divisible by 14). Default 1008.
+                half (bool): FP16 export. For TRT, enables mixed precision.
+                device (str): Export device. Default ``"cpu"``.
+                opset (int): ONNX opset version. Default 20.
+
+        Returns:
+            (str): Path to the output directory.
+
+        Examples:
+            >>> from ultralytics import SAM
+            >>> model = SAM("sam3.pt")
+            >>> model.export(format="onnx", imgsz=644)
+            >>> model.export(format="engine", imgsz=644, half=True)
+        """
+        if not self.is_sam3:
+            raise NotImplementedError("Export is only supported for SAM3 models.")
+
+        from ultralytics.utils.export.sam3_onnx import export_sam3_engine, export_sam3_onnx
+
+        fmt = kwargs.pop("format", "onnx")
+        assert fmt in {"onnx", "engine"}, f"SAM3 export supports format='onnx' or 'engine', got '{fmt}'"
+
+        imgsz = kwargs.pop("imgsz", 1008)
+        half = kwargs.pop("half", False)
+        device = kwargs.pop("device", "cpu")
+        opset = kwargs.pop("opset", 20)
+        workspace = kwargs.pop("workspace", None)
+
+        # For TRT: always export FP32 ONNX (TRT handles FP16 internally via mixed precision)
+        onnx_half = half if fmt == "onnx" else False
+
+        onnx_files = export_sam3_onnx(
+            checkpoint_path=str(self.ckpt_path),
+            device=device,
+            opset=opset,
+            half=onnx_half,
+            imgsz=imgsz if isinstance(imgsz, int) else imgsz[0],
+        )
+        onnx_dir = str(Path(onnx_files[0]).parent)
+
+        if fmt == "engine":
+            engine_files = export_sam3_engine(
+                onnx_dir=onnx_dir,
+                half=half,
+                workspace=workspace,
+            )
+            return str(Path(engine_files[0]).parent)
+
+        return onnx_dir
 
     def info(self, detailed: bool = False, verbose: bool = True):
         """Log information about the SAM model.

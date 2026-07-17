@@ -9,6 +9,44 @@ from ultralytics.nn.modules.utils import _get_clones
 from ultralytics.utils.ops import xywh2xyxy
 
 
+def roi_align_grid_sample(img_feats: torch.Tensor, boxes: torch.Tensor, output_size: int, sampling_ratio: int = 8):
+    """ROIAlign built from grid_sample so it exports without the TensorRT ROIAlign plugin.
+
+    TensorRT parses the ONNX RoiAlign op through its version compatible plugin library, which the
+    pip TensorRT wheels omit. grid_sample maps to the natively supported GridSample op instead, so the
+    detection decoder builds with no extra libraries. This matches torchvision.ops.roi_align with
+    aligned=False and a fixed sampling_ratio (torchvision default is adaptive, which a static graph
+    cannot express, so a higher fixed ratio is used to approximate the same pooling integral).
+
+    Args:
+        img_feats (torch.Tensor): Feature map with shape (1, C, H, W).
+        boxes (torch.Tensor): Boxes in xyxy pixel coordinates with shape (num_boxes, 4).
+        output_size (int): Output spatial size of each pooled region.
+        sampling_ratio (int): Number of bilinear samples per output bin along each axis.
+
+    Returns:
+        (torch.Tensor): Pooled features with shape (num_boxes, C, output_size, output_size).
+    """
+    _, c, h, w = img_feats.shape
+    n = boxes.shape[0]
+    x1, y1, x2, y2 = boxes.unbind(-1)
+    bin_w = (x2 - x1) / output_size
+    bin_h = (y2 - y1) / output_size
+    idx = torch.arange(output_size, device=boxes.device, dtype=boxes.dtype)
+    sub = (torch.arange(sampling_ratio, device=boxes.device, dtype=boxes.dtype) + 0.5) / sampling_ratio
+    frac = (idx[:, None] + sub[None, :]).reshape(-1)  # sample offsets across all bins
+    px = x1[:, None] + bin_w[:, None] * frac[None, :]  # (n, output_size*sampling_ratio) pixel coords
+    py = y1[:, None] + bin_h[:, None] * frac[None, :]
+    gx = 2 * px / (w - 1) - 1  # align_corners=True mapping (pixel centers at integer coords)
+    gy = 2 * py / (h - 1) - 1
+    m = output_size * sampling_ratio
+    grid = torch.stack([gx[:, None, :].expand(n, m, m), gy[:, :, None].expand(n, m, m)], dim=-1)
+    sampled = nn.functional.grid_sample(
+        img_feats.expand(n, c, h, w), grid, mode="bilinear", align_corners=True, padding_mode="zeros"
+    )
+    return nn.functional.avg_pool2d(sampled, sampling_ratio)
+
+
 def is_right_padded(mask: torch.Tensor):
     """Given a padding mask (following pytorch convention, 1s for padded values), returns whether the padding is on the
     right or not.
@@ -291,11 +329,21 @@ class SequenceGeometryEncoder(nn.Module):
             scale = scale.view(1, 1, 4)
             boxes_xyxy = boxes_xyxy * scale
 
-            # RoI align
-            # Scoped for import ultralytics speed: ROI align requires optional torchvision ops.
-            from torchvision.ops import roi_align
+            # RoI align. For ONNX export use the grid_sample build so TensorRT parses it natively
+            # (the ROIAlign plugin library is missing from the pip TensorRT wheels); otherwise use
+            # torchvision, scoped here for import ultralytics speed as it is an optional dependency.
+            if getattr(self, "_export_roi_grid_sample", False):
+                sampled = torch.cat(
+                    [
+                        roi_align_grid_sample(img_feats[b : b + 1], bx, self.roi_size)
+                        for b, bx in enumerate(boxes_xyxy.transpose(0, 1))
+                    ],
+                    dim=0,
+                )
+            else:
+                from torchvision.ops import roi_align
 
-            sampled = roi_align(img_feats, boxes_xyxy.transpose(0, 1).unbind(0), self.roi_size)
+                sampled = roi_align(img_feats, boxes_xyxy.transpose(0, 1).unbind(0), self.roi_size)
             assert list(sampled.shape) == [
                 bs * n_boxes,
                 self.d_model,

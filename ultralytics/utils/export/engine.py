@@ -125,7 +125,8 @@ def modelopt_quantize_onnx(
     check_requirements("nvidia-modelopt[onnx]>=0.44")
     import onnx
 
-    input_name = onnx.load(onnx_file, load_external_data=False).graph.input[0].name
+    input_proto = onnx.load(onnx_file, load_external_data=False).graph.input[0]
+    input_name = input_proto.name
     if quantize == 8:
         from modelopt.onnx.quantization import quantize as modelopt_quantize
 
@@ -160,6 +161,21 @@ def modelopt_quantize_onnx(
 
     import modelopt.onnx.autocast as autocast
 
+    # Synthetic calibration input matching the ONNX input's real rank and dtype. AutoCast only needs
+    # representative shapes and ranges, so fit the image sized `shape` to the input rank; this keeps the
+    # 4D float image path unchanged while giving non image inputs (e.g. 2D int token ids) a valid tensor.
+    import numpy as np
+
+    tt = input_proto.type.tensor_type
+    rank = len(tt.shape.dim)
+    np_dtype = onnx.helper.tensor_dtype_to_np_dtype(tt.elem_type)
+    calib_shape = (tuple(shape) + (1,) * rank)[:rank]
+    calib = (
+        np.random.randint(0, 100, size=calib_shape).astype(np_dtype)
+        if np.issubdtype(np_dtype, np.integer)
+        else np.random.randn(*calib_shape).astype(np_dtype)
+    )
+
     out_file = str(Path(onnx_file).with_suffix(".fp16.onnx"))
     LOGGER.info(f"{prefix} converting ONNX to FP16 mixed precision with ModelOpt AutoCast...")
     onnx.save(
@@ -167,11 +183,26 @@ def modelopt_quantize_onnx(
             onnx_file,
             low_precision_type="fp16",
             keep_io_types=True,
-            calibration_data={input_name: torch.randn(*shape).cpu().numpy()},
+            calibration_data={input_name: calib},
         ),
         out_file,
     )
     return out_file
+
+
+def write_engine(output_file: Path | str, serialized: bytes, metadata: dict | None = None) -> str:
+    """Write a serialized TensorRT engine, optionally prefixed with length-framed JSON metadata.
+
+    The metadata is written as a 4-byte little-endian length followed by the UTF-8 JSON, matching
+    the header that ``TensorRTBackend`` reads back at load time.
+    """
+    with open(output_file, "wb") as f:
+        if metadata is not None:
+            meta = json.dumps(metadata)
+            f.write(len(meta).to_bytes(4, byteorder="little", signed=True))
+            f.write(meta.encode())
+        f.write(serialized)
+    return str(output_file)
 
 
 def onnx2engine(
@@ -280,6 +311,9 @@ def onnx2engine(
     # precision must be baked into the ONNX graph with NVIDIA ModelOpt before parsing (FP16 AutoCast, INT8 Q/DQ)
     if is_trt11 and (use_fp16 or use_int8):
         onnx_file = modelopt_quantize_onnx(onnx_file, quantize, dataset, shape, dynamic, prefix)
+
+    # Register TensorRT plugins (e.g. ROIAlign_TRT) before parsing
+    trt.init_libnvinfer_plugins(logger, "")
 
     # Read ONNX file
     parser = trt.OnnxParser(network, logger)
@@ -414,10 +448,4 @@ def onnx2engine(
         engine = None if engine is None else engine.serialize()
     if engine is None:
         raise RuntimeError("TensorRT engine build failed, check logs for errors")
-    with open(output_file, "wb") as t:
-        if metadata is not None:
-            meta = json.dumps(metadata)
-            t.write(len(meta).to_bytes(4, byteorder="little", signed=True))
-            t.write(meta.encode())
-        t.write(engine)
-    return str(output_file)
+    return write_engine(output_file, engine, metadata)

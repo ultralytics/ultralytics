@@ -156,11 +156,63 @@ class Attention(nn.Module):
 
         self.freqs_cis = freqs_cis
 
+    def prepare_for_onnx_export(self):
+        """Split the fused QKV into separate Q/K/V projections and pre-expand the RoPE buffers.
+
+        The per-block ``_ViTBlockONNX`` export wrapper reads these separate ``q_proj``/``k_proj``/
+        ``v_proj`` weights (fused ``dim*3`` linears lose precision in TRT FP16) and the real
+        ``freqs_cos``/``freqs_sin`` buffers (repeat_interleave(2) for the rotate_half RoPE pattern).
+        """
+        # Split fused QKV (dim*3) into separate Q, K, V (dim each).
+        # TRT FP16 loses precision on the wide 3*dim fused linear output.
+        dim = self.head_dim * self.num_heads
+        w = self.qkv.weight.data  # (3*dim, dim)
+        b = self.qkv.bias.data if self.qkv.bias is not None else None
+        self.q_proj = nn.Linear(dim, dim, bias=b is not None)
+        self.k_proj = nn.Linear(dim, dim, bias=b is not None)
+        self.v_proj = nn.Linear(dim, dim, bias=b is not None)
+        self.q_proj.weight.data = w[:dim]
+        self.k_proj.weight.data = w[dim : 2 * dim]
+        self.v_proj.weight.data = w[2 * dim :]
+        if b is not None:
+            self.q_proj.bias.data = b[:dim]
+            self.k_proj.bias.data = b[dim : 2 * dim]
+            self.v_proj.bias.data = b[2 * dim :]
+
+        if not self.use_rope or self.freqs_cis is None:
+            return
+        freqs_cos = self.freqs_cis.real.float()
+        freqs_sin = self.freqs_cis.imag.float()
+        # Pre-expand to full dim: (seq, dim//2) -> (seq, dim) by repeating each value for pairs
+        freqs_cos = freqs_cos.repeat_interleave(2, dim=-1)
+        freqs_sin = freqs_sin.repeat_interleave(2, dim=-1)
+        self.register_buffer("freqs_cos", freqs_cos)
+        self.register_buffer("freqs_sin", freqs_sin)
+        del self.freqs_cis
+        self.freqs_cis = None
+
+    @staticmethod
+    def _rotate_half(x: Tensor) -> Tensor:
+        """Negate-and-swap adjacent pairs: [a, b, c, d, ...] -> [-b, a, -d, c, ...].
+
+        Uses reshape instead of strided slice (::2) for TRT FP16 compatibility.
+        """
+        x = x.unflatten(-1, (-1, 2))  # (..., dim) -> (..., dim//2, 2)
+        x1, x2 = x.unbind(-1)  # split last dim of size 2
+        return torch.stack((-x2, x1), dim=-1).flatten(-2)
+
     def _apply_rope(self, q, k) -> tuple[Tensor, Tensor]:
         """Apply 2d-rope to q and k."""
         if not self.use_rope:
             return q, k
 
+        if hasattr(self, "freqs_cos") and self.freqs_cos is not None:
+            # TRT-friendly path: pre-expanded cos/sin + rotate_half pattern
+            cos = self.freqs_cos.to(q.device).unsqueeze(0).unsqueeze(0)
+            sin = self.freqs_sin.to(q.device).unsqueeze(0).unsqueeze(0)
+            q_out = q.float() * cos + self._rotate_half(q.float()) * sin
+            k_out = k.float() * cos + self._rotate_half(k.float()) * sin
+            return q_out.type_as(q), k_out.type_as(k)
         assert self.freqs_cis is not None
         return apply_rotary_enc(q, k, freqs_cis=self.freqs_cis.to(q.device))
 

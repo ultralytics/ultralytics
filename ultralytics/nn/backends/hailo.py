@@ -93,16 +93,12 @@ class HailoBackend(BaseBackend):
             return torch.from_numpy(outputs[0]).reshape(outputs[0].shape[0], -1)  # on-chip softmax probabilities
         if self.task == "semantic":
             out = torch.from_numpy(outputs[0])
-            dtype = torch.uint8 if len(self.names) <= 256 else torch.int32
             if self.metadata.get("semantic_baked"):
-                # Full-resolution class map baked on chip (Hailo-10/15); return it directly.
-                return out.reshape(out.shape[0], out.shape[1], out.shape[2]).to(dtype)
-            # Hailo-8/8L returns raw classifier logits: reduce on the host (argmax, or a threshold for a single
-            # class, matching the head) into a low-resolution class map the predictor nearest-resizes. Host
-            # reduction + nearest upsample stay cheap enough for edge hosts like the Raspberry Pi.
-            logits = out.permute(0, 3, 1, 2)
-            cls = logits.argmax(1) if logits.shape[1] > 1 else logits.squeeze(1) > 0
-            return cls.to(dtype)
+                # Hailo-10/15 baked the upsample and argmax on chip; return the class map for the predictor.
+                return out.reshape(out.shape[0], out.shape[1], out.shape[2])
+            # Hailo-8/8L returns raw stride-8 classifier logits; hand them to the predictor's own bilinear
+            # upsample + argmax (and letterbox) path unchanged, so results match the PyTorch model exactly.
+            return out.permute(0, 3, 1, 2)
         return self._decode_raw(outputs) if not self.metadata.get("nms", False) else self._decode_nms(outputs[0])
 
     def _decode_nms(self, output: list) -> np.ndarray:

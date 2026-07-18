@@ -611,6 +611,8 @@ class Exporter:
                     "Hailo export currently supports YOLOv8/YOLO11/YOLO26 detection and classification models, "
                     "YOLOv8/YOLO11 segmentation, pose, and OBB models, and YOLO26 semantic segmentation models."
                 )
+            if model.task == "semantic" and not family.startswith("yolo26"):
+                raise ValueError("Hailo export supports semantic segmentation only for YOLO26 models.")
             if self.args.end2end is not None:
                 raise ValueError(
                     "Hailo export selects the model output path automatically; remove the end2end argument."

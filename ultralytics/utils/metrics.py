@@ -1055,14 +1055,7 @@ class Metric(SimpleClass):
             [self.px, self.r_curve, "Confidence", "Recall"],
         ]
 
-    def update_image_metrics(
-        self,
-        tp: np.ndarray,
-        target_cls: np.ndarray,
-        pred_cls: np.ndarray,
-        im_name: str,
-        image: dict[str, int] | None = None,
-    ) -> None:
+    def update_image_metrics(self, tp: np.ndarray, target_cls: np.ndarray, pred_cls: np.ndarray, im_name: str) -> None:
         """Update per-image precision, recall, F1, TP, FP, and FN at IoU threshold 0.5.
 
         Args:
@@ -1071,7 +1064,6 @@ class Metric(SimpleClass):
             target_cls (np.ndarray): Ground truth class labels for the image.
             pred_cls (np.ndarray): Predicted class labels for the image.
             im_name (str): The image filename used as the per-image key.
-            image (dict[str, int], optional): Image dimensions and traits.
         """
         # Use the default IoU=0.5 column to match the validator's image-level matching policy.
         tp = int(tp[:, 0].sum())
@@ -1095,7 +1087,6 @@ class Metric(SimpleClass):
             "tp": int(tp),
             "fp": int(fp),
             "fn": int(fn),
-            **({"image": image} if image else {}),
         }
 
 
@@ -1149,9 +1140,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
         """
         for k in self.stats.keys():
             self.stats[k].append(stat[k])
-        self.box.update_image_metrics(
-            stat["tp"], stat["target_cls"], stat["pred_cls"], stat["im_name"], stat.get("image")
-        )
+        self.box.update_image_metrics(stat["tp"], stat["target_cls"], stat["pred_cls"], stat["im_name"])
 
     def process(self, save_dir: Path = Path("."), plot: bool = False, on_plot=None) -> dict[str, np.ndarray]:
         """Process predicted results for object detection and update metrics.

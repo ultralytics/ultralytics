@@ -595,65 +595,30 @@ def test_platform_validation_result(monkeypatch):
             "tp": 3,
             "fp": 1,
             "fn": 2,
-            "image": {"width": 640, "height": 480, "brightness": 127, "sharpness": 42},
         },
         "ordinary-validation-image-b-1234567890.jpg": {
             "tp": 1,
             "fp": 4,
             "fn": 5,
-            "image": {"width": 320, "height": 240, "brightness": 64, "sharpness": 21},
         },
     }
     validator = SimpleNamespace(
         args=SimpleNamespace(task="detect"), metrics=SimpleNamespace(box=SimpleNamespace(image_metrics=image_metrics))
     )
     result = platform.serialize_validation_results(validator)
-    assert result["rows"][0] == ["ordinary-validation-image-a-1234567890", 3, 1, 2, 640, 480, 127, 42]
+    assert result["rows"][0] == ["ordinary-validation-image-a-1234567890", 3, 1, 2]
     validator.args.task = "segment"
     assert platform.serialize_validation_results(validator) is None
     validator.args.task = "detect"
 
     monkeypatch.setattr(platform, "PLATFORM_VALIDATION_BYTES", 180)
     result = platform.serialize_validation_results(validator)
-    assert result["rows"] == [["ordinary-validation-image-b-1234567890", 1, 4, 5, 320, 240, 64, 21]]
+    assert result["rows"] == [["ordinary-validation-image-b-1234567890", 1, 4, 5]]
     assert result["coverage"] == {
         "population": 2,
         "captured": 1,
         "reason": "transport_limit",
     }
-
-
-def test_image_traits_only_on_final_validation():
-    """Test trait collection is absent from epoch validation and enabled for standalone final validation."""
-    import torch
-
-    from ultralytics.models.yolo.detect.val import DetectionValidator
-
-    validator = DetectionValidator(args={"plots": False})
-    validator.data = {}
-    validator.device = torch.device("cpu")
-    validator.names = {0: "object"}
-    validator.seen = 0
-    batch = {
-        "img": torch.full((1, 3, 32, 32), 0.5),
-        "batch_idx": torch.empty(0),
-        "cls": torch.empty((0, 1)),
-        "bboxes": torch.empty((0, 4)),
-        "ori_shape": [(32, 32)],
-        "ratio_pad": [((1.0, 1.0), (0.0, 0.0))],
-        "im_file": ["0123456789abcdef01234567.jpg"],
-    }
-    preds = [{"bboxes": torch.empty((0, 4)), "conf": torch.empty(0), "cls": torch.empty(0)}]
-
-    validator.training = True
-    validator.update_metrics(preds, batch)
-    assert "image" not in validator.metrics.box.image_metrics[batch["im_file"][0]]
-    validator.metrics.clear_image_metrics()
-    validator.training = False
-    validator.update_metrics(preds, batch)
-    image = validator.metrics.box.image_metrics[batch["im_file"][0]]["image"]
-    assert image["brightness"] == 128
-    assert image["sharpness"] == 0
 
 
 def test_platform_validation_does_not_oversize_terminal_request(monkeypatch):

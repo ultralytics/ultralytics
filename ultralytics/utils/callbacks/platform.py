@@ -382,24 +382,8 @@ def serialize_validation_results(validator):
     metrics = validator.metrics.box.image_metrics
     rows = []
     for name, metric in metrics.items():
-        image_key, image = Path(name).stem, metric.get("image")
-        if image:
-            rows.append(
-                [
-                    image_key,
-                    metric["tp"],
-                    metric["fp"],
-                    metric["fn"],
-                    image["width"],
-                    image["height"],
-                    image["brightness"],
-                    image["sharpness"],
-                ]
-            )
+        rows.append([Path(name).stem, metric["tp"], metric["fp"], metric["fn"]])
     if not rows:
-        return None
-    if len(rows) != len(metrics):
-        LOGGER.debug(f"{PREFIX}Skipping validation detail because some images lack traits")
         return None
     result = {
         "schemaVersion": 1,

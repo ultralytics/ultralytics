@@ -480,6 +480,7 @@ class v8DetectionLoss:
         self.neg_focal_gamma = 0.0
         self.cls_hard = False
         self.pos_cls = False  # enable the positive-only GT-class auxiliary term for one2one only
+        self.pos_cls_p3_only = False
         self.vfl_norm = getattr(h, "vfl_norm", False)  # normalize VFL by positive count instead of target score sum
         self.vfl_hard = getattr(h, "vfl_hard", False)  # regress VFL positives toward hard 1.0 instead of IoU target
         self.hyp = h
@@ -649,6 +650,8 @@ class v8DetectionLoss:
                 target_labels.long().clamp(0, self.nc - 1).unsqueeze(-1),
                 fg_mask.bool().unsqueeze(-1),
             )
+            if self.pos_cls_p3_only:
+                positive_mask &= (stride_tensor.squeeze(-1) == stride_tensor.min()).view(1, -1, 1)
             self.pos_cls_loss = self.cls_loss(
                 pred_scores,
                 cls_target,
@@ -1435,6 +1438,7 @@ class E2ELoss:
         self.one2one.cls_hard = getattr(model.args, "o2o_cls_hard", False)
         self.pos_cls = getattr(model.args, "o2o_pos_cls", 0.0) if loss_fn is v8DetectionLoss else 0.0
         self.one2one.pos_cls = bool(self.pos_cls)
+        self.one2one.pos_cls_p3_only = getattr(model.args, "o2o_pos_cls_p3_only", False)
         self.one2one.assigner.o2f = self.o2f
         self.one2one.assigner.o2f_iou = getattr(model.args, "o2f_iou", "amb_max")
         self.one2one.assigner.o2f_norm = getattr(model.args, "o2f_norm", "align")

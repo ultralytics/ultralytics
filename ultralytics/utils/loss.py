@@ -481,6 +481,7 @@ class v8DetectionLoss:
         self.cls_hard = False
         self.pos_cls = False  # enable the positive-only GT-class auxiliary term for one2one only
         self.pos_cls_p3_only = False
+        self.small_cls_gain = 1.0  # P3 positive GT-class cls up-gradient gain (small objects); set by E2ELoss
         self.vfl_norm = getattr(h, "vfl_norm", False)  # normalize VFL by positive count instead of target score sum
         self.vfl_hard = getattr(h, "vfl_hard", False)  # regress VFL positives toward hard 1.0 instead of IoU target
         self.hyp = h
@@ -643,7 +644,14 @@ class v8DetectionLoss:
             cls_target_sum = max(cls_target.sum(), 1)
 
         # Cls loss (Varifocal or BCE) with optional class weighting
-        loss[1] = self.cls_loss(pred_scores, cls_target, cls_target_sum, self.assigner.o2f_cls_weight)
+        cls_w = self.assigner.o2f_cls_weight
+        if (
+            self.small_cls_gain != 1.0
+        ):  # amplify only the P3 positive GT-class up-gradient (small objects, keeps topk=1)
+            is_p3 = (stride_tensor.squeeze(-1) == self.stride[0]).view(1, -1, 1)
+            sw = torch.where((cls_target > 0) & is_p3, self.small_cls_gain, 1.0)
+            cls_w = sw if cls_w is None else cls_w * sw
+        loss[1] = self.cls_loss(pred_scores, cls_target, cls_target_sum, cls_w)
         if self.pos_cls:
             positive_mask = torch.zeros_like(target_scores, dtype=torch.bool).scatter_(
                 2,
@@ -1439,6 +1447,7 @@ class E2ELoss:
         self.pos_cls = getattr(model.args, "o2o_pos_cls", 0.0) if loss_fn is v8DetectionLoss else 0.0
         self.one2one.pos_cls = bool(self.pos_cls)
         self.one2one.pos_cls_p3_only = getattr(model.args, "o2o_pos_cls_p3_only", False)
+        self.one2one.small_cls_gain = getattr(model.args, "o2o_small_cls_gain", 1.0)
         self.one2one.assigner.o2f = self.o2f
         self.one2one.assigner.o2f_iou = getattr(model.args, "o2f_iou", "amb_max")
         self.one2one.assigner.o2f_norm = getattr(model.args, "o2f_norm", "align")

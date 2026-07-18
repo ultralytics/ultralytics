@@ -6,7 +6,6 @@ import re
 import socket
 import sys
 from concurrent.futures import ThreadPoolExecutor
-from hashlib import sha256
 from math import isfinite
 from pathlib import Path
 from time import sleep, time
@@ -25,7 +24,7 @@ from ultralytics.utils import (
 )
 
 PREFIX = colorstr("Platform: ")
-PLATFORM_API_URL = f"{PLATFORM_URL}/api/webhooks"
+PLATFORM_API_URL = os.getenv("PLATFORM_API_URL", f"{PLATFORM_URL}/api/webhooks")
 
 
 def slugify(text):
@@ -194,7 +193,7 @@ def _send(event, data, project, name, model_id=None, retry=2, timeout=30):
     @Retry(times=retry, delay=1)
     def post():
         r = requests.post(
-            os.getenv("PLATFORM_WEBHOOK_URL", f"{PLATFORM_API_URL}/training/metrics"),
+            f"{PLATFORM_API_URL}/training/metrics",
             json=payload,
             headers={"Authorization": f"Bearer {_api_key}"},
             timeout=timeout,
@@ -244,17 +243,8 @@ def _upload_model(model_path, project, name, progress=False, retry=1, model_id=N
         LOGGER.warning(f"{PREFIX}Model file not found: {model_path}")
         return None
     model_size = model_path.stat().st_size
-    if root := os.getenv("PLATFORM_ARTIFACT_ROOT"):
-        try:
-            relative_path = model_path.resolve().relative_to(Path(root).resolve()).as_posix()
-        except ValueError:
-            LOGGER.warning(f"{PREFIX}Model file is outside PLATFORM_ARTIFACT_ROOT: {model_path}")
-            return None
-        digest = sha256()
-        with model_path.open("rb") as file:
-            while chunk := file.read(1024 * 1024):
-                digest.update(chunk)
-        return {"modelPath": relative_path, "modelSize": model_size, "modelChecksum": digest.hexdigest()}
+    if os.getenv("PLATFORM_API_URL"):
+        return {"modelPath": str(model_path.resolve()), "modelSize": model_size}
 
     # Get signed upload URL from Platform (server sanitizes filename for storage safety)
     @Retry(times=3, delay=2)
@@ -496,9 +486,6 @@ def on_model_save(trainer):
     ctx = getattr(trainer, "platform", None)
     if not ctx or RANK not in {-1, 0} or not trainer.args.project:
         return
-    if os.getenv("PLATFORM_ARTIFACT_ROOT"):
-        return  # Local checkpoints are already saved at their destination.
-
     # Rate limit to every 15 minutes (900 seconds)
     if time() - ctx["last_upload"] < 900:
         return

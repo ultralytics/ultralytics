@@ -586,10 +586,17 @@ def test_normalize_platform_uri():
 
 def test_platform_job_transport(monkeypatch, tmp_path):
     """Test configurable Platform transport with an existing local checkpoint."""
-    import hashlib
     from types import SimpleNamespace
 
+    from ultralytics import SETTINGS, cfg
     from ultralytics.utils.callbacks import platform
+
+    monkeypatch.setattr(cfg, "TESTS_RUNNING", False)
+    monkeypatch.setitem(SETTINGS, "runs_dir", str(tmp_path))
+    args = SimpleNamespace(
+        save_dir=None, project="user/project", task="detect", name="model", mode="train", exist_ok=True
+    )
+    assert cfg.get_save_dir(args) == tmp_path / "detect/user/project/model"
 
     captured = {}
 
@@ -599,20 +606,19 @@ def test_platform_job_transport(monkeypatch, tmp_path):
 
     monkeypatch.setattr(platform, "requests", SimpleNamespace(post=post), raising=False)
     monkeypatch.setattr(platform, "_api_key", "api-key")
-    monkeypatch.setenv("PLATFORM_WEBHOOK_URL", "https://example.test/metrics")
+    monkeypatch.setattr(platform, "PLATFORM_API_URL", "https://example.test/api/webhooks")
     assert platform._send("epoch_end", {"epoch": 0}, "user/project", "model") == {"received": True}
-    assert captured["url"] == "https://example.test/metrics"
+    assert captured["url"] == "https://example.test/api/webhooks/training/metrics"
     assert captured["json"]["data"] == {"epoch": 0}
     assert captured["headers"] == {"Authorization": "Bearer api-key"}
 
     model = tmp_path / "models" / "best.pt"
     model.parent.mkdir()
     model.write_bytes(b"weights")
-    monkeypatch.setenv("PLATFORM_ARTIFACT_ROOT", str(tmp_path))
+    monkeypatch.setenv("PLATFORM_API_URL", "http://127.0.0.1:8765")
     assert platform._upload_model(model, "user/project", "model") == {
-        "modelPath": "models/best.pt",
+        "modelPath": str(model),
         "modelSize": 7,
-        "modelChecksum": hashlib.sha256(b"weights").hexdigest(),
     }
 
 

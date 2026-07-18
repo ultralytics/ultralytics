@@ -1860,9 +1860,9 @@ class SemanticSegment(nn.Module):
 
         Returns:
             (torch.Tensor | tuple): Logits of shape [B, nc, H/8, W/8] during training (or a (main, aux) tuple when
-                aux_head is present) and inference. ONNX, MNN, TensorRT>=10, and Hailo-10/15 export bake in the argmax and return a
-                compact class map of shape [B, H, W] (uint8 when nc <= 256, else int32). Other export formats return
-                upsampled logits of shape [B, nc, H, W].
+                aux_head is present) and inference. ONNX, MNN, TensorRT>=10, and Hailo-10/15 export bake in the argmax
+                and return a compact class map of shape [B, H, W] (uint8 when nc <= 256, else int32). Other export
+                formats return upsampled logits of shape [B, nc, H, W].
         """
         # Classify
         logits = self.classifier(x[0])  # [B, nc, H/8, W/8]

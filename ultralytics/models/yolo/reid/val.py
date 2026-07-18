@@ -387,9 +387,11 @@ class ReidValidator(ClassificationValidator):
         return build_yolo_dataset(self.args, img_path, self.args.batch, self.data, mode="query")
 
     def print_results(self) -> None:
-        """Print evaluation metrics."""
+        """Print evaluation metrics: micro (mean over queries) then macro (mean over identities)."""
         pf = "%22s" + "%11.4g" * 4
-        LOGGER.info(pf % ("Results", self.metrics.mAP, self.metrics.rank1, self.metrics.rank5, self.metrics.rank10))
+        m = self.metrics
+        LOGGER.info(pf % ("Results", m.mAP, m.rank1, m.rank5, m.rank10))
+        LOGGER.info(pf % ("Results(macro)", m.mAP_macro, m.rank1_macro, m.rank5_macro, m.rank10_macro))
 
     def plot_predictions(self, batch: dict[str, Any], preds, ni: int) -> None:
         """Plot predictions (no-op for ReID, embeddings are not visual)."""

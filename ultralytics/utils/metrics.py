@@ -1667,10 +1667,14 @@ class ReidMetrics(SimpleClass, DataExportMixin):
 
     def __init__(self) -> None:
         """Initialize ReidMetrics instance."""
-        self.mAP = 0.0
+        self.mAP = 0.0  # micro: mean over all queries (Market-1501 standard)
         self.rank1 = 0.0
         self.rank5 = 0.0
         self.rank10 = 0.0
+        self.mAP_macro = 0.0  # macro: mean over identities, so class imbalance weights each pid equally
+        self.rank1_macro = 0.0
+        self.rank5_macro = 0.0
+        self.rank10_macro = 0.0
         self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
         self.task = "reid"
         self.gallery_feats = None
@@ -1716,6 +1720,10 @@ class ReidMetrics(SimpleClass, DataExportMixin):
         self.rank1 = 0.0
         self.rank5 = 0.0
         self.rank10 = 0.0
+        self.mAP_macro = 0.0
+        self.rank1_macro = 0.0
+        self.rank5_macro = 0.0
+        self.rank10_macro = 0.0
         self.match_g_indices = []
         self.match_dists = []
         if not self._gallery_provided:
@@ -1755,6 +1763,7 @@ class ReidMetrics(SimpleClass, DataExportMixin):
 
         all_ap = []
         all_cmc = []
+        matched_pids = []  # pid per matched query, parallel to all_ap/all_cmc, for the macro (per-identity) average
         # Cap cmc-curve length at K so per-query rows are constant length regardless of how
         # many same-pid-same-camid positions get masked out (otherwise `np.array(all_cmc)`
         # raises on inhomogeneous shape — small galleries like reid8 hit this).
@@ -1801,17 +1810,29 @@ class ReidMetrics(SimpleClass, DataExportMixin):
             precision = cum_tp / (np.arange(len(matches)) + 1)
             ap = (precision * matches).sum() / num_rel
             all_ap.append(ap)
+            matched_pids.append(q_pid)
 
         if len(all_ap) == 0:
             return
 
         all_cmc = np.stack(all_cmc, axis=0)
+        all_ap = np.asarray(all_ap)
         cmc_curve = all_cmc.mean(axis=0)
 
-        self.mAP = float(np.mean(all_ap))
+        self.mAP = float(all_ap.mean())
         self.rank1 = float(cmc_curve[0]) if len(cmc_curve) > 0 else 0.0
         self.rank5 = float(cmc_curve[4]) if len(cmc_curve) > 4 else 0.0
         self.rank10 = float(cmc_curve[9]) if len(cmc_curve) > 9 else 0.0
+
+        # Macro: average within each identity, then across identities, so a few high-count pids
+        # do not dominate (matches the small-imbalanced-set customer benchmark protocol).
+        matched_pids = np.asarray(matched_pids)
+        uniq = np.unique(matched_pids)
+        macro_cmc = np.stack([all_cmc[matched_pids == p].mean(axis=0) for p in uniq]).mean(axis=0)
+        self.mAP_macro = float(np.mean([all_ap[matched_pids == p].mean() for p in uniq]))
+        self.rank1_macro = float(macro_cmc[0]) if len(macro_cmc) > 0 else 0.0
+        self.rank5_macro = float(macro_cmc[4]) if len(macro_cmc) > 4 else 0.0
+        self.rank10_macro = float(macro_cmc[9]) if len(macro_cmc) > 9 else 0.0
 
     @staticmethod
     def _rerank_distance(query_feats, gallery_feats, k1=20, k2=6, lambda_value=0.3):
@@ -1900,12 +1921,23 @@ class ReidMetrics(SimpleClass, DataExportMixin):
     @property
     def results_dict(self) -> dict[str, float]:
         """Return a dictionary with model's performance metrics and fitness score."""
-        return dict(zip([*self.keys, "fitness"], [self.mAP, self.rank1, self.rank5, self.rank10, self.fitness]))
+        vals = [self.mAP, self.rank1, self.rank5, self.rank10]
+        vals += [self.mAP_macro, self.rank1_macro, self.rank5_macro, self.rank10_macro]
+        return dict(zip([*self.keys, "fitness"], [*vals, self.fitness]))
 
     @property
     def keys(self) -> list[str]:
         """Return a list of keys for the results_dict property."""
-        return ["metrics/mAP", "metrics/rank1", "metrics/rank5", "metrics/rank10"]
+        return [
+            "metrics/mAP",
+            "metrics/rank1",
+            "metrics/rank5",
+            "metrics/rank10",
+            "metrics/mAP_macro",
+            "metrics/rank1_macro",
+            "metrics/rank5_macro",
+            "metrics/rank10_macro",
+        ]
 
     @property
     def curves(self) -> list:

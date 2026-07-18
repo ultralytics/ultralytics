@@ -180,6 +180,7 @@ CFG_FLOAT_KEYS = frozenset(
         "cls_pw",
         "o2o_neg_focal_gamma",
         "dfl",
+        "stride_val_size",
         "degrees",
         "shear",
         "time",

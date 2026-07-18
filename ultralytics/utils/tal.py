@@ -25,6 +25,8 @@ class TaskAlignedAssigner(nn.Module):
         beta (float): The beta parameter for the localization component of the task-aligned metric.
         stride (list): List of stride values for different feature levels.
         stride_val (int): The stride value used for select_candidates_in_gts.
+        stride_val_thr (bool): Use stride_val (not stride[0]) as the min-wh threshold in select_candidates_in_gts.
+        stride_val_size (int | float): When stride_val_thr, override the shared min-wh threshold & enlarge value.
         eps (float): A small value to prevent division by zero.
     """
 
@@ -72,6 +74,9 @@ class TaskAlignedAssigner(nn.Module):
         self.beta = beta
         self.stride = stride
         self.stride_val = self.stride[1] if len(self.stride) > 1 else self.stride[0]
+        # min-wh threshold in select_candidates_in_gts: False -> stride[0], True -> stride_val
+        self.stride_val_thr = False
+        self.stride_val_size = None  # when stride_val_thr, shared threshold & enlarge value (None -> stride_val)
         self.eps = eps
 
     @torch.no_grad()
@@ -384,10 +389,14 @@ class TaskAlignedAssigner(nn.Module):
             - Bounding box format: [x_min, y_min, x_max, y_max].
         """
         gt_bboxes_xywh = xyxy2xywh(gt_bboxes)
-        wh_mask = gt_bboxes_xywh[..., 2:] < self.stride[0]  # the smallest stride
+        if self.stride_val_thr:  # shared min-wh threshold & enlarge value
+            thr = val = self.stride_val if self.stride_val_size is None else self.stride_val_size
+        else:
+            thr, val = self.stride[0], self.stride_val
+        wh_mask = gt_bboxes_xywh[..., 2:] < thr
         gt_bboxes_xywh[..., 2:] = torch.where(
             (wh_mask * mask_gt).bool(),
-            torch.tensor(self.stride_val, dtype=gt_bboxes_xywh.dtype, device=gt_bboxes_xywh.device),
+            torch.tensor(val, dtype=gt_bboxes_xywh.dtype, device=gt_bboxes_xywh.device),
             gt_bboxes_xywh[..., 2:],
         )
         gt_bboxes = xywh2xyxy(gt_bboxes_xywh)

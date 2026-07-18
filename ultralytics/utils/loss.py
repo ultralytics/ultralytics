@@ -503,6 +503,8 @@ class v8DetectionLoss:
             stride=self.stride.tolist(),
             topk2=tal_topk2,
         )
+        self.assigner.stride_val_thr = getattr(h, "stride_val_thr", False)
+        self.assigner.stride_val_size = getattr(h, "stride_val_size", None)
         self.bbox_loss = BboxLoss(
             m.reg_max,
             l1_feat=getattr(h, "l1_feat", False),

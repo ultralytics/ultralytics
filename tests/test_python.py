@@ -696,6 +696,44 @@ def test_platform_validation_does_not_oversize_terminal_request(monkeypatch):
     }
 
 
+def test_platform_job_transport(monkeypatch, tmp_path):
+    """Test configurable Platform transport with an existing local checkpoint."""
+    from types import SimpleNamespace
+
+    from ultralytics import SETTINGS, cfg
+    from ultralytics.utils.callbacks import platform
+
+    monkeypatch.setattr(cfg, "TESTS_RUNNING", False)
+    monkeypatch.setitem(SETTINGS, "runs_dir", str(tmp_path))
+    args = SimpleNamespace(
+        save_dir=None, project="user/project", task="detect", name="model", mode="train", exist_ok=True
+    )
+    assert cfg.get_save_dir(args) == tmp_path / "detect/user/project/model"
+
+    captured = {}
+
+    def post(url, **kwargs):
+        captured.update(url=url, **kwargs)
+        return SimpleNamespace(status_code=200, json=lambda: {"received": True}, raise_for_status=lambda: None)
+
+    monkeypatch.setattr(platform, "requests", SimpleNamespace(post=post), raising=False)
+    monkeypatch.setattr(platform, "_api_key", "api-key")
+    monkeypatch.setattr(platform, "PLATFORM_API_URL", "https://example.test/api/webhooks")
+    assert platform._send("epoch_end", {"epoch": 0}, "user/project", "model") == {"received": True}
+    assert captured["url"] == "https://example.test/api/webhooks/training/metrics"
+    assert captured["json"]["data"] == {"epoch": 0}
+    assert captured["headers"] == {"Authorization": "Bearer api-key"}
+
+    model = tmp_path / "models" / "best.pt"
+    model.parent.mkdir()
+    model.write_bytes(b"weights")
+    monkeypatch.setenv("PLATFORM_API_URL", "http://127.0.0.1:8765")
+    assert platform._upload_model(model, "user/project", "model") == {
+        "modelPath": str(model),
+        "modelSize": 7,
+    }
+
+
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_train_scratch():

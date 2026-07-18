@@ -597,6 +597,25 @@ def test_convert_signed_ndjson(monkeypatch):
     assert utils.convert_ndjson_to_yolo_if_needed(url) == "dataset.ndjson.yaml"
 
 
+def test_resume_ndjson_conversion_preserves_labels(monkeypatch, tmp_path):
+    """Test resuming an incomplete content-addressed conversion does not delete labels used by another process."""
+    import asyncio
+
+    from ultralytics.data import converter
+
+    ndjson = tmp_path / "dataset.ndjson"
+    ndjson.write_text(
+        '{"type":"dataset","task":"detect","class_names":{"0":"item"}}\n'
+        '{"file":"train.jpg","split":"train","annotations":{"boxes":[[0,0.5,0.5,1,1]]}}\n'
+        '{"file":"val.jpg","split":"val","annotations":{"boxes":[[0,0.5,0.5,1,1]]}}\n'
+    )
+    yaml_path = asyncio.run(converter.convert_ndjson_to_yolo(ndjson, tmp_path))
+    yaml_path.unlink()
+    monkeypatch.setattr(converter.shutil, "rmtree", lambda *_args, **_kwargs: pytest.fail("deleted shared labels"))
+
+    assert asyncio.run(converter.convert_ndjson_to_yolo(ndjson, tmp_path)) == yaml_path
+
+
 def test_platform_job_transport(monkeypatch, tmp_path):
     """Test configurable Platform transport with an existing local checkpoint."""
     from types import SimpleNamespace

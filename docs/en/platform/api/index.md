@@ -585,9 +585,9 @@ POST /api/datasets/ingest
 
 Create a dataset ingest job for an existing dataset. The target dataset is always passed as `datasetId` in the JSON body, not in the URL path.
 
-The request body requires `datasetId` plus exactly one of `sessionId` (an uploaded archive's upload session) or `sourceUrl` (a remote ZIP, TAR, TAR.GZ, TGZ, or NDJSON URL). Add optional `targetSplit` (`train`, `val`, or `test`) to override the archive's split structure, or `classMapping` (a map of archive class name to dataset class name) to import labels into a dataset that already has classes.
+The request body requires `datasetId` plus exactly one of `sessionId` (an uploaded archive's upload session) or `sourceUrl` (a remote ZIP, TAR, TAR.GZ, TGZ, or NDJSON URL). Add optional `targetSplit` (`train`, `val`, or `test`) to override the archive's split structure.
 
-For uploaded archives, the upload session is already bound to the dataset by the `assetId` passed to `POST /api/upload/signed-url`; ingest validates that `assetId` matches the body `datasetId`. For remote `sourceUrl` imports, create the dataset first, then pass its `datasetId` to ingest.
+For uploaded archives, the upload session is already bound to the dataset by the `assetId` passed to `POST /api/upload/signed-url`; ingest validates that `assetId` matches the body `datasetId`. Optional `classMapping` entries map each incoming class name to an existing zero-based class index, a class name to reuse or create, or `null` to skip the class. For remote `sourceUrl` imports, create the dataset first, then pass its `datasetId` to ingest.
 
 **Body (uploaded archive):**
 
@@ -614,13 +614,13 @@ For uploaded archives, the upload session is already bound to the dataset by the
 {
     "datasetId": "dataset_abc123",
     "sessionId": "session_abc123",
-    "classMapping": { "person": "person", "car": "car" }
+    "classMapping": { "person": 0, "automobile": "car", "background": null }
 }
 ```
 
 !!! note "Class Mapping"
 
-    The first ingest creates classes from the archive automatically. On later ingests, any archive class omitted from `classMapping` has its labels skipped, so include every class you want to keep.
+    The first ingest creates classes from the archive automatically. On later ingests, archive classes omitted from `classMapping` first fall back to a case-insensitive match against existing dataset classes. Labels are skipped only for classes explicitly mapped to `null` or without a matching existing class.
 
 **Response:**
 

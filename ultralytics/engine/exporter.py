@@ -320,7 +320,13 @@ EXPORT_ENVS = {
         "extras": ["export-base"],
         # Axelera export requires 2.8.0 <= torch < 2.12.0.
         "torch": ">=2.8,<2.12",
-        "requirements": ["axelera-devkit==1.7.0", "numpy<=2.3.5", "onnx>=1.12.0,<2.0.0", "onnxslim>=0.1.71"],
+        "requirements": [
+            "axelera-devkit==1.7.0",
+            "omnimalloc==0.5.0",
+            "numpy<=2.3.5",
+            "onnx>=1.12.0,<2.0.0",
+            "onnxslim>=0.1.71",
+        ],
         "indexes": [
             ("--extra-index-url", "https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple"),
         ],

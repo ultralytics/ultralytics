@@ -584,6 +584,62 @@ def test_normalize_platform_uri():
     assert normalize_platform_uri("coco8.yaml") == "coco8.yaml"  # non-Platform inputs unchanged
 
 
+def test_platform_validation_result(monkeypatch):
+    """Test existing per-image metrics serialize as one bounded Platform result."""
+    from types import SimpleNamespace
+
+    from ultralytics.utils.callbacks import platform
+
+    image_metrics = {
+        "0123456789abcdef01234567.jpg": {
+            "tp": 3,
+            "fp": 1,
+            "fn": 2,
+            "image": {"width": 640, "height": 480, "brightness": 127, "sharpness": 42},
+        },
+        "89abcdef0123456701234567.jpg": {
+            "tp": 1,
+            "fp": 4,
+            "fn": 5,
+            "image": {"width": 320, "height": 240, "brightness": 64, "sharpness": 21},
+        },
+    }
+    validator = SimpleNamespace(
+        args=SimpleNamespace(task="detect"), metrics=SimpleNamespace(box=SimpleNamespace(image_metrics=image_metrics))
+    )
+    result = platform.serialize_validation_results(validator)
+    assert result["rows"][0] == ["0123456789abcdef01234567", 3, 1, 2, 640, 480, 127, 42]
+
+    monkeypatch.setattr(platform, "PLATFORM_VALIDATION_BYTES", 180)
+    result = platform.serialize_validation_results(validator)
+    assert result["rows"] == [["89abcdef0123456701234567", 1, 4, 5, 320, 240, 64, 21]]
+    assert result["coverage"] == {
+        "population": 2,
+        "captured": 1,
+        "reason": "transport_limit",
+    }
+
+
+def test_platform_traits_only_on_final_validation(monkeypatch):
+    """Test Platform trait collection is absent from epoch validation and enabled for final validation."""
+    from types import SimpleNamespace
+
+    from ultralytics.models.yolo.detect import val
+
+    monkeypatch.setattr(val, "build_dataloader", lambda dataset, *args, **kwargs: dataset)
+    validator = object.__new__(val.DetectionValidator)
+    validator.data = {"platform": True}
+    validator.args = SimpleNamespace(workers=0, compile=False)
+    validator.stride = 32
+    dataset = SimpleNamespace()
+    validator.build_dataset = lambda *args, **kwargs: dataset
+
+    validator.training = True
+    assert not validator.get_dataloader("val", 1).collect_image_traits
+    validator.training = False
+    assert validator.get_dataloader("val", 1).collect_image_traits
+
+
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_train_scratch():

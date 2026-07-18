@@ -848,9 +848,16 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                 raise ValueError(f"Invalid NDJSON split: {split!r}")
             if not isinstance(source_name, str) or not source_name:
                 raise ValueError(f"Invalid NDJSON image name: {source_name!r}")
-            # Record indexes provide collision-free output stems without trusting source paths.
+            # Platform image IDs are already collision-free and let validation metrics join back to the source image.
             suffix = source_name.rsplit(".", 1)[-1]
-            r["file"] = f"{i}.{suffix}" if suffix.isalnum() and len(suffix) <= 10 else f"{i}.jpg"
+            image_id = r.get("platform_id")
+            is_platform = (
+                isinstance(image_id, str)
+                and len(image_id) == 24
+                and all(char in "0123456789abcdef" for char in image_id.lower())
+            )
+            stem = image_id if is_platform else str(i)
+            r["file"] = f"{stem}.{suffix}" if suffix.isalnum() and len(suffix) <= 10 else f"{stem}.jpg"
             if is_classification:
                 ids = r.get("annotations", {}).get("classification", [])
                 class_id = ids[0] if ids else 0

@@ -6,6 +6,7 @@ import re
 import socket
 import sys
 from concurrent.futures import ThreadPoolExecutor
+from json import dumps
 from math import isfinite
 from pathlib import Path
 from time import sleep, time
@@ -25,6 +26,7 @@ from ultralytics.utils import (
 
 PREFIX = colorstr("Platform: ")
 PLATFORM_API_URL = f"{PLATFORM_URL}/api/webhooks"
+PLATFORM_VALIDATION_BYTES = 3_000_000
 
 
 def slugify(text):
@@ -348,6 +350,55 @@ def _get_project_name(trainer):
     return project, slugify(str(trainer.args.name or "train"))
 
 
+def serialize_validation_results(validator):
+    """Serialize existing per-image box metrics for one bounded Platform document."""
+    if not validator or not getattr(getattr(validator, "metrics", None), "box", None):
+        return None
+    metrics = validator.metrics.box.image_metrics
+    rows = []
+    for name, metric in metrics.items():
+        image_id, image = Path(name).stem, metric.get("image")
+        if image and len(image_id) == 24 and all(char in "0123456789abcdef" for char in image_id.lower()):
+            rows.append(
+                [
+                    image_id,
+                    metric["tp"],
+                    metric["fp"],
+                    metric["fn"],
+                    image["width"],
+                    image["height"],
+                    image["brightness"],
+                    image["sharpness"],
+                ]
+            )
+    if not rows:
+        return None
+    if len(rows) != len(metrics):
+        return None
+    result = {
+        "schemaVersion": 1,
+        "task": validator.args.task,
+        "coverage": {"population": len(metrics), "captured": len(rows)},
+        "rows": rows,
+    }
+    size = len(dumps(result, separators=(",", ":")).encode())
+    if size > PLATFORM_VALIDATION_BYTES:
+        rows.sort(key=lambda row: row[2] + row[3], reverse=True)
+        while size > PLATFORM_VALIDATION_BYTES:
+            if len(rows) == 1:
+                return None
+            keep = max(1, min(len(rows) - 1, int(len(rows) * PLATFORM_VALIDATION_BYTES / size * 0.95)))
+            rows = rows[:keep]
+            result.update(
+                {
+                    "coverage": {"population": len(metrics), "captured": len(rows), "reason": "transport_limit"},
+                    "rows": rows,
+                }
+            )
+            size = len(dumps(result, separators=(",", ":")).encode())
+    return result
+
+
 def on_pretrain_routine_start(trainer):
     """Initialize Platform logging at training start."""
     if RANK not in {-1, 0} or not trainer.args.project:
@@ -553,6 +604,7 @@ def on_train_end(trainer):
     # stopper.best_epoch is 1-indexed; -1 aligns with the 0-indexed `epoch` field
     best_epoch = max(0, getattr(getattr(trainer, "stopper", None), "best_epoch", trainer.epoch + 1) - 1)
 
+    validation = serialize_validation_results(getattr(trainer, "validator", None))
     _send(
         "training_complete",
         {
@@ -566,6 +618,7 @@ def on_train_end(trainer):
             "classNames": class_names,
             "plots": plots,
             "runId": ctx["run_id"],
+            **({"validation": validation} if validation else {}),
         },
         project,
         name,

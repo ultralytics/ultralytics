@@ -906,6 +906,9 @@ class BaseTrainer:
             LOGGER.info(f"\nValidating {model}...")
             self.validator.args.plots = self.args.plots
             self.validator.args.compile = False  # disable final val compile as too slow
+            if self.data.get("platform"):
+                self.validator.args.cache = False
+                self.validator.dataloader = None  # rebuild once so workers collect traits only for final validation
             self.metrics = self.validator(model=model)
             self.metrics.pop("fitness", None)
             self.epoch += 1  # log best metrics at step epochs+1, not overwriting last epoch

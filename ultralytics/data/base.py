@@ -248,6 +248,18 @@ class BaseDataset(Dataset):
                 raise FileNotFoundError(f"Image Not Found {f}")
 
             h0, w0 = im.shape[:2]  # orig hw
+            if getattr(self, "collect_image_traits", False):
+                scale = 256 / max(h0, w0)
+                thumbnail = cv2.resize(
+                    im,
+                    (max(1, round(w0 * scale)), max(1, round(h0 * scale))),
+                    interpolation=cv2.INTER_LINEAR,
+                )
+                gray = cv2.cvtColor(thumbnail, cv2.COLOR_BGR2GRAY) if thumbnail.ndim == 3 else thumbnail
+                self.labels[i]["image_traits"] = {
+                    "brightness": round(float(gray.mean())),
+                    "sharpness": round(float(np.log1p(cv2.Laplacian(gray, cv2.CV_32F).var())) * 100),
+                }
             if rect_mode:  # resize long side to imgsz while maintaining aspect ratio
                 if resize_short:  # resize short side to imgsz while maintaining aspect ratio
                     r = self.imgsz / min(h0, w0)  # ratio
@@ -408,6 +420,8 @@ class BaseDataset(Dataset):
         label = deepcopy(self.labels[index])  # requires deepcopy() https://github.com/ultralytics/ultralytics/pull/1948
         label.pop("shape", None)  # shape is for rect, remove it
         label["img"], label["ori_shape"], label["resized_shape"] = self.load_image(index)
+        if "image_traits" in self.labels[index]:
+            label["image_traits"] = self.labels[index]["image_traits"]
         label["ratio_pad"] = (
             label["resized_shape"][0] / label["ori_shape"][0],
             label["resized_shape"][1] / label["ori_shape"][1],

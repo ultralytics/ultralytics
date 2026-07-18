@@ -1055,7 +1055,14 @@ class Metric(SimpleClass):
             [self.px, self.r_curve, "Confidence", "Recall"],
         ]
 
-    def update_image_metrics(self, tp: np.ndarray, target_cls: np.ndarray, pred_cls: np.ndarray, im_name: str) -> None:
+    def update_image_metrics(
+        self,
+        tp: np.ndarray,
+        target_cls: np.ndarray,
+        pred_cls: np.ndarray,
+        im_name: str,
+        image: dict[str, int] | None = None,
+    ) -> None:
         """Update per-image precision, recall, F1, TP, FP, and FN at IoU threshold 0.5.
 
         Args:
@@ -1087,6 +1094,7 @@ class Metric(SimpleClass):
             "tp": int(tp),
             "fp": int(fp),
             "fn": int(fn),
+            **({"image": image} if image else {}),
         }
 
 
@@ -1140,7 +1148,9 @@ class DetMetrics(SimpleClass, DataExportMixin):
         """
         for k in self.stats.keys():
             self.stats[k].append(stat[k])
-        self.box.update_image_metrics(stat["tp"], stat["target_cls"], stat["pred_cls"], stat["im_name"])
+        self.box.update_image_metrics(
+            stat["tp"], stat["target_cls"], stat["pred_cls"], stat["im_name"], stat.get("image")
+        )
 
     def process(self, save_dir: Path = Path("."), plot: bool = False, on_plot=None) -> dict[str, np.ndarray]:
         """Process predicted results for object detection and update metrics.

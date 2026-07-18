@@ -188,6 +188,17 @@ class DetectionValidator(BaseValidator):
                     "conf": np.zeros(0) if no_pred else predn["conf"].cpu().numpy(),
                     "pred_cls": np.zeros(0) if no_pred else predn["cls"].cpu().numpy(),
                     "im_name": Path(pbatch["im_file"]).name,
+                    **(
+                        {
+                            "image": {
+                                "width": pbatch["ori_shape"][1],
+                                "height": pbatch["ori_shape"][0],
+                                **batch["image_traits"][si],
+                            }
+                        }
+                        if "image_traits" in batch
+                        else {}
+                    ),
                 }
             )
             # Evaluate
@@ -339,6 +350,7 @@ class DetectionValidator(BaseValidator):
             (torch.utils.data.DataLoader): DataLoader for validation.
         """
         dataset = self.build_dataset(dataset_path, batch=batch_size, mode="val")
+        dataset.collect_image_traits = bool(self.data.get("platform")) and not self.training
         return build_dataloader(
             dataset,
             batch_size,

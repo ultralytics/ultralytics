@@ -26,6 +26,10 @@ Flags:
                 applied as-is.
     --nbs <int>: explicit nbs override (coco_det_finetune, dota_obb_finetune,
                 multi_det_finetune; bypasses auto-scaling).
+    --deim_opt: coco_det_finetune only. Swap the MuSGD recipe's optimizer block for
+                Esat's DEIM transplant (AdamW, lr0 5e-4, wd 1.25e-4, lrf 0.5, no warmup,
+                nbs=batch so wd is unscaled), keeping augment/loss/backbone_lr_ratio and
+                dropping the muon head-LR boost.
     --datasets <path>: multi_det_finetune only. Either a file with one YOLO data.yaml
                 path per line (#-comments and blanks ignored), or a directory scanned
                 one level deep for ``*/data.yaml``.
@@ -542,6 +546,7 @@ def main(argv: list[str]) -> None:
     argv, nbs_override = _pop_flag(argv, "--nbs")
     argv, freeze_override = _pop_flag(argv, "--freeze")
     argv, backbone_lr_ratio_override = _pop_flag(argv, "--backbone_lr_ratio")
+    argv, deim_opt = _pop_flag(argv, "--deim_opt", is_bool=True)
     argv, scratch = _pop_flag(argv, "--scratch", is_bool=True)
     argv, datasets_arg = _pop_flag(argv, "--datasets")
     argv, imgsz_override = _pop_flag(argv, "--imgsz")
@@ -711,16 +716,30 @@ def main(argv: list[str]) -> None:
         det_args = _build_det_train_args(coco_epochs, patience, batch_override, lr_override, nbs_override)
         if backbone_lr_ratio_override:
             det_args["backbone_lr_ratio"] = float(backbone_lr_ratio_override)
+        if deim_opt:
+            # Esat's DEIM optimizer transplanted onto our conv head: AdamW at his literal lr0/wd (unscaled),
+            # nbs=batch so effective wd = wd, no warmup. Isolates the optimizer recipe axis vs g4's MuSGD.
+            det_args.update(
+                optimizer="AdamW",
+                lr0=0.0005,
+                lrf=0.5,
+                momentum=0.9,
+                weight_decay=0.000125,
+                warmup_epochs=0.0,
+                warmup_momentum=0.9,
+                warmup_bias_lr=0.0,
+                nbs=det_args["batch"],
+            )
         print(
-            f"[coco_det_finetune] batch={det_args['batch']} nbs={det_args['nbs']} lr0={det_args['lr0']:.5f} "
-            f"warmup_epochs={det_args['warmup_epochs']:.3f} backbone_lr_ratio={det_args.get('backbone_lr_ratio', 1.0)} "
-            f"(scale={det_args['batch'] / 128.0:.2f}x vs canonical bs=128)"
+            f"[{mode}] optimizer={det_args['optimizer']} batch={det_args['batch']} nbs={det_args['nbs']} "
+            f"lr0={det_args['lr0']:.5f} warmup_epochs={det_args['warmup_epochs']:.3f} "
+            f"backbone_lr_ratio={det_args.get('backbone_lr_ratio', 1.0)}"
         )
         train_args.update(data="coco.yaml", **det_args)
-        # NOTE: sgd_w/cls_w/o2m/detach_epoch from yolo26s.pt recipe are not exposed
-        # as train_args in our ultralytics checkout (cfg validator rejects). muon_w
-        # is set via callback since it isn't in DEFAULT_CFG_DICT either.
-        model.add_callback("on_train_start", muon_w.override(0.4355))
+        # sgd_w/cls_w/o2m/detach_epoch from the yolo26s.pt MuSGD recipe are not exposed as train_args (cfg
+        # validator rejects), so muon_w rides in via callback. It is a MuSGD-only weight, absent for AdamW.
+        if det_args["optimizer"] == "MuSGD":
+            model.add_callback("on_train_start", muon_w.override(0.4355))
         if mode == "coco_det_finetune_frozen":
             train_args["freeze"] = 9
     elif mode == "coco_pose_finetune":

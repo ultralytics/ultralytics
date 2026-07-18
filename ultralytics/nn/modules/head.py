@@ -1830,7 +1830,9 @@ class SemanticSegment(nn.Module):
 
     export = False  # export mode
     format = None  # export format
-    bake_argmax = False  # export: emit a baked [B, H, W] class map (set by the exporter for TensorRT>=10)
+    bake_argmax = (
+        False  # export: emit a baked [B, H, W] class map (set by the exporter for TensorRT>=10 and Hailo-10/15)
+    )
 
     def __init__(self, nc=19, ch=()):
         """Initialize the semantic segmentation head.
@@ -1858,7 +1860,7 @@ class SemanticSegment(nn.Module):
 
         Returns:
             (torch.Tensor | tuple): Logits of shape [B, nc, H/8, W/8] during training (or a (main, aux) tuple when
-                aux_head is present) and inference. ONNX, MNN, and TensorRT>=10 export bake in the argmax and return a
+                aux_head is present) and inference. ONNX, MNN, TensorRT>=10, and Hailo-10/15 export bake in the argmax and return a
                 compact class map of shape [B, H, W] (uint8 when nc <= 256, else int32). Other export formats return
                 upsampled logits of shape [B, nc, H, W].
         """
@@ -1870,9 +1872,10 @@ class SemanticSegment(nn.Module):
             return logits
         if self.export:
             y = F.interpolate(logits, scale_factor=8, mode="bilinear", align_corners=False)  # [B, nc, H, W]
-            # Bake argmax: emit [B, H, W] class map, shrinking the D2H copy ~80x. ONNX/MNN preserve the
-            # integer output; TensorRT only supports uint8 graph outputs on TRT>=10, so engine is gated by the exporter.
-            if self.format in {"onnx", "mnn"} or (self.format == "engine" and self.bake_argmax):
+            # Bake argmax: emit [B, H, W] class map, shrinking the D2H copy ~80x. ONNX/MNN and Hailo-10/15
+            # preserve the integer output; TensorRT only supports uint8 graph outputs on TRT>=10, so engine and
+            # Hailo are gated by the exporter (Hailo-8/8L cannot compile the upsample, so it keeps raw logits).
+            if self.format in {"onnx", "mnn"} or (self.format in {"engine", "hailo"} and self.bake_argmax):
                 cls = y.argmax(1) if self.nc > 1 else y.squeeze(1) > 0
                 return cls.to(torch.uint8 if self.nc <= 256 else torch.int32)
             return y

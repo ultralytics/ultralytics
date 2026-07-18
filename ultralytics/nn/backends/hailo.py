@@ -47,9 +47,10 @@ class HailoBackend(BaseBackend):
             from ultralytics.utils import YAML
 
             self.apply_metadata(YAML.load(metadata_file))
-        if self.task and self.task not in {"detect", "segment", "pose", "obb", "classify"}:
+        if self.task and self.task not in {"detect", "segment", "pose", "obb", "classify", "semantic"}:
             raise ValueError(
-                f"Hailo inference only supports detect, segment, pose, obb and classify tasks, not task='{self.task}'."
+                f"Hailo inference only supports detect, segment, pose, obb, classify and semantic tasks, "
+                f"not task='{self.task}'."
             )
 
         self.hef = HEF(str(hef_file))
@@ -90,6 +91,18 @@ class HailoBackend(BaseBackend):
             return self._decode_obb(outputs)
         if self.task == "classify":
             return torch.from_numpy(outputs[0]).reshape(outputs[0].shape[0], -1)  # on-chip softmax probabilities
+        if self.task == "semantic":
+            out = torch.from_numpy(outputs[0])
+            dtype = torch.uint8 if len(self.names) <= 256 else torch.int32
+            if self.metadata.get("semantic_baked"):
+                # Full-resolution class map baked on chip (Hailo-10/15); return it directly.
+                return out.reshape(out.shape[0], out.shape[1], out.shape[2]).to(dtype)
+            # Hailo-8/8L returns raw classifier logits: reduce on the host (argmax, or a threshold for a single
+            # class, matching the head) into a low-resolution class map the predictor nearest-resizes. Host
+            # reduction + nearest upsample stay cheap enough for edge hosts like the Raspberry Pi.
+            logits = out.permute(0, 3, 1, 2)
+            cls = logits.argmax(1) if logits.shape[1] > 1 else logits.squeeze(1) > 0
+            return cls.to(dtype)
         return self._decode_raw(outputs) if not self.metadata.get("nms", False) else self._decode_nms(outputs[0])
 
     def _decode_nms(self, output: list) -> np.ndarray:

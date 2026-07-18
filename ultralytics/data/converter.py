@@ -838,11 +838,9 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     is_classification = dataset_record.get("task") == "classify"
     class_names = {int(k): v for k, v in dataset_record.get("class_names", {}).items()}
     classification_ids = set()
-    platform_metadata = {}
 
     # Hash stable content plus source identity. Query strings are excluded because signed URLs change on every export.
     _h = hashlib.sha256()
-    _h.update(b"platform-metadata-v1")
     for i, r in enumerate(lines):
         if i:
             split, source_name = r.get("split"), r.get("file")
@@ -853,8 +851,6 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
             # Record indexes provide collision-free output stems without trusting source paths.
             suffix = source_name.rsplit(".", 1)[-1]
             r["file"] = f"{i}.{suffix}" if suffix.isalnum() and len(suffix) <= 10 else f"{i}.jpg"
-            if isinstance(r.get("platform"), dict):
-                platform_metadata[r["file"]] = r["platform"]
             if is_classification:
                 ids = r.get("annotations", {}).get("classification", [])
                 class_id = ids[0] if ids else 0
@@ -865,9 +861,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         if r.get("file"):
             hash_record["_source"] = clean_url(r["url"]) if r.get("url") else str(ndjson_path.parent.resolve())
         _h.update(json.dumps(hash_record, sort_keys=True).encode())
-    source_hash = _h.hexdigest()
-    platform_fingerprint = dataset_record.get("platform_fingerprint", source_hash)
-    _hash = source_hash[:8]
+    _hash = _h.hexdigest()[:8]
     class_dirs = {class_id: f"{i:06d}" for i, class_id in enumerate(sorted(classification_ids))}
     classification_names = {i: class_names.get(class_id, str(class_id)) for i, class_id in enumerate(class_dirs)}
 
@@ -949,10 +943,6 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
             data_yaml["nc"] = inferred_nc
         data_yaml.pop("class_names", None)
         data_yaml.pop("type", None)  # Remove NDJSON-specific fields
-        data_yaml.pop("platform", None)
-        if platform_metadata:
-            data_yaml["platform_metadata"] = ".ndjson-platform.json"
-            data_yaml["platform_fingerprint"] = platform_fingerprint
         for split in sorted(splits):
             (dataset_dir / "images" / split).mkdir(parents=True, exist_ok=True)
             (dataset_dir / "labels" / split).mkdir(parents=True, exist_ok=True)
@@ -1072,7 +1062,5 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     else:
         # Detection: write data.yaml with hash for future change detection
         data_yaml["hash"] = _hash
-        if platform_metadata:
-            (dataset_dir / data_yaml["platform_metadata"]).write_text(json.dumps(platform_metadata))
         YAML.save(yaml_path, data_yaml)
         return yaml_path

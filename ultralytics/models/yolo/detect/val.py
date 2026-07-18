@@ -14,7 +14,7 @@ from ultralytics.data import build_dataloader, build_yolo_dataset, converter
 from ultralytics.engine.validator import BaseValidator
 from ultralytics.utils import LOGGER, RANK, nms, ops
 from ultralytics.utils.checks import check_requirements
-from ultralytics.utils.metrics import PLATFORM_ANALYSIS_CONFIDENCE, ConfusionMatrix, DetMetrics, box_iou
+from ultralytics.utils.metrics import ConfusionMatrix, DetMetrics, box_iou
 from ultralytics.utils.plotting import plot_images
 
 
@@ -177,20 +177,6 @@ class DetectionValidator(BaseValidator):
             self.seen += 1
             pbatch = self._prepare_batch(si, batch)
             predn = self._prepare_pred(pred)
-            platform = (batch.get("platform") or [{}] * len(preds))[si] or {}
-            analysis = None
-            if platform:
-                analysis_mask = predn["conf"] >= PLATFORM_ANALYSIS_CONFIDENCE
-                analysis_pred = {key: value[analysis_mask] for key, value in predn.items()}
-                analysis = {
-                    **self._process_batch(analysis_pred, pbatch),
-                    "pred_cls": analysis_pred["cls"].cpu().numpy(),
-                }
-                areas = (
-                    pbatch["bboxes"][:, 2:4].prod(1)
-                    if self.args.task == "obb"
-                    else (pbatch["bboxes"][:, 2:] - pbatch["bboxes"][:, :2]).prod(1)
-                ) / (pbatch["imgsz"][0] * pbatch["imgsz"][1])
 
             cls = pbatch["cls"].cpu().numpy()
             no_pred = predn["cls"].shape[0] == 0
@@ -202,21 +188,6 @@ class DetectionValidator(BaseValidator):
                     "conf": np.zeros(0) if no_pred else predn["conf"].cpu().numpy(),
                     "pred_cls": np.zeros(0) if no_pred else predn["cls"].cpu().numpy(),
                     "im_name": Path(pbatch["im_file"]).name,
-                    **(
-                        {
-                            "analysis": analysis,
-                            "image": {
-                                **platform,
-                                "width": pbatch["ori_shape"][1],
-                                "height": pbatch["ori_shape"][0],
-                                "objectCount": len(cls),
-                                "meanObjectArea": float(areas.mean().cpu()) if len(cls) else 0,
-                                "minObjectArea": float(areas.min().cpu()) if len(cls) else 0,
-                            },
-                        }
-                        if analysis is not None
-                        else {}
-                    ),
                 }
             )
             # Evaluate

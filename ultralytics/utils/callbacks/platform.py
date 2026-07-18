@@ -6,8 +6,6 @@ import re
 import socket
 import sys
 from concurrent.futures import ThreadPoolExecutor
-from hashlib import sha256
-from json import dumps
 from math import isfinite
 from pathlib import Path
 from time import sleep, time
@@ -23,11 +21,6 @@ from ultralytics.utils import (
     TESTS_RUNNING,
     Retry,
     colorstr,
-)
-from ultralytics.utils.metrics import (
-    PLATFORM_ANALYSIS_CONFIDENCE,
-    PLATFORM_VALIDATION_SCHEMA_VERSION,
-    summarize_platform_validation,
 )
 
 PREFIX = colorstr("Platform: ")
@@ -355,106 +348,6 @@ def _get_project_name(trainer):
     return project, slugify(str(trainer.args.name or "train"))
 
 
-def serialize_validation_results(validator):
-    """Serialize a completed validator into bounded Platform transport payloads."""
-    from ultralytics import __version__
-
-    task = validator.args.task
-    if task not in {"detect", "segment", "pose", "obb"}:
-        return {"state": "unsupported", "reason": "task_not_supported", "task": task}
-    metrics = validator.metrics
-    task_metric = metrics.seg if task == "segment" else metrics.pose if task == "pose" else None
-    result = summarize_platform_validation(
-        metrics.box.image_metrics, task_metric.image_metrics if task_metric else None
-    )
-    population = result.pop("population")
-    if not population or result.pop("identityCount") != population:
-        return {"state": "unsupported", "reason": "identity_unavailable", "task": task}
-
-    pending = result.pop("rows")
-    omitted = result.pop("detailOmitted")
-    buckets = []
-    oversized = False
-    offset = 0
-    while offset < len(pending):
-        size = min(4096, len(pending) - offset)
-        rows = pending[offset : offset + size]
-        while size > 1 and len(dumps(rows, separators=(",", ":")).encode()) > 900_000:
-            size //= 2
-            rows = pending[offset : offset + size]
-        body = dumps(rows, sort_keys=True, separators=(",", ":"))
-        if len(body.encode()) > 900_000:
-            buckets.clear()
-            oversized = True
-            break
-        buckets.append({"bucketIndex": len(buckets), "rows": rows, "checksum": sha256(body.encode()).hexdigest()})
-        offset += size
-
-    captured = sum(len(bucket["rows"]) for bucket in buckets)
-    omitted_reason = "run_limit" if omitted else "transport_limit" if oversized else None
-
-    return {
-        "state": "complete",
-        "schemaVersion": PLATFORM_VALIDATION_SCHEMA_VERSION,
-        "task": task,
-        "evaluator": {
-            "iouThreshold": 0.5,
-            "ultralyticsVersion": __version__,
-            "collectionConfidence": validator.args.conf,
-            "nmsIou": validator.args.iou,
-            "maxDet": validator.args.max_det,
-            "traitVersion": 1,
-            "analysisConfidence": max(PLATFORM_ANALYSIS_CONFIDENCE, validator.args.conf),
-        },
-        "coverage": {
-            "population": population,
-            "detail": {
-                "state": "omitted" if omitted_reason else "full",
-                "captured": captured,
-                "omitted": population if omitted_reason else 0,
-                **({"reason": omitted_reason} if omitted_reason else {}),
-            },
-            "perTrait": result.pop("traitCoverage"),
-        },
-        "bucketCount": len(buckets),
-        "datasetFingerprint": validator.data.get("platform_fingerprint", ""),
-        "buckets": buckets,
-        **result,
-    }
-
-
-def _send_validation_results(trainer, project, name, ctx):
-    """Send final image-level validation before the terminal training event."""
-    try:
-        payload = serialize_validation_results(trainer.validator)
-    except Exception as error:
-        LOGGER.warning(f"{PREFIX}Validation introspection unavailable: {error}")
-        _send(
-            "validation_failed",
-            {"runId": ctx["run_id"], "task": trainer.args.task, "reason": "contract_incompatible"},
-            project,
-            name,
-            ctx["model_id"],
-        )
-        return
-    common = {"runId": ctx["run_id"], "task": payload["task"]}
-    if payload["state"] == "unsupported":
-        _send("validation_unsupported", {**common, "reason": payload["reason"]}, project, name, ctx["model_id"])
-        return
-    manifest = {key: value for key, value in payload.items() if key not in {"state", "buckets"}}
-    for bucket in payload["buckets"]:
-        if not _send(
-            "validation_bucket",
-            {**common, "schemaVersion": payload["schemaVersion"], **bucket},
-            project,
-            name,
-            ctx["model_id"],
-        ):
-            _send("validation_failed", {**common, "reason": "upload_failed"}, project, name, ctx["model_id"])
-            return
-    _send("validation_complete", {**common, **manifest}, project, name, ctx["model_id"])
-
-
 def on_pretrain_routine_start(trainer):
     """Initialize Platform logging at training start."""
     if RANK not in {-1, 0} or not trainer.args.project:
@@ -659,8 +552,6 @@ def on_train_end(trainer):
 
     # stopper.best_epoch is 1-indexed; -1 aligns with the 0-indexed `epoch` field
     best_epoch = max(0, getattr(getattr(trainer, "stopper", None), "best_epoch", trainer.epoch + 1) - 1)
-
-    _send_validation_results(trainer, project, name, ctx)
 
     _send(
         "training_complete",

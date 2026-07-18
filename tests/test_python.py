@@ -620,24 +620,64 @@ def test_platform_validation_result(monkeypatch):
     }
 
 
-def test_platform_traits_only_on_final_validation(monkeypatch):
+def test_platform_traits_only_on_final_validation():
     """Test Platform trait collection is absent from epoch validation and enabled for final validation."""
-    from types import SimpleNamespace
+    import torch
 
-    from ultralytics.models.yolo.detect import val
+    from ultralytics.models.yolo.detect.val import DetectionValidator
 
-    monkeypatch.setattr(val, "build_dataloader", lambda dataset, *args, **kwargs: dataset)
-    validator = object.__new__(val.DetectionValidator)
+    validator = DetectionValidator(args={"plots": False})
     validator.data = {"platform": True}
-    validator.args = SimpleNamespace(workers=0, compile=False)
-    validator.stride = 32
-    dataset = SimpleNamespace()
-    validator.build_dataset = lambda *args, **kwargs: dataset
+    validator.device = torch.device("cpu")
+    validator.names = {0: "object"}
+    validator.seen = 0
+    batch = {
+        "img": torch.full((1, 3, 32, 32), 0.5),
+        "batch_idx": torch.empty(0),
+        "cls": torch.empty((0, 1)),
+        "bboxes": torch.empty((0, 4)),
+        "ori_shape": [(32, 32)],
+        "ratio_pad": [((1.0, 1.0), (0.0, 0.0))],
+        "im_file": ["0123456789abcdef01234567.jpg"],
+    }
+    preds = [{"bboxes": torch.empty((0, 4)), "conf": torch.empty(0), "cls": torch.empty(0)}]
 
     validator.training = True
-    assert not validator.get_dataloader("val", 1).collect_image_traits
+    validator.update_metrics(preds, batch)
+    assert "image" not in validator.metrics.box.image_metrics[batch["im_file"][0]]
+    validator.metrics.clear_image_metrics()
     validator.training = False
-    assert validator.get_dataloader("val", 1).collect_image_traits
+    validator.update_metrics(preds, batch)
+    image = validator.metrics.box.image_metrics[batch["im_file"][0]]["image"]
+    assert image["brightness"] == 128
+    assert image["sharpness"] == 0
+
+
+def test_platform_validation_does_not_oversize_terminal_request(monkeypatch):
+    """Test optional validation is dropped based on the exact terminal request body."""
+    from types import SimpleNamespace
+
+    from ultralytics.utils.callbacks import platform
+
+    request = {}
+    monkeypatch.setattr(platform, "PLATFORM_REQUEST_BYTES", 200)
+    monkeypatch.setattr(
+        platform,
+        "requests",
+        SimpleNamespace(
+            post=lambda *args, **kwargs: (
+                request.update(kwargs) or SimpleNamespace(status_code=200, json=dict, raise_for_status=lambda: None)
+            )
+        ),
+        raising=False,
+    )
+    platform._send(
+        "training_complete",
+        {"plots": ["x" * 150], "validation": {"rows": [["0123456789abcdef01234567"]]}},
+        "user/project",
+        "model",
+    )
+    assert "validation" not in request["json"]["data"]
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")

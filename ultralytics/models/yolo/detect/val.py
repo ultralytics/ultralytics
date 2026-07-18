@@ -173,10 +173,49 @@ class DetectionValidator(BaseValidator):
             preds (list[dict[str, torch.Tensor]]): List of predictions from the model.
             batch (dict[str, Any]): Batch data containing ground truth.
         """
+        collect_traits = bool(self.data.get("platform")) and not self.training
+        if collect_traits:
+            luma = batch["img"].new_tensor((0.299, 0.587, 0.114)).view(1, 3, 1, 1)
+            laplacian = batch["img"].new_tensor(((0, 1, 0), (1, -4, 1), (0, 1, 0))).view(1, 1, 3, 3)
         for si, pred in enumerate(preds):
             self.seen += 1
             pbatch = self._prepare_batch(si, batch)
             predn = self._prepare_pred(pred)
+
+            image = None
+            if collect_traits:
+                padw, padh = map(round, pbatch["ratio_pad"][1])
+                height, width = batch["img"].shape[2:]
+                thumbnail = batch["img"][si : si + 1, :, padh : height - padh or height, padw : width - padw or width]
+                scale = min(1, 256 / max(thumbnail.shape[2:]))
+                if scale < 1:
+                    thumbnail = torch.nn.functional.interpolate(
+                        thumbnail, scale_factor=scale, mode="bilinear", align_corners=False
+                    )
+                gray = (thumbnail * luma).sum(1, keepdim=True)
+                brightness, sharpness = (
+                    torch.stack(
+                        (
+                            gray.mean() * 255,
+                            torch.log1p(
+                                torch.nn.functional.conv2d(
+                                    torch.nn.functional.pad(gray, (1, 1, 1, 1), mode="replicate"), laplacian
+                                ).var(unbiased=False)
+                                * 255**2
+                            )
+                            * 100,
+                        )
+                    )
+                    .round()
+                    .int()
+                    .tolist()
+                )
+                image = {
+                    "width": pbatch["ori_shape"][1],
+                    "height": pbatch["ori_shape"][0],
+                    "brightness": brightness,
+                    "sharpness": sharpness,
+                }
 
             cls = pbatch["cls"].cpu().numpy()
             no_pred = predn["cls"].shape[0] == 0
@@ -188,17 +227,7 @@ class DetectionValidator(BaseValidator):
                     "conf": np.zeros(0) if no_pred else predn["conf"].cpu().numpy(),
                     "pred_cls": np.zeros(0) if no_pred else predn["cls"].cpu().numpy(),
                     "im_name": Path(pbatch["im_file"]).name,
-                    **(
-                        {
-                            "image": {
-                                "width": pbatch["ori_shape"][1],
-                                "height": pbatch["ori_shape"][0],
-                                **batch["image_traits"][si],
-                            }
-                        }
-                        if "image_traits" in batch
-                        else {}
-                    ),
+                    **({"image": image} if image else {}),
                 }
             )
             # Evaluate
@@ -350,7 +379,6 @@ class DetectionValidator(BaseValidator):
             (torch.utils.data.DataLoader): DataLoader for validation.
         """
         dataset = self.build_dataset(dataset_path, batch=batch_size, mode="val")
-        dataset.collect_image_traits = bool(self.data.get("platform")) and not self.training
         return build_dataloader(
             dataset,
             batch_size,

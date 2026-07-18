@@ -835,6 +835,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     with open(ndjson_path) as f:
         lines = [json.loads(line.strip()) for line in f if line.strip()]
     dataset_record, image_records = lines[0], lines[1:]
+    is_platform_dataset = dataset_record.get("platform") is True
     is_classification = dataset_record.get("task") == "classify"
     class_names = {int(k): v for k, v in dataset_record.get("class_names", {}).items()}
     classification_ids = set()
@@ -852,7 +853,8 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
             suffix = source_name.rsplit(".", 1)[-1]
             image_id = r.get("platform_id")
             is_platform = (
-                isinstance(image_id, str)
+                is_platform_dataset
+                and isinstance(image_id, str)
                 and len(image_id) == 24
                 and all(char in "0123456789abcdef" for char in image_id.lower())
             )

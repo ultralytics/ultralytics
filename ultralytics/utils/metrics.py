@@ -1071,6 +1071,7 @@ class Metric(SimpleClass):
             target_cls (np.ndarray): Ground truth class labels for the image.
             pred_cls (np.ndarray): Predicted class labels for the image.
             im_name (str): The image filename used as the per-image key.
+            image (dict[str, int], optional): Image dimensions and traits.
         """
         # Use the default IoU=0.5 column to match the validator's image-level matching policy.
         tp = int(tp[:, 0].sum())

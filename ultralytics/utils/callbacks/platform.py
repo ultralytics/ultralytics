@@ -27,6 +27,7 @@ from ultralytics.utils import (
 PREFIX = colorstr("Platform: ")
 PLATFORM_API_URL = f"{PLATFORM_URL}/api/webhooks"
 PLATFORM_VALIDATION_BYTES = 3_000_000
+PLATFORM_REQUEST_BYTES = 4_400_000
 
 
 def slugify(text):
@@ -191,6 +192,12 @@ def _send(event, data, project, name, model_id=None, retry=2, timeout=30):
     payload = {"event": event, "project": project, "name": name, "data": _sanitize_json_value(data)}
     if model_id:
         payload["modelId"] = model_id
+    if (
+        event == "training_complete"
+        and "validation" in payload["data"]
+        and len(dumps(payload).encode()) > PLATFORM_REQUEST_BYTES
+    ):
+        del payload["data"]["validation"]
 
     @Retry(times=retry, delay=1)
     def post():

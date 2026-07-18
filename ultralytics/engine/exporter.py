@@ -80,7 +80,19 @@ from ultralytics.data import build_dataloader, build_yolo_dataset
 from ultralytics.data.dataset import ClassificationDataset
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.autobackend import AutoBackend, check_class_names, default_class_names
-from ultralytics.nn.modules import C2f, Classify, Detect, RTDETRDecoder, Segment, Segment26, SemanticSegment
+from ultralytics.nn.modules import (
+    OBB,
+    OBB26,
+    C2f,
+    Classify,
+    Detect,
+    Pose,
+    Pose26,
+    RTDETRDecoder,
+    Segment,
+    Segment26,
+    SemanticSegment,
+)
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, WorldModel
 from ultralytics.utils import (
     ARM64,
@@ -587,16 +599,17 @@ class Exporter:
             family = Path(getattr(model, "yaml_file", None) or model.yaml.get("yaml_file", "")).stem.lower() or (
                 "yolov8" if "C2f" in blocks else "yolo11" if {"C3k2", "C2PSA"} <= blocks else ""
             )
-            if isinstance(model.model[-1], Segment26):
-                raise ValueError("Hailo export does not currently support YOLO26 segmentation models.")
+            task26 = {Segment26: "segmentation", Pose26: "pose", OBB26: "OBB"}.get(type(model.model[-1]))
+            if task26:
+                raise ValueError(f"Hailo export does not currently support YOLO26 {task26} models.")
             if (
-                model.task not in {"detect", "segment"}
-                or type(model.model[-1]) not in {Detect, Segment}
+                model.task not in {"detect", "segment", "pose", "obb", "classify"}
+                or type(model.model[-1]) not in {Detect, Segment, Pose, OBB, Classify}
                 or not family.startswith(("yolov8", "yolo11", "yolo26"))
             ):
                 raise ValueError(
-                    "Hailo export currently supports YOLOv8, YOLO11, and YOLO26 detection models "
-                    "and YOLOv8/YOLO11 segmentation models."
+                    "Hailo export currently supports YOLOv8/YOLO11/YOLO26 detection and classification models "
+                    "and YOLOv8/YOLO11 segmentation, pose, and OBB models."
                 )
             if self.args.end2end is not None:
                 raise ValueError(
@@ -1493,22 +1506,30 @@ class Exporter:
         head_index = len(self.model.model) - 1
         head = self.model.model[head_index]
         one2one = getattr(self.model, "end2end", False)
-        segment = self.model.task == "segment"
-        scales = range(len(head.one2one_cv2 if one2one else head.cv2))
-        if one2one:
-            end_nodes = [
-                f"/model.{head_index}/one2one_cv{branch}.{i}/one2one_cv{branch}.{i}.2/Conv"
-                for branch in (2, 3)
-                for i in scales
-            ]
-        elif segment:
-            end_nodes = [
-                f"/model.{head_index}/cv{branch}.{i}/cv{branch}.{i}.2/Conv" for i in scales for branch in (2, 3, 4)
-            ] + [f"/model.{head_index}/proto/cv3/act/Mul"]
+        task = self.model.task
+        if task == "classify":
+            # The Classify head ends in Gemm -> Softmax; cut at the Softmax so the HEF returns the same
+            # (1, nc) probabilities as the PyTorch model. The DFC translates the softmax to a native layer.
+            end_nodes = [f"/model.{head_index}/Softmax"]
         else:
-            end_nodes = [
-                f"/model.{head_index}/cv{branch}.{i}/cv{branch}.{i}.2/Conv" for i in scales for branch in (2, 3)
-            ]
+            scales = range(len(head.one2one_cv2 if one2one else head.cv2))
+            if one2one:
+                end_nodes = [
+                    f"/model.{head_index}/one2one_cv{branch}.{i}/one2one_cv{branch}.{i}.2/Conv"
+                    for branch in (2, 3)
+                    for i in scales
+                ]
+            elif task in {"segment", "pose", "obb"}:
+                # reg/cls/extra triple per scale (extra = mask coeffs, keypoints, or angle); segment adds prototypes.
+                end_nodes = [
+                    f"/model.{head_index}/cv{branch}.{i}/cv{branch}.{i}.2/Conv" for i in scales for branch in (2, 3, 4)
+                ]
+                if task == "segment":
+                    end_nodes.append(f"/model.{head_index}/proto/cv3/act/Mul")
+            else:
+                end_nodes = [
+                    f"/model.{head_index}/cv{branch}.{i}/cv{branch}.{i}.2/Conv" for i in scales for branch in (2, 3)
+                ]
         self.args.opset = 11
         f_onnx = Path(self.export_onnx())
         output_dir = self.file.parent / f"{self.file.stem}_hailo_model"
@@ -1526,11 +1547,15 @@ class Exporter:
             if one2one:
                 outputs = ", ".join(f"output_layer{i + 1}" for i in range(len(end_nodes)))
                 model_script.append(f"quantization_param([{outputs}], precision_mode=a16_w16)")
+            elif task == "classify":
+                pass  # softmax is already the graph output; no NMS or activation changes needed
             else:
                 outputs = [layer.inputs[0].rsplit("/", 1)[-1] for layer in runner.get_hn_model().get_output_layers()]
-                if segment:
+                if task in {"segment", "pose", "obb"}:
+                    # Bake sigmoid into the class convs only (position 1 of each per-scale reg/cls/extra triple).
+                    # Mask coeffs, prototypes, keypoints and angles stay raw and are decoded on the host.
                     model_script.extend(
-                        f"change_output_activation({outputs[i]}, sigmoid)" for i in range(1, len(outputs) - 1, 3)
+                        f"change_output_activation({outputs[i]}, sigmoid)" for i in range(1, 3 * len(scales), 3)
                     )
                 else:
                     nms_config = output_dir / "nms_config.json"
@@ -1579,7 +1604,7 @@ class Exporter:
             (output_dir / f"{self.file.stem}.hef").write_bytes(runner.compile())
             YAML.save(
                 output_dir / "metadata.yaml",
-                {**self.metadata, "hailo_arch": self.args.name, "nms": not (one2one or segment)},
+                {**self.metadata, "hailo_arch": self.args.name, "nms": task == "detect" and not one2one},
             )
             return str(output_dir)
         finally:

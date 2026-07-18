@@ -1070,9 +1070,7 @@ class BaseTrainer:
             self.args.warmup_bias_lr = 0.0  # no higher than 0.01 for Adam
 
         use_muon = name == "MuSGD"
-        ratio = self.args.backbone_lr_ratio  # backbone LR = lr * ratio (1.0 = uniform, MuSGD path only)
-        if ratio != 1.0 and not use_muon:
-            raise NotImplementedError(f"backbone_lr_ratio={ratio} requires optimizer='MuSGD', got '{name}' (non-muon path not built yet)")
+        ratio = self.args.backbone_lr_ratio  # backbone LR = lr * ratio (1.0 = uniform)
         for module_name, module in unwrap_model(model).named_modules():
             for param_name, param in module.named_parameters(recurse=False):
                 fullname = f"{module_name}.{param_name}" if module_name else param_name
@@ -1085,9 +1083,6 @@ class BaseTrainer:
                     g[1][fullname] = param
                 else:  # weight (with decay)
                     g[0][fullname] = param
-        if not use_muon:
-            g = [x.values() for x in g[:3]]  # convert to list of params
-
         optimizers = {"Adam", "Adamax", "AdamW", "NAdam", "RAdam", "RMSProp", "SGD", "MuSGD", "auto"}
         name = {x.lower(): x for x in optimizers}.get(str(name).lower(), str(name))
         if name in {"Adam", "Adamax", "AdamW", "NAdam", "RAdam"}:
@@ -1107,39 +1102,43 @@ class BaseTrainer:
         g[0] = {"params": g[0], **optim_args, "weight_decay": decay, "param_group": "weight"}
         g[1] = {"params": g[1], **optim_args, "weight_decay": 0.0, "param_group": "bn"}
         muon, sgd = (0.2, 1.0)
+        groups = [g[0], g[1], g[2]]
         if use_muon:
             num_params[0] = len(g[3])  # update number of params
             g[3] = {"params": g[3], **optim_args, "weight_decay": decay, "use_muon": True, "param_group": "muon"}
-            import re
+            groups.append(g[3])
 
-            # cls_head (cv3) of any Detect subclass gets a higher lr when finetuning, found by module identity
-            # so it holds at any backbone depth. Previously a literal "23" layer-index match, which silently
-            # never fired for backbones shallower than the conv yolo26 family (e.g. ultravit's 9-layer backbone
-            # puts Detect at layer 21). Reads student_model first so a DistillationModel resolves the trainable
-            # head, not the frozen teacher's. proto.semseg/SemanticSegment is the separate YOLO26 semantic aux head.
+        # Split each group into cls-head boost (MuSGD only, lr * 3), backbone (lr * ratio to preserve distilled
+        # features), and base. Boost is MuSGD-only so an AdamW backbone_lr_ratio arm gets no head boost. Empty
+        # subgroups are dropped, so a plain ratio 1.0 run keeps the flat weight/bn/bias grouping unchanged.
+        boosted, backbone = set(), set()
+        if use_muon or ratio != 1.0:
+            # student_model first so a DistillationModel resolves the trainable head, not the frozen teacher's.
             target = unwrap_model(model)
             target = getattr(target, "student_model", target)
-            head = target.model[-1] if isinstance(target.model[-1], Detect) else None
-            boosted = set()
-            if head is not None:
-                boosted = {id(p) for p in head.cv3.parameters()}
-                if head.end2end:
-                    boosted.update(id(p) for p in head.one2one_cv3.parameters())
-            # Backbone params (yaml layer count, identity-based like the boost so depth/wrappers don't matter) get
-            # lr * backbone_lr_ratio to preserve distilled features. Empty at ratio 1.0 keeps the default grouping.
-            backbone = {id(p) for m in target.model[: len(target.yaml["backbone"])] for p in m.parameters()} if ratio != 1.0 else set()
-            pattern = re.compile(r"proto\.semseg|SemanticSegment")
-            g_ = []  # new param groups
-            for x in g:
-                p = x.pop("params")
-                p_boost, p_bb, p_base = [], [], []
-                for k, v in p.items():
-                    (p_boost if id(v) in boosted or pattern.search(k) else p_bb if id(v) in backbone else p_base).append(v)
+            if use_muon:
+                # cls_head cv3 of any Detect subclass, by module identity so it holds at any backbone depth.
+                head = target.model[-1] if isinstance(target.model[-1], Detect) else None
+                if head is not None:
+                    boosted = {id(p) for p in head.cv3.parameters()}
+                    if head.end2end:
+                        boosted.update(id(p) for p in head.one2one_cv3.parameters())
+            if ratio != 1.0:  # backbone by yaml layer count, identity-based so depth/wrappers do not matter
+                backbone = {id(p) for m in target.model[: len(target.yaml["backbone"])] for p in m.parameters()}
+        g_ = []  # split param groups
+        for x in groups:
+            p = x.pop("params")
+            p_boost, p_bb, p_base = [], [], []
+            for k, v in p.items():
+                # proto.semseg/SemanticSegment is the YOLO26 semantic aux head, boosted like cls_head (MuSGD only).
+                boost = use_muon and (id(v) in boosted or "proto.semseg" in k or "SemanticSegment" in k)
+                (p_boost if boost else p_bb if id(v) in backbone else p_base).append(v)
+            if p_boost:
                 g_.append({"params": p_boost, **x, "lr": lr * 3})
-                if p_bb:
-                    g_.append({"params": p_bb, **x, "lr": lr * ratio})
-                g_.append({"params": p_base, **x})
-            g = g_
+            if p_bb:
+                g_.append({"params": p_bb, **x, "lr": lr * ratio})
+            g_.append({"params": p_base, **x})
+        g = g_
         optimizer = getattr(optim, name, partial(MuSGD, muon=muon, sgd=sgd))(params=g)
 
         LOGGER.info(

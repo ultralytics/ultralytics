@@ -581,7 +581,7 @@ class Exporter:
             family = Path(getattr(model, "yaml_file", None) or model.yaml.get("yaml_file", "")).stem.lower() or (
                 "yolov8" if "C2f" in blocks else "yolo11" if {"C3k2", "C2PSA"} <= blocks else ""
             )
-            if model.task == "segment" and any(isinstance(m, Segment26) for m in model.modules()):
+            if isinstance(model.model[-1], Segment26):
                 raise ValueError("Hailo export does not currently support YOLO26 segmentation models.")
             if (
                 model.task not in {"detect", "segment"}

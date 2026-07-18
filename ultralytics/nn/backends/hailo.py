@@ -64,6 +64,10 @@ class HailoBackend(BaseBackend):
             self.model = stack.enter_context(InferVStreams(network_group, input_params, output_params))
             self._stack = stack.pop_all()
         self._anchors = None
+        if self.task == "segment":
+            from ultralytics.nn.modules import DFL
+
+            self._dfl = DFL()
         self.end2end = self.task != "segment"  # segmentation returns dense output for the predictor's NMS
 
     def __del__(self):
@@ -114,10 +118,7 @@ class HailoBackend(BaseBackend):
             strides = [self.input_info.shape[0] / x.shape[2] for x in reg_maps]
             self._anchors = make_anchors(reg_maps, strides)
         anchors, stride_tensor = self._anchors
-        dist = torch.cat([x.flatten(2) for x in reg_maps], 2)
-        b, _, a = dist.shape
-        proj = torch.arange(16, dtype=torch.float32)
-        dist = (dist.view(b, 4, 16, a).permute(0, 3, 1, 2).softmax(3) * proj).sum(3)  # DFL
+        dist = self._dfl(torch.cat([x.flatten(2) for x in reg_maps], 2)).transpose(1, 2)
         boxes = dist2bbox(dist, anchors, xywh=True) * stride_tensor
         cls = torch.cat([x.flatten(2) for x in cls_maps], 2).transpose(1, 2)  # sigmoid baked in at export
         cof = torch.cat([x.flatten(2) for x in cof_maps], 2).transpose(1, 2)

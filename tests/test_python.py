@@ -635,7 +635,7 @@ def test_ndjson_conversion_concurrency_and_resume(monkeypatch, tmp_path, task):
                 failures.discard(self.url)
             if fail:
                 raise OSError("interrupted")
-            return b"image"
+            return image_bytes
 
     class Session:
         def __init__(self, **_):
@@ -650,6 +650,9 @@ def test_ndjson_conversion_concurrency_and_resume(monkeypatch, tmp_path, task):
         def get(self, url, **_):
             return Response(url)
 
+    ok, image = cv2.imencode(".jpg", np.zeros((16, 16, 3), dtype=np.uint8))
+    assert ok
+    image_bytes = image.tobytes()
     monkeypatch.setattr(aiohttp, "ClientSession", Session)
     original_convert = converter._convert_ndjson_to_yolo
 
@@ -696,8 +699,15 @@ def test_ndjson_conversion_concurrency_and_resume(monkeypatch, tmp_path, task):
     assert conversions == 1
     assert sum(counts.values()) == 2
     if task == "classify":
-        assert {x.name for x in (results[0] / "train").iterdir()} == {"000000", "000001"}
         assert check_cls_dataset(results[0])["nc"] == 2
+        from ultralytics.data import dataset as dataset_module
+
+        monkeypatch.setattr(dataset_module, "TORCHVISION_0_18", False)
+        args = copy(DEFAULT_CFG)
+        train = dataset_module.ClassificationDataset(results[0] / "train", args)
+        val = dataset_module.ClassificationDataset(results[0] / "val", args)
+        assert train.samples[0][1] == 0
+        assert val.samples[0][1] == 1
 
     resume = write_ndjson("resume")
     failed_url = "https://example.com/resume-val.jpg"

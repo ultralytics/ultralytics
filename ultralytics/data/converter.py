@@ -970,10 +970,6 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path) -> Path:
             (dataset_dir / "images" / split).mkdir(parents=True, exist_ok=True)
             (dataset_dir / "labels" / split).mkdir(parents=True, exist_ok=True)
             data_yaml[split] = f"images/{split}"
-    else:
-        for split in splits:
-            for class_name in class_dirs.values():
-                (dataset_dir / split / class_name).mkdir(parents=True, exist_ok=True)
 
     async def process_record(session, semaphore, record):
         """Process single image record with async session."""

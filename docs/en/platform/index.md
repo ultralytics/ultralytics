@@ -54,7 +54,7 @@ graph LR
 | **Annotate** | Manual tools for all 6 task types, plus [Smart Annotation](data/annotation.md#smart-annotation) with SAM and YOLO models for detect, segment, semantic, and OBB (see [supported tasks](data/index.md#supported-tasks)) |
 | **Train**    | Cloud GPUs (24 on all plans + 2 Pro/Enterprise-only: B200, B300), real-time metrics, project organization                                                                                                              |
 | **Export**   | [19+ deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, LiteRT, etc.; see [supported formats](train/models.md#supported-formats))                                                                        |
-| **Deploy**   | 43 global regions with dedicated endpoints, scale-to-zero by default (single active instance), and monitoring                                                                                                          |
+| **Deploy**   | 42 global regions with dedicated endpoints, scale-to-zero by default (single active instance), and monitoring                                                                                                          |
 
 **What you can do:**
 
@@ -62,7 +62,7 @@ graph LR
 - **Visualize** annotations with interactive overlays for all 6 YOLO task types (see [supported tasks](data/index.md#supported-tasks))
 - **Train** models on cloud GPUs (24 on all plans, 26 with Pro or Enterprise for B200 and B300) with real-time metrics
 - **Export** to [19+ deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, LiteRT, etc.)
-- **Deploy** to 43 global regions with one-click dedicated endpoints
+- **Deploy** to 42 global regions with one-click dedicated endpoints
 - **Monitor** training progress, deployment health, and usage metrics
 - **Collaborate** by making projects and datasets public for the community
 
@@ -168,7 +168,7 @@ You can train models either through the web UI (cloud training) or from your own
 ### Deployment
 
 - **Inference Testing**: Test models directly in the browser with custom images
-- **Dedicated Endpoints**: Deploy to 43 global regions with scale-to-zero by default (single active instance)
+- **Dedicated Endpoints**: Deploy to 42 global regions with scale-to-zero by default (single active instance)
 - **Monitoring**: Real-time metrics, request logs, and performance dashboards
 
 ```mermaid

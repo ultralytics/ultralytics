@@ -662,17 +662,25 @@ def test_platform_validation_does_not_oversize_terminal_request(monkeypatch):
 
 
 def test_ndjson_preserves_content_hash_filenames(tmp_path):
-    """Test safe content hashes survive generic NDJSON conversion while ordinary names retain index isolation."""
+    """Test safe content hashes survive generic NDJSON conversion from existing filenames or URLs."""
     import asyncio
     import json
 
     from ultralytics.data.converter import convert_ndjson_to_yolo
 
     image_hash = "0123456789abcdef0123456789abcdef"
+    url_hash = "89abcdef0123456789abcdef01234567"
     records = [
         {"type": "dataset", "task": "detect", "class_names": {"0": "object"}},
         {"type": "image", "file": f"{image_hash}.jpg", "split": "train", "annotations": {"boxes": []}},
-        {"type": "image", "file": "ordinary.jpg", "split": "val", "annotations": {"boxes": []}},
+        {
+            "type": "image",
+            "file": "ordinary.jpg",
+            "url": f"https://storage.example/images/{url_hash}.jpg?signature=temporary",
+            "split": "val",
+            "annotations": {"boxes": []},
+        },
+        {"type": "image", "file": "ordinary.jpg", "split": "test", "annotations": {"boxes": []}},
     ]
     source = tmp_path / "dataset.ndjson"
     source.write_text("\n".join(json.dumps(record) for record in records))
@@ -680,7 +688,8 @@ def test_ndjson_preserves_content_hash_filenames(tmp_path):
     yaml_path = asyncio.run(convert_ndjson_to_yolo(source, tmp_path / "converted"))
     labels = yaml_path.parent / "labels"
     assert (labels / "train" / f"{image_hash}_1.txt").exists()
-    assert (labels / "val" / "2.txt").exists()
+    assert (labels / "val" / f"{url_hash}_2.txt").exists()
+    assert (labels / "test" / "3.txt").exists()
 
 
 def test_platform_job_transport(monkeypatch, tmp_path):

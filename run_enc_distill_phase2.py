@@ -115,7 +115,7 @@ def _export_hf_token() -> None:
 
 
 _COCO_DET_MODES = ("coco_det_finetune", "coco_det_finetune_frozen")
-# COCO phase2 default epochs keyed by guess_model_scale letter. Smaller models train longer, bigger backbones converge faster.
+# COCO phase2 default epochs per model scale (guess_model_scale letter), smaller models train longer.
 _COCO_EPOCHS_BY_SCALE = {"n": 300, "s": 120, "m": 100, "l": 90, "x": 70}
 _SCALED_MODES = _COCO_DET_MODES + ("dota_obb_finetune",)
 _SINGLE_GPU_DET_MODES = _COCO_DET_MODES + ("dota_obb_finetune", "multi_det_finetune", "teacher_frozen_det")
@@ -268,10 +268,8 @@ def _resolve_dataset_list(datasets_arg: str) -> list[Path]:
     return yamls
 
 
-# Default flat recipe for multi_det. Epochs/patience apply literally to every dataset (no dataset-size scaling).
-# Pass positional epochs/patience to override. Macros at different budgets are not directly comparable, so
-# _run_multi_det warns on any override. The flat default is 100 for the multi_det per-dataset suite. Single-dataset
-# coco resolves its default from _COCO_EPOCHS_BY_SCALE, dota keeps its own inline default of 50.
+# multi_det uses flat epochs/patience for every dataset (no per-size scaling), override positionally.
+# _run_multi_det warns on override since macros at different budgets are not comparable.
 _MULTI_DET_BASE_EPOCHS = 100
 _MULTI_DET_BASE_PATIENCE = 100
 

@@ -1520,43 +1520,43 @@ class Exporter:
             if one2one:
                 outputs = ", ".join(f"output_layer{i + 1}" for i in range(len(end_nodes)))
                 model_script.append(f"quantization_param([{outputs}], precision_mode=a16_w16)")
-            elif segment:
-                outputs = [layer.inputs[0].rsplit("/", 1)[-1] for layer in runner.get_hn_model().get_output_layers()]
-                model_script.extend(
-                    f"change_output_activation({outputs[i]}, sigmoid)" for i in range(1, len(outputs) - 1, 3)
-                )
             else:
                 outputs = [layer.inputs[0].rsplit("/", 1)[-1] for layer in runner.get_hn_model().get_output_layers()]
-                nms_config = output_dir / "nms_config.json"
-                nms_config.write_text(
-                    json.dumps(
-                        {
-                            "nms_scores_th": self.args.conf if self.args.conf is not None else 0.25,
-                            "nms_iou_th": self.args.iou,
-                            "image_dims": self.imgsz,
-                            "max_proposals_per_class": 100,
-                            "classes": len(self.model.names),
-                            "regression_length": 16,
-                            "background_removal": False,
-                            "background_removal_index": 0,
-                            "bbox_decoders": [
-                                {
-                                    "name": f"bbox_decoder_{stride}",
-                                    "stride": stride,
-                                    "reg_layer": outputs[i * 2],
-                                    "cls_layer": outputs[i * 2 + 1],
-                                }
-                                for i, stride in enumerate(int(x) for x in head.stride)
-                            ],
-                        },
-                        indent=2,
+                if segment:
+                    model_script.extend(
+                        f"change_output_activation({outputs[i]}, sigmoid)" for i in range(1, len(outputs) - 1, 3)
                     )
-                )
-                model_script.extend(
-                    f"change_output_activation({outputs[i]}, sigmoid)" for i in range(1, len(outputs), 2)
-                )
-                model_script.append(f'nms_postprocess("{nms_config}", meta_arch=yolov8, engine=cpu)')
-                model_script.append("allocator_param(width_splitter_defuse=disabled)")
+                else:
+                    nms_config = output_dir / "nms_config.json"
+                    nms_config.write_text(
+                        json.dumps(
+                            {
+                                "nms_scores_th": self.args.conf if self.args.conf is not None else 0.25,
+                                "nms_iou_th": self.args.iou,
+                                "image_dims": self.imgsz,
+                                "max_proposals_per_class": 100,
+                                "classes": len(self.model.names),
+                                "regression_length": 16,
+                                "background_removal": False,
+                                "background_removal_index": 0,
+                                "bbox_decoders": [
+                                    {
+                                        "name": f"bbox_decoder_{stride}",
+                                        "stride": stride,
+                                        "reg_layer": outputs[i * 2],
+                                        "cls_layer": outputs[i * 2 + 1],
+                                    }
+                                    for i, stride in enumerate(int(x) for x in head.stride)
+                                ],
+                            },
+                            indent=2,
+                        )
+                    )
+                    model_script.extend(
+                        f"change_output_activation({outputs[i]}, sigmoid)" for i in range(1, len(outputs), 2)
+                    )
+                    model_script.append(f'nms_postprocess("{nms_config}", meta_arch=yolov8, engine=cpu)')
+                    model_script.append("allocator_param(width_splitter_defuse=disabled)")
             runner.load_model_script("\n".join(model_script))
 
             def calibration_dataset():

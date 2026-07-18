@@ -925,7 +925,6 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     if task == "pose" and "kpt_shape" not in dataset_record:
         dataset_record["kpt_shape"] = _infer_ndjson_kpt_shape(image_records)
 
-    _reuse = dataset_dir.exists()  # Resume incomplete conversions from the content-addressed cache.
     dataset_dir.mkdir(parents=True, exist_ok=True)
     data_yaml = None
 
@@ -966,22 +965,9 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                     break
                 label_path.write_text("\n".join(lines_to_write) + "\n" if lines_to_write else "")
 
-            # Reuse existing image from another split dir (avoids redownload on resplit) or download
+            # Reuse existing images and download missing ones.
             if not image_path.exists():
-                if _reuse:
-                    for s in ("train", "val", "test"):
-                        if s == split:
-                            continue
-                        candidate = (
-                            (dataset_dir / s / class_name / original_name)
-                            if is_classification
-                            else (dataset_dir / "images" / s / original_name)
-                        )
-                        if candidate.exists():
-                            image_path.parent.mkdir(parents=True, exist_ok=True)
-                            candidate.rename(image_path)
-                            break
-                if not image_path.exists() and (http_url := record.get("url")):
+                if http_url := record.get("url"):
                     image_path.parent.mkdir(parents=True, exist_ok=True)
                     # Retry with exponential backoff (3 attempts: 1s, 2s delays before the final attempt)
                     for attempt in range(3):
@@ -1030,24 +1016,6 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         raise RuntimeError(f"Failed to download any images from {ndjson_path}. Check network connection and URLs.")
     if success_count < len(image_records):
         LOGGER.warning(f"Downloaded {success_count}/{len(image_records)} images from {ndjson_path}")
-
-    # Remove orphaned images no longer in the dataset (prevents stale background images in training)
-    if _reuse:
-        expected_paths = set()
-        for r in image_records:
-            s, name = r["split"], r["file"]
-            if is_classification:
-                ann = r.get("annotations", {})
-                cids = ann.get("classification", [])
-                cid = cids[0] if cids else 0
-                class_name = class_dirs[cid]
-                expected_paths.add(dataset_dir / s / class_name / name)
-            else:
-                expected_paths.add(dataset_dir / "images" / s / name)
-        img_root = dataset_dir if is_classification else (dataset_dir / "images")
-        for p in img_root.rglob("*"):
-            if p.is_file() and p not in expected_paths:
-                p.unlink()
 
     if is_classification:
         # Classification: return dataset directory (check_cls_dataset expects a directory path)

@@ -47,6 +47,7 @@ import torch
 from callbacks import grad_clip, muon_w, nfs_sync, paths, wandb_config
 from ultralytics import YOLO
 from ultralytics.data.utils import IMG_FORMATS
+from ultralytics.nn.tasks import guess_model_scale
 from ultralytics.nn.teacher_model import TEACHER_REGISTRY, safe_key
 from ultralytics.utils import YAML
 
@@ -114,6 +115,8 @@ def _export_hf_token() -> None:
 
 
 _COCO_DET_MODES = ("coco_det_finetune", "coco_det_finetune_frozen")
+# COCO phase2 default epochs keyed by guess_model_scale letter. Smaller models train longer, bigger backbones converge faster.
+_COCO_EPOCHS_BY_SCALE = {"n": 300, "s": 120, "m": 100, "l": 90, "x": 70}
 _SCALED_MODES = _COCO_DET_MODES + ("dota_obb_finetune",)
 _SINGLE_GPU_DET_MODES = _COCO_DET_MODES + ("dota_obb_finetune", "multi_det_finetune", "teacher_frozen_det")
 
@@ -168,7 +171,7 @@ def _infer_model_yaml(phase1_weights: str, head_suffix: str = "") -> str:
 
 
 def _build_det_train_args(
-    epochs: int | None,
+    epochs: int,
     patience: int | None,
     batch_override: str,
     lr_override: str,
@@ -180,7 +183,7 @@ def _build_det_train_args(
     warmup span in samples stay invariant when the canonical batch=128 is overridden.
 
     Args:
-        epochs (int, optional): Override default epochs (70).
+        epochs (int): Resolved epochs to train. Callers apply their own default before calling.
         patience (int, optional): Override default patience (100).
         batch_override (str): CLI --batch override.
         lr_override (str): CLI --lr override (RECIPE lr at canonical bs).
@@ -196,7 +199,7 @@ def _build_det_train_args(
     lr0 = base_lr * scale
     warmup = 0.98745 * scale
     return dict(
-        epochs=epochs or 70,
+        epochs=epochs,
         batch=batch,
         imgsz=640,
         nbs=nbs,
@@ -267,8 +270,8 @@ def _resolve_dataset_list(datasets_arg: str) -> list[Path]:
 
 # Default flat recipe for multi_det. Epochs/patience apply literally to every dataset (no dataset-size scaling).
 # Pass positional epochs/patience to override. Macros at different budgets are not directly comparable, so
-# _run_multi_det warns on any override. The flat default is 100 for the multi_det per-dataset suite. The
-# single-dataset coco/dota modes keep _build_det_train_args' own default of 70.
+# _run_multi_det warns on any override. The flat default is 100 for the multi_det per-dataset suite. Single-dataset
+# coco resolves its default from _COCO_EPOCHS_BY_SCALE, dota keeps its own inline default of 50.
 _MULTI_DET_BASE_EPOCHS = 100
 _MULTI_DET_BASE_PATIENCE = 100
 
@@ -706,7 +709,8 @@ def main(argv: list[str]) -> None:
             **_AUG_ARGS,
         )
     elif mode in _COCO_DET_MODES:
-        det_args = _build_det_train_args(epochs, patience, batch_override, lr_override, nbs_override)
+        coco_epochs = epochs or _COCO_EPOCHS_BY_SCALE.get(guess_model_scale(model_yaml), 70)
+        det_args = _build_det_train_args(coco_epochs, patience, batch_override, lr_override, nbs_override)
         if backbone_lr_ratio_override:
             det_args["backbone_lr_ratio"] = float(backbone_lr_ratio_override)
         print(

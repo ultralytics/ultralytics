@@ -6,6 +6,9 @@ import re
 import socket
 import sys
 from concurrent.futures import ThreadPoolExecutor
+from hashlib import sha256
+from hmac import new as hmac_new
+from json import dumps
 from math import isfinite
 from pathlib import Path
 from time import sleep, time
@@ -36,9 +39,8 @@ def slugify(text):
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
-    assert SETTINGS.get("platform", False) is True or os.getenv("ULTRALYTICS_API_KEY") or SETTINGS.get("api_key")
     _api_key = os.getenv("ULTRALYTICS_API_KEY") or SETTINGS.get("api_key")
-    assert _api_key  # verify API key is present
+    assert _api_key or os.getenv("PLATFORM_WEBHOOK_SECRET")
 
     import requests
 
@@ -186,16 +188,29 @@ def _sanitize_json_value(value):
 
 def _send(event, data, project, name, model_id=None, retry=2, timeout=30):
     """Send event to Platform endpoint with retry logic."""
+    if instance_id := os.getenv("PLATFORM_INSTANCE_ID"):
+        data = {**data, "instanceId": instance_id}
     payload = {"event": event, "project": project, "name": name, "data": _sanitize_json_value(data)}
     if model_id:
         payload["modelId"] = model_id
 
     @Retry(times=retry, delay=1)
     def post():
+        secret = os.getenv("PLATFORM_WEBHOOK_SECRET")
+        headers = {"Authorization": f"Bearer {_api_key}"}
+        request_body = {"json": payload}
+        if secret:
+            body = dumps(payload, separators=(",", ":"))
+            headers = {
+                "Content-Type": "application/json",
+                "X-Alpha-Job-Id": os.environ["ALPHA_JOB_ID"],
+                "X-Alpha-Signature": hmac_new(secret.encode(), body.encode(), sha256).hexdigest(),
+            }
+            request_body = {"data": body}
         r = requests.post(
-            f"{PLATFORM_API_URL}/training/metrics",
-            json=payload,
-            headers={"Authorization": f"Bearer {_api_key}"},
+            os.getenv("PLATFORM_WEBHOOK_URL", f"{PLATFORM_API_URL}/training/metrics"),
+            **request_body,
+            headers=headers,
             timeout=timeout,
         )
         if 400 <= r.status_code < 500 and r.status_code not in {408, 429}:
@@ -235,13 +250,25 @@ def _handle_control_response(trainer, ctx, response):
 
 
 def _upload_model(model_path, project, name, progress=False, retry=1, model_id=None, run_id=None):
-    """Upload model checkpoint to Platform via signed URL."""
+    """Publish a model checkpoint to its configured Platform storage location."""
     from ultralytics.utils.uploads import safe_upload
 
     model_path = Path(model_path)
     if not model_path.exists():
         LOGGER.warning(f"{PREFIX}Model file not found: {model_path}")
         return None
+    model_size = model_path.stat().st_size
+    if root := os.getenv("PLATFORM_ARTIFACT_ROOT"):
+        try:
+            relative_path = model_path.resolve().relative_to(Path(root).resolve()).as_posix()
+        except ValueError:
+            LOGGER.warning(f"{PREFIX}Model file is outside PLATFORM_ARTIFACT_ROOT: {model_path}")
+            return None
+        digest = sha256()
+        with model_path.open("rb") as file:
+            while chunk := file.read(1024 * 1024):
+                digest.update(chunk)
+        return {"modelPath": relative_path, "modelSize": model_size, "modelChecksum": digest.hexdigest()}
 
     # Get signed upload URL from Platform (server sanitizes filename for storage safety)
     @Retry(times=3, delay=2)
@@ -282,8 +309,8 @@ def _upload_model(model_path, project, name, progress=False, retry=1, model_id=N
                 model_id,
                 timeout=90,
             )
-            return gcs_path if saved else None
-        return gcs_path
+            return {"modelPath": gcs_path, "modelSize": model_size} if saved else None
+        return {"modelPath": gcs_path, "modelSize": model_size}
     return None
 
 
@@ -483,6 +510,8 @@ def on_model_save(trainer):
     ctx = getattr(trainer, "platform", None)
     if not ctx or RANK not in {-1, 0} or not trainer.args.project:
         return
+    if os.getenv("PLATFORM_ARTIFACT_ROOT"):
+        return  # Local checkpoints are already saved at their destination.
 
     # Rate limit to every 15 minutes (900 seconds)
     if time() - ctx["last_upload"] < 900:
@@ -518,13 +547,11 @@ def on_train_end(trainer):
         ctx["console_logger"] = None
 
     # Upload best model (blocking with progress bar to ensure it completes)
-    gcs_path = None
-    model_size = None
+    artifact = None
     if trainer.best and Path(trainer.best).exists():
         if ctx["checkpoint_upload"]:
             ctx["checkpoint_upload"].result()
-        model_size = Path(trainer.best).stat().st_size
-        gcs_path = _upload_model(
+        artifact = _upload_model(
             trainer.best,
             project,
             name,
@@ -533,7 +560,7 @@ def on_train_end(trainer):
             model_id=ctx["model_id"],
             run_id=ctx["run_id"],
         )
-        if not gcs_path:
+        if not artifact:
             LOGGER.warning(f"{PREFIX}Model will not be available for download on Platform (upload failed)")
 
     # Collect plots from trainer and validator, deduplicating by type
@@ -560,8 +587,7 @@ def on_train_end(trainer):
                 "metrics": {**trainer.metrics, "fitness": trainer.fitness},
                 "bestEpoch": best_epoch,
                 "bestFitness": trainer.best_fitness,
-                "modelPath": gcs_path,  # Only send GCS path, not local path
-                "modelSize": model_size,
+                **(artifact or {}),
             },
             "classNames": class_names,
             "plots": plots,
@@ -584,6 +610,6 @@ callbacks = (
         "on_model_save": on_model_save,
         "on_train_end": on_train_end,
     }
-    if _api_key
+    if _api_key or os.getenv("PLATFORM_WEBHOOK_SECRET")
     else {}
 )

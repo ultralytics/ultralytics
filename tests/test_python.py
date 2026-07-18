@@ -584,6 +584,46 @@ def test_normalize_platform_uri():
     assert normalize_platform_uri("coco8.yaml") == "coco8.yaml"  # non-Platform inputs unchanged
 
 
+def test_platform_job_transport(monkeypatch, tmp_path):
+    """Test signed Platform callbacks with an existing local checkpoint."""
+    import hashlib
+    import hmac
+    import json
+    from types import SimpleNamespace
+
+    from ultralytics.utils.callbacks import platform
+
+    captured = {}
+
+    def post(url, **kwargs):
+        captured.update(url=url, **kwargs)
+        return SimpleNamespace(status_code=200, json=lambda: {"received": True}, raise_for_status=lambda: None)
+
+    monkeypatch.setattr(platform, "requests", SimpleNamespace(post=post), raising=False)
+    monkeypatch.setenv("ALPHA_JOB_ID", "model-id")
+    monkeypatch.setenv("PLATFORM_INSTANCE_ID", "instance-id")
+    monkeypatch.setenv("PLATFORM_WEBHOOK_SECRET", "secret")
+    monkeypatch.setenv("PLATFORM_WEBHOOK_URL", "https://example.test/metrics")
+    assert platform._send("epoch_end", {"epoch": 0}, "user/project", "model") == {"received": True}
+    assert captured["url"] == "https://example.test/metrics"
+    assert json.loads(captured["data"])["data"] == {"epoch": 0, "instanceId": "instance-id"}
+    assert captured["headers"]["X-Alpha-Job-Id"] == "model-id"
+    assert (
+        captured["headers"]["X-Alpha-Signature"]
+        == hmac.new(b"secret", captured["data"].encode(), hashlib.sha256).hexdigest()
+    )
+
+    model = tmp_path / "models" / "best.pt"
+    model.parent.mkdir()
+    model.write_bytes(b"weights")
+    monkeypatch.setenv("PLATFORM_ARTIFACT_ROOT", str(tmp_path))
+    assert platform._upload_model(model, "user/project", "model") == {
+        "modelPath": "models/best.pt",
+        "modelSize": 7,
+        "modelChecksum": hashlib.sha256(b"weights").hexdigest(),
+    }
+
+
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_train_scratch():

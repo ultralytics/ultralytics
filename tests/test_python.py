@@ -710,6 +710,27 @@ def test_ndjson_conversion_concurrency_and_resume(monkeypatch, tmp_path, task):
     assert sum(counts.values()) == request_count
 
 
+def test_resume_ndjson_conversion_preserves_labels(tmp_path):
+    """Test resuming an incomplete content-addressed conversion does not delete labels used by another process."""
+    import asyncio
+
+    from ultralytics.data import converter
+
+    ndjson = tmp_path / "dataset.ndjson"
+    ndjson.write_text(
+        '{"type":"dataset","task":"detect","class_names":{"0":"item"}}\n'
+        '{"file":"train.jpg","split":"train","annotations":{"boxes":[[0,0.5,0.5,1,1]]}}\n'
+        '{"file":"val.jpg","split":"val","annotations":{"boxes":[[0,0.5,0.5,1,1]]}}\n'
+    )
+    yaml_path = asyncio.run(converter.convert_ndjson_to_yolo(ndjson, tmp_path))
+    shared_label = yaml_path.parent / "labels" / "train" / "shared.txt"
+    shared_label.write_text("in use")
+    yaml_path.unlink()
+
+    assert asyncio.run(converter.convert_ndjson_to_yolo(ndjson, tmp_path)) == yaml_path
+    assert shared_label.read_text() == "in use"
+
+
 def test_platform_job_transport(monkeypatch, tmp_path):
     """Test configurable Platform transport with an existing local checkpoint."""
     from types import SimpleNamespace

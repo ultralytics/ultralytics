@@ -850,7 +850,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                 raise ValueError(f"Invalid NDJSON image name: {source_name!r}")
             # Preserve safe content hashes already present in the filename or URL while indexes prevent collisions.
             suffix = source_name.rsplit(".", 1)[-1]
-            stems = (Path(clean_url(r.get("url", ""))).stem, Path(source_name).stem)
+            stems = (Path(clean_url(r.get("url") or "")).stem, Path(source_name).stem)
             content_hash = next(
                 (s.lower() for s in stems if len(s) == 32 and all(c in "0123456789abcdef" for c in s)), None
             )

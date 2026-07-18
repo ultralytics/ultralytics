@@ -585,7 +585,7 @@ POST /api/datasets/ingest
 
 Create a dataset ingest job for an existing dataset. The target dataset is always passed as `datasetId` in the JSON body, not in the URL path.
 
-The request body requires `datasetId` plus exactly one of `sessionId` (an uploaded archive's upload session) or `sourceUrl` (a remote ZIP, TAR, TAR.GZ, TGZ, or NDJSON URL). Add optional `targetSplit` (`train`, `val`, or `test`) to override the archive's split structure.
+The request body requires `datasetId` plus exactly one of `sessionId` (an uploaded archive's upload session) or `sourceUrl` (a remote ZIP, TAR, TAR.GZ, TGZ, or NDJSON URL). Add optional `targetSplit` (`train`, `val`, or `test`) to override the archive's split structure, or `classMapping` (a map of archive class name to dataset class name) to import labels into a dataset that already has classes.
 
 For uploaded archives, the upload session is already bound to the dataset by the `assetId` passed to `POST /api/upload/signed-url`; ingest validates that `assetId` matches the body `datasetId`. For remote `sourceUrl` imports, create the dataset first, then pass its `datasetId` to ingest.
 
@@ -607,6 +607,20 @@ For uploaded archives, the upload session is already bound to the dataset by the
     "sourceUrl": "https://example.com/my-dataset.zip"
 }
 ```
+
+**Body (later ingest, importing labels):**
+
+```json
+{
+    "datasetId": "dataset_abc123",
+    "sessionId": "session_abc123",
+    "classMapping": { "person": "person", "car": "car" }
+}
+```
+
+!!! note "Class Mapping"
+
+    The first ingest creates classes from the archive automatically. On later ingests, any archive class omitted from `classMapping` has its labels skipped, so include every class you want to keep.
 
 **Response:**
 

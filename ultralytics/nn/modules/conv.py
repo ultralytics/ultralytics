@@ -37,6 +37,7 @@ __all__ = (
     "WeightedFusion",
     "StripAttn",
     "GCAttn",
+    "MogaGate",
     "GatedUpsample",
     "RepDWConv",
 )
@@ -1441,6 +1442,36 @@ class StripAttn(nn.Module):
         gh = self.fc_h(self.conv_h(self.pool_h(x)))
         gw = self.fc_w(self.conv_w(self.pool_w(x)))
         return x * (2 * (gh + gw).sigmoid())
+
+
+class MogaGate(nn.Module):
+    """Gated multi-order aggregation (MogaNet, ICLR 2024), channel-preserving residual form.
+
+    Feature decomposition amplifies per-channel deviations from the spatial mean, then a
+    SiLU gate is multiplied with multi-order context from parallel DW 3x3 convs at
+    dilations {1, 2, 3} (RF 3/5/7 — the mid-order band between conv locality and global
+    pooling). All ops are DW or 1x1.
+    """
+
+    def __init__(self, c: int):
+        """Initialize MogaGate.
+
+        Args:
+            c (int): Number of input/output channels.
+        """
+        super().__init__()
+        self.gamma = nn.Parameter(1e-5 * torch.ones(c, 1, 1))
+        self.gate = nn.Conv2d(c, c, 1)
+        self.dw1 = nn.Conv2d(c, c, 3, 1, 1, groups=c, bias=False)
+        self.dw2 = nn.Conv2d(c, c, 3, 1, 2, dilation=2, groups=c, bias=False)
+        self.dw3 = nn.Conv2d(c, c, 3, 1, 3, dilation=3, groups=c, bias=False)
+        self.proj = nn.Conv2d(c, c, 1)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Apply feature decomposition, then gated multi-order context, residually."""
+        y = x + self.gamma * (x - x.mean((2, 3), keepdim=True))  # feature decomposition
+        ctx = self.dw1(y) + self.dw2(y) + self.dw3(y)  # fusable to a single DW 7x7
+        return x + self.proj(F.silu(self.gate(y)) * F.silu(ctx))
 
 
 class GCAttn(nn.Module):

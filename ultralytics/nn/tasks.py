@@ -66,6 +66,7 @@ from ultralytics.nn.modules import (
     GatedUpsample,
     RepDWConv,
     GCAttn,
+    MogaGate,
     StripAttn,
     WeightedFusion,
     Conv,
@@ -1833,7 +1834,7 @@ def parse_model(d, ch, verbose=True):
         elif m is WeightedFusion:
             args[0] = make_divisible(min(args[0], max_channels) * width, 8)
             c2 = args[0]
-        elif m in {StripAttn, GCAttn, GatedUpsample}:
+        elif m in {StripAttn, GCAttn, GatedUpsample, MogaGate}:
             c2 = ch[f]
             args = [c2, *args]
         elif m is Concat:

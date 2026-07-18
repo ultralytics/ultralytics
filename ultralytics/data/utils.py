@@ -445,7 +445,7 @@ def convert_ndjson_to_yolo_if_needed(data: str | Path) -> str | Path:
 
         from ultralytics.data.converter import convert_ndjson_to_yolo
 
-        return asyncio.run(convert_ndjson_to_yolo(check_file(data)))
+        return asyncio.run(convert_ndjson_to_yolo(data))
     return data
 
 

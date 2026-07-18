@@ -36,10 +36,10 @@ cd examples/YOLO-SKU-Recognition
 
 The example needs two model weights. Both default to published models on the [Ultralytics Platform](https://platform.ultralytics.com) that auto-download on first run, so you can try it with no weights of your own:
 
-| Model        | What                                        | Default (auto-downloads)                                                                                            |
-| ------------ | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `--detector` | single-class product detector (`0: object`) | `ul://fatih-enterprise/yolo26-sku-detection/yolo26l-sku-detector-sku-110k`, trained on SKU-110K                     |
-| `--reid`     | YOLO ReID embedding model                   | `ul://fatih-enterprise/yolo26-reid-sku-feature-extraction/yolo26l-reid-arcface-rp2k-pretrain`, RP2K ArcFace-trained |
+| Model        | What                                        | Default (auto-downloads)                                                                                                          |
+| ------------ | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `--detector` | single-class product detector (`0: object`) | `ul://fatih-enterprise/yolo26-sku-detection/yolo26l-sku-detector-sku-110k`, trained on SKU-110K                                   |
+| `--reid`     | YOLO ReID embedding model                   | `ul://fatih-enterprise/yolo26-reid-sku-feature-extraction/yolo26l-reid-arcface-letterbox-rp2k-pretrain`, RP2K ArcFace + letterbox |
 
 Platform downloads need an API key. Set it once, or pass your own local `.pt` to `--detector`/`--reid` to skip the platform entirely:
 
@@ -89,11 +89,11 @@ nc: 1200 # number of training SKU identities
 ```
 
 ```bash
-yolo reid train data=your-skus.yaml imgsz=448 reid_arcface=True \
-  model=ul://fatih-enterprise/yolo26-reid-sku-feature-extraction/yolo26l-reid-arcface-rp2k-pretrain
+yolo reid train data=your-skus.yaml imgsz=448 reid_arcface=True reid_letterbox=True \
+  model=ul://fatih-enterprise/yolo26-reid-sku-feature-extraction/yolo26l-reid-arcface-letterbox-rp2k-pretrain
 ```
 
-Train at `imgsz=448` to match the published ArcFace seed and the validated ReID default. Keep `reid_arcface=True` for the angular-margin objective that pulls near-identical variants apart. See the [custom ReID dataset guide](https://docs.ultralytics.com/guides/reid-custom-dataset/) and [ReID fine-tuning guide](https://docs.ultralytics.com/guides/reid-finetuning/) for the dataset schema and mAP / Rank-1 evaluation.
+`reid_arcface=True` is the angular-margin loss that separates near-identical variants. `reid_letterbox=True` keeps each pack's true proportions with an aspect-preserving resize plus pad instead of center-cropping. This pairing was the best config in our benchmark, and both flags ride in the checkpoint so predict and val reuse them automatically. Match the seed's `imgsz=448`. See the [custom ReID dataset guide](https://docs.ultralytics.com/guides/reid-custom-dataset/) and [ReID fine-tuning guide](https://docs.ultralytics.com/guides/reid-finetuning/) for the dataset schema and mAP / Rank-1 evaluation.
 
 ## Run
 
@@ -152,7 +152,7 @@ yolo export model=yolo26l-reid.pt format=coreml imgsz=448 quantize=16 # reid    
 
 CoreML export is lightweight, TFLite/LiteRT pulls a larger TensorFlow and ONNX toolchain on first export.
 
-[`sku_recognition.swift`](sku_recognition.swift) is a complete, runnable counterpart to the Python `--source` pipeline in one file. It runs the detector on a shelf photo and decodes YOLO26's end2end `[1, 300, 6]` output, so no NMS is needed. It then crops each product, embeds it with Vision (the model bakes in the `1/255` scale, and the `.centerCrop` option reproduces the reid resize), and assigns each crop against the folder-per-SKU gallery by the same top-k similarity-weighted vote, writing an annotated `<name>_sku.jpg`:
+[`sku_recognition.swift`](sku_recognition.swift) is a complete, runnable counterpart to the Python `--source` pipeline in one file. It runs the detector on a shelf photo and decodes YOLO26's end2end `[1, 300, 6]` output, so no NMS is needed. It then crops each product, embeds it with Vision (the model bakes in the `1/255` scale, and the `.scaleFit` option reproduces the reid letterbox resize plus square pad), and assigns each crop against the folder-per-SKU gallery by the same top-k similarity-weighted vote, writing an annotated `<name>_sku.jpg`:
 
 ```bash
 swift sku_recognition.swift yolo26l-sku.mlpackage yolo26l-reid.mlpackage gallery/ shelf.jpg
@@ -160,7 +160,7 @@ swift sku_recognition.swift yolo26l-sku.mlpackage yolo26l-reid.mlpackage gallery
 
 The sample runs on the Neural Engine via `MLModelConfiguration.computeUnits = .cpuAndNeuralEngine`, the Ultralytics iOS SDK default. See the [CoreML integration guide](https://docs.ultralytics.com/integrations/coreml/) for compute-unit and precision guidance.
 
-The CoreML path matches the server path: on a test shelf the detector reproduces the Python boxes (184 of 185 align at IoU above 0.5, the rest are FP16 threshold borderline cases) and the reid embeddings reproduce the Python reference at cosine 0.995 on a fixed-size input, picking the identical SKU on every crop we tested. Adding an SKU is still just appending its reference embeddings to `labels` and `embeddings`, with no retraining.
+The CoreML path matches the server path: on a test shelf the detector reproduces the Python boxes (184 of 185 align at IoU above 0.5, the rest are FP16 threshold borderline cases), and the reid embedder mirrors the letterbox model's preprocessing with `.scaleFit` plus the baked `1/255` scale to match the Python embedding path. Adding an SKU is still just appending its reference embeddings to `labels` and `embeddings`, with no retraining.
 
 ## Labeling Tip
 

@@ -85,10 +85,10 @@ final class ReIDEmbedder {
 
     init(modelURL: URL) throws { visionModel = try VNCoreMLModel(for: try loadModel(modelURL)) }
 
-    /// Vision's centerCrop plus the model's baked-in 1/255 scale reproduce the Ultralytics reid transform
-    /// (resize shortest edge, center crop, /255 RGB).
+    /// Vision's scaleFit plus the model's baked-in 1/255 scale reproduce the Ultralytics reid letterbox transform
+    /// (aspect-preserving resize, square pad, /255 RGB), matching the ArcFace-letterbox model's training preprocessing.
     func embed(_ image: CGImage) throws -> [Float] {
-        let array = try runVision(visionModel, on: image, cropAndScale: .centerCrop)
+        let array = try runVision(visionModel, on: image, cropAndScale: .scaleFit)
         var vector = (0 ..< array.count).map { array[$0].floatValue }
         let norm = sqrt(vector.reduce(0) { $0 + $1 * $1 })
         if norm > 0 { vector = vector.map { $0 / norm } }

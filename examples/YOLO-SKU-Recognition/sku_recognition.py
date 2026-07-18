@@ -168,7 +168,7 @@ def parse_args():
     )
     p.add_argument(
         "--reid",
-        default="ul://fatih-enterprise/yolo26-reid-sku-feature-extraction/yolo26l-reid-arcface-rp2k-pretrain",
+        default="ul://fatih-enterprise/yolo26-reid-sku-feature-extraction/yolo26l-reid-arcface-letterbox-rp2k-pretrain",
         help="YOLO ReID model, a local .pt or a platform id/url (auto-downloads, needs ULTRALYTICS_API_KEY)",
     )
     p.add_argument("--gallery", required=True, help="gallery root, each subfolder is one SKU with reference images")

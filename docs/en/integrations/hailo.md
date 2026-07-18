@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Export Ultralytics YOLO detection and segmentation models directly to Hailo HEF for computer vision and edge AI on Hailo-8, Hailo-8L, Hailo-10, and Hailo-15 accelerators.
-keywords: Hailo export, Hailo HEF, export YOLO to Hailo, YOLO Hailo, Hailo-8, Hailo-8L, Hailo-10, Hailo-15, Raspberry Pi AI Kit, Raspberry Pi AI HAT+, Hailo Dataflow Compiler, Hailo DFC, HailoRT, Hailo AI accelerator, edge AI, embedded AI, computer vision, object detection, instance segmentation, model quantization, INT8 quantization, Ultralytics YOLO, YOLO26, YOLO11, YOLOv8
+description: Export Ultralytics YOLO detection, segmentation, pose, OBB, and classification models directly to Hailo HEF for computer vision and edge AI.
+keywords: Hailo export, Hailo HEF, export YOLO to Hailo, YOLO Hailo, Hailo-8, Hailo-8L, Hailo-10, Hailo-15, Raspberry Pi AI Kit, Raspberry Pi AI HAT+, Hailo Dataflow Compiler, Hailo DFC, HailoRT, Hailo AI accelerator, edge AI, embedded AI, computer vision, object detection, instance segmentation, pose estimation, oriented bounding box, image classification, model quantization, INT8 quantization, Ultralytics YOLO, YOLO26, YOLO11, YOLOv8
 ---
 
 # Hailo Export for Ultralytics YOLO Models
 
-Hailo AI accelerators run compiled Hailo Executable Format (HEF) models on edge devices such as the [Raspberry Pi AI Kit](https://www.raspberrypi.com/products/ai-kit/) and [AI HAT+](https://www.raspberrypi.com/documentation/accessories/ai-hat-plus.html). Ultralytics exports YOLO detection and segmentation models directly to HEF with the Hailo Dataflow Compiler (DFC).
+Hailo AI accelerators run compiled Hailo Executable Format (HEF) models on edge devices such as the [Raspberry Pi AI Kit](https://www.raspberrypi.com/products/ai-kit/) and [AI HAT+](https://www.raspberrypi.com/documentation/accessories/ai-hat-plus.html). Ultralytics exports YOLO detection, segmentation, pose, OBB, and classification models directly to HEF with the Hailo Dataflow Compiler (DFC).
 
 Hailo deployment is designed for computer vision at the edge: cameras, robots, industrial systems, gateways, and other devices that need local object detection without sending every frame to the cloud. A compiled HEF contains the quantized network, hardware allocation, scheduling, and optional HailoRT post-processing needed by the selected accelerator.
 
@@ -43,7 +43,7 @@ The exporter performs these stages automatically:
 5. Compiles the optimized graph for the selected Hailo accelerator.
 6. Saves the HEF with Ultralytics metadata and removes the intermediate ONNX file.
 
-YOLOv8 and YOLO11 use HailoRT YOLO NMS in the compiled pipeline. YOLO26 uses its NMS-free one-to-one detection outputs, so the exporter selects a different output and quantization path automatically. YOLOv8-seg and YOLO11-seg compile the raw segmentation head tensors, which Ultralytics decodes at inference. Users do not need to find ONNX end nodes, write a Hailo model script (`.alls`), or create an NMS JSON manually.
+YOLOv8 and YOLO11 detection models use HailoRT YOLO NMS in the compiled pipeline. YOLO26 detection models use their NMS-free one-to-one outputs, so the exporter selects a different output and quantization path automatically. YOLOv8/YOLO11 segmentation, pose, and OBB compile the raw head tensors, which Ultralytics decodes at inference, and YOLOv8/YOLO11/YOLO26 classification runs softmax on chip so the HEF returns class probabilities directly. Users do not need to find ONNX end nodes, write a Hailo model script (`.alls`), or create an NMS JSON manually.
 
 ## Installation
 
@@ -100,24 +100,29 @@ model.export(format="hailo", name="hailo8l", imgsz=640)
 
 ## Supported Models and Hardware
 
-The Hailo ecosystem covers a broad range of computer vision workloads, but the Ultralytics `format="hailo"` exporter currently validates only standard YOLO detection and segmentation heads. The table below describes this direct integration, not every workload the Hailo ecosystem can run.
+The Hailo ecosystem covers a broad range of computer vision workloads, but the Ultralytics `format="hailo"` exporter currently validates standard YOLO detection, segmentation, pose, OBB, and classification heads. The task table describes the available exporter paths; hardware validation is listed separately below.
 
-| Ultralytics task          | Direct Hailo export | Supported model families | Notes                                                                                       |
-| :------------------------ | :-----------------: | :----------------------- | :------------------------------------------------------------------------------------------ |
-| Object detection          |         ✅          | YOLOv8, YOLO11, YOLO26   | Standard Ultralytics `Detect` heads, including custom models                                |
-| Instance segmentation     |         ✅          | YOLOv8, YOLO11           | Raw head tensors decoded by Ultralytics at inference; YOLO26-seg is not currently supported |
-| Image classification      |         ❌          | —                        | Not yet supported by the direct exporter                                                    |
-| Pose estimation           |         ❌          | —                        | Not yet supported by the direct exporter                                                    |
-| Oriented object detection |         ❌          | —                        | OBB heads are not yet supported                                                             |
-| Semantic segmentation     |         ❌          | —                        | Not yet supported by the direct exporter                                                    |
+| Ultralytics task          | Direct Hailo export | Supported model families | Notes                                                                                        |
+| :------------------------ | :-----------------: | :----------------------- | :------------------------------------------------------------------------------------------- |
+| Object detection          |         ✅          | YOLOv8, YOLO11, YOLO26   | Standard Ultralytics `Detect` heads, including custom models                                 |
+| Instance segmentation     |         ✅          | YOLOv8, YOLO11           | Raw head tensors decoded by Ultralytics at inference; YOLO26-seg is not currently supported  |
+| Image classification      |         ✅          | YOLOv8, YOLO11, YOLO26   | Softmax runs on chip; the HEF returns class probabilities directly                           |
+| Pose estimation           |         ✅          | YOLOv8, YOLO11           | Raw head tensors decoded by Ultralytics at inference; YOLO26-pose is not currently supported |
+| Oriented object detection |         ✅          | YOLOv8, YOLO11           | Raw head tensors decoded by Ultralytics at inference; YOLO26-OBB is not currently supported  |
+| Semantic segmentation     |         ❌          | —                        | Not yet supported by the direct exporter                                                     |
 
 Specialized detection families such as YOLOv10, YOLO-World, YOLOE, and RT-DETR are also ❌ unsupported. Ultralytics rejects these tasks and model families before compilation instead of producing an unvalidated HEF.
 
-| Model family            | Hailo-8 / Hailo-8L | Hailo-10 / Hailo-15 | Output                                                        |
-| :---------------------- | :----------------: | :-----------------: | :------------------------------------------------------------ |
-| YOLOv8 / YOLO11         |         ✅         |         ✅          | HEF with HailoRT YOLO NMS                                     |
-| YOLO26                  |         ✅         |         ✅          | NMS-free detection-head outputs for supported runtimes        |
-| YOLOv8-seg / YOLO11-seg |         ✅         |         ✅          | Raw segmentation tensors, decoded by Ultralytics at inference |
+| Model family                         | Hailo-8 / Hailo-8L | Hailo-10 / Hailo-15 | Output                                                        |
+| :----------------------------------- | :----------------: | :-----------------: | :------------------------------------------------------------ |
+| YOLOv8 / YOLO11 detection            |         ✅         |         ✅          | HEF with HailoRT YOLO NMS                                     |
+| YOLO26 detection                     |         ✅         |         ✅          | NMS-free detection-head outputs for supported runtimes        |
+| YOLOv8-seg / YOLO11-seg              |         ✅         |         ✅          | Raw segmentation tensors, decoded by Ultralytics at inference |
+| YOLOv8-pose / YOLO11-pose            | Hailo-8L validated |    Not validated    | Raw pose tensors, decoded by Ultralytics at inference         |
+| YOLOv8-obb / YOLO11-obb              | Hailo-8L validated |    Not validated    | Raw OBB tensors, decoded by Ultralytics at inference          |
+| YOLOv8-cls / YOLO11-cls / YOLO26-cls | Hailo-8L validated |    Not validated    | On-chip softmax; HEF returns class probabilities              |
+
+Pose, OBB, and classification were validated on Hailo-8L with HailoRT 4.23 and DFC 3.33. The exporter accepts the other listed targets, but those new task paths require validation with the matching compiler and device before production use.
 
 Select one of these `name` values:
 
@@ -151,7 +156,7 @@ Hailo compilation is hardware-specific and uses a fixed input shape. Keep these 
 - Calibration images should represent the lighting, viewpoints, objects, and backgrounds expected in production.
 - A HEF compiled with one `imgsz` does not become dynamically resizable at runtime.
 - Custom class counts are supported because Ultralytics generates post-processing configuration from the model metadata.
-- Detection models with standard Ultralytics `Detect` heads and YOLOv8/YOLO11 segmentation models are supported; YOLO26 segmentation, pose, oriented bounding box, classification, YOLO-World, YOLOE, YOLOv10, and RT-DETR exports are not currently supported.
+- Detection models with standard Ultralytics `Detect` heads, YOLOv8/YOLO11 segmentation, pose, and OBB models, and YOLOv8/YOLO11/YOLO26 classification models are supported; YOLO26 segmentation, pose, and oriented bounding box, along with YOLO-World, YOLOE, YOLOv10, and RT-DETR exports, are not currently supported.
 - Hailo-8/8L and Hailo-10/15 artifacts are compiled by different DFC generations and are not interchangeable.
 
 ## Calibration and INT8 Quantization
@@ -197,7 +202,7 @@ yolo11n_hailo_model/
 
 - `*.hef` is the compiled model loaded by HailoRT.
 - `metadata.yaml` preserves model names, task, input size, stride, and Hailo target information.
-- `nms_config.json` records the generated HailoRT NMS configuration for YOLOv8 and YOLO11 detection models. YOLO26 and segmentation models do not use this file.
+- `nms_config.json` records the generated HailoRT NMS configuration for YOLOv8 and YOLO11 detection models. YOLO26 detection and all non-detection tasks (segmentation, pose, OBB, classification) do not use this file.
 
 The intermediate ONNX graph is removed after compilation.
 
@@ -219,7 +224,7 @@ model = YOLO("yolo11n_hailo_model")
 results = model.predict("path/to/image.jpg")
 ```
 
-The backend converts YOLOv8 and YOLO11 HailoRT NMS output and decodes YOLO26 one-to-one outputs automatically. TAPPAS, GStreamer, and the Raspberry Pi `picamera2.devices.Hailo` helper remain available for application-specific pipelines.
+For detection models, the backend converts YOLOv8 and YOLO11 HailoRT NMS output and decodes YOLO26 one-to-one outputs automatically. It decodes raw segmentation, pose, and OBB tensors and returns on-chip classification probabilities through the standard Ultralytics results pipeline. TAPPAS, GStreamer, and the Raspberry Pi `picamera2.devices.Hailo` helper remain available for application-specific pipelines.
 
 For a GStreamer deployment, pass the HEF to `hailonet`:
 
@@ -296,7 +301,7 @@ Model and pipeline choices often matter more than compiler flags:
 | `conf`     | `float`       | `0.25`    | YOLOv8/YOLO11 HailoRT NMS confidence threshold     |
 | `iou`      | `float`       | `0.7`     | YOLOv8/YOLO11 HailoRT NMS IoU threshold            |
 
-The exporter selects the correct output path from the model family: YOLOv8 and YOLO11 receive HailoRT NMS, while YOLO26 keeps its NMS-free one-to-one outputs. Do not pass `end2end`; explicit overrides are rejected. Dynamic shapes, batches larger than one, embedded Ultralytics NMS, FP16, and FP32 are also unsupported.
+For detection export, YOLOv8 and YOLO11 receive HailoRT NMS, while YOLO26 keeps its NMS-free one-to-one outputs. Segmentation, pose, and OBB use raw head tensors, and classification returns on-chip probabilities. Do not pass `end2end`; explicit overrides are rejected. Dynamic shapes, batches larger than one, embedded Ultralytics NMS, FP16, and FP32 are also unsupported.
 
 ## Troubleshooting Hailo Export
 
@@ -336,7 +341,7 @@ A supported GPU greatly reduces DFC optimization time. CPU compilation is possib
 
 ### Which YOLO models support Hailo export?
 
-Direct export supports detection models with the standard YOLOv8, YOLO11, or YOLO26 detection head, and YOLOv8/YOLO11 segmentation models. This includes custom-trained models built from those standard architectures. Classification, YOLO26 segmentation, pose, OBB, YOLOv10, YOLO-World, YOLOE, and RT-DETR are rejected rather than producing an unvalidated HEF.
+Direct export supports detection models with the standard YOLOv8, YOLO11, or YOLO26 detection head, YOLOv8/YOLO11 segmentation, pose, and OBB models, and YOLOv8/YOLO11/YOLO26 classification models. This includes custom-trained models built from those standard architectures. YOLO26 segmentation, pose, and OBB, along with YOLOv10, YOLO-World, YOLOE, and RT-DETR, are rejected rather than producing an unvalidated HEF.
 
 ### Can I export a custom-trained YOLO model?
 
@@ -366,7 +371,7 @@ Download the compiler wheel for your hardware generation from the Hailo Develope
 
 Ultralytics Hailo export provides a direct path from a trained YOLO model to a deployable HEF:
 
-1. Load a YOLOv8, YOLO11, or YOLO26 detection model, or a YOLOv8/YOLO11 segmentation model.
+1. Load a YOLOv8, YOLO11, or YOLO26 detection or classification model, or a YOLOv8/YOLO11 segmentation, pose, or OBB model.
 2. Export with `format="hailo"` and select the target architecture.
 3. Calibrate and compile locally with the matching DFC, or use managed export in Ultralytics Platform.
 4. Copy the HEF and `metadata.yaml` to the Hailo-powered edge device.

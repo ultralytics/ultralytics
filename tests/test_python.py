@@ -584,6 +584,19 @@ def test_normalize_platform_uri():
     assert normalize_platform_uri("coco8.yaml") == "coco8.yaml"  # non-Platform inputs unchanged
 
 
+def test_convert_signed_ndjson(monkeypatch):
+    """Test signed NDJSON URLs are converted before dataset YAML validation."""
+    from ultralytics.data import converter, utils
+
+    async def convert(path):
+        return f"{path}.yaml"
+
+    monkeypatch.setattr(utils, "check_file", lambda _: "dataset.ndjson")
+    monkeypatch.setattr(converter, "convert_ndjson_to_yolo", convert)
+    url = "https://storage.googleapis.com/bucket/dataset-v1.ndjson?X-Goog-Signature=abc"
+    assert utils.convert_ndjson_to_yolo_if_needed(url) == "dataset.ndjson.yaml"
+
+
 def test_platform_job_transport(monkeypatch, tmp_path):
     """Test configurable Platform transport with an existing local checkpoint."""
     from types import SimpleNamespace

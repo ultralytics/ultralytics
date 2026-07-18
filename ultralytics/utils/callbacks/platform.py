@@ -6,7 +6,6 @@ import re
 import socket
 import sys
 from concurrent.futures import ThreadPoolExecutor
-from json import dumps
 from math import isfinite
 from pathlib import Path
 from time import sleep, time
@@ -26,8 +25,6 @@ from ultralytics.utils import (
 
 PREFIX = colorstr("Platform: ")
 PLATFORM_API_URL = os.getenv("PLATFORM_API_URL", f"{PLATFORM_URL}/api/webhooks")
-PLATFORM_VALIDATION_BYTES = 3_000_000
-PLATFORM_REQUEST_BYTES = 4_400_000
 
 
 def slugify(text):
@@ -192,23 +189,6 @@ def _send(event, data, project, name, model_id=None, retry=2, timeout=30):
     payload = {"event": event, "project": project, "name": name, "data": _sanitize_json_value(data)}
     if model_id:
         payload["modelId"] = model_id
-    if (
-        event == "training_complete"
-        and "validation" in payload["data"]
-        and len(dumps(payload).encode()) > PLATFORM_REQUEST_BYTES
-    ):
-        validation = payload["data"]["validation"]
-        payload["data"]["validation"] = {
-            **validation,
-            "coverage": {
-                "population": validation["coverage"]["population"],
-                "captured": 0,
-                "reason": "transport_limit",
-            },
-            "rows": [],
-        }
-        if len(dumps(payload).encode()) > PLATFORM_REQUEST_BYTES:
-            del payload["data"]["validation"]
 
     @Retry(times=retry, delay=1)
     def post():
@@ -369,49 +349,6 @@ def _get_project_name(trainer):
     parts = raw.split("/", 1)
     project = f"{parts[0]}/{slugify(parts[1])}" if len(parts) == 2 else slugify(raw)
     return project, slugify(str(trainer.args.name or "train"))
-
-
-def serialize_validation_results(validator):
-    """Serialize existing per-image box metrics for one bounded Platform document."""
-    if (
-        not validator
-        or getattr(getattr(validator, "args", None), "task", None) != "detect"
-        or not getattr(getattr(validator, "metrics", None), "box", None)
-    ):
-        return None
-    metrics = validator.metrics.box.image_metrics
-    rows = []
-    for name, metric in metrics.items():
-        image_hash = Path(name).stem.split("_", 1)[0].lower()
-        if len(image_hash) == 32 and all(c in "0123456789abcdef" for c in image_hash):
-            rows.append([image_hash, metric["tp"], metric["fp"], metric["fn"]])
-    if not rows:
-        return None
-    if len(rows) != len(metrics):
-        LOGGER.debug(f"{PREFIX}Skipping validation detail because some images lack content-hash filenames")
-        return None
-    result = {
-        "schemaVersion": 1,
-        "task": validator.args.task,
-        "coverage": {"population": len(metrics), "captured": len(rows)},
-        "rows": rows,
-    }
-    size = len(dumps(result, separators=(",", ":")).encode())
-    if size > PLATFORM_VALIDATION_BYTES:
-        rows.sort(key=lambda row: row[2] + row[3], reverse=True)
-        while size > PLATFORM_VALIDATION_BYTES:
-            if len(rows) == 1:
-                return None
-            keep = max(1, min(len(rows) - 1, int(len(rows) * PLATFORM_VALIDATION_BYTES / size * 0.95)))
-            rows = rows[:keep]
-            result.update(
-                {
-                    "coverage": {"population": len(metrics), "captured": len(rows), "reason": "transport_limit"},
-                    "rows": rows,
-                }
-            )
-            size = len(dumps(result, separators=(",", ":")).encode())
-    return result
 
 
 def on_pretrain_routine_start(trainer):
@@ -616,10 +553,16 @@ def on_train_end(trainer):
     # stopper.best_epoch is 1-indexed; -1 aligns with the 0-indexed `epoch` field
     best_epoch = max(0, getattr(getattr(trainer, "stopper", None), "best_epoch", trainer.epoch + 1) - 1)
 
-    try:
-        validation = serialize_validation_results(getattr(trainer, "validator", None))
-    except (KeyError, TypeError, ValueError):
-        validation = None
+    image_metrics = trainer.validator.metrics.box.image_metrics if trainer.args.task == "detect" else {}
+    rows = sorted(
+        (
+            [Path(name).stem.split("_", 1)[0], metric["tp"], metric["fp"], metric["fn"]]
+            for name, metric in image_metrics.items()
+        ),
+        key=lambda row: row[2] + row[3],
+        reverse=True,
+    )[:50_000]
+    validation = {"population": len(image_metrics), "rows": rows}
     _send(
         "training_complete",
         {
@@ -627,12 +570,12 @@ def on_train_end(trainer):
                 "metrics": {**trainer.metrics, "fitness": trainer.fitness},
                 "bestEpoch": best_epoch,
                 "bestFitness": trainer.best_fitness,
+                **({"validation": validation} if rows else {}),
                 **(artifact or {}),
             },
             "classNames": class_names,
             "plots": plots,
             "runId": ctx["run_id"],
-            **({"validation": validation} if validation else {}),
         },
         project,
         name,

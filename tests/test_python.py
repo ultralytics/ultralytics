@@ -591,12 +591,12 @@ def test_platform_validation_result(monkeypatch):
     from ultralytics.utils.callbacks import platform
 
     image_metrics = {
-        "ordinary-validation-image-a-1234567890.jpg": {
+        "0123456789abcdef0123456789abcdef.jpg": {
             "tp": 3,
             "fp": 1,
             "fn": 2,
         },
-        "ordinary-validation-image-b-1234567890.jpg": {
+        "89abcdef0123456789abcdef01234567.jpg": {
             "tp": 1,
             "fp": 4,
             "fn": 5,
@@ -606,14 +606,14 @@ def test_platform_validation_result(monkeypatch):
         args=SimpleNamespace(task="detect"), metrics=SimpleNamespace(box=SimpleNamespace(image_metrics=image_metrics))
     )
     result = platform.serialize_validation_results(validator)
-    assert result["rows"][0] == ["ordinary-validation-image-a-1234567890", 3, 1, 2]
+    assert result["rows"][0] == ["0123456789abcdef0123456789abcdef", 3, 1, 2]
     validator.args.task = "segment"
     assert platform.serialize_validation_results(validator) is None
     validator.args.task = "detect"
 
-    monkeypatch.setattr(platform, "PLATFORM_VALIDATION_BYTES", 180)
+    monkeypatch.setattr(platform, "PLATFORM_VALIDATION_BYTES", 160)
     result = platform.serialize_validation_results(validator)
-    assert result["rows"] == [["ordinary-validation-image-b-1234567890", 1, 4, 5]]
+    assert result["rows"] == [["89abcdef0123456789abcdef01234567", 1, 4, 5]]
     assert result["coverage"] == {
         "population": 2,
         "captured": 1,
@@ -659,6 +659,28 @@ def test_platform_validation_does_not_oversize_terminal_request(monkeypatch):
         "rows": [],
         "coverage": {"population": 20, "captured": 0, "reason": "transport_limit"},
     }
+
+
+def test_ndjson_preserves_content_hash_filenames(tmp_path):
+    """Test safe content hashes survive generic NDJSON conversion while ordinary names retain index isolation."""
+    import asyncio
+    import json
+
+    from ultralytics.data.converter import convert_ndjson_to_yolo
+
+    image_hash = "0123456789abcdef0123456789abcdef"
+    records = [
+        {"type": "dataset", "task": "detect", "class_names": {"0": "object"}},
+        {"type": "image", "file": f"{image_hash}.jpg", "split": "train", "annotations": {"boxes": []}},
+        {"type": "image", "file": "ordinary.jpg", "split": "val", "annotations": {"boxes": []}},
+    ]
+    source = tmp_path / "dataset.ndjson"
+    source.write_text("\n".join(json.dumps(record) for record in records))
+
+    yaml_path = asyncio.run(convert_ndjson_to_yolo(source, tmp_path / "converted"))
+    labels = yaml_path.parent / "labels"
+    assert (labels / "train" / f"{image_hash}_1.txt").exists()
+    assert (labels / "val" / "2.txt").exists()
 
 
 def test_platform_job_transport(monkeypatch, tmp_path):

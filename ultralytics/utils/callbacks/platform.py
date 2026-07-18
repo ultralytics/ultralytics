@@ -382,8 +382,13 @@ def serialize_validation_results(validator):
     metrics = validator.metrics.box.image_metrics
     rows = []
     for name, metric in metrics.items():
-        rows.append([Path(name).stem, metric["tp"], metric["fp"], metric["fn"]])
+        image_hash = Path(name).stem.split("_", 1)[0].lower()
+        if len(image_hash) == 32 and all(c in "0123456789abcdef" for c in image_hash):
+            rows.append([image_hash, metric["tp"], metric["fp"], metric["fn"]])
     if not rows:
+        return None
+    if len(rows) != len(metrics):
+        LOGGER.debug(f"{PREFIX}Skipping validation detail because some images lack content-hash filenames")
         return None
     result = {
         "schemaVersion": 1,

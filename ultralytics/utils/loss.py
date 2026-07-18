@@ -479,6 +479,7 @@ class v8DetectionLoss:
         self.vfl = VarifocalLoss() if getattr(h, "vfl", False) else None
         self.neg_focal_gamma = 0.0
         self.cls_hard = False
+        self.pos_cls = False  # enable the positive-only GT-class auxiliary term for one2one only
         self.vfl_norm = getattr(h, "vfl_norm", False)  # normalize VFL by positive count instead of target score sum
         self.vfl_hard = getattr(h, "vfl_hard", False)  # regress VFL positives toward hard 1.0 instead of IoU target
         self.hyp = h
@@ -547,6 +548,7 @@ class v8DetectionLoss:
         target_scores: torch.Tensor,
         target_scores_sum: torch.Tensor,
         target_scores_weight: torch.Tensor | None = None,
+        positive_mask: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """Compute classification loss (Varifocal or BCE) normalized by the task-aligned score sum.
 
@@ -563,11 +565,15 @@ class v8DetectionLoss:
         With ``cls_hard=True`` positive classification targets are binarized to 1.0 and the loss is normalized by the
         positive count. Box and DFL targets are unaffected.
 
+        With ``positive_mask`` only the selected matched-positive GT-class entries participate, and the loss is
+        normalized by their count instead of the task-aligned score sum.
+
         Args:
             pred_scores (torch.Tensor): Predicted class logits with shape (bs, num_anchors, nc).
             target_scores (torch.Tensor): Task-aligned soft targets with shape (bs, num_anchors, nc).
             target_scores_sum (torch.Tensor): Sum of target scores used for normalization.
             target_scores_weight (torch.Tensor, optional): Per-anchor classification loss weights.
+            positive_mask (torch.Tensor, optional): Mask selecting matched positive anchors in their GT-class channel.
 
         Returns:
             (torch.Tensor): Scalar classification loss.
@@ -590,6 +596,8 @@ class v8DetectionLoss:
             cls *= target_scores_weight
         if self.class_weights is not None:
             cls *= self.class_weights
+        if positive_mask is not None:
+            return cls[positive_mask].sum() / positive_mask.sum().clamp(min=1)
         return cls.sum() / target_scores_sum
 
     def get_assigned_targets_and_loss(self, preds: dict[str, torch.Tensor], batch: dict[str, Any]) -> tuple:
@@ -616,7 +624,7 @@ class v8DetectionLoss:
         # Pboxes
         pred_bboxes = self.bbox_decode(anchor_points, pred_distri)  # xyxy, (b, h*w, 4)
 
-        _, target_bboxes, target_scores, fg_mask, target_gt_idx = self.assigner(
+        target_labels, target_bboxes, target_scores, fg_mask, target_gt_idx = self.assigner(
             pred_scores.detach().sigmoid(),
             (pred_bboxes.detach() * stride_tensor).type(gt_bboxes.dtype),
             anchor_points * stride_tensor,
@@ -635,6 +643,19 @@ class v8DetectionLoss:
 
         # Cls loss (Varifocal or BCE) with optional class weighting
         loss[1] = self.cls_loss(pred_scores, cls_target, cls_target_sum, self.assigner.o2f_cls_weight)
+        if self.pos_cls:
+            positive_mask = torch.zeros_like(target_scores, dtype=torch.bool).scatter_(
+                2,
+                target_labels.long().clamp(0, self.nc - 1).unsqueeze(-1),
+                fg_mask.bool().unsqueeze(-1),
+            )
+            self.pos_cls_loss = self.cls_loss(
+                pred_scores,
+                cls_target,
+                cls_target_sum,
+                self.assigner.o2f_cls_weight,
+                positive_mask,
+            )
 
         # Bbox loss
         if fg_mask.sum():
@@ -1412,6 +1433,8 @@ class E2ELoss:
         self.one2one = loss_fn(model, tal_topk=7, tal_topk2=1)
         self.one2one.neg_focal_gamma = getattr(model.args, "o2o_neg_focal_gamma", 0.0)
         self.one2one.cls_hard = getattr(model.args, "o2o_cls_hard", False)
+        self.pos_cls = getattr(model.args, "o2o_pos_cls", 0.0) if loss_fn is v8DetectionLoss else 0.0
+        self.one2one.pos_cls = bool(self.pos_cls)
         self.one2one.assigner.o2f = self.o2f
         self.one2one.assigner.o2f_iou = getattr(model.args, "o2f_iou", "amb_max")
         self.one2one.assigner.o2f_norm = getattr(model.args, "o2f_norm", "align")
@@ -1456,7 +1479,13 @@ class E2ELoss:
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""
         preds = self.one2many.parse_output(preds)
         if not self.train_o2m:  # train the one2one branch only, at full weight
-            return self.one2one.loss(preds["one2one"], batch)
+            total, loss_items = self.one2one.loss(preds["one2one"], batch)
+            if self.pos_cls:
+                pos_cls = self.pos_cls * self.one2one.pos_cls_loss
+                batch_size = preds["one2one"]["scores"].shape[0]
+                total = torch.cat((total, (pos_cls * batch_size).view(1)))
+                loss_items = torch.cat((loss_items, pos_cls.detach().view(1)))
+            return total, loss_items
         loss_one2many = self.one2many.loss(preds["one2many"], batch)  # run first so o2o can reuse its assignment
         if self.o2o_from_o2m:  # feed the o2m positive set + align metric as the o2o topk candidate pool
             self.one2one.assigner.o2m_metric = self.one2many.assigner.shared_metric
@@ -1467,6 +1496,10 @@ class E2ELoss:
         batch_size = preds["one2one"]["scores"].shape[0]
         # Append each enabled one2one auxiliary term as its own component, scaled into the total by the one2one branch
         # weight (as box/cls/dfl are) and reported at its pre-o2o value. Keep this order in sync with loss_names.
+        if self.pos_cls:  # positive anchors, GT-class channel only, normalized by the participating positive count
+            pos_cls = self.pos_cls * self.one2one.pos_cls_loss
+            total = torch.cat((total, (self.o2o * pos_cls * batch_size).view(1)))
+            loss_items = torch.cat((loss_items, pos_cls.detach().view(1)))
         if self.distill:  # pull one2one cls toward the one2many teacher at one2one positives
             distill = self.distill * self.distill_loss(
                 preds["one2one"]["scores"],

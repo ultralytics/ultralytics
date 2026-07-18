@@ -13,6 +13,7 @@ from pathlib import Path
 
 import cv2
 import numpy as np
+from filelock import AsyncFileLock, Timeout
 from PIL import Image
 
 from ultralytics.utils import ASSETS_URL, DATASETS_DIR, LOGGER, NUM_THREADS, TQDM, YAML, clean_url
@@ -825,13 +826,42 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         >>> model = YOLO("yolo26n.pt")
         >>> model.train(data="https://github.com/ultralytics/assets/releases/download/v0.0.0/coco8-ndjson.ndjson")
     """
+
+    source = str(ndjson_path)
+    output_path = Path(output_path or DATASETS_DIR)
+    output_path.mkdir(parents=True, exist_ok=True)
+    source_id = clean_url(source) if "://" in source else str(Path(source).resolve())
+    source_hash = hashlib.sha256(source_id.encode()).hexdigest()[:8]
+    cache_path = output_path / f".{Path(source_id).stem}-{source_hash}.cache"
+
+    async def convert() -> Path:
+        cache_path.unlink(missing_ok=True)
+        result = await _convert_ndjson_to_yolo(Path(check_file(source)), output_path)
+        cache_path.write_text(str(result.relative_to(output_path)))
+        return result
+
+    try:
+        async with AsyncFileLock(cache_path.with_suffix(".lock"), timeout=0):
+            return await convert()
+    except Timeout:
+        pass
+
+    async with AsyncFileLock(cache_path.with_suffix(".lock")):
+        if cache_path.is_file():
+            result = output_path / cache_path.read_text()
+            marker = result / ".ndjson.yaml" if result.is_dir() else result
+            if marker.is_file():
+                return result
+        return await convert()
+
+
+async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path) -> Path:
+    """Convert a resolved NDJSON source while its conversion lock is held."""
     from ultralytics.utils.checks import check_requirements
 
     check_requirements("aiohttp")
     import aiohttp
 
-    ndjson_path = Path(check_file(ndjson_path))
-    output_path = Path(output_path or DATASETS_DIR)
     with open(ndjson_path) as f:
         lines = [json.loads(line.strip()) for line in f if line.strip()]
     dataset_record, image_records = lines[0], lines[1:]
@@ -873,16 +903,11 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     # Hash-qualified dirs allow identical datasets to reuse downloads while preventing changed datasets from mutating
     # files that another training job may still be reading.
     dataset_dir = output_path / f"{ndjson_path.stem}-{_hash}"
-    yaml_path = dataset_dir / "data.yaml"
-    if yaml_path.is_file():
+    metadata_path = dataset_dir / (".ndjson.yaml" if is_classification else "data.yaml")
+    if metadata_path.is_file():
         try:
-            cached = YAML.load(yaml_path)
-            if cached.get("hash") == _hash and all(
-                (dataset_dir / cached[split]).is_dir() and (dataset_dir / "labels" / split).is_dir()
-                for split in ("train", "val", "test")
-                if split in cached
-            ):
-                return yaml_path
+            if (cached := YAML.load(metadata_path)).get("hash") == _hash and cached.get("complete") is True:
+                return dataset_dir if is_classification else metadata_path
         except Exception:
             pass
     splits = {record["split"] for record in image_records}
@@ -997,6 +1022,8 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                         else:
                             LOGGER.warning(f"Failed to download {http_url} after 3 attempts: {error}")
                             return False
+                else:
+                    return False
             return True
 
     # Process all images with async downloads (limit connections for small datasets)
@@ -1017,18 +1044,16 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
 
     # Validate images were downloaded successfully
     success_count = sum(1 for r in results if r)
-    if success_count == 0:
-        raise RuntimeError(f"Failed to download any images from {ndjson_path}. Check network connection and URLs.")
-    if success_count < len(image_records):
-        LOGGER.warning(f"Downloaded {success_count}/{len(image_records)} images from {ndjson_path}")
+    if not image_records or success_count < len(image_records):
+        raise RuntimeError(f"Downloaded {success_count}/{len(image_records)} images from {ndjson_path}")
 
     if is_classification:
         # Classification: return dataset directory (check_cls_dataset expects a directory path)
         # Keep class paths safe while check_cls_dataset restores the original display names.
-        YAML.save(dataset_dir / ".ndjson.yaml", {"names": classification_names})
+        YAML.save(metadata_path, {"names": classification_names, "hash": _hash, "complete": True})
         return dataset_dir
     else:
         # Detection: write data.yaml with hash for future change detection
-        data_yaml["hash"] = _hash
-        YAML.save(yaml_path, data_yaml)
-        return yaml_path
+        data_yaml.update(hash=_hash, complete=True)
+        YAML.save(metadata_path, data_yaml)
+        return metadata_path

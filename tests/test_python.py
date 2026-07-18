@@ -675,7 +675,7 @@ def test_ndjson_preserves_content_hash_filenames(tmp_path):
         {"type": "image", "file": f"{image_hash}.jpg", "split": "train", "annotations": {"boxes": []}},
         {
             "type": "image",
-            "file": "ordinary.jpg",
+            "file": f"{image_hash}.jpg",
             "url": f"https://storage.example/images/{url_hash}.jpg?signature=temporary",
             "split": "val",
             "annotations": {"boxes": []},

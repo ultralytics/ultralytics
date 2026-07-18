@@ -80,7 +80,7 @@ from ultralytics.data import build_dataloader, build_yolo_dataset
 from ultralytics.data.dataset import ClassificationDataset
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.autobackend import AutoBackend, check_class_names, default_class_names
-from ultralytics.nn.modules import C2f, Classify, Detect, RTDETRDecoder, Segment26, SemanticSegment
+from ultralytics.nn.modules import C2f, Classify, Detect, RTDETRDecoder, Segment, Segment26, SemanticSegment
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, WorldModel
 from ultralytics.utils import (
     ARM64,
@@ -587,12 +587,17 @@ class Exporter:
             family = Path(getattr(model, "yaml_file", None) or model.yaml.get("yaml_file", "")).stem.lower() or (
                 "yolov8" if "C2f" in blocks else "yolo11" if {"C3k2", "C2PSA"} <= blocks else ""
             )
+            if isinstance(model.model[-1], Segment26):
+                raise ValueError("Hailo export does not currently support YOLO26 segmentation models.")
             if (
-                model.task != "detect"
-                or type(model.model[-1]) is not Detect
+                model.task not in {"detect", "segment"}
+                or type(model.model[-1]) not in {Detect, Segment}
                 or not family.startswith(("yolov8", "yolo11", "yolo26"))
             ):
-                raise ValueError("Hailo export currently supports YOLOv8, YOLO11, and YOLO26 detection models only.")
+                raise ValueError(
+                    "Hailo export currently supports YOLOv8, YOLO11, and YOLO26 detection models "
+                    "and YOLOv8/YOLO11 segmentation models."
+                )
             if self.args.end2end is not None:
                 raise ValueError(
                     "Hailo export selects the model output path automatically; remove the end2end argument."
@@ -1470,7 +1475,7 @@ class Exporter:
 
     @try_export
     def export_hailo(self, prefix=colorstr("Hailo:")):
-        """Export a YOLO detection model to Hailo Executable Format (HEF)."""
+        """Export a YOLO model to Hailo Executable Format (HEF)."""
         try:
             import tensorflow as tf
             from hailo_sdk_client import ClientRunner
@@ -1488,6 +1493,7 @@ class Exporter:
         head_index = len(self.model.model) - 1
         head = self.model.model[head_index]
         one2one = getattr(self.model, "end2end", False)
+        segment = self.model.task == "segment"
         scales = range(len(head.one2one_cv2 if one2one else head.cv2))
         if one2one:
             end_nodes = [
@@ -1495,6 +1501,10 @@ class Exporter:
                 for branch in (2, 3)
                 for i in scales
             ]
+        elif segment:
+            end_nodes = [
+                f"/model.{head_index}/cv{branch}.{i}/cv{branch}.{i}.2/Conv" for i in scales for branch in (2, 3, 4)
+            ] + [f"/model.{head_index}/proto/cv3/act/Mul"]
         else:
             end_nodes = [
                 f"/model.{head_index}/cv{branch}.{i}/cv{branch}.{i}.2/Conv" for i in scales for branch in (2, 3)
@@ -1518,36 +1528,41 @@ class Exporter:
                 model_script.append(f"quantization_param([{outputs}], precision_mode=a16_w16)")
             else:
                 outputs = [layer.inputs[0].rsplit("/", 1)[-1] for layer in runner.get_hn_model().get_output_layers()]
-                nms_config = output_dir / "nms_config.json"
-                nms_config.write_text(
-                    json.dumps(
-                        {
-                            "nms_scores_th": self.args.conf if self.args.conf is not None else 0.25,
-                            "nms_iou_th": self.args.iou,
-                            "image_dims": self.imgsz,
-                            "max_proposals_per_class": 100,
-                            "classes": len(self.model.names),
-                            "regression_length": 16,
-                            "background_removal": False,
-                            "background_removal_index": 0,
-                            "bbox_decoders": [
-                                {
-                                    "name": f"bbox_decoder_{stride}",
-                                    "stride": stride,
-                                    "reg_layer": outputs[i * 2],
-                                    "cls_layer": outputs[i * 2 + 1],
-                                }
-                                for i, stride in enumerate(int(x) for x in head.stride)
-                            ],
-                        },
-                        indent=2,
+                if segment:
+                    model_script.extend(
+                        f"change_output_activation({outputs[i]}, sigmoid)" for i in range(1, len(outputs) - 1, 3)
                     )
-                )
-                model_script.extend(
-                    f"change_output_activation({outputs[i]}, sigmoid)" for i in range(1, len(outputs), 2)
-                )
-                model_script.append(f'nms_postprocess("{nms_config}", meta_arch=yolov8, engine=cpu)')
-                model_script.append("allocator_param(width_splitter_defuse=disabled)")
+                else:
+                    nms_config = output_dir / "nms_config.json"
+                    nms_config.write_text(
+                        json.dumps(
+                            {
+                                "nms_scores_th": self.args.conf if self.args.conf is not None else 0.25,
+                                "nms_iou_th": self.args.iou,
+                                "image_dims": self.imgsz,
+                                "max_proposals_per_class": 100,
+                                "classes": len(self.model.names),
+                                "regression_length": 16,
+                                "background_removal": False,
+                                "background_removal_index": 0,
+                                "bbox_decoders": [
+                                    {
+                                        "name": f"bbox_decoder_{stride}",
+                                        "stride": stride,
+                                        "reg_layer": outputs[i * 2],
+                                        "cls_layer": outputs[i * 2 + 1],
+                                    }
+                                    for i, stride in enumerate(int(x) for x in head.stride)
+                                ],
+                            },
+                            indent=2,
+                        )
+                    )
+                    model_script.extend(
+                        f"change_output_activation({outputs[i]}, sigmoid)" for i in range(1, len(outputs), 2)
+                    )
+                    model_script.append(f'nms_postprocess("{nms_config}", meta_arch=yolov8, engine=cpu)')
+                    model_script.append("allocator_param(width_splitter_defuse=disabled)")
             runner.load_model_script("\n".join(model_script))
 
             def calibration_dataset():
@@ -1562,7 +1577,10 @@ class Exporter:
                 )
             )
             (output_dir / f"{self.file.stem}.hef").write_bytes(runner.compile())
-            YAML.save(output_dir / "metadata.yaml", {**self.metadata, "hailo_arch": self.args.name, "nms": not one2one})
+            YAML.save(
+                output_dir / "metadata.yaml",
+                {**self.metadata, "hailo_arch": self.args.name, "nms": not (one2one or segment)},
+            )
             return str(output_dir)
         finally:
             f_onnx.unlink(missing_ok=True)

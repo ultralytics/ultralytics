@@ -665,7 +665,7 @@ def test_ndjson_conversion_concurrency_and_resume(monkeypatch, tmp_path, task):
     def write_ndjson(name):
         path = tmp_path / f"{name}.ndjson"
         records = [
-            {"type": "dataset", "task": task, "class_names": {"7": "item"}},
+            {"type": "dataset", "task": task, "class_names": {"7": "item", "8": "rare"}},
             {
                 "file": "train.jpg",
                 "url": f"https://example.com/{name}-train.jpg",
@@ -676,7 +676,7 @@ def test_ndjson_conversion_concurrency_and_resume(monkeypatch, tmp_path, task):
                 "file": "val.jpg",
                 "url": f"https://example.com/{name}-val.jpg",
                 "split": "val",
-                "annotations": annotations,
+                "annotations": {"classification": [8]} if task == "classify" else annotations,
             },
         ]
         path.write_text("\n".join(json.dumps(record) for record in records))
@@ -695,6 +695,9 @@ def test_ndjson_conversion_concurrency_and_resume(monkeypatch, tmp_path, task):
     assert len(set(results)) == 1
     assert conversions == 1
     assert sum(counts.values()) == 2
+    if task == "classify":
+        assert {x.name for x in (results[0] / "train").iterdir()} == {"000000", "000001"}
+        assert check_cls_dataset(results[0])["nc"] == 2
 
     resume = write_ndjson("resume")
     failed_url = "https://example.com/resume-val.jpg"

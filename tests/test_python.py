@@ -585,10 +585,8 @@ def test_normalize_platform_uri():
 
 
 def test_platform_job_transport(monkeypatch, tmp_path):
-    """Test signed Platform callbacks with an existing local checkpoint."""
+    """Test configurable Platform transport with an existing local checkpoint."""
     import hashlib
-    import hmac
-    import json
     from types import SimpleNamespace
 
     from ultralytics.utils.callbacks import platform
@@ -600,21 +598,11 @@ def test_platform_job_transport(monkeypatch, tmp_path):
         return SimpleNamespace(status_code=200, json=lambda: {"received": True}, raise_for_status=lambda: None)
 
     monkeypatch.setattr(platform, "requests", SimpleNamespace(post=post), raising=False)
-    monkeypatch.setenv("ALPHA_JOB_ID", "model-id")
-    monkeypatch.setenv("PLATFORM_INSTANCE_ID", "instance-id")
-    monkeypatch.setenv("PLATFORM_WEBHOOK_SECRET", "secret")
+    monkeypatch.setattr(platform, "_api_key", "api-key")
     monkeypatch.setenv("PLATFORM_WEBHOOK_URL", "https://example.test/metrics")
     assert platform._send("epoch_end", {"epoch": 0}, "user/project", "model") == {"received": True}
     assert captured["url"] == "https://example.test/metrics"
-    assert json.loads(captured["data"])["data"] == {"epoch": 0, "instanceId": "instance-id"}
-    assert captured["headers"]["X-Alpha-Job-Id"] == "model-id"
-    assert (
-        captured["headers"]["X-Alpha-Signature"]
-        == hmac.new(b"secret", captured["data"].encode(), hashlib.sha256).hexdigest()
-    )
-    monkeypatch.delenv("ALPHA_JOB_ID")
-    monkeypatch.setattr(platform, "_api_key", "api-key")
-    platform._send("epoch_end", {"epoch": 1}, "user/project", "model")
+    assert captured["json"]["data"] == {"epoch": 0}
     assert captured["headers"] == {"Authorization": "Bearer api-key"}
 
     model = tmp_path / "models" / "best.pt"

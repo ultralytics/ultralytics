@@ -7,8 +7,6 @@ import socket
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from hashlib import sha256
-from hmac import new as hmac_new
-from json import dumps
 from math import isfinite
 from pathlib import Path
 from time import sleep, time
@@ -39,8 +37,9 @@ def slugify(text):
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
+    assert SETTINGS.get("platform", False) is True or os.getenv("ULTRALYTICS_API_KEY") or SETTINGS.get("api_key")
     _api_key = os.getenv("ULTRALYTICS_API_KEY") or SETTINGS.get("api_key")
-    assert _api_key or (os.getenv("PLATFORM_WEBHOOK_SECRET") and os.getenv("ALPHA_JOB_ID"))
+    assert _api_key  # verify API key is present
 
     import requests
 
@@ -188,30 +187,16 @@ def _sanitize_json_value(value):
 
 def _send(event, data, project, name, model_id=None, retry=2, timeout=30):
     """Send event to Platform endpoint with retry logic."""
-    if instance_id := os.getenv("PLATFORM_INSTANCE_ID"):
-        data = {**data, "instanceId": instance_id}
     payload = {"event": event, "project": project, "name": name, "data": _sanitize_json_value(data)}
     if model_id:
         payload["modelId"] = model_id
 
     @Retry(times=retry, delay=1)
     def post():
-        secret = os.getenv("PLATFORM_WEBHOOK_SECRET")
-        job_id = os.getenv("ALPHA_JOB_ID")
-        headers = {"Authorization": f"Bearer {_api_key}"}
-        request_body = {"json": payload}
-        if secret and job_id:
-            body = dumps(payload, separators=(",", ":"))
-            headers = {
-                "Content-Type": "application/json",
-                "X-Alpha-Job-Id": job_id,
-                "X-Alpha-Signature": hmac_new(secret.encode(), body.encode(), sha256).hexdigest(),
-            }
-            request_body = {"data": body}
         r = requests.post(
             os.getenv("PLATFORM_WEBHOOK_URL", f"{PLATFORM_API_URL}/training/metrics"),
-            **request_body,
-            headers=headers,
+            json=payload,
+            headers={"Authorization": f"Bearer {_api_key}"},
             timeout=timeout,
         )
         if 400 <= r.status_code < 500 and r.status_code not in {408, 429}:
@@ -611,6 +596,6 @@ callbacks = (
         "on_model_save": on_model_save,
         "on_train_end": on_train_end,
     }
-    if _api_key or (os.getenv("PLATFORM_WEBHOOK_SECRET") and os.getenv("ALPHA_JOB_ID"))
+    if _api_key
     else {}
 )

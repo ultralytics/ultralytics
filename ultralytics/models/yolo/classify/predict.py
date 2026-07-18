@@ -59,7 +59,9 @@ class ClassificationPredictor(BasePredictor):
             else False
         )
         self.transforms = (
-            classify_transforms(self.imgsz) if updated or self.model.format != "pt" else self.model.model.transforms
+            classify_transforms(self.imgsz, letterbox=getattr(self.args, "reid_letterbox", False))
+            if updated or self.model.format != "pt"
+            else self.model.model.transforms
         )
 
     def preprocess(self, img):

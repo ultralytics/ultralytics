@@ -106,6 +106,7 @@ TASK_CUSTOM_KEYS = {
         "focal_gamma",
         "supcon_temp",
         "reid_arcface",
+        "reid_letterbox",
         "reid_reranking",
         "reid_tta",
         "reid_scales",

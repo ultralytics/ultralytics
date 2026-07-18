@@ -2780,6 +2780,7 @@ def classify_transforms(
     std: tuple[float, float, float] = DEFAULT_STD,
     interpolation: str = "BILINEAR",
     crop_fraction: float | None = None,
+    letterbox: bool = False,
 ):
     """Create a composition of image transforms for classification tasks.
 
@@ -2794,6 +2795,7 @@ def classify_transforms(
         std (tuple[float, float, float]): Standard deviation values for each RGB channel used in normalization.
         interpolation (str): Interpolation method of either 'NEAREST', 'BILINEAR' or 'BICUBIC'.
         crop_fraction (float | None): Deprecated, will be removed in a future version.
+        letterbox (bool): If True, resize preserving aspect ratio and pad to a square instead of center-cropping.
 
     Returns:
         (torchvision.transforms.Compose): A composition of torchvision transforms.
@@ -2812,14 +2814,16 @@ def classify_transforms(
             "'crop_fraction' arg of classify_transforms is deprecated, will be removed in a future version."
         )
 
-    # Aspect ratio is preserved, crops center within image, no borders are added, image is lost
-    if scale_size[0] == scale_size[1]:
-        # Simple case, use torchvision built-in Resize with the shortest edge mode (scalar size arg)
-        tfl = [T.Resize(scale_size[0], interpolation=getattr(T.InterpolationMode, interpolation))]
+    if letterbox:
+        # Aspect ratio preserved, shorter side padded to square, whole crop kept (no content lost)
+        tfl = [ClassifyLetterBox(scale_size)]
+    elif scale_size[0] == scale_size[1]:
+        # Aspect ratio preserved, crops center within image, no borders are added, image is lost
+        tfl = [T.Resize(scale_size[0], interpolation=getattr(T.InterpolationMode, interpolation)), T.CenterCrop(size)]
     else:
-        # Resize the shortest edge to matching target dim for non-square target
-        tfl = [T.Resize(scale_size)]
-    tfl += [T.CenterCrop(size), T.ToTensor(), T.Normalize(mean=torch.tensor(mean), std=torch.tensor(std))]
+        # Resize the shortest edge to matching target dim for non-square target, then center crop
+        tfl = [T.Resize(scale_size), T.CenterCrop(size)]
+    tfl += [T.ToTensor(), T.Normalize(mean=torch.tensor(mean), std=torch.tensor(std))]
     return T.Compose(tfl)
 
 
@@ -2839,6 +2843,7 @@ def classify_augmentations(
     force_color_jitter: bool = False,
     erasing: float = 0.0,
     interpolation: str = "BILINEAR",
+    letterbox: bool = False,
 ):
     """Create a composition of image augmentation transforms for classification tasks.
 
@@ -2860,6 +2865,7 @@ def classify_augmentations(
         force_color_jitter (bool): Whether to apply color jitter even if auto augment is enabled.
         erasing (float): Probability of random erasing.
         interpolation (str): Interpolation method of either 'NEAREST', 'BILINEAR' or 'BICUBIC'.
+        letterbox (bool): If True, replace the random resized crop with an aspect-preserving resize and square pad.
 
     Returns:
         (torchvision.transforms.Compose): A composition of image augmentation transforms.
@@ -2878,7 +2884,7 @@ def classify_augmentations(
     scale = tuple(scale or (0.08, 1.0))  # default imagenet scale range
     ratio = tuple(ratio or (3.0 / 4.0, 4.0 / 3.0))  # default imagenet ratio range
     interpolation = getattr(T.InterpolationMode, interpolation)
-    primary_tfl = [T.RandomResizedCrop(size, scale=scale, ratio=ratio, interpolation=interpolation)]
+    primary_tfl = [] if letterbox else [T.RandomResizedCrop(size, scale=scale, ratio=ratio, interpolation=interpolation)]
     if hflip > 0.0:
         primary_tfl.append(T.RandomHorizontalFlip(p=hflip))
     if vflip > 0.0:
@@ -2924,6 +2930,8 @@ def classify_augmentations(
         T.Normalize(mean=torch.tensor(mean), std=torch.tensor(std)),
         T.RandomErasing(p=erasing, inplace=True),
     ]
+    if letterbox:  # size the augmented PIL image last, preserving aspect ratio, before tensor conversion
+        final_tfl = [ClassifyLetterBox(size), *final_tfl]
 
     return T.Compose(primary_tfl + secondary_tfl + final_tfl)
 
@@ -2966,17 +2974,18 @@ class ClassifyLetterBox:
         """
         super().__init__()
         self.h, self.w = (size, size) if isinstance(size, int) else size
+        self.size = self.h  # exposes a size attr so predictors detect an imgsz change like torchvision Resize
         self.auto = auto  # pass max size integer, automatically solve for short side using stride
         self.stride = stride  # used with auto
 
-    def __call__(self, im: np.ndarray) -> np.ndarray:
+    def __call__(self, im: Image.Image | np.ndarray) -> np.ndarray:
         """Resize and pad an image using the letterbox method.
 
         This method resizes the input image to fit within the specified dimensions while maintaining its aspect ratio,
         then pads the resized image to match the target size.
 
         Args:
-            im (np.ndarray): Input image as a numpy array with shape (H, W, C).
+            im (Image.Image | np.ndarray): Input image as a PIL image or numpy array with shape (H, W, C).
 
         Returns:
             (np.ndarray): Resized and padded image as a numpy array with shape (hs, ws, 3), where hs and ws are the
@@ -2989,6 +2998,8 @@ class ClassifyLetterBox:
             >>> print(resized_image.shape)
             (640, 640, 3)
         """
+        if isinstance(im, Image.Image):  # torchvision transform pipelines feed PIL images
+            im = np.asarray(im)
         imh, imw = im.shape[:2]
         r = min(self.h / imh, self.w / imw)  # ratio of new/old dimensions
         h, w = round(imh * r), round(imw * r)  # resized image dimensions

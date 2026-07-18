@@ -10,7 +10,7 @@ import numpy as np
 import torch
 from PIL import Image
 
-from ultralytics.cfg import TASK2DATA, get_cfg, get_save_dir
+from ultralytics.cfg import TASK2DATA, TASK_CUSTOM_KEYS, get_cfg, get_save_dir
 from ultralytics.engine.results import Results
 from ultralytics.nn.tasks import guess_model_task, load_checkpoint, yaml_model_load
 from ultralytics.utils import (
@@ -1065,6 +1065,7 @@ class Model(torch.nn.Module):
             {'imgsz': 640, 'data': 'coco.yaml', 'task': 'detect'}
         """
         include = {"imgsz", "data", "task", "single_cls"}  # only remember these arguments when loading a PyTorch model
+        include |= TASK_CUSTOM_KEYS.get(args.get("task"), set())  # keep task-specific keys (e.g. reid_letterbox) on reload
         return {k: v for k, v in args.items() if k in include}
 
     # def __getattr__(self, attr):

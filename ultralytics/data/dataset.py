@@ -1044,6 +1044,7 @@ class ClassificationDataset:
     def build_torch_transforms(args, augment: bool):
         """Build the torchvision transform pipeline for the dataset."""
         scale = (1.0 - args.scale, 1.0)  # (0.08, 1.0)
+        letterbox = getattr(args, "reid_letterbox", False)  # aspect-preserving reid preprocessing, off for classify
         return (
             classify_augmentations(
                 size=args.imgsz,
@@ -1055,9 +1056,10 @@ class ClassificationDataset:
                 hsv_h=args.hsv_h,
                 hsv_s=args.hsv_s,
                 hsv_v=args.hsv_v,
+                letterbox=letterbox,
             )
             if augment
-            else classify_transforms(size=args.imgsz)
+            else classify_transforms(size=args.imgsz, letterbox=letterbox)
         )
 
     def load_image(self, i: int) -> tuple[list, Image.Image]:

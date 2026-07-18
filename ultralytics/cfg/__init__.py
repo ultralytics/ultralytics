@@ -22,7 +22,6 @@ from ultralytics.utils import (
     LOGGER,
     RANK,
     ROOT,
-    RUNS_DIR,
     SETTINGS,
     SETTINGS_FILE,
     STR_OR_PATH,
@@ -293,6 +292,7 @@ CFG_BOOL_KEYS = frozenset(
         "cls_remap",
     }
 )
+CFG_STR_KEYS = frozenset({"optimizer", "split", "copy_paste_mode", "auto_augment"})
 
 
 def cfg2dict(cfg: str | Path | dict | SimpleNamespace) -> dict:
@@ -403,9 +403,9 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
         - None values are ignored as they may be from optional arguments.
         - Fraction keys use [0.0, 1.0], except dataset fraction, which uses (0.0, 1.0].
     """
-    typed_keys = CFG_FLOAT_KEYS | CFG_FRACTION_KEYS | CFG_INT_KEYS | CFG_BOOL_KEYS | {"scale", "compile"}
+    typed_keys = CFG_FLOAT_KEYS | CFG_FRACTION_KEYS | CFG_INT_KEYS | CFG_BOOL_KEYS | CFG_STR_KEYS | {"scale", "compile"}
     for k, v in cfg.items():
-        if v is None and DEFAULT_CFG_DICT.get(k) is not None and k in typed_keys:
+        if v is None and DEFAULT_CFG_DICT.get(k) is not None and k in typed_keys and k != "auto_augment":
             raise TypeError(f"'{k}=None' is invalid. '{k}' must not be None.")
         if v is not None:  # None values may be from optional args
             if k in CFG_FLOAT_KEYS and not isinstance(v, FLOAT_OR_INT):
@@ -460,6 +460,10 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                         f"'{k}' must be a bool (i.e. '{k}=True' or '{k}=False')"
                     )
                 cfg[k] = bool(v)
+            elif k in CFG_STR_KEYS and not isinstance(v, str):
+                if hard:
+                    raise TypeError(f"'{k}={v}' is of invalid type {type(v).__name__}. '{k}' must be a str.")
+                cfg[k] = str(v)
             elif k == "compile" and not isinstance(v, (bool, str)):  # False=off, True="default", or a mode string
                 if hard:
                     raise TypeError(
@@ -505,7 +509,7 @@ def get_save_dir(args: SimpleNamespace, name: str | None = None) -> Path:
 
         project = args.project or ""
         if not Path(project).is_absolute():
-            base = ROOT.parent / "tests/tmp/runs" if TESTS_RUNNING else RUNS_DIR
+            base = ROOT.parent / "tests/tmp/runs" if TESTS_RUNNING else Path(SETTINGS["runs_dir"])
             worker = os.environ.get("PYTEST_XDIST_WORKER")
             if worker and TESTS_RUNNING:  # isolate parallel pytest-xdist workers
                 base = base / worker

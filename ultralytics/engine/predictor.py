@@ -355,7 +355,13 @@ class BasePredictor:
                             "inference": profilers[1].dt * 1e3 / n,
                             "postprocess": profilers[2].dt * 1e3 / n,
                         }
-                        if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:
+                        if (
+                            self.args.verbose
+                            or self.args.save
+                            or self.args.save_txt
+                            or self.args.save_crop
+                            or self.args.show
+                        ):
                             s[i] += self.write_results(i, Path(paths[i]), im, s)
                 except StopIteration:
                     break

@@ -609,6 +609,7 @@ def test_ndjson_conversion_concurrency_and_resume(monkeypatch, tmp_path, task):
     from concurrent.futures import ThreadPoolExecutor
 
     import aiohttp
+
     from ultralytics.data import converter
 
     counts, failures, conversions, count_lock = {}, set(), 0, threading.Lock()

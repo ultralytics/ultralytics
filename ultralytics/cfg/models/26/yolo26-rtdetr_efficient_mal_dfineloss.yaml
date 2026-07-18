@@ -3,9 +3,14 @@
 # Ultralytics YOLO26 object detection model with P3/8 - P5/32 outputs
 # Model docs: https://docs.ultralytics.com/models/yolo26
 # Task docs: https://docs.ultralytics.com/tasks/detect
+#
+# Variant of yolo26-rtdetrv2_mal_dfineloss.yaml that keeps the v2-style efficiency
+# tweaks but preserves the original RTDETRDecoder attention path. This uses scalar
+# ndp=4 with MSDeformAttn instead of the RT-DETR v2 per-level [3, 6, 3] MSDeformAttnv2
+# sampling layout.
 
 # Parameters
-nc: 365 # number of classes
+nc: 80 # number of classes
 end2end: True # whether to use end-to-end mode
 reg_max: 1 # DFL bins
 scales: # model compound scaling constants, i.e. 'model=YOLO26n.yaml' will call YOLO26.yaml with scale 'n'
@@ -49,15 +54,22 @@ head:
   - [[-1, 10], 1, Concat, [1]] # cat head P5
   - [-1, 1, C3k2, [1024, True, 0.5, True]] # 22 (P5/32-large)
 
+  # RTDETRDecoderEfficient - positional args must match __init__ signature
+  # [nc, hd, nq, ndp, nh, ndl, d_ffn, dropout, act, eval_idx, nd, label_noise_ratio, box_noise_scale,
+  #  learnt_init_query, enable_cuda_acceleration, one_to_many_groups, efficient_msdeformable_attn,
+  #  o2m_topk_mode, mlp_act]
+  - [[16, 19, 22], 1, RTDETRDecoderEfficient, [nc, 256, 300, 4, 8, 6, 2048, 0.0, "silu", -1, 100, 0.5, 1.0, False, False, 0, False, "unshared", "silu"]]
 
-
-  # RTDETRDecoder - ALL positional arguments must match __init__ signature
-  # [nc, ch, hd, nq, ndp, nh, ndl, d_ffn, dropout, act, eval_idx, nd, label_noise_ratio, box_noise_scale, learnt_init_query]
-  - [[16, 19, 22], 1, RTDETRDecoder, [nc, 256, 300, 4, 8, 3, 1024, 0.0, "relu", -1, 100, 0.5, 1.0, False, False, 0, False, True]]
-
-loss: 
-  gamma: 2.0
+loss:
+  gamma: 1.5
   alpha: 0.75
-  loss_gain: {class: 1, bbox: 5, giou: 2}
+  use_fl: False
+  use_vfl: False
+  use_mal: True
+  use_union_set: False
+  loss_gain: {class: 1, bbox: 5, giou: 2, fgl: 0, ddf: 0}
   matcher:
     cost_gain: {class: 2, bbox: 5, giou: 2}
+    use_fl: True
+    alpha: 0.25
+    gamma: 2.0

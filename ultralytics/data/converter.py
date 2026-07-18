@@ -925,12 +925,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     if task == "pose" and "kpt_shape" not in dataset_record:
         dataset_record["kpt_shape"] = _infer_ndjson_kpt_shape(image_records)
 
-    # Check if dataset already exists (enables image reuse across split changes)
-    _reuse = dataset_dir.exists()
-    if _reuse:
-        yaml_path.unlink(missing_ok=True)  # Invalidate hash before destructive ops (crash safety)
-        if not is_classification:
-            shutil.rmtree(dataset_dir / "labels", ignore_errors=True)
+    _reuse = dataset_dir.exists()  # Resume incomplete conversions from the content-addressed cache.
     dataset_dir.mkdir(parents=True, exist_ok=True)
     data_yaml = None
 

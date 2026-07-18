@@ -89,11 +89,11 @@ nc: 1200 # number of training SKU identities
 ```
 
 ```bash
-yolo reid train data=your-skus.yaml imgsz=256 reid_arcface=True \
+yolo reid train data=your-skus.yaml imgsz=448 reid_arcface=True \
   model=ul://fatih-enterprise/yolo26-reid-sku-feature-extraction/yolo26l-reid-arcface-rp2k-pretrain
 ```
 
-Train at `imgsz=256` to match the published ArcFace seed and the crop size used at inference, retail package crops are small so a larger input adds blur, not detail. Keep `reid_arcface=True` for the angular-margin objective that pulls near-identical variants apart. See the [custom ReID dataset guide](https://docs.ultralytics.com/guides/reid-custom-dataset/) and [ReID fine-tuning guide](https://docs.ultralytics.com/guides/reid-finetuning/) for the dataset schema and mAP / Rank-1 evaluation.
+Train at `imgsz=448` to match the published ArcFace seed and the validated ReID default. Keep `reid_arcface=True` for the angular-margin objective that pulls near-identical variants apart. See the [custom ReID dataset guide](https://docs.ultralytics.com/guides/reid-custom-dataset/) and [ReID fine-tuning guide](https://docs.ultralytics.com/guides/reid-finetuning/) for the dataset schema and mAP / Rank-1 evaluation.
 
 ## Run
 
@@ -127,7 +127,7 @@ Exactly one of `--source` or `--crops` is required. Folders are expanded the sam
 
 | Flag           | Default    | Description                                                          |
 | -------------- | ---------- | -------------------------------------------------------------------- |
-| `--imgsz`      | `256`      | ReID embedding image size (match how the ReID model was trained)     |
+| `--imgsz`      | `448`      | ReID embedding image size (match how the ReID model was trained)     |
 | `--det-imgsz`  | `640`      | detector image size                                                  |
 | `--conf`       | `0.25`     | detector confidence threshold                                        |
 | `--topk`       | `5`        | gallery neighbors per crop for the vote                              |
@@ -147,7 +147,7 @@ Both models export to CoreML and TFLite/LiteRT, so the whole detect, embed, and 
 ```bash
 # CoreML for iOS. Use format=tflite for TFLite/LiteRT on Android.
 yolo export model=yolo26l-sku.pt format=coreml imgsz=640 quantize=16  # detector -> yolo26l-sku.mlpackage
-yolo export model=yolo26l-reid.pt format=coreml imgsz=256 quantize=16 # reid     -> yolo26l-reid.mlpackage
+yolo export model=yolo26l-reid.pt format=coreml imgsz=448 quantize=16 # reid     -> yolo26l-reid.mlpackage
 ```
 
 CoreML export is lightweight, TFLite/LiteRT pulls a larger TensorFlow and ONNX toolchain on first export.

@@ -396,6 +396,7 @@ def serialize_validation_results(validator):
     if not rows:
         return None
     if len(rows) != len(metrics):
+        LOGGER.debug(f"{PREFIX}Skipping validation detail because some images lack Platform identity or traits")
         return None
     result = {
         "schemaVersion": 1,

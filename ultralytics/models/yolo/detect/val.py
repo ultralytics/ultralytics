@@ -175,12 +175,15 @@ class DetectionValidator(BaseValidator):
         """
         collect_traits = self.args.task == "detect" and bool(self.data.get("platform")) and not self.training
         image_traits = None
+        prepared_batches = None
         if collect_traits and preds:
             luma = batch["img"].new_tensor((0.299, 0.587, 0.114)).view(1, 3, 1, 1)
             laplacian = batch["img"].new_tensor(((0, 1, 0), (1, -4, 1), (0, 1, 0))).view(1, 1, 3, 3)
             traits = []
+            prepared_batches = []
             for si in range(len(preds)):
                 pbatch = self._prepare_batch(si, batch)
+                prepared_batches.append(pbatch)
                 padw, padh = map(round, pbatch["ratio_pad"][1])
                 height, width = batch["img"].shape[2:]
                 thumbnail = batch["img"][si : si + 1, :, padh : height - padh or height, padw : width - padw or width]
@@ -208,7 +211,7 @@ class DetectionValidator(BaseValidator):
 
         for si, pred in enumerate(preds):
             self.seen += 1
-            pbatch = self._prepare_batch(si, batch)
+            pbatch = prepared_batches[si] if prepared_batches else self._prepare_batch(si, batch)
             predn = self._prepare_pred(pred)
 
             image = None

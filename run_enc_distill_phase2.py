@@ -11,19 +11,21 @@ Usage:
           "coco_pose_finetune" (COCO pose), "dota_obb_finetune" (DOTA-v1.0 OBB,
           yolo26s-obb.pt-aligned recipe), "multi_det_finetune" (sequential per-dataset
           det fine-tune + val over a list of YOLO-format datasets; logs per-dataset and
-          macro-averaged mAP to a CSV; same yolo26s.pt recipe per dataset)
+          macro-averaged mAP to a CSV; ul33 table recipe, batch 64 and lr0 0.0015 by default)
 
 Flags:
     --resume <path>: resume from checkpoint (all single-dataset modes)
     --fork_from <parent_id>:<fork_step>: wandb-fork continuation (all single-dataset modes)
-    --lr <val>: override lr0. For coco_det_finetune, dota_obb_finetune, and
-                multi_det_finetune this is the RECIPE lr0 at canonical bs and gets
-                scaled by --batch. For other modes it is the FINAL lr0.
+    --lr <val>: override lr0. For coco_det_finetune, dota_obb_finetune, and multi_det_finetune
+                this is the RECIPE lr0 at canonical bs and gets scaled by --batch. For other
+                modes it is the FINAL lr0. multi_det_finetune defaults to lr0 0.0015 (the ul33
+                table recipe) at any batch when --lr is omitted.
     --batch <int>: override batch size. For coco_det_finetune (canonical bs=128, nbs=64),
                 dota_obb_finetune (canonical bs=32, nbs=64), and multi_det_finetune
-                (canonical bs=128, nbs=64), also scales lr0, nbs, and warmup_epochs
-                linearly so wd_eff and lr/sample stay invariant. For other modes it is
-                applied as-is.
+                (default bs=64, nbs=32), also scales nbs and warmup_epochs linearly so
+                wd_eff and warmup/sample stay invariant. coco and dota also scale lr0
+                linearly. multi_det's default lr0 stays 0.0015 at any batch (an explicit
+                --lr is still scaled). For other modes --batch is applied as-is.
     --nbs <int>: explicit nbs override (coco_det_finetune, dota_obb_finetune,
                 multi_det_finetune; bypasses auto-scaling).
     --datasets <path>: multi_det_finetune only. Either a file with one YOLO data.yaml
@@ -173,6 +175,8 @@ def _build_det_train_args(
     batch_override: str,
     lr_override: str,
     nbs_override: str,
+    default_batch: int = 128,
+    default_lr0: float | None = None,
 ) -> dict:
     """Build the yolo26s.pt-aligned detection recipe.
 
@@ -189,11 +193,17 @@ def _build_det_train_args(
     Returns:
         (dict): train_args fragment containing the recipe (no data, no device, no save_dir).
     """
-    batch = int(batch_override) if batch_override else 128
+    batch = int(batch_override) if batch_override else default_batch
     scale = batch / 128.0
     nbs = max(1, int(nbs_override) if nbs_override else int(round(64 * scale)))
-    base_lr = float(lr_override) if lr_override else 0.00038
-    lr0 = base_lr * scale
+    # An explicit --lr is the recipe lr0 at bs=128, scaled by batch (all modes). Absent --lr, multi_det (ul33) uses a
+    # fixed default_lr0 at any batch, while coco/dota fall back to their scaled 0.00038 base.
+    if lr_override:
+        lr0 = float(lr_override) * scale
+    elif default_lr0 is not None:
+        lr0 = default_lr0
+    else:
+        lr0 = 0.00038 * scale
     warmup = 0.98745 * scale
     return dict(
         epochs=epochs or 70,
@@ -271,6 +281,9 @@ def _resolve_dataset_list(datasets_arg: str) -> list[Path]:
 # single-dataset coco/dota modes keep _build_det_train_args' own default of 70.
 _MULTI_DET_BASE_EPOCHS = 100
 _MULTI_DET_BASE_PATIENCE = 100
+# ul33 table recipe: batch 64 with lr0 held fixed at any batch (the coco/dota helper default is bs=128, lr0 scaled).
+_MULTI_DET_BASE_BATCH = 64
+_MULTI_DET_BASE_LR0 = 0.0015
 
 
 def _dataset_train_stats(data_yaml: Path, batch: int) -> tuple[int, int]:
@@ -428,7 +441,7 @@ def _run_multi_det(
             f"default flat is {_MULTI_DET_BASE_EPOCHS}/{_MULTI_DET_BASE_PATIENCE}. Macros at different epoch budgets "
             f"are not directly comparable. Omit the positional epochs/patience to use the default."
         )
-    batch_actual = int(batch_override) if batch_override else 128
+    batch_actual = int(batch_override) if batch_override else _MULTI_DET_BASE_BATCH
     print(f"[multi_det_finetune] parent={parent_name} datasets={len(dataset_yamls)} model={model_yaml}")
     print(f"[multi_det_finetune] aggregate csv -> {csv_path}")
     print(f"[multi_det_finetune] flat recipe epochs={base_epochs} patience={base_patience} batch={batch_actual}")
@@ -468,7 +481,10 @@ def _run_multi_det(
                 iters_per_epoch=iters_per_ep,
             ),
         )
-        det_args = _build_det_train_args(base_epochs, base_patience, batch_override, lr_override, nbs_override)
+        det_args = _build_det_train_args(
+            base_epochs, base_patience, batch_override, lr_override, nbs_override,
+            default_batch=_MULTI_DET_BASE_BATCH, default_lr0=_MULTI_DET_BASE_LR0,
+        )
         if teacher_spec:
             # Freeze layer 0 (the teacher) via the trainer freeze arg: BaseTrainer re-enables requires_grad for any
             # non-frozen-listed param (trainer.py:319), so freezing only in __init__ is undone. imgsz is per-teacher.

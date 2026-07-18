@@ -770,8 +770,10 @@ def strip_optimizer(f: str | Path = "best.pt", s: str = "", updates: dict[str, A
     for k in "optimizer", "best_fitness", "ema", "updates", "scaler":  # keys
         x[k] = None
     x["epoch"] = -1
-    x["train_args"] = {k: v for k, v in args.items() if k in DEFAULT_CFG_KEYS}  # strip non-default keys
-    # x['model'].args = x['train_args']
+    from ultralytics.cfg import TASK_CUSTOM_KEYS  # local import: torch_utils->cfg at module scope risks a circular edge
+
+    keep = DEFAULT_CFG_KEYS | TASK_CUSTOM_KEYS.get(args.get("task"), set())  # default keys plus this task's custom keys
+    x["train_args"] = {k: v for k, v in args.items() if k in keep}  # strip keys not in the kept set
 
     # Save
     combined = {**metadata, **x, **(updates or {})}

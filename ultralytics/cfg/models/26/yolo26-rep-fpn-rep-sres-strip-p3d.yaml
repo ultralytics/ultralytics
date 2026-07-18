@@ -1,0 +1,63 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Ultralytics YOLO26 object detection model with P3/8 - P5/32 outputs
+# Variant: rep-fpn-rep-sres-strip with NO P5 context in the P3 path at all: P3 merges
+# only its lateral (layer 4) with pre-strip backbone P4 (layer 6) through a light 1x1
+# mixer. End of the clean-path ladder (p3a: pre-strip, p3b: pre-C2PSA, p3c: pre-SPPF,
+# p3d: no P5). Small objects (<32px) get 3-6x their size in RF from backbone convs
+# alone; this tests whether P5 semantics help P3 at all. Watch cls-driven mAP50: if
+# small mAP50 drops while boxes hold, P3 classification did need scene context.
+# P4/P5 detect paths keep the fully gated chain.
+
+# Parameters
+nc: 80 # number of classes
+end2end: True # whether to use end-to-end mode
+reg_max: 1 # DFL bins
+scale_args: [rep_e, head_n] # names for scales entries beyond [depth, width, max_channels]
+scales: # model compound scaling constants, i.e. 'model=yolo26n.yaml' will call yolo26.yaml with scale 'n'
+  # [depth, width, max_channels, rep_e, head_n]
+  n: [0.50, 0.25, 1024, 0.5, 2]
+  s: [0.50, 0.50, 1024, 0.5, 3]
+  m: [0.50, 1.00, 512, 0.28125, 3]
+  l: [1.00, 1.00, 512, 0.3125, 2]
+  x: [1.00, 1.50, 512, 0.3125, 3]
+
+# YOLO26n backbone
+backbone:
+  # [from, repeats, module, args]
+  - [-1, 1, Conv, [64, 3, 2]] # 0-P1/2
+  - [-1, 1, Conv, [128, 3, 2]] # 1-P2/4
+  - [-1, 2, C3k2Rep, [256, False, rep_e]] # 2 - rep block
+  - [-1, 1, Conv, [256, 3, 2]] # 3-P3/8
+  - [-1, 2, C3k2Rep, [512, False, rep_e]] # 4 - rep block
+  - [-1, 1, Conv, [512, 3, 2]] # 5-P4/16
+  - [-1, 2, C3k2, [512, True]]
+  - [-1, 1, StripAttn, []] # 7 - strip gate at P4
+  - [-1, 1, Conv, [1024, 3, 2]] # 8-P5/32
+  - [-1, 2, C3k2, [1024, True]]
+  - [-1, 1, SPPF, [1024, 5, 3, True]] # 10
+  - [-1, 2, C2PSA, [1024]] # 11
+  - [-1, 1, StripAttn, []] # 12 - strip gate at P5
+
+# YOLO26n head
+head:
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 7], 1, Concat, [1]]
+  - [-1, head_n, C3k2Rep, [512, True, rep_e]] # 15 - P4 top-down (gated path)
+
+  - [6, 1, Conv, [512, 1, 1]] # 16 - clean P4-only mixer (no P5 context for P3)
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 4], 1, Concat, [1]]
+  - [-1, head_n, C3k2Rep, [256, True, rep_e]] # 19 - P3 out (P3+P4 features only)
+
+  - [-1, 1, Conv, [256, 3, 2]]
+  - [[-1, 15], 1, Concat, [1]]
+  - [-1, 2, C3k2Rep, [512, True, rep_e]] # 22 - P4 out (gated path)
+
+  - [-1, 1, Conv, [512, 3, 2]]
+  - [[-1, 12], 1, Concat, [1]]
+  - [-1, 2, C3k2Rep, [1024, True, rep_e, True]] # 25
+  - [[-1, 12], 1, ScaledAdd, []] # 26: scaled residual from backbone P5
+
+  - [[19, 22, 26], 1, Detect, [nc]]

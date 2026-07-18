@@ -147,7 +147,7 @@ The region table on the model `Deploy` tab includes:
     | australia-southeast1 | Sydney, Australia      |
     | australia-southeast2 | Melbourne, Australia   |
 
-=== "Middle East & Africa (4)"
+=== "Middle East & Africa (3)"
 
     | Zone          | Location                   |
     | ------------- | -------------------------- |

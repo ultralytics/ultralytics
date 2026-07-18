@@ -95,7 +95,7 @@ Deploy to 42 regions worldwide on Ultralytics Cloud:
 - **Americas**: 14 regions
 - **Europe**: 13 regions
 - **Asia-Pacific**: 12 regions
-- **Middle East & Africa**: 4 regions
+- **Middle East & Africa**: 3 regions
 
 Each endpoint is a single-tenant service with:
 
@@ -189,7 +189,7 @@ Deploy a model in under 2 minutes:
 | **Latency** | Variable        | Consistent                                                |
 | **Cost**    | Free (included) | Free (basic), usage-based (advanced)                      |
 | **Scale**   | Limited         | Scale-to-zero, single instance                            |
-| **Regions** | 3               | 43                                                        |
+| **Regions** | 3               | 42                                                        |
 | **URL**     | Generic         | Custom                                                    |
 | **Rate**    | 20 req/min      | 20 req/min via Platform; unlimited on direct endpoint URL |
 

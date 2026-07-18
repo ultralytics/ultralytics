@@ -61,7 +61,7 @@ Four summary cards at the top of the page show:
 
 The interactive world map shows:
 
-- **Region pins** for all 43 available regions
+- **Region pins** for all 42 available regions
 - **Green pins** for deployed regions
 - **Animated blue pins** for regions with active deployments in progress
 - **Pin size** varies based on deployment status and latency

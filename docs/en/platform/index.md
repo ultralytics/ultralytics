@@ -178,7 +178,7 @@ graph LR
     B --> D[Export Format]:::proc
     B --> E[Deploy Endpoint]:::proc
     D --> F[ONNX / TensorRT / CoreML / LiteRT / ...]:::out
-    E --> G[43 Global Regions]:::proc
+    E --> G[42 Global Regions]:::proc
     G --> H[API Endpoint URL]:::proc
     H --> I[Monitor & Scale]:::out
 
@@ -293,7 +293,7 @@ For a detailed guide, see the [Quickstart](quickstart.md) page.
 - **Multi-Region**: Data residency in US, EU, or AP regions
 - **No-Code Training**: Train advanced YOLO models without writing code
 - **Real-Time Metrics**: Stream training progress and monitor deployments
-- **43 Deploy Regions**: Deploy models close to your users worldwide
+- **42 Deploy Regions**: Deploy models close to your users worldwide
 - **6 Task Types**: Support for detection, instance segmentation, semantic segmentation, pose, OBB, and classification (see [task docs](../tasks/index.md))
 - **AI-Assisted Annotation**: [Smart annotation](data/annotation.md#smart-annotation) with SAM and YOLO models to speed up data preparation
 

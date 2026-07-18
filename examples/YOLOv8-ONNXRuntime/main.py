@@ -141,7 +141,7 @@ class YOLOv8:
         # Convert the image color space from BGR to RGB
         img = cv2.cvtColor(self.img, cv2.COLOR_BGR2RGB)
 
-        img, pad = self.letterbox(img, (self.input_width, self.input_height))
+        img, pad = self.letterbox(img, (self.input_height, self.input_width))
 
         # Normalize the image data by dividing it by 255.0
         image_data = np.array(img) / 255.0

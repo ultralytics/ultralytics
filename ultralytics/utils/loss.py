@@ -482,6 +482,7 @@ class v8DetectionLoss:
         self.pos_cls = False  # enable the positive-only GT-class auxiliary term for one2one only
         self.pos_cls_p3_only = False
         self.small_cls_gain = 1.0  # P3 positive GT-class cls up-gradient gain (small objects); set by E2ELoss
+        self.small_cls_area = 0.0  # >0 switches to continuous area-based weighting (letterbox px^2); 0 = P3 binary
         self.vfl_norm = getattr(h, "vfl_norm", False)  # normalize VFL by positive count instead of target score sum
         self.vfl_hard = getattr(h, "vfl_hard", False)  # regress VFL positives toward hard 1.0 instead of IoU target
         self.hyp = h
@@ -645,11 +646,16 @@ class v8DetectionLoss:
 
         # Cls loss (Varifocal or BCE) with optional class weighting
         cls_w = self.assigner.o2f_cls_weight
-        if (
-            self.small_cls_gain != 1.0
-        ):  # amplify only the P3 positive GT-class up-gradient (small objects, keeps topk=1)
-            is_p3 = (stride_tensor.squeeze(-1) == self.stride[0]).view(1, -1, 1)
-            sw = torch.where((cls_target > 0) & is_p3, self.small_cls_gain, 1.0)
+        if self.small_cls_gain != 1.0:  # up-weight small-object positives, redistributing gradient without topk change
+            pos = cls_target > 0
+            if self.small_cls_area:  # v2: continuous weight rising as GT area shrinks below small_cls_area
+                area = (target_bboxes[..., 2:] - target_bboxes[..., :2]).clamp(min=1).prod(-1, keepdim=True)
+                sw = torch.where(pos, 1.0 + (self.small_cls_gain - 1.0) * (self.small_cls_area / area).clamp(0, 1), 1.0)
+            else:  # v1: P3-level positives get the full gain
+                is_p3 = (stride_tensor.squeeze(-1) == self.stride[0]).view(1, -1, 1)
+                sw = torch.where(pos & is_p3, self.small_cls_gain, 1.0)
+            # renormalize positives so sum(sw*q) == sum(q): keeps total cls scale (and cls/box balance) fixed
+            sw = torch.where(pos, sw * (cls_target_sum / (sw * cls_target).sum().clamp(min=1e-9)), 1.0)
             cls_w = sw if cls_w is None else cls_w * sw
         loss[1] = self.cls_loss(pred_scores, cls_target, cls_target_sum, cls_w)
         if self.pos_cls:
@@ -1448,6 +1454,7 @@ class E2ELoss:
         self.one2one.pos_cls = bool(self.pos_cls)
         self.one2one.pos_cls_p3_only = getattr(model.args, "o2o_pos_cls_p3_only", False)
         self.one2one.small_cls_gain = getattr(model.args, "o2o_small_cls_gain", 1.0)
+        self.one2one.small_cls_area = getattr(model.args, "o2o_small_cls_area", 0.0)
         self.one2one.assigner.o2f = self.o2f
         self.one2one.assigner.o2f_iou = getattr(model.args, "o2f_iou", "amb_max")
         self.one2one.assigner.o2f_norm = getattr(model.args, "o2f_norm", "align")

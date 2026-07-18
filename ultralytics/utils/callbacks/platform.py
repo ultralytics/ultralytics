@@ -555,8 +555,16 @@ def on_train_end(trainer):
     best_epoch = max(0, getattr(getattr(trainer, "stopper", None), "best_epoch", trainer.epoch + 1) - 1)
 
     image_metrics = trainer.validator.metrics.box.image_metrics if trainer.args.task == "detect" else {}
-    worst = nlargest(50_000, image_metrics.items(), key=lambda item: item[1]["fp"] + item[1]["fn"])
-    rows = [[Path(name).stem.split("_", 1)[0], metric["tp"], metric["fp"], metric["fn"]] for name, metric in worst]
+    worst = nlargest(25_000, image_metrics.items(), key=lambda item: (-item[1]["f1"], item[1]["fp"] + item[1]["fn"]))
+    worst_names = {name for name, _ in worst}
+    best = nlargest(
+        25_000,
+        ((name, metric) for name, metric in image_metrics.items() if name not in worst_names),
+        key=lambda item: (item[1]["f1"], item[1]["tp"]),
+    )
+    rows = [
+        [Path(name).stem.split("_", 1)[0], metric["tp"], metric["fp"], metric["fn"]] for name, metric in worst + best
+    ]
     validation = {"population": len(image_metrics), "rows": rows}
     _send(
         "training_complete",

@@ -609,6 +609,9 @@ def test_platform_validation_result(monkeypatch):
     )
     result = platform.serialize_validation_results(validator)
     assert result["rows"][0] == ["0123456789abcdef01234567", 3, 1, 2, 640, 480, 127, 42]
+    validator.args.task = "segment"
+    assert platform.serialize_validation_results(validator) is None
+    validator.args.task = "detect"
 
     monkeypatch.setattr(platform, "PLATFORM_VALIDATION_BYTES", 180)
     result = platform.serialize_validation_results(validator)
@@ -654,13 +657,13 @@ def test_platform_traits_only_on_final_validation():
 
 
 def test_platform_validation_does_not_oversize_terminal_request(monkeypatch):
-    """Test optional validation is dropped based on the exact terminal request body."""
+    """Test optional detail is reduced based on the exact terminal request body."""
     from types import SimpleNamespace
 
     from ultralytics.utils.callbacks import platform
 
     request = {}
-    monkeypatch.setattr(platform, "PLATFORM_REQUEST_BYTES", 200)
+    monkeypatch.setattr(platform, "PLATFORM_REQUEST_BYTES", 350)
     monkeypatch.setattr(
         platform,
         "requests",
@@ -673,11 +676,24 @@ def test_platform_validation_does_not_oversize_terminal_request(monkeypatch):
     )
     platform._send(
         "training_complete",
-        {"plots": ["x" * 150], "validation": {"rows": [["0123456789abcdef01234567"]]}},
+        {
+            "plots": ["x" * 50],
+            "validation": {
+                "schemaVersion": 1,
+                "task": "detect",
+                "coverage": {"population": 20, "captured": 20},
+                "rows": [["0123456789abcdef01234567"]] * 20,
+            },
+        },
         "user/project",
         "model",
     )
-    assert "validation" not in request["json"]["data"]
+    assert request["json"]["data"]["validation"] == {
+        "schemaVersion": 1,
+        "task": "detect",
+        "rows": [],
+        "coverage": {"population": 20, "captured": 0, "reason": "transport_limit"},
+    }
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")

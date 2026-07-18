@@ -197,7 +197,18 @@ def _send(event, data, project, name, model_id=None, retry=2, timeout=30):
         and "validation" in payload["data"]
         and len(dumps(payload).encode()) > PLATFORM_REQUEST_BYTES
     ):
-        del payload["data"]["validation"]
+        validation = payload["data"]["validation"]
+        payload["data"]["validation"] = {
+            **validation,
+            "coverage": {
+                "population": validation["coverage"]["population"],
+                "captured": 0,
+                "reason": "transport_limit",
+            },
+            "rows": [],
+        }
+        if len(dumps(payload).encode()) > PLATFORM_REQUEST_BYTES:
+            del payload["data"]["validation"]
 
     @Retry(times=retry, delay=1)
     def post():
@@ -359,7 +370,11 @@ def _get_project_name(trainer):
 
 def serialize_validation_results(validator):
     """Serialize existing per-image box metrics for one bounded Platform document."""
-    if not validator or not getattr(getattr(validator, "metrics", None), "box", None):
+    if (
+        not validator
+        or getattr(getattr(validator, "args", None), "task", None) != "detect"
+        or not getattr(getattr(validator, "metrics", None), "box", None)
+    ):
         return None
     metrics = validator.metrics.box.image_metrics
     rows = []

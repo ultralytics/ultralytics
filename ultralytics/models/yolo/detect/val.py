@@ -173,17 +173,14 @@ class DetectionValidator(BaseValidator):
             preds (list[dict[str, torch.Tensor]]): List of predictions from the model.
             batch (dict[str, Any]): Batch data containing ground truth.
         """
-        collect_traits = bool(self.data.get("platform")) and not self.training
-        if collect_traits:
+        collect_traits = self.args.task == "detect" and bool(self.data.get("platform")) and not self.training
+        image_traits = None
+        if collect_traits and preds:
             luma = batch["img"].new_tensor((0.299, 0.587, 0.114)).view(1, 3, 1, 1)
             laplacian = batch["img"].new_tensor(((0, 1, 0), (1, -4, 1), (0, 1, 0))).view(1, 1, 3, 3)
-        for si, pred in enumerate(preds):
-            self.seen += 1
-            pbatch = self._prepare_batch(si, batch)
-            predn = self._prepare_pred(pred)
-
-            image = None
-            if collect_traits:
+            traits = []
+            for si in range(len(preds)):
+                pbatch = self._prepare_batch(si, batch)
                 padw, padh = map(round, pbatch["ratio_pad"][1])
                 height, width = batch["img"].shape[2:]
                 thumbnail = batch["img"][si : si + 1, :, padh : height - padh or height, padw : width - padw or width]
@@ -193,7 +190,7 @@ class DetectionValidator(BaseValidator):
                         thumbnail, scale_factor=scale, mode="bilinear", align_corners=False
                     )
                 gray = (thumbnail * luma).sum(1, keepdim=True)
-                brightness, sharpness = (
+                traits.append(
                     torch.stack(
                         (
                             gray.mean() * 255,
@@ -206,10 +203,17 @@ class DetectionValidator(BaseValidator):
                             * 100,
                         )
                     )
-                    .round()
-                    .int()
-                    .tolist()
                 )
+            image_traits = torch.stack(traits).round().int().tolist()
+
+        for si, pred in enumerate(preds):
+            self.seen += 1
+            pbatch = self._prepare_batch(si, batch)
+            predn = self._prepare_pred(pred)
+
+            image = None
+            if image_traits:
+                brightness, sharpness = image_traits[si]
                 image = {
                     "width": pbatch["ori_shape"][1],
                     "height": pbatch["ori_shape"][0],

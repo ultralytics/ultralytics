@@ -382,11 +382,11 @@ def serialize_validation_results(validator):
     metrics = validator.metrics.box.image_metrics
     rows = []
     for name, metric in metrics.items():
-        image_id, image = Path(name).stem, metric.get("image")
-        if image and len(image_id) == 24 and all(char in "0123456789abcdef" for char in image_id.lower()):
+        image_key, image = Path(name).stem, metric.get("image")
+        if image:
             rows.append(
                 [
-                    image_id,
+                    image_key,
                     metric["tp"],
                     metric["fp"],
                     metric["fn"],
@@ -399,7 +399,7 @@ def serialize_validation_results(validator):
     if not rows:
         return None
     if len(rows) != len(metrics):
-        LOGGER.debug(f"{PREFIX}Skipping validation detail because some images lack Platform identity or traits")
+        LOGGER.debug(f"{PREFIX}Skipping validation detail because some images lack traits")
         return None
     result = {
         "schemaVersion": 1,

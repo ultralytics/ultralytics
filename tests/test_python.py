@@ -591,13 +591,13 @@ def test_platform_validation_result(monkeypatch):
     from ultralytics.utils.callbacks import platform
 
     image_metrics = {
-        "0123456789abcdef01234567.jpg": {
+        "ordinary-validation-image-a-1234567890.jpg": {
             "tp": 3,
             "fp": 1,
             "fn": 2,
             "image": {"width": 640, "height": 480, "brightness": 127, "sharpness": 42},
         },
-        "89abcdef0123456701234567.jpg": {
+        "ordinary-validation-image-b-1234567890.jpg": {
             "tp": 1,
             "fp": 4,
             "fn": 5,
@@ -608,14 +608,14 @@ def test_platform_validation_result(monkeypatch):
         args=SimpleNamespace(task="detect"), metrics=SimpleNamespace(box=SimpleNamespace(image_metrics=image_metrics))
     )
     result = platform.serialize_validation_results(validator)
-    assert result["rows"][0] == ["0123456789abcdef01234567", 3, 1, 2, 640, 480, 127, 42]
+    assert result["rows"][0] == ["ordinary-validation-image-a-1234567890", 3, 1, 2, 640, 480, 127, 42]
     validator.args.task = "segment"
     assert platform.serialize_validation_results(validator) is None
     validator.args.task = "detect"
 
     monkeypatch.setattr(platform, "PLATFORM_VALIDATION_BYTES", 180)
     result = platform.serialize_validation_results(validator)
-    assert result["rows"] == [["89abcdef0123456701234567", 1, 4, 5, 320, 240, 64, 21]]
+    assert result["rows"] == [["ordinary-validation-image-b-1234567890", 1, 4, 5, 320, 240, 64, 21]]
     assert result["coverage"] == {
         "population": 2,
         "captured": 1,
@@ -623,14 +623,14 @@ def test_platform_validation_result(monkeypatch):
     }
 
 
-def test_platform_traits_only_on_final_validation():
-    """Test Platform trait collection is absent from epoch validation and enabled for final validation."""
+def test_image_traits_only_on_final_validation():
+    """Test trait collection is absent from epoch validation and enabled for standalone final validation."""
     import torch
 
     from ultralytics.models.yolo.detect.val import DetectionValidator
 
     validator = DetectionValidator(args={"plots": False})
-    validator.data = {"platform": True}
+    validator.data = {}
     validator.device = torch.device("cpu")
     validator.names = {0: "object"}
     validator.seen = 0

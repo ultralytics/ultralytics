@@ -173,7 +173,7 @@ class DetectionValidator(BaseValidator):
             preds (list[dict[str, torch.Tensor]]): List of predictions from the model.
             batch (dict[str, Any]): Batch data containing ground truth.
         """
-        collect_traits = self.args.task == "detect" and bool(self.data.get("platform")) and not self.training
+        collect_traits = self.args.task == "detect" and not self.training
         image_traits = None
         prepared_batches = None
         if collect_traits and preds:

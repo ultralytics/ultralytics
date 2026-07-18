@@ -708,6 +708,7 @@ def test_ndjson_conversion_concurrency_and_resume(monkeypatch, tmp_path, task):
         val = dataset_module.ClassificationDataset(results[0] / "val", args)
         assert train.samples[0][1] == 0
         assert val.samples[0][1] == 1
+        assert dataset_module.ClassificationDataset(results[0] / "val", args).samples[0][1] == 1
 
     resume = write_ndjson("resume")
     failed_url = "https://example.com/resume-val.jpg"

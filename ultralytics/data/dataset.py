@@ -15,7 +15,7 @@ import torch
 from PIL import Image
 from torch.utils.data import ConcatDataset
 
-from ultralytics.utils import LOCAL_RANK, LOGGER, NUM_THREADS, TQDM, YAML, colorstr
+from ultralytics.utils import LOCAL_RANK, LOGGER, NUM_THREADS, TQDM, colorstr
 from ultralytics.utils.instance import Instances
 from ultralytics.utils.ops import resample_segments, segments2boxes
 from ultralytics.utils.torch_utils import TORCHVISION_0_18
@@ -1014,11 +1014,7 @@ class ClassificationDataset:
             self.base = torchvision.datasets.ImageFolder(root=root, allow_empty=True)
         else:
             self.base = torchvision.datasets.ImageFolder(root=root)
-        if (ndjson_names := Path(root).parent / ".ndjson.yaml").is_file():
-            self.base.classes = [f"{i:06d}" for i in range(len(YAML.load(ndjson_names)["names"]))]
-            self.base.class_to_idx = {name: i for i, name in enumerate(self.base.classes)}
-            self.base.samples = self.base.imgs = [(f, int(Path(f).parent.name)) for f, _ in self.base.samples]
-            self.base.targets = [target for _, target in self.base.samples]
+        is_ndjson = (Path(root).parent / ".ndjson.yaml").is_file()
         self.samples = self.base.samples
         self.root = self.base.root
 
@@ -1029,6 +1025,8 @@ class ClassificationDataset:
         self.cache_ram = args.cache is True or str(args.cache).lower() == "ram"  # cache images into RAM
         self.cache_disk = str(args.cache).lower() == "disk"  # cache images on hard drive as uncompressed *.npy files
         self.samples = self.verify_images()  # filter out bad images
+        if is_ndjson:
+            self.samples = [(f, int(Path(f).parent.name)) for f, _ in self.samples]
         self.samples = [[*list(x), Path(x[0]).with_suffix(".npy"), None] for x in self.samples]  # file, index, npy, im
         if self.cache_ram:
             self.cache_images()

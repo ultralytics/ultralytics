@@ -556,6 +556,7 @@ def main(argv: list[str]) -> None:
     argv, batch_override = _pop_flag(argv, "--batch")
     argv, nbs_override = _pop_flag(argv, "--nbs")
     argv, freeze_override = _pop_flag(argv, "--freeze")
+    argv, backbone_lr_ratio_override = _pop_flag(argv, "--backbone_lr_ratio")
     argv, scratch = _pop_flag(argv, "--scratch", is_bool=True)
     argv, datasets_arg = _pop_flag(argv, "--datasets")
     argv, imgsz_override = _pop_flag(argv, "--imgsz")
@@ -722,9 +723,12 @@ def main(argv: list[str]) -> None:
         )
     elif mode in _COCO_DET_MODES:
         det_args = _build_det_train_args(epochs, patience, batch_override, lr_override, nbs_override)
+        if backbone_lr_ratio_override:
+            det_args["backbone_lr_ratio"] = float(backbone_lr_ratio_override)
         print(
             f"[coco_det_finetune] batch={det_args['batch']} nbs={det_args['nbs']} lr0={det_args['lr0']:.5f} "
-            f"warmup_epochs={det_args['warmup_epochs']:.3f} (scale={det_args['batch'] / 128.0:.2f}x vs canonical bs=128)"
+            f"warmup_epochs={det_args['warmup_epochs']:.3f} backbone_lr_ratio={det_args.get('backbone_lr_ratio', 1.0)} "
+            f"(scale={det_args['batch'] / 128.0:.2f}x vs canonical bs=128)"
         )
         train_args.update(data="coco.yaml", **det_args)
         # NOTE: sgd_w/cls_w/o2m/detach_epoch from yolo26s.pt recipe are not exposed

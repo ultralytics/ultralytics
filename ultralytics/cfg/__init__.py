@@ -213,6 +213,7 @@ CFG_FRACTION_KEYS = frozenset(
         "dropout",
         "lr0",
         "lrf",
+        "backbone_lr_ratio",
         "momentum",
         "weight_decay",
         "warmup_momentum",

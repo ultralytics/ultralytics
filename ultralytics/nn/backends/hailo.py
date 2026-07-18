@@ -46,8 +46,10 @@ class HailoBackend(BaseBackend):
             from ultralytics.utils import YAML
 
             self.apply_metadata(YAML.load(metadata_file))
-        if self.task and self.task != "detect":
-            raise ValueError(f"Hailo inference only supports detection models, not task='{self.task}'.")
+        if self.task and self.task not in {"detect", "segment"}:
+            raise ValueError(
+                f"Hailo inference only supports detection and segmentation models, not task='{self.task}'."
+            )
 
         self.hef = HEF(str(hef_file))
         self.input_info = self.hef.get_input_vstream_infos()[0]
@@ -62,18 +64,24 @@ class HailoBackend(BaseBackend):
             self.model = stack.enter_context(InferVStreams(network_group, input_params, output_params))
             self._stack = stack.pop_all()
         self._anchors = None
-        self.end2end = True
+        if self.task == "segment":
+            from ultralytics.nn.modules import DFL
+
+            self._dfl = DFL()
+        self.end2end = self.task != "segment"  # segmentation returns dense output for the predictor's NMS
 
     def __del__(self):
         """Release the Hailo pipeline and device."""
         if stack := getattr(self, "_stack", None):
             stack.close()
 
-    def forward(self, im: torch.Tensor) -> np.ndarray:
-        """Run Hailo inference and return detections in ``xyxy, confidence, class`` format."""
+    def forward(self, im: torch.Tensor) -> np.ndarray | list[torch.Tensor]:
+        """Run Hailo inference and return decoded detections, or dense outputs and prototypes for segmentation."""
         im = np.ascontiguousarray(np.clip(im.permute(0, 2, 3, 1).cpu().numpy() * 255, 0, 255).astype(np.uint8))
         results = self.model.infer({self.input_info.name: im})
         outputs = [results[x.name] for x in self.output_infos]
+        if self.task == "segment":
+            return self._decode_segment(outputs)
         return self._decode_raw(outputs) if not self.metadata.get("nms", False) else self._decode_nms(outputs[0])
 
     def _decode_nms(self, output: list) -> np.ndarray:
@@ -96,6 +104,25 @@ class HailoBackend(BaseBackend):
         for i, frame in enumerate(frames):
             predictions[i, : len(frame)] = frame
         return predictions
+
+    def _decode_segment(self, outputs: list[np.ndarray]) -> list[torch.Tensor]:
+        """Decode raw segmentation tensors (reg, cls, coeff per scale + prototypes) for the predictor's NMS."""
+        from ultralytics.utils.tal import dist2bbox, make_anchors
+
+        proto = torch.from_numpy(outputs[-1]).permute(0, 3, 1, 2)
+        k = len(outputs) - 1
+        reg_maps = [torch.from_numpy(x).permute(0, 3, 1, 2) for x in outputs[0:k:3]]
+        cls_maps = [torch.from_numpy(x).permute(0, 3, 1, 2) for x in outputs[1:k:3]]
+        cof_maps = [torch.from_numpy(x).permute(0, 3, 1, 2) for x in outputs[2:k:3]]
+        if self._anchors is None:
+            strides = [self.input_info.shape[0] / x.shape[2] for x in reg_maps]
+            self._anchors = make_anchors(reg_maps, strides)
+        anchors, stride_tensor = self._anchors
+        dist = self._dfl(torch.cat([x.flatten(2) for x in reg_maps], 2)).transpose(1, 2)
+        boxes = dist2bbox(dist, anchors, xywh=True) * stride_tensor
+        cls = torch.cat([x.flatten(2) for x in cls_maps], 2).transpose(1, 2)  # sigmoid baked in at export
+        cof = torch.cat([x.flatten(2) for x in cof_maps], 2).transpose(1, 2)
+        return [torch.cat((boxes, cls, cof), 2).transpose(1, 2), proto]
 
     def _decode_raw(self, outputs: list[np.ndarray]) -> np.ndarray:
         """Decode branch-first YOLO26 regression and class outputs."""

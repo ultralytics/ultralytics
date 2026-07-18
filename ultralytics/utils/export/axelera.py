@@ -51,11 +51,16 @@ def torch2axelera(
         prev_protobuf = os.environ.get("PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION")
         os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
         try:
-            check_requirements(
-                ["axelera-devkit==1.7.0", "omnimalloc==0.5.0", "numpy<=2.3.5"],
-                cmds="--extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple",
-            )
-            from axelera import compiler
+            try:
+                from axelera import compiler
+            except ImportError:
+                check_requirements(
+                    ["axelera-devkit==1.7.0", "numpy<=2.3.5"],
+                    cmds="--extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple",
+                )
+                from axelera import compiler
+
+            check_requirements("omnimalloc==0.5.0")
             from axelera.compiler import CompilerConfig
             from axelera.compiler.config.model_specific import extract_ultralytics_metadata
 

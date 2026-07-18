@@ -597,7 +597,7 @@ def test_convert_signed_ndjson(monkeypatch):
     assert utils.convert_ndjson_to_yolo_if_needed(url) == "dataset.ndjson.yaml"
 
 
-def test_resume_ndjson_conversion_preserves_labels(monkeypatch, tmp_path):
+def test_resume_ndjson_conversion_preserves_labels(tmp_path):
     """Test resuming an incomplete content-addressed conversion does not delete labels used by another process."""
     import asyncio
 
@@ -610,10 +610,12 @@ def test_resume_ndjson_conversion_preserves_labels(monkeypatch, tmp_path):
         '{"file":"val.jpg","split":"val","annotations":{"boxes":[[0,0.5,0.5,1,1]]}}\n'
     )
     yaml_path = asyncio.run(converter.convert_ndjson_to_yolo(ndjson, tmp_path))
+    shared_label = yaml_path.parent / "labels" / "train" / "shared.txt"
+    shared_label.write_text("in use")
     yaml_path.unlink()
-    monkeypatch.setattr(converter.shutil, "rmtree", lambda *_args, **_kwargs: pytest.fail("deleted shared labels"))
 
     assert asyncio.run(converter.convert_ndjson_to_yolo(ndjson, tmp_path)) == yaml_path
+    assert shared_label.read_text() == "in use"
 
 
 def test_platform_job_transport(monkeypatch, tmp_path):

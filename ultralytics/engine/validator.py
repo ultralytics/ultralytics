@@ -328,7 +328,6 @@ class BaseValidator:
                     if matches.shape[0] > 1:
                         matches = matches[iou[matches[:, 0], matches[:, 1]].argsort()[::-1]]
                         matches = matches[np.unique(matches[:, 1], return_index=True)[1]]
-                        matches = matches[iou[matches[:, 0], matches[:, 1]].argsort()[::-1]]
                         matches = matches[np.unique(matches[:, 0], return_index=True)[1]]
                     correct[matches[:, 1].astype(int), i] = True
         return torch.tensor(correct, dtype=torch.bool, device=pred_classes.device)

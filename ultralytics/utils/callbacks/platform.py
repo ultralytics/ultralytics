@@ -6,6 +6,7 @@ import re
 import socket
 import sys
 from concurrent.futures import ThreadPoolExecutor
+from heapq import nlargest
 from math import isfinite
 from pathlib import Path
 from time import sleep, time
@@ -554,14 +555,8 @@ def on_train_end(trainer):
     best_epoch = max(0, getattr(getattr(trainer, "stopper", None), "best_epoch", trainer.epoch + 1) - 1)
 
     image_metrics = trainer.validator.metrics.box.image_metrics if trainer.args.task == "detect" else {}
-    rows = sorted(
-        (
-            [Path(name).stem.split("_", 1)[0], metric["tp"], metric["fp"], metric["fn"]]
-            for name, metric in image_metrics.items()
-        ),
-        key=lambda row: row[2] + row[3],
-        reverse=True,
-    )[:50_000]
+    worst = nlargest(50_000, image_metrics.items(), key=lambda item: item[1]["fp"] + item[1]["fn"])
+    rows = [[Path(name).stem.split("_", 1)[0], metric["tp"], metric["fp"], metric["fn"]] for name, metric in worst]
     validation = {"population": len(image_metrics), "rows": rows}
     _send(
         "training_complete",

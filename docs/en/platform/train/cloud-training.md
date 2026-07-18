@@ -100,6 +100,16 @@ Parameters are task-aware (e.g., `copy_paste` only shows for segment tasks, `pos
     scale: 0.9        # Aggressive scaling
     ```
 
+### Save Dataset Version (Optional)
+
+Enable **Save Dataset Version** to link the model to an immutable version of a Platform-hosted dataset. The Platform checks whether the dataset contents changed, reuses a matching version when they did not, and creates a new numbered version only when needed. Training then uses that exact NDJSON snapshot and records its version number and content hash on the model.
+
+This preserves the data used for the run even if you later add or remove images, edit annotations, or change dataset splits. You can find the linked version in the dataset's **Models** and **Versions** tabs.
+
+!!! note "Platform-Hosted Datasets Only"
+
+    **Save Dataset Version** is unavailable for connected cloud storage and On Premise datasets. You can also create snapshots manually from the [Versions tab](../data/datasets.md#versions-tab).
+
 ### Step 5: Select GPU (Cloud Tab)
 
 Choose your GPU from Ultralytics Cloud:
@@ -122,10 +132,11 @@ The dialog shows your current **balance** and a **Top Up** button. An estimated 
 
 Click **Start Training** to launch your job. The Platform:
 
-1. Provisions a GPU instance
-2. Downloads your dataset
-3. Begins training
-4. Streams metrics in real-time
+1. Resolves the immutable dataset version when **Save Dataset Version** is enabled
+2. Provisions a GPU instance
+3. Downloads your dataset
+4. Begins training
+5. Streams metrics in real-time
 
 ### Training Job Lifecycle
 

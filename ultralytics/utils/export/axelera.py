@@ -56,7 +56,6 @@ def torch2axelera(
                 cmds="--extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple",
             )
             from axelera import compiler
-
             from axelera.compiler import CompilerConfig
             from axelera.compiler.config.model_specific import extract_ultralytics_metadata
 

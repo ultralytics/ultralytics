@@ -612,6 +612,10 @@ def test_platform_job_transport(monkeypatch, tmp_path):
         captured["headers"]["X-Alpha-Signature"]
         == hmac.new(b"secret", captured["data"].encode(), hashlib.sha256).hexdigest()
     )
+    monkeypatch.delenv("ALPHA_JOB_ID")
+    monkeypatch.setattr(platform, "_api_key", "api-key")
+    platform._send("epoch_end", {"epoch": 1}, "user/project", "model")
+    assert captured["headers"] == {"Authorization": "Bearer api-key"}
 
     model = tmp_path / "models" / "best.pt"
     model.parent.mkdir()

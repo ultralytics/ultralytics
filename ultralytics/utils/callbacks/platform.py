@@ -40,7 +40,7 @@ def slugify(text):
 try:
     assert not TESTS_RUNNING  # do not log pytest
     _api_key = os.getenv("ULTRALYTICS_API_KEY") or SETTINGS.get("api_key")
-    assert _api_key or os.getenv("PLATFORM_WEBHOOK_SECRET")
+    assert _api_key or (os.getenv("PLATFORM_WEBHOOK_SECRET") and os.getenv("ALPHA_JOB_ID"))
 
     import requests
 
@@ -197,13 +197,14 @@ def _send(event, data, project, name, model_id=None, retry=2, timeout=30):
     @Retry(times=retry, delay=1)
     def post():
         secret = os.getenv("PLATFORM_WEBHOOK_SECRET")
+        job_id = os.getenv("ALPHA_JOB_ID")
         headers = {"Authorization": f"Bearer {_api_key}"}
         request_body = {"json": payload}
-        if secret:
+        if secret and job_id:
             body = dumps(payload, separators=(",", ":"))
             headers = {
                 "Content-Type": "application/json",
-                "X-Alpha-Job-Id": os.environ["ALPHA_JOB_ID"],
+                "X-Alpha-Job-Id": job_id,
                 "X-Alpha-Signature": hmac_new(secret.encode(), body.encode(), sha256).hexdigest(),
             }
             request_body = {"data": body}
@@ -610,6 +611,6 @@ callbacks = (
         "on_model_save": on_model_save,
         "on_train_end": on_train_end,
     }
-    if _api_key or os.getenv("PLATFORM_WEBHOOK_SECRET")
+    if _api_key or (os.getenv("PLATFORM_WEBHOOK_SECRET") and os.getenv("ALPHA_JOB_ID"))
     else {}
 )

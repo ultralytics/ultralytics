@@ -360,12 +360,19 @@ def polygon2mask(
 
     Returns:
         (np.ndarray): A binary mask of the specified image size with the polygons filled in.
+
+    Raises:
+        ValueError: If downsample_ratio exceeds the mask dimensions, downsampling the mask to zero size.
     """
     mask = np.zeros(imgsz, dtype=np.uint8)
     polygons = np.asarray(polygons, dtype=np.int32)
     polygons = polygons.reshape((polygons.shape[0], -1, 2))
     cv2.fillPoly(mask, polygons, color=color)
     nh, nw = (imgsz[0] // downsample_ratio, imgsz[1] // downsample_ratio)
+    if nh < 1 or nw < 1:
+        raise ValueError(
+            f"mask_ratio={downsample_ratio} downsamples imgsz={imgsz} masks to zero size; use mask_ratio <= {min(imgsz)}"
+        )
     # Note: fillPoly first then resize is trying to keep the same loss calculation method when mask-ratio=1
     return cv2.resize(mask, (nw, nh))
 

@@ -183,16 +183,16 @@ Measured on a Hailo-8L with in-domain calibration (COCO128, 128 images), INT8 HE
 
 Retention compares both models at the same confidence threshold. YOLOv8 and YOLO11 HEFs bake the export-time `conf` (default 0.25) into the on-chip NMS, so validating against a PyTorch baseline at its default low threshold integrates a larger part of the precision-recall curve and overstates the quantization gap.
 
-Beyond detection, the segmentation, pose, OBB, and classification exporter paths were validated on the same Hailo-8L (DFC 3.33, HailoRT 4.23), each evaluated on its task-appropriate dataset:
+Beyond detection, the segmentation, pose, OBB, and classification exporter paths were validated on the same Hailo-8L (DFC 3.33, HailoRT 4.23). Each INT8 HEF was compared with its PyTorch checkpoint on the same validation split, using in-domain calibration:
 
-| Task                  | Metric                              | YOLOv8n | YOLO11n |
-| :-------------------- | :---------------------------------- | :------ | :------ |
-| Instance segmentation | mask mAP50 retention                | 98.0%   | 93.6%   |
-| Pose                  | box mAP50 retention                 | 98.1%   | 90.8%   |
-| Oriented bounding box | mAP50 retention (DOTA128)           | ~100%   | 96.9%   |
-| Classification        | top-1 retention (ImageNet-1000 val) | 92.6%   | 95.4%   |
+| Task                  | Metric (validation split)          | YOLOv8n | YOLO11n |
+| :-------------------- | :--------------------------------- | :------ | :------ |
+| Instance segmentation | mask mAP50 retention (COCO128-seg) | 98.0%   | 93.6%   |
+| Pose                  | box mAP50 retention (COCO8-pose)   | 98.1%   | 90.8%   |
+| Oriented bounding box | mAP50 retention (DOTA128)          | ~100%   | 96.9%   |
+| Classification        | top-1 retention (ImageNet val)     | 92.6%   | 95.4%   |
 
-Classification is the one task where YOLO11 retains more than YOLOv8; for detection, segmentation, and pose the ranking is reversed because the YOLO11 backbone's attention blocks are more INT8-sensitive. Evaluate OBB on DOTA128 rather than DOTA8, whose 8-image split saturates mAP50 near 100% for both the PyTorch and HEF models and cannot show the quantization gap.
+Segmentation, pose, and OBB were calibrated with each task's default in-domain set (COCO128-seg, COCO8-pose, DOTA128); classification was calibrated with ImageNet100. Two caveats follow from those defaults: COCO8-pose is only 8 images, so treat pose as indicative and pass a larger `data=` for production, and DOTA8 saturates mAP50 near 100% for both models, which is why OBB is read on DOTA128. Classification is also the one task where YOLO11 retains more than YOLOv8; for the others the YOLO11 attention backbone is more INT8-sensitive.
 
 Three practical rules follow from device measurements:
 

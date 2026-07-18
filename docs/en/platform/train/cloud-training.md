@@ -108,7 +108,7 @@ This preserves the data used for the run even if you later add or remove images,
 
 !!! note "Platform-Hosted Datasets Only"
 
-    **Save Dataset Version** is unavailable for connected datasets such as cloud storage, Roboflow, or On Premise sources. You can also create snapshots manually from the [Versions tab](../data/datasets.md#versions-tab).
+    **Save Dataset Version** is unavailable for connected cloud storage and On Premise datasets. You can also create snapshots manually from the [Versions tab](../data/datasets.md#versions-tab).
 
 ### Step 5: Select GPU (Cloud Tab)
 

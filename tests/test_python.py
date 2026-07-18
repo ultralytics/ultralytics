@@ -630,7 +630,9 @@ def test_ndjson_conversion_concurrency_and_resume(monkeypatch, tmp_path, task):
             await asyncio.sleep(0.01)
             with count_lock:
                 counts[self.url] = counts.get(self.url, 0) + 1
-            if self.url in failures:
+                fail = self.url in failures
+                failures.discard(self.url)
+            if fail:
                 raise OSError("interrupted")
             return b"image"
 
@@ -696,10 +698,16 @@ def test_ndjson_conversion_concurrency_and_resume(monkeypatch, tmp_path, task):
     resume = write_ndjson("resume")
     failed_url = "https://example.com/resume-val.jpg"
     failures.add(failed_url)
-    with pytest.raises(RuntimeError, match="Downloaded 1/2 images"):
-        asyncio.run(converter.convert_ndjson_to_yolo(resume, tmp_path))
-    failures.clear()
-    result = asyncio.run(converter.convert_ndjson_to_yolo(resume, tmp_path))
+    with ThreadPoolExecutor(max_workers=jobs) as pool:
+        futures = [pool.submit(convert, resume) for _ in range(jobs)]
+        errors, results = [], []
+        for future in futures:
+            try:
+                results.append(future.result())
+            except RuntimeError as error:
+                errors.append(str(error))
+    assert len(errors) == len(results) == 1 and "Downloaded 1/2 images" in errors[0]
+    result = results[0]
     marker = result / ".ndjson.yaml" if task == "classify" else result
     assert YAML.load(marker)["complete"] is True
     assert counts["https://example.com/resume-train.jpg"] == 1

@@ -604,7 +604,10 @@ def on_train_end(trainer):
     # stopper.best_epoch is 1-indexed; -1 aligns with the 0-indexed `epoch` field
     best_epoch = max(0, getattr(getattr(trainer, "stopper", None), "best_epoch", trainer.epoch + 1) - 1)
 
-    validation = serialize_validation_results(getattr(trainer, "validator", None))
+    try:
+        validation = serialize_validation_results(getattr(trainer, "validator", None))
+    except (KeyError, TypeError, ValueError):
+        validation = None
     _send(
         "training_complete",
         {

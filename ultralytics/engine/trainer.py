@@ -1070,6 +1070,9 @@ class BaseTrainer:
             self.args.warmup_bias_lr = 0.0  # no higher than 0.01 for Adam
 
         use_muon = name == "MuSGD"
+        ratio = self.args.backbone_lr_ratio  # backbone LR = lr * ratio (1.0 = uniform, MuSGD path only)
+        if ratio != 1.0 and not use_muon:
+            raise NotImplementedError(f"backbone_lr_ratio={ratio} requires optimizer='MuSGD', got '{name}' (non-muon path not built yet)")
         for module_name, module in unwrap_model(model).named_modules():
             for param_name, param in module.named_parameters(recurse=False):
                 fullname = f"{module_name}.{param_name}" if module_name else param_name
@@ -1122,14 +1125,20 @@ class BaseTrainer:
                 boosted = {id(p) for p in head.cv3.parameters()}
                 if head.end2end:
                     boosted.update(id(p) for p in head.one2one_cv3.parameters())
+            # Backbone params (yaml layer count, identity-based like the boost so depth/wrappers don't matter) get
+            # lr * backbone_lr_ratio to preserve distilled features. Empty at ratio 1.0 keeps the default grouping.
+            backbone = {id(p) for m in target.model[: len(target.yaml["backbone"])] for p in m.parameters()} if ratio != 1.0 else set()
             pattern = re.compile(r"proto\.semseg|SemanticSegment")
             g_ = []  # new param groups
             for x in g:
                 p = x.pop("params")
-                p1, p2 = [], []
+                p_boost, p_bb, p_base = [], [], []
                 for k, v in p.items():
-                    (p1 if id(v) in boosted or pattern.search(k) else p2).append(v)
-                g_.extend([{"params": p1, **x, "lr": lr * 3}, {"params": p2, **x}])
+                    (p_boost if id(v) in boosted or pattern.search(k) else p_bb if id(v) in backbone else p_base).append(v)
+                g_.append({"params": p_boost, **x, "lr": lr * 3})
+                if p_bb:
+                    g_.append({"params": p_bb, **x, "lr": lr * ratio})
+                g_.append({"params": p_base, **x})
             g = g_
         optimizer = getattr(optim, name, partial(MuSGD, muon=muon, sgd=sgd))(params=g)
 

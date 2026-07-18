@@ -168,11 +168,11 @@ def parse_args():
     )
     p.add_argument(
         "--reid",
-        default="ul://fatih-enterprise/yolo26-reid-sku-feature-extraction/yolo26l-reid-rp2k-pretrain",
+        default="ul://fatih-enterprise/yolo26-reid-sku-feature-extraction/yolo26l-reid-arcface-rp2k-pretrain",
         help="YOLO ReID model, a local .pt or a platform id/url (auto-downloads, needs ULTRALYTICS_API_KEY)",
     )
     p.add_argument("--gallery", required=True, help="gallery root, each subfolder is one SKU with reference images")
-    p.add_argument("--imgsz", type=int, default=448, help="reid embedding image size")
+    p.add_argument("--imgsz", type=int, default=256, help="reid embedding image size")
     p.add_argument("--det-imgsz", type=int, default=640, help="detector image size")
     p.add_argument("--conf", type=float, default=0.25, help="detector confidence threshold")
     p.add_argument("--topk", type=int, default=5, help="gallery neighbors per crop for the vote")

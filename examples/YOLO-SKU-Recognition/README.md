@@ -2,7 +2,7 @@
 
 This example implements open-vocabulary retail SKU recognition by pairing an [Ultralytics YOLO](https://docs.ultralytics.com/models/yolo26) single-class product detector with a [YOLO ReID](https://docs.ultralytics.com/tasks/reid) embedding model. Instead of a fixed classifier head, each detected package is matched against a **folder-per-SKU gallery** of reference images by nearest-neighbor cosine similarity. Adding a new SKU means dropping a folder of reference images into the gallery, with no detector or embedding retraining.
 
-This is the practical alternative to a closed-set classifier when the catalog changes often (new products, seasonal items, near-identical package variants), which is common for retail shelf and cigarette-pack recognition.
+This is the practical alternative to a closed-set classifier when the catalog changes often (new products, seasonal items, near-identical package variants), which is common in retail shelf and packaged-goods recognition.
 
 ## How It Works
 
@@ -36,10 +36,10 @@ cd examples/YOLO-SKU-Recognition
 
 The example needs two model weights. Both default to published models on the [Ultralytics Platform](https://platform.ultralytics.com) that auto-download on first run, so you can try it with no weights of your own:
 
-| Model        | What                                        | Default (auto-downloads)                                                                               |
-| ------------ | ------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `--detector` | single-class product detector (`0: object`) | `ul://fatih-enterprise/yolo26-sku-detection/yolo26l-sku-detector-sku-110k`, trained on SKU-110K        |
-| `--reid`     | YOLO ReID embedding model                   | `ul://fatih-enterprise/yolo26-reid-sku-feature-extraction/yolo26l-reid-rp2k-pretrain`, RP2K-pretrained |
+| Model        | What                                        | Default (auto-downloads)                                                                                            |
+| ------------ | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `--detector` | single-class product detector (`0: object`) | `ul://fatih-enterprise/yolo26-sku-detection/yolo26l-sku-detector-sku-110k`, trained on SKU-110K                     |
+| `--reid`     | YOLO ReID embedding model                   | `ul://fatih-enterprise/yolo26-reid-sku-feature-extraction/yolo26l-reid-arcface-rp2k-pretrain`, RP2K ArcFace-trained |
 
 Platform downloads need an API key. Set it once, or pass your own local `.pt` to `--detector`/`--reid` to skip the platform entirely:
 
@@ -89,11 +89,11 @@ nc: 1200 # number of training SKU identities
 ```
 
 ```bash
-yolo reid train data=your-skus.yaml imgsz=448 \
-  model=ul://fatih-enterprise/yolo26-reid-sku-feature-extraction/yolo26l-reid-rp2k-pretrain
+yolo reid train data=your-skus.yaml imgsz=256 reid_arcface=True \
+  model=ul://fatih-enterprise/yolo26-reid-sku-feature-extraction/yolo26l-reid-arcface-rp2k-pretrain
 ```
 
-Train at `imgsz=448` so small on-pack text that separates variants stays legible. See the [custom ReID dataset guide](https://docs.ultralytics.com/guides/reid-custom-dataset/) and [ReID fine-tuning guide](https://docs.ultralytics.com/guides/reid-finetuning/) for the dataset schema and mAP / Rank-1 evaluation.
+Train at `imgsz=256` to match the published ArcFace seed and the crop size used at inference, retail package crops are small so a larger input adds blur, not detail. Keep `reid_arcface=True` for the angular-margin objective that pulls near-identical variants apart. See the [custom ReID dataset guide](https://docs.ultralytics.com/guides/reid-custom-dataset/) and [ReID fine-tuning guide](https://docs.ultralytics.com/guides/reid-finetuning/) for the dataset schema and mAP / Rank-1 evaluation.
 
 ## Run
 
@@ -101,9 +101,9 @@ Arrange a gallery where each immediate subfolder is one SKU holding a handful of
 
 ```
 gallery/
-├── marlboro_red/      img0.jpg img1.jpg ...   (10-20 reference crops)
-├── marlboro_gold/     img0.jpg img1.jpg ...
-└── camel_blue/        img0.jpg img1.jpg ...
+├── cola_regular_330ml/   img0.jpg img1.jpg ...   (10-20 reference crops)
+├── cola_zero_330ml/      img0.jpg img1.jpg ...
+└── lemon_soda_330ml/     img0.jpg img1.jpg ...
 ```
 
 The detector and ReID default to the platform models, so a gallery plus an input is enough. Give it either a full shelf image with `--source` (the detector finds each product) or pre-cropped products with `--crops` (the detector is skipped). Each accepts a single image or a folder:
@@ -127,7 +127,7 @@ Exactly one of `--source` or `--crops` is required. Folders are expanded the sam
 
 | Flag           | Default    | Description                                                          |
 | -------------- | ---------- | -------------------------------------------------------------------- |
-| `--imgsz`      | `448`      | ReID embedding image size (match how the ReID model was trained)     |
+| `--imgsz`      | `256`      | ReID embedding image size (match how the ReID model was trained)     |
 | `--det-imgsz`  | `640`      | detector image size                                                  |
 | `--conf`       | `0.25`     | detector confidence threshold                                        |
 | `--topk`       | `5`        | gallery neighbors per crop for the vote                              |
@@ -147,7 +147,7 @@ Both models export to CoreML and TFLite/LiteRT, so the whole detect, embed, and 
 ```bash
 # CoreML for iOS. Use format=tflite for TFLite/LiteRT on Android.
 yolo export model=yolo26l-sku.pt format=coreml imgsz=640 quantize=16  # detector -> yolo26l-sku.mlpackage
-yolo export model=yolo26l-reid.pt format=coreml imgsz=448 quantize=16 # reid     -> yolo26l-reid.mlpackage
+yolo export model=yolo26l-reid.pt format=coreml imgsz=256 quantize=16 # reid     -> yolo26l-reid.mlpackage
 ```
 
 CoreML export is lightweight, TFLite/LiteRT pulls a larger TensorFlow and ONNX toolchain on first export.

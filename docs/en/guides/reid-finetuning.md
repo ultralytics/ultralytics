@@ -94,16 +94,17 @@ Use the **Python API** for ReID training and validation. ReID introduces task-sp
 
 These keys exist **only for the `reid` task** and are not part of the general YOLO configuration (they are not in `default.yaml`). The most common are below; most users should keep the defaults. See the [ReID task page](../tasks/reid.md#reid-specific-training-arguments) for the full table and descriptions.
 
-| Argument         | Default | What it controls                                                                    |
-| ---------------- | ------- | ----------------------------------------------------------------------------------- |
-| `reid_p`         | `16`    | **P** — identities per batch (effective batch size = `reid_p × reid_k`).            |
-| `reid_k`         | `4`     | **K** — images per identity per batch (needed for triplet positive/negative pairs). |
-| `triplet_weight` | `1.0`   | Weight of the triplet metric-learning loss.                                         |
-| `triplet_margin` | `0.3`   | Triplet margin (typical 0.2–0.5).                                                   |
-| `ce_weight`      | `1.0`   | Weight of the identity cross-entropy loss.                                          |
-| `center_weight`  | `0.0`   | Center loss (disabled by default; try `~0.0005` to enable).                         |
-| `focal_gamma`    | `0.0`   | Focal-CE gamma (disabled by default).                                               |
-| `supcon_temp`    | `0.0`   | Supervised-contrastive temperature; when `>0` it replaces triplet (try `~0.07`).    |
+| Argument         | Default | What it controls                                                                                                                       |
+| ---------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `reid_p`         | `16`    | **P** — identities per batch (effective batch size = `reid_p × reid_k`).                                                               |
+| `reid_k`         | `4`     | **K** — images per identity per batch (needed for triplet positive/negative pairs).                                                    |
+| `triplet_weight` | `1.0`   | Weight of the triplet metric-learning loss.                                                                                            |
+| `triplet_margin` | `0.3`   | Triplet margin (typical 0.2–0.5).                                                                                                      |
+| `ce_weight`      | `1.0`   | Weight of the identity cross-entropy loss.                                                                                             |
+| `center_weight`  | `0.0`   | Center loss (disabled by default; try `~0.0005` to enable).                                                                            |
+| `focal_gamma`    | `0.0`   | Focal-CE gamma (disabled by default).                                                                                                  |
+| `supcon_temp`    | `0.0`   | Supervised-contrastive temperature; when `>0` it replaces triplet (try `~0.07`).                                                       |
+| `reid_arcface`   | `False` | Sub-center ArcFace angular-margin identity loss (triplet stays on); sharper separation of near-identical classes such as product SKUs. |
 
 !!! example "Override a ReID training argument"
 

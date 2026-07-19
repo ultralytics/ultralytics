@@ -1514,10 +1514,9 @@ class Exporter:
             # (1, nc) probabilities as the PyTorch model. The DFC translates the softmax to a native layer.
             end_nodes = [f"/model.{head_index}/Softmax"]
         elif task == "semantic":
-            # Hailo-15/10 (DFC 5.x) compile the head's bilinear upsample and argmax, so bake them and emit
-            # the compact class map on chip. Hailo-8/8L (DFC 3.x) cannot compile the bilinear Resize, so cut
-            # at the classifier logits and run the upsample + argmax on the host. Single-class heads argmax to a
-            # threshold instead of an ArgMax node, so they always take the host path.
+            # Multi-class Hailo-15/10 (DFC 5.x) heads compile the bilinear upsample and ArgMax on chip. Hailo-8/8L
+            # (DFC 3.x) cannot compile the Resize, and single-class heads use a threshold instead of ArgMax, so both
+            # cut at the classifier logits and run the reduction on the host.
             head.bake_argmax = head.nc > 1 and self.args.name in {"hailo10h", "hailo15h", "hailo15l"}
             end_nodes = [
                 f"/model.{head_index}/ArgMax"

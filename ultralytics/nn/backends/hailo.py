@@ -94,10 +94,10 @@ class HailoBackend(BaseBackend):
         if self.task == "semantic":
             out = torch.from_numpy(outputs[0])
             if self.metadata.get("semantic_baked"):
-                # Hailo-10/15 baked the upsample and argmax on chip; return the class map for the predictor.
+                # Multi-class Hailo-10/15 baked the upsample and argmax on chip; return the class map.
                 return out.reshape(out.shape[0], out.shape[1], out.shape[2])
-            # Hailo-8/8L returns raw stride-8 classifier logits; hand them to the predictor's own bilinear
-            # upsample + argmax (and letterbox) path unchanged, so results match the PyTorch model exactly.
+            # Hailo-8/8L and single-class heads return raw stride-8 logits; hand them to the predictor's existing
+            # bilinear upsample, letterbox removal, and class reduction so results match the PyTorch model exactly.
             return out.permute(0, 3, 1, 2)
         return self._decode_raw(outputs) if not self.metadata.get("nms", False) else self._decode_nms(outputs[0])
 

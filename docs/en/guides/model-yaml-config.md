@@ -237,7 +237,7 @@ from ultralytics.nn.modules import (  # noqa: F401
 
 Modifying the source code is the most versatile way to integrate your custom modules, but it can be tricky. To define and use a custom module, follow these steps:
 
-1. **Install Ultralytics in development mode** using the Git clone method from the [Quickstart guide](../quickstart.md#how-do-i-clone-the-ultralytics-repository-for-development).
+1. **Install Ultralytics in development mode** using the Git clone method from the [Development Installation guide](../help/contributing.md#development-installation).
 
 2. **Define your module** in [`ultralytics/nn/modules/block.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py):
 

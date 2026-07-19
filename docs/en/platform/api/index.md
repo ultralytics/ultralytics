@@ -56,7 +56,7 @@ graph LR
 
 ## Authentication
 
-Resource APIs such as datasets, projects, models, training, exports, and predictions use API-key authentication. Public endpoints (listing public datasets, projects, and models) support anonymous read access without a key. Account-oriented routes — including activity, settings, teams, billing, and GDPR flows — currently require an authenticated browser session and are not available via API key.
+Resource APIs use API-key authentication, including dataset class and split management, cloning, training, exports, deployments, and supported account reads. Public endpoints support anonymous access where noted. Routes that still require an authenticated browser session are identified explicitly.
 
 ### Get API Key
 
@@ -348,15 +348,17 @@ Soft-deletes the dataset (moved to [trash](../account/trash.md), recoverable for
 POST /api/datasets/{datasetId}/clone
 ```
 
-Creates a copy of the dataset with all images and labels. Only public, owned, or editable workspace datasets can be cloned. Requires an active platform browser session — not available via API key.
+Creates a copy of a public, owned, or editable workspace dataset with all images and labels.
 
 **Body (all fields optional):**
 
 ```json
 {
     "name": "cloned-dataset",
+    "slug": "cloned-dataset",
     "description": "My cloned dataset",
     "visibility": "private",
+    "license": "AGPL-3.0",
     "owner": "team-username"
 }
 ```
@@ -487,10 +489,25 @@ Merge classes (reassign annotations from source classes to a target, then remove
 POST /api/datasets/{datasetId}/classes/merge
 ```
 
+```json
+{
+    "sourceClassIds": [2, 4],
+    "targetClassId": 1
+}
+```
+
+Class IDs are positional, so merging is not idempotent. Re-fetch the dataset before retrying.
+
 Delete classes:
 
 ```http
 POST /api/datasets/{datasetId}/classes/delete
+```
+
+```json
+{
+    "classIds": [2, 4]
+}
 ```
 
 ### Redistribute Splits
@@ -499,7 +516,15 @@ POST /api/datasets/{datasetId}/classes/delete
 POST /api/datasets/{datasetId}/splits/redistribute
 ```
 
-Re-assign images across train/val/test splits. All three require an active platform browser session — not available via API key.
+Randomly reassign images across train, validation, and test splits. Percentages must total 100.
+
+```json
+{
+    "train": 80,
+    "val": 20,
+    "test": 0
+}
+```
 
 ### Dataset Embeddings
 
@@ -808,7 +833,7 @@ Soft-deletes the project (moved to [trash](../account/trash.md)).
 POST /api/projects/{projectId}/clone
 ```
 
-Clones a public project (with all its models) into your workspace. Requires an active platform browser session — not available via API key.
+Clones a public, owned, or editable workspace project and its models into your account or workspace. The optional body accepts `name`, `slug`, `description`, `visibility`, `license`, and destination `owner` overrides.
 
 ### Project Icon
 
@@ -853,7 +878,7 @@ GET /api/models
 GET /api/models/completed
 ```
 
-Returns models that have finished training (for use in model selectors and deployment).
+Returns up to 1,000 models with usable weights across all projects for training and deployment. Pass `owner` for a workspace.
 
 ### Get Model
 
@@ -907,7 +932,7 @@ Returns signed download URLs for model files.
 POST /api/models/{modelId}/clone
 ```
 
-Clone a public model to one of your projects. Requires an active platform browser session — not available via API key.
+Clone a public, owned, or editable workspace model to one of your projects.
 
 **Body:**
 
@@ -1107,7 +1132,7 @@ Returns current GPU stock status (`High`, `Medium`, `Low`, or `null`) keyed by G
 GET /api/models/{modelId}/training
 ```
 
-Returns the current training job status, metrics, and progress for a model. Public projects are accessible anonymously; private projects require an active platform browser session (this route does not accept API-key authentication).
+Returns the current training job status, metrics, progress, timing, compute details, and errors. Public projects are accessible anonymously; private projects require an API key with access.
 
 ### Cancel Training
 
@@ -1115,7 +1140,7 @@ Returns the current training job status, metrics, and progress for a model. Publ
 DELETE /api/models/{modelId}/training
 ```
 
-Terminates the running compute instance and marks the job as cancelled. Requires an active platform browser session — not available via API key.
+Terminates the running compute instance and marks the job as cancelled.
 
 ---
 
@@ -1125,7 +1150,7 @@ Deploy models to dedicated inference endpoints with health checks and monitoring
 
 !!! info "API-key support by route"
 
-    Only `GET /api/deployments`, `POST /api/deployments`, `GET /api/deployments/{deploymentId}`, and `DELETE /api/deployments/{deploymentId}` support API-key authentication. The `predict`, `health`, `logs`, `metrics`, `start`, and `stop` sub-routes require an active platform browser session — they are convenience proxies for the in-app UI. For programmatic inference, call the deployment's own endpoint URL (e.g., `https://predict-abc123.run.app/predict`) directly with your API key. [Dedicated endpoints](../deploy/endpoints.md#using-endpoints) are not rate-limited.
+    All deployment routes below accept API-key authentication. For high-throughput inference, call the deployment's own endpoint URL (e.g., `https://predict-abc123.run.app/predict`) directly with your API key. [Dedicated endpoints](../deploy/endpoints.md#using-endpoints) are not rate-limited.
 
 ```mermaid
 graph LR
@@ -1286,7 +1311,7 @@ GET /api/deployments/{deploymentId}/logs
 
 !!! note "Browser session only"
 
-    `GET /api/monitoring` is a UI-only route and requires an active platform browser session. It does not accept API-key authentication. Query individual deployment metrics via the per-deployment routes (which are also browser-session only) or use [Cloud Monitoring exports](https://cloud.google.com/monitoring) on the deployed Cloud Run service for programmatic access.
+    `GET /api/monitoring` is a UI-only aggregate. API clients should query the API-key-enabled per-deployment metrics routes or use [Cloud Monitoring exports](https://cloud.google.com/monitoring) on the deployed Cloud Run service.
 
 ### Aggregated Metrics
 
@@ -1399,9 +1424,9 @@ POST /api/exports/{exportId}/track-download
 
 View a feed of recent actions on your account — training runs, uploads, and more. See [Activity documentation](../account/activity.md).
 
-!!! note "Browser Session Only"
+!!! note "API-key support by route"
 
-    The Activity routes are powered by browser-authenticated requests from the platform UI. They are not exposed as a public API, do not accept API-key authentication, and the route shapes below are documented only for reference. Use the Activity feed in the platform UI to view, mark, or archive events.
+    `GET /api/activity` accepts API-key authentication. Mark-seen and archive mutations still require a browser session.
 
 ### List Activity
 
@@ -1578,6 +1603,8 @@ GET /api/billing/transactions
 
 Returns transaction history (most recent first).
 
+Transactions include client-facing ledger fields such as amount, resulting balance, reason, date, optional model context, and receipt URL. Stripe payment/refund IDs and internal idempotency keys are not returned.
+
 **Query Parameters:**
 
 | Parameter | Type   | Description              |
@@ -1741,9 +1768,9 @@ DELETE /api/billing/payment-methods/{id}
 
 Check your storage usage breakdown by category (datasets, models, exports) and see your largest items.
 
-!!! note "Browser session only"
+!!! note "API-key access"
 
-    Storage routes require an active platform browser session and are not accessible via API key. Use the [Settings > Profile](../account/settings.md#storage-usage) page in the UI for interactive breakdowns.
+    `GET /api/storage` accepts API-key authentication. Use the [Settings > Profile](../account/settings.md#storage-usage) page for the same interactive breakdown.
 
 ### Get Storage Info
 
@@ -1896,6 +1923,8 @@ Manage your API keys for programmatic access. See [API Keys documentation](../ac
 ```http
 GET /api/api-keys
 ```
+
+API-key-authenticated clients receive key metadata, never decrypted existing key values. A newly created key is returned once by `POST /api/api-keys`.
 
 ### Create API Key
 

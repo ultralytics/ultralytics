@@ -985,6 +985,7 @@ class Exporter:
         from ultralytics.utils.export.engine import best_onnx_opset, torch2onnx
 
         opset = self.args.opset or best_onnx_opset(onnx, cuda="cuda" in self.device.type, quantize=self.args.quantize)
+        assert not isinstance(self.model.model[-1], RTDETRDecoder) or opset >= 16, "RTDETR export requires opset>=16"
         LOGGER.info(f"\n{prefix} starting export with onnx {onnx.__version__} opset {opset}...")
         if self.args.nms:
             assert TORCH_1_13, f"'nms=True' ONNX export requires torch>=1.13 (found torch=={TORCH_VERSION})"
@@ -1324,7 +1325,7 @@ class Exporter:
         # Export to ONNX
         if isinstance(self.model.model[-1], RTDETRDecoder):
             self.args.opset = self.args.opset or 19
-            assert 16 <= self.args.opset <= 19, "RTDETR export requires opset>=16;<=19"
+            assert self.args.opset <= 19, "RTDETR TensorFlow export requires opset<=19"
         self.args.simplify = True
         f_onnx = self.export_onnx()  # ensure ONNX is available
         keras_model = onnx2saved_model(

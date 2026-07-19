@@ -921,7 +921,7 @@ POST /api/models
 
 !!! note "Model File Upload"
 
-    Model `.pt` file uploads are handled separately. Use the platform UI to drag-and-drop model files onto a project.
+    To attach `.pt` weights, request a signed upload URL with `assetType: models` and this model's ID as `assetId`, upload the file, then call `POST /api/upload/complete` with the returned `sessionId`.
 
 ### Update Model
 
@@ -1694,7 +1694,7 @@ All four operations accept the optional `owner` query parameter for a workspace.
 
 ## Upload API
 
-Upload files directly to cloud storage using signed URLs for fast, reliable transfers. For dataset archives, use the returned `sessionId` with `POST /api/upload/complete`, then `POST /api/datasets/ingest`. See [Data documentation](../data/index.md).
+Upload files directly to cloud storage using signed URLs for fast, reliable transfers. Completing a model upload attaches its weights. Completing a dataset archive upload records the session; pass that `sessionId` to `POST /api/datasets/ingest` to start processing. See [Data documentation](../data/index.md).
 
 ### Get Signed Upload URL
 
@@ -1740,7 +1740,7 @@ Request a signed URL for uploading a file directly to cloud storage. The signed 
 POST /api/upload/complete
 ```
 
-Notify the platform that a file upload is complete. For dataset archives, this verifies and records the upload session; call `POST /api/datasets/ingest` afterward to start dataset processing.
+Notify the platform that a file upload is complete. For models, this attaches the uploaded weights. For dataset archives, this verifies and records the upload session; call `POST /api/datasets/ingest` afterward to start dataset processing.
 
 **Body:**
 

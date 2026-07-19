@@ -370,6 +370,7 @@ def _run_multi_det(
     freeze_override: str = "",
     imgsz_override: str = "",
     teacher_spec: str | None = None,
+    seed: int = 0,
 ) -> None:
     """Sequentially train + val on a list of YOLO-format detection datasets.
 
@@ -397,6 +398,8 @@ def _run_multi_det(
         teacher_spec (str, optional): Frozen-teacher registry key (e.g. "eupe:vitb16"). When set, runs the
             teacher_frozen_det mode: build yolo26-teacherdet.yaml with this teacher, freeze=1, no phase1 weights or
             parent push. When None, the standard distilled-student multi_det_finetune mode.
+        seed (int, optional): Training seed for detection-head init and augmentation RNG. Default 0 reproduces prior
+            runs, vary it to sample per-dataset run-to-run variance.
     """
     if "," in gpu:
         raise SystemExit(
@@ -506,7 +509,7 @@ def _run_multi_det(
             exist_ok=False,
             dropout=0,
             amp=True,
-            seed=0,
+            seed=seed,
             deterministic=True,
             workers=4,
             data=str(ds_yaml),
@@ -559,6 +562,8 @@ def main(argv: list[str]) -> None:
     argv, scratch = _pop_flag(argv, "--scratch", is_bool=True)
     argv, datasets_arg = _pop_flag(argv, "--datasets")
     argv, imgsz_override = _pop_flag(argv, "--imgsz")
+    argv, seed_override = _pop_flag(argv, "--seed")
+    seed = int(seed_override) if seed_override else 0
     argv, teacher_spec = _pop_flag(argv, "--teacher")
     if teacher_spec:
         # Layout: <gpu> teacher_frozen_det <name> --teacher <spec> --datasets <file>. The frozen-teacher backbone
@@ -595,6 +600,7 @@ def main(argv: list[str]) -> None:
             nbs_override=nbs_override,
             datasets_arg=datasets_arg,
             imgsz_override=imgsz_override,
+            seed=seed,
             teacher_spec=teacher_spec,
         )
         return
@@ -637,6 +643,7 @@ def main(argv: list[str]) -> None:
             datasets_arg=datasets_arg,
             freeze_override=freeze_override,
             imgsz_override=imgsz_override,
+            seed=seed,
         )
         return
 
@@ -685,7 +692,7 @@ def main(argv: list[str]) -> None:
         warmup_bias_lr=0,
         dropout=0,
         amp=True,
-        seed=0,
+        seed=seed,
         deterministic=True,
         workers=4,
     )

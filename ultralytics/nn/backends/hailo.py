@@ -47,9 +47,10 @@ class HailoBackend(BaseBackend):
             from ultralytics.utils import YAML
 
             self.apply_metadata(YAML.load(metadata_file))
-        if self.task and self.task not in {"detect", "segment", "pose", "obb", "classify"}:
+        if self.task and self.task not in {"detect", "segment", "pose", "obb", "classify", "semantic"}:
             raise ValueError(
-                f"Hailo inference only supports detect, segment, pose, obb and classify tasks, not task='{self.task}'."
+                f"Hailo inference only supports detect, segment, pose, obb, classify and semantic tasks, "
+                f"not task='{self.task}'."
             )
 
         self.hef = HEF(str(hef_file))
@@ -90,6 +91,14 @@ class HailoBackend(BaseBackend):
             return self._decode_obb(outputs)
         if self.task == "classify":
             return torch.from_numpy(outputs[0]).reshape(outputs[0].shape[0], -1)  # on-chip softmax probabilities
+        if self.task == "semantic":
+            out = torch.from_numpy(outputs[0])
+            if self.metadata.get("semantic_baked"):
+                # Multi-class Hailo-10/15 baked the upsample and argmax on chip; return the class map.
+                return out.reshape(out.shape[0], out.shape[1], out.shape[2])
+            # Hailo-8/8L and single-class heads return raw stride-8 logits; hand them to the predictor's existing
+            # bilinear upsample, letterbox removal, and class reduction so results match the PyTorch model exactly.
+            return out.permute(0, 3, 1, 2)
         return self._decode_raw(outputs) if not self.metadata.get("nms", False) else self._decode_nms(outputs[0])
 
     def _decode_nms(self, output: list) -> np.ndarray:

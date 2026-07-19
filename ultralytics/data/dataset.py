@@ -1027,6 +1027,8 @@ class ClassificationDataset:
         self.samples = self.verify_images()  # filter out bad images
         if is_ndjson:
             self.samples = [(f, int(Path(f).parent.name)) for f, _ in self.samples]
+        if args.single_cls:
+            self.samples = [(f, 0) for f, _ in self.samples]
         self.samples = [[*list(x), Path(x[0]).with_suffix(".npy"), None] for x in self.samples]  # file, index, npy, im
         if self.cache_ram:
             self.cache_images()

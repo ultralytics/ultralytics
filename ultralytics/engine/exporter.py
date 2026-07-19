@@ -603,14 +603,16 @@ class Exporter:
             if task26:
                 raise ValueError(f"Hailo export does not currently support YOLO26 {task26} models.")
             if (
-                model.task not in {"detect", "segment", "pose", "obb", "classify"}
-                or type(model.model[-1]) not in {Detect, Segment, Pose, OBB, Classify}
+                model.task not in {"detect", "segment", "pose", "obb", "classify", "semantic"}
+                or type(model.model[-1]) not in {Detect, Segment, Pose, OBB, Classify, SemanticSegment}
                 or not family.startswith(("yolov8", "yolo11", "yolo26"))
             ):
                 raise ValueError(
-                    "Hailo export currently supports YOLOv8/YOLO11/YOLO26 detection and classification models "
-                    "and YOLOv8/YOLO11 segmentation, pose, and OBB models."
+                    "Hailo export currently supports YOLOv8/YOLO11/YOLO26 detection and classification models, "
+                    "YOLOv8/YOLO11 segmentation, pose, and OBB models, and YOLO26 semantic segmentation models."
                 )
+            if model.task == "semantic" and not family.startswith("yolo26"):
+                raise ValueError("Hailo export supports semantic segmentation only for YOLO26 models.")
             if self.args.end2end is not None:
                 raise ValueError(
                     "Hailo export selects the model output path automatically; remove the end2end argument."
@@ -923,7 +925,7 @@ class Exporter:
         if self.model.task == "classify":
             import torchvision.transforms as T  # scope for faster 'import ultralytics'
 
-            data = check_cls_dataset(self.args.data)
+            data = check_cls_dataset(self.args.data, split=self.args.split)
             dataset = ClassificationDataset(data[self.args.split or "val"], args=cfg, augment=False)
             # INT8 backends divide images by 255, so emit uint8 [0, 255] center-cropped like classify inference
             dataset.torch_transforms = T.Compose([T.Resize(cfg.imgsz), T.CenterCrop(cfg.imgsz), T.PILToTensor()])
@@ -1511,6 +1513,16 @@ class Exporter:
             # The Classify head ends in Gemm -> Softmax; cut at the Softmax so the HEF returns the same
             # (1, nc) probabilities as the PyTorch model. The DFC translates the softmax to a native layer.
             end_nodes = [f"/model.{head_index}/Softmax"]
+        elif task == "semantic":
+            # Multi-class Hailo-15/10 (DFC 5.x) heads compile the bilinear upsample and ArgMax on chip. Hailo-8/8L
+            # (DFC 3.x) cannot compile the Resize, and single-class heads use a threshold instead of ArgMax, so both
+            # cut at the classifier logits and run the reduction on the host.
+            head.bake_argmax = head.nc > 1 and self.args.name in {"hailo10h", "hailo15h", "hailo15l"}
+            end_nodes = [
+                f"/model.{head_index}/ArgMax"
+                if head.bake_argmax
+                else f"/model.{head_index}/classifier/classifier.1/Conv"
+            ]
         else:
             scales = range(len(head.one2one_cv2 if one2one else head.cv2))
             if one2one:
@@ -1547,8 +1559,8 @@ class Exporter:
             if one2one:
                 outputs = ", ".join(f"output_layer{i + 1}" for i in range(len(end_nodes)))
                 model_script.append(f"quantization_param([{outputs}], precision_mode=a16_w16)")
-            elif task == "classify":
-                pass  # softmax is already the graph output; no NMS or activation changes needed
+            elif task in {"classify", "semantic"}:
+                pass  # softmax/class-map is already the graph output; no NMS or activation changes needed
             else:
                 outputs = [layer.inputs[0].rsplit("/", 1)[-1] for layer in runner.get_hn_model().get_output_layers()]
                 if task in {"segment", "pose", "obb"}:
@@ -1604,7 +1616,12 @@ class Exporter:
             (output_dir / f"{self.file.stem}.hef").write_bytes(runner.compile())
             YAML.save(
                 output_dir / "metadata.yaml",
-                {**self.metadata, "hailo_arch": self.args.name, "nms": task == "detect" and not one2one},
+                {
+                    **self.metadata,
+                    "hailo_arch": self.args.name,
+                    "nms": task == "detect" and not one2one,
+                    "semantic_baked": task == "semantic" and head.bake_argmax,
+                },
             )
             return str(output_dir)
         finally:

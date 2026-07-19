@@ -183,10 +183,21 @@ Measured on a Hailo-8L with in-domain calibration (COCO128, 128 images), INT8 HE
 
 Retention compares both models at the same confidence threshold. YOLOv8 and YOLO11 HEFs bake the export-time `conf` (default 0.25) into the on-chip NMS, so validating against a PyTorch baseline at its default low threshold integrates a larger part of the precision-recall curve and overstates the quantization gap.
 
+Beyond detection, the segmentation, pose, OBB, and classification exporter paths were validated on the same Hailo-8L (DFC 3.33, HailoRT 4.23). Each INT8 HEF was compared with its PyTorch checkpoint on the same validation split, using in-domain calibration:
+
+| Task                  | Metric (validation split)          | YOLOv8n | YOLO11n |
+| :-------------------- | :--------------------------------- | :------ | :------ |
+| Instance segmentation | mask mAP50 retention (COCO128-seg) | 98.0%   | 93.6%   |
+| Pose                  | box mAP50 retention (COCO8-pose)   | 98.1%   | 90.8%   |
+| Oriented bounding box | mAP50 retention (DOTA128)          | ~100%   | 96.9%   |
+| Classification        | top-1 retention (ImageNet val)     | 92.6%   | 95.4%   |
+
+Segmentation, pose, and OBB were calibrated with each task's default in-domain set (COCO128-seg, COCO8-pose, DOTA128); classification was calibrated with ImageNet100. Two caveats follow from those defaults: COCO8-pose is only 8 images, so treat pose as indicative and pass a larger `data=` for production, and DOTA8 saturates mAP50 near 100% for both models, which is why OBB is read on DOTA128. Classification is also the one task where YOLO11 retains more than YOLOv8; for the others the YOLO11 attention backbone is more INT8-sensitive.
+
 Three practical rules follow from device measurements:
 
 1. **Calibrate in-domain, always.** Fine-tuning with out-of-domain images is equivalent to disabling fine-tuning entirely: a YOLO26n calibrated with 1,238 out-of-domain images retains the same accuracy (85.7%) as one compiled without fine-tuning. A small in-domain set beats a large out-of-domain one.
-2. **Lower `conf` by about 0.05 for YOLO26 deployments.** Quantization shifts YOLO26 scores down by roughly 0.05 on average, so a threshold tuned in PyTorch drops valid detections on the HEF. Using `conf=0.20` on device matches the detection count of PyTorch at `conf=0.25` and recovers about half of the accuracy gap; the remainder is ranking noise that no threshold recovers.
+2. **Lower `conf` by about 0.05 for YOLO26 deployments.** Quantization shifts YOLO26 scores down by roughly 0.05 on average, so a threshold tuned in PyTorch drops valid detections on the HEF. Using `conf=0.20` on device matches the detection count of PyTorch at `conf=0.25`, and lowering slightly further (around `conf=0.15`) recovers essentially all of the remaining mAP50 gap at the cost of more low-confidence detections. Quantization also re-ranks roughly 20% of detections — a permanent ordering effect that no threshold undoes — but that reshuffling does not block mAP50 recovery at the lower threshold.
 3. **The attention penalty is structural on Hailo-8/8L (DFC 3.33).** The attention blocks compile to `matmul` operations that keep INT8 activation inputs in every mode the compiler offers for them; the 16-bit-output mode fails allocation for this graph, and raising the precision of the surrounding layers does not help because the matmul requantizes its inputs to INT8 anyway (protecting the depthwise and output convolutions at 16-bit left mAP unchanged in our tests). When accuracy is the priority and the model is interchangeable, YOLO11 currently quantizes better than YOLO26 here; newer Hailo generations (DFC 5.x) expose more mixed-precision options and may differ.
 
 ## Exported Artifacts

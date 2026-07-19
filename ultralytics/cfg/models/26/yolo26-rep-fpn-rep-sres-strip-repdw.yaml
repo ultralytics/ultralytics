@@ -1,0 +1,60 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Ultralytics YOLO26 object detection model with P3/8 - P5/32 outputs
+# Variant: rep-fpn-rep-sres-strip + head_repdw: both cls branch DW 3x3 convs (o2m and
+# o2o) replaced by non-dilated RepDWConv (DW 3x3 + DW 1x1 + BN identity), fusing to a
+# plain DW 3x3 — inference graph IDENTICAL to strip. Pure rep-training benefit: dilhead
+# (5x5 variant) had the best o2m ceiling (.4826/.6567L) but the wider kernel smoothed
+# o2o score peaks; this config chases that ceiling without changing receptive field.
+
+# Parameters
+nc: 80 # number of classes
+end2end: True # whether to use end-to-end mode
+reg_max: 1 # DFL bins
+head_repdw: True # pure-rep DW 3x3 in both o2m and o2o cls branches
+scale_args: [rep_e, head_n] # names for scales entries beyond [depth, width, max_channels]
+scales: # model compound scaling constants, i.e. 'model=yolo26n.yaml' will call yolo26.yaml with scale 'n'
+  # [depth, width, max_channels, rep_e, head_n]
+  n: [0.50, 0.25, 1024, 0.5, 2] # best available; still -2.8% vs yolo26n (strip convs + rep blocks dominate at tiny width)
+  s: [0.50, 0.50, 1024, 0.5, 3] # trained champion, do not change
+  m: [0.50, 1.00, 512, 0.28125, 3] # 1016 vs base 987 img/s
+  l: [1.00, 1.00, 512, 0.3125, 2] # 801 vs base 780 img/s
+  x: [1.00, 1.50, 512, 0.3125, 3] # 450 vs base 438 img/s
+
+# YOLO26n backbone
+backbone:
+  # [from, repeats, module, args]
+  - [-1, 1, Conv, [64, 3, 2]] # 0-P1/2
+  - [-1, 1, Conv, [128, 3, 2]] # 1-P2/4
+  - [-1, 2, C3k2Rep, [256, False, rep_e]] # 2 - rep block
+  - [-1, 1, Conv, [256, 3, 2]] # 3-P3/8
+  - [-1, 2, C3k2Rep, [512, False, rep_e]] # 4 - rep block
+  - [-1, 1, Conv, [512, 3, 2]] # 5-P4/16
+  - [-1, 2, C3k2, [512, True]]
+  - [-1, 1, StripAttn, []] # 7 - strip gate at P4
+  - [-1, 1, Conv, [1024, 3, 2]] # 8-P5/32
+  - [-1, 2, C3k2, [1024, True]]
+  - [-1, 1, SPPF, [1024, 5, 3, True]] # 10
+  - [-1, 2, C2PSA, [1024]] # 11
+  - [-1, 1, StripAttn, []] # 12 - strip gate at P5
+
+# YOLO26n head
+head:
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 7], 1, Concat, [1]]
+  - [-1, head_n, C3k2Rep, [512, True, rep_e]] # 15
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 4], 1, Concat, [1]]
+  - [-1, head_n, C3k2Rep, [256, True, rep_e]] # 18
+
+  - [-1, 1, Conv, [256, 3, 2]]
+  - [[-1, 15], 1, Concat, [1]]
+  - [-1, 2, C3k2Rep, [512, True, rep_e]] # 21
+
+  - [-1, 1, Conv, [512, 3, 2]]
+  - [[-1, 12], 1, Concat, [1]]
+  - [-1, 2, C3k2Rep, [1024, True, rep_e, True]] # 24
+  - [[-1, 12], 1, ScaledAdd, []] # 25: scaled residual from backbone P5
+
+  - [[18, 21, 25], 1, Detect, [nc]]

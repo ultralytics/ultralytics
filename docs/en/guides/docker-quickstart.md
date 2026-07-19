@@ -74,13 +74,6 @@ Now, let's install the [NVIDIA Container Toolkit](https://docs.nvidia.com/datace
     sudo apt-get install -y nvidia-container-toolkit
     ```
 
-    Configure the NVIDIA runtime and restart Docker:
-
-    ```bash
-    sudo nvidia-ctk runtime configure --runtime=docker
-    sudo systemctl restart docker
-    ```
-
 === "RHEL/CentOS/Fedora/Amazon Linux"
 
     ```bash
@@ -90,13 +83,6 @@ Now, let's install the [NVIDIA Container Toolkit](https://docs.nvidia.com/datace
 
     ```bash
     sudo dnf install -y nvidia-container-toolkit
-    ```
-
-    Configure the NVIDIA runtime and restart Docker:
-
-    ```bash
-    sudo nvidia-ctk runtime configure --runtime=docker
-    sudo systemctl restart docker
     ```
 
 ### Verify CDI Devices with Docker

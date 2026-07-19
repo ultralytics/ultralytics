@@ -119,7 +119,7 @@ Run `nvidia-ctk cdi list` to ensure the GPU CDI devices are available (the toolk
 nvidia-ctk cdi list
 ```
 
-You should see entries such as `nvidia.com/gpu=0` and `nvidia.com/gpu=all`. CDI device requests require Docker >= 28.2.0 and NVIDIA Container Toolkit >= 1.18; on older hosts, use the legacy `--runtime=nvidia --gpus all` flags instead.
+You should see entries such as `nvidia.com/gpu=0` and `nvidia.com/gpu=all`. CDI device requests require Docker >= 28.2.0 and NVIDIA Container Toolkit >= 1.18. The legacy `--gpus all` flag can lose GPU access after host daemon reloads, so upgrade older hosts and use `--device` instead.
 
 ## Step 1: Pull the YOLOv5 Docker Image
 

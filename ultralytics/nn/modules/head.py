@@ -442,9 +442,9 @@ class DetectO2OObj(Detect):
     Identical to Detect, but for the one2one branch inserts a per-level channel-preserving 3x3 depthwise adapter gated
     by a zero-initialized residual scale (``y = x + alpha * adapter(x)``, so it starts as an identity), then feeds the
     refined feature to both the existing one2one classification head and a new class-agnostic objectness head that
-    predicts a single "GT present here" logit per anchor. At inference the objectness is fused into the one2one score as
-    the geometric mean ``sqrt(cls.sigmoid() * obj.sigmoid())``. Box regression still uses the raw feature. Has no effect
-    unless end-to-end detection is enabled; the one2many branch is unchanged.
+    predicts a single "GT present here" logit per anchor. The objectness is a training-only auxiliary (BCE toward the
+    IoU soft target) and does not participate in inference or export. Box regression still uses the raw feature. Has no
+    effect unless end-to-end detection is enabled; the one2many branch is unchanged.
 
     Attributes:
         one2one_adapter (nn.ModuleList): Per-level channel-preserving 3x3 depthwise adapter for the one2one feature.
@@ -477,20 +477,24 @@ class DetectO2OObj(Detect):
             )
 
     def forward_o2o(self, x: list[torch.Tensor]) -> dict[str, torch.Tensor]:
-        """Run the one2one heads on adapter-refined features and predict class-agnostic objectness."""
+        """Run the one2one heads on adapter-refined features; predict class-agnostic objectness during training only."""
         bs = x[0].shape[0]  # batch size
         boxes, scores, obj = [], [], []
         for i in range(self.nl):
             y = x[i] + self.one2one_alpha[i] * self.one2one_adapter[i](x[i])  # residual adapter, identity at init
             boxes.append(self.one2one_cv2[i](x[i]).view(bs, 4 * self.reg_max, -1))  # box from the raw feature
             scores.append(self.one2one_cv3[i](y).view(bs, self.nc, -1))
-            obj.append(self.one2one_obj[i](y).view(bs, 1, -1))
-        return dict(boxes=torch.cat(boxes, -1), scores=torch.cat(scores, -1), obj=torch.cat(obj, -1), feats=x)
+            if self.training:  # objectness is a training-only auxiliary; skip it at inference/export
+                obj.append(self.one2one_obj[i](y).view(bs, 1, -1))
+        out = dict(boxes=torch.cat(boxes, -1), scores=torch.cat(scores, -1), feats=x)
+        if self.training:
+            out["obj"] = torch.cat(obj, -1)
+        return out
 
     def forward(
         self, x: list[torch.Tensor]
     ) -> dict[str, torch.Tensor] | torch.Tensor | tuple[torch.Tensor, dict[str, torch.Tensor]]:
-        """Run the one2many head on raw features and the one2one head on adapter-refined features with objectness."""
+        """Run the one2many head on raw features and the one2one head on adapter-refined features."""
         preds = self.forward_head(x, **self.one2many)
         if self.end2end:
             feats = [xi.detach() for xi in x] if self.detach_one2one else x
@@ -502,14 +506,6 @@ class DetectO2OObj(Detect):
         if self.end2end:
             y = self.postprocess(y.permute(0, 2, 1))
         return y if self.export else (y, preds)
-
-    def _inference(self, x: dict[str, torch.Tensor]) -> torch.Tensor:
-        """Decode boxes and fuse class-agnostic objectness into the class scores as their geometric mean."""
-        dbox = self._get_decode_boxes(x)
-        scores = x["scores"].sigmoid()
-        if "obj" in x:
-            scores = (scores * x["obj"].sigmoid()).sqrt()
-        return torch.cat((dbox, scores), 1)
 
     def bias_init(self):
         """Initialize Detect biases plus the class-agnostic objectness prior."""

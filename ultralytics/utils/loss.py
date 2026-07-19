@@ -675,9 +675,12 @@ class v8DetectionLoss:
                 positive_mask,
             )
         if self.obj:  # class-agnostic objectness: BCE toward the per-anchor IoU soft target (max over GT-class scores)
-            obj_pred = preds["obj"].permute(0, 2, 1).contiguous()  # (bs, num_anchors, 1)
-            obj_target = cls_target.amax(-1, keepdim=True)  # IoU soft target at positives, 0 at background
-            self.obj_loss = self.bce(obj_pred, obj_target.to(obj_pred.dtype)).sum() / cls_target_sum
+            if "obj" in preds:  # training-only branch; absent when the head runs in eval mode (val loss reports 0)
+                obj_pred = preds["obj"].permute(0, 2, 1).contiguous()  # (bs, num_anchors, 1)
+                obj_target = cls_target.amax(-1, keepdim=True)  # IoU soft target at positives, 0 at background
+                self.obj_loss = self.bce(obj_pred, obj_target.to(obj_pred.dtype)).sum() / cls_target_sum
+            else:
+                self.obj_loss = pred_scores.new_zeros(())
 
         # Bbox loss
         if fg_mask.sum():
@@ -1458,7 +1461,7 @@ class E2ELoss:
         self.pos_cls = getattr(model.args, "o2o_pos_cls", 0.0) if loss_fn is v8DetectionLoss else 0.0
         self.one2one.pos_cls = bool(self.pos_cls)
         self.one2one.pos_cls_p3_only = getattr(model.args, "o2o_pos_cls_p3_only", False)
-        # class-agnostic objectness (DetectO2OObj head only): BCE toward the IoU soft target, fused into o2o at inference
+        # class-agnostic objectness (DetectO2OObj head only): training-only BCE toward the IoU soft target
         self.obj_gain = getattr(model.args, "o2o_obj", 0.0) if hasattr(model.model[-1], "one2one_obj") else 0.0
         self.one2one.obj = self.obj_gain > 0
         self.one2one.small_cls_gain = getattr(model.args, "o2o_small_cls_gain", 1.0)

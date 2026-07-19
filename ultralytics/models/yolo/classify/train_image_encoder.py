@@ -619,19 +619,39 @@ class ImageEncoderTrainer(ClassificationTrainer):
         self._sync_validator_sizes(self.validator)
         metrics, fitness = super().validate()
         if metrics is not None and "path" in self._knn_state:
-            knn_top1 = self._knn_eval(getattr(self.args, "knn_every", 5))
-            metrics["knn/top1"] = round(knn_top1, 4) if knn_top1 is not None else float("nan")
+            knn = self._knn_eval(getattr(self.args, "knn_every", 5))
+            metrics["knn/top1"] = round(knn[224], 4) if knn else float("nan")
+            if self._high_res_imgsz:  # stable column: operating-res kNN in the tail, nan otherwise
+                metrics["knn/top1_hr"] = round(knn[max(knn)], 4) if knn and len(knn) > 1 else float("nan")
         return metrics, fitness
 
     def _knn_eval(self, every_n=5):
-        """Run kNN accuracy eval on ImageNet (k=20, T=0.07). Skips non-Nth epochs."""
+        """Run kNN accuracy eval on ImageNet (k=20, T=0.07). Skips non-Nth epochs.
+
+        Always evaluates at 224 (the cross-run reference); during the high-res tail also at the student's
+        current imgsz, so high-res adaptation is not measured through a fixed 224-resolution probe.
+
+        Returns:
+            (dict | None): {imgsz: top1} for each evaluated size, or None on a skipped epoch.
+        """
         epoch = self.epoch + 1
         if epoch % every_n != 0 and epoch < self.epochs:
             return None
+        model = self.ema.ema if self.ema else self.model
+        LOGGER.info(f"kNN eval: epoch {epoch}, extracting features...")
+        sizes = [224] + ([self._student_imgsz()] if self._student_imgsz() != 224 else [])
+        results = {}
+        for sz in sizes:
+            results[sz] = self._knn_at(model, sz)
+            LOGGER.info(f"kNN eval: imgsz {sz} top-1 = {results[sz]:.2f}% (epoch {epoch})")
+        return results
+
+    def _knn_at(self, model, imgsz):
+        """Return ImageNet kNN top-1 at the given imgsz, caching a loader pair per size."""
         from ultralytics.utils.knn_eval import extract_features, knn_accuracy
 
-        # Build dataloaders on first call, cache for reuse
-        if "train_loader" not in self._knn_state:
+        loaders = self._knn_state.setdefault("loaders", {})
+        if imgsz not in loaders:
             from types import SimpleNamespace
 
             from ultralytics.data import ClassificationDataset
@@ -639,7 +659,7 @@ class ImageEncoderTrainer(ClassificationTrainer):
 
             root = self._knn_state["path"]
             args = SimpleNamespace(
-                imgsz=224,
+                imgsz=imgsz,
                 cache=False,
                 fraction=1.0,
                 auto_augment="",
@@ -652,17 +672,19 @@ class ImageEncoderTrainer(ClassificationTrainer):
                 hsv_s=0.4,
                 hsv_v=0.4,
             )
+            bs = max(8, round(256 * (224 / imgsz) ** 2))  # hold activation memory ~constant across imgsz
             train_ds = ClassificationDataset(str(root / "train"), args=args, augment=False, prefix="knn-train")
             val_ds = ClassificationDataset(str(root / "val"), args=args, augment=False, prefix="knn-val")
-            self._knn_state["train_loader"] = build_dataloader(train_ds, 256, 8, shuffle=False, rank=-1)
-            self._knn_state["val_loader"] = build_dataloader(val_ds, 256, 8, shuffle=False, rank=-1)
+            loaders[imgsz] = (
+                build_dataloader(train_ds, bs, 8, shuffle=False, rank=-1),
+                build_dataloader(val_ds, bs, 8, shuffle=False, rank=-1),
+            )
             self._knn_state["num_classes"] = len(train_ds.base.classes)
 
-        model = self.ema.ema if self.ema else self.model
-        LOGGER.info(f"kNN eval: epoch {epoch}, extracting features...")
-        train_feats, train_labels = extract_features(model, self._knn_state["train_loader"], self.device)
-        val_feats, val_labels = extract_features(model, self._knn_state["val_loader"], self.device)
-        top1 = knn_accuracy(
+        train_loader, val_loader = loaders[imgsz]
+        train_feats, train_labels = extract_features(model, train_loader, self.device)
+        val_feats, val_labels = extract_features(model, val_loader, self.device)
+        return knn_accuracy(
             train_feats,
             train_labels,
             val_feats,
@@ -672,8 +694,6 @@ class ImageEncoderTrainer(ClassificationTrainer):
             num_classes=self._knn_state["num_classes"],
             device=self.device,
         )
-        LOGGER.info(f"kNN eval: top-1 = {top1:.2f}% (epoch {epoch})")
-        return top1
 
     def label_loss_items(self, loss_items=None, prefix="train"):
         """Return labeled loss items for WandB logging.

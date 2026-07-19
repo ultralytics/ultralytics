@@ -536,7 +536,7 @@ class DetectionModel(BaseModel):
         Returns:
             (tuple[torch.Tensor, None]): Augmented inference output and None for train output.
         """
-        if getattr(self, "end2end", False) or self.__class__.__name__ != "DetectionModel":
+        if getattr(self, "end2end", False) or type(self.model[-1]) is not Detect:
             LOGGER.warning("Model does not support 'augment=True', reverting to single-scale prediction.")
             return self._predict_once(x)
         img_size = x.shape[-2:]  # height, width

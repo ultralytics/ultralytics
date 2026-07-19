@@ -75,7 +75,7 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [Gradio](gradio.md): Deploy Ultralytics models with Gradio for real-time, interactive object detection demos.
 
-- [Hailo](hailo.md): Export Ultralytics YOLO detection, segmentation, pose, OBB, and classification models directly to Hailo HEF; see the integration guide for validated models and targets.
+- [Hailo](hailo.md): Export Ultralytics YOLO detection, segmentation, pose, OBB, classification, and semantic segmentation models directly to Hailo HEF; see the integration guide for validated models and targets.
 
 - [MNN](mnn.md): Developed by [Alibaba](https://www.alibabagroup.com/), MNN is a highly efficient and lightweight deep learning framework. It supports inference and training of deep learning models and has industry-leading performance for inference and training on-device.
 

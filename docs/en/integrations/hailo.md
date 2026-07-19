@@ -12,7 +12,7 @@ Hailo deployment is designed for computer vision at the edge: cameras, robots, i
 
 !!! note "Compare newer edge accelerators"
 
-    For new hardware deployments, also evaluate [Axelera](axelera.md) and [DeepX](deepx.md), which target newer edge accelerator platforms and may offer higher performance. Hailo recommends at least 1,024 representative calibration images for best accuracy; the default COCO128 dataset is suitable only for quick testing.
+    For new hardware deployments, also evaluate [Axelera](axelera.md) and [DeepX](deepx.md), which target newer edge accelerator platforms and may offer higher performance. Hailo recommends at least 1,024 representative calibration images for best accuracy; the built-in task-specific datasets are suitable only for quick testing.
 
 ## Why Deploy Ultralytics YOLO on Hailo?
 
@@ -82,11 +82,11 @@ The equivalent CLI command is:
 yolo export model=yolo11n.pt format=hailo name=hailo8l
 ```
 
-Hailo export is INT8-only. Ultralytics automatically downloads the default COCO128 calibration dataset when `data` is not provided. For custom models, use representative training or validation images:
+Hailo export is INT8-only. Ultralytics automatically downloads a task-specific calibration dataset when `data` is not provided. For custom models, use representative training or validation images:
 
 !!! danger "Use at least 1,024 calibration images for best accuracy"
 
-    Ultralytics forces DFC optimization level 2 and configures fine-tuning to use the actual calibration dataset size. Hailo recommends at least 1,024 diverse images; the default COCO128 dataset compiles at level 2 but may produce box-regression accuracy loss. For production HEF exports, pass a representative dataset using `data="path/to/dataset.yaml"`.
+    Ultralytics forces DFC optimization level 2 and configures fine-tuning to use the actual calibration dataset size. Hailo recommends at least 1,024 diverse images; the built-in lightweight datasets compile at level 2 but may not represent the production domain. For production HEF exports, pass a representative dataset using `data="path/to/dataset.yaml"`.
 
 ```python
 model.export(format="hailo", name="hailo8l", data="path/to/dataset.yaml")
@@ -290,19 +290,19 @@ Model and pipeline choices often matter more than compiler flags:
 
 ## Export Arguments
 
-| Argument   | Type          | Default   | Description                                        |
-| :--------- | :------------ | :-------- | :------------------------------------------------- |
-| `name`     | `str`         | `hailo8l` | Target Hailo accelerator architecture              |
-| `imgsz`    | `int`, `list` | `640`     | Fixed model input size                             |
-| `data`     | `str`         | `coco128` | Calibration dataset YAML                           |
-| `fraction` | `float`       | `1.0`     | Fraction of calibration images to use              |
-| `quantize` | `int`         | `8`       | Hailo export uses INT8 quantization                |
-| `opset`    | `int`         | `11`      | Fixed ONNX opset required by the Hailo translation |
-| `simplify` | `bool`        | `True`    | Simplify the intermediate ONNX graph               |
-| `conf`     | `float`       | `0.25`    | YOLOv8/YOLO11 HailoRT NMS confidence threshold     |
-| `iou`      | `float`       | `0.7`     | YOLOv8/YOLO11 HailoRT NMS IoU threshold            |
+| Argument   | Type          | Default       | Description                                        |
+| :--------- | :------------ | :------------ | :------------------------------------------------- |
+| `name`     | `str`         | `hailo8l`     | Target Hailo accelerator architecture              |
+| `imgsz`    | `int`, `list` | `640`         | Fixed model input size                             |
+| `data`     | `str`         | task-specific | Calibration dataset YAML                           |
+| `fraction` | `float`       | `1.0`         | Fraction of calibration images to use              |
+| `quantize` | `int`         | `8`           | Hailo export uses INT8 quantization                |
+| `opset`    | `int`         | `11`          | Fixed ONNX opset required by the Hailo translation |
+| `simplify` | `bool`        | `True`        | Simplify the intermediate ONNX graph               |
+| `conf`     | `float`       | `0.25`        | YOLOv8/YOLO11 HailoRT NMS confidence threshold     |
+| `iou`      | `float`       | `0.7`         | YOLOv8/YOLO11 HailoRT NMS IoU threshold            |
 
-For detection export, YOLOv8 and YOLO11 receive HailoRT NMS, while YOLO26 keeps its NMS-free one-to-one outputs. Segmentation, pose, and OBB use raw head tensors, and classification returns on-chip probabilities. Do not pass `end2end`; explicit overrides are rejected. Dynamic shapes, batches larger than one, embedded Ultralytics NMS, FP16, and FP32 are also unsupported.
+For detection export, YOLOv8 and YOLO11 receive HailoRT NMS, while YOLO26 keeps its NMS-free one-to-one outputs. Segmentation, pose, and OBB use raw head tensors, classification returns on-chip probabilities, and semantic segmentation returns raw logits on Hailo-8/8L or baked class maps on Hailo-10/15. Do not pass `end2end`; explicit overrides are rejected. Dynamic shapes, batches larger than one, embedded Ultralytics NMS, FP16, and FP32 are also unsupported.
 
 ## Troubleshooting Hailo Export
 

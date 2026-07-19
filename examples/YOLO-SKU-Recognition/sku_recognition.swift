@@ -59,8 +59,7 @@ final class SKUDetector {
     }
 
     func detect(_ image: CGImage, conf: Float) throws -> [CGRect] {
-        // scaleFit letterboxes like Ultralytics. Its black pad is fine here since boxes are un-letterboxed
-        // geometrically below, unlike the embedder which pools over the pad and needs gray (letterboxSquare114).
+        // scaleFit letterboxes like Ultralytics. Black pad is fine for boxes, unlike the embedder (see letterboxSquare114)
         let array = try runVision(visionModel, on: image, cropAndScale: .scaleFit)
 
         // Reverse the letterbox: model coords live in a centered inputSize square, scaled by r.

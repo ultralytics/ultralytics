@@ -121,7 +121,7 @@ The setup command creates these folders, installs and starts Docker when needed,
 
 ### Docker Base Images
 
-The installer runs one container and selects the official Ultralytics base image for the host:
+The installer runs one container and selects the [official Ultralytics base image](../../guides/docker-quickstart.md) for the host:
 
 | Host                                   | Base image                             |
 | -------------------------------------- | -------------------------------------- |

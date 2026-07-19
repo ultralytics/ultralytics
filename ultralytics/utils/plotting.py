@@ -762,7 +762,10 @@ def plot_images(
         if k not in labels:
             continue
         if k == "cls" and labels[k].ndim == 2:
-            labels[k] = labels[k].squeeze(1)  # squeeze if shape is (n, 1)
+            if labels[k].shape[1] > 1:
+                labels[k] = labels[k].argmax(1)  # multi-hot to class index for plotting
+            else:
+                labels[k] = labels[k].squeeze(1)  # squeeze if shape is (n, 1)
         if isinstance(labels[k], torch.Tensor):
             labels[k] = labels[k].cpu().numpy()
 

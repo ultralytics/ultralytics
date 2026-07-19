@@ -1641,3 +1641,211 @@ def test_semantic_polygon_data():
     model = YOLO("yolo26n-sem.pt")
     model.train(data="coco8-seg.yaml", epochs=1, imgsz=32, close_mosaic=1)
     model.val(data="coco8-seg.yaml")
+
+
+# Multi-label classification tests ----------------------------------------------------------------
+
+
+@pytest.fixture(scope="module")
+def multilabel_dataset():
+    """Create a temporary multi-label classification dataset for testing."""
+    import shutil
+    import tempfile
+
+    tmpdir = Path(tempfile.mkdtemp())
+    nc = 4
+    names = {0: "cat", 1: "dog", 2: "bird", 3: "fish"}
+
+    for split in ("train", "val"):
+        img_dir = tmpdir / "images" / split
+        img_dir.mkdir(parents=True)
+        labels = []
+        for i in range(8):
+            img = np.random.randint(0, 255, (32, 32, 3), dtype=np.uint8)
+            img_path = img_dir / f"img_{split}_{i}.jpg"
+            Image.fromarray(img).save(img_path)
+            num_labels = (i % 3) + 1
+            class_indices = sorted(set(j % nc for j in range(i, i + num_labels)))
+            labels.append([img_path.name, *class_indices])
+        labels_file = img_dir / "labels.csv"
+        with open(labels_file, "w", newline="") as f:
+            csv.writer(f).writerows(labels)
+
+    yaml_path = tmpdir / "dataset.yaml"
+    yaml_path.write_text(f"path: {tmpdir}\ntrain: images/train\nval: images/val\nnc: {nc}\nnames: {names}\n")
+    yield str(yaml_path), nc, names, tmpdir
+    shutil.rmtree(tmpdir, ignore_errors=True)
+
+
+def test_multilabel_classify_dataset(multilabel_dataset):
+    """Test multi-label dataset CSV parsing, multi-hot shape, and value correctness."""
+    from types import SimpleNamespace
+
+    from ultralytics.data.dataset import MultiLabelClassificationDataset
+
+    _yaml_path, nc, _, tmpdir = multilabel_dataset
+    args = SimpleNamespace(
+        imgsz=32,
+        cache=False,
+        fraction=1.0,
+        scale=0.5,
+        fliplr=0.5,
+        flipud=0.0,
+        erasing=0.0,
+        auto_augment="",
+        hsv_h=0.015,
+        hsv_s=0.7,
+        hsv_v=0.4,
+    )
+    ds = MultiLabelClassificationDataset(
+        root=str(tmpdir / "images" / "train"),
+        args=args,
+        augment=False,
+        prefix="test",
+        nc=nc,
+        labels_file=str(tmpdir / "images" / "train" / "labels.csv"),
+    )
+    assert len(ds) == 8
+    sample = ds[0]
+    assert sample["cls"].shape == (nc,)
+    assert sample["cls"].dtype == torch.float32
+    assert sample["cls"].sum() >= 1
+    for i in range(len(ds)):
+        assert set(ds[i]["cls"].unique().tolist()) <= {0.0, 1.0}
+
+
+def test_multilabel_classify_loss():
+    """Test multi-label classification loss returns scalar, is differentiable, and ranks correctly."""
+    from ultralytics.utils.loss import v8MultiLabelClassificationLoss
+
+    criterion = v8MultiLabelClassificationLoss()
+    preds = torch.randn(4, 5, requires_grad=True)
+    targets = torch.zeros(4, 5)
+    targets[0, [0, 2]] = 1.0
+    targets[1, [1]] = 1.0
+    targets[2, [0, 1, 3]] = 1.0
+    targets[3, [4]] = 1.0
+
+    loss, loss_detached = criterion(preds, {"cls": targets})
+    assert loss.ndim == 0 and not loss_detached.requires_grad
+    loss.backward()
+    assert preds.grad is not None
+
+    # Verify correct predictions produce lower loss
+    targets2 = torch.zeros(2, 3)
+    targets2[0, [0, 2]] = 1.0
+    targets2[1, [1]] = 1.0
+    good = criterion(torch.tensor([[3.0, -3.0, 3.0], [-3.0, 3.0, -3.0]]), {"cls": targets2})[0]
+    bad = criterion(torch.tensor([[-3.0, 3.0, -3.0], [3.0, -3.0, 3.0]]), {"cls": targets2})[0]
+    assert good < bad
+
+
+def test_multilabel_classify_metrics():
+    """Test multi-label metrics: mAP, precision, recall, F1, and results_dict keys."""
+    from ultralytics.utils.metrics import MultiLabelClassifyMetrics
+
+    m = MultiLabelClassifyMetrics()
+    targets = [torch.tensor([[1, 0, 1], [0, 1, 0]], dtype=torch.float32)]
+    preds = [torch.tensor([[0.9, 0.1, 0.8], [0.1, 0.9, 0.2]])]
+    m.process(targets, preds)
+    assert m.precision == pytest.approx(1.0, abs=0.01)
+    assert m.recall == pytest.approx(1.0, abs=0.01)
+    assert m.f1 == pytest.approx(1.0, abs=0.01)
+    assert m.map == pytest.approx(1.0, abs=0.01)
+    assert m.fitness == pytest.approx(1.0, abs=0.01)
+
+    rd = m.results_dict
+    assert "metrics/mAP" in rd and "metrics/f1(B)" in rd and "fitness" in rd
+
+    # Per-class AP
+    m2 = MultiLabelClassifyMetrics()
+    targets2 = [torch.tensor([[1, 0], [1, 1], [0, 0], [0, 1]], dtype=torch.float32)]
+    preds2 = [torch.tensor([[0.9, 0.2], [0.8, 0.9], [0.1, 0.1], [0.2, 0.8]])]
+    m2.process(targets2, preds2)
+    assert m2.per_class_ap[0] == pytest.approx(1.0, abs=0.01)
+
+
+def test_multilabel_classify_head():
+    """Test Classify head uses sigmoid for multi-label and softmax for single-label."""
+    from ultralytics.nn.modules.head import Classify
+
+    head = Classify(64, 5)
+    head.eval()
+    x = torch.randn(1, 64, 4, 4)
+
+    head.multi_label = False
+    assert head(x)[0].sum().item() == pytest.approx(1.0, abs=0.01)
+
+    head.multi_label = True
+    probs_ml = head(x)[0]
+    assert probs_ml.min() >= 0.0 and probs_ml.max() <= 1.0
+
+
+def test_multilabel_classify_config_validation():
+    """Test that multi_label=True is rejected for non-classify tasks."""
+    from ultralytics.cfg import check_cfg
+
+    with pytest.raises(ValueError, match="only supported with task='classify'"):
+        check_cfg({"task": "detect", "multi_label": True})
+    with pytest.raises(ValueError, match="only supported with task='classify'"):
+        check_cfg({"multi_label": True})
+    check_cfg({"task": "classify", "multi_label": True})  # should not raise
+
+
+@pytest.mark.skipif(
+    not hasattr(torch.cuda, "OutOfMemoryError"),
+    reason="Requires PyTorch >= 2.0 for torch.cuda.OutOfMemoryError in BaseTrainer",
+)
+def test_multilabel_classify_end_to_end(multilabel_dataset):
+    """Test full multi-label pipeline: train, validate, and predict."""
+    yaml_path, _nc, _names, tmpdir = multilabel_dataset
+
+    model = YOLO("yolo26n-cls.pt")
+    model.train(data=yaml_path, epochs=2, imgsz=32, batch=4, multi_label=True, plots=False, verbose=False)
+
+    metrics = model.val(data=yaml_path, imgsz=32, multi_label=True)
+    assert 0.0 <= metrics.map <= 1.0
+    assert 0.0 <= metrics.f1 <= 1.0
+
+    test_imgs = list((tmpdir / "images" / "val").glob("*.jpg"))[:2]
+    results = model.predict(source=test_imgs, imgsz=32, verbose=False)
+    assert len(results) == 2
+    for r in results:
+        assert r.probs is not None
+        assert isinstance(r.summary(), list)
+
+
+@pytest.mark.skipif(
+    not hasattr(torch.cuda, "OutOfMemoryError"),
+    reason="Requires PyTorch >= 2.0 for torch.cuda.OutOfMemoryError in BaseTrainer",
+)
+def test_multilabel_classify_reload_consistency(multilabel_dataset):
+    """Test that predict and val both read multi_label from self.args after model reload."""
+    yaml_path, _nc, _names, tmpdir = multilabel_dataset
+    test_imgs = list((tmpdir / "images" / "val").glob("*.jpg"))[:2]
+
+    # Train and save checkpoint
+    model = YOLO("yolo26n-cls.pt")
+    model.train(data=yaml_path, epochs=1, imgsz=32, batch=4, multi_label=True, plots=False, verbose=False)
+    ckpt_path = model.trainer.best if model.trainer.best.exists() else model.trainer.last
+
+    # Reload from checkpoint
+    reloaded = YOLO(str(ckpt_path))
+
+    # Verify multi_label persisted in overrides
+    assert reloaded.overrides.get("multi_label") is True, "multi_label should persist in checkpoint overrides"
+
+    # Val must use multi-label metrics (mAP, not top1)
+    metrics = reloaded.val(data=yaml_path, imgsz=32, multi_label=True)
+    assert hasattr(metrics, "map"), "val should return multi-label metrics with mAP after reload"
+
+    # Predict must set Result.multi_label=True
+    results = reloaded.predict(source=test_imgs, imgsz=32, verbose=False)
+    for r in results:
+        assert r.multi_label is True, "predict should set multi_label=True on Results after reload"
+
+    # Verify single-label model predict stays multi_label=False
+    sl_model = YOLO("yolo26n-cls.pt")
+    sl_results = sl_model.predict(source=test_imgs, imgsz=32, verbose=False)
+    for r in sl_results:
+        assert r.multi_label is False, "single-label model predict should have multi_label=False"

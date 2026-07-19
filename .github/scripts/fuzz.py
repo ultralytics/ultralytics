@@ -175,7 +175,6 @@ EXPECTED_MODULES = (
     "ultralytics/engine/trainer.py:_setup_train",  # trainer validation of batch/imgsz interplay before training
     "ultralytics/engine/exporter.py:validate_args",  # exporter's intentional per-format argument validation
     "ultralytics/engine/exporter.py:__call__",  # intentional compat asserts; per-format bugs raise in deeper frames
-    "ultralytics/engine/exporter.py:export_onnx",  # resolved ONNX opset validation before conversion
 )
 NETWORK_MARKERS = (  # specific download/network signatures only; bare ConnectionError is raised for local sources too
     "urlopen error",
@@ -502,6 +501,7 @@ def classify(trial, rc, stderr):
         (exc == "NotImplementedError" and re.search(r"not supported|(?:doesn't|does not) support", stderr))
         or (exc == "NotImplementedError" and "not found in list of available optimizers" in stderr)
         or (exc == "ValueError" and "Expected `mode` to be `flip` or `mixup`" in stderr)
+        or (exc == "AssertionError" and "RTDETR export requires opset>=16" in stderr)
         or (exc in EXPECTED_TYPES and frames and frames[-1].startswith(EXPECTED_MODULES))
     ):
         return "expected", None, None  # clean validation errors are expected only for trials we actually mutated

@@ -426,7 +426,9 @@ def run_trial(trial, timeout=None):
 
     cmd = [*_YOLO_CLI_COMMAND, *argv]
     env = {**os.environ, "YOLO_AUTOINSTALL": "false", "PYTHONFAULTHANDLER": "1"}
-    env["PYTHONPATH"] = str(Path(__file__).resolve().parents[2])
+    env["PYTHONPATH"] = os.pathsep.join(
+        filter(None, (str(Path(__file__).resolve().parents[2]), os.environ.get("PYTHONPATH")))
+    )
     t0 = time.perf_counter()
     # Own session/group so a timeout kills the whole tree (dataloader workers, export converter subprocesses)
     group = (
@@ -459,7 +461,8 @@ def parse_traceback(stderr):
     block = blocks[-1]
     frames = []
     for path, func in re.findall(r'File "([^"]+)", line \d+, in (\S+)', block):
-        if (frame := path.replace("\\", "/").rpartition("ultralytics/")[-1]) and "/site-packages/" not in frame:
+        _, marker, frame = path.replace("\\", "/").rpartition("ultralytics/")
+        if marker and "/site-packages/" not in frame:
             frames.append(f"ultralytics/{frame}:{func}")
     exc = None
     for line in reversed(block.strip().splitlines()):

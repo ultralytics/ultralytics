@@ -106,7 +106,7 @@ def muon_update(
     for (_, scale, _, _), items in buckets.items():
         n = max(m.size(1) for _, m, _ in items)
         # zero-pad columns so different shapes share one batched call (zeros stay zero through Newton-Schulz)
-        X = torch.stack([torch.nn.functional.pad(m, (0, n - m.size(1))) for _, m, _ in items]).bfloat16()
+        X = torch.stack([torch.nn.functional.pad(m, (0, n - m.size(1))) for _, m, _ in items])
         X = zeropower_via_newtonschulz5(X).to(grads[items[0][0]].dtype).mul_(scale)
         for j, (i, m, transpose) in enumerate(items):
             x = X[j, :, : m.size(1)]

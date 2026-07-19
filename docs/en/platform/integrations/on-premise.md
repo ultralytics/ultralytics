@@ -131,9 +131,9 @@ The installer runs one container and selects the [official Ultralytics base imag
 
 The installer tracks the latest official image for each host. The worker adds its connectivity dependencies without reinstalling Ultralytics. It detects CUDA at runtime, so an NVIDIA host still runs one container rather than separate CPU and GPU workers. These lightweight images support local ingest and training; Platform's existing cloud services handle model prediction and export after the best checkpoint uploads.
 
-!!! info "Optional GPU acceleration"
+!!! warning "Use CDI for GPU access"
 
-    CPU setup requires nothing beyond the guided installation. For NVIDIA GPU acceleration, install current NVIDIA drivers and enable Docker GPU support. Platform detects the GPU automatically.
+    CPU setup requires nothing beyond the guided installation. NVIDIA GPU acceleration requires Docker >= 28.2 and NVIDIA Container Toolkit >= 1.18. The installer uses CDI `--device` reservations, not legacy `--gpus all`, so GPU access survives host daemon reloads. Platform detects CDI GPUs automatically; see the [Docker Quickstart Guide](../../guides/docker-quickstart.md#using-gpus) for setup details.
 
 ## Add a Dataset
 

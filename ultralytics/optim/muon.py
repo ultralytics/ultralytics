@@ -97,8 +97,8 @@ def muon_update(
         if transpose:
             m = m.T
         scale = max(1, grads[i].size(-2) / grads[i].size(-1)) ** 0.5
-        buckets.setdefault((m.size(0), scale), []).append((i, m, transpose))
-    for (_, scale), items in buckets.items():
+        buckets.setdefault((m.size(0), scale, m.device, m.dtype), []).append((i, m, transpose))
+    for (_, scale, _, _), items in buckets.items():
         n = max(m.size(1) for _, m, _ in items)
         # zero-pad columns so different shapes share one batched call (zeros stay zero through Newton-Schulz)
         X = torch.stack([torch.nn.functional.pad(m, (0, n - m.size(1))) for _, m, _ in items]).bfloat16()
@@ -321,6 +321,8 @@ class Muon(optim.Optimizer):
 
         for group in self.param_groups:
             params = group["params"]
+            if not params:
+                continue
             for p in params:
                 if p.grad is None:
                     p.grad = torch.zeros_like(p)  # Force synchronization

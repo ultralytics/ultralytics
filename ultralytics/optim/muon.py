@@ -40,7 +40,7 @@ def zeropower_via_newtonschulz5(G: torch.Tensor, eps: float = 1e-7) -> torch.Ten
     if G.size(-2) > G.size(-1):
         X = X.transpose(-2, -1)
     a, b, c = 3.4445, -4.7750, 2.0315
-    for _ in range(5):  # num_steps fixed at 5
+    for _ in range(5):
         A = X @ X.transpose(-2, -1)
         B = torch.baddbmm(A, A, A, beta=b, alpha=c)  # b * A + c * A @ A
         X = torch.baddbmm(X, B, X, beta=a)  # a * X + B @ X
@@ -50,8 +50,11 @@ def zeropower_via_newtonschulz5(G: torch.Tensor, eps: float = 1e-7) -> torch.Ten
 
 
 def muon_update(
-    grads: list[torch.Tensor], momentums: list[torch.Tensor], beta: float = 0.95, nesterov: bool = True
-) -> list[torch.Tensor]:
+    grad: torch.Tensor | list[torch.Tensor],
+    momentum: torch.Tensor | list[torch.Tensor],
+    beta: float = 0.95,
+    nesterov: bool = True,
+) -> torch.Tensor | list[torch.Tensor]:
     """Compute Muon optimizer updates with momentum and orthogonalization.
 
     This function applies momentum to the gradients, optionally uses Nesterov acceleration, and then orthogonalizes the
@@ -61,19 +64,19 @@ def muon_update(
     parameter dimensions.
 
     Args:
-        grads (list[torch.Tensor]): Gradient tensors to update. Each can be 2D or 4D (for conv filters).
-        momentums (list[torch.Tensor]): Momentum buffer tensors, modified in-place.
+        grad (torch.Tensor | list[torch.Tensor]): Gradient tensor(s) to update. Each can be 2D or 4D.
+        momentum (torch.Tensor | list[torch.Tensor]): Momentum buffer tensor(s), modified in-place.
         beta (float, optional): Momentum coefficient for exponential moving average. Default: 0.95.
         nesterov (bool, optional): Whether to use Nesterov momentum acceleration. Default: True.
 
     Returns:
-        (list[torch.Tensor]): Orthogonalized update tensors in gradient dtype, each with same shape as its gradient.
+        (torch.Tensor | list[torch.Tensor]): Orthogonalized update tensor(s), each with the gradient's shape and dtype.
 
     Examples:
-        >>> grads = [torch.randn(64, 128), torch.randn(64, 128)]
-        >>> momentums = [torch.zeros_like(g) for g in grads]
-        >>> updates = muon_update(grads, momentums, beta=0.95, nesterov=True)
-        >>> print(updates[0].shape)
+        >>> grad = torch.randn(64, 128)
+        >>> momentum = torch.zeros_like(grad)
+        >>> update = muon_update(grad, momentum, beta=0.95, nesterov=True)
+        >>> print(update.shape)
         torch.Size([64, 128])
 
     Notes:
@@ -83,6 +86,8 @@ def muon_update(
         - 4D tensors (conv filters) are reshaped to 2D as (out_channels, in_channels*height*width) for orthogonalization.
         - Final updates are scaled by sqrt(max(1, dim[-2] / dim[-1])) to account for parameter dimensions.
     """
+    single = isinstance(grad, torch.Tensor)
+    grads, momentums = ([grad], [momentum]) if single else (grad, momentum)
     torch._foreach_mul_(momentums, beta)
     torch._foreach_add_(momentums, grads, alpha=1 - beta)
     if nesterov:
@@ -92,7 +97,7 @@ def muon_update(
         updates = list(momentums)
     buckets = {}  # group matrices transposed to rows <= cols by (rows, scale) for batched orthogonalization
     for i, u in enumerate(updates):
-        m = u.view(len(u), -1) if u.ndim == 4 else u  # for the case of conv filters
+        m = u.view(len(u), -1) if u.ndim == 4 else u
         transpose = m.size(0) > m.size(1)
         if transpose:
             m = m.T
@@ -106,7 +111,7 @@ def muon_update(
         for j, (i, m, transpose) in enumerate(items):
             x = X[j, :, : m.size(1)]
             updates[i] = (x.T if transpose else x).reshape(grads[i].shape)
-    return updates
+    return updates[0] if single else updates
 
 
 class MuSGD(optim.Optimizer):

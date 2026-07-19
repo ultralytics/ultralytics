@@ -501,6 +501,7 @@ def classify(trial, rc, stderr):
         (exc == "NotImplementedError" and re.search(r"not supported|(?:doesn't|does not) support", stderr))
         or (exc == "NotImplementedError" and "not found in list of available optimizers" in stderr)
         or (exc == "ValueError" and "Expected `mode` to be `flip` or `mixup`" in stderr)
+        or (exc == "AssertionError" and "RTDETR export requires opset>=16" in stderr)
         or (exc in EXPECTED_TYPES and frames and frames[-1].startswith(EXPECTED_MODULES))
     ):
         return "expected", None, None  # clean validation errors are expected only for trials we actually mutated

@@ -8,7 +8,7 @@ keywords: Ultralytics Platform, deployment, inference, endpoints, monitoring, YO
 
 # Deployment
 
-[Ultralytics Platform](https://platform.ultralytics.com) provides comprehensive deployment options for putting your YOLO models into production. Test models with browser-based inference, deploy to dedicated endpoints across 42 global regions, and monitor performance in real-time.
+[Ultralytics Platform](https://platform.ultralytics.com) provides comprehensive [model deployment options](../../guides/model-deployment-options.md) for putting your YOLO models into production. Test models with browser-based inference, deploy to dedicated endpoints across 42 global regions, and monitor performance in real-time.
 
 <p align="center">
   <br>

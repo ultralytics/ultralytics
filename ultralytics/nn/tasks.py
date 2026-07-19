@@ -47,6 +47,7 @@ from ultralytics.nn.modules import (
     Conv2,
     ConvTranspose,
     Detect,
+    DetectO2OObj,
     DetectO2OSA,
     DetectO2OSAD,
     DetectO2OStem,
@@ -1793,6 +1794,7 @@ def parse_model(d, ch, verbose=True):
         elif m in frozenset(
             {
                 Detect,
+                DetectO2OObj,
                 DetectO2OSA,
                 DetectO2OSAD,
                 DetectO2OStem,
@@ -1813,6 +1815,7 @@ def parse_model(d, ch, verbose=True):
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
             if m in {
                 Detect,
+                DetectO2OObj,
                 DetectO2OSA,
                 DetectO2OSAD,
                 DetectO2OStem,

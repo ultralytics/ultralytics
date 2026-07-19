@@ -189,6 +189,12 @@ class DetectionTrainer(BaseTrainer):
         self.loss_names = "box_loss", "cls_loss", "dfl_loss"
         # E2ELoss appends these one2one aux terms (in this order) when enabled; keep loss_names in sync
         end2end = getattr(unwrap_model(self.model), "end2end", False)
+        if (
+            end2end
+            and getattr(self.args, "o2o_obj", 0.0)
+            and hasattr(unwrap_model(self.model).model[-1], "one2one_obj")
+        ):
+            self.loss_names += ("obj_loss",)
         if end2end and getattr(self.args, "o2o_pos_cls", 0.0):
             self.loss_names += ("pos_cls_loss",)
         e2e = getattr(self.args, "o2m", True) and end2end

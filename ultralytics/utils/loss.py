@@ -481,6 +481,7 @@ class v8DetectionLoss:
         self.cls_hard = False
         self.pos_cls = False  # enable the positive-only GT-class auxiliary term for one2one only
         self.pos_cls_p3_only = False
+        self.obj = False  # enable the class-agnostic objectness auxiliary term for one2one only
         self.small_cls_gain = 1.0  # P3 positive GT-class cls up-gradient gain (small objects); set by E2ELoss
         self.small_cls_area = 0.0  # >0 switches to continuous area-based weighting (letterbox px^2); 0 = P3 binary
         self.vfl_norm = getattr(h, "vfl_norm", False)  # normalize VFL by positive count instead of target score sum
@@ -673,6 +674,10 @@ class v8DetectionLoss:
                 self.assigner.o2f_cls_weight,
                 positive_mask,
             )
+        if self.obj:  # class-agnostic objectness: BCE toward the per-anchor IoU soft target (max over GT-class scores)
+            obj_pred = preds["obj"].permute(0, 2, 1).contiguous()  # (bs, num_anchors, 1)
+            obj_target = cls_target.amax(-1, keepdim=True)  # IoU soft target at positives, 0 at background
+            self.obj_loss = self.bce(obj_pred, obj_target.to(obj_pred.dtype)).sum() / cls_target_sum
 
         # Bbox loss
         if fg_mask.sum():
@@ -1453,6 +1458,9 @@ class E2ELoss:
         self.pos_cls = getattr(model.args, "o2o_pos_cls", 0.0) if loss_fn is v8DetectionLoss else 0.0
         self.one2one.pos_cls = bool(self.pos_cls)
         self.one2one.pos_cls_p3_only = getattr(model.args, "o2o_pos_cls_p3_only", False)
+        # class-agnostic objectness (DetectO2OObj head only): BCE toward the IoU soft target, fused into o2o at inference
+        self.obj_gain = getattr(model.args, "o2o_obj", 0.0) if hasattr(model.model[-1], "one2one_obj") else 0.0
+        self.one2one.obj = self.obj_gain > 0
         self.one2one.small_cls_gain = getattr(model.args, "o2o_small_cls_gain", 1.0)
         self.one2one.small_cls_area = getattr(model.args, "o2o_small_cls_area", 0.0)
         self.one2one.assigner.o2f = self.o2f
@@ -1500,9 +1508,13 @@ class E2ELoss:
         preds = self.one2many.parse_output(preds)
         if not self.train_o2m:  # train the one2one branch only, at full weight
             total, loss_items = self.one2one.loss(preds["one2one"], batch)
+            batch_size = preds["one2one"]["scores"].shape[0]
+            if self.one2one.obj:
+                obj = self.obj_gain * self.one2one.obj_loss
+                total = torch.cat((total, (obj * batch_size).view(1)))
+                loss_items = torch.cat((loss_items, obj.detach().view(1)))
             if self.pos_cls:
                 pos_cls = self.pos_cls * self.one2one.pos_cls_loss
-                batch_size = preds["one2one"]["scores"].shape[0]
                 total = torch.cat((total, (pos_cls * batch_size).view(1)))
                 loss_items = torch.cat((loss_items, pos_cls.detach().view(1)))
             return total, loss_items
@@ -1516,6 +1528,10 @@ class E2ELoss:
         batch_size = preds["one2one"]["scores"].shape[0]
         # Append each enabled one2one auxiliary term as its own component, scaled into the total by the one2one branch
         # weight (as box/cls/dfl are) and reported at its pre-o2o value. Keep this order in sync with loss_names.
+        if self.one2one.obj:  # class-agnostic objectness, normalized by the one2one target-score sum like cls
+            obj = self.obj_gain * self.one2one.obj_loss
+            total = torch.cat((total, (self.o2o * obj * batch_size).view(1)))
+            loss_items = torch.cat((loss_items, obj.detach().view(1)))
         if self.pos_cls:  # positive anchors, GT-class channel only, normalized by the participating positive count
             pos_cls = self.pos_cls * self.one2one.pos_cls_loss
             total = torch.cat((total, (self.o2o * pos_cls * batch_size).view(1)))

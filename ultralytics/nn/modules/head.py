@@ -24,6 +24,7 @@ __all__ = (
     "OBB",
     "Classify",
     "Detect",
+    "DetectO2OObj",
     "DetectO2OSA",
     "DetectO2OSAD",
     "DetectO2OStem",
@@ -275,8 +276,8 @@ class Detect(nn.Module):
 class DetectO2OStem(Detect):
     """YOLO Detect head that adds an extra 3x3 Conv stem to the one2one branch.
 
-    Identical to Detect, but inserts a per-level 3x3 Conv before the one2one box and classification heads. The
-    stem refines the (optionally detached) features feeding the one2one branch only; the one2many branch is
+    Identical to Detect, but inserts a per-level 3x3 Conv before the one2one box and classification heads. The stem
+    refines the (optionally detached) features feeding the one2one branch only; the one2many branch is
     unchanged. Has no effect unless end-to-end detection is enabled.
 
     Attributes:
@@ -341,9 +342,9 @@ class SAD(nn.Module):
 class DetectO2OSA(Detect):
     """YOLO Detect head that adds spatial attention to the one2one branch.
 
-    Identical to Detect, but inserts a per-level spatial-attention block (SA) before the one2one box and
-    classification heads. It refines the (optionally detached) features feeding the one2one branch only; the
-    one2many branch is unchanged. Has no effect unless end-to-end detection is enabled.
+    Identical to Detect, but inserts a per-level spatial-attention block (SA) before the one2one box and classification
+    heads. It refines the (optionally detached) features feeding the one2one branch only; the one2many branch is
+    unchanged. Has no effect unless end-to-end detection is enabled.
 
     Attributes:
         one2one_sa (nn.ModuleList): Per-level spatial-attention block applied to the one2one features before the heads.
@@ -389,9 +390,9 @@ class DetectO2OSA(Detect):
 class DetectO2OSAD(Detect):
     """YOLO Detect head that adds multiplicative spatial attention to the one2one branch.
 
-    Identical to Detect, but inserts a per-level multiplicative spatial-attention block (SAD) before the one2one box
-    and classification heads. It refines the (optionally detached) features feeding the one2one branch only; the
-    one2many branch is unchanged. Has no effect unless end-to-end detection is enabled.
+    Identical to Detect, but inserts a per-level multiplicative spatial-attention block (SAD) before the one2one box and
+    classification heads. It refines the (optionally detached) features feeding the one2one branch only; the one2many
+    branch is unchanged. Has no effect unless end-to-end detection is enabled.
 
     Attributes:
         one2one_sad (nn.ModuleList): Per-level SAD block applied to the one2one features before the heads.
@@ -404,7 +405,8 @@ class DetectO2OSAD(Detect):
     """
 
     def __init__(self, nc: int = 80, reg_max=16, end2end=False, ch: tuple = ()):
-        """Initialize the detection head and, when end-to-end, the per-level one2one multiplicative spatial-attention block.
+        """Initialize the detection head and, when end-to-end, the per-level one2one multiplicative spatial-attention
+        block.
 
         Args:
             nc (int): Number of classes.
@@ -432,6 +434,89 @@ class DetectO2OSAD(Detect):
         if self.end2end:
             y = self.postprocess(y.permute(0, 2, 1))
         return y if self.export else (y, preds)
+
+
+class DetectO2OObj(Detect):
+    """YOLO Detect head that adds a residual adapter and a class-agnostic objectness branch to the one2one branch.
+
+    Identical to Detect, but for the one2one branch inserts a per-level channel-preserving 3x3 depthwise adapter gated
+    by a zero-initialized residual scale (``y = x + alpha * adapter(x)``, so it starts as an identity), then feeds the
+    refined feature to both the existing one2one classification head and a new class-agnostic objectness head that
+    predicts a single "GT present here" logit per anchor. At inference the objectness is fused into the one2one score as
+    the geometric mean ``sqrt(cls.sigmoid() * obj.sigmoid())``. Box regression still uses the raw feature. Has no effect
+    unless end-to-end detection is enabled; the one2many branch is unchanged.
+
+    Attributes:
+        one2one_adapter (nn.ModuleList): Per-level channel-preserving 3x3 depthwise adapter for the one2one feature.
+        one2one_alpha (nn.Parameter): Per-level residual scale, initialized to zero (identity at start of training).
+        one2one_obj (nn.ModuleList): Per-level class-agnostic objectness head producing one logit per anchor.
+
+    Examples:
+        Create an end-to-end detection head with a one2one objectness branch
+        >>> detect = DetectO2OObj(nc=80, end2end=True, ch=(256, 512, 1024))
+        >>> x = [torch.randn(1, 256, 80, 80), torch.randn(1, 512, 40, 40), torch.randn(1, 1024, 20, 20)]
+        >>> outputs = detect(x)
+    """
+
+    def __init__(self, nc: int = 80, reg_max=16, end2end=False, ch: tuple = ()):
+        """Initialize the detection head and, when end-to-end, the one2one residual adapter and objectness head.
+
+        Args:
+            nc (int): Number of classes.
+            reg_max (int): Maximum number of DFL channels.
+            end2end (bool): Whether to use end-to-end NMS-free detection.
+            ch (tuple): Tuple of channel sizes from backbone feature maps.
+        """
+        super().__init__(nc, reg_max, end2end, ch)
+        if end2end:
+            c3 = max(ch[0], min(self.nc, 100))
+            self.one2one_adapter = nn.ModuleList(DWConv(x, x, 3) for x in ch)
+            self.one2one_alpha = nn.Parameter(torch.zeros(self.nl))
+            self.one2one_obj = nn.ModuleList(
+                nn.Sequential(DWConv(x, x, 3), Conv(x, c3, 1), nn.Conv2d(c3, 1, 1)) for x in ch
+            )
+
+    def forward_o2o(self, x: list[torch.Tensor]) -> dict[str, torch.Tensor]:
+        """Run the one2one heads on adapter-refined features and predict class-agnostic objectness."""
+        bs = x[0].shape[0]  # batch size
+        boxes, scores, obj = [], [], []
+        for i in range(self.nl):
+            y = x[i] + self.one2one_alpha[i] * self.one2one_adapter[i](x[i])  # residual adapter, identity at init
+            boxes.append(self.one2one_cv2[i](x[i]).view(bs, 4 * self.reg_max, -1))  # box from the raw feature
+            scores.append(self.one2one_cv3[i](y).view(bs, self.nc, -1))
+            obj.append(self.one2one_obj[i](y).view(bs, 1, -1))
+        return dict(boxes=torch.cat(boxes, -1), scores=torch.cat(scores, -1), obj=torch.cat(obj, -1), feats=x)
+
+    def forward(
+        self, x: list[torch.Tensor]
+    ) -> dict[str, torch.Tensor] | torch.Tensor | tuple[torch.Tensor, dict[str, torch.Tensor]]:
+        """Run the one2many head on raw features and the one2one head on adapter-refined features with objectness."""
+        preds = self.forward_head(x, **self.one2many)
+        if self.end2end:
+            feats = [xi.detach() for xi in x] if self.detach_one2one else x
+            one2one = self.forward_o2o(feats)
+            preds = {"one2many": preds, "one2one": one2one}
+        if self.training:
+            return preds
+        y = self._inference(preds["one2one"] if self.end2end else preds)
+        if self.end2end:
+            y = self.postprocess(y.permute(0, 2, 1))
+        return y if self.export else (y, preds)
+
+    def _inference(self, x: dict[str, torch.Tensor]) -> torch.Tensor:
+        """Decode boxes and fuse class-agnostic objectness into the class scores as their geometric mean."""
+        dbox = self._get_decode_boxes(x)
+        scores = x["scores"].sigmoid()
+        if "obj" in x:
+            scores = (scores * x["obj"].sigmoid()).sqrt()
+        return torch.cat((dbox, scores), 1)
+
+    def bias_init(self):
+        """Initialize Detect biases plus the class-agnostic objectness prior."""
+        super().bias_init()
+        if self.end2end:
+            for i, obj in enumerate(self.one2one_obj):
+                obj[-1].bias.data[:] = math.log(5 / (640 / self.stride[i]) ** 2)  # ~object density per anchor
 
 
 class Segment(Detect):

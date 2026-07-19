@@ -123,13 +123,13 @@ The setup command creates these folders, installs and starts Docker when needed,
 
 The installer runs one container and selects the official Ultralytics base image for the host:
 
-| Host                                   | Base image                              |
-| -------------------------------------- | --------------------------------------- |
-| Apple Silicon or ARM64 Linux           | `ultralytics/ultralytics:8.4.100-arm64` |
-| x86-64 CPU                             | `ultralytics/ultralytics:8.4.100-cpu`   |
-| x86-64 with a supported NVIDIA runtime | `ultralytics/ultralytics:8.4.100`       |
+| Host                                   | Base image                             |
+| -------------------------------------- | -------------------------------------- |
+| Apple Silicon or ARM64 Linux           | `ultralytics/ultralytics:latest-arm64` |
+| x86-64 CPU                             | `ultralytics/ultralytics:latest-cpu`   |
+| x86-64 with a supported NVIDIA runtime | `ultralytics/ultralytics:latest`       |
 
-The installer pins the image matching Platform's Ultralytics version. The worker adds its connectivity dependencies without reinstalling Ultralytics. It detects CUDA at runtime, so an NVIDIA host still runs one container rather than separate CPU and GPU workers. These lightweight images support local ingest and training; Platform's existing cloud services handle model prediction and export after the best checkpoint uploads.
+The installer tracks the latest official image for each host. The worker adds its connectivity dependencies without reinstalling Ultralytics. It detects CUDA at runtime, so an NVIDIA host still runs one container rather than separate CPU and GPU workers. These lightweight images support local ingest and training; Platform's existing cloud services handle model prediction and export after the best checkpoint uploads.
 
 !!! info "Optional GPU acceleration"
 

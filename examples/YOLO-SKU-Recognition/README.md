@@ -49,7 +49,7 @@ yolo settings api_key=YOUR_API_KEY # or export ULTRALYTICS_API_KEY=YOUR_API_KEY,
 
 ### Train the SKU detector
 
-[SKU-110K](https://docs.ultralytics.com/datasets/detect/sku-110k) is the standard dense retail-product detection set: one class (`object`), 8219 train / 588 val / 2936 test shelf photos with about 1.7M product boxes. It is class-agnostic, which is exactly what the detect-then-embed split wants, the detector only has to localize packages, and the ReID model decides identity.
+[SKU-110K](https://docs.ultralytics.com/datasets/detect/sku-110k) is the standard dense retail-product set: one class (`object`), 8219 train / 588 val / 2936 test shelf photos, about 1.7M boxes. Class-agnostic is exactly what the detect-then-embed split wants, the detector only localizes packages and the ReID model decides identity.
 
 ```bash
 yolo detect train data=SKU-110K.yaml model=yolo26l.pt imgsz=640 epochs=100
@@ -119,7 +119,7 @@ To use your own weights, pass a local `.pt` or another platform id/url:
 python sku_recognition.py --detector yolo26l-sku.pt --reid yolo26l-reid.pt --gallery gallery/ --source shelf.jpg
 ```
 
-For each input image the script writes an annotated `<name>_sku.jpg` into `sku_out/` (kept separate from the inputs so a folder is never re-scanning its own results), every product boxed and labeled `SKU-name confidence`, and logs the same per box.
+Each input yields an annotated `<name>_sku.jpg` in `sku_out/` (separate from inputs so a folder never re-scans its own results), every product boxed and labeled `SKU-name confidence`, and logged per box.
 
 ### Useful options
 
@@ -138,7 +138,7 @@ Exactly one of `--source` or `--crops` is required. Folders are expanded the sam
 
 ## Building a gallery from RP2K
 
-[RP2K](https://www.pinlandata.com/rp2k_dataset) is a public retail-product dataset of about 384K **already-cropped** single-product images across roughly 2388 SKUs (folder-per-SKU). It has no bounding boxes, so it cannot train the detector, but it is ideal for the gallery and is what the published ReID weights were trained on. After downloading via the `rp2k-full-closedset.yaml` recipe, any subset of `datasets/rp2k_full_closedset/train/<sku>/` already has the folder-per-SKU layout this example expects, so you can point `--gallery` straight at it to prototype before collecting your own reference crops.
+[RP2K](https://www.pinlandata.com/rp2k_dataset) is a public set of about 384K **already-cropped** single-product images across roughly 2388 SKUs (folder-per-SKU). No bounding boxes, so it cannot train the detector, but it is ideal for the gallery and is what the published ReID weights trained on. After the `rp2k-full-closedset.yaml` download, any subset of `datasets/rp2k_full_closedset/train/<sku>/` already has the layout this example expects, so point `--gallery` at it to prototype before collecting your own crops.
 
 ## On-device deployment (CoreML / TFLite)
 
@@ -152,16 +152,14 @@ yolo export model=yolo26l-reid.pt format=coreml imgsz=448 quantize=16 # reid    
 
 CoreML export is lightweight, TFLite/LiteRT pulls a larger TensorFlow and ONNX toolchain on first export.
 
-[`sku_recognition.swift`](sku_recognition.swift) is a complete, runnable counterpart to the Python `--source` pipeline in one file. It runs the detector on a shelf photo and decodes YOLO26's end2end `[1, 300, 6]` output, so no NMS is needed. It then crops each product, embeds it with Vision (the model bakes in the `1/255` scale, and the `.scaleFit` option reproduces the reid letterbox resize plus square pad), and assigns each crop against the folder-per-SKU gallery by the same top-k similarity-weighted vote, writing an annotated `<name>_sku.jpg`:
+[`sku_recognition.swift`](sku_recognition.swift) is a complete, runnable counterpart to the Python `--source` pipeline in one file. It runs the detector on a shelf photo and decodes YOLO26's end2end `[1, 300, 6]` output, so no NMS is needed. It then crops each product, embeds it with Vision, and assigns each crop against the folder-per-SKU gallery by the same top-k similarity-weighted vote, writing an annotated `<name>_sku.jpg`:
 
 ```bash
 swift sku_recognition.swift yolo26l-sku.mlpackage yolo26l-reid.mlpackage gallery/ shelf.jpg
 ```
 
-The sample runs on the Neural Engine via `MLModelConfiguration.computeUnits = .cpuAndNeuralEngine`, the Ultralytics iOS SDK default. See the [CoreML integration guide](https://docs.ultralytics.com/integrations/coreml/) for compute-unit and precision guidance.
-
-The CoreML path matches the server path: on a test shelf the detector reproduces the Python boxes (184 of 185 align at IoU above 0.5, the rest are FP16 threshold borderline cases), and the reid embedder mirrors the letterbox model's preprocessing with `.scaleFit` plus the baked `1/255` scale to match the Python embedding path. Adding an SKU is still just appending its reference embeddings to `labels` and `embeddings`, with no retraining.
+It runs on the Neural Engine via `MLModelConfiguration.computeUnits = .cpuAndNeuralEngine`, the Ultralytics iOS SDK default. To match training, each crop is padded to a gray-114 square before Vision's resize, since a plain `.scaleFit` pads black and shifts non-square embeddings. The result tracks the server path: the FP16 detector matches most Python boxes at IoU above 0.5, and reid embeddings match the Python letterbox path at about 0.98 mean cosine, agreeing on the SKU pick for roughly 92% of reference crops (the rest near-identical size and color variants). Adding an SKU is just appending its reference embeddings to `labels` and `embeddings`, no retraining. See the [CoreML integration guide](https://docs.ultralytics.com/integrations/coreml/) for compute-unit and precision guidance.
 
 ## Labeling Tip
 
-For both detector training and gallery crops, each box should contain a **single** package instance. A box that mixes two packages produces a blended embedding that hurts both detector recall and retrieval accuracy, which matters most for near-identical variants where small text or color differences carry the identity.
+For both detector training and gallery crops, each box should hold a **single** package. A box mixing two packs produces a blended embedding that hurts detector recall and retrieval, worst on near-identical variants where small text or color carries the identity.

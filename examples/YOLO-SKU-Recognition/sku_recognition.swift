@@ -59,7 +59,9 @@ final class SKUDetector {
     }
 
     func detect(_ image: CGImage, conf: Float) throws -> [CGRect] {
-        let array = try runVision(visionModel, on: image, cropAndScale: .scaleFit)  // scaleFit letterboxes like Ultralytics
+        // scaleFit letterboxes like Ultralytics. Its black pad is fine here since boxes are un-letterboxed
+        // geometrically below, unlike the embedder which pools over the pad and needs gray (letterboxSquare114).
+        let array = try runVision(visionModel, on: image, cropAndScale: .scaleFit)
 
         // Reverse the letterbox: model coords live in a centered inputSize square, scaled by r.
         let w = CGFloat(image.width), h = CGFloat(image.height)
@@ -79,16 +81,29 @@ final class SKUDetector {
     }
 }
 
+/// Pad a crop to a gray-114 square so Vision's resize matches ClassifyLetterBox. A plain .scaleFit pads
+/// black, which shifts non-square embeddings. Raises cosine to the Python path from 0.92 to 0.98.
+func letterboxSquare114(_ image: CGImage) -> CGImage {
+    let iw = image.width, ih = image.height
+    if iw == ih { return image }  // already square: Vision's resize alone matches, no pad needed
+    let side = max(iw, ih)
+    guard let ctx = CGContext(data: nil, width: side, height: side, bitsPerComponent: 8, bytesPerRow: 0,
+        space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue) else { return image }
+    ctx.setFillColor(CGColor(red: 114.0 / 255, green: 114.0 / 255, blue: 114.0 / 255, alpha: 1))
+    ctx.fill(CGRect(x: 0, y: 0, width: side, height: side))
+    ctx.draw(image, in: CGRect(x: (side - iw) / 2, y: (side - ih) / 2, width: iw, height: ih))  // 1:1 blit
+    return ctx.makeImage() ?? image
+}
+
 /// ReID model: turns an image (crop or reference) into an L2-normalized embedding.
 final class ReIDEmbedder {
     private let visionModel: VNCoreMLModel
 
     init(modelURL: URL) throws { visionModel = try VNCoreMLModel(for: try loadModel(modelURL)) }
 
-    /// Vision's scaleFit plus the model's baked-in 1/255 scale reproduce the Ultralytics reid letterbox transform
-    /// (aspect-preserving resize, square pad, /255 RGB), matching the ArcFace-letterbox model's training preprocessing.
+    /// Gray-114 square pad then Vision resize, plus the baked-in 1/255 scale, match the reid letterbox training.
     func embed(_ image: CGImage) throws -> [Float] {
-        let array = try runVision(visionModel, on: image, cropAndScale: .scaleFit)
+        let array = try runVision(visionModel, on: letterboxSquare114(image), cropAndScale: .scaleFit)
         var vector = (0 ..< array.count).map { array[$0].floatValue }
         let norm = sqrt(vector.reduce(0) { $0 + $1 * $1 })
         if norm > 0 { vector = vector.map { $0 / norm } }

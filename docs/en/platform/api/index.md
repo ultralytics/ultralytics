@@ -350,7 +350,7 @@ POST /api/datasets/{datasetId}/clone
 
 Creates a copy of a public, owned, or editable workspace dataset with all images and labels.
 
-**Body (all fields optional):**
+**Body (send a JSON object; all fields are optional):**
 
 ```json
 {
@@ -1132,7 +1132,7 @@ Returns current GPU stock status (`High`, `Medium`, `Low`, or `null`) keyed by G
 GET /api/models/{modelId}/training
 ```
 
-Returns the current training job status, metrics, progress, timing, compute details, and errors. Public projects are accessible anonymously; private projects require an API key with access.
+Returns the current training job status, metrics, progress, timing, GPU details, and errors. Requires an API key with access to the parent project.
 
 ### Cancel Training
 
@@ -1426,7 +1426,7 @@ View a feed of recent actions on your account — training runs, uploads, and mo
 
 !!! note "API-key support by route"
 
-    `GET /api/activity` accepts API-key authentication. Mark-seen and archive mutations still require a browser session.
+    All Activity routes below accept API-key authentication.
 
 ### List Activity
 
@@ -1442,6 +1442,10 @@ GET /api/activity
 | `page`     | int     | Page number (default: 1)                  |
 | `archived` | boolean | `true` for Archive tab, `false` for Inbox |
 | `search`   | string  | Case-insensitive search in event fields   |
+| `start`    | date    | Include events on or after this date      |
+| `end`      | date    | Include events on or before this date     |
+| `export`   | boolean | Return all matching events as JSON        |
+| `owner`    | string  | Workspace username                        |
 
 ### Mark Events Seen
 
@@ -1554,13 +1558,17 @@ Permanently deletes all items in trash.
 
 !!! note "Authentication"
 
-    `DELETE /api/trash/empty` requires an authenticated browser session and is not available via API key. Use the **Empty Trash** button in the UI instead.
+    `DELETE /api/trash/empty` accepts API-key authentication and permanently deletes every item in the selected account or workspace trash.
 
 ---
 
 ## Billing API
 
 Check your credit balance, purchase credits, view transaction history, and configure auto top-up. See [Billing documentation](../account/billing.md).
+
+!!! note "API-key support by route"
+
+    Balance, usage summary, and transaction history accept API-key authentication. Checkout, subscriptions, auto top-up, and payment-method management require an authenticated browser session and are not part of the public API-key contract.
 
 !!! note "Currency Units"
 
@@ -1603,7 +1611,7 @@ GET /api/billing/transactions
 
 Returns transaction history (most recent first).
 
-Transactions include client-facing ledger fields such as amount, resulting balance, reason, date, optional model context, and receipt URL. Stripe payment/refund IDs and internal idempotency keys are not returned.
+Transactions include client-facing ledger fields such as amount, resulting balance, date, optional model context, and receipt URL. Internal notes, Stripe payment/refund IDs, and idempotency keys are not returned.
 
 **Query Parameters:**
 
@@ -1783,6 +1791,7 @@ GET /api/storage
 | Parameter | Type    | Description                                                              |
 | --------- | ------- | ------------------------------------------------------------------------ |
 | `details` | boolean | Set to `true` to include `topItems` (largest datasets, models, exports). |
+| `owner`   | string  | Workspace username.                                                      |
 
 **Response:**
 
@@ -2040,6 +2049,10 @@ POST /api/members/transfer-ownership
 
 ### Invites
 
+!!! note "Browser session only"
+
+    Invite acceptance, inspection, revocation, and resend are browser onboarding and team-management flows. They do not accept API-key authentication.
+
 #### Accept Invite
 
 ```http
@@ -2049,7 +2062,7 @@ POST /api/invites/accept
 #### Get Invite Info
 
 ```http
-GET /api/invites/info
+GET /api/invites/info?token={inviteToken}
 ```
 
 **Query Parameters:**
@@ -2067,7 +2080,7 @@ DELETE /api/invites/{inviteId}
 #### Resend Invite
 
 ```http
-POST /api/invites/{inviteId}/resend
+POST /api/invites/{inviteId}
 ```
 
 ---
@@ -2157,6 +2170,10 @@ Get or update user profile settings (display name, bio, social links, etc.).
 
 ### Profile Icon
 
+!!! note "Browser session only"
+
+    Profile icon upload and deletion require an authenticated browser session.
+
 ```http
 POST /api/settings/icon
 DELETE /api/settings/icon
@@ -2165,6 +2182,10 @@ DELETE /api/settings/icon
 Upload or remove profile avatar.
 
 ### Onboarding
+
+!!! note "Browser session only"
+
+    Onboarding updates Clerk session metadata and requires an authenticated browser session.
 
 ```http
 POST /api/onboarding
@@ -2177,6 +2198,10 @@ Complete onboarding flow (set data region, username).
 ## GDPR API
 
 Request an export of all your data or permanently delete your account. See [Settings documentation](../account/settings.md).
+
+!!! note "Browser session only"
+
+    GDPR export and account/team deletion require an authenticated browser session and are intentionally excluded from the API-key contract.
 
 ### Get GDPR Job Status
 

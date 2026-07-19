@@ -26,6 +26,7 @@ __all__ = (
     "Detect",
     "DetectO2OObj",
     "DetectO2OObjShared",
+    "DetectO2OObjTap",
     "DetectO2OSA",
     "DetectO2OSAD",
     "DetectO2OStem",
@@ -550,6 +551,57 @@ class DetectO2OObjShared(DetectO2OObj):
             scores.append(self.one2one_cv3[i][-1](feat).view(bs, self.nc, -1))
             if self.training:  # objectness is a training-only auxiliary; skip it at inference/export
                 obj.append(self.one2one_obj[i](feat).view(bs, 1, -1))
+        out = dict(boxes=torch.cat(boxes, -1), scores=torch.cat(scores, -1), feats=x)
+        if self.training:
+            out["obj"] = torch.cat(obj, -1)
+        return out
+
+
+class DetectO2OObjTap(DetectO2OObj):
+    """Class-agnostic objectness head that shares only the first cv3 layer with the cls head (no adapter).
+
+    Unlike DetectO2OObj (independent branch + adapter) and DetectO2OObjShared (shares the whole cls trunk + adapter),
+    this head has no residual adapter and the one2one cls path is the unmodified cv3. Classification and objectness
+    share only the first cv3 layer; after it they split, each with its own second depthwise-separable block and output
+    conv: cls keeps the original ``cv3[1] -> cv3[2]`` (to nc), obj gets a parallel block ending in a 1x1 to a single
+    logit. The objectness stays a training-only auxiliary (BCE toward the IoU soft target) and does not participate in
+    inference or export.
+
+    Examples:
+        Create an end-to-end detection head that shares only the first cls layer with objectness
+        >>> detect = DetectO2OObjTap(nc=80, end2end=True, ch=(256, 512, 1024))
+        >>> x = [torch.randn(1, 256, 80, 80), torch.randn(1, 512, 40, 40), torch.randn(1, 1024, 20, 20)]
+        >>> outputs = detect(x)
+    """
+
+    def __init__(self, nc: int = 80, reg_max=16, end2end=False, ch: tuple = ()):
+        """Initialize the detection head and, when end-to-end, the cls-shared one2one objectness head (no adapter).
+
+        Args:
+            nc (int): Number of classes.
+            reg_max (int): Maximum number of DFL channels.
+            end2end (bool): Whether to use end-to-end NMS-free detection.
+            ch (tuple): Tuple of channel sizes from backbone feature maps.
+        """
+        Detect.__init__(self, nc, reg_max, end2end, ch)  # skip the DetectO2OObj adapter/alpha build
+        if end2end:
+            self.one2one_obj = self._build_obj_head(ch)
+
+    def _build_obj_head(self, ch: tuple) -> nn.ModuleList:
+        """Build the per-level objectness head (own 2nd block + output) taking the shared first-cv3-layer feature."""
+        c3 = max(ch[0], min(self.nc, 100))
+        return nn.ModuleList(nn.Sequential(DWConv(c3, c3, 3), Conv(c3, c3, 1), nn.Conv2d(c3, 1, 1)) for _ in ch)
+
+    def forward_o2o(self, x: list[torch.Tensor]) -> dict[str, torch.Tensor]:
+        """Run the one2one heads sharing only the first cls layer, then splitting cls/obj (objectness train-only)."""
+        bs = x[0].shape[0]  # batch size
+        boxes, scores, obj = [], [], []
+        for i in range(self.nl):
+            boxes.append(self.one2one_cv2[i](x[i]).view(bs, 4 * self.reg_max, -1))  # box from the raw feature
+            feat = self.one2one_cv3[i][0](x[i])  # shared first cv3 layer only -> c3
+            scores.append(self.one2one_cv3[i][1:](feat).view(bs, self.nc, -1))  # cls: original 2nd block + output
+            if self.training:  # objectness is a training-only auxiliary; skip it at inference/export
+                obj.append(self.one2one_obj[i](feat).view(bs, 1, -1))  # obj: own 2nd block + output
         out = dict(boxes=torch.cat(boxes, -1), scores=torch.cat(scores, -1), feats=x)
         if self.training:
             out["obj"] = torch.cat(obj, -1)

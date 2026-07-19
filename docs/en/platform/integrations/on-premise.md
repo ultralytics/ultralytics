@@ -123,17 +123,17 @@ The setup command creates these folders, installs and starts Docker when needed,
 
 The installer runs one container and selects the [official Ultralytics base image](../../guides/docker-quickstart.md) for the host:
 
-| Host                                   | Base image                             |
-| -------------------------------------- | -------------------------------------- |
-| Apple Silicon or ARM64 Linux           | `ultralytics/ultralytics:latest-arm64` |
-| x86-64 CPU                             | `ultralytics/ultralytics:latest-cpu`   |
-| x86-64 with a supported NVIDIA runtime | `ultralytics/ultralytics:latest`       |
+| Host                               | Base image                             |
+| ---------------------------------- | -------------------------------------- |
+| Apple Silicon or ARM64 Linux       | `ultralytics/ultralytics:latest-arm64` |
+| x86-64 CPU                         | `ultralytics/ultralytics:latest-cpu`   |
+| x86-64 with a supported NVIDIA GPU | `ultralytics/ultralytics:latest`       |
 
 The installer tracks the latest official image for each host. The worker adds its connectivity dependencies without reinstalling Ultralytics. It detects CUDA at runtime, so an NVIDIA host still runs one container rather than separate CPU and GPU workers. These lightweight images support local ingest and training; Platform's existing cloud services handle model prediction and export after the best checkpoint uploads.
 
 !!! warning "Use CDI for GPU access"
 
-    CPU setup requires nothing beyond the guided installation. NVIDIA GPU acceleration requires Docker >= 28.2 and NVIDIA Container Toolkit >= 1.18. The installer uses CDI `--device` reservations, not legacy `--gpus all`, so GPU access survives host daemon reloads. Platform detects CDI GPUs automatically; see the [Docker Quickstart Guide](../../guides/docker-quickstart.md#using-gpus) for setup details.
+    CPU setup requires nothing beyond the guided installation. On Linux, NVIDIA GPU acceleration requires Docker >= 28.2 and NVIDIA Container Toolkit >= 1.18. The installer uses CDI `--device` reservations, not legacy `--gpus all`, so GPU access survives host daemon reloads. Docker Desktop on Windows uses its supported NVIDIA device reservation because NVIDIA CDI devices are not available there. Platform detects the supported GPU path automatically; see the [Docker Quickstart Guide](../../guides/docker-quickstart.md#using-gpus) for setup details.
 
 ## Add a Dataset
 

@@ -153,7 +153,9 @@ The `-it` flag assigns a pseudo-TTY and keeps stdin open, allowing you to intera
 
 !!! warning "Use CDI instead of `--gpus all`"
 
-    CDI device requests require [Docker >= 28.2.0](https://docs.docker.com/engine/release-notes/28/#2820) (CDI enabled by default) and `nvidia-container-toolkit` >= 1.18 (automatic CDI spec generation). Upgrade older hosts before running GPU containers. The legacy `--gpus all` flag can lose GPU access (`Failed to initialize NVML: Unknown Error`) when the host reloads systemd during routine package updates ([nvidia-container-toolkit#48](https://github.com/NVIDIA/nvidia-container-toolkit/issues/48)). CDI `--device` requests include the device nodes in the container configuration, so long-running containers such as training workers or CI runners keep GPU access across reloads.
+    On Linux, CDI device requests require [Docker >= 28.2.0](https://docs.docker.com/engine/release-notes/28/#2820) (CDI enabled by default) and `nvidia-container-toolkit` >= 1.18 (automatic CDI spec generation). Upgrade older Linux hosts before running GPU containers. The legacy `--gpus all` flag can lose GPU access (`Failed to initialize NVML: Unknown Error`) when the host reloads systemd during routine package updates ([nvidia-container-toolkit#48](https://github.com/NVIDIA/nvidia-container-toolkit/issues/48)). CDI `--device` requests include the device nodes in the container configuration, so long-running containers such as training workers or CI runners keep GPU access across reloads.
+
+    [Docker Desktop GPU support on Windows](https://docs.docker.com/desktop/features/gpu/) currently uses `--gpus all` with the WSL 2 backend because NVIDIA CDI devices are not available there. Windows does not use Linux systemd, so the daemon-reload failure above does not apply.
 
 ### Note on File Accessibility
 

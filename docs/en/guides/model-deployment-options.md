@@ -30,7 +30,7 @@ The ideal format depends on your model's intended operational context and hardwa
 
 !!! tip "Skip the manual export"
 
-    For managed deployment without manual export, [Ultralytics Platform](https://platform.ultralytics.com) provides ready-to-use [inference endpoints](../platform/deploy/endpoints.md) with auto-scaling across 43 global regions.
+    For managed deployment without manual export, [Ultralytics Platform](https://platform.ultralytics.com) provides ready-to-use [inference endpoints](../platform/deploy/endpoints.md) with auto-scaling across 42 global regions.
 
 ## YOLO26's Deployment Options
 

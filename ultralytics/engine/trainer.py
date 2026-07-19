@@ -477,7 +477,12 @@ class BaseTrainer:
                 except RuntimeError as e:
                     is_oom = "out of memory" in str(e).lower()  # torch.cuda.OutOfMemoryError requires torch>=1.13
                     if not is_oom and not any(
-                        s in str(e) for s in ("CUDNN_STATUS_INTERNAL_ERROR", "unable to find an engine")
+                        s in str(e)
+                        for s in (
+                            "CUBLAS_STATUS_ALLOC_FAILED",
+                            "CUDNN_STATUS_INTERNAL_ERROR",
+                            "unable to find an engine",
+                        )
                     ):
                         raise
                     if epoch > self.start_epoch or self._oom_retries >= 3 or RANK != -1:

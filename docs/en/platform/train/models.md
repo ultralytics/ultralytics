@@ -217,7 +217,8 @@ The Platform supports export to [19+ deployment formats](../../modes/export.md#e
 
 | Target             | Recommended Format  | Notes                                                          |
 | ------------------ | ------------------- | -------------------------------------------------------------- |
-| **NVIDIA GPUs**    | TensorRT            | Maximum inference speed                                        |
+| **NVIDIA GPUs**    | TensorRT            | Select the same GPU family as the deployment device            |
+| **NVIDIA Jetson**  | TensorRT            | Select the intended target and check its validation status     |
 | **Intel Hardware** | OpenVINO            | CPUs, GPUs, and VPUs                                           |
 | **Apple Devices**  | CoreML or LiteRT    | iOS, macOS, Apple Silicon                                      |
 | **Android**        | LiteRT or NCNN      | LiteRT (Google's on-device runtime) or NCNN for ARM            |
@@ -226,6 +227,27 @@ The Platform supports export to [19+ deployment formats](../../modes/export.md#e
 | **General**        | ONNX                | Works with most runtimes                                       |
 
 ![Ultralytics Platform Model Export Progress](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-export-progress.avif)
+
+### NVIDIA Jetson TensorRT Targets
+
+Ultralytics Platform offers the following Jetson target selections for TensorRT `.engine` exports. As of July 2026, the Jetson export workers use JetPack 7.2 / L4T r39.2, Python 3.12.3, NVIDIA PyTorch 2.12.0a0 (26.04 build), CUDA 13.2, and TensorRT 10.16.1.11 inside the export container.
+
+| Target selection           | API `gpuType`          | Memory | GPU architecture   | Python | CUDA | TensorRT   | Measured YOLO26n FP16 export | Physical build/load validation                |
+| -------------------------- | ---------------------- | -----: | ------------------ | ------ | ---- | ---------- | ---------------------------: | --------------------------------------------- |
+| Jetson Thor T5000          | `jetson-thor-t5000`    | 128 GB | Blackwell, CC 11.0 | 3.12.3 | 13.2 | 10.16.1.11 |                      ~1m 46s | Thor in NVIDIA T4000 profile; T5000 candidate |
+| Jetson Thor T4000          | `jetson-thor-t4000`    |  64 GB | Blackwell, CC 11.0 | 3.12.3 | 13.2 | 10.16.1.11 |                      ~1m 46s | Thor in NVIDIA T4000 profile                  |
+| Jetson AGX Orin 64GB       | `jetson-agx-orin-64gb` |  64 GB | Ampere, CC 8.7     | 3.12.3 | 13.2 | 10.16.1.11 |                       7m 15s | Built, loaded, and inferred on AGX Orin 64GB  |
+| Jetson AGX Orin 32GB       | `jetson-agx-orin-32gb` |  32 GB | Ampere, CC 8.7     | 3.12.3 | 13.2 | 10.16.1.11 |                       5m 34s | AGX Orin 64GB build/load; 32GB SKU pending    |
+| Jetson Orin NX 16GB        | `jetson-orin-nx-16gb`  |  16 GB | Ampere, CC 8.7     | 3.12.3 | 13.2 | 10.16.1.11 |                       5m 09s | AGX Orin 64GB build/load; NX SKU pending      |
+| Jetson Orin NX 8GB         | `jetson-orin-nx-8gb`   |   8 GB | Ampere, CC 8.7     | 3.12.3 | 13.2 | 10.16.1.11 |                       5m 01s | AGX Orin 64GB build/load; NX SKU pending      |
+| Jetson Orin Nano 8GB Super | `jetson-orin-nano-8gb` |   8 GB | Ampere, CC 8.7     | 3.12.3 | 13.2 | 10.16.1.11 |                       4m 59s | AGX Orin 64GB build/load; Nano SKU pending    |
+| Jetson Orin Nano 4GB       | `jetson-orin-nano-4gb` |   4 GB | Ampere, CC 8.7     | 3.12.3 | 13.2 | 10.16.1.11 |                       5m 01s | AGX Orin 64GB build/load; Nano SKU pending    |
+
+The timings are single observed end-to-end production routing tests from July 2026, rounded to the nearest second; they are reference measurements, not an SLA or per-SKU performance benchmark. Both Thor selections are built on a T5000 Developer Kit in NVIDIA's T4000 compatibility profile. The six Orin routes are built on an AGX Orin 64GB, where every resulting engine was loaded and run.
+
+!!! warning "Match the TensorRT engine build environment"
+
+    Downloaded engines are tied to their build platform, GPU family, TensorRT version, and a compatible CUDA runtime. For Jetson targets, the software versions are shown in the table above. Validate each engine and its memory fit on the deployment device, and perform INT8 calibration there for best results. If the environments do not match, export the engine locally instead. See the [NVIDIA Jetson guide](../../guides/nvidia-jetson.md) and [TensorRT integration guide](../../integrations/tensorrt.md) for local deployment details.
 
 ### RKNN Chip Support
 
@@ -260,7 +282,7 @@ Export jobs progress through the following statuses:
 
 !!! tip "Export Time"
 
-    Export time varies by format. TensorRT exports may take several minutes due to engine optimization. GPU-required formats (TensorRT) run on Ultralytics Cloud GPUs — the default export GPU is RTX 4090.
+    Export time varies by format and build host. TensorRT exports may take several minutes because TensorRT profiles and tunes the engine on the physical GPU shown in the [Jetson validation table](#nvidia-jetson-tensorrt-targets) or the selected cloud GPU.
 
 ### Bulk Export Actions
 

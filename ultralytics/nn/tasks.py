@@ -536,7 +536,7 @@ class DetectionModel(BaseModel):
         Returns:
             (tuple[torch.Tensor, None]): Augmented inference output and None for train output.
         """
-        if getattr(self, "end2end", False) or self.__class__.__name__ != "DetectionModel":
+        if getattr(self, "end2end", False) or type(self.model[-1]) is not Detect:
             LOGGER.warning("Model does not support 'augment=True', reverting to single-scale prediction.")
             return self._predict_once(x)
         img_size = x.shape[-2:]  # height, width
@@ -1657,9 +1657,19 @@ class _SafeLoad:
             (_getattr, "builtins.getattr"),  # non-det YOLOv8, YOLO11 ckpts (restrict to nn.Module attrs)
         ]
         if WINDOWS:
-            allow += [pathlib.WindowsPath, (pathlib.WindowsPath, "pathlib.PosixPath")]
+            allow += [
+                pathlib.WindowsPath,
+                (pathlib.WindowsPath, "pathlib.WindowsPath"),
+                (pathlib.WindowsPath, "pathlib.PosixPath"),
+                (pathlib.WindowsPath, f"{pathlib.PosixPath.__module__}.{pathlib.PosixPath.__qualname__}"),
+            ]
         else:
-            allow += [pathlib.PosixPath, (pathlib.PosixPath, "pathlib.WindowsPath")]
+            allow += [
+                pathlib.PosixPath,
+                (pathlib.PosixPath, "pathlib.PosixPath"),
+                (pathlib.PosixPath, "pathlib.WindowsPath"),
+                (pathlib.PosixPath, f"{pathlib.WindowsPath.__module__}.{pathlib.WindowsPath.__qualname__}"),
+            ]
         return allow
 
 

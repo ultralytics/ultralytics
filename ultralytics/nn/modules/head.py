@@ -25,6 +25,7 @@ __all__ = (
     "Classify",
     "Detect",
     "DetectO2OObj",
+    "DetectO2OObjShared",
     "DetectO2OSA",
     "DetectO2OSAD",
     "DetectO2OStem",
@@ -469,12 +470,14 @@ class DetectO2OObj(Detect):
         """
         super().__init__(nc, reg_max, end2end, ch)
         if end2end:
-            c3 = max(ch[0], min(self.nc, 100))
             self.one2one_adapter = nn.ModuleList(DWConv(x, x, 3) for x in ch)
             self.one2one_alpha = nn.Parameter(torch.zeros(self.nl))
-            self.one2one_obj = nn.ModuleList(
-                nn.Sequential(DWConv(x, x, 3), Conv(x, c3, 1), nn.Conv2d(c3, 1, 1)) for x in ch
-            )
+            self.one2one_obj = self._build_obj_head(ch)
+
+    def _build_obj_head(self, ch: tuple) -> nn.ModuleList:
+        """Build the per-level class-agnostic objectness head (an independent depthwise-separable branch)."""
+        c3 = max(ch[0], min(self.nc, 100))
+        return nn.ModuleList(nn.Sequential(DWConv(x, x, 3), Conv(x, c3, 1), nn.Conv2d(c3, 1, 1)) for x in ch)
 
     def forward_o2o(self, x: list[torch.Tensor]) -> dict[str, torch.Tensor]:
         """Run the one2one heads on adapter-refined features; predict class-agnostic objectness during training only."""
@@ -513,6 +516,44 @@ class DetectO2OObj(Detect):
         if self.end2end:
             for i, obj in enumerate(self.one2one_obj):
                 obj[-1].bias.data[:] = math.log(5 / (640 / self.stride[i]) ** 2)  # ~object density per anchor
+
+
+class DetectO2OObjShared(DetectO2OObj):
+    """DetectO2OObj variant whose objectness head is tied to the one2one classification head.
+
+    Identical to DetectO2OObj, but instead of an independent objectness branch the objectness shares the entire cls
+    trunk and splits off only at the final 1x1 conv: the shared trunk produces the pre-logit feature, the existing cls
+    conv maps it to class logits, and a single extra 1x1 conv maps the same feature to one class-agnostic objectness
+    logit. This adds only one 1x1 conv per level. The objectness stays a training-only auxiliary (BCE toward the IoU
+    soft target) and does not participate in inference or export.
+
+    Examples:
+        Create an end-to-end detection head with a cls-tied one2one objectness split
+        >>> detect = DetectO2OObjShared(nc=80, end2end=True, ch=(256, 512, 1024))
+        >>> x = [torch.randn(1, 256, 80, 80), torch.randn(1, 512, 40, 40), torch.randn(1, 1024, 20, 20)]
+        >>> outputs = detect(x)
+    """
+
+    def _build_obj_head(self, ch: tuple) -> nn.ModuleList:
+        """Build the per-level objectness head as a single 1x1 conv on the shared cls pre-logit feature."""
+        c3 = max(ch[0], min(self.nc, 100))
+        return nn.ModuleList(nn.Sequential(nn.Conv2d(c3, 1, 1)) for _ in ch)
+
+    def forward_o2o(self, x: list[torch.Tensor]) -> dict[str, torch.Tensor]:
+        """Run the one2one heads with objectness tied to the cls trunk, splitting at the final conv (training only)."""
+        bs = x[0].shape[0]  # batch size
+        boxes, scores, obj = [], [], []
+        for i in range(self.nl):
+            y = x[i] + self.one2one_alpha[i] * self.one2one_adapter[i](x[i])  # residual adapter, identity at init
+            boxes.append(self.one2one_cv2[i](x[i]).view(bs, 4 * self.reg_max, -1))  # box from the raw feature
+            feat = self.one2one_cv3[i][:-1](y)  # shared cls trunk (all layers but the final 1x1 conv)
+            scores.append(self.one2one_cv3[i][-1](feat).view(bs, self.nc, -1))
+            if self.training:  # objectness is a training-only auxiliary; skip it at inference/export
+                obj.append(self.one2one_obj[i](feat).view(bs, 1, -1))
+        out = dict(boxes=torch.cat(boxes, -1), scores=torch.cat(scores, -1), feats=x)
+        if self.training:
+            out["obj"] = torch.cat(obj, -1)
+        return out
 
 
 class Segment(Detect):

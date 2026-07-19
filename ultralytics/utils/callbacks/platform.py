@@ -6,6 +6,7 @@ import re
 import socket
 import sys
 from concurrent.futures import ThreadPoolExecutor
+from heapq import nlargest
 from math import isfinite
 from pathlib import Path
 from time import sleep, time
@@ -24,7 +25,7 @@ from ultralytics.utils import (
 )
 
 PREFIX = colorstr("Platform: ")
-PLATFORM_API_URL = f"{PLATFORM_URL}/api/webhooks"
+PLATFORM_API_URL = os.getenv("PLATFORM_API_URL", f"{PLATFORM_URL}/api/webhooks")
 
 
 def slugify(text):
@@ -235,13 +236,16 @@ def _handle_control_response(trainer, ctx, response):
 
 
 def _upload_model(model_path, project, name, progress=False, retry=1, model_id=None, run_id=None):
-    """Upload model checkpoint to Platform via signed URL."""
+    """Publish a model checkpoint to its configured Platform storage location."""
     from ultralytics.utils.uploads import safe_upload
 
     model_path = Path(model_path)
     if not model_path.exists():
         LOGGER.warning(f"{PREFIX}Model file not found: {model_path}")
         return None
+    model_size = model_path.stat().st_size
+    if os.getenv("PLATFORM_API_URL"):
+        return {"modelPath": str(model_path.resolve()), "modelSize": model_size}
 
     # Get signed upload URL from Platform (server sanitizes filename for storage safety)
     @Retry(times=3, delay=2)
@@ -282,8 +286,8 @@ def _upload_model(model_path, project, name, progress=False, retry=1, model_id=N
                 model_id,
                 timeout=90,
             )
-            return gcs_path if saved else None
-        return gcs_path
+            return {"modelPath": gcs_path, "modelSize": model_size} if saved else None
+        return {"modelPath": gcs_path, "modelSize": model_size}
     return None
 
 
@@ -483,7 +487,6 @@ def on_model_save(trainer):
     ctx = getattr(trainer, "platform", None)
     if not ctx or RANK not in {-1, 0} or not trainer.args.project:
         return
-
     # Rate limit to every 15 minutes (900 seconds)
     if time() - ctx["last_upload"] < 900:
         return
@@ -518,13 +521,11 @@ def on_train_end(trainer):
         ctx["console_logger"] = None
 
     # Upload best model (blocking with progress bar to ensure it completes)
-    gcs_path = None
-    model_size = None
+    artifact = None
     if trainer.best and Path(trainer.best).exists():
         if ctx["checkpoint_upload"]:
             ctx["checkpoint_upload"].result()
-        model_size = Path(trainer.best).stat().st_size
-        gcs_path = _upload_model(
+        artifact = _upload_model(
             trainer.best,
             project,
             name,
@@ -533,7 +534,7 @@ def on_train_end(trainer):
             model_id=ctx["model_id"],
             run_id=ctx["run_id"],
         )
-        if not gcs_path:
+        if not artifact:
             LOGGER.warning(f"{PREFIX}Model will not be available for download on Platform (upload failed)")
 
     # Collect plots from trainer and validator, deduplicating by type
@@ -553,6 +554,19 @@ def on_train_end(trainer):
     # stopper.best_epoch is 1-indexed; -1 aligns with the 0-indexed `epoch` field
     best_epoch = max(0, getattr(getattr(trainer, "stopper", None), "best_epoch", trainer.epoch + 1) - 1)
 
+    image_metrics = trainer.validator.metrics.box.image_metrics if trainer.args.task == "detect" else {}
+    cohort = min(25_000, (len(image_metrics) + 1) // 2)
+    worst = nlargest(cohort, image_metrics.items(), key=lambda item: (-item[1]["f1"], item[1]["fp"] + item[1]["fn"]))
+    worst_names = {name for name, _ in worst}
+    best = nlargest(
+        cohort,
+        ((name, metric) for name, metric in image_metrics.items() if name not in worst_names),
+        key=lambda item: (item[1]["f1"], item[1]["tp"]),
+    )
+    rows = [
+        [Path(name).stem.split("_", 1)[0], metric["tp"], metric["fp"], metric["fn"]] for name, metric in worst + best
+    ]
+    validation = {"population": len(image_metrics), "rows": rows}
     _send(
         "training_complete",
         {
@@ -560,8 +574,8 @@ def on_train_end(trainer):
                 "metrics": {**trainer.metrics, "fitness": trainer.fitness},
                 "bestEpoch": best_epoch,
                 "bestFitness": trainer.best_fitness,
-                "modelPath": gcs_path,  # Only send GCS path, not local path
-                "modelSize": model_size,
+                **({"validation": validation} if rows else {}),
+                **(artifact or {}),
             },
             "classNames": class_names,
             "plots": plots,

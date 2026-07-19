@@ -370,6 +370,11 @@ class BaseTrainer:
         # Batch size
         if self.batch_size < 1 and RANK == -1:  # single-GPU only, estimate best batch size
             self.args.batch = self.batch_size = self.auto_batch()
+        if self.batch_size // max(self.world_size, 1) == 1 and self.args.imgsz < 2 * gs:
+            raise ValueError(
+                f"batch=1 training at imgsz={self.args.imgsz} gives BatchNorm a single value per channel; "
+                f"increase batch or use imgsz >= {2 * gs}"
+            )
 
         self._build_train_pipeline()
         self.validator = self.get_validator()
@@ -477,7 +482,12 @@ class BaseTrainer:
                 except RuntimeError as e:
                     is_oom = "out of memory" in str(e).lower()  # torch.cuda.OutOfMemoryError requires torch>=1.13
                     if not is_oom and not any(
-                        s in str(e) for s in ("CUDNN_STATUS_INTERNAL_ERROR", "unable to find an engine")
+                        s in str(e)
+                        for s in (
+                            "CUBLAS_STATUS_ALLOC_FAILED",
+                            "CUDNN_STATUS_INTERNAL_ERROR",
+                            "unable to find an engine",
+                        )
                     ):
                         raise
                     if epoch > self.start_epoch or self._oom_retries >= 3 or RANK != -1:

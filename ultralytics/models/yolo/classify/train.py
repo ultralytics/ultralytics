@@ -144,10 +144,14 @@ class ClassificationTrainer(BaseTrainer):
                 f"See https://docs.ultralytics.com/datasets/classify for cls dataset format."
             )
 
+        if self.args.single_cls:
+            for sample in dataset.samples:
+                sample[1] = 0
+
         # Filter out samples with class indices >= nc (prevents CUDA assertion errors)
         nc = self.data.get("nc", 0)
         dataset_nc = len(dataset.base.classes)
-        if nc and dataset_nc > nc:
+        if not self.args.single_cls and nc and dataset_nc > nc:
             extra_classes = dataset.base.classes[nc:]
             original_count = len(dataset.samples)
             dataset.samples = [s for s in dataset.samples if s[1] < nc]

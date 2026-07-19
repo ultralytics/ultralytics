@@ -164,7 +164,7 @@ Hailo compilation is hardware-specific and uses a fixed input shape. Keep these 
 
 Hailo HEF export uses INT8 quantization to map the YOLO network efficiently onto the accelerator. The calibration dataset estimates activation ranges; it does not retrain the model or require labels during compilation.
 
-When `data` is omitted, Ultralytics uses COCO128 as a convenient lightweight calibration dataset. For a custom computer vision model, point `data` to its dataset YAML so the compiler observes representative images from the actual deployment domain:
+When `data` is omitted, Ultralytics uses a task-specific lightweight calibration dataset, such as COCO128 for detection or cityscapes8 for semantic segmentation. For a custom computer vision model, point `data` to its dataset YAML so the compiler observes representative images from the actual deployment domain:
 
 ```python
 model.export(format="hailo", name="hailo8l", data="my_dataset.yaml")

@@ -175,6 +175,7 @@ EXPECTED_MODULES = (
     "ultralytics/engine/trainer.py:_setup_train",  # trainer validation of batch/imgsz interplay before training
     "ultralytics/engine/exporter.py:validate_args",  # exporter's intentional per-format argument validation
     "ultralytics/engine/exporter.py:__call__",  # intentional compat asserts; per-format bugs raise in deeper frames
+    "ultralytics/engine/exporter.py:export_onnx",  # resolved ONNX opset validation before conversion
 )
 NETWORK_MARKERS = (  # specific download/network signatures only; bare ConnectionError is raised for local sources too
     "urlopen error",

@@ -403,6 +403,51 @@ class AnomalyDetect(Detect):
             y = self.postprocess(y.permute(0, 2, 1))
         return (y, out_heatmap) if self.export else ((y, out_heatmap, heatmap_fusion), preds)
 
+    def forward_head(
+        self,
+        x: list[torch.Tensor],
+        box_head: torch.nn.Module = None,
+        cls_head: torch.nn.Module = None,
+        cls_x: list[torch.Tensor] | None = None,
+    ) -> dict[str, torch.Tensor]:
+        """Concatenate boxes/scores; ``cls_x`` supplies per-scale features to the cls branch only.
+
+        For ``fusion_target='cls'``/``'all_clsgrad'`` the box branch always reads ``x`` while the
+        cls branch reads ``cls_x`` when provided, so box regression never conditions on the fusion
+        prior. With ``cls_x=None`` this is identical to ``Detect.forward_head``.
+        """
+        if box_head is None or cls_head is None:  # for fused inference
+            return dict()
+        bs = x[0].shape[0]  # batch size
+        cx = x if cls_x is None else cls_x
+        boxes = torch.cat([box_head[i](x[i]).view(bs, 4 * self.reg_max, -1) for i in range(self.nl)], dim=-1)
+        scores = torch.cat([cls_head[i](cx[i]).view(bs, self.nc, -1) for i in range(self.nl)], dim=-1)
+        return dict(boxes=boxes, scores=scores, feats=x)
+
+    def _build_heatmap_gate(self, hm: torch.Tensor, feats: list[torch.Tensor]) -> torch.Tensor:
+        """Resize the heatmap to each scale's grid and return a ``(bs, 1, A)`` gate tensor."""
+        gates = []
+        for i in range(self.nl):
+            h, w = feats[i].shape[2], feats[i].shape[3]
+            g = F.interpolate(hm, size=(h, w), mode="bilinear", align_corners=False)
+            gates.append(g.view(g.shape[0], 1, -1))
+        return torch.cat(gates, dim=-1)  # (bs, 1, A)
+
+    def _inference(self, x: dict[str, torch.Tensor], heatmap: torch.Tensor | None = None) -> torch.Tensor:
+        """Decode boxes + scores, with optional per-anchor heatmap confidence gating.
+
+        ``hm_gate_blend`` == 1 (default / attribute absent) → identity, so this matches
+        ``Detect._inference``; blend < 1 suppresses scores at low-heatmap cells.
+        """
+        dbox = self._get_decode_boxes(x)
+        scores = x["scores"].sigmoid()
+        if heatmap is not None and getattr(self, "hm_gate_blend", 1.0) < 1.0:
+            gate = self._build_heatmap_gate(heatmap, x["feats"])
+            b = float(self.hm_gate_blend)
+            factor = (b + (1.0 - b) * gate).clamp(0.0, 1.0)
+            scores = scores * factor
+        return torch.cat((dbox, scores), 1)
+
 
 class Segment(Detect):
     """YOLO Segment head for segmentation models.

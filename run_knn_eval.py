@@ -1,10 +1,11 @@
 """Run kNN evaluation on a distilled encoder run directory.
 
 Usage:
-    python run_knn_eval.py <gpu_id> <run_dir> [--wandb]
+    python run_knn_eval.py <gpu_id> <run_dir> [--imgsz N] [--wandb]
 
 Finds weights/best.pt and model config from args.yaml automatically.
-With --wandb, updates the finished WandB run's summary with knn/top1.
+--imgsz sets the eval resolution (default 224); the loader batch scales down with imgsz to hold
+activation memory roughly constant. With --wandb, updates the finished WandB run's summary with knn/top1.
 
 Examples:
     python run_knn_eval.py 3 /data/shared-datasets/fatih-runs/classify/yolo-next-encoder/phase1-d1-eupe-vitb16
@@ -45,11 +46,17 @@ def _update_wandb(run_dir, knn_top1):
 
 def main():
     """Run kNN evaluation on a run directory."""
-    argv = [a for a in sys.argv[1:] if not a.startswith("--")]
-    use_wandb = "--wandb" in sys.argv
+    args_list = sys.argv[1:]
+    use_wandb = "--wandb" in args_list
+    imgsz = 224
+    if "--imgsz" in args_list:
+        i = args_list.index("--imgsz")
+        imgsz = int(args_list[i + 1])
+        del args_list[i : i + 2]
+    argv = [a for a in args_list if not a.startswith("--")]
 
     if len(argv) < 2:
-        print("Usage: python run_knn_eval.py <gpu_id> <run_dir> [--wandb]")
+        print("Usage: python run_knn_eval.py <gpu_id> <run_dir> [--imgsz N] [--wandb]")
         sys.exit(1)
 
     gpu_id = int(argv[0])
@@ -81,6 +88,7 @@ def main():
     print(f"Evaluating: {run_dir.name}")
     print(f"  weights: {weight_path}")
     print(f"  model_cfg: {model_cfg}")
+    print(f"  imgsz: {imgsz}")
     print(f"  wandb: {'on' if use_wandb else 'off'}")
 
     # Build dataloaders
@@ -88,7 +96,7 @@ def main():
 
     root = Path(IMAGENET)
     ds_args = SimpleNamespace(
-        imgsz=224,
+        imgsz=imgsz,
         cache=False,
         fraction=1.0,
         auto_augment="",
@@ -103,8 +111,9 @@ def main():
     )
     train_ds = ClassificationDataset(str(root / "train"), args=ds_args, augment=False, prefix="knn-train")
     val_ds = ClassificationDataset(str(root / "val"), args=ds_args, augment=False, prefix="knn-val")
-    train_loader = build_dataloader(train_ds, 256, 8, shuffle=False, rank=-1)
-    val_loader = build_dataloader(val_ds, 256, 8, shuffle=False, rank=-1)
+    bs = max(8, round(256 * (224 / imgsz) ** 2))  # hold activation memory ~constant across imgsz
+    train_loader = build_dataloader(train_ds, bs, 8, shuffle=False, rank=-1)
+    val_loader = build_dataloader(val_ds, bs, 8, shuffle=False, rank=-1)
     num_classes = len(train_ds.base.classes)
 
     # Load model from yaml + distillation checkpoint

@@ -741,11 +741,16 @@ class ModelEMA:
             d = self.decay(self.updates)
 
             msd = unwrap_model(model).state_dict()  # model state_dict
+            ema_v, model_v = [], []
             for k, v in self.ema.state_dict().items():
                 if v.dtype.is_floating_point:  # true for FP16 and FP32
-                    v *= d
-                    v += (1 - d) * msd[k].detach()
-                    # assert v.dtype == msd[k].dtype == torch.float32, f'{k}: EMA {v.dtype},  model {msd[k].dtype}'
+                    ema_v.append(v)
+                    model_v.append(msd[k].detach())
+            if TORCH_2_4 and ema_v:  # single batched kernel launch per op instead of one per tensor
+                torch._foreach_lerp_(ema_v, model_v, 1 - d)
+            else:  # foreach ops lack MPS support before torch 2.4
+                for v, m in zip(ema_v, model_v):
+                    v.lerp_(m, 1 - d)
 
     def update_attr(self, model, include=(), exclude=("process_group", "reducer")):
         """Copy attributes from model to EMA, with options to include/exclude certain attributes.

@@ -28,10 +28,14 @@ Flags:
                 --lr is still scaled). For other modes --batch is applied as-is.
     --nbs <int>: explicit nbs override (coco_det_finetune, dota_obb_finetune,
                 multi_det_finetune; bypasses auto-scaling).
-    --deim_opt: coco_det_finetune only. Swap the MuSGD recipe's optimizer block for
-                Esat's DEIM transplant (AdamW, lr0 5e-4, wd 1.25e-4, lrf 0.5, no warmup,
-                nbs=batch so wd is unscaled), keeping augment/loss/backbone_lr_ratio and
-                dropping the muon head-LR boost.
+    --deim_opt: coco_det_finetune and multi_det_finetune. Swap the MuSGD recipe's optimizer
+                block for Esat's DEIM transplant (AdamW, lr0 5e-4, wd 1.25e-4, lrf 0.5, linear,
+                no warmup, nbs=batch so wd is unscaled), keeping augment/loss/backbone_lr_ratio
+                and dropping the muon head-LR boost.
+    --sched_decay: multi_det_finetune only. Under MuSGD, replace the flat lrf 0.88 ul33 default
+                with cosine decay to 1% of lr0 (isolates the LR-schedule axis).
+    --backbone_lr_ratio <float>: coco_det_finetune and multi_det_finetune. Backbone LR = lr0 *
+                this (below 1 preserves distilled backbone features).
     --datasets <path>: multi_det_finetune only. Either a file with one YOLO data.yaml
                 path per line (#-comments and blanks ignored), or a directory scanned
                 one level deep for ``*/data.yaml``.
@@ -288,6 +292,19 @@ _MULTI_DET_BASE_PATIENCE = 100
 # ul33 table recipe: batch 64 with lr0 held fixed at any batch (the coco/dota helper default is bs=128, lr0 scaled).
 _MULTI_DET_BASE_BATCH = 64
 _MULTI_DET_BASE_LR0 = 0.0015
+# Esat's DEIM optimizer transplant (--deim_opt): AdamW at his literal lr0/wd, no warmup. Shared by the coco and
+# multi_det arms. Callers add nbs=batch (so effective wd = wd) and leave cos_lr at the builder default False (linear
+# decay to lrf). The muon head boost is MuSGD-only, so an AdamW arm gets none.
+_DEIM_OPT_ARGS = dict(
+    optimizer="AdamW",
+    lr0=0.0005,
+    lrf=0.5,
+    momentum=0.9,
+    weight_decay=0.000125,
+    warmup_epochs=0.0,
+    warmup_momentum=0.9,
+    warmup_bias_lr=0.0,
+)
 
 
 def _dataset_train_stats(data_yaml: Path, batch: int) -> tuple[int, int]:
@@ -375,6 +392,9 @@ def _run_multi_det(
     imgsz_override: str = "",
     teacher_spec: str | None = None,
     seed: int = 0,
+    deim_opt: bool = False,
+    backbone_lr_ratio_override: str = "",
+    sched_decay: bool = False,
 ) -> None:
     """Sequentially train + val on a list of YOLO-format detection datasets.
 
@@ -404,6 +424,11 @@ def _run_multi_det(
             parent push. When None, the standard distilled-student multi_det_finetune mode.
         seed (int, optional): Training seed for detection-head init and augmentation RNG. Default 0 reproduces prior
             runs, vary it to sample per-dataset run-to-run variance.
+        deim_opt (bool, optional): Swap the MuSGD recipe for Esat's DEIM AdamW transplant, byte-matched to the
+            coco_det_finetune deim arm (AdamW, lr0 5e-4, lrf 0.5, linear decay, no warmup, nbs=batch). MuSGD head
+            boost dropped.
+        backbone_lr_ratio_override (str, optional): Backbone LR = lr0 * this (below 1 preserves distilled features).
+        sched_decay (bool, optional): Under MuSGD, replace the flat lrf 0.88 default with cosine decay to 1% of lr0.
     """
     if "," in gpu:
         raise SystemExit(
@@ -465,7 +490,6 @@ def _run_multi_det(
 
         model = YOLO(model_yaml)
         model.add_callback("on_train_start", grad_clip.override(1.0))
-        model.add_callback("on_train_start", muon_w.override(0.4355))
         # Nest NFS mirror under parent so different parents' same-basename sub-runs (e.g. two parents both training
         # `aerial-cows`) don't collide on the flat `NFS_MIRROR_ROOT / Path(save_dir).name` mapping in nfs_sync.setup.
         sync_start, sync_end = nfs_sync.setup(
@@ -491,6 +515,25 @@ def _run_multi_det(
         det_args = _build_det_train_args(
             base_epochs, base_patience, batch_override, lr_override, nbs_override,
             default_batch=_MULTI_DET_BASE_BATCH, default_lr0=_MULTI_DET_BASE_LR0,
+        )
+        if sched_decay:
+            # Replace the flat lrf 0.88 ul33 default with real cosine decay to 1% of lr0. Isolates the LR-schedule
+            # axis under MuSGD. Warmup is unchanged, it clamps to the trainer's 100-iter floor on 1k-image datasets.
+            det_args.update(cos_lr=True, lrf=0.01)
+        if backbone_lr_ratio_override:
+            det_args["backbone_lr_ratio"] = float(backbone_lr_ratio_override)
+        if deim_opt:
+            # DEIM transplant, byte-matched to the coco_det_finetune deim arm (verified against its args.yaml: cos_lr
+            # false, linear decay to lrf 0.5). nbs=batch so effective wd = wd. Muon head boost is MuSGD-only, dropped below.
+            det_args.update(**_DEIM_OPT_ARGS, nbs=det_args["batch"])
+        # sgd_w/cls_w/o2m/detach_epoch from the MuSGD recipe are not train_args (cfg validator rejects), so muon_w
+        # rides in via callback. It is a MuSGD-only weight, absent for the AdamW deim arm.
+        if det_args["optimizer"] == "MuSGD":
+            model.add_callback("on_train_start", muon_w.override(0.4355))
+        print(
+            f"[multi_det_finetune] {basename} recipe: optimizer={det_args['optimizer']} lr0={det_args['lr0']:.5f} "
+            f"lrf={det_args['lrf']} cos_lr={det_args['cos_lr']} nbs={det_args['nbs']} "
+            f"warmup_epochs={det_args['warmup_epochs']:.3f} backbone_lr_ratio={det_args.get('backbone_lr_ratio', 1.0)}"
         )
         if teacher_spec:
             # Freeze layer 0 (the teacher) via the trainer freeze arg: BaseTrainer re-enables requires_grad for any
@@ -565,6 +608,7 @@ def main(argv: list[str]) -> None:
     argv, freeze_override = _pop_flag(argv, "--freeze")
     argv, backbone_lr_ratio_override = _pop_flag(argv, "--backbone_lr_ratio")
     argv, deim_opt = _pop_flag(argv, "--deim_opt", is_bool=True)
+    argv, sched_decay = _pop_flag(argv, "--sched_decay", is_bool=True)
     argv, scratch = _pop_flag(argv, "--scratch", is_bool=True)
     argv, datasets_arg = _pop_flag(argv, "--datasets")
     argv, imgsz_override = _pop_flag(argv, "--imgsz")
@@ -650,6 +694,9 @@ def main(argv: list[str]) -> None:
             freeze_override=freeze_override,
             imgsz_override=imgsz_override,
             seed=seed,
+            deim_opt=deim_opt,
+            backbone_lr_ratio_override=backbone_lr_ratio_override,
+            sched_decay=sched_decay,
         )
         return
 
@@ -738,19 +785,8 @@ def main(argv: list[str]) -> None:
         if backbone_lr_ratio_override:
             det_args["backbone_lr_ratio"] = float(backbone_lr_ratio_override)
         if deim_opt:
-            # Esat's DEIM optimizer transplanted onto our conv head: AdamW at his literal lr0/wd (unscaled),
-            # nbs=batch so effective wd = wd, no warmup. Isolates the optimizer recipe axis vs g4's MuSGD.
-            det_args.update(
-                optimizer="AdamW",
-                lr0=0.0005,
-                lrf=0.5,
-                momentum=0.9,
-                weight_decay=0.000125,
-                warmup_epochs=0.0,
-                warmup_momentum=0.9,
-                warmup_bias_lr=0.0,
-                nbs=det_args["batch"],
-            )
+            # Esat's DEIM optimizer transplant onto our conv head, isolates the optimizer recipe axis vs g4's MuSGD.
+            det_args.update(**_DEIM_OPT_ARGS, nbs=det_args["batch"])
         print(
             f"[{mode}] optimizer={det_args['optimizer']} batch={det_args['batch']} nbs={det_args['nbs']} "
             f"lr0={det_args['lr0']:.5f} warmup_epochs={det_args['warmup_epochs']:.3f} "

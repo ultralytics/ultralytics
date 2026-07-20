@@ -308,7 +308,6 @@ Model and pipeline choices often matter more than compiler flags:
 | `data`     | `str`         | task-specific | Calibration dataset YAML                           |
 | `fraction` | `float`       | `1.0`         | Fraction of calibration images to use              |
 | `quantize` | `int`         | `8`           | Hailo export uses INT8 quantization                |
-| `opset`    | `int`         | `11`          | Fixed ONNX opset required by the Hailo translation |
 | `simplify` | `bool`        | `True`        | Simplify the intermediate ONNX graph               |
 | `conf`     | `float`       | `0.25`        | YOLOv8/YOLO11 HailoRT NMS confidence threshold     |
 | `iou`      | `float`       | `0.7`         | YOLOv8/YOLO11 HailoRT NMS IoU threshold            |

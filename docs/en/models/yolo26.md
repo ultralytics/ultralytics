@@ -14,6 +14,23 @@ Across its five detection scales, YOLO26 reaches **40.9-57.5 mAP on COCO** at **
 
 ![Ultralytics YOLO26 Comparison Plots](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/Ultralytics-YOLO26-Benchmark.jpg)
 
+!!! example "Quickstart"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("yolo26n.pt")  # load a pretrained YOLO26n model
+        results = model("path/to/bus.jpg")  # run inference
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo predict model=yolo26n.pt source=path/to/bus.jpg
+        ```
+
 !!! tip "Try on Ultralytics Platform"
 
     Explore and run YOLO26 models directly on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolo26).
@@ -22,7 +39,7 @@ The YOLO26 model family is built around four design areas:
 
 - **Native end-to-end inference:** The default one-to-one detection head produces predictions without non-maximum suppression (NMS), simplifying deployment and reducing post-processing.
 - **Lighter box regression:** YOLO26 removes Distribution Focal Loss (DFL), reducing detection-head complexity while preserving an unconstrained regression range.
-- **Training recipe updates:** The training pipeline combines **MuSGD**, **Progressive Loss**, and **STAL** to improve optimization, shift supervision toward the inference-time head, and maintain positive label coverage for small objects. The full hyperparameters behind the released checkpoints are documented in the [YOLO26 Training Recipe guide](../guides/yolo26-training-recipe.md).
+- **Training recipe updates:** The training pipeline combines **MuSGD** (a hybrid Muon + SGD optimizer), **Progressive Loss**, and **STAL** (Small-Target-Aware Label Assignment) to improve optimization, shift supervision toward the inference-time head, and maintain positive label coverage for small objects. The full hyperparameters behind the released checkpoints are documented in the [YOLO26 Training Recipe guide](../guides/yolo26-training-recipe.md).
 - **Task-specific heads and losses:** YOLO26 adds targeted designs for instance segmentation, semantic segmentation variants, pose estimation, and oriented detection while keeping a single model pipeline across tasks.
 
 Together, these updates improve the accuracy-latency tradeoff across model scales and deployment targets.
@@ -140,11 +157,11 @@ Note that the example below is for YOLO26 [Detect](../tasks/detect.md) models fo
         # Load a COCO-pretrained YOLO26n model
         model = YOLO("yolo26n.pt")
 
-        # Train the model on the COCO8 example dataset for 100 epochs
-        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
-
         # Run inference with the YOLO26n model on the 'bus.jpg' image
         results = model("path/to/bus.jpg")
+
+        # Train the model on the COCO8 example dataset for 100 epochs
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"
@@ -152,11 +169,11 @@ Note that the example below is for YOLO26 [Detect](../tasks/detect.md) models fo
         CLI commands are available to directly run the models:
 
         ```bash
-        # Load a COCO-pretrained YOLO26n model and train it on the COCO8 example dataset for 100 epochs
-        yolo train model=yolo26n.pt data=coco8.yaml epochs=100 imgsz=640
-
         # Load a COCO-pretrained YOLO26n model and run inference on the 'bus.jpg' image
         yolo predict model=yolo26n.pt source=path/to/bus.jpg
+
+        # Load a COCO-pretrained YOLO26n model and train it on the COCO8 example dataset for 100 epochs
+        yolo train model=yolo26n.pt data=coco8.yaml epochs=100 imgsz=640
         ```
 
 !!! note "Dual-Head Architecture"
@@ -204,122 +221,9 @@ Note that the example below is for YOLO26 [Detect](../tasks/detect.md) models fo
 
 ## YOLOE-26: Open-Vocabulary Detection and Segmentation
 
-YOLOE-26 extends YOLO26 with the open-vocabulary capabilities of the [YOLOE](yoloe.md) series. It enables real-time detection and segmentation of open-set object categories using **text prompts**, **visual prompts**, or a **prompt-free mode**.
+YOLO26 also powers [YOLOE-26](yoloe.md), an open-vocabulary variant that detects and segments object categories from **text prompts**, **visual prompts**, or a **prompt-free mode** instead of a fixed class list learned at training time. YOLOE-26 keeps YOLO26's NMS-free, end-to-end (e2e) design, so open-vocabulary inference stays fast enough for dynamic environments where target categories change over time. YOLOE-26x reaches **40.6 AP** on LVIS minival under text prompting.
 
-By leveraging YOLO26's **NMS-free, end-to-end design**, YOLOE-26 keeps open-vocabulary inference fast enough for dynamic environments where target categories can change over time. YOLOE-26x reaches **40.6 AP** on LVIS minival under text prompting, **38.5 AP** under visual prompting, and **31.1 AP** in the prompt-free Non-E2E setting.
-
-!!! tip "Performance"
-
-    === "Text/Visual Prompts"
-
-        See [YOLOE Docs](./yoloe.md) for usage examples with these models trained on [Objects365v1](https://opendatalab.com/OpenDataLab/Objects365_v1), [GQA](https://cs.stanford.edu/people/dorarad/gqa/about.html) and [Flickr30k](https://shannon.cs.illinois.edu/DenotationGraph/) datasets.
-
-        | Model         | size<br><sup>(pixels)</sup> | Prompt Type | mAP<sup>minival<br>50-95(e2e)</sup> | mAP<sup>minival<br>50-95</sup> | mAP<sub>r</sub> | mAP<sub>c</sub> | mAP<sub>f</sub> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
-        |---------------|-----------------------------|-------------|-------------------------------------|----------------------------|-----------------|-----------------|-----------------|--------------------------|-------------------------|
-        | [YOLOE-26n-seg](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26n-seg.pt) | 640                         | Text/Visual | 23.7 / 20.9                         | 24.7 / 21.9                | 20.5 / 17.6     | 24.1 / 22.3     | 26.1 / 22.4     | 4.8                      | 6.0                     |
-        | [YOLOE-26s-seg](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26s-seg.pt) | 640                         | Text/Visual | 29.9 / 27.1                         | 30.8 / 28.6                | 23.9 / 25.1     | 29.6 / 27.8     | 33.0 / 29.9     | 13.1                     | 21.7                    |
-        | [YOLOE-26m-seg](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26m-seg.pt) | 640                         | Text/Visual | 35.4 / 31.3                         | 35.4 / 33.9                | 31.1 / 33.4     | 34.7 / 34.0     | 36.9 / 33.8     | 27.9                     | 70.1                    |
-        | [YOLOE-26l-seg](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26l-seg.pt) | 640                         | Text/Visual | 36.8 / 33.7                         | 37.8 / 36.3                | 35.1 / 37.6     | 37.6 / 36.2     | 38.5 / 36.1     | 32.3                     | 88.3                    |
-        | [YOLOE-26x-seg](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26x-seg.pt) | 640                         | Text/Visual | 39.5 / 36.2                         | 40.6 / 38.5                | 37.4 / 35.3     | 40.9 / 38.8     | 41.0 / 38.8     | 69.9                     | 196.7                   |
-
-
-    === "Prompt-free"
-
-        See [YOLOE Docs](./yoloe.md) for usage examples with these models trained on [Objects365v1](https://opendatalab.com/OpenDataLab/Objects365_v1), [GQA](https://cs.stanford.edu/people/dorarad/gqa/about.html) and [Flickr30k](https://shannon.cs.illinois.edu/DenotationGraph/) datasets.
-
-        | Model            | size<br><sup>(pixels)</sup> | mAP<sup>minival<br>50-95(e2e)</sup> | mAP<sup>minival<br>50(e2e)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
-        |------------------|-----------------------------|-------------------------------------|------------------------------|--------------------------|-------------------------|
-        | [YOLOE-26n-seg-pf](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26n-seg-pf.pt) | 640                         | 16.6                                | 22.7                         | 6.5                      | 15.8                    |
-        | [YOLOE-26s-seg-pf](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26s-seg-pf.pt) | 640                         | 21.4                                | 28.6                         | 16.2                     | 35.5                    |
-        | [YOLOE-26m-seg-pf](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26m-seg-pf.pt) | 640                         | 25.7                                | 33.6                         | 36.2                     | 122.1                   |
-        | [YOLOE-26l-seg-pf](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26l-seg-pf.pt) | 640                         | 27.2                                | 35.4                         | 40.6                     | 140.4                   |
-        | [YOLOE-26x-seg-pf](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26x-seg-pf.pt) | 640                         | 29.9                                | 38.7                         | 86.3                     | 314.4                   |
-
-### Usage Example
-
-YOLOE-26 supports both text-based and visual prompting. Using prompts is straightforward—just pass them through the `predict` method as shown below:
-
-!!! example
-
-    === "Text Prompt"
-
-        Text prompts allow you to specify the classes that you wish to detect through textual descriptions. The following code shows how you can use YOLOE-26 to detect people and buses in an image:
-
-        ```python
-        from ultralytics import YOLO
-
-        # Initialize model
-        model = YOLO("yoloe-26l-seg.pt")  # or select yoloe-26s/m-seg.pt for different sizes
-
-        # Set text prompt to detect person and bus. You only need to do this once after you load the model.
-        model.set_classes(["person", "bus"])
-
-        # Run detection on the given image
-        results = model.predict("path/to/image.jpg")
-
-        # Show results
-        results[0].show()
-        ```
-
-    === "Visual Prompt"
-
-        Visual prompts allow you to guide the model by showing it visual examples of the target classes, rather than describing them in text. Bounding boxes must use absolute pixel coordinates in `[x_min, y_min, x_max, y_max]` format for the image used as the visual prompt.
-
-        ```python
-        import numpy as np
-
-        from ultralytics import YOLO
-        from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
-
-        # Initialize model
-        model = YOLO("yoloe-26l-seg.pt")
-
-        # Define visual prompts using bounding boxes and their corresponding class IDs.
-        # Each box highlights an example of the object you want the model to detect.
-        visual_prompts = dict(
-            bboxes=np.array(
-                [
-                    [221.5, 405.8, 345.0, 857.5],  # Person box: [x_min, y_min, x_max, y_max] pixels
-                    [120, 425, 160, 445],  # Glasses box: [x_min, y_min, x_max, y_max] pixels
-                ],
-            ),
-            cls=np.array(
-                [
-                    0,  # ID to be assigned for person
-                    1,  # ID to be assigned for glasses
-                ]
-            ),
-        )
-
-        # Run inference on an image, using the provided visual prompts as guidance
-        results = model.predict(
-            "ultralytics/assets/bus.jpg",
-            visual_prompts=visual_prompts,
-            predictor=YOLOEVPSegPredictor,
-        )
-
-        # Show results
-        results[0].show()
-        ```
-
-    === "Prompt free"
-
-        YOLOE-26 includes prompt-free variants that come with a built-in vocabulary. These models don't require any prompts and work like traditional YOLO models. Instead of relying on user-provided labels or visual examples, they detect objects from a [predefined list of 4,585 classes](https://github.com/xinyu1205/recognize-anything/blob/main/ram/data/ram_tag_list.txt) based on the tag set used by the [Recognize Anything Model Plus (RAM++)](https://arxiv.org/abs/2310.15200).
-
-        ```python
-        from ultralytics import YOLO
-
-        # Initialize model
-        model = YOLO("yoloe-26l-seg-pf.pt")
-
-        # Run prediction. No prompts required.
-        results = model.predict("path/to/image.jpg")
-
-        # Show results
-        results[0].show()
-        ```
-
-For prompting techniques and full usage examples, visit the **[YOLOE Documentation](yoloe.md)**.
+See the **[YOLOE documentation](yoloe.md)** for per-scale performance tables, prompt-free variants, and full usage examples.
 
 ## Citations and Acknowledgments
 
@@ -367,7 +271,7 @@ YOLO26 is a **unified model family**, providing end-to-end support for multiple 
 - [Pose Estimation](../tasks/pose.md)
 - [Oriented Object Detection (OBB)](../tasks/obb.md)
 
-Each size variant (n, s, m, l, x) supports all tasks, plus open-vocabulary versions via [YOLOE-26](#yoloe-26-open-vocabulary-detection-and-segmentation).
+Each size variant (n, s, m, l, x) supports all tasks, plus open-vocabulary versions via [YOLOE-26](yoloe.md).
 
 ### Why is YOLO26 efficient for deployment?
 

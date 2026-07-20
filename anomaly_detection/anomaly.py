@@ -1121,15 +1121,18 @@ class AnomalyBboxValidator:
 
     def __init__(self, max_det: int = 5, min_area: int = 20,
                  min_score: float = 0.0, zero_mode: str = "poly",
+                 iou_threshold: float = 0.0,
                  save_dir: Path | str | None = None,
                  save_vis: bool = False):
         self.max_det = max_det
         self.min_area = min_area
         self.min_score = min_score
         self.zero_mode = zero_mode
+        self.iou_threshold = iou_threshold
         self.save_dir = Path(save_dir) if save_dir is not None else None
         self.save_vis = save_vis
-        self._vis_tag = f"bbox_d{max_det}_ms{min_score}_{zero_mode}"
+        nms_tag = f"_iou{int(iou_threshold * 100):02d}" if iou_threshold > 0 else ""
+        self._vis_tag = f"bbox_d{max_det}_ms{min_score}_{zero_mode}{nms_tag}"
 
     # ── Label file resolution ──────────────────────────────────────────
 
@@ -1241,7 +1244,39 @@ class AnomalyBboxValidator:
                         queue.append((nr, nc))
         return region
 
-    def _heatmap_to_boxes(self, heatmap: np.ndarray,
+    @staticmethod
+    def _nms(boxes: np.ndarray, iou_threshold: float) -> np.ndarray:
+        """Standard greedy NMS for axis-aligned boxes.
+
+        *boxes*: ``(N, 5)`` [x1, y1, x2, y2, score], sorted by score desc.
+        *iou_threshold*: overlap threshold (boxes with IoU ≥ this are suppressed).
+
+        Returns filtered ``(M, 5)``.
+        """
+        if len(boxes) == 0:
+            return boxes
+        x1 = boxes[:, 0]; y1 = boxes[:, 1]; x2 = boxes[:, 2]; y2 = boxes[:, 3]
+        areas = (x2 - x1) * (y2 - y1)
+        keep: list[int] = []
+        idxs = list(range(len(boxes)))
+        while idxs:
+            i = idxs.pop(0)
+            keep.append(i)
+            if not idxs:
+                break
+            xx1 = np.maximum(x1[i], x1[idxs])
+            yy1 = np.maximum(y1[i], y1[idxs])
+            xx2 = np.minimum(x2[i], x2[idxs])
+            yy2 = np.minimum(y2[i], y2[idxs])
+            w = np.maximum(0, xx2 - xx1)
+            h = np.maximum(0, yy2 - yy1)
+            inter = w * h
+            union = areas[i] + areas[idxs] - inter
+            iou = inter / np.maximum(union, 1e-9)
+            idxs = [idx for j, idx in enumerate(idxs) if iou[j] < iou_threshold]
+        return boxes[keep]
+
+    def  _heatmap_to_boxes (self, heatmap: np.ndarray,
                           min_score: float | None = None) -> np.ndarray:
         """Greedy region-growing heatmap → bbox.
 
@@ -1291,6 +1326,9 @@ class AnomalyBboxValidator:
         boxes_arr = boxes_arr[boxes_arr[:, 4].argsort()[::-1]]
         # Filter by min_score (score may be lower than peak due to bbox mean)
         boxes_arr = boxes_arr[boxes_arr[:, 4] >= ms]
+        # NMS post-processing (only when iou_threshold > 0)
+        if self.iou_threshold > 0 and len(boxes_arr) > 1:
+            boxes_arr = self._nms(boxes_arr, self.iou_threshold)
         return boxes_arr
 
     # ── COCO JSON builders ─────────────────────────────────────────────
@@ -2192,6 +2230,9 @@ def main() -> None:
     p.add_argument("--zero-mode", choices=["bbox", "poly"], default="poly",
                    help="What to zero after each detection: 'bbox' (full rect) or 'poly' (irregular region). "
                         "Default 'poly'.")
+    p.add_argument("--bbox-iou", type=float, default=0.0,
+                   help="IoU threshold for NMS post-processing on extracted bboxes "
+                        "(default 0.0 = disabled). e.g. 0.5 for NMS at IoU ≥ 0.5.")
     args = p.parse_args()
 
     if args.category:
@@ -2231,6 +2272,7 @@ def main() -> None:
             min_area=args.bbox_min_area,
             min_score=args.bbox_min_score,
             zero_mode=args.zero_mode,
+            iou_threshold=args.bbox_iou,
             save_dir=run_dir,
             save_vis=args.bbox_vis,
         )

@@ -860,6 +860,11 @@ def test_results(model: str, tmp_path):
             assert len(r), f"'{model}' results should not be empty!"
         r = r.cpu().numpy()
         print(r, len(r), r.path)  # print numpy attributes
+        r.save_txt(txt_file=tmp_path / "runs/tests/label.txt", save_conf=True)  # numpy-backed Results must also work
+        r.save_crop(save_dir=tmp_path / "runs/tests/crops/")
+        r.to_json(normalize=True)
+        r.plot(conf=True, boxes=True)
+        r.verbose()
         r = r.to(device="cpu", dtype=torch.float32)
         r.save_txt(txt_file=tmp_path / "runs/tests/label.txt", save_conf=True)
         r.save_crop(save_dir=tmp_path / "runs/tests/crops/")

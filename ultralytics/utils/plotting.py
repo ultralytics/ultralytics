@@ -334,7 +334,7 @@ class Annotator:
             >>> annotator.box_label(box=[10, 20, 30, 40], label="person")
         """
         txt_color = self.get_txt_color(color, txt_color)
-        if isinstance(box, torch.Tensor):
+        if isinstance(box, (torch.Tensor, np.ndarray)):
             box = box.tolist()
 
         multi_points = isinstance(box[0], list)  # multiple points with shape (n, 2)
@@ -694,7 +694,9 @@ def save_one_box(
         >>> im = cv2.imread("image.jpg")
         >>> cropped_im = save_one_box(xyxy, im, file="cropped.jpg", square=True)
     """
-    if not isinstance(xyxy, torch.Tensor):  # may be list
+    if isinstance(xyxy, np.ndarray):
+        xyxy = torch.from_numpy(xyxy)
+    elif not isinstance(xyxy, torch.Tensor):  # may be list
         xyxy = torch.stack(xyxy)
     b = ops.xyxy2xywh(xyxy.view(-1, 4))  # boxes
     if square:

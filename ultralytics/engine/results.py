@@ -532,10 +532,11 @@ class Results(SimpleClass, DataExportMixin):
 
         # Plot Segment results
         if pred_masks and show_masks:
+            pred_mask_data = torch.as_tensor(pred_masks.data)  # no-op for torch, converts a numpy() result
             if im_gpu is None:
                 img = LetterBox(pred_masks.shape[1:])(image=annotator.result())
                 im_gpu = (
-                    torch.as_tensor(img, dtype=torch.float16, device=pred_masks.data.device)
+                    torch.as_tensor(img, dtype=torch.float16, device=pred_mask_data.device)
                     .permute(2, 0, 1)
                     .flip(0)
                     .contiguous()
@@ -548,7 +549,7 @@ class Results(SimpleClass, DataExportMixin):
                 if pred_boxes and color_mode == "class"
                 else reversed(range(len(pred_masks)))
             )
-            annotator.masks(pred_masks.data, colors=[colors(x, True) for x in idx], im_gpu=im_gpu)
+            annotator.masks(pred_mask_data, colors=[colors(x, True) for x in idx], im_gpu=im_gpu)
 
         # Plot Detect results
         if pred_boxes is not None and show_boxes:
@@ -683,7 +684,7 @@ class Results(SimpleClass, DataExportMixin):
         if self.probs is not None:
             return f"{', '.join(f'{self.names[j]} {self.probs.data[j]:.2f}' for j in self.probs.top5)}, "
         if boxes:
-            counts = boxes.cls.int().bincount()
+            counts = torch.as_tensor(boxes.cls, dtype=torch.int64).bincount()  # no-op for torch, converts numpy()
             return "".join(f"{n} {self.names[i]}{'s' * (n > 1)}, " for i, n in enumerate(counts) if n > 0)
         if self.semantic_mask is not None:
             return ""
@@ -731,12 +732,14 @@ class Results(SimpleClass, DataExportMixin):
             # Detect/segment/pose
             for j, d in enumerate(boxes):
                 c, conf, id = int(d.cls), float(d.conf), int(d.id.item()) if d.is_track else None
-                line = (c, *(d.xyxyxyxyn.view(-1) if is_obb else d.xywhn.view(-1)))
+                line = (c, *(d.xyxyxyxyn.reshape(-1) if is_obb else d.xywhn.reshape(-1)))
                 if masks:
                     seg = masks[j].xyn[0].copy().reshape(-1)  # reversed mask.xyn, (n,2) to (n*2)
                     line = (c, *seg)
                 if kpts is not None:
-                    kpt = torch.cat((kpts[j].xyn, kpts[j].conf[..., None]), 2) if kpts[j].has_visible else kpts[j].xyn
+                    kpt = kpts[j].xyn
+                    if kpts[j].has_visible:
+                        kpt = torch.cat((torch.as_tensor(kpt), torch.as_tensor(kpts[j].conf)[..., None]), 2)
                     line += (*kpt.reshape(-1).tolist(),)
                 line += (conf,) * save_conf + (() if id is None else (id,))
                 texts.append(("%g " * len(line)).rstrip() % line)
@@ -867,16 +870,14 @@ class Results(SimpleClass, DataExportMixin):
                 }
             if self.keypoints is not None:
                 kpt = self.keypoints[i]
-                if kpt.has_visible:
-                    x, y, visible = kpt.data[0].cpu().unbind(dim=1)
-                else:
-                    x, y = kpt.data[0].cpu().unbind(dim=1)
+                k = kpt.data[0]
+                k = k.cpu().numpy() if isinstance(k, torch.Tensor) else k
                 result["keypoints"] = {
-                    "x": (x / w).numpy().astype(float).round(decimals).tolist(),
-                    "y": (y / h).numpy().astype(float).round(decimals).tolist(),
+                    "x": (k[:, 0] / w).astype(float).round(decimals).tolist(),
+                    "y": (k[:, 1] / h).astype(float).round(decimals).tolist(),
                 }
                 if kpt.has_visible:
-                    result["keypoints"]["visible"] = visible.numpy().astype(float).round(decimals).tolist()
+                    result["keypoints"]["visible"] = k[:, 2].astype(float).round(decimals).tolist()
             results.append(result)
 
         return results

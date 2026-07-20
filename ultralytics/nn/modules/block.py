@@ -1356,7 +1356,7 @@ class Attention(nn.Module):
             [self.key_dim, self.key_dim, self.head_dim], dim=2
         )
 
-        attn = (q.transpose(-2, -1) @ k) * self.scale
+        attn = (q * self.scale).transpose(-2, -1) @ k  # scale q pre-matmul: fp16-safe, mathematically identical
         attn = attn.softmax(dim=-1)
         x = (v @ attn.transpose(-2, -1)).view(B, C, H, W) + self.pe(v.reshape(B, C, H, W))
         x = self.proj(x)
@@ -2493,7 +2493,7 @@ class SHSA(nn.Module):
         x1, x2 = torch.split(x, [self.pdim, c - self.pdim], dim=1)
         qkv = self.qkv(self.pre_norm(x1))
         q, k, v = qkv.split([self.qk_dim, self.qk_dim, self.pdim], dim=1)
-        attn = (q.flatten(2).transpose(-2, -1) @ k.flatten(2)) * self.scale
+        attn = (q * self.scale).flatten(2).transpose(-2, -1) @ k.flatten(2)  # scale q pre-matmul: fp16-safe
         x1 = (v.flatten(2) @ attn.softmax(dim=-1).transpose(-2, -1)).reshape(b, self.pdim, h, w) + self.pe(v)
         return self.proj(torch.cat([x1, x2], dim=1))
 

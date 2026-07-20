@@ -8,6 +8,7 @@ import os
 import time
 import urllib
 from dataclasses import dataclass
+from io import BytesIO
 from pathlib import Path
 from threading import Thread
 from typing import Any
@@ -641,9 +642,13 @@ def autocast_list(source: list[Any]) -> list[Image.Image | np.ndarray]:
     files = []
     for im in source:
         if isinstance(im, (str, Path)):  # filename or uri
-            files.append(
-                ImageOps.exif_transpose(Image.open(urllib.request.urlopen(im) if str(im).startswith("http") else im))
-            )
+            if str(im).startswith("http"):  # requests follows HTTP 308 redirects that urllib drops before Python 3.11
+                import requests  # scoped as slow import
+
+                response = requests.get(im)
+                response.raise_for_status()
+                im = BytesIO(response.content)
+            files.append(ImageOps.exif_transpose(Image.open(im)))
         elif isinstance(im, (Image.Image, np.ndarray)):  # PIL or np Image
             files.append(im)
         else:

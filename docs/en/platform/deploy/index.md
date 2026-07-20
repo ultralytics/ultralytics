@@ -8,7 +8,7 @@ keywords: Ultralytics Platform, deployment, inference, endpoints, monitoring, YO
 
 # Deployment
 
-[Ultralytics Platform](https://platform.ultralytics.com) provides comprehensive deployment options for putting your YOLO models into production. Test models with browser-based inference, deploy to dedicated endpoints across 43 global regions, and monitor performance in real-time.
+[Ultralytics Platform](https://platform.ultralytics.com) provides comprehensive [model deployment options](../../guides/model-deployment-options.md) for putting your YOLO models into production. Test models with browser-based inference, deploy to dedicated endpoints across 42 global regions, and monitor performance in real-time.
 
 <p align="center">
   <br>
@@ -26,7 +26,7 @@ keywords: Ultralytics Platform, deployment, inference, endpoints, monitoring, YO
 The Deployment section helps you:
 
 - **Test** models directly in the browser with the `Predict` tab
-- **Deploy** to dedicated endpoints in 43 global regions
+- **Deploy** to dedicated endpoints in 42 global regions
 - **Monitor** request metrics, logs, and health checks
 - **Scale to zero** when idle (deployments currently run a single active instance)
 
@@ -40,7 +40,7 @@ Ultralytics Platform offers multiple deployment paths:
 | --------------------------------------- | -------------------------------------------------------- | ----------------------- |
 | **[Predict Tab](inference.md)**         | Browser-based inference with image, webcam, and examples | Development, validation |
 | **Shared Inference**                    | Multi-tenant service across 3 regions                    | Light usage, testing    |
-| **[Dedicated Endpoints](endpoints.md)** | Single-tenant services across 43 regions                 | Production, low latency |
+| **[Dedicated Endpoints](endpoints.md)** | Single-tenant services across 42 regions                 | Production, low latency |
 
 ## Workflow
 
@@ -90,12 +90,12 @@ graph TB
 
 ### Dedicated Endpoints
 
-Deploy to 43 regions worldwide on Ultralytics Cloud:
+Deploy to 42 regions worldwide on Ultralytics Cloud:
 
 - **Americas**: 14 regions
 - **Europe**: 13 regions
 - **Asia-Pacific**: 12 regions
-- **Middle East & Africa**: 4 regions
+- **Middle East & Africa**: 3 regions
 
 Each endpoint is a single-tenant service with:
 
@@ -123,7 +123,7 @@ Access the global deployments page from the sidebar under `Deploy`. This page sh
 
 ### Global Coverage
 
-Deploy close to your users with 43 regions covering:
+Deploy close to your users with 42 regions covering:
 
 - North America, South America
 - Europe, Middle East, Africa
@@ -189,7 +189,7 @@ Deploy a model in under 2 minutes:
 | **Latency** | Variable        | Consistent                                                |
 | **Cost**    | Free (included) | Free (basic), usage-based (advanced)                      |
 | **Scale**   | Limited         | Scale-to-zero, single instance                            |
-| **Regions** | 3               | 43                                                        |
+| **Regions** | 3               | 42                                                        |
 | **URL**     | Generic         | Custom                                                    |
 | **Rate**    | 20 req/min      | 20 req/min via Platform; unlimited on direct endpoint URL |
 

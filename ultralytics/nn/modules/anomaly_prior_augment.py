@@ -26,7 +26,8 @@ class MaskPriorAugmenter:
             mask_blur_sigma_max, mask_jitter, mask_box_drop_p, mask_distractor_p, mask_distractor_n,
             mask_erase_p, mask_warp_p, mask_mixup_p, mask_mixup_alpha, mask_fragment_p,
             mask_fragment_n, mask_bg_blobs_p, mask_bg_blobs_n, mask_bg_blobs_amp, mask_bg_blobs_sigma,
-            mask_coherent_noise_p, mask_coherent_noise_amp, mask_coherent_noise_sigma, mask_floor.
+            mask_coherent_noise_p, mask_coherent_noise_amp, mask_coherent_noise_sigma, mask_floor,
+            mask_scale_range, mask_offset_range.
     """
 
     def __init__(self, v2_cfg: dict | None = None):
@@ -36,7 +37,6 @@ class MaskPriorAugmenter:
         self.mask_aug_passes = int(v2_cfg.get("mask_aug_passes", 1))
         self.mask_shuffle_p = float(v2_cfg.get("mask_shuffle_p", 0.0))
         self.mask_noise_std = float(v2_cfg.get("mask_noise_std", 0.0))
-        self.mask_noise_p = float(v2_cfg.get("mask_noise_p", 0.0))
         _mag = v2_cfg.get("mask_mag_range", [1.0, 1.0])
         self.mask_mag_range = (float(_mag[0]), float(_mag[1]))
         self.mask_blur_sigma_max = float(v2_cfg.get("mask_blur_sigma_max", 0.0))
@@ -63,6 +63,13 @@ class MaskPriorAugmenter:
         self.mask_coherent_noise_sigma = (float(_csig[0]), float(_csig[1]))
         _floor = v2_cfg.get("mask_floor", [0.0, 0.0])
         self.mask_floor = (float(_floor[0]), float(_floor[1]))
+        # Per-sample value-adjust: multiplicative scale then additive offset (both uniform),
+        # applied last to map a clean [0,1] prior into a narrower/shifted range that mimics a
+        # weak inference heatmap. Defaults are identity (no-op).
+        _scale_r = v2_cfg.get("mask_scale_range", [1.0, 1.0])
+        self.mask_scale_range = (float(_scale_r[0]), float(_scale_r[1]))
+        _offset_r = v2_cfg.get("mask_offset_range", [0.0, 0.0])
+        self.mask_offset_range = (float(_offset_r[0]), float(_offset_r[1]))
 
     # -- bbox-level augmentations ------------------------------------------------------------
 
@@ -149,11 +156,28 @@ class MaskPriorAugmenter:
         lo, hi = self.mask_mag_range
         if lo < 1.0 or hi < 1.0:
             mask = mask * torch.empty(b, 1, 1, 1, device=mask.device).uniform_(lo, hi)
-        if self.mask_noise_std > 0.0 and self.mask_noise_p > 0.0 and torch.rand(1).item() < self.mask_noise_p:
+        if self.mask_noise_std > 0.0:
             mask = mask + torch.randn_like(mask) * self.mask_noise_std
         mask = self._augment_prior_extra(mask)
         mask = self._augment_mask_mb_style(mask)
+        mask = self._apply_value_adjust(mask)
         return mask.clamp(0.0, 1.0)
+
+    def _apply_value_adjust(self, mask):
+        """Per-sample multiplicative scale then additive offset; identity by default.
+
+        ``mask_scale_range`` / ``mask_offset_range`` are sampled uniformly per sample and shape a
+        clean prior toward a weak-heatmap value range. No-op when scale>=1 everywhere and
+        offset<=0 everywhere (the defaults).
+        """
+        s_lo, s_hi = self.mask_scale_range
+        o_lo, o_hi = self.mask_offset_range
+        if s_lo >= 1.0 and s_hi >= 1.0 and o_lo <= 0.0 and o_hi <= 0.0:
+            return mask
+        b = mask.shape[0]
+        scale = torch.empty(b, 1, 1, 1, device=mask.device).uniform_(s_lo, s_hi)
+        offset = torch.empty(b, 1, 1, 1, device=mask.device).uniform_(o_lo, o_hi)
+        return (mask * scale + offset).clamp_(0.0, 1.0)
 
     def _augment_prior_extra(self, mask):
         """Train-only mask-level prior augs: additive mixup, distractor, partial erase, warp.

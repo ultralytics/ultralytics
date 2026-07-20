@@ -31,6 +31,7 @@ from ultralytics.nn.modules import (
     AConv,
     ADown,
     AnomalyMemoryBank,
+    HeatmapBiasFusion,
     HeatmapNeckFusion,
     Bottleneck,
     BottleneckCSP,
@@ -557,6 +558,70 @@ class YOLOAnomalyModel(DetectionModel):
         # Architecture knob from the model YAML; all build hyperparameters are baked in.
         self.bb_layers = list(v2_cfg["bb_layers"])
         self.memory_bank = AnomalyMemoryBank(spatial=bool(v2_cfg.get("spatial", False)))
+
+        # --- Heatmap-fusion gradient control (ported from yoloa_clean_louis) ---
+        # The AnomalyDetect head owns ``heatmap_bias_fusion``; here we (a) set the injection
+        # target + application mode and (b) optionally rebuild the fusion module with the
+        # architecture knobs (per-scale / feature-conditioned / deeper). Defaults are chosen to
+        # preserve the head's current behavior so existing YAMLs are untouched:
+        #   fusion_apply  default 'none'  -> head does ``p * delta`` (legacy)
+        #   fusion_target default 'all'   -> bias added to both box + cls branches (legacy)
+        detect = self.model[-1]
+        if isinstance(detect, AnomalyDetect):
+            # How the per-scale fusion output is applied to the PAN feature p:
+            #   'none'    -- p * delta                    (legacy default; keep-gates delta to 1.0)
+            #   'add'     -- p + delta                    (additive residual)
+            #   'mul'     -- p * (1 + tanh(delta))        (bounded gate in [0, 2])
+            #   'sigmoid' -- p * (2 * sigmoid(delta))     (same range, milder gating)
+            fusion_apply = str(v2_cfg.get("fusion_apply", "none")).lower()
+            if fusion_apply not in ("none", "add", "mul", "sigmoid"):
+                raise ValueError(f"fusion_apply must be none/add/mul/sigmoid, got {fusion_apply!r}")
+            # Prior injection target:
+            #   'all'         -- bias fused into the PAN features (box + cls both see it) [legacy]
+            #   'cls'         -- bias handed to the cls branch only; box reads clean features
+            #   'all_clsgrad' -- FORWARD identical to 'all' (deploy graph unchanged), but the
+            #                    fusion module receives gradients from the cls path only (box path
+            #                    detached) -> box weights can't use the GT-extent prior as an oracle
+            fusion_target = str(v2_cfg.get("fusion_target", "all")).lower()
+            if fusion_target not in ("all", "cls", "all_clsgrad"):
+                raise ValueError(f"fusion_target must be all/cls/all_clsgrad, got {fusion_target!r}")
+            detect._fusion_apply = fusion_apply
+            detect.fusion_target = fusion_target
+            detect.fusion_feat_grad = bool(v2_cfg.get("fusion_feat_grad", False))
+            # Heatmap gate blend: 1.0 (default) = gate off (deploy-friendly); <1.0 gates cls scores.
+            detect.hm_gate_blend = float(v2_cfg.get("hm_gate_blend", 1.0))
+
+            # Rebuild the fusion module ONLY when an architecture knob is specified, so YAMLs that
+            # set none of these keep the head's original module (built from the head YAML args).
+            _arch_keys = (
+                "fusion_mid", "fusion_norm", "fusion_residual",
+                "fusion_feat", "fusion_feat_k", "fusion_per_scale", "fusion_depth",
+            )
+            if any(k in v2_cfg for k in _arch_keys):
+                fusion_mid = int(v2_cfg.get("fusion_mid", 8))
+                fusion_norm = bool(v2_cfg.get("fusion_norm", False))
+                fusion_residual = bool(v2_cfg.get("fusion_residual", False))
+                fusion_feat = bool(v2_cfg.get("fusion_feat", False))
+                fusion_feat_k = int(v2_cfg.get("fusion_feat_k", 8))
+                fusion_per_scale = bool(v2_cfg.get("fusion_per_scale", False))
+                fusion_depth = int(v2_cfg.get("fusion_depth", 0))
+                detect._fusion_feat = fusion_feat
+                # Per-scale PAN channel counts recovered from the box head (cv2[i][0] first Conv).
+                pan_ch = (
+                    [detect.cv2[i][0].conv.in_channels for i in range(detect.nl)] if fusion_feat else None
+                )
+                _ref = next(detect.heatmap_bias_fusion.parameters())
+                detect.heatmap_bias_fusion = HeatmapBiasFusion(
+                    num_scales=detect.nl,
+                    c_mid=fusion_mid,
+                    inst_norm=fusion_norm,
+                    residual=fusion_residual,
+                    ch=pan_ch,
+                    feat=fusion_feat,
+                    k_feat=fusion_feat_k,
+                    per_scale=fusion_per_scale,
+                    depth=fusion_depth,
+                ).to(device=_ref.device, dtype=_ref.dtype)
 
     @smart_inference_mode()
     def build_memory_bank(

@@ -1,0 +1,395 @@
+---
+comments: true
+description: Explore real-world computer vision applications across retail, healthcare, manufacturing, agriculture, sports, security, and autonomous vehicles - with working code examples and links to Ultralytics implementations.
+keywords: computer vision applications, computer vision in retail, computer vision in healthcare, computer vision in manufacturing, computer vision in agriculture, computer vision in sports, computer vision security, autonomous vehicles computer vision, YOLO applications
+---
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "headline": "Computer Vision Applications",
+      "description": "Real-world applications of computer vision across industries including retail, healthcare, manufacturing, agriculture, sports, security, and autonomous vehicles.",
+      "author": {"@type": "Organization", "name": "Ultralytics"},
+      "publisher": {"@type": "Organization", "name": "Ultralytics", "url": "https://www.ultralytics.com"},
+      "url": "https://docs.ultralytics.com/computer-vision/applications/",
+      "about": {"@type": "Thing", "name": "Computer Vision Applications"}
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What industries use computer vision most?",
+          "acceptedAnswer": {"@type": "Answer", "text": "Computer vision is deployed across virtually every industry. The highest-adoption sectors are retail (loss prevention, inventory, checkout automation), manufacturing (defect detection, quality control), healthcare (medical imaging, surgical assistance), automotive (ADAS, autonomous driving), agriculture (crop monitoring, yield estimation), security (surveillance, access control), and sports (player tracking, performance analytics)."}
+        },
+        {
+          "@type": "Question",
+          "name": "Do I need custom training for every application?",
+          "acceptedAnswer": {"@type": "Answer", "text": "Not always. Pretrained YOLO models work immediately for common objects (people, vehicles, animals, everyday items) without any training. Custom training is needed when your target objects are not in the pretrained class set - for example, specific product SKUs, medical devices, or industrial components. Many of the applications on this page can be prototyped with a pretrained model before committing to custom training."}
+        },
+        {
+          "@type": "Question",
+          "name": "Can computer vision run in real time on edge devices?",
+          "acceptedAnswer": {"@type": "Answer", "text": "Yes. YOLO11n (nano) runs at over 100 FPS on a modern CPU and significantly faster on a GPU or dedicated edge accelerator. Ultralytics supports export to ONNX, TensorRT, CoreML, and other formats optimised for edge deployment on NVIDIA Jetson, Raspberry Pi, and similar hardware."}
+        },
+        {
+          "@type": "Question",
+          "name": "How accurate is computer vision for industrial defect detection?",
+          "acceptedAnswer": {"@type": "Answer", "text": "Accuracy depends heavily on training data quality and the complexity of defect types. Custom-trained YOLO models regularly achieve over 95% precision on well-defined defect categories when trained on representative datasets. Tiled inference is often used for high-resolution inspection images to ensure small defects are not missed."}
+        }
+      ]
+    }
+  ]
+}
+</script>
+
+# Computer Vision Applications
+
+Part of the [Computer Vision Hub](../index.md).
+
+Computer vision has moved from research labs into production across nearly every industry. This page covers the most impactful real-world application areas, the specific problems they solve, and how to implement them using Ultralytics YOLO.
+
+## Industry overview
+
+| Industry | Key use cases | Difficulty | Primary technique |
+|---|---|---|---|
+| [Retail](#retail) | Loss prevention, footfall, queue analysis | Beginner | Detection + Tracking |
+| [Healthcare](#healthcare-and-medical-imaging) | Anomaly detection, tissue classification | Advanced | Segmentation |
+| [Manufacturing](#manufacturing-and-quality-control) | Defect detection, assembly verification | Intermediate | Detection + OBB |
+| [Agriculture](#agriculture) | Crop monitoring, yield counting | Intermediate | Detection |
+| [Sports](#sports-and-performance-analysis) | Player tracking, biomechanics | Intermediate | Pose + Tracking |
+| [Security](#security-and-surveillance) | Intrusion, crowd management | Beginner | Detection + Tracking |
+| [Autonomous vehicles](#autonomous-vehicles-and-adas) | Road users, obstacles, signs | Advanced | Detection + Depth |
+
+!!! tip "Prerequisites"
+
+    - Python 3.8+ and `pip install ultralytics`
+    - Most applications on this page work with a pretrained model — no custom training needed to get started
+    - For edge deployment see [NVIDIA Jetson](../../guides/nvidia-jetson.md) and [Raspberry Pi](../../guides/raspberry-pi.md)
+
+## Retail
+
+Computer vision gives retailers real-time visibility into what is happening on the shop floor - without manual auditing.
+
+![Retail heatmap showing customer movement patterns and dwell zones in a store](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-yolov8-retail-heatmap.avif)
+
+**Core use cases:**
+
+- **Loss prevention** - detect theft behaviours, monitor checkout lanes, and flag unscanned items
+- **Inventory management** - track shelf stock levels, identify out-of-stock positions, and automate replenishment alerts
+- **Customer analytics** - measure footfall, dwell time, queue lengths, and conversion zones
+- **Cashierless checkout** - identify products as customers pick them up and charge automatically
+
+!!! example "Using Ultralytics YOLO"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("yolo11n.pt")
+
+        # Count people in a store zone
+        results = model.track("store_feed.mp4", persist=True, classes=[0])  # class 0 = person
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo track model=yolo11n.pt source=store_feed.mp4 classes=0
+        ```
+
+**Relevant guides:** [Object Counting](../../guides/object-counting.md) · [Queue Management](../../guides/queue-management.md) · [Heatmaps](../../guides/heatmaps.md) · [Region Counting](../../guides/region-counting.md)
+
+**Ready-to-run projects:** [Object Counting](../projects/index.md#2-object-counting) · [Queue Management](../projects/index.md#10-queue-management) · [Heatmap Generation](../projects/index.md#12-heatmap-generation) · [Region and Zone Counting](../projects/index.md#13-region-and-zone-counting)
+
+---
+
+## Healthcare and Medical Imaging
+
+Computer vision assists clinicians by automating the analysis of medical images at a scale and consistency that manual review cannot match.
+
+![Detection and segmentation applied in a robotics and clinical vision context](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/detection-segmentation-ros-gazebo.avif)
+
+**Core use cases:**
+
+- **Radiology** - detect anomalies in X-ray, CT, and MRI scans to flag cases for review
+- **Pathology** - classify tissue samples and identify cellular abnormalities in histology slides
+- **Surgical assistance** - track instruments, anatomical landmarks, and tissue boundaries during procedures
+- **Patient monitoring** - detect falls, measure vital signs from video, or monitor post-surgical recovery remotely
+
+!!! example "Using Ultralytics YOLO"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Fine-tuned model on medical imagery
+        model = YOLO("yolo11n-seg.pt")
+        results = model("scan.jpg")
+
+        for mask in results[0].masks:
+            print(mask.xy)  # segmentation boundary coordinates
+        ```
+
+**Relevant guides:** [Instance Segmentation](../../tasks/segment.md) · [Fine-Tune on Custom Dataset](../../modes/train.md)
+
+**Ready-to-run projects:** [Instance Segmentation with Tracking](../projects/index.md#15-instance-segmentation-with-tracking) · [Fine-Tune on Custom Dataset](../projects/index.md#25-fine-tune-on-custom-dataset)
+
+---
+
+## Manufacturing and Quality Control
+
+Automated visual inspection replaces or augments manual quality checks on production lines, catching defects faster and more consistently than human inspectors.
+
+![Precision detection example showing model confidence and accuracy on manufactured components](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/example-of-precision.avif)
+
+**Core use cases:**
+
+- **Surface defect detection** - identify scratches, dents, discolouration, and cracks on manufactured parts
+- **Assembly verification** - confirm that all components are present and correctly positioned
+- **Dimensional measurement** - use pixel dimensions with known camera calibration to verify tolerances
+- **Packaging inspection** - check label placement, seal integrity, and fill levels
+
+!!! example "Using Ultralytics YOLO"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("yolo11n.pt")  # or a custom-trained defect model
+
+        # Tiled inference for high-resolution inspection images
+        results = model("part.jpg", imgsz=1280)
+        for det in results[0].boxes:
+            print(f"Defect: {det.cls}, confidence: {det.conf:.2f}")
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo detect predict model=best.pt source=part.jpg imgsz=1280
+        ```
+
+**Relevant guides:** [Tiled Inference for Large Images](../projects/index.md#20-tiled-inference-for-large-images) · [Fine-Tune on Custom Dataset](../../modes/train.md) · [OBB Detection](../../tasks/obb.md)
+
+**Ready-to-run projects:** [Defect and Anomaly Detection](../projects/index.md#23-defect-and-anomaly-detection) · [Tiled Inference for Large Images](../projects/index.md#20-tiled-inference-for-large-images) · [Rotated Object Detection](../projects/index.md#19-rotated-object-detection-obb)
+
+---
+
+## Agriculture
+
+Computer vision enables precision agriculture by providing detailed, timely data about crops, livestock, and field conditions that would be impractical to collect manually.
+
+![Fish counting in open water using Ultralytics YOLO for aquaculture yield estimation](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/fish-counting-in-sea-using-ultralytics-yolov8.avif)
+
+**Core use cases:**
+
+- **Crop monitoring** - identify disease, pest damage, or nutrient deficiency from drone or ground imagery
+- **Yield estimation** - count fruit or grain heads to predict harvest quantities before picking
+- **Weed detection** - distinguish crop plants from weeds for targeted herbicide application
+- **Livestock monitoring** - track animal behaviour, detect injury or illness, and count herd size
+
+!!! example "Using Ultralytics YOLO"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("yolo11n.pt")
+
+        # Count fruit on a tree from drone imagery
+        results = model("orchard.jpg", imgsz=1280)
+        fruit_count = len(results[0].boxes)
+        print(f"Estimated yield: {fruit_count} items visible")
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo detect predict model=yolo11n.pt source=orchard.jpg imgsz=1280
+        ```
+
+**Relevant guides:** [Object Counting](../../guides/object-counting.md) · [Tiled Inference for Large Images](../projects/index.md#20-tiled-inference-for-large-images)
+
+**Ready-to-run projects:** [Object Counting](../projects/index.md#2-object-counting) · [Tiled Inference for Large Images](../projects/index.md#20-tiled-inference-for-large-images)
+
+---
+
+## Sports and Performance Analysis
+
+Computer vision extracts objective performance data from broadcast footage and training video, giving coaches and analysts insights that manual observation cannot produce at scale.
+
+![Speed estimation applied to athletes using Ultralytics YOLO for performance analysis](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/speed-estimation-using-yolov8.avif)
+
+**Core use cases:**
+
+- **Player tracking** - follow individual players across a full pitch or court, measuring distance covered and speed
+- **Ball and equipment tracking** - analyse trajectory, spin, and impact points
+- **Pose and biomechanics** - measure joint angles, stride length, and movement patterns for technique coaching
+- **Event detection** - automatically flag goals, fouls, or specific plays for highlight generation
+
+!!! example "Using Ultralytics YOLO"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("yolo11n-pose.pt")
+        results = model.track("training_clip.mp4", persist=True)
+
+        for result in results:
+            # Keypoints per detected athlete
+            if result.keypoints:
+                print(result.keypoints.xy)
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo pose track model=yolo11n-pose.pt source=training_clip.mp4
+        ```
+
+**Relevant guides:** [Pose Estimation](../../tasks/pose.md) · [Speed Estimation](../../guides/speed-estimation.md) · [Workouts Monitoring](../../guides/workouts-monitoring.md) · [Object Tracking](../../modes/track.md)
+
+**Ready-to-run projects:** [Workout and Rep Counter](../projects/index.md#8-workout-and-rep-counter) · [Speed Estimation](../projects/index.md#11-speed-estimation) · [Pose Estimation and Ergonomics](../projects/index.md#18-pose-estimation-and-ergonomics)
+
+---
+
+## Security and Surveillance
+
+Computer vision makes security systems proactive rather than reactive - detecting events as they happen rather than reviewing footage after the fact.
+
+![Crowd counting across multiple zones using Ultralytics YOLO for security and crowd management](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/crowd-counting-different-region-ultralytics-yolov8.avif)
+
+**Core use cases:**
+
+- **Intrusion detection** - alert when a person enters a restricted zone
+- **Perimeter monitoring** - track movement along boundaries and flag loitering
+- **Access control** - verify identity through face or body recognition at entry points
+- **Crowd management** - measure crowd density and flow to prevent overcrowding incidents
+
+!!! example "Using Ultralytics YOLO"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+        from ultralytics import solutions
+
+        # Security alarm that triggers on new object detection
+        alarm = solutions.SecurityAlarm(
+            model="yolo11n.pt",
+            show=True,
+        )
+
+        import cv2
+        cap = cv2.VideoCapture("feed.mp4")
+        while cap.isOpened():
+            ret, frame = cap.read()
+            if not ret:
+                break
+            alarm(frame)
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo solutions security model=yolo11n.pt source=feed.mp4
+        ```
+
+**Relevant guides:** [Security Alarm System](../../guides/security-alarm-system.md) · [Zone Tracking](../../guides/trackzone.md) · [Region Counting](../../guides/region-counting.md)
+
+**Ready-to-run projects:** [Security Alarm System](../projects/index.md#1-security-alarm-system) · [Region and Zone Counting](../projects/index.md#13-region-and-zone-counting) · [Object Blurring and Anonymisation](../projects/index.md#4-object-blurring-and-anonymisation)
+
+---
+
+## Autonomous Vehicles and ADAS
+
+Computer vision is a core sensing modality for any system that navigates or operates in the physical world without direct human control.
+
+![Animal and road hazard detection using Ultralytics YOLO for autonomous vehicle safety](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/animals-detection-yolov8.avif)
+
+**Core use cases:**
+
+- **Pedestrian and vehicle detection** - identify road users in real time for collision avoidance
+- **Lane detection and tracking** - understand road structure for lane-keeping assistance
+- **Traffic sign recognition** - read and respond to signs, signals, and road markings
+- **Depth and obstacle estimation** - build a spatial model of the environment from camera feeds
+
+!!! example "Using Ultralytics YOLO"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("yolo11n.pt")
+
+        # Run on a dashcam feed
+        results = model("dashcam.mp4", stream=True)
+        for result in results:
+            # Filter for vehicles and pedestrians
+            relevant = [b for b in result.boxes if int(b.cls) in [0, 2, 5, 7]]
+            print(f"Detected {len(relevant)} road users")
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo detect predict model=yolo11n.pt source=dashcam.mp4 classes=0,2,5,7
+        ```
+
+**Relevant guides:** [Object Detection](../../tasks/detect.md) · [Distance Calculation](../../guides/distance-calculation.md) · [Speed Estimation](../../guides/speed-estimation.md) · [OBB Detection](../../tasks/obb.md)
+
+**Ready-to-run projects:** [Speed Estimation](../projects/index.md#11-speed-estimation) · [Distance Measurement](../projects/index.md#14-distance-measurement) · [Edge Deployment: Jetson and Raspberry Pi](../projects/index.md#24-edge-deployment-jetson-and-raspberry-pi)
+
+---
+
+## Choosing where to start
+
+| If you want to... | Start here |
+|---|---|
+| Prototype quickly with no training | [Computer Vision Projects](../projects/index.md) - 25+ ready-to-run examples |
+| Understand the underlying techniques | [Computer Vision Techniques](../techniques/index.md) |
+| Build for a specific industry | The relevant section above |
+| Train on your own data | [Train a custom model](../../modes/train.md) |
+| Deploy to edge hardware | [NVIDIA Jetson](../../guides/nvidia-jetson.md) · [Raspberry Pi](../../guides/raspberry-pi.md) |
+
+---
+
+## FAQ
+
+??? question "What industries use computer vision most?"
+
+    Computer vision is deployed across virtually every industry. The highest-adoption sectors are retail (loss prevention, inventory, checkout automation), manufacturing (defect detection, quality control), healthcare (medical imaging, surgical assistance), automotive (ADAS, autonomous driving), agriculture (crop monitoring, yield estimation), security (surveillance, access control), and sports (player tracking, performance analytics).
+
+??? question "Do I need custom training for every application?"
+
+    Not always. Pretrained YOLO models work immediately for common objects - people, vehicles, animals, and everyday items - without any training. Custom training is needed when your target objects are not in the pretrained class set, for example specific product SKUs, medical devices, or industrial components. Many applications can be prototyped with a pretrained model before committing to custom training.
+
+??? question "Can computer vision run in real time on edge devices?"
+
+    Yes. YOLO11n (nano) runs at over 100 FPS on a modern CPU and significantly faster on a GPU or dedicated edge accelerator. Ultralytics supports export to ONNX, TensorRT, CoreML, and other formats optimised for edge deployment on NVIDIA Jetson, Raspberry Pi, and similar hardware.
+
+??? question "How accurate is computer vision for industrial defect detection?"
+
+    Accuracy depends heavily on training data quality and the complexity of defect types. Custom-trained YOLO models regularly achieve over 95% precision on well-defined defect categories when trained on representative datasets. Tiled inference is often used for high-resolution inspection images to ensure small defects are not missed.
+
+---
+
+## Community and support
+
+Building something with computer vision? The Ultralytics community is active across several channels:
+
+- [GitHub Discussions](https://github.com/ultralytics/ultralytics/discussions) — ask questions, share projects, get help from the team
+- [Discord](https://discord.com/invite/ultralytics) — real-time chat with other developers and Ultralytics engineers
+- [Ultralytics Community Forum](https://community.ultralytics.com/) — longer-form discussion, project showcases, and how-to guides
+- [GitHub Issues](https://github.com/ultralytics/ultralytics/issues) — report bugs or request features

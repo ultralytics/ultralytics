@@ -248,6 +248,11 @@ class BaseTrainer:
             self.lf = lambda x: max(1 - x / self.epochs, 0) * (1.0 - self.args.lrf) + self.args.lrf  # linear
         self.scheduler = optim.lr_scheduler.LambdaLR(self.optimizer, lr_lambda=self.lf)
 
+    def _get_warmup_iterations(self, num_batches):
+        """Return warmup iterations, leaving at least the final epoch for regular training."""
+        warmup_epochs = min(self.args.warmup_epochs, max(self.epochs - 1, 0))
+        return round(warmup_epochs * num_batches) if warmup_epochs > 0 else 0
+
     def _setup_ddp(self):
         """Initialize and set the DistributedDataParallel parameters for training."""
         index = int(self.args.device.split(",")[LOCAL_RANK])  # world_size > 1 guarantees a multi-device string
@@ -395,7 +400,7 @@ class BaseTrainer:
         self._setup_train()
 
         nb = len(self.train_loader)  # number of batches
-        nw = max(round(self.args.warmup_epochs * nb), 100) if self.args.warmup_epochs > 0 else -1  # warmup iterations
+        nw = self._get_warmup_iterations(nb)
         last_opt_step = -1
         self.epoch_time = None
         self.epoch_time_start = time.time()
@@ -437,7 +442,7 @@ class BaseTrainer:
                 self.run_callbacks("on_train_batch_start")
                 # Warmup
                 ni = i + nb * epoch
-                if ni <= nw:
+                if ni < nw:
                     xi = [0, nw]  # x interp
                     self.accumulate = max(1, int(np.interp(ni, xi, [1, self.args.nbs / self.batch_size]).round()))
                     for x in self.optimizer.param_groups:
@@ -500,7 +505,7 @@ class BaseTrainer:
                     self._build_train_pipeline()  # rebuild dataloaders, optimizer, scheduler
                     self.scheduler.last_epoch = self.start_epoch - 1
                     nb = len(self.train_loader)
-                    nw = max(round(self.args.warmup_epochs * nb), 100) if self.args.warmup_epochs > 0 else -1
+                    nw = self._get_warmup_iterations(nb)
                     last_opt_step = -1
                     self.optimizer.zero_grad()
                     break  # restart epoch loop with reduced batch size

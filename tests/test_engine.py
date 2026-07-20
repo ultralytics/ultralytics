@@ -390,6 +390,19 @@ def test_train_multi_custom_trainer_metrics_and_failure_keys(monkeypatch, tmp_pa
     assert results == {"coco8": {"fitness": 1.0}, "coco8-2": None}
 
 
+@pytest.mark.parametrize(
+    "warmup_epochs,epochs,num_batches,expected",
+    [(3.0, 10, 9, 27), (3.0, 1, 9, 0), (20.0, 10, 9, 81), (0.0, 10, 9, 0)],
+)
+def test_warmup_iterations(warmup_epochs, epochs, num_batches, expected):
+    """Test warmup respects configured epochs without consuming the final training epoch."""
+    trainer = object.__new__(BaseTrainer)
+    trainer.args = SimpleNamespace(warmup_epochs=warmup_epochs)
+    trainer.epochs = epochs
+
+    assert trainer._get_warmup_iterations(num_batches) == expected
+
+
 @pytest.mark.parametrize("pretrained,uses_weights", [(True, True), (False, False), (MODEL, True)])
 def test_setup_model_respects_pretrained_arg_for_pt_models(monkeypatch, pretrained, uses_weights):
     """Test .pt models use checkpoint config while respecting the pretrained argument."""

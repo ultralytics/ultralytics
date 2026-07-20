@@ -1267,6 +1267,29 @@ def test_process_mask_empty():
     assert ops.scale_masks(torch.zeros(1, 0, 160, 160), (640, 640)).shape == (1, 0, 640, 640)
 
 
+def test_process_mask_binarize_before_crop():
+    """process_mask binarizes before cropping without changing its output, for both upsample modes (#25298)."""
+    import torch.nn.functional as F
+
+    from ultralytics.utils import ops
+
+    torch.manual_seed(0)
+    protos, masks_in = torch.randn(32, 160, 160), torch.randn(70, 32)
+    bboxes = torch.rand(70, 4) * 300 + 5  # fractional boxes exercise the crop edge handling
+    bboxes[:, 2:] += bboxes[:, :2]
+    shape = (640, 640)
+    for upsample in (True, False):
+        out = ops.process_mask(protos, masks_in, bboxes, shape, upsample=upsample)
+        masks = (masks_in @ protos.float().view(32, -1)).view(-1, 160, 160)  # NHW
+        if upsample:
+            masks = F.interpolate(masks[None], shape, mode="bilinear")[0]
+            ref = ops.crop_mask(masks, bboxes).gt_(0.0).byte()  # crop float, then threshold (pre-#25298 order)
+        else:
+            ratios = torch.tensor([[160 / shape[1], 160 / shape[0], 160 / shape[1], 160 / shape[0]]])
+            ref = ops.crop_mask(masks, bboxes * ratios).gt_(0.0).byte()
+        assert torch.equal(out, ref), f"process_mask output changed for upsample={upsample}"
+
+
 def test_utils_files(tmp_path):
     """Test file handling utilities including file age, date, and paths with spaces."""
     from ultralytics.utils.files import file_age, file_date, get_latest_run, increment_path, spaces_in_path

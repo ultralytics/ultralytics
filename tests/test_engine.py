@@ -403,6 +403,17 @@ def test_warmup_iterations(warmup_epochs, epochs, num_batches, expected):
     assert trainer._get_warmup_iterations(num_batches) == expected
 
 
+def test_warmup_iterations_follow_timed_epoch_estimate():
+    """Test timed training shortens warmup when its estimated epoch count decreases."""
+    trainer = object.__new__(BaseTrainer)
+    trainer.args = SimpleNamespace(warmup_epochs=3.0)
+    trainer.epochs = 100
+    assert trainer._get_warmup_iterations(9) == 27
+
+    trainer.epochs = 2
+    assert trainer._get_warmup_iterations(9) == 9
+
+
 @pytest.mark.parametrize("pretrained,uses_weights", [(True, True), (False, False), (MODEL, True)])
 def test_setup_model_respects_pretrained_arg_for_pt_models(monkeypatch, pretrained, uses_weights):
     """Test .pt models use checkpoint config while respecting the pretrained argument."""

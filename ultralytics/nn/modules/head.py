@@ -340,11 +340,18 @@ class AnomalyDetect(Detect):
         """
         prior = prior if prior is not None else heatmap
         processed_prior = None
-        feats = x
+        feats = x  # box-branch input (always clean under 'cls'/'all_clsgrad')
+        cls_bias = None  # per-scale (B, 1, H, W) residual added to the CLS branch only
+        delta = None
         if prior is not None:
             prior = prior.to(device=x[0].device, dtype=x[0].dtype)
             processed_prior = self.heatmap_processor(prior) if self.heatmap_processor is not None else prior
+            apply = getattr(self, "_fusion_apply", "none")
+            target = getattr(self, "fusion_target", "all")
+            # cls-only routing applies to the additive/gated modes; legacy 'none' stays both-branch.
+            route_cls = target in ("cls", "all_clsgrad") and apply in ("add", "mul", "sigmoid")
             feats = []
+            cls_bias = [] if route_cls else None
             for i, p in enumerate(x):
                 target_h, target_w = p.shape[2], p.shape[3]
                 if processed_prior.shape[-2:] != (target_h, target_w):
@@ -357,26 +364,39 @@ class AnomalyDetect(Detect):
                     delta = self.heatmap_bias_fusion(m_scale, i, feat=p.detach())
                 else:
                     delta = self.heatmap_bias_fusion(m_scale, i)
-                apply = getattr(self, "_fusion_apply", "none")
-                if apply == "mul":
-                    # Bounded multiplicative gate in [0, 2]; delta=0 -> factor=1 (passthrough).
-                    # Dropped samples (keep=0) get delta=0 -> factor=1.
-                    if keep is not None:
-                        delta = torch.where(keep.view(-1, 1, 1, 1), delta, 0.0)
-                    feats.append(p * (1.0 + torch.tanh(delta)))
-                elif apply == "sigmoid":
-                    if keep is not None:
-                        delta = torch.where(keep.view(-1, 1, 1, 1), delta, 0.0)
-                    feats.append(p * (2.0 * torch.sigmoid(delta)))
-                elif apply == "add":
-                    if keep is not None:
-                        delta = torch.where(keep.view(-1, 1, 1, 1), delta, 0.0)
-                    feats.append(p + delta)
-                else:
-                    # 'none' (default): current local behavior (p * delta; keep gates delta to 1.0).
+
+                if apply == "none":
+                    # Legacy passthrough-style gate: p * delta; dropped samples (keep=0) -> delta=1.
                     if keep is not None:
                         delta = torch.where(keep.view(-1, 1, 1, 1), delta, 1.0)
                     feats.append(p * delta)
+                    continue
+
+                # add / mul / sigmoid: dropped samples get a neutral bias (delta -> 0).
+                if keep is not None:
+                    delta = torch.where(keep.view(-1, 1, 1, 1), delta, 0.0)
+                if apply == "add":
+                    # cls effect = p + delta.
+                    if target == "all":
+                        feats.append(p + delta)
+                    elif target == "cls":
+                        feats.append(p)  # box reads clean p
+                        cls_bias.append(delta)
+                    else:  # all_clsgrad: box gets detached bias; fusion grads flow via cls only
+                        feats.append(p + delta.detach())
+                        cls_bias.append(delta - delta.detach())
+                else:
+                    # Bounded multiplicative gate in [0, 2]. cls effect = p * factor, expressed as
+                    # an additive residual on p so it can ride the cls_x path.
+                    factor = (1.0 + torch.tanh(delta)) if apply == "mul" else (2.0 * torch.sigmoid(delta))
+                    if target == "all":
+                        feats.append(p * factor)
+                    elif target == "cls":
+                        feats.append(p)
+                        cls_bias.append(p * (factor - 1.0))
+                    else:  # all_clsgrad: box value == p*factor but grad-detached; cls carries the grad
+                        feats.append(p * factor.detach())
+                        cls_bias.append(p * (factor - factor.detach()))
 
         # Build the heatmap that will be returned alongside the detections.
         # When no prior is active we still emit a zero heatmap so ONNX graphs
@@ -389,16 +409,19 @@ class AnomalyDetect(Detect):
             out_heatmap = torch.zeros(bs, 1, self.mask_size, self.mask_size, device=x[0].device, dtype=x[0].dtype)
             heatmap_fusion = torch.ones(bs, 1, self.mask_size, self.mask_size, device=x[0].device, dtype=x[0].dtype)
 
-        # Delegate the rest to the standard Detect logic, using the (possibly)
-        # fused features. The processed prior is passed to _inference for score gating.
-        preds = self.forward_head(feats, **self.one2many)
+        # Box branch reads ``feats``; the cls branch reads ``feats + cls_bias`` when routing cls-only.
+        # The processed prior is passed to _inference for optional score gating (off when blend>=1).
+        cls_x = [f + b for f, b in zip(feats, cls_bias)] if cls_bias is not None else None
+        kw = {} if cls_x is None else {"cls_x": cls_x}
+        preds = self.forward_head(feats, **kw, **self.one2many)
         if self.end2end:
             x_detach = [xi.detach() for xi in feats]
-            one2one = self.forward_head(x_detach, **self.one2one)
+            kw1 = {} if cls_x is None else {"cls_x": [ci.detach() for ci in cls_x]}
+            one2one = self.forward_head(x_detach, **kw1, **self.one2one)
             preds = {"one2many": preds, "one2one": one2one}
         if self.training:
             return preds
-        y = self._inference(preds["one2one"] if self.end2end else preds)
+        y = self._inference(preds["one2one"] if self.end2end else preds, heatmap=processed_prior)
         if self.end2end:
             y = self.postprocess(y.permute(0, 2, 1))
         return (y, out_heatmap) if self.export else ((y, out_heatmap, heatmap_fusion), preds)

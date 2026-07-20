@@ -2146,6 +2146,12 @@ def _build(args: argparse.Namespace) -> tuple[AnomalyBase, Path]:
     if args.coreset:
         tag += f"_cs{args.coreset}"
     tag += f"_sc{args.scoring}_K{args.K}_T{args.temperature:g}_ts{args.target_score:g}_q{args.target_quantile:g}"
+    if getattr(args, "bbox", False):
+        tag += f"_d{args.max_det}"
+        if args.zero_mode != "poly":
+            tag += f"_zm{args.zero_mode}"
+        if args.bbox_iou > 0:
+            tag += f"_iou{int(args.bbox_iou * 100):02d}"
     return ad, Path(f"./runs/{tag}")
 
 

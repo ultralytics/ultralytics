@@ -41,6 +41,9 @@ Flags:
                 one level deep for ``*/data.yaml``.
     --imgsz <int>: multi_det_finetune/teacher_frozen_det only. Override the canonical det
                 imgsz (640), e.g. 224 to run the frozen backbone at its phase-1 grid.
+    --published_recipe: coco_det_finetune/multi_det_finetune. Apply the shipped yolo26{size}.pt
+                recipe (per-size aug, lr0/nbs/warmup batch-scaled). Composes with --backbone_lr_ratio,
+                exclusive with --deim_opt/--sched_decay.
 """
 
 import os
@@ -57,8 +60,10 @@ import torch
 from callbacks import grad_clip, muon_w, nfs_sync, paths, wandb_config
 from ultralytics import YOLO
 from ultralytics.data.utils import IMG_FORMATS
+from ultralytics.nn.tasks import guess_model_scale
 from ultralytics.nn.teacher_model import TEACHER_REGISTRY, safe_key
 from ultralytics.utils import YAML
+from ultralytics.utils.downloads import attempt_download_asset
 
 # teacher_frozen_det: frozen foundation teacher (yolo26-teacherdet.yaml layer 0) + trainable ViTDet pyramid + Detect,
 # the frozen-feature detection ceiling. Supported = ImageNet-stat ViT/ConvNeXt teachers audited (2026-06-24) to run at
@@ -306,6 +311,28 @@ _DEIM_OPT_ARGS = dict(
     warmup_bias_lr=0.0,
 )
 
+# Published-recipe train_args copied verbatim from the shipped yolo26{size}.pt (the rest are budget/infra we hold
+# fixed across arms, or MuSGD weights that ride the muon_w callback). lr0/nbs/warmup_epochs get batch-scaled below.
+_PUB_RECIPE_KEYS = (
+    "lrf", "momentum", "weight_decay", "warmup_momentum", "warmup_bias_lr", "cos_lr", "box", "cls", "dfl",
+    "hsv_h", "hsv_s", "hsv_v", "degrees", "translate", "scale", "shear", "perspective", "flipud", "fliplr",
+    "bgr", "mosaic", "mixup", "cutmix", "copy_paste", "copy_paste_mode", "auto_augment", "erasing",
+)
+_PUBLISHED_RECIPE: dict[str, dict] = {}  # size letter -> shipped yolo26{size}.pt train_args, cached per process
+
+
+def _published_det_args(model_yaml: str, batch: int) -> dict:
+    """Published yolo26{size} detector recipe (size from model_yaml, args from the shipped .pt), lr0/nbs/warmup scaled to batch."""
+    size = guess_model_scale(model_yaml)
+    if size not in _PUBLISHED_RECIPE:
+        pt = attempt_download_asset(f"yolo26{size}.pt")
+        _PUBLISHED_RECIPE[size] = torch.load(pt, map_location="cpu", weights_only=False)["train_args"]
+    ta = _PUBLISHED_RECIPE[size]
+    bscale = batch / ta["batch"]
+    out = {k: ta[k] for k in _PUB_RECIPE_KEYS if k in ta}
+    out.update(lr0=ta["lr0"] * bscale, nbs=max(1, round(ta["nbs"] * bscale)), warmup_epochs=ta["warmup_epochs"] * bscale)
+    return out
+
 
 def _dataset_train_stats(data_yaml: Path, batch: int) -> tuple[int, int]:
     """Count train images and iterations per epoch for one dataset (logging only).
@@ -395,6 +422,7 @@ def _run_multi_det(
     deim_opt: bool = False,
     backbone_lr_ratio_override: str = "",
     sched_decay: bool = False,
+    published_recipe: bool = False,
 ) -> None:
     """Sequentially train + val on a list of YOLO-format detection datasets.
 
@@ -429,6 +457,9 @@ def _run_multi_det(
             boost dropped.
         backbone_lr_ratio_override (str, optional): Backbone LR = lr0 * this (below 1 preserves distilled features).
         sched_decay (bool, optional): Under MuSGD, replace the flat lrf 0.88 default with cosine decay to 1% of lr0.
+        published_recipe (bool, optional): Apply the shipped yolo26{size}.pt recipe (size from model_yaml, per-size aug
+            + lr0/nbs/warmup batch-scaled), reverting the ul33 lr0 inflation. Composes with backbone_lr_ratio_override,
+            exclusive with deim_opt/sched_decay.
     """
     if "," in gpu:
         raise SystemExit(
@@ -516,16 +547,18 @@ def _run_multi_det(
             base_epochs, base_patience, batch_override, lr_override, nbs_override,
             default_batch=_MULTI_DET_BASE_BATCH, default_lr0=_MULTI_DET_BASE_LR0,
         )
-        if sched_decay:
-            # Replace the flat lrf 0.88 ul33 default with real cosine decay to 1% of lr0. Isolates the LR-schedule
-            # axis under MuSGD. Warmup is unchanged, it clamps to the trainer's 100-iter floor on 1k-image datasets.
+        # Recipe base (mutually exclusive). backbone_lr_ratio is orthogonal, applied after so it composes with any base.
+        if published_recipe:
+            # Shipped yolo26{size}.pt recipe (per-size aug, lr0/nbs/warmup batch-scaled), reverting the ul33 lr0 inflation.
+            det_args.update(_published_det_args(model_yaml, det_args["batch"]))
+        elif deim_opt:
+            # DEIM transplant, byte-matched to the coco deim arm (AdamW, lrf 0.5 linear, nbs=batch). Muon boost dropped below.
+            det_args.update(**_DEIM_OPT_ARGS, nbs=det_args["batch"])
+        elif sched_decay:
+            # Swap the flat lrf 0.88 ul33 default for cosine decay to 1% of lr0 (isolates the LR-schedule axis under MuSGD).
             det_args.update(cos_lr=True, lrf=0.01)
         if backbone_lr_ratio_override:
             det_args["backbone_lr_ratio"] = float(backbone_lr_ratio_override)
-        if deim_opt:
-            # DEIM transplant, byte-matched to the coco_det_finetune deim arm (verified against its args.yaml: cos_lr
-            # false, linear decay to lrf 0.5). nbs=batch so effective wd = wd. Muon head boost is MuSGD-only, dropped below.
-            det_args.update(**_DEIM_OPT_ARGS, nbs=det_args["batch"])
         # sgd_w/cls_w/o2m/detach_epoch from the MuSGD recipe are not train_args (cfg validator rejects), so muon_w
         # rides in via callback. It is a MuSGD-only weight, absent for the AdamW deim arm.
         if det_args["optimizer"] == "MuSGD":
@@ -609,6 +642,9 @@ def main(argv: list[str]) -> None:
     argv, backbone_lr_ratio_override = _pop_flag(argv, "--backbone_lr_ratio")
     argv, deim_opt = _pop_flag(argv, "--deim_opt", is_bool=True)
     argv, sched_decay = _pop_flag(argv, "--sched_decay", is_bool=True)
+    argv, published_recipe = _pop_flag(argv, "--published_recipe", is_bool=True)
+    if sum([published_recipe, deim_opt, sched_decay]) > 1:
+        raise SystemExit("ERROR: --published_recipe, --deim_opt, --sched_decay are mutually-exclusive recipe bases.")
     argv, scratch = _pop_flag(argv, "--scratch", is_bool=True)
     argv, datasets_arg = _pop_flag(argv, "--datasets")
     argv, imgsz_override = _pop_flag(argv, "--imgsz")
@@ -697,6 +733,7 @@ def main(argv: list[str]) -> None:
             deim_opt=deim_opt,
             backbone_lr_ratio_override=backbone_lr_ratio_override,
             sched_decay=sched_decay,
+            published_recipe=published_recipe,
         )
         return
 
@@ -782,11 +819,15 @@ def main(argv: list[str]) -> None:
         )
     elif mode in _COCO_DET_MODES:
         det_args = _build_det_train_args(epochs, patience, batch_override, lr_override, nbs_override)
-        if backbone_lr_ratio_override:
-            det_args["backbone_lr_ratio"] = float(backbone_lr_ratio_override)
-        if deim_opt:
+        # Recipe base (mutually exclusive). backbone_lr_ratio is orthogonal, applied after so it composes with any base.
+        if published_recipe:
+            # Shipped yolo26{size}.pt recipe (per-size aug, lr0/nbs/warmup batch-scaled).
+            det_args.update(_published_det_args(model_yaml, det_args["batch"]))
+        elif deim_opt:
             # Esat's DEIM optimizer transplant onto our conv head, isolates the optimizer recipe axis vs g4's MuSGD.
             det_args.update(**_DEIM_OPT_ARGS, nbs=det_args["batch"])
+        if backbone_lr_ratio_override:
+            det_args["backbone_lr_ratio"] = float(backbone_lr_ratio_override)
         print(
             f"[{mode}] optimizer={det_args['optimizer']} batch={det_args['batch']} nbs={det_args['nbs']} "
             f"lr0={det_args['lr0']:.5f} warmup_epochs={det_args['warmup_epochs']:.3f} "

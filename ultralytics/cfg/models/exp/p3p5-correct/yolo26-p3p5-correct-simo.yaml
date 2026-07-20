@@ -1,0 +1,52 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Ultralytics YOLO26 object detection model with P3/8 - P5/32 outputs
+# P4 detection head is removed; round-6 research idea #4 (YOLOF/ViTDet SiMo —
+# "fusion is deletable, assignment is not"): the P4 intermediate is the ONLY
+# neck node; the P3 head input is synthesized from it via transposed conv
+# (no lateral backbone-P3 fusion), the P5 head via stride-2 conv as usual.
+# The bold one: watch mAP-small.
+# Model docs: https://docs.ultralytics.com/models/yolo26
+# Task docs: https://docs.ultralytics.com/tasks/detect
+
+# Parameters
+nc: 80 # number of classes
+end2end: True # whether to use end-to-end mode
+reg_max: 1 # DFL bins
+scales: # model compound scaling constants
+  # [depth, width, max_channels]
+  n: [0.50, 0.25, 1024]
+  s: [0.50, 0.50, 1024]
+  m: [0.50, 1.00, 512]
+  l: [1.00, 1.00, 512]
+  x: [1.00, 1.50, 512]
+
+# YOLO26n backbone
+backbone:
+  # [from, repeats, module, args]
+  - [-1, 1, Conv, [64, 3, 2]] # 0-P1/2
+  - [-1, 1, Conv, [128, 3, 2]] # 1-P2/4
+  - [-1, 2, C3k2, [256, False, 0.25]]
+  - [-1, 1, Conv, [256, 3, 2]] # 3-P3/8
+  - [-1, 2, C3k2, [512, False, 0.25]]
+  - [-1, 1, Conv, [512, 3, 2]] # 5-P4/16
+  - [-1, 2, C3k2, [512, True]]
+  - [-1, 1, Conv, [1024, 3, 2]] # 7-P5/32
+  - [-1, 2, C3k2, [1024, True]]
+  - [-1, 1, SPPF, [1024, 5, 3, True]] # 9
+  - [-1, 2, C2PSA, [1024]] # 10
+
+# YOLO26n head
+head:
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 6], 1, Concat, [1]] # cat backbone P4
+  - [-1, 2, C3k2, [512, True]] # 13 the ONLY neck node (hub)
+
+  - [13, 1, nn.ConvTranspose2d, [256, 2, 2]] # 14 P4/16 -> P3/8
+  - [-1, 2, C3k2, [256, True]] # 15 (P3/8-small, no lateral fusion)
+
+  - [13, 1, Conv, [512, 3, 2]] # 16 P4/16 -> P5/32
+  - [[-1, 10], 1, Concat, [1]] # 17 cat backbone P5
+  - [-1, 1, C3k2, [1024, True, 0.5, True]] # 18 (P5/32-large)
+
+  - [[15, 18], 1, Detect, [nc]] # Detect(P3, P5)

@@ -64,6 +64,7 @@ from ultralytics.nn.modules import (
     ResNetLayer,
     RTDETRDecoder,
     SCDown,
+    Scale,
     Segment,
     Segment26,
     SemanticSegment,

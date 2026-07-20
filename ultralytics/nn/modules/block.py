@@ -1106,6 +1106,19 @@ class C3k2(C2f):
         )
 
 
+class Scale(nn.Module):
+    """Multiply the input by a constant factor, e.g. SNI-style scaling of upsampled features before fusion."""
+
+    def __init__(self, factor: float = 1.0):
+        """Initialize the Scale module with a constant multiplicative factor."""
+        super().__init__()
+        self.factor = float(factor)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Return the input multiplied by the constant factor."""
+        return x * self.factor
+
+
 class C3k(C3):
     """C3k is a CSP bottleneck module with customizable kernel sizes for feature extraction in neural networks."""
 

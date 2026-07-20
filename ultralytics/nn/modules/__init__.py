@@ -58,6 +58,7 @@ from .block import (
     RepVGGDW,
     ResNetLayer,
     SCDown,
+    Scale,
     TorchVision,
 )
 from .conv import (
@@ -176,6 +177,7 @@ __all__ = (
     "RepVGGDW",
     "ResNetLayer",
     "SCDown",
+    "Scale",
     "Segment",
     "Segment26",
     "SemanticSegment",

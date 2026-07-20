@@ -306,6 +306,113 @@ class MHSABlock(nn.Module):
         return t.transpose(1, 2).reshape(b, c, h, w)
 
 
+class WindowMHSABlock(MHSABlock):
+    """Run MHSABlock independently in a square grid of spatial windows."""
+
+    def __init__(
+        self,
+        c: int,
+        num_heads: int = 6,
+        mlp_ratio: float = 4.0,
+        silu: bool = False,
+        ls: float = 0.0,
+        conv_ffn: bool = False,
+        head_dim: int = 0,
+        num_windows: int = 2,
+        xca: bool = False,
+        qkv_bias: bool = False,
+        proj_bias: bool = False,
+        swiglu: bool = False,
+        n_storage_tokens: int = 0,
+        cpe: bool = False,
+    ):
+        """Initialize windowed attention with a fixed grid count."""
+        super().__init__(
+            c,
+            num_heads,
+            mlp_ratio,
+            silu,
+            ls,
+            conv_ffn,
+            head_dim,
+            xca,
+            qkv_bias,
+            proj_bias,
+            swiglu,
+            n_storage_tokens,
+            cpe,
+        )
+        self.num_windows = num_windows
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Apply attention and ConvMlp inside each spatial window."""
+        b, c, h, w = x.shape
+        assert h % self.num_windows == 0 and w % self.num_windows == 0, (
+            f"WindowMHSABlock: {h}x{w} is not divisible by {self.num_windows}"
+        )
+        hh, ww = h // self.num_windows, w // self.num_windows
+        x = x.reshape(b, c, self.num_windows, hh, self.num_windows, ww)
+        x = x.permute(0, 2, 4, 1, 3, 5).reshape(b * self.num_windows**2, c, hh, ww)
+        x = super().forward(x)
+        x = x.reshape(b, self.num_windows, self.num_windows, c, hh, ww)
+        return x.permute(0, 3, 1, 4, 2, 5).reshape(b, c, h, w)
+
+
+class PooledMHSABlock(nn.Module):
+    """Update dense tokens with attention over a pooled spatial grid and a ConvMlp."""
+
+    def __init__(
+        self,
+        c: int,
+        num_heads: int = 0,
+        mlp_ratio: float = 4.0,
+        silu: bool = False,
+        ls: float = 0.0,
+        head_dim: int = 32,
+        pool_stride: int = 2,
+    ):
+        """Initialize pooled key/value attention."""
+        super().__init__()
+        if head_dim:
+            assert c % head_dim == 0, f"PooledMHSABlock: c={c} not divisible by head_dim={head_dim}"
+            num_heads = c // head_dim
+        assert c % num_heads == 0, f"PooledMHSABlock: c={c} not divisible by num_heads={num_heads}"
+        self.num_heads = num_heads
+        self.head_dim = c // num_heads
+        self.pool_dw = nn.Conv2d(c, c, 3, stride=pool_stride, padding=1, groups=c, bias=False)
+        self.pool_bn = nn.BatchNorm2d(c)
+        self.lnq = nn.LayerNorm(c)
+        self.lnkv = nn.LayerNorm(c)
+        self.q = nn.Linear(c, c)
+        self.kv = nn.Linear(c, 2 * c)
+        self.proj = nn.Linear(c, c)
+        hidden = int(c * mlp_ratio)
+        self.ffn_dw = nn.Conv2d(c, c, 7, padding=3, groups=c, bias=False)
+        self.ffn_bn = nn.BatchNorm2d(c)
+        self.ffn_pw1 = nn.Conv2d(c, hidden, 1)
+        self.ffn_pw2 = nn.Conv2d(hidden, c, 1)
+        self.act = nn.SiLU() if silu else nn.GELU()
+        if ls:
+            self.ls1 = nn.Parameter(ls * torch.ones(c))
+            self.ls2 = nn.Parameter(ls * torch.ones(c, 1, 1))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Apply dense-query attention over pooled keys and values."""
+        b, c, h, w = x.shape
+        t = x.flatten(2).transpose(1, 2)
+        p = self.pool_bn(self.pool_dw(x)).flatten(2).transpose(1, 2)
+        q = self.q(self.lnq(t)).reshape(b, -1, self.num_heads, self.head_dim).transpose(1, 2)
+        kv = self.kv(self.lnkv(p)).reshape(b, -1, 2, self.num_heads, self.head_dim).permute(2, 0, 3, 1, 4)
+        a = F.scaled_dot_product_attention(q, kv[0], kv[1]).transpose(1, 2).reshape(b, -1, c)
+        a = self.proj(a)
+        ls1 = getattr(self, "ls1", None)
+        t = t + (a if ls1 is None else ls1 * a)
+        x = t.transpose(1, 2).reshape(b, c, h, w)
+        f = self.ffn_pw2(self.act(self.ffn_pw1(self.ffn_bn(self.ffn_dw(x)))))
+        ls2 = getattr(self, "ls2", None)
+        return x + (f if ls2 is None else ls2 * f)
+
+
 def _frac_rope_tbl(h: int, w: int, head_dim: int, base: float = 100.0):
     """Build a normalized-coordinate 2D rotary cos/sin table for an h x w token grid.
 

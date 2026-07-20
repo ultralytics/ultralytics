@@ -122,7 +122,7 @@ from .transformer import (
     TransformerEncoderLayer,
     TransformerLayer,
 )
-from .vit_blocks import FastViTBlock, FracRoPE2D, MHSABlock, RepUltraViTBlock, UltraViTBlock
+from .vit_blocks import FastViTBlock, FracRoPE2D, MHSABlock, PooledMHSABlock, RepUltraViTBlock, UltraViTBlock
 
 __all__ = (
     "AIFI",
@@ -199,6 +199,7 @@ __all__ = (
     "MaxSigmoidAttnBlock",
     "Pose",
     "Pose26",
+    "PooledMHSABlock",
     "Proto",
     "RTDETRDecoder",
     "RTDETRDecoderEfficient",

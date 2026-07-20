@@ -510,6 +510,8 @@ def test_val(task: str, weight: str, data: str) -> None:
     if IS_RASPBERRYPI and task == "semantic":
         skip_rpi_semantic()
     model = YOLO(weight)
+    plot_names = set()
+    model.add_callback("on_val_end", lambda validator: plot_names.update(f.name for f in validator.plots))
     for plots in {True, False}:  # Test both cases i.e. plots=True and plots=False
         metrics = model.val(data=data, imgsz=32, plots=plots)
         metrics.to_df()
@@ -523,6 +525,8 @@ def test_val(task: str, weight: str, data: str) -> None:
         expected = cm.nc if task in {"classify", "semantic"} else cm.nc + 1  # detection-style tasks include background
         assert cm.matrix.shape == (expected, expected), f"{task} confusion matrix is {cm.matrix.shape}"
         assert len(cm.tp_fp()[0]) == cm.nc  # per-class TP/FP never include background
+    if task == "segment":  # plots sharing a type must all register, i.e. Mask curves next to Box curves
+        assert {"MaskPR_curve.png", "confusion_matrix.png", "confusion_matrix_normalized.png"} <= plot_names
 
 
 def test_val_save_txt_pose(tmp_path):

@@ -622,7 +622,7 @@ class ImageEncoderTrainer(ClassificationTrainer):
             knn = self._knn_eval(getattr(self.args, "knn_every", 5))
             metrics["knn/top1"] = round(knn[224], 4) if knn else float("nan")
             if self._high_res_imgsz:  # stable column: operating-res kNN in the tail, nan otherwise
-                metrics["knn/top1_hr"] = round(knn[max(knn)], 4) if knn and len(knn) > 1 else float("nan")
+                metrics["knn/top1_hr"] = round(knn[self._high_res_imgsz], 4) if knn and self._high_res_imgsz in knn else float("nan")
         return metrics, fitness
 
     def _knn_eval(self, every_n=5):
@@ -639,7 +639,10 @@ class ImageEncoderTrainer(ClassificationTrainer):
             return None
         model = self.ema.ema if self.ema else self.model
         LOGGER.info(f"kNN eval: epoch {epoch}, extracting features...")
-        sizes = [224] + ([self._student_imgsz()] if self._student_imgsz() != 224 else [])
+        sizes = [224]
+        student_sz = self._student_imgsz()
+        if self._high_res_imgsz and student_sz != 224:
+            sizes.append(student_sz)
         results = {}
         for sz in sizes:
             results[sz] = self._knn_at(model, sz)

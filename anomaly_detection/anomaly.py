@@ -2216,7 +2216,7 @@ def main() -> None:
                    help="Also run bbox mAP evaluation (heatmap -> region-growing -> COCO mAP).")
     p.add_argument("--deviation", action="store_true",
                    help="Run standalone deviation evaluation (aDev/nDev/anom_mean/norm_mean).")
-    p.add_argument("--max-det", type=int, default=1,
+    p.add_argument("--max-det", type=int, default=3,
                    help="Max detections per image for region-growing (default 5).")
     p.add_argument("--bbox-min-area", type=int, default=20,
                    help="Min region area (pixels) for region-growing heatmap->bbox (default 20).")

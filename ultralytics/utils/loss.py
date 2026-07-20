@@ -515,6 +515,12 @@ class v8DetectionLoss:
         )
         self.assigner.stride_val_thr = getattr(h, "stride_val_thr", False)
         self.assigner.stride_val_size = getattr(h, "stride_val_size", None)
+        self.assigner.small_center_fill = getattr(h, "small_center_fill", False)
+        self.assigner.small_center_fill_k = getattr(h, "small_center_fill_k", 4)
+        if self.assigner.small_center_fill_k < 1:
+            raise ValueError(f"small_center_fill_k must be at least 1, not {self.assigner.small_center_fill_k}")
+        if self.assigner.small_center_fill and self.assigner.stride_val_thr:
+            raise ValueError("small_center_fill and stride_val_thr are alternative candidate-selection strategies")
         self.bbox_loss = BboxLoss(
             m.reg_max,
             l1_feat=getattr(h, "l1_feat", False),
@@ -640,6 +646,7 @@ class v8DetectionLoss:
             gt_labels,
             gt_bboxes,
             mask_gt,
+            stride_tensor,
         )
 
         target_scores_sum = max(target_scores.sum(), 1)
@@ -647,11 +654,7 @@ class v8DetectionLoss:
         if self.cache_obj_assign:  # o2m branch: expose foreground + matched-GT boxes for the o2o objectness target
             self.obj_fg, self.obj_gt_bboxes = fg_mask, target_bboxes
 
-        # O2F: ambiguous anchors use their CIoU-graded soft target for cls only; box/dfl below keep target_scores
         cls_target, cls_target_sum = target_scores, target_scores_sum
-        if self.assigner.o2f_cls_score is not None:
-            cls_target = (target_scores > 0) * self.assigner.o2f_cls_score  # place per-anchor score in the GT slot
-            cls_target_sum = max(cls_target.sum(), 1)
 
         # DetectO2OObjBox recall mode: train cls on the same fused logit used at inference (cls + obj_fuse * obj), with
         # obj detached so it is learned only by its own loss and cls learns to complement it. Off in quality mode.
@@ -1423,17 +1426,40 @@ class E2EDetectLoss:
 
     def __init__(self, model: torch.nn.Module):
         """Initialize E2EDetectLoss with one-to-many and one-to-one detection losses using the provided model."""
+        self.small_center_fill = getattr(model.args, "small_center_fill", False)
+        self.small_center_fill_branch = getattr(model.args, "small_center_fill_branch", "o2m")
+        if self.small_center_fill_branch not in {"o2o", "o2m", "both"}:
+            raise ValueError(
+                f"small_center_fill_branch must be 'o2o', 'o2m', or 'both', not {self.small_center_fill_branch!r}"
+            )
         self.o2f = getattr(model.args, "o2f", False)
-        self.one2many = v8DetectionLoss(model, tal_topk=10)
-        self.one2one = v8DetectionLoss(model, tal_topk=7 if self.o2f else 1)
+        if self.small_center_fill and self.o2f:
+            raise ValueError("small_center_fill is a standalone alternative and cannot be combined with o2f")
+        self.o2f_branch = getattr(model.args, "o2f_branch", "o2o")
+        self.o2f_topk = getattr(model.args, "o2f_topk", 7)
+        if self.o2f_branch not in {"o2o", "o2m"}:
+            raise ValueError(f"o2f_branch must be 'o2o' or 'o2m', not {self.o2f_branch!r}")
+        if self.o2f_topk < 1:
+            raise ValueError(f"o2f_topk must be at least 1, not {self.o2f_topk}")
+        self.one2many = v8DetectionLoss(model, tal_topk=self.o2f_topk if self.o2f and self.o2f_branch == "o2m" else 10)
+        self.one2one = v8DetectionLoss(model, tal_topk=self.o2f_topk if self.o2f and self.o2f_branch == "o2o" else 1)
+        self.one2many.assigner.small_center_fill = self.small_center_fill and self.small_center_fill_branch in {
+            "o2m",
+            "both",
+        }
+        self.one2one.assigner.small_center_fill = self.small_center_fill and self.small_center_fill_branch in {
+            "o2o",
+            "both",
+        }
         self.one2one.neg_focal_gamma = getattr(model.args, "o2o_neg_focal_gamma", 0.0)
-        self.one2one.assigner.o2f = self.o2f
-        self.one2one.assigner.o2f_iou = getattr(model.args, "o2f_iou", "amb_max")
-        self.one2one.assigner.o2f_norm = getattr(model.args, "o2f_norm", "align")
+        self.o2f_loss = self.one2one if self.o2f_branch == "o2o" else self.one2many
+        self.o2f_loss.assigner.o2f = self.o2f
+        self.o2f_loss.assigner.o2f_iou = getattr(model.args, "o2f_iou", "amb_max")
+        self.o2f_loss.assigner.o2f_norm = getattr(model.args, "o2f_norm", "align")
         self.updates = 0
         self.o2f_max_t = getattr(model.args, "o2f_max_t", 0.6)
         self.o2f_min_t = getattr(model.args, "o2f_min_t", 0.2)
-        self.one2one.assigner.o2f_t = self.o2f_max_t  # epoch 0 uses max_t before the first decay update
+        self.o2f_loss.assigner.o2f_t = self.o2f_max_t  # epoch 0 uses max_t before the first decay update
         if not getattr(model.args, "vfl_o2m", True):
             self.one2many.vfl = None  # restrict Varifocal Loss to the one2one branch
 
@@ -1450,11 +1476,11 @@ class E2EDetectLoss:
         """Update the O2F ambiguous-anchor positive degree based on the current epoch."""
         self.updates += 1
         if self.o2f:
-            self.one2one.assigner.o2f_t = self.o2f_decay(self.updates)
+            self.o2f_loss.assigner.o2f_t = self.o2f_decay(self.updates)
 
     def o2f_decay(self, x) -> float:
         """Decay o2f_t linearly from o2f_max_t to o2f_min_t over the first half of epochs, then to 0 over the second."""
-        half = max(self.one2one.hyp.epochs - 1, 1) / 2
+        half = max(self.o2f_loss.hyp.epochs - 1, 1) / 2
         if x <= half:
             return self.o2f_max_t - (self.o2f_max_t - self.o2f_min_t) * x / half
         return max(self.o2f_min_t * (1 - (x - half) / half), 0)
@@ -1465,16 +1491,46 @@ class E2ELoss:
 
     def __init__(self, model: torch.nn.Module, loss_fn=v8DetectionLoss):
         """Initialize E2ELoss with one-to-many and one-to-one detection losses using the provided model."""
+        self.small_center_fill = getattr(model.args, "small_center_fill", False)
+        self.small_center_fill_branch = getattr(model.args, "small_center_fill_branch", "o2m")
+        if self.small_center_fill_branch not in {"o2o", "o2m", "both"}:
+            raise ValueError(
+                f"small_center_fill_branch must be 'o2o', 'o2m', or 'both', not {self.small_center_fill_branch!r}"
+            )
         self.o2f = getattr(model.args, "o2f", False)
+        if self.small_center_fill and self.o2f:
+            raise ValueError("small_center_fill is a standalone alternative and cannot be combined with o2f")
+        self.o2f_branch = getattr(model.args, "o2f_branch", "o2o")
+        self.o2f_topk = getattr(model.args, "o2f_topk", 7)
+        if self.o2f_branch not in {"o2o", "o2m"}:
+            raise ValueError(f"o2f_branch must be 'o2o' or 'o2m', not {self.o2f_branch!r}")
+        if self.o2f_topk < 1:
+            raise ValueError(f"o2f_topk must be at least 1, not {self.o2f_topk}")
         # o2o_ft freezes the trunk (backbone+neck+o2m head) and trains the one2one head only at full weight
         self.train_o2m = getattr(model.args, "o2m", True) and not getattr(model.args, "o2o_ft", False)
         self.o24 = getattr(model.args, "o24", False)  # aux head: o2o-style 1:1 on 4x-duplicated GTs vs one2many
+        if self.o2f and self.o2f_branch == "o2m" and not self.train_o2m:
+            raise ValueError("o2f_branch='o2m' requires the auxiliary o2m branch to be trained")
+        if self.o2f and self.o2f_branch == "o2m" and self.o24:
+            raise ValueError("o2f_branch='o2m' and o24 cannot configure the auxiliary branch at the same time")
         if self.o24:
             self.one2many = loss_fn(model, tal_topk=7, tal_topk2=4)  # 4 full-positive 1:1 matches per GT
             self.one2many.assigner.full_pos = True
         else:
-            self.one2many = loss_fn(model, tal_topk=10)
-        self.one2one = loss_fn(model, tal_topk=7, tal_topk2=1)
+            self.one2many = loss_fn(model, tal_topk=self.o2f_topk if self.o2f and self.o2f_branch == "o2m" else 10)
+        self.one2one = loss_fn(
+            model,
+            tal_topk=self.o2f_topk if self.o2f and self.o2f_branch == "o2o" else 7,
+            tal_topk2=1,
+        )
+        self.one2many.assigner.small_center_fill = self.small_center_fill and self.small_center_fill_branch in {
+            "o2m",
+            "both",
+        }
+        self.one2one.assigner.small_center_fill = self.small_center_fill and self.small_center_fill_branch in {
+            "o2o",
+            "both",
+        }
         self.one2one.neg_focal_gamma = getattr(model.args, "o2o_neg_focal_gamma", 0.0)
         self.one2one.cls_hard = getattr(model.args, "o2o_cls_hard", False)
         self.pos_cls = getattr(model.args, "o2o_pos_cls", 0.0) if loss_fn is v8DetectionLoss else 0.0
@@ -1502,9 +1558,10 @@ class E2ELoss:
             head.obj_quality.fill_(1.0 if quality else 0.0)
         self.one2one.small_cls_gain = getattr(model.args, "o2o_small_cls_gain", 1.0)
         self.one2one.small_cls_area = getattr(model.args, "o2o_small_cls_area", 0.0)
-        self.one2one.assigner.o2f = self.o2f
-        self.one2one.assigner.o2f_iou = getattr(model.args, "o2f_iou", "amb_max")
-        self.one2one.assigner.o2f_norm = getattr(model.args, "o2f_norm", "align")
+        self.o2f_loss = self.one2one if self.o2f_branch == "o2o" else self.one2many
+        self.o2f_loss.assigner.o2f = self.o2f
+        self.o2f_loss.assigner.o2f_iou = getattr(model.args, "o2f_iou", "amb_max")
+        self.o2f_loss.assigner.o2f_norm = getattr(model.args, "o2f_norm", "align")
         # o2o takes its topk candidate pool from the o2m positive set (ranked by o2m align) instead of ranking its own
         self.o2o_from_o2m = self.train_o2m and getattr(model.args, "o2o_from_o2m", False)
         if self.o2o_from_o2m:
@@ -1519,7 +1576,7 @@ class E2ELoss:
         self.o2m_copy = self.o2m
         self.o2f_max_t = getattr(model.args, "o2f_max_t", 0.6)
         self.o2f_min_t = getattr(model.args, "o2f_min_t", 0.2)
-        self.one2one.assigner.o2f_t = self.o2f_max_t  # epoch 0 uses max_t before the first decay update
+        self.o2f_loss.assigner.o2f_t = self.o2f_max_t  # epoch 0 uses max_t before the first decay update
         # final gain
         self.final_o2m = 0.1
         # online cls distillation: pull one2one cls toward the one2many teacher at one2one positives
@@ -1629,7 +1686,7 @@ class E2ELoss:
             self.o2m = self.decay(self.updates)
             self.o2o = max(self.total - self.o2m, 0)
         if self.o2f:
-            self.one2one.assigner.o2f_t = self.o2f_decay(self.updates)
+            self.o2f_loss.assigner.o2f_t = self.o2f_decay(self.updates)
 
     def decay(self, x) -> float:
         """Calculate the decayed weight for one-to-many loss based on the current update step."""
@@ -1637,7 +1694,7 @@ class E2ELoss:
 
     def o2f_decay(self, x) -> float:
         """Decay o2f_t linearly from o2f_max_t to o2f_min_t over the first half of epochs, then to 0 over the second."""
-        half = max(self.one2one.hyp.epochs - 1, 1) / 2
+        half = max(self.o2f_loss.hyp.epochs - 1, 1) / 2
         if x <= half:
             return self.o2f_max_t - (self.o2f_max_t - self.o2f_min_t) * x / half
         return max(self.o2f_min_t * (1 - (x - half) / half), 0)

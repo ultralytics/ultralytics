@@ -116,8 +116,10 @@ vfl: False # (bool) use Varifocal Loss instead of BCE for classification
 vfl_o2m: True # (bool) when vfl=True, also apply Varifocal Loss to the one2many branch (False = one2one branch only)
 vfl_norm: False # (bool) when vfl=True, normalize Varifocal Loss by positive count instead of target score sum
 vfl_hard: False # (bool) when vfl=True, regress positives toward hard 1.0 target instead of the IoU soft target
-o2f: False # (bool) use one-to-few assignment for the one2one branch
-o2f_iou: amb_max # (str) when o2f=True, ambiguous-anchor cls-target IoU: 'amb_max' (ambiguous-set max) or 'self' (own IoU)
+o2f: False # (bool) use one-to-few assignment on the branch selected by o2f_branch
+o2f_branch: o2o # (str) branch that uses one-to-few assignment: 'o2o' or auxiliary 'o2m'
+o2f_topk: 7 # (int) number of shared classification/regression candidates when o2f=True
+o2f_iou: amb_max # (str) ambiguous-target IoU: 'amb_max' (ambiguous-set max) or 'self' (own IoU)
 o2f_norm: align # (str) when o2f=True, ambiguous-anchor normalization metric: 'align' (task alignment) or 'prob' (predicted GT-class prob)
 o2f_max_t: 0.6 # (float) when o2f=True, initial ambiguous-anchor positive degree (start of the linear decay)
 o2f_min_t: 0.2 # (float) when o2f=True, final ambiguous-anchor positive degree (end of the linear decay)
@@ -136,6 +138,9 @@ rank_in_gt: False # (bool) when rank>0, draw rank negatives from each positive's
 rank_logits: False # (bool) when rank>0, rank on raw logits instead of sigmoid probabilities
 stride_val_thr: False # (bool) enlarge every GT smaller than stride_val (not just smaller than the smallest stride) up to stride_val during candidate selection
 stride_val_size: # (float, optional) when stride_val_thr, override the shared min-wh threshold & enlarge value (empty=stride_val)
+small_center_fill: False # (bool) replace under-covered GT candidate masks with the K nearest P3 anchors
+small_center_fill_branch: o2m # (str) end-to-end branch using small_center_fill: 'o2o', 'o2m', or 'both'
+small_center_fill_k: 4 # (int) minimum/exact P3 candidate count for under-covered GTs
 dfl: 1.5 # (float) distribution focal loss gain
 l1_feat: False # (bool) when reg_max=1, compute box L1 loss in feature-map (grid) scale instead of image-normalized
 smooth_l1: False # (bool) when reg_max=1, use Smooth L1 (Huber) loss for box regression instead of L1

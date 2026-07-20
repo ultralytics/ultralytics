@@ -643,7 +643,7 @@ def main(argv: list[str]) -> None:
     argv, deim_opt = _pop_flag(argv, "--deim_opt", is_bool=True)
     argv, sched_decay = _pop_flag(argv, "--sched_decay", is_bool=True)
     argv, published_recipe = _pop_flag(argv, "--published_recipe", is_bool=True)
-    if sum([published_recipe, deim_opt, sched_decay]) > 1:
+    if sum(map(bool, [published_recipe, deim_opt, sched_decay])) > 1:
         raise SystemExit("ERROR: --published_recipe, --deim_opt, --sched_decay are mutually-exclusive recipe bases.")
     argv, scratch = _pop_flag(argv, "--scratch", is_bool=True)
     argv, datasets_arg = _pop_flag(argv, "--datasets")

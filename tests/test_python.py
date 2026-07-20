@@ -22,6 +22,7 @@ from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.data.build import build_dataloader, load_inference_source
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
+from ultralytics.optim.muon import muon_update
 from ultralytics.utils import (
     ARM64,
     ASSETS,
@@ -43,6 +44,15 @@ from ultralytics.utils import (
 )
 from ultralytics.utils.downloads import download, safe_download
 from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13
+
+
+def test_muon_update_batches_higher_rank_tensors():
+    """Test batched Muon updates flatten tensors with more than two dimensions before stacking."""
+    gradients = [torch.randn(2, 4), torch.randn(2, 2, 1, 1, 4)]
+    updates = muon_update(gradients, [torch.zeros_like(gradient) for gradient in gradients])
+
+    assert [update.shape for update in updates] == [gradient.shape for gradient in gradients]
+    assert all(torch.isfinite(update).all() for update in updates)
 
 
 def test_dataloader_caps_workers_to_batches():

@@ -1491,10 +1491,15 @@ class E2ELoss:
             self.one2one.cls_hard = True  # decouple cls (hard) from the IoU quality branch
         self.one2many.cache_obj_assign = self.one2one.obj and self.train_o2m and not quality  # quality uses o2o assign
         if self.one2one.obj and hasattr(model.model[-1], "obj_fuse"):
+            head = model.model[-1]
             # recall mode trains cls on the fused logit; quality mode trains cls alone and multiplies at inference
             self.one2one.obj_fuse = 0.0 if quality else float(getattr(model.args, "o2o_obj_fuse", 1.0))
-            model.model[-1].obj_fuse.fill_(self.one2one.obj_fuse)
-            model.model[-1].obj_quality.fill_(1.0 if quality else 0.0)
+            head.obj_fuse.fill_(self.one2one.obj_fuse)
+            # on the first fresh-model enable (buffer still 0), give the quality branch an IoU prior so the product score
+            # is not crushed while the branch is still learning; skip on resume so the trained bias is kept
+            if quality and head.obj_quality.item() == 0:
+                head.init_quality_bias()
+            head.obj_quality.fill_(1.0 if quality else 0.0)
         self.one2one.small_cls_gain = getattr(model.args, "o2o_small_cls_gain", 1.0)
         self.one2one.small_cls_area = getattr(model.args, "o2o_small_cls_area", 0.0)
         self.one2one.assigner.o2f = self.o2f

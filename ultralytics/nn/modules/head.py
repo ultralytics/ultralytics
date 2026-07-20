@@ -683,6 +683,16 @@ class DetectO2OObjBox(DetectO2OObj):
             scores = x["scores"].sigmoid()
         return torch.cat((dbox, scores), 1)
 
+    def init_quality_bias(self):
+        """Bias the quality branch to a moderate IoU prior (sigmoid ~0.25) instead of the objectness-density prior.
+
+        In quality mode the score is the product ``cls_prob * IoU_pred``. The inherited objectness prior starts the
+        branch near 0, so the multiplicative gate crushes even true positives while the IoU regression is still cold.
+        A ~0.25 prior gives the product a usable floor during warmup without inflating the background BCE.
+        """
+        for obj in self.one2one_obj:
+            obj[-1].bias.data.fill_(math.log(0.25 / 0.75))  # logit(0.25)
+
 
 class Segment(Detect):
     """YOLO Segment head for segmentation models.

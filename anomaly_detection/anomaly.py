@@ -2051,8 +2051,18 @@ def predict_category(ad: "AnomalyBase", category: str,
     if out_dir is not None:
         hm_dir = out_dir / category / "heatmaps"
         hm_dir.mkdir(parents=True, exist_ok=True)
+        import time as _time
         for im, hm in zip(test_imgs, heatmaps):
-            np.save(hm_dir / f"{Path(im).stem}.npy", hm)
+            dst = hm_dir / f"{Path(im).stem}.npy"
+            for retry in range(5):
+                try:
+                    np.save(dst, hm)
+                    break
+                except OSError:
+                    if retry < 4:
+                        _time.sleep(0.3 * (retry + 1))
+                    else:
+                        raise
 
     return {
         "category": category,

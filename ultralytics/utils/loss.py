@@ -483,6 +483,7 @@ class v8DetectionLoss:
         self.pos_cls_p3_only = False
         self.obj = False  # enable the class-agnostic objectness auxiliary term for one2one only
         self.obj_fuse = 0.0  # >0 trains cls on the fused logit cls + obj_fuse * obj.detach() (DetectO2OObjBox head)
+        self.obj_quality = False  # quality mode: branch regresses the o2o box IoU at the single o2o positive per GT
         self.cache_obj_assign = False  # o2m branch: cache fg_mask/target_bboxes for the o2o objectness target
         self.obj_fg = None  # o2m foreground mask, copied onto the o2o loss by E2ELoss each step
         self.obj_gt_bboxes = None  # o2m matched-GT boxes (pixels), copied onto the o2o loss by E2ELoss each step
@@ -652,8 +653,8 @@ class v8DetectionLoss:
             cls_target = (target_scores > 0) * self.assigner.o2f_cls_score  # place per-anchor score in the GT slot
             cls_target_sum = max(cls_target.sum(), 1)
 
-        # DetectO2OObjBox: train cls on the same logit used at inference (cls + obj_fuse * obj), obj detached so it is
-        # learned only by its own loss and cls learns to complement it (raise where obj is high, suppress where it isn't).
+        # DetectO2OObjBox recall mode: train cls on the same fused logit used at inference (cls + obj_fuse * obj), with
+        # obj detached so it is learned only by its own loss and cls learns to complement it. Off in quality mode.
         cls_pred = pred_scores
         if self.obj_fuse and "obj" in preds:
             cls_pred = pred_scores + self.obj_fuse * preds["obj"].permute(0, 2, 1).detach()
@@ -687,15 +688,16 @@ class v8DetectionLoss:
                 self.assigner.o2f_cls_weight,
                 positive_mask,
             )
-        if self.obj:  # class-agnostic objectness: o2m foreground graded by the o2o box IoU with its matched GT
-            if "obj" in preds and self.obj_fg is not None:  # training-only; needs the o2m assignment (train_o2m path)
+        if (
+            self.obj
+        ):  # objectness/quality branch regresses the o2o box IoU with its matched GT, over one of two supports
+            obj_fg, obj_gt = (fg_mask, target_bboxes) if self.obj_quality else (self.obj_fg, self.obj_gt_bboxes)
+            # quality mode: the single o2o positive per GT (localization quality); recall mode: the dense o2m foreground
+            if "obj" in preds and obj_fg is not None:  # obj_fg is None only in recall mode without the o2m assignment
                 obj_pred = preds["obj"].permute(0, 2, 1).contiguous()  # (bs, num_anchors, 1)
-                # dense o2m foreground gives recall; the o2o box IoU keeps obj low where the o2o box localizes poorly
-                iou = bbox_iou(pred_bboxes.detach() * stride_tensor, self.obj_gt_bboxes, xywh=False).clamp_(0)
-                obj_target = self.obj_fg.unsqueeze(-1) * iou  # (bs, num_anchors, 1), 0 at o2m background
-                self.obj_loss = self.bce(obj_pred, obj_target.to(obj_pred.dtype)).sum() / self.obj_fg.sum().clamp_(
-                    min=1
-                )
+                iou = bbox_iou(pred_bboxes.detach() * stride_tensor, obj_gt, xywh=False).clamp_(0)
+                obj_target = obj_fg.unsqueeze(-1) * iou  # (bs, num_anchors, 1), 0 at background
+                self.obj_loss = self.bce(obj_pred, obj_target.to(obj_pred.dtype)).sum() / obj_fg.sum().clamp_(min=1)
             else:
                 self.obj_loss = pred_scores.new_zeros(())
 
@@ -1481,11 +1483,18 @@ class E2ELoss:
         # class-agnostic objectness (DetectO2OObj* heads): training-only BCE toward the o2m foreground graded by o2o IoU
         self.obj_gain = getattr(model.args, "o2o_obj", 0.0) if hasattr(model.model[-1], "one2one_obj") else 0.0
         self.one2one.obj = self.obj_gain > 0
-        self.one2many.cache_obj_assign = self.one2one.obj and self.train_o2m  # o2m exposes its assignment for obj
-        # DetectO2OObjBox fuses obj into the score; train cls on that same fused logit and keep inference weight in sync
+        # quality mode: branch regresses the o2o box IoU at the single o2o positive, cls uses a hard target, score is the
+        # decoupled product cls_prob * IoU_pred. Recall mode (default): dense o2m foreground fused into cls in logit space.
+        quality = self.one2one.obj and getattr(model.args, "o2o_quality", False)
+        self.one2one.obj_quality = quality
+        if quality:
+            self.one2one.cls_hard = True  # decouple cls (hard) from the IoU quality branch
+        self.one2many.cache_obj_assign = self.one2one.obj and self.train_o2m and not quality  # quality uses o2o assign
         if self.one2one.obj and hasattr(model.model[-1], "obj_fuse"):
-            self.one2one.obj_fuse = float(getattr(model.args, "o2o_obj_fuse", 1.0))
+            # recall mode trains cls on the fused logit; quality mode trains cls alone and multiplies at inference
+            self.one2one.obj_fuse = 0.0 if quality else float(getattr(model.args, "o2o_obj_fuse", 1.0))
             model.model[-1].obj_fuse.fill_(self.one2one.obj_fuse)
+            model.model[-1].obj_quality.fill_(1.0 if quality else 0.0)
         self.one2one.small_cls_gain = getattr(model.args, "o2o_small_cls_gain", 1.0)
         self.one2one.small_cls_area = getattr(model.args, "o2o_small_cls_area", 0.0)
         self.one2one.assigner.o2f = self.o2f

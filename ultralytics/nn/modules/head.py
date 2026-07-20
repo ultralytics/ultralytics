@@ -615,17 +615,22 @@ class DetectO2OObjBox(DetectO2OObj):
     Objectness is a localization signal (foreground existence and box quality), so unlike DetectO2OObjTap (which taps
     the cls tower) this taps the box tower: classification is the unmodified cv3, and objectness shares only the first
     one2one_cv2 layer with box regression, then splits off its own depthwise-separable block and 1x1 output. There is no
-    residual adapter. Objectness is trained toward the o2m foreground graded by the one2one box IoU, and unlike the
-    other DetectO2OObj* heads it participates in inference: the score is fused in logit space as ``sigmoid(cls_logit +
-    obj_fuse * obj_logit)``, so a confident objectness can raise a low-cls foreground anchor and recover recall. Set
-    ``obj_fuse=0`` to disable the fusion (score falls back to cls only).
+    residual adapter. Unlike the other DetectO2OObj* heads the branch participates in inference, in one of two modes set
+    by E2ELoss from args:
 
-    The same fusion weight is used by the cls training loss (E2ELoss trains cls on ``cls_logit + obj_fuse *
-    obj_logit.detach()``), so obj is learned only by its own loss while cls learns to complement it; a scalar buffer
-    keeps the training and inference weight identical and persists it in the checkpoint.
+    - Recall mode (default): objectness is trained toward the o2m foreground graded by the one2one box IoU and fused in
+    logit space as ``sigmoid(cls_logit + obj_fuse * obj_logit)``; the cls loss uses the same fused logit (obj detached),
+    so a confident objectness can raise a low-cls foreground anchor and recover recall.
+    - Quality mode (``o2o_quality``): the branch predicts the one2one box IoU with its matched GT at the single o2o
+    positive per GT, cls is trained with a hard target, and the score is the decoupled product ``cls_prob * IoU_pred``
+    so localization quality reranks detections.
+
+    Two scalar buffers persist the mode in the checkpoint so training and inference stay identical: ``obj_fuse`` (recall
+    logit-fusion weight; 0 disables) and ``obj_quality`` (1 selects the product/quality mode).
 
     Attributes:
-        obj_fuse (torch.Tensor): Scalar logit-fusion weight shared by inference and the cls loss; 0 disables fusion.
+        obj_fuse (torch.Tensor): Scalar recall-mode logit-fusion weight shared by inference and the cls loss.
+        obj_quality (torch.Tensor): 1 selects quality mode (score = cls_prob * predicted IoU), 0 selects recall mode.
 
     Examples:
         Create an end-to-end detection head that shares only the first box layer with objectness
@@ -646,6 +651,8 @@ class DetectO2OObjBox(DetectO2OObj):
         Detect.__init__(self, nc, reg_max, end2end, ch)  # skip the DetectO2OObj adapter/alpha build
         # logit-fusion weight shared by _inference and the cls training loss (E2ELoss fills it from args.o2o_obj_fuse)
         self.register_buffer("obj_fuse", torch.tensor(1.0))
+        # quality mode flag (E2ELoss fills it from args.o2o_quality): 1 => score = cls_prob * predicted_IoU
+        self.register_buffer("obj_quality", torch.tensor(0.0))
         if end2end:
             self.one2one_obj = self._build_obj_head(ch)
 
@@ -666,12 +673,15 @@ class DetectO2OObjBox(DetectO2OObj):
         return dict(boxes=torch.cat(boxes, -1), scores=torch.cat(scores, -1), obj=torch.cat(obj, -1), feats=x)
 
     def _inference(self, x: dict[str, torch.Tensor]) -> torch.Tensor:
-        """Decode boxes and fuse the class-agnostic objectness into the class score via logit addition."""
+        """Decode boxes and fuse the objectness/quality branch into the class score; obj (bs,1,A) broadcasts over nc."""
         dbox = self._get_decode_boxes(x)
-        scores = x["scores"]
-        if self.obj_fuse and "obj" in x:  # logit-space fusion; obj (bs,1,A) broadcasts over the class channel
-            scores = scores + self.obj_fuse * x["obj"]
-        return torch.cat((dbox, scores.sigmoid()), 1)
+        if "obj" in x and self.obj_quality:  # quality mode: decoupled cls_prob * predicted IoU
+            scores = x["scores"].sigmoid() * x["obj"].sigmoid()
+        elif "obj" in x and self.obj_fuse:  # recall mode: logit-space fusion sigmoid(cls_logit + obj_fuse * obj_logit)
+            scores = (x["scores"] + self.obj_fuse * x["obj"]).sigmoid()
+        else:
+            scores = x["scores"].sigmoid()
+        return torch.cat((dbox, scores), 1)
 
 
 class Segment(Detect):

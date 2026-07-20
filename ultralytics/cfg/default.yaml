@@ -111,6 +111,7 @@ o2o_small_cls_gain: 1.0 # (float) o2o P3 positive GT-class cls loss gain to lift
 o2o_small_cls_area: 0.0 # (float) >0 switches o2o_small_cls_gain to continuous area-based weighting (letterbox px^2 threshold); 0=P3-level
 o2o_obj: 1.0 # (float) one2one class-agnostic objectness loss gain (DetectO2OObj* heads; BCE toward the o2m foreground graded by the one2one box IoU)
 o2o_obj_fuse: 1.0 # (float) DetectO2OObjBox logit-fusion weight; score = sigmoid(cls_logit + o2o_obj_fuse * obj_logit) at inference and in the cls loss (obj detached); 0 disables
+o2o_quality: False # (bool) DetectO2OObjBox quality mode: branch regresses the o2o box IoU at the single o2o positive, cls uses a hard target, score = cls_prob * IoU_pred (product)
 vfl: False # (bool) use Varifocal Loss instead of BCE for classification
 vfl_o2m: True # (bool) when vfl=True, also apply Varifocal Loss to the one2many branch (False = one2one branch only)
 vfl_norm: False # (bool) when vfl=True, normalize Varifocal Loss by positive count instead of target score sum

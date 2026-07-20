@@ -96,7 +96,7 @@ def test_convert_depth_ndjson_downloads_image_target_pairs(tmp_path, depth_serve
 
 
 def test_convert_depth_ndjson_reuses_existing_conversion(tmp_path, depth_server, monkeypatch):
-    """Reuse complete depth conversions and repair a missing member of an expected pair."""
+    """Reuse complete depth conversions and reconvert when the completion marker is invalidated."""
     base_url, _ = depth_server
     manifest = tmp_path / "depth.ndjson"
     _write_manifest(manifest, base_url)
@@ -108,6 +108,9 @@ def test_convert_depth_ndjson_reuses_existing_conversion(tmp_path, depth_server,
     monkeypatch.undo()
     depth_path = yaml_path.parent / "depth" / "val" / "2.npy"
     depth_path.unlink()
+    data = YAML.load(yaml_path)
+    data.pop("complete")
+    YAML.save(yaml_path, data)
     assert asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets")) == yaml_path
     assert depth_path.is_file()
 
@@ -118,10 +121,10 @@ def test_convert_depth_ndjson_removes_incomplete_pair(tmp_path, depth_server):
     manifest = tmp_path / "incomplete.ndjson"
     _write_manifest(manifest, base_url, missing_depth=True)
 
-    with pytest.raises(RuntimeError, match="Failed to download all depth pairs"):
+    with pytest.raises(RuntimeError, match=r"Downloaded 1/2 images"):
         asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets"))
 
-    dataset_dir = next((tmp_path / "datasets").iterdir())
+    dataset_dir = next(p for p in (tmp_path / "datasets").iterdir() if p.is_dir())
     assert not (dataset_dir / "images" / "val" / "2.jpg").exists()
     assert not (dataset_dir / "depth" / "val" / "2.npy").exists()
     assert not (dataset_dir / "data.yaml").exists()

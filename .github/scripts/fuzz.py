@@ -172,6 +172,7 @@ EXPECTED_MODULES = (
     "ultralytics/data/utils.py",
     "ultralytics/data/augment.py:classify_augmentations",
     "ultralytics/data/loaders.py:__init__",  # source loaders ARE the source-validation layer; their raises are clean
+    "ultralytics/engine/trainer.py:_setup_train",  # trainer validation of batch/imgsz interplay before training
     "ultralytics/engine/exporter.py:validate_args",  # exporter's intentional per-format argument validation
     "ultralytics/engine/exporter.py:__call__",  # intentional compat asserts; per-format bugs raise in deeper frames
 )
@@ -425,6 +426,9 @@ def run_trial(trial, timeout=None):
 
     cmd = [*_YOLO_CLI_COMMAND, *argv]
     env = {**os.environ, "YOLO_AUTOINSTALL": "false", "PYTHONFAULTHANDLER": "1"}
+    env["PYTHONPATH"] = os.pathsep.join(
+        filter(None, (str(Path(__file__).resolve().parents[2]), os.environ.get("PYTHONPATH")))
+    )
     t0 = time.perf_counter()
     # Own session/group so a timeout kills the whole tree (dataloader workers, export converter subprocesses)
     group = (
@@ -457,9 +461,9 @@ def parse_traceback(stderr):
     block = blocks[-1]
     frames = []
     for path, func in re.findall(r'File "([^"]+)", line \d+, in (\S+)', block):
-        if "ultralytics" in path:
-            norm = path.replace("\\", "/")
-            frames.append(f"{norm[norm.rindex('ultralytics/') :]}:{func}")
+        _, marker, frame = path.replace("\\", "/").rpartition("ultralytics/")
+        if marker and "/site-packages/" not in frame:
+            frames.append(f"ultralytics/{frame}:{func}")
     exc = None
     for line in reversed(block.strip().splitlines()):
         m = re.match(r"^([A-Za-z_][\w.]*(?:Error|Exception|Warning|Interrupt|Exit|SyntaxError))\b", line.strip())
@@ -500,6 +504,7 @@ def classify(trial, rc, stderr):
         (exc == "NotImplementedError" and re.search(r"not supported|(?:doesn't|does not) support", stderr))
         or (exc == "NotImplementedError" and "not found in list of available optimizers" in stderr)
         or (exc == "ValueError" and "Expected `mode` to be `flip` or `mixup`" in stderr)
+        or (exc == "AssertionError" and "RTDETR export requires opset>=16" in stderr)
         or (exc in EXPECTED_TYPES and frames and frames[-1].startswith(EXPECTED_MODULES))
     ):
         return "expected", None, None  # clean validation errors are expected only for trials we actually mutated

@@ -13,6 +13,7 @@ from pathlib import Path
 
 import cv2
 import numpy as np
+from filelock import AsyncFileLock, Timeout
 from PIL import Image
 
 from ultralytics.utils import ASSETS_URL, DATASETS_DIR, LOGGER, NUM_THREADS, TQDM, YAML, clean_url
@@ -825,13 +826,41 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         >>> model = YOLO("yolo26n.pt")
         >>> model.train(data="https://github.com/ultralytics/assets/releases/download/v0.0.0/coco8-ndjson.ndjson")
     """
+    source = str(ndjson_path)
+    output_path = Path(output_path or DATASETS_DIR)
+    output_path.mkdir(parents=True, exist_ok=True)
+    source_id = clean_url(source) if "://" in source else str(Path(source).resolve())
+    source_hash = hashlib.sha256(source_id.encode()).hexdigest()[:8]
+    cache_path = output_path / f".{Path(source_id).stem}-{source_hash}.cache"
+
+    async def convert() -> Path:
+        cache_path.unlink(missing_ok=True)
+        result = await _convert_ndjson_to_yolo(Path(check_file(source)), output_path)
+        cache_path.write_text(str(result.relative_to(output_path)))
+        return result
+
+    try:
+        async with AsyncFileLock(cache_path.with_suffix(".lock"), timeout=0):
+            return await convert()
+    except Timeout:
+        pass
+
+    async with AsyncFileLock(cache_path.with_suffix(".lock")):
+        if cache_path.is_file():
+            result = output_path / cache_path.read_text()
+            marker = result / ".ndjson.yaml" if result.is_dir() else result
+            if marker.is_file():
+                return result
+        return await convert()
+
+
+async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path) -> Path:
+    """Convert a resolved NDJSON source while its conversion lock is held."""
     from ultralytics.utils.checks import check_requirements
 
     check_requirements("aiohttp")
     import aiohttp
 
-    ndjson_path = Path(check_file(ndjson_path))
-    output_path = Path(output_path or DATASETS_DIR)
     with open(ndjson_path) as f:
         lines = [json.loads(line.strip()) for line in f if line.strip()]
     dataset_record, image_records = lines[0], lines[1:]
@@ -850,10 +879,15 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                 raise ValueError(f"Invalid NDJSON split: {split!r}")
             if not isinstance(source_name, str) or not source_name:
                 raise ValueError(f"Invalid NDJSON image name: {source_name!r}")
-            # Record indexes provide collision-free output stems without trusting source paths. Depth targets use the
-            # same stem, so image and target URLs follow the same output mechanics.
+            # Preserve safe content hashes already present in the filename or URL while indexes prevent collisions.
+            # Depth targets use the same stem, so image and target URLs follow the same output mechanics.
             suffix = source_name.rsplit(".", 1)[-1]
-            r["file"] = f"{i}.{suffix}" if suffix.isalnum() and len(suffix) <= 10 else f"{i}.jpg"
+            stems = (Path(clean_url(r.get("url") or "")).stem, Path(source_name).stem)
+            content_hash = next(
+                (s.lower() for s in stems if len(s) == 32 and all(c in "0123456789abcdef" for c in s)), None
+            )
+            stem = f"{content_hash}_{i}" if content_hash else i
+            r["file"] = f"{stem}.{suffix}" if suffix.isalnum() and len(suffix) <= 10 else f"{stem}.jpg"
             if is_classification:
                 ids = r.get("annotations", {}).get("classification", [])
                 class_id = ids[0] if ids else 0
@@ -872,7 +906,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     class_dirs = {class_id: f"{i:06d}" for i, class_id in enumerate(sorted(classification_ids))}
     classification_names = {i: class_names.get(class_id, str(class_id)) for i, class_id in enumerate(class_dirs)}
 
-    # Depth adds one sibling URL per image record; file naming, caching, retries, and split reuse remain shared.
+    # Depth adds one sibling URL per image record; file naming, caching, and retries remain shared.
     if is_depth:
         for record in image_records:
             depth = record.get("depth")
@@ -884,6 +918,16 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
             if not isinstance(shape, list) or len(shape) != 2 or not all(type(x) is int and x > 0 for x in shape):
                 raise ValueError("Depth records require a positive [height, width] shape")
 
+    # Hash-qualified dirs allow identical datasets to reuse downloads while preventing changed datasets from mutating
+    # files that another training job may still be reading.
+    dataset_dir = output_path / f"{ndjson_path.stem}-{_hash}"
+    metadata_path = dataset_dir / (".ndjson.yaml" if is_classification else "data.yaml")
+    if metadata_path.is_file():
+        try:
+            if (cached := YAML.load(metadata_path)).get("hash") == _hash and cached.get("complete") is True:
+                return dataset_dir if is_classification else metadata_path
+        except Exception:
+            pass
     splits = {record["split"] for record in image_records}
     if not is_classification:
         if "train" not in splits:
@@ -906,41 +950,6 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                 f"For best results, manually assign validation images in Platform dataset page."
             )
 
-    dataset_dir = output_path / f"{ndjson_path.stem}-{_hash}"
-    yaml_path = dataset_dir / "data.yaml"
-
-    if yaml_path.is_file():
-        try:
-            cached = YAML.load(yaml_path)
-            if (
-                cached.get("hash") == _hash
-                and all(
-                    (dataset_dir / cached[split]).is_dir()
-                    and (
-                        is_classification
-                        or (dataset_dir / ("depth" if is_depth else "labels") / Path(cached[split]).name).is_dir()
-                    )
-                    for split in ("train", "val", "test")
-                    if split in cached
-                )
-                and (
-                    not is_depth
-                    or all(
-                        (dataset_dir / "images" / record["split"] / record["file"]).is_file()
-                        and (
-                            dataset_dir
-                            / "depth"
-                            / record["split"]
-                            / f"{record['file'].rsplit('.', 1)[0] or record['file']}.npy"
-                        ).is_file()
-                        for record in image_records
-                    )
-                )
-            ):
-                return yaml_path
-        except Exception:
-            pass
-
     inferred_nc = None
 
     if not is_classification:
@@ -961,11 +970,6 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     if task == "pose" and "kpt_shape" not in dataset_record:
         dataset_record["kpt_shape"] = _infer_ndjson_kpt_shape(image_records)
 
-    _reuse = dataset_dir.exists()
-    if _reuse:
-        yaml_path.unlink(missing_ok=True)  # Invalidate hash before destructive ops (crash safety)
-        if not is_classification and not is_depth:
-            shutil.rmtree(dataset_dir / "labels", ignore_errors=True)
     dataset_dir.mkdir(parents=True, exist_ok=True)
     data_yaml = None
 
@@ -986,15 +990,10 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
             (dataset_dir / ("depth" if is_depth else "labels") / split).mkdir(parents=True, exist_ok=True)
             data_yaml[split] = f"images/{split}"
 
-    async def ensure_file(session, path, url, candidates=()):
-        """Reuse an existing split copy or download one URL with the established retry policy."""
+    async def ensure_file(session, path, url):
+        """Return True when the file exists locally, otherwise download one URL with the retry policy."""
         if path.exists():
             return True
-        for candidate in candidates:
-            if candidate.exists():
-                path.parent.mkdir(parents=True, exist_ok=True)
-                candidate.rename(path)
-                return True
         if not url:
             return False
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -1046,31 +1045,13 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                         break
                     label_path.write_text("\n".join(lines_to_write) + "\n" if lines_to_write else "")
 
-            image_candidates = (
-                [
-                    (dataset_dir / s / class_name / original_name)
-                    if is_classification
-                    else (dataset_dir / "images" / s / original_name)
-                    for s in ("train", "val", "test")
-                    if s != split
-                ]
-                if _reuse
-                else []
-            )
-            image_ok = await ensure_file(session, image_path, record.get("url"), image_candidates)
+            image_ok = await ensure_file(session, image_path, record.get("url"))
             if not is_depth:
                 return image_ok
 
             stem = original_name.rsplit(".", 1)[0] or original_name
-            depth_name = f"{stem}.npy"
-            depth_path = dataset_dir / "depth" / split / depth_name
-            descriptor = record["depth"]
-            depth_candidates = (
-                [dataset_dir / "depth" / s / depth_name for s in ("train", "val", "test") if s != split]
-                if _reuse
-                else []
-            )
-            depth_ok = await ensure_file(session, depth_path, descriptor["url"], depth_candidates)
+            depth_path = dataset_dir / "depth" / split / f"{stem}.npy"
+            depth_ok = await ensure_file(session, depth_path, record["depth"]["url"])
             if not image_ok or not depth_ok:
                 image_path.unlink(missing_ok=True)
                 depth_path.unlink(missing_ok=True)
@@ -1095,46 +1076,16 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
 
     # Validate images were downloaded successfully
     success_count = sum(1 for r in results if r)
-    if success_count == 0:
-        raise RuntimeError(f"Failed to download any images from {ndjson_path}. Check network connection and URLs.")
-    if is_depth and success_count < len(image_records):
-        raise RuntimeError(f"Failed to download all depth pairs from {ndjson_path}.")
-    if success_count < len(image_records):
-        LOGGER.warning(f"Downloaded {success_count}/{len(image_records)} images from {ndjson_path}")
-
-    # Remove orphaned images no longer in the dataset (prevents stale background images in training)
-    if _reuse:
-        expected_paths = set()
-        for r in image_records:
-            s, name = r["split"], r["file"]
-            if is_classification:
-                ann = r.get("annotations", {})
-                cids = ann.get("classification", [])
-                cid = cids[0] if cids else 0
-                class_name = class_dirs[cid]
-                expected_paths.add(dataset_dir / s / class_name / name)
-            else:
-                expected_paths.add(dataset_dir / "images" / s / name)
-        img_root = dataset_dir if is_classification else (dataset_dir / "images")
-        for p in img_root.rglob("*"):
-            if p.is_file() and p not in expected_paths:
-                p.unlink()
-        if is_depth:
-            expected_depth = {
-                dataset_dir / "depth" / r["split"] / f"{r['file'].rsplit('.', 1)[0] or r['file']}.npy"
-                for r in image_records
-            }
-            for p in (dataset_dir / "depth").rglob("*"):
-                if p.is_file() and p not in expected_depth:
-                    p.unlink()
+    if not image_records or success_count < len(image_records):
+        raise RuntimeError(f"Downloaded {success_count}/{len(image_records)} images from {ndjson_path}")
 
     if is_classification:
         # Classification: return dataset directory (check_cls_dataset expects a directory path)
         # Keep class paths safe while check_cls_dataset restores the original display names.
-        YAML.save(dataset_dir / ".ndjson.yaml", {"names": classification_names})
+        YAML.save(metadata_path, {"names": classification_names, "hash": _hash, "complete": True})
         return dataset_dir
     else:
         # Detection: write data.yaml with hash for future change detection
-        data_yaml["hash"] = _hash
-        YAML.save(yaml_path, data_yaml)
-        return yaml_path
+        data_yaml.update(hash=_hash, complete=True)
+        YAML.save(metadata_path, data_yaml)
+        return metadata_path

@@ -2371,6 +2371,10 @@ class Format(BaseTransform):
         nl = params.get("nl", 0)
 
         if self.return_mask:
+            if self.mask_ratio > min(h, w):
+                raise ValueError(
+                    f"mask_ratio={self.mask_ratio} downsamples imgsz={(h, w)} masks to zero size; use mask_ratio <= {min(h, w)}"
+                )
             if nl:
                 masks, instances, cls = self._format_segments(instances, cls, w, h)
                 masks = torch.from_numpy(masks)

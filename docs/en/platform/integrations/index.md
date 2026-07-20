@@ -8,7 +8,7 @@ keywords: Ultralytics Platform, integrations, data import, Roboflow, Ultralytics
 
 # Integrations
 
-[Ultralytics Platform](https://platform.ultralytics.com) integrations connect your workspace to other tools and services you already use. Import existing datasets with a single API key, or connect your cloud storage and use the data where it lives — no manual export or re-upload either way.
+[Ultralytics Platform](https://platform.ultralytics.com) [integrations](../../integrations/index.md) connect your workspace to other tools and services you already use. Import existing datasets with a single API key, or connect your cloud storage and use the data where it lives — no manual export or re-upload either way.
 
 ![Ultralytics Platform Settings Integrations Tab](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-integrations-tab.avif)
 

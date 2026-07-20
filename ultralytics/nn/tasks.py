@@ -48,6 +48,7 @@ from ultralytics.nn.modules import (
     ConvTranspose,
     Detect,
     DetectO2OObj,
+    DetectO2OObjBox,
     DetectO2OObjShared,
     DetectO2OObjTap,
     DetectO2OSA,
@@ -1797,6 +1798,7 @@ def parse_model(d, ch, verbose=True):
             {
                 Detect,
                 DetectO2OObj,
+                DetectO2OObjBox,
                 DetectO2OObjShared,
                 DetectO2OObjTap,
                 DetectO2OSA,
@@ -1820,6 +1822,7 @@ def parse_model(d, ch, verbose=True):
             if m in {
                 Detect,
                 DetectO2OObj,
+                DetectO2OObjBox,
                 DetectO2OObjShared,
                 DetectO2OObjTap,
                 DetectO2OSA,

@@ -482,6 +482,10 @@ class v8DetectionLoss:
         self.pos_cls = False  # enable the positive-only GT-class auxiliary term for one2one only
         self.pos_cls_p3_only = False
         self.obj = False  # enable the class-agnostic objectness auxiliary term for one2one only
+        self.obj_fuse = 0.0  # >0 trains cls on the fused logit cls + obj_fuse * obj.detach() (DetectO2OObjBox head)
+        self.cache_obj_assign = False  # o2m branch: cache fg_mask/target_bboxes for the o2o objectness target
+        self.obj_fg = None  # o2m foreground mask, copied onto the o2o loss by E2ELoss each step
+        self.obj_gt_bboxes = None  # o2m matched-GT boxes (pixels), copied onto the o2o loss by E2ELoss each step
         self.small_cls_gain = 1.0  # P3 positive GT-class cls up-gradient gain (small objects); set by E2ELoss
         self.small_cls_area = 0.0  # >0 switches to continuous area-based weighting (letterbox px^2); 0 = P3 binary
         self.vfl_norm = getattr(h, "vfl_norm", False)  # normalize VFL by positive count instead of target score sum
@@ -639,11 +643,20 @@ class v8DetectionLoss:
 
         target_scores_sum = max(target_scores.sum(), 1)
 
+        if self.cache_obj_assign:  # o2m branch: expose foreground + matched-GT boxes for the o2o objectness target
+            self.obj_fg, self.obj_gt_bboxes = fg_mask, target_bboxes
+
         # O2F: ambiguous anchors use their CIoU-graded soft target for cls only; box/dfl below keep target_scores
         cls_target, cls_target_sum = target_scores, target_scores_sum
         if self.assigner.o2f_cls_score is not None:
             cls_target = (target_scores > 0) * self.assigner.o2f_cls_score  # place per-anchor score in the GT slot
             cls_target_sum = max(cls_target.sum(), 1)
+
+        # DetectO2OObjBox: train cls on the same logit used at inference (cls + obj_fuse * obj), obj detached so it is
+        # learned only by its own loss and cls learns to complement it (raise where obj is high, suppress where it isn't).
+        cls_pred = pred_scores
+        if self.obj_fuse and "obj" in preds:
+            cls_pred = pred_scores + self.obj_fuse * preds["obj"].permute(0, 2, 1).detach()
 
         # Cls loss (Varifocal or BCE) with optional class weighting
         cls_w = self.assigner.o2f_cls_weight
@@ -658,7 +671,7 @@ class v8DetectionLoss:
             # renormalize positives so sum(sw*q) == sum(q): keeps total cls scale (and cls/box balance) fixed
             sw = torch.where(pos, sw * (cls_target_sum / (sw * cls_target).sum().clamp(min=1e-9)), 1.0)
             cls_w = sw if cls_w is None else cls_w * sw
-        loss[1] = self.cls_loss(pred_scores, cls_target, cls_target_sum, cls_w)
+        loss[1] = self.cls_loss(cls_pred, cls_target, cls_target_sum, cls_w)
         if self.pos_cls:
             positive_mask = torch.zeros_like(target_scores, dtype=torch.bool).scatter_(
                 2,
@@ -668,17 +681,21 @@ class v8DetectionLoss:
             if self.pos_cls_p3_only:
                 positive_mask &= (stride_tensor.squeeze(-1) == stride_tensor.min()).view(1, -1, 1)
             self.pos_cls_loss = self.cls_loss(
-                pred_scores,
+                cls_pred,
                 cls_target,
                 cls_target_sum,
                 self.assigner.o2f_cls_weight,
                 positive_mask,
             )
-        if self.obj:  # class-agnostic objectness: BCE toward the per-anchor IoU soft target (max over GT-class scores)
-            if "obj" in preds:  # training-only branch; absent when the head runs in eval mode (val loss reports 0)
+        if self.obj:  # class-agnostic objectness: o2m foreground graded by the o2o box IoU with its matched GT
+            if "obj" in preds and self.obj_fg is not None:  # training-only; needs the o2m assignment (train_o2m path)
                 obj_pred = preds["obj"].permute(0, 2, 1).contiguous()  # (bs, num_anchors, 1)
-                obj_target = cls_target.amax(-1, keepdim=True)  # IoU soft target at positives, 0 at background
-                self.obj_loss = self.bce(obj_pred, obj_target.to(obj_pred.dtype)).sum() / cls_target_sum
+                # dense o2m foreground gives recall; the o2o box IoU keeps obj low where the o2o box localizes poorly
+                iou = bbox_iou(pred_bboxes.detach() * stride_tensor, self.obj_gt_bboxes, xywh=False).clamp_(0)
+                obj_target = self.obj_fg.unsqueeze(-1) * iou  # (bs, num_anchors, 1), 0 at o2m background
+                self.obj_loss = self.bce(obj_pred, obj_target.to(obj_pred.dtype)).sum() / self.obj_fg.sum().clamp_(
+                    min=1
+                )
             else:
                 self.obj_loss = pred_scores.new_zeros(())
 
@@ -1461,9 +1478,14 @@ class E2ELoss:
         self.pos_cls = getattr(model.args, "o2o_pos_cls", 0.0) if loss_fn is v8DetectionLoss else 0.0
         self.one2one.pos_cls = bool(self.pos_cls)
         self.one2one.pos_cls_p3_only = getattr(model.args, "o2o_pos_cls_p3_only", False)
-        # class-agnostic objectness (DetectO2OObj head only): training-only BCE toward the IoU soft target
+        # class-agnostic objectness (DetectO2OObj* heads): training-only BCE toward the o2m foreground graded by o2o IoU
         self.obj_gain = getattr(model.args, "o2o_obj", 0.0) if hasattr(model.model[-1], "one2one_obj") else 0.0
         self.one2one.obj = self.obj_gain > 0
+        self.one2many.cache_obj_assign = self.one2one.obj and self.train_o2m  # o2m exposes its assignment for obj
+        # DetectO2OObjBox fuses obj into the score; train cls on that same fused logit and keep inference weight in sync
+        if self.one2one.obj and hasattr(model.model[-1], "obj_fuse"):
+            self.one2one.obj_fuse = float(getattr(model.args, "o2o_obj_fuse", 1.0))
+            model.model[-1].obj_fuse.fill_(self.one2one.obj_fuse)
         self.one2one.small_cls_gain = getattr(model.args, "o2o_small_cls_gain", 1.0)
         self.one2one.small_cls_area = getattr(model.args, "o2o_small_cls_area", 0.0)
         self.one2one.assigner.o2f = self.o2f
@@ -1525,6 +1547,8 @@ class E2ELoss:
         if self.o2o_from_o2m:  # feed the o2m positive set + align metric as the o2o topk candidate pool
             self.one2one.assigner.o2m_metric = self.one2many.assigner.shared_metric
             self.one2one.assigner.o2m_mask = self.one2many.assigner.shared_mask
+        if self.one2one.obj:  # hand the o2m foreground + matched-GT boxes to the o2o objectness target
+            self.one2one.obj_fg, self.one2one.obj_gt_bboxes = self.one2many.obj_fg, self.one2many.obj_gt_bboxes
         loss_one2one = self.one2one.loss(preds["one2one"], batch)
         total = loss_one2many[0] * self.o2m + loss_one2one[0] * self.o2o  # (box, cls, dfl), summed by the trainer
         loss_items = loss_one2one[1]

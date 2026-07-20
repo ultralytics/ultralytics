@@ -25,6 +25,7 @@ __all__ = (
     "Classify",
     "Detect",
     "DetectO2OObj",
+    "DetectO2OObjBox",
     "DetectO2OObjShared",
     "DetectO2OObjTap",
     "DetectO2OSA",
@@ -606,6 +607,71 @@ class DetectO2OObjTap(DetectO2OObj):
         if self.training:
             out["obj"] = torch.cat(obj, -1)
         return out
+
+
+class DetectO2OObjBox(DetectO2OObj):
+    """Class-agnostic objectness head that shares only the first box-tower layer with the box head (no adapter).
+
+    Objectness is a localization signal (foreground existence and box quality), so unlike DetectO2OObjTap (which taps
+    the cls tower) this taps the box tower: classification is the unmodified cv3, and objectness shares only the first
+    one2one_cv2 layer with box regression, then splits off its own depthwise-separable block and 1x1 output. There is no
+    residual adapter. Objectness is trained toward the o2m foreground graded by the one2one box IoU, and unlike the
+    other DetectO2OObj* heads it participates in inference: the score is fused in logit space as ``sigmoid(cls_logit +
+    obj_fuse * obj_logit)``, so a confident objectness can raise a low-cls foreground anchor and recover recall. Set
+    ``obj_fuse=0`` to disable the fusion (score falls back to cls only).
+
+    The same fusion weight is used by the cls training loss (E2ELoss trains cls on ``cls_logit + obj_fuse *
+    obj_logit.detach()``), so obj is learned only by its own loss while cls learns to complement it; a scalar buffer
+    keeps the training and inference weight identical and persists it in the checkpoint.
+
+    Attributes:
+        obj_fuse (torch.Tensor): Scalar logit-fusion weight shared by inference and the cls loss; 0 disables fusion.
+
+    Examples:
+        Create an end-to-end detection head that shares only the first box layer with objectness
+        >>> detect = DetectO2OObjBox(nc=80, end2end=True, ch=(256, 512, 1024))
+        >>> x = [torch.randn(1, 256, 80, 80), torch.randn(1, 512, 40, 40), torch.randn(1, 1024, 20, 20)]
+        >>> outputs = detect(x)
+    """
+
+    def __init__(self, nc: int = 80, reg_max=16, end2end=False, ch: tuple = ()):
+        """Initialize the detection head and, when end-to-end, the box-shared one2one objectness head (no adapter).
+
+        Args:
+            nc (int): Number of classes.
+            reg_max (int): Maximum number of DFL channels.
+            end2end (bool): Whether to use end-to-end NMS-free detection.
+            ch (tuple): Tuple of channel sizes from backbone feature maps.
+        """
+        Detect.__init__(self, nc, reg_max, end2end, ch)  # skip the DetectO2OObj adapter/alpha build
+        # logit-fusion weight shared by _inference and the cls training loss (E2ELoss fills it from args.o2o_obj_fuse)
+        self.register_buffer("obj_fuse", torch.tensor(1.0))
+        if end2end:
+            self.one2one_obj = self._build_obj_head(ch)
+
+    def _build_obj_head(self, ch: tuple) -> nn.ModuleList:
+        """Build the per-level objectness head (own 2nd block + output) taking the shared first-box-layer feature."""
+        c2 = max(16, ch[0] // 4, self.reg_max * 4)  # box-tower channels, matches Detect.cv2
+        return nn.ModuleList(nn.Sequential(DWConv(c2, c2, 3), Conv(c2, c2, 1), nn.Conv2d(c2, 1, 1)) for _ in ch)
+
+    def forward_o2o(self, x: list[torch.Tensor]) -> dict[str, torch.Tensor]:
+        """Run the one2one heads sharing only the first box layer, then splitting box/obj (obj kept for inference)."""
+        bs = x[0].shape[0]  # batch size
+        boxes, scores, obj = [], [], []
+        for i in range(self.nl):
+            feat = self.one2one_cv2[i][0](x[i])  # shared first box-tower layer only -> c2
+            boxes.append(self.one2one_cv2[i][1:](feat).view(bs, 4 * self.reg_max, -1))  # box: original 2nd block + out
+            scores.append(self.one2one_cv3[i](x[i]).view(bs, self.nc, -1))  # cls: unchanged cv3 on the raw feature
+            obj.append(self.one2one_obj[i](feat).view(bs, 1, -1))  # obj: own 2nd block + output, fused at inference
+        return dict(boxes=torch.cat(boxes, -1), scores=torch.cat(scores, -1), obj=torch.cat(obj, -1), feats=x)
+
+    def _inference(self, x: dict[str, torch.Tensor]) -> torch.Tensor:
+        """Decode boxes and fuse the class-agnostic objectness into the class score via logit addition."""
+        dbox = self._get_decode_boxes(x)
+        scores = x["scores"]
+        if self.obj_fuse and "obj" in x:  # logit-space fusion; obj (bs,1,A) broadcasts over the class channel
+            scores = scores + self.obj_fuse * x["obj"]
+        return torch.cat((dbox, scores.sigmoid()), 1)
 
 
 class Segment(Detect):

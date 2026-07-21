@@ -1,101 +1,198 @@
 ---
 plans: [enterprise]
 title: On Premise - Ultralytics Platform
-description: Connect an Enterprise host to Ultralytics Platform for local dataset ingest, previews, and NVIDIA GPU training without sending pixels to the cloud.
-keywords: Ultralytics Platform, On Premise, on-premise computer vision, private datasets, local GPU training, data residency, YOLO
+description: Use local datasets and train YOLO models on your own computer while uploading completed models to Platform.
+keywords: Ultralytics Platform, On Premise, private datasets, local training, data residency, YOLO
 ---
 
 # On Premise
 
-[On Premise](https://platform.ultralytics.com) connects CPU and optional NVIDIA GPU workers on your own Linux, Apple Silicon macOS, or Windows host to Ultralytics Platform. Platform remains the hosted control plane for the UI, authentication, metadata, annotations, and job orchestration, while every pixel and trained model artifact stays on your premises.
+[On Premise](https://platform.ultralytics.com) lets your Enterprise workspace use datasets and compute on a Linux,
+macOS, or Windows computer. Source images and videos remain on your computer. Training behaves like any other
+[remote training](../train/cloud-training.md#remote-training) location: metrics stream to Platform and completed model
+weights upload for download, prediction, export, and deployment.
 
-Your host needs Docker and outbound HTTPS access to Platform. The installer adds Docker automatically when it is missing, so the normal setup is one command.
+Setup takes one command. Platform detects your operating system, fills in sensible folder locations, installs Docker if needed, and shows live connection progress.
 
-## System Requirements
+## How It Works
 
-|                  | Minimum                                                         | Recommended                                                                      |
-| ---------------- | --------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| Operating system | 64-bit Linux, Apple Silicon macOS, or x86-64 Windows with WSL 2 | Current OS and Docker releases                                                   |
-| CPU              | 4 cores                                                         | 8 or more cores for CPU training                                                 |
-| Memory           | 8 GB RAM                                                        | 16 GB or more                                                                    |
-| Storage          | 20 GB free plus space for datasets and models                   | SSD with free space at least twice the working dataset size plus model artifacts |
-| Network          | Outbound HTTPS to Platform and container registries             | Stable broadband for initial image pulls                                         |
+```mermaid
+flowchart LR
+    A[Your browser] <-->|Interface, labels, and progress| B[Ultralytics Platform]
+    A <-->|Dataset previews| C[Your On Premise computer]
+    B <-->|Jobs, metrics, and model weights| C
+    C --- D[(Dataset folder)]
+    C --- E[(Models folder)]
+```
 
-CPU ingest and training work on all three operating systems. The installer selects the official native arm64 image on Apple Silicon and ARM Linux, so small jobs such as YOLO26n on COCO8 run without x86 emulation. NVIDIA acceleration is optional; when it is unavailable, training runs on CPU.
+### Data Boundaries
 
-## Data Boundary
+| Data                              | Your On Premise computer                                                                 | Platform and cloud services                                                                                         |
+| --------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Source and derived dataset pixels | Stay local for ingest, preview, and training                                             | Never stored, logged, or processed                                                                                  |
+| Classes, labels, and annotations  | Source labels are read during ingest                                                     | Stored as the canonical dataset metadata so you can annotate in Platform                                            |
+| Training models                   | The run, best checkpoint, and other training artifacts are written to your models folder | The best checkpoint uploads for download, prediction, export, and deployment; other artifacts stay on your computer |
 
-| Stays on your premises                                     | Stored in Platform                                  |
-| ---------------------------------------------------------- | --------------------------------------------------- |
-| Source images and videos                                   | Dataset names, paths, dimensions, and revisions     |
-| Extracted archives, downloaded NDJSON images, video frames | Classes, labels, annotations, and split assignments |
-| Training data, checkpoints, weights, and run artifacts     | Job state, scalar metrics, and worker health        |
+Model weights, labels, annotations, and metrics can encode information learned from your images. Only the
+dataset pixels have the strict local-only boundary. Cloud prediction processes only images you separately submit to that
+cloud workflow; the worker never forwards an image from your mounted dataset.
 
-Dataset folders are mounted read-only. Platform and its hosted workers never receive the source or derived pixels, and On Premise jobs never fall back to Ultralytics or RunPod compute.
+## Before You Start
 
-!!! note "Connected On Premise"
+Choose a computer that can access your datasets and remain powered on while Platform is using them.
 
-    Platform, authentication, and metadata remain hosted. Workers initiate outbound HTTPS connections to claim jobs and report metadata. On Premise is not an air-gapped or fully self-hosted Platform installation, and it does not require a local MongoDB instance.
+|                  | Minimum                                                               | Recommended                                    |
+| ---------------- | --------------------------------------------------------------------- | ---------------------------------------------- |
+| Operating system | 64-bit Linux, Mac with an M-series chip, or 64-bit Windows with WSL 2 | Current OS and Docker releases                 |
+| CPU              | 4 cores                                                               | 8 or more cores for training                   |
+| Memory           | 8 GB RAM                                                              | 16 GB or more                                  |
+| Storage          | 20 GB plus space for datasets and models                              | SSD with twice your working dataset size free  |
+| Network          | Outbound HTTPS                                                        | Stable broadband for the first Docker download |
 
-## Connect a Host
+A GPU is optional. Every computer can ingest datasets and train models on its CPU. A compatible NVIDIA GPU can accelerate larger training jobs.
 
-1. Open [Ultralytics Platform](https://platform.ultralytics.com) on the Linux, Apple Silicon macOS, or Windows host that can access your datasets.
+!!! note "Corporate networks"
+
+    If your company restricts outbound traffic, allow HTTPS access to Ultralytics Platform, Docker registries, and Python package downloads before setup.
+
+## Connect Your Computer
+
+1. Open [Ultralytics Platform](https://platform.ultralytics.com) on the computer that can access your datasets.
 2. Go to `Settings > Integrations` and select **Connect** on the **On Premise** card.
-3. Platform selects the detected Linux, macOS, or Windows command. Apple Silicon is required on macOS. Keep the prefilled values or change them:
-    - **Machine name:** `On Premise host`
-    - **Dataset folder:** `/datasets` on Linux or `~/Ultralytics/datasets` on macOS and Windows
-    - **Models folder:** `/models` on Linux or `~/Ultralytics/models` on macOS and Windows
-4. Select **Create install command**. The dialog tells you which terminal to open for the selected operating system.
-5. Copy the complete command, paste it into that terminal, and run it. The command includes the one-time enrollment token, installs and starts Docker when needed, and creates the selected folders.
-6. Leave the dialog open. Platform checks every 500 milliseconds and shows the host as connected when the CPU worker starts. A GPU worker starts automatically when Docker exposes a supported NVIDIA runtime.
+3. Review the prefilled settings:
+    - **Machine name:** a recognizable name for this computer
+    - **Dataset folder:** where you keep source datasets
+    - **Models folder:** where Platform saves trained models
+4. Select **Create install command**.
+5. Open the terminal named in the dialog, copy the command, paste it, and press Enter.
+6. Leave the dialog open until the progress indicator shows **Connected**.
 
-The enrollment token expires after 10 minutes and can be exchanged only once. The installed worker stores the resulting revocable worker key in a mode-`0600` environment file. It never receives Platform MongoDB or cloud-storage credentials. Compose restarts the workers automatically, and setup configures Docker to start at boot on Linux or sign-in on macOS and Windows.
+Platform fills in the folders and one-time connection token before you copy the command. The generated command follows the format below:
 
-!!! info "Training hardware"
+=== "Linux"
 
-    CPU ingest and training only need Docker. Optional GPU acceleration also requires a supported NVIDIA driver and container runtime on the host.
+    Open **Terminal** and paste:
 
-## Create an On Premise Dataset
+    ```bash
+    curl -fsSL 'https://platform.ultralytics.com/api/workers/install?os=linux' \
+      | sudo sh -s -- \
+        "/datasets" \
+        "/models" \
+        "YOUR_CONNECTION_TOKEN"
+    ```
 
-1. Put the dataset beneath the connected dataset folder. For example, `/datasets/warehouse` is `warehouse` inside the default root.
+=== "macOS"
+
+    Open **Terminal** and paste:
+
+    ```bash
+    curl -fsSL 'https://platform.ultralytics.com/api/workers/install?os=macos' \
+      | sh -s -- \
+        "$HOME/Ultralytics/datasets" \
+        "$HOME/Ultralytics/models" \
+        "YOUR_CONNECTION_TOKEN"
+    ```
+
+=== "Windows"
+
+    Open **PowerShell** and paste:
+
+    ```powershell
+    $installer = Invoke-RestMethod `
+      'https://platform.ultralytics.com/api/workers/install?os=windows'
+    & ([scriptblock]::Create($installer)) `
+      -DataPath "$HOME\Ultralytics\datasets" `
+      -ModelsPath "$HOME\Ultralytics\models" `
+      -ConnectionToken "YOUR_CONNECTION_TOKEN"
+    ```
+
+!!! warning "Copy your command from Platform"
+
+    Platform includes the connection token automatically. It proves this computer is allowed to connect to your workspace, expires after 10 minutes, and works once. You never enter it separately. Do not share the generated command while it is valid.
+
+The defaults work without editing:
+
+|                | Linux       | macOS and Windows        |
+| -------------- | ----------- | ------------------------ |
+| Dataset folder | `/datasets` | `~/Ultralytics/datasets` |
+| Models folder  | `/models`   | `~/Ultralytics/models`   |
+
+The setup command creates these folders, installs and starts Docker when needed, and configures the connection to restart with your computer. Your operating system may ask you to approve installation or restart before setup can finish.
+
+### Docker Base Images
+
+The installer runs one container and selects the [official Ultralytics base image](../../guides/docker-quickstart.md) for the host:
+
+| Host                               | Base image                             |
+| ---------------------------------- | -------------------------------------- |
+| Apple Silicon or ARM64 Linux       | `ultralytics/ultralytics:latest-arm64` |
+| x86-64 CPU                         | `ultralytics/ultralytics:latest-cpu`   |
+| x86-64 with a supported NVIDIA GPU | `ultralytics/ultralytics:latest`       |
+
+The installer tracks the latest official image for each host. The worker adds its connectivity dependencies without reinstalling Ultralytics. It detects CUDA at runtime, so an NVIDIA host still runs one container rather than separate CPU and GPU workers. These lightweight images support local ingest and training; Platform's existing cloud services handle model prediction and export after the best checkpoint uploads.
+
+!!! warning "Use CDI for GPU access"
+
+    CPU setup requires nothing beyond the guided installation. On Linux, NVIDIA GPU acceleration requires Docker >= 28.2 and NVIDIA Container Toolkit >= 1.18. The installer uses CDI `--device` reservations, not legacy `--gpus all`, so GPU access survives host daemon reloads. Docker Desktop on Windows uses its supported NVIDIA device reservation because NVIDIA CDI devices are not available there. Platform detects the supported GPU path automatically; see the [Docker Quickstart Guide](../../guides/docker-quickstart.md#using-gpus) for setup details.
+
+## Add a Dataset
+
+1. Put your dataset inside the configured dataset folder.
 2. In Platform, select **New Dataset > On Premise**.
-3. Browse the connected host with the same folder browser used for Google Cloud Storage, Amazon S3, and Azure Blob Storage, select a folder, choose the task, and create the private dataset.
-4. The host indexes the dataset and reports metadata. Platform never uploads the images.
+3. Choose the connected computer.
+4. Browse to the dataset folder, choose the task, and select **Create**.
 
-On Premise uses the same CPU ingest code as hosted uploads. It supports:
+Platform indexes the dataset locally and opens it in the same gallery used for uploaded and cloud-storage datasets. You can preview images, inspect labels, filter the dataset, and annotate without uploading the pixels.
 
-- loose images and videos;
-- ZIP, TAR, TAR.GZ, and TGZ archives;
-- Ultralytics NDJSON and COCO JSON;
-- YOLO datasets and classification folder layouts; and
-- detect, segment, pose, OBB, and classify tasks, including the same class mapping, task inference, validation, and split handling.
+### Supported Data
 
-The storage output is the only difference. Hosted ingestion may resize or normalize images and create thumbnails in Platform storage. On Premise never resizes, re-encodes, edits, or deletes mounted originals. Archive contents, remote NDJSON assets, and video frames sampled at 1 FPS up to 100 frames, then evenly across longer videos, are written only to a Docker volume on the host.
+On Premise supports the same ingest formats and computer-vision tasks as uploaded data:
+
+- Images and videos
+- ZIP, TAR, TAR.GZ, and TGZ archives
+- Ultralytics NDJSON and COCO JSON
+- YOLO datasets and classification folders
+- Detect, segment, pose, oriented bounding box (OBB), and classify tasks
+
+Platform automatically recognizes common dataset layouts, classes, labels, and train/validation/test splits. Platform treats source files as read-only and never resizes, re-encodes, edits, or deletes them.
 
 ## Preview and Annotate
 
-Platform authorizes each preview, then your browser loads the revision-bound file directly from `http://localhost:8765` on the same computer. No hostname, certificate, VPN, proxy, or preview setting is required.
+When you open an image, your browser loads it directly from the connected computer. There is no certificate, hostname, VPN, or preview configuration.
 
-Annotations are stored as Platform metadata. Editing or deleting an image in Platform changes the Platform reference and annotations only; it never changes a source file or label sidecar.
+Annotations and dataset organization are saved in your Platform workspace, but edits in Platform never change your source image or label files.
 
-## Train Locally
+## Train a Model
 
-Start training from the normal project training dialog. A dataset bound to an On Premise host is claimable only by that host. Platform uses its GPU worker when available and otherwise runs the same training code on its CPU worker. Training reads the mounted files, writes checkpoints and weights beneath the configured models folder, and returns job state, scalar metrics, and the immutable checkpoint reference to Platform. Model downloads use the same signed `localhost` connection as previews, so the weights move directly from your host to your browser.
+Start training through the normal Platform training dialog:
 
-On Premise training does not consume Platform compute credits. Ultralytics hosted workers and RunPod cannot claim the job or read its pixels or artifacts.
+1. Open a project and select **Train Model**.
+2. Choose the On Premise dataset.
+3. Select a model and training settings.
+4. Start training.
 
-## Manage the Worker
+Platform runs the job on the connected computer. It uses an available NVIDIA GPU or falls back to CPU automatically, so a Mac can train a small model such as YOLO26n on COCO8 without dedicated GPU hardware.
 
-Use the **On Premise** card in `Settings > Integrations` to view CPU/GPU availability, reconnect a host, or disconnect it. Reconnecting rotates the worker secret without changing existing dataset identity. Disconnecting revokes future claims and preview access; it does not delete datasets, source files, cached pixels, or model artifacts from the host.
+Training files are written to the configured models folder while the run is active. The Ultralytics package uses the
+same remote-training callbacks as any customer-managed machine: progress and metrics stream to Platform, the best
+checkpoint uploads to Platform storage, and the completed model works with the existing download, prediction, export,
+and deployment paths. Other training artifacts remain in your models folder. On Premise training does not use Platform
+compute credits, and Platform never sends the training job to cloud compute.
 
-To inspect or stop the installation on Linux:
+## Manage the Connection
 
-```bash
-cd /opt/ultralytics-worker
-docker compose logs -f
-docker compose down
-```
+Open `Settings > Integrations` to see whether the computer and its CPU or GPU are available. You can reconnect to refresh its access or disconnect it when it is no longer needed.
 
-On macOS and Windows, the installer prints the equivalent command using `~/.ultralytics/worker`.
+Disconnecting prevents new jobs and previews but does not delete datasets or source files from the computer. Uploaded
+models remain available in Platform.
 
-Also see [Datasets](../data/datasets.md), [Annotation](../data/annotation.md), and [Cloud Training](../train/cloud-training.md).
+## If Setup Does Not Finish
+
+- **Docker asks for permission:** Approve the prompt and wait for Docker to start. Setup continues automatically.
+- **Windows asks for a restart:** Restart the computer, return to `Settings > Integrations`, and create a new install command.
+- **The setup command expired:** Create a new install command. Each command is temporary and works once.
+- **The connection stays offline:** Open Docker Desktop, rerun a newly generated command, and keep the terminal open until it reports that On Premise is running.
+- **Previews do not load:** Open Platform in a browser on the connected computer. Dataset previews come directly from
+  that computer.
+
+Also see [Datasets](../data/datasets.md), [Annotation](../data/annotation.md), and [Training](../train/index.md).

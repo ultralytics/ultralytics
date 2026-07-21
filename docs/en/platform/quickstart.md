@@ -205,7 +205,7 @@ After upload, the platform automatically processes your data:
 
     For best results, upload a ZIP or TAR archive (including `.tar.gz` and `.tgz`) with the standard YOLO structure:
 
-    ```
+    ```text
     my-dataset.zip
     ├── data.yaml          # Class names and splits
     ├── train/
@@ -326,7 +326,7 @@ Read more about [inference](deploy/inference.md).
 Deploy your model to a dedicated endpoint for production use:
 
 1. Navigate to your model's `Deploy` tab
-2. Select a region from the interactive world map (43 available regions)
+2. Select a region from the interactive world map (42 available regions)
 3. The map shows real-time latency measurements with colors on a green-to-red gradient (lower latency is greener, higher latency is redder)
 4. Click `Deploy` to create your endpoint
 

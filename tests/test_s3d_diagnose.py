@@ -207,6 +207,50 @@ def test_stereo_sensitivity_scales():
     assert stereo_sensitivity(base, none, base, dpx, fx, b) == pytest.approx(0.0, abs=1e-6)
 
 
+def test_per_branch_gradients_conflict_detected():
+    """loss_b = -loss_a on shared weights → cosine exactly -1, equal norms."""
+    import torch
+    import torch.nn as nn
+
+    from ultralytics.models.yolo.s3d.diagnose import per_branch_gradients
+
+    torch.manual_seed(0)
+    shared = nn.Linear(4, 4, bias=False)
+    x = torch.randn(8, 4)
+    y = shared(x)
+    losses = {"a": y.sum(), "b": -y.sum(), "zero": (y * 0.0).sum()}
+    out = per_branch_gradients(losses, list(shared.parameters()))
+    assert out["cosine"][("a", "b")] == pytest.approx(-1.0, abs=1e-6)
+    assert out["norms"]["a"] == pytest.approx(out["norms"]["b"])
+    assert out["norms"]["zero"] == pytest.approx(0.0)
+    assert np.isnan(out["cosine"][("a", "zero")])
+
+
+def test_loss_component_names_match_trainer():
+    """Component order must match Stereo3DDetTrainer.loss_names (train.py)."""
+    from ultralytics.models.yolo.s3d.diagnose import LOSS_COMPONENT_NAMES
+
+    assert LOSS_COMPONENT_NAMES == ("box", "cls", "lr_dist", "depth", "dims", "orient", "proj_center")
+
+
+def test_shared_params_excludes_head():
+    """Toy model with .model list: last element is 'the head' and must be excluded."""
+    import torch.nn as nn
+
+    from ultralytics.models.yolo.s3d.diagnose import shared_params
+
+    class Toy(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.model = nn.ModuleList([nn.Linear(2, 2), nn.Linear(2, 2), nn.Linear(2, 3)])
+
+    toy = Toy()
+    sp = shared_params(toy)
+    head_ids = {id(p) for p in toy.model[-1].parameters()}
+    assert sp and all(id(p) not in head_ids for p in sp)
+    assert len(sp) == len(list(toy.model[0].parameters())) + len(list(toy.model[1].parameters()))
+
+
 def test_depth_bias_fit_recovers_slope():
     """dz = 0.05*z + 0.1 exactly → fit recovers (0.05, 0.1, ~0)."""
     rng = np.random.default_rng(0)

@@ -17,6 +17,7 @@ import numpy as np
 import torch
 
 ORACLE_COMPONENTS = ("z", "y", "xy", "location", "dims", "orientation", "score")
+LOSS_COMPONENT_NAMES = ("box", "cls", "lr_dist", "depth", "dims", "orient", "proj_center")
 
 
 def match_stats(stats: list[dict[str, Any]], max_center_dist: float = 4.0) -> list[list[int]]:
@@ -324,6 +325,46 @@ def stereo_sensitivity(
     if not valid.any():
         return float("nan")
     return float(np.median((shifted_z[valid] - base_z[valid]) / expected[valid]))
+
+
+def shared_params(model: torch.nn.Module) -> list[torch.Tensor]:
+    """Return trainable parameters shared by all loss branches: everything except the head (model.model[-1]).
+
+    The s3d head attaches its branches directly to neck P3/P4/P5 features, so cross-branch gradient interaction
+    happens in the backbone+neck (including the StereoCostVolume neck layer).
+    """
+    head = model.model[-1]
+    head_ids = {id(p) for p in head.parameters()}
+    return [p for p in model.parameters() if p.requires_grad and id(p) not in head_ids]
+
+
+def per_branch_gradients(losses: dict[str, torch.Tensor], params: list[torch.Tensor]) -> dict[str, Any]:
+    """Compute per-loss gradient norms and pairwise cosine similarity on shared params.
+
+    GradNorm-style magnitude ratios + PCGrad-style conflict (cos < 0). Uses autograd.grad with retain_graph so
+    it never pollutes .grad — safe to call mid-training from a callback.
+
+    Args:
+        losses (dict[str, torch.Tensor]): Named scalar losses sharing one autograd graph.
+        params (list[torch.Tensor]): Shared parameters to differentiate against.
+
+    Returns:
+        (dict): {"norms": {name: float}, "cosine": {(a, b): float}} — cosine is nan for all-zero gradients.
+    """
+    flats: dict[str, torch.Tensor] = {}
+    for name, loss in losses.items():
+        grads = torch.autograd.grad(loss, params, retain_graph=True, allow_unused=True)
+        flats[name] = torch.cat(
+            [(g if g is not None else torch.zeros_like(p)).flatten() for g, p in zip(grads, params)]
+        )
+    norms = {name: float(g.norm()) for name, g in flats.items()}
+    cosine: dict[tuple[str, str], float] = {}
+    names = list(losses)
+    for i, a in enumerate(names):
+        for b in names[i + 1 :]:
+            na, nb = norms[a], norms[b]
+            cosine[(a, b)] = float("nan") if na == 0 or nb == 0 else float(torch.dot(flats[a], flats[b]) / (na * nb))
+    return {"norms": norms, "cosine": cosine}
 
 
 def depth_bias_fit(records: list[dict[str, float]]) -> tuple[float, float, float]:

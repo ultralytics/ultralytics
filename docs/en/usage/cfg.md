@@ -46,7 +46,7 @@ Ultralytics commands use the following syntax:
 
 Where:
 
-- `TASK` (optional) is one of ([detect](../tasks/detect.md), [segment](../tasks/segment.md), [semantic](../tasks/semantic.md), [classify](../tasks/classify.md), [pose](../tasks/pose.md), [obb](../tasks/obb.md))
+- `TASK` (optional) is one of ([detect](../tasks/detect.md), [segment](../tasks/segment.md), [semantic](../tasks/semantic.md), [depth](../tasks/depth.md), [classify](../tasks/classify.md), [pose](../tasks/pose.md), [obb](../tasks/obb.md))
 - `MODE` (required) is one of ([train](../modes/train.md), [val](../modes/val.md), [predict](../modes/predict.md), [export](../modes/export.md), [track](../modes/track.md), [benchmark](../modes/benchmark.md))
 - `ARGS` (optional) are `arg=value` pairs like `imgsz=640` that override defaults.
 
@@ -59,13 +59,14 @@ Ultralytics YOLO models can perform a variety of computer vision tasks, includin
 - **Detect**: [Object detection](../tasks/detect.md) identifies and localizes objects within an image or video.
 - **Segment**: [Instance segmentation](../tasks/segment.md) divides an image or video into regions corresponding to different objects or classes.
 - **Semantic segmentation (`semantic`)**: [Semantic segmentation](../tasks/semantic.md) assigns a class label to every pixel in an image for dense scene understanding.
+- **Depth (`depth`)**: [Monocular depth estimation](../tasks/depth.md) predicts a per-pixel depth map in meters from a single RGB image.
 - **Classify**: [Image classification](../tasks/classify.md) predicts the class label of an input image.
 - **Pose**: [Pose estimation](../tasks/pose.md) identifies objects and estimates their keypoints in an image or video.
 - **OBB**: [Oriented Bounding Boxes](../tasks/obb.md) uses rotated bounding boxes, suitable for satellite or medical imagery.
 
-| Argument | Default    | Description                                                                                                                                                                                                                                                                                                                                                                       |
-| -------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `task`   | `'detect'` | Specifies the YOLO task: `detect` for [object detection](https://www.ultralytics.com/glossary/object-detection), `segment` for instance segmentation, `semantic` for semantic segmentation, `classify` for classification, `pose` for pose estimation, and `obb` for oriented bounding boxes. Each task is tailored to specific outputs and problems in image and video analysis. |
+| Argument | Default    | Description                                                                                                                                                                                                                                                                                                                                                                                                               |
+| -------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `task`   | `'detect'` | Specifies the YOLO task: `detect` for [object detection](https://www.ultralytics.com/glossary/object-detection), `segment` for instance segmentation, `semantic` for semantic segmentation, `depth` for monocular depth estimation, `classify` for classification, `pose` for pose estimation, and `obb` for oriented bounding boxes. Each task is tailored to specific outputs and problems in image and video analysis. |
 
 [Tasks Guide](../tasks/index.md){ .md-button }
 

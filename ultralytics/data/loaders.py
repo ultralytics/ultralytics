@@ -642,12 +642,10 @@ def autocast_list(source: list[Any]) -> list[Image.Image | np.ndarray]:
     files = []
     for im in source:
         if isinstance(im, (str, Path)):  # filename or uri
-            if str(im).startswith("http"):  # requests follows HTTP 308 redirects that urllib drops before Python 3.11
+            if str(im).startswith("http"):  # requests follows HTTP 308 redirects that urllib lacks pre-3.11
                 import requests  # scoped as slow import
 
-                response = requests.get(im)
-                response.raise_for_status()
-                im = BytesIO(response.content)
+                im = BytesIO(requests.get(im).content)
             files.append(ImageOps.exif_transpose(Image.open(im)))
         elif isinstance(im, (Image.Image, np.ndarray)):  # PIL or np Image
             files.append(im)

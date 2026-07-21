@@ -366,7 +366,7 @@ class RepConv(nn.Module):
         https://github.com/DingXiaoH/RepVGG/blob/main/repvgg.py
     """
 
-    default_act = nn.LeakyReLU(negative_slope=0.1, inplace=True) # default activation
+    default_act = nn.LeakyReLU(negative_slope=0.1, inplace=True)  # default activation
 
     def __init__(self, c1, c2, k=3, s=1, p=1, g=1, d=1, act=True, bn=False, deploy=False):
         """Initialize RepConv module with given parameters.

@@ -130,3 +130,59 @@ class Sam3DualViTDetNeck(nn.Module):
         """Set the image size for the trunk backbone."""
         imgsz = imgsz if imgsz is not None else [1008, 1008]
         self.trunk.set_imgsz(imgsz)
+
+
+class Sam3TriViTDetNeck(Sam3DualViTDetNeck):
+    """SimpleFPN neck with three heads (sam3 detection, interactive, propagation) for SAM 3.1 multiplex.
+
+    The three heads are weight-independent clones of the same conv pyramid: ``convs`` feeds the DETR
+    detector, ``interactive_convs`` the click-refinement SAM head, and ``propagation_convs`` the
+    multiplex tracker (memory encoder/attention features).
+    """
+
+    def __init__(
+        self,
+        trunk: nn.Module,
+        position_encoding: nn.Module,
+        d_model: int,
+        scale_factors=(4.0, 2.0, 1.0),
+    ):
+        """Initialize the tri-head neck.
+
+        Args:
+            trunk (nn.Module): The ViT backbone.
+            position_encoding (nn.Module): The positional encoding module shared by all heads.
+            d_model (int): The output dimension of each FPN level.
+            scale_factors (tuple): Scale factors for each FPN level.
+        """
+        super().__init__(trunk, position_encoding, d_model, scale_factors, add_sam2_neck=False)
+        self.interactive_convs = deepcopy(self.convs)
+        self.propagation_convs = deepcopy(self.convs)
+
+    def forward(
+        self,
+        tensor_list: list[torch.Tensor],
+        need_sam3_out: bool = True,
+        need_interactive_out: bool = True,
+        need_propagation_out: bool = True,
+    ):
+        """Run the trunk once and the requested neck heads.
+
+        Returns:
+            sam3_out (list[torch.Tensor]): Detection features per level (empty if not requested).
+            sam3_pos (list[torch.Tensor]): Their positional encodings.
+            interactive_out (list[torch.Tensor]): Interactive-head features per level.
+            interactive_pos (list[torch.Tensor]): Their positional encodings.
+            propagation_out (list[torch.Tensor]): Propagation-head features per level.
+            propagation_pos (list[torch.Tensor]): Their positional encodings.
+        """
+        xs = self.trunk(tensor_list)
+        x = xs[-1]  # simpleFPN
+        sam3_out, sam3_pos = self.sam_forward_feature_levels(x, self.convs) if need_sam3_out else ([], [])
+        interactive_out, interactive_pos = (
+            self.sam_forward_feature_levels(x, self.interactive_convs) if need_interactive_out else ([], [])
+        )
+        propagation_out, propagation_pos = (
+            self.sam_forward_feature_levels(x, self.propagation_convs) if need_propagation_out else ([], [])
+        )
+        return sam3_out, sam3_pos, interactive_out, interactive_pos, propagation_out, propagation_pos

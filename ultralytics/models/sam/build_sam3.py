@@ -132,30 +132,9 @@ def _create_sam3_transformer() -> TransformerWrapper:
     return TransformerWrapper(encoder=encoder, decoder=decoder, d_model=256)
 
 
-def build_sam3_image_model(checkpoint_path: str, enable_segmentation: bool = True, compile: bool = False):
-    """Build SAM3 image model.
-
-    Args:
-        checkpoint_path: Optional path to model checkpoint
-        enable_segmentation: Whether to enable segmentation head
-        compile: Whether to enable compilation of the model
-
-    Returns:
-        A SAM3 image model
-    """
-    try:
-        import clip
-    except ImportError:
-        from ultralytics.utils.checks import check_requirements
-
-        check_requirements("git+https://github.com/ultralytics/CLIP.git")
-        import clip
-    # Create visual components
-    compile_mode = "default" if compile else None
-    vision_encoder = _create_vision_backbone(compile_mode=compile_mode, enable_inst_interactivity=True)
-
-    # Create text components
-    text_encoder = VETextEncoder(
+def _create_text_encoder(clip) -> VETextEncoder:
+    """Create the CLIP-based text encoder shared by the SAM3 detector builders."""
+    return VETextEncoder(
         tokenizer=clip.simple_tokenizer.SimpleTokenizer(),
         d_model=256,
         width=1024,
@@ -163,14 +142,10 @@ def build_sam3_image_model(checkpoint_path: str, enable_segmentation: bool = Tru
         layers=24,
     )
 
-    # Create visual-language backbone
-    backbone = SAM3VLBackbone(visual=vision_encoder, text=text_encoder, scalp=1)
 
-    # Create transformer components
-    transformer = _create_sam3_transformer()
-
-    # Create dot product scoring
-    dot_prod_scoring = DotProductScoring(
+def _create_dot_prod_scoring() -> DotProductScoring:
+    """Create the dot-product scoring head shared by the SAM3 detector builders."""
+    return DotProductScoring(
         d_model=256,
         d_proj=256,
         prompt_mlp=MLP(
@@ -183,33 +158,33 @@ def build_sam3_image_model(checkpoint_path: str, enable_segmentation: bool = Tru
         ),
     )
 
-    # Create segmentation head if enabled
-    segmentation_head = (
-        UniversalSegmentationHead(
+
+def _create_segmentation_head(compile_mode=None) -> UniversalSegmentationHead:
+    """Create the universal segmentation head shared by the SAM3 detector builders."""
+    return UniversalSegmentationHead(
+        hidden_dim=256,
+        upsampling_stages=3,
+        aux_masks=False,
+        presence_head=False,
+        dot_product_scorer=None,
+        act_ckpt=True,
+        cross_attend_prompt=nn.MultiheadAttention(
+            num_heads=8,
+            dropout=0,
+            embed_dim=256,
+        ),
+        pixel_decoder=PixelDecoder(
+            num_upsampling_stages=3,
+            interpolation_mode="nearest",
             hidden_dim=256,
-            upsampling_stages=3,
-            aux_masks=False,
-            presence_head=False,
-            dot_product_scorer=None,
-            act_ckpt=True,
-            cross_attend_prompt=nn.MultiheadAttention(
-                num_heads=8,
-                dropout=0,
-                embed_dim=256,
-            ),
-            pixel_decoder=PixelDecoder(
-                num_upsampling_stages=3,
-                interpolation_mode="nearest",
-                hidden_dim=256,
-                compile_mode=compile_mode,
-            ),
-        )
-        if enable_segmentation
-        else None
+            compile_mode=compile_mode,
+        ),
     )
 
-    # Create geometry encoder
-    input_geometry_encoder = SequenceGeometryEncoder(
+
+def _create_geometry_encoder() -> SequenceGeometryEncoder:
+    """Create the geometry (box/point prompt) encoder shared by the SAM3 detector builders."""
+    return SequenceGeometryEncoder(
         pos_enc=PositionEmbeddingSine(
             num_pos_feats=256,
             normalize=True,
@@ -236,15 +211,41 @@ def build_sam3_image_model(checkpoint_path: str, enable_segmentation: bool = Tru
         add_post_encode_proj=True,
     )
 
+
+def build_sam3_image_model(checkpoint_path: str, enable_segmentation: bool = True, compile: bool = False):
+    """Build SAM3 image model.
+
+    Args:
+        checkpoint_path: Optional path to model checkpoint
+        enable_segmentation: Whether to enable segmentation head
+        compile: Whether to enable compilation of the model
+
+    Returns:
+        A SAM3 image model
+    """
+    try:
+        import clip
+    except ImportError:
+        from ultralytics.utils.checks import check_requirements
+
+        check_requirements("git+https://github.com/ultralytics/CLIP.git")
+        import clip
+    # Create visual components
+    compile_mode = "default" if compile else None
+    vision_encoder = _create_vision_backbone(compile_mode=compile_mode, enable_inst_interactivity=True)
+
+    # Create visual-language backbone
+    backbone = SAM3VLBackbone(visual=vision_encoder, text=_create_text_encoder(clip), scalp=1)
+
     # Create the SAM3SemanticModel model
     model = SAM3SemanticModel(
         backbone=backbone,
-        transformer=transformer,
-        input_geometry_encoder=input_geometry_encoder,
-        segmentation_head=segmentation_head,
+        transformer=_create_sam3_transformer(),
+        input_geometry_encoder=_create_geometry_encoder(),
+        segmentation_head=_create_segmentation_head(compile_mode) if enable_segmentation else None,
         num_feature_levels=1,
         o2m_mask_predict=True,
-        dot_prod_scoring=dot_prod_scoring,
+        dot_prod_scoring=_create_dot_prod_scoring(),
         use_instance_query=False,
         multimask_output=True,
     )
@@ -344,6 +345,225 @@ def build_interactive_sam3(checkpoint_path: str, compile=None, with_backbone=Tru
     model = _load_checkpoint(model, checkpoint_path, interactive=True)
 
     # Setup device and mode
+    model.eval()
+    return model
+
+
+def build_sam3_multiplex(checkpoint_path: str, multiplex_count: int = 16):
+    """Build the SAM 3.1 Object Multiplex detector (tri-neck SAM3SemanticModel).
+
+    The detector runs per-frame text/box grounding and its tri-head neck also produces the
+    ``interactive`` and ``sam2_backbone_out`` feature pyramids consumed by the multiplex tracker
+    (which is built without its own backbone). Checkpoint keys use the HF layout with
+    ``detector.*`` / ``tracker.*`` prefixes.
+
+    Args:
+        checkpoint_path (str): Path to sam3.1_multiplex.pt.
+        multiplex_count (int): Bucket capacity of the multiplex tracker.
+
+    Returns:
+        (SAM3SemanticModel): The multiplex detector with tri-head neck.
+    """
+    try:
+        import clip
+    except ImportError:
+        from ultralytics.utils.checks import check_requirements
+
+        check_requirements("git+https://github.com/ultralytics/CLIP.git")
+        import clip
+
+    from .sam3.necks import Sam3TriViTDetNeck
+    from .sam3.vitdet import ViT
+    from .sam3.vl_combiner import SAM3VLBackboneTri
+
+    position_encoding = PositionEmbeddingSine(num_pos_feats=256, normalize=True, scale=None, temperature=10000)
+    vit_backbone = ViT(
+        img_size=1008,
+        pretrain_img_size=336,
+        patch_size=14,
+        embed_dim=1024,
+        depth=32,
+        num_heads=16,
+        mlp_ratio=4.625,
+        norm_layer="LayerNorm",
+        drop_path_rate=0.1,
+        qkv_bias=True,
+        use_abs_pos=True,
+        tile_abs_pos=True,
+        global_att_blocks=(7, 15, 23, 31),
+        rel_pos_blocks=(),
+        use_rope=True,
+        use_interp_rope=True,
+        window_size=24,
+        pretrain_use_cls_token=True,
+        retain_cls_token=False,
+        ln_pre=True,
+        ln_post=False,
+        return_interm_layers=False,
+        bias_patch_embed=False,
+    )
+    tri_neck = Sam3TriViTDetNeck(
+        trunk=vit_backbone,
+        position_encoding=position_encoding,
+        d_model=256,
+        scale_factors=[4.0, 2.0, 1.0],
+    )
+    backbone = SAM3VLBackboneTri(visual=tri_neck, text=_create_text_encoder(clip), scalp=0)
+
+    model = SAM3SemanticModel(
+        backbone=backbone,
+        transformer=_create_sam3_transformer(),
+        input_geometry_encoder=_create_geometry_encoder(),
+        segmentation_head=_create_segmentation_head(),
+        num_feature_levels=1,
+        o2m_mask_predict=True,
+        dot_prod_scoring=_create_dot_prod_scoring(),
+        use_instance_query=False,
+        multimask_output=True,
+        supervise_joint_box_scores=True,
+    )
+
+    with open(checkpoint_path, "rb") as f:
+        ckpt = torch_load(f)
+    if "model" in ckpt and isinstance(ckpt["model"], dict):
+        ckpt = ckpt["model"]
+    detector_ckpt = {k[len("detector.") :]: v for k, v in ckpt.items() if k.startswith("detector.")}
+    missing, unexpected = model.load_state_dict(detector_ckpt, strict=False)
+    from ultralytics.utils import LOGGER
+
+    LOGGER.info(
+        f"SAM3 multiplex detector: loaded {len(detector_ckpt) - len(unexpected)} keys "
+        f"({len(missing)} missing, {len(unexpected)} unexpected)"
+    )
+    model.eval()
+    return model
+
+
+def build_sam3_multiplex_tracker(checkpoint_path: str, multiplex_count: int = 16):
+    """Build the SAM 3.1 Object Multiplex tracker net (backbone-less, fed by the detector).
+
+    Mirrors Meta's build_sam3_multiplex_video_model configuration exactly; loads the
+    ``tracker.model.*`` checkpoint keys.
+
+    Args:
+        checkpoint_path (str): Path to sam3.1_multiplex.pt.
+        multiplex_count (int): Bucket capacity (16 for the released checkpoint).
+
+    Returns:
+        (SAM3MultiplexModel): The multiplex tracker in eval mode.
+    """
+    from .sam3.multiplex import (
+        DecoupledTransformerDecoderLayerv2,
+        MultiplexController,
+        SimpleRoPEAttention,
+        TransformerEncoderDecoupledCrossAttention,
+    )
+    from .sam3.multiplex_video import SAM3MultiplexModel, TrackerTransformerWrapper
+
+    layer = DecoupledTransformerDecoderLayerv2(
+        activation="gelu",
+        d_model=256,
+        num_heads=8,
+        dropout=0.1,
+        dim_feedforward=2048,
+        pos_enc_at_attn=False,
+        pre_norm=True,
+        pos_enc_at_cross_attn_keys=True,
+        pos_enc_at_cross_attn_queries=False,
+        self_attention_rope=SimpleRoPEAttention(
+            d_model=256, num_heads=8, dropout_p=0.1, rope_theta=10000.0, feat_sizes=[72, 72]
+        ),
+        cross_attention_rope=SimpleRoPEAttention(
+            d_model=256, num_heads=8, dropout_p=0.1, rope_theta=10000.0, feat_sizes=[72, 72], rope_k_repeat=True
+        ),
+    )
+    transformer = TrackerTransformerWrapper(
+        encoder=TransformerEncoderDecoupledCrossAttention(
+            d_model=256,
+            pos_enc_at_input=True,
+            use_image_in_output=False,
+            layer=layer,
+            num_layers=4,
+            batch_first=True,
+        ),
+        d_model=256,
+    )
+    maskmem_backbone = MemoryEncoder(
+        out_dim=256,
+        in_dim=256,
+        interpol_size=[1152, 1152],
+        num_pos_feats=256,
+        multiplex_count=multiplex_count,
+        starting_out_chan=4,
+        input_channel_multiplier=2,
+    )
+    model = SAM3MultiplexModel(
+        backbone=None,  # detector's tri-neck features are shared via the frame feature cache
+        transformer=transformer,
+        maskmem_backbone=maskmem_backbone,
+        multiplex_controller=MultiplexController(multiplex_count, eval_multiplex_count=multiplex_count),
+        image_size=1008,
+        backbone_stride=14,
+        num_maskmem=7,
+        use_high_res_features_in_sam=True,
+        use_obj_ptrs_in_encoder=True,
+        max_obj_ptrs_in_encoder=16,
+        add_tpos_enc_to_obj_ptrs=True,
+        proj_tpos_enc_in_obj_ptrs=True,
+        use_mlp_for_obj_ptr_proj=True,
+        pred_obj_scores=True,
+        pred_obj_scores_mlp=True,
+        fixed_no_obj_ptr=True,
+        use_no_obj_ptr=True,
+        use_linear_no_obj_ptr=True,
+        no_obj_embed_spatial=True,
+        sincos_tpos_enc=True,
+        multimask_output_in_sam=True,
+        multimask_output_for_tracking=True,
+        multimask_min_pt_num=0,
+        multimask_max_pt_num=1,
+        use_multimask_token_for_obj_ptr=True,
+        num_multimask_outputs=3,
+        apply_sigmoid_to_mask_logits_for_mem_enc=True,
+        sigmoid_scale_for_mem_enc=2.0,
+        sigmoid_bias_for_mem_enc=-1.0,
+        non_overlap_masks_for_mem_enc=False,
+        add_output_suppression_embeddings=True,
+        add_object_conditional_embeddings=False,
+        condition_as_mask_input=True,
+        condition_as_mask_input_fg=1.0,
+        condition_as_mask_input_bg=0.0,
+        use_maskmem_tpos_v2=True,
+        save_image_features=True,
+        use_mask_input_as_output_without_sam=True,
+        directly_add_no_mem_embed=True,
+        iou_prediction_use_sigmoid=False,
+        forward_backbone_per_frame_for_eval=True,
+        max_cond_frames_in_attn=4,
+        is_dynamic_model=True,
+        sam_mask_decoder_extra_args=dict(
+            dynamic_multimask_via_stability=True,
+            dynamic_multimask_stability_delta=0.05,
+            dynamic_multimask_stability_thresh=0.98,
+        ),
+    )
+
+    with open(checkpoint_path, "rb") as f:
+        ckpt = torch_load(f)
+    if "model" in ckpt and isinstance(ckpt["model"], dict):
+        ckpt = ckpt["model"]
+    tracker_ckpt = {k[len("tracker.model.") :]: v for k, v in ckpt.items() if k.startswith("tracker.model.")}
+    missing, unexpected = model.load_state_dict(tracker_ckpt, strict=False)
+    from ultralytics.utils import LOGGER
+
+    LOGGER.info(
+        f"SAM3 multiplex tracker: loaded {len(tracker_ckpt) - len(unexpected)} keys "
+        f"({len(missing)} missing, {len(unexpected)} unexpected)"
+    )
+    if missing:
+        LOGGER.warning(f"SAM3 multiplex tracker missing keys (first 5): {missing[:5]}")
+    if unexpected:
+        LOGGER.warning(f"SAM3 multiplex tracker unexpected keys (first 5): {unexpected[:5]}")
     model.eval()
     return model
 

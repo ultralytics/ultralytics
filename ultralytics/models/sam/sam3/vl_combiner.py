@@ -163,3 +163,83 @@ class SAM3VLBackbone(nn.Module):
         """Set the image size for the vision backbone."""
         imgsz = imgsz if imgsz is not None else [1008, 1008]
         self.vision_backbone.set_imgsz(imgsz)
+
+
+class SAM3VLBackboneTri(SAM3VLBackbone):
+    """VL backbone with a tri-head vision neck (sam3 detection, interactive, propagation) + text encoder.
+
+    Used by SAM 3.1 Object Multiplex: the detection head feeds the DETR grounding decoder while the
+    interactive and propagation heads feed the multiplex tracker, so one trunk forward serves all
+    three consumers. The tracker itself is built without a backbone and reads the ``interactive``
+    and ``sam2_backbone_out`` entries cached from this output.
+    """
+
+    def __init__(self, visual, text, scalp: int = 0):
+        """Initialize with a Sam3TriViTDetNeck visual backbone and a text encoder."""
+        from .necks import Sam3TriViTDetNeck
+
+        super().__init__(visual=visual, text=text, scalp=scalp)
+        assert isinstance(self.vision_backbone, Sam3TriViTDetNeck), (
+            f"Expected Sam3TriViTDetNeck, got {type(self.vision_backbone)}"
+        )
+
+    def forward_image(
+        self,
+        samples: torch.Tensor,
+        need_sam3_out: bool = True,
+        need_interactive_out: bool = True,
+        need_propagation_out: bool = True,
+    ) -> dict:
+        """Forward the vision backbone and return detection + tracker feature pyramids.
+
+        Returns:
+            (dict): Detection keys (``vision_features``, ``vision_pos_enc``, ``backbone_fpn``) plus
+                ``interactive`` and ``sam2_backbone_out`` sub-dicts with the same structure for the
+                tracker heads (matching the SAM2-style consumption in the video predictors).
+        """
+        (
+            sam3_features,
+            sam3_pos,
+            interactive_features,
+            interactive_pos,
+            propagation_features,
+            propagation_pos,
+        ) = self.vision_backbone.forward(
+            samples,
+            need_sam3_out=need_sam3_out,
+            need_interactive_out=need_interactive_out,
+            need_propagation_out=need_propagation_out,
+        )
+        if self.scalp > 0:  # discard the lowest-resolution features
+            sam3_features, sam3_pos = sam3_features[: -self.scalp], sam3_pos[: -self.scalp]
+            interactive_features, interactive_pos = (
+                interactive_features[: -self.scalp],
+                interactive_pos[: -self.scalp],
+            )
+            propagation_features, propagation_pos = (
+                propagation_features[: -self.scalp],
+                propagation_pos[: -self.scalp],
+            )
+
+        output = {}
+        if need_sam3_out:
+            output.update(
+                {
+                    "vision_features": sam3_features[-1],
+                    "vision_pos_enc": sam3_pos,
+                    "backbone_fpn": sam3_features,
+                }
+            )
+        if need_interactive_out:
+            output["interactive"] = {
+                "vision_features": interactive_features[-1],
+                "vision_pos_enc": interactive_pos,
+                "backbone_fpn": interactive_features,
+            }
+        if need_propagation_out:
+            output["sam2_backbone_out"] = {
+                "vision_features": propagation_features[-1],
+                "vision_pos_enc": propagation_pos,
+                "backbone_fpn": propagation_features,
+            }
+        return output

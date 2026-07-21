@@ -81,15 +81,24 @@ class MaskDownSampler(nn.Module):
         total_stride: int = 16,
         activation: type[nn.Module] = nn.GELU,
         interpol_size: tuple[int, int] | None = None,
+        multiplex_count: int = 1,
+        starting_out_chan: int = 1,
+        input_channel_multiplier: int = 1,
     ):
-        """Initialize a mask downsampler module for progressive downsampling and channel expansion."""
+        """Initialize a mask downsampler module for progressive downsampling and channel expansion.
+
+        With the multiplex options (SAM 3.1 Object Multiplex), the input carries one mask channel
+        per bucket slot (times ``input_channel_multiplier`` for the conditional/unconditional
+        channels) and the channel ramp starts from ``starting_out_chan``; the defaults reproduce
+        the original single-mask behavior exactly.
+        """
         super().__init__()
         num_layers = int(math.log2(total_stride) // math.log2(stride))
         assert stride**num_layers == total_stride
         self.encoder = nn.Sequential()
-        mask_in_chans, mask_out_chans = 1, 1
+        mask_in_chans, mask_out_chans = multiplex_count * input_channel_multiplier, starting_out_chan
         for _ in range(num_layers):
-            mask_out_chans = mask_in_chans * (stride**2)
+            mask_out_chans = mask_out_chans * (stride**2)
             self.encoder.append(
                 nn.Conv2d(
                     mask_in_chans,

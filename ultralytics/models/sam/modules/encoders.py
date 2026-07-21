@@ -362,6 +362,10 @@ class MemoryEncoder(nn.Module):
         out_dim,
         in_dim=256,  # in_dim of pix_feats
         interpol_size: tuple[int, int] | None = None,
+        num_pos_feats: int = 64,
+        multiplex_count: int = 1,
+        starting_out_chan: int = 1,
+        input_channel_multiplier: int = 1,
     ):
         """Initialize the MemoryEncoder for encoding pixel features and masks into memory representations.
 
@@ -376,11 +380,19 @@ class MemoryEncoder(nn.Module):
         """
         super().__init__()
 
-        self.mask_downsampler = MaskDownSampler(kernel_size=3, stride=2, padding=1, interpol_size=interpol_size)
+        self.mask_downsampler = MaskDownSampler(
+            kernel_size=3,
+            stride=2,
+            padding=1,
+            interpol_size=interpol_size,
+            multiplex_count=multiplex_count,
+            starting_out_chan=starting_out_chan,
+            input_channel_multiplier=input_channel_multiplier,
+        )
 
         self.pix_feat_proj = nn.Conv2d(in_dim, in_dim, kernel_size=1)
         self.fuser = Fuser(CXBlock(dim=256), num_layers=2)
-        self.position_encoding = PositionEmbeddingSine(num_pos_feats=64)
+        self.position_encoding = PositionEmbeddingSine(num_pos_feats=num_pos_feats)
         self.out_proj = nn.Identity()
         if out_dim != in_dim:
             self.out_proj = nn.Conv2d(in_dim, out_dim, kernel_size=1)

@@ -178,7 +178,10 @@ class BaseValidator:
                 self.args.data = convert_ndjson_to_yolo_if_needed(self.args.data)
             model = AutoBackend(
                 model=model or self.args.model,
-                device=select_device(self.args.device) if RANK == -1 else torch.device("cuda", RANK),
+                # DDP ranks reuse the device assigned in trainer._setup_ddp() via torch.cuda.set_device()
+                device=select_device(self.args.device)
+                if RANK == -1
+                else torch.device("cuda", torch.cuda.current_device()),
                 dnn=self.args.dnn,
                 data=self.args.data,
                 fp16=self.args.quantize == 16,
@@ -192,10 +195,16 @@ class BaseValidator:
                 self.args.batch = model.metadata.get("batch", 1)  # export.py models default to batch-size 1
                 LOGGER.info(f"Setting batch={self.args.batch} input of shape ({self.args.batch}, 3, {imgsz}, {imgsz})")
 
-            if str(self.args.data).rsplit(".", 1)[-1] in {"yaml", "yml"}:
-                self.data = check_det_dataset(self.args.data)
-            elif self.args.task == "classify":
+            if self.args.task == "classify":
                 self.data = check_cls_dataset(self.args.data, split=self.args.split)
+            elif str(self.args.data).rsplit(".", 1)[-1] in {"yaml", "yml"} or self.args.task in {
+                "detect",
+                "segment",
+                "pose",
+                "obb",
+                "semantic",
+            }:
+                self.data = check_det_dataset(self.args.data, split=self.args.split)
             else:
                 raise FileNotFoundError(emojis(f"Dataset '{self.args.data}' for task={self.args.task} not found ❌"))
 
@@ -208,7 +217,7 @@ class BaseValidator:
 
             model.eval()
             if self.args.compile:
-                model = attempt_compile(model, device=self.device)
+                model = attempt_compile(model, device=self.device, mode=self.args.compile)
             model.warmup(imgsz=(1 if pt else self.args.batch, self.data["channels"], imgsz, imgsz))  # warmup
 
         self.run_callbacks("on_val_start")
@@ -382,10 +391,7 @@ class BaseValidator:
         return []
 
     def on_plot(self, name, data=None):
-        """Register plots for visualization, deduplicating by type."""
-        plot_type = data.get("type") if data else None
-        if plot_type and any((v.get("data") or {}).get("type") == plot_type for v in self.plots.values()):
-            return  # Skip duplicate plot types
+        """Register a plot by its unique path for visualization and logging."""
         self.plots[Path(name)] = {"data": data, "timestamp": time.time()}
 
     def plot_val_samples(self, batch, ni):

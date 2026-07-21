@@ -62,9 +62,10 @@ classifiers = [
 
 # Required dependencies ------------------------------------------------------------------------------------------------
 dependencies = [
+    "filelock>=3.16.1",
     "numpy>=1.23.0",
     "matplotlib>=3.3.0",
-    "opencv-python>=4.6.0",
+    "opencv-python>=4.6.0,!=4.13.0.90", # 4.13.0.90 FIPS selftest crash https://github.com/ultralytics/ultralytics/issues/23373
     "pillow>=7.1.2",
     "pyyaml>=5.3.1",
     "requests>=2.23.0",
@@ -86,7 +87,7 @@ dev = [
     "pytest-xdist>=3.0.0",
     "coverage[toml]",
     "zensical>=0.0.15; python_version >= '3.10'",
-    "mkdocs-ultralytics-plugin>=0.2.4", # for meta descriptions and images, dates and authors
+    "mkdocs-ultralytics-plugin>=0.2.5", # for meta descriptions and images, dates and authors
     "minijinja>=2.0.0", # render docs macros without mkdocs-macros-plugin
 ]
 export-base = [
@@ -115,12 +116,13 @@ export-tensorflow = [
     "h5py!=3.11.0; platform_machine == 'aarch64'", # fix h5py build issues due to missing aarch64 wheels in 3.11 release
 ]
 export-coreml = [
-    "numpy<=2.3.5; python_version >= '3.13'",  # pin until CoreML>9.0 new release
+    "numpy<=2.3.5; platform_system != 'Windows' and python_version <= '3.13'",  # pin until CoreML>9.0 fixes numpy>=2.4 int() cast crash
     "coremltools>=9.0; platform_system != 'Windows' and python_version <= '3.13'", # CoreML supported on macOS and Linux
     "scikit-learn>=1.3.2; platform_system != 'Windows' and python_version <= '3.13'", # CoreML k-means quantization
 ]
 export-executorch = [
     "executorch",
+    "torch>=2.12.0,<2.13.0; platform_system == 'Linux' and platform_machine == 'aarch64'",
     "numpy<=2.3.5",
 ]
 export-deepx = [
@@ -137,6 +139,8 @@ export = [
     "ultralytics[export-tensorflow]",
     "ultralytics[export-coreml]",
     "ultralytics[export-litert]",
+    # Raspberry Pi Python 3.11 ExecuTorch inference requires the last known-good Linux ARM64 Torch 2.12 stack.
+    "torch>=2.12.0,<2.13.0; platform_system == 'Linux' and platform_machine == 'aarch64' and python_version == '3.11'",
 ]
 solutions = [
     "shapely>=2.0.0",    # shapely for point and polygon data matching
@@ -227,5 +231,5 @@ close-quotes-on-newline = true
 in-place = true
 
 [tool.codespell]
-ignore-words-list = "grey,writeable,finalY,RepResNet,Idenfy,WIT,Smoot,EHR,ROUGE,ALS,iTerm,Carmel,FPR,Hach,Calle,ore,COO,MOT,crate,nd,ned,strack,dota,ane,segway,fo,gool,winn,commend,bloc,nam,afterall,skelton,goin,alls"
+ignore-words-list = "grey,writeable,finalY,RepResNet,Idenfy,WIT,Smoot,EHR,ROUGE,ALS,iTerm,Carmel,FPR,Hach,Calle,ore,COO,MOT,crate,nd,ned,strack,dota,ane,segway,fo,gool,winn,commend,bloc,nam,afterall,skelton,goin,alls,manger,trough"
 skip = "*.pt,*.pth,*.torchscript,*.onnx,*.tflite,*.pb,*.bin,*.param,*.mlmodel,*.engine,*.npy,*.data*,*.csv,*pnnx*,*venv*,*translat*,*lock*,__pycache__*,*.ico,*.jpg,*.png,*.webp,*.avif,*.mp4,*.mov,/runs,/.git,./docs/??/*.md,./docs/mkdocs_??.yml"

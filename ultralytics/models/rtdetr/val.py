@@ -8,7 +8,6 @@ from typing import Any
 import torch
 
 from ultralytics.data import YOLODataset
-from ultralytics.data.augment import Compose, Format, v8_transforms
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import colorstr, ops
 
@@ -70,36 +69,6 @@ class RTDETRDataset(YOLODataset):
         """
         return super().load_image(i=i, rect_mode=rect_mode)
 
-    def build_transforms(self, hyp=None):
-        """Build transformation pipeline for the dataset.
-
-        Args:
-            hyp (dict, optional): Hyperparameters for transformations.
-
-        Returns:
-            (Compose): Composition of transformation functions.
-        """
-        if self.augment:
-            hyp.mosaic = hyp.mosaic if self.augment and not self.rect else 0.0
-            hyp.mixup = hyp.mixup if self.augment and not self.rect else 0.0
-            hyp.cutmix = hyp.cutmix if self.augment and not self.rect else 0.0
-            transforms = v8_transforms(self, self.imgsz, hyp, stretch=True)
-        else:
-            # transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), auto=False, scale_fill=True)])
-            transforms = Compose([])
-        transforms.append(
-            Format(
-                bbox_format="xywh",
-                normalize=True,
-                return_mask=self.use_segments,
-                return_keypoint=self.use_keypoints,
-                batch_idx=True,
-                mask_ratio=hyp.mask_ratio,
-                mask_overlap=hyp.overlap_mask,
-            )
-        )
-        return transforms
-
 
 class RTDETRValidator(DetectionValidator):
     """RTDETRValidator extends the DetectionValidator class to provide validation capabilities specifically tailored for
@@ -147,7 +116,9 @@ class RTDETRValidator(DetectionValidator):
             hyp=self.args,
             rect=False,  # no rect
             cache=self.args.cache or None,
+            single_cls=self.args.single_cls or False,
             prefix=colorstr(f"{mode}: "),
+            classes=self.args.classes,
             data=self.data,
         )
 
@@ -179,7 +150,7 @@ class RTDETRValidator(DetectionValidator):
         bboxes, scores, labels = preds.split((4, 1, 1), dim=-1)
         bboxes = ops.xywh2xyxy(bboxes) * self.args.imgsz
         scores, labels = scores.squeeze(-1), labels.squeeze(-1)
-        masks = scores > self.args.conf
+        masks = [(score > self.args.conf).nonzero().squeeze(1)[: self.args.max_det] for score in scores]
 
         return [
             {"bboxes": bbox[m], "conf": score[m], "cls": label[m]}

@@ -62,11 +62,11 @@ jobs:
         model: [yolo26n]
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         if: matrix.os != 'cpu-latest'
         with:
           python-version: ${{ matrix.python }}
-      - uses: astral-sh/setup-uv@v7
+      - uses: ultralytics/actions/setup-uv@main
         with:
           python-version: ${{ matrix.python }}
           activate-environment: ${{ matrix.os == 'cpu-latest' }}
@@ -81,8 +81,9 @@ jobs:
             if [[ "${{ matrix.os }}" != "cpu-latest" ]]; then
               uv_system_args=(--system)
             fi
+            # Pin PNNX until 20260704 NCNN inference segfault is fixed: https://github.com/pnnx/pnnx/issues/293
             uv pip install "${uv_system_args[@]}" -e ".[export,export-executorch]" \
-              ncnn pnnx "coverage[toml]" \
+              ncnn pnnx==20260526 "coverage[toml]" \
               --torch-backend cpu
       - name: Check environment
         run: |
@@ -114,10 +115,11 @@ jobs:
           coverage xml -o coverage-benchmarks.xml
       - name: Upload Coverage Reports to CodeCov
         if: github.repository == 'ultralytics/ultralytics'
+        continue-on-error: true
         uses: codecov/codecov-action@v7
         with:
           flags: Benchmarks
-          fail_ci_if_error: true
+          fail_ci_if_error: false
           use_oidc: true
       - name: Prune uv Cache
         run: uv cache prune --ci
@@ -148,11 +150,11 @@ jobs:
             torchvision: "0.9.0"
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         if: matrix.os != 'cpu-latest'
         with:
           python-version: ${{ matrix.python }}
-      - uses: astral-sh/setup-uv@v7
+      - uses: ultralytics/actions/setup-uv@main
         with:
           python-version: ${{ matrix.python }}
           activate-environment: true
@@ -186,21 +188,22 @@ jobs:
         run: python tests/cache_test_assets.py
       - name: Pytest tests
         shell: bash # for Windows compatibility
+        # GitHub-hosted ARM runners have disconnected under xdist auto-parallelism: ubuntu-24.04-arm runs
+        # single-process, and the 3-vCPU/7GB macos-26 runners cap at 2 workers to avoid memory starvation.
         run: |
-          if [[ "${{ matrix.os }}" == "ubuntu-24.04-arm" ]]; then
-            # GitHub-hosted ARM runners have disconnected under xdist auto-parallelism.
-            pytest --cov=ultralytics/ --cov-report=xml tests/ --export-env base
-          else
-            pytest -n auto --dist=loadfile --cov=ultralytics/ --cov-report=xml tests/ --export-env base
-          fi
+          xdist="-n auto --dist=loadfile"
+          [[ "${{ matrix.os }}" == "macos-26" ]] && xdist="-n 2 --dist=loadfile"
+          [[ "${{ matrix.os }}" == "ubuntu-24.04-arm" ]] && xdist=""
+          pytest $xdist --cov=ultralytics/ --cov-report=xml tests/ --export-env base
         env:
           YOLO_AUTOINSTALL: "false"
       - name: Upload Coverage Reports to CodeCov
         if: github.repository == 'ultralytics/ultralytics' # && matrix.os == 'ubuntu-latest' && matrix.python == '3.13'
+        continue-on-error: true
         uses: codecov/codecov-action@v7
         with:
           flags: Tests
-          fail_ci_if_error: true
+          fail_ci_if_error: false
           use_oidc: true
       - name: Prune uv Cache
         run: uv cache prune --ci
@@ -266,6 +269,7 @@ jobs:
             python: "3.12"
             torch: "2.3.0"
             torchvision: "0.18.0"
+            numpy_extra: export-legacy-torch # torchvision 0.18.0 adjust_hue casts negative hue via np.uint8(), rejected by NumPy 2 (fixed in torchvision 0.19.0)
           - os: ubuntu-latest
             python: "3.12"
             torch: "2.4.0"
@@ -300,11 +304,11 @@ jobs:
             torchvision: "0.26.0"
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         if: matrix.os != 'cpu-latest'
         with:
           python-version: ${{ matrix.python }}
-      - uses: astral-sh/setup-uv@v7
+      - uses: ultralytics/actions/setup-uv@main
         with:
           python-version: ${{ matrix.python }}
           activate-environment: true
@@ -367,10 +371,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
-      - uses: astral-sh/setup-uv@v7
+      - uses: ultralytics/actions/setup-uv@main
         with:
           python-version: "3.13"
       - name: Install export system dependencies
@@ -425,13 +429,13 @@ jobs:
       YOLO_AUTOINSTALL: "false"
     steps:
       - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v7
+      - uses: ultralytics/actions/setup-uv@main
         with:
           activate-environment: true
       - name: Install requirements
         run: |
           # Install TensorRT into the job venv so uv can reuse the runner image cache.
-          uv pip install -e ".[export-base]" pytest-cov onnxruntime-gpu "torch<2.11" "tensorrt-cu12>=7.0.0,!=10.2.0" "nvidia-modelopt[onnx]>=0.44"  # TODO: remove torch pin after GPU runner driver update to CUDA 13.0
+          uv pip install -e ".[export-base]" pytest-cov onnxruntime-gpu "torch<2.11" "tensorrt-cu12>=7.0.0,!=10.2.0" "nvidia-modelopt[onnx]>=0.44" lap  # TODO: remove torch pin after GPU runner driver update to CUDA 13.0
         env:
           PIP_BREAK_SYSTEM_PACKAGES: 1
       - name: Check environment
@@ -448,10 +452,11 @@ jobs:
         env:
           PIP_BREAK_SYSTEM_PACKAGES: 1
       - name: Upload Coverage Reports to CodeCov
+        continue-on-error: true
         uses: codecov/codecov-action@v7
         with:
           flags: GPU
-          fail_ci_if_error: true
+          fail_ci_if_error: false
           use_oidc: true
 
   # Raspberry Pi stays separate because it is a long-tail self-hosted runner with its own setup and cleanup flow.
@@ -468,7 +473,7 @@ jobs:
           python3.11 -m venv env-tests
           source env-tests/bin/activate
           echo PATH=$PATH >> $GITHUB_ENV
-      - uses: astral-sh/setup-uv@v7
+      - uses: ultralytics/actions/setup-uv@main
       - name: Install requirements
         uses: ultralytics/actions/retry@main
         with:
@@ -562,7 +567,7 @@ jobs:
       - name: Clean up runner
         uses: eviden-actions/clean-self-hosted-runner@v1
       - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v7
+      - uses: ultralytics/actions/setup-uv@main
       - name: Activate virtual environment
         run: |
           python${{ matrix.python }} -m venv env --system-site-packages
@@ -603,7 +608,7 @@ jobs:
       run:
         shell: bash -el {0}
     steps:
-      - uses: astral-sh/setup-uv@v7
+      - uses: ultralytics/actions/setup-uv@main
       - uses: conda-incubator/setup-miniconda@v4
         with:
           python-version: ${{ matrix.python }}
@@ -658,7 +663,7 @@ jobs:
     steps:
       - name: Check for failure and notify
         if: (needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure' || needs.SlowTests.result == 'failure' || needs.IsolatedExports.result == 'failure' || needs.GPU.result == 'failure' || needs.RaspberryPi.result == 'failure' || needs.NVIDIA_Jetson.result == 'failure' || needs.Conda.result == 'failure' ) && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push') && github.run_attempt == '1'
-        uses: slackapi/slack-github-action@v3.0.3
+        uses: slackapi/slack-github-action@v4.0.0
         with:
           webhook-type: incoming-webhook
           webhook: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}

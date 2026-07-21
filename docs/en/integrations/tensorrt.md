@@ -22,6 +22,10 @@ This toolkit optimizes deep learning models for NVIDIA GPUs and results in faste
 
 TensorRT is known for its compatibility with various model formats, including TensorFlow, [PyTorch](https://www.ultralytics.com/glossary/pytorch), and ONNX, providing developers with a flexible solution for integrating and optimizing models from different frameworks. This versatility enables efficient [model deployment](https://www.ultralytics.com/glossary/model-deployment) across diverse hardware and software environments.
 
+!!! warning "TensorRT engines are hardware- and runtime-specific"
+
+    TensorRT profiles and tunes an engine on its build GPU. Build for the deployment GPU architecture and match the TensorRT/CUDA runtime; do not treat an `.engine` file as a portable model format. For edge deployment, [Ultralytics Platform](../platform/train/models.md#nvidia-jetson-tensorrt-targets) offers eight Jetson target selections, with physical build and validation status documented for each, or you can export locally on the destination device.
+
 ## Key Features of TensorRT Models
 
 TensorRT models offer a range of key features that contribute to their efficiency and effectiveness in high-speed deep learning inference:
@@ -263,7 +267,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
 #### Drawbacks of using YOLO with TensorRT INT8
 
-- **Decreases in evaluation metrics:** Using a lower precision will mean that `mAP`, `Precision`, `Recall` or any [other metric used to evaluate model performance](../guides/yolo-performance-metrics.md) is likely to be somewhat worse. See the [Performance results section](#ultralytics-yolo-tensorrt-export-performance) to compare the differences in `mAP50` and `mAP50-95` when exporting with INT8 on small sample of various devices.
+- **Decreases in evaluation metrics:** Using a lower precision will mean that `mAP`, `Precision`, `Recall` or any [other metric used to evaluate model performance](../guides/yolo-performance-metrics.md) is likely to be somewhat worse. Sigmoid layers are kept at higher precision to preserve score calibration, but INT8 can still shift confidence values, so select the operating threshold from the INT8 model's own F1 curve. See the [Performance results section](#ultralytics-yolo-tensorrt-export-performance) to compare the differences in `mAP50` and `mAP50-95` when exporting with INT8 on small sample of various devices.
 
 - **Increased development times:** Finding the "optimal" settings for INT8 calibration for dataset and device can take a significant amount of testing.
 

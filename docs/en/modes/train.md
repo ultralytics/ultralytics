@@ -10,7 +10,7 @@ keywords: Ultralytics, YOLO26, model training, deep learning, object detection, 
 
 ## Introduction
 
-Training a [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) model involves feeding it data and adjusting its parameters so that it can make accurate predictions. Train mode in Ultralytics YOLO26 is engineered for effective and efficient training of object detection models, fully utilizing modern hardware capabilities. This guide aims to cover all the details you need to get started with training your own models using YOLO26's robust set of features.
+Training a [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) model involves feeding it data and adjusting its parameters so that it can make accurate predictions. Train mode in Ultralytics YOLO26 is engineered for effective and efficient training of object detection models, fully utilizing modern hardware capabilities. This guide aims to cover all the details you need to get started with training your own models using YOLO26's robust set of features. If you haven't installed Ultralytics yet, start with the [Quickstart guide](../quickstart.md).
 
 <p align="center">
   <br>
@@ -31,20 +31,16 @@ Here are some compelling reasons to opt for YOLO26's Train mode:
 - **Versatility:** Train on custom datasets in addition to readily available ones like COCO, VOC, and ImageNet.
 - **User-Friendly:** Simple yet powerful CLI and Python interfaces for a straightforward training experience.
 - **Hyperparameter Flexibility:** A broad range of customizable hyperparameters to fine-tune model performance. For deeper control, you can [customize the trainer](../guides/custom-trainer.md) itself.
-- **Cloud Training:** Train on cloud GPUs through [Ultralytics Platform](https://platform.ultralytics.com) with real-time metrics and automatic checkpointing.
+- **Cloud Training:** Train on cloud GPUs through [Ultralytics Platform](../platform/train/cloud-training.md) with real-time metrics and automatic checkpointing.
 
 ### Key Features of Train Mode
 
 The following are some notable features of YOLO26's Train mode:
 
-- **Automatic Dataset Download:** Standard datasets like COCO, VOC, and ImageNet are downloaded automatically on first use.
+- **Automatic Dataset Download:** Dataset configurations with a download source are downloaded automatically on first use, e.g., `yolo train data=coco8.yaml`. See the [Datasets overview](../datasets/index.md) for supported formats and datasets.
 - **Multi-GPU Support:** Scale your training efforts seamlessly across multiple GPUs to expedite the process.
 - **Hyperparameter Configuration:** The option to modify hyperparameters through YAML configuration files or CLI arguments.
 - **Visualization and Monitoring:** Real-time tracking of training metrics and visualization of the learning process for better insights.
-
-!!! tip
-
-    * YOLO26 datasets like COCO, VOC, ImageNet, and many others automatically download on first use, i.e., `yolo train data=coco.yaml`
 
 ## Usage Examples
 
@@ -351,11 +347,15 @@ This will load TensorBoard and direct it to the directory where your training lo
 
 After setting up your logger, you can then proceed with your model training. All training metrics will be automatically logged in your chosen platform, and you can access these logs to monitor your model's performance over time, compare different models, and identify areas for improvement.
 
+## What's Next
+
+[Validate](val.md) your trained model against held-out data to check its real-world accuracy, then [export](export.md) it to ONNX, TensorRT, or another deployment format. Training on your own data instead of COCO8? Format it first with the [Datasets guide](../datasets/index.md).
+
 ## FAQ
 
 ### Can I train without a local GPU?
 
-Yes. [Ultralytics Platform](https://platform.ultralytics.com) supports cloud training with free credits to get started. Upload your dataset, select a model and GPU, and train directly from the browser. See the [cloud training guide](../platform/train/cloud-training.md) for details.
+Yes. [Ultralytics Platform cloud training](../platform/train/cloud-training.md) includes free credits to get started. Upload your dataset, select a model and GPU, and train directly from the browser.
 
 ### How do I train an [object detection](https://www.ultralytics.com/glossary/object-detection) model using Ultralytics YOLO26?
 

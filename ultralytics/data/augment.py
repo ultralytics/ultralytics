@@ -14,7 +14,7 @@ from PIL import Image
 from torch.nn import functional as F
 
 from ultralytics.data.utils import polygons2masks, polygons2masks_overlap
-from ultralytics.utils import LOGGER, IterableSimpleNamespace, colorstr
+from ultralytics.utils import LOGGER, IterableSimpleNamespace, colorstr, deprecation_warn
 from ultralytics.utils.checks import check_version
 from ultralytics.utils.instance import Instances
 from ultralytics.utils.metrics import bbox_ioa
@@ -1151,7 +1151,10 @@ class RandomPerspective(BaseTransform):
             (dict): Parameters including 'M' (affine matrix), 'scale', 'orig_shape', and 'size'.
         """
         img = labels["img"]
-        size = (img.shape[1], img.shape[0]) if self.size is None else self.size  # w, h
+        if (rect_shape := labels.get("rect_shape")) is not None:  # rect has higher priority
+            size = (int(rect_shape[1]), int(rect_shape[0]))  # rect mode batch shape (h, w) to (w, h)
+        else:
+            size = (img.shape[1], img.shape[0]) if self.size is None else self.size  # w, h
         orig_shape = img.shape[:2]
         M, scale = self._compute_affine_matrix(img, size)
         return {"M": M, "scale": scale, "orig_shape": orig_shape, "size": size}
@@ -1877,7 +1880,8 @@ class CopyPaste(BaseMixTransform):
     def __init__(self, dataset=None, pre_transform=None, p: float = 0.5, mode: str = "flip") -> None:
         """Initialize CopyPaste object with dataset, pre_transform, and probability of applying CopyPaste."""
         super().__init__(dataset=dataset, pre_transform=pre_transform, p=p)
-        assert mode in {"flip", "mixup"}, f"Expected `mode` to be `flip` or `mixup`, but got {mode}."
+        if mode not in ("flip", "mixup"):
+            raise ValueError(f"Expected `mode` to be `flip` or `mixup`, but got {mode}.")
         self.mode = mode
 
     def __call__(self, labels: dict[str, Any]) -> dict[str, Any]:
@@ -2139,6 +2143,7 @@ class Albumentations(BaseTransform):
                 - 'img': np.ndarray representing the image
                 - 'cls': np.ndarray of class labels
                 - 'instances': object containing bounding boxes and other instance information
+                - 'semantic_mask': optional np.ndarray of semantic class IDs
 
         Returns:
             (dict[str, Any]): The input dictionary with augmented image and updated annotations.
@@ -2167,16 +2172,21 @@ class Albumentations(BaseTransform):
 
         if self.contains_spatial:
             cls = labels["cls"]
-            if len(cls):
+            mask = labels.get("semantic_mask")
+            if len(cls) or mask is not None:
                 labels["instances"].convert_bbox("xywh")
                 labels["instances"].normalize(*im.shape[:2][::-1])
                 bboxes = labels["instances"].bboxes
                 # TODO: add supports of segments and keypoints
-                new = self.transform(image=im, bboxes=bboxes, class_labels=cls)  # transformed
-                if len(new["class_labels"]) > 0:  # skip update if no bbox in new im
+                new = self.transform(
+                    image=im, bboxes=bboxes, class_labels=cls, **({"mask": mask} if mask is not None else {})
+                )
+                if len(new["class_labels"]) > 0 or mask is not None:  # only box-only samples skip on losing all boxes
                     labels["img"] = new["image"]
                     labels["cls"] = np.array(new["class_labels"]).reshape(-1, 1)
-                    bboxes = np.array(new["bboxes"], dtype=np.float32)
+                    bboxes = np.array(new["bboxes"], dtype=np.float32).reshape(-1, 4)
+                    if mask is not None:
+                        labels["semantic_mask"] = new["mask"]
                 labels["instances"].update(bboxes=bboxes)
         else:
             labels["img"] = self.transform(image=labels["img"])["image"]  # transformed
@@ -2308,6 +2318,10 @@ class Format(BaseTransform):
         nl = params.get("nl", 0)
 
         if self.return_mask:
+            if self.mask_ratio > min(h, w):
+                raise ValueError(
+                    f"mask_ratio={self.mask_ratio} downsamples imgsz={(h, w)} masks to zero size; use mask_ratio <= {min(h, w)}"
+                )
             if nl:
                 masks, instances, cls = self._format_segments(instances, cls, w, h)
                 masks = torch.from_numpy(masks)
@@ -2689,7 +2703,7 @@ class RandomLoadText(BaseTransform):
         return labels
 
 
-def v8_transforms(dataset, imgsz: int, hyp: IterableSimpleNamespace, stretch: bool = False):
+def v8_transforms(dataset, imgsz: int, hyp: IterableSimpleNamespace):
     """Apply a series of image transformations for training.
 
     This function creates a composition of image augmentation techniques to prepare images for YOLO training. It
@@ -2700,7 +2714,6 @@ def v8_transforms(dataset, imgsz: int, hyp: IterableSimpleNamespace, stretch: bo
         imgsz (int): The target image size for resizing.
         hyp (IterableSimpleNamespace): A namespace of hyperparameters controlling various aspects of the
             transformations.
-        stretch (bool): If True, applies stretching to the image. If False, uses LetterBox resizing.
 
     Returns:
         (Compose): A composition of image transformations to be applied to the dataset.
@@ -2736,7 +2749,7 @@ def v8_transforms(dataset, imgsz: int, hyp: IterableSimpleNamespace, stretch: bo
         scale=hyp.scale,
         shear=hyp.shear,
         perspective=hyp.perspective,
-        size=(imgsz, imgsz) if not stretch else None,
+        size=(imgsz, imgsz),
     )
 
     pre_transform = Compose([mosaic, affine])
@@ -2808,18 +2821,16 @@ def classify_transforms(
     scale_size = size if isinstance(size, (tuple, list)) and len(size) == 2 else (size, size)
 
     if crop_fraction:
-        raise DeprecationWarning(
-            "'crop_fraction' arg of classify_transforms is deprecated, will be removed in a future version."
-        )
+        deprecation_warn("crop_fraction")
 
-    # Aspect ratio is preserved, crops center within image, no borders are added, image is lost
-    if scale_size[0] == scale_size[1]:
-        # Simple case, use torchvision built-in Resize with the shortest edge mode (scalar size arg)
-        tfl = [T.Resize(scale_size[0], interpolation=getattr(T.InterpolationMode, interpolation))]
-    else:
-        # Resize the shortest edge to matching target dim for non-square target
-        tfl = [T.Resize(scale_size)]
-    tfl += [T.CenterCrop(size), T.ToTensor(), T.Normalize(mean=torch.tensor(mean), std=torch.tensor(std))]
+    # Square target uses the scalar shortest-edge mode (preserves aspect); non-square resizes to the exact (h, w).
+    resize = scale_size[0] if scale_size[0] == scale_size[1] else scale_size
+    tfl = [
+        T.Resize(resize, interpolation=getattr(T.InterpolationMode, interpolation)),
+        T.CenterCrop(size),
+        T.ToTensor(),
+        T.Normalize(mean=torch.tensor(mean), std=torch.tensor(std)),
+    ]
     return T.Compose(tfl)
 
 

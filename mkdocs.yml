@@ -499,6 +499,11 @@ nav:
           - DOTAv2: datasets/obb/dota-v2.md
       - Multi-Object Tracking:
           - datasets/track/index.md
+      - Explorer:
+          - datasets/explorer/index.md
+          - Explorer API: datasets/explorer/api.md
+          - Explorer Dashboard Demo: datasets/explorer/dashboard.md
+          - VOC Exploration Example: datasets/explorer/explorer.md
   - Solutions:
       - Solutions: solutions/index.md
       - Analytics: guides/analytics.md
@@ -520,83 +525,89 @@ nav:
       - Workouts Monitoring: guides/workouts-monitoring.md
   - Guides:
       - Guides: guides/index.md
-      - AzureML Quickstart: guides/azureml-quickstart.md
-      - Best Practices for Model Deployment: guides/model-deployment-practices.md
-      - COCO to YOLO Conversion: guides/coco-to-yolo.md
-      - COCO JSON Training: guides/coco-json-training.md
-      - Conda Quickstart: guides/conda-quickstart.md
-      - Customizing Trainer: guides/custom-trainer.md
-      - Data Collection and Annotation: guides/data-collection-and-annotation.md
-      - DeepStream on NVIDIA Jetson: guides/deepstream-nvidia-jetson.md
-      - Define CV Project Goals: guides/defining-project-goals.md
-      - YOLO on Vertex AI: guides/vertex-ai-deployment-with-docker.md
-      - Docker Quickstart: guides/docker-quickstart.md
-      - Edge TPU on Raspberry Pi: guides/coral-edge-tpu-on-raspberry-pi.md
-      - End-to-End Detection: guides/end2end-detection.md
-      - Export Non-YOLO Models: guides/export-non-yolo-models.md
-      - Fine-Tuning YOLO on Custom Data: guides/finetuning-guide.md
-      - Hyperparameter Tuning: guides/hyperparameter-tuning.md
-      - Model Evaluation and Fine-Tuning: guides/model-evaluation-insights.md
-      - Isolating Segmentation Objects: guides/isolating-segmentation-objects.md
-      - K-Fold Cross Validation: guides/kfold-cross-validation.md
-      - Knowledge Distillation 🚀: guides/knowledge-distillation.md
-      - Maintaining Your Computer Vision Model: guides/model-monitoring-and-maintenance.md
-      - Modal Quickstart: guides/modal-quickstart.md
-      - Model Deployment Options: guides/model-deployment-options.md
-      - Model Testing: guides/model-testing.md
-      - Model YAML Configuration Guide: guides/model-yaml-config.md
-      - NVIDIA DALI GPU Preprocessing: guides/nvidia-dali.md
-      - NVIDIA DGX Spark: guides/nvidia-dgx-spark.md
-      - NVIDIA Jetson: guides/nvidia-jetson.md
-      - OpenVINO Latency vs Throughput modes: guides/optimizing-openvino-latency-vs-throughput-modes.md
-      - Preprocessing Annotated Data: guides/preprocessing-annotated-data.md
-      - Raspberry Pi: guides/raspberry-pi.md
-      - ROS Quickstart: guides/ros-quickstart.md
-      - SAHI Tiled Inference: guides/sahi-tiled-inference.md
-      - Steps of a Computer Vision Project: guides/steps-of-a-cv-project.md
-      - Tips for Model Training: guides/model-training-tips.md
-      - Triton Inference Server: guides/triton-inference-server.md
-      - Viewing Inference Images in a Terminal: guides/view-results-in-terminal.md
-      - YOLO26 Training Recipe: guides/yolo26-training-recipe.md
-      - YOLO Common Issues: guides/yolo-common-issues.md
-      - YOLO Data Augmentation: guides/yolo-data-augmentation.md
-      - YOLO Performance Metrics: guides/yolo-performance-metrics.md
-      - YOLO Thread-Safe Inference: guides/yolo-thread-safe-inference.md
-      - Explorer:
-          - datasets/explorer/index.md
-          - Explorer API: datasets/explorer/api.md
-          - Explorer Dashboard Demo: datasets/explorer/dashboard.md
-          - VOC Exploration Example: datasets/explorer/explorer.md
-      - YOLOv5:
-          - yolov5/index.md
-          - Quickstart: yolov5/quickstart-tutorial.md
-          - Environments:
-              - Amazon Web Services (AWS): yolov5/environments/aws-quickstart-tutorial.md
-              - Google Cloud (GCP): yolov5/environments/google-cloud-quickstart-tutorial.md
-              - AzureML: yolov5/environments/azureml-quickstart-tutorial.md
-              - Docker Image: yolov5/environments/docker-image-quickstart-tutorial.md
-          - Tutorials:
-              - Train Custom Data: yolov5/tutorials/train-custom-data.md
-              - Tips for Best Training Results: yolov5/tutorials/tips-for-best-training-results.md
-              - Multi-GPU Training: yolov5/tutorials/multi-gpu-training.md
-              - PyTorch Hub: yolov5/tutorials/pytorch-hub-model-loading.md
-              - ONNX, CoreML, TensorRT Export: yolov5/tutorials/model-export.md
-              - Test-Time Augmentation (TTA): yolov5/tutorials/test-time-augmentation.md
-              - Model Ensembling: yolov5/tutorials/model-ensembling.md
-              - Pruning/Sparsity Tutorial: yolov5/tutorials/model-pruning-and-sparsity.md
-              - Hyperparameter evolution: yolov5/tutorials/hyperparameter-evolution.md
-              - Transfer learning with frozen layers: yolov5/tutorials/transfer-learning-with-frozen-layers.md
-              - Architecture Summary: yolov5/tutorials/architecture-description.md
-              - Neural Magic's DeepSparse: yolov5/tutorials/neural-magic-pruning-quantization.md
-              - Comet Logging: yolov5/tutorials/comet-logging-integration.md
-              - Clearml Logging: yolov5/tutorials/clearml-logging-integration.md
+      - Get started & plan:
+          - Conda Quickstart: guides/conda-quickstart.md
+          - Docker Quickstart: guides/docker-quickstart.md
+          - AzureML Quickstart: guides/azureml-quickstart.md
+          - Modal Quickstart: guides/modal-quickstart.md
+          - Define CV Project Goals: guides/defining-project-goals.md
+          - Steps of a Computer Vision Project: guides/steps-of-a-cv-project.md
+          - YOLO Architecture Explained: guides/yolo-architecture.md
+      - Prepare your data:
+          - Data Collection and Annotation: guides/data-collection-and-annotation.md
+          - Preprocessing Annotated Data: guides/preprocessing-annotated-data.md
+          - YOLO Data Augmentation: guides/yolo-data-augmentation.md
+          - COCO to YOLO Conversion: guides/coco-to-yolo.md
+          - COCO JSON Training: guides/coco-json-training.md
+      - Train & fine-tune:
+          - Tips for Model Training: guides/model-training-tips.md
+          - Fine-Tuning YOLO on Custom Data: guides/finetuning-guide.md
+          - YOLO26 Training Recipe: guides/yolo26-training-recipe.md
+          - Hyperparameter Tuning: guides/hyperparameter-tuning.md
+          - Knowledge Distillation 🚀: guides/knowledge-distillation.md
+          - K-Fold Cross Validation: guides/kfold-cross-validation.md
+          - Customizing Trainer: guides/custom-trainer.md
+          - Model YAML Configuration Guide: guides/model-yaml-config.md
+      - Evaluate & troubleshoot:
+          - YOLO Performance Metrics: guides/yolo-performance-metrics.md
+          - Model Evaluation and Fine-Tuning: guides/model-evaluation-insights.md
+          - Model Testing: guides/model-testing.md
+          - YOLO Common Issues: guides/yolo-common-issues.md
+          - Maintaining Your Computer Vision Model: guides/model-monitoring-and-maintenance.md
+      - Deploy & serve:
+          - Model Deployment Options: guides/model-deployment-options.md
+          - Best Practices for Model Deployment: guides/model-deployment-practices.md
+          - Export Non-YOLO Models: guides/export-non-yolo-models.md
+          - End-to-End Detection: guides/end2end-detection.md
+          - Triton Inference Server: guides/triton-inference-server.md
+          - YOLO Thread-Safe Inference: guides/yolo-thread-safe-inference.md
+          - ROS Quickstart: guides/ros-quickstart.md
+          - YOLO on Vertex AI: guides/vertex-ai-deployment-with-docker.md
+      - Optimize inference:
+          - SAHI Tiled Inference: guides/sahi-tiled-inference.md
+          - OpenVINO Latency vs Throughput modes: guides/optimizing-openvino-latency-vs-throughput-modes.md
+          - NVIDIA DALI GPU Preprocessing: guides/nvidia-dali.md
+          - Isolating Segmentation Objects: guides/isolating-segmentation-objects.md
+          - Viewing Inference Images in a Terminal: guides/view-results-in-terminal.md
+      - Edge & embedded hardware:
+          - NVIDIA Jetson: guides/nvidia-jetson.md
+          - Raspberry Pi: guides/raspberry-pi.md
+          - DeepStream on NVIDIA Jetson: guides/deepstream-nvidia-jetson.md
+          - Edge TPU on Raspberry Pi: guides/coral-edge-tpu-on-raspberry-pi.md
+          - NVIDIA DGX Spark: guides/nvidia-dgx-spark.md
+          - DL Streamer on Intel: guides/dlstreamer-intel.md
+  - YOLOv5 (Legacy):
+      - yolov5/index.md
+      - Quickstart: yolov5/quickstart-tutorial.md
+      - Environments:
+          - Amazon Web Services (AWS): yolov5/environments/aws-quickstart-tutorial.md
+          - Google Cloud (GCP): yolov5/environments/google-cloud-quickstart-tutorial.md
+          - AzureML: yolov5/environments/azureml-quickstart-tutorial.md
+          - Docker Image: yolov5/environments/docker-image-quickstart-tutorial.md
+      - Tutorials:
+          - Train Custom Data: yolov5/tutorials/train-custom-data.md
+          - Tips for Best Training Results: yolov5/tutorials/tips-for-best-training-results.md
+          - Multi-GPU Training: yolov5/tutorials/multi-gpu-training.md
+          - PyTorch Hub: yolov5/tutorials/pytorch-hub-model-loading.md
+          - ONNX, CoreML, TensorRT Export: yolov5/tutorials/model-export.md
+          - Test-Time Augmentation (TTA): yolov5/tutorials/test-time-augmentation.md
+          - Model Ensembling: yolov5/tutorials/model-ensembling.md
+          - Pruning/Sparsity Tutorial: yolov5/tutorials/model-pruning-and-sparsity.md
+          - Hyperparameter evolution: yolov5/tutorials/hyperparameter-evolution.md
+          - Transfer learning with frozen layers: yolov5/tutorials/transfer-learning-with-frozen-layers.md
+          - Architecture Summary: yolov5/tutorials/architecture-description.md
+          - Neural Magic's DeepSparse: yolov5/tutorials/neural-magic-pruning-quantization.md
+          - Comet Logging: yolov5/tutorials/comet-logging-integration.md
+          - Clearml Logging: yolov5/tutorials/clearml-logging-integration.md
   - Integrations:
       - Integrations: integrations/index.md
       - Albumentations: integrations/albumentations.md
       - Amazon SageMaker: integrations/amazon-sagemaker.md
+      - Ambarella: integrations/ambarella.md
       - Axelera: integrations/axelera.md
       - ClearML: integrations/clearml.md
       - Comet ML: integrations/comet.md
+      - Core AI: integrations/coreai.md
       - CoreML: integrations/coreml.md
       - DEEPX: integrations/deepx.md
       - DVC: integrations/dvc.md
@@ -652,8 +663,13 @@ nav:
           - Monitoring: platform/deploy/monitoring.md
       - Integrations:
           - platform/integrations/index.md
+          - Slack: platform/integrations/slack.md
           - Ultralytics HUB: platform/integrations/ultralytics-hub.md
           - Roboflow: platform/integrations/roboflow.md
+          - Google Cloud Storage: platform/integrations/google-cloud-storage.md
+          - Amazon S3: platform/integrations/amazon-s3.md
+          - Azure Blob Storage: platform/integrations/azure-blob-storage.md
+          - On Premise: platform/integrations/on-premise.md
       - Account:
           - platform/account/index.md
           - API Keys: platform/account/api-keys.md
@@ -772,6 +788,7 @@ nav:
               - world:
                   - train: reference/models/yolo/world/train.md
                   - train_world: reference/models/yolo/world/train_world.md
+                  - val: reference/models/yolo/world/val.md
               - yoloe:
                   - predict: reference/models/yolo/yoloe/predict.md
                   - train: reference/models/yolo/yoloe/train.md
@@ -785,6 +802,7 @@ nav:
               - coreml: reference/nn/backends/coreml.md
               - deepx: reference/nn/backends/deepx.md
               - executorch: reference/nn/backends/executorch.md
+              - hailo: reference/nn/backends/hailo.md
               - litert: reference/nn/backends/litert.md
               - mnn: reference/nn/backends/mnn.md
               - ncnn: reference/nn/backends/ncnn.md

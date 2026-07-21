@@ -750,7 +750,7 @@ class Model(torch.nn.Module):
             'path/to/exported/model.onnx'
         """
         self._check_is_pytorch_model()
-        from .exporter import ExportEnvironmentError, Exporter, export_formats
+        from .exporter import Exporter, export_formats
 
         custom = {
             "imgsz": self.model.args["imgsz"],
@@ -762,7 +762,7 @@ class Model(torch.nn.Module):
         args = {**self.overrides, **custom, **kwargs, "mode": "export"}  # highest priority args on the right
         try:
             return Exporter(overrides=args, _callbacks=self.callbacks)(model=self.model)
-        except (ImportError, ExportEnvironmentError):
+        except Exception:
             formats = export_formats()
             format_name = dict(zip(formats["Argument"], formats["Format"])).get(
                 str(args["format"]).lower(), args["format"]

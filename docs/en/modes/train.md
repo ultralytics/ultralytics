@@ -10,7 +10,7 @@ keywords: Ultralytics, YOLO26, model training, deep learning, object detection, 
 
 ## Introduction
 
-Training a [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) model involves feeding it data and adjusting its parameters so that it can make accurate predictions. Train mode in Ultralytics YOLO26 is engineered for effective and efficient training of object detection models, fully utilizing modern hardware capabilities. This guide aims to cover all the details you need to get started with training your own models using YOLO26's robust set of features.
+Training a [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) model involves feeding it data and adjusting its parameters so that it can make accurate predictions. Train mode in Ultralytics YOLO26 is engineered for effective and efficient training of object detection models, fully utilizing modern hardware capabilities. This guide aims to cover all the details you need to get started with training your own models using YOLO26's robust set of features. If you haven't installed Ultralytics yet, start with the [Quickstart guide](../quickstart.md).
 
 <p align="center">
   <br>
@@ -346,6 +346,10 @@ To use TensorBoard locally run the below command and view results at `localhost:
 This will load TensorBoard and direct it to the directory where your training logs are saved.
 
 After setting up your logger, you can then proceed with your model training. All training metrics will be automatically logged in your chosen platform, and you can access these logs to monitor your model's performance over time, compare different models, and identify areas for improvement.
+
+## What's Next
+
+[Validate](val.md) your trained model against held-out data to check its real-world accuracy, then [export](export.md) it to ONNX, TensorRT, or another deployment format. Training on your own data instead of COCO8? Format it first with the [Datasets guide](../datasets/index.md).
 
 ## FAQ
 

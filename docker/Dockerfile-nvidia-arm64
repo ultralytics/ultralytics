@@ -48,5 +48,9 @@ RUN uv pip install --system \
 # Example (build): t=ultralytics/ultralytics:latest-nvidia-arm64 && docker build --platform linux/arm64 -f docker/Dockerfile-nvidia-arm64 -t $t .
 # Example (push): docker push $t
 # Example (pull): t=ultralytics/ultralytics:latest-nvidia-arm64 && docker pull $t
-# Example (run): docker run -it --ipc=host --runtime=nvidia $t
-# Example (run-with-volume): docker run -it --ipc=host --runtime=nvidia -v "$PWD/shared/datasets:/datasets" $t
+# Example (run-dgx-spark): docker run -it --ipc=host --device nvidia.com/gpu=all $t
+# Example (run-dgx-spark-with-volume): docker run -it --ipc=host --device nvidia.com/gpu=all -v "$PWD/shared/datasets:/datasets" $t
+# Example (run-jetson-thor): docker run -it --ipc=host --runtime=nvidia $t
+# Example (run-jetson-thor-with-volume): docker run -it --ipc=host --runtime=nvidia -v "$PWD/shared/datasets:/datasets" $t
+# CDI requires Docker >= 28.2.0 and nvidia-container-toolkit >= 1.18.
+# Legacy --gpus all can lose GPU access after host systemd daemon reloads (nvidia-container-toolkit#48).

@@ -153,13 +153,17 @@ class SAM3Backend:
         self._metadata = {s: dict(sess.get_modelmeta().custom_metadata_map) for s, sess in self._sessions.items()}
         LOGGER.info(f"SAM3Backend ONNX: loaded {', '.join(self._sessions)}")
 
-    @staticmethod
-    def _ort_providers(cuda: bool) -> list:
+    def _ort_providers(self, cuda: bool) -> list:
         import onnxruntime as ort
 
         available = ort.get_available_providers()
         if cuda and "CUDAExecutionProvider" in available:
-            return ["CUDAExecutionProvider", "CPUExecutionProvider"]
+            # kSameAsRequested keeps each session's CUDA arena at its actual peak instead of
+            # doubling on growth — with 8 sessions sharing one GPU, the default strategy
+            # fragments enough to OOM the memory-attention softmax on 32GB cards.
+            device_id = self.device.index or 0
+            cuda_options = {"device_id": device_id, "arena_extend_strategy": "kSameAsRequested"}
+            return [("CUDAExecutionProvider", cuda_options), "CPUExecutionProvider"]
         return ["CPUExecutionProvider"]
 
     # ---- TensorRT ----------------------------------------------------
@@ -586,6 +590,12 @@ class SAM3Backend:
                 results.append(r)
             out = {k: torch.cat([r[k] for r in results], dim=0) for k in results[0]}
 
+        # xyxy boxes are a weightless transform the torch head emits alongside pred_boxes
+        # (consumed by SAM3VideoSemanticPredictor._extract_detection_outputs)
+        from ultralytics.utils.ops import xywh2xyxy
+
+        out["pred_boxes_xyxy"] = xywh2xyxy(out["pred_boxes"])
+
         # Surface the SAM2-neck pyramid for the video tracker's feature cache
         # (SAM3VideoSemanticPredictor._cache_backbone_features). Levels stay unprojected —
         # conv_s0/conv_s1 run inside the sam3_mask_decoder graph — and only the level-2
@@ -710,6 +720,13 @@ class SAM3Backend:
         from ultralytics.models.sam.modules.sam import SAM2Model
 
         return SAM2Model._apply_non_overlapping_constraints(pred_masks)
+
+    @staticmethod
+    def _suppress_object_pw_area_shrinkage(pred_masks: torch.Tensor) -> torch.Tensor:
+        """Suppress masks that shrink heavily under pixel-wise non-overlap (SAM3Model statics reused)."""
+        from ultralytics.models.sam.modules.sam import SAM2Model, SAM3Model
+
+        return SAM3Model._suppress_shrinked_masks(pred_masks, SAM2Model._apply_non_overlapping_constraints(pred_masks))
 
     def _use_multimask(self, is_init_cond_frame: bool, point_inputs: dict | None) -> bool:
         """Whether the SAM head should output multiple masks (SAM2Model._use_multimask mirror)."""

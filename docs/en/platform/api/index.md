@@ -1024,7 +1024,7 @@ Provide either `file` or `source`. Maximum upload size is 100 MB.
 
 **Response:**
 
-Responses contain per-image `shape`, `speed`, `results`, and optional dense pixel-map data (a semantic class map, or a 16-bit depth map where `depth = pixel × max / 65535`), plus `metadata` with image count, function timing, task, and service versions. Internal model paths are never returned.
+Responses contain per-image `shape`, `speed`, `results`, and optional dense pixel-map data (a semantic class map, or a depth map where `depth = pixel × max / divisor` — divisor 255 for the default 8-bit map, 65535 with `bits=12|16`), plus `metadata` with image count, function timing, task, and service versions. Internal model paths are never returned.
 
 ```json
 {

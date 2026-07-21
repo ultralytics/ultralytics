@@ -328,14 +328,15 @@ Response format varies by task:
       "depth": {
         "shape": [480, 640],
         "encoding": "png",
-        "data": "<base64 16-bit grayscale PNG>",
+        "data": "<base64 grayscale PNG>",
         "min": 0.31,
-        "max": 79.9
+        "max": 79.9,
+        "bits": 8
       }
     }
     ```
 
-    [Depth estimation](../../tasks/depth.md) returns a dense per-pixel map instead of per-object results: a base64-encoded 16-bit grayscale PNG where `depth = pixel × max / 65535` and a pixel value of `0` means no depth. Decode it with any image library:
+    [Depth estimation](../../tasks/depth.md) returns a dense per-pixel map instead of per-object results: a base64-encoded grayscale PNG where `depth = pixel × max / divisor` and a pixel value of `0` means no depth. The optional `bits` request parameter selects the quantization — `8` (default, uint8 PNG, divisor 255), `12`, or `16` (uint16 PNG, divisor 65535). The map is returned at model inference resolution (`imgsz`), so resize it to the image dimensions if you need per-pixel alignment. Decode it with any image library:
 
     ```python
     import base64
@@ -346,7 +347,7 @@ Response format varies by task:
 
     depth = response["images"][0]["depth"]
     pixels = np.asarray(Image.open(io.BytesIO(base64.b64decode(depth["data"]))))
-    meters = pixels * depth["max"] / 65535.0  # 0 = no depth
+    meters = pixels * depth["max"] / (255.0 if depth["bits"] == 8 else 65535.0)  # 0 = no depth
     ```
 
 === "Pose"

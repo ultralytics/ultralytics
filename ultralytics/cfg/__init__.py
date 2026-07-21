@@ -56,13 +56,14 @@ SOLUTION_MAP = {
 
 # Define valid tasks and modes
 MODES = frozenset({"train", "val", "predict", "export", "track", "benchmark"})
-TASKS = frozenset({"detect", "segment", "classify", "pose", "obb", "semantic"})
+TASKS = frozenset({"detect", "segment", "classify", "pose", "obb", "semantic", "depth"})
 TASK2DATA = {
     "detect": "coco8.yaml",
     "segment": "coco8-seg.yaml",
     "classify": "imagenet10",
     "pose": "coco8-pose.yaml",
     "obb": "dota8.yaml",
+    "depth": "depth8.yaml",
     "semantic": "cityscapes8.yaml",
 }
 TASK2CALIBRATIONDATA = {
@@ -71,6 +72,7 @@ TASK2CALIBRATIONDATA = {
     "classify": "imagenet100",
     "pose": "coco8-pose.yaml",
     "obb": "dota128.yaml",
+    "depth": "depth8.yaml",
     "semantic": "cityscapes8.yaml",
 }
 TASK2MODEL = {
@@ -79,6 +81,7 @@ TASK2MODEL = {
     "classify": "yolo26n-cls.pt",
     "pose": "yolo26n-pose.pt",
     "obb": "yolo26n-obb.pt",
+    "depth": "yolo26n-depth.pt",
     "semantic": "yolo26n-sem.pt",
 }
 TASK2METRIC = {
@@ -87,6 +90,7 @@ TASK2METRIC = {
     "classify": "metrics/accuracy_top1",
     "pose": "metrics/mAP50-95(P)",
     "obb": "metrics/mAP50-95(B)",
+    "depth": "metrics/delta1",
     "semantic": "metrics/mIoU",
 }
 
@@ -198,6 +202,8 @@ CFG_FLOAT_KEYS = frozenset(
         "box",
         "cls",
         "dfl",
+        "dlog",
+        "dgrad",
         "dis",
         "degrees",
         "shear",
@@ -232,6 +238,7 @@ CFG_FRACTION_KEYS = frozenset(
         "iou",
         "fraction",
         "multi_scale",
+        "dlam",
     }
 )
 CFG_INT_KEYS = frozenset(

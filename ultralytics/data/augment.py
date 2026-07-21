@@ -54,6 +54,7 @@ class BaseTransform:
         labels = self.apply_image(labels, params)
         labels = self.apply_instances(labels, params)
         labels = self.apply_semantic(labels, params)
+        labels = self.apply_depth(labels, params)
         return labels
 
     def get_params(self, labels):
@@ -99,6 +100,18 @@ class BaseTransform:
 
         Args:
             labels (dict): Dictionary containing 'semantic_mask'.
+            params (dict | None): Parameters from get_params.
+
+        Returns:
+            (dict): Updated labels dictionary.
+        """
+        return labels
+
+    def apply_depth(self, labels, params=None):
+        """Apply transformation to depth map.
+
+        Args:
+            labels (dict): Dictionary containing 'depth'.
             params (dict | None): Parameters from get_params.
 
         Returns:
@@ -332,6 +345,7 @@ class BaseMixTransform(BaseTransform):
         labels = self.apply_image(labels, params)
         labels = self.apply_instances(labels, params)
         labels = self.apply_semantic(labels, params)
+        labels = self.apply_depth(labels, params)
         labels.pop("mix_labels", None)
         return labels
 
@@ -1355,6 +1369,26 @@ class RandomPerspective(BaseTransform):
         labels["semantic_mask"] = mask
         return labels
 
+    def apply_depth(self, labels: dict[str, Any], params: dict[str, Any] | None = None) -> dict[str, Any]:
+        """Apply the same projective warp to metric depth maps.
+
+        Depth values remain in meters; only their spatial support is warped. Nearest-neighbor interpolation avoids
+        manufacturing spurious near-zero "valid" pixels when sparse or invalid regions border real depth.
+        """
+        depth = labels.get("depth")
+        if depth is None:
+            return labels
+
+        M = params["M"]
+        size = params["size"]
+        if (size[0] != depth.shape[1] or size[1] != depth.shape[0]) or (M != np.eye(3)).any():
+            if self.perspective:
+                depth = cv2.warpPerspective(depth, M, dsize=size, flags=cv2.INTER_NEAREST, borderValue=0)
+            else:
+                depth = cv2.warpAffine(depth, M[:2], dsize=size, flags=cv2.INTER_NEAREST, borderValue=0)
+        labels["depth"] = depth
+        return labels
+
     @staticmethod
     def box_candidates(
         box1: np.ndarray,
@@ -1599,6 +1633,25 @@ class RandomFlip(BaseTransform):
                 labels["semantic_mask"] = np.ascontiguousarray(np.flipud(labels["semantic_mask"]))
             elif params["direction"] == "horizontal":
                 labels["semantic_mask"] = np.ascontiguousarray(np.fliplr(labels["semantic_mask"]))
+        return labels
+
+    def apply_depth(self, labels: dict[str, Any], params: dict[str, Any]) -> dict[str, Any]:
+        """Apply flip to the paired metric depth map.
+
+        Args:
+            labels (dict[str, Any]): Dictionary containing 'depth'.
+            params (dict): Parameters from get_params.
+
+        Returns:
+            (dict): Updated labels with flipped (or unchanged) depth map.
+        """
+        if labels.get("depth") is None:
+            return labels
+        if params["flip"]:
+            if params["direction"] == "vertical":
+                labels["depth"] = np.ascontiguousarray(np.flipud(labels["depth"]))
+            elif params["direction"] == "horizontal":
+                labels["depth"] = np.ascontiguousarray(np.fliplr(labels["depth"]))
         return labels
 
 
@@ -2953,6 +3006,48 @@ def classify_augmentations(
     ]
 
     return T.Compose(primary_tfl + secondary_tfl + final_tfl)
+
+
+class DepthFormat(Format):
+    """Format transform for monocular depth estimation: image via Format, depth map resized and tensorized.
+
+    Mirrors SemanticFormat: the base Format.apply_image converts the image (HWC BGR -> CHW RGB tensor), and the
+    apply_depth hook (run after apply_image in BaseTransform.__call__) resizes the paired depth map to the letterboxed
+    image size and emits it as a (1, H, W) float tensor.
+    """
+
+    def apply_depth(self, labels: dict[str, Any], params: dict[str, Any] | None = None) -> dict[str, Any]:
+        """Resize depth to the formatted image size (nearest) and emit a (1, H, W) float tensor.
+
+        Args:
+            labels (dict[str, Any]): Dictionary with 'img' (already a CHW tensor) and optionally 'depth'.
+            params (dict[str, Any] | None): Unused parameters for API compatibility.
+
+        Returns:
+            (dict[str, Any]): Updated labels with 'depth' as a (1, H, W) float tensor.
+        """
+        depth = labels.get("depth")
+        if depth is None or "img" not in labels:
+            return labels
+        _, h, w = labels["img"].shape
+        if depth.shape[:2] != (h, w):
+            depth = cv2.resize(depth, (w, h), interpolation=cv2.INTER_NEAREST)
+        labels["depth"] = torch.from_numpy(np.ascontiguousarray(depth[None])).float()
+        return labels
+
+    def apply_instances(self, labels: dict[str, Any], params: dict[str, Any] | None = None) -> dict[str, Any]:
+        """Remove instance-level keys not needed for depth estimation.
+
+        Args:
+            labels (dict[str, Any]): Dictionary to clean up.
+            params (dict[str, Any] | None): Unused parameters for API compatibility.
+
+        Returns:
+            (dict[str, Any]): Updated labels with unused keys removed.
+        """
+        for k in ("cls", "instances", "resized_shape", "ori_shape", "ratio_pad"):
+            labels.pop(k, None)
+        return labels
 
 
 # NOTE: keep this class for backward compatibility

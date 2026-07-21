@@ -267,6 +267,12 @@ class BaseTrainer:
         self.train_loader = self.get_dataloader(
             self.data["train"], batch_size=batch_size, rank=LOCAL_RANK, mode="train"
         )
+        final_batch_size = len(self.train_loader.sampler) % self.train_loader.batch_size or self.train_loader.batch_size
+        if self.args.imgsz < 2 * self.stride and not self.train_loader.drop_last and final_batch_size == 1:
+            raise ValueError(
+                f"final batch=1 training at imgsz={self.args.imgsz} gives BatchNorm a single value per channel; "
+                f"change batch or use imgsz >= {2 * self.stride}"
+            )
         # Note: When training DOTA dataset, double batch size could get OOM on images with >2000 objects.
         self.test_loader = self.get_dataloader(
             self.data.get("val") or self.data.get("test"),
@@ -365,7 +371,6 @@ class BaseTrainer:
         # Batch size
         if self.batch_size < 1 and RANK == -1:  # single-GPU only, estimate best batch size
             self.args.batch = self.batch_size = self.auto_batch()
-
         self._build_train_pipeline()
         self.validator = self.get_validator()
         if self.args.distill_model is not None and "dis_loss" not in self.loss_names:
@@ -470,9 +475,14 @@ class BaseTrainer:
                     # Backward
                     self.scaler.scale(self.loss).backward()
                 except RuntimeError as e:
-                    is_oom = isinstance(e, torch.cuda.OutOfMemoryError)
+                    is_oom = "out of memory" in str(e).lower()  # torch.cuda.OutOfMemoryError requires torch>=1.13
                     if not is_oom and not any(
-                        s in str(e) for s in ("CUDNN_STATUS_INTERNAL_ERROR", "unable to find an engine")
+                        s in str(e)
+                        for s in (
+                            "CUBLAS_STATUS_ALLOC_FAILED",
+                            "CUDNN_STATUS_INTERNAL_ERROR",
+                            "unable to find an engine",
+                        )
                     ):
                         raise
                     if epoch > self.start_epoch or self._oom_retries >= 3 or RANK != -1:

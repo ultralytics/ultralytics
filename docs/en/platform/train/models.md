@@ -207,6 +207,8 @@ Export your model to 19+ deployment formats:
 5. Click **Export**
 6. Download when complete
 
+Connect [Slack alerts](../integrations/slack.md) to receive a message when an export is ready or fails.
+
 ![Ultralytics Platform Model Export Tab Format List](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-export-tab-format-list.avif)
 
 ### Supported Formats
@@ -243,7 +245,11 @@ Ultralytics Platform offers the following Jetson target selections for TensorRT 
 | Jetson Orin Nano 8GB Super | `jetson-orin-nano-8gb` |   8 GB | Ampere, CC 8.7     | 3.12.3 | 13.2 | 10.16.1.11 |                       4m 59s | AGX Orin 64GB build/load; Nano SKU pending    |
 | Jetson Orin Nano 4GB       | `jetson-orin-nano-4gb` |   4 GB | Ampere, CC 8.7     | 3.12.3 | 13.2 | 10.16.1.11 |                       5m 01s | AGX Orin 64GB build/load; Nano SKU pending    |
 
-The timings are single observed end-to-end production routing tests from July 2026, rounded to the nearest second; they are reference measurements, not an SLA or per-SKU performance benchmark. Both Thor selections are built on a T5000 Developer Kit in NVIDIA's T4000 compatibility profile. The six Orin routes are built on an AGX Orin 64GB, where every resulting engine was loaded and run. Because TensorRT engines are tied to the build GPU and software stack, the smaller-Orin artifacts are candidates until they load and infer on their listed SKUs. Test memory fit on smaller Orin SKUs and perform INT8 calibration on the target device for best results. See the [NVIDIA Jetson guide](../../guides/nvidia-jetson.md) and [TensorRT integration guide](../../integrations/tensorrt.md) for local deployment details.
+The timings are single observed end-to-end production routing tests from July 2026, rounded to the nearest second; they are reference measurements, not an SLA or per-SKU performance benchmark. Both Thor selections are built on a T5000 Developer Kit in NVIDIA's T4000 compatibility profile. The six Orin routes are built on an AGX Orin 64GB, where every resulting engine was loaded and run.
+
+!!! warning "Match the TensorRT engine build environment"
+
+    Downloaded engines are tied to their build platform, GPU family, TensorRT version, and a compatible CUDA runtime. For Jetson targets, the software versions are shown in the table above. Validate each engine and its memory fit on the deployment device, and perform INT8 calibration there for best results. If the environments do not match, export the engine locally instead. See the [NVIDIA Jetson guide](../../guides/nvidia-jetson.md) and [TensorRT integration guide](../../integrations/tensorrt.md) for local deployment details.
 
 ### RKNN Chip Support
 

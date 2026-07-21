@@ -6,7 +6,6 @@ creator:
     url: https://www.diu.mil/
 license:
     name: CC-BY-NC-SA-4.0
-    url: https://creativecommons.org/licenses/by-nc-sa/4.0/
 description: Train YOLO26 on the xView satellite dataset - 1M+ object instances across 60 classes in 0.3 m WorldView-3 imagery with automatic GeoJSON-to-YOLO conversion.
 keywords: xView dataset, satellite imagery, overhead imagery, object detection, remote sensing, YOLO26, xView download, WorldView-3, bounding boxes, computer vision
 ---

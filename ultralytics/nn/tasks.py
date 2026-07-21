@@ -639,15 +639,51 @@ class YOLOAnomalyModel(DetectionModel):
         "fusion_depth": 0,
     }
 
+    @staticmethod
+    def _read_donor_fusion(path: Path) -> tuple[dict, dict]:
+        """Return ``(fusion_state_dict, anomaly_yaml_block)`` from a donor at ``path``.
+
+        Two donor formats are accepted:
+          * a **plain fusion state_dict** — a ``{str: Tensor}`` file (exported by
+            ``scripts/export_fusion_weights.py``). Portable and class-agnostic: legacy
+            ``yoloa_clean_louis`` donors are ``YOLOAnomalyV2Model`` pickles whose classes do not
+            exist here, so this is the only way to warm-start from them. No yaml block travels with
+            it, so the knob check is skipped and only the key/shape check applies.
+          * a **full anomaly model checkpoint** — the fusion is read from either ``donor`` itself
+            (model-level, as on ``yoloa_clean_louis``) or ``donor.model[-1]`` (head-level, native
+            ``yoloa_clean``), and its ``anomaly``/legacy ``anomaly_v2`` yaml block is returned too.
+        """
+        try:  # plain state_dict loads under weights_only; a model checkpoint (nn.Module) raises.
+            raw = torch.load(str(path), map_location="cpu", weights_only=True)
+        except Exception:
+            raw = None
+        if isinstance(raw, dict) and raw and all(torch.is_tensor(v) for v in raw.values()):
+            return raw, {}
+        donor, _ = load_checkpoint(str(path))  # FP32 eval copy on CPU
+        fusion = getattr(donor, "heatmap_bias_fusion", None)  # model-level (yoloa_clean_louis)
+        if fusion is None and getattr(donor, "model", None) is not None:
+            fusion = getattr(donor.model[-1], "heatmap_bias_fusion", None)  # head-level (yoloa_clean)
+        if fusion is None:
+            raise ValueError(
+                f"anomaly.fusion_load: {path} ({type(donor).__name__}) has no heatmap_bias_fusion "
+                f"module — not an anomaly checkpoint?"
+            )
+        donor_yaml = getattr(donor, "yaml", None) or {}
+        # Read the block from ``anomaly`` OR legacy ``anomaly_v2`` (yoloa_clean_louis donors label it
+        # ``anomaly_v2``) so the knob check compares real values instead of falling back to defaults.
+        donor_v2 = donor_yaml.get("anomaly") or donor_yaml.get("anomaly_v2") or {}
+        return fusion.state_dict(), donor_v2
+
     def load_fusion_weights(self, weights: str) -> None:
         """Load ONLY the head's ``heatmap_bias_fusion`` weights from a donor anomaly checkpoint.
 
         Trainer entry point for ``anomaly.fusion_load``: warm-starts the fusion block (conv stack +
-        per-scale beta) from a previous run's best.pt while everything else comes from ``pretrained``.
-        The fusion module has several formats (shared vs per-scale conv, feature-conditioned input,
-        depth/width variants), so the donor is format-checked first — YAML ``fusion_*`` knobs,
-        state-dict keys and tensor shapes must all match — and any mismatch raises with a
-        side-by-side diff instead of silently loading garbage.
+        per-scale beta) from a previous run's best.pt (or an exported plain fusion state_dict) while
+        everything else comes from ``pretrained``. The fusion module has several formats (shared vs
+        per-scale conv, feature-conditioned input, depth/width variants), so the donor is
+        format-checked first — YAML ``fusion_*`` knobs (when present), state-dict keys and tensor
+        shapes must all match — and any mismatch raises with a side-by-side diff instead of silently
+        loading garbage.
         """
         cur_fusion = getattr(self.model[-1], "heatmap_bias_fusion", None)
         if cur_fusion is None:
@@ -655,28 +691,16 @@ class YOLOAnomalyModel(DetectionModel):
         path = Path(weights)
         if not path.is_file():
             raise FileNotFoundError(f"anomaly.fusion_load: checkpoint not found: {path}")
-        donor, _ = load_checkpoint(str(path))  # FP32 eval copy on CPU
-        donor_head = donor.model[-1] if getattr(donor, "model", None) is not None else None
-        donor_fusion = getattr(donor_head, "heatmap_bias_fusion", None)
-        if donor_fusion is None:
-            raise ValueError(
-                f"anomaly.fusion_load: {path} ({type(donor).__name__}) has no heatmap_bias_fusion "
-                f"module — not an anomaly checkpoint?"
-            )
-        # Format check 1: structural YAML knobs (catches param-free diffs like fusion_norm).
-        # Read the donor block from ``anomaly`` OR legacy ``anomaly_v2`` (donors trained on the
-        # yoloa_clean_louis branch label the block ``anomaly_v2``) so the knob check compares real
-        # values instead of silently falling back to defaults and false-flagging (e.g. per_scale).
-        donor_yaml = getattr(donor, "yaml", None) or {}
-        donor_v2 = donor_yaml.get("anomaly") or donor_yaml.get("anomaly_v2") or {}
+        donor_sd, donor_v2 = self._read_donor_fusion(path)
         cur_v2 = (self.yaml or {}).get("anomaly", {})
+        # Format check 1: structural YAML knobs (catches param-free diffs like fusion_norm). Skipped
+        # for a plain state_dict donor (no yaml block) — the key/shape check below is authoritative.
         cfg_diff = [
             f"  {k}: ckpt={donor_v2.get(k, d)!r} vs model={cur_v2.get(k, d)!r}"
             for k, d in self._FUSION_FORMAT_KEYS.items()
             if donor_v2.get(k, d) != cur_v2.get(k, d)
-        ]
+        ] if donor_v2 else []
         # Format check 2: state-dict keys + shapes (catches donors older than the knobs above).
-        donor_sd = donor_fusion.state_dict()
         cur_sd = cur_fusion.state_dict()
         missing = sorted(cur_sd.keys() - donor_sd.keys())
         unexpected = sorted(donor_sd.keys() - cur_sd.keys())

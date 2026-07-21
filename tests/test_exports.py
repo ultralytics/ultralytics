@@ -177,6 +177,16 @@ def test_modelopt_quantize_onnx_requires_int8_dataset():
         modelopt_quantize_onnx("model.onnx", quantize=8)
 
 
+def test_int8_calibration_validates_split():
+    """Check INT8 calibration rejects dataset splits that do not exist."""
+    exporter = object.__new__(Exporter)
+    exporter.model = SimpleNamespace(task="obb")
+    exporter.args = SimpleNamespace(data="coco8.yaml", split="trainval")
+    exporter.imgsz = [32]
+    with pytest.raises(FileNotFoundError, match="trainval"):
+        exporter.get_int8_calibration_dataloader()
+
+
 def test_export_rknn_batch_expansion(monkeypatch, tmp_path):
     """Check RKNN calibrates batch 1 before Toolkit expands to the requested batch."""
     calls = {}

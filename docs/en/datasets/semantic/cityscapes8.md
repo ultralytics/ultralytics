@@ -1,6 +1,12 @@
 ---
 title: Cityscapes8 Semantic Segmentation Dataset
 comments: true
+creator:
+    name: Ultralytics
+    url: https://www.ultralytics.com/
+license:
+    name: Research-Only
+    url: https://www.cityscapes-dataset.com/license/
 description: Explore the Ultralytics Cityscapes8 dataset, a compact set of 8 urban-scene images for testing semantic segmentation models and training pipelines.
 keywords: Cityscapes8, Ultralytics, dataset, semantic segmentation, YOLO26, semantic, training, validation, urban scenes, computer vision
 ---

@@ -42,8 +42,8 @@ from .utils import (
     polygons2masks_overlap,
     save_dataset_cache_file,
     verify_image,
-    verify_image_label,
     verify_image_depth,
+    verify_image_label,
     verify_image_mask,
 )
 

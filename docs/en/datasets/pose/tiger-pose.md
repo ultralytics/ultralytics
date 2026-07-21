@@ -1,6 +1,12 @@
 ---
 title: Tiger-Pose Estimation Dataset
 comments: true
+creator:
+    name: Ultralytics
+    url: https://www.ultralytics.com/
+license:
+    name: AGPL-3.0
+    url: https://www.ultralytics.com/license
 description: "Explore the Ultralytics Tiger-Pose dataset: 263 images (210 train / 53 val) with 12 keypoints per tiger, ideal for testing pose estimation pipelines."
 keywords: Ultralytics, Tiger-Pose, dataset, pose estimation, YOLO26, training data, machine learning, neural networks
 ---
@@ -9,7 +15,7 @@ keywords: Ultralytics, Tiger-Pose, dataset, pose estimation, YOLO26, training da
 
 ## Introduction
 
-[Ultralytics](https://www.ultralytics.com/) introduces the Tiger-Pose dataset, a versatile collection designed for pose estimation tasks. This dataset comprises 263 images sourced from a [YouTube video](https://www.youtube.com/watch?v=MIBAT6BGE6U), with 210 images allocated for training and 53 for validation. It serves as an excellent resource for testing and troubleshooting pose estimation algorithms.
+[Ultralytics](https://www.ultralytics.com/) introduces the Tiger-Pose dataset, a versatile collection designed for pose estimation tasks. This dataset comprises 263 images sourced from a [YouTube video](https://youtu.be/Gc6K5eKrTNQ), with 210 images allocated for training and 53 for validation. It serves as an excellent resource for testing and troubleshooting pose estimation algorithms.
 
 Despite its manageable training split of 210 images, the Tiger-Pose dataset offers diversity, making it suitable for assessing training pipelines, identifying potential errors, and serving as a valuable preliminary step before working with larger datasets for [pose estimation](../../tasks/pose.md).
 
@@ -93,25 +99,25 @@ After training, load your best checkpoint and run inference on new images or vid
         model = YOLO("path/to/best.pt")  # load a tiger-pose trained model
 
         # Run inference
-        results = model.predict(source="https://youtu.be/MIBAT6BGE6U", show=True)
+        results = model.predict(source="https://youtu.be/Gc6K5eKrTNQ", show=True)
         ```
 
     === "CLI"
 
         ```bash
         # Run inference using a tiger-pose trained model
-        yolo pose predict source="https://youtu.be/MIBAT6BGE6U" show=True model="path/to/best.pt"
+        yolo pose predict source="https://youtu.be/Gc6K5eKrTNQ" show=True model="path/to/best.pt"
         ```
 
 ## Citations and Acknowledgments
 
-The dataset has been released under the [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE).
+Ultralytics releases the Tiger-Pose dataset annotations under the [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE). The source video remains subject to its [original terms](https://youtu.be/Gc6K5eKrTNQ), which should be reviewed before using or redistributing extracted frames.
 
 ## FAQ
 
 ### What is the Ultralytics Tiger-Pose dataset used for?
 
-The Ultralytics Tiger-Pose dataset is designed for pose estimation tasks, consisting of 263 images sourced from a [YouTube video](https://www.youtube.com/watch?v=MIBAT6BGE6U). The dataset is divided into 210 training images and 53 validation images, making it well-suited for testing, training, and refining pose estimation algorithms.
+The Ultralytics Tiger-Pose dataset is designed for pose estimation tasks, consisting of 263 images sourced from a [YouTube video](https://youtu.be/Gc6K5eKrTNQ). The dataset is divided into 210 training images and 53 validation images, making it well-suited for testing, training, and refining pose estimation algorithms.
 
 ### How do I train a YOLO26 model on the Tiger-Pose dataset?
 

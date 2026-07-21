@@ -1,13 +1,13 @@
 ---
 plans: [free, pro, enterprise]
 comments: true
-description: Deploy YOLO models to dedicated endpoints in 43 global regions with scale-to-zero behavior and monitoring on Ultralytics Platform.
+description: Deploy YOLO models to dedicated endpoints in 42 global regions with scale-to-zero behavior and monitoring on Ultralytics Platform.
 keywords: Ultralytics Platform, deployment, endpoints, YOLO, production, scaling, global regions
 ---
 
 # Dedicated Endpoints
 
-[Ultralytics Platform](https://platform.ultralytics.com) enables deployment of YOLO models to dedicated endpoints in 43 global regions. Each endpoint is a single-tenant service with scale-to-zero behavior, a unique endpoint URL, and independent monitoring.
+[Ultralytics Platform](https://platform.ultralytics.com) enables deployment of YOLO models to dedicated endpoints in 42 global regions. Each endpoint is a single-tenant service with scale-to-zero behavior, a unique endpoint URL, and independent monitoring.
 
 ![Ultralytics Platform Model Deploy Tab With Region Map And Table](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/model-deploy-tab-with-region-map-and-table.avif)
 
@@ -62,9 +62,11 @@ stateDiagram-v2
     class Stopped extern
 ```
 
+Connect [Slack alerts](../integrations/slack.md) to receive a message when a deployment becomes ready or fails to start.
+
 ### Region Selection
 
-Choose from 43 regions worldwide. The interactive region map and table show:
+Choose from 42 regions worldwide. The interactive region map and table show:
 
 - **Region pins**: Color-coded by latency on a green-to-red gradient (faster regions are greener, slower regions are redder)
 - **Deployed regions**: Highlighted with a "Deployed" badge
@@ -147,13 +149,12 @@ The region table on the model `Deploy` tab includes:
     | australia-southeast1 | Sydney, Australia      |
     | australia-southeast2 | Melbourne, Australia   |
 
-=== "Middle East & Africa (4)"
+=== "Middle East & Africa (3)"
 
     | Zone          | Location                   |
     | ------------- | -------------------------- |
     | africa-south1 | Johannesburg, South Africa |
     | me-central1   | Doha, Qatar                |
-    | me-central2   | Dammam, Saudi Arabia       |
     | me-west1      | Tel Aviv, Israel           |
 
 ## Endpoint Configuration

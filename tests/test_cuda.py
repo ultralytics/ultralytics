@@ -134,6 +134,24 @@ def test_semantic_loss_all_ignore_amp(nc):
 
 
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
+def test_depth_calibrate_cuda():
+    """Depth calibration must write cal_a/cal_b after the CUDA device move under inference mode (GPU-only path)."""
+    from ultralytics.models.yolo.depth.calibrate import _depth_head, fit_calibration_selective
+    from ultralytics.nn.tasks import DepthModel
+
+    torch.manual_seed(0)
+    model = DepthModel("yolo26n-depth.yaml", verbose=False)
+    batches = [
+        {"img": (torch.rand(2, 3, 64, 64) * 255).to(torch.uint8), "depth": torch.rand(2, 64, 64) * 5 + 0.5}
+        for _ in range(4)
+    ]
+    res = fit_calibration_selective(model, batches, f"cuda:{DEVICES[0]}")
+    head = _depth_head(model)
+    assert res is not None and float(head.cal_b) == pytest.approx(res["b"])
+    assert not head.cal_a.is_inference() and not head.cal_b.is_inference()  # stays saveable for model.save()
+
+
+@pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 @pytest.mark.skipif(IS_JETSON, reason="Edge devices not intended for training")
 def test_train():
     """Test model training on a minimal dataset using available CUDA devices."""

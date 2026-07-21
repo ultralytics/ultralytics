@@ -1,8 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # YOLO Anomaly — clsgrad + SHARED (non-per-scale) fusion, MULTIPLICATIVE apply, near-frozen LR.
-# Reproduces yoloa_clean_louis' 26m run `26m_yoloav2_v8.2_clsgrad_flr01_mul_wd2_cm10_v1`
-# (model=yolo26m-anomaly-clsgrad-fload-flr01-mul.yaml) on the yoloa_clean AnomalyDetect stack
+# Size-agnostic — YOLO picks the scale from the pretrained weight (e.g. yolo26l.pt → scale l).
+# (binary head, NO anomaly_v2 / AnomalyMCDetect). Differences vs base yolo26-anomaly.yaml:
 # (binary head, NO anomaly_v2 / AnomalyMCDetect). Differences vs base yolo26-anomaly.yaml:
 #   fusion_target: all_clsgrad   -- all-mode forward (deploy graph == 'all'); fusion module gets
 #                                   cls-path gradients only (box path detached -> no GT-extent oracle)

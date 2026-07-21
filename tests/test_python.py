@@ -1181,7 +1181,7 @@ def test_semantic_loss_all_ignore(nc):
     preds = torch.randn(1, nc, 64, 64, requires_grad=True)
     aux = torch.randn(1, nc, 32, 32, requires_grad=True)
     loss, items = loss_fn((preds, aux), {"semantic_mask": torch.full((1, 64, 64), 255, dtype=torch.long)})
-    assert torch.isfinite(loss).all() and torch.isfinite(items).all()
+    assert torch.isfinite(loss).all() and all(torch.isfinite(x).all() for x in items.values())
     loss.backward()
     assert preds.grad is not None and aux.grad is not None
 

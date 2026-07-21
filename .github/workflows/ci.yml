@@ -188,13 +188,13 @@ jobs:
         run: python tests/cache_test_assets.py
       - name: Pytest tests
         shell: bash # for Windows compatibility
+        # GitHub-hosted ARM runners have disconnected under xdist auto-parallelism: ubuntu-24.04-arm runs
+        # single-process, and the 3-vCPU/7GB macos-26 runners cap at 2 workers to avoid memory starvation.
         run: |
-          if [[ "${{ matrix.os }}" == "ubuntu-24.04-arm" ]]; then
-            # GitHub-hosted ARM runners have disconnected under xdist auto-parallelism.
-            pytest --cov=ultralytics/ --cov-report=xml tests/ --export-env base
-          else
-            pytest -n auto --dist=loadfile --cov=ultralytics/ --cov-report=xml tests/ --export-env base
-          fi
+          xdist="-n auto --dist=loadfile"
+          [[ "${{ matrix.os }}" == "macos-26" ]] && xdist="-n 2 --dist=loadfile"
+          [[ "${{ matrix.os }}" == "ubuntu-24.04-arm" ]] && xdist=""
+          pytest $xdist --cov=ultralytics/ --cov-report=xml tests/ --export-env base
         env:
           YOLO_AUTOINSTALL: "false"
       - name: Upload Coverage Reports to CodeCov

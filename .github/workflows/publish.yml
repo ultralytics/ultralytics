@@ -13,10 +13,6 @@ on:
         type: boolean
         description: Publish to PyPI
 
-concurrency:
-  group: ${{ github.workflow }}
-  cancel-in-progress: false
-
 jobs:
   check:
     if: github.repository == 'ultralytics/ultralytics' && github.actor == 'glenn-jocher' && github.ref == 'refs/heads/main'

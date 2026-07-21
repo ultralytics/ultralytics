@@ -199,7 +199,7 @@ Official `@ultralytics` content is pinned to the top of the Explore page. This i
 
 | Project                           | Description                 | Models                        | Tasks                                          |
 | --------------------------------- | --------------------------- | ----------------------------- | ---------------------------------------------- |
-| **[YOLO26](../models/yolo26.md)** | Latest January 2026 release | 30 models (5 sizes × 6 tasks) | detect, segment, semantic, pose, OBB, classify |
+| **[YOLO26](../models/yolo26.md)** | Latest January 2026 release | 35 models (5 sizes × 7 tasks) | detect, segment, semantic, depth, pose, OBB, classify |
 | **[YOLO11](../models/yolo11.md)** | Current stable release      | 25 models (5 sizes × 5 tasks) | detect, segment, pose, OBB, classify           |
 | **YOLOv8**                        | Previous generation         | 25 models (5 sizes × 5 tasks) | detect, segment, pose, OBB, classify           |
 | **YOLOv5**                        | Legacy, widely adopted      | 15+ models                    | detect, segment, classify                      |

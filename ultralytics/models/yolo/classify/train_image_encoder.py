@@ -358,7 +358,7 @@ class ImageEncoderTrainer(ClassificationTrainer):
                 "token_types": reg["token_types"],
             }
         loss_cfg = {}
-        for k in ("cos_weight", "l1_weight", "cls_l1", "loss_type", "gram_weight"):
+        for k in ("cos_weight", "l1_weight", "cls_l1", "loss_type"):
             v = getattr(self.args, k, None)
             if v is not None:
                 loss_cfg[k] = v
@@ -586,8 +586,6 @@ class ImageEncoderTrainer(ClassificationTrainer):
 
         dp = getattr(self.model, "distill_path", "adaptor")
         sub = ("cls_cos", "patch_cos", "patch_l1") if dp != "feat_map" else ("feat_p3", "feat_p4", "feat_p5")
-        if dp != "feat_map" and getattr(self.args, "gram_weight", 0.0) > 0:
-            sub = (*sub, "gram")
         self._loss_sub = sub
         self.loss_names = []
         for sk in self._safe_keys:

@@ -519,13 +519,13 @@ def process_mask(protos, masks_in, bboxes, shape, upsample: bool = False):
     if upsample:
         # Upsample then crop at image resolution; cropping first smears the bilinear edge outside the bbox (#24272)
         masks = F.interpolate(masks[None], shape, mode="bilinear")[0]  # NHW
-        masks = crop_mask(masks, boxes=bboxes)  # NHW, bboxes already in `shape` coords
     else:
         width_ratio = mw / shape[1]
         height_ratio = mh / shape[0]
         ratios = torch.tensor([[width_ratio, height_ratio, width_ratio, height_ratio]], device=bboxes.device)
-        masks = crop_mask(masks, boxes=bboxes * ratios)  # NHW
-    return masks.gt_(0.0).byte()
+        bboxes = bboxes * ratios  # scale boxes to prototype resolution
+    # Binarize before cropping so crop_mask runs on uint8 instead of float32, as in process_mask_native
+    return crop_mask(masks.gt_(0.0).byte(), bboxes)
 
 
 def process_mask_native(protos, masks_in, bboxes, shape):
@@ -614,7 +614,7 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize: bool
     if ratio_pad is None:  # calculate from img0_shape
         img1_h, img1_w = img1_shape[:2]  # supports both HWC or HW shapes
         gain = min(img1_h / img0_h, img1_w / img0_w)  # gain  = old / new
-        pad = (img1_w - round(img0_w * gain)) / 2, (img1_h - round(img0_h * gain)) / 2  # wh padding
+        pad = round((img1_w - round(img0_w * gain)) / 2 - 0.1), round((img1_h - round(img0_h * gain)) / 2 - 0.1)
     else:
         gain = ratio_pad[0][0]
         pad = ratio_pad[1]

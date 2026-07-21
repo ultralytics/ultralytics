@@ -1880,7 +1880,8 @@ class CopyPaste(BaseMixTransform):
     def __init__(self, dataset=None, pre_transform=None, p: float = 0.5, mode: str = "flip") -> None:
         """Initialize CopyPaste object with dataset, pre_transform, and probability of applying CopyPaste."""
         super().__init__(dataset=dataset, pre_transform=pre_transform, p=p)
-        assert mode in ("flip", "mixup"), f"Expected `mode` to be `flip` or `mixup`, but got {mode}."
+        if mode not in ("flip", "mixup"):
+            raise ValueError(f"Expected `mode` to be `flip` or `mixup`, but got {mode}.")
         self.mode = mode
 
     def __call__(self, labels: dict[str, Any]) -> dict[str, Any]:
@@ -2142,6 +2143,7 @@ class Albumentations(BaseTransform):
                 - 'img': np.ndarray representing the image
                 - 'cls': np.ndarray of class labels
                 - 'instances': object containing bounding boxes and other instance information
+                - 'semantic_mask': optional np.ndarray of semantic class IDs
 
         Returns:
             (dict[str, Any]): The input dictionary with augmented image and updated annotations.
@@ -2170,16 +2172,21 @@ class Albumentations(BaseTransform):
 
         if self.contains_spatial:
             cls = labels["cls"]
-            if len(cls):
+            mask = labels.get("semantic_mask")
+            if len(cls) or mask is not None:
                 labels["instances"].convert_bbox("xywh")
                 labels["instances"].normalize(*im.shape[:2][::-1])
                 bboxes = labels["instances"].bboxes
                 # TODO: add supports of segments and keypoints
-                new = self.transform(image=im, bboxes=bboxes, class_labels=cls)  # transformed
-                if len(new["class_labels"]) > 0:  # skip update if no bbox in new im
+                new = self.transform(
+                    image=im, bboxes=bboxes, class_labels=cls, **({"mask": mask} if mask is not None else {})
+                )
+                if len(new["class_labels"]) > 0 or mask is not None:  # only box-only samples skip on losing all boxes
                     labels["img"] = new["image"]
                     labels["cls"] = np.array(new["class_labels"]).reshape(-1, 1)
-                    bboxes = np.array(new["bboxes"], dtype=np.float32)
+                    bboxes = np.array(new["bboxes"], dtype=np.float32).reshape(-1, 4)
+                    if mask is not None:
+                        labels["semantic_mask"] = new["mask"]
                 labels["instances"].update(bboxes=bboxes)
         else:
             labels["img"] = self.transform(image=labels["img"])["image"]  # transformed
@@ -2311,6 +2318,10 @@ class Format(BaseTransform):
         nl = params.get("nl", 0)
 
         if self.return_mask:
+            if self.mask_ratio > min(h, w):
+                raise ValueError(
+                    f"mask_ratio={self.mask_ratio} downsamples imgsz={(h, w)} masks to zero size; use mask_ratio <= {min(h, w)}"
+                )
             if nl:
                 masks, instances, cls = self._format_segments(instances, cls, w, h)
                 masks = torch.from_numpy(masks)

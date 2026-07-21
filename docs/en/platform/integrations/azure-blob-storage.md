@@ -1,4 +1,5 @@
 ---
+plans: [pro, enterprise]
 comments: true
 description: Connect Azure Blob Storage to Ultralytics Platform and train YOLO models on images in your Azure containers without uploading a copy.
 keywords: Ultralytics Platform, Azure Blob Storage, Azure storage account, blob container, connection string, dataset import, YOLO, computer vision, cloud storage

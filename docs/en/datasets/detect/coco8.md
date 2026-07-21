@@ -1,6 +1,12 @@
 ---
 title: COCO8 Detection Dataset
 comments: true
+creator:
+    name: Ultralytics
+    url: https://www.ultralytics.com/
+license:
+    name: CC-BY-4.0
+    url: https://cocodataset.org/#termsofuse
 description: Explore the Ultralytics COCO8 dataset, a versatile and manageable set of 8 images perfect for testing object detection models and training pipelines.
 keywords: COCO8, Ultralytics, dataset, object detection, YOLO26, training, validation, machine learning, computer vision
 ---
@@ -26,7 +32,7 @@ The [Ultralytics](https://www.ultralytics.com/) COCO8 dataset is a compact yet p
 
 COCO8 comprises the first 8 images from the COCO train 2017 set—4 for training and 4 for validation—covering the full set of 80 COCO object classes in [YOLO label format](../index.md):
 
-```
+```text
 coco8/
 ├── images/
 │   ├── train/   # 4 images

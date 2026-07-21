@@ -217,7 +217,7 @@ class BaseValidator:
 
             model.eval()
             if self.args.compile:
-                model = attempt_compile(model, device=self.device)
+                model = attempt_compile(model, device=self.device, mode=self.args.compile)
             model.warmup(imgsz=(1 if pt else self.args.batch, self.data["channels"], imgsz, imgsz))  # warmup
 
         self.run_callbacks("on_val_start")
@@ -391,10 +391,7 @@ class BaseValidator:
         return []
 
     def on_plot(self, name, data=None):
-        """Register plots for visualization, deduplicating by type."""
-        plot_type = data.get("type") if data else None
-        if plot_type and any((v.get("data") or {}).get("type") == plot_type for v in self.plots.values()):
-            return  # Skip duplicate plot types
+        """Register a plot by its unique path for visualization and logging."""
         self.plots[Path(name)] = {"data": data, "timestamp": time.time()}
 
     def plot_val_samples(self, batch, ni):

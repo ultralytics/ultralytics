@@ -73,11 +73,11 @@ Train YOLO26n-seg on the COCO8-seg dataset for 100 [epochs](https://www.ultralyt
         yolo segment train data=coco8-seg.yaml model=yolo26n-seg.yaml pretrained=yolo26n-seg.pt epochs=100 imgsz=640
         ```
 
-See full `train` mode details in the [Train](../modes/train.md) page. Segmentation models can also be trained on cloud GPUs through [Ultralytics Platform](https://platform.ultralytics.com).
+See full `train` mode details in the [Train](../modes/train.md) page. Segmentation models can also be trained with [Ultralytics Platform cloud training](../platform/train/cloud-training.md).
 
 ### Dataset format
 
-YOLO segmentation dataset format can be found in detail in the [Dataset Guide](../datasets/segment/index.md). To convert your existing dataset from other formats (like COCO etc.) to YOLO format, please use [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) tool by Ultralytics. You can also create segmentation masks on [Ultralytics Platform](https://platform.ultralytics.com) using polygon tools and SAM-powered smart annotation.
+YOLO segmentation dataset format can be found in detail in the [Dataset Guide](../datasets/segment/index.md). To convert your existing dataset from other formats (like COCO etc.) to YOLO format, please use [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) tool by Ultralytics. You can also create segmentation masks with [Ultralytics Platform annotation](../platform/data/annotation.md) using polygon tools and SAM-powered smart annotation.
 
 ## Val
 
@@ -198,6 +198,10 @@ Export a YOLO26n-seg model to a different format like ONNX, CoreML, etc.
         ```
 
 Available YOLO26-seg export formats are in the table below. You can export to any format using the `format` argument, i.e., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e., `yolo predict model=yolo26n-seg.onnx`. Usage examples are shown for your model after export completes.
+
+!!! note
+
+    CoreML embedded NMS pipelines (`nms=True`) only support object detection models. Segmentation exports to CoreML warn and force `nms=False`, producing a raw model without NMS.
 
 {% include "macros/export-table.md" %}
 

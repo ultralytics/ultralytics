@@ -1,4 +1,5 @@
 ---
+plans: [free, pro, enterprise]
 comments: true
 description: Ultralytics Platform is an end-to-end computer vision platform for data preparation, model training, and deployment with multi-region infrastructure.
 keywords: Ultralytics Platform, YOLO, computer vision, model training, cloud deployment, annotation, inference, YOLO11, YOLO26, machine learning
@@ -53,7 +54,7 @@ graph LR
 | **Annotate** | Manual tools for all 6 task types, plus [Smart Annotation](data/annotation.md#smart-annotation) with SAM and YOLO models for detect, segment, semantic, and OBB (see [supported tasks](data/index.md#supported-tasks)) |
 | **Train**    | Cloud GPUs (24 on all plans + 2 Pro/Enterprise-only: B200, B300), real-time metrics, project organization                                                                                                              |
 | **Export**   | [19+ deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, LiteRT, etc.; see [supported formats](train/models.md#supported-formats))                                                                        |
-| **Deploy**   | 43 global regions with dedicated endpoints, scale-to-zero by default (single active instance), and monitoring                                                                                                          |
+| **Deploy**   | 42 global regions with dedicated endpoints, scale-to-zero by default (single active instance), and monitoring                                                                                                          |
 
 **What you can do:**
 
@@ -61,7 +62,7 @@ graph LR
 - **Visualize** annotations with interactive overlays for all 6 YOLO task types (see [supported tasks](data/index.md#supported-tasks))
 - **Train** models on cloud GPUs (24 on all plans, 26 with Pro or Enterprise for B200 and B300) with real-time metrics
 - **Export** to [19+ deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, LiteRT, etc.)
-- **Deploy** to 43 global regions with one-click dedicated endpoints
+- **Deploy** to 42 global regions with one-click dedicated endpoints
 - **Monitor** training progress, deployment health, and usage metrics
 - **Collaborate** by making projects and datasets public for the community
 
@@ -167,7 +168,7 @@ You can train models either through the web UI (cloud training) or from your own
 ### Deployment
 
 - **Inference Testing**: Test models directly in the browser with custom images
-- **Dedicated Endpoints**: Deploy to 43 global regions with scale-to-zero by default (single active instance)
+- **Dedicated Endpoints**: Deploy to 42 global regions with scale-to-zero by default (single active instance)
 - **Monitoring**: Real-time metrics, request logs, and performance dashboards
 
 ```mermaid
@@ -177,7 +178,7 @@ graph LR
     B --> D[Export Format]:::proc
     B --> E[Deploy Endpoint]:::proc
     D --> F[ONNX / TensorRT / CoreML / LiteRT / ...]:::out
-    E --> G[43 Global Regions]:::proc
+    E --> G[42 Global Regions]:::proc
     G --> H[API Endpoint URL]:::proc
     H --> I[Monitor & Scale]:::out
 
@@ -292,7 +293,7 @@ For a detailed guide, see the [Quickstart](quickstart.md) page.
 - **Multi-Region**: Data residency in US, EU, or AP regions
 - **No-Code Training**: Train advanced YOLO models without writing code
 - **Real-Time Metrics**: Stream training progress and monitor deployments
-- **43 Deploy Regions**: Deploy models close to your users worldwide
+- **42 Deploy Regions**: Deploy models close to your users worldwide
 - **6 Task Types**: Support for detection, instance segmentation, semantic segmentation, pose, OBB, and classification (see [task docs](../tasks/index.md))
 - **AI-Assisted Annotation**: [Smart annotation](data/annotation.md#smart-annotation) with SAM and YOLO models to speed up data preparation
 

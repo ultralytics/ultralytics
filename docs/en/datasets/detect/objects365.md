@@ -1,6 +1,12 @@
 ---
 title: Objects365 Detection Dataset
 comments: true
+creator:
+    name: Objects365 Consortium
+    url: https://www.objects365.org/
+license:
+    name: CC-BY-4.0
+    url: https://www.objects365.org/download.html
 description: Objects365 is a large-scale object detection dataset with 1,742,289 training and 80,000 validation images across 365 classes. Train Ultralytics YOLO on it.
 keywords: Objects365 dataset, object detection, Megvii, large-scale dataset, model pretraining, computer vision, annotated images, bounding boxes, YOLO26, 365 classes
 ---

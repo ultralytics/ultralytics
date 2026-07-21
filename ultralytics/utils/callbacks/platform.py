@@ -581,6 +581,7 @@ def on_train_end(trainer):
                 "metrics": {**trainer.metrics, "fitness": trainer.fitness},
                 "bestEpoch": best_epoch,
                 "bestFitness": trainer.best_fitness,
+                **({"calibration": c} if (c := getattr(trainer, "depth_calibration", None)) else {}),
                 **({"validation": validation} if validation["rows"] else {}),
                 **(artifact or {}),
             },

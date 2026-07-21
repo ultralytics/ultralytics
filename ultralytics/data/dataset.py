@@ -780,7 +780,12 @@ class SemanticDataset(YOLODataset):
         with ThreadPool(NUM_THREADS) as pool:
             results = pool.imap(
                 func=verify_image_mask,
-                iterable=zip(self.im_files, self.mask_files, repeat(self.prefix)),
+                iterable=zip(
+                    self.im_files,
+                    self.mask_files,
+                    repeat(self.prefix),
+                    repeat(int(self.data.get("nc", 0)) == 1),
+                ),
             )
             pbar = TQDM(results, desc=desc, total=total)
             for im_file, mask_file, shape, is_1bit, nm_f, nf_f, nc_f, msg in pbar:

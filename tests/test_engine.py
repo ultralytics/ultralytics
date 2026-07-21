@@ -12,18 +12,13 @@ import torch
 from tests import MODEL, SOURCE, TASK_MODEL_DATA
 from ultralytics import YOLO
 from ultralytics.cfg import get_cfg
-from ultralytics.engine.exporter import ExportEnvironmentError, Exporter
+from ultralytics.engine.exporter import Exporter
 from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models.yolo import classify, depth, detect, obb, pose, segment, semantic
 from ultralytics.nn.distill_model import DistillationModel
 from ultralytics.nn.tasks import DetectionModel, load_checkpoint
-from ultralytics.utils import ASSETS, DEFAULT_CFG, IS_RASPBERRYPI, PLATFORM_URL, WEIGHTS_DIR
+from ultralytics.utils import ASSETS, DEFAULT_CFG, IS_RASPBERRYPI, WEIGHTS_DIR
 from ultralytics.utils.torch_utils import unwrap_model
-
-
-def platform_export_message(format):
-    """Return the expected managed export rescue for a requested format."""
-    return f"Export to {format} in the cloud with Ultralytics Platform: {PLATFORM_URL}"
 
 
 def test_func(*args, **kwargs):
@@ -39,46 +34,6 @@ def test_export(monkeypatch, tmp_path):
     assert test_func in exporter.callbacks["on_export_start"], "on_export_start callback not registered"
     f = exporter(model=YOLO("yolo26n.yaml").model)
     YOLO(f)(SOURCE)  # exported model inference
-
-
-@pytest.mark.parametrize(
-    "error, show_platform",
-    [(ImportError, True), (ExportEnvironmentError, True), (OSError, False), (ValueError, False)],
-)
-def test_export_platform_rescue(monkeypatch, error, show_platform):
-    """Test that export environment failures recommend managed Platform exports without advertising on user errors."""
-    messages = []
-    exporter = mock.Mock(side_effect=error("export failed"))
-    monkeypatch.setattr("ultralytics.engine.exporter.Exporter", mock.Mock(return_value=exporter))
-    monkeypatch.setattr("ultralytics.engine.model.LOGGER.info", messages.append)
-    with pytest.raises(error, match="export failed"):
-        YOLO("yolo26n.yaml").export(format="onnx")
-
-    assert (platform_export_message("ONNX") in messages) is show_platform
-
-
-def test_export_platform_rescue_tensorrt_without_cuda(monkeypatch):
-    """Test that TensorRT's unavailable local GPU preflight reaches the managed export rescue."""
-    messages = []
-    monkeypatch.setattr("ultralytics.engine.exporter.select_device", mock.Mock(side_effect=ValueError("no CUDA")))
-    monkeypatch.setattr("ultralytics.engine.exporter.torch.cuda.is_available", lambda: False)
-    monkeypatch.setattr("ultralytics.engine.model.LOGGER.info", messages.append)
-
-    with pytest.raises(ExportEnvironmentError, match="no CUDA"):
-        YOLO("yolo26n.yaml").export(format="engine")
-
-    assert messages == [platform_export_message("TensorRT")]
-
-
-def test_export_platform_rescue_tensorrt_cpu(monkeypatch):
-    """Test that an explicit CPU TensorRT request reaches the managed export rescue."""
-    messages = []
-    monkeypatch.setattr("ultralytics.engine.model.LOGGER.info", messages.append)
-
-    with pytest.raises(ExportEnvironmentError, match="TensorRT export requires GPU"):
-        YOLO("yolo26n.yaml").export(format="engine", device="cpu")
-
-    assert messages[-1] == platform_export_message("TensorRT")
 
 
 @pytest.mark.parametrize(

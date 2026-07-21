@@ -39,8 +39,8 @@ python download_training.py --output-dir ./data --rgb --depth --only-left --unzi
 Depth is already stored as float32 `.npy` in meters (`depth_left/*_left_depth.npy` next to `image_left/*_left.png`), so conversion is just re-arranging and invalidating the sky (rendered as extreme distances; the released mix clips at 80 m to match the [dataset YAML](#dataset-yaml)). TartanAir ships no official val split — hold out one or more environments. Reference conversion to the [Ultralytics depth dataset format](index.md):
 
 ```python
-from pathlib import Path
 import shutil
+from pathlib import Path
 
 import numpy as np
 

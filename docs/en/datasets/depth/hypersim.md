@@ -39,8 +39,8 @@ python code/python/tools/dataset_download_images.py --downloads_dir ./downloads 
 RGB frames are the `frame.*.tonemap.jpg` previews and depth lives in `frame.*.depth_meters.hdf5`. The stored values are **ray distances to the camera center, not planar depth** — convert before saving, and map the NaN pixels (windows, sky) to 0 (invalid). Use the official `metadata_images_split_scene_v1.csv` scene split for train/val assignment. Reference conversion to the [Ultralytics depth dataset format](index.md):
 
 ```python
-from pathlib import Path
 import shutil
+from pathlib import Path
 
 import h5py
 import numpy as np

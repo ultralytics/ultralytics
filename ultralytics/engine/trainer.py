@@ -255,16 +255,36 @@ class BaseTrainer:
 
     def _setup_ddp(self):
         """Initialize and set the DistributedDataParallel parameters for training."""
-        index = int(self.args.device.split(",")[LOCAL_RANK])  # world_size > 1 guarantees a multi-device string
-        torch.cuda.set_device(index)
-        self.device = torch.device("cuda", index)
-        os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
-        dist.init_process_group(
-            backend="nccl" if dist.is_nccl_available() else "gloo",
-            timeout=timedelta(seconds=10800),  # 3 hours
-            rank=RANK,
-            world_size=self.world_size,
-        )
+        if self.device.type == "xpu":
+            local_rank = int(os.getenv("LOCAL_RANK", RANK))
+            try:
+                import intel_extension_for_pytorch  # noqa: F401
+                import oneccl_bindings_for_pytorch  # noqa: F401
+            except Exception as e:
+                raise RuntimeError(
+                    "CCL backend for XPU is not available, please install IPEXintel-extension-for-pytorch/oneccl_bind_pt.\n"
+                    "See https://pytorch-extension.intel.com/installation?platform=gpu for up-to-date torch install instructions"
+                ) from e
+
+            torch.xpu.set_device(local_rank)
+            self.device = torch.device("xpu", local_rank)
+            dist.init_process_group(
+                backend="ccl",
+                timeout=timedelta(seconds=10800),  # 3 hours
+                rank=RANK,
+                world_size=self.world_size,
+            )
+        else:
+            index = int(self.args.device.split(",")[LOCAL_RANK])  # world_size > 1 guarantees a multi-device string
+            torch.cuda.set_device(index)
+            self.device = torch.device("cuda", index)
+            os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
+            dist.init_process_group(
+                backend="nccl" if dist.is_nccl_available() else "gloo",
+                timeout=timedelta(seconds=10800),  # 3 hours
+                rank=RANK,
+                world_size=self.world_size,
+            )
 
     def _build_train_pipeline(self):
         """Build dataloaders, optimizer, and scheduler for current batch size."""
@@ -351,9 +371,20 @@ class BaseTrainer:
             self.amp = self.amp.int()  # gloo errors with boolean
             dist.broadcast(self.amp, src=0)  # broadcast from rank 0 to all other ranks
         self.amp = bool(self.amp)  # as boolean
-        self.scaler = (
-            torch.amp.GradScaler("cuda", enabled=self.amp) if TORCH_2_4 else torch.cuda.amp.GradScaler(enabled=self.amp)
-        )
+        if self.device.type == "xpu":
+            try:
+                self.scaler = torch.amp.GradScaler("xpu", enabled=self.amp)
+            except Exception:
+                # XPU GradScaler not available; disable AMP to keep training running.
+                self.amp = False
+                self.scaler = None
+                LOGGER.warning("AMP scaler for XPU not available, disabling AMP.")
+        else:
+            self.scaler = (
+                torch.amp.GradScaler("cuda", enabled=self.amp)
+                if TORCH_2_4
+                else torch.cuda.amp.GradScaler(enabled=self.amp)
+            )
         # Check imgsz
         gs = max(int(self.model.stride.max() if hasattr(self.model, "stride") else 32), 32)  # grid size (max stride)
         self.args.imgsz = check_imgsz(self.args.imgsz, stride=gs, floor=gs, max_dim=1)
@@ -462,7 +493,7 @@ class BaseTrainer:
 
                 # Forward
                 try:
-                    with autocast(self.amp):
+                    with autocast(self.amp, device=self.device.type):
                         batch = self.preprocess_batch(batch)
                         if self.args.compile:
                             # Decouple inference and loss calculations for improved compile performance
@@ -638,6 +669,10 @@ class BaseTrainer:
             memory = torch.mps.driver_allocated_memory()
             if fraction:
                 return __import__("psutil").virtual_memory().percent / 100
+        elif self.device.type == "xpu":
+            memory = torch.xpu.memory_allocated(self.device)
+            total = torch.xpu.get_device_properties(self.device).total_memory
+            return ((memory / total) if total > 0 else 0) if fraction else (memory / 2**30)
         elif self.device.type != "cpu":
             memory = torch.cuda.memory_reserved()
             if fraction:
@@ -655,6 +690,8 @@ class BaseTrainer:
             torch.mps.empty_cache()
         elif self.device.type == "cpu":
             return
+        elif self.device.type == "xpu":
+            torch.xpu.empty_cache()
         else:
             torch.cuda.empty_cache()
 

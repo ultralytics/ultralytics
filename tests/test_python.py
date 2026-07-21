@@ -1180,7 +1180,7 @@ def test_depth_calibration_checkpoint_provenance(tmp_path):
     head = _depth_head(checkpoint["model"])
 
     assert provenance == checkpoint["depth_calibration"]
-    assert provenance["candidate"] in {"identity", "scale-only", "affine"}
+    assert provenance["candidate"] in {"identity", "scale-only"}
     assert provenance["images"] == 8
     assert provenance["status"] == "selected"
     assert provenance["dataset_hash"] == "manifest-sha256"

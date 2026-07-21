@@ -196,12 +196,13 @@ class Detect(nn.Module):
         shape = x["feats"][0].shape  # BCHW
         if self.dynamic or self.shape != shape:
             self.anchors, self.strides = (
-                a.transpose(0, 1) for a in make_anchors(x["feats"], self.stride, 0.5, normalize=self.sigmoid_box)
+                a.transpose(0, 1)
+                for a in make_anchors(x["feats"], self.stride, 0.5, normalize=getattr(self, "sigmoid_box", False))
             )
             self.shape = shape
 
         dbox = self.decode_bboxes(self.dfl(x["boxes"]), self.anchors.unsqueeze(0))
-        if self.sigmoid_box:
+        if getattr(self, "sigmoid_box", False):
             new_shape = [s * self.stride[0] for s in self.shape[2:]]
             dbox[:, 0] *= new_shape[1]
             dbox[:, 1] *= new_shape[0]
@@ -214,7 +215,7 @@ class Detect(nn.Module):
     def bias_init(self):
         """Initialize Detect() biases, WARNING: requires stride availability."""
         for i, (a, b) in enumerate(zip(self.one2many["box_head"], self.one2many["cls_head"])):  # from
-            if self.sigmoid_box:
+            if getattr(self, "sigmoid_box", False):
                 a[-2].bias.data[:] = math.log(0.1 / 0.8)  # sigmoid -> 0.1, bias toward smaller boxes
             else:
                 a[-1].bias.data[:] = 2.0  # box
@@ -223,7 +224,7 @@ class Detect(nn.Module):
             )  # cls (.01 objects, 80 classes, 640 img)
         if self.end2end:
             for i, (a, b) in enumerate(zip(self.one2one["box_head"], self.one2one["cls_head"])):  # from
-                if self.sigmoid_box:
+                if getattr(self, "sigmoid_box", False):
                     a[-2].bias.data[:] = math.log(0.1 / 0.8)  # sigmoid -> 0.1
                 else:
                     a[-1].bias.data[:] = 2.0  # box

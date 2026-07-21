@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from collections import OrderedDict, defaultdict
 from copy import deepcopy
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import cv2
@@ -2188,6 +2189,16 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         }
 
 
+def _sam3_export_backend(model_arg, device):
+    """Return a SAM3Backend when ``model_arg`` is an exported ONNX/TensorRT model directory, else None."""
+    model_path = Path(model_arg)
+    if model_path.is_dir() and model_path.name.endswith(("_onnx", "_engine")):
+        from ultralytics.nn.backends.sam3 import SAM3Backend
+
+        return SAM3Backend(model_path, device=device or "cpu")
+    return None
+
+
 class SAM3Predictor(SAM2Predictor):
     """Segment Anything Model 3 (SAM3) Interactive Predictor for image segmentation tasks."""
 
@@ -2217,14 +2228,8 @@ class SAM3SemanticPredictor(SAM3Predictor):
 
     def get_model(self):
         """Retrieve and initialize the Segment Anything Model 3 (SAM3) for image segmentation tasks."""
-        from pathlib import Path
-
-        model_path = Path(self.args.model)
-        # Support ONNX/TensorRT directory backends
-        if model_path.is_dir() and (model_path.name.endswith("_onnx") or model_path.name.endswith("_engine")):
-            from ultralytics.nn.backends.sam3 import SAM3Backend
-
-            return SAM3Backend(model_path, device=self.args.device or "cpu")
+        if (backend := _sam3_export_backend(self.args.model, self.args.device)) is not None:
+            return backend
 
         from .build_sam3 import build_sam3_image_model  # slow import
 
@@ -2519,6 +2524,17 @@ class SAM3SemanticPredictor(SAM3Predictor):
 class SAM3VideoPredictor(SAM2VideoPredictor, SAM3Predictor):
     """Segment Anything Model 3 (SAM3) Video Predictor for video segmentation tasks."""
 
+    def get_model(self):
+        """Retrieve the SAM3 tracker, supporting exported ONNX/TensorRT model directories."""
+        if (backend := _sam3_export_backend(self.args.model, self.args.device)) is not None:
+            assert backend.has_video_modules, (
+                f"{self.args.model} lacks the video memory modules (sam3_memory_encoder, "
+                "sam3_memory_attention, sam3_mask_embed); re-export the model to enable tracking."
+            )
+            backend.set_binarize(True)
+            return backend
+        return super().get_model()
+
     def propagate_in_video(self, inference_state, frame_idx):
         """Perform image segmentation inference based on the given input cues, using the currently loaded image. This
         method leverages SAM's (Segment Anything Model) architecture consisting of image encoder, prompt
@@ -2674,11 +2690,18 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
     def setup_model(self, model=None, verbose=True):
         """Setup the SAM3VideoSemanticPredictor model."""
         super().setup_model(model, verbose)
-        from .build_sam3 import build_interactive_sam3
+        if getattr(self.model, "has_video_modules", None) is not None:  # exported backend
+            assert self.model.has_video_modules, (
+                f"{self.args.model} lacks the video memory modules; re-export the model to enable tracking."
+            )
+            # One backend serves detector and tracker (shared vision encoder and graphs)
+            tracker_model = self.model
+        else:
+            from .build_sam3 import build_interactive_sam3
 
-        # Initialize the SAM3 tracker model without backbone (backbone is handled in the detector)
-        model = build_interactive_sam3(self.args.model, with_backbone=False)
-        self.tracker.setup_model(model=model, verbose=False)
+            # Initialize the SAM3 tracker model without backbone (backbone is handled in the detector)
+            tracker_model = build_interactive_sam3(self.args.model, with_backbone=False)
+        self.tracker.setup_model(model=tracker_model, verbose=False)
 
     def setup_source(self, source):
         """Setup the source for the SAM3VideoSemanticPredictor model."""

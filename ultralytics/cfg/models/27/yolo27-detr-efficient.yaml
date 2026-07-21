@@ -2,11 +2,11 @@
 
 # YOLO27-DETR-Efficient object detection model with P3/8 - P5/32 outputs.
 # YOLO26-style CSP trunk + RTDETRDecoderEfficient head, unified across n/s scales.
-# Per-scale decoder differences (efficient_ms) are resolved at parse time via `scale_args`.
+# Per-scale decoder differences (ndl, efficient_ms) are resolved at parse time via `scale_args`.
 #
-# Scale summary (source YAMLs from origin/detr_decoder):
-#   n: efficient_ms=True   - yolo26-rtdetr_efficient_efms_mal_dfineloss.yaml (single-level per layer, round-robin)
-#   s: efficient_ms=False  - yolo26-rtdetr_efficient_mal_dfineloss.yaml      (standard multi-scale)
+# Scale summary (source YAMLs from origin/detr_decoder, both trained with 6 decoder layers):
+#   n: ndl=3, efficient_ms=True   - yolo26-rtdetr_efficient_efms_mal_dfineloss.yaml (truncated 6 -> 3, round-robin)
+#   s: ndl=3, efficient_ms=False  - yolo26-rtdetr_efficient_mal_dfineloss.yaml      (truncated 6 -> 3, multi-scale)
 # Task: detect. RTDETRDecoderEfficient is named so the dispatch routes this model to YOLODETR
 # and YOLODETRDetectionModel.init_criterion selects DfineLoss with V2-style zeroed FGL/DDF gains.
 
@@ -20,8 +20,8 @@ scales:
 
 # Per-scale variables resolved into module args as string tokens (see parse_model in tasks.py).
 scale_args:
-  n: {efficient_ms: True}
-  s: {efficient_ms: False}
+  n: {ndl: 3, efficient_ms: True}
+  s: {ndl: 3, efficient_ms: False}
 
 # YOLO26 CSP backbone
 backbone:
@@ -58,5 +58,5 @@ head:
 
   # RTDETRDecoderEfficient. Args (ch is auto-filled from `from` refs). Positional order:
   # [nc, hd, nq, ndp, nh, ndl, d_ffn, dropout, act, eval_idx, nd, label_noise_ratio, box_noise_scale,
-  #  learnt_init_query, efficient_ms]. `efficient_ms` is resolved per scale via `scale_args`.
-  - [[16, 19, 22], 1, RTDETRDecoderEfficient, [nc, 256, 300, 4, 8, 6, 2048, 0.0, "silu", -1, 100, 0.5, 1.0, False, efficient_ms]]
+  #  learnt_init_query, efficient_ms]. `ndl` and `efficient_ms` are resolved per scale via `scale_args`.
+  - [[16, 19, 22], 1, RTDETRDecoderEfficient, [nc, 256, 300, 4, 8, ndl, 2048, 0.0, "silu", -1, 100, 0.5, 1.0, False, efficient_ms]]

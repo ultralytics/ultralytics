@@ -96,8 +96,9 @@ class BaseTrainer:
         best_fitness (float): The best fitness value achieved.
         fitness (float): Current fitness value.
         loss (torch.Tensor): Current loss value.
-        tloss (torch.Tensor): Running mean of loss items.
-        loss_names (list): List of loss names.
+        tloss (dict): Running mean of loss items.
+        loss_names (tuple): Names of loss items, derived from the loss dict returned by the criterion on the first
+            batch.
         csv (Path): Path to results CSV file.
         metrics (dict): Dictionary of metrics.
         plots (dict): Dictionary of plots.
@@ -191,7 +192,7 @@ class BaseTrainer:
         self.fitness = None
         self.loss = None
         self.tloss = None
-        self.loss_names = ["Loss"]
+        self.loss_names = ()
         self.csv = self.save_dir / "results.csv"
         if self.csv.exists() and not self.args.resume:
             self.csv.unlink()
@@ -281,7 +282,7 @@ class BaseTrainer:
         # Note: When training DOTA dataset, double batch size could get OOM on images with >2000 objects.
         self.test_loader = self.get_dataloader(
             self.data.get("val") or self.data.get("test"),
-            batch_size=batch_size if self.args.task in {"obb", "semantic"} else batch_size * 2,
+            batch_size=batch_size if self.args.task in {"obb", "semantic", "depth"} else batch_size * 2,
             rank=LOCAL_RANK,
             mode="val",
         )
@@ -378,8 +379,6 @@ class BaseTrainer:
             self.args.batch = self.batch_size = self.auto_batch()
         self._build_train_pipeline()
         self.validator = self.get_validator()
-        if self.args.distill_model is not None and "dis_loss" not in self.loss_names:
-            self.loss_names += ("dis_loss",)
         self.ema = ModelEMA(self.model)
         self.set_class_weights()  # compute class weights after dataloader is ready
         if RANK in {-1, 0}:
@@ -435,7 +434,8 @@ class BaseTrainer:
                 self.train_loader.reset()
 
             if RANK in {-1, 0}:
-                LOGGER.info(self.progress_string())
+                if self.loss_names:
+                    LOGGER.info(self.progress_string())
                 pbar = TQDM(enumerate(self.train_loader), total=nb)
             self.tloss = None
             for i, batch in pbar:
@@ -473,8 +473,15 @@ class BaseTrainer:
                         self.loss = loss.sum()
                         if RANK != -1:
                             self.loss *= self.world_size
+                        if not self.loss_names:  # derive loss names from the criterion's loss dict on first batch
+                            self.loss_names = tuple(self.loss_items)
+                            if RANK in {-1, 0}:
+                                LOGGER.info(self.progress_string())
+                                self.metrics.update(dict.fromkeys(self.label_loss_items(prefix="val"), 0.0))
                         self.tloss = (
-                            self.loss_items if self.tloss is None else (self.tloss * i + self.loss_items) / (i + 1)
+                            self.loss_items
+                            if self.tloss is None
+                            else {k: (self.tloss[k] * i + v) / (i + 1) for k, v in self.loss_items.items()}
                         )
 
                     # Backward
@@ -525,13 +532,13 @@ class BaseTrainer:
 
                 # Log
                 if RANK in {-1, 0}:
-                    loss_length = self.tloss.shape[0] if len(self.tloss.shape) else 1
+                    loss_length = len(self.tloss)
                     pbar.set_description(
                         ("%11s" * 2 + "%11.4g" * (2 + loss_length))
                         % (
                             f"{epoch + 1}/{self.epochs}",
                             f"{self._get_memory():.3g}G",  # (GB) GPU memory util
-                            *(self.tloss if loss_length > 1 else torch.unsqueeze(self.tloss, 0)),  # losses
+                            *self.tloss.values(),  # losses
                             batch.get("cls", batch["img"]).shape[0],  # no. of instances
                             batch["img"].shape[-1],  # imgsz, i.e 640
                         )
@@ -754,6 +761,7 @@ class BaseTrainer:
                 "pose",
                 "obb",
                 "semantic",
+                "depth",
             }:
                 data = check_det_dataset(self.args.data)
                 if "yaml_file" in data:
@@ -853,12 +861,10 @@ class BaseTrainer:
         raise NotImplementedError("build_dataset function not implemented in trainer")
 
     def label_loss_items(self, loss_items=None, prefix="train"):
-        """Return a loss dict with labeled training loss items, or a list of loss names if loss_items is None.
-
-        Notes:
-            This is not needed for classification but necessary for segmentation & detection.
-        """
-        return {"loss": loss_items} if loss_items is not None else ["loss"]
+        """Return a loss dict with labeled training loss items, or a list of loss names if loss_items is None."""
+        if loss_items is None:
+            return [f"{prefix}/{x}" for x in self.loss_names]
+        return {f"{prefix}/{k}": round(float(v), 5) for k, v in loss_items.items()}
 
     def set_model_attributes(self):
         """Set or update model parameters before training."""

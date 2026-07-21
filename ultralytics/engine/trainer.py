@@ -628,7 +628,8 @@ class BaseTrainer:
 
     def auto_batch(self, max_num_obj=0, dataset_size=0):
         """Calculate optimal batch size based on model and device memory constraints."""
-        max_imgsz = int(self.args.imgsz * (1 + self.args.multi_scale))  # need not be stride-aligned
+        # Stride-aligned to match the true multi-scale max size; pyramid heads require stride-multiple inputs
+        max_imgsz = math.ceil(self.args.imgsz * (1 + self.args.multi_scale) / self.stride) * self.stride
         return check_train_batch_size(
             model=self.model,
             imgsz=max_imgsz,

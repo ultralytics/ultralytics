@@ -1,6 +1,12 @@
 ---
 title: COCO8-Multispectral Detection Dataset
 comments: true
+creator:
+    name: Ultralytics
+    url: https://www.ultralytics.com/
+license:
+    name: CC-BY-4.0
+    url: https://cocodataset.org/#termsofuse
 description: Explore the Ultralytics COCO8-Multispectral dataset, an enhanced version of COCO8 with interpolated spectral channels, ideal for testing multispectral object detection models and training pipelines.
 keywords: COCO8-Multispectral, Ultralytics, dataset, multispectral, object detection, YOLO26, training, validation, machine learning, computer vision
 ---

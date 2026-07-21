@@ -20,7 +20,10 @@ from ultralytics.nn.tasks import DetectionModel, load_checkpoint
 from ultralytics.utils import ASSETS, DEFAULT_CFG, IS_RASPBERRYPI, PLATFORM_URL, WEIGHTS_DIR
 from ultralytics.utils.torch_utils import unwrap_model
 
-PLATFORM_EXPORT_MESSAGE = f"Skip local setup and export in the cloud with Ultralytics Platform: {PLATFORM_URL}"
+
+def platform_export_message(format):
+    """Return the expected managed export rescue for a requested format."""
+    return f"Export to {format} in the cloud with Ultralytics Platform: {PLATFORM_URL}"
 
 
 def test_func(*args, **kwargs):
@@ -51,7 +54,7 @@ def test_export_platform_rescue(monkeypatch, error, show_platform):
     with pytest.raises(error, match="export failed"):
         YOLO("yolo26n.yaml").export(format="onnx")
 
-    assert (PLATFORM_EXPORT_MESSAGE in messages) is show_platform
+    assert (platform_export_message("ONNX") in messages) is show_platform
 
 
 def test_export_platform_rescue_tensorrt_without_cuda(monkeypatch):
@@ -64,7 +67,7 @@ def test_export_platform_rescue_tensorrt_without_cuda(monkeypatch):
     with pytest.raises(ExportEnvironmentError, match="no CUDA"):
         YOLO("yolo26n.yaml").export(format="engine")
 
-    assert messages == [PLATFORM_EXPORT_MESSAGE]
+    assert messages == [platform_export_message("TensorRT")]
 
 
 def test_export_platform_rescue_tensorrt_cpu(monkeypatch):
@@ -75,7 +78,7 @@ def test_export_platform_rescue_tensorrt_cpu(monkeypatch):
     with pytest.raises(ExportEnvironmentError, match="TensorRT export requires GPU"):
         YOLO("yolo26n.yaml").export(format="engine", device="cpu")
 
-    assert messages[-1] == PLATFORM_EXPORT_MESSAGE
+    assert messages[-1] == platform_export_message("TensorRT")
 
 
 @pytest.mark.parametrize(

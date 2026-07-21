@@ -295,8 +295,8 @@ class GMC:
 
         # Handle first frame initialization
         if not self.initializedFirstFrame or self.prevKeyPoints is None:
-            self.prevFrame = frame.copy()
-            self.prevKeyPoints = copy.copy(keypoints)
+            self.prevFrame = frame.copy()  # copy: `frame` may alias raw_frame when it is already single-channel
+            self.prevKeyPoints = keypoints
             self.initializedFirstFrame = True
             return H
 
@@ -304,19 +304,11 @@ class GMC:
         matchedKeypoints, status, _ = cv2.calcOpticalFlowPyrLK(self.prevFrame, frame, self.prevKeyPoints, None)
 
         # Extract successfully tracked points
-        prevPoints = []
-        currPoints = []
-
-        for i in range(len(status)):
-            if status[i]:
-                prevPoints.append(self.prevKeyPoints[i])
-                currPoints.append(matchedKeypoints[i])
-
-        prevPoints = np.array(prevPoints)
-        currPoints = np.array(currPoints)
+        tracked = status.ravel().astype(bool)
+        prevPoints, currPoints = self.prevKeyPoints[tracked], matchedKeypoints[tracked]
 
         # Estimate transformation matrix using RANSAC
-        if (prevPoints.shape[0] > 4) and (prevPoints.shape[0] == currPoints.shape[0]):
+        if prevPoints.shape[0] > 4:
             H, _ = cv2.estimateAffinePartial2D(prevPoints, currPoints, cv2.RANSAC)
 
             # Scale translation components back to original resolution
@@ -327,8 +319,8 @@ class GMC:
             LOGGER.warning("not enough matching points")
 
         # Store current frame data for next iteration
-        self.prevFrame = frame.copy()
-        self.prevKeyPoints = copy.copy(keypoints)
+        self.prevFrame = frame.copy()  # copy: `frame` may alias raw_frame when it is already single-channel
+        self.prevKeyPoints = keypoints
 
         return H
 

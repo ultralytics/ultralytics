@@ -171,7 +171,7 @@ class STrack(BaseTrack):
     @property
     def xyxy(self) -> np.ndarray:
         """Convert bounding box from (top left x, top left y, width, height) to (min x, min y, max x, max y) format."""
-        ret = self.tlwh.copy()
+        ret = self.tlwh  # already a fresh array, safe to mutate
         ret[2:] += ret[:2]
         return ret
 

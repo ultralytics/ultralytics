@@ -41,22 +41,27 @@ def _hmiou_distance(tracks_a: list[TTSTrack], tracks_b: list[TTSTrack]) -> tuple
     return iou_sim, 1.0 - h_iou * iou_sim
 
 
-def _angle_distance(tracks: list[TTSTrack], dets: list[TTSTrack], frame_id: int, delta_t: int = 3) -> np.ndarray:
-    """Return angle distance between each track's corner velocities and the track-to-detection direction."""
-    if len(tracks) == 0 or len(dets) == 0:
-        return np.ones((len(tracks), len(dets)), dtype=np.float32)
-    track_boxes = np.stack([track.get_history_box(frame_id, delta_t) for track in tracks])  # (N, 4)
-    det_boxes = np.stack([det.xyxy for det in dets])  # (M, 4)
-    deltas = det_boxes[None] - track_boxes[:, None]  # (N, M, 4)
-    dx = deltas[:, :, _CORNER_DX_IDX]
-    dy = deltas[:, :, _CORNER_DY_IDX]
+def _angle_distance(
+    tracks: list[TTSTrack], dets: list[TTSTrack], frame_id: int, pairs: tuple[np.ndarray, np.ndarray], delta_t: int = 3
+) -> np.ndarray:
+    """Return angle distance for the `(track, det)` index `pairs` only.
+
+    Evaluated per candidate pair rather than over the full `(N, M)` grid: `_cost_matrix` overwrites every pair
+    without IoU support with a constant, so computing those would be discarded work that grows as `O(N*M)`.
+    """
+    track_idx, det_idx = pairs
+    track_boxes = np.stack([tracks[i].get_history_box(frame_id, delta_t) for i in track_idx])  # (P, 4)
+    det_boxes = np.stack([dets[i].xyxy for i in det_idx])  # (P, 4)
+    deltas = det_boxes - track_boxes  # (P, 4)
+    dx = deltas[:, _CORNER_DX_IDX]
+    dy = deltas[:, _CORNER_DY_IDX]
     norms = np.sqrt(dx * dx + dy * dy) + 1e-5
     dx /= norms
     dy /= norms
-    track_velocities = np.stack([track.velocity for track in tracks])  # (N, 4, 2)
-    dot = track_velocities[:, None, :, 0] * dx + track_velocities[:, None, :, 1] * dy
-    dist = np.abs(np.arccos(np.clip(dot, -1, 1))).mean(axis=-1) / np.pi  # (N, M)
-    return dist * np.array([det.score for det in dets])[None]
+    track_velocities = np.stack([tracks[i].velocity for i in track_idx])  # (P, 4, 2)
+    dot = track_velocities[:, :, 0] * dx + track_velocities[:, :, 1] * dy
+    dist = np.abs(np.arccos(np.clip(dot, -1, 1))).mean(axis=-1) / np.pi  # (P,)
+    return dist * np.array([dets[i].score for i in det_idx])
 
 
 def _confidence_distance(tracks: list[TTSTrack], dets: list[TTSTrack]) -> np.ndarray:
@@ -261,14 +266,14 @@ class TTSTrack(BOTrack):
                 return box.copy()
         if self._history:
             return self._history[-1][1].copy()
-        return self.xyxy.copy()
+        return self.xyxy
 
     def activate(self, kalman_filter: KalmanFilterXYWH, frame_id: int) -> None:
         """Initialize Kalman state and promote to New state."""
         self.kalman_filter = kalman_filter
         self.track_id = self.next_id()
         self.mean, self.covariance = kalman_filter.initiate(self.convert_coords(self._tlwh))
-        self._history.append((frame_id, self.xyxy.copy()))
+        self._history.append((frame_id, self.xyxy))
         self.tracklet_len = 0
         self.state = TrackState.New
         if frame_id == 1:
@@ -281,7 +286,7 @@ class TTSTrack(BOTrack):
         self.mean, self.covariance = self.kalman_filter.update(
             self.mean, self.covariance, self.convert_coords(new_track.tlwh), confidence=new_track.score
         )
-        self._history.append((frame_id, self.xyxy.copy()))
+        self._history.append((frame_id, self.xyxy))
         self.score = new_track.score  # set before update_features so the EMA weight uses the current confidence
         if new_track.curr_feat is not None:
             self.update_features(new_track.curr_feat)
@@ -301,7 +306,7 @@ class TTSTrack(BOTrack):
         self.mean, self.covariance = self.kalman_filter.update(
             self.mean, self.covariance, self.convert_coords(new_track.tlwh), confidence=new_track.score
         )
-        self._history.append((frame_id, new_track.xyxy.copy()))
+        self._history.append((frame_id, new_track.xyxy))
 
         velocity = np.zeros((4, 2), dtype=np.float32)
         curr_box = new_track.xyxy
@@ -419,9 +424,12 @@ class TRACKTRACK:
         else:
             cost = hmiou_dist
         cost += self.conf_weight * _confidence_distance(tracks, dets)
-        cost += self.angle_weight * _angle_distance(tracks, dets, self.frame_id)
         if iou_sim.size > 0:
-            cost[iou_sim <= 0.10] = 1.0
+            supported = iou_sim > 0.10
+            pairs = np.nonzero(supported)
+            if len(pairs[0]):
+                cost[pairs] += self.angle_weight * _angle_distance(tracks, dets, self.frame_id, pairs)
+            cost[~supported] = 1.0
         return np.clip(cost, 0, 1)
 
     def _apply_gmc(self, img: np.ndarray, detections: list, pools: list[list[TTSTrack]]) -> None:

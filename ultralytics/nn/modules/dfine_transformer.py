@@ -428,8 +428,15 @@ class DEIMSwiGLUFFN(nn.Module):
         init.constant_(self.w3.bias, 0)
 
     def forward(self, x):
-        x1, x2 = self.w12(x).chunk(2, dim=-1)
-        return self.w3(F.silu(x1) * x2)
+        # AMP stability: the w3 matmul over the (un-normalized) SwiGLU hidden state overflows the FP16
+        # range in the decoder — the accumulation exceeds 65504 and yields `inf` even though the final
+        # values fit FP16. The ±65504 residual clamp hides this in the forward, but the `inf` poisons the
+        # BACKWARD, producing NaN gradients that corrupt every weight (a rare, data-dependent divergence
+        # seen ~epoch 12). Compute the FFN in FP32 so no `inf` is ever produced (matches amp=False), then
+        # cast back to the working dtype (values are in range). Gated to CUDA; CPU/fp32 already safe.
+        with torch.autocast(device_type=x.device.type, dtype=torch.float32, enabled=x.is_cuda):
+            x1, x2 = self.w12(x.float()).chunk(2, dim=-1)
+            return self.w3(F.silu(x1) * x2).to(x.dtype)
 
 
 class DeimGate(nn.Module):
@@ -495,7 +502,15 @@ class DeimTransformerDecoderLayer(nn.Module):
 
     def forward(self, target, reference_points, value, spatial_shapes, attn_mask=None, query_pos_embed=None):
         q = k = self.with_pos_embed(target, query_pos_embed)
-        target2, _ = self.self_attn(q, k, value=target, attn_mask=attn_mask)
+        # AMP/precision stability: the self-attention scores (Q·Kᵀ) overflow the FP16 65504 range once the
+        # decoder query activations grow, and softmax(inf)=NaN then propagates into the box head (NaN-box
+        # trap in AMP training, garbage detections in FP16 validation). Running self-attention under an
+        # FP32 autocast keeps the scores in range: autocast casts both the inputs and the module weights
+        # to FP32, so nn.MultiheadAttention runs without a dtype mismatch whether its parameters are FP32
+        # (AMP master weights) or FP16 (model.half() validation). Gated to CUDA (CPU/fp32 is already safe).
+        with torch.autocast(device_type=target.device.type, dtype=torch.float32, enabled=target.is_cuda):
+            target2, _ = self.self_attn(q, k, value=target, attn_mask=attn_mask)
+        target2 = target2.to(target.dtype)
         target = self.norm1(target + self.dropout1(target2))
 
         target2 = self.cross_attn(self.with_pos_embed(target, query_pos_embed), reference_points, value, spatial_shapes)

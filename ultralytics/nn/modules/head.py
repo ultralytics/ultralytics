@@ -872,6 +872,8 @@ class Depth(nn.Module):
             return {"depth": depth}
 
         depth = depth.pow(self.cal_a) * self.cal_b.exp()
+        if self.mode == "sigmoid":
+            depth = depth.clamp_max(self.max_depth)
         if self.export:
             depth = F.interpolate(depth, scale_factor=4.0, mode="bilinear", align_corners=False)
         return depth

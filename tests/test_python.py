@@ -1528,8 +1528,8 @@ def _depth_head_feats():
     return [torch.randn(1, 32, 32, 32), torch.randn(1, 64, 16, 16), torch.randn(1, 128, 8, 8)]
 
 
-def test_nn_depth_head_export_upsamples_to_input():
-    """In export mode (onnx/coreml) the Depth head upsamples x4 from P2 back to the input resolution."""
+def test_nn_depth_head_export_upsamples_to_input_and_preserves_sigmoid_bound():
+    """Depth export upsamples x4 and sigmoid inference remains bounded after calibration."""
     from ultralytics.nn.modules.head import Depth
 
     head = Depth(c_mid=32, ch=(32, 64, 128)).eval()
@@ -1538,6 +1538,12 @@ def test_nn_depth_head_export_upsamples_to_input():
         assert head(_depth_head_feats()).shape[-2:] == (256, 256)
     head.export = False
     assert head(_depth_head_feats()).shape[-2:] != (256, 256)  # inference returns native head resolution
+
+    head = Depth(c_mid=32, mode="sigmoid", ch=(32, 64, 128)).eval()
+    head.head[-2].weight.data.zero_()
+    head.head[-2].bias.data.zero_()
+    head.cal_b.fill_(1.0)
+    assert head(_depth_head_feats()).max() <= head.max_depth
 
 
 def test_nn_depth_head_no_dead_parameters():

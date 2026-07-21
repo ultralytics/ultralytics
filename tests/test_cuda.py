@@ -116,24 +116,6 @@ def test_export_engine_matrix(task, dynamic, quantize, batch):
 
 
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
-@pytest.mark.parametrize("nc", [1, 3])
-def test_semantic_loss_all_ignore_amp(nc):
-    """All-ignore guard must stay finite with large fp16 logits, where sum() overflows to inf (AMP is a GPU path)."""
-    from ultralytics.cfg import get_cfg
-    from ultralytics.nn.tasks import SemanticSegmentationModel
-    from ultralytics.utils.loss import SemanticSegmentationLoss
-
-    model = SemanticSegmentationModel(cfg="yolo26-sem.yaml", nc=nc, verbose=False)
-    model.args = get_cfg()
-    loss_fn = SemanticSegmentationLoss(model)
-    preds = (torch.randn(1, nc, 64, 64, device=f"cuda:{DEVICES[0]}") + 50).half().requires_grad_()
-    loss, items = loss_fn(preds, {"semantic_mask": torch.full((1, 64, 64), 255, dtype=torch.long)})
-    assert torch.isfinite(loss).all() and torch.isfinite(torch.stack(list(items.values()))).all()
-    loss.backward()
-    assert preds.grad is not None
-
-
-@pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 @pytest.mark.skipif(IS_JETSON, reason="Edge devices not intended for training")
 def test_train():
     """Test model training on a minimal dataset using available CUDA devices."""

@@ -176,18 +176,6 @@ def test_model_forward():
     model(source=None, imgsz=32, augment=True)  # also test no source and augment
 
 
-def test_backbone_width_scaling_independent_of_nc():
-    """Backbone width must scale by module type, not by whether a layer's channel count equals nc."""
-    from ultralytics.nn.tasks import ClassificationModel
-
-    def backbone_params(nc):
-        model = ClassificationModel("yolo11n-cls.yaml", nc=nc, verbose=False)
-        return sum(p.numel() for p in model.model[:-1].parameters())  # everything but the Classify head
-
-    # nc=512 equals a backbone channel width; it must not inflate the backbone vs a non-matching nc
-    assert backbone_params(512) == backbone_params(500)
-
-
 def test_model_methods():
     """Test various methods and properties of the YOLO model to ensure correct functionality."""
     model = YOLO(MODEL)

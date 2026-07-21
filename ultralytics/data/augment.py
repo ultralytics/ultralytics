@@ -1814,8 +1814,10 @@ class LetterBox(BaseTransform):
         new_unpad = params["new_unpad"]
 
         if shape[::-1] != new_unpad:  # resize
-            interp = cv2.INTER_AREA if new_unpad[0] * new_unpad[1] < shape[0] * shape[1] else self.interpolation
-            img = cv2.resize(img, new_unpad, interpolation=interp)
+            # INTER_AREA anti-aliases when downscaling but only supports <= 4 channels and the default linear mode
+            downscale = new_unpad[0] * new_unpad[1] < shape[0] * shape[1]
+            area = self.interpolation == cv2.INTER_LINEAR and downscale and (img.ndim == 2 or img.shape[2] <= 4)
+            img = cv2.resize(img, new_unpad, interpolation=cv2.INTER_AREA if area else self.interpolation)
             if img.ndim == 2:
                 img = img[..., None]
 

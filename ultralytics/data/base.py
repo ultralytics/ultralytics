@@ -248,19 +248,21 @@ class BaseDataset(Dataset):
                 raise FileNotFoundError(f"Image Not Found {f}")
 
             h0, w0 = im.shape[:2]  # orig hw
+            # INTER_AREA anti-aliases when shrinking but only supports <= 4 channels
+            shrink = cv2.INTER_AREA if im.ndim == 2 or im.shape[2] <= 4 else cv2.INTER_LINEAR
             if rect_mode:  # resize long side to imgsz while maintaining aspect ratio
                 if resize_short:  # resize short side to imgsz while maintaining aspect ratio
                     r = self.imgsz / min(h0, w0)  # ratio
                     if r != 1:  # if sizes are not equal
                         w, h = (math.ceil(w0 * r), self.imgsz) if h0 < w0 else (self.imgsz, math.ceil(h0 * r))
-                        im = cv2.resize(im, (w, h), interpolation=cv2.INTER_AREA if r < 1 else cv2.INTER_LINEAR)
+                        im = cv2.resize(im, (w, h), interpolation=shrink if r < 1 else cv2.INTER_LINEAR)
                 else:
                     r = self.imgsz / max(h0, w0)  # ratio
                     if r != 1:  # if sizes are not equal
                         w, h = (min(math.ceil(w0 * r), self.imgsz), min(math.ceil(h0 * r), self.imgsz))
-                        im = cv2.resize(im, (w, h), interpolation=cv2.INTER_AREA if r < 1 else cv2.INTER_LINEAR)
+                        im = cv2.resize(im, (w, h), interpolation=shrink if r < 1 else cv2.INTER_LINEAR)
             elif not (h0 == w0 == self.imgsz):  # resize by stretching image to square imgsz
-                interp = cv2.INTER_AREA if self.imgsz < max(h0, w0) else cv2.INTER_LINEAR
+                interp = shrink if self.imgsz < max(h0, w0) else cv2.INTER_LINEAR
                 im = cv2.resize(im, (self.imgsz, self.imgsz), interpolation=interp)
             if im.ndim == 2:
                 im = im[..., None]

@@ -203,9 +203,22 @@ class DetectionTrainer(BaseTrainer):
             model.load(weights)
         return model
 
+    @property
+    def detect_head(self):
+        """Return the active detection head module, resolving DDP and distillation wrappers."""
+        model = unwrap_model(self.model)
+        if hasattr(model, "student_model"):
+            model = model.student_model  # copy_attr does not copy nn.Module attributes like .model
+        return model.model[-1]
+
+    @property
+    def bbox_dist_loss_name(self):
+        """Return 'dfl_loss' when the detection head uses DFL (reg_max > 1), otherwise 'l1_loss'."""
+        return "dfl_loss" if self.detect_head.reg_max > 1 else "l1_loss"
+
     def get_validator(self):
         """Return a DetectionValidator for YOLO model validation."""
-        self.loss_names = "box_loss", "cls_loss", "dfl_loss"
+        self.loss_names = "box_loss", "cls_loss", self.bbox_dist_loss_name
         return yolo.detect.DetectionValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )

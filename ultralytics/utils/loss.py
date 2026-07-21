@@ -489,6 +489,9 @@ class v8DetectionLoss:
         self.obj_gt_bboxes = None  # o2m matched-GT boxes (pixels), copied onto the o2o loss by E2ELoss each step
         self.small_cls_gain = 1.0  # P3 positive GT-class cls up-gradient gain (small objects); set by E2ELoss
         self.small_cls_area = 0.0  # >0 switches to continuous area-based weighting (letterbox px^2); 0 = P3 binary
+        self.small_target_gamma = 1.0  # <1 raises small-object TAL targets; set on the one2one loss by E2ELoss
+        self.small_target_full = 32.0  # 640-equivalent GT side receiving the full target transform
+        self.small_target_end = 64.0  # 640-equivalent GT side above which the target is unchanged
         self.vfl_norm = getattr(h, "vfl_norm", False)  # normalize VFL by positive count instead of target score sum
         self.vfl_hard = getattr(h, "vfl_hard", False)  # regress VFL positives toward hard 1.0 instead of IoU target
         self.hyp = h
@@ -649,6 +652,9 @@ class v8DetectionLoss:
             stride_tensor,
         )
 
+        if self.small_target_gamma < 1.0:
+            target_scores = self.scale_small_targets(target_scores, target_bboxes, fg_mask, imgsz)
+
         target_scores_sum = max(target_scores.sum(), 1)
 
         if self.cache_obj_assign:  # o2m branch: expose foreground + matched-GT boxes for the o2o objectness target
@@ -732,6 +738,32 @@ class v8DetectionLoss:
             loss,
             loss.detach(),
         )  # loss(box, cls, dfl)
+
+    def scale_small_targets(self, target_scores, target_bboxes, fg_mask, imgsz):
+        """Raise small-object soft targets while preserving zeros, quality ordering, and large-object targets."""
+        if target_bboxes.shape[-1] != 4:
+            raise ValueError("o2o_small_target_gamma currently supports horizontal detection boxes only")
+        wh = (target_bboxes[..., 2:] - target_bboxes[..., :2]).clamp(min=0)
+        side640 = wh.prod(-1, keepdim=True).sqrt() * (640.0 / imgsz.prod().sqrt().clamp(min=1))
+        if self.small_target_end == self.small_target_full:
+            scale_weight = (side640 <= self.small_target_full).to(target_scores.dtype)
+        else:
+            scale_weight = ((self.small_target_end - side640) / (self.small_target_end - self.small_target_full)).clamp(
+                0, 1
+            )
+        scale_weight *= fg_mask.unsqueeze(-1)
+        scores = target_scores.float()
+        return torch.lerp(scores, scores.pow(self.small_target_gamma), scale_weight.float()).to(target_scores.dtype)
+
+    def configure_small_targets(self, gamma=1.0, full=32.0, end=64.0):
+        """Configure the scale-adaptive soft-target transform for this loss branch."""
+        if not 0 < gamma <= 1:
+            raise ValueError(f"o2o_small_target_gamma must be in (0, 1], not {gamma}")
+        if full < 0 or end < full:
+            raise ValueError(f"o2o_small_target sizes must satisfy 0 <= full <= end, not full={full}, end={end}")
+        self.small_target_gamma = gamma
+        self.small_target_full = full
+        self.small_target_end = end
 
     def parse_output(
         self, preds: dict[str, torch.Tensor] | tuple[torch.Tensor, dict[str, torch.Tensor]]
@@ -1443,6 +1475,15 @@ class E2EDetectLoss:
             raise ValueError(f"o2f_topk must be at least 1, not {self.o2f_topk}")
         self.one2many = v8DetectionLoss(model, tal_topk=self.o2f_topk if self.o2f and self.o2f_branch == "o2m" else 10)
         self.one2one = v8DetectionLoss(model, tal_topk=self.o2f_topk if self.o2f and self.o2f_branch == "o2o" else 1)
+        self.one2one.configure_small_targets(
+            getattr(model.args, "o2o_small_target_gamma", 1.0),
+            getattr(model.args, "o2o_small_target_full", 32.0),
+            getattr(model.args, "o2o_small_target_end", 64.0),
+        )
+        if self.one2one.small_target_gamma < 1.0 and self.o2f:
+            raise ValueError("o2o_small_target_gamma cannot be combined with o2f")
+        if self.one2one.small_target_gamma < 1.0 and self.one2one.vfl is not None and self.one2one.vfl_hard:
+            raise ValueError("o2o_small_target_gamma cannot be combined with vfl_hard")
         self.one2many.assigner.small_center_fill = self.small_center_fill and self.small_center_fill_branch in {
             "o2m",
             "both",
@@ -1523,6 +1564,15 @@ class E2ELoss:
             tal_topk=self.o2f_topk if self.o2f and self.o2f_branch == "o2o" else 7,
             tal_topk2=1,
         )
+        self.one2one.configure_small_targets(
+            getattr(model.args, "o2o_small_target_gamma", 1.0),
+            getattr(model.args, "o2o_small_target_full", 32.0),
+            getattr(model.args, "o2o_small_target_end", 64.0),
+        )
+        if self.one2one.small_target_gamma < 1.0 and self.o2f:
+            raise ValueError("o2o_small_target_gamma cannot be combined with o2f")
+        if self.one2one.small_target_gamma < 1.0 and self.one2one.vfl is not None and self.one2one.vfl_hard:
+            raise ValueError("o2o_small_target_gamma cannot be combined with vfl_hard")
         self.one2many.assigner.small_center_fill = self.small_center_fill and self.small_center_fill_branch in {
             "o2m",
             "both",
@@ -1545,6 +1595,8 @@ class E2ELoss:
         self.one2one.obj_quality = quality
         if quality:
             self.one2one.cls_hard = True  # decouple cls (hard) from the IoU quality branch
+        if self.one2one.small_target_gamma < 1.0 and self.one2one.cls_hard:
+            raise ValueError("o2o_small_target_gamma cannot be combined with o2o_cls_hard or o2o_quality")
         self.one2many.cache_obj_assign = self.one2one.obj and self.train_o2m and not quality  # quality uses o2o assign
         if self.one2one.obj and hasattr(model.model[-1], "obj_fuse"):
             head = model.model[-1]

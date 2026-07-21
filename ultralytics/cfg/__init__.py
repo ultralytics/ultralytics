@@ -180,6 +180,8 @@ CFG_FLOAT_KEYS = frozenset(
         "cls_pw",
         "o2o_neg_focal_gamma",
         "o2o_pos_cls",
+        "o2o_small_target_full",
+        "o2o_small_target_end",
         "dfl",
         "stride_val_size",
         "degrees",
@@ -216,6 +218,7 @@ CFG_FRACTION_KEYS = frozenset(
         "multi_scale",
         "o2f_max_t",
         "o2f_min_t",
+        "o2o_small_target_gamma",
     }
 )
 CFG_INT_KEYS = frozenset(

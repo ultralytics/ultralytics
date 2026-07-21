@@ -222,7 +222,8 @@ class BaseModel(torch.nn.Module):
             thop = None  # conda support without 'ultralytics-thop' installed
 
         c = m == self.model[-1] and isinstance(x, list)  # is final layer list, copy input as inplace fix
-        flops = thop.profile(m, inputs=[x.copy() if c else x], verbose=False)[0] / 1e9 * 2 if thop else 0  # GFLOPs
+        # profile a copy: thop leaves float64 total_ops/total_params buffers on modules, incl. the shared default_act
+        flops = thop.profile(deepcopy(m), inputs=[x.copy() if c else x], verbose=False)[0] / 1e9 * 2 if thop else 0
         t = time_sync()
         for _ in range(10):
             m(x.copy() if c else x)
@@ -536,7 +537,7 @@ class DetectionModel(BaseModel):
         Returns:
             (tuple[torch.Tensor, None]): Augmented inference output and None for train output.
         """
-        if getattr(self, "end2end", False) or self.__class__.__name__ != "DetectionModel":
+        if getattr(self, "end2end", False) or type(self.model[-1]) is not Detect:
             LOGGER.warning("Model does not support 'augment=True', reverting to single-scale prediction.")
             return self._predict_once(x)
         img_size = x.shape[-2:]  # height, width
@@ -1657,9 +1658,19 @@ class _SafeLoad:
             (_getattr, "builtins.getattr"),  # non-det YOLOv8, YOLO11 ckpts (restrict to nn.Module attrs)
         ]
         if WINDOWS:
-            allow += [pathlib.WindowsPath, (pathlib.WindowsPath, "pathlib.PosixPath")]
+            allow += [
+                pathlib.WindowsPath,
+                (pathlib.WindowsPath, "pathlib.WindowsPath"),
+                (pathlib.WindowsPath, "pathlib.PosixPath"),
+                (pathlib.WindowsPath, f"{pathlib.PosixPath.__module__}.{pathlib.PosixPath.__qualname__}"),
+            ]
         else:
-            allow += [pathlib.PosixPath, (pathlib.PosixPath, "pathlib.WindowsPath")]
+            allow += [
+                pathlib.PosixPath,
+                (pathlib.PosixPath, "pathlib.PosixPath"),
+                (pathlib.PosixPath, "pathlib.WindowsPath"),
+                (pathlib.PosixPath, f"{pathlib.WindowsPath.__module__}.{pathlib.WindowsPath.__qualname__}"),
+            ]
         return allow
 
 
@@ -1950,7 +1961,7 @@ def parse_model(d, ch, verbose=True):
         n = n_ = max(round(n * depth), 1) if n > 1 else n  # depth gain
         if m in base_modules:
             c1, c2 = ch[f], args[0]
-            if c2 != nc:  # if c2 != nc (e.g., Classify() output)
+            if m is not Classify:  # Classify() output must stay at nc; every other layer scales by width
                 c2 = make_divisible(min(c2, max_channels) * width, 8)
             if m is C2fAttn:  # set 1) embed channels and 2) num heads
                 args[1] = make_divisible(min(args[1], max_channels // 2) * width, 8)

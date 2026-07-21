@@ -62,6 +62,7 @@ classifiers = [
 
 # Required dependencies ------------------------------------------------------------------------------------------------
 dependencies = [
+    "filelock>=3.16.1",
     "numpy>=1.23.0",
     "matplotlib>=3.3.0",
     "opencv-python>=4.6.0,!=4.13.0.90", # 4.13.0.90 FIPS selftest crash https://github.com/ultralytics/ultralytics/issues/23373
@@ -230,5 +231,5 @@ close-quotes-on-newline = true
 in-place = true
 
 [tool.codespell]
-ignore-words-list = "grey,writeable,finalY,RepResNet,Idenfy,WIT,Smoot,EHR,ROUGE,ALS,iTerm,Carmel,FPR,Hach,Calle,ore,COO,MOT,crate,nd,ned,strack,dota,ane,segway,fo,gool,winn,commend,bloc,nam,afterall,skelton,goin,alls"
+ignore-words-list = "grey,writeable,finalY,RepResNet,Idenfy,WIT,Smoot,EHR,ROUGE,ALS,iTerm,Carmel,FPR,Hach,Calle,ore,COO,MOT,crate,nd,ned,strack,dota,ane,segway,fo,gool,winn,commend,bloc,nam,afterall,skelton,goin,alls,manger,trough"
 skip = "*.pt,*.pth,*.torchscript,*.onnx,*.tflite,*.pb,*.bin,*.param,*.mlmodel,*.engine,*.npy,*.data*,*.csv,*pnnx*,*venv*,*translat*,*lock*,__pycache__*,*.ico,*.jpg,*.png,*.webp,*.avif,*.mp4,*.mov,/runs,/.git,./docs/??/*.md,./docs/mkdocs_??.yml"

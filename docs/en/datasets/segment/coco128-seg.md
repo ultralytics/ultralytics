@@ -1,6 +1,12 @@
 ---
 title: COCO128 Segmentation Dataset
 comments: true
+creator:
+    name: Ultralytics
+    url: https://www.ultralytics.com/
+license:
+    name: CC-BY-4.0
+    url: https://cocodataset.org/#termsofuse
 description: Discover the COCO128-Seg dataset by Ultralytics, a 128-image, ~7 MB instance segmentation dataset ideal for testing and training YOLO26 models.
 keywords: COCO128-Seg, Ultralytics, segmentation dataset, YOLO26, COCO 2017, model training, computer vision, dataset configuration
 ---

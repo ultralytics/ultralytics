@@ -12,7 +12,7 @@ import torch
 from tests import MODEL, SOURCE, TASK_MODEL_DATA
 from ultralytics import YOLO
 from ultralytics.cfg import get_cfg
-from ultralytics.engine.exporter import Exporter, _ExportEnvironmentError
+from ultralytics.engine.exporter import ExportEnvironmentError, Exporter
 from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models.yolo import classify, depth, detect, obb, pose, segment, semantic
 from ultralytics.nn.distill_model import DistillationModel
@@ -43,7 +43,7 @@ def test_export(monkeypatch, tmp_path):
 
 @pytest.mark.parametrize(
     "error, show_platform",
-    [(ImportError, True), (_ExportEnvironmentError, True), (OSError, False), (ValueError, False)],
+    [(ImportError, True), (ExportEnvironmentError, True), (OSError, False), (ValueError, False)],
 )
 def test_export_platform_rescue(monkeypatch, error, show_platform):
     """Test that export environment failures recommend managed Platform exports without advertising on user errors."""
@@ -64,7 +64,7 @@ def test_export_platform_rescue_tensorrt_without_cuda(monkeypatch):
     monkeypatch.setattr("ultralytics.engine.exporter.torch.cuda.is_available", lambda: False)
     monkeypatch.setattr("ultralytics.engine.model.LOGGER.info", messages.append)
 
-    with pytest.raises(_ExportEnvironmentError, match="no CUDA"):
+    with pytest.raises(ExportEnvironmentError, match="no CUDA"):
         YOLO("yolo26n.yaml").export(format="engine")
 
     assert messages == [PLATFORM_EXPORT_MESSAGE]
@@ -75,7 +75,7 @@ def test_export_platform_rescue_tensorrt_cpu(monkeypatch):
     messages = []
     monkeypatch.setattr("ultralytics.engine.model.LOGGER.info", messages.append)
 
-    with pytest.raises(_ExportEnvironmentError, match="TensorRT export requires GPU"):
+    with pytest.raises(ExportEnvironmentError, match="TensorRT export requires GPU"):
         YOLO("yolo26n.yaml").export(format="engine", device="cpu")
 
     assert messages[-1] == PLATFORM_EXPORT_MESSAGE

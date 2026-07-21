@@ -789,8 +789,6 @@ class Depth(nn.Module):
 
     Attributes:
         nl (int): Number of pyramid levels.
-        mode (str): Output parameterization, "log" (unbounded) or "sigmoid" (bounded by max_depth).
-        max_depth (float | None): Output range in meters for "sigmoid" mode; None for "log" mode.
         cal_a (torch.Tensor): Log-affine calibration scale buffer, identity 1.0 by default.
         cal_b (torch.Tensor): Log-affine calibration offset buffer, identity 0.0 by default.
 
@@ -802,19 +800,15 @@ class Depth(nn.Module):
 
     export = False  # export mode
 
-    def __init__(self, c_mid: int = 256, mode: str = "log", ch: tuple = ()):
+    def __init__(self, c_mid: int = 256, ch: tuple = ()):
         """Initialize Depth head.
 
         Args:
             c_mid (int): Number of intermediate channels for the fusion decoder.
-            mode (str): Output parameterization. "sigmoid" is sigmoid x max_depth (bounded metric output); "log" is
-                exp(logit) (unbounded), keeping shape and scale decoupled for scale-invariant pretraining, with eval
-                recovering scale via log-LS alignment.
             ch (tuple): Input channel sizes from backbone feature maps (P3, P4, P5).
         """
         super().__init__()
         self.nl = len(ch)  # number of detection layers (pyramid levels)
-        self.mode = mode
 
         # Project each pyramid level to c_mid channels
         self.proj = nn.ModuleList(Conv(c, c_mid, k=1) for c in ch)
@@ -822,21 +816,14 @@ class Depth(nn.Module):
         # Refinement blocks after each of the nl-1 fusion steps (the coarsest level is not refined)
         self.refine = nn.ModuleList(nn.Sequential(Conv(c_mid, c_mid, k=3), Conv(c_mid, c_mid, k=3)) for _ in ch[:-1])
 
-        layers = [
+        self.head = nn.Sequential(
             Conv(c_mid, c_mid // 2, k=3),
             nn.ConvTranspose2d(c_mid // 2, c_mid // 2, kernel_size=2, stride=2, bias=True),
             Conv(c_mid // 2, c_mid // 4, k=3),
             nn.Conv2d(c_mid // 4, 1, kernel_size=1),
-        ]
-        if mode == "sigmoid":
-            layers.append(nn.Sigmoid())
-            self.max_depth = 10.0  # default max depth in meters (NYU indoor)
-        else:
-            self.max_depth = None  # unbounded output; loss applies no range mask
-        self.head = nn.Sequential(*layers)
-        if mode == "log":
-            # Initialize to ~1.2 m so early exp() outputs stay well-conditioned.
-            self.head[-1].bias.data.fill_(0.182)
+        )
+        # Initialize to ~1.2 m so early exp() outputs stay well-conditioned.
+        self.head[-1].bias.data.fill_(0.182)
 
         # Scale-only log-affine calibration d' = exp(a·log d + b); identity by default.
         self.register_buffer("cal_a", torch.ones(1))
@@ -851,8 +838,7 @@ class Depth(nn.Module):
         Returns:
             Training: dict {"depth": (B, 1, H/4, W/4)}, the raw head output the loss supervises.
             Eval: (B, 1, H/4, W/4) with calibration applied; the predictor/validator resize to image/GT size.
-            Export (self.export=True): (B, 1, H, W), upsampled 4x to the input size. Sigmoid mode scales by max_depth;
-                log mode is unbounded.
+            Export (self.export=True): (B, 1, H, W), upsampled 4x to the input size. Output is unbounded.
         """
         # Project all levels to same channel dim
         feats = [self.proj[i](x[i]) for i in range(self.nl)]
@@ -865,17 +851,12 @@ class Depth(nn.Module):
             out = self.refine[i](out)
 
         out = self.head(out)  # (B, 1, H/4, W/4)
-        if self.mode == "log":
-            depth = torch.exp(out.clamp(-4.0, 5.0))
-        else:
-            depth = out * self.max_depth
+        depth = torch.exp(out.clamp(-4.0, 5.0))
 
         if self.training:
             return {"depth": depth}
 
         depth = depth.pow(self.cal_a) * self.cal_b.exp()
-        if self.mode == "sigmoid":
-            depth = depth.clamp_max(self.max_depth)
         if self.export:
             depth = F.interpolate(depth, scale_factor=4.0, mode="bilinear", align_corners=False)
         return depth

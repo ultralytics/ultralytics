@@ -29,7 +29,7 @@ The depth range reaches approximately 80 m, and the dataset YAML (`depth-kitti.y
 
 KITTI supplies the only real outdoor, long-range supervision in the YOLO26-Depth pretraining mix, complementing the predominantly indoor sources. It is also the standard KITTI Eigen benchmark for reporting driving-scene depth accuracy.
 
-KITTI is a key example of why the default depth head is unbounded (`log` mode): a fixed 10 m output ceiling cannot represent 80 m driving scenes. See the [depth task page](../../tasks/depth.md) for details on the head output range and `max_depth` handling.
+KITTI is a key example of why the depth head is unbounded (`log` mode): a fixed 10 m output ceiling cannot represent 80 m driving scenes. See the [depth task page](../../tasks/depth.md) for details on the head output range and `max_depth` handling.
 
 ## Results
 

@@ -33,16 +33,9 @@ YOLO26 depth models pretrained on a broad multi-dataset mix (indoor + outdoor, ~
 
 ## Depth range and the log-depth head
 
-The depth head supports two output parameterizations, selected by the model YAML:
+The depth head predicts `exp(logit)` — **unbounded** (~0.02–150 m) — and **decouples scene shape from absolute scale**: the network predicts a relative log-depth field, and absolute meters are set by a separate two-parameter transform (`exp(a·log d + b)`) recovered at evaluation, by lightweight calibration, or by fine-tuning. The common alternative, a bounded `sigmoid × max_depth` head, instead bakes a fixed ceiling into the architecture, so any depth beyond `max_depth` is clipped — which prevents training on, and predicting, longer-range scenes.
 
-| Mode                | Output                                                      | YAML                        | Use when                                  |
-| ------------------- | ----------------------------------------------------------- | --------------------------- | ----------------------------------------- |
-| **`log`** (default) | `exp(logit)` — **unbounded** (~0.02–150 m)                  | `yolo26-depth.yaml`         | General use, mixed or unknown depth range |
-| `sigmoid`           | `sigmoid(logit) × max_depth` — **bounded** `[0, max_depth]` | `yolo26-depth-sigmoid.yaml` | Fixed-range / safety-constrained rigs     |
-
-The default `log` head **decouples scene shape from absolute scale**: the network predicts a relative log-depth field, and absolute meters are set by a separate two-parameter transform (`exp(a·log d + b)`) recovered at evaluation, by lightweight calibration, or by fine-tuning. A bounded `sigmoid × max_depth` head instead bakes a fixed ceiling into the architecture, so any depth beyond `max_depth` is clipped — which prevents training on, and predicting, longer-range scenes.
-
-### Why the default is `log`: evidence across depth ranges
+### Why the head is unbounded: evidence across depth ranges
 
 **Controlled A/B — same data, same schedule, only the head differs.** Training both heads from scratch on an identical mix of indoor (≤10 m) and outdoor (≤80 m) data:
 
@@ -146,7 +139,7 @@ Additional tips:
 
 - **Augmentation is controlled by the standard args** (`degrees`, `translate`, `scale`, `shear`, `perspective`, `flipud`, `fliplr`, `hsv_h`, `hsv_s`, `hsv_v`); the geometric warp and flips are applied identically to the paired depth map. To see the exact recipe used for the released YOLO26-Depth weights, inspect the `train_args` stored in the checkpoint — see [Inspecting YOLO26 Checkpoint Training Args](../guides/yolo26-training-recipe.md#inspecting-yolo26-checkpoint-training-args).
 - **`mosaic`, `mixup`, `cutmix`, and `copy_paste` are not implemented for depth.** The depth dataset loader automatically sets these probabilities to 0, so passing them has no effect. These augmentations are not supported because they combine multiple images, which would produce invalid paired depth maps.
-- **Any depth range works out of the box.** The default `log`-head models predict unbounded depth, so they adapt to short-range (macro) or long-range (outdoor/driving) data without changes. If you use the bounded `yolo26-depth-sigmoid.yaml` variant instead, set `max_depth:` in your dataset YAML to your scene's maximum depth (in meters).
+- **Any depth range works out of the box.** The `log`-head models predict unbounded depth, so they adapt to short-range (macro) or long-range (outdoor/driving) data without changes. Setting `max_depth:` in your dataset YAML (in meters) bounds which GT pixels count toward validation metrics.
 - **Retain general performance.** If you need the model to stay accurate on scenes beyond your training set, mix a small fraction (~5–10%) of diverse general-purpose images into your training data; this substantially reduces forgetting during fine-tuning.
 - **Train from scratch** (`model=yolo26s-depth.yaml`) only if your domain is very different and you have a large dataset — there the default SGD `lr0=0.01` is appropriate, since there are no pretrained weights to preserve.
 

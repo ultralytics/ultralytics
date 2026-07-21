@@ -1187,8 +1187,6 @@ class DepthLoss26:
         self.silog_lambda = h.dlam  # 1.0 = scale-invariant, 0.0 = log-RMSE
         self.grad_scales = 4
         self.loss_names = "dlog_loss", "dgrad_loss"
-        # Mask GT outside the head's range so unreachable targets do not corrupt in-range gradients.
-        self.max_depth = getattr(model.model[-1], "max_depth", None)
 
     @staticmethod
     def _grad_l1(pred_log: torch.Tensor, gt_log: torch.Tensor, valid_f: torch.Tensor) -> torch.Tensor:
@@ -1227,8 +1225,6 @@ class DepthLoss26:
             pred_depth = F.interpolate(pred_depth, size=gt_depth.shape[-2:], mode="bilinear", align_corners=True)
 
         valid = gt_depth > 0.001
-        if self.max_depth is not None:
-            valid &= gt_depth <= self.max_depth
         if valid.sum() < 10:
             # Keep the result attached so BaseTrainer's unconditional backward() works.
             return pred_depth.sum() * 0.0, dict(zip(self.loss_names, loss.detach()))

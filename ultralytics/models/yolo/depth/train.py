@@ -36,28 +36,12 @@ class DepthTrainer(DetectionTrainer):
         super().__init__(cfg, overrides, _callbacks)
 
     def get_model(self, cfg: str | None = None, weights: str | None = None, verbose: bool = True) -> DepthModel:
-        """Return a DepthModel initialized with the given config and weights.
-
-        If the dataset YAML declares ``max_depth`` (meters), it overrides the head's output
-        range (``sigmoid × max_depth``). Depth range is a property of the data: training on
-        GT beyond the head's range is otherwise unrepresentable. The value persists in saved
-        checkpoints, so fine-tuned models predict in the new range at inference.
-        """
+        """Return a DepthModel initialized with the given config and weights."""
         model = DepthModel(
             cfg, ch=self.data.get("channels", 3), nc=self.data["nc"], verbose=verbose and RANK in {-1, 0}
         )
         if weights:
             model.load(weights)
-        max_depth = self.data.get("max_depth")
-        if max_depth is not None:
-            head = model.model[-1]
-            if getattr(head, "mode", "sigmoid") == "log":
-                if RANK in {-1, 0}:
-                    LOGGER.info("log-depth head: dataset max_depth ignored (output is unbounded)")
-            elif hasattr(head, "max_depth"):
-                if RANK in {-1, 0}:
-                    LOGGER.info(f"Depth head max_depth: {head.max_depth} → {float(max_depth)} m (from dataset YAML)")
-                head.max_depth = float(max_depth)
         return model
 
     def preprocess_batch(self, batch: dict[str, Any]) -> dict[str, Any]:

@@ -2040,9 +2040,7 @@ def parse_model(d, ch, verbose=True):
             if m in {Detect, YOLOEDetect, Segment, Segment26, YOLOESegment, YOLOESegment26, Pose, Pose26, OBB, OBB26}:
                 m.legacy = legacy
         elif m is Depth:
-            if len(args) == 1:
-                args.append("log")  # default output mode when YAML omits it (log = unbounded, scale-decoupled)
-            args.append([ch[x] for x in f])  # ch tuple
+            args = [*args[:1], [ch[x] for x in f]]  # c_mid, ch tuple; drops the legacy mode arg old checkpoints store
         elif m is SemanticSegment:
             args.append([ch[x] for x in f])  # nc, ch tuple
         elif m is v10Detect:

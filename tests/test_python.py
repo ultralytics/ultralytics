@@ -1333,10 +1333,7 @@ def test_semantic_loss_all_ignore(nc):
 
 
 class _DepthLossModel(torch.nn.Module):
-    """Tiny stub mirroring a real YOLO model's surface for DepthLoss26: .parameters(), .args, and a .model Sequential
-    whose last module is the "head" (no max_depth -> log-mode/unbounded). Detect/depth losses both read the head via
-    model.model[-1] (see v8DetectionLoss), so the stub must expose it too.
-    """
+    """Tiny stub mirroring the model surface DepthLoss26 reads: .parameters() for device and .args for hyps."""
 
     def __init__(self, **over):
         super().__init__()
@@ -1346,7 +1343,6 @@ class _DepthLossModel(torch.nn.Module):
         hyp = dict(dlog=1.0, dgrad=0.5, dlam=1.0)
         hyp.update(over)
         self.args = SimpleNamespace(**hyp)
-        self.model = torch.nn.Sequential(torch.nn.Identity())
 
 
 def _depth_loss_for_scaled_pred(lam, scale):
@@ -1528,8 +1524,8 @@ def _depth_head_feats():
     return [torch.randn(1, 32, 32, 32), torch.randn(1, 64, 16, 16), torch.randn(1, 128, 8, 8)]
 
 
-def test_nn_depth_head_export_upsamples_to_input_and_preserves_sigmoid_bound():
-    """Depth export upsamples x4 and sigmoid inference remains bounded after calibration."""
+def test_nn_depth_head_export_upsamples_to_input():
+    """Depth export upsamples x4 to input resolution; inference returns native head resolution."""
     from ultralytics.nn.modules.head import Depth
 
     head = Depth(c_mid=32, ch=(32, 64, 128)).eval()
@@ -1538,12 +1534,6 @@ def test_nn_depth_head_export_upsamples_to_input_and_preserves_sigmoid_bound():
         assert head(_depth_head_feats()).shape[-2:] == (256, 256)
     head.export = False
     assert head(_depth_head_feats()).shape[-2:] != (256, 256)  # inference returns native head resolution
-
-    head = Depth(c_mid=32, mode="sigmoid", ch=(32, 64, 128)).eval()
-    head.head[-2].weight.data.zero_()
-    head.head[-2].bias.data.zero_()
-    head.cal_b.fill_(1.0)
-    assert head(_depth_head_feats()).max() <= head.max_depth
 
 
 def test_nn_depth_head_no_dead_parameters():

@@ -14,7 +14,7 @@
 path: depth-tartanair # dataset root dir (relative to Ultralytics settings 'datasets_dir')
 train: images/train # train images (relative to 'path') 55660 images
 val: images/val # val images (relative to 'path') 5810 images
-max_depth: 80 # (m) head output range: sigmoid × max_depth; GT beyond this is masked in the loss
+max_depth: 80 # (m) maximum valid depth; GT beyond this is excluded from val metrics
 
 nc: 1
 names:

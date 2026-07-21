@@ -207,6 +207,8 @@ Export your model to 19+ deployment formats:
 5. Click **Export**
 6. Download when complete
 
+Connect [Slack alerts](../integrations/slack.md) to receive a message when an export is ready or fails.
+
 ![Ultralytics Platform Model Export Tab Format List](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-export-tab-format-list.avif)
 
 ### Supported Formats

@@ -72,7 +72,7 @@ Run tracking on a video with the default BoT-SORT tracker. Swap to another track
         yolo track model=yolo26n.pt source="https://youtu.be/LNwODJXcvt4" tracker="bytetrack.yaml"
         ```
 
-To run the tracker on video streams, use a trained Detect, Segment, Pose, or OBB model such as YOLO26n, YOLO26n-seg, YOLO26n-pose, or YOLO26n-obb. You can train custom models locally or on cloud GPUs through [Ultralytics Platform](https://platform.ultralytics.com).
+To run the tracker on video streams, use a trained Detect, Segment, Pose, or OBB model such as YOLO26n, YOLO26n-seg, YOLO26n-pose, or YOLO26n-obb. You can train custom models locally or with [Ultralytics Platform cloud training](../platform/train/cloud-training.md).
 
 !!! example
 

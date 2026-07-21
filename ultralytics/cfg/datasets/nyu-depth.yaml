@@ -3,7 +3,7 @@
 # NYU Depth V2 dataset for monocular depth estimation
 # Documentation: https://cs.nyu.edu/~silberman/datasets/nyu_depth_v2.html
 # 795 train + 654 val (Eigen test split) images, 480x640, indoor scenes, depth in meters
-# Example usage: yolo train data=nyu-depth.yaml
+# Example usage: yolo depth train data=nyu-depth.yaml model=yolo26n-depth.pt
 # parent
 # ├── ultralytics
 # └── datasets

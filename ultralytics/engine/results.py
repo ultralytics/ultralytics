@@ -494,8 +494,6 @@ class Results(SimpleClass, DataExportMixin):
         filename: str | None = None,
         color_mode: str = "class",
         txt_color: tuple[int, int, int] = (255, 255, 255),
-        depth_cmap: str = "jet",
-        depth_mode: str = "disparity",
     ) -> np.ndarray:
         """Plot detection results on an input BGR image.
 
@@ -518,8 +516,6 @@ class Results(SimpleClass, DataExportMixin):
             filename (str | None): Filename to save image if save is True.
             color_mode (str): Specify the color mode, e.g., 'instance' or 'class'.
             txt_color (tuple[int, int, int]): Text color in BGR format for classification output.
-            depth_cmap (str): Depth colormap, one of 'inferno', 'jet', 'spectral'. See `colorize_depth`.
-            depth_mode (str): Depth normalization, 'metric' or 'disparity'. See `colorize_depth`.
 
         Returns:
             (np.ndarray | PIL.Image.Image): Annotated image as a NumPy array (BGR) or PIL image (RGB) if `pil=True`.
@@ -611,7 +607,7 @@ class Results(SimpleClass, DataExportMixin):
         if self.depth is not None and show_masks:
             d = self.depth.data
             d = d.cpu().numpy() if hasattr(d, "cpu") else np.asarray(d)
-            annotator.depth_map(d, side_by_side=False, cmap=depth_cmap, mode=depth_mode)
+            annotator.depth_map(d)
 
         # Plot Pose results
         if self.keypoints is not None:

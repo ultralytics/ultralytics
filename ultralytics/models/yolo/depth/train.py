@@ -8,12 +8,13 @@ from pathlib import Path
 from typing import Any
 
 from ultralytics.models import yolo
+from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import DepthModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
 from ultralytics.utils.plotting import plt_settings
 
 
-class DepthTrainer(yolo.detect.DetectionTrainer):
+class DepthTrainer(DetectionTrainer):
     """Trainer for YOLO depth estimation models.
 
     Multi-source training (list of img_paths) is handled transparently by the base DetectionTrainer/BaseDataset.

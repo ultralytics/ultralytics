@@ -1889,19 +1889,18 @@ class SemanticMetrics(SimpleClass, DataExportMixin):
 class DepthMetrics(SimpleClass, DataExportMixin):
     """Monocular depth estimation metrics: delta1-3, abs_rel, rmse, silog.
 
-    Accumulates summed per-pixel statistics on-device, pooled over every valid pixel of the val set (images with more
-    valid pixels weigh proportionally more; this differs from protocols that average per-image metrics). Pixels with gt
-    <= min_depth are ignored.
+    Per-image sums are computed on-device and accumulated in float64 on CPU, pooled over every valid pixel of the val
+    set (images with more valid pixels weigh proportionally more; this differs from protocols that average per-image
+    metrics). Following the standard Eigen evaluation protocol, pixels with gt outside (min_depth, max_depth) are
+    excluded and predictions are clamped into that range.
 
     Attributes:
-        names (dict): Class names mapping (unused for depth; kept for API parity).
         min_depth (float): Minimum valid depth in meters.
-        max_depth (float): Maximum valid depth in meters (predictions/gt clamped).
+        max_depth (float): Maximum valid depth in meters.
     """
 
     def __init__(
         self,
-        names: dict | None = None,
         min_depth: float = 0.001,
         max_depth: float = 100.0,
         align: str = "median",
@@ -1909,14 +1908,13 @@ class DepthMetrics(SimpleClass, DataExportMixin):
         """Initialize depth metric accumulators.
 
         Args:
-            names (dict, optional): Class names mapping (unused for depth; kept for API parity).
             min_depth (float): Minimum valid depth in meters; pixels with gt <= min_depth are ignored.
-            max_depth (float): Maximum valid depth in meters (predictions/gt clamped).
+            max_depth (float): Maximum valid depth in meters; pixels with gt >= max_depth are ignored and predictions
+                are clamped to it.
             align (str): Per-image scale alignment before scoring, following the Depth Anything eval protocol. "median"
                 rescales each prediction by median(gt)/median(pred) so affine-invariant (scale-ambiguous) outputs are
                 comparable to metric GT; "none" disables alignment and scores predictions in their raw output scale.
         """
-        self.names = names or {}
         self.min_depth = min_depth
         self.max_depth = max_depth
         self.align = align
@@ -1937,12 +1935,13 @@ class DepthMetrics(SimpleClass, DataExportMixin):
         if p.ndim == 2:  # single image (H,W) -> (1,H,W) so alignment is always per-image
             p, g = p[None], g[None]
         for pi, gi in zip(p, g):
-            mask = (gi > self.min_depth) & torch.isfinite(pi)  # drop non-finite preds (clamp leaves NaN as NaN)
+            # Eigen protocol: score only pixels with gt inside (min_depth, max_depth); drop non-finite preds
+            mask = (gi > self.min_depth) & (gi < self.max_depth) & torch.isfinite(pi)
             n = int(mask.sum())
             if n == 0:
                 continue
             pv = pi[mask].float()
-            gv = gi[mask].clamp(self.min_depth, self.max_depth).float()
+            gv = gi[mask].float()
             if self.align == "median":
                 scale = torch.median(gv) / torch.median(pv.clamp_min(self.min_depth))
                 pv = pv * scale
@@ -1959,10 +1958,10 @@ class DepthMetrics(SimpleClass, DataExportMixin):
                     (log_diff**2).sum(),
                     log_diff.sum(),
                 ]
-            ).double()
+            )
             if self._totals is None:
-                self._totals = torch.zeros(7, dtype=torch.float64, device=totals.device)
-            self._totals += totals
+                self._totals = torch.zeros(7, dtype=torch.float64)
+            self._totals += totals.cpu().double()  # float64 on CPU; MPS tensors cannot be float64
             self._count += float(n)
 
     def process(self, *args, **kwargs) -> None:

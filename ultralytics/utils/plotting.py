@@ -529,17 +529,14 @@ class Annotator:
         self,
         depth: np.ndarray,
         alpha: float = 0.6,
-        side_by_side: bool = False,
         cmap: str = "jet",
         mode: str = "disparity",
     ) -> None:
-        """Render a colorized depth map for the image.
+        """Render a colorized depth map blended over the image.
 
         Args:
             depth (np.ndarray): (H, W) depth in meters.
-            alpha (float): Blend factor for the heatmap overlay (ignored when side_by_side).
-            side_by_side (bool): If True, place the colorized depth next to the image (image | depth) instead of
-                blending on top. Clearer for depth predictions.
+            alpha (float): Blend factor for the heatmap overlay.
             cmap (str): Colormap, one of "inferno", "jet", "spectral". See `colorize_depth`.
             mode (str): "metric" or "disparity" normalization. See `colorize_depth`.
         """
@@ -548,7 +545,7 @@ class Annotator:
         heat = colorize_depth(depth, cmap=cmap, mode=mode)
         if heat.shape[:2] != self.im.shape[:2]:
             heat = cv2.resize(heat, (self.im.shape[1], self.im.shape[0]))
-        self.im = np.hstack([self.im, heat]) if side_by_side else cv2.addWeighted(self.im, 1 - alpha, heat, alpha, 0)
+        self.im = cv2.addWeighted(self.im, 1 - alpha, heat, alpha, 0)
         if self.pil:
             self.fromarray(self.im)
 
@@ -1023,7 +1020,7 @@ def plot_images(
             # Convert the patch to BGR for the overlay, then convert back to RGB for the mosaic.
             sub_bgr = cv2.cvtColor(np.ascontiguousarray(im[y : y + h, x : x + w]), cv2.COLOR_RGB2BGR)
             sub_annotator = Annotator(sub_bgr, line_width=1, pil=False)
-            sub_annotator.depth_map(d, side_by_side=False, alpha=0.6)
+            sub_annotator.depth_map(d, alpha=0.6)
             im[y : y + h, x : x + w] = cv2.cvtColor(sub_annotator.im, cv2.COLOR_BGR2RGB)
             annotator.fromarray(im)
 
@@ -1191,7 +1188,9 @@ def plot_depth_panels(
             vmin = float(gv.min()) if gv.numel() else 0.0
             vmax = float(gv.max()) if gv.numel() else 1.0
             d = g.detach().float().cpu().numpy() if isinstance(g, torch.Tensor) else np.asarray(g, np.float32)
-            panels.append(cv2.resize(colorize_depth(d, vmin, vmax), (w, h), interpolation=cv2.INTER_NEAREST))
+            panels.append(
+                cv2.resize(colorize_depth(d, vmin, vmax, mode="metric"), (w, h), interpolation=cv2.INTER_NEAREST)
+            )
         else:
             # No GT: scale each prediction by its own valid range.
             vmin = vmax = None
@@ -1199,10 +1198,11 @@ def plot_depth_panels(
         for p in preds:
             d = p[i, 0] if p.ndim == 4 else p[i]
             d = d.detach().float().cpu().numpy() if isinstance(d, torch.Tensor) else np.asarray(d, np.float32)
-            if vmin is None or vmax is None:
+            lo, hi = vmin, vmax
+            if lo is None or hi is None:
                 dv = d[d > 0]
-                vmin, vmax = (float(dv.min()), float(dv.max())) if dv.size else (0.0, 1.0)
-            panels.append(cv2.resize(colorize_depth(d, vmin, vmax), (w, h), interpolation=cv2.INTER_NEAREST))
+                lo, hi = (float(dv.min()), float(dv.max())) if dv.size else (0.0, 1.0)
+            panels.append(cv2.resize(colorize_depth(d, lo, hi, mode="metric"), (w, h), interpolation=cv2.INTER_NEAREST))
 
         rows.append(np.hstack(panels))
     grid = np.vstack(rows)

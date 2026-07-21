@@ -6,7 +6,6 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-import numpy as np
 import torch
 import torch.distributed as dist
 import torch.nn.functional as F
@@ -33,22 +32,11 @@ class DepthValidator(DetectionValidator):
         """Initialize DepthValidator."""
         super().__init__(dataloader, save_dir, args, _callbacks)
         self.args.task = "depth"
-        self.calibrating = False
 
     def init_metrics(self, model: torch.nn.Module) -> None:
-        """Initialize the DepthMetrics accumulator and reset per-pass calibration state.
-
-        The calibrating flag is not reset here: Model.calibrate() sets it after construction,
-        before the val pass runs.
-        """
-        self.metrics = DepthMetrics()
+        """Initialize the DepthMetrics accumulator with the dataset's depth range."""
+        self.metrics = DepthMetrics(max_depth=self.data.get("max_depth") or 100.0)
         self.metrics.clear_stats()
-        self.calib = None
-        self._cal_logp, self._cal_logg, self._cal_pts = [], [], 0
-        from .calibrate import _depth_head
-
-        head = _depth_head(model)
-        self._cal_ab = (float(head.cal_a), float(head.cal_b)) if head is not None else None
 
     def preprocess(self, batch: dict[str, Any]) -> dict[str, Any]:
         """Preprocess batch — move to device, normalize images, and keep depth as float32."""
@@ -71,40 +59,13 @@ class DepthValidator(DetectionValidator):
             preds = F.interpolate(preds.float(), size=gt_depth.shape[-2:], mode="bilinear", align_corners=True)
         self.metrics.update_stats(preds, gt_depth)
 
-        if self.calibrating and self._cal_pts < 500_000:
-            for pi, gi in zip(preds, gt_depth):
-                valid = (gi > 1e-3) & (pi > 1e-3) & torch.isfinite(pi)
-                if not valid.any():
-                    continue
-                lp = torch.log(pi[valid]).cpu().numpy()
-                lg = torch.log(gi[valid]).cpu().numpy()
-                if lp.size > 20_000:  # 2-parameter fit does not need all pixels
-                    idx = np.random.default_rng(self._cal_pts).choice(lp.size, 20_000, replace=False)
-                    lp, lg = lp[idx], lg[idx]
-                self._cal_logp.append(lp)
-                self._cal_logg.append(lg)
-                self._cal_pts += lp.size
-                if self._cal_pts >= 500_000:
-                    break
-
     def get_stats(self) -> dict[str, float]:
         """Finalize and return the metrics dict.
 
         Cross-rank metric reduction is handled by gather_stats() (called before this on all ranks);
         this runs on rank 0 with the already-summed accumulators.
-
-        If calibration was enabled, choose ``(a, b)`` via the "calibrate only if it helps" policy.
         """
         self.metrics.process()
-        if self.calibrating and len(self._cal_logp) >= 2:
-            from .calibrate import select_calibration_cv
-
-            res = select_calibration_cv(list(zip(self._cal_logp, self._cal_logg)), margin=0.002)
-            self.calib = (res["a"], res["b"])
-            LOGGER.info(
-                f"Depth calibration selected '{res['name']}' on {self._cal_pts} pixels: "
-                f"a={res['a']:.4f} b={res['b']:.4f}"
-            )
         return self.metrics.results_dict
 
     def gather_stats(self) -> None:

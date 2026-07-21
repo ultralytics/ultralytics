@@ -788,8 +788,11 @@ class Depth(nn.Module):
     progressive upsampling and fusion.
 
     Attributes:
-        ch (tuple): Channel sizes from backbone feature maps (P3, P4, P5).
-        c_mid (int): Internal feature channels.
+        nl (int): Number of pyramid levels.
+        mode (str): Output parameterization, "log" (unbounded) or "sigmoid" (bounded by max_depth).
+        max_depth (float | None): Output range in meters for "sigmoid" mode; None for "log" mode.
+        cal_a (torch.Tensor): Log-affine calibration scale buffer, identity 1.0 by default.
+        cal_b (torch.Tensor): Log-affine calibration offset buffer, identity 0.0 by default.
 
     Examples:
         >>> depth = Depth(ch=(256, 512, 1024))
@@ -798,7 +801,6 @@ class Depth(nn.Module):
     """
 
     export = False  # export mode
-    format = None  # export format
 
     def __init__(self, c_mid: int = 256, mode: str = "log", ch: tuple = ()):
         """Initialize Depth head.

@@ -94,7 +94,7 @@ from ultralytics.nn.modules import (
     Segment26,
     SemanticSegment,
 )
-from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, WorldModel
+from ultralytics.nn.tasks import ClassificationModel, DepthModel, DetectionModel, SegmentationModel, WorldModel
 from ultralytics.utils import (
     ARM64,
     DEFAULT_CFG,
@@ -817,7 +817,6 @@ class Exporter:
                     m.bake_argmax = check_version(f"tensorrt-cu{cuda_major}", ">=10.0.0") or check_version(
                         "tensorrt", ">=10.0.0"
                     )
-                m.format = self.args.format
             if isinstance(m, (Detect, RTDETRDecoder)):  # includes all Detect subclasses like Segment, Pose, OBB
                 m.dynamic = self.args.dynamic
                 m.export = True
@@ -1012,6 +1011,8 @@ class Exporter:
             if isinstance(self.model, SegmentationModel):
                 dynamic["output0"] = {0: "batch", 2: "anchors"}  # shape(1, 116, 8400)
                 dynamic["output1"] = {0: "batch", 2: "mask_height", 3: "mask_width"}  # shape(1,32,160,160)
+            elif isinstance(self.model, DepthModel):
+                dynamic["output0"] = {0: "batch", 2: "height", 3: "width"}  # shape(1,1,640,640) dense map, not anchors
             elif isinstance(self.model, DetectionModel):
                 dynamic["output0"] = {0: "batch", 2: "anchors"}  # shape(1, 84, 8400)
             if self.args.nms:  # only batch size is dynamic with NMS

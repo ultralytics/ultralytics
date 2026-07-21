@@ -624,19 +624,19 @@ class Model(torch.nn.Module):
     def calibrate(self, data=None, **kwargs: Any):
         """Fit scale-only depth calibration on a small labeled set (depth task only).
 
-        Runs a validation pass to fit the global log-affine ``d' = exp(a·log d + b)`` against
-        ground-truth depth using the same "calibrate only if it helps" selective policy as
-        auto-calibration (identity / scale-only chosen by held-out δ1), then writes ``(a, b)`` into
-        the head's ``cal_a``/``cal_b`` buffers. No gradient training and the decoder weights are
-        untouched, so it cannot degrade the relative depth structure. Call ``model.save(...)``
-        afterwards to persist the calibration.
+        Runs a validation pass, then fits the global log-affine ``d' = exp(a·log d + b)`` against
+        ground-truth depth via :func:`fit_calibration_selective` — the same "calibrate only if it
+        helps" policy as trainer auto-calibration (identity / scale-only chosen by held-out δ1) —
+        which writes ``(a, b)`` into the head's ``cal_a``/``cal_b`` buffers. No gradient training
+        and the decoder weights are untouched, so it cannot degrade the relative depth structure.
+        Call ``model.save(...)`` afterwards to persist the calibration.
 
         Args:
             data (str, optional): Dataset YAML providing a labeled split to calibrate against.
             **kwargs (Any): Extra validation arguments (e.g. ``imgsz``, ``batch``, ``device``, ``split``).
 
         Returns:
-            (tuple | None): The fitted ``(a, b)``, or ``None`` if no valid depth pixels were found.
+            (tuple | None): The fitted ``(a, b)``, or ``None`` if fewer than 2 images had valid depth pixels.
 
         Examples:
             >>> model = YOLO("yolo26s-depth.pt")
@@ -646,36 +646,20 @@ class Model(torch.nn.Module):
         self._check_is_pytorch_model()
         if self.task != "depth":
             raise ValueError(f"calibrate() is only supported for depth models (task='depth'), got task={self.task!r}.")
-        from ultralytics.models.yolo.depth.calibrate import _depth_head
+        from ultralytics.models.yolo.depth.calibrate import _depth_head, fit_calibration_selective
 
-        head = _depth_head(self.model)
-        if head is None:
+        if _depth_head(self.model) is None:
             raise ValueError("Model has no Depth head with calibration buffers (cal_a/cal_b).")
-        a0, b0 = float(head.cal_a), float(head.cal_b)
-        head.cal_a.fill_(1.0)  # fit on the raw, un-calibrated output
-        head.cal_b.fill_(0.0)
-
         args = {**self.overrides, **kwargs, "mode": "val", "task": "depth", "rect": False}
         if data is not None:
             args["data"] = data
         validator = self._smart_load("validator")(args=args, _callbacks=self.callbacks)
-        validator.calibrating = True
-        try:
-            validator(model=self.model)
-        except Exception:
-            head.cal_a.fill_(a0)
-            head.cal_b.fill_(b0)  # a failed val pass must not wipe the model's existing calibration
-            raise
-        if validator.calib is None:
-            head.cal_a.fill_(a0)
-            head.cal_b.fill_(b0)  # restore whatever calibration the model had
-            LOGGER.warning("calibrate(): no valid depth pixels found; existing calibration kept.")
+        validator(model=self.model)  # builds the dataloader and reports metrics with the current calibration
+        res = fit_calibration_selective(self.model, validator.dataloader, validator.device)
+        if res is None:
             return None
-        a, b = validator.calib
-        head.cal_a.fill_(a)
-        head.cal_b.fill_(b)
-        LOGGER.info(f"Calibrated depth scale: a={a:.4f} b={b:.4f}. Call model.save(...) to persist it.")
-        return a, b
+        LOGGER.info("Call model.save(...) to persist the calibration.")
+        return res["a"], res["b"]
 
     def benchmark(self, data=None, format="", verbose=False, **kwargs: Any):
         """Benchmark the model across various export formats to evaluate performance.

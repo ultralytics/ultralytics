@@ -415,7 +415,7 @@ class DepthDataset(YOLODataset):
         return label
 
     def build_transforms(self, hyp=None):
-        """Build transforms for semantic segmentation.
+        """Build transforms for depth estimation.
 
         Args:
             hyp (dict): Hyperparameters.
@@ -429,7 +429,7 @@ class DepthDataset(YOLODataset):
         if not self.augment:
             # stretch the image instead of padding
             transforms[-2] = LetterBox(new_shape=(self.imgsz, self.imgsz), scale_fill=True)
-        transforms[-1] = DepthFormat()  # replace the last transform with SemanticFormat
+        transforms[-1] = DepthFormat()  # replace the last transform with DepthFormat
         return transforms
 
 

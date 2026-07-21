@@ -134,6 +134,41 @@ def test_oracle_ladder_orders_headroom():
     assert ladder["z"]["ap3d_70"] >= ladder["baseline"]["ap3d_70"]
 
 
+def _mixed_stats(n_img=20, seed=0):
+    """Images with ~5% depth-noised single-object predictions."""
+    rng = np.random.default_rng(seed)
+    stats = []
+    for _ in range(n_img):
+        z = float(rng.uniform(10, 40))
+        gt = [_box(z=z)]
+        pred = [_box(z=z * float(rng.normal(1.0, 0.05)))]
+        stats.append(_stat(pred, gt))
+    return stats
+
+
+def test_bootstrap_ap_deterministic_and_ordered():
+    """Seeded bootstrap is reproducible and returns ordered (lo, med, hi) in [0, 1]."""
+    from ultralytics.models.yolo.s3d.diagnose import bootstrap_ap
+
+    stats = _mixed_stats()
+    ci1 = bootstrap_ap(stats, {0: "Car"}, n=25, seed=7)
+    ci2 = bootstrap_ap(stats, {0: "Car"}, n=25, seed=7)
+    assert ci1 == ci2  # seeded → reproducible
+    lo, med, hi = ci1["ap3d_50"]
+    assert lo <= med <= hi
+    assert 0.0 <= lo and hi <= 1.0
+
+
+def test_bootstrap_ap_tightens_with_perfect_preds():
+    """All-perfect predictions → zero-width CI at AP=1 regardless of resample."""
+    from ultralytics.models.yolo.s3d.diagnose import bootstrap_ap
+
+    stats = [_stat([_box(z=z)], [_box(z=z)]) for z in (10.0, 20.0, 30.0, 40.0)]
+    ci = bootstrap_ap(stats, {0: "Car"}, n=10, seed=0)
+    lo, med, hi = ci["ap3d_50"]
+    assert lo == pytest.approx(hi)
+
+
 def test_depth_bias_fit_recovers_slope():
     """dz = 0.05*z + 0.1 exactly → fit recovers (0.05, 0.1, ~0)."""
     rng = np.random.default_rng(0)

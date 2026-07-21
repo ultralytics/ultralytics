@@ -228,6 +228,38 @@ def oracle_ladder(
     return ladder
 
 
+def bootstrap_ap(
+    stats: list[dict[str, Any]],
+    names: dict[int, str],
+    n: int = 200,
+    seed: int = 0,
+    keys: tuple[str, ...] = ("ap3d_50", "ap3d_70"),
+) -> dict[str, tuple[float, float, float]]:
+    """Bootstrap-resample images to a (2.5%, 50%, 97.5%) confidence interval per metric key.
+
+    Separates "training is unstable" from "AP on a small val set is a coin flip": any A/B delta smaller than
+    the CI width is noise. n=200 keeps runtime tolerable (metrics.process() is O(images) per resample).
+
+    Args:
+        stats (list[dict]): Per-image stat dicts.
+        names (dict[int, str]): Class id → name mapping.
+        n (int): Number of bootstrap resamples.
+        seed (int): RNG seed for reproducibility.
+        keys (tuple[str, ...]): results_dict keys to report.
+
+    Returns:
+        (dict[str, tuple[float, float, float]]): {key: (p2.5, median, p97.5)}.
+    """
+    rng = np.random.default_rng(seed)
+    samples: dict[str, list[float]] = {k: [] for k in keys}
+    for _ in range(n):
+        idx = rng.integers(0, len(stats), size=len(stats))
+        rd = run_metrics([stats[i] for i in idx], names)
+        for k in keys:
+            samples[k].append(float(rd.get(k, 0.0)))
+    return {k: tuple(float(np.percentile(v, p)) for p in (2.5, 50, 97.5)) for k, v in samples.items()}
+
+
 def depth_bias_fit(records: list[dict[str, float]]) -> tuple[float, float, float]:
     """Fit dz = a·z_gt + b over matched predictions.
 

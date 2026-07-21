@@ -230,7 +230,7 @@ def export_formats():
             "_hailo_model",
             False,
             False,
-            ["name", "quantize", "data", "fraction", "opset", "simplify", "conf", "iou"],
+            ["name", "quantize", "data", "fraction", "simplify", "conf", "iou"],
             "base",
         ],
     ]
@@ -617,8 +617,6 @@ class Exporter:
                 raise ValueError(
                     "Hailo export selects the model output path automatically; remove the end2end argument."
                 )
-            if self.args.opset not in {None, 11}:
-                raise ValueError("Hailo export requires opset=11.")
             self.args.name = str(self.args.name or "hailo8l").lower()
             hailo_archs = ("hailo8", "hailo8l", "hailo10h", "hailo15h", "hailo15l")
             if self.args.name not in hailo_archs:

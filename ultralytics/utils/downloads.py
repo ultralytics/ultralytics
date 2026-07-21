@@ -345,10 +345,17 @@ def safe_download(
                 try:
                     if (curl or i > 0) and curl_installed:  # curl download with retry, continue
                         s = "sS" * (not progress)  # silent
-                        r = subprocess.run(["curl", "-#", f"-{s}L", url, "-o", f, "--retry", "3", "-C", "-"]).returncode
+                        # Stall bounds (not a total-transfer cap): abort if <1 B/s for 300 s so a dead connection
+                        # cannot block interpreter shutdown while a non-daemon plot thread waits on a font download
+                        args = ["--connect-timeout", "30", "--speed-limit", "1", "--speed-time", "300"]
+                        r = subprocess.run(
+                            ["curl", "-#", f"-{s}L", url, "-o", f, "--retry", "3", "-C", "-", *args]
+                        ).returncode
                         assert r == 0, f"Curl return value {r}"
-                    else:  # requests download
-                        with requests.get(url, stream=True, headers={"Accept-Encoding": "identity"}) as response:
+                    else:  # requests download; timeout bounds connect and per-chunk read gaps, not total transfer
+                        with requests.get(
+                            url, stream=True, headers={"Accept-Encoding": "identity"}, timeout=(30, 300)
+                        ) as response:
                             response.raise_for_status()
                             expected_size = int(response.headers.get("Content-Length", 0))
                             if i == 0 and expected_size > 1048576:

@@ -90,6 +90,8 @@ class AnomalyRNDTrainer(AnomalyTrainer):
             for buffer in self.ema.ema.buffers():
                 dist.broadcast(buffer, src=0)
         metrics = self.validator(self)
+        if metrics is None:  # non-rank-0 DDP workers get no metrics — mirror BaseTrainer.validate()
+            return None, None
         fitness = metrics.pop("fitness", -self.loss.detach().cpu().numpy())
         if RANK not in (-1, 0) or self.ema is None:
             return metrics, fitness

@@ -531,19 +531,19 @@ class v8SegmentationLoss(v8DetectionLoss):
                 imgsz,
             )
             if pred_semantic is not None:
-                sem_masks = batch["sem_masks"].to(self.device)  # NxHxW
-                sem_masks = F.one_hot(sem_masks.long(), num_classes=self.nc).permute(0, 3, 1, 2).float()  # NxCxHxW
-
+                sem_idx = batch["sem_masks"].to(self.device).long().unsqueeze(1)  # Nx1xHxW
                 if self.overlap:
-                    mask_zero = masks == 0  # NxHxW
-                    sem_masks[mask_zero.unsqueeze(1).expand_as(sem_masks)] = 0
+                    present = masks != 0  # NxHxW
                 else:
                     batch_idx = batch["batch_idx"].view(-1)  # [total_instances]
+                    present = torch.ones(batch_size, *masks.shape[-2:], dtype=torch.bool, device=self.device)
                     for i in range(batch_size):
                         instance_mask_i = masks[batch_idx == i]  # [num_instances_i, H, W]
-                        if len(instance_mask_i) == 0:
-                            continue
-                        sem_masks[i, :, instance_mask_i.sum(dim=0) == 0] = 0
+                        if len(instance_mask_i):
+                            present[i] = instance_mask_i.sum(dim=0) != 0
+                # One-hot targets zeroed at uncovered pixels, without F.one_hot's int64 NxHxWxC intermediate
+                sem_masks = torch.zeros(sem_idx.shape[0], self.nc, *sem_idx.shape[2:], device=self.device)
+                sem_masks.scatter_(1, sem_idx, present.unsqueeze(1).float())  # NxCxHxW
 
                 loss[4] = self.bcedice_loss(pred_semantic, sem_masks)
                 loss[4] *= self.hyp.box  # seg gain
@@ -1238,8 +1238,7 @@ class TVPDetectLoss:
 
         preds["scores"] = self._get_vp_features(preds)
         vp_loss = self.vp_criterion(preds, batch)
-        box_loss = vp_loss[0][1]
-        return box_loss, vp_loss[1]
+        return vp_loss[0][1], vp_loss[1]
 
     def _get_vp_features(self, preds: dict[str, torch.Tensor]) -> list[torch.Tensor]:
         """Extract visual-prompt features from the model output."""
@@ -1255,10 +1254,10 @@ class TVPDetectLoss:
 class TVPSegmentLoss(TVPDetectLoss):
     """Criterion class for computing training losses for text-visual prompt segmentation."""
 
-    def __init__(self, model: torch.nn.Module, tal_topk=10):
+    def __init__(self, model: torch.nn.Module, tal_topk=10, tal_topk2: int | None = None):
         """Initialize TVPSegmentLoss with task-prompt and visual-prompt criteria using the provided model."""
         super().__init__(model)
-        self.vp_criterion = v8SegmentationLoss(model, tal_topk)
+        self.vp_criterion = v8SegmentationLoss(model, tal_topk, tal_topk2)
         self.hyp = self.vp_criterion.hyp
 
     def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:

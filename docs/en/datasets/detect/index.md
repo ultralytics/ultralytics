@@ -302,6 +302,10 @@ This conversion tool can be used to convert the COCO dataset or any dataset in t
 
 Remember to double-check if the dataset you want to use is compatible with your model and follows the necessary format conventions. Properly formatted datasets are crucial for training successful object detection models.
 
+## What's Next
+
+With your dataset formatted, [start training your model](../../modes/train.md). Not sure which pretrained model to start from? Compare options in the [YOLO26 model family](../../models/yolo26.md).
+
 ## FAQ
 
 ### What is the Ultralytics YOLO dataset format and how to structure it?

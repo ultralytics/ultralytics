@@ -184,6 +184,81 @@ class Colors:
 colors = Colors()  # create instance for 'from utils.plots import colors'
 
 
+# Spectral_r anchors (RGB, far→near) baked into a LUT so colorize_depth needs no matplotlib import.
+_SPECTRAL_R_ANCHORS = np.array(
+    [
+        [94, 79, 162],
+        [51, 135, 188],
+        [102, 194, 165],
+        [170, 220, 164],
+        [230, 245, 152],
+        [255, 254, 190],
+        [254, 224, 139],
+        [253, 173, 96],
+        [244, 109, 67],
+        [212, 61, 79],
+        [158, 1, 66],
+    ],
+    dtype=np.float32,
+)
+
+
+def _spectral_lut() -> np.ndarray:
+    """Build the 256x1x3 BGR uint8 Spectral_r LUT for cv2.applyColorMap by linearly interpolating the anchors."""
+    xs = np.linspace(0.0, 10.0, 256)
+    i = np.clip(xs.astype(int), 0, 9)
+    f = (xs - i)[:, None]
+    rgb = _SPECTRAL_R_ANCHORS[i] * (1.0 - f) + _SPECTRAL_R_ANCHORS[i + 1] * f
+    return rgb.round().astype(np.uint8)[:, ::-1].reshape(256, 1, 3)  # RGB→BGR for cv2 convention
+
+
+_SPECTRAL_LUT = _spectral_lut()
+_DEPTH_CMAPS = {"inferno": cv2.COLORMAP_INFERNO, "jet": cv2.COLORMAP_JET, "spectral": None}
+
+
+def colorize_depth(
+    depth: np.ndarray,
+    vmin: float | None = None,
+    vmax: float | None = None,
+    cmap: str = "jet",
+    mode: str = "disparity",
+) -> np.ndarray:
+    """Map a (H, W) metric-depth array to a BGR uint8 colorized image, invalid (<= 0) pixels black.
+
+    Args:
+        depth (np.ndarray): (H, W) depth in meters.
+        vmin (float, optional): Lower bound of the color range; defaults to the valid-pixel minimum (metric mode) or the
+            2nd disparity percentile (disparity mode).
+        vmax (float, optional): Upper bound of the color range; defaults to the valid-pixel maximum (metric mode) or the
+            98th disparity percentile (disparity mode).
+        cmap (str): Colormap, one of "inferno", "jet", "spectral" (matplotlib Spectral_r, near = warm).
+        mode (str): "metric" normalizes depth linearly; "disparity" normalizes inverse depth (1/d) between the 2nd and
+            98th percentiles for the DepthAnything look (near objects warm, robust to far outliers).
+
+    Returns:
+        (np.ndarray): (H, W, 3) BGR uint8 colorized depth.
+    """
+    d = np.asarray(depth, dtype=np.float32)
+    valid = d > 0
+    v = np.where(valid, 1.0 / np.where(valid, d, 1.0), 0.0) if mode == "disparity" else d
+    if vmin is None or vmax is None:
+        pool = v[valid]
+        if mode == "disparity":
+            lo, hi = np.percentile(pool, (2, 98)) if pool.size else (0.0, 1.0)
+        else:
+            lo, hi = (float(pool.min()), float(pool.max())) if pool.size else (0.0, 1.0)
+        vmin = lo if vmin is None else vmin
+        vmax = hi if vmax is None else vmax
+    if vmax <= vmin:
+        vmax = vmin + 1e-6
+    dn = np.clip((v - vmin) / (vmax - vmin), 0.0, 1.0)
+    idx = (dn * 255).astype(np.uint8)
+    lut = _SPECTRAL_LUT if cmap == "spectral" else None
+    color = cv2.applyColorMap(idx, lut) if lut is not None else cv2.applyColorMap(idx, _DEPTH_CMAPS[cmap])  # BGR
+    color[~valid] = 0
+    return color
+
+
 class Annotator:
     """Ultralytics Annotator for train/val mosaics and JPGs and predictions annotations.
 
@@ -448,6 +523,30 @@ class Annotator:
         self.im = cv2.addWeighted(self.im, 1 - alpha, overlay, alpha, 0)
         if self.pil:
             # Convert im back to PIL and update draw
+            self.fromarray(self.im)
+
+    def depth_map(
+        self,
+        depth: np.ndarray,
+        alpha: float = 0.6,
+        cmap: str = "jet",
+        mode: str = "disparity",
+    ) -> None:
+        """Render a colorized depth map blended over the image.
+
+        Args:
+            depth (np.ndarray): (H, W) depth in meters.
+            alpha (float): Blend factor for the heatmap overlay.
+            cmap (str): Colormap, one of "inferno", "jet", "spectral". See `colorize_depth`.
+            mode (str): "metric" or "disparity" normalization. See `colorize_depth`.
+        """
+        if self.pil:
+            self.im = np.asarray(self.im).copy()
+        heat = colorize_depth(depth, cmap=cmap, mode=mode)  # BGR, matching the Annotator buffer convention
+        if heat.shape[:2] != self.im.shape[:2]:
+            heat = cv2.resize(heat, (self.im.shape[1], self.im.shape[0]))
+        self.im = cv2.addWeighted(self.im, 1 - alpha, heat, alpha, 0)
+        if self.pil:
             self.fromarray(self.im)
 
     def kpts(
@@ -760,7 +859,7 @@ def plot_images(
         - 3 channels: Used as-is (standard RGB)
         - 4+ channels: Cropped to first 3 channels
     """
-    for k in {"cls", "bboxes", "conf", "masks", "keypoints", "batch_idx", "images", "semantic_mask"}:
+    for k in {"cls", "bboxes", "conf", "masks", "keypoints", "batch_idx", "images", "semantic_mask", "depth"}:
         if k not in labels:
             continue
         if k == "cls" and labels[k].ndim == 2:
@@ -775,6 +874,7 @@ def plot_images(
     masks = labels.get("masks", np.zeros(0, dtype=np.uint8))
     kpts = labels.get("keypoints", np.zeros(0, dtype=np.float32))
     semantic_masks = labels.get("semantic_mask", np.zeros(0, dtype=np.int64))
+    depth_maps = labels.get("depth", np.zeros(0, dtype=np.float32))
     images = labels.get("img", images)  # default to input images
 
     if len(images) and isinstance(images, torch.Tensor):
@@ -906,6 +1006,24 @@ def plot_images(
             sub_annotator.semantic_mask(mask, alpha=0.4)
             im[y : y + h, x : x + w] = sub_annotator.im
             annotator.fromarray(im)
+
+        # Plot depth maps
+        if len(depth_maps) and i < len(depth_maps):
+            d = depth_maps[i]
+            if d.ndim == 3:
+                d = d.squeeze(0)
+            dh, dw = d.shape
+            if dh != h or dw != w:
+                d = cv2.resize(d.astype(np.float32), (w, h), interpolation=cv2.INTER_NEAREST)
+            im = np.asarray(annotator.im).copy()
+            # The mosaic deviates from the Annotator BGR-buffer convention (it holds RGB), so convert the patch
+            # to BGR for the overlay, then back to RGB for the mosaic.
+            sub_bgr = cv2.cvtColor(np.ascontiguousarray(im[y : y + h, x : x + w]), cv2.COLOR_RGB2BGR)
+            sub_annotator = Annotator(sub_bgr, line_width=1, pil=False)
+            sub_annotator.depth_map(d, alpha=0.6)
+            im[y : y + h, x : x + w] = cv2.cvtColor(sub_annotator.im, cv2.COLOR_BGR2RGB)
+            annotator.fromarray(im)
+
     if not save:
         return np.asarray(annotator.im)
     annotator.im.save(fname)  # save
@@ -1037,6 +1155,68 @@ def plt_color_scatter(v, f, bins: int = 20, cmap: str = "viridis", alpha: float 
 
     # Scatter plot
     plt.scatter(v, f, c=colors, cmap=cmap, alpha=alpha, edgecolors=edgecolors)
+
+
+def plot_depth_panels(
+    imgs: torch.Tensor,
+    preds: list[torch.Tensor],
+    fname: str | Path,
+    gt: torch.Tensor | None = None,
+    titles: list[str] | None = None,
+    max_images: int = 4,
+) -> None:
+    """Write a depth panel grid: one row per image, columns RGB | GT (if provided) | one per entry of ``preds``.
+
+    All depth columns share the GT valid-pixel range per row, so a scale error between GT and any prediction shows up
+    directly as a color mismatch. Panels are resized to the RGB image size, so predictions at head stride need no prior
+    interpolation.
+
+    Args:
+        imgs (torch.Tensor): (B,3,H,W) float image tensor in [0,1].
+        preds (list): List of (B,1,H,W) or (B,H,W) predicted depth tensors; each adds one column.
+        fname (str | Path): Output image path.
+        gt (torch.Tensor, optional): (B,1,H,W) or (B,H,W) ground-truth depth in meters (pixels <= 0 invalid, drawn
+            black). Used for the GT column and to set the shared color scale.
+        titles (list, optional): List of column labels, drawn in a 24 px header strip. None keeps the strip-free layout.
+        max_images (int): Maximum number of rows.
+    """
+    preds = [p.unsqueeze(1) if p.ndim == 3 else p for p in preds]
+    h, w = imgs.shape[-2:]
+    rows = []
+    for i in range(min(imgs.shape[0], max_images)):
+        rgb = (imgs[i].detach().float().cpu().clamp(0, 1).numpy() * 255).astype(np.uint8).transpose(1, 2, 0)
+        panels = [cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)]
+
+        if gt is not None:
+            g = gt[i, 0] if gt.ndim == 4 else gt[i]
+            gv = g[g > 0]
+            vmin = float(gv.min()) if gv.numel() else 0.0
+            vmax = float(gv.max()) if gv.numel() else 1.0
+            d = g.detach().float().cpu().numpy() if isinstance(g, torch.Tensor) else np.asarray(g, np.float32)
+            panels.append(
+                cv2.resize(colorize_depth(d, vmin, vmax, mode="metric"), (w, h), interpolation=cv2.INTER_NEAREST)
+            )
+        else:
+            # No GT: scale each prediction by its own valid range.
+            vmin = vmax = None
+
+        for p in preds:
+            d = p[i, 0] if p.ndim == 4 else p[i]
+            d = d.detach().float().cpu().numpy() if isinstance(d, torch.Tensor) else np.asarray(d, np.float32)
+            lo, hi = vmin, vmax
+            if lo is None or hi is None:
+                dv = d[d > 0]
+                lo, hi = (float(dv.min()), float(dv.max())) if dv.size else (0.0, 1.0)
+            panels.append(cv2.resize(colorize_depth(d, lo, hi, mode="metric"), (w, h), interpolation=cv2.INTER_NEAREST))
+
+        rows.append(np.hstack(panels))
+    grid = np.vstack(rows)
+    if titles:
+        strip = np.full((24, grid.shape[1], 3), 255, dtype=np.uint8)
+        for j, t in enumerate(titles):
+            cv2.putText(strip, str(t), (j * w + 4, 17), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+        grid = np.vstack([strip, grid])
+    cv2.imwrite(str(fname), grid)
 
 
 @plt_settings()

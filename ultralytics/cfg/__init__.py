@@ -22,7 +22,6 @@ from ultralytics.utils import (
     LOGGER,
     RANK,
     ROOT,
-    RUNS_DIR,
     SETTINGS,
     SETTINGS_FILE,
     STR_OR_PATH,
@@ -511,7 +510,7 @@ def get_save_dir(args: SimpleNamespace, name: str | None = None) -> Path:
 
         project = args.project or ""
         if not Path(project).is_absolute():
-            base = ROOT.parent / "tests/tmp/runs" if TESTS_RUNNING else RUNS_DIR
+            base = ROOT.parent / "tests/tmp/runs" if TESTS_RUNNING else Path(SETTINGS["runs_dir"])
             worker = os.environ.get("PYTEST_XDIST_WORKER")
             if worker and TESTS_RUNNING:  # isolate parallel pytest-xdist workers
                 base = base / worker

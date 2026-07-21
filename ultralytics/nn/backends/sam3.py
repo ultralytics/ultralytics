@@ -181,6 +181,7 @@ class SAM3Backend:
         self._trt_contexts: dict = {}
         self._trt_engines: dict = {}
         self._trt_io_dtypes: dict[str, dict[str, torch.dtype]] = {}
+        self._trt_activation: dict[str, torch.Tensor] = {}  # per-engine activation memory, grow-only
         self._cuda_stream = torch.cuda.Stream(device=self.device)
 
         _np2torch = {
@@ -211,7 +212,11 @@ class SAM3Backend:
                     f.seek(0)
                 engine = runtime.deserialize_cuda_engine(f.read())
 
-            ctx = engine.create_execution_context()
+            # Contexts are created without device memory: the default strategy preallocates
+            # activation memory for the MAX optimization profile, which for the memory
+            # attention engine (32 objects x 16 memory frames) exceeds 20GB. _run_trt sizes
+            # and attaches activation memory for the actual shapes of each call instead.
+            ctx = engine.create_execution_context_without_device_memory()
             # Only per-tensor dtypes are needed at load time; _run_trt sets shapes and
             # allocates all output buffers at runtime (outputs can be dynamic).
             io_dt = {
@@ -276,15 +281,25 @@ class SAM3Backend:
                 ctx.set_tensor_address(name, tensor.data_ptr())
                 tensors.append(tensor)
 
+        # Attach activation memory sized for the CURRENT shapes (contexts are created without
+        # device memory to avoid max-profile preallocation); grow-only cache per engine.
+        size = int(ctx.update_device_memory_size_for_shapes())
+        buf = self._trt_activation.get(stem)
+        if size > 0 and (buf is None or buf.numel() < size):
+            buf = torch.empty(size, dtype=torch.uint8, device=self.device)
+            self._trt_activation[stem] = buf
+        if buf is not None:
+            ctx.set_device_memory(buf.data_ptr(), buf.numel())
+
         # (Re)allocate output buffers based on current shapes (handles dynamic outputs).
         out_bufs = {}
         for i in range(engine.num_io_tensors):
             tname = engine.get_tensor_name(i)
             if engine.get_tensor_mode(tname) == trt.TensorIOMode.OUTPUT:
                 shape = tuple(ctx.get_tensor_shape(tname))
-                buf = torch.empty(shape, dtype=io_dt[tname], device=self.device)
-                out_bufs[tname] = buf
-                ctx.set_tensor_address(tname, buf.data_ptr())
+                out = torch.empty(shape, dtype=io_dt[tname], device=self.device)
+                out_bufs[tname] = out
+                ctx.set_tensor_address(tname, out.data_ptr())
 
         ctx.execute_async_v3(self._cuda_stream.cuda_stream)
         self._cuda_stream.synchronize()
@@ -1056,6 +1071,7 @@ class SAM3Backend:
         else:
             self._trt_contexts.clear()
             self._trt_engines.clear()
+            self._trt_activation.clear()
         self.text_embeddings.clear()
 
     def __repr__(self) -> str:

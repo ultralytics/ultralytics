@@ -405,6 +405,10 @@ QUANTIZE_PRECISIONS = (
 )
 
 
+class ExportEnvironmentError(RuntimeError):
+    """Exception raised when the local environment cannot run an otherwise valid export."""
+
+
 def validate_args(format, passed_args, valid_args):
     """Validate arguments based on the export format.
 
@@ -577,8 +581,10 @@ class Exporter:
             self.device = select_device("cpu" if self.args.device is None else self.args.device)
         except ValueError as e:
             if fmt == "engine" and not torch.cuda.is_available():
-                raise OSError(str(e)) from e
+                raise ExportEnvironmentError(str(e)) from e
             raise
+        if fmt == "engine" and self.device.type == "cpu":
+            raise ExportEnvironmentError("TensorRT export requires GPU, i.e. use device=0")
 
         # Argument compatibility checks
         fmt_keys = dict(zip(fmts_dict["Argument"], fmts_dict["Arguments"]))[fmt]
@@ -595,7 +601,7 @@ class Exporter:
             self.args.data = TASK2CALIBRATIONDATA.get(model.task)
         if fmt == "hailo":
             if not LINUX or ARM64:
-                raise OSError("Hailo export is only supported on Linux x86_64.")
+                raise ExportEnvironmentError("Hailo export is only supported on Linux x86_64.")
             blocks = {str(x[2]) for x in model.yaml.get("backbone", []) + model.yaml.get("head", [])}
             family = Path(getattr(model, "yaml_file", None) or model.yaml.get("yaml_file", "")).stem.lower() or (
                 "yolov8" if "C2f" in blocks else "yolo11" if {"C3k2", "C2PSA"} <= blocks else ""
@@ -750,7 +756,7 @@ class Exporter:
             )
         if fmt == "edgetpu":
             if not LINUX or ARM64:
-                raise OSError(
+                raise ExportEnvironmentError(
                     "Edge TPU export only supported on non-aarch64 Linux. See https://coral.ai/docs/edgetpu/compiler"
                 )
             elif self.args.batch != 1:  # see github.com/ultralytics/ultralytics/pull/13420
@@ -1167,7 +1173,7 @@ class Exporter:
         ``quantize='w8a32'`` (dynamic/weight-only INT8, int8 weights + FP32 activations, no calibration needed).
         """
         if not MACOS and (not LINUX or ARM64):
-            raise OSError("LiteRT export only supported on Linux x86 and macOS")
+            raise ExportEnvironmentError("LiteRT export only supported on Linux x86 and macOS")
         from ultralytics.utils.export.litert import torch2litert
 
         return torch2litert(
@@ -1371,9 +1377,9 @@ class Exporter:
     def export_axelera(self, prefix=colorstr("Axelera:")):
         """Export YOLO model to Axelera format."""
         if not LINUX or (ARM64 and IS_DOCKER):
-            raise OSError("export is only supported on Linux and is not supported on ARM64 Docker.")
+            raise ExportEnvironmentError("export is only supported on Linux and is not supported on ARM64 Docker.")
         if not TORCH_2_8:
-            raise OSError("export requires torch>=2.8.0.")
+            raise ExportEnvironmentError("export requires torch>=2.8.0.")
 
         from ultralytics.utils.export.axelera import torch2axelera
 
@@ -1448,12 +1454,12 @@ class Exporter:
     def export_imx(self, prefix=colorstr("IMX:")):
         """Export YOLO model to IMX format."""
         if not LINUX:
-            raise OSError(
+            raise ExportEnvironmentError(
                 "Export only supported on Linux."
                 "See https://developer.aitrios.sony-semicon.com/en/docs/raspberry-pi-ai-camera/imx500-converter?version=3.17.3&progLang="
             )
         if not IS_PYTHON_MINIMUM_3_9:
-            raise OSError("IMX export is only supported on Python 3.9 or above.")
+            raise ExportEnvironmentError("IMX export is only supported on Python 3.9 or above.")
 
         if getattr(self.model, "end2end", False):
             raise ValueError("IMX export is not supported for end2end models.")
@@ -1474,7 +1480,7 @@ class Exporter:
     def export_deepx(self, prefix=colorstr("DEEPX:")):
         """Export YOLO model to DEEPX format."""
         if not LINUX or ARM64:
-            raise OSError("DEEPX export only supported on non-aarch64 Linux")
+            raise ExportEnvironmentError("DEEPX export only supported on non-aarch64 Linux")
         from ultralytics.utils.export.deepx import onnx2deepx
 
         f = self.export_onnx()

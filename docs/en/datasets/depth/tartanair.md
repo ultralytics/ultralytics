@@ -27,6 +27,38 @@ The TartanAir depth dataset is split into two subsets:
 
 Each RGB image is paired with a `.npy` float32 depth map storing per-pixel distances in meters, following the [Ultralytics depth dataset format](index.md).
 
+## Obtain the Data
+
+TartanAir has no autodownload — the data is distributed by CMU's AirLab (see the [dataset page](https://theairlab.org/tartanair-dataset/) for terms) and downloaded with the [tartanair_tools](https://github.com/castacks/tartanair_tools) scripts:
+
+```bash
+git clone https://github.com/castacks/tartanair_tools && cd tartanair_tools
+python download_training.py --output-dir ./data --rgb --depth --only-left --unzip
+```
+
+Depth is already stored as float32 `.npy` in meters (`depth_left/*_left_depth.npy` next to `image_left/*_left.png`), so conversion is just re-arranging and invalidating the sky (rendered as extreme distances; the released mix clips at 80 m to match the [dataset YAML](#dataset-yaml)). TartanAir ships no official val split — hold out one or more environments. Reference conversion to the [Ultralytics depth dataset format](index.md):
+
+```python
+from pathlib import Path
+import shutil
+
+import numpy as np
+
+VAL_ENVS = {"neighborhood"}  # environments held out for validation
+src, dst = Path("data"), Path("datasets/depth-tartanair")
+for depth_file in sorted(src.rglob("depth_left/*_left_depth.npy")):
+    env, traj = depth_file.parts[-5], depth_file.parts[-3]
+    out = "val" if env.lower() in VAL_ENVS else "train"
+    (dst / f"images/{out}").mkdir(parents=True, exist_ok=True)
+    (dst / f"depth/{out}").mkdir(parents=True, exist_ok=True)
+    depth = np.load(depth_file)
+    depth[depth > 80.0] = 0.0  # sky/extreme range → 0 = invalid
+    frame = depth_file.name.replace("_depth.npy", "")  # e.g. 000000_left
+    name = f"{env}_{traj}_{frame}"
+    np.save(dst / f"depth/{out}/{name}.npy", depth)
+    shutil.copy(depth_file.parents[1] / "image_left" / f"{frame}.png", dst / f"images/{out}/{name}.png")
+```
+
 ## Role in YOLO26-Depth
 
 TartanAir is one of the **training sources** in the broad multi-dataset mixture (~2.19M images) used to pretrain the Ultralytics YOLO26-Depth models. Within this mix, TartanAir contributes synthetic environmental diversity and long-range outdoor geometry that complement indoor and real-world sources.

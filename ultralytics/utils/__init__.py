@@ -130,7 +130,7 @@ HELP_MSG = """
 
             yolo TASK MODE ARGS
 
-            Where   TASK (optional) is one of [detect, segment, semantic, classify, pose, obb]
+            Where   TASK (optional) is one of [detect, segment, semantic, classify, pose, obb, depth]
                     MODE (required) is one of [train, val, predict, export, track, benchmark]
                     ARGS (optional) are any number of custom "arg=value" pairs like "imgsz=320" that override defaults.
                         See all ARGS at https://docs.ultralytics.com/usage/cfg or with "yolo cfg"
@@ -1167,7 +1167,8 @@ def threaded(func):
         func (callable): The function to be potentially executed in a separate thread.
 
     Returns:
-        (callable): A wrapper function that either returns a daemon thread or the direct function result.
+        (callable): A wrapper function that either returns a thread or the direct function result. The thread is
+            non-daemon so interpreter shutdown joins it before module teardown, avoiding teardown races.
 
     Examples:
         >>> @threaded
@@ -1181,7 +1182,9 @@ def threaded(func):
     def wrapper(*args, **kwargs):
         """Multi-thread a given function based on 'threaded' kwarg and return the thread or function result."""
         if kwargs.pop("threaded", True):  # run in thread
-            thread = threading.Thread(target=func, args=args, kwargs=kwargs, daemon=True)
+            # Non-daemon so interpreter shutdown joins the thread before module teardown; a daemon thread still
+            # running at exit can be killed mid-C-call, aborting the process (e.g. 'FATAL: exception not rethrown').
+            thread = threading.Thread(target=func, args=args, kwargs=kwargs, daemon=False)
             thread.start()
             return thread
         else:

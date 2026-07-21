@@ -1,13 +1,13 @@
 ---
 title: YOLO Python Usage
 comments: true
-description: Learn to integrate Ultralytics YOLO in Python for object detection, segmentation, semantic segmentation, and classification. Load and train models, and make predictions easily with our comprehensive guide.
-keywords: YOLO, Python, object detection, segmentation, semantic segmentation, classification, machine learning, AI, pretrained models, train models, make predictions
+description: Learn to integrate Ultralytics YOLO in Python for object detection, segmentation, semantic segmentation, depth estimation, and classification. Load and train models, and make predictions easily with our comprehensive guide.
+keywords: YOLO, Python, object detection, segmentation, semantic segmentation, depth estimation, classification, machine learning, AI, pretrained models, train models, make predictions
 ---
 
 # Python Usage
 
-Welcome to the Ultralytics YOLO Python Usage documentation! This guide is designed to help you seamlessly integrate Ultralytics YOLO into your Python projects for [object detection](https://www.ultralytics.com/glossary/object-detection), [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), and [classification](../tasks/classify.md). Here, you'll learn how to load and use pretrained models, train new models, and perform predictions on images. The easy-to-use Python interface is a valuable resource for anyone looking to incorporate YOLO into their Python projects, allowing you to quickly implement advanced object detection capabilities. Let's get started!
+Welcome to the Ultralytics YOLO Python Usage documentation! This guide is designed to help you seamlessly integrate Ultralytics YOLO into your Python projects for [object detection](https://www.ultralytics.com/glossary/object-detection), [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), [depth estimation](../tasks/depth.md), and [classification](../tasks/classify.md). Here, you'll learn how to load and use pretrained models, train new models, and perform predictions on images. The easy-to-use Python interface is a valuable resource for anyone looking to incorporate YOLO into their Python projects, allowing you to quickly implement advanced object detection capabilities. Let's get started!
 
 <p align="center">
   <br>

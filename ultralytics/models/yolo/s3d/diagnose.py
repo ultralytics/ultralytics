@@ -9,9 +9,12 @@ probes and a gradient-conflict callback. Literature basis: MonoDLE (CVPR 2021) o
 
 from __future__ import annotations
 
+from dataclasses import replace
 from typing import Any
 
 import numpy as np
+
+ORACLE_COMPONENTS = ("z", "y", "xy", "location", "dims", "orientation", "score")
 
 
 def match_stats(stats: list[dict[str, Any]], max_center_dist: float = 4.0) -> list[list[int]]:
@@ -121,6 +124,108 @@ def summarize_errors(records: list[dict[str, float]]) -> dict[str, float]:
         "frac_iou3d_ge_50": float((arr["iou3d"] >= 0.5).mean()),
         "frac_iou3d_ge_70": float((arr["iou3d"] >= 0.7).mean()),
     }
+
+
+def oracle_swap(
+    stats: list[dict[str, Any]], component: str, matches: list[list[int]] | None = None
+) -> list[dict[str, Any]]:
+    """Return a copy of stats with one predicted component replaced by GT (MonoDLE-style oracle).
+
+    Matched preds get the GT value for ``component``; IoU matrices are recomputed — except for the "score"
+    ranking oracle, which only re-scores confidence by achieved 3D IoU (TIDE3D style). Component semantics:
+    "z" replaces depth AND rescales x,y by z_gt/z_pred (preserves the camera ray, i.e. the image-plane center);
+    "y" replaces the vertical center only (height/Y hypothesis); "xy" replaces the lateral/vertical center
+    keeping depth; "location" replaces the full 3D center; "dims"/"orientation" replace those fields.
+
+    Args:
+        stats (list[dict]): Per-image stat dicts.
+        component (str): One of ORACLE_COMPONENTS.
+        matches (list[list[int]], optional): Precomputed match_stats output.
+
+    Returns:
+        (list[dict]): New stat dicts; input stats and Box3D objects are not mutated.
+    """
+    from ultralytics.models.yolo.s3d.val import compute_3d_iou_batch, compute_bev_iou_batch
+
+    if component not in ORACLE_COMPONENTS:
+        raise ValueError(f"Unknown oracle component {component!r}; expected one of {ORACLE_COMPONENTS}")
+    if matches is None:
+        matches = match_stats(stats)
+
+    out = []
+    for stat, match in zip(stats, matches):
+        preds, gts = stat["pred_boxes"], stat["gt_boxes"]
+        new_preds = []
+        for pi, pb in enumerate(preds):
+            gi = match[pi]
+            if component == "score":
+                iou = stat["iou_matrix"]
+                q = float(iou[pi].max()) if iou.size else 0.0
+                new_preds.append(replace(pb, confidence=min(max(q, 0.0), 1.0)))
+                continue
+            if gi < 0:
+                new_preds.append(pb)
+                continue
+            gb = gts[gi]
+            x, y, z = pb.center_3d
+            if component == "z":
+                zg = gb.center_3d[2]
+                s = zg / z if z > 0 else 1.0
+                new_preds.append(replace(pb, center_3d=(x * s, y * s, zg)))
+            elif component == "y":
+                new_preds.append(replace(pb, center_3d=(x, gb.center_3d[1], z)))
+            elif component == "xy":
+                new_preds.append(replace(pb, center_3d=(gb.center_3d[0], gb.center_3d[1], z)))
+            elif component == "location":
+                new_preds.append(replace(pb, center_3d=gb.center_3d))
+            elif component == "dims":
+                new_preds.append(replace(pb, dimensions=gb.dimensions))
+            elif component == "orientation":
+                new_preds.append(replace(pb, orientation=gb.orientation))
+        new_stat = dict(stat)
+        new_stat["pred_boxes"] = new_preds
+        if component != "score":
+            new_stat["iou_matrix"] = compute_3d_iou_batch(new_preds, gts)
+            new_stat["bev_iou_matrix"] = compute_bev_iou_batch(new_preds, gts)
+        out.append(new_stat)
+    return out
+
+
+def run_metrics(stats: list[dict[str, Any]], names: dict[int, str]) -> dict[str, Any]:
+    """Run Stereo3DDetMetrics over a stats list and return its results_dict."""
+    from ultralytics.models.yolo.s3d.metrics import Stereo3DDetMetrics
+
+    m = Stereo3DDetMetrics(names=names)
+    for stat in stats:
+        m.update_stats(stat)
+    m.process()
+    return m.results_dict
+
+
+def oracle_ladder(
+    stats: list[dict[str, Any]],
+    names: dict[int, str],
+    components: tuple[str, ...] = ORACLE_COMPONENTS,
+    keys: tuple[str, ...] = ("ap3d_50", "ap3d_70", "apbev_50", "apbev_70"),
+) -> dict[str, dict[str, float]]:
+    """Compute the one-at-a-time GT-substitution ladder: ΔAP per component quantifies its headroom.
+
+    Args:
+        stats (list[dict]): Per-image stat dicts from a completed validation run.
+        names (dict[int, str]): Class id → name mapping for the metrics.
+        components (tuple[str, ...]): Oracle components to evaluate.
+        keys (tuple[str, ...]): results_dict keys to report per rung.
+
+    Returns:
+        (dict[str, dict[str, float]]): {"baseline": {key: val}, "<component>": {key: val}, ...}.
+    """
+    matches = match_stats(stats)
+    baseline_rd = run_metrics(stats, names)
+    ladder = {"baseline": {k: float(baseline_rd.get(k, 0.0)) for k in keys}}
+    for comp in components:
+        rd = run_metrics(oracle_swap(stats, comp, matches), names)
+        ladder[comp] = {k: float(rd.get(k, 0.0)) for k in keys}
+    return ladder
 
 
 def depth_bias_fit(records: list[dict[str, float]]) -> tuple[float, float, float]:

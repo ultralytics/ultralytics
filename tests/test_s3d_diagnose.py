@@ -81,6 +81,59 @@ def test_summarize_errors():
     assert s["frac_iou3d_ge_50"] == pytest.approx(0.5)
 
 
+def test_oracle_swap_z_restores_iou():
+    """A pred that only errs in depth becomes a perfect box under the z oracle."""
+    from ultralytics.models.yolo.s3d.diagnose import oracle_swap
+
+    # y=0 keeps the box on the optical axis so the ray-preserving rescale is identity in x,y
+    gt = [_box(y=0.0, z=20.0)]
+    pred = [_box(y=0.0, z=21.5)]
+    swapped = oracle_swap([_stat(pred, gt)], "z")
+    sb = swapped[0]["pred_boxes"][0]
+    assert sb.center_3d[2] == pytest.approx(20.0)
+    assert swapped[0]["iou_matrix"][0, 0] == pytest.approx(1.0, abs=1e-3)
+    # original stats untouched
+    assert _stat(pred, gt)["pred_boxes"][0].center_3d[2] == pytest.approx(21.5)
+
+
+def test_oracle_swap_z_rescales_xy():
+    """Depth oracle preserves the camera ray: x scales by z_gt/z_pred."""
+    from ultralytics.models.yolo.s3d.diagnose import oracle_swap
+
+    gt = [_box(x=2.0, z=20.0)]
+    pred = [_box(x=2.2, z=22.0)]
+    sb = oracle_swap([_stat(pred, gt)], "z")[0]["pred_boxes"][0]
+    assert sb.center_3d[2] == pytest.approx(20.0)
+    assert sb.center_3d[0] == pytest.approx(2.2 * 20.0 / 22.0)
+
+
+def test_oracle_score_reranks():
+    """Ranking oracle sets confidence to achieved 3D IoU."""
+    from ultralytics.models.yolo.s3d.diagnose import oracle_swap
+
+    gt = [_box(z=20.0)]
+    pred = [_box(z=20.1, conf=0.3), _box(x=15.0, z=50.0, conf=0.95)]  # good box low conf, bad box high conf
+    swapped = oracle_swap([_stat(pred, gt)], "score")
+    confs = [b.confidence for b in swapped[0]["pred_boxes"]]
+    assert confs[0] > confs[1]
+
+
+def test_oracle_ladder_orders_headroom():
+    """With depth as the only error source, the z oracle recovers more AP than the dims oracle."""
+    from ultralytics.models.yolo.s3d.diagnose import oracle_ladder
+
+    stats = []
+    rng = np.random.default_rng(1)
+    for _ in range(12):
+        gt = [_box(z=float(rng.uniform(10, 40)))]
+        # depth off by ~8%, dims off by 2% → depth is the binding error
+        pred = [_box(z=gt[0].center_3d[2] * 1.08, dims=(4.08, 1.836, 1.53))]
+        stats.append(_stat(pred, gt))
+    ladder = oracle_ladder(stats, {0: "Car"}, components=("z", "dims"))
+    assert ladder["z"]["ap3d_70"] >= ladder["dims"]["ap3d_70"]
+    assert ladder["z"]["ap3d_70"] >= ladder["baseline"]["ap3d_70"]
+
+
 def test_depth_bias_fit_recovers_slope():
     """dz = 0.05*z + 0.1 exactly → fit recovers (0.05, 0.1, ~0)."""
     rng = np.random.default_rng(0)

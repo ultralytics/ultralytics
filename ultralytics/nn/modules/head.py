@@ -881,7 +881,7 @@ class WorldDetect(Detect):
 
     def forward(self, x: list[torch.Tensor], text: torch.Tensor) -> dict[str, torch.Tensor] | tuple:
         """Concatenate and return predicted bounding boxes and class probabilities."""
-        feats = [xi.clone() for xi in x]  # save original features for anchor generation
+        feats = list(x)  # snapshot references for anchor generation; the loop below reassigns x[i], never mutates
         for i in range(self.nl):
             x[i] = torch.cat((self.cv2[i](x[i]), self.cv4[i](self.cv3[i](x[i]), text)), 1)
         self.no = self.nc + self.reg_max * 4  # self.nc could be changed when inference with different texts

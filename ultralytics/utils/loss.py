@@ -364,6 +364,9 @@ class RankLoss(nn.Module):
             leaves the coarser P4/P5 anchors untouched.
         in_gt (bool): Draw each positive's rank negatives from the anchors inside its own matched GT box (the
             same-object duplicates) instead of the top-K highest-scoring same-class anchors across the image.
+        agn (bool): Class-agnostic image-wide ranking: push each positive's GT-class score above the top-K hardest
+            background anchors' max-class score over the whole image, instead of same-class negatives. Takes precedence
+            over ``in_gt`` and groups positives by image only.
         logits (bool): Rank on raw classification logits instead of sigmoid probabilities.
     """
 
@@ -375,6 +378,7 @@ class RankLoss(nn.Module):
         w_rank: float = 1.0,
         p3_only: bool = False,
         in_gt: bool = False,
+        agn: bool = False,
         logits: bool = False,
     ):
         """Initialize the ranking loss with temperature, hard-negative count, rank/sort weights and pool scope."""
@@ -385,6 +389,7 @@ class RankLoss(nn.Module):
         self.w_rank = w_rank
         self.p3_only = p3_only
         self.in_gt = in_gt
+        self.agn = agn
         self.logits = logits
 
     def forward(
@@ -431,8 +436,17 @@ class RankLoss(nn.Module):
         counts = torch.bincount(inv)  # (G,)
         G = counts.numel()
 
-        # rank: push each positive above its same-class negatives (softplus surrogate); pool depends on in_gt
-        if self.in_gt:  # negatives = anchors inside the positive's own GT box (same-object duplicates)
+        # rank: push each positive above its negatives (softplus surrogate); pool depends on agn/in_gt
+        inv_r, counts_r = inv, counts  # rank grouping defaults to (image, class); agn regroups by image only
+        if self.agn:  # negatives = top-K hardest background anchors image-wide, class-agnostic (max-class score)
+            k = min(self.k_neg, N)
+            neg_conf = scores.amax(-1).masked_fill(pos.any(-1), float("-inf"))  # (B, N) per-anchor max conf, bg only
+            neg = neg_conf.topk(k, dim=1).values[b_id].float()  # (M, k) each positive's hardest background negatives
+            kcnt = neg.isfinite().sum(1).clamp(min=1)  # valid negatives per positive
+            per_pos = F.softplus((neg - s_pos[:, None]) / self.tau).sum(1) / kcnt  # (M,) mean over negatives
+            _, inv_r = torch.unique(b_id, return_inverse=True)  # class-agnostic: group positives by image
+            counts_r = torch.bincount(inv_r)
+        elif self.in_gt:  # negatives = anchors inside the positive's own GT box (same-object duplicates)
             gt_of_pos = target_gt_idx[b_id, pos_idx[:, 1]]  # (M,) GT each positive is matched to
             neg_mask = mask_in_gts[b_id, gt_of_pos].bool() & ~pos[b_id, :, c_id]  # (M, N) in-box, non-positive
             neg = scores[b_id, :, c_id].float()  # (M, N) each positive's same-class scores
@@ -444,7 +458,7 @@ class RankLoss(nn.Module):
             neg = neg_topk[b_id, :, c_id].float()  # (M, k) each positive's hard negatives
             kcnt = neg.isfinite().sum(1).clamp(min=1)  # valid negatives per positive
             per_pos = F.softplus((neg - s_pos[:, None]) / self.tau).sum(1) / kcnt  # (M,) mean over negatives
-        group_rank = per_pos.new_zeros(G).scatter_add_(0, inv, per_pos) / counts  # (G,) per-group mean
+        group_rank = per_pos.new_zeros(counts_r.numel()).scatter_add_(0, inv_r, per_pos) / counts_r  # per-group mean
         total_rank = group_rank.sum()
 
         # sort: within a group, higher-IoU positives must score higher (padded (G, Pmax, Pmax), P==1 groups give 0)
@@ -461,7 +475,7 @@ class RankLoss(nn.Module):
             wi = (pad_i[:, :, None] - pad_i[:, None, :]).clamp(min=0) * (valid[:, :, None] & valid[:, None, :])
             total_sort = ((wi * F.softplus(di)).sum((1, 2)) / wi.sum((1, 2)).clamp(min=1)).sum()
 
-        return (self.w_rank * total_rank + self.w_sort * total_sort) / G
+        return self.w_rank * total_rank / counts_r.numel() + self.w_sort * total_sort / G
 
 
 class v8DetectionLoss:
@@ -1645,6 +1659,7 @@ class E2ELoss:
                 w_rank=getattr(model.args, "rank_w_rank", 1.0),
                 p3_only=getattr(model.args, "rank_p3_only", False),
                 in_gt=in_gt,
+                agn=getattr(model.args, "rank_agn", False),
                 logits=getattr(model.args, "rank_logits", False),
             )
             if in_gt:  # o2o assigner must cache the in-GT-box mask for the rank loss

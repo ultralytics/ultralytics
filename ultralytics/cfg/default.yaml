@@ -138,6 +138,7 @@ rank_w_sort: 0.5 # (float) when rank>0, weight of the IoU-sort term relative to 
 rank_w_rank: 1.0 # (float) when rank>0, weight of the rank term (set 0 to train the sort term alone)
 rank_p3_only: False # (bool) when rank>0, apply the ranking loss only to the finest (P3, smallest-stride) level
 rank_in_gt: False # (bool) when rank>0, draw rank negatives from each positive's own GT box instead of top-K image scores
+rank_agn: False # (bool) when rank>0, class-agnostic image-wide ranking: push positives above the top-K hardest background anchors' max-class score
 rank_logits: False # (bool) when rank>0, rank on raw logits instead of sigmoid probabilities
 stride_val_thr: False # (bool) enlarge every GT smaller than stride_val (not just smaller than the smallest stride) up to stride_val during candidate selection
 stride_val_size: # (float, optional) when stride_val_thr, override the shared min-wh threshold & enlarge value (empty=stride_val)

@@ -19,7 +19,7 @@ class RTDETRTrainer(DetectionTrainer):
     inference speed.
 
     Attributes:
-        loss_names (tuple): Names of the loss components used for training.
+        loss_names (tuple): Names of the loss components, derived from the loss dict returned by the criterion.
         data (dict): Dataset configuration containing class count and other parameters.
         args (dict): Training arguments and hyperparameters.
         save_dir (Path): Directory to save training results.
@@ -87,5 +87,4 @@ class RTDETRTrainer(DetectionTrainer):
 
     def get_validator(self):
         """Return an RTDETRValidator suitable for RT-DETR model validation."""
-        self.loss_names = "giou_loss", "cls_loss", "l1_loss"
         return RTDETRValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))

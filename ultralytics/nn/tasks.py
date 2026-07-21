@@ -994,7 +994,7 @@ class RTDETRDetectionModel(DetectionModel):
 
         Returns:
             (torch.Tensor): Total loss value.
-            (torch.Tensor): Main three losses in a tensor.
+            (dict): Main three losses in a dict.
         """
         if not hasattr(self, "criterion"):
             self.criterion = self.init_criterion()
@@ -1027,9 +1027,11 @@ class RTDETRDetectionModel(DetectionModel):
             (dec_bboxes, dec_scores), targets, dn_bboxes=dn_bboxes, dn_scores=dn_scores, dn_meta=dn_meta
         )
         # NOTE: There are like 12 losses in RTDETR, backward with all losses but only show the main three losses.
-        return sum(loss.values()), torch.as_tensor(
-            [loss[k].detach() for k in ["loss_giou", "loss_class", "loss_bbox"]], device=img.device
-        )
+        return sum(loss.values()), {
+            "giou_loss": loss["loss_giou"].detach(),
+            "cls_loss": loss["loss_class"].detach(),
+            "l1_loss": loss["loss_bbox"].detach(),
+        }
 
     def predict(self, x, profile=False, visualize=False, batch=None, augment=False, embed=None):
         """Perform a forward pass through the model.

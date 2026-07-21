@@ -188,7 +188,6 @@ def _gt_probe_rows(validator, captured: dict) -> list[dict]:
 
 def _shift_probe(core, validator, shift_px: int) -> list[tuple[float, float]]:
     """Counterfactual right-image shift on the current batch: (base_z, shifted_z) per matched det pair."""
-
     batch = validator._current_batch
     decode_kw = dict(
         batch=batch,

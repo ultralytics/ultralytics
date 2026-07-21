@@ -165,7 +165,7 @@ def test_bootstrap_ap_tightens_with_perfect_preds():
 
     stats = [_stat([_box(z=z)], [_box(z=z)]) for z in (10.0, 20.0, 30.0, 40.0)]
     ci = bootstrap_ap(stats, {0: "Car"}, n=10, seed=0)
-    lo, med, hi = ci["ap3d_50"]
+    lo, _med, hi = ci["ap3d_50"]
     assert lo == pytest.approx(hi)
 
 
@@ -258,10 +258,9 @@ def test_component_losses_matches_loss_vector():
     import torch
 
     from ultralytics import YOLO
+    from ultralytics.cfg import get_cfg
     from ultralytics.models.yolo.s3d.diagnose import LOSS_COMPONENT_NAMES
     from ultralytics.models.yolo.s3d.orientation import ORIENT_CHANNELS
-
-    from ultralytics.cfg import get_cfg
 
     model = YOLO("yolo26n-s3d.yaml")  # build from YAML, no weights download
     core = model.model
@@ -284,7 +283,7 @@ def test_component_losses_matches_loss_vector():
     core.train()
     preds = core(batch["img"])
     comp = criterion.component_losses(preds, batch)
-    total, items = criterion.loss(preds, batch)
+    _total, items = criterion.loss(preds, batch)
     for i, name in enumerate(LOSS_COMPONENT_NAMES):
         assert float(comp[name]) == pytest.approx(float(items[i]), abs=1e-5)
     assert comp["depth"].requires_grad  # live graph, not detached
@@ -306,7 +305,7 @@ def test_render_report_and_rank():
 
 
 def test_depth_bias_fit_recovers_slope():
-    """dz = 0.05*z + 0.1 exactly → fit recovers (0.05, 0.1, ~0)."""
+    """Dz = 0.05*z + 0.1 exactly → fit recovers (0.05, 0.1, ~0)."""
     rng = np.random.default_rng(0)
     recs = [{"z_gt": z, "dz": 0.05 * z + 0.1} for z in rng.uniform(5, 60, 50)]
     a, b, resid = depth_bias_fit(recs)

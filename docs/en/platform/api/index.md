@@ -1,4 +1,5 @@
 ---
+plans: [free, pro, enterprise]
 comments: true
 description: Complete REST API reference for Ultralytics Platform including authentication, endpoints, and examples for datasets, models, and deployments.
 keywords: Ultralytics Platform, REST API, API reference, authentication, endpoints, YOLO, programmatic access
@@ -112,7 +113,7 @@ Authorization: Bearer YOUR_API_KEY
 
 All API endpoints use:
 
-```
+```text
 https://platform.ultralytics.com/api
 ```
 
@@ -586,7 +587,7 @@ Create a dataset ingest job for an existing dataset. The target dataset is alway
 
 The request body requires `datasetId` plus exactly one of `sessionId` (an uploaded archive's upload session) or `sourceUrl` (a remote ZIP, TAR, TAR.GZ, TGZ, or NDJSON URL). Add optional `targetSplit` (`train`, `val`, or `test`) to override the archive's split structure.
 
-For uploaded archives, the upload session is already bound to the dataset by the `assetId` passed to `POST /api/upload/signed-url`; ingest validates that `assetId` matches the body `datasetId`. For remote `sourceUrl` imports, create the dataset first, then pass its `datasetId` to ingest.
+For uploaded archives, the upload session is already bound to the dataset by the `assetId` passed to `POST /api/upload/signed-url`; ingest validates that `assetId` matches the body `datasetId`. Optional `classMapping` entries map each incoming class name to an existing zero-based class index, a class name to reuse or create, or `null` to skip the class. For remote `sourceUrl` imports, create the dataset first, then pass its `datasetId` to ingest.
 
 **Body (uploaded archive):**
 
@@ -606,6 +607,20 @@ For uploaded archives, the upload session is already bound to the dataset by the
     "sourceUrl": "https://example.com/my-dataset.zip"
 }
 ```
+
+**Body (later ingest, importing labels):**
+
+```json
+{
+    "datasetId": "dataset_abc123",
+    "sessionId": "session_abc123",
+    "classMapping": { "person": 0, "automobile": "car", "background": null }
+}
+```
+
+!!! note "Class Mapping"
+
+    The first ingest creates classes from the archive automatically. On later ingests, archive classes omitted from `classMapping` first fall back to a case-insensitive match against existing dataset classes. Labels are skipped only for classes explicitly mapped to `null` or without a matching existing class.
 
 **Response:**
 
@@ -750,7 +765,11 @@ POST /api/projects
     curl -X POST \
       -H "Authorization: Bearer YOUR_API_KEY" \
       -H "Content-Type: application/json" \
-      -d '{"name": "my-project", "slug": "my-project", "description": "Detection experiments"}' \
+      -d '{
+        "name": "my-project",
+        "slug": "my-project",
+        "description": "Detection experiments"
+      }' \
       https://platform.ultralytics.com/api/projects
     ```
 
@@ -760,7 +779,11 @@ POST /api/projects
     resp = requests.post(
         "https://platform.ultralytics.com/api/projects",
         headers={"Authorization": f"Bearer {API_KEY}"},
-        json={"name": "my-project", "slug": "my-project", "description": "Detection experiments"},
+        json={
+            "name": "my-project",
+            "slug": "my-project",
+            "description": "Detection experiments",
+        },
     )
     project_id = resp.json()["projectId"]
     ```
@@ -1173,7 +1196,7 @@ Creates a dedicated inference endpoint in the specified region. The endpoint is 
 
 !!! tip "Region Selection"
 
-    Choose a region close to your users for lowest latency. The platform UI shows latency estimates for all 43 available regions.
+    Choose a region close to your users for lowest latency. The platform UI shows latency estimates for all 42 available regions.
 
 ### Get Deployment
 
@@ -1301,12 +1324,12 @@ POST /api/exports
 
 **Body:**
 
-| Field     | Type   | Required    | Description                                             |
-| --------- | ------ | ----------- | ------------------------------------------------------- |
-| `modelId` | string | Yes         | Source model ID                                         |
-| `format`  | string | Yes         | Export format (see table below)                         |
-| `gpuType` | string | Conditional | Required when `format` is `engine` (TensorRT)           |
-| `args`    | object | No          | Export arguments (`imgsz`, `quantize`, `dynamic`, etc.) |
+| Field     | Type   | Required    | Description                                                                                                                   |
+| --------- | ------ | ----------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `modelId` | string | Yes         | Source model ID                                                                                                               |
+| `format`  | string | Yes         | Export format (see table below)                                                                                               |
+| `gpuType` | string | Conditional | Required when `format` is `engine`; use a supported [GPU or Jetson target](../train/models.md#nvidia-jetson-tensorrt-targets) |
+| `args`    | object | No          | Export arguments (`imgsz`, `quantize`, `dynamic`, etc.)                                                                       |
 
 === "cURL"
 
@@ -2401,7 +2424,7 @@ def api_request_with_retry(url, headers, max_retries=3):
 
 Resource IDs are returned when you create resources via the API. You can also find them in the platform URL:
 
-```
+```text
 https://platform.ultralytics.com/username/project/model-name
                                   ^^^^^^^^ ^^^^^^^ ^^^^^^^^^^
                                   username project   model

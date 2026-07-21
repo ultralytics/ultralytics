@@ -1,4 +1,5 @@
 ---
+plans: [free, pro, enterprise]
 comments: true
 description: Configure your Ultralytics Platform profile, preferences, and data settings with GDPR-compliant data export and deletion options.
 keywords: Ultralytics Platform, settings, profile, preferences, GDPR, data export, privacy
@@ -304,6 +305,7 @@ The `Integrations` tab lets you import datasets and projects from external servi
 
 - **Ultralytics HUB** — import your existing datasets and projects from [Ultralytics HUB](../integrations/ultralytics-hub.md).
 - **Roboflow** — import annotated datasets from a [Roboflow](../integrations/roboflow.md) workspace using a Roboflow API key.
+- **On Premise** — connect Enterprise CPU/GPU workers and keep dataset pixels on your own host. See [On Premise](../integrations/on-premise.md).
 - **Weights & Biases** — experiment-tracking sync (coming soon).
 
 See [Integrations](../integrations/index.md) for the full list of supported services.

@@ -1,8 +1,9 @@
 ---
+plans: [free, pro, enterprise]
 title: Platform Integrations
 comments: true
-description: Connect Ultralytics Platform to the tools you already use. Import from Ultralytics HUB and Roboflow, or train directly on data in Google Cloud Storage, Amazon S3, and Azure Blob Storage.
-keywords: Ultralytics Platform, integrations, data import, Roboflow, Ultralytics HUB, cloud storage, GCS, Amazon S3, Azure Blob Storage, dataset migration, YOLO, computer vision
+description: Connect Ultralytics Platform to existing tools, cloud storage, and Enterprise On Premise compute and datasets.
+keywords: Ultralytics Platform, integrations, data import, Roboflow, Ultralytics HUB, cloud storage, GCS, Amazon S3, Azure Blob Storage, On Premise, dataset migration, YOLO, computer vision
 ---
 
 # Integrations
@@ -30,6 +31,7 @@ Imports start with a preview so you can review exactly what will be transferred 
 | [**Google Cloud Storage**](google-cloud-storage.md) | Datasets indexed in place from your GCS buckets      |
 | [**Amazon S3**](amazon-s3.md)                       | Datasets indexed in place from your S3 buckets       |
 | [**Azure Blob Storage**](azure-blob-storage.md)     | Datasets indexed in place from your blob containers  |
+| [**On Premise**](on-premise.md)                     | Local CPU/GPU workers with pixels kept on your host  |
 
 Connect once and the matching content lands in your workspace. Google Cloud Storage, Amazon S3, and Azure Blob Storage connections require a [Pro or Enterprise plan](../account/billing.md#plans).
 

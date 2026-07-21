@@ -13,7 +13,7 @@ Subcommands:
     report  Aggregate shard findings and file GitHub issues via `gh` (stdlib only, no ultralytics import).
 
 Usage:
-    python .github/scripts/fuzz.py fuzz --budget-minutes 285 --seed 123 --personality chaos --out fuzz-out
+    python .github/scripts/fuzz.py fuzz --budget-minutes 300 --seed 123 --personality chaos --out fuzz-out
     python .github/scripts/fuzz.py repro "train detect model=yolo26n.pt data=coco8.yaml epochs=abc imgsz=32"
     python .github/scripts/fuzz.py report --in fuzz-out --max-issues 3 --dry-run
 """
@@ -26,6 +26,7 @@ import json
 import os
 import random
 import re
+import shlex
 import shutil
 import signal
 import subprocess
@@ -37,20 +38,20 @@ from pathlib import Path, PureWindowsPath
 # Per-mode subprocess timeouts (seconds) on Linux CPU runners, ~6-10x headroom over observed norms
 # Windows runners are ~2x slower (interpreter startup, filesystem), so all timeouts scale there
 TIMEOUT_SCALE = 2 if os.name == "nt" else 1
-MODE_TIMEOUTS = {"train": 360, "val": 180, "predict": 180, "export": 480}
+MODE_TIMEOUTS = {"train": 360, "val": 180, "predict": 180, "track": 240, "export": 480}
 CONFIRM_TIMEOUT = 180  # shorter secondary timeout when confirming hangs (never re-pay the full timeout)
 MAX_HANG_CONFIRMS = 5  # cap hang confirmations per shard so one pathological class can't eat the budget
 MIN_FREE_GB = 5  # stop fuzzing gracefully below this much free disk
 CANARY_FAIL_FRACTION = 0.2  # >20% unmutated known-good corpus failures marks the shard infra_failed
 
-MODES = ["train", "val", "predict", "export"]  # benchmark swallows exceptions; track/solutions deferred
+MODES = ["train", "val", "predict", "track", "export"]  # benchmark swallows exceptions; solutions deferred
 PERSONALITIES = {  # mode-selection weights only; mutation kernel and classifier are identical across shards
-    "train": {"train": 0.7, "val": 0.1, "predict": 0.1, "export": 0.1},
-    "export": {"train": 0.1, "val": 0.1, "predict": 0.1, "export": 0.7},
-    "predict-val": {"train": 0.1, "val": 0.4, "predict": 0.4, "export": 0.1},
-    "chaos": {"train": 0.25, "val": 0.25, "predict": 0.25, "export": 0.25},
+    "train": {"train": 0.7, "val": 0.075, "predict": 0.075, "track": 0.075, "export": 0.075},
+    "export": {"train": 0.075, "val": 0.075, "predict": 0.075, "track": 0.075, "export": 0.7},
+    "predict-val": {"train": 0.05, "val": 0.35, "predict": 0.35, "track": 0.2, "export": 0.05},
+    "chaos": {m: 0.2 for m in MODES},
 }
-STRATEGY_WEIGHTS = [("invalid", 0.4), ("combo", 0.4), ("corpus", 0.2)]
+STRATEGY_WEIGHTS = [("invalid", 0.4), ("combo", 0.4), ("source", 0.2)]
 
 # Cost/hazard keys pinned to clamped known-good values, never mutated (`time` is training duration in HOURS)
 NEVER_MUTATE = frozenset(
@@ -79,9 +80,27 @@ CLAMPS = {
     "train": "imgsz=32 epochs=1 batch=4 workers=2 cache=disk",
     "val": "imgsz=32",
     "predict": "imgsz=32",
+    "track": "imgsz=160",
     "export": "imgsz=32",
 }
-EXPORT_POOL = ["torchscript", "onnx", "openvino"]  # CPU-friendly with deps installed by the export-base extra
+EXPORT_POOL = ["torchscript", "onnx", "openvino"]  # CPU-friendly formats installed on every shard
+
+# Additional pretrained families with ordinary CLI contracts. Keep modes narrow to avoid prompt-only training paths.
+# The last field overrides CLAMPS: RT-DETR's 300-query decoder needs >=160px of anchors (below that is a T2 gap).
+ALTERNATE_CORPUS = (
+    ("detect", "rtdetr-l.pt", "coco8.yaml", {"val", "predict", "export"}, "imgsz=160"),
+    ("detect", "yolov8s-worldv2.pt", "coco8.yaml", {"predict", "export"}, ""),
+    ("segment", "yoloe-11s-seg-pf.pt", "coco8-seg.yaml", {"predict", "export"}, ""),
+)
+
+# Controlled variations for cost-sensitive keys excluded from arbitrary mutation.
+SAFE_BOUNDARIES = {
+    "train": ["imgsz=48", "imgsz=64", "batch=1", "batch=2", "workers=0", "workers=1"],
+    "val": ["imgsz=48", "imgsz=64", "batch=1", "batch=2", "workers=0", "workers=1"],
+    "predict": ["imgsz=48", "imgsz=64"],
+    "track": ["imgsz=128", "imgsz=192", "vid_stride=2"],
+    "export": ["imgsz=48", "imgsz=64", "batch=2"],
+}
 
 # Probe pools: "valid" values are supported inputs (deep failures are T1 bugs); "invalid" values are ones the
 # cfg layer SHOULD reject — by current checks or by missing range checks — so deep failures are T2 validation
@@ -132,6 +151,11 @@ COMBO_POOL = [
     ("predict", "retina_masks=True"),
     ("predict", "line_width=1 show_labels=False show_conf=False"),
     ("predict", "vid_stride=2 stream_buffer=True"),
+    ("track", "tracker=bytetrack.yaml"),
+    ("track", "tracker=botsort.yaml"),
+    ("track", "tracker=fasttrack.yaml"),
+    ("track", "save_txt=True save_conf=True"),
+    ("track", "vid_stride=2 stream_buffer=True"),
     ("export", "dynamic=True"),
     ("export", "nms=True"),
     ("export", "simplify=False"),
@@ -146,6 +170,9 @@ EXPECTED_MODULES = (
     "ultralytics/cfg/__init__.py",
     "ultralytics/utils/checks.py",
     "ultralytics/data/utils.py",
+    "ultralytics/data/augment.py:classify_augmentations",
+    "ultralytics/data/loaders.py:__init__",  # source loaders ARE the source-validation layer; their raises are clean
+    "ultralytics/engine/trainer.py:_setup_train",  # trainer validation of batch/imgsz interplay before training
     "ultralytics/engine/exporter.py:validate_args",  # exporter's intentional per-format argument validation
     "ultralytics/engine/exporter.py:__call__",  # intentional compat asserts; per-format bugs raise in deeper frames
 )
@@ -186,6 +213,7 @@ def load_universe():
         "float_keys": sorted(CFG_FLOAT_KEYS - NEVER_MUTATE - CFG_FRACTION_KEYS),
         "enum_keys": sorted(set(ENUM_POOLS) - NEVER_MUTATE),
         "source": str(ASSETS / "bus.jpg"),
+        "export_pool": [*EXPORT_POOL, *(["coreml"] if importlib.util.find_spec("coremltools") else [])],
         "logger": LOGGER,
     }
 
@@ -200,6 +228,47 @@ def precache_assets(uni):
         attempt_download_asset(WEIGHTS_DIR / uni["task2model"][task])
         data = uni["task2data"][task]
         check_cls_dataset(data) if str(data).startswith("imagenet") else check_det_dataset(data, autodownload=True)
+    for _task, model, *_ in ALTERNATE_CORPUS:
+        attempt_download_asset(WEIGHTS_DIR / model)
+
+    prepare_sources(uni)
+
+
+def prepare_sources(uni):
+    """Create cached valid and malformed media sources used by predict and track trials."""
+    from ultralytics.utils import ASSETS, ASSETS_URL, WEIGHTS_DIR
+    from ultralytics.utils.downloads import safe_download
+
+    source_dir = WEIGHTS_DIR.parent / "fuzz-sources"
+    source_dir.mkdir(parents=True, exist_ok=True)
+    unicode_image = source_dir / "path with spaces 🚀.jpg"
+    shutil.copy2(ASSETS / "bus.jpg", unicode_image)
+    empty_image, corrupt_image, empty_dir = source_dir / "empty.jpg", source_dir / "corrupt.jpg", source_dir / "empty"
+    empty_image.touch()
+    corrupt_image.write_bytes(b"not an image")
+    empty_dir.mkdir(exist_ok=True)
+    video = source_dir / "decelera_portrait_min.mov"
+    safe_download(f"{ASSETS_URL}/{video.name}", file=video)
+    uni["sources"] = {
+        "predict": [
+            (str(ASSETS / "bus.jpg"), True),
+            (str(ASSETS / "zidane.jpg"), True),
+            (str(ASSETS), True),
+            (str(unicode_image), True),
+            (str(video), True),
+            (str(empty_image), False),
+            (str(corrupt_image), False),
+            (str(empty_dir), False),
+        ],
+        "track": [
+            (str(video), True),
+            (str(unicode_image), True),
+            (str(empty_image), False),
+            (str(corrupt_image), False),
+            (str(empty_dir), False),
+        ],
+    }
+    uni["video"] = str(video)
 
 
 def strip_defaults(pairs, defaults):
@@ -214,41 +283,86 @@ def build_corpus(uni):
         # Bare weight names keep issue repro commands portable; they resolve against the precached weights_dir
         model, data = uni["task2model"][task], uni["task2data"][task]
         for mode in MODES:
+            if mode == "track" and task in {"classify", "semantic"}:
+                continue
             argv = [mode, task, f"model={model}", *strip_defaults(CLAMPS[mode].split(), uni["defaults"])]
             if mode in {"train", "val"}:
                 argv.append(f"data={data}")
             elif mode == "predict":
                 argv.append(f"source={uni['source']}")
+            elif mode == "track":
+                argv.append(f"source={uni['video']}")
             corpus.append({"mode": mode, "task": task, "argv": argv})  # export: default torchscript stays implicit
+    for task, model, data, modes, clamp in ALTERNATE_CORPUS:
+        for mode in modes:
+            argv = [mode, task, f"model={model}", *strip_defaults((clamp or CLAMPS[mode]).split(), uni["defaults"])]
+            if mode == "val":
+                argv.append(f"data={data}")
+            elif mode == "predict":
+                argv.append(f"source={uni['source']}")
+            pinned = {a.partition("=")[0] for a in clamp.split()}  # overridden keys are family floors: never varied
+            corpus.append({"mode": mode, "task": task, "argv": argv, "pinned": pinned})
     return corpus
 
 
 def sample_trial(rng, uni, corpus, personality):
-    """Sample one trial: pick a mode by personality weight, then a strategy (invalid/combo/corpus mutation)."""
+    """Sample one trial with canonical arguments from invalid, valid-combination, or source strategies."""
     weights = PERSONALITIES[personality]
     mode = rng.choices(MODES, weights=[weights[m] for m in MODES])[0]
     base = rng.choice([c for c in corpus if c["mode"] == mode])
     argv, mutated = list(base["argv"]), []
-    strategy = rng.choices([s for s, _ in STRATEGY_WEIGHTS], weights=[w for _, w in STRATEGY_WEIGHTS])[0]
+    strategies = STRATEGY_WEIGHTS if mode in {"predict", "track"} else STRATEGY_WEIGHTS[:2]
+    strategy = rng.choices([s for s, _ in strategies], weights=[w for _, w in strategies])[0]
 
     validity = {}  # key -> is its EFFECTIVE value supported: stripped args contribute nothing, duplicates last-win
 
     def mutate(pairs, valid=True):
         """Append the non-default k=v pairs to argv and record their keys as mutated."""
-        for a in strip_defaults(pairs, uni["defaults"]):
-            argv.append(a)
-            mutated.append(a.partition("=")[0])
-            validity[a.partition("=")[0]] = valid
+        for a in pairs:
+            key, _, value = a.partition("=")
+            argv[2:] = [x for x in argv[2:] if x.partition("=")[0] != key]  # last-value-wins; argv[:2] is mode/task
+            changed = value.lower() != str(uni["defaults"].get(key)).lower()
+            if changed:
+                argv.append(a)
+            if key not in mutated:
+                mutated.append(key)
+            validity[key] = valid or not changed  # a stripped default-valued arg leaves a supported effective value
+
+    def mutate_boundary():
+        """Vary one cost-sensitive key within its safe envelope, honoring the base entry's pinned family floors."""
+        pool = [b for b in SAFE_BOUNDARIES[mode] if b.partition("=")[0] not in base.get("pinned", ())]
+        if pool:
+            mutate([rng.choice(pool)])
+
+    def mutate_combos(max_groups=4):
+        """Combine compatible mode-specific argument groups without repeating keys."""
+        options = [c.split() for m, c in COMBO_POOL if m == mode]
+        rng.shuffle(options)
+        used, target = set(), rng.randint(1, max_groups)
+        for combo in options:
+            keys = {a.partition("=")[0] for a in combo}
+            if keys.isdisjoint(used):
+                mutate(combo)
+                used.update(keys)
+                target -= 1
+            if not target:
+                break
 
     if mode == "export":  # fuzz the format from the installable pool; the default torchscript stays implicit
-        mutate([f"format={rng.choice(EXPORT_POOL)}"])
+        mutate([f"format={rng.choice(uni['export_pool'])}"])
     if strategy == "combo":
-        mutate(rng.choice([c for m, c in COMBO_POOL if m == mode]).split())
+        mutate_combos()
+        mutate_boundary()
     elif strategy == "invalid":
         n_keys = rng.randint(1, 4 if personality == "chaos" else 3)
         for _ in range(n_keys):
             key, value, valid = sample_mutation(rng, uni, chaos=personality == "chaos")
             mutate([f"{key}={value}"], valid=valid)
+    else:
+        source, valid = rng.choice(uni["sources"][mode])
+        mutate([f"source={source}"], valid=valid)
+        mutate_combos(max_groups=2)
+        mutate_boundary()
     return {
         "mode": mode,
         "task": base["task"],
@@ -257,6 +371,15 @@ def sample_trial(rng, uni, corpus, personality):
         "mutated": mutated,
         "valid_input": all(validity.values()),
     }
+
+
+def probe_supported(key, value):
+    """Range floors where an otherwise-valid probe value is degenerate on the clamped fuzz corpora."""
+    if key == "fraction":  # below 0.25 the 4-image coco8 train splits select zero images
+        return float(value) >= 0.25
+    if key == "mask_ratio":  # the mask downsample ratio must stay within the clamped train imgsz
+        return 1 <= float(value) <= 16
+    return True
 
 
 def sample_mutation(rng, uni, chaos=False):
@@ -268,8 +391,17 @@ def sample_mutation(rng, uni, chaos=False):
     else:
         key = rng.choice(uni[f"{family}_keys"])
         pool = PROBES[family]
+    if family in {"fraction", "int", "float"} and rng.random() < 0.5:
+        valid = rng.random() < 0.5
+        if family == "fraction":
+            value = f"{rng.uniform(0.000001, 0.999999):.8g}" if valid else f"{rng.uniform(1.000001, 4):.8g}"
+        elif family == "int":
+            value = str(rng.randint(1, 4096)) if valid else f"{rng.randint(0, 4096)}.5"
+        else:
+            value = f"{rng.uniform(0, 180):.8g}" if valid else rng.choice(["nan", "1e309"])
+        return key, value, valid and probe_supported(key, value)
     value = rng.choice(pool["valid"] + pool["invalid"] + (CHAOS_PROBES if chaos else []))
-    return key, value, value in pool["valid"] and not (key == "fraction" and value == "0.0")
+    return key, value, value in pool["valid"] and probe_supported(key, value)
 
 
 def run_trial(trial, timeout=None):
@@ -365,9 +497,11 @@ def classify(trial, rc, stderr):
     if any(marker in stderr for marker in NETWORK_MARKERS):
         return "flake", None, None
     if trial.get("mutated") and (
-        # "'X' is not supported" rejections are intentional wherever raised; "not implemented" abstract gaps and
-        # "not found ... Request support" lookups are bugs or validation gaps and must keep their signatures
+        # Intentional unsupported-choice errors are expected; abstract "not implemented" gaps keep their signatures
         (exc == "NotImplementedError" and re.search(r"not supported|(?:doesn't|does not) support", stderr))
+        or (exc == "NotImplementedError" and "not found in list of available optimizers" in stderr)
+        or (exc == "ValueError" and "Expected `mode` to be `flip` or `mixup`" in stderr)
+        or (exc == "AssertionError" and "RTDETR export requires opset>=16" in stderr)
         or (exc in EXPECTED_TYPES and frames and frames[-1].startswith(EXPECTED_MODULES))
     ):
         return "expected", None, None  # clean validation errors are expected only for trials we actually mutated
@@ -419,7 +553,7 @@ def cmd_fuzz(args):
                 "mode": trial["mode"],
                 "task": trial["task"],
                 "strategy": trial.get("strategy", "corpus"),
-                "command": "yolo " + " ".join(trial["argv"]),
+                "command": "yolo " + shlex.join(trial["argv"]),
                 "stderr_tail": stderr_tail(stderr),
                 "duration_s": duration,
             }
@@ -465,21 +599,31 @@ def cmd_fuzz(args):
         changed = " ".join(a for a in trial["argv"] if a.partition("=")[0] in set(trial.get("mutated", [])))
         log.info(f"[fuzz] #{n} {outcome:>13} {duration:6.1f}s  yolo {trial['mode']} {trial['task']} {changed}".rstrip())
 
+    executed, duplicate_samples = set(), 0
     for base in corpus:  # canaries first: unmutated corpus must pass or the environment itself is broken
         if time.time() > deadline or (args.max_trials and n >= args.max_trials):
             break
+        executed.add(tuple(base["argv"]))
         execute(dict(base), canary=True)
     while time.time() < deadline and (not args.max_trials or n < args.max_trials):
         if shutil.disk_usage(tempfile.gettempdir()).free < MIN_FREE_GB * 1024**3:
             log.warning(f"[fuzz] stopping early: <{MIN_FREE_GB}GB free disk")
             break
-        execute(sample_trial(rng, uni, corpus, args.personality))
+        trial = sample_trial(rng, uni, corpus, args.personality)
+        command = tuple(trial["argv"])
+        if command in executed:
+            duplicate_samples += 1
+            continue
+        executed.add(command)
+        execute(trial)
 
     infra_failed = bool(canary_results) and (canary_results.count(False) / len(canary_results)) > CANARY_FAIL_FRACTION
     summary = {
         "personality": args.personality,
         "seed": args.seed,
         "trials": n,
+        "unique_commands": len(executed),
+        "duplicate_samples": duplicate_samples,
         "counters": counters,
         "infra_failed": infra_failed,
         "findings": sorted(findings.values(), key=lambda x: (x["tier"], x["signature"])),
@@ -495,7 +639,7 @@ def cmd_repro(args):
     """Replay one exact command several times through the classifier and print the verdict."""
     uni = load_universe()
     log = uni["logger"]
-    argv = args.command.split()
+    argv = shlex.split(args.command)
     if argv and argv[0] == "yolo":  # issue bodies quote full `yolo ...` commands; accept them verbatim
         argv = argv[1:]
 
@@ -505,9 +649,14 @@ def cmd_repro(args):
         if k in {"model", "source"} and ("/" in v or "\\" in v) and not Path(v).exists():
             from ultralytics.utils import ASSETS, WEIGHTS_DIR
 
-            # PureWindowsPath splits on both separators, so Windows-origin issue commands remap on any OS
-            local = (WEIGHTS_DIR if k == "model" else ASSETS) / PureWindowsPath(v).name
-            if local.exists():
+            # PureWindowsPath splits on both separators, so Windows-origin issue commands remap on any OS.
+            if k == "model":
+                candidates = [WEIGHTS_DIR / PureWindowsPath(v).name]
+            else:
+                prepare_sources(uni)
+                candidates = [ASSETS, ASSETS / PureWindowsPath(v).name]
+                candidates.extend(Path(p) for pool in uni["sources"].values() for p, _valid in pool)
+            if local := next((p for p in candidates if p.name == PureWindowsPath(v).name and p.exists()), None):
                 return f"{k}={local}"
         return arg
 
@@ -544,12 +693,14 @@ def cmd_report(args):
         print("[report] no findings files found")
         return
     run_url = f"https://github.com/{args.repo}/actions/runs/{os.environ.get('GITHUB_RUN_ID', '')}"
-    findings, counters, flagged = {}, {}, []
+    findings, counters, flagged, unique_commands, duplicate_samples = {}, {}, [], 0, 0
     for shard in shards:
         for k, v in shard["counters"].items():
             counters[k] = counters.get(k, 0) + v
         if shard["infra_failed"]:  # warn only: a regression tripping the canaries IS the finding, never discard it
             flagged.append(shard["personality"])
+        unique_commands += shard.get("unique_commands", shard["trials"])
+        duplicate_samples += shard.get("duplicate_samples", 0)
         for f in shard["findings"]:
             prev = findings.get(f["signature"])
             if not prev or (prev["tier"] == "T2" and f["tier"] == "T1"):  # prefer the T1 view of a shared signature
@@ -694,7 +845,8 @@ def cmd_report(args):
     summary = (
         f"## Fuzz — {total} trials\n\n"
         + "\n".join(table)
-        + f"\n\nNew issues filed: {created} (cap {args.max_issues})"
+        + f"\n\nExploration: {unique_commands} unique commands · {duplicate_samples} duplicate samples skipped"
+        + f"\n\nNew issue threads created: {created} (cap {args.max_issues})"
         + (f" · ⚠️ shards with >20% canary failures: {', '.join(flagged)}" if flagged else "")
     )
     if step_summary := os.environ.get("GITHUB_STEP_SUMMARY"):
@@ -743,7 +895,7 @@ def main():
     sub = parser.add_subparsers(dest="cmd", required=True)
 
     p = sub.add_parser("fuzz", help="run a budgeted fuzzing loop")
-    p.add_argument("--budget-minutes", type=float, default=285)
+    p.add_argument("--budget-minutes", type=float, default=300)
     p.add_argument("--seed", type=int, default=0)
     p.add_argument("--personality", choices=sorted(PERSONALITIES), default="chaos")
     p.add_argument("--out", default="fuzz-out")

@@ -1071,6 +1071,29 @@ def _autocast_fp16_onnx(onnx_file: str, opt_dynamic: int, prefix: str) -> str:
     return out_file
 
 
+def _gridsample_mode_for_trt(onnx_file: str, prefix: str) -> bytes:
+    """Return the ONNX bytes with GridSample renamed from the opset 20 mode to the TensorRT one.
+
+    TensorRT does not recognise the opset 20 ``linear`` mode name and silently samples nearest
+    neighbour instead, which corrupts the ROI features behind box prompts. onnxruntime accepts only
+    ``linear``, so the rename is applied to the bytes handed to the TensorRT parser and the exported
+    ONNX file stays spec compliant.
+    """
+    import onnx
+
+    model = onnx.load(onnx_file)
+    renamed = 0
+    for node in model.graph.node:
+        if node.op_type == "GridSample":
+            for attr in node.attribute:
+                if attr.name == "mode" and attr.s == b"linear":
+                    attr.s = b"bilinear"
+                    renamed += 1
+    if renamed:
+        LOGGER.info(f"{prefix} renamed {renamed} GridSample mode to bilinear for the TensorRT parser")
+    return model.SerializeToString()
+
+
 def _build_decoder_engine_dynamic(
     onnx_file: str,
     engine_file: str,
@@ -1109,7 +1132,7 @@ def _build_decoder_engine_dynamic(
     flag = (1 << int(trt.NetworkDefinitionCreationFlag.STRONGLY_TYPED)) if half else 0
     network = builder.create_network(flag)
     parser = trt.OnnxParser(network, logger)
-    if not parser.parse_from_file(onnx_file):
+    if not parser.parse(_gridsample_mode_for_trt(onnx_file, prefix)):
         for i in range(parser.num_errors):
             LOGGER.error(f"{prefix} parser error: {parser.get_error(i)}")
         raise RuntimeError(f"Failed to parse ONNX: {onnx_file}")

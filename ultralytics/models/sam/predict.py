@@ -13,6 +13,7 @@ from __future__ import annotations
 from collections import OrderedDict, defaultdict
 from copy import deepcopy
 from pathlib import Path
+from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any
 
 import cv2
@@ -4071,3 +4072,323 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         score_order = np.argsort(det_scores_np[new_det_fa_inds])[::-1]
         new_det_fa_inds = new_det_fa_inds[score_order[:num_to_keep]]
         return new_det_fa_inds
+
+
+class SAM3MultiplexVideoSemanticPredictor(SAM3VideoSemanticPredictor):
+    """SAM 3.1 Object Multiplex text-prompted video predictor.
+
+    Replaces the per-object SAM3VideoPredictor tracker of the parent with the bucketed shared-memory
+    SAM3MultiplexModel: memory encoding, memory attention, and mask decoding run once per bucket of
+    up to ``multiplex_count`` objects, so multi-object tracking cost scales with buckets instead of
+    objects. Detection, association, hotstart, keep-alive, and confirmation heuristics are reused
+    from the parent; only the tracker-touching steps are overridden. Requires a sam3.1_multiplex.pt
+    checkpoint; torch inference only (no exported-backend support in this phase).
+    """
+
+    def __init__(
+        self,
+        cfg=DEFAULT_CFG,
+        overrides=None,
+        _callbacks: dict | None = None,
+        **kwargs,
+    ):
+        """Initialize with the SAM 3.1 multiplex orchestrator defaults from Meta's release build."""
+        defaults = dict(
+            score_threshold_detection=0.4,
+            det_nms_thresh=0.1,
+            assoc_iou_thresh=0.1,
+            trk_assoc_iou_thresh=0.5,
+            new_det_thresh=0.65,
+            hotstart_delay=15,
+            hotstart_unmatch_thresh=8,
+            hotstart_dup_thresh=8,
+            init_trk_keep_alive=0,
+            max_trk_keep_alive=8,
+            min_trk_keep_alive=-4,
+            suppress_overlapping_based_on_recent_occlusion_threshold=0.7,
+            suppress_det_close_to_boundary=True,
+            fill_hole_area=0,
+            recondition_every_nth_frame=16,
+            masklet_confirmation_enable=True,
+            reconstruction_bbox_iou_thresh=-1,
+            reconstruction_bbox_det_score=0.8,
+        )
+        defaults.update(kwargs)
+        super().__init__(cfg, overrides, _callbacks, **defaults)
+        # The multiplex tracker net replaces the parent's per-object SAM3VideoPredictor wrapper.
+        # Parent helpers reach the net via self.tracker.model (e.g. non-overlap constraints).
+        self.tracker = SimpleNamespace(model=None)
+        self.tracker_model = None
+        self._tracker_feature_cache: dict = {}
+        self._pending_backbone_out = None
+        self._pending_recondition_blend = None
+        self._reconditioned_obj_ids_last_frame: set = set()
+
+    def get_model(self):
+        """Build the multiplex detector (tri-neck SAM3SemanticModel)."""
+        from .build_sam3 import build_sam3_multiplex
+
+        return build_sam3_multiplex(self.args.model)
+
+    def setup_model(self, model=None, verbose=True):
+        """Build detector and the multiplex tracker net (skips the parent's per-object tracker)."""
+        SAM3SemanticPredictor.setup_model(self, model, verbose)
+        from .build_sam3 import build_sam3_multiplex_tracker
+
+        self.tracker_model = build_sam3_multiplex_tracker(self.args.model).to(self.device).eval()
+        self.tracker = SimpleNamespace(model=self.tracker_model)
+
+    def setup_source(self, source):
+        """Setup the source; the multiplex stack is pinned to the 1008 feature grid."""
+        SAM3SemanticPredictor.setup_source(self, source)
+        assert tuple(self.imgsz) == (1008, 1008), f"multiplex tracking requires imgsz=1008, got {self.imgsz}"
+        self.interpol_size = self.tracker_model.maskmem_backbone.mask_downsampler.interpol_size
+
+    def _cache_backbone_features(self, sam3_image_out):
+        """Project and stage the tri-neck tracker pyramids for this frame's tracker calls."""
+        feats = sam3_image_out["backbone_out"]
+        tm = self.tracker_model
+        interactive = dict(feats["interactive"])
+        interactive["backbone_fpn"] = [
+            tm.interactive_sam_mask_decoder.conv_s0(feats["interactive"]["backbone_fpn"][0]),
+            tm.interactive_sam_mask_decoder.conv_s1(feats["interactive"]["backbone_fpn"][1]),
+            feats["interactive"]["backbone_fpn"][2],
+        ]
+        propagation = dict(feats["sam2_backbone_out"])
+        propagation["backbone_fpn"] = [
+            tm.sam_mask_decoder.conv_s0(feats["sam2_backbone_out"]["backbone_fpn"][0]),
+            tm.sam_mask_decoder.conv_s1(feats["sam2_backbone_out"]["backbone_fpn"][1]),
+            feats["sam2_backbone_out"]["backbone_fpn"][2],
+        ]
+        self._pending_backbone_out = {"interactive": interactive, "sam2_backbone_out": propagation}
+
+    def run_tracker_propagation(self, frame_idx: int, tracker_states_local: list, tracker_metadata_prev: dict):
+        """Jointly propagate all buckets one frame (memory encoding deferred to the update phase)."""
+        # Stage this frame's features in the shared cache (single-slot, shared by all states)
+        self._tracker_feature_cache.clear()
+        self._tracker_feature_cache[frame_idx] = (None, self._pending_backbone_out)
+        self._pending_recondition_blend = None
+        self._reconditioned_obj_ids_last_frame = set()
+
+        obj_ids_local, low_res_masks_list, obj_scores_list = [], [], []
+        for inference_state in tracker_states_local:
+            if len(inference_state["obj_ids"]) == 0:
+                continue
+            outs = list(
+                self.tracker_model.propagate_in_video(
+                    inference_state,
+                    start_frame_idx=frame_idx,
+                    max_frame_num_to_track=0,
+                    reverse=False,
+                    tqdm_disable=True,
+                    run_mem_encoder=False,
+                )
+            )
+            assert len(outs) == 1 and outs[0][0] == frame_idx
+            _, out_obj_ids, out_low_res_masks, _, out_obj_scores = outs[0]
+            obj_ids_local.extend(out_obj_ids)
+            low_res_masks_list.append(out_low_res_masks.squeeze(1).float())
+            obj_scores_list.append(out_obj_scores.squeeze(1).float())
+
+        if len(low_res_masks_list) > 0:
+            low_res_masks_global = torch.cat(low_res_masks_list, dim=0)
+            obj_scores_global = torch.cat(obj_scores_list, dim=0)
+        else:
+            size = self.tracker_model.low_res_mask_size
+            low_res_masks_global = torch.zeros(0, size, size, device=self.device)
+            obj_scores_global = torch.zeros(0, device=self.device)
+
+        assert np.all(np.array(obj_ids_local) == tracker_metadata_prev["obj_ids"]), (
+            f"{obj_ids_local} != {tracker_metadata_prev['obj_ids']}"
+        )
+        return low_res_masks_global, obj_scores_global
+
+    def _recondition_masklets(
+        self,
+        frame_idx,
+        det_out: dict[str, torch.Tensor],
+        trk_id_to_max_iou_high_conf_det: dict[int, int],
+        tracker_states_local: list[Any],
+        tracker_metadata: dict[str, np.ndarray],
+        tracker_obj_scores_global: torch.Tensor,
+    ):
+        """Re-anchor high-confidence masklets from detection masks (batched per state)."""
+        HIGH_CONF_THRESH = 0.8
+        input_mask_res = self.tracker_model.input_mask_size
+        if len(trk_id_to_max_iou_high_conf_det) == 0:
+            return tracker_states_local
+
+        obj_ids_arr = tracker_metadata["obj_ids"]
+        valid = []  # (trk_obj_id, det_idx, obj_idx)
+        for trk_obj_id, det_idx in trk_id_to_max_iou_high_conf_det.items():
+            obj_idx = int(np.where(obj_ids_arr == trk_obj_id)[0].item())
+            if tracker_obj_scores_global[obj_idx].sigmoid() > HIGH_CONF_THRESH:
+                valid.append((trk_obj_id, det_idx, obj_idx))
+        if not valid:
+            return tracker_states_local
+
+        det_indices = torch.tensor([v[1] for v in valid], device=det_out["mask"].device)
+        new_masks = det_out["mask"][det_indices]  # (K, H, W)
+        new_masks_binary = (
+            F.interpolate(
+                new_masks.unsqueeze(1), size=(input_mask_res, input_mask_res), mode="bilinear", align_corners=False
+            ).squeeze(1)
+            > 0
+        )
+        # Blend detection masks into the propagated masks where they disagree; the blend is applied
+        # to the global low-res masks right before memory encoding (Meta encodes blended masks).
+        self._pending_recondition_blend = (
+            torch.tensor([v[2] for v in valid], device=new_masks.device),
+            new_masks,
+        )
+
+        for state in tracker_states_local:
+            recondition_list = [(tid, m) for (tid, _, _), m in zip(valid, new_masks_binary) if tid in state["obj_ids"]]
+            if not recondition_list:
+                continue
+            self.tracker_model.add_new_masks(
+                inference_state=state,
+                frame_idx=frame_idx,
+                obj_ids=[tid for tid, _ in recondition_list],
+                masks=torch.stack([m for _, m in recondition_list]),
+                reconditioning=True,
+            )
+            self._reconditioned_obj_ids_last_frame.update(state["obj_idx_to_id"].values())
+        return tracker_states_local
+
+    def _tracker_update_memories(
+        self, tracker_inference_states: list[Any], frame_idx: int, low_res_masks: torch.Tensor
+    ):
+        """Encode this frame's (blended, non-overlap-suppressed) masks into the multiplex memory bank."""
+        if len(tracker_inference_states) == 0:
+            return
+        if self._pending_recondition_blend is not None:
+            obj_indices, new_masks = self._pending_recondition_blend
+            old_masks = low_res_masks[obj_indices]
+            binary_agreement = (new_masks > 0) == (old_masks > 0)
+            low_res_masks[obj_indices] = torch.where(binary_agreement, old_masks, new_masks)
+            self._pending_recondition_blend = None
+
+        high_res_masks = F.interpolate(
+            low_res_masks.unsqueeze(1), size=self.interpol_size, mode="bilinear", align_corners=False
+        )
+        high_res_masks = self.tracker_model._suppress_object_pw_area_shrinkage(high_res_masks)
+        object_score_logits = torch.where((high_res_masks > 0).any(dim=(-1, -2)), 10.0, -10.0)
+
+        # Objects across states are globally ordered by object id (dynamic backfilling can permute)
+        all_object_ids, object_id_to_state_i = [], {}
+        for state_i, state in enumerate(tracker_inference_states):
+            all_object_ids.extend(state["obj_ids"])
+            for obj_id in state["obj_ids"]:
+                object_id_to_state_i[obj_id] = state_i
+        sorted_indices = sorted(range(len(all_object_ids)), key=lambda i: all_object_ids[i])
+        object_idx_assignment: dict[int, list[int]] = {i: [] for i in range(len(tracker_inference_states))}
+        for global_idx, local_idx in enumerate(sorted_indices):
+            obj_id = all_object_ids[local_idx]
+            object_idx_assignment[object_id_to_state_i[obj_id]].append(global_idx)
+
+        for state_i, state in enumerate(tracker_inference_states):
+            num_obj = len(state["obj_ids"])
+            if num_obj == 0:
+                continue
+            local_idx = torch.tensor(object_idx_assignment[state_i], device=high_res_masks.device)
+            local_high_res_masks = high_res_masks[local_idx]
+            local_object_score_logits = object_score_logits[local_idx]
+
+            maskmem_features, maskmem_pos_enc, image_features, image_pos_enc = self.tracker_model._run_memory_encoder(
+                inference_state=state,
+                frame_idx=frame_idx,
+                batch_size=local_high_res_masks.size(0),
+                high_res_masks=local_high_res_masks,
+                object_score_logits=local_object_score_logits,
+                is_mask_from_pts=False,
+            )
+            output_dict = state["output_dict"]
+            for storage_key in ("cond_frame_outputs", "non_cond_frame_outputs"):
+                if frame_idx not in output_dict[storage_key]:
+                    continue
+                out = output_dict[storage_key][frame_idx]
+                out["maskmem_features"] = maskmem_features
+                out["maskmem_pos_enc"] = list(maskmem_pos_enc)
+                out["image_features"] = image_features
+                out["image_pos_enc"] = image_pos_enc
+                self.tracker_model._add_output_per_object(
+                    inference_state=state, frame_idx=frame_idx, current_out=out, storage_key=storage_key
+                )
+
+    def _tracker_add_new_objects(
+        self,
+        frame_idx: int,
+        num_frames: int,
+        new_obj_ids: list[int],
+        new_obj_masks: torch.Tensor,
+        tracker_states_local: list[Any],
+    ):
+        """Add new detection-seeded objects, backfilling bucket slots before opening new states."""
+        model = self.tracker_model
+        prev_state = tracker_states_local[0] if len(tracker_states_local) > 0 else None
+
+        # Best-fit: reuse the existing state with the fewest (but sufficient) free slots
+        best_state, best_available = None, float("inf")
+        for state in tracker_states_local:
+            if state["multiplex_state"] is None:
+                continue
+            available = state["multiplex_state"].available_slots
+            if len(new_obj_ids) <= available < best_available:
+                best_state, best_available = state, available
+        if best_state is None:
+            best_state = model.init_state(
+                video_height=self.imgsz[0],
+                video_width=self.imgsz[1],
+                num_frames=num_frames,
+                cached_features=self._tracker_feature_cache,
+                device=self.device,
+            )
+            best_state["backbone_out"] = prev_state.get("backbone_out", None) if prev_state is not None else None
+            tracker_states_local.append(best_state)
+
+        assert len(new_obj_ids) == new_obj_masks.size(0) and new_obj_masks.is_floating_point()
+        input_mask_res = model.input_mask_size
+        new_obj_masks = (
+            F.interpolate(
+                new_obj_masks.unsqueeze(1), size=(input_mask_res, input_mask_res), mode="bilinear", align_corners=False
+            ).squeeze(1)
+            > 0
+        )
+        model.add_new_masks(
+            inference_state=best_state,
+            frame_idx=frame_idx,
+            obj_ids=list(new_obj_ids),
+            masks=new_obj_masks,
+        )
+        model.propagate_in_video_preflight(best_state, run_mem_encoder=True)
+        return tracker_states_local
+
+    def _tracker_remove_objects(self, tracker_states_local: list[Any], obj_ids: list[int]):
+        """Remove objects from the multiplex states, dropping states that become empty."""
+        if not obj_ids:
+            return
+        states_before = tracker_states_local.copy()
+        tracker_states_local.clear()
+        for state in states_before:
+            self.tracker_model.remove_objects(state, list(obj_ids), strict=False, need_output=False)
+            if len(state["obj_ids"]) > 0:
+                tracker_states_local.append(state)
+
+    def build_outputs(
+        self,
+        det_out: dict[str, torch.Tensor],
+        tracker_low_res_masks_global: torch.Tensor,
+        tracker_metadata_prev: dict[str, np.ndarray],
+        tracker_update_plan: dict[str, np.ndarray],
+        reconditioned_obj_ids: set | None = None,
+    ):
+        """Build outputs, overriding reconditioned objects with their detection masks."""
+        merged = set(reconditioned_obj_ids or set()) | self._reconditioned_obj_ids_last_frame
+        return SAM3VideoSemanticPredictor.build_outputs(
+            det_out=det_out,
+            tracker_low_res_masks_global=tracker_low_res_masks_global,
+            tracker_metadata_prev=tracker_metadata_prev,
+            tracker_update_plan=tracker_update_plan,
+            reconditioned_obj_ids=merged,
+        )

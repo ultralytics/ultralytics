@@ -22,6 +22,7 @@ from ultralytics.utils.torch_utils import TORCHVISION_0_18
 
 from .augment import (
     Compose,
+    DepthFormat,
     Format,
     LetterBox,
     RandomLoadText,
@@ -41,6 +42,7 @@ from .utils import (
     polygons2masks_overlap,
     save_dataset_cache_file,
     verify_image,
+    verify_image_depth,
     verify_image_label,
     verify_image_mask,
 )
@@ -304,7 +306,7 @@ class YOLODataset(BaseDataset):
         values = list(zip(*[list(b.values()) for b in batch]))
         for i, k in enumerate(keys):
             value = values[i]
-            if k in {"img", "text_feats", "semantic_mask", "sem_masks"}:
+            if k in {"img", "text_feats", "semantic_mask", "sem_masks", "depth"}:
                 value = torch.stack(value, 0)
             elif k == "visuals":
                 value = torch.nn.utils.rnn.pad_sequence(value, batch_first=True)
@@ -317,6 +319,139 @@ class YOLODataset(BaseDataset):
                 new_batch["batch_idx"][i] += i  # add target image index for build_targets()
             new_batch["batch_idx"] = torch.cat(new_batch["batch_idx"], 0)
         return new_batch
+
+
+class DepthDataset(YOLODataset):
+    """Dataset for monocular depth estimation with paired RGB + depth map loading.
+
+    Extends YOLODataset to load depth ground truth maps alongside RGB images. Depth maps are stored as .npy files in a
+    parallel directory structure (images/train/*.jpg → depth/train/*.npy).
+
+    Examples:
+        >>> dataset = DepthDataset(img_path="/data/nyu/images/train", data={"nc": 1})
+    """
+
+    def _depth_path_for(self, im_file: str) -> str:
+        """Map an image path to its companion depth .npy path (last 'images' path component → 'depth')."""
+        parts = list(Path(im_file).parts)
+        for i in range(len(parts) - 1, -1, -1):
+            if parts[i] == "images":
+                parts[i] = "depth"
+                break
+        return str(Path(*parts).with_suffix(".npy"))
+
+    def cache_labels(self, path: Path = Path("./labels.cache")) -> dict[str, Any]:
+        """Cache image-depth pairing metadata, verifying images and depth maps in one pass.
+
+        Args:
+            path (Path): Path where to save the cache file.
+
+        Returns:
+            (dict[str, Any]): Cached depth metadata.
+        """
+        x = {"labels": []}
+        nf, nm, nc, msgs = 0, 0, 0, []  # found, missing, corrupt, messages
+        desc = f"{self.prefix}Scanning {path.parent / path.stem}..."
+        total = len(self.im_files)
+        with ThreadPool(NUM_THREADS) as pool:
+            results = pool.imap(
+                func=verify_image_depth,
+                iterable=zip(self.im_files, self.depth_files, repeat(self.prefix)),
+            )
+            pbar = TQDM(results, desc=desc, total=total)
+            for im_file, shape, nf_f, nm_f, nc_f, msg in pbar:
+                nf += nf_f
+                nm += nm_f
+                nc += nc_f
+                if im_file:
+                    x["labels"].append(
+                        {
+                            "im_file": im_file,
+                            "shape": shape,
+                            "cls": np.array([], dtype=np.float32),
+                            "bboxes": np.zeros((0, 4), dtype=np.float32),
+                            "segments": [],
+                            "normalized": True,
+                            "bbox_format": "xywh",
+                        }
+                    )
+                if msg:
+                    msgs.append(msg)
+                pbar.desc = f"{desc} {nf} images, {nm} missing depth, {nc} corrupt"
+            pbar.close()
+        if msgs:
+            LOGGER.info("\n".join(msgs))
+        x["hash"] = get_hash(self.depth_files + self.im_files)
+        x["results"] = nf, nm, nc, total
+        x["msgs"] = msgs
+        if x["labels"]:
+            save_dataset_cache_file(self.prefix, path, x, DATASET_CACHE_VERSION)
+        return x
+
+    def get_labels(self) -> list[dict]:
+        """Load image-depth pairs from cache or scan, dropping images with missing or corrupt depth maps.
+
+        Returns:
+            (list[dict]): List of label dictionaries with image shapes; depth maps load lazily per index.
+        """
+        self.depth_files = [self._depth_path_for(f) for f in self.im_files]
+        cache_path = Path(self.depth_files[0]).parent.with_suffix(".cache")
+        try:
+            cache, exists = load_dataset_cache_file(cache_path), True
+            assert cache["version"] == DATASET_CACHE_VERSION
+            assert cache["hash"] == get_hash(self.depth_files + self.im_files)
+        except (FileNotFoundError, AssertionError, AttributeError, ModuleNotFoundError):
+            cache, exists = self.cache_labels(cache_path), False
+
+        nf, nm, nc, n = cache.pop("results")
+        if exists and LOCAL_RANK in {-1, 0}:
+            d = f"Scanning {cache_path}... {nf} images, {nm} missing depth, {nc} corrupt"
+            TQDM(None, desc=self.prefix + d, total=n, initial=n)
+            if cache["msgs"]:
+                LOGGER.info("\n".join(cache["msgs"]))
+
+        [cache.pop(k) for k in ("hash", "version", "msgs")]
+        labels = cache["labels"]
+        if not labels:
+            raise FileNotFoundError(
+                f"{self.prefix}No valid image-depth pairs found in {cache_path}. Expected readable 2D .npy files in a "
+                f"'depth/' tree parallel to 'images/' (images/train/x.jpg → depth/train/x.npy). {HELP_URL}"
+            )
+        self.im_files = [lb["im_file"] for lb in labels]
+        return labels
+
+    def _load_depth(self, index):
+        """Return the native-resolution depth map for an image, with non-finite values mapped to 0 (invalid)."""
+        depth = np.load(self._depth_path_for(self.im_files[index])).astype(np.float32)
+        return np.nan_to_num(depth, nan=0.0, posinf=0.0, neginf=0.0)
+
+    def get_image_and_label(self, index):
+        """Load image, label, and depth map for the given index."""
+        label = super().get_image_and_label(index)
+        h, w = label["resized_shape"]
+        depth = self._load_depth(index)
+        if depth.shape[:2] != (h, w):
+            depth = cv2.resize(depth, (w, h), interpolation=cv2.INTER_NEAREST)
+        label["depth"] = depth
+        return label
+
+    def build_transforms(self, hyp=None):
+        """Build transforms for depth estimation.
+
+        Args:
+            hyp (dict): Hyperparameters.
+
+        Returns:
+            (Compose): Composed transforms.
+        """
+        # NOTE: For now following arguments are not supported
+        hyp.mosaic = hyp.mixup = hyp.cutmix = hyp.copy_paste = 0.0
+        transforms = super().build_transforms(hyp)
+        if not self.augment:
+            # stretch the image instead of padding
+            transforms[-2] = LetterBox(new_shape=(self.imgsz, self.imgsz), scale_fill=True)
+        transforms[-1] = DepthFormat()  # replace the last transform with DepthFormat
+        return transforms
 
 
 class YOLOMultiModalDataset(YOLODataset):
@@ -761,7 +896,7 @@ class SemanticDataset(YOLODataset):
     def _semantic_cache_hash(self, mask_files: list[str]) -> str:
         """Return a hash for semantic cache validation that also includes label_mapping changes."""
         mapping = json.dumps(self.label_mapping, sort_keys=True, separators=(",", ":"))
-        return get_hash(self.im_files + mask_files + [f"label_mapping:{mapping}"])
+        return get_hash(self.im_files + mask_files + [f"label_mapping:{mapping}", "mask_bit_depth"])
 
     def cache_labels(self, path: Path = Path("./labels.cache")) -> dict[str, Any]:
         """Cache semantic labels and image-mask pairing metadata.
@@ -780,10 +915,15 @@ class SemanticDataset(YOLODataset):
         with ThreadPool(NUM_THREADS) as pool:
             results = pool.imap(
                 func=verify_image_mask,
-                iterable=zip(self.im_files, self.mask_files, repeat(self.prefix)),
+                iterable=zip(
+                    self.im_files,
+                    self.mask_files,
+                    repeat(self.prefix),
+                    repeat(int(self.data.get("nc", 0)) == 1),
+                ),
             )
             pbar = TQDM(results, desc=desc, total=total)
-            for im_file, mask_file, shape, nm_f, nf_f, nc_f, msg in pbar:
+            for im_file, mask_file, shape, is_1bit, nm_f, nf_f, nc_f, msg in pbar:
                 nm += nm_f
                 nf += nf_f
                 nc += nc_f
@@ -793,6 +933,7 @@ class SemanticDataset(YOLODataset):
                             "im_file": im_file,
                             "mask_file": mask_file,
                             "shape": shape,
+                            "is_1bit": is_1bit,
                             "cls": np.array([], dtype=np.float32),
                             "bboxes": np.zeros((0, 4), dtype=np.float32),
                             "segments": [],
@@ -852,12 +993,8 @@ class SemanticDataset(YOLODataset):
         mask = cv2.imread(mask_file, cv2.IMREAD_GRAYSCALE)
         if mask is None:
             raise FileNotFoundError(f"Semantic mask not found or unreadable: {mask_file}")
-        if mask.ndim == 3 and mask.shape[2] == 1:
-            mask = np.squeeze(mask, axis=2)
-        if int(self.data.get("nc", 0)) == 1:
-            with Image.open(mask_file) as im:
-                if im.mode == "1":  # cv2 expands 1-bit PNGs to {0, 255}; map only true 1-bit foreground to 1.
-                    mask[mask == 255] = 1
+        if int(self.data.get("nc", 0)) == 1 and self.labels[index]["is_1bit"]:
+            mask[mask == 255] = 1  # cv2 expands 1-bit PNG foreground to 255.
         if self.label_mapping:
             mask = self.convert_label(mask, inverse=False)
         return mask.astype(np.uint8, copy=False)

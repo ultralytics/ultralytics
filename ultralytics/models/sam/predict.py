@@ -2668,6 +2668,9 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         )
         self.suppress_det_close_to_boundary = suppress_det_close_to_boundary
         self.decrease_trk_keep_alive_for_empty_masklets = decrease_trk_keep_alive_for_empty_masklets
+        # 3.0 removes unmatched tracks once keep-alive is exhausted; Meta's 3.1 multiplex
+        # computes but never applies this signal, so the multiplex predictor disables it.
+        self.remove_unmatched_on_keep_alive = True
         self.o2o_matching_masklets_enable = o2o_matching_masklets_enable
         self.fill_hole_area = fill_hole_area
         self._dist_pg_cpu = None  # CPU process group (lazy-initialized on first use)
@@ -3520,7 +3523,8 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         if len(obj_ids) <= 1:
             return to_suppress
 
-        iou = mask_iou(binary_low_res_masks.flatten(1), binary_low_res_masks.flatten(1))  # [N,N]
+        binary_flat = binary_low_res_masks.flatten(1).float()  # mask_iou matmuls, CUDA has no bool addmm
+        iou = mask_iou(binary_flat, binary_flat)  # [N,N]
 
         # Create masks for upper triangular matrix (i < j) and IoU threshold
         mask_iou_thresh = iou >= self.suppress_overlapping_based_on_recent_occlusion_threshold
@@ -3800,6 +3804,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
                     )
             if (
                 trk_keep_alive[obj_id] <= 0  # Object has not been matched for too long
+                and self.remove_unmatched_on_keep_alive
                 and obj_id not in removed_obj_ids
                 and obj_id not in obj_ids_newly_removed
             ):
@@ -4115,6 +4120,7 @@ class SAM3MultiplexVideoSemanticPredictor(SAM3VideoSemanticPredictor):
         )
         defaults.update(kwargs)
         super().__init__(cfg, overrides, _callbacks, **defaults)
+        self.remove_unmatched_on_keep_alive = False  # Meta 3.1 never applies this signal
         # The multiplex tracker net replaces the parent's per-object SAM3VideoPredictor wrapper.
         # Parent helpers reach the net via self.tracker.model (e.g. non-overlap constraints).
         self.tracker = SimpleNamespace(model=None)
@@ -4162,6 +4168,107 @@ class SAM3MultiplexVideoSemanticPredictor(SAM3VideoSemanticPredictor):
         ]
         self._pending_backbone_out = {"interactive": interactive, "sam2_backbone_out": propagation}
 
+    def inference(self, im, bboxes=None, labels=None, text: list[str] | None = None, points=None, *args, **kwargs):
+        """Perform inference on a video sequence with optional text, box, or point prompts.
+
+        Points seed tracked objects through the interactive SAM head (one object per point row);
+        ``labels`` accompany points when no boxes are given (1=positive, 0=negative click).
+        """
+        frame = self.dataset.frame - 1  # align frame index to be 0-based
+        self.inference_state["im"] = im
+        if "text_ids" not in self.inference_state:  # first frame processing
+            point_labels = labels if points is not None and bboxes is None else None
+            box_labels = labels if bboxes is not None else None
+            self.add_prompt(
+                frame_idx=frame, text=text, bboxes=bboxes, labels=box_labels, points=points, point_labels=point_labels
+            )
+        return self._run_single_frame_inference(frame, reverse=False)
+
+    def add_prompt(
+        self, frame_idx, text=None, bboxes=None, labels=None, points=None, point_labels=None, inference_state=None
+    ):
+        """Add prompts on a frame; point prompts are staged and seeded inside the det-track loop.
+
+        Point seeding needs the frame's tracker features, which only exist once the detector has run
+        — so points are stashed here and consumed by run_tracker_propagation (matching Meta, where
+        add_prompt(points=...) routes to add_sam2_new_points after backbone preparation).
+        """
+        inference_state = inference_state or self.inference_state
+        if points is not None:
+            inference_state["pending_point_prompts"] = (points, point_labels, frame_idx)
+            if text is None and bboxes is None:
+                # Points-only session: initialize the detector stream with the visual placeholder
+                # (same semantics as Meta's find_text placeholder — no text detections).
+                inference_state["text_prompt"] = None
+                inference_state["text_ids"] = torch.arange(1, device=self.device, dtype=torch.long)
+                if self.model.names != "visual":
+                    self.model.set_classes(text="visual")
+                inference_state["per_frame_geometric_prompt"][frame_idx] = self._get_dummy_prompt(num_prompts=1)
+                out = self._run_single_frame_inference(frame_idx, reverse=False, inference_state=inference_state)
+                return frame_idx, out
+        return super().add_prompt(frame_idx, text=text, bboxes=bboxes, labels=labels, inference_state=inference_state)
+
+    def _seed_point_objects(self, frame_idx: int, tracker_states_local: list, tracker_metadata: dict):
+        """Seed point-prompted objects via the interactive head and register them as confirmed masklets.
+
+        Mirrors Meta's add_sam2_new_points metadata handling on a single GPU: user objects get score
+        1.0 and confirmed status so the association/hotstart heuristics keep them alive.
+        """
+        points, point_labels, _ = self.inference_state.pop("pending_point_prompts")
+        model = self.tracker_model
+        pts = torch.as_tensor(points, dtype=torch.float32)
+        if pts.dim() == 1:
+            pts = pts[None]
+        if pts.dim() == 2:
+            pts = pts[:, None]  # (N, 2) -> N objects with one click each
+        if point_labels is None:
+            lbls = torch.ones(pts.shape[0], pts.shape[1], dtype=torch.int32)
+        else:
+            lbls = torch.as_tensor(point_labels, dtype=torch.int32).reshape(pts.shape[0], pts.shape[1])
+        orig_h, orig_w = self.batch[1][0].shape[:2]
+        rel = pts / torch.tensor([orig_w, orig_h], dtype=torch.float32)
+
+        state = model.init_state(
+            video_height=self.imgsz[0],
+            video_width=self.imgsz[1],
+            num_frames=self.inference_state["num_frames"],
+            cached_features=self._tracker_feature_cache,
+            device=self.device,
+        )
+        state["backbone_out"] = None
+        tracker_states_local.append(state)
+
+        start_id = int(tracker_metadata["max_obj_id"]) + 1
+        new_ids = list(range(start_id, start_id + pts.shape[0]))
+        for i, obj_id in enumerate(new_ids):
+            model.add_new_points(state, frame_idx, obj_id, rel[i], lbls[i], rel_coordinates=True)
+        model.propagate_in_video_preflight(state, run_mem_encoder=True)
+
+        obj_ids_arr = tracker_metadata["obj_ids"]
+        tracker_metadata["obj_ids"] = np.concatenate([obj_ids_arr, np.asarray(new_ids, dtype=obj_ids_arr.dtype)])
+        tracker_metadata["num_obj"] = len(tracker_metadata["obj_ids"])
+        tracker_metadata["max_obj_id"] = max(int(tracker_metadata["max_obj_id"]), new_ids[-1])
+        for obj_id in new_ids:
+            tracker_metadata["obj_id_to_score"][obj_id] = 1.0
+            tracker_metadata["obj_id_to_cls"][obj_id] = 0
+            tracker_metadata["obj_id_to_tracker_score_frame_wise"][frame_idx][obj_id] = 1.0
+        md = tracker_metadata.get("metadata")
+        if md is not None:
+            for obj_id in new_ids:
+                md["obj_first_frame_idx"][obj_id] = frame_idx
+                md["removed_obj_ids"].discard(obj_id)
+            conf = md.setdefault(
+                "masklet_confirmation",
+                {"status": np.array([], np.int64), "consecutive_det_num": np.array([], np.int64)},
+            )
+            conf["status"] = np.concatenate([conf["status"], np.full(len(new_ids), self.CONFIRMED, np.int64)])
+            conf["consecutive_det_num"] = np.concatenate(
+                [
+                    conf["consecutive_det_num"],
+                    np.full(len(new_ids), self.masklet_confirmation_consecutive_det_thresh, np.int64),
+                ]
+            )
+
     def run_tracker_propagation(self, frame_idx: int, tracker_states_local: list, tracker_metadata_prev: dict):
         """Jointly propagate all buckets one frame (memory encoding deferred to the update phase)."""
         # Stage this frame's features in the shared cache (single-slot, shared by all states)
@@ -4169,6 +4276,11 @@ class SAM3MultiplexVideoSemanticPredictor(SAM3VideoSemanticPredictor):
         self._tracker_feature_cache[frame_idx] = (None, self._pending_backbone_out)
         self._pending_recondition_blend = None
         self._reconditioned_obj_ids_last_frame = set()
+
+        self._current_frame_idx = frame_idx
+        pending = self.inference_state.get("pending_point_prompts")
+        if pending is not None and pending[2] == frame_idx:
+            self._seed_point_objects(frame_idx, tracker_states_local, tracker_metadata_prev)
 
         obj_ids_local, low_res_masks_list, obj_scores_list = [], [], []
         for inference_state in tracker_states_local:
@@ -4362,6 +4474,8 @@ class SAM3MultiplexVideoSemanticPredictor(SAM3VideoSemanticPredictor):
             masks=new_obj_masks,
         )
         model.propagate_in_video_preflight(best_state, run_mem_encoder=True)
+        # Meta re-yields the cached detection-mask output when the seed frame is re-inferenced
+        self._seeded_frame_ids = (frame_idx, {int(i) for i in new_obj_ids})
         return tracker_states_local
 
     def _tracker_remove_objects(self, tracker_states_local: list[Any], obj_ids: list[int]):
@@ -4385,6 +4499,9 @@ class SAM3MultiplexVideoSemanticPredictor(SAM3VideoSemanticPredictor):
     ):
         """Build outputs, overriding reconditioned objects with their detection masks."""
         merged = set(reconditioned_obj_ids or set()) | self._reconditioned_obj_ids_last_frame
+        seeded = getattr(self, "_seeded_frame_ids", None)
+        if seeded is not None and seeded[0] == getattr(self, "_current_frame_idx", None):
+            merged |= seeded[1]
         return SAM3VideoSemanticPredictor.build_outputs(
             det_out=det_out,
             tracker_low_res_masks_global=tracker_low_res_masks_global,

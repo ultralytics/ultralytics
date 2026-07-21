@@ -57,6 +57,16 @@ def _merge(d1: dict, d2: dict, k1: str, k2: str, d2_idx: list[int], strict: bool
     d1[k1][d2_idx] = d2[k2].to(dtype=d1[k1].dtype)
 
 
+def concat_points(old_point_inputs: dict | None, new_points: torch.Tensor, new_labels: torch.Tensor) -> dict:
+    """Append new points and labels to previous point inputs (at the end)."""
+    if old_point_inputs is None:
+        points, labels = new_points, new_labels
+    else:
+        points = torch.cat([old_point_inputs["point_coords"], new_points], dim=1)
+        labels = torch.cat([old_point_inputs["point_labels"], new_labels], dim=1)
+    return {"point_coords": points, "point_labels": labels}
+
+
 class TrackerTransformerWrapper(nn.Module):
     """Encoder-only transformer holder matching Meta's TransformerWrapper checkpoint layout."""
 
@@ -1467,6 +1477,136 @@ class SAM3MultiplexModel(nn.Module):
         _, video_res_masks = self._get_orig_video_res_output(inference_state, consolidated_out["pred_masks_video_res"])
         consolidated_out["local_obj_id_to_idx"] = current_out["local_obj_id_to_idx"]
         return frame_idx, obj_ids, None, video_res_masks
+
+    @torch.inference_mode()
+    def add_new_points(
+        self,
+        inference_state,
+        frame_idx,
+        obj_id,
+        points,
+        labels,
+        clear_old_points: bool = True,
+        rel_coordinates: bool = True,
+    ):
+        """Seed an object from point clicks via the interactive SAM head.
+
+        Covers Meta's new-object and gap-fill cases: the clicks run through the interactive head on
+        interactivity-no-mem features, the resulting mask joins the multiplex buckets, and the frame
+        becomes a conditioning frame consolidated by propagate_in_video_preflight. Mid-video point
+        refinement of an already-tracked object (Meta's singleton-extraction path) is not ported —
+        remove the object and re-seed it instead.
+
+        Args:
+            inference_state (dict): Session state from init_state.
+            frame_idx (int): Frame receiving the clicks.
+            obj_id (int): Client-side object id (new ids create objects).
+            points (torch.Tensor | list): (N, 2) or (1, N, 2) click coordinates.
+            labels (torch.Tensor | list): (N,) or (1, N) labels, 1=positive, 0=negative.
+            clear_old_points (bool): Replace clicks previously added on this frame.
+            rel_coordinates (bool): Interpret points as relative [0, 1] coordinates.
+
+        Returns:
+            (tuple): (frame_idx, obj_ids, None, video_res_masks) for the prompted object.
+        """
+        obj_idx = self._obj_id_to_idx(inference_state, obj_id)
+        obj_idxs, obj_ids = [obj_idx], [obj_id]
+        point_inputs_per_frame = inference_state["point_inputs_per_obj"][obj_idx]
+
+        device = inference_state["device"]
+        points = torch.as_tensor(points, dtype=torch.float32)
+        labels = torch.as_tensor(labels, dtype=torch.int32)
+        if points.dim() == 2:
+            points = points.unsqueeze(0)
+        if labels.dim() == 1:
+            labels = labels.unsqueeze(0)
+        if rel_coordinates:
+            points = points * self.image_size
+        points, labels = points.to(device), labels.to(device)
+
+        old_point_inputs = None if clear_old_points else point_inputs_per_frame.get(frame_idx)
+        point_inputs = concat_points(old_point_inputs, points, labels)
+        point_inputs_per_frame[frame_idx] = point_inputs
+
+        is_init_cond_frame = frame_idx not in inference_state["frames_already_tracked"]
+        is_cond = is_init_cond_frame or self.add_all_frames_to_correct_as_cond
+        storage_key = "cond_frame_outputs" if is_cond else "non_cond_frame_outputs"
+
+        multiplex_state = inference_state["multiplex_state"]
+        is_new_state = multiplex_state is None
+        if is_new_state:
+            multiplex_state = self.multiplex_controller.get_state(
+                num_valid_entries=1, device=device, dtype=torch.float32, random=False, object_ids=obj_ids
+            )
+            inference_state["multiplex_state"] = multiplex_state
+
+        is_existing_object = not is_new_state and obj_id in multiplex_state.object_ids
+        if is_existing_object and not is_init_cond_frame:
+            raise NotImplementedError(
+                "Point refinement of an already-tracked object is not supported by the multiplex port; "
+                "remove the object and re-seed it with new points instead."
+            )
+
+        if not is_existing_object:
+            # New object: fresh state runs a plain init-frame track step; otherwise the object is
+            # appended to the existing buckets (fresh bucket preferred, as in Meta).
+            current_out, _ = self._run_single_frame_inference(
+                inference_state=inference_state,
+                output_dict=inference_state["output_dict"],
+                frame_idx=frame_idx,
+                batch_size=1,
+                is_init_cond_frame=True,
+                point_inputs=point_inputs,
+                mask_inputs=None,
+                reverse=False,
+                run_mem_encoder=False,
+                prev_sam_mask_logits=None,
+                add_to_existing_state=not is_new_state,
+                new_obj_idxs=obj_idxs,
+                new_obj_ids=obj_ids,
+                allow_new_buckets=True,
+                prefer_new_buckets=True,
+            )
+        else:
+            # Gap fill: the object exists but this (untracked) frame has no output for it.
+            current_out, _ = self._run_single_frame_inference(
+                inference_state=inference_state,
+                output_dict=inference_state["output_dict"],
+                frame_idx=frame_idx,
+                batch_size=self._get_obj_num(inference_state),
+                is_init_cond_frame=True,
+                point_inputs=point_inputs,
+                mask_inputs=None,
+                reverse=False,
+                run_mem_encoder=False,
+                prev_sam_mask_logits=None,
+                add_to_existing_state=False,
+                new_obj_idxs=obj_idxs,
+                new_obj_ids=obj_ids,
+                allow_new_buckets=False,
+                objects_to_interact=obj_idxs,
+            )
+
+        _, video_res_masks = self._get_orig_video_res_output(inference_state, current_out["pred_masks"])
+        current_out["pred_masks_video_res"] = video_res_masks
+        current_out["local_obj_id_to_idx"] = deepcopy(inference_state["obj_id_to_idx"])
+
+        if is_cond and frame_idx in inference_state["output_dict"]["non_cond_frame_outputs"]:
+            del inference_state["output_dict"]["non_cond_frame_outputs"][frame_idx]
+            inference_state["consolidated_frame_inds"]["non_cond_frame_outputs"].discard(frame_idx)
+        inference_state["output_dict"][storage_key][frame_idx] = current_out
+        inference_state["consolidated_frame_inds"][storage_key].add(frame_idx)
+
+        obj_temp_output_dict = inference_state["temp_output_dict_per_obj"][obj_idx]
+        obj_temp_output_dict[storage_key][frame_idx] = {
+            "pred_masks": current_out["pred_masks"][obj_idx : obj_idx + 1],
+            "pred_masks_video_res": current_out["pred_masks_video_res"][obj_idx : obj_idx + 1],
+            "object_score_logits": current_out["object_score_logits"][obj_idx : obj_idx + 1],
+        }
+        inference_state["output_dict_per_obj"][obj_idx][storage_key][frame_idx] = obj_temp_output_dict[storage_key][
+            frame_idx
+        ]
+        return frame_idx, obj_ids, None, current_out["pred_masks_video_res"][obj_idx : obj_idx + 1]
 
     def _consolidate_temp_output_across_obj(
         self, inference_state, frame_idx, is_cond, run_mem_encoder, consolidate_at_video_res=False

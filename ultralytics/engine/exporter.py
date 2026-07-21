@@ -459,13 +459,7 @@ def try_export(inner_func):
             LOGGER.info(f"{prefix} export success ✅ {dt.t:.1f}s, saved as '{path}' ({mb:.1f} MB)")
             return f
         except Exception as e:
-            dependency_help = (
-                " Ultralytics Platform runs exports in the cloud with no local dependencies required. "
-                "Visit https://platform.ultralytics.com."
-                if isinstance(e, ImportError)
-                else ""
-            )
-            LOGGER.error(f"{prefix} export failure {dt.t:.1f}s: {e}{dependency_help}")
+            LOGGER.error(f"{prefix} export failure {dt.t:.1f}s: {e}")
             raise e
 
     return outer_func

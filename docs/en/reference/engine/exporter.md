@@ -12,7 +12,7 @@ keywords: YOLOv8, export formats, ONNX, TensorRT, CoreML, machine learning model
 
 <br>
 
-## ::: ultralytics.engine.exporter._ExportEnvironmentError
+## ::: ultralytics.engine.exporter.ExportEnvironmentError
 
 <br><br><hr><br>
 

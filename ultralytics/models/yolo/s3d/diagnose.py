@@ -9,10 +9,12 @@ probes and a gradient-conflict callback. Literature basis: MonoDLE (CVPR 2021) o
 
 from __future__ import annotations
 
+import math
 from dataclasses import replace
 from typing import Any
 
 import numpy as np
+import torch
 
 ORACLE_COMPONENTS = ("z", "y", "xy", "location", "dims", "orientation", "score")
 
@@ -258,6 +260,70 @@ def bootstrap_ap(
         for k in keys:
             samples[k].append(float(rd.get(k, 0.0)))
     return {k: tuple(float(np.percentile(v, p)) for p in (2.5, 50, 97.5)) for k, v in samples.items()}
+
+
+def dist_stats(logits: torch.Tensor) -> dict[str, torch.Tensor]:
+    """Softmax distribution-shape stats for [N, n_bins] logits (GFLv2: shape predicts localization quality).
+
+    Entropy is normalized by log(n_bins) so 1.0 = uniform (uninformative) and 0.0 = one-hot. Applies to both
+    DepthDFL depth-bin logits and cost-volume disparity slices.
+
+    Args:
+        logits (torch.Tensor): [..., n_bins] raw logits.
+
+    Returns:
+        (dict[str, torch.Tensor]): entropy, top1 (peak mass), top2_mass, argmax — each [...].
+    """
+    p = logits.float().softmax(dim=-1)
+    n_bins = p.shape[-1]
+    entropy = -(p * (p + 1e-12).log()).sum(-1) / math.log(n_bins)
+    top2 = p.topk(min(2, n_bins), dim=-1).values
+    return {"entropy": entropy, "top1": top2[..., 0], "top2_mass": top2.sum(-1), "argmax": p.argmax(-1)}
+
+
+def expected_dz(z: float, dpx: float, fx: float, baseline: float) -> float:
+    """Exact depth change when the measured disparity changes by dpx pixels (d = fx·b/z).
+
+    Args:
+        z (float): Base depth in meters.
+        dpx (float): Disparity reduction in pixels: the perturbed disparity is d − dpx, so positive dpx
+            (less disparity) yields z' > z.
+        fx (float): Focal length in pixels (original-image space).
+        baseline (float): Stereo baseline in meters.
+
+    Returns:
+        (float): z' − z; inf when the perturbed disparity is non-positive.
+    """
+    d = fx * baseline / z
+    if d - dpx <= 0:
+        return float("inf")
+    return fx * baseline / (d - dpx) - z
+
+
+def stereo_sensitivity(
+    base_z: np.ndarray, shifted_z: np.ndarray, z_gt: np.ndarray, dpx: float, fx: float, baseline: float
+) -> float:
+    """Median ratio of observed to geometrically-expected depth shift under a right-image shift.
+
+    1.0 → depth is fully stereo-driven; 0.0 → the network ignores stereo (monocular shortcut, e.g. the
+    apparent-size cue on constant-dimension objects). van Dijk & de Croon (ICCV 2019)-style probe.
+
+    Args:
+        base_z (np.ndarray): Predicted depths on the unmodified batch.
+        shifted_z (np.ndarray): Predicted depths on the right-image-shifted batch (matched objects).
+        z_gt (np.ndarray): GT depths (unused in the ratio; kept for per-range breakdowns by callers).
+        dpx (float): Disparity change implied by the shift (right image rolled +k px → dpx = −k).
+        fx (float): Focal length in pixels.
+        baseline (float): Stereo baseline in meters.
+
+    Returns:
+        (float): Median sensitivity ratio, or nan when no valid objects.
+    """
+    expected = np.array([expected_dz(float(z), dpx, fx, baseline) for z in base_z])
+    valid = np.isfinite(expected) & (np.abs(expected) > 1e-9)
+    if not valid.any():
+        return float("nan")
+    return float(np.median((shifted_z[valid] - base_z[valid]) / expected[valid]))
 
 
 def depth_bias_fit(records: list[dict[str, float]]) -> tuple[float, float, float]:

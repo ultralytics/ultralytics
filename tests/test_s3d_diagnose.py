@@ -169,6 +169,44 @@ def test_bootstrap_ap_tightens_with_perfect_preds():
     assert lo == pytest.approx(hi)
 
 
+def test_dist_stats_peaky_vs_flat():
+    """Peaky logits → near-zero entropy, top1≈1; flat logits → entropy 1, top1=1/n_bins."""
+    import torch
+
+    from ultralytics.models.yolo.s3d.diagnose import dist_stats
+
+    peaky = torch.zeros(1, 16)
+    peaky[0, 7] = 20.0
+    flat = torch.zeros(1, 16)
+    sp, sf = dist_stats(peaky), dist_stats(flat)
+    assert sp["entropy"][0] < 0.05 and sf["entropy"][0] == pytest.approx(1.0, abs=1e-5)
+    assert sp["top1"][0] > 0.99 and sp["argmax"][0] == 7
+    assert sf["top1"][0] == pytest.approx(1 / 16, abs=1e-5)
+
+
+def test_expected_dz_geometry():
+    """KITTI-ish: fx=721.5, b=0.54, z=20 → d=19.48 px; disparity change moves depth the right way."""
+    from ultralytics.models.yolo.s3d.diagnose import expected_dz
+
+    fx, b, z = 721.5377, 0.54, 20.0
+    d = fx * b / z
+    assert expected_dz(z, -1.0, fx, b) == pytest.approx(fx * b / (d + 1.0) - z)
+    assert expected_dz(z, -1.0, fx, b) < 0  # more disparity → nearer
+    assert expected_dz(z, 1.0, fx, b) > 0  # less disparity → farther
+
+
+def test_stereo_sensitivity_scales():
+    """Sensitivity is 1.0 for a fully stereo-driven shift and 0.0 when depth ignores the shift."""
+    from ultralytics.models.yolo.s3d.diagnose import expected_dz, stereo_sensitivity
+
+    fx, b, dpx = 721.5377, 0.54, 1.0
+    base = np.array([10.0, 20.0, 30.0])
+    full = base + np.array([expected_dz(z, dpx, fx, b) for z in base])
+    none = base.copy()
+    assert stereo_sensitivity(base, full, base, dpx, fx, b) == pytest.approx(1.0, abs=1e-6)
+    assert stereo_sensitivity(base, none, base, dpx, fx, b) == pytest.approx(0.0, abs=1e-6)
+
+
 def test_depth_bias_fit_recovers_slope():
     """dz = 0.05*z + 0.1 exactly → fit recovers (0.05, 0.1, ~0)."""
     rng = np.random.default_rng(0)
